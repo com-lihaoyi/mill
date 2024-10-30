@@ -747,4 +747,16 @@ object TestGraphs {
 
     object A extends TestBaseModule {}
   }
+
+  object ModuleRefCycle extends TestBaseModule {
+    def foo = Task { "foo" }
+
+    // The cycle is in directly here
+    object A extends Module {
+      def b = ModuleRef(B)
+    }
+    object B extends Module {
+      def a = ModuleRef(A)
+    }
+  }
 }

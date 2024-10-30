@@ -1152,5 +1152,12 @@ object ResolveTests extends TestSuite {
         Right(Set(_.foo))
       )
     }
+    test("moduleRefCycle") {
+      val check = new Checker(TestGraphs.ModuleRefCycle)
+      test - check(
+        "__",
+        Right(Set(_.foo))
+      )
+    }
   }
 }
