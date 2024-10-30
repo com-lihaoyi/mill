@@ -59,6 +59,10 @@ We will discuss each one in turn:
 ## Performance
 
 ### Maven
+
+Overall across our benchmarks, Mill is 5-10x faster than Maven for clean compiles,
+both parallel and sequential, and for many modules or for a single module:
+
 |===
 | Benchmark | Maven | Mill | Speedup
 | xref:comparisons/maven.adoc#_sequential_clean_compile_all[Sequential Clean Compile All] | 2m 31.12s | 0m 22.19s | 6.8x
@@ -77,11 +81,19 @@ For the purposes of this page, we will focus on two benchmarks
 | xref:comparisons/maven.adoc#_parallel_clean_compile_all[Parallel Clean Compile All] | 1m 16.45s | 0m 09.95s | 7.7x
 |===
 
+
 ```bash
 > time ./mvnw -T 10 -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true clean install
 
 > ./mill clean; time ./mill __.compile
 ```
+
+
+This benchmark involves running `clean` to delete all generated files and re-compiling
+everything in parallel. For Maven, parallelism is opt-in via `-T 10`, while for Mill it
+is enabled by default.
+
+Mill sees a significant ~8x speedup over Maven for this benchmark.
 
 #### Incremental Compile Single-Module
 
@@ -102,8 +114,20 @@ $ time ./mill common.test.compile
 compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
 ```
 
+This benchmark involves making a single edit to a single already-compiled file in `common` -
+adding a single newline to the end of the file - and re-compiling `common` and `common.test`.
+
+Mill sees a huge ~39x speedup for this benchmark, because Mill's incremental compiler (Zinc)
+is able to detect that only one file in one module has changed, and the change is small enough
+to not require other files to re-compile. In contrast, Maven re-compiles all files in both
+modules, even though only one file was touched and the change was trivial.
+
 
 ### Gradle
+
+The comparison with Gradle is less stark, but still significant. Mill is 3-4x faster than Gradle
+for clean compiles, both parallel and sequential, and for many modules or for a single module:
+
 
 |===
 | Benchmark | Gradle | Mill | Speedup
@@ -129,8 +153,13 @@ $ ./gradlew clean; time ./gradlew classes testClasses --no-build-cache
 $ ./mill clean; time ./mill __.compile
 ```
 
-#### Incremental Compile Single-Module
+Here we only run compilation for classes and test classes, without linting or testing or anything else.
+Both Mill and Gradle are parallel by default, with 1 thread per core. For Gradle we disabled the global
+build cache to ensure we can benchmark the actual compilation time.
 
+We measure Mill being ~3.4x faster than Gradle for this benchmark.
+
+#### Incremental Compile Single-Module
 
 |===
 | Benchmark | Gradle | Mill | Speedup
@@ -143,6 +172,15 @@ $ echo "" >> src/main/java/org/mockito/BDDMockito.java; time ./gradlew :classes
 $ echo "" >> src/main/java/org/mockito/BDDMockito.java; time ./mill compile
 compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
 ```
+
+
+Again, this benchmark involves making a single edit to a single already-compiled file in the
+root module - adding a single newline to the end of the file - and re-compiling it along with
+its tests.
+
+Both Gradle and Mill appear to do a good job limiting the compilation to only the changed
+file, but Mill has less fixed overhead than Gradle does.
+
 
 ## Ease of Use
 
@@ -215,6 +253,71 @@ something that can be hard to come by with build tools that are often considered
 inscrutable.
 
 ### IDE Support
+
+One area that Mill does better than Gradle is providing a seamless IDE experience. For example,
+consider the snippet below where we are using Gradle to configure the javac compiler options.
+Due to `.gradle` files being untyped Groovy, the autocomplete and code-assist experience working
+with these files is hit-or-miss. In the example below, we can see that IntelliJ is able to identify
+that `compileArgs` exists and has the type `List<String>`:
+
+image::comparisons/IntellijMockitoGradleCompileOptions.png[]
+
+But if you try to jump to definition or find out anything else about it you hit a wall:
+
+image::comparisons/IntellijMockitoGradleCompileOptions2.png[]
+
+Often working with build configurations feels like hitting dead ends: if you don't have
+`options.compilerArgs` memorized in your head, there is literally nothing you can do in your editor to
+make progress to figure out what it is or what it is used for. That leaves you googling
+for answers, which can be a frustrating experience that distracts you from the task at hand.
+
+The fundamental problem with tools like Gradle is that the code you write does not
+actually perform the build: rather, you are just setting up some data structure that
+is used to configure the _real_ build engine that runs later. Thus when you explore
+the Gradle build in an IDE, the IDE can only explore the configuration logic (which
+is usually un-interesting) and is unable to explore the actual build logic (which
+is what you actually care about!)
+
+In comparison, Mill's `.mill` files are all statically typed, and as a result IntelliJ is easily able to
+pull up the documentation for `def javacOptions`, even though it doesn't have any special support
+for Mill built into the IDE:
+
+image::comparisons/IntellijMockitoMillJavacOptionsDocs.png[]
+
+Apart from static typing, the way Mill builds are structured also helps the IDE: Mill
+code _actually performs your build_, rather than configuring some opaque build engine.
+While that sounds academic, one concrete consequence is that IntelliJ is able to take
+your `def javacOptions` override and
+find the original definitions that were overridden, and show you where they are defined:
+
+image::comparisons/IntellijMockitoMillJavacOptionsParents.png[]
+
+image::comparisons/IntellijMockitoMillJavacOptionsDef.png[]
+
+Furthermore, because task dependencies in Mill are just normal method calls, IntelliJ is
+able to _find usages_, showing you where the task is used. Below, we can see the method
+call in the `def compile` task, which uses `javacOptions()` along with a number of other tasks:
+
+image::comparisons/IntellijMockitoMillCompile.png[]
+
+From there, if you are curious about any of the other tasks used alongside `javacOptions`, it's
+easy for you to pull up _their_ documentation, jump to _their_
+definition, or find _their_ usages. For example we can pull up the docs of
+`compileClasspath()` below:
+
+image::comparisons/IntellijMockitoMillCompileClasspath.png[]
+
+Or we can use _find usages_ on `def compile` to see where it is used, both in this build
+and upstream in the Mill libraries:
+
+image::comparisons/IntellijMockitoMillCompileUsages.png[]
+
+Unlike most other build tools, Mill builds are extremely easy to explore interactively in your
+IDE. If you do not know what something does, it's documentation, definition, or usages is always
+one click away in IntelliJ or VSCode. That's not to say Mill builds aren't complex - as
+we saw above, compilation has to deal with upstream outputs, classpaths, flags, reporters, and so on -
+but at least in Mill your IDE can help you explore, understand and manage the complexity in a way
+that no other build tool supports.
 
 ## Extensibility
 
