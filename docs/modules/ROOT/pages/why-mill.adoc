@@ -294,24 +294,6 @@ image::comparisons/IntellijMockitoMillJavacOptionsParents.png[]
 
 image::comparisons/IntellijMockitoMillJavacOptionsDef.png[]
 
-Furthermore, because task dependencies in Mill are just normal method calls, IntelliJ is
-able to _find usages_, showing you where the task is used. Below, we can see the method
-call in the `def compile` task, which uses `javacOptions()` along with a number of other tasks:
-
-image::comparisons/IntellijMockitoMillCompile.png[]
-
-From there, if you are curious about any of the other tasks used alongside `javacOptions`, it's
-easy for you to pull up _their_ documentation, jump to _their_
-definition, or find _their_ usages. For example we can pull up the docs of
-`compileClasspath()` below:
-
-image::comparisons/IntellijMockitoMillCompileClasspath.png[]
-
-Or we can use _find usages_ on `def compile` to see where it is used, both in this build
-and upstream in the Mill libraries:
-
-image::comparisons/IntellijMockitoMillCompileUsages.png[]
-
 Unlike most other build tools, Mill builds are extremely easy to explore interactively in your
 IDE. If you do not know what something does, it's documentation, definition, or usages is always
 one click away in IntelliJ or VSCode. That's not to say Mill builds aren't complex - as
