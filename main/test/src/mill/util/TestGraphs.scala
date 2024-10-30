@@ -242,18 +242,18 @@ class TestGraphs() {
 
   // The module names repeat, but it's not actually cyclic and is meant to confuse the cycle detection.
   object nonCyclicModules extends TestBaseModule {
-    object A extends TestBaseModule {
+    object A extends Module {
       def b = B
     }
-    object B extends TestBaseModule {
-      object A extends TestBaseModule {
+    object B extends Module {
+      object A extends Module {
         def b = B
       }
       def a = A
 
-      object B extends TestBaseModule {
-        object B extends TestBaseModule {}
-        object A extends TestBaseModule {
+      object B extends Module {
+        object B extends Module {}
+        object A extends Module {
           def b = B
         }
         def a = A

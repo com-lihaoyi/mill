@@ -100,7 +100,8 @@ private object ResolveCore {
                     m.cls,
                     None,
                     current.segments,
-                    Nil
+                    Nil,
+                    Set.empty // TODO: We should pass the seenModules set
                   )
 
                 transitiveOrErr.map(transitive => self ++ transitive)
@@ -122,7 +123,8 @@ private object ResolveCore {
                   m.cls,
                   None,
                   current.segments,
-                  typePattern
+                  typePattern,
+                  Set.empty // TODO: We should pass the seenModules set
                 )
 
                 transitiveOrErr.map(transitive => self ++ transitive)
@@ -244,26 +246,37 @@ private object ResolveCore {
     cls: Class[_],
     nameOpt: Option[String],
     segments: Segments,
-    typePattern: Seq[String]
+    typePattern: Seq[String],
+    seenModules: Set[Class[_]],
   ): Either[String, Set[Resolved]] = {
-    val direct = resolveDirectChildren(rootModule, cls, nameOpt, segments, typePattern)
+    val errOrDirect = resolveDirectChildren(rootModule, cls, nameOpt, segments, typePattern)
     val directTraverse = resolveDirectChildren(rootModule, cls, nameOpt, segments, Nil)
 
-    val indirect0 = directTraverse match {
-      case Right(modules) =>
-        modules.flatMap {
-          case m: Resolved.Module =>
-            // TODO: Add cycle detection here
-            Some(resolveTransitiveChildren(rootModule, m.cls, nameOpt, m.segments, typePattern))
-          case _ => None
-        }
-      case Left(err) => Seq(Left(err))
+    val errOrModules = directTraverse.map { modules =>
+      modules.flatMap {
+        case m: Resolved.Module => Some(m)
+        case _ => None
+      }
     }
 
-    for {
-      d <- direct
-      i <- EitherOps.sequence(indirect0).map(_.flatten)
-    } yield d ++ i
+    if (seenModules.contains(cls)) {
+      Left(s"Cyclic module reference detected: ${cls.getName}, it's required to wrap it in ModuleRef. See documentation: https://mill-build.org/mill/0.12.1/fundamentals/modules.html#_abstract_modules_references")
+    } else {
+      val errOrIndirect0 = errOrModules match {
+        case Right(modules) =>
+          modules.flatMap { m =>
+            Some(resolveTransitiveChildren(rootModule, m.cls, nameOpt, m.segments, typePattern, seenModules + cls))
+          }
+        case Left(err) => Seq(Left(err))
+      }
+
+      val errOrIndirect = EitherOps.sequence(errOrIndirect0).map(_.flatten)
+
+      for {
+        direct <- errOrDirect
+        indirect <- errOrIndirect
+      } yield direct ++ indirect
+    }
   }
 
   private def resolveParents(c: Class[_]): Seq[Class[_]] =

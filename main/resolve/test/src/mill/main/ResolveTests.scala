@@ -1112,11 +1112,9 @@ object ResolveTests extends TestSuite {
     }
     test("cyclicModuleRefInitError") {
       val check = new Checker(cyclicModuleRefInitError)
-      test - check(
-        "__",
-        Left(
-          "blah blah blah." // TODO: complete this
-        )
+      test - check.checkSeq0(
+        Seq("__"),
+        isShortError(_, "Cyclic module reference detected")
       )
     }
     test("nonCyclicModules") {
