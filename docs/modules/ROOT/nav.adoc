@@ -23,6 +23,7 @@
 ** xref:scalalib/publishing.adoc[]
 ** xref:scalalib/build-examples.adoc[]
 ** xref:scalalib/web-examples.adoc[]
+** xref:scalalib/native-examples.adoc[]
 * xref:kotlinlib/intro.adoc[]
 ** xref:kotlinlib/builtin-commands.adoc[]
 ** xref:kotlinlib/module-config.adoc[]
