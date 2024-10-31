@@ -1,0 +1,3 @@
+package `if`
+
+object foo

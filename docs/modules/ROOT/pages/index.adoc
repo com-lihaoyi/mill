@@ -70,19 +70,27 @@ xref:extending/writing-plugins.adoc#_publishing[publish them] to Maven Central f
 
 To begin using Mill, check out the introductory documentation for each language:
 
-* xref:javalib/intro.adoc[]
-* xref:scalalib/intro.adoc[]
-* xref:kotlinlib/intro.adoc[]
 
-If you prefer a video introduction, see the following tech talk that was presented
-at the Japan Java User Group Fall Conference Oct 2024:
+[cols="1a,1a,1a"]
+|===
+| xref:javalib/intro.adoc[image:index/iconscout-java.svg[java,32] Java with Mill]
+| xref:scalalib/intro.adoc[image:index/iconscout-scala.svg[scala,20] Scala with Mill]
+| xref:kotlinlib/intro.adoc[image:index/iconscout-kotlin.svg[kotlin,32] Kotlin with Mill]
+|===
 
-* https://www.youtube.com/watch?v=Dry6wMRN6MI[Video: Better Java Builds with the Mill Build Tool]
 
+For a quick introduction of why you may care about Mill, see the following page:
+
+* xref:why-mill.adoc[]
+
+Or if you prefer a video introduction:
+
+* https://www.youtube.com/watch?v=Dry6wMRN6MI[Video: Better Java Builds with the Mill Build Tool],
+  Japan Java User Group Fall Conference Oct 2024
 
 Mill is used to build many real-world projects, such as the
 https://github.com/swaldman/c3p0[C3P0 JDBC Connection Pool],
-https://github.com/coursier/coursier[Coursier JVM dependency resolver],
+https://github.com/coursier/coursier[Coursier dependency resolver],
 https://github.com/com-lihaoyi/Ammonite[Ammonite REPL], and the
 https://github.com/SpinalHDL/SpinalHDL[SpinalHDL] and
 https://github.com/chipsalliance/chisel[Chisel] hardware design frameworks.
@@ -95,9 +103,15 @@ https://gradle.org/[Gradle], https://bazel.build/[Bazel], but tries to learn fro
 strengths of each tool and improve on their weaknesses. For comparisons with existing
 build tools, check out these pages:
 
-* xref:comparisons/maven.adoc[Mill vs Maven]
-* xref:comparisons/gradle.adoc[Mill vs Gradle]
-* xref:comparisons/sbt.adoc[Mill vs SBT]
+
+[cols="1a,1a,1a"]
+|===
+| xref:comparisons/maven.adoc[image:index/maven.png[maven,24] Mill vs Maven]
+| xref:comparisons/gradle.adoc[image:index/gradle.svg[gradle,32] Mill vs Gradle]
+| xref:comparisons/sbt.adoc[image:index/sbt.png[sbt,32] Mill vs SBT]
+|===
+
+
 
 If you want to contribute to Mill, or are interested in the fundamental ideas behind 
 Mill rather than the user-facing benefits discussed above, check out the page on 
@@ -107,3 +121,13 @@ they are interesting:
 
 * https://www.youtube.com/watch?v=UsXgCeU-ovI[Video: A Deep Dive into the Mill Build Tool]
 
+To engage Mill with the community, you can use the channels below:
+
+* https://github.com/com-lihaoyi/mill/discussions[Mill Github Discussions]
+* https://discord.com/invite/scala[Scala Discord], in the TOOLING#mill channel
+
+Mill maintains an open list of issue bounties below, with payouts ranging from
+500USD to 3000USD per issue. Feel free to look through the list and try your
+hand at any bounties that may interest you
+
+* https://github.com/orgs/com-lihaoyi/discussions/6[Open Issue Bounties]

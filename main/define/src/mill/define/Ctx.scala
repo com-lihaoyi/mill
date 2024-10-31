@@ -1,6 +1,6 @@
 package mill.define
 
-import scala.annotation.implicitNotFound
+import scala.annotation.{compileTimeOnly, implicitNotFound}
 
 /**
  * The contextual information provided by a [[mill.define.Module]].
@@ -39,7 +39,7 @@ trait Ctx {
   private[mill] def withEnclosingModule(enclosingModule: Any): Ctx = this
 }
 
-object Ctx {
+object Ctx extends LowPriCtx {
   private case class Impl(
       enclosing: String,
       lineNum: Int,
@@ -105,4 +105,14 @@ object Ctx {
       Seq()
     )
   }
+}
+
+trait LowPriCtx {
+  // Dummy `Ctx` available in implicit scope but never actually used.
+  // as it is provided by the codegen. Defined for IDEs to think that one is available
+  // and not show errors in build.mill/package.mill even though they can't see the codegen
+  @compileTimeOnly(
+    "Modules and Tasks can only be defined within a mill Module"
+  )
+  implicit def dummyInfo: Ctx = sys.error("implicit Ctx must be provided")
 }
