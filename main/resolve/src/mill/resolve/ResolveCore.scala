@@ -101,7 +101,7 @@ private object ResolveCore {
                     None,
                     current.segments,
                     Nil,
-                    Set.empty // TODO: We should pass the seenModules set
+                    Set.empty
                   )
 
                 transitiveOrErr.map(transitive => self ++ transitive)
@@ -124,7 +124,7 @@ private object ResolveCore {
                   None,
                   current.segments,
                   typePattern,
-                  Set.empty // TODO: We should pass the seenModules set
+                  Set.empty
                 )
 
                 transitiveOrErr.map(transitive => self ++ transitive)
@@ -341,7 +341,8 @@ private object ResolveCore {
         case (Resolved.Module(s, cls), _) => Resolved.Module(segments ++ s, cls)
         case (Resolved.NamedTask(s), _) => Resolved.NamedTask(segments ++ s)
         case (Resolved.Command(s), _) => Resolved.Command(segments ++ s)
-      }.toSet ++ filteredCrosses
+      }
+        .toSet ++ filteredCrosses
     }
   }
 
