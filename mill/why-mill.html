@@ -89,7 +89,7 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="javalib/intro.html">Building Java Projects with Mill</a>
+    <a class="nav-link" href="javalib/intro.html">Building Java with Mill</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
@@ -132,7 +132,7 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="scalalib/intro.html">Building Scala Projects with Mill</a>
+    <a class="nav-link" href="scalalib/intro.html">Building Scala with Mill</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
@@ -436,14 +436,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.1-16-b449aa</span>
+    <span class="version">0.12.1-17-41fa64</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="0.12.1/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="index.html">0.12.1-16-b449aa</a>
+          <a href="index.html">0.12.1-17-41fa64</a>
         </li>
         <li class="version is-latest">
           <a href="0.12.1/index.html">0.12.1</a>
@@ -535,42 +535,21 @@ these advantages are:</p>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Performance</p>
-<div class="ulist">
-<ul>
-<li>
-<p><strong>Mill offers a 2-10x speedup means less time waiting for your build tool</strong>, meaning
-less time waiting for your build and more time doing useful work</p>
-</li>
-</ul>
-</div>
+<p><strong>Performance</strong>: Mill offers a 2-10x speedup means less time waiting for your build tool,
+meaning less time waiting for your build and more time doing useful work</p>
 </li>
 <li>
-<p>Ease of Use</p>
-<div class="ulist">
-<ul>
-<li>
-<p><strong>Mill offers better IDE support in IntelliJ and VSCode and rich visualization tools</strong>,
-to help understand your build and what it is doing</p>
-</li>
-</ul>
-</div>
+<p><strong>Ease of Use</strong>: Mill has better IDE support in IntelliJ and VSCode and richer
+visualization tools that other tools, to help understand your build and what it is doing</p>
 </li>
 <li>
-<p>Extensibility</p>
-<div class="ulist">
-<ul>
-<li>
-<p><strong>Directly write code or use any Java library from Maven Central in your build</strong>,
-without being beholden to third party plugins that may not exist or be well maintained.</p>
-</li>
-</ul>
-</div>
+<p><strong>Extensibility</strong>: Mill lets you write code or use any published JVM library in your build,
+customizing it to your needs without being limited by third-party plugins</p>
 </li>
 </ol>
 </div>
 <div class="paragraph">
-<p>We will discuss each one in turn:</p>
+<p>We will discuss each one in turn.</p>
 </div>
 </div>
 </div>
@@ -665,8 +644,18 @@ both parallel and sequential, and for many modules or for a single module:</p>
 </div>
 <div class="paragraph">
 <p>This benchmark involves running <code>clean</code> to delete all generated files and re-compiling
-everything in parallel. For Maven, parallelism is opt-in via <code>-T 10</code>, while for Mill it
-is enabled by default.</p>
+everything in parallel.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>For Maven, parallelism is opt-in via <code>-T 10</code>, while for Mill it is enabled by default.</p>
+</li>
+<li>
+<p>For Maven, tests and linters are opt-out via the <code>-D</code> properties, while in Mill
+tests an linters are opt-in</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
 <p>Mill sees a significant ~8x speedup over Maven for this benchmark.</p>
@@ -714,8 +703,9 @@ compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/c
 adding a single newline to the end of the file - and re-compiling <code>common</code> and <code>common.test</code>.</p>
 </div>
 <div class="paragraph">
-<p>Mill sees a huge ~39x speedup for this benchmark, because Mill’s incremental compiler (Zinc)
-is able to detect that only one file in one module has changed, and the change is small enough
+<p>Mill sees a huge ~39x speedup for this benchmark, because Mill’s incremental compiler
+(<a href="https://github.com/sbt/zinc">Zinc</a>) is able to detect that only one file in one module
+has changed, and that the change is small enough
 to not require other files to re-compile. In contrast, Maven re-compiles all files in both
 modules, even though only one file was touched and the change was trivial.</p>
 </div>
@@ -725,7 +715,7 @@ modules, even though only one file was touched and the change was trivial.</p>
 <h3 id="_gradle"><a class="anchor" href="#_gradle"></a>Gradle</h3>
 <div class="paragraph">
 <p>The comparison with Gradle is less stark, but still significant. Mill is 3-4x faster than Gradle
-for clean compiles, both parallel and sequential, and for many modules or for a single module:</p>
+across the various workflows:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -855,7 +845,8 @@ its tests.</p>
 </div>
 <div class="paragraph">
 <p>Both Gradle and Mill appear to do a good job limiting the compilation to only the changed
-file, but Mill has less fixed overhead than Gradle does.</p>
+file, but Mill has less fixed overhead than Gradle does, finishing in about ~0.5s
+rather than ~1.5 seconds.</p>
 </div>
 </div>
 </div>
@@ -892,13 +883,25 @@ tasks to show the exact duration and other metadata.</p>
 </div>
 <div class="paragraph">
 <p>But the real benefit of the Chrome profile isn’t the low-level data it provides, but the
-high-level view: in the profile above, it is clear that for the first ~700ms, Mill is able
-to use all cores on 10 cores on my laptop to do useful work. But after that, utilization is
+high-level view:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>In the profile above, it is clear that for the first ~700ms, Mill is able
+to use all cores on 10 cores on my laptop to do useful work.</p>
+</li>
+<li>
+<p>But after that, utilization is
 much more sparse: <code>common.compile</code>, <code>buffer.compile</code>, <code>transport.compile</code>, <code>codec.compile</code>,
-appear to be &quot;long polls&quot; in the build. These 4 tasks wait for one another to run sequentially,
-likely due to dependencies between them, and they take long enough that all the other tasks
-depending on them get held up. For example, when <code>codec.compile</code> finishes above, we can see
-a number of downstream tasks immediately start running.</p>
+appear to wait for one another and run sequentially one after another.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This waiting is likely due to dependencies between them, and they take long enough that all
+the other tasks depending on them get held up. For example, when <code>codec.compile</code> finishes
+above, we can see a number of downstream tasks immediately start running.</p>
 </div>
 <div class="paragraph">
 <p>This understanding of your build’s performance profile is not just an academic exercise, but
@@ -907,15 +910,12 @@ provides actionable information:</p>
 <div class="ulist">
 <ul>
 <li>
-<p>If I wanted to speed up the Netty clean compile timings,
-speeding up <code>common.compile</code>, <code>buffer.compile</code>, <code>transport.compile</code>, or <code>codec.compile</code> would
-make the most impact: perhaps some of these modules could be broken up into smaller sub-modules
-that would compile in parallel!</p>
+<p>If I wanted faster Netty clean compiles, speeding up <code>common.compile</code>, <code>buffer.compile</code>,
+<code>transport.compile</code>, or <code>codec.compile</code> would make the most impact.</p>
 </li>
 <li>
 <p>On the other hand, time speeding up the various <code>codec-*.compile</code> tasks would help not at all:
-these tasks are already running at a time where the CPUs are mostly idle, and speeding them up
-would just result in more idle time while waiting for the the &quot;long poll&quot; tasks to complete</p>
+these tasks are already running at a time where the CPUs are mostly idle.</p>
 </li>
 </ul>
 </div>
@@ -939,6 +939,9 @@ show the dependency graph between the modules of the Netty build below:</p>
 <div class="content">
 <img src="_images/comparisons/NettyCompileGraph.svg" alt="NettyCompileGraph" />
 </div>
+</div>
+<div class="paragraph">
+<p>(<em>Right-click open-image-in-new-tab to see full size</em>)</p>
 </div>
 <div class="paragraph">
 <p>In this graph, we can clearly see that <code>common.compile</code>, <code>buffer.compile</code>,<code>transport.compile</code>,
@@ -1031,8 +1034,11 @@ call in the <code>def compile</code> task, which uses <code>javacOptions()</code
 <div class="paragraph">
 <p>From there, if you are curious about any of the other tasks used alongside <code>javacOptions</code>, it’s
 easy for you to pull up <em>their</em> documentation, jump to <em>their</em>
-definition, or find <em>their</em> usages. For example we can pull up the docs of
-<code>compileClasspath()</code> below:</p>
+definition, or find <em>their</em> usages. For example we can pull up the docs of</p>
+</div>
+<div class="paragraph">
+<p><code>compileClasspath()</code> below, jump to <em>its</em> implementation, and continue
+interactively exploring your build logic:</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -1040,21 +1046,12 @@ definition, or find <em>their</em> usages. For example we can pull up the docs o
 </div>
 </div>
 <div class="paragraph">
-<p>Or we can use <em>find usages</em> on <code>def compile</code> to see where it is used, both in this build
-and upstream in the Mill libraries:</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="_images/comparisons/IntellijMockitoMillCompileUsages.png" alt="IntellijMockitoMillCompileUsages" />
-</div>
-</div>
-<div class="paragraph">
-<p>Unlike most other build tools, Mill builds are extremely easy to explore interactively in your
+<p>Unlike most other build tools, Mill builds can be explored interactively in your
 IDE. If you do not know what something does, it’s documentation, definition, or usages is always
-one click away in IntelliJ or VSCode. That’s not to say Mill builds aren’t complex - as
-we saw above, compilation has to deal with upstream outputs, classpaths, flags, reporters, and so on -
-but at least in Mill your IDE can help you explore, understand and manage the complexity in a way
-that no other build tool supports.</p>
+one click away in IntelliJ or VSCode. This isn’t a new experience for Java developers, as it
+is what you would be used to day-to-day in your application code! But Mill brings that same
+polished experience to your build system - traditionally some that that has been opaque
+and hard to understand - and does so in a way that no other build tool does.</p>
 </div>
 </div>
 </div>
@@ -1070,16 +1067,17 @@ from Maven Central.</p>
 <p>Most build tools need plugins to do anything: if you want to Foo you need a
 Foo plugin, if you want to Bar you need a Bar plugin, for any possible Foo or Bar. These could
 be simple tasks - zipping up files, pre-rendering web templates, preparing static assets for
-deployment - but even tasks that would be trivial to implement in a few lines of code need you
-to google for third-party plugins, dig through their Github to see which one is best maintained,
-and hope for the best when you include it in your build.</p>
+deployment - but even a tasks that would be trivial to implement in a few lines of code requires
+you to Google for third-party plugins, dig through their Github to see which one is best
+maintained, and hope for the best when you include it in your build. And while you could
+write plugins yourself, doing so is usually challenging and non-trivial.</p>
 </div>
 <div class="paragraph">
 <p>Mill is different. Although it does have plugins for more advanced integrations, for most
 simple things you can directly write code to achieve what you want, using the bundled
 filesystem, subprocess, and dependency-management libraries. And even if you need third-party
-libraries from Maven Central, you can directly import the &quot;Foo&quot; library and use it programmatically,
-without having to find a &quot;Foo build plugin&quot; wrapper.</p>
+libraries from Maven Central to do Foo, you can directly import the &quot;Foo&quot; library and use it
+directly, without having to find a &quot;Foo build plugin&quot; wrapper.</p>
 </div>
 <div class="sect2">
 <h3 id="_simple_custom_tasks"><a class="anchor" href="#_simple_custom_tasks"></a>Simple Custom Tasks</h3>
@@ -1105,7 +1103,7 @@ Compiling 1 Java source...</code></pre>
 </div>
 <div class="paragraph">
 <p>If you want to add a custom task, this is as simple as defining a method e.g.
-<code>def lineCount = Task</code>. The body of which performs the action we want, and
+<code>def lineCount = Task { …​ }</code>. The body of <code>Task</code> performs the action we want, and
 can depend on other tasks such as <code>allSourceFiles()</code> below:</p>
 </div>
 <div class="listingblock">
@@ -1178,8 +1176,13 @@ Line Count: 17</code></pre>
 <p>Most developers do not need to embed the line-count of their codebase in a resource
 file to look up at runtime, but nevertheless this example shows how easy it is to write
 code to perform ad-hoc tasks without needing to pull in and configure some third-party
-plugin. Next, we’ll look at a more realistic example, which includes usage of third-party
-libraries in the build.</p>
+plugin. And we get full IDE support with autocomplete/navigation/documentation/etc.
+while we are writing our custom task.</p>
+</div>
+<div class="paragraph">
+<p>While most build tools do allow writing and wiring up custom tasks, none of them
+have a workflow as simple as Mill. Next, we’ll look at a more realistic example,
+which includes usage of third-party libraries in the build.</p>
 </div>
 </div>
 <div class="sect2">
@@ -1222,11 +1225,12 @@ object foo extends JavaModule {
 </div>
 </div>
 <div class="paragraph">
-<p>Once we have run <code>import $ivy</code>, we can <code>import org.thymeleaf.TemplateEngine</code>,
-<code>import org.thymeleaf.context.Context</code>, and replace our <code>def lineCount</code> with a <code>def htmlSnippet</code>
-task that instead of counting lines uses Thymeleaf to render some HTML. Again, it is inspectable
-from the Mill command line via <code>show</code>, and we wire it up into <code>def resources</code> so it can be
-inspected and used (in this case just printed out) at runtime by the application:</p>
+<p>Once we have run <code>import $ivy</code>, we can import <code>TemplateEngine</code>, <code>Context</code>, and replace our
+<code>def lineCount</code> with a <code>def htmlSnippet</code> task that uses Thymeleaf to render  HTML. Again,
+we get full IDE support for working with the Thymeleaf Java API, the new <code>htmlSnippet</code> task
+is inspectable from the Mill command line via <code>show</code>, and we wire it up into
+<code>def resources</code> so it can be inspected and used at runtime by the application
+(in this case just printed out):</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1242,17 +1246,17 @@ generated snippet.txt resource: &lt;h1&gt;hello&lt;/h1&gt;</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Rendering HTML using the Thymelead templating engine is not rocket science, but what is
+<p>Rendering HTML using the Thymeleaf templating engine is not rocket science, but what is
 interesting here is what we did <em>not</em> need to do:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>We did not need to find a Thymeleaf-Mill plugin in order to include Thymeleaf in our
+<p>We did <em>not</em> need to find a Thymeleaf-Mill plugin in order to include Thymeleaf in our
 build</p>
 </li>
 <li>
-<p>We did not need to learn a special API or framework for authoring build plugins ourselves
+<p>We did <em>not</em> need to learn a special API or framework for authoring build plugins ourselves
 to write a plugin to include Thymeleaf in our build</p>
 </li>
 </ul>
@@ -1266,8 +1270,8 @@ non-experts to configure their build to do exactly what they need, rather than b
 limited by what some unmaintained third-party plugin might support. And although
 the configuration is done in the Scala language, the syntax should be relatively
 familiar (&quot;Java without Semicolons&quot; it is sometimes called) and the JVM libraries
-and tools (e.g. IntelliJ, VSCode) are the exact same libraries and tools you are
-already used to.</p>
+and tools (e.g. Thymeleaf, IntelliJ, VSCode) are the exact same libraries and tools
+you are already used to.</p>
 </div>
 </div>
 </div>
@@ -1277,17 +1281,23 @@ already used to.</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>To wrap up, Mill does all the same things that other build tools like Maven or Gradle do,
-but aims to do them better: faster, easier to user, and easier to extend. All together,
-this means both time saved waiting for your build tool to run in day-to-day work, as well
+but aims to do them better: faster, easier to use, and easier to extend.
+This means both time saved waiting for your build tool to run in day-to-day work, as well
 as time saved when you inevitably need to evolve or adjust your build system to accommodate
-changing requirements. With Mill, you can therefore spend less time waiting for or fighting
-with your build tool, and more time on the actual work you are trying to accomplish.</p>
+changing requirements.</p>
+</div>
+<div class="paragraph">
+<p>With Mill, you can therefore spend less time waiting for or fighting with your build tool,
+and more time on the actual work you are trying to accomplish. And while traditionally build
+systems were often mysterious black boxes that only experts could work with, Mill’s ease
+of use and ease of extension democratize the build system so any developer can figure out
+what its doing or extend it to do exactly what they need.</p>
 </div>
 </div>
 </div>
 <nav class="pagination">
   <span class="prev"><a href="index.html">Mill Documentation</a></span>
-  <span class="next"><a href="javalib/intro.html">Building Java Projects with Mill</a></span>
+  <span class="next"><a href="javalib/intro.html">Building Java with Mill</a></span>
 </nav>
 </article>
   </div>
