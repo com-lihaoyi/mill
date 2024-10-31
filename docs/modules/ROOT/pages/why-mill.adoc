@@ -550,20 +550,13 @@ object foo extends JavaModule {
 }
 ```
 
-<<<<<<< HEAD
 Once we have run `import $ivy`, we can import `TemplateEngine`, `Context`, and replace our
 `def lineCount` with a `def htmlSnippet` task that uses Thymeleaf to render  HTML. Again,
 we get full IDE support for working with the Thymeleaf Java API, the new `htmlSnippet` task
 is inspectable from the Mill command line via `show`, and we wire it up into
 `def resources` so it can be inspected and used at runtime by the application
 (in this case just printed out):
-=======
-Once we have run `import $ivy`, we can `import org.thymeleaf.TemplateEngine`,
-`import org.thymeleaf.context.Context`, and replace our `def lineCount` with a `def htmlSnippet`
-task that instead of counting lines uses Thymeleaf to render some HTML. Again, it is inspectable
-from the Mill command line via `show`, and we wire it up into `def resources` so it can be
-inspected and used (in this case just printed out) at runtime by the application:
->>>>>>> main
+
 
 ```bash
 > mill show foo.htmlSnippet
