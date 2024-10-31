@@ -1,0 +1,194 @@
+// This Section demonstrates integration of https://www.python.org[Python]
+// compilation into a Mill build to compile https://www.python.org[Python] Scripts. Mill
+// does not come bundled with https://www.python.org[Python] integration, so here we begin setting
+// one up from first principles using the Basic Python3(Already Present in OS) command Line
+
+// == PythonModule
+// This trait defines all necessary tasks to create and manage a Python virtual environment,
+// install dependencies, and execute a Python script. It is structured around Mill's `Task` system for flexibility.
+
+
+// === Key Components of PythonModule
+
+// - `dependencies`: Specifies any Python packages needed for the virtual environment.
+// - `requirementsPath`: Allows dependency management through a `requirements.txt` file if one exists.
+// - `installPip`: Ensures pip is installed, as it is needed for package management.
+// - `createVenv` and `activateVenv`: Sets up and activates the virtual environment, preparing it for use.
+// - `installDependencies`: Installs all necessary packages within the virtual environment.
+// - `compile`: Executes the main Python script within the virtual environment.
+
+// Each component has been documented with inline comments for clarity.
+
+package build
+import mill._
+
+/**
+ * A trait for managing Python environments and dependencies in a Mill build.
+ */
+trait PythonModule extends Module {
+
+  /** Specifies dependencies to install in the virtual environment. */
+  def dependencies: T[Seq[String]] = Task { Seq.empty[String] }
+
+  /** Specifies command-line options to pass to the main Python file. */
+  def options: T[Seq[String]] = Task { Seq.empty[String] }
+
+  /** Specifies the name of the virtual environment directory. */
+  def venvName: T[String] = Task { "venv" }
+
+  /** Specifies the name of the main Python file. */
+  def mainFileName: T[String] = Task { "main.py" }
+
+  /** Defines the path to the sources directory. */
+  def sources: T[PathRef] = Task.Source(millSourcePath / "src")
+
+  /** Collects all Python source files from the sources directory. */
+  def allSources: T[Seq[PathRef]] = Task {
+    os.walk(sources().path).filter(_.ext == "py").map(PathRef(_))
+  }
+
+  /** Path to the requirements file, configurable by the user. */
+  def requirementsPath: T[PathRef] = Task {
+    PathRef(millSourcePath / "src" / "requirements.txt")
+  }
+
+  /** Reads dependencies from the specified requirements file. */
+  def requirementsDependencies: T[Seq[String]] = Task {
+    val reqFile = requirementsPath().path
+    if (os.exists(reqFile)) {
+      os.read.lines(reqFile).map(_.trim).filter(_.nonEmpty)
+    } else {
+      Seq.empty[String]
+    }
+  }
+
+  /** Installs pip using a downloaded script. */
+  def installPip: T[Unit] = Task {
+    val pipFile = T.dest / "get-pip.py"
+    val pipPath = os.home / ".local" / "bin" / "pip3"
+
+    if (!os.exists(pipPath)) {
+      os.call(Seq("wget", "-q", "https://bootstrap.pypa.io/get-pip.py", "-O", s"$pipFile"))
+      os.call(Seq(
+        "python3",
+        s"$pipFile",
+        "--user",
+        "--break-system-packages",
+        "--no-warn-script-location"
+      ))
+
+      os.call(Seq(
+        pipPath.toString,
+        "install",
+        "--upgrade",
+        "pip",
+        "--break-system-packages",
+        "--no-warn-script-location"
+      ))
+    } else {
+      println("pip is already installed, skipping installation.")
+    }
+  }
+
+  /** Creates a virtual environment using the installed Python version. */
+  def createVenv: T[PathRef] = Task {
+    installPip()
+    val venvDir = T.dest / venvName()
+
+    os.call(Seq(
+      "python3",
+      "-m",
+      "pip",
+      "install",
+      "virtualenv",
+      "--break-system-packages",
+      "--no-warn-script-location"
+    ))
+    os.call(Seq("python3", "-m", "virtualenv", venvDir.toString))
+
+    PathRef(venvDir)
+  }
+
+  /** Activates the created virtual environment. */
+  def activateVenv: T[PathRef] = Task {
+    val venvBin = createVenv().path / "bin"
+    os.call(Seq("bash", "-c", s"source ${venvBin / "activate"}"))
+    PathRef(venvBin)
+  }
+
+  /** Installs specified dependencies in the virtual environment. */
+  def installDependencies: T[PathRef] = Task {
+    val pythonVenv = activateVenv().path / "python3"
+
+    val pythonDependencies: Seq[String] = dependencies() ++ requirementsDependencies()
+
+    if (pythonDependencies.nonEmpty) {
+      os.call(Seq(
+        pythonVenv.toString,
+        "-m",
+        "pip",
+        "install"
+      ) ++ pythonDependencies ++ Seq(
+        "--break-system-packages",
+        "--no-warn-script-location"
+      ))
+    }
+
+    PathRef(pythonVenv)
+  }
+
+  /** Retrieves the path to the main Python file, ensuring it exists. */
+  def mainFile: T[PathRef] = Task {
+
+    val mainFilePath = allSources().find(_.path.last == mainFileName()) match {
+      case Some(mainFile) => mainFile.path
+      case None =>
+        throw new java.io.FileNotFoundException(
+          s"Main file '${mainFileName()}' not found in sources."
+        )
+    }
+    PathRef(mainFilePath)
+  }
+
+  /** Executes the main Python file using the virtual environment. */
+  def compile: T[Unit] = Task {
+    val pythonVenv = installDependencies().path
+    val mainFilePath = mainFile().path
+    val args = options()
+
+    val result = os.call(Seq(pythonVenv.toString, mainFilePath.toString) ++ args)
+
+    T.log.info(result.out.text())
+    if (result.exitCode != 0) {
+      T.log.error(s"Error: ${result.err.text()}")
+    }
+  }
+
+}
+
+
+// === Hello Mill Example 
+
+// This object extends the PythonModule trait, allowing you to configure any options needed for the Python script execution. 
+// You can customize options here to specify custom arguments at runtime.
+
+object `package` extends RootModule with PythonModule{
+  override def options: T[Seq[String]] = Task { Seq[String]("Mill", "Python") }
+}
+
+
+
+/** Usage
+ 
+> ./mill compile
+Hello, Mill Python!
+
+*/
+
+// This Command Executes the `main.py` File and results are shown in the Terminal(logs)
+
+// Below is the `main.py` File
+
+/** See Also: src/main.py */
+
+// This File is executed using Mill(integrated with python)

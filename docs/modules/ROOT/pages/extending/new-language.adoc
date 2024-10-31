@@ -37,3 +37,16 @@ the featureset and performance of `TypeScriptModule` to be usable in a real worl
 build. But this should be enough to get you started working with Mill to add support
 to any language you need: whether it's TypeScript or some other language, most programming
 language toolchains have similar concepts of `compile`, `run`, `bundle`, etc.
+
+
+== Python Support
+
+include::partial$example/extending/newlang/5-hello-python.adoc[]
+
+include::partial$example/extending/newlang/6-python-modules.adoc[]
+
+include::partial$example/extending/newlang/7-python-deps.adoc[]
+
+include::partial$example/extending/newlang/8-python-mypy.adoc[]
+
+include::partial$example/extending/newlang/9-python-pex.adoc[]

@@ -1,0 +1,191 @@
+// == Module Dependencies
+// This example demonstrates the support for managing dependencies in Python projects using the `PythonModule` trait.
+// It enables users to specify dependencies both directly in the build script and through a `requirements.txt` file.
+// This approach is particularly useful for projects that need dynamic dependency handling and isolated environments for each module.
+
+// === Using `PythonModule` for Dependency Management
+
+// The `PythonModule` trait provides functions for creating virtual environments, installing dependencies, and managing the execution context of Python files. 
+// Dependencies can be managed in two ways:
+
+// - Inline dependencies in the Mill build script (e.g., `requests` in this example).
+// - External dependencies listed in a `requirements.txt` file, such as `numpy` and `pandas`.
+ 
+package build
+import mill._
+
+/**
+ * A trait for managing Python environments and dependencies in a Mill build.
+ */
+trait PythonModule extends Module {
+
+  /** Specifies dependencies to install in the virtual environment. */
+  def dependencies: T[Seq[String]] = Task { Seq.empty[String] }
+
+  /** Specifies command-line options to pass to the main Python file. */
+  def options: T[Seq[String]] = Task { Seq.empty[String] }
+
+  /** Specifies the name of the virtual environment directory. */
+  def venvName: T[String] = Task { "venv" }
+
+  /** Specifies the name of the main Python file. */
+  def mainFileName: T[String] = Task { "main.py" }
+
+  /** Defines the path to the sources directory. */
+  def sources: T[PathRef] = Task.Source(millSourcePath / "src")
+
+  /** Collects all Python source files from the sources directory. */
+  def allSources: T[Seq[PathRef]] = Task {
+    os.walk(sources().path).filter(_.ext == "py").map(PathRef(_))
+  }
+
+  /** Path to the requirements file, configurable by the user. */
+  def requirementsPath: T[PathRef] = Task {
+    PathRef(millSourcePath / "src" / "requirements.txt")
+  }
+
+  /** Reads dependencies from the specified requirements file. */
+  def requirementsDependencies: T[Seq[String]] = Task {
+    val reqFile = requirementsPath().path
+    if (os.exists(reqFile)) {
+      os.read.lines(reqFile).map(_.trim).filter(_.nonEmpty)
+    } else {
+      Seq.empty[String]
+    }
+  }
+
+  /** Installs pip using a downloaded script. */
+  def installPip: T[Unit] = Task {
+    val pipFile = T.dest / "get-pip.py"
+    val pipPath = os.home / ".local" / "bin" / "pip3"
+
+    if (!os.exists(pipPath)) {
+      os.call(Seq("wget", "-q", "https://bootstrap.pypa.io/get-pip.py", "-O", s"$pipFile"))
+      os.call(Seq(
+        "python3",
+        s"$pipFile",
+        "--user",
+        "--break-system-packages",
+        "--no-warn-script-location"
+      ))
+
+      os.call(Seq(
+        pipPath.toString,
+        "install",
+        "--upgrade",
+        "pip",
+        "--break-system-packages",
+        "--no-warn-script-location"
+      ))
+    } else {
+      println("pip is already installed, skipping installation.")
+    }
+  }
+
+  /** Creates a virtual environment using the installed Python version. */
+  def createVenv: T[PathRef] = Task {
+    installPip()
+    val venvDir = T.dest / venvName()
+
+    os.call(Seq(
+      "python3",
+      "-m",
+      "pip",
+      "install",
+      "virtualenv",
+      "--break-system-packages",
+      "--no-warn-script-location"
+    ))
+    os.call(Seq("python3", "-m", "virtualenv", venvDir.toString))
+
+    PathRef(venvDir)
+  }
+
+  /** Activates the created virtual environment. */
+  def activateVenv: T[PathRef] = Task {
+    val venvBin = createVenv().path / "bin"
+    os.call(Seq("bash", "-c", s"source ${venvBin / "activate"}"))
+    PathRef(venvBin)
+  }
+
+  /** Installs specified dependencies in the virtual environment. */
+  def installDependencies: T[PathRef] = Task {
+    val pythonVenv = activateVenv().path / "python3"
+
+    val pythonDependencies: Seq[String] = dependencies() ++ requirementsDependencies()
+
+    if (pythonDependencies.nonEmpty) {
+      os.call(Seq(
+        pythonVenv.toString,
+        "-m",
+        "pip",
+        "install"
+      ) ++ pythonDependencies ++ Seq(
+        "--break-system-packages",
+        "--no-warn-script-location"
+      ))
+    }
+
+    PathRef(pythonVenv)
+  }
+
+  /** Retrieves the path to the main Python file, ensuring it exists. */
+  def mainFile: T[PathRef] = Task {
+
+    val mainFilePath = allSources().find(_.path.last == mainFileName()) match {
+      case Some(mainFile) => mainFile.path
+      case None =>
+        throw new java.io.FileNotFoundException(
+          s"Main file '${mainFileName()}' not found in sources."
+        )
+    }
+    PathRef(mainFilePath)
+  }
+
+  /** Executes the main Python file using the virtual environment. */
+  def compile: T[Unit] = Task {
+    val pythonVenv = installDependencies().path
+    val mainFilePath = mainFile().path
+    val args = options()
+
+    val result = os.call(Seq(pythonVenv.toString, mainFilePath.toString) ++ args)
+
+    T.log.info(result.out.text())
+    if (result.exitCode != 0) {
+      T.log.error(s"Error: ${result.err.text()}")
+    }
+  }
+
+}
+
+// === Example
+
+// This `package` object extends `RootModule` and `PythonModule`, combining inline dependencies and requirements from `requirements.txt`. 
+// The `dependencies` override installs the `requests` library directly through the Mill script, while additional packages 
+// like `numpy` and `pandas` are listed in `requirements.txt`. This setup allows core dependencies to be managed within the build script,
+// while environment-specific libraries are specified in `requirements.txt`, ensuring flexible and comprehensive dependency management.
+
+object `package` extends RootModule with PythonModule{
+  // we will add few dependencies using this function and some in the requirements.txt file
+  override def dependencies: T[Seq[String]] = Task{ Seq[String]("requests") }
+  // "numpy", "pandas" is Added in requirements.txt 
+  // To Verify: These libraries are present in the code and working.
+}
+
+// To run this build script, use the following command. 
+// Upon execution, it installs dependencies listed in both the `requirements.txt` file and the `dependencies` method 
+// and then executes the main Python script with these dependencies available.
+
+/** Usage
+
+> ./mill compile
+NumPy Example: Array: [1 2 3 4 5] ; Mean: 3.0 ; Sum: 15 | Pandas Example: Average Age: 26.0 ; Cities: ['New York' 'Los Angeles' 'Chicago'] | Requests Example: Requests is working! ; Status Code=200
+
+*/
+
+// Below are the Files from Source Folder(main.py, requirements.txt)
+
+/** See Also: src/main.py */
+/** See Also: src/requirements.txt */
+
+// User can also mention particular versions of the dependencies as per the rules of requirements.txt
