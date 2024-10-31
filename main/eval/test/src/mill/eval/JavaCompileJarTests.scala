@@ -42,7 +42,14 @@ object JavaCompileJarTests extends TestSuite {
           Task { sourceRoot().flatMap(p => os.walk(p.path)).map(mill.api.PathRef(_)) }
         def classFiles = Task { compileAll(allSources()) }
         def jar = Task {
-          Jvm.createJar(Loose.Agg(classFiles().path, readme().path) ++ resourceRoot().map(_.path))
+          println(s"Debug: Creating jar from:")
+          println(s"Debug: Class files path: ${classFiles().path}")
+          println(s"Debug: Readme path: ${readme().path}")
+          println(s"Debug: Resource roots: ${resourceRoot().map(_.path).mkString(", ")}")
+          val result =
+            Jvm.createJar(Loose.Agg(classFiles().path, readme().path) ++ resourceRoot().map(_.path))
+          println(s"Debug: Jar creation complete at: ${result.path}")
+          result
         }
         // Test createJar() with optional file filter.
         def filterJar(fileFilter: (os.Path, os.RelPath) => Boolean) = Task {
@@ -122,6 +129,9 @@ object JavaCompileJarTests extends TestSuite {
       check(targets = Agg(resourceRoot), expected = Agg())
       check(targets = Agg(allSources), expected = Agg(allSources))
       check(targets = Agg(jar), expected = Agg(classFiles, jar))
+
+      println(s"Debug: Checking jar at: ${evaluator.outPath / "jar.dest/out.jar"}")
+      println(s"Debug: File exists: ${os.exists(evaluator.outPath / "jar.dest/out.jar")}")
 
       val jarContents = os.proc("jar", "-tf", evaluator.outPath / "jar.dest/out.jar").call(
         evaluator.outPath

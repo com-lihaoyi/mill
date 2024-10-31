@@ -27,12 +27,24 @@ trait JsonFormatters {
 
   implicit val pathReadWrite: RW[os.Path] = upickle.default.readwriter[String]
     .bimap[os.Path](
-      path => PathRef.normalizePath(path, isTest = path.toString().contains("/Users/testuser")),
+      path =>
+        PathRef.withSerialization {
+          // When serializing, normalize based on path content
+          PathRef.normalizePath(path, isTest = path.toString().contains("/Users/testuser"))
+        },
       pathString => {
-        val isTest = pathString.contains("/Users/testuser") || pathString.contains(
-          "$WORKSPACE"
-        ) || pathString.contains("$COURSIER_CACHE") || pathString.contains("$HOME")
-        PathRef.denormalizePath(pathString, isTest)
+        // For deserialization, maintain test paths if they were test paths
+        val isTestPath = pathString.startsWith("$") &&
+          (pathString.contains("/Users/testuser") || pathString.contains("$WORKSPACE") ||
+            pathString.contains("$COURSIER_CACHE") || pathString.contains("$HOME"))
+
+        if (isTestPath) {
+          // If it was a test path, keep it as a test path
+          PathRef.denormalizePath(pathString, isTest = true)
+        } else {
+          // Otherwise use real paths
+          PathRef.denormalizePath(pathString, isTest = false)
+        }
       }
     )
 

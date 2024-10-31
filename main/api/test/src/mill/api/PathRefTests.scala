@@ -118,7 +118,9 @@ object PathRefTests extends TestSuite {
         test("workspace-path") {
           val path = workspaceRoot / "src" / "main" / "scala"
           val pathRef = PathRef(path, quick = false)
-          val serialized = write(pathRef)(PathRef.jsonFormatter)
+          val serialized = PathRef.withSerialization {
+            write(pathRef)(PathRef.jsonFormatter)
+          }
           println(s"Debug: serialized = $serialized")
           assert(serialized.contains("$WORKSPACE/src/main/scala"))
 
@@ -129,7 +131,9 @@ object PathRefTests extends TestSuite {
         test("coursier-cache-path") {
           val path = coursierCache / "v1" / "https" / "repo1.maven.org" / "maven2"
           val pathRef = PathRef(path, quick = false)
-          val serialized = write(pathRef)(PathRef.jsonFormatter)
+          val serialized = PathRef.withSerialization {
+            write(pathRef)(PathRef.jsonFormatter)
+          }
           println(s"Debug: serialized = $serialized")
           assert(serialized.contains("$COURSIER_CACHE/v1/https/repo1.maven.org/maven2"))
 
@@ -140,7 +144,9 @@ object PathRefTests extends TestSuite {
         test("home-directory-path") {
           val path = home / "documents" / "project"
           val pathRef = PathRef(path, quick = false)
-          val serialized = write(pathRef)(PathRef.jsonFormatter)
+          val serialized = PathRef.withSerialization {
+            write(pathRef)(PathRef.jsonFormatter)
+          }
           println(s"Debug: serialized = $serialized")
           assert(serialized.contains("$HOME/documents/project"))
 
@@ -214,7 +220,11 @@ object PathRefTests extends TestSuite {
       test("worker-json-file") {
         val path = workspaceRoot / "out" / "worker.json"
         val pathRef = PathRef(path, quick = false)
-        val serialized = write(pathRef)(PathRef.jsonFormatter)
+        val serialized = PathRef.withSerialization {
+          write(pathRef)(PathRef.jsonFormatter)
+        }
+        println(s"Debug: Original path = $path")
+        println(s"Debug: Normalized path = ${NonDeterministicFiles.normalizeWorkerJson(path)}")
         println(s"Debug: serialized = $serialized")
         assert(serialized.contains("worker.worker.json"))
       }

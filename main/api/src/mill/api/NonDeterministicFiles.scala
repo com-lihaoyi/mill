@@ -17,13 +17,14 @@ object NonDeterministicFiles {
 
   def isNonDeterministic(path: os.Path): Boolean = {
     nonDeterministicFiles.contains(path.last) ||
-    path.segments.exists(nonDeterministicDirectories.contains) ||
-    path.last.endsWith(".worker.json")
+    path.segments.exists(nonDeterministicDirectories.contains)
   }
 
   def normalizeWorkerJson(path: os.Path): os.Path = {
     if (path.ext == "json" && !path.last.endsWith(".worker.json")) {
-      path / os.up / (path.last.stripSuffix(".json") + ".worker.json")
+      // Get the parent directory and create new filename
+      val newName = path.last.stripSuffix(".json") + ".worker.json"
+      path / os.up / newName
     } else {
       path
     }
