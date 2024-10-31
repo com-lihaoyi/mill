@@ -223,8 +223,6 @@ object PathRefTests extends TestSuite {
         val serialized = PathRef.withSerialization {
           write(pathRef)(PathRef.jsonFormatter)
         }
-        println(s"Debug: Original path = $path")
-        println(s"Debug: Normalized path = ${NonDeterministicFiles.normalizeWorkerJson(path)}")
         println(s"Debug: serialized = $serialized")
         assert(serialized.contains("worker.worker.json"))
       }

@@ -73,9 +73,6 @@ object PathRef {
       // First normalize the path for worker.json files
       val normalizedPath = NonDeterministicFiles.normalizeWorkerJson(path)
 
-      println(s"Debug: Path before normalization: $path")
-      println(s"Debug: Path after worker.json normalization: $normalizedPath")
-
       val workspaceRoot = if (isTest) testUserHome / "projects" / "myproject"
       else os.Path(WorkspaceRoot.workspaceRoot.toIO)
       val coursierCache = if (isTest) Some(testUserHome / ".coursier" / "cache")
@@ -127,11 +124,6 @@ object PathRef {
     else sys.env.get("COURSIER_CACHE").map(os.Path(_))
     val home = if (useTestPaths) testUserHome else realUserHome
 
-    println(
-      s"Debug: denormalizePath: input=$pathString, isTest=$isTest, useTestPaths=$useTestPaths"
-    )
-    println(s"Debug: workspaceRoot=$workspaceRoot")
-
     val resultPath = if (pathString.startsWith("$WORKSPACE/")) {
       workspaceRoot / os.RelPath(pathString.stripPrefix("$WORKSPACE/"))
     } else if (pathString.startsWith("$COURSIER_CACHE/")) {
@@ -143,7 +135,6 @@ object PathRef {
       os.Path(pathString)
     }
 
-    println(s"Debug: resultPath=$resultPath")
     resultPath
   }
 

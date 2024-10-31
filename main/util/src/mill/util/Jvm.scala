@@ -402,9 +402,6 @@ object Jvm extends CoursierSupport {
       fileFilter: (os.Path, os.RelPath) => Boolean = (_, _) => true
   )(implicit ctx: Ctx.Dest): PathRef = {
     val outputPath = ctx.dest / "out.jar"
-    println(s"Debug: Creating jar at: $outputPath")
-    println(s"Debug: Input paths: ${inputPaths.iterator.mkString("\n  - ", "\n  - ", "")}")
-    println(s"Debug: Context dest: ${ctx.dest}")
 
     os.makeDir.all(outputPath / os.up) // Ensure parent directory exists
 
@@ -422,7 +419,6 @@ object Jvm extends CoursierSupport {
       manifest = manifest,
       fileFilter = fileFilter
     )
-    println(s"Debug: Jar creation complete. File exists: ${os.exists(outputPath)}")
     PathRef(outputPath)
   }
 
@@ -432,11 +428,8 @@ object Jvm extends CoursierSupport {
       manifest: mill.api.JarManifest,
       fileFilter: (os.Path, os.RelPath) => Boolean
   ): Unit = {
-    println(s"Debug: Creating jar at path: $jar")
-    println(s"Debug: Input paths: ${inputPaths.iterator.mkString(", ")}")
     os.makeDir.all(jar / os.up)
     JarOps.jar(jar, inputPaths, manifest, fileFilter, includeDirs = true, timestamp = None)
-    println(s"Debug: Jar creation complete. File exists: ${os.exists(jar)}")
   }
 
   def createClasspathPassingJar(jar: os.Path, classpath: Agg[os.Path]): Unit = {
