@@ -90,7 +90,7 @@ Or if you prefer a video introduction:
 
 Mill is used to build many real-world projects, such as the
 https://github.com/swaldman/c3p0[C3P0 JDBC Connection Pool],
-https://github.com/coursier/coursier[Coursier JVM dependency resolver],
+https://github.com/coursier/coursier[Coursier dependency resolver],
 https://github.com/com-lihaoyi/Ammonite[Ammonite REPL], and the
 https://github.com/SpinalHDL/SpinalHDL[SpinalHDL] and
 https://github.com/chipsalliance/chisel[Chisel] hardware design frameworks.
