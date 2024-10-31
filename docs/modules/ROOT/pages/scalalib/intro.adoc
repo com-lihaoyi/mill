@@ -11,7 +11,7 @@
 // what Mill is, hopefully have downloaded an example to try out, and be
 // interested in learning more about the Mill build tool
 
-= Building Scala Projects with Mill
+= Building Scala with Mill
 :page-aliases: Intro_to_Mill_for_Scala.adoc, Scala_Intro_to_Mill.adoc
 
 include::partial$gtag-config.adoc[]
