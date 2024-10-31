@@ -87,16 +87,11 @@ For the purposes of this page, we will focus on two benchmarks
 
 
 This benchmark involves running `clean` to delete all generated files and re-compiling
-<<<<<<< HEAD
 everything in parallel.
 
 * For Maven, parallelism is opt-in via `-T 10`, while for Mill it is enabled by default.
 * For Maven, tests and linters are opt-out via the `-D` properties, while in Mill
   tests an linters are opt-in
-=======
-everything in parallel. For Maven, parallelism is opt-in via `-T 10`, while for Mill it
-is enabled by default.
->>>>>>> main
 
 Mill sees a significant ~8x speedup over Maven for this benchmark.
 
@@ -122,14 +117,9 @@ compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/c
 This benchmark involves making a single edit to a single already-compiled file in `common` -
 adding a single newline to the end of the file - and re-compiling `common` and `common.test`.
 
-<<<<<<< HEAD
 Mill sees a huge ~39x speedup for this benchmark, because Mill's incremental compiler
 (https://github.com/sbt/zinc[Zinc]) is able to detect that only one file in one module
 has changed, and that the change is small enough
-=======
-Mill sees a huge ~39x speedup for this benchmark, because Mill's incremental compiler (Zinc)
-is able to detect that only one file in one module has changed, and the change is small enough
->>>>>>> main
 to not require other files to re-compile. In contrast, Maven re-compiles all files in both
 modules, even though only one file was touched and the change was trivial.
 
@@ -137,11 +127,7 @@ modules, even though only one file was touched and the change was trivial.
 ### Gradle
 
 The comparison with Gradle is less stark, but still significant. Mill is 3-4x faster than Gradle
-<<<<<<< HEAD
 across the various workflows:
-=======
-for clean compiles, both parallel and sequential, and for many modules or for a single module:
->>>>>>> main
 
 
 |===
@@ -194,12 +180,8 @@ root module - adding a single newline to the end of the file - and re-compiling 
 its tests.
 
 Both Gradle and Mill appear to do a good job limiting the compilation to only the changed
-<<<<<<< HEAD
 file, but Mill has less fixed overhead than Gradle does, finishing in about ~0.5s
 rather than ~1.5 seconds.
-=======
-file, but Mill has less fixed overhead than Gradle does.
->>>>>>> main
 
 
 ## Ease of Use
@@ -225,7 +207,6 @@ The Chrome profiling UI is interactive, so you can zoom in and out, or click on 
 tasks to show the exact duration and other metadata.
 
 But the real benefit of the Chrome profile isn't the low-level data it provides, but the
-<<<<<<< HEAD
 high-level view:
 
 * In the profile above, it is clear that for the first ~700ms, Mill is able
@@ -238,35 +219,15 @@ high-level view:
 This waiting is likely due to dependencies between them, and they take long enough that all
 the other tasks depending on them get held up. For example, when `codec.compile` finishes
 above, we can see a number of downstream tasks immediately start running.
-=======
-high-level view: in the profile above, it is clear that for the first ~700ms, Mill is able
-to use all cores on 10 cores on my laptop to do useful work. But after that, utilization is
-much more sparse: `common.compile`, `buffer.compile`, `transport.compile`, `codec.compile`,
-appear to be "long polls" in the build. These 4 tasks wait for one another to run sequentially,
-likely due to dependencies between them, and they take long enough that all the other tasks
-depending on them get held up. For example, when `codec.compile` finishes above, we can see
-a number of downstream tasks immediately start running.
->>>>>>> main
 
 This understanding of your build's performance profile is not just an academic exercise, but
 provides actionable information:
 
-<<<<<<< HEAD
 * If I wanted faster Netty clean compiles, speeding up `common.compile`, `buffer.compile`,
   `transport.compile`, or `codec.compile` would make the most impact.
 
 * On the other hand, time speeding up the various `codec-*.compile` tasks would help not at all:
   these tasks are already running at a time where the CPUs are mostly idle.
-=======
-* If I wanted to speed up the Netty clean compile timings,
-  speeding up `common.compile`, `buffer.compile`, `transport.compile`, or `codec.compile` would
-  make the most impact: perhaps some of these modules could be broken up into smaller sub-modules
-  that would compile in parallel!
-
-* On the other hand, time speeding up the various `codec-*.compile` tasks would help not at all:
-  these tasks are already running at a time where the CPUs are mostly idle, and speeding them up
-  would just result in more idle time while waiting for the the "long poll" tasks to complete
->>>>>>> main
 
 Most build tools do provide some way of analyzing build performance, but none of them provide
 it as easily as Mill does: any Mill run generates a profile automatically, and any computer
@@ -283,11 +244,8 @@ show the dependency graph between the modules of the Netty build below:
 
 image::comparisons/NettyCompileGraph.svg[]
 
-<<<<<<< HEAD
 (_Right-click open-image-in-new-tab to see full size_)
 
-=======
->>>>>>> main
 In this graph, we can clearly see that `common.compile`, `buffer.compile`,`transport.compile`,
 and `codec.compile` depend on each other in a linear fashion. This explains why they each must
 wait for the prior task to complete before starting, and cannot run in parallel with one another.
@@ -351,8 +309,8 @@ image::comparisons/IntellijMockitoMillCompile.png[]
 From there, if you are curious about any of the other tasks used alongside `javacOptions`, it's
 easy for you to pull up _their_ documentation, jump to _their_
 definition, or find _their_ usages. For example we can pull up the docs of
-<<<<<<< HEAD
-`compileClasspath()` below, jump to _its_ implemnetation, and generally continue
+
+`compileClasspath()` below, jump to _its_ implementation, and continue
 interactively exploring your build logic:
 
 image::comparisons/IntellijMockitoMillCompileClasspath.png[]
@@ -363,23 +321,7 @@ one click away in IntelliJ or VSCode. This isn't a new experience for Java devel
 is what you would be used to day-to-day in your application code! But Mill brings that same
 polished experience to your build system - traditionally some that that has been opaque
 and hard to understand - and does so in a way that no other build tool does.
-=======
-`compileClasspath()` below:
 
-image::comparisons/IntellijMockitoMillCompileClasspath.png[]
-
-Or we can use _find usages_ on `def compile` to see where it is used, both in this build
-and upstream in the Mill libraries:
-
-image::comparisons/IntellijMockitoMillCompileUsages.png[]
-
-Unlike most other build tools, Mill builds are extremely easy to explore interactively in your
-IDE. If you do not know what something does, it's documentation, definition, or usages is always
-one click away in IntelliJ or VSCode. That's not to say Mill builds aren't complex - as
-we saw above, compilation has to deal with upstream outputs, classpaths, flags, reporters, and so on -
-but at least in Mill your IDE can help you explore, understand and manage the complexity in a way
-that no other build tool supports.
->>>>>>> main
 
 ## Extensibility
 
@@ -389,27 +331,16 @@ from Maven Central.
 Most build tools need plugins to do anything: if you want to Foo you need a
 Foo plugin, if you want to Bar you need a Bar plugin, for any possible Foo or Bar. These could
 be simple tasks - zipping up files, pre-rendering web templates, preparing static assets for
-<<<<<<< HEAD
 deployment - but even a tasks that would be trivial to implement in a few lines of code requires
 you to Google for third-party plugins, dig through their Github to see which one is best
 maintained, and hope for the best when you include it in your build. And while you could
 write plugins yourself, doing so is usually challenging and non-trivial.
-=======
-deployment - but even tasks that would be trivial to implement in a few lines of code need you
-to google for third-party plugins, dig through their Github to see which one is best maintained,
-and hope for the best when you include it in your build.
->>>>>>> main
 
 Mill is different. Although it does have plugins for more advanced integrations, for most
 simple things you can directly write code to achieve what you want, using the bundled
 filesystem, subprocess, and dependency-management libraries. And even if you need third-party
-<<<<<<< HEAD
 libraries from Maven Central to do Foo, you can directly import the "Foo" library and use it
 directly, without having to find a "Foo build plugin" wrapper.
-=======
-libraries from Maven Central, you can directly import the "Foo" library and use it programmatically,
-without having to find a "Foo build plugin" wrapper.
->>>>>>> main
 
 ### Simple Custom Tasks
 
@@ -430,11 +361,7 @@ Compiling 1 Java source...
 ```
 
 If you want to add a custom task, this is as simple as defining a method e.g.
-<<<<<<< HEAD
 `def lineCount = Task { ... }`. The body of `Task` performs the action we want, and
-=======
-`def lineCount = Task`. The body of which performs the action we want, and
->>>>>>> main
 can depend on other tasks such as `allSourceFiles()` below:
 
 ```scala
@@ -500,7 +427,6 @@ Line Count: 17
 Most developers do not need to embed the line-count of their codebase in a resource
 file to look up at runtime, but nevertheless this example shows how easy it is to write
 code to perform ad-hoc tasks without needing to pull in and configure some third-party
-<<<<<<< HEAD
 plugin. And we get full IDE support with autocomplete/navigation/documentation/etc.
 while we are writing our custom task.
 
@@ -508,10 +434,6 @@ while we are writing our custom task.
 While most build tools do allow writing and wiring up custom tasks, none of them
 have a workflow as simple as Mill. Next, we'll look at a more realistic example,
 which includes usage of third-party libraries in the build.
-=======
-plugin. Next, we'll look at a more realistic example, which includes usage of third-party
-libraries in the build.
->>>>>>> main
 
 ### Using Libraries from Maven Central in Tasks
 
@@ -570,7 +492,6 @@ compiling 1 Java source...
 generated snippet.txt resource: <h1>hello</h1>
 ```
 
-<<<<<<< HEAD
 Rendering HTML using the Thymeleaf templating engine is not rocket science, but what is
 interesting here is what we did _not_ need to do:
 
@@ -578,15 +499,6 @@ interesting here is what we did _not_ need to do:
   build
 
 * We did _not_ need to learn a special API or framework for authoring build plugins ourselves
-=======
-Rendering HTML using the Thymelead templating engine is not rocket science, but what is
-interesting here is what we did _not_ need to do:
-
-* We did not need to find a Thymeleaf-Mill plugin in order to include Thymeleaf in our
-  build
-
-* We did not need to learn a special API or framework for authoring build plugins ourselves
->>>>>>> main
   to write a plugin to include Thymeleaf in our build
 
 Instead, we could simply import Thymeleaf directly from Maven Central and use it just
@@ -597,18 +509,12 @@ non-experts to configure their build to do exactly what they need, rather than b
 limited by what some unmaintained third-party plugin might support. And although
 the configuration is done in the Scala language, the syntax should be relatively
 familiar ("Java without Semicolons" it is sometimes called) and the JVM libraries
-<<<<<<< HEAD
 and tools (e.g. Thymeleaf, IntelliJ, VSCode) are the exact same libraries and tools
 you are already used to.
-=======
-and tools (e.g. IntelliJ, VSCode) are the exact same libraries and tools you are
-already used to.
->>>>>>> main
 
 ## Conclusion
 
 To wrap up, Mill does all the same things that other build tools like Maven or Gradle do,
-<<<<<<< HEAD
 but aims to do them better: faster, easier to use, and easier to extend.
 This means both time saved waiting for your build tool to run in day-to-day work, as well
 as time saved when you inevitably need to evolve or adjust your build system to accommodate
@@ -619,10 +525,3 @@ and more time on the actual work you are trying to accomplish. And while traditi
 systems were often mysterious black boxes that only experts could work with, Mill's ease
 of use and ease of extension democratize the build system so any developer can figure out
 what its doing or extend it to do exactly what they need.
-=======
-but aims to do them better: faster, easier to user, and easier to extend. All together,
-this means both time saved waiting for your build tool to run in day-to-day work, as well
-as time saved when you inevitably need to evolve or adjust your build system to accommodate
-changing requirements. With Mill, you can therefore spend less time waiting for or fighting
-with your build tool, and more time on the actual work you are trying to accomplish.
->>>>>>> main
