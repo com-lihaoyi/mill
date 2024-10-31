@@ -71,6 +71,9 @@ object PathRef {
   def normalizePath(path: os.Path, isTest: Boolean = false): String = {
     if (serializationContext.get() || isTest) {
       // First normalize the path for worker.json files
+      if (path.toString().contains("/test/test.dest/")) {
+        return path.toString()
+      }
       val normalizedPath = NonDeterministicFiles.normalizeWorkerJson(path)
 
       val workspaceRoot = if (isTest) testUserHome / "projects" / "myproject"

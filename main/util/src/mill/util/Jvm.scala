@@ -405,13 +405,6 @@ object Jvm extends CoursierSupport {
 
     os.makeDir.all(outputPath / os.up) // Ensure parent directory exists
 
-    inputPaths.foreach { path =>
-      println(s"Debug: Checking input path: $path exists: ${os.exists(path)}")
-      if (os.exists(path) && os.isDir(path)) {
-        println(s"Debug: Directory contents of $path:")
-        os.walk(path).foreach(p => println(s"  - $p"))
-      }
-    }
 
     createJar(
       jar = outputPath,
