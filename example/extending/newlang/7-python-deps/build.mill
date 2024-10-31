@@ -72,7 +72,6 @@ trait PythonModule extends Module {
       os.call(Seq(
         pipPath.toString,
         "install",
-        "--upgrade",
         "pip",
         "--break-system-packages",
         "--no-warn-script-location"
