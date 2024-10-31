@@ -3,7 +3,7 @@ import org.jsoup._
 import mill.util.Jvm
 import mill._, scalalib._
 import de.tobiasroeser.mill.vcs.version.VcsVersion
-import collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 /** Generates the mill documentation with Antora. */
 object `package` extends RootModule {
@@ -28,6 +28,7 @@ object `package` extends RootModule {
     Jvm.runSubprocess(
       commandArgs = Seq(
         npmExe,
+        "--no-audit",
         "install",
         "@antora/cli@3.1.9",
         "@antora/site-generator-default@3.1.9",
@@ -192,6 +193,7 @@ object `package` extends RootModule {
     val taggedSources = for (path <- extraSources) yield {
       s"""    - url: ${build.baseDir}
          |      start_path: ${path.relativeTo(build.baseDir)}
+         |      edit_url: false
          |""".stripMargin
     }
     s"""site:
@@ -206,6 +208,7 @@ object `package` extends RootModule {
        |    - url: ${if (authorMode) build.baseDir else build.Settings.projectUrl}
        |      branches: []
        |      tags: ${build.Settings.legacyDocTags.filter(_ => !authorMode).map("'" + _ + "'").mkString("[", ",", "]")}
+       |      edit_url: false
        |      start_path: docs/antora
        |
        |${taggedSources.mkString("\n\n")}
@@ -237,7 +240,7 @@ object `package` extends RootModule {
        |""".stripMargin
   }
 
-  def oldDocSources = Task {
+  def oldDocSources: T[Seq[PathRef]] = Task {
     for (oldVersion <- build.Settings.docTags) yield {
       val checkout = T.dest / oldVersion
       os.proc("git", "clone", T.workspace / ".git", checkout).call(stdout = os.Inherit)
@@ -254,21 +257,22 @@ object `package` extends RootModule {
     generatePages(authorMode = false)().apply(oldDocSources().map(_.path))
   }
 
-  def localPages = Task {
+  def localPages: T[PathRef] = Task {
     val pages = generatePages(authorMode = true)().apply(oldDocSources().map(_.path))
     T.log.outputStream.println(
-      s"You can browse the local pages at: ${(pages.path / "index.html").toNIO.toUri()}"
+      s"You can browse the pages at: ${(pages.path / "index.html").toNIO.toUri()}"
     )
+    pages
   }
-  def fastPages = Task {
+  def fastPages: T[PathRef] = Task {
     val pages = generatePages(authorMode = true)().apply(Nil)
     T.log.outputStream.println(
-      s"You can browse the local pages at: ${(pages.path / "index.html").toNIO.toUri()}"
+      s"You can browse the pages at: ${(pages.path / "index.html").toNIO.toUri()}"
     )
     pages
   }
 
-  def generatePages(authorMode: Boolean) = T.task { extraSources: Seq[os.Path] =>
+  def generatePages(authorMode: Boolean) = Task.Anon { extraSources: Seq[os.Path] =>
     T.log.errorStream.println("Creating Antora playbook ...")
     // dependency to sources
     source()

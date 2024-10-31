@@ -107,7 +107,7 @@ class MillBuildBootstrap(
           output
         )
 
-        if (parsedScriptFiles.millImport) evaluateRec(depth + 1)
+        if (parsedScriptFiles.metaBuild) evaluateRec(depth + 1)
         else {
           val bootstrapModule =
             new MillBuildRootModule.BootstrapModule()(
