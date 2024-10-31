@@ -56,7 +56,9 @@ private[mill] case class EvaluatorImpl(
   ): Evaluator.Results = {
     // TODO: cleanup once we break bin-compat in Mill 0.13
     // disambiguate override hierarchy
-    super.evaluate(goals, reporter, testReporter, logger, serialCommandExec)
+    logger.withPromptUnpaused {
+      super.evaluate(goals, reporter, testReporter, logger, serialCommandExec)
+    }
   }
 
   override def evalOrThrow(exceptionFactory: Evaluator.Results => Throwable)

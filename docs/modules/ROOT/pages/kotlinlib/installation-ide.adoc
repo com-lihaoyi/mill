@@ -1,6 +1,0 @@
-= Installation and IDE Support
-
-
-Kotlin IDE support is work in progress. For details, see the following issue:
-
-* https://github.com/com-lihaoyi/mill/issues/3606

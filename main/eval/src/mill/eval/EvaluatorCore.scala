@@ -111,7 +111,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
           )
 
           val verboseKeySuffix = s"/${terminals0.size}"
-          logger.setPromptLeftHeader(s"$countMsg$verboseKeySuffix")
+          logger.setPromptHeaderPrefix(s"$countMsg$verboseKeySuffix")
           if (failed.get()) None
           else {
             val upstreamResults = upstreamValues
@@ -142,8 +142,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
             val contextLogger = new PrefixLogger(
               logger0 = logger,
-              key = if (!logger.enableTicker) Nil else Seq(countMsg),
-              tickerContext = GroupEvaluator.dynamicTickerPrefix.value,
+              key0 = if (!logger.enableTicker) Nil else Seq(countMsg),
               verboseKeySuffix = verboseKeySuffix,
               message = tickerPrefix,
               noPrefix = exclusive
@@ -195,6 +194,10 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
           }
         }
       }
+
+      // Make sure we wait for all tasks from this batch to finish before starting the next
+      // one, so we don't mix up exclusive and non-exclusive tasks running at the same time
+      terminals.map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
     }
 
     val tasks0 = terminals0.filter {
@@ -217,18 +220,13 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
     // Run all non-command tasks according to the threads
     // given but run the commands in linear order
-    evaluateTerminals(
-      tasks,
-      ec,
-      exclusive = false
-    )
+    val nonExclusiveResults = evaluateTerminals(tasks, ec, exclusive = false)
 
-    evaluateTerminals(leafExclusiveCommands, ec, exclusive = true)
+    val exclusiveResults = evaluateTerminals(leafExclusiveCommands, ec, exclusive = true)
 
     logger.clearPromptStatuses()
-    val finishedOptsMap = terminals0
-      .map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
-      .toMap
+
+    val finishedOptsMap = (nonExclusiveResults ++ exclusiveResults).toMap
 
     val results0: Vector[(Task[_], TaskResult[(Val, Int)])] = terminals0
       .flatMap { t =>
@@ -266,10 +264,10 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
         c.getInterfaces.iterator.flatMap(resolveTransitiveParents)
     }
 
-    val classToTransitiveClasses = sortedGroups
+    val classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]] = sortedGroups
       .values()
       .flatten
-      .collect { case namedTask: NamedTask[_] => namedTask.ctx.enclosingCls }
+      .collect { case namedTask: NamedTask[?] => namedTask.ctx.enclosingCls }
       .map(cls => cls -> resolveTransitiveParents(cls).toVector)
       .toMap
 
@@ -278,22 +276,23 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       .flatMap(_._2)
       .toSet
 
-    val allTransitiveClassMethods = allTransitiveClasses
-      .map { cls =>
-        val cMangledName = cls.getName.replace('.', '$')
-        cls -> cls.getDeclaredMethods
-          .flatMap { m =>
-            Seq(
-              m.getName -> m,
-              // Handle scenarios where private method names get mangled when they are
-              // not really JVM-private due to being accessed by Scala nested objects
-              // or classes https://github.com/scala/bug/issues/9306
-              m.getName.stripPrefix(cMangledName + "$$") -> m,
-              m.getName.stripPrefix(cMangledName + "$") -> m
-            )
-          }.toMap
-      }
-      .toMap
+    val allTransitiveClassMethods: Map[Class[?], Map[String, java.lang.reflect.Method]] =
+      allTransitiveClasses
+        .map { cls =>
+          val cMangledName = cls.getName.replace('.', '$')
+          cls -> cls.getDeclaredMethods
+            .flatMap { m =>
+              Seq(
+                m.getName -> m,
+                // Handle scenarios where private method names get mangled when they are
+                // not really JVM-private due to being accessed by Scala nested objects
+                // or classes https://github.com/scala/bug/issues/9306
+                m.getName.stripPrefix(cMangledName + "$$") -> m,
+                m.getName.stripPrefix(cMangledName + "$") -> m
+              )
+            }.toMap
+        }
+        .toMap
 
     (classToTransitiveClasses, allTransitiveClassMethods)
   }

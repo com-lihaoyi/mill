@@ -1,42 +1,46 @@
 package mill.contrib.scoverage.worker
 
-import mill.contrib.scoverage.api.ScoverageReportWorkerApi
 import _root_.scoverage.reporter.{
   CoberturaXmlWriter,
   CoverageAggregator,
   ScoverageHtmlWriter,
   ScoverageXmlWriter
 }
-import mill.api.Ctx
-import mill.contrib.scoverage.api.ScoverageReportWorkerApi.ReportType
+
+import mill.contrib.scoverage.api.ScoverageReportWorkerApi2
+import ScoverageReportWorkerApi2.ReportType
+import ScoverageReportWorkerApi2.Ctx
+
+import java.nio.file.Path
 
 /**
  * Scoverage Worker for Scoverage 2.x
  */
-class ScoverageReportWorkerImpl extends ScoverageReportWorkerApi {
+class ScoverageReportWorkerImpl extends ScoverageReportWorkerApi2 {
 
   override def report(
       reportType: ReportType,
-      sources: Seq[os.Path],
-      dataDirs: Seq[os.Path],
-      sourceRoot: os.Path
-  )(implicit ctx: Ctx): Unit =
+      sources: Array[Path],
+      dataDirs: Array[Path],
+      sourceRoot: Path,
+      ctx: Ctx
+  ): Unit =
     try {
       ctx.log.info(s"Processing coverage data for ${dataDirs.size} data locations")
-      CoverageAggregator.aggregate(dataDirs.map(_.toIO), sourceRoot.toIO) match {
+      CoverageAggregator.aggregate(dataDirs.map(_.toFile).toIndexedSeq, sourceRoot.toFile) match {
         case Some(coverage) =>
-          val sourceFolders = sources.map(_.toIO)
+          val sourceFolders = sources.map(_.toFile).toIndexedSeq
           val folder = ctx.dest
-          os.makeDir.all(folder)
+          ScoverageReportWorkerApi2.makeAllDirs(folder)
           reportType match {
             case ReportType.Html =>
-              new ScoverageHtmlWriter(sourceFolders, folder.toIO, None)
+              new ScoverageHtmlWriter(sourceFolders, folder.toFile, None)
                 .write(coverage)
             case ReportType.Xml =>
-              new ScoverageXmlWriter(sourceFolders, folder.toIO, false, None)
+              new ScoverageXmlWriter(sourceFolders, folder.toFile, false, None)
                 .write(coverage)
             case ReportType.XmlCobertura =>
-              new CoberturaXmlWriter(sourceFolders, folder.toIO, None)
+              new CoberturaXmlWriter(sourceFolders, folder.toFile, None)
                 .write(coverage)
             case ReportType.Console =>
               ctx.log.info(s"Statement coverage.: ${coverage.statementCoverageFormatted}%")

@@ -24,7 +24,7 @@ object `package` extends RootModule with KotlinModule {
   }
 
   // Generate sources at build time
-  def generatedSources: T[Seq[PathRef]] = T {
+  def generatedSources: T[Seq[PathRef]] = Task {
     for(name <- Seq("A", "B", "C")) os.write(
       T.dest / s"Foo$name.kt",
       s"""
@@ -50,10 +50,10 @@ object `package` extends RootModule with KotlinModule {
 // If you want to better understand how the various upstream tasks feed into
 // a task of interest, such as `run`, you can visualize their relationships via
 /** Usage
-> mill show visualizePlan run
+> mill visualizePlan run
 */
 //
-// image::VisualizePlanJava.svg[VisualizePlanJava.svg]
+// image::basic/VisualizePlanJava.svg[VisualizePlanJava.svg]
 //
 // (right-click open in new tab to see full sized)
 //

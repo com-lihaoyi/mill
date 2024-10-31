@@ -4,7 +4,7 @@ import mill._, javalib._
 
 object foo extends JavaModule {
 
-  def sources = T{
+  def sources = Task {
     os.write(
       Task.dest / "Foo.java",
       """package foo;
@@ -32,14 +32,14 @@ object foo extends JavaModule {
 //// SNIPPET:BUILD2
 
 object foo2 extends JavaModule {
-  def generatedSources = T{
+  def generatedSources = Task {
     os.write(Task.dest / "Foo.java", """...""")
     Seq(PathRef(Task.dest))
   }
 }
 
 object foo3 extends JavaModule {
-  def sources = T{
+  def sources = Task {
     os.write(Task.dest / "Foo.java", """...""")
     super.sources() ++ Seq(PathRef(Task.dest))
   }

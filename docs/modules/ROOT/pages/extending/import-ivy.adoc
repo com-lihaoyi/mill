@@ -1,5 +1,0 @@
-= import $file and import $ivy
-:page-aliases: Import_File_And_Import_Ivy.adoc
-
-include::partial$example/extending/imports/3-import-ivy.adoc[]
-

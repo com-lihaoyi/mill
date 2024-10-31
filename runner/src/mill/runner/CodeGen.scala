@@ -125,13 +125,9 @@ object CodeGen {
   ) = {
     val segments = scriptFolderPath.relativeTo(projectRoot).segments
 
-    val prelude = topBuildPrelude(
-      segments,
-      scriptFolderPath,
-      enclosingClasspath,
-      millTopLevelProjectRoot,
-      output
-    )
+    val prelude =
+      if (segments.nonEmpty) subfolderBuildPrelude(scriptFolderPath, segments)
+      else topBuildPrelude(scriptFolderPath, enclosingClasspath, millTopLevelProjectRoot, output)
 
     val instrument = new ObjectDataInstrument(scriptCode)
     fastparse.parse(scriptCode, Parsers.CompilationUnit(_), instrument = instrument)
@@ -154,18 +150,14 @@ object CodeGen {
       o.name.text == "`package`" && (o.parent.text == "RootModule" || o.parent.text == "MillBuildRootModule")
     ) match {
       case Some(objectData) =>
-        val newParent = if (segments.isEmpty) expectedParent else s"RootModule.Subfolder"
+        val newParent = if (segments.isEmpty) expectedParent else s"mill.main.SubfolderModule"
 
         var newScriptCode = scriptCode
         newScriptCode = objectData.parent.applyTo(newScriptCode, newParent)
         newScriptCode = objectData.name.applyTo(newScriptCode, wrapperObjectName)
         newScriptCode = objectData.obj.applyTo(newScriptCode, "abstract class")
 
-        val millDiscover =
-          if (segments.nonEmpty) ""
-          else
-            """@_root_.scala.annotation.nowarn
-              |  override lazy val millDiscover: _root_.mill.define.Discover = _root_.mill.define.Discover[this.type]""".stripMargin
+        val millDiscover = discoverSnippet(segments)
 
         s"""$pkgLine
            |$aliasImports
@@ -188,8 +180,17 @@ object CodeGen {
     }
   }
 
+  def subfolderBuildPrelude(scriptFolderPath: os.Path, segments: Seq[String]): String = {
+    s"""object MillMiscSubFolderInfo
+       |extends mill.main.SubfolderModule.Info(
+       |  os.Path(${literalize(scriptFolderPath.toString)}),
+       |  _root_.scala.Seq(${segments.map(pprint.Util.literalize(_)).mkString(", ")})
+       |)
+       |import MillMiscSubFolderInfo._
+       |""".stripMargin
+  }
+
   def topBuildPrelude(
-      segments: Seq[String],
       scriptFolderPath: os.Path,
       enclosingClasspath: Seq[os.Path],
       millTopLevelProjectRoot: os.Path,
@@ -197,12 +198,11 @@ object CodeGen {
   ): String = {
     s"""import _root_.mill.runner.MillBuildRootModule
        |@_root_.scala.annotation.nowarn
-       |object MillMiscInfo extends MillBuildRootModule.MillMiscInfo(
+       |object MillMiscInfo extends mill.main.RootModule.Info(
        |  ${enclosingClasspath.map(p => literalize(p.toString))},
        |  ${literalize(scriptFolderPath.toString)},
        |  ${literalize(output.toString)},
-       |  ${literalize(millTopLevelProjectRoot.toString)},
-       |  _root_.scala.Seq(${segments.map(pprint.Util.literalize(_)).mkString(", ")})
+       |  ${literalize(millTopLevelProjectRoot.toString)}
        |)
        |import MillMiscInfo._
        |""".stripMargin
@@ -214,21 +214,13 @@ object CodeGen {
       millTopLevelProjectRoot: os.Path,
       childAliases: String
   ): String = {
-    val extendsClause = if (segments.isEmpty) {
-      if (millTopLevelProjectRoot == scriptFolderPath) {
+    val extendsClause =
+      if (segments.nonEmpty) s"extends _root_.mill.main.SubfolderModule "
+      else if (millTopLevelProjectRoot == scriptFolderPath)
         s"extends _root_.mill.main.RootModule() "
-      } else {
-        s"extends _root_.mill.runner.MillBuildRootModule() "
-      }
-    } else {
-      s"extends _root_.mill.main.RootModule.Subfolder "
-    }
+      else s"extends _root_.mill.runner.MillBuildRootModule() "
 
-    val millDiscover =
-      if (segments.nonEmpty) ""
-      else
-        """@_root_.scala.annotation.nowarn
-          |  override lazy val millDiscover: _root_.mill.define.Discover = _root_.mill.define.Discover[this.type]""".stripMargin
+    val millDiscover = discoverSnippet(segments)
 
     // User code needs to be put in a separate class for proper submodule
     // object initialization due to https://github.com/scala/scala3/issues/21444
@@ -237,6 +229,14 @@ object CodeGen {
        |  $millDiscover
        |}
        |abstract class $wrapperObjectName $extendsClause {""".stripMargin
+
+  }
+
+  def discoverSnippet(segments: Seq[String]): String = {
+    if (segments.nonEmpty) ""
+    else
+      """override lazy val millDiscover: _root_.mill.define.Discover = _root_.mill.define.Discover[this.type]
+        |""".stripMargin
 
   }
 

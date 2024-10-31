@@ -79,7 +79,7 @@ object Task extends TaskBase {
    * [[InputImpl]]s are useful when you want to capture some input to the Mill
    * build graph that comes from outside: maybe from an environment variable, a
    * JVM system property, the hash returned by `git rev-parse HEAD`. Reading
-   * these external mutable variables inside a `T{...}` [[TargetImpl]] will
+   * these external mutable variables inside a `Task{...}` [[TargetImpl]] will
    * incorrectly cache them forever. Reading them inside a `Task.Input{...}`
    * will re-compute them every time, and only if the value changes would it
    * continue to invalidate downstream [[TargetImpl]]s
@@ -147,7 +147,7 @@ object Task extends TaskBase {
    * Creates an anonymous `Task`. These depend on other tasks and
    * be-depended-upon by other tasks, but cannot be run directly from the
    * command line and do not perform any caching. Typically used as helpers to
-   * implement `T{...}` targets.
+   * implement `Task{...}` targets.
    */
   def Anon[T](t: Result[T]): Task[T] = macro Applicative.impl[Task, T, mill.api.Ctx]
 
@@ -229,7 +229,7 @@ object Task extends TaskBase {
 }
 
 /**
- * Represents a task that can be referenced by its path segments. `T{...}`
+ * Represents a task that can be referenced by its path segments. `Task{...}`
  * targets, `Task.Input`, `Task.Worker`, etc. but not including anonymous
  * `Task.Anon` or `T.traverse` etc. instances
  */
@@ -332,7 +332,7 @@ object Target extends TaskBase {
 
   /**
    * A target is the most common [[Task]] a user would encounter, commonly
-   * defined using the `def foo = T{...}` syntax. [[TargetImpl]]s require that their
+   * defined using the `def foo = Task {...}` syntax. [[TargetImpl]]s require that their
    * return type is JSON serializable. In return they automatically caches their
    * return value to disk, only re-computing if upstream [[Task]]s change
    */
@@ -359,7 +359,7 @@ object Target extends TaskBase {
 
       val lhs = Applicative.impl0[Task, T, mill.api.Ctx](c)(reify(Result.create(t.splice)).tree)
 
-      mill.moduledefs.Cacher.impl0[Target[T]](c)(
+      mill.define.Cacher.impl0[Target[T]](c)(
         reify(
           new TargetImpl[T](
             lhs.splice,
@@ -379,7 +379,7 @@ object Target extends TaskBase {
 
       val taskIsPrivate = isPrivateTargetOption(c)
 
-      mill.moduledefs.Cacher.impl0[Target[T]](c)(
+      mill.define.Cacher.impl0[Target[T]](c)(
         reify(
           new TargetImpl[T](
             Applicative.impl0[Task, T, mill.api.Ctx](c)(t.tree).splice,
@@ -398,7 +398,7 @@ object Target extends TaskBase {
 
       val taskIsPrivate = isPrivateTargetOption(c)
 
-      mill.moduledefs.Cacher.impl0[Target[T]](c)(
+      mill.define.Cacher.impl0[Target[T]](c)(
         reify {
           val s1 = Applicative.impl0[Task, T, mill.api.Ctx](c)(t.tree).splice
           val c1 = ctx.splice
@@ -421,7 +421,7 @@ object Target extends TaskBase {
 
       val taskIsPrivate = isPrivateTargetOption(c)
 
-      mill.moduledefs.Cacher.impl0[Target[T]](c)(
+      mill.define.Cacher.impl0[Target[T]](c)(
         reify(
           new TargetImpl[T](
             t.splice,
@@ -444,7 +444,7 @@ object Target extends TaskBase {
 
       val taskIsPrivate = isPrivateTargetOption(c)
 
-      mill.moduledefs.Cacher.impl0[SourcesImpl](c)(
+      mill.define.Cacher.impl0[SourcesImpl](c)(
         reify(
           new SourcesImpl(
             Target.sequence(c.Expr[List[Task[PathRef]]](q"_root_.scala.List(..$wrapped)").splice),
@@ -461,7 +461,7 @@ object Target extends TaskBase {
 
       val taskIsPrivate = isPrivateTargetOption(c)
 
-      mill.moduledefs.Cacher.impl0[SourcesImpl](c)(
+      mill.define.Cacher.impl0[SourcesImpl](c)(
         reify(
           new SourcesImpl(
             Applicative.impl0[Task, Seq[PathRef], mill.api.Ctx](c)(values.tree).splice,
@@ -483,7 +483,7 @@ object Target extends TaskBase {
 
       val taskIsPrivate = isPrivateTargetOption(c)
 
-      mill.moduledefs.Cacher.impl0[Target[PathRef]](c)(
+      mill.define.Cacher.impl0[Target[PathRef]](c)(
         reify(
           new SourceImpl(
             wrapped.splice,
@@ -500,7 +500,7 @@ object Target extends TaskBase {
 
       val taskIsPrivate = isPrivateTargetOption(c)
 
-      mill.moduledefs.Cacher.impl0[Target[PathRef]](c)(
+      mill.define.Cacher.impl0[Target[PathRef]](c)(
         reify(
           new SourceImpl(
             Applicative.impl0[Task, PathRef, mill.api.Ctx](c)(value.tree).splice,
@@ -519,7 +519,7 @@ object Target extends TaskBase {
 
       val taskIsPrivate = isPrivateTargetOption(c)
 
-      mill.moduledefs.Cacher.impl0[InputImpl[T]](c)(
+      mill.define.Cacher.impl0[InputImpl[T]](c)(
         reify(
           new InputImpl[T](
             Applicative.impl[Task, T, mill.api.Ctx](c)(value).splice,
@@ -598,7 +598,7 @@ object Target extends TaskBase {
 
       val taskIsPrivate = isPrivateTargetOption(c)
 
-      mill.moduledefs.Cacher.impl0[Worker[T]](c)(
+      mill.define.Cacher.impl0[Worker[T]](c)(
         reify(
           new Worker[T](t.splice, ctx.splice, taskIsPrivate.splice)
         )
@@ -611,7 +611,7 @@ object Target extends TaskBase {
 
       val taskIsPrivate = isPrivateTargetOption(c)
 
-      mill.moduledefs.Cacher.impl0[Worker[T]](c)(
+      mill.define.Cacher.impl0[Worker[T]](c)(
         reify(
           new Worker[T](
             Applicative.impl[Task, T, mill.api.Ctx](c)(t).splice,
@@ -630,7 +630,7 @@ object Target extends TaskBase {
 
       val taskIsPrivate = isPrivateTargetOption(c)
 
-      mill.moduledefs.Cacher.impl0[PersistentImpl[T]](c)(
+      mill.define.Cacher.impl0[PersistentImpl[T]](c)(
         reify(
           new PersistentImpl[T](
             Applicative.impl[Task, T, mill.api.Ctx](c)(t).splice,

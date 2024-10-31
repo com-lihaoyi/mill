@@ -1,7 +1,6 @@
 package mill.kotlinlib.ktfmt
 
 import mill._
-import mainargs.Leftover
 import mill.api.{Loose, PathRef}
 import mill.define.{Discover, ExternalModule}
 import mill.kotlinlib.{DepSyntax, Versions}
@@ -14,7 +13,7 @@ trait KtfmtBaseModule extends JavaModule {
   /**
    * Classpath for running Ktfmt.
    */
-  def ktfmtClasspath: T[Loose.Agg[PathRef]] = T {
+  def ktfmtClasspath: T[Loose.Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(
       Agg(ivy"com.facebook:ktfmt:${ktfmtVersion()}")
     )
@@ -23,7 +22,7 @@ trait KtfmtBaseModule extends JavaModule {
   /**
    * Ktfmt version.
    */
-  def ktfmtVersion: T[String] = T {
+  def ktfmtVersion: T[String] = Task {
     Versions.ktfmtVersion
   }
 
@@ -31,7 +30,7 @@ trait KtfmtBaseModule extends JavaModule {
    * Additional arguments for Ktfmt. Check
    * [[https://github.com/facebook/ktfmt/blob/main/core/src/main/java/com/facebook/ktfmt/cli/ParsedArgs.kt#L51 available options]].
    */
-  def ktfmtOptions: T[Seq[String]] = T {
+  def ktfmtOptions: T[Seq[String]] = Task {
     Seq.empty[String]
   }
 }
@@ -49,13 +48,12 @@ trait KtfmtModule extends KtfmtBaseModule {
    */
   def ktfmt(
       @mainargs.arg ktfmtArgs: KtfmtArgs,
-      @mainargs.arg(positional = true) sources: Leftover[String]
+      @mainargs.arg(positional = true) sources: Tasks[Seq[PathRef]] =
+        Tasks.resolveMainDefault("__.sources")
   ): Command[Unit] = Task.Command {
-    val _sources = if (sources.value.isEmpty) {
+    val _sources: Seq[PathRef] = if (sources.value.isEmpty) {
       this.sources()
-    } else {
-      sources.value.iterator.map(rel => PathRef(millSourcePath / os.RelPath(rel)))
-    }
+    } else T.sequence(sources.value)().flatten
     KtfmtModule.ktfmtAction(
       ktfmtArgs.style,
       ktfmtArgs.format,

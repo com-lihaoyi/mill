@@ -1,0 +1,32 @@
+= Kotlin Library Dependencies
+
+include::partial$gtag-config.adoc[]
+
+This page goes into more detail about the various configuration options
+for `KotlinModule`.
+
+Many of the APIs covered here are listed in the API documentation:
+
+* {mill-doc-url}/api/latest/mill/kotlinlib/KotlinModule.html[mill.kotlinlib.KotlinModule]
+
+
+
+== Adding Ivy Dependencies
+
+include::partial$example/kotlinlib/dependencies/1-ivy-deps.adoc[]
+
+== Runtime and Compile-time Dependencies
+
+include::partial$example/kotlinlib/dependencies/2-run-compile-deps.adoc[]
+
+== Unmanaged Jars
+
+include::partial$example/kotlinlib/dependencies/3-unmanaged-jars.adoc[]
+
+== Downloading Unmanaged Jars
+
+include::partial$example/kotlinlib/dependencies/4-downloading-unmanaged-jars.adoc[]
+
+== Repository Config
+
+include::partial$example/kotlinlib/dependencies/5-repository-config.adoc[]

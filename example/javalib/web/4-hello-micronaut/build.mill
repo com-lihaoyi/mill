@@ -9,7 +9,6 @@ object `package` extends RootModule with MicronautModule {
     ivy"ch.qos.logback:logback-classic:1.5.3",
   )
 
-
   object test extends MavenTests with TestModule.Junit5{
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy"io.micronaut:micronaut-http-client:$micronautVersion",
@@ -23,7 +22,7 @@ object `package` extends RootModule with MicronautModule {
 trait MicronautModule extends MavenModule{
   def micronautVersion: String
 
-  def processors = T{
+  def processors = Task {
     defaultResolver().resolveDeps(
       Agg(
         ivy"io.micronaut.data:micronaut-data-processor:4.7.0",

@@ -1,3 +1,12 @@
+// Mill allows you to break up your `build.mill` file into smaller files by defining the
+// build-related logic for any particular subfolder as a `package.mill` file in that subfolder.
+// This can be very useful to keep large Mill builds maintainable, as each folder's build logic
+// gets co-located with the files that need to be built, and speeds up compilation of the
+// build logic since each `build.mill` or `package.mill` file can be compiled independently when
+// it is modified without re-compiling all the others.
+//
+// Usage of sub-folder `package.mill` files is enabled by the magic import `import $packages._`
+
 package build
 import $packages._
 
@@ -11,14 +20,6 @@ trait MyModule extends ScalaModule {
 
 /** See Also: bar/qux/package.mill */
 
-// Mill allows you to break up your `build.mill` file into smaller files by defining the
-// build-related logic for any particular subfolder as a `package.mill` file in that subfolder.
-// This can be very useful to keep large Mill builds maintainable, as each folder's build logic
-// gets co-located with the files that need to be built, and speeds up compilation of the
-// build logic since each `build.mill` or `package.mill` file can be compiled independently when
-// it is modified without re-compiling all the others.
-//
-// Usage of sub-folder `package.mill` files is enabled by the magic import `import $packages._`
 //
 // In this example, the root `build.mill` only contains the `trait MyModule`, but it is
 // `foo/package.mill` and `bar/qux/package.mill` that define modules using it. The modules

@@ -13,12 +13,12 @@ object `package` extends RootModule with build.MillPublishScalaModule {
         .collect { case Seq(a, b, c) => s"$a-$b-$c" }
     )
 
-    def testLogFolder = T { T.dest }
+    def testLogFolder = Task { T.dest }
 
     def caseEnvs[V](f1: CaseModule => Task[V])(s: String, f2: V => String) = {
       T.traverse(caseKeys) { i => f1(cases(i)).map(v => s"MILL_TEST_${s}_$i" -> f2(v)) }
     }
-    def forkEnv = T {
+    def forkEnv = Task {
       Map("MILL_TEST_LOGS" -> testLogFolder().toString) ++
         caseEnvs(_.compile)("CLASSES", _.classes.path.toString)() ++
         caseEnvs(_.compileClasspath)("CLASSPATH", _.map(_.path).mkString(","))() ++
@@ -37,7 +37,7 @@ object `package` extends RootModule with build.MillPublishScalaModule {
       val Array(prefix, suffix, rest) = caseName.split("-", 3)
       def millSourcePath = super.millSourcePath / prefix / suffix / rest
       def scalaVersion = build.Deps.scalaVersion
-      def ivyDeps = T {
+      def ivyDeps = Task {
         if (!caseName.contains("realistic") && !caseName.contains("sourcecode")) super.ivyDeps()
         else Agg(
           build.Deps.fastparse,
@@ -47,7 +47,8 @@ object `package` extends RootModule with build.MillPublishScalaModule {
           build.Deps.mainargs,
           build.Deps.requests,
           build.Deps.osLib,
-          build.Deps.upickle
+          build.Deps.upickle,
+          build.Deps.sourcecode
         )
       }
     }

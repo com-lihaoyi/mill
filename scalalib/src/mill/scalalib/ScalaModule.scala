@@ -8,17 +8,13 @@ import mill.util.Jvm.createJar
 import mill.api.Loose.Agg
 import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerUtil}
 import mainargs.Flag
-import mill.scalalib.bsp.{
-  BspBuildTarget,
-  BspModule,
-  BspUri,
-  JvmBuildTarget,
-  ScalaBuildTarget,
-  ScalaPlatform
-}
+import mill.scalalib.bsp.{BspBuildTarget, BspModule, ScalaBuildTarget, ScalaPlatform}
 import mill.scalalib.dependency.versions.{ValidVersion, Version}
 
+// this import requires scala-reflect library to be on the classpath
+// it was duplicated to scala3-compiler, but is that too powerful to add as a dependency?
 import scala.reflect.internal.util.ScalaClassLoader
+
 import scala.util.Using
 
 /**
@@ -63,7 +59,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
   def scalaVersion: T[String]
 
   override def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = Task.Anon {
-    super.mapDependencies().andThen { d: coursier.Dependency =>
+    super.mapDependencies().andThen { (d: coursier.Dependency) =>
       val artifacts =
         if (ZincWorkerUtil.isDotty(scalaVersion()))
           Set("dotty-library", "dotty-compiler")
@@ -485,7 +481,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         )
       }
       val bind = bindDependency()
-      runIvyDeps().map(bind) ++ transitiveIvyDeps() ++
+      transitiveRunIvyDeps() ++ transitiveIvyDeps() ++
         Agg(ivy"com.lihaoyi:::ammonite:${ammVersion}").map(bind)
     }
   }
@@ -596,17 +592,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         scalaBinaryVersion = ZincWorkerUtil.scalaBinaryVersion(scalaVersion()),
         platform = ScalaPlatform.JVM,
         jars = scalaCompilerClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq,
-        // this is what we want to use, but can't due to a resulting binary incompatibility
-        //        jvmBuildTarget = super.bspBuildTargetData().flatMap {
-        //          case (JvmBuildTarget.dataKind, bt: JvmBuildTarget) => Some(bt)
-        //          case _ => None
-        //        }
-        jvmBuildTarget = Some(
-          JvmBuildTarget(
-            javaHome = Option(System.getProperty("java.home")).map(p => BspUri(os.Path(p))),
-            javaVersion = Option(System.getProperty("java.version"))
-          )
-        )
+        jvmBuildTarget = Some(bspJvmBuildTarget)
       )
     ))
   }

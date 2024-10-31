@@ -1,5 +1,6 @@
 package mill.util
 
+import fansi.Attrs
 import mill.api.{Logger, SystemStreams}
 
 import java.io.{InputStream, OutputStream, PrintStream}
@@ -10,11 +11,17 @@ class MultiLogger(
     val logger2: Logger,
     val inStream0: InputStream,
     override val debugEnabled: Boolean
-) extends Logger {
+) extends ColorLogger {
   override def toString: String = s"MultiLogger($logger1, $logger2)"
   lazy val systemStreams = new SystemStreams(
     new MultiStream(logger1.systemStreams.out, logger2.systemStreams.out),
     new MultiStream(logger1.systemStreams.err, logger2.systemStreams.err),
+    inStream0
+  )
+
+  private[mill] override lazy val unprefixedSystemStreams: SystemStreams = new SystemStreams(
+    new MultiStream(logger1.unprefixedSystemStreams.out, logger2.unprefixedSystemStreams.out),
+    new MultiStream(logger1.unprefixedSystemStreams.err, logger2.unprefixedSystemStreams.err),
     inStream0
   )
 
@@ -74,13 +81,16 @@ class MultiLogger(
     logger1.removePromptLine()
     logger2.removePromptLine()
   }
-  private[mill] override def setPromptLeftHeader(s: String): Unit = {
-    logger1.setPromptLeftHeader(s)
-    logger2.setPromptLeftHeader(s)
+  private[mill] override def setPromptHeaderPrefix(s: String): Unit = {
+    logger1.setPromptHeaderPrefix(s)
+    logger2.setPromptHeaderPrefix(s)
   }
 
   private[mill] override def withPromptPaused[T](t: => T): T = {
     logger1.withPromptPaused(logger2.withPromptPaused(t))
+  }
+  private[mill] override def withPromptUnpaused[T](t: => T): T = {
+    logger1.withPromptUnpaused(logger2.withPromptUnpaused(t))
   }
 
   override def enableTicker: Boolean = logger1.enableTicker || logger2.enableTicker
@@ -90,6 +100,20 @@ class MultiLogger(
       colored,
       logger1.subLogger(path, key, message),
       logger2.subLogger(path, key, message),
+      inStream0,
+      debugEnabled
+    )
+  }
+
+  override def infoColor: Attrs = logger1.infoColor ++ logger2.infoColor
+  override def errorColor: Attrs = logger1.errorColor ++ logger2.errorColor
+  private[mill] override def logPrefixKey = logger1.logPrefixKey ++ logger2.logPrefixKey
+
+  override def withOutStream(outStream: PrintStream): ColorLogger = {
+    new MultiLogger(
+      colored,
+      logger1.withOutStream(outStream),
+      logger2.withOutStream(outStream),
       inStream0,
       debugEnabled
     )

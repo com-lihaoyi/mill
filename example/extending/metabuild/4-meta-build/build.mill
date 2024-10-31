@@ -10,7 +10,7 @@ object `package` extends RootModule with ScalaModule {
     ivy"com.lihaoyi::os-lib:0.10.7"
   )
 
-  def htmlSnippet = T{ h1("hello").toString }
+  def htmlSnippet = Task { h1("hello").toString }
   def resources = Task.Sources{
     os.write(Task.dest / "snippet.txt", htmlSnippet())
     super.resources() ++ Seq(PathRef(Task.dest))

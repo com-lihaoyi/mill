@@ -1,0 +1,13 @@
+package build
+
+import mill._
+
+object `hello-java` extends scalalib.JavaModule
+
+object `hello-scala` extends scalalib.ScalaModule {
+  def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
+}
+
+object `hello-kotlin` extends kotlinlib.KotlinModule {
+  def kotlinVersion = Option(System.getenv("TEST_KOTLIN_VERSION")).getOrElse(???)
+}

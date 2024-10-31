@@ -9,7 +9,7 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
   def testModuleDeps = super.testModuleDeps ++ compileModuleDeps
   def buildInfoPackageName = "mill.bsp"
 
-  def buildInfoMembers = T {
+  def buildInfoMembers = Task {
     val workerDep = worker.publishSelfDependency()
     Seq(
       BuildInfo.Value(
@@ -22,7 +22,7 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
 
   override lazy val test: MillScalaTests = new Test {}
   trait Test extends MillScalaTests {
-    def forkEnv: T[Map[String, String]] = T {
+    def forkEnv: T[Map[String, String]] = Task {
       // We try to fetch this dependency with coursier in the tests
       worker.publishLocalCached()
       super.forkEnv()

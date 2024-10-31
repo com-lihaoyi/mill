@@ -1,9 +1,14 @@
 package hello
 
 object Hello {
+
+  trait MyFunction0[T] {
+    def apply(): T
+  }
+
   def main(): Int = {
 
-    val foo = () => used()
+    val foo: MyFunction0[Int] = () => used()
     foo()
   }
   def used(): Int = 2

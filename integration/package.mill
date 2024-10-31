@@ -47,7 +47,7 @@ object `package` extends RootModule {
           Map("MILL_INTEGRATION_SERVER_MODE" -> (mode == "local" || mode == "server").toString) ++
           testReleaseEnv()
 
-      def forkArgs = T { super.forkArgs() ++ build.dist.forkArgs() }
+      def forkArgs = Task { super.forkArgs() ++ build.dist.forkArgs() }
 
       def testReleaseEnv =
         if (mode == "local")
@@ -71,9 +71,19 @@ object `package` extends RootModule {
   object feature extends Cross[IntegrationCrossModule](build.listIn(millSourcePath / "feature"))
   object invalidation
       extends Cross[IntegrationCrossModule](build.listIn(millSourcePath / "invalidation"))
-  object ide extends Cross[IntegrationCrossModule](build.listIn(millSourcePath / "ide"))
+  object ide extends Cross[IdeIntegrationCrossModule](build.listIn(millSourcePath / "ide"))
   trait IntegrationCrossModule extends build.MillScalaModule with IntegrationTestModule {
     override def moduleDeps = super[IntegrationTestModule].moduleDeps
+    def forkEnv = super.forkEnv() ++ Seq(
+      "MILL_PROJECT_ROOT" -> T.workspace.toString,
+      "TEST_SCALA_2_13_VERSION" -> build.Deps.testScala213Version,
+      "TEST_KOTLIN_VERSION" -> build.Deps.kotlinCompiler.dep.version
+    )
+  }
+  trait IdeIntegrationCrossModule extends IntegrationCrossModule {
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      build.Deps.bsp4j
+    )
   }
 
   /** Deploy freshly build mill for use in tests */

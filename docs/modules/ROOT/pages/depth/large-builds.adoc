@@ -1,5 +1,18 @@
-= Structuring Large Builds
+= Large Builds and Monorepos
 :page-aliases: Structuring_Large_Builds.adoc
+
+include::partial$gtag-config.adoc[]
+
+This section walks through Mill features and techniques used for managing large builds.
+While Mill works great for small single-module projects, it is also able to work
+effectively with large projects with hundreds of modules. Mill's own build for the
+https://github.com/com-lihaoyi/mill[com-lihaoyi/mill] project has ~400 modules, and
+other proprietary projects may have many more.
+
+Mill modules are cheap: having more modules does not significantly impact performance
+or resource usage, so you are encouraged to break up your project into modules to manage
+the layering of your codebase or benefit from parallelism.
+
 
 == Multi-file Builds
 

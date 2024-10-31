@@ -114,7 +114,7 @@ object WatchSourceInputTests extends UtestIntegrationTestSuite {
         awaitCompletionMarker(tester, "initialized1")
         expectedOut.append(
           "Setting up build.mill"
-          // These targets do not re-evaluate, because the change to the build
+          // These tasks do not re-evaluate, because the change to the build
           // file was unrelated to them and does not affect their transitive callgraph
           //        "Running qux foo contents edited-foo1 edited-foo2",
           //        "Running qux bar contents edited-bar"

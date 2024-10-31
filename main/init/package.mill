@@ -6,11 +6,11 @@ import scala.util.matching.Regex
 object `package` extends RootModule with build.MillPublishScalaModule {
   def moduleDeps = Seq(build.main)
 
-  override def resources = T {
+  override def resources = Task {
     super.resources() ++ Seq(exampleList())
   }
 
-  def exampleList: T[PathRef] = T {
+  def exampleList: T[PathRef] = Task {
 
     val versionPattern: Regex = "\\d+\\.\\d+\\.\\d+".r
     val rcPattern: Regex = "-RC\\d+".r

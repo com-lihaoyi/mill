@@ -1,3 +1,8 @@
+
+// Apart from having `package` files in subfolders to define modules, Mill
+// also allows you to have helper code in any `*.mill` file in the same folder
+// as your `build.mill` or a `package.mill`.
+
 package build
 import $packages._
 import mill._, scalalib._
@@ -16,9 +21,6 @@ object `package` extends RootModule with MyModule{
 /** See Also: foo/versions.mill */
 
 
-// Apart from having `package` files in subfolders to define modules, Mill
-// also allows you to have helper code in any `*.mill` file in the same folder
-// as your `build.mill` or a `package.mill`.
 //
 // Different helper scripts and ``build.mill``/``package`` files can all refer to
 // each other using the `build` object, which marks the root object of your build.

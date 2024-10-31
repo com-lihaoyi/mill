@@ -1,11 +1,30 @@
 = Case Study: Mill vs SBT
 :page-aliases: Case_Study_Mill_vs_SBT.adoc
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
+include::partial$gtag-config.adoc[]
+
+Compared to SBT,
+
+* **Mill makes customizing the build yourself much easier**: most of what build tools
+do work with files and call subprocesses, and Mill makes doing that yourself easy.
+This means you can always make your Mill build do exactly what you want, and are not
+beholden to third-party plugins that may not meet your exact needs or interact well
+with each other.
+
+* **Mill is much more performant**: SBT has enough overhead that even a dozen
+subprojects is enough to slow it down, while Mill can handle hundreds of modules without issue.
+Custom tasks in SBT re-execute every time, whereas in Mill they are cached automatically.
+Mill's watch-for-changes-and-re-run implementation has much lower latency than SBT's. The
+list of ways Mill improves upon SBT's performance is long, and at the command line you
+can really feel it
+
+* **Mill builds are much easier to understand**: Your Mill build is made of bog-standard
+``object``s and ``def``s, rather than SBT's
+https://eed3si9n.com/4th-dimension-with-sbt-013/[four-dimensional task matrix]. Your IDE's
+"*jump-to-definition*" in Mill actually brings you to the implementation of a task, rather
+than an SBT `taskKey` declaration. Customizing things is as simple as writing or overriding
+`def`s. The net effect is that despite both tools' build files being written in Scala,
+Mill's build files are much easier to understand and maintain.
 
 This page compares using Mill to SBT, using the https://github.com/gatling/gatling[Gatling Load Testing Framework]
 codebase as the example. Gatling is a medium sized codebase, 40,000 lines of Scala split over 21
@@ -48,12 +67,12 @@ real-world project compares to using SBT.
 
 [cols="1,1,1,1"]
 |===
-| Benchmark | Cold SBT | Hot SBT | Mill
+| Benchmark | Cold SBT | Hot SBT (rounded) | Mill
 
-| <<Parallel Clean Compile All>> | 28.7s | 12s | 10.4s
-| <<Clean Compile Single-Module>> | 10.1s | 1s | 0.96s
-| <<Incremental Compile Single-Module>> | 6.2s | 0s | 0.48s
-| <<No-Op Compile Single-Module>> | 4.2s | 0s | 0.40s
+| <<Parallel Clean Compile All>> | 28.7s | ≈ 12s | 10.4s
+| <<Clean Compile Single-Module>> | 10.1s | ≈ 1s | 0.96s
+| <<Incremental Compile Single-Module>> | 6.2s | ≈ 0s | 0.48s
+| <<No-Op Compile Single-Module>> | 4.2s | ≈ 0s | 0.40s
 |===
 
 SBT can be used in two modes, either "cold" run directly from the command line, or "hot"
@@ -187,13 +206,13 @@ IDEs like IntelliJ are nominally able to parse and analyze your SBT files, the a
 provide is often not very useful. For example, consider the inspection and jump-to-definition experience
 of looking into an SBT Task:
 
-image::IntellijGatlingSbtTask1.png[]
-image::IntellijGatlingSbtTask2.png[]
+image::comparisons/IntellijGatlingSbtTask1.png[]
+image::comparisons/IntellijGatlingSbtTask2.png[]
 
 Or an SBT plugin:
 
-image::IntellijGatlingSbtPlugin1.png[]
-image::IntellijGatlingSbtPlugin2.png[]
+image::comparisons/IntellijGatlingSbtPlugin1.png[]
+image::comparisons/IntellijGatlingSbtPlugin2.png[]
 
 In general, although your IDE can make sure the name of the task exists, and the type is correct, it
 is unable to pull up any further information about the task: its documentation, its implementation,
@@ -205,22 +224,22 @@ at all: what it does, where it is assigned, etc.
 In comparison, for Mill, IDEs like Intellij are able to provide much more intelligence. e.g. when
 inspecting a task, it is able to pull up the documentation comment:
 
-image::IntellijGatlingMillTask1.png[]
+image::comparisons/IntellijGatlingMillTask1.png[]
 
 It is able to pull up any overridden implementations of task, directly in the editor:
 
-image::IntellijGatlingMillTask2.png[]
+image::comparisons/IntellijGatlingMillTask2.png[]
 
 And you can easily navigate to the overriden implementations to see where they are defined and
 what you are overriding:
 
-image::IntellijGatlingMillTask3.png[]
+image::comparisons/IntellijGatlingMillTask3.png[]
 
 Mill's equivalent of SBT plugins are just Scala traits, and again you can easily pull up their
 documentation in-line in the editor or jump to their full implementation:
 
-image::IntellijGatlingMillPlugin1.png[]
-image::IntellijGatlingMillPlugin2.png[]
+image::comparisons/IntellijGatlingMillPlugin1.png[]
+image::comparisons/IntellijGatlingMillPlugin2.png[]
 
 In general, navigating around your build in Mill is much more straightforward than
 navigating around your build in SBT. All your normal IDE functionality works perfectly:
@@ -237,7 +256,7 @@ and associated test suites, but how do these different modules depend on each ot
 Mill, you can run `./mill visualize __.compile`, and it will show you how the
 `compile` task of each module depends on the others:
 
-image::GatlingCompileGraph.svg[]
+image::comparisons/GatlingCompileGraph.svg[]
 
 Apart from the static dependency graph, another thing of interest may be the performance
 profile and timeline: where the time is spent when you actually compile everything. With
@@ -245,7 +264,7 @@ Mill, when you run a compilation using `./mill -j 10 __.compile`, you automatica
 `out/mill-chrome-profile.json` file that you can load into your `chrome://tracing` page and
 visualize where your build is spending time and where the performance bottlenecks are:
 
-image::GatlingCompileProfile.png[]
+image::comparisons/GatlingCompileProfile.png[]
 
 If you want to inspect the tree of third-party dependencies used by any module, the
 built in `ivyDepsTree` command lets you do that easily:

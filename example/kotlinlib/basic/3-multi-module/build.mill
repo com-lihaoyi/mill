@@ -3,9 +3,13 @@ package build
 import mill._, kotlinlib._
 
 trait MyModule extends KotlinModule {
-
   def kotlinVersion = "1.9.24"
 
+  object test extends KotlinTests with TestModule.Junit5 {
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
+    )
+  }
 }
 
 object foo extends MyModule {
@@ -21,12 +25,6 @@ object bar extends MyModule {
   def ivyDeps = Agg(
     ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"
   )
-
-  object test extends KotlinTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
-    )
-  }
 }
 
 //// SNIPPET:TREE
@@ -34,16 +32,13 @@ object bar extends MyModule {
 // build.mill
 // foo/
 //     src/
-//         foo/
-//             Foo.java
-//     resources/
-//         ...
+//         foo/Foo.kt
 // bar/
 //     src/
-//         bar/
-//             Bar.java
-//     resources/
-//         ...
+//         bar/Bar.kt
+//     test/
+//         src/
+//             bar/BarTests.kt
 // out/
 //     foo/
 //         compile.json
@@ -53,5 +48,9 @@ object bar extends MyModule {
 //         compile.json
 //         compile.dest/
 //         ...
+//         test/
+//             compile.json
+//             compile.dest/
+//             ...
 // ----
 //

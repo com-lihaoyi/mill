@@ -65,18 +65,8 @@ trait Proguard extends ScalaModule {
    * Keep in sync with [[javaHome]].
    */
   def java9RtJar: T[Seq[PathRef]] = Task {
-    if (mill.main.client.Util.isJava9OrAbove) {
-      val rt = T.dest / Export.rtJarName
-      if (!os.exists(rt)) {
-        T.log.outputStream.println(
-          s"Preparing Java runtime JAR; this may take a minute or two ..."
-        )
-        Export.rtTo(rt.toIO, false)
-      }
-      Seq(PathRef(rt))
-    } else {
-      Seq()
-    }
+    if (mill.main.client.Util.isJava9OrAbove) Seq(PathRef(T.home / Export.rtJarName))
+    else Seq()
   }
 
   /**

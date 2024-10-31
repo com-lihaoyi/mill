@@ -1,0 +1,40 @@
+
+// Mill can search for updated versions of your project's dependencies, if
+// available from your project's configured repositories. Note that it uses
+// heuristics based on common versioning schemes, so it may not work as expected for
+// dependencies with particularly weird version numbers. For example, given the following
+// build:
+
+package build
+import mill._, scalalib._
+
+trait MyModule extends ScalaModule {
+  def scalaVersion = "2.13.11"
+}
+
+object foo extends MyModule {
+  def moduleDeps = Seq(bar)
+  def ivyDeps = Agg(ivy"com.lihaoyi::mainargs:0.4.0")
+}
+
+object bar extends MyModule {
+  def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:0.8.2")
+}
+
+// You can run
+
+/** Usage
+
+> mill mill.scalalib.Dependency/showUpdates
+
+> mill mill.scalalib.Dependency/showUpdates --allowPreRelease true # also show pre-release versions
+
+*/
+
+// Current limitations:
+//
+// * Only works for `JavaModule` modules (including ``ScalaModule``s,
+// ``CrossScalaModule``s, etc.) and Maven repositories.
+// * Always applies to all modules in the build.
+// * Doesn't apply to `$ivy` dependencies used in the build definition itself.
+//

@@ -22,9 +22,9 @@ object `package` extends RootModule with ScoverageModule {
 // Scoverage plugin. The root module extends the `ScoverageModule` and
 // specifies the version of scoverage version to use here: `2.1.0`. This
 // version can be changed if there is a newer one. Now you can call the
-// scoverage targets to produce coverage reports.
+// scoverage tasks to produce coverage reports.
 // The sub test module extends `ScoverageTests` to transform the
-// execution of the various testXXX targets to use scoverage and produce
+// execution of the various testXXX tasks to use scoverage and produce
 // coverage data.
 // This lets us perform the coverage operations but before that you
 // must first run the test.

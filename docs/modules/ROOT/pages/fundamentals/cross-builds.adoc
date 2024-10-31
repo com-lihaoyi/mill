@@ -1,0 +1,54 @@
+= Cross Builds
+:page-aliases: Cross_Builds.adoc
+
+include::partial$gtag-config.adoc[]
+
+Cross-building refers to taking the same sources and configuration and building
+it multiple times with minor changes. This could mean taking the same Scala
+codebase and building it across multiple Scala versions, taking the same
+application and building twice for dev/release, or taking the same module
+config and building it across a variety of source folders.
+
+== Simple Cross Modules
+
+include::partial$example/fundamentals/cross/1-simple.adoc[]
+
+== Cross Modules Defaults
+
+include::partial$example/fundamentals/cross/11-default-cross-module.adoc[]
+
+== Cross Modules Source Paths
+
+include::partial$example/fundamentals/cross/2-cross-source-path.adoc[]
+
+== Using Cross Modules from Outside Tasks
+
+include::partial$example/fundamentals/cross/3-outside-dependency.adoc[]
+
+== Using Cross Modules from other Cross Modules
+
+include::partial$example/fundamentals/cross/4-cross-dependencies.adoc[]
+
+== Multiple Cross Axes
+
+include::partial$example/fundamentals/cross/5-multiple-cross-axes.adoc[]
+
+== Extending Cross Modules
+
+include::partial$example/fundamentals/cross/6-axes-extension.adoc[]
+
+== Inner Cross Modules
+
+include::partial$example/fundamentals/cross/7-inner-cross-module.adoc[]
+
+== Cross Resolvers
+
+include::partial$example/fundamentals/cross/8-resolvers.adoc[]
+
+== Dynamic Cross Modules
+
+include::partial$example/fundamentals/cross/9-dynamic-cross-modules.adoc[]
+
+== Use Case: Static Blog
+
+include::partial$example/fundamentals/cross/10-static-blog.adoc[]

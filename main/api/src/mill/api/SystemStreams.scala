@@ -1,7 +1,7 @@
 package mill.api
 
 import java.io.{InputStream, OutputStream, PrintStream}
-import mill.main.client.InputPumper
+import mill.main.client.{DebugLog, InputPumper}
 
 import scala.util.DynamicVariable
 
@@ -19,6 +19,14 @@ class SystemStreams(
 
 object SystemStreams {
 
+  /**
+   * The original system streams of this process, before any redirection.
+   *
+   * NOTE: you should not use this! They do not get captured properly by Mill's stdout/err
+   * redirection, and thus only get picked up from the Mill server log files asynchronously.
+   * That means that the logs may appear out of order, jumbling your logs and screwing up
+   * your terminal
+   */
   val original = new SystemStreams(System.out, System.err, System.in)
 
   /**
@@ -124,9 +132,9 @@ object SystemStreams {
   def setTopLevelSystemStreamProxy(): Unit = {
     // Make sure to initialize `Console` to cache references to the original
     // `System.{in,out,err}` streams before we redirect them
-    Console.out
-    Console.err
-    Console.in
+    val _ = Console.out
+    val _ = Console.err
+    val _ = Console.in
     System.setIn(ThreadLocalStreams.In)
     System.setOut(ThreadLocalStreams.Out)
     System.setErr(ThreadLocalStreams.Err)
@@ -167,4 +175,44 @@ object SystemStreams {
       override def transferTo(out: OutputStream): Long = delegate().transferTo(out)
     }
   }
+  private def debugPrintln(s: String) =
+    DebugLog.println(pprint.apply(s.toCharArray, width = 999).toString)
+  private[mill] class DebugDelegateStream(delegate0: SystemStreams) extends SystemStreams(
+        new PrintStream(new ThreadLocalStreams.ProxyOutputStream {
+          override def delegate(): OutputStream = delegate0.out
+
+          override def write(b: Array[Byte], off: Int, len: Int): Unit = {
+            debugPrintln(new String(b, off, len))
+            super.write(b, off, len)
+          }
+
+          override def write(b: Array[Byte]): Unit = {
+            debugPrintln(new String(b))
+            super.write(b)
+          }
+
+          override def write(b: Int): Unit = {
+            debugPrintln(new String(Array(b.toByte)))
+            super.write(b)
+          }
+        }),
+        new PrintStream(new ThreadLocalStreams.ProxyOutputStream {
+          override def delegate(): OutputStream = delegate0.err
+          override def write(b: Array[Byte], off: Int, len: Int): Unit = {
+            debugPrintln(new String(b, off, len))
+            super.write(b, off, len)
+          }
+
+          override def write(b: Array[Byte]): Unit = {
+            debugPrintln(new String(b))
+            super.write(b)
+          }
+
+          override def write(b: Int): Unit = {
+            debugPrintln(new String(Array(b.toByte)))
+            super.write(b)
+          }
+        }),
+        delegate0.in
+      )
 }

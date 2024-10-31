@@ -33,7 +33,7 @@ object lib extends ScalaModule with GitlabPublishModule {
 
 `publishVersion` and `pomSettings` come from `PublishModule`. `GitlabPublishModule`
 requires you to
-set `publishRepository` for target of artifact publishing. Note that this *must* be a
+set `publishRepository` for task of artifact publishing. Note that this *must* be a
 project repository defined by project id (publishing to other type of repositories is not
 https://docs.gitlab.com/ee/user/packages/maven_repository/#use-the-gitlab-endpoint-for-maven-packages[supported]).
 

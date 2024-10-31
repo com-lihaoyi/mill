@@ -1,5 +1,6 @@
 package mill.testkit
 
+import mill.main.client.EnvVars.MILL_TEST_SUITE
 import mill.define.Segments
 import mill.eval.Evaluator
 import mill.resolve.SelectMode
@@ -91,7 +92,7 @@ object IntegrationTester {
       )
     }
 
-    def millTestSuiteEnv: Map[String, String] = Map("MILL_TEST_SUITE" -> this.getClass().toString())
+    def millTestSuiteEnv: Map[String, String] = Map(MILL_TEST_SUITE -> this.getClass().toString())
 
     /**
      * Helpers to read the `.json` metadata files belonging to a particular task
@@ -105,7 +106,7 @@ object IntegrationTester {
        * Returns the raw text of the `.json` metadata file
        */
       def text: String = {
-        val Seq((List(selector), _)) =
+        val Seq((Seq(selector), _)) =
           mill.resolve.ParseArgs.apply(Seq(selector0), SelectMode.Separated).getOrElse(???)
 
         val segments = selector._2.getOrElse(Segments()).value.flatMap(_.pathSegments)

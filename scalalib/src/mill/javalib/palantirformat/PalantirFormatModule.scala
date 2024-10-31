@@ -12,7 +12,7 @@ trait PalantirFormatBaseModule extends CoursierModule {
   /**
    * Classpath for running Palantir Java Format.
    */
-  def palantirformatClasspath: T[Loose.Agg[PathRef]] = T {
+  def palantirformatClasspath: T[Loose.Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(
       Agg(ivy"com.palantir.javaformat:palantir-java-format:${palantirformatVersion()}")
     )
@@ -22,7 +22,7 @@ trait PalantirFormatBaseModule extends CoursierModule {
    * JVM arguments for running Palantir Java Format. Defaults to values prescribed in
    * "[[https://github.com/palantir/palantir-java-format/issues/548 Broken on Java 16]]".
    */
-  def palantirformatJvmArgs: T[Seq[String]] = T {
+  def palantirformatJvmArgs: T[Seq[String]] = Task {
     Seq(
       "--add-exports",
       "jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
@@ -47,7 +47,7 @@ trait PalantirFormatBaseModule extends CoursierModule {
   /**
    * Palantir Java Format version. Defaults to `2.50.0`.
    */
-  def palantirformatVersion: T[String] = T {
+  def palantirformatVersion: T[String] = Task {
     "2.50.0"
   }
 }
@@ -97,7 +97,8 @@ object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule
    */
   def formatAll(
       check: mainargs.Flag = mainargs.Flag(value = false),
-      @mainargs.arg(positional = true) sources: Tasks[Seq[PathRef]]
+      @mainargs.arg(positional = true) sources: Tasks[Seq[PathRef]] =
+        Tasks.resolveMainDefault("__.sources")
   ): Command[Unit] = Task.Command {
 
     val _sources = T.sequence(sources.value)().iterator.flatten

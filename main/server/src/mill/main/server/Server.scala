@@ -56,7 +56,8 @@ abstract class Server[T](
                   serverLog("handling run")
                   try handleRun(sock, initialSystemProperties)
                   catch {
-                    case e: Throwable => serverLog(e + "\n" + e.getStackTrace.mkString("\n"))
+                    case e: Throwable =>
+                      serverLog(e.toString + "\n" + e.getStackTrace.mkString("\n"))
                   } finally sock.close();
                   true
               }
@@ -73,7 +74,7 @@ abstract class Server[T](
     os.remove.all(socketPath)
 
     val relFile = socketPath.relativeTo(os.pwd).toNIO.toFile
-    serverLog("listening on socket " + relFile)
+    serverLog("listening on socket " + relFile + " " + os.pwd)
     // Use relative path because otherwise the full path might be too long for the socket API
     val addr = AFUNIXSocketAddress.of(relFile)
     AFUNIXServerSocket.bindOn(addr)

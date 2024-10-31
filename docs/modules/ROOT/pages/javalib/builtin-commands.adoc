@@ -1,3 +1,11 @@
 = Built-in Commands
 :page-aliases: Java_Builtin_Commands.adoc
-include::partial$example/javalib/basic/4-builtin-commands.adoc[]
+
+include::partial$gtag-config.adoc[]
+
+:language: Java
+:language-small: java
+
+
+
+include::partial$example/javalib/basic/5-builtin-commands.adoc[]

@@ -53,7 +53,7 @@ object `package` extends RootModule with ScalaModule {
 // deploy (since the HTML will reference new hashed paths that are not yet
 // in the cache).
 //
-// We do this in an overrride of the `resources` target, that loads
+// We do this in an overrride of the `resources` task, that loads
 // `super.resources()`, hashes the files within it using `Arrays.hashCode`, and
 // copies the files to a new hashed path saving the overall mapping to a
 // `hashed-resource-mapping.json`. The webapp then loads the mapping at runtime

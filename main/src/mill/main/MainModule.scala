@@ -51,12 +51,14 @@ object MainModule {
   )(f: Seq[(Any, Option[(RunScript.TaskName, ujson.Value)])] => ujson.Value)
       : Result[ujson.Value] = {
 
+    // When using `show`, redirect all stdout of the evaluated tasks so the
+    // printed JSON is the only thing printed to stdout.
+    val redirectLogger = log
+      .withOutStream(evaluator.baseLogger.errorStream)
+      .asInstanceOf[mill.util.ColorLogger]
+
     RunScript.evaluateTasksNamed(
-      // When using `show`, redirect all stdout of the evaluated tasks so the
-      // printed JSON is the only thing printed to stdout.
-      evaluator.withBaseLogger(
-        evaluator.baseLogger.withOutStream(evaluator.baseLogger.errorStream)
-      ),
+      evaluator.withBaseLogger(redirectLogger),
       targets,
       Separated
     ) match {
@@ -81,7 +83,6 @@ object MainModule {
 trait MainModule extends BaseModule0 {
 
   object interp extends Interp
-//  implicit def millDiscover: mill.define.Discover[_]
 
   /**
    * Show the mill version.
@@ -194,7 +195,7 @@ trait MainModule extends BaseModule0 {
   /**
    * Displays metadata about the given task without actually running it.
    */
-  def inspect(evaluator: Evaluator, targets: String*): Command[String] =
+  def inspect(evaluator: Evaluator, tasks: String*): Command[String] =
     Task.Command(exclusive = true) {
       def resolveParents(c: Class[_]): Seq[Class[_]] = {
         Seq(c) ++ Option(c.getSuperclass).toSeq.flatMap(resolveParents) ++ c.getInterfaces.flatMap(
@@ -337,7 +338,7 @@ trait MainModule extends BaseModule0 {
         }
       }
 
-      MainModule.resolveTasks(evaluator, targets, SelectMode.Multi, resolveToModuleTasks = true) {
+      MainModule.resolveTasks(evaluator, tasks, SelectMode.Multi, resolveToModuleTasks = true) {
         tasks =>
           val output = (for {
             task <- tasks
@@ -436,7 +437,7 @@ trait MainModule extends BaseModule0 {
           for {
             workerSegments <- evaluator.workerCache.keys.toList
             if allSegments.exists(workerSegments.startsWith)
-            (_, Val(closeable: AutoCloseable)) <-
+            case (_, Val(closeable: AutoCloseable)) <-
               evaluator.mutableWorkerCache.remove(workerSegments)
           } {
             closeable.close()
@@ -479,7 +480,7 @@ trait MainModule extends BaseModule0 {
    */
   def shutdown(): Command[Unit] = Task.Command(exclusive = true) {
     Target.log.info("Shutting down Mill server...")
-    Target.ctx.systemExit(0)
+    Target.ctx().systemExit(0)
     ()
   }
 
@@ -517,7 +518,7 @@ trait MainModule extends BaseModule0 {
     }
 
   private type VizWorker = (
-      LinkedBlockingQueue[(scala.Seq[_], scala.Seq[_], os.Path)],
+      LinkedBlockingQueue[(scala.Seq[NamedTask[Any]], scala.Seq[NamedTask[Any]], os.Path)],
       LinkedBlockingQueue[Result[scala.Seq[PathRef]]]
   )
 
@@ -529,11 +530,11 @@ trait MainModule extends BaseModule0 {
       planTasks: Option[List[NamedTask[_]]] = None
   ): Result[Seq[PathRef]] = {
     def callVisualizeModule(
-        rs: List[NamedTask[Any]],
-        allRs: List[NamedTask[Any]]
+        tasks: List[NamedTask[Any]],
+        transitiveTasks: List[NamedTask[Any]]
     ): Result[Seq[PathRef]] = {
       val (in, out) = vizWorker
-      in.put((rs, allRs, ctx.dest))
+      in.put((tasks, transitiveTasks, ctx.dest))
       val res = out.take()
       res.map { v =>
         println(upickle.default.write(v.map(_.path.toString()), indent = 2))
@@ -548,9 +549,7 @@ trait MainModule extends BaseModule0 {
     ) match {
       case Left(err) => Result.Failure(err)
       case Right(rs) => planTasks match {
-          case Some(allRs) => {
-            callVisualizeModule(rs, allRs)
-          }
+          case Some(allRs) => callVisualizeModule(rs, allRs)
           case None => callVisualizeModule(rs, rs)
         }
     }

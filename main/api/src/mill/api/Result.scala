@@ -13,9 +13,10 @@ sealed trait Result[+T] {
   def flatMap[V](f: T => Result[V]): Result[V]
   def asSuccess: Option[Result.Success[T]] = None
   def asFailing: Option[Result.Failing[T]] = None
-  def getOrThrow: T = this match {
+  def getOrThrow: T = (this: @unchecked) match {
     case Result.Success(v) => v
-    case f: Result.Failing[_] => throw f
+    case f: Result.Failing[?] => throw f
+    // no cases for Skipped or Aborted?
   }
 }
 
@@ -95,10 +96,15 @@ object Result {
         current = current.head.getCause :: current
       }
       current.reverse
-        .flatMap(ex =>
-          Seq(ex.toString) ++
-            ex.getStackTrace.dropRight(outerStack.value.length).map("    " + _)
-        )
+        .flatMap { ex =>
+          val elements = ex.getStackTrace.dropRight(outerStack.value.length)
+          val formatted =
+            // for some reason .map without the explicit ArrayOps conversion doesn't work,
+            // and results in `Result[String]` instead of `Array[String]`
+            new scala.collection.ArrayOps(elements).map("    " + _)
+          Seq(ex.toString) ++ formatted
+
+        }
         .mkString("\n")
     }
   }

@@ -1,10 +1,11 @@
 = Contrib Plugins
 :page-aliases: Contrib_Plugins.adoc, Contrib_Modules.adoc
 
+include::partial$gtag-config.adoc[]
 
 The ((plugins)) in this section are hosted in the Mill git tree and developed / maintained by the community.
 
-For details about including plugins in your `build.mill` read xref:extending/using-plugins.adoc[Using Mill Plugins].
+For details about including plugins in your `build.mill` read xref:extending/import-ivy-plugins.adoc[Using Mill Plugins].
 
 [CAUTION]
 --
@@ -28,6 +29,11 @@ import $ivy.`com.lihaoyi::mill-contrib-bloop:`
 
 --
 
+== Importing Contrib Modules
+
+include::partial$example/extending/imports/3-contrib-import.adoc[]
+
+
 == List of Contrib Plugins
 
 // See also the list in nav.adoc
@@ -37,8 +43,6 @@ import $ivy.`com.lihaoyi::mill-contrib-bloop:`
 * xref:contrib/buildinfo.adoc[]
 * xref:contrib/codeartifact.adoc[]
 * xref:contrib/docker.adoc[]
-* xref:contrib/errorprone.adoc[]
-* xref:contrib/checkstyle.adoc[]
 * xref:contrib/flyway.adoc[]
 * xref:contrib/gitlab.adoc[]
 * xref:contrib/jmh.adoc[]
@@ -52,6 +56,3 @@ import $ivy.`com.lihaoyi::mill-contrib-bloop:`
 * xref:contrib/versionfile.adoc[]
 
 
-== Importing Contrib Modules
-
-include::partial$example/extending/imports/6-contrib-import.adoc[]

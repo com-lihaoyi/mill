@@ -1,11 +1,13 @@
 = Third-Party Plugins
 :page-aliases: Thirdparty_Modules.adoc, Thirdparty_Plugins.adoc
 
+include::partial$gtag-config.adoc[]
+
 The Plugins in this section are developed/maintained outside the mill git tree.
 This list is most likely not complete.
 If you wrote a Mill plugin or find that one is missing in this list, please open a {mill-github-url}/pulls[pull request] and add that plugin with a short description (in alphabetical order).
 
-For details about including plugins in your `build.mill` read xref:extending/using-plugins.adoc[Using Mill Plugins].
+For details about including plugins in your `build.mill` read xref:extending/import-ivy-plugins.adoc[Using Mill Plugins].
 
 CAUTION: Besides the documentation provided here, we urge you to consult the respective linked plugin documentation pages.
 The usage examples given here are most probably incomplete and sometimes outdated!
@@ -335,7 +337,7 @@ Found undeclared dependencies: (add these to ivyDeps)
 Found unimported dependencies: (remove these from ivyDeps)
     ivy"org.typelevel::cats-effect:3.3.6",
 
-1 targets failed
+1 tasks failed
 main.checkExplicitDeps Found 1 undeclared dependencies, 1 unimported dependencies
 ----
 
@@ -367,7 +369,7 @@ object g8 extends G8Module {
 }
 ----
 
-The most common target you'd then use is `mill g8.validate`.
+The most common task you'd then use is `mill g8.validate`.
 
 == Git
 
@@ -375,7 +377,7 @@ A git version plugin for mill.
 
 Project home: https://github.com/joan38/mill-git
 
-_build.sc_:
+_build.mill_:
 
 [source,scala]
 ----
@@ -472,7 +474,7 @@ Add a new test sub-project, e.g. `itest`.
 
 [source,scala]
 ----
-// build.sc
+// build.mill
 import $ivy.`de.tototec::de.tobiasroeser.mill.integrationtest_mill0.9:0.4.0`
 import de.tobiasroeser.mill.integrationtest._
 
@@ -500,14 +502,14 @@ Your project should now look similar to this:
 +-- it/
     +-- src/
         +-- 01-first-test/
-        |   +-- build.sc
+        |   +-- build.mill
         |   +-- src/
         |
         +-- 02-second-test/
-            +-- build.sc
+            +-- build.mill
 ----
 
-As the buildfiles `build.sc` in your test cases typically want to access the locally built plugin(s),
+As the buildfiles `build.mill` in your test cases typically want to access the locally built plugin(s),
 the plugins publishes all plugins referenced under `pluginsUnderTest` to a temporary ivy repository, just before the test is executed.
 The mill version used in the integration test then used that temporary ivy repository.
 
@@ -516,7 +518,7 @@ you can use the following line instead, which ensures you will use the correct l
 
 [source,scala]
 ----
-// build.sc
+// build.mill
 import $exec.plugins
 ----
 
@@ -543,7 +545,7 @@ JBake home: https://jbake.org
 
 [source,scala]
 ----
-// build.sc
+// build.mill
 import mill._
 import $ivy.`de.tototec::de.tobiasroeser.mill.jbake:0.1.0`
 import de.tobiasroeser.mill.jbake._
@@ -571,8 +573,8 @@ bash> mill site.jbakeServe
 
 == JBuildInfo
 
-This is a https://www.lihaoyi.com/mill/[mill] module similar to
-https://www.lihaoyi.com/mill/page/contrib-modules.html#buildinfo[BuildInfo]
+This is a Mill module similar to
+xref:contrib/buildinfo.adoc[BuildInfo]
 but for Java.
 It will generate a Java class containing information from your build.
 
@@ -584,13 +586,13 @@ the desired information via the `buildInfoMembers` method:
 
 [source,scala]
 ----
-// build.sc
+// build.mill
 import $ivy.`com.github.carueda::jbuildinfo:0.1.2`
 import com.github.carueda.mill.JBuildInfo
 import mill.T
 
 object project extends JBuildInfo {
-  def buildInfoMembers: T[Map[String, String]] = T {
+  def buildInfoMembers: T[Map[String, String]] = Task {
     Map(
       "name" -> "some name",
       "version" -> "x.y.z"
@@ -719,7 +721,7 @@ https://github.com/spotify/missinglink[missinglink] check for Mill, ported from 
 
 Project home: https://github.com/hoangmaihuy/mill-missinglink
 
-_build.sc_:
+_build.mill_:
 [source,scala]
 ----
 import $ivy.`io.github.hoangmaihuy::mill-missinglink::<latest-version>`
@@ -802,7 +804,7 @@ object project extends ScalaModule with OsgiBundleModule {
 
   def bundleSymbolicName = "com.example.project"
 
-  def osgiHeaders = T{ super.osgiHeaders().copy(
+  def osgiHeaders = Task { super.osgiHeaders().copy(
     `Export-Package`   = Seq("com.example.api"),
     `Bundle-Activator` = Some("com.example.internal.Activator")
   )}
@@ -821,7 +823,7 @@ Project home: https://github.com/sake92/mill-powershell-completion
 
 == PublishM2
 
-_Since Mill `0.6.1-27-f265a4` there is a built-in `publishM2Local` target in `PublishModule`._
+_Since Mill `0.6.1-27-f265a4` there is a built-in `publishM2Local` task in `PublishModule`._
 
 Mill plugin to publish artifacts into a local Maven repository.
 
@@ -831,7 +833,7 @@ Project home: https://github.com/lefou/mill-publishM2
 Just mix-in the `PublishM2Module` into your project.
 `PublishM2Module` already extends mill's built-in `PublishModule`.
 
-File: `build.sc`
+File: `build.mill`
 
 [source,scala]
 ----
@@ -903,7 +905,7 @@ https://github.com/scala-tsi/scala-tsi[scala-tsi] support for Mill
 
 Project home: https://github.com/hoangmaihuy/mill-scala-tsi
 
-_build.sc_:
+_build.mill_:
 
 [source,scala]
 ----
@@ -950,7 +952,7 @@ https://scalacenter.github.io/scalafix/[Scalafix] support for mill.
 
 Project home: https://github.com/joan38/mill-scalafix
 
-_build.sc_:
+_build.mill_:
 
 [source,scala]
 ----
@@ -970,7 +972,7 @@ object project extends ScalaModule with ScalafixModule {
 /project/project/src/MyClass.scala:12:11: error: [DisableSyntax.var] mutable state should be avoided
   private var hashLength = 7
           ^^^
-1 targets failed
+1 tasks failed
 project.fix A Scalafix linter error was reported
 ----
 
@@ -1084,7 +1086,7 @@ Project home: https://github.com/hoangmaihuy/mill-universal-packager
 
 [source,scala,subs="attributes,verbatim"]
 ----
-// build.sc
+// build.mill
 import $ivy.`io.github.hoangmaihuy::mill-universal-packager::<latest-version>`
 
 import io.github.hoangmaihuy.mill.packager.archetypes.JavaAppPackagingModule

@@ -16,7 +16,10 @@ object FullOptESModuleTests extends TestSuite {
       override def moduleKind = ModuleKind.ESModule
     }
 
-    override lazy val millDiscover = Discover[this.type]
+    override lazy val millDiscover = {
+      import mill.main.TokenReaders.given
+      Discover[this.type]
+    }
   }
 
   val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-js-world"

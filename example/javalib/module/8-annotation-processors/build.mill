@@ -36,7 +36,7 @@ Test foo.HelloWorldTest.testSimple finished...
 object bar extends JavaModule {
   def compileIvyDeps = Agg(ivy"org.projectlombok:lombok:1.18.34")
 
-  def processors = T{
+  def processors = Task {
     defaultResolver().resolveDeps(Agg(ivy"org.projectlombok:lombok:1.18.34"))
   }
 

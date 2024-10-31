@@ -144,7 +144,7 @@ class ZincWorkerImpl(
       compilerClasspath,
       scalacPluginClasspath,
       Seq()
-    ) { compilers: Compilers =>
+    ) { (compilers: Compilers) =>
       if (ZincWorkerUtil.isDotty(scalaVersion) || ZincWorkerUtil.isScala3Milestone(scalaVersion)) {
         // dotty 0.x and scala 3 milestones use the dotty-doc tool
         val dottydocClass =
@@ -197,18 +197,18 @@ class ZincWorkerImpl(
     os.makeDir.all(workingDir)
     os.makeDir.all(compileDest)
 
-    val sourceFolder = mill.api.IO.unpackZip(compilerBridgeSourcesJar)(workingDir)
+    val sourceFolder = os.unzip(compilerBridgeSourcesJar, workingDir / "unpacked")
     val classloader = mill.api.ClassLoader.create(
       compilerClasspath.iterator.map(_.path.toIO.toURI.toURL).toSeq,
       null
     )(ctx0)
 
     val (sources, resources) =
-      os.walk(sourceFolder.path).filter(os.isFile)
+      os.walk(sourceFolder).filter(os.isFile)
         .partition(a => a.ext == "scala" || a.ext == "java")
 
     resources.foreach { res =>
-      val dest = compileDest / res.relativeTo(sourceFolder.path)
+      val dest = compileDest / res.relativeTo(sourceFolder)
       os.move(res, dest, replaceExisting = true, createFolders = true)
     }
 
@@ -388,7 +388,7 @@ class ZincWorkerImpl(
       compilerClasspath = compilerClasspath,
       scalacPluginClasspath = scalacPluginClasspath,
       javacOptions = javacOptions
-    ) { compilers: Compilers =>
+    ) { (compilers: Compilers) =>
       compileInternal(
         upstreamCompileOutput = upstreamCompileOutput,
         sources = sources,
@@ -478,6 +478,7 @@ class ZincWorkerImpl(
     ConsistentFileAnalysisStore.binary(
       file = path.toIO,
       mappers = ReadWriteMappers.getEmptyMappers(),
+      sort = true,
       // No need to utilize more that 8 cores to serialize a small file
       parallelism = math.min(Runtime.getRuntime.availableProcessors(), 8)
     )

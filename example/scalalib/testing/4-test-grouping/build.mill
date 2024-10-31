@@ -49,7 +49,15 @@ out/foo/test/test.dest/test-report.xml
 // each test class to its own group, running in its own JVM. This comes with some overhead
 // on a per-JVM basis, so if your test classes are numerous and small you may want to assign
 // multiple test classes per group. You can also configure `testForkGrouping` to choose which
-// test classes you want to run together and which to run alone: e.g. if some test classes
-// are much slower than others, you may want to put the slow test classes each in its own
-// group to reduce latency, while grouping multiple fast test classes together to reduce the
-// per-group overhead of spinning up a separate JVM.
+// test classes you want to run together and which to run alone:
+//
+// * If some test classes
+//   are much slower than others, you may want to put the slow test classes each in its own
+//   group to reduce latency, while grouping multiple fast test classes together to reduce the
+//   per-group overhead of spinning up a separate JVM.
+//
+// * Some test classes may have global JVM-wide or filesystem side effects that means they
+//   have to run alone, while other test classes may be better-behaved and OK to run in a group
+//
+// In general, `testForkGrouping` leaves it up to you how you want to group your tests for
+// execution, based on the unique constraints of your test suite.

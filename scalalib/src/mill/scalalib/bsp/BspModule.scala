@@ -46,6 +46,7 @@ object BspModule {
   object LanguageId {
     val Java = "java"
     val Scala = "scala"
+    val Kotlin = "kotlin"
   }
 
   /** Used to define the [[BspBuildTarget.tags]] field. */

@@ -1,6 +1,6 @@
-// This example shows how to define target that depend on other tasks:
+// This example shows how to define task that depend on other tasks:
 //
-// 1. For `generatedSources`, we override an the task and make it depend
+// 1. For `generatedSources`, we override the task and make it depend
 //    directly on `ivyDeps` to generate its source files. In this example,
 //    to include the list of dependencies as tuples within a static `object`
 //
@@ -53,14 +53,35 @@ object `package` extends RootModule with ScalaModule {
 
 //// SNIPPET:END
 
-// Mill lets you define new cached Targets using the `Task {...}` syntax,
-// depending on existing Targets e.g. `foo.sources` via the `foo.sources()`
+// The above build defines the customizations to the Mill task graph shown below,
+// with the boxes representing tasks defined or overriden above and the un-boxed
+// labels representing existing Mill tasks:
+//
+// ```graphviz
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0]
+//   ivyDeps -> generatedSources -> compile -> "..."
+//
+//   sources -> lineCount -> forkArgs -> "..." -> run
+//   lineCount -> printLineCount
+//
+//   sources [color=white]
+//   run [color=white]
+//
+//   compile [color=white]
+//   "..." [color=white]
+// }
+// ```
+//
+// Mill lets you define new cached Tasks using the `Task {...}` syntax,
+// depending on existing Tasks e.g. `foo.sources` via the `foo.sources()`
 // syntax to extract their current value, as shown in `lineCount` above. The
-// return-type of a Target has to be JSON-serializable (using
-// https://github.com/lihaoyi/upickle[uPickle]) and the Target is cached when
-// first run until its inputs change (in this case, if someone edits the
-// `foo.sources` files which live in `foo/src`. Cached Targets cannot take
-// parameters.
+// return-type of a Task has to be JSON-serializable (using
+// https://github.com/lihaoyi/upickle[uPickle], one of Mill's xref:fundamentals/bundled-libraries.adoc[Bundled Libraries])
+// and the Task is cached when first run until its inputs change (in this case, if
+// someone edits the `foo.sources` files which live in `foo/src`). Cached Tasks
+// cannot take parameters.
 //
 // Note that depending on a task requires use of parentheses after the task
 // name, e.g. `ivyDeps()`, `sources()` and `lineCount()`. This converts the
@@ -87,18 +108,30 @@ my.line.count: 14
 
 //// SNIPPET:END
 
-// Custom targets and commands can contain arbitrary code. Whether you want to
+// Custom tasks can contain arbitrary code. Whether you want to
 // download files using `requests.get`, shell-out to Webpack
 // to compile some Javascript, generate sources to feed into a compiler, or
 // create some custom jar/zip assembly with the files you want , all of these
-// can simply be custom targets with your code running in the `Task {...}` block.
+// can simply be custom tasks with your code running in the `Task {...}` block.
+// You can also import arbitrary Java or Scala libraries from Maven Central via
+// xref:extending/import-ivy-plugins.adoc[import $ivy] to use in your build.
 //
-// You can create arbitrarily long chains of dependent targets, and Mill will
-// handle the re-evaluation and caching of the targets' output for you.
+// You can create arbitrarily long chains of dependent tasks, and Mill will
+// handle the re-evaluation and caching of the tasks' output for you.
 // Mill also provides you a `Task.dest` folder for you to use as scratch space or
-// to store files you want to return: all files a task creates should live
-// within `Task.dest`, and any files you want to modify should be copied into
-// `Task.dest` before being modified. That ensures that the files belonging to a
-// particular target all live in one place, avoiding file-name conflicts and
-// letting Mill automatically invalidate the files when the target's inputs
+// to store files you want to return:
+//
+// * Any files a task creates should live
+//   within `Task.dest`
+//
+// * Any files a task modifies should be copied into
+//   `Task.dest` before being modified.
+//
+// * Any files that a task returns should be returned as a `PathRef` to a path
+//   within `Task.dest`
+//
+// That ensures that the files belonging to a
+// particular task all live in one place, avoiding file-name conflicts,
+// preventing race conditions when tasks evaluate in parallel, and
+// letting Mill automatically invalidate the files when the task's inputs
 // change.

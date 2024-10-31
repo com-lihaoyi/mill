@@ -76,7 +76,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSLinkerClasspath: T[Loose.Agg[PathRef]] = Task {
     val commonDeps = Seq(
-      ivy"org.scala-js::scalajs-sbt-test-adapter:${scalaJSVersion()}"
+      ivy"org.scala-js:scalajs-sbt-test-adapter_2.13:${scalaJSVersion()}"
     )
     val scalajsImportMapDeps = scalaJSVersion() match {
       case s"1.$n.$_" if n.toIntOption.exists(_ >= 16) && scalaJSImportMap().nonEmpty =>
@@ -92,7 +92,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
         )
       case "1" =>
         Seq(
-          ivy"org.scala-js::scalajs-linker:${scalaJSVersion()}"
+          ivy"org.scala-js:scalajs-linker_2.13:${scalaJSVersion()}"
         ) ++ scalaJSJsEnvIvyDeps()
     }
     // we need to use the scala-library of the currently running mill

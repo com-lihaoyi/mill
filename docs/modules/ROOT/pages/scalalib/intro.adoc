@@ -11,65 +11,15 @@
 // what Mill is, hopefully have downloaded an example to try out, and be
 // interested in learning more about the Mill build tool
 
-= Building Scala Projects with Mill
+= Building Scala with Mill
 :page-aliases: Intro_to_Mill_for_Scala.adoc, Scala_Intro_to_Mill.adoc
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
-
+include::partial$gtag-config.adoc[]
 
 :language: Scala
 :language-small: scala
 
-include::partial$Intro_to_Mill_Header.adoc[]
-
-Mill is used to build many mainstream Scala projects, such as the
-https://github.com/coursier/coursier[Coursier dependency resolver],
-https://github.com/VirtusLab/scala-cli[Scala-CLI], and the
-https://github.com/com-lihaoyi/Ammonite[Ammonite REPL]
-
-Mill borrows ideas from other tools like https://maven.apache.org/[Maven],
-https://gradle.org/[Gradle], https://bazel.build/[Bazel], or https://www.scala-sbt.org/[SBT].
-It tries to learn from the strengths of each tool, while improving on their weaknesses.
-
-Compared to SBT:
-
-* **Mill makes customizing the build yourself much easier**: most of what build tools
-  do work with files and call subprocesses, and Mill makes doing that yourself easy.
-  This means you can always make your Mill build do exactly what you want, and are not
-  beholden to third-party plugins that may not exist, be well maintained, or interact well
-  with each other.
-
-* **Mill is much more performant**: SBT has enough overhead that even a dozen
-  subprojects is enough to slow it down, while Mill can handle hundreds of modules without issue.
-  Custom tasks in SBT re-execute every time, whereas in Mill they are cached automatically.
-  Mill's watch-for-changes-and-re-run implementation has much lower latency than SBT's. The
-  list of ways Mill improves upon SBT's performance is long, and at the command line you
-  can really feel it
-
-* **Mill builds are much easier to understand**: Your Mill build is made of bog-standard
-  ``object``s and ``def``s, rather than SBT's
-  https://eed3si9n.com/4th-dimension-with-sbt-013/[four-dimensional task matrix]. Your IDE's
-  "*jump-to-definition*" in Mill actually brings you to the implementation of a task, rather
-  than an SBT `taskKey` declaration. Customizing things is as simple as writing or overriding
-  `def`s. The net effect is that despite both tools' build files being written in Scala,
-  Mill's build files are much easier to understand and maintain.
-
-For a more detailed dive into the problems with SBT or how Mill improves upon them, check
-out the following blog posts:
-
-- https://www.lihaoyi.com/post/SowhatswrongwithSBT.html[So, what's wrong with SBT?]
-- https://www.lihaoyi.com/post/MillBetterScalaBuilds.html[Mill: Better Scala Builds]
-
-include::partial$Intro_to_Mill_BlogVideo.adoc[]
-
-If you are using Mill, you will find the following book by the Author useful in
-using Mill and its supporting libraries to the fullest:
-
-* https://handsonscala.com/[Hands-on Scala Programming]
+include::partial$Intro_Header.adoc[]
 
 == Simple Scala Module
 
@@ -83,4 +33,14 @@ include::partial$example/scalalib/basic/2-custom-build-logic.adoc[]
 
 include::partial$example/scalalib/basic/3-multi-module.adoc[]
 
-include::partial$Intro_to_Mill_Footer.adoc[]
+
+== SBT-Compatible Modules
+
+include::partial$example/scalalib/basic/4-compat-modules.adoc[]
+
+
+== Realistic Scala Example Project
+
+include::partial$example/scalalib/basic/6-realistic.adoc[]
+
+

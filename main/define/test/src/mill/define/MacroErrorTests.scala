@@ -10,9 +10,9 @@ object MacroErrorTests extends TestSuite {
 
     test("errors") {
       val expectedMsg =
-        "T{} members must be defs defined in a Cacher class/trait/object body"
+        "Task{} members must be defs defined in a Module class/trait/object body"
 
-      val err = compileError("object Foo extends TestBaseModule{ val x = T{1} }")
+      val err = compileError("object Foo extends TestBaseModule{ val x = Task {1} }")
       assert(err.msg == expectedMsg)
     }
 
@@ -33,7 +33,7 @@ object MacroErrorTests extends TestSuite {
       test("target") {
         val e = compileError("""
           object foo extends TestBaseModule{
-            def x() = T{1}
+            def x() = Task {1}
           }
           mill.define.Discover[foo.type]
         """)
@@ -80,33 +80,44 @@ object MacroErrorTests extends TestSuite {
       }
     }
     test("badTmacro") {
-      // Make sure we can reference values from outside the T{...} block as part
+      // Make sure we can reference values from outside the Task{...} block as part
       // of our `Target#apply()` calls, but we cannot reference any values that
-      // come from inside the T{...} block
+      // come from inside the Task{...} block
       test("pos") {
-        val e = compileError("""
-          val a = T{ 1 }
+        // This hsould compile
+        object foo extends TestBaseModule {
+          def a = Task { 1 }
           val arr = Array(a)
-          val b = {
+          def b = {
             val c = 0
-            T{
+            Task {
               arr(c)()
             }
           }
-        """)
+        }
+      }
+      test("neg1") {
+        val e = compileError("""def a = Task { 1 }""")
         assert(e.msg.contains(
-          "Modules, Targets and Commands can only be defined within a mill Module"
+          "Task{} members must be defs defined in a Module class/trait/object body"
         ))
       }
-      test("neg") {
+
+      test("neg2") {
+        val e = compileError("object foo extends TestBaseModule{ val a = Task { 1 } }")
+        assert(e.msg.contains(
+          "Task{} members must be defs defined in a Module class/trait/object body"
+        ))
+      }
+      test("neg3") {
 
         val expectedMsg =
-          "Target#apply() call cannot use `value n` defined within the T{...} block"
+          "Target#apply() call cannot use `value n` defined within the Task{...} block"
         val err = compileError("""new Module{
-          def a = T{ 1 }
+          def a = Task { 1 }
           val arr = Array(a)
           def b = {
-            T{
+            Task{
               val n = 0
               arr(n)()
             }
@@ -114,32 +125,32 @@ object MacroErrorTests extends TestSuite {
         }""")
         assert(err.msg == expectedMsg)
       }
-      test("neg2") {
+      test("neg4") {
 
         val expectedMsg =
-          "Target#apply() call cannot use `value x` defined within the T{...} block"
+          "Target#apply() call cannot use `value x` defined within the Task{...} block"
         val err = compileError("""new Module{
-          def a = T{ 1 }
+          def a = Task { 1 }
           val arr = Array(a)
           def b = {
-            T{
+            Task{
               arr.map{x => x()}
             }
           }
         }""")
         assert(err.msg == expectedMsg)
       }
-      test("neg3") {
+      test("neg5") {
         val borkedCachedDiamond1 = utest.compileError("""
           object borkedCachedDiamond1 {
-            def up = T{ TestUtil.test() }
-            def left = T{ TestUtil.test(up) }
-            def right = T{ TestUtil.test(up) }
-            def down = T{ TestUtil.test(left, right) }
+            def up = Task { TestUtil.test() }
+            def left = Task { TestUtil.test(up) }
+            def right = Task { TestUtil.test(up) }
+            def down = Task { TestUtil.test(left, right) }
           }
         """)
         assert(borkedCachedDiamond1.msg.contains(
-          "Modules, Targets and Commands can only be defined within a mill Module"
+          "Task{} members must be defs defined in a Module class/trait/object body"
         ))
       }
     }

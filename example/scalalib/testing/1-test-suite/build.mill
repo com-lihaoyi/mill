@@ -31,7 +31,11 @@ compiling 1 ... source...
 ...foo.FooTests...hello ...
 ...foo.FooTests...world ...
 
-> mill foo.test
+> mill foo.test # same as above, `.test` is the default task for the `test` module
+...foo.FooTests...hello ...
+...foo.FooTests...world ...
+
+> mill foo.test.testOnly foo.FooTests # explicitly select the test class you wish to run
 ...foo.FooTests...hello ...
 ...foo.FooTests...world ...
 
@@ -66,7 +70,7 @@ object bar extends ScalaModule {
 */
 
 // You can also select multiple test suites in one command using Mill's
-// xref:depth/query-syntax.adoc[Target Query Syntax]
+// xref:fundamentals/query-syntax.adoc[Task Query Syntax]
 
 /** Usage
 
@@ -80,59 +84,42 @@ object bar extends ScalaModule {
 */
 
 // Mill provides three ways of running tests
-//
-// * `foo.test.test`: runs tests in a subprocess in an empty `sandbox/` folder.
-//
-// * `foo.test.testCached`: runs the tests in an empty `sandbox/` folder and caches the results
-//   if successful. Also allows multiple test modules to be run in parallel e.g. via `mill __.testCached`
-//
-// * `foo.test.testLocal`: runs tests in an isolated classloader as part of the main Mill process.
-//   This can be faster than `.test`, but is less flexible (e.g. you cannot pass `forkEnv`)
-//   and more prone to interference (due to sharing the `sandbox/` folder provided by the
-//   Mill process)
+/** Usage
+> mill foo.test
+*/
+// * `foo.test`: runs tests in a subprocess in an empty `sandbox/` folder. This is short
+//   for `foo.test.test`, as `test` is the default task for ``TestModule``s.
 
 /** Usage
+> mill foo.test.testCached
+*/
+// * `foo.test.testCached`: runs the tests in an empty `sandbox/` folder and caches the results
+//   if successful. This can be handy if you are you working on some upstream modules and only
+//   want to run downstream tests which are affected: using `testCached`, downstream tests which
+//   are not affected will be cached after the first run and not re-run unless you change some
+//   file upstream of them.
+//
 
-> mill bar.test.test
-
-> mill bar.test.testCached
-
-> mill bar.test.testLocal
+/** Usage
+> mill foo.test.testLocal
 
 */
-
-// Mill provides three ways of running tests
-//
-// * `foo.test.test`: runs tests in a subprocess in an empty `sandbox/` folder, and
-//   `forkArg` and `forkEnv` can be overridden to pass JVM flags &amp; environment variables.
-//
-// * `foo.test.testCached`: runs the tests in an empty `sandbox/` folder and caches the results
-//   if successful. Also allows multiple test modules to be run in parallel e.g. via
-//   `mill __.testCached`. Again, `forkEnv` and `forkArgs` can be configured.
-//
 // * `foo.test.testLocal`: runs tests in an isolated classloader as part of the main Mill process.
 //   This can be faster than `.test`, but is less flexible (e.g. you cannot pass `forkEnv`)
-//   and more prone to interference (due to sharing the `sandbox/` folder provided by the
-//   Mill process)
+//   and more prone to interference (`testLocal` runs do not run in xref:depth/sandboxing.adoc[sandbox folders])
 //
+// It is common to run tests with xref:cli/flags.adoc#_watch_w[-w/--watch]
+// enabled, so that once you save a file to disk the selected tests get re-run.
 //
-// [source,bash,subs="attributes,verbatim"]
-// ----
-// > mill bar.test.test
-//
-// > mill bar.test.testCached
-//
-// > mill bar.test.testLocal
-// ----
-//
-// *Note that Mill runs tests with the working directory set to an empty `sandbox/` folder by default*.
+// NOTE: Mill runs tests with the working directory set to an empty
+// xref:depth/sandboxing.adoc[sandbox/ folder] by default.
 // Tests can access files from their resource directory via the environment variable
 // `MILL_TEST_RESOURCE_DIR` which provides the path to the resource folder, and additional
 // paths can be provided to test via `forkEnv`. See
 // xref:javalib/module-config.adoc#_classpath_and_filesystem_resources[Classpath and Filesystem Resources]
 // for more details.
 //
-// If you want to pass any arguments to the test framework, simply put them after
+// If you want to pass any arguments to the test framework, you can pass them after
 // `foo.test` in the command line. e.g. {utest-github-url}[uTest]
 // lets you pass in a selector to decide which test to run, which in Mill would be:
 
@@ -143,3 +130,5 @@ object bar extends ScalaModule {
 ...bar.BarTests...hello ...
 
 */
+
+// This command only runs the `hello` test case in the `bar.BarTests` test suite class.

@@ -1,0 +1,32 @@
+= Scala Library Dependencies
+
+include::partial$gtag-config.adoc[]
+
+
+This page goes into more detail about configuring third party dependencies
+for `ScalaModule`.
+
+
+
+== Adding Ivy Dependencies
+
+include::partial$example/scalalib/dependencies/1-ivy-deps.adoc[]
+
+== Runtime and Compile-time Dependencies
+
+include::partial$example/scalalib/dependencies/2-run-compile-deps.adoc[]
+
+
+== Unmanaged Jars
+
+include::partial$example/scalalib/dependencies/3-unmanaged-jars.adoc[]
+
+
+== Downloading Unmanaged Jars
+
+include::partial$example/scalalib/dependencies/4-downloading-unmanaged-jars.adoc[]
+
+
+== Repository Config
+
+include::partial$example/scalalib/dependencies/5-repository-config.adoc[]

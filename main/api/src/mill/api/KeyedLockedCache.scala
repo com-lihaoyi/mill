@@ -11,7 +11,7 @@ trait KeyedLockedCache[T] {
 
 object KeyedLockedCache {
   class RandomBoundedCache[T](hotParallelism: Int, coldCacheSize: Int) extends KeyedLockedCache[T] {
-    private[this] val random = new scala.util.Random(313373)
+    private val random = new scala.util.Random(313373)
     val available = new java.util.concurrent.Semaphore(hotParallelism)
 
     // Awful asymptotic complexity, but our caches are tiny n < 10 so it doesn't matter

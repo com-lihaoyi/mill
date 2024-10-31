@@ -51,7 +51,13 @@ private object PromptLoggerUtil {
       prev: Option[StatusEntry]
   )
 
-  private[mill] val clearScreenToEndBytes: Array[Byte] = AnsiNav.clearScreen(0).getBytes
+  /**
+   * Starting a line with `clearScreen` mucks up tab stops in iTerm, so make sure we navigate `up`
+   * and down via `\n` to have a "fresh" line. This only should get called to clear the prompt, so
+   * the cursor is already at the left-most column, which '\n' will not change.
+   */
+  private[mill] val clearScreenToEndBytes: Array[Byte] =
+    (AnsiNav.clearScreen(0) + AnsiNav.up(1) + "\n").getBytes
 
   private def renderSecondsSuffix(millis: Long) = (millis / 1000).toInt match {
     case 0 => ""
@@ -149,6 +155,26 @@ private object PromptLoggerUtil {
     header :: body ::: footer
   }
 
+  // Wrap the prompt in the necessary clear-screens/newlines/move-cursors
+  // according to whether it is interactive or ending
+  def renderPromptWrapped(
+      currentPromptLines: Seq[String],
+      interactive: Boolean,
+      ending: Boolean
+  ): String = {
+    if (!interactive) currentPromptLines.mkString("\n") + "\n"
+    else {
+      // For the ending prompt, leave the cursor at the bottom on a new line rather than
+      // scrolling back left/up. We do not want further output to overwrite the header as
+      // it will no longer re-render
+      val backUp =
+        if (ending) "\n"
+        else AnsiNav.left(9999) + AnsiNav.up(currentPromptLines.length - 1)
+
+      AnsiNav.clearScreen(0) + currentPromptLines.mkString("\n") + backUp
+    }
+  }
+
   def renderHeader(
       headerPrefix0: String,
       titleText0: String,
@@ -157,7 +183,8 @@ private object PromptLoggerUtil {
       ending: Boolean = false,
       interactive: Boolean = true
   ): String = {
-    val headerPrefixStr = if (!interactive || ending) s"$headerPrefix0 " else s"  $headerPrefix0 "
+    val headerPrefix = if (headerPrefix0.isEmpty) "" else s"$headerPrefix0 "
+    val headerPrefixStr = if (!interactive || ending) headerPrefix else s"  $headerPrefix"
     val headerSuffixStr = headerSuffix0
     val titleText = s" $titleText0 "
     // -12 just to ensure we always have some ==== divider on each side of the title
@@ -203,5 +230,18 @@ private object PromptLoggerUtil {
       else index -= 1
     }
     ???
+  }
+
+  private[mill] val seqStringOrdering = new Ordering[Seq[String]] {
+    def compare(xs: Seq[String], ys: Seq[String]): Int = {
+      val iter = xs.iterator.zip(ys)
+      while (iter.nonEmpty) {
+        val (x, y) = iter.next()
+        if (x > y) return 1
+        else if (y > x) return -1
+      }
+
+      return xs.lengthCompare(ys)
+    }
   }
 }

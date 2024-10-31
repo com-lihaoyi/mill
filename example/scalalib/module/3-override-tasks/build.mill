@@ -5,7 +5,7 @@ import mill._, scalalib._
 object foo extends ScalaModule {
   def scalaVersion = "2.13.8"
 
-  def sources = T{
+  def sources = Task {
     os.write(
       Task.dest / "Foo.scala",
       """package foo
@@ -32,23 +32,23 @@ object foo extends ScalaModule {
 
 //// SNIPPET:END
 
-// You can re-define targets and commands to override them, and use `super` if you
+// You can re-define tasks to override them, and use `super` if you
 // want to refer to the originally defined task. The above example shows how to
 // override `compile` and `run` to add additional logging messages, and we
 // override `sources` which was `Task.Sources` for the `src/` folder with a plain
-// `T{...}` target that generates the  necessary source files on-the-fly.
+// `T{...}` task that generates the  necessary source files on-the-fly.
 //
-// Note that this example *replaces* your `src/` folder with the generated
-// sources. If you want to *add* generated sources, you can either override
-// `generatedSources`, or you can override `sources` and use `super` to
-// include the original source folder:
+// NOTE: that this example *replaces* your `src/` folder with the generated
+// sources, as we are overriding the `def sources` task. If you want to *add*
+// generated sources, you can either override `generatedSources`, or you can
+// override `sources` and use `super` to include the original source folder with `super`:
 
 //// SNIPPET:BUILD2
 
 object foo2 extends ScalaModule {
   def scalaVersion = "2.13.8"
 
-  def generatedSources = T{
+  def generatedSources = Task {
     os.write(Task.dest / "Foo.scala", """...""")
     Seq(PathRef(Task.dest))
   }
@@ -57,7 +57,7 @@ object foo2 extends ScalaModule {
 object foo3 extends ScalaModule {
   def scalaVersion = "2.13.8"
 
-  def sources = T{
+  def sources = Task {
     os.write(Task.dest / "Foo.scala", """...""")
     super.sources() ++ Seq(PathRef(Task.dest))
   }

@@ -1,7 +1,9 @@
 // This example shows some of the common tasks you may want to override on a
-// `ScalaModule`: specifying the `mainClass`, adding additional
+// `{language}Module`: specifying the `mainClass`, adding additional
 // sources/resources, generating resources, and setting compilation/run
-// options.
+// options. We also define it as a xref:fundamentals/modules.adoc#_rootmodule[RootModule],
+// so its sources will live in the top-level `src/` folder and its tasks can be
+// called directly via `compile` or `run` without needing a `foo.` module prefix.
 
 //// SNIPPET:BUILD
 package build
@@ -58,10 +60,10 @@ object `package` extends RootModule with ScalaModule {
 // If you want to better understand how the various upstream tasks feed into
 // a task of interest, such as `run`, you can visualize their relationships via
 /** Usage
-> mill show visualizePlan run
+> mill visualizePlan run
 */
 //
-// image::VisualizePlanScala.svg[VisualizePlanScala.svg]
+// image::basic/VisualizePlanScala.svg[VisualizePlanScala.svg]
 //
 // (right-click open in new tab to see full sized)
 //

@@ -5,7 +5,7 @@ import mill._, javalib._
 object `package` extends RootModule with JavaModule {
   // You can have arbitrary numbers of third-party dependencies
   def ivyDeps = Agg(
-    ivy"org.apache.commons:commons-text:1.12.0"
+    ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
 
   // Choose a main class to use for `.run` if there are multiple present
@@ -47,10 +47,10 @@ object `package` extends RootModule with JavaModule {
 // If you want to better understand how the various upstream tasks feed into
 // a task of interest, such as `run`, you can visualize their relationships via
 /** Usage
-> mill show visualizePlan run
+> mill visualizePlan run
 */
 //
-// image::VisualizePlanJava.svg[VisualizePlanJava.svg]
+// image::basic/VisualizePlanJava.svg[VisualizePlanJava.svg]
 //
 // (right-click open in new tab to see full sized)
 //

@@ -23,7 +23,6 @@
 ** xref:scalalib/publishing.adoc[]
 ** xref:scalalib/build-examples.adoc[]
 ** xref:scalalib/web-examples.adoc[]
-** xref:scalalib/native-examples.adoc[]
 * xref:kotlinlib/intro.adoc[]
 ** xref:kotlinlib/builtin-commands.adoc[]
 ** xref:kotlinlib/module-config.adoc[]
@@ -100,4 +99,3 @@
 * Reference
 ** {mill-doc-url}/api/latest/mill/index.html[Mill Scaladoc]
 ** xref:reference/changelog.adoc[]
-

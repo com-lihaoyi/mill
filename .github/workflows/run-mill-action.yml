@@ -82,7 +82,7 @@ jobs:
         shell: bash
         continue-on-error: true
 
-      - uses: actions/upload-artifact@v4.3.5
+      - uses: actions/upload-artifact@v4.4.3
         with:
           path: .
           name: ${{ inputs.os }}-artifact

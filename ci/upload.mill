@@ -1,8 +1,5 @@
 package build.ci
-import scalaj.http._
-import mainargs.main
 
-@main
 def apply(
     uploadedFile: os.Path,
     tagName: String,
@@ -12,18 +9,18 @@ def apply(
     githubRepo: String
 ): String = {
 
-  val response = Http(
-    s"https://api.github.com/repos/${githubOrg}/${githubRepo}/releases/tags/${tagName}"
+  val response = requests.get(
+    s"https://api.github.com/repos/${githubOrg}/${githubRepo}/releases/tags/${tagName}",
+    headers = Seq(
+      "Authorization" -> s"token $authKey",
+      "Accept" -> "application/vnd.github.v3+json"
+    )
   )
-    .header("Authorization", "token " + authKey)
-    .header("Accept", "application/vnd.github.v3+json")
-    .asString
-  val body = response.body
 
-  val parsed = ujson.read(body)
+  val parsed = ujson.read(response)
 
-  println("Response code: " + response.code)
-  println(body)
+  println("Response code: " + response.statusCode)
+  println(response.text())
 
   val snapshotReleaseId = parsed("id").num.toInt
 
@@ -31,15 +28,17 @@ def apply(
     s"https://uploads.github.com/repos/${githubOrg}/${githubRepo}/releases/" +
       s"$snapshotReleaseId/assets?name=$uploadName"
 
-  val res = Http(uploadUrl)
-    .header("Content-Type", "application/octet-stream")
-    .header("Authorization", "token " + authKey)
-    .timeout(connTimeoutMs = 5000, readTimeoutMs = 60000)
-    .postData(os.read.bytes(uploadedFile))
-    .asString
+  val res = requests.post(
+    uploadUrl,
+    headers = Seq(
+      "Content-Type" -> "application/octet-stream",
+      "Authorization" -> s"token $authKey"
+    ),
+    data = os.read.stream(uploadedFile)
+  )
 
-  println(res.body)
-  val longUrl = ujson.read(res.body)("browser_download_url").str
+  println(res.text())
+  val longUrl = ujson.read(res)("browser_download_url").str
 
   println("Long Url " + longUrl)
   longUrl

@@ -8,7 +8,7 @@ object foo extends KotlinModule {
 
   def mainClass = Some("foo.FooKt")
 
-  def sources = T{
+  def sources = Task {
     os.write(
       T.dest / "Foo.kt",
       """package foo
@@ -19,7 +19,7 @@ object foo extends KotlinModule {
     Seq(PathRef(T.dest))
   }
 
-  def compile = T {
+  def compile = Task {
     println("Compiling...")
     super.compile()
   }
@@ -35,7 +35,7 @@ object foo2 extends KotlinModule {
 
   def kotlinVersion = "1.9.24"
 
-  def generatedSources = T{
+  def generatedSources = Task {
     os.write(T.dest / "Foo.kt", """...""")
     Seq(PathRef(T.dest))
   }
@@ -45,7 +45,7 @@ object foo3 extends KotlinModule {
 
   def kotlinVersion = "1.9.24"
 
-  def sources = T{
+  def sources = Task {
     os.write(T.dest / "Foo.kt", """...""")
     super.sources() ++ Seq(PathRef(T.dest))
   }

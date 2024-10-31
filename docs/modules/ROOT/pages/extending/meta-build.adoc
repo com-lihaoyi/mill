@@ -1,16 +1,22 @@
 = The Mill Meta-Build
 :page-aliases: The_Mill_Meta_Build.adoc
 
+include::partial$gtag-config.adoc[]
+
 The meta-build manages the compilation of the `build.mill`.
-If you don't configure it explicitly, a built-in synthetic meta-build is used.
+Customizing the meta-build gives you greater control over how exactly your
+`build.mill` evaluates.
+
 
 To customize it, you need to explicitly enable it with `import $meta._`.
 Once enabled, the meta-build lives in the `mill-build/` directory.
 It needs to contain a top-level module of type `MillBuildRootModule`.
 
+If you don't configure it explicitly, a built-in synthetic meta-build is used.
 Meta-builds are recursive, which means, it can itself have a nested meta-builds, and so on.
 
-To run a task on a meta-build, you specifying the `--meta-level` option to select the meta-build level.
+To run a task on a meta-build, you specify the `--meta-level` option to select
+the meta-build level.
 
 == Autoformatting the `build.mill`
 
@@ -20,12 +26,12 @@ You only need a `.scalafmt.conf` config file which at least needs configure the 
 
 .Run Scalafmt on the `build.mill` (and potentially included files)
 ----
-$ mill --meta-level 1 mill.scalalib.scalafmt.ScalafmtModule/reformatAll sources
+$ mill --meta-level 1 mill.scalalib.scalafmt.ScalafmtModule/
 ----
 
 * `--meta-level 1` selects the first meta-build. Without any customization, this is the only built-in meta-build.
-* `mill.scalalib.scalafmt.ScalafmtModule/reformatAll` is a generic task to format scala source files with Scalafmt. It requires the targets that refer to the source files as argument
-* `sources` this selects the `sources` targets of the meta-build, which at least contains the `build.mill`.
+* `mill.scalalib.scalafmt.ScalafmtModule/reformatAll` is a generic task to format scala source files with Scalafmt. It requires the tasks that refer to the source files as argument
+* `sources` this selects the `sources` tasks of the meta-build, which at least contains the `build.mill`.
 
 == Finding plugin updates
 

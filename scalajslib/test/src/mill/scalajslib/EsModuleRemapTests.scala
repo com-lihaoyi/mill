@@ -25,7 +25,10 @@ object EsModuleRemapTests extends TestSuite {
       ESModuleImportMapping.Prefix("@stdlib/linspace", remapTo)
     )
 
-    override lazy val millDiscover = Discover[this.type]
+    override lazy val millDiscover = {
+      import mill.main.TokenReaders.given
+      Discover[this.type]
+    }
   }
 
   object OldJsModule extends TestBaseModule with ScalaJSModule {
@@ -38,7 +41,10 @@ object EsModuleRemapTests extends TestSuite {
       ESModuleImportMapping.Prefix("@stdlib/linspace", remapTo)
     )
 
-    override lazy val millDiscover = Discover[this.type]
+    override lazy val millDiscover = {
+      import mill.main.TokenReaders.given
+      Discover[this.type]
+    }
   }
 
   val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "esModuleRemap"

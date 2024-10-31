@@ -20,7 +20,7 @@ object foo extends ScalaModule with UnidocModule{
 
 // This example demonstrates use of `mill.scalalib.UnidocModule`. This can be
 // mixed in to any `ScalaModule`, and generates a combined Scaladoc for the
-// module and all its transitive dependencies. Two targets are provided:
+// module and all its transitive dependencies. Two tasks are provided:
 //
 // * `.unidocLocal`: this generates a site suitable for local browsing. If
 //   unidocSourceUrl is provided, the scaladoc provides links back to the

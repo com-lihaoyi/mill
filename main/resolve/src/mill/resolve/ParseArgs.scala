@@ -88,7 +88,7 @@ object ParseArgs {
 
   def extractSegments(selectorString: String)
       : Either[String, (Option[Segments], Option[Segments])] =
-    parse(selectorString, selector(_)) match {
+    parse(selectorString, selector(using _)) match {
       case f: Parsed.Failure => Left(s"Parsing exception ${f.msg}")
       case Parsed.Success(selector, _) => Right(selector)
     }

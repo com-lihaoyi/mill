@@ -16,7 +16,7 @@ object foo extends MyModule{
 object bar extends MyModule{
   def ivyDeps = Agg(
     ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
-    ivy"org.apache.commons:commons-text:1.12.0"
+    ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
 }
 
@@ -25,16 +25,13 @@ object bar extends MyModule{
 // build.mill
 // foo/
 //     src/
-//         foo/
-//             Foo.java
-//     resources/
-//         ...
+//         foo/Foo.java
 // bar/
 //     src/
-//         bar/
-//             Bar.java
-//     resources/
-//         ...
+//         bar/Bar.java
+//     test/
+//         src/
+//             bar/BarTests.java
 // out/
 //     foo/
 //         compile.json
@@ -44,5 +41,9 @@ object bar extends MyModule{
 //         compile.json
 //         compile.dest/
 //         ...
+//         test/
+//             compile.json
+//             compile.dest/
+//             ...
 // ----
 //

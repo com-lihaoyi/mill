@@ -12,15 +12,16 @@ object ScalaValidatedPathRefTests extends TestSuite {
       os.write(T.dest / "dummy", "dummy", createFolders = true)
       PathRef(T.dest)
     }
-    def uncheckedPathRef: T[PathRef] = T { mkDirWithFile() }
-    def uncheckedSeqPathRef: T[Seq[PathRef]] = T { Seq(mkDirWithFile()) }
-    def uncheckedAggPathRef: T[Agg[PathRef]] = T { Agg(mkDirWithFile()) }
-    def uncheckedTuplePathRef: T[Tuple1[PathRef]] = T { Tuple1(mkDirWithFile()) }
+    def uncheckedPathRef: T[PathRef] = Task { mkDirWithFile() }
+    def uncheckedSeqPathRef: T[Seq[PathRef]] = Task { Seq(mkDirWithFile()) }
+    def uncheckedAggPathRef: T[Agg[PathRef]] = Task { Agg(mkDirWithFile()) }
+    def uncheckedTuplePathRef: T[Tuple1[PathRef]] = Task { Tuple1(mkDirWithFile()) }
 
-    def checkedPathRef: T[PathRef] = T { mkDirWithFile().withRevalidateOnce }
-    def checkedSeqPathRef: T[Seq[PathRef]] = T { Seq(mkDirWithFile()).map(_.withRevalidateOnce) }
-    def checkedAggPathRef: T[Agg[PathRef]] = T { Agg(mkDirWithFile()).map(_.withRevalidateOnce) }
-    def checkedTuplePathRef: T[Tuple1[PathRef]] = T { Tuple1(mkDirWithFile().withRevalidateOnce) }
+    def checkedPathRef: T[PathRef] = Task { mkDirWithFile().withRevalidateOnce }
+    def checkedSeqPathRef: T[Seq[PathRef]] = Task { Seq(mkDirWithFile()).map(_.withRevalidateOnce) }
+    def checkedAggPathRef: T[Agg[PathRef]] = Task { Agg(mkDirWithFile()).map(_.withRevalidateOnce) }
+    def checkedTuplePathRef: T[Tuple1[PathRef]] =
+      Task { Tuple1(mkDirWithFile().withRevalidateOnce) }
   }
 
   def tests: Tests = Tests {

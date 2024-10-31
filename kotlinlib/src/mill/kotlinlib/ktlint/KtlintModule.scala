@@ -55,7 +55,7 @@ trait KtlintModule extends KotlinModule {
   /**
    * Classpath for running Ktlint.
    */
-  def ktlintClasspath: T[Loose.Agg[PathRef]] = T {
+  def ktlintClasspath: T[Loose.Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(
       Agg(ivy"com.pinterest.ktlint:ktlint-cli:${ktlintVersion()}")
     )
@@ -64,21 +64,21 @@ trait KtlintModule extends KotlinModule {
   /**
    * Ktlint configuration file.
    */
-  def ktlintConfig: T[Option[PathRef]] = T {
+  def ktlintConfig: T[Option[PathRef]] = Task {
     None
   }
 
   /**
    * Ktlint version.
    */
-  def ktlintVersion: T[String] = T {
+  def ktlintVersion: T[String] = Task {
     "1.3.1"
   }
 
   /**
    * Additional arguments for Ktlint. Check [[https://pinterest.github.io/ktlint/latest/install/cli/ available options]].
    */
-  def ktlintOptions: T[Seq[String]] = T {
+  def ktlintOptions: T[Seq[String]] = Task {
     Seq.empty[String]
   }
 }

@@ -2,21 +2,21 @@
 package build
 import mill._, kotlinlib._
 
-object `package` extends RootModule with KotlinModule {
+object foo extends KotlinModule {
 
   def kotlinVersion = "1.9.24"
 
   def mainClass = Some("foo.FooKt")
 
-  /** Total number of lines in module's source files */
-  def lineCount = T{
+  /** Total number of lines in module source files */
+  def lineCount = Task {
     allSourceFiles().map(f => os.read.lines(f.path).size).sum
   }
 
   /** Generate resources using lineCount of sources */
-  override def resources = T{
+  override def resources = Task {
     os.write(Task.dest / "line-count.txt", "" + lineCount())
-    Seq(PathRef(Task.dest))
+    super.resources() ++ Seq(PathRef(Task.dest))
   }
 
   object test extends KotlinTests with TestModule.Junit5 {

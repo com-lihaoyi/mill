@@ -75,11 +75,10 @@ object BSP extends ExternalModule with CoursierModule {
   }
 
   private def bspConnectionJson(jobs: Int, debug: Boolean): String = {
-    val props = sys.props
-    val millPath = props
-      .get("mill.main.cli")
+    val millPath = sys.env.get("MILL_MAIN_CLI")
+      .orElse(sys.props.get("mill.main.cli"))
       // we assume, the classpath is an executable jar here
-      .orElse(props.get("java.class.path"))
+      .orElse(sys.props.get("java.class.path"))
       .getOrElse(throw new IllegalStateException("System property 'java.class.path' not set"))
 
     upickle.default.write(

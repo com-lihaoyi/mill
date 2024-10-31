@@ -30,7 +30,8 @@ import mill.main.RootModule
 case class RunnerState(
     bootstrapModuleOpt: Option[RootModule],
     frames: Seq[RunnerState.Frame],
-    errorOpt: Option[String]
+    errorOpt: Option[String],
+    buildFile: Option[String] = None
 ) {
   def add(
       frame: RunnerState.Frame = RunnerState.Frame.empty,
