@@ -90,7 +90,7 @@ Or if you prefer a video introduction:
 
 Mill is used to build many real-world projects, such as the
 https://github.com/swaldman/c3p0[C3P0 JDBC Connection Pool],
-https://github.com/coursier/coursier[Coursier JVM dependency resolver],
+https://github.com/coursier/coursier[Coursier dependency resolver],
 https://github.com/com-lihaoyi/Ammonite[Ammonite REPL], and the
 https://github.com/SpinalHDL/SpinalHDL[SpinalHDL] and
 https://github.com/chipsalliance/chisel[Chisel] hardware design frameworks.
@@ -125,3 +125,9 @@ To engage Mill with the community, you can use the channels below:
 
 * https://github.com/com-lihaoyi/mill/discussions[Mill Github Discussions]
 * https://discord.com/invite/scala[Scala Discord], in the TOOLING#mill channel
+
+Mill maintains an open list of issue bounties below, with payouts ranging from
+500USD to 3000USD per issue. Feel free to look through the list and try your
+hand at any bounties that may interest you
+
+* https://github.com/orgs/com-lihaoyi/discussions/6[Open Issue Bounties]
