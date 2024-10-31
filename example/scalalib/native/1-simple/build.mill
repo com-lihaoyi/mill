@@ -22,8 +22,13 @@ object `package` extends RootModule with ScalaNativeModule {
 
 /** Usage
 
+> ./mill run --text hello
+<h1>hello</h1>
+
 > ./mill show nativeLink  # Build and link native binary
-...
-done compiling
+".../out/nativeLink.dest/out"
+
+> ./out/nativeLink.dest/out --text hello
+<h1>hello</h1>
 
 */
