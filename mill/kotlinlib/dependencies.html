@@ -437,14 +437,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.1-17-41fa64</span>
+    <span class="version">0.12.1-18-d19ed5</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../0.12.1/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../index.html">0.12.1-17-41fa64</a>
+          <a href="../index.html">0.12.1-18-d19ed5</a>
         </li>
         <li class="version is-latest">
           <a href="../0.12.1/index.html">0.12.1</a>
@@ -865,37 +865,6 @@ object bar extends KotlinModule {
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.run --text hello
 
 &gt; ./mill bar.compile</code></pre>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_working_without_access_to_maven_central"><a class="anchor" href="#_working_without_access_to_maven_central"></a>Working without access to Maven Central</h3>
-<div class="paragraph">
-<p>Under some circumstances (e.g. corporate firewalls), you may not have access maven central. The typical symptom will be error messages which look like this;</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>1 tasks failed
-mill.scalalib.ZincWorkerModule.classpath
-Resolution failed for 1 modules:
---------------------------------------------
-  com.lihaoyi:mill-scalalib-worker_2.13:0.11.1
-        not found: C:\Users\partens\.ivy2\local\com.lihaoyi\mill-scalalib-worker_2.13\0.11.1\ivys\ivy.xml
-        download error: Caught java.io.IOException (Server returned HTTP response code: 503 for URL: https://repo1.maven.org/maven2/com/lihaoyi/mill-scalalib-worker_2.13/0.11.1/mill-scalalib-worker_2.13-0.11.1.pom) while downloading https://repo1.maven.org/maven2/com/lihaoyi/mill-scalalib-worker_2.13/0.11.1/mill-scalalib-worker_2.13-0.11.1.pom</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>It is expected that basic commands (e.g. clean) will not work, as Mill saying it is unable to resolve it’s own, fundamental, dependencies. Under such circumstances, you will normally have access to some proxy, or other corporate repository which resolves maven artifacts. The strategy is simply to tell mill to use that instead.</p>
-</div>
-<div class="paragraph">
-<p>The idea is to set an environment variable COURSIER_REPOSITORIES (see coursier docs). The below command should pass the environment variable to the <code>mill</code> command.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre> COURSIER_REPOSITORIES=https://packages.corp.com/artifactory/maven/ mill resolve _</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>If you are using millw, a more permanent solution could be to set the environment variable at the top of the millw script, or as a user environment variable etc.</p>
 </div>
 </div>
 </div>
