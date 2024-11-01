@@ -67,6 +67,7 @@ trait Evaluator extends AutoCloseable {
     r =>
       new Exception(s"Failure during task evaluation: ${formatFailing(r)}")): Evaluator.EvalOrThrow
 
+  def close() = ()
 }
 
 object Evaluator {
