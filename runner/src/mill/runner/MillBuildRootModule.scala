@@ -265,7 +265,6 @@ abstract class MillBuildRootModule()(implicit
   def millVersion = T.input { BuildInfo.millVersion }
 
   override def compile: T[CompilationResult] = Task(persistent = true) {
-    val sv = scalaVersion()
     val mv = millVersion()
 
     val prevMillVersionFile = T.dest / s"mill-version"
@@ -286,14 +285,14 @@ abstract class MillBuildRootModule()(implicit
     }
 
     // copied from `ScalaModule`
-    val compileResult = zincWorker()
+    zincWorker()
       .worker()
       .compileMixed(
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = Agg.from(allSourceFiles().map(_.path)),
         compileClasspath = compileClasspath().map(_.path),
         javacOptions = javacOptions() ++ mandatoryJavacOptions(),
-        scalaVersion = sv,
+        scalaVersion = scalaVersion(),
         scalaOrganization = scalaOrganization(),
         scalacOptions = allScalacOptions(),
         compilerClasspath = scalaCompilerClasspath(),
@@ -303,8 +302,6 @@ abstract class MillBuildRootModule()(implicit
         incrementalCompilation = zincIncrementalCompilation(),
         auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
       )
-
-    compileResult
   }
 
 }
