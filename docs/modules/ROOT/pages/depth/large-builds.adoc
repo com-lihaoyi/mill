@@ -9,9 +9,11 @@ effectively with large projects with hundreds of modules. Mill's own build for t
 https://github.com/com-lihaoyi/mill[com-lihaoyi/mill] project has ~400 modules, and
 other proprietary projects may have many more.
 
-Mill modules are cheap: having more modules does not significantly impact performance
-or resource usage, so you are encouraged to break up your project into modules to manage
-the layering of your codebase or benefit from parallelism.
+Mill modules are cheap. Having more modules does not significantly impact performance
+or resource usage, build files are incrementally re-compiled when modified, and modules are 
+lazily loaded and initialled only when used. So you are encouraged to break up your project 
+into modules to manage the layering of your codebase or benefit from parallelism.
+
 
 
 == Multi-file Builds
