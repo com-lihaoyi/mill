@@ -264,13 +264,13 @@ abstract class MillBuildRootModule()(implicit
 
   def millVersion = T.input { BuildInfo.millVersion }
 
-  override def compile: T[CompilationResult] = T {
+  override def compile: T[CompilationResult] = Task(persistent = true) {
     val superTask = super.compile
 
     val sv = scalaVersion()
     val mv = millVersion()
 
-    val prevMillVersionFile = T.dest / s"mill-version.json"
+    val prevMillVersionFile = T.dest / s"mill-version"
     val prevMillVersion = Option(prevMillVersionFile)
       .filter(os.exists)
       .map(os.read(_).trim)
@@ -284,6 +284,7 @@ abstract class MillBuildRootModule()(implicit
       )
       os.remove.all(T.dest)
       os.makeDir(T.dest)
+      os.write(prevMillVersionFile, mv)
     }
 
     // copied from `ScalaModule`
@@ -305,7 +306,6 @@ abstract class MillBuildRootModule()(implicit
         auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
       )
 
-    os.write(prevMillVersionFile, mv)
     compileResult
   }
 
