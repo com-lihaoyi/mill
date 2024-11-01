@@ -187,6 +187,36 @@ MILL_VERSION=0.5.0-3-4faefb ./mill __.compile
 to override the Mill version manually. This takes precedence over the version
 specified in `./mill`, `.config/mill-version` or `.mill-version`
 
+== Working without access to Maven Central
+
+Under some circumstances (e.g. corporate firewalls), you may not have access maven central.
+The typical symptom will be error messages which look like this;
+
+----
+1 tasks failed
+mill.scalalib.ZincWorkerModule.classpath
+Resolution failed for 1 modules:
+--------------------------------------------
+  com.lihaoyi:mill-scalalib-worker_2.13:0.11.1
+        not found: C:\Users\partens\.ivy2\local\com.lihaoyi\mill-scalalib-worker_2.13\0.11.1\ivys\ivy.xml
+        download error: Caught java.io.IOException (Server returned HTTP response code: 503 for URL: https://repo1.maven.org/maven2/com/lihaoyi/mill-scalalib-worker_2.13/0.11.1/mill-scalalib-worker_2.13-0.11.1.pom) while downloading https://repo1.maven.org/maven2/com/lihaoyi/mill-scalalib-worker_2.13/0.11.1/mill-scalalib-worker_2.13-0.11.1.pom
+----
+
+It is expected that basic commands (e.g. clean) will not work, as Mill saying it is
+unable to resolve it's own, fundamental, dependencies. Under such circumstances, you
+will normally have access to some proxy, or other corporate repository which resolves
+maven artifacts. The strategy is simply to tell mill to use that instead.
+
+The idea is to set an environment variable COURSIER_REPOSITORIES (see coursier docs).
+The below command should pass the environment variable to the `mill` command.
+
+----
+ COURSIER_REPOSITORIES=https://packages.corp.com/artifactory/maven/ mill resolve _
+----
+
+If you are using bootstrap script, a more permanent solution could be to set the environment variable
+at the top of the bootstrap script, or as a user environment variable etc.
+
 
 
 == Automatic Mill updates

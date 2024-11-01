@@ -12,7 +12,7 @@
 // what Mill is, hopefully have downloaded an example to try out, and be
 // interested in learning more about the Mill build tool
 
-= Building Java Projects with Mill
+= Building Java with Mill
 :page-aliases: Intro_to_Mill.adoc, Intro_to_Mill_for_Java.adoc, Java_Intro_to_Mill.adoc
 
 include::partial$gtag-config.adoc[]
