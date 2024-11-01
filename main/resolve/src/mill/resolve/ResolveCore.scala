@@ -88,7 +88,7 @@ private object ResolveCore {
             checkedSearchModules0 <- checkedSearchModules
             searchModules <- Right(checkedSearchModules0)
           } yield {
-            searchModules.map(r => resolve(rootModule, tail, r, querySoFar ++ Seq(head), seenModules ++ moduleClasses(Set(r))))
+            searchModules.map(r => resolve(rootModule, tail, r, querySoFar ++ Seq(head), seenModules ++ moduleClasses(Set(current))))
               .partitionMap { case s: Success => Right(s.value); case f: Failed => Left(f) }
           }
 
