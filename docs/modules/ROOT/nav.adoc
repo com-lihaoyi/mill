@@ -3,7 +3,6 @@
 // but we intentionally skim over them and do not go into depth: the focus is
 // on end user goals and how to achieve them.
 
-* xref:why-mill.adoc[]
 * xref:javalib/intro.adoc[]
 ** xref:javalib/builtin-commands.adoc[]
 ** xref:javalib/module-config.adoc[]
@@ -34,7 +33,7 @@
 // ** xref:kotlinlib/build-examples.adoc[]
 ** xref:kotlinlib/web-examples.adoc[]
 ** xref:kotlinlib/android-examples.adoc[]
-* Build Tool Comparisons
+* xref:why-mill.adoc[]
 ** xref:comparisons/maven.adoc[]
 ** xref:comparisons/gradle.adoc[]
 ** xref:comparisons/sbt.adoc[]
