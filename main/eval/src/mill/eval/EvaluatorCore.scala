@@ -99,94 +99,112 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       // due to the topological order of traversal.
       for (terminal <- terminals) {
         val deps = interGroupDeps(terminal)
-        futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
-          val countMsg = mill.util.Util.leftPad(
-            count.getAndIncrement().toString,
-            terminals.length.toString.length,
-            '0'
+        def isExclusiveCommand(t: Task[_]) = t match{
+          case c: Command[_] if c.exclusive => true
+          case _ => false
+        }
+
+        val group = sortedGroups.lookupKey(terminal)
+        val exclusiveDeps =  deps.filter(d => isExclusiveCommand(d.task))
+
+        if (!isExclusiveCommand(terminal.task) && exclusiveDeps.nonEmpty){
+          val failure = Result.Failure(
+            s"Non-exclusive task ${terminal.render} cannot depend on exclusive task " +
+            exclusiveDeps.map(_.render).mkString(", ")
           )
-
-          val verboseKeySuffix = s"/${terminals0.size}"
-          logger.setPromptHeaderPrefix(s"$countMsg$verboseKeySuffix")
-          if (failed.get()) None
-          else {
-            val upstreamResults = upstreamValues
-              .iterator
-              .flatMap(_.iterator.flatMap(_.newResults))
-              .toMap
-
-            val startTime = System.nanoTime() / 1000
-            val targetLabel = terminal match {
-              case Terminal.Task(task) => None
-              case t: Terminal.Labelled[_] => Some(Terminal.printTerm(t))
-            }
-
-            val group = sortedGroups.lookupKey(terminal)
-
-            // should we log progress?
-            val logRun = targetLabel.isDefined && {
-              val inputResults = for {
-                target <- group.indexed.filterNot(upstreamResults.contains)
-                item <- target.inputs.filterNot(group.contains)
-              } yield upstreamResults(item).map(_._1)
-              inputResults.forall(_.result.isInstanceOf[Result.Success[_]])
-            }
-
-            val tickerPrefix = terminal.render.collect {
-              case targetLabel if logRun && logger.enableTicker => targetLabel
-            }
-
-            val contextLogger = new PrefixLogger(
-              logger0 = logger,
-              key0 = if (!logger.enableTicker) Nil else Seq(countMsg),
-              verboseKeySuffix = verboseKeySuffix,
-              message = tickerPrefix,
-              noPrefix = exclusive
+          val taskResults = group.map(t => (t, TaskResult[(Val, Int)](failure, () => failure))).toMap
+          futures(terminal) = Future.successful(
+            Some(GroupEvaluator.Results(taskResults, group.toSeq, false, -1, -1))
+          )
+        }else {
+          futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
+            val countMsg = mill.util.Util.leftPad(
+              count.getAndIncrement().toString,
+              terminals.length.toString.length,
+              '0'
             )
 
-            val res = evaluateGroupCached(
-              terminal = terminal,
-              group = sortedGroups.lookupKey(terminal),
-              results = upstreamResults,
-              countMsg = countMsg,
-              verboseKeySuffix = verboseKeySuffix,
-              zincProblemReporter = reporter,
-              testReporter = testReporter,
-              logger = contextLogger,
-              classToTransitiveClasses,
-              allTransitiveClassMethods,
-              forkExecutionContext,
-              exclusive
-            )
+            val verboseKeySuffix = s"/${terminals0.size}"
+            logger.setPromptHeaderPrefix(s"$countMsg$verboseKeySuffix")
+            if (failed.get()) None
+            else {
+              val upstreamResults = upstreamValues
+                .iterator
+                .flatMap(_.iterator.flatMap(_.newResults))
+                .toMap
 
-            if (failFast && res.newResults.values.exists(_.result.asSuccess.isEmpty))
-              failed.set(true)
+              val startTime = System.nanoTime() / 1000
+              val targetLabel = terminal match {
+                case Terminal.Task(task) => None
+                case t: Terminal.Labelled[_] => Some(Terminal.printTerm(t))
+              }
 
-            val endTime = System.nanoTime() / 1000
 
-            val duration = endTime - startTime
+              // should we log progress?
+              val logRun = targetLabel.isDefined && {
+                val inputResults = for {
+                  target <- group.indexed.filterNot(upstreamResults.contains)
+                  item <- target.inputs.filterNot(group.contains)
+                } yield upstreamResults(item).map(_._1)
+                inputResults.forall(_.result.isInstanceOf[Result.Success[_]])
+              }
 
-            chromeProfileLogger.log(
-              task = Terminal.printTerm(terminal),
-              cat = "job",
-              startTime = startTime,
-              duration = duration,
-              threadId = threadNumberer.getThreadId(Thread.currentThread()),
-              cached = res.cached
-            )
+              val tickerPrefix = terminal.render.collect {
+                case targetLabel if logRun && logger.enableTicker => targetLabel
+              }
 
-            profileLogger.log(
-              ProfileLogger.Timing(
-                terminal.render,
-                (duration / 1000).toInt,
-                res.cached,
-                deps.map(_.render),
-                res.inputsHash,
-                res.previousInputsHash
+              val contextLogger = new PrefixLogger(
+                logger0 = logger,
+                key0 = if (!logger.enableTicker) Nil else Seq(countMsg),
+                verboseKeySuffix = verboseKeySuffix,
+                message = tickerPrefix,
+                noPrefix = exclusive
               )
-            )
 
-            Some(res)
+              val res = evaluateGroupCached(
+                terminal = terminal,
+                group = sortedGroups.lookupKey(terminal),
+                results = upstreamResults,
+                countMsg = countMsg,
+                verboseKeySuffix = verboseKeySuffix,
+                zincProblemReporter = reporter,
+                testReporter = testReporter,
+                logger = contextLogger,
+                classToTransitiveClasses,
+                allTransitiveClassMethods,
+                forkExecutionContext,
+                exclusive
+              )
+
+              if (failFast && res.newResults.values.exists(_.result.asSuccess.isEmpty))
+                failed.set(true)
+
+              val endTime = System.nanoTime() / 1000
+
+              val duration = endTime - startTime
+
+              chromeProfileLogger.log(
+                task = Terminal.printTerm(terminal),
+                cat = "job",
+                startTime = startTime,
+                duration = duration,
+                threadId = threadNumberer.getThreadId(Thread.currentThread()),
+                cached = res.cached
+              )
+
+              profileLogger.log(
+                ProfileLogger.Timing(
+                  terminal.render,
+                  (duration / 1000).toInt,
+                  res.cached,
+                  deps.map(_.render),
+                  res.inputsHash,
+                  res.previousInputsHash
+                )
+              )
+
+              Some(res)
+            }
           }
         }
       }
