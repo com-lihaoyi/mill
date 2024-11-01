@@ -5,7 +5,7 @@ import mill.api.Strict.Agg
 import mill.api._
 import mill.define._
 import mill.eval.Evaluator.TaskResult
-import mill.main.client.OutFiles._
+
 import mill.util._
 
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
@@ -18,6 +18,8 @@ import scala.concurrent._
 private[mill] trait EvaluatorCore extends GroupEvaluator {
 
   def baseLogger: ColorLogger
+  protected[eval] def chromeProfileLogger: ChromeProfileLogger
+  protected[eval] def profileLogger: ProfileLogger
 
   /**
    * @param goals The tasks that need to be evaluated
@@ -38,11 +40,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
         if (effectiveThreadCount == 1) ExecutionContexts.RunNow
         else new ExecutionContexts.ThreadPool(effectiveThreadCount)
 
-      def contextLoggerMsg(threadId: Int) =
-        if (effectiveThreadCount == 1) ""
-        else s"#${if (effectiveThreadCount > 9) f"$threadId%02d" else threadId} "
-
-      try evaluate0(goals, logger, reporter, testReporter, ec, contextLoggerMsg, serialCommandExec)
+      try evaluate0(goals, logger, reporter, testReporter, ec, serialCommandExec)
       finally ec.close()
     }
   }
@@ -68,12 +66,10 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
       ec: mill.api.Ctx.Fork.Impl,
-      contextLoggerMsg0: Int => String,
       serialCommandExec: Boolean
   ): Evaluator.Results = {
     os.makeDir.all(outPath)
-    val chromeProfileLogger = new ChromeProfileLogger(outPath / millChromeProfile)
-    val profileLogger = new ProfileLogger(outPath / millProfile)
+
     val threadNumberer = new ThreadNumberer()
     val (sortedGroups, transitive) = Plan.plan(goals)
     val interGroupDeps = findInterGroupDeps(sortedGroups)
@@ -239,9 +235,6 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       }
 
     val results: Map[Task[_], TaskResult[(Val, Int)]] = results0.toMap
-
-    chromeProfileLogger.close()
-    profileLogger.close()
 
     EvaluatorCore.Results(
       goals.indexed.map(results(_).map(_._1).result),
