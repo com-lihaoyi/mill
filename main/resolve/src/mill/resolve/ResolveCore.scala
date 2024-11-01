@@ -260,7 +260,7 @@ private object ResolveCore {
     }
 
     if (seenModules.contains(cls)) {
-      Left(s"Cyclic module reference detected: ${cls.getName}, it's required to wrap it in ModuleRef. See documentation: https://mill-build.org/mill/0.12.1/fundamentals/modules.html#_abstract_modules_references")
+      Left(s"Cyclic module reference detected: ${cls.getName}, it's required to wrap it in ModuleRef.")
     } else {
       val errOrIndirect0 = errOrModules match {
         case Right(modules) =>
