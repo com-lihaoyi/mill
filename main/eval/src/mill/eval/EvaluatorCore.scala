@@ -99,24 +99,25 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       // due to the topological order of traversal.
       for (terminal <- terminals) {
         val deps = interGroupDeps(terminal)
-        def isExclusiveCommand(t: Task[_]) = t match{
+        def isExclusiveCommand(t: Task[_]) = t match {
           case c: Command[_] if c.exclusive => true
           case _ => false
         }
 
         val group = sortedGroups.lookupKey(terminal)
-        val exclusiveDeps =  deps.filter(d => isExclusiveCommand(d.task))
+        val exclusiveDeps = deps.filter(d => isExclusiveCommand(d.task))
 
-        if (!isExclusiveCommand(terminal.task) && exclusiveDeps.nonEmpty){
+        if (!isExclusiveCommand(terminal.task) && exclusiveDeps.nonEmpty) {
           val failure = Result.Failure(
             s"Non-exclusive task ${terminal.render} cannot depend on exclusive task " +
-            exclusiveDeps.map(_.render).mkString(", ")
+              exclusiveDeps.map(_.render).mkString(", ")
           )
-          val taskResults = group.map(t => (t, TaskResult[(Val, Int)](failure, () => failure))).toMap
+          val taskResults =
+            group.map(t => (t, TaskResult[(Val, Int)](failure, () => failure))).toMap
           futures(terminal) = Future.successful(
             Some(GroupEvaluator.Results(taskResults, group.toSeq, false, -1, -1))
           )
-        }else {
+        } else {
           futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
             val countMsg = mill.util.Util.leftPad(
               count.getAndIncrement().toString,
@@ -138,7 +139,6 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
                 case Terminal.Task(task) => None
                 case t: Terminal.Labelled[_] => Some(Terminal.printTerm(t))
               }
-
 
               // should we log progress?
               val logRun = targetLabel.isDefined && {
