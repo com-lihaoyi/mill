@@ -40,7 +40,7 @@ trait KotlinModule extends JavaModule { outer =>
    * Subset of [[allSourceFiles]].
    */
   def allKotlinSourceFiles: T[Seq[PathRef]] = Task {
-    allSourceFiles().filter(path => Seq("kt", "kts").exists(path.path.ext.toLowerCase() == _))
+    allSourceFiles().filter(path => Seq("kt", "kts").contains(path.path.ext.toLowerCase()))
   }
 
   /**
@@ -63,6 +63,21 @@ trait KotlinModule extends JavaModule { outer =>
    * Default is derived from [[kotlinVersion]].
    */
   def kotlinCompilerVersion: T[String] = Task { kotlinVersion() }
+
+  /**
+   * The compiler language version. Default is not set.
+   */
+  def languageVersion: T[String] = Task { "" }
+
+  /**
+   * The compiler API version. Default is not set.
+   */
+  def apiVersion: T[String] = Task { "" }
+
+  /**
+   * Flag to use explicit API check in the compiler. Default is `false`.
+   */
+  def explicitApi: T[Boolean] = Task { false }
 
   type CompileProblemReporter = mill.api.CompileProblemReporter
 
@@ -145,10 +160,11 @@ trait KotlinModule extends JavaModule { outer =>
         dokkaPluginsClasspath().map(_.path).mkString(";")
       )
 
+      // TODO need to provide source sets for the module deps
       val options = dokkaOptions() ++
         Seq("-outputDir", dokkaDir.toString()) ++
         pluginClasspathOption ++
-        Seq("-sourceSet", s"-src $millSourcePath")
+        docSources().flatMap(pathRef => Seq("-sourceSet", s"-src ${pathRef.path}"))
 
       T.log.info("dokka options: " + options)
 
@@ -244,10 +260,17 @@ trait KotlinModule extends JavaModule { outer =>
         val compilerArgs: Seq[String] = Seq(
           // destdir
           Seq("-d", classes.toString()),
+          // apply multi-platform support (expect/actual)
+          // TODO if there is penalty for activating it in the compiler, put it behind configuration flag
+          Seq("-Xmulti-platform"),
           // classpath
           when(compileCp.iterator.nonEmpty)(
             "-classpath",
             compileCp.iterator.mkString(File.pathSeparator)
+          ),
+          when(explicitApi())(
+            "-Xexplicit-api",
+            "strict"
           ),
           kotlincOptions(),
           extraKotlinArgs,
@@ -287,13 +310,19 @@ trait KotlinModule extends JavaModule { outer =>
    * Additional Kotlin compiler options to be used by [[compile]].
    */
   def kotlincOptions: T[Seq[String]] = Task {
-    Seq("-no-stdlib") ++
-      when(!kotlinVersion().startsWith("1.0"))(
-        "-language-version",
-        kotlinVersion().split("[.]", 3).take(2).mkString("."),
-        "-api-version",
-        kotlinVersion().split("[.]", 3).take(2).mkString(".")
-      )
+    val options = Seq.newBuilder[String]
+    options += "-no-stdlib"
+    val kotlinLanguageVersion = languageVersion()
+    if (!kotlinLanguageVersion.isBlank) {
+      options += "-language-version"
+      options += kotlinLanguageVersion
+    }
+    val kotlinApiVersion = apiVersion()
+    if (!kotlinApiVersion.isBlank) {
+      options += "-api-version"
+      options += kotlinApiVersion
+    }
+    options.result()
   }
 
   private[kotlinlib] def internalCompileJavaFiles(
@@ -328,9 +357,13 @@ trait KotlinModule extends JavaModule { outer =>
    * A test sub-module linked to its parent module best suited for unit-tests.
    */
   trait KotlinTests extends JavaTests with KotlinModule {
+    override def explicitApi: T[Boolean] = false
     override def kotlinVersion: T[String] = Task { outer.kotlinVersion() }
     override def kotlinCompilerVersion: T[String] = Task { outer.kotlinCompilerVersion() }
-    override def kotlincOptions: T[Seq[String]] = Task { outer.kotlincOptions() }
+    override def kotlincOptions: T[Seq[String]] = Task {
+      outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
+        Seq(s"-Xfriend-paths=${outer.compile().classes.path.toString()}")
+    }
   }
 
 }
