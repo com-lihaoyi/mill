@@ -1116,14 +1116,32 @@ object ResolveTests extends TestSuite {
         Seq("__"),
         isShortError(_, "Cyclic module reference detected")
       )
+      test - check(
+        "_",
+        Right(Set(_.foo))
+      )
       test - check.checkSeq0(
         Seq("myA.__"),
         isShortError(_, "Cyclic module reference detected")
+      )
+      test - check(
+        "myA.a._",
+        Right(Set(_.foo))
       )
       test - check.checkSeq0(
         Seq("myA.a.__"),
         isShortError(_, "Cyclic module reference detected")
       )
+//      // FIXME: Cannot test like this because it "Cannot find default task to evaluate"
+//      test - check(
+//        "myA.a._.a",
+//        Right(Set(_.foo))
+//      )
+//      // FIXME: Cannot test like this because it "Cannot find default task to evaluate"
+//      test - check.checkSeq0(
+//        Seq("myA.a.b.a"),
+//        isShortError(_, "Cyclic module reference detected")
+//      )
     }
     test("cyclicModuleRefInitError2") {
       val check = new Checker(TestGraphs.CyclicModuleRefInitError2)
