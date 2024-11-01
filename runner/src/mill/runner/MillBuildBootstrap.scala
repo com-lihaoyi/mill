@@ -10,6 +10,7 @@ import mill.define.{BaseModule, Segments}
 import mill.main.client.OutFiles.{millBuild, millRunnerState}
 
 import java.net.URLClassLoader
+import scala.util.Using
 
 /**
  * Logic around bootstrapping Mill, creating a [[MillBuildRootModule.BootstrapModule]]
@@ -153,7 +154,7 @@ class MillBuildBootstrap(
           case Some(nestedFrame) => getRootModule(nestedFrame.classLoaderOpt.get)
         }
 
-        val evaluator = makeEvaluator(
+        Using.resource(makeEvaluator(
           prevFrameOpt.map(_.workerCache).getOrElse(Map.empty),
           nestedState.frames.headOption.map(_.methodCodeHashSignatures).getOrElse(Map.empty),
           rootModule,
@@ -176,29 +177,29 @@ class MillBuildBootstrap(
             .getOrElse(0),
           depth,
           actualBuildFileName = nestedState.buildFile
-        )
+        )){ evaluator =>
 
-        if (depth != 0) {
-          val retState = processRunClasspath(
-            nestedState,
-            rootModule,
-            evaluator,
-            prevFrameOpt,
-            prevOuterFrameOpt
-          )
+          if (depth != 0) {
+            val retState = processRunClasspath(
+              nestedState,
+              rootModule,
+              evaluator,
+              prevFrameOpt,
+              prevOuterFrameOpt
+            )
 
-          if (retState.errorOpt.isEmpty && depth == requestedDepth) {
-            // TODO: print some message and indicate actual evaluated frame
-            val evalRet = processFinalTargets(nestedState, rootModule, evaluator)
-            if (evalRet.errorOpt.isEmpty) retState
-            else evalRet
-          } else
-            retState
+            if (retState.errorOpt.isEmpty && depth == requestedDepth) {
+              // TODO: print some message and indicate actual evaluated frame
+              val evalRet = processFinalTargets(nestedState, rootModule, evaluator)
+              if (evalRet.errorOpt.isEmpty) retState
+              else evalRet
+            } else
+              retState
 
-        } else {
-          processFinalTargets(nestedState, rootModule, evaluator)
+          } else {
+            processFinalTargets(nestedState, rootModule, evaluator)
+          }
         }
-
       }
     // println(s"-evaluateRec($depth) " + recRoot(projectRoot, depth))
     res

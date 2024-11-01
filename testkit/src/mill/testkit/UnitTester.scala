@@ -192,5 +192,6 @@ class UnitTester(
     for (case (_, Val(obsolete: AutoCloseable)) <- evaluator.workerCache.values) {
       obsolete.close()
     }
+    evaluator.close()
   }
 }
