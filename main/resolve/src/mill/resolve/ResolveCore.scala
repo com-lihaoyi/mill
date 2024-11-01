@@ -62,7 +62,7 @@ private object ResolveCore {
   def makeResultException(e: Throwable, base: Exception): Left[String, Nothing] =
     mill.api.Result.makeResultException(e, base)
 
-  def cyclicModuleErrorMsg(segments: Segments) = {
+  def cyclicModuleErrorMsg(segments: Segments): String = {
     s"Cyclic module reference detected at ${segments.render}, " +
       s"it's required to wrap it in ModuleRef."
   }
@@ -125,7 +125,7 @@ private object ResolveCore {
                     None,
                     current.segments,
                     Nil,
-                    Set.empty
+                    seenModules
                   )
 
                 transitiveOrErr.map(transitive => self ++ transitive)
@@ -135,7 +135,7 @@ private object ResolveCore {
                   rootModule,
                   m.cls,
                   None,
-                  current.segments,
+                  current.segments
                 )
 
               case pattern if pattern.startsWith("__:") =>
@@ -148,7 +148,7 @@ private object ResolveCore {
                   None,
                   current.segments,
                   typePattern,
-                  Set.empty
+                  seenModules
                 )
 
                 transitiveOrErr.map(transitive => self ++ transitive)
@@ -168,7 +168,7 @@ private object ResolveCore {
                   rootModule,
                   m.cls,
                   Some(singleLabel),
-                  current.segments,
+                  current.segments
                 )
             }
 
@@ -234,7 +234,7 @@ private object ResolveCore {
           rootModule,
           current.millModuleSegments,
           current.getClass,
-          Some(s),
+          Some(s)
         ).flatMap {
           case Seq((_, Some(f))) =>
             val res = f(current)
@@ -266,12 +266,12 @@ private object ResolveCore {
   }
 
   def resolveTransitiveChildren(
-    rootModule: BaseModule,
-    cls: Class[_],
-    nameOpt: Option[String],
-    segments: Segments,
-    typePattern: Seq[String],
-    seenModules: Set[Class[_]],
+      rootModule: BaseModule,
+      cls: Class[_],
+      nameOpt: Option[String],
+      segments: Segments,
+      typePattern: Seq[String],
+      seenModules: Set[Class[_]]
   ): Either[String, Set[Resolved]] = {
     if (seenModules.contains(cls)) Left(cyclicModuleErrorMsg(segments))
     else {
@@ -288,7 +288,14 @@ private object ResolveCore {
       val errOrIndirect0 = errOrModules match {
         case Right(modules) =>
           modules.flatMap { m =>
-            Some(resolveTransitiveChildren(rootModule, m.cls, nameOpt, m.segments, typePattern, seenModules + cls))
+            Some(resolveTransitiveChildren(
+              rootModule,
+              m.cls,
+              nameOpt,
+              m.segments,
+              typePattern,
+              seenModules + cls
+            ))
           }
         case Left(err) => Seq(Left(err))
       }
@@ -439,7 +446,7 @@ private object ResolveCore {
           rootModule,
           m.cls,
           None,
-          current.segments,
+          current.segments
         ).toOption.get.map(
           _.segments.value.last
         )

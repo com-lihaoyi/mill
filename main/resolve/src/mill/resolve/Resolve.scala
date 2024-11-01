@@ -73,7 +73,7 @@ object Resolve {
                 rootModule,
                 value.getClass,
                 Some(value.defaultCommandName()),
-                value.millModuleSegments,
+                value.millModuleSegments
               )
 
               directChildrenOrErr.flatMap(directChildren =>

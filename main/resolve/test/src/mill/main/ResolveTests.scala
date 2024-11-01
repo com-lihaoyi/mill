@@ -1126,7 +1126,7 @@ object ResolveTests extends TestSuite {
       )
       test - check.checkSeq0(
         Seq("myA.a.__"),
-        isShortError(_, "Cyclic module reference detected at myA.a.a,")
+        isShortError(_, "Cyclic module reference detected at myA.a,")
       )
       test - check.checkSeq0(
         Seq("myA.a._"),
@@ -1160,7 +1160,7 @@ object ResolveTests extends TestSuite {
       )
       test - check.checkSeq0(
         Seq("A.b.__.a.b"),
-        isShortError(_, "Cyclic module reference detected at A.b.a.b,")
+        isShortError(_, "Cyclic module reference detected at A.b.a,")
       )
     }
     test("crossedCyclicModuleRefInitError") {
