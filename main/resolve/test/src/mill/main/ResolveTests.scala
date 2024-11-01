@@ -1116,6 +1116,14 @@ object ResolveTests extends TestSuite {
         Seq("__"),
         isShortError(_, "Cyclic module reference detected")
       )
+      test - check.checkSeq0(
+        Seq("myA.__"),
+        isShortError(_, "Cyclic module reference detected")
+      )
+      test - check.checkSeq0(
+        Seq("myA.a.__"),
+        isShortError(_, "Cyclic module reference detected")
+      )
     }
     test("cyclicModuleRefInitError2") {
       val check = new Checker(TestGraphs.CyclicModuleRefInitError2)
@@ -1128,6 +1136,14 @@ object ResolveTests extends TestSuite {
       val check = new Checker(TestGraphs.CyclicModuleRefInitError3)
       test - check.checkSeq0(
         Seq("__"),
+        isShortError(_, "Cyclic module reference detected")
+      )
+      test - check.checkSeq0(
+        Seq("A.__"),
+        isShortError(_, "Cyclic module reference detected")
+      )
+      test - check.checkSeq0(
+        Seq("A.b.__.a.b"),
         isShortError(_, "Cyclic module reference detected")
       )
     }

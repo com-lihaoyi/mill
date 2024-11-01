@@ -669,9 +669,11 @@ object TestGraphs {
 
   object CyclicModuleRefInitError extends TestBaseModule {
     import mill.Agg
+    def foo = Task { "foo" }
 
     // See issue: https://github.com/com-lihaoyi/mill/issues/3715
     trait CommonModule extends TestBaseModule {
+      def foo = Task { "foo" }
       def moduleDeps: Seq[CommonModule] = Seq.empty
       def a = myA
       def b = myB
