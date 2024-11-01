@@ -265,8 +265,6 @@ abstract class MillBuildRootModule()(implicit
   def millVersion = T.input { BuildInfo.millVersion }
 
   override def compile: T[CompilationResult] = Task(persistent = true) {
-    val superTask = super.compile
-
     val sv = scalaVersion()
     val mv = millVersion()
 
