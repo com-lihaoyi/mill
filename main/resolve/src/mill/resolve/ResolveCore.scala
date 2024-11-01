@@ -62,6 +62,10 @@ private object ResolveCore {
   def makeResultException(e: Throwable, base: Exception): Left[String, Nothing] =
     mill.api.Result.makeResultException(e, base)
 
+  def cyclicModuleErrorMsg(segments: Segments) = {
+    s"Cyclic module reference detected at ${segments.render}, " +
+      s"it's required to wrap it in ModuleRef."
+  }
   def resolve(
       rootModule: BaseModule,
       remainingQuery: List[Segment],
@@ -70,34 +74,43 @@ private object ResolveCore {
       seenModules: Set[Class[_]] = Set.empty
   ): Result = {
     def moduleClasses(resolved: Iterable[Resolved]): Set[Class[_]] = {
-      resolved.collect {
-        case Resolved.Module(_, cls) => cls
-      }.toSet
+      resolved.collect { case Resolved.Module(_, cls) => cls }.toSet
     }
 
     remainingQuery match {
       case Nil => Success(Set(current))
       case head :: tail =>
         def recurse(searchModules: Set[Resolved]): Result = {
-          val searchModuleClasses = moduleClasses(searchModules)
-          if (seenModules.intersect(searchModuleClasses).nonEmpty) {
-            Error(s"Cyclic module reference detected: [${seenModules.intersect(searchModuleClasses).mkString(", ")}], it's required to wrap it in ModuleRef.")
-          } else {
-            val results = searchModules.map(r => resolve(rootModule, tail, r, querySoFar ++ Seq(head), seenModules ++ moduleClasses(Set(current))))
-              .partitionMap { case s: Success => Right(s.value); case f: Failed => Left(f) }
-            val (failures, successesLists) = results
-            val (errors, notFounds) = failures.partitionMap {
-              case s: NotFound => Right(s)
-              case s: Error => Left(s.msg)
+          val results = searchModules
+            .map { r =>
+              val rClasses = moduleClasses(Set(r))
+              if (seenModules.intersect(rClasses).nonEmpty) {
+                Error(cyclicModuleErrorMsg(r.segments))
+              } else {
+                resolve(
+                  rootModule,
+                  tail,
+                  r,
+                  querySoFar ++ Seq(head),
+                  seenModules ++ moduleClasses(Set(current))
+                )
+              }
             }
+            .partitionMap { case s: Success => Right(s.value); case f: Failed => Left(f) }
 
-            if (errors.nonEmpty) Error(errors.mkString("\n"))
-            else if (successesLists.flatten.nonEmpty) Success(successesLists.flatten)
-            else notFounds.size match {
-              case 1 => notFounds.head
-              case _ => notFoundResult(rootModule, querySoFar, current, head)
-            }
+          val (failures, successesLists) = results
+          val (errors, notFounds) = failures.partitionMap {
+            case s: NotFound => Right(s)
+            case s: Error => Left(s.msg)
           }
+
+          if (errors.nonEmpty) Error(errors.mkString("\n"))
+          else if (successesLists.flatten.nonEmpty) Success(successesLists.flatten)
+          else notFounds.size match {
+            case 1 => notFounds.head
+            case _ => notFoundResult(rootModule, querySoFar, current, head)
+          }
+
         }
 
         (head, current) match {
@@ -260,19 +273,18 @@ private object ResolveCore {
     typePattern: Seq[String],
     seenModules: Set[Class[_]],
   ): Either[String, Set[Resolved]] = {
-    val errOrDirect = resolveDirectChildren(rootModule, cls, nameOpt, segments, typePattern)
-    val directTraverse = resolveDirectChildren(rootModule, cls, nameOpt, segments, Nil)
+    if (seenModules.contains(cls)) Left(cyclicModuleErrorMsg(segments))
+    else {
+      val errOrDirect = resolveDirectChildren(rootModule, cls, nameOpt, segments, typePattern)
+      val directTraverse = resolveDirectChildren(rootModule, cls, nameOpt, segments, Nil)
 
-    val errOrModules = directTraverse.map { modules =>
-      modules.flatMap {
-        case m: Resolved.Module => Some(m)
-        case _ => None
+      val errOrModules = directTraverse.map { modules =>
+        modules.flatMap {
+          case m: Resolved.Module => Some(m)
+          case _ => None
+        }
       }
-    }
 
-    if (seenModules.contains(cls)) {
-      Left(s"Cyclic module reference detected: ${cls.getName}, it's required to wrap it in ModuleRef.")
-    } else {
       val errOrIndirect0 = errOrModules match {
         case Right(modules) =>
           modules.flatMap { m =>

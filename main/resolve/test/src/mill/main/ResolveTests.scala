@@ -1114,7 +1114,7 @@ object ResolveTests extends TestSuite {
       val check = new Checker(TestGraphs.CyclicModuleRefInitError)
       test - check.checkSeq0(
         Seq("__"),
-        isShortError(_, "Cyclic module reference detected")
+        isShortError(_, "Cyclic module reference detected at myA.a,")
       )
       test - check(
         "_",
@@ -1122,52 +1122,52 @@ object ResolveTests extends TestSuite {
       )
       test - check.checkSeq0(
         Seq("myA.__"),
-        isShortError(_, "Cyclic module reference detected")
+        isShortError(_, "Cyclic module reference detected at myA.a,")
       )
       test - check.checkSeq0(
         Seq("myA.a.__"),
-        isShortError(_, "Cyclic module reference detected")
+        isShortError(_, "Cyclic module reference detected at myA.a.a,")
       )
       test - check.checkSeq0(
         Seq("myA.a._"),
-        isShortError(_, "Cyclic module reference detected")
+        isShortError(_, "Cyclic module reference detected at myA.a.a,")
       )
       test - check.checkSeq0(
         Seq("myA.a._.a"),
-        isShortError(_, "Cyclic module reference detected")
+        isShortError(_, "Cyclic module reference detected at myA.a.a,")
       )
       test - check.checkSeq0(
         Seq("myA.a.b.a"),
-        isShortError(_, "Cyclic module reference detected")
+        isShortError(_, "Cyclic module reference detected at myA.a.b.a,")
       )
     }
     test("cyclicModuleRefInitError2") {
       val check = new Checker(TestGraphs.CyclicModuleRefInitError2)
       test - check.checkSeq0(
         Seq("__"),
-        isShortError(_, "Cyclic module reference detected")
+        isShortError(_, "Cyclic module reference detected at A.myA.a,")
       )
     }
     test("cyclicModuleRefInitError3") {
       val check = new Checker(TestGraphs.CyclicModuleRefInitError3)
       test - check.checkSeq0(
         Seq("__"),
-        isShortError(_, "Cyclic module reference detected")
+        isShortError(_, "Cyclic module reference detected at A.b.a,")
       )
       test - check.checkSeq0(
         Seq("A.__"),
-        isShortError(_, "Cyclic module reference detected")
+        isShortError(_, "Cyclic module reference detected at A.b.a,")
       )
       test - check.checkSeq0(
         Seq("A.b.__.a.b"),
-        isShortError(_, "Cyclic module reference detected")
+        isShortError(_, "Cyclic module reference detected at A.b.a.b,")
       )
     }
     test("crossedCyclicModuleRefInitError") {
       val check = new Checker(TestGraphs.CrossedCyclicModuleRefInitError)
       test - check.checkSeq0(
         Seq("__"),
-        isShortError(_, "Cyclic module reference detected")
+        isShortError(_, "Cyclic module reference detected at cross[210].c2[210].c1,")
       )
     }
     test("nonCyclicModules") {
