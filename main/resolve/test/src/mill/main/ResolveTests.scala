@@ -1124,12 +1124,13 @@ object ResolveTests extends TestSuite {
         Seq("myA.__"),
         isShortError(_, "Cyclic module reference detected")
       )
-      test - check(
-        "myA.a._",
-        Right(Set(_.foo))
-      )
       test - check.checkSeq0(
         Seq("myA.a.__"),
+        isShortError(_, "Cyclic module reference detected")
+      )
+      // FIXME: Cannot test like this because it "Cannot find default task to evaluate"
+      test - check.checkSeq0(
+        Seq("myA.a._"),
         isShortError(_, "Cyclic module reference detected")
       )
 //      // FIXME: Cannot test like this because it "Cannot find default task to evaluate"
