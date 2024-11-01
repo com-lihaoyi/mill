@@ -284,7 +284,8 @@ trait Resolve[T] {
         rootModule = rootModule,
         remainingQuery = sel.value.toList,
         current = rootResolved,
-        querySoFar = Segments()
+        querySoFar = Segments(),
+        seenModules = Set.empty
       ) match {
         case ResolveCore.Success(value) => Right(value)
         case ResolveCore.NotFound(segments, found, next, possibleNexts) =>

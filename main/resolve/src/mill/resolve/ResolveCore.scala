@@ -80,33 +80,23 @@ private object ResolveCore {
       case head :: tail =>
         def recurse(searchModules: Set[Resolved]): Result = {
           val searchModuleClasses = moduleClasses(searchModules)
-          val checkedSearchModules = if (seenModules.intersect(searchModuleClasses).nonEmpty) {
-            Left(s"Cyclic module reference detected: [${seenModules.intersect(searchModuleClasses).mkString(", ")}], it's required to wrap it in ModuleRef.")
-          } else { Right(searchModules) }
-
-          val errOrResults = for {
-            checkedSearchModules0 <- checkedSearchModules
-            searchModules <- Right(checkedSearchModules0)
-          } yield {
-            searchModules.map(r => resolve(rootModule, tail, r, querySoFar ++ Seq(head), seenModules ++ moduleClasses(Set(current))))
+          if (seenModules.intersect(searchModuleClasses).nonEmpty) {
+            Error(s"Cyclic module reference detected: [${seenModules.intersect(searchModuleClasses).mkString(", ")}], it's required to wrap it in ModuleRef.")
+          } else {
+            val results = searchModules.map(r => resolve(rootModule, tail, r, querySoFar ++ Seq(head), seenModules ++ moduleClasses(Set(current))))
               .partitionMap { case s: Success => Right(s.value); case f: Failed => Left(f) }
-          }
+            val (failures, successesLists) = results
+            val (errors, notFounds) = failures.partitionMap {
+              case s: NotFound => Right(s)
+              case s: Error => Left(s.msg)
+            }
 
-          errOrResults match {
-            case Left(msg) => Error(msg)
-            case Right(results) =>
-              val (failures, successesLists) = results
-              val (errors, notFounds) = failures.partitionMap {
-                case s: NotFound => Right(s)
-                case s: Error => Left(s.msg)
-              }
-
-              if (errors.nonEmpty) Error(errors.mkString("\n"))
-              else if (successesLists.flatten.nonEmpty) Success(successesLists.flatten)
-              else notFounds.size match {
-                case 1 => notFounds.head
-                case _ => notFoundResult(rootModule, querySoFar, current, head)
-              }
+            if (errors.nonEmpty) Error(errors.mkString("\n"))
+            else if (successesLists.flatten.nonEmpty) Success(successesLists.flatten)
+            else notFounds.size match {
+              case 1 => notFounds.head
+              case _ => notFoundResult(rootModule, querySoFar, current, head)
+            }
           }
         }
 
