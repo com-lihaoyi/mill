@@ -70,6 +70,9 @@ class MillBuildBootstrap(
   }
 
   def evaluateRec(depth: Int): RunnerState = {
+    mill.main.client.DebugLog.println(
+      "MillBuildBootstrap.evaluateRec " + depth + " " + targetsAndParams.mkString(" ")
+    )
     // println(s"+evaluateRec($depth) " + recRoot(projectRoot, depth))
     val prevFrameOpt = prevRunnerState.frames.lift(depth)
     val prevOuterFrameOpt = prevRunnerState.frames.lift(depth - 1)
@@ -177,8 +180,7 @@ class MillBuildBootstrap(
             .getOrElse(0),
           depth,
           actualBuildFileName = nestedState.buildFile
-        )){ evaluator =>
-
+        )) { evaluator =>
           if (depth != 0) {
             val retState = processRunClasspath(
               nestedState,
@@ -344,7 +346,7 @@ class MillBuildBootstrap(
           .mkString("/")
       )
 
-    mill.eval.EvaluatorImpl(
+    mill.eval.EvaluatorImpl.make(
       home,
       projectRoot,
       recOut(output, depth),

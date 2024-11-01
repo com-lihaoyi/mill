@@ -38,7 +38,6 @@ private[mill] case class EvaluatorImpl(
 ) extends Evaluator with EvaluatorCore {
   import EvaluatorImpl._
 
-
   val pathsResolver: EvaluatorPathsResolver = EvaluatorPathsResolver.default(outPath)
 
   override def withBaseLogger(newBaseLogger: ColorLogger): Evaluator =
@@ -50,8 +49,6 @@ private[mill] case class EvaluatorImpl(
   override def plan(goals: Agg[Task[_]]): (MultiBiMap[Terminal, Task[_]], Agg[Task[_]]) = {
     Plan.plan(goals)
   }
-
-
 
   override def evaluate(
       goals: Strict.Agg[Task[_]],
@@ -71,52 +68,53 @@ private[mill] case class EvaluatorImpl(
       : Evaluator.EvalOrThrow =
     new EvalOrThrow(this, exceptionFactory)
 
-  override def close() = {
+  override def close(): Unit = {
     chromeProfileLogger.close()
     profileLogger.close()
   }
 }
 
 private[mill] object EvaluatorImpl {
-  def apply(
-             home: os.Path,
-             workspace: os.Path,
-             outPath: os.Path,
-             externalOutPath: os.Path,
-              rootModule: mill.define.BaseModule,
-              baseLogger: ColorLogger,
-              classLoaderSigHash: Int,
-              classLoaderIdentityHash: Int,
-              workerCache: mutable.Map[Segments, (Int, Val)] = mutable.Map.empty,
-              env: Map[String, String] = Evaluator.defaultEnv,
-              failFast: Boolean = true,
-              threadCount: Option[Int] = Some(1),
-              scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])] = Map.empty,
-              methodCodeHashSignatures: Map[String, Int],
-              disableCallgraph: Boolean,
-              allowPositionalCommandArgs: Boolean,
-              systemExit: Int => Nothing,
-              exclusiveSystemStreams: SystemStreams) = new EvaluatorImpl(
+  def make(
+      home: os.Path,
+      workspace: os.Path,
+      outPath: os.Path,
+      externalOutPath: os.Path,
+      rootModule: mill.define.BaseModule,
+      baseLogger: ColorLogger,
+      classLoaderSigHash: Int,
+      classLoaderIdentityHash: Int,
+      workerCache: mutable.Map[Segments, (Int, Val)] = mutable.Map.empty,
+      env: Map[String, String] = Evaluator.defaultEnv,
+      failFast: Boolean = true,
+      threadCount: Option[Int] = Some(1),
+      scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])] = Map.empty,
+      methodCodeHashSignatures: Map[String, Int],
+      disableCallgraph: Boolean,
+      allowPositionalCommandArgs: Boolean,
+      systemExit: Int => Nothing,
+      exclusiveSystemStreams: SystemStreams
+  ) = new EvaluatorImpl(
     home,
-      workspace,
-      outPath,
-      externalOutPath,
-      rootModule,
-      baseLogger,
-      classLoaderSigHash,
-      classLoaderIdentityHash,
-      workerCache,
-      env,
-      failFast,
-      threadCount,
-      scriptImportGraph,
-      methodCodeHashSignatures,
-      disableCallgraph,
-      allowPositionalCommandArgs,
-      systemExit,
-      exclusiveSystemStreams,
-      chromeProfileLogger = new ChromeProfileLogger(outPath / millChromeProfile),
-      profileLogger = new ProfileLogger(outPath / millProfile),
+    workspace,
+    outPath,
+    externalOutPath,
+    rootModule,
+    baseLogger,
+    classLoaderSigHash,
+    classLoaderIdentityHash,
+    workerCache,
+    env,
+    failFast,
+    threadCount,
+    scriptImportGraph,
+    methodCodeHashSignatures,
+    disableCallgraph,
+    allowPositionalCommandArgs,
+    systemExit,
+    exclusiveSystemStreams,
+    chromeProfileLogger = new ChromeProfileLogger(outPath / millChromeProfile),
+    profileLogger = new ProfileLogger(outPath / millProfile)
   )
 
   class EvalOrThrow(evaluator: Evaluator, exceptionFactory: Evaluator.Results => Throwable)

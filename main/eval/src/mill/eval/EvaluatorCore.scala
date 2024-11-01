@@ -20,6 +20,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
   def baseLogger: ColorLogger
   protected[eval] def chromeProfileLogger: ChromeProfileLogger
   protected[eval] def profileLogger: ProfileLogger
+
   /**
    * @param goals The tasks that need to be evaluated
    * @param reporter A function that will accept a module id and provide a listener for build problems in that module
@@ -174,6 +175,11 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
               cached = res.cached
             )
 
+            mill.main.client.DebugLog.println("")
+            mill.main.client.DebugLog.println("PROFILE LOGGER " + System.identityHashCode(this))
+            mill.main.client.DebugLog.println("PROFILE LOGGER " + outPath)
+            mill.main.client.DebugLog.println("PROFILE LOGGER " + profileLogger)
+            mill.main.client.DebugLog.println("PROFILE LOGGER " + terminal.render)
             profileLogger.log(
               ProfileLogger.Timing(
                 terminal.render,
@@ -234,9 +240,6 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       }
 
     val results: Map[Task[_], TaskResult[(Val, Int)]] = results0.toMap
-
-    chromeProfileLogger.close()
-    profileLogger.close()
 
     EvaluatorCore.Results(
       goals.indexed.map(results(_).map(_._1).result),

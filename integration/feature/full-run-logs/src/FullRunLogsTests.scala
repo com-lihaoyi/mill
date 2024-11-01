@@ -54,10 +54,14 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
     }
     test("show") - integrationTest { tester =>
       import tester._
-
-      val res = eval(("show", "compile"))
+      // Make sure when we have nested evaluations, e.g. due to usage of evaluator commands
+      // like `show`, both outer and inner evaluations hae their metadata end up in the
+      // same profile files so a user can see what's going on in either
+      eval(("show", "compile"))
       val millProfile = ujson.read(os.read(workspacePath / OutFiles.out / "mill-profile.json")).arr
-      val millChromeProfile = ujson.read(os.read(workspacePath / OutFiles.out / "mill-chrome-profile.json")).arr
+      val millChromeProfile =
+        ujson.read(os.read(workspacePath / OutFiles.out / "mill-chrome-profile.json")).arr
+      // Profile logs for the thing called by show
       assert(millProfile.exists(_.obj("label").str == "compile"))
       assert(millProfile.exists(_.obj("label").str == "compileClasspath"))
       assert(millProfile.exists(_.obj("label").str == "ivyDeps"))
@@ -66,6 +70,9 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       assert(millChromeProfile.exists(_.obj("name").str == "compileClasspath"))
       assert(millChromeProfile.exists(_.obj("name").str == "ivyDeps"))
       assert(millChromeProfile.exists(_.obj("name").str == "javacOptions"))
+      // Profile logs for show itself
+      assert(millProfile.exists(_.obj("label").str == "show"))
+      assert(millChromeProfile.exists(_.obj("name").str == "show"))
     }
   }
 }

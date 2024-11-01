@@ -86,7 +86,7 @@ class UnitTester(
     override def debug(s: String): Unit = super.debug(s"${prefix}: ${s}")
     override def ticker(s: String): Unit = super.ticker(s"${prefix}: ${s}")
   }
-  val evaluator: EvaluatorImpl = mill.eval.EvaluatorImpl(
+  val evaluator: EvaluatorImpl = mill.eval.EvaluatorImpl.make(
     mill.api.Ctx.defaultHome,
     module.millSourcePath,
     outPath,
