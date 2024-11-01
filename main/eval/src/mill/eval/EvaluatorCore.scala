@@ -175,11 +175,6 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
               cached = res.cached
             )
 
-            mill.main.client.DebugLog.println("")
-            mill.main.client.DebugLog.println("PROFILE LOGGER " + System.identityHashCode(this))
-            mill.main.client.DebugLog.println("PROFILE LOGGER " + outPath)
-            mill.main.client.DebugLog.println("PROFILE LOGGER " + profileLogger)
-            mill.main.client.DebugLog.println("PROFILE LOGGER " + terminal.render)
             profileLogger.log(
               ProfileLogger.Timing(
                 terminal.render,
