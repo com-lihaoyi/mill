@@ -66,32 +66,53 @@ private object ResolveCore {
       rootModule: BaseModule,
       remainingQuery: List[Segment],
       current: Resolved,
-      querySoFar: Segments
+      querySoFar: Segments,
+      seenModules: Set[Class[_]] = Set.empty
   ): Result = {
+    def moduleClasses(resolved: Iterable[Resolved]): Set[Class[_]] = {
+      resolved.collect {
+        case Resolved.Module(_, cls) => cls
+      }.toSet
+    }
+
     remainingQuery match {
       case Nil => Success(Set(current))
       case head :: tail =>
         def recurse(searchModules: Set[Resolved]): Result = {
-          val (failures, successesLists) = searchModules
-            .map(r => resolve(rootModule, tail, r, querySoFar ++ Seq(head)))
-            .partitionMap { case s: Success => Right(s.value); case f: Failed => Left(f) }
+          val searchModuleClasses = moduleClasses(searchModules)
+          val checkedSearchModules = if (seenModules.intersect(searchModuleClasses).nonEmpty) {
+            Left(s"Cyclic module reference detected: [${seenModules.intersect(searchModuleClasses).mkString(", ")}], it's required to wrap it in ModuleRef.")
+          } else { Right(searchModules) }
 
-          val (errors, notFounds) = failures.partitionMap {
-            case s: NotFound => Right(s)
-            case s: Error => Left(s.msg)
+          val errOrResults = for {
+            checkedSearchModules0 <- checkedSearchModules
+            searchModules <- Right(checkedSearchModules0)
+          } yield {
+            searchModules.map(r => resolve(rootModule, tail, r, querySoFar ++ Seq(head), seenModules ++ moduleClasses(Set(r))))
+              .partitionMap { case s: Success => Right(s.value); case f: Failed => Left(f) }
           }
 
-          if (errors.nonEmpty) Error(errors.mkString("\n"))
-          else if (successesLists.flatten.nonEmpty) Success(successesLists.flatten)
-          else notFounds.size match {
-            case 1 => notFounds.head
-            case _ => notFoundResult(rootModule, querySoFar, current, head)
+          errOrResults match {
+            case Left(msg) => Error(msg)
+            case Right(results) =>
+              val (failures, successesLists) = results
+              val (errors, notFounds) = failures.partitionMap {
+                case s: NotFound => Right(s)
+                case s: Error => Left(s.msg)
+              }
+
+              if (errors.nonEmpty) Error(errors.mkString("\n"))
+              else if (successesLists.flatten.nonEmpty) Success(successesLists.flatten)
+              else notFounds.size match {
+                case 1 => notFounds.head
+                case _ => notFoundResult(rootModule, querySoFar, current, head)
+              }
           }
         }
 
         (head, current) match {
           case (Segment.Label(singleLabel), m: Resolved.Module) =>
-            val resOrErr = singleLabel match {
+            val resOrErr: Either[String, Iterable[Resolved]] = singleLabel match {
               case "__" =>
                 val self = Seq(Resolved.Module(m.segments, m.cls))
                 val transitiveOrErr =
@@ -111,7 +132,7 @@ private object ResolveCore {
                   rootModule,
                   m.cls,
                   None,
-                  current.segments
+                  current.segments,
                 )
 
               case pattern if pattern.startsWith("__:") =>
@@ -144,7 +165,7 @@ private object ResolveCore {
                   rootModule,
                   m.cls,
                   Some(singleLabel),
-                  current.segments
+                  current.segments,
                 )
             }
 
@@ -210,7 +231,7 @@ private object ResolveCore {
           rootModule,
           current.millModuleSegments,
           current.getClass,
-          Some(s)
+          Some(s),
         ).flatMap {
           case Seq((_, Some(f))) =>
             val res = f(current)
@@ -318,7 +339,6 @@ private object ResolveCore {
       segments: Segments,
       typePattern: Seq[String] = Nil
   ): Either[String, Set[Resolved]] = {
-
     val crossesOrErr = if (classOf[Cross[_]].isAssignableFrom(cls) && nameOpt.isEmpty) {
       instantiateModule(rootModule, segments).map {
         case cross: Cross[_] =>
@@ -330,19 +350,23 @@ private object ResolveCore {
       }
     } else Right(Nil)
 
-    for {
-      crosses <- crossesOrErr
-      filteredCrosses = crosses.filter { c =>
-        classMatchesTypePred(typePattern)(c.cls)
-      }
-      direct <- resolveDirectChildren0(rootModule, segments, cls, nameOpt, typePattern)
-    } yield {
+    def expandSegments(direct: Seq[(Resolved, Option[Module => Either[String, Module]])]) = {
       direct.map {
         case (Resolved.Module(s, cls), _) => Resolved.Module(segments ++ s, cls)
         case (Resolved.NamedTask(s), _) => Resolved.NamedTask(segments ++ s)
         case (Resolved.Command(s), _) => Resolved.Command(segments ++ s)
       }
-        .toSet ++ filteredCrosses
+    }
+
+    for {
+      crosses <- crossesOrErr
+      filteredCrosses = crosses.filter { c =>
+        classMatchesTypePred(typePattern)(c.cls)
+      }
+      direct0 <- resolveDirectChildren0(rootModule, segments, cls, nameOpt, typePattern)
+      direct <- Right(expandSegments(direct0))
+    } yield {
+      direct.toSet ++ filteredCrosses
     }
   }
 
@@ -413,7 +437,7 @@ private object ResolveCore {
           rootModule,
           m.cls,
           None,
-          current.segments
+          current.segments,
         ).toOption.get.map(
           _.segments.value.last
         )
