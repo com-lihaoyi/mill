@@ -1,19 +1,15 @@
 // == Python MyPy Support
 
-// This Example introduces a `PythonModule` trait with built-in MyPy support, offering structured type-checking in Python projects using Mill.
-// MyPy is a static type checker that uses Python type hints to enforce type correctness and catch errors during development.
-// The `PythonModule` trait provides a `compileMyPy` task that runs MyPy in strict mode, validating type usage in the main Python file specified by each object.
+// This Example extends `PythonModule` trait for `MyPy` support, offering structured `type-checking` in Python projects using Mill.
 
-// == Using PythonModule for MyPy Support
+// `MyPy` is a static type checker that uses Python `type hints` to enforce `type correctness` and `catch errors` during development.
 
-// The `PythonModule` trait includes:
+// ==== Extending `PythonModule` for `MyPy` Support
 
-// - `dependencies`: Specifies dependencies to install within the virtual environment.
-// - `options`: Defines optional command-line arguments for the Python file.
-// - `venvName`: Names the virtual environment directory.
-// - `mainFileName`: Specifies the main Python file to be executed.
-// - `requirementsPath`: Defines the path to the requirements.txt file for additional dependencies.
-// - `compileMyPy`: Runs MyPy in strict mode to enforce type checking for each specified module.
+// This Example creates the `runMyPy` Task to run `MyPy`:
+// 
+// - def `runMyPy` Task checks the python file before the actual excetution of the file
+//   for `type-checking` and logs out success or error based on file defination.
 
 package build
 import mill._
@@ -23,6 +19,7 @@ import mill._
  */
 trait PythonModule extends Module {
 
+  /** List of module dependencies required by this module. */
   def moduleDeps: Seq[PythonModule] = Nil
 
   /** Specifies dependencies to install in the virtual environment. */
@@ -109,10 +106,16 @@ trait PythonModule extends Module {
     os.call(Seq("bash", "-c", s"source ${venvBin / "activate"}"))
     PathRef(venvBin)
   }
-  
+
+  /** Collects all dependencies for installation, including requirements and module dependencies. */
   def finalDependencies: T[Seq[String]] = Task {
+
     val upstreamDependencies = Task.traverse(moduleDeps)(_.finalDependencies)()
-    (dependencies().map(_.toString) ++ requirementsDependencies().map(_.toString) ++ upstreamDependencies.flatten.map(_.toString)).distinct
+
+    (dependencies().map(_.toString) ++ requirementsDependencies().map(
+      _.toString
+    ) ++ upstreamDependencies.flatten.map(_.toString)).distinct
+
   }
 
   /** Installs specified dependencies in the virtual environment. */
@@ -134,15 +137,35 @@ trait PythonModule extends Module {
     PathRef(pythonVenv)
   }
 
-  /** Executes the main Python file using the virtual environment. */
+  /** Compile installs dependencies in virtual environment. */
   def compile: T[(PathRef, PathRef)] = Task {
     val pythonVenv = installDependencies().path
     val mainFileDir = sources().path
-    
+
     (PathRef(pythonVenv), PathRef(mainFileDir))
   }
-  
+
+  /** Runs the main Python file with specified command-line arguments. */
   def run(args: mill.define.Args) = Task.Command {
+
+    val upstream = Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
+    for (((_, mainFileDir), mod) <- upstream) {
+      val destinationPath = Task.dest / mod.millSourcePath.subRelativeTo(build.millSourcePath)
+      os.copy.over(mainFileDir.path / os.up, destinationPath)
+    }
+
+    os.call(
+      Seq(
+        compile()._1.path.toString,
+        s"${compile()._2.path / mainFileName()}"
+      ) ++ args.value,
+      env = Map("PYTHONPATH" -> Task.dest.toString),
+      stdout = os.Inherit
+    )
+  }
+
+  /** Checks the main Python file using Mypy with specified command-line arguments. */
+  def runMyPy(args: mill.define.Args) = Task.Command {
 
     val upstream = Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
     for(((_, mainFileDir), mod) <- upstream) {
@@ -165,12 +188,13 @@ trait PythonModule extends Module {
 
 }
 
-// === Example
+// ==== Example
 
 // This example defines two objects, `success` and `error`, both of which inherit from `PythonModule`:
 
-// - `success`: An object that demonstrates successful type-checking using MyPy, with the necessary dependencies.
-// - `error`: An object that shows how MyPy flags type errors when mismatched types are detected. Users can simulate errors by uncommenting specific lines in the source code, prompting `compileMyPy` to display errors.
+// - `success`: An object that demonstrates successful type-checking using `MyPy`, with the necessary dependencies.
+// - `error`: An object that shows how `MyPy` flags type errors when mismatched types are detected. 
+//    Users can simulate errors by uncommenting mentioned lines in the source code, prompting `run` to display errors.
 
 object success extends PythonModule{
   override def dependencies: T[Seq[String]] = Task { Seq[String]("mypy") }
@@ -180,20 +204,22 @@ object error extends PythonModule{
   override def dependencies: T[Seq[String]] = Task { Seq[String]("mypy") }
 }
 
+// Here are the Main Script files for above example:
+/** See Also: success/src/main.py */
+/** See Also: error/src/main.py */
+// User can Customise these Files as per their Needs.
+
 // To run MyPy checks in Mill, the following commands execute type-checking on each object:
 
 /** Usage
 
-> ./mill success.run
+> ./mill success.runMyPy
 Success: no issues found in 1 source file
 
-> ./mill error.run
+> ./mill error.runMyPy
 Success: no issues found in 1 source file
 // Uncomment the Result variable line(Line Number:13) in the `Error/src/main.py` code to see error
 
 */
 
-// Here are the Main Script files for above example:
-/** See Also: success/src/main.py */
-/** See Also: error/src/main.py */
-// User can Customise these Files as per their Needs.
+// So this is the basic example for `MyPy` support in Mill. Next, we will see the `Pex` Support Example

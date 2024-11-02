@@ -64,18 +64,13 @@ def allSources: T[Seq[PathRef]] = Task {
 
 // === Compilation
 
-// The `mainFileName` and `compile` Tasks work to manage
-// a project’s main Python file, `"main.py"`. `mainFileName` defines this file's expected name,
-// while `mainFile` searches through source files to locate it, throwing an error if it’s missing.
-// `compile` then ensures `pip` is installed, retrieves the main file path, and returns it for further processing.
-// Together, these functions prepare the main entry file and dependencies, making the project ready for execution or packaging.
-
-def mainFileName: T[String] = Task { "main.py" }
+// The `compile` Task  ensures `pip` is installed, retrieves the main file directory, and returns it for further processing.
+// This task is considered as a part of code which is responsible for all compilation of sources and pre-requirements.
 
 def compile: T[PathRef] = Task {
   installPip()
   val mainFileDir = sources().path
-
+  
   PathRef(mainFileDir)
 }
 
@@ -85,16 +80,13 @@ def compile: T[PathRef] = Task {
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
-//   pipInstall -> compile
-//   sources -> allSources -> compile
-//   mainFileName -> mainFile -> compile
+//   installPip -> compile
+//   sources -> compile
 // }
 // ```
 
-// In relation to all tasks,
-// `main.py` Script serves as the executable part of the project. These Tasks ensure that
-// main file is correctly located and validated. When `compile` retrieves its path and
-// prepares it for execution, running this file will result in either a generic greeting 
+// When `compile` task installs pip and gives the path for main file directory
+// then we have `main.py` in this path and running this file will result in either a generic greeting 
 // or a personalized one based on the command-line arguments passed, allowing for flexible interaction with the user.
 
 /** See Also: src/main.py */
@@ -105,8 +97,8 @@ def compile: T[PathRef] = Task {
 // The `run` function executes the main Python file (`main.py`) and accepts command-line arguments from the user. 
 // It uses `os.call` to run the Python interpreter with the main file's path and any additional arguments.
 // The output is shown in the console, allowing for real-time interaction.
-// This function builds on the earlier steps by using the validated main file from the
-// `compile` function, ensuring smooth execution of the project's main functionality.
+  
+def mainFileName: T[String] = Task { "main.py" }
 
 def run(args: mill.define.Args) = Task.Command {
   os.call(
@@ -124,13 +116,15 @@ def run(args: mill.define.Args) = Task.Command {
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
-//   pipInstall -> compile
-//   sources -> allSources -> compile -> run
-//   mainFileName -> mainFile -> compile
-//   compile [color=green, penwidth=3]
+//   installPip -> compile
+//   sources -> compile -> run
+//   mainFileName -> run
+//   mainFileName [color=green, penwidth=3]
 //   run [color=green, penwidth=3]
 // }
 // ```
+
+// Running run command will return the result to the console.
 
 /** Usage
  

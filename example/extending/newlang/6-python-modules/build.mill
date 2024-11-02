@@ -50,17 +50,17 @@ trait PythonModule extends Module {
     os.walk(sources().path).filter(_.ext == "py").map(PathRef(_))
   }
 
-  /** Returns the name of the main Python file. */
-  def mainFileName: T[String] = Task { "main.py" }
-
-  /** Compiles the project by installing pip and returning the main file path. */
+  /** Compiles the project by installing pip and returning the main file Directory. */
   def compile: T[PathRef] = Task {
     installPip()
     val mainFileDir = sources().path
-
+    
     PathRef(mainFileDir)
   }
-
+  
+  /** Returns the name of the main Python file. */
+  def mainFileName: T[String] = Task { "main.py" }
+  
   /** Runs the compiled main Python file with optional command-line arguments. */
   def run(args: mill.define.Args) = Task.Command {
     os.call(
@@ -78,26 +78,28 @@ trait PythonModule extends Module {
 // The script defines three key objects that extend the `PythonModule` trait, each object encapsulating a distinct runtime configuration.
 // By allowing objects like foo, bar, and qux to extend the PythonModule, it promotes code reuse and modular design, 
 // enabling easy access to common functionalities while facilitating customization for specific needs.
-// This structured approach enhances the development process, making it more efficient and maintainable.
 
 object foo extends PythonModule{
+  override def mainFileName: T[String] = Task { "foo.py" }
   object bar extends PythonModule{
+    override def mainFileName: T[String] = Task { "bar.py" }
     // Inherits all functionalities of PythonModule
   }
 }
 
 object qux extends PythonModule{
+  override def mainFileName: T[String] = Task { "qux.py" }
   // Functions independently but has access to PythonModule methods
 }
 
-// We have used three different Python Scripts `foo/src/main.py`, `foo/bar/src/main.py`, `qux/src/main.py` 
+// We have used three different Python Scripts `foo/src/foo.py`, `foo/bar/src/bar.py`, `qux/src/qux.py` 
 
-/** See Also: foo/src/main.py */
-/** See Also: foo/bar/src/main.py */
-/** See Also: qux/src/main.py */
+/** See Also: foo/src/foo.py */
+/** See Also: foo/bar/src/bar.py */
+/** See Also: qux/src/qux.py */
 
 
-// Run the following commands to compile and execute each module, displaying unique outputs based on the configuration of each object:
+// Run the following commands to run each module, displaying unique outputs based on the configuration of each object:
 
 /** Usage
 
@@ -121,23 +123,23 @@ Hello, Mill Qux!
 //   subgraph cluster_3 {
 //     style=dashed
 //     label=qux
-//     "qux.pipInstall" -> "qux.compile"
-//     "qux.sources" -> "qux.allSources" -> "qux.compile" -> "qux.run"
-//     "qux.mainFileName" -> "qux.mainFile" ->  "qux.compile"
+//     "qux.installPip" -> "qux.compile"
+//     "qux.sources" -> "qux.compile" -> "qux.run"
+//     "qux.mainFileName" -> "qux.run"
 //   }
 //   subgraph cluster_1 {
 //     subgraph cluster_2 {
 //       style=dashed
 //       label=bar
-//       "bar.pipInstall" -> "bar.compile"
-//       "bar.sources" -> "bar.allSources" -> "bar.compile" -> "bar.run"
-//       "bar.mainFileName" -> "bar.mainFile" ->  "bar.compile"
+//       "bar.installPip" -> "bar.compile"
+//       "bar.sources" -> "bar.compile" -> "bar.run"
+//       "bar.mainFileName" ->  "bar.run"
 //     }
 //     style=dashed
 //     label=foo
-//     "foo.pipInstall" -> "foo.compile"
-//     "foo.sources" -> "foo.allSources" -> "foo.compile" -> "foo.run"
-//     "foo.mainFileName" -> "foo.mainFile" ->  "foo.compile"
+//     "foo.installPip" -> "foo.compile"
+//     "foo.sources" -> "foo.compile" -> "foo.run"
+//     "foo.mainFileName" -> "foo.run"
 //   }
 // }
 // ```

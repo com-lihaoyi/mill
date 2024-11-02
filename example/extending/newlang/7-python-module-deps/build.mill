@@ -1,16 +1,29 @@
-// == Module Dependencies
-// This example demonstrates the support for managing dependencies in Python projects using the `PythonModule` trait.
-// It enables users to specify dependencies both directly in the build script and through a `requirements.txt` file.
+// == PythonModule moduleDeps, virtualEnv & libraryDeps
+// This example demonstrates the support for Module dependencies, virtual environment & Library Dependencies
+// in Python projects by extending the `PythonModule` trait further.
 // This approach is particularly useful for projects that need dynamic dependency handling and isolated environments for each module.
 
-// === Using `PythonModule` for Dependency Management
+// ==== Extending `PythonModule` Trait 
 
-// The `PythonModule` trait provides functions for creating virtual environments, installing dependencies, and managing the execution context of Python files. 
-// Dependencies can be managed in two ways:
+// The `PythonModule` trait now provides tasks for moduleDeps Support, creating virtual environments,
+// installing dependencies, and managing the execution context of Python files. 
 
-// - Inline dependencies in the Mill build script (e.g., `requests` in this example).
-// - External dependencies listed in a `requirements.txt` file, such as `numpy` and `pandas`.
- 
+// 1. def `moduleDeps` Task is used to allow different `PythonModules` to depend on each other, 
+//    and we use `Task.traverse` to combine the `upstream dependencies` for installation in `compile`,
+//    and compiled the `upstream modules` for use in `run` Task
+
+// 2. def `createVenv` Task creates the python `virtual environment` for creating isolated Environments
+//    for installing multiple library dependencies required for running python files successfully.
+//    Furthermore, it provides `activateVenv` Task to activate the virtual environment for further processing.
+
+// 3. def `installDependencies` Task installs the dependencies in the activated virtual environment 
+//    and these dependencies can be managed in two ways:
+//
+//    - Inline dependencies in the Mill build script (e.g., `requests` in this example).
+//      This can be done using `dependencies` Task.
+//    - External dependencies listed in a `requirements.txt` file, such as `numpy` and `pandas`.
+//      This can be done using the `requirementsDependencies` Task.
+
 package build
 import mill._
 
@@ -19,6 +32,7 @@ import mill._
  */
 trait PythonModule extends Module {
 
+  /** List of module dependencies required by this module. */
   def moduleDeps: Seq[PythonModule] = Nil
 
   /** Specifies dependencies to install in the virtual environment. */
@@ -105,10 +119,16 @@ trait PythonModule extends Module {
     os.call(Seq("bash", "-c", s"source ${venvBin / "activate"}"))
     PathRef(venvBin)
   }
-  
+
+  /** Collects all dependencies for installation, including requirements and module dependencies. */
   def finalDependencies: T[Seq[String]] = Task {
+
     val upstreamDependencies = Task.traverse(moduleDeps)(_.finalDependencies)()
-    (dependencies().map(_.toString) ++ requirementsDependencies().map(_.toString) ++ upstreamDependencies.flatten.map(_.toString)).distinct
+
+    (dependencies().map(_.toString) ++ requirementsDependencies().map(
+      _.toString
+    ) ++ upstreamDependencies.flatten.map(_.toString)).distinct
+
   }
 
   /** Installs specified dependencies in the virtual environment. */
@@ -130,18 +150,19 @@ trait PythonModule extends Module {
     PathRef(pythonVenv)
   }
 
-  /** Executes the main Python file using the virtual environment. */
+  /** Compile installs dependencies in virtual environment. */
   def compile: T[(PathRef, PathRef)] = Task {
     val pythonVenv = installDependencies().path
     val mainFileDir = sources().path
-    
+
     (PathRef(pythonVenv), PathRef(mainFileDir))
   }
-  
+
+  /** Runs the main Python file with specified command-line arguments. */
   def run(args: mill.define.Args) = Task.Command {
 
     val upstream = Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
-    for(((_, mainFileDir), mod) <- upstream) {
+    for (((_, mainFileDir), mod) <- upstream) {
       val destinationPath = Task.dest / mod.millSourcePath.subRelativeTo(build.millSourcePath)
       os.copy.over(mainFileDir.path / os.up, destinationPath)
     }
@@ -157,14 +178,15 @@ trait PythonModule extends Module {
   }
 
 }
-
-// === Example
-
-// This `package` object extends `RootModule` and `PythonModule`, combining inline dependencies and requirements from `requirements.txt`. 
-// The `dependencies` override installs the `requests` library directly through the Mill script, while additional packages 
-// like `numpy` and `pandas` are listed in `requirements.txt`. This setup allows core dependencies to be managed within the build script,
-// while environment-specific libraries are specified in `requirements.txt`, ensuring flexible and comprehensive dependency management.
-
+// Note the use of `Task.traverse(moduleDeps)` in order to aggregate the `compile`
+// output of the upstream modules, which is necessary both to configure the `Virtual Environment`
+// and installing the `dependencies` from the upstream and main module finally it compiles individual
+// modules and give results for further processing in `run` Task
+//
+// ==== Example
+// 
+// Again, we can instantiate `PythonModule` three times, but now `foo/src/foo.py`
+// and `foo/bar/src/bar.py` export their APIs which are then imported in `qux/src/qux.py`:
 
 object foo extends PythonModule{
   override def mainFileName: T[String] = Task { "foo.py" }
@@ -173,7 +195,6 @@ object foo extends PythonModule{
 
     // foo and bar object dependencies are given 
     // in their respective requirements.txt
-    // "numpy", "pandas" is Added in requirements.txt 
   }
 }
 
@@ -185,15 +206,20 @@ object qux extends PythonModule{
   // we used inline dependency here and requirements.txt in above foo and bar object
   override def dependencies: T[Seq[String]] = Task{ Seq[String]("requests") }
 
-  def moduleDeps = Seq(foo, foo.bar)
+  def moduleDeps: Seq[PythonModule] = Seq[PythonModule](foo, foo.bar)
 
 }
+// Below are the Files from Source Folders
 
+/** See Also: foo/src/foo.py */
+/** See Also: foo/src/requirements.txt */
+/** See Also: foo/bar/src/bar.py */
+/** See Also: foo/bar/src/requirements.txt */
+/** See Also: qux/src/qux.py */
 
+// User can also mention particular versions of the dependencies as per the rules of requirements.txt
 
 // To run this build script, use the following command. 
-// Upon execution, it installs dependencies listed in both the `requirements.txt` file and the `dependencies` method 
-// and then executes the main Python script with these dependencies available.
 
 /** Usage
 
@@ -202,9 +228,36 @@ NumPy Example: Array: [1 2 3 4 5] ; Mean: 3.0 ; Sum: 15 | Pandas Example: Averag
 
 */
 
-// Below are the Files from Source Folder(main.py, requirements.txt)
-
-// /** See Also: src/main.py */
-// /** See Also: src/requirements.txt */
-
-// User can also mention particular versions of the dependencies as per the rules of requirements.txt
+// The dependency graph of tasks now looks like this, with the output of
+// `foo.compile` and `bar.compile` now being fed into `qux.compile` (and
+// ultimately `qux.run`):
+//
+// ```graphviz
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   subgraph cluster_3 {
+//     style=dashed
+//     label=qux
+//     "qux.installPip" -> "qux.compile"
+//     "qux.sources" -> "qux.compile" -> "qux.run"
+//     "qux.mainFileName" -> "qux.run"
+//   }
+//   subgraph cluster_1 {
+//     subgraph cluster_2 {
+//       style=dashed
+//       label=bar
+//       "bar.installPip" -> "bar.compile"
+//       "bar.sources" -> "bar.compile" -> "bar.run"
+//       "bar.mainFileName" -> "bar.run"
+//     }
+//     style=dashed
+//     label=foo
+//     "foo.installPip" -> "foo.compile"
+//     "foo.sources" -> "foo.compile" -> "foo.run"
+//     "foo.mainFileName" -> "foo.run"
+//   }
+//   "bar.compile" -> "qux.compile"  [color=green, penwidth=3]
+//   "foo.compile" -> "qux.compile"  [color=green, penwidth=3]
+// }
+// ```

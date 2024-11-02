@@ -1,19 +1,15 @@
 // == Python Pex Support
 
-// This script introduces support for `Pex` packaging in the `PythonModule` trait.
+// This Example introduces support for `Pex` packaging in the `PythonModule` trait.
+// 
 // Pex (Python EXecutable) enables bundling Python applications into single-file executables,
-// allowing easy distribution and execution without additional dependencies. In this setup,
-// the `PythonModule` trait includes a `compilePex` task, which leverages the Pex library to create a `.pex` file,
-// incorporating all specified dependencies and the main Python file.
+// allowing easy distribution and execution without additional dependencies.
 
-// === Using PythonModule For Pex Support 
+// ==== Extending PythonModule For Pex Support 
 
-// The `PythonModule` trait with Pex support includes:
+// This Example creates the `runPex` Task to create Pex File:
 
-// - `dependencies`: Lists core dependencies, including Pex, which are installed in the virtual environment.
-// - `options`: Optional command-line arguments for the Python script.
-// - `requirementsPath`: Path to `requirements.txt`, allowing flexible addition of dependencies.
-// - `compilePex`: This new task creates a `.pex` file, combining all dependencies and the specified main Python file into a standalone, executable format.
+// - def `runPex` Task creates a `.pex` file, combining all dependencies and the specified main Python file into a standalone, executable format.
 
 package build
 import mill._
@@ -23,6 +19,7 @@ import mill._
  */
 trait PythonModule extends Module {
 
+  /** List of module dependencies required by this module. */
   def moduleDeps: Seq[PythonModule] = Nil
 
   /** Specifies dependencies to install in the virtual environment. */
@@ -109,10 +106,16 @@ trait PythonModule extends Module {
     os.call(Seq("bash", "-c", s"source ${venvBin / "activate"}"))
     PathRef(venvBin)
   }
-  
+
+  /** Collects all dependencies for installation, including requirements and module dependencies. */
   def finalDependencies: T[Seq[String]] = Task {
+
     val upstreamDependencies = Task.traverse(moduleDeps)(_.finalDependencies)()
-    (dependencies().map(_.toString) ++ requirementsDependencies().map(_.toString) ++ upstreamDependencies.flatten.map(_.toString)).distinct
+
+    (dependencies().map(_.toString) ++ requirementsDependencies().map(
+      _.toString
+    ) ++ upstreamDependencies.flatten.map(_.toString)).distinct
+
   }
 
   /** Installs specified dependencies in the virtual environment. */
@@ -134,15 +137,34 @@ trait PythonModule extends Module {
     PathRef(pythonVenv)
   }
 
-  /** Executes the main Python file using the virtual environment. */
+  /** Compile installs dependencies in virtual environment. */
   def compile: T[(PathRef, PathRef)] = Task {
     val pythonVenv = installDependencies().path
     val mainFileDir = sources().path
-    
+
     (PathRef(pythonVenv), PathRef(mainFileDir))
   }
-  
+
+  /** Runs the main Python file with specified command-line arguments. */
   def run(args: mill.define.Args) = Task.Command {
+
+    val upstream = Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
+    for (((_, mainFileDir), mod) <- upstream) {
+      val destinationPath = Task.dest / mod.millSourcePath.subRelativeTo(build.millSourcePath)
+      os.copy.over(mainFileDir.path / os.up, destinationPath)
+    }
+
+    os.call(
+      Seq(
+        compile()._1.path.toString,
+        s"${compile()._2.path / mainFileName()}"
+      ) ++ args.value,
+      env = Map("PYTHONPATH" -> Task.dest.toString),
+      stdout = os.Inherit
+    )
+  }
+  
+  def runPex(args: mill.define.Args) = Task.Command {
     
     val pexFile = T.dest / "result.pex"
 
@@ -167,42 +189,13 @@ trait PythonModule extends Module {
     )
   }
 
-  // /** Executes the main Python file with pex Library using the virtual environment. */
-  // def compilePex: T[PathRef] = Task {
-  //   val pythonVenv = installDependencies().path
-  //   val mainFilePath = mainFile().path
-  //   val args = options()
-  //   val pexFile = T.dest / "result.pex"
-
-  //   val result = os.call(
-  //     Seq(
-  //       pythonVenv.toString,
-  //       "-m",
-  //       "pex",
-  //       "-r",
-  //       requirementsPath().path.toString,
-  //       "-c",
-  //       mainFilePath.toString,
-  //       "-o",
-  //       pexFile.toString
-  //     ) ++ args
-  //   )
-
-  //   println(result)
-  //   T.log.info(result.out.text())
-  //   if (result.exitCode != 0) {
-  //     T.log.error(s"Error: ${result.err.text()}")
-  //   }
-
-  //   PathRef(pexFile)
-  // }
-
 }
 
-// == Example
+// ==== Example
 // The object `pex` inherits from `PythonModule` and defines its dependencies:
 
-// - `pex`: An object demonstrating Pex usage by defining project dependencies within `requirements.txt`. Running `pex.compilePex` creates a `.pex` file, suitable for easy distribution.
+// - `pex`: An object demonstrating Pex usage by defining project dependencies within `requirements.txt`.
+//    Running `pex.runPex` creates a `.pex` file, suitable for easy distribution.
 
 
 object pex extends PythonModule{
@@ -214,21 +207,20 @@ object pex extends PythonModule{
   // After compilation this will create .pex file.
 }
 
+// Source Files For this Example: 
+/** See Also: pex/src/main.py */
+/** See Also: pex/src/requirements.txt */
+
 
 // To compile the project and create a `.pex` executable, use the following command:
 
 /** Usage
 
-> ./mill show pex.run
-".../out/pex/compilePex.dest/result.pex"
+> ./mill show pex.runPex
+".../out/pex/runPex.dest/result.pex"
 
 */
 
 // This generates the `result.pex` file, which packages all dependencies and can be executed as a standalone application.
 
-// To Run the result.pex file, First Provide the executable permission(+x) to result.pex and then run using `./result.pex` command.
-
-// Source Files For this Example: 
-/** See Also: pex/src/main.py */
-/** See Also: pex/src/requirements.txt */
-// User can Customize these Scripts According to their Need.
+// To Run the `result.pex` file, First Provide the executable permission(+x) to result.pex and then run using `./result.pex` command.

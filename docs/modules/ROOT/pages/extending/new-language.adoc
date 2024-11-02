@@ -54,8 +54,16 @@ include::partial$example/extending/newlang/5-hello-python.adoc[]
 
 include::partial$example/extending/newlang/6-python-modules.adoc[]
 
-include::partial$example/extending/newlang/7-python-deps.adoc[]
+include::partial$example/extending/newlang/7-python-module-deps.adoc[]
 
 include::partial$example/extending/newlang/8-python-mypy.adoc[]
 
 include::partial$example/extending/newlang/9-python-pex.adoc[]
+
+
+
+As mentioned earlier, the `PythonModule` examples on this page are meant for
+demo purposes: to show what it looks like to add support in Mill for a new
+programming language toolchain. It would take significantly more work to flesh out
+the featureset and performance of `PythonModule` to be usable in a real world
+build.
