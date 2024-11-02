@@ -2,19 +2,10 @@ package mill.scalanativelib
 
 import mill._
 import mill.api.Result
-import mill.define.Discover
-import mill.eval.EvaluatorPaths
-import mill.scalalib.api.ZincWorkerUtil
-import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
-import mill.scalalib.{DepSyntax, PublishModule, ScalaModule, TestModule}
 import mill.scalanativelib.api._
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.UnitTester
 import mill.testrunner.TestResult
-import mill.util.TestUtil
 import utest._
-
-import java.util.jar.JarFile
-import scala.jdk.CollectionConverters._
 
 object TestingTests extends TestSuite {
   import CompileRunTests._
