@@ -140,7 +140,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       moduleSplitStyle = moduleSplitStyle(),
       outputPatterns = scalaJSOutputPatterns(),
       minify = scalaJSMinify(),
-      importMap = scalaJSImportMap()
+      importMap = scalaJSImportMap(),
+      emitWasm = emitWasm()
     )
   }
 
@@ -191,7 +192,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       moduleSplitStyle: ModuleSplitStyle,
       outputPatterns: OutputPatterns,
       minify: Boolean,
-      importMap: Seq[ESModuleImportMapping]
+      importMap: Seq[ESModuleImportMapping],
+      emitWasm: Boolean
   )(implicit ctx: mill.api.Ctx): Result[Report] = {
     val outputPath = ctx.dest
 
@@ -212,7 +214,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       moduleSplitStyle = moduleSplitStyle,
       outputPatterns = outputPatterns,
       minify = minify,
-      importMap = importMap
+      importMap = importMap,
+      emitWasm
     )
   }
 
@@ -293,6 +296,9 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   /** Whether to emit a source map. */
   def scalaJSSourceMap: T[Boolean] = Task { true }
 
+  /** Whether to emit WASM map. As of Nov 2024 scala JS wasm support is experimental */
+  def emitWasm: T[Boolean] = Task { false }
+
   /** Name patterns for output. */
   def scalaJSOutputPatterns: T[OutputPatterns] = Task { OutputPatterns.Defaults }
 
@@ -370,7 +376,8 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       moduleSplitStyle = moduleSplitStyle(),
       outputPatterns = scalaJSOutputPatterns(),
       minify = scalaJSMinify(),
-      importMap = scalaJSImportMap()
+      importMap = scalaJSImportMap(),
+      emitWasm = emitWasm()
     )
   }
 

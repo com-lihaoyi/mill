@@ -37,7 +37,8 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       moduleSplitStyle: ModuleSplitStyle,
       outputPatterns: OutputPatterns,
       minify: Boolean,
-      dest: File
+      dest: File,
+      emitWasm: Boolean
   )
   private def minorIsGreaterThanOrEqual(number: Int) = ScalaJSVersions.current match {
     case s"1.$n.$_" if n.toIntOption.exists(_ < number) => false
@@ -153,7 +154,15 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
         if (minorIsGreaterThanOrEqual(16)) withOutputPatterns.withMinify(input.minify)
         else withOutputPatterns
 
-      val linker = StandardImpl.clearableLinker(withMinify)
+      val withWasm =
+        (minorIsGreaterThanOrEqual(17), input.emitWasm) match {
+          case (_, false) => withMinify
+          case (true, true) => withMinify.withExperimentalUseWebAssembly(true)
+          case (false, true) =>
+            throw new Exception("Emitting wasm is not supported with Scala.js < 1.17")
+        }
+
+      val linker = StandardImpl.clearableLinker(withWasm)
       val irFileCacheCache = irFileCache.newCache
       (linker, irFileCacheCache)
     }
@@ -180,7 +189,8 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       moduleSplitStyle: ModuleSplitStyle,
       outputPatterns: OutputPatterns,
       minify: Boolean,
-      importMap: Seq[ESModuleImportMapping]
+      importMap: Seq[ESModuleImportMapping],
+      emitWasm: Boolean
   ): Either[String, Report] = {
     // On Scala.js 1.2- we want to use the legacy mode either way since
     // the new mode is not supported and in tests we always use legacy = false
@@ -195,7 +205,8 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       moduleSplitStyle = moduleSplitStyle,
       outputPatterns = outputPatterns,
       minify = minify,
-      dest = dest
+      dest = dest,
+      emitWasm = emitWasm
     ))
     val irContainersAndPathsFuture = PathIRContainer.fromClasspath(runClasspath)
     val testInitializer =
