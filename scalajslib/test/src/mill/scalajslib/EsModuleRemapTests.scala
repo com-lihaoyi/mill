@@ -65,7 +65,7 @@ object EsModuleRemapTests extends TestSuite {
     }
 
     test("should throw for older scalaJS versions") {
-      val evaluator = UnitTester(OldJsModule, millSourcePath)
+      val evaluator = UnitTester(EsModuleRemap, millSourcePath)
       val Left(Result.Exception(ex, _)) = evaluator(OldJsModule.fastLinkJS)
       val error = ex.getMessage
       assert(error == "scalaJSImportMap is not supported with Scala.js < 1.16.")
