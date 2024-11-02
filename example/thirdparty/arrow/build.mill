@@ -112,15 +112,8 @@ object `package` extends RootModule {
   // TODO add more targets once available
   trait ArrowMultiplatformModule extends CoursierModule { multiplatformRoot =>
 
-    def jsTestModuleDeps: Seq[KotlinJsModule] = Nil
-    def jvmTestModuleDeps: Seq[KotlinModule] = Nil
-    def jsTestIvyDeps: T[Agg[Dep]] = Agg.empty[Dep]
-    def jvmTestIvyDeps: T[Agg[Dep]] = Agg.empty[Dep]
 
-    def jsTestKotlincOptions: T[Seq[String]] = Seq.empty[String]
-    def jvmTestKotlincOptions: T[Seq[String]] = Seq.empty[String]
 
-    def jsTestTimeout: T[Long] = 30_000L
 
     def explicitApi: T[Boolean] = true
 
@@ -172,13 +165,9 @@ object `package` extends RootModule {
 
     def jvm: ArrowPlatformJvmModule
     trait ArrowPlatformJvmModule extends ArrowPlatformModule with KoverModule { outer =>
-      def kotlincOptions = super.kotlincOptions() ++ Seq(
-        commonSourcesArg(sources(), "commonMain")
-      )
-      object test extends KotlinTests with KoverTests with TestModule.Junit5 {
-        def ivyDeps = super.ivyDeps() ++ jvmTestIvyDeps()
-        def moduleDeps = super.moduleDeps ++ jvmTestModuleDeps
-        def kotlincOptions = super.kotlincOptions() ++ jvmTestKotlincOptions()
+      def kotlincOptions = super.kotlincOptions() ++ Seq(commonSourcesArg(sources(), "commonMain"))
+      def test: ArrowPlatformJvmTests
+      trait ArrowPlatformJvmTests extends KotlinTests with KoverTests with TestModule.Junit5 {
         override def sources: T[Seq[PathRef]] = Task.Sources {
           val sourcesRootPath = outer.millSourcePath / "src"
           Seq("common", outer.platformCrossSuffix)
@@ -204,11 +193,9 @@ object `package` extends RootModule {
       )
       def kotlinJsRunTarget = Some(RunTarget.Node)
 
-      object test extends KotlinTestPackageTests {
-        def ivyDeps = super.ivyDeps() ++ jsTestIvyDeps()
-        def moduleDeps = super.moduleDeps ++ jsTestModuleDeps
-        def kotlincOptions = super.kotlincOptions() ++ jsTestKotlincOptions()
-        def testTimeout = jsTestTimeout
+      def test: ArrowPlatformJsTests
+      trait ArrowPlatformJsTests extends KotlinTestPackageTests {
+        def testTimeout = 30_000L
         override def sources: T[Seq[PathRef]] = Task.Sources {
           val sourcesRootPath = outer.millSourcePath / "src"
           Seq("common", outer.platformCrossSuffix)
@@ -230,12 +217,6 @@ object `package` extends RootModule {
 
   trait ArrowJvmModule extends KotlinModule with KoverModule { jvmRoot =>
 
-    def testModuleDeps: Seq[KotlinModule] = Nil
-    def testRunModuleDeps: Seq[KotlinModule] = Nil
-    def testIvyDeps: T[Agg[Dep]] = Agg.empty[Dep]
-    def testCompileIvyDeps: T[Agg[Dep]] = Agg.empty[Dep]
-    def testKotlincOptions: T[Seq[String]] = Seq.empty[String]
-
     def kotlinVersion = libraries.versions.kotlin
     def explicitApi = true
     def languageVersion = majorVersion(kotlinVersion())
@@ -247,19 +228,14 @@ object `package` extends RootModule {
     override def resources: T[Seq[PathRef]] = Task.Sources {
       millSourcePath / "src" / "main" / "resources"
     }
-
-    object test extends KotlinTests with KoverTests with TestModule.Junit5 {
+    def test: ArrowJvmTests
+    trait ArrowJvmTests extends KotlinTests with KoverTests with TestModule.Junit5 {
       override def sources: T[Seq[PathRef]] = Task.Sources {
         millSourcePath / os.up / "src" / "test" / "kotlin"
       }
       override def resources: T[Seq[PathRef]] = Task.Sources {
         millSourcePath / os.up / "src" / "test" / "resources"
       }
-      def moduleDeps = super.moduleDeps ++ testModuleDeps
-      def runModuleDeps = super.runModuleDeps ++ testRunModuleDeps
-      def ivyDeps = super.ivyDeps() ++ testIvyDeps()
-      def compileIvyDeps = super.compileIvyDeps() ++ testCompileIvyDeps()
-      def kotlincOptions = super.kotlincOptions() ++ testKotlincOptions()
       override def compile: T[CompilationResult] = if (!modulesWithTestingEnabled.contains(jvmRoot))
         Task { CompilationResult(T.dest, PathRef(T.dest)) }
       else super.compile
@@ -273,68 +249,88 @@ object `package` extends RootModule {
   object `arrow-libs` extends Module {
     object core extends Module {
       object `arrow-annotations` extends ArrowMultiplatformModule{
-        object jvm extends ArrowPlatformJvmModule
-        object js extends ArrowPlatformJsModule
+        object jvm extends ArrowPlatformJvmModule{
+          object test extends ArrowPlatformJvmTests
+        }
+        object js extends ArrowPlatformJsModule{
+          object test extends ArrowPlatformJsTests
+        }
       }
       object `arrow-atomic` extends ArrowMultiplatformModule {
-        object jvm extends ArrowPlatformJvmModule
-        object js extends ArrowPlatformJsModule
-        def jvmTestModuleDeps = Seq(fx.`arrow-fx-coroutines`.jvm)
-        def jvmTestIvyDeps = Agg(
-          libraries.kotlinTestJunit5,
-          libraries.coroutinesTestJvm,
-          libraries.kotestAssertionsCoreJvm,
-          libraries.kotestPropertyJvm
-        )
-        def jsTestModuleDeps = Seq(fx.`arrow-fx-coroutines`.js)
-        def jsTestIvyDeps = Agg(
-          libraries.coroutinesTestJs,
-          libraries.kotestAssertionsCoreJs,
-          libraries.kotestPropertyJs
-        )
+        object jvm extends ArrowPlatformJvmModule{
+          object test extends ArrowPlatformJvmTests{
+            def moduleDeps = super.moduleDeps ++ Seq(fx.`arrow-fx-coroutines`.jvm)
+            def ivyDeps = super.ivyDeps() ++ Agg(
+              libraries.kotlinTestJunit5,
+              libraries.coroutinesTestJvm,
+              libraries.kotestAssertionsCoreJvm,
+              libraries.kotestPropertyJvm
+            )
+          }
+        }
+        object js extends ArrowPlatformJsModule{
+          object test extends ArrowPlatformJsTests{
+            def moduleDeps = super.moduleDeps ++ Seq(fx.`arrow-fx-coroutines`.js)
+            def ivyDeps = super.ivyDeps() ++ Agg(
+              libraries.coroutinesTestJs,
+              libraries.kotestAssertionsCoreJs,
+              libraries.kotestPropertyJs
+            )
+          }
+        }
+
+
+
       }
       object `arrow-autoclose` extends ArrowMultiplatformModule {
         object jvm extends ArrowPlatformJvmModule{
           def moduleDeps = super.moduleDeps ++ Seq(`arrow-atomic`.jvm)
+          object test extends ArrowPlatformJvmTests{
+            def moduleDeps = super.moduleDeps ++ Seq(fx.`arrow-fx-coroutines`.jvm)
+            def ivyDeps = super.ivyDeps() ++ Agg(
+              libraries.kotlinTestJunit5,
+              libraries.coroutinesTestJvm,
+              libraries.kotestAssertionsCoreJvm
+            )
+            def kotlincOptions = super.kotlincOptions() ++ Seq("-Xcontext-receivers")
+          }
         }
         object js extends ArrowPlatformJsModule{
           def moduleDeps = super.moduleDeps ++ Seq(`arrow-atomic`.js)
+          object test extends ArrowPlatformJsTests{
+            def moduleDeps = super.moduleDeps ++ Seq(fx.`arrow-fx-coroutines`.js)
+            def ivyDeps = super.ivyDeps() ++ Agg(
+              libraries.coroutinesTestJs,
+              libraries.kotestAssertionsCoreJs
+            )
+          }
         }
-
-        def jvmTestModuleDeps = Seq(fx.`arrow-fx-coroutines`.jvm)
-        def jvmTestIvyDeps = Agg(
-          libraries.kotlinTestJunit5,
-          libraries.coroutinesTestJvm,
-          libraries.kotestAssertionsCoreJvm
-        )
-        def jvmTestKotlincOptions = Seq("-Xcontext-receivers")
-        def jsTestModuleDeps = Seq(fx.`arrow-fx-coroutines`.js)
-        def jsTestIvyDeps = Agg(
-          libraries.coroutinesTestJs,
-          libraries.kotestAssertionsCoreJs
-        )
       }
+
       object `arrow-cache4k` extends ArrowMultiplatformModule {
         object jvm extends ArrowPlatformJvmModule{
           def moduleDeps = super.moduleDeps ++ Seq(`arrow-core`.jvm)
           def ivyDeps = super.ivyDeps() ++ Agg(libraries.cache4kJvm)
+          object test extends ArrowPlatformJvmTests
         }
         object js extends ArrowPlatformJsModule{
           def moduleDeps = super.moduleDeps ++ Seq(`arrow-core`.js)
           def ivyDeps = super.ivyDeps() ++ Agg(libraries.cache4kJs)
+          object test extends ArrowPlatformJsTests
         }
-
-
       }
+
       object `arrow-core-high-arity` extends ArrowMultiplatformModule {
         object jvm extends ArrowPlatformJvmModule{
           def moduleDeps = super.moduleDeps ++ Seq(`arrow-core`.jvm)
+          object test extends ArrowPlatformJvmTests
         }
         object js extends ArrowPlatformJsModule{
           def moduleDeps = super.moduleDeps ++ Seq(`arrow-core`.js)
+          object test extends ArrowPlatformJsTests
         }
-
       }
+
       object `arrow-core-retrofit` extends ArrowJvmModule {
         def moduleDeps = Seq(`arrow-core`.jvm)
         def compileIvyDeps = Agg(libraries.squareupRetrofitLib)
@@ -342,124 +338,136 @@ object `package` extends RootModule {
           defaultResolver().resolveDeps(Agg(libraries.kotlinxSerializationPlugin))
         }
 
-        def testKotlincOptions = Seq(s"-Xplugin=${processors().head.path}")
-        def testModuleDeps = Seq(`arrow-core`.jvm)
-        def testIvyDeps = Agg(
-          libraries.kotlinTestJunit5,
-          libraries.coroutinesTestJvm,
-          libraries.kotestAssertionsCoreJvm,
-          libraries.kotestPropertyJvm,
-          libraries.squareupOkhttpMockWebServer,
-          libraries.squareupRetrofitConverterGson,
-          libraries.squareupRetrofitConverterMoshi,
-          libraries.kotlinxSerializationJson,
-          libraries.squareupRetrofitConverterKotlinxSerialization,
-          libraries.squareupMoshiKotlin
-        )
+        object test extends ArrowJvmTests{
+          def kotlincOptions = super.kotlincOptions() ++ Seq(s"-Xplugin=${processors().head.path}")
+          def moduleDeps = super.moduleDeps ++ Seq(`arrow-core`.jvm)
+          def ivyDeps = super.ivyDeps() ++ Agg(
+            libraries.kotlinTestJunit5,
+            libraries.coroutinesTestJvm,
+            libraries.kotestAssertionsCoreJvm,
+            libraries.kotestPropertyJvm,
+            libraries.squareupOkhttpMockWebServer,
+            libraries.squareupRetrofitConverterGson,
+            libraries.squareupRetrofitConverterMoshi,
+            libraries.kotlinxSerializationJson,
+            libraries.squareupRetrofitConverterKotlinxSerialization,
+            libraries.squareupMoshiKotlin
+          )
+        }
       }
       object `arrow-core-serialization` extends ArrowMultiplatformModule {
         object jvm extends ArrowPlatformJvmModule{
           def moduleDeps = super.moduleDeps ++ Seq(`arrow-core`.jvm)
           def ivyDeps = super.ivyDeps() ++ Agg(libraries.kotlinxSerializationCoreJvm)
+          object test extends ArrowPlatformJvmTests{
+            def ivyDeps = super.ivyDeps() ++ Agg(
+              libraries.kotlinTestJunit5,
+              libraries.kotlinxSerializationJson,
+              libraries.coroutinesTestJvm,
+              libraries.kotestAssertionsCoreJvm,
+              libraries.kotestPropertyJvm
+            )
+            def kotlincOptions = super.kotlincOptions() ++ Seq(s"-Xplugin=${processors().head.path}")
+          }
         }
         object js extends ArrowPlatformJsModule{
           def moduleDeps = super.moduleDeps ++ Seq(`arrow-core`.js)
           def ivyDeps = super.ivyDeps() ++ Agg(libraries.kotlinxSerializationCoreJs)
+          object test extends ArrowPlatformJsTests{
+            def ivyDeps = super.ivyDeps() ++ Agg(
+              libraries.kotlinxSerializationJsonJs,
+              libraries.coroutinesTestJs,
+              libraries.kotestAssertionsCoreJs,
+              libraries.kotestPropertyJs
+            )
+            def kotlincOptions = super.kotlincOptions() ++ Seq(s"-Xplugin=${processors().head.path}")
+            def testTimeout = 60_000L
+          }
         }
-
-
-        def jvmTestIvyDeps = Agg(
-          libraries.kotlinTestJunit5,
-          libraries.kotlinxSerializationJson,
-          libraries.coroutinesTestJvm,
-          libraries.kotestAssertionsCoreJvm,
-          libraries.kotestPropertyJvm
-        )
-
-
-        def jsTestIvyDeps = Agg(
-          libraries.kotlinxSerializationJsonJs,
-          libraries.coroutinesTestJs,
-          libraries.kotestAssertionsCoreJs,
-          libraries.kotestPropertyJs
-        )
 
         def processors = Task {
           defaultResolver().resolveDeps(Agg(libraries.kotlinxSerializationPlugin))
         }
-        def jsTestKotlincOptions = Seq(s"-Xplugin=${processors().head.path}")
-        def jvmTestKotlincOptions = Seq(s"-Xplugin=${processors().head.path}")
-        def jsTestTimeout = 60_000L
       }
+
       object `arrow-core` extends ArrowMultiplatformModule {
         object jvm extends ArrowPlatformJvmModule{
           def moduleDeps = super.moduleDeps ++ Seq(`arrow-atomic`.jvm, `arrow-annotations`.jvm)
           def ivyDeps = super.ivyDeps() ++ Agg(libraries.kotlinxSerializationCoreJvm)
           def kotlincOptions = super.kotlincOptions() ++ Seq("-Xcontext-receivers")
+          object test extends ArrowPlatformJvmTests{
+            def moduleDeps = super.moduleDeps ++ Seq(fx.`arrow-fx-coroutines`.jvm)
+
+            def ivyDeps = super.ivyDeps() ++ Agg(
+              libraries.kotlinTestJunit5,
+              libraries.coroutinesTestJvm,
+              libraries.kotestAssertionsCoreJvm,
+              libraries.kotestPropertyJvm
+            )
+          }
         }
         object js extends ArrowPlatformJsModule{
           def moduleDeps = super.moduleDeps ++ Seq(`arrow-atomic`.js, `arrow-annotations`.js)
           def ivyDeps = super.ivyDeps() ++ Agg(libraries.kotlinxSerializationCoreJs)
+          object test extends ArrowPlatformJsTests {
+            def moduleDeps = super.moduleDeps ++ Seq(fx.`arrow-fx-coroutines`.js)
+            def ivyDeps = super.ivyDeps() ++ Agg(
+              libraries.coroutinesTestJs,
+              libraries.kotestAssertionsCoreJs,
+              libraries.kotestPropertyJs
+            )
+            def testTimeout = 300_000L
+          }
         }
-
-
-        def jvmTestModuleDeps = Seq(fx.`arrow-fx-coroutines`.jvm)
-        def jvmTestIvyDeps = Agg(
-          libraries.kotlinTestJunit5,
-          libraries.coroutinesTestJvm,
-          libraries.kotestAssertionsCoreJvm,
-          libraries.kotestPropertyJvm
-        )
-
-        def jsTestModuleDeps = Seq(fx.`arrow-fx-coroutines`.js)
-        def jsTestIvyDeps = Agg(
-          libraries.coroutinesTestJs,
-          libraries.kotestAssertionsCoreJs,
-          libraries.kotestPropertyJs
-        )
-        def jsTestTimeout = 300_000L
       }
+
       object `arrow-eval` extends ArrowMultiplatformModule {
         object jvm extends ArrowPlatformJvmModule{
           def moduleDeps = super.moduleDeps ++ Seq(`arrow-core`.jvm)
+          object test extends ArrowPlatformJvmTests{
+            def ivyDeps = super.ivyDeps() ++ Agg(
+              libraries.kotlinTestJunit5,
+              libraries.kotestAssertionsCoreJvm,
+              libraries.kotestPropertyJvm
+            )
+          }
         }
         object js extends ArrowPlatformJsModule{
           def moduleDeps = super.moduleDeps ++ Seq(`arrow-core`.js)
+          object test extends ArrowPlatformJsTests{
+            def ivyDeps = super.ivyDeps() ++ Agg(
+              libraries.kotestAssertionsCoreJs,
+              libraries.kotestPropertyJs
+            )
+          }
         }
-
-
-        def jvmTestIvyDeps = Agg(
-          libraries.kotlinTestJunit5,
-          libraries.kotestAssertionsCoreJvm,
-          libraries.kotestPropertyJvm
-        )
-        def jsTestIvyDeps = Agg(
-          libraries.kotestAssertionsCoreJs,
-          libraries.kotestPropertyJs
-        )
       }
+
       object `arrow-functions` extends ArrowMultiplatformModule {
         object jvm extends ArrowPlatformJvmModule{
           def moduleDeps = super.moduleDeps ++ Seq(`arrow-atomic`.jvm, `arrow-annotations`.jvm)
+          object test extends ArrowPlatformJvmTests{
+            def moduleDeps = super.moduleDeps ++ Seq(fx.`arrow-fx-coroutines`.jvm)
+
+            def ivyDeps = super.ivyDeps() ++ Agg(
+              libraries.kotlinTestJunit5,
+              libraries.coroutinesTestJvm,
+              libraries.kotestAssertionsCoreJvm,
+              libraries.kotestPropertyJvm
+            )
+          }
         }
         object js extends ArrowPlatformJsModule{
           def moduleDeps = super.moduleDeps ++ Seq(`arrow-atomic`.js, `arrow-annotations`.js)
+          object test extends ArrowPlatformJsTests{
+            def moduleDeps = super.moduleDeps ++ Seq(fx.`arrow-fx-coroutines`.js)
+            def ivyDeps = super.ivyDeps() ++ Agg(
+              libraries.coroutinesTestJs,
+              libraries.kotestAssertionsCoreJs,
+              libraries.kotestPropertyJs
+            )
+          }
         }
-
-
-        def jvmTestModuleDeps = Seq(fx.`arrow-fx-coroutines`.jvm)
-        def jvmTestIvyDeps = Agg(
-          libraries.kotlinTestJunit5,
-          libraries.coroutinesTestJvm,
-          libraries.kotestAssertionsCoreJvm,
-          libraries.kotestPropertyJvm
-        )
-        def jsTestModuleDeps = Seq(fx.`arrow-fx-coroutines`.js)
-        def jsTestIvyDeps = Agg(
-          libraries.coroutinesTestJs,
-          libraries.kotestAssertionsCoreJs,
-          libraries.kotestPropertyJs
-        )
       }
     }
 
@@ -468,78 +476,99 @@ object `package` extends RootModule {
         object jvm extends ArrowPlatformJvmModule{
           def moduleDeps = super.moduleDeps ++ Seq(core.`arrow-atomic`.jvm, `arrow-fx-coroutines`.jvm)
           def ivyDeps = super.ivyDeps() ++ Agg(libraries.coroutinesCoreJvm)
+          object test extends ArrowPlatformJvmTests{
+            def ivyDeps = super.ivyDeps() ++ Agg(
+              libraries.kotlinTestJunit5,
+              libraries.coroutinesTestJvm,
+              libraries.kotestAssertionsCoreJvm,
+              libraries.kotestPropertyJvm
+            )
+          }
         }
         object js extends ArrowPlatformJsModule{
           def moduleDeps = super.moduleDeps ++ Seq(core.`arrow-atomic`.js, `arrow-fx-coroutines`.js)
           def ivyDeps = super.ivyDeps() ++ Agg(libraries.coroutinesCoreJs)
+          object test extends ArrowPlatformJsTests{
+            def ivyDeps = super.ivyDeps() ++ Agg(
+              libraries.coroutinesTestJs,
+              libraries.kotestAssertionsCoreJs,
+              libraries.kotestPropertyJs
+            )
+            def testTimeout = 60_000L
+          }
         }
 
-        def jvmTestIvyDeps = Agg(
-          libraries.kotlinTestJunit5,
-          libraries.coroutinesTestJvm,
-          libraries.kotestAssertionsCoreJvm,
-          libraries.kotestPropertyJvm
-        )
-        def jsTestIvyDeps = Agg(
-          libraries.coroutinesTestJs,
-          libraries.kotestAssertionsCoreJs,
-          libraries.kotestPropertyJs
-        )
 
-        def jsTestTimeout = 60_000L
       }
       object `arrow-fx-coroutines` extends ArrowMultiplatformModule {
         object jvm extends ArrowPlatformJvmModule{
           def moduleDeps = super.moduleDeps ++ Seq(core.`arrow-core`.jvm, core.`arrow-autoclose`.jvm)
           def ivyDeps = super.ivyDeps() ++ Agg(libraries.coroutinesCoreJvm)
+          object test extends ArrowPlatformJvmTests{
+            def moduleDeps = super.moduleDeps ++ Seq(core.`arrow-core`.jvm, core.`arrow-atomic`.jvm)
+
+
+            def ivyDeps = super.ivyDeps() ++ Agg(
+              libraries.kotlinTestJunit5,
+              libraries.coroutinesTestJvm,
+              libraries.kotestAssertionsCoreJvm,
+              libraries.kotestPropertyJvm
+            )
+          }
         }
         object js extends ArrowPlatformJsModule{
           def moduleDeps = super.moduleDeps ++ Seq(core.`arrow-core`.js, core.`arrow-autoclose`.js)
           def ivyDeps = super.ivyDeps() ++ Agg(libraries.coroutinesCoreJs)
+          object test extends ArrowPlatformJsTests{
+            def moduleDeps = super.moduleDeps ++ Seq(core.`arrow-core`.js, core.`arrow-atomic`.js)
+            def ivyDeps = super.ivyDeps() ++ Agg(
+              libraries.coroutinesTestJs,
+              libraries.kotestAssertionsCoreJs,
+              libraries.kotestPropertyJs
+            )
+            def testTimeout = 60_000L
+          }
         }
 
-        def jvmTestModuleDeps = Seq(core.`arrow-core`.jvm, core.`arrow-atomic`.jvm)
-        def jsTestModuleDeps = Seq(core.`arrow-core`.js, core.`arrow-atomic`.js)
-        def jvmTestIvyDeps = Agg(
-          libraries.kotlinTestJunit5,
-          libraries.coroutinesTestJvm,
-          libraries.kotestAssertionsCoreJvm,
-          libraries.kotestPropertyJvm
-        )
-        def jsTestIvyDeps = Agg(
-          libraries.coroutinesTestJs,
-          libraries.kotestAssertionsCoreJs,
-          libraries.kotestPropertyJs
-        )
-        def jsTestTimeout = 60_000L
+
+
+
       }
       object `arrow-fx-stm` extends ArrowMultiplatformModule {
         object jvm extends ArrowPlatformJvmModule{
           def moduleDeps = super.moduleDeps ++ Seq(core.`arrow-core`.jvm)
           def ivyDeps = super.ivyDeps() ++ Agg(libraries.coroutinesCoreJvm)
           def kotlincOptions = super.kotlincOptions() ++ additionalKotlincOptions
+          object test extends ArrowPlatformJvmTests{
+            def moduleDeps = super.moduleDeps ++ Seq(`arrow-fx-coroutines`.jvm)
+            def ivyDeps = super.ivyDeps() ++ Agg(
+              libraries.kotlinTestJunit5,
+              libraries.coroutinesTestJvm,
+              libraries.kotestAssertionsCoreJvm,
+              libraries.kotestPropertyJvm
+            )
+          }
         }
         object js extends ArrowPlatformJsModule{
           def moduleDeps = super.moduleDeps ++ Seq(core.`arrow-core`.js)
           def ivyDeps = super.ivyDeps() ++ Agg(libraries.coroutinesCoreJs)
           def kotlincOptions = super.kotlincOptions() ++ additionalKotlincOptions
+          object test extends ArrowPlatformJsTests{
+            def moduleDeps = super.moduleDeps ++ Seq(`arrow-fx-coroutines`.js)
+
+
+
+            def ivyDeps = super.ivyDeps() ++ Agg(
+              libraries.coroutinesTestJs,
+              libraries.kotestAssertionsCoreJs,
+              libraries.kotestPropertyJs
+            )
+            def testTimeout = 60_000L
+          }
         }
         val additionalKotlincOptions = Seq("-Xconsistent-data-class-copy-visibility")
 
-        def jvmTestModuleDeps = Seq(`arrow-fx-coroutines`.jvm)
-        def jsTestModuleDeps = Seq(`arrow-fx-coroutines`.js)
-        def jvmTestIvyDeps = Agg(
-          libraries.kotlinTestJunit5,
-          libraries.coroutinesTestJvm,
-          libraries.kotestAssertionsCoreJvm,
-          libraries.kotestPropertyJvm
-        )
-        def jsTestIvyDeps = Agg(
-          libraries.coroutinesTestJs,
-          libraries.kotestAssertionsCoreJs,
-          libraries.kotestPropertyJs
-        )
-        def jsTestTimeout = 60_000L
+
       }
     }
 
@@ -549,53 +578,62 @@ object `package` extends RootModule {
       object `arrow-optics-ksp-plugin` extends ArrowJvmModule {
         def explicitApi = false
         def ivyDeps = Agg(libraries.ksp)
-        def testIvyDeps = Agg(
-          libraries.kotlinTestJunit5,
-          libraries.coroutinesTestJvm,
-          libraries.kotestAssertionsCoreJvm,
-          libraries.kotestPropertyJvm,
-          libraries.classgraph,
-          libraries.kotlinCompileTesting,
-          libraries.kotlinCompileTestingKsp
-        )
 
-        def testRunModuleDeps = Seq(
-          core.`arrow-annotations`.jvm,
-          core.`arrow-core`.jvm,
-          `arrow-optics`.jvm
-        )
+        object test extends ArrowJvmTests{
+          def ivyDeps = super.ivyDeps() ++ Agg(
+            libraries.kotlinTestJunit5,
+            libraries.coroutinesTestJvm,
+            libraries.kotestAssertionsCoreJvm,
+            libraries.kotestPropertyJvm,
+            libraries.classgraph,
+            libraries.kotlinCompileTesting,
+            libraries.kotlinCompileTestingKsp
+          )
+
+          def runModuleDeps = super.runModuleDeps ++ Seq(
+            core.`arrow-annotations`.jvm,
+            core.`arrow-core`.jvm,
+            `arrow-optics`.jvm
+          )
+        }
       }
       object `arrow-optics-reflect` extends ArrowJvmModule {
         def moduleDeps = Seq(core.`arrow-core`.jvm, `arrow-optics`.jvm)
         def ivyDeps = Agg(libraries.kotlinReflect)
-        def testIvyDeps = Agg(
-          libraries.kotlinTestJunit5,
-          libraries.coroutinesTestJvm,
-          libraries.kotestAssertionsCoreJvm,
-          libraries.kotestPropertyJvm
-        )
+
+        object test extends ArrowJvmTests{
+          def ivyDeps = super.ivyDeps() ++ Agg(
+            libraries.kotlinTestJunit5,
+            libraries.coroutinesTestJvm,
+            libraries.kotestAssertionsCoreJvm,
+            libraries.kotestPropertyJvm
+          )
+        }
       }
       object `arrow-optics` extends ArrowMultiplatformModule {
         object jvm extends ArrowPlatformJvmModule{
           def moduleDeps = super.moduleDeps ++ Seq(core.`arrow-core`.jvm)
+          object test extends ArrowPlatformJvmTests{
+            def kotlincOptions = super.kotlincOptions() ++ Seq(commonSourcesArg(jvm.test.sources(), "commonTest"))
+            def ivyDeps = super.ivyDeps() ++ Agg(
+              libraries.kotlinTestJunit5,
+              libraries.coroutinesTestJvm,
+              libraries.kotestAssertionsCoreJvm,
+              libraries.kotestPropertyJvm
+            )
+          }
         }
         object js extends ArrowPlatformJsModule{
           def moduleDeps = super.moduleDeps ++ Seq(core.`arrow-core`.js)
+          object test extends ArrowPlatformJsTests{
+            def kotlincOptions = super.kotlincOptions() ++ Seq(commonSourcesArg(js.test.sources(), "commonTest"))
+            def ivyDeps = super.ivyDeps() ++ Agg(
+              libraries.coroutinesTestJs,
+              libraries.kotestAssertionsCoreJs,
+              libraries.kotestPropertyJs
+            )
+          }
         }
-        def jvmTestKotlincOptions = Seq(commonSourcesArg(jvm.test.sources(), "commonTest"))
-        def jsTestKotlincOptions = Seq(commonSourcesArg(js.test.sources(), "commonTest"))
-
-        def jvmTestIvyDeps = Agg(
-          libraries.kotlinTestJunit5,
-          libraries.coroutinesTestJvm,
-          libraries.kotestAssertionsCoreJvm,
-          libraries.kotestPropertyJvm
-        )
-        def jsTestIvyDeps = Agg(
-          libraries.coroutinesTestJs,
-          libraries.kotestAssertionsCoreJs,
-          libraries.kotestPropertyJs
-        )
       }
     }
 
@@ -604,21 +642,26 @@ object `package` extends RootModule {
         object jvm extends ArrowPlatformJvmModule{
           def moduleDeps = super.moduleDeps ++ Seq(core.`arrow-core`.jvm)
           def ivyDeps = super.ivyDeps() ++ Agg(libraries.coroutinesCoreJvm)
+          object test extends ArrowPlatformJvmTests{
+            def moduleDeps = super.moduleDeps ++ Seq(fx.`arrow-fx-coroutines`.jvm)
+
+            def ivyDeps = super.ivyDeps() ++ Agg(
+              libraries.kotlinTestJunit5,
+              libraries.coroutinesTestJvm
+            )
+          }
         }
         object js extends ArrowPlatformJsModule{
           def moduleDeps = super.moduleDeps ++ Seq(core.`arrow-core`.js)
           def ivyDeps = super.ivyDeps() ++ Agg(libraries.coroutinesCoreJs)
-        }
+          object test extends ArrowPlatformJsTests{
+            def moduleDeps = super.moduleDeps ++Seq(fx.`arrow-fx-coroutines`.js)
 
-        def jvmTestModuleDeps = Seq(fx.`arrow-fx-coroutines`.jvm)
-        def jvmTestIvyDeps = Agg(
-          libraries.kotlinTestJunit5,
-          libraries.coroutinesTestJvm
-        )
-        def jsTestModuleDeps = Seq(fx.`arrow-fx-coroutines`.js)
-        def jsTestIvyDeps = Agg(
-          libraries.coroutinesTestJs
-        )
+            def ivyDeps = super.ivyDeps() ++ Agg(
+              libraries.coroutinesTestJs
+            )
+          }
+        }
       }
     }
   }
