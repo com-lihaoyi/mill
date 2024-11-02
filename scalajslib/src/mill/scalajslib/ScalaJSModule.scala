@@ -296,7 +296,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   /** Whether to emit a source map. */
   def scalaJSSourceMap: T[Boolean] = Task { true }
 
-  /** Whether to emit WASM map. As of Nov 2024 scala JS wasm support is experimental */
+  /** Whether to emit WASM. As of Nov 2024 scala JS wasm support is experimental */
   def emitWasm: T[Boolean] = Task { false }
 
   /** Name patterns for output. */
