@@ -185,8 +185,10 @@ trait PythonModule extends Module {
         "-o",
         pexFile.toString
       ) ++ args.value,
-      env = Map("PYTHONPATH" -> Task.dest.toString)
+      env = Map("PYTHONPATH" -> Task.dest.toString),
+      stdout = os.Inherit
     )
+    PathRef(pexFile)
   }
 
 }
