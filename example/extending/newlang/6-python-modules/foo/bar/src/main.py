@@ -6,10 +6,10 @@ def main():
 
     # Check if any arguments were provided
     if not args:
-        print("Hello, World!")
+        print("Hello, World Foo Bar!")
     else:
         # Join the arguments with spaces and print the greeting
-        greeting = "Hello, " + " ".join(args) + "!"
+        greeting = "Hello, " + " ".join(args) + " Foo Bar!"
         print(greeting)
 
 if __name__ == "__main__":

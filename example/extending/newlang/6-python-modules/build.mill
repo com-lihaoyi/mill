@@ -1,58 +1,22 @@
 // == Re-usable PythonModule
-// This Example demonstrates the use of a `PythonModule` trait to manage Python environments and dependencies within different objects in a Mill build. 
-// This approach enables flexible, modular management of Python scripts and virtual environments across multiple objects, providing each with its own configuration and runtime settings.
+// This Example demonstrates the use of a `PythonModule` trait to manage Python Scripts within
+// different objects in a Mill build.
 
-// === Using Same PythonModule for Mutiple Objects
+// ==== Using Same PythonModule for Mutiple Objects
 
-// This build script provides a reusable `PythonModule` trait designed to manage Python environments and dependencies in a Mill build.
-// This trait can be extended by different objects to create specific configurations and tasks, allowing you to customize the execution context for each Python module in a Mill project.
+// The PythonModule trait simplifies Python project management within the Mill build tool by providing essential
+// functionalities such as installing pip, managing source files, compiling code, and executing Python scripts.
+// It ensures that users have a streamlined workflow by automating the setup of necessary tools 
+// and organizing project files effectively. 
 
 package build
 import mill._
 
-/**
- * A trait for managing Python environments and dependencies in a Mill build.
- */
 trait PythonModule extends Module {
 
-  /** Specifies dependencies to install in the virtual environment. */
-  def dependencies: T[Seq[String]] = Task { Seq.empty[String] }
-
-  /** Specifies command-line options to pass to the main Python file. */
-  def options: T[Seq[String]] = Task { Seq.empty[String] }
-
-  /** Specifies the name of the virtual environment directory. */
-  def venvName: T[String] = Task { "venv" }
-
-  /** Specifies the name of the main Python file. */
-  def mainFileName: T[String] = Task { "main.py" }
-
-  /** Defines the path to the sources directory. */
-  def sources: T[PathRef] = Task.Source(millSourcePath / "src")
-
-  /** Collects all Python source files from the sources directory. */
-  def allSources: T[Seq[PathRef]] = Task {
-    os.walk(sources().path).filter(_.ext == "py").map(PathRef(_))
-  }
-
-  /** Path to the requirements file, configurable by the user. */
-  def requirementsPath: T[PathRef] = Task {
-    PathRef(millSourcePath / "src" / "requirements.txt")
-  }
-
-  /** Reads dependencies from the specified requirements file. */
-  def requirementsDependencies: T[Seq[String]] = Task {
-    val reqFile = requirementsPath().path
-    if (os.exists(reqFile)) {
-      os.read.lines(reqFile).map(_.trim).filter(_.nonEmpty)
-    } else {
-      Seq.empty[String]
-    }
-  }
-
-  /** Installs pip using a downloaded script. */
-  def installPip: T[Unit] = Task {
-    val pipFile = T.dest / "get-pip.py"
+  /** Installs pip if it's not already installed. */
+  def installPip: T[PathRef] = Task {
+    val pipFile = Task.dest / "get-pip.py"
     val pipPath = os.home / ".local" / "bin" / "pip3"
 
     if (!os.exists(pipPath)) {
@@ -75,123 +39,107 @@ trait PythonModule extends Module {
     } else {
       println("pip is already installed, skipping installation.")
     }
+    PathRef(Task.dest)
   }
 
-  /** Creates a virtual environment using the installed Python version. */
-  def createVenv: T[PathRef] = Task {
+  /** Returns the path to the source directory containing Python files. */
+  def sources: T[PathRef] = Task.Source(millSourcePath / "src")
+
+  /** Collects and returns all Python source files as PathRefs. */
+  def allSources: T[Seq[PathRef]] = Task {
+    os.walk(sources().path).filter(_.ext == "py").map(PathRef(_))
+  }
+
+  /** Returns the name of the main Python file. */
+  def mainFileName: T[String] = Task { "main.py" }
+
+  /** Compiles the project by installing pip and returning the main file path. */
+  def compile: T[PathRef] = Task {
     installPip()
-    val venvDir = T.dest / venvName()
+    val mainFileDir = sources().path
 
-    os.call(Seq(
-      "python3",
-      "-m",
-      "pip",
-      "install",
-      "virtualenv",
-      "--break-system-packages",
-      "--no-warn-script-location"
-    ))
-    os.call(Seq("python3", "-m", "virtualenv", venvDir.toString))
-
-    PathRef(venvDir)
+    PathRef(mainFileDir)
   }
 
-  /** Activates the created virtual environment. */
-  def activateVenv: T[PathRef] = Task {
-    val venvBin = createVenv().path / "bin"
-    os.call(Seq("bash", "-c", s"source ${venvBin / "activate"}"))
-    PathRef(venvBin)
+  /** Runs the compiled main Python file with optional command-line arguments. */
+  def run(args: mill.define.Args) = Task.Command {
+    os.call(
+      Seq(
+        "python3",
+        s"${compile().path / mainFileName()}"
+      ) ++ args.value,
+      stdout = os.Inherit
+    )
   }
-
-  /** Installs specified dependencies in the virtual environment. */
-  def installDependencies: T[PathRef] = Task {
-    val pythonVenv = activateVenv().path / "python3"
-
-    val pythonDependencies: Seq[String] = dependencies() ++ requirementsDependencies()
-
-    if (pythonDependencies.nonEmpty) {
-      os.call(Seq(
-        pythonVenv.toString,
-        "-m",
-        "pip",
-        "install"
-      ) ++ pythonDependencies ++ Seq(
-        "--break-system-packages",
-        "--no-warn-script-location"
-      ))
-    }
-
-    PathRef(pythonVenv)
-  }
-
-  /** Retrieves the path to the main Python file, ensuring it exists. */
-  def mainFile: T[PathRef] = Task {
-
-    val mainFilePath = allSources().find(_.path.last == mainFileName()) match {
-      case Some(mainFile) => mainFile.path
-      case None =>
-        throw new java.io.FileNotFoundException(
-          s"Main file '${mainFileName()}' not found in sources."
-        )
-    }
-    PathRef(mainFilePath)
-  }
-
-  /** Executes the main Python file using the virtual environment. */
-  def compile: T[Unit] = Task {
-    val pythonVenv = installDependencies().path
-    val mainFilePath = mainFile().path
-    val args = options()
-
-    val result = os.call(Seq(pythonVenv.toString, mainFilePath.toString) ++ args)
-
-    T.log.info(result.out.text())
-    if (result.exitCode != 0) {
-      T.log.error(s"Error: ${result.err.text()}")
-    }
-  }
-
 }
 
-// === Example
+// ==== Example
 
 // The script defines three key objects that extend the `PythonModule` trait, each object encapsulating a distinct runtime configuration.
-
-// The `foo` object extends `PythonModule` and provides basic Python environment and script execution capabilities.
-// The `options` method in `foo` has been overridden to pass custom command-line arguments to the main Python script.
-// Inside `foo`, a nested object `bar` further extends `PythonModule`. It overrides `options` to add additional arguments,
-// illustrating how nested configurations can be achieved by extending the trait within different contexts.
+// By allowing objects like foo, bar, and qux to extend the PythonModule, it promotes code reuse and modular design, 
+// enabling easy access to common functionalities while facilitating customization for specific needs.
+// This structured approach enhances the development process, making it more efficient and maintainable.
 
 object foo extends PythonModule{
-  override def options: T[Seq[String]] = Task { Seq[String]("Mill", "Foo") }
-    
   object bar extends PythonModule{
-    override def options: T[Seq[String]] = Task { Seq[String]("Mill", "Foo", "Bar") }
+    // Inherits all functionalities of PythonModule
   }
 }
 
-// The `qux` object is another standalone object extending `PythonModule` and provides its own set of options,
-// allowing for a separate execution path and configuration from `foo` and `foo.bar`.
-
 object qux extends PythonModule{
-  override def options: T[Seq[String]] = Task { Seq[String]("Mill", "Qux") }
+  // Functions independently but has access to PythonModule methods
 }
+
+// We have used three different Python Scripts `foo/src/main.py`, `foo/bar/src/main.py`, `qux/src/main.py` 
+
+/** See Also: foo/src/main.py */
+/** See Also: foo/bar/src/main.py */
+/** See Also: qux/src/main.py */
+
 
 // Run the following commands to compile and execute each module, displaying unique outputs based on the configuration of each object:
 
 /** Usage
 
-> ./mill foo.compile
+> ./mill foo.run Mill 
 Hello, Mill Foo!
 
-> ./mill foo.bar.compile
+> ./mill foo.bar.run Mill 
 Hello, Mill Foo Bar!
 
-> ./mill qux.compile
+> ./mill qux.run Mill
 Hello, Mill Qux!
 
 */
 
-// All python Scripts are same as below:
+// The Final minimal working build, with a build graph that looks like this:
 
-/** See Also: foo/src/main.py */
+// ```graphviz
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   subgraph cluster_3 {
+//     style=dashed
+//     label=qux
+//     "qux.pipInstall" -> "qux.compile"
+//     "qux.sources" -> "qux.allSources" -> "qux.compile" -> "qux.run"
+//     "qux.mainFileName" -> "qux.mainFile" ->  "qux.compile"
+//   }
+//   subgraph cluster_1 {
+//     subgraph cluster_2 {
+//       style=dashed
+//       label=bar
+//       "bar.pipInstall" -> "bar.compile"
+//       "bar.sources" -> "bar.allSources" -> "bar.compile" -> "bar.run"
+//       "bar.mainFileName" -> "bar.mainFile" ->  "bar.compile"
+//     }
+//     style=dashed
+//     label=foo
+//     "foo.pipInstall" -> "foo.compile"
+//     "foo.sources" -> "foo.allSources" -> "foo.compile" -> "foo.run"
+//     "foo.mainFileName" -> "foo.mainFile" ->  "foo.compile"
+//   }
+// }
+// ```
+
+// Next, we will look at how to Create Virtual Environment and Install Module Dependencies.

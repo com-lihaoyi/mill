@@ -19,11 +19,10 @@ import mill._
  */
 trait PythonModule extends Module {
 
+  def moduleDeps: Seq[PythonModule] = Nil
+
   /** Specifies dependencies to install in the virtual environment. */
   def dependencies: T[Seq[String]] = Task { Seq.empty[String] }
-
-  /** Specifies command-line options to pass to the main Python file. */
-  def options: T[Seq[String]] = Task { Seq.empty[String] }
 
   /** Specifies the name of the virtual environment directory. */
   def venvName: T[String] = Task { "venv" }
@@ -106,20 +105,23 @@ trait PythonModule extends Module {
     os.call(Seq("bash", "-c", s"source ${venvBin / "activate"}"))
     PathRef(venvBin)
   }
+  
+  def finalDependencies: T[Seq[String]] = Task {
+    val upstreamDependencies = Task.traverse(moduleDeps)(_.finalDependencies)()
+    (dependencies().map(_.toString) ++ requirementsDependencies().map(_.toString) ++ upstreamDependencies.flatten.map(_.toString)).distinct
+  }
 
   /** Installs specified dependencies in the virtual environment. */
   def installDependencies: T[PathRef] = Task {
     val pythonVenv = activateVenv().path / "python3"
 
-    val pythonDependencies: Seq[String] = dependencies() ++ requirementsDependencies()
-
-    if (pythonDependencies.nonEmpty) {
+    if (finalDependencies().nonEmpty) {
       os.call(Seq(
         pythonVenv.toString,
         "-m",
         "pip",
         "install"
-      ) ++ pythonDependencies ++ Seq(
+      ) ++ finalDependencies() ++ Seq(
         "--break-system-packages",
         "--no-warn-script-location"
       ))
@@ -128,31 +130,30 @@ trait PythonModule extends Module {
     PathRef(pythonVenv)
   }
 
-  /** Retrieves the path to the main Python file, ensuring it exists. */
-  def mainFile: T[PathRef] = Task {
-
-    val mainFilePath = allSources().find(_.path.last == mainFileName()) match {
-      case Some(mainFile) => mainFile.path
-      case None =>
-        throw new java.io.FileNotFoundException(
-          s"Main file '${mainFileName()}' not found in sources."
-        )
-    }
-    PathRef(mainFilePath)
-  }
-
   /** Executes the main Python file using the virtual environment. */
-  def compile: T[Unit] = Task {
+  def compile: T[(PathRef, PathRef)] = Task {
     val pythonVenv = installDependencies().path
-    val mainFilePath = mainFile().path
-    val args = options()
+    val mainFileDir = sources().path
+    
+    (PathRef(pythonVenv), PathRef(mainFileDir))
+  }
+  
+  def run(args: mill.define.Args) = Task.Command {
 
-    val result = os.call(Seq(pythonVenv.toString, mainFilePath.toString) ++ args)
-
-    T.log.info(result.out.text())
-    if (result.exitCode != 0) {
-      T.log.error(s"Error: ${result.err.text()}")
+    val upstream = Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
+    for(((_, mainFileDir), mod) <- upstream) {
+      val destinationPath = Task.dest / mod.millSourcePath.subRelativeTo(build.millSourcePath)
+      os.copy.over(mainFileDir.path / os.up, destinationPath)
     }
+
+    os.call(
+      Seq(
+        compile()._1.path.toString,
+        s"${compile()._2.path / mainFileName()}"
+      ) ++ args.value,
+      env = Map("PYTHONPATH" -> Task.dest.toString),
+      stdout = os.Inherit
+    )
   }
 
 }
@@ -164,12 +165,31 @@ trait PythonModule extends Module {
 // like `numpy` and `pandas` are listed in `requirements.txt`. This setup allows core dependencies to be managed within the build script,
 // while environment-specific libraries are specified in `requirements.txt`, ensuring flexible and comprehensive dependency management.
 
-object `package` extends RootModule with PythonModule{
-  // we will add few dependencies using this function and some in the requirements.txt file
-  override def dependencies: T[Seq[String]] = Task{ Seq[String]("requests") }
-  // "numpy", "pandas" is Added in requirements.txt 
-  // To Verify: These libraries are present in the code and working.
+
+object foo extends PythonModule{
+  override def mainFileName: T[String] = Task { "foo.py" }
+  object bar extends PythonModule{
+      override def mainFileName: T[String] = Task { "bar.py" }
+
+    // foo and bar object dependencies are given 
+    // in their respective requirements.txt
+    // "numpy", "pandas" is Added in requirements.txt 
+  }
 }
+
+object qux extends PythonModule{
+
+  override def mainFileName: T[String] = Task { "qux.py" }
+
+  // To show both requirements.txt and inline dependencies
+  // we used inline dependency here and requirements.txt in above foo and bar object
+  override def dependencies: T[Seq[String]] = Task{ Seq[String]("requests") }
+
+  def moduleDeps = Seq(foo, foo.bar)
+
+}
+
+
 
 // To run this build script, use the following command. 
 // Upon execution, it installs dependencies listed in both the `requirements.txt` file and the `dependencies` method 
@@ -177,14 +197,14 @@ object `package` extends RootModule with PythonModule{
 
 /** Usage
 
-> ./mill compile
+> ./mill qux.run
 NumPy Example: Array: [1 2 3 4 5] ; Mean: 3.0 ; Sum: 15 | Pandas Example: Average Age: 26.0 ; Cities: ['New York' 'Los Angeles' 'Chicago'] | Requests Example: Requests is working! ; Status Code=200
 
 */
 
 // Below are the Files from Source Folder(main.py, requirements.txt)
 
-/** See Also: src/main.py */
-/** See Also: src/requirements.txt */
+// /** See Also: src/main.py */
+// /** See Also: src/requirements.txt */
 
 // User can also mention particular versions of the dependencies as per the rules of requirements.txt

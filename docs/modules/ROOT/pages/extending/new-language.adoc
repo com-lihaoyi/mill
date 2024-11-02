@@ -41,6 +41,15 @@ language toolchains have similar concepts of `compile`, `run`, `bundle`, etc.
 
 == Python Support
 
+This section walks through the process of adding support for Python
+language to Mill. We will be adding a small `trait PythonModule` with the
+ability to resolve dependencies, typecheck local code, and optimize a final
+bundle.
+
+The Python integration here is not intended for production usage, but is
+instead meant for illustration purposes of the techniques typically used in
+implementing language toolchains.
+
 include::partial$example/extending/newlang/5-hello-python.adoc[]
 
 include::partial$example/extending/newlang/6-python-modules.adoc[]
