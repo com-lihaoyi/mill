@@ -5,18 +5,14 @@ import coursier.maven.MavenRepository
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import com.goyeau.mill.scalafix.ScalafixModule
 import mill._
-import mill.api.JarManifest
 import mill.define.NamedTask
 import mill.main.Tasks
 import mill.scalalib._
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.publish._
-import mill.util.Jvm
 import mill.resolve.SelectMode
 import mill.T
 import mill.define.Cross
-
-import scala.util.matching.Regex
 
 // plugins and dependencies
 import $meta._
