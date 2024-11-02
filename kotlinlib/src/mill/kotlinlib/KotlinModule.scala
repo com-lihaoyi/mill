@@ -159,12 +159,24 @@ trait KotlinModule extends JavaModule { outer =>
         // `;` separator is used on all platforms!
         dokkaPluginsClasspath().map(_.path).mkString(";")
       )
+      val depClasspath = (compileClasspath() ++ runClasspath())
+        .filter(p => os.exists(p.path))
+        .map(_.path.toString()).mkString(";")
 
-      // TODO need to provide source sets for the module deps
+      // TODO need to provide a dedicated source set for common sources in case of Multiplatform
+      // platforms supported: jvm, js, wasm, native, common
       val options = dokkaOptions() ++
         Seq("-outputDir", dokkaDir.toString()) ++
         pluginClasspathOption ++
-        docSources().flatMap(pathRef => Seq("-sourceSet", s"-src ${pathRef.path}"))
+        Seq(
+          s"-sourceSet",
+          Seq(
+            s"-src ${docSources().map(_.path).mkString(";")}",
+            s"-displayName $dokkaSourceSetDisplayName",
+            s"-classpath $depClasspath",
+            s"-analysisPlatform $dokkaAnalysisPlatform"
+          ).mkString(" ")
+        )
 
       T.log.info("dokka options: " + options)
 
@@ -214,6 +226,9 @@ trait KotlinModule extends JavaModule { outer =>
       )
     )
   }
+
+  protected def dokkaAnalysisPlatform: String = "jvm"
+  protected def dokkaSourceSetDisplayName: String = "jvm"
 
   protected def when(cond: Boolean)(args: String*): Seq[String] = if (cond) args else Seq()
 
@@ -269,8 +284,7 @@ trait KotlinModule extends JavaModule { outer =>
             compileCp.iterator.mkString(File.pathSeparator)
           ),
           when(explicitApi())(
-            "-Xexplicit-api",
-            "strict"
+            "-Xexplicit-api=strict"
           ),
           kotlincOptions(),
           extraKotlinArgs,

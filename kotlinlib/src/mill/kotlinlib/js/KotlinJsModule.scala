@@ -246,6 +246,9 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
   // region private
 
+  protected override def dokkaAnalysisPlatform = "js"
+  protected override def dokkaSourceSetDisplayName = "js"
+
   private[kotlinlib] def kotlinJsCompile(
       outputMode: OutputMode,
       allKotlinSourceFiles: Seq[PathRef],
@@ -365,7 +368,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       case None => Seq.empty
     })
     if (explicitApi) {
-      innerCompilerArgs ++= Seq("-Xexplicit-api", "strict")
+      innerCompilerArgs ++= Seq("-Xexplicit-api=strict")
     }
 
     val compilerArgs: Seq[String] = Seq(
