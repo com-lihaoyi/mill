@@ -1,5 +1,7 @@
 = Mill: A Fast JVM Build Tool
 
+include::partial$gtag-config.adoc[]
+
 ```graphviz
 digraph G {
   rankdir=LR

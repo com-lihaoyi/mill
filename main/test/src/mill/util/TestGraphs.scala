@@ -667,4 +667,98 @@ object TestGraphs {
     }
   }
 
+  object CyclicModuleRefInitError extends TestBaseModule {
+    import mill.Agg
+    def foo = Task { "foo" }
+
+    // See issue: https://github.com/com-lihaoyi/mill/issues/3715
+    trait CommonModule extends TestBaseModule {
+      def foo = Task { "foo" }
+      def moduleDeps: Seq[CommonModule] = Seq.empty
+      def a = myA
+      def b = myB
+    }
+
+    object myA extends A
+    trait A extends CommonModule
+    object myB extends B
+    trait B extends CommonModule {
+      override def moduleDeps = super.moduleDeps ++ Agg(a)
+    }
+  }
+
+  object CyclicModuleRefInitError2 extends TestBaseModule {
+    // The cycle is in the child
+    def A = CyclicModuleRefInitError
+  }
+
+  object CyclicModuleRefInitError3 extends TestBaseModule {
+    // The cycle is in directly here
+    object A extends Module {
+      def b = B
+    }
+    object B extends Module {
+      def a = A
+    }
+  }
+
+  object CrossedCyclicModuleRefInitError extends TestBaseModule {
+    object cross extends mill.Cross[Cross]("210", "211", "212")
+    trait Cross extends Cross.Module[String] {
+      def suffix = Task { crossValue }
+      def c2 = cross2
+    }
+
+    object cross2 extends mill.Cross[Cross2]("210", "211", "212")
+    trait Cross2 extends Cross.Module[String] {
+      override def millSourcePath = super.millSourcePath / crossValue
+      def suffix = Task { crossValue }
+      def c1 = cross
+    }
+  }
+
+  // The module names repeat, but it's not actually cyclic and is meant to confuse the cycle detection.
+  object NonCyclicModules extends TestBaseModule {
+    def foo = Task { "foo" }
+
+    object A extends Module {
+      def b = B
+    }
+    object B extends Module {
+      object A extends Module {
+        def b = B
+      }
+      def a = A
+
+      object B extends Module {
+        object B extends Module {}
+        object A extends Module {
+          def b = B
+        }
+        def a = A
+      }
+    }
+  }
+
+  // This edge case shouldn't be an error
+  object ModuleRefWithNonModuleRefChild extends TestBaseModule {
+    def foo = Task { "foo" }
+
+    def aRef = A
+    def a = ModuleRef(A)
+
+    object A extends TestBaseModule {}
+  }
+
+  object ModuleRefCycle extends TestBaseModule {
+    def foo = Task { "foo" }
+
+    // The cycle is in directly here
+    object A extends Module {
+      def b = ModuleRef(B)
+    }
+    object B extends Module {
+      def a = ModuleRef(A)
+    }
+  }
 }

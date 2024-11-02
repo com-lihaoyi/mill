@@ -1,4 +1,9 @@
 ++++
+<style>
+*{
+  hyphens: manual !important;
+}
+</style>
 <script>
 gtag('config', 'AW-16649289906');
 
