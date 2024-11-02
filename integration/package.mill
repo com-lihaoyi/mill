@@ -89,6 +89,6 @@ object `package` extends RootModule {
   /** Deploy freshly build mill for use in tests */
   def testMill: T[PathRef] = {
     val name = if (scala.util.Properties.isWin) "mill.bat" else "mill"
-    T { PathRef(build.installLocalTask(binFile = T.task((T.dest / name).toString()))()) }
+    T { PathRef(build.dist.installLocalTask(binFile = T.task((T.dest / name).toString()))()) }
   }
 }
