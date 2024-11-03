@@ -31,7 +31,7 @@ object wasm extends ScalaJSModule {
   "dest": ".../out/wasm/fastLinkJS.dest"
 }
 
-> node --experimental-wasm-exnref out/foo/fullLinkJS.dest/main.js # mac/linux
+> node --experimental-wasm-exnref out/wasm/fullLinkJS.dest/main.js # mac/linux
 hello  wasm!
 
 */
