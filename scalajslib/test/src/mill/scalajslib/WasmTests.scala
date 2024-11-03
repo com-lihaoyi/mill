@@ -20,7 +20,7 @@ object WasmTests extends TestSuite {
 
     override def moduleSplitStyle = ModuleSplitStyle.FewestModules
 
-    override def scalaJSEmitWasm: T[Boolean] = true
+    override def scalaJSExperimentalUseWebAssembly: T[Boolean] = true
 
     override lazy val millDiscover = {
       import mill.main.TokenReaders.given
@@ -35,7 +35,7 @@ object WasmTests extends TestSuite {
     override def moduleKind = ModuleKind.ESModule
     override def moduleSplitStyle = ModuleSplitStyle.FewestModules
 
-    override def scalaJSEmitWasm: T[Boolean] = true
+    override def scalaJSExperimentalUseWebAssembly: T[Boolean] = true
 
     override lazy val millDiscover = {
       import mill.main.TokenReaders.given

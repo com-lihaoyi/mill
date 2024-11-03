@@ -12,7 +12,7 @@ object wasm extends ScalaJSModule {
 
   override def moduleSplitStyle = ModuleSplitStyle.FewestModules
 
-  override def scalaJSEmitWasm = true
+  override def scalaJSExperimentalUseWebAssembly = true
 }
 
 // This build defines a single `ScalaJSModule` that uses the `WASM` backend of the scala JS linker.

@@ -38,7 +38,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       outputPatterns: OutputPatterns,
       minify: Boolean,
       dest: File,
-      emitWasm: Boolean
+      experimentalUseWebAssembly: Boolean
   )
   private def minorIsGreaterThanOrEqual(number: Int) = ScalaJSVersions.current match {
     case s"1.$n.$_" if n.toIntOption.exists(_ < number) => false
@@ -155,7 +155,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
         else withOutputPatterns
 
       val withWasm =
-        (minorIsGreaterThanOrEqual(17), input.emitWasm) match {
+        (minorIsGreaterThanOrEqual(17), input.experimentalUseWebAssembly) match {
           case (_, false) => withMinify
           case (true, true) => withMinify.withExperimentalUseWebAssembly(true)
           case (false, true) =>
@@ -190,7 +190,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       outputPatterns: OutputPatterns,
       minify: Boolean,
       importMap: Seq[ESModuleImportMapping],
-      emitWasm: Boolean
+      experimentalUseWebAssembly: Boolean
   ): Either[String, Report] = {
     // On Scala.js 1.2- we want to use the legacy mode either way since
     // the new mode is not supported and in tests we always use legacy = false
@@ -206,7 +206,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
       outputPatterns = outputPatterns,
       minify = minify,
       dest = dest,
-      emitWasm = emitWasm
+      experimentalUseWebAssembly = experimentalUseWebAssembly
     ))
     val irContainersAndPathsFuture = PathIRContainer.fromClasspath(runClasspath)
     val testInitializer =

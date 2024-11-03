@@ -141,7 +141,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       outputPatterns = scalaJSOutputPatterns(),
       minify = scalaJSMinify(),
       importMap = scalaJSImportMap(),
-      emitWasm = scalaJSEmitWasm()
+      experimentalUseWebAssembly = scalaJSExperimentalUseWebAssembly()
     )
   }
 
@@ -193,7 +193,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       outputPatterns: OutputPatterns,
       minify: Boolean,
       importMap: Seq[ESModuleImportMapping],
-      emitWasm: Boolean
+      experimentalUseWebAssembly: Boolean
   )(implicit ctx: mill.api.Ctx): Result[Report] = {
     val outputPath = ctx.dest
 
@@ -215,7 +215,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       outputPatterns = outputPatterns,
       minify = minify,
       importMap = importMap,
-      emitWasm
+      experimentalUseWebAssembly = experimentalUseWebAssembly
     )
   }
 
@@ -297,7 +297,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   def scalaJSSourceMap: T[Boolean] = Task { true }
 
   /** Whether to emit WASM. As of Nov 2024 scala JS wasm support is experimental */
-  def scalaJSEmitWasm: T[Boolean] = Task { false }
+  def scalaJSExperimentalUseWebAssembly: T[Boolean] = Task { false }
 
   /** Name patterns for output. */
   def scalaJSOutputPatterns: T[OutputPatterns] = Task { OutputPatterns.Defaults }
@@ -377,7 +377,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       outputPatterns = scalaJSOutputPatterns(),
       minify = scalaJSMinify(),
       importMap = scalaJSImportMap(),
-      emitWasm = scalaJSEmitWasm()
+      experimentalUseWebAssembly = scalaJSExperimentalUseWebAssembly()
     )
   }
 
