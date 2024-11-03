@@ -36,3 +36,7 @@ include::partial$example/scalalib/web/6-cross-version-platform-publishing.adoc[]
 == Publishing Cross-Platform Scala Modules Alternative
 
 include::partial$example/scalalib/web/7-cross-platform-version-publishing.adoc[]
+
+== Scala.js WebAssembly Example
+
+include::partial$example/scalalib/web/8-wasm.adoc[]
