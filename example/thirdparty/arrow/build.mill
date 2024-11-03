@@ -127,18 +127,11 @@ object `package` extends RootModule {
       s"-Xcommon-sources=${files.mkString(",")}"
     }
 
-    trait ArrowPlatformModule extends KotlinMavenModule {  outer =>
+    trait ArrowPlatformModule extends KotlinMavenModule with PlatformKotlinModule {  outer =>
       def kotlinVersion = libraries.versions.kotlin
       def kotlinLanguageVersion = majorVersion(kotlinVersion())
       def kotlinApiVersion = majorVersion(kotlinVersion())
       def kotlinExplicitApi = ArrowMultiplatformModule.this.kotlinExplicitApi
-
-      def platformCrossSuffix: String = millModuleSegments
-        .value
-        .collect { case l: mill.define.Segment.Label => l.value }
-        .last
-
-      override def millSourcePath = super.millSourcePath / os.up
 
       override def sources: T[Seq[PathRef]] = Task.Sources {
         val sourcesRootPath = millSourcePath / "src"
