@@ -23,20 +23,14 @@ object wasm extends ScalaJSModule {
 
 /** Usage
 
-> mill show wasm.fastLinkJS
-[1/1] show
+> ./mill show wasm.fastLinkJS # mac/linux
 {
-  ...
-  "dest": "... out/wasm/fastLinkJS.dest"
+...
+..."jsFileName": "main.js",
+  "dest": ".../out/wasm/fastLinkJS.dest"
 }
 
-> ls out/wasm/fastLinkJS.dest
-__loader.js     main.js         main.wasm       main.wasm.map
-
-> node out/foo/fullLinkJS.dest/main.js
-Debugger listening on ws://127.0.0.1:57753/d17db228-5159-4e60-be1f-4cc47a396ddf
-For help, see: https://nodejs.org/en/docs/inspector
-Debugger attached.
+> node --experimental-wasm-exnref out/foo/fullLinkJS.dest/main.js # mac/linux
 hello  wasm!
 
 */
