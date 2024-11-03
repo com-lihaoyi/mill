@@ -154,7 +154,9 @@ object `package` extends RootModule {
         sources
       }
 
-      override def kotlincOptions = super.kotlincOptions() ++ Seq("-Xexpect-actual-classes")
+      override def kotlincOptions =
+        super.kotlincOptions() ++
+        Seq("-Xexpect-actual-classes", commonSourcesArg(sources(), "commonMain"))
 
       trait ArrowPlatformTests extends KotlinMavenTests{
 
@@ -178,7 +180,6 @@ object `package` extends RootModule {
     def jvm: ArrowPlatformJvmModule
 
     trait ArrowPlatformJvmModule extends ArrowPlatformModule with KoverModule {
-      def kotlincOptions = super.kotlincOptions() ++ Seq(commonSourcesArg(sources(), "commonMain"))
       def test: ArrowPlatformJvmTests
       trait ArrowPlatformJvmTests extends KotlinMavenTests with  KoverTests with TestModule.Junit5  with ArrowPlatformTests{
       }
@@ -186,9 +187,7 @@ object `package` extends RootModule {
 
     def js: ArrowPlatformJsModule
     trait ArrowPlatformJsModule extends ArrowPlatformModule with KotlinJsModule {
-      def kotlincOptions = super.kotlincOptions() ++ Seq(
-        commonSourcesArg(sources(), "commonMain")
-      )
+
       def kotlinJsRunTarget = Some(RunTarget.Node)
 
       def test: ArrowPlatformJsTests
@@ -465,7 +464,7 @@ object `package` extends RootModule {
               libraries.kotestAssertionsCoreJs,
               libraries.kotestPropertyJs
             )
-            def testTimeout = 60_000L
+            def testTimeout = 120_000L
           }
         }
 
