@@ -169,7 +169,8 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
       moduleSplitStyle: api.ModuleSplitStyle,
       outputPatterns: api.OutputPatterns,
       minify: Boolean,
-      importMap: Seq[api.ESModuleImportMapping]
+      importMap: Seq[api.ESModuleImportMapping],
+      experimentalUseWebAssembly: Boolean
   )(implicit ctx: Ctx.Home): Result[api.Report] = {
     bridge(toolsClasspath).link(
       runClasspath = runClasspath.iterator.map(_.path.toNIO).toSeq,
@@ -185,7 +186,8 @@ private[scalajslib] class ScalaJSWorker extends AutoCloseable {
       moduleSplitStyle = toWorkerApi(moduleSplitStyle),
       outputPatterns = toWorkerApi(outputPatterns),
       minify = minify,
-      importMap = importMap.map(toWorkerApi)
+      importMap = importMap.map(toWorkerApi),
+      experimentalUseWebAssembly = experimentalUseWebAssembly
     ) match {
       case Right(report) => Result.Success(fromWorkerApi(report))
       case Left(message) => Result.Failure(message)

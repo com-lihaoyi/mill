@@ -58,6 +58,11 @@ jobs:
           java-version: ${{ inputs.java-version }}
           distribution: temurin
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+
       - name: Prepare git config
         run: |
           git config --global user.name "Mill GithHub Actions"
