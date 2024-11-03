@@ -1,0 +1,76 @@
+package build
+import mill._, scalalib._, scalanativelib._
+
+trait MyModule extends ScalaNativeModule {
+  def scalaVersion = "3.3.4"
+  def scalaNativeVersion = "0.5.5"
+
+  object test extends ScalaNativeTests {
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.8.4")
+    def testFramework = "utest.runner.Framework"
+  }
+}
+
+object foo extends MyModule {
+  def moduleDeps = Seq(bar)
+
+  def ivyDeps = Agg(ivy"com.lihaoyi::mainargs::0.7.6")
+}
+
+object bar extends MyModule
+
+// This example contains a simple Mill build with two modules, `foo` and `bar`.
+// We don't mark either module as top-level using `extends RootModule`, so
+// running tasks needs to use the module name as the prefix e.g. `foo.run` or
+// `bar.run`. You can define multiple modules the same way you define a single
+// module, using `def moduleDeps` to define the relationship between them.
+//
+// Note that we split out the `test` submodule configuration common to both
+// modules into a separate `trait MyModule`. This lets us avoid the need to
+// copy-paste common settings, while still letting us define any per-module
+// configuration such as `ivyDeps` specific to a particular module.
+//
+// The above builds expect the following project layout:
+//
+// ----
+// build.mill
+// bar/
+//     resources/
+//         scala-native/
+//             bar.h
+//             HelloWorldBar.c
+//     src/
+//         Bar.scala
+//     test/
+//         src/
+//             BarTests.scala
+// foo/
+//     resources/
+//         scala-native/
+//             bar.h
+//             HelloWorldFoo.c
+//     src/
+//         Foo.scala
+//
+// ----
+//
+// *Note:* C/C++ source files need to be in `resources/scala-native` directory so
+// It can be linked and compiled successfully. More info from Scala Native doc
+// https://scala-native.org/en/stable/user/native.html#using-libraries-with-native-code[here]
+// and also Scala user forum https://users.scala-lang.org/t/how-to-test-scala-native-code-interop-with-c/10314/3?u=c0d33ngr[here]
+
+/** Usage
+
+> ./mill bar.run hello
+Running HelloWorld function
+Done...
+Bar value: Argument length is 5
+
+> ./mill bar.test
+Tests: 1, Passed: 1, Failed: 0
+
+> ./mill foo.run --bar-text hello --foo-text world
+Foo.value: The vowel density of 'world' is 20
+Bar.value: The string length of 'hello' is 5
+
+*/

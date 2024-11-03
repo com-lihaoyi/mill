@@ -50,7 +50,7 @@ jobs:
           java-version: '11'
           distribution: temurin
 
-      - run: ci/release-maven.sh
+      - run: ./mill -i mill.scalalib.PublishModule/
 
   release-github:
     # when in master repo, publish all tags and manual runs on main
@@ -72,4 +72,4 @@ jobs:
           java-version: '11'
           distribution: temurin
 
-      - run: ./mill -i uploadToGithub --authKey $REPO_ACCESS_TOKEN
+      - run: ./mill -i dist.uploadToGithub --authKey $REPO_ACCESS_TOKEN

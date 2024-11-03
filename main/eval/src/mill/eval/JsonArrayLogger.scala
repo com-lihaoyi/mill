@@ -35,7 +35,7 @@ private class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path, inden
   }
 }
 
-private class ProfileLogger(outPath: os.Path)
+private[eval] class ProfileLogger(outPath: os.Path)
     extends JsonArrayLogger[ProfileLogger.Timing](outPath, indent = 2)
 
 private object ProfileLogger {
@@ -53,7 +53,7 @@ private object ProfileLogger {
   }
 }
 
-private class ChromeProfileLogger(outPath: os.Path)
+private[eval] class ChromeProfileLogger(outPath: os.Path)
     extends JsonArrayLogger[ChromeProfileLogger.TraceEvent](outPath, indent = -1) {
 
   def log(
