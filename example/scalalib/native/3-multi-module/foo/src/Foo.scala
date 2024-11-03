@@ -7,9 +7,8 @@ import mainargs.{main, ParserForMethods, arg}
 object Foo {
   @main
   def main(@arg(name = "foo-text") fooText: String,
-           @arg(name = "bar-text") barText: String): Unit = {
+           @arg(name = "bar-text") barText: String): Unit = Zone {
 
-    implicit val z: Zone = Zone.open()
     val cFooText = toCString(fooText)
     val cBarText = toCString(barText)
 
