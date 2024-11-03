@@ -171,7 +171,7 @@ trait KotlinModule extends JavaModule { outer =>
         Seq(
           s"-sourceSet",
           Seq(
-            s"-src ${docSources().map(_.path).mkString(";")}",
+            s"-src ${docSources().map(_.path).filter(os.exists).mkString(";")}",
             s"-displayName $dokkaSourceSetDisplayName",
             s"-classpath $depClasspath",
             s"-analysisPlatform $dokkaAnalysisPlatform"
