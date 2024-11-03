@@ -4,7 +4,7 @@ import mill.scalajslib.api._
 
 
 object wasm extends ScalaJSModule {
-  override def scalaVersion = "3.3.4"
+  override def scalaVersion = "2.13.14"
 
   override def scalaJSVersion = "1.17.0"
 
