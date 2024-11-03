@@ -326,10 +326,10 @@ trait KotlinModule extends JavaModule { outer =>
   def kotlincOptions: T[Seq[String]] = Task {
     val options = Seq.newBuilder[String]
     options += "-no-stdlib"
-    val kotlinkotlinLanguageVersion = kotlinLanguageVersion()
-    if (!kotlinkotlinLanguageVersion.isBlank) {
+    val languageVersion = kotlinLanguageVersion()
+    if (!languageVersion.isBlank) {
       options += "-language-version"
-      options += kotlinkotlinLanguageVersion
+      options += languageVersion
     }
     val kotlinkotlinApiVersion = kotlinApiVersion()
     if (!kotlinkotlinApiVersion.isBlank) {
