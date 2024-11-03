@@ -141,7 +141,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       outputPatterns = scalaJSOutputPatterns(),
       minify = scalaJSMinify(),
       importMap = scalaJSImportMap(),
-      emitWasm = emitWasm()
+      emitWasm = scalaJSEmitWasm()
     )
   }
 
@@ -297,7 +297,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   def scalaJSSourceMap: T[Boolean] = Task { true }
 
   /** Whether to emit WASM. As of Nov 2024 scala JS wasm support is experimental */
-  def emitWasm: T[Boolean] = Task { false }
+  def scalaJSEmitWasm: T[Boolean] = Task { false }
 
   /** Name patterns for output. */
   def scalaJSOutputPatterns: T[OutputPatterns] = Task { OutputPatterns.Defaults }
@@ -377,7 +377,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       outputPatterns = scalaJSOutputPatterns(),
       minify = scalaJSMinify(),
       importMap = scalaJSImportMap(),
-      emitWasm = emitWasm()
+      emitWasm = scalaJSEmitWasm()
     )
   }
 
