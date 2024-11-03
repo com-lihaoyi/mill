@@ -27,6 +27,7 @@ object wasm extends ScalaJSModule {
 {
 ...
 ..."jsFileName": "main.js",
+...
   "dest": ".../out/wasm/fastLinkJS.dest"
 }
 

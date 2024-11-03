@@ -296,7 +296,18 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   /** Whether to emit a source map. */
   def scalaJSSourceMap: T[Boolean] = Task { true }
 
-  /** Whether to emit WASM. As of Nov 2024 scala JS wasm support is experimental */
+  /** Specifies whether to use the experimental WebAssembly backend.. Requires scalaJS > 1.17.0
+   *  When using this setting, the following properties must also hold:
+   *
+   *  - `moduleKind = ModuleKind.ESModule`
+   *  - `moduleSplitStyle = ModuleSplitStyle.FewestModules`
+   *
+   *  @note
+   *    Currently, the WebAssembly backend silently ignores `@JSExport` and
+   *    `@JSExportAll` annotations. This behavior may change in the future,
+   *    either by making them warnings or errors, or by adding support for them.
+   *    All other language features are supported.
+   */
   def scalaJSExperimentalUseWebAssembly: T[Boolean] = Task { false }
 
   /** Name patterns for output. */
