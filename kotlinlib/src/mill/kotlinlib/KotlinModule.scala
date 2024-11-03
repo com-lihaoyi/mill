@@ -67,17 +67,17 @@ trait KotlinModule extends JavaModule { outer =>
   /**
    * The compiler language version. Default is not set.
    */
-  def languageVersion: T[String] = Task { "" }
+  def kotlinLanguageVersion: T[String] = Task { "" }
 
   /**
    * The compiler API version. Default is not set.
    */
-  def apiVersion: T[String] = Task { "" }
+  def kotlinApiVersion: T[String] = Task { "" }
 
   /**
    * Flag to use explicit API check in the compiler. Default is `false`.
    */
-  def explicitApi: T[Boolean] = Task { false }
+  def kotlinExplicitApi: T[Boolean] = Task { false }
 
   type CompileProblemReporter = mill.api.CompileProblemReporter
 
@@ -283,7 +283,7 @@ trait KotlinModule extends JavaModule { outer =>
             "-classpath",
             compileCp.iterator.mkString(File.pathSeparator)
           ),
-          when(explicitApi())(
+          when(kotlinExplicitApi())(
             "-Xexplicit-api=strict"
           ),
           kotlincOptions(),
@@ -326,15 +326,15 @@ trait KotlinModule extends JavaModule { outer =>
   def kotlincOptions: T[Seq[String]] = Task {
     val options = Seq.newBuilder[String]
     options += "-no-stdlib"
-    val kotlinLanguageVersion = languageVersion()
-    if (!kotlinLanguageVersion.isBlank) {
+    val kotlinkotlinLanguageVersion = kotlinLanguageVersion()
+    if (!kotlinkotlinLanguageVersion.isBlank) {
       options += "-language-version"
-      options += kotlinLanguageVersion
+      options += kotlinkotlinLanguageVersion
     }
-    val kotlinApiVersion = apiVersion()
-    if (!kotlinApiVersion.isBlank) {
+    val kotlinkotlinApiVersion = kotlinApiVersion()
+    if (!kotlinkotlinApiVersion.isBlank) {
       options += "-api-version"
-      options += kotlinApiVersion
+      options += kotlinkotlinApiVersion
     }
     options.result()
   }
@@ -371,7 +371,7 @@ trait KotlinModule extends JavaModule { outer =>
    * A test sub-module linked to its parent module best suited for unit-tests.
    */
   trait KotlinTests extends JavaTests with KotlinModule {
-    override def explicitApi: T[Boolean] = false
+    override def kotlinExplicitApi: T[Boolean] = false
     override def kotlinVersion: T[String] = Task { outer.kotlinVersion() }
     override def kotlinCompilerVersion: T[String] = Task { outer.kotlinCompilerVersion() }
     override def kotlincOptions: T[Seq[String]] = Task {

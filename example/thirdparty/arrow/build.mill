@@ -112,19 +112,13 @@ object `package` extends RootModule {
   // TODO add more targets once available
   trait ArrowMultiplatformModule extends CoursierModule { multiplatformRoot =>
 
-
-
-
-    def explicitApi: T[Boolean] = true
+    def kotlinExplicitApi: T[Boolean] = true
 
     protected def commonSourcesArg(sources: Seq[PathRef], commonSourcesDirName: String): String = {
-      val files = os.walk(
+      val files =
         sources
-          .map(_.path)
-          .filter(_.toString().contains(commonSourcesDirName))
-          .head
-      )
-        .filter(_.toIO.isFile)
+          .flatMap(pr => os.walk(pr.path))
+          .filter(p => p.segments.contains(commonSourcesDirName) && os.isFile(p))
       // TODO this is to prevent compilation failure in cases when there is actual declaration in Foo.kt and expect
       //  declaration in Foo.kt instead of Foo.[jvm,js,...].kt, because in this case symbols belong to the same module.
       // This is allowed with `-Xcommon-sources` flag, but probably will be prohibited in the future.
@@ -133,11 +127,11 @@ object `package` extends RootModule {
       s"-Xcommon-sources=${files.mkString(",")}"
     }
 
-    trait ArrowPlatformModule extends KotlinModule {
+    trait ArrowPlatformModule extends KotlinMavenModule {  outer =>
       def kotlinVersion = libraries.versions.kotlin
-      def languageVersion = majorVersion(kotlinVersion())
-      def apiVersion = majorVersion(kotlinVersion())
-      def explicitApi = ArrowMultiplatformModule.this.explicitApi
+      def kotlinLanguageVersion = majorVersion(kotlinVersion())
+      def kotlinApiVersion = majorVersion(kotlinVersion())
+      def kotlinExplicitApi = ArrowMultiplatformModule.this.kotlinExplicitApi
 
       def platformCrossSuffix: String = millModuleSegments
         .value
@@ -161,88 +155,65 @@ object `package` extends RootModule {
       }
 
       override def kotlincOptions = super.kotlincOptions() ++ Seq("-Xexpect-actual-classes")
-    }
 
-    def jvm: ArrowPlatformJvmModule
-    trait ArrowPlatformJvmModule extends ArrowPlatformModule with KoverModule { outer =>
-      def kotlincOptions = super.kotlincOptions() ++ Seq(commonSourcesArg(sources(), "commonMain"))
-      def test: ArrowPlatformJvmTests
-      trait ArrowPlatformJvmTests extends KotlinTests with KoverTests with TestModule.Junit5 {
+      trait ArrowPlatformTests extends KotlinMavenTests{
+
+        override def compile: T[CompilationResult] =
+          if (modulesWithTestingEnabled(multiplatformRoot)) super.compile
+          else Task { CompilationResult(T.dest, PathRef(T.dest)) }
+
+        override def test(args: String*): Command[(String, Seq[TestResult])] =
+          if (modulesWithTestingEnabled(multiplatformRoot)) super.test(args: _*)
+          else Task.Command { ("", Seq.empty[TestResult]) }
+
         override def sources: T[Seq[PathRef]] = Task.Sources {
           val sourcesRootPath = outer.millSourcePath / "src"
           Seq("common", outer.platformCrossSuffix)
             .map(platform => PathRef(sourcesRootPath / s"${platform}Test" / "kotlin"))
             .filter(p => os.exists(p.path))
         }
+      }
+    }
 
-        override def compile: T[CompilationResult] =
-          if (!modulesWithTestingEnabled.contains(multiplatformRoot))
-            Task { CompilationResult(T.dest, PathRef(T.dest)) }
-          else super.compile
-        override def test(args: String*): Command[(String, Seq[TestResult])] =
-          if (!modulesWithTestingEnabled.contains(multiplatformRoot))
-            Task.Command { ("", Seq.empty[TestResult]) }
-          else super.test(args: _*)
+    def jvm: ArrowPlatformJvmModule
+
+    trait ArrowPlatformJvmModule extends ArrowPlatformModule with KoverModule {
+      def kotlincOptions = super.kotlincOptions() ++ Seq(commonSourcesArg(sources(), "commonMain"))
+      def test: ArrowPlatformJvmTests
+      trait ArrowPlatformJvmTests extends KotlinMavenTests with  KoverTests with TestModule.Junit5  with ArrowPlatformTests{
       }
     }
 
     def js: ArrowPlatformJsModule
-    trait ArrowPlatformJsModule extends ArrowPlatformModule with KotlinJsModule { outer =>
+    trait ArrowPlatformJsModule extends ArrowPlatformModule with KotlinJsModule {
       def kotlincOptions = super.kotlincOptions() ++ Seq(
         commonSourcesArg(sources(), "commonMain")
       )
       def kotlinJsRunTarget = Some(RunTarget.Node)
 
       def test: ArrowPlatformJsTests
-      trait ArrowPlatformJsTests extends KotlinTestPackageTests {
+      trait ArrowPlatformJsTests extends KotlinMavenTests with KotlinTestPackageTests with ArrowPlatformTests{
         def testTimeout = 30_000L
-        override def sources: T[Seq[PathRef]] = Task.Sources {
-          val sourcesRootPath = outer.millSourcePath / "src"
-          Seq("common", outer.platformCrossSuffix)
-            .map(platform => PathRef(sourcesRootPath / s"${platform}Test" / "kotlin"))
-            .filter(p => os.exists(p.path))
-        }
-
-        override def compile: T[CompilationResult] =
-          if (!modulesWithTestingEnabled.contains(multiplatformRoot))
-            Task { CompilationResult(T.dest, PathRef(T.dest)) }
-          else super.compile
-        override def test(args: String*): Command[(String, Seq[TestResult])] =
-          if (!modulesWithTestingEnabled.contains(multiplatformRoot))
-            Task.Command { ("", Seq.empty[TestResult]) }
-          else super.test(args: _*)
       }
     }
   }
 
-  trait ArrowJvmModule extends KotlinModule with KoverModule { jvmRoot =>
+  trait ArrowJvmModule extends KotlinMavenModule with KoverModule { jvmRoot =>
 
     def kotlinVersion = libraries.versions.kotlin
-    def explicitApi = true
-    def languageVersion = majorVersion(kotlinVersion())
-    def apiVersion = majorVersion(kotlinVersion())
+    def kotlinExplicitApi = true
+    def kotlinLanguageVersion = majorVersion(kotlinVersion())
+    def kotlinApiVersion = majorVersion(kotlinVersion())
 
-    override def sources: T[Seq[PathRef]] = Task.Sources {
-      millSourcePath / "src" / "main" / "kotlin"
-    }
-    override def resources: T[Seq[PathRef]] = Task.Sources {
-      millSourcePath / "src" / "main" / "resources"
-    }
     def test: ArrowJvmTests
-    trait ArrowJvmTests extends KotlinTests with KoverTests with TestModule.Junit5 {
-      override def sources: T[Seq[PathRef]] = Task.Sources {
-        millSourcePath / os.up / "src" / "test" / "kotlin"
-      }
-      override def resources: T[Seq[PathRef]] = Task.Sources {
-        millSourcePath / os.up / "src" / "test" / "resources"
-      }
-      override def compile: T[CompilationResult] = if (!modulesWithTestingEnabled.contains(jvmRoot))
-        Task { CompilationResult(T.dest, PathRef(T.dest)) }
-      else super.compile
+    trait ArrowJvmTests extends KotlinMavenTests with KoverTests with TestModule.Junit5 {
+      override def compile: T[CompilationResult] =
+        if (modulesWithTestingEnabled(jvmRoot)) super.compile
+        else Task { CompilationResult(T.dest, PathRef(T.dest)) }
+
       override def test(args: String*): Command[(String, Seq[TestResult])] =
-        if (!modulesWithTestingEnabled.contains(jvmRoot))
-          Task.Command { ("", Seq.empty[TestResult]) }
-        else super.test(args: _*)
+        if (modulesWithTestingEnabled(jvmRoot)) super.test(args: _*)
+        else Task.Command { ("", Seq.empty[TestResult]) }
     }
   }
 
@@ -576,7 +547,7 @@ object `package` extends RootModule {
       // TODO requires better Android support
       //  object `arrow-optics-compose` extends Module
       object `arrow-optics-ksp-plugin` extends ArrowJvmModule {
-        def explicitApi = false
+        def kotlinExplicitApi = false
         def ivyDeps = Agg(libraries.ksp)
 
         object test extends ArrowJvmTests{
