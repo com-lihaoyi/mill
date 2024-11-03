@@ -296,7 +296,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   /** Whether to emit a source map. */
   def scalaJSSourceMap: T[Boolean] = Task { true }
 
-  /** Specifies whether to use the experimental WebAssembly backend.. Requires scalaJS > 1.17.0
+  /**
+   * Specifies whether to use the experimental WebAssembly backend.. Requires scalaJS > 1.17.0
    *  When using this setting, the following properties must also hold:
    *
    *  - `moduleKind = ModuleKind.ESModule`
