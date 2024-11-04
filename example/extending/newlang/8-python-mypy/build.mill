@@ -34,15 +34,14 @@ trait PythonModule extends Module {
   /** Defines the path to the sources directory. */
   def sources: T[PathRef] = Task.Source(millSourcePath / "src")
 
-  /** Collects all Python source files from the sources directory. */
-  def allSources: T[Seq[PathRef]] = Task {
-    os.walk(sources().path).filter(_.ext == "py").map(PathRef(_))
-  }
+  // /** Collects all Python source files from the sources directory. */
+  // def allSources: T[Seq[PathRef]] = Task {
+  //   os.walk(sources().path).filter(_.ext == "py").map(PathRef(_))
+  // }
 
   /** Path to the requirements file, configurable by the user. */
-  def requirementsPath: T[PathRef] = Task {
-    PathRef(millSourcePath / "src" / "requirements.txt")
-  }
+  def requirementsPath: T[PathRef] = Task.Source(millSourcePath / "requirements.txt")
+
 
   /** Reads dependencies from the specified requirements file. */
   def requirementsDependencies: T[Seq[String]] = Task {
@@ -54,58 +53,58 @@ trait PythonModule extends Module {
     }
   }
 
-  /** Installs pip using a downloaded script. */
-  def installPip: T[Unit] = Task {
-    val pipFile = T.dest / "get-pip.py"
-    val pipPath = os.home / ".local" / "bin" / "pip3"
+  // /** Installs pip using a downloaded script. */
+  // def installPip: T[Unit] = Task {
+  //   val pipFile = T.dest / "get-pip.py"
+  //   val pipPath = os.home / ".local" / "bin" / "pip3"
 
-    if (!os.exists(pipPath)) {
-      os.call(Seq("wget", "-q", "https://bootstrap.pypa.io/get-pip.py", "-O", s"$pipFile"))
-      os.call(Seq(
-        "python3",
-        s"$pipFile",
-        "--user",
-        "--break-system-packages",
-        "--no-warn-script-location"
-      ))
+  //   if (!os.exists(pipPath)) {
+  //     os.call(Seq("wget", "-q", "https://bootstrap.pypa.io/get-pip.py", "-O", s"$pipFile"))
+  //     os.call(Seq(
+  //       "python3",
+  //       s"$pipFile",
+  //       "--user",
+  //       "--break-system-packages",
+  //       "--no-warn-script-location"
+  //     ))
 
-      os.call(Seq(
-        pipPath.toString,
-        "install",
-        "pip",
-        "--break-system-packages",
-        "--no-warn-script-location"
-      ))
-    } else {
-      println("pip is already installed, skipping installation.")
-    }
-  }
+  //     os.call(Seq(
+  //       pipPath.toString,
+  //       "install",
+  //       "pip",
+  //       "--break-system-packages",
+  //       "--no-warn-script-location"
+  //     ))
+  //   } else {
+  //     println("pip is already installed, skipping installation.")
+  //   }
+  // }
 
   /** Creates a virtual environment using the installed Python version. */
   def createVenv: T[PathRef] = Task {
-    installPip()
+    // installPip()
     val venvDir = T.dest / venvName()
 
-    os.call(Seq(
-      "python3",
-      "-m",
-      "pip",
-      "install",
-      "virtualenv",
-      "--break-system-packages",
-      "--no-warn-script-location"
-    ))
-    os.call(Seq("python3", "-m", "virtualenv", venvDir.toString))
+    // os.call(Seq(
+    //   "python3",
+    //   "-m",
+    //   "pip",
+    //   "install",
+    //   "virtualenv",
+    //   "--break-system-packages",
+    //   "--no-warn-script-location"
+    // ))
+    os.call(Seq("python3", "-m", "venv", venvDir.toString))
 
     PathRef(venvDir)
   }
 
-  /** Activates the created virtual environment. */
-  def activateVenv: T[PathRef] = Task {
-    val venvBin = createVenv().path / "bin"
-    os.call(Seq("bash", "-c", s"source ${venvBin / "activate"}"))
-    PathRef(venvBin)
-  }
+  // /** Activates the created virtual environment. */
+  // def activateVenv: T[PathRef] = Task {
+  //   val venvBin = createVenv().path / "bin"
+  //   os.call(Seq("bash", "-c", s"source ${venvBin / "activate"}"))
+  //   PathRef(venvBin)
+  // }
 
   /** Collects all dependencies for installation, including requirements and module dependencies. */
   def finalDependencies: T[Seq[String]] = Task {
@@ -120,7 +119,7 @@ trait PythonModule extends Module {
 
   /** Installs specified dependencies in the virtual environment. */
   def installDependencies: T[PathRef] = Task {
-    val pythonVenv = activateVenv().path / "python3"
+    val pythonVenv = createVenv().path / "bin" / "python3"
 
     if (finalDependencies().nonEmpty) {
       os.call(Seq(
@@ -138,26 +137,26 @@ trait PythonModule extends Module {
   }
 
   /** Compile installs dependencies in virtual environment. */
-  def compile: T[(PathRef, PathRef)] = Task {
+  def compile: T[PathRef] = Task {
     val pythonVenv = installDependencies().path
-    val mainFileDir = sources().path
+    // val mainFileDir = sources().path
 
-    (PathRef(pythonVenv), PathRef(mainFileDir))
+    PathRef(pythonVenv)
   }
 
   /** Runs the main Python file with specified command-line arguments. */
   def run(args: mill.define.Args) = Task.Command {
 
-    val upstream = Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
-    for (((_, mainFileDir), mod) <- upstream) {
+    val upstream = Task.traverse(moduleDeps)(_.sources)().zip(moduleDeps)
+    for (((mainFileDir), mod) <- upstream) {
       val destinationPath = Task.dest / mod.millSourcePath.subRelativeTo(build.millSourcePath)
       os.copy.over(mainFileDir.path / os.up, destinationPath)
     }
 
     os.call(
       Seq(
-        compile()._1.path.toString,
-        s"${compile()._2.path / mainFileName()}"
+        compile().path.toString,
+        s"${sources().path / mainFileName()}"
       ) ++ args.value,
       env = Map("PYTHONPATH" -> Task.dest.toString),
       stdout = os.Inherit
@@ -167,19 +166,19 @@ trait PythonModule extends Module {
   /** Checks the main Python file using Mypy with specified command-line arguments. */
   def runMyPy(args: mill.define.Args) = Task.Command {
 
-    val upstream = Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
-    for(((_, mainFileDir), mod) <- upstream) {
+    val upstream = Task.traverse(moduleDeps)(_.sources)().zip(moduleDeps)
+    for(((mainFileDir), mod) <- upstream) {
       val destinationPath = Task.dest / mod.millSourcePath.subRelativeTo(build.millSourcePath)
       os.copy.over(mainFileDir.path / os.up, destinationPath)
     }
 
     os.call(
       Seq(
-        compile()._1.path.toString,
+        compile().path.toString,
         "-m",
         "mypy",
         "--strict",
-        s"${compile()._2.path / mainFileName()}"
+        s"${sources().path / mainFileName()}"
       ) ++ args.value,
       env = Map("PYTHONPATH" -> Task.dest.toString),
       stdout = os.Inherit

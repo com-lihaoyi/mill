@@ -14,49 +14,49 @@ import mill._
 
 trait PythonModule extends Module {
 
-  /** Installs pip if it's not already installed. */
-  def installPip: T[PathRef] = Task {
-    val pipFile = Task.dest / "get-pip.py"
-    val pipPath = os.home / ".local" / "bin" / "pip3"
+  // /** Installs pip if it's not already installed. */
+  // def installPip: T[PathRef] = Task {
+  //   val pipFile = Task.dest / "get-pip.py"
+  //   val pipPath = os.home / ".local" / "bin" / "pip3"
 
-    if (!os.exists(pipPath)) {
-      os.call(Seq("wget", "-q", "https://bootstrap.pypa.io/get-pip.py", "-O", s"$pipFile"))
-      os.call(Seq(
-        "python3",
-        s"$pipFile",
-        "--user",
-        "--break-system-packages",
-        "--no-warn-script-location"
-      ))
+  //   if (!os.exists(pipPath)) {
+  //     os.call(Seq("wget", "-q", "https://bootstrap.pypa.io/get-pip.py", "-O", s"$pipFile"))
+  //     os.call(Seq(
+  //       "python3",
+  //       s"$pipFile",
+  //       "--user",
+  //       "--break-system-packages",
+  //       "--no-warn-script-location"
+  //     ))
 
-      os.call(Seq(
-        pipPath.toString,
-        "install",
-        "pip",
-        "--break-system-packages",
-        "--no-warn-script-location"
-      ))
-    } else {
-      println("pip is already installed, skipping installation.")
-    }
-    PathRef(Task.dest)
-  }
+  //     os.call(Seq(
+  //       pipPath.toString,
+  //       "install",
+  //       "pip",
+  //       "--break-system-packages",
+  //       "--no-warn-script-location"
+  //     ))
+  //   } else {
+  //     println("pip is already installed, skipping installation.")
+  //   }
+  //   PathRef(Task.dest)
+  // }
 
   /** Returns the path to the source directory containing Python files. */
   def sources: T[PathRef] = Task.Source(millSourcePath / "src")
 
-  /** Collects and returns all Python source files as PathRefs. */
-  def allSources: T[Seq[PathRef]] = Task {
-    os.walk(sources().path).filter(_.ext == "py").map(PathRef(_))
-  }
+  // /** Collects and returns all Python source files as PathRefs. */
+  // def allSources: T[Seq[PathRef]] = Task {
+  //   os.walk(sources().path).filter(_.ext == "py").map(PathRef(_))
+  // }
 
   /** Compiles the project by installing pip and returning the main file Directory. */
-  def compile: T[PathRef] = Task {
-    installPip()
-    val mainFileDir = sources().path
+  // def compile: T[PathRef] = Task {
+  //   installPip()
+  //   val mainFileDir = sources().path
     
-    PathRef(mainFileDir)
-  }
+  //   PathRef(mainFileDir)
+  // }
   
   /** Returns the name of the main Python file. */
   def mainFileName: T[String] = Task { "main.py" }
@@ -66,7 +66,7 @@ trait PythonModule extends Module {
     os.call(
       Seq(
         "python3",
-        s"${compile().path / mainFileName()}"
+        s"${sources().path / mainFileName()}"
       ) ++ args.value,
       stdout = os.Inherit
     )

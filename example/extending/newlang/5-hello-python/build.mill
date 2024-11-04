@@ -14,32 +14,32 @@
 package build
 import mill._
 
-def installPip: T[PathRef] = Task {
-  val pipFile = Task.dest / "get-pip.py"
-  val pipPath = os.home / ".local" / "bin" / "pip3"
+// def installPip: T[PathRef] = Task {
+//   val pipFile = Task.dest / "get-pip.py"
+//   val pipPath = os.home / ".local" / "bin" / "pip3"
 
-  if (!os.exists(pipPath)) {
-    os.call(Seq("wget", "-q", "https://bootstrap.pypa.io/get-pip.py", "-O", s"$pipFile"))
-    os.call(Seq(
-      "python3",
-      s"$pipFile",
-      "--user",
-      "--break-system-packages",
-      "--no-warn-script-location"
-    ))
+//   if (!os.exists(pipPath)) {
+//     os.call(Seq("wget", "-q", "https://bootstrap.pypa.io/get-pip.py", "-O", s"$pipFile"))
+//     os.call(Seq(
+//       "python3",
+//       s"$pipFile",
+//       "--user",
+//       "--break-system-packages",
+//       "--no-warn-script-location"
+//     ))
 
-    os.call(Seq(
-      pipPath.toString,
-      "install",
-      "pip",
-      "--break-system-packages",
-      "--no-warn-script-location"
-    ))
-  } else {
-    println("pip is already installed, skipping installation.")
-  }
-  PathRef(Task.dest)
-}
+//     os.call(Seq(
+//       pipPath.toString,
+//       "install",
+//       "pip",
+//       "--break-system-packages",
+//       "--no-warn-script-location"
+//     ))
+//   } else {
+//     println("pip is already installed, skipping installation.")
+//   }
+//   PathRef(Task.dest)
+// }
 
 // The `installPip` task ensures the Python package manager `pip` 
 // is available in a user’s environment without requiring admin permissions.
@@ -58,21 +58,21 @@ def installPip: T[PathRef] = Task {
 
 def sources: T[PathRef] = Task.Source(millSourcePath / "src")
 
-def allSources: T[Seq[PathRef]] = Task {
-  os.walk(sources().path).filter(_.ext == "py").map(PathRef(_))
-}
+// def allSources: T[Seq[PathRef]] = Task {
+//   os.walk(sources().path).filter(_.ext == "py").map(PathRef(_))
+// }
 
 // === Compilation
 
 // The `compile` Task  ensures `pip` is installed, retrieves the main file directory, and returns it for further processing.
 // This task is considered as a part of code which is responsible for all compilation of sources and pre-requirements.
 
-def compile: T[PathRef] = Task {
-  installPip()
-  val mainFileDir = sources().path
+// def compile: T[PathRef] = Task {
+//   // installPip()
+//   val mainFileDir = sources().path
   
-  PathRef(mainFileDir)
-}
+//   PathRef(mainFileDir)
+// }
 
 // At this point, we have a minimal working build, with a build graph that looks like this:
 //
@@ -104,7 +104,7 @@ def run(args: mill.define.Args) = Task.Command {
   os.call(
     Seq(
       "python3",
-      s"${compile().path / mainFileName()}"
+      s"${sources().path / mainFileName()}"
     ) ++ args.value,
     stdout = os.Inherit
   )
