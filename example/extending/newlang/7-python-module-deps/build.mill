@@ -135,14 +135,12 @@ trait PythonModule extends Module {
 
     if (finalDependencies().nonEmpty) {
       os.call(Seq(
-        pythonVenv.toString,
-        "-m",
-        "pip",
-        "install"
-      ) ++ finalDependencies() ++ Seq(
-        "--break-system-packages",
-        "--no-warn-script-location"
-      ))
+          pythonVenv.toString,
+          "-m",
+          "pip",
+          "install"
+        ) ++ finalDependencies()
+      )
     }
 
     PathRef(pythonVenv)
