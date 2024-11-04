@@ -19,4 +19,3 @@ object Main {
 object HelloWorld {
   def reverseString(str: CString): CString = extern
 }
-

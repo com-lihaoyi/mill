@@ -4,20 +4,21 @@
 // current `.mill` extension with `package` declaration, so you should use `.mill` whenever
 // possible
 
-
 import mill._, scalalib._
 import $packages._
 import $file.foo.versions
 import $file.util, util.MyModule
 
-object `package` extends RootModule with MyModule{
-  def forkEnv = T{
+object `package` extends RootModule with MyModule {
+  def forkEnv = T {
     Map(
       "MY_SCALA_VERSION" -> build.scalaVersion(),
-      "MY_PROJECT_VERSION" -> versions.myProjectVersion,
+      "MY_PROJECT_VERSION" -> versions.myProjectVersion
     )
   }
 }
+
+// format: off
 /** See Also: util.sc */
 /** See Also: foo/package.sc */
 /** See Also: foo/versions.sc */

@@ -17,4 +17,3 @@ object FooTests extends TestSuite {
     }
   }
 }
-

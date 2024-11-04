@@ -17,4 +17,3 @@ object HelloWorldTest extends TestSuite {
     }
   }
 }
-
