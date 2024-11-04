@@ -21,9 +21,33 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  build-artifacts:
+    # when in master repo, publish all tags and manual runs on main
+    if: github.repository == 'com-lihaoyi/mill'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+
+      - uses: coursier/cache-action@v6
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: temurin
+
+      - run: ./mill -i __.publishArtifacts
+
+      - uses: actions/upload-artifact@v4.4.3
+        with:
+          path: .
+          include-hidden-files: true
+
   publish-sonatype:
     # when in master repo, publish all tags and manual runs on main
     if: github.repository == 'com-lihaoyi/mill'
+    needs: build-artifacts
     runs-on: ubuntu-latest
 
     # only run one publish job for the same sha at the same time
@@ -40,8 +64,9 @@ jobs:
       LC_ALL: "en_US.UTF-8"
 
     steps:
-      - uses: actions/checkout@v4
-        with: {fetch-depth: 0}
+      - uses: actions/download-artifact@v4
+        with:
+          path: .
 
       - uses: coursier/cache-action@v6
 
@@ -50,7 +75,7 @@ jobs:
           java-version: '11'
           distribution: temurin
 
-      - run: ci/release-maven.sh
+      - run: ./mill -i mill.scalalib.PublishModule/
 
   release-github:
     # when in master repo, publish all tags and manual runs on main
@@ -62,8 +87,9 @@ jobs:
       REPO_ACCESS_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
 
     steps:
-      - uses: actions/checkout@v4
-        with: {fetch-depth: 0}
+      - uses: actions/download-artifact@v4
+        with:
+          path: .
 
       - uses: coursier/cache-action@v6
 
@@ -72,4 +98,4 @@ jobs:
           java-version: '11'
           distribution: temurin
 
-      - run: ./mill -i uploadToGithub --authKey $REPO_ACCESS_TOKEN
+      - run: ./mill -i dist.uploadToGithub --authKey $REPO_ACCESS_TOKEN

@@ -220,6 +220,13 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   /** Build target for current compilation */
   def nativeBuildTarget: T[BuildTarget] = Task { BuildTarget.Application }
 
+  /**
+   * Shall be compiled with multithreading support. If equal to `None` the
+   *  toolchain would detect if program uses system threads - when not thrads
+   *  are not used, the program would be linked without multihreading support.
+   */
+  def nativeMultithreading: T[Option[Boolean]] = Task { None }
+
   private def nativeConfig: Task[NativeConfig] = Task.Anon {
     val classpath = runClasspath().map(_.path).filter(_.toIO.exists).toList
 
@@ -240,6 +247,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       nativeEmbedResources(),
       nativeIncrementalCompilation(),
       nativeDump(),
+      nativeMultithreading(),
       toWorkerApi(logLevel()),
       toWorkerApi(nativeBuildTarget())
     ) match {
