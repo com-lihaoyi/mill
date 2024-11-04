@@ -152,4 +152,14 @@ jobs:
     uses: ./.github/workflows/run-mill-action.yml
     with:
       java-version: '11'
-      buildcmd: ./mill -i mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources; ./mill -i __.mimaReportBinaryIssues; ./mill -i __.fix --check
+      buildcmd: |
+      ./mill -i mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources
+      ./mill -i __.mimaReportBinaryIssues
+      ./mill -i __.fix --check
+      ./mill -i __.checkSpotless
+      if [ $? -ne 0 ]; then
+      echo "Spotless check failed. Running reformat..."
+      ./mill -i __.reformat
+      git diff --exit-code || (echo "Formatting changes detected. Please run './mill __.reformat' locally and commit the changes." && exit 1)
+      fi
+

@@ -15,6 +15,7 @@ import mill.util.Jvm
 import mill.resolve.SelectMode
 import mill.T
 import mill.define.Cross
+import mill.scalalib.spotless._
 
 import scala.util.matching.Regex
 
@@ -86,6 +87,12 @@ object Deps {
     val scalanativeUtil = ivy"org.scala-native::util:${scalanativeVersion}"
     val scalanativeNir = ivy"org.scala-native::nir:${scalanativeVersion}"
     val scalanativeTestRunner = ivy"org.scala-native::test-runner:${scalanativeVersion}"
+  }
+
+  object Spotless {
+    val spotlessVersion = "2.28.0"
+    val spotlessLib = ivy"com.diffplug.spotless:spotless-lib:${spotlessVersion}"
+    val spotlessLibExtra = ivy"com.diffplug.spotless:spotless-lib-extra:${spotlessVersion}"
   }
 
   trait Play {
@@ -407,7 +414,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
 /**
  * Some custom scala settings and test convenience
  */
-trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModule { outer =>
+trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModule with SpotlessModule { outer =>
   def scalaVersion = Deps.scalaVersion
   def scalafixScalaBinaryVersion = ZincWorkerUtil.scalaBinaryVersion(scalaVersion())
   def semanticDbVersion = Deps.semanticDBscala.version
@@ -433,7 +440,19 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
   def mandatoryIvyDeps =
     super.mandatoryIvyDeps() ++
       Agg.when(scalaVersion().startsWith("2.13."))(Deps.millModuledefs)
+  
+  def spotlessConfig = T.source {
+    millSourcePath / ".spotless.conf"
+  }
 
+  def spotlessWorker = T.worker { new SpotlessWorker() }
+
+  def spotlessSources = T.sources {
+    Seq(
+      millSourcePath / "src",
+      millSourcePath / "test"
+    )
+  }
   /** Default tests module. */
   lazy val test: MillScalaTests = new MillScalaTests {}
   trait MillScalaTests extends ScalaTests with MillJavaModule with MillBaseTestsModule {
@@ -1036,10 +1055,12 @@ private def resolveTasks[T](taskNames: String*): Seq[NamedTask[T]] = {
 def validate(): Command[Unit] = {
   val tasks = resolveTasks("__.compile", "__.minaReportBinaryIssues")
   val sources = resolveTasks("__.sources")
+  val spotlessTasks = resolveTasks("__.checkSpotless")
 
   Task.Command {
     Task.sequence(tasks)()
     mill.scalalib.scalafmt.ScalafmtModule.checkFormatAll(Tasks(sources))()
+    Task.sequence(spotlessTasks)()
     build.docs.localPages()
     ()
   }
@@ -1053,6 +1074,8 @@ val dummyDeps: Seq[Dep] = Seq(
   Deps.TestDeps.zioTest,
   Deps.acyclic,
   Deps.scalacScoverage2Plugin,
+  Deps.Spotless.spotlessLib,
+  Deps.Spotless.spotlessLibExtra
   ivy"com.lihaoyi:::ammonite:${Deps.ammoniteVersion}"
 ) ++ Deps.transitiveDeps ++ Deps.RuntimeDeps.all
 
