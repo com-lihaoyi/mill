@@ -151,7 +151,7 @@ You can reproduce any of the tests manually using `dist.run`, e.g.
 
 [source,bash]
 ----
-./mill "example.basic[1-simple].local"
+./mill "example.javalib.basic[1-simple].local"
 ----
 
 **Manual Test**
