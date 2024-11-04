@@ -30,22 +30,23 @@ object `package` extends RootModule {
   trait IntegrationTestModule extends Cross.Module[String] {
     def millSourcePath = super.millSourcePath / crossValue
 
-    def moduleDeps = Seq(build.main.test, build.testkit, build.runner)
+//    def moduleDeps = Seq(build.main.test, build.testkit, build.runner)
 
-    def resources: T[Seq[PathRef]]
-    def runClasspath: T[Seq[PathRef]]
-    def localRunClasspath: T[Seq[PathRef]]
-    def forkEnv: T[Map[String, String]]
+//    def resources: T[Seq[PathRef]]
+//    def runClasspath: T[Seq[PathRef]]
+//    def localRunClasspath: T[Seq[PathRef]]
+//    def forkEnv: T[Map[String, String]]
     trait ModeModule extends build.MillBaseTestsModule {
 
       def mode: String = millModuleSegments.parts.last
       def scalaVersion = build.Deps.scalaVersion
 
-      def forkEnv =
-        super.forkEnv() ++
-          IntegrationTestModule.this.forkEnv() ++
-          Map("MILL_INTEGRATION_SERVER_MODE" -> (mode == "local" || mode == "server").toString) ++
-          testReleaseEnv()
+  // FIXME: This looks important
+//      def forkEnv =
+//        super.forkEnv() ++
+//          IntegrationTestModule.this.forkEnv() ++
+//          Map("MILL_INTEGRATION_SERVER_MODE" -> (mode == "local" || mode == "server").toString) ++
+//          testReleaseEnv()
 
       def forkArgs = Task { super.forkArgs() ++ build.dist.forkArgs() }
 
@@ -54,9 +55,9 @@ object `package` extends RootModule {
           T { Map("MILL_INTEGRATION_LAUNCHER" -> build.dist.launcher().path.toString()) }
         else T { Map("MILL_INTEGRATION_LAUNCHER" -> testMill().path.toString()) }
 
-      def resources = IntegrationTestModule.this.resources()
-      def runClasspath = IntegrationTestModule.this.runClasspath()
-      def localRunClasspath = IntegrationTestModule.this.localRunClasspath()
+//      def resources = IntegrationTestModule.this.resources()
+//      def runClasspath = IntegrationTestModule.this.runClasspath()
+//      def localRunClasspath = IntegrationTestModule.this.localRunClasspath()
 
       def compile: T[mill.scalalib.api.CompilationResult] =
         T { mill.scalalib.api.CompilationResult(null, null) } // binary compatibility stub, not used
@@ -73,7 +74,7 @@ object `package` extends RootModule {
       extends Cross[IntegrationCrossModule](build.listIn(millSourcePath / "invalidation"))
   object ide extends Cross[IdeIntegrationCrossModule](build.listIn(millSourcePath / "ide"))
   trait IntegrationCrossModule extends build.MillScalaModule with IntegrationTestModule {
-    override def moduleDeps = super[IntegrationTestModule].moduleDeps
+//    override def moduleDeps = super[IntegrationTestModule].moduleDeps
     def forkEnv = super.forkEnv() ++ Seq(
       "MILL_PROJECT_ROOT" -> T.workspace.toString,
       "TEST_SCALA_2_13_VERSION" -> build.Deps.testScala213Version,
