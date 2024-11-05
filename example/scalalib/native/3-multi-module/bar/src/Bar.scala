@@ -4,9 +4,8 @@ import scala.scalanative.libc._
 import scala.scalanative.unsafe._
 
 object Bar {
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]): Unit = Zone {
     println("Running HelloWorld function")
-    implicit val z: Zone = Zone.open()
     val result = toCString(args(0))
     val barValue = HelloWorldBar.stringLength(result)
     stdio.printf(c"Bar value: Argument length is %i\n", barValue)
