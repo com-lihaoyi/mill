@@ -70,6 +70,12 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
             .flatten
         )
       }
+      // I think this is a bug in sbt-junit-interface. AFAICT, JUnit is not
+      // meant to pick up non-static inner classes as test suites, and doing
+      // so makes the jimfs test suite fail
+      //
+      // https://stackoverflow.com/a/17468590
+      .filter { case (c, f) => !c.isMemberClass && !c.isAnonymousClass }
 
     testClasses
   }
@@ -109,12 +115,6 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
 
     val runner = framework.runner(args.toArray, Array[String](), cl)
     val testClasses = discoverTests(cl, framework, testClassfilePath)
-      // I think this is a bug in sbt-junit-interface. AFAICT, JUnit is not
-      // meant to pick up non-static inner classes as test suites, and doing
-      // so makes the jimfs test suite fail
-      //
-      // https://stackoverflow.com/a/17468590
-      .filter { case (c, f) => !c.isMemberClass }
 
     val tasks = runner.tasks(
       for ((cls, fingerprint) <- testClasses.iterator.toArray if classFilter(cls))
