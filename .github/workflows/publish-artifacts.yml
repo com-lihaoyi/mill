@@ -96,6 +96,8 @@ jobs:
         with:
           path: .
 
+      - run: ls -la .
+
       # Need to fix cached artifact file permissions because github actions screws it up
       # https://github.com/actions/upload-artifact/issues/38
       - name: chmod executable
