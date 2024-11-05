@@ -19,4 +19,4 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - uses: scala-steward-org/scala-steward-action@v2.70.0
+      - uses: scala-steward-org/scala-steward-action@v2.71.0
