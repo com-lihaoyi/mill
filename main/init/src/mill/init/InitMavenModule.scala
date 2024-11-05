@@ -86,10 +86,10 @@ trait InitMavenModule extends TaskModule {
 
       T.log.info("init completed, run \"mill resolve _\" to list available tasks")
     } else {
-      throw InitException(s"$mainClass exit($exit)")
+      throw InitMavenException(s"$mainClass exit($exit)")
     }
   }
 }
 
 @mill.api.experimental
-case class InitException(message: String) extends Exception(message) with NoStackTrace
+case class InitMavenException(message: String) extends Exception(message) with NoStackTrace
