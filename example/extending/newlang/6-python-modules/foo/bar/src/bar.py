@@ -1,6 +1,6 @@
 import sys
 
-def main():
+def main() -> None:
     # Get command-line arguments, skipping the first one (script name)
     args = sys.argv[1:]
 

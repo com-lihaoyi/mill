@@ -56,9 +56,7 @@ include::partial$example/extending/newlang/6-python-modules.adoc[]
 
 include::partial$example/extending/newlang/7-python-module-deps.adoc[]
 
-include::partial$example/extending/newlang/8-python-mypy.adoc[]
-
-include::partial$example/extending/newlang/9-python-pex.adoc[]
+include::partial$example/extending/newlang/8-python-libs-bundle.adoc[]
 
 
 

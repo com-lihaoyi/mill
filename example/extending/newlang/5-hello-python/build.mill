@@ -3,76 +3,87 @@
 // This Example demonstrates integration of https://www.python.org[Python]
 // compilation into a Mill build to compile https://www.python.org[Python] Scripts. Mill
 // does not come bundled with https://www.python.org[Python] integration, so here we begin setting
-// one up from first principles using the Basic `Python3`(Already Present in OS) command Line
+// one up from first principles using the Basic `Python3`(Already Present in OS) command Line.
 
-
-// === Installing Python Pip
+// === Python Setup
 //
-// First, we need to use the `Python3` CLI tool to install `Pip` 
-// using the official https://bootstrap.pypa.io/get-pip.py[get-pip.py] Code:
+// First, we need to use the `Python3` CLI tool to create virtual environment and
+// install `mypy` for Type Checking using the official Python Virtual Environment
+// https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments[Documentation].
+
+// `MyPy` is a static type checker that uses Python `type hints` to enforce `type correctness` and `catch errors` during development.
 
 package build
 import mill._
 
-// def installPip: T[PathRef] = Task {
-//   val pipFile = Task.dest / "get-pip.py"
-//   val pipPath = os.home / ".local" / "bin" / "pip3"
+def createVenv: T[PathRef] = Task {
+  val venvDir = T.dest / "venv"
 
-//   if (!os.exists(pipPath)) {
-//     os.call(Seq("wget", "-q", "https://bootstrap.pypa.io/get-pip.py", "-O", s"$pipFile"))
-//     os.call(Seq(
-//       "python3",
-//       s"$pipFile",
-//       "--user",
-//       "--break-system-packages",
-//       "--no-warn-script-location"
-//     ))
+  os.call(
+    Seq(
+      "python3",
+      "-m",
+      "venv",
+      venvDir.toString
+    )
+  )
 
-//     os.call(Seq(
-//       pipPath.toString,
-//       "install",
-//       "pip",
-//       "--break-system-packages",
-//       "--no-warn-script-location"
-//     ))
-//   } else {
-//     println("pip is already installed, skipping installation.")
-//   }
-//   PathRef(Task.dest)
-// }
+  PathRef(venvDir)
+}
 
-// The `installPip` task ensures the Python package manager `pip` 
-// is available in a user’s environment without requiring admin permissions.
-// It checks if `pip` is already installed in the user’s home directory. If not,
-// it downloads a setup script (`https://bootstrap.pypa.io/get-pip.py[get-pip.py]`) from Python’s official repository,
-// runs it to install `pip` specifically for the user, and updates `pip` to the latest version.
-// This allows Python packages to be managed locally without needing system-level access.
+def setup: T[PathRef] = Task {
+  // creating virtual environment
+  val pythonVenv = createVenv().path / "bin" / "python3"
+  
+  // installing mypy for Type Checking
+  os.call(
+    Seq(
+      pythonVenv.toString,
+      "-m",
+      "pip",
+      "install",
+      "mypy"
+    )
+  )
+  PathRef(pythonVenv)
+}
+
+// The `createVenv` task ensures the Python virtual environment creation process using the official documentaion.
+// After this, we need to install python `mypy` library for Type Checking and Error Checking before actual run of the code, 
+// using the offical https://mypy.readthedocs.io/en/stable[Documentation] for `mypy` 
 
 // === Defining our Sources
 
-// Next, We define the `sources` and `allSources` tasks to help gather Python files for processing. 
-// `sources` sets a base directory for Python source files,
-// while `allSources` searches this directory (and its subdirectories) to collect all `.py` files.
-// Together, they enable easy access to Python files in a project,
+// Next, We define the `sources` task to help gather source files for processing. 
+// `sources` sets a base directory for Python source files and enable easy access to Python files in a project,
 // making it straightforward to retrieve all relevant code files for tasks like building, testing, or analysis.
 
 def sources: T[PathRef] = Task.Source(millSourcePath / "src")
 
-// def allSources: T[Seq[PathRef]] = Task {
-//   os.walk(sources().path).filter(_.ext == "py").map(PathRef(_))
-// }
+// === Type Checking
 
-// === Compilation
+// The `mainFileName` Task provides the name for the main python script file for running and 
+// The `typeCheck` Task  ensures that the python setup is set and Checks the main file for error free code.
+// This task is considered as a part of code which is responsible for Error Checking of the Main Script 
+// and setting up setup for python script runable environment.
 
-// The `compile` Task  ensures `pip` is installed, retrieves the main file directory, and returns it for further processing.
-// This task is considered as a part of code which is responsible for all compilation of sources and pre-requirements.
+def mainFileName: T[String] = Task { "main.py" }
+def typeCheck: T[PathRef] = Task {
+  val pythonVenv = setup().path
 
-// def compile: T[PathRef] = Task {
-//   // installPip()
-//   val mainFileDir = sources().path
-  
-//   PathRef(mainFileDir)
-// }
+  os.call(
+    Seq(
+      pythonVenv.toString,
+      "-m",
+      "mypy",
+      "--strict",
+      s"${sources().path / mainFileName()}"
+    ),
+    stdout = os.Inherit
+  )
+
+  PathRef(pythonVenv)
+}
 
 // At this point, we have a minimal working build, with a build graph that looks like this:
 //
@@ -80,13 +91,14 @@ def sources: T[PathRef] = Task.Source(millSourcePath / "src")
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
-//   installPip -> compile
-//   sources -> compile
+//   createVenv -> setup -> typeCheck
+//   sources -> typeCheck
+//   mainFileName -> typeCheck
 // }
 // ```
 
-// When `compile` task installs pip and gives the path for main file directory
-// then we have `main.py` in this path and running this file will result in either a generic greeting 
+// When `typeCheck` task sets up the Setup for Virtual Environment and checks the main file for error free code 
+// then we have `main.py` and running this file will result in either a generic greeting 
 // or a personalized one based on the command-line arguments passed, allowing for flexible interaction with the user.
 
 /** See Also: src/main.py */
@@ -95,29 +107,32 @@ def sources: T[PathRef] = Task.Source(millSourcePath / "src")
 // === Running
 
 // The `run` function executes the main Python file (`main.py`) and accepts command-line arguments from the user. 
-// It uses `os.call` to run the Python interpreter with the main file's path and any additional arguments.
-// The output is shown in the console, allowing for real-time interaction.
+// It uses `os.call` to run the Python interpreter(from Virtual Environment) with the main file's path 
+// and any additional arguments. The output is shown in the console, allowing for real-time interaction.
   
-def mainFileName: T[String] = Task { "main.py" }
-
 def run(args: mill.define.Args) = Task.Command {
+  val pythonVenv = typeCheck().path
+  
   os.call(
     Seq(
-      "python3",
+      pythonVenv.toString,
       s"${sources().path / mainFileName()}"
     ) ++ args.value,
     stdout = os.Inherit
   )
 }
 
-// Note that we use `stdout = os.Inherit` since we want to display any output to the user, rather than capturing it for use in our command.
+// Note that we use `stdout = os.Inherit` since we want to display any output to the user,
+// rather than capturing it for use in our command.
 
 // ```graphviz
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
-//   installPip -> compile
-//   sources -> compile -> run
+//   createVenv -> setup -> typeCheck -> run
+//   sources -> typeCheck
+//   mainFileName -> typeCheck
+//   sources -> run
 //   mainFileName -> run
 //   mainFileName [color=green, penwidth=3]
 //   run [color=green, penwidth=3]
@@ -127,11 +142,16 @@ def run(args: mill.define.Args) = Task.Command {
 // Running run command will return the result to the console.
 
 /** Usage
- 
+
+> ./mill typeCheck
+Success: no issues found in 1 source file
+
 > ./mill run Mill Python
 Hello, Mill Python!
 
 */
+
+// Uncomment the Result variable line(Line Number:13) in the `src/main.py` code to see `typeCheck` error
 
 // So that's a minimal example of implementing a `Basic Python
 // pipeline` locally. Next, we will look at turning it into a `PythonModule` that

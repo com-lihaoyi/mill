@@ -1,15 +1,26 @@
-from foo.bar.src.bar import pandas_example
-from foo.src.foo import numpy_example
-import requests
+from foo.bar.src.bar import add # type: ignore
+from foo.src.foo import multiply # type: ignore
+import sys
 
-def requests_example():
-    """Example using Requests: Fetch data from a public API."""
-    response = requests.get("https://mill-build.org/mill/")
-    
-    return(f"| Requests Example: Requests is working! ; Status Code={response.status_code}" if response.ok else "Failed to fetch data")
+def divide(a: int, b: int) -> float:
+    """Returns the division of two integers."""
+    if b == 0:
+        raise ValueError("Division by zero is not allowed.")
+    return a / b
 
-def main():
-    print(numpy_example(), pandas_example(), requests_example())
+def main() -> None:
+    if len(sys.argv) != 3:
+        print("Usage: python main.py <num1> <num2>")
+        sys.exit(1)
+
+    try:
+        x = int(sys.argv[1])
+        y = int(sys.argv[2])
+    except ValueError:
+        print("Please provide two integers as input.")
+        sys.exit(1)
+
+    print(f"Add: {x} + {y} = {add(x, y)} | Multiply: {x} * {y} = {multiply(x, y)} | Divide: {x} / {y} = {divide(x, y)}")
 
 if __name__ == "__main__":
     main()

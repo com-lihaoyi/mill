@@ -4,79 +4,94 @@
 
 // ==== Using Same PythonModule for Mutiple Objects
 
-// The PythonModule trait simplifies Python project management within the Mill build tool by providing essential
-// functionalities such as installing pip, managing source files, compiling code, and executing Python scripts.
+// The `PythonModule` trait simplifies Python project management within the `Mill` build tool by providing essential
+// functionalities such as creating `virtual environment`, managing `source files`, `Checking code for Error`, and `executing Python` scripts.
 // It ensures that users have a streamlined workflow by automating the setup of necessary tools 
 // and organizing project files effectively. 
 
 package build
 import mill._
 
+/** PythonModule Trait for Basic Python Pipeline in Mill Build Tool */
 trait PythonModule extends Module {
-
-  // /** Installs pip if it's not already installed. */
-  // def installPip: T[PathRef] = Task {
-  //   val pipFile = Task.dest / "get-pip.py"
-  //   val pipPath = os.home / ".local" / "bin" / "pip3"
-
-  //   if (!os.exists(pipPath)) {
-  //     os.call(Seq("wget", "-q", "https://bootstrap.pypa.io/get-pip.py", "-O", s"$pipFile"))
-  //     os.call(Seq(
-  //       "python3",
-  //       s"$pipFile",
-  //       "--user",
-  //       "--break-system-packages",
-  //       "--no-warn-script-location"
-  //     ))
-
-  //     os.call(Seq(
-  //       pipPath.toString,
-  //       "install",
-  //       "pip",
-  //       "--break-system-packages",
-  //       "--no-warn-script-location"
-  //     ))
-  //   } else {
-  //     println("pip is already installed, skipping installation.")
-  //   }
-  //   PathRef(Task.dest)
-  // }
-
+  
   /** Returns the path to the source directory containing Python files. */
   def sources: T[PathRef] = Task.Source(millSourcePath / "src")
 
-  // /** Collects and returns all Python source files as PathRefs. */
-  // def allSources: T[Seq[PathRef]] = Task {
-  //   os.walk(sources().path).filter(_.ext == "py").map(PathRef(_))
-  // }
-
-  /** Compiles the project by installing pip and returning the main file Directory. */
-  // def compile: T[PathRef] = Task {
-  //   installPip()
-  //   val mainFileDir = sources().path
-    
-  //   PathRef(mainFileDir)
-  // }
-  
   /** Returns the name of the main Python file. */
   def mainFileName: T[String] = Task { "main.py" }
-  
-  /** Runs the compiled main Python file with optional command-line arguments. */
-  def run(args: mill.define.Args) = Task.Command {
+
+  /** Creates a virtual environment using the installed Python version. */
+  def createVenv: T[PathRef] = Task {
+    val venvDir = T.dest / "venv"
+
     os.call(
       Seq(
         "python3",
+        "-m",
+        "venv",
+        venvDir.toString
+      )
+    )
+
+    PathRef(venvDir)
+  }
+
+  /** This minimal setup provide basic Virtual Environment and Type Checking. */
+  def setup: T[PathRef] = Task {
+    // creating virtual environment
+    val pythonVenv = createVenv().path / "bin" / "python3"
+    
+    // installing mypy for Type Checking
+    os.call(
+      Seq(
+        pythonVenv.toString,
+        "-m",
+        "pip",
+        "install",
+        "mypy"
+      )
+    )
+    PathRef(pythonVenv)
+  }
+
+  /** Creates Virtual env and check main file. */
+  def typeCheck: T[PathRef] = Task {
+    val pythonVenv = setup().path
+
+    os.call(
+      Seq(
+        pythonVenv.toString,
+        "-m",
+        "mypy",
+        "--strict",
+        s"${sources().path / mainFileName()}"
+      ),
+      stdout = os.Inherit
+    )
+
+    PathRef(pythonVenv)
+  }
+
+  /** Runs the checked main Python file with given command-line arguments. */
+  def run(args: mill.define.Args) = Task.Command {
+    val pythonVenv = typeCheck().path
+    
+    os.call(
+      Seq(
+        pythonVenv.toString,
         s"${sources().path / mainFileName()}"
       ) ++ args.value,
       stdout = os.Inherit
     )
-  }
+  } 
+  
 }
 
 // ==== Example
 
-// The script defines three key objects that extend the `PythonModule` trait, each object encapsulating a distinct runtime configuration.
-// By allowing objects like foo, bar, and qux to extend the PythonModule, it promotes code reuse and modular design, 
+// The script defines three key `objects` that extend the `PythonModule` trait, each object encapsulating a distinct runtime configuration.
+// By allowing objects like `foo`, `bar`, and `qux` to extend the `PythonModule`, it promotes code reuse and modular design, 
 // enabling easy access to common functionalities while facilitating customization for specific needs.
 
 object foo extends PythonModule{
@@ -114,7 +129,7 @@ Hello, Mill Qux!
 
 */
 
-// The Final minimal working build, with a build graph that looks like this:
+// The Final working build, with a build graph that looks like this:
 
 // ```graphviz
 // digraph G {
@@ -123,25 +138,31 @@ Hello, Mill Qux!
 //   subgraph cluster_3 {
 //     style=dashed
 //     label=qux
-//     "qux.installPip" -> "qux.compile"
-//     "qux.sources" -> "qux.compile" -> "qux.run"
+//     "qux.createVenv" -> "qux.setup" -> "qux.typeCheck" -> "qux.run"
+//     "qux.sources" -> "qux.typeCheck"
+//     "qux.mainFileName" -> "qux.typeCheck"
+//     "qux.sources" -> "qux.run"
 //     "qux.mainFileName" -> "qux.run"
 //   }
 //   subgraph cluster_1 {
 //     subgraph cluster_2 {
 //       style=dashed
 //       label=bar
-//       "bar.installPip" -> "bar.compile"
-//       "bar.sources" -> "bar.compile" -> "bar.run"
-//       "bar.mainFileName" ->  "bar.run"
+//       "bar.createVenv" -> "bar.setup" -> "bar.typeCheck" -> "bar.run"
+//       "bar.sources" -> "bar.typeCheck"
+//       "bar.mainFileName" -> "bar.typeCheck"
+//       "bar.sources" -> "bar.run"
+//       "bar.mainFileName" -> "bar.run"
 //     }
 //     style=dashed
 //     label=foo
-//     "foo.installPip" -> "foo.compile"
-//     "foo.sources" -> "foo.compile" -> "foo.run"
+//     "foo.createVenv" -> "foo.setup" -> "foo.typeCheck" -> "foo.run"
+//     "foo.sources" -> "foo.typeCheck"
+//     "foo.mainFileName" -> "foo.typeCheck"
+//     "foo.sources" -> "foo.run"
 //     "foo.mainFileName" -> "foo.run"
 //   }
 // }
 // ```
 
-// Next, we will look at how to Create Virtual Environment and Install Module Dependencies.
+// Next, we will look at how to Manage `Module Dependencies` for `Python` Using `Mill`.

@@ -1,155 +1,86 @@
-// == PythonModule moduleDeps, virtualEnv & libraryDeps
-// This example demonstrates the support for Module dependencies, virtual environment & Library Dependencies
+// == PythonModule moduleDeps
+// This example demonstrates the support for Module dependencies
 // in Python projects by extending the `PythonModule` trait further.
-// This approach is particularly useful for projects that need dynamic dependency handling and isolated environments for each module.
+// This approach is particularly useful for projects that need
+// dynamic dependency handling and isolated environments for each module.
 
 // ==== Extending `PythonModule` Trait 
 
-// The `PythonModule` trait now provides tasks for moduleDeps Support, creating virtual environments,
-// installing dependencies, and managing the execution context of Python files. 
+// The `PythonModule` trait now provides tasks for moduleDeps Support, managing the execution context of Python files. 
 
-// 1. def `moduleDeps` Task is used to allow different `PythonModules` to depend on each other, 
-//    and we use `Task.traverse` to combine the `upstream dependencies` for installation in `compile`,
-//    and compiled the `upstream modules` for use in `run` Task
-
-// 2. def `createVenv` Task creates the python `virtual environment` for creating isolated Environments
-//    for installing multiple library dependencies required for running python files successfully.
-//    Furthermore, it provides `activateVenv` Task to activate the virtual environment for further processing.
-
-// 3. def `installDependencies` Task installs the dependencies in the activated virtual environment 
-//    and these dependencies can be managed in two ways:
-//
-//    - Inline dependencies in the Mill build script (e.g., `requests` in this example).
-//      This can be done using `dependencies` Task.
-//    - External dependencies listed in a `requirements.txt` file, such as `numpy` and `pandas`.
-//      This can be done using the `requirementsDependencies` Task.
+// - def `moduleDeps` Task is used to allow different `PythonModules` to depend on each other, 
+//   and we use `Task.traverse` to combine the `upstream dependencies` for setup in `typeCheck`,
+//   and checked the `upstream modules` for use in `run` Task and gathered source files from upstream
+//   for running main file
 
 package build
 import mill._
 
 /**
- * A trait for managing Python environments and dependencies in a Mill build.
+ * PythonModule trait Extended for ModuleDeps Support with full setup in a Mill build.
  */
 trait PythonModule extends Module {
 
   /** List of module dependencies required by this module. */
   def moduleDeps: Seq[PythonModule] = Nil
 
-  /** Specifies dependencies to install in the virtual environment. */
-  def dependencies: T[Seq[String]] = Task { Seq.empty[String] }
-
-  /** Specifies the name of the virtual environment directory. */
-  def venvName: T[String] = Task { "venv" }
-
-  /** Specifies the name of the main Python file. */
-  def mainFileName: T[String] = Task { "main.py" }
-
-  /** Defines the path to the sources directory. */
+  /** Returns the path to the source directory containing Python files. */
   def sources: T[PathRef] = Task.Source(millSourcePath / "src")
 
-  // /** Collects all Python source files from the sources directory. */
-  // def allSources: T[Seq[PathRef]] = Task {
-  //   os.walk(sources().path).filter(_.ext == "py").map(PathRef(_))
-  // }
-
-  /** Path to the requirements file, configurable by the user. */
-  def requirementsPath: T[PathRef] = Task.Source(millSourcePath / "requirements.txt")
-
-  /** Reads dependencies from the specified requirements file. */
-  def requirementsDependencies: T[Seq[String]] = Task {
-    val reqFile = requirementsPath().path
-    if (os.exists(reqFile)) {
-      os.read.lines(reqFile).map(_.trim).filter(_.nonEmpty)
-    } else {
-      Seq.empty[String]
-    }
-  }
-
-  // /** Installs pip using a downloaded script. */
-  // def installPip: T[Unit] = Task {
-  //   val pipFile = T.dest / "get-pip.py"
-  //   val pipPath = os.home / ".local" / "bin" / "pip3"
-
-  //   if (!os.exists(pipPath)) {
-  //     os.call(Seq("wget", "-q", "https://bootstrap.pypa.io/get-pip.py", "-O", s"$pipFile"))
-  //     os.call(Seq(
-  //       "python3",
-  //       s"$pipFile",
-  //       "--user",
-  //       "--break-system-packages",
-  //       "--no-warn-script-location"
-  //     ))
-
-  //     os.call(Seq(
-  //       pipPath.toString,
-  //       "install",
-  //       "pip",
-  //       "--break-system-packages",
-  //       "--no-warn-script-location"
-  //     ))
-  //   } else {
-  //     println("pip is already installed, skipping installation.")
-  //   }
-  // }
+  /** Returns the name of the main Python file. */
+  def mainFileName: T[String] = Task { "main.py" }
 
   /** Creates a virtual environment using the installed Python version. */
   def createVenv: T[PathRef] = Task {
-    // installPip()
-    val venvDir = T.dest / venvName()
+    val venvDir = T.dest / "venv"
 
-    // os.call(Seq(
-    //   "python3",
-    //   "-m",
-    //   "pip",
-    //   "install",
-    //   "virtualenv",
-    //   "--break-system-packages",
-    //   "--no-warn-script-location"
-    // ))
-    os.call(Seq("python3", "-m", "venv", venvDir.toString))
+    os.call(
+      Seq(
+        "python3",
+        "-m",
+        "venv",
+        venvDir.toString
+      )
+    )
 
     PathRef(venvDir)
   }
 
-  // /** Activates the created virtual environment. */
-  // def activateVenv: T[PathRef] = Task {
-  //   val venvBin = createVenv().path / "bin"
-  //   os.call(Seq("bash", "-c", s"source ${venvBin / "activate"}"))
-  //   PathRef(venvBin)
-  // }
-
-  /** Collects all dependencies for installation, including requirements and module dependencies. */
-  def finalDependencies: T[Seq[String]] = Task {
-
-    val upstreamDependencies = Task.traverse(moduleDeps)(_.finalDependencies)()
-
-    (dependencies().map(_.toString) ++ requirementsDependencies().map(
-      _.toString
-    ) ++ upstreamDependencies.flatten.map(_.toString)).distinct
-
-  }
-
-  /** Installs specified dependencies in the virtual environment. */
-  def installDependencies: T[PathRef] = Task {
+  /** This minimal setup provide basic Virtual Environment and Type Checking. */
+  def setup: T[PathRef] = Task {
+    // creating virtual environment
     val pythonVenv = createVenv().path / "bin" / "python3"
-
-    if (finalDependencies().nonEmpty) {
-      os.call(Seq(
-          pythonVenv.toString,
-          "-m",
-          "pip",
-          "install"
-        ) ++ finalDependencies()
+    
+    // installing mypy for Type Checking
+    os.call(
+      Seq(
+        pythonVenv.toString,
+        "-m",
+        "pip",
+        "install",
+        "mypy"
       )
-    }
-
+    )
     PathRef(pythonVenv)
   }
 
-  /** Compile installs dependencies in virtual environment. */
-  def compile: T[PathRef] = Task {
-    val pythonVenv = installDependencies().path
-    // val mainFileDir = sources().path
+  /** Creates Virtual env and check main file. */
+  def typeCheck: T[PathRef] = Task {
+    // Checks upstream modules for error free code
+    val upstreamTypeCheck = Task.traverse(moduleDeps)(_.typeCheck)()
+
+    val pythonVenv = setup().path
+
+    os.call(
+      Seq(
+        pythonVenv.toString,
+        "-m",
+        "mypy",
+        "--strict",
+        s"${sources().path / mainFileName()}"
+      ),
+      stdout = os.Inherit
+    )
 
     PathRef(pythonVenv)
   }
@@ -158,14 +89,17 @@ trait PythonModule extends Module {
   def run(args: mill.define.Args) = Task.Command {
 
     val upstream = Task.traverse(moduleDeps)(_.sources)().zip(moduleDeps)
-    for (((mainFileDir), mod) <- upstream) {
+
+    for (((sourcesFolder), mod) <- upstream) {
       val destinationPath = Task.dest / mod.millSourcePath.subRelativeTo(build.millSourcePath)
-      os.copy.over(mainFileDir.path / os.up, destinationPath)
+      os.copy.over(sourcesFolder.path / os.up, destinationPath)
     }
+
+    val pythonVenv = typeCheck().path
 
     os.call(
       Seq(
-        compile().path.toString,
+        pythonVenv.toString,
         s"${sources().path / mainFileName()}"
       ) ++ args.value,
       env = Map("PYTHONPATH" -> Task.dest.toString),
@@ -174,10 +108,9 @@ trait PythonModule extends Module {
   }
 
 }
-// Note the use of `Task.traverse(moduleDeps)` in order to aggregate the `compile`
-// output of the upstream modules, which is necessary both to configure the `Virtual Environment`
-// and installing the `dependencies` from the upstream and main module finally it compiles individual
-// modules and give results for further processing in `run` Task
+// Note the use of `Task.traverse(moduleDeps)` in order to aggregate the `typeCheck`
+// output of the upstream modules, which is necessary before running any code, finally 
+// it gathers upstream modules `sources` for further processing in `run` Task
 //
 // ==== Example
 // 
@@ -188,9 +121,6 @@ object foo extends PythonModule{
   override def mainFileName: T[String] = Task { "foo.py" }
   object bar extends PythonModule{
       override def mainFileName: T[String] = Task { "bar.py" }
-
-    // foo and bar object dependencies are given 
-    // in their respective requirements.txt
   }
 }
 
@@ -198,35 +128,29 @@ object qux extends PythonModule{
 
   override def mainFileName: T[String] = Task { "qux.py" }
 
-  // To show both requirements.txt and inline dependencies
-  // we used inline dependency here and requirements.txt in above foo and bar object
-  override def dependencies: T[Seq[String]] = Task{ Seq[String]("requests") }
-
   def moduleDeps: Seq[PythonModule] = Seq[PythonModule](foo, foo.bar)
 
 }
 // Below are the Files from Source Folders
 
 /** See Also: foo/src/foo.py */
-/** See Also: foo/requirements.txt */
 /** See Also: foo/bar/src/bar.py */
-/** See Also: foo/bar/requirements.txt */
 /** See Also: qux/src/qux.py */
 
-// User can also mention particular versions of the dependencies as per the rules of requirements.txt
+// See, How we have imported the other files(foo.py & bar.py) functions in `qux.py` file
 
 // To run this build script, use the following command. 
 
 /** Usage
 
-> ./mill qux.run
-NumPy Example: Array: [1 2 3 4 5] ; Mean: 3.0 ; Sum: 15 | Pandas Example: Average Age: 26.0 ; Cities: ['New York' 'Los Angeles' 'Chicago'] | Requests Example: Requests is working! ; Status Code=200
+> ./mill qux.run 10 20
+Add: 10 + 20 = 30 | Multiply: 10 * 20 = 200 | Divide: 10 / 20 = 0.5
 
 */
 
 // The dependency graph of tasks now looks like this, with the output of
-// `foo.compile` and `bar.compile` now being fed into `qux.compile` (and
-// ultimately `qux.run`):
+// (`foo.typeCheck` & `foo.sources`) and (`bar.typeCheck` & `bar.sources`)
+//  now being fed into `qux.typeCheck` and ultimately `qux.run`:
 //
 // ```graphviz
 // digraph G {
@@ -235,25 +159,33 @@ NumPy Example: Array: [1 2 3 4 5] ; Mean: 3.0 ; Sum: 15 | Pandas Example: Averag
 //   subgraph cluster_3 {
 //     style=dashed
 //     label=qux
-//     "qux.installPip" -> "qux.compile"
-//     "qux.sources" -> "qux.compile" -> "qux.run"
+//     "qux.createVenv" -> "qux.setup" -> "qux.typeCheck" -> "qux.run"
+//     "qux.sources" -> "qux.typeCheck"
+//     "qux.mainFileName" -> "qux.typeCheck"
+//     "qux.sources" -> "qux.run"
 //     "qux.mainFileName" -> "qux.run"
 //   }
 //   subgraph cluster_1 {
 //     subgraph cluster_2 {
 //       style=dashed
 //       label=bar
-//       "bar.installPip" -> "bar.compile"
-//       "bar.sources" -> "bar.compile" -> "bar.run"
+//       "bar.createVenv" -> "bar.setup" -> "bar.typeCheck" -> "bar.run"
+//       "bar.sources" -> "bar.typeCheck"
+//       "bar.mainFileName" -> "bar.typeCheck"
+//       "bar.sources" -> "bar.run"
 //       "bar.mainFileName" -> "bar.run"
 //     }
 //     style=dashed
 //     label=foo
-//     "foo.installPip" -> "foo.compile"
-//     "foo.sources" -> "foo.compile" -> "foo.run"
+//     "foo.createVenv" -> "foo.setup" -> "foo.typeCheck" -> "foo.run"
+//     "foo.sources" -> "foo.typeCheck"
+//     "foo.mainFileName" -> "foo.typeCheck"
+//     "foo.sources" -> "foo.run"
 //     "foo.mainFileName" -> "foo.run"
 //   }
-//   "bar.compile" -> "qux.compile"  [color=green, penwidth=3]
-//   "foo.compile" -> "qux.compile"  [color=green, penwidth=3]
+//   "bar.typeCheck" -> "qux.typeCheck"  [color=green, penwidth=3]
+//   "bar.sources" -> "qux.run"  [color=green, penwidth=3]
+//   "foo.typeCheck" -> "qux.typeCheck"  [color=green, penwidth=3]
+//   "foo.sources" -> "qux.run"  [color=green, penwidth=3]
 // }
 // ```
