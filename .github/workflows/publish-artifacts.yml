@@ -43,6 +43,7 @@ jobs:
         with:
           path: .
           include-hidden-files: true
+          name: publish-artifacts
 
   publish-sonatype:
     # when in master repo, publish all tags and manual runs on main
@@ -67,6 +68,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: .
+          name: publish-artifacts
 
       - run: ls -la .
 
@@ -97,6 +99,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: .
+          name: publish-artifacts
 
       - run: ls -la .
 
