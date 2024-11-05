@@ -19,6 +19,10 @@ include::partial$example/javalib/linting/2-checkstyle.adoc[]
 
 include::partial$example/javalib/linting/3-palantirformat.adoc[]
 
+== Java Linting with Spotless
+
+include::partial$example/javalib/linting/4-spotless.adoc[]
+
 == Code Coverage with Jacoco
 
 Mill supports Java code coverage analysis via the mill-jacoco plugin. See the

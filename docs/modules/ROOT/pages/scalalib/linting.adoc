@@ -30,6 +30,10 @@ include::partial$example/scalalib/linting/1-scalafmt.adoc[]
 
 include::partial$example/scalalib/linting/2-contrib-scoverage.adoc[]
 
+== Scala Linting with Spotless
+
+include::partial$example/scalalib/linting/4-spotless.adoc[]
+
 Mill supports Scala code coverage analysis via the Scoverage contrib plugin. See the
 contrib plugin documentation for more details:
 

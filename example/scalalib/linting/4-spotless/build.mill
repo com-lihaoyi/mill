@@ -1,0 +1,64 @@
+package build
+
+import mill._, scalalib._
+import mill.scalalib.spotless.SpotlessModule // Import the SpotlessModule
+
+object `package` extends RootModule with ScalaModule with SpotlessModule {
+  def scalaVersion = "2.13.11"
+}
+
+/** See Also: .spotless.conf */
+
+// Mill supports code formatting via https://github.com/diffplug/spotless[Spotless].
+// You can reformat your project's code globally with `mill mill.scalalib.spotless.SpotlessModule/` command,
+// or only check the code's format with `+mill mill.scalalib.spotless.SpotlessModule/checkFormat`.
+
+/** Usage
+
+> cat src/spotlessExample.scala # initial poorly formatted source code
+package spotlessExample
+object SpotlessExample{
+def main(args:
+Array[String
+]
+):Unit=
+{println("hello world")
+}
+}
+
+> mill mill.scalalib.spotless.SpotlessModule/checkFormat
+error: ...Found 1 misformatted files
+
+> mill mill.scalalib.spotless.SpotlessModule/
+
+> cat src/SpotlessExample.scala
+package spotlessExample
+object SpotlessExample {
+  def main(args: Array[String]): Unit = { println("hello world") }
+}
+
+> mill mill.scalalib.spotless.SpotlessModule/checkFormat
+Everything is formatted already
+
+*/
+
+// You can modify `.spotless.conf` to adjust the formatting as desired:
+
+/** Usage
+> echo "java { googleJavaFormat() }" >> .spotless.conf
+
+> mill mill.scalalib.spotless.SpotlessModule/
+
+> cat src/SpotlessExample.scala
+package spotlessExample
+object SpotlessExample {
+  def main(args: Array[String]): Unit = {
+    println("hello world")
+  }
+}
+*/
+
+// If entering the long fully-qualified module name `mill.scalalib.spotless.SpotlessModule/`
+// is tedious, you can add
+// an xref:fundamentals/modules.adoc#_aliasing_external_modules[External Module Alias]
+// to give it a shorter name that's easier to type
