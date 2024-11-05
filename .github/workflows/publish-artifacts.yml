@@ -68,6 +68,11 @@ jobs:
         with:
           path: .
 
+      # Need to fix cached artifact file permissions because github actions screws it up
+      # https://github.com/actions/upload-artifact/issues/38
+      - name: chmod executable
+        run: "chmod +x ./mill"
+
       - uses: coursier/cache-action@v6
 
       - uses: actions/setup-java@v4
@@ -90,6 +95,11 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: .
+
+      # Need to fix cached artifact file permissions because github actions screws it up
+      # https://github.com/actions/upload-artifact/issues/38
+      - name: chmod executable
+        run: "chmod +x ./mill"
 
       - uses: coursier/cache-action@v6
 
