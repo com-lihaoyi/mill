@@ -501,7 +501,7 @@ trait MainModule extends BaseModule0 {
         if (os.exists(os.pwd / "pom.xml"))
           RunScript.evaluateTasksNamed(
             evaluator,
-            Seq("mill.init.maven.InitModule/init") ++ args,
+            Seq("mill.init.InitMavenModule/init") ++ args,
             SelectMode.Separated
           )
         else if (args.headOption.exists(_.toLowerCase.endsWith(".g8")))

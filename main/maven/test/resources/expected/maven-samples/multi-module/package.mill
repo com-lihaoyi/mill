@@ -1,0 +1,26 @@
+package build.`multi-module`
+import mill._
+import mill.javalib._
+import mill.javalib.publish._
+import $file.BaseMavenModule
+
+
+object `package` extends RootModule with BaseMavenModule {
+override def artifactName = "multi-module-parent"
+override def pomPackagingType = "pom"
+
+override def javacOptions = Seq("-source","1.6","-target","1.6")
+
+
+
+
+
+
+
+
+
+
+
+
+
+}

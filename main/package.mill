@@ -149,5 +149,17 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
     def ivyDeps = Agg(build.Deps.jgraphtCore) ++ build.Deps.graphvizJava ++ build.Deps.javet
   }
 
+  object maven extends build.MillPublishScalaModule {
+    def moduleDeps = Seq(build.runner)
+    def ivyDeps = Agg(
+      build.Deps.mavenEmbedder,
+      build.Deps.mavenResolverConnectorBasic,
+      build.Deps.mavenResolverSupplier,
+      build.Deps.mavenResolverTransportFile,
+      build.Deps.mavenResolverTransportHttp,
+      build.Deps.mavenResolverTransportWagon
+    )
+  }
+
   def testModuleDeps = super.testModuleDeps ++ Seq(build.testkit)
 }

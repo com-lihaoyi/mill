@@ -1,0 +1,29 @@
+package build.webapp
+import mill._
+import mill.javalib._
+import mill.javalib.publish._
+import $file.BaseMavenModule
+
+
+object `package` extends RootModule with BaseMavenModule {
+
+override def pomPackagingType = "war"
+override def pomParentProject = Some(Artifact("com.example.maven-samples", "multi-module-parent", "1.0-SNAPSHOT"))
+override def javacOptions = Seq("-source","1.6","-target","1.6")
+
+
+
+override def moduleDeps = Seq(build.server)
+
+override def compileIvyDeps = Agg(ivy"javax.servlet.jsp:jsp-api:2.2",ivy"javax.servlet:servlet-api:2.5")
+
+
+
+
+
+override def pomSettings = PomSettings("Webapp.", "com.example.maven-samples", "http://www.example.com/webapp", Seq(), VersionControl(Some("http://github.com/gabrielf/maven-samples/webapp"), Some("scm:git:git@github.com:gabrielf/maven-samples.git/webapp"), Some("scm:git:git@github.com:gabrielf/maven-samples.git/webapp"), Some("HEAD")), Seq())
+override def publishVersion = "1.0-SNAPSHOT"
+
+
+
+}

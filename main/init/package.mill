@@ -5,16 +5,7 @@ import scala.util.matching.Regex
 
 object `package` extends RootModule with build.MillPublishScalaModule {
 
-  def ivyDeps = Agg(
-    build.Deps.mavenEmbedder,
-    build.Deps.mavenResolverConnectorBasic,
-    build.Deps.mavenResolverSupplier,
-    build.Deps.mavenResolverTransportFile,
-    build.Deps.mavenResolverTransportHttp,
-    build.Deps.mavenResolverTransportWagon
-  )
-
-  def moduleDeps = Seq(build.main)
+  def moduleDeps = Seq(build.main, build.scalalib)
 
   override def resources = Task {
     super.resources() ++ Seq(exampleList())
