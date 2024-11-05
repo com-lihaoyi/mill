@@ -6,17 +6,16 @@ import mainargs.{main, ParserForMethods}
 
 object Foo {
   
-  def generateHtml(text: String): CString = {
+  def generateHtml(text: String) (using Zone) = {
     val html = "<h1>" + text + "</h1>\n"
 
-    implicit val z: Zone = Zone.open()
     val cResult = toCString(html)
     cResult
   
   }
 
   @main
-  def main(text: String) = {
+  def main(text: String) = Zone {
     stdio.printf(generateHtml(text))
   }
 
