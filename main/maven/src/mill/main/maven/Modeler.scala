@@ -1,7 +1,11 @@
 package mill.main.maven
 
 import org.apache.maven.model.Model
-import org.apache.maven.model.building.{DefaultModelBuilderFactory, DefaultModelBuildingRequest, ModelBuilder}
+import org.apache.maven.model.building.{
+  DefaultModelBuilderFactory,
+  DefaultModelBuildingRequest,
+  ModelBuilder
+}
 import org.apache.maven.model.resolution.ModelResolver
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils
 import org.eclipse.aether.DefaultRepositoryCache
