@@ -29,6 +29,7 @@ public class MillProcessLauncher {
         l.addAll(millLaunchJvmCommand(setJnaNoSys));
         l.add("mill.runner.MillMain");
         l.add(processDir.toAbsolutePath().toString());
+        l.addAll(Util.readOptsFileLines(millOptsFile()));
         l.addAll(Arrays.asList(args));
 
         final ProcessBuilder builder = new ProcessBuilder()
@@ -87,6 +88,14 @@ public class MillProcessLauncher {
         String millJvmOptsPath = System.getenv(EnvVars.MILL_JVM_OPTS_PATH);
         if (millJvmOptsPath == null || millJvmOptsPath.trim().equals("")) {
             millJvmOptsPath = ".mill-jvm-opts";
+        }
+        return new File(millJvmOptsPath).getAbsoluteFile();
+    }
+
+    static File millOptsFile() {
+        String millJvmOptsPath = System.getenv(EnvVars.MILL_OPTS_PATH);
+        if (millJvmOptsPath == null || millJvmOptsPath.trim().equals("")) {
+            millJvmOptsPath = ".mill-opts";
         }
         return new File(millJvmOptsPath).getAbsoluteFile();
     }

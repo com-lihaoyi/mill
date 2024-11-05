@@ -26,7 +26,11 @@ object foo extends ScalaModule {
 // that you have some version of the JVM installed; the `./mill` script takes
 // care of any further dependencies that need to be downloaded. All examples
 // in this documentation site are executable and are continually exercised as 
-// part of Mill's CI workflows.
+// part of Mill's CI workflows, and they range from the simple hello-world
+// projects on this page to more sophisticated
+// xref:{language-small}lib/web-examples.adoc[web build examples] or
+// xref:{language-small}lib/build-examples.adoc[example
+// builds for real-world projects]
 //
 // The source code for this module lives in the `src/` folder.
 // Output for this module (compiled files, resolved dependency lists, ...)
@@ -139,6 +143,8 @@ error: Missing argument: --text <str>
 // $ mill -i console    # start a Scala console within your project
 //
 // $ mill -i repl       # start an Ammonite Scala REPL within your project
+//
+// $ mill -w compile    # watch input files and re-compile whenever a file changes
 // ----
 //
 // You can run `+mill resolve __+` to see a full list of the different tasks that
@@ -151,3 +157,8 @@ error: Missing argument: --text <str>
 // re-evaluate unless one of their inputs changes, whereas commands re-run every
 // time. See the documentation for xref:fundamentals/tasks.adoc[Tasks] for
 // details on the different task types.
+//
+// Mill build files are xref:depth/why-scala.adoc[written in Scala], but you do not need
+// to have prior experience in Scala to read or write them. Like Gradle Groovy or Maven
+// XML, anyone can learn enough Scala for Mill without needing to become an expert in
+// the language.

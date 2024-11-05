@@ -13,7 +13,7 @@ import scala.collection.mutable
  * @param ivyDeps
  * @param importGraphEdges
  * @param errors
- * @param millImport If `true`, a meta-build is enabled
+ * @param metaBuild If `true`, a meta-build is enabled
  */
 @internal
 case class FileImportGraph(
@@ -21,7 +21,8 @@ case class FileImportGraph(
     repos: Seq[(String, os.Path)],
     ivyDeps: Set[String],
     errors: Seq[String],
-    millImport: Boolean
+    metaBuild: Boolean,
+    buildFile: String
 )
 
 /**
@@ -30,9 +31,59 @@ case class FileImportGraph(
  */
 @internal
 object FileImportGraph {
+
+  val alphaKeywords: Set[String] = Set(
+    "abstract",
+    "case",
+    "catch",
+    "class",
+    "def",
+    "do",
+    "else",
+    "enum",
+    "export",
+    "extends",
+    "false",
+    "final",
+    "finally",
+    "forSome",
+    "for",
+    "given",
+    "if",
+    "implicit",
+    "import",
+    "lazy",
+    "match",
+    "new",
+    "null",
+    "object",
+    "override",
+    "package",
+    "private",
+    "protected",
+    "return",
+    "sealed",
+    "super",
+    "then",
+    "this",
+    "throw",
+    "trait",
+    "try",
+    "true",
+    "type",
+    "val",
+    "var",
+    "while",
+    "with",
+    "yield",
+    "_",
+    "macro"
+  )
+
   def backtickWrap(s: String): String = s match {
     case s"`$v`" => s
-    case _ => if (encode(s) == s) s else "`" + s + "`"
+    case _ => if (encode(s) == s && !alphaKeywords.contains(s)) s
+      else "`" + s + "`"
   }
 
   import mill.api.JsonFormatters.pathReadWrite
@@ -215,7 +266,8 @@ object FileImportGraph {
       seenRepo.toSeq,
       seenIvy.toSet,
       errors.toSeq,
-      millImport
+      millImport,
+      foundRootBuildFileName
     )
   }
 

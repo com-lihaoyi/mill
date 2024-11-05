@@ -3,6 +3,29 @@
 
 include::partial$gtag-config.adoc[]
 
+Compared to SBT,
+
+* **Mill makes customizing the build yourself much easier**: most of what build tools
+do work with files and call subprocesses, and Mill makes doing that yourself easy.
+This means you can always make your Mill build do exactly what you want, and are not
+beholden to third-party plugins that may not meet your exact needs or interact well
+with each other.
+
+* **Mill is much more performant**: SBT has enough overhead that even a dozen
+subprojects is enough to slow it down, while Mill can handle hundreds of modules without issue.
+Custom tasks in SBT re-execute every time, whereas in Mill they are cached automatically.
+Mill's watch-for-changes-and-re-run implementation has much lower latency than SBT's. The
+list of ways Mill improves upon SBT's performance is long, and at the command line you
+can really feel it
+
+* **Mill builds are much easier to understand**: Your Mill build is made of bog-standard
+``object``s and ``def``s, rather than SBT's
+https://eed3si9n.com/4th-dimension-with-sbt-013/[four-dimensional task matrix]. Your IDE's
+"*jump-to-definition*" in Mill actually brings you to the implementation of a task, rather
+than an SBT `taskKey` declaration. Customizing things is as simple as writing or overriding
+`def`s. The net effect is that despite both tools' build files being written in Scala,
+Mill's build files are much easier to understand and maintain.
+
 This page compares using Mill to SBT, using the https://github.com/gatling/gatling[Gatling Load Testing Framework]
 codebase as the example. Gatling is a medium sized codebase, 40,000 lines of Scala split over 21
 subprojects. By porting it to Mill, this case study should give you an idea of how Mill compares

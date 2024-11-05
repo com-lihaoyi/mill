@@ -1,0 +1,3 @@
+package `null`
+
+object foo

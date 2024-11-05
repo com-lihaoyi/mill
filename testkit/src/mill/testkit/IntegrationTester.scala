@@ -1,7 +1,9 @@
 package mill.testkit
 
+import mill.main.client.EnvVars.MILL_TEST_SUITE
 import mill.define.Segments
 import mill.eval.Evaluator
+import mill.main.client.OutFiles
 import mill.resolve.SelectMode
 import ujson.Value
 
@@ -91,7 +93,7 @@ object IntegrationTester {
       )
     }
 
-    def millTestSuiteEnv: Map[String, String] = Map("MILL_TEST_SUITE" -> this.getClass().toString())
+    def millTestSuiteEnv: Map[String, String] = Map(MILL_TEST_SUITE -> this.getClass().toString())
 
     /**
      * Helpers to read the `.json` metadata files belonging to a particular task
@@ -109,7 +111,7 @@ object IntegrationTester {
           mill.resolve.ParseArgs.apply(Seq(selector0), SelectMode.Separated).getOrElse(???)
 
         val segments = selector._2.getOrElse(Segments()).value.flatMap(_.pathSegments)
-        os.read(workspacePath / "out" / segments.init / s"${segments.last}.json")
+        os.read(workspacePath / OutFiles.out / segments.init / s"${segments.last}.json")
       }
 
       /**

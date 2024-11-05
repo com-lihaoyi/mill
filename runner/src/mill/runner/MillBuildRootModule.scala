@@ -7,7 +7,7 @@ import mill.define.{Discover, Task}
 import mill.scalalib.{BoundDep, Dep, DepSyntax, Lib, ScalaModule}
 import mill.util.CoursierSupport
 import mill.util.Util.millProjectModule
-import mill.scalalib.api.Versions
+import mill.scalalib.api.{CompilationResult, Versions}
 import mill.main.client.OutFiles._
 import mill.main.client.CodeGenConstants.buildFileExtensions
 import mill.main.{BuildInfo, RootModule}
@@ -193,13 +193,13 @@ abstract class MillBuildRootModule()(implicit
 
   override def sources: T[Seq[PathRef]] = Task {
     scriptSources() ++ {
-      if (parseBuildFiles().millImport) super.sources()
+      if (parseBuildFiles().metaBuild) super.sources()
       else Seq.empty[PathRef]
     }
   }
 
   override def resources: T[Seq[PathRef]] = Task {
-    if (parseBuildFiles().millImport) super.resources()
+    if (parseBuildFiles().metaBuild) super.resources()
     else Seq.empty[PathRef]
   }
 
@@ -261,6 +261,49 @@ abstract class MillBuildRootModule()(implicit
 
   /** Used in BSP IntelliJ, which can only work with directories */
   def dummySources: Sources = Task.Sources(T.dest)
+
+  def millVersion = T.input { BuildInfo.millVersion }
+
+  override def compile: T[CompilationResult] = Task(persistent = true) {
+    val mv = millVersion()
+
+    val prevMillVersionFile = T.dest / s"mill-version"
+    val prevMillVersion = Option(prevMillVersionFile)
+      .filter(os.exists)
+      .map(os.read(_).trim)
+      .getOrElse("?")
+
+    if (prevMillVersion != mv) {
+      // Mill version changed, drop all previous incremental state
+      // see https://github.com/com-lihaoyi/mill/issues/3874
+      T.log.debug(
+        s"Detected Mill version change ${prevMillVersion} -> ${mv}. Dropping previous incremental compilation state"
+      )
+      os.remove.all(T.dest)
+      os.makeDir(T.dest)
+      os.write(prevMillVersionFile, mv)
+    }
+
+    // copied from `ScalaModule`
+    zincWorker()
+      .worker()
+      .compileMixed(
+        upstreamCompileOutput = upstreamCompileOutput(),
+        sources = Agg.from(allSourceFiles().map(_.path)),
+        compileClasspath = compileClasspath().map(_.path),
+        javacOptions = javacOptions() ++ mandatoryJavacOptions(),
+        scalaVersion = scalaVersion(),
+        scalaOrganization = scalaOrganization(),
+        scalacOptions = allScalacOptions(),
+        compilerClasspath = scalaCompilerClasspath(),
+        scalacPluginClasspath = scalacPluginClasspath(),
+        reporter = T.reporter.apply(hashCode),
+        reportCachedProblems = zincReportCachedProblems(),
+        incrementalCompilation = zincIncrementalCompilation(),
+        auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
+      )
+  }
+
 }
 
 object MillBuildRootModule {

@@ -3,6 +3,29 @@
 
 include::partial$gtag-config.adoc[]
 
+Compared to Maven:
+
+
+* **Mill follows Maven's innovation of good built-in defaults**: Mill's built-in
+``JavaModule``s follow Maven's "convention over configuration" style, so small Mill
+projects require minimal effort to get started, and larger Mill projects have a consistent
+structure building on these defaults.
+
+* **Mill automatically caches and parallelizes your build, offering 3-10x speedups**:
+Not just the built-in tasks that Mill ships with, but also any custom tasks or modules.
+This maximizes the snappiness of your command-line build workflows to keep you productive,
+which especially matters in larger codebases where builds tend to get slow:
+xref:comparisons/maven.adoc#_performance[a Maven "clean install" workflow
+  taking over a minute might take just a few seconds in Mill].
+
+* **Mill makes customizing the build tool much easier than Maven**. Projects usually
+grow beyond just compiling a single language: needing custom
+code generation, linting workflows, tool integrations, output artifacts, or support for
+additional languages. Mill's xref:comparisons/maven.adoc#_extensibility_ide_experience[extensibility and IDE experience]
+makes doing this yourself easy and safe, with type-checked code and
+xref:depth/sandboxing.adoc[sandboxed tasks]
+
+
 This page compares using Mill to Maven, using the https://github.com/netty/netty[Netty Network Server]
 codebase as the example. Netty is a large, old codebase. 500,000 lines of Java, written by
 over 100 contributors across 15 years, split over 47 subprojects, with over 10,000 lines of

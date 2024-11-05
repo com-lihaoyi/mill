@@ -24,6 +24,11 @@ object HelloWorldTests extends TestSuite {
           ivy"org.jetbrains.kotlin:kotlin-test-junit:${this.kotlinVersion()}"
         )
       }
+      object kotest extends KotlinTests with TestModule.Junit5 {
+        override def ivyDeps = super.ivyDeps() ++ Agg(
+          ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
+        )
+      }
     }
     object main extends Cross[MainCross](kotlinVersions)
   }
@@ -65,6 +70,23 @@ object HelloWorldTests extends TestSuite {
           v1._2(0).status == "Failure",
           v1._2(1).fullyQualifiedName == "hello.tests.HelloTest.testSuccess",
           v1._2(1).status == "Success"
+        )
+      })
+    }
+    test("kotest") {
+      val eval = testEval()
+
+      HelloWorldKotlin.main.crossModules.foreach(m => {
+        val Right(discovered) = eval.apply(m.kotest.discoveredTestClasses)
+        assert(discovered.value == Seq("hello.tests.FooTest"))
+
+        val Left(Result.Failure(_, Some(v1))) = eval.apply(m.kotest.test())
+
+        assert(
+          v1._2(0).fullyQualifiedName == "hello.tests.FooTest",
+          v1._2(0).status == "Success",
+          v1._2(1).fullyQualifiedName == "hello.tests.FooTest",
+          v1._2(1).status == "Failure"
         )
       })
     }

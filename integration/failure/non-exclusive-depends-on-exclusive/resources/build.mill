@@ -1,0 +1,13 @@
+package build
+import mill._, mill.eval.Evaluator
+
+def foo = Task{1}
+def cleanClientWrong(ev: Evaluator) = Task.Command {
+  clean(ev, "foo")()
+  println("cleanClientWrong done")
+}
+
+def cleanClientRight(ev: Evaluator) = Task.Command(exclusive = true) {
+  clean(ev, "foo")()
+  println("cleanClientRight done")
+}

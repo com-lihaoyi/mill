@@ -1,3 +1,9 @@
+// A Kotlin/JVM backend server wired up with a Kotlin/JS front-end, with a
+// `shared` module containing code that is used in both client and server.
+// Rather than the server sending HTML for the initial page load and HTML for
+// page updates, it sends HTML for the initial load and JSON for page updates
+// which is then rendered into HTML on the client.
+
 package build
 import mill._, kotlinlib._, kotlinlib.js._
 
@@ -81,12 +87,7 @@ object `package` extends RootModule with AppKotlinModule {
   }
 }
 
-// A Kotlin/JVM backend server wired up with a Kotlin/JS front-end, with a
-// `shared` module containing code that is used in both client and server.
-// Rather than the server sending HTML for the initial page load and HTML for
-// page updates, it sends HTML for the initial load and JSON for page updates
-// which is then rendered into HTML on the client.
-//
+
 // The JSON serialization logic and HTML generation logic in the `shared` module
 // is shared between client and server, and uses libraries like `kotlinx-serialization` and
 // `kotlinx-html` which work on both Kotlin/JVM and Kotlin/JS. This allows us to freely

@@ -25,7 +25,7 @@ object `package` extends RootModule with build.MillPublishScalaModule {
       case None => "0.0.0"
     }
 
-    val data: Seq[(os.SubPath, String)] = build.examplePathsWithArtifactName().map { case (path, str) =>
+    val data: Seq[(os.SubPath, String)] = build.dist.examplePathsWithArtifactName().map { case (path, str) =>
       val downloadUrl = build.Settings.projectUrl + "/releases/download/" + lastTag + "/" + str + ".zip"
       val subPath = path.subRelativeTo(T.workspace / "example")
       (subPath, downloadUrl)

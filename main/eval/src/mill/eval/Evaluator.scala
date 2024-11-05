@@ -14,7 +14,7 @@ import scala.util.DynamicVariable
 /**
  * Public facing API of the Mill evaluation logic.
  */
-trait Evaluator {
+trait Evaluator extends AutoCloseable {
   def baseLogger: ColorLogger
   def rootModule: BaseModule
   def effectiveThreadCount: Int
@@ -67,6 +67,7 @@ trait Evaluator {
     r =>
       new Exception(s"Failure during task evaluation: ${formatFailing(r)}")): Evaluator.EvalOrThrow
 
+  def close() = ()
 }
 
 object Evaluator {

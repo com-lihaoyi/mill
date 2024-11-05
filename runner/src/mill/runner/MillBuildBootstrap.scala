@@ -10,6 +10,7 @@ import mill.define.{BaseModule, Segments}
 import mill.main.client.OutFiles.{millBuild, millRunnerState}
 
 import java.net.URLClassLoader
+import scala.util.Using
 
 /**
  * Logic around bootstrapping Mill, creating a [[MillBuildRootModule.BootstrapModule]]
@@ -39,7 +40,7 @@ class MillBuildBootstrap(
     prevRunnerState: RunnerState,
     logger: ColorLogger,
     disableCallgraph: Boolean,
-    needBuildSc: Boolean,
+    needBuildFile: Boolean,
     requestedMetaLevel: Option[Int],
     allowPositionalCommandArgs: Boolean,
     systemExit: Int => Nothing,
@@ -69,6 +70,9 @@ class MillBuildBootstrap(
   }
 
   def evaluateRec(depth: Int): RunnerState = {
+    mill.main.client.DebugLog.println(
+      "MillBuildBootstrap.evaluateRec " + depth + " " + targetsAndParams.mkString(" ")
+    )
     // println(s"+evaluateRec($depth) " + recRoot(projectRoot, depth))
     val prevFrameOpt = prevRunnerState.frames.lift(depth)
     val prevOuterFrameOpt = prevRunnerState.frames.lift(depth - 1)
@@ -79,7 +83,7 @@ class MillBuildBootstrap(
       if (depth == 0) {
         // On this level we typically want assume a Mill project, which means we want to require an existing `build.mill`.
         // Unfortunately, some targets also make sense without a `build.mill`, e.g. the `init` command.
-        // Hence we only report a missing `build.mill` as an problem if the command itself does not succeed.
+        // Hence we only report a missing `build.mill` as a problem if the command itself does not succeed.
         lazy val state = evaluateRec(depth + 1)
         if (
           rootBuildFileNames.exists(rootBuildFileName =>
@@ -88,12 +92,12 @@ class MillBuildBootstrap(
         ) state
         else {
           val msg =
-            s"${rootBuildFileNames.head} file not found in $projectRoot. Are you in a Mill project folder?"
-          if (needBuildSc) {
-            RunnerState(None, Nil, Some(msg))
+            s"No build file (${rootBuildFileNames.mkString(", ")}) found in $projectRoot. Are you in a Mill project directory?"
+          if (needBuildFile) {
+            RunnerState(None, Nil, Some(msg), None)
           } else {
             state match {
-              case RunnerState(bootstrapModuleOpt, frames, Some(error)) =>
+              case RunnerState(bootstrapModuleOpt, frames, Some(error), None) =>
                 // Add a potential clue (missing build.mill) to the underlying error message
                 RunnerState(bootstrapModuleOpt, frames, Some(msg + "\n" + error))
               case state => state
@@ -107,7 +111,7 @@ class MillBuildBootstrap(
           output
         )
 
-        if (parsedScriptFiles.millImport) evaluateRec(depth + 1)
+        if (parsedScriptFiles.metaBuild) evaluateRec(depth + 1)
         else {
           val bootstrapModule =
             new MillBuildRootModule.BootstrapModule()(
@@ -118,7 +122,7 @@ class MillBuildBootstrap(
                 projectRoot
               )
             )
-          RunnerState(Some(bootstrapModule), Nil, None)
+          RunnerState(Some(bootstrapModule), Nil, None, Some(parsedScriptFiles.buildFile))
         }
       }
 
@@ -153,7 +157,7 @@ class MillBuildBootstrap(
           case Some(nestedFrame) => getRootModule(nestedFrame.classLoaderOpt.get)
         }
 
-        val evaluator = makeEvaluator(
+        Using.resource(makeEvaluator(
           prevFrameOpt.map(_.workerCache).getOrElse(Map.empty),
           nestedState.frames.headOption.map(_.methodCodeHashSignatures).getOrElse(Map.empty),
           rootModule,
@@ -174,30 +178,30 @@ class MillBuildBootstrap(
             .flatMap(_.classLoaderOpt)
             .map(_.hashCode())
             .getOrElse(0),
-          depth
-        )
+          depth,
+          actualBuildFileName = nestedState.buildFile
+        )) { evaluator =>
+          if (depth != 0) {
+            val retState = processRunClasspath(
+              nestedState,
+              rootModule,
+              evaluator,
+              prevFrameOpt,
+              prevOuterFrameOpt
+            )
 
-        if (depth != 0) {
-          val retState = processRunClasspath(
-            nestedState,
-            rootModule,
-            evaluator,
-            prevFrameOpt,
-            prevOuterFrameOpt
-          )
+            if (retState.errorOpt.isEmpty && depth == requestedDepth) {
+              // TODO: print some message and indicate actual evaluated frame
+              val evalRet = processFinalTargets(nestedState, rootModule, evaluator)
+              if (evalRet.errorOpt.isEmpty) retState
+              else evalRet
+            } else
+              retState
 
-          if (retState.errorOpt.isEmpty && depth == requestedDepth) {
-            // TODO: print some message and indicate actual evaluated frame
-            val evalRet = processFinalTargets(nestedState, rootModule, evaluator)
-            if (evalRet.errorOpt.isEmpty) retState
-            else evalRet
-          } else
-            retState
-
-        } else {
-          processFinalTargets(nestedState, rootModule, evaluator)
+          } else {
+            processFinalTargets(nestedState, rootModule, evaluator)
+          }
         }
-
       }
     // println(s"-evaluateRec($depth) " + recRoot(projectRoot, depth))
     res
@@ -330,14 +334,19 @@ class MillBuildBootstrap(
       rootModule: BaseModule,
       millClassloaderSigHash: Int,
       millClassloaderIdentityHash: Int,
-      depth: Int
+      depth: Int,
+      actualBuildFileName: Option[String] = None
   ): Evaluator = {
 
     val bootLogPrefix: Seq[String] =
       if (depth == 0) Nil
-      else Seq((Seq.fill(depth - 1)(millBuild) ++ Seq("build.mill")).mkString("/"))
+      else Seq(
+        (Seq.fill(depth - 1)(millBuild) ++
+          Seq(actualBuildFileName.getOrElse("<build>")))
+          .mkString("/")
+      )
 
-    mill.eval.EvaluatorImpl(
+    mill.eval.EvaluatorImpl.make(
       home,
       projectRoot,
       recOut(output, depth),
