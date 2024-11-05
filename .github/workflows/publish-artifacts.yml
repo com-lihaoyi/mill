@@ -74,8 +74,8 @@ jobs:
 
       # Need to fix cached artifact file permissions because github actions screws it up
       # https://github.com/actions/upload-artifact/issues/38
-      - name: chmod executable
-        run: "chmod +x ./mill"
+      # Best is, we restore any file to avoid any changes
+      - run: git reset --hard
 
       - uses: coursier/cache-action@v6
 
@@ -105,8 +105,8 @@ jobs:
 
       # Need to fix cached artifact file permissions because github actions screws it up
       # https://github.com/actions/upload-artifact/issues/38
-      - name: chmod executable
-        run: "chmod +x ./mill"
+      # Best is, we restore any file to avoid any changes
+      - run: git reset --hard
 
       - uses: coursier/cache-action@v6
 
