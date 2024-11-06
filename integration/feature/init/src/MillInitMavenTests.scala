@@ -81,6 +81,37 @@ object MillInitMavenTests extends UtestIntegrationTestSuite {
     }
 
     // - multi-module
+    // - unsupported test framework
+    test("avaje-config") {
+      prep("https://github.com/avaje/avaje-config/archive/refs/tags/4.0.zip") { tester =>
+        import tester._
+
+        val initRes = eval("init")
+        initRes.out.contains(
+          "generated 4 Mill build file(s)"
+        ) ==> true
+        initRes.isSuccess ==> true
+
+        val resolveRes = eval(("resolve", "_"))
+        Seq(
+          "avaje-config",
+          "avaje-aws-appconfig",
+          "avaje-dynamic-logback"
+        ).forall(resolveRes.out.contains) ==> true
+
+        // not sure why this happens
+        val compileRes = eval("__.compile")
+        Seq(
+          "avaje-config/src/main/java/module-info.java:5:31: module not found: io.avaje.lang",
+          "avaje-config/src/main/java/module-info.java:6:31: module not found: io.avaje.applog",
+          "avaje-config/src/main/java/module-info.java:7:27: module not found: org.yaml.snakeyaml",
+          "avaje-config/src/main/java/module-info.java:9:27: module not found: io.avaje.spi"
+        ).forall(compileRes.err.contains) ==> true
+        compileRes.isSuccess ==> false
+      }
+    }
+
+    // - multi-module
     // - Junit5
     // - submodule e2e directory and artifact name differ
     test("fastexcel") {
