@@ -10,24 +10,26 @@ object BuildGenTests extends TestSuite {
 
     // multi level nested modules
     test("maven-samples") {
-      val expectedRoot = resources / "expected/maven-samples"
-
       val actualRoot = prep(resources / "maven-samples")
       val args = Array.empty[String]
       os.dynamicPwd.withValue(actualRoot)(BuildGen.main(args))
 
-      checkBuild(actualRoot, expectedRoot) ==> true
+      val expectedRoot = resources / "expected/maven-samples"
+      assert(
+        checkBuild(actualRoot, expectedRoot)
+      )
     }
 
     test("config") {
       test("base-module") {
-        val expectedRoot = resources / "expected/config/base-module"
-
         val actualRoot = prep(resources / "maven-samples/multi-module")
         val args = Array("--baseModule", "MyModule")
         os.dynamicPwd.withValue(actualRoot)(BuildGen.main(args))
 
-        checkBuild(actualRoot, expectedRoot) ==> true
+        val expectedRoot = resources / "expected/config/base-module"
+        assert(
+          checkBuild(actualRoot, expectedRoot)
+        )
       }
 
       test("deps-object") {
@@ -36,7 +38,9 @@ object BuildGenTests extends TestSuite {
         os.dynamicPwd.withValue(actualRoot)(BuildGen.main(args))
 
         val expectedRoot = resources / "expected/config/deps-object"
-        checkBuild(actualRoot, expectedRoot) ==> true
+        assert(
+          checkBuild(actualRoot, expectedRoot)
+        )
       }
 
       test("no-share-publish") {
@@ -45,7 +49,9 @@ object BuildGenTests extends TestSuite {
         os.dynamicPwd.withValue(actualRoot)(BuildGen.main(args))
 
         val expectedRoot = resources / "expected/config/no-share-publish"
-        checkBuild(actualRoot, expectedRoot) ==> true
+        assert(
+          checkBuild(actualRoot, expectedRoot)
+        )
       }
 
       test("publish-properties") {
@@ -54,7 +60,9 @@ object BuildGenTests extends TestSuite {
         os.dynamicPwd.withValue(actualRoot)(BuildGen.main(args))
 
         val expectedRoot = resources / "expected/config/publish-properties"
-        checkBuild(actualRoot, expectedRoot) ==> true
+        assert(
+          checkBuild(actualRoot, expectedRoot)
+        )
       }
     }
   }
@@ -78,7 +86,6 @@ object BuildGenTests extends TestSuite {
 
   def prep(sourceRoot: os.Path)(implicit tp: TestPath): os.Path = {
     val segments = tp.value
-
     val directory = os.pwd / segments
     if (os.exists(directory)) os.remove.all(directory)
     os.copy(sourceRoot, directory, createFolders = true)

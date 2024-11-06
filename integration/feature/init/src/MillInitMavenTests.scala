@@ -25,28 +25,36 @@ object MillInitMavenTests extends UtestIntegrationTestSuite {
         import tester._
 
         val initRes = eval(("init", "--deps-object", "Deps"))
-        initRes.out.contains(
-          "generated 1 Mill build file(s)"
-        ) ==> true
-        initRes.isSuccess ==> true
+        assert(
+          initRes.out.contains(
+            "generated 1 Mill build file(s)"
+          ),
+          initRes.isSuccess
+        )
 
         val compileRes = eval("compile")
-        compileRes.err.contains(
-          "compiling 20 Java sources"
-        ) ==> true
-        compileRes.isSuccess ==> true
+        assert(
+          compileRes.err.contains(
+            "compiling 20 Java sources"
+          ),
+          compileRes.isSuccess
+        )
 
         val testRes = eval("test")
-        testRes.out.contains(
-          "Test run finished: 0 failed, 1 ignored, 90 total"
-        ) ==> true
-        testRes.isSuccess ==> true
+        assert(
+          testRes.out.contains(
+            "Test run finished: 0 failed, 1 ignored, 90 total"
+          ),
+          testRes.isSuccess
+        )
 
         val publishLocalRes = eval("publishLocal")
-        publishLocalRes.err.contains(
-          "Publishing Artifact(org.fusesource.jansi,jansi,2.4.1)"
-        ) ==> true
-        publishLocalRes.isSuccess ==> true
+        assert(
+          publishLocalRes.err.contains(
+            "Publishing Artifact(org.fusesource.jansi,jansi,2.4.1)"
+          ),
+          publishLocalRes.isSuccess
+        )
       }
     }
 
@@ -58,25 +66,32 @@ object MillInitMavenTests extends UtestIntegrationTestSuite {
         import tester._
 
         val initRes = eval("init")
-        initRes.out.contains(
-          "generated 3 Mill build file(s)"
-        ) ==> true
-        initRes.isSuccess ==> true
+        assert(
+          initRes.out.contains(
+            "generated 3 Mill build file(s)"
+          ),
+          initRes.isSuccess
+        )
 
         val resolveRes = eval(("resolve", "_"))
-        Seq(
-          "dotenv",
-          "dotenv-guice"
-        ).forall(resolveRes.out.contains) ==> true
+        assert(
+          resolveRes.out.contains("dotenv"),
+          resolveRes.out.contains("dotenv-guice"),
+          resolveRes.isSuccess
+        )
 
         // JavaModule.JavaTests is not picking compileIvyDeps from outer module
         val compileRes = eval("__.compile")
-        compileRes.err.contains("package com.google.inject does not exist") ==> true
-        compileRes.isSuccess ==> false
+        assert(
+          compileRes.err.contains(
+            "package com.google.inject does not exist"
+          ),
+          !compileRes.isSuccess
+        )
 
         // even if compile error is fixed, TestNg version is not supported
         // val testRes = eval("__.test")
-        // testRes.isSuccess ==> false
+        // assert(!testRes.isSuccess)
       }
     }
 
@@ -87,27 +102,38 @@ object MillInitMavenTests extends UtestIntegrationTestSuite {
         import tester._
 
         val initRes = eval("init")
-        initRes.out.contains(
-          "generated 4 Mill build file(s)"
-        ) ==> true
-        initRes.isSuccess ==> true
+        assert(
+          initRes.out.contains(
+            "generated 4 Mill build file(s)"
+          ),
+          initRes.isSuccess
+        )
 
         val resolveRes = eval(("resolve", "_"))
-        Seq(
-          "avaje-config",
-          "avaje-aws-appconfig",
-          "avaje-dynamic-logback"
-        ).forall(resolveRes.out.contains) ==> true
+        assert(
+          resolveRes.out.contains("avaje-config"),
+          resolveRes.out.contains("avaje-aws-appconfig"),
+          resolveRes.out.contains("avaje-dynamic-logback"),
+          resolveRes.isSuccess
+        )
 
         // not sure why this happens
         val compileRes = eval("__.compile")
-        Seq(
-          "avaje-config/src/main/java/module-info.java:5:31: module not found: io.avaje.lang",
-          "avaje-config/src/main/java/module-info.java:6:31: module not found: io.avaje.applog",
-          "avaje-config/src/main/java/module-info.java:7:27: module not found: org.yaml.snakeyaml",
-          "avaje-config/src/main/java/module-info.java:9:27: module not found: io.avaje.spi"
-        ).forall(compileRes.err.contains) ==> true
-        compileRes.isSuccess ==> false
+        assert(
+          compileRes.err.contains(
+            "avaje-config/src/main/java/module-info.java:5:31: module not found: io.avaje.lang"
+          ),
+          compileRes.err.contains(
+            "avaje-config/src/main/java/module-info.java:6:31: module not found: io.avaje.applog"
+          ),
+          compileRes.err.contains(
+            "avaje-config/src/main/java/module-info.java:7:27: module not found: org.yaml.snakeyaml"
+          ),
+          compileRes.err.contains(
+            "avaje-config/src/main/java/module-info.java:9:27: module not found: io.avaje.spi"
+          ),
+          !compileRes.isSuccess
+        )
       }
     }
 
@@ -119,26 +145,35 @@ object MillInitMavenTests extends UtestIntegrationTestSuite {
         import tester._
 
         val initRes = eval("init")
-        initRes.out.contains(
-          "generated 4 Mill build file(s)"
-        ) ==> true
-        initRes.isSuccess ==> true
+        assert(
+          initRes.out.contains(
+            "generated 4 Mill build file(s)"
+          ),
+          initRes.isSuccess
+        )
 
         val resolveRes = eval(("resolve", "_"))
-        Seq(
-          "fastexcel-reader",
-          "fastexcel-writer",
-          "e2e"
-        ).forall(resolveRes.out.contains) ==> true
+        assert(
+          resolveRes.out.contains("fastexcel-reader"),
+          resolveRes.out.contains("fastexcel-writer"),
+          resolveRes.out.contains("e2e"),
+          resolveRes.isSuccess
+        )
 
         // not sure why this happens but pom.xml has a hack to handle JPMS
         val compileRes = eval("__.compile")
-        Seq(
-          "fastexcel-reader/src/main/java/module-info.java:3:32: module not found: org.apache.commons.compress",
-          "fastexcel-reader/src/main/java/module-info.java:4:27: module not found: com.fasterxml.aalto",
-          "fastexcel-writer/src/main/java/module-info.java:2:14: module not found: opczip"
-        ).forall(compileRes.err.contains) ==> true
-        compileRes.isSuccess ==> false
+        assert(
+          compileRes.err.contains(
+            "fastexcel-reader/src/main/java/module-info.java:3:32: module not found: org.apache.commons.compress"
+          ),
+          compileRes.err.contains(
+            "fastexcel-reader/src/main/java/module-info.java:4:27: module not found: com.fasterxml.aalto"
+          ),
+          compileRes.err.contains(
+            "fastexcel-writer/src/main/java/module-info.java:2:14: module not found: opczip"
+          ),
+          !compileRes.isSuccess
+        )
       }
     }
 
@@ -155,97 +190,120 @@ object MillInitMavenTests extends UtestIntegrationTestSuite {
 
         val initRes = eval(("init", "--publish-properties"))
         // cannot resolve native dependencies defined by build extension os-maven-plugin
-        initRes.out.contains(
-          """[codec-http2] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final
-            |[transport-native-epoll] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final
-            |[transport-native-kqueue] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final
-            |[handler] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final
-            |[example] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final
-            |[testsuite] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final
-            |[testsuite-shading] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final
-            |[transport-blockhound-tests] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final
-            |[microbench] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final
-            |""".stripMargin
-        ) ==> true
-        initRes.out.contains(
-          "generated 47 Mill build file(s)"
-        ) ==> true
-        initRes.isSuccess ==> true
+        assert(
+          initRes.out.contains(
+            "[codec-http2] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final"
+          ),
+          initRes.out.contains(
+            "[transport-native-epoll] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final"
+          ),
+          initRes.out.contains(
+            "[transport-native-kqueue] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final"
+          ),
+          initRes.out.contains(
+            "[handler] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final"
+          ),
+          initRes.out.contains(
+            "[example] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final"
+          ),
+          initRes.out.contains(
+            "[testsuite] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final"
+          ),
+          initRes.out.contains(
+            "[testsuite-shading] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final"
+          ),
+          initRes.out.contains(
+            "[transport-blockhound-tests] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final"
+          ),
+          initRes.out.contains(
+            "[microbench] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final"
+          ),
+          initRes.out.contains(
+            "generated 47 Mill build file(s)"
+          ),
+          initRes.isSuccess
+        )
 
         val resolveRes = eval(("resolve", "_"))
-        Seq(
-          "all",
-          "dev-tools",
-          "common",
-          "buffer",
-          "codec",
-          "codec-dns",
-          "codec-haproxy",
-          "codec-http",
-          "codec-http2",
-          "codec-memcache",
-          "codec-mqtt",
-          "codec-redis",
-          "codec-smtp",
-          "codec-socks",
-          "codec-stomp",
-          "codec-xml",
-          "resolver",
-          "resolver-dns",
-          "resolver-dns-classes-macos",
-          "resolver-dns-native-macos",
-          "transport",
-          "transport-native-unix-common-tests",
-          "transport-native-unix-common",
-          "transport-classes-epoll",
-          "transport-native-epoll",
-          "transport-classes-kqueue",
-          "transport-native-kqueue",
-          "transport-rxtx",
-          "transport-sctp",
-          "transport-udt",
-          "handler",
-          "handler-proxy",
-          "handler-ssl-ocsp",
-          "example",
-          "testsuite",
-          "testsuite-autobahn",
-          "testsuite-http2",
-          "testsuite-osgi",
-          "testsuite-shading",
-          "testsuite-native",
-          "testsuite-native-image",
-          "testsuite-native-image-client",
-          "testsuite-native-image-client-runtime-init",
-          "transport-blockhound-tests",
-          "microbench",
-          "bom"
-        ).forall(resolveRes.out.contains) ==> true
-
-        // additional sources defined by build-helper-maven-plugin
-        val sourcesRes = eval(("show", "transport-native-epoll.sources"))
-        Seq(
-          s"$workspacePath/transport-native-epoll/src/main/java",
-          s"$workspacePath/transport-native-epoll/src/main/c"
-        ).forall(sourcesRes.out.contains) ==> true
+        assert(
+          resolveRes.out.contains("all"),
+          resolveRes.out.contains("dev-tools"),
+          resolveRes.out.contains("common"),
+          resolveRes.out.contains("buffer"),
+          resolveRes.out.contains("codec"),
+          resolveRes.out.contains("codec-dns"),
+          resolveRes.out.contains("codec-haproxy"),
+          resolveRes.out.contains("codec-http"),
+          resolveRes.out.contains("codec-http2"),
+          resolveRes.out.contains("codec-memcache"),
+          resolveRes.out.contains("codec-mqtt"),
+          resolveRes.out.contains("codec-redis"),
+          resolveRes.out.contains("codec-smtp"),
+          resolveRes.out.contains("codec-socks"),
+          resolveRes.out.contains("codec-stomp"),
+          resolveRes.out.contains("codec-xml"),
+          resolveRes.out.contains("resolver"),
+          resolveRes.out.contains("resolver-dns"),
+          resolveRes.out.contains("resolver-dns-classes-macos"),
+          resolveRes.out.contains("resolver-dns-native-macos"),
+          resolveRes.out.contains("transport"),
+          resolveRes.out.contains("transport-native-unix-common-tests"),
+          resolveRes.out.contains("transport-native-unix-common"),
+          resolveRes.out.contains("transport-classes-epoll"),
+          resolveRes.out.contains("transport-native-epoll"),
+          resolveRes.out.contains("transport-classes-kqueue"),
+          resolveRes.out.contains("transport-native-kqueue"),
+          resolveRes.out.contains("transport-rxtx"),
+          resolveRes.out.contains("transport-sctp"),
+          resolveRes.out.contains("transport-udt"),
+          resolveRes.out.contains("handler"),
+          resolveRes.out.contains("handler-proxy"),
+          resolveRes.out.contains("handler-ssl-ocsp"),
+          resolveRes.out.contains("example"),
+          resolveRes.out.contains("testsuite"),
+          resolveRes.out.contains("testsuite-autobahn"),
+          resolveRes.out.contains("testsuite-http2"),
+          resolveRes.out.contains("testsuite-osgi"),
+          resolveRes.out.contains("testsuite-shading"),
+          resolveRes.out.contains("testsuite-native"),
+          resolveRes.out.contains("testsuite-native-image"),
+          resolveRes.out.contains("testsuite-native-image-client"),
+          resolveRes.out.contains("testsuite-native-image-client-runtime-init"),
+          resolveRes.out.contains("transport-blockhound-tests"),
+          resolveRes.out.contains("microbench"),
+          resolveRes.out.contains("bom"),
+          resolveRes.isSuccess
+        )
 
         // compile succeeds for submodule
         val compileRes = eval("codec.compile")
-        compileRes.err.contains(
-          "compiling 155 Java sources"
-        ) ==> true
-        compileRes.isSuccess ==> true
+        assert(
+          compileRes.err.contains(
+            "compiling 155 Java sources"
+          ),
+          compileRes.isSuccess
+        )
 
         // test compile fails for submodule due to missing native dependency
         val testRes = eval("codec.test")
-        testRes.err.contains(
-          "package io.netty.nativeimage does not exist"
-        ) ==> true
-        testRes.isSuccess ==> false
+        assert(
+          testRes.err.contains(
+            "package io.netty.nativeimage does not exist"
+          ),
+          !testRes.isSuccess
+        )
 
-        // publishLocal fails for submodule (due to several Javadoc errors)
+        // publishLocal fails for submodule due to several Javadoc errors
         val publishLocalRes = eval("codec.publishLocal")
-        publishLocalRes.isSuccess ==> false
+        assert(!publishLocalRes.isSuccess)
+
+        // additional sources defined by build-helper-maven-plugin
+        val sourcesRes = eval(("show", "transport-native-epoll.sources"))
+        assert(
+          sourcesRes.out.contains(s"$workspacePath/transport-native-epoll/src/main/java"),
+          sourcesRes.out.contains(s"$workspacePath/transport-native-epoll/src/main/c"),
+          sourcesRes.isSuccess
+        )
       }
     }
   }
