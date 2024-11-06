@@ -1,26 +1,22 @@
 package build.`multi-module`.webapp
+
 import mill._
 import mill.javalib._
 import mill.javalib.publish._
 import $file.BaseMavenModule
 
-
 object `package` extends RootModule with BaseMavenModule {
 
-override def pomPackagingType = "war"
-override def pomParentProject = Some(Artifact("com.example.maven-samples", "multi-module-parent", "1.0-SNAPSHOT"))
-override def javacOptions = Seq("-source","1.6","-target","1.6")
+  override def pomPackagingType = "war"
 
+  override def pomParentProject = Some(
+    Artifact("com.example.maven-samples", "multi-module-parent", "1.0-SNAPSHOT")
+  )
+  override def javacOptions = Seq("-source", "1.6", "-target", "1.6")
 
+  override def moduleDeps = Seq(build.`multi-module`.server)
 
-override def moduleDeps = Seq(build.`multi-module`.server)
-
-override def compileIvyDeps = Agg(ivy"javax.servlet.jsp:jsp-api:2.2",ivy"javax.servlet:servlet-api:2.5")
-
-
-
-
-
-
+  override def compileIvyDeps =
+    Agg(ivy"javax.servlet.jsp:jsp-api:2.2", ivy"javax.servlet:servlet-api:2.5")
 
 }

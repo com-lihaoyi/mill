@@ -52,6 +52,12 @@ trait InitMavenModule extends TaskModule {
         config,
         s"""version = "3.8.4-RC1"
            |runner.dialect = scala213
+           |newlines.source=fold
+           |newlines.topLevelStatementBlankLines = [
+           |  {
+           |    blanks { before = 1 }
+           |  }
+           |]
            |""".stripMargin
       )
     }

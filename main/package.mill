@@ -159,6 +159,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
       build.Deps.mavenResolverTransportHttp,
       build.Deps.mavenResolverTransportWagon
     )
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib)
   }
 
   def testModuleDeps = super.testModuleDeps ++ Seq(build.testkit)

@@ -1,5 +1,8 @@
 package mill.main.maven
 
+import mill.api.PathRef
+import mill.scalalib.scalafmt.ScalafmtModule
+import mill.testkit.{TestBaseModule, UnitTester}
 import utest.*
 import utest.framework.TestPath
 
@@ -7,6 +10,7 @@ object BuildGenTests extends TestSuite {
 
   def tests: Tests = Tests {
     val resources = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
+    val scalafmtConfig = PathRef(resources / ".scalafmt.conf")
 
     // multi level nested modules
     test("maven-samples") {
@@ -16,7 +20,7 @@ object BuildGenTests extends TestSuite {
 
       val expectedRoot = resources / "expected/maven-samples"
       assert(
-        checkBuild(actualRoot, expectedRoot)
+        checkBuild(buildFiles(actualRoot, scalafmtConfig), expectedRoot)
       )
     }
 
@@ -28,7 +32,7 @@ object BuildGenTests extends TestSuite {
 
         val expectedRoot = resources / "expected/config/base-module"
         assert(
-          checkBuild(actualRoot, expectedRoot)
+          checkBuild(buildFiles(actualRoot, scalafmtConfig), expectedRoot)
         )
       }
 
@@ -39,7 +43,7 @@ object BuildGenTests extends TestSuite {
 
         val expectedRoot = resources / "expected/config/deps-object"
         assert(
-          checkBuild(actualRoot, expectedRoot)
+          checkBuild(buildFiles(actualRoot, scalafmtConfig), expectedRoot)
         )
       }
 
@@ -50,7 +54,7 @@ object BuildGenTests extends TestSuite {
 
         val expectedRoot = resources / "expected/config/no-share-publish"
         assert(
-          checkBuild(actualRoot, expectedRoot)
+          checkBuild(buildFiles(actualRoot, scalafmtConfig), expectedRoot)
         )
       }
 
@@ -61,26 +65,38 @@ object BuildGenTests extends TestSuite {
 
         val expectedRoot = resources / "expected/config/publish-properties"
         assert(
-          checkBuild(actualRoot, expectedRoot)
+          checkBuild(buildFiles(actualRoot, scalafmtConfig), expectedRoot)
         )
       }
     }
   }
 
-  def buildFiles(root: os.Path): Seq[os.Path] =
+  def buildFiles(root: os.Path): Seq[PathRef] =
     os.walk.stream(root, skip = (root / "out").equals)
-      .filter(_.ext == "mill").toSeq
+      .filter(_.ext == "mill")
+      .map(PathRef(_))
+      .toSeq
 
-  def checkBuild(actualRoot: os.Path, expectedRoot: os.Path): Boolean = {
-    val actualFiles = buildFiles(actualRoot)
+  def buildFiles(root: os.Path, scalafmtConfigFile: PathRef): Seq[PathRef] = {
+    val files = buildFiles(root)
+    object module extends TestBaseModule with ScalafmtModule {
+      override protected def filesToFormat(sources: Seq[PathRef]) = files
+      override def scalafmtConfig = Seq(scalafmtConfigFile)
+    }
+    val eval = UnitTester(module, root)
+    eval(module.reformat())
+    files
+  }
+
+  def checkBuild(actualFiles: Seq[PathRef], expectedRoot: os.Path): Boolean = {
     val expectedFiles = buildFiles(expectedRoot)
 
     actualFiles.nonEmpty &&
     actualFiles.length == expectedFiles.length &&
     actualFiles.iterator.zip(expectedFiles.iterator).forall {
       case (actual, expected) =>
-        actual.relativeTo(actualRoot) == expected.relativeTo(expectedRoot) &&
-        os.read(actual) == os.read(expected)
+        actual.path.endsWith(expected.path.relativeTo(expectedRoot)) &&
+        os.read(actual.path) == os.read(expected.path)
     }
   }
 
