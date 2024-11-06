@@ -238,25 +238,14 @@ object BuildGen {
     def all(model: Model, packages: PartialFunction[Id, Package])(implicit
         cfg: BuildGenConfig
     ): (Option[BuildCompanion], Compile, Provided, Runtime, Test) = {
-      val (
-        compileIvyDeps,
-        providedIvyDeps,
-        runtimeIvyDeps,
-        testIvyDeps,
-        compileModuleDeps,
-        providedModuleDeps,
-        runtimeModuleDeps,
-        testModuleDeps
-      ) = (
-        SortedSet.newBuilder[String],
-        SortedSet.newBuilder[String],
-        SortedSet.newBuilder[String],
-        SortedSet.newBuilder[String],
-        SortedSet.newBuilder[String],
-        SortedSet.newBuilder[String],
-        SortedSet.newBuilder[String],
-        SortedSet.newBuilder[String]
-      )
+      val compileIvyDeps = SortedSet.newBuilder[String]
+      val providedIvyDeps = SortedSet.newBuilder[String]
+      val runtimeIvyDeps = SortedSet.newBuilder[String]
+      val testIvyDeps = SortedSet.newBuilder[String]
+      val compileModuleDeps = SortedSet.newBuilder[String]
+      val providedModuleDeps = SortedSet.newBuilder[String]
+      val runtimeModuleDeps = SortedSet.newBuilder[String]
+      val testModuleDeps = SortedSet.newBuilder[String]
       var testModule = Option.empty[String]
 
       val ivyInterp: Dependency => IvyInterp = {
