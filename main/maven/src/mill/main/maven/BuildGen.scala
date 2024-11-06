@@ -117,9 +117,9 @@ object BuildGen {
         Scoped.all(model, packages, cfg)
       val body = {
         val packaging = model.getPackaging
-        val javacOptions = Plugins.`maven-compiler-plugin`.javacOptions(model)
+        val javacOptions = Plugins.MavenCompilerPlugin.javacOptions(model)
         val ((compileSources, compileResources), (testSources, testResources)) =
-          Plugins.`build-helper-maven-plugin`.added(model)
+          Plugins.BuildHelperMavenPlugin.added(model)
 
         val artifactNameSetting = {
           val id = model.getArtifactId

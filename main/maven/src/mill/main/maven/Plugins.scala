@@ -28,7 +28,7 @@ object Plugins {
   /**
    * @see [[https://maven.apache.org/plugins/maven-compiler-plugin/index.html]]
    */
-  object `maven-compiler-plugin` {
+  object MavenCompilerPlugin {
 
     def find(model: Model): Option[Plugin] =
       Plugins.find(model, "org.apache.maven.plugins", "maven-compiler-plugin")
@@ -56,7 +56,7 @@ object Plugins {
   /**
    * @see [[https://www.mojohaus.org/build-helper-maven-plugin/index.html]]
    */
-  object `build-helper-maven-plugin` {
+  object BuildHelperMavenPlugin {
 
     type Sources = Seq[String]
     type Resources = Seq[String]
