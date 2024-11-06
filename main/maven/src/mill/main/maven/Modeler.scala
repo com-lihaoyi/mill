@@ -22,10 +22,11 @@ import java.util.Properties
  */
 @mill.api.internal
 class Modeler(
+    config: ModelerConfig,
     builder: ModelBuilder,
     resolver: ModelResolver,
     systemProperties: Properties
-)(implicit config: ModelerConfig) {
+) {
 
   /** Builds and returns the effective [[Model]] from `pomDir / "pom.xml"`. */
   def apply(pomDir: os.Path): Model =
@@ -47,18 +48,19 @@ class Modeler(
 object Modeler {
 
   def apply(
+      config: ModelerConfig,
       local: LocalRepository = defaultLocalRepository,
       remotes: Seq[RemoteRepository] = defaultRemoteRepositories,
       context: String = "",
       systemProperties: Properties = defaultSystemProperties
-  )(implicit config: ModelerConfig): Modeler = {
+  ): Modeler = {
     val builder = new DefaultModelBuilderFactory().newInstance()
     val system = new RepositorySystemSupplier().get()
     val session = MavenRepositorySystemUtils.newSession()
     session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, local))
     if (config.cacheRepository.value) session.setCache(new DefaultRepositoryCache)
     val resolver = new Resolver(system, session, remotes, context)
-    new Modeler(builder, resolver, systemProperties)
+    new Modeler(config, builder, resolver, systemProperties)
   }
 
   def defaultLocalRepository: LocalRepository =

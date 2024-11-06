@@ -41,23 +41,20 @@ import scala.jdk.CollectionConverters.*
 object BuildGen {
 
   def main(args: Array[String]): Unit = {
-    implicit val cfg: BuildGenConfig = ParserForClass[BuildGenConfig].constructOrExit(args.toSeq)
-    run
+    val cfg: BuildGenConfig = ParserForClass[BuildGenConfig].constructOrExit(args.toSeq)
+    run(cfg)
   }
 
   private type MavenNode = Node[Model]
   private type MillNode = Node[BuildDefinition]
 
-  // using @main annotation here, with ParserForMethods in main, causes failure:
-  //   No @main methods declared
-  // moved doc to BuildGenConfig as a workaround
-  private def run(implicit cfg: BuildGenConfig): Unit = {
+  private def run(cfg: BuildGenConfig): Unit = {
     val workspace = os.pwd
 
     println("converting Maven build ...")
     val inputs = {
       val b = Seq.newBuilder[MavenNode]
-      val modeler = Modeler()
+      val modeler = Modeler(cfg)
 
       def recurse(dirs: Seq[String]): Unit = {
         val model = modeler(workspace / dirs)
@@ -71,7 +68,7 @@ object BuildGen {
       b.result()
     }
 
-    val outputs = make(inputs)
+    val outputs = make(inputs, cfg)
     println(s"generated ${outputs.size} Mill build file(s)")
 
     outputs.foreach { build =>
@@ -85,9 +82,7 @@ object BuildGen {
     println("converted Maven build to Mill")
   }
 
-  private def make(inputs: Seq[MavenNode])(implicit
-      cfg: BuildGenConfig
-  ): Seq[MillNode] = {
+  private def make(inputs: Seq[MavenNode], cfg: BuildGenConfig): Seq[MillNode] = {
     val baseModule = cfg.baseModule
     val noSharePublish = cfg.noSharePublish.value
 
@@ -97,7 +92,7 @@ object BuildGen {
         .toMap
 
     val baseModuleTypedef = {
-      val publishSettings = if (noSharePublish) "" else publish(inputs.head.module)
+      val publishSettings = if (noSharePublish) "" else publish(inputs.head.module, cfg)
 
       s"""trait $baseModule extends MavenModule with PublishModule {
          |$publishSettings
@@ -118,7 +113,8 @@ object BuildGen {
       val name = "`package`"
       val supertypes = Seq("RootModule", baseModule)
 
-      val (depsObject, compileDeps, providedDeps, runtimeDeps, test) = Scoped.all(model, packages)
+      val (depsObject, compileDeps, providedDeps, runtimeDeps, test) =
+        Scoped.all(model, packages, cfg)
       val body = {
         val packaging = model.getPackaging
         val javacOptions = Plugins.`maven-compiler-plugin`.javacOptions(model)
@@ -149,7 +145,7 @@ object BuildGen {
         val depsSettings = compileDeps.settings("ivyDeps", "moduleDeps")
         val compileDepsSettings = providedDeps.settings("compileIvyDeps", "compileModuleDeps")
         val runDepsSettings = runtimeDeps.settings("runIvyDeps", "runModuleDeps")
-        val publishSettings = if (noSharePublish) publish(model) else ""
+        val publishSettings = if (noSharePublish) publish(model, cfg) else ""
         val testModuleTypedef =
           if ("pom" == packaging) ""
           else {
@@ -235,7 +231,9 @@ object BuildGen {
         }
     }
 
-    def all(model: Model, packages: PartialFunction[Id, Package])(implicit
+    def all(
+        model: Model,
+        packages: PartialFunction[Id, Package],
         cfg: BuildGenConfig
     ): (Option[BuildCompanion], Compile, Provided, Runtime, Test) = {
       val compileIvyDeps = SortedSet.newBuilder[String]
@@ -357,7 +355,7 @@ object BuildGen {
     else itr.mkString(start, sep, end)
   }
 
-  private def publish(model: Model)(implicit cfg: BuildGenConfig): String = {
+  private def publish(model: Model, cfg: BuildGenConfig): String = {
     val description = escape(model.getDescription)
     val organization = escape(model.getGroupId)
     val url = escape(model.getUrl)
