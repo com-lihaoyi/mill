@@ -27,8 +27,6 @@ import scala.jdk.CollectionConverters.*
  *    - TestNG
  *  - supports Maven plugins:
  *    - org.apache.maven.plugins:maven-compiler-plugin
- *    - org.codehaus.mojo:build-helper-maven-plugin
- *      - path filters are not supported
  *
  * ===Limitations===
  *  - build extensions are not supported
@@ -118,8 +116,6 @@ object BuildGen {
       val body = {
         val packaging = model.getPackaging
         val javacOptions = Plugins.MavenCompilerPlugin.javacOptions(model)
-        val ((compileSources, compileResources), (testSources, testResources)) =
-          Plugins.BuildHelperMavenPlugin.added(model)
 
         val artifactNameSetting = {
           val id = model.getArtifactId
@@ -140,26 +136,18 @@ object BuildGen {
         }
         val javacOptionsSetting =
           optional("override def javacOptions = Seq(\"", javacOptions, "\",\"", "\")")
-        val sourcesSetting = sources("sources", compileSources)
-        val resourcesSetting = sources("resources", compileResources)
         val depsSettings = compileDeps.settings("ivyDeps", "moduleDeps")
         val compileDepsSettings = providedDeps.settings("compileIvyDeps", "compileModuleDeps")
         val runDepsSettings = runtimeDeps.settings("runIvyDeps", "runModuleDeps")
         val publishSettings = if (noSharePublish) publish(model, cfg) else ""
         val testModuleTypedef =
           if ("pom" == packaging) ""
-          else {
-            val sourcesSetting = sources("sources", testSources)
-            val resourcesSetting = sources("resources", testResources)
-            test.typedef(sourcesSetting, resourcesSetting)
-          }
+          else test.typedef
 
         s"""$artifactNameSetting
            |$pomPackagingTypeSetting
            |$pomParentProjectSetting
            |$javacOptionsSetting
-           |$sourcesSetting
-           |$resourcesSetting
            |$depsSettings
            |$compileDepsSettings
            |$runDepsSettings
@@ -209,7 +197,7 @@ object BuildGen {
 
     case class Test(ivyDeps: IvyDeps, moduleDeps: ModuleDeps, supertype: Option[String]) {
 
-      def typedef(settings: String*): String =
+      def typedef: String =
         if (ivyDeps.isEmpty && moduleDeps.isEmpty) ""
         else {
           val declare = supertype match {
@@ -226,7 +214,6 @@ object BuildGen {
           s"""$declare {
              |$ivyDepsSetting
              |$moduleDepsSetting
-             |${settings.mkString(System.lineSeparator())}
              |}""".stripMargin
         }
     }
@@ -406,9 +393,6 @@ object BuildGen {
        |$publishProperties
        |""".stripMargin
   }
-
-  private def sources(name: String, values: IterableOnce[String]): String =
-    optional(s"override def $name = Task.Sources { super.$name() ++ Seq(", values, ",", ")}")
 }
 
 @main

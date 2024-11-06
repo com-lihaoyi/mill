@@ -296,14 +296,6 @@ object MillInitMavenTests extends UtestIntegrationTestSuite {
         // publishLocal fails for submodule due to several Javadoc errors
         val publishLocalRes = eval("codec.publishLocal")
         assert(!publishLocalRes.isSuccess)
-
-        // additional sources defined by build-helper-maven-plugin
-        val sourcesRes = eval(("show", "transport-native-epoll.sources"))
-        assert(
-          sourcesRes.out.contains(s"$workspacePath/transport-native-epoll/src/main/java"),
-          sourcesRes.out.contains(s"$workspacePath/transport-native-epoll/src/main/c"),
-          sourcesRes.isSuccess
-        )
       }
     }
   }
