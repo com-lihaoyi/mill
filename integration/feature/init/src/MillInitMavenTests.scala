@@ -134,9 +134,9 @@ object MillInitMavenTests extends UtestIntegrationTestSuite {
         // not sure why this happens but pom.xml has a hack to handle JPMS
         val compileRes = eval("__.compile")
         Seq(
-          "module not found: org.apache.commons.compress",
-          "module not found: com.fasterxml.aalto",
-          "module not found: opczip"
+          "fastexcel-reader/src/main/java/module-info.java:3:32: module not found: org.apache.commons.compress",
+          "fastexcel-reader/src/main/java/module-info.java:4:27: module not found: com.fasterxml.aalto",
+          "fastexcel-writer/src/main/java/module-info.java:2:14: module not found: opczip"
         ).forall(compileRes.err.contains) ==> true
         compileRes.isSuccess ==> false
       }
