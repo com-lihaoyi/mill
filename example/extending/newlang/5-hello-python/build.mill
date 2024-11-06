@@ -1,11 +1,11 @@
-// == Basic Python Pipeline 
+// == Python Integration in Mill
 
-// This Example demonstrates integration of https://www.python.org[Python]
-// compilation into a Mill build to compile https://www.python.org[Python] Scripts. Mill
-// does not come bundled with https://www.python.org[Python] integration, so here we begin setting
-// one up from first principles using the Basic `Python3`(Already Present in OS) command Line.
+// This example demonstrates the integration of https://www.python.org[Python] 
+// compilation into a Mill build to compile Python scripts. Mill does not come 
+// bundled with Python integration, so here we will set one up from scratch 
+// using the basic `python3` command line, which is already present in the OS.
 
-// === Python Setup
+// === Python installation Setup
 //
 // First, we need to use the `Python3` CLI tool to create virtual environment and
 // install `mypy` for Type Checking using the official Python Virtual Environment
@@ -16,39 +16,20 @@
 package build
 import mill._
 
-def createVenv: T[PathRef] = Task {
-  val venvDir = T.dest / "venv"
-
-  os.call(
-    Seq(
-      "python3",
-      "-m",
-      "venv",
-      venvDir.toString
-    )
-  )
-
-  PathRef(venvDir)
-}
-
 def setup: T[PathRef] = Task {
   // creating virtual environment
-  val pythonVenv = createVenv().path / "bin" / "python3"
+  os.call(("python3","-m","venv",Task.dest / "venv"))
+
+  val pythonVenv = Task.dest / "venv" / "bin" / "python3"
   
   // installing mypy for Type Checking
-  os.call(
-    Seq(
-      pythonVenv.toString,
-      "-m",
-      "pip",
-      "install",
-      "mypy"
-    )
-  )
+  os.call((pythonVenv,"-m","pip","install","mypy"))
+
   PathRef(pythonVenv)
 }
 
-// The `createVenv` task ensures the Python virtual environment creation process using the official documentaion.
+// The `setup` task ensures the Python virtual environment creation process using the official
+// https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments[Documentation].
 // After this, we need to install python `mypy` library for Type Checking and Error Checking before actual run of the code, 
 // using the offical https://mypy.readthedocs.io/en/stable[Documentation] for `mypy` 
 
@@ -72,30 +53,12 @@ def typeCheck: T[PathRef] = Task {
   val pythonVenv = setup().path
 
   os.call(
-    Seq(
-      pythonVenv.toString,
-      "-m",
-      "mypy",
-      "--strict",
-      s"${sources().path / mainFileName()}"
-    ),
+    (pythonVenv,"-m","mypy","--strict",sources().path / mainFileName()),
     stdout = os.Inherit
   )
 
   PathRef(pythonVenv)
 }
-
-// At this point, we have a minimal working build, with a build graph that looks like this:
-//
-// ```graphviz
-// digraph G {
-//   rankdir=LR
-//   node [shape=box width=0 height=0 style=filled fillcolor=white]
-//   createVenv -> setup -> typeCheck
-//   sources -> typeCheck
-//   mainFileName -> typeCheck
-// }
-// ```
 
 // When `typeCheck` task sets up the Setup for Virtual Environment and checks the main file for error free code 
 // then we have `main.py` and running this file will result in either a generic greeting 
@@ -114,10 +77,7 @@ def run(args: mill.define.Args) = Task.Command {
   val pythonVenv = typeCheck().path
   
   os.call(
-    Seq(
-      pythonVenv.toString,
-      s"${sources().path / mainFileName()}"
-    ) ++ args.value,
+    (pythonVenv,sources().path / mainFileName(),args.value),
     stdout = os.Inherit
   )
 }
@@ -129,7 +89,7 @@ def run(args: mill.define.Args) = Task.Command {
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
-//   createVenv -> setup -> typeCheck -> run
+//   setup -> typeCheck -> run
 //   sources -> typeCheck
 //   mainFileName -> typeCheck
 //   sources -> run
@@ -153,6 +113,6 @@ Hello, Mill Python!
 
 // Uncomment the Result variable line(Line Number:13) in the `src/main.py` code to see `typeCheck` error
 
-// So that's a minimal example of implementing a `Basic Python
-// pipeline` locally. Next, we will look at turning it into a `PythonModule` that
+// So that's a minimal example of implementing a Basic `Python
+// Integration` in Mill Build Tool. Next, we will look at turning it into a `PythonModule` that
 // can be re-used

@@ -30,37 +30,16 @@ trait PythonModule extends Module {
   /** Returns the name of the main Python file. */
   def mainFileName: T[String] = Task { "main.py" }
 
-  /** Creates a virtual environment using the installed Python version. */
-  def createVenv: T[PathRef] = Task {
-    val venvDir = T.dest / "venv"
-
-    os.call(
-      Seq(
-        "python3",
-        "-m",
-        "venv",
-        venvDir.toString
-      )
-    )
-
-    PathRef(venvDir)
-  }
-
   /** This minimal setup provide basic Virtual Environment and Type Checking. */
   def setup: T[PathRef] = Task {
     // creating virtual environment
-    val pythonVenv = createVenv().path / "bin" / "python3"
+    os.call(("python3","-m","venv",Task.dest / "venv"))
+
+    val pythonVenv = Task.dest / "venv" / "bin" / "python3"
     
     // installing mypy for Type Checking
-    os.call(
-      Seq(
-        pythonVenv.toString,
-        "-m",
-        "pip",
-        "install",
-        "mypy"
-      )
-    )
+    os.call((pythonVenv,"-m","pip","install","mypy"))
+
     PathRef(pythonVenv)
   }
 
@@ -72,13 +51,7 @@ trait PythonModule extends Module {
     val pythonVenv = setup().path
 
     os.call(
-      Seq(
-        pythonVenv.toString,
-        "-m",
-        "mypy",
-        "--strict",
-        s"${sources().path / mainFileName()}"
-      ),
+      (pythonVenv,"-m","mypy","--strict",sources().path / mainFileName()),
       stdout = os.Inherit
     )
 
@@ -98,10 +71,7 @@ trait PythonModule extends Module {
     val pythonVenv = typeCheck().path
 
     os.call(
-      Seq(
-        pythonVenv.toString,
-        s"${sources().path / mainFileName()}"
-      ) ++ args.value,
+      (pythonVenv,sources().path / mainFileName(),args.value),
       env = Map("PYTHONPATH" -> Task.dest.toString),
       stdout = os.Inherit
     )
@@ -159,7 +129,7 @@ Add: 10 + 20 = 30 | Multiply: 10 * 20 = 200 | Divide: 10 / 20 = 0.5
 //   subgraph cluster_3 {
 //     style=dashed
 //     label=qux
-//     "qux.createVenv" -> "qux.setup" -> "qux.typeCheck" -> "qux.run"
+//     "qux.setup" -> "qux.typeCheck" -> "qux.run"
 //     "qux.sources" -> "qux.typeCheck"
 //     "qux.mainFileName" -> "qux.typeCheck"
 //     "qux.sources" -> "qux.run"
@@ -169,7 +139,7 @@ Add: 10 + 20 = 30 | Multiply: 10 * 20 = 200 | Divide: 10 / 20 = 0.5
 //     subgraph cluster_2 {
 //       style=dashed
 //       label=bar
-//       "bar.createVenv" -> "bar.setup" -> "bar.typeCheck" -> "bar.run"
+//       "bar.setup" -> "bar.typeCheck" -> "bar.run"
 //       "bar.sources" -> "bar.typeCheck"
 //       "bar.mainFileName" -> "bar.typeCheck"
 //       "bar.sources" -> "bar.run"
@@ -177,7 +147,7 @@ Add: 10 + 20 = 30 | Multiply: 10 * 20 = 200 | Divide: 10 / 20 = 0.5
 //     }
 //     style=dashed
 //     label=foo
-//     "foo.createVenv" -> "foo.setup" -> "foo.typeCheck" -> "foo.run"
+//     "foo.setup" -> "foo.typeCheck" -> "foo.run"
 //     "foo.sources" -> "foo.typeCheck"
 //     "foo.mainFileName" -> "foo.typeCheck"
 //     "foo.sources" -> "foo.run"

@@ -59,57 +59,27 @@ trait PythonModule extends Module {
     val upstreamDependencies = Task.traverse(moduleDeps)(_.finalDependencies)()
 
     (
-      dependencies().map(_.toString) 
-      ++ requirementsDependencies().map(_.toString) 
-      ++ upstreamDependencies.flatten.map(_.toString)
+      dependencies()
+      ++ requirementsDependencies()
+      ++ upstreamDependencies.flatten
     ).distinct
 
-  }
-
-  /** Creates a virtual environment using the installed Python version. */
-  def createVenv: T[PathRef] = Task {
-    val venvDir = T.dest / "venv"
-
-    os.call(
-      Seq(
-        "python3",
-        "-m",
-        "venv",
-        venvDir.toString
-      )
-    )
-
-    PathRef(venvDir)
   }
 
   /** This minimal setup provide basic Virtual Environment and installing dependencies. */
   def setup: T[PathRef] = Task {
     // creating virtual environment
-    val pythonVenv = createVenv().path / "bin" / "python3"
+    os.call(("python3","-m","venv",Task.dest / "venv"))
+
+    val pythonVenv = Task.dest / "venv" / "bin" / "python3"
     
     // installing mypy for Type Checking
     // and pex for bundling
-    os.call(
-      Seq(
-        pythonVenv.toString,
-        "-m",
-        "pip",
-        "install",
-        "mypy",
-        "pex"
-      )
-    )
+    os.call((pythonVenv,"-m","pip","install","mypy","pex"))
 
     // installs all library dependencies
     if (finalDependencies().nonEmpty) {
-      os.call(
-        Seq(
-          pythonVenv.toString,
-          "-m",
-          "pip",
-          "install"
-        ) ++ finalDependencies()
-      )
+      os.call((pythonVenv,"-m","pip","install", finalDependencies()))
     }
 
     PathRef(pythonVenv)
@@ -123,13 +93,7 @@ trait PythonModule extends Module {
     val pythonVenv = setup().path
 
     os.call(
-      Seq(
-        pythonVenv.toString,
-        "-m",
-        "mypy",
-        "--strict",
-        s"${sources().path / mainFileName()}"
-      ),
+      (pythonVenv,"-m","mypy","--strict",sources().path / mainFileName()),
       stdout = os.Inherit
     )
 
@@ -150,14 +114,10 @@ trait PythonModule extends Module {
     val pythonVenv = typeCheck().path
 
     os.call(
-      Seq(
-        pythonVenv.toString,
-        s"${sources().path / mainFileName()}"
-      ) ++ args.value,
+      (pythonVenv,sources().path / mainFileName(),args.value),
       env = Map("PYTHONPATH" -> Task.dest.toString),
       stdout = os.Inherit
     )
-
   }
 
   /** Bundles the python project using pex(Python Executable) Library. */
@@ -165,7 +125,7 @@ trait PythonModule extends Module {
 
     val pythonVenv = setup().path
 
-    val pexFile = T.dest / "result.pex"
+    val pexFile = Task.dest / "result.pex"
 
     val upstream = Task.traverse(moduleDeps)(_.sources)().zip(moduleDeps)
 
@@ -175,17 +135,17 @@ trait PythonModule extends Module {
     }
 
     os.call(
-      Seq(
-        pythonVenv.toString,
+      (
+        pythonVenv,
         "-m",
         "pex",
-      ) ++ finalDependencies() ++ Seq(
+        finalDependencies(),
         "-c",
-        s"${sources().path / mainFileName()}",
+        sources().path / mainFileName(),
         "-o",
-        pexFile.toString
-      ) ++ args.value,
-      env = Map("PYTHONPATH" -> Task.dest.toString),
+        pexFile,
+        args.value
+      ),env = Map("PYTHONPATH" -> Task.dest.toString),
       stdout = os.Inherit
     )
 
@@ -244,7 +204,7 @@ Numpy : Sum: 150 | Pandas: Mean: 30.0, Max: 50
 // digraph G {
 //   rankdir=LR;
 //   node [shape=box, width=0, height=0, style=filled, fillcolor=white];
-//   "pex.createVenv" -> "pex.setup" -> "pex.typeCheck" -> "pex.run";
+//   "pex.setup" -> "pex.typeCheck" -> "pex.run";
 //   "pex.typeCheck" -> "pex.bundle";
 //   "pex.finalDependencies" -> "pex.setup";
 //   "pex.finalDependencies" -> "pex.bundle";
