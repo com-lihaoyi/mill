@@ -5,9 +5,9 @@ include::partial$gtag-config.adoc[]
 https://mill-build.org/[Mill] is a JVM build tool that targets Java/Scala/Kotlin and has
 potential to serve the large-monorepo codebases that Bazel currently serves. Mill has good
 traction among its users, benchmarks that demonstrate 2-10x faster builds than its competitors,
-and a unique design that make it easy to use and extend. This page
-discusses some of the most interesting design decisions in Mill, and how it sets Mill apart
-from other build tools on the market.
+and a unique design that make it easy to use and extend. This page discusses some of the most
+interesting design decisions in Mill, and how it sets Mill apart from other build tools on
+the market.
 
 ## What is a Build Tool?
 
@@ -503,10 +503,19 @@ community that would amount to a significant footprint. And I think it is very d
 
 ## Next Steps For Mill Going Forward
 
-Going forward, I expect to pursue all three paths: Mill as a better Java build tool, Mill as
-an easier Monorepo build tool, and Mill as the standard Scala build tool. Much of the past
-quarter Q3 2024 has been spent polishing the experience of using Mill from Java, but
-similar efforts will need to be made in the other two areas.
+10 years ago React.js democratized front-end Web UIs: what previously took intricate
+surgery to properly wire up event handlers and UI mutations in three separate languages
+became a straightforward task of naively returning the UI you want to render. Previously
+challenging tasks (e.g. "make a loading bar that is kept in sync with the text on screen as
+a file is uploaded") became trivial, and now anyone can probably fumble through a basic
+interactive website without getting lost in callback hell.
+
+I think Mill has a chance to do the same thing for build systems. Like Web UIs 10 years ago,
+configuring and maintaining a build-system often requires juggling multiple different
+templating/config/scripting languages in an intricate dance of callbacks and filesystem
+mutations. Like React.js, Mill collapses all this complexity, letting you write naive code
+in a single language while getting all the benefits of caching and parallelism, making
+previously challenging build pipelines implementations trivial.
 
 Fundamentally, there are holes in the build-tool market that are not well served:
 the Java folks deserve something more modern than Maven or Gradle, the Monorepo folks need
@@ -515,7 +524,11 @@ than SBT. I think Mill has a decent shot at occupying each of these three niches
 if it is only able to succeed in one or two that would still be significant. Perhaps
 even significant enough to build a business around!
 
-I expect to be working on the Mill build tool for the foreseeable future to see if I can
-make this work, and I will be investing a significant amount of cash in order to support
+
+Going forward, I expect to pursue all three paths: Mill as a better Java build tool, Mill as
+an easier Monorepo build tool, and Mill as the standard Scala build tool. Much of the past
+quarter Q3 2024 has been spent polishing the experience of using Mill from Java, but
+similar efforts will need to be made in the other two areas. I will be working on this full time
+and also investing a significant amount of cash in order to support
 the effort. If anyone out there is interested in being paid to work on the next-generation
 of Java, Monorepo, or Scala build tools, let me know and we can try to make an arrangement!
