@@ -469,12 +469,12 @@ object BuildGen {
 case class BuildGenConfig(
     @arg(doc = "generated base module trait name")
     baseModule: String = "BasePublishModule",
-    @arg(doc = "generated dependencies companion object name")
-    depsObject: Option[String] = None,
     @arg(doc = "do not define and share publish settings in base module")
     noSharePublish: Flag = Flag(),
     @arg(doc = "capture and publish properties defined in pom.xml")
     publishProperties: Flag = Flag(),
+    @arg(doc = "generate dependencies companion object with name")
+    depsObject: Option[String] = None,
     @arg(doc = "use cache for Maven repository system")
     cacheRepository: Flag = Flag(),
     @arg(doc = "process Maven plugin executions and configurations")
