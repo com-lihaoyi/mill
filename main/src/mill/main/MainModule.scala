@@ -1,6 +1,5 @@
 package mill.main
 
-import mill.T
 import mill.api.{Ctx, *}
 import mill.define.{BaseModule0, Command, NamedTask, Segments, Target, Task, *}
 import mill.eval.{Evaluator, EvaluatorPaths, Terminal}
@@ -329,7 +328,7 @@ trait MainModule extends BaseModule0 {
           }
         }
 
-        val allInheritedModulesOpt = Option.when(T.log.debugEnabled) {
+        val allInheritedModulesOpt = Option.when(Target.log.debugEnabled) {
           allParents(parents.toList, Seq())
             .filter(parentFilter)
             .filterNot(inheritedModules.contains)
