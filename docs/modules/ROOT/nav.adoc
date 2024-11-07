@@ -37,6 +37,7 @@
 ** xref:comparisons/maven.adoc[]
 ** xref:comparisons/gradle.adoc[]
 ** xref:comparisons/sbt.adoc[]
+** xref:comparisons/unique.adoc[]
 * The Mill CLI
 ** xref:cli/installation-ide.adoc[]
 ** xref:cli/flags.adoc[]
