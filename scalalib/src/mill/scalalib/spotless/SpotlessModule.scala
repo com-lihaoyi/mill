@@ -7,24 +7,26 @@ import mill.scalalib._
 import mill.main.Tasks
 import mainargs.arg
 
+import java.net.URLClassLoader
+
 trait SpotlessModule extends JavaModule {
 
   def reformat(): Command[Unit] = T.command {
-    SpotlessWorkerModule
-      .worker()
-      .reformat(
+    loadSpotlessWorker().map { worker =>
+      worker.reformat(
         filesToFormat(sources()),
         resolvedSpotlessConfig()
       )
+    }.getOrElse(Result.Failure("Failed to load Spotless worker"))
   }
 
   def checkFormat(): Command[Unit] = T.command {
-    SpotlessWorkerModule
-      .worker()
-      .checkFormat(
+    loadSpotlessWorker().map { worker =>
+      worker.checkFormat(
         filesToFormat(sources()),
         resolvedSpotlessConfig()
       )
+    }.getOrElse(Result.Failure("Failed to load Spotless worker"))
   }
 
   def spotlessConfig: T[Seq[PathRef]] = T.sources(
@@ -56,6 +58,21 @@ trait SpotlessModule extends JavaModule {
       }
     } yield PathRef(file)
   }
+
+  private def loadSpotlessWorker(): Option[SpotlessWorker] = {
+    try {
+      // Dynamically load SpotlessWorker using URLClassLoader
+      val urls = Seq( /* Paths to Spotless and dependencies JARs here */ )
+      val classLoader = new URLClassLoader(urls.toArray, getClass.getClassLoader)
+      val workerClass = classLoader.loadClass("mill.scalalib.spotless.SpotlessWorker")
+      val worker = workerClass.getDeclaredConstructor().newInstance().asInstanceOf[SpotlessWorker]
+      Some(worker)
+    } catch {
+      case ex: Exception =>
+        println(s"Failed to load SpotlessWorker: ${ex.getMessage}")
+        None
+    }
+  }
 }
 
 object SpotlessModule extends ExternalModule with SpotlessModule with TaskModule {
@@ -64,23 +81,23 @@ object SpotlessModule extends ExternalModule with SpotlessModule with TaskModule
   def reformatAll(@arg(positional = true) sources: Tasks[Seq[PathRef]] =
     Tasks.resolveMainDefault("__.sources")): Command[Unit] = T.command {
     val files = T.sequence(sources.value)().flatMap(filesToFormat)
-    SpotlessWorkerModule
-      .worker()
-      .reformat(
+    loadSpotlessWorker().map { worker =>
+      worker.reformat(
         files,
         resolvedSpotlessConfig()
       )
+    }.getOrElse(Result.Failure("Failed to load Spotless worker"))
   }
 
   def checkFormatAll(@arg(positional = true) sources: Tasks[Seq[PathRef]] =
     Tasks.resolveMainDefault("__.sources")): Command[Unit] = T.command {
     val files = T.sequence(sources.value)().flatMap(filesToFormat)
-    SpotlessWorkerModule
-      .worker()
-      .checkFormat(
+    loadSpotlessWorker().map { worker =>
+      worker.checkFormat(
         files,
         resolvedSpotlessConfig()
       )
+    }.getOrElse(Result.Failure("Failed to load Spotless worker"))
   }
 
   lazy val millDiscover: Discover = Discover[this.type]
