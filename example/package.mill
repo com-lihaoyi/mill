@@ -172,23 +172,10 @@ object `package` extends RootModule with Module {
     def lineTransform(line: String) = line
   }
 
-//  abstract class AbstractProcessor {
-//    def onPush(i:Info): Unit
-//  }
-
   trait ExampleCrossModule extends build.integration.IntegrationTestModule {
     // disable scalafix because these example modules don't have sources causing it to misbehave
     def fix(args: String*): Command[Unit] = Task.Command {}
     def testRepoRoot: T[PathRef] = Task.Source(millSourcePath)
-
-//    def sources = Task.Sources { testRepoRoot().path }
-//    def resources = Seq(testRepoRoot())
-//    def runClasspath = build.main.test.runClasspath()
-//    def localRunClasspath = build.testkit.localRunClasspath()
-
-//    def forkEnv = Map(
-//      "LANG" -> "C"
-//    )
 
     /**
      * Parses a `build.mill` for specific comments and return the split-by-type content

@@ -70,18 +70,17 @@ trait PalantirFormatModule extends JavaModule with PalantirFormatBaseModule {
       check: mainargs.Flag = mainargs.Flag(value = false),
       sources: mainargs.Leftover[String]
   ): Command[Unit] = Task.Command {
+    if (sources.value.nonEmpty) {
+      val _sources = sources.value.iterator.map(rel => PathRef(millSourcePath / os.RelPath(rel)))
 
-    val _sources =
-      if (sources.value.isEmpty) this.sources()
-      else sources.value.iterator.map(rel => PathRef(millSourcePath / os.RelPath(rel)))
-
-    PalantirFormatModule.palantirAction(
-      _sources,
-      check.value,
-      palantirformatOptions(),
-      palantirformatClasspath(),
-      palantirformatJvmArgs()
-    )
+      PalantirFormatModule.palantirAction(
+        _sources,
+        check.value,
+        palantirformatOptions(),
+        palantirformatClasspath(),
+        palantirformatJvmArgs()
+      )
+    }
   }
 }
 object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule with TaskModule {
