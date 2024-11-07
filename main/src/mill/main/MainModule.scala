@@ -422,8 +422,8 @@ trait MainModule extends BaseModule0 {
                 // this is either because of some pre-Mill-0.10 files lying around
                 // or most likely because the segments denote a module but not a task
                 // in which case we want to remove the module and all its sub-modules
-                // (If this logic is later found to be to harsh, we could further guard it,
-                // to when non of the other paths exists.)
+                // (If this logic is later found to be too harsh, we could further guard it,
+                // to when none of the other paths exists.)
                 paths :+ potentialModulePath
               } else paths
             }

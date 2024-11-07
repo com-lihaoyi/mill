@@ -18,7 +18,7 @@ import ujson.Value
  *                         is run with `--no-server`
  * @param workspaceSourcePath The folder in which the `build.mill` and project files being
  *                            tested comes from. These are copied into a temporary folder
- *                            and are no modified during tests
+ *                            and are not modified during tests
  * @param millExecutable What Mill executable to use.
  */
 class IntegrationTester(

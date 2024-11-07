@@ -8,7 +8,7 @@ import utest._
  * except the commands used to test the project come from a `/** Usage ... */`
  * comment inside the project's `build.mill` file. This is intended to make the
  * `build.mill` file usable as documentation, such that a reader can skim the `build.mill`
- * and see both the build configuration as well as the commands they themselves can
+ * and see both the build configuration and the commands they themselves can
  * enter at the command line to exercise it.
  *
  * Implements a bash-like test DSL for educational purposes, parsed out from a
@@ -17,7 +17,7 @@ import utest._
  * example themselves.
  *
  * Each empty-line-separated block consists of one command (prefixed with `>`)
- * and zero or more output lines we expect to get from the comman (either stdout
+ * and zero or more output lines we expect to get from the command (either stdout
  * or stderr):
  *
  * 1. If there are no expected output lines, we do not perform any assertions

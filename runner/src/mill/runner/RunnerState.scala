@@ -15,7 +15,7 @@ import mill.main.RootModule
  * - `frame(1)` contains the output of `build.mill` file compilation
  * - `frame(2)` contains the output of the in-memory [[MillBuildRootModule.BootstrapModule]]
  * - If there are meta-builds present (e.g. `mill-build/build.mill`), then `frame(2)`
- *   would contains the output of the meta-build compilation, and the in-memory
+ *   would contain the output of the meta-build compilation, and the in-memory
  *   bootstrap module would be pushed to a higher frame
  *
  * If a level `n` fails to evaluate, then [[errorOpt]] is set to the error message

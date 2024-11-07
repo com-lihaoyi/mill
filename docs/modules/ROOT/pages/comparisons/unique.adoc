@@ -470,7 +470,7 @@ and Python. These features are not as highly-scalable as their Bazel equivalents
 they are provided in a lighter-weight, easier-to-use fashion suitable for organizations
 with less than 1,000 engineers.
 
-For most companies, their problems with Bazel aren't its scalability or featureset,
+For most companies, their problems with Bazel aren't its scalability or feature set,
 but its complexity. While Mill can never compete with Bazel for the largest-scale deployments
 by its most sophisticated users, the bulk of users operate at a somewhat smaller scale and
 need something easier than Bazel. Mill could be that easy monorepo build tool for them to use.
@@ -482,7 +482,7 @@ is small: most programming language rankings put it anywhere from 15-20th in ter
 popularity (e.g. https://redmonk.com/sogrady/2024/09/12/language-rankings-6-24/[Redmonk June 2024]),
 with 1-3% of market share (e.g. https://survey.stackoverflow.co/2024/technology/[StackOverflow 2024 Survey],
 https://www.jetbrains.com/lp/devecosystem-2023/languages/[Jetbrains 2023 Survey]). Mill
-at 5-10% marketshare as a Scala build tool is even smaller and more niche. But I think there
+at 5-10% market share as a Scala build tool is even smaller and more niche. But I think there
 is room to grow.
 
 The current de-facto standard Scala build tool is SBT. SBT is improving over time, but it has a

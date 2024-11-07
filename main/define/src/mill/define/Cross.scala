@@ -133,7 +133,7 @@ object Cross {
 
     /**
      * Implicitly constructs a Factory[M] for a target-typed `M`. Takes in an
-     * expression of type `Any`, but type-checking on the macro- expanded code
+     * expression of type `Any`, but type-checking on the macro-expanded code
      * provides some degree of type-safety.
      */
     implicit def make[M <: Module[_]](t: Any): Factory[M] = macro makeImpl[M]

@@ -134,7 +134,7 @@ where you'd normally use the Mill `PublishModule` and then ensure you implement
 everything that `PublishModule` requires.
 
 Secondly, you'll need to ensure you have a few environment variables correctly
-set in your GitHub repo. You can see detailed instuctions on which are
+set in your GitHub repo. You can see detailed instructions on which are
 necessary https://github.com/ckipp01/mill-ci-release#secrets[here].
 
 Then in CI to publish you'll simply issue a single command:

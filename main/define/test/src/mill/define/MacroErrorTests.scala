@@ -84,7 +84,7 @@ object MacroErrorTests extends TestSuite {
       // of our `Target#apply()` calls, but we cannot reference any values that
       // come from inside the Task{...} block
       test("pos") {
-        // This hsould compile
+        // This should compile
         object foo extends TestBaseModule {
           def a = Task { 1 }
           val arr = Array(a)

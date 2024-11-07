@@ -138,7 +138,7 @@ $ ./mill clean; time ./mill gatling-common.compile
 ```
 
 This benchmark indicates the use case of clean-compiling a single module. In this case,
-the `gatling-commons` module's application code in `commons/, _exluding_ the test code in
+the `gatling-commons` module's application code in `commons/, _excluding_ the test code in
 and all the downstream submodules.
 
 === Incremental Compile Single-Module

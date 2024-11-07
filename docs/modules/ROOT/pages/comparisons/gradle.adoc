@@ -164,7 +164,7 @@ $ ./mill clean; time ./mill compile
 
 This benchmark indicates the use case of clean-compiling a single module. In this case,
 the root module in `src/main/java/` containing the bulk of the Mockito library code,
-_exluding_ the test code in `src/test/java/` and all the downstream subprojects in 
+_excluding_ the test code in `src/test/java/` and all the downstream subprojects in
 `subprojects/`.
 
 This benchmark gives us Mill being about ~3.7x faster than Gradle. This is in line with

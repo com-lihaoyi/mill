@@ -20,7 +20,7 @@ import java.util.function.BiConsumer;
 
 /**
  * Client side code that interacts with `Server.scala` in order to launch a generic
- * long lived background server.
+ * long-lived background server.
  *
  * The protocol is as follows:
  *
@@ -36,7 +36,7 @@ import java.util.function.BiConsumer;
  *   - Listen for incoming client requests on serverSocket
  *   - Execute client request
  *   - If clientLock is released during execution, terminate server (otherwise
- *     we have no safe way of termianting the in-process request, so the server
+ *     we have no safe way of terminating the in-process request, so the server
  *     may continue running for arbitrarily long with no client attached)
  *   - Send `ProxyStream.END` packet and call `clientSocket.close()`
  * - Client:
@@ -75,7 +75,7 @@ public abstract class ServerLauncher {
 
         // For testing in memory, we need to pass in the locks separately, so that the
         // locks can be shared between the different instances of `ServerLauncher` the
-        // same way file locks are shared between different Mill client/secrer processes
+        // same way file locks are shared between different Mill client/server processes
         this.memoryLocks = memoryLocks;
 
         this.forceFailureForTestingMillisDelay = forceFailureForTestingMillisDelay;

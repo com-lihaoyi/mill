@@ -11,10 +11,10 @@ import os.{Path, Shellable}
 /**
  * Adds proguard capabilities when mixed-in to a module
  *
- * The target name is `proguard`. This runs proguard on the output jar of `asssembly`
+ * The target name is `proguard`. This runs proguard on the output jar of `assembly`
  * and outputs a shrunk/obfuscated/optimized jar under `out.jar` in the `dest/` folder.
  *
- * Sensible defaults are provided, so no members require overriding..
+ * Sensible defaults are provided, so no members require overriding.
  */
 trait Proguard extends ScalaModule {
 
@@ -49,7 +49,7 @@ trait Proguard extends ScalaModule {
    * The path to JAVA_HOME.
    *
    * This is used for both the `java` command binary,
-   * as well as the standard library jars.
+   * and the standard library jars.
    * Defaults to the `java.home` system property.
    * Keep in sync with [[java9RtJar]]-
    */

@@ -55,7 +55,7 @@ object CodeGen {
       def pkgSelector2(s: Option[String]) = s"_root_.${pkgSelector0(Some(globalPackagePrefix), s)}"
       val childAliases = childNames
         .map { c =>
-          // Dummy references to sub modules. Just used as metadata for the discover and
+          // Dummy references to sub-modules. Just used as metadata for the discover and
           // resolve logic to traverse, cannot actually be evaluated and used
           val comment = "// subfolder module reference"
           val lhs = backtickWrap(c)

@@ -127,7 +127,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
           case false | java.lang.Boolean.FALSE => if (trueIsSuccess) fail else ok
           case null if sv.startsWith("2.") =>
             // Scala 2.11 and earlier return `Unit` and require use to use the result value,
-            // which we don't want to implement for just a simple help output of an very old compiler
+            // which we don't want to implement for just a simple help output of a very old compiler
             Result.Success(())
           case x => Result.Failure(s"Got unexpected return type from the scala compiler: ${x}")
         }
