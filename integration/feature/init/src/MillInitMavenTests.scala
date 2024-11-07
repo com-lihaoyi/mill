@@ -53,6 +53,88 @@ object MillInitMavenJansiTests extends MillInitMavenTests {
   }
 }
 
+object MillInitMavenOwnerTests extends MillInitMavenTests {
+
+  def tests: Tests = Tests {
+
+    // - multi-level multi-module
+    // - Junit4
+    // - maven-compiler-plugin release option
+    test - prep("https://github.com/matteobaccan/owner/archive/refs/tags/owner-1.0.12.zip") {
+      tester =>
+        import tester._
+
+        val initRes = eval("init")
+        assert(
+          initRes.out.contains("generated 9 Mill build file(s)"),
+          initRes.isSuccess
+        )
+
+        val resolveRes = eval(("resolve", "_"))
+        assert(
+          resolveRes.out.contains("owner"),
+          resolveRes.out.contains("owner-site"),
+          resolveRes.out.contains("owner-extras"),
+          resolveRes.out.contains("owner-assembly"),
+          resolveRes.out.contains("owner-java8-extras"),
+          resolveRes.out.contains("owner-java8"),
+          resolveRes.out.contains("owner-examples"),
+          resolveRes.isSuccess
+        )
+
+        val compileRes = eval("__.compile")
+        assert(
+          compileRes.err.contains("compiling 52 Java sources"),
+          compileRes.err.contains("compiling 2 Java sources"),
+          compileRes.err.contains("compiling 1 Java source"),
+          compileRes.err.contains("compiling 91 Java sources"),
+          // compileRes.err.contains("compiling 2 Java sources"),
+          compileRes.err.contains("compiling 6 Java sources"),
+          compileRes.err.contains("compiling 3 Java sources"),
+          compileRes.isSuccess
+        )
+
+        val testRes = eval("__.test")
+        assert(
+          testRes.err.contains("owner.test.test 3 tests failed"), // bad release?
+          !testRes.isSuccess
+        )
+
+        val publishLocal = eval("__.publishLocal")
+        assert(
+          publishLocal.err.contains(
+            "Publishing Artifact(org.aeonbits.owner,owner-parent,1.0.12)"
+          ),
+          publishLocal.err.contains(
+            "Publishing Artifact(org.aeonbits.owner,owner-site,1.0.12)"
+          ),
+          publishLocal.err.contains(
+            "Publishing Artifact(org.aeonbits.owner,owner-examples,1.0.12)"
+          ),
+          publishLocal.err.contains(
+            "Publishing Artifact(org.aeonbits.owner,owner-assembly,1.0.12)"
+          ),
+          publishLocal.err.contains(
+            "Publishing Artifact(org.aeonbits.owner,owner-examples-owner-examples-hotreload,1.0.12)"
+          ),
+          publishLocal.err.contains(
+            "Publishing Artifact(org.aeonbits.owner,owner-java8,1.0.12)"
+          ),
+          publishLocal.err.contains(
+            "Publishing Artifact(org.aeonbits.owner,owner-extras,1.0.12)"
+          ),
+          publishLocal.err.contains(
+            "Publishing Artifact(org.aeonbits.owner,owner-java8-extras,1.0.12)"
+          ),
+          publishLocal.err.contains(
+            "Publishing Artifact(org.aeonbits.owner,owner,1.0.12)"
+          ),
+          publishLocal.isSuccess
+        )
+    }
+  }
+}
+
 object MillInitMavenDotEnvTests extends MillInitMavenTests {
 
   def tests: Tests = Tests {
@@ -86,7 +168,9 @@ object MillInitMavenDotEnvTests extends MillInitMavenTests {
 
       // even if compile error is fixed, TestNg version is not supported
       // val testRes = eval("__.test")
-      // assert(!testRes.isSuccess)
+      // assert(
+      //   !testRes.isSuccess
+      // )
     }
   }
 }
@@ -189,7 +273,7 @@ object MillInitMavenNettyTests extends MillInitMavenTests {
       tester =>
         import tester._
 
-        val initRes = eval(("init", "--process-plugins", "--publish-properties"))
+        val initRes = eval(("init", "--publish-properties"))
         // cannot resolve native dependencies defined by build extension os-maven-plugin
         assert(
           initRes.out.contains(
