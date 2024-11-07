@@ -77,7 +77,7 @@ Mill's performance compares to Gradle:
 |===
 
 The column on the right shows the speedups of how much faster Mill is compared to the
-equivalent Gradle workflow. In most cases,  Mill is 5-10x faster than Gradle. Below, we
+equivalent Gradle workflow. In most cases,  Mill is 2-4x faster than Gradle. Below, we
 will go into more detail of each benchmark: how they were run, what they mean, and how
 we can explain the difference in performing the same task with the two different build tools.
 
