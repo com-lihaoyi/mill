@@ -45,10 +45,11 @@ object MainModuleTests extends TestSuite {
     /** Sub module */
     object sub extends TaskModule {
       override def defaultCommandName(): String = "hello"
-      def hello() = Task.Command{
+      def hello() = Task.Command {
         println("hello")
       }
       def moduleDeps = Seq(subSub)
+
       /** SubSub module */
       object subSub extends Module
     }

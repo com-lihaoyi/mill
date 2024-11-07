@@ -1,7 +1,7 @@
 package mill.main
 
-import mill.api.{Ctx, *}
-import mill.define.{BaseModule0, Command, NamedTask, Segments, Target, Task, *}
+import mill.api.{Ctx, _}
+import mill.define.{BaseModule0, Command, NamedTask, Segments, Target, Task, _}
 import mill.eval.{Evaluator, EvaluatorPaths, Terminal}
 import mill.moduledefs.Scaladoc
 import mill.resolve.SelectMode.Separated
