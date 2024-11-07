@@ -405,7 +405,6 @@ object Jvm extends CoursierSupport {
 
     os.makeDir.all(outputPath / os.up) // Ensure parent directory exists
 
-
     createJar(
       jar = outputPath,
       inputPaths = inputPaths,
