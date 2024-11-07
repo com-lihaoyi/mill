@@ -1,6 +1,5 @@
 package mill.integration
 
-import mill.testkit.IntegrationTester.EvalResult
 import mill.testkit.UtestIntegrationTestSuite
 import utest._
 
