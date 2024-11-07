@@ -29,6 +29,11 @@ import scala.jdk.CollectionConverters.*
  *    - org.apache.maven.plugins:maven-compiler-plugin
  *
  * ===Limitations===
+ *  - sources and resources are limited to
+ *    - src/main/java
+ *    - src/main/resources
+ *    - src/test/java
+ *    - src/test/resources
  *  - build extensions are not supported
  *  - build profiles are not supported
  *  - packaging support is limited to
@@ -39,7 +44,7 @@ import scala.jdk.CollectionConverters.*
 object BuildGen {
 
   def main(args: Array[String]): Unit = {
-    val cfg: BuildGenConfig = ParserForClass[BuildGenConfig].constructOrExit(args.toSeq)
+    val cfg = ParserForClass[BuildGenConfig].constructOrExit(args.toSeq)
     run(cfg)
   }
 
@@ -92,38 +97,74 @@ object BuildGen {
     val baseModuleTypedef = {
       val publishSettings = if (noSharePublish) "" else publish(inputs.head.module, cfg)
 
-      s"""trait $baseModule extends MavenModule with PublishModule {
+      s"""trait $baseModule extends PublishModule {
          |$publishSettings
          |}""".stripMargin
     }
 
     inputs.map { case build @ Node(dirs, model) =>
-      val imports = Seq(
-        "import mill._",
-        "import mill.javalib._",
-        "import mill.javalib.publish._"
-      ) ++ (
-        if (dirs.nonEmpty) Some(s"import $$file.$baseModule")
-        else Option.when(packages.size > 1)("import $packages._")
-      )
+      val packaging = model.getPackaging
+      val projectDir = os.Path(model.getProjectDirectory)
+      def projectRel(path: os.Path): String = path.relativeTo(projectDir).toString()
+      val isMavenModule = packaging != "pom" && os.exists(projectDir / "src/main/java")
+
+      val imports = {
+        val b = Seq.newBuilder[String]
+        b += "import mill._"
+        b += "import mill.javalib._"
+        b += "import mill.javalib.publish._"
+        if (dirs.nonEmpty) b += s"import $$file.$baseModule"
+        else if (packages.size > 1) b += "import $packages._"
+        b.result()
+      }
 
       val typedefs = if (dirs.isEmpty) Seq(baseModuleTypedef) else Seq.empty
-      val name = "`package`"
-      val supertypes = Seq("RootModule", baseModule)
 
-      val (depsObject, compileDeps, providedDeps, runtimeDeps, test) =
+      val name = "`package`"
+
+      val supertypes = {
+        val b = Seq.newBuilder[String]
+
+        b += "RootModule"
+        b += baseModule
+        if (isMavenModule) b += "MavenModule"
+
+        b.result()
+      }
+
+      val (depsObject, compileDeps, providedDeps, runtimeDeps, testDeps, testModule) =
         Scoped.all(model, packages, cfg)
+
       val body = {
-        val packaging = model.getPackaging
         val javacOptions = Plugins.MavenCompilerPlugin.javacOptions(model)
 
         val artifactNameSetting = {
           val id = model.getArtifactId
-          val name = if (dirs.nonEmpty && dirs.last == id) null else id // skip default
-          escapeOptional("override def artifactName = ", name)
+          val name = if (dirs.nonEmpty && dirs.last == id) null else s"\"$id\"" // skip default
+          optional("override def artifactName = ", name)
         }
-        val pomPackagingTypeSetting =
-          escapeOptional(s"override def pomPackagingType = ", packaging, "jar")
+        val resourcesSetting = {
+          val dirs = model.getBuild.getResources.iterator().asScala
+            .map(_.getDirectory)
+            .map(os.Path(_))
+            .filter(os.exists)
+            .map(projectRel)
+            .filterNot(_ == "src/main/resources" && isMavenModule)
+          resources(dirs)
+        }
+        val javacOptionsSetting =
+          optional("override def javacOptions = Seq(\"", javacOptions, "\",\"", "\")")
+        val depsSettings = compileDeps.settings("ivyDeps", "moduleDeps")
+        val compileDepsSettings = providedDeps.settings("compileIvyDeps", "compileModuleDeps")
+        val runDepsSettings = runtimeDeps.settings("runIvyDeps", "runModuleDeps")
+        val pomPackagingTypeSetting = {
+          val packagingType = packaging match {
+            case "jar" => "PackagingType.Jar"
+            case "pom" => "PackagingType.Pom"
+            case _ => null
+          }
+          optional(s"override def pomPackagingType = ", packagingType)
+        }
         val pomParentProjectSetting = {
           val parent = model.getParent
           if (null == parent) ""
@@ -134,23 +175,32 @@ object BuildGen {
             s"override def pomParentProject = Some(Artifact(\"$group\", \"$id\", \"$version\"))"
           }
         }
-        val javacOptionsSetting =
-          optional("override def javacOptions = Seq(\"", javacOptions, "\",\"", "\")")
-        val depsSettings = compileDeps.settings("ivyDeps", "moduleDeps")
-        val compileDepsSettings = providedDeps.settings("compileIvyDeps", "compileModuleDeps")
-        val runDepsSettings = runtimeDeps.settings("runIvyDeps", "runModuleDeps")
         val publishSettings = if (noSharePublish) publish(model, cfg) else ""
         val testModuleTypedef =
-          if ("pom" == packaging) ""
-          else test.typedef
+          if (os.exists(projectDir / "src/test/java")) {
+            val resources = model.getBuild.getTestResources.iterator().asScala
+              .map(_.getDirectory)
+              .map(os.Path(_))
+              .filter(os.exists)
+              .map(projectRel)
+            val (supertype, sourceDirs, resourceDirs) =
+              if (isMavenModule)
+                ("MavenTests", Seq.empty, resources.filterNot(_ == "src/test/resources"))
+              else
+                // we get away with this because baseModule <: PublishModule <: JavaModule
+                ("JavaTests", Seq("src/test/java"), resources)
+
+            testDeps.testTypeDef(supertype, testModule, sourceDirs, resourceDirs)
+          } else ""
 
         s"""$artifactNameSetting
-           |$pomPackagingTypeSetting
-           |$pomParentProjectSetting
+           |$resourcesSetting
            |$javacOptionsSetting
            |$depsSettings
            |$compileDepsSettings
            |$runDepsSettings
+           |$pomPackagingTypeSetting
+           |$pomParentProjectSetting
            |$publishSettings
            |$testModuleTypedef""".stripMargin
       }
@@ -188,41 +238,47 @@ object BuildGen {
          |$moduleDepsSetting
          |""".stripMargin
     }
+
+    def testTypeDef(
+        supertype: String,
+        testModule: Scoped.TestModule,
+        sourceDirs: IterableOnce[String],
+        resourceDirs: IterableOnce[String]
+    ): String =
+      if (ivyDeps.isEmpty && moduleDeps.isEmpty) ""
+      else {
+        val declare = testModule match {
+          case Some(module) => s"object test extends $supertype with $module"
+          case None => s"trait Tests extends $supertype"
+        }
+        val ivyDepsSetting =
+          optional(s"override def ivyDeps = super.ivyDeps() ++ Agg", ivyDeps)
+        val moduleDepsSetting =
+          optional(s"override def moduleDeps = super.moduleDeps ++ Seq", moduleDeps)
+        val sourcesSetting = sources(sourceDirs)
+        val resourcesSetting = resources(resourceDirs)
+
+        s"""$declare {
+           |$ivyDepsSetting
+           |$moduleDepsSetting
+           |$sourcesSetting
+           |$resourcesSetting
+           |}""".stripMargin
+      }
   }
   private object Scoped {
 
     private type Compile = Scoped
     private type Provided = Scoped
     private type Runtime = Scoped
-
-    case class Test(ivyDeps: IvyDeps, moduleDeps: ModuleDeps, supertype: Option[String]) {
-
-      def typedef: String =
-        if (ivyDeps.isEmpty && moduleDeps.isEmpty) ""
-        else {
-          val declare = supertype match {
-            case Some(module) =>
-              s"object test extends MavenTests with $module"
-            case None =>
-              s"trait Tests extends MavenTests"
-          }
-          val ivyDepsSetting =
-            optional(s"override def ivyDeps = super.ivyDeps() ++ Agg", ivyDeps)
-          val moduleDepsSetting =
-            optional(s"override def moduleDeps = super.moduleDeps ++ Seq", moduleDeps)
-
-          s"""$declare {
-             |$ivyDepsSetting
-             |$moduleDepsSetting
-             |}""".stripMargin
-        }
-    }
+    private type Test = Scoped
+    private type TestModule = Option[String]
 
     def all(
         model: Model,
         packages: PartialFunction[Id, Package],
         cfg: BuildGenConfig
-    ): (Option[BuildCompanion], Compile, Provided, Runtime, Test) = {
+    ): (Option[BuildCompanion], Compile, Provided, Runtime, Test, TestModule) = {
       val compileIvyDeps = SortedSet.newBuilder[String]
       val providedIvyDeps = SortedSet.newBuilder[String]
       val runtimeIvyDeps = SortedSet.newBuilder[String]
@@ -240,11 +296,11 @@ object BuildGen {
           val id = dep.getArtifactId
           val version = dep.getVersion
           val tpe = dep.getType match {
-            case null | "jar" => "" // skip default
+            case null | "" | "jar" => "" // skip default
             case tpe => s";type=$tpe"
           }
           val classifier = dep.getClassifier match {
-            case null => ""
+            case null | "" => ""
             case s"$${$v}" => // drop values like ${os.detected.classifier}
               println(s"[$module] dropping classifier $${$v} for dependency $group:$id:$version")
               ""
@@ -305,7 +361,8 @@ object BuildGen {
         Scoped(compileIvyDeps.result(), compileModuleDeps.result()),
         Scoped(providedIvyDeps.result(), providedModuleDeps.result()),
         Scoped(runtimeIvyDeps.result(), runtimeModuleDeps.result()),
-        Test(testIvyDeps.result(), testModuleDeps.result(), testModule)
+        Scoped(testIvyDeps.result(), testModuleDeps.result()),
+        testModule
       )
     }
   }
@@ -324,9 +381,9 @@ object BuildGen {
   private def escapeOption(value: String): String =
     if (null == value) "None" else s"Some(${escape(value)})"
 
-  private def escapeOptional(start: String, value: String, skip: String*): String =
-    if (null == value || skip.contains(value)) ""
-    else s"$start${escape(value)}"
+  private def optional(start: String, value: String): String =
+    if (null == value) ""
+    else s"$start$value"
 
   private def optional(construct: String, args: IterableOnce[String]): String =
     optional(construct + "(", args, ",", ")")
@@ -393,13 +450,25 @@ object BuildGen {
        |$publishProperties
        |""".stripMargin
   }
+
+  private def resources(relDirs: IterableOnce[String]): String =
+    optional(
+      "override def resources = Task.Sources",
+      relDirs.iterator.map(dir => s"millSourcePath / \"$dir\"")
+    )
+
+  private def sources(relDirs: IterableOnce[String]): String =
+    optional(
+      "override def sources = Task.Sources",
+      relDirs.iterator.map(dir => s"millSourcePath / \"$dir\"")
+    )
 }
 
 @main
 @mill.api.internal
 case class BuildGenConfig(
     @arg(doc = "generated base module trait name")
-    baseModule: String = "BaseMavenModule",
+    baseModule: String = "BasePublishModule",
     @arg(doc = "generated dependencies companion object name")
     depsObject: Option[String] = None,
     @arg(doc = "do not define and share publish settings in base module")

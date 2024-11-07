@@ -3,23 +3,16 @@ package build.`multi-module`.server
 import mill._
 import mill.javalib._
 import mill.javalib.publish._
-import $file.BaseMavenModule
+import $file.BasePublishModule
 
-object `package` extends RootModule with BaseMavenModule {
+object `package` extends RootModule with BasePublishModule {
+
+  override def javacOptions = Seq("-source", "1.6", "-target", "1.6")
+
+  override def pomPackagingType = PackagingType.Jar
 
   override def pomParentProject = Some(
     Artifact("com.example.maven-samples", "multi-module-parent", "1.0-SNAPSHOT")
   )
-  override def javacOptions = Seq("-source", "1.6", "-target", "1.6")
 
-  object test extends MavenTests with TestModule.Junit4 {
-
-    override def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"junit:junit-dep:4.10",
-      ivy"org.hamcrest:hamcrest-core:1.2.1",
-      ivy"org.hamcrest:hamcrest-library:1.2.1",
-      ivy"org.mockito:mockito-core:1.8.5"
-    )
-
-  }
 }

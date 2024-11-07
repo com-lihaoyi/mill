@@ -3,7 +3,7 @@ package build.server
 import mill._
 import mill.javalib._
 import mill.javalib.publish._
-import $file.BaseMavenModule
+import $file.BasePublishModule
 
 object Deps {
   val `junit:junit-dep` = ivy"junit:junit-dep:4.10"
@@ -12,21 +12,14 @@ object Deps {
   val `org.mockito:mockito-core` = ivy"org.mockito:mockito-core:1.8.5"
 }
 
-object `package` extends RootModule with BaseMavenModule {
+object `package` extends RootModule with BasePublishModule {
+
+  override def javacOptions = Seq("-source", "1.6", "-target", "1.6")
+
+  override def pomPackagingType = PackagingType.Jar
 
   override def pomParentProject = Some(
     Artifact("com.example.maven-samples", "multi-module-parent", "1.0-SNAPSHOT")
   )
-  override def javacOptions = Seq("-source", "1.6", "-target", "1.6")
 
-  object test extends MavenTests with TestModule.Junit4 {
-
-    override def ivyDeps = super.ivyDeps() ++ Agg(
-      Deps.`junit:junit-dep`,
-      Deps.`org.hamcrest:hamcrest-core`,
-      Deps.`org.hamcrest:hamcrest-library`,
-      Deps.`org.mockito:mockito-core`
-    )
-
-  }
 }
