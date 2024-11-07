@@ -224,6 +224,10 @@
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="comparisons/sbt.html">Case Study: Mill vs SBT</a>
   </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="comparisons/unique.html">What Makes Mill Unique</a>
+  </li>
 </ul>
   </li>
 
@@ -436,14 +440,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.1-45-1a5605</span>
+    <span class="version">0.12.1-46-5e5165</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="0.12.1/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="index.html">0.12.1-45-1a5605</a>
+          <a href="index.html">0.12.1-46-5e5165</a>
         </li>
         <li class="version is-latest">
           <a href="0.12.1/index.html">0.12.1</a>
@@ -487,10 +491,10 @@
 <div class="paragraph">
 <p>Mill is a fast build tool for Java, Scala, and Kotlin. Although the Java
 compiler is very fast and the Java language is easy to learn, JVM build tools are
-known to be slow and hard to use. Mill tries to offer a better alternative: 2-10x faster
-than Maven or Gradle, better IDE support, and extensibility without needing plugins.
-This results in time savings due to less time waiting for your build tool, as well as less
-time struggling with your build tool, and more time to focus on the actual work you need to do.</p>
+known to be slow and hard to use. Mill offers a better alternative: 2-10x faster
+than Maven or Gradle on clean compiles, better IDE support, and extensibility without
+needing plugins. This results in time savings due to less time waiting for or struggling
+with your build tool and more time to focus on the actual work you need to do.</p>
 </div>
 <div class="paragraph">
 <p>At a first glance, Mill looks like any other build tool. You have build files, you configure
@@ -540,7 +544,7 @@ meaning less time waiting for your build and more time doing useful work</p>
 </li>
 <li>
 <p><strong>Ease of Use</strong>: Mill has better IDE support in IntelliJ and VSCode and richer
-visualization tools that other tools, to help understand your build and what it is doing</p>
+visualization tools than other tools, to help understand your build and what it is doing</p>
 </li>
 <li>
 <p><strong>Extensibility</strong>: Mill lets you write code or use any published JVM library in your build,
@@ -653,7 +657,7 @@ everything in parallel.</p>
 </li>
 <li>
 <p>For Maven, tests and linters are opt-out via the <code>-D</code> properties, while in Mill
-tests an linters are opt-in</p>
+tests and linters are opt-in</p>
 </li>
 </ul>
 </div>
