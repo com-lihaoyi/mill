@@ -2,7 +2,7 @@ package mill.kotlinlib.js
 
 import mainargs.arg
 import mill.api.{PathRef, Result}
-import mill.define.{Command, Segment, Task}
+import mill.define.{Command, Task}
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule}
 import mill.scalalib.Lib
@@ -72,9 +72,9 @@ trait KotlinJsModule extends KotlinModule { outer =>
     T.traverse(transitiveModuleCompileModuleDeps)(m =>
       Task.Anon {
         val transitiveModuleArtifactPath =
-          (if (m.isInstanceOf[KotlinJsModule]) {
-             m.asInstanceOf[KotlinJsModule].createKlib(T.dest, m.compile().classes)
-           } else m.compile().classes)
+          if (m.isInstanceOf[KotlinJsModule] && m != friendModule.orNull) {
+            m.asInstanceOf[KotlinJsModule].klib()
+          } else m.compile().classes
         m.localCompileClasspath() ++ Agg(transitiveModuleArtifactPath)
       }
     )().flatten
@@ -98,6 +98,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
       esTarget = kotlinJsESTarget(),
       kotlinVersion = kotlinVersion(),
       destinationRoot = T.dest,
+      artifactId = artifactId(),
+      explicitApi = kotlinExplicitApi(),
       extraKotlinArgs = kotlincOptions(),
       worker = kotlinWorkerTask()
     )
@@ -113,6 +115,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       moduleKind = moduleKind(),
       binaryDir = linkBinary().classes.path,
       runTarget = kotlinJsRunTarget(),
+      artifactId = artifactId(),
       envArgs = T.env,
       workingDir = T.dest
     ).map(_ => ()).getOrThrow
@@ -130,12 +133,15 @@ trait KotlinJsModule extends KotlinModule { outer =>
       mill.api.Result.Failure("runMain is not supported in Kotlin/JS.")
     }
 
+  protected[js] def friendModule: Option[KotlinJsModule] = None
+
   protected[js] def runJsBinary(
       args: Args = Args(),
       binaryKind: Option[BinaryKind],
       moduleKind: ModuleKind,
       binaryDir: os.Path,
       runTarget: Option[RunTarget],
+      artifactId: String,
       envArgs: Map[String, String] = Map.empty[String, String],
       workingDir: os.Path
   )(implicit ctx: mill.api.Ctx): Result[Int] = {
@@ -153,7 +159,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     runTarget match {
       case Some(RunTarget.Node) =>
-        val binaryPath = (binaryDir / s"${moduleName()}.${moduleKind.extension}")
+        val binaryPath = (binaryDir / s"$artifactId.${moduleKind.extension}")
           .toIO.getAbsolutePath
         Jvm.runSubprocessWithResult(
           commandArgs = Seq(
@@ -189,6 +195,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
       esTarget = kotlinJsESTarget(),
       kotlinVersion = kotlinVersion(),
       destinationRoot = T.dest,
+      artifactId = artifactId(),
+      explicitApi = kotlinExplicitApi(),
       extraKotlinArgs = kotlincOptions() ++ extraKotlinArgs,
       worker = kotlinWorkerTask()
     )
@@ -212,25 +220,34 @@ trait KotlinJsModule extends KotlinModule { outer =>
       esTarget = kotlinJsESTarget(),
       kotlinVersion = kotlinVersion(),
       destinationRoot = T.dest,
+      artifactId = artifactId(),
+      explicitApi = kotlinExplicitApi(),
       extraKotlinArgs = kotlincOptions(),
       worker = kotlinWorkerTask()
     )
+  }
+
+  /**
+   * A klib containing only this module's resources and compiled IR files,
+   * without those from upstream modules and dependencies
+   */
+  def klib: T[PathRef] = Task {
+    val outputPath = T.dest / s"${artifactId()}.klib"
+    Jvm.createJar(
+      outputPath,
+      Agg(compile().classes.path),
+      mill.api.JarManifest.MillDefault,
+      fileFilter = (_, _) => true
+    )
+    PathRef(outputPath)
   }
 
   // endregion
 
   // region private
 
-  private def createKlib(destFolder: os.Path, irPathRef: PathRef): PathRef = {
-    val outputPath = destFolder / s"${moduleName()}.klib"
-    Jvm.createJar(
-      outputPath,
-      Agg(irPathRef.path),
-      mill.api.JarManifest.MillDefault,
-      fileFilter = (_, _) => true
-    )
-    PathRef(outputPath)
-  }
+  protected override def dokkaAnalysisPlatform = "js"
+  protected override def dokkaSourceSetDisplayName = "js"
 
   private[kotlinlib] def kotlinJsCompile(
       outputMode: OutputMode,
@@ -246,6 +263,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
       esTarget: Option[String],
       kotlinVersion: String,
       destinationRoot: os.Path,
+      artifactId: String,
+      explicitApi: Boolean,
       extraKotlinArgs: Seq[String],
       worker: KotlinWorker
   )(implicit ctx: mill.api.Ctx): Result[CompilationResult] = {
@@ -291,8 +310,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
         }
       )
     }
-    // what is the better way to find a module simple name, without root path?
-    innerCompilerArgs ++= Seq("-ir-output-name", moduleName())
+    innerCompilerArgs ++= Seq("-ir-output-name", s"$artifactId")
     if (produceSourceMaps) {
       innerCompilerArgs += "-source-map"
       innerCompilerArgs ++= Seq(
@@ -315,8 +333,12 @@ trait KotlinJsModule extends KotlinModule { outer =>
     innerCompilerArgs += "-Xir-only"
     if (splitPerModule) {
       innerCompilerArgs += s"-Xir-per-module"
-      innerCompilerArgs += s"-Xir-per-module-output-name=${fullModuleName()}"
+      // should be unique among all the modules loaded in the consumer classpath
+      innerCompilerArgs += s"-Xir-per-module-output-name=$artifactId"
     }
+    // apply multi-platform support (expect/actual)
+    // TODO if there is penalty for activating it in the compiler, put it behind configuration flag
+    innerCompilerArgs += "-Xmulti-platform"
     val outputArgs = outputMode match {
       case OutputMode.KlibFile =>
         Seq(
@@ -339,11 +361,15 @@ trait KotlinJsModule extends KotlinModule { outer =>
     }
 
     innerCompilerArgs ++= outputArgs
-    innerCompilerArgs += s"-Xir-module-name=${moduleName()}"
+    // should be unique among all the modules loaded in the consumer classpath
+    innerCompilerArgs += s"-Xir-module-name=$artifactId"
     innerCompilerArgs ++= (esTarget match {
       case Some(x) => Seq("-target", x)
       case None => Seq.empty
     })
+    if (explicitApi) {
+      innerCompilerArgs ++= Seq("-Xexplicit-api=strict")
+    }
 
     val compilerArgs: Seq[String] = Seq(
       innerCompilerArgs.result(),
@@ -368,7 +394,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
     }
 
     val artifactLocation = outputMode match {
-      case OutputMode.KlibFile => compileDestination / s"${moduleName()}.klib"
+      case OutputMode.KlibFile => compileDestination / s"$artifactId.klib"
       case OutputMode.KlibDir => compileDestination
       case OutputMode.Js => compileDestination
     }
@@ -391,19 +417,6 @@ trait KotlinJsModule extends KotlinModule { outer =>
       case Some(BinaryKind.Library) => OutputMode.KlibFile
       case Some(BinaryKind.Executable) => OutputMode.Js
     }
-
-  // these 2 exist to ignore values added to the display name in case of the cross-modules
-  // we already have cross-modules in the paths, so we don't need them here
-  private def fullModuleNameSegments() = {
-    millModuleSegments.value
-      .collect { case label: Segment.Label => label.value } match {
-      case Nil => Seq("root")
-      case segments => segments
-    }
-  }
-
-  protected[js] def moduleName(): String = fullModuleNameSegments().last
-  protected[js] def fullModuleName(): String = fullModuleNameSegments().mkString("-")
 
   // **NOTE**: This logic may (and probably is) be incomplete
   private def isKotlinJsLibrary(path: os.Path)(implicit ctx: mill.api.Ctx): Boolean = {
@@ -428,6 +441,15 @@ trait KotlinJsModule extends KotlinModule { outer =>
     }
   }
 
+  override def artifactId: T[String] = Task {
+    val name = super.artifactId()
+    if (name.isEmpty) {
+      "root"
+    } else {
+      name
+    }
+  }
+
   // endregion
 
   // region Tests module
@@ -436,9 +458,14 @@ trait KotlinJsModule extends KotlinModule { outer =>
    * Generic trait to run tests for Kotlin/JS which doesn't specify test
    * framework. For the particular implementation see [[KotlinTestPackageTests]] or [[KotestTests]].
    */
-  trait KotlinJsTests extends KotlinTests with KotlinJsModule {
+  trait KotlinJsTests extends KotlinJsModule with KotlinTests {
 
     private val defaultXmlReportName = "test-report.xml"
+
+    /**
+     * Test timeout in milliseconds. Default is 2000.
+     */
+    def testTimeout: T[Long] = Task { 2000L }
 
     // region private
 
@@ -473,6 +500,17 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     // endregion
 
+    override def kotlincOptions: T[Seq[String]] = Task {
+      super.kotlincOptions().map { item =>
+        if (item.startsWith("-Xfriend-paths=")) {
+          // JVM -> JS option name
+          item.replace("-Xfriend-paths=", "-Xfriend-modules=")
+        } else {
+          item
+        }
+      }
+    }
+
     override def testFramework = ""
 
     override def kotlinJsRunTarget: T[Option[RunTarget]] = outer.kotlinJsRunTarget()
@@ -486,10 +524,18 @@ trait KotlinJsModule extends KotlinModule { outer =>
         this.test(args: _*)()
       }
 
+    override protected[js] def friendModule: Option[KotlinJsModule] = Some(outer)
+
     override protected def testTask(
         args: Task[Seq[String]],
         globSelectors: Task[Seq[String]]
     ): Task[(String, Seq[TestResult])] = Task.Anon {
+      val runTarget = kotlinJsRunTarget()
+      if (runTarget.isEmpty) {
+        throw new IllegalStateException(
+          "Cannot run Kotlin/JS tests, because run target is not specified."
+        )
+      }
       runJsBinary(
         // TODO add runner to be able to use test selector
         args = Args(args() ++ Seq(
@@ -498,6 +544,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
           "--require",
           sourceMapSupportModule().path.toString(),
           mochaModule().path.toString(),
+          "--timeout",
+          testTimeout().toString,
           "--reporter",
           "xunit",
           "--reporter-option",
@@ -506,7 +554,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
         binaryKind = Some(BinaryKind.Executable),
         moduleKind = moduleKind(),
         binaryDir = linkBinary().classes.path,
-        runTarget = kotlinJsRunTarget(),
+        runTarget = runTarget,
+        artifactId = artifactId(),
         envArgs = T.env,
         workingDir = T.dest
       )

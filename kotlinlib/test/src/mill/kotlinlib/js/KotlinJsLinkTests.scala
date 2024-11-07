@@ -15,6 +15,8 @@ object KotlinJsLinkTests extends TestSuite {
     override def splitPerModule: T[Boolean] = crossValue
     override def kotlinJsBinaryKind: T[Option[BinaryKind]] = Some(BinaryKind.Executable)
     override def moduleDeps = Seq(module.bar)
+    // drop cross-value
+    override def artifactNameParts = super.artifactNameParts().dropRight(1)
   }
 
   object module extends TestBaseModule {
