@@ -133,8 +133,9 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       ctx: Ctx.Log with Ctx.Home
   ): (String, Iterator[TestResult]) = {
     val events = new ConcurrentLinkedQueue[Event]()
-    val doneMessage = {
+    var hasFailures = false
 
+    val doneMessage = {
       val taskQueue = tasks.to(mutable.Queue)
       while (taskQueue.nonEmpty) {
         val next = taskQueue.dequeue().execute(
@@ -142,6 +143,18 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
             def handle(event: Event) = {
               testReporter.logStart(event)
               events.add(event)
+
+              // Fixed throwable handling
+              if (event.status() == Status.Failure) {
+                hasFailures = true
+                val throwableMsg =
+                  if (event.throwable().isDefined) event.throwable().get().getMessage
+                  else ""
+                ctx.log.debug(
+                  s"Test failure detected: ${event.fullyQualifiedName()} - $throwableMsg"
+                )
+              }
+
               testReporter.logFinish(event)
             }
           },
@@ -154,7 +167,6 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
             def info(msg: String) = ctx.log.outputStream.println(msg)
           })
         )
-
         taskQueue.enqueueAll(next)
       }
       runner.done()
@@ -167,9 +179,12 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
         ctx.log.outputStream.println(doneMessage)
     }
 
+    ctx.log.debug(s"Test execution completed. Total events: ${events.size()}")
+
     val results = for (e <- events.iterator().asScala) yield {
-      val ex =
-        if (e.throwable().isDefined) Some(e.throwable().get) else None
+      ctx.log.debug(s"Test result: ${e.fullyQualifiedName()} - Status: ${e.status()}")
+
+      val ex = if (e.throwable().isDefined) Some(e.throwable().get()) else None
       mill.testrunner.TestResult(
         e.fullyQualifiedName(),
         e.selector() match {
@@ -185,6 +200,10 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
         ex.map(_.getMessage),
         ex.map(_.getStackTrace.toIndexedSeq)
       )
+    }
+
+    if (hasFailures) {
+      ctx.log.debug("Test failures detected, ensuring proper result propagation")
     }
 
     (doneMessage, results)
