@@ -200,10 +200,17 @@ trait MainModule extends BaseModule0 {
    */
   def inspect(evaluator: Evaluator, tasks: String*): Command[String] =
     Task.Command(exclusive = true) {
-      def resolveParents(c: Class[_]): Seq[Class[_]] = {
-        Seq(c) ++ Option(c.getSuperclass).toSeq.flatMap(resolveParents) ++ c.getInterfaces.flatMap(
-          resolveParents
-        )
+
+      /** Find a parent classes of the given class queue. */
+      @tailrec
+      def resolveParents(queue: List[Class[_]], seen: Seq[Class[_]] = Seq()): Seq[Class[_]] = {
+        queue match {
+          case Nil => seen
+          case cand :: rest if seen.contains(cand) => resolveParents(rest, seen)
+          case cand :: rest =>
+            val sups = Option(cand.getSuperclass).toList ++ cand.getInterfaces.toList
+            resolveParents(sups ::: rest, seen ++ Seq(cand))
+        }
       }
 
       def renderFileName(t: NamedTask[_]) = {
@@ -235,7 +242,7 @@ trait MainModule extends BaseModule0 {
         }
 
         val annots = for {
-          c <- resolveParents(t.ctx.enclosingCls)
+          c <- resolveParents(List(t.ctx.enclosingCls))
           m <- c.getMethods
           if m.getName == t.ctx.segment.pathSegments.head
           a = m.getAnnotation(classOf[mill.moduledefs.Scaladoc])
@@ -316,20 +323,8 @@ trait MainModule extends BaseModule0 {
 
         val inheritedModules = parents.filter(parentFilter)
 
-        /** Find a parent classes of the given class queue. */
-        @tailrec
-        def allParents(queue: List[Class[_]], seen: Seq[Class[_]]): Seq[Class[_]] = {
-          queue match {
-            case Nil => seen
-            case cand :: rest if seen.contains(cand) => allParents(rest, seen)
-            case cand :: rest =>
-              val sups = Option(cand.getSuperclass).toList ++ cand.getInterfaces.toList
-              allParents(sups ::: rest, seen ++ Seq(cand))
-          }
-        }
-
         val allInheritedModulesOpt = Option.when(Target.log.debugEnabled) {
-          allParents(parents.toList, Seq())
+          resolveParents(parents.toList)
             .filter(parentFilter)
             .filterNot(inheritedModules.contains)
         }
