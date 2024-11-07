@@ -1,54 +1,42 @@
 // == Python Integration in Mill
 
-// This example demonstrates the integration of https://www.python.org[Python] 
-// compilation into a Mill build to compile Python scripts. Mill does not come 
-// bundled with Python integration, so here we will set one up from scratch 
-// using the basic `python3` command line, which is already present in the OS.
+// This Example shows how to integrate https://www.python.org[Python] into a Mill build, enabling Python script compilation.
+// Mill does not come bundled with Python support, so we will set up integration using `python3`, which is generally pre-installed.
 
-// === Python installation Setup
+// === Python initialization Setup
 //
-// First, we need to use the `Python3` CLI tool to create virtual environment and
-// install `mypy` for Type Checking using the official Python Virtual Environment
-// https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments[Documentation].
+// First, The `setup` task creates a Python virtual environment and installs `mypy` for type-checking.
 
-// `MyPy` is a static type checker that uses Python `type hints` to enforce `type correctness` and `catch errors` during development.
+// `mypy` verifies type correctness using Python's `type hints`, helping to catch errors in development.
+
+// Guides: 
+// https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments[Python virtual environment]
+// & https://mypy.readthedocs.io/en/stable[mypy]
 
 package build
 import mill._
 
 def setup: T[PathRef] = Task {
-  // creating virtual environment
-  os.call(("python3","-m","venv",Task.dest / "venv"))
-
   val pythonVenv = Task.dest / "venv" / "bin" / "python3"
   
-  // installing mypy for Type Checking
+  os.call(("python3","-m","venv",Task.dest / "venv"))
   os.call((pythonVenv,"-m","pip","install","mypy"))
 
   PathRef(pythonVenv)
 }
 
-// The `setup` task ensures the Python virtual environment creation process using the official
-// https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments[Documentation].
-// After this, we need to install python `mypy` library for Type Checking and Error Checking before actual run of the code, 
-// using the offical https://mypy.readthedocs.io/en/stable[Documentation] for `mypy` 
-
 // === Defining our Sources
 
-// Next, We define the `sources` task to help gather source files for processing. 
-// `sources` sets a base directory for Python source files and enable easy access to Python files in a project,
-// making it straightforward to retrieve all relevant code files for tasks like building, testing, or analysis.
+// The `sources` task specifies the directory for Python source files (`src` folder).
+// This setup facilitates organizing and accessing Python files needed for building, testing, or analysis.
 
 def sources: T[PathRef] = Task.Source(millSourcePath / "src")
 
 // === Type Checking
 
-// The `mainFileName` Task provides the name for the main python script file for running and 
-// The `typeCheck` Task  ensures that the python setup is set and Checks the main file for error free code.
-// This task is considered as a part of code which is responsible for Error Checking of the Main Script 
-// and setting up setup for python script runable environment.
+// The `typeCheck` task verifies that the code in the main Python file passes type checks.
+// It checks for errors before execution to ensure a reliable setup for running Python scripts.
 
-def mainFileName: T[String] = Task { "main.py" }
 def typeCheck: T[PathRef] = Task {
   val pythonVenv = setup().path
 
@@ -60,19 +48,29 @@ def typeCheck: T[PathRef] = Task {
   PathRef(pythonVenv)
 }
 
-// When `typeCheck` task sets up the Setup for Virtual Environment and checks the main file for error free code 
-// then we have `main.py` and running this file will result in either a generic greeting 
-// or a personalized one based on the command-line arguments passed, allowing for flexible interaction with the user.
+// At this point, we have a minimal working build, with a build graph that looks like this:
+//
+// ```graphviz
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   setup -> typeCheck
+//   sources -> typeCheck
+//   mainFileName -> typeCheck
+// }
+// ```
 
+// Here is the `main.py` file
 /** See Also: src/main.py */
-
 
 // === Running
 
-// The `run` function executes the main Python file (`main.py`) and accepts command-line arguments from the user. 
-// It uses `os.call` to run the Python interpreter(from Virtual Environment) with the main file's path 
-// and any additional arguments. The output is shown in the console, allowing for real-time interaction.
-  
+// The `mainFileName` task defines the name of the main Python script (`main.py`).
+
+// The `run` function runs the main file with user-provided command-line arguments.
+// It uses the virtual environment's Python interpreter to execute the script, with output displayed in the console.
+
+def mainFileName: T[String] = Task { "main.py" }
 def run(args: mill.define.Args) = Task.Command {
   val pythonVenv = typeCheck().path
   
@@ -108,11 +106,9 @@ Success: no issues found in 1 source file
 
 > ./mill run Mill Python
 Hello, Mill Python!
+15
 
 */
 
-// Uncomment the Result variable line(Line Number:13) in the `src/main.py` code to see `typeCheck` error
-
-// So that's a minimal example of implementing a Basic `Python
-// Integration` in Mill Build Tool. Next, we will look at turning it into a `PythonModule` that
-// can be re-used
+// This completes a basic `Python integration in Mill`.
+// Next steps could involve transforming this into a `reusable PythonModule`

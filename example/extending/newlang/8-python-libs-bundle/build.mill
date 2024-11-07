@@ -1,49 +1,31 @@
 // == Python Library Dependencies & Bundling
 
-// This Example introduces support for `installing library dependencies`
-// and `Pex packaging` in the `PythonModule` trait.
-// 
-// Pex (Python EXecutable) enables bundling Python applications into single-file executables,
-// allowing easy distribution and execution without additional dependencies.
+// This example shows how to handle external dependencies and
+// create PEX (Python EXecutable) bundles using the `PythonModule` trait.
+
+// PEX simplifies Python app distribution by packaging
+// code and dependencies into a single executable file.
+
+// Guide: https://docs.pex-tool.org[Pex Documentation]
 
 // ==== Extending PythonModule For Pex Support 
 
-// This Example extends the `PythonModule` by addig the following functions:
+// This implementation extends `PythonModule` with these key Tasks:
 
-// - def `requirementsPath`: Sets the path to `requirements.txt`, listing external dependencies.
-//   Defaults to "requirements.txt" but can be customized.
-// - def `requirementsDependencies`: Reads dependencies from `requirements.txt`, 
-//   returning each valid entry or an empty list if the file is missing.
-// - def `finalDependencies`: Merges dependencies from multiple sources into a unique list,
-//   eliminating duplicates for efficient installation.
-// - def `bundle`: Packages the entire project and dependencies into a 
-//   single .pex executable (result.pex) for easy deployment.
+// - def `finalDependencies`: Merges and deduplicates dependencies from `requirements.txt` and the `dependencies` task.
+// - def `bundle`: Packages the module and dependencies into a standalone `result.pex` file, making deployment easier.
 
 package build
 import mill._
 
-/**
- * PythonModule trait Extended for bundling and installing
- * library dependencies with execution in a Mill build.
- */
+/** extends for efficient library dependency management and executable bundling. */
 trait PythonModule extends Module {
-
-  /** List of module dependencies required by this module. */
   def moduleDeps: Seq[PythonModule] = Nil
-
-  /** Specifies dependencies to install in the virtual environment. */
   def dependencies: T[Seq[String]] = Task { Seq.empty[String] }
-
-  /** Specifies the name of the main Python file. */
   def mainFileName: T[String] = Task { "main.py" }
-
-  /** Defines the path to the sources directory. */
   def sources: T[PathRef] = Task.Source(millSourcePath / "src")
-
-  /** Path to the requirements file, configurable by the user. */
   def requirementsPath: T[PathRef] = Task.Source(millSourcePath / "requirements.txt")
 
-  /** Reads dependencies from the specified requirements file. */
   def requirementsDependencies: T[Seq[String]] = Task {
     val reqFile = requirementsPath().path
     if (os.exists(reqFile)) {
@@ -53,9 +35,8 @@ trait PythonModule extends Module {
     }
   }
 
-  /** Collects all dependencies for installation, including requirements and module dependencies. */
   def finalDependencies: T[Seq[String]] = Task {
-
+    // Collects the Upstream dependencies(external Libs)
     val upstreamDependencies = Task.traverse(moduleDeps)(_.finalDependencies)()
 
     (
@@ -66,18 +47,14 @@ trait PythonModule extends Module {
 
   }
 
-  /** This minimal setup provide basic Virtual Environment and installing dependencies. */
   def setup: T[PathRef] = Task {
-    // creating virtual environment
-    os.call(("python3","-m","venv",Task.dest / "venv"))
-
     val pythonVenv = Task.dest / "venv" / "bin" / "python3"
-    
-    // installing mypy for Type Checking
-    // and pex for bundling
+
+    // installs mypy and pex
+    os.call(("python3","-m","venv",Task.dest / "venv"))
     os.call((pythonVenv,"-m","pip","install","mypy","pex"))
 
-    // installs all library dependencies
+    // installs library dependencies
     if (finalDependencies().nonEmpty) {
       os.call((pythonVenv,"-m","pip","install", finalDependencies()))
     }
@@ -85,11 +62,8 @@ trait PythonModule extends Module {
     PathRef(pythonVenv)
   }
 
-  /** Creates Virtual env and check main file. */
   def typeCheck: T[PathRef] = Task {
-    // Checks upstream modules for error free code
     val upstreamTypeCheck = Task.traverse(moduleDeps)(_.typeCheck)()
-
     val pythonVenv = setup().path
 
     os.call(
@@ -100,10 +74,7 @@ trait PythonModule extends Module {
     PathRef(pythonVenv)
   }
 
-
-  /** Runs the main Python file with specified command-line arguments. */
   def run(args: mill.define.Args) = Task.Command {
-
     val upstream = Task.traverse(moduleDeps)(_.sources)().zip(moduleDeps)
 
     for (((sourcesFolder), mod) <- upstream) {
@@ -120,13 +91,10 @@ trait PythonModule extends Module {
     )
   }
 
-  /** Bundles the python project using pex(Python Executable) Library. */
+  /** Bundles the project into a single PEX executable(result.pex). */
   def bundle(args: mill.define.Args) = Task.Command {
-
     val pythonVenv = setup().path
-
     val pexFile = Task.dest / "result.pex"
-
     val upstream = Task.traverse(moduleDeps)(_.sources)().zip(moduleDeps)
 
     for (((sourcesFolder), mod) <- upstream) {
@@ -160,12 +128,9 @@ trait PythonModule extends Module {
 
 // ==== Example
 
-// The object `pex` inherits from `PythonModule` and defines its dependencies:
+// The `pex` object demonstrates `PythonModule` with inline and file-based dependencies.
 
-// - `pex`: An object demonstrating `Pex` usage by defining project dependencies
-//    within `requirements.txt` and inline(using dependencies task).
-
-// Running `pex.runPex` creates a `.pex` file, suitable for easy distribution.
+// Running `pex.bundle` creates `result.pex`, a standalone executable for easy distribution.
 
 object pex extends PythonModule{
   // For Education Purpose both way of giving dependencies are discussed here
@@ -179,7 +144,7 @@ object pex extends PythonModule{
 /** See Also: pex/requirements.txt */
 
 
-// To run the project and create a `.pex` executable, use the following command:
+// To run the project and create a `.pex` executable, use the following commands:
 
 /** Usage
 
