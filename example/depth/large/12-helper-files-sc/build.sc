@@ -18,12 +18,9 @@ object `package` extends RootModule with MyModule {
   }
 }
 
-// format: off
 /** See Also: util.sc */
 /** See Also: foo/package.sc */
 /** See Also: foo/versions.sc */
-
-
 
 /** Usage
 

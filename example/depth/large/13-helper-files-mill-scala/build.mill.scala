@@ -10,11 +10,9 @@ object `package` extends RootModule with MyModule {
     "MY_PROJECT_VERSION" -> versions.myProjectVersion
   )
 }
-// format: off
 ///** See Also: util.mill.scala */
 ///** See Also: foo/package.mill.scala */
 ///** See Also: foo/versions.mill.scala */
-
 
 // Apart from having `package` files in subfolders to define modules, Mill
 // also allows you to have helper code in any `*.mill` file in the same folder
