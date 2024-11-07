@@ -17,7 +17,6 @@ object `package` extends RootModule with JavaModule {
 // This example demonstrates how to set up a simple Spring Boot webserver,
 // able to handle a single HTTP request at `/` and reply with a single response.
 
-
 /** Usage
 
 > mill test

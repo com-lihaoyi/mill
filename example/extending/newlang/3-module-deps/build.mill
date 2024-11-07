@@ -14,25 +14,25 @@
 package build
 import mill._
 
-trait TypeScriptModule extends Module{
+trait TypeScriptModule extends Module {
   def moduleDeps: Seq[TypeScriptModule] = Nil
 
-  def npmInstall = Task{
+  def npmInstall = Task {
     os.call(("npm", "install", "--save-dev", "typescript@5.6.3", "@types/node@22.7.8"))
     PathRef(Task.dest)
   }
 
   def sources = Task.Source(millSourcePath / "src")
-  def allSources = Task{ os.walk(sources().path).filter(_.ext == "ts").map(PathRef(_)) }
+  def allSources = Task { os.walk(sources().path).filter(_.ext == "ts").map(PathRef(_)) }
 
-  def compile: T[(PathRef, PathRef)] = Task{
+  def compile: T[(PathRef, PathRef)] = Task {
 
     val nodeTypes = npmInstall().path / "node_modules/@types"
     val javascriptOut = Task.dest / "javascript"
     val declarationsOut = Task.dest / "declarations"
 
     val upstreamPaths =
-      for(((jsDir, dTsDir), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps))
+      for (((jsDir, dTsDir), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps))
         yield (mod.millSourcePath.subRelativeTo(build.millSourcePath) + "/*", dTsDir.path)
 
     val allPaths = upstreamPaths ++ Seq("*" -> sources().path)
@@ -45,9 +45,9 @@ trait TypeScriptModule extends Module{
           "declaration" -> true,
           "declarationDir" -> declarationsOut.toString,
           "typeRoots" -> ujson.Arr(nodeTypes.toString),
-          "paths"  -> ujson.Obj.from(allPaths.map{case (k, v) => (k, ujson.Arr(s"$v/*"))})
+          "paths" -> ujson.Obj.from(allPaths.map { case (k, v) => (k, ujson.Arr(s"$v/*")) })
         ),
-        "files" -> allSources().map(_.path.toString),
+        "files" -> allSources().map(_.path.toString)
       )
     )
 
@@ -55,11 +55,11 @@ trait TypeScriptModule extends Module{
     (PathRef(javascriptOut), PathRef(declarationsOut))
   }
 
-  def mainFileName = Task{ s"${millSourcePath.last}.js" }
-  def run(args: mill.define.Args) = Task.Command{
+  def mainFileName = Task { s"${millSourcePath.last}.js" }
+  def run(args: mill.define.Args) = Task.Command {
 
     val upstream = Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
-    for(((jsDir, tTsDir), mod) <- upstream) {
+    for (((jsDir, tTsDir), mod) <- upstream) {
       os.copy(jsDir.path, Task.dest / mod.millSourcePath.subRelativeTo(build.millSourcePath))
     }
     val mainFile = compile()._1.path / mainFileName()
@@ -79,10 +79,10 @@ trait TypeScriptModule extends Module{
 // Again, we can instantiate `TypeScriptModule` three times, but now `foo/src/foo.ts`
 // and `foo/bar/src/bar.ts` export their APIs which are then imported in `qux/src/qux.ts`:
 
-object foo extends TypeScriptModule{
+object foo extends TypeScriptModule {
   object bar extends TypeScriptModule
 }
-object qux extends TypeScriptModule{
+object qux extends TypeScriptModule {
   def moduleDeps = Seq(foo, foo.bar)
 }
 

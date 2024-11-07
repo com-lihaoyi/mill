@@ -63,7 +63,7 @@ trait FooModule extends Module {
   def qux = Task { bar() + " world" }
 }
 
-object foo1 extends FooModule{
+object foo1 extends FooModule {
   def bar = "hello"
   def qux = super.qux().toUpperCase // refer to overriden value via super
 }
@@ -115,7 +115,6 @@ object foo2 extends FooModule {
 
 */
 
-
 // The built-in `mill.scalalib` package uses this to define `ScalaModule`,
 // `SbtModule` and `TestScalaModule`, etc. which contain a set of "standard"
 // operations such as `compile`, `jar` or `assembly` that you may expect from a
@@ -129,7 +128,7 @@ object foo2 extends FooModule {
 // Each Module has a `millSourcePath` field that corresponds to the path that
 // module expects its input files to be on disk.
 
-trait MyModule extends Module{
+trait MyModule extends Module {
   def sources = Task.Source(millSourcePath / "sources")
   def task = Task { "hello " + os.list(sources().path).map(os.read(_)).mkString(" ") }
 }

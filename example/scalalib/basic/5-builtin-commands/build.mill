@@ -69,7 +69,6 @@ foo.artifactName
 // and `+__+` as a placeholder for many segments.
 // Lists within curly braces (`{`, `}`) are also supported.
 
-
 /** Usage
 
 > mill resolve foo.{compile,run}
@@ -152,7 +151,6 @@ Inputs:
 }
 */
 
-
 // `show` is also useful for interacting with Mill from external tools, since the
 // JSON it outputs is structured and easily parsed and manipulated. You can easily
 // pipe the `show` output into a python script or `jq` to manipulate it further.
@@ -206,7 +204,6 @@ Inputs:
 // This can make it easier to programmatically work with the output of running
 // one-or-more tasks via Mill wildcard queries, since the `{"<task-name>": <output>}`
 // structure remains the same regardless of how many values the query returns.
-
 
 // == path
 
@@ -286,7 +283,6 @@ foo.compileClasspath
 > mill clean __.compile
 
 */
-
 
 // == visualize
 //
@@ -409,4 +405,3 @@ kotlinlib/web/1-hello-ktor
 // project isn't going to be everything that you need, at least it'll get most of the
 // tedious boilerplate set up, so you can hit the group running working on the things
 // that are unique to your particular project.
-

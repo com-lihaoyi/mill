@@ -7,26 +7,26 @@
 package build
 import mill._
 
-trait TypeScriptModule extends Module{
-  def npmInstall = Task{
+trait TypeScriptModule extends Module {
+  def npmInstall = Task {
     os.call(("npm", "install", "--save-dev", "typescript@5.6.3", "@types/node@22.7.8"))
     PathRef(Task.dest)
   }
 
   def sources = Task.Source(millSourcePath / "src")
-  def allSources = Task{
+  def allSources = Task {
     os.walk(sources().path).filter(_.ext == "ts").map(PathRef(_))
   }
 
-  def compile = Task{
+  def compile = Task {
     val tsc = npmInstall().path / "node_modules/typescript/bin/tsc"
     val types = npmInstall().path / "node_modules/@types"
     os.call((tsc, allSources().map(_.path), "--outDir", Task.dest, "--typeRoots", types))
     PathRef(Task.dest)
   }
 
-  def mainFileName = Task{ s"${millSourcePath.last}.js" }
-  def run(args: mill.define.Args) = Task.Command{
+  def mainFileName = Task { s"${millSourcePath.last}.js" }
+  def run(args: mill.define.Args) = Task.Command {
     val mainFile = compile().path / mainFileName()
     os.call(("node", mainFile, args.value), stdout = os.Inherit)
   }
@@ -35,7 +35,7 @@ trait TypeScriptModule extends Module{
 // We can then instantiate the module three times. Module can be adjacent or nested,
 // as shown belo:
 
-object foo extends TypeScriptModule{
+object foo extends TypeScriptModule {
   object bar extends TypeScriptModule
 }
 object qux extends TypeScriptModule

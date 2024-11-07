@@ -11,7 +11,6 @@ object bar extends Cross[FooModule]("2.10", "2.11", "2.12") {
   def defaultCrossSegments = Seq("2.12")
 }
 
-
 // For convenience, you can omit the selector for the default cross segment.
 // By default, this is the first cross value specified, but you can override
 // it by specifying `def defaultCrossSegments`
@@ -28,5 +27,3 @@ object bar extends Cross[FooModule]("2.10", "2.11", "2.12") {
 "_2.12"
 
 */
-
-

@@ -12,7 +12,6 @@ object foo extends ScalaModule {
   def scalaDocOptions = Seq("-siteroot", "mydocs", "-no-link-warnings")
 }
 
-
 /** Usage
 
 > ./mill show foo.docJar
@@ -68,7 +67,6 @@ object bar extends ScalaModule {
 // your `out/app/docJar.dest/javadoc/index.html` locally in your browser you'll
 // have a full static site including your API docs, your blog, and your
 // documentation.
-
 
 /** Usage
 

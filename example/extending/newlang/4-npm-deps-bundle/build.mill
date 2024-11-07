@@ -17,34 +17,38 @@
 package build
 import mill._
 
-trait TypeScriptModule extends Module{
+trait TypeScriptModule extends Module {
   def moduleDeps: Seq[TypeScriptModule] = Nil
 
-  def npmDeps: T[Seq[String]] = Task{ Seq.empty[String] }
+  def npmDeps: T[Seq[String]] = Task { Seq.empty[String] }
 
-  def transitiveNpmDeps: T[Seq[String]] = Task{
+  def transitiveNpmDeps: T[Seq[String]] = Task {
     Task.traverse(moduleDeps)(_.npmDeps)().flatten ++ npmDeps()
   }
 
-  def npmInstall = Task{
+  def npmInstall = Task {
     os.call((
-      "npm", "install", "--save-dev",
-      "typescript@5.6.3", "@types/node@22.7.8", "esbuild@0.24.0",
+      "npm",
+      "install",
+      "--save-dev",
+      "typescript@5.6.3",
+      "@types/node@22.7.8",
+      "esbuild@0.24.0",
       transitiveNpmDeps()
     ))
     PathRef(Task.dest)
   }
 
   def sources = Task.Source(millSourcePath / "src")
-  def allSources = Task{ os.walk(sources().path).filter(_.ext == "ts").map(PathRef(_)) }
+  def allSources = Task { os.walk(sources().path).filter(_.ext == "ts").map(PathRef(_)) }
 
-  def compile: T[(PathRef, PathRef)] = Task{
+  def compile: T[(PathRef, PathRef)] = Task {
     val nodeTypes = npmInstall().path / "node_modules/@types"
     val javascriptOut = Task.dest / "javascript"
     val declarationsOut = Task.dest / "declarations"
 
     val upstreamPaths =
-      for(((jsDir, dTsDir), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps))
+      for (((jsDir, dTsDir), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps))
         yield (mod.millSourcePath.subRelativeTo(build.millSourcePath) + "/*", dTsDir.path)
 
     val allPaths = upstreamPaths ++ Seq("*" -> sources().path, "*" -> npmInstall().path)
@@ -57,9 +61,9 @@ trait TypeScriptModule extends Module{
           "declaration" -> true,
           "declarationDir" -> declarationsOut.toString,
           "typeRoots" -> ujson.Arr(nodeTypes.toString),
-          "paths"  -> ujson.Obj.from(allPaths.map{case (k, v) => (k, ujson.Arr(s"$v/*"))})
+          "paths" -> ujson.Obj.from(allPaths.map { case (k, v) => (k, ujson.Arr(s"$v/*")) })
         ),
-        "files" -> allSources().map(_.path.toString),
+        "files" -> allSources().map(_.path.toString)
       )
     )
 
@@ -68,11 +72,11 @@ trait TypeScriptModule extends Module{
     (PathRef(javascriptOut), PathRef(declarationsOut))
   }
 
-  def mainFileName = Task{ s"${millSourcePath.last}.js" }
+  def mainFileName = Task { s"${millSourcePath.last}.js" }
 
-  def prepareRun = Task.Anon{
+  def prepareRun = Task.Anon {
     val upstream = Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
-    for(((jsDir, tTsDir), mod) <- upstream) {
+    for (((jsDir, tTsDir), mod) <- upstream) {
       os.copy(jsDir.path, Task.dest / mod.millSourcePath.subRelativeTo(build.millSourcePath))
     }
     val mainFile = compile()._1.path / mainFileName()
@@ -80,12 +84,12 @@ trait TypeScriptModule extends Module{
     (mainFile, env)
   }
 
-  def run(args: mill.define.Args) = Task.Command{
+  def run(args: mill.define.Args) = Task.Command {
     val (mainFile, env) = prepareRun()
     os.call(("node", mainFile, args.value), stdout = os.Inherit, env = env)
   }
 
-  def bundle = Task{
+  def bundle = Task {
     val (mainFile, env) = prepareRun()
     val esbuild = npmInstall().path / "node_modules/esbuild/bin/esbuild"
     val bundle = Task.dest / "bundle.js"
@@ -94,15 +98,14 @@ trait TypeScriptModule extends Module{
   }
 }
 
-object foo extends TypeScriptModule{
-  object bar extends TypeScriptModule{
+object foo extends TypeScriptModule {
+  object bar extends TypeScriptModule {
     def npmDeps = Seq("immutable@4.3.7")
   }
 }
-object qux extends TypeScriptModule{
+object qux extends TypeScriptModule {
   def moduleDeps = Seq(foo, foo.bar)
 }
-
 
 // We can now not only invoke the `qux.run` to run the `TypeScriptModule` immediately
 // using `node`, we can also use `qux.bundle` to generate a `bundle.js` file we can run

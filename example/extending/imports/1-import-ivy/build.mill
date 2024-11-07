@@ -1,4 +1,3 @@
-
 // The following example shows how to import the library `org.thymeleaf:thymeleaf:3.1.1.RELEASE`
 // into your build, so you can use it at build-time to safely generate escaped HTML snippets
 // in your resource path for your application to use.
@@ -20,7 +19,7 @@ object foo extends JavaModule {
     )
   }
 
-  def resources = Task.Sources{
+  def resources = Task.Sources {
     os.write(Task.dest / "snippet.txt", htmlSnippet())
     super.resources() ++ Seq(PathRef(Task.dest))
   }
