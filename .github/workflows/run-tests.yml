@@ -74,6 +74,8 @@ jobs:
             millargs: "'example.thirdparty[{mockito,acyclic,commons-io}].local.testCached'"
           - java-version: 17
             millargs: "'example.thirdparty[{fansi,jimfs,netty,gatling}].local.testCached'"
+          - java-version: '17'
+            millargs: "'example.thirdparty[arrow].local.testCached'"
           - java-version: '11'
             millargs: "'example.{depth,extending}.__.local.testCached'"
 

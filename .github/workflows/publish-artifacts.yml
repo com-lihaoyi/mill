@@ -43,6 +43,7 @@ jobs:
         with:
           path: .
           include-hidden-files: true
+          name: publish-artifacts
 
   publish-sonatype:
     # when in master repo, publish all tags and manual runs on main
@@ -67,6 +68,14 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: .
+          name: publish-artifacts
+
+      - run: ls -la .
+
+      # Need to fix cached artifact file permissions because github actions screws it up
+      # https://github.com/actions/upload-artifact/issues/38
+      # Best is, we restore any file to avoid any changes
+      - run: git reset --hard
 
       - uses: coursier/cache-action@v6
 
@@ -90,6 +99,14 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: .
+          name: publish-artifacts
+
+      - run: ls -la .
+
+      # Need to fix cached artifact file permissions because github actions screws it up
+      # https://github.com/actions/upload-artifact/issues/38
+      # Best is, we restore any file to avoid any changes
+      - run: git reset --hard
 
       - uses: coursier/cache-action@v6
 
