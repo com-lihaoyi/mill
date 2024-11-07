@@ -32,7 +32,7 @@ object `package` extends RootModule with ScalaNativeModule {
 
 > ./mill run
 ...
-Foo.value: <h1>hello</h1>
+Value: <h1>hello</h1>
 
 > ./mill show releaseMode
 "mill.scalanativelib.api.ReleaseMode.ReleaseFast"
