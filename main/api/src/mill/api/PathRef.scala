@@ -70,14 +70,25 @@ object PathRef {
 
   def normalizePath(path: os.Path, isTest: Boolean = false): String = {
     if (serializationContext.get() || isTest) {
+
+      if (sys.env.contains("GITHUB_WORKSPACE")) {
+        println(s"Debug: GITHUB_WORKSPACE detected: ${sys.env("GITHUB_WORKSPACE")}")
+        println(s"Debug: Input path: $path")
+      }
+
       // First normalize the path for worker.json files
       if (path.toString().contains("/test/test.dest/")) {
         return path.toString()
       }
       val normalizedPath = NonDeterministicFiles.normalizeWorkerJson(path)
 
-      val workspaceRoot = if (isTest) testUserHome / "projects" / "myproject"
-      else os.Path(WorkspaceRoot.workspaceRoot.toIO)
+      val workspaceRoot = sys.env.get("GITHUB_WORKSPACE") match {
+        case Some(workspace) if path.toString().startsWith(workspace) =>
+          os.Path(workspace)
+        case _ if isTest => testUserHome / "projects" / "myproject"
+        case _ => os.Path(WorkspaceRoot.workspaceRoot.toIO)
+      }
+
       val coursierCache = if (isTest) Some(testUserHome / ".coursier" / "cache")
       else sys.env.get("COURSIER_CACHE").map(os.Path(_))
       val home = if (isTest) testUserHome else realUserHome
