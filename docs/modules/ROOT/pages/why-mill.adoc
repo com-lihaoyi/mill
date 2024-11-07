@@ -57,7 +57,7 @@ We will discuss each one in turn.
 
 ### Maven
 
-Overall across our benchmarks, Mill is 5-10x faster than Maven for clean compiles,
+Overall across our benchmarks, Mill is 4-10x faster than Maven for clean compiles,
 both parallel and sequential, and for many modules or for a single module:
 
 |===

@@ -69,7 +69,7 @@ real-world project compares to using SBT.
 |===
 | Benchmark | Cold SBT | Hot SBT (rounded) | Mill
 
-| <<Parallel Clean Compile All>> | 28.7s | ≈ 12s | 10.4s
+| <<Parallel Clean Compile All>> | 34.28s | ≈ 14s | 10.4s
 | <<Clean Compile Single-Module>> | 10.1s | ≈ 1s | 0.96s
 | <<Incremental Compile Single-Module>> | 6.2s | ≈ 0s | 0.48s
 | <<No-Op Compile Single-Module>> | 4.2s | ≈ 0s | 0.40s
@@ -82,9 +82,10 @@ distinction, and can only be run directly from the command line. The `Hot SBT` m
 reports timings to the nearest second, so that is the number used in this comparison.
 
 The Mill build benchmarks for Gatling is generally much snappier than the `Cold SBT` benchmark,
-and comparable to that `Hot SBT` benchmark. Mill does not have the same _Cold vs Hot_
-distinction that SBT has, as Mill is always run "cold" from the command line and keeps the
-process around to provide "hot" performance automatically.
+and comparable to that `Hot SBT` benchmark. Mill is marginally faster in the
+`Parallel Clean Compile All` benchmark (10s vs 14s), but more importantly does not have the same
+_Cold vs Hot_ distinction that SBT has: as Mill is always run "cold" from the command line and
+keeps the process around to provide "hot" performance automatically.
 
 For the benchmarks above, each provided number is the median wall time of three consecutive runs
 on my M1 Macbook Pro. While ad-hoc, these benchmarks are enough to give you a flavor of how
@@ -95,17 +96,17 @@ since Mill doesn't bundle them and instead expects them to be invoked separately
 === Parallel Clean Compile All
 
 ```bash
-$ sbt clean; time sbt compile
-28.7s
-27.6s
-31.2s
+$ sbt clean; time sbt test:compile
+34.28s
+32.84s
+34.55s
 
 $ sbt
 
-sbt> clean; compile
-12s
-12s
-10s
+sbt> clean; test:compile
+15s
+13s
+14s
 
 $ ./mill clean; time ./mill -j 10 __.compile
 10.7s

@@ -389,8 +389,9 @@ ecosystems rely on tools like Maven or Gradle to build their code, and I believe
 provides a better alternative. Even today, there are already many advantages of
 using Mill over the incumbent build tools:
 
-1. Mill today runs the equivalent local workflows 2-10x faster than Maven
-   or Gradle, with automatic parallelization and caching for every part of your build
+1. Mill today runs the equivalent local workflows xref:comparisons/maven.adoc[4-10x faster than Maven]
+   and xref:comparisons/gradle.adoc[2-4x faster than Gradle], with automatic parallelization and caching for
+   every part of your build
 
 2. Mill today provides better ease of use than Maven or Gradle, with IDE support for
    navigating your build graph and visualizing what your build is doing
