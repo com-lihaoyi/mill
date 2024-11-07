@@ -194,7 +194,7 @@ trait MainModule extends BaseModule0 {
       }
     }
 
-  private val inspectItemIndent = "    ";
+  private lazy val inspectItemIndent = "    "
 
   /**
    * Displays metadata about the given task without actually running it.

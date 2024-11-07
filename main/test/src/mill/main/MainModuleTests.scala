@@ -2,14 +2,13 @@ package mill.main
 
 import mill.api.{PathRef, Result, Val}
 import mill.{Agg, T, Task}
-import mill.define.{Cross, Discover, Module}
+import mill.define.{Cross, Discover, Module, TaskModule}
 import mill.main.client.OutFiles
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest.{TestSuite, Tests, assert, test}
 
 import java.io.{ByteArrayOutputStream, PrintStream}
-
 import scala.collection.mutable
 
 object MainModuleTests extends TestSuite {
@@ -42,6 +41,18 @@ object MainModuleTests extends TestSuite {
           "theHelloWorker"
       }
     }
+
+    /** Sub module */
+    object sub extends TaskModule {
+      override def defaultCommandName(): String = "hello"
+      def hello() = Task.Command{
+        println("hello")
+      }
+      def moduleDeps = Seq(subSub)
+      /** SubSub module */
+      object subSub extends Module
+    }
+
     override lazy val millDiscover: Discover = Discover[this.type]
   }
 
@@ -166,6 +177,22 @@ object MainModuleTests extends TestSuite {
           res.contains("MainModuleTests.scala:"),
           res.contains("The hello worker"),
           res.contains("hello")
+        )
+      }
+      test("module") - UnitTester(mainModule, null).scoped { eval =>
+        val Right(result) = eval.apply("inspect", "sub")
+
+        val Seq(res: String) = result.value
+        assert(
+          res.startsWith("sub("),
+          res.contains("MainModuleTests.scala:"),
+          res.contains("    Sub module"),
+          res.contains("Inherited Modules:"),
+          res.contains("Module Dependencies:"),
+          res.contains("sub.subSub"),
+          res.contains("Default Task: sub.hello"),
+          res.contains("Tasks (re-/defined):"),
+          res.contains("    sub.hello")
         )
       }
     }
