@@ -207,6 +207,19 @@ trait MainModule extends BaseModule0 {
         )
       }
 
+      def renderFileName(t: NamedTask[_]) = {
+        // handle both Windows or Unix separators
+        val fullFileName = t.ctx.fileName.replaceAll(raw"\\", "/")
+        val basePath = WorkspaceRoot.workspaceRoot.toString() + "/"
+        val name =
+          if (fullFileName.startsWith(basePath)) {
+            fullFileName.drop(basePath.length)
+          } else {
+            fullFileName.split('/').last
+          }
+        s"${name}:${t.ctx.lineNum}"
+      }
+
       def pprintTask(t: NamedTask[_], evaluator: Evaluator): Tree.Lazy = {
         val seen = mutable.Set.empty[Task[_]]
 
@@ -276,10 +289,7 @@ trait MainModule extends BaseModule0 {
           Iterator(
             ctx.applyPrefixColor(t.toString).toString,
             "(",
-            // handle both Windows or Unix separators
-            t.ctx.fileName.split('/').last.split('\\').last,
-            ":",
-            t.ctx.lineNum.toString,
+            renderFileName(t),
             ")",
             allDocs.mkString("\n"),
             "\n"
@@ -299,13 +309,6 @@ trait MainModule extends BaseModule0 {
         val scaladocOpt = Option(annotation).map(annotation =>
           Util.cleanupScaladoc(annotation.value).map("\n" + inspectItemIndent + _).mkString
         )
-        val fullFileName = t.ctx.fileName.replaceAll("\\\\", "/")
-        val basePath = WorkspaceRoot.workspaceRoot.toString()
-        val fileName = if (fullFileName.startsWith(basePath + "/")) {
-          fullFileName.drop(basePath.length + 1)
-        } else {
-          t.ctx.fileName.split('/').last.split('\\').last
-        }
 
         def parentFilter(parent: Class[_]) =
           classOf[Module].isAssignableFrom(parent) && classOf[Module] != parent
@@ -359,7 +362,7 @@ trait MainModule extends BaseModule0 {
             // module name(module/file:line)
             Iterator(
               ctx.applyPrefixColor(t.module.toString).toString,
-              s"($fileName:${t.ctx.lineNum})"
+              s"(${renderFileName(t)})"
             ),
             // Scaladoc
             Iterator(scaladocOpt).flatten,
