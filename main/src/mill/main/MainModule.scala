@@ -323,11 +323,11 @@ trait MainModule extends BaseModule0 {
 
         val inheritedModules = parents.filter(parentFilter)
 
-        val allInheritedModulesOpt = Option.when(Target.log.debugEnabled) {
+        val allInheritedModules = Option.when(Target.log.debugEnabled)(
           resolveParents(parents.toList)
             .filter(parentFilter)
             .filterNot(inheritedModules.contains)
-        }
+        ).toSeq.flatten
 
         def getModuleDeps(methodName: String): Seq[Module] = cls
           .getMethods
@@ -348,9 +348,9 @@ trait MainModule extends BaseModule0 {
         }
 
         val methodMap = evaluator.rootModule.millDiscover.value
-        val tasksOpt = methodMap.get(cls).map {
+        val tasks = methodMap.get(cls).map {
           case (_, _, tasks) => tasks.map(task => s"${t.module}.$task")
-        }
+        }.toSeq.flatten
         pprint.Tree.Lazy { ctx =>
           Iterator(
             // module name(module/file:line)
@@ -364,19 +364,17 @@ trait MainModule extends BaseModule0 {
             Iterator(
               "\n\n",
               ctx.applyPrefixColor("Inherited Modules").toString,
-              ":",
-              inspectItemIndent
+              ":"
             ),
             inheritedModules.map("\n" + inspectItemIndent + _.getName),
             // Indirect Inherited Modules:
-            allInheritedModulesOpt.fold(Iterator.empty[String])(mods =>
-              Iterator(
-                "\n\n",
-                ctx.applyPrefixColor("Indirect Inherited Modules").toString,
-                ":\n",
-                inspectItemIndent,
-                mods.map(_.getName).mkString("\n" + inspectItemIndent)
-              )
+            if (allInheritedModules.isEmpty) Iterator.empty[String]
+            else Iterator(
+              "\n\n",
+              ctx.applyPrefixColor("Indirect Inherited Modules").toString,
+              ":\n",
+              inspectItemIndent,
+              allInheritedModules.map(_.getName).mkString("\n" + inspectItemIndent)
             ),
             // Module Dependencies: (JavaModule)
             if (hasModuleDeps) Iterator(
@@ -393,14 +391,13 @@ trait MainModule extends BaseModule0 {
               Iterator("\n\n", ctx.applyPrefixColor("Default Task").toString, ": ", task)
             ),
             // Tasks (re-/defined):
-            tasksOpt.fold(Iterator.empty[String])(tasks =>
-              Iterator(
-                "\n\n",
-                ctx.applyPrefixColor("Tasks (re-/defined)").toString,
-                ":\n",
-                inspectItemIndent,
-                tasks.mkString("\n" + inspectItemIndent)
-              )
+            if (tasks.isEmpty) Iterator.empty[String]
+            else Iterator(
+              "\n\n",
+              ctx.applyPrefixColor("Tasks (re-/defined)").toString,
+              ":\n",
+              inspectItemIndent,
+              tasks.mkString("\n" + inspectItemIndent)
             )
           ).flatten
         }
