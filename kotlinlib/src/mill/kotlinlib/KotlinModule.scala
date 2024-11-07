@@ -40,7 +40,7 @@ trait KotlinModule extends JavaModule { outer =>
    * Subset of [[allSourceFiles]].
    */
   def allKotlinSourceFiles: T[Seq[PathRef]] = Task {
-    allSourceFiles().filter(path => Seq("kt", "kts").exists(path.path.ext.toLowerCase() == _))
+    allSourceFiles().filter(path => Seq("kt", "kts").contains(path.path.ext.toLowerCase()))
   }
 
   /**
@@ -63,6 +63,21 @@ trait KotlinModule extends JavaModule { outer =>
    * Default is derived from [[kotlinVersion]].
    */
   def kotlinCompilerVersion: T[String] = Task { kotlinVersion() }
+
+  /**
+   * The compiler language version. Default is not set.
+   */
+  def kotlinLanguageVersion: T[String] = Task { "" }
+
+  /**
+   * The compiler API version. Default is not set.
+   */
+  def kotlinApiVersion: T[String] = Task { "" }
+
+  /**
+   * Flag to use explicit API check in the compiler. Default is `false`.
+   */
+  def kotlinExplicitApi: T[Boolean] = Task { false }
 
   type CompileProblemReporter = mill.api.CompileProblemReporter
 
@@ -144,11 +159,24 @@ trait KotlinModule extends JavaModule { outer =>
         // `;` separator is used on all platforms!
         dokkaPluginsClasspath().map(_.path).mkString(";")
       )
+      val depClasspath = (compileClasspath() ++ runClasspath())
+        .filter(p => os.exists(p.path))
+        .map(_.path.toString()).mkString(";")
 
+      // TODO need to provide a dedicated source set for common sources in case of Multiplatform
+      // platforms supported: jvm, js, wasm, native, common
       val options = dokkaOptions() ++
         Seq("-outputDir", dokkaDir.toString()) ++
         pluginClasspathOption ++
-        Seq("-sourceSet", s"-src $millSourcePath")
+        Seq(
+          s"-sourceSet",
+          Seq(
+            s"-src ${docSources().map(_.path).filter(os.exists).mkString(";")}",
+            s"-displayName $dokkaSourceSetDisplayName",
+            s"-classpath $depClasspath",
+            s"-analysisPlatform $dokkaAnalysisPlatform"
+          ).mkString(" ")
+        )
 
       T.log.info("dokka options: " + options)
 
@@ -199,6 +227,9 @@ trait KotlinModule extends JavaModule { outer =>
     )
   }
 
+  protected def dokkaAnalysisPlatform: String = "jvm"
+  protected def dokkaSourceSetDisplayName: String = "jvm"
+
   protected def when(cond: Boolean)(args: String*): Seq[String] = if (cond) args else Seq()
 
   /**
@@ -244,10 +275,16 @@ trait KotlinModule extends JavaModule { outer =>
         val compilerArgs: Seq[String] = Seq(
           // destdir
           Seq("-d", classes.toString()),
+          // apply multi-platform support (expect/actual)
+          // TODO if there is penalty for activating it in the compiler, put it behind configuration flag
+          Seq("-Xmulti-platform"),
           // classpath
           when(compileCp.iterator.nonEmpty)(
             "-classpath",
             compileCp.iterator.mkString(File.pathSeparator)
+          ),
+          when(kotlinExplicitApi())(
+            "-Xexplicit-api=strict"
           ),
           kotlincOptions(),
           extraKotlinArgs,
@@ -287,13 +324,19 @@ trait KotlinModule extends JavaModule { outer =>
    * Additional Kotlin compiler options to be used by [[compile]].
    */
   def kotlincOptions: T[Seq[String]] = Task {
-    Seq("-no-stdlib") ++
-      when(!kotlinVersion().startsWith("1.0"))(
-        "-language-version",
-        kotlinVersion().split("[.]", 3).take(2).mkString("."),
-        "-api-version",
-        kotlinVersion().split("[.]", 3).take(2).mkString(".")
-      )
+    val options = Seq.newBuilder[String]
+    options += "-no-stdlib"
+    val languageVersion = kotlinLanguageVersion()
+    if (!languageVersion.isBlank) {
+      options += "-language-version"
+      options += languageVersion
+    }
+    val kotlinkotlinApiVersion = kotlinApiVersion()
+    if (!kotlinkotlinApiVersion.isBlank) {
+      options += "-api-version"
+      options += kotlinkotlinApiVersion
+    }
+    options.result()
   }
 
   private[kotlinlib] def internalCompileJavaFiles(
@@ -328,9 +371,13 @@ trait KotlinModule extends JavaModule { outer =>
    * A test sub-module linked to its parent module best suited for unit-tests.
    */
   trait KotlinTests extends JavaTests with KotlinModule {
+    override def kotlinExplicitApi: T[Boolean] = false
     override def kotlinVersion: T[String] = Task { outer.kotlinVersion() }
     override def kotlinCompilerVersion: T[String] = Task { outer.kotlinCompilerVersion() }
-    override def kotlincOptions: T[Seq[String]] = Task { outer.kotlincOptions() }
+    override def kotlincOptions: T[Seq[String]] = Task {
+      outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
+        Seq(s"-Xfriend-paths=${outer.compile().classes.path.toString()}")
+    }
   }
 
 }

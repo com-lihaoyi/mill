@@ -68,8 +68,8 @@ trait JavaModule
       val outerInnerSets = Seq(
         ("mill.scalajslib.ScalaJSModule", "ScalaJSTests"),
         ("mill.scalanativelib.ScalaNativeModule", "ScalaNativeTests"),
-        ("mill.scalalib.SbtModule", "SbtModuleTests"),
-        ("mill.scalalib.MavenModule", "MavenModuleTests")
+        ("mill.scalalib.SbtModule", "SbtTests"),
+        ("mill.scalalib.MavenModule", "MavenTests")
       )
       for {
         (mod, testModShort) <- outerInnerSets
