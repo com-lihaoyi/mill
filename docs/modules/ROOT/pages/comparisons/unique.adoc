@@ -2,10 +2,10 @@
 
 include::partial$gtag-config.adoc[]
 
-The https://mill-build.org/[Mill build tool] started off as a niche Scala side project, but now also targets
-Java and other JVM projects, and has potential to serve the large-monorepo codebases that
-Bazel currently serves. Despite its humble beginnings, Mill has good traction among its users,
-and a unique design with strong fundamentals that make it easy to use and extend. This page
+https://mill-build.org/[Mill] is a JVM build tool that targets Java/Scala/Kotlin and has
+potential to serve the large-monorepo codebases that Bazel currently serves. Mill has good
+traction among its users, benchmarks that demonstrate 2-10x faster builds than its competitors,
+and a unique design that make it easy to use and extend. This page
 discusses some of the most interesting design decisions in Mill, and how it sets Mill apart
 from other build tools on the market.
 
@@ -15,13 +15,13 @@ A build tool is a program that orchestrates the various tasks necessary to compi
 package, test, and run a codebase: maybe you need to run a compiler, download some dependencies,
 package an executable or container. While a small codebase can get by with a shell script that
 runs every task every time, such a naive approach gets slower
-and slower as a codebase grows and the build tasks necessary get more numerous and complex.
+and slower as a codebase grows and the build tasks necessarily get more numerous and complex.
 
 In order to prevent development from grinding to a halt, you need to begin caching
-and parallelizing the execution of build tasks. This often starts off as some ad-hoc
+and parallelizing your build tasks. This often starts off as some ad-hoc
 if-else statements in a shell script, but manually maintaining the caching and parallelization
-logic is tedious and error-prone, so at some point it becomes worthwhile to use an purpose
-built tool to do it for you. That is when you turn to build tools like
+logic is tedious and error-prone. At some point it becomes worthwhile to use an purpose
+built tool to do it for you, and that is when you turn to build tools like
 https://maven.apache.org/[Maven], https://www.gnu.org/software/make/[Make],
 https://mill-build.org/[Mill], or https://bazel.build/[Bazel]. For this article,
 we will mostly discuss Mill.
@@ -31,7 +31,7 @@ we will mostly discuss Mill.
 The Mill build tool was started as a side project in 2017, an exploration of the ideas I
 found when learning to use Google's https://bazel.build/[Bazel] build tool.
 At a glance, Mill looks similar to other build tools you may be familiar with, with a
-`build.mill` file in the root of a project configuring the dependencies and testing
+`build.mill` file in the root of a project defining the dependencies and testing
 setup for a module:
 
 ```scala
@@ -84,11 +84,10 @@ https://mill-build.org/mill/0.12.1/javalib/android-examples.html[Android], and h
 more distant toolchains like https://mill-build.org/mill/0.12.1/extending/new-language.html[Typescript]
 and Python.
 
-Mill works surprisingly well with large builds: its build logic is incrementally compiled,
+Mill also works well with large builds: its build logic is incrementally compiled,
 lazily initialized, and automatically cached and parallelized. That means that even large
-codebases can remain fast and responsive even as the size of the project grows. Mill's own
-build easily manages over 400 modules, and the tool can likely manage thousands of modules
-without issue.
+codebases can remain fast and responsive: Mill's own build easily manages over 400 modules,
+and the tool can likely handle thousands of modules without issue.
 
 
 ## The React.js of Build Tools
@@ -96,7 +95,7 @@ without issue.
 We've briefly covered what Mill is above, but one question remains: why Mill?
 Why not one of the other 100 build tools out there?
 
-In a way, Mill shares many of its core design decisions with https://react.dev/[React.js],
+Mill is unique in that it shares many of its core design decisions with https://react.dev/[React.js],
 the popular Javascript UI framework. I was among the first external users of React when I
 introduced it to Dropbox in 2014, and while people gripe about it today, React was
 really a revolution in how Javascript UIs were implemented. UI flows that used to take
@@ -105,8 +104,8 @@ previously took to implement
 
 React's two most important innovations are:
 
-1. Letting users write "direct style" code to define their UI, rather than
-   a "code behind" approach of registering hooks and callbacks to mutate the UI
+1. Letting users write "direct style" code to define their UI, rather than a "code behind"
+   approach of registering callbacks to mutate the UI in response to events
 
 2. Using a single "general purpose" programming language for your UI, rather than splitting
    your logic into multiple special-purpose domain-specific languages
@@ -117,58 +116,59 @@ https://react.dev/learn/writing-markup-with-jsx[JSX],
 https://react.dev/reference/react-dom/client/hydrateRoot[de/re-hydration],
 etc. - all of those are only in service of the two fundamental ideas. e.g. At Dropbox we
 used React for years without JSX, and many of the later frameworks inspired by React
-provide a similar experience use other techniques to replace virtual dom diffing. Furthermore, React isn't limited to the HTML DOM, with the same techniques being
-used to manage mobile app UIs, terminal UIs, and many other scenarios
+provide a similar experience but use other techniques to replace virtual dom diffing.
+Furthermore, React isn't limited to the HTML UIs, with the same techniques being
+used to manage https://reactnative.dev/[mobile app UIs],
+https://github.com/vadimdemedes/ink[terminal UIs], and many other scenarios
 
-Build tools and interactive web UIs are on one hand different, but on the other hand
-very similar: you are trying to update a large statement system (whether the HTML DOM
-or your filesystem build outputs) to your desired state in response to change in inputs
-(whether user-clicks or source-file-edits). Like with React, these two ideas are
-not widespread among build tools today. But many of the same downstream benefits apply,
-and these ideas really help Mill as a build tool.
+Build tools and interactive UIs are on one hand different, but on the other hand
+very similar: you are trying to update a large stateful system (whether a HTML page
+or filesystem build artifacts) to your desired state in response to change in inputs
+(whether user-clicks or source-file-edits). Like with React in 2014, these two ideas are
+not widespread among build tools today in 2024. But many of the same downstream benefits apply,
+and these ideas give Mill some unique properties as a build tool.
 
 ### Direct-Style Builds
 
 One key aspect of React.js is that you wrote your code to generate your web UI "directly":
 
-* Before React, you would write Javascript code whose purpose was to set up
-  a forest of callbacks and event handlers. These would then be executed when a user
-  interacted with your website, causing ad-hoc mutations to the HTML DOM, often recursively
-  triggering other callbacks with further mutations, and you as the developer would somehow
-  need to ensure this all converges to the UI state that you desire.
+* Before React, you would write Javascript code whose purpose was to mutate some HTML properties
+  to set up a forest of callbacks and event handlers. These would then be executed when a user
+  interacted with your website, causing further mutations to the HTML UI. This would often
+  recursively trigger other callbacks with further mutations, and you as the developer would
+  somehow need to ensure this all converges to the UI state that you desire.
 
 * In React, you had normal functions containing normal code that executed top-to-bottom,
-  each returning a JSX HTML snippet (really just a Javascript object) with the top-level
-  component eventually returning a JSX HTML snippet of the entire UI. React would handle
-  all the update logic for you in an incremental and efficient manner, caching and optimizing
-  things automatically. The developer just returns the UI structure they want from their
-  component and React.js does all the rest
+  each returning a JSX HTML snippet - really just a Javascript object - with the top-level
+  component eventually returning a snippet representing the entire UI. React would handle
+  all the update logic for you in an efficient manner, incrementally caching and optimizing
+  things automatically. The developer just naively returns the UI structure they want from
+  their React code and React.js does all the rest
 
 Before React you always had a tradeoff: do you re-render the whole UI every update (which
 is easy to implement naively, but wasteful and disruptive to users) or do you do fine-grained UI
 updates (which was difficult to implement, but efficient and user-friendly). React eliminated that
 tradeoff, letting the developer write "naive" code as if they were re-rendering the entire
-UI, while automatically optimizing it to be performant and provide
-a user-friendly experience.
+UI, while automatically optimizing it to be performant and provide a first-class user experience.
 
 Mill's approach as a build tool is similar:
 
-* Most existing build tools involve registering "task" or "hook" callbacks to tell the
-  build tool what to do when certain things happen or certain files are asked for, mutating
-  the filesystem in an ad-hoc manner. It is up to the developer to make sure that these
-  callbacks and filesystem updates work together and filesystem containing your build
-  outputs ends up converging to the state you want.
+* Most existing build tools involve registering "task" callbacks to tell the build tool what
+  to do when certain actions happen or certain files change. These callbacks mutate the filesystem
+  in an ad-hoc manner, often recursively triggering further callbacks. It is up to the developer
+  to make sure that these callbacks and filesystem updates end up converging such that
+  your build outputs ends up containing the files you want.
 
 * With Mill, you instead write "direct-style" code: normal functions that call other
   functions and end up returning the final metadata or files that were generated.
   Mill handles the work of computing these functions efficiently: automatically caching,
-  parallelizing, and optimizing your build. The developer just returns the value
-  they want from their task and Mill does all the rest
+  parallelizing, and optimizing your build. The developer writes naive code computing and
+  returning the files they want, and Mill does all the rest to make it efficient and performant
 
 Earlier we saw a hello-world Mill build using the built in module types like `JavaModule`,
-now let us see how Mill works under the hood. Consider the following Mill tasks that define
-some source files, use `javac` to compile them into classfiles, and then `jar` to package
-them together into an assembly:
+but if we remove these built in classes we can see how Mill works under the hood. Consider
+the following Mill tasks that define some source files, use the `javac` executable to compile
+them into classfiles, and then the `jar` executable to package them together into an assembly:
 
 ```scala
 def mainClass: T[Option[String]] = Some("foo.Foo")
@@ -208,28 +208,28 @@ digraph G {
 
 This example does not use any of Mill's builtin support for building Java or
 Scala projects, and instead builds a pipeline "from scratch" using Mill
-tasks and `javac`/`jar` subprocesses. We define `Task.Source` folders,
-plain `T{...}` tasks that depend on them, and a `Task.Command`.
+tasks and `javac`/`jar` subprocesses. We define `Task.Source` folders and
+plain ``Task``s that depend on them, implementing entirely in our own code.
 
 Two things are worth noting about this code:
 
 1. It looks almost identical to the equivalent "naive" code you would write without using
-   a build tool! If you remove the `Task` wrappers, you could run the code and it would
+   a build tool! If you remove the `Task{...}` wrappers, you could run the code and it would
    behave as a naive script running top-to-bottom every time and generating your
-   `assembly.jar` from scratch. But Mill allows you to annotate such code minimally with
-   `Task`, turning it into a build pipeline with parallelism, caching, invalidation, and so on.
+   `assembly.jar` from scratch. But Mill allows you to take such naive code and turn it
+   into a build pipeline with parallelism, caching, invalidation, and so on.
 
 2. You do not see any logic at all related to parallelism, caching, invalidation in the code
-   at all! No mtime checks, no locks, no serializing and de-serializing of data on disk. Mill
-   handles all this for you automatically, so you just need to write your "naive" code and
-   Mill will provide all the "build tool stuff" for free.
+   at all! No mtime checks, no computing cache keys, no locks, no serializing and
+   de-serializing of data on disk. Mill handles all this for you automatically, so you just
+   need to write your "naive" code and Mill will provide all the "build tool stuff" for free.
 
 
-This direct-style code has some surprising benefits: IDEs may not understand registered
-task or hook callbacks, but they _do_ understand function calls, and so they should be able
-to seamlessly navigate up and down your build graph just by following those functions.
-Below, we can see IntelliJ resolve `compile` to the exact `def compile` definition in
-`build.foo`, allowing us to jump to it if we want to see what it does:
+This direct-style code has some surprising benefits: IDEs often not understand how registered
+callbacks recursively trigger one another, but they _do_ understand function calls, and so
+they should be able to seamlessly navigate up and down your build graph just by following
+those functions. Below, we can see IntelliJ resolve `compile` to the exact `def compile`
+definition in `build.foo`, allowing us to jump to it if we want to see what it does:
 
 image::unique/IntellijDefinition.png[]
 
@@ -238,51 +238,64 @@ override, and find the exact override definitions in the parent class hierarchy:
 
 image::unique/IntellijOverride.png[]
 
-Similarly, human programmers are also used to navigating in and out of function calls, and
-should have an easier time understanding code written in this "direct style" than they would
-of the classic "callbacks forests" you may have come to expect from build tools. However,
+This "direct style" doesn't just make navigating your build easy for IDEs: human programmers
+are _also_ used to navigating in and out of function calls, up and down class hierarchies,
+and so on. Thus for a developer configuring or maintaining their build system, Mill's direct
+style means they easier time understanding what is going on, especially compared to the
+classic "callbacks forests" you may have come to expect from build tools. However,
 both of these benefits require that the IDE and the human understands the code in the
 first place, which leads to the second major design decision:
 
-### Using a General Purpose Language
+### Using a Single General Purpose Language
 
-React.js makes users use Javascript to implement their web UIs. While a common now, it
-is hard to overstate how controversial and unusual a decision was at the time.
+React.js makes users use Javascript to implement their HTML UIs. While a common approach
+now in 2024, it is hard to overstate how controversial and unusual this design decision
+was at the time.
 
 In 2014, web UIs were implemented in some HTML _templating language_ with separate CSS
 source files, and "code behind" Javascript logic hooked in. This allowed separation of
 concerns: a graphic designer could edit the HTML and CSS without needing to know
 Javascript, and a programmer could edit the Javascript without needing to be an expert
 in HTML/CSS. And so writing frontend code in three languages in three separate files
-had been the best practice the inception of the web two decades years prior.
+was the best practice, and so it was since the inception of the web two decades prior.
 
 React.js flipped all that on its head: everything was Javascript! UIs were Javascript
 objects first, containing Javascript functions that returned HTML snippets (which
-were really also Javascript objects). CSS was often in-lined at the use site, perhaps
-with constants fetched from a CSS-in-JS library. While controversial, this approach
-had two huge advantages:
+were really _also_ Javascript objects). CSS was often in-lined at the use site, perhaps
+with constants fetched from a https://cssinjs.org/[CSS-in-JS] library. This was a total
+departure from the previous two decades of web development best practices.
+
+While controversial,
+this approach had two huge advantages:
 
 1. It broke the hard language barriers between HTML/CSS/JS, allowing more flexible
-   ways of organizing and grouping code (e.g. by-component) in order to meet the
+   ways of organizing and grouping code in order to meet the
    needs of the particular UI. While seemingly trivial, it makes a huge difference
    to have one file in one language containing everything you need to know about a
    UI component, rather than needing to tab between three files in three different languages.
 
-2. It removed the separate second-class "templating language". These templating
+2. It removed the separate second-class "templating language". While the "platonic ideal"
+   was people writing HTML/CSS/JS, the HTML often ended up being https://jinja.palletsprojects.com/[Jinja2],
+   https://haml.info/[HAML], or https://mustache.github.io/[Mustache] templates instead,
+   and the CSS usually ended up being replaced by https://sass-lang.com/[SASS] or
+   https://lesscss.org/[LESS]. These templating
    languages were always re-implementing concepts such as if-else, loops, functions,
-   and inheritance in their own weird and idiosyncratic ways, with mediocre tooling support
-   in IDEs, Linters, etc. While Javascript was by no means perfect, having a
-   "real" programming language to implement your UI templates was a breath of fresh air.
+   and inheritance in their own weird and idiosyncratic ways, with mediocre support
+   in IDEs, Linters, and other tools. While Javascript was by no means perfect, having a
+   "real" programming language to implement your UI in was a breath of fresh air.
 
 The story for build tools is similar: the traditional wisdom has been
 to implement your build logic in some limited "build language", in the past often
-XML (e.g. for Maven, MSBuild), nowadays often JSON/TOML/YAML (e.g. Cargo).
+XML (e.g. for https://maven.apache.org/[Maven], https://github.com/dotnet/msbuild[MSBuild]),
+nowadays often JSON/TOML/YAML (e.g. https://github.com/rust-lang/cargo[Cargo]).
 
 1. Like web templating languages, build languages often had the logic split
-   between multiple languages: having to write templated-bash-in-yaml
-   is a common outcome. While this doesn't have the "three separate files" problem,
-   it still has the "three separate languages" problem, and the context switching
-   between them can be very challenging.
+   between multiple languages. Having to write templated-Bash-in-Yaml
+   is a common outcome, but not the only one: Bazel ends up making you write
+   https://bazel.build/reference/be/make-variables[make-interpolated Bash in pseudo-Python].
+   And because "XML" or "YAML" does not have the programmability people need, often
+   the logic gets pushed into embedded Bash scripts that need to be co-maintained
+   with the surrounding config
 
 2. These "YAML build languages" would always start off simple, but eventually grow
    real programming language features: not just if-else, loops, functions, inheritance, but
@@ -291,7 +304,7 @@ XML (e.g. for Maven, MSBuild), nowadays often JSON/TOML/YAML (e.g. Cargo).
    idiosyncratic ways, and generally inferior to the same feature or tool provided by
    a real programming language.
 
-_"Config metadata turns into templating language turns into general-purpose language"
+_"Config metadata turns into templating language turns into general-purpose language"_
 is a tale as old as time. Whether it's HTML templating using https://jinja.palletsprojects.com/en/stable/templates/[Jinja2],
 CI configuration using https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/evaluate-expressions-in-workflows-and-actions[Github Actions Config Expressions],
 or infrastructure-as-code systems like https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference.html[Cloudformation Functions]
@@ -308,58 +321,72 @@ Mill goes all-in on the "real programming language" approach:
 2. Mill task dependencies are just method calls
 3. Mill modules are just objects
 
+While this is not strictly true - Mill tasks and Mill modules have a small amount of extra
+logic necessary to handling caching parallelization and other build tool necessities - it is
+true enough that these details are often completely transparent to the user.
+
 This has the same benefits that React.js had from using a general-purpose language throughout:
 
 1. You can directly write code to wire up and perform your build logic all in one language,
-   without the nested templates-nested-in-bash-nested-in-YAML monstrosities common when
-   separate languages are used.
+   without the nested Bash-nested-in-Mustache-templates-nested-in-YAML monstrosities common when
+   insufficiently flexible config languages are chosen.
 
-2. You already know how programming languages works: not just conditionals/loops/functions,
+2. You _already know_ how programming languages works: not just conditionals/loops/functions,
    but also classes, inheritance, overrides, typechecking. Your IDE (IntelliJ or VSCode) is able
    to seamlessly navigate up and down the build system's task graph, just like it can navigate
-   around any application's method call graph. You can re-use any existing JVM libraries off-the-shelf,
+   around any application codebase. You can re-use any existing JVM libraries off-the-shelf,
    and use the existing battle-tested JVM package distribution infrastructure (Maven Central)
 
 For example, in Mill you may not be familiar with the bundled libraries and APIs, but your
-IDE is able to immediately help you understand them:
+IDE can help you understand them:
 
 image::unique/IntellijDocs.png[]
 
-And if you make an error, e.g. you typo-ed `resources` as `reources`, your IDE is able
-to immediately flag it for you even before you run the build:
+And if you make an error, e.g. you typo-ed `resources` as `reources`, your IDE will
+immediately flag it for you even before you run the build:
 
 image::unique/IntellijError.png[]
 
 While all IDEs have good support for understanding JSON/TOML/YAML/XML, the support for
-understanding _a particular tool's dialect of JSON/TOML/YAML/XML_ is much more spotty.
+understanding _a particular tool's dialect of templated-bash-in-yaml_ is much more spotty.
 Even IntelliJ, the gold standard, usually cannot provide more than basic assistance
-editing bash-in-YAML or templated-bash-in-yaml config file. In contrast, IDE support
+editing templated-bash-in-yaml configs file. In contrast, IDE support
 for a widely-used general purpose programming language is much more solid.
 
 There are existing build tools that use some of the ideas above, but perhaps none of them
-have both, which is necessary to take full advantage. tools like Gradle, Rake may be written
-in a single language, but are not direct-style: they still rely on you registering a forest
-of callbacks performing filesystem mutations, and manually ensuring that they are wired up to
-converge to the state you want. This means that although that a human programmer or an IDE
-like IntelliJ may be able to navigate around the Groovy/Kotlin/Ruby code used to configure the
-build, they are not able to navigate around
+have both, which is necessary to take full advantage:
+
+* Tools like https://gradle.org/[Gradle], https://ruby.github.io/rake/[Rake], or https://gulpjs.com/[Gulp] may be written
+  in a single language, but are not direct-style: they still rely on you registering a forest
+  of callbacks performing filesystem mutations, and manually ensuring that they are wired up to
+  converge to the state you want. This means that although that a human programmer or an IDE
+  like IntelliJ may be able to navigate around the Groovy/Kotlin/Ruby code used to configure the
+  build, they are not able to navigate around
+
+* Tools like https://github.com/rust-lang/cargo[Cargo], https://maven.apache.org/[Maven], or `go build`
+  are very inflexible, leading to the embedded shell scripts (or embedded-shell-scripts-as-XML
+  such as the https://maven.apache.org/plugins/maven-antrun-plugin/[Maven AntRun Plugin]!) or
+  having the build tool `mvn`/`cargo`/`go` being itself wrapped in Bash scripts or even another
+  build tool like Bazel
+
+Mill's direct style code and use of a general-purpose language makes it unique among
+build tools, just like how React.js was unique among UI frameworks when it was first released
+in 2014.
 
 ## Where can Mill Go?
 
 Above, we discussed some of the unique design decisions of Mill, and the value they
 provide to users. In this section we will discuss where Mill can fit into the larger
 build-tool ecosystem.
-
-Although Mill is historically a niche side project for a niche programming language,
-I think it has legs to potentially grow 10x to 100x bigger than it is today. There are
+I think Mill has legs to potentially grow 10x to 100x bigger than it is today. There are
 three main areas where I think Mill can grow into:
 
 ### A Modern Java/JVM Build Tool
 
-The Scala community that Mill traditionally targeted is small, but adjacent to it is
-the much larger Java community, with offshoots like Android and Kotlin. All these
+Mill is a JVM build tool, and the JVM platform hosts many rich communities and ecosystems:
+the Java folks, offshoots like Android, other languages like Kotlin and Scala. All these
 ecosystems rely on tools like Maven or Gradle to build their code, and I believe Mill
-can provide a better alternative. Even today, there are already many advantages of
+provides a better alternative. Even today, there are already many advantages of
 using Mill over the incumbent build tools:
 
 1. Mill today runs the equivalent local workflows 2-10x faster than Maven
@@ -371,20 +398,23 @@ using Mill over the incumbent build tools:
 3. Mill today makes extending your build 10x easier than Maven or Gradle, directly
    using the same JVM libraries you know and love without depending on third-party plugins
 
-Although Mill traditionally targeted
-the niche Scala language, Scala and Java run on the same JVM and are more alike than different.
-Concepts like classfiles, jars, assemblies, classpaths, dependency management and publishing
-artifacts, IDEs, debuggers, profilers, many third-party libraries, all are shared and identical
-between Java and Scala systems. With recent improvements, Mill now provides a first class
-Java experience, with some support for Kotlin and Android. Mill's easy extensibility
+The JVM is a flexible platform, and although Java/Kotlin/Scala/Android
+are superficially different, underneath there is a ton of similarity. Concepts like
+classfiles, jars, assemblies, classpaths, dependency management and publishing
+artifacts, IDEs, debuggers, profilers, many third-party libraries, are all shared and identical
+between the various JVM languages. Mill provides a first class Java and Scala experience,
+with support for Kotlin and Android. Mill's easy extensibility
 means integrating new tools into Mill takes hours rather than days or weeks.
 
 In the last 15-20 years, we have learned a lot about build tooling, and the field
 has developed significantly:
 
-* Bazel/Buck/Pants have emerged to manage large codebases
-* Webpack/Snowpack/ESBuild/Nx/TurboRepo/Vite have emerged for Javascript
-* ToScons, Ninja, and others have emerged as lightweight graph-based build tools
+* https://bazel.build/[Bazel], https://buck.build/[Buck], https://www.pantsbuild.org/[Pants]
+  have emerged to manage large codebases
+* https://webpack.js.org/[Webpack], https://www.snowpack.dev/[Snowpack], https://esbuild.github.io/[ESBuild],
+  https://nx.dev/[Nx], https://turbo.build/[TurboRepo], https://vite.dev/[Vite] have emerged for Javascript
+* https://scons.org/[Scons], https://ninja-build.org/[Ninja], and others have emerged as
+  lightweight graph-based build tools
 * We have seen papers published like https://www.microsoft.com/en-us/research/uploads/prod/2018/03/build-systems.pdf[Build Systems A La Carte],
   that thoroughly explore the design space for how a build tool might work.
 
@@ -395,19 +425,19 @@ parallelization, side-effect-free build tasks, and so on. While Maven (from 2004
 their two decades of legacy that limits how fast they can evolve.
 
 Mill could be the modern Java/JVM build tool: providing 10x speedups over Maven or Gradle,
-10x better ease of use, 10x better extensibility. While it is not quite there yet, even today
-Mill can already provide a pretty compelling Java build experience. With a year or two of focused
-effort, I think Mill has a decent chance of being not just a _viable_ option for the Java
-projects, but the _better_ option, and be the build tool of choice for Java projects going
-forward!
+10x better ease of use, 10x better extensibility. Today Mill already provides a compelling
+Java build experience. With some focused effort, I think Mill can be not just a _good_
+option, but the _better_ option for Java projects going forward!
 
 ### An Easier Monorepo Build Tool
 
 Many companies are using Bazel today. Of the companies I interviewed from my Silicon Valley
 network, 25 out of 30 are using or trying to use Bazel.
-Bazel is an incredibly powerful tool: it provides sandboxing, parallelization, caching,
-remote execution, all things that are useful or even necessary as your organization and codebase
-grows. I even wrote about the benefits on the company blog at the time:
+Bazel is an incredibly powerful tool: it provides https://bazel.build/docs/sandboxing[sandboxing],
+parallelization, https://bazel.build/remote/caching[remote caching],
+https://bazel.build/remote/rbe[remote execution]. These are all things that are
+useful or even necessary as your organization and codebase grows. I even wrote about the
+benefits on my company blog at the time:
 
 * https://www.databricks.com/blog/2019/02/27/speedy-scala-builds-with-bazel-at-databricks.html[Speedy Scala Builds with Bazel at Databricks]
 * https://www.databricks.com/blog/2019/07/23/fast-parallel-testing-at-databricks-with-bazel.html[Fast Parallel Testing with Bazel at Databricks]
@@ -417,33 +447,38 @@ works", and with a single command you can do anything that you could want to do 
 
 But of those 25 companies I interviewed, basically everyone was having a hard time adopting Bazel.
 From my own experience, both of my prior employers (Dropbox and Databricks) both took
-`O(1 person decade)` of work to adopt Bazel. Bazel is a ferociously complex tool, and although
-some of that complexity is inherent, much of it is incidental, and some of it is to support
-projects at a scale beyond what most teams would encounter.
+`O(1 person decade)` of work to adopt Bazel. I have met Silicon Valley dev-tools teams that
+spent months doing a Bazel proof-of-concept only to give up due to the difficulty. Bazel is
+a ferociously complex tool, and although some of that complexity is inherent, much of it is
+incidental, and some of it is to support projects at a scale beyond what most teams would encounter.
 
 I think there is room for a lightweight monorepo build tool that provides maybe 50% of Bazel's
-functionality, but at 10% the complexity. Bazel itself is not getting any simpler over time -
-instead is getting more complex with additional features and functionality - and so the
-lightweight monorepo build tool will have to be something else. There are some projects like
-MoonRepo that are attempting to fill this niche, but I think Mill has the best shot.
+functionality, but at 10% the complexity:
 
-Mill provides many of the same things Bazel does: automatic caching, parallelization, sandboxing,
-extensibility. Mill can already work with a wide variety of programming languages,
-from JVM languages like Java/Scala/Kotlin to Typescript and Python. Perhaps these features
-are not as highly-scalable as their Bazel equivalents, but
-they are provided in a lighter-weight, easier-to-use fashion.
+* Most companies are not Google, do not operate at Google-scale, do not have Google-level
+  problems, and may not need many of the most advanced features that Bazel provides
 
-Most companies are not Google, do not operate at Google-scale, and do not have Google-level
-problems. Their problems with Bazel aren't its scalability or featureset, but its complexity.
-While Mill can never compete with Bazel for the largest-scale deployments by its most
-sophisticated users, the bulk of codebases and organizations probably need something
-lighter-weight and easier than Bazel, and Mill could be that easy monorepo build tool for
-them to use.
+* Bazel itself is not getting any simpler over time - instead is getting more complex with
+  additional features and functionality, as tends to happen to projects over time
+
+Mill provides many of the same things Bazel does: automatic https://mill-build.org/mill/depth/evaluation-model.html[caching],
+parallelization, https://mill-build.org/mill/depth/sandboxing.html[sandboxing],
+https://mill-build.org/mill/extending/import-ivy-plugins.html[extensibility]. Mill
+can already work with a wide variety of programming languages,
+from JVM languages like Java/Scala/Kotlin to https://mill-build.org/mill/extending/new-language.html[Typescript]
+and Python. These features are not as highly-scalable as their Bazel equivalents, but
+they are provided in a lighter-weight, easier-to-use fashion suitable for organizations
+with less than 1,000 engineers.
+
+For most companies, their problems with Bazel aren't its scalability or featureset,
+but its complexity. While Mill can never compete with Bazel for the largest-scale deployments
+by its most sophisticated users, the bulk of users operate at a somewhat smaller scale and
+need something easier than Bazel. Mill could be that easy monorepo build tool for them to use.
 
 ### The Standard Scala Build Tool
 
-The Scala community that Mill original targeted is small, but it is also not terribly
-well-served. Most programming language rankings put it anywhere from 15-25th in terms of
+Although now multi-language Mill originally targeted the Scala community. The Scala community
+is small: most programming language rankings put it anywhere from 15-20th in terms of
 popularity (e.g. https://redmonk.com/sogrady/2024/09/12/language-rankings-6-24/[Redmonk June 2024]),
 with 1-3% of market share (e.g. https://survey.stackoverflow.co/2024/technology/[StackOverflow 2024 Survey],
 https://www.jetbrains.com/lp/devecosystem-2023/languages/[Jetbrains 2023 Survey]). Mill
@@ -451,15 +486,15 @@ at 5-10% marketshare as a Scala build tool is even smaller and more niche. But I
 is room to grow.
 
 The current de-facto standard Scala build tool is SBT. SBT is improving over time, but it has a
-lot of fundamental design challenges that make it confusing and hard to use. This not only
+lot of https://www.lihaoyi.com/post/SowhatswrongwithSBT.html[fundamental design challenges]
+that make it confusing and hard to use. This not only
 impacts users, but it also impacts maintainers and contributors: improvements to SBT take an
 order of magnitude longer to implement than improvements in Mill. And although SBT is widely
-used, it is by no means loved by the Scala community, with a general consensus that it is
-confusing and hard to use.
+used, it is by no means loved by the Scala community.
 
 While Mill is certainly the underdog today, 5-10% market share is quite respectable for what
 has been in the past a minimal-effort side project. With full-time effort behind the project,
-and some hired additional firepower, I think Mill does have a decent chance of catching up
+and some additional hired firepower, I think Mill does have a decent chance of catching up
 or even overtaking SBT, first as the Scala build tool of choice for new projects, and
 eventually in broader market share and usage.
 
@@ -470,7 +505,7 @@ community that would amount to a significant footprint. And I think it is very d
 
 Going forward, I expect to pursue all three paths: Mill as a better Java build tool, Mill as
 an easier Monorepo build tool, and Mill as the standard Scala build tool. Much of the past
-quarter (Q3 2024) has been spent polishing the experience of using Mill from Java, but
+quarter Q3 2024 has been spent polishing the experience of using Mill from Java, but
 similar efforts will need to be made in the other two areas.
 
 Fundamentally, there are holes in the build-tool market that are not well served:
