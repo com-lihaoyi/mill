@@ -126,7 +126,9 @@ abstract class Server[T](
     val thread = new Thread(
       () => {
         try Thread.sleep(acceptTimeoutMillis)
-        catch { case t: InterruptedException => /* Do Nothing */ }
+        catch {
+          case t: InterruptedException => /* Do Nothing */
+        }
         if (interrupt) {
           interrupted = true
           serverLog(s"Interrupting after ${acceptTimeoutMillis}ms")

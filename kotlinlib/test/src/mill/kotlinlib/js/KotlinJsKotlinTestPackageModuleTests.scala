@@ -62,7 +62,9 @@ object KotlinJsKotlinTestPackageModuleTests extends TestSuite {
                           |""".stripMargin,
         testResults.length == 2,
         testResults.count(result =>
-          result.status == Status.Failure.name() && result.exceptionTrace.getOrElse(Seq.empty).isEmpty
+          result.status == Status.Failure.name() && result.exceptionTrace.getOrElse(
+            Seq.empty
+          ).isEmpty
         ) == 0
       )
     }

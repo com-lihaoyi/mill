@@ -79,7 +79,9 @@ object PipeStreamsTests extends TestSuite {
 
       sortedGroups ==> expectedLists
     }
-    test("multiThreadWriteConcurrentRead") { // multiple writes across different threads interleaved by reads
+    test(
+      "multiThreadWriteConcurrentRead"
+    ) { // multiple writes across different threads interleaved by reads
       val chunkSize = 20
       val chunkCount = 100
       val pipe = new PipeStreams(bufferSize = 113)
