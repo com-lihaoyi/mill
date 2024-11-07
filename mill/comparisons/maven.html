@@ -445,14 +445,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.1-46-5e5165</span>
+    <span class="version">0.12.1-47-2c2a77</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../0.12.1/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../index.html">0.12.1-46-5e5165</a>
+          <a href="../index.html">0.12.1-47-2c2a77</a>
         </li>
         <li class="version is-latest">
           <a href="../0.12.1/index.html">0.12.1</a>
@@ -522,7 +522,7 @@ projects require minimal effort to get started, and larger Mill projects have a 
 structure building on these defaults.</p>
 </li>
 <li>
-<p><strong>Mill automatically caches and parallelizes your build, offering 3-10x speedups</strong>:
+<p><strong>Mill automatically caches and parallelizes your build, offering 4-10x speedups</strong>:
 Not just the built-in tasks that Mill ships with, but also any custom tasks or modules.
 This maximizes the snappiness of your command-line build workflows to keep you productive,
 which especially matters in larger codebases where builds tend to get slow:
@@ -619,39 +619,39 @@ Mill’s performance compares to Maven:</p>
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_sequential_clean_compile_all">Sequential Clean Compile All</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">2m 31.12s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">0m 22.19s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">6.8x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1m 38.80s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">23.14s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4.3x</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_parallel_clean_compile_all">Parallel Clean Compile All</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">1m 16.45s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">0m 09.95s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">7.7x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0m 48.92s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0m 08.79s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.6x</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_clean_compile_single_module">Clean Compile Single-Module</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">0m 19.62s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">0m 02.17s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0m 08.46s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0m 01.94s</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">9.0x</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_incremental_compile_single_module">Incremental Compile Single-Module</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">0m 21.10s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0m 06.82s</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">0m 00.54s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">39.1x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">12.6x</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_no_op_compile_single_module">No-Op Compile Single-Module</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">0m 17.34s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0m 05.25s</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">0m 00.47s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">36.9x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">11.2x</p></td>
 </tr>
 </tbody>
 </table>
 <div class="paragraph">
 <p>The column on the right shows the speedups of how much faster Mill is compared to the
-equivalent Maven workflow. In most cases,  Mill is 5-10x faster than Maven. Below, we
+equivalent Maven workflow. In most cases,  Mill is 4-10x faster than Maven. Below, we
 will go into more detail of each benchmark: how they were run, what they mean, and how
 we can explain the difference in performing the same task with the two different build tools.</p>
 </div>
@@ -659,15 +659,15 @@ we can explain the difference in performing the same task with the two different
 <h3 id="_sequential_clean_compile_all"><a class="anchor" href="#_sequential_clean_compile_all"></a>Sequential Clean Compile All</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ time ./mvnw -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true clean install
-2m 42.96s
-2m 27.58s
-2m 31.12s
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./mvnw clean; time ./mvnw -Pfast  -Dcheckstyle.skip -Denforcer.skip=true -DskipTests install
+1m 38.80s
+1m 36.14s
+1m 39.95s
 
 $ ./mill clean; time ./mill -j1 __.compile
-0m 29.14s
-0m 22.19s
-0m 20.79s</code></pre>
+0m 23.99s
+0m 23.14s
+0m 22.68s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -684,37 +684,6 @@ single thread, and the Netty codebase is ~500,000 lines of code, so we would exp
 to take 10-50 seconds without parallelism.
 The 20-30s taken by Mill seems about what you would expect for a codebase of this size,
 and the ~150s taken by Maven is far beyond what you would expect from simple Java compilation.</p>
-</div>
-<div class="sect3">
-<h4 id="_where_is_maven_spending_its_time"><a class="anchor" href="#_where_is_maven_spending_its_time"></a>Where is Maven spending its time?</h4>
-<div class="paragraph">
-<p>From eyeballing the logs, the added overhead comes from things like:</p>
-</div>
-<div class="paragraph">
-<p><em>Downloading Metadata from Maven Central</em></p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">Downloading from sonatype-nexus-snapshots: https://oss.sonatype.org/content/repositories/snapshots/io/netty/netty-transport-native-unix-common/maven-metadata.xml
-Downloading from central: https://repo.maven.apache.org/maven2/io/netty/netty-transport-native-unix-common/maven-metadata.xml
-Downloaded from central: https://repo.maven.apache.org/maven2/io/netty/netty-transport-native-unix-common/maven-metadata.xml (4.3 kB at 391 kB/s)
-Downloaded from sonatype-nexus-snapshots: https://oss.sonatype.org/content/repositories/snapshots/io/netty/netty-transport-native-unix-common/maven-metadata.xml (2.7 kB at 7.4 kB/s)</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p><em>Comparing Jars</em></p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">Comparing [io.netty:netty-transport-sctp:jar:4.1.112.Final] against [io.netty:netty-transport-sctp:jar:4.1.113.Final-SNAPSHOT] (including their transitive dependencies).</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>In general, Maven spends much of time working with Jar files: packing them, unpacking them,
-comparing them, etc. None of this is strictly necessary for compiling Java source files to
-classfiles! But if they are not necessary, then why is Maven doing it? It turns out the
-reason comes down to the difference of <code>mvn compile</code> vs <code>mvn install</code></p>
-</div>
 </div>
 <div class="sect3">
 <h4 id="_maven_compile_vs_install"><a class="anchor" href="#_maven_compile_vs_install"></a>Maven Compile vs Install</h4>
@@ -750,17 +719,7 @@ Maven’s overhead adds to the clean build:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ time ./mvnw -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true clean install
-2m 42.96s
-2m 27.58s
-2m 31.12s
-
-$ ./mill clean; time ./mill -j1 __.compile
-0m 29.14s
-0m 22.19s
-0m 20.79s
-
-$ ./mill clean; time ./mill -j1 __.jar
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./mill clean; time ./mill -j1 __.jar
 0m 32.58s
 0m 24.90s
 0m 23.35s</code></pre>
@@ -779,15 +738,15 @@ whereas Mill directly uses the classfiles generated on disk to bypass all that w
 <h3 id="_parallel_clean_compile_all"><a class="anchor" href="#_parallel_clean_compile_all"></a>Parallel Clean Compile All</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ time ./mvnw -T 10 -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true clean install
-1m 19.58s
-1m 16.34s
-1m 16.45s
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./mvnw clean; time ./mvnw -T 10 -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
+0m 48.92s
+0m 48.41s
+0m 49.50s
 
 $ ./mill clean; time ./mill __.compile
-0m 14.80s
-0m 09.95s
-0m 08.83s</code></pre>
+0m 09.07s
+0m 08.79s
+0m 07.93s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -806,15 +765,15 @@ when performing a clean build of the Netty repository.</p>
 <h3 id="_clean_compile_single_module"><a class="anchor" href="#_clean_compile_single_module"></a>Clean Compile Single-Module</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ time ./mvnw -pl common -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true clean install
-0m 19.62s
-0m 20.52s
-0m 19.50s
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./mvnw clean; time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
+0m 08.46s
+0m 08.90s
+0m 08.30s
 
 $ ./mill clean common; time ./mill common.test.compile
-0m 04.94s
-0m 02.17s
-0m 01.95s</code></pre>
+0m 01.99s
+0m 01.81s
+0m 01.94s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -837,13 +796,13 @@ at what you would expect, whereas Maven’s has a significant overhead.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ echo &quot;&quot; &gt;&gt; common/src/main/java/io/netty/util/AbstractConstant.java
-$ time ./mvnw -pl common -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
+$ time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
 Compiling 174 source files to /Users/lihaoyi/Github/netty/common/target/classes
 Compiling 60 source files to /Users/lihaoyi/Github/netty/common/target/test-classes
 
-0m 21.10s
-0m 19.64s
-0:21:29
+0m 06.89s
+0m 06.34s
+0m 06.82s
 
 
 $ echo &quot;&quot; &gt;&gt; common/src/main/java/io/netty/util/AbstractConstant.java
@@ -950,10 +909,10 @@ the same thing in Maven</p>
 <h3 id="_no_op_compile_single_module"><a class="anchor" href="#_no_op_compile_single_module"></a>No-Op Compile Single-Module</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ time ./mvnw -pl common -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
-0m 16.34s
-0m 17.34s
-0m 18.28s
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
+0m 05.08s
+0m 05.25s
+0m 05.26s
 
 $ time ./mill common.test.compile
 0m 00.49s
