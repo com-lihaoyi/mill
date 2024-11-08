@@ -216,7 +216,7 @@ trait MainModule extends BaseModule0 {
       def renderFileName(t: NamedTask[_]) = {
         // handle both Windows or Unix separators
         val fullFileName = t.ctx.fileName.replaceAll(raw"\\", "/")
-        val basePath = WorkspaceRoot.workspaceRoot.toString() + "/"
+        val basePath = WorkspaceRoot.workspaceRoot.toString().replaceAll(raw"\\", "/") + "/"
         val name =
           if (fullFileName.startsWith(basePath)) {
             fullFileName.drop(basePath.length)
