@@ -47,11 +47,11 @@ object `package` extends RootModule with JavaModule {
 > mill run --text hello
 text: hello
 MyDeps.value: net.sourceforge.argparse4j:argparse4j:0.9.0
-my.line.count: 24
+my.line.count: 22
 
 > mill show lineCount
-24
+22
 
 > mill printLineCount
-24
+22
 */

@@ -47,10 +47,10 @@ object foo extends ScalaModule {
 
 > mill foo.run
 ...
-Line Count: 17
+Line Count: 18
 
 > mill show foo.lineCount
-17
+18
 
 > mill inspect foo.lineCount
 foo.lineCount(build.mill:...)
