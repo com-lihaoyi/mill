@@ -8,7 +8,7 @@
 
 // Guide: https://docs.pex-tool.org[Pex Documentation]
 
-// ==== Extending PythonModule For Pex Support 
+// ==== Extending PythonModule For Pex Support
 
 // This implementation extends `PythonModule` with these key Tasks:
 
@@ -41,8 +41,8 @@ trait PythonModule extends Module {
 
     (
       dependencies()
-      ++ requirementsDependencies()
-      ++ upstreamDependencies.flatten
+        ++ requirementsDependencies()
+        ++ upstreamDependencies.flatten
     ).distinct
 
   }
@@ -51,12 +51,12 @@ trait PythonModule extends Module {
     val pythonVenv = Task.dest / "venv" / "bin" / "python3"
 
     // installs mypy and pex
-    os.call(("python3","-m","venv",Task.dest / "venv"))
-    os.call((pythonVenv,"-m","pip","install","mypy","pex"))
+    os.call(("python3", "-m", "venv", Task.dest / "venv"))
+    os.call((pythonVenv, "-m", "pip", "install", "mypy", "pex"))
 
     // installs library dependencies
     if (finalDependencies().nonEmpty) {
-      os.call((pythonVenv,"-m","pip","install", finalDependencies()))
+      os.call((pythonVenv, "-m", "pip", "install", finalDependencies()))
     }
 
     PathRef(pythonVenv)
@@ -67,7 +67,7 @@ trait PythonModule extends Module {
     val pythonVenv = setup().path
 
     os.call(
-      (pythonVenv,"-m","mypy","--strict",sources().path / mainFileName()),
+      (pythonVenv, "-m", "mypy", "--strict", sources().path / mainFileName()),
       stdout = os.Inherit
     )
 
@@ -85,7 +85,7 @@ trait PythonModule extends Module {
     val pythonVenv = typeCheck().path
 
     os.call(
-      (pythonVenv,sources().path / mainFileName(),args.value),
+      (pythonVenv, sources().path / mainFileName(), args.value),
       env = Map("PYTHONPATH" -> Task.dest.toString),
       stdout = os.Inherit
     )
@@ -113,7 +113,8 @@ trait PythonModule extends Module {
         "-o",
         pexFile,
         args.value
-      ),env = Map("PYTHONPATH" -> Task.dest.toString),
+      ),
+      env = Map("PYTHONPATH" -> Task.dest.toString),
       stdout = os.Inherit
     )
 
@@ -122,8 +123,8 @@ trait PythonModule extends Module {
 
 }
 
-// Note the use of `Task.traverse(moduleDeps)` in order to aggregate the upstream modules 
-// library dependencies and the `typeCheck` outputs, which is necessary before running any 
+// Note the use of `Task.traverse(moduleDeps)` in order to aggregate the upstream modules
+// library dependencies and the `typeCheck` outputs, which is necessary before running any
 // code, finally it gathers upstream modules `sources` for further processing in `run` Task
 
 // ==== Example
@@ -132,17 +133,16 @@ trait PythonModule extends Module {
 
 // Running `pex.bundle` creates `result.pex`, a standalone executable for easy distribution.
 
-object pex extends PythonModule{
+object pex extends PythonModule {
   // For Education Purpose both way of giving dependencies are discussed here
   // one dependency is mentioned in requirements.txt and one inline(below)
-  override def dependencies: T[Seq[String]] = Task{ Seq("pandas") }
+  override def dependencies: T[Seq[String]] = Task { Seq("pandas") }
 
 }
 
-// Source Files For this Example: 
+// Source Files For this Example:
 /** See Also: pex/src/main.py */
 /** See Also: pex/requirements.txt */
-
 
 // To run the project and create a `.pex` executable, use the following commands:
 
@@ -156,10 +156,10 @@ Numpy : Sum: 150 | Pandas: Mean: 30.0, Max: 50
 
 */
 
-// This generates the `result.pex` file, which packages all dependencies 
+// This generates the `result.pex` file, which packages all dependencies
 // and can be executed as a standalone application.
 
-// To Run the `result.pex` file, First Provide the executable permission(+x) 
+// To Run the `result.pex` file, First Provide the executable permission(+x)
 // to result.pex and then run using `./result.pex` command.
 
 // The final module tree and task graph is now as follows, with the additional dependencies

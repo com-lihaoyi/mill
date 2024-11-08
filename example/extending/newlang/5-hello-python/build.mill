@@ -9,7 +9,7 @@
 
 // `mypy` verifies type correctness using Python's `type hints`, helping to catch errors in development.
 
-// Guides: 
+// Guides:
 // https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments[Python virtual environment]
 // & https://mypy.readthedocs.io/en/stable[mypy]
 
@@ -18,9 +18,9 @@ import mill._
 
 def setup: T[PathRef] = Task {
   val pythonVenv = Task.dest / "venv" / "bin" / "python3"
-  
-  os.call(("python3","-m","venv",Task.dest / "venv"))
-  os.call((pythonVenv,"-m","pip","install","mypy"))
+
+  os.call(("python3", "-m", "venv", Task.dest / "venv"))
+  os.call((pythonVenv, "-m", "pip", "install", "mypy"))
 
   PathRef(pythonVenv)
 }
@@ -41,7 +41,7 @@ def typeCheck: T[PathRef] = Task {
   val pythonVenv = setup().path
 
   os.call(
-    (pythonVenv,"-m","mypy","--strict",sources().path / mainFileName()),
+    (pythonVenv, "-m", "mypy", "--strict", sources().path / mainFileName()),
     stdout = os.Inherit
   )
 
@@ -73,9 +73,9 @@ def typeCheck: T[PathRef] = Task {
 def mainFileName: T[String] = Task { "main.py" }
 def run(args: mill.define.Args) = Task.Command {
   val pythonVenv = typeCheck().path
-  
+
   os.call(
-    (pythonVenv,sources().path / mainFileName(),args.value),
+    (pythonVenv, sources().path / mainFileName(), args.value),
     stdout = os.Inherit
   )
 }

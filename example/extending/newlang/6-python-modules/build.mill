@@ -11,16 +11,16 @@ import mill._
 
 /** `PythonModule`: Trait for basic Python support in Mill */
 trait PythonModule extends Module {
-  
+
   def sources: T[PathRef] = Task.Source(millSourcePath / "src")
   def mainFileName: T[String] = Task { "main.py" }
 
   def setup: T[PathRef] = Task {
     val pythonVenv = Task.dest / "venv" / "bin" / "python3"
-    
-    os.call(("python3","-m","venv",Task.dest / "venv"))
-    os.call((pythonVenv,"-m","pip","install","mypy"))
-    
+
+    os.call(("python3", "-m", "venv", Task.dest / "venv"))
+    os.call((pythonVenv, "-m", "pip", "install", "mypy"))
+
     PathRef(pythonVenv)
   }
 
@@ -28,7 +28,7 @@ trait PythonModule extends Module {
     val pythonVenv = setup().path
 
     os.call(
-      (pythonVenv,"-m","mypy","--strict",sources().path / mainFileName()),
+      (pythonVenv, "-m", "mypy", "--strict", sources().path / mainFileName()),
       stdout = os.Inherit
     )
 
@@ -37,38 +37,37 @@ trait PythonModule extends Module {
 
   def run(args: mill.define.Args) = Task.Command {
     val pythonVenv = typeCheck().path
-    
+
     os.call(
-      (pythonVenv,sources().path / mainFileName(),args.value),
+      (pythonVenv, sources().path / mainFileName(), args.value),
       stdout = os.Inherit
     )
   }
-  
+
 }
 
 // ==== Example
 
 // Below are three objects extending `PythonModule`, each representing a unique configuration.
 
-object foo extends PythonModule{
+object foo extends PythonModule {
   override def mainFileName: T[String] = Task { "foo.py" }
-  object bar extends PythonModule{
+  object bar extends PythonModule {
     override def mainFileName: T[String] = Task { "bar.py" }
     // Inherits PythonModule features
   }
 }
 
-object qux extends PythonModule{
+object qux extends PythonModule {
   override def mainFileName: T[String] = Task { "qux.py" }
   // Independent, but uses PythonModule methods
 }
 
-// We have used three different Python Scripts `foo/src/foo.py`, `foo/bar/src/bar.py`, `qux/src/qux.py` 
+// We have used three different Python Scripts `foo/src/foo.py`, `foo/bar/src/bar.py`, `qux/src/qux.py`
 
 /** See Also: foo/src/foo.py */
 /** See Also: foo/bar/src/bar.py */
 /** See Also: qux/src/qux.py */
-
 
 // Use the following commands to run each module, displaying unique outputs per configuration:
 

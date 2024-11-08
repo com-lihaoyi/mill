@@ -2,7 +2,7 @@
 // This example shows how to add module dependency handling to `PythonModule`, making it ideal
 // for complex projects that need dynamic dependencies and isolated environments for each module.
 
-// ==== Extending `PythonModule` Trait 
+// ==== Extending `PythonModule` Trait
 
 // Now, The `PythonModule` trait’s `moduleDeps` allows dependencies between modules.
 // Using `Task.traverse`, it gathers and verifies `upstream dependencies` in `typeCheck`
@@ -23,8 +23,8 @@ trait PythonModule extends Module {
   def setup: T[PathRef] = Task {
     val pythonVenv = Task.dest / "venv" / "bin" / "python3"
 
-    os.call(("python3","-m","venv",Task.dest / "venv"))
-    os.call((pythonVenv,"-m","pip","install","mypy"))
+    os.call(("python3", "-m", "venv", Task.dest / "venv"))
+    os.call((pythonVenv, "-m", "pip", "install", "mypy"))
 
     PathRef(pythonVenv)
   }
@@ -35,7 +35,7 @@ trait PythonModule extends Module {
     val pythonVenv = setup().path
 
     os.call(
-      (pythonVenv,"-m","mypy","--strict",sources().path / mainFileName()),
+      (pythonVenv, "-m", "mypy", "--strict", sources().path / mainFileName()),
       stdout = os.Inherit
     )
 
@@ -54,7 +54,7 @@ trait PythonModule extends Module {
     val pythonVenv = typeCheck().path
 
     os.call(
-      (pythonVenv,sources().path / mainFileName(),args.value),
+      (pythonVenv, sources().path / mainFileName(), args.value),
       env = Map("PYTHONPATH" -> Task.dest.toString),
       stdout = os.Inherit
     )
@@ -63,17 +63,17 @@ trait PythonModule extends Module {
 }
 
 // ==== Example setup with dependencies
-// 
+//
 // `qux` depends on `foo` and `foo.bar`, which export their APIs for use in `qux`.
 
-object foo extends PythonModule{
+object foo extends PythonModule {
   override def mainFileName: T[String] = Task { "foo.py" }
-  object bar extends PythonModule{
-      override def mainFileName: T[String] = Task { "bar.py" }
+  object bar extends PythonModule {
+    override def mainFileName: T[String] = Task { "bar.py" }
   }
 }
 
-object qux extends PythonModule{
+object qux extends PythonModule {
   override def mainFileName: T[String] = Task { "qux.py" }
   // Defines dependencies on foo and foo.bar modules for qux.
   def moduleDeps: Seq[PythonModule] = Seq[PythonModule](foo, foo.bar)
@@ -86,7 +86,7 @@ object qux extends PythonModule{
 /** See Also: foo/bar/src/bar.py */
 /** See Also: qux/src/qux.py */
 
-// To run this build script, use the following command. 
+// To run this build script, use the following command.
 
 /** Usage
 
