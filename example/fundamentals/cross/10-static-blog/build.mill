@@ -25,7 +25,7 @@ val posts = interp.watchValue {
 }
 
 object post extends Cross[PostModule](posts)
-trait PostModule extends Cross.Module[String]{
+trait PostModule extends Cross.Module[String] {
   def source = Task.Source(millSourcePath / crossValue)
   def render = Task {
     val doc = Parser.builder().build().parse(os.read(source().path))
@@ -39,7 +39,7 @@ trait PostModule extends Cross.Module[String]{
       )
     )
 
-    os.write(Task.dest /  mdNameToHtml(crossValue), rendered)
+    os.write(Task.dest / mdNameToHtml(crossValue), rendered)
     PathRef(Task.dest / mdNameToHtml(crossValue))
   }
 }
@@ -50,7 +50,7 @@ trait PostModule extends Cross.Module[String]{
 // what `os.list` finds on disk. After that, it's straightforward to render the
 // `index.html` file we want:
 
-def postsInput = Task.Input{ posts }
+def postsInput = Task.Input { posts }
 
 def renderIndexEntry(mdName: String) = {
   h2(a(mdNameToTitle(mdName), href := ("post/" + mdNameToHtml(mdName))))

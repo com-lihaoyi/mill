@@ -198,7 +198,8 @@ object Cross {
       // logic needs to use java reflection to identify sub-modules and java
       // reflect can only properly identify nested `object`s inside Scala
       // `object` and `class`es.
-      val tree = q"""
+      val tree =
+        q"""
         new mill.define.Cross.Factory[$tpe](
           makeList = $wrappedT.map{($v1: ${tq""}) =>
             class $concreteCls()(implicit ctx: mill.define.Ctx) extends $tpe{..$newTrees}

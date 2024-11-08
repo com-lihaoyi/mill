@@ -7,10 +7,9 @@ object foo extends ScalaModule with BuildInfo {
   def scalaVersion = "2.13.10"
   def buildInfoPackageName = "foo"
   def buildInfoMembers = Seq(
-    BuildInfo.Value("scalaVersion", scalaVersion()),
+    BuildInfo.Value("scalaVersion", scalaVersion())
   )
 }
-
 
 // This example illustrates usage of Mill `contrib` plugins. These are Mill
 // plugins contributed by Mill user that are maintained within the Mill

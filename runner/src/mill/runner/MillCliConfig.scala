@@ -155,7 +155,8 @@ object MillCliConfigParser {
   val customDoc = """
 Usage: mill [options] task [task-options] [+ task ...]
 """
-  val cheatSheet = """
+  val cheatSheet =
+    """
 task cheat sheet:
   mill resolve _                 # see all top-level tasks and modules
   mill resolve __.compile        # see all `compile` tasks in any module (recursively)

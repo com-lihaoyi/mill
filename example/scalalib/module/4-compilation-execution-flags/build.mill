@@ -2,7 +2,7 @@
 package build
 import mill._, scalalib._
 
-object `package` extends RootModule with ScalaModule{
+object `package` extends RootModule with ScalaModule {
   def scalaVersion = "2.13.8"
   def scalacOptions = Seq("-Ydelambdafy:inline")
   def forkArgs = Seq("-Xmx4g", "-Dmy.jvm.property=hello")
@@ -10,7 +10,6 @@ object `package` extends RootModule with ScalaModule{
 }
 
 // You can pass flags to the Scala compiler via `scalacOptions`.
-
 
 /** Usage
 

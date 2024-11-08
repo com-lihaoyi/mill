@@ -1,6 +1,6 @@
 package client
 import org.scalajs.dom
-object ClientApp{
+object ClientApp {
   var state = "all"
   var todoApp = dom.document.getElementsByClassName("todoapp")(0)
 
@@ -11,7 +11,7 @@ object ClientApp{
         method = dom.HttpMethod.POST
       }
     ).then[String](response => response.text())
-      .then[Unit]{ text =>
+      .then[Unit] { text =>
         todoApp.innerHTML = text
         initListeners()
       }
@@ -45,11 +45,12 @@ object ClientApp{
     bindEvent("todo-completed", s"/list/completed", Some("completed"))
     bindEvent("clear-completed", s"/clear-completed/$state", None)
 
-    val newTodoInput = dom.document.getElementsByClassName("new-todo")(0).asInstanceOf[dom.HTMLInputElement]
+    val newTodoInput =
+      dom.document.getElementsByClassName("new-todo")(0).asInstanceOf[dom.HTMLInputElement]
     newTodoInput.addEventListener(
       "keydown",
       (evt: dom.KeyboardEvent) => {
-        if (evt.keyCode == 13){
+        if (evt.keyCode == 13) {
           dom.fetch(
             s"/add/$state",
             new dom.RequestInit {
@@ -57,7 +58,7 @@ object ClientApp{
               body = newTodoInput.value
             }
           ).then[String](response => response.text())
-            .then[Unit]{text =>
+            .then[Unit] { text =>
               newTodoInput.value = ""
               todoApp.innerHTML = text
               initListeners()

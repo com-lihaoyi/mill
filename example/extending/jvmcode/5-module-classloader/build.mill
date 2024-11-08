@@ -4,7 +4,6 @@
 // `bar` code within an in-memory classloader via `Jvm.runClassloader` as
 // we saw earlier:
 
-
 package build
 import mill._, scalalib._
 import mill.util.Jvm
@@ -13,7 +12,7 @@ object foo extends JavaModule {
   def moduleDeps = Seq(bar)
 
   def sources = Task {
-    Jvm.runClassloader(classPath = bar.runClasspath().map(_.path)){ classLoader =>
+    Jvm.runClassloader(classPath = bar.runClasspath().map(_.path)) { classLoader =>
       classLoader
         .loadClass("bar.Bar")
         .getMethod("main", classOf[Array[String]])
@@ -39,4 +38,3 @@ object bar extends JavaModule
 Foo.value: HELLO
 
 */
-

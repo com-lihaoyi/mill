@@ -13,7 +13,6 @@ object foo extends Module {
   }
 }
 
-
 /** Usage
 > MILL_OUTPUT_DIR=build-stuff/working-dir ./mill foo.printDest
 ...

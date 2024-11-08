@@ -395,11 +395,12 @@ object MultiLevelBuildTests extends UtestIntegrationTestSuite {
 
     test("runtimeErrorEdits") - integrationTest { tester =>
       import tester._
-      val runErrorSnippet = """{
-                              |override def runClasspath = Task {
-                              |  throw new Exception("boom")
-                              |  super.runClasspath()
-                              |}""".stripMargin
+      val runErrorSnippet =
+        """{
+          |override def runClasspath = Task {
+          |  throw new Exception("boom")
+          |  super.runClasspath()
+          |}""".stripMargin
 
       def causeRuntimeError(p: os.Path) =
         modifyFile(p, _.replaceFirst("\\{", runErrorSnippet))
