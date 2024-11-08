@@ -327,7 +327,7 @@ trait JavaModule
    * This is calculated from [[ivyDeps]], [[mandatoryIvyDeps]] and recursively from [[moduleDeps]].
    */
   def transitiveIvyDeps: T[Agg[BoundDep]] = Task {
-    (ivyDeps() ++ mandatoryIvyDeps()).map(bindDependency()) ++
+    allIvyDeps().map(bindDependency()) ++
       T.traverse(moduleDepsChecked)(_.transitiveIvyDeps)().flatten
   }
 
