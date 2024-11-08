@@ -27,6 +27,7 @@ private[scalanativelib] trait ScalaNativeWorkerApi {
       nativeEmbedResources: Boolean,
       nativeIncrementalCompilation: Boolean,
       nativeDump: Boolean,
+      nativeMultithreading: Option[Boolean],
       logLevel: NativeLogLevel,
       buildTarget: BuildTarget
   ): Either[String, Object]

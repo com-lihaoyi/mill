@@ -2,10 +2,10 @@
 
 Mill is a fast build tool for Java, Scala, and Kotlin. Although the Java
 compiler is very fast and the Java language is easy to learn, JVM build tools are
-known to be slow and hard to use. Mill tries to offer a better alternative: 2-10x faster
-than Maven or Gradle, better IDE support, and extensibility without needing plugins.
-This results in time savings due to less time waiting for your build tool, as well as less
-time struggling with your build tool, and more time to focus on the actual work you need to do.
+known to be slow and hard to use. Mill offers a better alternative: 2-10x faster
+than Maven or Gradle on clean compiles, better IDE support, and extensibility without
+needing plugins. This results in time savings due to less time waiting for or struggling
+with your build tool and more time to focus on the actual work you need to do.
 
 At a first glance, Mill looks like any other build tool. You have build files, you configure
 dependencies, you can compile, run, or test your project:
@@ -46,7 +46,7 @@ these advantages are:
    meaning less time waiting for your build and more time doing useful work
 
 2. *Ease of Use*: Mill has better IDE support in IntelliJ and VSCode and richer
-   visualization tools that other tools, to help understand your build and what it is doing
+   visualization tools than other tools, to help understand your build and what it is doing
 
 3. *Extensibility*: Mill lets you write code or use any published JVM library in your build,
    customizing it to your needs without being limited by third-party plugins
@@ -57,7 +57,7 @@ We will discuss each one in turn.
 
 ### Maven
 
-Overall across our benchmarks, Mill is 5-10x faster than Maven for clean compiles,
+Overall across our benchmarks, Mill is 4-10x faster than Maven for clean compiles,
 both parallel and sequential, and for many modules or for a single module:
 
 |===
@@ -91,7 +91,7 @@ everything in parallel.
 
 * For Maven, parallelism is opt-in via `-T 10`, while for Mill it is enabled by default.
 * For Maven, tests and linters are opt-out via the `-D` properties, while in Mill
-  tests an linters are opt-in
+  tests and linters are opt-in
 
 Mill sees a significant ~8x speedup over Maven for this benchmark.
 

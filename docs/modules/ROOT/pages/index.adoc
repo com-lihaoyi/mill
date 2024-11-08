@@ -1,5 +1,7 @@
 = Mill: A Fast JVM Build Tool
 
+include::partial$gtag-config.adoc[]
+
 ```graphviz
 digraph G {
   rankdir=LR
@@ -31,7 +33,7 @@ digraph G {
 Mill is a fast, scalable, multi-language build tool that supports Java, Scala,
 and Kotlin:
 
-* Mill can build the same Java codebase xref:comparisons/maven.adoc[5-10x faster than Maven],
+* Mill can build the same Java codebase xref:comparisons/maven.adoc[4-10x faster than Maven],
 or xref:comparisons/gradle.adoc[2-4x faster than Gradle]
 
 * Mill's typed config language and immutable xref:depth/design-principles.adoc[task graph]

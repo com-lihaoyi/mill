@@ -3,7 +3,6 @@
 // but we intentionally skim over them and do not go into depth: the focus is
 // on end user goals and how to achieve them.
 
-* xref:why-mill.adoc[]
 * xref:javalib/intro.adoc[]
 ** xref:javalib/builtin-commands.adoc[]
 ** xref:javalib/module-config.adoc[]
@@ -23,6 +22,7 @@
 ** xref:scalalib/publishing.adoc[]
 ** xref:scalalib/build-examples.adoc[]
 ** xref:scalalib/web-examples.adoc[]
+** xref:scalalib/native-examples.adoc[]
 * xref:kotlinlib/intro.adoc[]
 ** xref:kotlinlib/builtin-commands.adoc[]
 ** xref:kotlinlib/module-config.adoc[]
@@ -33,10 +33,11 @@
 // ** xref:kotlinlib/build-examples.adoc[]
 ** xref:kotlinlib/web-examples.adoc[]
 ** xref:kotlinlib/android-examples.adoc[]
-* Build Tool Comparisons
+* xref:why-mill.adoc[]
 ** xref:comparisons/maven.adoc[]
 ** xref:comparisons/gradle.adoc[]
 ** xref:comparisons/sbt.adoc[]
+** xref:comparisons/unique.adoc[]
 * The Mill CLI
 ** xref:cli/installation-ide.adoc[]
 ** xref:cli/flags.adoc[]

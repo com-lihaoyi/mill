@@ -1,0 +1,51 @@
+package build
+import mill._, scalalib._, scalanativelib._, scalanativelib.api._
+
+object `package` extends RootModule with ScalaNativeModule {
+  def scalaVersion = "3.3.4"
+  def scalaNativeVersion = "0.5.5"
+
+  // You can have arbitrary numbers of third-party dependencies
+  // Scala Native uses double colon `::` between organization and the dependency names
+  def ivyDeps = Agg(
+    ivy"com.lihaoyi::fansi::0.5.0"
+  )
+
+  // Set the releaseMode to ReleaseFast.
+  def releaseMode: T[ReleaseMode] = ReleaseMode.ReleaseFast
+
+  // Set incremental compilation to true
+  def nativeIncrementalCompilation: T[Boolean] = true
+
+  // Set nativeLinkingOptions path to a directory named `target`.
+  def nativeLinkingOptions = Seq("-L" + millSourcePath.toString + "/target")
+
+  // Set nativeWorkdir directory to `newDir`
+  def nativeWorkdir = T.dest / "newDir"
+}
+
+// This example shows some of the common tasks you may want to override on a
+// `ScalaNativeModule`: specifying the `releaseMode`,
+// `nativeIncrementalCompilation, `nativeLinkingOptions` and `nativeWorkdir`.
+
+/** Usage
+
+> ./mill run
+...
+Value: <h1>hello</h1>
+
+> ./mill show releaseMode
+"mill.scalanativelib.api.ReleaseMode.ReleaseFast"
+
+> ./mill show nativeIncrementalCompilation
+true
+
+> ./mill show nativeLinkingOptions
+...
+
+> ./mill show nativeWorkdir
+...
+
+*/
+
+
