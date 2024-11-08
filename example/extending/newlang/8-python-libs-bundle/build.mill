@@ -45,7 +45,7 @@ trait PythonModule extends Module {
     val pythonVenv = setup().path
 
     os.call(
-      (pythonVenv, "-m", "mypy", "--strict", sources().path / mainFileName()),
+      (pythonVenv, "-m", "mypy", "--strict", sources().path),
       stdout = os.Inherit
     )
 

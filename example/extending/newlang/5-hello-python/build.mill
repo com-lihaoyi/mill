@@ -108,7 +108,7 @@ Success: no issues found in 1 source file
 Hello, Mill Python!
 15
 
-> sed -i.bak 's/add/addd/g' src/main.py
+> sed -i.bak 's/print(add(5, 10))/print(addd(5, 10))/g' src/main.py
 
 > ./mill typeCheck # if we make a typo in a method name, mypy flags it
 error: ...Name "addd" is not defined...
