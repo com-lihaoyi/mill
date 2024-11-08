@@ -37,3 +37,27 @@ the featureset and performance of `TypeScriptModule` to be usable in a real worl
 build. But this should be enough to get you started working with Mill to add support
 to any language you need: whether it's TypeScript or some other language, most programming
 language toolchains have similar concepts of `compile`, `run`, `bundle`, etc.
+
+
+== Python Support
+
+This section demonstrates how to integrate `Python` support into `Mill`.
+We will define a simple `PythonModule` trait that can resolve dependencies,
+perform type checking on local code, and optimize the final bundle.
+ 
+`Note`: This integration is for `educational purposes only`, showcasing common technique
+used in building language toolchains, and is not intended for production use.
+
+include::partial$example/extending/newlang/5-hello-python.adoc[]
+
+include::partial$example/extending/newlang/6-python-modules.adoc[]
+
+include::partial$example/extending/newlang/7-python-module-deps.adoc[]
+
+include::partial$example/extending/newlang/8-python-libs-bundle.adoc[]
+
+
+
+As mentioned, The `PythonModule` examples here demonstrate 
+how to add support for a new language toolchain in Mill.
+A production-ready version would require more work to enhance features and performance.

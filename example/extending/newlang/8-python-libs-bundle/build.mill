@@ -1,0 +1,186 @@
+// == Python Library Dependencies & Bundling
+
+// This example shows how to handle external dependencies and
+// create PEX (Python EXecutable) bundles using the `PythonModule` trait.
+
+// PEX simplifies Python app distribution by packaging
+// code and dependencies into a single executable file.
+
+// Guide: https://docs.pex-tool.org[Pex Documentation]
+
+// ==== Extending PythonModule For Pex Support
+
+// This implementation extends `PythonModule` with these key Tasks:
+
+// - def `finalDependencies`: Merges and deduplicates dependencies from `requirements.txt` and the `dependencies` task.
+// - def `bundle`: Packages the module and dependencies into a standalone `result.pex` file, making deployment easier.
+
+package build
+import mill._
+
+/** extends for efficient library dependency management and executable bundling. */
+trait PythonModule extends Module {
+  def moduleDeps: Seq[PythonModule] = Nil
+  def dependencies: T[Seq[String]] = Task { Seq.empty[String] }
+  def mainFileName: T[String] = Task { "main.py" }
+  def sources: T[PathRef] = Task.Source(millSourcePath / "src")
+  def requirementsPath: T[PathRef] = Task.Source(millSourcePath / "requirements.txt")
+
+  def requirementsDependencies: T[Seq[String]] = Task {
+    val reqFile = requirementsPath().path
+    if (os.exists(reqFile)) {
+      os.read.lines(reqFile).map(_.trim).filter(_.nonEmpty)
+    } else {
+      Seq.empty[String]
+    }
+  }
+
+  def finalDependencies: T[Seq[String]] = Task {
+    // Collects the Upstream dependencies(external Libs)
+    val upstreamDependencies = Task.traverse(moduleDeps)(_.finalDependencies)()
+
+    (
+      dependencies()
+        ++ requirementsDependencies()
+        ++ upstreamDependencies.flatten
+    ).distinct
+
+  }
+
+  def setup: T[PathRef] = Task {
+    val pythonVenv = Task.dest / "venv" / "bin" / "python3"
+
+    // installs mypy and pex
+    os.call(("python3", "-m", "venv", Task.dest / "venv"))
+    os.call((pythonVenv, "-m", "pip", "install", "mypy", "pex"))
+
+    // installs library dependencies
+    if (finalDependencies().nonEmpty) {
+      os.call((pythonVenv, "-m", "pip", "install", finalDependencies()))
+    }
+
+    PathRef(pythonVenv)
+  }
+
+  def typeCheck: T[PathRef] = Task {
+    val upstreamTypeCheck = Task.traverse(moduleDeps)(_.typeCheck)()
+    val pythonVenv = setup().path
+
+    os.call(
+      (pythonVenv, "-m", "mypy", "--strict", sources().path / mainFileName()),
+      stdout = os.Inherit
+    )
+
+    PathRef(pythonVenv)
+  }
+
+  def run(args: mill.define.Args) = Task.Command {
+    val upstream = Task.traverse(moduleDeps)(_.sources)().zip(moduleDeps)
+
+    for (((sourcesFolder), mod) <- upstream) {
+      val destinationPath = Task.dest / mod.millSourcePath.subRelativeTo(build.millSourcePath)
+      os.copy.over(sourcesFolder.path / os.up, destinationPath)
+    }
+
+    val pythonVenv = typeCheck().path
+
+    os.call(
+      (pythonVenv, sources().path / mainFileName(), args.value),
+      env = Map("PYTHONPATH" -> Task.dest.toString),
+      stdout = os.Inherit
+    )
+  }
+
+  /** Bundles the project into a single PEX executable(result.pex). */
+  def bundle(args: mill.define.Args) = Task.Command {
+    val pythonVenv = setup().path
+    val pexFile = Task.dest / "result.pex"
+    val upstream = Task.traverse(moduleDeps)(_.sources)().zip(moduleDeps)
+
+    for (((sourcesFolder), mod) <- upstream) {
+      val destinationPath = Task.dest / mod.millSourcePath.subRelativeTo(build.millSourcePath)
+      os.copy.over(sourcesFolder.path / os.up, destinationPath)
+    }
+
+    os.call(
+      (
+        pythonVenv,
+        "-m",
+        "pex",
+        finalDependencies(),
+        "-c",
+        sources().path / mainFileName(),
+        "-o",
+        pexFile,
+        args.value
+      ),
+      env = Map("PYTHONPATH" -> Task.dest.toString),
+      stdout = os.Inherit
+    )
+
+    PathRef(pexFile)
+  }
+
+}
+
+// Note the use of `Task.traverse(moduleDeps)` in order to aggregate the upstream modules
+// library dependencies and the `typeCheck` outputs, which is necessary before running any
+// code, finally it gathers upstream modules `sources` for further processing in `run` Task
+
+// ==== Example
+
+// The `pex` object demonstrates `PythonModule` with inline and file-based dependencies.
+
+// Running `pex.bundle` creates `result.pex`, a standalone executable for easy distribution.
+
+object pex extends PythonModule {
+  // For Education Purpose both way of giving dependencies are discussed here
+  // one dependency is mentioned in requirements.txt and one inline(below)
+  override def dependencies: T[Seq[String]] = Task { Seq("pandas") }
+
+}
+
+// Source Files For this Example:
+/** See Also: pex/src/main.py */
+/** See Also: pex/requirements.txt */
+
+// To run the project and create a `.pex` executable, use the following commands:
+
+/** Usage
+
+> ./mill pex.run
+Numpy : Sum: 150 | Pandas: Mean: 30.0, Max: 50
+
+> ./mill show pex.bundle
+".../out/pex/bundle.dest/result.pex"
+
+*/
+
+// This generates the `result.pex` file, which packages all dependencies
+// and can be executed as a standalone application.
+
+// To Run the `result.pex` file, First Provide the executable permission(+x)
+// to result.pex and then run using `./result.pex` command.
+
+// The final module tree and task graph is now as follows, with the additional dependencies
+// tasks with upstream and the bundle tasks downstream:
+
+// ```graphviz
+// digraph G {
+//   rankdir=LR;
+//   node [shape=box, width=0, height=0, style=filled, fillcolor=white];
+//   "pex.setup" -> "pex.typeCheck" -> "pex.run";
+//   "pex.typeCheck" -> "pex.bundle";
+//   "pex.finalDependencies" -> "pex.setup";
+//   "pex.finalDependencies" -> "pex.bundle";
+//   "pex.sources" -> "pex.typeCheck";
+//   "pex.mainFileName" -> "pex.typeCheck";
+//   "pex.sources" -> "pex.run";
+//   "pex.mainFileName" -> "pex.run";
+//   "pex.sources" -> "pex.bundle";
+//   "pex.mainFileName" -> "pex.bundle";
+//   "pex.mainFileName" [color=green, penwidth=3];
+//   "pex.run" [color=green, penwidth=3];
+//   "pex.bundle" [color=green, penwidth=3];
+// }
+// ```
