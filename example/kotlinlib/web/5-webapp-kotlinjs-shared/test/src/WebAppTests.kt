@@ -9,20 +9,20 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 
-class WebAppTests : FunSpec({
-
-    suspend fun withServer(f: suspend HttpClient.() -> Unit) {
-        testApplication {
-            application { WebApp.configureRoutes(this) }
-            client.use { client -> f(client) }
+class WebAppTests :
+    FunSpec({
+        suspend fun withServer(f: suspend HttpClient.() -> Unit) {
+            testApplication {
+                application { WebApp.configureRoutes(this) }
+                client.use { client -> f(client) }
+            }
         }
-    }
 
-    test("simpleRequest") {
-        withServer {
-            val response = get("/")
-            response.status shouldBe HttpStatusCode.OK
-            response.bodyAsText() shouldContain "What needs to be done?"
+        test("simpleRequest") {
+            withServer {
+                val response = get("/")
+                response.status shouldBe HttpStatusCode.OK
+                response.bodyAsText() shouldContain "What needs to be done?"
+            }
         }
-    }
-})
+    })

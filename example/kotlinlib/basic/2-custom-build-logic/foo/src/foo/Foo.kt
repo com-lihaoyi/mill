@@ -4,7 +4,9 @@ import java.io.IOException
 
 fun getLineCount(): String? {
     return try {
-        ::main.javaClass.classLoader
+        ::main
+            .javaClass
+            .classLoader
             .getResourceAsStream("line-count.txt")
             .readAllBytes()
             .toString(Charsets.UTF_8)
@@ -14,4 +16,3 @@ fun getLineCount(): String? {
 }
 
 fun main() = println("Line Count: " + getLineCount())
-

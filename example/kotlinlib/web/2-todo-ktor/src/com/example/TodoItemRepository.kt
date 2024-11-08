@@ -1,16 +1,19 @@
 package com.example
 
+import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.util.UUID
 
 interface TodoItemRepository {
     suspend fun save(item: TodoItem)
+
     suspend fun findById(id: UUID): TodoItem
+
     suspend fun findAll(): List<TodoItem>
+
     suspend fun deleteById(id: UUID)
 }
 
@@ -27,9 +30,7 @@ class TodoItemRepositoryImpl(database: Database) : TodoItemRepository {
     }
 
     init {
-        transaction(database) {
-            SchemaUtils.create(TodoItems)
-        }
+        transaction(database) { SchemaUtils.create(TodoItems) }
     }
 
     override suspend fun save(item: TodoItem): Unit = query {
@@ -41,17 +42,17 @@ class TodoItemRepositoryImpl(database: Database) : TodoItemRepository {
     }
 
     override suspend fun findById(id: UUID): TodoItem = query {
-        TodoItems.selectAll().where(TodoItems.id eq id)
+        TodoItems.selectAll()
+            .where(TodoItems.id eq id)
             .map { TodoItem(it[TodoItems.id], it[TodoItems.title], it[TodoItems.completed]) }
             .singleOrNull() ?: throw TodoItemNotFound(id.toString())
     }
 
-
     override suspend fun findAll(): List<TodoItem> = query {
-        TodoItems.selectAll()
-            .map { TodoItem(it[TodoItems.id], it[TodoItems.title], it[TodoItems.completed]) }
+        TodoItems.selectAll().map {
+            TodoItem(it[TodoItems.id], it[TodoItems.title], it[TodoItems.completed])
+        }
     }
-
 
     override suspend fun deleteById(id: UUID): Unit = query {
         TodoItems.deleteWhere { TodoItems.id eq id }

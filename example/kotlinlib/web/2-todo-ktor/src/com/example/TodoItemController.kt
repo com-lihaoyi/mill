@@ -11,23 +11,21 @@ import java.util.*
 enum class ListFilter {
     ALL,
     ACTIVE,
-    COMPLETED
+    COMPLETED,
 }
 
 data class TodoItemFormData(var title: String? = null)
 
-fun modelContent(
-    todos: List<TodoItem>,
-    filter: ListFilter
-): Map<String, Any> {
+fun modelContent(todos: List<TodoItem>, filter: ListFilter): Map<String, Any> {
     val activeItemCount = todos.count { !it.completed }
     val numberOfCompletedItems = todos.count { it.completed }
 
-    val items = when (filter) {
-        ListFilter.ALL -> todos
-        ListFilter.ACTIVE -> todos.filterNot { it.completed }
-        ListFilter.COMPLETED -> todos.filter { it.completed }
-    }
+    val items =
+        when (filter) {
+            ListFilter.ALL -> todos
+            ListFilter.ACTIVE -> todos.filterNot { it.completed }
+            ListFilter.COMPLETED -> todos.filter { it.completed }
+        }
 
     return mapOf(
         "item" to TodoItemFormData(),
@@ -35,7 +33,7 @@ fun modelContent(
         "totalItemCount" to todos.size,
         "activeItemCount" to activeItemCount,
         "numberOfCompletedItems" to numberOfCompletedItems,
-        "filter" to filter.name
+        "filter" to filter.name,
     )
 }
 
@@ -54,8 +52,7 @@ fun Application.configureRoutes(repository: TodoItemRepository) {
             call.respond(ThymeleafContent("index", modelContent(todos, ListFilter.COMPLETED)))
         }
         get("/completed/delete") {
-            repository.findAll().filter { it.completed }
-                .forEach { repository.deleteById(it.id) }
+            repository.findAll().filter { it.completed }.forEach { repository.deleteById(it.id) }
             call.respondRedirect("/")
         }
         post("/save") {
@@ -75,7 +72,9 @@ fun Application.configureRoutes(repository: TodoItemRepository) {
             call.respondRedirect("/")
         }
         post("/toggle-all") {
-            repository.findAll().map { it.copy(completed = !it.completed) }
+            repository
+                .findAll()
+                .map { it.copy(completed = !it.completed) }
                 .forEach { repository.save(it) }
             call.respondRedirect("/")
         }

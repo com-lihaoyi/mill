@@ -16,10 +16,7 @@ import shared.*
 
 object WebApp {
 
-    private val todos = mutableListOf(
-        Todo(true, "Get started with Cask"),
-        Todo(false, "Profit!")
-    )
+    private val todos = mutableListOf(Todo(true, "Get started with Cask"), Todo(false, "Profit!"))
 
     fun add(state: String, text: String) {
         todos.add(Todo(false, text))
@@ -30,9 +27,7 @@ object WebApp {
     }
 
     fun toggle(state: String, index: Int) {
-        todos[index] = todos[index].let {
-            it.copy(checked = !it.checked)
-        }
+        todos[index] = todos[index].let { it.copy(checked = !it.checked) }
     }
 
     fun clearCompleted(state: String) {
@@ -54,9 +49,7 @@ object WebApp {
             link(rel = "stylesheet", href = "/static/index.css")
         }
         body {
-            section(classes = "todoapp") {
-                renderBody(todos, "all")
-            }
+            section(classes = "todoapp") { renderBody(todos, "all") }
             footer(classes = "info") {
                 p { +"Double-click to edit a todo" }
                 p {
@@ -75,11 +68,7 @@ object WebApp {
     fun configureRoutes(app: Application) {
         with(app) {
             routing {
-                get("/") {
-                    call.respondHtml {
-                        renderIndex()
-                    }
-                }
+                get("/") { call.respondHtml { renderIndex() } }
                 post("/toggle-all/{state}") {
                     toggleAll(call.parameters.getOrFail("state"))
                     call.respond(todos)
@@ -105,9 +94,7 @@ object WebApp {
                     add(call.parameters.getOrFail("state"), requestText)
                     call.respond(todos)
                 }
-                post("/list/{state}") {
-                    call.respond(todos)
-                }
+                post("/list/{state}") { call.respond(todos) }
                 staticResources("/static", "webapp")
             }
         }
@@ -116,10 +103,9 @@ object WebApp {
     @JvmStatic
     fun main(args: Array<String>) {
         embeddedServer(Netty, port = 8093, host = "0.0.0.0") {
-            install(ContentNegotiation) {
-                json()
+                install(ContentNegotiation) { json() }
+                configureRoutes(this)
             }
-            configureRoutes(this)
-        }.start(wait = true)
+            .start(wait = true)
     }
 }
