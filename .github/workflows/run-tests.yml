@@ -157,4 +157,4 @@ jobs:
     uses: ./.github/workflows/run-mill-action.yml
     with:
       java-version: '11'
-      buildcmd: ./mill -i mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources && ./mill -i __.mimaReportBinaryIssues && ./mill -i __.fix --check && ./mill -i mill.javalib.palantirformat.PalantirFormatModule/ --check __.lintableJavaSources
+      buildcmd: ./mill -i mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources && ./mill -i __.mimaReportBinaryIssues && ./mill -i __.fix --check && ./mill -i mill.javalib.palantirformat.PalantirFormatModule/ --check __.lintableSources && ./mill -i mill.kotlinlib.ktfmt.KtfmtModule/ --format false __.lintableSources
