@@ -16,7 +16,6 @@ object foo extends SbtModule {
   }
 }
 
-
 object bar extends Cross[BarModule]("2.12.17", "2.13.8")
 trait BarModule extends CrossSbtModule {
   object test extends CrossSbtTests {
@@ -24,7 +23,6 @@ trait BarModule extends CrossSbtModule {
     def testFramework = "utest.runner.Framework"
   }
 }
-
 
 // `SbtModule`/`CrossSbtModule` are variants of `ScalaModule`/`CrossScalaModule`
 // that use the more verbose folder layout of SBT, Maven, and other tools:

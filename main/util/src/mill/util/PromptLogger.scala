@@ -76,7 +76,9 @@ private[mill] class PromptLogger(
           else nonInteractivePromptUpdateIntervalMillis
 
         try Thread.sleep(promptUpdateInterval)
-        catch { case e: InterruptedException => /*do nothing*/ }
+        catch {
+          case e: InterruptedException => /*do nothing*/
+        }
 
         readTerminalDims(terminfoPath).foreach(termDimensions = _)
 

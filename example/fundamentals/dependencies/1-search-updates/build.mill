@@ -1,4 +1,3 @@
-
 // Mill can search for updated versions of your project's dependencies, if
 // available from your project's configured repositories. Note that it uses
 // heuristics based on common versioning schemes, so it may not work as expected for

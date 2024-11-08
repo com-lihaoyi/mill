@@ -20,5 +20,3 @@ object HelloWorldBar {
   // Name and signature of C function
   def stringLength(str: CString): CInt = extern
 }
-
-

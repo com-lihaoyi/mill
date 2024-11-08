@@ -5,7 +5,7 @@
 package build
 import mill._
 
-object foo extends Module   {def task=Task{"2.13.4"}}
+object foo extends Module { def task = Task { "2.13.4" } }
 
 /** See Also: .scalafmt.conf */
 /** Usage
@@ -28,4 +28,3 @@ object foo extends Module { def task = Task { "2.13.4" } }
 //    source files with Scalafmt. It requires the tasks that refer to the source files as argument
 // * `sources` this selects the `sources` tasks of the meta-build, which at least contains
 //    the `build.mill`.
-

@@ -12,7 +12,6 @@ object UnitTests extends TestSuite {
 
       val resourceFolder = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
       UnitTester(build, resourceFolder / "unit-test-project").scoped { eval =>
-
         // Evaluating tasks by direct reference
         val Right(result) = eval(build.resources)
         assert(

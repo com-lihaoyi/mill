@@ -4,16 +4,15 @@ import mill._, scalalib._
 import $file.foo.versions
 import $file.util.MyModule
 
-object `package` extends RootModule with MyModule{
+object `package` extends RootModule with MyModule {
   def forkEnv = Map(
     "MY_SCALA_VERSION" -> build.scalaVersion(),
-    "MY_PROJECT_VERSION" -> versions.myProjectVersion,
+    "MY_PROJECT_VERSION" -> versions.myProjectVersion
   )
 }
 ///** See Also: util.mill.scala */
 ///** See Also: foo/package.mill.scala */
 ///** See Also: foo/versions.mill.scala */
-
 
 // Apart from having `package` files in subfolders to define modules, Mill
 // also allows you to have helper code in any `*.mill` file in the same folder

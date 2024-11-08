@@ -15,18 +15,18 @@ import mill.util.Jvm
 
 object coursierModule extends CoursierModule
 
-def groovyClasspath: Task[Agg[PathRef]] = Task{
+def groovyClasspath: Task[Agg[PathRef]] = Task {
   coursierModule.defaultResolver().resolveDeps(Agg(ivy"org.codehaus.groovy:groovy:3.0.9"))
 }
 
-def groovyWorker: Worker[java.net.URLClassLoader] = Task.Worker{
+def groovyWorker: Worker[java.net.URLClassLoader] = Task.Worker {
   mill.api.ClassLoader.create(groovyClasspath().map(_.path.toIO.toURL).toSeq, parent = null)
 }
 
 trait GroovyGenerateJavaModule extends JavaModule {
   def groovyScript = Task.Source(millSourcePath / "generate.groovy")
 
-  def groovyGeneratedResources = Task{
+  def groovyGeneratedResources = Task {
     val oldCl = Thread.currentThread().getContextClassLoader
     Thread.currentThread().setContextClassLoader(groovyWorker())
     try {
@@ -49,10 +49,10 @@ trait GroovyGenerateJavaModule extends JavaModule {
   def resources = super.resources() ++ Seq(groovyGeneratedResources())
 }
 
-object foo extends GroovyGenerateJavaModule{
+object foo extends GroovyGenerateJavaModule {
   def groovyGenerateArg = "Foo Groovy!"
 }
-object bar extends GroovyGenerateJavaModule{
+object bar extends GroovyGenerateJavaModule {
   def groovyGenerateArg = "Bar Groovy!"
 }
 
@@ -60,7 +60,6 @@ object bar extends GroovyGenerateJavaModule{
 // to evaluate a groovy script to generate some resources. In this case, we invoke the `main`
 // method of `groovy.ui.GroovyMain`, which also happens to require us to set the
 // `ContextClassLoader` to work.
-
 
 /** Usage
 
@@ -70,7 +69,6 @@ Contents of groovy-generated.html is <html><body><h1>Hello!</h1><p>Foo Groovy!</
 > ./mill bar.run
 Contents of groovy-generated.html is <html><body><h1>Hello!</h1><p>Bar Groovy!</p></body></html>
 */
-
 
 // Because the `URLClassLoader` within `groovyWorker` is long-lived, the code within the
 // classloader can be optimized by the JVM runtime, and would have less overhead than if

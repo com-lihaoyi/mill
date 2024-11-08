@@ -1,7 +1,7 @@
 package build
 import mill._
 
-trait MyModule extends Module{
+trait MyModule extends Module {
   def crossValue: String
   def name: T[String]
   def param = Task { name() + " Param Value: " + crossValue }
@@ -9,10 +9,10 @@ trait MyModule extends Module{
 
 object foo extends Cross[FooModule]("a", "b")
 trait FooModule extends Cross.Module[String] {
-  object bar extends MyModule with CrossValue{
+  object bar extends MyModule with CrossValue {
     def name = "Bar"
   }
-  object qux extends MyModule with CrossValue{
+  object qux extends MyModule with CrossValue {
     def name = "Qux"
   }
 }

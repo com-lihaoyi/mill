@@ -29,7 +29,7 @@ object `package` extends RootModule with ScalaModule {
     def testFramework = "utest.runner.Framework"
     def ivyDeps = Agg(
       ivy"com.lihaoyi::utest::0.8.4",
-      ivy"com.lihaoyi::requests::0.6.9",
+      ivy"com.lihaoyi::requests::0.6.9"
     )
   }
 
@@ -42,7 +42,6 @@ object `package` extends RootModule with ScalaModule {
     (relPath.toString(), hashedPath.toString())
   }
 }
-
 
 // This example demonstrates how to implement webapp "cache busting" in Mill,
 // where we serve static files with a hash appended to the filename, and save

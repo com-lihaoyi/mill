@@ -254,6 +254,7 @@ object TestModuleUtilTests extends TestSuite {
         )
       )
     }
+    // format: off
     test("multi test suites") - {
       val expectedReport =
         <testsuites tests="3" failures="1" errors="0" skipped="0" time="0.014">
@@ -293,6 +294,7 @@ object TestModuleUtilTests extends TestSuite {
       )
     }
 
+    // format: on
     test("collapseTestClassNames") {
       val res = TestModuleUtil.collapseTestClassNames(
         Seq(

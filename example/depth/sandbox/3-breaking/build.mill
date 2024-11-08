@@ -21,7 +21,7 @@ def myTask = Task { println(Task.workspace) }
 // Whereas `MILL_WORKSPACE_ROOT` as well as in tests, which can access the
 // workspace root via the `MILL_WORKSPACE_ROOT` environment variable
 
-object foo extends JavaModule{
+object foo extends JavaModule {
   object test extends JavaTests with TestModule.Junit4
 }
 
