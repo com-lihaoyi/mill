@@ -39,7 +39,6 @@ def qux = Task { s"hello ${foo("2.10").suffix()} world ${foo("2.12").suffix()}" 
 // }
 // ```
 
-
 // Here, `def bar` uses `foo("2.10")` to reference the `"2.10"` instance of
 // `FooModule`. You can refer to whatever versions of the cross-module you want,
 // even using multiple versions of the cross-module in the same task as we do

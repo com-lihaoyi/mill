@@ -27,6 +27,9 @@ on:
       env-bridge-versions:
         default: 'none'
         type: string
+      install-android-sdk:
+        default: false
+        type: boolean
 
 jobs:
   run:
@@ -62,6 +65,10 @@ jobs:
         with:
           node-version: '22'
 
+      - uses: android-actions/setup-android@v3
+        if: ${{ inputs.install-android-sdk }}
+        with:
+          log-accepted-android-sdk-licenses: false
 
       - name: Prepare git config
         run: |

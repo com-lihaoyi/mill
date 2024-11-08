@@ -123,7 +123,6 @@ object bar extends ScalaModule {
 // `foo.test` in the command line. e.g. {utest-github-url}[uTest]
 // lets you pass in a selector to decide which test to run, which in Mill would be:
 
-
 /** Usage
 
 > mill bar.test bar.BarTests.hello

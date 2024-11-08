@@ -23,7 +23,6 @@ def taskInt = Task { 123 }
 def taskBoolean = Task { true }
 def taskString = Task { "hello " + taskInt() + " world " + taskBoolean() }
 
-
 /** Usage
 
 > ./mill show taskInt
@@ -43,10 +42,9 @@ true
 ]
 */
 
-def taskTuple = Task { (taskInt(), taskBoolean(), taskString())}
-def taskSeq = Task { Seq(taskInt(), taskInt() * 2, taskInt() * 3)}
+def taskTuple = Task { (taskInt(), taskBoolean(), taskString()) }
+def taskSeq = Task { Seq(taskInt(), taskInt() * 2, taskInt() * 3) }
 def taskMap = Task { Map("int" -> taskInt().toString, "boolean" -> taskBoolean().toString) }
-
 
 /** Usage
 > ./mill show taskSeq

@@ -1,4 +1,4 @@
 package foo
-object Bar{
+object Bar {
   val value = Foo + " world"
 }

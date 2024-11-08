@@ -25,7 +25,7 @@ object foo extends ScalaModule {
 // of the example (including supporting files) via the *browse* link. The only requirement is
 // that you have some version of the JVM installed; the `./mill` script takes
 // care of any further dependencies that need to be downloaded. All examples
-// in this documentation site are executable and are continually exercised as 
+// in this documentation site are executable and are continually exercised as
 // part of Mill's CI workflows, and they range from the simple hello-world
 // projects on this page to more sophisticated
 // xref:{language-small}lib/web-examples.adoc[web build examples] or

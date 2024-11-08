@@ -43,7 +43,6 @@ object foo extends ScalaModule {
 // }
 // ```
 
-
 /** Usage
 
 > mill foo.run
@@ -85,4 +84,3 @@ Inputs:
 // quickly, they ensure that custom build logic remains performant and
 // maintainable even as the complexity of your project grows.
 //
-
