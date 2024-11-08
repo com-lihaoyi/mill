@@ -156,6 +156,12 @@ trait JavaModule
   def runIvyDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
   /**
+   * Any BOM dependencies you want to add to this Module, in the format
+   * ivy"org:name:version"
+   */
+  def bomDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
+
+  /**
    * Default artifact types to fetch and put in the classpath. Add extra types
    * here if you'd like fancy artifact extensions to be fetched.
    */
@@ -604,7 +610,8 @@ trait JavaModule
   def resolvedIvyDeps: T[Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(
       transitiveCompileIvyDeps() ++ transitiveIvyDeps(),
-      artifactTypes = Some(artifactTypes())
+      artifactTypes = Some(artifactTypes()),
+      bomDeps = bomDeps().map(bindDependency())
     )
   }
 
@@ -619,7 +626,8 @@ trait JavaModule
   def resolvedRunIvyDeps: T[Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(
       transitiveRunIvyDeps() ++ transitiveIvyDeps(),
-      artifactTypes = Some(artifactTypes())
+      artifactTypes = Some(artifactTypes()),
+      bomDeps = bomDeps().map(bindDependency())
     )
   }
 
@@ -1096,13 +1104,15 @@ trait JavaModule
         Task.Anon {
           defaultResolver().resolveDeps(
             transitiveCompileIvyDeps() ++ transitiveIvyDeps(),
-            sources = true
+            sources = true,
+            bomDeps = bomDeps().map(bindDependency())
           )
         },
         Task.Anon {
           defaultResolver().resolveDeps(
             transitiveRunIvyDeps() ++ transitiveIvyDeps(),
-            sources = true
+            sources = true,
+            bomDeps = bomDeps().map(bindDependency())
           )
         }
       )

@@ -54,12 +54,14 @@ trait CoursierModule extends mill.Module {
   def resolveDeps(
       deps: Task[Agg[BoundDep]],
       sources: Boolean = false,
-      artifactTypes: Option[Set[Type]] = None
+      artifactTypes: Option[Set[Type]] = None,
+      bomDeps: Task[Agg[BoundDep]] = Task.Anon(Agg.empty[BoundDep])
   ): Task[Agg[PathRef]] =
     Task.Anon {
       Lib.resolveDependencies(
         repositories = repositoriesTask(),
         deps = deps(),
+        bomDeps = bomDeps(),
         sources = sources,
         artifactTypes = artifactTypes,
         mapDependencies = Some(mapDependencies()),
@@ -74,7 +76,7 @@ trait CoursierModule extends mill.Module {
       deps: Task[Agg[BoundDep]],
       sources: Boolean
   ): Task[Agg[PathRef]] =
-    resolveDeps(deps, sources, None)
+    resolveDeps(deps, sources, None, Task.Anon(Agg.empty[BoundDep]))
 
   /**
    * Map dependencies before resolving them.
@@ -148,11 +150,13 @@ object CoursierModule {
     def resolveDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean = false,
-        artifactTypes: Option[Set[coursier.Type]] = None
+        artifactTypes: Option[Set[coursier.Type]] = None,
+        bomDeps: IterableOnce[T] = Nil
     ): Agg[PathRef] = {
       Lib.resolveDependencies(
         repositories = repositories,
         deps = deps.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind)),
+        bomDeps = bomDeps.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind)),
         sources = sources,
         artifactTypes = artifactTypes,
         mapDependencies = mapDependencies,
@@ -162,12 +166,19 @@ object CoursierModule {
       ).getOrThrow
     }
 
+    def resolveDeps[T: CoursierModule.Resolvable](
+        deps: IterableOnce[T],
+        sources: Boolean,
+        artifactTypes: Option[Set[coursier.Type]]
+    ): Agg[PathRef] =
+      resolveDeps(deps, sources, artifactTypes, Nil)
+
     @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
     def resolveDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean
     ): Agg[PathRef] =
-      resolveDeps(deps, sources, None)
+      resolveDeps(deps, sources, None, Nil)
   }
 
   sealed trait Resolvable[T] {

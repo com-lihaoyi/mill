@@ -59,7 +59,8 @@ object Lib {
       ctx: Option[Ctx.Log] = None,
       coursierCacheCustomizer: Option[
         coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
-      ] = None
+      ] = None,
+      bomDeps: IterableOnce[BoundDep] = Nil
   ): Result[Resolution] = {
     val depSeq = deps.iterator.toSeq
     mill.util.Jvm.resolveDependenciesMetadataSafe(
@@ -69,7 +70,8 @@ object Lib {
       mapDependencies = mapDependencies,
       customizer = customizer,
       ctx = ctx,
-      coursierCacheCustomizer = coursierCacheCustomizer
+      coursierCacheCustomizer = coursierCacheCustomizer,
+      bomDeps = bomDeps.iterator.toSeq.map(_.dep)
     )
   }
 
@@ -90,12 +92,14 @@ object Lib {
       coursierCacheCustomizer: Option[
         coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
       ] = None,
-      artifactTypes: Option[Set[Type]] = None
+      artifactTypes: Option[Set[Type]] = None,
+      bomDeps: IterableOnce[BoundDep] = Nil
   ): Result[Agg[PathRef]] = {
     val depSeq = deps.iterator.toSeq
     mill.util.Jvm.resolveDependencies(
       repositories = repositories,
       deps = depSeq.map(_.dep),
+      bomDeps = bomDeps.iterator.map(_.dep).toSeq,
       force = depSeq.filter(_.force).map(_.dep),
       sources = sources,
       artifactTypes = artifactTypes,
@@ -126,7 +130,8 @@ object Lib {
       customizer,
       ctx,
       coursierCacheCustomizer,
-      None
+      None,
+      Nil
     )
 
   def scalaCompilerIvyDeps(scalaOrganization: String, scalaVersion: String): Loose.Agg[Dep] =

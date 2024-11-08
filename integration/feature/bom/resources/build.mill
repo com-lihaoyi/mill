@@ -1,0 +1,34 @@
+package build
+
+import mill._
+import mill.scalalib._
+
+object `google-cloud-java` extends JavaModule {
+  def bomDeps = Agg(
+    ivy"com.google.cloud:libraries-bom:26.50.0"
+  )
+  def ivyDeps = Agg(
+    ivy"com.google.protobuf:protobuf-java:_"
+  )
+}
+
+object `google-cloud-java-no-bom` extends JavaModule {
+  def ivyDeps = Agg(
+    ivy"com.google.protobuf:protobuf-java:_"
+  )
+}
+
+object `google-cloud-scala` extends JavaModule {
+  def bomDeps = Agg(
+    ivy"com.google.cloud:libraries-bom:26.50.0"
+  )
+  def ivyDeps = Agg(
+    ivy"com.thesamet.scalapb:scalapbc_2.13:0.9.8"
+  )
+}
+
+object `google-cloud-scala-no-bom` extends JavaModule {
+  def ivyDeps = Agg(
+    ivy"com.thesamet.scalapb:scalapbc_2.13:0.9.8"
+  )
+}

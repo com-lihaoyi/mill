@@ -38,7 +38,8 @@ object Pom {
     name = name,
     pomSettings = pomSettings,
     properties = properties,
-    packagingType = pomSettings.packaging
+    packagingType = pomSettings.packaging,
+    bomDependencies = Agg.empty[Dependency]
   )
 
   def apply(
@@ -47,7 +48,8 @@ object Pom {
       name: String,
       pomSettings: PomSettings,
       properties: Map[String, String],
-      packagingType: String
+      packagingType: String,
+      bomDependencies: Agg[Dependency]
   ): String = {
     val xml =
       <project
@@ -84,7 +86,10 @@ object Pom {
           {properties.map(renderProperty _).iterator}
         </properties>
         <dependencies>
-          {dependencies.map(renderDependency).iterator}
+          {
+        dependencies.map(renderDependency(_)).iterator ++
+          bomDependencies.map(renderDependency(_, isImport = true)).iterator
+      }
         </dependencies>
       </project>
 
@@ -114,13 +119,18 @@ object Pom {
     <prop>{property._2}</prop>.copy(label = property._1)
   }
 
-  private def renderDependency(d: Dependency): Elem = {
-    val scope = d.scope match {
-      case Scope.Compile => NodeSeq.Empty
-      case Scope.Provided => <scope>provided</scope>
-      case Scope.Test => <scope>test</scope>
-      case Scope.Runtime => <scope>runtime</scope>
-    }
+  private def renderDependency(d: Dependency, isImport: Boolean = false): Elem = {
+    val scope =
+      if (isImport) <scope>import</scope>
+      else
+        d.scope match {
+          case Scope.Compile => NodeSeq.Empty
+          case Scope.Provided => <scope>provided</scope>
+          case Scope.Test => <scope>test</scope>
+          case Scope.Runtime => <scope>runtime</scope>
+        }
+
+    val `type` = if (isImport) <type>pom</type> else NodeSeq.Empty
 
     val optional = if (d.optional) <optional>true</optional> else NodeSeq.Empty
 
@@ -130,6 +140,7 @@ object Pom {
         <artifactId>{d.artifact.id}</artifactId>
         <version>{d.artifact.version}</version>
         {scope}
+        {`type`}
         {optional}
       </dependency>
     else
@@ -146,6 +157,7 @@ object Pom {
       }
         </exclusions>
         {scope}
+        {`type`}
         {optional}
       </dependency>
   }

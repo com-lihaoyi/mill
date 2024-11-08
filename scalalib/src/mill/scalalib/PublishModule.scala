@@ -82,6 +82,10 @@ trait PublishModule extends JavaModule { outer =>
       compileModulePomDeps.map(Dependency(_, Scope.Provided))
   }
 
+  def publishXmlBomDeps: Task[Agg[Dependency]] = Task.Anon {
+    bomDeps().map(resolvePublishDependency.apply().apply(_))
+  }
+
   def pom: T[PathRef] = Task {
     val pom = Pom(
       artifactMetadata(),
@@ -89,7 +93,8 @@ trait PublishModule extends JavaModule { outer =>
       artifactId(),
       pomSettings(),
       publishProperties(),
-      packagingType = pomPackagingType
+      packagingType = pomPackagingType,
+      bomDependencies = publishXmlBomDeps()
     )
     val pomPath = T.dest / s"${artifactId()}-${publishVersion()}.pom"
     os.write.over(pomPath, pom)

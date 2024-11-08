@@ -45,7 +45,8 @@ trait CoursierSupport {
       ctx: Option[mill.api.Ctx.Log] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       resolveFilter: os.Path => Boolean = _ => true,
-      artifactTypes: Option[Set[Type]] = None
+      artifactTypes: Option[Set[Type]] = None,
+      bomDeps: IterableOnce[Dependency] = Nil
   ): Result[Agg[PathRef]] = {
     def isLocalTestDep(dep: Dependency): Option[Seq[PathRef]] = {
       val org = dep.module.organization.value
@@ -61,12 +62,8 @@ trait CoursierSupport {
       classpathResourceText.map(_.linesIterator.map(s => PathRef(os.Path(s))).toSeq)
     }
 
-    val (localTestDeps, remoteDeps) = deps.iterator.toSeq.partitionMap(d =>
-      isLocalTestDep(d) match {
-        case None => Right(d)
-        case Some(vs) => Left(vs)
-      }
-    )
+    val (localTestDeps, remoteDeps) =
+      deps.iterator.toSeq.partitionMap(d => isLocalTestDep(d).toLeft(d))
 
     val resolutionRes = resolveDependenciesMetadataSafe(
       repositories,
@@ -75,7 +72,8 @@ trait CoursierSupport {
       mapDependencies,
       customizer,
       ctx,
-      coursierCacheCustomizer
+      coursierCacheCustomizer,
+      bomDeps
     )
 
     resolutionRes.flatMap { resolution =>
@@ -159,7 +157,8 @@ trait CoursierSupport {
       mapDependencies,
       customizer,
       ctx,
-      coursierCacheCustomizer
+      coursierCacheCustomizer,
+      Nil
     )
     (deps0, res.getOrThrow)
   }
@@ -171,10 +170,15 @@ trait CoursierSupport {
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
       ctx: Option[mill.api.Ctx.Log] = None,
-      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
+      bomDeps: IterableOnce[Dependency] = Nil
   ): Result[Resolution] = {
 
     val rootDeps = deps.iterator
+      .map(d => mapDependencies.fold(d)(_.apply(d)))
+      .toSeq
+
+    val bomDeps0 = bomDeps.iterator
       .map(d => mapDependencies.fold(d)(_.apply(d)))
       .toSeq
 
@@ -191,6 +195,7 @@ trait CoursierSupport {
     val resolve = Resolve()
       .withCache(coursierCache0)
       .withDependencies(rootDeps)
+      .withBomDependencies(bomDeps0)
       .withRepositories(repositories)
       .withResolutionParams(resolutionParams)
       .withMapDependenciesOpt(mapDependencies)
