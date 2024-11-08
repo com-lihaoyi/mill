@@ -151,10 +151,10 @@ jobs:
       env-bridge-versions: 'essential'
 
   # Scalafmt, Mima, and Scalafix job runs last because it's the least important:
-  # usually just a automated or mechanical manual fix to do before merging
+  # usually just an automated or mechanical manual fix to do before merging
   lint-autofix:
     needs: build-linux
     uses: ./.github/workflows/run-mill-action.yml
     with:
       java-version: '11'
-      buildcmd: ./mill -i mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources && ./mill -i __.mimaReportBinaryIssues && ./mill -i __.fix --check && ./mill -i mill.javalib.palantirformat.PalantirFormatModule/ --check __.javaSources
+      buildcmd: ./mill -i mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources && ./mill -i __.mimaReportBinaryIssues && ./mill -i __.fix --check && ./mill -i mill.javalib.palantirformat.PalantirFormatModule/ --check __.lintableJavaSources

@@ -116,8 +116,14 @@ object `package` extends RootModule with Module {
 
     def javaSources = Task.Sources {
       os.walk(super.testRepoRoot().path)
+        .filterNot(_.toString.contains("linting"))
         .filter(_.ext == "java")
         .map(PathRef(_))
+    }
+
+    def lintableJavaSources = Task.Sources {
+      // PalantirFormat doesn't give us any abilities to configure it, so we can do a rough filtering of files we want to skip
+      javaSources().filterNot(_.toString.contains("linting"))
     }
 
     def resources = upstreamOpt match {
