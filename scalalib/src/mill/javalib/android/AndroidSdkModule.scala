@@ -89,89 +89,6 @@ trait AndroidSdkModule extends Module {
   }
 
   /**
-<<<<<<< HEAD
-   * Installs the Android SDK by performing the following steps:
-   *
-   * 1. Downloads the SDK command-line tools if not already cached.
-   *
-   * 2. Extracts the downloaded tools into the SDK directory.
-   *
-   * 3. Accepts SDK licenses automatically.
-   *
-   * 4. Installs the following components if not already installed:
-   *    - platform-tools
-   *    - build-tools (version specified by `buildToolsVersion`)
-   *    - platforms (version specified by `platformsVersion`)
-   *
-   * 5. Removes the downloaded zip file after extraction.
-   *
-   * @return A task returning a `PathRef` pointing to the installed SDK directory.
-   *
-   * @see [[https://developer.android.com/tools/sdkmanager sdkmanager Documentation]]
-   */
-  def installAndroidSdk: T[PathRef] = Task {
-    val sdkCache: os.Path = os.home / ".android-sdk-cache"
-    val zipFilePath: os.Path = sdkCache / "commandlinetools.zip"
-    val sdkManagerPath: os.Path = sdkCache / "cmdline-tools/bin/sdkmanager"
-
-    // Helper method to check if a tool is installed
-    def isToolInstalled(toolPath: os.Path): Boolean = os.exists(toolPath)
-
-    // Paths for the tools
-    val platformToolsPath: os.Path = sdkCache / "platform-tools"
-    val buildToolsPath: os.Path = sdkCache / "build-tools" / buildToolsVersion()
-    val platformsPath: os.Path = sdkCache / "platforms" / platformsVersion()
-
-    // Check if the SDK manager is already cached
-    if (!os.exists(sdkManagerPath)) {
-      // Ensure cache directory exists
-      os.makeDir.all(sdkCache)
-      // Download SDK command-line tools
-      os.write(zipFilePath, requests.get(sdkUrl().toString).bytes)
-
-      // Extract the downloaded SDK tools into the destination directory
-      os.call(Seq("unzip", zipFilePath.toString, "-d", sdkCache.toString))
-
-      // Automatically accept the SDK licenses
-      os.call(Seq(
-        "bash",
-        "-c",
-        s"yes | $sdkManagerPath --licenses --sdk_root=${sdkCache}"
-      ))
-
-      // Clean up the downloaded zip file
-      Try(os.remove(zipFilePath))
-    }
-
-    // Install platform-tools if not already installed
-    if (!isToolInstalled(platformToolsPath)) {
-      os.call(Seq(
-        sdkManagerPath.toString,
-        s"--sdk_root=${sdkCache}",
-        "platform-tools"
-      ))
-    }
-
-    // Install build-tools if not already installed
-    if (!isToolInstalled(buildToolsPath)) {
-      os.call(Seq(
-        sdkManagerPath.toString,
-        s"--sdk_root=${sdkCache}",
-        s"build-tools;${buildToolsVersion().toString}"
-      ))
-    }
-
-    // Install platforms if not already installed
-    if (!isToolInstalled(platformsPath)) {
-      os.call(Seq(
-        sdkManagerPath.toString,
-        s"--sdk_root=${sdkCache}",
-        s"platforms;${platformsVersion().toString}"
-      ))
-    }
-
-    PathRef(sdkCache)
-=======
    * Installs the necessary Android SDK components such as platform-tools, build-tools, and Android platforms.
    *
    * For more details on the `sdkmanager` tool, refer to:
@@ -300,7 +217,6 @@ trait AndroidSdkModule extends Module {
       }
     }
     Some(sdkManagerPath).filter(os.exists)
->>>>>>> 4f70fd6c392a4acae12f43a292d8f88d84e912c0
   }
 
 }
