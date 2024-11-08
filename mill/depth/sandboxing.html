@@ -445,14 +445,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.1-48-07df8c</span>
+    <span class="version">0.12.1-49-4f70fd</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../0.12.1/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../index.html">0.12.1-48-07df8c</a>
+          <a href="../index.html">0.12.1-49-4f70fd</a>
         </li>
         <li class="version is-latest">
           <a href="../0.12.1/index.html">0.12.1</a>
@@ -536,7 +536,7 @@ each task is lazily initialized when <code>Task.dest</code> is referenced and us
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
 
-object foo extends Module{
+object foo extends Module {
   def tDestTask = Task { println(Task.dest.toString) }
 }</code></pre>
 </div>
@@ -634,11 +634,11 @@ following build with two modules <code>foo</code> and <code>bar</code>, and thei
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
 
-trait MyModule extends JavaModule{
+trait MyModule extends JavaModule {
   object test extends JavaTests with TestModule.Junit4
 }
 
-object foo extends MyModule{
+object foo extends MyModule {
   def moduleDeps = Seq(bar)
 }
 
@@ -819,7 +819,7 @@ workspace root via the <code>MILL_WORKSPACE_ROOT</code> environment variable</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo extends JavaModule{
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo extends JavaModule {
   object test extends JavaTests with TestModule.Junit4
 }</code></pre>
 </div>

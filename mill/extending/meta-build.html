@@ -445,14 +445,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.1-48-07df8c</span>
+    <span class="version">0.12.1-49-4f70fd</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../0.12.1/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../index.html">0.12.1-48-07df8c</a>
+          <a href="../index.html">0.12.1-49-4f70fd</a>
         </li>
         <li class="version is-latest">
           <a href="../0.12.1/index.html">0.12.1</a>
@@ -595,7 +595,7 @@ object `package` extends RootModule with ScalaModule {
   )
 
   def htmlSnippet = Task { h1(&quot;hello&quot;).toString }
-  def resources = Task.Sources{
+  def resources = Task.Sources {
     os.write(Task.dest / &quot;snippet.txt&quot;, htmlSnippet())
     super.resources() ++ Seq(PathRef(Task.dest))
   }
@@ -615,7 +615,7 @@ compiled and executed to perform your build. This &quot;meta-build&quot; module 
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
 
-object `package` extends MillBuildRootModule{
+object `package` extends MillBuildRootModule {
   val scalatagsVersion = &quot;0.12.0&quot;
   def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags:$scalatagsVersion&quot;)
 
@@ -721,7 +721,7 @@ import mill._, scalalib._
 
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = millbuild.ScalaVersion.myScalaVersion
-  def sources = Task.Sources{
+  def sources = Task.Sources {
     super.sources() ++ Seq(PathRef(millSourcePath / &quot;mill-build/src&quot;))
   }
 }</code></pre>
@@ -740,7 +740,7 @@ object `package` extends MillBuildRootModule</code></pre>
 <div class="title">mill-build/src/ScalaVersion.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/metabuild/5-meta-shared-sources/mill-build/src/ScalaVersion.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package millbuild
-object ScalaVersion{
+object ScalaVersion {
   def myScalaVersion = &quot;2.13.10&quot;
 }</code></pre>
 </div>

@@ -445,14 +445,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.1-48-07df8c</span>
+    <span class="version">0.12.1-49-4f70fd</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../0.12.1/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../index.html">0.12.1-48-07df8c</a>
+          <a href="../index.html">0.12.1-49-4f70fd</a>
         </li>
         <li class="version is-latest">
           <a href="../0.12.1/index.html">0.12.1</a>
@@ -636,7 +636,7 @@ def compile = Task {
 }
 
 def assembly = Task {
-  for(p &lt;- Seq(compile(), resources())) os.copy(p.path, Task.dest, mergeFolders = true)
+  for (p &lt;- Seq(compile(), resources())) os.copy(p.path, Task.dest, mergeFolders = true)
 
   val mainFlags = mainClass().toSeq.flatMap(Seq(&quot;-e&quot;, _))
   os.proc(&quot;jar&quot;, &quot;-c&quot;, mainFlags, &quot;-f&quot;, Task.dest / &quot;assembly.jar&quot;, &quot;.&quot;)
@@ -1351,11 +1351,12 @@ def summarizeClassFileStats = Task {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def run(mainClass: String, args: String*) = Task.Command {
   os.proc(
-      &quot;java&quot;,
-      &quot;-cp&quot;, s&quot;${classFiles().path}:${resources().path}&quot;,
-      mainClass,
-      args
-    )
+    &quot;java&quot;,
+    &quot;-cp&quot;,
+    s&quot;${classFiles().path}:${resources().path}&quot;,
+    mainClass,
+    args
+  )
     .call(stdout = os.Inherit)
 }</code></pre>
 </div>
@@ -1647,11 +1648,11 @@ even if the external <code>git</code> status changes:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def gitStatusTask = Task {
   &quot;version-&quot; +
-  os.proc(&quot;git&quot;, &quot;log&quot;, &quot;-1&quot;, &quot;--pretty=format:%h-%B &quot;)
-    .call(cwd = Task.workspace)
-    .out
-    .text()
-    .trim()
+    os.proc(&quot;git&quot;, &quot;log&quot;, &quot;-1&quot;, &quot;--pretty=format:%h-%B &quot;)
+      .call(cwd = Task.workspace)
+      .out
+      .text()
+      .trim()
 }</code></pre>
 </div>
 </div>
@@ -1817,7 +1818,7 @@ def compressedData = Task(persistent = true) {
   os.makeDir.all(Task.dest / &quot;cache&quot;)
   os.remove.all(Task.dest / &quot;compressed&quot;)
 
-  for(p &lt;- os.list(data().path)) {
+  for (p &lt;- os.list(data().path)) {
     val compressedPath = Task.dest / &quot;compressed&quot; / s&quot;${p.last}.gz&quot;
     val bytes = os.read.bytes(p)
     val hash = Arrays.hashCode(bytes)
@@ -1908,11 +1909,11 @@ import java.util.zip.GZIPOutputStream
 
 def data = Task.Source(millSourcePath / &quot;data&quot;)
 
-def compressWorker = Task.Worker{ new CompressWorker(Task.dest) }
+def compressWorker = Task.Worker { new CompressWorker(Task.dest) }
 
 def compressedData = Task {
   println(&quot;Evaluating compressedData&quot;)
-  for(p &lt;- os.list(data().path)){
+  for (p &lt;- os.list(data().path)) {
     os.write(
       Task.dest / s&quot;${p.last}.gz&quot;,
       compressWorker().compress(p.last, os.read.bytes(p))
@@ -1921,7 +1922,7 @@ def compressedData = Task {
   os.list(Task.dest).map(PathRef(_))
 }
 
-class CompressWorker(dest: os.Path){
+class CompressWorker(dest: os.Path) {
   val cache = collection.mutable.Map.empty[Int, Array[Byte]]
   def compress(name: String, bytes: Array[Byte]): Array[Byte] = {
     val hash = Arrays.hashCode(bytes)
@@ -1931,11 +1932,11 @@ class CompressWorker(dest: os.Path){
         println(&quot;Compressing: &quot; + name)
         cache(hash) = compressBytes(bytes)
         os.write(cachedPath, cache(hash))
-      }else{
+      } else {
         println(&quot;Cached from disk: &quot; + name)
         cache(hash) = os.read.bytes(cachedPath)
       }
-    }else {
+    } else {
       println(&quot;Cached from memory: &quot; + name)
     }
     cache(hash)
@@ -2070,14 +2071,14 @@ but can be used in your own tasks as well:</p>
 import mill._
 
 def taskSpawningFutures = Task {
-  val f1 = T.fork.async(dest = T.dest / &quot;future-1&quot;, key = &quot;1&quot;, message = &quot;First Future&quot;){
+  val f1 = T.fork.async(dest = T.dest / &quot;future-1&quot;, key = &quot;1&quot;, message = &quot;First Future&quot;) {
     println(&quot;Running First Future inside &quot; + os.pwd)
     Thread.sleep(3000)
     val res = 1
     println(&quot;Finished First Future&quot;)
     res
   }
-  val f2 = T.fork.async(dest = T.dest / &quot;future-2&quot;, key = &quot;2&quot;, message = &quot;Second Future&quot;){
+  val f2 = T.fork.async(dest = T.dest / &quot;future-2&quot;, key = &quot;2&quot;, message = &quot;Second Future&quot;) {
     println(&quot;Running Second Future inside &quot; + os.pwd)
     Thread.sleep(3000)
     val res = 2

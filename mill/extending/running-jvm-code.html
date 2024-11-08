@@ -445,14 +445,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.1-48-07df8c</span>
+    <span class="version">0.12.1-49-4f70fd</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../0.12.1/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../index.html">0.12.1-48-07df8c</a>
+          <a href="../index.html">0.12.1-49-4f70fd</a>
         </li>
         <li class="version is-latest">
           <a href="../0.12.1/index.html">0.12.1</a>
@@ -577,13 +577,13 @@ import mill._, javalib._
 import mill.util.Jvm
 
 object foo extends JavaModule {
-  def groovyClasspath: Task[Agg[PathRef]] = Task{
+  def groovyClasspath: Task[Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(Agg(ivy&quot;org.codehaus.groovy:groovy:3.0.9&quot;))
   }
 
   def groovyScript = Task.Source(millSourcePath / &quot;generate.groovy&quot;)
 
-  def groovyGeneratedResources = Task{
+  def groovyGeneratedResources = Task {
     Jvm.runSubprocess(
       mainClass = &quot;groovy.ui.GroovyMain&quot;,
       classPath = groovyClasspath().map(_.path),
@@ -654,14 +654,14 @@ import mill._, javalib._
 import mill.util.Jvm
 
 object foo extends JavaModule {
-  def groovyClasspath: Task[Agg[PathRef]] = Task{
+  def groovyClasspath: Task[Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(Agg(ivy&quot;org.codehaus.groovy:groovy:3.0.9&quot;))
   }
 
   def groovyScript = Task.Source(millSourcePath / &quot;generate.groovy&quot;)
 
-  def groovyGeneratedResources = Task{
-    Jvm.runClassloader(classPath = groovyClasspath().map(_.path)){ classLoader =&gt;
+  def groovyGeneratedResources = Task {
+    Jvm.runClassloader(classPath = groovyClasspath().map(_.path)) { classLoader =&gt;
       classLoader
         .loadClass(&quot;groovy.ui.GroovyMain&quot;)
         .getMethod(&quot;main&quot;, classOf[Array[String]])
@@ -728,18 +728,18 @@ import mill.util.Jvm
 
 object coursierModule extends CoursierModule
 
-def groovyClasspath: Task[Agg[PathRef]] = Task{
+def groovyClasspath: Task[Agg[PathRef]] = Task {
   coursierModule.defaultResolver().resolveDeps(Agg(ivy&quot;org.codehaus.groovy:groovy:3.0.9&quot;))
 }
 
-def groovyWorker: Worker[java.net.URLClassLoader] = Task.Worker{
+def groovyWorker: Worker[java.net.URLClassLoader] = Task.Worker {
   mill.api.ClassLoader.create(groovyClasspath().map(_.path.toIO.toURL).toSeq, parent = null)
 }
 
 trait GroovyGenerateJavaModule extends JavaModule {
   def groovyScript = Task.Source(millSourcePath / &quot;generate.groovy&quot;)
 
-  def groovyGeneratedResources = Task{
+  def groovyGeneratedResources = Task {
     val oldCl = Thread.currentThread().getContextClassLoader
     Thread.currentThread().setContextClassLoader(groovyWorker())
     try {
@@ -762,10 +762,10 @@ trait GroovyGenerateJavaModule extends JavaModule {
   def resources = super.resources() ++ Seq(groovyGeneratedResources())
 }
 
-object foo extends GroovyGenerateJavaModule{
+object foo extends GroovyGenerateJavaModule {
   def groovyGenerateArg = &quot;Foo Groovy!&quot;
 }
-object bar extends GroovyGenerateJavaModule{
+object bar extends GroovyGenerateJavaModule {
   def groovyGenerateArg = &quot;Bar Groovy!&quot;
 }</code></pre>
 </div>
@@ -835,7 +835,7 @@ object foo extends ScalaModule {
   }
 }
 
-object bar extends ScalaModule{
+object bar extends ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
   def ivyDeps = Agg(ivy&quot;com.lihaoyi::os-lib:0.10.7&quot;)
 }</code></pre>
@@ -907,7 +907,7 @@ object foo extends JavaModule {
   def moduleDeps = Seq(bar)
 
   def sources = Task {
-    Jvm.runClassloader(classPath = bar.runClasspath().map(_.path)){ classLoader =&gt;
+    Jvm.runClassloader(classPath = bar.runClasspath().map(_.path)) { classLoader =&gt;
       classLoader
         .loadClass(&quot;bar.Bar&quot;)
         .getMethod(&quot;main&quot;, classOf[Array[String]])

@@ -445,14 +445,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.1-48-07df8c</span>
+    <span class="version">0.12.1-49-4f70fd</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../0.12.1/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../index.html">0.12.1-48-07df8c</a>
+          <a href="../index.html">0.12.1-49-4f70fd</a>
         </li>
         <li class="version is-latest">
           <a href="../0.12.1/index.html">0.12.1</a>
@@ -614,19 +614,19 @@ object `package` extends RootModule with JavaModule {
     ivy&quot;javax.xml.bind:jaxb-api:2.3.1&quot;,
     ivy&quot;org.webjars:webjars-locator:0.41&quot;,
     ivy&quot;org.webjars.npm:todomvc-common:1.0.5&quot;,
-    ivy&quot;org.webjars.npm:todomvc-app-css:2.4.1&quot;,
+    ivy&quot;org.webjars.npm:todomvc-app-css:2.4.1&quot;
   )
 
-  trait HelloTests extends JavaTests with TestModule.Junit5{
+  trait HelloTests extends JavaTests with TestModule.Junit5 {
     def mainClass = Some(&quot;com.example.TodomvcApplication&quot;)
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy&quot;org.springframework.boot:spring-boot-starter-test:2.5.6&quot;
     )
   }
 
-  object test extends HelloTests{
+  object test extends HelloTests {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy&quot;com.h2database:h2:2.3.230&quot;,
+      ivy&quot;com.h2database:h2:2.3.230&quot;
     )
   }
 
@@ -635,7 +635,7 @@ object `package` extends RootModule with JavaModule {
       ivy&quot;org.testcontainers:testcontainers:1.18.0&quot;,
       ivy&quot;org.testcontainers:junit-jupiter:1.18.0&quot;,
       ivy&quot;org.testcontainers:postgresql:1.18.0&quot;,
-      ivy&quot;org.postgresql:postgresql:42.6.0&quot;,
+      ivy&quot;org.postgresql:postgresql:42.6.0&quot;
     )
   }
 }</code></pre>
@@ -699,10 +699,10 @@ object `package` extends RootModule with MicronautModule {
   def ivyDeps = Agg(
     ivy&quot;io.micronaut:micronaut-http-server-netty:$micronautVersion&quot;,
     ivy&quot;io.micronaut.serde:micronaut-serde-jackson:2.10.1&quot;,
-    ivy&quot;ch.qos.logback:logback-classic:1.5.3&quot;,
+    ivy&quot;ch.qos.logback:logback-classic:1.5.3&quot;
   )
 
-  object test extends MavenTests with TestModule.Junit5{
+  object test extends MavenTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy&quot;io.micronaut:micronaut-http-client:$micronautVersion&quot;,
       ivy&quot;io.micronaut.test:micronaut-test-junit5:4.4.0&quot;,
@@ -712,7 +712,7 @@ object `package` extends RootModule with MicronautModule {
   }
 }
 
-trait MicronautModule extends MavenModule{
+trait MicronautModule extends MavenModule {
   def micronautVersion: String
 
   def processors = Task {
@@ -734,7 +734,7 @@ trait MicronautModule extends MavenModule{
     &quot;-Amicronaut.processing.incremental=true&quot;,
     &quot;-Amicronaut.processing.group=example.micronaut&quot;,
     &quot;-Amicronaut.processing.module=todo&quot;,
-    &quot;-Amicronaut.processing.annotations=example.micronaut.*&quot;,
+    &quot;-Amicronaut.processing.annotations=example.micronaut.*&quot;
   )
 }</code></pre>
 </div>
@@ -788,7 +788,7 @@ object `package` extends RootModule with MicronautModule {
   def micronautVersion = &quot;4.4.3&quot;
   def runIvyDeps = Agg(
     ivy&quot;ch.qos.logback:logback-classic:1.5.3&quot;,
-    ivy&quot;com.h2database:h2:2.2.224&quot;,
+    ivy&quot;com.h2database:h2:2.2.224&quot;
   )
 
   def ivyDeps = Agg(
@@ -801,10 +801,10 @@ object `package` extends RootModule with MicronautModule {
     ivy&quot;io.micronaut.views:micronaut-views-thymeleaf:5.2.0&quot;,
     ivy&quot;org.webjars.npm:todomvc-common:1.0.5&quot;,
     ivy&quot;org.webjars.npm:todomvc-app-css:2.4.1&quot;,
-    ivy&quot;org.webjars.npm:github-com-bigskysoftware-htmx:1.9.10&quot;,
+    ivy&quot;org.webjars.npm:github-com-bigskysoftware-htmx:1.9.10&quot;
   )
 
-  object test extends MavenTests with TestModule.Junit5{
+  object test extends MavenTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy&quot;com.h2database:h2:2.2.224&quot;,
       ivy&quot;io.micronaut:micronaut-http-client:$micronautVersion&quot;,
@@ -815,7 +815,7 @@ object `package` extends RootModule with MicronautModule {
   }
 }
 
-trait MicronautModule extends MavenModule{
+trait MicronautModule extends MavenModule {
   def micronautVersion: String
 
   def processors = Task {
@@ -837,7 +837,7 @@ trait MicronautModule extends MavenModule{
     &quot;-Amicronaut.processing.incremental=true&quot;,
     &quot;-Amicronaut.processing.group=example.micronaut&quot;,
     &quot;-Amicronaut.processing.module=todo&quot;,
-    &quot;-Amicronaut.processing.annotations=example.micronaut.*&quot;,
+    &quot;-Amicronaut.processing.annotations=example.micronaut.*&quot;
   )
 }</code></pre>
 </div>

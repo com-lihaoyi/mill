@@ -445,14 +445,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.1-48-07df8c</span>
+    <span class="version">0.12.1-49-4f70fd</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../0.12.1/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../index.html">0.12.1-48-07df8c</a>
+          <a href="../index.html">0.12.1-49-4f70fd</a>
         </li>
         <li class="version is-latest">
           <a href="../0.12.1/index.html">0.12.1</a>
@@ -545,7 +545,7 @@ library necessary for accessing Node.js APIs:</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
 
-def npmInstall = Task{
+def npmInstall = Task {
   os.call((&quot;npm&quot;, &quot;install&quot;, &quot;--save-dev&quot;, &quot;typescript@5.6.3&quot;, &quot;@types/node@22.7.8&quot;))
   PathRef(Task.dest)
 }</code></pre>
@@ -580,7 +580,7 @@ on exactly which files within the source root they wish to pick up.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def sources = Task.Source(millSourcePath / &quot;src&quot;)
-def allSources = Task{
+def allSources = Task {
   os.walk(sources().path).filter(_.ext == &quot;ts&quot;).map(PathRef(_))
 }</code></pre>
 </div>
@@ -596,13 +596,15 @@ Again we return a <code>PathRef</code> to the <code>Task.dest</code> folder we o
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def compile = Task{
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def compile = Task {
   os.call(
     (
       npmInstall().path / &quot;node_modules/typescript/bin/tsc&quot;,
       allSources().map(_.path),
-      &quot;--outDir&quot;, Task.dest,
-      &quot;--typeRoots&quot;, npmInstall().path / &quot;node_modules/@types&quot;
+      &quot;--outDir&quot;,
+      Task.dest,
+      &quot;--typeRoots&quot;,
+      npmInstall().path / &quot;node_modules/@types&quot;
     )
   )
   PathRef(Task.dest)
@@ -715,8 +717,8 @@ call <code>node</code> along with the main Javascript file:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def mainFileName = Task{ &quot;hello.js&quot; }
-def run(args: mill.define.Args) = Task.Command{
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def mainFileName = Task { &quot;hello.js&quot; }
+def run(args: mill.define.Args) = Task.Command {
   os.call(
     (&quot;node&quot;, compile().path / mainFileName(), args.value),
     stdout = os.Inherit
@@ -834,26 +836,26 @@ we wrote above, and turn it into a re-usable <code>TypeScriptModule</code>.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
 
-trait TypeScriptModule extends Module{
-  def npmInstall = Task{
+trait TypeScriptModule extends Module {
+  def npmInstall = Task {
     os.call((&quot;npm&quot;, &quot;install&quot;, &quot;--save-dev&quot;, &quot;typescript@5.6.3&quot;, &quot;@types/node@22.7.8&quot;))
     PathRef(Task.dest)
   }
 
   def sources = Task.Source(millSourcePath / &quot;src&quot;)
-  def allSources = Task{
+  def allSources = Task {
     os.walk(sources().path).filter(_.ext == &quot;ts&quot;).map(PathRef(_))
   }
 
-  def compile = Task{
+  def compile = Task {
     val tsc = npmInstall().path / &quot;node_modules/typescript/bin/tsc&quot;
     val types = npmInstall().path / &quot;node_modules/@types&quot;
     os.call((tsc, allSources().map(_.path), &quot;--outDir&quot;, Task.dest, &quot;--typeRoots&quot;, types))
     PathRef(Task.dest)
   }
 
-  def mainFileName = Task{ s&quot;${millSourcePath.last}.js&quot; }
-  def run(args: mill.define.Args) = Task.Command{
+  def mainFileName = Task { s&quot;${millSourcePath.last}.js&quot; }
+  def run(args: mill.define.Args) = Task.Command {
     val mainFile = compile().path / mainFileName()
     os.call((&quot;node&quot;, mainFile, args.value), stdout = os.Inherit)
   }
@@ -866,7 +868,7 @@ as shown belo:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo extends TypeScriptModule{
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo extends TypeScriptModule {
   object bar extends TypeScriptModule
 }
 object qux extends TypeScriptModule</code></pre>
@@ -1179,25 +1181,25 @@ use in <code>compile</code>, and <code>compiledJavascript</code> for use in <cod
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
 
-trait TypeScriptModule extends Module{
+trait TypeScriptModule extends Module {
   def moduleDeps: Seq[TypeScriptModule] = Nil
 
-  def npmInstall = Task{
+  def npmInstall = Task {
     os.call((&quot;npm&quot;, &quot;install&quot;, &quot;--save-dev&quot;, &quot;typescript@5.6.3&quot;, &quot;@types/node@22.7.8&quot;))
     PathRef(Task.dest)
   }
 
   def sources = Task.Source(millSourcePath / &quot;src&quot;)
-  def allSources = Task{ os.walk(sources().path).filter(_.ext == &quot;ts&quot;).map(PathRef(_)) }
+  def allSources = Task { os.walk(sources().path).filter(_.ext == &quot;ts&quot;).map(PathRef(_)) }
 
-  def compile: T[(PathRef, PathRef)] = Task{
+  def compile: T[(PathRef, PathRef)] = Task {
 
     val nodeTypes = npmInstall().path / &quot;node_modules/@types&quot;
     val javascriptOut = Task.dest / &quot;javascript&quot;
     val declarationsOut = Task.dest / &quot;declarations&quot;
 
     val upstreamPaths =
-      for(((jsDir, dTsDir), mod) &lt;- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps))
+      for (((jsDir, dTsDir), mod) &lt;- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps))
         yield (mod.millSourcePath.subRelativeTo(build.millSourcePath) + &quot;/*&quot;, dTsDir.path)
 
     val allPaths = upstreamPaths ++ Seq(&quot;*&quot; -&gt; sources().path)
@@ -1210,9 +1212,9 @@ trait TypeScriptModule extends Module{
           &quot;declaration&quot; -&gt; true,
           &quot;declarationDir&quot; -&gt; declarationsOut.toString,
           &quot;typeRoots&quot; -&gt; ujson.Arr(nodeTypes.toString),
-          &quot;paths&quot;  -&gt; ujson.Obj.from(allPaths.map{case (k, v) =&gt; (k, ujson.Arr(s&quot;$v/*&quot;))})
+          &quot;paths&quot; -&gt; ujson.Obj.from(allPaths.map { case (k, v) =&gt; (k, ujson.Arr(s&quot;$v/*&quot;)) })
         ),
-        &quot;files&quot; -&gt; allSources().map(_.path.toString),
+        &quot;files&quot; -&gt; allSources().map(_.path.toString)
       )
     )
 
@@ -1220,11 +1222,11 @@ trait TypeScriptModule extends Module{
     (PathRef(javascriptOut), PathRef(declarationsOut))
   }
 
-  def mainFileName = Task{ s&quot;${millSourcePath.last}.js&quot; }
-  def run(args: mill.define.Args) = Task.Command{
+  def mainFileName = Task { s&quot;${millSourcePath.last}.js&quot; }
+  def run(args: mill.define.Args) = Task.Command {
 
     val upstream = Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
-    for(((jsDir, tTsDir), mod) &lt;- upstream) {
+    for (((jsDir, tTsDir), mod) &lt;- upstream) {
       os.copy(jsDir.path, Task.dest / mod.millSourcePath.subRelativeTo(build.millSourcePath))
     }
     val mainFile = compile()._1.path / mainFileName()
@@ -1250,10 +1252,10 @@ and <code>foo/bar/src/bar.ts</code> export their APIs which are then imported in
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo extends TypeScriptModule{
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo extends TypeScriptModule {
   object bar extends TypeScriptModule
 }
-object qux extends TypeScriptModule{
+object qux extends TypeScriptModule {
   def moduleDeps = Seq(foo, foo.bar)
 }</code></pre>
 </div>
@@ -1573,34 +1575,38 @@ into a <code>def prepareRun</code> task.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
 
-trait TypeScriptModule extends Module{
+trait TypeScriptModule extends Module {
   def moduleDeps: Seq[TypeScriptModule] = Nil
 
-  def npmDeps: T[Seq[String]] = Task{ Seq.empty[String] }
+  def npmDeps: T[Seq[String]] = Task { Seq.empty[String] }
 
-  def transitiveNpmDeps: T[Seq[String]] = Task{
+  def transitiveNpmDeps: T[Seq[String]] = Task {
     Task.traverse(moduleDeps)(_.npmDeps)().flatten ++ npmDeps()
   }
 
-  def npmInstall = Task{
+  def npmInstall = Task {
     os.call((
-      &quot;npm&quot;, &quot;install&quot;, &quot;--save-dev&quot;,
-      &quot;typescript@5.6.3&quot;, &quot;@types/node@22.7.8&quot;, &quot;esbuild@0.24.0&quot;,
+      &quot;npm&quot;,
+      &quot;install&quot;,
+      &quot;--save-dev&quot;,
+      &quot;typescript@5.6.3&quot;,
+      &quot;@types/node@22.7.8&quot;,
+      &quot;esbuild@0.24.0&quot;,
       transitiveNpmDeps()
     ))
     PathRef(Task.dest)
   }
 
   def sources = Task.Source(millSourcePath / &quot;src&quot;)
-  def allSources = Task{ os.walk(sources().path).filter(_.ext == &quot;ts&quot;).map(PathRef(_)) }
+  def allSources = Task { os.walk(sources().path).filter(_.ext == &quot;ts&quot;).map(PathRef(_)) }
 
-  def compile: T[(PathRef, PathRef)] = Task{
+  def compile: T[(PathRef, PathRef)] = Task {
     val nodeTypes = npmInstall().path / &quot;node_modules/@types&quot;
     val javascriptOut = Task.dest / &quot;javascript&quot;
     val declarationsOut = Task.dest / &quot;declarations&quot;
 
     val upstreamPaths =
-      for(((jsDir, dTsDir), mod) &lt;- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps))
+      for (((jsDir, dTsDir), mod) &lt;- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps))
         yield (mod.millSourcePath.subRelativeTo(build.millSourcePath) + &quot;/*&quot;, dTsDir.path)
 
     val allPaths = upstreamPaths ++ Seq(&quot;*&quot; -&gt; sources().path, &quot;*&quot; -&gt; npmInstall().path)
@@ -1613,9 +1619,9 @@ trait TypeScriptModule extends Module{
           &quot;declaration&quot; -&gt; true,
           &quot;declarationDir&quot; -&gt; declarationsOut.toString,
           &quot;typeRoots&quot; -&gt; ujson.Arr(nodeTypes.toString),
-          &quot;paths&quot;  -&gt; ujson.Obj.from(allPaths.map{case (k, v) =&gt; (k, ujson.Arr(s&quot;$v/*&quot;))})
+          &quot;paths&quot; -&gt; ujson.Obj.from(allPaths.map { case (k, v) =&gt; (k, ujson.Arr(s&quot;$v/*&quot;)) })
         ),
-        &quot;files&quot; -&gt; allSources().map(_.path.toString),
+        &quot;files&quot; -&gt; allSources().map(_.path.toString)
       )
     )
 
@@ -1624,11 +1630,11 @@ trait TypeScriptModule extends Module{
     (PathRef(javascriptOut), PathRef(declarationsOut))
   }
 
-  def mainFileName = Task{ s&quot;${millSourcePath.last}.js&quot; }
+  def mainFileName = Task { s&quot;${millSourcePath.last}.js&quot; }
 
-  def prepareRun = Task.Anon{
+  def prepareRun = Task.Anon {
     val upstream = Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
-    for(((jsDir, tTsDir), mod) &lt;- upstream) {
+    for (((jsDir, tTsDir), mod) &lt;- upstream) {
       os.copy(jsDir.path, Task.dest / mod.millSourcePath.subRelativeTo(build.millSourcePath))
     }
     val mainFile = compile()._1.path / mainFileName()
@@ -1636,12 +1642,12 @@ trait TypeScriptModule extends Module{
     (mainFile, env)
   }
 
-  def run(args: mill.define.Args) = Task.Command{
+  def run(args: mill.define.Args) = Task.Command {
     val (mainFile, env) = prepareRun()
     os.call((&quot;node&quot;, mainFile, args.value), stdout = os.Inherit, env = env)
   }
 
-  def bundle = Task{
+  def bundle = Task {
     val (mainFile, env) = prepareRun()
     val esbuild = npmInstall().path / &quot;node_modules/esbuild/bin/esbuild&quot;
     val bundle = Task.dest / &quot;bundle.js&quot;
@@ -1650,12 +1656,12 @@ trait TypeScriptModule extends Module{
   }
 }
 
-object foo extends TypeScriptModule{
-  object bar extends TypeScriptModule{
+object foo extends TypeScriptModule {
+  object bar extends TypeScriptModule {
     def npmDeps = Seq(&quot;immutable@4.3.7&quot;)
   }
 }
-object qux extends TypeScriptModule{
+object qux extends TypeScriptModule {
   def moduleDeps = Seq(foo, foo.bar)
 }</code></pre>
 </div>
@@ -1686,6 +1692,11 @@ additional <code>npmDeps</code> tasks upstream and the <code>bundle</code> tasks
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 363.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-363 701.13,-363 701.13,4 -4,4"></polygon>
+<g id="clust1" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="145.37,-8 145.37,-116 689.13,-116 689.13,-8 145.37,-8"></polygon>
+<text text-anchor="middle" x="417.25" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
+</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-351 558.42,-351 558.42,-124 8,-124"></polygon>
@@ -1695,11 +1706,6 @@ additional <code>npmDeps</code> tasks upstream and the <code>bundle</code> tasks
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="16,-210 16,-318 550.42,-318 550.42,-210 16,-210"></polygon>
 <text text-anchor="middle" x="283.21" y="-301.4" font-family="Times,serif" font-size="14.00">bar</text>
-</g>
-<g id="clust1" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="145.37,-8 145.37,-116 689.13,-116 689.13,-8 145.37,-8"></polygon>
-<text text-anchor="middle" x="417.25" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
 <!-- qux.npmInstall -->
 <g id="node1" class="node">

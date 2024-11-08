@@ -445,14 +445,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.1-48-07df8c</span>
+    <span class="version">0.12.1-49-4f70fd</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../0.12.1/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../index.html">0.12.1-48-07df8c</a>
+          <a href="../index.html">0.12.1-49-4f70fd</a>
         </li>
         <li class="version is-latest">
           <a href="../0.12.1/index.html">0.12.1</a>
@@ -549,25 +549,25 @@ object `package` extends RootModule with ScalaModule {
   // You can have arbitrary numbers of third-party dependencies
   def ivyDeps = Agg(
     ivy&quot;com.lihaoyi::scalatags:0.8.2&quot;,
-    ivy&quot;com.lihaoyi::os-lib:0.10.7&quot;,
+    ivy&quot;com.lihaoyi::os-lib:0.10.7&quot;
   )
 
   // Choose a main class to use for `.run` if there are multiple present
   def mainClass: T[Option[String]] = Some(&quot;foo.Foo2&quot;)
 
   // Add (or replace) source folders for the module to use
-  def sources = Task.Sources{
+  def sources = Task.Sources {
     super.sources() ++ Seq(PathRef(millSourcePath / &quot;custom-src&quot;))
   }
 
   // Add (or replace) resource folders for the module to use
-  def resources = Task.Sources{
+  def resources = Task.Sources {
     super.resources() ++ Seq(PathRef(millSourcePath / &quot;custom-resources&quot;))
   }
 
   // Generate sources at build time
   def generatedSources: T[Seq[PathRef]] = Task {
-    for(name &lt;- Seq(&quot;A&quot;, &quot;B&quot;, &quot;C&quot;)) os.write(
+    for (name &lt;- Seq(&quot;A&quot;, &quot;B&quot;, &quot;C&quot;)) os.write(
       Task.dest / s&quot;Foo$name.scala&quot;,
       s&quot;&quot;&quot;
 package foo
@@ -684,7 +684,7 @@ error: ...Implicit injection of + is deprecated. Convert to String to call +...<
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
 
-object `package` extends RootModule with ScalaModule{
+object `package` extends RootModule with ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
   def scalacOptions = Seq(&quot;-Ydelambdafy:inline&quot;)
   def forkArgs = Seq(&quot;-Xmx4g&quot;, &quot;-Dmy.jvm.property=hello&quot;)
@@ -856,7 +856,7 @@ object FooTests extends TestSuite {
       // Use `MILL_TEST_RESOURCE_DIR` to list files available in resource folder
       assert(
         os.list(testFileResourceDir).sorted ==
-        Seq(testFileResourceDir / &quot;test-file-a.txt&quot;, testFileResourceDir / &quot;test-file-b.txt&quot;)
+          Seq(testFileResourceDir / &quot;test-file-a.txt&quot;, testFileResourceDir / &quot;test-file-b.txt&quot;)
       )
 
       // Use the `OTHER_FILES_DIR` configured in your build to access the
@@ -1125,7 +1125,7 @@ import mill._, scalalib._
 val scalaVersions = Seq(&quot;2.12.17&quot;, &quot;2.13.8&quot;)
 
 object foo extends Cross[FooModule](scalaVersions)
-trait FooModule extends CrossScalaModule{
+trait FooModule extends CrossScalaModule {
   def moduleDeps = Seq(bar())
 }
 
@@ -1178,7 +1178,7 @@ explicitly to select the right version of the cross-module:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo2 extends Cross[Foo2Module](scalaVersions)
-trait Foo2Module extends CrossScalaModule{
+trait Foo2Module extends CrossScalaModule {
   def moduleDeps = Seq(bar(crossScalaVersion))
 }
 
@@ -1197,11 +1197,11 @@ trait Bar2Module extends CrossScalaModule</code></pre>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
 
-object foo extends ScalaModule with UnidocModule{
+object foo extends ScalaModule with UnidocModule {
   def scalaVersion = &quot;2.13.8&quot;
   def moduleDeps = Seq(bar, qux)
 
-  object bar extends ScalaModule{
+  object bar extends ScalaModule {
     def scalaVersion = &quot;2.13.8&quot;
   }
 
@@ -1287,7 +1287,7 @@ object `package` extends RootModule with ScalaModule {
   def ivyDeps = Agg(ivy&quot;com.lihaoyi::mainargs:0.4.0&quot;)
 
   def generatedSources: T[Seq[PathRef]] = Task {
-    val prettyIvyDeps = for(ivyDep &lt;- ivyDeps()) yield {
+    val prettyIvyDeps = for (ivyDep &lt;- ivyDeps()) yield {
       val org = ivyDep.dep.module.organization.value
       val name = ivyDep.dep.module.name.value
       val version = ivyDep.dep.version

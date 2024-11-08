@@ -445,14 +445,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.1-48-07df8c</span>
+    <span class="version">0.12.1-49-4f70fd</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../0.12.1/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../index.html">0.12.1-48-07df8c</a>
+          <a href="../index.html">0.12.1-49-4f70fd</a>
         </li>
         <li class="version is-latest">
           <a href="../0.12.1/index.html">0.12.1</a>
@@ -582,9 +582,9 @@ object `package` extends RootModule with ScalaModule {
 <div class="title">src/Foo.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/scalalib/linting/3-acyclic/src/Foo.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
-object Foo{
+object Foo {
   val value = 123
-  def main(args: Array[String]): Unit= {
+  def main(args: Array[String]): Unit = {
     println(&quot;hello &quot; + Bar)
   }
 }</code></pre>
@@ -594,7 +594,7 @@ object Foo{
 <div class="title">src/Bar.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/scalalib/linting/3-acyclic/src/Bar.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
-object Bar{
+object Bar {
   val value = Foo + &quot; world&quot;
 }</code></pre>
 </div>
@@ -736,7 +736,7 @@ object `package` extends RootModule with ScoverageModule {
     ivy&quot;com.lihaoyi::mainargs:0.6.2&quot;
   )
 
-  object test extends ScoverageTests /*with TestModule.Utest */{
+  object test extends ScoverageTests /*with TestModule.Utest */ {
     def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
   }

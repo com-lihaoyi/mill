@@ -445,14 +445,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.1-48-07df8c</span>
+    <span class="version">0.12.1-49-4f70fd</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../0.12.1/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../index.html">0.12.1-48-07df8c</a>
+          <a href="../index.html">0.12.1-49-4f70fd</a>
         </li>
         <li class="version is-latest">
           <a href="../0.12.1/index.html">0.12.1</a>
@@ -658,8 +658,8 @@ true
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def taskTuple = Task { (taskInt(), taskBoolean(), taskString())}
-def taskSeq = Task { Seq(taskInt(), taskInt() * 2, taskInt() * 3)}
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def taskTuple = Task { (taskInt(), taskBoolean(), taskString()) }
+def taskSeq = Task { Seq(taskInt(), taskInt() * 2, taskInt() * 3) }
 def taskMap = Task { Map(&quot;int&quot; -&gt; taskInt().toString, &quot;boolean&quot; -&gt; taskBoolean().toString) }</code></pre>
 </div>
 </div>
@@ -898,7 +898,7 @@ are run from the command line.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
-def commandSimple(str: String, i: Int, bool: Boolean = true) = Task.Command{
+def commandSimple(str: String, i: Int, bool: Boolean = true) = Task.Command {
   println(s&quot;$str $i $bool&quot;)
 }</code></pre>
 </div>
@@ -924,7 +924,7 @@ supports parsing OS-Lib <code>os.Path</code>s from the command line:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def commandTakingPath(path: os.Path) = Task.Command{
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def commandTakingPath(path: os.Path) = Task.Command {
   println(path)
 }</code></pre>
 </div>
@@ -946,7 +946,7 @@ task:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def commandTakingTask(str: Task[String]) = Task.Command{
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def commandTakingTask(str: Task[String]) = Task.Command {
   val result = &quot;arg: &quot; + str()
   println(result)
   result
@@ -1000,7 +1000,7 @@ def customPlanCommand(evaluator: Evaluator, tasks: String*) = Task.Command {
     evaluator.rootModule,
     tasks,
     SelectMode.Multi
-  ) match{
+  ) match {
     case Left(err) =&gt; Left(err)
     case Right(resolved) =&gt;
       val (sortedGroups, _) = evaluator.plan(resolved)
