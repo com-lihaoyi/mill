@@ -115,8 +115,8 @@ object `package` extends RootModule with Module {
     }
 
     def javaSources = Task.Sources {
-      os.walk(super.testRepoRoot().path)
-        .filterNot(_.toString.contains("linting"))
+      sources()
+        .flatMap(pathRef => os.walk(pathRef.path))
         .filter(_.ext == "java")
         .map(PathRef(_))
     }
