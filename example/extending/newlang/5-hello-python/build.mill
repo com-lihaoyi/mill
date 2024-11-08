@@ -41,7 +41,7 @@ def typeCheck: T[PathRef] = Task {
   val pythonVenv = setup().path
 
   os.call(
-    (pythonVenv, "-m", "mypy", "--strict", sources().path / mainFileName()),
+    (pythonVenv, "-m", "mypy", "--strict", sources().path),
     stdout = os.Inherit
   )
 
@@ -107,6 +107,11 @@ Success: no issues found in 1 source file
 > ./mill run Mill Python
 Hello, Mill Python!
 15
+
+> sed -i.bak 's/add/addd/g' build.mill
+
+> ./mill typeCheck # if we make a typo in a method name, mypy flags it
+error: ...Name "addd" is not defined...
 
 */
 

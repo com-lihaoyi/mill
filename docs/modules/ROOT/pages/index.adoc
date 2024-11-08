@@ -64,7 +64,7 @@ understand your Mill build better than any other build system
 
 * *Flexibility*: Mill's tasks and modules allow anything from adding
 xref:fundamentals/tasks.adoc#primitive-tasks[simple build steps], up to
-entire xref:extending/new-language.adoc[language toolchains].
+entire xref:extending/example-python-support.adoc[language toolchains].
 You can xref:extending/import-ivy-plugins.adoc[import any JVM library] in your build,
 use Mill's rich ecosystem of xref:extending/thirdparty-plugins.adoc[Third-Party Mill Plugins],
 or xref:extending/writing-plugins.adoc[write plugins] yourself and

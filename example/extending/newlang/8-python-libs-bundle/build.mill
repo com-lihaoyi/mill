@@ -1,65 +1,43 @@
 // == Python Library Dependencies & Bundling
-
+//
 // This example shows how to handle external dependencies and
 // create PEX (Python EXecutable) bundles using the `PythonModule` trait.
-
+//
 // PEX simplifies Python app distribution by packaging
 // code and dependencies into a single executable file.
-
+//
 // Guide: https://docs.pex-tool.org[Pex Documentation]
-
+//
 // ==== Extending PythonModule For Pex Support
-
+//
 // This implementation extends `PythonModule` with these key Tasks:
-
-// - def `finalDependencies`: Merges and deduplicates dependencies from `requirements.txt` and the `dependencies` task.
+//
+// - def `transitivePythonDeps`: Merges and deduplicates dependencies from `requirements.txt` and the `dependencies` task.
 // - def `bundle`: Packages the module and dependencies into a standalone `result.pex` file, making deployment easier.
 
 package build
 import mill._
 
-/** extends for efficient library dependency management and executable bundling. */
 trait PythonModule extends Module {
   def moduleDeps: Seq[PythonModule] = Nil
-  def dependencies: T[Seq[String]] = Task { Seq.empty[String] }
   def mainFileName: T[String] = Task { "main.py" }
   def sources: T[PathRef] = Task.Source(millSourcePath / "src")
-  def requirementsPath: T[PathRef] = Task.Source(millSourcePath / "requirements.txt")
 
-  def requirementsDependencies: T[Seq[String]] = Task {
-    val reqFile = requirementsPath().path
-    if (os.exists(reqFile)) {
-      os.read.lines(reqFile).map(_.trim).filter(_.nonEmpty)
-    } else {
-      Seq.empty[String]
-    }
-  }
+  def pythonDeps: T[Seq[String]] = Task { Seq.empty[String] }
 
-  def finalDependencies: T[Seq[String]] = Task {
-    // Collects the Upstream dependencies(external Libs)
-    val upstreamDependencies = Task.traverse(moduleDeps)(_.finalDependencies)()
-
-    (
-      dependencies()
-        ++ requirementsDependencies()
-        ++ upstreamDependencies.flatten
-    ).distinct
-
+  def transitivePythonDeps: T[Seq[String]] = Task {
+    val upstreamDependencies = Task.traverse(moduleDeps)(_.transitivePythonDeps)().flatten
+    pythonDeps() ++ upstreamDependencies
   }
 
   def setup: T[PathRef] = Task {
-    val pythonVenv = Task.dest / "venv" / "bin" / "python3"
-
     // installs mypy and pex
-    os.call(("python3", "-m", "venv", Task.dest / "venv"))
-    os.call((pythonVenv, "-m", "pip", "install", "mypy", "pex"))
+    val venv = Task.dest / "venv"
+    os.call(("python3", "-m", "venv", venv))
+    val venvPython = venv / "bin" / "python3"
+    os.call((venvPython, "-m", "pip", "install", "mypy", "pex", transitivePythonDeps()))
 
-    // installs library dependencies
-    if (finalDependencies().nonEmpty) {
-      os.call((pythonVenv, "-m", "pip", "install", finalDependencies()))
-    }
-
-    PathRef(pythonVenv)
+    PathRef(venvPython)
   }
 
   def typeCheck: T[PathRef] = Task {
@@ -93,7 +71,7 @@ trait PythonModule extends Module {
 
   /** Bundles the project into a single PEX executable(result.pex). */
   def bundle(args: mill.define.Args) = Task.Command {
-    val pythonVenv = setup().path
+    val venvPython = setup().path
     val pexFile = Task.dest / "result.pex"
     val upstream = Task.traverse(moduleDeps)(_.sources)().zip(moduleDeps)
 
@@ -102,18 +80,9 @@ trait PythonModule extends Module {
       os.copy.over(sourcesFolder.path / os.up, destinationPath)
     }
 
+    val mainFile = sources().path / mainFileName()
     os.call(
-      (
-        pythonVenv,
-        "-m",
-        "pex",
-        finalDependencies(),
-        "-c",
-        sources().path / mainFileName(),
-        "-o",
-        pexFile,
-        args.value
-      ),
+      (venvPython, "-m", "pex", transitivePythonDeps(), "-c", mainFile, "-o", pexFile, args.value),
       env = Map("PYTHONPATH" -> Task.dest.toString),
       stdout = os.Inherit
     )
@@ -126,61 +95,87 @@ trait PythonModule extends Module {
 // Note the use of `Task.traverse(moduleDeps)` in order to aggregate the upstream modules
 // library dependencies and the `typeCheck` outputs, which is necessary before running any
 // code, finally it gathers upstream modules `sources` for further processing in `run` Task
-
+//
 // ==== Example
-
+//
 // The `pex` object demonstrates `PythonModule` with inline and file-based dependencies.
-
+//
 // Running `pex.bundle` creates `result.pex`, a standalone executable for easy distribution.
 
-object pex extends PythonModule {
-  // For Education Purpose both way of giving dependencies are discussed here
-  // one dependency is mentioned in requirements.txt and one inline(below)
-  override def dependencies: T[Seq[String]] = Task { Seq("pandas") }
 
+object foo extends PythonModule {
+  object bar extends PythonModule {
+    def dependencies = Seq("pandas", "numpy")
+  }
 }
 
-// Source Files For this Example:
-/** See Also: pex/src/main.py */
-/** See Also: pex/requirements.txt */
+object qux extends PythonModule {
+  def moduleDeps = Seq(foo, foo.bar)
+}
 
 // To run the project and create a `.pex` executable, use the following commands:
 
 /** Usage
 
-> ./mill pex.run
+> ./mill qux.run
 Numpy : Sum: 150 | Pandas: Mean: 30.0, Max: 50
 
-> ./mill show pex.bundle
+> ./mill show qux.bundle
 ".../out/pex/bundle.dest/result.pex"
 
 */
 
 // This generates the `result.pex` file, which packages all dependencies
 // and can be executed as a standalone application.
-
+//
 // To Run the `result.pex` file, First Provide the executable permission(+x)
 // to result.pex and then run using `./result.pex` command.
-
+//
 // The final module tree and task graph is now as follows, with the additional dependencies
 // tasks with upstream and the bundle tasks downstream:
-
+//
 // ```graphviz
 // digraph G {
-//   rankdir=LR;
-//   node [shape=box, width=0, height=0, style=filled, fillcolor=white];
-//   "pex.setup" -> "pex.typeCheck" -> "pex.run";
-//   "pex.typeCheck" -> "pex.bundle";
-//   "pex.finalDependencies" -> "pex.setup";
-//   "pex.finalDependencies" -> "pex.bundle";
-//   "pex.sources" -> "pex.typeCheck";
-//   "pex.mainFileName" -> "pex.typeCheck";
-//   "pex.sources" -> "pex.run";
-//   "pex.mainFileName" -> "pex.run";
-//   "pex.sources" -> "pex.bundle";
-//   "pex.mainFileName" -> "pex.bundle";
-//   "pex.mainFileName" [color=green, penwidth=3];
-//   "pex.run" [color=green, penwidth=3];
-//   "pex.bundle" [color=green, penwidth=3];
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   subgraph cluster_3 {
+//     style=dashed
+//     label=qux
+//     "qux.pythonDeps" -> "qux.setup" [color=green, penwidth=3]
+//     "qux.setup" -> "qux.typeCheck" -> "qux.run"
+//     "qux.sources" -> "qux.typeCheck"
+//     "qux.mainFileName" -> "qux.typeCheck"
+//     "qux.sources" -> "qux.run"
+//     "qux.mainFileName" -> "qux.run"
+//     "qux.pythonDeps" [color=green, penwidth=3]
+//   }
+//   subgraph cluster_1 {
+//     subgraph cluster_2 {
+//       style=dashed
+//       label=bar
+//       "bar.pythonDeps" -> "bar.setup"  [color=green, penwidth=3]
+//       "bar.setup" -> "bar.typeCheck" -> "bar.run"
+//       "bar.sources" -> "bar.typeCheck"
+//       "bar.mainFileName" -> "bar.typeCheck"
+//       "bar.sources" -> "bar.run"
+//       "bar.mainFileName" -> "bar.run"
+//       "bar.pythonDeps" [color=green, penwidth=3]
+//     }
+//     style=dashed
+//     label=foo
+//     "foo.pythonDeps" -> "foo.setup"  [color=green, penwidth=3]
+//     "foo.setup" -> "foo.typeCheck" -> "foo.run"
+//     "foo.sources" -> "foo.typeCheck"
+//     "foo.mainFileName" -> "foo.typeCheck"
+//     "foo.sources" -> "foo.run"
+//     "foo.mainFileName" -> "foo.run"
+//     "foo.pythonDeps" [color=green, penwidth=3]
+//   }
+//   "bar.pythonDeps" -> "qux.pythonDeps" [color=green, penwidth=3]
+//   "foo.pythonDeps" -> "qux.pythonDeps" [color=green, penwidth=3]
+//   "bar.typeCheck" -> "qux.typeCheck"
+//   "bar.sources" -> "qux.run"
+//   "foo.typeCheck" -> "qux.typeCheck"
+//   "foo.sources" -> "qux.run"
 // }
 // ```
