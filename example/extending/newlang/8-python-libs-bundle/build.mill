@@ -146,6 +146,8 @@ Numpy : Sum: 150 | Pandas: Mean: 30.0, Max: 50
 //     "qux.sources" -> "qux.typeCheck"
 //     "qux.mainFileName" -> "qux.typeCheck"
 //     "qux.sources" -> "qux.run"
+//     "qux.sources" -> "qux.bundle" [color=green, penwidth=3]
+//     "qux.bundle" [color=green, penwidth=3]
 //     "qux.mainFileName" -> "qux.run"
 //     "qux.pythonDeps" [color=green, penwidth=3]
 //   }
@@ -158,6 +160,8 @@ Numpy : Sum: 150 | Pandas: Mean: 30.0, Max: 50
 //       "bar.sources" -> "bar.typeCheck"
 //       "bar.mainFileName" -> "bar.typeCheck"
 //       "bar.sources" -> "bar.run"
+//       "bar.sources" -> "bar.bundle" [color=green, penwidth=3]
+//       "bar.bundle" [color=green, penwidth=3]
 //       "bar.mainFileName" -> "bar.run"
 //       "bar.pythonDeps" [color=green, penwidth=3]
 //     }
@@ -168,6 +172,8 @@ Numpy : Sum: 150 | Pandas: Mean: 30.0, Max: 50
 //     "foo.sources" -> "foo.typeCheck"
 //     "foo.mainFileName" -> "foo.typeCheck"
 //     "foo.sources" -> "foo.run"
+//     "foo.sources" -> "foo.bundle" [color=green, penwidth=3]
+//     "foo.bundle" [color=green, penwidth=3]
 //     "foo.mainFileName" -> "foo.run"
 //     "foo.pythonDeps" [color=green, penwidth=3]
 //   }
@@ -175,7 +181,9 @@ Numpy : Sum: 150 | Pandas: Mean: 30.0, Max: 50
 //   "foo.pythonDeps" -> "qux.pythonDeps" [color=green, penwidth=3]
 //   "bar.typeCheck" -> "qux.typeCheck"
 //   "bar.sources" -> "qux.run"
+//   "bar.sources" -> "qux.bundle" [color=green, penwidth=3]
 //   "foo.typeCheck" -> "qux.typeCheck"
 //   "foo.sources" -> "qux.run"
+//   "foo.sources" -> "qux.bundle" [color=green, penwidth=3]
 // }
 // ```
