@@ -1,2 +1,2 @@
-import sys
-def multiply(a: int, b: int) -> int: return a * b
+import numpy as np
+data = np.array([10, 20, 30, 40, 50])

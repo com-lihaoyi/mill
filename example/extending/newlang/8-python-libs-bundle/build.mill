@@ -46,7 +46,8 @@ trait PythonModule extends Module {
 
     os.call(
       (pythonVenv, "-m", "mypy", "--strict", sources().path),
-      stdout = os.Inherit
+      stdout = os.Inherit,
+      cwd = T.workspace
     )
 
     PathRef(pythonVenv)
@@ -105,8 +106,9 @@ trait PythonModule extends Module {
 
 object foo extends PythonModule {
   object bar extends PythonModule {
-    def dependencies = Seq("pandas", "numpy")
+    def pythonDeps = Seq("pandas", "numpy")
   }
+  def pythonDeps = Seq("numpy")
 }
 
 object qux extends PythonModule {
@@ -121,7 +123,7 @@ object qux extends PythonModule {
 Numpy : Sum: 150 | Pandas: Mean: 30.0, Max: 50
 
 > ./mill show qux.bundle
-".../out/pex/bundle.dest/result.pex"
+".../out/qux/bundle.dest/result.pex"
 
 */
 

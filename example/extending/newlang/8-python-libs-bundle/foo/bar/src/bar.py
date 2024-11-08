@@ -1,2 +1,5 @@
-import sys
-def add(a: int, b: int) -> int: return a + b
+import pandas as pd # type: ignore
+import numpy as np
+
+data = np.array([10, 20, 30, 40, 50])
+df = pd.DataFrame({"Values": data})
