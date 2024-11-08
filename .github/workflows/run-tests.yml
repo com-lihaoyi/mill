@@ -65,10 +65,12 @@ jobs:
             millargs: "contrib.__.testCached"
 
           - java-version: 17
+            install-android-sdk: true
             millargs: "'example.javalib.__.local.testCached'"
           - java-version: 17
             millargs: "'example.scalalib.__.local.testCached'"
           - java-version: 17
+            install-android-sdk: true
             millargs: "'example.kotlinlib.__.local.testCached'"
           - java-version: '11'
             millargs: "'example.thirdparty[{mockito,acyclic,commons-io}].local.testCached'"
@@ -93,6 +95,7 @@ jobs:
 
     uses: ./.github/workflows/run-mill-action.yml
     with:
+      install-android-sdk: ${{ matrix.install-android-sdk }}
       java-version: ${{ matrix.java-version }}
       millargs: ${{ matrix.millargs }}
 
