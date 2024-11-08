@@ -182,6 +182,7 @@ object `package` extends RootModule with Module {
     def fix(args: String*): Command[Unit] = Task.Command {}
     def testRepoRoot: T[PathRef] = Task.Source(millSourcePath)
 
+    def sources = Task.Sources { testRepoRoot().path }
     def resources = Seq(testRepoRoot())
     def runClasspath = build.main.test.runClasspath()
     def localRunClasspath = build.testkit.localRunClasspath()
