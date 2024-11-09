@@ -47,5 +47,4 @@ object `package` extends RootModule with PublishModule with MavenModule {
     )
 
   }
-
 }

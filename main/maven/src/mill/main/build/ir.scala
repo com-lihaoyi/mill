@@ -3,36 +3,31 @@ package mill.main.build
 import mill.main.client.CodeGenConstants.{nestedBuildFileNames, rootBuildFileNames, rootModuleAlias}
 import mill.runner.FileImportGraph.backtickWrap
 
-import scala.collection.immutable.SortedMap
-
-/**
- * A Mill build companion object containing constants.
- *
- * @param name Scala object name
- * @param vals named constants
- */
-@mill.api.experimental
-case class BuildCompanion(name: String, vals: SortedMap[String, String])
+import scala.collection.immutable.{SortedMap, SortedSet}
 
 /**
  * A Mill build module defined as a Scala object.
  *
  * @param imports Scala import statements
- * @param typedefs additional Scala type definitions like build module base traits
- * @param companions build companion objects
- * @param name Scala object name
+ * @param companions build companion objects defining constants
+ * @param outer additional Scala type definitions like build module base traits
  * @param supertypes Scala supertypes inherited by the object
- * @param body Scala object code
+ * @param inner Scala object code
  */
 @mill.api.experimental
-case class BuildDefinition(
-    imports: Seq[String],
-    typedefs: Seq[String],
-    companions: Seq[BuildCompanion],
-    name: String,
+case class BuildObject(
+    imports: SortedSet[String],
+    companions: BuildObject.Companions,
+    outer: String,
     supertypes: Seq[String],
-    body: String
+    inner: String
 )
+@mill.api.experimental
+object BuildObject {
+
+  type Constants = SortedMap[String, String]
+  type Companions = SortedMap[String, Constants]
+}
 
 /**
  * A node representing a module in a build tree.
@@ -46,15 +41,15 @@ case class Node[Module](dirs: Seq[String], module: Module)
 object Node {
 
   private val linebreak =
-    s"""
-       |""".stripMargin
+    """
+      |""".stripMargin
 
   private val linebreak2 =
-    s"""
-       |
-       |""".stripMargin
+    """
+      |
+      |""".stripMargin
 
-  implicit class BuildOps(private val self: Node[BuildDefinition]) extends AnyVal {
+  implicit class BuildOps(private val self: Node[BuildObject]) extends AnyVal {
 
     def file: os.RelPath = {
       val name = if (self.dirs.isEmpty) rootBuildFileNames.head else nestedBuildFileNames.head
@@ -63,10 +58,11 @@ object Node {
 
     def source: os.Source = {
       val pkg = self.pkg
-      val BuildDefinition(imports, typedefs, companions, name, supertypes, body) = self.module
+      val BuildObject(imports, companions, outer, supertypes, inner) = self.module
+      val importStatements = imports.iterator.map("import " + _).mkString(linebreak)
       val companionTypedefs = companions.iterator.map {
-        case BuildCompanion(_, vals) if vals.isEmpty => ""
-        case BuildCompanion(name, vals) =>
+        case (_, vals) if vals.isEmpty => ""
+        case (name, vals) =>
           val members =
             vals.iterator.map { case (k, v) => s"val $k = $v" }.mkString(linebreak)
 
@@ -74,26 +70,25 @@ object Node {
              |
              |$members
              |}""".stripMargin
-      }
+      }.mkString(linebreak2)
       val extendsClause = supertypes match {
         case Seq() => ""
         case Seq(head) => s"extends $head"
         case head +: tail => tail.mkString(s"extends $head with ", " with ", "")
       }
+
       s"""package $pkg
          |
-         |${imports.mkString(linebreak)}
+         |$importStatements
          |
-         |${typedefs.mkString(linebreak2)}
+         |$companionTypedefs
          |
-         |${companionTypedefs.mkString(linebreak2)}
+         |$outer
          |
-         |object $name $extendsClause {
+         |object `package` $extendsClause {
          |
-         |$body
-         |
-         |}
-         |""".stripMargin
+         |$inner
+         |}""".stripMargin
     }
   }
 

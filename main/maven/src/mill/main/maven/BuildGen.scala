@@ -1,7 +1,7 @@
 package mill.main.maven
 
 import mainargs.{Flag, ParserForClass, arg, main}
-import mill.main.build.{BuildCompanion, BuildDefinition, Node}
+import mill.main.build.{BuildObject, Node}
 import mill.runner.FileImportGraph.backtickWrap
 import org.apache.maven.model.{Dependency, Model}
 
@@ -42,7 +42,7 @@ object BuildGen {
   }
 
   private type MavenNode = Node[Model]
-  private type MillNode = Node[BuildDefinition]
+  private type MillNode = Node[BuildObject]
 
   private def run(cfg: BuildGenConfig): Unit = {
     val workspace = os.pwd
@@ -99,19 +99,17 @@ object BuildGen {
       val millSourcePath = os.Path(model.getProjectDirectory)
 
       val imports = {
-        val b = Seq.newBuilder[String]
-        b += "import mill._"
-        b += "import mill.api._"
-        b += "import mill.javalib._"
-        b += "import mill.javalib.publish._"
-        if (dirs.nonEmpty) cfg.baseModule.foreach(baseModule => b += s"import $$file.$baseModule")
-        else if (packages.size > 1) b += "import $packages._"
+        val b = SortedSet.newBuilder[String]
+        b += "mill._"
+        b += "mill.api._"
+        b += "mill.javalib._"
+        b += "mill.javalib.publish._"
+        if (dirs.nonEmpty) cfg.baseModule.foreach(baseModule => b += s"$$file.$baseModule")
+        else if (packages.size > 1) b += "$packages._"
         b.result()
       }
 
-      val typedefs = if (dirs.isEmpty) Seq(baseModuleTypedef) else Seq.empty
-
-      val name = "`package`"
+      val outer = if (dirs.isEmpty) baseModuleTypedef else ""
 
       val supertypes = {
         val b = Seq.newBuilder[String]
@@ -120,10 +118,10 @@ object BuildGen {
         b.result()
       }
 
-      val (depsObject, compileDeps, providedDeps, runtimeDeps, testDeps, testModule) =
+      val (companions, compileDeps, providedDeps, runtimeDeps, testDeps, testModule) =
         Scoped.all(model, packages, cfg)
 
-      val body = {
+      val inner = {
         val javacOptions = Plugins.MavenCompilerPlugin.javacOptions(model)
 
         val artifactNameSetting = {
@@ -202,9 +200,7 @@ object BuildGen {
            |$testModuleTypedef""".stripMargin
       }
 
-      build.copy(module =
-        BuildDefinition(imports, typedefs, depsObject.toSeq, name, supertypes, body)
-      )
+      build.copy(module = BuildObject(imports, companions, outer, supertypes, inner))
     }
   }
 
@@ -275,7 +271,7 @@ object BuildGen {
         model: Model,
         packages: PartialFunction[Id, Package],
         cfg: BuildGenConfig
-    ): (Option[BuildCompanion], Compile, Provided, Runtime, Test, TestModule) = {
+    ): (BuildObject.Companions, Compile, Provided, Runtime, Test, TestModule) = {
       val compileIvyDeps = SortedSet.newBuilder[String]
       val providedIvyDeps = SortedSet.newBuilder[String]
       val runtimeIvyDeps = SortedSet.newBuilder[String]
@@ -353,10 +349,12 @@ object BuildGen {
         })
       }
 
-      val depsObject = cfg.depsObject.map(BuildCompanion(_, SortedMap(namedIvyDeps.result() *)))
+      val companions = cfg.depsObject.fold(SortedMap.empty[String, BuildObject.Constants])(name =>
+        SortedMap((name, SortedMap(namedIvyDeps.result() *)))
+      )
 
       (
-        depsObject,
+        companions,
         Scoped(compileIvyDeps.result(), compileModuleDeps.result()),
         Scoped(providedIvyDeps.result(), providedModuleDeps.result()),
         Scoped(runtimeIvyDeps.result(), runtimeModuleDeps.result()),
