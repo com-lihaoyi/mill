@@ -62,6 +62,8 @@ Or if you prefer a video introduction:
 
 * https://www.youtube.com/watch?v=Dry6wMRN6MI[Video: Better Java Builds with the Mill Build Tool],
   Japan Java User Group Fall Conference Oct 2024
+* https://www.youtube.com/watch?v=xbGG7MDWR-M[Video: Better Scala Builds with the Mill Build Tool],
+  Scala.IO Paris Conference Nov 2024
 
 Mill is used to build many real-world projects, such as the
 https://github.com/swaldman/c3p0[C3P0 JDBC Connection Pool],
