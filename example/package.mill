@@ -105,6 +105,8 @@ object `package` extends RootModule with Module {
     val upstreamOpt = upstreamCross(this.millModuleSegments.parts.dropRight(1).last)
       .flatMap(_.valuesToModules.get(List(crossValue)))
 
+    def sources = Task.Sources { super.testRepoRoot().path }
+
     def testRepoRoot = Task {
       os.copy(super.testRepoRoot().path, T.dest, mergeFolders = true)
       for(suffix <- Seq("build.sc", "build.mill", "build.mill.scala")){
@@ -124,7 +126,7 @@ object `package` extends RootModule with Module {
 
     def lintableJavaSources = Task.Sources {
       // PalantirFormat doesn't give us any abilities to configure it, so we can do a rough filtering of files we want to skip
-      javaSources().filterNot(_.toString.contains("linting"))
+      javaSources().filterNot(_.path.segments.contains("linting"))
     }
 
     def resources = upstreamOpt match {
