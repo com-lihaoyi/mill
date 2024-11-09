@@ -363,6 +363,7 @@ object `package` extends RootModule {
         .asScala
         .map(e => (e.toString, e.attr("href")))
         .toSeq
+        .filter(!_._2.startsWith("mailto:"))
         .partition{case (e, l) => l.startsWith("http://") || l.startsWith("https://")}
       (
         path,

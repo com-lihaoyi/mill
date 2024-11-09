@@ -79,6 +79,8 @@ object PalantirFormatModuleTest extends TestSuite {
   }
 
   def checkState(actualFiles: Seq[os.Path], expectedRoot: os.Path): Boolean = {
+    if (!os.exists(expectedRoot)) os.makeDir.all(expectedRoot)
+
     val expectedFiles = walkFiles(expectedRoot)
     actualFiles.length == expectedFiles.length &&
     actualFiles.iterator.zip(expectedFiles.iterator).forall {
