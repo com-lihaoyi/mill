@@ -1,11 +1,16 @@
 package build
 
 import mill._
+import mill.api._
 import mill.javalib._
 import mill.javalib.publish._
 import $packages._
 
-trait BasePublishModule extends PublishModule {
+object `package` extends RootModule with PublishModule with MavenModule {
+
+  override def artifactName = "parent"
+
+  override def pomPackagingType = PackagingType.Pom
 
   override def pomSettings = PomSettings(
     "Just a pom that makes it easy to build both projects at the same time.",
@@ -15,13 +20,7 @@ trait BasePublishModule extends PublishModule {
     VersionControl(),
     Seq()
   )
+
   override def publishVersion = "1.0-SNAPSHOT"
-
-}
-
-object `package` extends RootModule with BasePublishModule {
-  override def artifactName = "parent"
-
-  override def pomPackagingType = PackagingType.Pom
 
 }

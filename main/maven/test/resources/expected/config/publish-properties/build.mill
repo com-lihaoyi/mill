@@ -1,10 +1,18 @@
 package build
 
 import mill._
+import mill.api._
 import mill.javalib._
 import mill.javalib.publish._
 
-trait BasePublishModule extends PublishModule {
+object `package` extends RootModule with PublishModule with MavenModule {
+
+  override def artifactName = "single-module-project"
+
+  override def javacOptions = Seq("-source", "1.6", "-target", "1.6")
+
+  override def ivyDeps =
+    Agg(ivy"javax.servlet.jsp:jsp-api:2.2", ivy"javax.servlet:servlet-api:2.5")
 
   override def pomSettings = PomSettings(
     "Sample single module Maven project with a working, deployable site.",
@@ -19,6 +27,7 @@ trait BasePublishModule extends PublishModule {
     ),
     Seq()
   )
+
   override def publishVersion = "1.0-SNAPSHOT"
 
   override def publishProperties = super.publishProperties() ++ Map(
@@ -26,16 +35,15 @@ trait BasePublishModule extends PublishModule {
     ("project.reporting.outputEncoding", "utf-8")
   )
 
-}
+  object test extends MavenTests with TestModule.Junit4 {
 
-object `package` extends RootModule with BasePublishModule {
-  override def artifactName = "single-module-project"
+    override def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy"junit:junit-dep:4.10",
+      ivy"org.hamcrest:hamcrest-core:1.2.1",
+      ivy"org.hamcrest:hamcrest-library:1.2.1",
+      ivy"org.mockito:mockito-core:1.8.5"
+    )
 
-  override def javacOptions = Seq("-source", "1.6", "-target", "1.6")
-
-  override def ivyDeps =
-    Agg(ivy"javax.servlet.jsp:jsp-api:2.2", ivy"javax.servlet:servlet-api:2.5")
-
-  override def pomPackagingType = PackagingType.Jar
+  }
 
 }

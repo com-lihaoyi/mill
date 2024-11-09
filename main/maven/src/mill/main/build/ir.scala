@@ -62,6 +62,7 @@ object Node {
             vals.iterator.map { case (k, v) => s"val $k = $v" }.mkString(System.lineSeparator())
 
           s"""object $name {
+             |
              |$members
              |}""".stripMargin
       }
@@ -71,12 +72,19 @@ object Node {
         case head +: tail => tail.mkString(s"extends $head with ", " with ", "")
       }
       s"""package $pkg
+         |
          |${imports.mkString(System.lineSeparator())}
+         |
          |${typedefs.mkString(System.lineSeparator())}
+         |
          |${companionTypedefs.mkString(System.lineSeparator())}
+         |
          |object $name $extendsClause {
+         |
          |$body
-         |}""".stripMargin
+         |
+         |}
+         |""".stripMargin
     }
   }
 

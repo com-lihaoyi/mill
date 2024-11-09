@@ -1,4 +1,4 @@
-package build.`single-module`
+package build
 
 import mill._
 import mill.api._
@@ -8,6 +8,9 @@ import mill.javalib.publish._
 object `package` extends RootModule with PublishModule with MavenModule {
 
   override def artifactName = "single-module-project"
+
+  override def resources = Task
+    .Sources { super.resources() ++ Seq(PathRef(millSourcePath / "resources")) }
 
   override def javacOptions = Seq("-source", "1.6", "-target", "1.6")
 
@@ -31,6 +34,13 @@ object `package` extends RootModule with PublishModule with MavenModule {
   override def publishVersion = "1.0-SNAPSHOT"
 
   object test extends MavenTests with TestModule.Junit4 {
+
+    override def resources = Task.Sources {
+      super.resources() ++ Seq(
+        PathRef(millSourcePath / "resources"),
+        PathRef(millSourcePath / "../src/test/secrets")
+      )
+    }
 
     override def ivyDeps = super.ivyDeps() ++ Agg(
       ivy"junit:junit-dep:4.10",

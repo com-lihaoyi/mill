@@ -1,11 +1,12 @@
 package build
 
 import mill._
+import mill.api._
 import mill.javalib._
 import mill.javalib.publish._
 import $packages._
 
-trait MyModule extends PublishModule {
+trait MyModule extends PublishModule with MavenModule {
 
   override def pomSettings = PomSettings(
     "Sample multi module Maven project with a working, deployable site.",
@@ -20,11 +21,13 @@ trait MyModule extends PublishModule {
     ),
     Seq()
   )
+
   override def publishVersion = "1.0-SNAPSHOT"
 
 }
 
 object `package` extends RootModule with MyModule {
+
   override def artifactName = "multi-module-parent"
 
   override def javacOptions = Seq("-source", "1.6", "-target", "1.6")

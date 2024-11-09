@@ -86,34 +86,32 @@ object BuildGen {
   }
 
   private def make(inputs: Seq[MavenNode], cfg: BuildGenConfig): Seq[MillNode] = {
-    val baseModule = cfg.baseModule
-    val noSharePublish = cfg.noSharePublish.value
-
     val packages = // for resolving moduleDeps
       inputs.iterator
         .map(build => (Id(build.module), build.pkg))
         .toMap
 
-    val baseModuleTypedef = {
-      val publishSettings = if (noSharePublish) "" else publish(inputs.head.module, cfg)
+    val baseModuleTypedef = cfg.baseModule.fold("") { baseModule =>
+      val sharedSettings = metadata(inputs.head.module, cfg)
 
-      s"""trait $baseModule extends PublishModule {
-         |$publishSettings
+      s"""trait $baseModule extends PublishModule with MavenModule {
+         |
+         |$sharedSettings
+         |
          |}""".stripMargin
     }
 
     inputs.map { case build @ Node(dirs, model) =>
       val packaging = model.getPackaging
-      val projectDir = os.Path(model.getProjectDirectory)
-      def projectRel(path: os.Path): String = path.relativeTo(projectDir).toString()
-      val isMavenModule = packaging != "pom" && os.exists(projectDir / "src/main/java")
+      val millSourcePath = os.Path(model.getProjectDirectory)
 
       val imports = {
         val b = Seq.newBuilder[String]
         b += "import mill._"
+        b += "import mill.api._"
         b += "import mill.javalib._"
         b += "import mill.javalib.publish._"
-        if (dirs.nonEmpty) b += s"import $$file.$baseModule"
+        if (dirs.nonEmpty) cfg.baseModule.foreach(baseModule => b += s"import $$file.$baseModule")
         else if (packages.size > 1) b += "import $packages._"
         b.result()
       }
@@ -124,11 +122,8 @@ object BuildGen {
 
       val supertypes = {
         val b = Seq.newBuilder[String]
-
         b += "RootModule"
-        b += baseModule
-        if (isMavenModule) b += "MavenModule"
-
+        cfg.baseModule.fold(b += "PublishModule" += "MavenModule")(b += _)
         b.result()
       }
 
@@ -143,15 +138,14 @@ object BuildGen {
           val name = if (dirs.nonEmpty && dirs.last == id) null else s"\"$id\"" // skip default
           optional("override def artifactName = ", name)
         }
-        val resourcesSetting = {
-          val dirs = model.getBuild.getResources.iterator().asScala
-            .map(_.getDirectory)
-            .map(os.Path(_))
-            .filter(os.exists)
-            .map(projectRel)
-            .filterNot(_ == "src/main/resources" && isMavenModule)
-          resources(dirs)
-        }
+        val resourcesSetting =
+          resources(
+            model.getBuild.getResources.iterator().asScala
+              .map(_.getDirectory)
+              .map(os.Path(_))
+              .filterNot((millSourcePath / "src/main/resources").equals)
+              .map(_.relativeTo(millSourcePath))
+          )
         val javacOptionsSetting =
           optional("override def javacOptions = Seq(\"", javacOptions, "\",\"", "\")")
         val depsSettings = compileDeps.settings("ivyDeps", "moduleDeps")
@@ -159,9 +153,9 @@ object BuildGen {
         val runDepsSettings = runtimeDeps.settings("runIvyDeps", "runModuleDeps")
         val pomPackagingTypeSetting = {
           val packagingType = packaging match {
-            case "jar" => "PackagingType.Jar"
+            case "jar" => null // skip default
             case "pom" => "PackagingType.Pom"
-            case _ => null
+            case pkg => s"\"$pkg\""
           }
           optional(s"override def pomPackagingType = ", packagingType)
         }
@@ -175,33 +169,43 @@ object BuildGen {
             s"override def pomParentProject = Some(Artifact(\"$group\", \"$id\", \"$version\"))"
           }
         }
-        val publishSettings = if (noSharePublish) publish(model, cfg) else ""
-        val testModuleTypedef =
-          if (os.exists(projectDir / "src/test/java")) {
-            val resources = model.getBuild.getTestResources.iterator().asScala
-              .map(_.getDirectory)
-              .map(os.Path(_))
-              .filter(os.exists)
-              .map(projectRel)
-            val (supertype, sourceDirs, resourceDirs) =
-              if (isMavenModule)
-                ("MavenTests", Seq.empty, resources.filterNot(_ == "src/test/resources"))
-              else
-                // we get away with this because baseModule <: PublishModule <: JavaModule
-                ("JavaTests", Seq("src/test/java"), resources)
+        val metadataSettings = if (cfg.baseModule.isEmpty) metadata(model, cfg) else ""
+        val testModuleTypedef = {
+          val resources = model.getBuild.getTestResources.iterator().asScala
+            .map(_.getDirectory)
+            .map(os.Path(_))
+            .filterNot((millSourcePath / "src/test/resources").equals)
+          if (
+            "pom" != packaging && (
+              os.exists(millSourcePath / "src/test") || resources.nonEmpty || testModule.nonEmpty
+            )
+          ) {
+            val supertype = "MavenTests"
+            val testMillSourcePath = millSourcePath / "test"
+            val resourcesRel = resources.map(_.relativeTo(testMillSourcePath))
 
-            testDeps.testTypeDef(supertype, testModule, sourceDirs, resourceDirs)
+            testDeps.testTypeDef(supertype, testModule, resourcesRel)
           } else ""
+        }
 
         s"""$artifactNameSetting
+           |
            |$resourcesSetting
+           |
            |$javacOptionsSetting
+           |
            |$depsSettings
+           |
            |$compileDepsSettings
+           |
            |$runDepsSettings
+           |
            |$pomPackagingTypeSetting
+           |
            |$pomParentProjectSetting
-           |$publishSettings
+           |
+           |$metadataSettings
+           |
            |$testModuleTypedef""".stripMargin
       }
 
@@ -235,15 +239,14 @@ object BuildGen {
         optional(s"override def $moduleDepsName = Seq", moduleDeps)
 
       s"""$ivyDepsSetting
-         |$moduleDepsSetting
-         |""".stripMargin
+         |
+         |$moduleDepsSetting""".stripMargin
     }
 
     def testTypeDef(
         supertype: String,
         testModule: Scoped.TestModule,
-        sourceDirs: IterableOnce[String],
-        resourceDirs: IterableOnce[String]
+        resourcesRel: IterableOnce[os.RelPath]
     ): String =
       if (ivyDeps.isEmpty && moduleDeps.isEmpty) ""
       else {
@@ -251,18 +254,19 @@ object BuildGen {
           case Some(module) => s"object test extends $supertype with $module"
           case None => s"trait Tests extends $supertype"
         }
-        val ivyDepsSetting =
-          optional(s"override def ivyDeps = super.ivyDeps() ++ Agg", ivyDeps)
+        val resourcesSetting = resources(resourcesRel)
         val moduleDepsSetting =
           optional(s"override def moduleDeps = super.moduleDeps ++ Seq", moduleDeps)
-        val sourcesSetting = sources(sourceDirs)
-        val resourcesSetting = resources(resourceDirs)
+        val ivyDepsSetting = optional(s"override def ivyDeps = super.ivyDeps() ++ Agg", ivyDeps)
 
         s"""$declare {
-           |$ivyDepsSetting
-           |$moduleDepsSetting
-           |$sourcesSetting
+           |
            |$resourcesSetting
+           |
+           |$moduleDepsSetting
+           |
+           |$ivyDepsSetting
+           |
            |}""".stripMargin
       }
   }
@@ -289,6 +293,7 @@ object BuildGen {
       val testModuleDeps = SortedSet.newBuilder[String]
       var testModule = Option.empty[String]
 
+      val notPom = "pom" != model.getPackaging
       val ivyInterp: Dependency => IvyInterp = {
         val module = model.getProjectDirectory.getName
         dep => {
@@ -343,15 +348,16 @@ object BuildGen {
             testModuleDeps += packages(id)
           case "test" =>
             testIvyDeps += ivyDep(dep)
-            if (testModule.isEmpty) testModule = Option(dep.getGroupId match {
-              case "junit" => "TestModule.Junit4"
-              case "org.junit.jupiter" => "TestModule.Junit5"
-              case "org.testng" => "TestModule.TestNg"
-              case _ => null
-            })
           case scope =>
             println(s"skipping dependency $id with $scope scope")
         }
+        // Maven module can be tests only
+        if (notPom && testModule.isEmpty) testModule = Option(dep.getGroupId match {
+          case "junit" => "TestModule.Junit4"
+          case "org.junit.jupiter" => "TestModule.Junit5"
+          case "org.testng" => "TestModule.TestNg"
+          case _ => null
+        })
       }
 
       val depsObject = cfg.depsObject.map(BuildCompanion(_, SortedMap(namedIvyDeps.result() *)))
@@ -367,39 +373,7 @@ object BuildGen {
     }
   }
 
-  private def escapes(c: Char): Boolean =
-    (c: @annotation.switch) match {
-      case '\r' | '\n' | '"' => true
-      case _ => false
-    }
-
-  private def escape(value: String): String =
-    if (null == value) "\"\""
-    else if (value.exists(escapes)) s"\"\"\"$value\"\"\".stripMargin"
-    else s"\"$value\""
-
-  private def escapeOption(value: String): String =
-    if (null == value) "None" else s"Some(${escape(value)})"
-
-  private def optional(start: String, value: String): String =
-    if (null == value) ""
-    else s"$start$value"
-
-  private def optional(construct: String, args: IterableOnce[String]): String =
-    optional(construct + "(", args, ",", ")")
-
-  private def optional(
-      start: String,
-      vals: IterableOnce[String],
-      sep: String,
-      end: String
-  ): String = {
-    val itr = vals.iterator
-    if (itr.isEmpty) ""
-    else itr.mkString(start, sep, end)
-  }
-
-  private def publish(model: Model, cfg: BuildGenConfig): String = {
+  private def metadata(model: Model, cfg: BuildGenConfig): String = {
     val description = escape(model.getDescription)
     val organization = escape(model.getGroupId)
     val url = escape(model.getUrl)
@@ -446,35 +420,63 @@ object BuildGen {
       optional("override def publishProperties = super.publishProperties() ++ Map", properties)
 
     s"""$pomSettings
+       |
        |$publishVersion
-       |$publishProperties
-       |""".stripMargin
+       |
+       |$publishProperties""".stripMargin
   }
 
-  private def resources(relDirs: IterableOnce[String]): String =
-    optional(
-      "override def resources = Task.Sources",
-      relDirs.iterator.map(dir => s"millSourcePath / \"$dir\"")
-    )
+  private def escapes(c: Char): Boolean =
+    (c: @annotation.switch) match {
+      case '\r' | '\n' | '"' => true
+      case _ => false
+    }
 
-  private def sources(relDirs: IterableOnce[String]): String =
-    optional(
-      "override def sources = Task.Sources",
-      relDirs.iterator.map(dir => s"millSourcePath / \"$dir\"")
-    )
+  private def escape(value: String): String =
+    if (null == value) "\"\""
+    else if (value.exists(escapes)) s"\"\"\"$value\"\"\".stripMargin"
+    else s"\"$value\""
+
+  private def escapeOption(value: String): String =
+    if (null == value) "None" else s"Some(${escape(value)})"
+
+  private def optional(start: String, value: String): String =
+    if (null == value) ""
+    else s"$start$value"
+
+  private def optional(construct: String, args: IterableOnce[String]): String =
+    optional(construct + "(", args, ",", ")")
+
+  private def optional(
+      start: String,
+      vals: IterableOnce[String],
+      sep: String,
+      end: String
+  ): String = {
+    val itr = vals.iterator
+    if (itr.isEmpty) ""
+    else itr.mkString(start, sep, end)
+  }
+
+  private def resources(relPaths: IterableOnce[os.RelPath]): String = {
+    val itr = relPaths.iterator
+    if (itr.isEmpty) ""
+    else
+      itr
+        .map(rel => s"PathRef(millSourcePath / \"$rel\")")
+        .mkString(s"override def resources = Task.Sources { super.resources() ++ Seq(", ", ", ") }")
+  }
 }
 
 @main
 @mill.api.internal
 case class BuildGenConfig(
-    @arg(doc = "generated base module trait name")
-    baseModule: String = "BasePublishModule",
-    @arg(doc = "do not define and share publish settings in base module")
-    noSharePublish: Flag = Flag(),
+    @arg(doc = "generated base module trait, defining project metadata, name")
+    baseModule: Option[String] = None,
+    @arg(doc = "generated companion object, defining constants for dependencies, name")
+    depsObject: Option[String] = None,
     @arg(doc = "capture and publish properties defined in pom.xml")
     publishProperties: Flag = Flag(),
-    @arg(doc = "generate dependencies companion object with name")
-    depsObject: Option[String] = None,
     @arg(doc = "use cache for Maven repository system")
     cacheRepository: Flag = Flag(),
     @arg(doc = "process Maven plugin executions and configurations")
