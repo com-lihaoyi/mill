@@ -2,33 +2,6 @@
 
 include::partial$gtag-config.adoc[]
 
-```graphviz
-digraph G {
-  rankdir=LR
-  node [shape=box width=0 height=0 style=filled fillcolor=white]
-  bgcolor=transparent
-  newrank=true;
-  subgraph cluster_0 {
-    style=dashed
-    node [shape=box width=0 height=0 style=filled fillcolor=white]
-    label = "foo";
-
-    "foo.sources" -> "foo.compile" -> "foo.classPath" -> "foo.assembly"
-    "foo.resources" -> "foo.assembly"
-    "foo.classPath"
-  }
-  subgraph cluster_1 {
-    style=dashed
-    node [shape=box width=0 height=0 style=filled fillcolor=white]
-    label = "bar";
-
-    "foo.classPath" -> "bar.compile" [constraint=false]
-    "foo.classPath" -> "bar.classPath"
-    "bar.sources" -> "bar.compile" -> "bar.classPath" -> "bar.assembly"
-    "bar.resources" -> "bar.assembly"
-  }
-}
-```
 
 Mill is a fast, scalable, multi-language build tool that supports Java, Scala,
 and Kotlin:
@@ -39,8 +12,8 @@ or xref:comparisons/gradle.adoc[2-4x faster than Gradle]
 * Mill's typed config language and immutable xref:depth/design-principles.adoc[task graph]
 helps keep builds clean and understandable
 
-* Mill scales well from small single-module projects
-to xref:depth/large-builds.adoc[large monorepos] with hundreds of modules
+* Mill is an alternative to https://bazel.build/[Bazel]
+for xref:depth/large-builds.adoc[large monorepos] with hundreds of modules in multiple languages
 
 Although the Java compiler is very fast and the Java language is easy to learn,
 JVM build tools have a reputation for being sluggish and confusing. Mill tries to
@@ -51,10 +24,10 @@ Java platform's performance and usability:
 xref:depth/evaluation-model.adoc#_caching_at_each_layer_of_the_evaluation_model[caches]
 and xref:cli/flags.adoc#_jobs_j[parallelizes] build
 tasks, keeping your workflows fast and responsive. Mill adds minimal overhead over
-the logic necessary to build your project, while providing tools to let you identify
-and resolve bottlenecks in your build
+the logic necessary to build your project, and avoids the long configuration or initialization
+times often necessary in other build tools like Gradle or SBT
 
-* *Maintainability*: Mill goes beyond YAML and Bash, with config and custom logic written in
+* *Maintainability*: Mill's config and custom logic is written in
 xref:javalib/intro.adoc#_custom_build_logic[concise type-checked code],
 and an immutable xref:depth/design-principles.adoc[module tree and task graph]. This
 catches config issues early, and helps IDEs
@@ -64,7 +37,7 @@ understand your Mill build better than any other build system
 
 * *Flexibility*: Mill's tasks and modules allow anything from adding
 xref:fundamentals/tasks.adoc#primitive-tasks[simple build steps], up to
-entire xref:extending/new-language.adoc[language toolchains].
+entire xref:extending/example-python-support.adoc[language toolchains].
 You can xref:extending/import-ivy-plugins.adoc[import any JVM library] in your build,
 use Mill's rich ecosystem of xref:extending/thirdparty-plugins.adoc[Third-Party Mill Plugins],
 or xref:extending/writing-plugins.adoc[write plugins] yourself and
