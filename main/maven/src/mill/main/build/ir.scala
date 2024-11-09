@@ -45,6 +45,15 @@ case class Node[Module](dirs: Seq[String], module: Module)
 @mill.api.experimental
 object Node {
 
+  private val linebreak =
+    s"""
+       |""".stripMargin
+
+  private val linebreak2 =
+    s"""
+       |
+       |""".stripMargin
+
   implicit class BuildOps(private val self: Node[BuildDefinition]) extends AnyVal {
 
     def file: os.RelPath = {
@@ -59,7 +68,7 @@ object Node {
         case BuildCompanion(_, vals) if vals.isEmpty => ""
         case BuildCompanion(name, vals) =>
           val members =
-            vals.iterator.map { case (k, v) => s"val $k = $v" }.mkString(System.lineSeparator())
+            vals.iterator.map { case (k, v) => s"val $k = $v" }.mkString(linebreak)
 
           s"""object $name {
              |
@@ -73,11 +82,11 @@ object Node {
       }
       s"""package $pkg
          |
-         |${imports.mkString(System.lineSeparator())}
+         |${imports.mkString(linebreak)}
          |
-         |${typedefs.mkString(System.lineSeparator())}
+         |${typedefs.mkString(linebreak2)}
          |
-         |${companionTypedefs.mkString(System.lineSeparator())}
+         |${companionTypedefs.mkString(linebreak2)}
          |
          |object $name $extendsClause {
          |
