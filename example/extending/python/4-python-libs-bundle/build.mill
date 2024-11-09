@@ -1,0 +1,179 @@
+// This implementation extends `PythonModule` with these key Tasks:
+//
+// - `pythonDeps`: allows the user to define python dependencies that will be `pip installed`.
+//   These are aggregated into `transitivePythonDeps`
+// - `bundle`: Packages the module and dependencies into a standalone `bundle.pex` file,
+//   making deployment easier.
+
+package build
+import mill._
+
+trait PythonModule extends Module {
+  def moduleDeps: Seq[PythonModule] = Nil
+  def mainFileName: T[String] = Task { "main.py" }
+  def sources: T[PathRef] = Task.Source(millSourcePath / "src")
+
+  def pythonDeps: T[Seq[String]] = Task { Seq.empty[String] }
+
+  def transitivePythonDeps: T[Seq[String]] = Task {
+    val upstreamDependencies = Task.traverse(moduleDeps)(_.transitivePythonDeps)().flatten
+    pythonDeps() ++ upstreamDependencies
+  }
+
+  def pythonExe: T[PathRef] = Task {
+    os.call(("python3", "-m", "venv", Task.dest / "venv"))
+    val python = Task.dest / "venv" / "bin" / "python3"
+    os.call((python, "-m", "pip", "install", "mypy==1.13.0", "pex==2.24.1", transitivePythonDeps()))
+
+    PathRef(python)
+  }
+
+  def typeCheck: T[Unit] = Task {
+    val upstreamTypeCheck = Task.traverse(moduleDeps)(_.typeCheck)()
+
+    os.call(
+      (pythonExe().path, "-m", "mypy", "--strict", sources().path),
+      stdout = os.Inherit,
+      cwd = T.workspace
+    )
+  }
+
+  def gatherScripts(upstream: Seq[(PathRef, PythonModule)]) = {
+    for ((sourcesFolder, mod) <- upstream) {
+      val destinationPath = os.pwd / mod.millSourcePath.subRelativeTo(build.millSourcePath)
+      os.copy.over(sourcesFolder.path / os.up, destinationPath)
+    }
+  }
+
+  def run(args: mill.define.Args) = Task.Command {
+    gatherScripts(Task.traverse(moduleDeps)(_.sources)().zip(moduleDeps))
+
+    os.call(
+      (pythonExe().path, sources().path / mainFileName(), args.value),
+      env = Map("PYTHONPATH" -> Task.dest.toString),
+      stdout = os.Inherit
+    )
+  }
+
+  /** Bundles the project into a single PEX executable(bundle.pex). */
+  def bundle = Task {
+    gatherScripts(Task.traverse(moduleDeps)(_.sources)().zip(moduleDeps))
+
+    val pexFile = Task.dest / "bundle.pex"
+    os.call(
+      (
+        pythonExe().path,
+        "-m",
+        "pex",
+        transitivePythonDeps(),
+        "-D",
+        Task.dest,
+        "-c",
+        sources().path / mainFileName(),
+        "-o",
+        pexFile,
+        "--scie",
+        "eager"
+      ),
+      env = Map("PYTHONPATH" -> Task.dest.toString),
+      stdout = os.Inherit
+    )
+
+    PathRef(pexFile)
+  }
+
+}
+
+// Note the use of `Task.traverse(moduleDeps)` in order to aggregate the upstream modules
+// library dependencies and the `typeCheck` outputs.
+//
+// Now, our three modules can define `pythonDeps` to be used at runtime:
+
+object foo extends PythonModule {
+  object bar extends PythonModule {
+    def pythonDeps = Seq("pandas==2.2.3", "numpy==2.1.3")
+  }
+  def pythonDeps = Seq("numpy==2.1.3")
+}
+
+object qux extends PythonModule {
+  def moduleDeps = Seq(foo, foo.bar)
+}
+
+// To run the project and create a `.pex` executable, use the following commands:
+
+/** Usage
+
+> ./mill qux.run
+Numpy : Sum: 150 | Pandas: Mean: 30.0, Max: 50
+
+> ./mill show qux.bundle
+".../out/qux/bundle.dest/bundle.pex"
+
+> out/qux/bundle.dest/bundle.pex # running the PEX binary outside of Mill
+Numpy : Sum: 150 | Pandas: Mean: 30.0, Max: 50
+
+*/
+
+// This generates the `bundle.pex` file, which packages all dependencies
+// and can be executed as a standalone application.
+//
+// To Run the `bundle.pex` file, First Provide the executable permission(+x)
+// to bundle.pex and then run using `./bundle.pex` command.
+//
+// The final module tree and task graph is now as follows, with the additional dependencies
+// tasks with upstream and the bundle tasks downstream:
+//
+// ```graphviz
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   subgraph cluster_3 {
+//     style=dashed
+//     label=qux
+//     "qux.pythonDeps" -> "qux.pythonExe" [color=green, penwidth=3]
+//     "qux.pythonExe" -> "qux.typeCheck"
+//     "qux.pythonExe" -> "qux.run"
+//     "qux.sources" -> "qux.typeCheck"
+//     "qux.sources" -> "qux.run"
+//     "qux.sources" -> "qux.bundle" [color=green, penwidth=3]
+//     "qux.bundle" [color=green, penwidth=3]
+//     "qux.mainFileName" -> "qux.run"
+//     "qux.pythonDeps" [color=green, penwidth=3]
+//   }
+//   subgraph cluster_1 {
+//     subgraph cluster_2 {
+//       style=dashed
+//       label=bar
+//       "bar.pythonDeps" -> "bar.pythonExe"  [color=green, penwidth=3]
+//       "bar.pythonExe" -> "bar.typeCheck"
+//       "bar.pythonExe" -> "bar.run"
+//       "bar.sources" -> "bar.typeCheck"
+//       "bar.sources" -> "bar.run"
+//       "bar.sources" -> "bar.bundle" [color=green, penwidth=3]
+//       "bar.bundle" [color=green, penwidth=3]
+//       "bar.mainFileName" -> "bar.run"
+//       "bar.pythonDeps" [color=green, penwidth=3]
+//     }
+//     style=dashed
+//     label=foo
+//     "foo.pythonDeps" -> "foo.pythonExe"  [color=green, penwidth=3]
+//     "foo.pythonExe" -> "foo.typeCheck"
+//     "foo.pythonExe" -> "foo.run"
+//     "foo.sources" -> "foo.typeCheck"
+//     "foo.sources" -> "foo.run"
+//     "foo.sources" -> "foo.bundle" [color=green, penwidth=3]
+//     "foo.bundle" [color=green, penwidth=3]
+//     "foo.mainFileName" -> "foo.run"
+//     "foo.pythonDeps" [color=green, penwidth=3]
+//   }
+//   "bar.pythonDeps" -> "qux.pythonDeps" [color=green, penwidth=3]
+//   "foo.pythonDeps" -> "qux.pythonDeps" [color=green, penwidth=3]
+//   "bar.typeCheck" -> "qux.typeCheck"
+//   "bar.sources" -> "qux.run"
+//   "bar.sources" -> "qux.bundle" [color=green, penwidth=3]
+//   "foo.typeCheck" -> "qux.typeCheck"
+//   "foo.sources" -> "qux.run"
+//   "foo.sources" -> "qux.bundle" [color=green, penwidth=3]
+// }
+// ```

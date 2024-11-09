@@ -24,7 +24,7 @@ object PromptLoggerTests extends TestSuite {
       autoUpdate = false
     ) {
       // For testing purposes, wait till the system is quiescent before re-printing
-      // the prompt, to try and keep the test executions deterministics
+      // the prompt, to try and keep the test executions deterministic
       override def refreshPrompt(ending: Boolean = false): Unit = {
         streamsAwaitPumperEmpty()
         super.refreshPrompt(ending)

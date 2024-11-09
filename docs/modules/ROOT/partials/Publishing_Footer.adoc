@@ -78,7 +78,7 @@ by passing in `--sonatypeUri example.company.com` instead.
 Since Feb. 2021 any new Sonatype accounts have been created on
 `s01.oss.sonatype.org`, so you'll want to ensure you set the relevant URIs to match.
 
-The symptom of using the "wrong" URL for publishling is typically a 403 error code, in response to the publish request.
+The symptom of using the "wrong" URL for publishing is typically a 403 error code, in response to the publish request.
 
 See https://central.sonatype.org/publish/publish-guide/#releasing-to-central
 

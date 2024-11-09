@@ -38,7 +38,7 @@ import mill.util.PrintLogger
       )(ctx)
 
       // Clear interrupted state in case some badly-behaved test suite
-      // dirtied the thread-interrupted flag and forgot to clean up. Otherwise
+      // dirtied the thread-interrupted flag and forgot to clean up. Otherwise,
       // that flag causes writing the results to disk to fail
       Thread.interrupted()
       os.write(testArgs.outputPath, upickle.default.stream(result))
