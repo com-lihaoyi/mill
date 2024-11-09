@@ -29,6 +29,10 @@ object PalantirFormatModuleTest extends TestSuite {
         checkState(
           afterFormat(before / "palantir", sources = Seq("src/Main.java")),
           after / "palantir"
+        ),
+        checkState(
+          afterFormat(before / "empty"),
+          after / "empty"
         )
       )
 
@@ -47,6 +51,10 @@ object PalantirFormatModuleTest extends TestSuite {
         checkState(
           afterFormatAll(before / "palantir"),
           after / "palantir"
+        ),
+        checkState(
+          afterFormatAll(before / "empty"),
+          after / "empty"
         )
       )
 
@@ -122,7 +130,7 @@ object PalantirFormatModuleTest extends TestSuite {
       },
       { _ =>
         val Right(sources) = eval(module.sources)
-        sources.value.flatMap(ref => walkFiles(ref.path))
+        sources.value.map(_.path).filter(os.exists(_)).flatMap(walkFiles(_))
       }
     )
   }

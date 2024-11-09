@@ -128,58 +128,70 @@ object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule
       ctx.log.info("formatting java sources ...")
     }
 
-    val mainArgs = palantirArgs(sources, check, options)
+    palantirArgs(sources, check, options) match{
+      case None =>
 
-    ctx.log.debug(s"running palantirformat with $mainArgs")
+        ctx.log.debug("source folder not found, skipping")
+      case Some(mainArgs) =>
 
-    val exitCode = Jvm.callSubprocess(
-      mainClass = "com.palantir.javaformat.java.Main",
-      classPath = classPath.map(_.path),
-      jvmArgs = jvmArgs,
-      mainArgs = mainArgs,
-      workingDir = ctx.dest,
-      check = false
-    ).exitCode
+        ctx.log.debug(s"running palantirformat with $mainArgs")
 
-    if (check && exitCode != 0) {
-      ctx.log.error(
-        "palantirformat aborted due to format error(s) (or invalid plugin settings/palantirformat options)"
-      )
-      throw new RuntimeException(s"palantirformat exit($exitCode)")
+        val exitCode = Jvm.callSubprocess(
+          mainClass = "com.palantir.javaformat.java.Main",
+          classPath = classPath.map(_.path),
+          jvmArgs = jvmArgs,
+          mainArgs = mainArgs,
+          workingDir = ctx.dest,
+          check = false
+        ).exitCode
+
+        if (check && exitCode != 0) {
+          ctx.log.error(
+            "palantirformat aborted due to format error(s) (or invalid plugin settings/palantirformat options)"
+          )
+          throw new RuntimeException(s"palantirformat exit($exitCode)")
+        }
     }
+
   }
 
   private def palantirArgs(
       sources: IterableOnce[PathRef],
       check: Boolean,
       options: PathRef
-  ): Seq[String] = {
+  ): Option[Seq[String]] = {
 
-    val args = Seq.newBuilder[String]
+    val sourceArgs = sources
+      .iterator
+      .map(_.path)
+      .filter(os.exists(_))
+      .flatMap(os.walk(_, includeTarget = true))
+      .filter(os.isFile)
+      .filter(_.ext == "java")
+      .map(_.toString())
+      .toSeq
 
-    // https://github.com/palantir/palantir-java-format/blob/dae9be4b84e2bd4d7ea346c6374fda47eee7118f/palantir-java-format/src/main/java/com/palantir/javaformat/java/CommandLineOptionsParser.java#L199
-    if (os.exists(options.path)) args += s"@${options.path}"
+    Option.when(sourceArgs.nonEmpty) {
+      val args = Seq.newBuilder[String]
 
-    // https://github.com/palantir/palantir-java-format/blob/dae9be4b84e2bd4d7ea346c6374fda47eee7118f/palantir-java-format/src/main/java/com/palantir/javaformat/java/CommandLineOptions.java#L27
-    if (check) {
-      // do not overwrite files and exit(1) if formatting changes were detected
-      args += "--dry-run" += "--set-exit-if-changed"
-    } else {
-      // format in place
-      args += "--replace"
+      // https://github.com/palantir/palantir-java-format/blob/dae9be4b84e2bd4d7ea346c6374fda47eee7118f/palantir-java-format/src/main/java/com/palantir/javaformat/java/CommandLineOptionsParser.java#L199
+      if (os.exists(options.path)) args += s"@${options.path}"
+
+      // https://github.com/palantir/palantir-java-format/blob/dae9be4b84e2bd4d7ea346c6374fda47eee7118f/palantir-java-format/src/main/java/com/palantir/javaformat/java/CommandLineOptions.java#L27
+      if (check) {
+        // do not overwrite files and exit(1) if formatting changes were detected
+        args += "--dry-run" += "--set-exit-if-changed"
+      } else {
+        // format in place
+        args += "--replace"
+      }
+
+      // https://github.com/palantir/palantir-java-format/blob/dae9be4b84e2bd4d7ea346c6374fda47eee7118f/palantir-java-format/src/main/java/com/palantir/javaformat/java/CommandLineOptionsParser.java#L49
+      args ++= sourceArgs
+
+
+      args.result()
     }
-
-    // https://github.com/palantir/palantir-java-format/blob/dae9be4b84e2bd4d7ea346c6374fda47eee7118f/palantir-java-format/src/main/java/com/palantir/javaformat/java/CommandLineOptionsParser.java#L49
-    args ++=
-      sources
-        .iterator
-        .map(_.path)
-        .flatMap(os.walk(_, includeTarget = true))
-        .filter(os.isFile)
-        .filter(_.ext == "java")
-        .map(_.toString())
-
-    args.result()
   }
 
   /**
