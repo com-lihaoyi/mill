@@ -100,7 +100,7 @@
     <a class="nav-link" href="javalib/dependencies.html">Java Library Dependencies</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="javalib/testing.html">Testing Java Projects</a>
   </li>
 
@@ -143,7 +143,7 @@
     <a class="nav-link" href="scalalib/dependencies.html">Scala Library Dependencies</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="scalalib/testing.html">Testing Scala Projects</a>
   </li>
 
@@ -171,7 +171,7 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="kotlinlib/intro.html">(Experimental) Kotlin with Mill</a>
+    <a class="nav-link" href="kotlinlib/intro.html">Kotlin with Mill</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
@@ -186,7 +186,7 @@
     <a class="nav-link" href="kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="kotlinlib/testing.html">Testing Kotlin Projects</a>
   </li>
 
@@ -208,7 +208,7 @@
 </ul>
   </li>
 
-  <li class="nav-item is-current-page" data-depth="1">
+  <li class="nav-item is-current-page is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
     <a class="nav-link" href="why-mill.html">Why Mill?</a>
 <ul class="nav-list">
@@ -225,7 +225,7 @@
     <a class="nav-link" href="comparisons/sbt.html">Case Study: Mill vs SBT</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="comparisons/unique.html">What Makes Mill Unique</a>
   </li>
 </ul>
@@ -267,7 +267,7 @@
     <a class="nav-link" href="fundamentals/out-dir.html">The Output Directory</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="fundamentals/query-syntax.html">Task Query Syntax</a>
   </li>
 
@@ -311,7 +311,7 @@
     <a class="nav-link" href="contrib/bloop.html">Bloop</a>
   </li>
 
-  <li class="nav-item" data-depth="3">
+  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="contrib/buildinfo.html">BuildInfo</a>
   </li>
 
@@ -373,7 +373,7 @@
     <a class="nav-link" href="extending/thirdparty-plugins.html">Third-Party Plugins</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="extending/running-jvm-code.html">Running Dynamic JVM Code</a>
   </li>
 
@@ -386,7 +386,11 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="extending/new-language.html">Support for New Languages</a>
+    <a class="nav-link" href="extending/example-typescript-support.html">Example: Typescript Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="extending/example-python-support.html">Example: Python Support</a>
   </li>
 </ul>
   </li>
@@ -408,7 +412,7 @@
     <a class="nav-link" href="depth/evaluation-model.html">The Mill Evaluation Model</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="depth/design-principles.html">Mill Design Principles</a>
   </li>
 
@@ -440,14 +444,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.1-51-5e3b6b</span>
+    <span class="version">0.12.1-52-b34552</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="0.12.1/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="index.html">0.12.1-51-5e3b6b</a>
+          <a href="index.html">0.12.1-52-b34552</a>
         </li>
         <li class="version is-latest">
           <a href="0.12.1/index.html">0.12.1</a>
@@ -936,7 +940,7 @@ can trivially load it into their Chrome browser to analyze and figure out what.<
 <div class="paragraph">
 <p>Apart from the Mill Chrome Profile, Mill also provides the <code>./mill visualize</code> command, which
 is useful to show the logical dependency graph between tasks. For example, we can use
-<code>./mill visualize <em>.compile</em></code> (double <code></code> means wildcard) to
+<code>./mill visualize __.compile</code> (double underscore means wildcard) to
 show the dependency graph between the modules of the Netty build below:</p>
 </div>
 <div class="imageblock">
@@ -1054,7 +1058,7 @@ interactively exploring your build logic:</p>
 IDE. If you do not know what something does, it’s documentation, definition, or usages is always
 one click away in IntelliJ or VSCode. This isn’t a new experience for Java developers, as it
 is what you would be used to day-to-day in your application code! But Mill brings that same
-polished experience to your build system - traditionally some that that has been opaque
+polished experience to your build system - traditionally something that has been opaque
 and hard to understand - and does so in a way that no other build tool does.</p>
 </div>
 </div>
@@ -1133,6 +1137,13 @@ show its value via the Mill command line to force it to evaluate:</p>
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo.lineCount
 17</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>Note that as <code>lineCount</code> is a <code>Task</code>, we get automatic caching, invalidation, and
+parallelization: these are things that every <code>Task</code> gets for free, without the task
+author to do anything. And although we wrote the <code>lineCount</code> logic in the main
+<code>build.mill</code> file for this example, if it grows complex enough to get messy it is
+easy to move it to your own <a href="extending/writing-plugins.html" class="xref page">custom plugins</a></p>
 </div>
 </div>
 <div class="sect2">

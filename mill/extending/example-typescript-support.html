@@ -3,10 +3,9 @@
 <html lang="en"><head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Support for New Languages :: The Mill JVM Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.12.1/extending/new-language.html" />
+    <title>Example: Typescript Support :: The Mill JVM Build Tool</title>
     <link rel="prev" href="meta-build.html" />
-    <link rel="next" href="../depth/large-builds.html" />
+    <link rel="next" href="example-python-support.html" />
     <meta name="generator" content="Antora 3.1.9" />
     <link rel="stylesheet" href="../../_/css/site.css" />
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -105,7 +104,7 @@
     <a class="nav-link" href="../javalib/dependencies.html">Java Library Dependencies</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../javalib/testing.html">Testing Java Projects</a>
   </li>
 
@@ -148,7 +147,7 @@
     <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
   </li>
 
@@ -176,7 +175,7 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../kotlinlib/intro.html">(Experimental) Kotlin with Mill</a>
+    <a class="nav-link" href="../kotlinlib/intro.html">Kotlin with Mill</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
@@ -191,7 +190,7 @@
     <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
   </li>
 
@@ -213,7 +212,7 @@
 </ul>
   </li>
 
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../why-mill.html">Why Mill?</a>
 <ul class="nav-list">
@@ -230,7 +229,7 @@
     <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs SBT</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../comparisons/unique.html">What Makes Mill Unique</a>
   </li>
 </ul>
@@ -272,7 +271,7 @@
     <a class="nav-link" href="../fundamentals/out-dir.html">The Output Directory</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../fundamentals/query-syntax.html">Task Query Syntax</a>
   </li>
 
@@ -316,7 +315,7 @@
     <a class="nav-link" href="../contrib/bloop.html">Bloop</a>
   </li>
 
-  <li class="nav-item" data-depth="3">
+  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
   </li>
 
@@ -378,7 +377,7 @@
     <a class="nav-link" href="thirdparty-plugins.html">Third-Party Plugins</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="running-jvm-code.html">Running Dynamic JVM Code</a>
   </li>
 
@@ -391,7 +390,11 @@
   </li>
 
   <li class="nav-item is-current-page is-active" data-depth="2">
-    <a class="nav-link" href="new-language.html">Support for New Languages</a>
+    <a class="nav-link" href="example-typescript-support.html">Example: Typescript Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="example-python-support.html">Example: Python Support</a>
   </li>
 </ul>
   </li>
@@ -413,7 +416,7 @@
     <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
   </li>
 
@@ -445,14 +448,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.1-51-5e3b6b</span>
+    <span class="version">0.12.1-52-b34552</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../0.12.1/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../index.html">0.12.1-51-5e3b6b</a>
+          <a href="../index.html">0.12.1-52-b34552</a>
         </li>
         <li class="version is-latest">
           <a href="../0.12.1/index.html">0.12.1</a>
@@ -481,17 +484,17 @@
   <ul>
     <li><a href="../index.html">Mill Documentation</a></li>
     <li>Extending Mill</li>
-    <li><a href="new-language.html">Support for New Languages</a></li>
+    <li><a href="example-typescript-support.html">Example: Typescript Support</a></li>
   </ul>
 </nav>
-<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/extending/new-language.adoc">Edit this Page</a></div>
+<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/extending/example-typescript-support.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">Support for New Languages</h1>
+<h1 class="page">Example: Typescript Support</h1>
 <div id="preamble">
 <div class="sectionbody">
 
@@ -524,7 +527,7 @@ implementing language toolchains.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_basic_typescript_pipeline"><a class="anchor" href="#_basic_typescript_pipeline"></a>Basic TypeScript Pipeline</h2>
+<h2 id="_basic_typescript_build_pipeline"><a class="anchor" href="#_basic_typescript_build_pipeline"></a>Basic TypeScript Build Pipeline</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>This example demonstrates basic integration of <a href="https://www.typescriptlang.org/">Typescript</a>
@@ -540,7 +543,7 @@ tool and package repository</p>
 library necessary for accessing Node.js APIs:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-extending-newlang-1-hello-typescript.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/1-hello-typescript">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-extending-typescript-1-hello-typescript.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/typescript/1-hello-typescript">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -671,7 +674,7 @@ Again we return a <code>PathRef</code> to the <code>Task.dest</code> folder we o
 the <code>.ts</code> files in out <code>src/</code> folder:</p>
 </div>
 <div class="listingblock">
-<div class="title">src/hello.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/1-hello-typescript/src/hello.ts">browse</a>)</div>
+<div class="title">src/hello.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/typescript/1-hello-typescript/src/hello.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">interface User {
     firstName: string
@@ -831,7 +834,7 @@ we wrote above, and turn it into a re-usable <code>TypeScriptModule</code>.</p>
 <code>trait TypeScriptModule extends Module</code> wrapper:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-extending-newlang-2-typescript-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/2-typescript-modules">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-extending-typescript-2-typescript-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/typescript/2-typescript-modules">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -875,7 +878,7 @@ object qux extends TypeScriptModule</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/src/foo.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/2-typescript-modules/foo/src/foo.ts">browse</a>)</div>
+<div class="title">foo/src/foo.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/typescript/2-typescript-modules/foo/src/foo.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">interface User { firstName: string }
 
@@ -885,7 +888,7 @@ console.log(&quot;Hello &quot; + user.firstName + &quot; Foo&quot;)</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/bar/src/bar.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/2-typescript-modules/foo/bar/src/bar.ts">browse</a>)</div>
+<div class="title">foo/bar/src/bar.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/typescript/2-typescript-modules/foo/bar/src/bar.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">interface User { firstName: string }
 
@@ -895,7 +898,7 @@ console.log(&quot;Hello &quot; + user.firstName + &quot; Bar&quot;)</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">qux/src/qux.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/2-typescript-modules/qux/src/qux.ts">browse</a>)</div>
+<div class="title">qux/src/qux.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/typescript/2-typescript-modules/qux/src/qux.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">interface User { firstName: string }
 
@@ -1176,7 +1179,7 @@ use in <code>compile</code>, and <code>compiledJavascript</code> for use in <cod
 </ol>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-extending-newlang-3-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/3-module-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-extending-typescript-3-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/typescript/3-module-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -1261,7 +1264,7 @@ object qux extends TypeScriptModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/src/foo.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/3-module-deps/foo/src/foo.ts">browse</a>)</div>
+<div class="title">foo/src/foo.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/typescript/3-module-deps/foo/src/foo.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">interface User {
     firstName: string
@@ -1273,14 +1276,14 @@ export {User}</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/bar/src/bar.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/3-module-deps/foo/bar/src/bar.ts">browse</a>)</div>
+<div class="title">foo/bar/src/bar.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/typescript/3-module-deps/foo/bar/src/bar.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">const defaultRole = &quot;Professor&quot;
 export {defaultRole}</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">qux/src/qux.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/3-module-deps/qux/src/qux.ts">browse</a>)</div>
+<div class="title">qux/src/qux.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/typescript/3-module-deps/qux/src/qux.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import {User} from &quot;foo/foo.js&quot;
 import {defaultRole} from &quot;foo/bar/bar.js&quot;
@@ -1312,11 +1315,6 @@ ultimately <code>qux.run</code>):</p>
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 363.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-363 670.01,-363 670.01,4 -4,4"></polygon>
-<g id="clust1" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="139.53,-8 139.53,-116 658.01,-116 658.01,-8 139.53,-8"></polygon>
-<text text-anchor="middle" x="398.77" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
-</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-351 537.02,-351 537.02,-124 8,-124"></polygon>
@@ -1326,6 +1324,11 @@ ultimately <code>qux.run</code>):</p>
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="16,-210 16,-318 529.02,-318 529.02,-210 16,-210"></polygon>
 <text text-anchor="middle" x="272.51" y="-301.4" font-family="Times,serif" font-size="14.00">bar</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="139.53,-8 139.53,-116 658.01,-116 658.01,-8 139.53,-8"></polygon>
+<text text-anchor="middle" x="398.77" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
 <!-- qux.npmInstall -->
 <g id="node1" class="node">
@@ -1570,7 +1573,7 @@ into a <code>def prepareRun</code> task.</p>
 </ol>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-extending-newlang-4-npm-deps-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/4-npm-deps-bundle">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-extending-typescript-4-npm-deps-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/typescript/4-npm-deps-bundle">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -1692,6 +1695,11 @@ additional <code>npmDeps</code> tasks upstream and the <code>bundle</code> tasks
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 363.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-363 701.13,-363 701.13,4 -4,4"></polygon>
+<g id="clust1" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="145.37,-8 145.37,-116 689.13,-116 689.13,-8 145.37,-8"></polygon>
+<text text-anchor="middle" x="417.25" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
+</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-351 558.42,-351 558.42,-124 8,-124"></polygon>
@@ -1701,11 +1709,6 @@ additional <code>npmDeps</code> tasks upstream and the <code>bundle</code> tasks
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="16,-210 16,-318 550.42,-318 550.42,-210 16,-210"></polygon>
 <text text-anchor="middle" x="283.21" y="-301.4" font-family="Times,serif" font-size="14.00">bar</text>
-</g>
-<g id="clust1" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="145.37,-8 145.37,-116 689.13,-116 689.13,-8 145.37,-8"></polygon>
-<text text-anchor="middle" x="417.25" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
 <!-- qux.npmInstall -->
 <g id="node1" class="node">
@@ -2032,1356 +2035,6 @@ build. But this should be enough to get you started working with Mill to add sup
 to any language you need: whether it’s TypeScript or some other language, most programming
 language toolchains have similar concepts of <code>compile</code>, <code>run</code>, <code>bundle</code>, etc.</p>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_python_support"><a class="anchor" href="#_python_support"></a>Python Support</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>This section demonstrates how to integrate <code>Python</code> support into <code>Mill</code>.
-We will define a simple <code>PythonModule</code> trait that can resolve dependencies,
-perform type checking on local code, and optimize the final bundle.</p>
-</div>
-<div class="paragraph">
-<p><code>Note</code>: This integration is for <code>educational purposes only</code>, showcasing common technique
-used in building language toolchains, and is not intended for production use.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_python_integration_in_mill"><a class="anchor" href="#_python_integration_in_mill"></a>Python Integration in Mill</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>This Example shows how to integrate <a href="https://www.python.org">Python</a> into a Mill build, enabling Python script compilation.
-Mill does not come bundled with Python support, so we will set up integration using <code>python3</code>, which is generally pre-installed.</p>
-</div>
-<div class="sect2">
-<h3 id="_python_initialization_setup"><a class="anchor" href="#_python_initialization_setup"></a>Python initialization Setup</h3>
-<div class="paragraph">
-<p>First, The <code>setup</code> task creates a Python virtual environment and installs <code>mypy</code> for type-checking.</p>
-</div>
-<div class="paragraph">
-<p><code>mypy</code> verifies type correctness using Python’s <code>type hints</code>, helping to catch errors in development.</p>
-</div>
-<div class="paragraph">
-<p>Guides:
-<a href="https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments">Python virtual environment</a>
-&amp; <a href="https://mypy.readthedocs.io/en/stable">mypy</a></p>
-</div>
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-extending-newlang-5-hello-python.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/5-hello-python">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._
-
-def setup: T[PathRef] = Task {
-  val pythonVenv = Task.dest / &quot;venv&quot; / &quot;bin&quot; / &quot;python3&quot;
-
-  os.call((&quot;python3&quot;, &quot;-m&quot;, &quot;venv&quot;, Task.dest / &quot;venv&quot;))
-  os.call((pythonVenv, &quot;-m&quot;, &quot;pip&quot;, &quot;install&quot;, &quot;mypy&quot;))
-
-  PathRef(pythonVenv)
-}</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_defining_our_sources_2"><a class="anchor" href="#_defining_our_sources_2"></a>Defining our Sources</h3>
-<div class="paragraph">
-<p>The <code>sources</code> task specifies the directory for Python source files (<code>src</code> folder).
-This setup facilitates organizing and accessing Python files needed for building, testing, or analysis.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def sources: T[PathRef] = Task.Source(millSourcePath / &quot;src&quot;)</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_type_checking"><a class="anchor" href="#_type_checking"></a>Type Checking</h3>
-<div class="paragraph">
-<p>The <code>typeCheck</code> task verifies that the code in the main Python file passes type checks.
-It checks for errors before execution to ensure a reliable setup for running Python scripts.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def typeCheck: T[PathRef] = Task {
-  val pythonVenv = setup().path
-
-  os.call(
-    (pythonVenv, &quot;-m&quot;, &quot;mypy&quot;, &quot;--strict&quot;, sources().path / mainFileName()),
-    stdout = os.Inherit
-  )
-
-  PathRef(pythonVenv)
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>At this point, we have a minimal working build, with a build graph that looks like this:</p>
-</div>
-<center>
-<svg width="219px" height="119px" viewBox="0.00 0.00 219.07 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
-<title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 215.07,-114.8 215.07,4 -4,4"></polygon>
-<!-- setup -->
-<g id="node1" class="node">
-<title>setup</title>
-<polygon fill="white" stroke="black" points="72.15,-110.7 27.05,-110.7 27.05,-86.1 72.15,-86.1 72.15,-110.7"></polygon>
-<text text-anchor="middle" x="49.6" y="-94.2" font-family="Times,serif" font-size="14.00">setup</text>
-</g>
-<!-- typeCheck -->
-<g id="node2" class="node">
-<title>typeCheck</title>
-<polygon fill="white" stroke="black" points="211.01,-67.7 135.26,-67.7 135.26,-43.1 211.01,-43.1 211.01,-67.7"></polygon>
-<text text-anchor="middle" x="173.14" y="-51.2" font-family="Times,serif" font-size="14.00">typeCheck</text>
-</g>
-<!-- setup&#45;&gt;typeCheck -->
-<g id="edge1" class="edge">
-<title>setup-&gt;typeCheck</title>
-<path fill="none" stroke="black" d="M72.33,-90.71C87.68,-85.28 108.79,-77.81 127.65,-71.14"></path>
-<polygon fill="black" stroke="black" points="129,-74.38 137.26,-67.74 126.66,-67.78 129,-74.38"></polygon>
-</g>
-<!-- sources -->
-<g id="node3" class="node">
-<title>sources</title>
-<polygon fill="white" stroke="black" points="78.58,-67.7 20.62,-67.7 20.62,-43.1 78.58,-43.1 78.58,-67.7"></polygon>
-<text text-anchor="middle" x="49.6" y="-51.2" font-family="Times,serif" font-size="14.00">sources</text>
-</g>
-<!-- sources&#45;&gt;typeCheck -->
-<g id="edge2" class="edge">
-<title>sources-&gt;typeCheck</title>
-<path fill="none" stroke="black" d="M78.79,-55.4C92.48,-55.4 109.3,-55.4 124.88,-55.4"></path>
-<polygon fill="black" stroke="black" points="124.89,-58.9 134.89,-55.4 124.89,-51.9 124.89,-58.9"></polygon>
-</g>
-<!-- mainFileName -->
-<g id="node4" class="node">
-<title>mainFileName</title>
-<polygon fill="white" stroke="black" points="99.3,-24.7 -0.1,-24.7 -0.1,-0.1 99.3,-0.1 99.3,-24.7"></polygon>
-<text text-anchor="middle" x="49.6" y="-8.2" font-family="Times,serif" font-size="14.00">mainFileName</text>
-</g>
-<!-- mainFileName&#45;&gt;typeCheck -->
-<g id="edge3" class="edge">
-<title>mainFileName-&gt;typeCheck</title>
-<path fill="none" stroke="black" d="M85.43,-24.72C98.65,-29.4 113.89,-34.79 127.87,-39.74"></path>
-<polygon fill="black" stroke="black" points="126.71,-43.04 137.3,-43.08 129.04,-36.44 126.71,-43.04"></polygon>
-</g>
-</g>
-</svg>
-
-</center>
-<div class="paragraph">
-<p>Here is the <code>main.py</code> file</p>
-</div>
-<div class="listingblock">
-<div class="title">src/main.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/5-hello-python/src/main.py">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import sys
-def add(a: int, b: int) -&gt; int: return a + b
-def main() -&gt; None: print(&quot;Hello, &quot; + &quot; &quot;.join(sys.argv[1:]) + &quot;!&quot;)
-if __name__ == &quot;__main__&quot;:
-    main()
-    print(add(5, 10)) # Error Example: add(&quot;5&quot;, 10) will cause a TypeError</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_running_2"><a class="anchor" href="#_running_2"></a>Running</h3>
-<div class="paragraph">
-<p>The <code>mainFileName</code> task defines the name of the main Python script (<code>main.py</code>).</p>
-</div>
-<div class="paragraph">
-<p>The <code>run</code> function runs the main file with user-provided command-line arguments.
-It uses the virtual environment’s Python interpreter to execute the script, with output displayed in the console.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def mainFileName: T[String] = Task { &quot;main.py&quot; }
-def run(args: mill.define.Args) = Task.Command {
-  val pythonVenv = typeCheck().path
-
-  os.call(
-    (pythonVenv, sources().path / mainFileName(), args.value),
-    stdout = os.Inherit
-  )
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Note that we use <code>stdout = os.Inherit</code> since we want to display any output to the user,
-rather than capturing it for use in our command.</p>
-</div>
-<center>
-<svg width="290px" height="119px" viewBox="0.00 0.00 289.73 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
-<title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 285.73,-114.8 285.73,4 -4,4"></polygon>
-<!-- setup -->
-<g id="node1" class="node">
-<title>setup</title>
-<polygon fill="white" stroke="black" points="72.15,-67.7 27.05,-67.7 27.05,-43.1 72.15,-43.1 72.15,-67.7"></polygon>
-<text text-anchor="middle" x="49.6" y="-51.2" font-family="Times,serif" font-size="14.00">setup</text>
-</g>
-<!-- typeCheck -->
-<g id="node2" class="node">
-<title>typeCheck</title>
-<polygon fill="white" stroke="black" points="211.01,-67.7 135.26,-67.7 135.26,-43.1 211.01,-43.1 211.01,-67.7"></polygon>
-<text text-anchor="middle" x="173.14" y="-51.2" font-family="Times,serif" font-size="14.00">typeCheck</text>
-</g>
-<!-- setup&#45;&gt;typeCheck -->
-<g id="edge1" class="edge">
-<title>setup-&gt;typeCheck</title>
-<path fill="none" stroke="black" d="M72.33,-55.4C86.89,-55.4 106.65,-55.4 124.74,-55.4"></path>
-<polygon fill="black" stroke="black" points="124.86,-58.9 134.86,-55.4 124.86,-51.9 124.86,-58.9"></polygon>
-</g>
-<!-- run -->
-<g id="node3" class="node">
-<title>run</title>
-<polygon fill="white" stroke="green" stroke-width="3" points="281.56,-67.7 247.24,-67.7 247.24,-43.1 281.56,-43.1 281.56,-67.7"></polygon>
-<text text-anchor="middle" x="264.4" y="-51.2" font-family="Times,serif" font-size="14.00">run</text>
-</g>
-<!-- typeCheck&#45;&gt;run -->
-<g id="edge2" class="edge">
-<title>typeCheck-&gt;run</title>
-<path fill="none" stroke="black" d="M211.22,-55.4C219.78,-55.4 228.72,-55.4 236.74,-55.4"></path>
-<polygon fill="black" stroke="black" points="236.97,-58.9 246.97,-55.4 236.97,-51.9 236.97,-58.9"></polygon>
-</g>
-<!-- sources -->
-<g id="node4" class="node">
-<title>sources</title>
-<polygon fill="white" stroke="black" points="78.58,-110.7 20.62,-110.7 20.62,-86.1 78.58,-86.1 78.58,-110.7"></polygon>
-<text text-anchor="middle" x="49.6" y="-94.2" font-family="Times,serif" font-size="14.00">sources</text>
-</g>
-<!-- sources&#45;&gt;typeCheck -->
-<g id="edge3" class="edge">
-<title>sources-&gt;typeCheck</title>
-<path fill="none" stroke="black" d="M78.79,-88.43C93.19,-83.33 111.06,-77.01 127.29,-71.27"></path>
-<polygon fill="black" stroke="black" points="128.89,-74.41 137.15,-67.78 126.55,-67.82 128.89,-74.41"></polygon>
-</g>
-<!-- sources&#45;&gt;run -->
-<g id="edge5" class="edge">
-<title>sources-&gt;run</title>
-<path fill="none" stroke="black" d="M78.84,-96.63C111.22,-94.12 165.68,-88.42 211.07,-76.4 219.91,-74.06 229.27,-70.63 237.59,-67.22"></path>
-<polygon fill="black" stroke="black" points="238.97,-70.43 246.79,-63.29 236.22,-64 238.97,-70.43"></polygon>
-</g>
-<!-- mainFileName -->
-<g id="node5" class="node">
-<title>mainFileName</title>
-<polygon fill="white" stroke="green" stroke-width="3" points="99.3,-24.7 -0.1,-24.7 -0.1,-0.1 99.3,-0.1 99.3,-24.7"></polygon>
-<text text-anchor="middle" x="49.6" y="-8.2" font-family="Times,serif" font-size="14.00">mainFileName</text>
-</g>
-<!-- mainFileName&#45;&gt;typeCheck -->
-<g id="edge4" class="edge">
-<title>mainFileName-&gt;typeCheck</title>
-<path fill="none" stroke="black" d="M85.43,-24.72C98.65,-29.4 113.89,-34.79 127.87,-39.74"></path>
-<polygon fill="black" stroke="black" points="126.71,-43.04 137.3,-43.08 129.04,-36.44 126.71,-43.04"></polygon>
-</g>
-<!-- mainFileName&#45;&gt;run -->
-<g id="edge6" class="edge">
-<title>mainFileName-&gt;run</title>
-<path fill="none" stroke="black" d="M99.31,-15.95C131.44,-19.05 174.24,-24.64 211.07,-34.4 219.91,-36.74 229.27,-40.17 237.59,-43.58"></path>
-<polygon fill="black" stroke="black" points="236.22,-46.8 246.79,-47.51 238.97,-40.37 236.22,-46.8"></polygon>
-</g>
-</g>
-</svg>
-
-</center>
-<div class="paragraph">
-<p>Running run command will return the result to the console.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill typeCheck
-Success: no issues found in 1 source file
-
-&gt; ./mill run Mill Python
-Hello, Mill Python!
-15</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This completes a basic <code>Python integration in Mill</code>.
-Next steps could involve transforming this into a <code>reusable PythonModule</code></p>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_re_usable_pythonmodule"><a class="anchor" href="#_re_usable_pythonmodule"></a>Re-usable PythonModule</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>This example illustrates the <code>PythonModule</code> trait for managing Python scripts within multiple Mill objects.</p>
-</div>
-<div class="sect3">
-<h4 id="_using_same_pythonmodule_for_multiple_objects"><a class="anchor" href="#_using_same_pythonmodule_for_multiple_objects"></a>Using Same PythonModule for Multiple Objects</h4>
-<div class="paragraph">
-<p><code>PythonModule</code> automates essential tasks in Python project management within Mill,
-such as setting up virtual environments, managing source files, performing type checks, and running scripts.</p>
-</div>
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-extending-newlang-6-python-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/6-python-modules">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._
-
-/** `PythonModule`: Trait for basic Python support in Mill */
-trait PythonModule extends Module {
-
-  def sources: T[PathRef] = Task.Source(millSourcePath / &quot;src&quot;)
-  def mainFileName: T[String] = Task { &quot;main.py&quot; }
-
-  def setup: T[PathRef] = Task {
-    val pythonVenv = Task.dest / &quot;venv&quot; / &quot;bin&quot; / &quot;python3&quot;
-
-    os.call((&quot;python3&quot;, &quot;-m&quot;, &quot;venv&quot;, Task.dest / &quot;venv&quot;))
-    os.call((pythonVenv, &quot;-m&quot;, &quot;pip&quot;, &quot;install&quot;, &quot;mypy&quot;))
-
-    PathRef(pythonVenv)
-  }
-
-  def typeCheck: T[PathRef] = Task {
-    val pythonVenv = setup().path
-
-    os.call(
-      (pythonVenv, &quot;-m&quot;, &quot;mypy&quot;, &quot;--strict&quot;, sources().path / mainFileName()),
-      stdout = os.Inherit
-    )
-
-    PathRef(pythonVenv)
-  }
-
-  def run(args: mill.define.Args) = Task.Command {
-    val pythonVenv = typeCheck().path
-
-    os.call(
-      (pythonVenv, sources().path / mainFileName(), args.value),
-      stdout = os.Inherit
-    )
-  }
-
-}</code></pre>
-</div>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_example"><a class="anchor" href="#_example"></a>Example</h4>
-<div class="paragraph">
-<p>Below are three objects extending <code>PythonModule</code>, each representing a unique configuration.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo extends PythonModule {
-  override def mainFileName: T[String] = Task { &quot;foo.py&quot; }
-  object bar extends PythonModule {
-    override def mainFileName: T[String] = Task { &quot;bar.py&quot; }
-    // Inherits PythonModule features
-  }
-}
-
-object qux extends PythonModule {
-  override def mainFileName: T[String] = Task { &quot;qux.py&quot; }
-  // Independent, but uses PythonModule methods
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>We have used three different Python Scripts <code>foo/src/foo.py</code>, <code>foo/bar/src/bar.py</code>, <code>qux/src/qux.py</code></p>
-</div>
-<div class="listingblock">
-<div class="title">foo/src/foo.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/6-python-modules/foo/src/foo.py">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import sys
-def main() -&gt; None: print(&quot;Hello, &quot; + &quot; &quot;.join(sys.argv[1:]) + &quot; Foo!&quot;)
-if __name__ == &quot;__main__&quot;:
-    main()</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">foo/bar/src/bar.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/6-python-modules/foo/bar/src/bar.py">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import sys
-def main() -&gt; None: print(&quot;Hello, &quot; + &quot; &quot;.join(sys.argv[1:]) + &quot; Foo Bar!&quot;)
-if __name__ == &quot;__main__&quot;:
-    main()</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">qux/src/qux.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/6-python-modules/qux/src/qux.py">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import sys
-def main() -&gt; None: print(&quot;Hello, &quot; + &quot; &quot;.join(sys.argv[1:]) + &quot; Qux!&quot;)
-if __name__ == &quot;__main__&quot;:
-    main()</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Use the following commands to run each module, displaying unique outputs per configuration:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.run Mill
-Hello, Mill Foo!
-
-&gt; ./mill foo.bar.run Mill
-Hello, Mill Foo Bar!
-
-&gt; ./mill qux.run Mill
-Hello, Mill Qux!</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The Final working build, with a build graph that looks like this:</p>
-</div>
-<center>
-<svg width="408px" height="496px" viewBox="0.00 0.00 408.11 496.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 492.0)">
-<title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-492 404.11,-492 404.11,4 -4,4"></polygon>
-<g id="clust1" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="14.44,-8 14.44,-159 385.67,-159 385.67,-8 14.44,-8"></polygon>
-<text text-anchor="middle" x="200.05" y="-142.4" font-family="Times,serif" font-size="14.00">qux</text>
-</g>
-<g id="clust2" class="cluster">
-<title>cluster_1</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-167 8,-480 392.11,-480 392.11,-167 8,-167"></polygon>
-<text text-anchor="middle" x="200.05" y="-463.4" font-family="Times,serif" font-size="14.00">foo</text>
-</g>
-<g id="clust3" class="cluster">
-<title>cluster_2</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="16,-296 16,-447 384.11,-447 384.11,-296 16,-296"></polygon>
-<text text-anchor="middle" x="200.05" y="-430.4" font-family="Times,serif" font-size="14.00">bar</text>
-</g>
-<!-- qux.setup -->
-<g id="node1" class="node">
-<title>qux.setup</title>
-<polygon fill="white" stroke="black" points="119.34,-83.3 49.24,-83.3 49.24,-58.7 119.34,-58.7 119.34,-83.3"></polygon>
-<text text-anchor="middle" x="84.29" y="-66.8" font-family="Times,serif" font-size="14.00">qux.setup</text>
-</g>
-<!-- qux.typeCheck -->
-<g id="node2" class="node">
-<title>qux.typeCheck</title>
-<polygon fill="white" stroke="black" points="282.7,-83.3 181.95,-83.3 181.95,-58.7 282.7,-58.7 282.7,-83.3"></polygon>
-<text text-anchor="middle" x="232.32" y="-66.8" font-family="Times,serif" font-size="14.00">qux.typeCheck</text>
-</g>
-<!-- qux.setup&#45;&gt;qux.typeCheck -->
-<g id="edge1" class="edge">
-<title>qux.setup-&gt;qux.typeCheck</title>
-<path fill="none" stroke="black" d="M119.53,-71C135.1,-71 153.99,-71 171.78,-71"></path>
-<polygon fill="black" stroke="black" points="172.09,-74.5 182.09,-71 172.09,-67.5 172.09,-74.5"></polygon>
-</g>
-<!-- qux.run -->
-<g id="node3" class="node">
-<title>qux.run</title>
-<polygon fill="white" stroke="black" points="377.75,-83.3 318.43,-83.3 318.43,-58.7 377.75,-58.7 377.75,-83.3"></polygon>
-<text text-anchor="middle" x="348.09" y="-66.8" font-family="Times,serif" font-size="14.00">qux.run</text>
-</g>
-<!-- qux.typeCheck&#45;&gt;qux.run -->
-<g id="edge2" class="edge">
-<title>qux.typeCheck-&gt;qux.run</title>
-<path fill="none" stroke="black" d="M282.56,-71C291.18,-71 300.03,-71 308.31,-71"></path>
-<polygon fill="black" stroke="black" points="308.43,-74.5 318.43,-71 308.43,-67.5 308.43,-74.5"></polygon>
-</g>
-<!-- qux.sources -->
-<g id="node4" class="node">
-<title>qux.sources</title>
-<polygon fill="white" stroke="black" points="125.77,-126.3 42.81,-126.3 42.81,-101.7 125.77,-101.7 125.77,-126.3"></polygon>
-<text text-anchor="middle" x="84.29" y="-109.8" font-family="Times,serif" font-size="14.00">qux.sources</text>
-</g>
-<!-- qux.sources&#45;&gt;qux.typeCheck -->
-<g id="edge3" class="edge">
-<title>qux.sources-&gt;qux.typeCheck</title>
-<path fill="none" stroke="black" d="M125.58,-102.14C142.32,-97.21 161.95,-91.43 179.73,-86.19"></path>
-<polygon fill="black" stroke="black" points="180.78,-89.53 189.38,-83.35 178.8,-82.82 180.78,-89.53"></polygon>
-</g>
-<!-- qux.sources&#45;&gt;qux.run -->
-<g id="edge5" class="edge">
-<title>qux.sources-&gt;qux.run</title>
-<path fill="none" stroke="black" d="M125.71,-111.9C165.85,-109.25 228.97,-103.57 282.51,-92 291.12,-90.14 300.21,-87.57 308.77,-84.88"></path>
-<polygon fill="black" stroke="black" points="310.09,-88.13 318.5,-81.68 307.91,-81.47 310.09,-88.13"></polygon>
-</g>
-<!-- qux.mainFileName -->
-<g id="node5" class="node">
-<title>qux.mainFileName</title>
-<polygon fill="white" stroke="black" points="145.99,-40.3 22.59,-40.3 22.59,-15.7 145.99,-15.7 145.99,-40.3"></polygon>
-<text text-anchor="middle" x="84.29" y="-23.8" font-family="Times,serif" font-size="14.00">qux.mainFileName</text>
-</g>
-<!-- qux.mainFileName&#45;&gt;qux.typeCheck -->
-<g id="edge4" class="edge">
-<title>qux.mainFileName-&gt;qux.typeCheck</title>
-<path fill="none" stroke="black" d="M127.14,-40.32C143.48,-45.14 162.39,-50.7 179.58,-55.76"></path>
-<polygon fill="black" stroke="black" points="178.89,-59.21 189.47,-58.68 180.87,-52.49 178.89,-59.21"></polygon>
-</g>
-<!-- qux.mainFileName&#45;&gt;qux.run -->
-<g id="edge6" class="edge">
-<title>qux.mainFileName-&gt;qux.run</title>
-<path fill="none" stroke="black" d="M146.22,-31.59C185.46,-34.68 237.38,-40.25 282.51,-50 291.12,-51.86 300.21,-54.43 308.77,-57.12"></path>
-<polygon fill="black" stroke="black" points="307.91,-60.53 318.5,-60.32 310.09,-53.87 307.91,-60.53"></polygon>
-</g>
-<!-- bar.setup -->
-<g id="node6" class="node">
-<title>bar.setup</title>
-<polygon fill="white" stroke="black" points="117.71,-371.3 50.86,-371.3 50.86,-346.7 117.71,-346.7 117.71,-371.3"></polygon>
-<text text-anchor="middle" x="84.29" y="-354.8" font-family="Times,serif" font-size="14.00">bar.setup</text>
-</g>
-<!-- bar.typeCheck -->
-<g id="node7" class="node">
-<title>bar.typeCheck</title>
-<polygon fill="white" stroke="black" points="281.07,-371.3 183.58,-371.3 183.58,-346.7 281.07,-346.7 281.07,-371.3"></polygon>
-<text text-anchor="middle" x="232.32" y="-354.8" font-family="Times,serif" font-size="14.00">bar.typeCheck</text>
-</g>
-<!-- bar.setup&#45;&gt;bar.typeCheck -->
-<g id="edge7" class="edge">
-<title>bar.setup-&gt;bar.typeCheck</title>
-<path fill="none" stroke="black" d="M118.06,-359C134.46,-359 154.79,-359 173.68,-359"></path>
-<polygon fill="black" stroke="black" points="173.7,-362.5 183.7,-359 173.7,-355.5 173.7,-362.5"></polygon>
-</g>
-<!-- bar.run -->
-<g id="node8" class="node">
-<title>bar.run</title>
-<polygon fill="white" stroke="black" points="376.13,-371.3 320.05,-371.3 320.05,-346.7 376.13,-346.7 376.13,-371.3"></polygon>
-<text text-anchor="middle" x="348.09" y="-354.8" font-family="Times,serif" font-size="14.00">bar.run</text>
-</g>
-<!-- bar.typeCheck&#45;&gt;bar.run -->
-<g id="edge8" class="edge">
-<title>bar.typeCheck-&gt;bar.run</title>
-<path fill="none" stroke="black" d="M281.24,-359C290.76,-359 300.61,-359 309.71,-359"></path>
-<polygon fill="black" stroke="black" points="309.98,-362.5 319.98,-359 309.98,-355.5 309.98,-362.5"></polygon>
-</g>
-<!-- bar.sources -->
-<g id="node9" class="node">
-<title>bar.sources</title>
-<polygon fill="white" stroke="black" points="124.14,-414.3 44.43,-414.3 44.43,-389.7 124.14,-389.7 124.14,-414.3"></polygon>
-<text text-anchor="middle" x="84.29" y="-397.8" font-family="Times,serif" font-size="14.00">bar.sources</text>
-</g>
-<!-- bar.sources&#45;&gt;bar.typeCheck -->
-<g id="edge9" class="edge">
-<title>bar.sources-&gt;bar.typeCheck</title>
-<path fill="none" stroke="black" d="M124.04,-390.59C141.09,-385.57 161.36,-379.6 179.66,-374.21"></path>
-<polygon fill="black" stroke="black" points="180.71,-377.55 189.31,-371.37 178.73,-370.84 180.71,-377.55"></polygon>
-</g>
-<!-- bar.sources&#45;&gt;bar.run -->
-<g id="edge11" class="edge">
-<title>bar.sources-&gt;bar.run</title>
-<path fill="none" stroke="black" d="M124.21,-400C164.26,-397.39 228.29,-391.71 282.51,-380 291.55,-378.05 301.12,-375.32 310.04,-372.47"></path>
-<polygon fill="black" stroke="black" points="311.38,-375.71 319.77,-369.25 309.18,-369.07 311.38,-375.71"></polygon>
-</g>
-<!-- bar.mainFileName -->
-<g id="node10" class="node">
-<title>bar.mainFileName</title>
-<polygon fill="white" stroke="black" points="144.36,-328.3 24.21,-328.3 24.21,-303.7 144.36,-303.7 144.36,-328.3"></polygon>
-<text text-anchor="middle" x="84.29" y="-311.8" font-family="Times,serif" font-size="14.00">bar.mainFileName</text>
-</g>
-<!-- bar.mainFileName&#45;&gt;bar.typeCheck -->
-<g id="edge10" class="edge">
-<title>bar.mainFileName-&gt;bar.typeCheck</title>
-<path fill="none" stroke="black" d="M127.14,-328.32C143.48,-333.14 162.39,-338.7 179.58,-343.76"></path>
-<polygon fill="black" stroke="black" points="178.89,-347.21 189.47,-346.68 180.87,-340.49 178.89,-347.21"></polygon>
-</g>
-<!-- bar.mainFileName&#45;&gt;bar.run -->
-<g id="edge12" class="edge">
-<title>bar.mainFileName-&gt;bar.run</title>
-<path fill="none" stroke="black" d="M144.48,-319.45C183.91,-322.52 236.71,-328.11 282.51,-338 291.55,-339.95 301.12,-342.68 310.04,-345.53"></path>
-<polygon fill="black" stroke="black" points="309.18,-348.93 319.77,-348.75 311.38,-342.29 309.18,-348.93"></polygon>
-</g>
-<!-- foo.setup -->
-<g id="node11" class="node">
-<title>foo.setup</title>
-<polygon fill="white" stroke="black" points="118,-242.3 50.58,-242.3 50.58,-217.7 118,-217.7 118,-242.3"></polygon>
-<text text-anchor="middle" x="84.29" y="-225.8" font-family="Times,serif" font-size="14.00">foo.setup</text>
-</g>
-<!-- foo.typeCheck -->
-<g id="node12" class="node">
-<title>foo.typeCheck</title>
-<polygon fill="white" stroke="black" points="281.36,-242.3 183.29,-242.3 183.29,-217.7 281.36,-217.7 281.36,-242.3"></polygon>
-<text text-anchor="middle" x="232.32" y="-225.8" font-family="Times,serif" font-size="14.00">foo.typeCheck</text>
-</g>
-<!-- foo.setup&#45;&gt;foo.typeCheck -->
-<g id="edge13" class="edge">
-<title>foo.setup-&gt;foo.typeCheck</title>
-<path fill="none" stroke="black" d="M118.06,-230C134.24,-230 154.25,-230 172.93,-230"></path>
-<polygon fill="black" stroke="black" points="173.14,-233.5 183.14,-230 173.14,-226.5 173.14,-233.5"></polygon>
-</g>
-<!-- foo.run -->
-<g id="node13" class="node">
-<title>foo.run</title>
-<polygon fill="white" stroke="black" points="376.41,-242.3 319.77,-242.3 319.77,-217.7 376.41,-217.7 376.41,-242.3"></polygon>
-<text text-anchor="middle" x="348.09" y="-225.8" font-family="Times,serif" font-size="14.00">foo.run</text>
-</g>
-<!-- foo.typeCheck&#45;&gt;foo.run -->
-<g id="edge14" class="edge">
-<title>foo.typeCheck-&gt;foo.run</title>
-<path fill="none" stroke="black" d="M281.57,-230C290.89,-230 300.52,-230 309.43,-230"></path>
-<polygon fill="black" stroke="black" points="309.51,-233.5 319.51,-230 309.51,-226.5 309.51,-233.5"></polygon>
-</g>
-<!-- foo.sources -->
-<g id="node14" class="node">
-<title>foo.sources</title>
-<polygon fill="white" stroke="black" points="124.43,-285.3 44.15,-285.3 44.15,-260.7 124.43,-260.7 124.43,-285.3"></polygon>
-<text text-anchor="middle" x="84.29" y="-268.8" font-family="Times,serif" font-size="14.00">foo.sources</text>
-</g>
-<!-- foo.sources&#45;&gt;foo.typeCheck -->
-<g id="edge15" class="edge">
-<title>foo.sources-&gt;foo.typeCheck</title>
-<path fill="none" stroke="black" d="M124.42,-261.48C141.47,-256.46 161.68,-250.51 179.91,-245.14"></path>
-<polygon fill="black" stroke="black" points="180.92,-248.49 189.52,-242.31 178.94,-241.78 180.92,-248.49"></polygon>
-</g>
-<!-- foo.sources&#45;&gt;foo.run -->
-<g id="edge17" class="edge">
-<title>foo.sources-&gt;foo.run</title>
-<path fill="none" stroke="black" d="M124.58,-270.97C164.66,-268.36 228.46,-262.68 282.51,-251 291.47,-249.06 300.94,-246.37 309.79,-243.55"></path>
-<polygon fill="black" stroke="black" points="311.06,-246.82 319.46,-240.35 308.86,-240.17 311.06,-246.82"></polygon>
-</g>
-<!-- foo.mainFileName -->
-<g id="node15" class="node">
-<title>foo.mainFileName</title>
-<polygon fill="white" stroke="black" points="145.15,-199.3 23.43,-199.3 23.43,-174.7 145.15,-174.7 145.15,-199.3"></polygon>
-<text text-anchor="middle" x="84.29" y="-182.8" font-family="Times,serif" font-size="14.00">foo.mainFileName</text>
-</g>
-<!-- foo.mainFileName&#45;&gt;foo.typeCheck -->
-<g id="edge16" class="edge">
-<title>foo.mainFileName-&gt;foo.typeCheck</title>
-<path fill="none" stroke="black" d="M127.14,-199.32C143.48,-204.14 162.39,-209.7 179.58,-214.76"></path>
-<polygon fill="black" stroke="black" points="178.89,-218.21 189.47,-217.68 180.87,-211.49 178.89,-218.21"></polygon>
-</g>
-<!-- foo.mainFileName&#45;&gt;foo.run -->
-<g id="edge18" class="edge">
-<title>foo.mainFileName-&gt;foo.run</title>
-<path fill="none" stroke="black" d="M145.35,-190.52C184.69,-193.6 237.05,-199.18 282.51,-209 291.47,-210.94 300.94,-213.63 309.79,-216.45"></path>
-<polygon fill="black" stroke="black" points="308.86,-219.83 319.46,-219.65 311.06,-213.18 308.86,-219.83"></polygon>
-</g>
-</g>
-</svg>
-
-</center>
-<div class="paragraph">
-<p>Next, we will look at how to Manage <code>Module Dependencies</code> for <code>Python</code> in <code>Mill</code>.</p>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_pythonmodule_moduledeps"><a class="anchor" href="#_pythonmodule_moduledeps"></a>PythonModule moduleDeps</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>This example shows how to add module dependency handling to <code>PythonModule</code>, making it ideal
-for complex projects that need dynamic dependencies and isolated environments for each module.</p>
-</div>
-<div class="sect3">
-<h4 id="_extending_pythonmodule_trait"><a class="anchor" href="#_extending_pythonmodule_trait"></a>Extending <code>PythonModule</code> Trait</h4>
-<div class="paragraph">
-<p>Now, The <code>PythonModule</code> trait&rsquo;s <code>moduleDeps</code> allows dependencies between modules.
-Using <code>Task.traverse</code>, it gathers and verifies <code>upstream dependencies</code> in <code>typeCheck</code>
-and prepares their <code>source</code> files for execution in the <code>run</code> task.</p>
-</div>
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-extending-newlang-7-python-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/7-python-module-deps">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._
-
-/** Extended `PythonModule` for dependent modules. */
-trait PythonModule extends Module {
-
-  // List of module dependencies required by this module.
-  def moduleDeps: Seq[PythonModule] = Nil
-
-  def sources: T[PathRef] = Task.Source(millSourcePath / &quot;src&quot;)
-  def mainFileName: T[String] = Task { &quot;main.py&quot; }
-
-  def setup: T[PathRef] = Task {
-    val pythonVenv = Task.dest / &quot;venv&quot; / &quot;bin&quot; / &quot;python3&quot;
-
-    os.call((&quot;python3&quot;, &quot;-m&quot;, &quot;venv&quot;, Task.dest / &quot;venv&quot;))
-    os.call((pythonVenv, &quot;-m&quot;, &quot;pip&quot;, &quot;install&quot;, &quot;mypy&quot;))
-
-    PathRef(pythonVenv)
-  }
-
-  def typeCheck: T[PathRef] = Task {
-    // Checks upstream modules for error free code
-    val upstreamTypeCheck = Task.traverse(moduleDeps)(_.typeCheck)()
-    val pythonVenv = setup().path
-
-    os.call(
-      (pythonVenv, &quot;-m&quot;, &quot;mypy&quot;, &quot;--strict&quot;, sources().path / mainFileName()),
-      stdout = os.Inherit
-    )
-
-    PathRef(pythonVenv)
-  }
-
-  def run(args: mill.define.Args) = Task.Command {
-    // Gets upstream modules Source Files
-    val upstream = Task.traverse(moduleDeps)(_.sources)().zip(moduleDeps)
-
-    for (((sourcesFolder), mod) &lt;- upstream) {
-      val destinationPath = Task.dest / mod.millSourcePath.subRelativeTo(build.millSourcePath)
-      os.copy.over(sourcesFolder.path / os.up, destinationPath)
-    }
-
-    val pythonVenv = typeCheck().path
-
-    os.call(
-      (pythonVenv, sources().path / mainFileName(), args.value),
-      env = Map(&quot;PYTHONPATH&quot; -&gt; Task.dest.toString),
-      stdout = os.Inherit
-    )
-  }
-
-}</code></pre>
-</div>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_example_setup_with_dependencies"><a class="anchor" href="#_example_setup_with_dependencies"></a>Example setup with dependencies</h4>
-<div class="paragraph">
-<p><code>qux</code> depends on <code>foo</code> and <code>foo.bar</code>, which export their APIs for use in <code>qux</code>.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo extends PythonModule {
-  override def mainFileName: T[String] = Task { &quot;foo.py&quot; }
-  object bar extends PythonModule {
-    override def mainFileName: T[String] = Task { &quot;bar.py&quot; }
-  }
-}
-
-object qux extends PythonModule {
-  override def mainFileName: T[String] = Task { &quot;qux.py&quot; }
-  // Defines dependencies on foo and foo.bar modules for qux.
-  def moduleDeps: Seq[PythonModule] = Seq[PythonModule](foo, foo.bar)
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Below are the Files from Source Folders</p>
-</div>
-<div class="paragraph">
-<p>See, How we have imported the other files(foo.py &amp; bar.py) functions in <code>qux.py</code> file</p>
-</div>
-<div class="listingblock">
-<div class="title">foo/src/foo.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/7-python-module-deps/foo/src/foo.py">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import sys
-def multiply(a: int, b: int) -&gt; int: return a * b</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">foo/bar/src/bar.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/7-python-module-deps/foo/bar/src/bar.py">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import sys
-def add(a: int, b: int) -&gt; int: return a + b</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">qux/src/qux.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/7-python-module-deps/qux/src/qux.py">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">from foo.bar.src.bar import add # type: ignore
-from foo.src.foo import multiply # type: ignore
-import sys
-def divide(a: int, b: int) -&gt; float: return a/b
-def main() -&gt; None:
-    x = int(sys.argv[1])
-    y = int(sys.argv[2])
-    print(f&quot;Add: {x} + {y} = {add(x, y)} | Multiply: {x} * {y} = {multiply(x, y)} | Divide: {x} / {y} = {divide(x, y)}&quot;)
-if __name__ == &quot;__main__&quot;:
-    main()</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>To run this build script, use the following command.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill qux.run 10 20
-Add: 10 + 20 = 30 | Multiply: 10 * 20 = 200 | Divide: 10 / 20 = 0.5</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Task dependency graph, showing <code>foo</code> and <code>bar</code> tasks feeding into <code>qux</code>:</p>
-</div>
-<center>
-<svg width="560px" height="520px" viewBox="0.00 0.00 560.20 519.98" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 515.98)">
-<title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-515.98 556.2,-515.98 556.2,4 -4,4"></polygon>
-<g id="clust2" class="cluster">
-<title>cluster_1</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-31.98 8,-344.98 434.87,-344.98 434.87,-31.98 8,-31.98"></polygon>
-<text text-anchor="middle" x="221.44" y="-328.38" font-family="Times,serif" font-size="14.00">foo</text>
-</g>
-<g id="clust3" class="cluster">
-<title>cluster_2</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="16,-160.98 16,-311.98 426.87,-311.98 426.87,-160.98 16,-160.98"></polygon>
-<text text-anchor="middle" x="221.44" y="-295.38" font-family="Times,serif" font-size="14.00">bar</text>
-</g>
-<g id="clust1" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="172.97,-352.98 172.97,-503.98 544.2,-503.98 544.2,-352.98 172.97,-352.98"></polygon>
-<text text-anchor="middle" x="358.58" y="-487.38" font-family="Times,serif" font-size="14.00">qux</text>
-</g>
-<!-- qux.setup -->
-<g id="node1" class="node">
-<title>qux.setup</title>
-<polygon fill="white" stroke="black" points="277.87,-385.28 207.77,-385.28 207.77,-360.68 277.87,-360.68 277.87,-385.28"></polygon>
-<text text-anchor="middle" x="242.82" y="-368.78" font-family="Times,serif" font-size="14.00">qux.setup</text>
-</g>
-<!-- qux.typeCheck -->
-<g id="node2" class="node">
-<title>qux.typeCheck</title>
-<polygon fill="white" stroke="black" points="441.23,-385.28 340.48,-385.28 340.48,-360.68 441.23,-360.68 441.23,-385.28"></polygon>
-<text text-anchor="middle" x="390.85" y="-368.78" font-family="Times,serif" font-size="14.00">qux.typeCheck</text>
-</g>
-<!-- qux.setup&#45;&gt;qux.typeCheck -->
-<g id="edge1" class="edge">
-<title>qux.setup-&gt;qux.typeCheck</title>
-<path fill="none" stroke="black" d="M278.06,-372.98C293.63,-372.98 312.52,-372.98 330.31,-372.98"></path>
-<polygon fill="black" stroke="black" points="330.62,-376.48 340.62,-372.98 330.62,-369.48 330.62,-376.48"></polygon>
-</g>
-<!-- qux.run -->
-<g id="node3" class="node">
-<title>qux.run</title>
-<polygon fill="white" stroke="black" points="536.28,-385.28 476.96,-385.28 476.96,-360.68 536.28,-360.68 536.28,-385.28"></polygon>
-<text text-anchor="middle" x="506.62" y="-368.78" font-family="Times,serif" font-size="14.00">qux.run</text>
-</g>
-<!-- qux.typeCheck&#45;&gt;qux.run -->
-<g id="edge2" class="edge">
-<title>qux.typeCheck-&gt;qux.run</title>
-<path fill="none" stroke="black" d="M441.09,-372.98C449.71,-372.98 458.56,-372.98 466.84,-372.98"></path>
-<polygon fill="black" stroke="black" points="466.96,-376.48 476.96,-372.98 466.96,-369.48 466.96,-376.48"></polygon>
-</g>
-<!-- qux.sources -->
-<g id="node4" class="node">
-<title>qux.sources</title>
-<polygon fill="white" stroke="black" points="284.3,-471.28 201.34,-471.28 201.34,-446.68 284.3,-446.68 284.3,-471.28"></polygon>
-<text text-anchor="middle" x="242.82" y="-454.78" font-family="Times,serif" font-size="14.00">qux.sources</text>
-</g>
-<!-- qux.sources&#45;&gt;qux.typeCheck -->
-<g id="edge3" class="edge">
-<title>qux.sources-&gt;qux.typeCheck</title>
-<path fill="none" stroke="black" d="M283.52,-446.56C290.73,-443.77 298.05,-440.56 304.67,-436.98 327.81,-424.47 351.53,-406.11 368.04,-392.26"></path>
-<polygon fill="black" stroke="black" points="370.65,-394.63 375.98,-385.48 366.1,-389.31 370.65,-394.63"></polygon>
-</g>
-<!-- qux.sources&#45;&gt;qux.run -->
-<g id="edge5" class="edge">
-<title>qux.sources-&gt;qux.run</title>
-<path fill="none" stroke="black" d="M284.27,-450.72C324.69,-441.87 388.27,-426.29 441.04,-405.98 452.58,-401.54 464.77,-395.64 475.42,-390.07"></path>
-<polygon fill="black" stroke="black" points="477.16,-393.11 484.32,-385.3 473.85,-386.94 477.16,-393.11"></polygon>
-</g>
-<!-- qux.mainFileName -->
-<g id="node5" class="node">
-<title>qux.mainFileName</title>
-<polygon fill="white" stroke="black" points="304.52,-428.28 181.12,-428.28 181.12,-403.68 304.52,-403.68 304.52,-428.28"></polygon>
-<text text-anchor="middle" x="242.82" y="-411.78" font-family="Times,serif" font-size="14.00">qux.mainFileName</text>
-</g>
-<!-- qux.mainFileName&#45;&gt;qux.typeCheck -->
-<g id="edge4" class="edge">
-<title>qux.mainFileName-&gt;qux.typeCheck</title>
-<path fill="none" stroke="black" d="M285.67,-403.66C302.01,-398.84 320.92,-393.28 338.11,-388.21"></path>
-<polygon fill="black" stroke="black" points="339.4,-391.48 348,-385.3 337.42,-384.77 339.4,-391.48"></polygon>
-</g>
-<!-- qux.mainFileName&#45;&gt;qux.run -->
-<g id="edge6" class="edge">
-<title>qux.mainFileName-&gt;qux.run</title>
-<path fill="none" stroke="black" d="M304.76,-412.39C343.99,-409.3 395.91,-403.73 441.04,-393.98 449.65,-392.12 458.74,-389.55 467.3,-386.85"></path>
-<polygon fill="black" stroke="black" points="468.62,-390.1 477.03,-383.66 466.44,-383.45 468.62,-390.1"></polygon>
-</g>
-<!-- bar.setup -->
-<g id="node6" class="node">
-<title>bar.setup</title>
-<polygon fill="white" stroke="black" points="117.71,-279.28 50.86,-279.28 50.86,-254.68 117.71,-254.68 117.71,-279.28"></polygon>
-<text text-anchor="middle" x="84.29" y="-262.78" font-family="Times,serif" font-size="14.00">bar.setup</text>
-</g>
-<!-- bar.typeCheck -->
-<g id="node7" class="node">
-<title>bar.typeCheck</title>
-<polygon fill="white" stroke="black" points="291.57,-261.28 194.07,-261.28 194.07,-236.68 291.57,-236.68 291.57,-261.28"></polygon>
-<text text-anchor="middle" x="242.82" y="-244.78" font-family="Times,serif" font-size="14.00">bar.typeCheck</text>
-</g>
-<!-- bar.setup&#45;&gt;bar.typeCheck -->
-<g id="edge7" class="edge">
-<title>bar.setup-&gt;bar.typeCheck</title>
-<path fill="none" stroke="black" d="M117.72,-263.25C136.82,-261.05 161.55,-258.21 183.9,-255.64"></path>
-<polygon fill="black" stroke="black" points="184.44,-259.1 193.97,-254.48 183.64,-252.15 184.44,-259.1"></polygon>
-</g>
-<!-- bar.typeCheck&#45;&gt;qux.typeCheck -->
-<g id="edge19" class="edge">
-<title>bar.typeCheck-&gt;qux.typeCheck</title>
-<path fill="none" stroke="green" stroke-width="3" d="M258.36,-261.32C283.81,-282.94 336.63,-327.78 367.01,-353.58"></path>
-<polygon fill="green" stroke="green" stroke-width="3" points="365.05,-356.51 374.94,-360.32 369.58,-351.18 365.05,-356.51"></polygon>
-</g>
-<!-- bar.run -->
-<g id="node8" class="node">
-<title>bar.run</title>
-<polygon fill="white" stroke="black" points="418.89,-230.28 362.82,-230.28 362.82,-205.68 418.89,-205.68 418.89,-230.28"></polygon>
-<text text-anchor="middle" x="390.85" y="-213.78" font-family="Times,serif" font-size="14.00">bar.run</text>
-</g>
-<!-- bar.typeCheck&#45;&gt;bar.run -->
-<g id="edge8" class="edge">
-<title>bar.typeCheck-&gt;bar.run</title>
-<path fill="none" stroke="black" d="M291.64,-238.83C311.57,-234.6 334.36,-229.76 352.96,-225.81"></path>
-<polygon fill="black" stroke="black" points="353.77,-229.22 362.82,-223.72 352.32,-222.37 353.77,-229.22"></polygon>
-</g>
-<!-- bar.sources -->
-<g id="node9" class="node">
-<title>bar.sources</title>
-<polygon fill="white" stroke="black" points="124.14,-193.28 44.43,-193.28 44.43,-168.68 124.14,-168.68 124.14,-193.28"></polygon>
-<text text-anchor="middle" x="84.29" y="-176.78" font-family="Times,serif" font-size="14.00">bar.sources</text>
-</g>
-<!-- bar.sources&#45;&gt;qux.run -->
-<g id="edge20" class="edge">
-<title>bar.sources-&gt;qux.run</title>
-<path fill="none" stroke="green" stroke-width="3" d="M124.23,-176.57C131.86,-174.15 139.25,-170.49 144.97,-164.98 175.43,-135.61 138.93,-99.12 172.97,-73.98 220.89,-38.59 394.68,-36.57 441.04,-73.98 484.31,-108.9 500.01,-286.79 504.28,-350.36"></path>
-<polygon fill="green" stroke="green" stroke-width="3" points="500.8,-350.76 504.93,-360.52 507.79,-350.31 500.8,-350.76"></polygon>
-</g>
-<!-- bar.sources&#45;&gt;bar.typeCheck -->
-<g id="edge9" class="edge">
-<title>bar.sources-&gt;bar.typeCheck</title>
-<path fill="none" stroke="black" d="M120.52,-193.37C128.61,-196.38 137.13,-199.68 144.97,-202.98 166.3,-211.95 189.76,-223.06 208.24,-232.11"></path>
-<polygon fill="black" stroke="black" points="206.9,-235.35 217.42,-236.64 209.99,-229.08 206.9,-235.35"></polygon>
-</g>
-<!-- bar.sources&#45;&gt;bar.run -->
-<g id="edge11" class="edge">
-<title>bar.sources-&gt;bar.run</title>
-<path fill="none" stroke="black" d="M124.17,-185.7C183.05,-192.86 294.1,-206.35 352.23,-213.41"></path>
-<polygon fill="black" stroke="black" points="352.09,-216.92 362.44,-214.65 352.94,-209.97 352.09,-216.92"></polygon>
-</g>
-<!-- bar.mainFileName -->
-<g id="node10" class="node">
-<title>bar.mainFileName</title>
-<polygon fill="white" stroke="black" points="144.36,-236.28 24.21,-236.28 24.21,-211.68 144.36,-211.68 144.36,-236.28"></polygon>
-<text text-anchor="middle" x="84.29" y="-219.78" font-family="Times,serif" font-size="14.00">bar.mainFileName</text>
-</g>
-<!-- bar.mainFileName&#45;&gt;bar.typeCheck -->
-<g id="edge10" class="edge">
-<title>bar.mainFileName-&gt;bar.typeCheck</title>
-<path fill="none" stroke="black" d="M144.47,-233.43C157.31,-235.48 170.88,-237.65 183.68,-239.69"></path>
-<polygon fill="black" stroke="black" points="183.33,-243.18 193.76,-241.3 184.43,-236.27 183.33,-243.18"></polygon>
-</g>
-<!-- bar.mainFileName&#45;&gt;bar.run -->
-<g id="edge12" class="edge">
-<title>bar.mainFileName-&gt;bar.run</title>
-<path fill="none" stroke="black" d="M144.37,-222.81C206.03,-221.6 300.82,-219.73 352.72,-218.71"></path>
-<polygon fill="black" stroke="black" points="352.88,-222.21 362.81,-218.51 352.74,-215.21 352.88,-222.21"></polygon>
-</g>
-<!-- foo.setup -->
-<g id="node11" class="node">
-<title>foo.setup</title>
-<polygon fill="white" stroke="black" points="118,-150.28 50.58,-150.28 50.58,-125.68 118,-125.68 118,-150.28"></polygon>
-<text text-anchor="middle" x="84.29" y="-133.78" font-family="Times,serif" font-size="14.00">foo.setup</text>
-</g>
-<!-- foo.typeCheck -->
-<g id="node12" class="node">
-<title>foo.typeCheck</title>
-<polygon fill="white" stroke="black" points="291.85,-152.28 193.79,-152.28 193.79,-127.68 291.85,-127.68 291.85,-152.28"></polygon>
-<text text-anchor="middle" x="242.82" y="-135.78" font-family="Times,serif" font-size="14.00">foo.typeCheck</text>
-</g>
-<!-- foo.setup&#45;&gt;foo.typeCheck -->
-<g id="edge13" class="edge">
-<title>foo.setup-&gt;foo.typeCheck</title>
-<path fill="none" stroke="black" d="M118.1,-138.4C136.99,-138.64 161.27,-138.95 183.32,-139.23"></path>
-<polygon fill="black" stroke="black" points="183.55,-142.73 193.59,-139.36 183.64,-135.74 183.55,-142.73"></polygon>
-</g>
-<!-- foo.typeCheck&#45;&gt;qux.typeCheck -->
-<g id="edge21" class="edge">
-<title>foo.typeCheck-&gt;qux.typeCheck</title>
-<path fill="none" stroke="green" stroke-width="3" d="M291.87,-147.86C296.63,-150.18 301.04,-153.16 304.67,-156.98 354.61,-209.47 308.03,-251.29 340.67,-315.98 347.61,-329.74 358.6,-342.92 368.43,-353.13"></path>
-<polygon fill="green" stroke="green" stroke-width="3" points="366.08,-355.74 375.63,-360.33 371.03,-350.78 366.08,-355.74"></polygon>
-</g>
-<!-- foo.run -->
-<g id="node13" class="node">
-<title>foo.run</title>
-<polygon fill="white" stroke="black" points="419.18,-121.28 362.53,-121.28 362.53,-96.68 419.18,-96.68 419.18,-121.28"></polygon>
-<text text-anchor="middle" x="390.85" y="-104.78" font-family="Times,serif" font-size="14.00">foo.run</text>
-</g>
-<!-- foo.typeCheck&#45;&gt;foo.run -->
-<g id="edge14" class="edge">
-<title>foo.typeCheck-&gt;foo.run</title>
-<path fill="none" stroke="black" d="M292.04,-129.74C311.58,-125.6 333.8,-120.88 352.12,-116.99"></path>
-<polygon fill="black" stroke="black" points="353.08,-120.36 362.13,-114.86 351.63,-113.52 353.08,-120.36"></polygon>
-</g>
-<!-- foo.sources -->
-<g id="node14" class="node">
-<title>foo.sources</title>
-<polygon fill="white" stroke="black" points="124.43,-64.28 44.15,-64.28 44.15,-39.68 124.43,-39.68 124.43,-64.28"></polygon>
-<text text-anchor="middle" x="84.29" y="-47.78" font-family="Times,serif" font-size="14.00">foo.sources</text>
-</g>
-<!-- foo.sources&#45;&gt;qux.run -->
-<g id="edge22" class="edge">
-<title>foo.sources-&gt;qux.run</title>
-<path fill="none" stroke="green" stroke-width="3" d="M115.26,-39.55C182.3,-13.96 345.93,35.91 441.04,-42.98 488.61,-82.43 501.67,-282.33 504.76,-350.31"></path>
-<polygon fill="green" stroke="green" stroke-width="3" points="501.27,-350.54 505.19,-360.39 508.26,-350.25 501.27,-350.54"></polygon>
-</g>
-<!-- foo.sources&#45;&gt;foo.typeCheck -->
-<g id="edge15" class="edge">
-<title>foo.sources-&gt;foo.typeCheck</title>
-<path fill="none" stroke="black" d="M123.52,-64.34C130.79,-67.17 138.23,-70.42 144.97,-73.98 158.49,-81.13 160.39,-85.29 172.97,-93.98 186.61,-103.41 201.94,-113.68 214.67,-122.12"></path>
-<polygon fill="black" stroke="black" points="212.74,-125.04 223.01,-127.64 216.6,-119.2 212.74,-125.04"></polygon>
-</g>
-<!-- foo.sources&#45;&gt;foo.run -->
-<g id="edge17" class="edge">
-<title>foo.sources-&gt;foo.run</title>
-<path fill="none" stroke="black" d="M124.48,-59.31C183.59,-70.38 294.78,-91.18 352.68,-102.02"></path>
-<polygon fill="black" stroke="black" points="352.03,-105.46 362.51,-103.86 353.32,-98.58 352.03,-105.46"></polygon>
-</g>
-<!-- foo.mainFileName -->
-<g id="node15" class="node">
-<title>foo.mainFileName</title>
-<polygon fill="white" stroke="black" points="145.15,-107.28 23.43,-107.28 23.43,-82.68 145.15,-82.68 145.15,-107.28"></polygon>
-<text text-anchor="middle" x="84.29" y="-90.78" font-family="Times,serif" font-size="14.00">foo.mainFileName</text>
-</g>
-<!-- foo.mainFileName&#45;&gt;foo.typeCheck -->
-<g id="edge16" class="edge">
-<title>foo.mainFileName-&gt;foo.typeCheck</title>
-<path fill="none" stroke="black" d="M128.48,-107.39C147.21,-112.78 169.32,-119.14 189.02,-124.8"></path>
-<polygon fill="black" stroke="black" points="188.19,-128.2 198.77,-127.6 190.13,-121.48 188.19,-128.2"></polygon>
-</g>
-<!-- foo.mainFileName&#45;&gt;foo.run -->
-<g id="edge18" class="edge">
-<title>foo.mainFileName-&gt;foo.run</title>
-<path fill="none" stroke="black" d="M145.1,-97.73C206.52,-100.55 300.25,-104.86 352.09,-107.24"></path>
-<polygon fill="black" stroke="black" points="352.03,-110.74 362.18,-107.71 352.35,-103.75 352.03,-110.74"></polygon>
-</g>
-</g>
-</svg>
-
-</center>
-<div class="paragraph">
-<p>Now Next, We will add External Library and Bundling Support</p>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_python_library_dependencies_bundling"><a class="anchor" href="#_python_library_dependencies_bundling"></a>Python Library Dependencies &amp; Bundling</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>This example shows how to handle external dependencies and
-create PEX (Python EXecutable) bundles using the <code>PythonModule</code> trait.</p>
-</div>
-<div class="paragraph">
-<p>PEX simplifies Python app distribution by packaging
-code and dependencies into a single executable file.</p>
-</div>
-<div class="paragraph">
-<p>Guide: <a href="https://docs.pex-tool.org">Pex Documentation</a></p>
-</div>
-<div class="sect3">
-<h4 id="_extending_pythonmodule_for_pex_support"><a class="anchor" href="#_extending_pythonmodule_for_pex_support"></a>Extending PythonModule For Pex Support</h4>
-<div class="paragraph">
-<p>This implementation extends <code>PythonModule</code> with these key Tasks:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>def <code>finalDependencies</code>: Merges and deduplicates dependencies from <code>requirements.txt</code> and the <code>dependencies</code> task.</p>
-</li>
-<li>
-<p>def <code>bundle</code>: Packages the module and dependencies into a standalone <code>result.pex</code> file, making deployment easier.</p>
-</li>
-</ul>
-</div>
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-extending-newlang-8-python-libs-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/8-python-libs-bundle">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._
-
-/** extends for efficient library dependency management and executable bundling. */
-trait PythonModule extends Module {
-  def moduleDeps: Seq[PythonModule] = Nil
-  def dependencies: T[Seq[String]] = Task { Seq.empty[String] }
-  def mainFileName: T[String] = Task { &quot;main.py&quot; }
-  def sources: T[PathRef] = Task.Source(millSourcePath / &quot;src&quot;)
-  def requirementsPath: T[PathRef] = Task.Source(millSourcePath / &quot;requirements.txt&quot;)
-
-  def requirementsDependencies: T[Seq[String]] = Task {
-    val reqFile = requirementsPath().path
-    if (os.exists(reqFile)) {
-      os.read.lines(reqFile).map(_.trim).filter(_.nonEmpty)
-    } else {
-      Seq.empty[String]
-    }
-  }
-
-  def finalDependencies: T[Seq[String]] = Task {
-    // Collects the Upstream dependencies(external Libs)
-    val upstreamDependencies = Task.traverse(moduleDeps)(_.finalDependencies)()
-
-    (
-      dependencies()
-        ++ requirementsDependencies()
-        ++ upstreamDependencies.flatten
-    ).distinct
-
-  }
-
-  def setup: T[PathRef] = Task {
-    val pythonVenv = Task.dest / &quot;venv&quot; / &quot;bin&quot; / &quot;python3&quot;
-
-    // installs mypy and pex
-    os.call((&quot;python3&quot;, &quot;-m&quot;, &quot;venv&quot;, Task.dest / &quot;venv&quot;))
-    os.call((pythonVenv, &quot;-m&quot;, &quot;pip&quot;, &quot;install&quot;, &quot;mypy&quot;, &quot;pex&quot;))
-
-    // installs library dependencies
-    if (finalDependencies().nonEmpty) {
-      os.call((pythonVenv, &quot;-m&quot;, &quot;pip&quot;, &quot;install&quot;, finalDependencies()))
-    }
-
-    PathRef(pythonVenv)
-  }
-
-  def typeCheck: T[PathRef] = Task {
-    val upstreamTypeCheck = Task.traverse(moduleDeps)(_.typeCheck)()
-    val pythonVenv = setup().path
-
-    os.call(
-      (pythonVenv, &quot;-m&quot;, &quot;mypy&quot;, &quot;--strict&quot;, sources().path / mainFileName()),
-      stdout = os.Inherit
-    )
-
-    PathRef(pythonVenv)
-  }
-
-  def run(args: mill.define.Args) = Task.Command {
-    val upstream = Task.traverse(moduleDeps)(_.sources)().zip(moduleDeps)
-
-    for (((sourcesFolder), mod) &lt;- upstream) {
-      val destinationPath = Task.dest / mod.millSourcePath.subRelativeTo(build.millSourcePath)
-      os.copy.over(sourcesFolder.path / os.up, destinationPath)
-    }
-
-    val pythonVenv = typeCheck().path
-
-    os.call(
-      (pythonVenv, sources().path / mainFileName(), args.value),
-      env = Map(&quot;PYTHONPATH&quot; -&gt; Task.dest.toString),
-      stdout = os.Inherit
-    )
-  }
-
-  /** Bundles the project into a single PEX executable(result.pex). */
-  def bundle(args: mill.define.Args) = Task.Command {
-    val pythonVenv = setup().path
-    val pexFile = Task.dest / &quot;result.pex&quot;
-    val upstream = Task.traverse(moduleDeps)(_.sources)().zip(moduleDeps)
-
-    for (((sourcesFolder), mod) &lt;- upstream) {
-      val destinationPath = Task.dest / mod.millSourcePath.subRelativeTo(build.millSourcePath)
-      os.copy.over(sourcesFolder.path / os.up, destinationPath)
-    }
-
-    os.call(
-      (
-        pythonVenv,
-        &quot;-m&quot;,
-        &quot;pex&quot;,
-        finalDependencies(),
-        &quot;-c&quot;,
-        sources().path / mainFileName(),
-        &quot;-o&quot;,
-        pexFile,
-        args.value
-      ),
-      env = Map(&quot;PYTHONPATH&quot; -&gt; Task.dest.toString),
-      stdout = os.Inherit
-    )
-
-    PathRef(pexFile)
-  }
-
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Note the use of <code>Task.traverse(moduleDeps)</code> in order to aggregate the upstream modules
-library dependencies and the <code>typeCheck</code> outputs, which is necessary before running any
-code, finally it gathers upstream modules <code>sources</code> for further processing in <code>run</code> Task</p>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_example_2"><a class="anchor" href="#_example_2"></a>Example</h4>
-<div class="paragraph">
-<p>The <code>pex</code> object demonstrates <code>PythonModule</code> with inline and file-based dependencies.</p>
-</div>
-<div class="paragraph">
-<p>Running <code>pex.bundle</code> creates <code>result.pex</code>, a standalone executable for easy distribution.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object pex extends PythonModule {
-  // For Education Purpose both way of giving dependencies are discussed here
-  // one dependency is mentioned in requirements.txt and one inline(below)
-  override def dependencies: T[Seq[String]] = Task { Seq(&quot;pandas&quot;) }
-
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Source Files For this Example:</p>
-</div>
-<div class="listingblock">
-<div class="title">pex/src/main.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/8-python-libs-bundle/pex/src/main.py">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import numpy as np
-import pandas as pd # type: ignore
-def main() -&gt; None:
-    data = np.array([10, 20, 30, 40, 50])
-    df = pd.DataFrame({&quot;Values&quot;: data})
-    print(f&quot;Numpy : Sum: {np.sum(data)} | Pandas: Mean: {df['Values'].mean()}, Max: {df['Values'].max()}&quot;)
-if __name__ == &quot;__main__&quot;:
-    main()</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">pex/requirements.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/extending/newlang/8-python-libs-bundle/pex/requirements.txt">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">numpy</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>To run the project and create a <code>.pex</code> executable, use the following commands:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill pex.run
-Numpy : Sum: 150 | Pandas: Mean: 30.0, Max: 50
-
-&gt; ./mill show pex.bundle
-&quot;.../out/pex/bundle.dest/result.pex&quot;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This generates the <code>result.pex</code> file, which packages all dependencies
-and can be executed as a standalone application.</p>
-</div>
-<div class="paragraph">
-<p>To Run the <code>result.pex</code> file, First Provide the executable permission(+x)
-to result.pex and then run using <code>./result.pex</code> command.</p>
-</div>
-<div class="paragraph">
-<p>The final module tree and task graph is now as follows, with the additional dependencies
-tasks with upstream and the bundle tasks downstream:</p>
-</div>
-<center>
-<svg width="560px" height="144px" viewBox="0.00 0.00 560.21 144.08" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 140.08)">
-<title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-140.08 556.21,-140.08 556.21,4 -4,4"></polygon>
-<!-- pex.setup -->
-<g id="node1" class="node">
-<title>pex.setup</title>
-<polygon fill="white" stroke="black" points="276.11,-82.7 206.58,-82.7 206.58,-58.1 276.11,-58.1 276.11,-82.7"></polygon>
-<text text-anchor="middle" x="241.34" y="-66.2" font-family="Times,serif" font-size="14.00">pex.setup</text>
-</g>
-<!-- pex.typeCheck -->
-<g id="node2" class="node">
-<title>pex.typeCheck</title>
-<polygon fill="white" stroke="black" points="438.18,-84.7 339.01,-84.7 339.01,-60.1 438.18,-60.1 438.18,-84.7"></polygon>
-<text text-anchor="middle" x="388.59" y="-68.2" font-family="Times,serif" font-size="14.00">pex.typeCheck</text>
-</g>
-<!-- pex.setup&#45;&gt;pex.typeCheck -->
-<g id="edge1" class="edge">
-<title>pex.setup-&gt;pex.typeCheck</title>
-<path fill="none" stroke="black" d="M276.03,-70.86C291.73,-71.08 310.87,-71.34 328.83,-71.59"></path>
-<polygon fill="black" stroke="black" points="328.9,-75.09 338.95,-71.73 329,-68.09 328.9,-75.09"></polygon>
-</g>
-<!-- pex.run -->
-<g id="node3" class="node">
-<title>pex.run</title>
-<polygon fill="white" stroke="green" stroke-width="3" points="542.67,-84.7 483.92,-84.7 483.92,-60.1 542.67,-60.1 542.67,-84.7"></polygon>
-<text text-anchor="middle" x="513.3" y="-68.2" font-family="Times,serif" font-size="14.00">pex.run</text>
-</g>
-<!-- pex.typeCheck&#45;&gt;pex.run -->
-<g id="edge2" class="edge">
-<title>pex.typeCheck-&gt;pex.run</title>
-<path fill="none" stroke="black" d="M438.44,-72.4C450.19,-72.4 462.58,-72.4 473.78,-72.4"></path>
-<polygon fill="black" stroke="black" points="474.1,-75.9 484.1,-72.4 474.1,-68.9 474.1,-75.9"></polygon>
-</g>
-<!-- pex.bundle -->
-<g id="node4" class="node">
-<title>pex.bundle</title>
-<polygon fill="white" stroke="green" stroke-width="3" points="552.12,-24.7 474.48,-24.7 474.48,-0.1 552.12,-0.1 552.12,-24.7"></polygon>
-<text text-anchor="middle" x="513.3" y="-8.2" font-family="Times,serif" font-size="14.00">pex.bundle</text>
-</g>
-<!-- pex.typeCheck&#45;&gt;pex.bundle -->
-<g id="edge3" class="edge">
-<title>pex.typeCheck-&gt;pex.bundle</title>
-<path fill="none" stroke="black" d="M415.02,-59.97C433.2,-51.08 457.88,-39.01 477.83,-29.26"></path>
-<polygon fill="black" stroke="black" points="479.46,-32.35 486.9,-24.82 476.38,-26.06 479.46,-32.35"></polygon>
-</g>
-<!-- pex.finalDependencies -->
-<g id="node5" class="node">
-<title>pex.finalDependencies</title>
-<polygon fill="white" stroke="black" points="143.83,-24.7 0.06,-24.7 0.06,-0.1 143.83,-0.1 143.83,-24.7"></polygon>
-<text text-anchor="middle" x="71.94" y="-8.2" font-family="Times,serif" font-size="14.00">pex.finalDependencies</text>
-</g>
-<!-- pex.finalDependencies&#45;&gt;pex.setup -->
-<g id="edge4" class="edge">
-<title>pex.finalDependencies-&gt;pex.setup</title>
-<path fill="none" stroke="black" d="M108.85,-24.84C134.61,-33.77 169.44,-45.83 196.78,-55.31"></path>
-<polygon fill="black" stroke="black" points="195.89,-58.7 206.49,-58.67 198.19,-52.09 195.89,-58.7"></polygon>
-</g>
-<!-- pex.finalDependencies&#45;&gt;pex.bundle -->
-<g id="edge5" class="edge">
-<title>pex.finalDependencies-&gt;pex.bundle</title>
-<path fill="none" stroke="black" d="M143.96,-7.86C155.95,-7.25 168.27,-6.73 179.89,-6.4 281,-3.57 399.45,-7.42 464.12,-10.14"></path>
-<polygon fill="black" stroke="black" points="464.26,-13.65 474.4,-10.58 464.56,-6.66 464.26,-13.65"></polygon>
-</g>
-<!-- pex.sources -->
-<g id="node6" class="node">
-<title>pex.sources</title>
-<polygon fill="white" stroke="black" points="282.04,-39.7 200.65,-39.7 200.65,-15.1 282.04,-15.1 282.04,-39.7"></polygon>
-<text text-anchor="middle" x="241.34" y="-23.2" font-family="Times,serif" font-size="14.00">pex.sources</text>
-</g>
-<!-- pex.sources&#45;&gt;pex.typeCheck -->
-<g id="edge6" class="edge">
-<title>pex.sources-&gt;pex.typeCheck</title>
-<path fill="none" stroke="black" d="M282.42,-39.82C299.56,-45.13 319.76,-51.39 337.85,-56.99"></path>
-<polygon fill="black" stroke="black" points="337.06,-60.41 347.65,-60.02 339.13,-53.72 337.06,-60.41"></polygon>
-</g>
-<!-- pex.sources&#45;&gt;pex.run -->
-<g id="edge8" class="edge">
-<title>pex.sources-&gt;pex.run</title>
-<path fill="none" stroke="black" d="M282.06,-30.44C321.87,-33.92 384.78,-40.57 438.39,-51.4 450.12,-53.77 462.7,-57.06 474.11,-60.33"></path>
-<polygon fill="black" stroke="black" points="473.19,-63.71 483.77,-63.18 475.17,-56.99 473.19,-63.71"></polygon>
-</g>
-<!-- pex.sources&#45;&gt;pex.bundle -->
-<g id="edge10" class="edge">
-<title>pex.sources-&gt;pex.bundle</title>
-<path fill="none" stroke="black" d="M282.19,-23.15C299.56,-21.44 320.17,-19.59 338.8,-18.4 381.05,-15.7 429.17,-14.16 464,-13.31"></path>
-<polygon fill="black" stroke="black" points="464.44,-16.8 474.36,-13.07 464.28,-9.81 464.44,-16.8"></polygon>
-</g>
-<!-- pex.mainFileName -->
-<g id="node7" class="node">
-<title>pex.mainFileName</title>
-<polygon fill="white" stroke="green" stroke-width="3" points="302.76,-125.7 179.93,-125.7 179.93,-101.1 302.76,-101.1 302.76,-125.7"></polygon>
-<text text-anchor="middle" x="241.34" y="-109.2" font-family="Times,serif" font-size="14.00">pex.mainFileName</text>
-</g>
-<!-- pex.mainFileName&#45;&gt;pex.typeCheck -->
-<g id="edge7" class="edge">
-<title>pex.mainFileName-&gt;pex.typeCheck</title>
-<path fill="none" stroke="black" d="M285.92,-101.1C301.08,-96.82 318.25,-91.97 334.12,-87.5"></path>
-<polygon fill="black" stroke="black" points="335.12,-90.85 343.79,-84.76 333.22,-84.11 335.12,-90.85"></polygon>
-</g>
-<!-- pex.mainFileName&#45;&gt;pex.run -->
-<g id="edge9" class="edge">
-<title>pex.mainFileName-&gt;pex.run</title>
-<path fill="none" stroke="black" d="M287.13,-125.71C327.65,-134.68 388.45,-142.7 438.39,-126.4 459.1,-119.64 478.82,-104.63 492.68,-92.15"></path>
-<polygon fill="black" stroke="black" points="495.22,-94.57 500.12,-85.18 490.43,-89.46 495.22,-94.57"></polygon>
-</g>
-<!-- pex.mainFileName&#45;&gt;pex.bundle -->
-<g id="edge11" class="edge">
-<title>pex.mainFileName-&gt;pex.bundle</title>
-<path fill="none" stroke="black" d="M303.12,-118.53C343.63,-119.32 396.85,-115.12 438.39,-93.4 460.17,-82.01 457.81,-69.56 474.39,-51.4 480.21,-45.03 486.7,-38.23 492.65,-32.13"></path>
-<polygon fill="black" stroke="black" points="495.29,-34.44 499.8,-24.85 490.29,-29.53 495.29,-34.44"></polygon>
-</g>
-</g>
-</svg>
-
-</center>
 <div class="paragraph">
 <p>As mentioned, The <code>PythonModule</code> examples here demonstrate
 how to add support for a new language toolchain in Mill.
@@ -3389,10 +2042,9 @@ A production-ready version would require more work to enhance features and perfo
 </div>
 </div>
 </div>
-</div>
 <nav class="pagination">
   <span class="prev"><a href="meta-build.html">The Mill Meta-Build</a></span>
-  <span class="next"><a href="../depth/large-builds.html">Large Builds and Monorepos</a></span>
+  <span class="next"><a href="example-python-support.html">Example: Python Support</a></span>
 </nav>
 </article>
   </div>
