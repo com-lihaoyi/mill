@@ -10,6 +10,7 @@ import mill.util.{Util, Watchable}
 import pprint.{Renderer, Tree, Truncated}
 
 import java.util.concurrent.LinkedBlockingQueue
+import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.reflect.NameTransformer.decode
 
@@ -192,15 +193,37 @@ trait MainModule extends BaseModule0 {
       }
     }
 
+  private lazy val inspectItemIndent = "    "
+
   /**
    * Displays metadata about the given task without actually running it.
    */
   def inspect(evaluator: Evaluator, tasks: String*): Command[String] =
     Task.Command(exclusive = true) {
-      def resolveParents(c: Class[_]): Seq[Class[_]] = {
-        Seq(c) ++ Option(c.getSuperclass).toSeq.flatMap(resolveParents) ++ c.getInterfaces.flatMap(
-          resolveParents
-        )
+
+      /** Find a parent classes of the given class queue. */
+      @tailrec
+      def resolveParents(queue: List[Class[_]], seen: Seq[Class[_]] = Seq()): Seq[Class[_]] = {
+        queue match {
+          case Nil => seen
+          case cand :: rest if seen.contains(cand) => resolveParents(rest, seen)
+          case cand :: rest =>
+            val sups = Option(cand.getSuperclass).toList ++ cand.getInterfaces.toList
+            resolveParents(sups ::: rest, seen ++ Seq(cand))
+        }
+      }
+
+      def renderFileName(t: NamedTask[_]) = {
+        // handle both Windows or Unix separators
+        val fullFileName = t.ctx.fileName.replaceAll(raw"\\", "/")
+        val basePath = WorkspaceRoot.workspaceRoot.toString().replaceAll(raw"\\", "/") + "/"
+        val name =
+          if (fullFileName.startsWith(basePath)) {
+            fullFileName.drop(basePath.length)
+          } else {
+            fullFileName.split('/').last
+          }
+        s"${name}:${t.ctx.lineNum}"
       }
 
       def pprintTask(t: NamedTask[_], evaluator: Evaluator): Tree.Lazy = {
@@ -219,7 +242,7 @@ trait MainModule extends BaseModule0 {
         }
 
         val annots = for {
-          c <- resolveParents(t.ctx.enclosingCls)
+          c <- resolveParents(List(t.ctx.enclosingCls))
           m <- c.getMethods
           if m.getName == t.ctx.segment.pathSegments.head
           a = m.getAnnotation(classOf[mill.moduledefs.Scaladoc])
@@ -228,7 +251,7 @@ trait MainModule extends BaseModule0 {
 
         val allDocs =
           for (a <- annots.distinct)
-            yield mill.util.Util.cleanupScaladoc(a.value).map("\n    " + _).mkString
+            yield Util.cleanupScaladoc(a.value).map("\n" + inspectItemIndent + _).mkString
 
         pprint.Tree.Lazy { ctx =>
           val mainMethodSig =
@@ -252,7 +275,8 @@ trait MainModule extends BaseModule0 {
                     docsOnNewLine = false,
                     customName = None,
                     customDoc = None,
-                    sorted = true
+                    sorted = true,
+                    nameMapper = mainargs.Util.kebabCaseNameMapper
                   )
 
                   // trim first line containing command name, since we already render
@@ -271,10 +295,7 @@ trait MainModule extends BaseModule0 {
           Iterator(
             ctx.applyPrefixColor(t.toString).toString,
             "(",
-            // handle both Windows or Unix separators
-            t.ctx.fileName.split('/').last.split('\\').last,
-            ":",
-            t.ctx.lineNum.toString,
+            renderFileName(t),
             ")",
             allDocs.mkString("\n"),
             "\n"
@@ -284,57 +305,101 @@ trait MainModule extends BaseModule0 {
               "\n",
               ctx.applyPrefixColor("Inputs").toString,
               ":"
-            ) ++ t.inputs.iterator.flatMap(rec).map("\n    " + _.render).distinct
+            ) ++ t.inputs.iterator.flatMap(rec).map("\n" + inspectItemIndent + _.render).distinct
         }
       }
 
       def pprintModule(t: ModuleTask[_], evaluator: Evaluator): Tree.Lazy = {
         val cls = t.module.getClass
         val annotation = cls.getAnnotation(classOf[Scaladoc])
-        val scaladocOpt = Option.when(annotation != null)(
-          Util.cleanupScaladoc(annotation.value).map("\n    " + _).mkString
+        val scaladocOpt = Option(annotation).map(annotation =>
+          Util.cleanupScaladoc(annotation.value).map("\n" + inspectItemIndent + _).mkString
         )
-        val fileName = t.ctx.fileName.split('/').last.split('\\').last
-        val parents = cls.getInterfaces ++ Option(cls.getSuperclass).toSeq
-        val inheritedModules =
-          parents.distinct.filter(classOf[Module].isAssignableFrom(_)).map(_.getSimpleName)
-        val moduleDepsOpt = cls.getMethods.find(m => decode(m.getName) == "moduleDeps").map(
-          _.invoke(t.module).asInstanceOf[Seq[Module]]
-        ).filter(_.nonEmpty)
+
+        def parentFilter(parent: Class[_]) =
+          classOf[Module].isAssignableFrom(parent) && classOf[Module] != parent
+
+        val parents = (Option(cls.getSuperclass).toSeq ++ cls.getInterfaces).distinct
+
+        val inheritedModules = parents.filter(parentFilter)
+
+        val allInheritedModules = Option.when(Target.log.debugEnabled)(
+          resolveParents(parents.toList)
+            .filter(parentFilter)
+            .filterNot(inheritedModules.contains)
+        ).toSeq.flatten
+
+        def getModuleDeps(methodName: String): Seq[Module] = cls
+          .getMethods
+          .find(m => decode(m.getName) == methodName)
+          .toSeq
+          .map(_.invoke(t.module).asInstanceOf[Seq[Module]])
+          .flatten
+
+        val javaModuleDeps = getModuleDeps("moduleDeps")
+        val javaCompileModuleDeps = getModuleDeps("compileModuleDeps")
+        val javaRunModuleDeps = getModuleDeps("runModuleDeps")
+        val hasModuleDeps =
+          javaModuleDeps.nonEmpty || javaCompileModuleDeps.nonEmpty || javaRunModuleDeps.nonEmpty
+
         val defaultTaskOpt = t.module match {
           case taskMod: TaskModule => Some(s"${t.module}.${taskMod.defaultCommandName()}")
           case _ => None
         }
+
         val methodMap = evaluator.rootModule.millDiscover.value
-        val tasksOpt = methodMap.get(cls).map {
+        val tasks = methodMap.get(cls).map {
           case (_, _, tasks) => tasks.map(task => s"${t.module}.$task")
-        }
+        }.toSeq.flatten
         pprint.Tree.Lazy { ctx =>
           Iterator(
-            ctx.applyPrefixColor(t.module.toString).toString,
-            s"($fileName:${t.ctx.lineNum})"
-          ) ++ Iterator(scaladocOpt).flatten ++ Iterator(
-            "\n\n",
-            ctx.applyPrefixColor("Inherited Modules").toString,
-            ": ",
-            inheritedModules.mkString(", ")
-          ) ++ moduleDepsOpt.fold(Iterator.empty[String])(deps =>
+            // module name(module/file:line)
             Iterator(
+              ctx.applyPrefixColor(t.module.toString).toString,
+              s"(${renderFileName(t)})"
+            ),
+            // Scaladoc
+            Iterator(scaladocOpt).flatten,
+            // Inherited Modules:
+            Iterator(
+              "\n\n",
+              ctx.applyPrefixColor("Inherited Modules").toString,
+              ":"
+            ),
+            inheritedModules.map("\n" + inspectItemIndent + _.getName),
+            // Indirect Inherited Modules:
+            if (allInheritedModules.isEmpty) Iterator.empty[String]
+            else Iterator(
+              "\n\n",
+              ctx.applyPrefixColor("Indirect Inherited Modules").toString,
+              ":\n",
+              inspectItemIndent,
+              allInheritedModules.map(_.getName).mkString("\n" + inspectItemIndent)
+            ),
+            // Module Dependencies: (JavaModule)
+            if (hasModuleDeps) Iterator(
               "\n\n",
               ctx.applyPrefixColor("Module Dependencies").toString,
-              ": ",
-              deps.mkString(", ")
+              ":"
             )
-          ) ++ defaultTaskOpt.fold(Iterator.empty[String])(task =>
-            Iterator("\n\n", ctx.applyPrefixColor("Default Task").toString, ": ", task)
-          ) ++ tasksOpt.fold(Iterator.empty[String])(tasks =>
-            Iterator(
+            else Iterator.empty[String],
+            javaModuleDeps.map("\n" + inspectItemIndent + _.toString),
+            javaCompileModuleDeps.map("\n" + inspectItemIndent + _.toString + " (compile)"),
+            javaRunModuleDeps.map("\n" + inspectItemIndent + _.toString + " (runtime)"),
+            // Default Task:
+            defaultTaskOpt.fold(Iterator.empty[String])(task =>
+              Iterator("\n\n", ctx.applyPrefixColor("Default Task").toString, ": ", task)
+            ),
+            // Tasks (re-/defined):
+            if (tasks.isEmpty) Iterator.empty[String]
+            else Iterator(
               "\n\n",
-              ctx.applyPrefixColor("Tasks").toString,
-              ": ",
-              tasks.mkString(", ")
+              ctx.applyPrefixColor("Tasks (re-/defined)").toString,
+              ":\n",
+              inspectItemIndent,
+              tasks.mkString("\n" + inspectItemIndent)
             )
-          )
+          ).flatten
         }
       }
 

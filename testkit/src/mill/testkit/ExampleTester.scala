@@ -108,6 +108,11 @@ class ExampleTester(
       case s => s
     }
     Console.err.println(s"$workspacePath> $commandStr")
+    Console.err.println(
+      s"""--- Expected output ----------
+         |${expectedSnippets.mkString("\n")}
+         |------------------------------""".stripMargin
+    )
 
     val res = os.call(
       (bashExecutable, "-c", commandStr),
