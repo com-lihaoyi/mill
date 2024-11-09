@@ -24,10 +24,10 @@ Java platform's performance and usability:
 xref:depth/evaluation-model.adoc#_caching_at_each_layer_of_the_evaluation_model[caches]
 and xref:cli/flags.adoc#_jobs_j[parallelizes] build
 tasks, keeping your workflows fast and responsive. Mill adds minimal overhead over
-the logic necessary to build your project, while providing tools to let you identify
-and resolve bottlenecks in your build
+the logic necessary to build your project, and avoids the long configuration or initialization
+times often necessary in other build tools like Gradle or SBT
 
-* *Maintainability*: Mill goes beyond YAML and Bash, with config and custom logic written in
+* *Maintainability*: Mill's config and custom logic is written in
 xref:javalib/intro.adoc#_custom_build_logic[concise type-checked code],
 and an immutable xref:depth/design-principles.adoc[module tree and task graph]. This
 catches config issues early, and helps IDEs

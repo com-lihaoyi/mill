@@ -239,7 +239,7 @@ can trivially load it into their Chrome browser to analyze and figure out what.
 
 Apart from the Mill Chrome Profile, Mill also provides the `./mill visualize` command, which
 is useful to show the logical dependency graph between tasks. For example, we can use
-`./mill visualize __.compile` (double `__` means wildcard) to
+`./mill visualize __.compile` (double underscore means wildcard) to
 show the dependency graph between the modules of the Netty build below:
 
 image::comparisons/NettyCompileGraph.svg[]
@@ -319,7 +319,7 @@ Unlike most other build tools, Mill builds can be explored interactively in your
 IDE. If you do not know what something does, it's documentation, definition, or usages is always
 one click away in IntelliJ or VSCode. This isn't a new experience for Java developers, as it
 is what you would be used to day-to-day in your application code! But Mill brings that same
-polished experience to your build system - traditionally some that that has been opaque
+polished experience to your build system - traditionally something that has been opaque
 and hard to understand - and does so in a way that no other build tool does.
 
 
@@ -385,6 +385,11 @@ show its value via the Mill command line to force it to evaluate:
 17
 ```
 
+Note that as `lineCount` is a `Task`, we get automatic caching, invalidation, and
+parallelization: these are things that every `Task` gets for free, without the task
+author to do anything. And although we wrote the `lineCount` logic in the main
+`build.mill` file for this example, if it grows complex enough to get messy it is
+easy to move it to your own xref:extending/writing-plugins.adoc[custom plugins]
 
 ### Overriding Tasks
 
