@@ -2,33 +2,6 @@
 
 include::partial$gtag-config.adoc[]
 
-```graphviz
-digraph G {
-  rankdir=LR
-  node [shape=box width=0 height=0 style=filled fillcolor=white]
-  bgcolor=transparent
-  newrank=true;
-  subgraph cluster_0 {
-    style=dashed
-    node [shape=box width=0 height=0 style=filled fillcolor=white]
-    label = "foo";
-
-    "foo.sources" -> "foo.compile" -> "foo.classPath" -> "foo.assembly"
-    "foo.resources" -> "foo.assembly"
-    "foo.classPath"
-  }
-  subgraph cluster_1 {
-    style=dashed
-    node [shape=box width=0 height=0 style=filled fillcolor=white]
-    label = "bar";
-
-    "foo.classPath" -> "bar.compile" [constraint=false]
-    "foo.classPath" -> "bar.classPath"
-    "bar.sources" -> "bar.compile" -> "bar.classPath" -> "bar.assembly"
-    "bar.resources" -> "bar.assembly"
-  }
-}
-```
 
 Mill is a fast, scalable, multi-language build tool that supports Java, Scala,
 and Kotlin:
