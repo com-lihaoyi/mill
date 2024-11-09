@@ -1,9 +1,9 @@
 package baz;
 
-import static org.junit.Assert.*;
-
-import com.google.common.math.IntMath;
 import org.junit.Test;
+import com.google.common.math.IntMath;
+
+import static org.junit.Assert.*;
 
 public class BazTests {
 

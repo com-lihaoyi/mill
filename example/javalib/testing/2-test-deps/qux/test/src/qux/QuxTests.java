@@ -1,7 +1,7 @@
 package qux;
 
-import com.google.common.base.Ascii;
 import org.junit.Test;
+import com.google.common.base.Ascii;
 
 public class QuxTests {
 
