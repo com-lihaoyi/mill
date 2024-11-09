@@ -4,18 +4,26 @@ include::partial$gtag-config.adoc[]
 
 This section demonstrates how to integrate `Python` support into `Mill`.
 We will define a simple `PythonModule` trait that can resolve dependencies,
-perform type checking on local code, and optimize the final bundle.
+perform type checking on local code, and bundle an executable.
  
-`Note`: This integration is for `educational purposes only`, showcasing common technique
+NOTE: This integration is for educational purposes only, showcasing common technique
 used in building language toolchains, and is not intended for production use.
 
-include::partial$example/extending/newlang/5-hello-python.adoc[]
+== Basic Python Build Pipeline
 
-include::partial$example/extending/newlang/6-python-modules.adoc[]
+include::partial$example/extending/python/1-hello-python.adoc[]
 
-include::partial$example/extending/newlang/7-python-module-deps.adoc[]
+== Re-usable PythonModule
 
-include::partial$example/extending/newlang/8-python-libs-bundle.adoc[]
+include::partial$example/extending/python/2-python-modules.adoc[]
+
+== PythonModule `moduleDeps`
+
+include::partial$example/extending/python/3-python-module-deps.adoc[]
+
+== PIP dependencies and bundling
+
+include::partial$example/extending/python/4-python-libs-bundle.adoc[]
 
 
 
