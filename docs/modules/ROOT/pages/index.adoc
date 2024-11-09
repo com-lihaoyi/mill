@@ -106,3 +106,5 @@ Mill maintains an open list of issue bounties below, with payouts ranging from
 hand at any bounties that may interest you
 
 * https://github.com/orgs/com-lihaoyi/discussions/6[Open Issue Bounties]
+
+For commercial support and services related to Mill, email info@mill-build.org
