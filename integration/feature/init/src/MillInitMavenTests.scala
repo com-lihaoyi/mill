@@ -261,47 +261,186 @@ object MillInitMavenFastExcelTests extends MillInitMavenTests {
 
 object MillInitMavenNettyTests extends MillInitMavenTests {
 
+  private val compileTasksThatSucceed = Array(
+    "common.compile",
+    "dev-tools.compile",
+    "testsuite-osgi.compile",
+    "buffer.compile",
+    "resolver.compile",
+    "testsuite-native-image-client-runtime-init.compile",
+    "buffer.test.compile",
+    "transport.compile",
+    "resolver.test.compile",
+    "testsuite-native-image-client-runtime-init.test.compile",
+    "codec.compile",
+    "transport-native-unix-common.compile",
+    "transport-rxtx.compile",
+    "transport-udt.compile",
+    "transport.test.compile",
+    "codec-haproxy.compile",
+    "codec-memcache.compile",
+    "codec-smtp.compile",
+    "codec-socks.compile",
+    "codec-stomp.compile",
+    "codec-xml.compile",
+    "handler.compile",
+    "transport-native-unix-common-tests.compile",
+    "transport-native-unix-common.test.compile",
+    "transport-rxtx.test.compile",
+    "transport-udt.test.compile",
+    "codec-http.compile",
+    "transport-native-unix-common-tests.test.compile",
+    "handler-proxy.compile",
+    "testsuite-autobahn.compile",
+    "testsuite-native-image.compile",
+    "testsuite-autobahn.test.compile",
+    "testsuite-native-image.test.compile"
+  )
+
+  private val compileTasksThatFail = Array(
+    /* missing outer compileIvyDeps */
+    "common.test.compile",
+    /* missing generated sources */
+    "transport-sctp.compile",
+    "transport-classes-epoll.compile",
+    "transport-classes-kqueue.compile",
+    "codec-dns.compile",
+    "codec-mqtt.compile",
+    "codec-redis.compile",
+    "codec-http2.compile",
+    /* missing native dependency */
+    "codec.test.compile",
+    "codec-haproxy.test.compile",
+    "codec-memcache.test.compile",
+    "codec-smtp.test.compile",
+    "codec-socks.test.compile",
+    "codec-stomp.test.compile",
+    "codec-xml.test.compile",
+    "handler.test.compile",
+    "codec-http.test.compile",
+    "handler-proxy.test.compile",
+    /* upstream compile fails */
+    "codec-mqtt.test.compile",
+    "codec-redis.test.compile",
+    "codec-dns.test.compile",
+    "resolver-dns.compile",
+    "transport-sctp.test.compile",
+    "transport-classes-epoll.test.compile",
+    "transport-native-epoll.compile",
+    "transport-classes-kqueue.test.compile",
+    "transport-native-kqueue.compile",
+    "testsuite.compile",
+    "handler-ssl-ocsp.compile",
+    "resolver-dns-classes-macos.compile",
+    "resolver-dns.test.compile",
+    "testsuite-native-image-client.compile",
+    "transport-blockhound-tests.compile",
+    "testsuite-shading.compile",
+    "all.compile",
+    "codec-http2.test.compile",
+    "example.compile",
+    "microbench.compile",
+    "testsuite-http2.compile",
+    "testsuite-osgi.test.compile",
+    "handler-ssl-ocsp.test.compile",
+    "resolver-dns-classes-macos.test.compile",
+    "resolver-dns-native-macos.compile",
+    "testsuite-native-image-client.test.compile",
+    "transport-blockhound-tests.test.compile",
+    "testsuite.test.compile",
+    "transport-native-epoll.test.compile",
+    "transport-native-kqueue.test.compile",
+    "testsuite-shading.test.compile",
+    "all.test.compile",
+    "example.test.compile",
+    "microbench.test.compile",
+    "testsuite-http2.test.compile",
+    "resolver-dns-native-macos.test.compile",
+    "testsuite-native.compile",
+    "testsuite-native.test.compile"
+  )
+
+  private val modules = Array(
+    "all",
+    "bom", // pom packaging
+    "buffer",
+    "codec",
+    "codec-dns",
+    "codec-haproxy",
+    "codec-http",
+    "codec-http2",
+    "codec-memcache",
+    "codec-mqtt",
+    "codec-redis",
+    "codec-smtp",
+    "codec-socks",
+    "codec-stomp",
+    "codec-xml",
+    "common",
+    "dev-tools", // resources only
+    "example",
+    "handler",
+    "handler-proxy",
+    "handler-ssl-ocsp",
+    "microbench",
+    "resolver",
+    "resolver-dns",
+    "resolver-dns-classes-macos",
+    "resolver-dns-native-macos",
+    "testsuite", // tests only in src/main/java
+    "testsuite-autobahn", // tests only in src/main/java
+    "testsuite-http2", // tests only in src/main/java
+    "testsuite-native", // tests only in src/test/java
+    "testsuite-native-image", // tests only in src/main/java
+    "testsuite-native-image-client", // tests only in src/main/java
+    "testsuite-native-image-client-runtime-init", // tests only in src/main/java
+    "testsuite-osgi", // tests only in src/test/java
+    "testsuite-shading", // tests only in src/test/java
+    "transport",
+    "transport-blockhound-tests", // tests only in src/test/java
+    "transport-classes-epoll",
+    "transport-classes-kqueue",
+    "transport-native-epoll", // C sources
+    "transport-native-kqueue", // C sources
+    "transport-native-unix-common", // Java and C sources
+    "transport-native-unix-common-tests",
+    "transport-rxtx",
+    "transport-sctp",
+    "transport-udt"
+  )
+
+  private val modulesWithNativeClassifier = Array(
+    "codec-http2",
+    "transport-native-epoll",
+    "transport-native-kqueue",
+    "handler",
+    "example",
+    "testsuite",
+    "testsuite-shading",
+    "transport-blockhound-tests",
+    "microbench"
+  )
+
   def tests: Tests = Tests {
     // - multi-module
     // - Junit5
     // - build-helper-maven-plugin
     // - maven-compiler-plugin compilerArgs options
     // - module directory and artifact names differ
-    // - multi line description, property <argLine.common>
+    // - multi line description, properties
     // - property <jetty.alpnAgent.path> contains quotes
+    // - defines test dependencies in root pom.xml that get propagated to every module
     test - prep("https://github.com/netty/netty/archive/refs/tags/netty-4.1.114.Final.zip") {
       tester =>
         import tester._
 
         val initRes = eval(("init", "--publish-properties"))
-        // cannot resolve native dependencies defined by build extension os-maven-plugin
         assert(
-          initRes.out.contains(
-            "[codec-http2] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final"
-          ),
-          initRes.out.contains(
-            "[transport-native-epoll] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final"
-          ),
-          initRes.out.contains(
-            "[transport-native-kqueue] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final"
-          ),
-          initRes.out.contains(
-            "[handler] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final"
-          ),
-          initRes.out.contains(
-            "[example] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final"
-          ),
-          initRes.out.contains(
-            "[testsuite] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final"
-          ),
-          initRes.out.contains(
-            "[testsuite-shading] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final"
-          ),
-          initRes.out.contains(
-            "[transport-blockhound-tests] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final"
-          ),
-          initRes.out.contains(
-            "[microbench] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final"
+          modulesWithNativeClassifier.forall(module =>
+            initRes.out.contains(
+              // cannot resolve native dependencies defined by build extension os-maven-plugin
+              s"[$module] dropping classifier $${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final"
+            )
           ),
           initRes.out.contains("generated 47 Mill build file(s)"),
           initRes.isSuccess
@@ -309,83 +448,16 @@ object MillInitMavenNettyTests extends MillInitMavenTests {
 
         val resolveRes = eval(("resolve", "_"))
         assert(
-          resolveRes.out.contains("all"),
-          resolveRes.out.contains("dev-tools"),
-          resolveRes.out.contains("common"),
-          resolveRes.out.contains("buffer"),
-          resolveRes.out.contains("codec"),
-          resolveRes.out.contains("codec-dns"),
-          resolveRes.out.contains("codec-haproxy"),
-          resolveRes.out.contains("codec-http"),
-          resolveRes.out.contains("codec-http2"),
-          resolveRes.out.contains("codec-memcache"),
-          resolveRes.out.contains("codec-mqtt"),
-          resolveRes.out.contains("codec-redis"),
-          resolveRes.out.contains("codec-smtp"),
-          resolveRes.out.contains("codec-socks"),
-          resolveRes.out.contains("codec-stomp"),
-          resolveRes.out.contains("codec-xml"),
-          resolveRes.out.contains("resolver"),
-          resolveRes.out.contains("resolver-dns"),
-          resolveRes.out.contains("resolver-dns-classes-macos"),
-          resolveRes.out.contains("resolver-dns-native-macos"),
-          resolveRes.out.contains("transport"),
-          resolveRes.out.contains("transport-native-unix-common-tests"),
-          resolveRes.out.contains("transport-native-unix-common"),
-          resolveRes.out.contains("transport-classes-epoll"),
-          resolveRes.out.contains("transport-native-epoll"),
-          resolveRes.out.contains("transport-classes-kqueue"),
-          resolveRes.out.contains("transport-native-kqueue"),
-          resolveRes.out.contains("transport-rxtx"),
-          resolveRes.out.contains("transport-sctp"),
-          resolveRes.out.contains("transport-udt"),
-          resolveRes.out.contains("handler"),
-          resolveRes.out.contains("handler-proxy"),
-          resolveRes.out.contains("handler-ssl-ocsp"),
-          resolveRes.out.contains("example"),
-          resolveRes.out.contains("testsuite"),
-          resolveRes.out.contains("testsuite-autobahn"),
-          resolveRes.out.contains("testsuite-http2"),
-          resolveRes.out.contains("testsuite-osgi"),
-          resolveRes.out.contains("testsuite-shading"),
-          resolveRes.out.contains("testsuite-native"),
-          resolveRes.out.contains("testsuite-native-image"),
-          resolveRes.out.contains("testsuite-native-image-client"),
-          resolveRes.out.contains("testsuite-native-image-client-runtime-init"),
-          resolveRes.out.contains("transport-blockhound-tests"),
-          resolveRes.out.contains("microbench"),
-          resolveRes.out.contains("bom"),
+          modules.forall(resolveRes.out.contains),
           resolveRes.isSuccess
         )
 
-        // compile succeeds for module
-        val compileRes = eval("codec.compile")
         assert(
-          compileRes.err.contains("compiling 155 Java sources"),
-          compileRes.isSuccess
+          compileTasksThatSucceed.forall(eval(_).isSuccess)
         )
 
-        // test compile fails for module due to missing native dependency
-        val testRes = eval("codec.test")
         assert(
-          testRes.err.contains(
-            "codec/src/test/java/io/netty/handler/codec/NativeImageHandlerMetadataTest.java:20:28: package io.netty.nativeimage does not exist"
-          ),
-          !testRes.isSuccess
-        )
-
-        // publishLocal fails for module due to several Javadoc errors
-        val publishLocalRes = eval("codec.publishLocal")
-        assert(!publishLocalRes.isSuccess)
-
-        // module with native sources and Java test sources (ie, does not extend MavenModule) is configured for testing
-        val testRes1 = eval("transport-native-epoll.test")
-        assert(
-          // upstream module transport-sctp depends on generated sources in upstream module common
-          testRes1.err.contains(
-            "transport-sctp/src/main/java/io/netty/handler/codec/sctp/SctpMessageCompletionHandler.java:25:32: package io.netty.util.collection does not exist"
-          ),
-          !testRes1.isSuccess
+          compileTasksThatFail.forall(!eval(_).isSuccess)
         )
     }
   }
