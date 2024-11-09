@@ -35,7 +35,7 @@ public class EnvVars {
      * Used to pass the Mill workspace root from the client to the server, so
      * the server code can access it despite it not being os.pwd.
      *
-     * Also available in test modules for users to find the root folder of the
+     * Also, available in test modules for users to find the root folder of the
      * mill project on disk. Not intended for common usage, but sometimes necessary.
      */
     public static final String MILL_WORKSPACE_ROOT = "MILL_WORKSPACE_ROOT";

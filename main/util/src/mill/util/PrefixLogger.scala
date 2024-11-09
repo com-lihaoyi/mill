@@ -13,7 +13,7 @@ class PrefixLogger(
     verboseKeySuffix: String = "",
     message: String = "",
     // Disable printing the prefix, but continue reporting the `key` to `reportKey`. Used
-    // for `exclusive` commands where we don't want the prefix but we do want the header
+    // for `exclusive` commands where we don't want the prefix, but we do want the header
     // above the output of every command that gets run so we can see who the output belongs to
     noPrefix: Boolean = false
 ) extends ColorLogger {

@@ -11,7 +11,7 @@ import mill.{Module, T, Task}
  * The graphs using `test()` live in the `class` and need to be instantiated
  * every time you use them, because they are mutable (you can poke at the
  * `test`'s `counter`/`failure`/`exception` fields to test various graph
- * evaluation scenarios.
+ * evaluation scenarios).
  *
  * The immutable graphs, used for testing discovery & target resolution,
  * live in the companion object.
@@ -329,7 +329,7 @@ object TestGraphs {
   trait TraitWithModule extends Module { outer =>
     object TraitModule extends Module {
       def testFrameworks = Task { Seq("mill.UTestFramework") }
-      def test() = Task.Command { () /*donothing*/ }
+      def test() = Task.Command { () /*do nothing*/ }
     }
   }
 

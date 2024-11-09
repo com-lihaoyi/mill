@@ -69,7 +69,7 @@ case class PomSettings(
     licenses: Seq[License],
     versionControl: VersionControl,
     developers: Seq[Developer],
-    @deprecated("Value will be ignored. Use PublishModule.pomPackageingType instead", "Mill 0.11.8")
+    @deprecated("Value will be ignored. Use PublishModule.pomPackagingType instead", "Mill 0.11.8")
     packaging: String = PackagingType.Jar
 )
 

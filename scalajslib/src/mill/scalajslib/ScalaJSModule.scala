@@ -252,7 +252,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       ivy"org.scala-js::scalajs-library:$scalaJSVer".withDottyCompat(scalaVer)
 
     /* For Scala 2.x and Scala.js >= 1.15.0, explicitly add scalajs-scalalib,
-     * in order to support forward binary incompatible changesin the standard library.
+     * in order to support forward binary incompatible changes in the standard library.
      */
     if (
       scalaVer.startsWith("2.") && scalaJSVer.startsWith("1.")
@@ -297,7 +297,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   def scalaJSSourceMap: T[Boolean] = Task { true }
 
   /**
-   * Specifies whether to use the experimental WebAssembly backend.. Requires scalaJS > 1.17.0
+   * Specifies whether to use the experimental WebAssembly backend. Requires scalaJS > 1.17.0
    *  When using this setting, the following properties must also hold:
    *
    *  - `moduleKind = ModuleKind.ESModule`
@@ -417,7 +417,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       cls => TestRunnerUtils.globFilter(globSelectors())(cls.getName)
     )
     val res = TestModule.handleResults(doneMsg, results, T.ctx(), testReportXml())
-    // Hack to try and let the Node.js subprocess finish streaming it's stdout
+    // Hack to try and let the Node.js subprocess finish streaming its stdout
     // to the JVM. Without this, the stdout can still be streaming when `close()`
     // is called, and some of the output is dropped onto the floor.
     Thread.sleep(100)

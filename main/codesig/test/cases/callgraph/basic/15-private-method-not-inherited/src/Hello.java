@@ -1,6 +1,6 @@
 package hello;
 
-// Private methods cannot be inherited or overriden, and so when we calll
+// Private methods cannot be inherited or overriden, and so when we call
 // `Hello#bar` -> `Parent#foo`, we can be confident we are calling `Parent#foo`
 // specifically and not calling `Hello#foo` or `Grandparent#foo`
 

@@ -25,7 +25,7 @@ import $file.ci.upload
 object `package` extends RootModule {
   // We compile the test code once and then offer multiple modes to
   // test it in the `test` CrossModule. We pass `test`'s sources to `lib` to
-  // and pass `lib`'s compile output back to `test`}
+  // and pass `lib`'s compile output back to `test`.
 
   trait IntegrationTestModule extends Cross.Module[String] {
     def millSourcePath = super.millSourcePath / crossValue

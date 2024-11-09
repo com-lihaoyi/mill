@@ -52,7 +52,7 @@ object PathRef {
 
   /**
    * This class maintains a cache of already validated paths.
-   * It is threadsafe and meant to be shared between threads, e.g. in a ThreadLocal.
+   * It is thread-safe and meant to be shared between threads, e.g. in a ThreadLocal.
    */
   class ValidatedPaths() {
     private val map = new ConcurrentHashMap[Int, PathRef]()

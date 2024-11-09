@@ -8,7 +8,7 @@ object ImportRepoTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("test") - integrationTest { tester =>
       import tester._
-      // Make sure, we propery parse a line:
+      // Make sure, we properly parse a line:
       // ```
       //   import $repo.`file:///tmp/testrepo`
       // ```

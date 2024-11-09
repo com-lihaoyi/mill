@@ -354,8 +354,8 @@ private[mill] trait GroupEvaluator {
 
   // Include the classloader identity hash as part of the worker hash. This is
   // because unlike other targets, workers are long-lived in memory objects,
-  // and are not re-instantiated every run. Thus we need to make sure we
-  // invalidate workers in the scenario where a the worker classloader is
+  // and are not re-instantiated every run. Thus, we need to make sure we
+  // invalidate workers in the scenario where a worker classloader is
   // re-created - so the worker *class* changes - but the *value* inputs to the
   // worker does not change. This typically happens when the worker class is
   // brought in via `import $ivy`, since the class then comes from the

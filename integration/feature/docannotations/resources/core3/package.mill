@@ -1,0 +1,5 @@
+package build.core3
+
+import mill.javalib.JavaModule
+
+object `package` extends RootModule with JavaModule
