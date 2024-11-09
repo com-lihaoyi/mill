@@ -27,18 +27,11 @@ import scala.jdk.CollectionConverters.*
  *    - TestNG
  *  - supports Maven plugins:
  *    - org.apache.maven.plugins:maven-compiler-plugin
+ *  - supports multiple, compile and test, resource directories
  *
  * ===Limitations===
- *  - sources and resources are limited to
- *    - src/main/java
- *    - src/main/resources
- *    - src/test/java
- *    - src/test/resources
  *  - build extensions are not supported
  *  - build profiles are not supported
- *  - packaging support is limited to
- *    - jar
- *    - pom
  */
 @mill.api.internal
 object BuildGen {
@@ -71,7 +64,7 @@ object BuildGen {
       b.result()
     }
 
-    val outputs = make(inputs, cfg)
+    val outputs = convert(inputs, cfg)
     println(s"generated ${outputs.size} Mill build file(s)")
 
     outputs.foreach { build =>
@@ -85,7 +78,7 @@ object BuildGen {
     println("converted Maven build to Mill")
   }
 
-  private def make(inputs: Seq[MavenNode], cfg: BuildGenConfig): Seq[MillNode] = {
+  private def convert(inputs: Seq[MavenNode], cfg: BuildGenConfig): Seq[MillNode] = {
     val packages = // for resolving moduleDeps
       inputs.iterator
         .map(build => (Id(build.module), build.pkg))
