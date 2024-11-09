@@ -130,11 +130,13 @@ object PalantirFormatModuleTest extends TestSuite {
       },
       { _ =>
         val Right(sources) = eval(module.sources)
-        sources.value.map(_.path).filter(os.exists(_)).flatMap(walkFiles(_))
+        sources.value.map(_.path).flatMap(walkFiles(_))
       }
     )
   }
 
-  def walkFiles(root: os.Path): Seq[os.Path] =
-    os.walk(root).filter(os.isFile)
+  def walkFiles(root: os.Path): Seq[os.Path] = {
+    if (os.exists(root)) os.walk(root).filter(os.isFile)
+    else Nil
+  }
 }

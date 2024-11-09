@@ -128,7 +128,7 @@ object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule
       ctx.log.info("formatting java sources ...")
     }
 
-    palantirArgs(sources, check, options) match{
+    palantirArgs(sources, check, options) match {
       case None =>
 
         ctx.log.debug("source folder not found, skipping")
@@ -188,7 +188,6 @@ object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule
 
       // https://github.com/palantir/palantir-java-format/blob/dae9be4b84e2bd4d7ea346c6374fda47eee7118f/palantir-java-format/src/main/java/com/palantir/javaformat/java/CommandLineOptionsParser.java#L49
       args ++= sourceArgs
-
 
       args.result()
     }
