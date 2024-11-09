@@ -10,7 +10,7 @@ object SubfolderHelperModuleCollisionTests extends UtestIntegrationTestSuite {
       import tester._
       val res = eval(("resolve", "_"))
       assert(res.isSuccess == false)
-      // Not a great error message but it will have to do for now
+      // Not a great error message, but it will have to do for now
       assert(res.err.contains("sub is already defined as object sub"))
     }
   }

@@ -156,7 +156,7 @@ object LocalSummary {
         storeCallEdge(
           st.MethodCall(descCls, InvokeType.Static, "<clinit>", st.Desc.read("()V"))
         )
-      case _ => // donothing
+      case _ => // do nothing
     }
 
     def storeCallEdge(x: MethodCall): Unit = outboundCalls.add(x)
@@ -287,7 +287,7 @@ object LocalSummary {
         )
 
         // HACK: we skip any constants that get passed to `sourcecode.Line()`,
-        // because we use that extensively in definig Mill targets but it is
+        // because we use that extensively in defining Mill targets, but it is
         // generally not something we want to affect the output of a build
         val sourcecodeLineCall = st.MethodCall(
           JCls.fromSlashed("sourcecode/Line"),

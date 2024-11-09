@@ -1,5 +1,5 @@
 /**
- * Make sure wehandle the case
+ * Make sure we handle the case.
  */
 
 package hello

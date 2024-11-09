@@ -137,7 +137,7 @@ public class Util {
     /**
      * Reads a file, ignoring empty or comment lines, interpolating env variables.
      *
-     * @return The non-empty lines of the files or an empty list, if the file does not exists
+     * @return The non-empty lines of the files or an empty list, if the file does not exist
      */
     public static List<String> readOptsFileLines(final File file) {
         final List<String> vmOptions = new LinkedList<>();

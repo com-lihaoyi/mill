@@ -47,7 +47,7 @@ private class MillBuildServer(
   protected var clientWantsSemanticDb = false
   protected var clientIsIntelliJ = false
 
-  /** `true` when client and server support the `JvmCompileClasspathProvider`` request. */
+  /** `true` when client and server support the `JvmCompileClasspathProvider` request. */
   protected var enableJvmCompileClasspathProvider = false
 
   private[this] var statePromise: Promise[State] = Promise[State]()
@@ -349,10 +349,10 @@ private class MillBuildServer(
 
           new DependencyModule(dep.dep.module.repr, dep.dep.version)
         }
-        val unmanged = unmanagedClasspath.map { dep =>
+        val unmanaged = unmanagedClasspath.map { dep =>
           new DependencyModule(s"unmanaged-${dep.path.last}", "")
         }
-        new DependencyModulesItem(id, (deps ++ unmanged).iterator.toSeq.asJava)
+        new DependencyModulesItem(id, (deps ++ unmanaged).iterator.toSeq.asJava)
     } {
       new DependencyModulesResult(_)
     }

@@ -5,7 +5,7 @@ import java.util.function.DoubleSupplier;
 
 // We implement a method for an external interface we do not call anywhere.
 //
-// It should still appear as getting called by it's <init> method since it's a SAM
+// It should still appear as getting called by its <init> method since it's a SAM
 class Unused implements DoubleSupplier{
     public double getAsDouble(){ return 1.0; }
 }

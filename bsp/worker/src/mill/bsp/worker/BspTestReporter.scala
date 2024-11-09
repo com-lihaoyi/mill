@@ -28,7 +28,7 @@ import java.io.{PrintWriter, StringWriter}
 
 /**
  * Context class for BSP, specialized for sending `task-start` and
- * `task-finish` notifications for every test being ran.
+ * `task-finish` notifications for every test being run.
  *
  * @param client    The client to send notifications to
  * @param targetId  The targetId of the BSP target for which

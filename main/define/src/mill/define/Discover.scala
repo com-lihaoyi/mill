@@ -10,7 +10,7 @@ import scala.reflect.macros.blackbox
  *
  * Note that unlike the rest of Mill's module-handling logic which uses Java
  * reflection, generation of entrypoints requires typeclass resolution, and so
- * needs to be done at compile time. Thus we walk the entire module tree,
+ * needs to be done at compile time. Thus, we walk the entire module tree,
  * collecting all the module `Class[_]`s we can find, and for each one generate
  * the `mainargs.MainData` containing metadata and resolved typeclasses for all
  * the `Task.Command` methods we find. This mapping from `Class[_]` to `MainData`

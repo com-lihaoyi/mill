@@ -34,7 +34,7 @@ class TwirlWorker {
         // NOTE: When creating the cl classloader with passing the current classloader as the parent:
         //   val cl = new URLClassLoader(twirlClasspath.map(_.toIO.toURI.toURL).toArray, getClass.getClassLoader)
         // it is possible to cast the default to a Seq[String], construct our own Seq[String], and pass it to the method invoke -
-        // classe will be compatible (the tests passed).
+        // classes will be compatible (the tests passed).
         // But when run in an actual mill project with this module enabled, there were exceptions like this:
         // scala.reflect.internal.MissingRequirementError: object scala in compiler mirror not found.
 

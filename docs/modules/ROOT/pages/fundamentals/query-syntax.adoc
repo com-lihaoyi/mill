@@ -131,7 +131,7 @@ That means, you can't filter based on the result type of a task.
 
 On the Mill CLI you can also start a complete new task selector with the `+` sign.
 
-There is a subtile difference between the expansion of <<enumerations,enumerations>>, <<wildcards,wildcards>> and <<type-filters,wildcards with type filters>> in contrast to the  <<add-task-selector,start of a new selector with `+`>>.
+There is a subtle difference between the expansion of <<enumerations,enumerations>>, <<wildcards,wildcards>> and <<type-filters,wildcards with type filters>> in contrast to the  <<add-task-selector,start of a new selector with `+`>>.
 
 For all the former versions, Mill parses them into a complex but single task selector path and subsequent parameters are used for all resolved tasks.
 
@@ -146,6 +146,6 @@ Whereas the `+` start a completely new selector path to which you can also provi
 
 <1> Runs `foo.run` with the parameter `hello`
 <2> Expands to `foo.run` and `bar.run` and runs both with the parameter `hello`.
-<3> Selects the `run` command of all Java modules, but not test moudles, and runs them with the parameter `hello`.
+<3> Selects the `run` command of all Java modules, but not test modules, and runs them with the parameter `hello`.
 <4> Runs `fun.run` with the parameter `hello` and `bar.run` with the parameter `world`.
 

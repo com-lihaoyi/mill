@@ -27,13 +27,13 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] {
   def evaluate(args: mill.api.Ctx): Result[T]
 
   /**
-   * Even if this tasks's inputs did not change, does it need to re-evaluate
+   * Even if this task's inputs did not change, does it need to re-evaluate
    * anyway?
    */
   def sideHash: Int = 0
 
   /**
-   * Whether or not this [[Task]] deletes the `T.dest` folder between runs
+   * Whether this [[Task]] deletes the `T.dest` folder between runs
    */
   def flushDest: Boolean = true
 
@@ -52,7 +52,7 @@ object Task extends TaskBase {
    *
    * This is most used when detecting changes in source code: when you edit a
    * file and run `mill compile`, it is the `Task.Sources` that re-computes the
-   * signature for you source files/folders and decides whether or not downstream
+   * signature for you source files/folders and decides whether downstream
    * [[TargetImpl]]s need to be invalidated and re-computed.
    */
   def Sources(values: Result[os.Path]*)(implicit ctx: mill.define.Ctx): Target[Seq[PathRef]] =
@@ -174,7 +174,7 @@ object Task extends TaskBase {
    *
    * Note that the user defining a `Task(persistent = true)` task is taking on the
    * responsibility of ensuring that their implementation is idempotent, i.e.
-   * that it computes the same result whether or not there is data in `T.dest`.
+   * that it computes the same result whether there is data in `T.dest`.
    * Violating that invariant can result in confusing mis-behaviors
    */
   def apply(
@@ -333,7 +333,7 @@ object Target extends TaskBase {
   /**
    * A target is the most common [[Task]] a user would encounter, commonly
    * defined using the `def foo = Task {...}` syntax. [[TargetImpl]]s require that their
-   * return type is JSON serializable. In return they automatically caches their
+   * return type is JSON serializable. In return, they automatically cache their
    * return value to disk, only re-computing if upstream [[Task]]s change
    */
   implicit def apply[T](t: T)(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
@@ -711,7 +711,7 @@ class TaskBase extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx]
    * This is the `os.Path` pointing to the project root directory.
    *
    * This is the preferred access to the project directory, and should
-   * always be prefered over `os.pwd`* (which might also point to the
+   * always be preferred over `os.pwd`* (which might also point to the
    * project directory in classic cli scenarios, but might not in other
    * use cases like BSP or LSP server usage).
    */
@@ -719,7 +719,7 @@ class TaskBase extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx]
 
   /**
    * Provides the `.fork.async` and `.fork.await` APIs for spawning and joining
-   * async futures within your task in a Mill-friendly mannter
+   * async futures within your task in a Mill-friendly manner.
    */
   def fork(implicit ctx: mill.api.Ctx): mill.api.Ctx.Fork.Api = ctx.fork
 

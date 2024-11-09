@@ -7,8 +7,8 @@ package mill.define
 trait TaskModule extends Module {
 
   /**
-   * The name of the default command, which will be automatically excecuted if
-   * the module name is provided at the Mill command line
+   * The name of the default command, which will be automatically executed if
+   * the module name is provided at the Mill command line.
    */
   def defaultCommandName(): String
 }

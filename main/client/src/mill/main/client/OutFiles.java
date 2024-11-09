@@ -34,14 +34,14 @@ public class OutFiles {
 
     /**
      * A sequential profile containing rich information about the tasks that were run
-     * as part of a build: name, duration, cached, dependencies, etc.. Useful to help
+     * as part of a build: name, duration, cached, dependencies, etc. Useful to help
      * understand what tasks are taking time in a build run and why those tasks are
      * being executed
      */
     final public static String millProfile = "mill-profile.json";
 
     /**
-     * Long lived metadata about the Mill bootstrap process that persists between runs:
+     * Long-lived metadata about the Mill bootstrap process that persists between runs:
      * workers, watched files, classpaths, etc.
      */
     final public static String millRunnerState = "mill-runner-state.json";

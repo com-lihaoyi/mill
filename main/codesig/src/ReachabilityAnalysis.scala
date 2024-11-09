@@ -260,7 +260,7 @@ object CallGraphAnalysis {
   }
 
   /**
-   * Represents the three types of nodes in our call graph. These are kept heterogenous
+   * Represents the three types of nodes in our call graph. These are kept heterogeneous
    * because flattening them out into a homogenous graph of MethodDef -> MethodDef edges
    * results in a lot of duplication that bloats the size of the graph non-linearly with
    * the size of the program
