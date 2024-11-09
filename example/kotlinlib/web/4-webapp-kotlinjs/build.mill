@@ -18,7 +18,7 @@ object `package` extends RootModule with KotlinModule {
   def ivyDeps = Agg(
     ivy"io.ktor:ktor-server-core-jvm:$ktorVersion",
     ivy"io.ktor:ktor-server-netty-jvm:$ktorVersion",
-    ivy"io.ktor:ktor-server-html-builder-jvm:$ktorVersion",
+    ivy"io.ktor:ktor-server-html-builder-jvm:$ktorVersion"
   )
 
   def resources = Task {
@@ -44,7 +44,7 @@ object `package` extends RootModule with KotlinModule {
     override def splitPerModule = false
 
     def ivyDeps = Agg(
-      ivy"org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion",
+      ivy"org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion"
     )
   }
 }

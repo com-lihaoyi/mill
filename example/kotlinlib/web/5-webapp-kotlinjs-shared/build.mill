@@ -29,7 +29,7 @@ object `package` extends RootModule with AppKotlinModule {
     ivy"io.ktor:ktor-server-html-builder-jvm:$ktorVersion",
     ivy"io.ktor:ktor-server-content-negotiation-jvm:$ktorVersion",
     ivy"io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion",
-    ivy"ch.qos.logback:logback-classic:1.5.8",
+    ivy"ch.qos.logback:logback-classic:1.5.8"
   )
 
   def resources = Task {
@@ -66,13 +66,13 @@ object `package` extends RootModule with AppKotlinModule {
     object jvm extends SharedModule {
       def ivyDeps = super.ivyDeps() ++ Agg(
         ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:$kotlinHtmlVersion",
-        ivy"org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:$kotlinxSerializationVersion",
+        ivy"org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:$kotlinxSerializationVersion"
       )
     }
     object js extends SharedModule with AppKotlinJsModule {
       def ivyDeps = super.ivyDeps() ++ Agg(
         ivy"org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion",
-        ivy"org.jetbrains.kotlinx:kotlinx-serialization-json-js:$kotlinxSerializationVersion",
+        ivy"org.jetbrains.kotlinx:kotlinx-serialization-json-js:$kotlinxSerializationVersion"
       )
     }
   }
@@ -82,11 +82,10 @@ object `package` extends RootModule with AppKotlinModule {
     def moduleDeps = Seq(shared.js)
     def ivyDeps = Agg(
       ivy"org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion",
-      ivy"org.jetbrains.kotlinx:kotlinx-serialization-json-js:$kotlinxSerializationVersion",
+      ivy"org.jetbrains.kotlinx:kotlinx-serialization-json-js:$kotlinxSerializationVersion"
     )
   }
 }
-
 
 // The JSON serialization logic and HTML generation logic in the `shared` module
 // is shared between client and server, and uses libraries like `kotlinx-serialization` and

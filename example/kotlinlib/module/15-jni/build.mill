@@ -15,13 +15,16 @@ object `package` extends RootModule with KotlinModule {
     val cSourceFiles = nativeSources().map(_.path).flatMap(os.walk(_)).filter(_.ext == "c")
     val output = "libhelloworld.so"
     os.proc(
-        "clang", "-shared", "-fPIC",
-        "-I" + sys.props("java.home") + "/include/", // global JVM header files
-        "-I" + sys.props("java.home") + "/include/darwin",
-        "-I" + sys.props("java.home") + "/include/linux",
-        "-o", T.dest / output,
-        cSourceFiles
-      )
+      "clang",
+      "-shared",
+      "-fPIC",
+      "-I" + sys.props("java.home") + "/include/", // global JVM header files
+      "-I" + sys.props("java.home") + "/include/darwin",
+      "-I" + sys.props("java.home") + "/include/linux",
+      "-o",
+      T.dest / output,
+      cSourceFiles
+    )
       .call(stdout = os.Inherit)
 
     PathRef(T.dest / output)
