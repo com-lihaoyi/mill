@@ -1,8 +1,6 @@
 package mill.javalib.android
 
 import mill._
-import scala.util.Try
-
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
