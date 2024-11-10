@@ -115,16 +115,12 @@ object `package` extends RootModule with Module {
       PathRef(T.dest)
     }
 
-    def javaSources = Task.Sources {
-      sources()
-        .flatMap(pathRef => os.walk(pathRef.path))
-        .filter(_.ext == "java")
-        .map(PathRef(_))
-    }
-
-    def lintableJavaSources = Task.Sources {
+    def sources = Task{
       // PalantirFormat doesn't give us any abilities to configure it, so we can do a rough filtering of files we want to skip
-      javaSources().filterNot(_.path.segments.contains("linting"))
+      super.sources()
+        .flatMap(pathRef => os.walk(pathRef.path))
+        .filter(p => p.ext == "java" && p.segments.contains("linting"))
+        .map(PathRef(_))
     }
 
     def resources = upstreamOpt match {
