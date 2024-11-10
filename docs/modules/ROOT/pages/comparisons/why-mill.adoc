@@ -69,22 +69,7 @@ both parallel and sequential, and for many modules or for a single module:
 | xref:comparisons/maven.adoc#_no_op_compile_single_module[No-Op Compile Single Module] | 0m 05.25s | 0m 00.47s  | 11.2x
 |===
 
-For this article, we will focus on two benchmarks
-
-#### Parallel Clean Compile All
-
-|===
-| Benchmark | Maven | Mill | Speedup
-| xref:comparisons/maven.adoc#_parallel_clean_compile_all[Parallel Clean Compile All] | 0m 48.92s | 0m 08.79s | 5.6x
-|===
-
-
-```bash
-> time ./mvnw -T 10 -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true clean install
-
-> ./mill clean; time ./mill __.compile
-```
-
+For this article, we will focus on two benchmarks. First, *Parallel Clean Compile All*
 
 This benchmark involves running `clean` to delete all generated files and re-compiling
 everything in parallel.
@@ -95,25 +80,7 @@ everything in parallel.
 
 Mill sees a significant ~6x speedup over Maven for this benchmark.
 
-#### Incremental Compile Single-Module
-
-|===
-| Benchmark | Maven | Mill | Speedup
-| xref:comparisons/maven.adoc#_incremental_compile_single_module[Incremental Compile Single Module] | 0m 06.82s | 0m 00.54s | 12.6x
-|===
-
-```bash
-$ echo "" >> common/src/main/java/io/netty/util/AbstractConstant.java
-$ time ./mvnw -pl common -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
-Compiling 174 source files to /Users/lihaoyi/Github/netty/common/target/classes
-Compiling 60 source files to /Users/lihaoyi/Github/netty/common/target/test-classes
-
-
-$ echo "" >> common/src/main/java/io/netty/util/AbstractConstant.java
-$ time ./mill common.test.compile
-compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
-```
-
+The second benchmark worth noting is *Incremental Compile Single Module*.
 This benchmark involves making a single edit to a single already-compiled file in `common` -
 adding a single newline to the end of the file - and re-compiling `common` and `common.test`.
 
@@ -126,7 +93,7 @@ modules, even though only one file was touched and the change was trivial.
 
 ### Gradle
 
-The comparison with Gradle is less stark, but still significant. Mill is 3-4x faster than Gradle
+The comparison with Gradle is less stark, but still significant. Mill is 2-4x faster than Gradle
 across the various workflows:
 
 
@@ -139,49 +106,18 @@ across the various workflows:
 | xref:comparisons/maven.adoc#_no_op_compile_single_module[No-Op Compile Single Module] | 0.94s | 0.46s | 2.0x
 |===
 
-Again, for the purposes of this article, we will focus on two benchmarks
+Mill's various "clean compile" workflows 3-4x faster than Gradle's, while it's incremental
+and no-op compile workflows are 2x faster. Both Gradle and Mill appear to do a good job
+limiting the compilation to only the changed file, but Mill has less fixed overhead than
+Gradle does, finishing in about ~0.5s rather than ~1.5 seconds.
 
-#### Parallel Clean Compile All
+In general, these benchmarks don't show Mill doing anything that Maven or Gradle do not:
+these are equivalent builds for the same projects (https://github.com/netty/netty[Netty] and
+https://github.com/mockito/mockito[Mockito] respectively), compiling the same number of files
+using the same Java compiler, in the same module structure and passing the same suite of tests.
+Rather, what we are seeing is Mill simply having less build-tool overhead than Maven or Gradle,
+so the performance of the underlying JVM and Java compiler can really shine through
 
-|===
-| Benchmark | Gradle | Mill | Speedup
-| xref:comparisons/maven.adoc#_parallel_clean_compile_all[Parallel Clean Compile All] | 12.3s | 3.57s | 3.4x
-|===
-
-```bash
-$ ./gradlew clean; time ./gradlew classes testClasses --no-build-cache
-
-$ ./mill clean; time ./mill __.compile
-```
-
-Here we only run compilation for classes and test classes, without linting or testing or anything else.
-Both Mill and Gradle are parallel by default, with 1 thread per core. For Gradle we disabled the global
-build cache to ensure we can benchmark the actual compilation time.
-
-We measure Mill being ~3.4x faster than Gradle for this benchmark.
-
-#### Incremental Compile Single-Module
-
-|===
-| Benchmark | Gradle | Mill | Speedup
-| xref:comparisons/maven.adoc#_incremental_compile_single_module[Incremental Compile Single Module] | 1.37s | 0.51s | 2.7x
-|===
-
-```bash
-$ echo "" >> src/main/java/org/mockito/BDDMockito.java; time ./gradlew :classes
-
-$ echo "" >> src/main/java/org/mockito/BDDMockito.java; time ./mill compile
-compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
-```
-
-
-Again, this benchmark involves making a single edit to a single already-compiled file in the
-root module - adding a single newline to the end of the file - and re-compiling it along with
-its tests.
-
-Both Gradle and Mill appear to do a good job limiting the compilation to only the changed
-file, but Mill has less fixed overhead than Gradle does, finishing in about ~0.5s
-rather than ~1.5 seconds.
 
 
 ## Ease of Use
