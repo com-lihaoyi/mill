@@ -2,7 +2,7 @@ package mill.scalalib
 
 import mill.api.{Ctx, PathRef, Result}
 import mill.main.client.EnvVars
-import mill.testrunner.{Framework, TestArgs, TestResult, TestRunnerUtils}
+import mill.testrunner.{Framework, GetTestTasksMain, TestArgs, TestResult, TestRunnerUtils}
 import mill.util.Jvm
 import mill.{Agg, T}
 import sbt.testing.Status
@@ -100,19 +100,45 @@ private[scalalib] object TestModuleUtil {
         // skip test groups that we know will be empty, which is important because even an empty
         // test group requires spawning a JVM which can take 1+ seconds to realize there are no
         // tests to run and shut down
-        val discoveredTests = Jvm.inprocess(
-          (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
-          classLoaderOverrideSbtTesting = true,
-          isolated = true,
-          closeContextClassLoaderWhenDone = false,
-          TestRunnerUtils.getTestTasks0(
-            Framework.framework(testFramework),
-            testClasspath.map(_.path),
-            args,
-            cls => globFilter(cls.getName),
-            _
+        val discoveredTests = if (javaHome.isDefined) {
+          val argsFile = T.dest / "GetTestTasksMainArgs"
+          val getTestTaskArgs = GetTestTasksMain.Args(
+            classLoaderClasspath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
+            testClasspath = testClasspath.map(_.path),
+            testFramework = testFramework,
+            selectors = selectors,
+            args = args
           )
-        ).toSet
+          os.write(argsFile, upickle.default.write(getTestTaskArgs))
+          val process = Jvm.callSubprocess(
+            mainClass = "mill.testrunner.GetTestTasksMain",
+            classPath = scalalibClasspath.map(_.path),
+            mainArgs = Seq(argsFile.toString),
+            javaHome = javaHome,
+            streamOut = false
+          )
+          if (process.exitCode == 0) {
+            process.out.lines().toSet
+          } else {
+            throw new Exception(
+              "GetTestTasks subprocess failed (exit code " + process.exitCode + ")"
+            )
+          }
+        } else {
+          Jvm.inprocess(
+            (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
+            classLoaderOverrideSbtTesting = true,
+            isolated = true,
+            closeContextClassLoaderWhenDone = false,
+            TestRunnerUtils.getTestTasks0(
+              Framework.framework(testFramework),
+              testClasspath.map(_.path),
+              args,
+              cls => globFilter(cls.getName),
+              _
+            )
+          ).toSet
+        }
 
         filteredClassLists0.map(_.filter(discoveredTests)).filter(_.nonEmpty)
       }

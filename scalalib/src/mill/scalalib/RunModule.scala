@@ -44,7 +44,26 @@ trait RunModule extends WithZincWorker {
   def mainClass: T[Option[String]] = None
 
   def allLocalMainClasses: T[Seq[String]] = Task {
-    zincWorker().worker().discoverMainClasses(localRunClasspath().map(_.path))
+    val classpath = localRunClasspath().map(_.path)
+    if (zincWorker().javaHome().isDefined) {
+      val process = Jvm.callSubprocess(
+        mainClass = "mill.scalalib.worker.DiscoverMainClassesMain",
+        classPath = zincWorker().classpath().map(_.path),
+        mainArgs = Seq(classpath.mkString(",")),
+        javaHome = zincWorker().javaHome().map(_.path),
+        streamOut = false
+      )
+      if (process.exitCode == 0) {
+        val a = process.out.lines()
+        a
+      } else {
+        throw new Exception(
+          "Discover main classes subprocess failed (exit code " + process.exitCode + ")"
+        )
+      }
+    } else {
+      zincWorker().worker().discoverMainClasses(classpath)
+    }
   }
 
   def finalMainClassOpt: T[Either[String, String]] = Task {

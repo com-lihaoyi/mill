@@ -1,14 +1,7 @@
 package mill.scalalib.worker
 
 import mill.api.Loose.Agg
-import mill.api.{
-  CompileProblemReporter,
-  DummyOutputStream,
-  KeyedLockedCache,
-  PathRef,
-  Result,
-  internal
-}
+import mill.api.{CompileProblemReporter, KeyedLockedCache, PathRef, Result, internal}
 import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerApi, ZincWorkerUtil}
 import sbt.internal.inc.{
   Analysis,
@@ -41,16 +34,11 @@ import xsbti.compile.{
 }
 import xsbti.{PathBasedFile, VirtualFile}
 
-import java.io.{File, PrintWriter}
+import java.io.File
 import java.util.Optional
-import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.ref.SoftReference
-import scala.tools.nsc.{CloseableRegistry, Settings}
-import scala.tools.nsc.classpath.{AggregateClassPath, ClassPathFactory}
-import scala.tools.scalap.{ByteArrayReader, Classfile, JavaWriter}
 import scala.util.Properties.isWin
-import scala.util.Using
 
 @internal
 class ZincWorkerImpl(
@@ -303,33 +291,7 @@ class ZincWorkerImpl(
    * This implementation is only in this "zinc"-specific module, because this module is already shared between all `JavaModule`s.
    */
   override def discoverMainClasses(classpath: Seq[os.Path]): Seq[String] = {
-    val cp = classpath.map(_.toNIO.toString()).mkString(File.pathSeparator)
-
-    val settings = new Settings()
-    Using.resource(new CloseableRegistry) { registry =>
-      val path = AggregateClassPath(
-        new ClassPathFactory(settings, registry).classesInExpandedPath(cp)
-      )
-
-      val mainClasses = for {
-        foundPackage <- ZincWorkerImpl.recursive("", (p: String) => path.packages(p).map(_.name))
-        classFile <- path.classes(foundPackage)
-        cf = {
-          val bytes = os.read.bytes(os.Path(classFile.file.file))
-          val reader = new ByteArrayReader(bytes)
-          new Classfile(reader)
-        }
-        jw = new JavaWriter(cf, new PrintWriter(DummyOutputStream))
-        method <- cf.methods
-        static = jw.isStatic(method.flags)
-        methodName = jw.getName(method.name)
-        methodType = jw.getType(method.tpe)
-        if static && methodName == "main" && methodType == "(scala.Array[java.lang.String]): scala.Unit"
-        className = jw.getClassName(cf.classname)
-      } yield className
-
-      mainClasses
-    }
+    DiscoverMainClassesMain(classpath)
   }
 
   def discoverMainClasses(compilationResult: CompilationResult): Seq[String] = {
@@ -671,43 +633,5 @@ class ZincWorkerImpl(
 
     classloaderCache.clear()
     javaOnlyCompilersCache.clear()
-  }
-}
-
-object ZincWorkerImpl {
-  // copied from ModuleUtils
-  private def recursive[T <: String](start: T, deps: T => Seq[T]): Seq[T] = {
-
-    @tailrec def rec(
-        seenModules: List[T],
-        toAnalyze: List[(List[T], List[T])]
-    ): List[T] = {
-      toAnalyze match {
-        case Nil => seenModules
-        case traces :: rest =>
-          traces match {
-            case (_, Nil) => rec(seenModules, rest)
-            case (trace, cand :: remaining) =>
-              if (trace.contains(cand)) {
-                // cycle!
-                val rendered =
-                  (cand :: (cand :: trace.takeWhile(_ != cand)).reverse).mkString(" -> ")
-                val msg = s"cycle detected: ${rendered}"
-                println(msg)
-                throw sys.error(msg)
-              }
-              rec(
-                if (seenModules.contains(cand)) seenModules
-                else { seenModules ++ Seq(cand) },
-                toAnalyze = ((cand :: trace, deps(cand).toList)) :: (trace, remaining) :: rest
-              )
-          }
-      }
-    }
-
-    rec(
-      seenModules = List(),
-      toAnalyze = List((List(start), deps(start).toList))
-    ).reverse
   }
 }

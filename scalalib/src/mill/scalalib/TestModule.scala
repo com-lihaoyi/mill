@@ -6,6 +6,7 @@ import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner, TestRunnerUtils}
 import mill.util.Jvm
 import mill.{Agg, T}
+import mill.testrunner.DiscoverTestsMain
 
 trait TestModule
     extends TestModule.JavaModuleBase
@@ -41,21 +42,44 @@ trait TestModule
   def testFramework: T[String]
 
   def discoveredTestClasses: T[Seq[String]] = Task {
-    val classes = Jvm.inprocess(
-      runClasspath().map(_.path),
-      classLoaderOverrideSbtTesting = true,
-      isolated = true,
-      closeContextClassLoaderWhenDone = true,
-      cl => {
-        val framework = Framework.framework(testFramework())(cl)
-        val classes = TestRunnerUtils.discoverTests(cl, framework, testClasspath().map(_.path))
-        classes.toSeq.map(_._1.getName())
-          .map {
-            case s if s.endsWith("$") => s.dropRight(1)
-            case s => s
-          }
+    val classes = if (zincWorker().javaHome().isDefined) {
+      val discverTestsMainArgs = DiscoverTestsMain.Args(
+        classLoaderClasspath = runClasspath().map(_.path),
+        testClasspath = testClasspath().map(_.path),
+        testFramework = testFramework()
+      )
+      val argsFile = T.dest / "DiscoverTestsMainArgs"
+      os.write(argsFile, upickle.default.write(discverTestsMainArgs))
+
+      val process = Jvm.callSubprocess(
+        mainClass = "mill.testrunner.DiscoverTestsMain",
+        classPath = zincWorker().scalalibClasspath().map(_.path),
+        mainArgs = Seq(argsFile.toString),
+        javaHome = zincWorker().javaHome().map(_.path),
+        streamOut = false
+      )
+      if (process.exitCode == 0) {
+        process.out.lines()
+      } else {
+        throw new Exception("Discover tests subprocess failed (exit code " + process.exitCode + ")")
       }
-    )
+    } else {
+      Jvm.inprocess(
+        runClasspath().map(_.path),
+        classLoaderOverrideSbtTesting = true,
+        isolated = true,
+        closeContextClassLoaderWhenDone = true,
+        cl => {
+          val framework = Framework.framework(testFramework())(cl)
+          val classes = TestRunnerUtils.discoverTests(cl, framework, testClasspath().map(_.path))
+          classes.toSeq.map(_._1.getName())
+            .map {
+              case s if s.endsWith("$") => s.dropRight(1)
+              case s => s
+            }
+        }
+      )
+    }
     classes.sorted
   }
 
