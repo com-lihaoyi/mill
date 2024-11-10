@@ -17,10 +17,9 @@ object foo extends JavaModule {
 //// SNIPPET:BUILD2
 
 object bar extends JavaModule {
-  object test extends JavaTests with TestModule.Junit4{
+  object test extends JavaTests with TestModule.Junit4 {
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy"org.mockito:mockito-core:4.6.1"
     )
   }
 }
-

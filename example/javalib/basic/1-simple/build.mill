@@ -8,7 +8,7 @@ object foo extends JavaModule {
     ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
 
-  object test extends JavaTests with TestModule.Junit4{
+  object test extends JavaTests with TestModule.Junit4 {
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy"com.google.guava:guava:33.3.0-jre"
     )

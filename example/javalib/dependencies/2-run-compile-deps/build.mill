@@ -23,4 +23,3 @@ object bar extends JavaModule {
 }
 
 //// SNIPPET:SCALASTEWARD
-

@@ -13,4 +13,3 @@ object `package` extends RootModule with JavaModule {
     Agg(PathRef(Task.dest / "fastjavaio.jar"))
   }
 }
-
