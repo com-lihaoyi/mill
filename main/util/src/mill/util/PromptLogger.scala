@@ -338,7 +338,7 @@ private[mill] object PromptLogger {
 
     def getCurrentPrompt() = currentPromptBytes
 
-    private def updatePromptBytes(ending: Boolean = false) = {
+    def updatePrompt(ending: Boolean = false) = {
       val now = currentTimeMillis()
       for (k <- statuses.keySet) {
         val removedTime = statuses(k).beginTransitionTime
@@ -401,15 +401,6 @@ private[mill] object PromptLogger {
             if (stillTransitioning(existing)) existing.copy(next = sOptEntry)
             else existing.copy(next = sOptEntry, beginTransitionTime = now, prev = existing.next)
           )
-      }
-    }
-
-    def updatePrompt(ending: Boolean = false): Unit = {
-      // For non-interactive jobs, we only want to print the new prompt if the contents
-      // differs from the previous prompt, since the prompts do not overwrite each other
-      // in log files and printing large numbers of identical prompts is spammy and useless
-      if (consoleDims()._1.nonEmpty) {
-        updatePromptBytes(ending)
       }
     }
   }
