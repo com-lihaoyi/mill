@@ -174,5 +174,5 @@ jobs:
     needs: build-linux
     uses: ./.github/workflows/run-mill-action.yml
     with:
-      java-version: '11'
+      java-version: '17'
       buildcmd: ./mill -i mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources && ./mill -i __.mimaReportBinaryIssues && ./mill -i __.fix --check && ./mill -i mill.javalib.palantirformat.PalantirFormatModule/ --check
