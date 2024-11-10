@@ -22,7 +22,7 @@ object androidSdkModule0 extends AndroidSdkModule {
 // Actual android application
 object app extends AndroidAppKotlinModule {
 
-  def kotlinVersion = "2.0.0"
+  def kotlinVersion = "2.0.20"
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
 }
 
