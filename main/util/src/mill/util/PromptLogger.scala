@@ -327,8 +327,6 @@ private[mill] object PromptLogger {
       currentTimeMillis: () => Long,
       infoColor: fansi.Attrs
   ) {
-    private var lastRenderedPromptHash = 0
-
     private val statuses = collection.mutable.SortedMap
       .empty[Seq[String], Status](PromptLoggerUtil.seqStringOrdering)
 
@@ -410,9 +408,7 @@ private[mill] object PromptLogger {
       // For non-interactive jobs, we only want to print the new prompt if the contents
       // differs from the previous prompt, since the prompts do not overwrite each other
       // in log files and printing large numbers of identical prompts is spammy and useless
-      lazy val statusesHashCode = statuses.hashCode
-      if (consoleDims()._1.nonEmpty || statusesHashCode != lastRenderedPromptHash) {
-        lastRenderedPromptHash = statusesHashCode
+      if (consoleDims()._1.nonEmpty) {
         updatePromptBytes(ending)
       }
     }
