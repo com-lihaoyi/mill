@@ -38,69 +38,68 @@ import java.util.Iterator;
 import java.util.Map;
 
 class Export0 {
-    private final static Object lock = new Object();
-    private static File tempFile = null;
+  private static final Object lock = new Object();
+  private static File tempFile = null;
 
-    public static String rtJarName = "rt-" + System.getProperty("java.version") + ".jar";
+  public static String rtJarName = "rt-" + System.getProperty("java.version") + ".jar";
 
-    public static File rt() {
-        try {
-            synchronized (lock) {
-                if (tempFile == null) {
-                    Path tempPath = Files.createTempFile("rt", ".jar");
-                    tempFile = tempPath.toFile();
-                    tempFile.deleteOnExit();
-                    tempFile.delete();
-                    FileSystem fileSystem = FileSystems.getFileSystem(URI.create("jrt:/"));
-                    Path path = fileSystem.getPath("/modules");
-                    URI uri = URI.create("jar:" + tempPath.toUri());
-                    Map<String, String> env = new HashMap<>();
-                    env.put("create", "true");
-                    try (FileSystem zipfs = FileSystems.newFileSystem(uri, env)) {
-                        Iterator<Path> iterator = Files.list(path).iterator();
-                        while (iterator.hasNext()) {
-                            Path next = iterator.next();
-                            Copy.copyDirectory(next, zipfs.getPath("/"));
-                        }
-                    }
-                }
+  public static File rt() {
+    try {
+      synchronized (lock) {
+        if (tempFile == null) {
+          Path tempPath = Files.createTempFile("rt", ".jar");
+          tempFile = tempPath.toFile();
+          tempFile.deleteOnExit();
+          tempFile.delete();
+          FileSystem fileSystem = FileSystems.getFileSystem(URI.create("jrt:/"));
+          Path path = fileSystem.getPath("/modules");
+          URI uri = URI.create("jar:" + tempPath.toUri());
+          Map<String, String> env = new HashMap<>();
+          env.put("create", "true");
+          try (FileSystem zipfs = FileSystems.newFileSystem(uri, env)) {
+            Iterator<Path> iterator = Files.list(path).iterator();
+            while (iterator.hasNext()) {
+              Path next = iterator.next();
+              Copy.copyDirectory(next, zipfs.getPath("/"));
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(-1);
+          }
         }
-        return tempFile;
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+      System.exit(-1);
     }
+    return tempFile;
+  }
 
-    public static boolean rtTo(File dest, boolean verbose) {
-        try {
-            if (!dest.exists()) {
-                if (verbose) {
-                    System.out.println("Copying Java " +
-                            System.getProperty("java.version") +
-                            " runtime jar to " +
-                            dest.getParentFile() +
-                            " ...");
-                    System.out.flush();
-                }
-                dest.getParentFile().mkdirs();
-                Files.copy(rt().toPath(), dest.toPath());
-                return true;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(-1);
+  public static boolean rtTo(File dest, boolean verbose) {
+    try {
+      if (!dest.exists()) {
+        if (verbose) {
+          System.out.println("Copying Java " + System.getProperty("java.version")
+              + " runtime jar to "
+              + dest.getParentFile()
+              + " ...");
+          System.out.flush();
         }
-        return false;
+        dest.getParentFile().mkdirs();
+        Files.copy(rt().toPath(), dest.toPath());
+        return true;
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+      System.exit(-1);
     }
+    return false;
+  }
 
-    public static File rtAt(File dir, boolean verbose) {
-        File f = new File(dir, rtJarName);
-        rtTo(f, verbose);
-        return f;
-    }
+  public static File rtAt(File dir, boolean verbose) {
+    File f = new File(dir, rtJarName);
+    rtTo(f, verbose);
+    return f;
+  }
 
-    public static File rtAt(File dir) {
-        return rtAt(dir, false);
-    }
+  public static File rtAt(File dir) {
+    return rtAt(dir, false);
+  }
 }

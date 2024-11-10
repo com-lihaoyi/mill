@@ -1,22 +1,30 @@
 package hello;
 
-
 // We instantiate this and call its method, so we record that in
 // the call graph.
-class Foo implements java.util.Enumeration<Integer>{
-    public int uncalled(){ return 2; }
-    public boolean hasMoreElements() {return false;}
-    public Integer nextElement() {return null;}
+class Foo implements java.util.Enumeration<Integer> {
+  public int uncalled() {
+    return 2;
+  }
+
+  public boolean hasMoreElements() {
+    return false;
+  }
+
+  public Integer nextElement() {
+    return null;
+  }
 }
 
-public class Hello{
-    public static int main(){
-        java.util.Enumeration<Integer> is = new Foo();
-        return bar(is);
-    }
-    public static int bar(java.util.Enumeration<Integer> is) {
-        return is.nextElement();
-    }
+public class Hello {
+  public static int main() {
+    java.util.Enumeration<Integer> is = new Foo();
+    return bar(is);
+  }
+
+  public static int bar(java.util.Enumeration<Integer> is) {
+    return is.nextElement();
+  }
 }
 
 // `Foo#<init>` does not end up calling `IntSupplier#<init>` to
