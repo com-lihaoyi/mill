@@ -78,7 +78,7 @@ had reached around 5-10% market share in the Scala community
 (https://www.jetbrains.com/lp/devecosystem-2023/scala/[Jetbrains Survey],
 https://scalasurvey2023.virtuslab.com/[VirtusLabs Survey]).
 It recently grew first-class Java support, demonstrating
-xref:why-mill.adoc[2-10x speedups] over existing Java build tools
+xref:comparisons/why-mill.adoc[2-10x speedups] over existing Java build tools
 like Maven or Gradle. Mill also has gained experimental support for Java-adjacent platforms
 like xref:kotlinlib/intro.adoc[Kotlin] and
 xref:javalib/android-examples.adoc[Android], and has demonstrated the ability to branch out into supporting
@@ -389,8 +389,8 @@ have both, which is necessary to take full advantage:
 Mill's direct style code and use of a general-purpose language makes it unique among
 build tools, just like how React.js was unique among UI frameworks when it was first released
 in 2014. With these two key design features, Mill makes understanding and maintaining your build
-an order of magnitude easier than traditional tools, democratizing project builds to anyone
-even if they are not build tool experts.
+an order of magnitude easier than traditional tools, democratizing project builds so anyone
+can contribute without needing to be experts.
 
 ## Where can Mill Go?
 
@@ -405,7 +405,7 @@ three main areas where I think Mill can grow into:
 Mill is a JVM build tool, and the JVM platform hosts many rich communities and ecosystems:
 the Java folks, offshoots like Android, other languages like Kotlin and Scala. All these
 ecosystems rely on tools like Maven or Gradle to build their code, and I believe Mill
-provides a better alternative. Even today, there are already many advantages of
+can provide a better alternative. Even today, there are already many advantages of
 using Mill over the incumbent build tools:
 
 1. Mill today runs the equivalent local workflows xref:comparisons/maven.adoc[4-10x faster than Maven]
@@ -416,14 +416,14 @@ using Mill over the incumbent build tools:
    navigating your build graph and visualizing what your build is doing
 
 3. Mill today makes extending your build 10x easier than Maven or Gradle, directly
-   using the same JVM libraries you know and love without depending on third-party plugins
+   using the same JVM libraries you already know without being beholden to third-party plugins
 
 The JVM is a flexible platform, and although Java/Kotlin/Scala/Android
 are superficially different, underneath there is a ton of similarity. Concepts like
 classfiles, jars, assemblies, classpaths, dependency management and publishing
 artifacts, IDEs, debuggers, profilers, many third-party libraries, are all shared and identical
 between the various JVM languages. Mill provides a first class Java and Scala experience,
-with support for Kotlin and Android. Mill's easy extensibility
+with growing support for Kotlin and Android. Mill's easy extensibility
 means integrating new tools into Mill takes hours rather than days or weeks.
 
 In the last 15-20 years, we have learned a lot about build tooling, and the field
@@ -433,8 +433,7 @@ has developed significantly:
   have emerged to manage large codebases
 * https://webpack.js.org/[Webpack], https://www.snowpack.dev/[Snowpack], https://esbuild.github.io/[ESBuild],
   https://nx.dev/[Nx], https://turbo.build/[TurboRepo], https://vite.dev/[Vite] have emerged for Javascript
-* https://scons.org/[Scons], https://ninja-build.org/[Ninja], and others have emerged as
-  lightweight graph-based build tools
+* https://astral.sh/[Astral], https://python-poetry.org/[Poetry], and others have emerged for Python
 * We have seen papers published like https://www.microsoft.com/en-us/research/uploads/prod/2018/03/build-systems.pdf[Build Systems A La Carte],
   that thoroughly explore the design space for how a build tool might work.
 
@@ -467,7 +466,7 @@ works", and with a single command you can do anything that you could want to do 
 
 But of those 25 companies I interviewed, basically everyone was having a hard time adopting Bazel.
 From my own experience, both of my prior employers (Dropbox and Databricks) both took
-`O(1 person decade)` of work to adopt Bazel. I have met Silicon Valley dev-tools teams that
+`O(1 person decade)` of work to adopt Bazel. I have met _multiple_ Silicon Valley dev-tools teams that
 spent months doing a Bazel proof-of-concept only to give up due to the difficulty. Bazel is
 a ferociously complex tool, and although some of that complexity is inherent, much of it is
 incidental, and some of it is to support projects at a scale beyond what most teams would encounter.
@@ -475,8 +474,8 @@ incidental, and some of it is to support projects at a scale beyond what most te
 I think there is room for a lightweight monorepo build tool that provides maybe 50% of Bazel's
 functionality, but at 10% the complexity:
 
-* Most companies are not Google, do not operate at Google-scale, do not have Google-level
-  problems, and may not need many of the most advanced features that Bazel provides
+* Most companies are not Google, don't operate at Google-scale, do not have Google-level
+  problems, and may not need all the most advanced features that Bazel provides
 
 * Bazel itself is not getting any simpler over time - instead is getting more complex with
   additional features and functionality, as tends to happen to projects over time
@@ -485,10 +484,12 @@ Mill provides many of the same things Bazel does: automatic xref:depth/evaluatio
 parallelization, xref:depth/sandboxing.adoc[sandboxing],
 xref:extending/import-ivy-plugins.adoc[extensibility]. Mill
 can already work with a wide variety of programming languages,
-from JVM languages like Java/Scala/Kotlin to xref:extending/example-typescript-support.adoc[Typescript]
-and xref:extending/example-python-support.adoc[Python]. These features are not as highly-scalable as their Bazel equivalents, but
-they are provided in a lighter-weight, easier-to-use fashion suitable for organizations
-with less than 1,000 engineers.
+from JVM languages like xref:javalib/intro.adoc[Java]/xref:scalalib/intro.adoc[Scala]/xref:kotlinlib/intro.adoc[Kotlin]
+to xref:extending/example-typescript-support.adoc[Typescript] and
+xref:extending/example-python-support.adoc[Python]. Mill's features are not as
+highly-scalable as their Bazel equivalents, but they are provided in a lighter-weight,
+easier-to-use fashion suitable for organizations with less than 1,000 engineers
+who cannot afford the `O(1 person decade)` it takes to adopt Bazel in their organization.
 
 For most companies, their problems with Bazel aren't its scalability or feature set,
 but its complexity. While Mill can never compete with Bazel for the largest-scale deployments
@@ -508,22 +509,21 @@ interactive website without getting lost in callback hell.
 I think Mill has a chance to do the same thing for build systems. Like Web UIs 10 years ago,
 configuring and maintaining a build-system often requires juggling multiple different
 templating/config/scripting languages in an intricate dance of callbacks and filesystem
-mutations. Like React.js, Mill collapses all this complexity, letting you write naive code
-in a single language while getting all the benefits of caching and parallelism, making
-previously challenging build pipelines implementations trivial.
+mutations. Like React.js, Mill collapses all this complexity, letting you write naive
+"direct-style" code in a single language while getting all the benefits of caching and
+parallelism, making previously challenging build pipelines implementations trivial.
 
 Fundamentally, there are holes in the build-tool market that are not well served:
-the Java folks deserve something more modern than Maven or Gradle, the Monorepo folks need
-something easier to use than Bazel, the Scala folks could benefit from something simpler
-than SBT. I think Mill has a decent shot at occupying each of these three niches, and even
-if it is only able to succeed in one or two that would still be significant. Perhaps
-even significant enough to build a business around!
+the Java folks deserve something more modern than Maven or Gradle, and the Monorepo folks need
+something easier to use than Bazel. I think Mill has a decent shot at occupying each
+of these two niches, and even if it is only able to succeed in one that would
+still be significant. Perhaps even significant enough to build a business around!
 
 
-Going forward, I expect to pursue all three paths: Mill as a better Java build tool, Mill as
-an easier Monorepo build tool, and Mill as the standard Scala build tool. Much of the past
+Going forward, I expect to pursue both paths: Mill as a better Java build tool, Mill as
+an easier Monorepo build tool. Much of the past
 quarter Q3 2024 has been spent polishing the experience of using Mill from Java, but
-similar efforts will need to be made in the other two areas. I will be working on this full time
+similar efforts will need to be made on the Monorepo front. I will be working on this full time
 and also investing a significant amount of cash in order to support
 the effort. If anyone out there is interested in being paid to work on the next-generation
-of Java, Monorepo, or Scala build tools, let me know and we can try to make an arrangement!
+of Java build tools or Monorepo build tools, let me know and we can try to make an arrangement!
