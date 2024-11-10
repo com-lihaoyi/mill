@@ -1,4 +1,6 @@
-// You can refer to tasks defined in cross-modules as follows:
+// You can refer to tasks defined in cross-modules using the `foo("2.10")` syntax,
+// as given below:
+
 package build
 import mill._
 
@@ -36,7 +38,6 @@ def qux = Task { s"hello ${foo("2.10").suffix()} world ${foo("2.12").suffix()}" 
 //   "foo[2.10].suffix" -> "bar"
 // }
 // ```
-
 
 // Here, `def bar` uses `foo("2.10")` to reference the `"2.10"` instance of
 // `FooModule`. You can refer to whatever versions of the cross-module you want,

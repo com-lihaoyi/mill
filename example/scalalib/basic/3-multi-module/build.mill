@@ -20,16 +20,18 @@ object bar extends MyModule {
 }
 //// SNIPPET:END
 
-// This example contains a simple Mill build with two modules, `foo` and `bar`.
-// We don't mark either module as top-level using `extends RootModule`, so
-// running tasks needs to use the module name as the prefix e.g. `foo.run` or
+// This example contains a simple Mill build with two modules, `foo` and `bar`,
+// which you can run tasks on such as `foo.run` or
 // `bar.run`. You can define multiple modules the same way you define a single
-// module, using `def moduleDeps` to define the relationship between them.
+// module, using `def moduleDeps` to define the relationship between them. Modules
+// can also be nested within each other, as `foo.test` and `bar.test` are nested
+// within `foo` and `bar` respectively
 //
 // Note that we split out the `test` submodule configuration common to both
-// modules into a separate `trait MyModule`. This lets us avoid the need to
-// copy-paste common settings, while still letting us define any per-module
-// configuration such as `ivyDeps` specific to a particular module.
+// modules into a separate `trait MyModule`. This xref:fundamentals/modules.adoc[Trait Module]
+// lets us avoid the need to copy-paste common settings, while still letting
+// us define any per-module configuration such as `ivyDeps` specific to a
+// particular module. This is a common pattern within Mill builds.
 //
 // The above builds expect the following project layout:
 //
@@ -90,6 +92,9 @@ Bar.value: <h1>world</h1>
 
 // Mill's evaluator will ensure that the modules are compiled in the right
 // order, and recompiled as necessary when source code in each module changes.
+// The unique path on disk that Mill automatically assigns each task also ensures
+// you do not need to worry about choosing a path on disk to cache outputs, or
+// filesystem collisions if multiple tasks write to the same path.
 //
 // You can use wildcards and brace-expansion to select
 // multiple tasks at once or to shorten the path to deeply nested tasks. If
@@ -106,8 +111,8 @@ Bar.value: <h1>world</h1>
 // |==========================================================
 //
 //
-// You can use the `+` symbol to add another task with optional arguments.
-// If you need to feed a `+` as argument to your task, you can mask it by
+// You can use the + symbol to add another task with optional arguments.
+// If you need to feed a + as argument to your task, you can mask it by
 // preceding it with a backslash (`\`).
 //
 
@@ -121,4 +126,5 @@ Bar.value: <h1>world</h1>
 > mill __.compile + foo.__.test # Runs all `compile` tasks and all tests under `foo`.
 */
 
-// For more details on the query syntax, check out the documentation for <<Task Query Syntax>>
+// For more details on the query syntax, check out the
+// xref:fundamentals/query-syntax.adoc[query syntax documentation]

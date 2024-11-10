@@ -1,11 +1,7 @@
 = Linting Scala Projects
 :page-aliases: Linting_Scala_Projects.adoc
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
+include::partial$gtag-config.adoc[]
 
 This page will discuss common topics around maintaining the code quality of Scala
 codebases using the Mill build tool
@@ -38,3 +34,12 @@ Mill supports Scala code coverage analysis via the Scoverage contrib plugin. See
 contrib plugin documentation for more details:
 
 * xref:contrib/scoverage.adoc[]
+
+== Binary Compatibility Enforcement
+
+If you want to lint against binary compatibility breakages, e.g. when developing
+an upstream library that downstream libraries may compile against, you can use
+the Lightbend Migration Manager (MiMa) tool via the mill-mima plugin. See
+the mill-mima documentation for more details:
+
+* https://github.com/lolgab/mill-mima

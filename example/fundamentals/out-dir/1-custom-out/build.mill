@@ -1,6 +1,8 @@
 // The default location for Mill's output directory is `out/` under the project workspace.
-// A task `printDest` of a module `foo` will have a default scratch space folder
-// `out/foo/printDest.dest/`:
+// If you'd rather use another location than `out/`, that lives
+// in a faster or a writable filesystem for example, you can change the output directory
+// via the `MILL_OUTPUT_DIR` environment variable.
+
 package build
 
 import mill._
@@ -10,16 +12,6 @@ object foo extends Module {
     println(T.dest)
   }
 }
-
-/** Usage
-> ./mill foo.printDest
-...
-.../out/foo/printDest.dest
-*/
-
-// If you'd rather use another location than `out/`, that lives
-// in a faster or a writable filesystem for example, you can change the output directory
-// via the `MILL_OUTPUT_DIR` environment variable.
 
 /** Usage
 > MILL_OUTPUT_DIR=build-stuff/working-dir ./mill foo.printDest

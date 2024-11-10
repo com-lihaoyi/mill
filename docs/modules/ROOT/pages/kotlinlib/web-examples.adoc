@@ -1,10 +1,6 @@
-= Kotlin Web Examples
+= Kotlin Web Project Examples
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
+include::partial$gtag-config.adoc[]
 
 This page contains examples of using Mill as a build tool for web-applications.
 It covers setting up a basic backend server with a variety of server frameworks
@@ -17,7 +13,14 @@ include::partial$example/kotlinlib/web/1-hello-ktor.adoc[]
 
 include::partial$example/kotlinlib/web/2-todo-ktor.adoc[]
 
-== (Work In Progress) Simple KotlinJS Module
+== Simple KotlinJS Module
 
 include::partial$example/kotlinlib/web/3-hello-kotlinjs.adoc[]
 
+== Ktor Webapp, KotlinJS Client
+
+include::partial$example/kotlinlib/web/4-webapp-kotlinjs.adoc[]
+
+== Ktor KotlinJS Code Sharing
+
+include::partial$example/kotlinlib/web/5-webapp-kotlinjs-shared.adoc[]

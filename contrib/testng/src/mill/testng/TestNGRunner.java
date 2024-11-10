@@ -57,17 +57,14 @@ public class TestNGRunner implements Runner {
     }
 
     public Task[] tasks(TaskDef[] taskDefs) {
-        CommandLineArgs cliArgs = new CommandLineArgs();
-        new JCommander(cliArgs).parse(args); // args is an output parameter of the constructor!
-        if(cliArgs.testClass == null){
-            String[] names = new String[taskDefs.length];
-            for(int i = 0; i < taskDefs.length; i += 1){
-                names[i] = taskDefs[i].fullyQualifiedName();
-            }
-            cliArgs.testClass = String.join(",", names);
+        Task[] returnTasks = new Task[taskDefs.length];
+        for(int i = 0; i < taskDefs.length; i += 1){
+            CommandLineArgs cliArgs = new CommandLineArgs();
+            new JCommander(cliArgs).parse(args); // args is an output parameter of the constructor!
+            cliArgs.testClass = taskDefs[i].fullyQualifiedName();
+            returnTasks[i] = new TestNGTask(taskDefs[i], testClassLoader, cliArgs);
         }
-        if (taskDefs.length == 0) return new Task[]{};
-        else return new Task[]{new TestNGTask(taskDefs[0], testClassLoader, cliArgs)};
+        return returnTasks;
     }
 
     public String done() { return null; }

@@ -41,7 +41,7 @@ object GenIdeaModule {
   import upickle.default._
 
   /**
-   * Encoding of an Idea XML configuraiton fragment.
+   * Encoding of an Idea XML configuration fragment.
    * @param name The XML element name
    * @param attributes The optional XML element attributes
    * @param childs The optional XML child elements.
@@ -61,7 +61,7 @@ object GenIdeaModule {
   }
 
   /**
-   * A Idea config file contribution
+   * An Idea config file contribution
    * @param subPath The sub-path of the config file, relative to the Idea config directory (`.idea`)
    * @param component The Idea component
    * @param config The actual (XML) configuration, encoded as [[Element]]s

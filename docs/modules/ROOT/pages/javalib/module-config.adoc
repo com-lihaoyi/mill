@@ -1,11 +1,10 @@
 = Java Module Configuration
 :page-aliases: Java_Module_Config.adoc
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
+include::partial$gtag-config.adoc[]
+
+:language: Java
+:language-small: java
 
 This page goes into more detail about the various configuration options
 for `JavaModule`.
@@ -17,15 +16,6 @@ Many of the APIs covered here are listed in the API documentation:
 == Common Configuration Overrides
 
 include::partial$example/javalib/module/1-common-config.adoc[]
-
-== Custom Tasks
-
-include::partial$example/javalib/module/2-custom-tasks.adoc[]
-
-== Overriding Tasks
-
-include::partial$example/javalib/module/3-override-tasks.adoc[]
-
 
 == Compilation & Execution Flags
 
@@ -55,8 +45,14 @@ include::partial$example/javalib/module/11-main-class.adoc[]
 include::partial$example/javalib/module/13-assembly-config.adoc[]
 
 
+== Custom Tasks
+
+include::partial$example/javalib/module/2-custom-tasks.adoc[]
+
+== Overriding Tasks
+
+include::partial$example/javalib/module/3-override-tasks.adoc[]
 
 == Native C Code with JNI
 
 include::partial$example/javalib/module/15-jni.adoc[]
-

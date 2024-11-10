@@ -21,7 +21,7 @@ trait TestModule
 
   /**
    * The classpath containing the tests. This is most likely the output of the compilation target.
-   * By default this uses the result of [[localRunClasspath]], which is most likely the result of a local compilation.
+   * By default, this uses the result of [[localRunClasspath]], which is most likely the result of a local compilation.
    */
   def testClasspath: T[Seq[PathRef]] = Task { localRunClasspath() }
 
@@ -146,7 +146,7 @@ trait TestModule
   }
 
   /**
-   * Controls whether the TestRunner should receive it's arguments via an args-file instead of a as long parameter list.
+   * Controls whether the TestRunner should receive its arguments via an args-file instead of a long parameter list.
    * Defaults to what `runUseArgsFile` return.
    */
   def testUseArgsFile: T[Boolean] = Task { runUseArgsFile() || scala.util.Properties.isWin }
@@ -192,7 +192,7 @@ trait TestModule
     }
 
   /**
-   * Whether or not to use the test task destination folder as the working directory
+   * Whether to use the test task destination folder as the working directory
    * when running tests. `true` means test subprocess run in the `.dest/sandbox` folder of
    * the test task, providing better isolation and encouragement of best practices
    * (e.g. not reading/writing stuff randomly from the project source tree). `false`

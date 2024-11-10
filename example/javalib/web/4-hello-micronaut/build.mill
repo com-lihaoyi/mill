@@ -6,11 +6,10 @@ object `package` extends RootModule with MicronautModule {
   def ivyDeps = Agg(
     ivy"io.micronaut:micronaut-http-server-netty:$micronautVersion",
     ivy"io.micronaut.serde:micronaut-serde-jackson:2.10.1",
-    ivy"ch.qos.logback:logback-classic:1.5.3",
+    ivy"ch.qos.logback:logback-classic:1.5.3"
   )
 
-
-  object test extends MavenTests with TestModule.Junit5{
+  object test extends MavenTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy"io.micronaut:micronaut-http-client:$micronautVersion",
       ivy"io.micronaut.test:micronaut-test-junit5:4.4.0",
@@ -20,7 +19,7 @@ object `package` extends RootModule with MicronautModule {
   }
 }
 
-trait MicronautModule extends MavenModule{
+trait MicronautModule extends MavenModule {
   def micronautVersion: String
 
   def processors = Task {
@@ -42,10 +41,9 @@ trait MicronautModule extends MavenModule{
     "-Amicronaut.processing.incremental=true",
     "-Amicronaut.processing.group=example.micronaut",
     "-Amicronaut.processing.module=todo",
-    "-Amicronaut.processing.annotations=example.micronaut.*",
+    "-Amicronaut.processing.annotations=example.micronaut.*"
   )
 }
-
 
 // This example demonstrates how to set up a simple Micronaut example service,
 // using the code from the
@@ -63,7 +61,6 @@ trait MicronautModule extends MavenModule{
 // The `MicronautModule` shown here does not implement the full functionality of the micronaut
 // CLI; in particular, support for Micronaut AOT compilation is missing. But it easily can be
 // extended with more features as necessary.
-
 
 /** Usage
 

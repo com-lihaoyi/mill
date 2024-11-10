@@ -1,11 +1,10 @@
 = Kotlin Module Configuration
 :page-aliases: Kotlin_Module_Config.adoc
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
+include::partial$gtag-config.adoc[]
+
+:language: Kotlin
+:language-small: kotlin
 
 This page goes into more detail about the various configuration options
 for `KotlinModule`.
@@ -20,14 +19,6 @@ Many of the APIs covered here are listed in the API documentation:
 
 include::partial$example/kotlinlib/module/1-common-config.adoc[]
 
-== Custom Tasks
-
-include::partial$example/kotlinlib/module/2-custom-tasks.adoc[]
-
-== Overriding Tasks
-
-include::partial$example/kotlinlib/module/3-override-tasks.adoc[]
-
 
 == Compilation & Execution Flags
 
@@ -41,7 +32,7 @@ include::partial$example/kotlinlib/module/7-resources.adoc[]
 
 include::partial$example/kotlinlib/module/8-kotlin-compiler-plugins.adoc[]
 
-== Javadoc Config
+== Doc-Jar Generation
 
 include::partial$example/kotlinlib/module/9-docjar.adoc[]
 
@@ -54,7 +45,16 @@ include::partial$example/kotlinlib/module/11-main-class.adoc[]
 include::partial$example/kotlinlib/module/13-assembly-config.adoc[]
 
 
+
+== Custom Tasks
+
+include::partial$example/kotlinlib/module/2-custom-tasks.adoc[]
+
+== Overriding Tasks
+
+include::partial$example/kotlinlib/module/3-override-tasks.adoc[]
+
+
 == Native C Code with JNI
 
 include::partial$example/kotlinlib/module/15-jni.adoc[]
-

@@ -20,7 +20,7 @@ object `package` extends RootModule with PublishModule with MavenModule {
     developers = Nil
   )
 
-  object test extends MavenTests with TestModule.Junit5 with  JmhModule{
+  object test extends MavenTests with TestModule.Junit5 with JmhModule{
     def testSandboxWorkingDir = false
     def jmhCoreVersion = "1.37"
     def ivyDeps = super.ivyDeps() ++ Agg(

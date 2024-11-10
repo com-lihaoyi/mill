@@ -1,12 +1,10 @@
 = Scala Module Configuration
 :page-aliases: Configuring_Mill.adoc, Scala_Module_Config.adoc
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
+include::partial$gtag-config.adoc[]
 
+:language: Scala
+:language-small: scala
 
 This page goes into more detail about the various configuration options
 for `ScalaModule`.
@@ -19,15 +17,6 @@ Many of the APIs covered here are listed in the Scaladoc:
 == Common Configuration Overrides
 
 include::partial$example/scalalib/module/1-common-config.adoc[]
-
-== Custom Tasks
-
-include::partial$example/scalalib/module/2-custom-tasks.adoc[]
-
-== Overriding Tasks
-
-include::partial$example/scalalib/module/3-override-tasks.adoc[]
-
 
 == Compilation & Execution Flags
 
@@ -53,9 +42,25 @@ include::partial$example/scalalib/module/11-main-class.adoc[]
 
 include::partial$example/scalalib/module/13-assembly-config.adoc[]
 
+
+== Cross-Scala-Version Modules
+
+include::partial$example/scalalib/module/14-cross-scala-version.adoc[]
+
 == Unidoc
 
 include::partial$example/scalalib/module/15-unidoc.adoc[]
+
+== Custom Tasks
+
+include::partial$example/scalalib/module/2-custom-tasks.adoc[]
+
+== Overriding Tasks
+
+include::partial$example/scalalib/module/3-override-tasks.adoc[]
+
+
+
 
 
 == Using the Ammonite Repl / Scala console

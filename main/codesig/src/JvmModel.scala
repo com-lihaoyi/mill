@@ -13,7 +13,7 @@ import scala.collection.immutable.ArraySeq
 object JvmModel {
 
   /**
-   * Manages a interning cache for common [[JvmModel]] data types. This ensures that
+   * Manages an interning cache for common [[JvmModel]] data types. This ensures that
    * once a data type is constructed, the same instance is re-used going forward for
    * any constructions with identical arguments. This reduces total memory usage and
    * lets us replace structural hashing/equality with instance-identity hashing/equality,

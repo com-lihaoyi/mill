@@ -27,6 +27,9 @@ on:
       env-bridge-versions:
         default: 'none'
         type: string
+      install-android-sdk:
+        default: false
+        type: boolean
 
 jobs:
   run:
@@ -58,6 +61,15 @@ jobs:
           java-version: ${{ inputs.java-version }}
           distribution: temurin
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - uses: android-actions/setup-android@v3
+        if: ${{ inputs.install-android-sdk }}
+        with:
+          log-accepted-android-sdk-licenses: false
+
       - name: Prepare git config
         run: |
           git config --global user.name "Mill GithHub Actions"
@@ -69,7 +81,7 @@ jobs:
 
       - name: Run Mill '${{ inputs.millargs }}'
         # Mill tests are pretty heavy so run them only 3x parallel on 4 core Github Actions runners
-        run:  ./mill -i -j3 -k ${{ inputs.millargs }}
+        run: ./mill -i -j3 -k ${{ inputs.millargs }}
         if: inputs.millargs != '' && !startsWith(inputs.os, 'windows')
 
       - name: Run Mill (on Windows) '${{ inputs.millargs }}'
@@ -82,7 +94,7 @@ jobs:
         shell: bash
         continue-on-error: true
 
-      - uses: actions/upload-artifact@v4.4.1
+      - uses: actions/upload-artifact@v4.4.3
         with:
           path: .
           name: ${{ inputs.os }}-artifact

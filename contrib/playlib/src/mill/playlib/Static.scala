@@ -18,7 +18,7 @@ trait Static extends ScalaModule {
   }
 
   /**
-   * Resource base path of packaged assets (path they will appear in in the jar)
+   * Resource base path of packaged assets (path they will appear in the jar)
    */
   def assetsPath = Task { "public" }
 

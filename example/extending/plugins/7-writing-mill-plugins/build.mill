@@ -1,6 +1,6 @@
 // This example demonstrates how to write and test Mill plugin, and publish it to
 // Sonatype's Maven Central so it can be used by other developers over the internet
-// via xref:extending/import-ivy.adoc[import $ivy].
+// via xref:extending/import-ivy-plugins.adoc[import $ivy].
 
 // == Project Configuration
 package build
@@ -10,14 +10,19 @@ import mill.main.BuildInfo.millVersion
 object myplugin extends ScalaModule with PublishModule {
   def scalaVersion = "2.13.8"
 
+  // Set the `platformSuffix` so the name indicates what Mill version it is compiled for
+  def platformSuffix = "_mill" + mill.main.BuildInfo.millBinPlatform
+
+  // Depend on `mill-dist` so we can compile against Mill APIs
   def ivyDeps = Agg(ivy"com.lihaoyi:mill-dist:$millVersion")
 
-  // Testing Config
-  object test extends ScalaTests with TestModule.Utest{
+  // Testing Config, with necessary setup for unit/integration/example tests
+  object test extends ScalaTests with TestModule.Utest {
     def ivyDeps = Agg(ivy"com.lihaoyi::mill-testkit:$millVersion")
     def forkEnv = Map("MILL_EXECUTABLE_PATH" -> millExecutable.assembly().path.toString)
 
-    object millExecutable extends JavaModule{
+    // Create a Mill executable configured for testing our plugin
+    object millExecutable extends JavaModule {
       def ivyDeps = Agg(ivy"com.lihaoyi:mill-dist:$millVersion")
       def mainClass = Some("mill.runner.client.MillClientMain")
       def resources = Task {
@@ -48,18 +53,24 @@ object myplugin extends ScalaModule with PublishModule {
 //
 // The above `build.mill` file sets up a `object myplugin extends ScalaModule` not just to
 // compile your Mill plugin project, but also to run automated tests using `mill-testkit`,
-// and to configure it for publishing to Maven Central via `PublishModule`. 
+// and to configure it for publishing to Maven Central via `PublishModule`.
 // It looks like any other Scala project, except for a few things to take note:
 //
+// * We set the `platformSuffix` to indicate which Mill binary API version
+//   they are compiled against (to ensure that improper usage raises an easy to understand
+//   error)
 // * A dependency on `com.lihaoyi:mill-dist:$millVersion`
 // * A test dependency on `com.lihaoyi::mill-testkit:$millVersion`
 // * An `object millExecutable` that adds some resources to the published `mill-dist`
 //   assembly to configure it to rewire `import $ivy` to instead use the local compiled
 //   classfiles for testing.
 
-
 // == Plugin Implementation
 
+// Although Mill plugins can contain arbitrary code, the most common
+// way that plugins interact with your project is by providing ``trait``s for
+// your modules to inherit from.
+//
 // Like any other `trait`, a Mill plugin's traits modules allow you to:
 //
 // * Add additional tasks to an existing module
@@ -81,7 +92,6 @@ object myplugin extends ScalaModule with PublishModule {
 compiling 1 Scala source...
 
 */
-
 
 // Mill provides the `mill-testkit` library to make it easy for you to test your Mill
 // plugin. The example project above has set up tests that can be run via the normal `.test`
@@ -184,12 +194,12 @@ compiling 1 Scala source...
 > sed -i.bak 's/0.0.1/0.0.2/g' build.mill
 
 > ./mill myplugin.publishLocal
-Publishing Artifact(com.lihaoyi,myplugin_2.13,0.0.2) to ivy repo...
+Publishing Artifact(com.lihaoyi,myplugin_mill0.11_2.13,0.0.2) to ivy repo...
 
 */
 // Mill plugins are JVM libraries like any other library written in Java or Scala. Thus they
 // are published the same way: by extending `PublishModule` and defining the module's `publishVersion`
-// and `pomSettings`. Once done, you can publish the plugin locally via `publishLocal` below,
-// or to Maven Central via `mill.scalalib.public.PublishModule/`for other developers to
-// use.
-
+// and `pomSettings`. Once done, you can publish the plugin locally via `publishLocal`,
+// or to Maven Central via `mill.scalalib.public.PublishModule/` for other developers to
+// use. For more details on publishing Mill projects, see the documentation for
+// xref:scalalib/publishing.adoc[Publishing Scala Projects]

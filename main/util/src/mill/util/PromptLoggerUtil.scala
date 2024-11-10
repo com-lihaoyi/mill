@@ -13,7 +13,7 @@ private object PromptLoggerUtil {
   private[mill] val promptUpdateIntervalMillis = 100
 
   /**
-   * How often to update the multiline status prompt in noninteractive scenarios,
+   * How often to update the multiline status prompt in non-interactive scenarios,
    * e.g. background job logs or piped to a log file. Much less frequent than the
    * interactive scenario because we cannot rely on ANSI codes to over-write the
    * previous prompt, so we have to be a lot more conservative to avoid spamming
@@ -51,7 +51,13 @@ private object PromptLoggerUtil {
       prev: Option[StatusEntry]
   )
 
-  private[mill] val clearScreenToEndBytes: Array[Byte] = AnsiNav.clearScreen(0).getBytes
+  /**
+   * Starting a line with `clearScreen` mucks up tab stops in iTerm, so make sure we navigate `up`
+   * and down via `\n` to have a "fresh" line. This only should get called to clear the prompt, so
+   * the cursor is already at the left-most column, which '\n' will not change.
+   */
+  private[mill] val clearScreenToEndBytes: Array[Byte] =
+    (AnsiNav.clearScreen(0) + AnsiNav.up(1) + "\n").getBytes
 
   private def renderSecondsSuffix(millis: Long) = (millis / 1000).toInt match {
     case 0 => ""
@@ -127,7 +133,7 @@ private object PromptLoggerUtil {
       }
       // For non-interactive jobs, we do not need to preserve the height of the prompt
       // between renderings, since consecutive prompts do not appear at the same place
-      // in the log file. Thus we can aggressively remove all blank spacer lines
+      // in the log file. Thus, we can aggressively remove all blank spacer lines
       .filter(_.nonEmpty || interactive)
       .toList
       // Sort alphabetically because the `#nn` prefix is part of the string, and then
@@ -165,9 +171,7 @@ private object PromptLoggerUtil {
         if (ending) "\n"
         else AnsiNav.left(9999) + AnsiNav.up(currentPromptLines.length - 1)
 
-      AnsiNav.clearScreen(0) +
-        currentPromptLines.mkString("\n") +
-        backUp
+      AnsiNav.clearScreen(0) + currentPromptLines.mkString("\n") + backUp
     }
   }
 
@@ -179,7 +183,8 @@ private object PromptLoggerUtil {
       ending: Boolean = false,
       interactive: Boolean = true
   ): String = {
-    val headerPrefixStr = if (!interactive || ending) s"$headerPrefix0 " else s"  $headerPrefix0 "
+    val headerPrefix = if (headerPrefix0.isEmpty) "" else s"$headerPrefix0 "
+    val headerPrefixStr = if (!interactive || ending) headerPrefix else s"  $headerPrefix"
     val headerSuffixStr = headerSuffix0
     val titleText = s" $titleText0 "
     // -12 just to ensure we always have some ==== divider on each side of the title

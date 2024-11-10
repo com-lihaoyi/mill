@@ -1,29 +1,7 @@
 = Java Build Examples
 :page-aliases: Java_Build_Examples.adoc
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
-
-On this page, we will explore the Mill build tool via a series of simple Java
-example projects.
-
-
-== Nesting Modules
-
-include::partial$example/javalib/builds/1-nested-modules.adoc[]
-
-== Maven-Compatible Modules
-
-include::partial$example/javalib/builds/2-compat-modules.adoc[]
-
-
-== Realistic Java Example Project
-
-include::partial$example/javalib/builds/4-realistic.adoc[]
-
+include::partial$gtag-config.adoc[]
 
 == Example Builds for Real Projects
 

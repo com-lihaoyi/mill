@@ -7,7 +7,7 @@ import utest.assert
 object GenIdeaUtils {
 
   /**
-   * The resource content will loaded from the claspath and matched against the file.
+   * The resource content will be loaded from the classpath and matched against the file.
    * It may contain the `<!-- IGNORE -->` String, to simulate wildcard-matches.
    */
   def assertIdeaXmlResourceMatchesFile(

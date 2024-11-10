@@ -1,11 +1,7 @@
 = Linting Java Projects
 :page-aliases: Linting_Java_Projects.adoc
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
+include::partial$gtag-config.adoc[]
 
 This page will discuss common topics around enforcing the code quality of Java
 codebases using the Mill build tool
@@ -29,3 +25,12 @@ Mill supports Java code coverage analysis via the mill-jacoco plugin. See the
 plugin repository documentation for more details:
 
 * https://github.com/lefou/mill-jacoco
+
+== Binary Compatibility Enforcement
+
+If you want to lint against binary compatibility breakages, e.g. when developing
+an upstream library that downstream libraries may compile against, you can use
+the Lightbend Migration Manager (MiMa) tool via the mill-mima plugin. See
+the mill-mima documentation for more details:
+
+* https://github.com/lolgab/mill-mima

@@ -12,16 +12,16 @@
 package build
 import mill._, javalib._
 
-def tWorkspaceTask = Task { println(Task.workspace) }
+def myTask = Task { println(Task.workspace) }
 
 /** Usage
-> ./mill tWorkspaceTask
+> ./mill myTask
 */
 
 // Whereas `MILL_WORKSPACE_ROOT` as well as in tests, which can access the
 // workspace root via the `MILL_WORKSPACE_ROOT` environment variable
 
-object foo extends JavaModule{
+object foo extends JavaModule {
   object test extends JavaTests with TestModule.Junit4
 }
 

@@ -1,6 +1,8 @@
 = The Output Directory
 :page-aliases: Out_Dir.adoc
 
+include::partial$gtag-config.adoc[]
+
 Mill puts all its output in the top-level `out/` folder.
 
 == Structure of the `out/` Directory
@@ -52,7 +54,7 @@ out/
 ----
 
 <1> The `main` directory contains all files associated with tasks and submodules of the `main` module.
-<2> The `compile` task has tried to access its scratch space via `T.dest`. Here you will find the actual compile results.
+<2> The `compile` task has tried to access its scratch space via `Task.dest`. Here you will find the actual compile results.
 <3> Two tasks printed something out while they ran. You can find these outputs in the `*.log` files.
 <4> Three tasks are overridden but re-use the result of their `super`-tasks in some way. You can find these result under the `*.super/` path.
 
@@ -75,7 +77,7 @@ by `foo.json` via `PathRef` references.
 `foo.dest/`::
   optional, a path for the `Task` to use either as a scratch space, or to place generated files that are returned
 using `PathRef` references.
-A `Task` should only output files within its own given `foo.dest/` folder (available as `T.dest`) to avoid
+A `Task` should only output files within its own given `foo.dest/` folder (available as `Task.dest`) to avoid
 conflicting with another `Task`, but can name files within `foo.dest/`  arbitrarily.
 
 `foo.log`::

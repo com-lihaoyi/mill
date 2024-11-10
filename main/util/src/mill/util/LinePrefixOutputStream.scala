@@ -20,16 +20,31 @@ class LinePrefixOutputStream(
   private[this] val linePrefixNonEmpty = linePrefixBytes.length != 0
   private[this] var isNewLine = true
   val buffer = new ByteArrayOutputStream()
+
+  // Make sure we preserve the end-of-line ANSI colors every time we write out the buffer, and
+  // re-apply them after every line prefix. This helps ensure the line prefix color/resets does
+  // not muck up the rendering of color sequences that affect multiple lines in the terminal
+  private var endOfLastLineColor: Long = 0
   override def write(b: Array[Byte]): Unit = write(b, 0, b.length)
   private[this] def writeLinePrefixIfNecessary(): Unit = {
     if (isNewLine && linePrefixNonEmpty) {
       isNewLine = false
       buffer.write(linePrefixBytes)
+      if (linePrefixNonEmpty)
+        buffer.write(fansi.Attrs.emitAnsiCodes(0, endOfLastLineColor).getBytes())
     }
   }
 
   def writeOutBuffer(): Unit = {
     if (buffer.size() > 0) reportPrefix()
+
+    if (linePrefixNonEmpty) {
+      val bufferString = buffer.toString
+      if (bufferString.length > 0) {
+        val s = fansi.Str.apply(bufferString, errorMode = fansi.ErrorMode.Sanitize)
+        endOfLastLineColor = s.getColor(s.length - 1)
+      }
+    }
     out.synchronized { buffer.writeTo(out) }
     buffer.reset()
   }

@@ -12,7 +12,7 @@ case class MillCliConfig(
     )
     home: os.Path = mill.api.Ctx.defaultHome,
     // We need to keep it, otherwise, a given --repl would be silently parsed as target and result in misleading error messages.
-    // Instead we fail programmatically when this flag is set.
+    // Instead, we fail programmatically when this flag is set.
     @deprecated("No longer supported.", "Mill 0.11.0-M8")
     @arg(
       hidden = true,
@@ -148,14 +148,15 @@ case class MillCliConfig(
 import mainargs.ParserForClass
 
 // We want this in a separate source file, but to avoid stale --help output due
-// to undercompilation, we have it in this file
+// to under-compilation, we have it in this file
 // see https://github.com/com-lihaoyi/mill/issues/2315
 object MillCliConfigParser {
   val customName: String = s"Mill Build Tool, version ${mill.main.BuildInfo.millVersion}"
   val customDoc = """
 Usage: mill [options] task [task-options] [+ task ...]
 """
-  val cheatSheet = """
+  val cheatSheet =
+    """
 task cheat sheet:
   mill resolve _                 # see all top-level tasks and modules
   mill resolve __.compile        # see all `compile` tasks in any module (recursively)

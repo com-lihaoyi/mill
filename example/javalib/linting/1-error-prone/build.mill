@@ -1,16 +1,21 @@
-// When adding the `ErrorPromeModule` to your `JavaModule`,
-// the `error-prone` compiler plugin automatically detects various kind of programming errors.
+// https://errorprone.info/index[Error Prone] augments the Java compiler's type
+// checker and detect common mistakes at compile time. Mill supports ErrorProne via
+// `ErrorProneModule`: mix `ErrorProneModule` into your `JavaModule` and it will
+// automatically run with every compilation.
+
 
 
 package build
 import mill._, javalib._, errorprone._
-
 
 object `package` extends RootModule with JavaModule with ErrorProneModule {
   def errorProneOptions = Seq("-XepAllErrorsAsWarnings")
 }
 
 /** See Also: src/example/ShortSet.java */
+
+// When adding the `ErrorProneModule` to your `JavaModule`,
+// the `error-prone` compiler plugin automatically detects various kind of programming errors.
 
 /** Usage
 
@@ -29,9 +34,6 @@ object `package` extends RootModule with JavaModule with ErrorProneModule {
 
 // :page-aliases: Plugin_ErrorProne.adoc
 //
-// https://errorprone.info/index[Error Prone] augments the Java compiler's type checker and detect common mistakes at compile time.
-//
-// You just need to mix the `ErrorProneModule` into your `JavaModule` and it will automatically run with every compilation.
 //
 // .`build.mill.scala`: Enable `ErrorProne` in a module
 // [source,scala]
@@ -51,8 +53,8 @@ object `package` extends RootModule with JavaModule with ErrorProneModule {
 // The following configuration options exist:
 //
 // `def errorProneVersion: T[String]`::
-// The `error-prone` version to use. Defaults to [[BuildInfo.errorProneVersion]], the version used to build and test the module.
-// Find the latest at https://mvnrepository.com/artifact/com.google.errorprone/error_prone_core[mvnrepository.com]
+// The `error-prone` version to use.
+// Find the list of versions and changlog at https://github.com/google/error-prone/releases
 //
 // `def errorProneOptions: T[Seq[String]]`::
 //  Options directly given to the `error-prone` processor.

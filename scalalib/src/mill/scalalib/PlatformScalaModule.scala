@@ -1,7 +1,6 @@
 package mill.scalalib
 
-import mill._
-import os.Path
+import mill.{PathRef, T, Task}
 
 /**
  * A [[ScalaModule]] intended for defining `.jvm`/`.js`/`.native` submodules
@@ -14,8 +13,10 @@ import os.Path
  * built against and not something that should affect the filesystem path or
  * artifact name
  */
-trait PlatformScalaModule extends ScalaModule {
-  override def millSourcePath: Path = super.millSourcePath / os.up
+trait PlatformScalaModule extends /* PlatformModuleBase with*/ ScalaModule {
+  // Cannot move stuff to PlatformModuleBase due to bincompat concerns
+
+  override def millSourcePath: os.Path = super.millSourcePath / os.up
 
   /**
    * The platform suffix of this [[PlatformScalaModule]]. Useful if you want to

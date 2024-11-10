@@ -7,12 +7,15 @@ import kotlinlib.KotlinModule
 import kotlinlib.ktlint.KtlintModule
 
 object `package` extends RootModule with KotlinModule with KtlintModule {
-
   def kotlinVersion = "1.9.24"
 
   def ktlintConfig = Some(PathRef(T.workspace / ".editorconfig"))
-
 }
+
+// This example shows how to use the https://github.com/pinterest/ktlint[KtLint]
+// linter on a `KotlinModule`, by mixing in the trait `KtlintModule` and calling the
+// `ktlint` task. `ktlint` also supports autoformatting to automatically resolve
+// code formatting violations, via the `--format` flag shown below:
 
 /** Usage
 
@@ -20,7 +23,9 @@ object `package` extends RootModule with KotlinModule with KtlintModule {
 error: ...src/example/FooWrong.kt:6:28: Missing newline before ")" (standard:parameter-list-wrapping)...
 ...src/example/FooWrong.kt:6:28: Newline expected before closing parenthesis (standard:function-signature)...
 ...src/example/FooWrong.kt:6:28: Missing trailing comma before ")" (standard:trailing-comma-on-declaration-site)...
+
 > ./mill ktlint --format true
 
 > ./mill ktlint # after fixing the violations, ktlint no longer errors
 */
+

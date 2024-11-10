@@ -53,7 +53,7 @@ object foo extends ScalaModule {
 //
 // Example application code demonstrating the techniques above can be seen below:
 
-
+/** See Also: foo/resources/file.txt */
 /** See Also: foo/test/resources/test-file-a.txt */
 /** See Also: foo/test/resources/test-file-b.txt */
 /** See Also: foo/test/other-files/other-file.txt */
@@ -65,7 +65,6 @@ object foo extends ScalaModule {
 
 //// SNIPPET:END
 
-
 //
 //
 // Note that tests require that you pass in any files that they depend on explicitly.
@@ -74,12 +73,9 @@ object foo extends ScalaModule {
 // to the current working directory do not accidentally interfere with each others
 // files, especially when running in parallel.
 //
-// The test process runs in a `sandbox/` folder, not in your project root folder, to
-// prevent you from accidentally accessing files without explicitly passing them. If
-// you have legacy tests that need to run in the project root folder to work, you
+// Mill runs test processes in a xref:depth/sandboxing.adoc[sandbox/ folder], not in your project root folder, to
+// prevent you from accidentally accessing files without explicitly passing them. Thus
+// you cannot just read resources off disk via `new FileInputStream("foo/resources/test-file-a.txt")`.
+// If you have legacy tests that need to run in the project root folder to work, you
 // can configure your test suite with `def testSandboxWorkingDir = false` to disable
 // the sandbox and make the tests run in the project root.
-
-
-
-

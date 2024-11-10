@@ -1,9 +1,7 @@
 package mill.kotlinlib.ktfmt
 
-import mainargs.Leftover
-import mill.{T, api}
+import mill.{PathRef, T, api}
 import mill.kotlinlib.KotlinModule
-import mill.kotlinlib.ktfmt.{KtfmtArgs, KtfmtModule}
 import mill.main.Tasks
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.{TestSuite, Tests, assert, test}
@@ -11,6 +9,10 @@ import utest.{TestSuite, Tests, assert, test}
 object KtfmtModuleTests extends TestSuite {
 
   val kotlinVersion = "1.9.24"
+
+  object module extends TestBaseModule with KotlinModule with KtfmtModule {
+    override def kotlinVersion: T[String] = KtfmtModuleTests.kotlinVersion
+  }
 
   def tests: Tests = Tests {
 
@@ -62,7 +64,7 @@ object KtfmtModuleTests extends TestSuite {
 
     test("ktfmt - explicit files") {
       checkState(
-        afterFormat(before, sources = Seq("src/Example.kt")),
+        afterFormat(before, sources = Seq(module.sources)),
         after / "style" / "kotlin"
       )
     }
@@ -94,12 +96,8 @@ object KtfmtModuleTests extends TestSuite {
       style: String = "kotlin",
       format: Boolean = true,
       removeUnusedImports: Boolean = true,
-      sources: Seq[String] = Seq.empty
+      sources: Seq[mill.define.NamedTask[Seq[PathRef]]] = Seq.empty
   ): Seq[os.Path] = {
-
-    object module extends TestBaseModule with KotlinModule with KtfmtModule {
-      override def kotlinVersion: T[String] = KtfmtModuleTests.kotlinVersion
-    }
 
     val eval = UnitTester(module, moduleRoot)
 
@@ -109,7 +107,7 @@ object KtfmtModuleTests extends TestSuite {
         format = format,
         removeUnusedImports = removeUnusedImports
       ),
-      sources = Leftover(sources: _*)
+      sources = Tasks(sources)
     )).fold(
       {
         case api.Result.Exception(cause, _) => throw cause

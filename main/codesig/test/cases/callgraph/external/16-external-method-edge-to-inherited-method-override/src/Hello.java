@@ -2,7 +2,7 @@ package hello;
 
 // Make sure that when we call external methods, we only generate conservative
 // call graph edges to local methods that are defined on the external class
-// that we called the external methd on.
+// that we called the external method on.
 
 class Foo implements Parent{
     public void doParentThing() { System.out.println("Running doThing"); }

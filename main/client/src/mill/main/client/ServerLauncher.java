@@ -8,7 +8,6 @@ import org.newsclub.net.unix.AFUNIXSocket;
 import org.newsclub.net.unix.AFUNIXSocketAddress;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -21,7 +20,7 @@ import java.util.function.BiConsumer;
 
 /**
  * Client side code that interacts with `Server.scala` in order to launch a generic
- * long lived background server.
+ * long-lived background server.
  *
  * The protocol is as follows:
  *
@@ -37,7 +36,7 @@ import java.util.function.BiConsumer;
  *   - Listen for incoming client requests on serverSocket
  *   - Execute client request
  *   - If clientLock is released during execution, terminate server (otherwise
- *     we have no safe way of termianting the in-process request, so the server
+ *     we have no safe way of terminating the in-process request, so the server
  *     may continue running for arbitrarily long with no client attached)
  *   - Send `ProxyStream.END` packet and call `clientSocket.close()`
  * - Client:
@@ -53,6 +52,7 @@ public abstract class ServerLauncher {
     final int serverProcessesLimit = 5;
     final int serverInitWaitMillis = 10000;
     public abstract void initServer(Path serverDir, boolean b, Locks locks) throws Exception;
+    public abstract void preRun(Path serverDir) throws Exception;
     InputStream stdin;
     PrintStream stdout;
     PrintStream stderr;
@@ -75,7 +75,7 @@ public abstract class ServerLauncher {
 
         // For testing in memory, we need to pass in the locks separately, so that the
         // locks can be shared between the different instances of `ServerLauncher` the
-        // same way file locks are shared between different Mill client/secrer processes
+        // same way file locks are shared between different Mill client/server processes
         this.memoryLocks = memoryLocks;
 
         this.forceFailureForTestingMillisDelay = forceFailureForTestingMillisDelay;
@@ -102,6 +102,7 @@ public abstract class ServerLauncher {
             ) {
                 if (clientLocked.isLocked()) {
                     Result result = new Result();
+                    preRun(serverDir);
                     result.exitCode = run(serverDir, setJnaNoSys, locks);
                     result.serverDir = serverDir;
                     return result;
@@ -126,7 +127,8 @@ public abstract class ServerLauncher {
         ) {
             stdoutTailer.start();
             stderrTailer.start();
-            try (FileOutputStream f = new FileOutputStream(serverDir + "/" + ServerFiles.runArgs)) {
+            String serverPath = serverDir + "/" + ServerFiles.runArgs;
+            try (OutputStream f = Files.newOutputStream(Paths.get(serverPath))) {
                 f.write(System.console() != null ? 1 : 0);
                 Util.writeString(f, BuildInfo.millVersion);
                 Util.writeArgs(args, f);

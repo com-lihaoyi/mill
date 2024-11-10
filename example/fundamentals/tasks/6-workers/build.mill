@@ -13,11 +13,11 @@ import java.util.zip.GZIPOutputStream
 
 def data = Task.Source(millSourcePath / "data")
 
-def compressWorker = Task.Worker{ new CompressWorker(Task.dest) }
+def compressWorker = Task.Worker { new CompressWorker(Task.dest) }
 
 def compressedData = Task {
   println("Evaluating compressedData")
-  for(p <- os.list(data().path)){
+  for (p <- os.list(data().path)) {
     os.write(
       Task.dest / s"${p.last}.gz",
       compressWorker().compress(p.last, os.read.bytes(p))
@@ -26,7 +26,7 @@ def compressedData = Task {
   os.list(Task.dest).map(PathRef(_))
 }
 
-class CompressWorker(dest: os.Path){
+class CompressWorker(dest: os.Path) {
   val cache = collection.mutable.Map.empty[Int, Array[Byte]]
   def compress(name: String, bytes: Array[Byte]): Array[Byte] = {
     val hash = Arrays.hashCode(bytes)
@@ -36,11 +36,11 @@ class CompressWorker(dest: os.Path){
         println("Compressing: " + name)
         cache(hash) = compressBytes(bytes)
         os.write(cachedPath, cache(hash))
-      }else{
+      } else {
         println("Cached from disk: " + name)
         cache(hash) = os.read.bytes(cachedPath)
       }
-    }else {
+    } else {
       println("Cached from memory: " + name)
     }
     cache(hash)
@@ -62,6 +62,12 @@ def compressBytes(input: Array[Byte]) = {
 //
 // 2. Classloaders containing plugin code, to avoid classpath conflicts while
 //    also avoiding classloading cost every time the code is executed
+//
+// NOTE: The _initialization_ of a `Task.Worker`'s value is single threaded,
+// but _usage_ of the worker's value may be done concurrently. The user of
+// `Task.Worker` is responsible for ensuring it's value is safe to use in a
+// multi-threaded environment via techniques like locks, atomics, or concurrent data
+// structures
 //
 // Workers live as long as the Mill process. By default, consecutive `mill`
 // commands in the same folder will re-use the same Mill process and workers,

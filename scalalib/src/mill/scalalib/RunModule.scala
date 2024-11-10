@@ -183,7 +183,7 @@ trait RunModule extends WithZincWorker {
 
   /**
    * If true, stdout and stderr of the process executed by `runBackground`
-   * or `runMainBackground` is sent to mill's stdout/stderr (which usualy
+   * or `runMainBackground` is sent to mill's stdout/stderr (which usually
    * flow to the console).
    *
    * If false, output will be directed to files `stdout.log` and `stderr.log`

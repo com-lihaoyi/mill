@@ -4,13 +4,14 @@ import java.util.concurrent.LinkedBlockingQueue
 import coursier.LocalRepositories
 import coursier.core.Repository
 import coursier.maven.MavenRepository
-import mill.define.{Discover, ExternalModule, Target, NamedTask}
+import mill.define.{Discover, ExternalModule, NamedTask, Target}
 import mill.util.Util.millProjectModule
-import mill.api.{Loose, Result, PathRef}
+import mill.api.{Loose, PathRef, Result}
 import mill.define.Worker
 import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}
 import guru.nidi.graphviz.attribute.Rank.RankDir
 import guru.nidi.graphviz.attribute.{Rank, Shape, Style}
+import mill.eval.Graph
 
 object VisualizeModule extends ExternalModule with VisualizeModule {
   def repositories: Seq[Repository] = Seq(
@@ -45,10 +46,15 @@ trait VisualizeModule extends mill.define.TaskModule {
     val visualizeThread = new java.lang.Thread(() =>
       while (true) {
         val res = Result.Success {
-          val (targets, rs, dest) = in.take()
-          val (sortedGroups, transitive) = mill.eval.Plan.plan(rs)
+          val (tasks, transitiveTasks, dest) = in.take()
+          val transitive = Graph.transitiveTargets(tasks)
+          val topoSorted = Graph.topoSorted(transitive)
+          val sortedGroups = Graph.groupAroundImportantTargets(topoSorted) {
+            case x: NamedTask[Any] if transitiveTasks.contains(x) => x
+          }
+          val (plannedForRender, _) = mill.eval.Plan.plan(transitiveTasks)
 
-          val goalSet = rs.toSet
+          val goalSet = transitiveTasks.toSet
           import guru.nidi.graphviz.model.Factory._
           val edgesIterator =
             for ((k, vs) <- sortedGroups.items())
@@ -63,21 +69,21 @@ trait VisualizeModule extends mill.define.TaskModule {
 
           val edges = edgesIterator.map { case (k, v) => (k, v.toArray.distinct) }.toArray
 
-          val indexToTask = edges.flatMap { case (k, vs) => Iterator(k.task) ++ vs }.distinct
+          val indexToTask = edges.flatMap { case (k, vs) => Iterator(k) ++ vs }.distinct
           val taskToIndex = indexToTask.zipWithIndex.toMap
 
           val jgraph = new SimpleDirectedGraph[Int, DefaultEdge](classOf[DefaultEdge])
 
           for (i <- indexToTask.indices) jgraph.addVertex(i)
           for ((src, dests) <- edges; dest <- dests) {
-            jgraph.addEdge(taskToIndex(src.task), taskToIndex(dest))
+            jgraph.addEdge(taskToIndex(src), taskToIndex(dest))
           }
 
           org.jgrapht.alg.TransitiveReduction.INSTANCE.reduce(jgraph)
           val nodes = indexToTask.map(t =>
-            node(sortedGroups.lookupValue(t).render)
+            node(plannedForRender.lookupValue(t).render)
               .`with` {
-                if (targets.contains(t)) Style.SOLID
+                if (tasks.contains(t)) Style.SOLID
                 else Style.DASHED
               }
               .`with`(Shape.BOX)

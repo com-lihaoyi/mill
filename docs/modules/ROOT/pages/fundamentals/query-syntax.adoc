@@ -1,6 +1,8 @@
 = Task Query Syntax
 :page-aliases: Task_Query_Syntax.adoc
 
+include::partial$gtag-config.adoc[]
+
 When interacting with Mill from the CLI, you often need to select tasks or modules.
 In most places, where Mill accepts a task, it really accepts a task selector query, which is the name of a task in its simplest form, but it can also contain wildcards, type pattern and other special syntax, making it a powerful tool to select specific tasks.
 
@@ -28,7 +30,7 @@ There are two kind of segments: _label segments_ and _cross segments_.
 
 _Label segments_ are the components of a task path and have the same restriction as Scala identifiers.
 They must start with a letter and may contain letters, numbers and a limited set of special characters `-` (dash), `_` (underscore).
-They are used to denote Mill modules, tasks, but in the case of xref:fundamentals/modules.adoc#external-modules[external modules] their Scala package names.
+They are used to denote Mill modules, tasks, but in the case of xref:fundamentals/modules.adoc#_external_modules[external modules] their Scala package names.
 
 _Cross segments_ start with a label segment but contain additional square brackets (`[`, `]`]) and are used to denote cross module and their parameters.
 
@@ -129,11 +131,11 @@ That means, you can't filter based on the result type of a task.
 
 On the Mill CLI you can also start a complete new task selector with the `+` sign.
 
-There is a subtile difference between the expansion of <<enumerations,enumerations>>, <<wildcards,wildcards>> and <<type-filters,wildcards with type filters>> in contrast to the  <<add-task-selector,start of a new selector with `+`>>.
+There is a subtle difference between the expansion of <<enumerations,enumerations>>, <<wildcards,wildcards>> and <<type-filters,wildcards with type filters>> in contrast to the  <<add-task-selector,start of a new selector with `+`>>.
 
 For all the former versions, Mill parses them into a complex but single task selector path and subsequent parameters are used for all resolved tasks.
 
-Whereas the `+` start a completely new selector path to which you can also provide a different parameter list. This is important when using xref:fundamentals/tasks.adoc#commands[command tasks] which can accept their own parameters. The `JavaModule.run` command is an example.
+Whereas the `+` start a completely new selector path to which you can also provide a different parameter list. This is important when using xref:fundamentals/tasks.adoc#_commands[command tasks] which can accept their own parameters. The `JavaModule.run` command is an example.
 
 ----
 > mill foo.run hello                         # <1>
@@ -144,6 +146,6 @@ Whereas the `+` start a completely new selector path to which you can also provi
 
 <1> Runs `foo.run` with the parameter `hello`
 <2> Expands to `foo.run` and `bar.run` and runs both with the parameter `hello`.
-<3> Selects the `run` command of all Java modules, but not test moudles, and runs them with the parameter `hello`.
+<3> Selects the `run` command of all Java modules, but not test modules, and runs them with the parameter `hello`.
 <4> Runs `fun.run` with the parameter `hello` and `bar.run` with the parameter `world`.
 

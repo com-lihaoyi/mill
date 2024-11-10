@@ -240,13 +240,28 @@ object Jvm extends CoursierSupport {
     )(ctx)
 
   /**
-   * Runs a generic subprocess and waits for it to terminate.
+   * Runs a generic subprocess and waits for it to terminate. If process exited with non-zero code, exception
+   * will be thrown. If you want to manually handle exit code, check [[runSubprocessWithResult]]
    */
   def runSubprocess(
       commandArgs: Seq[String],
       envArgs: Map[String, String],
       workingDir: os.Path
   ): Unit = {
+    runSubprocessWithResult(commandArgs, envArgs, workingDir).getOrThrow
+    ()
+  }
+
+  /**
+   * Runs a generic subprocess and waits for it to terminate.
+   *
+   * @return Result with exit code.
+   */
+  def runSubprocessWithResult(
+      commandArgs: Seq[String],
+      envArgs: Map[String, String],
+      workingDir: os.Path
+  ): Result[Int] = {
     val process = spawnSubprocessWithBackgroundOutputs(
       commandArgs,
       envArgs,
@@ -271,15 +286,18 @@ object Jvm extends CoursierSupport {
     } finally {
       Runtime.getRuntime().removeShutdownHook(shutdownHook)
     }
-    if (process.exitCode() == 0) ()
-    else throw new Exception("Interactive Subprocess Failed (exit code " + process.exitCode() + ")")
+    if (process.exitCode() == 0) Result.Success(process.exitCode())
+    else Result.Failure(
+      "Interactive Subprocess Failed (exit code " + process.exitCode() + ")",
+      Some(process.exitCode())
+    )
   }
 
   /**
    * Spawns a generic subprocess, streaming the stdout and stderr to the
    * console. If the System.out/System.err have been substituted, makes sure
-   * that the subprocess's stdout and stderr streams go to the subtituted
-   * streams
+   * that the subprocess's stdout and stderr streams go to the substituted
+   * streams.
    */
   def spawnSubprocess(
       commandArgs: Seq[String],
@@ -296,12 +314,12 @@ object Jvm extends CoursierSupport {
   /**
    * Spawns a generic subprocess, streaming the stdout and stderr to the
    * console. If the System.out/System.err have been substituted, makes sure
-   * that the subprocess's stdout and stderr streams go to the subtituted
+   * that the subprocess's stdout and stderr streams go to the substituted
    * streams.
    *
    * If the process should be spawned in the background, destination streams for out and err
-   * respectively must be defined in the backgroundOutputs tuple. Nonbackground process should set
-   * backgroundOutputs to None
+   * respectively must be defined in the backgroundOutputs tuple. Non-background process should set
+   * backgroundOutputs to [[None]].
    */
   def spawnSubprocessWithBackgroundOutputs(
       commandArgs: Seq[String],
@@ -348,6 +366,17 @@ object Jvm extends CoursierSupport {
     method
   }
 
+  def runClassloader[T](classPath: Agg[os.Path])(body: ClassLoader => T)(implicit
+      ctx: mill.api.Ctx.Home
+  ): T = {
+    inprocess(
+      classPath,
+      classLoaderOverrideSbtTesting = false,
+      isolated = true,
+      closeContextClassLoaderWhenDone = true,
+      body
+    )
+  }
   def inprocess[T](
       classPath: Agg[os.Path],
       classLoaderOverrideSbtTesting: Boolean,
@@ -394,7 +423,7 @@ object Jvm extends CoursierSupport {
    * selectively include/exclude specific files.
    * @param inputPaths - `Agg` of `os.Path`s containing files to be included in the jar
    * @param fileFilter - optional file filter to select files to be included.
-   *                   Given a `os.Path` (from inputPaths) and a `os.RelPath` for the individual file,
+   *                   Given an `os.Path` (from inputPaths) and an `os.RelPath` for the individual file,
    *                   return true if the file is to be included in the jar.
    * @param ctx - implicit `Ctx.Dest` used to determine the output directory for the jar.
    * @return - a `PathRef` for the created jar.

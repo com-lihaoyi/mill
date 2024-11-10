@@ -1,7 +1,7 @@
 package client
 import org.scalajs.dom
 import shared.{Todo, Shared}
-object ClientApp{
+object ClientApp {
   var state = "all"
   var todoApp = dom.document.getElementsByClassName("todoapp")(0)
 
@@ -12,7 +12,7 @@ object ClientApp{
         method = dom.HttpMethod.POST
       }
     ).`then`[String](response => response.text())
-      .`then`[Unit]{ text =>
+      .`then`[Unit] { text =>
         todoApp.innerHTML = Shared
           .renderBody(upickle.default.read[Seq[Todo]](text), state)
           .render
@@ -49,11 +49,12 @@ object ClientApp{
     bindEvent("todo-completed", s"/list/completed", Some("completed"))
     bindEvent("clear-completed", s"/clear-completed/$state", None)
 
-    val newTodoInput = dom.document.getElementsByClassName("new-todo")(0).asInstanceOf[dom.HTMLInputElement]
+    val newTodoInput =
+      dom.document.getElementsByClassName("new-todo")(0).asInstanceOf[dom.HTMLInputElement]
     newTodoInput.addEventListener(
       "keydown",
       (evt: dom.KeyboardEvent) => {
-        if (evt.keyCode == 13){
+        if (evt.keyCode == 13) {
           dom.fetch(
             s"/add/$state",
             new dom.RequestInit {
@@ -61,7 +62,7 @@ object ClientApp{
               body = newTodoInput.value
             }
           ).`then`[String](response => response.text())
-            .`then`[Unit]{text =>
+            .`then`[Unit] { text =>
               newTodoInput.value = ""
 
               todoApp.innerHTML = Shared
@@ -74,7 +75,6 @@ object ClientApp{
       }
     )
   }
-
 
   def main(args: Array[String]): Unit = initListeners()
 }

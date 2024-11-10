@@ -4,7 +4,7 @@ import java.nio.file.*;
 
 /**
  * Used to add `println`s in scenarios where you can't figure out where on earth
- * your stdout/stderr/logs are going and so we just dump them in a file in your
+ * your stdout/stderr/logs are going, and so we just dump them in a file in your
  * home folder so you can find them
  */
 public class DebugLog{

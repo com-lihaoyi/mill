@@ -1,4 +1,6 @@
-// The following is a simple self-contained example using Mill to compile Java:
+// The following is a simple self-contained example using Mill to compile Java,
+// making use of the `Task.Source` and `Task` types to define a simple build graph
+// with some input source files and intermediate build steps:
 package build
 import mill._
 
@@ -14,13 +16,13 @@ def compile = Task {
 }
 
 def assembly = Task {
-  for(p <- Seq(compile(), resources())) os.copy(p.path, Task.dest, mergeFolders = true)
+  for (p <- Seq(compile(), resources())) os.copy(p.path, Task.dest, mergeFolders = true)
 
   val mainFlags = mainClass().toSeq.flatMap(Seq("-e", _))
-  os.proc("jar", "-c", mainFlags, "-f", Task.dest / s"assembly.jar", ".")
+  os.proc("jar", "-c", mainFlags, "-f", Task.dest / "assembly.jar", ".")
     .call(cwd = Task.dest)
 
-  PathRef(Task.dest / s"assembly.jar")
+  PathRef(Task.dest / "assembly.jar")
 }
 
 // This code defines the following task graph, with the boxes being the tasks

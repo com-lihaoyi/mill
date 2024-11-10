@@ -1,6 +1,6 @@
 // This example shows how to define task that depend on other tasks:
 //
-// 1. For `generatedSources`, we override an the task and make it depend
+// 1. For `generatedSources`, we override the task and make it depend
 //    directly on `ivyDeps` to generate its source files. In this example,
 //    to include the list of dependencies as tuples within a static `object`
 //
@@ -17,7 +17,7 @@ object `package` extends RootModule with ScalaModule {
   def ivyDeps = Agg(ivy"com.lihaoyi::mainargs:0.4.0")
 
   def generatedSources: T[Seq[PathRef]] = Task {
-    val prettyIvyDeps = for(ivyDep <- ivyDeps()) yield {
+    val prettyIvyDeps = for (ivyDep <- ivyDeps()) yield {
       val org = ivyDep.dep.module.organization.value
       val name = ivyDep.dep.module.name.value
       val version = ivyDep.dep.version
@@ -78,9 +78,9 @@ object `package` extends RootModule with ScalaModule {
 // depending on existing Tasks e.g. `foo.sources` via the `foo.sources()`
 // syntax to extract their current value, as shown in `lineCount` above. The
 // return-type of a Task has to be JSON-serializable (using
-// https://github.com/lihaoyi/upickle[uPickle], one of Mill's <<Bundled Libraries>>)
+// https://github.com/lihaoyi/upickle[uPickle], one of Mill's xref:fundamentals/bundled-libraries.adoc[Bundled Libraries])
 // and the Task is cached when first run until its inputs change (in this case, if
-// someone edits the `foo.sources` files which live in `foo/src`. Cached Tasks
+// someone edits the `foo.sources` files which live in `foo/src`). Cached Tasks
 // cannot take parameters.
 //
 // Note that depending on a task requires use of parentheses after the task
@@ -113,13 +113,25 @@ my.line.count: 14
 // to compile some Javascript, generate sources to feed into a compiler, or
 // create some custom jar/zip assembly with the files you want , all of these
 // can simply be custom tasks with your code running in the `Task {...}` block.
+// You can also import arbitrary Java or Scala libraries from Maven Central via
+// xref:extending/import-ivy-plugins.adoc[import $ivy] to use in your build.
 //
 // You can create arbitrarily long chains of dependent tasks, and Mill will
 // handle the re-evaluation and caching of the tasks' output for you.
 // Mill also provides you a `Task.dest` folder for you to use as scratch space or
-// to store files you want to return: all files a task creates should live
-// within `Task.dest`, and any files you want to modify should be copied into
-// `Task.dest` before being modified. That ensures that the files belonging to a
-// particular task all live in one place, avoiding file-name conflicts and
+// to store files you want to return:
+//
+// * Any files a task creates should live
+//   within `Task.dest`
+//
+// * Any files a task modifies should be copied into
+//   `Task.dest` before being modified.
+//
+// * Any files that a task returns should be returned as a `PathRef` to a path
+//   within `Task.dest`
+//
+// That ensures that the files belonging to a
+// particular task all live in one place, avoiding file-name conflicts,
+// preventing race conditions when tasks evaluate in parallel, and
 // letting Mill automatically invalidate the files when the task's inputs
 // change.

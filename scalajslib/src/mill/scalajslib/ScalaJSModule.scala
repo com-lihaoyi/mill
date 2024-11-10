@@ -140,7 +140,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       moduleSplitStyle = moduleSplitStyle(),
       outputPatterns = scalaJSOutputPatterns(),
       minify = scalaJSMinify(),
-      importMap = scalaJSImportMap()
+      importMap = scalaJSImportMap(),
+      experimentalUseWebAssembly = scalaJSExperimentalUseWebAssembly()
     )
   }
 
@@ -191,7 +192,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       moduleSplitStyle: ModuleSplitStyle,
       outputPatterns: OutputPatterns,
       minify: Boolean,
-      importMap: Seq[ESModuleImportMapping]
+      importMap: Seq[ESModuleImportMapping],
+      experimentalUseWebAssembly: Boolean
   )(implicit ctx: mill.api.Ctx): Result[Report] = {
     val outputPath = ctx.dest
 
@@ -212,7 +214,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       moduleSplitStyle = moduleSplitStyle,
       outputPatterns = outputPatterns,
       minify = minify,
-      importMap = importMap
+      importMap = importMap,
+      experimentalUseWebAssembly = experimentalUseWebAssembly
     )
   }
 
@@ -249,7 +252,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       ivy"org.scala-js::scalajs-library:$scalaJSVer".withDottyCompat(scalaVer)
 
     /* For Scala 2.x and Scala.js >= 1.15.0, explicitly add scalajs-scalalib,
-     * in order to support forward binary incompatible changesin the standard library.
+     * in order to support forward binary incompatible changes in the standard library.
      */
     if (
       scalaVer.startsWith("2.") && scalaJSVer.startsWith("1.")
@@ -292,6 +295,21 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   /** Whether to emit a source map. */
   def scalaJSSourceMap: T[Boolean] = Task { true }
+
+  /**
+   * Specifies whether to use the experimental WebAssembly backend. Requires scalaJS > 1.17.0
+   *  When using this setting, the following properties must also hold:
+   *
+   *  - `moduleKind = ModuleKind.ESModule`
+   *  - `moduleSplitStyle = ModuleSplitStyle.FewestModules`
+   *
+   *  @note
+   *    Currently, the WebAssembly backend silently ignores `@JSExport` and
+   *    `@JSExportAll` annotations. This behavior may change in the future,
+   *    either by making them warnings or errors, or by adding support for them.
+   *    All other language features are supported.
+   */
+  def scalaJSExperimentalUseWebAssembly: T[Boolean] = Task { false }
 
   /** Name patterns for output. */
   def scalaJSOutputPatterns: T[OutputPatterns] = Task { OutputPatterns.Defaults }
@@ -370,7 +388,8 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       moduleSplitStyle = moduleSplitStyle(),
       outputPatterns = scalaJSOutputPatterns(),
       minify = scalaJSMinify(),
-      importMap = scalaJSImportMap()
+      importMap = scalaJSImportMap(),
+      experimentalUseWebAssembly = scalaJSExperimentalUseWebAssembly()
     )
   }
 
@@ -398,7 +417,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       cls => TestRunnerUtils.globFilter(globSelectors())(cls.getName)
     )
     val res = TestModule.handleResults(doneMsg, results, T.ctx(), testReportXml())
-    // Hack to try and let the Node.js subprocess finish streaming it's stdout
+    // Hack to try and let the Node.js subprocess finish streaming its stdout
     // to the JVM. Without this, the stdout can still be streaming when `close()`
     // is called, and some of the output is dropped onto the floor.
     Thread.sleep(100)

@@ -1,9 +1,9 @@
 package build.docs
+import org.jsoup._
 import mill.util.Jvm
 import mill._, scalalib._
 import de.tobiasroeser.mill.vcs.version.VcsVersion
-import guru.nidi.graphviz.engine.AbstractJsGraphvizEngine
-import guru.nidi.graphviz.engine.{Format, Graphviz}
+import scala.jdk.CollectionConverters._
 
 /** Generates the mill documentation with Antora. */
 object `package` extends RootModule {
@@ -28,6 +28,7 @@ object `package` extends RootModule {
     Jvm.runSubprocess(
       commandArgs = Seq(
         npmExe,
+        "--no-audit",
         "install",
         "@antora/cli@3.1.9",
         "@antora/site-generator-default@3.1.9",
@@ -119,7 +120,9 @@ object `package` extends RootModule {
               if (inputs.isEmpty) output((p, i)) = graphvizLines.mkString("\n")
               else {
                 outputLines.append("++++")
+                outputLines.append("<center>")
                 outputLines.append(inputs((p, i)))
+                outputLines.append("</center>")
                 outputLines.append("++++")
               }
 
@@ -152,7 +155,7 @@ object `package` extends RootModule {
   def supplementalFiles = T.source(millSourcePath / "supplemental-ui")
 
   /**
-   * The doc root ready to be build by antora for the current branch.
+   * The doc root ready to be built by antora for the current branch.
    */
   def devAntoraSources: T[PathRef] = Task {
     val dest = T.dest
@@ -190,12 +193,13 @@ object `package` extends RootModule {
     val taggedSources = for (path <- extraSources) yield {
       s"""    - url: ${build.baseDir}
          |      start_path: ${path.relativeTo(build.baseDir)}
+         |      edit_url: false
          |""".stripMargin
     }
     s"""site:
-       |  title: The Mill Build Tool
+       |  title: The Mill JVM Build Tool
        |  url: ${if (authorMode) s"${T.dest}/site" else build.Settings.docUrl}
-       |  start_page: mill::javalib/intro.adoc
+       |  start_page: mill::index.adoc
        |  keys:
        |    google_analytics: 'G-1C582ZJR85'
        |
@@ -203,7 +207,8 @@ object `package` extends RootModule {
        |  sources:
        |    - url: ${if (authorMode) build.baseDir else build.Settings.projectUrl}
        |      branches: []
-       |      tags: ${build.Settings.legacyDocTags.map("'" + _ + "'").mkString("[", ",", "]")}
+       |      tags: ${build.Settings.legacyDocTags.filter(_ => !authorMode).map("'" + _ + "'").mkString("[", ",", "]")}
+       |      edit_url: false
        |      start_path: docs/antora
        |
        |${taggedSources.mkString("\n\n")}
@@ -235,7 +240,7 @@ object `package` extends RootModule {
        |""".stripMargin
   }
 
-  def oldDocSources = Task {
+  def oldDocSources: T[Seq[PathRef]] = Task {
     for (oldVersion <- build.Settings.docTags) yield {
       val checkout = T.dest / oldVersion
       os.proc("git", "clone", T.workspace / ".git", checkout).call(stdout = os.Inherit)
@@ -252,20 +257,22 @@ object `package` extends RootModule {
     generatePages(authorMode = false)().apply(oldDocSources().map(_.path))
   }
 
-  def localPages = Task {
+  def localPages: T[PathRef] = Task {
     val pages = generatePages(authorMode = true)().apply(oldDocSources().map(_.path))
     T.log.outputStream.println(
-      s"You can browse the local pages at: ${(pages.path / "index.html").toNIO.toUri()}"
+      s"You can browse the pages at: ${(pages.path / "index.html").toNIO.toUri()}"
     )
+    pages
   }
-  def fastPages = Task {
+  def fastPages: T[PathRef] = Task {
     val pages = generatePages(authorMode = true)().apply(Nil)
     T.log.outputStream.println(
-      s"You can browse the local pages at: ${(pages.path / "index.html").toNIO.toUri()}"
+      s"You can browse the pages at: ${(pages.path / "index.html").toNIO.toUri()}"
     )
+    pages
   }
 
-  def generatePages(authorMode: Boolean) = T.task { extraSources: Seq[os.Path] =>
+  def generatePages(authorMode: Boolean) = Task.Anon { extraSources: Seq[os.Path] =>
     T.log.errorStream.println("Creating Antora playbook ...")
     // dependency to sources
     source()
@@ -343,5 +350,126 @@ object `package` extends RootModule {
         }
       }
     }
+  }
+
+  def allLinksAndAnchors: T[IndexedSeq[(os.Path, Seq[(String, String)], Seq[(String, String)], Set[String])]] = Task {
+    val base = fastPages().path
+    val validExtensions = Set("html", "scala")
+    for (path <- os.walk(base) if validExtensions(path.ext))
+    yield {
+      val parsed = Jsoup.parse(os.read(path))
+      val (remoteLinks, localLinks) = parsed
+        .select("a")
+        .asScala
+        .map(e => (e.toString, e.attr("href")))
+        .toSeq
+        .filter(!_._2.startsWith("mailto:"))
+        .partition{case (e, l) => l.startsWith("http://") || l.startsWith("https://")}
+      (
+        path,
+        remoteLinks,
+        localLinks.map{case (e, l) => (e, l.stripPrefix("file:"))},
+        parsed.select("*").asScala.map(_.attr("id")).filter(_.nonEmpty).toSet,
+      )
+    }
+  }
+
+  def brokenRemoteLinks: T[Map[os.Path, Seq[(String, String, Int)]]] = Task{
+    val allLinks = allLinksAndAnchors()
+      .flatMap { case (path, remoteLinks, localLinks, ids) => remoteLinks }
+      .map(_._2)
+      .filter{l =>
+        // ignore example links since those are expected to be unresolved until
+        // a stable version is published and artifacts are uploaded to github
+        !l.contains("/example/") &&
+          !l.contains("/releases/download/") &&
+          // Ignore internal repo links in the changelog because there are a lot
+          // of them, and they're not very interesting to check and verify.
+          !l.contains("https://github.com/com-lihaoyi/mill/pull/") &&
+          !l.contains("https://github.com/com-lihaoyi/mill/milestone/") &&
+          !l.contains("https://github.com/com-lihaoyi/mill/compare/") &&
+          // Link meant for API configuration, not for clicking
+          !l.contains("https://s01.oss.sonatype.org/service/local") &&
+          // Somehow this server doesn't respond properly to HEAD requests even though GET works
+          !l.contains("https://marketplace.visualstudio.com/items")
+      }
+      .toSet
+
+    // Try to fetch all the links serially. It isn't worth trying to parallelize it
+    // because if we go too fast the remote websites tend to rate limit us anyway
+    val linksToStatusCodes = allLinks.toSeq.zipWithIndex
+      .map{ case (link, i) =>
+        val key = s"$i/${allLinks.size}"
+        println(s"Checking link $link $key")
+        val start = System.currentTimeMillis()
+        val res = requests.head(link, check = false).statusCode
+        val duration = System.currentTimeMillis() - start
+        val remaining = 1000 - duration
+        if (remaining > 0) Thread.sleep(remaining) // try to avoid being rate limited
+        (link, res)
+      }
+      .toMap
+
+    allLinksAndAnchors()
+      .map{case (path, remoteLinks, localLinks, ids) =>
+        (
+          path,
+          remoteLinks.collect{
+            case (e, l)
+              if allLinks.contains(l)
+              && !linksToStatusCodes(l).toString.startsWith("2")  =>
+                (e, l, linksToStatusCodes(l))
+          }
+        )
+      }
+      .filter(_._2.nonEmpty)
+      .toMap
+  }
+
+
+  def checkBrokenLinks() = Task.Command{
+    if (brokenLocalLinks().nonEmpty){
+      throw new Exception("Broken Local Links: " + upickle.default.write(brokenLocalLinks(), indent = 2))
+    }
+    // This is flaky due to rate limits so ignore it for now
+
+    // if (brokenRemoteLinks().nonEmpty){
+    //   throw new Exception("Broken Remote Links: " + upickle.default.write(brokenRemoteLinks(), indent = 2))
+    // }
+  }
+
+  def brokenLocalLinks: T[Map[os.Path, Seq[(String, String)]]] = Task{
+    val allLinksAndAnchors0 = allLinksAndAnchors()
+    val pathsToIds = allLinksAndAnchors0
+      .map{case (path, remoteLinks, localLinks, ids) => (path, ids)}
+      .toMap
+
+    val brokenLinksPerPath: Seq[(os.Path, Seq[(String, String)])] =
+      for ((path, remoteLinks, localLinks, ids) <- allLinksAndAnchors0) yield{
+        (
+          path,
+          localLinks.flatMap{case (elementString, url) =>
+            val (baseUrl, anchorOpt) = url match {
+              case s"#$anchor" => (path.toString, Some(anchor))
+              case s"$prefix#$anchor" => (prefix, Some(anchor))
+
+              case url => (url, None)
+            }
+
+            val dest0 = os.Path(baseUrl, path / "..")
+            val possibleDests = Seq(dest0, dest0 / "index.html")
+            possibleDests.find(os.exists(_)) match{
+              case None => Some((elementString, url))
+              case Some(dest) =>
+                anchorOpt.collect{case a if !pathsToIds.getOrElse(dest, Set()).contains(a) => (elementString, url)}
+            }
+          }
+        )
+      }
+
+    val nonEmptyBrokenLinksPerPath = brokenLinksPerPath
+      .filter{ case (path, items) => path.last != "404.html" && items.nonEmpty }
+
+    nonEmptyBrokenLinksPerPath.toMap
   }
 }

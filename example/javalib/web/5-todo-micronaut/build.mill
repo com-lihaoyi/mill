@@ -5,7 +5,7 @@ object `package` extends RootModule with MicronautModule {
   def micronautVersion = "4.4.3"
   def runIvyDeps = Agg(
     ivy"ch.qos.logback:logback-classic:1.5.3",
-    ivy"com.h2database:h2:2.2.224",
+    ivy"com.h2database:h2:2.2.224"
   )
 
   def ivyDeps = Agg(
@@ -14,30 +14,25 @@ object `package` extends RootModule with MicronautModule {
     ivy"io.micronaut.data:micronaut-data-jdbc:4.7.0",
     ivy"io.micronaut.sql:micronaut-jdbc-hikari:5.6.0",
     ivy"io.micronaut.validation:micronaut-validation:4.5.0",
-
     ivy"io.micronaut.views:micronaut-views-htmx:5.2.0",
     ivy"io.micronaut.views:micronaut-views-thymeleaf:5.2.0",
-
     ivy"org.webjars.npm:todomvc-common:1.0.5",
     ivy"org.webjars.npm:todomvc-app-css:2.4.1",
-    ivy"org.webjars.npm:github-com-bigskysoftware-htmx:1.9.10",
+    ivy"org.webjars.npm:github-com-bigskysoftware-htmx:1.9.10"
   )
 
-
-  object test extends MavenTests with TestModule.Junit5{
+  object test extends MavenTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy"com.h2database:h2:2.2.224",
-
       ivy"io.micronaut:micronaut-http-client:$micronautVersion",
       ivy"io.micronaut.test:micronaut-test-junit5:4.4.0",
-
       ivy"org.junit.jupiter:junit-jupiter-api:5.8.1",
       ivy"org.junit.jupiter:junit-jupiter-engine:5.8.1"
     )
   }
 }
 
-trait MicronautModule extends MavenModule{
+trait MicronautModule extends MavenModule {
   def micronautVersion: String
 
   def processors = Task {
@@ -59,10 +54,9 @@ trait MicronautModule extends MavenModule{
     "-Amicronaut.processing.incremental=true",
     "-Amicronaut.processing.group=example.micronaut",
     "-Amicronaut.processing.module=todo",
-    "-Amicronaut.processing.annotations=example.micronaut.*",
+    "-Amicronaut.processing.annotations=example.micronaut.*"
   )
 }
-
 
 // This example is a more complete example using Micronaut, adapted from
 // https://github.com/sdelamo/todomvc. On top of the `MicronautModule` and
@@ -79,7 +73,6 @@ trait MicronautModule extends MavenModule{
 // Again, the example `MicronautModule` is by no means complete, but it demonstrates
 // how Mill can be integrated with Micronaut's annotation processors and configuration,
 // and can be extended to cover additional functionality in future
-
 
 /** Usage
 

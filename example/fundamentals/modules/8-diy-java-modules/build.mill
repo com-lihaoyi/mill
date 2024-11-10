@@ -4,7 +4,7 @@
 package build
 import mill._
 
-trait DiyJavaModule extends Module{
+trait DiyJavaModule extends Module {
   def moduleDeps: Seq[DiyJavaModule] = Nil
   def mainClass: T[Option[String]] = None
 
@@ -21,13 +21,13 @@ trait DiyJavaModule extends Module{
   def classPath = Task { Seq(compile()) ++ upstream() }
 
   def assembly = Task {
-    for(cp <- classPath()) os.copy(cp.path, Task.dest, mergeFolders = true)
+    for (cp <- classPath()) os.copy(cp.path, Task.dest, mergeFolders = true)
 
     val mainFlags = mainClass().toSeq.flatMap(Seq("-e", _))
-    os.proc("jar", "-c", mainFlags, "-f", Task.dest / s"assembly.jar", ".")
+    os.proc("jar", "-c", mainFlags, "-f", Task.dest / "assembly.jar", ".")
       .call(cwd = Task.dest)
 
-    PathRef(Task.dest / s"assembly.jar")
+    PathRef(Task.dest / "assembly.jar")
   }
 }
 // This defines the following build graph for `DiyJavaModule`. Note that some of the
@@ -163,4 +163,3 @@ Bar.value: 271828
 // complicated to provide additional flexibility and performance. Nevertheless,
 // this example should give you a good idea of how Mill ``module``s can be
 // developed, so you can define your own custom modules when the need arises.
-

@@ -501,15 +501,16 @@ case class GenIdeaImpl(
           resourcesPathRefs: Seq[PathRef],
           generatedSourcePathRefs: Seq[PathRef],
           allSourcesPathRefs: Seq[PathRef]
-        ) = evaluator.evaluate(
-          Agg(
-            mod.resources,
-            mod.generatedSources,
-            mod.allSources
-          )
-        )
-          .values
-          .map(_.value)
+        ) = evaluator.evalOrThrow(
+          exceptionFactory = r =>
+            GenIdeaException(
+              s"Could not evaluate sources/resources of module `${mod}`: ${Evaluator.formatFailing(r)}"
+            )
+        )(Seq(
+          mod.resources,
+          mod.generatedSources,
+          mod.allSources
+        ))
 
         val generatedSourcePaths = generatedSourcePathRefs.map(_.path)
         val normalSourcePaths = (allSourcesPathRefs
@@ -754,7 +755,7 @@ case class GenIdeaImpl(
     val relToHomeDir = Try(homeDir._2 + forward(path.relativeTo(homeDir._1)))
 
     (relToProjectDir, relToHomeDir) match {
-      // We seem to be outside of project-dir but inside home dir, so use releative path to home dir
+      // We seem to be outside of project-dir but inside home dir, so use relative path to home dir
       case (Success(p1), Success(p2)) if p1.contains("..") && !p2.contains("..") => p2
       // default to project-dir-relative
       case (Success(p), _) => p

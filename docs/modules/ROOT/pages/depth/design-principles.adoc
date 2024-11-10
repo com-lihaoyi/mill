@@ -1,6 +1,7 @@
 = Mill Design Principles
 :page-aliases: Mill_Internals.adoc, Mill_Design_Principles.adoc
 
+include::partial$gtag-config.adoc[]
 
 The following external resources give more of a flavor of the architecture behind
 Mill:
@@ -66,9 +67,9 @@ is what allows us to be aggressive about caching and parallelizing the
 evaluation of build tasks during a build.
 
 Many kinds of build steps do require files on disk, and for that Mill provides
-the `T.dest` folder. This is a folder on disk dedicated to each build task,
+the `Task.dest` folder. This is a folder on disk dedicated to each build task,
 so that it can read and write things to it without worrying about conflicts
-with other tasks that have their own `T.dest` folders. In effect, this makes
+with other tasks that have their own `Task.dest` folders. In effect, this makes
 even file output "pure": we can know precisely where a task's output files
 live when we need to invalidate them, and it allows multiple tasks all
 reading and writing to the filesystem to do so safely even when in parallel.
@@ -182,7 +183,7 @@ that would make a build tool hard to understand.
 Before you continue, take a moment to think: how would you answer to each of
 those questions using an existing build tool you are familiar with? Different
 tools like http://www.scala-sbt.org/[SBT],
-https://fake.build/legacy-index.html[Fake], https://gradle.org/[Gradle] or
+https://fake.build[Fake], https://gradle.org/[Gradle] or
 https://gruntjs.com/[Grunt] have very different answers.
 
 Mill aims to provide the answer to these questions using as few, as familiar
