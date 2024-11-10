@@ -338,7 +338,7 @@ private[mill] object PromptLogger {
 
     def getCurrentPrompt() = currentPromptBytes
 
-    def updatePrompt(ending: Boolean = false) = {
+    def updatePrompt(ending: Boolean = false): Unit = {
       val now = currentTimeMillis()
       for (k <- statuses.keySet) {
         val removedTime = statuses(k).beginTransitionTime
