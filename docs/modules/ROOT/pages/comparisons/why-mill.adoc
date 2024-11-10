@@ -1,4 +1,4 @@
-= Why Mill?
+= Why Use Mill?
 
 Mill is a fast build tool for Java, Scala, and Kotlin. Although the Java
 compiler is very fast and the Java language is easy to learn, JVM build tools are
