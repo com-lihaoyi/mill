@@ -75,7 +75,7 @@ Mill's performance compares to Maven:
 
 | <<Sequential Clean Compile All>> | 1m 38.80s | 23.14s | 4.3x
 | <<Parallel Clean Compile All>> | 0m 48.92s | 0m 08.79s | 5.6x
-| <<Clean Compile Single-Module>> | 0m 08.46s | 0m 01.94s | 9.0x
+| <<Clean Compile Single-Module>> | 0m 08.46s | 0m 01.94s | 4.4x
 | <<Incremental Compile Single-Module>> | 0m 06.82s | 0m 00.54s | 12.6x
 | <<No-Op Compile Single-Module>> | 0m 05.25s | 0m 00.47s  | 11.2x
 |===
