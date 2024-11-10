@@ -3,39 +3,37 @@ package com.helloworld.app;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.Gravity;
-import android.widget.TextView;
 import android.view.ViewGroup.LayoutParams;
-import android.graphics.Color;
+import android.widget.TextView;
 
 public class MainActivity extends Activity {
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+  @Override
+  protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
 
-        // Create a new TextView
-        TextView textView = new TextView(this);
+    // Create a new TextView
+    TextView textView = new TextView(this);
 
-        // Set the text to the string resource
-        textView.setText(getString(R.string.hello_world));
+    // Set the text to the string resource
+    textView.setText(getString(R.string.hello_world));
 
-        // Set text size
-        textView.setTextSize(32);
+    // Set text size
+    textView.setTextSize(32);
 
-        // Center the text within the view
-        textView.setGravity(Gravity.CENTER);
+    // Center the text within the view
+    textView.setGravity(Gravity.CENTER);
 
-        // Set the layout parameters (width and height)
-        textView.setLayoutParams(new LayoutParams(
-            LayoutParams.MATCH_PARENT,
-            LayoutParams.MATCH_PARENT));
+    // Set the layout parameters (width and height)
+    textView.setLayoutParams(
+        new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 
-        // Set the text color using a resource
-        textView.setTextColor(getResources().getColor(R.color.text_green));
+    // Set the text color using a resource
+    textView.setTextColor(getResources().getColor(R.color.text_green));
 
-        // Set the background color using a resource
-        textView.setBackgroundColor(getResources().getColor(R.color.white));
+    // Set the background color using a resource
+    textView.setBackgroundColor(getResources().getColor(R.color.white));
 
-        // Set the content view to display the TextView
-        setContentView(textView);
-    }
+    // Set the content view to display the TextView
+    setContentView(textView);
+  }
 }

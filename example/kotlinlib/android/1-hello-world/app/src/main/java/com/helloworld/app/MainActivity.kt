@@ -3,9 +3,8 @@ package com.helloworld.app
 import android.app.Activity
 import android.os.Bundle
 import android.view.Gravity
-import android.widget.TextView
 import android.view.ViewGroup.LayoutParams
-import android.graphics.Color
+import android.widget.TextView
 
 class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,10 +23,7 @@ class MainActivity : Activity() {
         textView.gravity = Gravity.CENTER
 
         // Set layout parameters (width and height)
-        textView.layoutParams = LayoutParams(
-            LayoutParams.MATCH_PARENT,
-            LayoutParams.MATCH_PARENT
-        )
+        textView.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
 
         // Set the text color using a resource
         textView.setTextColor(getColor(R.color.text_green)) // Using hex color code directly
