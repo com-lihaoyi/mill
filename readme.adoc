@@ -347,7 +347,7 @@ endif::[]
 
 
 [#0-12-2]
-=== 0.12.2 - 2024-11-10
+=== 0.12.2 - 2024-11-11
 
 * Show correct build file name in progress prompt {link-pr}/3847[#3847]
 * Fix target name when reporting cycles in `runModuleDeps` {link-pr}/3860[#3860]
