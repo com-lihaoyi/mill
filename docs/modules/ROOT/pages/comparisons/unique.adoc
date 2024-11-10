@@ -85,7 +85,8 @@ xref:javalib/android-examples.adoc[Android], and has demonstrated the ability to
 more distant toolchains like xref:extending/example-typescript-support.adoc[Typescript]
 and xref:extending/example-python-support.adoc[Python].
 
-Mill also works well with large builds: its build logic is incrementally compiled,
+Mill also works well with xref:depth/large-builds.adoc[large builds]: its build logic can be
+split into multiple folders, is incrementally compiled,
 lazily initialized, and automatically cached and parallelized. That means that even large
 codebases can remain fast and responsive: Mill's own build easily manages over 400 modules,
 and the tool can likely handle thousands of modules without issue.
@@ -105,7 +106,8 @@ previously took to implement
 
 React's two most important innovations are:
 
-1. Letting users write "direct style" code to define their UI, rather than a "code behind"
+1. Letting users write "direct style" code to define their UI - Javascript functions that
+   directly returned the HTML structure you wanted - rather than a "code behind"
    approach of registering callbacks to mutate the UI in response to events
 
 2. Using a single "general purpose" programming language for your UI, rather than splitting
@@ -221,7 +223,7 @@ Two things are worth noting about this code:
    into a build pipeline with parallelism, caching, invalidation, and so on.
 
 2. You do not see any logic at all related to parallelism, caching, invalidation in the code
-   at all! No mtime checks, no computing cache keys, no locks, no serializing and
+   at all! No `mtime` checks, no computing cache keys, no locks, no serializing and
    de-serializing of data on disk. Mill handles all this for you automatically, so you just
    need to write your "naive" code and Mill will provide all the "build tool stuff" for free.
 
@@ -260,7 +262,7 @@ Javascript, and a programmer could edit the Javascript without needing to be an 
 in HTML/CSS. And so writing frontend code in three languages in three separate files
 was the best practice, and so it was since the inception of the web two decades prior.
 
-React.js flipped all that on its head: everything was Javascript! UIs were Javascript
+React.js flipped all that on its head: everything was Javascript! UI components were Javascript
 objects first, containing Javascript functions that returned HTML snippets (which
 were really _also_ Javascript objects). CSS was often in-lined at the use site, perhaps
 with constants fetched from a https://cssinjs.org/[CSS-in-JS] library. This was a total
@@ -279,26 +281,28 @@ this approach had two huge advantages:
    was people writing HTML/CSS/JS, the HTML often ended up being https://jinja.palletsprojects.com/[Jinja2],
    https://haml.info/[HAML], or https://mustache.github.io/[Mustache] templates instead,
    and the CSS usually ended up being replaced by https://sass-lang.com/[SASS] or
-   https://lesscss.org/[LESS]. These templating
-   languages were always re-implementing concepts such as if-else, loops, functions,
-   and inheritance in their own weird and idiosyncratic ways, with mediocre support
-   in IDEs, Linters, and other tools. While Javascript was by no means perfect, having a
-   "real" programming language to implement your UI in was a breath of fresh air.
+   https://lesscss.org/[LESS]. While Javascript was by no means perfect, having
+   everything in a single "real" programming language was a breath of fresh air
+   over tabbing between three different languages each with their own half-baked version
+   of language features like if-else, loops, functions, etc.
 
 The story for build tools is similar: the traditional wisdom has been
 to implement your build logic in some limited "build language", in the past often
 XML (e.g. for https://maven.apache.org/[Maven], https://github.com/dotnet/msbuild[MSBuild]),
-nowadays often JSON/TOML/YAML (e.g. https://github.com/rust-lang/cargo[Cargo]).
+nowadays often JSON/TOML/YAML (e.g. https://github.com/rust-lang/cargo[Cargo]), with
+logic split out into separate shell scripts or plugins. While this worked, it always
+had issues:
 
-1. Like web templating languages, build languages often had the logic split
-   between multiple languages. Having to write templated-Bash-in-Yaml
-   is a common outcome, but not the only one: Bazel ends up making you write
-   https://bazel.build/reference/be/make-variables[make-interpolated Bash in pseudo-Python].
-   And because "XML" or "YAML" does not have the programmability people need, often
-   the logic gets pushed into embedded Bash scripts that need to be co-maintained
-   with the surrounding config
+1. Like web development, build tools _also_ had the logic split between multiple
+   languages. Templated-Bash-in-Yaml is a common outcome, Bazel makes you write
+   https://bazel.build/reference/be/make-variables[make-interpolated Bash in pseudo-Python],
+   Maven makes you choose between XML+Java to write plugins or
+   Bash-in-XML https://maven.apache.org/plugins/maven-antrun-plugin/[Ant scripts].
+   Most build tools using "simple" config languages would inevitably find logic pushed
+   into shell scripts within the build, or the entire build tool itself wrapped in a shell
+   script to provide the flexibility a project needs
 
-2. These "YAML build languages" would always start off simple, but eventually grow
+2. These "simple build languages" would always start off simple, but eventually grow
    real programming language features: not just if-else, loops, functions, inheritance, but
    also package managers, package repositories, profilers, debuggers, and
    more. These were always ad-hoc, designed and implemented in their own weird and
@@ -316,7 +320,7 @@ general-purpose language to start off with.
 
 
 
-Mill goes all-in on the "real programming language" approach:
+Mill follows React.js with its "One General-Purpose Language" approach:
 
 1. Mill tasks are just method definitions
 2. Mill task dependencies are just method calls
@@ -332,11 +336,11 @@ This has the same benefits that React.js had from using a general-purpose langua
    without the nested Bash-nested-in-Mustache-templates-nested-in-YAML monstrosities common when
    insufficiently flexible config languages are chosen.
 
-2. You _already know_ how programming languages works: not just conditionals/loops/functions,
-   but also classes, inheritance, overrides, typechecking. Your IDE (IntelliJ or VSCode) is able
-   to seamlessly navigate up and down the build system's task graph, just like it can navigate
-   around any application codebase. You can re-use any existing JVM libraries off-the-shelf,
-   and use the existing battle-tested JVM package distribution infrastructure (Maven Central)
+2. You _already know_ how programming languages works: not just conditionals loops and functions,
+   but also classes, inheritance, overrides, typechecking, IDE navigation, package repositories
+   and library ecosystem (in Mill's case, you can use everything on Java's Maven Central repository).
+   Rather than dealing with half-baked versions of these features that specialized languages
+   inevitable grow, Mill lets you use the real thing right off the bat.
 
 For example, in Mill you may not be familiar with the bundled libraries and APIs, but your
 IDE can help you understand them:
@@ -354,6 +358,17 @@ Even IntelliJ, the gold standard, usually cannot provide more than basic assista
 editing templated-bash-in-yaml configs file. In contrast, IDE support
 for a widely-used general purpose programming language is much more solid.
 
+As another example, if you need a production-quality templating engine to use in your build
+system, you have a buffet of options. The common Java
+xref:extending/import-ivy-plugins.adoc#_importing_java_libraries[Thymeleaf] templating engine is
+available with a single import, as is the popular
+xref:extending/import-ivy-plugins.adoc#_importing_scala_libraries[Scalatags] templating engine.
+Rather than being limited to what the build tool has built-in or what third-party plugins
+someone on the internet has published, you have at your fingertips any library in the huge JVM
+ecosystem, and can use them in exactly the same way you would in any Java/Scala/Kotlin application.
+
+### What About Other Build Tools?
+
 There are existing build tools that use some of the ideas above, but perhaps none of them
 have both, which is necessary to take full advantage:
 
@@ -362,17 +377,20 @@ have both, which is necessary to take full advantage:
   of callbacks performing filesystem mutations, and manually ensuring that they are wired up to
   converge to the state you want. This means that although that a human programmer or an IDE
   like IntelliJ may be able to navigate around the Groovy/Kotlin/Ruby code used to configure the
-  build, they are not able to navigate around
+  build, both human and machine often have trouble tracing through the forest of mutating callbacks
+  to figure out what is actually happening
 
 * Tools like https://github.com/rust-lang/cargo[Cargo], https://maven.apache.org/[Maven], or `go build`
-  are very inflexible, leading to the embedded shell scripts (or embedded-shell-scripts-as-XML
-  such as the https://maven.apache.org/plugins/maven-antrun-plugin/[Maven AntRun Plugin]!) or
-  having the build tool `mvn`/`cargo`/`go` being itself wrapped in Bash scripts or even another
-  build tool like Bazel
+  are very inflexible. This leads either to embedded shell scripts (or embedded-shell-scripts-as-XML
+  such as the https://maven.apache.org/plugins/maven-antrun-plugin/[Maven AntRun Plugin]!), or
+  having the build tool `mvn`/`cargo`/`go` being itself wrapped in shell scripts (or even another
+  build tool like Bazel!)
 
 Mill's direct style code and use of a general-purpose language makes it unique among
 build tools, just like how React.js was unique among UI frameworks when it was first released
-in 2014.
+in 2014. With these two key design features, Mill makes understanding and maintaining your build
+an order of magnitude easier than traditional tools, democratizing project builds to anyone
+even if they are not build tool experts.
 
 ## Where can Mill Go?
 
