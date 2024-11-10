@@ -1,0 +1,31 @@
+package build
+
+import mill._
+import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}
+
+// Create and configure an Android SDK module to manage Android SDK paths and tools.
+object androidSdkModule0 extends AndroidSdkModule{
+  def buildToolsVersion = "35.0.0"
+}
+
+// Actual android application
+object app extends AndroidAppModule {
+  def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+}
+
+
+/** See Also: app/AndroidManifest.xml */
+/** See Also: app/src/main/java/com/helloworld/app/MainActivity.java */
+
+
+/** Usage
+
+> ./mill show app.androidLint  # Display full path to the linting report in HTML
+".../out/app/androidLint.dest/report.html"
+
+*/
+
+// This Mill build configuration includes a linting step, which is essential for ensuring code 
+// quality and adhering to best practices in Android development projects. Running the `androidLint` task 
+// produces a detailed HTML report identifying potential issues in the code, such as performance, 
+// security, and usability warnings. This helps maintain the health and quality of the codebase.
