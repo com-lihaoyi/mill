@@ -12,6 +12,7 @@ object foo extends MavenModule {
   object test extends MavenTests with TestModule.Junit4
 }
 
+
 // `MavenModule` is a variant of `JavaModule`
 // that uses the more verbose folder layout of Maven, SBT, and other tools:
 //

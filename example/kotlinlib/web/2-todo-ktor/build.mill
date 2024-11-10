@@ -14,18 +14,18 @@ object `package` extends RootModule with KotlinModule {
   val exposedVersion = "0.53.0"
 
   def ivyDeps = Agg(
-    ivy"io.ktor:ktor-server-core-jvm:$ktorVersion",
-    ivy"io.ktor:ktor-server-netty-jvm:$ktorVersion",
-    ivy"org.jetbrains.exposed:exposed-core:$exposedVersion",
-    ivy"org.jetbrains.exposed:exposed-jdbc:$exposedVersion",
-    ivy"com.h2database:h2:2.2.224",
-    ivy"io.ktor:ktor-server-webjars-jvm:$ktorVersion",
-    ivy"org.webjars:jquery:3.2.1",
-    ivy"io.ktor:ktor-server-thymeleaf-jvm:$ktorVersion",
-    ivy"org.webjars:webjars-locator:0.41",
-    ivy"org.webjars.npm:todomvc-common:1.0.5",
-    ivy"org.webjars.npm:todomvc-app-css:2.4.1",
-    ivy"ch.qos.logback:logback-classic:1.4.14"
+      ivy"io.ktor:ktor-server-core-jvm:$ktorVersion",
+      ivy"io.ktor:ktor-server-netty-jvm:$ktorVersion",
+      ivy"org.jetbrains.exposed:exposed-core:$exposedVersion",
+      ivy"org.jetbrains.exposed:exposed-jdbc:$exposedVersion",
+      ivy"com.h2database:h2:2.2.224",
+      ivy"io.ktor:ktor-server-webjars-jvm:$ktorVersion",
+      ivy"org.webjars:jquery:3.2.1",
+      ivy"io.ktor:ktor-server-thymeleaf-jvm:$ktorVersion",
+      ivy"org.webjars:webjars-locator:0.41",
+      ivy"org.webjars.npm:todomvc-common:1.0.5",
+      ivy"org.webjars.npm:todomvc-app-css:2.4.1",
+      ivy"ch.qos.logback:logback-classic:1.4.14"
   )
 
   object test extends KotlinTests with TestModule.Junit5 {
@@ -35,6 +35,7 @@ object `package` extends RootModule with KotlinModule {
     )
   }
 }
+
 
 // Apart from running a webserver,  this example also demonstrates:
 

@@ -15,7 +15,7 @@ object `package` extends RootModule with PublishModule with MavenModule {
     developers = Nil
   )
 
-  object test extends MavenTests with TestModule.Junit5 with JmhModule {
+  object test extends MavenTests with TestModule.Junit5 with JmhModule{
     def testSandboxWorkingDir = false
     def jmhCoreVersion = "1.37"
     def ivyDeps = super.ivyDeps() ++ Agg(
@@ -28,7 +28,7 @@ object `package` extends RootModule with PublishModule with MavenModule {
       ivy"org.apache.commons:commons-lang3:3.14.0",
       ivy"commons-codec:commons-codec:1.17.1",
       ivy"org.openjdk.jmh:jmh-core:1.37",
-      ivy"org.openjdk.jmh:jmh-generator-annprocess:1.37"
+      ivy"org.openjdk.jmh:jmh-generator-annprocess:1.37",
     )
   }
 }

@@ -17,4 +17,5 @@ object foo extends JavaModule {
   )
 }
 
-object bar extends JavaModule {}
+object bar extends JavaModule {
+}

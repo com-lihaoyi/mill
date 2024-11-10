@@ -10,14 +10,7 @@ object `package` extends RootModule with JavaModule {
 
   // Auto-generate JNI `.h` files from Java classes using Javac
   def nativeHeaders = Task {
-    os.proc(
-      Jvm.jdkTool("javac"),
-      "-h",
-      Task.dest,
-      "-d",
-      Task.dest.toString,
-      allSourceFiles().map(_.path)
-    ).call()
+    os.proc(Jvm.jdkTool("javac"), "-h", Task.dest, "-d", Task.dest.toString, allSourceFiles().map(_.path)).call()
     PathRef(Task.dest)
   }
 
@@ -26,17 +19,14 @@ object `package` extends RootModule with JavaModule {
     val cSourceFiles = nativeSources().map(_.path).flatMap(os.walk(_)).filter(_.ext == "c")
     val output = "libhelloworld.so"
     os.proc(
-      "clang",
-      "-shared",
-      "-fPIC",
-      "-I" + nativeHeaders().path, //
-      "-I" + sys.props("java.home") + "/include/", // global JVM header files
-      "-I" + sys.props("java.home") + "/include/darwin",
-      "-I" + sys.props("java.home") + "/include/linux",
-      "-o",
-      Task.dest / output,
-      cSourceFiles
-    )
+        "clang", "-shared", "-fPIC",
+        "-I" + nativeHeaders().path, //
+        "-I" + sys.props("java.home") + "/include/", // global JVM header files
+        "-I" + sys.props("java.home") + "/include/darwin",
+        "-I" + sys.props("java.home") + "/include/linux",
+        "-o", Task.dest / output,
+        cSourceFiles
+      )
       .call(stdout = os.Inherit)
 
     PathRef(Task.dest / output)
@@ -44,7 +34,7 @@ object `package` extends RootModule with JavaModule {
 
   def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.toString)
 
-  object test extends JavaTests with TestModule.Junit4 {
+  object test extends JavaTests with TestModule.Junit4{
     def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.toString)
   }
 }

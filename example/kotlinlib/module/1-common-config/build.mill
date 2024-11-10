@@ -14,18 +14,18 @@ object `package` extends RootModule with KotlinModule {
   def mainClass = Some("foo.Foo2Kt")
 
   // Add (or replace) source folders for the module to use
-  def sources = T.sources {
+  def sources = T.sources{
     super.sources() ++ Seq(PathRef(millSourcePath / "custom-src"))
   }
 
   // Add (or replace) resource folders for the module to use
-  def resources = T.sources {
+  def resources = T.sources{
     super.resources() ++ Seq(PathRef(millSourcePath / "custom-resources"))
   }
 
   // Generate sources at build time
   def generatedSources: T[Seq[PathRef]] = Task {
-    for (name <- Seq("A", "B", "C")) os.write(
+    for(name <- Seq("A", "B", "C")) os.write(
       T.dest / s"Foo$name.kt",
       s"""
          |package foo

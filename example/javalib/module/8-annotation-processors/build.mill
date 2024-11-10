@@ -42,7 +42,7 @@ object bar extends JavaModule {
 
   def javacOptions = Seq(
     "-processorpath",
-    processors().map(_.path).mkString(File.pathSeparator)
+    processors().map(_.path).mkString(File.pathSeparator),
   )
 
   object test extends JavaTests with TestModule.Junit4

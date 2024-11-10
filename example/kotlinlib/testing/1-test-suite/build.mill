@@ -41,3 +41,4 @@ object bar extends KotlinModule {
     def kotlincOptions = super.kotlincOptions() ++ Seq("-jvm-target", "11")
   }
 }
+
