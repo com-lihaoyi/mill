@@ -85,6 +85,14 @@ object `package` extends RootModule with Module {
   }
 
   trait ExampleCrossModuleKotlin extends ExampleCrossModuleJava {
+    override def sources = Task{
+      super.sources()
+        .flatMap(pathRef => os.walk(pathRef.path))
+        .filter(os.isFile)
+        .filterNot(p => p.ext == "kt" && p.segments.contains("linting"))
+        .map(PathRef(_))
+    }
+
     override def lineTransform(line: String) = this.millModuleSegments.parts.last match {
       case "1-test-suite" => line
         .replace("mill bar.test bar.BarTests.hello", "kotest_filter_tests='hello' kotest_filter_specs='bar.BarTests' ./mill bar.test")
@@ -105,6 +113,14 @@ object `package` extends RootModule with Module {
     val upstreamOpt = upstreamCross(this.millModuleSegments.parts.dropRight(1).last)
       .flatMap(_.valuesToModules.get(List(crossValue)))
 
+    def sources = Task{
+      super.sources()
+        .flatMap(pathRef => os.walk(pathRef.path))
+        .filter(os.isFile)
+        .filterNot(p => p.ext == "java" && p.segments.contains("linting"))
+        .map(PathRef(_))
+    }
+
     def testRepoRoot = Task {
       os.copy(super.testRepoRoot().path, T.dest, mergeFolders = true)
       for(suffix <- Seq("build.sc", "build.mill", "build.mill.scala")){
@@ -113,11 +129,6 @@ object `package` extends RootModule with Module {
         }
       }
       PathRef(T.dest)
-    }
-
-    def lintableSources = Task.Sources {
-      // PalantirFormat and ktfmt doesn't give us any abilities to configure it, so we can do a rough filtering of files we want to skip
-      sources().filterNot(_.toString.contains("linting"))
     }
 
     def resources = upstreamOpt match {
