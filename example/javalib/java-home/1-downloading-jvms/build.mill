@@ -1,0 +1,29 @@
+// :link-jvm-indices: https://github.com/coursier/jvm-index/tree/master/indices
+// To override the default Java home, you can create a custom
+// `ZincWorkerModule` and override the `zincWorker` method in your
+// `JavaModule` or `ScalaModule` by pointing it to that custom object:
+
+// The `ZincWorkerModule.ForJvm` class takes a Jvm dependency string as its
+// contructor argument and configures the module to fetch and cache the Jvm
+// using coursier and use it for the compile, run, and test tasks.
+//
+// The string has the form:
+//
+// ----
+// "{name}:{version}"
+// ----
+//
+// To see what Jvms are available for download look at the index for your os
+// and architecture {link-jvm-indices}[here].
+
+//// SNIPPET:BUILD
+
+object ZincWorkerJava11 extends ZincWorkerModule.ForJvm("temurin:11.0.24")
+
+object foo extends ScalaModule {
+  def zincWorker = ModuleRef(ZincWorkerJava11)
+
+  // ... rest of your build definitions
+}
+
+//// SNIPPET:END

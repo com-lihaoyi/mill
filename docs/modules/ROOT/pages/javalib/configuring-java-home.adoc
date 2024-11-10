@@ -1,0 +1,13 @@
+= Configuring Java Home
+
+By default, Mill uses the same JVM that it itself is running on to compile,
+test, and run java modules. This page goes into more detail about downloading
+and using a custom Java home on a per-module basis.
+
+== Downloading Jvms
+
+include::partial$example/javalib/java-home/1-downloading-jvms.adoc[]
+
+== Using a Locally Installed Jvm
+
+include::partial$example/javalib/java-home/2-using-a-locally-installed-jvm.adoc[]

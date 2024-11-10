@@ -36,6 +36,7 @@ object `package` extends RootModule with Module {
     object linting extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "linting"))
     object publishing extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "publishing"))
     object web extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "web"))
+    object `java-home` extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "java-home"))
   }
   object kotlinlib extends Module {
     object android extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "android"))
