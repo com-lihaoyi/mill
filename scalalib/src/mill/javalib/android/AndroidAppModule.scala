@@ -255,6 +255,20 @@ trait AndroidAppModule extends JavaModule {
     PathRef(keystoreFile)
   }
 
+  /**
+   * Runs the Android Lint tool to generate a report on code quality issues.
+   *
+   * This method utilizes Android Lint, a tool provided by the Android SDK,
+   * to analyze the source code for potential bugs, performance issues, and
+   * best practices compliance. It generates an HTML report with the analysis
+   * results for review.
+   *
+   * The lint tool requires the Android SDK's command-line tools to be installed.
+   * The report is saved in the task's destination directory as "report.html".
+   *
+   * For more details on the Android Lint tool, refer to:
+   * [[https://developer.android.com/studio/write/lint]]
+   */
   def androidLint: T[PathRef] = Task {
 
     val lintReport: os.Path = T.dest / "report.html"
