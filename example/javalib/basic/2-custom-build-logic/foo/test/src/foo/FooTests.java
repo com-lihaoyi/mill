@@ -9,7 +9,7 @@ public class FooTests {
   @Test
   public void testSimple() {
     int expectedLineCount = 12;
-    int actualLineCount = Integer.parseInt(Foo.lineCount.trim());
+    int actualLineCount = Integer.parseInt(Foo.getLineCount().trim());
     assertEquals(expectedLineCount, actualLineCount);
   }
 }
