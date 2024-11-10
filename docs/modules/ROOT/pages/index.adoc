@@ -56,7 +56,7 @@ To begin using Mill, check out the introductory documentation for each language:
 
 For a quick introduction of why you may care about Mill, see the following page:
 
-* xref:why-mill.adoc[]
+* xref:comparisons/why-mill.adoc[]
 
 Or if you prefer a video introduction:
 
@@ -109,4 +109,6 @@ hand at any bounties that may interest you
 
 * https://github.com/orgs/com-lihaoyi/discussions/6[Open Issue Bounties]
 
-For commercial support and services related to Mill, email info@mill-build.org
+Commercial support and services related to Mill are available if you need help with
+training, adoption, or maintenance in your organization. Email info@mill-build.org
+with details on what you need and we can make an arrangement.

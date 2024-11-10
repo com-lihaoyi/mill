@@ -62,20 +62,20 @@ both parallel and sequential, and for many modules or for a single module:
 
 |===
 | Benchmark | Maven | Mill | Speedup
-| xref:comparisons/maven.adoc#_sequential_clean_compile_all[Sequential Clean Compile All] | 2m 31.12s | 0m 22.19s | 6.8x
-| xref:comparisons/maven.adoc#_parallel_clean_compile_all[Parallel Clean Compile All] | 1m 16.45s | 0m 09.95s | 7.7x
-| xref:comparisons/maven.adoc#_clean_compile_single_module[Clean Compile Single Module] | 0m 19.62s | 0m 02.17s | 9.0x
-| xref:comparisons/maven.adoc#_incremental_compile_single_module[Incremental Compile Single Module] | 0m 21.10s | 0m 00.54s | 39.1x
-| xref:comparisons/maven.adoc#_no_op_compile_single_module[No-Op Compile Single Module] | 0m 17.34s | 0m 00.47s | 36.9x
+| xref:comparisons/maven.adoc#_sequential_clean_compile_all[Sequential Clean Compile All] | 1m 38.80s | 23.14s | 4.3x
+| xref:comparisons/maven.adoc#_parallel_clean_compile_all[Parallel Clean Compile All] | 0m 48.92s | 0m 08.79s | 5.6x
+| xref:comparisons/maven.adoc#_clean_compile_single_module[Clean Compile Single Module] | 0m 08.46s | 0m 01.94s | 4.4x
+| xref:comparisons/maven.adoc#_incremental_compile_single_module[Incremental Compile Single Module] | 0m 06.82s | 0m 00.54s | 12.6x
+| xref:comparisons/maven.adoc#_no_op_compile_single_module[No-Op Compile Single Module] | 0m 05.25s | 0m 00.47s  | 11.2x
 |===
 
-For the purposes of this page, we will focus on two benchmarks
+For this article, we will focus on two benchmarks
 
 #### Parallel Clean Compile All
 
 |===
 | Benchmark | Maven | Mill | Speedup
-| xref:comparisons/maven.adoc#_parallel_clean_compile_all[Parallel Clean Compile All] | 1m 16.45s | 0m 09.95s | 7.7x
+| xref:comparisons/maven.adoc#_parallel_clean_compile_all[Parallel Clean Compile All] | 0m 48.92s | 0m 08.79s | 5.6x
 |===
 
 
@@ -93,13 +93,13 @@ everything in parallel.
 * For Maven, tests and linters are opt-out via the `-D` properties, while in Mill
   tests and linters are opt-in
 
-Mill sees a significant ~8x speedup over Maven for this benchmark.
+Mill sees a significant ~6x speedup over Maven for this benchmark.
 
 #### Incremental Compile Single-Module
 
 |===
 | Benchmark | Maven | Mill | Speedup
-| xref:comparisons/maven.adoc#_incremental_compile_single_module[Incremental Compile Single Module] | 0m 21.10s | 0m 00.54s | 39.1x
+| xref:comparisons/maven.adoc#_incremental_compile_single_module[Incremental Compile Single Module] | 0m 06.82s | 0m 00.54s | 12.6x
 |===
 
 ```bash
@@ -117,7 +117,7 @@ compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/c
 This benchmark involves making a single edit to a single already-compiled file in `common` -
 adding a single newline to the end of the file - and re-compiling `common` and `common.test`.
 
-Mill sees a huge ~39x speedup for this benchmark, because Mill's incremental compiler
+Mill sees a huge ~12x speedup for this benchmark, because Mill's incremental compiler
 (https://github.com/sbt/zinc[Zinc]) is able to detect that only one file in one module
 has changed, and that the change is small enough
 to not require other files to re-compile. In contrast, Maven re-compiles all files in both
@@ -139,7 +139,7 @@ across the various workflows:
 | xref:comparisons/maven.adoc#_no_op_compile_single_module[No-Op Compile Single Module] | 0.94s | 0.46s | 2.0x
 |===
 
-Again, for the purposes of this page, we will focus on two benchmarks
+Again, for the purposes of this article, we will focus on two benchmarks
 
 #### Parallel Clean Compile All
 
