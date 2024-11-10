@@ -5,30 +5,31 @@ include::partial$gtag-config.adoc[]
 https://mill-build.org/[Mill] is a JVM build tool that targets Java/Scala/Kotlin and has
 potential to serve the large-monorepo codebases that Bazel currently serves. Mill has good
 traction among its users, benchmarks that demonstrate 2-10x faster builds than its competitors,
-and a unique design that make it easy to use and extend. This page discusses some of the most
-interesting design decisions in Mill, and how it sets Mill apart from other build tools on
-the market.
+and a unique "direct-style" design that make it easy to use and extend. This page discusses
+some of the most interesting design decisions in Mill, and how it sets Mill apart from
+other build tools on the market.
 
 ## What is a Build Tool?
 
-A build tool is a program that orchestrates the various tasks necessary to compile,
+A build tool is a program that coordinates the various tasks necessary to compile,
 package, test, and run a codebase: maybe you need to run a compiler, download some dependencies,
 package an executable or container. While a small codebase can get by with a shell script that
-runs every task every time, such a naive approach gets slower
+runs every task every time one at a time, such a naive approach gets slower
 and slower as a codebase grows and the build tasks necessarily get more numerous and complex.
 
-In order to prevent development from grinding to a halt, you need to begin caching
-and parallelizing your build tasks. This often starts off as some ad-hoc
-if-else statements in a shell script, but manually maintaining the caching and parallelization
-logic is tedious and error-prone. At some point it becomes worthwhile to use an purpose
-built tool to do it for you, and that is when you turn to build tools like
-https://maven.apache.org/[Maven], https://www.gnu.org/software/make/[Make],
+In order to prevent development from grinding to a halt, you need to begin skipping the
+build tasks you do not need at any point in time, and caching
+and parallelizing those that you do. This often starts
+off as some ad-hoc if-else statements in a shell script, but manually maintaining
+skipping/caching/parallelization logic is tedious and error-prone. At some point it becomes
+worthwhile to use an purpose built tool to do it for you, and that is when you turn
+to build tools like https://maven.apache.org/[Maven], https://www.gnu.org/software/make/[Make],
 https://mill-build.org/[Mill], or https://bazel.build/[Bazel]. For this article,
 we will mostly discuss Mill.
 
 ## What is Mill?
 
-The Mill build tool was started as a side project in 2017, an exploration of the ideas I
+The Mill build tool was started in 2017, an exploration of the ideas I
 found when learning to use Google's https://bazel.build/[Bazel] build tool.
 At a glance, Mill looks similar to other build tools you may be familiar with, with a
 `build.mill` file in the root of a project defining the dependencies and testing
@@ -77,12 +78,12 @@ had reached around 5-10% market share in the Scala community
 (https://www.jetbrains.com/lp/devecosystem-2023/scala/[Jetbrains Survey],
 https://scalasurvey2023.virtuslab.com/[VirtusLabs Survey]).
 It recently grew first-class Java support, demonstrating
-https://mill-build.org/mill/why-mill.html[2-10x speedups] over existing Java build tools
+xref:why-mill.adoc[2-10x speedups] over existing Java build tools
 like Maven or Gradle. Mill also has gained experimental support for Java-adjacent platforms
-like https://mill-build.org/mill/0.12.1/kotlinlib/intro.html[Kotlin] and
-https://mill-build.org/mill/0.12.1/javalib/android-examples.html[Android], and has demonstrated the ability to branch out into supporting
-more distant toolchains like https://mill-build.org/mill/0.12.1/extending/new-language.html[Typescript]
-and Python.
+like xref:kotlinlib/intro.adoc[Kotlin] and
+xref:javalib/android-examples.adoc[Android], and has demonstrated the ability to branch out into supporting
+more distant toolchains like xref:extending/example-typescript-support.adoc[Typescript]
+and xref:extending/example-python-support.adoc[Python].
 
 Mill also works well with large builds: its build logic is incrementally compiled,
 lazily initialized, and automatically cached and parallelized. That means that even large
@@ -462,12 +463,12 @@ functionality, but at 10% the complexity:
 * Bazel itself is not getting any simpler over time - instead is getting more complex with
   additional features and functionality, as tends to happen to projects over time
 
-Mill provides many of the same things Bazel does: automatic https://mill-build.org/mill/depth/evaluation-model.html[caching],
-parallelization, https://mill-build.org/mill/depth/sandboxing.html[sandboxing],
-https://mill-build.org/mill/extending/import-ivy-plugins.html[extensibility]. Mill
+Mill provides many of the same things Bazel does: automatic xref:depth/evaluation-model.adoc[caching],
+parallelization, xref:depth/sandboxing.adoc[sandboxing],
+xref:extending/import-ivy-plugins.adoc[extensibility]. Mill
 can already work with a wide variety of programming languages,
-from JVM languages like Java/Scala/Kotlin to https://mill-build.org/mill/extending/new-language.html[Typescript]
-and Python. These features are not as highly-scalable as their Bazel equivalents, but
+from JVM languages like Java/Scala/Kotlin to xref:extending/example-typescript-support.adoc[Typescript]
+and xref:extending/example-python-support.adoc[Python]. These features are not as highly-scalable as their Bazel equivalents, but
 they are provided in a lighter-weight, easier-to-use fashion suitable for organizations
 with less than 1,000 engineers.
 
@@ -476,31 +477,6 @@ but its complexity. While Mill can never compete with Bazel for the largest-scal
 by its most sophisticated users, the bulk of users operate at a somewhat smaller scale and
 need something easier than Bazel. Mill could be that easy monorepo build tool for them to use.
 
-### The Standard Scala Build Tool
-
-Although now multi-language Mill originally targeted the Scala community. The Scala community
-is small: most programming language rankings put it anywhere from 15-20th in terms of
-popularity (e.g. https://redmonk.com/sogrady/2024/09/12/language-rankings-6-24/[Redmonk June 2024]),
-with 1-3% of market share (e.g. https://survey.stackoverflow.co/2024/technology/[StackOverflow 2024 Survey],
-https://www.jetbrains.com/lp/devecosystem-2023/languages/[Jetbrains 2023 Survey]). Mill
-at 5-10% market share as a Scala build tool is even smaller and more niche. But I think there
-is room to grow.
-
-The current de-facto standard Scala build tool is SBT. SBT is improving over time, but it has a
-lot of https://www.lihaoyi.com/post/SowhatswrongwithSBT.html[fundamental design challenges]
-that make it confusing and hard to use. This not only
-impacts users, but it also impacts maintainers and contributors: improvements to SBT take an
-order of magnitude longer to implement than improvements in Mill. And although SBT is widely
-used, it is by no means loved by the Scala community.
-
-While Mill is certainly the underdog today, 5-10% market share is quite respectable for what
-has been in the past a minimal-effort side project. With full-time effort behind the project,
-and some additional hired firepower, I think Mill does have a decent chance of catching up
-or even overtaking SBT, first as the Scala build tool of choice for new projects, and
-eventually in broader market share and usage.
-
-If Mill could grow its 5-10% Scala build tool marketshare to 40-50%, even in the small Scala
-community that would amount to a significant footprint. And I think it is very doable.
 
 ## Next Steps For Mill Going Forward
 
