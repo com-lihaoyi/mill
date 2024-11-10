@@ -74,8 +74,8 @@ For this article, we will focus on two benchmarks. First, *Parallel Clean Compil
 This benchmark involves running `clean` to delete all generated files and re-compiling
 everything in parallel.
 
-* For Maven, parallelism is opt-in via `-T 10`, while for Mill it is enabled by default.
-* For Maven, tests and linters are opt-out via the `-D` properties, while in Mill
+* Maven parallelism is opt-in via `-T 10`, while for Mill it is enabled by default.
+* Maven tests and linters are opt-out via the `-D` properties, while in Mill
   tests and linters are opt-in
 
 Mill sees a significant ~6x speedup over Maven for this benchmark.
@@ -116,7 +116,8 @@ these are equivalent builds for the same projects (https://github.com/netty/nett
 https://github.com/mockito/mockito[Mockito] respectively), compiling the same number of files
 using the same Java compiler, in the same module structure and passing the same suite of tests.
 Rather, what we are seeing is Mill simply having less build-tool overhead than Maven or Gradle,
-so the performance of the underlying JVM and Java compiler can really shine through
+so the performance of the underlying JVM and Java compiler (which is actually pretty fast!) can
+really shine through.
 
 
 
