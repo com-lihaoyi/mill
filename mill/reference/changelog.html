@@ -214,7 +214,7 @@
 
   <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../comparisons/why-mill.html">Why Mill?</a>
+    <a class="nav-link" href="../comparisons/why-mill.html">Why Use Mill?</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
@@ -448,14 +448,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.1-64-3f6a03</span>
+    <span class="version">0.12.1-65-a3e677</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../0.12.1/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../index.html">0.12.1-64-3f6a03</a>
+          <a href="../index.html">0.12.1-65-a3e677</a>
         </li>
         <li class="version is-latest">
           <a href="../0.12.1/index.html">0.12.1</a>
@@ -495,6 +495,63 @@
 </aside>
 <article class="doc">
 <h1 class="page">Changelog</h1>
+<div class="sect1">
+<h2 id="0-12-2"><a class="anchor" href="#0-12-2"></a>0.12.2 - 2024-11-11</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>Show correct build file name in progress prompt <a href="https://github.com/com-lihaoyi/mill/pull/3847">#3847</a></p>
+</li>
+<li>
+<p>Fix target name when reporting cycles in <code>runModuleDeps</code> <a href="https://github.com/com-lihaoyi/mill/pull/3860">#3860</a></p>
+</li>
+<li>
+<p>Properly escape imported submodule names when the name is a Scala identifier <a href="https://github.com/com-lihaoyi/mill/pull/3865">#3865</a></p>
+</li>
+<li>
+<p>Report an error when module dependency cycles are detected <a href="https://github.com/com-lihaoyi/mill/pull/3878">#3878</a></p>
+</li>
+<li>
+<p>Drop incremental compilation state for Mill modules when version changes to try and mitigate cache invalidation issues <a href="https://github.com/com-lihaoyi/mill/pull/3884">#3884</a></p>
+</li>
+<li>
+<p>Share profile loggers between nested evaluations to avoid ensure commands like <code>show</code> now have a proper profile <a href="https://github.com/com-lihaoyi/mill/pull/3885">#3885</a></p>
+</li>
+<li>
+<p>Add <code>nativeMultithreading</code> flag in ScalaNativeModule <a href="https://github.com/com-lihaoyi/mill/pull/3896">#3896</a></p>
+</li>
+<li>
+<p>Add nice error when non-exclusive task depends on exclusive task <a href="https://github.com/com-lihaoyi/mill/pull/3887">#3887</a></p>
+</li>
+<li>
+<p>Filter out anonymous classes during test discovery to mitigate spurious test reports <a href="https://github.com/com-lihaoyi/mill/pull/3911">#3911</a></p>
+</li>
+<li>
+<p>Fix <code>MavenTests</code> deprecation message <a href="https://github.com/com-lihaoyi/mill/pull/3915">#3915</a></p>
+</li>
+<li>
+<p>Improve <code>inspect</code> command to show more detailed metadata on modules and tasks <a href="https://github.com/com-lihaoyi/mill/pull/3916">#3916</a></p>
+</li>
+<li>
+<p>Fix prompt updating logic to ensure the timestamp updates while tasks are running <a href="https://github.com/com-lihaoyi/mill/pull/3933">#3933</a></p>
+</li>
+<li>
+<p>Fix scoverage report generation for Scala 3 <a href="https://github.com/com-lihaoyi/mill/pull/3936">#3936</a></p>
+</li>
+<li>
+<p>Tons of documentation improvements: autoformatted all <a href="https://github.com/com-lihaoyi/mill/pull/3919">Java</a>
+and <a href="https://github.com/com-lihaoyi/mill/pull/3903">Scala</a> example files,
+[Scala-Native example builds]<a href="https://github.com/com-lihaoyi/mill/pull/3657" class="bare">https://github.com/com-lihaoyi/mill/pull/3657</a>,
+<a href="https://github.com/com-lihaoyi/mill/pull/3897">Scala-JS WASM example build</a>,
+<a href="https://github.com/com-lihaoyi/mill/pull/3918">Re-run Maven comparison using proper flags</a>
+added <a href="https://mill-build.org/mill/comparisons/why-mill.html">Why Use Mill?</a> and
+<a href="https://mill-build.org/mill/comparisons/unique.html">What Makes Mill Unique?</a> Sections</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
 <div class="sect1">
 <h2 id="0-12-1"><a class="anchor" href="#0-12-1"></a>0.12.1 - 2024-10-27</h2>
 <div class="sectionbody">
