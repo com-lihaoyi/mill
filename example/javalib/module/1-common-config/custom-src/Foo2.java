@@ -1,15 +1,18 @@
 package foo;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Properties;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 public class Foo2 {
-  public static final String value() {
-    Context context = new Context();
-    context.setVariable("text", "hello2");
-    return new TemplateEngine().process("<h1 th:text=\"${text}\"></h1>", context);
+  public static final String value(){
+      Context context = new Context();
+      context.setVariable("text", "hello2");
+      return new TemplateEngine().process("<h1 th:text=\"${text}\"></h1>", context);
   }
 
   public static void main(String[] args) {
@@ -35,9 +38,8 @@ public class Foo2 {
   private static String readResource(String resourceName) {
     try {
       return new String(
-          Foo2.class.getClassLoader().getResourceAsStream(resourceName).readAllBytes());
-    } catch (IOException e) {
-      return null;
-    }
+              Foo2.class.getClassLoader().getResourceAsStream(resourceName).readAllBytes()
+      );
+    }catch (IOException e) { return null; }
   }
 }

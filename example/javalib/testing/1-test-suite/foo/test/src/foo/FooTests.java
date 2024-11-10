@@ -2,7 +2,6 @@ package foo;
 
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
-
 import org.junit.Test;
 
 public class FooTests {

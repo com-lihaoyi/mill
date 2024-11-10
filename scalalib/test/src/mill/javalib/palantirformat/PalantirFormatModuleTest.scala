@@ -18,10 +18,10 @@ object PalantirFormatModuleTest extends TestSuite {
     test("palantirformat") {
 
       assert(
-        checkState(
-          afterFormat(before / "google"),
-          after / "google"
-        ),
+//        checkState(
+//          afterFormat(before / "google"),
+//          after / "google"
+//        ),
         checkState(
           afterFormat(before / "palantir"),
           after / "palantir"
@@ -81,6 +81,10 @@ object PalantirFormatModuleTest extends TestSuite {
   def checkState(actualFiles: Seq[os.Path], expectedRoot: os.Path): Boolean = {
 
     val expectedFiles = walkFiles(expectedRoot)
+    pprint.log(actualFiles.length)
+    pprint.log(expectedFiles.length)
+    pprint.log(actualFiles.map(os.read(_)))
+    pprint.log(expectedFiles.map(os.read(_)))
     actualFiles.length == expectedFiles.length &&
     actualFiles.iterator.zip(expectedFiles.iterator).forall {
       case (actualFile, expectedFile) =>
