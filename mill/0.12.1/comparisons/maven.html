@@ -1,27 +1,26 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Case Study: Mill vs Maven :: The Mill JVM Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.12.1/comparisons/maven.html" />
-    <link rel="prev" href="../kotlinlib/android-examples.html" />
-    <link rel="next" href="gradle.html" />
-    <meta name="generator" content="Antora 3.1.9" />
-    <link rel="stylesheet" href="../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.12.1/comparisons/maven.html">
+    <link rel="prev" href="../kotlinlib/android-examples.html">
+    <link rel="next" href="gradle.html">
+    <meta name="generator" content="Antora 3.1.9">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
-  
-  </head><body class="article">
-  
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill JVM Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill JVM Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -432,7 +431,7 @@
       <div class="title"><a href="../index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version">
-          <a href="../../index.html">0.12.1-60-75d248</a>
+          <a href="../../index.html">0.12.1-62-435a72</a>
         </li>
         <li class="version is-current is-latest">
           <a href="../index.html">0.12.1</a>
@@ -494,8 +493,8 @@ const links = document.querySelectorAll('a');
 <div class="ulist">
 <ul>
 <li>
-<p><strong>Mill follows Maven’s innovation of good built-in defaults</strong>: Mill’s built-in
-<code>JavaModule</code>s follow Maven’s &quot;convention over configuration&quot; style, so small Mill
+<p><strong>Mill follows Maven&#8217;s innovation of good built-in defaults</strong>: Mill&#8217;s built-in
+<code>JavaModule</code>s follow Maven&#8217;s "convention over configuration" style, so small Mill
 projects require minimal effort to get started, and larger Mill projects have a consistent
 structure building on these defaults.</p>
 </li>
@@ -504,14 +503,14 @@ structure building on these defaults.</p>
 Not just the built-in tasks that Mill ships with, but also any custom tasks or modules.
 This maximizes the snappiness of your command-line build workflows to keep you productive,
 which especially matters in larger codebases where builds tend to get slow:
-<a href="#_performance">a Maven &quot;clean install&quot; workflow
+<a href="#_performance">a Maven "clean install" workflow
   taking over a minute might take just a few seconds in Mill</a>.</p>
 </li>
 <li>
 <p><strong>Mill makes customizing the build tool much easier than Maven</strong>. Projects usually
 grow beyond just compiling a single language: needing custom
 code generation, linting workflows, tool integrations, output artifacts, or support for
-additional languages. Mill’s <a href="#_extensibility_ide_experience">extensibility and IDE experience</a>
+additional languages. Mill&#8217;s <a href="#_extensibility_ide_experience">extensibility and IDE experience</a>
 makes doing this yourself easy and safe, with type-checked code and
 <a href="../depth/sandboxing.html" class="xref page">sandboxed tasks</a></p>
 </li>
@@ -577,14 +576,14 @@ most workflows.</p>
 <div class="paragraph">
 <p>For the benchmarks below, each provided number is the wall time of three consecutive runs
 on my M1 Macbook Pro. While ad-hoc, these benchmarks are enough to give you a flavor of how
-Mill’s performance compares to Maven:</p>
+Mill&#8217;s performance compares to Maven:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 25%;" />
-<col style="width: 25%;" />
-<col style="width: 25%;" />
-<col style="width: 25%;" />
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
 </colgroup>
 <thead>
 <tr>
@@ -649,7 +648,7 @@ $ ./mill clean; time ./mill -j1 __.compile
 </div>
 </div>
 <div class="paragraph">
-<p>This benchmark exercises the simple &quot;build everything from scratch&quot; workflow, with all remote
+<p>This benchmark exercises the simple "build everything from scratch" workflow, with all remote
 artifacts already in the local cache. The actual files
 being compiled are the same in either case (as mentioned in the <a href="#_completeness">Completeness</a> section).
 I have explicitly disabled the various linters and tests for the Maven build, to just focus
@@ -698,8 +697,8 @@ reason comes down to the difference of <code>mvn compile</code> vs <code>mvn ins
 <h4 id="_maven_compile_vs_install"><a class="anchor" href="#_maven_compile_vs_install"></a>Maven Compile vs Install</h4>
 <div class="paragraph">
 <p>In general, the reason we have to use <code>./mvnw install</code> rather than <code>./mvnw compile</code> is that
-Maven’s main mechanism for managing inter-module dependencies is via the local artifact cache
-at <code>~/.m2/repository</code>. Although many workflows work with <code>compile</code>, some don’t, and
+Maven&#8217;s main mechanism for managing inter-module dependencies is via the local artifact cache
+at <code>~/.m2/repository</code>. Although many workflows work with <code>compile</code>, some don&#8217;t, and
 <code>./mvnw clean compile</code> on the Netty repository fails with:</p>
 </div>
 <div class="listingblock">
@@ -724,7 +723,7 @@ to publish to it. That means Mill builds are able to work directly with classfil
 simply referencing them and using them as-is without spending time packing and unpacking them
 into <code>.jar</code> files. Furthermore, even if we <em>did</em> want Mill to generate the <code>.jar</code>s, the
 overhead of doing so is just a few seconds, far less than the two entire minutes that
-Maven’s overhead adds to the clean build:</p>
+Maven&#8217;s overhead adds to the clean build:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -775,7 +774,7 @@ tools see a similar ~2x speedup for building the Netty project using 4 threads. 
 this tests a clean build using <code>./mvnw clean</code> or <code>./mill clean</code>.</p>
 </div>
 <div class="paragraph">
-<p>This comparison shows that much of Mill’s speedup over Maven is unrelated to parallelism.
+<p>This comparison shows that much of Mill&#8217;s speedup over Maven is unrelated to parallelism.
 Whether sequential or parallel, Mill has approximately the same ~7x speedup over Maven
 when performing a clean build of the Netty repository.</p>
 </div>
@@ -806,15 +805,15 @@ reference <code>common.test.compile</code> to compile both (because <code>common
 <p>Again, we can see a significant speedup of Mill v.s. Maven remains even when compiling a
 single module: a clean compile of <code>common/</code> is about 9x faster with Mill than with Maven!
 Again, <code>common/</code> is about 40,000 lines of Java source code, so at 10,000-50,000 lines per
-second we would expect it to compile in about 1-4s. That puts Mill’s compile times right
-at what you would expect, whereas Maven’s has a significant overhead.</p>
+second we would expect it to compile in about 1-4s. That puts Mill&#8217;s compile times right
+at what you would expect, whereas Maven&#8217;s has a significant overhead.</p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_incremental_compile_single_module"><a class="anchor" href="#_incremental_compile_single_module"></a>Incremental Compile Single-Module</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ echo &quot;&quot; &gt;&gt; common/src/main/java/io/netty/util/AbstractConstant.java
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ echo "" &gt;&gt; common/src/main/java/io/netty/util/AbstractConstant.java
 $ time ./mvnw -pl common -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
 Compiling 174 source files to /Users/lihaoyi/Github/netty/common/target/classes
 Compiling 60 source files to /Users/lihaoyi/Github/netty/common/target/test-classes
@@ -824,7 +823,7 @@ Compiling 60 source files to /Users/lihaoyi/Github/netty/common/target/test-clas
 0:21:29
 
 
-$ echo &quot;&quot; &gt;&gt; common/src/main/java/io/netty/util/AbstractConstant.java
+$ echo "" &gt;&gt; common/src/main/java/io/netty/util/AbstractConstant.java
 $ time ./mill common.test.compile
 compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
 
@@ -845,7 +844,7 @@ because Mill only compiles the single file we changed, and not the others.</p>
 <div class="paragraph">
 <p>For this incremental compilation, Mill uses the
 <a href="https://github.com/sbt/zinc">Zinc Incremental Compiler</a>. Zinc is able to analyze the dependencies
-between files to figure out what needs to re-compile: for an internal change that doesn’t
+between files to figure out what needs to re-compile: for an internal change that doesn&#8217;t
 affect downstream compilation (e.g. changing a string literal) Zinc only needs to compile
 the file that changed, taking barely half a second:</p>
 </div>
@@ -860,8 +859,8 @@ index de16653cee..9818f6b3ce 100644
              return 1;
          }
 
--        throw new Error(&quot;failed to compare two different constants&quot;);
-+        throw new Error(&quot;failed to compare two different CONSTANTS!!&quot;);
+-        throw new Error("failed to compare two different constants");
++        throw new Error("failed to compare two different CONSTANTS!!");
      }
 
  }</code></pre>
@@ -942,7 +941,7 @@ $ time ./mill common.test.compile
 <div class="paragraph">
 <p>This last benchmark explores the boundaries of Maven and Mill: what happens if
 we ask to compile a single module <em>that has already been compiled</em>? In this case,
-there is literally <em>nothing to do</em>. For Maven, &quot;doing nothing&quot; takes ~17 seconds,
+there is literally <em>nothing to do</em>. For Maven, "doing nothing" takes ~17 seconds,
 whereas for Mill we can see it complete and return in less than 0.5 seconds</p>
 </div>
 <div class="paragraph">
@@ -956,7 +955,7 @@ we still see Maven taking <strong>17 entire seconds</strong> before it can decid
 <div class="paragraph">
 <p>In contrast, doing the same no-op compile using Mill, we see the timing from 2.2s
 in <a href="#_clean_compile_single_module">Clean Compile Single-Module</a> to 0.5 seconds here. This is the same ~2s reduction
-we saw with Maven, but due to Mill’s minimal overhead, in the end the command
+we saw with Maven, but due to Mill&#8217;s minimal overhead, in the end the command
 finishes in less than half a second.</p>
 </div>
 </div>
@@ -1026,22 +1025,22 @@ import $ivy.`ant:ant-optional:1.5.3-1`
 
 object common extends NettyModule{
   ...
-  def script = Task.Source(millSourcePath / &quot;src&quot; / &quot;main&quot; / &quot;script&quot;)
+  def script = Task.Source(millSourcePath / "src" / "main" / "script")
   def generatedSources0 = Task {
     val shell = new groovy.lang.GroovyShell()
     val context = new java.util.HashMap[String, Object]
 
-    context.put(&quot;collection.template.dir&quot;, &quot;common/src/main/templates&quot;)
-    context.put(&quot;collection.template.test.dir&quot;, &quot;common/src/test/templates&quot;)
-    context.put(&quot;collection.src.dir&quot;, (T.dest / &quot;src&quot;).toString)
-    context.put(&quot;collection.testsrc.dir&quot;, (T.dest / &quot;testsrc&quot;).toString)
+    context.put("collection.template.dir", "common/src/main/templates")
+    context.put("collection.template.test.dir", "common/src/test/templates")
+    context.put("collection.src.dir", (T.dest / "src").toString)
+    context.put("collection.testsrc.dir", (T.dest / "testsrc").toString)
 
-    shell.setProperty(&quot;properties&quot;, context)
-    shell.setProperty(&quot;ant&quot;, new groovy.ant.AntBuilder())
+    shell.setProperty("properties", context)
+    shell.setProperty("ant", new groovy.ant.AntBuilder())
 
-    shell.evaluate((script().path / &quot;codegen.groovy&quot;).toIO)
+    shell.evaluate((script().path / "codegen.groovy").toIO)
 
-    (PathRef(T.dest / &quot;src&quot;), PathRef(T.dest / &quot;testsrc&quot;))
+    (PathRef(T.dest / "src"), PathRef(T.dest / "testsrc"))
   }
 
   def generatedSources = Task { Seq(generatedSources0()._1)}
@@ -1068,7 +1067,7 @@ strongly-typed fashion, with full autocomplete and code assistance:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijNettyAutocomplete.png" alt="IntellijNettyAutocomplete" />
+<img src="../_images/comparisons/IntellijNettyAutocomplete.png" alt="IntellijNettyAutocomplete">
 </div>
 </div>
 <div class="paragraph">
@@ -1135,19 +1134,19 @@ approximately configured as below:</p>
         &lt;/goals&gt;
         &lt;configuration&gt;
           &lt;target&gt;
-            &lt;exec executable=&quot;${exe.make}&quot; failonerror=&quot;true&quot; resolveexecutable=&quot;true&quot;&gt;
-              &lt;env key=&quot;CC&quot; value=&quot;${exe.compiler}&quot; /&gt;
-              &lt;env key=&quot;AR&quot; value=&quot;${exe.archiver}&quot; /&gt;
-              &lt;env key=&quot;LIB_DIR&quot; value=&quot;${nativeLibOnlyDir}&quot; /&gt;
-              &lt;env key=&quot;OBJ_DIR&quot; value=&quot;${nativeObjsOnlyDir}&quot; /&gt;
-              &lt;env key=&quot;JNI_PLATFORM&quot; value=&quot;${jni.platform}&quot; /&gt;
-              &lt;env key=&quot;CFLAGS&quot; value=&quot;-O3 -Werror -Wno-attributes -fPIC -fno-omit-frame-pointer -Wunused-variable -fvisibility=hidden&quot; /&gt;
-              &lt;env key=&quot;LDFLAGS&quot; value=&quot;-Wl,--no-as-needed -lrt -Wl,-platform_version,macos,10.9,10.9&quot; /&gt;
-              &lt;env key=&quot;LIB_NAME&quot; value=&quot;${nativeLibName}&quot; /&gt;
+            &lt;exec executable="${exe.make}" failonerror="true" resolveexecutable="true"&gt;
+              &lt;env key="CC" value="${exe.compiler}" /&gt;
+              &lt;env key="AR" value="${exe.archiver}" /&gt;
+              &lt;env key="LIB_DIR" value="${nativeLibOnlyDir}" /&gt;
+              &lt;env key="OBJ_DIR" value="${nativeObjsOnlyDir}" /&gt;
+              &lt;env key="JNI_PLATFORM" value="${jni.platform}" /&gt;
+              &lt;env key="CFLAGS" value="-O3 -Werror -Wno-attributes -fPIC -fno-omit-frame-pointer -Wunused-variable -fvisibility=hidden" /&gt;
+              &lt;env key="LDFLAGS" value="-Wl,--no-as-needed -lrt -Wl,-platform_version,macos,10.9,10.9" /&gt;
+              &lt;env key="LIB_NAME" value="${nativeLibName}" /&gt;
               &lt;!-- support for __attribute__((weak_import)) by the linker was added in 10.2 so ensure we
                    explicitly set the target platform. Otherwise we may get fatal link errors due to weakly linked
                    methods which are not expected to be present on MacOS (e.g. accept4). --&gt;
-              &lt;env key=&quot;MACOSX_DEPLOYMENT_TARGET&quot; value=&quot;10.9&quot; /&gt;
+              &lt;env key="MACOSX_DEPLOYMENT_TARGET" value="10.9" /&gt;
             &lt;/exec&gt;
           &lt;/target&gt;
         &lt;/configuration&gt;
@@ -1167,97 +1166,98 @@ with the <code>make</code> command essentially being a bash script wrapped in la
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def makefile = Task.Source(millSourcePath / &quot;Makefile&quot;)
-def cSources = Task.Source(millSourcePath / &quot;src&quot; / &quot;main&quot; / &quot;c&quot;)
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def makefile = Task.Source(millSourcePath / "Makefile")
+def cSources = Task.Source(millSourcePath / "src" / "main" / "c")
 def cHeaders = Task {
-  for(p &lt;- os.walk(cSources().path) if p.ext == &quot;h&quot;){
+  for(p &lt;- os.walk(cSources().path) if p.ext == "h"){
     os.copy(p, T.dest / p.relativeTo(cSources().path), createFolders = true)
   }
   PathRef(T.dest)
 }
 
 def make = Task {
-  os.copy(makefile().path, T.dest / &quot;Makefile&quot;)
-  os.copy(cSources().path, T.dest / &quot;src&quot; / &quot;main&quot; / &quot;c&quot;, createFolders = true)
+  os.copy(makefile().path, T.dest / "Makefile")
+  os.copy(cSources().path, T.dest / "src" / "main" / "c", createFolders = true)
 
   val Seq(sourceJar) = resolveDeps(
-    deps = Task.Anon(Agg(ivy&quot;io.netty:netty-jni-util:0.0.9.Final&quot;).map(bindDependency())),
+    deps = Task.Anon(Agg(ivy"io.netty:netty-jni-util:0.0.9.Final").map(bindDependency())),
     sources = true
   )().toSeq
 
-  os.proc(&quot;jar&quot;, &quot;xf&quot;, sourceJar.path).call(cwd = T.dest  / &quot;src&quot; / &quot;main&quot; / &quot;c&quot;)
+  os.proc("jar", "xf", sourceJar.path).call(cwd = T.dest  / "src" / "main" / "c")
 
-  os.proc(&quot;make&quot;).call(
+  os.proc("make").call(
     cwd = T.dest,
     env = Map(
-      &quot;CC&quot; -&gt; &quot;clang&quot;,
-      &quot;AR&quot; -&gt; &quot;ar&quot;,
-      &quot;JNI_PLATFORM&quot; -&gt; &quot;darwin&quot;,
-      &quot;LIB_DIR&quot; -&gt; &quot;lib-out&quot;,
-      &quot;OBJ_DIR&quot; -&gt; &quot;obj-out&quot;,
-      &quot;MACOSX_DEPLOYMENT_TARGET&quot; -&gt; &quot;10.9&quot;,
-      &quot;CFLAGS&quot; -&gt; Seq(
-        &quot;-mmacosx-version-min=10.9&quot;, &quot;-O3&quot;, &quot;-Werror&quot;, &quot;-Wno-attributes&quot;, &quot;-fPIC&quot;,
-        &quot;-fno-omit-frame-pointer&quot;, &quot;-Wunused-variable&quot;, &quot;-fvisibility=hidden&quot;,
-        &quot;-I&quot; + sys.props(&quot;java.home&quot;) + &quot;/include/&quot;,
-        &quot;-I&quot; + sys.props(&quot;java.home&quot;) + &quot;/include/darwin&quot;,
-        &quot;-I&quot; + sys.props(&quot;java.home&quot;) + &quot;/include/linux&quot;,
-      ).mkString(&quot; &quot;),
-      &quot;LD_FLAGS&quot; -&gt; &quot;-Wl,--no-as-needed -lrt -Wl,-platform_version,macos,10.9,10.9&quot;,
-      &quot;LIB_NAME&quot; -&gt; &quot;libnetty-unix-common&quot;
+      "CC" -&gt; "clang",
+      "AR" -&gt; "ar",
+      "JNI_PLATFORM" -&gt; "darwin",
+      "LIB_DIR" -&gt; "lib-out",
+      "OBJ_DIR" -&gt; "obj-out",
+      "MACOSX_DEPLOYMENT_TARGET" -&gt; "10.9",
+      "CFLAGS" -&gt; Seq(
+        "-mmacosx-version-min=10.9", "-O3", "-Werror", "-Wno-attributes", "-fPIC",
+        "-fno-omit-frame-pointer", "-Wunused-variable", "-fvisibility=hidden",
+        "-I" + sys.props("java.home") + "/include/",
+        "-I" + sys.props("java.home") + "/include/darwin",
+        "-I" + sys.props("java.home") + "/include/linux",
+      ).mkString(" "),
+      "LD_FLAGS" -&gt; "-Wl,--no-as-needed -lrt -Wl,-platform_version,macos,10.9,10.9",
+      "LIB_NAME" -&gt; "libnetty-unix-common"
     )
   )
 
-  (PathRef(T.dest / &quot;lib-out&quot;), PathRef(T.dest / &quot;obj-out&quot;))
+  (PathRef(T.dest / "lib-out"), PathRef(T.dest / "obj-out"))
 }</code></pre>
 </div>
 </div>
 <center>
-<svg width="179px" height="76px" viewBox="0.00 0.00 178.60 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="179px" height="76px"
+ viewBox="0.00 0.00 178.60 75.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 174.6,-71.8 174.6,4 -4,4"></polygon>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 174.6,-71.8 174.6,4 -4,4"/>
 <!-- makefile -->
 <g id="node1" class="node">
 <title>makefile</title>
-<polygon fill="white" stroke="black" points="65.74,-67.7 0.79,-67.7 0.79,-43.1 65.74,-43.1 65.74,-67.7"></polygon>
+<polygon fill="white" stroke="black" points="65.74,-67.7 0.79,-67.7 0.79,-43.1 65.74,-43.1 65.74,-67.7"/>
 <text text-anchor="middle" x="33.27" y="-51.2" font-family="Times,serif" font-size="14.00">makefile</text>
 </g>
 <!-- make -->
 <g id="node2" class="node">
 <title>make</title>
-<polygon fill="white" stroke="black" points="159.89,-67.7 113.25,-67.7 113.25,-43.1 159.89,-43.1 159.89,-67.7"></polygon>
+<polygon fill="white" stroke="black" points="159.89,-67.7 113.25,-67.7 113.25,-43.1 159.89,-43.1 159.89,-67.7"/>
 <text text-anchor="middle" x="136.57" y="-51.2" font-family="Times,serif" font-size="14.00">make</text>
 </g>
 <!-- makefile&#45;&gt;make -->
 <g id="edge1" class="edge">
-<title>makefile-&gt;make</title>
-<path fill="none" stroke="black" d="M65.76,-55.4C77.62,-55.4 91.12,-55.4 103.07,-55.4"></path>
-<polygon fill="black" stroke="black" points="103.09,-58.9 113.09,-55.4 103.09,-51.9 103.09,-58.9"></polygon>
+<title>makefile&#45;&gt;make</title>
+<path fill="none" stroke="black" d="M65.76,-55.4C77.62,-55.4 91.12,-55.4 103.07,-55.4"/>
+<polygon fill="black" stroke="black" points="103.09,-58.9 113.09,-55.4 103.09,-51.9 103.09,-58.9"/>
 </g>
 <!-- cSources -->
 <g id="node3" class="node">
 <title>cSources</title>
-<polygon fill="white" stroke="black" points="66.3,-24.7 0.23,-24.7 0.23,-0.1 66.3,-0.1 66.3,-24.7"></polygon>
+<polygon fill="white" stroke="black" points="66.3,-24.7 0.23,-24.7 0.23,-0.1 66.3,-0.1 66.3,-24.7"/>
 <text text-anchor="middle" x="33.27" y="-8.2" font-family="Times,serif" font-size="14.00">cSources</text>
 </g>
 <!-- cSources&#45;&gt;make -->
 <g id="edge2" class="edge">
-<title>cSources-&gt;make</title>
-<path fill="none" stroke="black" d="M63.29,-24.72C75.97,-30.1 90.86,-36.42 103.83,-41.93"></path>
-<polygon fill="black" stroke="black" points="102.72,-45.26 113.3,-45.95 105.46,-38.82 102.72,-45.26"></polygon>
+<title>cSources&#45;&gt;make</title>
+<path fill="none" stroke="black" d="M63.29,-24.72C75.97,-30.1 90.86,-36.42 103.83,-41.93"/>
+<polygon fill="black" stroke="black" points="102.72,-45.26 113.3,-45.95 105.46,-38.82 102.72,-45.26"/>
 </g>
 <!-- cHeaders -->
 <g id="node4" class="node">
 <title>cHeaders</title>
-<polygon fill="white" stroke="black" points="170.64,-24.7 102.5,-24.7 102.5,-0.1 170.64,-0.1 170.64,-24.7"></polygon>
+<polygon fill="white" stroke="black" points="170.64,-24.7 102.5,-24.7 102.5,-0.1 170.64,-0.1 170.64,-24.7"/>
 <text text-anchor="middle" x="136.57" y="-8.2" font-family="Times,serif" font-size="14.00">cHeaders</text>
 </g>
 <!-- cSources&#45;&gt;cHeaders -->
 <g id="edge3" class="edge">
-<title>cSources-&gt;cHeaders</title>
-<path fill="none" stroke="black" d="M66.32,-12.4C74.57,-12.4 83.58,-12.4 92.3,-12.4"></path>
-<polygon fill="black" stroke="black" points="92.33,-15.9 102.33,-12.4 92.33,-8.9 92.33,-15.9"></polygon>
+<title>cSources&#45;&gt;cHeaders</title>
+<path fill="none" stroke="black" d="M66.32,-12.4C74.57,-12.4 83.58,-12.4 92.3,-12.4"/>
+<polygon fill="black" stroke="black" points="92.33,-15.9 102.33,-12.4 92.33,-8.9 92.33,-15.9"/>
 </g>
 </g>
 </svg>
@@ -1283,7 +1283,7 @@ richer experience than you typically get configuring XML files:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijNettyPeekDocs.png" alt="IntellijNettyPeekDocs" />
+<img src="../_images/comparisons/IntellijNettyPeekDocs.png" alt="IntellijNettyPeekDocs">
 </div>
 </div>
 </div>
@@ -1302,7 +1302,7 @@ at full size):</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/NettyCompileGraph.svg" alt="NettyCompileGraph" />
+<img src="../_images/comparisons/NettyCompileGraph.svg" alt="NettyCompileGraph">
 </div>
 </div>
 <div class="paragraph">
@@ -1314,7 +1314,7 @@ visualize where your build is spending time and where the performance bottleneck
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/NettyCompileProfile.png" alt="NettyCompileProfile" />
+<img src="../_images/comparisons/NettyCompileProfile.png" alt="NettyCompileProfile">
 </div>
 </div>
 <div class="paragraph">
@@ -1352,7 +1352,7 @@ compile Java code, zip them into Jar files, run tests. Sometimes they compile an
 C code or run <code>make</code> or Groovy.</p>
 </div>
 <div class="paragraph">
-<p>Mill doesn’t try to do <em>more</em> than Maven does, but it
+<p>Mill doesn&#8217;t try to do <em>more</em> than Maven does, but it
 tries to do it <em>better</em>: faster compiles, shorter and easier to read configs, easier
 extensibility via libraries (e.g. <code>org.codehaus.groovy:groovy</code>) and subprocesses
 (e.g. <code>make</code>), better IDE support for working with your build.</p>
@@ -1364,8 +1364,8 @@ different operating system architectures, Java versions, and so on. However, hop
 it demonstrates the potential value: greatly improved performance, easy extensibility,
 and a much better IDE experience for working with your build.
 Mill provides builtin tools to help you navigate,
-visualize, and understand your build, turning a normally opaque &quot;build config&quot; into
-something that’s transparent and easily understandable.</p>
+visualize, and understand your build, turning a normally opaque "build config" into
+something that&#8217;s transparent and easily understandable.</p>
 </div>
 </div>
 </div>
@@ -1378,9 +1378,9 @@ something that’s transparent and easily understandable.</p>
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async="async" src="../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async="async" src="../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>

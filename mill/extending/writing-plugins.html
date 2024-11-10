@@ -215,7 +215,7 @@
 
   <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../why-mill.html">Why Mill?</a>
+    <a class="nav-link" href="../comparisons/why-mill.html">Why Mill?</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
@@ -449,14 +449,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.1-60-75d248</span>
+    <span class="version">0.12.1-62-435a72</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../0.12.1/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../index.html">0.12.1-60-75d248</a>
+          <a href="../index.html">0.12.1-62-435a72</a>
         </li>
         <li class="version is-latest">
           <a href="../0.12.1/index.html">0.12.1</a>
@@ -724,7 +724,7 @@ object UnitTests extends TestSuite {
         assert(
           result.value.exists(pathref =&gt;
             os.exists(pathref.path / &quot;line-count.txt&quot;) &amp;&amp;
-              os.read(pathref.path / &quot;line-count.txt&quot;) == &quot;17&quot;
+              os.read(pathref.path / &quot;line-count.txt&quot;) == &quot;18&quot;
           )
         )
 
@@ -734,7 +734,7 @@ object UnitTests extends TestSuite {
         assert(
           pathrefs.exists(pathref =&gt;
             os.exists(pathref.path / &quot;line-count.txt&quot;) &amp;&amp;
-              os.read(pathref.path / &quot;line-count.txt&quot;) == &quot;17&quot;
+              os.read(pathref.path / &quot;line-count.txt&quot;) == &quot;18&quot;
           )
         )
       }
@@ -749,12 +749,13 @@ object UnitTests extends TestSuite {
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
 public class Foo {
-  public static String getLineCount(){
-    try{
+  public static String getLineCount() {
+    try {
       return new String(
-            Foo.class.getClassLoader().getResourceAsStream(&quot;line-count.txt&quot;).readAllBytes()
-      );
-    }catch(java.io.IOException e){ return null; }
+          Foo.class.getClassLoader().getResourceAsStream(&quot;line-count.txt&quot;).readAllBytes());
+    } catch (java.io.IOException e) {
+      return null;
+    }
   }
 
   static String lineCount = getLineCount();
@@ -826,20 +827,20 @@ object IntegrationTests extends TestSuite {
       val res1 = tester.eval(&quot;run&quot;)
       assert(res1.isSuccess)
       assert(res1.err.contains(&quot;compiling 1 Java source&quot;)) // compiling the `build.mill`
-      assert(res1.out.contains(&quot;Line Count: 17&quot;))
-      assert(tester.out(&quot;lineCount&quot;).value[Int] == 17)
+      assert(res1.out.contains(&quot;Line Count: 18&quot;))
+      assert(tester.out(&quot;lineCount&quot;).value[Int] == 18)
 
       val res2 = tester.eval(&quot;run&quot;) // No need to recompile when nothing changed
       assert(!res2.err.contains(&quot;compiling 1 Java source&quot;))
-      assert(res2.out.contains(&quot;Line Count: 17&quot;))
-      assert(tester.out(&quot;lineCount&quot;).value[Int] == 17)
+      assert(res2.out.contains(&quot;Line Count: 18&quot;))
+      assert(tester.out(&quot;lineCount&quot;).value[Int] == 18)
 
       tester.modifyFile(tester.workspacePath / &quot;src/foo/Foo.java&quot;, _ + &quot;\n&quot;)
 
       val res3 = tester.eval(&quot;run&quot;) // Additional newline forces recompile and increases line count
       assert(res3.err.contains(&quot;compiling 1 Java source&quot;))
-      assert(res3.out.contains(&quot;Line Count: 18&quot;))
-      assert(tester.out(&quot;lineCount&quot;).value[Int] == 18)
+      assert(res3.out.contains(&quot;Line Count: 19&quot;))
+      assert(tester.out(&quot;lineCount&quot;).value[Int] == 19)
     }
   }
 }</code></pre>
@@ -851,12 +852,13 @@ object IntegrationTests extends TestSuite {
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
 public class Foo {
-  public static String getLineCount(){
-    try{
+  public static String getLineCount() {
+    try {
       return new String(
-            Foo.class.getClassLoader().getResourceAsStream(&quot;line-count.txt&quot;).readAllBytes()
-      );
-    }catch(java.io.IOException e){ return null; }
+          Foo.class.getClassLoader().getResourceAsStream(&quot;line-count.txt&quot;).readAllBytes());
+    } catch (java.io.IOException e) {
+      return null;
+    }
   }
 
   static String lineCount = getLineCount();
@@ -926,12 +928,13 @@ object ExampleTests extends TestSuite {
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
 public class Foo {
-  public static String getLineCount(){
-    try{
+  public static String getLineCount() {
+    try {
       return new String(
-            Foo.class.getClassLoader().getResourceAsStream(&quot;line-count.txt&quot;).readAllBytes()
-      );
-    }catch(java.io.IOException e){ return null; }
+          Foo.class.getClassLoader().getResourceAsStream(&quot;line-count.txt&quot;).readAllBytes());
+    } catch (java.io.IOException e) {
+      return null;
+    }
   }
 
   static String lineCount = getLineCount();
@@ -956,13 +959,13 @@ object `package` extends RootModule with LineCountJavaModule {
 /** Usage
 
 &gt; ./mill run
-Line Count: 17
+Line Count: 18
 ...
 
 &gt; printf &quot;\n&quot; &gt;&gt; src/foo/Foo.java
 
 &gt; ./mill run
-Line Count: 18
+Line Count: 19
 ...
 
 */</code></pre>

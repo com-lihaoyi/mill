@@ -1,27 +1,26 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Testing Scala Projects :: The Mill JVM Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.12.1/scalalib/testing.html" />
-    <link rel="prev" href="dependencies.html" />
-    <link rel="next" href="linting.html" />
-    <meta name="generator" content="Antora 3.1.9" />
-    <link rel="stylesheet" href="../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.12.1/scalalib/testing.html">
+    <link rel="prev" href="dependencies.html">
+    <link rel="next" href="linting.html">
+    <meta name="generator" content="Antora 3.1.9">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
-  
-  </head><body class="article">
-  
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill JVM Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill JVM Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -432,7 +431,7 @@
       <div class="title"><a href="../index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version">
-          <a href="../../index.html">0.12.1-60-75d248</a>
+          <a href="../../index.html">0.12.1-62-435a72</a>
         </li>
         <li class="version is-current is-latest">
           <a href="../index.html">0.12.1</a>
@@ -503,17 +502,17 @@ const links = document.querySelectorAll('a');
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = &quot;2.13.8&quot;
+  def scalaVersion = "2.13.8"
   object test extends ScalaTests {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
-    def testFramework = &quot;utest.runner.Framework&quot;
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
+    def testFramework = "utest.runner.Framework"
   }
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>This build defines a single module with a test suite, configured to use
-&quot;uTest&quot; as the testing framework. Test suites are themselves <code>ScalaModule</code>s,
+"uTest" as the testing framework. Test suites are themselves <code>ScalaModule</code>s,
 nested within the enclosing module,
 and have all the normal tasks like
 <code>foo.test.compile</code> available to run, but with an additional <code>.test</code> task
@@ -575,10 +574,10 @@ compiling 1 ... source...
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends ScalaModule {
-  def scalaVersion = &quot;2.13.8&quot;
+  def scalaVersion = "2.13.8"
 
   object test extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
   }
 }</code></pre>
 </div>
@@ -591,7 +590,7 @@ compiling 1 ... source...
 </div>
 </div>
 <div class="paragraph">
-<p>You can also select multiple test suites in one command using Mill’s
+<p>You can also select multiple test suites in one command using Mill&#8217;s
 <a href="../fundamentals/query-syntax.html" class="xref page">Task Query Syntax</a></p>
 </div>
 <div class="listingblock">
@@ -656,7 +655,7 @@ enabled, so that once you save a file to disk the selected tests get re-run.</p>
 </div>
 <div class="admonitionblock note">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -670,7 +669,7 @@ paths can be provided to test via <code>forkEnv</code>. See
 for more details.
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 <div class="paragraph">
 <p>If you want to pass any arguments to the test framework, you can pass them after
@@ -693,7 +692,7 @@ lets you pass in a selector to decide which test to run, which in Mill would be:
 <div class="sectionbody">
 <div class="admonitionblock important">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-important" title="Important"></i>
 </td>
@@ -703,7 +702,7 @@ lets you pass in a selector to decide which test to run, which in Mill would be:
 </div>
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 <div class="paragraph">
 <p>You might be used to test-scoped dependencies from other build tools like
@@ -719,23 +718,23 @@ can use their <code>moduleDeps</code> to also depend on each other</p>
 import mill._, scalalib._
 
 object qux extends ScalaModule {
-  def scalaVersion = &quot;2.13.8&quot;
+  def scalaVersion = "2.13.8"
   def moduleDeps = Seq(baz)
 
   object test extends ScalaTests {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
-    def testFramework = &quot;utest.runner.Framework&quot;
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
+    def testFramework = "utest.runner.Framework"
     def moduleDeps = super.moduleDeps ++ Seq(baz.test)
   }
 }
 
 
 object baz extends ScalaModule {
-  def scalaVersion = &quot;2.13.8&quot;
+  def scalaVersion = "2.13.8"
 
   object test extends ScalaTests {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
-    def testFramework = &quot;utest.runner.Framework&quot;
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
+    def testFramework = "utest.runner.Framework"
   }
 }</code></pre>
 </div>
@@ -746,7 +745,7 @@ object baz extends ScalaModule {
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/basic/VisualizeTestDeps.svg" alt="VisualizeTestDeps.svg" />
+<img src="../_images/basic/VisualizeTestDeps.svg" alt="VisualizeTestDeps.svg">
 </div>
 </div>
 <div class="paragraph">
@@ -784,13 +783,13 @@ to that named <code>test</code>.</p>
 import mill._, scalalib._
 
 object qux extends ScalaModule {
-  def scalaVersion = &quot;2.13.8&quot;
+  def scalaVersion = "2.13.8"
 
   object test extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
   }
   object integration extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
   }
 }</code></pre>
 </div>
@@ -827,10 +826,10 @@ by overriding <code>def testForkGrouping</code>, as shown below:</p>
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = &quot;2.13.8&quot;
+  def scalaVersion = "2.13.8"
   object test extends ScalaTests {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
-    def testFramework = &quot;utest.runner.Framework&quot;
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
+    def testFramework = "utest.runner.Framework"
     def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
   }
 }</code></pre>
@@ -843,12 +842,12 @@ object foo extends ScalaModule {
 import utest._
 object HelloTests extends TestSuite {
   def tests = Tests {
-    test(&quot;hello&quot;) {
-      println(&quot;Testing Hello&quot;)
+    test("hello") {
+      println("Testing Hello")
       val result = Foo.hello()
-      assert(result.startsWith(&quot;Hello&quot;))
+      assert(result.startsWith("Hello"))
       Thread.sleep(1000)
-      println(&quot;Testing Hello Completed&quot;)
+      println("Testing Hello Completed")
       result
     }
   }
@@ -862,12 +861,12 @@ object HelloTests extends TestSuite {
 import utest._
 object WorldTests extends TestSuite {
   def tests = Tests {
-    test(&quot;world&quot;) {
-      println(&quot;Testing World&quot;)
+    test("world") {
+      println("Testing World")
       val result = Foo.hello()
-      assert(result.endsWith(&quot;World&quot;))
+      assert(result.endsWith("World"))
       Thread.sleep(1000)
-      println(&quot;Testing World Completed&quot;)
+      println("Testing World Completed")
       result
     }
   }
@@ -936,9 +935,9 @@ execution, based on the unique constraints of your test suite.</p>
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async="async" src="../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async="async" src="../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>

@@ -215,7 +215,7 @@
 
   <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../why-mill.html">Why Mill?</a>
+    <a class="nav-link" href="../comparisons/why-mill.html">Why Mill?</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
@@ -449,14 +449,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.1-60-75d248</span>
+    <span class="version">0.12.1-62-435a72</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../0.12.1/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../index.html">0.12.1-60-75d248</a>
+          <a href="../index.html">0.12.1-62-435a72</a>
         </li>
         <li class="version is-latest">
           <a href="../0.12.1/index.html">0.12.1</a>
@@ -549,18 +549,18 @@ object `package` extends RootModule with JavaModule {
   def mainClass: T[Option[String]] = Some(&quot;foo.Foo2&quot;)
 
   // Add (or replace) source folders for the module to use
-  def sources = Task.Sources{
+  def sources = Task.Sources {
     super.sources() ++ Seq(PathRef(millSourcePath / &quot;custom-src&quot;))
   }
 
   // Add (or replace) resource folders for the module to use
-  def resources = Task.Sources{
+  def resources = Task.Sources {
     super.resources() ++ Seq(PathRef(millSourcePath / &quot;custom-resources&quot;))
   }
 
   // Generate sources at build time
   def generatedSources: T[Seq[PathRef]] = Task {
-    for(name &lt;- Seq(&quot;A&quot;, &quot;B&quot;, &quot;C&quot;)) os.write(
+    for (name &lt;- Seq(&quot;A&quot;, &quot;B&quot;, &quot;C&quot;)) os.write(
       Task.dest / s&quot;Foo$name.java&quot;,
       s&quot;&quot;&quot;
 package foo;
@@ -611,7 +611,7 @@ a task of interest, such as <code>run</code>, you can visualize their relationsh
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
 
-object `package` extends RootModule with JavaModule{
+object `package` extends RootModule with JavaModule {
   def forkArgs = Seq(&quot;-Xmx4g&quot;, &quot;-Dmy.jvm.property=hello&quot;)
   def forkEnv = Map(&quot;MY_ENV_VAR&quot; -&gt; &quot;WORLD&quot;)
   def javacOptions = Seq(&quot;-deprecation&quot;)
@@ -677,16 +677,16 @@ public class Foo {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
-import org.junit.Test;
 import static org.junit.Assert.*;
 
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.nio.file.Path;
-import java.util.List;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
+import org.junit.Test;
 
 public class FooTests {
 
@@ -698,32 +698,29 @@ public class FooTests {
 
     // Read `test-file-a.txt` from classpath
     String testClasspathResourceText;
-    try (InputStream inputStream = Foo.class.getClassLoader().getResourceAsStream(&quot;test-file-a.txt&quot;)) {
+    try (InputStream inputStream =
+        Foo.class.getClassLoader().getResourceAsStream(&quot;test-file-a.txt&quot;)) {
       testClasspathResourceText = new String(inputStream.readAllBytes());
     }
     assertEquals(&quot;Test Hello World Resource File A&quot;, testClasspathResourceText);
 
     // Use `MILL_TEST_RESOURCE_DIR` to read `test-file-b.txt` from filesystem
     Path testFileResourceDir = Paths.get(System.getenv(&quot;MILL_TEST_RESOURCE_DIR&quot;));
-    String testFileResourceText = Files.readString(
-        testFileResourceDir.resolve(&quot;test-file-b.txt&quot;)
-    );
+    String testFileResourceText = Files.readString(testFileResourceDir.resolve(&quot;test-file-b.txt&quot;));
     assertEquals(&quot;Test Hello World Resource File B&quot;, testFileResourceText);
 
     // Use `MILL_TEST_RESOURCE_DIR` to list files available in resource folder
     List&lt;Path&gt; actualFiles = new ArrayList&lt;&gt;(Files.list(testFileResourceDir).toList());
     actualFiles.sort(Path::compareTo);
     List&lt;Path&gt; expectedFiles = List.of(
-            testFileResourceDir.resolve(&quot;test-file-a.txt&quot;),
-            testFileResourceDir.resolve(&quot;test-file-b.txt&quot;)
-    );
+        testFileResourceDir.resolve(&quot;test-file-a.txt&quot;),
+        testFileResourceDir.resolve(&quot;test-file-b.txt&quot;));
     assertEquals(expectedFiles, actualFiles);
 
     // Use the `OTHER_FILES_DIR` configured in your build to access the
     // files in `foo/test/other-files/`.
-    String otherFileText = Files.readString(
-        Paths.get(System.getenv(&quot;OTHER_FILES_DIR&quot;), &quot;other-file.txt&quot;)
-    );
+    String otherFileText =
+        Files.readString(Paths.get(System.getenv(&quot;OTHER_FILES_DIR&quot;), &quot;other-file.txt&quot;));
     assertEquals(&quot;Other Hello World File&quot;, otherFileText);
   }
 }</code></pre>
@@ -786,7 +783,7 @@ in <code>-processorpath</code> to <code>javacOptions</code> explicitly:</p>
 
   def javacOptions = Seq(
     &quot;-processorpath&quot;,
-    processors().map(_.path).mkString(File.pathSeparator),
+    processors().map(_.path).mkString(File.pathSeparator)
   )
 
   object test extends JavaTests with TestModule.Junit4
@@ -868,8 +865,7 @@ object foo extends JavaModule {
   )
 }
 
-object bar extends JavaModule {
-}</code></pre>
+object bar extends JavaModule {}</code></pre>
 </div>
 </div>
 </div>
@@ -887,7 +883,7 @@ object `package` extends RootModule with JavaModule {
   def ivyDeps = Agg(ivy&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;)
 
   def generatedSources: T[Seq[PathRef]] = Task {
-    val prettyIvyDeps = for(ivyDep &lt;- ivyDeps()) yield {
+    val prettyIvyDeps = for (ivyDep &lt;- ivyDeps()) yield {
       val org = ivyDep.dep.module.organization.value
       val name = ivyDep.dep.module.name.value
       val version = ivyDep.dep.version
@@ -927,13 +923,13 @@ public class MyDeps {
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill run --text hello
 text: hello
 MyDeps.value: net.sourceforge.argparse4j:argparse4j:0.9.0
-my.line.count: 24
+my.line.count: 22
 
 &gt; mill show lineCount
-24
+22
 
 &gt; mill printLineCount
-24</code></pre>
+22</code></pre>
 </div>
 </div>
 </div>
@@ -1014,7 +1010,14 @@ object `package` extends RootModule with JavaModule {
 
   // Auto-generate JNI `.h` files from Java classes using Javac
   def nativeHeaders = Task {
-    os.proc(Jvm.jdkTool(&quot;javac&quot;), &quot;-h&quot;, Task.dest, &quot;-d&quot;, Task.dest.toString, allSourceFiles().map(_.path)).call()
+    os.proc(
+      Jvm.jdkTool(&quot;javac&quot;),
+      &quot;-h&quot;,
+      Task.dest,
+      &quot;-d&quot;,
+      Task.dest.toString,
+      allSourceFiles().map(_.path)
+    ).call()
     PathRef(Task.dest)
   }
 
@@ -1023,14 +1026,17 @@ object `package` extends RootModule with JavaModule {
     val cSourceFiles = nativeSources().map(_.path).flatMap(os.walk(_)).filter(_.ext == &quot;c&quot;)
     val output = &quot;libhelloworld.so&quot;
     os.proc(
-        &quot;clang&quot;, &quot;-shared&quot;, &quot;-fPIC&quot;,
-        &quot;-I&quot; + nativeHeaders().path, //
-        &quot;-I&quot; + sys.props(&quot;java.home&quot;) + &quot;/include/&quot;, // global JVM header files
-        &quot;-I&quot; + sys.props(&quot;java.home&quot;) + &quot;/include/darwin&quot;,
-        &quot;-I&quot; + sys.props(&quot;java.home&quot;) + &quot;/include/linux&quot;,
-        &quot;-o&quot;, Task.dest / output,
-        cSourceFiles
-      )
+      &quot;clang&quot;,
+      &quot;-shared&quot;,
+      &quot;-fPIC&quot;,
+      &quot;-I&quot; + nativeHeaders().path, //
+      &quot;-I&quot; + sys.props(&quot;java.home&quot;) + &quot;/include/&quot;, // global JVM header files
+      &quot;-I&quot; + sys.props(&quot;java.home&quot;) + &quot;/include/darwin&quot;,
+      &quot;-I&quot; + sys.props(&quot;java.home&quot;) + &quot;/include/linux&quot;,
+      &quot;-o&quot;,
+      Task.dest / output,
+      cSourceFiles
+    )
       .call(stdout = os.Inherit)
 
     PathRef(Task.dest / output)
@@ -1038,7 +1044,7 @@ object `package` extends RootModule with JavaModule {
 
   def forkEnv = Map(&quot;HELLO_WORLD_BINARY&quot; -&gt; nativeCompiled().path.toString)
 
-  object test extends JavaTests with TestModule.Junit4{
+  object test extends JavaTests with TestModule.Junit4 {
     def forkEnv = Map(&quot;HELLO_WORLD_BINARY&quot; -&gt; nativeCompiled().path.toString)
   }
 }</code></pre>

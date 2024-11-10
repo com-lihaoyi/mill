@@ -215,7 +215,7 @@
 
   <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../why-mill.html">Why Mill?</a>
+    <a class="nav-link" href="../comparisons/why-mill.html">Why Mill?</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
@@ -449,14 +449,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.1-60-75d248</span>
+    <span class="version">0.12.1-62-435a72</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../0.12.1/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../index.html">0.12.1-60-75d248</a>
+          <a href="../index.html">0.12.1-62-435a72</a>
         </li>
         <li class="version is-latest">
           <a href="../0.12.1/index.html">0.12.1</a>
@@ -551,18 +551,18 @@ object `package` extends RootModule with KotlinModule {
   def mainClass = Some(&quot;foo.Foo2Kt&quot;)
 
   // Add (or replace) source folders for the module to use
-  def sources = T.sources{
+  def sources = T.sources {
     super.sources() ++ Seq(PathRef(millSourcePath / &quot;custom-src&quot;))
   }
 
   // Add (or replace) resource folders for the module to use
-  def resources = T.sources{
+  def resources = T.sources {
     super.resources() ++ Seq(PathRef(millSourcePath / &quot;custom-resources&quot;))
   }
 
   // Generate sources at build time
   def generatedSources: T[Seq[PathRef]] = Task {
-    for(name &lt;- Seq(&quot;A&quot;, &quot;B&quot;, &quot;C&quot;)) os.write(
+    for (name &lt;- Seq(&quot;A&quot;, &quot;B&quot;, &quot;C&quot;)) os.write(
       T.dest / s&quot;Foo$name.kt&quot;,
       s&quot;&quot;&quot;
 package foo
@@ -908,7 +908,7 @@ object `package` extends RootModule with KotlinModule {
   def ivyDeps = Agg(ivy&quot;com.github.ajalt.clikt:clikt-jvm:4.4.0&quot;)
 
   def generatedSources: T[Seq[PathRef]] = Task {
-    val prettyIvyDeps = for(ivyDep &lt;- ivyDeps()) yield {
+    val prettyIvyDeps = for (ivyDep &lt;- ivyDeps()) yield {
       val org = ivyDep.dep.module.organization.value
       val name = ivyDep.dep.module.name.value
       val version = ivyDep.dep.version
@@ -1045,13 +1045,16 @@ object `package` extends RootModule with KotlinModule {
     val cSourceFiles = nativeSources().map(_.path).flatMap(os.walk(_)).filter(_.ext == &quot;c&quot;)
     val output = &quot;libhelloworld.so&quot;
     os.proc(
-        &quot;clang&quot;, &quot;-shared&quot;, &quot;-fPIC&quot;,
-        &quot;-I&quot; + sys.props(&quot;java.home&quot;) + &quot;/include/&quot;, // global JVM header files
-        &quot;-I&quot; + sys.props(&quot;java.home&quot;) + &quot;/include/darwin&quot;,
-        &quot;-I&quot; + sys.props(&quot;java.home&quot;) + &quot;/include/linux&quot;,
-        &quot;-o&quot;, T.dest / output,
-        cSourceFiles
-      )
+      &quot;clang&quot;,
+      &quot;-shared&quot;,
+      &quot;-fPIC&quot;,
+      &quot;-I&quot; + sys.props(&quot;java.home&quot;) + &quot;/include/&quot;, // global JVM header files
+      &quot;-I&quot; + sys.props(&quot;java.home&quot;) + &quot;/include/darwin&quot;,
+      &quot;-I&quot; + sys.props(&quot;java.home&quot;) + &quot;/include/linux&quot;,
+      &quot;-o&quot;,
+      T.dest / output,
+      cSourceFiles
+    )
       .call(stdout = os.Inherit)
 
     PathRef(T.dest / output)

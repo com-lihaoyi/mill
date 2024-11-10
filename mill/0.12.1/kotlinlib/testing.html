@@ -1,27 +1,26 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Testing Kotlin Projects :: The Mill JVM Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.12.1/kotlinlib/testing.html" />
-    <link rel="prev" href="dependencies.html" />
-    <link rel="next" href="linting.html" />
-    <meta name="generator" content="Antora 3.1.9" />
-    <link rel="stylesheet" href="../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.12.1/kotlinlib/testing.html">
+    <link rel="prev" href="dependencies.html">
+    <link rel="next" href="linting.html">
+    <meta name="generator" content="Antora 3.1.9">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
-  
-  </head><body class="article">
-  
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill JVM Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill JVM Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -432,7 +431,7 @@
       <div class="title"><a href="../index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version">
-          <a href="../../index.html">0.12.1-60-75d248</a>
+          <a href="../../index.html">0.12.1-62-435a72</a>
         </li>
         <li class="version is-current is-latest">
           <a href="../index.html">0.12.1</a>
@@ -504,27 +503,27 @@ import mill._, kotlinlib._
 
 object foo extends KotlinModule {
 
-  def mainClass = Some(&quot;foo.FooKt&quot;)
+  def mainClass = Some("foo.FooKt")
 
-  def kotlinVersion = &quot;1.9.24&quot;
+  def kotlinVersion = "1.9.24"
 
   object test extends KotlinTests {
-    def testFramework = &quot;com.github.sbt.junit.jupiter.api.JupiterFramework&quot;
+    def testFramework = "com.github.sbt.junit.jupiter.api.JupiterFramework"
     def ivyDeps = Agg(
-      ivy&quot;com.github.sbt.junit:jupiter-interface:0.11.4&quot;,
-      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
-      ivy&quot;org.mockito.kotlin:mockito-kotlin:5.4.0&quot;
+      ivy"com.github.sbt.junit:jupiter-interface:0.11.4",
+      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
+      ivy"org.mockito.kotlin:mockito-kotlin:5.4.0"
     )
 
-    // This is needed because of the &quot;mockito-kotlin&quot;
-    def kotlincOptions = super.kotlincOptions() ++ Seq(&quot;-jvm-target&quot;, &quot;11&quot;)
+    // This is needed because of the "mockito-kotlin"
+    def kotlincOptions = super.kotlincOptions() ++ Seq("-jvm-target", "11")
   }
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>This build defines a single module with a test suite, configured to use
-&quot;JUnit&quot; + &quot;Kotest&quot; as the testing framework, along with Mockito. Test suites are themselves
+"JUnit" + "Kotest" as the testing framework, along with Mockito. Test suites are themselves
 <code>KotlinModule</code>s, nested within the enclosing module,
 and have all the normal tasks like
 <code>foo.test.compile</code> available to run, but with an additional <code>.test</code> task
@@ -587,18 +586,18 @@ Compiling 1 ... source...
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends KotlinModule {
 
-  def mainClass = Some(&quot;bar.BarKt&quot;)
+  def mainClass = Some("bar.BarKt")
 
-  def kotlinVersion = &quot;1.9.24&quot;
+  def kotlinVersion = "1.9.24"
 
   object test extends KotlinTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
-      ivy&quot;org.mockito.kotlin:mockito-kotlin:5.4.0&quot;
+      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
+      ivy"org.mockito.kotlin:mockito-kotlin:5.4.0"
     )
 
-    // This is needed because of the &quot;mockito-kotlin&quot;
-    def kotlincOptions = super.kotlincOptions() ++ Seq(&quot;-jvm-target&quot;, &quot;11&quot;)
+    // This is needed because of the "mockito-kotlin"
+    def kotlincOptions = super.kotlincOptions() ++ Seq("-jvm-target", "11")
   }
 }</code></pre>
 </div>
@@ -611,7 +610,7 @@ Compiling 1 ... source...
 </div>
 </div>
 <div class="paragraph">
-<p>You can also select multiple test suites in one command using Mill’s
+<p>You can also select multiple test suites in one command using Mill&#8217;s
 <a href="../fundamentals/query-syntax.html" class="xref page">Task Query Syntax</a></p>
 </div>
 <div class="listingblock">
@@ -676,7 +675,7 @@ enabled, so that once you save a file to disk the selected tests get re-run.</p>
 </div>
 <div class="admonitionblock note">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -690,7 +689,7 @@ paths can be provided to test via <code>forkEnv</code>. See
 for more details.
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 <div class="paragraph">
 <p>If you want to pass any arguments to the test framework, you can pass them after
@@ -713,7 +712,7 @@ lets you pass in a selector to decide which test to run, which in Mill would be:
 <div class="sectionbody">
 <div class="admonitionblock important">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-important" title="Important"></i>
 </td>
@@ -723,7 +722,7 @@ lets you pass in a selector to decide which test to run, which in Mill would be:
 </div>
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 <div class="paragraph">
 <p>You might be used to test-scoped dependencies from other build tools like
@@ -740,27 +739,27 @@ import mill._, kotlinlib._
 
 object qux extends KotlinModule {
 
-  def kotlinVersion = &quot;1.9.24&quot;
+  def kotlinVersion = "1.9.24"
 
   def moduleDeps = Seq(baz)
 
   object test extends KotlinTests with TestModule.Junit5 {
     def moduleDeps = super.moduleDeps ++ Seq(baz.test)
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
-      ivy&quot;com.google.guava:guava:33.3.0-jre&quot;
+      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
+      ivy"com.google.guava:guava:33.3.0-jre"
     )
   }
 }
 
 object baz extends KotlinModule {
 
-  def kotlinVersion = &quot;1.9.24&quot;
+  def kotlinVersion = "1.9.24"
 
   object test extends KotlinTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
-      ivy&quot;com.google.guava:guava:33.3.0-jre&quot;
+      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
+      ivy"com.google.guava:guava:33.3.0-jre"
     )
   }
 }</code></pre>
@@ -772,7 +771,7 @@ object baz extends KotlinModule {
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/basic/VisualizeTestDeps.svg" alt="VisualizeTestDeps.svg" />
+<img src="../_images/basic/VisualizeTestDeps.svg" alt="VisualizeTestDeps.svg">
 </div>
 </div>
 <div class="paragraph">
@@ -810,16 +809,16 @@ to that named <code>test</code>.</p>
 import mill._, kotlinlib._
 object qux extends KotlinModule {
 
-  def kotlinVersion = &quot;1.9.24&quot;
+  def kotlinVersion = "1.9.24"
 
   object test extends KotlinTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;
+      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
     )
   }
   object integration extends KotlinTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;
+      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
     )
   }
 }</code></pre>
@@ -862,16 +861,16 @@ import mill._, kotlinlib._
 
 object foo extends KotlinModule {
 
-  def mainClass = Some(&quot;foo.FooKt&quot;)
+  def mainClass = Some("foo.FooKt")
 
-  def kotlinVersion = &quot;1.9.24&quot;
+  def kotlinVersion = "1.9.24"
 
   object test extends KotlinTests {
-    def testFramework = &quot;com.github.sbt.junit.jupiter.api.JupiterFramework&quot;
+    def testFramework = "com.github.sbt.junit.jupiter.api.JupiterFramework"
     def ivyDeps = Agg(
-      ivy&quot;com.github.sbt.junit:jupiter-interface:0.11.4&quot;,
-      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
-      ivy&quot;org.mockito.kotlin:mockito-kotlin:5.4.0&quot;
+      ivy"com.github.sbt.junit:jupiter-interface:0.11.4",
+      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
+      ivy"org.mockito.kotlin:mockito-kotlin:5.4.0"
     )
 
     def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
@@ -888,12 +887,12 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.string.shouldStartWith
 
 class HelloTests : FunSpec({
-    test(&quot;hello&quot;) {
-        println(&quot;Testing Hello&quot;)
+    test("hello") {
+        println("Testing Hello")
         val result = Foo().hello()
-        result shouldStartWith &quot;Hello&quot;
+        result shouldStartWith "Hello"
         java.lang.Thread.sleep(1000)
-        println(&quot;Testing Hello Completed&quot;)
+        println("Testing Hello Completed")
     }
 })</code></pre>
 </div>
@@ -907,12 +906,12 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.string.shouldEndWith
 
 class WorldTests : FunSpec({
-    test(&quot;world&quot;) {
-        println(&quot;Testing World&quot;)
+    test("world") {
+        println("Testing World")
         val result = Foo().hello()
-        result shouldEndWith &quot;World&quot;
+        result shouldEndWith "World"
         java.lang.Thread.sleep(1000)
-        println(&quot;Testing World Completed&quot;)
+        println("Testing World Completed")
     }
 })</code></pre>
 </div>
@@ -979,9 +978,9 @@ execution, based on the unique constraints of your test suite.</p>
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async="async" src="../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async="async" src="../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>

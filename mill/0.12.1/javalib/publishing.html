@@ -1,27 +1,26 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Publishing Java Projects :: The Mill JVM Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.12.1/javalib/publishing.html" />
-    <link rel="prev" href="linting.html" />
-    <link rel="next" href="build-examples.html" />
-    <meta name="generator" content="Antora 3.1.9" />
-    <link rel="stylesheet" href="../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.12.1/javalib/publishing.html">
+    <link rel="prev" href="linting.html">
+    <link rel="next" href="build-examples.html">
+    <meta name="generator" content="Antora 3.1.9">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
-  
-  </head><body class="article">
-  
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill JVM Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill JVM Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -432,7 +431,7 @@
       <div class="title"><a href="../index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version">
-          <a href="../../index.html">0.12.1-60-75d248</a>
+          <a href="../../index.html">0.12.1-62-435a72</a>
         </li>
         <li class="version is-current is-latest">
           <a href="../index.html">0.12.1</a>
@@ -503,15 +502,15 @@ const links = document.querySelectorAll('a');
 import mill._, javalib._, publish._
 
 object foo extends JavaModule with PublishModule {
-  def publishVersion = &quot;0.0.1&quot;
+  def publishVersion = "0.0.1"
 
   def pomSettings = PomSettings(
-    description = &quot;Hello&quot;,
-    organization = &quot;com.lihaoyi&quot;,
-    url = &quot;https://github.com/lihaoyi/example&quot;,
+    description = "Hello",
+    organization = "com.lihaoyi",
+    url = "https://github.com/lihaoyi/example",
     licenses = Seq(License.MIT),
-    versionControl = VersionControl.github(&quot;lihaoyi&quot;, &quot;example&quot;),
-    developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
+    versionControl = VersionControl.github("lihaoyi", "example"),
+    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
   )
 }</code></pre>
 </div>
@@ -535,14 +534,14 @@ Publishing Artifact(com.lihaoyi,foo,0.0.1) to ivy repo...</code></pre>
 <h2 id="_publishing_to_sonatype_maven_central"><a class="anchor" href="#_publishing_to_sonatype_maven_central"></a>Publishing to Sonatype Maven Central</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Once you’ve mixed in <code>PublishModule</code>, apart from publishing locally, you can also publish
-your project’s modules to maven central</p>
+<p>Once you&#8217;ve mixed in <code>PublishModule</code>, apart from publishing locally, you can also publish
+your project&#8217;s modules to maven central</p>
 </div>
 <div class="sect2">
 <h3 id="_gpg"><a class="anchor" href="#_gpg"></a>GPG</h3>
 <div class="paragraph">
-<p>If you’ve never created a keypair before that can be used to sign your artifacts
-you’ll need to do this. <a href="https://central.sonatype.org/publish/requirements/gpg/">Sonatype’s GPG Documentation</a>
+<p>If you&#8217;ve never created a keypair before that can be used to sign your artifacts
+you&#8217;ll need to do this. <a href="https://central.sonatype.org/publish/requirements/gpg/">Sonatype&#8217;s GPG Documentation</a>
 has the instructions on how to do this</p>
 </div>
 </div>
@@ -601,7 +600,7 @@ the <a href="../fundamentals/modules.html#_default_tasks" class="xref page">defa
 </div>
 </div>
 <div class="paragraph">
-<p>The default URL for publishing to sonatype’s Maven Central is <code>oss.sonatype.org</code>.
+<p>The default URL for publishing to sonatype&#8217;s Maven Central is <code>oss.sonatype.org</code>.
 Newer projects registered on sonatype may need to publish using <code>s01.oss.sonatype.org</code>.
 In that case, you can pass in a <code>--sonatypeUri</code>:</p>
 </div>
@@ -617,17 +616,17 @@ by passing in <code>--sonatypeUri example.company.com</code> instead.</p>
 </div>
 <div class="admonitionblock note">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
 <div class="paragraph">
 <p>Since Feb. 2021 any new Sonatype accounts have been created on
-<code>s01.oss.sonatype.org</code>, so you’ll want to ensure you set the relevant URIs to match.</p>
+<code>s01.oss.sonatype.org</code>, so you&#8217;ll want to ensure you set the relevant URIs to match.</p>
 </div>
 <div class="paragraph">
-<p>The symptom of using the &quot;wrong&quot; URL for publishling is typically a 403 error code, in response to the publish request.</p>
+<p>The symptom of using the "wrong" URL for publishling is typically a 403 error code, in response to the publish request.</p>
 </div>
 <div class="paragraph">
 <p>See <a href="https://central.sonatype.org/publish/publish-guide/#releasing-to-central" class="bare">https://central.sonatype.org/publish/publish-guide/#releasing-to-central</a></p>
@@ -647,7 +646,7 @@ by passing in <code>--sonatypeUri example.company.com</code> instead.</p>
 </div>
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 </div>
 <div class="sect2">
@@ -683,7 +682,7 @@ jobs:
 </div>
 <div class="paragraph">
 <p>Where <code>MILL_PGP_PASSPHRASE</code>, <code>MILL_PGP_SECRET_BASE64</code>, <code>MILL_SONATYPE_PASSWORD</code>, and
-<code>MILL_SONATYPE_USERNAME</code> configured for the repository’s or organization’s Github Actions
+<code>MILL_SONATYPE_USERNAME</code> configured for the repository&#8217;s or organization&#8217;s Github Actions
 workflows. See
 <a href="https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions">Using Secrets in Github Actions</a>
 for more details.</p>
@@ -743,9 +742,9 @@ there are also others that you can use. Mill supports these largely through cont
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async="async" src="../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async="async" src="../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>

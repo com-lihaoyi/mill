@@ -215,7 +215,7 @@
 
   <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../why-mill.html">Why Mill?</a>
+    <a class="nav-link" href="../comparisons/why-mill.html">Why Mill?</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
@@ -449,14 +449,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.1-60-75d248</span>
+    <span class="version">0.12.1-62-435a72</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../0.12.1/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../index.html">0.12.1-60-75d248</a>
+          <a href="../index.html">0.12.1-62-435a72</a>
         </li>
         <li class="version is-latest">
           <a href="../0.12.1/index.html">0.12.1</a>
@@ -536,10 +536,9 @@ def sharedCompileIvyDeps = Task {
     ivy&quot;com.google.auto.service:auto-service:1.0.1&quot;,
     ivy&quot;com.google.code.findbugs:jsr305:3.0.2&quot;,
     ivy&quot;org.checkerframework:checker-compat-qual:2.5.5&quot;,
-    ivy&quot;com.ibm.icu:icu4j:73.1&quot;,
+    ivy&quot;com.ibm.icu:icu4j:73.1&quot;
   )
 }
-
 
 object jimfs extends PublishModule with MavenModule {
   def publishVersion = &quot;1.3.3.7&quot;
@@ -554,7 +553,7 @@ object jimfs extends PublishModule with MavenModule {
   )
 
   def ivyDeps = sharedCompileIvyDeps() ++ Agg(
-    ivy&quot;com.google.guava:guava:31.1-android&quot;,
+    ivy&quot;com.google.guava:guava:31.1-android&quot;
   )
 
   def javacOptions = Seq(&quot;-processor&quot;, &quot;com.google.auto.service.processor.AutoServiceProcessor&quot;)
@@ -565,7 +564,7 @@ object jimfs extends PublishModule with MavenModule {
       ivy&quot;com.google.guava:guava-testlib:31.1-android&quot;,
       ivy&quot;com.google.truth:truth:1.1.3&quot;,
       ivy&quot;com.github.sbt:junit-interface:0.13.2&quot;,
-      ivy&quot;com.ibm.icu:icu4j:73.1&quot;,
+      ivy&quot;com.ibm.icu:icu4j:73.1&quot;
     )
 
     def testFramework = &quot;com.novocode.junit.JUnitFramework&quot;
@@ -619,7 +618,7 @@ object `package` extends RootModule with PublishModule with MavenModule {
     developers = Nil
   )
 
-  object test extends MavenTests with TestModule.Junit5 with JmhModule{
+  object test extends MavenTests with TestModule.Junit5 with JmhModule {
     def testSandboxWorkingDir = false
     def jmhCoreVersion = &quot;1.37&quot;
     def ivyDeps = super.ivyDeps() ++ Agg(
@@ -632,7 +631,7 @@ object `package` extends RootModule with PublishModule with MavenModule {
       ivy&quot;org.apache.commons:commons-lang3:3.14.0&quot;,
       ivy&quot;commons-codec:commons-codec:1.17.1&quot;,
       ivy&quot;org.openjdk.jmh:jmh-core:1.37&quot;,
-      ivy&quot;org.openjdk.jmh:jmh-generator-annprocess:1.37&quot;,
+      ivy&quot;org.openjdk.jmh:jmh-generator-annprocess:1.37&quot;
     )
   }
 }</code></pre>

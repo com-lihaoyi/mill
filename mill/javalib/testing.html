@@ -215,7 +215,7 @@
 
   <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../why-mill.html">Why Mill?</a>
+    <a class="nav-link" href="../comparisons/why-mill.html">Why Mill?</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
@@ -449,14 +449,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.1-60-75d248</span>
+    <span class="version">0.12.1-62-435a72</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../0.12.1/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../index.html">0.12.1-60-75d248</a>
+          <a href="../index.html">0.12.1-62-435a72</a>
         </li>
         <li class="version is-latest">
           <a href="../0.12.1/index.html">0.12.1</a>
@@ -603,7 +603,7 @@ compiling 1 ... source...
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends JavaModule {
-  object test extends JavaTests with TestModule.Junit4{
+  object test extends JavaTests with TestModule.Junit4 {
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy&quot;org.mockito:mockito-core:4.6.1&quot;
     )
@@ -863,6 +863,7 @@ object foo extends JavaModule {
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
 import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 
 public class HelloTests {
@@ -884,6 +885,7 @@ public class HelloTests {
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
 import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 
 public class WorldTests {

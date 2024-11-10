@@ -1,27 +1,26 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Kotlin Web Project Examples :: The Mill JVM Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.12.1/kotlinlib/web-examples.html" />
-    <link rel="prev" href="build-examples.html" />
-    <link rel="next" href="android-examples.html" />
-    <meta name="generator" content="Antora 3.1.9" />
-    <link rel="stylesheet" href="../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/0.12.1/kotlinlib/web-examples.html">
+    <link rel="prev" href="build-examples.html">
+    <link rel="next" href="android-examples.html">
+    <meta name="generator" content="Antora 3.1.9">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
-  
-  </head><body class="article">
-  
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill JVM Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill JVM Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -432,7 +431,7 @@
       <div class="title"><a href="../index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version">
-          <a href="../../index.html">0.12.1-60-75d248</a>
+          <a href="../../index.html">0.12.1-62-435a72</a>
         </li>
         <li class="version is-current is-latest">
           <a href="../index.html">0.12.1</a>
@@ -505,19 +504,19 @@ import mill._, kotlinlib._
 
 object `package` extends RootModule with KotlinModule {
 
-  def kotlinVersion = &quot;1.9.24&quot;
+  def kotlinVersion = "1.9.24"
 
-  def mainClass = Some(&quot;com.example.HelloKtorKt&quot;)
+  def mainClass = Some("com.example.HelloKtorKt")
 
   def ivyDeps = Agg(
-    ivy&quot;io.ktor:ktor-server-core-jvm:2.3.12&quot;,
-    ivy&quot;io.ktor:ktor-server-netty-jvm:2.3.12&quot;
+    ivy"io.ktor:ktor-server-core-jvm:2.3.12",
+    ivy"io.ktor:ktor-server-netty-jvm:2.3.12"
   )
 
   object test extends KotlinTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
-      ivy&quot;io.ktor:ktor-server-test-host-jvm:2.3.12&quot;
+      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
+      ivy"io.ktor:ktor-server-test-host-jvm:2.3.12"
     )
   }
 }</code></pre>
@@ -535,14 +534,14 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
 fun main() {
-    embeddedServer(Netty, port = 8090, host = &quot;0.0.0.0&quot;, module = Application::module)
+    embeddedServer(Netty, port = 8090, host = "0.0.0.0", module = Application::module)
         .start(wait = true)
 }
 
 fun Application.module() {
     routing {
-        get(&quot;/&quot;) {
-            call.respondText(&quot;&lt;h1&gt;Hello, World!&lt;/h1&gt;&quot;)
+        get("/") {
+            call.respondText("&lt;h1&gt;Hello, World!&lt;/h1&gt;")
         }
     }
 }</code></pre>
@@ -562,14 +561,14 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
 class HelloKtorTest: FunSpec({
-    test(&quot;HelloKtorTest&quot;) {
+    test("HelloKtorTest") {
         testApplication {
             application {
                 module()
             }
-        val response = client.get(&quot;/&quot;)
+        val response = client.get("/")
         response.status shouldBe HttpStatusCode.OK
-        response.bodyAsText() shouldBe &quot;&lt;h1&gt;Hello, World!&lt;/h1&gt;&quot;
+        response.bodyAsText() shouldBe "&lt;h1&gt;Hello, World!&lt;/h1&gt;"
         }
     }
 })</code></pre>
@@ -577,7 +576,7 @@ class HelloKtorTest: FunSpec({
 </div>
 <div class="paragraph">
 <p>This example demonstrates how to set up a simple webserver
-serving a single &quot;&lt;h1&gt;Hello, World!&lt;/h1&gt;&quot; web page using Kotlin and Ktor.
+serving a single "&lt;h1&gt;Hello, World!&lt;/h1&gt;" web page using Kotlin and Ktor.
 It includes one module which is the Ktor webserver/app, and one test module
 using kotest</p>
 </div>
@@ -607,32 +606,32 @@ import mill._, kotlinlib._
 
 object `package` extends RootModule with KotlinModule {
 
-  def kotlinVersion = &quot;1.9.24&quot;
+  def kotlinVersion = "1.9.24"
 
-  def mainClass = Some(&quot;com.example.TodoMVCApplicationKt&quot;)
+  def mainClass = Some("com.example.TodoMVCApplicationKt")
 
-  val ktorVersion = &quot;2.3.12&quot;
-  val exposedVersion = &quot;0.53.0&quot;
+  val ktorVersion = "2.3.12"
+  val exposedVersion = "0.53.0"
 
   def ivyDeps = Agg(
-      ivy&quot;io.ktor:ktor-server-core-jvm:$ktorVersion&quot;,
-      ivy&quot;io.ktor:ktor-server-netty-jvm:$ktorVersion&quot;,
-      ivy&quot;org.jetbrains.exposed:exposed-core:$exposedVersion&quot;,
-      ivy&quot;org.jetbrains.exposed:exposed-jdbc:$exposedVersion&quot;,
-      ivy&quot;com.h2database:h2:2.2.224&quot;,
-      ivy&quot;io.ktor:ktor-server-webjars-jvm:$ktorVersion&quot;,
-      ivy&quot;org.webjars:jquery:3.2.1&quot;,
-      ivy&quot;io.ktor:ktor-server-thymeleaf-jvm:$ktorVersion&quot;,
-      ivy&quot;org.webjars:webjars-locator:0.41&quot;,
-      ivy&quot;org.webjars.npm:todomvc-common:1.0.5&quot;,
-      ivy&quot;org.webjars.npm:todomvc-app-css:2.4.1&quot;,
-      ivy&quot;ch.qos.logback:logback-classic:1.4.14&quot;
+      ivy"io.ktor:ktor-server-core-jvm:$ktorVersion",
+      ivy"io.ktor:ktor-server-netty-jvm:$ktorVersion",
+      ivy"org.jetbrains.exposed:exposed-core:$exposedVersion",
+      ivy"org.jetbrains.exposed:exposed-jdbc:$exposedVersion",
+      ivy"com.h2database:h2:2.2.224",
+      ivy"io.ktor:ktor-server-webjars-jvm:$ktorVersion",
+      ivy"org.webjars:jquery:3.2.1",
+      ivy"io.ktor:ktor-server-thymeleaf-jvm:$ktorVersion",
+      ivy"org.webjars:webjars-locator:0.41",
+      ivy"org.webjars.npm:todomvc-common:1.0.5",
+      ivy"org.webjars.npm:todomvc-app-css:2.4.1",
+      ivy"ch.qos.logback:logback-classic:1.4.14"
   )
 
   object test extends KotlinTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
-      ivy&quot;io.ktor:ktor-server-test-host-jvm:2.3.12&quot;
+      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
+      ivy"io.ktor:ktor-server-test-host-jvm:2.3.12"
     )
   }
 }</code></pre>
@@ -700,10 +699,10 @@ import mill._, kotlinlib._, kotlinlib.js._
 
 object `package` extends RootModule with KotlinJsModule {
   def moduleKind = ModuleKind.ESModule
-  def kotlinVersion = &quot;1.9.25&quot;
+  def kotlinVersion = "1.9.25"
   def kotlinJsRunTarget = Some(RunTarget.Node)
   def ivyDeps = Agg(
-    ivy&quot;org.jetbrains.kotlinx:kotlinx-html-js:0.11.0&quot;,
+    ivy"org.jetbrains.kotlinx:kotlinx-html-js:0.11.0",
   )
   object test extends KotlinJsModule with KotestTests
 }</code></pre>
@@ -714,14 +713,14 @@ object `package` extends RootModule with KotlinJsModule {
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill run
 Compiling 1 Kotlin sources to .../out/compile.dest/classes...
 &lt;h1&gt;Hello World&lt;/h1&gt;
-stringifiedJsObject: [&quot;hello&quot;,&quot;world&quot;,&quot;!&quot;]
+stringifiedJsObject: ["hello","world","!"]
 
 &gt; mill test # Test is incorrect, `test` fails
 Compiling 1 Kotlin sources to .../out/test/compile.dest/classes...
 Linking IR to .../out/test/linkBinary.dest/binaries
 produce executable: .../out/test/linkBinary.dest/binaries
 ...
-error: ... expected:&lt;&quot;&lt;h1&gt;Hello World Wrong&lt;/h1&gt;&quot;&gt; but was:&lt;&quot;&lt;h1&gt;Hello World&lt;/h1&gt;...
+error: ... expected:&lt;"&lt;h1&gt;Hello World Wrong&lt;/h1&gt;"&gt; but was:&lt;"&lt;h1&gt;Hello World&lt;/h1&gt;...
 ...
 
 &gt; cat out/test/linkBinary.dest/binaries/test.js # Generated javascript on disk
@@ -744,9 +743,9 @@ error: ... expected:&lt;&quot;&lt;h1&gt;Hello World Wrong&lt;/h1&gt;&quot;&gt; b
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async="async" src="../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async="async" src="../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>

@@ -215,7 +215,7 @@
 
   <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../why-mill.html">Why Mill?</a>
+    <a class="nav-link" href="../comparisons/why-mill.html">Why Mill?</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
@@ -449,14 +449,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.1-60-75d248</span>
+    <span class="version">0.12.1-62-435a72</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <div class="title"><a href="../0.12.1/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../index.html">0.12.1-60-75d248</a>
+          <a href="../index.html">0.12.1-62-435a72</a>
         </li>
         <li class="version is-latest">
           <a href="../0.12.1/index.html">0.12.1</a>
@@ -660,9 +660,9 @@ operations at the same time, writing out a <code>generated.html</code> file and 
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
 public class Foo {
-    public static String generateHtml(String text) {
-        return &quot;&lt;h1&gt;&quot; + text + &quot;&lt;/h1&gt;&quot;;
-    }
+  public static String generateHtml(String text) {
+    return &quot;&lt;h1&gt;&quot; + text + &quot;&lt;/h1&gt;&quot;;
+  }
 }</code></pre>
 </div>
 </div>
@@ -672,17 +672,18 @@ public class Foo {
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
 import static org.junit.Assert.assertEquals;
-import org.junit.Test;
+
 import java.nio.file.*;
+import org.junit.Test;
 
 public class FooTests {
-    @Test
-    public void simple() throws Exception {
-        String result = Foo.generateHtml(&quot;hello&quot;);
-        Path path = Paths.get(&quot;generated.html&quot;);
-        Files.write(path, result.getBytes());
-        assertEquals(&quot;&lt;h1&gt;hello&lt;/h1&gt;&quot;, Files.readString(path));
-    }
+  @Test
+  public void simple() throws Exception {
+    String result = Foo.generateHtml(&quot;hello&quot;);
+    Path path = Paths.get(&quot;generated.html&quot;);
+    Files.write(path, result.getBytes());
+    assertEquals(&quot;&lt;h1&gt;hello&lt;/h1&gt;&quot;, Files.readString(path));
+  }
 }</code></pre>
 </div>
 </div>
@@ -692,9 +693,9 @@ public class FooTests {
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package bar;
 
 public class Bar {
-    public static String generateHtml(String text) {
-        return &quot;&lt;p&gt;&quot; + text + &quot;&lt;/p&gt;&quot;;
-    }
+  public static String generateHtml(String text) {
+    return &quot;&lt;p&gt;&quot; + text + &quot;&lt;/p&gt;&quot;;
+  }
 }</code></pre>
 </div>
 </div>
@@ -704,17 +705,18 @@ public class Bar {
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package bar;
 
 import static org.junit.Assert.assertEquals;
-import org.junit.Test;
+
 import java.nio.file.*;
+import org.junit.Test;
 
 public class BarTests {
-    @Test
-    public void simple() throws Exception {
-        String result = Bar.generateHtml(&quot;world&quot;);
-        Path path = Paths.get(&quot;generated.html&quot;);
-        Files.write(path, result.getBytes());
-        assertEquals(&quot;&lt;p&gt;world&lt;/p&gt;&quot;, Files.readString(path));
-    }
+  @Test
+  public void simple() throws Exception {
+    String result = Bar.generateHtml(&quot;world&quot;);
+    Path path = Paths.get(&quot;generated.html&quot;);
+    Files.write(path, result.getBytes());
+    assertEquals(&quot;&lt;p&gt;world&lt;/p&gt;&quot;, Files.readString(path));
+  }
 }</code></pre>
 </div>
 </div>
@@ -834,9 +836,9 @@ workspace root via the <code>MILL_WORKSPACE_ROOT</code> environment variable</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
 public class Foo {
-    public static String generateHtml(String text) {
-        return &quot;&lt;h1&gt;&quot; + text + &quot;&lt;/h1&gt;&quot;;
-    }
+  public static String generateHtml(String text) {
+    return &quot;&lt;h1&gt;&quot; + text + &quot;&lt;/h1&gt;&quot;;
+  }
 }</code></pre>
 </div>
 </div>
@@ -845,26 +847,24 @@ public class Foo {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
-import java.util.stream.Collectors;
-import java.nio.file.*;
 import static org.junit.Assert.assertEquals;
+
+import java.nio.file.*;
+import java.util.stream.Collectors;
 import org.junit.Test;
 
 public class FooTests {
-    @Test
-    public void simple() throws Exception {
-        String workspaceRoot = System.getenv(&quot;MILL_WORKSPACE_ROOT&quot;);
+  @Test
+  public void simple() throws Exception {
+    String workspaceRoot = System.getenv(&quot;MILL_WORKSPACE_ROOT&quot;);
 
-        for(Path subpath: Files.list(Paths.get(workspaceRoot)).collect(Collectors.toList())){
-            String result = Foo.generateHtml(subpath.getFileName().toString());
-            Path tmppath = Paths.get(subpath.getFileName() + &quot;.html&quot;);
-            Files.write(tmppath, result.getBytes());
-            assertEquals(
-                &quot;&lt;h1&gt;&quot; + subpath.getFileName() + &quot;&lt;/h1&gt;&quot;,
-                Files.readString(tmppath)
-            );
-        }
+    for (Path subpath : Files.list(Paths.get(workspaceRoot)).collect(Collectors.toList())) {
+      String result = Foo.generateHtml(subpath.getFileName().toString());
+      Path tmppath = Paths.get(subpath.getFileName() + &quot;.html&quot;);
+      Files.write(tmppath, result.getBytes());
+      assertEquals(&quot;&lt;h1&gt;&quot; + subpath.getFileName() + &quot;&lt;/h1&gt;&quot;, Files.readString(tmppath));
     }
+  }
 }</code></pre>
 </div>
 </div>
