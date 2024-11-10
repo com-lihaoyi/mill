@@ -7,27 +7,39 @@ import javax.validation.constraints.NotBlank;
 
 @Entity
 public class TodoItem {
-    @Id
-    @GeneratedValue
-    private Long id;
+  @Id
+  @GeneratedValue
+  private Long id;
 
-    @NotBlank
-    private String title;
+  @NotBlank
+  private String title;
 
-    private boolean completed;
+  private boolean completed;
 
-    protected TodoItem() {}
+  protected TodoItem() {}
 
-    public TodoItem(String title, boolean completed) {
-        this.title = title;
-        this.completed = completed;
-    }
+  public TodoItem(String title, boolean completed) {
+    this.title = title;
+    this.completed = completed;
+  }
 
-    public Long getId() { return id; }
+  public Long getId() {
+    return id;
+  }
 
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
+  public String getTitle() {
+    return title;
+  }
 
-    public boolean isCompleted() { return completed; }
-    public void setCompleted(boolean completed) { this.completed = completed; }
+  public void setTitle(String title) {
+    this.title = title;
+  }
+
+  public boolean isCompleted() {
+    return completed;
+  }
+
+  public void setCompleted(boolean completed) {
+    this.completed = completed;
+  }
 }

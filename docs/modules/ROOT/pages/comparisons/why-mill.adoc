@@ -426,7 +426,7 @@ the application code to use e.g. below, where we just print it out:
 
 ```bash
 > mill foo.run
-Line Count: 17
+Line Count: 18
 ```
 
 Most developers do not need to embed the line-count of their codebase in a resource

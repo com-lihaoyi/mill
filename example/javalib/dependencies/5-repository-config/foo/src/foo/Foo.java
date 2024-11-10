@@ -8,9 +8,8 @@ import org.thymeleaf.context.Context;
 
 public class Foo {
 
-  public static void main(String[] args) throws Exception{
-    ArgumentParser parser = ArgumentParsers.newFor("Foo").build()
-            .defaultHelp(true);
+  public static void main(String[] args) throws Exception {
+    ArgumentParser parser = ArgumentParsers.newFor("Foo").build().defaultHelp(true);
 
     parser.addArgument("--text");
 
