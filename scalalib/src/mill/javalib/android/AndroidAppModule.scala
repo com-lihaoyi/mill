@@ -254,7 +254,7 @@ trait AndroidAppModule extends JavaModule {
 
     PathRef(keystoreFile)
   }
-  
+
   def androidLint: T[PathRef] = Task {
 
     val lintReport: os.Path = T.dest / "report.html"
