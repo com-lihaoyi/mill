@@ -360,6 +360,7 @@ endif::[]
 * Filter out anonymous classes during test discovery to mitigate spurious test reports {link-pr}/3911[#3911]
 * Fix `MavenTests` deprecation message {link-pr}/3915[#3915]
 * Improve `inspect` command to show more detailed metadata on modules and tasks {link-pr}/3916[#3916]
+* Fix prompt updating logic to ensure the timestamp updates while tasks are running {link-pr}/3933[#3933]
 * Tons of documentation improvements: autoformatted all https://github.com/com-lihaoyi/mill/pull/3919[Java]
   and https://github.com/com-lihaoyi/mill/pull/3903[Scala] example files,
   [Scala-Native example builds]https://github.com/com-lihaoyi/mill/pull/3657,
