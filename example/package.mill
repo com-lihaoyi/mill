@@ -85,9 +85,8 @@ object `package` extends RootModule with Module {
   }
 
   trait ExampleCrossModuleKotlin extends ExampleCrossModuleJava {
-    override def sources = Task{
-      super.sources()
-        .flatMap(pathRef => os.walk(pathRef.path))
+    override def sources = Task.Sources(millSourcePath).map {
+        _.flatMap(pathRef => os.walk(pathRef.path))
         .filter(os.isFile)
         .filterNot(p => p.ext == "kt" && p.segments.contains("linting"))
         .map(PathRef(_))
