@@ -5,7 +5,7 @@ import coursier.error.FetchError.DownloadingArtifacts
 import coursier.error.ResolutionError.CantDownloadModule
 import coursier.params.ResolutionParams
 import coursier.parse.RepositoryParser
-import coursier.jvm.{JvmCache, JvmIndex, JavaHome}
+import coursier.jvm.{JvmCache, JvmChannel, JvmIndex, JavaHome}
 import coursier.util.Task
 import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Resolve, Type}
 import mill.api.Loose.Agg
@@ -190,7 +190,13 @@ trait CoursierSupport {
       .withArchiveCache(
         ArchiveCache().withCache(coursierCache0)
       )
-      .withIndex(JvmIndex.load())
+      .withIndex(JvmIndex.load(
+        cache = coursierCache0, // the coursier.cache.Cache instance to use
+        repositories = Resolve().repositories, // repositories to use
+        indexChannel = JvmChannel.central(), // use new indices published to Maven Central
+        os = None, // use defaults
+        arch = None // use defaults
+      ))
     val javaHome = JavaHome()
       .withCache(jvmCache)
     try {

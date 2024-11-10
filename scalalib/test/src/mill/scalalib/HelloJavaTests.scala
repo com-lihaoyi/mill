@@ -27,7 +27,7 @@ object HelloJavaTests extends TestSuite {
   }
 
   object HelloJavaJavaHome11Override extends TestBaseModule {
-    object ZincWorkerJava11 extends ZincWorkerModule.ForJvm("temurin:1.11.0.24")
+    object ZincWorkerJava11 extends ZincWorkerModule.ForJvm("temurin:11.0.24")
     object core extends JavaModule {
       override def zincWorker: ModuleRef[ZincWorkerModule] = ModuleRef(ZincWorkerJava11)
       override def docJarUseArgsFile = false
@@ -36,7 +36,7 @@ object HelloJavaTests extends TestSuite {
   }
 
   object HelloJavaJavaHome17Override extends TestBaseModule {
-    object ZincWorkerJava17 extends ZincWorkerModule.ForJvm("temurin:1.17.0.9")
+    object ZincWorkerJava17 extends ZincWorkerModule.ForJvm("temurin:17.0.9")
 
     object core extends JavaModule {
       override def zincWorker: ModuleRef[ZincWorkerModule] = ModuleRef(ZincWorkerJava17)
