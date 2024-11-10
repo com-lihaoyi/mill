@@ -137,7 +137,7 @@ object PalantirFormatModuleTest extends TestSuite {
   }
 
   def walkFiles(root: os.Path): Seq[os.Path] = {
-    if (os.exists(root)) os.walk(root).filter(os.isFile)
+    if (os.exists(root)) os.walk(root).filter(p => os.isFile(p) && p.last != ".keep")
     else Nil
   }
 }
