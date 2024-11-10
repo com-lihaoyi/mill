@@ -174,7 +174,10 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
       Task {
         val extras =
           if (isScala3()) {
-            Seq(s"-coverage-out:${data().path.toIO.getPath()}")
+            Seq(
+              s"-coverage-out:${data().path.toIO.getPath()}",
+              s"-sourceroot:${T.workspace}"
+            )
           } else {
             Seq(
               s"-P:scoverage:dataDir:${data().path.toIO.getPath()}",

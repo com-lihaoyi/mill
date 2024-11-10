@@ -1,22 +1,24 @@
 package hello;
 
 import java.util.function.IntSupplier;
-import java.util.function.DoubleSupplier;
 
-class Foo implements IntSupplier{
-    public int getAsInt(){ return 1; }
+class Foo implements IntSupplier {
+  public int getAsInt() {
+    return 1;
+  }
 }
 
-class Bar implements IntSupplier{
-    public int getAsInt(){ return 1; }
+class Bar implements IntSupplier {
+  public int getAsInt() {
+    return 1;
+  }
 }
 
-
-public class Hello{
-    public static int main(){
-        IntSupplier is = new Foo();
-        return is.getAsInt();
-    }
+public class Hello {
+  public static int main() {
+    IntSupplier is = new Foo();
+    return is.getAsInt();
+  }
 }
 
 // Because `Foo` and `Bar` are SAM implementations, we treat them as being

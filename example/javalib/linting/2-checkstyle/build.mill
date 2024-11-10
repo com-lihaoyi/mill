@@ -8,7 +8,6 @@ object `package` extends RootModule with CheckstyleModule {
   def checkstyleVersion = "9.3"
 }
 
-
 // To use this plugin in a Java/Scala module,
 //
 // 1. Extend `mill.contrib.checkstyle.CheckstyleModule`.

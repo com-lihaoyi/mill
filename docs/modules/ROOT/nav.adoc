@@ -34,7 +34,7 @@
 // ** xref:kotlinlib/build-examples.adoc[]
 ** xref:kotlinlib/web-examples.adoc[]
 ** xref:kotlinlib/android-examples.adoc[]
-* xref:why-mill.adoc[]
+* xref:comparisons/why-mill.adoc[]
 ** xref:comparisons/maven.adoc[]
 ** xref:comparisons/gradle.adoc[]
 ** xref:comparisons/sbt.adoc[]

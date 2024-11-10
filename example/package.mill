@@ -105,6 +105,15 @@ object `package` extends RootModule with Module {
     val upstreamOpt = upstreamCross(this.millModuleSegments.parts.dropRight(1).last)
       .flatMap(_.valuesToModules.get(List(crossValue)))
 
+
+    def sources = Task{
+      super.sources()
+        .flatMap(pathRef => os.walk(pathRef.path))
+        .filter(os.isFile)
+        .filterNot(p => p.ext == "java" && p.segments.contains("linting"))
+        .map(PathRef(_))
+    }
+
     def testRepoRoot = Task {
       os.copy(super.testRepoRoot().path, T.dest, mergeFolders = true)
       for(suffix <- Seq("build.sc", "build.mill", "build.mill.scala")){
@@ -169,9 +178,9 @@ object `package` extends RootModule with Module {
   trait ExampleCrossModule extends build.integration.IntegrationTestModule {
     // disable scalafix because these example modules don't have sources causing it to misbehave
     def fix(args: String*): Command[Unit] = T.command {}
-    def testRepoRoot: T[PathRef] = T.source(millSourcePath)
+    def testRepoRoot: T[PathRef] = Task.Source(millSourcePath)
 
-    def sources = Task.Sources { testRepoRoot().path }
+    def sources = Task.Sources(millSourcePath)
     def resources = Seq(testRepoRoot())
     def runClasspath = build.main.test.runClasspath()
     def localRunClasspath = build.testkit.localRunClasspath()

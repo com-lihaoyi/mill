@@ -18,8 +18,8 @@ object Deps {
 
 val crosses =
   Seq("2.11.12") ++
-  Range.inclusive(8, 17).map("2.12." + _) ++
-  Range.inclusive(0, 10).map("2.13." + _)
+    Range.inclusive(8, 17).map("2.12." + _) ++
+    Range.inclusive(0, 10).map("2.13." + _)
 
 object acyclic extends Cross[AcyclicModule](crosses)
 trait AcyclicModule extends CrossScalaModule with PublishModule {

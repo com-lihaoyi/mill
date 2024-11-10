@@ -3,17 +3,20 @@ package hello;
 // Make sure that we create external call graph edges when calling external
 // static methods too.
 class Foo {
-    public String toString() { return "Foo"; }
+  public String toString() {
+    return "Foo";
+  }
 }
 
-public class Hello{
-    public static void main(){
-        Foo foo = new Foo();
-        bar(foo);
-    }
-    public static void bar(Foo foo) {
-        System.identityHashCode(foo);
-    }
+public class Hello {
+  public static void main() {
+    Foo foo = new Foo();
+    bar(foo);
+  }
+
+  public static void bar(Foo foo) {
+    System.identityHashCode(foo);
+  }
 }
 
 // In this case, `bar` calling `System.identityHashCode(Object)` should be

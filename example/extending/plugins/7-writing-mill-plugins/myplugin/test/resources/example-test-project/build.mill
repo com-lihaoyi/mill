@@ -9,13 +9,13 @@ object `package` extends RootModule with LineCountJavaModule {
 /** Usage
 
 > ./mill run
-Line Count: 17
+Line Count: 18
 ...
 
 > printf "\n" >> src/foo/Foo.java
 
 > ./mill run
-Line Count: 18
+Line Count: 19
 ...
 
 */

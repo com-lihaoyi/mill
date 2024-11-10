@@ -6,7 +6,4 @@ import io.micronaut.data.annotation.Id;
 import io.micronaut.data.annotation.MappedEntity;
 
 @MappedEntity
-public record TodoItem(@Nullable @Id @GeneratedValue Long id,
-                       String title,
-                       boolean completed) {
-}
+public record TodoItem(@Nullable @Id @GeneratedValue Long id, String title, boolean completed) {}
