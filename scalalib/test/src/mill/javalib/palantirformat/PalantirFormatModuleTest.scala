@@ -18,10 +18,10 @@ object PalantirFormatModuleTest extends TestSuite {
     test("palantirformat") {
 
       assert(
-//        checkState(
-//          afterFormat(before / "google"),
-//          after / "google"
-//        ),
+        checkState(
+          afterFormat(before / "google"),
+          after / "google"
+        ),
         checkState(
           afterFormat(before / "palantir"),
           after / "palantir"
