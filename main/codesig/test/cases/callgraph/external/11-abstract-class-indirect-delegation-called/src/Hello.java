@@ -6,30 +6,31 @@ package hello;
 //
 // Make sure we treat this conservatively and mark all methods that are present
 // on the type of the third-party code parameter as called
-class Foo extends java.io.ByteArrayInputStream{
-    public Foo() throws java.io.IOException{
-        super(new byte[]{});
-    }
+class Foo extends java.io.ByteArrayInputStream {
+  public Foo() throws java.io.IOException {
+    super(new byte[] {});
+  }
 
-    public int read(){
-        return readSpecial();
-    }
-    public int readSpecial(){
-        return 1337;
-    }
+  public int read() {
+    return readSpecial();
+  }
 
-    public int uncalled(){
-        return 1337;
-    }
+  public int readSpecial() {
+    return 1337;
+  }
+
+  public int uncalled() {
+    return 1337;
+  }
 }
 
-public class Hello{
-    public static int main() throws java.io.IOException{
-        java.io.BufferedReader is =
-            new java.io.BufferedReader(new java.io.InputStreamReader(new Foo()));
+public class Hello {
+  public static int main() throws java.io.IOException {
+    java.io.BufferedReader is =
+        new java.io.BufferedReader(new java.io.InputStreamReader(new Foo()));
 
-        return is.readLine().length();
-    }
+    return is.readLine().length();
+  }
 }
 
 /* expected-direct-call-graph

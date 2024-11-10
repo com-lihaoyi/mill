@@ -6,65 +6,64 @@ package mill.main.client;
  */
 public class OutFiles {
 
-    final private static String envOutOrNull = System.getenv(EnvVars.MILL_OUTPUT_DIR);
+  private static final String envOutOrNull = System.getenv(EnvVars.MILL_OUTPUT_DIR);
 
-    /**
-     * Default hard-coded value for the Mill `out/` folder path. Unless you know
-     * what you are doing, you should favor using [[out]] instead.
-     */
-    final public static String defaultOut = "out";
+  /**
+   * Default hard-coded value for the Mill `out/` folder path. Unless you know
+   * what you are doing, you should favor using [[out]] instead.
+   */
+  public static final String defaultOut = "out";
 
-    /**
-     * Path of the Mill `out/` folder
-     */
-    final public static String out = envOutOrNull == null ? defaultOut : envOutOrNull;
+  /**
+   * Path of the Mill `out/` folder
+   */
+  public static final String out = envOutOrNull == null ? defaultOut : envOutOrNull;
 
-    /**
-     * Path of the Mill "meta-build", used to compile the `build.sc` file so we can
-     * run the primary Mill build. Can be nested for multiple stages of bootstrapping
-     */
-    final public static String millBuild = "mill-build";
+  /**
+   * Path of the Mill "meta-build", used to compile the `build.sc` file so we can
+   * run the primary Mill build. Can be nested for multiple stages of bootstrapping
+   */
+  public static final String millBuild = "mill-build";
 
-    /**
-     * A parallel performance and timing profile generated for every Mill execution.
-     * Can be loaded into the Chrome browser chrome://tracing page to visualize where
-     * time in a build is being spent
-     */
-    final public static String millChromeProfile = "mill-chrome-profile.json";
+  /**
+   * A parallel performance and timing profile generated for every Mill execution.
+   * Can be loaded into the Chrome browser chrome://tracing page to visualize where
+   * time in a build is being spent
+   */
+  public static final String millChromeProfile = "mill-chrome-profile.json";
 
-    /**
-     * A sequential profile containing rich information about the tasks that were run
-     * as part of a build: name, duration, cached, dependencies, etc.. Useful to help
-     * understand what tasks are taking time in a build run and why those tasks are
-     * being executed
-     */
-    final public static String millProfile = "mill-profile.json";
+  /**
+   * A sequential profile containing rich information about the tasks that were run
+   * as part of a build: name, duration, cached, dependencies, etc. Useful to help
+   * understand what tasks are taking time in a build run and why those tasks are
+   * being executed
+   */
+  public static final String millProfile = "mill-profile.json";
 
-    /**
-     * Long lived metadata about the Mill bootstrap process that persists between runs:
-     * workers, watched files, classpaths, etc.
-     */
-    final public static String millRunnerState = "mill-runner-state.json";
+  /**
+   * Long-lived metadata about the Mill bootstrap process that persists between runs:
+   * workers, watched files, classpaths, etc.
+   */
+  public static final String millRunnerState = "mill-runner-state.json";
 
-    /**
-     * Subfolder of `out/` that contains the machinery necessary for a single Mill background
-     * server: metadata files, pipes, logs, etc.
-     */
-    final public static String millServer = "mill-server";
+  /**
+   * Subfolder of `out/` that contains the machinery necessary for a single Mill background
+   * server: metadata files, pipes, logs, etc.
+   */
+  public static final String millServer = "mill-server";
 
-    /**
-     * Subfolder of `out/` used to contain the Mill subprocess when run in no-server mode
-     */
-    final public static String millNoServer = "mill-no-server";
+  /**
+   * Subfolder of `out/` used to contain the Mill subprocess when run in no-server mode
+   */
+  public static final String millNoServer = "mill-no-server";
 
-    /**
-     * Lock file used for exclusive access to the Mill output directory
-     */
-    final public static String millLock = "mill-lock";
+  /**
+   * Lock file used for exclusive access to the Mill output directory
+   */
+  public static final String millLock = "mill-lock";
 
-    /**
-     * Any active Mill command that is currently run, for debugging purposes
-     */
-    final public static String millActiveCommand = "mill-active-command";
-
+  /**
+   * Any active Mill command that is currently run, for debugging purposes
+   */
+  public static final String millActiveCommand = "mill-active-command";
 }

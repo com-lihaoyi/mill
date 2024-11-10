@@ -130,7 +130,7 @@ a short-hand for configuring the meta-build living in `mill-build/build.mill`:
 1. `.sc` and `import $file` are a shorthand for specifying the `.scala` files
    living in `mill-build/src/`
 
-2. `import $ivy` is a short-hand for configurin the `def ivyDeps` in
+2. `import $ivy` is a short-hand for configuring the `def ivyDeps` in
    `mill-build/build.mill`
 
 Most builds would not need the flexibility of a meta-build's

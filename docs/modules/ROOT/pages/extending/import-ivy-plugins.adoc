@@ -90,7 +90,7 @@ import $ivy.`com.lihaoyi:mill-contrib-bloop:`
 --
 to substitute the currently used Mill binary platform.
 
-.Example: Using `mill-vcs-version` plugin matching the current Mill Binary Platfrom
+.Example: Using `mill-vcs-version` plugin matching the current Mill Binary Platform
 ----
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill$MILL_BIN_PLATFORM:0.1.2`
 ----

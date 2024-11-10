@@ -9,7 +9,7 @@ flags or options:
 2. The JVM running the *task* e.g. `foo.run`, which may take flags e.g. `java -Xss10m -Xmx10G`.
    These are configured using xref:javalib/module-config.adoc#_compilation_execution_flags[Compilation and Execution Flags]
 
-3. The Mill build tool process, e.g. `./mill --jobs 10`. These can be passed direcctly after the
+3. The Mill build tool process, e.g. `./mill --jobs 10`. These can be passed directly after the
    `./mill` executable name, or set in a `.mill-opts` file as shown below in
    xref:#_custom_mill_options[Custom mill options]
 
@@ -182,7 +182,7 @@ xref:javalib/module-config.adoc#_compilation_execution_flags[Compilation and Exe
 == Running Mill with custom JVM options
 
 It's possible to pass JVM options to the Mill launcher. To do this you can either set
-the `JAVA_OPTS` environmentvariable, or  create a `.mill-jvm-opts` file in your project's
+the `JAVA_OPTS` environment variable, or  create a `.mill-jvm-opts` file in your project's
 root that contains JVM options one per line.
 
 For example, if your build requires a lot of memory and bigger stack size, you could run

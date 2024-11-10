@@ -17,7 +17,7 @@ object UnitTests extends TestSuite {
         assert(
           result.value.exists(pathref =>
             os.exists(pathref.path / "line-count.txt") &&
-              os.read(pathref.path / "line-count.txt") == "17"
+              os.read(pathref.path / "line-count.txt") == "18"
           )
         )
 
@@ -27,7 +27,7 @@ object UnitTests extends TestSuite {
         assert(
           pathrefs.exists(pathref =>
             os.exists(pathref.path / "line-count.txt") &&
-              os.read(pathref.path / "line-count.txt") == "17"
+              os.read(pathref.path / "line-count.txt") == "18"
           )
         )
       }

@@ -46,7 +46,7 @@ object BSP extends ExternalModule with CoursierModule {
   /**
    * This command only starts a BSP session, which means it injects the current evaluator into an already running BSP server.
    * This command requires Mill to start with `--bsp` option.
-   * @param ev The Evaluator
+   * @param allBootstrapEvaluators The Evaluator
    * @return The server result, indicating if mill should re-run this command or just exit.
    */
   def startSession(allBootstrapEvaluators: Evaluator.AllBootstrapEvaluators)

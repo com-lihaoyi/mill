@@ -13,7 +13,7 @@ private object PromptLoggerUtil {
   private[mill] val promptUpdateIntervalMillis = 100
 
   /**
-   * How often to update the multiline status prompt in noninteractive scenarios,
+   * How often to update the multiline status prompt in non-interactive scenarios,
    * e.g. background job logs or piped to a log file. Much less frequent than the
    * interactive scenario because we cannot rely on ANSI codes to over-write the
    * previous prompt, so we have to be a lot more conservative to avoid spamming
@@ -133,7 +133,7 @@ private object PromptLoggerUtil {
       }
       // For non-interactive jobs, we do not need to preserve the height of the prompt
       // between renderings, since consecutive prompts do not appear at the same place
-      // in the log file. Thus we can aggressively remove all blank spacer lines
+      // in the log file. Thus, we can aggressively remove all blank spacer lines
       .filter(_.nonEmpty || interactive)
       .toList
       // Sort alphabetically because the `#nn` prefix is part of the string, and then

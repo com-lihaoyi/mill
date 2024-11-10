@@ -35,7 +35,7 @@ trait ErrorProneModule extends JavaModule {
   }
 
   /**
-   * Options used to enable and configure the `eror-prone` plugin in the Java compiler.
+   * Options used to enable and configure the `error-prone` plugin in the Java compiler.
    */
   def errorProneJavacEnableOptions: T[Seq[String]] = Task {
     val processorPath = errorProneClasspath().map(_.path).mkString(File.pathSeparator)

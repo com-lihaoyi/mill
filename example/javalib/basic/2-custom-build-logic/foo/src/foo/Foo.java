@@ -10,9 +10,8 @@ public class Foo {
     }
   }
 
-  static String lineCount = getLineCount();
-
   public static void main(String[] args) throws Exception {
+    String lineCount = getLineCount();
     System.out.println("Line Count: " + lineCount);
   }
 }

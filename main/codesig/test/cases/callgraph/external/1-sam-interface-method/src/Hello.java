@@ -1,21 +1,26 @@
 package hello;
 
 import java.util.function.IntSupplier;
-import java.util.function.DoubleSupplier;
 
-class Foo implements IntSupplier{
-    public int getAsInt(){ return 1; }
-    public int uncalled(){ return 2; }
+class Foo implements IntSupplier {
+  public int getAsInt() {
+    return 1;
+  }
+
+  public int uncalled() {
+    return 2;
+  }
 }
 
-public class Hello{
-    public static int main(){
-        IntSupplier is = new Foo();
-        return bar(is);
-    }
-    public static int bar(IntSupplier is) {
-        return is.getAsInt();
-    }
+public class Hello {
+  public static int main() {
+    IntSupplier is = new Foo();
+    return bar(is);
+  }
+
+  public static int bar(IntSupplier is) {
+    return is.getAsInt();
+  }
 }
 
 // Since `Foo` is a SAM implementation, we treat its SAM method `getAsInt`
@@ -45,4 +50,3 @@ public class Hello{
     ]
 }
 */
-

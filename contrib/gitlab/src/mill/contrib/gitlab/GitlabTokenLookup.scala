@@ -110,7 +110,7 @@ object GitlabTokenLookup {
    *   - File =Contents of a file on local disk.
    *   - Custom = Own function
    *
-   * Possible additions, that can now be supported with Custom: KeyVault, Yaml, etc..
+   * Possible additions, that can now be supported with Custom: KeyVault, Yaml, etc.
    */
   sealed trait TokenSource
   case class Env(name: String) extends TokenSource

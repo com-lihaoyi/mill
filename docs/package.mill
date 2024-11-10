@@ -155,7 +155,7 @@ object `package` extends RootModule {
   def supplementalFiles = T.source(millSourcePath / "supplemental-ui")
 
   /**
-   * The doc root ready to be build by antora for the current branch.
+   * The doc root ready to be built by antora for the current branch.
    */
   def devAntoraSources: T[PathRef] = Task {
     val dest = T.dest
@@ -363,6 +363,7 @@ object `package` extends RootModule {
         .asScala
         .map(e => (e.toString, e.attr("href")))
         .toSeq
+        .filter(!_._2.startsWith("mailto:"))
         .partition{case (e, l) => l.startsWith("http://") || l.startsWith("https://")}
       (
         path,
@@ -383,13 +384,13 @@ object `package` extends RootModule {
         !l.contains("/example/") &&
           !l.contains("/releases/download/") &&
           // Ignore internal repo links in the changelog because there are a lot
-          // of them and they're not very interesting to check and verify.
+          // of them, and they're not very interesting to check and verify.
           !l.contains("https://github.com/com-lihaoyi/mill/pull/") &&
           !l.contains("https://github.com/com-lihaoyi/mill/milestone/") &&
           !l.contains("https://github.com/com-lihaoyi/mill/compare/") &&
           // Link meant for API configuration, not for clicking
           !l.contains("https://s01.oss.sonatype.org/service/local") &&
-          // SOmehow this server doesn't respond properly to HEAD requests even though GET works
+          // Somehow this server doesn't respond properly to HEAD requests even though GET works
           !l.contains("https://marketplace.visualstudio.com/items")
       }
       .toSet
@@ -433,7 +434,7 @@ object `package` extends RootModule {
     // This is flaky due to rate limits so ignore it for now
 
     // if (brokenRemoteLinks().nonEmpty){
-    //   throw new Exception("Broken Rmote Links: " + upickle.default.write(brokenRemoteLinks(), indent = 2))
+    //   throw new Exception("Broken Remote Links: " + upickle.default.write(brokenRemoteLinks(), indent = 2))
     // }
   }
 

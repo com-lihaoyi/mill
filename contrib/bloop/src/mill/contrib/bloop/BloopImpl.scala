@@ -135,7 +135,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
 
   /**
    * Computes sources files paths for the whole project. Cached in a way
-   * that does not get invalidated upon sourcefile change. Mainly called
+   * that does not get invalidated upon source file change. Mainly called
    * from module#sources in bloopInstall
    */
   def moduleSourceMap = Task.Input {

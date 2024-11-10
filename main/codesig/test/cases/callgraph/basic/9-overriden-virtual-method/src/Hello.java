@@ -1,17 +1,33 @@
 package hello;
 
-abstract class GrandParent{
-    public int foo(){ return 1; }
-    public int bar(){ return 2; }
-}
-abstract class Parent extends GrandParent{
-    public int foo(){ return 3; }
-    public int bar(){ return 4; }
-}
-public class Hello extends Parent{
-    public static int main(){ return new Hello().foo() + new Hello().bar(); }
+abstract class GrandParent {
+  public int foo() {
+    return 1;
+  }
 
-    public int foo(){ return 5; }
+  public int bar() {
+    return 2;
+  }
+}
+
+abstract class Parent extends GrandParent {
+  public int foo() {
+    return 3;
+  }
+
+  public int bar() {
+    return 4;
+  }
+}
+
+public class Hello extends Parent {
+  public static int main() {
+    return new Hello().foo() + new Hello().bar();
+  }
+
+  public int foo() {
+    return 5;
+  }
 }
 /* expected-direct-call-graph
 {

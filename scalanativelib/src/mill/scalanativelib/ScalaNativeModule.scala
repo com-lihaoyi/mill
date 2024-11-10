@@ -357,7 +357,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
     Task.Command { test(args: _*)() }
   override protected def testTask(
       args: Task[Seq[String]],
-      globSeletors: Task[Seq[String]]
+      globSelectors: Task[Seq[String]]
   ): Task[(String, Seq[TestResult])] = Task.Anon {
 
     val (close, framework) = scalaNativeBridge().getFramework(
@@ -377,10 +377,10 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
       Agg(compile().classes.path),
       args(),
       T.testReporter,
-      cls => TestRunnerUtils.globFilter(globSeletors())(cls.getName)
+      cls => TestRunnerUtils.globFilter(globSelectors())(cls.getName)
     )
     val res = TestModule.handleResults(doneMsg, results, T.ctx(), testReportXml())
-    // Hack to try and let the Scala Native subprocess finish streaming it's stdout
+    // Hack to try and let the Scala Native subprocess finish streaming its stdout
     // to the JVM. Without this, the stdout can still be streaming when `close()`
     // is called, and some of the output is dropped onto the floor.
     Thread.sleep(100)
