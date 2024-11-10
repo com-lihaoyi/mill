@@ -1,6 +1,7 @@
 package mill.javalib.android
 
 import mill._
+import scala.util.Try
 
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
@@ -64,6 +65,13 @@ trait AndroidSdkModule extends Module {
    */
   def aaptPath: T[PathRef] = Task {
     PathRef(buildToolsPath().path / "aapt")
+  }
+
+  /**
+   * Provides the path to AAPT2, used for resource handling and APK packaging.
+   */
+  def aapt2Path: T[PathRef] = Task {
+    PathRef(buildToolsPath().path / "aapt2")
   }
 
   /**
@@ -210,6 +218,7 @@ trait AndroidSdkModule extends Module {
     }
     Some(sdkManagerPath).filter(os.exists)
   }
+
 }
 
 private object AndroidSdkLock
