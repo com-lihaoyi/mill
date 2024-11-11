@@ -5,13 +5,13 @@ import scala.scalanative.unsafe._
 import mainargs.{main, ParserForMethods}
 
 object Foo {
-  
-  def generateHtml(text: String) (using Zone) = {
+
+  def generateHtml(text: String)(using Zone) = {
     val html = "<h1>" + text + "</h1>\n"
 
     val cResult = toCString(html)
     cResult
-  
+
   }
 
   @main
@@ -21,4 +21,3 @@ object Foo {
 
   def main(args: Array[String]): Unit = ParserForMethods(this).runOrExit(args)
 }
-

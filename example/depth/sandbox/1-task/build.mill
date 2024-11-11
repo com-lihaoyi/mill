@@ -14,7 +14,7 @@
 package build
 import mill._
 
-object foo extends Module{
+object foo extends Module {
   def tDestTask = Task { println(Task.dest.toString) }
 }
 
@@ -22,7 +22,6 @@ object foo extends Module{
 > ./mill foo.tDestTask
 .../out/foo/tDestTask.dest
 */
-
 
 // === Task `os.pwd` redirection
 // Mill also redirects the `os.pwd` property from https://github.com/com-lihaoyi/os-lib[OS-Lib],
@@ -61,7 +60,6 @@ def externalPwdTask = Task { println(externalPwd.toString) }
 > ./mill externalPwdTask
 .../out/mill-server/.../sandbox
 */
-
 
 // === Limitations of Mill's Sandboxing
 //

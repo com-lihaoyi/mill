@@ -5,11 +5,11 @@
 package build
 import mill._, javalib._
 
-trait MyModule extends JavaModule{
+trait MyModule extends JavaModule {
   object test extends JavaTests with TestModule.Junit4
 }
 
-object foo extends MyModule{
+object foo extends MyModule {
   def moduleDeps = Seq(bar)
 }
 

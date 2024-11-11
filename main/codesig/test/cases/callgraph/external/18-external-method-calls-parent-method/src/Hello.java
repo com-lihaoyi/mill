@@ -1,16 +1,19 @@
 package hello;
 
-class Foo extends Parent{
-    void called(){ System.out.println("called"); }
-    public void doGrandThingAbstract() {
-        called();
-    }
+class Foo extends Parent {
+  void called() {
+    System.out.println("called");
+  }
+
+  public void doGrandThingAbstract() {
+    called();
+  }
 }
 
-public class Hello{
-    public static void main(){
-        new Foo().doParentThing();
-    }
+public class Hello {
+  public static void main() {
+    new Foo().doParentThing();
+  }
 }
 // that it could call either of `doGrandThing` or `doParentThing`
 

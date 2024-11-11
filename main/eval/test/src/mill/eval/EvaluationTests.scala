@@ -48,10 +48,10 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
       // Second time the value is already cached, so no evaluation needed
       if (secondRunNoOp) {
         val evaled2 = evaluator.evaluate(Agg(target))
-        val expecteSecondRunEvaluated = Agg()
+        val expectedSecondRunEvaluated = Agg()
         assert(
           evaled2.values.map(_.value) == evaled.values.map(_.value),
-          evaled2.evaluated == expecteSecondRunEvaluated
+          evaled2.evaluated == expectedSecondRunEvaluated
         )
       }
     }

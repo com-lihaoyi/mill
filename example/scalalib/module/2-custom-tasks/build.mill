@@ -17,7 +17,7 @@ object `package` extends RootModule with ScalaModule {
   def ivyDeps = Agg(ivy"com.lihaoyi::mainargs:0.4.0")
 
   def generatedSources: T[Seq[PathRef]] = Task {
-    val prettyIvyDeps = for(ivyDep <- ivyDeps()) yield {
+    val prettyIvyDeps = for (ivyDep <- ivyDeps()) yield {
       val org = ivyDep.dep.module.organization.value
       val name = ivyDep.dep.module.name.value
       val version = ivyDep.dep.version

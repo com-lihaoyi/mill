@@ -20,7 +20,7 @@ import mill.Agg
 trait CoursierModule extends mill.Module {
 
   /**
-   * Bind a dependency ([[Dep]]) to the actual module contetxt (e.g. the scala version and the platform suffix)
+   * Bind a dependency ([[Dep]]) to the actual module context (e.g. the scala version and the platform suffix)
    * @return The [[BoundDep]]
    */
   def bindDependency: Task[Dep => BoundDep] = Task.Anon { (dep: Dep) =>
@@ -95,7 +95,7 @@ trait CoursierModule extends mill.Module {
   }
 
   /**
-   * Customize the coursier resolution resolution process.
+   * Customize the coursier resolution process.
    * This is rarely needed to changed, as the default try to provide a
    * highly reproducible resolution process. But sometime, you need
    * more control, e.g. you want to add some OS or JDK specific resolution properties
@@ -116,7 +116,7 @@ trait CoursierModule extends mill.Module {
   /**
    * Customize the coursier file cache.
    *
-   * This is rarely needed to be changed, but sometimes e.g you want to load a coursier plugin.
+   * This is rarely needed to be changed, but sometimes e.g. you want to load a coursier plugin.
    * Doing so requires adding to coursier's classpath. To do this you could use the following:
    * {{{
    *   override def coursierCacheCustomizer = Task.Anon {

@@ -12,7 +12,6 @@ import mill.{Module, T, _}
 def sources = Task.Source { millSourcePath / "src" }
 def resources = Task.Source { millSourcePath / "resources" }
 
-
 // ``Source``s are defined using `Task.Source{...}` taking one `os.Path`, or `Task.Sources{...}`,
 // taking multiple ``os.Path``s as arguments. A ``Source``'s:
 // its build signature/`hashCode` depends not just on the path
@@ -209,7 +208,6 @@ def hugeFileName = Task {
 // in `def largeFile` above running even though the `largeFile()` branch of the
 // `if` conditional does not get used:
 
-
 /** Usage
 
 > ./mill show lineCount
@@ -262,7 +260,6 @@ def summarizeClassFileStats = Task {
 
 */
 
-
 // For more details on how to use uPickle, check out the
 // https://github.com/com-lihaoyi/upickle[uPickle library documentation]
 //
@@ -270,11 +267,12 @@ def summarizeClassFileStats = Task {
 
 def run(mainClass: String, args: String*) = Task.Command {
   os.proc(
-      "java",
-      "-cp", s"${classFiles().path}:${resources().path}",
-      mainClass,
-      args
-    )
+    "java",
+    "-cp",
+    s"${classFiles().path}:${resources().path}",
+    mainClass,
+    args
+  )
     .call(stdout = os.Inherit)
 }
 
@@ -337,7 +335,6 @@ args: hello world
 foo.txt resource: My Example Text
 
 */
-
 
 //
 // Like <<_cached_tasks>>, a command only evaluates after all its upstream

@@ -21,12 +21,11 @@ def printFileData(fileName: String) = Task.Command {
 // Unlike <<_cached_tasks>> or <<_commands>>, anonymous tasks can be defined
 // anywhere and passed around any way you want, until you finally make use of them
 // within a downstream task or command.
-// 
+//
 // While an anonymous task ``foo``'s own output is not cached, if it is used in a
 // downstream task `baz` and the upstream task `bar` hasn't changed,
 // ``baz``'s cached output will be used and ``foo``'s evaluation will be skipped
 // altogether.
-
 
 /** Usage
 

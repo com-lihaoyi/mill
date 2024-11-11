@@ -7,31 +7,32 @@ package hello;
 // have called any other method defined on the interface type, and so assume
 // that our implementation gets called indirectly
 
-class Bar extends java.io.Reader{
-    public synchronized int read(char[] cbuf, int off, int len) {
-        return called();
-    }
+class Bar extends java.io.Reader {
+  public synchronized int read(char[] cbuf, int off, int len) {
+    return called();
+  }
 
-    public void close(){}
+  public void close() {}
 
-    public int called(){
-        return 1337;
-    }
+  public int called() {
+    return 1337;
+  }
 
-    public int uncalled(){
-        return 1337;
-    }
+  public int uncalled() {
+    return 1337;
+  }
 }
 
-public class Hello{
-    public static int main() throws java.io.IOException{
-        java.io.Reader is = new Bar();
-        return bar(is);
-    }
-    public static int bar(java.io.Reader is) throws java.io.IOException{
-        is.read(new char[10], 0, 10);
-        return 1234;
-    }
+public class Hello {
+  public static int main() throws java.io.IOException {
+    java.io.Reader is = new Bar();
+    return bar(is);
+  }
+
+  public static int bar(java.io.Reader is) throws java.io.IOException {
+    is.read(new char[10], 0, 10);
+    return 1234;
+  }
 }
 
 // Note that we mark `Bar#read` as called from `Bar#<init>`. This is because

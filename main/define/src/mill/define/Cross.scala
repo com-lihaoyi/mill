@@ -133,7 +133,7 @@ object Cross {
 
     /**
      * Implicitly constructs a Factory[M] for a target-typed `M`. Takes in an
-     * expression of type `Any`, but type-checking on the macro- expanded code
+     * expression of type `Any`, but type-checking on the macro-expanded code
      * provides some degree of type-safety.
      */
     implicit def make[M <: Module[_]](t: Any): Factory[M] = macro makeImpl[M]
@@ -198,7 +198,8 @@ object Cross {
       // logic needs to use java reflection to identify sub-modules and java
       // reflect can only properly identify nested `object`s inside Scala
       // `object` and `class`es.
-      val tree = q"""
+      val tree =
+        q"""
         new mill.define.Cross.Factory[$tpe](
           makeList = $wrappedT.map{($v1: ${tq""}) =>
             class $concreteCls()(implicit ctx: mill.define.Ctx) extends $tpe{..$newTrees}

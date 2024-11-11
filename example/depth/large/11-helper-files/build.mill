@@ -1,4 +1,3 @@
-
 // Apart from having `package` files in subfolders to define modules, Mill
 // also allows you to have helper code in any `*.mill` file in the same folder
 // as your `build.mill` or a `package.mill`.
@@ -9,17 +8,16 @@ import mill._, scalalib._
 import $file.foo.versions
 import $file.util.MyModule
 
-object `package` extends RootModule with MyModule{
+object `package` extends RootModule with MyModule {
   def forkEnv = Map(
     "MY_SCALA_VERSION" -> build.scalaVersion(),
-    "MY_PROJECT_VERSION" -> versions.myProjectVersion,
+    "MY_PROJECT_VERSION" -> versions.myProjectVersion
   )
 }
 
 /** See Also: util.mill */
 /** See Also: foo/package.mill */
 /** See Also: foo/versions.mill */
-
 
 //
 // Different helper scripts and ``build.mill``/``package`` files can all refer to

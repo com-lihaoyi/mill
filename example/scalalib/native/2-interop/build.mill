@@ -12,7 +12,6 @@ object `package` extends RootModule with ScalaNativeModule {
 
 }
 
-
 // This is an example of how to use Mill to compile C code together with your Scala Native
 // code.
 //
@@ -53,4 +52,3 @@ Reversed: !dlroW ,olleH
 Tests: 1, Passed: 1, Failed: 0
 
 */
-

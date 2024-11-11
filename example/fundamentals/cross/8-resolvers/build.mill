@@ -65,4 +65,4 @@ trait BarModule extends MyModule {
 // │         ├── bigSuffix.json
 // │         └── suffix.json
 // ----
-// 
+//

@@ -20,11 +20,11 @@ def myInput = Task.Input {
 
 def gitStatusTask = Task {
   "version-" +
-  os.proc("git", "log", "-1", "--pretty=format:%h-%B ")
-    .call(cwd = Task.workspace)
-    .out
-    .text()
-    .trim()
+    os.proc("git", "log", "-1", "--pretty=format:%h-%B ")
+      .call(cwd = Task.workspace)
+      .out
+      .text()
+      .trim()
 }
 
 /** Usage
@@ -127,7 +127,6 @@ def myEnvInput = Task.Input {
 def myEnvTask = Task {
   "Hello Env " + myEnvInput()
 }
-
 
 /** Usage
 

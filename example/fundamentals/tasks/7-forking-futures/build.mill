@@ -8,14 +8,14 @@ package build
 import mill._
 
 def taskSpawningFutures = Task {
-  val f1 = T.fork.async(dest = T.dest / "future-1", key = "1", message = "First Future"){
+  val f1 = T.fork.async(dest = T.dest / "future-1", key = "1", message = "First Future") {
     println("Running First Future inside " + os.pwd)
     Thread.sleep(3000)
     val res = 1
     println("Finished First Future")
     res
   }
-  val f2 = T.fork.async(dest = T.dest / "future-2", key = "2", message = "Second Future"){
+  val f2 = T.fork.async(dest = T.dest / "future-2", key = "2", message = "Second Future") {
     println("Running Second Future inside " + os.pwd)
     Thread.sleep(3000)
     val res = 2

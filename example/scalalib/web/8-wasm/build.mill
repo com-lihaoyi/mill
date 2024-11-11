@@ -2,7 +2,6 @@ package build
 import mill._, scalalib._, scalajslib._
 import mill.scalajslib.api._
 
-
 object wasm extends ScalaJSModule {
   override def scalaVersion = "2.13.14"
 
@@ -38,5 +37,3 @@ hello  wasm!
 
 // Here we see that scala JS emits a single WASM module, as well as a loader and main.js file.
 // `main.js` is the entry point of the program, and calls into the wasm module.
-
-

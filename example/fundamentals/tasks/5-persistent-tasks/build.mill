@@ -23,7 +23,7 @@ def compressedData = Task(persistent = true) {
   os.makeDir.all(Task.dest / "cache")
   os.remove.all(Task.dest / "compressed")
 
-  for(p <- os.list(data().path)) {
+  for (p <- os.list(data().path)) {
     val compressedPath = Task.dest / "compressed" / s"${p.last}.gz"
     val bytes = os.read.bytes(p)
     val hash = Arrays.hashCode(bytes)

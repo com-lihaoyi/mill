@@ -81,9 +81,9 @@ class MillBuildBootstrap(
 
     val nestedState: RunnerState =
       if (depth == 0) {
-        // On this level we typically want assume a Mill project, which means we want to require an existing `build.mill`.
+        // On this level we typically want to assume a Mill project, which means we want to require an existing `build.mill`.
         // Unfortunately, some targets also make sense without a `build.mill`, e.g. the `init` command.
-        // Hence we only report a missing `build.mill` as a problem if the command itself does not succeed.
+        // Hence, we only report a missing `build.mill` as a problem if the command itself does not succeed.
         lazy val state = evaluateRec(depth + 1)
         if (
           rootBuildFileNames.exists(rootBuildFileName =>
@@ -146,7 +146,7 @@ class MillBuildBootstrap(
           None,
           Nil,
           // We don't want to evaluate anything in this depth (and above), so we just skip creating an evaluator,
-          // mainly because we didn't even constructed (compiled) it's classpath
+          // mainly because we didn't even construct (compile) its classpath
           None,
           None
         )
@@ -256,11 +256,11 @@ class MillBuildBootstrap(
           _.runClasspath.map(_.sig).sum == runClasspath.map(_.sig).sum
         )
 
-        // handling module watching is a bit weird; we need to know whether or
-        // not to create a new classloader immediately after the `runClasspath`
+        // handling module watching is a bit weird; we need to know whether
+        // to create a new classloader immediately after the `runClasspath`
         // is compiled, but we only know what the respective `moduleWatched`
         // contains after the evaluation on this classloader has executed, which
-        // happens one level up in the recursion. Thus to check whether
+        // happens one level up in the recursion. Thus, to check whether
         // `moduleWatched` needs us to re-create the classloader, we have to
         // look at the `moduleWatched` of one frame up (`prevOuterFrameOpt`),
         // and not the `moduleWatched` from the current frame (`prevFrameOpt`)

@@ -14,7 +14,7 @@ import scala.reflect.NameTransformer.decode
  *
  * Returns only the [[Segments]] of the things it resolved, without reflecting
  * on the `java.lang.reflect.Member`s or instantiating the final tasks. Those
- * are left to downstream callers to do, with the exception of instantiating
+ * are left to downstream callers to do, with the except of instantiating
  * [[mill.define.Cross]] modules which is needed to identify their cross
  * values which is necessary for resolving tasks within them.
  *

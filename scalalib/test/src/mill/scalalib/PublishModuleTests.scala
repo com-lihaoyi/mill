@@ -70,7 +70,7 @@ object PublishModuleTests extends TestSuite {
       override def ivyDeps = Agg(
         ivy"org.slf4j:slf4j-api:2.0.7"
       )
-      // ensure, these target wont be called
+      // ensure, these target won't be called
       override def jar: T[PathRef] = Task { ???.asInstanceOf[PathRef] }
       override def docJar: T[PathRef] = Task { ???.asInstanceOf[PathRef] }
       override def sourceJar: T[PathRef] = Task { ???.asInstanceOf[PathRef] }

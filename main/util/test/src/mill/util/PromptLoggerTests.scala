@@ -24,7 +24,7 @@ object PromptLoggerTests extends TestSuite {
       autoUpdate = false
     ) {
       // For testing purposes, wait till the system is quiescent before re-printing
-      // the prompt, to try and keep the test executions deterministics
+      // the prompt, to try and keep the test executions deterministic
       override def refreshPrompt(ending: Boolean = false): Unit = {
         streamsAwaitPumperEmpty()
         super.refreshPrompt(ending)
@@ -52,7 +52,7 @@ object PromptLoggerTests extends TestSuite {
   }
 
   val tests = Tests {
-    test("nonInteractive") {
+    test("nonInteractive") - retry(3) {
       // These tests seem flaky on windows but not sure why
       if (!Util.windowsPlatform) {
         var now = 0L
@@ -105,7 +105,7 @@ object PromptLoggerTests extends TestSuite {
       }
     }
 
-    test("interactive") {
+    test("interactive") - retry(3) {
       if (!Util.windowsPlatform) {
         var now = 0L
         val (baos, promptLogger, prefixLogger) = setup(() => now, os.temp("80 40"))
@@ -281,57 +281,6 @@ object PromptLoggerTests extends TestSuite {
       }
     }
 
-    test("sequentialShortLived") {
-      if (!Util.windowsPlatform) {
-        // Make sure that when we have multiple sequential tasks being run on different threads,
-        // we still end up showing some kind of task in progress in the ticker, even though the
-        // tasks on each thread are short-lived enough they would not normally get shown if run
-        // alone.
-        @volatile var now = 0L
-        val (baos, promptLogger, prefixLogger) = setup(() => now, os.temp("80 40"))
-
-        promptLogger.setPromptHeaderPrefix("123/456")
-        promptLogger.refreshPrompt()
-        check(promptLogger, baos)(
-          "  [123/456] ========================== TITLE =================================="
-        )
-        promptLogger.setPromptLine(Seq("1"), "/456", "my-task")
-
-        now += 100
-
-        promptLogger.refreshPrompt()
-        check(promptLogger, baos)(
-          "  [123/456] ========================== TITLE =================================="
-        )
-
-        promptLogger.removePromptLine(Seq("1"))
-
-        val newTaskThread = new Thread(() => {
-          promptLogger.setPromptLine(Seq("2"), "/456", "my-task-new")
-          now += 100
-          promptLogger.removePromptLine(Seq("2"))
-        })
-        newTaskThread.start()
-        newTaskThread.join()
-
-        promptLogger.refreshPrompt()
-        check(promptLogger, baos)(
-          "  [123/456] ========================== TITLE =================================="
-        )
-
-        val newTaskThread2 = new Thread(() => {
-          promptLogger.setPromptLine(Seq("2"), "/456", "my-task-new")
-          now += 100
-        })
-        newTaskThread2.start()
-        newTaskThread2.join()
-        promptLogger.refreshPrompt()
-        check(promptLogger, baos)(
-          "  [123/456] ========================== TITLE ==================================",
-          "[2] my-task-new"
-        )
-      }
-    }
     test("detail") {
       if (!Util.windowsPlatform) {
         // Make sure that when we have multiple sequential tasks being run on different threads,

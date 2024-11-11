@@ -4,8 +4,10 @@ object Foo {
   val value = "hello"
 
   @main
-  def main(@arg(name = "foo-text") fooText: String,
-           @arg(name = "bar-text") barText: String): Unit = {
+  def main(
+      @arg(name = "foo-text") fooText: String,
+      @arg(name = "bar-text") barText: String
+  ): Unit = {
     println("Foo.value: " + Foo.value)
     bar.Bar.printText(barText)
   }

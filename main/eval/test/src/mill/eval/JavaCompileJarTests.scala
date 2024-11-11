@@ -81,7 +81,7 @@ object JavaCompileJarTests extends TestSuite {
       append(sourceRootPath / "Foo.java", "")
       check(targets = Agg(jar), expected = Agg())
 
-      // Appending whitespace forces a recompile, but the classfilesend up
+      // Appending whitespace forces a recompile, but the classfiles end up
       // exactly the same so no re-jarring.
       append(sourceRootPath / "Foo.java", " ")
       // Note that `sourceRoot` and `resourceRoot` never turn up in the `expected`
@@ -98,7 +98,7 @@ object JavaCompileJarTests extends TestSuite {
       append(resourceRootPath / "hello.txt", " ")
       check(targets = Agg(jar), expected = Agg(jar))
 
-      // Touching the readme.md, defined as `Task.Source`, forces a jar rebuid
+      // Touching the readme.md, defined as `Task.Source`, forces a jar rebuild
       append(readmePath, " ")
       check(targets = Agg(jar), expected = Agg(jar))
 
@@ -163,7 +163,7 @@ object JavaCompileJarTests extends TestSuite {
       assert(executed == s"${31337 + 271828}${System.lineSeparator}")
 
       for (i <- 0 until 3) {
-        // Build.run is not cached, so every time we eval it it has to
+        // Build.run is not cached, so every time we eval it, it has to
         // re-evaluate
         val Right(result) = eval(Build.run("test.Foo"))
         assert(

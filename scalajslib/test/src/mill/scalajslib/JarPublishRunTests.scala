@@ -64,7 +64,7 @@ object JarPublishRunTests extends TestSuite {
         assert(
           result.evalCount > 0,
           log.contains("node")
-          // TODO: reenable somehow
+          // TODO: re-enable somehow
           // In Scala.js 1.x, println's are sent to the stdout, not to the logger
           // log.contains("Scala.js")
         )

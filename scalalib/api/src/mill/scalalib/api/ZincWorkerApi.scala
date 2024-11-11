@@ -161,7 +161,7 @@ trait ZincWorkerApi {
    * Discover main classes by inspecting the classpath.
    */
   def discoverMainClasses(classpath: Seq[os.Path]): Seq[String] = {
-    // We need this default-impl to keep binary compatinility (0.11.x)
+    // We need this default-impl to keep binary compatibility (0.11.x)
     Seq.empty
   }
 }

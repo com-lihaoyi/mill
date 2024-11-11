@@ -17,7 +17,7 @@ import mill.util.Util.millProjectModule
  * [[https://github.com/scoverage/scalac-scoverage-plugin scoverage compiler plugin]].
  *
  * To declare a module for which you want to generate coverage reports you can
- * Extends the `mill.contrib.scoverage.ScoverageModule` trait when defining your
+ * extend the `mill.contrib.scoverage.ScoverageModule` trait when defining your
  * Module. Additionally, you must define a submodule that extends the
  * `ScoverageTests` trait that belongs to your instance of `ScoverageModule`.
  *
@@ -174,7 +174,10 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
       Task {
         val extras =
           if (isScala3()) {
-            Seq(s"-coverage-out:${data().path.toIO.getPath()}")
+            Seq(
+              s"-coverage-out:${data().path.toIO.getPath()}",
+              s"-sourceroot:${T.workspace}"
+            )
           } else {
             Seq(
               s"-P:scoverage:dataDir:${data().path.toIO.getPath()}",

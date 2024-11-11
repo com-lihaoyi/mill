@@ -58,10 +58,10 @@ trait JavaModule
     }
 
     /**
-     * JavaModule and its derivates define inner test modules.
+     * JavaModule and its derivatives define inner test modules.
      * To avoid unexpected misbehavior due to the use of the wrong inner test trait
      * we apply some hierarchy consistency checks.
-     * If for some reasons, those are too restrictive to you, you can override this method.
+     * If, for some reason, those are too restrictive to you, you can override this method.
      * @throws MillException
      */
     protected def hierarchyChecks(): Unit = {
@@ -443,7 +443,7 @@ trait JavaModule
 
   /**
    * Folders containing source files that are generated rather than
-   * hand-written; these files can be generated in this target itself,
+   * handwritten; these files can be generated in this target itself,
    * or can refer to files generated from other targets
    */
   def generatedSources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
@@ -741,7 +741,7 @@ trait JavaModule
   /**
    * Directories to be processed by the API documentation tool.
    *
-   * Typically includes the source files to generate documentation from.
+   * Typically, includes the source files to generate documentation from.
    * @see [[docResources]]
    */
   def docSources: T[Seq[PathRef]] = Task.Sources(allSources())
@@ -749,7 +749,7 @@ trait JavaModule
   /**
    * Extra directories to be copied into the documentation.
    *
-   * Typically includes static files such as html and markdown, but depends
+   * Typically, includes static files such as html and markdown, but depends
    * on the doc tool that is actually used.
    * @see [[docSources]]
    */
@@ -895,7 +895,7 @@ trait JavaModule
           // will be passing in `_2.13` or `._3` anyways. Or it may even be a java
           // dependency. Looking at the usage upstream, it seems that this is set if
           // it can be or else defaults to "". Using it, I haven't been able to see
-          // any difference whether or not it's set, and by using "" it greatly simplifies
+          // any difference whether it's set, and by using "" it greatly simplifies
           // it.
           val matchers = whatDependsOn
             .map(module => module.module(scalaVersion = ""))

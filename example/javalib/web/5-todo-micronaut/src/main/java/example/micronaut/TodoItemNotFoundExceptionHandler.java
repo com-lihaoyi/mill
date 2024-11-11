@@ -12,19 +12,19 @@ import jakarta.inject.Singleton;
 @Produces
 @Singleton
 @Requires(classes = {TodoItemNotFoundException.class, ExceptionHandler.class})
-class TodoItemNotFoundExceptionHandler implements ExceptionHandler<TodoItemNotFoundException, HttpResponse> {
+class TodoItemNotFoundExceptionHandler
+    implements ExceptionHandler<TodoItemNotFoundException, HttpResponse> {
 
-    private final ErrorResponseProcessor<?> errorResponseProcessor;
+  private final ErrorResponseProcessor<?> errorResponseProcessor;
 
-    public TodoItemNotFoundExceptionHandler(ErrorResponseProcessor<?> errorResponseProcessor) {
-        this.errorResponseProcessor = errorResponseProcessor;
-    }
+  public TodoItemNotFoundExceptionHandler(ErrorResponseProcessor<?> errorResponseProcessor) {
+    this.errorResponseProcessor = errorResponseProcessor;
+  }
 
-    @Override
-    public HttpResponse handle(HttpRequest request, TodoItemNotFoundException e) {
-        return errorResponseProcessor.processResponse(ErrorContext.builder(request)
-                .cause(e)
-                .errorMessage(e.getMessage())
-                .build(), HttpResponse.notFound());
-    }
+  @Override
+  public HttpResponse handle(HttpRequest request, TodoItemNotFoundException e) {
+    return errorResponseProcessor.processResponse(
+        ErrorContext.builder(request).cause(e).errorMessage(e.getMessage()).build(),
+        HttpResponse.notFound());
+  }
 }

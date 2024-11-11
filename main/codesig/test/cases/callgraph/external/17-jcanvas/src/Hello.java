@@ -1,29 +1,28 @@
 package hello;
 
 import java.awt.*;
-import javax.swing.*;
 import java.awt.image.*;
+import javax.swing.*;
 
-class JCanvas extends JPanel{
-    private BufferedImage Picture;
-    Graphics2D Painter;
-    private Graphics Paint;
+class JCanvas extends JPanel {
+  private BufferedImage Picture;
+  Graphics2D Painter;
+  private Graphics Paint;
 
-    public JCanvas(){
-        Picture = new BufferedImage(800, 600, BufferedImage.TYPE_BYTE_INDEXED);
-        Painter = Picture.createGraphics();
+  public JCanvas() {
+    Picture = new BufferedImage(800, 600, BufferedImage.TYPE_BYTE_INDEXED);
+    Painter = Picture.createGraphics();
+  }
+
+  public void paintComponent(Graphics g) {
+    try {
+
+      Paint = this.getGraphics();
+      g.drawImage(Picture, 0, 0, null);
+
+    } catch (NullPointerException e) {
     }
-
-
-    public void paintComponent(Graphics g){
-        try{
-
-            Paint = this.getGraphics();
-            g.drawImage(Picture, 0, 0, null);
-
-        }catch(NullPointerException e){
-        }
-    }
+  }
 }
 
 // Note that `JCanvas#<init>` has an edge to `JCanvas#paintComponent` because

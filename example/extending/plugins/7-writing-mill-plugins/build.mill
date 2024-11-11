@@ -17,12 +17,12 @@ object myplugin extends ScalaModule with PublishModule {
   def ivyDeps = Agg(ivy"com.lihaoyi:mill-dist:$millVersion")
 
   // Testing Config, with necessary setup for unit/integration/example tests
-  object test extends ScalaTests with TestModule.Utest{
+  object test extends ScalaTests with TestModule.Utest {
     def ivyDeps = Agg(ivy"com.lihaoyi::mill-testkit:$millVersion")
     def forkEnv = Map("MILL_EXECUTABLE_PATH" -> millExecutable.assembly().path.toString)
 
     // Create a Mill executable configured for testing our plugin
-    object millExecutable extends JavaModule{
+    object millExecutable extends JavaModule {
       def ivyDeps = Agg(ivy"com.lihaoyi:mill-dist:$millVersion")
       def mainClass = Some("mill.runner.client.MillClientMain")
       def resources = Task {
@@ -53,7 +53,7 @@ object myplugin extends ScalaModule with PublishModule {
 //
 // The above `build.mill` file sets up a `object myplugin extends ScalaModule` not just to
 // compile your Mill plugin project, but also to run automated tests using `mill-testkit`,
-// and to configure it for publishing to Maven Central via `PublishModule`. 
+// and to configure it for publishing to Maven Central via `PublishModule`.
 // It looks like any other Scala project, except for a few things to take note:
 //
 // * We set the `platformSuffix` to indicate which Mill binary API version
@@ -64,7 +64,6 @@ object myplugin extends ScalaModule with PublishModule {
 // * An `object millExecutable` that adds some resources to the published `mill-dist`
 //   assembly to configure it to rewire `import $ivy` to instead use the local compiled
 //   classfiles for testing.
-
 
 // == Plugin Implementation
 
@@ -93,7 +92,6 @@ object myplugin extends ScalaModule with PublishModule {
 compiling 1 Scala source...
 
 */
-
 
 // Mill provides the `mill-testkit` library to make it easy for you to test your Mill
 // plugin. The example project above has set up tests that can be run via the normal `.test`
@@ -205,4 +203,3 @@ Publishing Artifact(com.lihaoyi,myplugin_mill0.11_2.13,0.0.2) to ivy repo...
 // or to Maven Central via `mill.scalalib.public.PublishModule/` for other developers to
 // use. For more details on publishing Mill projects, see the documentation for
 // xref:scalalib/publishing.adoc[Publishing Scala Projects]
-

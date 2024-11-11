@@ -24,7 +24,6 @@ object qux extends ScalaModule {
   }
 }
 
-
 object baz extends ScalaModule {
   def scalaVersion = "2.13.8"
 
@@ -58,4 +57,3 @@ Using BazTestUtils.bazAssertEquals
 ...
 
 */
-

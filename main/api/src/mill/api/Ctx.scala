@@ -4,7 +4,7 @@ import scala.annotation.{StaticAnnotation, compileTimeOnly}
 import scala.language.implicitConversions
 
 /**
- * Provides access to various resources in the context of a currently execution Target.
+ * Provides access to various resources in the context of a current execution Target.
  */
 object Ctx {
   @compileTimeOnly("Target.ctx() / T.ctx() / T.* APIs can only be used with a Task{...} block")
@@ -90,7 +90,7 @@ object Ctx {
      * This is the `os.Path` pointing to the project root directory.
      *
      * This is the preferred access to the project directory, and should
-     * always be prefered over `os.pwd`* (which might also point to the
+     * always be preferred over `os.pwd`* (which might also point to the
      * project directory in classic cli scenarios, but might not in other
      * use cases like BSP or LSP server usage).
      */
@@ -139,7 +139,7 @@ object Ctx {
        *
        * @param dest The "sandbox" folder that will contain the `os.pwd` and the `pwd` for
        *             any subprocesses spawned within the async future. Also provides the
-       *             path for the log file (dest + ".log") for any stdout/stderr printlns
+       *             path for the log file (dest + ".log") for any stdout/stderr `println`s
        *             that occur within that future
        * @param key The short prefix, typically a number ("1", "2", "3", etc.) that will be
        *            used to prefix all log lines emitted within this async future in the

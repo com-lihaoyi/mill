@@ -155,29 +155,32 @@ object `package` extends RootModule {
   def supplementalFiles = T.source(millSourcePath / "supplemental-ui")
 
   /**
-   * The doc root ready to be build by antora for the current branch.
+   * The doc root ready to be built by antora for the current branch.
    */
   def devAntoraSources: T[PathRef] = Task {
     val dest = T.dest
     os.copy(source().path, dest, mergeFolders = true)
-    sanitizeAntoraYml(dest, "master", build.millVersion(), build.millLastTag())
+    sanitizeAntoraYml(
+      dest,
+      "main-branch",
+      "main-branch",
+      build.millLastTag()
+    )
     PathRef(dest)
   }
 
   def sanitizeAntoraYml(
       dest: os.Path,
       version: String,
-      millVersion: String,
+      displayVersion: String,
       millLastTag: String
   ): Unit = {
-    val isPreRelease = (millVersion != millLastTag) || Seq("-M", "-RC").exists(millVersion.contains)
+    val isPreRelease = version == "main-branch" || Seq("-M", "-RC").exists(version.contains)
+    val preReleaseSuffix = if (isPreRelease) "\nprerelease: true" else ""
     val lines = os.read(dest / "antora.yml").linesIterator.map {
       case s"version:$_" =>
-        if (isPreRelease)
-          s"version: '${version}'\ndisplay-version: '${millVersion}'\nprerelease: true"
-        else
-          s"version: '${version}'\ndisplay-version: '${millVersion}'"
-      case s"    mill-version:$_" => s"    mill-version: '$millVersion'"
+        s"version: '$version'\ndisplay-version: '$displayVersion'$preReleaseSuffix"
+      case s"    mill-version:$_" => s"    mill-version: '$millLastTag'"
       case s"    mill-last-tag:$_" => s"    mill-last-tag: '$millLastTag'"
       case l => l
     }
@@ -241,14 +244,23 @@ object `package` extends RootModule {
   }
 
   def oldDocSources: T[Seq[PathRef]] = Task {
-    for (oldVersion <- build.Settings.docTags) yield {
-      val checkout = T.dest / oldVersion
+    val versionLabels =
+      build.Settings.docTags.map{v =>
+        val xVersion = v.split('.').dropRight(1).mkString(".") + ".x"
+        (v, xVersion, xVersion)
+      } ++
+      // Set the latest stable branch as the "master" docs that people default to
+      Seq((build.Settings.docTags.last, "master", s"latest-${build.Settings.docTags.last}"))
+
+    for ((millLastTag, version, displayVersion) <- versionLabels) yield {
+      val checkout = T.dest / displayVersion
       os.proc("git", "clone", T.workspace / ".git", checkout).call(stdout = os.Inherit)
-      os.proc("git", "checkout", oldVersion).call(cwd = checkout, stdout = os.Inherit)
+      os.proc("git", "checkout", millLastTag).call(cwd = checkout, stdout = os.Inherit)
       val outputFolder = checkout / "out" / "docs" / "source.dest"
       os.proc("./mill", "-i", "docs.source").call(cwd = checkout, stdout = os.Inherit)
       expandDiagramsInDirectoryAdocFile(outputFolder, mill.main.VisualizeModule.classpath().map(_.path))
-      sanitizeAntoraYml(outputFolder, oldVersion, oldVersion, oldVersion)
+
+      sanitizeAntoraYml(outputFolder, version, displayVersion, millLastTag)
       PathRef(outputFolder)
     }
   }
@@ -363,6 +375,7 @@ object `package` extends RootModule {
         .asScala
         .map(e => (e.toString, e.attr("href")))
         .toSeq
+        .filter(!_._2.startsWith("mailto:"))
         .partition{case (e, l) => l.startsWith("http://") || l.startsWith("https://")}
       (
         path,
@@ -383,13 +396,13 @@ object `package` extends RootModule {
         !l.contains("/example/") &&
           !l.contains("/releases/download/") &&
           // Ignore internal repo links in the changelog because there are a lot
-          // of them and they're not very interesting to check and verify.
+          // of them, and they're not very interesting to check and verify.
           !l.contains("https://github.com/com-lihaoyi/mill/pull/") &&
           !l.contains("https://github.com/com-lihaoyi/mill/milestone/") &&
           !l.contains("https://github.com/com-lihaoyi/mill/compare/") &&
           // Link meant for API configuration, not for clicking
           !l.contains("https://s01.oss.sonatype.org/service/local") &&
-          // SOmehow this server doesn't respond properly to HEAD requests even though GET works
+          // Somehow this server doesn't respond properly to HEAD requests even though GET works
           !l.contains("https://marketplace.visualstudio.com/items")
       }
       .toSet
@@ -433,7 +446,7 @@ object `package` extends RootModule {
     // This is flaky due to rate limits so ignore it for now
 
     // if (brokenRemoteLinks().nonEmpty){
-    //   throw new Exception("Broken Rmote Links: " + upickle.default.write(brokenRemoteLinks(), indent = 2))
+    //   throw new Exception("Broken Remote Links: " + upickle.default.write(brokenRemoteLinks(), indent = 2))
     // }
   }
 

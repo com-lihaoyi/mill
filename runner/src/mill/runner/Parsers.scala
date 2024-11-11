@@ -78,7 +78,7 @@ object Parsers {
           for (importTree <- parsedTrees) {
             importTree.prefix match {
               case Seq((s"$$$rest", _), _*) => importTrees.append(importTree)
-              case _ => // donothing
+              case _ => // do nothing
             }
           }
           hookedStmts.append((stmt, importTrees.toSeq))
