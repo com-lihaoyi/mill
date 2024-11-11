@@ -12,7 +12,7 @@
 // what Mill is, hopefully have downloaded an example to try out, and be
 // interested in learning more about the Mill build tool
 
-= Kotlin with Mill
+= Building Kotlin with Mill
 :page-aliases: Kotlin_Intro_to_Mill.adoc
 
 include::partial$gtag-config.adoc[]
