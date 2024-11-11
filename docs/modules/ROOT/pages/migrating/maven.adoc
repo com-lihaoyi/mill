@@ -6,35 +6,15 @@ include::partial$gtag-config.adoc[]
 
 The Mill `init` command can be used to convert a Maven build to Mill.
 
-A Maven module is converted to a Mill `MavenModule` with the standard Maven directory structure.
-A nested `test` module is defined if
+A Maven module is converted to a Mill `MavenModule` and a nested `test` module is defined if
 
 * `src/test` exists
-* a supported xref:javalib/testing.adoc[test framework] is detected (for a tests only module with test sources in `src/main/java`)
+* a supported xref:javalib/testing.adoc[test framework] is detected (for a _tests only_ module with test sources in `src/main/java`)
 
 include::partial$example/javalib/migrating/1-maven.adoc[]
 
-CAUTION: The conversion is not intended to be 100% feature complete enough to replace the Maven build
-today. It is instead meant to provide a scaffolding to further xref:#recommendations[build] upon.
-
-[TIP]
-====
-Adapt the following to adhere to Mill conventions:
-
-.example for project https://github.com/fusesource/jansi/archive/refs/tags/jansi-2.4.1.zip[jansi]
-[source,sh]
-----
-./mill init --base-module JansiModule --deps-object Deps
-----
-
-Include `--merge` flag for a multi-module build:
-
-.example for project https://github.com/davidmoten/geo/archive/refs/tags/0.8.1.zip[geo]
-[source,sh]
-----
-./mill init --base-module OwnerModule --deps-object Deps --merge
-----
-====
+WARNING: The conversion is not intended to be 100% feature complete enough to replace the Maven build
+today. It is instead meant to provide a scaffolding to further xref:#limitations[build] upon.
 
 == Capabilities
 
@@ -91,6 +71,29 @@ The conversion
 ./mill init --process-plugins
 ----
 
+=== Verified projects
+
+The conversion has been tested with the following projects:
+
+* https://github.com/fusesource/jansi/archive/refs/tags/jansi-2.4.1.zip[jansi]
+[source,sh]
+----
+./mill init --base-module JansiModule --deps-object Deps --cache-repository --process-plugins
+----
+
+* https://github.com/davidmoten/geo/archive/refs/tags/0.8.1.zip[geo] (multi-module build)
+[source,sh]
+----
+./mill init --base-module GeoModule --deps-object Deps --merge --cache-repository --process-plugins
+----
+
+Post `init`, the following tasks were executed successfully:
+
+* `compile`
+* `test`
+* `publishLocal`
+
+[#limitations]
 == Limitations
 
 The conversion does not support
@@ -103,7 +106,6 @@ Maven plugin support is limited to
 
 * https://maven.apache.org/plugins/maven-compiler-plugin/[maven-compiler-plugin]
 
-[#recommendations]
 [TIP]
 ====
 These limitations can be overcome by:
@@ -119,7 +121,7 @@ These limitations can be overcome by:
 .How to fix compilation errors in generated build files?
 [%collapsible]
 ====
-This could happen if a module and task name collision occurs; rename the module or enclose the Mill module name in backticks.
+This could happen if a module and task name collision occurs. Either rename the module or enclose the name in backticks.
 ====
 
 .How to fix JPMS `module not found` compilation errors?
