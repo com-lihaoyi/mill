@@ -160,7 +160,12 @@ object `package` extends RootModule {
   def devAntoraSources: T[PathRef] = Task {
     val dest = T.dest
     os.copy(source().path, dest, mergeFolders = true)
-    sanitizeAntoraYml(dest, "master", build.millVersion(), build.millLastTag())
+    sanitizeAntoraYml(
+      dest,
+      "main-branch",
+      build.millVersion().split('.').dropRight(1).mkString("."),
+      build.millLastTag()
+    )
     PathRef(dest)
   }
 
@@ -174,7 +179,7 @@ object `package` extends RootModule {
     val lines = os.read(dest / "antora.yml").linesIterator.map {
       case s"version:$_" =>
         if (isPreRelease)
-          s"version: '${version}'\ndisplay-version: '${millVersion}'\nprerelease: true"
+          s"version: '${version}'\ndisplay-version: 'main-branch'\nprerelease: true"
         else
           s"version: '${version}'\ndisplay-version: '${millVersion}'"
       case s"    mill-version:$_" => s"    mill-version: '$millVersion'"
@@ -242,13 +247,15 @@ object `package` extends RootModule {
 
   def oldDocSources: T[Seq[PathRef]] = Task {
     for (oldVersion <- build.Settings.docTags) yield {
+      val latest = build.Settings.docTags.last == oldVersion
       val checkout = T.dest / oldVersion
       os.proc("git", "clone", T.workspace / ".git", checkout).call(stdout = os.Inherit)
       os.proc("git", "checkout", oldVersion).call(cwd = checkout, stdout = os.Inherit)
       val outputFolder = checkout / "out" / "docs" / "source.dest"
       os.proc("./mill", "-i", "docs.source").call(cwd = checkout, stdout = os.Inherit)
       expandDiagramsInDirectoryAdocFile(outputFolder, mill.main.VisualizeModule.classpath().map(_.path))
-      sanitizeAntoraYml(outputFolder, oldVersion, oldVersion, oldVersion)
+      // Set the latest stable branch as the "master" docs that people default to
+      sanitizeAntoraYml(outputFolder, if (latest) "master" else oldVersion, oldVersion, oldVersion)
       PathRef(outputFolder)
     }
   }
