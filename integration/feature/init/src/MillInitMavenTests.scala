@@ -283,7 +283,8 @@ object MillInitMavenAvajeConfigTests extends MillInitMavenTests {
         resolveRes.isSuccess
       )
 
-      // not sure why this happens
+      // uses moditect-maven-plugin to handle JPMS
+      // https://github.com/moditect/moditect
       val compileRes = eval("__.compile")
       assert(
         compileRes.err.contains(
@@ -329,7 +330,8 @@ object MillInitMavenFastExcelTests extends MillInitMavenTests {
         resolveRes.isSuccess
       )
 
-      // not sure why this happens but pom.xml has a hack to handle JPMS
+      // pom.xml has custom profiles to handle JPMS
+      // https://github.com/dhatim/fastexcel/blob/de56e786a1fe29351e2f8dc1d81b7cdd9196de4a/pom.xml#L251
       val compileRes = eval("__.compile")
       assert(
         compileRes.err.contains(
