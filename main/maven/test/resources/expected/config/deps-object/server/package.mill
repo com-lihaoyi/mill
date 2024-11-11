@@ -1,7 +1,6 @@
 package build.server
 
 import mill._
-import mill.api._
 import mill.javalib._
 import mill.javalib.publish._
 
