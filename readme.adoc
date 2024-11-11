@@ -346,6 +346,33 @@ endif::[]
 // find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
 
 
+[#0-12-2]
+=== 0.12.2 - 2024-11-11
+
+* Show correct build file name in progress prompt {link-pr}/3847[#3847]
+* Fix target name when reporting cycles in `runModuleDeps` {link-pr}/3860[#3860]
+* Properly escape imported submodule names when the name is a Scala identifier {link-pr}/3865[#3865]
+* Report an error when module dependency cycles are detected {link-pr}/3878[#3878]
+* Drop incremental compilation state for Mill modules when version changes to try and mitigate cache invalidation issues {link-pr}/3884[#3884]
+* Share profile loggers between nested evaluations to avoid ensure commands like `show` now have a proper profile {link-pr}/3885[#3885]
+* Add `nativeMultithreading` flag in ScalaNativeModule {link-pr}/3896[#3896]
+* Add nice error when non-exclusive task depends on exclusive task {link-pr}/3887[#3887]
+* Filter out anonymous classes during test discovery to mitigate spurious test reports {link-pr}/3911[#3911]
+* Fix `MavenTests` deprecation message {link-pr}/3915[#3915]
+* Improve `inspect` command to show more detailed metadata on modules and tasks {link-pr}/3916[#3916]
+* Fix prompt updating logic to ensure the timestamp updates while tasks are running {link-pr}/3933[#3933]
+* Fix scoverage report generation for Scala 3 {link-pr}/3936[#3936]
+* Tons of documentation improvements: autoformatted all https://github.com/com-lihaoyi/mill/pull/3919[Java]
+  and https://github.com/com-lihaoyi/mill/pull/3903[Scala] example files,
+  [Scala-Native example builds]https://github.com/com-lihaoyi/mill/pull/3657,
+  https://github.com/com-lihaoyi/mill/pull/3897[Scala-JS WASM example build],
+  https://github.com/com-lihaoyi/mill/pull/3918[Re-run Maven comparison using proper flags]
+  added https://mill-build.org/mill/comparisons/why-mill.html[Why Use Mill?] and
+  https://mill-build.org/mill/comparisons/unique.html[What Makes Mill Unique?] Sections
+
+
+
+
 [#0-12-1]
 === 0.12.1 - 2024-10-27
 
