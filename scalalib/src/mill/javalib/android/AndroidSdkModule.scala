@@ -26,6 +26,11 @@ trait AndroidSdkModule extends Module {
   private val remotePackagesUrl = "https://dl.google.com/android/repository/repository2-3.xml"
 
   /**
+   * Specifies the version of the Android Bundle tool to be used.
+   */
+  def bundleToolVersion: T[String]
+
+  /**
    * Specifies the version of the Android build tools to be used.
    */
   def buildToolsVersion: T[String]
@@ -34,6 +39,22 @@ trait AndroidSdkModule extends Module {
    * Specifies the Android platform version (e.g., Android API level).
    */
   def platformsVersion: T[String] = Task { "android-" + buildToolsVersion().split('.').head }
+
+  /**
+   * URL to download bundle tool, used for creating Android app bundles (AAB files).
+   */
+  def bundleToolUrl: T[String] = Task {
+    s"https://github.com/google/bundletool/releases/download/${bundleToolVersion()}/bundletool-all-${bundleToolVersion()}.jar"
+  }
+
+  /**
+   * Provides the path to the `bundleTool.jar` file, necessary for creating Android bundles.
+   */
+  def bundleToolPath: T[PathRef] = Task {
+    val bundleToolJar = Task.dest / "bundleTool.jar"
+    os.write(bundleToolJar, requests.get(bundleToolUrl()).bytes)
+    PathRef(bundleToolJar)
+  }
 
   /**
    * Provides the path to the `android.jar` file, necessary for compiling Android apps.

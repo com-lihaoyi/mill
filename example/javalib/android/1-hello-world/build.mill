@@ -15,6 +15,7 @@ import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}
 // Create and configure an Android SDK module to manage Android SDK paths and tools.
 object androidSdkModule0 extends AndroidSdkModule {
   def buildToolsVersion = "35.0.0"
+  def bundleToolVersion = "1.17.2"
 }
 
 // Actual android application

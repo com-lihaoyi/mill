@@ -55,9 +55,9 @@ trait AndroidAppModule extends JavaModule {
     var jarFiles: Seq[PathRef] = Seq()
     var resFolders: Seq[PathRef] = Seq()
 
-    // Process each AAR file
-    aarFiles.foreach { aarFile =>
-      val extractDir = T.dest / aarFile.baseName
+    // Process each AAR file using a for loop
+    for (aarFile <- aarFiles) {
+      val extractDir = Task.dest / aarFile.baseName
       os.unzip(aarFile, extractDir)
 
       // Collect all .jar files in the AAR directory
@@ -66,7 +66,7 @@ trait AndroidAppModule extends JavaModule {
       // If the res folder exists, add it to the resource folders
       val resFolder = extractDir / "res"
       if (os.exists(resFolder)) {
-        resFolders :+= PathRef(resFolder)
+        resFolders ++= Seq(PathRef(resFolder))
       }
     }
 
@@ -99,6 +99,10 @@ trait AndroidAppModule extends JavaModule {
     super.compileClasspath().filter(_.path.ext == "jar") ++ jarFiles
   }
 
+  def linkOptions: T[Seq[String]] = Task {
+    Seq[String]("--auto-add-overlay")
+  }
+
   /**
    * Compiles and links Android resources using `aapt2`, generating the `R.java` file.
    *
@@ -108,50 +112,42 @@ trait AndroidAppModule extends JavaModule {
    * [[https://developer.android.com/tools/aapt2 aapt Documentation]]
    */
   def androidResources: T[PathRef] = Task {
-    val genDir: os.Path = T.dest // Directory to store generated R.java
-    val compiledResDir: os.Path = T.dest / "compiled" // Directory for compiled resources
+    val compiledResDir: os.Path = Task.dest / "compiled" // Directory for compiled resources
     val resourceDirs = resources().map(_.path).filter(os.exists) // Merge all resource directories
     os.makeDir.all(compiledResDir)
-    var count = 0
     val compiledZips = resourceDirs.map { resDir =>
-      val outputZip = compiledResDir / s"${resDir.last}-${count}.zip"
-      count = count + 1
-      os.call(Seq(
-        androidSdkModule().aapt2Path().path.toString, // Call aapt2 tool
-        "compile",
-        "--dir",
-        resDir.toString, // Compile each resource directory
-        "-o",
-        outputZip.toString // Output directory for compiled resources
-      ))
+      // Use the last two components of the path as part of the filename
+      val lastTwoSegments = resDir.segments.toSeq.takeRight(2).mkString("-")
+      val outputZip = compiledResDir / s"$lastTwoSegments.zip"
+      os.call((androidSdkModule().aapt2Path().path, "compile", "--dir", resDir, "-o", outputZip))
       outputZip
     }
 
-    // Filter to find the single "resources" zip and exclude it from the regular zips
-    val ResourceZip = compiledZips.find(_.toString.contains("resources"))
-    val libzips = compiledZips.filterNot(_.toString.contains("resources"))
-
-    val compiledlibs = libzips.flatMap(zip => Seq("-R", zip.toString))
+    // Partition compiledZips into resourceZip and libZips
+    // "resources" is used to differ the libs res from app res
+    val (resourceZip, libZips) = compiledZips.partition(_.toString.contains("resources"))
+    val compiledlibs = libZips.flatMap(zip => Seq("-R", zip.toString))
+    println(libZips)
+    println(resourceZip)
 
     os.call(
       Seq(
         androidSdkModule().aapt2Path().path.toString, // AAPT2  tool path
         "link",
         "-I",
-        androidSdkModule().androidJarPath().path.toString, // Include Android SDK JAR
-        "--auto-add-overlay" // Automatically add resources from overlays
-      ) ++ compiledlibs ++ Seq(
+        androidSdkModule().androidJarPath().path.toString
+      ) ++ linkOptions() ++ compiledlibs ++ Seq(
         "--manifest",
         androidManifest().path.toString, // Use AndroidManifest.xml
         "--java",
-        genDir.toString, // Generate R.java in the genDir
+        Task.dest.toString, // Generate R.java in the Task.dest
         "-o",
-        s"${genDir / "res.apk"}",
-        ResourceZip.map(_.toString).getOrElse("")
+        s"${Task.dest / "res.apk"}",
+        resourceZip.headOption.map(_.toString).getOrElse("") // Safe extraction of the first element
       )
     )
 
-    PathRef(genDir)
+    PathRef(Task.dest)
   }
 
   /**
@@ -183,7 +179,7 @@ trait AndroidAppModule extends JavaModule {
    * [[https://developer.android.com/tools/d8 d8 Documentation]]
    */
   def androidJar: T[PathRef] = Task {
-    val jarFile: os.Path = T.dest / "app.jar"
+    val jarFile: os.Path = Task.dest / "app.jar"
 
     os.call(
       Seq(
@@ -203,16 +199,16 @@ trait AndroidAppModule extends JavaModule {
    * Converts the generated JAR file into a DEX file using the `d8` tool.
    */
   def androidDex: T[PathRef] = Task {
-    val dexOutputDir: os.Path = T.dest
 
-    os.call(
-      Seq(androidSdkModule().d8Path().path.toString, "--output", dexOutputDir.toString) ++
-        Seq(
-          androidJar().path.toString, // Use the JAR file from the previous step
-          androidSdkModule().androidJarPath().path.toString // Include Android framework classes
-        )
-    )
-    PathRef(dexOutputDir)
+    os.call((
+      androidSdkModule().d8Path().path,
+      "--output",
+      Task.dest,
+      androidJar().path, // Use the JAR file from the previous step
+      androidSdkModule().androidJarPath().path // Include Android framework classes
+    ))
+
+    PathRef(Task.dest)
   }
 
   /**
@@ -221,14 +217,10 @@ trait AndroidAppModule extends JavaModule {
    * @return A `PathRef` to the generated unsigned APK file (`app.unsigned.apk`).
    */
   def androidUnsignedApk: T[PathRef] = Task {
-    val unsignedApk: os.Path = T.dest / "app.unsigned.apk"
-    os.copy.over((T.dest / os.up / "androidResources.dest" / "res.apk"), unsignedApk)
-    os.call(Seq(
-      "zip",
-      "-j",
-      unsignedApk.toString,
-      s"${androidDex().path / "classes.dex"}"
-    ))
+    val unsignedApk: os.Path = Task.dest / "app.unsigned.apk"
+    os.copy(androidResources().path / "res.apk", unsignedApk)
+    // Add the classes.dex file into the unsigned APK as a zip entry
+    os.zip(unsignedApk, Seq(androidDex().path / "classes.dex"))
 
     PathRef(unsignedApk)
   }
@@ -240,18 +232,16 @@ trait AndroidAppModule extends JavaModule {
    * [[https://developer.android.com/tools/zipalign zipalign Documentation]]
    */
   def androidAlignedUnsignedApk: T[PathRef] = Task {
-    val alignedApk: os.Path = T.dest / "app.aligned.apk"
+    val alignedApk: os.Path = Task.dest / "app.aligned.apk"
 
-    os.call(
-      Seq(
-        androidSdkModule().zipalignPath().path.toString, // Call zipalign tool
-        "-f",
-        "-p",
-        "4", // Force overwrite, align with 4-byte boundary
-        androidUnsignedApk().path.toString, // Use the unsigned APK
-        alignedApk.toString // Output aligned APK
-      )
-    )
+    os.call((
+      androidSdkModule().zipalignPath().path, // Call zipalign tool
+      "-f",
+      "-p",
+      "4", // Force overwrite, align with 4-byte boundary
+      androidUnsignedApk().path, // Use the unsigned APK
+      alignedApk // Output aligned APK
+    ))
 
     PathRef(alignedApk)
   }
@@ -269,25 +259,23 @@ trait AndroidAppModule extends JavaModule {
    * [[https://developer.android.com/tools/apksigner apksigner Documentation]]
    */
   def androidApk: T[PathRef] = Task {
-    val signedApk: os.Path = T.dest / "app.apk"
+    val signedApk: os.Path = Task.dest / "app.apk"
 
-    os.call(
-      Seq(
-        androidSdkModule().apksignerPath().path.toString,
-        "sign", // Call apksigner tool
-        "--ks",
-        androidKeystore().path.toString, // Path to keystore
-        "--ks-key-alias",
-        "androidkey", // Key alias
-        "--ks-pass",
-        "pass:android", // Keystore password
-        "--key-pass",
-        "pass:android", // Key password
-        "--out",
-        signedApk.toString, // Output signed APK
-        androidAlignedUnsignedApk().path.toString // Use aligned APK
-      )
-    )
+    os.call((
+      androidSdkModule().apksignerPath().path,
+      "sign", // Call apksigner tool
+      "--ks",
+      androidKeystore().path, // Path to keystore
+      "--ks-key-alias",
+      "androidkey", // Key alias
+      "--ks-pass",
+      "pass:android", // Keystore password
+      "--key-pass",
+      "pass:android", // Key password
+      "--out",
+      signedApk, // Output signed APK
+      androidAlignedUnsignedApk().path // Use aligned APK
+    ))
 
     PathRef(signedApk)
   }
@@ -303,31 +291,29 @@ trait AndroidAppModule extends JavaModule {
    * [[https://docs.oracle.com/javase/8/docs/technotes/tools/windows/keytool.html keytool Documentation]]
    */
   def androidKeystore: T[PathRef] = Task(persistent = true) {
-    val keystoreFile: os.Path = T.dest / "keystore.jks"
+    val keystoreFile: os.Path = Task.dest / "keystore.jks"
 
     if (!os.exists(keystoreFile)) {
-      os.call(
-        Seq(
-          "keytool",
-          "-genkeypair",
-          "-keystore",
-          keystoreFile.toString, // Generate keystore
-          "-alias",
-          "androidkey", // Alias for key in the keystore
-          "-dname",
-          "CN=MILL, OU=MILL, O=MILL, L=MILL, S=MILL, C=IN", // Key details
-          "-validity",
-          "10000", // Valid for 10,000 days
-          "-keyalg",
-          "RSA",
-          "-keysize",
-          "2048", // RSA encryption, 2048-bit key
-          "-storepass",
-          "android",
-          "-keypass",
-          "android" // Passwords
-        )
-      )
+      os.call((
+        "keytool",
+        "-genkeypair",
+        "-keystore",
+        keystoreFile, // Generate keystore
+        "-alias",
+        "androidkey", // Alias for key in the keystore
+        "-dname",
+        "CN=MILL, OU=MILL, O=MILL, L=MILL, S=MILL, C=IN", // Key details
+        "-validity",
+        "10000", // Valid for 10,000 days
+        "-keyalg",
+        "RSA",
+        "-keysize",
+        "2048", // RSA encryption, 2048-bit key
+        "-storepass",
+        "android",
+        "-keypass",
+        "android" // Passwords
+      ))
     }
 
     PathRef(keystoreFile)

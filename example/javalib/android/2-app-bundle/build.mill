@@ -1,12 +1,11 @@
 package build
 
 import mill._
-import kotlinlib._
-import coursier.maven.MavenRepository
 import mill.javalib.android.{AndroidSdkModule, AndroidAppBundle}
 
 object androidSdkModule0 extends AndroidSdkModule {
   def buildToolsVersion = "35.0.0"
+  def bundleToolVersion = "1.17.2"
 }
 
 object bundle extends AndroidAppBundle {
@@ -16,9 +15,6 @@ object bundle extends AndroidAppBundle {
 /** Usage
 
 > ./mill show bundle.androidBundle
-".../out/bundle/androidBundle.dest/bundle.aab"
-
-> ./mill show bundle.androidApk
-".../out/bundle/androidApk.dest/universal.apk"
+".../out/bundle/androidBundle.dest/signedBundle.aab"
 
 */
