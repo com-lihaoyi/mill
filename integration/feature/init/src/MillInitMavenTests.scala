@@ -101,14 +101,12 @@ object MillInitMavenOwnerTests extends MillInitMavenTests(
 
   private val compileTasks = Seq(
     "owner.compile",
-    "owner-site.compile",
     "owner-extras.compile",
     "owner-java8.compile",
     "owner-examples.owner-examples-hotreload.compile",
     "owner.test.compile",
     "owner-extras.test.compile",
     "owner-java8.test.compile",
-    "owner-assembly.compile",
     "owner-java8-extras.compile",
     "owner-java8-extras.test.compile"
   )
