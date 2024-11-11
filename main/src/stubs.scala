@@ -3,7 +3,7 @@
  *
  * This is just a stub object to provide autocomplete for the import in the IDE
  */
-package $meta{ object $dummy }
+package $meta { object $dummy }
 
 /**
  * Use `import $packages._` to allow your Mill build to be broken up into
@@ -11,7 +11,7 @@ package $meta{ object $dummy }
  *
  * This is just a stub object to provide autocomplete for the import in the IDE
  */
-package $packages{ object $dummy }
+package $packages { object $dummy }
 
 /**
  * Use `import $ivy` to include third-party libraries for usage in your build.
@@ -24,7 +24,7 @@ package $packages{ object $dummy }
  *
  * This is just a stub object to provide autocomplete for the import in the IDE
  */
-package $ivy{ object $dummy }
+package $ivy { object $dummy }
 
 ///**
 // * Use `import $file.foo.bar` to include sub-folder `foo/bar/package.mill`
