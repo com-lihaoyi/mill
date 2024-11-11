@@ -163,7 +163,7 @@ object `package` extends RootModule {
     sanitizeAntoraYml(
       dest,
       "main-branch",
-      build.millVersion().split('.').dropRight(1).mkString("."),
+      build.millVersion().split('.').dropRight(1).mkString(".") + ".x",
       build.millLastTag()
     )
     PathRef(dest)
