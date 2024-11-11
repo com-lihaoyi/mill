@@ -2,7 +2,6 @@ package mill.javalib.android
 
 import mill._
 import mill.api.PathRef
-import mill.define.ModuleRef
 import mill.scalalib.JavaModule
 import mill.javalib.android.AndroidSdkModule
 
@@ -13,7 +12,7 @@ import mill.javalib.android.AndroidSdkModule
  * specifying lint rules, managing reports, and more.
  */
 @mill.api.experimental
-trait AndroidLintModule extends JavaModule {
+trait AndroidLintModule extends AndroidSdkModule with JavaModule {
 
   /**
    * Path to the project for which lint should run.
@@ -70,7 +69,7 @@ trait AndroidLintModule extends JavaModule {
 
     os.call(
       Seq(
-        androidSdkModule().cmdlineToolsPath().path.toString + "/lint",
+        cmdlineToolsPath().path.toString + "/lint",
         lintReportFlag,
         lintReport.toString,
         projectPath.toString
