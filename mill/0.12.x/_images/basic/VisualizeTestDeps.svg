@@ -1,0 +1,55 @@
+<svg width="380px" height="98px"
+ viewBox="0.00 0.00 379.54 98.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 94.0)">
+<title>example1</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-94 375.54,-94 375.54,4 -4,4"/>
+<!-- baz.compile -->
+<g id="node1" class="node">
+<title>baz.compile</title>
+<polygon fill="none" stroke="black" points="84.05,-63 -0.02,-63 -0.02,-27 84.05,-27 84.05,-63"/>
+<text text-anchor="middle" x="42.02" y="-40.8" font-family="Times,serif" font-size="14.00">baz.compile</text>
+</g>
+<!-- baz.test.compile -->
+<g id="node2" class="node">
+<title>baz.test.compile</title>
+<polygon fill="none" stroke="black" points="226.99,-90 120.04,-90 120.04,-54 226.99,-54 226.99,-90"/>
+<text text-anchor="middle" x="173.52" y="-67.8" font-family="Times,serif" font-size="14.00">baz.test.compile</text>
+</g>
+<!-- baz.compile&#45;&gt;baz.test.compile -->
+<g id="edge2" class="edge">
+<title>baz.compile&#45;&gt;baz.test.compile</title>
+<path fill="none" stroke="black" d="M84.35,-53.62C92.43,-55.3 101.08,-57.11 109.69,-58.9"/>
+<polygon fill="black" stroke="black" points="109.23,-62.38 119.73,-60.99 110.66,-55.53 109.23,-62.38"/>
+</g>
+<!-- qux.compile -->
+<g id="node3" class="node">
+<title>qux.compile</title>
+<polygon fill="none" stroke="black" points="216.12,-36 130.91,-36 130.91,0 216.12,0 216.12,-36"/>
+<text text-anchor="middle" x="173.52" y="-13.8" font-family="Times,serif" font-size="14.00">qux.compile</text>
+</g>
+<!-- baz.compile&#45;&gt;qux.compile -->
+<g id="edge1" class="edge">
+<title>baz.compile&#45;&gt;qux.compile</title>
+<path fill="none" stroke="black" d="M84.35,-36.38C95.91,-33.97 108.63,-31.32 120.72,-28.8"/>
+<polygon fill="black" stroke="black" points="121.61,-32.19 130.69,-26.72 120.18,-25.34 121.61,-32.19"/>
+</g>
+<!-- qux.test.compile -->
+<g id="node4" class="node">
+<title>qux.test.compile</title>
+<polygon fill="none" stroke="black" points="371.31,-63 263.23,-63 263.23,-27 371.31,-27 371.31,-63"/>
+<text text-anchor="middle" x="317.27" y="-40.8" font-family="Times,serif" font-size="14.00">qux.test.compile</text>
+</g>
+<!-- baz.test.compile&#45;&gt;qux.test.compile -->
+<g id="edge3" class="edge">
+<title>baz.test.compile&#45;&gt;qux.test.compile</title>
+<path fill="none" stroke="black" d="M227.3,-61.95C235.67,-60.35 244.41,-58.69 252.99,-57.05"/>
+<polygon fill="black" stroke="black" points="253.8,-60.46 262.97,-55.15 252.49,-53.59 253.8,-60.46"/>
+</g>
+<!-- qux.compile&#45;&gt;qux.test.compile -->
+<g id="edge4" class="edge">
+<title>qux.compile&#45;&gt;qux.test.compile</title>
+<path fill="none" stroke="black" d="M216.28,-25.95C227.88,-28.16 240.74,-30.61 253.27,-33"/>
+<polygon fill="black" stroke="black" points="252.73,-36.46 263.21,-34.89 254.04,-29.58 252.73,-36.46"/>
+</g>
+</g>
+</svg>

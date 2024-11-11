@@ -1,0 +1,509 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Untitled :: The Mill JVM Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/mill/0.11.x/example/cross/1-simple.html" />
+    <meta name="generator" content="Antora 3.1.9" />
+    <link rel="stylesheet" href="../../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../../../../_/favicon.png" type="image/x-icon" />
+  
+  </head><body class="article">
+  
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../../_/logo-white.svg" height="20" /> The Mill JVM Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs" />
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">Source Code (GitHub)</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="mill" data-version="0.11.x">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Java Quick Start</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Java_Intro_to_Mill.html">Introduction to Mill for Java</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Java_Installation_IDE_Support.html">Installation and IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Java_Builtin_Commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="../../Java_Build_Examples.html">Java Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="../../Java_Module_Config.html">Java Module Configuration</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="../../Java_Web_Build_Examples.html">Java Web Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="../../Java_Case_Study_Netty.html">Java Case Study: Netty</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Scala Quick Start</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Scala_Intro_to_Mill.html">Introduction to Mill for Scala</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Scala_Installation_IDE_Support.html">Installation and IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Scala_Builtin_Commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="../../Scala_Build_Examples.html">Scala Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="../../Scala_Module_Config.html">Scala Module Configuration</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="../../Scala_Web_Build_Examples.html">Scala Web Build Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Library_Dependencies.html">Library Dependencies in Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Out_Dir.html">The Output Directory</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="../../Modules.html">Modules</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="../../Cross_Builds.html">Cross Builds</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="../../Target_Query_Syntax.html">Target Query Syntax</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="../../Extending_Mill.html">Extending Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="../../The_Mill_Evaluation_Model.html">The Mill Evaluation Model</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Plugins</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Using_Plugins.html">Using Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../../Contrib_Plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/artifactory.html">Artifactory</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/bintray.html">Bintray</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../../contrib/bloop.html">Bloop</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../../contrib/buildinfo.html">BuildInfo</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../../Plugin_BSP.html">BSP - Build Server Protocol</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../../contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../../contrib/docker.html">Docker</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../../contrib/flyway.html">Flyway</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../../contrib/gitlab.html">Gitlab</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../../contrib/jmh.html">JMH</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../../contrib/playlib.html">Play Framework</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../../contrib/proguard.html">Proguard</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../../contrib/scalapblib.html">ScalaPB</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../../contrib/scoverage.html">Scoverage</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../../contrib/testng.html">TestNG</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../../contrib/twirllib.html">Twirl</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../../contrib/versionfile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Thirdparty_Plugins.html">Third-Party Plugins</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../Mill_Design_Principles.html">Mill Design Principles</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../External_References.html">External References</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill/index.html">Mill Scaladoc</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="../../Changelog.html">Changelog</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Mill Documentation</span>
+    <span class="version">0.11.x</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <div class="title"><a href="../../../index.html">Mill Documentation</a></div>
+      <ul class="versions">
+        <li class="version">
+          <a href="../../../main-branch/index.html">main-branch</a>
+        </li>
+        <li class="version is-latest">
+          <a href="../../../index.html">latest-0.12.2</a>
+        </li>
+        <li class="version">
+          <a href="../../../0.12.x/index.html">0.12.x</a>
+        </li>
+        <li class="version is-current">
+          <a href="../../index.html">0.11.x</a>
+        </li>
+        <li class="version">
+          <a href="../../../0.10.15/index.html">0.10.15</a>
+        </li>
+        <li class="version">
+          <a href="../../../0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../../../index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+</nav>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<div class="paragraph">
+<p>Mill handles cross-building of all sorts via the <code>Cross[T]</code> module.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.11.12/0.11.12-example-cross-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.11.12//example/cross/1-simple">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+
+object foo extends Cross[FooModule](&quot;2.10&quot;, &quot;2.11&quot;, &quot;2.12&quot;)
+trait FooModule extends Cross.Module[String] {
+  def suffix = T { &quot;_&quot; + crossValue }
+  def bigSuffix = T { &quot;[[[&quot; + suffix() + &quot;]]]&quot; }
+  def sources = T.sources(millSourcePath)
+}</code></pre>
+</div>
+</div>
+<center>
+<svg width="315px" height="364px" viewBox="0.00 0.00 314.83 364.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 360.0)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-360 310.83,-360 310.83,4 -4,4"></polygon>
+<g id="clust1" class="cluster">
+<title>cluster_2</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-116 298.83,-116 298.83,-8 8,-8"></polygon>
+<text text-anchor="middle" x="153.41" y="-99.4" font-family="Times,serif" font-size="14.00">foo[2.12]</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_1</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-232 298.83,-232 298.83,-124 8,-124"></polygon>
+<text text-anchor="middle" x="153.41" y="-215.4" font-family="Times,serif" font-size="14.00">foo[2.11]</text>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_0</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-240 8,-348 298.83,-348 298.83,-240 8,-240"></polygon>
+<text text-anchor="middle" x="153.41" y="-331.4" font-family="Times,serif" font-size="14.00">foo[2.10]</text>
+</g>
+<!-- foo[2.12].suffix -->
+<g id="node1" class="node">
+<title>foo[2.12].suffix</title>
+<polygon fill="white" stroke="black" points="125.12,-83.3 20.84,-83.3 20.84,-58.7 125.12,-58.7 125.12,-83.3"></polygon>
+<text text-anchor="middle" x="72.98" y="-66.8" font-family="Times,serif" font-size="14.00">foo[2.12].suffix</text>
+</g>
+<!-- foo[2.12].bigSuffix -->
+<g id="node2" class="node">
+<title>foo[2.12].bigSuffix</title>
+<polygon fill="white" stroke="black" points="290.76,-83.3 166.03,-83.3 166.03,-58.7 290.76,-58.7 290.76,-83.3"></polygon>
+<text text-anchor="middle" x="228.39" y="-66.8" font-family="Times,serif" font-size="14.00">foo[2.12].bigSuffix</text>
+</g>
+<!-- foo[2.12].suffix&#45;&gt;foo[2.12].bigSuffix -->
+<g id="edge1" class="edge">
+<title>foo[2.12].suffix-&gt;foo[2.12].bigSuffix</title>
+<path fill="none" stroke="black" d="M125.49,-71C135.22,-71 145.56,-71 155.77,-71"></path>
+<polygon fill="black" stroke="black" points="155.92,-74.5 165.92,-71 155.92,-67.5 155.92,-74.5"></polygon>
+</g>
+<!-- foo[2.12].sources -->
+<g id="node3" class="node">
+<title>foo[2.12].sources</title>
+<polygon fill="white" stroke="black" points="129.94,-40.3 16.02,-40.3 16.02,-15.7 129.94,-15.7 129.94,-40.3"></polygon>
+<text text-anchor="middle" x="72.98" y="-23.8" font-family="Times,serif" font-size="14.00">foo[2.12].sources</text>
+</g>
+<!-- foo[2.11].suffix -->
+<g id="node4" class="node">
+<title>foo[2.11].suffix</title>
+<polygon fill="white" stroke="black" points="125.12,-199.3 20.84,-199.3 20.84,-174.7 125.12,-174.7 125.12,-199.3"></polygon>
+<text text-anchor="middle" x="72.98" y="-182.8" font-family="Times,serif" font-size="14.00">foo[2.11].suffix</text>
+</g>
+<!-- foo[2.11].bigSuffix -->
+<g id="node5" class="node">
+<title>foo[2.11].bigSuffix</title>
+<polygon fill="white" stroke="black" points="290.76,-199.3 166.03,-199.3 166.03,-174.7 290.76,-174.7 290.76,-199.3"></polygon>
+<text text-anchor="middle" x="228.39" y="-182.8" font-family="Times,serif" font-size="14.00">foo[2.11].bigSuffix</text>
+</g>
+<!-- foo[2.11].suffix&#45;&gt;foo[2.11].bigSuffix -->
+<g id="edge2" class="edge">
+<title>foo[2.11].suffix-&gt;foo[2.11].bigSuffix</title>
+<path fill="none" stroke="black" d="M125.49,-187C135.22,-187 145.56,-187 155.77,-187"></path>
+<polygon fill="black" stroke="black" points="155.92,-190.5 165.92,-187 155.92,-183.5 155.92,-190.5"></polygon>
+</g>
+<!-- foo[2.11].sources -->
+<g id="node6" class="node">
+<title>foo[2.11].sources</title>
+<polygon fill="white" stroke="black" points="129.94,-156.3 16.02,-156.3 16.02,-131.7 129.94,-131.7 129.94,-156.3"></polygon>
+<text text-anchor="middle" x="72.98" y="-139.8" font-family="Times,serif" font-size="14.00">foo[2.11].sources</text>
+</g>
+<!-- foo[2.10].suffix -->
+<g id="node7" class="node">
+<title>foo[2.10].suffix</title>
+<polygon fill="white" stroke="black" points="125.12,-315.3 20.84,-315.3 20.84,-290.7 125.12,-290.7 125.12,-315.3"></polygon>
+<text text-anchor="middle" x="72.98" y="-298.8" font-family="Times,serif" font-size="14.00">foo[2.10].suffix</text>
+</g>
+<!-- foo[2.10].bigSuffix -->
+<g id="node8" class="node">
+<title>foo[2.10].bigSuffix</title>
+<polygon fill="white" stroke="black" points="290.76,-315.3 166.03,-315.3 166.03,-290.7 290.76,-290.7 290.76,-315.3"></polygon>
+<text text-anchor="middle" x="228.39" y="-298.8" font-family="Times,serif" font-size="14.00">foo[2.10].bigSuffix</text>
+</g>
+<!-- foo[2.10].suffix&#45;&gt;foo[2.10].bigSuffix -->
+<g id="edge3" class="edge">
+<title>foo[2.10].suffix-&gt;foo[2.10].bigSuffix</title>
+<path fill="none" stroke="black" d="M125.49,-303C135.22,-303 145.56,-303 155.77,-303"></path>
+<polygon fill="black" stroke="black" points="155.92,-306.5 165.92,-303 155.92,-299.5 155.92,-306.5"></polygon>
+</g>
+<!-- foo[2.10].sources -->
+<g id="node9" class="node">
+<title>foo[2.10].sources</title>
+<polygon fill="white" stroke="black" points="129.94,-272.3 16.02,-272.3 16.02,-247.7 129.94,-247.7 129.94,-272.3"></polygon>
+<text text-anchor="middle" x="72.98" y="-255.8" font-family="Times,serif" font-size="14.00">foo[2.10].sources</text>
+</g>
+</g>
+</svg>
+
+</center>
+<div class="paragraph">
+<p>Cross modules defined using the <code>Cross[T]</code> class allow you to define
+multiple copies of the same module, differing only in some input key. This
+is very useful for building the same module against different versions of a
+language or library, or creating modules to represent folders on the
+filesystem.</p>
+</div>
+<div class="paragraph">
+<p>This example defines three copies of <code>FooModule</code>: <code>&quot;2.10&quot;</code>, <code>&quot;2.11&quot;</code> and
+<code>&quot;2.12&quot;</code>, each of which has their own <code>suffix</code> target. You can then run
+them as shown below. Note that by default, <code>sources</code> returns <code>foo</code> for every
+cross module, assuming you want to build the same sources for each. This can
+be overridden.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo[2.10].suffix
+&quot;_2.10&quot;
+
+&gt; mill show foo[2.10].bigSuffix
+&quot;[[[_2.10]]]&quot;
+
+&gt; mill show foo[2.10].sources
+[
+  &quot;.../foo&quot;
+]
+
+&gt; mill show foo[2.12].suffix
+&quot;_2.12&quot;
+
+&gt; mill show foo[2.12].bigSuffix
+&quot;[[[_2.12]]]&quot;
+
+&gt; mill show foo[2.12].sources
+[
+  &quot;.../foo&quot;
+]</code></pre>
+</div>
+</div>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../../../../_/js/site.js" data-ui-root-path="../../../../_"></script>
+<script async="async" src="../../../../_/js/vendor/highlight.js"></script>
+<script src="../../../../_/js/vendor/lunr.js"></script>
+<script src="../../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../../.." data-snippet-length="100" data-stylesheet="../../../../_/css/search.css"></script>
+<script async="async" src="../../../../search-index.js"></script>
+  
+</body></html>

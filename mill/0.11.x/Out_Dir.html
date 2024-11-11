@@ -1,0 +1,542 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>The Output Directory :: The Mill JVM Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/mill/fundamentals/out-dir.html" />
+    <link rel="prev" href="Library_Dependencies.html" />
+    <link rel="next" href="Tasks.html" />
+    <meta name="generator" content="Antora 3.1.9" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
+  
+  </head><body class="article">
+  
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill JVM Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs" />
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">Source Code (GitHub)</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="mill" data-version="0.11.x">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Java Quick Start</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Java_Intro_to_Mill.html">Introduction to Mill for Java</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Java_Installation_IDE_Support.html">Installation and IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Java_Builtin_Commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="Java_Build_Examples.html">Java Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="Java_Module_Config.html">Java Module Configuration</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="Java_Web_Build_Examples.html">Java Web Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="Java_Case_Study_Netty.html">Java Case Study: Netty</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Scala Quick Start</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Scala_Intro_to_Mill.html">Introduction to Mill for Scala</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Scala_Installation_IDE_Support.html">Installation and IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Scala_Builtin_Commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="Scala_Build_Examples.html">Scala Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="Scala_Module_Config.html">Scala Module Configuration</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="Scala_Web_Build_Examples.html">Scala Web Build Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Library_Dependencies.html">Library Dependencies in Mill</a>
+  </li>
+
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="Out_Dir.html">The Output Directory</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="Modules.html">Modules</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="Cross_Builds.html">Cross Builds</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="Target_Query_Syntax.html">Target Query Syntax</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="Extending_Mill.html">Extending Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="The_Mill_Evaluation_Model.html">The Mill Evaluation Model</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Plugins</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Using_Plugins.html">Using Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="Contrib_Plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/artifactory.html">Artifactory</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/bintray.html">Bintray</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="contrib/bloop.html">Bloop</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="contrib/buildinfo.html">BuildInfo</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="Plugin_BSP.html">BSP - Build Server Protocol</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="contrib/docker.html">Docker</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="contrib/flyway.html">Flyway</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="contrib/gitlab.html">Gitlab</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="contrib/jmh.html">JMH</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="contrib/playlib.html">Play Framework</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="contrib/proguard.html">Proguard</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="contrib/scalapblib.html">ScalaPB</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="contrib/scoverage.html">Scoverage</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="contrib/testng.html">TestNG</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="contrib/twirllib.html">Twirl</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="contrib/versionfile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Thirdparty_Plugins.html">Third-Party Plugins</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="Mill_Design_Principles.html">Mill Design Principles</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="External_References.html">External References</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill/index.html">Mill Scaladoc</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="Changelog.html">Changelog</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Mill Documentation</span>
+    <span class="version">0.11.x</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <div class="title"><a href="../index.html">Mill Documentation</a></div>
+      <ul class="versions">
+        <li class="version">
+          <a href="../main-branch/index.html">main-branch</a>
+        </li>
+        <li class="version is-latest">
+          <a href="../index.html">latest-0.12.2</a>
+        </li>
+        <li class="version">
+          <a href="../0.12.x/index.html">0.12.x</a>
+        </li>
+        <li class="version is-current">
+          <a href="index.html">0.11.x</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.15/index.html">0.10.15</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="index.html">Mill Documentation</a></li>
+    <li>Mill In Depth</li>
+    <li><a href="Out_Dir.html">The Output Directory</a></li>
+  </ul>
+</nav>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">The Output Directory</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill puts all its output in the top-level <code>out/</code> folder.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_structure_of_the_out_directory"><a class="anchor" href="#_structure_of_the_out_directory"></a>Structure of the <code>out/</code> Directory</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>out/</code> folder contains all the generated files &amp; metadata for your build.
+It holds some files needed to manage Mill’s longer running server instances (<code>out/mill-worker-*</code>) as well as a directory and file structure resembling the project’s module structure.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example of the <code>out/</code> directory after running <code>mill main.compile</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">out/
+├── main/   <i class="conum" data-value="1"></i><b>(1)</b>
+│   ├── allScalacOptions.json
+│   ├── allSourceFiles.json
+│   ├── allSources.json
+│   ├── compile.dest/  <i class="conum" data-value="2"></i><b>(2)</b>
+│   ├── compile.json
+│   ├── compile.log  <i class="conum" data-value="3"></i><b>(3)</b>
+│   ├── compileClasspath.json
+│   ├── compileIvyDeps.json
+│   ├── enablePluginScalacOptions.json
+│   ├── generatedSources.json
+│   ├── ivyDeps.json
+│   ├── javacOptions.json
+│   ├── mandatoryIvyDeps.json
+│   ├── mandatoryIvyDeps.super/  <i class="conum" data-value="4"></i><b>(4)</b>
+│   ├── mandatoryScalacOptions.json
+│   ├── platformSuffix.json
+│   ├── resolvedIvyDeps.json
+│   ├── resolvedIvyDeps.log  <i class="conum" data-value="3"></i><b>(3)</b>
+│   ├── resources.json
+│   ├── scalaCompilerClasspath.json
+│   ├── scalaLibraryIvyDeps.json
+│   ├── scalaOrganization.json
+│   ├── scalaVersion.json
+│   ├── scalacOptions.json
+│   ├── scalacOptions.super/  <i class="conum" data-value="4"></i><b>(4)</b>
+│   ├── scalacPluginClasspath.json
+│   ├── scalacPluginIvyDeps.json
+│   ├── scalacPluginIvyDeps.super/  <i class="conum" data-value="4"></i><b>(4)</b>
+│   ├── sources.json
+│   ├── transitiveCompileIvyDeps.json
+│   ├── transitiveIvyDeps.json
+│   ├── transitiveLocalClasspath.json
+│   ├── unmanagedClasspath.json
+│   └── upstreamCompileOutput.json
+├── mill-profile.json
+└── mill-worker-VpZubuAK6LQHHN+3ojh1LsTZqWY=-1/</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tbody><tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <code>main</code> directory contains all files associated with target and submodules of the <code>main</code> module.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>compile</code> target has tried to access its scratch space via <code>T.dest</code>. Here you will find the actual compile results.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Two targets printed something out while they ran. You can find these outputs in the <code>*.log</code> files.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Three targets are overridden but re-use the result of their <code>super</code>-targets in some way. You can find these result under the <code>*.super/</code> path.</td>
+</tr>
+</tbody></table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_target_metadata_and_cached_files"><a class="anchor" href="#_target_metadata_and_cached_files"></a>Target Metadata and Cached Files</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Each named task (<code>Target</code> or <code>Command</code>) that is run has a representation in the <code>out/</code> directory structure.</p>
+</div>
+<div class="paragraph">
+<p>The <em>module</em> structure is reflected in the directories, so that each module of your project has a uniquely associated subdirectory under the <code>out/</code> directory.</p>
+</div>
+<div class="paragraph">
+<p>Each <em>target</em> is associated with one or multiple files and directories under its module directory.
+The following files can be found for a target <code>foo</code>:</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>foo.json</code></dt>
+<dd>
+<p>  the cache-key and JSON-serialized return-value of the
+<code>Target</code>/<code>Command</code>.
+The return-value can also be retrieved via <code>mill show foo.compile</code>.
+Binary blobs are typically not included in <code>foo.json</code>, and instead stored as separate binary files in <code>foo.dest/</code> which are then referenced
+by <code>foo.json</code> via <code>PathRef</code> references.</p>
+</dd>
+<dt class="hdlist1"><code>foo.dest/</code></dt>
+<dd>
+<p>  optional, a path for the <code>Task</code> to use either as a scratch space, or to place generated files that are returned
+using <code>PathRef</code> references.
+A <code>Task</code> should only output files within its own given <code>foo.dest/</code> folder (available as <code>T.dest</code>) to avoid
+conflicting with another <code>Task</code>, but can name files within <code>foo.dest/</code>  arbitrarily.</p>
+</dd>
+<dt class="hdlist1"><code>foo.log</code></dt>
+<dd>
+<p>optional, the <code>stdout</code>/<code>stderr</code> of the <code>Task</code>. This is also streamed to the console during evaluation.</p>
+</dd>
+<dt class="hdlist1"><code>foo.super/</code></dt>
+<dd>
+<p>optional, holds target metadata for overridden targets, so whenever you use a <code>super.foo()</code> in your <code>foo</code> target, you will find the metadata of the inherited task(s) under this directory.</p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>The <code>out/</code> folder is intentionally kept simple and user-readable.
+If your build is not behaving as you would expect,
+feel free to poke around the various
+<code>foo.dest/</code> folders to see what files are being created, or the <code>foo.json</code> files to see what is being returned by a
+particular task.
+You can also simply delete folders within <code>out/</code> if you want to force portions of your project to be
+rebuilt, e.g. by deleting the <code>out/main/</code> or <code>out/main/compile.*</code> folders, but we strongly encourage you to use the <a href="Scala_Builtin_Commands.html#_clean" class="xref page"><code>clean</code> command</a> instead.</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Cleaning some target state by manually deleting files under <code>out/</code> may be convenient, but you need to be careful to always delete the <code>foo.json</code> file whenever you delete a <code>foo.dest/</code> or <code>foo.super/</code>. Otherwise, you risk running into hard to diagnose issues later.</p>
+</div>
+<div class="paragraph">
+<p>Instead, you should always give the <code>clean</code> command a try before manually deleting some file under <code>out/</code>.</p>
+</div>
+</td>
+</tr>
+</tbody></table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_other_files_in_the_out_directory"><a class="anchor" href="#_other_files_in_the_out_directory"></a>Other files in the <code>out/</code> directory</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>There are also top-level build-related files in the <code>out/</code> folder, prefixed as <code>mill-*</code>.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>mill-profile.json</code></dt>
+<dd>
+<p> Probably the most useful file for you. It logs the tasks run and time taken for the last Mill command you executed.
+This is very useful if Mill is being unexpectedly slow, and you want to find out exactly what tasks are being run.</p>
+</dd>
+<dt class="hdlist1"><code>mill-chrome-profile.json</code></dt>
+<dd>
+<p>This file is only written if you run Mill in parallel mode, e.g. <code>mill --jobs 4</code>. This file can be opened in Google Chrome with the built-in <code>tracing:</code> protocol even while Mill is still running, so you get a nice chart of what’s going on in parallel.</p>
+</dd>
+<dt class="hdlist1"><code>mill-worker-*/</code></dt>
+<dd>
+<p>Each Mill server instance needs to keep some temporary files in one of these directories. Deleting it will also terminate the associated server instance, if it is still running.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="Library_Dependencies.html">Library Dependencies in Mill</a></span>
+  <span class="next"><a href="Tasks.html">Tasks</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
+<script src="../../_/js/vendor/lunr.js"></script>
+<script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>

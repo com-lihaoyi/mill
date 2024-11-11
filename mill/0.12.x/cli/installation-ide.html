@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Installation &amp; IDE Support :: The Mill JVM Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/mill/cli/installation-ide.html">
+    <link rel="prev" href="../comparisons/unique.html">
+    <link rel="next" href="flags.html">
+    <meta name="generator" content="Antora 3.1.9">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill JVM Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs">
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">Source Code (GitHub)</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="mill" data-version="0.12.x">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javalib/intro.html">Building Java with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/module-config.html">Java Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/dependencies.html">Java Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/testing.html">Testing Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/linting.html">Linting Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/publishing.html">Publishing Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/build-examples.html">Java Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/web-examples.html">Java Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/android-examples.html">(Experimental) Android Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../scalalib/intro.html">Building Scala with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/linting.html">Linting Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/publishing.html">Publishing Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/build-examples.html">Scala Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/web-examples.html">Scala Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../kotlinlib/intro.html">Kotlin with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/module-config.html">Kotlin Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/linting.html">Linting Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/publishing.html">Publishing Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/android-examples.html">(Experimental) Android Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../comparisons/why-mill.html">Why Use Mill?</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/maven.html">Case Study: Mill vs Maven</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/gradle.html">Case Study: Mill vs Gradle</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs SBT</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../comparisons/unique.html">What Makes Mill Unique</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">The Mill CLI</span>
+<ul class="nav-list">
+
+  <li class="nav-item is-current-page" data-depth="2">
+    <a class="nav-link" href="installation-ide.html">Installation &amp; IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="flags.html">Mill Command-Line Flags</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="alternate-installation.html">Other installation methods</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Fundamentals</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/modules.html">Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/out-dir.html">The Output Directory</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/query-syntax.html">Task Query Syntax</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/cross-builds.html">Cross Builds</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Extending Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../extending/contrib-plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/artifactory.html">Artifactory</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/bintray.html">Bintray</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/bloop.html">Bloop</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/docker.html">Docker</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/flyway.html">Flyway</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/gitlab.html">Gitlab</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/jmh.html">JMH</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/playlib.html">Play Framework</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/proguard.html">Proguard</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scalapblib.html">ScalaPB</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scoverage.html">Scoverage</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/testng.html">TestNG</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/twirllib.html">Twirl</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/thirdparty-plugins.html">Third-Party Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/running-jvm-code.html">Running Dynamic JVM Code</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/writing-plugins.html">Writing Mill Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/meta-build.html">The Mill Meta-Build</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-typescript-support.html">Example: Typescript Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-python-support.html">Example: Python Support</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/large-builds.html">Large Builds and Monorepos</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill/index.html">Mill Scaladoc</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/changelog.html">Changelog</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Mill Documentation</span>
+    <span class="version">0.12.x</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <div class="title"><a href="../../index.html">Mill Documentation</a></div>
+      <ul class="versions">
+        <li class="version">
+          <a href="../../main-branch/index.html">main-branch</a>
+        </li>
+        <li class="version is-latest">
+          <a href="../../index.html">latest-0.12.2</a>
+        </li>
+        <li class="version is-current">
+          <a href="../index.html">0.12.x</a>
+        </li>
+        <li class="version">
+          <a href="../../0.11.x/index.html">0.11.x</a>
+        </li>
+        <li class="version">
+          <a href="../../0.10.15/index.html">0.10.15</a>
+        </li>
+        <li class="version">
+          <a href="../../0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../../index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../index.html">Mill Documentation</a></li>
+    <li>The Mill CLI</li>
+    <li><a href="installation-ide.html">Installation &amp; IDE Support</a></li>
+  </ul>
+</nav>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Installation &amp; IDE Support</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The standard method of installing Mill is to install a <code>./mill</code> <a href="#_bootstrap_scripts">bootstrap script</a>,
+similar to <code>./gradlew</code> or <code>./mvnw</code> in other build tools.
+This script can determine the best version to be used by a project (e.g. by
+reading a <code>.mill-version</code>) and will use this exact Mill version.
+If the determined Mill version is not installed locally, it will be downloaded automatically.</p>
+</div>
+<div class="paragraph">
+<p>For all the examples in this documentation, there is a <code>download</code> link that provides
+a zip file containing the full example ready to use. These examples come with a <code>./mill</code>
+script you can use to immediately begin working with the project, needing only a JVM installed
+globally.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_bootstrap_scripts"><a class="anchor" href="#_bootstrap_scripts"></a>Bootstrap Scripts</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Although the Mill example projects come with their own <code>./mill</code> bootstrap script,
+you can also download it manually:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -L https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2 &gt; mill &amp;&amp; chmod +x mill
+echo 0.12.2 &gt; .mill-version</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Downloading a <code>mill</code> bootstrap script to the root of your project repository helps make it easier for
+new contributors to build your project, as they don&#8217;t have to install Mill before they can start.
+Anyone who wants to work with the project can simply use the <code>./mill</code> script directly.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">./mill --version
+./mill __.compile # double underscore</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In general, bootstrap scripts are the recommended way of installing Mill.
+Similar to <code>./gradlew</code> or <code>./mvnw</code>, the <code>./mill</code> bootstrap script
+reduces the chance of errors due to the installed version of Mill
+being incompatible with the version expected by your build.
+In-project bootstrap scripts are also useful for running Mill in CI/CD, ensuring
+that your build server like Jenkins or Github Actions has the correct version of Mill
+present to build, compile or test your code.</p>
+</div>
+<div class="paragraph">
+<p>If you are starting a new project using a Mill bootstrap script, you can use the
+<a href="../javalib/builtin-commands.html#_init" class="xref page">mill init</a> to initialize the project
+folder with one of the Mill example projects. There are a wide range of example projects,
+from hello-world to multi-module libraries to client-server web applications, and you can
+pick one most similar to what you are doing so you can hit the ground running working.</p>
+</div>
+<div class="sect2">
+<h3 id="_windows"><a class="anchor" href="#_windows"></a>Windows</h3>
+<div class="paragraph">
+<p>If you are running on Windows, you should use <a href="https://github.com/lefou/millw">lefou/millw</a>
+as a drop-in replacement for <code>./mill</code> that supports running on all major platforms including MS Windows.</p>
+</div>
+<div class="paragraph">
+<p><code>./millw</code> will likely be merged into <code>./mill</code> in the near future.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_ide_support"><a class="anchor" href="#_ide_support"></a>IDE Support</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill supports IntelliJ and VSCode, both via the standard
+<a href="https://build-server-protocol.github.io/">Build Server Protocol</a></p>
+</div>
+<div class="sect2">
+<h3 id="_intellij"><a class="anchor" href="#_intellij"></a>IntelliJ</h3>
+<div class="paragraph">
+<p>To use Mill with IntelliJ, first ensure you have the free
+<a href="https://plugins.jetbrains.com/plugin/1347-scala">IntelliJ Scala Plugin</a>
+installed. This is necessary as Mill build files are written in Scala,
+even if you are using it to build a Java or Kotlin project.</p>
+</div>
+<div class="paragraph">
+<p>Once you have the plugin installed, you can use IntelliJ to open any project
+containing a Mill <code>build.mill</code> file, and IntelliJ will automatically load the
+Mill build. If you have multiple build systems installed, Intellij may give you
+choice which build system configuration to use for the import, which case select <code>BSP</code>:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/basic/IntellijSelectBsp.png" alt="IntellijSelectBsp">
+</div>
+</div>
+<div class="paragraph">
+<p>This will provide support both for your application code,
+as well as the code in the <code>build.mill</code>:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/basic/IntellijApp.png" alt="IntellijApp">
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/basic/IntellijBuild.png" alt="IntellijBuild">
+</div>
+</div>
+<div class="paragraph">
+<p>If IntelliJ does not highlight the <code>.mill</code> files correctly, you can explicitly enable
+it by adding <code>*.mill</code> to the <code>Scala</code> file type:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/basic/IntellijFileTypeConfig.png" alt="IntellijFileTypeConfig">
+</div>
+</div>
+<div class="paragraph">
+<p>If you make changes to your Mill <code>build.mill</code>, you can ask Intellij to load
+those updates by opening the "BSP" tab and clicking the "Refresh" button</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/basic/IntellijRefresh.png" alt="IntellijRefresh">
+</div>
+</div>
+<div class="sect3">
+<h4 id="_intellij_idea_xml_support"><a class="anchor" href="#_intellij_idea_xml_support"></a>IntelliJ IDEA XML Support</h4>
+<div class="paragraph">
+<p>Apart from using the Build Server Protocol, you can also generate IDEA project
+files directly with Mill. This is probably the preferred way if you work on
+polyglot projects and need support for frameworks like AspectJ,
+which are currently not specifically configured over BSP.</p>
+</div>
+<div class="paragraph">
+<p>To generate IntelliJ IDEA project files into <code>.idea/</code>, run:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">./mill mill.idea.GenIdea/</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will generate the XML files IntelliJ uses to configure your project</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">.idea
+.idea/scala_settings.xml
+.idea/mill_modules
+.idea/mill_modules/.iml
+.idea/mill_modules/mill-build.iml
+.idea/mill_modules/test.iml
+.idea/libraries
+.idea/libraries/mill_scalalib_2_13_0_11_10_jar.xml
+...
+.idea/workspace.xml
+.idea/modules.xml
+.idea/scala_compiler.xml
+.idea/misc.xml</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After the files are generated, you can open the folder in IntelliJ to load the project
+into your IDE. If you make changes to your Mill <code>build.mill</code>, you can update the project config
+those updates by running <code>./mill mill.idea.GenIdea/</code> again.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_vscode"><a class="anchor" href="#_vscode"></a>VSCode</h3>
+<div class="paragraph">
+<p>To use Mill with VSCode, first ensure you have the free
+<a href="https://marketplace.visualstudio.com/items?itemName=scalameta.metals">Metals VSCode Scala language server</a>
+installed. This is necessary as Mill build files are written in Scala,
+even if you are using it to build a Java project.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Mill in VSCode only supports Java and Scala. Kotlin users should use IntelliJ
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Once you have the language server installed, you can ask VSCode to open any folder
+containing a Mill <code>build.mill</code> file, and VSCode will ask you to import your
+Mill build. This will provide support both for your application code,
+as well as the code in the <code>build.mill</code>:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/basic/VSCodeApp.png" alt="VSCodeApp">
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/basic/VSCodeBuild.png" alt="VSCodeBuild">
+</div>
+</div>
+<div class="paragraph">
+<p>If you make changes to your Mill <code>build.mill</code>, you can ask VSCode to load
+those updates by opening the "BSP" tab and clicking the "Refresh" button</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/basic/VSCodeRefresh.png" alt="VSCodeRefresh">
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_debugging_ide_issues"><a class="anchor" href="#_debugging_ide_issues"></a>Debugging IDE issues</h3>
+<div class="paragraph">
+<p>Mill&#8217;s BSP IDE integration writes to a log file under
+<code>.bsp/mill-bsp.stderr</code>, where you can find various information about what&#8217;s
+going on. It contains regular Mill output accompanied by additional BSP
+client-server communication details. This can be useful to look at if your
+IDE fails to import your Mill project</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_updating_mill"><a class="anchor" href="#_updating_mill"></a>Updating Mill</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Typically, most Mill projects use a <code>.mill-version</code> file to configure what version
+to use. You can update the version specified in this file in order to change the version
+of Mill. The file path <code>.config/mill-version</code> is also supported. If neither is provided,
+the <code>./mill</code> bootstrap script will use the <code>DEFAULT_MILL_VERSION</code> it has built in.</p>
+</div>
+<div class="paragraph">
+<p>To choose a different Mill version on an ad-hoc basis, e.g. for experimentation, you can pass
+in a <code>MILL_VERSION</code> environment variable, e.g.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">MILL_VERSION=0.5.0-3-4faefb mill __.compile</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>or</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">MILL_VERSION=0.5.0-3-4faefb ./mill __.compile</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>to override the Mill version manually. This takes precedence over the version
+specified in <code>./mill</code>, <code>.config/mill-version</code> or <code>.mill-version</code></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_working_without_access_to_maven_central"><a class="anchor" href="#_working_without_access_to_maven_central"></a>Working without access to Maven Central</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Under some circumstances (e.g. corporate firewalls), you may not have access maven central.
+The typical symptom will be error messages which look like this;</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>1 tasks failed
+mill.scalalib.ZincWorkerModule.classpath
+Resolution failed for 1 modules:
+--------------------------------------------
+  com.lihaoyi:mill-scalalib-worker_2.13:0.11.1
+        not found: C:\Users\partens\.ivy2\local\com.lihaoyi\mill-scalalib-worker_2.13\0.11.1\ivys\ivy.xml
+        download error: Caught java.io.IOException (Server returned HTTP response code: 503 for URL: https://repo1.maven.org/maven2/com/lihaoyi/mill-scalalib-worker_2.13/0.11.1/mill-scalalib-worker_2.13-0.11.1.pom) while downloading https://repo1.maven.org/maven2/com/lihaoyi/mill-scalalib-worker_2.13/0.11.1/mill-scalalib-worker_2.13-0.11.1.pom</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It is expected that basic commands (e.g. clean) will not work, as Mill saying it is
+unable to resolve it&#8217;s own, fundamental, dependencies. Under such circumstances, you
+will normally have access to some proxy, or other corporate repository which resolves
+maven artifacts. The strategy is simply to tell mill to use that instead.</p>
+</div>
+<div class="paragraph">
+<p>The idea is to set an environment variable COURSIER_REPOSITORIES (see coursier docs).
+The below command should pass the environment variable to the <code>mill</code> command.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre> COURSIER_REPOSITORIES=https://packages.corp.com/artifactory/maven/ mill resolve _</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you are using bootstrap script, a more permanent solution could be to set the environment variable
+at the top of the bootstrap script, or as a user environment variable etc.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_automatic_mill_updates"><a class="anchor" href="#_automatic_mill_updates"></a>Automatic Mill updates</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If your project is hosted on GitHub, GitLab, or Bitbucket, you can use
+<a href="https://github.com/scala-steward-org/scala-steward">Scala Steward</a> to
+automatically open a pull request to update your Mill version (in
+<code>.mill-version</code> or <code>.config/mill-version</code> file), whenever there is a newer version available.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Scala Steward can also
+<a href="../scalalib/dependencies.html#_keeping_up_to_date_with_scala_steward" class="xref page">scan your project dependencies</a>
+and keep them up-to-date.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_development_releases"><a class="anchor" href="#_development_releases"></a>Development Releases</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In case you want to try out the latest features and improvements that are
+currently in the main branch, unstable versions of Mill
+are
+<a href="https://github.com/com-lihaoyi/mill/releases">available</a> as binaries named
+<code>#.#.#-n-hash</code> linked to the latest tag.</p>
+</div>
+<div class="paragraph">
+<p>The easiest way to use a development release is to use one of the
+<a href="#_bootstrap_scripts">Bootstrap Scripts</a>, which support overriding Mill versions via an
+<code>MILL_VERSION</code> environment variable or a <code>.mill-version</code> or <code>.config/mill-version</code> file.</p>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="../comparisons/unique.html">What Makes Mill Unique</a></span>
+  <span class="next"><a href="flags.html">Mill Command-Line Flags</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
+<script src="../../../_/js/vendor/lunr.js"></script>
+<script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>
