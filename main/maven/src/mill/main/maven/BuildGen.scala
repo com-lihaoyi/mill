@@ -102,7 +102,6 @@ object BuildGen {
       val imports = {
         val b = SortedSet.newBuilder[String]
         b += "mill._"
-        b += "mill.api._"
         b += "mill.javalib._"
         b += "mill.javalib.publish._"
         if (dirs.nonEmpty) cfg.baseModule.foreach(baseModule => b += s"$$file.$baseModule")

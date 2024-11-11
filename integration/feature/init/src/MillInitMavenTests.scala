@@ -3,11 +3,18 @@ package mill.integration
 import mill.testkit.{IntegrationTester, UtestIntegrationTestSuite}
 import utest._
 
-abstract class MillInitMavenTests(githubSourceZipUrl: String) extends UtestIntegrationTestSuite {
+abstract class MillInitMavenTests extends UtestIntegrationTestSuite {
+
+  // Github source zip url
+  def url: String
+
+  def initMessages(buildFileCount: Int = 1): Seq[String] = Seq(
+    s"generated $buildFileCount Mill build file(s)"
+  )
 
   override def integrationTest[T](f: IntegrationTester => T): T =
     super.integrationTest { tester =>
-      val zipFile = os.temp(requests.get(githubSourceZipUrl))
+      val zipFile = os.temp(requests.get(url))
       val unzipDir = os.unzip(zipFile, os.temp.dir())
       val sourceDir = os.list(unzipDir).head
       // move fails on Windows, so copy
@@ -17,11 +24,24 @@ abstract class MillInitMavenTests(githubSourceZipUrl: String) extends UtestInteg
     }
 }
 
-object MillInitMavenJansiTests extends MillInitMavenTests(
-      // - Junit5
-      // - maven-compiler-plugin release option
-      "https://github.com/fusesource/jansi/archive/refs/tags/jansi-2.4.1.zip"
-    ) {
+object MillInitMavenJansiTests extends MillInitMavenTests {
+
+  def url: String =
+    // - Junit5
+    // - maven-compiler-plugin release option
+    "https://github.com/fusesource/jansi/archive/refs/tags/jansi-2.4.1.zip"
+
+  private val compileMessages: Seq[String] = Seq(
+    "compiling 20 Java sources"
+  )
+
+  private val testMessages: Seq[String] = Seq(
+    "Test run finished: 0 failed, 1 ignored, 90 total"
+  )
+
+  private val publishLocalMessages: Seq[String] = Seq(
+    "Publishing Artifact(org.fusesource.jansi,jansi,2.4.1)"
+  )
 
   def tests: Tests = Tests {
     test - integrationTest { tester =>
@@ -29,25 +49,25 @@ object MillInitMavenJansiTests extends MillInitMavenTests(
 
       val initRes = eval("init")
       assert(
-        initRes.out.contains("generated 1 Mill build file(s)"),
+        initMessages().forall(initRes.out.contains),
         initRes.isSuccess
       )
 
       val compileRes = eval("compile")
       assert(
-        compileRes.err.contains("compiling 20 Java sources"),
+        compileMessages.forall(compileRes.err.contains),
         compileRes.isSuccess
       )
 
       val testRes = eval("test")
       assert(
-        testRes.out.contains("Test run finished: 0 failed, 1 ignored, 90 total"),
+        testMessages.forall(testRes.out.contains),
         testRes.isSuccess
       )
 
       val publishLocalRes = eval("publishLocal")
       assert(
-        publishLocalRes.err.contains("Publishing Artifact(org.fusesource.jansi,jansi,2.4.1)"),
+        publishLocalMessages.forall(publishLocalRes.err.contains),
         publishLocalRes.isSuccess
       )
     }
@@ -67,158 +87,57 @@ object MillInitMavenJansiTests extends MillInitMavenTests(
         )
       )
       assert(
-        initRes.out.contains("generated 1 Mill build file(s)"),
+        initMessages().forall(initRes.out.contains),
         initRes.isSuccess
       )
 
       val compileRes = eval("compile")
       assert(
-        compileRes.err.contains("compiling 20 Java sources"),
+        compileMessages.forall(compileRes.err.contains),
         compileRes.isSuccess
       )
 
       val testRes = eval("test")
       assert(
-        testRes.out.contains("Test run finished: 0 failed, 1 ignored, 90 total"),
+        testMessages.forall(testRes.out.contains),
         testRes.isSuccess
       )
 
       val publishLocalRes = eval("publishLocal")
       assert(
-        publishLocalRes.err.contains("Publishing Artifact(org.fusesource.jansi,jansi,2.4.1)"),
+        publishLocalMessages.forall(publishLocalRes.err.contains),
         publishLocalRes.isSuccess
       )
     }
   }
 }
 
-object MillInitMavenOwnerTests extends MillInitMavenTests(
-      // - multi-level multi-module
-      // - Junit4
-      // - maven-compiler-plugin release option
-      "https://github.com/matteobaccan/owner/archive/refs/tags/owner-1.0.12.zip"
-    ) {
+object MillInitMavenGeoTests extends MillInitMavenTests {
 
-  private val compileTasks = Seq(
-    "owner.compile",
-    "owner-extras.compile",
-    "owner-java8.compile",
-    "owner-examples.owner-examples-hotreload.compile",
-    "owner.test.compile",
-    "owner-extras.test.compile",
-    "owner-java8.test.compile",
-    "owner-java8-extras.compile",
-    "owner-java8-extras.test.compile"
+  def url: String =
+    // multi-module
+    // Junit4
+    "https://github.com/davidmoten/geo/archive/refs/tags/0.8.1.zip"
+
+  private val resolveModules: Seq[String] = Seq(
+    "geo",
+    "geo-mem"
   )
 
-  private val modules = Seq(
-    "owner",
-    "owner-assembly",
-    "owner-examples",
-    "owner-extras",
-    "owner-java8-extras",
-    "owner-java8",
-    "owner-site"
+  private val compileWarnings: Seq[String] = Seq(
+    "Could not determine source for class com.github.davidmoten.geo.jmh_generated.Benchmarks_hashContains_jmhTest",
+    "Could not determine source for class com.github.davidmoten.geo.jmh_generated.Benchmarks_jmhType",
+    "Could not determine source for class com.github.davidmoten.geo.jmh_generated.Benchmarks_jmhType_B1",
+    "Could not determine source for class com.github.davidmoten.geo.jmh_generated.Benchmarks_jmhType_B3",
+    "Could not determine source for class com.github.davidmoten.geo.jmh_generated.Benchmarks_decodeHash_jmhTest",
+    "Could not determine source for class com.github.davidmoten.geo.jmh_generated.Benchmarks_jmhType_B2"
   )
 
-  private val publishing = Seq(
-    "Publishing Artifact(org.aeonbits.owner,owner-parent,1.0.12)",
-    "Publishing Artifact(org.aeonbits.owner,owner-site,1.0.12)",
-    "Publishing Artifact(org.aeonbits.owner,owner-examples,1.0.12)",
-    "Publishing Artifact(org.aeonbits.owner,owner-assembly,1.0.12)",
-    "Publishing Artifact(org.aeonbits.owner,owner-examples-owner-examples-hotreload,1.0.12)",
-    "Publishing Artifact(org.aeonbits.owner,owner-java8,1.0.12)",
-    "Publishing Artifact(org.aeonbits.owner,owner-extras,1.0.12)",
-    "Publishing Artifact(org.aeonbits.owner,owner-java8-extras,1.0.12)",
-    "Publishing Artifact(org.aeonbits.owner,owner,1.0.12)"
+  private val publishLocalMessages: Seq[String] = Seq(
+    "Publishing Artifact(com.github.davidmoten,geo-parent,0.8.1)",
+    "Publishing Artifact(com.github.davidmoten,geo,0.8.1)",
+    "Publishing Artifact(com.github.davidmoten,geo-mem,0.8.1)"
   )
-
-  def tests: Tests = Tests {
-    test - integrationTest {
-      tester =>
-        import tester._
-
-        val initRes = eval("init")
-        assert(
-          initRes.out.contains("generated 9 Mill build file(s)"),
-          initRes.isSuccess
-        )
-
-        val resolveRes = eval(("resolve", "_"))
-        assert(
-          modules.forall(resolveRes.out.contains),
-          resolveRes.isSuccess
-        )
-
-        assert(
-          compileTasks.forall(eval(_).isSuccess)
-        )
-
-        val testRes = eval("__.test")
-        assert(
-          testRes.err.contains("owner.test.test 3 tests failed"), // bad release?
-          !testRes.isSuccess
-        )
-
-        val publishLocalRes = eval("__.publishLocal")
-        assert(
-          publishing.forall(publishLocalRes.err.contains),
-          publishLocalRes.isSuccess
-        )
-    }
-
-    test("realistic") - integrationTest {
-      tester =>
-        import tester._
-
-        val initRes = eval(
-          (
-            "init",
-            "--base-module",
-            "OwnerModule",
-            "--deps-object",
-            "Deps",
-            "--merge",
-            "--cache-repository",
-            "--process-plugins"
-          )
-        )
-        assert(
-          initRes.out.contains("generated 1 Mill build file(s)"),
-          initRes.isSuccess
-        )
-
-        val resolveRes = eval(("resolve", "_"))
-        assert(
-          modules.forall(resolveRes.out.contains),
-          resolveRes.isSuccess
-        )
-
-        assert(
-          compileTasks.forall(eval(_).isSuccess)
-        )
-
-        val testRes = eval("__.test")
-        assert(
-          testRes.err.contains("owner.test.test 3 tests failed"), // bad release?
-          !testRes.isSuccess
-        )
-
-        val publishLocalRes = eval("__.publishLocal")
-        assert(
-          publishing.forall(publishLocalRes.err.contains),
-          publishLocalRes.isSuccess
-        )
-    }
-  }
-}
-
-object MillInitMavenDotEnvTests extends MillInitMavenTests(
-      // - multi-module
-      // - TestNg
-      // - maven-compiler-plugin release option
-      "https://github.com/shyiko/dotenv/archive/refs/tags/0.1.1.zip"
-    ) {
 
   def tests: Tests = Tests {
     test - integrationTest { tester =>
@@ -226,35 +145,143 @@ object MillInitMavenDotEnvTests extends MillInitMavenTests(
 
       val initRes = eval("init")
       assert(
-        initRes.out.contains("generated 3 Mill build file(s)"),
+        initMessages(3).forall(initRes.out.contains),
         initRes.isSuccess
       )
 
       val resolveRes = eval(("resolve", "_"))
       assert(
-        resolveRes.out.contains("dotenv"),
-        resolveRes.out.contains("dotenv-guice"),
+        resolveModules.forall(resolveRes.out.contains),
         resolveRes.isSuccess
       )
 
-      // JavaModule.JavaTests is not picking compileIvyDeps from outer module
-      // even if compile error is fixed, TestNg version is not supported
       val compileRes = eval("__.compile")
       assert(
-        compileRes.err.contains(
-          "DotEnvModuleTest.java:3:25: package com.google.inject does not exist"
-        ),
+        compileWarnings.forall(compileRes.err.contains),
+        compileRes.isSuccess
+      )
+
+      val testRes = eval("__.test")
+      assert(
+        testRes.isSuccess
+      )
+
+      val publishLocalRes = eval("__.publishLocal")
+      assert(
+        publishLocalMessages.forall(publishLocalRes.err.contains),
+        publishLocalRes.isSuccess
+      )
+    }
+
+    test("realistic") - integrationTest { tester =>
+      import tester._
+
+      val initRes = eval(
+        (
+          "init",
+          "--base-module",
+          "GeoModule",
+          "--deps-object",
+          "Deps",
+          "--merge",
+          "--cache-repository",
+          "--process-plugins"
+        )
+      )
+      assert(
+        initMessages().forall(initRes.out.contains),
+        initRes.isSuccess
+      )
+
+      val resolveRes = eval(("resolve", "_"))
+      assert(
+        resolveModules.forall(resolveRes.out.contains),
+        resolveRes.isSuccess
+      )
+
+      val compileRes = eval("__.compile")
+      assert(
+        compileWarnings.forall(compileRes.err.contains),
+        compileRes.isSuccess
+      )
+
+      val testRes = eval("__.test")
+      assert(
+        testRes.isSuccess
+      )
+
+      val publishLocalRes = eval("__.publishLocal")
+      assert(
+        publishLocalMessages.forall(publishLocalRes.err.contains),
+        publishLocalRes.isSuccess
+      )
+    }
+  }
+}
+
+object MillInitMavenDotEnvTests extends MillInitMavenTests {
+
+  def url: String =
+    // - multi-module
+    // - TestNg
+    // - maven-compiler-plugin release option
+    "https://github.com/shyiko/dotenv/archive/refs/tags/0.1.1.zip"
+
+  private val resolveModules: Seq[String] = Seq(
+    "dotenv",
+    "dotenv-guice"
+  )
+
+  // JavaModule.JavaTests does not pick compileIvyDeps from outer module
+  private val compileErrors: Seq[String] = Seq(
+    "DotEnvModuleTest.java:3:25: package com.google.inject does not exist"
+  )
+
+  def tests: Tests = Tests {
+    test - integrationTest { tester =>
+      import tester._
+
+      val initRes = eval("init")
+      assert(
+        initMessages(3).forall(initRes.out.contains),
+        initRes.isSuccess
+      )
+
+      val resolveRes = eval(("resolve", "_"))
+      assert(
+        resolveModules.forall(resolveRes.out.contains),
+        resolveRes.isSuccess
+      )
+
+      val compileRes = eval("__.compile")
+      assert(
+        compileErrors.forall(compileRes.err.contains),
         !compileRes.isSuccess
       )
     }
   }
 }
 
-object MillInitMavenAvajeConfigTests extends MillInitMavenTests(
-      // - multi-module
-      // - unsupported test framework
-      "https://github.com/avaje/avaje-config/archive/refs/tags/4.0.zip"
-    ) {
+object MillInitMavenAvajeConfigTests extends MillInitMavenTests {
+
+  def url: String =
+    // - multi-module
+    // - unsupported test framework
+    "https://github.com/avaje/avaje-config/archive/refs/tags/4.0.zip"
+
+  private val resolveModules: Seq[String] = Seq(
+    "avaje-config",
+    "avaje-aws-appconfig",
+    "avaje-dynamic-logback"
+  )
+  // uses moditect-maven-plugin to handle JPMS
+  // https://github.com/moditect/moditect
+  private val compileErrors: Seq[String] = Seq(
+    "avaje-config/src/main/java/module-info.java:5:31: module not found: io.avaje.lang",
+    "avaje-config/src/main/java/module-info.java:6:31: module not found: io.avaje.applog",
+    "avaje-config/src/main/java/module-info.java:7:27: module not found: org.yaml.snakeyaml",
+    "avaje-config/src/main/java/module-info.java:9:27: module not found: io.avaje.spi"
+  )
 
   def tests: Tests = Tests {
     test - integrationTest { tester =>
@@ -268,9 +295,7 @@ object MillInitMavenAvajeConfigTests extends MillInitMavenTests(
 
       val resolveRes = eval(("resolve", "_"))
       assert(
-        resolveRes.out.contains("avaje-config"),
-        resolveRes.out.contains("avaje-aws-appconfig"),
-        resolveRes.out.contains("avaje-dynamic-logback"),
+        resolveModules.forall(resolveRes.out.contains),
         resolveRes.isSuccess
       )
 
@@ -278,30 +303,34 @@ object MillInitMavenAvajeConfigTests extends MillInitMavenTests(
       // https://github.com/moditect/moditect
       val compileRes = eval("__.compile")
       assert(
-        compileRes.err.contains(
-          "avaje-config/src/main/java/module-info.java:5:31: module not found: io.avaje.lang"
-        ),
-        compileRes.err.contains(
-          "avaje-config/src/main/java/module-info.java:6:31: module not found: io.avaje.applog"
-        ),
-        compileRes.err.contains(
-          "avaje-config/src/main/java/module-info.java:7:27: module not found: org.yaml.snakeyaml"
-        ),
-        compileRes.err.contains(
-          "avaje-config/src/main/java/module-info.java:9:27: module not found: io.avaje.spi"
-        ),
+        compileErrors.forall(compileRes.err.contains),
         !compileRes.isSuccess
       )
     }
   }
 }
 
-object MillInitMavenFastExcelTests extends MillInitMavenTests(
-      // - multi-module
-      // - Junit5
-      // - module e2e directory and artifact name differ
-      "https://github.com/dhatim/fastexcel/archive/refs/tags/0.18.4.zip"
-    ) {
+object MillInitMavenFastExcelTests extends MillInitMavenTests {
+
+  def url: String =
+    // - multi-module
+    // - Junit5
+    // - module e2e directory and artifact name differ
+    "https://github.com/dhatim/fastexcel/archive/refs/tags/0.18.4.zip"
+
+  private val resolveModules: Seq[String] = Seq(
+    "e2e",
+    "fastexcel-reader",
+    "fastexcel-writer"
+  )
+
+  // pom.xml has custom profiles to handle JPMS
+  // https://github.com/dhatim/fastexcel/blob/de56e786a1fe29351e2f8dc1d81b7cdd9196de4a/pom.xml#L251
+  private val compileErrors: Seq[String] = Seq(
+    "fastexcel-reader/src/main/java/module-info.java:3:32: module not found: org.apache.commons.compress",
+    "fastexcel-reader/src/main/java/module-info.java:4:27: module not found: com.fasterxml.aalto",
+    "fastexcel-writer/src/main/java/module-info.java:2:14: module not found: opczip"
+  )
 
   def tests: Tests = Tests {
     test - integrationTest { tester =>
@@ -309,49 +338,99 @@ object MillInitMavenFastExcelTests extends MillInitMavenTests(
 
       val initRes = eval("init")
       assert(
-        initRes.out.contains("generated 4 Mill build file(s)"),
+        initMessages(4).forall(initRes.out.contains),
         initRes.isSuccess
       )
 
       val resolveRes = eval(("resolve", "_"))
       assert(
-        resolveRes.out.contains("fastexcel-reader"),
-        resolveRes.out.contains("fastexcel-writer"),
-        resolveRes.out.contains("e2e"),
+        resolveModules.forall(resolveRes.out.contains),
         resolveRes.isSuccess
       )
 
-      // pom.xml has custom profiles to handle JPMS
-      // https://github.com/dhatim/fastexcel/blob/de56e786a1fe29351e2f8dc1d81b7cdd9196de4a/pom.xml#L251
       val compileRes = eval("__.compile")
       assert(
-        compileRes.err.contains(
-          "fastexcel-reader/src/main/java/module-info.java:3:32: module not found: org.apache.commons.compress"
-        ),
-        compileRes.err.contains(
-          "fastexcel-reader/src/main/java/module-info.java:4:27: module not found: com.fasterxml.aalto"
-        ),
-        compileRes.err.contains(
-          "fastexcel-writer/src/main/java/module-info.java:2:14: module not found: opczip"
-        ),
+        compileErrors.forall(compileRes.err.contains),
         !compileRes.isSuccess
       )
     }
   }
 }
 
-object MillInitMavenNettyTests extends MillInitMavenTests(
-      // - multi-module
-      // - Junit5
-      // - maven-compiler-plugin compilerArgs options
-      // - module directory and artifact names differ
-      // - multi line description, properties
-      // - property <jetty.alpnAgent.path> contains quotes
-      // - defines test dependencies in root pom.xml that get propagated to every module
-      "https://github.com/netty/netty/archive/refs/tags/netty-4.1.114.Final.zip"
-    ) {
+object MillInitMavenNettyTests extends MillInitMavenTests {
 
-  private val compileTasksThatSucceed = Array(
+  def url: String =
+    // - multi-module
+    // - Junit5
+    // - maven-compiler-plugin compilerArgs options
+    // - module directory and artifact names differ
+    // - multi line description, properties
+    // - property <jetty.alpnAgent.path> contains quotes
+    // - defines test dependencies in root pom.xml that get propagated to every module
+    "https://github.com/netty/netty/archive/refs/tags/netty-4.1.114.Final.zip"
+
+  private val initWarnings: Seq[String] = Seq(
+    "[codec-http2] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final",
+    "[transport-native-epoll] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final",
+    "[transport-native-kqueue] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final",
+    "[handler] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final",
+    "[example] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final",
+    "[testsuite] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final",
+    "[testsuite-shading] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final",
+    "[transport-blockhound-tests] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final",
+    "[microbench] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final"
+  )
+
+  private val resolveModules: Seq[String] = Seq(
+    "all",
+    "bom",
+    "buffer",
+    "codec",
+    "codec-dns",
+    "codec-haproxy",
+    "codec-http",
+    "codec-http2",
+    "codec-memcache",
+    "codec-mqtt",
+    "codec-redis",
+    "codec-smtp",
+    "codec-socks",
+    "codec-stomp",
+    "codec-xml",
+    "common",
+    "dev-tools", // resources only
+    "example",
+    "handler",
+    "handler-proxy",
+    "handler-ssl-ocsp",
+    "microbench",
+    "resolver",
+    "resolver-dns",
+    "resolver-dns-classes-macos",
+    "resolver-dns-native-macos",
+    "testsuite", // tests only in src/main/java
+    "testsuite-autobahn", // tests only in src/main/java
+    "testsuite-http2", // tests only in src/main/java
+    "testsuite-native", // tests only in src/test/java
+    "testsuite-native-image", // tests only in src/main/java
+    "testsuite-native-image-client", // tests only in src/main/java
+    "testsuite-native-image-client-runtime-init", // tests only in src/main/java
+    "testsuite-osgi", // tests only in src/test/java
+    "testsuite-shading", // tests only in src/test/java
+    "transport",
+    "transport-blockhound-tests", // tests only in src/test/java
+    "transport-classes-epoll",
+    "transport-classes-kqueue",
+    "transport-native-epoll", // C sources
+    "transport-native-kqueue", // C sources
+    "transport-native-unix-common", // Java and C sources
+    "transport-native-unix-common-tests",
+    "transport-rxtx",
+    "transport-sctp",
+    "transport-udt"
+  )
+
+  private val compileTasksThatSucceed: Seq[String] = Seq(
     "common.compile",
     "dev-tools.compile",
     "testsuite-osgi.compile",
@@ -387,7 +466,7 @@ object MillInitMavenNettyTests extends MillInitMavenTests(
     "testsuite-native-image.test.compile"
   )
 
-  private val compileTasksThatFail = Array(
+  private val compileTasksThatFail: Seq[String] = Seq(
     /* missing outer compileIvyDeps */
     "common.test.compile",
     /* missing generated sources */
@@ -450,86 +529,20 @@ object MillInitMavenNettyTests extends MillInitMavenTests(
     "testsuite-native.test.compile"
   )
 
-  private val modules = Array(
-    "all",
-    "bom",
-    "buffer",
-    "codec",
-    "codec-dns",
-    "codec-haproxy",
-    "codec-http",
-    "codec-http2",
-    "codec-memcache",
-    "codec-mqtt",
-    "codec-redis",
-    "codec-smtp",
-    "codec-socks",
-    "codec-stomp",
-    "codec-xml",
-    "common",
-    "dev-tools", // resources only
-    "example",
-    "handler",
-    "handler-proxy",
-    "handler-ssl-ocsp",
-    "microbench",
-    "resolver",
-    "resolver-dns",
-    "resolver-dns-classes-macos",
-    "resolver-dns-native-macos",
-    "testsuite", // tests only in src/main/java
-    "testsuite-autobahn", // tests only in src/main/java
-    "testsuite-http2", // tests only in src/main/java
-    "testsuite-native", // tests only in src/test/java
-    "testsuite-native-image", // tests only in src/main/java
-    "testsuite-native-image-client", // tests only in src/main/java
-    "testsuite-native-image-client-runtime-init", // tests only in src/main/java
-    "testsuite-osgi", // tests only in src/test/java
-    "testsuite-shading", // tests only in src/test/java
-    "transport",
-    "transport-blockhound-tests", // tests only in src/test/java
-    "transport-classes-epoll",
-    "transport-classes-kqueue",
-    "transport-native-epoll", // C sources
-    "transport-native-kqueue", // C sources
-    "transport-native-unix-common", // Java and C sources
-    "transport-native-unix-common-tests",
-    "transport-rxtx",
-    "transport-sctp",
-    "transport-udt"
-  )
-
-  private val modulesWithNativeClassifier = Array(
-    "codec-http2",
-    "transport-native-epoll",
-    "transport-native-kqueue",
-    "handler",
-    "example",
-    "testsuite",
-    "testsuite-shading",
-    "transport-blockhound-tests",
-    "microbench"
-  )
-
   def tests: Tests = Tests {
     test - integrationTest { tester =>
       import tester._
 
       val initRes = eval(("init", "--publish-properties"))
       assert(
-        modulesWithNativeClassifier.forall(module =>
-          initRes.out.contains(
-            // cannot resolve native dependencies defined by build extension os-maven-plugin
-            s"[$module] dropping classifier $${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final"
-          )
-        ),
-        initRes.out.contains("generated 47 Mill build file(s)"),
+        initWarnings.forall(initRes.out.contains),
+        initMessages(47).forall(initRes.out.contains),
         initRes.isSuccess
       )
 
       val resolveRes = eval(("resolve", "_"))
       assert(
-        modules.forall(resolveRes.out.contains),
+        resolveModules.forall(resolveRes.out.contains),
         resolveRes.isSuccess
       )
 
