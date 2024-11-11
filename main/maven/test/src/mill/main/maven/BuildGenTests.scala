@@ -13,7 +13,9 @@ object BuildGenTests extends TestSuite {
     val resources = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
     val scalafmtConfigFile = PathRef(resources / ".scalafmt.conf")
 
-    def checkBuild(sourceRel: os.SubPath, expectedRel: os.SubPath, args: String*)(implicit tp: TestPath): Boolean = {
+    def checkBuild(sourceRel: os.SubPath, expectedRel: os.SubPath, args: String*)(implicit
+        tp: TestPath
+    ): Boolean = {
       // prep
       val dest = os.pwd / tp.value
       os.copy.over(resources / sourceRel, dest, createFolders = true, replaceExisting = true)
@@ -44,11 +46,32 @@ object BuildGenTests extends TestSuite {
     }
 
     test("config") {
+      test("all") {
+        val sourceRoot = os.sub / "maven-samples"
+        val expectedRoot = os.sub / "expected/config/all"
+        assert(
+          checkBuild(
+            sourceRoot,
+            expectedRoot,
+            "--base-module",
+            "MyModule",
+            "--test-module",
+            "tests",
+            "--deps-object",
+            "Deps",
+            "--publish-properties",
+            "--compact",
+            "--cache-repository",
+            "--process-plugins"
+          )
+        )
+      }
+
       test("base-module") {
         val sourceRoot = os.sub / "maven-samples/multi-module"
         val expectedRoot = os.sub / "expected/config/base-module"
         assert(
-          checkBuild(sourceRoot, expectedRoot, "--baseModule", "MyModule")
+          checkBuild(sourceRoot, expectedRoot, "--base-module", "MyModule")
         )
       }
 
@@ -57,6 +80,22 @@ object BuildGenTests extends TestSuite {
         val expectedRoot = os.sub / "expected/config/deps-object"
         assert(
           checkBuild(sourceRoot, expectedRoot, "--deps-object", "Deps")
+        )
+      }
+
+      test("test-module") {
+        val sourceRoot = os.sub / "maven-samples/single-module"
+        val expectedRoot = os.sub / "expected/config/test-module"
+        assert(
+          checkBuild(sourceRoot, expectedRoot, "--test-module", "tests")
+        )
+      }
+
+      test("compact") {
+        val sourceRoot = os.sub / "maven-samples"
+        val expectedRoot = os.sub / "expected/config/compact"
+        assert(
+          checkBuild(sourceRoot, expectedRoot, "--compact")
         )
       }
 

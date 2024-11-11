@@ -1,7 +1,7 @@
 package mill.main.maven
 
 import mainargs.{Flag, ParserForClass, arg, main}
-import mill.main.build.{BuildObject, Node}
+import mill.main.build.{BuildObject, Node, Tree}
 import mill.runner.FileImportGraph.backtickWrap
 import org.apache.maven.model.{Dependency, Model}
 
@@ -48,53 +48,52 @@ object BuildGen {
     val workspace = os.pwd
 
     println("converting Maven build ...")
-    val inputs = {
-      val b = Seq.newBuilder[MavenNode]
-      val modeler = Modeler(cfg)
-
-      def recurse(dirs: Seq[String]): Unit = {
-        val model = modeler(workspace / dirs)
-        b += Node(dirs, model)
-        model.getModules.iterator().asScala
-          .map(dirs :+ _)
-          .foreach(recurse)
-      }
-
-      recurse(Seq.empty)
-      b.result()
+    val modeler = Modeler(cfg)
+    val input = Tree.from(Seq.empty[String]) { dirs =>
+      val model = modeler(workspace / dirs)
+      (Node(dirs, model), model.getModules.iterator().asScala.map(dirs :+ _))
     }
 
-    val outputs = convert(inputs, cfg)
-    println(s"generated ${outputs.size} Mill build file(s)")
+    var output = convert(input, cfg)
+    if (cfg.compact.value) {
+      println("compacting Mill build tree ...")
+      output = output.compact
+    }
 
-    outputs.foreach { build =>
-      val file = build.file
-      val source = build.source
+    val nodes = output.toSeq
+    println(s"generated ${nodes.length} Mill build file(s)")
+
+    println("removing existing Mill build files ...")
+    os.walk.stream(workspace, skip = (workspace / "out").equals)
+      .filter(_.ext == ".mill")
+      .foreach(os.remove.apply)
+
+    nodes.foreach { node =>
+      val file = node.file
+      val source = node.source
       println(s"writing Mill build file to $file ...")
-      // overwrite files, if any, from a previous run
-      os.write.over(workspace / file, source)
+      os.write(workspace / file, source)
     }
 
     println("converted Maven build to Mill")
   }
 
-  private def convert(inputs: Seq[MavenNode], cfg: BuildGenConfig): Seq[MillNode] = {
+  private def convert(input: Tree[MavenNode], cfg: BuildGenConfig): Tree[MillNode] = {
     val packages = // for resolving moduleDeps
-      inputs.iterator
-        .map(build => (Id(build.module), build.pkg))
-        .toMap
+      input
+        .fold(Map.newBuilder[Id, Package])((z, build) => z += ((Id(build.module), build.pkg)))
+        .result()
 
     val baseModuleTypedef = cfg.baseModule.fold("") { baseModule =>
-      val sharedSettings = metadata(inputs.head.module, cfg)
+      val metadataSettings = metadata(input.node.module, cfg)
 
       s"""trait $baseModule extends PublishModule with MavenModule {
          |
-         |$sharedSettings
-         |
+         |$metadataSettings
          |}""".stripMargin
     }
 
-    inputs.map { case build @ Node(dirs, model) =>
+    input.map { case build @ Node(dirs, model) =>
       val packaging = model.getPackaging
       val millSourcePath = os.Path(model.getProjectDirectory)
 
@@ -108,8 +107,6 @@ object BuildGen {
         else if (packages.size > 1) b += "$packages._"
         b.result()
       }
-
-      val outer = if (dirs.isEmpty) baseModuleTypedef else ""
 
       val supertypes = {
         val b = Seq.newBuilder[String]
@@ -175,7 +172,7 @@ object BuildGen {
             val testMillSourcePath = millSourcePath / "test"
             val resourcesRel = resources.map(_.relativeTo(testMillSourcePath))
 
-            testDeps.testTypeDef(supertype, testModule, resourcesRel)
+            testDeps.testTypeDef(supertype, testModule, resourcesRel, cfg)
           } else ""
         }
 
@@ -200,7 +197,9 @@ object BuildGen {
            |$testModuleTypedef""".stripMargin
       }
 
-      build.copy(module = BuildObject(imports, companions, outer, supertypes, inner))
+      val outer = if (dirs.isEmpty) baseModuleTypedef else ""
+
+      build.copy(module = BuildObject(imports, companions, supertypes, inner, outer))
     }
   }
 
@@ -235,13 +234,15 @@ object BuildGen {
     def testTypeDef(
         supertype: String,
         testModule: Scoped.TestModule,
-        resourcesRel: IterableOnce[os.RelPath]
+        resourcesRel: IterableOnce[os.RelPath],
+        cfg: BuildGenConfig
     ): String =
       if (ivyDeps.isEmpty && moduleDeps.isEmpty) ""
       else {
+        val name = backtickWrap(cfg.testModule)
         val declare = testModule match {
-          case Some(module) => s"object test extends $supertype with $module"
-          case None => s"trait Tests extends $supertype"
+          case Some(module) => s"object $name extends $supertype with $module"
+          case None => s"trait $name extends $supertype"
         }
         val resourcesSetting = resources(resourcesRel)
         val moduleDepsSetting =
@@ -255,7 +256,6 @@ object BuildGen {
            |$moduleDepsSetting
            |
            |$ivyDepsSetting
-           |
            |}""".stripMargin
       }
   }
@@ -395,8 +395,8 @@ object BuildGen {
 
       s"Developer($id, $name, $url, $org, $orgUrl)"
     }.mkString("Seq(", ", ", ")")
-    val version = escape(model.getVersion)
-    val properties =
+    val publishVersion = escape(model.getVersion)
+    val publishProperties =
       if (cfg.publishProperties.value) {
         val props = model.getProperties
         props.stringPropertyNames().iterator().asScala
@@ -405,16 +405,19 @@ object BuildGen {
 
     val pomSettings =
       s"override def pomSettings = PomSettings($description, $organization, $url, $licenses, $versionControl, $developers)"
-    val publishVersion =
-      s"override def publishVersion = $version"
-    val publishProperties =
-      optional("override def publishProperties = super.publishProperties() ++ Map", properties)
+    val publishVersionSetting =
+      s"override def publishVersion = $publishVersion"
+    val publishPropertiesSetting =
+      optional(
+        "override def publishProperties = super.publishProperties() ++ Map",
+        publishProperties
+      )
 
     s"""$pomSettings
        |
-       |$publishVersion
+       |$publishVersionSetting
        |
-       |$publishProperties""".stripMargin
+       |$publishPropertiesSetting""".stripMargin
   }
 
   private def escapes(c: Char): Boolean =
@@ -462,12 +465,16 @@ object BuildGen {
 @main
 @mill.api.internal
 case class BuildGenConfig(
-    @arg(doc = "generated base module trait, defining project metadata, name")
+    @arg(doc = "generated base module trait, defining project metadata settings, name")
     baseModule: Option[String] = None,
+    @arg(doc = "generated nested test module name")
+    testModule: String = "test",
     @arg(doc = "generated companion object, defining constants for dependencies, name")
     depsObject: Option[String] = None,
     @arg(doc = "capture and publish properties defined in pom.xml")
     publishProperties: Flag = Flag(),
+    @arg(doc = "compact generated build tree by merging build files")
+    compact: Flag = Flag(),
     @arg(doc = "use cache for Maven repository system")
     cacheRepository: Flag = Flag(),
     @arg(doc = "process Maven plugin executions and configurations")

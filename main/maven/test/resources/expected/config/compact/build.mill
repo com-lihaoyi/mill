@@ -1,0 +1,161 @@
+package build
+
+import mill._
+import mill.api._
+import mill.javalib._
+import mill.javalib.publish._
+
+object `package` extends RootModule with PublishModule with MavenModule {
+
+  override def artifactName = "parent"
+
+  override def pomPackagingType = PackagingType.Pom
+
+  override def pomSettings = PomSettings(
+    "Just a pom that makes it easy to build both projects at the same time.",
+    "com.example.maven-samples",
+    "",
+    Seq(),
+    VersionControl(),
+    Seq()
+  )
+
+  override def publishVersion = "1.0-SNAPSHOT"
+
+  object `multi-module` extends PublishModule with MavenModule {
+
+    override def artifactName = "multi-module-parent"
+
+    override def javacOptions = Seq("-source", "1.6", "-target", "1.6")
+
+    override def pomPackagingType = PackagingType.Pom
+
+    override def pomSettings = PomSettings(
+      "Sample multi module Maven project with a working, deployable site.",
+      "com.example.maven-samples",
+      "http://www.example.com",
+      Seq(),
+      VersionControl(
+        Some("http://github.com/gabrielf/maven-samples"),
+        Some("scm:git:git@github.com:gabrielf/maven-samples.git"),
+        Some("scm:git:git@github.com:gabrielf/maven-samples.git"),
+        Some("HEAD")
+      ),
+      Seq()
+    )
+
+    override def publishVersion = "1.0-SNAPSHOT"
+
+    object server extends PublishModule with MavenModule {
+
+      override def javacOptions = Seq("-source", "1.6", "-target", "1.6")
+
+      override def pomParentProject = Some(Artifact(
+        "com.example.maven-samples",
+        "multi-module-parent",
+        "1.0-SNAPSHOT"
+      ))
+
+      override def pomSettings = PomSettings(
+        "Logic.",
+        "com.example.maven-samples",
+        "http://www.example.com/server",
+        Seq(),
+        VersionControl(
+          Some("http://github.com/gabrielf/maven-samples/server"),
+          Some("scm:git:git@github.com:gabrielf/maven-samples.git/server"),
+          Some("scm:git:git@github.com:gabrielf/maven-samples.git/server"),
+          Some("HEAD")
+        ),
+        Seq()
+      )
+
+      override def publishVersion = "1.0-SNAPSHOT"
+
+      object test extends MavenTests with TestModule.Junit4 {
+
+        override def ivyDeps = super.ivyDeps() ++ Agg(
+          ivy"junit:junit-dep:4.10",
+          ivy"org.hamcrest:hamcrest-core:1.2.1",
+          ivy"org.hamcrest:hamcrest-library:1.2.1",
+          ivy"org.mockito:mockito-core:1.8.5"
+        )
+      }
+    }
+
+    object webapp extends PublishModule with MavenModule {
+
+      override def javacOptions = Seq("-source", "1.6", "-target", "1.6")
+
+      override def moduleDeps = Seq(build.`multi-module`.server)
+
+      override def compileIvyDeps = Agg(
+        ivy"javax.servlet.jsp:jsp-api:2.2",
+        ivy"javax.servlet:servlet-api:2.5"
+      )
+
+      override def pomPackagingType = "war"
+
+      override def pomParentProject = Some(Artifact(
+        "com.example.maven-samples",
+        "multi-module-parent",
+        "1.0-SNAPSHOT"
+      ))
+
+      override def pomSettings = PomSettings(
+        "Webapp.",
+        "com.example.maven-samples",
+        "http://www.example.com/webapp",
+        Seq(),
+        VersionControl(
+          Some("http://github.com/gabrielf/maven-samples/webapp"),
+          Some("scm:git:git@github.com:gabrielf/maven-samples.git/webapp"),
+          Some("scm:git:git@github.com:gabrielf/maven-samples.git/webapp"),
+          Some("HEAD")
+        ),
+        Seq()
+      )
+
+      override def publishVersion = "1.0-SNAPSHOT"
+
+    }
+  }
+
+  object `single-module` extends PublishModule with MavenModule {
+
+    override def artifactName = "single-module-project"
+
+    override def javacOptions = Seq("-source", "1.6", "-target", "1.6")
+
+    override def ivyDeps = Agg(
+      ivy"javax.servlet.jsp:jsp-api:2.2",
+      ivy"javax.servlet:servlet-api:2.5"
+    )
+
+    override def pomSettings = PomSettings(
+      "Sample single module Maven project with a working, deployable site.",
+      "com.example.maven-samples",
+      "http://www.example.com",
+      Seq(),
+      VersionControl(
+        Some("http://github.com/gabrielf/maven-samples"),
+        Some("scm:git:git@github.com:gabrielf/maven-samples.git"),
+        Some("scm:git:git@github.com:gabrielf/maven-samples.git"),
+        Some("HEAD")
+      ),
+      Seq()
+    )
+
+    override def publishVersion = "1.0-SNAPSHOT"
+
+    object test extends MavenTests with TestModule.Junit4 {
+
+      override def ivyDeps = super.ivyDeps() ++ Agg(
+        ivy"junit:junit-dep:4.10",
+        ivy"org.hamcrest:hamcrest-core:1.2.1",
+        ivy"org.hamcrest:hamcrest-library:1.2.1",
+        ivy"org.mockito:mockito-core:1.8.5"
+      )
+    }
+  }
+}

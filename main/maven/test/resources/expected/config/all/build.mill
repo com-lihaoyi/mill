@@ -1,0 +1,107 @@
+package build
+
+import mill._
+import mill.api._
+import mill.javalib._
+import mill.javalib.publish._
+
+object Deps {
+
+  val `javax.servlet.jsp:jsp-api` = ivy"javax.servlet.jsp:jsp-api:2.2"
+  val `javax.servlet:servlet-api` = ivy"javax.servlet:servlet-api:2.5"
+  val `junit:junit-dep` = ivy"junit:junit-dep:4.10"
+  val `org.hamcrest:hamcrest-core` = ivy"org.hamcrest:hamcrest-core:1.2.1"
+  val `org.hamcrest:hamcrest-library` = ivy"org.hamcrest:hamcrest-library:1.2.1"
+  val `org.mockito:mockito-core` = ivy"org.mockito:mockito-core:1.8.5"
+}
+
+object `package` extends RootModule with MyModule {
+
+  override def artifactName = "parent"
+
+  override def pomPackagingType = PackagingType.Pom
+
+  object `multi-module` extends MyModule {
+
+    override def artifactName = "multi-module-parent"
+
+    override def javacOptions = Seq("-source", "1.6", "-target", "1.6")
+
+    override def pomPackagingType = PackagingType.Pom
+
+    object server extends MyModule {
+
+      override def javacOptions = Seq("-source", "1.6", "-target", "1.6")
+
+      override def pomParentProject = Some(Artifact(
+        "com.example.maven-samples",
+        "multi-module-parent",
+        "1.0-SNAPSHOT"
+      ))
+
+      object tests extends MavenTests with TestModule.Junit4 {
+
+        override def ivyDeps = super.ivyDeps() ++ Agg(
+          Deps.`junit:junit-dep`,
+          Deps.`org.hamcrest:hamcrest-core`,
+          Deps.`org.hamcrest:hamcrest-library`,
+          Deps.`org.mockito:mockito-core`
+        )
+      }
+    }
+
+    object webapp extends MyModule {
+
+      override def javacOptions = Seq("-source", "1.6", "-target", "1.6")
+
+      override def moduleDeps = Seq(build.`multi-module`.server)
+
+      override def compileIvyDeps =
+        Agg(Deps.`javax.servlet.jsp:jsp-api`, Deps.`javax.servlet:servlet-api`)
+
+      override def pomPackagingType = "war"
+
+      override def pomParentProject = Some(Artifact(
+        "com.example.maven-samples",
+        "multi-module-parent",
+        "1.0-SNAPSHOT"
+      ))
+
+    }
+  }
+
+  object `single-module` extends MyModule {
+
+    override def artifactName = "single-module-project"
+
+    override def javacOptions = Seq("-source", "1.6", "-target", "1.6")
+
+    override def ivyDeps =
+      Agg(Deps.`javax.servlet.jsp:jsp-api`, Deps.`javax.servlet:servlet-api`)
+
+    object tests extends MavenTests with TestModule.Junit4 {
+
+      override def ivyDeps = super.ivyDeps() ++ Agg(
+        Deps.`junit:junit-dep`,
+        Deps.`org.hamcrest:hamcrest-core`,
+        Deps.`org.hamcrest:hamcrest-library`,
+        Deps.`org.mockito:mockito-core`
+      )
+    }
+  }
+}
+
+trait MyModule extends PublishModule with MavenModule {
+
+  override def pomSettings = PomSettings(
+    "Just a pom that makes it easy to build both projects at the same time.",
+    "com.example.maven-samples",
+    "",
+    Seq(),
+    VersionControl(),
+    Seq()
+  )
+
+  override def publishVersion = "1.0-SNAPSHOT"
+
+}

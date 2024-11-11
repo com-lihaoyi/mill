@@ -45,6 +45,5 @@ object `package` extends RootModule with PublishModule with MavenModule {
       Deps.`org.hamcrest:hamcrest-library`,
       Deps.`org.mockito:mockito-core`
     )
-
   }
 }

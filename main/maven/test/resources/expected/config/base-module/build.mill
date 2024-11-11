@@ -6,6 +6,16 @@ import mill.api._
 import mill.javalib._
 import mill.javalib.publish._
 
+object `package` extends RootModule with MyModule {
+
+  override def artifactName = "multi-module-parent"
+
+  override def javacOptions = Seq("-source", "1.6", "-target", "1.6")
+
+  override def pomPackagingType = PackagingType.Pom
+
+}
+
 trait MyModule extends PublishModule with MavenModule {
 
   override def pomSettings = PomSettings(
@@ -23,15 +33,5 @@ trait MyModule extends PublishModule with MavenModule {
   )
 
   override def publishVersion = "1.0-SNAPSHOT"
-
-}
-
-object `package` extends RootModule with MyModule {
-
-  override def artifactName = "multi-module-parent"
-
-  override def javacOptions = Seq("-source", "1.6", "-target", "1.6")
-
-  override def pomPackagingType = PackagingType.Pom
 
 }

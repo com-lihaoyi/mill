@@ -23,10 +23,50 @@ object MillInitMavenJansiTests extends MillInitMavenTests {
 
     // - Junit5
     // - maven-compiler-plugin release option
-    test - prep("https://github.com/fusesource/jansi/archive/refs/tags/jansi-2.4.1.zip") { tester =>
+    val url = "https://github.com/fusesource/jansi/archive/refs/tags/jansi-2.4.1.zip"
+
+    test - prep(url) { tester =>
       import tester._
 
-      val initRes = eval(("init", "--deps-object", "Deps"))
+      val initRes = eval("init")
+      assert(
+        initRes.out.contains("generated 1 Mill build file(s)"),
+        initRes.isSuccess
+      )
+
+      val compileRes = eval("compile")
+      assert(
+        compileRes.err.contains("compiling 20 Java sources"),
+        compileRes.isSuccess
+      )
+
+      val testRes = eval("test")
+      assert(
+        testRes.out.contains("Test run finished: 0 failed, 1 ignored, 90 total"),
+        testRes.isSuccess
+      )
+
+      val publishLocalRes = eval("publishLocal")
+      assert(
+        publishLocalRes.err.contains("Publishing Artifact(org.fusesource.jansi,jansi,2.4.1)"),
+        publishLocalRes.isSuccess
+      )
+    }
+
+    test("config") - prep(url) { tester =>
+      import tester._
+
+      val initRes = eval(
+        (
+          "init",
+          "--base-module",
+          "JansiModule",
+          "--deps-object",
+          "Deps",
+          "--cache-repository",
+          "--process-plugins"
+        )
+      )
       assert(
         initRes.out.contains("generated 1 Mill build file(s)"),
         initRes.isSuccess
@@ -55,12 +95,50 @@ object MillInitMavenJansiTests extends MillInitMavenTests {
 
 object MillInitMavenOwnerTests extends MillInitMavenTests {
 
+  private val compileTasks = Seq(
+    "owner.compile",
+    "owner-site.compile",
+    "owner-extras.compile",
+    "owner-java8.compile",
+    "owner-examples.owner-examples-hotreload.compile",
+    "owner.test.compile",
+    "owner-extras.test.compile",
+    "owner-java8.test.compile",
+    "owner-assembly.compile",
+    "owner-java8-extras.compile",
+    "owner-java8-extras.test.compile"
+  )
+
+  private val modules = Seq(
+    "owner",
+    "owner-assembly",
+    "owner-examples",
+    "owner-extras",
+    "owner-java8-extras",
+    "owner-java8",
+    "owner-site"
+  )
+
+  private val publishing = Seq(
+    "Publishing Artifact(org.aeonbits.owner,owner-parent,1.0.12)",
+    "Publishing Artifact(org.aeonbits.owner,owner-site,1.0.12)",
+    "Publishing Artifact(org.aeonbits.owner,owner-examples,1.0.12)",
+    "Publishing Artifact(org.aeonbits.owner,owner-assembly,1.0.12)",
+    "Publishing Artifact(org.aeonbits.owner,owner-examples-owner-examples-hotreload,1.0.12)",
+    "Publishing Artifact(org.aeonbits.owner,owner-java8,1.0.12)",
+    "Publishing Artifact(org.aeonbits.owner,owner-extras,1.0.12)",
+    "Publishing Artifact(org.aeonbits.owner,owner-java8-extras,1.0.12)",
+    "Publishing Artifact(org.aeonbits.owner,owner,1.0.12)",
+  )
+
   def tests: Tests = Tests {
 
     // - multi-level multi-module
     // - Junit4
     // - maven-compiler-plugin release option
-    test - prep("https://github.com/matteobaccan/owner/archive/refs/tags/owner-1.0.12.zip") {
+    val url = "https://github.com/matteobaccan/owner/archive/refs/tags/owner-1.0.12.zip"
+
+    test - prep(url) {
       tester =>
         import tester._
 
@@ -72,26 +150,12 @@ object MillInitMavenOwnerTests extends MillInitMavenTests {
 
         val resolveRes = eval(("resolve", "_"))
         assert(
-          resolveRes.out.contains("owner"),
-          resolveRes.out.contains("owner-site"),
-          resolveRes.out.contains("owner-extras"),
-          resolveRes.out.contains("owner-assembly"),
-          resolveRes.out.contains("owner-java8-extras"),
-          resolveRes.out.contains("owner-java8"),
-          resolveRes.out.contains("owner-examples"),
+          modules.forall(resolveRes.out.contains),
           resolveRes.isSuccess
         )
 
-        val compileRes = eval("__.compile")
         assert(
-          compileRes.err.contains("compiling 52 Java sources"),
-          compileRes.err.contains("compiling 2 Java sources"),
-          compileRes.err.contains("compiling 1 Java source"),
-          compileRes.err.contains("compiling 91 Java sources"),
-          // compileRes.err.contains("compiling 2 Java sources"),
-          compileRes.err.contains("compiling 6 Java sources"),
-          compileRes.err.contains("compiling 3 Java sources"),
-          compileRes.isSuccess
+          compileTasks.forall(eval(_).isSuccess)
         )
 
         val testRes = eval("__.test")
@@ -100,36 +164,54 @@ object MillInitMavenOwnerTests extends MillInitMavenTests {
           !testRes.isSuccess
         )
 
-        val publishLocal = eval("__.publishLocal")
+        val publishLocalRes = eval("__.publishLocal")
         assert(
-          publishLocal.err.contains(
-            "Publishing Artifact(org.aeonbits.owner,owner-parent,1.0.12)"
-          ),
-          publishLocal.err.contains(
-            "Publishing Artifact(org.aeonbits.owner,owner-site,1.0.12)"
-          ),
-          publishLocal.err.contains(
-            "Publishing Artifact(org.aeonbits.owner,owner-examples,1.0.12)"
-          ),
-          publishLocal.err.contains(
-            "Publishing Artifact(org.aeonbits.owner,owner-assembly,1.0.12)"
-          ),
-          publishLocal.err.contains(
-            "Publishing Artifact(org.aeonbits.owner,owner-examples-owner-examples-hotreload,1.0.12)"
-          ),
-          publishLocal.err.contains(
-            "Publishing Artifact(org.aeonbits.owner,owner-java8,1.0.12)"
-          ),
-          publishLocal.err.contains(
-            "Publishing Artifact(org.aeonbits.owner,owner-extras,1.0.12)"
-          ),
-          publishLocal.err.contains(
-            "Publishing Artifact(org.aeonbits.owner,owner-java8-extras,1.0.12)"
-          ),
-          publishLocal.err.contains(
-            "Publishing Artifact(org.aeonbits.owner,owner,1.0.12)"
-          ),
-          publishLocal.isSuccess
+          publishing.forall(publishLocalRes.err.contains),
+          publishLocalRes.isSuccess
+        )
+    }
+
+    test("config") - prep(url) {
+      tester =>
+        import tester._
+
+        val initRes = eval(
+          (
+            "init",
+            "--base-module",
+            "OwnerModule",
+            "--deps-object",
+            "Deps",
+            "--compact",
+            "--cache-repository",
+            "--process-plugins"
+          )
+        )
+        assert(
+          initRes.out.contains("generated 1 Mill build file(s)"),
+          initRes.isSuccess
+        )
+
+        val resolveRes = eval(("resolve", "_"))
+        assert(
+          modules.forall(resolveRes.out.contains),
+          resolveRes.isSuccess
+        )
+
+        assert(
+          compileTasks.forall(eval(_).isSuccess)
+        )
+
+        val testRes = eval("__.test")
+        assert(
+          testRes.err.contains("owner.test.test 3 tests failed"), // bad release?
+          !testRes.isSuccess
+        )
+
+        val publishLocalRes = eval("__.publishLocal")
+        assert(
+          publishing.forall(publishLocalRes.err.contains),
+          publishLocalRes.isSuccess
         )
     }
   }
@@ -141,7 +223,9 @@ object MillInitMavenDotEnvTests extends MillInitMavenTests {
     // - multi-module
     // - TestNg
     // - maven-compiler-plugin release option
-    test - prep("https://github.com/shyiko/dotenv/archive/refs/tags/0.1.1.zip") { tester =>
+    val url = "https://github.com/shyiko/dotenv/archive/refs/tags/0.1.1.zip"
+
+    test - prep(url) { tester =>
       import tester._
 
       val initRes = eval("init")
@@ -180,7 +264,9 @@ object MillInitMavenAvajeConfigTests extends MillInitMavenTests {
   def tests: Tests = Tests {
     // - multi-module
     // - unsupported test framework
-    test - prep("https://github.com/avaje/avaje-config/archive/refs/tags/4.0.zip") { tester =>
+    val url = "https://github.com/avaje/avaje-config/archive/refs/tags/4.0.zip"
+
+    test - prep(url) { tester =>
       import tester._
 
       val initRes = eval("init")
@@ -224,7 +310,9 @@ object MillInitMavenFastExcelTests extends MillInitMavenTests {
     // - multi-module
     // - Junit5
     // - module e2e directory and artifact name differ
-    test - prep("https://github.com/dhatim/fastexcel/archive/refs/tags/0.18.4.zip") { tester =>
+    val url = "https://github.com/dhatim/fastexcel/archive/refs/tags/0.18.4.zip"
+
+    test - prep(url) { tester =>
       import tester._
 
       val initRes = eval("init")
@@ -362,7 +450,7 @@ object MillInitMavenNettyTests extends MillInitMavenTests {
 
   private val modules = Array(
     "all",
-    "bom", // pom packaging
+    "bom",
     "buffer",
     "codec",
     "codec-dns",
@@ -424,13 +512,14 @@ object MillInitMavenNettyTests extends MillInitMavenTests {
   def tests: Tests = Tests {
     // - multi-module
     // - Junit5
-    // - build-helper-maven-plugin
     // - maven-compiler-plugin compilerArgs options
     // - module directory and artifact names differ
     // - multi line description, properties
     // - property <jetty.alpnAgent.path> contains quotes
     // - defines test dependencies in root pom.xml that get propagated to every module
-    test - prep("https://github.com/netty/netty/archive/refs/tags/netty-4.1.114.Final.zip") {
+    val url = "https://github.com/netty/netty/archive/refs/tags/netty-4.1.114.Final.zip"
+
+    test - prep(url) {
       tester =>
         import tester._
 
@@ -453,10 +542,7 @@ object MillInitMavenNettyTests extends MillInitMavenTests {
         )
 
         assert(
-          compileTasksThatSucceed.forall(eval(_).isSuccess)
-        )
-
-        assert(
+          compileTasksThatSucceed.forall(eval(_).isSuccess),
           compileTasksThatFail.forall(!eval(_).isSuccess)
         )
     }

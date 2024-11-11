@@ -1,4 +1,4 @@
-package build.`multi-module`.server
+package build
 
 import mill._
 import mill.api._
@@ -7,21 +7,22 @@ import mill.javalib.publish._
 
 object `package` extends RootModule with PublishModule with MavenModule {
 
+  override def artifactName = "single-module-project"
+
   override def javacOptions = Seq("-source", "1.6", "-target", "1.6")
 
-  override def pomParentProject = Some(
-    Artifact("com.example.maven-samples", "multi-module-parent", "1.0-SNAPSHOT")
-  )
+  override def ivyDeps =
+    Agg(ivy"javax.servlet.jsp:jsp-api:2.2", ivy"javax.servlet:servlet-api:2.5")
 
   override def pomSettings = PomSettings(
-    "Logic.",
+    "Sample single module Maven project with a working, deployable site.",
     "com.example.maven-samples",
-    "http://www.example.com/server",
+    "http://www.example.com",
     Seq(),
     VersionControl(
-      Some("http://github.com/gabrielf/maven-samples/server"),
-      Some("scm:git:git@github.com:gabrielf/maven-samples.git/server"),
-      Some("scm:git:git@github.com:gabrielf/maven-samples.git/server"),
+      Some("http://github.com/gabrielf/maven-samples"),
+      Some("scm:git:git@github.com:gabrielf/maven-samples.git"),
+      Some("scm:git:git@github.com:gabrielf/maven-samples.git"),
       Some("HEAD")
     ),
     Seq()
@@ -29,7 +30,7 @@ object `package` extends RootModule with PublishModule with MavenModule {
 
   override def publishVersion = "1.0-SNAPSHOT"
 
-  object test extends MavenTests with TestModule.Junit4 {
+  object tests extends MavenTests with TestModule.Junit4 {
 
     override def ivyDeps = super.ivyDeps() ++ Agg(
       ivy"junit:junit-dep:4.10",
