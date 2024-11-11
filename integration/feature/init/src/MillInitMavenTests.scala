@@ -3,10 +3,10 @@ package mill.integration
 import mill.testkit.{IntegrationTester, UtestIntegrationTestSuite}
 import utest._
 
-trait MillInitMavenTests extends UtestIntegrationTestSuite {
+abstract class MillInitMavenTests(githubSourceZipUrl: String) extends UtestIntegrationTestSuite {
 
-  final protected def prep[T](githubSourceZipUrl: String)(f: IntegrationTester => T): T =
-    integrationTest { tester =>
+  override def integrationTest[T](f: IntegrationTester => T): T =
+    super.integrationTest { tester =>
       val zipFile = os.temp(requests.get(githubSourceZipUrl))
       val unzipDir = os.unzip(zipFile, os.temp.dir())
       val sourceDir = os.list(unzipDir).head
@@ -17,15 +17,14 @@ trait MillInitMavenTests extends UtestIntegrationTestSuite {
     }
 }
 
-object MillInitMavenJansiTests extends MillInitMavenTests {
+object MillInitMavenJansiTests extends MillInitMavenTests(
+      // - Junit5
+      // - maven-compiler-plugin release option
+      "https://github.com/fusesource/jansi/archive/refs/tags/jansi-2.4.1.zip"
+    ) {
 
   def tests: Tests = Tests {
-
-    // - Junit5
-    // - maven-compiler-plugin release option
-    val url = "https://github.com/fusesource/jansi/archive/refs/tags/jansi-2.4.1.zip"
-
-    test - prep(url) { tester =>
+    test - integrationTest { tester =>
       import tester._
 
       val initRes = eval("init")
@@ -53,7 +52,7 @@ object MillInitMavenJansiTests extends MillInitMavenTests {
       )
     }
 
-    test("realistic") - prep(url) { tester =>
+    test("realistic") - integrationTest { tester =>
       import tester._
 
       val initRes = eval(
@@ -93,7 +92,12 @@ object MillInitMavenJansiTests extends MillInitMavenTests {
   }
 }
 
-object MillInitMavenOwnerTests extends MillInitMavenTests {
+object MillInitMavenOwnerTests extends MillInitMavenTests(
+      // - multi-level multi-module
+      // - Junit4
+      // - maven-compiler-plugin release option
+      "https://github.com/matteobaccan/owner/archive/refs/tags/owner-1.0.12.zip"
+    ) {
 
   private val compileTasks = Seq(
     "owner.compile",
@@ -128,17 +132,11 @@ object MillInitMavenOwnerTests extends MillInitMavenTests {
     "Publishing Artifact(org.aeonbits.owner,owner-java8,1.0.12)",
     "Publishing Artifact(org.aeonbits.owner,owner-extras,1.0.12)",
     "Publishing Artifact(org.aeonbits.owner,owner-java8-extras,1.0.12)",
-    "Publishing Artifact(org.aeonbits.owner,owner,1.0.12)",
+    "Publishing Artifact(org.aeonbits.owner,owner,1.0.12)"
   )
 
   def tests: Tests = Tests {
-
-    // - multi-level multi-module
-    // - Junit4
-    // - maven-compiler-plugin release option
-    val url = "https://github.com/matteobaccan/owner/archive/refs/tags/owner-1.0.12.zip"
-
-    test - prep(url) {
+    test - integrationTest {
       tester =>
         import tester._
 
@@ -171,7 +169,7 @@ object MillInitMavenOwnerTests extends MillInitMavenTests {
         )
     }
 
-    test("realistic") - prep(url) {
+    test("realistic") - integrationTest {
       tester =>
         import tester._
 
@@ -217,15 +215,15 @@ object MillInitMavenOwnerTests extends MillInitMavenTests {
   }
 }
 
-object MillInitMavenDotEnvTests extends MillInitMavenTests {
+object MillInitMavenDotEnvTests extends MillInitMavenTests(
+      // - multi-module
+      // - TestNg
+      // - maven-compiler-plugin release option
+      "https://github.com/shyiko/dotenv/archive/refs/tags/0.1.1.zip"
+    ) {
 
   def tests: Tests = Tests {
-    // - multi-module
-    // - TestNg
-    // - maven-compiler-plugin release option
-    val url = "https://github.com/shyiko/dotenv/archive/refs/tags/0.1.1.zip"
-
-    test - prep(url) { tester =>
+    test - integrationTest { tester =>
       import tester._
 
       val initRes = eval("init")
@@ -242,6 +240,7 @@ object MillInitMavenDotEnvTests extends MillInitMavenTests {
       )
 
       // JavaModule.JavaTests is not picking compileIvyDeps from outer module
+      // even if compile error is fixed, TestNg version is not supported
       val compileRes = eval("__.compile")
       assert(
         compileRes.err.contains(
@@ -249,24 +248,18 @@ object MillInitMavenDotEnvTests extends MillInitMavenTests {
         ),
         !compileRes.isSuccess
       )
-
-      // even if compile error is fixed, TestNg version is not supported
-      // val testRes = eval("__.test")
-      // assert(
-      //   !testRes.isSuccess
-      // )
     }
   }
 }
 
-object MillInitMavenAvajeConfigTests extends MillInitMavenTests {
+object MillInitMavenAvajeConfigTests extends MillInitMavenTests(
+      // - multi-module
+      // - unsupported test framework
+      "https://github.com/avaje/avaje-config/archive/refs/tags/4.0.zip"
+    ) {
 
   def tests: Tests = Tests {
-    // - multi-module
-    // - unsupported test framework
-    val url = "https://github.com/avaje/avaje-config/archive/refs/tags/4.0.zip"
-
-    test - prep(url) { tester =>
+    test - integrationTest { tester =>
       import tester._
 
       val initRes = eval("init")
@@ -305,15 +298,15 @@ object MillInitMavenAvajeConfigTests extends MillInitMavenTests {
   }
 }
 
-object MillInitMavenFastExcelTests extends MillInitMavenTests {
+object MillInitMavenFastExcelTests extends MillInitMavenTests(
+      // - multi-module
+      // - Junit5
+      // - module e2e directory and artifact name differ
+      "https://github.com/dhatim/fastexcel/archive/refs/tags/0.18.4.zip"
+    ) {
 
   def tests: Tests = Tests {
-    // - multi-module
-    // - Junit5
-    // - module e2e directory and artifact name differ
-    val url = "https://github.com/dhatim/fastexcel/archive/refs/tags/0.18.4.zip"
-
-    test - prep(url) { tester =>
+    test - integrationTest { tester =>
       import tester._
 
       val initRes = eval("init")
@@ -349,7 +342,16 @@ object MillInitMavenFastExcelTests extends MillInitMavenTests {
   }
 }
 
-object MillInitMavenNettyTests extends MillInitMavenTests {
+object MillInitMavenNettyTests extends MillInitMavenTests(
+      // - multi-module
+      // - Junit5
+      // - maven-compiler-plugin compilerArgs options
+      // - module directory and artifact names differ
+      // - multi line description, properties
+      // - property <jetty.alpnAgent.path> contains quotes
+      // - defines test dependencies in root pom.xml that get propagated to every module
+      "https://github.com/netty/netty/archive/refs/tags/netty-4.1.114.Final.zip"
+    ) {
 
   private val compileTasksThatSucceed = Array(
     "common.compile",
@@ -512,41 +514,31 @@ object MillInitMavenNettyTests extends MillInitMavenTests {
   )
 
   def tests: Tests = Tests {
-    // - multi-module
-    // - Junit5
-    // - maven-compiler-plugin compilerArgs options
-    // - module directory and artifact names differ
-    // - multi line description, properties
-    // - property <jetty.alpnAgent.path> contains quotes
-    // - defines test dependencies in root pom.xml that get propagated to every module
-    val url = "https://github.com/netty/netty/archive/refs/tags/netty-4.1.114.Final.zip"
+    test - integrationTest { tester =>
+      import tester._
 
-    test - prep(url) {
-      tester =>
-        import tester._
+      val initRes = eval(("init", "--publish-properties"))
+      assert(
+        modulesWithNativeClassifier.forall(module =>
+          initRes.out.contains(
+            // cannot resolve native dependencies defined by build extension os-maven-plugin
+            s"[$module] dropping classifier $${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final"
+          )
+        ),
+        initRes.out.contains("generated 47 Mill build file(s)"),
+        initRes.isSuccess
+      )
 
-        val initRes = eval(("init", "--publish-properties"))
-        assert(
-          modulesWithNativeClassifier.forall(module =>
-            initRes.out.contains(
-              // cannot resolve native dependencies defined by build extension os-maven-plugin
-              s"[$module] dropping classifier $${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final"
-            )
-          ),
-          initRes.out.contains("generated 47 Mill build file(s)"),
-          initRes.isSuccess
-        )
+      val resolveRes = eval(("resolve", "_"))
+      assert(
+        modules.forall(resolveRes.out.contains),
+        resolveRes.isSuccess
+      )
 
-        val resolveRes = eval(("resolve", "_"))
-        assert(
-          modules.forall(resolveRes.out.contains),
-          resolveRes.isSuccess
-        )
-
-        assert(
-          compileTasksThatSucceed.forall(eval(_).isSuccess),
-          compileTasksThatFail.forall(!eval(_).isSuccess)
-        )
+      assert(
+        compileTasksThatSucceed.forall(eval(_).isSuccess),
+        compileTasksThatFail.forall(!eval(_).isSuccess)
+      )
     }
   }
 }
