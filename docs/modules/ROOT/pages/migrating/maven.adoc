@@ -1,0 +1,119 @@
+= Migrating A Maven Build to Mill
+:page-aliases: Migrating_A_Maven_Build_to_Mill.adoc
+:icons: font
+
+include::partial$gtag-config.adoc[]
+
+The Mill `init` command can be used to convert a Maven build to Mill.
+
+A Maven module is converted to a Mill `MavenModule` with the standard Maven source directory structure.
+A nested `test` module is defined if
+
+* `src/test` exists
+* a supported xref:javalib/testing.adoc[test framework] is detected (for a tests only module with test sources in `src/main/java`)
+
+include::partial$example/javalib/migrating/1-maven.adoc[]
+
+CAUTION: The conversion is not intended to be 100% feature complete enough to replace the Maven build
+today. It is instead meant to provide a scaffolding to further xref:#recommendations[build] upon.
+
+[#convention]
+[TIP]
+====
+Adapt the following to adhere to Mill conventions:
+
+.example for project https://github.com/fusesource/jansi/archive/refs/tags/jansi-2.4.1.zip[jansi]
+[source,sh]
+----
+./mill init --base-module JansiModule --deps-object Deps
+----
+
+Include `--merge` flag for a multi-module build:
+
+.example for project https://github.com/matteobaccan/owner/archive/refs/tags/owner-1.0.12.zip[owner]
+[source,sh]
+----
+./mill init --base-module OwnerModule --deps-object Deps --merge
+----
+====
+
+== Capabilities
+
+The conversion
+
+* handles deeply nested modules
+* captures project metadata
+* configures dependencies for scopes:
+** compile
+** provided
+** runtime
+** test
+* configures testing frameworks:
+** JUnit 4
+** JUnit 5
+** TestNG
+* configures multiple, compile and test, resource directories
+
+=== Command line arguments
+.name of generated base module trait defining project metadata settings
+[source,sh]
+----
+./mill init --base-module MyModule
+----
+.name of generated nested test module (defaults to test)
+[source,sh]
+----
+./mill init --test-module test
+----
+.name of generated companion object defining constants for dependencies
+[source,sh]
+----
+./mill init --deps-object Deps
+----
+.capture properties defined in `pom.xml` for publishing
+[source,sh]
+----
+./mill init --publish-properties
+----
+.merge build files generated for a multi-module build
+[source,sh]
+----
+./mill init --merge
+----
+.use cache for Maven repository system
+[source,sh]
+----
+./mill init --cache-repository
+----
+.process Maven plugin executions and configurations
+[source,sh]
+----
+./mill init --process-plugins
+----
+
+== Limitations
+
+The conversion does not support:
+
+* plugins, other than https://maven.apache.org/plugins/maven-compiler-plugin/[maven-compiler-plugin]
+* packaging, other than `jar`, `pom`
+* build extensions
+* build profiles
+* non-Java (native) sources
+
+[#recommendations]
+[TIP]
+====
+These limitations can be overcome by:
+
+* configuring equivalent Mill xref:extending/contrib-plugins.adoc[contrib] or xref:extending/thirdparty-plugins.adoc[third party] plugins
+* defining custom xref:extending/writing-plugins.adoc[plugins]
+* defining custom xref:fundamentals/tasks.adoc[tasks]
+* defining custom xref:fundamentals/cross-builds.adoc[cross modules]
+====
+
+Some pitfalls to be wary of:
+
+* The test framework configured may be for an unsupported version.
+* A module with `provided` dependencies will require adding the dependencies in the nested test module.
+* Merging build files may result in non-compiling build due to a module and task name collision.

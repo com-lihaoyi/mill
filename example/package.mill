@@ -34,6 +34,7 @@ object `package` extends RootModule with Module {
     object dependencies extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "dependencies"))
     object testing extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "testing"))
     object linting extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "linting"))
+    object migrating extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "migrating"))
     object publishing extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "publishing"))
     object web extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "web"))
   }

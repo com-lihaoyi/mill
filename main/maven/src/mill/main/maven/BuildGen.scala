@@ -13,9 +13,10 @@ import scala.jdk.CollectionConverters.*
  *
  * The generated output should be considered scaffolding and will likely require edits to complete conversion.
  *
- * ===Features===
- *  - converts nested modules
- *  - captures publish metadata
+ * ===Capabilities===
+ * The conversion
+ *  - handles deeply nested modules
+ *  - captures project metadata
  *  - configures dependencies for scopes:
  *    - compile
  *    - provided
@@ -25,13 +26,14 @@ import scala.jdk.CollectionConverters.*
  *    - JUnit 4
  *    - JUnit 5
  *    - TestNG
- *  - supports Maven plugins:
- *    - org.apache.maven.plugins:maven-compiler-plugin
- *  - supports multiple, compile and test, resource directories
+ *  - configures multiple, compile and test, resource directories
  *
  * ===Limitations===
- *  - build extensions are not supported
- *  - build profiles are not supported
+ * The conversion does not support:
+ *  - plugins, other than maven-compiler-plugin
+ *  - packaging, other than jar, pom
+ *  - build extensions
+ *  - build profiles
  */
 @mill.api.internal
 object BuildGen {
@@ -47,7 +49,7 @@ object BuildGen {
   private def run(cfg: BuildGenConfig): Unit = {
     val workspace = os.pwd
 
-    println("converting Maven build ...")
+    println("converting Maven build")
     val modeler = Modeler(cfg)
     val input = Tree.from(Seq.empty[String]) { dirs =>
       val model = modeler(workspace / dirs)
@@ -55,15 +57,15 @@ object BuildGen {
     }
 
     var output = convert(input, cfg)
-    if (cfg.compact.value) {
-      println("compacting Mill build tree ...")
-      output = output.compact
+    if (cfg.merge.value) {
+      println("compacting Mill build tree")
+      output = output.merge
     }
 
     val nodes = output.toSeq
     println(s"generated ${nodes.length} Mill build file(s)")
 
-    println("removing existing Mill build files ...")
+    println("removing existing Mill build files")
     os.walk.stream(workspace, skip = (workspace / "out").equals)
       .filter(_.ext == ".mill")
       .foreach(os.remove.apply)
@@ -71,7 +73,7 @@ object BuildGen {
     nodes.foreach { node =>
       val file = node.file
       val source = node.source
-      println(s"writing Mill build file to $file ...")
+      println(s"writing Mill build file to $file")
       os.write(workspace / file, source)
     }
 
@@ -465,16 +467,16 @@ object BuildGen {
 @main
 @mill.api.internal
 case class BuildGenConfig(
-    @arg(doc = "generated base module trait, defining project metadata settings, name")
+    @arg(doc = "name of generated base module trait defining project metadata settings")
     baseModule: Option[String] = None,
-    @arg(doc = "generated nested test module name")
+    @arg(doc = "name of generated nested test module")
     testModule: String = "test",
-    @arg(doc = "generated companion object, defining constants for dependencies, name")
+    @arg(doc = "name of generated companion object defining constants for dependencies")
     depsObject: Option[String] = None,
-    @arg(doc = "capture and publish properties defined in pom.xml")
+    @arg(doc = "capture properties defined in pom.xml for publishing")
     publishProperties: Flag = Flag(),
-    @arg(doc = "compact generated build tree by merging build files")
-    compact: Flag = Flag(),
+    @arg(doc = "merge build files generated for a multi-module build")
+    merge: Flag = Flag(),
     @arg(doc = "use cache for Maven repository system")
     cacheRepository: Flag = Flag(),
     @arg(doc = "process Maven plugin executions and configurations")

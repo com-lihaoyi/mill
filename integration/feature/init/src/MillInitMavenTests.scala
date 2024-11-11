@@ -53,7 +53,7 @@ object MillInitMavenJansiTests extends MillInitMavenTests {
       )
     }
 
-    test("config") - prep(url) { tester =>
+    test("realistic") - prep(url) { tester =>
       import tester._
 
       val initRes = eval(
@@ -171,7 +171,7 @@ object MillInitMavenOwnerTests extends MillInitMavenTests {
         )
     }
 
-    test("config") - prep(url) {
+    test("realistic") - prep(url) {
       tester =>
         import tester._
 
@@ -182,7 +182,7 @@ object MillInitMavenOwnerTests extends MillInitMavenTests {
             "OwnerModule",
             "--deps-object",
             "Deps",
-            "--compact",
+            "--merge",
             "--cache-repository",
             "--process-plugins"
           )

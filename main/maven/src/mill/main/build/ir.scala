@@ -84,7 +84,7 @@ object BuildObject {
 
   implicit class TreeOps(private val self: Tree[Node[BuildObject]]) extends AnyVal {
 
-    def compact: Tree[Node[BuildObject]] = {
+    def merge: Tree[Node[BuildObject]] = {
       def merge(parentCompanions: Companions, childCompanions: Companions): Companions = {
         var mergedParentCompanions = parentCompanions
 
@@ -108,30 +108,29 @@ object BuildObject {
 
         subtrees.iterator.foreach {
           case subtree @ Tree(Node(_ :+ dir, child), Seq()) if child.outer.isEmpty =>
-            val BuildObject(imports, companions, supertypes, inner, _) = child
-            merge(parent.companions, companions) match {
+            merge(parent.companions, child.companions) match {
               case null => unmerged += subtree
-              case parentCompanions =>
-                val parentImports =
+              case mergedCompanions =>
+                val mergedImports =
                   parent.imports ++ (
-                    if (isRoot) imports.filterNot(_.startsWith("$file")) else imports
+                    if (isRoot) child.imports.filterNot(_.startsWith("$file")) else child.imports
                   )
-                val parentInner = {
-                  val childName = backtickWrap(dir)
-                  val childSupertypes = supertypes.diff(Seq("RootModule"))
+                val mergedInner = {
+                  val name = backtickWrap(dir)
+                  val supertypes = child.supertypes.diff(Seq("RootModule"))
 
                   s"""${parent.inner}
                      |
-                     |object $childName ${extend(childSupertypes)}  {
+                     |object $name ${extend(supertypes)}  {
                      |
-                     |$inner
+                     |${child.inner}
                      |}""".stripMargin
                 }
 
                 parent = parent.copy(
-                  imports = parentImports,
-                  companions = parentCompanions,
-                  inner = parentInner
+                  imports = mergedImports,
+                  companions = mergedCompanions,
+                  inner = mergedInner
                 )
             }
           case subtree => unmerged += subtree

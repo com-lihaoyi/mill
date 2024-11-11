@@ -47,7 +47,7 @@ trait InitMavenModule extends TaskModule {
   def initScalafmtConfig: T[PathRef] = T {
     val config = millSourcePath / ".scalafmt.conf"
     if (!os.exists(config)) {
-      T.log.info(s"creating Scalafmt configuration file $config ...")
+      T.log.info(s"creating Scalafmt configuration file $config")
       os.write(
         config,
         s"""version = "3.8.4-RC1"
@@ -87,7 +87,7 @@ trait InitMavenModule extends TaskModule {
         .map(PathRef(_))
         .toSeq
       val config = initScalafmtConfig()
-      T.log.info("formatting Mill build files ...")
+      T.log.info("formatting Mill build files")
       ScalafmtWorkerModule.worker().reformat(files, config)
 
       T.log.info("init completed, run \"mill resolve _\" to list available tasks")

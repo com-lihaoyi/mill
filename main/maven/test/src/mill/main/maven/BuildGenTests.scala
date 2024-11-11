@@ -60,7 +60,7 @@ object BuildGenTests extends TestSuite {
             "--deps-object",
             "Deps",
             "--publish-properties",
-            "--compact",
+            "--merge",
             "--cache-repository",
             "--process-plugins"
           )
@@ -91,11 +91,11 @@ object BuildGenTests extends TestSuite {
         )
       }
 
-      test("compact") {
+      test("merge") {
         val sourceRoot = os.sub / "maven-samples"
-        val expectedRoot = os.sub / "expected/config/compact"
+        val expectedRoot = os.sub / "expected/config/merge"
         assert(
-          checkBuild(sourceRoot, expectedRoot, "--compact")
+          checkBuild(sourceRoot, expectedRoot, "--merge")
         )
       }
 
