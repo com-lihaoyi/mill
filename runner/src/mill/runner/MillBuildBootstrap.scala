@@ -408,10 +408,11 @@ object MillBuildBootstrap {
   ): (Either[String, Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
     rootModule.evalWatchedValues.clear()
     val previousClassloader = Thread.currentThread().getContextClassLoader
-    val evalTaskResult = try {
-      Thread.currentThread().setContextClassLoader(rootModule.getClass.getClassLoader)
-      RunScript.evaluateTasksNamed(evaluator, targetsAndParams, SelectMode.Separated)
-    } finally Thread.currentThread().setContextClassLoader(previousClassloader)
+    val evalTaskResult =
+      try {
+        Thread.currentThread().setContextClassLoader(rootModule.getClass.getClassLoader)
+        RunScript.evaluateTasksNamed(evaluator, targetsAndParams, SelectMode.Separated)
+      } finally Thread.currentThread().setContextClassLoader(previousClassloader)
     val moduleWatched = rootModule.watchedValues.toVector
     val addedEvalWatched = rootModule.evalWatchedValues.toVector
 
