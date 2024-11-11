@@ -12,3 +12,16 @@ object $meta
  * This is just a stub object to provide autocomplete for the import in the IDE
  */
 object $packages
+
+/**
+ * Use `import $ivy` to include third-party libraries for usage in your build.
+ *
+ * ```
+ * import $ivy.`org:name:version` // Java libraries
+ * import $ivy.`org::name:version` // Scala libraries
+ * import $ivy.`org::name::version` // Scala-Js/Scala-Native libraries
+ * ```
+ *
+ * This is just a stub object to provide autocomplete for the import in the IDE
+ */
+object $ivy
