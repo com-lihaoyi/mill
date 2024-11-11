@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Kotlin Module Configuration :: The Mill JVM Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.12.1/kotlinlib/module-config.html" />
+    <link rel="canonical" href="https://mill-build.org/mill/0.12.2/kotlinlib/module-config.html" />
     <link rel="prev" href="builtin-commands.html" />
     <link rel="next" href="dependencies.html" />
     <meta name="generator" content="Antora 3.1.9" />
@@ -449,17 +449,17 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.1-65-a3e677</span>
+    <span class="version">0.12.2-1-283059</span>
   </div>
   <ul class="components">
     <li class="component is-current">
-      <div class="title"><a href="../0.12.1/index.html">Mill Documentation</a></div>
+      <div class="title"><a href="../0.12.2/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../index.html">0.12.1-65-a3e677</a>
+          <a href="../index.html">0.12.2-1-283059</a>
         </li>
         <li class="version is-latest">
-          <a href="../0.12.1/index.html">0.12.1</a>
+          <a href="../0.12.2/index.html">0.12.2</a>
         </li>
         <li class="version">
           <a href="../0.11.12/index.html">0.11.12</a>
@@ -480,7 +480,7 @@
 <main class="article">
 <div class="toolbar" role="navigation">
 <button class="nav-toggle"></button>
-  <a href="../0.12.1/index.html" class="home-link"></a>
+  <a href="../0.12.2/index.html" class="home-link"></a>
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="../index.html">Mill Documentation</a></li>
@@ -534,7 +534,7 @@ for <code>KotlinModule</code>.</p>
 <h2 id="_common_configuration_overrides"><a class="anchor" href="#_common_configuration_overrides"></a>Common Configuration Overrides</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-kotlinlib-module-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/kotlinlib/module/1-common-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2-example-kotlinlib-module-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/kotlinlib/module/1-common-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
@@ -609,7 +609,7 @@ a task of interest, such as <code>run</code>, you can visualize their relationsh
 <h2 id="_compilation_execution_flags"><a class="anchor" href="#_compilation_execution_flags"></a>Compilation &amp; Execution Flags</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-kotlinlib-module-4-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/kotlinlib/module/4-compilation-execution-flags">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2-example-kotlinlib-module-4-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/kotlinlib/module/4-compilation-execution-flags">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
@@ -647,7 +647,7 @@ error: .../src/foo/Foo.kt... warning: 'stop(): Unit' is deprecated. Deprecated i
 <h2 id="_classpath_and_filesystem_resources"><a class="anchor" href="#_classpath_and_filesystem_resources"></a>Classpath and Filesystem Resources</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-kotlinlib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/kotlinlib/module/7-resources">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2-example-kotlinlib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/kotlinlib/module/7-resources">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
@@ -671,7 +671,7 @@ object foo extends KotlinModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/src/Foo.kt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/kotlinlib/module/7-resources/foo/src/Foo.kt">browse</a>)</div>
+<div class="title">foo/src/Foo.kt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/kotlinlib/module/7-resources/foo/src/Foo.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 
@@ -691,7 +691,7 @@ object Foo {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/FooTests.kt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/kotlinlib/module/7-resources/foo/test/src/FooTests.kt">browse</a>)</div>
+<div class="title">foo/test/src/FooTests.kt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/kotlinlib/module/7-resources/foo/test/src/FooTests.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 
@@ -755,7 +755,7 @@ a module to contain the exact annotation processors you want, and pass
 in <code>-Xplugin</code> to <code>kotlincOptions</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-kotlinlib-module-8-kotlin-compiler-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/kotlinlib/module/8-kotlin-compiler-plugins">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2-example-kotlinlib-module-8-kotlin-compiler-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/kotlinlib/module/8-kotlin-compiler-plugins">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -808,7 +808,7 @@ Test foo.ProjectTestsimple finished...
 like to create the documentation for, configured via <code>dokkaOptions</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-kotlinlib-module-9-docjar.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/kotlinlib/module/9-docjar">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2-example-kotlinlib-module-9-docjar.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/kotlinlib/module/9-docjar">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
@@ -839,7 +839,7 @@ object foo extends KotlinModule {
 <h2 id="_specifying_the_main_class"><a class="anchor" href="#_specifying_the_main_class"></a>Specifying the Main Class</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-kotlinlib-module-11-main-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/kotlinlib/module/11-main-class">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2-example-kotlinlib-module-11-main-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/kotlinlib/module/11-main-class">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
@@ -858,7 +858,7 @@ object `package` extends RootModule with KotlinModule {
 <h2 id="_customizing_the_assembly"><a class="anchor" href="#_customizing_the_assembly"></a>Customizing the Assembly</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-kotlinlib-module-13-assembly-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/kotlinlib/module/13-assembly-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2-example-kotlinlib-module-13-assembly-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/kotlinlib/module/13-assembly-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
@@ -894,7 +894,7 @@ object bar extends KotlinModule {
 <h2 id="_custom_tasks"><a class="anchor" href="#_custom_tasks"></a>Custom Tasks</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-kotlinlib-module-2-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/kotlinlib/module/2-custom-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2-example-kotlinlib-module-2-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/kotlinlib/module/2-custom-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
@@ -963,7 +963,7 @@ my.line.count: 17
 <h2 id="_overriding_tasks"><a class="anchor" href="#_overriding_tasks"></a>Overriding Tasks</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-kotlinlib-module-3-override-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/kotlinlib/module/3-override-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2-example-kotlinlib-module-3-override-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/kotlinlib/module/3-override-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
@@ -1026,7 +1026,7 @@ object foo3 extends KotlinModule {
 <h2 id="_native_c_code_with_jni"><a class="anchor" href="#_native_c_code_with_jni"></a>Native C Code with JNI</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-kotlinlib-module-15-jni.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/kotlinlib/module/15-jni">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2-example-kotlinlib-module-15-jni.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/kotlinlib/module/15-jni">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._, util.Jvm

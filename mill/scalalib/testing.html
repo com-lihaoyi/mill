@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Testing Scala Projects :: The Mill JVM Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.12.1/scalalib/testing.html" />
+    <link rel="canonical" href="https://mill-build.org/mill/0.12.2/scalalib/testing.html" />
     <link rel="prev" href="dependencies.html" />
     <link rel="next" href="linting.html" />
     <meta name="generator" content="Antora 3.1.9" />
@@ -449,17 +449,17 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.1-65-a3e677</span>
+    <span class="version">0.12.2-1-283059</span>
   </div>
   <ul class="components">
     <li class="component is-current">
-      <div class="title"><a href="../0.12.1/index.html">Mill Documentation</a></div>
+      <div class="title"><a href="../0.12.2/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../index.html">0.12.1-65-a3e677</a>
+          <a href="../index.html">0.12.2-1-283059</a>
         </li>
         <li class="version is-latest">
-          <a href="../0.12.1/index.html">0.12.1</a>
+          <a href="../0.12.2/index.html">0.12.2</a>
         </li>
         <li class="version">
           <a href="../0.11.12/index.html">0.11.12</a>
@@ -480,7 +480,7 @@
 <main class="article">
 <div class="toolbar" role="navigation">
 <button class="nav-toggle"></button>
-  <a href="../0.12.1/index.html" class="home-link"></a>
+  <a href="../0.12.2/index.html" class="home-link"></a>
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="../index.html">Mill Documentation</a></li>
@@ -523,7 +523,7 @@ const links = document.querySelectorAll('a');
 <h2 id="_defining_unit_test_suites"><a class="anchor" href="#_defining_unit_test_suites"></a>Defining Unit Test Suites</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-scalalib-testing-1-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/scalalib/testing/1-test-suite">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2-example-scalalib-testing-1-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/scalalib/testing/1-test-suite">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -739,7 +739,7 @@ and <code>runIvyDeps</code> to declare dependencies in test modules, and test mo
 can use their <code>moduleDeps</code> to also depend on each other</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-scalalib-testing-2-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/scalalib/testing/2-test-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2-example-scalalib-testing-2-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/scalalib/testing/2-test-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -803,7 +803,7 @@ the build below defines a test suite with the name <code>integration</code>, in 
 to that named <code>test</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-scalalib-testing-3-integration-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/scalalib/testing/3-integration-suite">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2-example-scalalib-testing-3-integration-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/scalalib/testing/3-integration-suite">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -846,7 +846,7 @@ execute in parallel when you call <code>test</code>. Test grouping is enabled
 by overriding <code>def testForkGrouping</code>, as shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-scalalib-testing-4-test-grouping.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/scalalib/testing/4-test-grouping">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2-example-scalalib-testing-4-test-grouping.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/scalalib/testing/4-test-grouping">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -862,7 +862,7 @@ object foo extends ScalaModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/HelloTests.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/scalalib/testing/4-test-grouping/foo/test/src/HelloTests.scala">browse</a>)</div>
+<div class="title">foo/test/src/HelloTests.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/scalalib/testing/4-test-grouping/foo/test/src/HelloTests.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 import utest._
@@ -881,7 +881,7 @@ object HelloTests extends TestSuite {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/WorldTests.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/scalalib/testing/4-test-grouping/foo/test/src/WorldTests.scala">browse</a>)</div>
+<div class="title">foo/test/src/WorldTests.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/scalalib/testing/4-test-grouping/foo/test/src/WorldTests.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 import utest._

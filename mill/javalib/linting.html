@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Linting Java Projects :: The Mill JVM Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/0.12.1/javalib/linting.html" />
+    <link rel="canonical" href="https://mill-build.org/mill/0.12.2/javalib/linting.html" />
     <link rel="prev" href="testing.html" />
     <link rel="next" href="publishing.html" />
     <meta name="generator" content="Antora 3.1.9" />
@@ -449,17 +449,17 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.1-65-a3e677</span>
+    <span class="version">0.12.2-1-283059</span>
   </div>
   <ul class="components">
     <li class="component is-current">
-      <div class="title"><a href="../0.12.1/index.html">Mill Documentation</a></div>
+      <div class="title"><a href="../0.12.2/index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version is-current">
-          <a href="../index.html">0.12.1-65-a3e677</a>
+          <a href="../index.html">0.12.2-1-283059</a>
         </li>
         <li class="version is-latest">
-          <a href="../0.12.1/index.html">0.12.1</a>
+          <a href="../0.12.2/index.html">0.12.2</a>
         </li>
         <li class="version">
           <a href="../0.11.12/index.html">0.11.12</a>
@@ -480,7 +480,7 @@
 <main class="article">
 <div class="toolbar" role="navigation">
 <button class="nav-toggle"></button>
-  <a href="../0.12.1/index.html" class="home-link"></a>
+  <a href="../0.12.2/index.html" class="home-link"></a>
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="../index.html">Mill Documentation</a></li>
@@ -530,7 +530,7 @@ checker and detect common mistakes at compile time. Mill supports ErrorProne via
 automatically run with every compilation.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-javalib-linting-1-error-prone.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/javalib/linting/1-error-prone">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2-example-javalib-linting-1-error-prone.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/javalib/linting/1-error-prone">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._, errorprone._
@@ -541,7 +541,7 @@ object `package` extends RootModule with JavaModule with ErrorProneModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">src/example/ShortSet.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/javalib/linting/1-error-prone/src/example/ShortSet.java">browse</a>)</div>
+<div class="title">src/example/ShortSet.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/javalib/linting/1-error-prone/src/example/ShortSet.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package example;
 
@@ -622,7 +622,7 @@ Those are documented as &quot;flags&quot; at <a href="https://errorprone.info/do
 <a href="https://checkstyle.org">Checkstyle</a> and generates reports from these checks.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-javalib-linting-2-checkstyle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/javalib/linting/2-checkstyle">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2-example-javalib-linting-2-checkstyle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/javalib/linting/2-checkstyle">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._, checkstyle._
@@ -821,7 +821,7 @@ object foo extends JavaModule with CheckstyleXsltModule {
 <a href="https://github.com/palantir/palantir-java-format">Palantir Java Format</a> project.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.1/0.12.1-example-javalib-linting-3-palantirformat.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/javalib/linting/3-palantirformat">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2-example-javalib-linting-3-palantirformat.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/javalib/linting/3-palantirformat">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -832,7 +832,7 @@ object `package` extends RootModule with PalantirFormatModule</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">src/A.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.1//example/javalib/linting/3-palantirformat/src/A.java">browse</a>)</div>
+<div class="title">src/A.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/javalib/linting/3-palantirformat/src/A.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">public class A {
 
