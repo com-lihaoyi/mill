@@ -31,15 +31,15 @@ object MillInitMavenJansiTests extends MillInitMavenTests {
     // - maven-compiler-plugin release option
     "https://github.com/fusesource/jansi/archive/refs/tags/jansi-2.4.1.zip"
 
-  private val compileMessages: Seq[String] = Seq(
+  val compileMessages: Seq[String] = Seq(
     "compiling 20 Java sources"
   )
 
-  private val testMessages: Seq[String] = Seq(
+  val testMessages: Seq[String] = Seq(
     "Test run finished: 0 failed, 1 ignored, 90 total"
   )
 
-  private val publishLocalMessages: Seq[String] = Seq(
+  val publishLocalMessages: Seq[String] = Seq(
     "Publishing Artifact(org.fusesource.jansi,jansi,2.4.1)"
   )
 
@@ -119,12 +119,12 @@ object MillInitMavenGeoTests extends MillInitMavenTests {
     // Junit4
     "https://github.com/davidmoten/geo/archive/refs/tags/0.8.1.zip"
 
-  private val resolveModules: Seq[String] = Seq(
+  val resolveModules: Seq[String] = Seq(
     "geo",
     "geo-mem"
   )
 
-  private val compileWarnings: Seq[String] = Seq(
+  val compileWarnings: Seq[String] = Seq(
     "Could not determine source for class com.github.davidmoten.geo.jmh_generated.Benchmarks_hashContains_jmhTest",
     "Could not determine source for class com.github.davidmoten.geo.jmh_generated.Benchmarks_jmhType",
     "Could not determine source for class com.github.davidmoten.geo.jmh_generated.Benchmarks_jmhType_B1",
@@ -133,7 +133,7 @@ object MillInitMavenGeoTests extends MillInitMavenTests {
     "Could not determine source for class com.github.davidmoten.geo.jmh_generated.Benchmarks_jmhType_B2"
   )
 
-  private val publishLocalMessages: Seq[String] = Seq(
+  val publishLocalMessages: Seq[String] = Seq(
     "Publishing Artifact(com.github.davidmoten,geo-parent,0.8.1)",
     "Publishing Artifact(com.github.davidmoten,geo,0.8.1)",
     "Publishing Artifact(com.github.davidmoten,geo-mem,0.8.1)"
@@ -227,13 +227,13 @@ object MillInitMavenDotEnvTests extends MillInitMavenTests {
     // - maven-compiler-plugin release option
     "https://github.com/shyiko/dotenv/archive/refs/tags/0.1.1.zip"
 
-  private val resolveModules: Seq[String] = Seq(
+  val resolveModules: Seq[String] = Seq(
     "dotenv",
     "dotenv-guice"
   )
 
   // JavaModule.JavaTests does not pick compileIvyDeps from outer module
-  private val compileErrors: Seq[String] = Seq(
+  val compileErrors: Seq[String] = Seq(
     "DotEnvModuleTest.java:3:25: package com.google.inject does not exist"
   )
 
@@ -269,14 +269,14 @@ object MillInitMavenAvajeConfigTests extends MillInitMavenTests {
     // - unsupported test framework
     "https://github.com/avaje/avaje-config/archive/refs/tags/4.0.zip"
 
-  private val resolveModules: Seq[String] = Seq(
+  val resolveModules: Seq[String] = Seq(
     "avaje-config",
     "avaje-aws-appconfig",
     "avaje-dynamic-logback"
   )
   // uses moditect-maven-plugin to handle JPMS
   // https://github.com/moditect/moditect
-  private val compileErrors: Seq[String] = Seq(
+  val compileErrors: Seq[String] = Seq(
     "avaje-config/src/main/java/module-info.java:5:31: module not found: io.avaje.lang",
     "avaje-config/src/main/java/module-info.java:6:31: module not found: io.avaje.applog",
     "avaje-config/src/main/java/module-info.java:7:27: module not found: org.yaml.snakeyaml",
@@ -318,7 +318,7 @@ object MillInitMavenFastExcelTests extends MillInitMavenTests {
     // - module e2e directory and artifact name differ
     "https://github.com/dhatim/fastexcel/archive/refs/tags/0.18.4.zip"
 
-  private val resolveModules: Seq[String] = Seq(
+  val resolveModules: Seq[String] = Seq(
     "e2e",
     "fastexcel-reader",
     "fastexcel-writer"
@@ -326,7 +326,7 @@ object MillInitMavenFastExcelTests extends MillInitMavenTests {
 
   // pom.xml has custom profiles to handle JPMS
   // https://github.com/dhatim/fastexcel/blob/de56e786a1fe29351e2f8dc1d81b7cdd9196de4a/pom.xml#L251
-  private val compileErrors: Seq[String] = Seq(
+  val compileErrors: Seq[String] = Seq(
     "fastexcel-reader/src/main/java/module-info.java:3:32: module not found: org.apache.commons.compress",
     "fastexcel-reader/src/main/java/module-info.java:4:27: module not found: com.fasterxml.aalto",
     "fastexcel-writer/src/main/java/module-info.java:2:14: module not found: opczip"
@@ -369,7 +369,7 @@ object MillInitMavenNettyTests extends MillInitMavenTests {
     // - defines test dependencies in root pom.xml that get propagated to every module
     "https://github.com/netty/netty/archive/refs/tags/netty-4.1.114.Final.zip"
 
-  private val initWarnings: Seq[String] = Seq(
+  val initWarnings: Seq[String] = Seq(
     "[codec-http2] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final",
     "[transport-native-epoll] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final",
     "[transport-native-kqueue] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final",
@@ -381,7 +381,7 @@ object MillInitMavenNettyTests extends MillInitMavenTests {
     "[microbench] dropping classifier ${os.detected.classifier} for dependency io.netty:netty-tcnative:2.0.66.Final"
   )
 
-  private val resolveModules: Seq[String] = Seq(
+  val resolveModules: Seq[String] = Seq(
     "all",
     "bom",
     "buffer",
@@ -430,7 +430,7 @@ object MillInitMavenNettyTests extends MillInitMavenTests {
     "transport-udt"
   )
 
-  private val compileTasksThatSucceed: Seq[String] = Seq(
+  val compileTasksThatSucceed: Seq[String] = Seq(
     "common.compile",
     "dev-tools.compile",
     "testsuite-osgi.compile",
@@ -466,7 +466,7 @@ object MillInitMavenNettyTests extends MillInitMavenTests {
     "testsuite-native-image.test.compile"
   )
 
-  private val compileTasksThatFail: Seq[String] = Seq(
+  val compileTasksThatFail: Seq[String] = Seq(
     /* missing outer compileIvyDeps */
     "common.test.compile",
     /* missing generated sources */
