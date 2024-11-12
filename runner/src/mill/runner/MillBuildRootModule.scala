@@ -245,7 +245,8 @@ abstract class MillBuildRootModule()(implicit
         // Make sure we abort of the plugin is not found, to ensure any
         // classpath/plugin-discovery issues are surfaced early rather than
         // after hours of debugging
-        "-Xplugin-require:mill-linenumber-plugin"
+        "-Xplugin-require:mill-linenumber-plugin",
+        "-Xplugin-require:auto-override-plugin"
       )
   }
 
