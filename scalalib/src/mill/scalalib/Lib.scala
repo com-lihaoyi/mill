@@ -76,6 +76,27 @@ object Lib {
     )
   }
 
+  @deprecated("Use the override accepting resolutionParams instead", "Mill after 0.12.2")
+  def resolveDependenciesMetadataSafe(
+      repositories: Seq[Repository],
+      deps: IterableOnce[BoundDep],
+      mapDependencies: Option[Dependency => Dependency],
+      customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
+      ctx: Option[Ctx.Log],
+      coursierCacheCustomizer: Option[
+        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
+      ]
+  ): Result[Resolution] =
+    resolveDependenciesMetadataSafe(
+      repositories,
+      deps,
+      mapDependencies,
+      customizer,
+      ctx,
+      coursierCacheCustomizer,
+      ResolutionParams()
+    )
+
   /**
    * Resolve dependencies using Coursier.
    *
@@ -111,7 +132,35 @@ object Lib {
     ).map(_.map(_.withRevalidateOnce))
   }
 
-  @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
+  @deprecated("Use the override accepting resolutionParams", "Mill after 0.12.2")
+  def resolveDependencies(
+      repositories: Seq[Repository],
+      deps: IterableOnce[BoundDep],
+      sources: Boolean,
+      mapDependencies: Option[Dependency => Dependency],
+      customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
+      ctx: Option[Ctx.Log],
+      coursierCacheCustomizer: Option[
+        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
+      ],
+      artifactTypes: Option[Set[Type]]
+  ): Result[Agg[PathRef]] =
+    resolveDependencies(
+      repositories,
+      deps,
+      sources,
+      mapDependencies,
+      customizer,
+      ctx,
+      coursierCacheCustomizer,
+      artifactTypes,
+      ResolutionParams()
+    )
+
+  @deprecated(
+    "Use the override accepting artifactTypes and resolutionParams",
+    "Mill after 0.12.0-RC3"
+  )
   def resolveDependencies(
       repositories: Seq[Repository],
       deps: IterableOnce[BoundDep],
