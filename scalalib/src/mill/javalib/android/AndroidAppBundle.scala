@@ -6,39 +6,43 @@ import mill.api.PathRef
 import mill.javalib.android.AndroidAppModule
 
 /**
- * Defines an Android app bundle module with tasks for resource compilation,
- * bundling using bundle tool.
+ * Defines a Trait for Android App Bundle Creation
  */
 @mill.api.experimental
 trait AndroidAppBundle extends AndroidAppModule with JavaModule {
 
-  override def linkOptions: T[Seq[String]] = Task {
-    super.linkOptions() ++ Seq[String](
-      "--proto-format"
-    ) // protoformat for resources linking(required for bundle)
+  /**
+   * Adds `--proto-format` option to AAPT commands.
+   */
+  override def androidAaptOptions: T[Seq[String]] = Task {
+    super.androidAaptOptions() ++ Seq[String]("--proto-format")
   }
 
   /**
-   * Packages compiled resources and dex files into a zip for app bundle generation.
+   * Creates a zip with compiled resources and DEX files for the app bundle.
    *
-   * @return PathRef to the created bundle zip.
+   * @return PathRef to the bundle zip.
+   *
+   * For Bundle Zip Format please See the official
+   * [[https://developer.android.com/guide/app-bundle/app-bundle-format Documentation]]
    */
   def androidBundleZip: T[PathRef] = Task {
     val dexFile = androidDex().path
     val resFile = androidResources().path / "res.apk"
     val baseDir = Task.dest / "base"
+    val appDir = Task.dest / "app"
 
     // Copy dex and resource files into the bundle directory
     os.copy(dexFile, Task.dest / dexFile.last)
-    os.unzip(resFile, Task.dest)
+    os.unzip(resFile, appDir)
     os.copy(
-      Task.dest / "AndroidManifest.xml",
+      appDir / "AndroidManifest.xml",
       baseDir / "manifest/AndroidManifest.xml",
       createFolders = true
     )
 
     // Copy .pb files (compiled protobuf resources) and organize dex files using for loops
-    for (file <- os.walk(Task.dest).filter(_.ext == "pb")) {
+    for (file <- os.walk(appDir).filter(_.ext == "pb")) {
       os.copy(file, baseDir / file.last)
     }
 
@@ -52,7 +56,7 @@ trait AndroidAppBundle extends AndroidAppModule with JavaModule {
 
     // Copy additional resources (res, lib, assets) if present using a for loop
     for (folder <- Seq("res", "lib", "assets")) {
-      val folderPath = Task.dest / folder
+      val folderPath = appDir / folder
       if (os.exists(folderPath)) {
         os.copy.over(folderPath, baseDir / folder)
       }
@@ -65,9 +69,12 @@ trait AndroidAppBundle extends AndroidAppModule with JavaModule {
   }
 
   /**
-   * Creates an Android App Bundle (AAB) using bundle tool from the bundle zip.
+   * Builds an unsigned Android App Bundle (AAB) from the bundle zip.
    *
-   * @return PathRef to the created app bundle (AAB).
+   * @return PathRef to the unsigned AAB.
+   *
+   * For Process Please Read the Official
+   * [[https://developer.android.com/build/building-cmdline Documentation]]
    */
   def androidUnsignedBundle: T[PathRef] = Task {
     val bundleFile = Task.dest / "bundle.aab"
@@ -86,9 +93,12 @@ trait AndroidAppBundle extends AndroidAppModule with JavaModule {
   }
 
   /**
-   * Signs the Android App Bundle (AAB) using the provided keystore.
+   * Signs the AAB using the specified keystore.
    *
-   * @return PathRef to the signed app bundle.
+   * @return PathRef to the signed AAB.
+   *
+   * For More Please see JarSigner
+   * [[[https://docs.oracle.com/javase/8/docs/technotes/tools/windows/jarsigner.html Documentation]]]
    */
   def androidBundle: T[PathRef] = Task {
     val signedBundle = Task.dest / "signedBundle.aab"

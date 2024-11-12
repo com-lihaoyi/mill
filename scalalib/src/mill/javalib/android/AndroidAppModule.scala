@@ -22,30 +22,24 @@ import mill.define.ModuleRef
 trait AndroidAppModule extends JavaModule {
 
   /**
-   * Abstract method to provide access to the Android SDK configuration.
-   *
-   * This method must be implemented by the concrete class to specify the SDK paths.
-   *
-   * @return The Android SDK module that is used across the project.
+   * Provides access to the Android SDK configuration.
    */
   def androidSdkModule: ModuleRef[AndroidSdkModule]
 
   /**
-   * An XML file containing configuration and metadata about your android application
+   * Loads `AndroidManifest.xml` file.
    */
   def androidManifest: Task[PathRef] = Task.Source(millSourcePath / "AndroidManifest.xml")
 
   /**
-   * Adds the "aar" type to the set of artifact types handled by this module.
-   *
-   * @return A task that yields an updated set of artifact types including "aar".
+   * Adds "aar" to the handled artifact types.
    */
   def artifactTypes: T[Set[coursier.Type]] = Task { super.artifactTypes() + coursier.Type("aar") }
 
   /**
-   * Task to extract files from AAR files in the classpath.
+   * Extracts JAR files and resources from AAR dependencies.
    *
-   * @return A sequence of `PathRef` pointing to the extracted JAR files.
+   * @return Paths to extracted JAR files and resource folders.
    */
   def androidUnpackArchives: T[(Seq[PathRef], Seq[PathRef])] = Task {
     // Get all AAR files from the compile classpath
@@ -75,9 +69,7 @@ trait AndroidAppModule extends JavaModule {
   }
 
   /**
-   * Overrides the `resources` task to include resources from unpacked AAR files
-   *
-   * @return Combined sequence of original and filtered AAR resources.
+   * Combines module resources with those unpacked from AARs.
    */
   def resources: T[Seq[PathRef]] = Task {
     // Call the function to unpack AARs and get the jar and resource paths
@@ -88,10 +80,7 @@ trait AndroidAppModule extends JavaModule {
   }
 
   /**
-   * Overrides the compile classpath to replace `.aar` files with the extracted
-   * `.jar` files.
-   *
-   * @return The updated classpath with `.jar` files only.
+   * Replaces AAR files in classpath with their extracted JARs.
    */
   override def compileClasspath: T[Agg[PathRef]] = Task {
     // Call the function to get jar files and resource paths
@@ -99,55 +88,60 @@ trait AndroidAppModule extends JavaModule {
     super.compileClasspath().filter(_.path.ext == "jar") ++ jarFiles
   }
 
-  def linkOptions: T[Seq[String]] = Task {
-    Seq[String]("--auto-add-overlay")
-  }
+  /**
+   * Specifies AAPT options for Android resource compilation.
+   */
+  def androidAaptOptions: T[Seq[String]] = Task { Seq("--auto-add-overlay") }
 
   /**
-   * Compiles and links Android resources using `aapt2`, generating the `R.java` file.
+   * Compiles Android resources and generates `R.java` and `res.apk`.
    *
-   * @return A `PathRef` to the directory containing the generated `R.java`.
+   * @return PathRef to the directory with `R.java` and `res.apk`.
    *
    * For more details on the aapt2 tool, refer to:
    * [[https://developer.android.com/tools/aapt2 aapt Documentation]]
    */
   def androidResources: T[PathRef] = Task {
-    val compiledResDir: os.Path = Task.dest / "compiled" // Directory for compiled resources
-    val resourceDirs = resources().map(_.path).filter(os.exists) // Merge all resource directories
-    os.makeDir.all(compiledResDir)
-    val compiledZips = resourceDirs.map { resDir =>
-      // Use the last two components of the path as part of the filename
-      val lastTwoSegments = resDir.segments.toSeq.takeRight(2).mkString("-")
-      val outputZip = compiledResDir / s"$lastTwoSegments.zip"
-      os.call((androidSdkModule().aapt2Path().path, "compile", "--dir", resDir, "-o", outputZip))
-      outputZip
+    val destPath = Task.dest
+    val compiledResDir = destPath / "compiled"
+    val compiledLibsResDir = compiledResDir / "libs"
+    os.makeDir.all(compiledLibsResDir) // Ensure directory exists
+
+    val resourceZip = collection.mutable.Buffer[os.Path]()
+    val libZips = collection.mutable.Buffer[os.Path]()
+
+    // Compile resource directories and create appropriate zips
+    resources().map(_.path).filter(os.exists).foreach { resDir =>
+      val segmentsSeq = resDir.segments.toSeq
+      val zipDir = if (segmentsSeq.last == "resources") compiledResDir else compiledLibsResDir
+      val zipName = segmentsSeq.takeRight(2).mkString("-") + ".zip"
+      val zipPath = zipDir / zipName
+
+      if (zipDir == compiledResDir) resourceZip += zipPath else libZips += zipPath
+
+      os.call((androidSdkModule().aapt2Path().path, "compile", "--dir", resDir, "-o", zipPath))
     }
 
-    // Partition compiledZips into resourceZip and libZips
-    // "resources" is used to differ the libs res from app res
-    val (resourceZip, libZips) = compiledZips.partition(_.toString.contains("resources"))
-    val compiledlibs = libZips.flatMap(zip => Seq("-R", zip.toString))
-    println(libZips)
-    println(resourceZip)
+    // Prepare arguments for linking
+    val compiledLibsArgs = libZips.map(zip => Seq("-R", zip.toString)).flatten
+    val resourceZipArg = resourceZip.headOption.map(_.toString).getOrElse("")
 
     os.call(
       Seq(
-        androidSdkModule().aapt2Path().path.toString, // AAPT2  tool path
+        androidSdkModule().aapt2Path().path.toString,
         "link",
         "-I",
-        androidSdkModule().androidJarPath().path.toString
-      ) ++ linkOptions() ++ compiledlibs ++ Seq(
+        androidSdkModule().androidJarPath().path.toString,
         "--manifest",
-        androidManifest().path.toString, // Use AndroidManifest.xml
+        androidManifest().path.toString,
         "--java",
-        Task.dest.toString, // Generate R.java in the Task.dest
+        destPath.toString,
         "-o",
-        s"${Task.dest / "res.apk"}",
-        resourceZip.headOption.map(_.toString).getOrElse("") // Safe extraction of the first element
-      )
+        (destPath / "res.apk").toString
+      ) ++ androidAaptOptions() ++ compiledLibsArgs ++ Seq(resourceZipArg)
     )
 
-    PathRef(Task.dest)
+    PathRef(destPath)
   }
 
   /**
@@ -160,9 +154,6 @@ trait AndroidAppModule extends JavaModule {
   /**
    * Combines standard Java source directories with additional sources generated by
    * the Android resource generation step.
-   *
-   * Ensures that generated files like `R.java` (which contain references to resources)
-   * are included in the source set and compiled correctly.
    */
   def generatedSources: T[Seq[PathRef]] = Task {
     super.generatedSources() ++ Seq(androidResources())
