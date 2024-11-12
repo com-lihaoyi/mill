@@ -7,6 +7,7 @@ import org.apache.maven.model.{Dependency, Model}
 
 import scala.collection.immutable.{SortedMap, SortedSet}
 import scala.jdk.CollectionConverters.*
+import scala.util.matching.UnanchoredRegex
 
 /**
  * Converts a Maven build to Mill by generating Mill build file(s) from POM file(s).
@@ -421,7 +422,10 @@ object BuildGen {
        |$publishPropertiesSetting""".stripMargin
   }
 
-  private def escapes(c: Char): Boolean =
+  private val backslash1: UnanchoredRegex = """(?<!\\)\\(?!\\)""".r.unanchored
+  private val backslash2: String = "\\\\"
+
+  private def escape3(c: Char): Boolean =
     (c: @annotation.switch) match {
       case '\r' | '\n' | '"' => true
       case _ => false
@@ -429,8 +433,8 @@ object BuildGen {
 
   private def escape(value: String): String =
     if (null == value) "\"\""
-    else if (value.exists(escapes)) s"\"\"\"$value\"\"\".stripMargin"
-    else s"\"$value\""
+    else if (value.exists(escape3)) s"\"\"\"$value\"\"\".stripMargin"
+    else s"\"${backslash1.replaceAllIn(value, backslash2)}\""
 
   private def escapeOption(value: String): String =
     if (null == value) "None" else s"Some(${escape(value)})"
