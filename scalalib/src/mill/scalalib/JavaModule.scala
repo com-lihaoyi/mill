@@ -139,7 +139,7 @@ trait JavaModule
    * Aggregation of mandatoryIvyDeps and ivyDeps.
    * In most cases, instead of overriding this Target you want to override `ivyDeps` instead.
    */
-  def allIvyDeps: T[Agg[Dep]] = Task { mandatoryIvyDeps() ++ ivyDeps() }
+  def allIvyDeps: T[Agg[Dep]] = Task { ivyDeps() ++ mandatoryIvyDeps() }
 
   /**
    * Same as `ivyDeps`, but only present at compile time. Useful for e.g.
