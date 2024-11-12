@@ -1,6 +1,7 @@
 package mill
 package scalalib
 
+import coursier.params.ResolutionParams
 import coursier.util.Task
 import coursier.{Dependency, Repository, Resolution, Type}
 import mill.api.{Ctx, Loose, PathRef, Result}
@@ -59,7 +60,8 @@ object Lib {
       ctx: Option[Ctx.Log] = None,
       coursierCacheCustomizer: Option[
         coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
-      ] = None
+      ] = None,
+      resolutionParams: ResolutionParams = ResolutionParams()
   ): Result[Resolution] = {
     val depSeq = deps.iterator.toSeq
     mill.util.Jvm.resolveDependenciesMetadataSafe(
@@ -69,7 +71,8 @@ object Lib {
       mapDependencies = mapDependencies,
       customizer = customizer,
       ctx = ctx,
-      coursierCacheCustomizer = coursierCacheCustomizer
+      coursierCacheCustomizer = coursierCacheCustomizer,
+      resolutionParams = resolutionParams
     )
   }
 
@@ -90,7 +93,8 @@ object Lib {
       coursierCacheCustomizer: Option[
         coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
       ] = None,
-      artifactTypes: Option[Set[Type]] = None
+      artifactTypes: Option[Set[Type]] = None,
+      resolutionParams: ResolutionParams = ResolutionParams()
   ): Result[Agg[PathRef]] = {
     val depSeq = deps.iterator.toSeq
     mill.util.Jvm.resolveDependencies(
@@ -102,7 +106,8 @@ object Lib {
       mapDependencies = mapDependencies,
       customizer = customizer,
       ctx = ctx,
-      coursierCacheCustomizer = coursierCacheCustomizer
+      coursierCacheCustomizer = coursierCacheCustomizer,
+      resolutionParams = resolutionParams
     ).map(_.map(_.withRevalidateOnce))
   }
 
@@ -126,7 +131,8 @@ object Lib {
       customizer,
       ctx,
       coursierCacheCustomizer,
-      None
+      None,
+      ResolutionParams()
     )
 
   def scalaCompilerIvyDeps(scalaOrganization: String, scalaVersion: String): Loose.Agg[Dep] =

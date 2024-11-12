@@ -1,6 +1,7 @@
 package mill.scalalib
 
 import coursier.cache.FileCache
+import coursier.params.ResolutionParams
 import coursier.{Dependency, Repository, Resolve, Type}
 import coursier.core.Resolution
 import mill.define.Task
@@ -148,7 +149,8 @@ object CoursierModule {
     def resolveDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean = false,
-        artifactTypes: Option[Set[coursier.Type]] = None
+        artifactTypes: Option[Set[coursier.Type]] = None,
+        resolutionParams: ResolutionParams = ResolutionParams()
     ): Agg[PathRef] = {
       Lib.resolveDependencies(
         repositories = repositories,
@@ -158,16 +160,24 @@ object CoursierModule {
         mapDependencies = mapDependencies,
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
-        ctx = ctx
+        ctx = ctx,
+        resolutionParams = resolutionParams
       ).getOrThrow
     }
+
+    def resolveDeps[T: CoursierModule.Resolvable](
+        deps: IterableOnce[T],
+        sources: Boolean,
+        artifactTypes: Option[Set[coursier.Type]]
+    ): Agg[PathRef] =
+      resolveDeps(deps, sources, artifactTypes, ResolutionParams())
 
     @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
     def resolveDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean
     ): Agg[PathRef] =
-      resolveDeps(deps, sources, None)
+      resolveDeps(deps, sources, None, ResolutionParams())
   }
 
   sealed trait Resolvable[T] {
