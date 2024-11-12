@@ -133,7 +133,7 @@ object BuildGenTests extends TestSuite {
     actualFiles.iterator.zip(expectedFiles.iterator).forall {
       case (actual, expected) =>
         actual.path.endsWith(expected.path.relativeTo(expectedRoot)) &&
-        os.read(actual.path) == os.read(expected.path)
+        os.read.lines(actual.path) == os.read.lines(expected.path)
     }
   }
 }
