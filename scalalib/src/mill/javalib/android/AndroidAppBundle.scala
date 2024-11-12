@@ -6,7 +6,7 @@ import mill.api.PathRef
 import mill.javalib.android.AndroidAppModule
 
 /**
- * Defines a Trait for Android App Bundle Creation
+ * A Trait for Android App Bundle Creation
  */
 @mill.api.experimental
 trait AndroidAppBundle extends AndroidAppModule with JavaModule {
@@ -23,7 +23,7 @@ trait AndroidAppBundle extends AndroidAppModule with JavaModule {
    *
    * @return PathRef to the bundle zip.
    *
-   * For Bundle Zip Format please See the official
+   * For Bundle Zip Format(classes(n).dex, assets, libs, res) please See the official
    * [[https://developer.android.com/guide/app-bundle/app-bundle-format Documentation]]
    */
   def androidBundleZip: T[PathRef] = Task {
@@ -32,7 +32,6 @@ trait AndroidAppBundle extends AndroidAppModule with JavaModule {
     val baseDir = Task.dest / "base"
     val appDir = Task.dest / "app"
 
-    // Copy dex and resource files into the bundle directory
     os.copy(dexFile, Task.dest / dexFile.last)
     os.unzip(resFile, appDir)
     os.copy(
@@ -41,7 +40,6 @@ trait AndroidAppBundle extends AndroidAppModule with JavaModule {
       createFolders = true
     )
 
-    // Copy .pb files (compiled protobuf resources) and organize dex files using for loops
     for (file <- os.walk(appDir).filter(_.ext == "pb")) {
       os.copy(file, baseDir / file.last)
     }
@@ -54,7 +52,6 @@ trait AndroidAppBundle extends AndroidAppModule with JavaModule {
       )
     }
 
-    // Copy additional resources (res, lib, assets) if present using a for loop
     for (folder <- Seq("res", "lib", "assets")) {
       val folderPath = appDir / folder
       if (os.exists(folderPath)) {
@@ -62,7 +59,6 @@ trait AndroidAppBundle extends AndroidAppModule with JavaModule {
       }
     }
 
-    // Create the final bundle zip
     os.zip(Task.dest / "bundle.zip", Seq(baseDir))
 
     PathRef(Task.dest / "bundle.zip")
@@ -98,12 +94,11 @@ trait AndroidAppBundle extends AndroidAppModule with JavaModule {
    * @return PathRef to the signed AAB.
    *
    * For More Please see JarSigner
-   * [[[https://docs.oracle.com/javase/8/docs/technotes/tools/windows/jarsigner.html Documentation]]]
+   * [[https://docs.oracle.com/javase/8/docs/technotes/tools/windows/jarsigner.html Documentation]]
    */
   def androidBundle: T[PathRef] = Task {
     val signedBundle = Task.dest / "signedBundle.aab"
 
-    // Use jarsigner to sign the AAB file
     os.call((
       "jarsigner",
       "-verbose",

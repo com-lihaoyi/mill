@@ -40,15 +40,18 @@ object app extends AndroidAppModule {
 // By extending `AndroidAppModule`, we leverage its predefined Android build tasks, ensuring that
 // all necessary steps (resource generation, APK creation, and signing) are executed automatically.
 //
-// ### Project Structure:
+// #### Project Structure:
 // The project follows the standard Android app layout. Below is a typical project folder structure:
 //
 // ----
 // .
-// ├── build.mill
-// ├── AndroidManifest.xml
-// └── src/main/java
-//     └── com/helloworld/app
-//         └── MainActivity.java
+// ├── app
+// │   ├── AndroidManifest.xml
+// │   ├── resources
+// │   │   └── values
+// │   │       ├── colors.xml
+// │   │       └── strings.xml
+// │   └── src/main/java/com/helloworld/app/MainActivity.java
+// └── build.mill
 // ----
 //

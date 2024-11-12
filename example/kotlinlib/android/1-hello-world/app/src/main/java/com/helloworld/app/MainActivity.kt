@@ -26,10 +26,10 @@ class MainActivity : Activity() {
         textView.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
 
         // Set the text color using a resource
-        textView.setTextColor(getColor(R.color.text_green)) // Using hex color code directly
+        textView.setTextColor(getColor(R.color.text_green))
 
         // Set the background color using a resource
-        textView.setBackgroundColor(getColor(R.color.white)) // Using hex color code directly
+        textView.setBackgroundColor(getColor(R.color.white))
 
         // Set the content view to display the TextView
         setContentView(textView)
