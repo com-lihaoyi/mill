@@ -8,7 +8,7 @@ abstract class MillInitMavenTests extends UtestIntegrationTestSuite {
   // Github source zip url
   def url: String
 
-  def initMessages(buildFileCount: Int = 1): Seq[String] = Seq(
+  def initMessages(buildFileCount: Int): Seq[String] = Seq(
     s"generated $buildFileCount Mill build file(s)"
   )
 
@@ -49,7 +49,7 @@ object MillInitMavenJansiTests extends MillInitMavenTests {
 
       val initRes = eval("init")
       assert(
-        initMessages().forall(initRes.out.contains),
+        initMessages(1).forall(initRes.out.contains),
         initRes.isSuccess
       )
 
@@ -87,7 +87,7 @@ object MillInitMavenJansiTests extends MillInitMavenTests {
         )
       )
       assert(
-        initMessages().forall(initRes.out.contains),
+        initMessages(1).forall(initRes.out.contains),
         initRes.isSuccess
       )
 
@@ -189,7 +189,7 @@ object MillInitMavenGeoTests extends MillInitMavenTests {
         )
       )
       assert(
-        initMessages().forall(initRes.out.contains),
+        initMessages(1).forall(initRes.out.contains),
         initRes.isSuccess
       )
 
