@@ -516,9 +516,8 @@ a starting point for further experimentation and development.</p>
 </div>
 </div>
 </div>
-<div class="sect1">
-<h2 id="_relevant_modules"><a class="anchor" href="#_relevant_modules"></a>Relevant Modules</h2>
-<div class="sectionbody">
+<div class="sect3">
+<h4 id="_relevant_modules"><a class="anchor" href="#_relevant_modules"></a>Relevant Modules</h4>
 <div class="paragraph">
 <p>These are the main Mill Modules that are relevant for building Android apps:</p>
 </div>
@@ -534,7 +533,6 @@ a starting point for further experimentation and development.</p>
 <p><a href="https://mill-build.org/api/latest/mill/scalalib/JavaModule.html"><code>mill.javalib.JavaModule</code></a>: General Java build tasks like compiling Java code and creating JAR files.</p>
 </li>
 </ul>
-</div>
 </div>
 </div>
 <div class="sect1">
@@ -566,6 +564,7 @@ import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object androidSdkModule0 extends AndroidSdkModule {
   def buildToolsVersion = &quot;35.0.0&quot;
+  def bundleToolVersion = &quot;1.17.2&quot;
 }</code></pre>
 </div>
 </div>
@@ -576,6 +575,13 @@ import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object app extends AndroidAppModule {
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+
+  // Configuration for ReleaseKey
+  def androidReleaseKeyName: T[String] = Task { &quot;releaseKey.jks&quot; }
+  def androidReleaseKeyAlias: T[String] = Task { &quot;releaseKey&quot; }
+  def androidReleaseKeyPass: T[String] = Task { &quot;MillBuildTool&quot; }
+  def androidReleaseKeyStorePass: T[String] = Task { &quot;MillBuildTool&quot; }
+
 }</code></pre>
 </div>
 </div>
@@ -595,19 +601,23 @@ into an APK, optimizes the APK using <code>zipalign</code>, and finally signs it
 By extending <code>AndroidAppModule</code>, we leverage its predefined Android build tasks, ensuring that
 all necessary steps (resource generation, APK creation, and signing) are executed automatically.</p>
 </div>
-<div class="sect2">
-<h3 id="_project_structure"><a class="anchor" href="#_project_structure"></a>Project Structure:</h3>
+<div class="sect3">
+<h4 id="_project_structure"><a class="anchor" href="#_project_structure"></a>Project Structure:</h4>
 <div class="paragraph">
 <p>The project follows the standard Android app layout. Below is a typical project folder structure:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre>.
-├── build.mill
-├── AndroidManifest.xml
-└── src/main/java
-    └── com/helloworld/app
-        └── MainActivity.java</pre>
+├── app
+│   ├── AndroidManifest.xml
+│   ├── releaseKey.jks
+│   ├── resources
+│   │   └── values
+│   │       ├── colors.xml
+│   │       └── strings.xml
+│   └── src/main/java/com/helloworld/app/MainActivity.java
+└── build.mill</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -663,6 +673,115 @@ everything from compiling the code to generating a signed APK for distribution.<
 <p><strong>Signing the APK</strong>: Finally, the APK is signed with a digital signature, allowing it to be distributed and installed on Android devices.</p>
 </li>
 </ol>
+</div>
+<div class="paragraph">
+<p>After creating Simple Android Application now let’s focus on how to create Android App Bundle Using Mill Build Tool</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_android_app_bundle"><a class="anchor" href="#_android_app_bundle"></a>Android App Bundle</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This Example provides the basic setup for building Android App Bundle using Mill Build Tool.</p>
+</div>
+<div class="paragraph">
+<p>By extending <code>AndroidAppBundle</code>, we inherit all Android Bundle tasks such as
+Android Bundle zip generation, Bundle Creation and Bundle signing.
+Additionally, <code>AndroidSdkModule</code> is embedded, making SDK management seamless.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2-example-javalib-android-2-app-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/javalib/android/2-app-bundle">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill._
+import mill.javalib.android.{AndroidSdkModule, AndroidAppBundle}
+
+object androidSdkModule0 extends AndroidSdkModule {
+  def buildToolsVersion = &quot;35.0.0&quot;
+  def bundleToolVersion = &quot;1.17.2&quot;
+}
+
+object bundle extends AndroidAppBundle {
+  def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+
+  def androidReleaseKeyName: T[String] = Task { &quot;releaseKey.jks&quot; }
+  def androidReleaseKeyAlias: T[String] = Task { &quot;releaseKey&quot; }
+  def androidReleaseKeyPass: T[String] = Task { &quot;MillBuildTool&quot; }
+  def androidReleaseKeyStorePass: T[String] = Task { &quot;MillBuildTool&quot; }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show bundle.androidBundle
+&quot;.../out/bundle/androidBundle.dest/signedBundle.aab&quot;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This command triggers the App Bundle Build process, which installs Bundle Tool then resource compilation,
+and then building Android Bundle Zip then Creation of Android App Bundle and finally signs it.</p>
+</div>
+<div class="paragraph">
+<p>This Mill build configuration is designed to build a simple &quot;Hello World&quot; Android App Bundle.
+By extending <code>AndroidAppBundle</code>, we leverage its predefined Android App Bundle build tasks,
+ensuring that all necessary steps (generation, creation, and signing) are executed automatically.</p>
+</div>
+<div class="sect3">
+<h4 id="_project_structure_2"><a class="anchor" href="#_project_structure_2"></a>Project Structure:</h4>
+<div class="paragraph">
+<p>The project follows the standard Android App Bundle layout. Below is a typical project folder structure:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>.
+├── app
+│   ├── AndroidManifest.xml
+│   ├── releaseKey.jks
+│   ├── resources
+│   │   └── values
+│   │       ├── colors.xml
+│   │       └── strings.xml
+│   └── src/main/java/com/helloworld/app/MainActivity.java
+└── build.mill</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_understanding_androidappbundle"><a class="anchor" href="#_understanding_androidappbundle"></a>Understanding <code>AndroidAppBundle</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>AndroidAppBundle</code> trait is used to create and manage Android App Bundles (AAB) in Mill. It provides tasks for creating, building, and signing an AAB from Android resources and DEX files.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://mill-build.org/api/latest/mill/javalib/android/AndroidAppBundle.html"><code>mill.javalib.android.AndroidAppBundle</code></a>: Provides a framework for building Android App Bundle.</p>
+</li>
+</ul>
+</div>
+<div class="sect3">
+<h4 id="_key_functions"><a class="anchor" href="#_key_functions"></a>Key Functions</h4>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>androidAaptOptions:</strong> Here, Overrides <code>androidAaptOptions</code> to add the <code>--proto-format</code> option to AAPT commands, enabling protocol buffer format for assets.</p>
+</li>
+<li>
+<p><strong>androidBundleZip:</strong> Creates a zip archive containing: <code>Compiled DEX files</code>, <code>Resources</code>, <code>libraries</code>, and <code>assets</code>, The <code>Android manifest</code>.
+This zip follows the Android App Bundle format, as outlined in the official documentation.</p>
+</li>
+<li>
+<p><strong>androidUnsignedBundle:</strong> Uses the <code>bundleTool</code> to build an unsigned AAB from the bundle zip.</p>
+</li>
+<li>
+<p><strong>androidBundle:</strong> Signs the AAB using a specified keystore with the <code>jarsigner</code> tool, producing a signed Android App Bundle (AAB).</p>
+</li>
+</ul>
+</div>
 </div>
 </div>
 </div>
