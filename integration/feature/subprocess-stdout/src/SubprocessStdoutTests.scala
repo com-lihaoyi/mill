@@ -10,7 +10,7 @@ object SubprocessStdoutTests extends UtestIntegrationTestSuite {
       import tester._
       val res1 = eval("inheritInterleaved", mergeErrIntoOut = true).out
       // Make sure that when a lot of printed/inherited stdout/stderr is printed
-      // in quick succession, the output ordering is preserved and it doesn't get
+      // in quick succession, the output ordering is preserved, and it doesn't get
       // jumbled up
       retry(3) {
         assert(
@@ -56,7 +56,7 @@ object SubprocessStdoutTests extends UtestIntegrationTestSuite {
       }
 
       // Make sure subprocess output that isn't captures by all of Mill's stdout/stderr/os.Inherit
-      // redirects still gets pikced up from the stdout/stderr log files and displayed. They may
+      // redirects still gets picked up from the stdout/stderr log files and displayed. They may
       // be out of order from the original Mill stdout/stderr, but they should still at least turn
       // up in the console somewhere and not disappear
       //

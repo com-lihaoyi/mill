@@ -27,7 +27,7 @@ object GitlabModuleTests extends TestSuite {
   }
 
   // GitlabMavenRepository does not need to be a module, but it needs to be invoked from one.
-  // So for test purposes we make make a module with it to get a Ctx for evaluation
+  // So for test purposes we make a module with it to get a Ctx for evaluation
   object GLMvnRepo extends TestBaseModule with GitlabMavenRepository {
     override def gitlabRepository: GitlabPackageRepository =
       InstanceRepository("https://gl.local")

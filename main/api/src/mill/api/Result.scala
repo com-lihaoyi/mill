@@ -41,7 +41,7 @@ object Result {
   }
 
   /**
-   * A task execution was skipped because of failures in it's dependencies.
+   * A task execution was skipped because of failures in its dependencies.
    */
   case object Skipped extends Result[Nothing] {
     def map[V](f: Nothing => V): Skipped.type = this
@@ -68,7 +68,7 @@ object Result {
   }
 
   /**
-   * An intensional failure, which provides a proper error message as well as an optional result value.
+   * An intentional failure, which provides a proper error message as well as an optional result value.
    * @param msg The error message.
    * @param value The optional result value.
    * @tparam T The result type of the computed task.

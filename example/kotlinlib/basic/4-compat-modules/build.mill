@@ -19,7 +19,6 @@ object foo extends KotlinModule with KotlinMavenModule {
   }
 }
 
-
 // `KotlinMavenModule` is a variant of `KotlinModule`
 // that uses the more verbose folder layout of Maven, SBT, and other tools:
 //

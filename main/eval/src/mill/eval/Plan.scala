@@ -20,7 +20,7 @@ private[mill] object Plan {
           overridden.updateWith(segments)(o => Some(o.getOrElse(Nil)))
         }
 
-      case _ => // donothing
+      case _ => // do nothing
     }
 
     val sortedGroups: MultiBiMap[Terminal, Task[_]] =

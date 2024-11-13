@@ -197,7 +197,7 @@ object GraphTests extends TestSuite {
       }
 
       test("multiTerminalBoundary") {
-        // Make sure the following graph ends up as a three groups: one for
+        // Make sure the following graph ends up as three groups: one for
         // each cached target, and one for the downstream task we are running
         import multiTerminalBoundary._
         val groupCount = countGroups(task2)

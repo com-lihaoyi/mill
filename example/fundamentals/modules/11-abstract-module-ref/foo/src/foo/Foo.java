@@ -1,8 +1,6 @@
 package foo;
 
-
 public class Foo {
 
-    public static final String VALUE = "hello";
+  public static final String VALUE = "hello";
 }
-

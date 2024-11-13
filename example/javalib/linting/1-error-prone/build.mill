@@ -3,8 +3,6 @@
 // `ErrorProneModule`: mix `ErrorProneModule` into your `JavaModule` and it will
 // automatically run with every compilation.
 
-
-
 package build
 import mill._, javalib._, errorprone._
 

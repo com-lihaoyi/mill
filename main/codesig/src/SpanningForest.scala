@@ -42,7 +42,7 @@ object SpanningForest {
           Array[Int]()
         ) // needed to add explicit type for Scala 3.5.0-RC6
       // We build up the spanningForest during a normal breadth first search,
-      // using the `nodeMapping` to quickly find an vertice's tree node so we
+      // using the `nodeMapping` to quickly find a vertice's tree node so we
       // can add children to it. We need to duplicate the `seen.contains` logic
       // in `!nodeMapping.contains`, because `breadthFirst` does not expose it
       for (nextIndex <- nextIndices if !nodeMapping.contains(nextIndex)) {
