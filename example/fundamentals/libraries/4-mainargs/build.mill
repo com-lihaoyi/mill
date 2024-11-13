@@ -116,8 +116,8 @@ taskCallingCommand
 */
 
 // Many built-in tools are implemented as custom evaluator commands:
-// xref:fundamentals/builtin-commands.adoc#_inspect[inspect],
-// xref:fundamentals/builtin-commands.adoc#_resolve[resolve],
-// xref:fundamentals/builtin-commands.adoc#_show[show].
+// xref:cli/builtin-commands.adoc#_inspect[inspect],
+// xref:cli/builtin-commands.adoc#_resolve[resolve],
+// xref:cli/builtin-commands.adoc#_show[show].
 // If you want a way to run Mill commands and programmatically manipulate the
 // tasks and outputs, you do so with your own evaluator command.

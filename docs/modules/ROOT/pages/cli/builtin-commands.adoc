@@ -7,4 +7,4 @@ include::partial$gtag-config.adoc[]
 :language-small: scala
 
 
-include::partial$example/fundamentals/builtins/1-builtin-commands.adoc[]
+include::partial$example/cli/builtins/1-builtin-commands.adoc[]
