@@ -29,7 +29,6 @@ object bar extends MyModule {
     ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
 }
-
 // == resolve
 
 // `resolve` lists the tasks that match a particular query, without running them.
@@ -39,32 +38,32 @@ object bar extends MyModule {
 
 /** Usage
 
- > mill resolve _
- foo
- bar
- clean
- inspect
- path
- plan
- resolve
- show
- shutdown
- version
- visualize
- visualizePlan
+> mill resolve _
+foo
+bar
+clean
+inspect
+path
+plan
+resolve
+show
+shutdown
+version
+visualize
+visualizePlan
 
- > mill resolve _.compile
- foo.compile
- bar.compile
+> mill resolve _.compile
+foo.compile
+bar.compile
 
- > mill resolve foo._
- foo.allSourceFiles
- foo.allSources
- foo.artifactId
- foo.artifactName
- ...
+> mill resolve foo._
+foo.allSourceFiles
+foo.allSources
+foo.artifactId
+foo.artifactName
+...
 
- */
+*/
 
 // You can also use the wildcards `+_+` as a placeholder for a single segment
 // and `+__+` as a placeholder for many segments.
@@ -72,16 +71,16 @@ object bar extends MyModule {
 
 /** Usage
 
- > mill resolve foo.{compile,run}
- > mill resolve "foo.{compile,run}"
- > mill resolve foo.compile foo.run
- > mill resolve _.compile  # list the compile tasks for every top-level module
- > mill resolve __.compile # list the compile tasks for every module
+> mill resolve foo.{compile,run}
+> mill resolve "foo.{compile,run}"
+> mill resolve foo.compile foo.run
+> mill resolve _.compile  # list the compile tasks for every top-level module
+> mill resolve __.compile # list the compile tasks for every module
 > mill resolve _          # list every top level module and task
 > mill resolve foo._      # list every task directly within the foo module
 > mill resolve __         # list every module and task recursively
 
- */
+*/
 
 // See the documentation for xref:fundamentals/query-syntax.adoc[Task Query Syntax] for more details what you
 // can pass to `resolve`
@@ -95,20 +94,20 @@ object bar extends MyModule {
 
 /** Usage
 
- > mill inspect foo.run
- foo.run(RunModule...)
- Runs this module's code in a subprocess and waits for it to finish
- args <str>...
- Inputs:
- foo.finalMainClass
- foo.finalMainClassOpt
- foo.runClasspath
- foo.forkArgs
- foo.forkEnv
- foo.forkWorkingDir
- foo.runUseArgsFile
+> mill inspect foo.run
+foo.run(RunModule...)
+    Runs this module's code in a subprocess and waits for it to finish
+    args <str>...
+Inputs:
+    foo.finalMainClass
+    foo.finalMainClassOpt
+    foo.runClasspath
+    foo.forkArgs
+    foo.forkEnv
+    foo.forkWorkingDir
+    foo.runUseArgsFile
 
- */
+*/
 
 // While `inspect` also works with the same `+_+`/`+__+` wildcard/query syntax
 // that <<_resolve>> do, the most common use case is to inspect one task at a
@@ -126,17 +125,17 @@ object bar extends MyModule {
 
 /** Usage
 
- > mill show foo.sources
- [
- ".../foo/src"
- ]
+> mill show foo.sources
+[
+  ".../foo/src"
+]
 
- > mill show foo.allSourceFiles
- [
- ".../foo/src.../Foo..."
- ]
+> mill show foo.allSourceFiles
+[
+  ".../foo/src.../Foo..."
+]
 
- */
+*/
 
 // `show` is not just for showing configuration values. All tasks return values
 // that can be shown with `show`.
@@ -145,12 +144,12 @@ object bar extends MyModule {
 
 /** Usage
 
- > mill show foo.compile
- {
- "analysisFile": ".../out/foo/compile.dest/...",
- "classes": ".../out/foo/compile.dest/classes"
- }
- */
+> mill show foo.compile
+{
+  "analysisFile": ".../out/foo/compile.dest/...",
+  "classes": ".../out/foo/compile.dest/classes"
+}
+*/
 
 // `show` is also useful for interacting with Mill from external tools, since the
 // JSON it outputs is structured and easily parsed and manipulated. You can easily
@@ -162,18 +161,18 @@ object bar extends MyModule {
 
 /** Usage
 
- > mill show 'foo.{sources,compileClasspath}'
- {
- "foo.sources": [
- ".../foo/src"
- ],
- "foo.compileClasspath": [
- ...
- ".../foo/compile-resources"
- ]
- }
+> mill show 'foo.{sources,compileClasspath}'
+{
+  "foo.sources": [
+    ".../foo/src"
+  ],
+  "foo.compileClasspath": [
+    ...
+    ".../foo/compile-resources"
+  ]
+}
 
- */
+*/
 
 // == showNamed
 
@@ -182,25 +181,25 @@ object bar extends MyModule {
 
 /** Usage
 
- > mill showNamed 'foo.sources'
- {
- "foo.sources": [
- ".../foo/src"
- ]
- }
+> mill showNamed 'foo.sources'
+{
+  "foo.sources": [
+    ".../foo/src"
+  ]
+}
 
- > mill showNamed 'foo.{sources,compileClasspath}'
- {
- "foo.sources": [
- ".../foo/src"
- ],
- "foo.compileClasspath": [
- ...
- ".../foo/compile-resources"
- ]
- }
+> mill showNamed 'foo.{sources,compileClasspath}'
+{
+  "foo.sources": [
+    ".../foo/src"
+  ],
+  "foo.compileClasspath": [
+    ...
+    ".../foo/compile-resources"
+  ]
+}
 
- */
+*/
 
 // This can make it easier to programmatically work with the output of running
 // one-or-more tasks via Mill wildcard queries, since the `{"<task-name>": <output>}`
@@ -216,16 +215,16 @@ object bar extends MyModule {
 
 /** Usage
 
- > mill path foo.assembly foo.sources
- foo.sources
- foo.allSources
- foo.allSourceFiles
- foo.compile
- foo.finalMainClassOpt
- foo.prependShellScript
- foo.assembly
+> mill path foo.assembly foo.sources
+foo.sources
+foo.allSources
+foo.allSourceFiles
+foo.compile
+foo.finalMainClassOpt
+foo.prependShellScript
+foo.assembly
 
- */
+*/
 
 // If there are multiple possible dependency chains, one of them is picked
 // arbitrarily.
@@ -241,18 +240,18 @@ object bar extends MyModule {
 
 /** Usage
 
- > mill plan foo.compileClasspath
- foo.transitiveCompileClasspath
- foo.compileResources
- foo.unmanagedClasspath
- ...
- foo.compileIvyDeps
- ...
- foo.ivyDeps
- foo.transitiveIvyDeps
- foo.compileClasspath
+> mill plan foo.compileClasspath
+foo.transitiveCompileClasspath
+foo.compileResources
+foo.unmanagedClasspath
+...
+foo.compileIvyDeps
+...
+foo.ivyDeps
+foo.transitiveIvyDeps
+foo.compileClasspath
 
- */
+*/
 
 // NOTE: due to parallelism, the given order is only one possible toplogical
 // order that the tasks will be started. Tasks may be started in different orders
@@ -265,38 +264,38 @@ object bar extends MyModule {
 
 /** Usage
 
- > mill clean
+> mill clean
 
- */
+*/
 
 // `clean` without arguments cleans the entire project.
 // It also accepts arguments to clean specific modules, or specific tasks.
 
 /** Usage
 
- > mill clean             # clean all outputs
- > mill clean foo         # clean all outputs for module 'foo' (including nested modules)
- > mill clean foo.compile # only clean outputs for task 'compile' in module 'foo'
- > mill clean foo.{compile,run}
- > mill clean "foo.{compile,run}"
- > mill clean foo.compile foo.run
- > mill clean _.compile
- > mill clean __.compile
+> mill clean             # clean all outputs
+> mill clean foo         # clean all outputs for module 'foo' (including nested modules)
+> mill clean foo.compile # only clean outputs for task 'compile' in module 'foo'
+> mill clean foo.{compile,run}
+> mill clean "foo.{compile,run}"
+> mill clean foo.compile foo.run
+> mill clean _.compile
+> mill clean __.compile
 
- */
+*/
 
 // == visualize
 //
 /** Usage
- > mill visualize foo._
- [
- ".../out/visualize.dest/out.dot",
- ".../out/visualize.dest/out.json",
- ".../out/visualize.dest/out.png",
- ".../out/visualize.dest/out.svg",
- ".../out/visualize.dest/out.txt"
- ]
- */
+> mill visualize foo._
+[
+  ".../out/visualize.dest/out.dot",
+  ".../out/visualize.dest/out.json",
+  ".../out/visualize.dest/out.png",
+  ".../out/visualize.dest/out.svg",
+  ".../out/visualize.dest/out.txt"
+]
+*/
 //
 // `mill visualize` takes a subset of the Mill build graph (e.g. `+core._+`
 // is every task directly under the `core` module) and draws out their
@@ -318,20 +317,20 @@ object bar extends MyModule {
 // module, but you can also use `visualize` on a single task in multiple modules to see how they are related:
 //
 /** Usage
- > mill visualize __.compile
+> mill visualize __.compile
 
 > cat out/visualize.dest/out.dot
- digraph "example1" {
- graph ["rankdir"="LR"]
- "bar.compile" ["style"="solid","shape"="box"]
- "bar.test.compile" ["style"="solid","shape"="box"]
- "foo.compile" ["style"="solid","shape"="box"]
- "foo.test.compile" ["style"="solid","shape"="box"]
- "bar.compile" -> "foo.compile"
- "bar.compile" -> "bar.test.compile"
- "foo.compile" -> "foo.test.compile"
- }
- */
+digraph "example1" {
+graph ["rankdir"="LR"]
+"bar.compile" ["style"="solid","shape"="box"]
+"bar.test.compile" ["style"="solid","shape"="box"]
+"foo.compile" ["style"="solid","shape"="box"]
+"foo.test.compile" ["style"="solid","shape"="box"]
+"bar.compile" -> "foo.compile"
+"bar.compile" -> "bar.test.compile"
+"foo.compile" -> "foo.test.compile"
+}
+*/
 
 // image::basic/VisualizeCompiles.svg[VisualizeCompiles.svg]
 //
@@ -343,15 +342,15 @@ object bar extends MyModule {
 // == visualizePlan
 //
 /** Usage
- > mill visualizePlan foo.run
- [
- ".../out/visualizePlan.dest/out.dot",
- ".../out/visualizePlan.dest/out.json",
- ".../out/visualizePlan.dest/out.png",
- ".../out/visualizePlan.dest/out.svg",
- ".../out/visualizePlan.dest/out.txt"
- ]
- */
+> mill visualizePlan foo.run
+[
+  ".../out/visualizePlan.dest/out.dot",
+  ".../out/visualizePlan.dest/out.json",
+  ".../out/visualizePlan.dest/out.png",
+  ".../out/visualizePlan.dest/out.svg",
+  ".../out/visualizePlan.dest/out.txt"
+]
+*/
 //
 // `mill visualizePlan` is similar to `mill visualize` except that it
 // shows a graph of the entire build plan, including tasks not directly resolved
@@ -366,34 +365,34 @@ object bar extends MyModule {
 // == init
 
 /** Usage
- > mill init
- Run `mill init <example-id>` with one of these examples as an argument to download and extract example.
- Run `mill init --show-all` to see full list of examples.
- Run `mill init <Giter8 template>` to generate project from Giter8 template.
- ...
- scalalib/basic/1-simple
- ...
- scalalib/web/1-todo-webapp
- scalalib/web/2-webapp-cache-busting
- scalalib/web/3-scalajs-module
- scalalib/web/4-webapp-scalajs
- scalalib/web/5-webapp-scalajs-shared
- ...
- javalib/basic/1-simple
- ...
- javalib/basic/6-realistic
- ...
- javalib/web/1-hello-jetty
- javalib/web/2-hello-spring-boot
- javalib/web/3-todo-spring-boot
- javalib/web/4-hello-micronaut
- javalib/web/5-todo-micronaut
- kotlinlib/basic/1-simple
- ...
- kotlinlib/basic/6-realistic
- ...
- kotlinlib/web/1-hello-ktor
- */
+> mill init
+Run `mill init <example-id>` with one of these examples as an argument to download and extract example.
+Run `mill init --show-all` to see full list of examples.
+Run `mill init <Giter8 template>` to generate project from Giter8 template.
+...
+scalalib/basic/1-simple
+...
+scalalib/web/1-todo-webapp
+scalalib/web/2-webapp-cache-busting
+scalalib/web/3-scalajs-module
+scalalib/web/4-webapp-scalajs
+scalalib/web/5-webapp-scalajs-shared
+...
+javalib/basic/1-simple
+...
+javalib/basic/6-realistic
+...
+javalib/web/1-hello-jetty
+javalib/web/2-hello-spring-boot
+javalib/web/3-todo-spring-boot
+javalib/web/4-hello-micronaut
+javalib/web/5-todo-micronaut
+kotlinlib/basic/1-simple
+...
+kotlinlib/basic/6-realistic
+...
+kotlinlib/web/1-hello-ktor
+*/
 
 // The `init` command generates a project based on a Mill example project or
 // a Giter8 template. You can use it to quickly generate a starter project.

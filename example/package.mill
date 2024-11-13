@@ -111,13 +111,6 @@ object `package` extends RootModule with Module {
       .flatMap(_.valuesToModules.get(List(crossValue)))
 
 
-    def sources = Task{
-      super.sources()
-        .flatMap(pathRef => os.walk(pathRef.path))
-        .filter(os.isFile)
-        .filterNot(p => p.ext == "java" && p.segments.contains("linting") || p.segments.contains("10-external-module-aliases"))
-        .map(PathRef(_))
-    }
 
     def testRepoRoot = Task {
       os.copy(super.testRepoRoot().path, T.dest, mergeFolders = true)
@@ -185,7 +178,18 @@ object `package` extends RootModule with Module {
     def fix(args: String*): Command[Unit] = T.command {}
     def testRepoRoot: T[PathRef] = Task.Source(millSourcePath)
 
-    def sources = Task.Sources(millSourcePath)
+    def sources0 = Task.Sources(millSourcePath)
+    def sources = Task{
+      sources0()
+        .flatMap(pathRef => os.walk(pathRef.path))
+        .filter(os.isFile)
+        .filterNot(p =>
+          p.ext == "java" &&
+            (p.segments.contains("linting") || p.segments.contains("10-external-module-aliases"))
+        )
+        .map(PathRef(_))
+    }
+
     def resources = Seq(testRepoRoot())
     def runClasspath = build.main.test.runClasspath()
     def localRunClasspath = build.testkit.localRunClasspath()
