@@ -49,6 +49,8 @@ trait AndroidSdkModule extends Module {
 
   /**
    * Provides the path to the `bundleTool.jar` file, necessary for creating Android bundles.
+   *
+   * For More Read Bundle Tool [[https://developer.android.com/tools/bundletool Documentation]]
    */
   def bundleToolPath: T[PathRef] = Task {
     val bundleToolJar = Task.dest / "bundleTool.jar"
@@ -74,20 +76,17 @@ trait AndroidSdkModule extends Module {
 
   /**
    * Provides path to D8 Dex compiler, used for converting Java bytecode into Dalvik bytecode.
+   *
+   * For More Read D8 [[https://developer.android.com/tools/d8 Documentation]]
    */
   def d8Path: T[PathRef] = Task {
     PathRef(buildToolsPath().path / "d8")
   }
 
   /**
-   * Provides the path to AAPT, used for resource handling and APK packaging.
-   */
-  def aaptPath: T[PathRef] = Task {
-    PathRef(buildToolsPath().path / "aapt")
-  }
-
-  /**
    * Provides the path to AAPT2, used for resource handling and APK packaging.
+   *
+   * For More Read AAPT2 [[https://developer.android.com/tools/aapt2 Documentation]]
    */
   def aapt2Path: T[PathRef] = Task {
     PathRef(buildToolsPath().path / "aapt2")
@@ -95,6 +94,8 @@ trait AndroidSdkModule extends Module {
 
   /**
    * Provides the path to the Zipalign tool, which optimizes APK files by aligning their data.
+   *
+   * For More Read Zipalign [[https://developer.android.com/tools/zipalign Documentation]]
    */
   def zipalignPath: T[PathRef] = Task {
     PathRef(buildToolsPath().path / "zipalign")
@@ -102,6 +103,8 @@ trait AndroidSdkModule extends Module {
 
   /**
    * Provides the path to the APK signer tool, used to digitally sign APKs.
+   *
+   * For More Read APK Signer [[https://developer.android.com/tools/apksigner Documentation]]
    */
   def apksignerPath: T[PathRef] = Task {
     PathRef(buildToolsPath().path / "apksigner")
