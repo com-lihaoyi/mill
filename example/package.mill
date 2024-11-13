@@ -115,7 +115,7 @@ object `package` extends RootModule with Module {
       super.sources()
         .flatMap(pathRef => os.walk(pathRef.path))
         .filter(os.isFile)
-        .filterNot(p => p.ext == "java" && p.segments.contains("linting"))
+        .filterNot(p => p.ext == "java" && p.segments.contains("linting") || p.segments.contains("10-external-module-aliases"))
         .map(PathRef(_))
     }
 
