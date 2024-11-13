@@ -67,7 +67,7 @@ Inputs:
 //
 // If you're not familiar with what tasks you can `override` or how they are related,
 // you can explore the existing tasks via autocomplete in your IDE, or use the
-// xref:{language-small}lib/builtin-commands.adoc#_visualize[mill visualize].
+// xref:fundamentals/builtin-commands.adoc#_visualize[mill visualize].
 //
 // `os.read.lines` and `os.write` come
 // from the https://github.com/com-lihaoyi/os-lib[OS-Lib] library, which is
@@ -79,7 +79,7 @@ Inputs:
 // Custom user-defined tasks in Mill benefit from all
 // the same things that built-in tasks do: automatic caching (in the
 // xref:fundamentals/out-dir.adoc[out/ folder]), parallelism (with the xref:cli/flags.adoc#_jobs_j[-j/--jobs
-// flag]), inspectability (via xref:{language-small}lib/builtin-commands.adoc#_show[show]/xref:{language-small}lib/builtin-commands.adoc#_inspect[inspect]), and so on.
+// flag]), inspectability (via xref:fundamentals/builtin-commands.adoc#_show[show]/xref:fundamentals/builtin-commands.adoc#_inspect[inspect]), and so on.
 // While these things may not matter for such a simple example that runs
 // quickly, they ensure that custom build logic remains performant and
 // maintainable even as the complexity of your project grows.

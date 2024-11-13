@@ -43,7 +43,7 @@ that your build server like Jenkins or Github Actions has the correct version of
 present to build, compile or test your code.
 
 If you are starting a new project using a Mill bootstrap script, you can use the
-xref:javalib/builtin-commands.adoc#_init[mill init] to initialize the project
+xref:fundamentals/builtin-commands.adoc#_init[mill init] to initialize the project
 folder with one of the Mill example projects. There are a wide range of example projects,
 from hello-world to multi-module libraries to client-server web applications, and you can
 pick one most similar to what you are doing so you can hit the ground running working.
