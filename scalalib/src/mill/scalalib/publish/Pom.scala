@@ -134,11 +134,15 @@ object Pom {
 
     val optional = if (d.optional) <optional>true</optional> else NodeSeq.Empty
 
+    val version =
+      if (d.artifact.version == "_") NodeSeq.Empty
+      else <version>{d.artifact.version}</version>
+
     if (d.exclusions.isEmpty)
       <dependency>
         <groupId>{d.artifact.group}</groupId>
         <artifactId>{d.artifact.id}</artifactId>
-        <version>{d.artifact.version}</version>
+        {version}
         {scope}
         {`type`}
         {optional}
@@ -147,7 +151,7 @@ object Pom {
       <dependency>
         <groupId>{d.artifact.group}</groupId>
         <artifactId>{d.artifact.id}</artifactId>
-        <version>{d.artifact.version}</version>
+        {version}
         <exclusions>
           {
         d.exclusions.map(ex => <exclusion>

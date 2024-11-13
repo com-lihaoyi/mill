@@ -101,8 +101,35 @@ trait PublishModule extends JavaModule { outer =>
     PathRef(pomPath)
   }
 
+  def bomDetails: T[(Map[coursier.core.Module, String], coursier.core.DependencyManagement.Map)] = Task {
+    val (processedDeps, depMgmt) = defaultResolver().processDeps(
+      transitiveRunIvyDeps() ++ transitiveIvyDeps(),
+      resolutionParams = resolutionParams(),
+      bomDeps = bomDeps().map(bindDependency())
+    )
+    (processedDeps.map(_.moduleVersion).toMap, depMgmt)
+  }
+
   def ivy: T[PathRef] = Task {
-    val ivy = Ivy(artifactMetadata(), publishXmlDeps(), extraPublish())
+    val (rootDepVersions, depMgmt) = bomDetails()
+    val publishXmlDeps0 = publishXmlDeps().map { dep =>
+      if (dep.artifact.version == "_")
+        dep.copy(
+          artifact = dep.artifact.copy(
+            version = rootDepVersions.getOrElse(
+              coursier.core.Module(coursier.core.Organization(dep.artifact.group), coursier.core.ModuleName(dep.artifact.id), Map.empty),
+              "" /* throw instead? */
+            )
+          )
+        )
+      else
+        dep
+    }
+    val overrides = depMgmt.toSeq.map {
+      case (key, values) =>
+        Ivy.Override(key.organization.value, key.name.value, values.version)
+    }
+    val ivy = Ivy(artifactMetadata(), publishXmlDeps0, extraPublish(), overrides)
     val ivyPath = T.dest / "ivy.xml"
     os.write.over(ivyPath, ivy)
     PathRef(ivyPath)

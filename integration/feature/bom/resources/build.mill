@@ -2,8 +2,21 @@ package build
 
 import mill._
 import mill.scalalib._
+import mill.scalalib.publish._
 
-object `google-cloud-java` extends JavaModule {
+trait TestPublishModule extends PublishModule {
+  def pomSettings = PomSettings(
+    description = artifactName(),
+    organization = "com.lihaoyi.mill-tests",
+    url = "https://github.com/com-lihaoyi/mill",
+    licenses = Seq(License.`Apache-2.0`),
+    versionControl = VersionControl.github("com-lihaoyi", "mill"),
+    developers = Nil
+  )
+  def publishVersion = "0.1.0-SNAPSHOT"
+}
+
+object `google-cloud-java` extends JavaModule with TestPublishModule {
   def bomDeps = Agg(
     ivy"com.google.cloud:libraries-bom:26.50.0"
   )
@@ -18,7 +31,7 @@ object `google-cloud-java-no-bom` extends JavaModule {
   )
 }
 
-object `google-cloud-scala` extends JavaModule {
+object `google-cloud-scala` extends JavaModule with TestPublishModule {
   def bomDeps = Agg(
     ivy"com.google.cloud:libraries-bom:26.50.0"
   )

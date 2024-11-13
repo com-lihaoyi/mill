@@ -1,8 +1,9 @@
 package mill.scalalib
 
 import coursier.cache.FileCache
+import coursier.params.ResolutionParams
 import coursier.{Dependency, Repository, Resolve, Type}
-import coursier.core.Resolution
+import coursier.core.{DependencyManagement, Resolution}
 import mill.define.Task
 import mill.api.PathRef
 
@@ -61,13 +62,13 @@ trait CoursierModule extends mill.Module {
       Lib.resolveDependencies(
         repositories = repositoriesTask(),
         deps = deps(),
-        bomDeps = bomDeps(),
         sources = sources,
         artifactTypes = artifactTypes,
         mapDependencies = Some(mapDependencies()),
         customizer = resolutionCustomizer(),
         coursierCacheCustomizer = coursierCacheCustomizer(),
-        ctx = Some(implicitly[mill.api.Ctx.Log])
+        ctx = Some(implicitly[mill.api.Ctx.Log]),
+        bomDeps = bomDeps()
       )
     }
 
@@ -151,18 +152,20 @@ object CoursierModule {
         deps: IterableOnce[T],
         sources: Boolean = false,
         artifactTypes: Option[Set[coursier.Type]] = None,
+        resolutionParams: ResolutionParams = ResolutionParams(),
         bomDeps: IterableOnce[T] = Nil
     ): Agg[PathRef] = {
       Lib.resolveDependencies(
         repositories = repositories,
         deps = deps.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind)),
-        bomDeps = bomDeps.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind)),
         sources = sources,
         artifactTypes = artifactTypes,
         mapDependencies = mapDependencies,
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
-        ctx = ctx
+        ctx = ctx,
+        resolutionParams = resolutionParams,
+        bomDeps = bomDeps.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
       ).getOrThrow
     }
 
@@ -171,14 +174,32 @@ object CoursierModule {
         sources: Boolean,
         artifactTypes: Option[Set[coursier.Type]]
     ): Agg[PathRef] =
-      resolveDeps(deps, sources, artifactTypes, Nil)
+      resolveDeps(deps, sources, artifactTypes, ResolutionParams(), Nil)
 
     @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
     def resolveDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean
     ): Agg[PathRef] =
-      resolveDeps(deps, sources, None, Nil)
+      resolveDeps(deps, sources, None, ResolutionParams(), Nil)
+
+    def processDeps[T: CoursierModule.Resolvable](
+        deps: IterableOnce[T],
+        resolutionParams: ResolutionParams = ResolutionParams(),
+        bomDeps: IterableOnce[T] = Nil
+    ): (Seq[Dependency], DependencyManagement.Map) = {
+      val res = Lib.resolveDependenciesMetadataSafe(
+        repositories = repositories,
+        deps = deps.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind)),
+        mapDependencies = mapDependencies,
+        customizer = customizer,
+        coursierCacheCustomizer = coursierCacheCustomizer,
+        ctx = ctx,
+        resolutionParams = resolutionParams,
+        bomDeps = bomDeps.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
+      ).getOrThrow
+      (res.processedRootDependencies, res.bomDepMgmt)
+    }
   }
 
   sealed trait Resolvable[T] {

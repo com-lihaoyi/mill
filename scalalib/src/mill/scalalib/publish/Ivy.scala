@@ -8,10 +8,13 @@ object Ivy {
 
   val head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 
+  case class Override(organization: String, name: String, version: String)
+
   def apply(
       artifact: Artifact,
       dependencies: Agg[Dependency],
-      extras: Seq[PublishInfo] = Seq.empty
+      extras: Seq[PublishInfo] = Seq.empty,
+      overrides: Seq[Override] = Nil
   ): String = {
 
     def renderExtra(e: PublishInfo): Elem = {
@@ -49,7 +52,10 @@ object Ivy {
           <artifact name={artifact.id} type="doc" ext="jar" conf="compile" e:classifier="javadoc"/>
           {extras.map(renderExtra)}
         </publications>
-        <dependencies>{dependencies.map(renderDependency).toSeq}</dependencies>
+        <dependencies>
+          {dependencies.map(renderDependency).toSeq}
+          {overrides.map(renderOverride)}
+        </dependencies>
       </ivy-module>
 
     val pp = new PrettyPrinter(120, 4)
@@ -68,6 +74,9 @@ object Ivy {
         {dep.exclusions.map(ex => <exclude org={ex._1} name={ex._2} matcher="exact"/>)}
       </dependency>
   }
+
+  private def renderOverride(override0: Override): Elem =
+    <override org={override0.organization} module={override0.name} rev={override0.version} />
 
   private def depIvyConf(d: Dependency): String = {
     if (d.optional) "optional"

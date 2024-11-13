@@ -3,6 +3,8 @@ package mill.integration
 import mill.testkit.{IntegrationTester, UtestIntegrationTestSuite}
 import utest._
 
+import scala.jdk.CollectionConverters._
+
 object BomTests extends UtestIntegrationTestSuite {
 
   def tests: Tests = Tests {
@@ -34,8 +36,28 @@ object BomTests extends UtestIntegrationTestSuite {
     }
 
     test("googleCloudJava") - integrationTest { tester =>
+      import tester._
+
       val compileClasspathFileNames0 = compileClasspathFileNames(tester, "google-cloud-java")
       assert(compileClasspathFileNames0.contains(s"protobuf-java-$expectedProtobufJavaVersion.jar"))
+
+      val repo = workspacePath / "ivy2Local"
+      eval(("google-cloud-java.publishLocal", "--localIvyRepo", repo), check = true)
+
+      val obtainedClassPath = coursierapi.Fetch.create()
+        .addDependencies(
+          coursierapi.Dependency.of("com.lihaoyi.mill-tests", "google-cloud-java", "0.1.0-SNAPSHOT")
+        )
+        .addRepositories(
+          coursierapi.IvyRepository.of(repo.toNIO.toUri.toASCIIString + "[defaultPattern]")
+        )
+        .fetch()
+        .asScala
+        .map(os.Path(_))
+        .toVector
+
+      val obtainedClassPathFileNames = obtainedClassPath.map(_.last)
+      assert(obtainedClassPathFileNames.contains(s"protobuf-java-$expectedProtobufJavaVersion.jar"))
     }
 
     test("googleCloudScalaCheck") - integrationTest { tester =>
@@ -50,8 +72,28 @@ object BomTests extends UtestIntegrationTestSuite {
     }
 
     test("googleCloudScala") - integrationTest { tester =>
+      import tester._
+
       val compileClasspathFileNames0 = compileClasspathFileNames(tester, "google-cloud-scala")
       assert(compileClasspathFileNames0.contains(s"protobuf-java-$expectedProtobufJavaVersion.jar"))
+
+      val repo = workspacePath / "ivy2Local"
+      eval(("google-cloud-scala.publishLocal", "--localIvyRepo", repo), check = true)
+
+      val obtainedClassPath = coursierapi.Fetch.create()
+        .addDependencies(
+          coursierapi.Dependency.of("com.lihaoyi.mill-tests", "google-cloud-scala", "0.1.0-SNAPSHOT")
+        )
+        .addRepositories(
+          coursierapi.IvyRepository.of(repo.toNIO.toUri.toASCIIString + "[defaultPattern]")
+        )
+        .fetch()
+        .asScala
+        .map(os.Path(_))
+        .toVector
+
+      val obtainedClassPathFileNames = obtainedClassPath.map(_.last)
+      assert(obtainedClassPathFileNames.contains(s"protobuf-java-$expectedProtobufJavaVersion.jar"))
     }
 
   }

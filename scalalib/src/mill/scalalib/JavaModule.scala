@@ -2,6 +2,7 @@ package mill
 package scalalib
 
 import coursier.core.Resolution
+import coursier.params.ResolutionParams
 import coursier.parse.JavaOrScalaModule
 import coursier.parse.ModuleParser
 import coursier.util.ModuleMatcher
@@ -166,6 +167,10 @@ trait JavaModule
    * here if you'd like fancy artifact extensions to be fetched.
    */
   def artifactTypes: T[Set[Type]] = Task { coursier.core.Resolution.defaultTypes }
+
+  def resolutionParams: Task[ResolutionParams] = Task.Anon {
+    ResolutionParams()
+  }
 
   /**
    * Options to pass to the java compiler
@@ -333,7 +338,7 @@ trait JavaModule
    * This is calculated from [[ivyDeps]], [[mandatoryIvyDeps]] and recursively from [[moduleDeps]].
    */
   def transitiveIvyDeps: T[Agg[BoundDep]] = Task {
-    allIvyDeps().map(bindDependency()) ++
+    (ivyDeps() ++ mandatoryIvyDeps()).map(bindDependency()) ++
       T.traverse(moduleDepsChecked)(_.transitiveIvyDeps)().flatten
   }
 
@@ -611,6 +616,7 @@ trait JavaModule
     defaultResolver().resolveDeps(
       transitiveCompileIvyDeps() ++ transitiveIvyDeps(),
       artifactTypes = Some(artifactTypes()),
+      resolutionParams = resolutionParams(),
       bomDeps = bomDeps().map(bindDependency())
     )
   }
@@ -627,6 +633,7 @@ trait JavaModule
     defaultResolver().resolveDeps(
       transitiveRunIvyDeps() ++ transitiveIvyDeps(),
       artifactTypes = Some(artifactTypes()),
+      resolutionParams = resolutionParams(),
       bomDeps = bomDeps().map(bindDependency())
     )
   }
@@ -893,7 +900,9 @@ trait JavaModule
         dependencies,
         Some(mapDependencies()),
         customizer = resolutionCustomizer(),
-        coursierCacheCustomizer = coursierCacheCustomizer()
+        coursierCacheCustomizer = coursierCacheCustomizer(),
+        resolutionParams = resolutionParams(),
+        bomDeps = bomDeps().map(bindDependency())
       ).getOrThrow
 
       val roots = whatDependsOn match {
@@ -1105,6 +1114,7 @@ trait JavaModule
           defaultResolver().resolveDeps(
             transitiveCompileIvyDeps() ++ transitiveIvyDeps(),
             sources = true,
+            resolutionParams = resolutionParams(),
             bomDeps = bomDeps().map(bindDependency())
           )
         },
@@ -1112,6 +1122,7 @@ trait JavaModule
           defaultResolver().resolveDeps(
             transitiveRunIvyDeps() ++ transitiveIvyDeps(),
             sources = true,
+            resolutionParams = resolutionParams(),
             bomDeps = bomDeps().map(bindDependency())
           )
         }
