@@ -23,7 +23,7 @@ trait AndroidAppBundle extends AndroidAppModule with JavaModule {
    *
    * @return PathRef to the bundle zip.
    *
-   * For Bundle Zip Format(classes(n).dex, assets, libs, res) please See the official
+   * For Bundle Zip Format please See the official
    * [[https://developer.android.com/guide/app-bundle/app-bundle-format Documentation]]
    */
   def androidBundleZip: T[PathRef] = Task {
@@ -45,11 +45,7 @@ trait AndroidAppBundle extends AndroidAppModule with JavaModule {
     }
 
     for ((file, idx) <- os.walk(Task.dest).filter(_.ext == "dex").zipWithIndex) {
-      os.copy(
-        file,
-        baseDir / "dex" / (if (idx == 0) "classes.dex" else s"classes${idx + 1}.dex"),
-        createFolders = true
-      )
+      os.copy(file, baseDir / "dex" / file.last, createFolders = true)
     }
 
     for (folder <- Seq("res", "lib", "assets")) {
@@ -98,22 +94,26 @@ trait AndroidAppBundle extends AndroidAppModule with JavaModule {
    */
   def androidBundle: T[PathRef] = Task {
     val signedBundle = Task.dest / "signedBundle.aab"
-
+    val keyPath = {
+      if (!os.exists(androidReleaseKeyPath().path)) { androidKeystore().path }
+      else { androidReleaseKeyPath().path }
+    }
     os.call((
       "jarsigner",
-      "-verbose",
       "-sigalg",
       "SHA256withRSA",
       "-digestalg",
       "SHA-256",
+      "-keypass",
+      androidReleaseKeyPass(),
       "-storepass",
-      "android",
+      androidReleaseKeyStorePass(),
       "-keystore",
-      androidKeystore().path,
+      keyPath,
       "-signedjar",
       signedBundle,
       androidUnsignedBundle().path,
-      "androidkey"
+      androidReleaseKeyAlias()
     ))
 
     PathRef(signedBundle)

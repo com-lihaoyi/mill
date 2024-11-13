@@ -27,7 +27,7 @@ trait AndroidAppModule extends JavaModule {
   def androidSdkModule: ModuleRef[AndroidSdkModule]
 
   /**
-   * Loads `AndroidManifest.xml` file.
+   * Provides Path to an XML file containing configuration and metadata about your android application.
    */
   def androidManifest: Task[PathRef] = Task.Source(millSourcePath / "AndroidManifest.xml")
 
@@ -35,6 +35,32 @@ trait AndroidAppModule extends JavaModule {
    * Adds "aar" to the handled artifact types.
    */
   def artifactTypes: T[Set[coursier.Type]] = Task { super.artifactTypes() + coursier.Type("aar") }
+
+  /**
+   * Default name of the keystore file ("keyStore.jks"). Users can customize this value.
+   */
+  def androidReleaseKeyName: T[String] = Task { "keyStore.jks" }
+
+  /**
+   * Default alias in the keystore ("androidKey"). Users can customize this value.
+   */
+  def androidReleaseKeyAlias: T[String] = Task { "androidKey" }
+
+  /**
+   * Default password for the key ("android"). Users can customize this value.
+   */
+  def androidReleaseKeyPass: T[String] = Task { "android" }
+
+  /**
+   * Default password for the keystore ("android"). Users can customize this value.
+   */
+  def androidReleaseKeyStorePass: T[String] = Task { "android" }
+
+  /**
+   * Default path to the keystore file, derived from `androidReleaseKeyName()`.
+   * Users can customize the keystore file name to change this path.
+   */
+  def androidReleaseKeyPath: T[PathRef] = Task.Source(millSourcePath / androidReleaseKeyName())
 
   /**
    * Extracts JAR files and resources from AAR dependencies.
@@ -159,8 +185,7 @@ trait AndroidAppModule extends JavaModule {
       Seq(
         androidSdkModule().d8Path().path.toString,
         "--output",
-        jarFile.toString,
-        "--no-desugaring"
+        jarFile.toString
       ) ++ os.walk(compile().classes.path).filter(_.ext == "class").map(
         _.toString
       )
@@ -223,6 +248,32 @@ trait AndroidAppModule extends JavaModule {
   }
 
   /**
+   * Generates the command-line arguments required for Android app signing.
+   *
+   * Uses the release keystore path if available; otherwise, defaults to a standard keystore path.
+   * Includes arguments for the keystore path, key alias, and passwords.
+   *
+   * @return A `Task` producing a sequence of strings for signing configuration.
+   */
+  def androidSignKeyDetails: T[Seq[String]] = Task {
+    val keyPath = {
+      if (!os.exists(androidReleaseKeyPath().path)) { androidKeystore().path }
+      else { androidReleaseKeyPath().path }
+    }
+
+    Seq(
+      "--ks",
+      keyPath.toString,
+      "--ks-key-alias",
+      androidReleaseKeyAlias(),
+      "--ks-pass",
+      s"pass:${androidReleaseKeyStorePass()}",
+      "--key-pass",
+      s"pass:${androidReleaseKeyPass()}"
+    )
+  }
+
+  /**
    * Signs the APK using a keystore to generate a final, distributable APK.
    *
    * The signing step is mandatory to distribute Android applications. It adds a cryptographic
@@ -237,22 +288,16 @@ trait AndroidAppModule extends JavaModule {
   def androidApk: T[PathRef] = Task {
     val signedApk: os.Path = Task.dest / "app.apk"
 
-    os.call((
-      androidSdkModule().apksignerPath().path,
-      "sign",
-      "--ks",
-      androidKeystore().path,
-      "--ks-key-alias",
-      "androidkey",
-      "--ks-pass",
-      "pass:android",
-      "--key-pass",
-      "pass:android",
-      "--out",
-      signedApk,
-      androidAlignedUnsignedApk().path
-    ))
-
+    os.call(
+      Seq(
+        androidSdkModule().apksignerPath().path.toString,
+        "sign",
+        "--in",
+        androidAlignedUnsignedApk().path.toString,
+        "--out",
+        signedApk.toString
+      ) ++ androidSignKeyDetails()
+    )
     PathRef(signedApk)
   }
 
@@ -267,7 +312,7 @@ trait AndroidAppModule extends JavaModule {
    * [[https://docs.oracle.com/javase/8/docs/technotes/tools/windows/keytool.html keytool Documentation]]
    */
   def androidKeystore: T[PathRef] = Task(persistent = true) {
-    val keystoreFile: os.Path = Task.dest / "keystore.jks"
+    val keystoreFile: os.Path = androidReleaseKeyPath().path
 
     if (!os.exists(keystoreFile)) {
       os.call((
@@ -278,7 +323,7 @@ trait AndroidAppModule extends JavaModule {
         "-alias",
         "androidkey",
         "-dname",
-        "CN=MILL, OU=MILL, O=MILL, L=MILL, S=MILL, C=IN",
+        "CN=MILL, OU=MILL, O=MILL, L=MILL, S=MILL, C=MILL",
         "-validity",
         "10000",
         "-keyalg",

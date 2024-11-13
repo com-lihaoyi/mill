@@ -25,6 +25,12 @@ object app extends AndroidAppKotlinModule {
 
   def kotlinVersion = "2.0.20"
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+
+  // Configuration for ReleaseKey
+  def androidReleaseKeyName: T[String] = Task { "releaseKey.jks" }
+  def androidReleaseKeyAlias: T[String] = Task { "releaseKey" }
+  def androidReleaseKeyPass: T[String] = Task { "MillBuildTool" }
+  def androidReleaseKeyStorePass: T[String] = Task { "MillBuildTool" }
 }
 
 ////SNIPPET:END
@@ -51,6 +57,7 @@ object app extends AndroidAppKotlinModule {
 // .
 // ├── app
 // │   ├── AndroidManifest.xml
+// │   ├── releaseKey.jks
 // │   ├── resources
 // │   │   └── values
 // │   │       ├── colors.xml

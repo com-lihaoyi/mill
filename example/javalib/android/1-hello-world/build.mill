@@ -21,6 +21,13 @@ object androidSdkModule0 extends AndroidSdkModule {
 // Actual android application
 object app extends AndroidAppModule {
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+
+  // Configuration for ReleaseKey
+  def androidReleaseKeyName: T[String] = Task { "releaseKey.jks" }
+  def androidReleaseKeyAlias: T[String] = Task { "releaseKey" }
+  def androidReleaseKeyPass: T[String] = Task { "MillBuildTool" }
+  def androidReleaseKeyStorePass: T[String] = Task { "MillBuildTool" }
+
 }
 
 ////SNIPPET:END
@@ -47,6 +54,7 @@ object app extends AndroidAppModule {
 // .
 // ├── app
 // │   ├── AndroidManifest.xml
+// │   ├── releaseKey.jks
 // │   ├── resources
 // │   │   └── values
 // │   │       ├── colors.xml
