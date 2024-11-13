@@ -6,7 +6,7 @@
     <title>Building Kotlin with Mill :: The Mill JVM Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/kotlinlib/intro.html" />
     <link rel="prev" href="../scalalib/native-examples.html" />
-    <link rel="next" href="builtin-commands.html" />
+    <link rel="next" href="module-config.html" />
     <meta name="generator" content="Antora 3.1.9" />
     <link rel="stylesheet" href="../../../_/css/site.css" />
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -94,10 +94,6 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../javalib/builtin-commands.html">Built-in Commands</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../javalib/module-config.html">Java Module Configuration</a>
   </li>
 
@@ -105,7 +101,7 @@
     <a class="nav-link" href="../javalib/dependencies.html">Java Library Dependencies</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../javalib/testing.html">Testing Java Projects</a>
   </li>
 
@@ -137,10 +133,6 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../scalalib/builtin-commands.html">Built-in Commands</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
   </li>
 
@@ -148,7 +140,7 @@
     <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
   </li>
 
@@ -180,10 +172,6 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="builtin-commands.html">Built-in Commands</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="module-config.html">Kotlin Module Configuration</a>
   </li>
 
@@ -191,7 +179,7 @@
     <a class="nav-link" href="dependencies.html">Kotlin Library Dependencies</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="testing.html">Testing Kotlin Projects</a>
   </li>
 
@@ -251,6 +239,10 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../cli/alternate-installation.html">Other installation methods</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/builtin-commands.html">Built-in Commands</a>
   </li>
 </ul>
   </li>
@@ -893,7 +885,7 @@ of <code>mill run</code>.</p>
 <div class="paragraph">
 <p>If you’re not familiar with what tasks you can <code>override</code> or how they are related,
 you can explore the existing tasks via autocomplete in your IDE, or use the
-<a href="builtin-commands.html#_visualize" class="xref page">mill visualize</a>.</p>
+<a href="../cli/builtin-commands.html#_visualize" class="xref page">mill visualize</a>.</p>
 </div>
 <div class="paragraph">
 <p><code>os.read.lines</code> and <code>os.write</code> come
@@ -907,7 +899,7 @@ to what is bundled with Mill.</p>
 <p>Custom user-defined tasks in Mill benefit from all
 the same things that built-in tasks do: automatic caching (in the
 <a href="../fundamentals/out-dir.html" class="xref page">out/ folder</a>), parallelism (with the <a href="../cli/flags.html#_jobs_j" class="xref page">-j/--jobs
-flag</a>), inspectability (via <a href="builtin-commands.html#_show" class="xref page">show</a>/<a href="builtin-commands.html#_inspect" class="xref page">inspect</a>), and so on.
+flag</a>), inspectability (via <a href="../cli/builtin-commands.html#_show" class="xref page">show</a>/<a href="../cli/builtin-commands.html#_inspect" class="xref page">inspect</a>), and so on.
 While these things may not matter for such a simple example that runs
 quickly, they ensure that custom build logic remains performant and
 maintainable even as the complexity of your project grows.</p>
@@ -1323,7 +1315,7 @@ the main Mill codebase under its
 </div>
 <nav class="pagination">
   <span class="prev"><a href="../scalalib/native-examples.html">Scala Native Examples</a></span>
-  <span class="next"><a href="builtin-commands.html">Built-in Commands</a></span>
+  <span class="next"><a href="module-config.html">Kotlin Module Configuration</a></span>
 </nav>
 </article>
   </div>
