@@ -82,7 +82,7 @@ foo.artifactName
 
 */
 
-// See the documentation for xref:fundamentals/query-syntax.adoc[Task Query Syntax] for more details what you
+// See the documentation for xref:cli/query-syntax.adoc[Task Query Syntax] for more details what you
 // can pass to `resolve`
 
 // == inspect

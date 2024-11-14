@@ -38,8 +38,9 @@
 * The Mill CLI
 ** xref:cli/installation-ide.adoc[]
 ** xref:cli/flags.adoc[]
-** xref:cli/alternate-installation.adoc[]
 ** xref:cli/builtin-commands.adoc[]
+** xref:cli/query-syntax.adoc[]
+** xref:cli/alternate-installation.adoc[]
 * Migrating to Mill
 ** xref:migrating/maven.adoc[]
 // This section gives a tour of the various user-facing features of Mill:
@@ -51,7 +52,6 @@
 ** xref:fundamentals/tasks.adoc[]
 ** xref:fundamentals/modules.adoc[]
 ** xref:fundamentals/out-dir.adoc[]
-** xref:fundamentals/query-syntax.adoc[]
 ** xref:fundamentals/library-deps.adoc[]
 ** xref:fundamentals/cross-builds.adoc[]
 ** xref:fundamentals/bundled-libraries.adoc[]
