@@ -41,6 +41,8 @@
 ** xref:cli/builtin-commands.adoc[]
 ** xref:cli/query-syntax.adoc[]
 ** xref:cli/alternate-installation.adoc[]
+* Migrating to Mill
+** xref:migrating/maven.adoc[]
 // This section gives a tour of the various user-facing features of Mill:
 // library deps, out folder, queries, tasks, etc.. These are things that
 // every Mill user will likely encounter, and are touched upon in the various
