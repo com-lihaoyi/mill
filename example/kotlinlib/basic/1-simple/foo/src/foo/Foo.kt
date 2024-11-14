@@ -10,7 +10,7 @@ class Foo : CliktCommand() {
     val text by option("-t", "--text", help = "text to insert").required()
 
     override fun run() {
-        echo(generateHtml(text))
+        echo(   generateHtml(text))
     }
 }
 
