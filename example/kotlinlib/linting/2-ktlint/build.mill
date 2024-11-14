@@ -27,4 +27,7 @@ error: ...src/example/FooWrong.kt:6:28: Missing newline before ")" (standard:par
 > ./mill ktlint --format true
 
 > ./mill ktlint # after fixing the violations, ktlint no longer errors
+
+> ./mill mill.kotlinlib.ktlint.KtlintModule/ # alternatively, use external module to check/format
+
 */
