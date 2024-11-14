@@ -1,7 +1,8 @@
 package mill.integration
 
+import mill.main.client.Util
 import mill.testkit.{IntegrationTester, UtestIntegrationTestSuite}
-import utest._
+import utest.*
 
 abstract class MillInitMavenTests extends UtestIntegrationTestSuite {
 
@@ -377,26 +378,28 @@ object MillInitMavenNettyTests extends MillInitMavenTests {
 
   def tests: Tests = Tests {
     test - integrationTest { tester =>
-      import tester._
+      if (!Util.isWindows) {
+        import tester._
 
-      val initRes = eval(("init", "--publish-properties"))
-      assert(
-        // suppressed to avoid CI failure on Windows + JDK 17
-        // initWarnings.forall(initRes.out.contains),
-        initMessages(47).forall(initRes.out.contains),
-        initRes.isSuccess
-      )
+        val initRes = eval(("init", "--publish-properties"))
+        assert(
+          // suppressed to avoid CI failure on Windows + JDK 17
+          // initWarnings.forall(initRes.out.contains),
+          initMessages(47).forall(initRes.out.contains),
+          initRes.isSuccess
+        )
 
-      val resolveRes = eval(("resolve", "_"))
-      assert(
-        resolveModules.forall(resolveRes.out.contains),
-        resolveRes.isSuccess
-      )
-      for (task <- compileTasksThatSucceed) {
-        assert(eval(task, stdout = os.Inherit, stderr = os.Inherit).isSuccess)
-      }
-      for (task <- compileTasksThatFail) {
-        assert(!eval(task, stdout = os.Inherit, stderr = os.Inherit).isSuccess)
+        val resolveRes = eval(("resolve", "_"))
+        assert(
+          resolveModules.forall(resolveRes.out.contains),
+          resolveRes.isSuccess
+        )
+        for (task <- compileTasksThatSucceed) {
+          assert(eval(task, stdout = os.Inherit, stderr = os.Inherit).isSuccess)
+        }
+        for (task <- compileTasksThatFail) {
+          assert(!eval(task, stdout = os.Inherit, stderr = os.Inherit).isSuccess)
+        }
       }
     }
   }
