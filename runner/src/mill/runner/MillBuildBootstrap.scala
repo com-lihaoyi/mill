@@ -181,29 +181,20 @@ class MillBuildBootstrap(
           depth,
           actualBuildFileName = nestedState.buildFile
         )) { evaluator =>
-          if (depth != 0) {
-            val retState = processRunClasspath(
+          if (depth == requestedDepth) processFinalTargets(nestedState, rootModule, evaluator)
+          else if (depth <= requestedDepth) nestedState
+          else {
+            processRunClasspath(
               nestedState,
               rootModule,
               evaluator,
               prevFrameOpt,
               prevOuterFrameOpt
             )
-
-            if (retState.errorOpt.isEmpty && depth == requestedDepth) {
-              // TODO: print some message and indicate actual evaluated frame
-              val evalRet = processFinalTargets(nestedState, rootModule, evaluator)
-              if (evalRet.errorOpt.isEmpty) retState
-              else evalRet
-            } else
-              retState
-
-          } else {
-            processFinalTargets(nestedState, rootModule, evaluator)
           }
         }
       }
-    // println(s"-evaluateRec($depth) " + recRoot(projectRoot, depth))
+
     res
   }
 
