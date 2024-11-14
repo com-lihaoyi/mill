@@ -91,12 +91,6 @@ object `package` extends RootModule with Module {
   }
 
   trait ExampleCrossModuleKotlin extends ExampleCrossModuleJava {
-    override def sources = Task.Sources(millSourcePath).map {
-        _.flatMap(pathRef => os.walk(pathRef.path))
-        .filter(os.isFile)
-        .filterNot(p => p.ext == "kt" && p.segments.contains("linting"))
-        .map(PathRef(_))
-    }
 
     override def lineTransform(line: String) = this.millModuleSegments.parts.last match {
       case "1-test-suite" => line
@@ -190,7 +184,7 @@ object `package` extends RootModule with Module {
         .flatMap(pathRef => os.walk(pathRef.path))
         .filter(os.isFile)
         .filterNot(p =>
-          p.ext == "java" &&
+          (p.ext == "java" || p.ext == "kt") &&
             (p.segments.contains("linting") || p.segments.contains("10-external-module-aliases"))
         )
         .map(PathRef(_))
