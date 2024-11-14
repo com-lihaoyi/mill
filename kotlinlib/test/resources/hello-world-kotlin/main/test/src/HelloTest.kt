@@ -9,10 +9,11 @@ import kotlin.test.assertEquals
 import org.junit.Test
 
 class HelloTest {
-    @Test fun testSuccess() : Unit {
+    @Test fun testSuccess() {
         assertEquals("Hello, world!", getHelloString())
     }
-    @Test fun testFailure() : Unit {
+
+    @Test fun testFailure() {
         assertEquals("world!", getHelloString())
     }
 }

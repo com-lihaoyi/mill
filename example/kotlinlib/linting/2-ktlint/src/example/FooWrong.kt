@@ -1,12 +1,14 @@
-package example;
+package example
 
 class FooWrong {
-
-    fun someFun(one: String,
-                two: String) = Unit
+    fun someFun(
+        one: String,
+        two: String,
+    ) = Unit
 
     companion object {
-        const val LINE = "veryyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"        +
+        const val LINE =
+            "veryyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy" +
                 "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyylongline"
     }
 }

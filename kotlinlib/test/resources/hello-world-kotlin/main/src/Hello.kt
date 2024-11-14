@@ -4,11 +4,9 @@
 
 package hello
 
-fun getHelloString() : String {
-    return "Hello, world!"
-}
+fun getHelloString(): String = "Hello, world!"
 
-fun main(args : Array<String>) {
+fun main(args: Array<String>) {
     println(getHelloString())
 }
 

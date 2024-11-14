@@ -1,7 +1,10 @@
 package foo
 
-fun action(one: Boolean, two: Boolean): String {
-    return if (one) {
+fun action(
+    one: Boolean,
+    two: Boolean,
+): String =
+    if (one) {
         if (two) {
             "one, two"
         } else {
@@ -14,4 +17,3 @@ fun action(one: Boolean, two: Boolean): String {
             "nothing"
         }
     }
-}

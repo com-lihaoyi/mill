@@ -2,8 +2,8 @@ package foo
 
 import java.io.IOException
 
-fun getLineCount(): String? {
-    return try {
+fun getLineCount(): String? =
+    try {
         ::main.javaClass.classLoader
             .getResourceAsStream("line-count.txt")
             .readAllBytes()
@@ -11,7 +11,6 @@ fun getLineCount(): String? {
     } catch (e: IOException) {
         null
     }
-}
 
 fun main() = println("Line Count: " + getLineCount())
 

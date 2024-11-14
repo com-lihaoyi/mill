@@ -9,26 +9,27 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
-class FooTests : FunSpec({
+class FooTests :
+    FunSpec({
 
-    test("hello") {
-        val result = Foo().hello()
-        result shouldStartWith "Hello"
-    }
+        test("hello") {
+            val result = Foo().hello()
+            result shouldStartWith "Hello"
+        }
 
-    test("world") {
-        val result = Foo().hello()
-        result shouldEndWith "World"
-    }
+        test("world") {
+            val result = Foo().hello()
+            result shouldEndWith "World"
+        }
 
-    test("mockito") {
-        val mockFoo = mock<Foo>()
+        test("mockito") {
+            val mockFoo = mock<Foo>()
 
-        whenever(mockFoo.hello()) doReturn "Hello Mockito World"
+            whenever(mockFoo.hello()) doReturn "Hello Mockito World"
 
-        val result = mockFoo.hello()
+            val result = mockFoo.hello()
 
-        result shouldBe "Hello Mockito World"
-        verify(mockFoo).hello()
-    }
-})
+            result shouldBe "Hello Mockito World"
+            verify(mockFoo).hello()
+        }
+    })
