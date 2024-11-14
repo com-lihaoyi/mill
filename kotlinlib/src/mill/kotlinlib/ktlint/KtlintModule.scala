@@ -32,7 +32,7 @@ trait KtlintModule extends JavaModule {
    * Ktlint configuration file.
    */
   def ktlintConfig: T[Option[PathRef]] = Task {
-    Some(PathRef(millSourcePath / ".editorconfig"))
+    Some(PathRef(Task.workspace / ".editorconfig"))
   }
 
   /**
