@@ -392,11 +392,12 @@ object MillInitMavenNettyTests extends MillInitMavenTests {
         resolveModules.forall(resolveRes.out.contains),
         resolveRes.isSuccess
       )
-
-      assert(
-        compileTasksThatSucceed.forall(eval(_).isSuccess),
-        compileTasksThatFail.forall(!eval(_).isSuccess)
-      )
+      for(task <- compileTasksThatSucceed){
+        assert(eval(task, stdout = os.Inherit, stderr = os.Inherit).isSuccess)
+      }
+      for(task <- compileTasksThatFail){
+        assert(!eval(task, stdout = os.Inherit, stderr = os.Inherit).isSuccess)
+      }
     }
   }
 }
