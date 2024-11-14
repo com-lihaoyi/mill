@@ -29,7 +29,7 @@ object `package` extends RootModule with KotlinModule {
 
 > mill runBackground
 
-> curl http://localhost:8090
+> curl http://localhost:8095
 ...<h1>Hello, World!</h1>...
 
 > mill clean runBackground
