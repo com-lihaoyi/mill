@@ -7,7 +7,6 @@ import org.apache.maven.model.{Dependency, Model}
 
 import scala.collection.immutable.{SortedMap, SortedSet}
 import scala.jdk.CollectionConverters.*
-import scala.util.matching.UnanchoredRegex
 
 /**
  * Converts a Maven build to Mill by generating Mill build file(s) from POM file(s).
@@ -421,8 +420,6 @@ object BuildGen {
        |
        |$publishPropertiesSetting""".stripMargin
   }
-
-  private val backslash1: UnanchoredRegex = """(?<!\\)\\(?!\\)""".r.unanchored
 
   private def escape(value: String): String = pprint.Util.literalize(value)
 
