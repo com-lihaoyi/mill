@@ -540,6 +540,9 @@ object MillInitMavenNettyTests extends MillInitMavenTests {
         initMessages(47).forall(initRes.out.contains),
         initRes.isSuccess
       )
+      println("+" * 80)
+      println(os.read(workspacePath / "transport-native-unix-common/package.mill"))
+      println("+" * 80)
 
       val resolveRes = eval(("resolve", "_"))
       assert(
