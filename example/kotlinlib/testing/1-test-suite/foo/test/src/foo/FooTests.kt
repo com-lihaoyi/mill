@@ -2,33 +2,33 @@ package foo
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldEndWith
 import io.kotest.matchers.string.shouldStartWith
+import io.kotest.matchers.string.shouldEndWith
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
-class FooTests :
-    FunSpec({
-        test("hello") {
-            val result = Foo().hello()
-            result shouldStartWith "Hello"
-        }
+class FooTests : FunSpec({
 
-        test("world") {
-            val result = Foo().hello()
-            result shouldEndWith "World"
-        }
+    test("hello") {
+        val result = Foo().hello()
+        result shouldStartWith "Hello"
+    }
 
-        test("mockito") {
-            val mockFoo = mock<Foo>()
+    test("world") {
+        val result = Foo().hello()
+        result shouldEndWith "World"
+    }
 
-            whenever(mockFoo.hello()) doReturn "Hello Mockito World"
+    test("mockito") {
+        val mockFoo = mock<Foo>()
 
-            val result = mockFoo.hello()
+        whenever(mockFoo.hello()) doReturn "Hello Mockito World"
 
-            result shouldBe "Hello Mockito World"
-            verify(mockFoo).hello()
-        }
-    })
+        val result = mockFoo.hello()
+
+        result shouldBe "Hello Mockito World"
+        verify(mockFoo).hello()
+    }
+})

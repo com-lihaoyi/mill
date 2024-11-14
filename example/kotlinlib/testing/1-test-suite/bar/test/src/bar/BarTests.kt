@@ -2,33 +2,33 @@ package bar
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldEndWith
 import io.kotest.matchers.string.shouldStartWith
+import io.kotest.matchers.string.shouldEndWith
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
-class BarTests :
-    FunSpec({
-        test("hello") {
-            val result = Bar().hello()
-            result shouldStartWith "Hello"
-        }
+class BarTests : FunSpec({
 
-        test("world") {
-            val result = Bar().hello()
-            result shouldEndWith "World"
-        }
+    test("hello") {
+        val result = Bar().hello()
+        result shouldStartWith "Hello"
+    }
 
-        test("mockito") {
-            val mockBar = mock<Bar>()
+    test("world") {
+        val result = Bar().hello()
+        result shouldEndWith "World"
+    }
 
-            whenever(mockBar.hello()) doReturn "Hello Mockito World"
+    test("mockito") {
+        val mockBar = mock<Bar>()
 
-            val result = mockBar.hello()
+        whenever(mockBar.hello()) doReturn "Hello Mockito World"
 
-            result shouldBe "Hello Mockito World"
-            verify(mockBar).hello()
-        }
-    })
+        val result = mockBar.hello()
+
+        result shouldBe "Hello Mockito World"
+        verify(mockBar).hello()
+    }
+})

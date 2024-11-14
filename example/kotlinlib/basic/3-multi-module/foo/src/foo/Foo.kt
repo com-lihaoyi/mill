@@ -6,7 +6,7 @@ import com.github.ajalt.clikt.parameters.options.required
 
 const val VALUE: String = "hello"
 
-class Foo : CliktCommand() {
+class Foo: CliktCommand() {
     val fooText by option("--foo-text").required()
     val barText by option("--bar-text").required()
 
@@ -15,10 +15,7 @@ class Foo : CliktCommand() {
     }
 }
 
-fun mainFunction(
-    fooText: String,
-    barText: String,
-) {
+fun mainFunction(fooText: String, barText: String) {
     println("Foo.value: " + VALUE)
     println("Bar.value: " + bar.generateHtml(barText))
 }

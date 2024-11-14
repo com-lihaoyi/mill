@@ -15,6 +15,7 @@ import org.w3c.fetch.RequestInit
 import shared.*
 
 object ClientApp {
+
     private var state = "all"
 
     private val todoApp: Element
@@ -25,43 +26,38 @@ object ClientApp {
             .fetch(url, RequestInit(method = "POST"))
             .then { it.text() }
             .then { text ->
-                todoApp.innerHTML =
-                    createHTML().div { renderBody(Json.decodeFromString<List<Todo>>(text), state) }
+                todoApp.innerHTML = createHTML().div {
+                    renderBody(Json.decodeFromString<List<Todo>>(text), state)
+                }
                 initListeners()
             }
     }
 
-    private fun bindEvent(
-        cls: String,
-        url: String,
-        endState: String? = null,
-    ) {
-        document
-            .getElementsByClassName(cls)[0]
-            ?.addEventListener(
-                "click",
-                {
-                    postFetchUpdate(url)
-                    if (endState != null) state = endState
-                },
+    private fun bindEvent(cls: String, url: String, endState: String? = null) {
+        document.getElementsByClassName(cls)[0]
+            ?.addEventListener("click", {
+                postFetchUpdate(url)
+                if (endState != null) state = endState
+            }
             )
     }
 
-    private fun bindIndexedEvent(
-        cls: String,
-        block: (String) -> String,
-    ) {
+    private fun bindIndexedEvent(cls: String, block: (String) -> String) {
         for (elem in document.getElementsByClassName(cls).asList()) {
             elem.addEventListener(
                 "click",
-                { postFetchUpdate(block(elem.getAttribute("data-todo-index")!!)) },
+                { postFetchUpdate(block(elem.getAttribute("data-todo-index")!!)) }
             )
         }
     }
 
     fun initListeners() {
-        bindIndexedEvent("destroy") { "/delete/$state/$it" }
-        bindIndexedEvent("toggle") { "/toggle/$state/$it" }
+        bindIndexedEvent("destroy") {
+            "/delete/$state/$it"
+        }
+        bindIndexedEvent("toggle") {
+            "/toggle/$state/$it"
+        }
         bindEvent("toggle-all", "/toggle-all/$state")
         bindEvent("todo-all", "/list/all", "all")
         bindEvent("todo-active", "/list/active", "active")
@@ -75,20 +71,17 @@ object ClientApp {
                 check(it is KeyboardEvent)
                 if (it.keyCode == 13) {
                     window
-                        .fetch(
-                            "/add/$state",
-                            RequestInit(method = "POST", body = newTodoInput.value),
-                        ).then { it.text() }
+                        .fetch("/add/$state", RequestInit(method = "POST", body = newTodoInput.value))
+                        .then { it.text() }
                         .then { text ->
                             newTodoInput.value = ""
-                            todoApp.innerHTML =
-                                createHTML().div {
-                                    renderBody(Json.decodeFromString<List<Todo>>(text), state)
-                                }
+                            todoApp.innerHTML = createHTML().div {
+                                renderBody(Json.decodeFromString<List<Todo>>(text), state)
+                            }
                             initListeners()
                         }
                 }
-            },
+            }
         )
     }
 }

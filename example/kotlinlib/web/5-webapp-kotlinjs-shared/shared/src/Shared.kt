@@ -1,31 +1,31 @@
 package shared
 
 import kotlinx.html.*
+import kotlinx.html.stream.createHTML
 import kotlinx.serialization.Serializable
 
-@Serializable data class Todo(
-    val checked: Boolean,
-    val text: String,
-)
+@Serializable
+data class Todo(val checked: Boolean, val text: String)
 
-fun FlowContent.renderBody(
-    todos: List<Todo>,
-    state: String,
-) {
-    val filteredTodos =
-        when (state) {
-            "all" -> todos.withIndex()
-            "active" -> todos.withIndex().filter { !it.value.checked }
-            "completed" -> todos.withIndex().filter { it.value.checked }
-            else -> throw IllegalStateException("Unknown state=$state")
-        }
+fun FlowContent.renderBody(todos: List<Todo>, state: String) {
+    val filteredTodos = when (state) {
+        "all" -> todos.withIndex()
+        "active" -> todos.withIndex().filter { !it.value.checked }
+        "completed" -> todos.withIndex().filter { it.value.checked }
+        else -> throw IllegalStateException("Unknown state=$state")
+    }
     div {
         header(classes = "header") {
             h1 { +"todos" }
-            input(classes = "new-todo") { placeholder = "What needs to be done?" }
+            input(classes = "new-todo") {
+                placeholder = "What needs to be done?"
+            }
         }
         section(classes = "main") {
-            input(classes = "toggle-all", type = InputType.checkBox) {
+            input(
+                classes = "toggle-all",
+                type = InputType.checkBox
+            ) {
                 id = "toggle-all"
                 checked = todos.any { it.checked }
             }
@@ -46,14 +46,18 @@ fun FlowContent.renderBody(
                                 attributes["data-todo-index"] = index.toString()
                             }
                         }
-                        input(classes = "edit") { value = todo.text }
+                        input(classes = "edit") {
+                            value = todo.text
+                        }
                     }
                 }
             }
         }
         footer(classes = "footer") {
             span(classes = "todo-count") {
-                strong { +todos.filter { !it.checked }.size.toString() }
+                strong {
+                    +todos.filter { !it.checked }.size.toString()
+                }
                 +" items left"
             }
             ul(classes = "filters") {

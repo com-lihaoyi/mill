@@ -1,10 +1,7 @@
 package bar
 
-fun action(
-    one: Boolean,
-    two: Boolean,
-): String =
-    if (one) {
+fun action(one: Boolean, two: Boolean): String {
+    return if (one) {
         if (two) {
             "one, two"
         } else {
@@ -17,3 +14,4 @@ fun action(
             "nothing"
         }
     }
+}

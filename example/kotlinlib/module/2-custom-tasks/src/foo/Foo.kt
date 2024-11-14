@@ -4,8 +4,8 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 
-class Foo : CliktCommand() {
-    val text by option("-t", "--text", help = "input text").required()
+class Foo: CliktCommand() {
+    val text by option("-t", "--text", help="input text").required()
 
     override fun run() {
         echo("text: $text")
