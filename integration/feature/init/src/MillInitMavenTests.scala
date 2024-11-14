@@ -378,6 +378,7 @@ object MillInitMavenNettyTests extends MillInitMavenTests {
 
   def tests: Tests = Tests {
     test - integrationTest { tester =>
+      // Takes forever on windows and behaves differently from linux/mac
       if (!Util.isWindows) {
         import tester._
 
