@@ -348,6 +348,12 @@ endif::[]
 
 [#0-12-2]
 === 0.12.2 - 2024-11-11
+:version: 0.12.2
+:milestone-name: 0.12.2
+:milestone: 105
+:prev-version: 0.12.1
+
+_Changes since {prev-version}:_
 
 * Show correct build file name in progress prompt {link-pr}/3847[#3847]
 * Fix target name when reporting cycles in `runModuleDeps` {link-pr}/3860[#3860]
@@ -370,14 +376,26 @@ endif::[]
   added https://mill-build.org/mill/comparisons/why-mill.html[Why Use Mill?] and
   https://mill-build.org/mill/comparisons/unique.html[What Makes Mill Unique?] Sections
 
-
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-12-1]
 === 0.12.1 - 2024-10-27
+:version: 0.12.1
+:milestone-name: 0.12.1
+:milestone: 104
+:prev-version: 0.12.0
+
+_Changes since {prev-version}:_
 
 * Fix updating of prompt to match terminal width in client-server mode {link-pr}/3833[#3833]
 * Allow `.mill-jvm-opts` to interpolate environment variables, add `.mill-opts` {link-pr}/3841[#3841]
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-12-0]
@@ -707,6 +725,27 @@ on large projects {link-pr}/3388[#3388]
 ** Improvements to `visualize` and `visualizePlan` such that they no longer need to be
 prefixed with `show` and no longer need a separate `graphviz`/`dot` install on Mac-OSX
 {link-pr}/3438[#3438]
+
+[#0-11-13]
+=== 0.11.13 - 2024-01-14
+:version: 0.11.13
+:milestone-name: 0.11.13
+:milestone: 100
+:prev-version: 0.11.12
+
+_Changes since {prev-version}:_
+
+
+* Security Fix: Update protobuf-java to 3.25.5 {link-pr}/3639[#3639]
+* Backport: Fixed property handling when using `--define`/`-D` from the Mill CLI. {link-pr}/3795[#3795]
+* Backport: GenIdea: Handle failure when evaluating module sources/resources {link-pr}/3755[#3755]
+* Update asm from 9.7 to 9.7.1 for Java 24 support {link-pr}/3745[#3745]
+
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
 
 [#0-11-12]
 === 0.11.12 - 2024-08-20
