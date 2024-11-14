@@ -424,17 +424,7 @@ object BuildGen {
 
   private val backslash1: UnanchoredRegex = """(?<!\\)\\(?!\\)""".r.unanchored
 
-  private def escape3(c: Char): Boolean =
-    (c: @annotation.switch) match {
-      case '\r' | '\n' | '"' => true
-      case _ => false
-    }
-
-  private def escape(value: String): String =
-    if (null == value) "\"\""
-    else if (value.exists(escape3)) s"\"\"\"$value\"\"\".stripMargin"
-    else if (backslash1.matches(value)) s"raw\"$value\""
-    else s"\"$value\""
+  private def escape(value: String): String = pprint.Util.literalize(value)
 
   private def escapeOption(value: String): String =
     if (null == value) "None" else s"Some(${escape(value)})"
