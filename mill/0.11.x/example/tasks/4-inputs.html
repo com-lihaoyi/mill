@@ -346,7 +346,7 @@
 </aside>
 <article class="doc">
 <div class="listingblock">
-<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.11.12/0.11.12-example-tasks-4-inputs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.11.12//example/tasks/4-inputs">browse</a>)</div>
+<div class="title">build.sc (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.11.13/0.11.13-example-tasks-4-inputs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.11.13//example/tasks/4-inputs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 
@@ -372,35 +372,35 @@ even if the external <code>git</code> status changes:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def gitStatusTarget = T {
-  &quot;v-&quot; +
-  os.proc(&quot;git&quot;, &quot;log&quot;, &quot;-1&quot;, &quot;--pretty=format:%h-%B &quot;)
-    .call(cwd = T.workspace)
-    .out
-    .text()
-    .trim()
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def gitStatusTask = T {
+  &quot;version-&quot; +
+    os.proc(&quot;git&quot;, &quot;log&quot;, &quot;-1&quot;, &quot;--pretty=format:%h-%B &quot;)
+      .call(cwd = T.workspace)
+      .out
+      .text()
+      .trim()
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; git init .
-&gt; git commit --allow-empty -m &quot;Initial-Commit&quot;
+&gt; git commit --no-gpg-sign --allow-empty -m &quot;Initial-Commit&quot;
 
-&gt; ./mill show gitStatusTarget
-&quot;v-...-Initial-Commit&quot;
+&gt; ./mill show gitStatusTask
+&quot;version-...-Initial-Commit&quot;
 
-&gt; git commit --allow-empty -m &quot;Second-Commit&quot;
+&gt; git commit --no-gpg-sign --allow-empty -m &quot;Second-Commit&quot;
 
-&gt; ./mill show gitStatusTarget # Mill didn't pick up the git change!
-&quot;v-...-Initial-Commit&quot;</code></pre>
+&gt; ./mill show gitStatusTask # Mill didn't pick up the git change!
+&quot;version-...-Initial-Commit&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p><code>gitStatusTarget</code> will not know that <code>git rev-parse</code> can change, and will
+<p><code>gitStatusTask</code> will not know that <code>git rev-parse</code> can change, and will
 not know to re-evaluate when your <code>git log</code> <em>does</em> change. This means
-<code>gitStatusTarget</code> will continue to use any previously cached value, and
-<code>gitStatusTarget</code>'s output will  be out of date!</p>
+<code>gitStatusTask</code> will continue to use any previously cached value, and
+<code>gitStatusTask</code>'s output will  be out of date!</p>
 </div>
 <div class="paragraph">
 <p>To fix this, you can wrap your <code>git log</code> in a <code>T.input</code>:</p>
@@ -414,31 +414,102 @@ not know to re-evaluate when your <code>git log</code> <em>does</em> change. Thi
     .text()
     .trim()
 }
-def gitStatusTarget2 = T { &quot;v-&quot; + gitStatusInput() }</code></pre>
+def gitStatusTask2 = T { &quot;version-&quot; + gitStatusInput() }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>This makes <code>gitStatusInput</code> to always re-evaluate every build, and only if
-the output of <code>gitStatusInput</code> changes will <code>gitStatusTarget2</code> re-compute</p>
+the output of <code>gitStatusInput</code> changes will <code>gitStatusTask2</code> re-compute</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; git commit --allow-empty -m &quot;Initial-Commit&quot;
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; git commit --no-gpg-sign --allow-empty -m &quot;Initial-Commit&quot;
 
-&gt; ./mill show gitStatusTarget2
-&quot;v-...-Initial-Commit&quot;
+&gt; ./mill show gitStatusTask2
+&quot;version-...-Initial-Commit&quot;
 
-&gt; git commit --allow-empty -m &quot;Second-Commit&quot;
+&gt; git commit --no-gpg-sign --allow-empty -m &quot;Second-Commit&quot;
 
-&gt; ./mill show gitStatusTarget2 # Mill picked up git change
-&quot;v-...-Second-Commit&quot;</code></pre>
+&gt; ./mill show gitStatusTask2 # Mill picked up git change
+&quot;version-...-Second-Commit&quot;</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Note that because <code>T.input</code>s re-evaluate every time, you should ensure that the
 code you put in <code>T.input</code> runs quickly. Ideally it should just be a simple check
 &quot;did anything change?&quot; and any heavy-lifting should be delegated to downstream
-targets where it can be cached if possible.</p>
+tasks where it can be cached if possible.</p>
+</div>
+<div class="sect2">
+<h3 id="_system_properties_inputs"><a class="anchor" href="#_system_properties_inputs"></a>System Properties Inputs</h3>
+<div class="paragraph">
+<p>One major use case of <code>Input</code> tasks is to make your build configurable via
+JVM system properties of environment variables. If you directly access
+<code>sys.props</code> or <code>sys.env</code> inside a <a href="#_cached_tasks">cached Task{}</a>, the
+cached value will be used even if the property or environment variable changes
+in subsequent runs, when you really want it to be re-evaluated. Thus, accessing
+system properties should be done in a <code>T.input</code>, and usage of the property
+should be done downstream in a <a href="#_cached_tasks">cached task</a>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def myPropertyInput = T.input {
+  sys.props(&quot;my-property&quot;)
+}
+def myPropertyTask = T {
+  &quot;Hello Prop &quot; + myPropertyInput()
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show myPropertyTask
+&quot;Hello Prop null&quot;
+
+&gt; ./mill -Dmy-property=world show myPropertyTask # Task is correctly invalidated when prop is added
+&quot;Hello Prop world&quot;
+
+&gt; ./mill show myPropertyTask # Task is correctly invalidated when prop is removed
+&quot;Hello Prop null&quot;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Again, <code>T.input</code> runs every time, and thus you should only do the bare minimum
+in your <code>T.input</code> that is necessary to detect changes. Any further processing
+should be done in downstreak <a href="#_cached_tasks">cached tasks</a> to allow for proper
+caching and re-use</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_environment_variable_inputs"><a class="anchor" href="#_environment_variable_inputs"></a>Environment Variable Inputs</h3>
+<div class="paragraph">
+<p>Like system properties, environment variables should be referenced in <code>T.input`s. Unlike
+system properties, you need to use the special API `T.env</code> to access the environment,
+due to JVM limitations:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def myEnvInput = T.input {
+  T.env.getOrElse(&quot;MY_ENV&quot;, null)
+}
+
+def myEnvTask = T {
+  &quot;Hello Env &quot; + myEnvInput()
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show myEnvTask
+&quot;Hello Env null&quot;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">&gt; ./mill show myEnvTask # Task is correctly invalidated when env is removed
+&quot;Hello Env null&quot;</code></pre>
+</div>
+</div>
 </div>
 </article>
   </div>
