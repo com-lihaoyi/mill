@@ -421,7 +421,8 @@ object BuildGen {
        |$publishPropertiesSetting""".stripMargin
   }
 
-  private def escape(value: String): String = pprint.Util.literalize(value)
+  private def escape(value: String): String =
+    pprint.Util.literalize(if (value == null) "" else value)
 
   private def escapeOption(value: String): String =
     if (null == value) "None" else s"Some(${escape(value)})"
