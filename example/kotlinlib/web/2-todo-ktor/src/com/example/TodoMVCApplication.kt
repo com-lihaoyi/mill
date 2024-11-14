@@ -22,7 +22,7 @@ fun Application.configureTemplating() {
                 prefix = "templates/thymeleaf/"
                 suffix = ".html"
                 characterEncoding = "utf-8"
-            }
+            },
         )
     }
 }

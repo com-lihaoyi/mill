@@ -1,7 +1,6 @@
 package foo
 
 open class Foo {
-
     fun hello(): String = "Hello World"
 }
 

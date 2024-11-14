@@ -1,8 +1,8 @@
 package foo
 
-import java.io.IOException
 import kotlinx.html.h1
 import kotlinx.html.stream.createHTML
+import java.io.IOException
 
 fun main(args: Array<String>) {
     println("Foo2.value: ${Foo2.VALUE}")
@@ -28,8 +28,8 @@ object Foo2 {
     val VALUE = createHTML(prettyPrint = false).h1 { text("hello2") }.toString()
 }
 
-private fun readResource(resourceName: String): String? {
-    return try {
+private fun readResource(resourceName: String): String? =
+    try {
         ::main
             .javaClass
             .classLoader
@@ -39,4 +39,3 @@ private fun readResource(resourceName: String): String? {
     } catch (e: IOException) {
         null
     }
-}

@@ -15,18 +15,26 @@ import kotlinx.html.*
 import shared.*
 
 object WebApp {
-
     private val todos = mutableListOf(Todo(true, "Get started with Cask"), Todo(false, "Profit!"))
 
-    fun add(state: String, text: String) {
+    fun add(
+        state: String,
+        text: String,
+    ) {
         todos.add(Todo(false, text))
     }
 
-    fun delete(state: String, index: Int) {
+    fun delete(
+        state: String,
+        index: Int,
+    ) {
         todos.removeAt(index)
     }
 
-    fun toggle(state: String, index: Int) {
+    fun toggle(
+        state: String,
+        index: Int,
+    ) {
         todos[index] = todos[index].let { it.copy(checked = !it.checked) }
     }
 
@@ -103,9 +111,8 @@ object WebApp {
     @JvmStatic
     fun main(args: Array<String>) {
         embeddedServer(Netty, port = 8093, host = "0.0.0.0") {
-                install(ContentNegotiation) { json() }
-                configureRoutes(this)
-            }
-            .start(wait = true)
+            install(ContentNegotiation) { json() }
+            configureRoutes(this)
+        }.start(wait = true)
     }
 }

@@ -13,23 +13,35 @@ import kotlinx.html.*
 import kotlinx.html.stream.createHTML
 
 object WebApp {
-    data class Todo(val checked: Boolean, val text: String)
+    data class Todo(
+        val checked: Boolean,
+        val text: String,
+    )
 
     private val todos = mutableListOf(Todo(true, "Get started with Cask"), Todo(false, "Profit!"))
 
     private fun FlowContent.list(state: String) = renderBody(state)
 
-    private fun FlowContent.add(state: String, text: String) {
+    private fun FlowContent.add(
+        state: String,
+        text: String,
+    ) {
         todos.add(Todo(false, text))
         renderBody(state)
     }
 
-    private fun FlowContent.delete(state: String, index: Int) {
+    private fun FlowContent.delete(
+        state: String,
+        index: Int,
+    ) {
         todos.removeAt(index)
         renderBody(state)
     }
 
-    private fun FlowContent.toggle(state: String, index: Int) {
+    private fun FlowContent.toggle(
+        state: String,
+        index: Int,
+    ) {
         todos[index] = todos[index].let { it.copy(checked = !it.checked) }
         renderBody(state)
     }

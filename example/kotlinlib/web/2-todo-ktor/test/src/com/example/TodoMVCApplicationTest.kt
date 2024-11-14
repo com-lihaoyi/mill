@@ -13,7 +13,7 @@ import org.jetbrains.exposed.sql.Database
 
 class TodoMVCApplicationTest :
     FunSpec({
-        suspend fun withServer(f: suspend HttpClient.() -> Unit): Unit {
+        suspend fun withServer(f: suspend HttpClient.() -> Unit) {
             val database =
                 Database.connect("jdbc:h2:mem:regular;DB_CLOSE_DELAY=-1;", "org.h2.Driver")
             val repository = TodoItemRepositoryImpl(database)

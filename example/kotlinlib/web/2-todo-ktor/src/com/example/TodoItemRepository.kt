@@ -1,11 +1,11 @@
 package com.example
 
-import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.util.UUID
 
 interface TodoItemRepository {
     suspend fun save(item: TodoItem)
@@ -17,10 +17,13 @@ interface TodoItemRepository {
     suspend fun deleteById(id: UUID)
 }
 
-class TodoItemNotFound(id: String) : Exception("TodoItem $id not found")
+class TodoItemNotFound(
+    id: String,
+) : Exception("TodoItem $id not found")
 
-class TodoItemRepositoryImpl(database: Database) : TodoItemRepository {
-
+class TodoItemRepositoryImpl(
+    database: Database,
+) : TodoItemRepository {
     object TodoItems : Table() {
         val id = uuid("id")
         val title = varchar("title", length = 50)
@@ -33,31 +36,35 @@ class TodoItemRepositoryImpl(database: Database) : TodoItemRepository {
         transaction(database) { SchemaUtils.create(TodoItems) }
     }
 
-    override suspend fun save(item: TodoItem): Unit = query {
-        TodoItems.upsert {
-            it[id] = item.id
-            it[title] = item.title
-            it[completed] = item.completed
+    override suspend fun save(item: TodoItem): Unit =
+        query {
+            TodoItems.upsert {
+                it[id] = item.id
+                it[title] = item.title
+                it[completed] = item.completed
+            }
         }
-    }
 
-    override suspend fun findById(id: UUID): TodoItem = query {
-        TodoItems.selectAll()
-            .where(TodoItems.id eq id)
-            .map { TodoItem(it[TodoItems.id], it[TodoItems.title], it[TodoItems.completed]) }
-            .singleOrNull() ?: throw TodoItemNotFound(id.toString())
-    }
-
-    override suspend fun findAll(): List<TodoItem> = query {
-        TodoItems.selectAll().map {
-            TodoItem(it[TodoItems.id], it[TodoItems.title], it[TodoItems.completed])
+    override suspend fun findById(id: UUID): TodoItem =
+        query {
+            TodoItems
+                .selectAll()
+                .where(TodoItems.id eq id)
+                .map { TodoItem(it[TodoItems.id], it[TodoItems.title], it[TodoItems.completed]) }
+                .singleOrNull() ?: throw TodoItemNotFound(id.toString())
         }
-    }
 
-    override suspend fun deleteById(id: UUID): Unit = query {
-        TodoItems.deleteWhere { TodoItems.id eq id }
-    }
+    override suspend fun findAll(): List<TodoItem> =
+        query {
+            TodoItems.selectAll().map {
+                TodoItem(it[TodoItems.id], it[TodoItems.title], it[TodoItems.completed])
+            }
+        }
 
-    private suspend fun <T> query(block: suspend () -> T): T =
-        newSuspendedTransaction(Dispatchers.IO) { block() }
+    override suspend fun deleteById(id: UUID): Unit =
+        query {
+            TodoItems.deleteWhere { TodoItems.id eq id }
+        }
+
+    private suspend fun <T> query(block: suspend () -> T): T = newSuspendedTransaction(Dispatchers.IO) { block() }
 }

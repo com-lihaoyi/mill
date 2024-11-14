@@ -15,7 +15,10 @@ class Foo : CliktCommand() {
     }
 }
 
-fun mainFunction(fooText: String, barText: String) {
+fun mainFunction(
+    fooText: String,
+    barText: String,
+) {
     println("Foo.value: " + VALUE)
     println("Bar.value: " + bar.generateHtml(barText))
 }

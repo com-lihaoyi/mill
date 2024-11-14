@@ -14,9 +14,14 @@ enum class ListFilter {
     COMPLETED,
 }
 
-data class TodoItemFormData(var title: String? = null)
+data class TodoItemFormData(
+    var title: String? = null,
+)
 
-fun modelContent(todos: List<TodoItem>, filter: ListFilter): Map<String, Any> {
+fun modelContent(
+    todos: List<TodoItem>,
+    filter: ListFilter,
+): Map<String, Any> {
     val activeItemCount = todos.count { !it.completed }
     val numberOfCompletedItems = todos.count { it.completed }
 

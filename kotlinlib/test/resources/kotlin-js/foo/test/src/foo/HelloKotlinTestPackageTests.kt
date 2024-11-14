@@ -5,7 +5,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class HelloTests {
-
     @Test
     fun success() {
         assertEquals(getString(), "Hello, world")
@@ -16,4 +15,3 @@ class HelloTests {
         assertEquals(getString(), "Not hello, world")
     }
 }
-

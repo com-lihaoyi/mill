@@ -10,7 +10,6 @@ import org.w3c.dom.get
 import org.w3c.fetch.RequestInit
 
 object ClientApp {
-
     private var state = "all"
 
     private val todoApp: Element
@@ -26,7 +25,11 @@ object ClientApp {
             }
     }
 
-    private fun bindEvent(cls: String, url: String, endState: String? = null) {
+    private fun bindEvent(
+        cls: String,
+        url: String,
+        endState: String? = null,
+    ) {
         document
             .getElementsByClassName(cls)[0]
             ?.addEventListener(
@@ -38,7 +41,10 @@ object ClientApp {
             )
     }
 
-    private fun bindIndexedEvent(cls: String, block: (String) -> String) {
+    private fun bindIndexedEvent(
+        cls: String,
+        block: (String) -> String,
+    ) {
         for (elem in document.getElementsByClassName(cls).asList()) {
             elem.addEventListener(
                 "click",
@@ -66,8 +72,7 @@ object ClientApp {
                         .fetch(
                             "/add/$state",
                             RequestInit(method = "POST", body = newTodoInput.value),
-                        )
-                        .then { it.text() }
+                        ).then { it.text() }
                         .then { text ->
                             newTodoInput.value = ""
                             todoApp.innerHTML = text

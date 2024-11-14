@@ -14,8 +14,6 @@ class Foo : CliktCommand() {
     }
 }
 
-fun generateHtml(text: String): String {
-    return createHTML(prettyPrint = false).h1 { text(text) }.toString()
-}
+fun generateHtml(text: String): String = createHTML(prettyPrint = false).h1 { text(text) }.toString()
 
 fun main(args: Array<String>) = Foo().main(args)

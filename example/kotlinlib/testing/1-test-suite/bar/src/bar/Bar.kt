@@ -1,7 +1,6 @@
 package bar
 
 open class Bar {
-
     fun hello(): String = "Hello World"
 }
 

@@ -1,14 +1,17 @@
 package bar
 
-import javax.servlet.http.HttpServlet
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
+import javax.servlet.http.HttpServlet
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 class BarServlet : HttpServlet() {
-    protected override fun doGet(request: HttpServletRequest, response: HttpServletResponse) {
+    protected override fun doGet(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+    ) {
         response.setContentType("text/html")
         response.setStatus(HttpServletResponse.SC_OK)
         response.getWriter().println("<html><body>Hello World!</body></html>")

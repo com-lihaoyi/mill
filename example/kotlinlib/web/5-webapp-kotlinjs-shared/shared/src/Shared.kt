@@ -3,9 +3,15 @@ package shared
 import kotlinx.html.*
 import kotlinx.serialization.Serializable
 
-@Serializable data class Todo(val checked: Boolean, val text: String)
+@Serializable data class Todo(
+    val checked: Boolean,
+    val text: String,
+)
 
-fun FlowContent.renderBody(todos: List<Todo>, state: String) {
+fun FlowContent.renderBody(
+    todos: List<Todo>,
+    state: String,
+) {
     val filteredTodos =
         when (state) {
             "all" -> todos.withIndex()
