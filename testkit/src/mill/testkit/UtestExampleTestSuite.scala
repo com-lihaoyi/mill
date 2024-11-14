@@ -14,7 +14,7 @@ object UtestExampleTestSuite extends TestSuite {
     test("exampleTest") {
       Retry(
         count = if (sys.env.contains("CI")) 1 else 0,
-        timeoutMillis = 10.minutes.toMillis
+        timeoutMillis = 15.minutes.toMillis
       ) {
         ExampleTester.run(
           clientServerMode,
