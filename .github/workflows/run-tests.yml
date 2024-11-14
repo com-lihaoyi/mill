@@ -94,7 +94,7 @@ jobs:
             install-android-sdk: false
 
           - java-version: '11'
-            millargs: "'example.{depth,extending}.__.local.testCached'"
+            millargs: "'example.{cli,fundamentals,depth,extending}.__.local.testCached'"
             install-android-sdk: false
             # Most of these integration tests should not depend on which mode they
             # are run in, so just run them in `local`

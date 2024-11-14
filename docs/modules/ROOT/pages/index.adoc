@@ -57,6 +57,7 @@ To begin using Mill, check out the introductory documentation for each language:
 For a quick introduction of why you may care about Mill, see the following page:
 
 * xref:comparisons/why-mill.adoc[]
+* xref:comparisons/unique.adoc[]
 
 Or if you prefer a video introduction:
 

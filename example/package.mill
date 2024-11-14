@@ -34,6 +34,7 @@ object `package` extends RootModule with Module {
     object dependencies extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "dependencies"))
     object testing extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "testing"))
     object linting extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "linting"))
+    object migrating extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "migrating"))
     object publishing extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "publishing"))
     object web extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "web"))
   }
@@ -58,7 +59,12 @@ object `package` extends RootModule with Module {
     object native extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "native"))
   }
 
+  object cli extends Module{
+    object builtins extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "builtins"))
+  }
+
   object fundamentals extends Module {
+
     object dependencies extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "dependencies"))
     object tasks extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "tasks"))
     object modules extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "modules"))
@@ -111,14 +117,6 @@ object `package` extends RootModule with Module {
     }
     val upstreamOpt = upstreamCross(this.millModuleSegments.parts.dropRight(1).last)
       .flatMap(_.valuesToModules.get(List(crossValue)))
-
-    def sources = Task{
-      super.sources()
-        .flatMap(pathRef => os.walk(pathRef.path))
-        .filter(os.isFile)
-        .filterNot(p => p.ext == "java" && p.segments.contains("linting"))
-        .map(PathRef(_))
-    }
 
     def testRepoRoot = Task {
       os.copy(super.testRepoRoot().path, T.dest, mergeFolders = true)
@@ -186,7 +184,18 @@ object `package` extends RootModule with Module {
     def fix(args: String*): Command[Unit] = T.command {}
     def testRepoRoot: T[PathRef] = Task.Source(millSourcePath)
 
-    def sources = Task.Sources(millSourcePath)
+    def sources0 = Task.Sources(millSourcePath)
+    def sources = Task{
+      sources0()
+        .flatMap(pathRef => os.walk(pathRef.path))
+        .filter(os.isFile)
+        .filterNot(p =>
+          p.ext == "java" &&
+            (p.segments.contains("linting") || p.segments.contains("10-external-module-aliases"))
+        )
+        .map(PathRef(_))
+    }
+
     def resources = Seq(testRepoRoot())
     def runClasspath = build.main.test.runClasspath()
     def localRunClasspath = build.testkit.localRunClasspath()

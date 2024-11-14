@@ -70,7 +70,7 @@ object bar extends ScalaModule {
 */
 
 // You can also select multiple test suites in one command using Mill's
-// xref:fundamentals/query-syntax.adoc[Task Query Syntax]
+// xref:cli/query-syntax.adoc[Task Query Syntax]
 
 /** Usage
 
