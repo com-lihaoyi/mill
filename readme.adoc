@@ -286,6 +286,27 @@ endif::[]
 // find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
 
 
+[#0-11-13]
+=== 0.11.13 - 2024-01-14
+:version: 0.11.13
+:milestone-name: 0.11.13
+:milestone: 100
+:prev-version: 0.11.12
+
+_Changes since {prev-version}:_
+
+
+* Security Fix: Update protobuf-java to 3.25.5 {link-pr}/3639[#3639]
+* Backport: Fixed property handling when using `--define`/`-D` from the Mill CLI. {link-pr}/3795[#3795]
+* Backport: GenIdea: Handle failure when evaluating module sources/resources {link-pr}/3755[#3755]
+* Update asm from 9.7 to 9.7.1 for Java 24 support {link-pr}/3745[#3745]
+
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
 [#0-11-12]
 === 0.11.12 - 2024-08-20
 :version: 0.11.12
