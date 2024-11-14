@@ -1,6 +1,6 @@
 /** Usage
 
-> rm build.mill # remove example build file
+> rm build.mill # remove any existing build file
 
 > git init .
 > git remote add -t \* -f origin https://github.com/dhatim/fastexcel.git
@@ -8,15 +8,10 @@
 
 > ./mill init
 converting Maven build
-generated 4 Mill build file(s)
-removing existing Mill build files
 writing Mill build file to fastexcel-writer/package.mill
 writing Mill build file to fastexcel-reader/package.mill
 writing Mill build file to e2e/package.mill
 writing Mill build file to build.mill
-converted Maven build to Mill
-formatting Mill build files
-Formatting 4 Scala sources
 init completed, run "mill resolve _" to list available tasks
 
 > ./mill __.compile
