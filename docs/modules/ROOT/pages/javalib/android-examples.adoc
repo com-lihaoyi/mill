@@ -7,7 +7,7 @@ This page provides an example of using Mill as a build tool for Android applicat
 This workflow is still pretty rough and nowhere near production ready, but can serve as
 a starting point for further experimentation and development.
 
-== Relevant Modules
+==== Relevant Modules
 
 These are the main Mill Modules that are relevant for building Android apps:
 
@@ -45,4 +45,25 @@ everything from compiling the code to generating a signed APK for distribution.
 5. **Optimizing with zipalign**: The APK is optimized using `zipalign` to ensure better performance on Android devices.
 6. **Signing the APK**: Finally, the APK is signed with a digital signature, allowing it to be distributed and installed on Android devices.
 
+After creating Simple Android Application now let's focus on how to create Android App Bundle Using Mill Build Tool
 
+== Android App Bundle
+
+include::partial$example/javalib/android/2-app-bundle.adoc[]
+
+==  Understanding `AndroidAppBundle`
+
+The `AndroidAppBundle` trait is used to create and manage Android App Bundles (AAB) in Mill. It provides tasks for creating, building, and signing an AAB from Android resources and DEX files.
+
+* {mill-doc-url}/api/latest/mill/javalib/android/AndroidAppBundle.html[`mill.javalib.android.AndroidAppBundle`]: Provides a framework for building Android App Bundle.
+
+==== Key Functions
+
+- **androidAaptOptions:** Here, Overrides `androidAaptOptions` to add the `--proto-format` option to AAPT commands, enabling protocol buffer format for assets.
+
+- **androidBundleZip:** Creates a zip archive containing: `Compiled DEX files`, `Resources`, `libraries`, and `assets`, The `Android manifest`.
+    This zip follows the Android App Bundle format, as outlined in the official documentation.
+
+- **androidUnsignedBundle:** Uses the `bundleTool` to build an unsigned AAB from the bundle zip.
+
+- **androidBundle:** Signs the AAB using a specified keystore with the `jarsigner` tool, producing a signed Android App Bundle (AAB).

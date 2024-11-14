@@ -15,11 +15,19 @@ import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}
 // Create and configure an Android SDK module to manage Android SDK paths and tools.
 object androidSdkModule0 extends AndroidSdkModule {
   def buildToolsVersion = "35.0.0"
+  def bundleToolVersion = "1.17.2"
 }
 
 // Actual android application
 object app extends AndroidAppModule {
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+
+  // Configuration for ReleaseKey
+  def androidReleaseKeyName: T[String] = Task { "releaseKey.jks" }
+  def androidReleaseKeyAlias: T[String] = Task { "releaseKey" }
+  def androidReleaseKeyPass: T[String] = Task { "MillBuildTool" }
+  def androidReleaseKeyStorePass: T[String] = Task { "MillBuildTool" }
+
 }
 
 ////SNIPPET:END
@@ -39,15 +47,19 @@ object app extends AndroidAppModule {
 // By extending `AndroidAppModule`, we leverage its predefined Android build tasks, ensuring that
 // all necessary steps (resource generation, APK creation, and signing) are executed automatically.
 //
-// ### Project Structure:
+// #### Project Structure:
 // The project follows the standard Android app layout. Below is a typical project folder structure:
 //
 // ----
 // .
-// ├── build.mill
-// ├── AndroidManifest.xml
-// └── src/main/java
-//     └── com/helloworld/app
-//         └── MainActivity.java
+// ├── app
+// │   ├── AndroidManifest.xml
+// │   ├── releaseKey.jks
+// │   ├── resources
+// │   │   └── values
+// │   │       ├── colors.xml
+// │   │       └── strings.xml
+// │   └── src/main/java/com/helloworld/app/MainActivity.java
+// └── build.mill
 // ----
 //
