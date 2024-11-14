@@ -1,12 +1,10 @@
 package mill.kotlinlib.ktlint
 
-import mainargs.arg
 import mill._
 import mill.api.{Loose, PathRef}
 import mill.define.{Discover, ExternalModule}
 import mill.javalib.JavaModule
 import mill.kotlinlib.DepSyntax
-import mill.main.Tasks
 import mill.util.Jvm
 
 /**
