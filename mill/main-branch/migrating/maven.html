@@ -3,10 +3,9 @@
 <html lang="en"><head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Task Query Syntax :: The Mill JVM Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/fundamentals/query-syntax.html" />
-    <link rel="prev" href="out-dir.html" />
-    <link rel="next" href="library-deps.html" />
+    <title>Migrating From Maven to Mill :: The Mill JVM Build Tool</title>
+    <link rel="prev" href="../cli/alternate-installation.html" />
+    <link rel="next" href="../fundamentals/tasks.html" />
     <meta name="generator" content="Antora 3.1.9" />
     <link rel="stylesheet" href="../../../_/css/site.css" />
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -238,11 +237,26 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/alternate-installation.html">Other installation methods</a>
+    <a class="nav-link" href="../cli/builtin-commands.html">Built-in Commands</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../cli/builtin-commands.html">Built-in Commands</a>
+    <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/alternate-installation.html">Other installation methods</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Migrating to Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item is-current-page" data-depth="2">
+    <a class="nav-link" href="maven.html">Migrating From Maven to Mill</a>
   </li>
 </ul>
   </li>
@@ -253,31 +267,27 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="tasks.html">Tasks</a>
+    <a class="nav-link" href="../fundamentals/tasks.html">Tasks</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="modules.html">Modules</a>
+    <a class="nav-link" href="../fundamentals/modules.html">Modules</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="out-dir.html">The Output Directory</a>
-  </li>
-
-  <li class="nav-item is-current-page is-active" data-depth="2">
-    <a class="nav-link" href="query-syntax.html">Task Query Syntax</a>
+    <a class="nav-link" href="../fundamentals/out-dir.html">The Output Directory</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="library-deps.html">Library Dependencies in Mill</a>
+    <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="cross-builds.html">Cross Builds</a>
+    <a class="nav-link" href="../fundamentals/cross-builds.html">Cross Builds</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="bundled-libraries.html">Bundled Libraries</a>
+    <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
   </li>
 </ul>
   </li>
@@ -479,18 +489,18 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="../index.html">Mill Documentation</a></li>
-    <li>Mill Fundamentals</li>
-    <li><a href="query-syntax.html">Task Query Syntax</a></li>
+    <li>Migrating to Mill</li>
+    <li><a href="maven.html">Migrating From Maven to Mill</a></li>
   </ul>
 </nav>
-<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/fundamentals/query-syntax.adoc">Edit this Page</a></div>
+<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/migrating/maven.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">Task Query Syntax</h1>
+<h1 class="page">Migrating From Maven to Mill</h1>
 <div id="preamble">
 <div class="sectionbody">
 
@@ -510,111 +520,266 @@ const links = document.querySelectorAll('a');
 });
 </script>
 <div class="paragraph">
-<p>When interacting with Mill from the CLI, you often need to select tasks or modules.
-In most places, where Mill accepts a task, it really accepts a task selector query, which is the name of a task in its simplest form, but it can also contain wildcards, type pattern and other special syntax, making it a powerful tool to select specific tasks.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_selecting_dedicated_tasks"><a class="anchor" href="#_selecting_dedicated_tasks"></a>Selecting dedicated tasks</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>When invoking Mill, the simplest way to run a task is to give it with a fully qualified names.</p>
+<p>The Mill <code>init</code> command can be used to convert a Maven build to Mill. This has
+<a href="#limitations">limitations</a> and is not intended to reliably migrate 100% of
+Maven builds out there in the wild, but is instead meant to provide the basic
+scaffolding of a Mill build for you to further refine and update manually.</p>
 </div>
 <div class="paragraph">
-<p>Examples:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>&gt; mill for.compile
-&gt; mill for.run hello world
-&gt; mill foo.testCached</pre>
-</div>
-</div>
-<div class="sidebarblock">
-<div class="content">
-<div class="title">Understanding task paths and path segments</div>
-<div class="paragraph">
-<p>Each Mill module and task has a unique path.
-Each part of the path is called <em>segment</em>.
-Segments are separated with a dot (<code>.</code>).
-They look like regular Scala class name qualifiers.</p>
-</div>
-<div class="paragraph">
-<p>There are two kind of segments: <em>label segments</em> and <em>cross segments</em>.</p>
-</div>
-<div class="paragraph">
-<p><em>Label segments</em> are the components of a task path and have the same restriction as Scala identifiers.
-They must start with a letter and may contain letters, numbers and a limited set of special characters <code>-</code> (dash), <code>_</code> (underscore).
-They are used to denote Mill modules, tasks, but in the case of <a href="modules.html#_external_modules" class="xref page">external modules</a> their Scala package names.</p>
-</div>
-<div class="paragraph">
-<p><em>Cross segments</em> start with a label segment but contain additional square brackets (<code>[</code>, <code>]</code>]) and are used to denote cross module and their parameters.</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tbody><tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-Segments can be surrounded by parentheses (<code>(</code>, <code>)</code>)).
-When combined with <a href="#type-filters">qualified type filter</a> which contain dots (<code>.</code>), the parentheses need to be used, to avoid the dots to being interpreted as path separators.
-</td>
-</tr>
-</tbody></table>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="select-multiple-tasks"><a class="anchor" href="#select-multiple-tasks"></a>Selecting multiple tasks</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>If you want to select more than one task, you have multiple options:</p>
+<p>Each Maven module with a <code>pom.xml</code> is converted to a Mill <code>build.mill</code>/<code>package.mill</code>
+file containing a top-level <code>MavenModule</code>. A nested <code>test</code> module is defined if both:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="#enumerations">Use task enumerations</a></p>
+<p><code>src/test</code> exists</p>
 </li>
 <li>
-<p><a href="#wildcards">Use wildcard selections</a></p>
-</li>
-<li>
-<p><a href="#type-filters">Specify type filters on wildcard selections</a></p>
-</li>
-<li>
-<p><a href="#add-task-selector">Use <code>+</code> to use more than one task selector</a></p>
+<p>a supported <a href="../javalib/testing.html" class="xref page">test framework</a> is detected (for a <em>tests only</em>
+module with test sources in <code>src/main/java</code>)</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>You can also combine these techniques to properly select your tasks</p>
+<p>Again, note that <code>mill init</code> importing Maven builds is best effort.
+This means that while small projects can be expected to complete without issue:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; rm build.mill # remove any existing build file
+
+&gt; git init .
+&gt; git remote add -f origin https://github.com/davidmoten/geo.git
+&gt; git checkout 0.8.1 # example multi-module Java project using JUnit4
+
+&gt; ./mill init
+converting Maven build
+writing Mill build file to geo/package.mill
+writing Mill build file to geo-mem/package.mill
+writing Mill build file to build.mill
+init completed, run &quot;mill resolve _&quot; to list available tasks
+
+&gt; ./mill __.compile
+compiling 9 Java sources to .../out/geo/compile.dest/classes ...
+compiling 2 Java sources to .../out/geo-mem/compile.dest/classes ...
+compiling 10 Java sources to .../out/geo/test/compile.dest/classes ...
+done compiling
+compiling 1 Java source to .../out/geo-mem/test/compile.dest/classes ...
+done compiling
+
+&gt; ./mill __.test # all tests pass immediately
+Test run com.github.davidmoten.geo.GeoHashTest finished: 0 failed, 0 ignored, 66 total, ...
+Test run com.github.davidmoten.geo.DirectionTest finished: 0 failed, 0 ignored, 1 total, ...
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>More larger projects often require some manual tweaking in order to work:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; rm build.mill # remove any existing build file
+
+&gt; git init .
+&gt; git remote add -f origin https://github.com/dhatim/fastexcel.git
+&gt; git checkout 0.18.4
+&gt; # pom.xml has custom profiles for JPMS that mill init does not support
+&gt; # https://github.com/dhatim/fastexcel/blob/de56e786a1fe29351e2f8dc1d81b7cdd9196de4a/pom.xml#L251
+
+&gt; ./mill init
+converting Maven build
+writing Mill build file to fastexcel-writer/package.mill
+writing Mill build file to fastexcel-reader/package.mill
+writing Mill build file to e2e/package.mill
+writing Mill build file to build.mill
+init completed, run &quot;mill resolve _&quot; to list available tasks
+
+&gt; ./mill -k __.compile # Compilation needs manual tweaking to pass
+error: ...fastexcel-reader/src/main/java/module-info.java:3:32: module not found: org.apache.commons.compress
+error: ...fastexcel-reader/src/main/java/module-info.java:4:27: module not found: com.fasterxml.aalto
+error: ...fastexcel-writer/src/main/java/module-info.java:2:14: module not found: opczip</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Nevertheless, even for larger builds <code>mill init</code> automates most of the tedious
+busy-work of writing <code>build.mill</code>/<code>package.mill</code> files, and makes it much quicker
+to get a working Mill build for any existing Maven project.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="enumerations"><a class="anchor" href="#enumerations"></a>Enumerations</h2>
+<h2 id="_capabilities"><a class="anchor" href="#_capabilities"></a>Capabilities</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Enumeration are denoted by curly braces (<code>{</code>, <code>}</code>).
-Inside the curly braces you can place two or more selector paths, separated with a comma (<code>,</code>).</p>
-</div>
-<div class="paragraph">
-<p>Examples:</p>
+<p>The conversion</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><code>{foo,bar}</code> simple enumerates two tasks, <code>foo</code> and <code>bar</code></p>
+<p>handles deeply nested modules</p>
 </li>
 <li>
-<p><code>foo.{compile,run}</code> expands to <code>foo.compile</code> and <code>foo.run</code></p>
+<p>captures project metadata</p>
 </li>
 <li>
-<p><code>{_,foo.bar}.baz</code> expands to <code>_.baz</code> and <code>foo.bar.baz</code></p>
+<p>configures dependencies for scopes:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>compile</p>
+</li>
+<li>
+<p>provided</p>
+</li>
+<li>
+<p>runtime</p>
+</li>
+<li>
+<p>test</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>configures testing frameworks:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>JUnit 4</p>
+</li>
+<li>
+<p>JUnit 5</p>
+</li>
+<li>
+<p>TestNG</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>configures multiple, compile and test, resource directories</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_command_line_arguments"><a class="anchor" href="#_command_line_arguments"></a>Command line arguments</h3>
+<div class="listingblock">
+<div class="title">name of generated base module trait defining project metadata settings</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">./mill init --base-module MyModule</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">name of generated nested test module (defaults to <code>test</code>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">./mill init --test-module test</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">name of generated companion object defining constants for dependencies</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">./mill init --deps-object Deps</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">capture properties defined in <code>pom.xml</code> for publishing</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">./mill init --publish-properties</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">merge build files generated for a multi-module build</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">./mill init --merge</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">use cache for Maven repository system</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">./mill init --cache-repository</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">process Maven plugin executions and configurations</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">./mill init --process-plugins</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_verified_projects"><a class="anchor" href="#_verified_projects"></a>Verified projects</h3>
+<div class="paragraph">
+<p>The conversion has been tested with the following projects:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/fusesource/jansi/archive/refs/tags/jansi-2.4.1.zip">jansi</a></p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>./mill init --base-module JansiModule --deps-object Deps --cache-repository --process-plugins</pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/davidmoten/geo/archive/refs/tags/0.8.1.zip">geo</a> (multi-module build)</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>./mill init --base-module GeoModule --deps-object Deps --merge --cache-repository --process-plugins</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Post <code>init</code>, the following tasks were executed successfully:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>compile</code></p>
+</li>
+<li>
+<p><code>test</code></p>
+</li>
+<li>
+<p><code>publishLocal</code></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="limitations"><a class="anchor" href="#limitations"></a>Limitations</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The conversion does not support</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>build extensions</p>
+</li>
+<li>
+<p>build profiles</p>
+</li>
+<li>
+<p>non-Java (native) sources</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Maven plugin support is limited to</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://maven.apache.org/plugins/maven-compiler-plugin/">maven-compiler-plugin</a></p>
 </li>
 </ul>
 </div>
@@ -626,94 +791,25 @@ Inside the curly braces you can place two or more selector paths, separated with
 </td>
 <td class="content">
 <div class="paragraph">
-<p>Some Shells like <code>bash</code> support curly braces expansion.
-Make sure to properly mask the selector path, e.g. by putting it in quotes.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>mill &quot;foo.{compile.run}&quot;</pre>
-</div>
-</div>
-</td>
-</tr>
-</tbody></table>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="wildcards"><a class="anchor" href="#wildcards"></a>Wildcard selections</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>There are two wildcards, you can use as path segment.</p>
+<p>These limitations can be overcome by:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><code>_</code> The single underscore acts as a placeholder for a single segment.</p>
+<p>configuring equivalent Mill <a href="../extending/contrib-plugins.html" class="xref page">contrib</a>
+or <a href="../extending/thirdparty-plugins.html" class="xref page">third party</a> plugins</p>
 </li>
 <li>
-<p><code>__</code> The double underscore acts as a placeholder for many segments.
-In particular, it can represent an empty segment.</p>
+<p>defining custom <a href="../extending/writing-plugins.html" class="xref page">plugins</a></p>
+</li>
+<li>
+<p>defining custom <a href="../fundamentals/tasks.html" class="xref page">tasks</a></p>
+</li>
+<li>
+<p>defining custom <a href="../fundamentals/cross-builds.html" class="xref page">cross modules</a></p>
 </li>
 </ul>
 </div>
-<div class="paragraph">
-<p>With wildcards, you can get explicit control over the position of a task in the build tree.</p>
-</div>
-<div class="paragraph">
-<p>E.g. the filter <code>_._._.jar</code> will match all jar tasks, that are on the third-level of the build tree.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="type-filters"><a class="anchor" href="#type-filters"></a>Type filters for wildcard selections</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Type filters are always combined with wildcard.
-They are used to limit the scope of the wildcard to only match path segments of the specified types.
-For module paths this means, the represented module needs to be an instance of the specified type.</p>
-</div>
-<div class="paragraph">
-<p>A type filter always starts with a wildcard (<code>_</code>, <code>__</code>) followed by a colon (<code>:</code>) and finally  the <em>type qualifier</em>.</p>
-</div>
-<div class="paragraph">
-<p>The type is matched by its name and optionally by its enclosing types and packages, separated by a <code>.</code> sign.
-Since this is also used to separate task path segments, a type selector segment containing a <code>.</code> needs to be enclosed in parentheses.
-A fully qualified type can be denoted with the <code>_root_</code> package.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>&gt; mill resolve __:TestModule.jar
-&gt; mill resolve &quot;(__:scalalib.TestModule).jar&quot;
-&gt; mill resolve &quot;(__:mill.scalalib.TestModule).jar&quot;
-&gt; mill resolve &quot;(__:_root_.mill.scalalib.TestModule).jar&quot;</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>If the type qualifier starts with a <code>^</code> or <code>!</code>, it’s only matching types which are <em>not</em> instances of the specified type.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>&gt; mill resolve __:^TestModule.jar</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>You can also add more than one type filters to a wildcard.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>&gt; mill resolve &quot;__:JavaModule:^ScalaModule:^TestModule.jar&quot;</pre>
-</div>
-</div>
-<div class="admonitionblock note">
-<table>
-<tbody><tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-Type filter are currently only supported for module selections, but not for task selections.
-That means, you can’t filter based on the result type of a task.
 </td>
 </tr>
 </tbody></table>
@@ -721,53 +817,35 @@ That means, you can’t filter based on the result type of a task.
 </div>
 </div>
 <div class="sect1">
-<h2 id="add-task-selector"><a class="anchor" href="#add-task-selector"></a>Start a new task selector with <code>+</code></h2>
+<h2 id="_faq"><a class="anchor" href="#_faq"></a>FAQ</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>On the Mill CLI you can also start a complete new task selector with the <code>+</code> sign.</p>
+<div class="title">How to fix compilation errors in generated build files?</div>
+<p>This could happen if a module and task name collision occurs. Either rename the module or enclose the name in backticks.</p>
 </div>
 <div class="paragraph">
-<p>There is a subtle difference between the expansion of <a href="#enumerations">enumerations</a>, <a href="#wildcards">wildcards</a> and <a href="#type-filters">wildcards with type filters</a> in contrast to the  <a href="#add-task-selector">start of a new selector with <code>+</code></a>.</p>
+<div class="title">How to fix JPMS <code>module not found</code> compilation errors?</div>
+<p>Set <a href="https://github.com/tfesenko/Java-Modules-JPMS-CheatSheet#how-to-export-or-open-a-package">additional command line options</a>
+for dependencies.</p>
 </div>
-<div class="paragraph">
-<p>For all the former versions, Mill parses them into a complex but single task selector path and subsequent parameters are used for all resolved tasks.</p>
-</div>
-<div class="paragraph">
-<p>Whereas the <code>+</code> start a completely new selector path to which you can also provide a different parameter list. This is important when using <a href="tasks.html#_commands" class="xref page">command tasks</a> which can accept their own parameters. The <code>JavaModule.run</code> command is an example.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>&gt; mill foo.run hello                         <i class="conum" data-value="1"></i><b>(1)</b>
-&gt; mill {foo,bar}.run hello                   <i class="conum" data-value="2"></i><b>(2)</b>
-&gt; mill __:JavaModule:^TestModule.run hello   <i class="conum" data-value="3"></i><b>(3)</b>
-&gt; mill foo.run hello + bar.run world         <i class="conum" data-value="4"></i><b>(4)</b></pre>
-</div>
-</div>
-<div class="colist arabic">
-<table>
-<tbody><tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>Runs <code>foo.run</code> with the parameter <code>hello</code></td>
-</tr>
-<tr>
-<td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>Expands to <code>foo.run</code> and <code>bar.run</code> and runs both with the parameter <code>hello</code>.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="3"></i><b>3</b></td>
-<td>Selects the <code>run</code> command of all Java modules, but not test modules, and runs them with the parameter <code>hello</code>.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="4"></i><b>4</b></td>
-<td>Runs <code>fun.run</code> with the parameter <code>hello</code> and <code>bar.run</code> with the parameter <code>world</code>.</td>
-</tr>
-</tbody></table>
+<div class="ulist">
+<div class="title">How to fix test compilation errors?</div>
+<ul>
+<li>
+<p>The test framework configured may be for an unsupported version; try upgrading the
+corresponding dependencies.</p>
+</li>
+<li>
+<p>Mill does not add <code>provided</code> dependencies to the transitive dependencies of the nested
+test module; specify the dependencies again, in one of <code>ivyDeps</code>, <code>compileIvyDeps</code>, <code>runIvyDeps</code>, in the test module.</p>
+</li>
+</ul>
 </div>
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="out-dir.html">The Output Directory</a></span>
-  <span class="next"><a href="library-deps.html">Library Dependencies in Mill</a></span>
+  <span class="prev"><a href="../cli/alternate-installation.html">Other installation methods</a></span>
+  <span class="next"><a href="../fundamentals/tasks.html">Tasks</a></span>
 </nav>
 </article>
   </div>
