@@ -26,3 +26,9 @@ ktlint_standard_import-ordering = disabled
 ktlint_standard_function-naming = disabled
 ktlint_standard_backing-property-naming = disabled
 ktlint_standard_no-empty-file = disabled
+
+[kotlinlib/test/resources/contrib/ktfmt/**/*]
+ktlint = disabled
+
+[out/**/*]
+ktlint = disabled
