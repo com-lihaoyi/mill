@@ -182,7 +182,7 @@ class MillBuildBootstrap(
           actualBuildFileName = nestedState.buildFile
         )) { evaluator =>
           if (depth == requestedDepth) processFinalTargets(nestedState, rootModule, evaluator)
-          else if (depth <= requestedDepth)nestedState
+          else if (depth <= requestedDepth) nestedState
           else {
             processRunClasspath(
               nestedState,
