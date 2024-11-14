@@ -64,13 +64,13 @@ object KtlintModule extends ExternalModule with KtlintModule with TaskModule {
    *              - when set, files are not formatted
    */
   def reformatAll(
-      check: mainargs.Flag = mainargs.Flag(value = false),
+      check: mainargs.Flag = mainargs.Flag(value = false)
   ): Command[Unit] = Task.Command {
     ktlintAction(
       KtlintArgs(format = true, check = check.value),
       ktlintConfig(),
       ktlintOptions(),
-      ktlintClasspath(),
+      ktlintClasspath()
     )
   }
 
@@ -81,13 +81,13 @@ object KtlintModule extends ExternalModule with KtlintModule with TaskModule {
    *              - when set, files are not formatted
    */
   def checkFormatAll(
-      check: mainargs.Flag = mainargs.Flag(value = false),
+      check: mainargs.Flag = mainargs.Flag(value = false)
   ): Command[Unit] = Task.Command {
     ktlintAction(
       KtlintArgs(format = false, check = check.value),
       ktlintConfig(),
       ktlintOptions(),
-      ktlintClasspath(),
+      ktlintClasspath()
     )
   }
 
