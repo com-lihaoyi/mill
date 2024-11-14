@@ -3,7 +3,7 @@
 > rm build.mill # remove any existing build file
 
 > git init .
-> git remote add -t \* -f origin https://github.com/dhatim/fastexcel.git
+> git remote add -f origin https://github.com/dhatim/fastexcel.git
 > git checkout 0.18.4
 > # pom.xml has custom profiles for JPMS that mill init does not support
 > # https://github.com/dhatim/fastexcel/blob/de56e786a1fe29351e2f8dc1d81b7cdd9196de4a/pom.xml#L251
