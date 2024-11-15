@@ -22,7 +22,7 @@ trait PythonModule extends Module {
   }
 
   def typeCheck: T[Unit] = Task {
-    val upstreamTypeCheck = Task.traverse(moduleDeps)(_.typeCheck)()
+    Task.traverse(moduleDeps)(_.typeCheck)()
 
     os.call(
       (pythonExe().path, "-m", "mypy", "--strict", sources().path),
