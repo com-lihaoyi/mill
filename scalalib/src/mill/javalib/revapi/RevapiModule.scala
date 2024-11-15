@@ -1,7 +1,7 @@
 package mill.javalib.revapi
 
-import mill.*
-import mill.javalib.*
+import mill._
+import mill.javalib._
 import mill.javalib.revapi.RevapiModule.optional
 import mill.scalalib.publish.Artifact
 import mill.util.Jvm
