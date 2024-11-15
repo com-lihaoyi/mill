@@ -26,6 +26,3 @@ ktlint = disabled
 
 [kotlinlib/test/resources/kotlin-js/foo/test/src/foo/**/*]
 ktlint = disabled
-
-[out/**/*]
-ktlint = disabled
