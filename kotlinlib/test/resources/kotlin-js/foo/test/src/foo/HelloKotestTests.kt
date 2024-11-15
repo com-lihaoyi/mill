@@ -4,14 +4,13 @@ import bar.getString
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
-class HelloKotestTests :
-    FunSpec({
+class HelloTests: FunSpec({
 
-        test("success") {
-            getString() shouldBe "Hello, world"
-        }
+    test("success") {
+        getString() shouldBe "Hello, world"
+    }
 
-        test("failure") {
-            getString() shouldBe "Not hello, world"
-        }
-    })
+    test("failure") {
+        getString() shouldBe "Not hello, world"
+    }
+})

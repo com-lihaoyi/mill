@@ -1,8 +1,7 @@
 package foo
 
+import kotlinx.html.*
 import kotlinx.html.stream.createHTML
-// FIXME: can someone check this? I can't get this compiling
-// import kotlinx.html.*
 
 fun main() {
     println(hello())

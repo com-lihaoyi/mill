@@ -20,5 +20,8 @@ ktlint_code_style = intellij_idea
 [kotlinlib/test/resources/contrib/ktfmt/**/*]
 ktlint = disabled
 
+[kotlinlib/test/resources/kotlin-js/foo/test/src/foo/**/*]
+ktlint = disabled
+
 [out/**/*]
 ktlint = disabled
