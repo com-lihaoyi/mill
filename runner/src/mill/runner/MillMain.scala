@@ -223,19 +223,20 @@ object MillMain {
 
 
                   val tailerRefreshIntervalMillis = 2
-//                  val stdoutTailer = new FileToStreamTailer(
-//                    (serverDir / ServerFiles.stdout).toIO,
-//                    System.out,
-//                    tailerRefreshIntervalMillis
-//                  )
-//                  val stderrTailer = new FileToStreamTailer(
-//                    (serverDir / ServerFiles.stderr).toIO,
-//                    System.err,
-//                    tailerRefreshIntervalMillis
-//                  )
+                  val stdoutTailer = new FileToStreamTailer(
+                    (serverDir / ServerFiles.stdout).toIO,
+                    System.out,
+                    tailerRefreshIntervalMillis
+                  )
+                  val stderrTailer = new FileToStreamTailer(
+                    (serverDir / ServerFiles.stderr).toIO,
+                    System.err,
+                    tailerRefreshIntervalMillis
+                  )
+
                   try {
-//                    stdoutTailer.start()
-//                    stderrTailer.start()
+                    stdoutTailer.start()
+                    stderrTailer.start()
                     val (isSuccess, evalStateOpt) = Watching.watchLoop(
                       ringBell = config.ringBell.value,
                       watch = config.watch.value,
@@ -300,8 +301,8 @@ object MillMain {
 
                     loopRes = (isSuccess, evalStateOpt)
                   } finally {
-//                    stdoutTailer.close()
-//                    stderrTailer.close()
+                    stdoutTailer.close()
+                    stderrTailer.close()
                   }
                 } // while repeatForBsp
                 bspContext.foreach { ctx =>
