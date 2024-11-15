@@ -62,7 +62,7 @@ jobs:
             install-android-sdk: false
 
           - java-version: '11'
-            millargs: "'{scalajslib,scalanativelib,kotlinlib}.__.testCached'"
+            millargs: "'{scalajslib,scalanativelib,kotlinlib,pythonlib,javascriptlib}.__.testCached'"
             install-android-sdk: false
 
           - java-version: 17
