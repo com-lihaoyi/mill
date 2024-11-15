@@ -1,0 +1,12 @@
+
+= Building Python with Mill
+
+include::partial$gtag-config.adoc[]
+
+
+:language: Java
+:language-small: java
+
+== Simple Python Module
+
+include::partial$example/pythonlib/basic/1-simple.adoc[]

@@ -58,6 +58,12 @@ object `package` extends RootModule with Module {
     object web extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "web"))
     object native extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "native"))
   }
+  object javascriptlib extends Module {
+    object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))
+  }
+  object pythonlib extends Module {
+    object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))
+  }
 
   object cli extends Module{
     object builtins extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "builtins"))

@@ -81,6 +81,10 @@ jobs:
             millargs: "'example.kotlinlib.__.local.testCached'"
             install-android-sdk: true
 
+          - java-version: 17
+            millargs: "'example.{pythonlib,javascriptlib}.__.local.testCached'"
+            install-android-sdk: false
+
           - java-version: '11'
             millargs: "'example.thirdparty[{mockito,acyclic,commons-io}].local.testCached'"
             install-android-sdk: false
