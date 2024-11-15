@@ -426,7 +426,7 @@ Major changes:
 
 5. Mill now supports other JVM langauges: https://mill-build.org/mill/javalib/intro.html[Java],
    experimental support for https://mill-build.org/mill/kotlinlib/intro.html[Kotlin/KotlinJs],
-   and https://mill-build.org/mill/kotlinlib/android-examples.html[even-more-experimental support for Android].
+   and https://mill-build.org/mill/android/kotlin.html[even-more-experimental support for Android].
    This includes IDE integrations, tooling integrations (docs, autoformatters, linters, testing
    frameworks, etc.)
 

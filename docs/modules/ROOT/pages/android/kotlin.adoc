@@ -1,4 +1,4 @@
-= (Experimental) Android Builds
+= Android Kotlin Projects
 :page-aliases: android_app_kotlin_examples.adoc
 
 include::partial$gtag-config.adoc[]
@@ -17,7 +17,7 @@ These are the main Mill Modules that are relevant for building Android apps:
 
 == Simple Android Hello World Application
 
-include::partial$example/kotlinlib/android/1-hello-world.adoc[]
+include::partial$example/android/kotlinlib/1-hello-kotlin.adoc[]
 
 This example demonstrates how to create a basic "Hello World" Android application
 using the Mill build tool. It outlines the minimum setup required to compile Kotlin code,
