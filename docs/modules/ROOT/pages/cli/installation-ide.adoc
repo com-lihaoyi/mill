@@ -62,6 +62,12 @@ as a drop-in replacement for `./mill` that supports running on all major platfor
 Mill supports IntelliJ and VSCode, both via the standard
 https://build-server-protocol.github.io/[Build Server Protocol]
 
+The first thing you need to do is to run this command to generat the BSP configuration files:
+[source,bash]
+----
+./mill mill.bsp.BSP/install
+----
+
 === IntelliJ
 
 To use Mill with IntelliJ, first ensure you have the free
