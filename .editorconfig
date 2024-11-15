@@ -15,17 +15,7 @@ indent_style = space
 indent_size = 2
 
 [*.{kt,kts}]
-ktlint_standard_no-wildcard-imports = disabled
-ktlint_standard_no-consecutive-blank-lines = disabled
-ktlint_standard_final-newline = disabled
-ktlint_standard_filename = disabled
-ktlint_standard_property-naming = disabled
-ktlint_standard_class-naming = disabled
-ktlint_standard_no-consecutive-comments = disabled
-ktlint_standard_import-ordering = disabled
-ktlint_standard_function-naming = disabled
-ktlint_standard_backing-property-naming = disabled
-ktlint_standard_no-empty-file = disabled
+ktlint_code_style = intellij_idea
 
 [kotlinlib/test/resources/contrib/ktfmt/**/*]
 ktlint = disabled
