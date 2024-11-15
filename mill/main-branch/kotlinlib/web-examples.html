@@ -567,11 +567,13 @@ object `package` extends RootModule with KotlinModule {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package com.example
 
-import io.ktor.server.application.*
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import io.ktor.server.application.Application
+import io.ktor.server.application.call
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
+import io.ktor.server.response.respondText
+import io.ktor.server.routing.get
+import io.ktor.server.routing.routing
 
 fun main() {
     embeddedServer(Netty, port = 8090, host = &quot;0.0.0.0&quot;, module = Application::module)
@@ -592,26 +594,26 @@ fun Application.module() {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package com.example
 
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import io.ktor.server.testing.*
-
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.testing.testApplication
 
-class HelloKtorTest: FunSpec({
-    test(&quot;HelloKtorTest&quot;) {
-        testApplication {
-            application {
-                module()
+class HelloKtorTest :
+    FunSpec({
+        test(&quot;HelloKtorTest&quot;) {
+            testApplication {
+                application {
+                    module()
+                }
+                val response = client.get(&quot;/&quot;)
+                response.status shouldBe HttpStatusCode.OK
+                response.bodyAsText() shouldBe &quot;&lt;h1&gt;Hello, World!&lt;/h1&gt;&quot;
             }
-        val response = client.get(&quot;/&quot;)
-        response.status shouldBe HttpStatusCode.OK
-        response.bodyAsText() shouldBe &quot;&lt;h1&gt;Hello, World!&lt;/h1&gt;&quot;
         }
-    }
-})</code></pre>
+    })</code></pre>
 </div>
 </div>
 <div class="paragraph">

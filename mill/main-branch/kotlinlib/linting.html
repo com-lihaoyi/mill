@@ -619,7 +619,7 @@ code formatting violations, via the <code>--format</code> flag shown below:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill ktlint # run ktlint to produce a report, defaults to warning without error
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill ktlint --check true # run ktlint to produce a report, defaults to warning without error
 error: ...src/example/FooWrong.kt:6:28: Missing newline before &quot;)&quot; (standard:parameter-list-wrapping)...
 ...src/example/FooWrong.kt:6:28: Newline expected before closing parenthesis (standard:function-signature)...
 ...src/example/FooWrong.kt:6:28: Missing trailing comma before &quot;)&quot; (standard:trailing-comma-on-declaration-site)...
@@ -660,7 +660,7 @@ source files. You can configure a non-default version of KtFmt by overriding <co
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill ktfmt --format=false # run ktfmt to produce a list of files which should be formatter
-...src/example/FooWrong.kt...
+error: ...src/example/FooWrong.kt...
 
 &gt; ./mill ktfmt # running without arguments will format all files
 Done formatting ...src/example/FooWrong.kt

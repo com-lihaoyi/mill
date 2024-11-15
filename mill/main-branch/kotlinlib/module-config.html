@@ -688,11 +688,7 @@ object foo extends KotlinModule {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 
-import java.io.IOException
-import java.io.InputStream
-
 object Foo {
-
     // Read `file.txt` from classpath
     fun classpathResourceText(): String {
         // Get the resource as an InputStream
@@ -710,51 +706,50 @@ object Foo {
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-
-import java.io.InputStream
-import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Paths
-import java.nio.file.Path
-import java.util.List
-import java.util.ArrayList
 
-class FooTests : FunSpec({
+class FooTests :
+    FunSpec({
 
-    test(&quot;simple&quot;) {
-        // Reference app module's `Foo` class which reads `file.txt` from classpath
-        val appClasspathResourceText = Foo.classpathResourceText()
-        appClasspathResourceText shouldBe &quot;Hello World Resource File&quot;
+        test(&quot;simple&quot;) {
+            // Reference app module's `Foo` class which reads `file.txt` from classpath
+            val appClasspathResourceText = Foo.classpathResourceText()
+            appClasspathResourceText shouldBe &quot;Hello World Resource File&quot;
 
-        // Read `test-file-a.txt` from classpath
-        val testClasspathResourceText = Foo::class.java.classLoader.getResourceAsStream(&quot;test-file-a.txt&quot;).use {
-            it.readAllBytes().toString(Charsets.UTF_8)
+            // Read `test-file-a.txt` from classpath
+            val testClasspathResourceText =
+                Foo::class.java.classLoader.getResourceAsStream(&quot;test-file-a.txt&quot;).use {
+                    it.readAllBytes().toString(Charsets.UTF_8)
+                }
+            testClasspathResourceText shouldBe &quot;Test Hello World Resource File A&quot;
+
+            // Use `MILL_TEST_RESOURCE_DIR` to read `test-file-b.txt` from filesystem
+            val testFileResourceDir = Paths.get(System.getenv(&quot;MILL_TEST_RESOURCE_DIR&quot;))
+            val testFileResourceText =
+                Files.readString(
+                    testFileResourceDir.resolve(&quot;test-file-b.txt&quot;),
+                )
+            testFileResourceText shouldBe &quot;Test Hello World Resource File B&quot;
+
+            // Use `MILL_TEST_RESOURCE_DIR` to list files available in resource folder
+            val actualFiles = Files.list(testFileResourceDir).toList().sorted()
+            val expectedFiles =
+                listOf(
+                    testFileResourceDir.resolve(&quot;test-file-a.txt&quot;),
+                    testFileResourceDir.resolve(&quot;test-file-b.txt&quot;),
+                )
+            actualFiles shouldBe expectedFiles
+
+            // Use the `OTHER_FILES_DIR` configured in your build to access the
+            // files in `foo/test/other-files/`.
+            val otherFileText =
+                Files.readString(
+                    Paths.get(System.getenv(&quot;OTHER_FILES_DIR&quot;), &quot;other-file.txt&quot;),
+                )
+            otherFileText shouldBe &quot;Other Hello World File&quot;
         }
-        testClasspathResourceText shouldBe &quot;Test Hello World Resource File A&quot;
-
-        // Use `MILL_TEST_RESOURCE_DIR` to read `test-file-b.txt` from filesystem
-        val testFileResourceDir = Paths.get(System.getenv(&quot;MILL_TEST_RESOURCE_DIR&quot;))
-        val testFileResourceText = Files.readString(
-            testFileResourceDir.resolve(&quot;test-file-b.txt&quot;)
-        )
-        testFileResourceText shouldBe &quot;Test Hello World Resource File B&quot;
-
-        // Use `MILL_TEST_RESOURCE_DIR` to list files available in resource folder
-        val actualFiles = Files.list(testFileResourceDir).toList().sorted()
-        val expectedFiles = listOf(
-            testFileResourceDir.resolve(&quot;test-file-a.txt&quot;),
-            testFileResourceDir.resolve(&quot;test-file-b.txt&quot;)
-        )
-        actualFiles shouldBe expectedFiles
-
-        // Use the `OTHER_FILES_DIR` configured in your build to access the
-        // files in `foo/test/other-files/`.
-        val otherFileText = Files.readString(
-            Paths.get(System.getenv(&quot;OTHER_FILES_DIR&quot;), &quot;other-file.txt&quot;)
-        )
-        otherFileText shouldBe &quot;Other Hello World File&quot;
-    }
-})</code></pre>
+    })</code></pre>
 </div>
 </div>
 </div>

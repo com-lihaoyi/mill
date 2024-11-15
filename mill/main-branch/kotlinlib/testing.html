@@ -926,15 +926,16 @@ object foo extends KotlinModule {
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.string.shouldStartWith
 
-class HelloTests : FunSpec({
-    test(&quot;hello&quot;) {
-        println(&quot;Testing Hello&quot;)
-        val result = Foo().hello()
-        result shouldStartWith &quot;Hello&quot;
-        java.lang.Thread.sleep(1000)
-        println(&quot;Testing Hello Completed&quot;)
-    }
-})</code></pre>
+class HelloTests :
+    FunSpec({
+        test(&quot;hello&quot;) {
+            println(&quot;Testing Hello&quot;)
+            val result = Foo().hello()
+            result shouldStartWith &quot;Hello&quot;
+            java.lang.Thread.sleep(1000)
+            println(&quot;Testing Hello Completed&quot;)
+        }
+    })</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -945,15 +946,16 @@ class HelloTests : FunSpec({
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.string.shouldEndWith
 
-class WorldTests : FunSpec({
-    test(&quot;world&quot;) {
-        println(&quot;Testing World&quot;)
-        val result = Foo().hello()
-        result shouldEndWith &quot;World&quot;
-        java.lang.Thread.sleep(1000)
-        println(&quot;Testing World Completed&quot;)
-    }
-})</code></pre>
+class WorldTests :
+    FunSpec({
+        test(&quot;world&quot;) {
+            println(&quot;Testing World&quot;)
+            val result = Foo().hello()
+            result shouldEndWith &quot;World&quot;
+            java.lang.Thread.sleep(1000)
+            println(&quot;Testing World Completed&quot;)
+        }
+    })</code></pre>
 </div>
 </div>
 <div class="paragraph">
