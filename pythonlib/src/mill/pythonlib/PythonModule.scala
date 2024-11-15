@@ -33,7 +33,8 @@ trait PythonModule extends Module {
 
   def gatherScripts(upstream: Seq[(PathRef, PythonModule)]) = {
     for ((sourcesFolder, mod) <- upstream) {
-      val destinationPath = os.pwd / mod.millSourcePath.subRelativeTo(mill.api.WorkspaceRoot.workspaceRoot)
+      val destinationPath =
+        os.pwd / mod.millSourcePath.subRelativeTo(mill.api.WorkspaceRoot.workspaceRoot)
       os.copy.over(sourcesFolder.path / os.up, destinationPath)
     }
   }

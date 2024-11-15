@@ -1,4 +1,3 @@
-
 package build
 import mill._, javascriptlib._
 
@@ -11,7 +10,6 @@ object foo extends TypeScriptModule {
 object qux extends TypeScriptModule {
   def moduleDeps = Seq(foo, foo.bar)
 }
-
 
 // Documentation for mill.javascriptlib
 

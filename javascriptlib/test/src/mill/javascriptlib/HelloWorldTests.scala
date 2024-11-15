@@ -16,7 +16,6 @@ object HelloWorldTests extends TestSuite {
     object qux extends TypeScriptModule
   }
 
-
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-typescript"
 
   def tests: Tests = Tests {
