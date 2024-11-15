@@ -16,6 +16,10 @@ indent_size = 2
 
 [*.{kt,kts}]
 ktlint_code_style = intellij_idea
+ktlint_standard_no-wildcard-imports = disabled
+
+[example/kotlinlib/linting/**/*]
+ktlint = disabled
 
 [kotlinlib/test/resources/contrib/ktfmt/**/*]
 ktlint = disabled
