@@ -7,4 +7,3 @@ data class TodoItem(
     val title: String,
     val completed: Boolean = false,
 )
-

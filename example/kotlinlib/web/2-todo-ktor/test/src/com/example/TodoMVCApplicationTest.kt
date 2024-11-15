@@ -1,15 +1,14 @@
 package com.example
 
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import io.ktor.server.testing.*
-
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.client.*
+import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.server.testing.*
 import org.jetbrains.exposed.sql.Database
 
 class TodoMVCApplicationTest :
@@ -36,9 +35,9 @@ class TodoMVCApplicationTest :
                     submitForm(
                         url = "/save",
                         formParameters =
-                            Parameters.build {
-                                append("title", "Test Todo")
-                            },
+                        Parameters.build {
+                            append("title", "Test Todo")
+                        },
                     )
                 val homePageResponse = get("/")
                 submitFromResponse.status shouldBe HttpStatusCode.Found

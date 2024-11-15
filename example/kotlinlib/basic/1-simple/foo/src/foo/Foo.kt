@@ -1,10 +1,10 @@
 package foo
 
-import kotlinx.html.h1
-import kotlinx.html.stream.createHTML
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
+import kotlinx.html.h1
+import kotlinx.html.stream.createHTML
 
 class Foo : CliktCommand() {
     val text by option("-t", "--text", help = "text to insert").required()

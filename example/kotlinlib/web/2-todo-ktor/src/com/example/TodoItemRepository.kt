@@ -38,37 +38,31 @@ class TodoItemRepositoryImpl(
         }
     }
 
-    override suspend fun save(item: TodoItem): Unit =
-        query {
-            TodoItems.upsert {
-                it[id] = item.id
-                it[title] = item.title
-                it[completed] = item.completed
-            }
+    override suspend fun save(item: TodoItem): Unit = query {
+        TodoItems.upsert {
+            it[id] = item.id
+            it[title] = item.title
+            it[completed] = item.completed
         }
+    }
 
-    override suspend fun findById(id: UUID): TodoItem =
-        query {
-            TodoItems
-                .selectAll()
-                .where(TodoItems.id eq id)
-                .map { TodoItem(it[TodoItems.id], it[TodoItems.title], it[TodoItems.completed]) }
-                .singleOrNull() ?: throw TodoItemNotFound(id.toString())
-        }
+    override suspend fun findById(id: UUID): TodoItem = query {
+        TodoItems
+            .selectAll()
+            .where(TodoItems.id eq id)
+            .map { TodoItem(it[TodoItems.id], it[TodoItems.title], it[TodoItems.completed]) }
+            .singleOrNull() ?: throw TodoItemNotFound(id.toString())
+    }
 
+    override suspend fun findAll(): List<TodoItem> = query {
+        TodoItems
+            .selectAll()
+            .map { TodoItem(it[TodoItems.id], it[TodoItems.title], it[TodoItems.completed]) }
+    }
 
-    override suspend fun findAll(): List<TodoItem> =
-        query {
-            TodoItems
-                .selectAll()
-                .map { TodoItem(it[TodoItems.id], it[TodoItems.title], it[TodoItems.completed]) }
-        }
-
-
-    override suspend fun deleteById(id: UUID): Unit =
-        query {
-            TodoItems.deleteWhere { TodoItems.id eq id }
-        }
+    override suspend fun deleteById(id: UUID): Unit = query {
+        TodoItems.deleteWhere { TodoItems.id eq id }
+    }
 
     private suspend fun <T> query(block: suspend () -> T): T = newSuspendedTransaction(Dispatchers.IO) { block() }
 }

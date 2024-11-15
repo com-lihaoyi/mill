@@ -1,7 +1,7 @@
 package qux
 
-import io.kotest.core.spec.style.FunSpec
 import com.google.common.base.Ascii
+import io.kotest.core.spec.style.FunSpec
 
 class QuxTests :
     FunSpec({

@@ -1,7 +1,7 @@
 package baz
 
-import io.kotest.core.spec.style.FunSpec
 import com.google.common.math.IntMath
+import io.kotest.core.spec.style.FunSpec
 
 class BazTests :
     FunSpec({

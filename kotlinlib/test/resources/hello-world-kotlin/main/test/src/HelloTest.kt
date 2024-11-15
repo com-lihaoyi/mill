@@ -5,8 +5,8 @@
 package hello.tests
 
 import hello.getHelloString
-import kotlin.test.assertEquals
 import org.junit.Test
+import kotlin.test.assertEquals
 
 class HelloTest {
     @Test fun testSuccess() {
@@ -17,4 +17,3 @@ class HelloTest {
         assertEquals("world!", getHelloString())
     }
 }
-

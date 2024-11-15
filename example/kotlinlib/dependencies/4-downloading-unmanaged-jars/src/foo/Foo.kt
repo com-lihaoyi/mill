@@ -1,7 +1,6 @@
 package foo
 
 import com.williamfiset.fastjavaio.InputReader
-
 import java.io.FileInputStream
 import java.io.IOException
 

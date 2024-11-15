@@ -15,4 +15,3 @@ class HelloTests {
         assertEquals(getString(), "Not hello, world")
     }
 }
-

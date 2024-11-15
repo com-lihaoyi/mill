@@ -2,7 +2,6 @@ package foo
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-
 import java.nio.file.Files
 import java.nio.file.Paths
 
