@@ -20,6 +20,4 @@ import java.lang.annotation.Target;
 
 @Inherited
 @Target(ElementType.TYPE)
-public @interface InheritedAnnotation {
-
-}
+public @interface InheritedAnnotation {}
