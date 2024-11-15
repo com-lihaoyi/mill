@@ -71,7 +71,7 @@ jobs:
 
           - java-version: 17
             millargs: "'example.javalib.__.local.testCached'"
-            install-android-sdk: true
+            install-android-sdk: false
 
           - java-version: 17
             millargs: "'example.scalalib.__.local.testCached'"
@@ -79,6 +79,10 @@ jobs:
 
           - java-version: 17
             millargs: "'example.kotlinlib.__.local.testCached'"
+            install-android-sdk: false
+
+          - java-version: 17
+            millargs: "'example.android.__.local.testCached'"
             install-android-sdk: true
 
           - java-version: '11'
