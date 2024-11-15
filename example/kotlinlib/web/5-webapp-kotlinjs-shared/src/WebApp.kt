@@ -1,18 +1,33 @@
 package webapp
 
-import io.ktor.serialization.kotlinx.json.*
-import io.ktor.server.application.*
-import io.ktor.server.engine.*
-import io.ktor.server.html.*
-import io.ktor.server.http.content.*
-import io.ktor.server.netty.*
-import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import io.ktor.server.util.*
-import kotlinx.html.*
-import shared.*
+import io.ktor.serialization.kotlinx.json.json
+import io.ktor.server.application.Application
+import io.ktor.server.application.call
+import io.ktor.server.application.install
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.html.respondHtml
+import io.ktor.server.http.content.staticResources
+import io.ktor.server.netty.Netty
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.request.receiveText
+import io.ktor.server.response.respond
+import io.ktor.server.routing.get
+import io.ktor.server.routing.post
+import io.ktor.server.routing.routing
+import io.ktor.server.util.getOrFail
+import kotlinx.html.HTML
+import kotlinx.html.a
+import kotlinx.html.body
+import kotlinx.html.footer
+import kotlinx.html.head
+import kotlinx.html.link
+import kotlinx.html.meta
+import kotlinx.html.p
+import kotlinx.html.script
+import kotlinx.html.section
+import kotlinx.html.title
+import shared.Todo
+import shared.renderBody
 
 object WebApp {
     private val todos =

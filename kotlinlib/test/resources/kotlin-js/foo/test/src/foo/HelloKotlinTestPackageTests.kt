@@ -4,7 +4,7 @@ import bar.getString
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class HelloTests {
+class HelloKotlinTestPackageTests {
     @Test
     fun success() {
         assertEquals(getString(), "Hello, world")

@@ -4,15 +4,15 @@ import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.html.div
 import kotlinx.html.stream.createHTML
-import kotlinx.serialization.*
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.Json
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
 import org.w3c.dom.events.KeyboardEvent
 import org.w3c.dom.get
 import org.w3c.fetch.RequestInit
-import shared.*
+import shared.Todo
+import shared.renderBody
 
 object ClientApp {
     private var state = "all"

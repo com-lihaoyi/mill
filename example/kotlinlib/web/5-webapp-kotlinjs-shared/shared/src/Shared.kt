@@ -1,6 +1,21 @@
 package shared
 
-import kotlinx.html.*
+import kotlinx.html.FlowContent
+import kotlinx.html.InputType
+import kotlinx.html.a
+import kotlinx.html.button
+import kotlinx.html.div
+import kotlinx.html.footer
+import kotlinx.html.h1
+import kotlinx.html.header
+import kotlinx.html.id
+import kotlinx.html.input
+import kotlinx.html.label
+import kotlinx.html.li
+import kotlinx.html.section
+import kotlinx.html.span
+import kotlinx.html.strong
+import kotlinx.html.ul
 import kotlinx.serialization.Serializable
 
 @Serializable

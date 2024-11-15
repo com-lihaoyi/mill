@@ -1,10 +1,11 @@
 package com.example
 
-import io.ktor.server.application.*
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
-import io.ktor.server.thymeleaf.*
-import io.ktor.server.webjars.*
+import io.ktor.server.application.Application
+import io.ktor.server.application.install
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
+import io.ktor.server.thymeleaf.Thymeleaf
+import io.ktor.server.webjars.Webjars
 import org.jetbrains.exposed.sql.Database
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
 

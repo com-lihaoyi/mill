@@ -1,12 +1,16 @@
 package com.example
 
-import io.ktor.server.application.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import io.ktor.server.thymeleaf.*
-import io.ktor.server.util.*
-import java.util.*
+import io.ktor.server.application.Application
+import io.ktor.server.application.call
+import io.ktor.server.request.receiveParameters
+import io.ktor.server.response.respond
+import io.ktor.server.response.respondRedirect
+import io.ktor.server.routing.get
+import io.ktor.server.routing.post
+import io.ktor.server.routing.routing
+import io.ktor.server.thymeleaf.ThymeleafContent
+import io.ktor.server.util.getOrFail
+import java.util.UUID
 
 enum class ListFilter {
     ALL,
