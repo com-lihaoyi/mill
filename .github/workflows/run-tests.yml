@@ -62,7 +62,7 @@ jobs:
             install-android-sdk: false
 
           - java-version: '11'
-            millargs: "'{scalajslib,scalanativelib,kotlinlib}.__.testCached'"
+            millargs: "'{scalajslib,scalanativelib,kotlinlib,pythonlib,javascriptlib}.__.testCached'"
             install-android-sdk: false
 
           - java-version: 17
@@ -84,6 +84,10 @@ jobs:
           - java-version: 17
             millargs: "'example.android.__.local.testCached'"
             install-android-sdk: true
+
+          - java-version: 17
+            millargs: "'example.{pythonlib,javascriptlib}.__.local.testCached'"
+            install-android-sdk: false
 
           - java-version: '11'
             millargs: "'example.thirdparty[{mockito,acyclic,commons-io}].local.testCached'"
