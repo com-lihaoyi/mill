@@ -117,7 +117,7 @@ object Jvm extends CoursierSupport {
       mainArgs,
       workingDir,
       if (!background) None
-      else if (runBackgroundLogToConsole) Some((os.Inherit, os.Inherit))
+      else if (runBackgroundLogToConsole) Some((os.InheritRaw, os.InheritRaw))
       else Jvm.defaultBackgroundOutputs(ctx.dest),
       useCpPassingJar
     )
