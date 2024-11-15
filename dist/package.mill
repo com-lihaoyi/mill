@@ -52,7 +52,9 @@ object `package` extends RootModule with build.MillPublishJavaModule {
         genTask(build.scalalib)() ++
         genTask(build.kotlinlib)() ++
         genTask(build.scalajslib)() ++
-        genTask(build.scalanativelib)()
+        genTask(build.scalanativelib)() ++
+        genTask(build.javascriptlib)() ++
+        genTask(build.pythonlib)()
 
     testArgs() ++
       Seq(
