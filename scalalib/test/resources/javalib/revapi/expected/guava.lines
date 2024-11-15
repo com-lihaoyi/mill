@@ -1,0 +1,225 @@
+Starting analysis
+Analysis results
+----------------
+
+Old API: guava-17.0.jar
+New API: guava-18.0.jar
+old: method <T extends java.lang.Enum<T>> com.google.common.base.Function<java.lang.String, T> com.google.common.base.Enums::valueOfFunction(java.lang.Class<T>)
+new: <none>
+java.method.removed: Method was removed.
+
+old: parameter boolean com.google.common.collect.Multisets::removeOccurrences(com.google.common.collect.Multiset<?>, ===com.google.common.collect.Multiset<?>===)
+new: parameter boolean com.google.common.collect.Multisets::removeOccurrences(com.google.common.collect.Multiset<?>, ===java.lang.Iterable<?>===)
+java.method.parameterTypeChanged: The type of the parameter changed from 'com.google.common.collect.Multiset<?>' to 'java.lang.Iterable<?>'.
+
+old: class com.google.common.hash.BloomFilter<T>
+new: class com.google.common.hash.BloomFilter<T>
+java.class.defaultSerializationChanged: The default serialization ID for the class has changed. This means that the new version of the class is not deserializable from the byte stream of a serialized old class.
+
+old: class com.google.common.io.ByteSink
+new: class com.google.common.io.ByteSink
+java.class.noLongerImplementsInterface: Class no longer implements interface 'com.google.common.io.OutputSupplier<java.io.OutputStream>'.
+
+old: method java.io.OutputStream com.google.common.io.ByteSink::getOutput() throws java.io.IOException
+new: <none>
+java.method.removed: Method was removed.
+
+old: class com.google.common.io.ByteSource
+new: class com.google.common.io.ByteSource
+java.class.noLongerImplementsInterface: Class no longer implements interface 'com.google.common.io.InputSupplier<java.io.InputStream>'.
+
+old: method java.io.InputStream com.google.common.io.ByteSource::getInput() throws java.io.IOException
+new: <none>
+java.method.removed: Method was removed.
+
+old: method com.google.common.io.ByteSink com.google.common.io.ByteStreams::asByteSink(com.google.common.io.OutputSupplier<? extends java.io.OutputStream>)
+new: <none>
+java.method.removed: Method was removed.
+
+old: method com.google.common.io.ByteSource com.google.common.io.ByteStreams::asByteSource(com.google.common.io.InputSupplier<? extends java.io.InputStream>)
+new: <none>
+java.method.removed: Method was removed.
+
+old: method long com.google.common.io.ByteStreams::copy(com.google.common.io.InputSupplier<? extends java.io.InputStream>, com.google.common.io.OutputSupplier<? extends java.io.OutputStream>) throws java.io.IOException
+new: <none>
+java.method.removed: Method was removed.
+
+old: method long com.google.common.io.ByteStreams::copy(com.google.common.io.InputSupplier<? extends java.io.InputStream>, java.io.OutputStream) throws java.io.IOException
+new: <none>
+java.method.removed: Method was removed.
+
+old: method long com.google.common.io.ByteStreams::copy(java.io.InputStream, com.google.common.io.OutputSupplier<? extends java.io.OutputStream>) throws java.io.IOException
+new: <none>
+java.method.removed: Method was removed.
+
+old: method boolean com.google.common.io.ByteStreams::equal(com.google.common.io.InputSupplier<? extends java.io.InputStream>, com.google.common.io.InputSupplier<? extends java.io.InputStream>) throws java.io.IOException
+new: <none>
+java.method.removed: Method was removed.
+
+old: method com.google.common.hash.HashCode com.google.common.io.ByteStreams::hash(com.google.common.io.InputSupplier<? extends java.io.InputStream>, com.google.common.hash.HashFunction) throws java.io.IOException
+new: <none>
+java.method.removed: Method was removed.
+
+old: method com.google.common.io.InputSupplier<java.io.InputStream> com.google.common.io.ByteStreams::join(com.google.common.io.InputSupplier<? extends java.io.InputStream>[])
+new: <none>
+java.method.removed: Method was removed.
+
+old: method com.google.common.io.InputSupplier<java.io.InputStream> com.google.common.io.ByteStreams::join(java.lang.Iterable<? extends com.google.common.io.InputSupplier<? extends java.io.InputStream>>)
+new: <none>
+java.method.removed: Method was removed.
+
+old: method long com.google.common.io.ByteStreams::length(com.google.common.io.InputSupplier<? extends java.io.InputStream>) throws java.io.IOException
+new: <none>
+java.method.removed: Method was removed.
+
+old: method com.google.common.io.InputSupplier<java.io.ByteArrayInputStream> com.google.common.io.ByteStreams::newInputStreamSupplier(byte[])
+new: <none>
+java.method.removed: Method was removed.
+
+old: method com.google.common.io.InputSupplier<java.io.ByteArrayInputStream> com.google.common.io.ByteStreams::newInputStreamSupplier(byte[], int, int)
+new: <none>
+java.method.removed: Method was removed.
+
+old: method <T> T com.google.common.io.ByteStreams::readBytes(com.google.common.io.InputSupplier<? extends java.io.InputStream>, com.google.common.io.ByteProcessor<T>) throws java.io.IOException
+new: <none>
+java.method.removed: Method was removed.
+
+old: method com.google.common.io.InputSupplier<java.io.InputStream> com.google.common.io.ByteStreams::slice(com.google.common.io.InputSupplier<? extends java.io.InputStream>, long, long)
+new: <none>
+java.method.removed: Method was removed.
+
+old: method byte[] com.google.common.io.ByteStreams::toByteArray(com.google.common.io.InputSupplier<? extends java.io.InputStream>) throws java.io.IOException
+new: <none>
+java.method.removed: Method was removed.
+
+old: method void com.google.common.io.ByteStreams::write(byte[], com.google.common.io.OutputSupplier<? extends java.io.OutputStream>) throws java.io.IOException
+new: <none>
+java.method.removed: Method was removed.
+
+old: class com.google.common.io.CharSink
+new: class com.google.common.io.CharSink
+java.class.noLongerImplementsInterface: Class no longer implements interface 'com.google.common.io.OutputSupplier<java.io.Writer>'.
+
+old: method java.io.Writer com.google.common.io.CharSink::getOutput() throws java.io.IOException
+new: <none>
+java.method.removed: Method was removed.
+
+old: class com.google.common.io.CharSource
+new: class com.google.common.io.CharSource
+java.class.noLongerImplementsInterface: Class no longer implements interface 'com.google.common.io.InputSupplier<java.io.Reader>'.
+
+old: method java.io.Reader com.google.common.io.CharSource::getInput() throws java.io.IOException
+new: <none>
+java.method.removed: Method was removed.
+
+old: method com.google.common.io.CharSink com.google.common.io.CharStreams::asCharSink(com.google.common.io.OutputSupplier<? extends java.lang.Appendable>)
+new: <none>
+java.method.removed: Method was removed.
+
+old: method com.google.common.io.CharSource com.google.common.io.CharStreams::asCharSource(com.google.common.io.InputSupplier<? extends java.lang.Readable>)
+new: <none>
+java.method.removed: Method was removed.
+
+old: method <R extends java.lang.Readable & java.io.Closeable, W extends java.lang.Appendable & java.io.Closeable> long com.google.common.io.CharStreams::copy(com.google.common.io.InputSupplier<R>, com.google.common.io.OutputSupplier<W>) throws java.io.IOException
+new: <none>
+java.method.removed: Method was removed.
+
+old: method <R extends java.lang.Readable & java.io.Closeable> long com.google.common.io.CharStreams::copy(com.google.common.io.InputSupplier<R>, java.lang.Appendable) throws java.io.IOException
+new: <none>
+java.method.removed: Method was removed.
+
+old: method com.google.common.io.InputSupplier<java.io.Reader> com.google.common.io.CharStreams::join(com.google.common.io.InputSupplier<? extends java.io.Reader>[])
+new: <none>
+java.method.removed: Method was removed.
+
+old: method com.google.common.io.InputSupplier<java.io.Reader> com.google.common.io.CharStreams::join(java.lang.Iterable<? extends com.google.common.io.InputSupplier<? extends java.io.Reader>>)
+new: <none>
+java.method.removed: Method was removed.
+
+old: method com.google.common.io.InputSupplier<java.io.InputStreamReader> com.google.common.io.CharStreams::newReaderSupplier(com.google.common.io.InputSupplier<? extends java.io.InputStream>, java.nio.charset.Charset)
+new: <none>
+java.method.removed: Method was removed.
+
+old: method com.google.common.io.InputSupplier<java.io.StringReader> com.google.common.io.CharStreams::newReaderSupplier(java.lang.String)
+new: <none>
+java.method.removed: Method was removed.
+
+old: method com.google.common.io.OutputSupplier<java.io.OutputStreamWriter> com.google.common.io.CharStreams::newWriterSupplier(com.google.common.io.OutputSupplier<? extends java.io.OutputStream>, java.nio.charset.Charset)
+new: <none>
+java.method.removed: Method was removed.
+
+old: method <R extends java.lang.Readable & java.io.Closeable> java.lang.String com.google.common.io.CharStreams::readFirstLine(com.google.common.io.InputSupplier<R>) throws java.io.IOException
+new: <none>
+java.method.removed: Method was removed.
+
+old: method <R extends java.lang.Readable & java.io.Closeable> java.util.List<java.lang.String> com.google.common.io.CharStreams::readLines(com.google.common.io.InputSupplier<R>) throws java.io.IOException
+new: <none>
+java.method.removed: Method was removed.
+
+old: method <R extends java.lang.Readable & java.io.Closeable, T> T com.google.common.io.CharStreams::readLines(com.google.common.io.InputSupplier<R>, com.google.common.io.LineProcessor<T>) throws java.io.IOException
+new: <none>
+java.method.removed: Method was removed.
+
+old: method <R extends java.lang.Readable & java.io.Closeable> java.lang.String com.google.common.io.CharStreams::toString(com.google.common.io.InputSupplier<R>) throws java.io.IOException
+new: <none>
+java.method.removed: Method was removed.
+
+old: method <W extends java.lang.Appendable & java.io.Closeable> void com.google.common.io.CharStreams::write(java.lang.CharSequence, com.google.common.io.OutputSupplier<W>) throws java.io.IOException
+new: <none>
+java.method.removed: Method was removed.
+
+old: method void com.google.common.io.Files::copy(com.google.common.io.InputSupplier<? extends java.io.InputStream>, java.io.File) throws java.io.IOException
+new: <none>
+java.method.removed: Method was removed.
+
+old: method <R extends java.lang.Readable & java.io.Closeable> void com.google.common.io.Files::copy(com.google.common.io.InputSupplier<R>, java.io.File, java.nio.charset.Charset) throws java.io.IOException
+new: <none>
+java.method.removed: Method was removed.
+
+old: method void com.google.common.io.Files::copy(java.io.File, com.google.common.io.OutputSupplier<? extends java.io.OutputStream>) throws java.io.IOException
+new: <none>
+java.method.removed: Method was removed.
+
+old: method <W extends java.lang.Appendable & java.io.Closeable> void com.google.common.io.Files::copy(java.io.File, java.nio.charset.Charset, com.google.common.io.OutputSupplier<W>) throws java.io.IOException
+new: <none>
+java.method.removed: Method was removed.
+
+old: method com.google.common.io.InputSupplier<java.io.FileInputStream> com.google.common.io.Files::newInputStreamSupplier(java.io.File)
+new: <none>
+java.method.removed: Method was removed.
+
+old: method com.google.common.io.OutputSupplier<java.io.FileOutputStream> com.google.common.io.Files::newOutputStreamSupplier(java.io.File)
+new: <none>
+java.method.removed: Method was removed.
+
+old: method com.google.common.io.OutputSupplier<java.io.FileOutputStream> com.google.common.io.Files::newOutputStreamSupplier(java.io.File, boolean)
+new: <none>
+java.method.removed: Method was removed.
+
+old: method com.google.common.io.InputSupplier<java.io.InputStreamReader> com.google.common.io.Files::newReaderSupplier(java.io.File, java.nio.charset.Charset)
+new: <none>
+java.method.removed: Method was removed.
+
+old: method com.google.common.io.OutputSupplier<java.io.OutputStreamWriter> com.google.common.io.Files::newWriterSupplier(java.io.File, java.nio.charset.Charset)
+new: <none>
+java.method.removed: Method was removed.
+
+old: method com.google.common.io.OutputSupplier<java.io.OutputStreamWriter> com.google.common.io.Files::newWriterSupplier(java.io.File, java.nio.charset.Charset, boolean)
+new: <none>
+java.method.removed: Method was removed.
+
+old: method com.google.common.io.InputSupplier<java.io.InputStream> com.google.common.io.Resources::newInputStreamSupplier(java.net.URL)
+new: <none>
+java.method.removed: Method was removed.
+
+old: method com.google.common.io.InputSupplier<java.io.InputStreamReader> com.google.common.io.Resources::newReaderSupplier(java.net.URL, java.nio.charset.Charset)
+new: <none>
+java.method.removed: Method was removed.
+
+old: class com.google.common.util.concurrent.CycleDetectingLockFactory.ExampleStackTrace
+new: class com.google.common.util.concurrent.CycleDetectingLockFactory.ExampleStackTrace
+java.class.nonPublicPartOfAPI: Class 'com.google.common.util.concurrent.CycleDetectingLockFactory.ExampleStackTrace' is indirectly included in the API (by the means of method return type for example) but the class is not accessible (neither public nor protected).
+
+old: enum com.google.thirdparty.publicsuffix.PublicSuffixType
+new: enum com.google.thirdparty.publicsuffix.PublicSuffixType
+java.class.nonPublicPartOfAPI: Class 'com.google.thirdparty.publicsuffix.PublicSuffixType' is indirectly included in the API (by the means of method return type for example) but the class is not accessible (neither public nor protected).
