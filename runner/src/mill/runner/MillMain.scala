@@ -4,13 +4,13 @@ import java.io.{PipedInputStream, PrintStream}
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 import java.util.Locale
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 import mill.java9rtexport.Export
 import mill.api.{MillException, SystemStreams, WorkspaceRoot, internal}
 import mill.bsp.{BspContext, BspServerResult}
 import mill.main.BuildInfo
-import mill.main.client.{OutFiles, ServerFiles}
+import mill.main.client.{FileToStreamTailer, OutFiles, ServerFiles}
 import mill.main.client.lock.Lock
 import mill.util.{Colors, PrintLogger, PromptLogger}
 
@@ -221,36 +221,51 @@ object MillMain {
                 while (repeatForBsp) {
                   repeatForBsp = false
 
-                  val (isSuccess, evalStateOpt) = Watching.watchLoop(
-                    ringBell = config.ringBell.value,
-                    watch = config.watch.value,
-                    streams = streams,
-                    setIdle = setIdle,
-                    evaluate = (prevState: Option[RunnerState]) => {
-                      adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
 
-                      withOutLock(
-                        config.noBuildLock.value || bspContext.isDefined,
-                        config.noWaitForBuildLock.value,
-                        out,
-                        targetsAndParams,
-                        streams
-                      ) {
-                        val logger = getLogger(
-                          streams,
-                          config,
-                          mainInteractive,
-                          enableTicker =
-                            config.ticker
-                              .orElse(config.enableTicker)
-                              .orElse(Option.when(config.disableTicker.value)(false)),
-                          printLoggerState,
-                          serverDir,
-                          colored = colored,
-                          colors = colors
-                        )
-                        Using.resource(logger) { _ =>
-                          try new MillBuildBootstrap(
+                  val tailerRefreshIntervalMillis = 2
+//                  val stdoutTailer = new FileToStreamTailer(
+//                    (serverDir / ServerFiles.stdout).toIO,
+//                    System.out,
+//                    tailerRefreshIntervalMillis
+//                  )
+//                  val stderrTailer = new FileToStreamTailer(
+//                    (serverDir / ServerFiles.stderr).toIO,
+//                    System.err,
+//                    tailerRefreshIntervalMillis
+//                  )
+                  try {
+//                    stdoutTailer.start()
+//                    stderrTailer.start()
+                    val (isSuccess, evalStateOpt) = Watching.watchLoop(
+                      ringBell = config.ringBell.value,
+                      watch = config.watch.value,
+                      streams = streams,
+                      setIdle = setIdle,
+                      evaluate = (prevState: Option[RunnerState]) => {
+                        adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
+
+                        withOutLock(
+                          config.noBuildLock.value || bspContext.isDefined,
+                          config.noWaitForBuildLock.value,
+                          out,
+                          targetsAndParams,
+                          streams
+                        ) {
+                          val logger = getLogger(
+                            streams,
+                            config,
+                            mainInteractive,
+                            enableTicker =
+                              config.ticker
+                                .orElse(config.enableTicker)
+                                .orElse(Option.when(config.disableTicker.value)(false)),
+                            printLoggerState,
+                            serverDir,
+                            colored = colored,
+                            colors = colors
+                          )
+                          Using.resource(logger) { _ =>
+                            try new MillBuildBootstrap(
                               projectRoot = WorkspaceRoot.workspaceRoot,
                               output = out,
                               home = config.home,
@@ -268,22 +283,26 @@ object MillMain {
                               systemExit = systemExit,
                               streams0 = streams0
                             ).evaluate()
+                          }
                         }
-                      }
-                    },
-                    colors = colors
-                  )
-                  bspContext.foreach { ctx =>
-                    repeatForBsp =
-                      BspContext.bspServerHandle.lastResult == Some(
-                        BspServerResult.ReloadWorkspace
-                      )
-                    streams.err.println(
-                      s"`$bspCmd` returned with ${BspContext.bspServerHandle.lastResult}"
+                      },
+                      colors = colors
                     )
-                  }
+                    bspContext.foreach { ctx =>
+                      repeatForBsp =
+                        BspContext.bspServerHandle.lastResult == Some(
+                          BspServerResult.ReloadWorkspace
+                        )
+                      streams.err.println(
+                        s"`$bspCmd` returned with ${BspContext.bspServerHandle.lastResult}"
+                      )
+                    }
 
-                  loopRes = (isSuccess, evalStateOpt)
+                    loopRes = (isSuccess, evalStateOpt)
+                  } finally {
+//                    stdoutTailer.close()
+//                    stderrTailer.close()
+                  }
                 } // while repeatForBsp
                 bspContext.foreach { ctx =>
                   streams.err.println(
