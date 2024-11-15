@@ -15,4 +15,6 @@ Mill provides the ability to check API changes with the https://revapi.org/revap
 
 include::partial$example/javalib/publishing/3-revapi.adoc[]
 
+CAUTION: The `revapi` task does not fail if incompatibilities are reported. You should fix these, and verify by re-running `revapi`, before a release.
+
 include::partial$Publishing_Footer.adoc[]
