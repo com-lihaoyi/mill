@@ -7,7 +7,7 @@ import java.nio.file.Paths;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
-public class BackgroundWrapper {
+public class MillBackgroundWrapper {
   public static void main(String[] args) throws Exception {
     Path procUuidPath = Paths.get(args[0]);
     Path procLockfile = Paths.get(args[1]);

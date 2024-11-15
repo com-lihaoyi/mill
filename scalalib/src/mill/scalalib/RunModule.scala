@@ -153,7 +153,7 @@ trait RunModule extends WithZincWorker {
       val (procUuidPath, procLockfile, procUuid) = backgroundSetup(T.dest)
       runner().run(
         args = Seq(procUuidPath.toString, procLockfile.toString, procUuid, runBackgroundRestartDelayMillis().toString, mainClass()) ++ args().value,
-        mainClass = "mill.scalalib.backgroundwrapper.BackgroundWrapper",
+        mainClass = "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
         workingDir = forkWorkingDir(),
         extraRunClasspath = zincWorker().backgroundWrapperClasspath().map(_.path).toSeq,
         background = true,
@@ -188,7 +188,7 @@ trait RunModule extends WithZincWorker {
     val (procUuidPath, procLockfile, procUuid) = backgroundSetup(taskDest)
     try Result.Success(
         Jvm.runSubprocessWithBackgroundOutputs(
-          "mill.scalalib.backgroundwrapper.BackgroundWrapper",
+          "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
           (runClasspath ++ zwBackgroundWrapperClasspath).map(_.path),
           forkArgs,
           forkEnv,
