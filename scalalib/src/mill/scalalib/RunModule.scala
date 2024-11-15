@@ -150,9 +150,9 @@ trait RunModule extends WithZincWorker {
 
   def runBackgroundTask(mainClass: Task[String], args: Task[Args] = Task.Anon(Args())): Task[Unit] =
     Task.Anon {
-      val (procId, procTombstone, token) = backgroundSetup(T.dest)
+      val (procUuidPath, procLockfile, procUuid) = backgroundSetup(T.dest)
       runner().run(
-        args = Seq(procId.toString, procTombstone.toString, token, mainClass()) ++ args().value,
+        args = Seq(procUuidPath.toString, procLockfile.toString, procUuid, runBackgroundRestartDelayMillis().toString, mainClass()) ++ args().value,
         mainClass = "mill.scalalib.backgroundwrapper.BackgroundWrapper",
         workingDir = forkWorkingDir(),
         extraRunClasspath = zincWorker().backgroundWrapperClasspath().map(_.path).toSeq,
@@ -171,6 +171,7 @@ trait RunModule extends WithZincWorker {
    */
   // TODO: make this a task, to be more dynamic
   def runBackgroundLogToConsole: Boolean = true
+  def runBackgroundRestartDelayMillis: T[Int] = 500
 
   @deprecated("Binary compat shim, use `.runner().run(..., background=true)`", "Mill 0.12.0")
   protected def doRunBackground(
@@ -184,14 +185,14 @@ trait RunModule extends WithZincWorker {
       runUseArgsFile: Boolean,
       backgroundOutputs: Option[Tuple2[ProcessOutput, ProcessOutput]]
   )(args: String*): Ctx => Result[Unit] = ctx => {
-    val (procId, procTombstone, token) = backgroundSetup(taskDest)
+    val (procUuidPath, procLockfile, procUuid) = backgroundSetup(taskDest)
     try Result.Success(
         Jvm.runSubprocessWithBackgroundOutputs(
           "mill.scalalib.backgroundwrapper.BackgroundWrapper",
           (runClasspath ++ zwBackgroundWrapperClasspath).map(_.path),
           forkArgs,
           forkEnv,
-          Seq(procId.toString, procTombstone.toString, token, finalMainClass) ++ args,
+          Seq(procUuidPath.toString, procLockfile.toString, procUuid, 500.toString, finalMainClass) ++ args,
           workingDir = forkWorkingDir,
           backgroundOutputs,
           useCpPassingJar = runUseArgsFile
@@ -204,38 +205,11 @@ trait RunModule extends WithZincWorker {
   }
 
   private[this] def backgroundSetup(dest: os.Path): (Path, Path, String) = {
-    val token = java.util.UUID.randomUUID().toString
-    val procId = dest / ".mill-background-process-id"
-    val procTombstone = dest / ".mill-background-process-tombstone"
-    // The background subprocesses poll the procId file, and kill themselves
-    // when the procId file is deleted. This deletion happens immediately before
-    // the body of these commands run, but we cannot be sure the subprocess has
-    // had time to notice.
-    //
-    // To make sure we wait for the previous subprocess to
-    // die, we make the subprocess write a tombstone file out when it kills
-    // itself due to procId being deleted, and we wait a short time on task-start
-    // to see if such a tombstone appears. If a tombstone appears, we can be sure
-    // the subprocess has killed itself, and can continue. If a tombstone doesn't
-    // appear in a short amount of time, we assume the subprocess exited or was
-    // killed via some other means, and continue anyway.
-    val start = System.currentTimeMillis()
-    while ({
-      if (os.exists(procTombstone)) {
-        Thread.sleep(10)
-        os.remove.all(procTombstone)
-        true
-      } else {
-        Thread.sleep(10)
-        System.currentTimeMillis() - start < 100
-      }
-    }) ()
-
-    os.write(procId, token)
-    os.write(procTombstone, token)
-    (procId, procTombstone, token)
+    val procUuid = java.util.UUID.randomUUID().toString
+    val procUuidPath = dest / ".mill-background-process-uuid"
+    val procLockfile = dest / ".mill-background-process-lock"
+    (procUuidPath, procLockfile, procUuid)
   }
-
 }
 
 object RunModule {
