@@ -11,4 +11,7 @@ fun getLineCount(): String? = try {
     null
 }
 
-fun main() = println("Line Count: " + getLineCount())
+fun main() {
+    var msg = "Line Count: " + getLineCount()
+    println(msg)
+}
