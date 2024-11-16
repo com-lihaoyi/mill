@@ -222,7 +222,6 @@ object MillMain {
                   repeatForBsp = false
 
                   Using.resource(new TailManager(serverDir)) { tailManager =>
-                    mill.main.client.DebugLog.println("Started Tailers")
                     val (isSuccess, evalStateOpt) = Watching.watchLoop(
                       ringBell = config.ringBell.value,
                       watch = config.watch.value,
