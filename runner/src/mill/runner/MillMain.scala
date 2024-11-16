@@ -33,7 +33,7 @@ object MillMain {
       err.println(e.getCause.getMessage())
       (false, onError)
     case NonFatal(e) =>
-      err.println("An unexpected error occurred")
+      err.println("An unexpected error occurred " + e)
       throw e
       (false, onError)
   }
