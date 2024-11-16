@@ -28,6 +28,46 @@ object JvmTests extends TestSuite {
         Seq(dep1, dep2).map(_.toNIO.toUri().toURL().toExternalForm()).mkString(" "))
     }
 
+    test("call") {
+      val tmpDir = os.temp.dir()
+      val mainClass = "mill.util.TestMain"
+      val classPath = Agg(tmpDir)
+      val jvmArgs = Seq("-Xmx512m")
+      val mainArgs = Seq("arg1", "arg2")
+      val result = Jvm.call(mainClass, classPath, jvmArgs, mainArgs)
+      assert(result.exitCode == 0)
+    }
+
+    test("spawn") {
+      val tmpDir = os.temp.dir()
+      val mainClass = "mill.util.TestMain"
+      val classPath = Agg(tmpDir)
+      val jvmArgs = Seq("-Xmx512m")
+      val mainArgs = Seq("arg1", "arg2")
+      val process = Jvm.spawn(mainClass, classPath, jvmArgs, mainArgs)
+      assert(process.isAlive())
+      process.destroy()
+    }
+
+    test("callClassloader") {
+      val tmpDir = os.temp.dir()
+      val classPath = Agg(tmpDir)
+      val sharedPrefixes = Seq("mill.util")
+      val result = Jvm.callClassloader(classPath, sharedPrefixes) { cl =>
+        cl.loadClass("mill.util.TestMain")
+      }
+      assert(result.getName == "mill.util.TestMain")
+    }
+
+    test("spawnClassloader") {
+      val tmpDir = os.temp.dir()
+      val classPath = Agg(tmpDir)
+      val sharedPrefixes = Seq("mill.util")
+      val classLoader = Jvm.spawnClassloader(classPath, sharedPrefixes)
+      val result = classLoader.loadClass("mill.util.TestMain")
+      assert(result.getName == "mill.util.TestMain")
+    }
+
   }
 
 }

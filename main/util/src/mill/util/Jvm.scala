@@ -18,49 +18,123 @@ object Jvm extends CoursierSupport {
    * Runs a JVM subprocess with the given configuration and returns a
    * [[os.CommandResult]] with it's aggregated output and error streams
    */
-  def callSubprocess(
+  def call(
       mainClass: String,
-      classPath: Agg[os.Path],
-      jvmArgs: Seq[String] = Seq.empty,
-      envArgs: Map[String, String] = Map.empty,
-      mainArgs: Seq[String] = Seq.empty,
-      workingDir: os.Path = null,
-      streamOut: Boolean = true,
-      check: Boolean = true
-  )(implicit ctx: Ctx): CommandResult = {
+      classPath: Iterable[os.Path],
+      jvmArgs: Seq[String],
+      mainArgs: Seq[String],
+      env: Map[String, String] = null,
+      cwd: os.Path = null,
+      stdin: ProcessInput = Pipe,
+      stdout: ProcessOutput = Pipe,
+      stderr: ProcessOutput = os.Inherit,
+      mergeErrIntoOut: Boolean = false,
+      timeout: Long = -1,
+      check: Boolean = true,
+      propagateEnv: Boolean = true,
+      timeoutGracePeriod: Long = 100,
+      useCpPassingJar: Boolean = false
+  ): os.CommandResult = {
 
-    val commandArgs =
-      Vector(javaExe) ++
-        jvmArgs ++
-        Vector("-cp", classPath.iterator.mkString(java.io.File.pathSeparator), mainClass) ++
-        mainArgs
+    val commandArgs = jvmCommandArgs(javaExe, mainClass, jvmArgs, classPath, mainArgs, useCpPassingJar)
 
-    val workingDir1 = Option(workingDir).getOrElse(ctx.dest)
-    os.makeDir.all(workingDir1)
-
-    os.proc(commandArgs)
-      .call(
-        cwd = workingDir1,
-        env = envArgs,
-        check = check,
-        stdout = if (streamOut) os.Inherit else os.Pipe
-      )
+    os.call(
+      commandArgs,
+      env,
+      cwd,
+      stdin,
+      stdout,
+      stderr,
+      mergeErrIntoOut,
+      timeout,
+      check,
+      propagateEnv,
+      timeoutGracePeriod
+    )
   }
 
   /**
-   * Runs a JVM subprocess with the given configuration and returns a
-   * [[os.CommandResult]] with it's aggregated output and error streams
+   * Runs a JVM subprocess with the given configuration and streams
+   * it's stdout and stderr to the console.
+   * @param mainClass The main class to run
+   * @param classPath The classpath
+   * @param jvmArgs Arguments given to the forked JVM
+   * @param envArgs Environment variables used when starting the forked JVM
+   * @param workingDir The working directory to be used by the forked JVM
+   * @param background `true` if the forked JVM should be spawned in background
+   * @param useCpPassingJar When `false`, the `-cp` parameter is used to pass the classpath
+   *                        to the forked JVM.
+   *                        When `true`, a temporary empty JAR is created
+   *                        which contains a `Class-Path` manifest entry containing the actual classpath.
+   *                        This might help with long classpaths on OS'es (like Windows)
+   *                        which only supports limited command-line length
    */
-  def callSubprocess(
+  def spawn(
       mainClass: String,
-      classPath: Agg[os.Path],
+      classPath: Iterable[os.Path],
       jvmArgs: Seq[String],
-      envArgs: Map[String, String],
       mainArgs: Seq[String],
-      workingDir: os.Path,
-      streamOut: Boolean
-  )(implicit ctx: Ctx): CommandResult = {
-    callSubprocess(mainClass, classPath, jvmArgs, envArgs, mainArgs, workingDir, streamOut, true)
+      env: Map[String, String] = null,
+      cwd: os.Path = null,
+      stdin: ProcessInput = Pipe,
+      stdout: ProcessOutput = Pipe,
+      stderr: ProcessOutput = os.Inherit,
+      mergeErrIntoOut: Boolean = false,
+      propagateEnv: Boolean = true,
+      useCpPassingJar: Boolean = false
+  ): os.SubProcess = {
+
+    val commandArgs = jvmCommandArgs(javaExe, mainClass, jvmArgs, classPath, mainArgs, useCpPassingJar)
+    os.spawn(commandArgs, env, cwd, stdin, stdout, stderr, mergeErrIntoOut, propagateEnv)
+  }
+
+  def spawnClassloader(
+      classPath: Iterable[os.Path],
+      sharedPrefixes: Seq[String],
+      isolated: Boolean = true
+  ): java.net.URLClassLoader = {
+    mill.api.ClassLoader.create(
+      classPath.iterator.map(_.toNIO.toUri.toURL).toVector,
+      if (isolated) null else getClass.getClassLoader,
+      sharedPrefixes = sharedPrefixes
+    )()
+  }
+
+  def callClassloader[T](
+      classPath: Iterable[os.Path],
+      sharedPrefixes: Seq[String],
+      isolated: Boolean = true
+  )(f: ClassLoader => T): T = {
+    val oldClassloader = Thread.currentThread().getContextClassLoader
+    val newClassloader = spawnClassloader(classPath, sharedPrefixes, isolated)
+    Thread.currentThread().setContextClassLoader(newClassloader)
+    try {
+      f(newClassloader)
+    } finally {
+      Thread.currentThread().setContextClassLoader(oldClassloader)
+      newClassloader.close()
+    }
+  }
+
+  private def jvmCommandArgs(
+      javaExe: String,
+      mainClass: String,
+      jvmArgs: Seq[String],
+      classPath: Iterable[os.Path],
+      mainArgs: Seq[String],
+      useCpPassingJar: Boolean
+  ): Vector[String] = {
+    val classPath2 =
+      if (useCpPassingJar && classPath.nonEmpty) {
+        val passingJar = os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)
+        createClasspathPassingJar(passingJar, classPath)
+        Agg(passingJar)
+      } else classPath
+
+    Vector(javaExe) ++
+      jvmArgs ++
+      Vector("-cp", classPath2.iterator.mkString(java.io.File.pathSeparator), mainClass) ++
+      mainArgs
   }
 
   /**
@@ -82,141 +156,6 @@ object Jvm extends CoursierSupport {
 
   def defaultBackgroundOutputs(outputDir: os.Path): Option[(ProcessOutput, ProcessOutput)] =
     Some((outputDir / "stdout.log", outputDir / "stderr.log"))
-
-  /**
-   * Runs a JVM subprocess with the given configuration and streams
-   * it's stdout and stderr to the console.
-   * @param mainClass The main class to run
-   * @param classPath The classpath
-   * @param jvmArgs Arguments given to the forked JVM
-   * @param envArgs Environment variables used when starting the forked JVM
-   * @param workingDir The working directory to be used by the forked JVM
-   * @param background `true` if the forked JVM should be spawned in background
-   * @param useCpPassingJar When `false`, the `-cp` parameter is used to pass the classpath
-   *                        to the forked JVM.
-   *                        When `true`, a temporary empty JAR is created
-   *                        which contains a `Class-Path` manifest entry containing the actual classpath.
-   *                        This might help with long classpaths on OS'es (like Windows)
-   *                        which only supports limited command-line length
-   */
-  def runSubprocess(
-      mainClass: String,
-      classPath: Agg[os.Path],
-      jvmArgs: Seq[String] = Seq.empty,
-      envArgs: Map[String, String] = Map.empty,
-      mainArgs: Seq[String] = Seq.empty,
-      workingDir: os.Path = null,
-      background: Boolean = false,
-      useCpPassingJar: Boolean = false,
-      runBackgroundLogToConsole: Boolean = false
-  )(implicit ctx: Ctx): Unit = {
-    runSubprocessWithBackgroundOutputs(
-      mainClass,
-      classPath,
-      jvmArgs,
-      envArgs,
-      mainArgs,
-      workingDir,
-      if (!background) None
-      else if (runBackgroundLogToConsole) {
-        val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
-        // Hack to forward the background subprocess output to the Mill server process
-        // stdout/stderr files, so the output will get properly slurped up by the Mill server
-        // and shown to any connected Mill client even if the current command has completed
-        Some(
-          (
-            os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stdout),
-            os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stderr)
-          )
-        )
-      } else Jvm.defaultBackgroundOutputs(ctx.dest),
-      useCpPassingJar
-    )
-  }
-
-  // bincompat shim
-  def runSubprocess(
-      mainClass: String,
-      classPath: Agg[os.Path],
-      jvmArgs: Seq[String],
-      envArgs: Map[String, String],
-      mainArgs: Seq[String],
-      workingDir: os.Path,
-      background: Boolean,
-      useCpPassingJar: Boolean
-  )(implicit ctx: Ctx): Unit =
-    runSubprocess(
-      mainClass,
-      classPath,
-      jvmArgs,
-      envArgs,
-      mainArgs,
-      workingDir,
-      background,
-      useCpPassingJar
-    )
-
-  /**
-   * Runs a JVM subprocess with the given configuration and streams
-   * it's stdout and stderr to the console.
-   * @param mainClass The main class to run
-   * @param classPath The classpath
-   * @param jvmArgs Arguments given to the forked JVM
-   * @param envArgs Environment variables used when starting the forked JVM
-   * @param workingDir The working directory to be used by the forked JVM
-   * @param backgroundOutputs If the subprocess should run in the background, a Tuple of ProcessOutputs containing out and err respectively. Specify None for nonbackground processes.
-   * @param useCpPassingJar When `false`, the `-cp` parameter is used to pass the classpath
-   *                        to the forked JVM.
-   *                        When `true`, a temporary empty JAR is created
-   *                        which contains a `Class-Path` manifest entry containing the actual classpath.
-   *                        This might help with long classpaths on OS'es (like Windows)
-   *                        which only supports limited command-line length
-   */
-  def runSubprocessWithBackgroundOutputs(
-      mainClass: String,
-      classPath: Agg[os.Path],
-      jvmArgs: Seq[String] = Seq.empty,
-      envArgs: Map[String, String] = Map.empty,
-      mainArgs: Seq[String] = Seq.empty,
-      workingDir: os.Path = null,
-      backgroundOutputs: Option[Tuple2[ProcessOutput, ProcessOutput]] = None,
-      useCpPassingJar: Boolean = false
-  )(implicit ctx: Ctx): Unit = {
-
-    val cp =
-      if (useCpPassingJar && !classPath.iterator.isEmpty) {
-        val passingJar = os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)
-        ctx.log.debug(
-          s"Creating classpath passing jar '${passingJar}' with Class-Path: ${classPath.iterator.map(
-              _.toNIO.toUri().toURL().toExternalForm()
-            ).mkString(" ")}"
-        )
-        createClasspathPassingJar(passingJar, classPath)
-        Agg(passingJar)
-      } else {
-        classPath
-      }
-
-    val cpArgument = if (cp.nonEmpty) {
-      Vector("-cp", cp.iterator.mkString(java.io.File.pathSeparator))
-    } else Seq.empty
-    val mainClassArgument = if (mainClass.nonEmpty) {
-      Seq(mainClass)
-    } else Seq.empty
-    val args =
-      Vector(javaExe) ++
-        jvmArgs ++
-        cpArgument ++
-        mainClassArgument ++
-        mainArgs
-
-    ctx.log.debug(s"Run subprocess with args: ${args.map(a => s"'${a}'").mkString(" ")}")
-
-    if (backgroundOutputs.nonEmpty)
-      spawnSubprocessWithBackgroundOutputs(args, envArgs, workingDir, backgroundOutputs)
-    else
-      runSubprocess(args, envArgs, workingDir)
-  }
 
   /**
    * Runs a generic subprocess and waits for it to terminate. If process exited with non-zero code, exception
