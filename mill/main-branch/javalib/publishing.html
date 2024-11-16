@@ -571,6 +571,121 @@ Publishing Artifact(com.lihaoyi,foo,0.0.1) to ivy repo...</code></pre>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_checking_api_compatibility"><a class="anchor" href="#_checking_api_compatibility"></a>Checking API compatibility</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill provides the ability to check API changes with the <a href="https://revapi.org/revapi-site/main/index.html">Revapi</a> analysis and change tracking tool.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2-example-javalib-publishing-3-revapi.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/javalib/publishing/3-revapi">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javalib._, publish._, revapi._
+
+object bar extends JavaModule with RevapiModule {
+  def publishVersion = &quot;0.0.1&quot;
+
+  def pomSettings = PomSettings(
+    description = &quot;Hello&quot;,
+    organization = &quot;com.lihaoyi&quot;,
+    url = &quot;https://github.com/lihaoyi/example&quot;,
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github(&quot;lihaoyi&quot;, &quot;example&quot;),
+    developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
+  )
+
+  override def revapiConfigFiles: T[Seq[PathRef]] =
+    // add Revapi config JSON file(s)
+    Task.Sources(millSourcePath / &quot;conf/revapi.json&quot;)
+
+  override def revapiClasspath: T[Agg[PathRef]] = T {
+    // add folder containing logback.xml
+    super.revapiClasspath() ++ Seq(PathRef(millSourcePath / &quot;conf&quot;))
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example uses the <code>revapi</code> task, provided by the <code>RevapiModule</code>, to run an
+analysis on old and new archives of a module to identify incompatibilities.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+For demonstration purposes, an archive, to compare against, is published locally.
+In real usage, the old version would be downloaded from the publish repository.
+</td>
+</tr>
+</tbody></table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill bar.publishLocal
+Publishing Artifact(com.lihaoyi,bar,0.0.1) to ivy repo...
+
+&gt; cp dev/src/Visibility.java bar/src/Visibility.java
+
+&gt; mill bar.revapi
+Starting analysis
+Analysis results
+----------------
+old: field Visibility.SuperClass.f @ Visibility.SubClass
+new: &lt;none&gt;
+java.field.removed: Field removed from class.
+... BREAKING
+old: field Visibility.f
+new: field Visibility.f
+java.field.visibilityReduced: Visibility was reduced from 'public' to 'protected'.
+... BREAKING
+Analysis took ...ms.</code></pre>
+</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+The <code>revapi</code> task does not fail if incompatibilities are reported. You should fix these, and verify by re-running <code>revapi</code>, before a release.
+</td>
+</tr>
+</tbody></table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The <code>revapi</code> task returns the path to a directory that can be used to resolve the relative path to any extension configuration output.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">[
+  {
+    &quot;extension&quot;: &quot;revapi.reporter.text&quot;,
+    &quot;configuration&quot;: {
+      &quot;minSeverity&quot;: &quot;BREAKING&quot;,
+      &quot;output&quot;: &quot;report.txt&quot;
+    }
+  }
+]</code></pre>
+</div>
+</div>
+</td>
+</tr>
+</tbody></table>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_publishing_to_sonatype_maven_central"><a class="anchor" href="#_publishing_to_sonatype_maven_central"></a>Publishing to Sonatype Maven Central</h2>
 <div class="sectionbody">
 <div class="paragraph">
