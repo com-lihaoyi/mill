@@ -1,4 +1,4 @@
-= (Experimental) Android Builds
+= Android Java Projects
 :page-aliases: android_app_examples.adoc
 
 include::partial$gtag-config.adoc[]
@@ -17,7 +17,7 @@ These are the main Mill Modules that are relevant for building Android apps:
 
 == Simple Android Hello World Application
 
-include::partial$example/javalib/android/1-hello-world.adoc[]
+include::partial$example/android/javalib/1-hello-world.adoc[]
 
 This example demonstrates how to create a basic "Hello World" Android application
 using the Mill build tool. It outlines the minimum setup required to compile Java code,
@@ -49,7 +49,7 @@ After creating Simple Android Application now let's focus on how to create Andro
 
 == Android App Bundle
 
-include::partial$example/javalib/android/2-app-bundle.adoc[]
+include::partial$example/android/javalib/2-app-bundle.adoc[]
 
 ==  Understanding `AndroidAppBundle`
 

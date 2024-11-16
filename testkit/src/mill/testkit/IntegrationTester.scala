@@ -144,7 +144,7 @@ object IntegrationTester {
       if (clientServerMode) {
         // try to stop the server
         os.call(
-          cmd = (millExecutable, "shutdown"),
+          cmd = (millExecutable, "--no-build-lock", "shutdown"),
           cwd = workspacePath,
           stdin = os.Inherit,
           stdout = os.Inherit,

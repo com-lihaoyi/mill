@@ -4,7 +4,7 @@ import java.io.{PipedInputStream, PrintStream}
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 import java.util.Locale
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 import mill.java9rtexport.Export
 import mill.api.{MillException, SystemStreams, WorkspaceRoot, internal}
@@ -33,7 +33,7 @@ object MillMain {
       err.println(e.getCause.getMessage())
       (false, onError)
     case NonFatal(e) =>
-      err.println("An unexpected error occurred")
+      err.println("An unexpected error occurred " + e)
       throw e
       (false, onError)
   }
@@ -221,69 +221,74 @@ object MillMain {
                 while (repeatForBsp) {
                   repeatForBsp = false
 
-                  val (isSuccess, evalStateOpt) = Watching.watchLoop(
-                    ringBell = config.ringBell.value,
-                    watch = config.watch.value,
-                    streams = streams,
-                    setIdle = setIdle,
-                    evaluate = (prevState: Option[RunnerState]) => {
-                      adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
+                  Using.resource(new TailManager(serverDir)) { tailManager =>
+                    val (isSuccess, evalStateOpt) = Watching.watchLoop(
+                      ringBell = config.ringBell.value,
+                      watch = config.watch.value,
+                      streams = streams,
+                      setIdle = setIdle,
+                      evaluate = (prevState: Option[RunnerState]) => {
+                        adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
 
-                      withOutLock(
-                        config.noBuildLock.value || bspContext.isDefined,
-                        config.noWaitForBuildLock.value,
-                        out,
-                        targetsAndParams,
-                        streams
-                      ) {
-                        val logger = getLogger(
-                          streams,
-                          config,
-                          mainInteractive,
-                          enableTicker =
-                            config.ticker
-                              .orElse(config.enableTicker)
-                              .orElse(Option.when(config.disableTicker.value)(false)),
-                          printLoggerState,
-                          serverDir,
-                          colored = colored,
-                          colors = colors
-                        )
-                        Using.resource(logger) { _ =>
-                          try new MillBuildBootstrap(
-                              projectRoot = WorkspaceRoot.workspaceRoot,
-                              output = out,
-                              home = config.home,
-                              keepGoing = config.keepGoing.value,
-                              imports = config.imports,
-                              env = env,
-                              threadCount = threadCount,
-                              targetsAndParams = targetsAndParams,
-                              prevRunnerState = prevState.getOrElse(stateCache),
-                              logger = logger,
-                              disableCallgraph = config.disableCallgraph.value,
-                              needBuildFile = needBuildFile(config),
-                              requestedMetaLevel = config.metaLevel,
-                              config.allowPositional.value,
-                              systemExit = systemExit,
-                              streams0 = streams0
-                            ).evaluate()
+                        withOutLock(
+                          config.noBuildLock.value || bspContext.isDefined,
+                          config.noWaitForBuildLock.value,
+                          out,
+                          targetsAndParams,
+                          streams
+                        ) {
+                          Using.resource(getLogger(
+                            streams,
+                            config,
+                            mainInteractive,
+                            enableTicker =
+                              config.ticker
+                                .orElse(config.enableTicker)
+                                .orElse(Option.when(config.disableTicker.value)(false)),
+                            printLoggerState,
+                            serverDir,
+                            colored = colored,
+                            colors = colors
+                          )) { logger =>
+                            SystemStreams.withStreams(logger.systemStreams) {
+                              tailManager.withOutErr(logger.outputStream, logger.errorStream) {
+                                new MillBuildBootstrap(
+                                  projectRoot = WorkspaceRoot.workspaceRoot,
+                                  output = out,
+                                  home = config.home,
+                                  keepGoing = config.keepGoing.value,
+                                  imports = config.imports,
+                                  env = env,
+                                  threadCount = threadCount,
+                                  targetsAndParams = targetsAndParams,
+                                  prevRunnerState = prevState.getOrElse(stateCache),
+                                  logger = logger,
+                                  disableCallgraph = config.disableCallgraph.value,
+                                  needBuildFile = needBuildFile(config),
+                                  requestedMetaLevel = config.metaLevel,
+                                  config.allowPositional.value,
+                                  systemExit = systemExit,
+                                  streams0 = streams0
+                                ).evaluate()
+                              }
+                            }
+                          }
                         }
-                      }
-                    },
-                    colors = colors
-                  )
-                  bspContext.foreach { ctx =>
-                    repeatForBsp =
-                      BspContext.bspServerHandle.lastResult == Some(
-                        BspServerResult.ReloadWorkspace
-                      )
-                    streams.err.println(
-                      s"`$bspCmd` returned with ${BspContext.bspServerHandle.lastResult}"
+                      },
+                      colors = colors
                     )
-                  }
+                    bspContext.foreach { ctx =>
+                      repeatForBsp =
+                        BspContext.bspServerHandle.lastResult == Some(
+                          BspServerResult.ReloadWorkspace
+                        )
+                      streams.err.println(
+                        s"`$bspCmd` returned with ${BspContext.bspServerHandle.lastResult}"
+                      )
+                    }
 
-                  loopRes = (isSuccess, evalStateOpt)
+                    loopRes = (isSuccess, evalStateOpt)
+                  }
                 } // while repeatForBsp
                 bspContext.foreach { ctx =>
                   streams.err.println(

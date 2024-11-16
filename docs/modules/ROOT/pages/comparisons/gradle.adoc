@@ -42,7 +42,7 @@ change any other files in the repository:
 
 The Mill build for Mockito is not 100% complete, but it covers most of the major parts of Mockito:
 compiling Java, running JUnit tests. For now, the Android, Kotlin, and OSGI tests are skipped,
-as support for xref:javalib/android-examples.adoc[Building Android apps in Mill]
+as support for xref:android/java.adoc[Building Android apps in Mill]
 and xref:kotlinlib/intro.adoc[Kotlin with Mill] is still experimental.
 
 The goal of this exercise is not to be 100% feature complete enough to replace the Gradle build

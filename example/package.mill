@@ -27,8 +27,12 @@ object `package` extends RootModule with Module {
     .modules
     .collect { case m: ExampleCrossModule => m }
 
+  object android extends Module {
+    object javalib extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "javalib"))
+    object kotlinlib extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "kotlinlib"))
+  }
   object javalib extends Module {
-    object android extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "android"))
+
     object basic extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "basic"))
     object module extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "module"))
     object dependencies extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "dependencies"))
@@ -39,7 +43,6 @@ object `package` extends RootModule with Module {
     object web extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "web"))
   }
   object kotlinlib extends Module {
-    object android extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "android"))
     object basic extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "basic"))
     object module extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "module"))
     object dependencies extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "dependencies"))
@@ -57,6 +60,12 @@ object `package` extends RootModule with Module {
     object publishing extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "publishing"))
     object web extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "web"))
     object native extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "native"))
+  }
+  object javascriptlib extends Module {
+    object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))
+  }
+  object pythonlib extends Module {
+    object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))
   }
 
   object cli extends Module{
@@ -91,6 +100,7 @@ object `package` extends RootModule with Module {
   }
 
   trait ExampleCrossModuleKotlin extends ExampleCrossModuleJava {
+
     override def lineTransform(line: String) = this.millModuleSegments.parts.last match {
       case "1-test-suite" => line
         .replace("mill bar.test bar.BarTests.hello", "kotest_filter_tests='hello' kotest_filter_specs='bar.BarTests' ./mill bar.test")
@@ -110,8 +120,6 @@ object `package` extends RootModule with Module {
     }
     val upstreamOpt = upstreamCross(this.millModuleSegments.parts.dropRight(1).last)
       .flatMap(_.valuesToModules.get(List(crossValue)))
-
-
 
     def testRepoRoot = Task {
       os.copy(super.testRepoRoot().path, T.dest, mergeFolders = true)
@@ -185,7 +193,7 @@ object `package` extends RootModule with Module {
         .flatMap(pathRef => os.walk(pathRef.path))
         .filter(os.isFile)
         .filterNot(p =>
-          p.ext == "java" &&
+          (p.ext == "java" || p.ext == "kt") &&
             (p.segments.contains("linting") || p.segments.contains("10-external-module-aliases"))
         )
         .map(PathRef(_))

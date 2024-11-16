@@ -32,14 +32,14 @@ trait KtlintModule extends JavaModule {
    * Ktlint configuration file.
    */
   def ktlintConfig: T[Option[PathRef]] = Task {
-    None
+    Some(PathRef(Task.workspace / ".editorconfig"))
   }
 
   /**
    * Ktlint version.
    */
   def ktlintVersion: T[String] = Task {
-    "1.3.1"
+    "1.4.1"
   }
 
   /**
