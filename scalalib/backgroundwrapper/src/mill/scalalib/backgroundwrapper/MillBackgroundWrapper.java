@@ -14,7 +14,6 @@ public class MillBackgroundWrapper {
     String procUuid = args[2];
     int lockDelay = Integer.parseInt(args[3]);
 
-
     Files.writeString(procUuidPath, procUuid, StandardOpenOption.CREATE);
 
     // Take a lock on `procLockfile` to ensure that only one
