@@ -1,5 +1,6 @@
 package mill.runner
 
+
 import java.io.{PipedInputStream, PrintStream}
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
@@ -10,7 +11,7 @@ import mill.java9rtexport.Export
 import mill.api.{MillException, SystemStreams, WorkspaceRoot, internal}
 import mill.bsp.{BspContext, BspServerResult}
 import mill.main.BuildInfo
-import mill.main.client.{FileToStreamTailer, OutFiles, ServerFiles}
+import mill.main.client.{OutFiles, ServerFiles}
 import mill.main.client.lock.Lock
 import mill.util.{Colors, PrintLogger, PromptLogger}
 
@@ -221,21 +222,8 @@ object MillMain {
                 while (repeatForBsp) {
                   repeatForBsp = false
 
-                  val tailerRefreshIntervalMillis = 2
-                  val stdoutTailer = new FileToStreamTailer(
-                    (serverDir / ServerFiles.stdout).toIO,
-                    System.out,
-                    tailerRefreshIntervalMillis
-                  )
-                  val stderrTailer = new FileToStreamTailer(
-                    (serverDir / ServerFiles.stderr).toIO,
-                    System.err,
-                    tailerRefreshIntervalMillis
-                  )
-
-                  try {
-                    stdoutTailer.start()
-                    stderrTailer.start()
+                  Using.resource(new TailManager(serverDir)) { tailManager =>
+                    mill.main.client.DebugLog.println("Started Tailers")
                     val (isSuccess, evalStateOpt) = Watching.watchLoop(
                       ringBell = config.ringBell.value,
                       watch = config.watch.value,
@@ -251,7 +239,7 @@ object MillMain {
                           targetsAndParams,
                           streams
                         ) {
-                          val logger = getLogger(
+                          Using.resource(getLogger(
                             streams,
                             config,
                             mainInteractive,
@@ -263,26 +251,29 @@ object MillMain {
                             serverDir,
                             colored = colored,
                             colors = colors
-                          )
-                          Using.resource(logger) { _ =>
-                            try new MillBuildBootstrap(
-                                projectRoot = WorkspaceRoot.workspaceRoot,
-                                output = out,
-                                home = config.home,
-                                keepGoing = config.keepGoing.value,
-                                imports = config.imports,
-                                env = env,
-                                threadCount = threadCount,
-                                targetsAndParams = targetsAndParams,
-                                prevRunnerState = prevState.getOrElse(stateCache),
-                                logger = logger,
-                                disableCallgraph = config.disableCallgraph.value,
-                                needBuildFile = needBuildFile(config),
-                                requestedMetaLevel = config.metaLevel,
-                                config.allowPositional.value,
-                                systemExit = systemExit,
-                                streams0 = streams0
-                              ).evaluate()
+                          )) { logger =>
+                            SystemStreams.withStreams(logger.systemStreams) {
+                              tailManager.withOutErr(logger.outputStream, logger.errorStream) {
+                                try new MillBuildBootstrap(
+                                    projectRoot = WorkspaceRoot.workspaceRoot,
+                                    output = out,
+                                    home = config.home,
+                                    keepGoing = config.keepGoing.value,
+                                    imports = config.imports,
+                                    env = env,
+                                    threadCount = threadCount,
+                                    targetsAndParams = targetsAndParams,
+                                    prevRunnerState = prevState.getOrElse(stateCache),
+                                    logger = logger,
+                                    disableCallgraph = config.disableCallgraph.value,
+                                    needBuildFile = needBuildFile(config),
+                                    requestedMetaLevel = config.metaLevel,
+                                    config.allowPositional.value,
+                                    systemExit = systemExit,
+                                    streams0 = streams0
+                                  ).evaluate()
+                              }
+                            }
                           }
                         }
                       },
@@ -299,9 +290,6 @@ object MillMain {
                     }
 
                     loopRes = (isSuccess, evalStateOpt)
-                  } finally {
-                    stdoutTailer.close()
-                    stderrTailer.close()
                   }
                 } // while repeatForBsp
                 bspContext.foreach { ctx =>

@@ -23,17 +23,19 @@ public class MillBackgroundWrapper {
     }
 
     Thread.sleep(lockDelay);
+    long startTime = System.currentTimeMillis();
     Thread watcher = new Thread(() -> {
       while (true) {
+        long delta = (System.currentTimeMillis() - startTime) / 1000;
         try {
           Thread.sleep(1);
           String token = Files.readString(procUuidPath);
           if (!token.equals(procUuid)) {
-            System.err.println("runBackground procUuid changed, exiting");
+            System.err.println("runBackground exiting after " + delta + "s");
             System.exit(0);
           }
         } catch (Exception e) {
-          System.err.println("runBackground failed to read procUuidPath, exiting");
+          System.err.println("runBackground exiting after " + delta + "s");
           System.exit(0);
         }
       }
