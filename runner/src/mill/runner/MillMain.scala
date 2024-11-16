@@ -1,6 +1,5 @@
 package mill.runner
 
-
 import java.io.{PipedInputStream, PrintStream}
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
