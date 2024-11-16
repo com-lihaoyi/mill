@@ -14,9 +14,11 @@ public class MillBackgroundWrapper {
     String procUuid = args[2];
     int lockDelay = Integer.parseInt(args[3]);
 
+
+    Files.writeString(procUuidPath, procUuid, StandardOpenOption.CREATE);
+
     // Take a lock on `procLockfile` to ensure that only one
     // `runBackground` process  is running at any point in time.
-    Files.writeString(procUuidPath, procUuid, StandardOpenOption.CREATE);
     RandomAccessFile raf = new RandomAccessFile(procLockfile.toFile(), "rw");
     FileChannel chan = raf.getChannel();
     if (chan.tryLock() == null) {
