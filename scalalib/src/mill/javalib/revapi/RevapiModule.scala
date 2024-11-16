@@ -16,7 +16,7 @@ trait RevapiModule extends PublishModule {
    * Runs [[revapiCliVersion Revapi CLI]] on this module's archives.
    */
   def revapi(args: String*): Command[Unit] = Task.Command {
-    val workingDir = millSourcePath
+    val workingDir = T.dest
 
     val oldFiles = revapiOldFiles()
     val oldFile = oldFiles.head
