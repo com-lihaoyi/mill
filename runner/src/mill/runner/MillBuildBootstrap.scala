@@ -70,9 +70,6 @@ class MillBuildBootstrap(
   }
 
   def evaluateRec(depth: Int): RunnerState = {
-    mill.main.client.DebugLog.println(
-      "MillBuildBootstrap.evaluateRec " + depth + " " + targetsAndParams.mkString(" ")
-    )
     // println(s"+evaluateRec($depth) " + recRoot(projectRoot, depth))
     val prevFrameOpt = prevRunnerState.frames.lift(depth)
     val prevOuterFrameOpt = prevRunnerState.frames.lift(depth - 1)
