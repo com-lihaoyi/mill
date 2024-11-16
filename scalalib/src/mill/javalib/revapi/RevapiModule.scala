@@ -14,8 +14,11 @@ trait RevapiModule extends PublishModule {
 
   /**
    * Runs [[revapiCliVersion Revapi CLI]] on this module's archives.
+   *
+   * @param args additional CLI options
+   * @return CLI working directory
    */
-  def revapi(args: String*): Command[Unit] = Task.Command {
+  def revapi(args: String*): Command[PathRef] = Task.Command {
     val workingDir = T.dest
 
     val oldFiles = revapiOldFiles()
@@ -51,6 +54,8 @@ trait RevapiModule extends PublishModule {
       mainArgs = mainArgs,
       workingDir = workingDir
     )
+
+    PathRef(workingDir)
   }
 
   /**

@@ -7,24 +7,25 @@ import mill.testkit.{TestBaseModule, UnitTester}
 import mill.{Agg, T, Task}
 import utest.*
 
-import java.io.PrintStream
-
 object RevapiModuleTests extends TestSuite {
 
   def tests: Tests = Tests {
 
     val root = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "javalib" / "revapi"
+    val conf = root / "conf"
+    val textReport = "report.txt"
 
     test("example") {
-      val out = os.pwd / "example.out"
-      revapiLocal(
+      val dir = revapiLocal(
+        name = "example",
         root1 = root / "example/v1",
         root2 = root / "example/v2",
-        conf = root / "conf",
-        out = out
+        conf = conf
       )
+      val out = dir / textReport
 
       val actual = os.read.lines(out)
+      // severities elided because their order is not stable across runs
       val expected = os.read.lines(root / "expected/example.lines")
 
       assert(
@@ -33,17 +34,17 @@ object RevapiModuleTests extends TestSuite {
     }
 
     test("guava") {
-      val out = os.pwd / "guava.out"
-      revapiRemote(
+      val dir = revapiRemote(
         group = "com.google.guava",
         id = "guava",
         v1 = "17.0",
         v2 = "18.0",
-        conf = root / "conf",
-        out = out
+        conf = conf
       )
+      val out = dir / textReport
 
       val actual = os.read.lines(out)
+      // severities elided because their order is not stable across runs
       val expected = os.read.lines(root / "expected/guava.lines")
 
       assert(
@@ -53,15 +54,13 @@ object RevapiModuleTests extends TestSuite {
   }
 
   def revapiLocal(
+      name: String,
       root1: os.Path,
       root2: os.Path,
-      conf: os.Path,
-      out: os.Path
-  ): Unit = {
-    val outStream = new PrintStream(os.write.outputStream(out), true)
-
+      conf: os.Path
+  ): os.Path = {
     trait module extends TestBaseModule with PublishModule {
-      override def artifactName = out.baseName
+      override def artifactName = name
       override def pomSettings: T[PomSettings] =
         PomSettings("", "mill.revapi.local", "", Seq(), VersionControl(), Seq())
       override def publishVersion: T[String] = root1.last
@@ -75,15 +74,12 @@ object RevapiModuleTests extends TestSuite {
       }
     }
 
-    try {
-      var eval = UnitTester(module1, root1, outStream = outStream)
-      eval(module1.publishLocal())
+    var eval = UnitTester(module1, root1)
+    eval(module1.publishLocal())
 
-      eval = UnitTester(module2, root2, outStream = outStream)
-      eval(module2.revapi())
-    } finally {
-      outStream.close()
-    }
+    eval = UnitTester(module2, root2)
+    val Right(dir) = eval(module2.revapi())
+    dir.value.path
   }
 
   def revapiRemote(
@@ -91,10 +87,8 @@ object RevapiModuleTests extends TestSuite {
       id: String,
       v1: String,
       v2: String,
-      conf: os.Path,
-      out: os.Path
-  ): Unit = {
-    val outStream = new PrintStream(os.write.outputStream(out), true)
+      conf: os.Path
+  ): os.Path = {
 
     object module extends TestBaseModule with RevapiModule {
       override def artifactName = id
@@ -115,11 +109,8 @@ object RevapiModuleTests extends TestSuite {
       }
     }
 
-    try {
-      val eval = UnitTester(module, os.temp.dir(), outStream = outStream)
-      eval(module.revapi())
-    } finally {
-      outStream.close()
-    }
+    val eval = UnitTester(module, os.temp.dir())
+    val Right(dir) = eval(module.revapi())
+    dir.value.path
   }
 }

@@ -17,4 +17,21 @@ include::partial$example/javalib/publishing/3-revapi.adoc[]
 
 CAUTION: The `revapi` task does not fail if incompatibilities are reported. You should fix these, and verify by re-running `revapi`, before a release.
 
+[TIP]
+====
+The `revapi` task returns the path to a directory that can be used to resolve the relative path to any extension configuration output.
+[source,json]
+----
+[
+  {
+    "extension": "revapi.reporter.text",
+    "configuration": {
+      "minSeverity": "BREAKING",
+      "output": "report.txt"
+    }
+  }
+]
+----
+====
+
 include::partial$Publishing_Footer.adoc[]
