@@ -47,7 +47,6 @@ public abstract class ServerLauncher {
     public Path serverDir;
   }
 
-
   final int serverProcessesLimit = 5;
   final int serverInitWaitMillis = 10000;
 
@@ -172,13 +171,11 @@ public abstract class ServerLauncher {
 
     try {
       return Integer.parseInt(
-          Files.readAllLines(Paths.get(serverDir + "/" + ServerFiles.exitCode))
-              .get(0));
+          Files.readAllLines(Paths.get(serverDir + "/" + ServerFiles.exitCode)).get(0));
     } catch (Throwable e) {
       return Util.ExitClientCodeCannotReadFromExitCodeFile();
     } finally {
       ioSocket.close();
     }
   }
-
 }

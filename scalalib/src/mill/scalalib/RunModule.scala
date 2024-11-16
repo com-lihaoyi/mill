@@ -152,7 +152,13 @@ trait RunModule extends WithZincWorker {
     Task.Anon {
       val (procUuidPath, procLockfile, procUuid) = backgroundSetup(T.dest)
       runner().run(
-        args = Seq(procUuidPath.toString, procLockfile.toString, procUuid, runBackgroundRestartDelayMillis().toString, mainClass()) ++ args().value,
+        args = Seq(
+          procUuidPath.toString,
+          procLockfile.toString,
+          procUuid,
+          runBackgroundRestartDelayMillis().toString,
+          mainClass()
+        ) ++ args().value,
         mainClass = "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
         workingDir = forkWorkingDir(),
         extraRunClasspath = zincWorker().backgroundWrapperClasspath().map(_.path).toSeq,
@@ -192,7 +198,13 @@ trait RunModule extends WithZincWorker {
           (runClasspath ++ zwBackgroundWrapperClasspath).map(_.path),
           forkArgs,
           forkEnv,
-          Seq(procUuidPath.toString, procLockfile.toString, procUuid, 500.toString, finalMainClass) ++ args,
+          Seq(
+            procUuidPath.toString,
+            procLockfile.toString,
+            procUuid,
+            500.toString,
+            finalMainClass
+          ) ++ args,
           workingDir = forkWorkingDir,
           backgroundOutputs,
           useCpPassingJar = runUseArgsFile

@@ -1,11 +1,11 @@
 package mill.util
 
 import mill.api.Loose.Agg
-import mill.api.*
+import mill.api._
 import mill.main.client.ServerFiles
 import os.{ProcessOutput, SubProcess}
 
-import java.io.*
+import java.io._
 import java.lang.reflect.Modifier
 import java.nio.file.attribute.PosixFilePermission
 import java.nio.file.Files
@@ -129,8 +129,7 @@ object Jvm extends CoursierSupport {
             os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stderr)
           )
         )
-      }
-      else Jvm.defaultBackgroundOutputs(ctx.dest),
+      } else Jvm.defaultBackgroundOutputs(ctx.dest),
       useCpPassingJar
     )
   }

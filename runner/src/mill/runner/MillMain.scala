@@ -221,7 +221,6 @@ object MillMain {
                 while (repeatForBsp) {
                   repeatForBsp = false
 
-
                   val tailerRefreshIntervalMillis = 2
                   val stdoutTailer = new FileToStreamTailer(
                     (serverDir / ServerFiles.stdout).toIO,
@@ -267,23 +266,23 @@ object MillMain {
                           )
                           Using.resource(logger) { _ =>
                             try new MillBuildBootstrap(
-                              projectRoot = WorkspaceRoot.workspaceRoot,
-                              output = out,
-                              home = config.home,
-                              keepGoing = config.keepGoing.value,
-                              imports = config.imports,
-                              env = env,
-                              threadCount = threadCount,
-                              targetsAndParams = targetsAndParams,
-                              prevRunnerState = prevState.getOrElse(stateCache),
-                              logger = logger,
-                              disableCallgraph = config.disableCallgraph.value,
-                              needBuildFile = needBuildFile(config),
-                              requestedMetaLevel = config.metaLevel,
-                              config.allowPositional.value,
-                              systemExit = systemExit,
-                              streams0 = streams0
-                            ).evaluate()
+                                projectRoot = WorkspaceRoot.workspaceRoot,
+                                output = out,
+                                home = config.home,
+                                keepGoing = config.keepGoing.value,
+                                imports = config.imports,
+                                env = env,
+                                threadCount = threadCount,
+                                targetsAndParams = targetsAndParams,
+                                prevRunnerState = prevState.getOrElse(stateCache),
+                                logger = logger,
+                                disableCallgraph = config.disableCallgraph.value,
+                                needBuildFile = needBuildFile(config),
+                                requestedMetaLevel = config.metaLevel,
+                                config.allowPositional.value,
+                                systemExit = systemExit,
+                                streams0 = streams0
+                              ).evaluate()
                           }
                         }
                       },
