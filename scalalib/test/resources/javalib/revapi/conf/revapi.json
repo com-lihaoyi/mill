@@ -1,0 +1,9 @@
+[
+  {
+    "extension": "revapi.reporter.text",
+    "configuration": {
+      "minSeverity": "BREAKING",
+      "output": "report.txt"
+    }
+  }
+]

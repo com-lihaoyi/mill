@@ -5,15 +5,15 @@
 package hello.tests
 
 import hello.getHelloString
-import kotlin.test.assertEquals
 import org.junit.Test
+import kotlin.test.assertEquals
 
 class HelloTest {
-    @Test fun testSuccess() : Unit {
+    @Test fun testSuccess() {
         assertEquals("Hello, world!", getHelloString())
     }
-    @Test fun testFailure() : Unit {
+
+    @Test fun testFailure() {
         assertEquals("world!", getHelloString())
     }
 }
-

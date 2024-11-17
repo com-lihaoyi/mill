@@ -70,9 +70,6 @@ class MillBuildBootstrap(
   }
 
   def evaluateRec(depth: Int): RunnerState = {
-    mill.main.client.DebugLog.println(
-      "MillBuildBootstrap.evaluateRec " + depth + " " + targetsAndParams.mkString(" ")
-    )
     // println(s"+evaluateRec($depth) " + recRoot(projectRoot, depth))
     val prevFrameOpt = prevRunnerState.frames.lift(depth)
     val prevOuterFrameOpt = prevRunnerState.frames.lift(depth - 1)
@@ -181,29 +178,20 @@ class MillBuildBootstrap(
           depth,
           actualBuildFileName = nestedState.buildFile
         )) { evaluator =>
-          if (depth != 0) {
-            val retState = processRunClasspath(
+          if (depth == requestedDepth) processFinalTargets(nestedState, rootModule, evaluator)
+          else if (depth <= requestedDepth) nestedState
+          else {
+            processRunClasspath(
               nestedState,
               rootModule,
               evaluator,
               prevFrameOpt,
               prevOuterFrameOpt
             )
-
-            if (retState.errorOpt.isEmpty && depth == requestedDepth) {
-              // TODO: print some message and indicate actual evaluated frame
-              val evalRet = processFinalTargets(nestedState, rootModule, evaluator)
-              if (evalRet.errorOpt.isEmpty) retState
-              else evalRet
-            } else
-              retState
-
-          } else {
-            processFinalTargets(nestedState, rootModule, evaluator)
           }
         }
       }
-    // println(s"-evaluateRec($depth) " + recRoot(projectRoot, depth))
+
     res
   }
 
@@ -407,8 +395,12 @@ object MillBuildBootstrap {
       targetsAndParams: Seq[String]
   ): (Either[String, Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
     rootModule.evalWatchedValues.clear()
+    val previousClassloader = Thread.currentThread().getContextClassLoader
     val evalTaskResult =
-      RunScript.evaluateTasksNamed(evaluator, targetsAndParams, SelectMode.Separated)
+      try {
+        Thread.currentThread().setContextClassLoader(rootModule.getClass.getClassLoader)
+        RunScript.evaluateTasksNamed(evaluator, targetsAndParams, SelectMode.Separated)
+      } finally Thread.currentThread().setContextClassLoader(previousClassloader)
     val moduleWatched = rootModule.watchedValues.toVector
     val addedEvalWatched = rootModule.evalWatchedValues.toVector
 

@@ -1,9 +1,0 @@
-= Built-in Commands
-:page-aliases: Kotlin_Builtin_Commands.adoc
-
-include::partial$gtag-config.adoc[]
-
-:language: Kotlin
-:language-small: kotlin
-
-include::partial$example/kotlinlib/basic/5-builtin-commands.adoc[]

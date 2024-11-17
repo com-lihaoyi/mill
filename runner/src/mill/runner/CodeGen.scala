@@ -6,6 +6,7 @@ import mill.runner.FileImportGraph.backtickWrap
 import pprint.Util.literalize
 
 import scala.collection.mutable
+import scala.util.control.Breaks._
 
 object CodeGen {
 
@@ -18,7 +19,7 @@ object CodeGen {
       millTopLevelProjectRoot: os.Path,
       output: os.Path
   ): Unit = {
-    for (scriptSource <- scriptSources) {
+    for (scriptSource <- scriptSources) breakable {
       val scriptPath = scriptSource.path
       val specialNames = (nestedBuildFileNames ++ rootBuildFileNames).toSet
 
@@ -26,11 +27,11 @@ object CodeGen {
       val scriptFolderPath = scriptPath / os.up
 
       if (scriptFolderPath == projectRoot && scriptPath.last.split('.').head == "package") {
-        throw Result.Failure(s"Mill ${scriptPath.last} files can only be in subfolders")
+        break()
       }
 
       if (scriptFolderPath != projectRoot && scriptPath.last.split('.').head == "build") {
-        throw Result.Failure(s"Mill ${scriptPath.last} files can only be in the project root")
+        break()
       }
 
       val packageSegments = FileImportGraph.fileImportToSegments(projectRoot, scriptPath)

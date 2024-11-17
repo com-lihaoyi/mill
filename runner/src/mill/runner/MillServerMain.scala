@@ -24,7 +24,7 @@ object MillServerMain {
     )
 
     val acceptTimeoutMillis =
-      Try(System.getProperty("mill.server_timeout").toInt).getOrElse(5 * 60 * 1000) // 5 minutes
+      Try(System.getProperty("mill.server_timeout").toInt).getOrElse(30 * 60 * 1000) // 30 minutes
 
     new MillServerMain(
       serverDir = os.Path(args0(0)),

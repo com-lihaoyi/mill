@@ -4,7 +4,6 @@
 // on end user goals and how to achieve them.
 
 * xref:javalib/intro.adoc[]
-** xref:javalib/builtin-commands.adoc[]
 ** xref:javalib/module-config.adoc[]
 ** xref:javalib/dependencies.adoc[]
 ** xref:javalib/testing.adoc[]
@@ -15,7 +14,6 @@
 ** xref:javalib/android-examples.adoc[]
 ** xref:javalib/android-linting.adoc[]
 * xref:scalalib/intro.adoc[]
-** xref:scalalib/builtin-commands.adoc[]
 ** xref:scalalib/module-config.adoc[]
 ** xref:scalalib/dependencies.adoc[]
 ** xref:scalalib/testing.adoc[]
@@ -25,7 +23,6 @@
 ** xref:scalalib/web-examples.adoc[]
 ** xref:scalalib/native-examples.adoc[]
 * xref:kotlinlib/intro.adoc[]
-** xref:kotlinlib/builtin-commands.adoc[]
 ** xref:kotlinlib/module-config.adoc[]
 ** xref:kotlinlib/dependencies.adoc[]
 ** xref:kotlinlib/testing.adoc[]
@@ -33,7 +30,9 @@
 ** xref:kotlinlib/publishing.adoc[]
 // ** xref:kotlinlib/build-examples.adoc[]
 ** xref:kotlinlib/web-examples.adoc[]
-** xref:kotlinlib/android-examples.adoc[]
+* (Experimental) Android with Mill
+** xref:android/java.adoc[]
+** xref:android/kotlin.adoc[]
 * xref:comparisons/why-mill.adoc[]
 ** xref:comparisons/maven.adoc[]
 ** xref:comparisons/gradle.adoc[]
@@ -42,7 +41,11 @@
 * The Mill CLI
 ** xref:cli/installation-ide.adoc[]
 ** xref:cli/flags.adoc[]
+** xref:cli/builtin-commands.adoc[]
+** xref:cli/query-syntax.adoc[]
 ** xref:cli/alternate-installation.adoc[]
+* Migrating to Mill
+** xref:migrating/maven.adoc[]
 // This section gives a tour of the various user-facing features of Mill:
 // library deps, out folder, queries, tasks, etc.. These are things that
 // every Mill user will likely encounter, and are touched upon in the various
@@ -52,7 +55,6 @@
 ** xref:fundamentals/tasks.adoc[]
 ** xref:fundamentals/modules.adoc[]
 ** xref:fundamentals/out-dir.adoc[]
-** xref:fundamentals/query-syntax.adoc[]
 ** xref:fundamentals/library-deps.adoc[]
 ** xref:fundamentals/cross-builds.adoc[]
 ** xref:fundamentals/bundled-libraries.adoc[]
