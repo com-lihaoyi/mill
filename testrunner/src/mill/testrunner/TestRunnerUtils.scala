@@ -2,7 +2,7 @@ package mill.testrunner
 
 import mill.api.{Ctx, Loose, TestReporter, internal}
 import os.Path
-import sbt.testing.*
+import sbt.testing._
 
 import java.nio.file.Files
 import java.lang.annotation.Annotation
@@ -14,6 +14,7 @@ import scala.collection.mutable
 import scala.jdk.CollectionConverters.IteratorHasAsScala
 
 @internal object TestRunnerUtils {
+
   def listClassFiles(base: os.Path): geny.Generator[String] = {
     if (os.isDir(base)) {
       os.walk.stream(base).filter(_.ext == "class").map(_.relativeTo(base).toString)
