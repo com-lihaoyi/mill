@@ -59,6 +59,23 @@ object Jvm extends CoursierSupport {
       envArgs: Map[String, String],
       mainArgs: Seq[String],
       workingDir: os.Path,
+      streamOut: Boolean,
+      check: Boolean
+  )(implicit ctx: Ctx): CommandResult = {
+    callSubprocess(mainClass, classPath, jvmArgs, envArgs, mainArgs, workingDir, streamOut, true, None)
+  }
+
+  /**
+   * Runs a JVM subprocess with the given configuration and returns a
+   * [[os.CommandResult]] with it's aggregated output and error streams
+   */
+  def callSubprocess(
+      mainClass: String,
+      classPath: Agg[os.Path],
+      jvmArgs: Seq[String],
+      envArgs: Map[String, String],
+      mainArgs: Seq[String],
+      workingDir: os.Path,
       streamOut: Boolean
   )(implicit ctx: Ctx): CommandResult = {
     callSubprocess(mainClass, classPath, jvmArgs, envArgs, mainArgs, workingDir, streamOut, true)
