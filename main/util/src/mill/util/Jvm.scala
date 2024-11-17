@@ -63,7 +63,17 @@ object Jvm extends CoursierSupport {
       streamOut: Boolean,
       check: Boolean
   )(implicit ctx: Ctx): CommandResult = {
-    callSubprocess(mainClass, classPath, jvmArgs, envArgs, mainArgs, workingDir, streamOut, true, None)
+    callSubprocess(
+      mainClass,
+      classPath,
+      jvmArgs,
+      envArgs,
+      mainArgs,
+      workingDir,
+      streamOut,
+      true,
+      None
+    )
   }
 
   /**
