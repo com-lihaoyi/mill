@@ -11,6 +11,4 @@ fun main() {
     println("stringifiedJsObject: " + stringifiedJsObject)
 }
 
-fun hello(): String {
-    return createHTML(prettyPrint = false).h1 { text("Hello World") }.toString()
-}
+fun hello(): String = createHTML(prettyPrint = false).h1 { text("Hello World") }.toString()

@@ -27,19 +27,23 @@ object `package` extends RootModule with Module {
     .modules
     .collect { case m: ExampleCrossModule => m }
 
+  object android extends Module {
+    object javalib extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "javalib"))
+    object kotlinlib extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "kotlinlib"))
+  }
   object javalib extends Module {
-    object android extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "android"))
+
     object basic extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "basic"))
     object module extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "module"))
     object dependencies extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "dependencies"))
     object testing extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "testing"))
     object linting extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "linting"))
+    object migrating extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "migrating"))
     object publishing extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "publishing"))
     object web extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "web"))
     object `java-home` extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "java-home"))
   }
   object kotlinlib extends Module {
-    object android extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "android"))
     object basic extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "basic"))
     object module extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "module"))
     object dependencies extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "dependencies"))
@@ -58,8 +62,19 @@ object `package` extends RootModule with Module {
     object web extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "web"))
     object native extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "native"))
   }
+  object javascriptlib extends Module {
+    object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))
+  }
+  object pythonlib extends Module {
+    object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))
+  }
+
+  object cli extends Module{
+    object builtins extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "builtins"))
+  }
 
   object fundamentals extends Module {
+
     object dependencies extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "dependencies"))
     object tasks extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "tasks"))
     object modules extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "modules"))
@@ -86,6 +101,7 @@ object `package` extends RootModule with Module {
   }
 
   trait ExampleCrossModuleKotlin extends ExampleCrossModuleJava {
+
     override def lineTransform(line: String) = this.millModuleSegments.parts.last match {
       case "1-test-suite" => line
         .replace("mill bar.test bar.BarTests.hello", "kotest_filter_tests='hello' kotest_filter_specs='bar.BarTests' ./mill bar.test")
@@ -170,9 +186,20 @@ object `package` extends RootModule with Module {
   trait ExampleCrossModule extends build.integration.IntegrationTestModule {
     // disable scalafix because these example modules don't have sources causing it to misbehave
     def fix(args: String*): Command[Unit] = T.command {}
-    def testRepoRoot: T[PathRef] = T.source(millSourcePath)
+    def testRepoRoot: T[PathRef] = Task.Source(millSourcePath)
 
-    def sources = Task.Sources { testRepoRoot().path }
+    def sources0 = Task.Sources(millSourcePath)
+    def sources = Task{
+      sources0()
+        .flatMap(pathRef => os.walk(pathRef.path))
+        .filter(os.isFile)
+        .filterNot(p =>
+          (p.ext == "java" || p.ext == "kt") &&
+            (p.segments.contains("linting") || p.segments.contains("10-external-module-aliases"))
+        )
+        .map(PathRef(_))
+    }
+
     def resources = Seq(testRepoRoot())
     def runClasspath = build.main.test.runClasspath()
     def localRunClasspath = build.testkit.localRunClasspath()

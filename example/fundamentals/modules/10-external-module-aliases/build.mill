@@ -11,12 +11,12 @@ def myAutoformat = mill.javalib.palantirformat.PalantirFormatModule
 
 /** Usage
 
-> cat src/foo/Foo.java # starts off unformatted
+> cat foo/src/foo/Foo.java # starts off unformatted
 package foo;public class Foo{ public static void main(String[] args) {System.out.println("Hello World!");}}
 
 > mill myAutoformat # easier to type than `./mill mill.javalib.palantirformat.PalantirFormatModule/`
 
-> cat src/foo/Foo.java # code is now formatted
+> cat foo/src/foo/Foo.java # code is now formatted
 package foo;
 public class Foo {
   public static void main(String[] args) {

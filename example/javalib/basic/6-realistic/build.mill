@@ -53,7 +53,7 @@ object qux extends MyModule
 // - With generated sources to include the `publishVersion` as a string in the
 //   code, so it can be printed at runtime
 //
-// Note that for multi-module builds like this, using xref:fundamentals/query-syntax.adoc[queries] to run tasks on
+// Note that for multi-module builds like this, using xref:cli/query-syntax.adoc[queries] to run tasks on
 // multiple modules at once can be very convenient:
 //
 // ----

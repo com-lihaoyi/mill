@@ -1,16 +1,18 @@
 package foo;
+
 import java.io.*;
 
-public class Foo{
-    public static final int value = 31337;
-    public static void main(String[] args) throws IOException{
-        System.out.println("Foo.value: " + value );
-        System.out.println("args: " + String.join(" ", args) );
+public class Foo {
+  public static final int value = 31337;
 
-        InputStream res = Foo.class.getResourceAsStream("/foo.txt");
+  public static void main(String[] args) throws IOException {
+    System.out.println("Foo.value: " + value);
+    System.out.println("args: " + String.join(" ", args));
 
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(res))) {
-            System.out.println("foo.txt resource: " + br.readLine());
-        }
+    InputStream res = Foo.class.getResourceAsStream("/foo.txt");
+
+    try (BufferedReader br = new BufferedReader(new InputStreamReader(res))) {
+      System.out.println("foo.txt resource: " + br.readLine());
     }
+  }
 }

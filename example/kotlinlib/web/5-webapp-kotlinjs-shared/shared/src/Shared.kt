@@ -1,19 +1,40 @@
 package shared
 
-import kotlinx.html.*
-import kotlinx.html.stream.createHTML
+import kotlinx.html.FlowContent
+import kotlinx.html.InputType
+import kotlinx.html.a
+import kotlinx.html.button
+import kotlinx.html.div
+import kotlinx.html.footer
+import kotlinx.html.h1
+import kotlinx.html.header
+import kotlinx.html.id
+import kotlinx.html.input
+import kotlinx.html.label
+import kotlinx.html.li
+import kotlinx.html.section
+import kotlinx.html.span
+import kotlinx.html.strong
+import kotlinx.html.ul
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Todo(val checked: Boolean, val text: String)
+data class Todo(
+    val checked: Boolean,
+    val text: String,
+)
 
-fun FlowContent.renderBody(todos: List<Todo>, state: String) {
-    val filteredTodos = when (state) {
-        "all" -> todos.withIndex()
-        "active" -> todos.withIndex().filter { !it.value.checked }
-        "completed" -> todos.withIndex().filter { it.value.checked }
-        else -> throw IllegalStateException("Unknown state=$state")
-    }
+fun FlowContent.renderBody(
+    todos: List<Todo>,
+    state: String,
+) {
+    val filteredTodos =
+        when (state) {
+            "all" -> todos.withIndex()
+            "active" -> todos.withIndex().filter { !it.value.checked }
+            "completed" -> todos.withIndex().filter { it.value.checked }
+            else -> throw IllegalStateException("Unknown state=$state")
+        }
     div {
         header(classes = "header") {
             h1 { +"todos" }
@@ -24,7 +45,7 @@ fun FlowContent.renderBody(todos: List<Todo>, state: String) {
         section(classes = "main") {
             input(
                 classes = "toggle-all",
-                type = InputType.checkBox
+                type = InputType.checkBox,
             ) {
                 id = "toggle-all"
                 checked = todos.any { it.checked }

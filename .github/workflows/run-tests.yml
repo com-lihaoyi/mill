@@ -62,7 +62,7 @@ jobs:
             install-android-sdk: false
 
           - java-version: '11'
-            millargs: "'{scalajslib,scalanativelib,kotlinlib}.__.testCached'"
+            millargs: "'{scalajslib,scalanativelib,kotlinlib,pythonlib,javascriptlib}.__.testCached'"
             install-android-sdk: false
 
           - java-version: 17
@@ -71,7 +71,7 @@ jobs:
 
           - java-version: 17
             millargs: "'example.javalib.__.local.testCached'"
-            install-android-sdk: true
+            install-android-sdk: false
 
           - java-version: 17
             millargs: "'example.scalalib.__.local.testCached'"
@@ -79,7 +79,15 @@ jobs:
 
           - java-version: 17
             millargs: "'example.kotlinlib.__.local.testCached'"
+            install-android-sdk: false
+
+          - java-version: 17
+            millargs: "'example.android.__.local.testCached'"
             install-android-sdk: true
+
+          - java-version: 17
+            millargs: "'example.{pythonlib,javascriptlib}.__.local.testCached'"
+            install-android-sdk: false
 
           - java-version: '11'
             millargs: "'example.thirdparty[{mockito,acyclic,commons-io}].local.testCached'"
@@ -94,7 +102,7 @@ jobs:
             install-android-sdk: false
 
           - java-version: '11'
-            millargs: "'example.{depth,extending}.__.local.testCached'"
+            millargs: "'example.{cli,fundamentals,depth,extending}.__.local.testCached'"
             install-android-sdk: false
             # Most of these integration tests should not depend on which mode they
             # are run in, so just run them in `local`
@@ -169,10 +177,10 @@ jobs:
       env-bridge-versions: 'essential'
 
   # Scalafmt, Mima, and Scalafix job runs last because it's the least important:
-  # usually just a automated or mechanical manual fix to do before merging
+  # usually just an automated or mechanical manual fix to do before merging
   lint-autofix:
     needs: build-linux
     uses: ./.github/workflows/run-mill-action.yml
     with:
-      java-version: '11'
-      buildcmd: ./mill -i mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources; ./mill -i __.mimaReportBinaryIssues; ./mill -i __.fix --check
+      java-version: '17'
+      buildcmd: ./mill -i mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources + __.mimaReportBinaryIssues + __.fix --check + mill.javalib.palantirformat.PalantirFormatModule/ --check + mill.kotlinlib.ktlint.KtlintModule/checkFormatAll --check

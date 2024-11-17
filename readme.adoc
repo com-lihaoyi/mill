@@ -346,11 +346,56 @@ endif::[]
 // find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
 
 
+[#0-12-2]
+=== 0.12.2 - 2024-11-11
+:version: 0.12.2
+:milestone-name: 0.12.2
+:milestone: 105
+:prev-version: 0.12.1
+
+_Changes since {prev-version}:_
+
+* Show correct build file name in progress prompt {link-pr}/3847[#3847]
+* Fix target name when reporting cycles in `runModuleDeps` {link-pr}/3860[#3860]
+* Properly escape imported submodule names when the name is a Scala identifier {link-pr}/3865[#3865]
+* Report an error when module dependency cycles are detected {link-pr}/3878[#3878]
+* Drop incremental compilation state for Mill modules when version changes to try and mitigate cache invalidation issues {link-pr}/3884[#3884]
+* Share profile loggers between nested evaluations to avoid ensure commands like `show` now have a proper profile {link-pr}/3885[#3885]
+* Add `nativeMultithreading` flag in ScalaNativeModule {link-pr}/3896[#3896]
+* Add nice error when non-exclusive task depends on exclusive task {link-pr}/3887[#3887]
+* Filter out anonymous classes during test discovery to mitigate spurious test reports {link-pr}/3911[#3911]
+* Fix `MavenTests` deprecation message {link-pr}/3915[#3915]
+* Improve `inspect` command to show more detailed metadata on modules and tasks {link-pr}/3916[#3916]
+* Fix prompt updating logic to ensure the timestamp updates while tasks are running {link-pr}/3933[#3933]
+* Fix scoverage report generation for Scala 3 {link-pr}/3936[#3936]
+* Tons of documentation improvements: autoformatted all https://github.com/com-lihaoyi/mill/pull/3919[Java]
+  and https://github.com/com-lihaoyi/mill/pull/3903[Scala] example files,
+  [Scala-Native example builds]https://github.com/com-lihaoyi/mill/pull/3657,
+  https://github.com/com-lihaoyi/mill/pull/3897[Scala-JS WASM example build],
+  https://github.com/com-lihaoyi/mill/pull/3918[Re-run Maven comparison using proper flags]
+  added https://mill-build.org/mill/comparisons/why-mill.html[Why Use Mill?] and
+  https://mill-build.org/mill/comparisons/unique.html[What Makes Mill Unique?] Sections
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
 [#0-12-1]
 === 0.12.1 - 2024-10-27
+:version: 0.12.1
+:milestone-name: 0.12.1
+:milestone: 104
+:prev-version: 0.12.0
+
+_Changes since {prev-version}:_
 
 * Fix updating of prompt to match terminal width in client-server mode {link-pr}/3833[#3833]
 * Allow `.mill-jvm-opts` to interpolate environment variables, add `.mill-opts` {link-pr}/3841[#3841]
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-12-0]
@@ -381,7 +426,7 @@ Major changes:
 
 5. Mill now supports other JVM langauges: https://mill-build.org/mill/javalib/intro.html[Java],
    experimental support for https://mill-build.org/mill/kotlinlib/intro.html[Kotlin/KotlinJs],
-   and https://mill-build.org/mill/kotlinlib/android-examples.html[even-more-experimental support for Android].
+   and https://mill-build.org/mill/android/kotlin.html[even-more-experimental support for Android].
    This includes IDE integrations, tooling integrations (docs, autoformatters, linters, testing
    frameworks, etc.)
 
@@ -680,6 +725,27 @@ on large projects {link-pr}/3388[#3388]
 ** Improvements to `visualize` and `visualizePlan` such that they no longer need to be
 prefixed with `show` and no longer need a separate `graphviz`/`dot` install on Mac-OSX
 {link-pr}/3438[#3438]
+
+[#0-11-13]
+=== 0.11.13 - 2024-01-14
+:version: 0.11.13
+:milestone-name: 0.11.13
+:milestone: 100
+:prev-version: 0.11.12
+
+_Changes since {prev-version}:_
+
+
+* Security Fix: Update protobuf-java to 3.25.5 {link-pr}/3639[#3639]
+* Backport: Fixed property handling when using `--define`/`-D` from the Mill CLI. {link-pr}/3795[#3795]
+* Backport: GenIdea: Handle failure when evaluating module sources/resources {link-pr}/3755[#3755]
+* Update asm from 9.7 to 9.7.1 for Java 24 support {link-pr}/3745[#3745]
+
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
 
 [#0-11-12]
 === 0.11.12 - 2024-08-20

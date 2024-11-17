@@ -73,6 +73,7 @@ trait JmhModule extends JavaModule {
   def generateBenchmarkSources =
     Task {
       val dest = T.ctx().dest
+      val forkedArgs = forkArgs().toSeq
       val sourcesDir = dest / "jmh_sources"
       val resourcesDir = dest / "jmh_resources"
 
@@ -91,6 +92,7 @@ trait JmhModule extends JavaModule {
           "default"
         ),
         javaHome = zincWorker().javaHome().map(_.path)
+        jvmArgs = forkedArgs
       )
 
       (sourcesDir, resourcesDir)

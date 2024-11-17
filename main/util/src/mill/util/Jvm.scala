@@ -2,6 +2,7 @@ package mill.util
 
 import mill.api.Loose.Agg
 import mill.api._
+import mill.main.client.ServerFiles
 import os.{ProcessOutput, SubProcess}
 
 import java.io._
@@ -124,8 +125,18 @@ object Jvm extends CoursierSupport {
       mainArgs,
       workingDir,
       if (!background) None
-      else if (runBackgroundLogToConsole) Some((os.Inherit, os.Inherit))
-      else Jvm.defaultBackgroundOutputs(ctx.dest),
+      else if (runBackgroundLogToConsole) {
+        val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
+        // Hack to forward the background subprocess output to the Mill server process
+        // stdout/stderr files, so the output will get properly slurped up by the Mill server
+        // and shown to any connected Mill client even if the current command has completed
+        Some(
+          (
+            os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stdout),
+            os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stderr)
+          )
+        )
+      } else Jvm.defaultBackgroundOutputs(ctx.dest),
       useCpPassingJar,
       javaHome
     )

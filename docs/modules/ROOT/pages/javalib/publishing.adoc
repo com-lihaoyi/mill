@@ -9,4 +9,29 @@ This page will discuss common topics around publishing your Java projects for ot
 
 include::partial$example/javalib/publishing/2-publish-module.adoc[]
 
+== Checking API compatibility
+
+Mill provides the ability to check API changes with the https://revapi.org/revapi-site/main/index.html[Revapi] analysis and change tracking tool.
+
+include::partial$example/javalib/publishing/3-revapi.adoc[]
+
+CAUTION: The `revapi` task does not fail if incompatibilities are reported. You should fix these, and verify by re-running `revapi`, before a release.
+
+[TIP]
+====
+The `revapi` task returns the path to a directory that can be used to resolve the relative path to any extension configuration output.
+[source,json]
+----
+[
+  {
+    "extension": "revapi.reporter.text",
+    "configuration": {
+      "minSeverity": "BREAKING",
+      "output": "report.txt"
+    }
+  }
+]
+----
+====
+
 include::partial$Publishing_Footer.adoc[]

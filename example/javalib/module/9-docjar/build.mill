@@ -6,7 +6,6 @@ object foo extends JavaModule {
   def javadocOptions = Seq("-quiet")
 }
 
-
 /** Usage
 
 > ./mill show foo.docJar
@@ -18,4 +17,3 @@ object foo extends JavaModule {
 */
 
 //// SNIPPET:SCALA3
-
