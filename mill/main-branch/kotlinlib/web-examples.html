@@ -994,6 +994,146 @@ is beyond the scope of this example.</p>
 </div>
 </div>
 </div>
+<div class="sect1">
+<h2 id="_spring_boot_hello_world_app"><a class="anchor" href="#_spring_boot_hello_world_app"></a>Spring Boot Hello World App</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2-example-kotlinlib-web-6-hello-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/kotlinlib/web/6-hello-spring-boot">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, kotlinlib._
+
+object `package` extends RootModule with KotlinModule {
+
+  def kotlinVersion = &quot;1.9.24&quot;
+
+  def mainClass = Some(&quot;com.example.HelloSpringBootKt&quot;)
+
+  def ivyDeps = Agg(
+    ivy&quot;org.springframework.boot:spring-boot-starter-web:2.5.6&quot;,
+    ivy&quot;org.springframework.boot:spring-boot-starter-actuator:2.5.6&quot;
+  )
+
+  object test extends KotlinTests with TestModule.Junit5 {
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy&quot;org.springframework.boot:spring-boot-starter-test:2.5.6&quot;
+    )
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example demonstrates how to set up a simple Spring Boot webserver,
+able to handle a single HTTP request at <code>/</code> and reply with a single response.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill test
+...com.example.HelloSpringBootTest#shouldReturnDefaultMessage() finished...
+
+&gt; mill runBackground
+
+&gt; curl http://localhost:8095
+...&lt;h1&gt;Hello, World!&lt;/h1&gt;...
+
+&gt; mill clean runBackground</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_spring_boot_todomvc_app"><a class="anchor" href="#_spring_boot_todomvc_app"></a>Spring Boot TodoMvc App</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2-example-kotlinlib-web-7-todo-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/kotlinlib/web/7-todo-spring-boot">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, kotlinlib._
+
+object `package` extends RootModule with KotlinModule {
+  def kotlinVersion = &quot;1.9.24&quot;
+
+  def mainClass = Some(&quot;com.example.TodomvcApplicationKt&quot;)
+  def ivyDeps = Agg(
+    ivy&quot;org.springframework.boot:spring-boot-starter-data-jpa:2.5.4&quot;,
+    ivy&quot;org.springframework.boot:spring-boot-starter-thymeleaf:2.5.4&quot;,
+    ivy&quot;org.springframework.boot:spring-boot-starter-validation:2.5.4&quot;,
+    ivy&quot;org.springframework.boot:spring-boot-starter-web:2.5.4&quot;,
+    ivy&quot;org.jetbrains.kotlin:kotlin-reflect:2.0.21&quot;,
+    ivy&quot;javax.xml.bind:jaxb-api:2.3.1&quot;,
+    ivy&quot;org.webjars:webjars-locator:0.41&quot;,
+    ivy&quot;org.webjars.npm:todomvc-common:1.0.5&quot;,
+    ivy&quot;org.webjars.npm:todomvc-app-css:2.4.1&quot;
+  )
+
+  trait HelloTests extends KotlinTests with TestModule.Junit5 {
+    def mainClass = Some(&quot;com.example.TodomvcApplicationKt&quot;)
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy&quot;org.springframework.boot:spring-boot-starter-test:2.5.6&quot;
+    )
+  }
+
+  object test extends HelloTests {
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy&quot;com.h2database:h2:2.3.230&quot;
+    )
+  }
+
+  object integration extends HelloTests {
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy&quot;org.testcontainers:testcontainers:1.18.0&quot;,
+      ivy&quot;org.testcontainers:junit-jupiter:1.18.0&quot;,
+      ivy&quot;org.testcontainers:postgresql:1.18.0&quot;,
+      ivy&quot;org.postgresql:postgresql:42.6.0&quot;
+    )
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is a larger example using Spring Boot, implementing the well known
+<a href="https://todomvc.com/">TodoMVC</a> example app. Apart from running a webserver,
+this example also demonstrates:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Serving HTML templates using Thymeleaf</p>
+</li>
+<li>
+<p>Serving static Javascript and CSS using Webjars</p>
+</li>
+<li>
+<p>Querying a SQL database using JPA and H2</p>
+</li>
+<li>
+<p>Unit testing using a H2 in-memory database</p>
+</li>
+<li>
+<p>Integration testing using Testcontainers Postgres in Docker</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill test
+...com.example.TodomvcTests#homePageLoads() finished...
+...com.example.TodomvcTests#addNewTodoItem() finished...
+
+&gt; mill integration
+...com.example.TodomvcIntegrationTests#homePageLoads() finished...
+...com.example.TodomvcIntegrationTests#addNewTodoItem() finished...
+
+&gt; mill test.runBackground
+
+&gt; curl http://localhost:8099
+...&lt;h1&gt;todos&lt;/h1&gt;...
+
+&gt; mill clean runBackground</code></pre>
+</div>
+</div>
+</div>
+</div>
 <nav class="pagination">
   <span class="prev"><a href="publishing.html">Publishing Kotlin Projects</a></span>
   <span class="next"><a href="../android/java.html">Android Java Projects</a></span>
