@@ -2,7 +2,7 @@ package mill.scalalib
 
 import mill.api.{Ctx, PathRef, Result}
 import mill.main.client.EnvVars
-import mill.testrunner.{Framework, GetTestTasksMain, TestArgs, TestResult, TestRunnerUtils}
+import mill.testrunner.{TestArgs, TestResult, TestRunnerUtils}
 import mill.util.Jvm
 import mill.{Agg, T}
 import sbt.testing.Status
@@ -106,7 +106,9 @@ private[scalalib] object TestModuleUtil {
             mainClass = "mill.testrunner.GetTestTasksMain",
             classPath = scalalibClasspath.map(_.path),
             mainArgs =
-              (runClasspath ++ testrunnerEntrypointClasspath).flatMap(p => Seq("--runCp", p.path.toString)) ++
+              (runClasspath ++ testrunnerEntrypointClasspath).flatMap(p =>
+                Seq("--runCp", p.path.toString)
+              ) ++
                 testClasspath.flatMap(p => Seq("--testCp", p.path.toString)) ++
                 Seq("--framework", testFramework) ++
                 selectors.flatMap(s => Seq("--selectors", s)) ++

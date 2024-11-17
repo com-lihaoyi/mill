@@ -7,7 +7,6 @@ import sbt.testing.*
 import java.nio.file.Files
 import java.lang.annotation.Annotation
 import java.lang.reflect.Modifier
-import java.net.URLClassLoader
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.regex.Pattern
 import java.util.zip.ZipInputStream

@@ -3,10 +3,9 @@ package mill.scalalib
 import mill.api.{Ctx, PathRef, Result}
 import mill.define.{Command, Task, TaskModule}
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
-import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner, TestRunnerUtils}
+import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner}
 import mill.util.Jvm
 import mill.{Agg, T}
-import mill.testrunner.DiscoverTestsMain
 
 trait TestModule
     extends TestModule.JavaModuleBase
@@ -55,7 +54,9 @@ trait TestModule
       ).out.lines()
     } else {
       mill.testrunner.DiscoverTestsMain.main0(
-        runClasspath().map(_.path), testClasspath().map(_.path), testFramework()
+        runClasspath().map(_.path),
+        testClasspath().map(_.path),
+        testFramework()
       )
     }
     classes.sorted
