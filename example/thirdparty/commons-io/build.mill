@@ -4,11 +4,13 @@ import mill.define.ModuleRef
 import $ivy.`com.lihaoyi::mill-contrib-jmh:$MILL_VERSION`
 import contrib.jmh.JmhModule
 
-object ZincWorkerJava11 extends ZincWorkerModule {
-  def jvmId = "temurin:1.11.0.24"
-}
 
 object `package` extends RootModule with PublishModule with MavenModule {
+
+  object ZincWorkerJava11 extends ZincWorkerModule {
+    def jvmId = "temurin:1.11.0.24"
+  }
+
   override def zincWorker = ModuleRef(ZincWorkerJava11)
   def javacOptions = Seq("-encoding", "UTF-8")
   def publishVersion = "2.17.0-SNAPSHOT"

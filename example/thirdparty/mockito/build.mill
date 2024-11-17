@@ -37,9 +37,6 @@ object libraries {
   val groovy = ivy"org.codehaus.groovy:groovy:3.0.22"
 }
 
-object ZincWorkerJava11 extends ZincWorkerModule {
-  def jvmId = "temurin:1.11.0.24"
-}
 
 trait MockitoModule extends MavenModule {
   override def zincWorker = ModuleRef(ZincWorkerJava11)
@@ -75,6 +72,11 @@ trait MockitoModule extends MavenModule {
 }
 
 object `package` extends RootModule with MockitoModule {
+
+  object ZincWorkerJava11 extends ZincWorkerModule {
+    def jvmId = "temurin:1.11.0.24"
+  }
+
   def compileIvyDeps = Agg(
     libraries.hamcrest,
     libraries.junit4,
