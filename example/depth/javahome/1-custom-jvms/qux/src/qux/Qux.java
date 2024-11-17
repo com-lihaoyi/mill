@@ -1,6 +1,5 @@
 package qux;
 
-
 public class Qux {
 
   public static void main(String[] args) throws Exception {

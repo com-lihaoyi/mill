@@ -10,5 +10,4 @@ public class FooTest {
     System.out.println("Testing with JVM version: " + System.getProperty("java.version"));
     assertEquals(System.getProperty("java.version"), "18.0.2");
   }
-
 }

@@ -20,7 +20,7 @@ object ZincWorkerModule extends ExternalModule with ZincWorkerModule with Coursi
 /**
  * A module managing an in-memory Zinc Scala incremental compiler
  */
-trait ZincWorkerModule extends mill.Module with OfflineSupportModule with CoursierModule  {
+trait ZincWorkerModule extends mill.Module with OfflineSupportModule with CoursierModule {
   def jvmId: mill.define.Target[Option[String]] = None
 
   def jvmIndexVersion: mill.define.Target[String] = "0.0.4-70-51469f"
@@ -54,7 +54,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
    * the current mill instance.
    */
   def javaHome: T[Option[PathRef]] = Task {
-    jvmId().map{id =>
+    jvmId().map { id =>
       val path = mill.util.Jvm.resolveJavaHome(
         id = id,
         coursierCacheCustomizer = coursierCacheCustomizer(),
