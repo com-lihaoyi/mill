@@ -62,8 +62,10 @@ import scala.util.Using
       val mainClasses = for {
         foundPackage <- recursive("", (p: String) => path.packages(p).map(_.name))
         classFile <- path.classes(foundPackage)
+        path = os.Path(classFile.file.file)
+        if path.ext == "class"
         cf = {
-          val bytes = os.read.bytes(os.Path(classFile.file.file))
+          val bytes = os.read.bytes(path)
           val reader = new ByteArrayReader(bytes)
           new Classfile(reader)
         }
