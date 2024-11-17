@@ -4,7 +4,7 @@ import coursier.Repository
 import mainargs.Flag
 import mill._
 import mill.api.{Ctx, FixSizedCache, KeyedLockedCache, PathRef, Result}
-import mill.define.{Discover, ExternalModule, Target, Task}
+import mill.define.{Discover, ExternalModule, Task}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.api.ZincWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
 import mill.scalalib.api.{Versions, ZincWorkerApi, ZincWorkerUtil}
@@ -21,7 +21,7 @@ object ZincWorkerModule extends ExternalModule with ZincWorkerModule with Coursi
  * A module managing an in-memory Zinc Scala incremental compiler
  */
 trait ZincWorkerModule extends mill.Module with OfflineSupportModule with CoursierModule {
-  def jvmId: mill.define.Target[String] = Task[String]{ "" }
+  def jvmId: mill.define.Target[String] = Task[String] { "" }
 
   def jvmIndexVersion: mill.define.Target[String] = "0.0.4-70-51469f"
 

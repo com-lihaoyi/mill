@@ -4,7 +4,7 @@ import mill.define.ModuleRef
 import $ivy.`com.lihaoyi::mill-contrib-jmh:$MILL_VERSION`
 import contrib.jmh.JmhModule
 
-object ZincWorkerJava11 extends ZincWorkerModule{
+object ZincWorkerJava11 extends ZincWorkerModule {
   def jvmId = "temurin:1.11.0.24"
 }
 

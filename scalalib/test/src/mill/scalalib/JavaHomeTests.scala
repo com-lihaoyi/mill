@@ -9,9 +9,8 @@ import utest._
 
 object JavaHomeTests extends TestSuite {
 
-
   object HelloJavaJavaHome11Override extends TestBaseModule {
-    object ZincWorkerJava11 extends ZincWorkerModule{
+    object ZincWorkerJava11 extends ZincWorkerModule {
       def jvmId = "temurin:11.0.24"
     }
 
@@ -23,7 +22,7 @@ object JavaHomeTests extends TestSuite {
   }
 
   object HelloJavaJavaHome17Override extends TestBaseModule {
-    object ZincWorkerJava17 extends ZincWorkerModule{
+    object ZincWorkerJava17 extends ZincWorkerModule {
       def jvmId = "temurin:17.0.9"
     }
 

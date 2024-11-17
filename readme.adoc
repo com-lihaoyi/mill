@@ -255,6 +255,14 @@ In case of troubles with caching and/or incremental compilation, you can always 
 rm -rf out/
 ----
 
+=== Autofix and Autoformatting
+
+To run all autofixes and autoformatters:
+
+```bash
+./mill __.fix + mill.javalib.palantirformat.PalantirFormatModule/ + mill.scalalib.scalafmt.ScalafmtModule/ + mill.kotlinlib.ktlint.KtlintModule/
+````
+
 == Project Layout
 
 The Mill project is organized roughly as follows:

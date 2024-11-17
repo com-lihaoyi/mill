@@ -3,7 +3,7 @@ package mill.scalalib
 import coursier.cache.FileCache
 import coursier.{Dependency, Repository, Resolve, Type}
 import coursier.core.Resolution
-import mill.define.{Target, Task}
+import mill.define.Task
 import mill.api.PathRef
 
 import scala.annotation.nowarn

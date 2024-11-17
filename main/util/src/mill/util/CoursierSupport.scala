@@ -169,7 +169,7 @@ trait CoursierSupport {
   def jvmIndex(
       ctx: Option[mill.api.Ctx.Log] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None
-  ) = {
+  ): JvmIndex = {
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
     jvmIndex0(ctx, coursierCacheCustomizer).unsafeRun()(coursierCache0.ec)
   }
