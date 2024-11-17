@@ -4,7 +4,6 @@ import mill.define.ModuleRef
 import $ivy.`com.lihaoyi::mill-contrib-jmh:$MILL_VERSION`
 import contrib.jmh.JmhModule
 
-
 object `package` extends RootModule with PublishModule with MavenModule {
 
   object ZincWorkerJava11 extends ZincWorkerModule {

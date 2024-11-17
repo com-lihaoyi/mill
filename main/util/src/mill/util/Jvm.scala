@@ -151,6 +151,30 @@ object Jvm extends CoursierSupport {
       mainArgs: Seq[String],
       workingDir: os.Path,
       background: Boolean,
+      useCpPassingJar: Boolean,
+      runBackgroundLogToConsole: Boolean
+  )(implicit ctx: Ctx): Unit =
+    runSubprocess(
+      mainClass,
+      classPath,
+      jvmArgs,
+      envArgs,
+      mainArgs,
+      workingDir,
+      background,
+      useCpPassingJar,
+      runBackgroundLogToConsole,
+      None
+    )
+  // bincompat shim
+  def runSubprocess(
+      mainClass: String,
+      classPath: Agg[os.Path],
+      jvmArgs: Seq[String],
+      envArgs: Map[String, String],
+      mainArgs: Seq[String],
+      workingDir: os.Path,
+      background: Boolean,
       useCpPassingJar: Boolean
   )(implicit ctx: Ctx): Unit =
     runSubprocess(
@@ -161,7 +185,8 @@ object Jvm extends CoursierSupport {
       mainArgs,
       workingDir,
       background,
-      useCpPassingJar
+      useCpPassingJar,
+      false
     )
 
   /**

@@ -37,7 +37,6 @@ object libraries {
   val groovy = ivy"org.codehaus.groovy:groovy:3.0.22"
 }
 
-
 trait MockitoModule extends MavenModule {
   override def zincWorker = ModuleRef(build.ZincWorkerJava11)
   def javacOptions = Seq("-encoding", "UTF-8")
