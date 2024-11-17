@@ -18,8 +18,8 @@ object app extends AndroidLintModule {
 
 /** Usage
 
-> ./mill show app.androidLint  # Display full path to the linting report in HTML
-".../out/app/androidLint.dest/report.html"
+> ./mill show app.androidLintRun  # Display full path to the linting report in HTML
+".../out/app/androidLintRun.dest/report.html"
 
 */
 
