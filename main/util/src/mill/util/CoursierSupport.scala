@@ -166,13 +166,26 @@ trait CoursierSupport {
     )
     (deps0, res.getOrThrow)
   }
-
   def jvmIndex(
       ctx: Option[mill.api.Ctx.Log] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None
-  ): Result[JvmIndex] = {
+  ) = {
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
-    JvmIndex.load().unsafeRun()(coursierCache0.ec)
+    jvmIndex0(ctx, coursierCacheCustomizer).unsafeRun()(coursierCache0.ec)
+  }
+
+  def jvmIndex0(
+      ctx: Option[mill.api.Ctx.Log] = None,
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None
+  ): Task[JvmIndex] = {
+    val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
+    JvmIndex.load(
+      cache = coursierCache0, // the coursier.cache.Cache instance to use
+      repositories = Resolve().repositories, // repositories to use
+      indexChannel = JvmChannel.central(), // use new indices published to Maven Central
+      os = None, // use defaults
+      arch = None // use defaults
+    )
   }
 
   /**
@@ -190,13 +203,7 @@ trait CoursierSupport {
       .withArchiveCache(
         ArchiveCache().withCache(coursierCache0)
       )
-      .withIndex(JvmIndex.load(
-        cache = coursierCache0, // the coursier.cache.Cache instance to use
-        repositories = Resolve().repositories, // repositories to use
-        indexChannel = JvmChannel.central(), // use new indices published to Maven Central
-        os = None, // use defaults
-        arch = None // use defaults
-      ))
+      .withIndex(jvmIndex0(ctx, coursierCacheCustomizer))
     val javaHome = JavaHome()
       .withCache(jvmCache)
     try {

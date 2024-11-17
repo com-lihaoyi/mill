@@ -91,7 +91,7 @@ trait JmhModule extends JavaModule {
           resourcesDir.toString,
           "default"
         ),
-        javaHome = zincWorker().javaHome().map(_.path)
+        javaHome = zincWorker().javaHome().map(_.path),
         jvmArgs = forkedArgs
       )
 
