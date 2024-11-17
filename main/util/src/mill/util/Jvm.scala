@@ -192,7 +192,6 @@ object Jvm extends CoursierSupport {
       javaHome: Option[os.Path] = None
   )(implicit ctx: Ctx): Unit = {
 
-    pprint.log(javaHome)
     val cp =
       if (useCpPassingJar && !classPath.iterator.isEmpty) {
         val passingJar = os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)
