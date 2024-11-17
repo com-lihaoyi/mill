@@ -32,11 +32,13 @@ trait CoursierModule extends mill.Module {
     Lib.depToDependencyJava(_: Dep)
   }
 
+  def jvmIndexVersion: mill.define.Target[String] = "0.0.4-70-51469f"
   def resolveJavaHome(id: String): Task[PathRef] = Task.Anon {
     val path = mill.util.Jvm.resolveJavaHome(
       id = id,
       coursierCacheCustomizer = coursierCacheCustomizer(),
-      ctx = Some(implicitly[mill.api.Ctx.Log])
+      ctx = Some(implicitly[mill.api.Ctx.Log]),
+      jvmIndexVersion = jvmIndexVersion()
     ).getOrThrow
     PathRef(path, quick = true)
   }
