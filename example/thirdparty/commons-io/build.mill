@@ -8,7 +8,7 @@ import contrib.jmh.JmhModule
 object `package` extends RootModule with PublishModule with MavenModule {
 
   object ZincWorkerJava11 extends ZincWorkerModule {
-    def jvmId = "temurin:1.11.0.24"
+    def jvmId = "temurin:11.0.24"
   }
 
   override def zincWorker = ModuleRef(ZincWorkerJava11)
