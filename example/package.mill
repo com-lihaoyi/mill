@@ -41,7 +41,6 @@ object `package` extends RootModule with Module {
     object migrating extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "migrating"))
     object publishing extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "publishing"))
     object web extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "web"))
-    object `java-home` extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "java-home"))
   }
   object kotlinlib extends Module {
     object basic extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "basic"))
@@ -88,7 +87,7 @@ object `package` extends RootModule with Module {
     object large extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "large"))
 
     object sandbox extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "sandbox"))
-
+    object javahome extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "javahome"))
   }
 
   object extending extends Module {

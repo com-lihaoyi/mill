@@ -291,7 +291,7 @@ object RunModule {
           case None => useCpPassingJar0
         },
         runBackgroundLogToConsole = runBackgroundLogToConsole,
-        javaHome
+        javaHome = javaHome
       )
     }
   }

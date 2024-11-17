@@ -4,10 +4,10 @@ import coursier.Repository
 import mainargs.Flag
 import mill._
 import mill.api.{Ctx, FixSizedCache, KeyedLockedCache, PathRef, Result}
-import mill.define.{ExternalModule, Discover}
+import mill.define.{Discover, ExternalModule, Target, Task}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.api.ZincWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
-import mill.scalalib.api.{ZincWorkerApi, ZincWorkerUtil, Versions}
+import mill.scalalib.api.{Versions, ZincWorkerApi, ZincWorkerUtil}
 import mill.util.Util.millProjectModule
 
 /**
@@ -15,18 +15,15 @@ import mill.util.Util.millProjectModule
  */
 object ZincWorkerModule extends ExternalModule with ZincWorkerModule with CoursierModule {
   lazy val millDiscover = Discover[this.type]
-
-  abstract class ForJvm(jvmId: String) extends ZincWorkerModule with CoursierModule {
-    override def javaHome: T[Option[PathRef]] = Task {
-      Some(resolveJavaHome(jvmId)())
-    }
-  }
 }
 
 /**
  * A module managing an in-memory Zinc Scala incremental compiler
  */
-trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: CoursierModule =>
+trait ZincWorkerModule extends mill.Module with OfflineSupportModule with CoursierModule  {
+  def jvmId: mill.define.Target[Option[String]] = None
+
+  def jvmIndexVersion: mill.define.Target[String] = "0.0.4-70-51469f"
 
   def classpath: T[Agg[PathRef]] = Task {
     millProjectModule("mill-scalalib-worker", repositoriesTask())
@@ -57,7 +54,15 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
    * the current mill instance.
    */
   def javaHome: T[Option[PathRef]] = Task {
-    None
+    jvmId().map{id =>
+      val path = mill.util.Jvm.resolveJavaHome(
+        id = id,
+        coursierCacheCustomizer = coursierCacheCustomizer(),
+        ctx = Some(implicitly[mill.api.Ctx.Log]),
+        jvmIndexVersion = jvmIndexVersion()
+      ).getOrThrow
+      PathRef(path, quick = true)
+    }
   }
 
   def worker: Worker[ZincWorkerApi] = Task.Worker {

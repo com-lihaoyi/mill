@@ -1,0 +1,122 @@
+// :link-jvm-indices: https://github.com/coursier/jvm-index/blob/master/indices/linux-arm64.json
+// To override the default Java home, you can create a custom
+// `ZincWorkerModule` and override the `zincWorker` method in your
+// `JavaModule` or `ScalaModule` by pointing it to that custom object:
+
+// == Downloading Jvm By Version
+//
+// The `ZincWorkerModule.ForJvm` class takes a Jvm dependency string as its
+// contructor argument and configures the module to fetch and cache the Jvm
+// using coursier and use it for the compile, run, and test tasks.
+//
+// The string has the form:
+//
+// ----
+// "{name}:{version}"
+// ----
+//
+// To see what Jvms are available for download look at the index for your os
+// and architecture {link-jvm-indices}[here].
+import mill._, javalib._
+import mill.define.ModuleRef
+
+object ZincWorkerJava11 extends ZincWorkerModule {
+  def jvmId = Some("temurin:18.0.2")
+}
+
+object foo extends JavaModule {
+  def zincWorker = ModuleRef(ZincWorkerJava11)
+
+  object test extends JavaTests with TestModule.Junit4
+}
+
+
+/** Usage
+
+> mill foo.run
+Foo running on Java 18.0.2
+
+> mill foo.test
+Testing with JVM version: 18.0.2
+Test foo.FooTest.testSimple finished...
+ 
+*/
+
+// Selecting a custom JVM via `ZincWorkerModule.ForJvm` means that JVM is used for
+// compiling, testing, and running that module via Mill. Note that `.assembly` is not
+// affected, as JVM assembly jars do not bundle a JVM and have to be run using a
+// JVM installed on the target host machine. Configuration is done via `ZincWorkerModule`
+// as the https://github.com/sbt/zinc[Zinc] incremental compiler is used for compiling
+// Java and Scala sources.
+//
+// == Selecting Different JVM Index Versions
+//
+
+//
+// By default, Mill comes bundled with a version of the JVM index that was published when
+// each version of Mill is released. This ensures that the JVM versions you pick are stable,
+// but means that the latest JVM versions may not be available. You can pass in the JVM
+// index version explicitly via `def jvmIndexVersion` below, choosing a published
+// index version from the Maven Central (https://repo1.maven.org/maven2/io/get-coursier/jvm/indices/index-linux-arm64/[link])
+//
+
+object ZincWorkerJava11Latest extends ZincWorkerModule{
+  def jvmId = Some("temurin:23.0.1")
+  def jvmIndexVersion = "latest.release"
+}
+
+object bar extends JavaModule {
+  def zincWorker = ModuleRef(ZincWorkerJava11Latest)
+
+}
+
+/** Usage
+
+> mill bar.run
+Bar running on Java 23.0.1
+
+*/
+
+// ==Explicit JVM Download URLs
+//
+// You can also pass in the JVM download URL explicitly. Note that if you do so, you need
+// to ensure yourself that you are downloading the appropriate JVM distribution for your
+// operating system and CPU architecture. In the example below we switch between Mac/ARM and
+// Linux/X64, but you may have additional cases if you need to support Windows or other
+// OS/CPU combinations
+
+object ZincWorkerJava11Url extends ZincWorkerModule{
+  def jvmId = Some(
+    if (sys.props("os.name") == "Mac OS X"){
+      "https://github.com/adoptium/temurin22-binaries/releases/download/jdk-22.0.2%2B9/OpenJDK22U-jdk_aarch64_mac_hotspot_22.0.2_9.tar.gz"
+    }else {
+      "https://github.com/adoptium/temurin22-binaries/releases/download/jdk-22.0.2%2B9/OpenJDK22U-jdk_x64_linux_hotspot_22.0.2_9.tar.gz"
+    }
+  )
+  def jvmIndexVersion = "latest.release"
+}
+
+object qux extends JavaModule {
+  def zincWorker = ModuleRef(ZincWorkerJava11Url)
+
+}
+
+/** Usage
+
+> mill qux.run
+Qux running on Java 22.0.2
+
+*/
+
+// == Locally-Installed JVMs
+//
+// Lastly, you can point Mill at any JVM distribution installed locally on disk via:
+
+object ZincWorkerLocalJvm extends ZincWorkerModule {
+  def javaHome = Some(PathRef(os.Path("/my/java/home"), quick = true))
+}
+
+object baz extends JavaModule {
+  def zincWorker = ModuleRef(ZincWorkerLocalJvm)
+
+}

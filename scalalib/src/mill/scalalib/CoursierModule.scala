@@ -3,7 +3,7 @@ package mill.scalalib
 import coursier.cache.FileCache
 import coursier.{Dependency, Repository, Resolve, Type}
 import coursier.core.Resolution
-import mill.define.Task
+import mill.define.{Target, Task}
 import mill.api.PathRef
 
 import scala.annotation.nowarn
@@ -30,17 +30,6 @@ trait CoursierModule extends mill.Module {
   @deprecated("To be replaced by bindDependency", "Mill after 0.11.0-M0")
   def resolveCoursierDependency: Task[Dep => coursier.Dependency] = Task.Anon {
     Lib.depToDependencyJava(_: Dep)
-  }
-
-  def jvmIndexVersion: mill.define.Target[String] = "0.0.4-70-51469f"
-  def resolveJavaHome(id: String): Task[PathRef] = Task.Anon {
-    val path = mill.util.Jvm.resolveJavaHome(
-      id = id,
-      coursierCacheCustomizer = coursierCacheCustomizer(),
-      ctx = Some(implicitly[mill.api.Ctx.Log]),
-      jvmIndexVersion = jvmIndexVersion()
-    ).getOrThrow
-    PathRef(path, quick = true)
   }
 
   def defaultResolver: Task[CoursierModule.Resolver] = Task.Anon {
