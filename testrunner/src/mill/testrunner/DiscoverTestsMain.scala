@@ -1,8 +1,9 @@
 package mill.testrunner
 
-import java.net.URLClassLoader
-import mill.api.JsonFormatters._
+import mill.api.JsonFormatters.*
 import mill.api.internal
+
+import java.net.URLClassLoader
 
 @internal object DiscoverTestsMain {
   case class Args(
@@ -22,16 +23,8 @@ import mill.api.internal
   def main0(args: Args): Unit = {
     val classLoader = new URLClassLoader(
       args.classLoaderClasspath.map(_.toIO.toURI().toURL()).toArray,
-      null
-    ) {
-      override def findClass(name: String): Class[?] = {
-        if (name.startsWith("sbt.testing")) {
-          classOf[DiscoverTestsMain.type].getClassLoader().loadClass(name)
-        } else {
-          super.findClass(name)
-        }
-      }
-    }
+      getClass.getClassLoader
+    )
     val framework = Framework.framework(args.testFramework)(classLoader)
     TestRunnerUtils
       .discoverTests(classLoader, framework, args.testClasspath)

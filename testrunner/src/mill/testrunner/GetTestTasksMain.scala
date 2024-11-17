@@ -1,8 +1,9 @@
 package mill.testrunner
 
-import mill.api.JsonFormatters._
+import mill.api.JsonFormatters.*
 import mill.api.Loose.Agg
 import mill.api.internal
+
 import java.net.URLClassLoader
 
 @internal object GetTestTasksMain {
@@ -26,16 +27,8 @@ import java.net.URLClassLoader
     val globFilter = TestRunnerUtils.globFilter(args.selectors)
     val classLoader = new URLClassLoader(
       args.classLoaderClasspath.map(_.toIO.toURI().toURL()).toArray,
-      null
-    ) {
-      override def findClass(name: String): Class[?] = {
-        if (name.startsWith("sbt.testing")) {
-          classOf[GetTestTasksMain.type].getClassLoader().loadClass(name)
-        } else {
-          super.findClass(name)
-        }
-      }
-    }
+      getClass.getClassLoader
+    )
     TestRunnerUtils
       .getTestTasks0(
         Framework.framework(args.testFramework),

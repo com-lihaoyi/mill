@@ -2,11 +2,12 @@ package mill.testrunner
 
 import mill.api.{Ctx, Loose, TestReporter, internal}
 import os.Path
-import sbt.testing._
+import sbt.testing.*
 
 import java.nio.file.Files
 import java.lang.annotation.Annotation
 import java.lang.reflect.Modifier
+import java.net.URLClassLoader
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.regex.Pattern
 import java.util.zip.ZipInputStream
@@ -14,7 +15,6 @@ import scala.collection.mutable
 import scala.jdk.CollectionConverters.IteratorHasAsScala
 
 @internal object TestRunnerUtils {
-
   def listClassFiles(base: os.Path): geny.Generator[String] = {
     if (os.isDir(base)) {
       os.walk.stream(base).filter(_.ext == "class").map(_.relativeTo(base).toString)

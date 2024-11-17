@@ -39,6 +39,7 @@ object Jvm extends CoursierSupport {
     val workingDir1 = Option(workingDir).getOrElse(ctx.dest)
     os.makeDir.all(workingDir1)
 
+    mill.main.client.DebugLog.println(commandArgs.toString())
     os.proc(commandArgs)
       .call(
         cwd = workingDir1,
