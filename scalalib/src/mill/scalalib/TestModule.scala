@@ -43,41 +43,19 @@ trait TestModule
 
   def discoveredTestClasses: T[Seq[String]] = Task {
     val classes = if (zincWorker().javaHome().isDefined) {
-      val discverTestsMainArgs = DiscoverTestsMain.Args(
-        classLoaderClasspath = runClasspath().map(_.path),
-        testClasspath = testClasspath().map(_.path),
-        testFramework = testFramework()
-      )
-      val argsFile = T.dest / "DiscoverTestsMainArgs"
-      os.write(argsFile, upickle.default.write(discverTestsMainArgs))
-
-      val process = Jvm.callSubprocess(
+      Jvm.callSubprocess(
         mainClass = "mill.testrunner.DiscoverTestsMain",
         classPath = zincWorker().scalalibClasspath().map(_.path),
-        mainArgs = Seq(argsFile.toString),
+        mainArgs =
+          runClasspath().flatMap(p => Seq("--runCp", p.path.toString())) ++
+            testClasspath().flatMap(p => Seq("--testCp", p.path.toString())) ++
+            Seq("--framework", testFramework()),
         javaHome = zincWorker().javaHome().map(_.path),
         streamOut = false
-      )
-      if (process.exitCode == 0) {
-        process.out.lines()
-      } else {
-        throw new Exception("Discover tests subprocess failed (exit code " + process.exitCode + ")")
-      }
+      ).out.lines()
     } else {
-      Jvm.inprocess(
-        runClasspath().map(_.path),
-        classLoaderOverrideSbtTesting = true,
-        isolated = true,
-        closeContextClassLoaderWhenDone = true,
-        cl => {
-          val framework = Framework.framework(testFramework())(cl)
-          val classes = TestRunnerUtils.discoverTests(cl, framework, testClasspath().map(_.path))
-          classes.toSeq.map(_._1.getName())
-            .map {
-              case s if s.endsWith("$") => s.dropRight(1)
-              case s => s
-            }
-        }
+      mill.testrunner.DiscoverTestsMain.main0(
+        runClasspath().map(_.path), testClasspath().map(_.path), testFramework()
       )
     }
     classes.sorted

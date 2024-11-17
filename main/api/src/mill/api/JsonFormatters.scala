@@ -22,7 +22,7 @@ trait JsonFormatters {
   /**
    * Additional [[mainargs.TokensReader]] instance to teach it how to read Ammonite paths
    */
-  implicit def PathTokensReader: mainargs.TokensReader[os.Path] = JsonFormatters.PathTokensReader0
+  implicit def PathTokensReader: mainargs.TokensReader.Simple[os.Path] = JsonFormatters.PathTokensReader0
 
   implicit val pathReadWrite: RW[os.Path] = upickle.default.readwriter[String]
     .bimap[os.Path](

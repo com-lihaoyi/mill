@@ -1,40 +1,34 @@
 package mill.testrunner
 
-import mill.api.JsonFormatters.*
 import mill.api.internal
 
+import mill.api.JsonFormatters.PathTokensReader
 import java.net.URLClassLoader
 
 @internal object DiscoverTestsMain {
-  case class Args(
-      classLoaderClasspath: Seq[os.Path],
-      testClasspath: Seq[os.Path],
-      testFramework: String
-  )
-
-  object Args {
-    implicit def resultRW: upickle.default.ReadWriter[Args] = upickle.default.macroRW
+  @mainargs.main
+  def main(runCp: Seq[os.Path],
+           testCp: Seq[os.Path],
+           framework: String): Unit = {
+    main0(runCp, testCp, framework).foreach(println)
   }
-
-  def main(args: Array[String]): Unit = {
-    main0(upickle.default.read[Args](os.read(os.Path(args(0)))))
-  }
-
-  def main0(args: Args): Unit = {
+  def main0(runCp: Seq[os.Path],
+            testCp: Seq[os.Path],
+            framework: String): Seq[String] = {
     val classLoader = new URLClassLoader(
-      args.classLoaderClasspath.map(_.toIO.toURI().toURL()).toArray,
+      runCp.map(_.toIO.toURI().toURL()).toArray,
       getClass.getClassLoader
     )
-    val framework = Framework.framework(args.testFramework)(classLoader)
-    TestRunnerUtils
-      .discoverTests(classLoader, framework, args.testClasspath)
+    try TestRunnerUtils
+      .discoverTests(classLoader, Framework.framework(framework)(classLoader), testCp)
       .toSeq
       .map(_._1.getName())
       .map {
         case s if s.endsWith("$") => s.dropRight(1)
         case s => s
       }
-      .foreach(println)
-    System.exit(0)
+    finally classLoader.close()
   }
+
+  def main(args: Array[String]): Unit = mainargs.ParserForMethods(this).runOrExit(args)
 }

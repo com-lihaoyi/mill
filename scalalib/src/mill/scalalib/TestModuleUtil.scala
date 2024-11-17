@@ -95,48 +95,32 @@ private[scalalib] object TestModuleUtil {
       else {
         // If test grouping is enabled and multiple test groups are detected, we need to
         // run test discovery via the test framework's own argument parsing and filtering
-        // logic once in memory before we potentially fork off multiple test groups that will
+        // logic once before we potentially fork off multiple test groups that will
         // each do the same thing and then run tests. This duplication is necessary so we can
         // skip test groups that we know will be empty, which is important because even an empty
         // test group requires spawning a JVM which can take 1+ seconds to realize there are no
         // tests to run and shut down
+
         val discoveredTests = if (javaHome.isDefined) {
-          val argsFile = T.dest / "GetTestTasksMainArgs"
-          val getTestTaskArgs = GetTestTasksMain.Args(
-            classLoaderClasspath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
-            testClasspath = testClasspath.map(_.path),
-            testFramework = testFramework,
-            selectors = selectors,
-            args = args
-          )
-          os.write(argsFile, upickle.default.write(getTestTaskArgs))
-          val process = Jvm.callSubprocess(
+          Jvm.callSubprocess(
             mainClass = "mill.testrunner.GetTestTasksMain",
             classPath = scalalibClasspath.map(_.path),
-            mainArgs = Seq(argsFile.toString),
+            mainArgs =
+              (runClasspath ++ testrunnerEntrypointClasspath).flatMap(p => Seq("--runCp", p.path.toString)) ++
+                testClasspath.flatMap(p => Seq("--testCp", p.path.toString)) ++
+                Seq("--framework", testFramework) ++
+                selectors.flatMap(s => Seq("--selectors", s)) ++
+                args.flatMap(s => Seq("--args", s)),
             javaHome = javaHome,
             streamOut = false
-          )
-          if (process.exitCode == 0) {
-            process.out.lines().toSet
-          } else {
-            throw new Exception(
-              "GetTestTasks subprocess failed (exit code " + process.exitCode + ")"
-            )
-          }
+          ).out.lines().toSet
         } else {
-          Jvm.inprocess(
+          mill.testrunner.GetTestTasksMain.main0(
             (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
-            classLoaderOverrideSbtTesting = true,
-            isolated = true,
-            closeContextClassLoaderWhenDone = false,
-            TestRunnerUtils.getTestTasks0(
-              Framework.framework(testFramework),
-              testClasspath.map(_.path),
-              args,
-              cls => globFilter(cls.getName),
-              _
-            )
+            testClasspath.map(_.path),
+            testFramework,
+            selectors,
+            args
           ).toSet
         }
 

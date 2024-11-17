@@ -1,43 +1,41 @@
 package mill.testrunner
 
-import mill.api.JsonFormatters.*
+import mill.api.JsonFormatters._
 import mill.api.Loose.Agg
 import mill.api.internal
 
 import java.net.URLClassLoader
 
 @internal object GetTestTasksMain {
-  case class Args(
-      classLoaderClasspath: Seq[os.Path],
-      testClasspath: Seq[os.Path],
-      testFramework: String,
-      selectors: Seq[String],
-      args: Seq[String]
-  )
-
-  object Args {
-    implicit def resultRW: upickle.default.ReadWriter[Args] = upickle.default.macroRW
+  @mainargs.main
+  def main(      runCp: Seq[os.Path],
+                  testCp: Seq[os.Path],
+                  framework: String,
+                  selectors: Seq[String],
+                  args: Seq[String]): Unit = {
+    main0(runCp, testCp, framework, selectors, args).foreach(println)
   }
 
-  def main(args: Array[String]): Unit = {
-    main0(upickle.default.read[Args](os.read(os.Path(args(0)))))
-  }
-
-  def main0(args: Args): Unit = {
-    val globFilter = TestRunnerUtils.globFilter(args.selectors)
+  def   main0(      runCp: Seq[os.Path],
+                  testCp: Seq[os.Path],
+                  framework: String,
+                  selectors: Seq[String],
+                  args: Seq[String]): Seq[String] = {
+    val globFilter = TestRunnerUtils.globFilter(selectors)
     val classLoader = new URLClassLoader(
-      args.classLoaderClasspath.map(_.toIO.toURI().toURL()).toArray,
+      runCp.map(_.toIO.toURI().toURL()).toArray,
       getClass.getClassLoader
     )
-    TestRunnerUtils
+    try TestRunnerUtils
       .getTestTasks0(
-        Framework.framework(args.testFramework),
-        Agg.from(args.testClasspath),
-        args.args,
+        Framework.framework(framework),
+        Agg.from(testCp),
+        args,
         cls => globFilter(cls.getName),
         classLoader
       )
-      .foreach(println)
-    System.exit(0)
+    finally classLoader.close()
   }
+
+  def main(args: Array[String]): Unit = mainargs.ParserForMethods(this).runOrExit(args)
 }
