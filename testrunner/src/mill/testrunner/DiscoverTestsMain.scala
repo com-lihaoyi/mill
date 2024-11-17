@@ -1,11 +1,13 @@
 package mill.testrunner
 
 import mill.api.{Ctx, internal}
-import mill.api.JsonFormatters.PathTokensReader
 import os.Path
 
 
 @internal object DiscoverTestsMain {
+  private implicit def PathTokensReader2: mainargs.TokensReader.Simple[os.Path] =
+    mill.api.JsonFormatters.PathTokensReader2
+
   @mainargs.main
   def main(runCp: Seq[os.Path], testCp: Seq[os.Path], framework: String): Unit = {
     main0(runCp, testCp, framework).foreach(println)
