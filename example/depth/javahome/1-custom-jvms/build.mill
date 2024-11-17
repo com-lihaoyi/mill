@@ -39,7 +39,7 @@ Foo running on Java 18.0.2
 > mill foo.test
 Testing with JVM version: 18.0.2
 Test foo.FooTest.testSimple finished...
- 
+
 */
 
 // Selecting a custom JVM via `ZincWorkerModule.ForJvm` means that JVM is used for
@@ -49,7 +49,7 @@ Test foo.FooTest.testSimple finished...
 // as the https://github.com/sbt/zinc[Zinc] incremental compiler is used for compiling
 // Java and Scala sources.
 //
-// == Selecting Different JVM Index Versions
+// == Selecting JVM Index Versions
 //
 
 //
@@ -60,12 +60,15 @@ Test foo.FooTest.testSimple finished...
 // index version from the Maven Central (https://repo1.maven.org/maven2/io/get-coursier/jvm/indices/index-linux-arm64/[link])
 //
 
+import scalalib._
+
 object ZincWorkerJava11Latest extends ZincWorkerModule{
   def jvmId = Some("temurin:23.0.1")
   def jvmIndexVersion = "latest.release"
 }
 
-object bar extends JavaModule {
+object bar extends ScalaModule {
+  def scalaVersion = "2.13.12"
   def zincWorker = ModuleRef(ZincWorkerJava11Latest)
 
 }
@@ -77,13 +80,15 @@ Bar running on Java 23.0.1
 
 */
 
-// ==Explicit JVM Download URLs
+// == Explicit JVM Download URLs
 //
 // You can also pass in the JVM download URL explicitly. Note that if you do so, you need
 // to ensure yourself that you are downloading the appropriate JVM distribution for your
 // operating system and CPU architecture. In the example below we switch between Mac/ARM and
 // Linux/X64, but you may have additional cases if you need to support Windows or other
 // OS/CPU combinations
+
+import kotlinlib._
 
 object ZincWorkerJava11Url extends ZincWorkerModule{
   def jvmId = Some(
@@ -93,12 +98,11 @@ object ZincWorkerJava11Url extends ZincWorkerModule{
       "https://github.com/adoptium/temurin22-binaries/releases/download/jdk-22.0.2%2B9/OpenJDK22U-jdk_x64_linux_hotspot_22.0.2_9.tar.gz"
     }
   )
-  def jvmIndexVersion = "latest.release"
 }
 
-object qux extends JavaModule {
+object qux extends KotlinModule {
+  def kotlinVersion = "2.0.20"
   def zincWorker = ModuleRef(ZincWorkerJava11Url)
-
 }
 
 /** Usage
