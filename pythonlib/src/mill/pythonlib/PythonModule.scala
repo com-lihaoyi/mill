@@ -5,7 +5,7 @@ import mill.api.Result
 import mill.util.Util
 import mill.util.Jvm
 
-trait PythonModule extends Module {
+trait PythonModule extends Module with TaskModule {
   def moduleDeps: Seq[PythonModule] = Nil
   def mainFileName: T[String] = Task { "main.py" }
   def sources: T[PathRef] = Task.Source(millSourcePath / "src")
@@ -52,6 +52,8 @@ trait PythonModule extends Module {
       stdout = os.Inherit
     )
   }
+
+  override def defaultCommandName(): String = "run"
 
   /**
    * Opens up a Python console with your module and all dependencies present,
