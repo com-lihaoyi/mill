@@ -11,7 +11,7 @@ object foo extends PythonModule {
 
 }
 
-/** Usag
+/** Usage
  
 > ./mill foo.typeCheck
 Success: no issues found in 1 source file
