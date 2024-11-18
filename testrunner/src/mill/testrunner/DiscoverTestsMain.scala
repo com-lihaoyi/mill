@@ -3,7 +3,6 @@ package mill.testrunner
 import mill.api.{Ctx, internal}
 import os.Path
 
-
 @internal object DiscoverTestsMain {
   private implicit def PathTokensReader2: mainargs.TokensReader.Simple[os.Path] =
     mill.api.JsonFormatters.PathTokensReader2

@@ -4,7 +4,6 @@ import mill.api.Loose.Agg
 import mill.api.{Ctx, internal}
 import os.Path
 
-
 @internal object GetTestTasksMain {
   private implicit def PathTokensReader2: mainargs.TokensReader.Simple[os.Path] =
     mill.api.JsonFormatters.PathTokensReader2

@@ -17,7 +17,7 @@ object JavaHomeTests extends TestSuite {
     }
 
     object core extends JavaModule {
-      override def zincWorker= ModuleRef(ZincWorkerJava11)
+      override def zincWorker = ModuleRef(ZincWorkerJava11)
       override def docJarUseArgsFile = false
       object test extends JavaTests with TestModule.Junit4
     }
@@ -29,7 +29,7 @@ object JavaHomeTests extends TestSuite {
     }
 
     object core extends JavaModule {
-      override def zincWorker= ModuleRef(ZincWorkerJava17)
+      override def zincWorker = ModuleRef(ZincWorkerJava17)
       override def docJarUseArgsFile = false
       object test extends JavaTests with TestModule.Junit4
     }
@@ -41,10 +41,10 @@ object JavaHomeTests extends TestSuite {
     }
 
     object javamodule extends JavaModule {
-      override def zincWorker= ModuleRef(ZincWorkerJava)
+      override def zincWorker = ModuleRef(ZincWorkerJava)
     }
     object scalamodule extends JavaModule {
-      override def zincWorker= ModuleRef(ZincWorkerJava)
+      override def zincWorker = ModuleRef(ZincWorkerJava)
       def scalaVersion = "2.13.14"
     }
   }
@@ -55,10 +55,10 @@ object JavaHomeTests extends TestSuite {
     }
 
     object javamodule extends JavaModule {
-      override def zincWorker= ModuleRef(ZincWorkerJava)
+      override def zincWorker = ModuleRef(ZincWorkerJava)
     }
     object scalamodule extends JavaModule {
-      override def zincWorker= ModuleRef(ZincWorkerJava)
+      override def zincWorker = ModuleRef(ZincWorkerJava)
 
       def scalaVersion = "2.13.14"
     }
@@ -147,17 +147,18 @@ object JavaHomeTests extends TestSuite {
       }
     }
 
-    test("compileApis"){
+    test("compileApis") {
       val resourcePathCompile = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "java-scala-11"
-      test("jdk11java"){
+      test("jdk11java") {
         val baos = new ByteArrayOutputStream()
-        val eval = UnitTester(JavaJdk11DoesntCompile, resourcePathCompile, errStream = new PrintStream(baos))
+        val eval =
+          UnitTester(JavaJdk11DoesntCompile, resourcePathCompile, errStream = new PrintStream(baos))
         val Left(result) = eval.apply(JavaJdk11DoesntCompile.javamodule.compile)
         assert(baos.toString.contains("cannot find symbol"))
         assert(baos.toString.contains("method indent"))
       }
 
-      test("jdk17java"){
+      test("jdk17java") {
         val eval = UnitTester(JavaJdk17Compiles, resourcePathCompile)
         val Right(result) = eval.apply(JavaJdk17Compiles.javamodule.compile)
       }
@@ -170,7 +171,7 @@ object JavaHomeTests extends TestSuite {
 //        val Left(result) = eval.apply(JavaJdk11DoesntCompile.scalamodule.compile)
 //      }
 
-      test("jdk17scala"){
+      test("jdk17scala") {
         val eval = UnitTester(JavaJdk17Compiles, resourcePathCompile)
         val Right(result) = eval.apply(JavaJdk17Compiles.scalamodule.compile)
       }
