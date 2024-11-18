@@ -5,6 +5,11 @@ trait PythonModule extends Module {
   def moduleDeps: Seq[PythonModule] = Nil
   def mainFileName: T[String] = Task { "main.py" }
   def sources: T[PathRef] = Task.Source(millSourcePath / "src")
+  def resources: T[Seq[PathRef]] = Task.Sources { millSourcePath / "resources" }
+
+  def allSourceFiles: T[Seq[PathRef]] = Task {
+    os.walk(sources().path).filter(_.ext == "py").map(PathRef(_))
+  }
 
   def pythonDeps: T[Seq[String]] = Task { Seq.empty[String] }
 
@@ -44,7 +49,11 @@ trait PythonModule extends Module {
 
     os.call(
       (pythonExe().path, sources().path / mainFileName(), args.value),
-      env = Map("PYTHONPATH" -> Task.dest.toString),
+      env = Map(
+        "PYTHONPATH" -> Task.dest.toString,
+        "SOURCES" -> allSourceFiles().map(_.toString).mkString(":"),
+        "RESOURCES" -> resources().map(_.toString).mkString(":")
+      ),
       stdout = os.Inherit
     )
   }
@@ -69,11 +78,47 @@ trait PythonModule extends Module {
         "--scie",
         "eager"
       ),
-      env = Map("PYTHONPATH" -> Task.dest.toString),
+      env = Map(
+        "PYTHONPATH" -> Task.dest.toString,
+        "SOURCES" -> allSourceFiles().map(_.toString).mkString(":"),
+        "RESOURCES" -> resources().map(_.toString).mkString(":")
+      ),
       stdout = os.Inherit
     )
 
     PathRef(pexFile)
   }
 
+  def pythonRepl(args: mill.define.Args) = Task.Command {
+    gatherScripts(Task.traverse(moduleDeps)(_.sources)().zip(moduleDeps))
+
+    os.call(
+      (pythonExe().path, "-i", sources().path / mainFileName()),
+      env = Map(
+        "PYTHONPATH" -> Task.dest.toString,
+        "SOURCES" -> allSourceFiles().map(_.toString).mkString(":"),
+        "RESOURCES" -> resources().map(_.toString).mkString(":")
+      ),
+      stdin = args.value,
+      stdout = os.Inherit
+    )
+  }
+
+  trait PythonTests extends PythonModule {
+
+    def pythonUnitTests: T[Unit] = Task {
+      gatherScripts(Task.traverse(moduleDeps)(_.sources)().zip(moduleDeps))
+
+      os.call(
+        (pythonExe().path, sources().path / mainFileName(), "-v"),
+        env = Map(
+          "PYTHONPATH" -> Task.dest.toString,
+          "SOURCES" -> allSourceFiles().map(_.toString).mkString(":"),
+          "RESOURCES" -> resources().map(_.toString).mkString(":")
+        ),
+        stdout = os.Inherit
+      )
+    }
+
+  }
 }

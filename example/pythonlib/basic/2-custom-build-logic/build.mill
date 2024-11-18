@@ -1,0 +1,39 @@
+//// SNIPPET:BUILD
+package build
+import mill._, pythonlib._
+
+object foo extends PythonModule {
+
+  /** Total number of lines in module source files */
+  def lineCount = Task {
+    allSourceFiles().map(f => os.read.lines(f.path).size).sum
+  }
+
+  /** Generate resources using lineCount of sources */
+  override def resources = Task {
+    os.write(Task.dest / "line-count.txt", "" + lineCount())
+    super.resources() ++ Seq(PathRef(Task.dest))
+  }
+
+  object test extends PythonTests {
+    def moduleDeps = Seq(foo)
+    override def resources = super.resources() ++ foo.resources()
+    def mainFileName: T[String] = Task { "test.py" }
+  }
+}
+
+/** Usage
+
+> ./mill foo.run
+Line Count: 21
+
+> ./mill foo.test.pythonUnitTests
+...
+test_line_count (__main__.TestScript.test_line_count) ... ok
+...
+----------------------------------------------------------------------
+...Ran 1 test...
+OK
+...
+
+*/

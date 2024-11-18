@@ -1,0 +1,39 @@
+//// SNIPPET:BUILD
+package build
+import mill._, pythonlib._
+
+object foo extends PythonModule {
+  def moduleDeps = Seq(bar)
+  def mainFileName = Task { "foo.py" }
+}
+
+object bar extends PythonModule {
+  def mainFileName = Task { "bar.py" }
+
+  object test extends PythonTests {
+    def moduleDeps = Seq(bar)
+    def mainFileName: T[String] = Task { "test.py" }
+  }
+}
+
+/** Usage
+
+> ./mill foo.run --foo-text FOO --bar-text BAR
+...
+Foo.value: Hello FOO
+Bar.value: Hello BAR
+...
+
+> ./mill bar.run BAR
+Hello BAR
+
+> ./mill bar.test.pythonUnitTests
+...
+test_line_count (__main__.TestScript.test_bar) ... ok
+...
+----------------------------------------------------------------------
+...Ran 1 test...
+OK
+...
+
+*/

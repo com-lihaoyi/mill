@@ -1,27 +1,59 @@
 package build
 import mill._, pythonlib._
 
-// Docs for PythonLib
 object foo extends PythonModule {
-  object bar extends PythonModule {
-    def pythonDeps = Seq("pandas==2.2.3", "numpy==2.1.3")
+  def pythonDeps = Seq("pandas==2.2.3", "numpy==2.1.3")
+
+  object test extends PythonTests {
+    def moduleDeps = Seq(foo)
+    def mainFileName: T[String] = Task { "test.py" }
   }
-  def pythonDeps = Seq("numpy==2.1.3")
+
 }
 
-object qux extends PythonModule {
-  def moduleDeps = Seq(foo, foo.bar)
-}
+/** Usag
+ 
+> ./mill foo.typeCheck
+Success: no issues found in 1 source file
 
-/** Usage
-
-> ./mill qux.run
+> ./mill foo.run
+...
 Numpy : Sum: 150 | Pandas: Mean: 30.0, Max: 50
+8
+...
 
-> ./mill show qux.bundle
-".../out/qux/bundle.dest/bundle.pex"
-
-> out/qux/bundle.dest/bundle.pex # running the PEX binary outside of Mill
+> ./mill foo.pythonRepl "print('Hello Mill!'); add(10,30); quit()"
+...
 Numpy : Sum: 150 | Pandas: Mean: 30.0, Max: 50
+8
+>>> ...
+...
+Hello Mill!
+40
+...
+
+> ./mill foo.test.pythonUnitTests
+...
+test_add (__main__.TestScript.test_add) ... ok
+test_main (__main__.TestScript.test_main) ... ok
+...
+----------------------------------------------------------------------
+...Ran 2 tests...
+OK
+...
+
+> ./mill show foo.bundle
+".../out/foo/bundle.dest/bundle.pex"
+
+> out/foo/bundle.dest/bundle.pex # running the PEX binary outside of Mill
+...
+Numpy : Sum: 150 | Pandas: Mean: 30.0, Max: 50
+8
+...
+
+> sed -i.bak 's/print(add(5, 3))/print(addd(5, 3))/g' foo/src/main.py
+
+> ./mill foo.typeCheck # if we make a typo in a method name, mypy flags it
+error: ...Name "addd" is not defined...
 
 */
