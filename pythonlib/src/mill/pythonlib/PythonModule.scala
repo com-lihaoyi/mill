@@ -1,5 +1,9 @@
 package mill.pythonlib
+
 import mill._
+import mill.api.Result
+import mill.util.Util
+import mill.util.Jvm
 
 trait PythonModule extends Module {
   def moduleDeps: Seq[PythonModule] = Nil
@@ -47,6 +51,23 @@ trait PythonModule extends Module {
       env = Map("PYTHONPATH" -> Task.dest.toString),
       stdout = os.Inherit
     )
+  }
+
+  /**
+   * Opens up a Python console with your module and all dependencies present,
+   * for you to test and operate your code interactively.
+   */
+  def console(): Command[Unit] = Task.Command(exclusive = true) {
+    if (!Util.isInteractive()) {
+      Result.Failure("console needs to be run with the -i/--interactive flag")
+    } else {
+      Jvm.runSubprocess(
+        Seq(pythonExe().path.toString),
+        envArgs = Map("PYTHONPATH" -> Task.dest.toString),
+        workingDir = Task.dest
+      )
+      Result.Success(())
+    }
   }
 
   /** Bundles the project into a single PEX executable(bundle.pex). */
