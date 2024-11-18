@@ -34,8 +34,8 @@ Hello Mill!
 
 > ./mill foo.test.pythonUnitTests
 ...
-test_add (__main__.TestScript.test_add) ... ok
-test_main (__main__.TestScript.test_main) ... ok
+test_add (__main__.TestScript) ... ok
+test_main (__main__.TestScript) ... ok
 ...
 ----------------------------------------------------------------------
 ...Ran 2 tests...
