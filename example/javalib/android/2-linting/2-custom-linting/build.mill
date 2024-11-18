@@ -25,9 +25,9 @@ object app extends AndroidLintModule {
 /** See Also: app/AndroidManifest.xml */
 /** See Also: app/lint.xml */
 
-// The `lint.xml` file shown above modifies suppresses every errors in the code just
+// The `lint.xml` file shown above suppresses every errors in the code just
 // for demostration of using custom `lint.xml` config file. Note, you shouldn't write
-// `lint.xml` to do that except on very rare importandt occasion.
+// `lint.xml` to do that except on very rare importandt situations.
 
 
 /** Usage
@@ -36,6 +36,6 @@ object app extends AndroidLintModule {
 ".../out/app/androidLintRun.dest/report.txt"
 
 > cat ".../out/app/androidLintRun.dest/report.txt" # Output report content to terminal
-
+No issues found.
 
 */

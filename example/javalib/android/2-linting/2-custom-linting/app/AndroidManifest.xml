@@ -1,16 +1,13 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.hello">
-
-    <application
-        android:label="@string/app_name"
-        android:theme="@android:style/Theme.Material.Light">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.helloworld.app">
+    <uses-sdk android:minSdkVersion="9"/>
+    <uses-sdk android:targetSdkVersion="35"/>
+    <application android:label="Hello World" android:debuggable="true">
         <activity android:name=".MainActivity"
-            android:exported="true">
+                android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
     </application>
-
 </manifest>
