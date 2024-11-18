@@ -9,6 +9,10 @@ and resolve potential issues early, promoting better performance, security,
 and user experience.
 
 
-== Linting with Android cmdline lint tool
+== Linting with Basic Config
 
-include::partial$example/javalib/android/2-linting.adoc[]
+include::partial$example/javalib/android/2-linting/1-basic-linting.adoc[]
+
+== Linting with Custom Configurations
+
+include::partial$example/javalib/android/2-linting/2-custom-linting.adoc[]

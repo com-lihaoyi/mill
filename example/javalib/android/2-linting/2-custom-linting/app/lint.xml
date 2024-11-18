@@ -1,0 +1,4 @@
+<lint>
+    <!-- Suppress all lint issues -->
+    <issue id="all" severity="ignore" />
+</lint>

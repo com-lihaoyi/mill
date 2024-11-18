@@ -39,6 +39,26 @@ trait AndroidLintModule extends JavaModule {
   def androidLintBaselinePath: T[Option[PathRef]] = Task { None }
 
   /**
+   * Specifies the classpath argument for the Android Lint tool.
+   */
+  def androidLintClasspath: T[Option[PathRef]] = Task { None }
+
+  /**
+   * Specifies the resources directories argument for the Android Lint tool.
+   */
+  def androidLintResources: T[Option[PathRef]] = Task { None }
+
+  /**
+   * Specifies the sources directories argument for the Android Lint tool.
+   */
+  def androidLintSources: T[Option[PathRef]] = Task { None }
+
+  /**
+   * Specifies the libraries argument for the Android Lint tool.
+   */
+  def androidLintLibraries: T[Option[PathRef]] = Task { None }
+
+  /**
    * Runs the Android Lint tool to generate a report on code quality issues.
    *
    * This method utilizes Android Lint, a tool provided by the Android SDK,
@@ -52,7 +72,6 @@ trait AndroidLintModule extends JavaModule {
    * For more details on the Android Lint tool, refer to:
    * [[https://developer.android.com/studio/write/lint]]
    */
-
   def androidLintRun: T[PathRef] = Task {
 
     val format = androidLintReportFmt()
@@ -73,13 +92,33 @@ trait AndroidLintModule extends JavaModule {
     // Prepare the lint configuration argument if the config path is set
     val configArg = androidLintConfigPath().map(config => Seq("--config", config.path.toString)).getOrElse(Seq.empty)
 
+    // Include the classpath argument if there are dependencies to include
+    val classpathArg = if (androidLintClasspath().nonEmpty) {
+      Seq("--classpath", androidLintClasspath().map(_.path.toString).mkString(":"))
+    } else Seq.empty
+
+    // Include the resources argument if resource paths are provided
+    val resourcesArg = if (androidLintResources().nonEmpty) {
+      Seq("--resources", androidLintResources().map(_.path.toString).mkString(":"))
+    } else Seq.empty
+
+    // Include the sources argument if there are source paths to analyze
+    val sourcesArg = if (androidLintSources().nonEmpty) {
+      Seq("--sources", androidLintSources().map(_.path.toString).mkString(":"))
+    } else Seq.empty
+
+    // Include the libraries argument if there are external libraries to check
+    val librariesArg = if (androidLintLibraries().nonEmpty) {
+      Seq("--libraries", androidLintLibraries().map(_.path.toString).mkString(":"))
+    } else Seq.empty
+
     os.call(
       Seq(
         androidSdkModule().cmdlineToolsPath().path.toString + "/lint",
         lintReportFlag.toString,
         lintReport.toString,
         millSourcePath.toString
-      ) ++ configArg ++ baselineArg
+      ) ++ configArg ++ baselineArg ++ classpathArg ++ resourcesArg ++ sourcesArg ++ librariesArg
     )
 
     PathRef(lintReport)
