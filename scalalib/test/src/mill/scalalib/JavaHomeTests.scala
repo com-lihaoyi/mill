@@ -5,7 +5,9 @@ import mill.define.Args
 import mill.api.Result
 import mill.define.ModuleRef
 import mill.testkit.{TestBaseModule, UnitTester}
-import utest._
+import utest.*
+
+import java.io.{ByteArrayOutputStream, PrintStream}
 
 object JavaHomeTests extends TestSuite {
 
@@ -15,7 +17,7 @@ object JavaHomeTests extends TestSuite {
     }
 
     object core extends JavaModule {
-      override def zincWorker: ModuleRef[ZincWorkerModule] = ModuleRef(ZincWorkerJava11)
+      override def zincWorker= ModuleRef(ZincWorkerJava11)
       override def docJarUseArgsFile = false
       object test extends JavaTests with TestModule.Junit4
     }
@@ -27,9 +29,38 @@ object JavaHomeTests extends TestSuite {
     }
 
     object core extends JavaModule {
-      override def zincWorker: ModuleRef[ZincWorkerModule] = ModuleRef(ZincWorkerJava17)
+      override def zincWorker= ModuleRef(ZincWorkerJava17)
       override def docJarUseArgsFile = false
       object test extends JavaTests with TestModule.Junit4
+    }
+  }
+
+  object JavaJdk11DoesntCompile extends TestBaseModule {
+    object ZincWorkerJava extends ZincWorkerModule {
+      def jvmId = "temurin:11.0.25"
+    }
+
+    object javamodule extends JavaModule {
+      override def zincWorker= ModuleRef(ZincWorkerJava)
+    }
+    object scalamodule extends JavaModule {
+      override def zincWorker= ModuleRef(ZincWorkerJava)
+      def scalaVersion = "2.13.14"
+    }
+  }
+
+  object JavaJdk17Compiles extends TestBaseModule {
+    object ZincWorkerJava extends ZincWorkerModule {
+      def jvmId = "temurin:17.0.13"
+    }
+
+    object javamodule extends JavaModule {
+      override def zincWorker= ModuleRef(ZincWorkerJava)
+    }
+    object scalamodule extends JavaModule {
+      override def zincWorker= ModuleRef(ZincWorkerJava)
+
+      def scalaVersion = "2.13.14"
     }
   }
 
@@ -113,6 +144,35 @@ object JavaHomeTests extends TestSuite {
           v1._2(1).fullyQualifiedName == "hello.MyCoreTests.java17Test",
           v1._2(1).status == "Success"
         )
+      }
+    }
+
+    test("compileApis"){
+      val resourcePathCompile = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "java-scala-11"
+      test("jdk11java"){
+        val baos = new ByteArrayOutputStream()
+        val eval = UnitTester(JavaJdk11DoesntCompile, resourcePathCompile, errStream = new PrintStream(baos))
+        val Left(result) = eval.apply(JavaJdk11DoesntCompile.javamodule.compile)
+        assert(baos.toString.contains("cannot find symbol"))
+        assert(baos.toString.contains("method indent"))
+      }
+
+      test("jdk17java"){
+        val eval = UnitTester(JavaJdk17Compiles, resourcePathCompile)
+        val Right(result) = eval.apply(JavaJdk17Compiles.javamodule.compile)
+      }
+
+      // This doesn't work because Zinc doesn't apply the javaHome config to
+      // the Scala compiler JVM, which always runs in-memory https://github.com/sbt/zinc/discussions/1498
+//      test("jdk11scala"){
+//        val baos = new ByteArrayOutputStream()
+//        val eval = UnitTester(JavaJdk11DoesntCompile, resourcePathCompile)
+//        val Left(result) = eval.apply(JavaJdk11DoesntCompile.scalamodule.compile)
+//      }
+
+      test("jdk17scala"){
+        val eval = UnitTester(JavaJdk17Compiles, resourcePathCompile)
+        val Right(result) = eval.apply(JavaJdk17Compiles.scalamodule.compile)
       }
     }
 
