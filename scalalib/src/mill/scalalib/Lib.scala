@@ -76,7 +76,7 @@ object Lib {
     )
   }
 
-  @deprecated("Use the override accepting resolutionParams instead", "Mill after 0.12.2")
+  // bin-compat shim
   def resolveDependenciesMetadataSafe(
       repositories: Seq[Repository],
       deps: IterableOnce[BoundDep],
@@ -132,7 +132,7 @@ object Lib {
     ).map(_.map(_.withRevalidateOnce))
   }
 
-  @deprecated("Use the override accepting resolutionParams", "Mill after 0.12.2")
+  // bin-compat shim
   def resolveDependencies(
       repositories: Seq[Repository],
       deps: IterableOnce[BoundDep],
@@ -157,10 +157,7 @@ object Lib {
       ResolutionParams()
     )
 
-  @deprecated(
-    "Use the override accepting artifactTypes and resolutionParams",
-    "Mill after 0.12.0-RC3"
-  )
+  @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
   def resolveDependencies(
       repositories: Seq[Repository],
       deps: IterableOnce[BoundDep],

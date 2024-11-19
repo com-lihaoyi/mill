@@ -116,7 +116,7 @@ trait CoursierSupport {
     }
   }
 
-  @deprecated("Use the override accepting resolutionParams", "Mill after 0.12.2")
+  // bin-compat shim
   def resolveDependencies(
       repositories: Seq[Repository],
       deps: IterableOnce[Dependency],
@@ -262,7 +262,7 @@ trait CoursierSupport {
     }
   }
 
-  @deprecated("Use the override accepting resolutionParams", "Mill after 0.12.2")
+  // bin-compat shim
   def resolveDependenciesMetadataSafe(
       repositories: Seq[Repository],
       deps: IterableOnce[Dependency],
