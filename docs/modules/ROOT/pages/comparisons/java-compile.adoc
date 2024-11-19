@@ -259,11 +259,7 @@ $ ./mill clean common; time ./mill common.compile
 1.11s
 ```
 
-We explore the comparison between xref:comparisons/gradle.adoc[Gradle vs Mill]
-or xref:comparisons/maven.adoc[Maven vs Mill] in more detail on their own dedicated pages.
-For this article, the important thing is not comparing the build tools against each other,
-but comparing the build tools against what how fast they _could_ be if they just used
-the `javac` Java compiler directly:
+Tabulating this all together gives us the table we saw at the start of this page:
 
 |===
 | Compiling Netty Common (41,601 lines) | Time | Multiplier | Compiling Mockito Core (29,712 lines) | Time | Multiplier
@@ -272,6 +268,22 @@ the `javac` Java compiler directly:
 | Maven | 4.89s | 16.9x | Gradle | 4.41s | 15.2x
 | Mill | 1.11s | 3.8x | Mill | 1.20s | 4.1x
 |===
+
+We explore the comparison between xref:comparisons/gradle.adoc[Gradle vs Mill]
+or xref:comparisons/maven.adoc[Maven vs Mill] in more detail on their own dedicated pages.
+For this article, the important thing is not comparing the build tools against each other,
+but comparing the build tools against what how fast they _could_ be if they just used
+the `javac` Java compiler directly:
+
+One thing worth calling out is that the overhead of the various build tools does not
+appear to go down in larger builds. Although this `Clean Compile Single-Module` only
+deals with compiling a single small module, the `Sequential Clean Compile` benchmarks which
+compile entire projects show similar build-tool slowdowns:
+xref:comparisons/gradle.adoc#_sequential_clean_compile_all[Gradle compiling 100,000 lines of Java at ~5,600 lines/s]
+and xref:comparisons/maven.adoc#_sequential_clean_compile_all[Maven compiling 500,000 lines of Java at ~5,100 lines/s],
+with Mill reaching ~25,000 lines/s, all of which are far below the 100,000 lines/s
+that we should expect from Java compilation.
+
 
 ## Conclusion
 
@@ -298,5 +310,5 @@ The Mill build tool goes to great lengths to try and minimize overhead: keeping 
 worker processes to let the compiler warm up, using a fast-launching minimal client to connect
 to it, repeated bouts of benchmarking and optimization. Nevertheless, we can see that Mill
 has a long way to go to catch up to the raw performance of `javac`. Improving Mill is a work
-in progress, and until compiling a 30-40kLOC Java codebase from the command line takes ~0.3
-seconds, it will continue to be a work in progress.
+in progress, and will reain so until compiling a 30-40kLOC Java codebase from the command line
+takes ~0.3 seconds.

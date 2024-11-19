@@ -93,7 +93,7 @@ across the various workflows:
 
 |===
 | Benchmark | Gradle | Mill | Speedup
-| xref:comparisons/maven.adoc#_sequential_clean_compile_all[Sequential Clean Compile All] | 17.6s | 5.40s | 3.3x
+| xref:comparisons/maven.adoc#_sequential_clean_compile_all[Sequential Clean Compile All] | 1s | 5.40s | 3.3x
 | xref:comparisons/maven.adoc#_parallel_clean_compile_all[Parallel Clean Compile All] | 12.3s | 3.57s | 3.4x
 | xref:comparisons/maven.adoc#_clean_compile_single_module[Clean Compile Single Module] | 4.41s | 1.20s | 3.7x
 | xref:comparisons/maven.adoc#_incremental_compile_single_module[Incremental Compile Single Module] | 1.37s | 0.51s | 2.7x
