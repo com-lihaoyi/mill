@@ -281,8 +281,8 @@ short of the snappiness you would expect from a compiler that takes ~0.3s to com
 These benchmarks were run ad-hoc and on my laptop on arbitrary codebases, and the details
 will obviously differ depending on environment and the code in question. Running it on an
 entire codebase, rather than a single module, will give different results. Nevertheless, the
-results are clear: "typical" Java code _should_ compile at ~100,000 lines/second. Anything
-less is purely build-tool overhead from Maven, Gradle, or Mill.
+results are clear: "typical" Java code _should_ compile at ~100,000 lines/second on a single
+thread. Anything less is purely build-tool overhead from Maven, Gradle, or Mill.
 
 Build tools do a lot more than the Java compiler. They do dependency management, parallelism,
 caching and invalidation, and all sorts of other auxiliary tasks. But in the common case where
@@ -293,11 +293,6 @@ as long as actually compiling your code. It obviously does _today_, but it _shou
 The Mill build tool goes to great lengths to try and minimize overhead: keeping long-lived
 worker processes to let the compiler warm up, using a fast-launching minimal client to connect
 to it, repeated bouts of benchmarking and optimization. Nevertheless, we can see that Mill
-has a long way to go to catch up to the raw performance of `javac`. Mill's Java client adds
-100s of milliseconds of startup overhead, connecting to the server over a
-https://github.com/kohlschutter/junixsocket[JUnixSocket] takes 100s of milliseconds more,
-checking dependency resolution caches takes considerable time. These are the things that
-makes Mill take >1s to compile a Java module that should take 0.3x to compile.
-
-Improving Mill is a work in progress, and until compiling a 30-40kLOC Java codebase from
-the command line takes 0.3 seconds, it will continue to be a work in progress.
+has a long way to go to catch up to the raw performance of `javac`. Improving Mill is a work
+in progress, and until compiling a 30-40kLOC Java codebase from the command line takes ~0.3
+seconds, it will continue to be a work in progress.
