@@ -102,7 +102,7 @@ trait JavaModule
     mainClass() match {
       case Some(m) => Right(m)
       case None =>
-        zincWorker().worker().discoverMainClasses(compile()) match {
+        zincWorker().worker().discoverMainClasses(localRunClasspath().map(_.path)) match {
           case Seq() => Left("No main class specified or found")
           case Seq(main) => Right(main)
           case mains =>
