@@ -1,0 +1,27 @@
+package build
+import mill._, pythonlib._
+
+// Docs for PythonLib
+object foo extends PythonModule {
+  object bar extends PythonModule {
+    def pythonDeps = Seq("pandas==2.2.3", "numpy==2.1.3")
+  }
+  def pythonDeps = Seq("numpy==2.1.3")
+}
+
+object qux extends PythonModule {
+  def moduleDeps = Seq(foo, foo.bar)
+}
+
+/** Usage
+
+> ./mill qux.run
+Numpy : Sum: 150 | Pandas: Mean: 30.0, Max: 50
+
+> ./mill show qux.bundle
+".../out/qux/bundle.dest/bundle.pex"
+
+> out/qux/bundle.dest/bundle.pex # running the PEX binary outside of Mill
+Numpy : Sum: 150 | Pandas: Mean: 30.0, Max: 50
+
+*/

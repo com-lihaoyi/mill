@@ -39,7 +39,30 @@ object Pom {
     pomSettings = pomSettings,
     properties = properties,
     packagingType = pomSettings.packaging,
+    parentProject = None,
     bomDependencies = Agg.empty[Dependency]
+  )
+
+  @deprecated(
+    "Use overload with parentProject and bomDependencies parameter instead",
+    "Mill 0.12.1"
+  )
+  def apply(
+      artifact: Artifact,
+      dependencies: Agg[Dependency],
+      name: String,
+      pomSettings: PomSettings,
+      properties: Map[String, String],
+      packagingType: String
+  ): String = apply(
+    artifact = artifact,
+    dependencies = dependencies,
+    name = name,
+    pomSettings = pomSettings,
+    properties = properties,
+    packagingType = packagingType,
+    parentProject = None,
+    bomDependencies = Nil
   )
 
   def apply(
@@ -49,6 +72,7 @@ object Pom {
       pomSettings: PomSettings,
       properties: Map[String, String],
       packagingType: String,
+      parentProject: Option[Artifact],
       bomDependencies: Agg[Dependency]
   ): String = {
     val xml =
@@ -58,6 +82,7 @@ object Pom {
         xmlns ="http://maven.apache.org/POM/4.0.0">
 
         <modelVersion>4.0.0</modelVersion>
+        {parentProject.fold(NodeSeq.Empty)(renderParent)}
         <name>{name}</name>
         <groupId>{artifact.group}</groupId>
         <artifactId>{artifact.id}</artifactId>
@@ -95,6 +120,14 @@ object Pom {
 
     val pp = new PrettyPrinter(120, 4)
     head + pp.format(xml)
+  }
+
+  private def renderParent(artifact: Artifact): Elem = {
+    <parent>
+      <groupId>{artifact.group}</groupId>
+      <artifactId>{artifact.id}</artifactId>
+      <version>{artifact.version}</version>
+    </parent>
   }
 
   private def renderLicense(l: License): Elem = {

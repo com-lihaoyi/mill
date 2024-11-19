@@ -37,11 +37,11 @@ object Settings {
     "0.10.15",
   )
   val docTags: Seq[String] = Seq(
-    "0.11.12",
+    "0.11.13",
     "0.12.2"
   )
   val mimaBaseVersions: Seq[String] =
-    0.to(12).map("0.11." + _) ++
+    0.to(13).map("0.11." + _) ++
     Seq("0.12.0", "0.12.1", "0.12.2")
 }
 
@@ -184,6 +184,14 @@ object Deps {
   val sonatypeCentralClient = ivy"com.lumidion::sonatype-central-client-requests:0.3.0"
   val kotlinVersion = "2.0.21"
   val kotlinCompiler = ivy"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
+  val mavenVersion = "3.9.9"
+  val mavenEmbedder = ivy"org.apache.maven:maven-embedder:$mavenVersion"
+  val mavenResolverVersion = "1.9.22"
+  val mavenResolverConnectorBasic = ivy"org.apache.maven.resolver:maven-resolver-connector-basic:$mavenResolverVersion"
+  val mavenResolverSupplier = ivy"org.apache.maven.resolver:maven-resolver-supplier:$mavenResolverVersion"
+  val mavenResolverTransportFile = ivy"org.apache.maven.resolver:maven-resolver-transport-file:$mavenResolverVersion"
+  val mavenResolverTransportHttp = ivy"org.apache.maven.resolver:maven-resolver-transport-http:$mavenResolverVersion"
+  val mavenResolverTransportWagon = ivy"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
 
   object RuntimeDeps {
     val dokkaVersion = "1.9.20"
@@ -200,6 +208,7 @@ object Deps {
     val koverCli = ivy"org.jetbrains.kotlinx:kover-cli:$koverVersion"
     val koverJvmAgent = ivy"org.jetbrains.kotlinx:kover-jvm-agent:$koverVersion"
     val ktfmt = ivy"com.facebook:ktfmt:0.52"
+    val ktlint = ivy"com.pinterest.ktlint:ktlint-core:0.49.1"
     val sbtTestInterface = ivy"com.github.sbt:junit-interface:0.13.2"
 
     def all = Seq(
@@ -214,6 +223,7 @@ object Deps {
       koverCli,
       koverJvmAgent,
       ktfmt,
+      ktlint,
       sbtTestInterface,
     )
   }

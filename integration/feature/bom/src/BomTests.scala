@@ -82,7 +82,11 @@ object BomTests extends UtestIntegrationTestSuite {
 
       val obtainedClassPath = coursierapi.Fetch.create()
         .addDependencies(
-          coursierapi.Dependency.of("com.lihaoyi.mill-tests", "google-cloud-scala", "0.1.0-SNAPSHOT")
+          coursierapi.Dependency.of(
+            "com.lihaoyi.mill-tests",
+            "google-cloud-scala",
+            "0.1.0-SNAPSHOT"
+          )
         )
         .addRepositories(
           coursierapi.IvyRepository.of(repo.toNIO.toUri.toASCIIString + "[defaultPattern]")

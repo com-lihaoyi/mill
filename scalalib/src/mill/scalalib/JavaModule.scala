@@ -140,7 +140,7 @@ trait JavaModule
    * Aggregation of mandatoryIvyDeps and ivyDeps.
    * In most cases, instead of overriding this Target you want to override `ivyDeps` instead.
    */
-  def allIvyDeps: T[Agg[Dep]] = Task { mandatoryIvyDeps() ++ ivyDeps() }
+  def allIvyDeps: T[Agg[Dep]] = Task { ivyDeps() ++ mandatoryIvyDeps() }
 
   /**
    * Same as `ivyDeps`, but only present at compile time. Useful for e.g.
@@ -338,7 +338,7 @@ trait JavaModule
    * This is calculated from [[ivyDeps]], [[mandatoryIvyDeps]] and recursively from [[moduleDeps]].
    */
   def transitiveIvyDeps: T[Agg[BoundDep]] = Task {
-    (ivyDeps() ++ mandatoryIvyDeps()).map(bindDependency()) ++
+    allIvyDeps().map(bindDependency()) ++
       T.traverse(moduleDepsChecked)(_.transitiveIvyDeps)().flatten
   }
 

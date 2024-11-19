@@ -1,0 +1,155 @@
+= Migrating From Maven to Mill
+:page-aliases: Migrating_A_Maven_Build_to_Mill.adoc
+:icons: font
+
+include::partial$gtag-config.adoc[]
+
+The Mill `init` command can be used to convert a Maven build to Mill. This has
+xref:#limitations[limitations] and is not intended to reliably migrate 100% of
+Maven builds out there in the wild, but is instead meant to provide the basic
+scaffolding of a Mill build for you to further refine and update manually.
+
+Each Maven module with a `pom.xml` is converted to a Mill `build.mill`/`package.mill`
+file containing a top-level `MavenModule`. A nested `test` module is defined if both:
+
+* `src/test` exists
+* a supported xref:javalib/testing.adoc[test framework] is detected (for a _tests only_
+module with test sources in `src/main/java`)
+
+
+Again, note that `mill init` importing Maven builds is best effort.
+This means that while small projects can be expected to complete without issue:
+
+include::partial$example/javalib/migrating/1-maven-complete.adoc[]
+
+More larger projects often require some manual tweaking in order to work:
+
+include::partial$example/javalib/migrating/2-maven-incomplete.adoc[]
+
+Nevertheless, even for larger builds `mill init` automates most of the tedious
+busy-work of writing `build.mill`/`package.mill` files, and makes it much quicker
+to get a working Mill build for any existing Maven project.
+
+
+== Capabilities
+
+The conversion
+
+* handles deeply nested modules
+* captures project metadata
+* configures dependencies for scopes:
+** compile
+** provided
+** runtime
+** test
+* configures testing frameworks:
+** JUnit 4
+** JUnit 5
+** TestNG
+* configures multiple, compile and test, resource directories
+
+=== Command line arguments
+.name of generated base module trait defining project metadata settings
+[source,sh]
+----
+./mill init --base-module MyModule
+----
+.name of generated nested test module (defaults to `test`)
+[source,sh]
+----
+./mill init --test-module test
+----
+.name of generated companion object defining constants for dependencies
+[source,sh]
+----
+./mill init --deps-object Deps
+----
+.capture properties defined in `pom.xml` for publishing
+[source,sh]
+----
+./mill init --publish-properties
+----
+.merge build files generated for a multi-module build
+[source,sh]
+----
+./mill init --merge
+----
+
+.use cache for Maven repository system
+[source,sh]
+----
+./mill init --cache-repository
+----
+.process Maven plugin executions and configurations
+[source,sh]
+----
+./mill init --process-plugins
+----
+
+=== Verified projects
+
+The conversion has been tested with the following projects:
+
+* https://github.com/fusesource/jansi/archive/refs/tags/jansi-2.4.1.zip[jansi]
+[source,sh]
+----
+./mill init --base-module JansiModule --deps-object Deps --cache-repository --process-plugins
+----
+
+* https://github.com/davidmoten/geo/archive/refs/tags/0.8.1.zip[geo] (multi-module build)
+[source,sh]
+----
+./mill init --base-module GeoModule --deps-object Deps --merge --cache-repository --process-plugins
+----
+
+Post `init`, the following tasks were executed successfully:
+
+* `compile`
+* `test`
+* `publishLocal`
+
+[#limitations]
+== Limitations
+
+The conversion does not support
+
+* build extensions
+* build profiles
+* non-Java (native) sources
+
+Maven plugin support is limited to
+
+* https://maven.apache.org/plugins/maven-compiler-plugin/[maven-compiler-plugin]
+
+[TIP]
+====
+These limitations can be overcome by:
+
+* configuring equivalent Mill xref:extending/contrib-plugins.adoc[contrib]
+  or xref:extending/thirdparty-plugins.adoc[third party] plugins
+* defining custom xref:extending/writing-plugins.adoc[plugins]
+* defining custom xref:fundamentals/tasks.adoc[tasks]
+* defining custom xref:fundamentals/cross-builds.adoc[cross modules]
+====
+
+== FAQ
+
+.How to fix compilation errors in generated build files?
+
+This could happen if a module and task name collision occurs. Either rename the module or enclose the name in backticks.
+
+
+.How to fix JPMS `module not found` compilation errors?
+
+Set https://github.com/tfesenko/Java-Modules-JPMS-CheatSheet#how-to-export-or-open-a-package[additional command line options]
+for dependencies.
+
+
+.How to fix test compilation errors?
+
+* The test framework configured may be for an unsupported version; try upgrading the
+  corresponding dependencies.
+* Mill does not add `provided` dependencies to the transitive dependencies of the nested
+  test module; specify the dependencies again, in one of `ivyDeps`, `compileIvyDeps`, `runIvyDeps`, in the test module.
+
+

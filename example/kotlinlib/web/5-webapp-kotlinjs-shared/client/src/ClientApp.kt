@@ -4,18 +4,17 @@ import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.html.div
 import kotlinx.html.stream.createHTML
-import kotlinx.serialization.*
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.Json
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
 import org.w3c.dom.events.KeyboardEvent
 import org.w3c.dom.get
 import org.w3c.fetch.RequestInit
-import shared.*
+import shared.Todo
+import shared.renderBody
 
 object ClientApp {
-
     private var state = "all"
 
     private val todoApp: Element
@@ -26,27 +25,38 @@ object ClientApp {
             .fetch(url, RequestInit(method = "POST"))
             .then { it.text() }
             .then { text ->
-                todoApp.innerHTML = createHTML().div {
-                    renderBody(Json.decodeFromString<List<Todo>>(text), state)
-                }
+                todoApp.innerHTML =
+                    createHTML().div {
+                        renderBody(Json.decodeFromString<List<Todo>>(text), state)
+                    }
                 initListeners()
             }
     }
 
-    private fun bindEvent(cls: String, url: String, endState: String? = null) {
-        document.getElementsByClassName(cls)[0]
-            ?.addEventListener("click", {
-                postFetchUpdate(url)
-                if (endState != null) state = endState
-            }
+    private fun bindEvent(
+        cls: String,
+        url: String,
+        endState: String? = null,
+    ) {
+        document
+            .getElementsByClassName(cls)[0]
+            ?.addEventListener(
+                "click",
+                {
+                    postFetchUpdate(url)
+                    if (endState != null) state = endState
+                },
             )
     }
 
-    private fun bindIndexedEvent(cls: String, block: (String) -> String) {
+    private fun bindIndexedEvent(
+        cls: String,
+        block: (String) -> String,
+    ) {
         for (elem in document.getElementsByClassName(cls).asList()) {
             elem.addEventListener(
                 "click",
-                { postFetchUpdate(block(elem.getAttribute("data-todo-index")!!)) }
+                { postFetchUpdate(block(elem.getAttribute("data-todo-index")!!)) },
             )
         }
     }
@@ -75,13 +85,14 @@ object ClientApp {
                         .then { it.text() }
                         .then { text ->
                             newTodoInput.value = ""
-                            todoApp.innerHTML = createHTML().div {
-                                renderBody(Json.decodeFromString<List<Todo>>(text), state)
-                            }
+                            todoApp.innerHTML =
+                                createHTML().div {
+                                    renderBody(Json.decodeFromString<List<Todo>>(text), state)
+                                }
                             initListeners()
                         }
                 }
-            }
+            },
         )
     }
 }

@@ -32,6 +32,13 @@ trait PublishModule extends JavaModule { outer =>
   def pomPackagingType: String = PackagingType.Jar
 
   /**
+   * POM parent project.
+   *
+   * @see [[https://maven.apache.org/guides/introduction/introduction-to-the-pom.html#Project_Inheritance Project Inheritance]]
+   */
+  def pomParentProject: T[Option[Artifact]] = None
+
+  /**
    * Configuration for the `pom.xml` metadata file published with this module
    */
   def pomSettings: T[PomSettings]
@@ -94,6 +101,7 @@ trait PublishModule extends JavaModule { outer =>
       pomSettings(),
       publishProperties(),
       packagingType = pomPackagingType,
+      parentProject = pomParentProject(),
       bomDependencies = publishXmlBomDeps()
     )
     val pomPath = T.dest / s"${artifactId()}-${publishVersion()}.pom"
@@ -101,14 +109,15 @@ trait PublishModule extends JavaModule { outer =>
     PathRef(pomPath)
   }
 
-  def bomDetails: T[(Map[coursier.core.Module, String], coursier.core.DependencyManagement.Map)] = Task {
-    val (processedDeps, depMgmt) = defaultResolver().processDeps(
-      transitiveRunIvyDeps() ++ transitiveIvyDeps(),
-      resolutionParams = resolutionParams(),
-      bomDeps = bomDeps().map(bindDependency())
-    )
-    (processedDeps.map(_.moduleVersion).toMap, depMgmt)
-  }
+  def bomDetails: T[(Map[coursier.core.Module, String], coursier.core.DependencyManagement.Map)] =
+    Task {
+      val (processedDeps, depMgmt) = defaultResolver().processDeps(
+        transitiveRunIvyDeps() ++ transitiveIvyDeps(),
+        resolutionParams = resolutionParams(),
+        bomDeps = bomDeps().map(bindDependency())
+      )
+      (processedDeps.map(_.moduleVersion).toMap, depMgmt)
+    }
 
   def ivy: T[PathRef] = Task {
     val (rootDepVersions, depMgmt) = bomDetails()
@@ -117,7 +126,11 @@ trait PublishModule extends JavaModule { outer =>
         dep.copy(
           artifact = dep.artifact.copy(
             version = rootDepVersions.getOrElse(
-              coursier.core.Module(coursier.core.Organization(dep.artifact.group), coursier.core.ModuleName(dep.artifact.id), Map.empty),
+              coursier.core.Module(
+                coursier.core.Organization(dep.artifact.group),
+                coursier.core.ModuleName(dep.artifact.id),
+                Map.empty
+              ),
               "" /* throw instead? */
             )
           )
