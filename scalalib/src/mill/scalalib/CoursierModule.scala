@@ -162,6 +162,29 @@ object CoursierModule {
       resolutionParams: ResolutionParams = ResolutionParams()
   ) {
 
+    // bin-compat shim
+    def this(
+        repositories: Seq[Repository],
+        bind: Dep => BoundDep,
+        mapDependencies: Option[Dependency => Dependency],
+        customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
+        ctx: Option[mill.api.Ctx.Log],
+        coursierCacheCustomizer: Option[
+          coursier.cache.FileCache[coursier.util.Task] => coursier.cache.FileCache[
+            coursier.util.Task
+          ]
+        ]
+    ) =
+      this(
+        repositories,
+        bind,
+        mapDependencies,
+        customizer,
+        ctx,
+        coursierCacheCustomizer,
+        ResolutionParams()
+      )
+
     def resolveDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean = false,
