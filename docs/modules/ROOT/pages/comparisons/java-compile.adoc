@@ -2,6 +2,10 @@
 
 include::partial$gtag-config.adoc[]
 
+On modern hardware and software, Java source code should compile at >100,000 lines per
+second, i.e. a million-line Java codebase should clean compile in <10 seconds on a single
+thread. Anything less than that is due to overhead from your build system and other tooling.
+
 Java compiles have the reputation for being slow, but that reputation does
 not match today's reality. The Java compiler can compile "typical" Java code at over
 100,000 lines a second on a single core. That means that even a million line project
