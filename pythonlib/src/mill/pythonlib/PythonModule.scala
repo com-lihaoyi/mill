@@ -7,14 +7,29 @@ import mill.util.Jvm
 
 trait PythonModule extends Module with TaskModule {
   def moduleDeps: Seq[PythonModule] = Nil
-  def mainFileName: T[String] = Task { "main.py" }
-  def sources: T[PathRef] = Task.Source(millSourcePath / "src")
+
+  /**
+   * The folders where the source files for this mill module live
+   *
+   * Python modules will be defined relative to these directories.
+   */
+  def sources: T[Seq[PathRef]] = Task.Sources { millSourcePath / "src" }
+
+  /**
+   * The script to run. This file may not exist if this module is only a library.
+   */
+  def script: T[PathRef] = Task.Source { millSourcePath / "src" / "main.py" }
 
   def pythonDeps: T[Seq[String]] = Task { Seq.empty[String] }
 
   def transitivePythonDeps: T[Seq[String]] = Task {
     val upstreamDependencies = Task.traverse(moduleDeps)(_.transitivePythonDeps)().flatten
     pythonDeps() ++ upstreamDependencies
+  }
+
+  def transitiveSources: T[Seq[PathRef]] = Task {
+    val upstreamSources = Task.traverse(moduleDeps)(_.transitiveSources)().flatten
+    sources() ++ upstreamSources
   }
 
   def pythonExe: T[PathRef] = Task {
@@ -29,27 +44,21 @@ trait PythonModule extends Module with TaskModule {
     Task.traverse(moduleDeps)(_.typeCheck)()
 
     os.call(
-      (pythonExe().path, "-m", "mypy", "--strict", sources().path),
+      (pythonExe().path, "-m", "mypy", "--strict", sources().map(_.path)),
       stdout = os.Inherit,
       cwd = T.workspace
     )
   }
 
-  def gatherScripts(upstream: Seq[(PathRef, PythonModule)]) = {
-    for ((sourcesFolder, mod) <- upstream) {
-      val destinationPath =
-        os.pwd / mod.millSourcePath.subRelativeTo(mill.api.WorkspaceRoot.workspaceRoot)
-      os.copy.over(sourcesFolder.path / os.up, destinationPath)
-    }
-  }
-
   def run(args: mill.define.Args) = Task.Command {
-    gatherScripts(Task.traverse(moduleDeps)(_.sources)().zip(moduleDeps))
-
     os.call(
-      (pythonExe().path, sources().path / mainFileName(), args.value),
-      env = Map("PYTHONPATH" -> Task.dest.toString),
-      stdout = os.Inherit
+      (pythonExe().path, script().path, args.value),
+      env = Map(
+        "PYTHONPATH" -> transitiveSources().map(_.path).mkString(":"),
+        "PYTHONPYCACHEPREFIX" -> (T.dest / "cache").toString
+      ),
+      stdout = os.Inherit,
+      cwd = T.dest
     )
   }
 
@@ -65,7 +74,10 @@ trait PythonModule extends Module with TaskModule {
     } else {
       Jvm.runSubprocess(
         Seq(pythonExe().path.toString),
-        envArgs = Map("PYTHONPATH" -> Task.dest.toString),
+        envArgs = Map(
+          "PYTHONPATH" -> transitiveSources().map(_.path).mkString(":").toString,
+          "PYTHONPYCACHEPREFIX" -> (T.dest / "cache").toString
+        ),
         workingDir = Task.dest
       )
       Result.Success(())
@@ -74,26 +86,23 @@ trait PythonModule extends Module with TaskModule {
 
   /** Bundles the project into a single PEX executable(bundle.pex). */
   def bundle = Task {
-    gatherScripts(Task.traverse(moduleDeps)(_.sources)().zip(moduleDeps))
-
     val pexFile = Task.dest / "bundle.pex"
     os.call(
       (
+        // format: off
         pythonExe().path,
-        "-m",
-        "pex",
+        "-m", "pex",
         transitivePythonDeps(),
-        "-D",
-        Task.dest,
-        "-c",
-        sources().path / mainFileName(),
-        "-o",
-        pexFile,
-        "--scie",
-        "eager"
+        transitiveSources().flatMap(pr =>
+          Seq("-D", pr.path.toString)
+        ),
+        "--exe", script().path,
+        "-o", pexFile,
+        "--scie", "eager",
+        // format: on
       ),
-      env = Map("PYTHONPATH" -> Task.dest.toString),
-      stdout = os.Inherit
+      stdout = os.Inherit,
+      cwd = T.dest
     )
 
     PathRef(pexFile)
