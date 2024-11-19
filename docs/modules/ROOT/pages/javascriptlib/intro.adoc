@@ -1,0 +1,12 @@
+
+= Building Javascript with Mill
+
+include::partial$gtag-config.adoc[]
+
+
+:language: Java
+:language-small: java
+
+== Simple Typescript Module
+
+include::partial$example/javascriptlib/basic/1-simple.adoc[]

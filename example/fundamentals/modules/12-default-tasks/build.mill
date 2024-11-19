@@ -6,9 +6,9 @@ import mill._, javalib._
 import mill.define.TaskModule
 
 object foo extends TaskModule {
-  override def defaultCommandName() = "foo"
-  def bar = Task.Command { println("Hello Bar") }
-  def qux = Task.Command { println("Hello Qux") }
+  override def defaultCommandName() = "bar"
+  def bar() = Task.Command { println("Hello Bar") }
+  def qux() = Task.Command { println("Hello Qux") }
 }
 
 // In this example, the `foo` module has a `defaultCommandName` of `bar`

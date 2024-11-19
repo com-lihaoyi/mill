@@ -1,33 +1,40 @@
 package com.example
 
-import io.ktor.server.application.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import io.ktor.server.thymeleaf.*
-import io.ktor.server.util.*
-import java.util.*
+import io.ktor.server.application.Application
+import io.ktor.server.application.call
+import io.ktor.server.request.receiveParameters
+import io.ktor.server.response.respond
+import io.ktor.server.response.respondRedirect
+import io.ktor.server.routing.get
+import io.ktor.server.routing.post
+import io.ktor.server.routing.routing
+import io.ktor.server.thymeleaf.ThymeleafContent
+import io.ktor.server.util.getOrFail
+import java.util.UUID
 
 enum class ListFilter {
     ALL,
     ACTIVE,
-    COMPLETED
+    COMPLETED,
 }
 
-data class TodoItemFormData(var title: String? = null)
+data class TodoItemFormData(
+    var title: String? = null,
+)
 
 fun modelContent(
     todos: List<TodoItem>,
-    filter: ListFilter
+    filter: ListFilter,
 ): Map<String, Any> {
     val activeItemCount = todos.count { !it.completed }
     val numberOfCompletedItems = todos.count { it.completed }
 
-    val items = when (filter) {
-        ListFilter.ALL -> todos
-        ListFilter.ACTIVE -> todos.filterNot { it.completed }
-        ListFilter.COMPLETED -> todos.filter { it.completed }
-    }
+    val items =
+        when (filter) {
+            ListFilter.ALL -> todos
+            ListFilter.ACTIVE -> todos.filterNot { it.completed }
+            ListFilter.COMPLETED -> todos.filter { it.completed }
+        }
 
     return mapOf(
         "item" to TodoItemFormData(),
@@ -35,7 +42,7 @@ fun modelContent(
         "totalItemCount" to todos.size,
         "activeItemCount" to activeItemCount,
         "numberOfCompletedItems" to numberOfCompletedItems,
-        "filter" to filter.name
+        "filter" to filter.name,
     )
 }
 
@@ -54,7 +61,9 @@ fun Application.configureRoutes(repository: TodoItemRepository) {
             call.respond(ThymeleafContent("index", modelContent(todos, ListFilter.COMPLETED)))
         }
         get("/completed/delete") {
-            repository.findAll().filter { it.completed }
+            repository
+                .findAll()
+                .filter { it.completed }
                 .forEach { repository.deleteById(it.id) }
             call.respondRedirect("/")
         }
@@ -75,7 +84,9 @@ fun Application.configureRoutes(repository: TodoItemRepository) {
             call.respondRedirect("/")
         }
         post("/toggle-all") {
-            repository.findAll().map { it.copy(completed = !it.completed) }
+            repository
+                .findAll()
+                .map { it.copy(completed = !it.completed) }
                 .forEach { repository.save(it) }
             call.respondRedirect("/")
         }

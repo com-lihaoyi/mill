@@ -41,8 +41,8 @@ of. In general, we have found that having "two places" to put code - outside of
 
 The hard boundary between these two phases is what lets users easily query
 and visualize their module hierarchy and task graph without running them: using
-xref:scalalib/builtin-commands.adoc#_inspect[inspect], xref:scalalib/builtin-commands.adoc#_plan[plan],
-xref:scalalib/builtin-commands.adoc#_visualize[visualize], etc.. This helps keep your
+xref:cli/builtin-commands.adoc#_inspect[inspect], xref:cli/builtin-commands.adoc#_plan[plan],
+xref:cli/builtin-commands.adoc#_visualize[visualize], etc.. This helps keep your
 Mill build discoverable even as the `build.mill` codebase grows.
 
 == Caching at Each Layer of the Evaluation Model

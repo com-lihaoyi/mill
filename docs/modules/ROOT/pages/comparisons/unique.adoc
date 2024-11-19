@@ -81,7 +81,7 @@ It recently grew first-class Java support, demonstrating
 xref:comparisons/why-mill.adoc[2-10x speedups] over existing Java build tools
 like Maven or Gradle. Mill also has gained experimental support for Java-adjacent platforms
 like xref:kotlinlib/intro.adoc[Kotlin] and
-xref:javalib/android-examples.adoc[Android], and has demonstrated the ability to branch out into supporting
+xref:android/java.adoc[Android], and has demonstrated the ability to branch out into supporting
 more distant toolchains like xref:extending/example-typescript-support.adoc[Typescript]
 and xref:extending/example-python-support.adoc[Python].
 
