@@ -142,6 +142,13 @@ trait CoursierModule extends mill.Module {
    *   def resolutionParams = super.resolutionParams()
    *     .withEnableDependencyOverrides(Some(false))
    * }}}
+   *
+   * Note that versions forced with `Dep#forceVersion()` take over forced versions manually
+   * set in `resolutionParams`. The former should be favored to force versions in dependency
+   * resolution.
+   *
+   * The Scala version set via `ScalaModule#scalaVersion` also takes over any Scala version
+   * provided via `ResolutionParams#scalaVersionOpt`.
    */
   def resolutionParams: Task[ResolutionParams] = Task.Anon {
     ResolutionParams()
