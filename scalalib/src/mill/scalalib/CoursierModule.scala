@@ -40,7 +40,8 @@ trait CoursierModule extends mill.Module {
       mapDependencies = Some(mapDependencies()),
       customizer = resolutionCustomizer(),
       coursierCacheCustomizer = coursierCacheCustomizer(),
-      ctx = Some(implicitly[mill.api.Ctx.Log])
+      ctx = Some(implicitly[mill.api.Ctx.Log]),
+      resolutionParams = resolutionParams()
     )
   }
 
@@ -132,6 +133,20 @@ trait CoursierModule extends mill.Module {
       : Task[Option[FileCache[coursier.util.Task] => FileCache[coursier.util.Task]]] =
     Task.Anon { None }
 
+  /**
+   * Resolution parameters, allowing to customize resolution internals
+   *
+   * This rarely needs to be changed. This allows to disable the new way coursier handles
+   * BOMs since coursier 2.1.17 (used in Mill since 0.12.3) for example, with:
+   * {{{
+   *   def resolutionParams = super.resolutionParams()
+   *     .withEnableDependencyOverrides(Some(false))
+   * }}}
+   */
+  def resolutionParams: Task[ResolutionParams] = Task.Anon {
+    ResolutionParams()
+  }
+
 }
 object CoursierModule {
 
@@ -143,14 +158,14 @@ object CoursierModule {
       ctx: Option[mill.api.Ctx.Log] = None,
       coursierCacheCustomizer: Option[
         coursier.cache.FileCache[coursier.util.Task] => coursier.cache.FileCache[coursier.util.Task]
-      ] = None
+      ] = None,
+      resolutionParams: ResolutionParams = ResolutionParams()
   ) {
 
     def resolveDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean = false,
-        artifactTypes: Option[Set[coursier.Type]] = None,
-        resolutionParams: ResolutionParams = ResolutionParams()
+        artifactTypes: Option[Set[coursier.Type]] = None
     ): Agg[PathRef] = {
       Lib.resolveDependencies(
         repositories = repositories,
@@ -165,19 +180,12 @@ object CoursierModule {
       ).getOrThrow
     }
 
-    def resolveDeps[T: CoursierModule.Resolvable](
-        deps: IterableOnce[T],
-        sources: Boolean,
-        artifactTypes: Option[Set[coursier.Type]]
-    ): Agg[PathRef] =
-      resolveDeps(deps, sources, artifactTypes, ResolutionParams())
-
     @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
     def resolveDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean
     ): Agg[PathRef] =
-      resolveDeps(deps, sources, None, ResolutionParams())
+      resolveDeps(deps, sources, None)
   }
 
   sealed trait Resolvable[T] {

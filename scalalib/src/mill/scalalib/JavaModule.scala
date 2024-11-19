@@ -2,7 +2,6 @@ package mill
 package scalalib
 
 import coursier.core.Resolution
-import coursier.params.ResolutionParams
 import coursier.parse.JavaOrScalaModule
 import coursier.parse.ModuleParser
 import coursier.util.ModuleMatcher
@@ -161,10 +160,6 @@ trait JavaModule
    * here if you'd like fancy artifact extensions to be fetched.
    */
   def artifactTypes: T[Set[Type]] = Task { coursier.core.Resolution.defaultTypes }
-
-  def resolutionParams: Task[ResolutionParams] = Task.Anon {
-    ResolutionParams()
-  }
 
   /**
    * Options to pass to the java compiler
@@ -609,8 +604,7 @@ trait JavaModule
   def resolvedIvyDeps: T[Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(
       transitiveCompileIvyDeps() ++ transitiveIvyDeps(),
-      artifactTypes = Some(artifactTypes()),
-      resolutionParams = resolutionParams()
+      artifactTypes = Some(artifactTypes())
     )
   }
 
@@ -625,8 +619,7 @@ trait JavaModule
   def resolvedRunIvyDeps: T[Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(
       transitiveRunIvyDeps() ++ transitiveIvyDeps(),
-      artifactTypes = Some(artifactTypes()),
-      resolutionParams = resolutionParams()
+      artifactTypes = Some(artifactTypes())
     )
   }
 
@@ -1104,15 +1097,13 @@ trait JavaModule
         Task.Anon {
           defaultResolver().resolveDeps(
             transitiveCompileIvyDeps() ++ transitiveIvyDeps(),
-            sources = true,
-            resolutionParams = resolutionParams()
+            sources = true
           )
         },
         Task.Anon {
           defaultResolver().resolveDeps(
             transitiveRunIvyDeps() ++ transitiveIvyDeps(),
-            sources = true,
-            resolutionParams = resolutionParams()
+            sources = true
           )
         }
       )
