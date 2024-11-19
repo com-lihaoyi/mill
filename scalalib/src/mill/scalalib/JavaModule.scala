@@ -2,7 +2,6 @@ package mill
 package scalalib
 
 import coursier.core.Resolution
-import coursier.params.ResolutionParams
 import coursier.parse.JavaOrScalaModule
 import coursier.parse.ModuleParser
 import coursier.util.ModuleMatcher
@@ -140,7 +139,14 @@ trait JavaModule
    * Aggregation of mandatoryIvyDeps and ivyDeps.
    * In most cases, instead of overriding this Target you want to override `ivyDeps` instead.
    */
-  def allIvyDeps: T[Agg[Dep]] = Task { ivyDeps() ++ mandatoryIvyDeps() }
+  def allIvyDeps: T[Agg[Dep]] = Task {
+    val bomDeps0 = allBomDeps().toSeq.map { bomDep =>
+      (bomDep.dep.module, bomDep.dep.version)
+    }
+    val rawDeps = ivyDeps() ++ mandatoryIvyDeps()
+    if (bomDeps0.isEmpty) rawDeps
+    else rawDeps.map(dep => dep.copy(dep = dep.dep.addBoms(bomDeps0)))
+  }
 
   /**
    * Same as `ivyDeps`, but only present at compile time. Useful for e.g.
@@ -156,21 +162,21 @@ trait JavaModule
    */
   def runIvyDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
+  def parentDep: T[Option[Dep]] = Task { None }
+
   /**
    * Any BOM dependencies you want to add to this Module, in the format
    * ivy"org:name:version"
    */
   def bomDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
+  def allBomDeps: T[Agg[Dep]] = Task { parentDep().toSeq ++ bomDeps() }
+
   /**
    * Default artifact types to fetch and put in the classpath. Add extra types
    * here if you'd like fancy artifact extensions to be fetched.
    */
   def artifactTypes: T[Set[Type]] = Task { coursier.core.Resolution.defaultTypes }
-
-  def resolutionParams: Task[ResolutionParams] = Task.Anon {
-    ResolutionParams()
-  }
 
   /**
    * Options to pass to the java compiler
@@ -616,8 +622,7 @@ trait JavaModule
     defaultResolver().resolveDeps(
       transitiveCompileIvyDeps() ++ transitiveIvyDeps(),
       artifactTypes = Some(artifactTypes()),
-      resolutionParams = resolutionParams(),
-      bomDeps = bomDeps().map(bindDependency())
+      bomDeps = allBomDeps().map(bindDependency())
     )
   }
 
@@ -633,8 +638,7 @@ trait JavaModule
     defaultResolver().resolveDeps(
       transitiveRunIvyDeps() ++ transitiveIvyDeps(),
       artifactTypes = Some(artifactTypes()),
-      resolutionParams = resolutionParams(),
-      bomDeps = bomDeps().map(bindDependency())
+      bomDeps = allBomDeps().map(bindDependency())
     )
   }
 
@@ -902,7 +906,7 @@ trait JavaModule
         customizer = resolutionCustomizer(),
         coursierCacheCustomizer = coursierCacheCustomizer(),
         resolutionParams = resolutionParams(),
-        bomDeps = bomDeps().map(bindDependency())
+        bomDeps = allBomDeps().map(bindDependency())
       ).getOrThrow
 
       val roots = whatDependsOn match {
@@ -1114,16 +1118,14 @@ trait JavaModule
           defaultResolver().resolveDeps(
             transitiveCompileIvyDeps() ++ transitiveIvyDeps(),
             sources = true,
-            resolutionParams = resolutionParams(),
-            bomDeps = bomDeps().map(bindDependency())
+            bomDeps = allBomDeps().map(bindDependency())
           )
         },
         Task.Anon {
           defaultResolver().resolveDeps(
             transitiveRunIvyDeps() ++ transitiveIvyDeps(),
             sources = true,
-            resolutionParams = resolutionParams(),
-            bomDeps = bomDeps().map(bindDependency())
+            bomDeps = allBomDeps().map(bindDependency())
           )
         }
       )

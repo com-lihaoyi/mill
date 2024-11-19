@@ -45,3 +45,28 @@ object `google-cloud-scala-no-bom` extends JavaModule {
     ivy"com.thesamet.scalapb:scalapbc_2.13:0.9.8"
   )
 }
+
+object `google-cloud-java-dependee` extends JavaModule with TestPublishModule {
+  def moduleDeps = Seq(
+    `google-cloud-java`
+  )
+}
+
+object `google-cloud-scala-dependee` extends JavaModule with TestPublishModule {
+  def moduleDeps = Seq(
+    `google-cloud-scala`
+  )
+}
+
+object parent extends JavaModule with TestPublishModule {
+  def parentDep = Some(ivy"org.apache.spark:spark-parent_2.13:3.5.3")
+  def ivyDeps = Agg(
+    ivy"org.apache.commons:commons-compress:_"
+  )
+}
+
+object `parent-dependee` extends JavaModule with TestPublishModule {
+  def moduleDeps = Seq(
+    parent
+  )
+}

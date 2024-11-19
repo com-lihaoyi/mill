@@ -62,7 +62,7 @@ object Pom {
     properties = properties,
     packagingType = packagingType,
     parentProject = None,
-    bomDependencies = Nil
+    bomDependencies = Agg.empty[Dependency]
   )
 
   def apply(

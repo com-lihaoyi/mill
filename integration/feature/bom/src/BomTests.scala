@@ -10,6 +10,7 @@ object BomTests extends UtestIntegrationTestSuite {
   def tests: Tests = Tests {
 
     def expectedProtobufJavaVersion = "4.28.3"
+    def expectedCommonsCompressVersion = "1.23.0"
 
     def compileClasspathFileNames(tester: IntegrationTester, moduleName: String): Seq[String] = {
       import tester._
@@ -98,6 +99,127 @@ object BomTests extends UtestIntegrationTestSuite {
 
       val obtainedClassPathFileNames = obtainedClassPath.map(_.last)
       assert(obtainedClassPathFileNames.contains(s"protobuf-java-$expectedProtobufJavaVersion.jar"))
+    }
+
+    test("googleCloudJavaDependee") - integrationTest { tester =>
+      import tester._
+
+      val compileClasspathFileNames0 =
+        compileClasspathFileNames(tester, "google-cloud-java-dependee")
+      assert(compileClasspathFileNames0.contains(s"protobuf-java-$expectedProtobufJavaVersion.jar"))
+
+      val repo = workspacePath / "ivy2Local"
+      eval(("google-cloud-java.publishLocal", "--localIvyRepo", repo), check = true)
+      eval(("google-cloud-java-dependee.publishLocal", "--localIvyRepo", repo), check = true)
+
+      val obtainedClassPath = coursierapi.Fetch.create()
+        .addDependencies(
+          coursierapi.Dependency.of(
+            "com.lihaoyi.mill-tests",
+            "google-cloud-java-dependee",
+            "0.1.0-SNAPSHOT"
+          )
+        )
+        .addRepositories(
+          coursierapi.IvyRepository.of(repo.toNIO.toUri.toASCIIString + "[defaultPattern]")
+        )
+        .fetch()
+        .asScala
+        .map(os.Path(_))
+        .toVector
+
+      val obtainedClassPathFileNames = obtainedClassPath.map(_.last)
+      assert(obtainedClassPathFileNames.contains(s"protobuf-java-$expectedProtobufJavaVersion.jar"))
+    }
+
+    test("googleCloudScalaDependee") - integrationTest { tester =>
+      import tester._
+
+      val compileClasspathFileNames0 =
+        compileClasspathFileNames(tester, "google-cloud-scala-dependee")
+      assert(compileClasspathFileNames0.contains(s"protobuf-java-$expectedProtobufJavaVersion.jar"))
+
+      val repo = workspacePath / "ivy2Local"
+      eval(("google-cloud-scala.publishLocal", "--localIvyRepo", repo), check = true)
+      eval(("google-cloud-scala-dependee.publishLocal", "--localIvyRepo", repo), check = true)
+
+      val obtainedClassPath = coursierapi.Fetch.create()
+        .addDependencies(
+          coursierapi.Dependency.of(
+            "com.lihaoyi.mill-tests",
+            "google-cloud-scala-dependee",
+            "0.1.0-SNAPSHOT"
+          )
+        )
+        .addRepositories(
+          coursierapi.IvyRepository.of(repo.toNIO.toUri.toASCIIString + "[defaultPattern]")
+        )
+        .fetch()
+        .asScala
+        .map(os.Path(_))
+        .toVector
+
+      val obtainedClassPathFileNames = obtainedClassPath.map(_.last)
+      assert(obtainedClassPathFileNames.contains(s"protobuf-java-$expectedProtobufJavaVersion.jar"))
+    }
+
+    test("parent") - integrationTest { tester =>
+      import tester._
+
+      val compileClasspathFileNames0 = compileClasspathFileNames(tester, "parent")
+      assert(
+        compileClasspathFileNames0.contains(s"commons-compress-$expectedCommonsCompressVersion.jar")
+      )
+
+      val repo = workspacePath / "ivy2Local"
+      eval(("parent.publishLocal", "--localIvyRepo", repo), check = true)
+
+      val obtainedClassPath = coursierapi.Fetch.create()
+        .addDependencies(
+          coursierapi.Dependency.of("com.lihaoyi.mill-tests", "parent", "0.1.0-SNAPSHOT")
+        )
+        .addRepositories(
+          coursierapi.IvyRepository.of(repo.toNIO.toUri.toASCIIString + "[defaultPattern]")
+        )
+        .fetch()
+        .asScala
+        .map(os.Path(_))
+        .toVector
+
+      val obtainedClassPathFileNames = obtainedClassPath.map(_.last)
+      assert(
+        obtainedClassPathFileNames.contains(s"commons-compress-$expectedCommonsCompressVersion.jar")
+      )
+    }
+
+    test("parentDependee") - integrationTest { tester =>
+      import tester._
+
+      val compileClasspathFileNames0 = compileClasspathFileNames(tester, "parent-dependee")
+      assert(
+        compileClasspathFileNames0.contains(s"commons-compress-$expectedCommonsCompressVersion.jar")
+      )
+
+      val repo = workspacePath / "ivy2Local"
+      eval(("parent.publishLocal", "--localIvyRepo", repo), check = true)
+      eval(("parent-dependee.publishLocal", "--localIvyRepo", repo), check = true)
+
+      val obtainedClassPath = coursierapi.Fetch.create()
+        .addDependencies(
+          coursierapi.Dependency.of("com.lihaoyi.mill-tests", "parent-dependee", "0.1.0-SNAPSHOT")
+        )
+        .addRepositories(
+          coursierapi.IvyRepository.of(repo.toNIO.toUri.toASCIIString + "[defaultPattern]")
+        )
+        .fetch()
+        .asScala
+        .map(os.Path(_))
+        .toVector
+
+      val obtainedClassPathFileNames = obtainedClassPath.map(_.last)
+      assert(
+        obtainedClassPathFileNames.contains(s"commons-compress-$expectedCommonsCompressVersion.jar")
+      )
     }
 
   }
