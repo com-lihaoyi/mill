@@ -2,31 +2,28 @@
 
 include::partial$gtag-config.adoc[]
 
-On modern hardware and software, Java source code should compile at >100,000 lines per
-second, i.e. a million-line Java codebase should clean compile in <10 seconds on a single
-thread. Anything less than that is due to overhead from your build system and other tooling.
-
 Java compiles have the reputation for being slow, but that reputation does
-not match today's reality. The Java compiler can compile "typical" Java code at over
+not match today's reality. Nowadays the Java compiler can compile "typical" Java code at over
 100,000 lines a second on a single core. That means that even a million line project
-should take more than 10s to compile in a single-threaded fashion, and _should_ take
-even less time when taking advantage of parallelism.
+should take more than 10s to compile in a single-threaded fashion, and should be even
+faster in the presence of parallelism
 
-Doing some ad-hoc benchmarks on the time taken for common build tools to compile Java,
-we find that although the compiler is blazing fast, all build tools add significant
-overhead over compiling Java directly:
+Doing some ad-hoc benchmarks on the time taken for common build tools to compile Java
+on a single core, we find that although the compiler is blazing fast, all build tools
+add significant overhead over compiling Java directly:
 
 |===
-| Compiling Netty Common (41,601 lines) | Time | Multiplier | Compiling Mockito Core (29,712 lines) | Time | Multiplier
-| Javac Hot | 0.29s | 1.0x | Javac Hot | 0.36s | 1.0x
-| Javac Cold | 1.62s | 5.6x | Javac Cold | 1.29s | 4.4x
-| Maven | 4.89s | 16.9x | Gradle | 4.41s | 15.2x
-| Mill | 1.11s | 3.8x | Mill | 1.20s | 4.1x
+| Mockito Core | Time | Compiler lines/s | Multiplier | Netty Common | Time | Compiler lines/s | Multiplier
+| Javac Hot | 0.36s | 115,600 | 1.0x | Javac Hot | 0.29s | 102,500 | 1.0x
+| Javac Cold | 1.29s | 32,200 | 4.4x | Javac Cold | 1.62s | 18,300 | 5.6x
+| Mill | 1.20s | 34,700 | 4.1x | Mill | 1.11s | 26,800 | 3.8x
+| Gradle | 4.41s | 9,400 | 15.2x | Maven | 4.89s | 6,100 | 16.9x
 |===
 
-Although Mill does the best in these benchmarks, all build tools fall short of how fast
-compiling Java _should_ be. This post explores how these numbers were arrived at, and
-what that means for the future of Java build tooling.
+Although Mill does the best in these benchmarks among the build tools, all build tools
+fall short of how fast compiling Java _should_ be. This post explores how these numbers
+were arrived at, and what that means in un-tapped potential for Java build tooling to
+become truly great.
 
 ## Mockito Core
 
@@ -39,15 +36,23 @@ of code. To give us a simple reproducible scenario, let's consider the root mock
 with sources in `src/main/java/`, on which all the downstream module and tests depend on.
 
 Mockito is built using Gradle. It's not totally trivial to extract the compilation classpath
-from Gradle, but the following stackoverflow answer gives us some tips:;
+from Gradle, but the following stackoverflow answer gives us some tips:
 
 * https://stackoverflow.com/a/50639444/871202[How do I print out the Java classpath in gradle?]
+
+```bash
+> ./gradlew clean && ./gradlew :classes --no-build-cache --debug | grep "classpath "
+```
 
 This gives us the following classpath:
 
 ```
 export MY_CLASSPATH=/Users/lihaoyi/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy/1.14.18/81e9b9a20944626e6757b5950676af901c2485/byte-buddy-1.14.18.jar:/Users/lihaoyi/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy-agent/1.14.18/417558ea01fe9f0e8a94af28b9469d281c4e3984/byte-buddy-agent-1.14.18.jar:/Users/lihaoyi/.gradle/caches/modules-2/files-2.1/junit/junit/4.13.2/8ac9e16d933b6fb43bc7f576336b8f4d7eb5ba12/junit-4.13.2.jar:/Users/lihaoyi/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/2.2/3f2bd07716a31c395e2837254f37f21f0f0ab24b/hamcrest-core-2.2.jar:/Users/lihaoyi/.gradle/caches/modules-2/files-2.1/org.opentest4j/opentest4j/1.3.0/152ea56b3a72f655d4fd677fc0ef2596c3dd5e6e/opentest4j-1.3.0.jar:/Users/lihaoyi/.gradle/caches/modules-2/files-2.1/org.objenesis/objenesis/3.3/1049c09f1de4331e8193e579448d0916d75b7631/objenesis-3.3.jar:/Users/lihaoyi/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.2/1820c0968dba3a11a1b30669bb1f01978a91dedc/hamcrest-2.2.jar
 ```
+
+Note that for this benchmark, all third-party dependencies have already been resolved
+and downloaded from Maven Central. We can thus simply reference the jars on disk directly,
+which we do above.
 
 We can then pass this classpath into `javac -cp`, together with `src/main/java/**/*.java`,
 to perform the compilation outside of Gradle using `javac` directly. Running this a few
@@ -166,7 +171,7 @@ settle on approximately the following numbers:
 353ms
 ```
 
-The codebase hasn't changed, so compiling we are still compiling `41601` lines of code.
+The codebase hasn't changed, so compiling we are still compiling 41,601 lines of code.
 But now it only takes ~359ms, which tells us that using a long-lived warm Java compiler
 we can compile approximately *116,000* lines of Java a second on a single core.
 
@@ -222,14 +227,13 @@ Or programmatically using the `Bench.java` program we saw earlier:
 285ms
 ```
 
-Again taking the median number for the hot-in-memory benchmark above (285ms), and
-the lines of code in Netty Common (29712), this tells us that `netty-common` compiles
-at *~104,000 lines/second*
+Taking 285ms for a hot-in-memory compile of 29,712 lines of code, `netty-common`
+therefore compiles at *~104,000 lines/second*.
 
 ## What About Build Tools?
 
 Although the Java Compiler is blazing fast - compiling code at >100k lines/second and
-completing both Mockito-Core and Netty-Common in ~300ms - the experience of using Java
+completing both Mockito-Core and Netty-Common in ~300ms - the experience of using typical Java
 build tools is nowhere near as snappy. Consider the benchmark of clean-compiling the
 Mockito-Core codebase using Gradle or Mill:
 
@@ -262,32 +266,35 @@ $ ./mill clean common; time ./mill common.compile
 Tabulating this all together gives us the table we saw at the start of this page:
 
 |===
-| Compiling Netty Common (41,601 lines) | Time | Multiplier | Compiling Mockito Core (29,712 lines) | Time | Multiplier
-| Javac Hot | 0.29s | 1.0x | Javac Hot | 0.36s | 1.0x
-| Javac Cold | 1.62s | 5.6x | Javac Cold | 1.29s | 4.4x
-| Maven | 4.89s | 16.9x | Gradle | 4.41s | 15.2x
-| Mill | 1.11s | 3.8x | Mill | 1.20s | 4.1x
+| Mockito Core | Time | Compiler lines/s | Multiplier | Netty Common | Time | Compiler lines/s | Multiplier
+| Javac Hot | 0.36s | 115,600 | 1.0x | Javac Hot | 0.29s | 102,500 | 1.0x
+| Javac Cold | 1.29s | 32,200 | 4.4x | Javac Cold | 1.62s | 18,300 | 5.6x
+| Mill | 1.20s | 34,700 | 4.1x | Mill | 1.11s | 26,800 | 3.8x
+| Gradle | 4.41s | 9,400 | 15.2x | Maven | 4.89s | 6,100 | 16.9x
 |===
 
 We explore the comparison between xref:comparisons/gradle.adoc[Gradle vs Mill]
 or xref:comparisons/maven.adoc[Maven vs Mill] in more detail on their own dedicated pages.
 For this article, the important thing is not comparing the build tools against each other,
 but comparing the build tools against what how fast they _could_ be if they just used
-the `javac` Java compiler directly:
+the `javac` Java compiler directly. And it's clear that compared to the actual work
+done by `javac` to actually compile your code, build tools add a frankly absurd amount
+of overhead ranging from ~4x for Mill to 15-16x for Maven and Gradle!
 
 One thing worth calling out is that the overhead of the various build tools does not
-appear to go down in larger builds. Although this `Clean Compile Single-Module` only
-deals with compiling a single small module, the `Sequential Clean Compile` benchmarks which
-compile entire projects show similar build-tool slowdowns:
+appear to go down in larger builds. Although this *Clean Compile Single-Module* benchmark
+we explored above only deals with compiling a single small module, a similar *Sequential
+Clean Compile* benchmarks which compile the entire Mockito and Netty projects shows similar build-tool slowdowns:
 xref:comparisons/gradle.adoc#_sequential_clean_compile_all[Gradle compiling 100,000 lines of Java at ~5,600 lines/s]
 and xref:comparisons/maven.adoc#_sequential_clean_compile_all[Maven compiling 500,000 lines of Java at ~5,100 lines/s],
-with Mill reaching ~25,000 lines/s, all of which are far below the 100,000 lines/s
-that we should expect from Java compilation.
+with Mill reaching ~25,000 lines/s. All of these are far below the 100,000 lines/s
+that we should expect from Java compilation, and roughly line up with the numbers measured
+above.
 
 
 ## Conclusion
 
-From this study we can see the paradox: the Java _compiler and runtime_ is blazing fast,
+From this study we can see the paradox: the Java _compiler_ is blazing fast,
 while Java _build tools_ are dreadfully slow. Something that _should_ compile in a fraction
 of a second using a warm `javac` takes several seconds (15-16x longer) to
 compile using Maven or Gradle. Mill does better, but even it adds 4x overhead and falls
@@ -302,13 +309,15 @@ thread. Anything less is purely build-tool overhead from Maven, Gradle, or Mill.
 
 Build tools do a lot more than the Java compiler. They do dependency management, parallelism,
 caching and invalidation, and all sorts of other auxiliary tasks. But in the common case where
-someone edits code and then compiles it, any time doing other things and not spent _actually
+someone edits code and then compiles it, and all your dependencies are already downloaded and
+cached locally, any time doing other things and not spent _actually
 compiling Java_ is pure overhead. Checking for cache invalidation in _shouldn't_ take 15-16x
-as long as actually compiling your code. It obviously does _today_, but it _shouldn't_.
+as long as actually compiling your code. I mean it obviously does _today_, but it _shouldn't_.
 
 The Mill build tool goes to great lengths to try and minimize overhead: keeping long-lived
 worker processes to let the compiler warm up, using a fast-launching minimal client to connect
 to it, repeated bouts of benchmarking and optimization. Nevertheless, we can see that Mill
 has a long way to go to catch up to the raw performance of `javac`. Improving Mill is a work
-in progress, and will reain so until compiling a 30-40kLOC Java codebase from the command line
-takes ~0.3 seconds.
+in progress, and will remain so until compiling a 30-40kLOC Java codebase from the command line
+takes ~0.3 seconds. If Java build and compile times are something that matter to you, you
+should try out the Mill build tool and get involved!
