@@ -203,6 +203,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
 
     val (runner, tasks) = getTestTasks(framework, args, classFilter, cl, testClassfilePath)
 
+    pprint.log(tasks.map(_.taskDef()))
     val (doneMessage, results) = runTasks(tasks, testReporter, runner)
 
     (doneMessage, results.toSeq)
