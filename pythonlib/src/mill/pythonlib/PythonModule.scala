@@ -5,7 +5,7 @@ import mill.api.Result
 import mill.util.Util
 import mill.util.Jvm
 
-trait PythonModule extends Module with TaskModule {
+trait PythonModule extends Module with TaskModule { outer =>
   def moduleDeps: Seq[PythonModule] = Nil
 
   /**
@@ -106,6 +106,10 @@ trait PythonModule extends Module with TaskModule {
     )
 
     PathRef(pexFile)
+  }
+
+  trait PythonTests extends PythonModule {
+    override def moduleDeps: Seq[PythonModule] = Seq(outer)
   }
 
 }

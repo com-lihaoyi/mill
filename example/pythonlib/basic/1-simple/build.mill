@@ -9,8 +9,15 @@ object foo extends PythonModule {
   def pythonDeps = Seq("numpy==2.1.3")
 }
 
-object qux extends PythonModule {
+object qux extends PythonModule { q =>
   def moduleDeps = Seq(foo, foo.bar)
+
+  object test extends PythonTests with TestModule.Unittest
+  object test2 extends PythonTests with TestModule.Pytest {
+    override def sources = T{
+      q.test.sources()
+    }
+  }
 }
 
 /** Usage
