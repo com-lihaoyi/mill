@@ -1,4 +1,4 @@
-# How Fast Should Java Compile?
+# How Fast Does Java Compile?
 
 include::partial$gtag-config.adoc[]
 
