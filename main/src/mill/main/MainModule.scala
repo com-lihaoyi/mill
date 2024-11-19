@@ -563,7 +563,13 @@ trait MainModule extends BaseModule0 {
   def init(evaluator: Evaluator, args: String*): Command[ujson.Value] =
     Task.Command(exclusive = true) {
       val evaluated =
-        if (args.headOption.exists(_.toLowerCase.endsWith(".g8")))
+        if (os.exists(os.pwd / "pom.xml"))
+          RunScript.evaluateTasksNamed(
+            evaluator,
+            Seq("mill.init.InitMavenModule/init") ++ args,
+            SelectMode.Separated
+          )
+        else if (args.headOption.exists(_.toLowerCase.endsWith(".g8")))
           RunScript.evaluateTasksNamed(
             evaluator,
             Seq("mill.scalalib.giter8.Giter8Module/init") ++ args,

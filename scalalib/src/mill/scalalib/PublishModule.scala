@@ -32,6 +32,13 @@ trait PublishModule extends JavaModule { outer =>
   def pomPackagingType: String = PackagingType.Jar
 
   /**
+   * POM parent project.
+   *
+   * @see [[https://maven.apache.org/guides/introduction/introduction-to-the-pom.html#Project_Inheritance Project Inheritance]]
+   */
+  def pomParentProject: T[Option[Artifact]] = None
+
+  /**
    * Configuration for the `pom.xml` metadata file published with this module
    */
   def pomSettings: T[PomSettings]
@@ -89,7 +96,8 @@ trait PublishModule extends JavaModule { outer =>
       artifactId(),
       pomSettings(),
       publishProperties(),
-      packagingType = pomPackagingType
+      packagingType = pomPackagingType,
+      parentProject = pomParentProject()
     )
     val pomPath = T.dest / s"${artifactId()}-${publishVersion()}.pom"
     os.write.over(pomPath, pom)

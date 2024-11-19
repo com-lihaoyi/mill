@@ -215,6 +215,14 @@ import $ivy.`com.github.ajrnz::mill-dgraph:0.2.0`
 sh> mill plugin.dgraph.browseDeps(proj)()
 ----
 
+== Docker Jib Packager
+A wrapper around the  https://github.com/GoogleContainerTools/jib[Google Jib Library].
+Allows to build Docker images without a running Docker daemon.
+Also enables to layer an image more efficiently.
+
+Project home: https://github.com/GeorgOfenbeck/mill-docker
+
+
 == Docker Native-Image Packager
 
 This plugin allows building Docker container images with GraalVM Native-Image

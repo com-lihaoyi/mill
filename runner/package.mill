@@ -14,6 +14,8 @@ object `package` extends RootModule with build.MillPublishScalaModule {
     build.kotlinlib,
     build.scalajslib,
     build.scalanativelib,
+    build.javascriptlib,
+    build.pythonlib,
     build.bsp,
     linenumbers,
     build.main.codesig,

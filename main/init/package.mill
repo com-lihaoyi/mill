@@ -4,7 +4,8 @@ import mill._
 import scala.util.matching.Regex
 
 object `package` extends RootModule with build.MillPublishScalaModule {
-  def moduleDeps = Seq(build.main)
+
+  def moduleDeps = Seq(build.main, build.scalalib)
 
   override def resources = Task {
     super.resources() ++ Seq(exampleList())
