@@ -66,7 +66,7 @@ both parallel and sequential, and for many modules or for a single module:
 | xref:comparisons/maven.adoc#_parallel_clean_compile_all[Parallel Clean Compile All] | 48.92s | 8.79s | 5.6x
 | xref:comparisons/maven.adoc#_clean_compile_single_module[Clean Compile Single Module] | 4.89s | 1.11s | 4.4x
 | xref:comparisons/maven.adoc#_incremental_compile_single_module[Incremental Compile Single Module] | 6.82s | 0.54s | 12.6x
-| xref:comparisons/maven.adoc#_no_op_compile_single_module[No-Op Compile Single Module] | 05.25s | 0.47s  | 11.2x
+| xref:comparisons/maven.adoc#_no_op_compile_single_module[No-Op Compile Single Module] | 5.25s | 0.47s  | 11.2x
 |===
 
 First, let's look at *Parallel Clean Compile All*.

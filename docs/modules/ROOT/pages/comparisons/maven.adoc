@@ -74,11 +74,11 @@ Mill's performance compares to Maven:
 | Benchmark | Maven | Mill | Speedup
 
 
-| <<Sequential Clean Compile All>> | 1m 38.80s | 23.14s | 4.3x
-| <<Parallel Clean Compile All>> | 0m 48.92s | 0m 08.79s | 5.6x
-| <<Clean Compile Single-Module>> | 0m 04.89s | 0m 01.11s | 4.4x
-| <<Incremental Compile Single-Module>> | 0m 06.82s | 0m 00.54s | 12.6x
-| <<No-Op Compile Single-Module>> | 0m 05.25s | 0m 00.47s  | 11.2x
+| <<Sequential Clean Compile All>> | 98.80s | 23.14s | 4.3x
+| <<Parallel Clean Compile All>> | 48.92s | 8.79s | 5.6x
+| <<Clean Compile Single-Module>> | 4.89s | 1.11s | 4.4x
+| <<Incremental Compile Single-Module>> | 6.82s | 0.54s | 12.6x
+| <<No-Op Compile Single-Module>> | 5.25s | 0.47s  | 11.2x
 |===
 
 The column on the right shows the speedups of how much faster Mill is compared to the
@@ -90,14 +90,14 @@ we can explain the difference in performing the same task with the two different
 
 ```bash
 $ ./mvnw clean; time ./mvnw -Pfast  -Dcheckstyle.skip -Denforcer.skip=true -DskipTests install
-1m 38.80s
-1m 36.14s
-1m 39.95s
+98.80s
+96.14s
+99.95s
 
 $ ./mill clean; time ./mill -j1 __.compile
-0m 23.99s
-0m 23.14s
-0m 22.68s
+23.99s
+23.14s
+22.68s
 ```
 
 This benchmark exercises the simple "build everything from scratch" workflow, with all remote
@@ -144,9 +144,9 @@ Maven's overhead adds to the clean build:
 
 ```bash
 $ ./mill clean; time ./mill -j1 __.jar
-0m 32.58s
-0m 24.90s
-0m 23.35s
+32.58s
+24.90s
+23.35s
 ```
 
 From this benchmark, we can see that although both Mill and Maven are doing the same work,
@@ -159,14 +159,14 @@ whereas Mill directly uses the classfiles generated on disk to bypass all that w
 
 ```bash
 $ ./mvnw clean; time ./mvnw -T 10 -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
-0m 48.92s
-0m 48.41s
-0m 49.50s
+48.92s
+48.41s
+49.50s
 
 $ ./mill clean; time ./mill __.compile
-0m 09.07s
-0m 08.79s
-0m 07.93s
+9.07s
+8.79s
+7.93s
 ```
 
 This example compares Maven v.s. Mill, when performing the clean build on 10 threads.
@@ -209,18 +209,18 @@ $ time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=t
 Compiling 174 source files to /Users/lihaoyi/Github/netty/common/target/classes
 Compiling 60 source files to /Users/lihaoyi/Github/netty/common/target/test-classes
 
-0m 06.89s
-0m 06.34s
-0m 06.82s
+6.89s
+6.34s
+6.82s
 
 
 $ echo "" >> common/src/main/java/io/netty/util/AbstractConstant.java
 $ time ./mill common.test.compile
 compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
 
-0m 00.78s
-0m 00.54s
-0m 00.51s
+0.78s
+0.54s
+0.51s
 ```
 
 This benchmark explores editing a single file and re-compiling `common/`.
@@ -305,14 +305,14 @@ the same thing in Maven
 
 ```bash
 $ time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
-0m 05.08s
-0m 05.25s
-0m 05.26s
+5.08s
+5.25s
+5.26s
 
 $ time ./mill common.test.compile
-0m 00.49s
-0m 00.47s
-0m 00.45s
+0.49s
+0.47s
+0.45s
 ```
 
 This last benchmark explores the boundaries of Maven and Mill: what happens if
