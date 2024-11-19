@@ -73,9 +73,10 @@ Mill's performance compares to Maven:
 |===
 | Benchmark | Maven | Mill | Speedup
 
+
 | <<Sequential Clean Compile All>> | 1m 38.80s | 23.14s | 4.3x
 | <<Parallel Clean Compile All>> | 0m 48.92s | 0m 08.79s | 5.6x
-| <<Clean Compile Single-Module>> | 0m 08.46s | 0m 01.94s | 4.4x
+| <<Clean Compile Single-Module>> | 0m 04.89s | 0m 01.11s | 4.4x
 | <<Incremental Compile Single-Module>> | 0m 06.82s | 0m 00.54s | 12.6x
 | <<No-Op Compile Single-Module>> | 0m 05.25s | 0m 00.47s  | 11.2x
 |===
@@ -180,29 +181,25 @@ when performing a clean build of the Netty repository.
 === Clean Compile Single-Module
 
 ```bash
-$ ./mvnw clean; time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
-0m 08.46s
-0m 08.90s
-0m 08.30s
+$ ./mvnw clean; time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true -Dmaven.test.skip=true install
+4.85s
+4.96s
+4.89s
 
-$ ./mill clean common; time ./mill common.test.compile
-0m 01.99s
-0m 01.81s
-0m 01.94s
+$ ./mill clean common; time ./mill common.compile
+1.10s
+1.12s
+1.11s
 ```
 
-This exercise limits the comparison to compiling a single module, in this case `common/`.
-`./mvnw -pl common install` compiles both the `main/` and `test/` sources, whereas
-`./mill common.compile` would only compile the `main/` sources, and we need to explicitly
-reference `common.test.compile` to compile both (because `common.test.compile` depends on
-`common.compile`, `common.compile` gets run automatically)
+This exercise limits the comparison to compiling a single module, in this case `common/`,
+ignore test sources.
 
 Again, we can see a significant speedup of Mill v.s. Maven remains even when compiling a
-single module: a clean compile of `common/` is about 9x faster with Mill than with Maven!
-Again, `common/` is about 40,000 lines of Java source code, so at 10,000-50,000 lines per
+single module: a clean compile of `common/` is about 4x faster with Mill than with Maven!
+Again, `common/` is about 30,000 lines of Java source code, so at 10,000-50,000 lines per
 second we would expect it to compile in about 1-4s. That puts Mill's compile times right
 at what you would expect, whereas Maven's has a significant overhead.
-
 
 === Incremental Compile Single-Module
 
