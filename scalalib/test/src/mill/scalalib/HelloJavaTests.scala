@@ -149,37 +149,69 @@ object HelloJavaTests extends TestSuite {
     test("test") - {
       val eval = testEval()
 
-      val Left(Result.Failure(ref1, Some(v1))) = eval.apply(HelloJava.core.test.test())
+      // Add debug for first test execution
+      val firstTestResult = eval.apply(HelloJava.core.test.test())
+      println(s"First test result: $firstTestResult")
 
-      assert(
-        v1._2(0).fullyQualifiedName == "hello.MyCoreTests.lengthTest",
-        v1._2(0).status == "Success",
-        v1._2(1).fullyQualifiedName == "hello.MyCoreTests.msgTest",
-        v1._2(1).status == "Failure"
-      )
+      firstTestResult match {
+        case Left(Result.Failure(ref1, Some(v1))) =>
+          assert(
+            v1._2(0).fullyQualifiedName == "hello.MyCoreTests.lengthTest",
+            v1._2(0).status == "Success",
+            v1._2(1).fullyQualifiedName == "hello.MyCoreTests.msgTest",
+            v1._2(1).status == "Failure"
+          )
 
-      val Right(result2) = eval.apply(HelloJava.app.test.test())
+        case Right(r) =>
+          println("Unexpected success result in first test:")
+          println(s"Message: ${r.value._1}")
+          println(
+            s"Results: ${r.value._2.map(t => s"${t.fullyQualifiedName} - ${t.status}").mkString("\n")}"
+          )
+          throw new Exception(s"Expected test failure but got success: $r")
 
-      assert(
-        result2.value._2(0).fullyQualifiedName == "hello.MyAppTests.appTest",
-        result2.value._2(0).status == "Success",
-        result2.value._2(1).fullyQualifiedName == "hello.MyAppTests.coreTest",
-        result2.value._2(1).status == "Success"
-      )
+        case other =>
+          throw new Exception(s"Unexpected result type: $other")
+      }
 
-      val Right(result3) = eval.apply(HelloJava.app.testJunit5.test())
+      // Second test execution
+      val secondTestResult = eval.apply(HelloJava.app.test.test())
+      println(s"Second test result: $secondTestResult")
 
-      val testResults =
-        result3.value._2.map(t => (t.fullyQualifiedName, t.selector, t.status)).sorted
-      val expected = Seq(
-        ("hello.Junit5TestsA", "coreTest()", "Success"),
-        ("hello.Junit5TestsA", "palindromes(String):1", "Success"),
-        ("hello.Junit5TestsA", "palindromes(String):2", "Success"),
-        ("hello.Junit5TestsA", "skippedTest()", "Skipped"),
-        ("hello.Junit5TestsB", "packagePrivateTest()", "Success")
-      )
+      secondTestResult match {
+        case Right(result2) =>
+          assert(
+            result2.value._2(0).fullyQualifiedName == "hello.MyAppTests.appTest",
+            result2.value._2(0).status == "Success",
+            result2.value._2(1).fullyQualifiedName == "hello.MyAppTests.coreTest",
+            result2.value._2(1).status == "Success"
+          )
 
-      assert(testResults == expected)
+        case other =>
+          throw new Exception(s"Expected success but got: $other")
+      }
+
+      // Third test execution
+      val thirdTestResult = eval.apply(HelloJava.app.testJunit5.test())
+      println(s"Third test result: $thirdTestResult")
+
+      thirdTestResult match {
+        case Right(result3) =>
+          val testResults =
+            result3.value._2.map(t => (t.fullyQualifiedName, t.selector, t.status)).sorted
+          val expected = Seq(
+            ("hello.Junit5TestsA", "coreTest()", "Success"),
+            ("hello.Junit5TestsA", "palindromes(String):1", "Success"),
+            ("hello.Junit5TestsA", "palindromes(String):2", "Success"),
+            ("hello.Junit5TestsA", "skippedTest()", "Skipped"),
+            ("hello.Junit5TestsB", "packagePrivateTest()", "Success")
+          )
+
+          assert(testResults == expected)
+
+        case other =>
+          throw new Exception(s"Expected success but got: $other")
+      }
     }
     test("failures") {
       val eval = testEval()

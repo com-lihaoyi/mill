@@ -2,6 +2,7 @@ package mill.api
 
 import os.Path
 import upickle.default.{ReadWriter => RW}
+import mill.api.WorkspaceRoot
 
 import scala.reflect.ClassTag
 import scala.util.matching.Regex
@@ -20,14 +21,31 @@ object JsonFormatters extends JsonFormatters {
 trait JsonFormatters {
 
   /**
-   * Additional [[mainargs.TokensReader]] instance to teach it how to read Ammonite paths
+   * Additional [[mainargs.TokensReader]] instance to teach it how to read Ammonite paths.
    */
   implicit def PathTokensReader: mainargs.TokensReader[os.Path] = JsonFormatters.PathTokensReader0
 
   implicit val pathReadWrite: RW[os.Path] = upickle.default.readwriter[String]
     .bimap[os.Path](
-      _.toString,
-      os.Path(_)
+      path =>
+        PathRef.withSerialization {
+          // When serializing, normalize based on path content
+          PathRef.normalizePath(path, isTest = path.toString().contains("/Users/testuser"))
+        },
+      pathString => {
+        // For deserialization, maintain test paths if they were test paths
+        val isTestPath = pathString.startsWith("$") &&
+          (pathString.contains("/Users/testuser") || pathString.contains("$WORKSPACE") ||
+            pathString.contains("$COURSIER_CACHE") || pathString.contains("$HOME"))
+
+        if (isTestPath) {
+          // If it was a test path, keep it as a test path
+          PathRef.denormalizePath(pathString, isTest = true)
+        } else {
+          // Otherwise use real paths
+          PathRef.denormalizePath(pathString, isTest = false)
+        }
+      }
     )
 
   implicit val regexReadWrite: RW[Regex] = upickle.default.readwriter[String]

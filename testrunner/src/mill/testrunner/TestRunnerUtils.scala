@@ -134,7 +134,6 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
   ): (String, Iterator[TestResult]) = {
     val events = new ConcurrentLinkedQueue[Event]()
     val doneMessage = {
-
       val taskQueue = tasks.to(mutable.Queue)
       while (taskQueue.nonEmpty) {
         val next = taskQueue.dequeue().execute(
@@ -154,7 +153,6 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
             def info(msg: String) = ctx.log.outputStream.println(msg)
           })
         )
-
         taskQueue.enqueueAll(next)
       }
       runner.done()
@@ -186,7 +184,6 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
         ex.map(_.getStackTrace.toIndexedSeq)
       )
     }
-
     (doneMessage, results)
   }
 

@@ -42,7 +42,9 @@ object JavaCompileJarTests extends TestSuite {
           Task { sourceRoot().flatMap(p => os.walk(p.path)).map(mill.api.PathRef(_)) }
         def classFiles = Task { compileAll(allSources()) }
         def jar = Task {
-          Jvm.createJar(Loose.Agg(classFiles().path, readme().path) ++ resourceRoot().map(_.path))
+          val result =
+            Jvm.createJar(Loose.Agg(classFiles().path, readme().path) ++ resourceRoot().map(_.path))
+          result
         }
         // Test createJar() with optional file filter.
         def filterJar(fileFilter: (os.Path, os.RelPath) => Boolean) = Task {
