@@ -578,8 +578,19 @@ as a drop-in replacement for <code>./mill</code> that supports running on all ma
 <h2 id="_ide_support"><a class="anchor" href="#_ide_support"></a>IDE Support</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill supports IntelliJ and VSCode, both via the standard
-<a href="https://build-server-protocol.github.io/">Build Server Protocol</a></p>
+<p>Mill supports IntelliJ and VSCode and in general any client of the standard
+<a href="https://build-server-protocol.github.io/">Build Server Protocol (BSP)</a>.</p>
+</div>
+<div class="paragraph">
+<p>To prepare your project for IDEs, and in general any BSP client, you can run this command to generate the BSP configuration files:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">./mill mill.bsp.BSP/install</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Your IDEs may already auto-detect the Mill project and run this command on behalf of you, when opening/importing the project.</p>
 </div>
 <div class="sect2">
 <h3 id="_intellij"><a class="anchor" href="#_intellij"></a>IntelliJ</h3>
@@ -690,7 +701,7 @@ even if you are using it to build a Java project.</p>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-Mill in VSCode only supports Java and Scala. Kotlin users should use IntelliJ
+Mill in VSCode only supports Java and Scala. Kotlin users are advised to use the free  IntelliJ IDEA Community Edition
 </td>
 </tr>
 </tbody></table>
@@ -719,6 +730,12 @@ those updates by opening the &quot;BSP&quot; tab and clicking the &quot;Refresh&
 <div class="content">
 <img src="../_images/basic/VSCodeRefresh.png" alt="VSCodeRefresh" />
 </div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_other_editors_metals"><a class="anchor" href="#_other_editors_metals"></a>Other Editors / Metals</h3>
+<div class="paragraph">
+<p>A lot of other editors may work too, since <a href="https://scalameta.org/metals/">Metals</a>, the Language Server for Scala has built-in support for BSP. See the <a href="#_ide_support">general instructions</a> above.</p>
 </div>
 </div>
 <div class="sect2">
