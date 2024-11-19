@@ -59,8 +59,17 @@ as a drop-in replacement for `./mill` that supports running on all major platfor
 
 :link-metals: https://scalameta.org/metals/
 
-Mill supports IntelliJ and VSCode, both via the standard
-https://build-server-protocol.github.io/[Build Server Protocol]
+Mill supports IntelliJ and VSCode and in general any client of the standard
+https://build-server-protocol.github.io/[Build Server Protocol (BSP)].
+
+To prepare your project for IDEs, and in general any BSP client, you can run this command to generate the BSP configuration files:
+
+[source,bash]
+----
+./mill mill.bsp.BSP/install
+----
+
+Your IDEs may already auto-detect the Mill project and run this command on behalf of you, when opening/importing the project.
 
 === IntelliJ
 
@@ -131,14 +140,14 @@ After the files are generated, you can open the folder in IntelliJ to load the p
 into your IDE. If you make changes to your Mill `build.mill`, you can update the project config
 those updates by running `./mill mill.idea.GenIdea/` again.
 
-=== VSCode
+=== VSCode / Metals
 
 To use Mill with VSCode, first ensure you have the free
 https://marketplace.visualstudio.com/items?itemName=scalameta.metals[Metals VSCode Scala language server]
 installed. This is necessary as Mill build files are written in Scala,
 even if you are using it to build a Java project.
 
-NOTE: Mill in VSCode only supports Java and Scala. Kotlin users should use IntelliJ
+NOTE: Mill in VSCode only supports Java and Scala. Kotlin users are advised to use the free  IntelliJ IDEA Community Edition
 
 Once you have the language server installed, you can ask VSCode to open any folder
 containing a Mill `build.mill` file, and VSCode will ask you to import your
@@ -153,6 +162,10 @@ If you make changes to your Mill `build.mill`, you can ask VSCode to load
 those updates by opening the "BSP" tab and clicking the "Refresh" button
 
 image::basic/VSCodeRefresh.png[]
+
+=== Other Editors / Metals
+
+A lot of other editors may work too, since {link-metals}[Metals], the Language Server for Scala has built-in support for BSP. See the <<_ide_support,general instructions>> above.
 
 === Debugging IDE issues
 
