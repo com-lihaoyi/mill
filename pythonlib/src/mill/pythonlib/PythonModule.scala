@@ -40,26 +40,30 @@ trait PythonModule extends Module with TaskModule { outer =>
     PathRef(python)
   }
 
-  def typeCheck: T[Unit] = Task {
-    Task.traverse(moduleDeps)(_.typeCheck)()
-
-    os.call(
-      (pythonExe().path, "-m", "mypy", "--strict", sources().map(_.path)),
-      stdout = os.Inherit,
-      cwd = T.workspace
+  // TODO: right now, any task that calls this helper will have its own python
+  // cache. This is slow. Look into sharing the cache between tasks.
+  protected def runPythonExe(args: Task[Seq[String]]): Task[Unit] = Task.Anon {
+    Jvm.runSubprocess(
+      commandArgs = Seq(pythonExe().path.toString) ++ args(),
+      envArgs = Map(
+        "PYTHONPATH" -> transitiveSources().map(_.path).mkString(java.io.File.pathSeparator),
+        "PYTHONPYCACHEPREFIX" -> (T.dest / "cache").toString,
+        if (Task.log.colored) { "FORCE_COLOR" -> "1" }
+        else { "NO_COLOR" -> "1" }
+      ),
+      workingDir = Task.workspace
     )
   }
 
+  def typeCheck: T[Unit] = Task {
+    Task.traverse(moduleDeps)(_.typeCheck)()
+    runPythonExe(
+      Task.Anon { Seq("-m", "mypy", "--strict") ++ sources().map(_.path.toString) }
+    )()
+  }
+
   def run(args: mill.define.Args) = Task.Command {
-    os.call(
-      (pythonExe().path, script().path, args.value),
-      env = Map(
-        "PYTHONPATH" -> transitiveSources().map(_.path).mkString(":"),
-        "PYTHONPYCACHEPREFIX" -> (T.dest / "cache").toString
-      ),
-      stdout = os.Inherit,
-      cwd = T.dest
-    )
+    runPythonExe(Task.Anon { Seq(script().path.toString) ++ args.value })()
   }
 
   override def defaultCommandName(): String = "run"
@@ -72,14 +76,7 @@ trait PythonModule extends Module with TaskModule { outer =>
     if (!Util.isInteractive()) {
       Result.Failure("console needs to be run with the -i/--interactive flag")
     } else {
-      Jvm.runSubprocess(
-        Seq(pythonExe().path.toString),
-        envArgs = Map(
-          "PYTHONPATH" -> transitiveSources().map(_.path).mkString(":").toString,
-          "PYTHONPYCACHEPREFIX" -> (T.dest / "cache").toString
-        ),
-        workingDir = Task.dest
-      )
+      runPythonExe(Task.Anon { Seq() })()
       Result.Success(())
     }
   }

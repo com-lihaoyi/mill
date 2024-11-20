@@ -10,14 +10,13 @@ object HelloWorldTests extends TestSuite {
 
   object HelloWorldPython extends TestBaseModule {
     object foo extends PythonModule {
-      override def mainFileName = "foo.py"
-      object bar extends PythonModule {
-        override def mainFileName = "bar.py"
-      }
+      override def moduleDeps: Seq[PythonModule] = Seq(bar)
+      object bar extends PythonModule
     }
 
     object qux extends PythonModule {
-      override def mainFileName = "qux.py"
+      override def moduleDeps: Seq[PythonModule] = Seq(foo)
+      override def script = T.source(millSourcePath / "src" / "qux.py")
     }
   }
 

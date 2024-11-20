@@ -3,53 +3,82 @@ package mill.pythonlib
 import mill.Task
 import mill.Command
 import mill.TaskModule
+import mill.T
 
 trait TestModule extends TaskModule {
+  import TestModule.TestResult
 
-  // TODO: make this return something more interesting
-  def test(args: String*): Command[Unit]
+  /**
+   * Discovers and runs the module's tests in a subprocess, reporting the
+   * results to the console.
+   * @see [[testCached]]
+   */
+  def test(args: String*): Command[Seq[TestResult]] =
+    Task.Command {
+      testTask(Task.Anon { args })()
+    }
+
+  /**
+   * Args to be used by [[testCached]].
+   */
+  def testCachedArgs: T[Seq[String]] = Task { Seq[String]() }
+
+  /**
+   * Discovers and runs the module's tests in a subprocess, reporting the
+   * results to the console.
+   * If no input has changed since the last run, no test were executed.
+   * @see [[test()]]
+   */
+  def testCached: T[Seq[TestResult]] = Task {
+    testTask(testCachedArgs)()
+  }
+
+  /**
+   * The actual task shared by `test`-tasks that runs test in a forked JVM.
+   */
+  protected def testTask(args: Task[Seq[String]]): Task[Seq[TestResult]]
 
   override def defaultCommandName() = "test"
 }
 
 object TestModule {
 
-  trait Unittest extends PythonModule with TestModule {
-    def test(args: String*): Command[Unit] = Task.Command {
-      val testArgs = if (args.isEmpty) {
-        Seq("discover") ++ sources().flatMap(pr => Seq("-s", pr.path.toString))
-      } else {
-        args
-      }
+  // TODO: this is a dummy for now, however we should look into re-using
+  // mill.testrunner.TestResults
+  type TestResult = Unit
 
-      os.call(
-        (pythonExe().path, "-m", "unittest", testArgs),
-        env = Map(
-          "PYTHONPATH" -> transitiveSources().map(_.path).mkString(":"),
-          "PYTHONPYCACHEPREFIX" -> (Task.dest / "cache").toString
-        ),
-        stdout = os.Inherit,
-        cwd = Task.dest
-      )
-      ()
+  /** TestModule that uses Python's standard unittest module to run tests. */
+  trait Unittest extends PythonModule with TestModule {
+    protected def testTask(args: Task[Seq[String]]) = Task.Anon {
+      runPythonExe(Task.Anon {
+        val testArgs = if (args().isEmpty) {
+          Seq("discover") ++ sources().flatMap(pr => Seq("-s", pr.path.toString))
+        } else {
+          args()
+        }
+        Seq("-m", "unittest") ++ testArgs
+      })()
+      Seq()
     }
   }
 
+  /** TestModule that uses pytest to run tests. */
   trait Pytest extends PythonModule with TestModule {
 
-    def pythonDeps = Seq("pytest")
+    def pythonDeps = Seq("pytest==8.3.3")
 
-    def test(args: String*): Command[Unit] = Task.Command {
-      os.call(
-        (pythonExe().path, "-m", "pytest", sources().map(_.path), args),
-        env = Map(
-          "PYTHONPATH" -> transitiveSources().map(_.path).mkString(":"),
-          "PYTHONPYCACHEPREFIX" -> (Task.dest / "cache").toString
-        ),
-        stdout = os.Inherit,
-        cwd = Task.dest
-      )
-      ()
+    protected def testTask(args: Task[Seq[String]]) = Task.Anon {
+      runPythonExe(
+        Task.Anon {
+          Seq(
+            "-m",
+            "pytest",
+            "-o",
+            s"cache_dir=${Task.dest / "cache"}"
+          ) ++ sources().map(_.path.toString) ++ args()
+        }
+      )()
+      Seq()
     }
   }
 
