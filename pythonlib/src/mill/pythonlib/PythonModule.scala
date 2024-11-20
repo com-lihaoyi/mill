@@ -7,6 +7,11 @@ import mill.util.Jvm
 import mill.api.Ctx
 
 trait PythonModule extends Module with TaskModule { outer =>
+
+  /**
+   *  The direct dependencies of this module.
+   *  This is meant to be overridden to add dependencies.
+   */
   def moduleDeps: Seq[PythonModule] = Nil
 
   /**
@@ -21,18 +26,37 @@ trait PythonModule extends Module with TaskModule { outer =>
    */
   def script: T[PathRef] = Task.Source { millSourcePath / "src" / "main.py" }
 
+  /**
+   * Any python dependencies you want to add to this module. The format of each
+   * dependency should be the same as used with `pip install`, or as you would
+   * find in a `requirements.txt` file. E.g. `def pythonDeps =
+   * Seq("numpy==2.1.3")`
+   */
   def pythonDeps: T[Seq[String]] = Task { Seq.empty[String] }
 
+  /**
+   * Python dependencies of this module, and all other modules that this module
+   * depends on, recursively.
+   */
   def transitivePythonDeps: T[Seq[String]] = Task {
     val upstreamDependencies = Task.traverse(moduleDeps)(_.transitivePythonDeps)().flatten
     pythonDeps() ++ upstreamDependencies
   }
 
+  /**
+   * Source directories of this module, and all other modules that this module
+   * depends on, recursively.
+   */
   def transitiveSources: T[Seq[PathRef]] = Task {
     val upstreamSources = Task.traverse(moduleDeps)(_.transitiveSources)().flatten
     sources() ++ upstreamSources
   }
 
+  /**
+   * An executable python interpreter. This interpreter is set up to run in a
+   * virtual environment which has been initialized to contain all libraries and
+   * tools needed by this module and its dependencies.
+   */
   def pythonExe: T[PathRef] = Task {
     os.call(("python3", "-m", "venv", Task.dest / "venv"))
     val python = Task.dest / "venv" / "bin" / "python3"
@@ -56,6 +80,9 @@ trait PythonModule extends Module with TaskModule { outer =>
     )
   }
 
+  /**
+   * Run a typechecker on this module.
+   */
   def typeCheck: T[Unit] = Task {
     runner().run(
       (
@@ -69,6 +96,11 @@ trait PythonModule extends Module with TaskModule { outer =>
     )
   }
 
+  /**
+   * Run the main python script of this module.
+   *
+   * @see [[script]]
+   */
   def run(args: mill.define.Args) = Task.Command {
     runner().run(
       (
