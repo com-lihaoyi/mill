@@ -32,6 +32,7 @@
 ** xref:kotlinlib/web-examples.adoc[]
 * (Experimental) Android with Mill
 ** xref:android/java.adoc[]
+** xref:android/android-linting.adoc[]
 ** xref:android/kotlin.adoc[]
 * xref:comparisons/why-mill.adoc[]
 ** xref:comparisons/maven.adoc[]
