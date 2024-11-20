@@ -14,7 +14,7 @@ object qux extends PythonModule { q =>
 
   object test extends PythonTests with TestModule.Unittest
   object test2 extends PythonTests with TestModule.Pytest {
-    override def sources = T{
+    override def sources = T {
       q.test.sources()
     }
   }
