@@ -267,6 +267,61 @@ object TestModule {
     override def ivyDeps: T[Agg[Dep]] = Task {
       super.ivyDeps() ++ Agg(ivy"${mill.scalalib.api.Versions.jupiterInterface}")
     }
+
+    /**
+     * Overridden since Junit5 has its own discovery mechanism.
+     *
+     * This is basically a re-implementation of sbt's plugin for Junit5 test
+     * discovery mechanism. See
+     * https://github.com/sbt/sbt-jupiter-interface/blob/468d4f31f1f6ce8529fff8a8804dd733974c7686/src/plugin/src/main/scala/com/github/sbt/junit/jupiter/sbt/JupiterPlugin.scala#L97C15-L118
+     * for details.
+     *
+     * Note that we access the test discovery via reflection, to avoid mill
+     * itself having a dependency on Junit5. Hence, if you remove the
+     * `sbt-jupiter-interface` dependency from `ivyDeps`, make sure to also
+     * override this method.
+     */
+    override def discoveredTestClasses: T[Seq[String]] = T {
+      Jvm.inprocess(
+        runClasspath().map(_.path),
+        classLoaderOverrideSbtTesting = true,
+        isolated = true,
+        closeContextClassLoaderWhenDone = true,
+        cl => {
+          val builderClass: Class[_] =
+            cl.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Builder")
+          val builder = builderClass.getConstructor().newInstance()
+
+          builderClass.getMethod("withClassDirectory", classOf[java.io.File]).invoke(
+            builder,
+            compile().classes.path.wrapped.toFile
+          )
+          builderClass.getMethod("withRuntimeClassPath", classOf[Array[java.net.URL]]).invoke(
+            builder,
+            testClasspath().map(_.path.wrapped.toUri().toURL()).toArray
+          )
+          builderClass.getMethod("withClassLoader", classOf[ClassLoader]).invoke(builder, cl)
+
+          val testCollector = builderClass.getMethod("build").invoke(builder)
+          val testCollectorClass =
+            cl.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector")
+
+          val result = testCollectorClass.getMethod("collectTests").invoke(testCollector)
+          val resultClass =
+            cl.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Result")
+
+          val items = resultClass.getMethod(
+            "getDiscoveredTests"
+          ).invoke(result).asInstanceOf[java.util.List[_]]
+          val itemClass = cl.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Item")
+
+          import scala.jdk.CollectionConverters._
+          items.asScala.map { item =>
+            itemClass.getMethod("getFullyQualifiedClassName").invoke(item).asInstanceOf[String]
+          }.toSeq
+        }
+      )
+    }
   }
 
   /**

@@ -889,7 +889,8 @@ trait JavaModule
         dependencies,
         Some(mapDependencies()),
         customizer = resolutionCustomizer(),
-        coursierCacheCustomizer = coursierCacheCustomizer()
+        coursierCacheCustomizer = coursierCacheCustomizer(),
+        resolutionParams = resolutionParams()
       ).getOrThrow
 
       val roots = whatDependsOn match {
