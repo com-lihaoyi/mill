@@ -78,36 +78,22 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
 
     val cls = cl.loadClass("mill.scalalib.worker.ZincWorkerImpl")
     val instance = cls.getConstructor(
-      classOf[
-        Either[
-          (ZincWorkerApi.Ctx, (String, String) => (Option[Agg[PathRef]], PathRef)),
-          String => PathRef
-        ]
-      ], // compilerBridge
-      classOf[(Agg[PathRef], String) => PathRef], // libraryJarNameGrep
-      classOf[(Agg[PathRef], String) => PathRef], // compilerJarNameGrep
-      classOf[KeyedLockedCache[_]], // compilerCache
+      classOf[(String, String) => (Option[Agg[PathRef]], PathRef)], // compilerBridge
+      classOf[Int], // jobs
       classOf[Boolean], // compileToJar
       classOf[Boolean], // zincLogDebug
-      classOf[Option[PathRef]] // javaHome
+      classOf[Option[os.Path]], // javaHome
+      classOf[os.Path], // dest
+      classOf[Boolean] // colored
     )
       .newInstance(
-        Left((
-          T.ctx(),
-          (x: String, y: String) =>
-            scalaCompilerBridgeJar(x, y, repositoriesTask())
-              .asSuccess
-              .getOrElse(
-                throw new Exception(s"Failed to load compiler bridge for $x $y")
-              )
-              .value
-        )),
-        ZincWorkerUtil.grepJar(_, "scala-library", _, sources = false),
-        ZincWorkerUtil.grepJar(_, "scala-compiler", _, sources = false),
-        new FixSizedCache(jobs),
+//        (x: String, y: String) => scalaCompilerBridgeJar(x, y, repositoriesTask()).getOrThrow,
+        jobs,
         java.lang.Boolean.FALSE,
         java.lang.Boolean.valueOf(zincLogDebug()),
-        javaHome()
+        javaHome().map(_.path),
+        Task.dest,
+        Task.log.colored
       )
     instance.asInstanceOf[ZincWorkerApi]
   }
@@ -165,6 +151,113 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
       bridgeJar.map((None, _))
     }
   }
+
+  /**
+   * If needed, compile (for Scala 2) or download (for Dotty) the compiler bridge.
+   * @return a path to the directory containing the compiled classes, or to the downloaded jar file
+   */
+  def compileBridgeIfNeeded(
+      scalaVersion: String,
+      scalaOrganization: String,
+      compilerClasspath: Agg[PathRef],
+      dest: os.Path,
+      cp: Option[Seq[PathRef]],
+      bridgeJar: PathRef
+  ): os.Path = {
+    val workingDir = dest / s"zinc-${Versions.zinc}" / scalaVersion
+    val compiledDest = workingDir / "compiled"
+    if (os.exists(compiledDest / "DONE")) compiledDest
+    else {
+      cp match {
+        case None => bridgeJar.path
+        case Some(bridgeClasspath) =>
+          compileZincBridge(
+            workingDir,
+            compiledDest,
+            scalaVersion,
+            compilerClasspath,
+            bridgeClasspath,
+            bridgeJar.path
+          )
+          os.write(compiledDest / "DONE", "")
+          compiledDest
+      }
+    }
+  }
+
+  /** Compile the SBT/Zinc compiler bridge in the `compileDest` directory */
+  def compileZincBridge(
+                         workingDir: os.Path,
+                         compileDest: os.Path,
+                         scalaVersion: String,
+                         compilerClasspath: Agg[PathRef],
+                         compilerBridgeClasspath: Agg[PathRef],
+                         compilerBridgeSourcesJar: os.Path
+                       ): Unit = {
+    if (scalaVersion == "2.12.0") {
+      // The Scala 2.10.0 compiler fails on compiling the compiler bridge
+      throw new IllegalArgumentException(
+        "The current version of Zinc is incompatible with Scala 2.12.0.\n" +
+          "Use Scala 2.12.1 or greater (2.12.12 is recommended)."
+      )
+    }
+
+    System.err.println("Compiling compiler interface...")
+
+    os.makeDir.all(workingDir)
+    os.makeDir.all(compileDest)
+
+    val sourceFolder = os.unzip(compilerBridgeSourcesJar, workingDir / "unpacked")
+    val classloader = mill.api.ClassLoader.create(
+      compilerClasspath.iterator.map(_.path.toIO.toURI.toURL).toSeq,
+      null
+    )(new mill.api.Ctx.Home{ def home: os.Path = os.home})
+
+    val (sources, resources) =
+      os.walk(sourceFolder).filter(os.isFile)
+        .partition(a => a.ext == "scala" || a.ext == "java")
+
+    resources.foreach { res =>
+      val dest = compileDest / res.relativeTo(sourceFolder)
+      os.move(res, dest, replaceExisting = true, createFolders = true)
+    }
+
+    val argsArray = Array[String](
+      "-d",
+      compileDest.toString,
+      "-classpath",
+      (compilerClasspath.iterator ++ compilerBridgeClasspath).map(_.path).mkString(
+        java.io.File.pathSeparator
+      )
+    ) ++ sources.map(_.toString)
+
+    val allScala = sources.forall(_.ext == "scala")
+    val allJava = sources.forall(_.ext == "java")
+    if (allJava) {
+      val javacExe: String =
+        sys.props
+          .get("java.home")
+          .map(h =>
+            if (scala.util.Properties.isWin) new java.io.File(h, "bin\\javac.exe")
+            else new java.io.File(h, "bin/javac")
+          )
+          .filter(f => f.exists())
+          .fold("javac")(_.getAbsolutePath())
+      import scala.sys.process._
+      (Seq(javacExe) ++ argsArray).!
+    } else if (allScala) {
+      val compilerMain = classloader.loadClass(
+        if (ZincWorkerUtil.isDottyOrScala3(scalaVersion)) "dotty.tools.dotc.Main"
+        else "scala.tools.nsc.Main"
+      )
+      compilerMain
+        .getMethod("process", classOf[Array[String]])
+        .invoke(null, argsArray ++ Array("-nowarn"))
+    } else {
+      throw new IllegalArgumentException("Currently not implemented case.")
+    }
+  }
+
 
   def compilerInterfaceClasspath(
       scalaVersion: String,

@@ -1,37 +1,16 @@
 package mill.scalalib.worker
 
 import mill.api.Loose.Agg
-import mill.api.{CompileProblemReporter, KeyedLockedCache, PathRef, Result, internal}
+import mill.api.{CompileProblemReporter, FixSizedCache, KeyedLockedCache, PathRef, Result, internal}
 import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerApi, ZincWorkerUtil}
-import sbt.internal.inc.{
-  Analysis,
-  CompileFailed,
-  FreshCompilerCache,
-  ManagedLoggedReporter,
-  MappedFileConverter,
-  ScalaInstance,
-  Stamps,
-  ZincUtil,
-  javac
-}
+import os.Path
+import sbt.internal.inc.{Analysis, CompileFailed, FreshCompilerCache, ManagedLoggedReporter, MappedFileConverter, ScalaInstance, Stamps, ZincUtil, javac}
 import sbt.internal.inc.classpath.ClasspathUtil
 import sbt.internal.inc.consistent.ConsistentFileAnalysisStore
 import sbt.internal.util.{ConsoleAppender, ConsoleOut}
 import sbt.mill.SbtLoggerUtils
 import xsbti.compile.analysis.ReadWriteMappers
-import xsbti.compile.{
-  AnalysisContents,
-  AnalysisStore,
-  AuxiliaryClassFileExtension,
-  ClasspathOptions,
-  CompileAnalysis,
-  CompileOrder,
-  Compilers,
-  IncOptions,
-  JavaTools,
-  MiniSetup,
-  PreviousResult
-}
+import xsbti.compile.{AnalysisContents, AnalysisStore, AuxiliaryClassFileExtension, ClasspathOptions, CompileAnalysis, CompileOrder, Compilers, IncOptions, JavaTools, MiniSetup, PreviousResult}
 import xsbti.{PathBasedFile, VirtualFile}
 
 import java.io.File
@@ -42,17 +21,17 @@ import scala.util.Properties.isWin
 
 @internal
 class ZincWorkerImpl(
-    compilerBridge: Either[
-      (ZincWorkerApi.Ctx, (String, String) => (Option[Agg[PathRef]], PathRef)),
-      String => PathRef
-    ],
-    libraryJarNameGrep: (Agg[PathRef], String) => PathRef,
-    compilerJarNameGrep: (Agg[PathRef], String) => PathRef,
-    compilerCache: KeyedLockedCache[Compilers],
+    jobs: Int,
     compileToJar: Boolean,
     zincLogDebug: Boolean,
-    javaHome: Option[PathRef]
+    javaHome: Option[PathRef],
+    dest: os.Path,
+    colored: Boolean
 ) extends ZincWorkerApi with AutoCloseable {
+  val libraryJarNameGrep: (Agg[PathRef], String) => PathRef =
+    ZincWorkerUtil.grepJar(_, "scala-library", _, sources = false)
+
+  val compilerCache: KeyedLockedCache[Compilers] = new FixSizedCache(jobs)
   private val zincLogLevel = if (zincLogDebug) sbt.util.Level.Debug else sbt.util.Level.Info
   private[this] val ic = new sbt.internal.inc.IncrementalCompilerImpl()
   private val javaOnlyCompilersCache = mutable.Map.empty[Seq[String], SoftReference[Compilers]]
@@ -126,14 +105,16 @@ class ZincWorkerImpl(
       scalaOrganization: String,
       compilerClasspath: Agg[PathRef],
       scalacPluginClasspath: Agg[PathRef],
-      args: Seq[String]
-  )(implicit ctx: ZincWorkerApi.Ctx): Boolean = {
+      args: Seq[String],
+      compilerBridge: os.Path
+  ): Boolean = {
     withCompilers(
       scalaVersion,
       scalaOrganization,
       compilerClasspath,
       scalacPluginClasspath,
-      Seq()
+      Seq(),
+      compilerBridge
     ) { (compilers: Compilers) =>
       if (ZincWorkerUtil.isDotty(scalaVersion) || ZincWorkerUtil.isScala3Milestone(scalaVersion)) {
         // dotty 0.x and scala 3 milestones use the dotty-doc tool
@@ -164,120 +145,6 @@ class ZincWorkerImpl(
     }
   }
 
-  /** Compile the SBT/Zinc compiler bridge in the `compileDest` directory */
-  def compileZincBridge(
-      ctx0: ZincWorkerApi.Ctx,
-      workingDir: os.Path,
-      compileDest: os.Path,
-      scalaVersion: String,
-      compilerClasspath: Agg[PathRef],
-      compilerBridgeClasspath: Agg[PathRef],
-      compilerBridgeSourcesJar: os.Path
-  ): Unit = {
-    if (scalaVersion == "2.12.0") {
-      // The Scala 2.10.0 compiler fails on compiling the compiler bridge
-      throw new IllegalArgumentException(
-        "The current version of Zinc is incompatible with Scala 2.12.0.\n" +
-          "Use Scala 2.12.1 or greater (2.12.12 is recommended)."
-      )
-    }
-
-    ctx0.log.info("Compiling compiler interface...")
-
-    os.makeDir.all(workingDir)
-    os.makeDir.all(compileDest)
-
-    val sourceFolder = os.unzip(compilerBridgeSourcesJar, workingDir / "unpacked")
-    val classloader = mill.api.ClassLoader.create(
-      compilerClasspath.iterator.map(_.path.toIO.toURI.toURL).toSeq,
-      null
-    )(ctx0)
-
-    val (sources, resources) =
-      os.walk(sourceFolder).filter(os.isFile)
-        .partition(a => a.ext == "scala" || a.ext == "java")
-
-    resources.foreach { res =>
-      val dest = compileDest / res.relativeTo(sourceFolder)
-      os.move(res, dest, replaceExisting = true, createFolders = true)
-    }
-
-    val argsArray = Array[String](
-      "-d",
-      compileDest.toString,
-      "-classpath",
-      (compilerClasspath.iterator ++ compilerBridgeClasspath).map(_.path).mkString(
-        File.pathSeparator
-      )
-    ) ++ sources.map(_.toString)
-
-    val allScala = sources.forall(_.ext == "scala")
-    val allJava = sources.forall(_.ext == "java")
-    if (allJava) {
-      val javacExe: String =
-        sys.props
-          .get("java.home")
-          .map(h =>
-            if (isWin) new File(h, "bin\\javac.exe")
-            else new File(h, "bin/javac")
-          )
-          .filter(f => f.exists())
-          .fold("javac")(_.getAbsolutePath())
-      import scala.sys.process._
-      (Seq(javacExe) ++ argsArray).!
-    } else if (allScala) {
-      val compilerMain = classloader.loadClass(
-        if (ZincWorkerUtil.isDottyOrScala3(scalaVersion)) "dotty.tools.dotc.Main"
-        else "scala.tools.nsc.Main"
-      )
-      compilerMain
-        .getMethod("process", classOf[Array[String]])
-        .invoke(null, argsArray ++ Array("-nowarn"))
-    } else {
-      throw new IllegalArgumentException("Currently not implemented case.")
-    }
-  }
-
-  /**
-   * If needed, compile (for Scala 2) or download (for Dotty) the compiler bridge.
-   * @return a path to the directory containing the compiled classes, or to the downloaded jar file
-   */
-  def compileBridgeIfNeeded(
-      scalaVersion: String,
-      scalaOrganization: String,
-      compilerClasspath: Agg[PathRef]
-  ): os.Path = {
-    compilerBridge match {
-      case Right(compiled) => compiled(scalaVersion).path
-      case Left((ctx0, bridgeProvider)) =>
-        val workingDir = ctx0.dest / s"zinc-${Versions.zinc}" / scalaVersion
-        val lock = synchronized(compilerBridgeLocks.getOrElseUpdate(scalaVersion, new Object()))
-        val compiledDest = workingDir / "compiled"
-        lock.synchronized {
-          if (os.exists(compiledDest / "DONE")) compiledDest
-          else {
-            val (cp, bridgeJar) = bridgeProvider(scalaVersion, scalaOrganization)
-            cp match {
-              case None => bridgeJar.path
-              case Some(bridgeClasspath) =>
-                compileZincBridge(
-                  ctx0,
-                  workingDir,
-                  compiledDest,
-                  scalaVersion,
-                  compilerClasspath,
-                  bridgeClasspath,
-                  bridgeJar.path
-                )
-                os.write(compiledDest / "DONE", "")
-                compiledDest
-            }
-          }
-
-        }
-    }
-
-  }
 
   /**
    * Discover main classes by inspecting the classpath.
@@ -316,7 +183,7 @@ class ZincWorkerImpl(
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean
-  )(implicit ctx: ZincWorkerApi.Ctx): Result[CompilationResult] = {
+  ): Result[CompilationResult] = {
     compileInternal(
       upstreamCompileOutput = upstreamCompileOutput,
       sources = sources,
@@ -344,14 +211,16 @@ class ZincWorkerImpl(
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean,
-      auxiliaryClassFileExtensions: Seq[String]
-  )(implicit ctx: ZincWorkerApi.Ctx): Result[CompilationResult] = {
+      auxiliaryClassFileExtensions: Seq[String],
+      compilerBridge: os.Path
+  ): Result[CompilationResult] = {
     withCompilers(
       scalaVersion = scalaVersion,
       scalaOrganization = scalaOrganization,
       compilerClasspath = compilerClasspath,
       scalacPluginClasspath = scalacPluginClasspath,
-      javacOptions = javacOptions
+      javacOptions = javacOptions,
+      compilerBridge = compilerBridge
     ) { (compilers: Compilers) =>
       compileInternal(
         upstreamCompileOutput = upstreamCompileOutput,
@@ -373,9 +242,8 @@ class ZincWorkerImpl(
   private[this] val classloaderCache =
     collection.mutable.LinkedHashMap.empty[Long, SoftReference[ClassLoader]]
 
-  def getCachedClassLoader(compilersSig: Long, combinedCompilerJars: Array[java.io.File])(implicit
-      ctx: ZincWorkerApi.Ctx
-  ): ClassLoader = {
+  def getCachedClassLoader(compilersSig: Long,
+                           combinedCompilerJars: Array[java.io.File]): ClassLoader = {
     classloaderCache.synchronized {
       classloaderCache.get(compilersSig) match {
         case Some(SoftReference(cl)) => cl
@@ -387,7 +255,7 @@ class ZincWorkerImpl(
             parent = null,
             sharedLoader = getClass.getClassLoader,
             sharedPrefixes
-          )
+          )(new mill.api.Ctx.Home{ def home: Path = os.home})
           classloaderCache.update(compilersSig, SoftReference(cl))
           cl
       }
@@ -399,8 +267,9 @@ class ZincWorkerImpl(
       scalaOrganization: String,
       compilerClasspath: Agg[PathRef],
       scalacPluginClasspath: Agg[PathRef],
-      javacOptions: Seq[String]
-  )(f: Compilers => T)(implicit ctx: ZincWorkerApi.Ctx) = {
+      javacOptions: Seq[String],
+      compilerBridge: os.Path
+  )(f: Compilers => T) = {
     val combinedCompilerClasspath = compilerClasspath ++ scalacPluginClasspath
     val javacRuntimeOptions = javacOptions.filter(filterJavacRuntimeOptions)
     val compilersSig =
@@ -408,11 +277,7 @@ class ZincWorkerImpl(
         scalaOrganization.hashCode() + javacRuntimeOptions.hashCode()
     val combinedCompilerJars = combinedCompilerClasspath.iterator.map(_.path.toIO).toArray
 
-    val compiledCompilerBridge = compileBridgeIfNeeded(
-      scalaVersion,
-      scalaOrganization,
-      compilerClasspath
-    )
+    val compiledCompilerBridge = compilerBridge
 
     compilerCache.withCachedValue(compilersSig) {
       val loader = getCachedClassLoader(compilersSig, combinedCompilerJars)
@@ -459,32 +324,20 @@ class ZincWorkerImpl(
       incrementalCompilation: Boolean,
       auxiliaryClassFileExtensions: Seq[String],
       zincCache: os.SubPath = os.sub / "zinc"
-  )(implicit ctx: ZincWorkerApi.Ctx): Result[CompilationResult] = {
-    os.makeDir.all(ctx.dest)
+  ): Result[CompilationResult] = {
+    os.makeDir.all(dest)
 
     val classesDir =
-      if (compileToJar) ctx.dest / "classes.jar"
-      else ctx.dest / "classes"
-
-    if (ctx.log.debugEnabled) {
-      ctx.log.debug(
-        s"""Compiling:
-           |  javacOptions: ${javacOptions.map("'" + _ + "'").mkString(" ")}
-           |  scalacOptions: ${scalacOptions.map("'" + _ + "'").mkString(" ")}
-           |  sources: ${sources.map("'" + _ + "'").mkString(" ")}
-           |  classpath: ${compileClasspath.map("'" + _ + "'").mkString(" ")}
-           |  output: ${classesDir}"""
-          .stripMargin
-      )
-    }
+      if (compileToJar) dest / "classes.jar"
+      else dest / "classes"
 
     reporter.foreach(_.start())
 
     val consoleAppender = ConsoleAppender(
       "ZincLogAppender",
-      ConsoleOut.printStreamOut(ctx.log.errorStream),
-      ctx.log.colored,
-      ctx.log.colored,
+      ConsoleOut.printStreamOut(System.err),
+      colored,
+      colored,
       _ => None
     )
     val loggerId = Thread.currentThread().getId.toString
@@ -531,7 +384,7 @@ class ZincWorkerImpl(
 
     val lookup = MockedLookup(analysisMap)
 
-    val store = fileAnalysisStore(ctx.dest / zincCache)
+    val store = fileAnalysisStore(dest / zincCache)
 
     // Fix jdk classes marked as binary dependencies, see https://github.com/com-lihaoyi/mill/pull/1904
     val converter = MappedFileConverter.empty
@@ -588,7 +441,7 @@ class ZincWorkerImpl(
     val scalaColorProp = "scala.color"
     val previousScalaColor = sys.props(scalaColorProp)
     try {
-      sys.props(scalaColorProp) = if (ctx.log.colored) "true" else "false"
+      sys.props(scalaColorProp) = if (colored) "true" else "false"
       val newResult = ic.compile(
         in = inputs,
         logger = logger
@@ -604,7 +457,7 @@ class ZincWorkerImpl(
           newResult.setup()
         )
       )
-      Result.Success(CompilationResult((ctx.dest / zincCache), PathRef(classesDir)))
+      Result.Success(CompilationResult(dest / zincCache, PathRef(classesDir)))
     } catch {
       case e: CompileFailed =>
         Result.Failure(e.toString)
