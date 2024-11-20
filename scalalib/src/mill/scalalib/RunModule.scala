@@ -44,7 +44,22 @@ trait RunModule extends WithZincWorker {
   def mainClass: T[Option[String]] = None
 
   def allLocalMainClasses: T[Seq[String]] = Task {
-    zincWorker().worker().discoverMainClasses(localRunClasspath().map(_.path))
+    val classpath = localRunClasspath().map(_.path)
+    if (zincWorker().javaHome().isDefined) {
+      Jvm
+        .callSubprocess(
+          mainClass = "mill.scalalib.worker.DiscoverMainClassesMain",
+          classPath = zincWorker().classpath().map(_.path),
+          mainArgs = Seq(classpath.mkString(",")),
+          javaHome = zincWorker().javaHome().map(_.path),
+          streamOut = false
+        )
+        .out
+        .lines()
+
+    } else {
+      zincWorker().worker().discoverMainClasses(classpath)
+    }
   }
 
   def finalMainClassOpt: T[Either[String, String]] = Task {
@@ -135,7 +150,8 @@ trait RunModule extends WithZincWorker {
       runClasspath().map(_.path),
       forkArgs(),
       forkEnv(),
-      runUseArgsFile()
+      runUseArgsFile(),
+      zincWorker().javaHome().map(_.path)
     )
   }
 
@@ -243,7 +259,8 @@ object RunModule {
       runClasspath: Seq[os.Path],
       forkArgs0: Seq[String],
       forkEnv0: Map[String, String],
-      useCpPassingJar0: Boolean
+      useCpPassingJar0: Boolean,
+      javaHome: Option[os.Path]
   ) extends Runner {
 
     def run(
@@ -269,7 +286,8 @@ object RunModule {
           case Some(b) => b
           case None => useCpPassingJar0
         },
-        runBackgroundLogToConsole = runBackgroundLogToConsole
+        runBackgroundLogToConsole = runBackgroundLogToConsole,
+        javaHome = javaHome
       )
     }
   }
