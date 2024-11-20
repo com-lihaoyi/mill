@@ -117,7 +117,7 @@ trait PublishModule extends JavaModule { outer =>
   def bomDetails: T[(Map[coursier.core.Module, String], coursier.core.DependencyManagement.Map)] =
     Task {
       val (processedDeps, depMgmt) = defaultResolver().processDeps(
-        transitiveRunIvyDeps() ++ transitiveIvyDeps(),
+        transitiveCompileIvyDeps() ++ transitiveIvyDeps(),
         resolutionParams = resolutionParams(),
         bomDeps = bomDeps().map(bindDependency())
       )
