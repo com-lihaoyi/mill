@@ -7,9 +7,7 @@ import scala.jdk.CollectionConverters._
 
 /** Generates the mill documentation with Antora. */
 object `package` extends RootModule {
-  // This module isn't really a ScalaModule, but we use it to generate
-  // consolidated documentation using the Scaladoc tool.
-  object site extends UnidocModule {
+  trait CustomUnidocModule extends UnidocModule {
     def unidocCompileClasspath = Task {
       val cp = Seq(compile().classes) ++ T.traverse(moduleDeps)(_.compileClasspath)().flatten
       cp.filter { ref =>
@@ -60,7 +58,19 @@ object `package` extends RootModule {
         case false => mill.api.Result.Failure("unidoc generation failed")
       }
     }
-
+  }
+  // This module isn't really a ScalaModule, but we use it to generate
+  // consolidated documentation using the Scaladoc tool.
+  // Remove CustomUnidocModule and use UnidocModule instead when bumping Mill
+  object site extends CustomUnidocModule {
+    def unidocCompileClasspath =
+      super.unidocCompileClasspath().filter { ref =>
+        // Not sure why, the JAR of coursier/dependency creates
+        // a dependency root package in the Mill API doc, and that
+        // package page has broken links.
+        // So we just exclude that dependency's JAR here.
+        !ref.path.lastOpt.exists(_.startsWith("dependency_2.13-"))
+      }
     def scalaVersion = build.Deps.scalaVersion
     def moduleDeps = build.millInternal.modules.collect {
       case m: build.MillStableScalaModule => m
