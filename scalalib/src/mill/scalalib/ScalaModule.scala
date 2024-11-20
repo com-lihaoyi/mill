@@ -592,7 +592,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         scalaBinaryVersion = ZincWorkerUtil.scalaBinaryVersion(scalaVersion()),
         platform = ScalaPlatform.JVM,
         jars = scalaCompilerClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq,
-        jvmBuildTarget = Some(bspJvmBuildTarget)
+        jvmBuildTarget = Some(bspJvmBuildTargetTask())
       )
     ))
   }

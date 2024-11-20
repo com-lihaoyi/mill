@@ -116,8 +116,10 @@ object Deps {
   val asmTree = ivy"org.ow2.asm:asm-tree:9.7.1"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
 
-  val coursier = ivy"io.get-coursier::coursier:2.1.16"
+  val coursierVersion = "2.1.16"
+  val coursier = ivy"io.get-coursier::coursier:$coursierVersion"
   val coursierInterface = ivy"io.get-coursier:interface:1.0.22"
+  val coursierJvm = ivy"io.get-coursier::coursier-jvm:$coursierVersion"
 
   val cask = ivy"com.lihaoyi::cask:0.9.4"
   val castor = ivy"com.lihaoyi::castor:0.3.0"
@@ -192,6 +194,7 @@ object Deps {
   val mavenResolverTransportFile = ivy"org.apache.maven.resolver:maven-resolver-transport-file:$mavenResolverVersion"
   val mavenResolverTransportHttp = ivy"org.apache.maven.resolver:maven-resolver-transport-http:$mavenResolverVersion"
   val mavenResolverTransportWagon = ivy"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
+  val coursierJvmIndexVersion = "0.0.4-70-51469f"
 
   object RuntimeDeps {
     val dokkaVersion = "1.9.20"
@@ -567,6 +570,13 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
     // https://github.com/com-lihaoyi/mill/pull/3503
     ProblemFilter.exclude[ReversedMissingMethodProblem](
       "mill.scalalib.ScalaModule#ScalaTests.mill$scalalib$ScalaModule$ScalaTests$$super$mandatoryScalacOptions"
+    ),
+    // Not sure why Mima is complaining when these are internal and private
+    ProblemFilter.exclude[Problem](
+      "*.bspJvmBuildTarget"
+    ),
+    ProblemFilter.exclude[Problem](
+      "mill.scalalib.RunModule#RunnerImpl.*"
     )
   )
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
