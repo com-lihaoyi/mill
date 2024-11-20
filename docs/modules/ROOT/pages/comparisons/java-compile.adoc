@@ -8,9 +8,8 @@ not match today's reality. Nowadays the Java compiler can compile "typical" Java
 should take more than 10s to compile in a single-threaded fashion, and should be even
 faster in the presence of parallelism
 
-Doing some ad-hoc benchmarks on the time taken for common build tools to compile Java
-on a single core, we find that although the compiler is blazing fast, all build tools
-add significant overhead over compiling Java directly:
+Doing some ad-hoc benchmarks, we find that although the compiler is blazing fast, all
+build tools add significant overhead over compiling Java directly:
 
 |===
 | Mockito Core | Time | Compiler lines/s | Multiplier | Netty Common | Time | Compiler lines/s | Multiplier
@@ -20,10 +19,10 @@ add significant overhead over compiling Java directly:
 | Gradle | 4.41s | 9,400 | 15.2x | Maven | 4.89s | 6,100 | 16.9x
 |===
 
-Although Mill does the best in these benchmarks among the build tools, all build tools
-fall short of how fast compiling Java _should_ be. This post explores how these numbers
-were arrived at, and what that means in un-tapped potential for Java build tooling to
-become truly great.
+Although Mill does the best in these benchmarks among the build tools (Maven, Gradle, and Mill),
+all build tools fall short of how fast compiling Java _should_ be. This post explores how
+these numbers were arrived at, and what that means in un-tapped potential for Java build
+tooling to become truly great.
 
 ## Mockito Core
 
@@ -86,21 +85,21 @@ Compiling 32,000 lines of code per second is not bad. But it is nowhere near how
 Java compiler _can_ run. Any software experience with JVM experience would know the next
 obvious optimization for us to explore.
 
-## Hot JVMs
+## Keeping the JVM Hot
 
 One issue with the above benchmark is that it uses `javac` as a sub-process. The Java
 compiler runs on the Java Virtual Machine, and like any JVM application, it has a slow
 startup time, takes time warming-up, but then has good steady-state performance.
-Running  `javac` from the command line is thus the _worst possible_ way of using
-the Java compiler, so compiling ~32,000 lines/sec is the worst possible performance you could
-get out of the Java compiler on this Java codebase.
+Running  `javac` from the command line and compiling ~32,000 lines/sec is thus the _worst_
+possible performance you could get out of the Java compiler on this Java codebase.
 
 To get good performance out of `javac`, like any other JVM application, we need to keep it
 long-lived so it has a chance to warm up. While running the `javac` in a long-lived Java
 program is not commonly taught, neither is it particularly difficult. Here is a complete
 `Bench.java` file that does this, repeatedly running java compilation in a loop where it
-has a chance to warm up, using the same `MY_CLASSPATH` and source files we saw earlier.
-We print the output statistics to the terminal so we can see how fast Java compilation can
+has a chance to warm up, to emulate the long lived JVM process that a build tool like Mill
+may spawn and manage. We use the same `MY_CLASSPATH` and source files we saw earlier and
+print the output statistics to the terminal so we can see how fast Java compilation can
 occur once things have a chance to warm up:
 
 ```java
@@ -156,7 +155,7 @@ public class Bench {
                 .reduce(0, (x, y) -> x + y);
             System.out.println("Lines: " + lineCount);
             System.out.println("Duration: " + (end - now));
-            System.out.println("Lines/second: " + lineCount / ((end - now) * 1000));
+            System.out.println("Lines/second: " + lineCount / ((end - now) / 1000));
         }
     }
 }
@@ -165,22 +164,27 @@ public class Bench {
 Running this using `java Bench.java` in the Mockito repo root, eventually we see it
 settle on approximately the following numbers:
 
-```java
+```bash
 359ms
 378ms
 353ms
 ```
 
-The codebase hasn't changed, so compiling we are still compiling 41,601 lines of code.
-But now it only takes ~359ms, which tells us that using a long-lived warm Java compiler
+The codebase hasn't changed - we are still compiling 41,601 lines of code -
+but now it only takes ~359ms. That tells us that using a long-lived warm Java compiler
 we can compile approximately *116,000* lines of Java a second on a single core.
 
-## Double-checking our results on Netty Common
 
 Compiling 116,000 lines of Java per second is very fast. That means we should expect
 a million-line Java codebase to compile in about 9 seconds, _on a single thread_. That
-may seem surprisingly fast, and you may be forgiven if you find it hard to believe. To
-double-check our results, we can pick another codebase to run some ad-hoc benchmarks.
+may seem surprisingly fast, and you may be forgiven if you find it hard to believe. As
+mentioned earlier, this number is expected to vary based on the codebase being compiled;
+could it be that Mockito-Core just happens to be a very simple Java module that compiles
+quickly?
+
+## Double-checking Our Results
+
+To double-check our results, we can pick another codebase to run some ad-hoc benchmarks.
 For this I will use the Netty codebase:
 
 - https://github.com/netty/netty
@@ -229,6 +233,14 @@ Or programmatically using the `Bench.java` program we saw earlier:
 
 Taking 285ms for a hot-in-memory compile of 29,712 lines of code, `netty-common`
 therefore compiles at *~104,000 lines/second*.
+
+Although the choice of project is arbitrary, Mockito-Core and Netty-Common are decent
+examples of Java code found "out in the wild". They aren't synthetic fake codebases generated
+for the purpose of benchmarks, nor are they particularly unusual or idiosyncratic. They follow
+most Java best practices and adhere to many of the most common Java linters (although those
+were disabled for this performance benchmark). This is Java code that looks just like
+any Java code you may write in your own projects, and it effortlessless compiles at
+>100,000 lines/second.
 
 ## What About Build Tools?
 
@@ -281,16 +293,25 @@ the `javac` Java compiler directly. And it's clear that compared to the actual w
 done by `javac` to actually compile your code, build tools add a frankly absurd amount
 of overhead ranging from ~4x for Mill to 15-16x for Maven and Gradle!
 
-One thing worth calling out is that the overhead of the various build tools does not
-appear to go down in larger builds. Although this *Clean Compile Single-Module* benchmark
-we explored above only deals with compiling a single small module, a similar *Sequential
-Clean Compile* benchmarks which compile the entire Mockito and Netty projects shows similar build-tool slowdowns:
-xref:comparisons/gradle.adoc#_sequential_clean_compile_all[Gradle compiling 100,000 lines of Java at ~5,600 lines/s]
-and xref:comparisons/maven.adoc#_sequential_clean_compile_all[Maven compiling 500,000 lines of Java at ~5,100 lines/s],
-with Mill reaching ~25,000 lines/s. All of these are far below the 100,000 lines/s
-that we should expect from Java compilation, and roughly line up with the numbers measured
-above.
+## Whole Project Compile Speed
 
+One thing worth calling out is that the overhead of the various build tools does not
+appear to go down in larger builds. This *Clean Compile Single-Module* benchmark
+we explored above only deals with compiling a single small module. But a similar *Sequential
+Clean Compile* benchmarks which compiles the entire Mockito and Netty projects on
+a single core shows similar numbers for the various build tools:
+
+* xref:comparisons/gradle.adoc#_sequential_clean_compile_all[Gradle compiling 100,000 lines of Java at ~5,600 lines/s]
+* xref:comparisons/maven.adoc#_sequential_clean_compile_all[Maven compiling 500,000 lines of Java at ~5,100 lines/s]
+* Mill compiling at ~25,000 lines/s on both the above whole-project benchmarks
+
+All of these are far below the 100,000 lines/s that we should expect from Java compilation,
+but they roughly line up with the numbers measured above. Again, these benchmarks are ad-hoc,
+on arbitrary hardware and JVM versions. They do include small amounts of other work, such
+as compiling C/C++ code in Netty or doing ad-hoc file operations in Mockito. However,
+most of the time is still spent in compilation, and this reinforces the early finding
+that build tools (especially older ones like Maven or Gradle) are indeed adding huge
+amounts of overhead on top of the extremely-fast Java compiler.
 
 ## Conclusion
 
@@ -298,8 +319,8 @@ From this study we can see the paradox: the Java _compiler_ is blazing fast,
 while Java _build tools_ are dreadfully slow. Something that _should_ compile in a fraction
 of a second using a warm `javac` takes several seconds (15-16x longer) to
 compile using Maven or Gradle. Mill does better, but even it adds 4x overhead and falls
-short of the snappiness you would expect from a compiler that takes ~0.3s to compile these
-30-40kLOC Java codebases.
+short of the snappiness you would expect from a compiler that takes ~0.3s to compile the
+30-40kLOC Java codebases we experimented with.
 
 These benchmarks were run ad-hoc and on my laptop on arbitrary codebases, and the details
 will obviously differ depending on environment and the code in question. Running it on an
@@ -312,12 +333,14 @@ caching and invalidation, and all sorts of other auxiliary tasks. But in the com
 someone edits code and then compiles it, and all your dependencies are already downloaded and
 cached locally, any time doing other things and not spent _actually
 compiling Java_ is pure overhead. Checking for cache invalidation in _shouldn't_ take 15-16x
-as long as actually compiling your code. I mean it obviously does _today_, but it _shouldn't_.
+as long as actually compiling your code. I mean it obviously does _today_, but it _shouldn't_!
 
 The Mill build tool goes to great lengths to try and minimize overhead: keeping long-lived
 worker processes to let the compiler warm up, using a fast-launching minimal client to connect
-to it, repeated bouts of benchmarking and optimization. Nevertheless, we can see that Mill
-has a long way to go to catch up to the raw performance of `javac`. Improving Mill is a work
-in progress, and will remain so until compiling a 30-40kLOC Java codebase from the command line
-takes ~0.3 seconds. If Java build and compile times are something that matter to you, you
-should try out the Mill build tool and get involved!
+to it, repeated bouts of benchmarking and optimization. Mill already gets
+xref:comparisons/why-mill.adoc#_performance[~4x faster builds] than Maven or Gradle on
+real-world projects like Mockito or Netty across a wide range of workflows, but it
+still has a long way to go to catch up to the raw performance of `javac`. Improving Mill
+is a work in progress, and will remain so until compiling a 30-40kLOC Java codebase from the
+command line takes ~0.3 seconds. If Java build and compile times are things you find important,
+you should try out Mill and get involved!
