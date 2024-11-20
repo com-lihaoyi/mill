@@ -1,34 +1,47 @@
 package build
 import mill._, pythonlib._
 
-// Docs for PythonLib
-object foo extends PythonModule {
-  object bar extends PythonModule {
-    def pythonDeps = Seq("pandas==2.2.3", "numpy==2.1.3")
-  }
-  def pythonDeps = Seq("numpy==2.1.3")
-}
+object foo extends PythonModule { f =>
 
-object qux extends PythonModule { q =>
-  def moduleDeps = Seq(foo, foo.bar)
+  def script: T[PathRef] = Task.Source { millSourcePath / "src" / "foo.py" }
+
+  def pythonDeps = Seq("Jinja2==3.1.4")
 
   object test extends PythonTests with TestModule.Unittest
-  object test2 extends PythonTests with TestModule.Pytest {
-    override def sources = T {
-      q.test.sources()
-    }
-  }
+  // object test2 extends PythonTests with TestModule.Pytest {
+  //   override def sources = Task {
+  //     f.test.sources()
+  //   }
+  // }
 }
 
 /** Usage
 
-> ./mill qux.run
-Numpy : Sum: 150 | Pandas: Mean: 30.0, Max: 50
+> ./mill foo.typeCheck
+Success: no issues found in 1 source file
 
-> ./mill show qux.bundle
-".../out/qux/bundle.dest/bundle.pex"
+> ./mill foo.run --text "Hello Mill"
+<h1>Hello Mill</h1>
 
-> out/qux/bundle.dest/bundle.pex # running the PEX binary outside of Mill
-Numpy : Sum: 150 | Pandas: Mean: 30.0, Max: 50
+> ./mill foo.test
+...
+test_escaping (...test.TestScript...) ... ok
+test_simple (...test.TestScript...) ... ok
+...
+----------------------------------------------------------------------
+...Ran 2 tests...
+OK
+...
+
+> ./mill show foo.bundle
+".../out/foo/bundle.dest/bundle.pex"
+
+> out/foo/bundle.dest/bundle.pex --text "Hello Mill" # running the PEX binary outside of Mill
+<h1>Hello Mill</h1>
+
+> sed -i.bak 's/print(main())/print(maaain())/g' foo/src/foo.py
+
+> ./mill foo.typeCheck # if we make a typo in a method name, mypy flags it
+error: ...Name "maaain" is not defined...
 
 */

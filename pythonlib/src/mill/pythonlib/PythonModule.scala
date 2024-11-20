@@ -22,6 +22,18 @@ trait PythonModule extends Module with TaskModule { outer =>
   def sources: T[Seq[PathRef]] = Task.Sources { millSourcePath / "src" }
 
   /**
+   * The folders where the resource files for this module live.
+   */
+  def resources: T[Seq[PathRef]] = Task.Sources { millSourcePath / "resources" }
+
+  /**
+   * All Python source files in this module, recursively discovered from the source directories.
+   */
+  def allSourceFiles: T[Seq[PathRef]] = Task {
+    sources().flatMap(src => os.walk(src.path).filter(_.ext == "py").map(PathRef(_)))
+  }
+
+  /**
    * The script to run. This file may not exist if this module is only a library.
    */
   def script: T[PathRef] = Task.Source { millSourcePath / "src" / "main.py" }
@@ -49,7 +61,7 @@ trait PythonModule extends Module with TaskModule { outer =>
    */
   def transitiveSources: T[Seq[PathRef]] = Task {
     val upstreamSources = Task.traverse(moduleDeps)(_.transitiveSources)().flatten
-    sources() ++ upstreamSources
+    sources() ++ resources() ++ upstreamSources
   }
 
   /**
@@ -72,7 +84,7 @@ trait PythonModule extends Module with TaskModule { outer =>
       command0 = pythonExe().path.toString,
       env0 = Map(
         "PYTHONPATH" -> transitiveSources().map(_.path).mkString(java.io.File.pathSeparator),
-        "PYTHONPYCACHEPREFIX" -> (T.dest / "cache").toString,
+        "PYTHONPYCACHEPREFIX" -> (Task.dest / "cache").toString,
         if (Task.log.colored) { "FORCE_COLOR" -> "1" }
         else { "NO_COLOR" -> "1" }
       ),
@@ -89,7 +101,7 @@ trait PythonModule extends Module with TaskModule { outer =>
         // format: off
         "-m", "mypy",
         "--strict",
-        "--cache-dir", (T.dest / "mypycache").toString,
+        "--cache-dir", (Task.dest / "mypycache").toString,
         sources().map(_.path)
         // format: on
       )
@@ -141,7 +153,7 @@ trait PythonModule extends Module with TaskModule { outer =>
         "--scie", "eager",
         // format: on
       ),
-      workingDir = T.dest
+      workingDir = Task.dest
     )
     PathRef(pexFile)
   }

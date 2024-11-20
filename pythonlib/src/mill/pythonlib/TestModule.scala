@@ -56,7 +56,7 @@ object TestModule {
         args()
       }
       runner().run(
-        ("-m", "unittest", testArgs)
+        ("-m", "unittest", testArgs, "-v")
       )
       Seq()
     }

@@ -1,0 +1,39 @@
+package build
+import mill._, pythonlib._
+
+trait MyModule extends PythonModule {
+  object test extends PythonTests with TestModule.Unittest
+}
+
+object foo extends MyModule {
+  def moduleDeps = Seq(bar)
+  def script: T[PathRef] = Task.Source { millSourcePath / "src" / "foo.py" }
+}
+
+object bar extends MyModule {
+  def script: T[PathRef] = Task.Source { millSourcePath / "src" / "bar.py" }
+  def pythonDeps = Seq("Jinja2==3.1.4")
+}
+
+/** Usage
+
+> ./mill foo.run --foo-text foo --bar-text bar
+...
+Foo.value: foo
+Bar.value: <h1>bar</h1>
+...
+
+> ./mill bar.run bar
+<h1>bar</h1>
+
+> ./mill bar.test
+...
+test_escaping (...test.TestScript...) ... ok
+test_simple (...test.TestScript...) ... ok
+...
+----------------------------------------------------------------------
+...Ran 2 tests...
+OK
+...
+
+*/

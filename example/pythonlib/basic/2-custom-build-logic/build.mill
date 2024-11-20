@@ -1,0 +1,36 @@
+package build
+import mill._, pythonlib._
+
+object foo extends PythonModule {
+
+  def script: T[PathRef] = Task.Source { millSourcePath / "src" / "foo.py" }
+
+  /** Total number of lines in module source files */
+  def lineCount = Task {
+    allSourceFiles().map(f => os.read.lines(f.path).size).sum
+  }
+
+  /** Generate resources using lineCount of sources */
+  override def resources = Task {
+    os.write(Task.dest / "line-count.txt", "" + lineCount())
+    super.resources() ++ Seq(PathRef(Task.dest))
+  }
+
+  object test extends PythonTests with TestModule.Unittest
+}
+
+/** Usage
+
+> ./mill foo.run
+Line Count: 21
+
+> ./mill foo.test
+...
+test_line_count (...test.TestScript...) ... ok
+...
+----------------------------------------------------------------------
+...Ran 1 test...
+OK
+...
+
+*/
