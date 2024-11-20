@@ -949,11 +949,6 @@ but they are each independent and do not depend on one another.</p>
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 363.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-363 522.6,-363 522.6,4 -4,4"></polygon>
-<g id="clust1" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="14.44,-8 14.44,-116 504.16,-116 504.16,-8 14.44,-8"></polygon>
-<text text-anchor="middle" x="259.3" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
-</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-351 510.6,-351 510.6,-124 8,-124"></polygon>
@@ -963,6 +958,11 @@ but they are each independent and do not depend on one another.</p>
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="16,-210 16,-318 502.6,-318 502.6,-210 16,-210"></polygon>
 <text text-anchor="middle" x="259.3" y="-301.4" font-family="Times,serif" font-size="14.00">bar</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="14.44,-8 14.44,-116 504.16,-116 504.16,-8 14.44,-8"></polygon>
+<text text-anchor="middle" x="259.3" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
 <!-- qux.npmInstall -->
 <g id="node1" class="node">
@@ -1574,13 +1574,13 @@ ultimately <code>qux.run</code>):</p>
 <ol class="arabic">
 <li>
 <p>Previously, <code>def npmInstall</code> was hardcoded to
-   install <code>typescript</code> and <code>@types/node</code>, because that was what was needed
-   to compile Typescript against the builtin Node.js APIs. In this example,
-   we add a <code>def npmDeps</code> task, that is aggregated using <code>Task.traverse</code> into
-`  def transitiveNpmDeps`, that are then included in the body of <code>def npmInstall</code>.
-   The <code>npmInstall</code> destination folder in then used both in <code>def compile</code> to
-   provide the <code>tsc</code> compiler and supporting installed type definitions, as well
-   as in <code>def run</code> in order to provide the necessary files to the <code>node</code> runtime.</p>
+ install <code>typescript</code> and <code>@types/node</code>, because that was what was needed
+ to compile Typescript against the builtin Node.js APIs. In this example,
+ we add a <code>def npmDeps</code> task, that is aggregated using <code>Task.traverse</code> into
+<code>def transitiveNpmDeps</code>, that are then included in the body of <code>def npmInstall</code>.
+ The <code>npmInstall</code> destination folder in then used both in <code>def compile</code> to
+ provide the <code>tsc</code> compiler and supporting installed type definitions, as well
+ as in <code>def run</code> in order to provide the necessary files to the <code>node</code> runtime.</p>
 </li>
 <li>
 <p>We include <code>esbuild@0.24.0</code> as part of our <code>npm install</code>, for use in a <code>def bundle</code>
