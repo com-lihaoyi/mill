@@ -58,7 +58,15 @@ trait PythonModule extends Module with TaskModule { outer =>
   def typeCheck: T[Unit] = Task {
     Task.traverse(moduleDeps)(_.typeCheck)()
     runPythonExe(
-      Task.Anon { Seq("-m", "mypy", "--strict") ++ sources().map(_.path.toString) }
+      Task.Anon {
+        // format: off
+        Seq(
+          "-m", "mypy",
+          "--strict",
+          "--cache-dir", (T.dest / "mypycache").toString
+        ) ++ sources().map(_.path.toString)
+        // format: on
+      }
     )()
   }
 
