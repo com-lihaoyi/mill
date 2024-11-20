@@ -4,7 +4,7 @@
 //    install `typescript` and `@types/node`, because that was what was needed
 //    to compile Typescript against the builtin Node.js APIs. In this example,
 //    we add a `def npmDeps` task, that is aggregated using `Task.traverse` into
-// `  def transitiveNpmDeps`, that are then included in the body of `def npmInstall`.
+//   `def transitiveNpmDeps`, that are then included in the body of `def npmInstall`.
 //    The `npmInstall` destination folder in then used both in `def compile` to
 //    provide the `tsc` compiler and supporting installed type definitions, as well
 //    as in `def run` in order to provide the necessary files to the `node` runtime.
