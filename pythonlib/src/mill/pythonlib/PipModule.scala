@@ -22,13 +22,13 @@ trait PipModule extends Module {
    *
    * Dependencies declared here will also be required when installing this module.
    */
-  def pythonDeps: T[Agg[String]] = Task { Agg.empty[String] }
+  def pythonDeps: T[Seq[String]] = Task { Seq.empty[String] }
 
   /**
    * Python dependencies of this module, and all other modules that this module
    * depends on, recursively.
    */
-  def transitivePythonDeps: T[Agg[String]] = Task {
+  def transitivePythonDeps: T[Seq[String]] = Task {
     val upstreamDependencies = Task.traverse(moduleDeps)(_.transitivePythonDeps)().flatten
     pythonDeps() ++ upstreamDependencies
   }
@@ -40,36 +40,51 @@ trait PipModule extends Module {
    *
    * @see [[pythonDeps]]
    */
-  def pythonRequirements: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
+  def pythonRequirementFiles: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
 
   /**
    * requirements.txt of this module, and all other modules that this module
    * depends on, recursively.
    *
-   * @see pythonRequirements
+   * @see pythonRequirementFiles
    */
-  def transitivePythonRequirements: T[Agg[PathRef]] = Task {
-    val upstream = Task.traverse(moduleDeps)(_.transitivePythonRequirements)().flatten
-    pythonRequirements() ++ upstream
+  def transitivePythonRequirementFiles: T[Seq[PathRef]] = Task {
+    val upstream = Task.traverse(moduleDeps)(_.transitivePythonRequirementFiles)().flatten
+    pythonRequirementFiles() ++ upstream
   }
 
   /**
-   * Any python dependencies for development you want to add to this module.
+   * Any python dependencies for development tools you want to add to this module.
    *
-   * These dependencies are similar to `pythonDeps`, but will not be required to
-   * install this module, only to work on it. For example, type checkers,
-   * linters, and bundlers should be declared here.
+   * These dependencies are similar to `pythonDeps`, but will not be required to install this
+   * module, only to work on it. For example, type checkers, linters, and bundlers should be
+   * declared here.
    *
    * @see [[pythonDeps]]
    */
-  def pythonDevDeps: T[Agg[String]] = Task { Agg.empty[String] }
+  def pythonToolDeps: T[Seq[String]] = Task { Seq.empty[String] }
 
   /**
-   * Python dependencies for development declared in `requirements.txt` files.
+   * Any python wheels to install directly.
    *
-   * @see [[pythonDevDeps]]
+   * Note: you can also include wheels by using [direct
+   * references](https://peps.python.org/pep-0440/#direct-references) in [[pythonRequirementFiles]], for
+   * example `"pip @ file:///localbuilds/pip-1.3.1-py33-none-any.whl"`. However, if you do that then
+   * changes to these files won't get picked up and you are on the hook for cache invalidation.
+   * Therefore, if you have any wheels that you wish to install directly, it is recommended to add
+   * them here.
    */
-  def pythonDevRequirements: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
+  def unmanagedWheels: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
+
+  /**
+   * Any python wheels to install directly, for this module and all upstream modules, recursively.
+   *
+   * @see [unmanagedWheels]
+   */
+  def transitiveUnmanagedWheels: T[Seq[PathRef]] = Task {
+    val upstream = Task.traverse(moduleDeps)(_.transitiveUnmanagedWheels)().flatten
+    unmanagedWheels() ++ upstream
+  }
 
   /**
    * Base URLs of the Python Package Indexes to search for packages. Defaults to
@@ -78,7 +93,7 @@ trait PipModule extends Module {
    * These should point to repositories compliant with PEP 503 (the simple
    * repository API) or local directories laid out in the same format.
    */
-  def indexes: T[Agg[String]] = Task {
+  def indexes: T[Seq[String]] = Task {
     Seq("https://pypi.org/simple")
   }
 
@@ -92,9 +107,10 @@ trait PipModule extends Module {
    *
    * @see [[indexes]]
    * @see [[pythonDeps]]
-   * @see [[pythonDevDeps]]
+   * @see [[unmanagedWheels]]
+   * @see [[pythonToolDeps]]
    */
-  def pipInstallArgs: T[Seq[String]] = Task {
+  def pipInstallArgs: T[PipModule.InstallArgs] = Task {
     val indexArgs: Seq[String] = indexes().toList match {
       case Nil => Seq("--no-index")
       case head :: Nil => Seq("--index-url", head)
@@ -102,12 +118,49 @@ trait PipModule extends Module {
         Seq("--index-url", head) ++ tail.flatMap(t => Seq("--extra-index-url", t))
     }
 
-    indexArgs ++
-      pythonDevDeps() ++
-      transitivePythonDeps() ++
-      (pythonDevRequirements() ++ transitivePythonRequirements()).flatMap(pr =>
-        Seq("-r", pr.path.toString)
-      )
+    PipModule.InstallArgs(
+      indexArgs ++
+        transitiveUnmanagedWheels().map(_.path.toString) ++
+        pythonToolDeps() ++
+        transitivePythonDeps() ++
+        transitivePythonRequirementFiles().flatMap(pr =>
+          Seq("-r", pr.path.toString)
+        ),
+      transitiveUnmanagedWheels() ++ transitivePythonRequirementFiles()
+    )
+  }
+
+}
+
+object PipModule {
+
+  /**
+   * A list of string arguments, with a cache-busting signature for any strings which represent
+   * files.
+   */
+  case class InstallArgs(
+      args: Seq[String],
+      sig: Int
+  )
+  object InstallArgs {
+    implicit val rw: upickle.default.ReadWriter[InstallArgs] = upickle.default.macroRW
+    def apply(
+        args: Seq[String],
+        paths: Seq[PathRef]
+    ): InstallArgs = {
+      val hash = java.security.MessageDigest.getInstance("MD5")
+      for (arg <- args) {
+        hash.update(arg.getBytes("utf-8"))
+      }
+      for (path <- paths) {
+        hash.update((path.sig >> 24).toByte)
+        hash.update((path.sig >> 16).toByte)
+        hash.update((path.sig >> 8).toByte)
+        hash.update((path.sig).toByte)
+      }
+
+      InstallArgs(args.toSeq, java.util.Arrays.hashCode(hash.digest()))
+    }
   }
 
 }
