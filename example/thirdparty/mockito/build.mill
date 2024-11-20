@@ -1,5 +1,6 @@
 package build
 import mill._, javalib._
+import mill.define.ModuleRef
 
 object libraries {
 
@@ -37,6 +38,8 @@ object libraries {
 }
 
 trait MockitoModule extends MavenModule {
+  override def zincWorker = ModuleRef(build.ZincWorkerJava11)
+  def javacOptions = Seq("-encoding", "UTF-8")
   def testModuleDeps: Seq[JavaModule] = Nil
   def testIvyDeps: T[Agg[Dep]] = Agg.empty[Dep]
   def testRuntimeIvyDeps: T[Agg[Dep]] = Agg.empty[Dep]
@@ -68,6 +71,11 @@ trait MockitoModule extends MavenModule {
 }
 
 object `package` extends RootModule with MockitoModule {
+
+  object ZincWorkerJava11 extends ZincWorkerModule {
+    def jvmId = "temurin:11.0.24"
+  }
+
   def compileIvyDeps = Agg(
     libraries.hamcrest,
     libraries.junit4,

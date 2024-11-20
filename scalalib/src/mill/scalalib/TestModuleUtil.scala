@@ -2,7 +2,7 @@ package mill.scalalib
 
 import mill.api.{Ctx, PathRef, Result}
 import mill.main.client.EnvVars
-import mill.testrunner.{Framework, TestArgs, TestResult, TestRunnerUtils}
+import mill.testrunner.{TestArgs, TestResult, TestRunnerUtils}
 import mill.util.Jvm
 import mill.{Agg, T}
 import sbt.testing.Status
@@ -28,7 +28,8 @@ private[scalalib] object TestModuleUtil {
       forkEnv: Map[String, String],
       testSandboxWorkingDir: Boolean,
       forkWorkingDir: os.Path,
-      testReportXml: Option[String]
+      testReportXml: Option[String],
+      javaHome: Option[os.Path]
   )(implicit ctx: mill.api.Ctx) = {
 
     val (jvmArgs, props: Map[String, String]) = loadArgsAndProps(useArgsFile, forkArgs)
@@ -72,7 +73,8 @@ private[scalalib] object TestModuleUtil {
         envArgs = forkEnv ++ resourceEnv,
         mainArgs = Seq(testRunnerClasspathArg, argsFile.toString),
         workingDir = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
-        useCpPassingJar = useArgsFile
+        useCpPassingJar = useArgsFile,
+        javaHome = javaHome
       )
 
       if (!os.exists(outputPath)) Left(s"Test reporting Failed: ${outputPath} does not exist")
@@ -93,24 +95,36 @@ private[scalalib] object TestModuleUtil {
       else {
         // If test grouping is enabled and multiple test groups are detected, we need to
         // run test discovery via the test framework's own argument parsing and filtering
-        // logic once in memory before we potentially fork off multiple test groups that will
+        // logic once before we potentially fork off multiple test groups that will
         // each do the same thing and then run tests. This duplication is necessary so we can
         // skip test groups that we know will be empty, which is important because even an empty
         // test group requires spawning a JVM which can take 1+ seconds to realize there are no
         // tests to run and shut down
-        val discoveredTests = Jvm.inprocess(
-          (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
-          classLoaderOverrideSbtTesting = true,
-          isolated = true,
-          closeContextClassLoaderWhenDone = false,
-          TestRunnerUtils.getTestTasks0(
-            Framework.framework(testFramework),
+
+        val discoveredTests = if (javaHome.isDefined) {
+          Jvm.callSubprocess(
+            mainClass = "mill.testrunner.GetTestTasksMain",
+            classPath = scalalibClasspath.map(_.path),
+            mainArgs =
+              (runClasspath ++ testrunnerEntrypointClasspath).flatMap(p =>
+                Seq("--runCp", p.path.toString)
+              ) ++
+                testClasspath.flatMap(p => Seq("--testCp", p.path.toString)) ++
+                Seq("--framework", testFramework) ++
+                selectors.flatMap(s => Seq("--selectors", s)) ++
+                args.flatMap(s => Seq("--args", s)),
+            javaHome = javaHome,
+            streamOut = false
+          ).out.lines().toSet
+        } else {
+          mill.testrunner.GetTestTasksMain.main0(
+            (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
             testClasspath.map(_.path),
-            args,
-            cls => globFilter(cls.getName),
-            _
-          )
-        ).toSet
+            testFramework,
+            selectors,
+            args
+          ).toSet
+        }
 
         filteredClassLists0.map(_.filter(discoveredTests)).filter(_.nonEmpty)
       }

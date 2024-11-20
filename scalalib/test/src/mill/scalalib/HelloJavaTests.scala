@@ -5,7 +5,7 @@ import mill.api.Result
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest._
-import utest.framework.TestPath
+import mill.define.ModuleRef
 
 object HelloJavaTests extends TestSuite {
 
@@ -25,6 +25,7 @@ object HelloJavaTests extends TestSuite {
       }
     }
   }
+
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-java"
 
   def testEval() = UnitTester(HelloJava, resourcePath)
@@ -47,6 +48,7 @@ object HelloJavaTests extends TestSuite {
         !os.walk(result3.value.classes.path).exists(_.last == "Core.class")
       )
     }
+
     test("semanticDbData") {
       val expectedFile1 =
         os.rel / "META-INF/semanticdb/core/src/Core.java.semanticdb"
@@ -152,10 +154,12 @@ object HelloJavaTests extends TestSuite {
       val Left(Result.Failure(ref1, Some(v1))) = eval.apply(HelloJava.core.test.test())
 
       assert(
-        v1._2(0).fullyQualifiedName == "hello.MyCoreTests.lengthTest",
-        v1._2(0).status == "Success",
-        v1._2(1).fullyQualifiedName == "hello.MyCoreTests.msgTest",
-        v1._2(1).status == "Failure"
+        v1._2(0).fullyQualifiedName == "hello.MyCoreTests.java11Test",
+        v1._2(1).fullyQualifiedName == "hello.MyCoreTests.java17Test",
+        v1._2(2).fullyQualifiedName == "hello.MyCoreTests.lengthTest",
+        v1._2(2).status == "Success",
+        v1._2(3).fullyQualifiedName == "hello.MyCoreTests.msgTest",
+        v1._2(3).status == "Failure"
       )
 
       val Right(result2) = eval.apply(HelloJava.app.test.test())

@@ -3,7 +3,7 @@ package mill.scalalib
 import mill.api.{Ctx, PathRef, Result}
 import mill.define.{Command, Task, TaskModule}
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
-import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner, TestRunnerUtils}
+import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner}
 import mill.util.Jvm
 import mill.{Agg, T}
 
@@ -41,21 +41,24 @@ trait TestModule
   def testFramework: T[String]
 
   def discoveredTestClasses: T[Seq[String]] = Task {
-    val classes = Jvm.inprocess(
-      runClasspath().map(_.path),
-      classLoaderOverrideSbtTesting = true,
-      isolated = true,
-      closeContextClassLoaderWhenDone = true,
-      cl => {
-        val framework = Framework.framework(testFramework())(cl)
-        val classes = TestRunnerUtils.discoverTests(cl, framework, testClasspath().map(_.path))
-        classes.toSeq.map(_._1.getName())
-          .map {
-            case s if s.endsWith("$") => s.dropRight(1)
-            case s => s
-          }
-      }
-    )
+    val classes = if (zincWorker().javaHome().isDefined) {
+      Jvm.callSubprocess(
+        mainClass = "mill.testrunner.DiscoverTestsMain",
+        classPath = zincWorker().scalalibClasspath().map(_.path),
+        mainArgs =
+          runClasspath().flatMap(p => Seq("--runCp", p.path.toString())) ++
+            testClasspath().flatMap(p => Seq("--testCp", p.path.toString())) ++
+            Seq("--framework", testFramework()),
+        javaHome = zincWorker().javaHome().map(_.path),
+        streamOut = false
+      ).out.lines()
+    } else {
+      mill.testrunner.DiscoverTestsMain.main0(
+        runClasspath().map(_.path),
+        testClasspath().map(_.path),
+        testFramework()
+      )
+    }
     classes.sorted
   }
 
@@ -200,7 +203,8 @@ trait TestModule
         forkEnv(),
         testSandboxWorkingDir(),
         forkWorkingDir(),
-        testReportXml()
+        testReportXml(),
+        zincWorker().javaHome().map(_.path)
       )
     }
 

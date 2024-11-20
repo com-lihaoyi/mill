@@ -102,15 +102,19 @@ trait JavaModule
     mainClass() match {
       case Some(m) => Right(m)
       case None =>
-        zincWorker().worker().discoverMainClasses(compile()) match {
-          case Seq() => Left("No main class specified or found")
-          case Seq(main) => Right(main)
-          case mains =>
-            Left(
-              s"Multiple main classes found (${mains.mkString(",")}) " +
-                "please explicitly specify which one to use by overriding `mainClass` " +
-                "or using `runMain <main-class> <...args>` instead of `run`"
-            )
+        if (zincWorker().javaHome().isDefined) {
+          super[RunModule].finalMainClassOpt()
+        } else {
+          zincWorker().worker().discoverMainClasses(compile()) match {
+            case Seq() => Left("No main class specified or found")
+            case Seq(main) => Right(main)
+            case mains =>
+              Left(
+                s"Multiple main classes found (${mains.mkString(",")}) " +
+                  "please explicitly specify which one to use by overriding `mainClass` " +
+                  "or using `runMain <main-class> <...args>` instead of `run`"
+              )
+          }
         }
     }
   }
@@ -1127,6 +1131,7 @@ trait JavaModule
   )
 
   @internal
+  @deprecated("Use bspJvmBuildTargetTask instead", "0.12.3")
   def bspJvmBuildTarget: JvmBuildTarget =
     JvmBuildTarget(
       javaHome = Option(System.getProperty("java.home")).map(p => BspUri(os.Path(p))),
@@ -1134,7 +1139,18 @@ trait JavaModule
     )
 
   @internal
+  def bspJvmBuildTargetTask: Task[JvmBuildTarget] = Task.Anon {
+    JvmBuildTarget(
+      javaHome = zincWorker()
+        .javaHome()
+        .map(p => BspUri(p.path))
+        .orElse(Option(System.getProperty("java.home")).map(p => BspUri(os.Path(p)))),
+      javaVersion = Option(System.getProperty("java.version"))
+    )
+  }
+
+  @internal
   override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = Task.Anon {
-    Some((JvmBuildTarget.dataKind, bspJvmBuildTarget))
+    Some((JvmBuildTarget.dataKind, bspJvmBuildTargetTask()))
   }
 }
