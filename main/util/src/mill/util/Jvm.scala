@@ -71,7 +71,7 @@ object Jvm extends CoursierSupport {
       mainArgs,
       workingDir,
       streamOut,
-      true,
+      check,
       None
     )
   }

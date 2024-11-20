@@ -23,7 +23,8 @@ object ZincWorkerModule extends ExternalModule with ZincWorkerModule with Coursi
 trait ZincWorkerModule extends mill.Module with OfflineSupportModule with CoursierModule {
   def jvmId: mill.define.Target[String] = Task[String] { "" }
 
-  def jvmIndexVersion: mill.define.Target[String] = "0.0.4-70-51469f"
+  def jvmIndexVersion: mill.define.Target[String] =
+    mill.scalalib.api.Versions.coursierJvmIndexVersion
 
   def classpath: T[Agg[PathRef]] = Task {
     millProjectModule("mill-scalalib-worker", repositoriesTask())

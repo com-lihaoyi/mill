@@ -102,12 +102,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
     def moduleDeps = Seq(api, client)
     def ivyDeps = Agg(
       build.Deps.coursier,
-      build.Deps.coursierJvm.exclude(
-        // coursier-jvm has an unused dependency on argonaut-shapeless and
-        // shapeless causes issues with the assembly task when the locale
-        // is not set properly https://github.com/sbt/sbt-assembly/issues/496
-        "com.github.alexarchambault" -> "argonaut-shapeless_6.3_2.13",
-      ),
+      build.Deps.coursierJvm,
       build.Deps.jline
     )
   }

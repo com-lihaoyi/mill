@@ -1131,7 +1131,15 @@ trait JavaModule
   )
 
   @internal
-  def bspJvmBuildTarget: Task[JvmBuildTarget] = Task.Anon {
+  @deprecated("Use bspJvmBuildTargetTask instead", "0.12.3")
+  def bspJvmBuildTarget: JvmBuildTarget =
+    JvmBuildTarget(
+      javaHome = Option(System.getProperty("java.home")).map(p => BspUri(os.Path(p))),
+      javaVersion = Option(System.getProperty("java.version"))
+    )
+
+  @internal
+  def bspJvmBuildTargetTask: Task[JvmBuildTarget] = Task.Anon {
     JvmBuildTarget(
       javaHome = zincWorker()
         .javaHome()
@@ -1143,6 +1151,6 @@ trait JavaModule
 
   @internal
   override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = Task.Anon {
-    Some((JvmBuildTarget.dataKind, bspJvmBuildTarget()))
+    Some((JvmBuildTarget.dataKind, bspJvmBuildTargetTask()))
   }
 }

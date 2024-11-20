@@ -208,18 +208,16 @@ trait CoursierSupport {
   def jvmIndex0(
       ctx: Option[mill.api.Ctx.Log] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
-      jvmIndexVersion: String = "release.latest"
+      jvmIndexVersion: String = "latest.release"
   ): Task[JvmIndex] = {
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
     JvmIndex.load(
       cache = coursierCache0, // the coursier.cache.Cache instance to use
       repositories = Resolve().repositories, // repositories to use
       indexChannel = JvmChannel.module(
-        JvmChannel.centralModule(JvmChannel.defaultOs(), JvmChannel.defaultArchitecture()),
+        JvmChannel.centralModule(),
         version = jvmIndexVersion
-      ), // use new indices published to Maven Central
-      os = None, // use defaults
-      arch = None // use defaults
+      ) // use new indices published to Maven Central
     )
   }
 
@@ -232,7 +230,7 @@ trait CoursierSupport {
       id: String,
       ctx: Option[mill.api.Ctx.Log] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
-      jvmIndexVersion: String = "release.latest"
+      jvmIndexVersion: String = "latest.release"
   ): Result[os.Path] = {
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
     val jvmCache = JvmCache()
