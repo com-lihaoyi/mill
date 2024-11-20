@@ -49,14 +49,14 @@ object KotlinJsNodeRunTests extends TestSuite {
   def tests: Tests = Tests {
     // region with split per module
 
-    test("run { split per module / plain module }") {
+    test("split - plain module") {
       val eval = testEval()
 
       // plain modules cannot handle the dependencies, so if there are multiple js files, it will fail
       val Left(_) = eval.apply(module.foo(true, "plain").run())
     }
 
-    test("run { split per module / es module }") {
+    test("split - es module") {
       val eval = testEval()
 
       val command = module.foo(true, "es").run()
@@ -65,14 +65,14 @@ object KotlinJsNodeRunTests extends TestSuite {
       assertLogContains(eval, command, expectedSuccessOutput)
     }
 
-    test("run { split per module / amd module }") {
+    test("split - amd module") {
       val eval = testEval()
 
       // amd modules have "define" method, it is not known by Node.js
       val Left(_) = eval.apply(module.foo(true, "amd").run())
     }
 
-    test("run { split per module / commonjs module }") {
+    test("split - commonjs module") {
       val eval = testEval()
 
       val command = module.foo(true, "commonjs").run()
@@ -81,7 +81,7 @@ object KotlinJsNodeRunTests extends TestSuite {
       assertLogContains(eval, command, expectedSuccessOutput)
     }
 
-    test("run { split per module / umd module }") {
+    test("split - umd module") {
       val eval = testEval()
 
       val command = module.foo(true, "umd").run()
@@ -90,7 +90,7 @@ object KotlinJsNodeRunTests extends TestSuite {
       assertLogContains(eval, command, expectedSuccessOutput)
     }
 
-    test("run { split per module / no module }") {
+    test("split - no module") {
       val eval = testEval()
 
       val Left(_) = eval.apply(module.foo(true, "no").run())
@@ -100,7 +100,7 @@ object KotlinJsNodeRunTests extends TestSuite {
 
     // region without split per module
 
-    test("run { no split per module / plain module }") {
+    test("no split - plain module") {
       val eval = testEval()
 
       val command = module.foo(false, "plain").run()
@@ -109,7 +109,7 @@ object KotlinJsNodeRunTests extends TestSuite {
       assertLogContains(eval, command, expectedSuccessOutput)
     }
 
-    test("run { no split per module / es module }") {
+    test("no split - es module") {
       val eval = testEval()
 
       val command = module.foo(false, "es").run()
@@ -118,14 +118,14 @@ object KotlinJsNodeRunTests extends TestSuite {
       assertLogContains(eval, command, expectedSuccessOutput)
     }
 
-    test("run { no split per module / amd module }") {
+    test("no split - amd module") {
       val eval = testEval()
 
       // amd modules have "define" method, it is not known by Node.js
       val Left(_) = eval.apply(module.foo(false, "amd").run())
     }
 
-    test("run { no split per module / commonjs module }") {
+    test("no split - commonjs module") {
       val eval = testEval()
 
       val command = module.foo(false, "commonjs").run()
@@ -134,7 +134,7 @@ object KotlinJsNodeRunTests extends TestSuite {
       assertLogContains(eval, command, expectedSuccessOutput)
     }
 
-    test("run { no split per module / umd module }") {
+    test("no split - umd module") {
       val eval = testEval()
 
       val command = module.foo(false, "umd").run()
@@ -143,7 +143,7 @@ object KotlinJsNodeRunTests extends TestSuite {
       assertLogContains(eval, command, expectedSuccessOutput)
     }
 
-    test("run { no split per module / no module }") {
+    test("no split - no module") {
       val eval = testEval()
 
       val command = module.foo(false, "no").run()
