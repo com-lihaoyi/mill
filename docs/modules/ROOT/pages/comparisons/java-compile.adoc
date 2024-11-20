@@ -335,12 +335,9 @@ cached locally, any time doing other things and not spent _actually
 compiling Java_ is pure overhead. Checking for cache invalidation in _shouldn't_ take 15-16x
 as long as actually compiling your code. I mean it obviously does _today_, but it _shouldn't_!
 
-The Mill build tool goes to great lengths to try and minimize overhead: keeping long-lived
-worker processes to let the compiler warm up, using a fast-launching minimal client to connect
-to it, repeated bouts of benchmarking and optimization. Mill already gets
+The Mill build tool goes to great lengths to try and minimize overhead, and already gets
 xref:comparisons/why-mill.adoc#_performance[~4x faster builds] than Maven or Gradle on
-real-world projects like Mockito or Netty across a wide range of workflows, but it
-still has a long way to go to catch up to the raw performance of `javac`. Improving Mill
-is a work in progress, and will remain so until compiling a 30-40kLOC Java codebase from the
-command line takes ~0.3 seconds. If Java build and compile times are things you find important,
-you should try out Mill and get involved!
+real-world projects like Mockito or Netty. But there still is a long way to go give Java
+developers the fast, snappy experience that the underlying Java platform can provide. If
+Java build and compile times are things you find important, you should try out Mill on
+your own projects and get involved in the effort!
