@@ -13,7 +13,6 @@ import mill.contrib.sonatypecentral.SonatypeCentralPublishModule.{
   getPublishingTypeFromReleaseFlag,
   getSonatypeCredentials
 }
-import mill.scalalib.PublishModule.defaultGpgArgs
 import mill.scalalib.publish.Artifact
 import mill.scalalib.publish.SonatypeHelpers.{
   PASSWORD_ENV_VARIABLE_NAME,
@@ -21,7 +20,9 @@ import mill.scalalib.publish.SonatypeHelpers.{
 }
 
 trait SonatypeCentralPublishModule extends PublishModule {
-  def sonatypeCentralGpgArgs: T[String] = Task { defaultGpgArgs.mkString(",") }
+  def sonatypeCentralGpgArgs: T[String] = Task {
+    PublishModule.defaultGpgArgsForPassphrase(T.env.get("MILL_PGP_PASSPHRASE")).mkString(",")
+  }
 
   def sonatypeCentralConnectTimeout: T[Int] = Task { defaultConnectTimeout }
 
@@ -43,10 +44,7 @@ trait SonatypeCentralPublishModule extends PublishModule {
       PublishModule.pgpImportSecretIfProvided(T.env)
       val publisher = new SonatypeCentralPublisher(
         credentials = finalCredentials,
-        gpgArgs = sonatypeCentralGpgArgs() match {
-          case "" => PublishModule.defaultGpgArgsForPassphrase(T.env.get("PGP_PASSPHRASE"))
-          case gpgArgs => gpgArgs.split(",").toIndexedSeq
-        },
+        gpgArgs = sonatypeCentralGpgArgs().split(",").toIndexedSeq,
         connectTimeout = sonatypeCentralConnectTimeout(),
         readTimeout = sonatypeCentralReadTimeout(),
         log = T.log,
@@ -75,7 +73,7 @@ object SonatypeCentralPublishModule extends ExternalModule {
       username: String = defaultCredentials,
       password: String = defaultCredentials,
       shouldRelease: Boolean = defaultShouldRelease,
-      gpgArgs: String = defaultGpgArgs.mkString(","),
+      gpgArgs: String = "",
       readTimeout: Int = defaultReadTimeout,
       connectTimeout: Int = defaultConnectTimeout,
       awaitTimeout: Int = defaultAwaitTimeout,
@@ -93,7 +91,7 @@ object SonatypeCentralPublishModule extends ExternalModule {
     val publisher = new SonatypeCentralPublisher(
       credentials = finalCredentials,
       gpgArgs = gpgArgs match {
-        case "" => PublishModule.defaultGpgArgsForPassphrase(T.env.get("PGP_PASSPHRASE"))
+        case "" => PublishModule.defaultGpgArgsForPassphrase(T.env.get("MILL_PGP_PASSPHRASE"))
         case gpgArgs => gpgArgs.split(",").toIndexedSeq
       },
       connectTimeout = connectTimeout,

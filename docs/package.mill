@@ -7,9 +7,70 @@ import scala.jdk.CollectionConverters._
 
 /** Generates the mill documentation with Antora. */
 object `package` extends RootModule {
+  trait CustomUnidocModule extends UnidocModule {
+    def unidocCompileClasspath = Task {
+      val cp = Seq(compile().classes) ++ T.traverse(moduleDeps)(_.compileClasspath)().flatten
+      cp.filter { ref =>
+        !ref.path.lastOpt.exists(_.startsWith("dependency_2.13-"))
+      }
+    }
+
+    def unidocCommon(local: Boolean) = Task.Anon {
+
+      val unidocSourceFiles =
+        allSourceFiles() ++ T.traverse(moduleDeps)(_.allSourceFiles)().flatten
+
+      T.log.info(s"Staging scaladoc for ${unidocSourceFiles.length} files")
+
+      // the details of the options and zincWorker call are significantly
+      // different between scala-2 scaladoc and scala-3 scaladoc
+      // below is for scala-2 variant
+      val options: Seq[String] = Seq(
+        "-doc-title",
+        "Mill",
+        "-d",
+        T.dest.toString,
+        "-classpath",
+        unidocCompileClasspath().map(_.path).mkString(sys.props("path.separator"))
+      ) ++
+        unidocVersion().toSeq.flatMap(Seq("-doc-version", _)) ++
+        unidocSourceUrl().toSeq.flatMap { url =>
+          if (local) Seq(
+            "-doc-source-url",
+            "file://€{FILE_PATH}.scala"
+          )
+          else Seq(
+            "-doc-source-url",
+            url + "€{FILE_PATH}.scala",
+            "-sourcepath",
+            T.workspace.toString
+          )
+        }
+
+      zincWorker().worker().docJar(
+        scalaVersion(),
+        scalaOrganization(),
+        scalaDocClasspath(),
+        scalacPluginClasspath(),
+        options ++ unidocSourceFiles.map(_.path.toString)
+      ) match {
+        case true => mill.api.Result.Success(PathRef(T.dest))
+        case false => mill.api.Result.Failure("unidoc generation failed")
+      }
+    }
+  }
   // This module isn't really a ScalaModule, but we use it to generate
   // consolidated documentation using the Scaladoc tool.
-  object site extends UnidocModule {
+  // Remove CustomUnidocModule and use UnidocModule instead when bumping Mill
+  object site extends CustomUnidocModule {
+    def unidocCompileClasspath =
+      super.unidocCompileClasspath().filter { ref =>
+        // Not sure why, the JAR of coursier/dependency creates
+        // a dependency root package in the Mill API doc, and that
+        // package page has broken links.
+        // So we just exclude that dependency's JAR here.
+        !ref.path.lastOpt.exists(_.startsWith("dependency_2.13-"))
+      }
     def scalaVersion = build.Deps.scalaVersion
     def moduleDeps = build.millInternal.modules.collect {
       case m: build.MillStableScalaModule => m

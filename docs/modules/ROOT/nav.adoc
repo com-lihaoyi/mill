@@ -11,6 +11,7 @@
 ** xref:javalib/publishing.adoc[]
 ** xref:javalib/build-examples.adoc[]
 ** xref:javalib/web-examples.adoc[]
+
 * xref:scalalib/intro.adoc[]
 ** xref:scalalib/module-config.adoc[]
 ** xref:scalalib/dependencies.adoc[]
@@ -36,12 +37,12 @@
 ** xref:comparisons/gradle.adoc[]
 ** xref:comparisons/sbt.adoc[]
 ** xref:comparisons/unique.adoc[]
+** xref:comparisons/java-compile.adoc[]
 * The Mill CLI
 ** xref:cli/installation-ide.adoc[]
 ** xref:cli/flags.adoc[]
 ** xref:cli/builtin-commands.adoc[]
 ** xref:cli/query-syntax.adoc[]
-** xref:cli/alternate-installation.adoc[]
 * Migrating to Mill
 ** xref:migrating/maven.adoc[]
 // This section gives a tour of the various user-facing features of Mill:
@@ -56,6 +57,7 @@
 ** xref:fundamentals/library-deps.adoc[]
 ** xref:fundamentals/cross-builds.adoc[]
 ** xref:fundamentals/bundled-libraries.adoc[]
+** xref:fundamentals/configuring-jvm-versions.adoc[]
 // This section talks about Mill plugins. While it could theoretically fit in
 // either section above, it is probably an important enough topic it is worth
 // breaking out on its own
