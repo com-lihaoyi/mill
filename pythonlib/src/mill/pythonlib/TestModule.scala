@@ -65,7 +65,9 @@ object TestModule {
   /** TestModule that uses pytest to run tests. */
   trait Pytest extends PythonModule with TestModule {
 
-    def pythonDeps = Seq("pytest==8.3.3")
+    override def pythonDeps: T[Seq[String]] = T {
+      super.pythonDeps() ++ Seq("pytest==8.3.3")
+    }
 
     protected def testTask(args: Task[Seq[String]]) = Task.Anon {
       runPythonExe(
