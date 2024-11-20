@@ -7,6 +7,7 @@ import scala.jdk.CollectionConverters._
 
 /** Generates the mill documentation with Antora. */
 object `package` extends RootModule {
+  // Remove CustomUnidocModule when bumping Mill (see 'object site' below too)
   trait CustomUnidocModule extends UnidocModule {
     def unidocCompileClasspath = Task {
       val cp = Seq(compile().classes) ++ T.traverse(moduleDeps)(_.compileClasspath)().flatten
