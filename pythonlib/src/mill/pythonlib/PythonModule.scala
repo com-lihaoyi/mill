@@ -9,7 +9,7 @@ trait PythonModule extends Module with TaskModule { outer =>
   def moduleDeps: Seq[PythonModule] = Nil
 
   /**
-   * The folders where the source files for this mill module live
+   * The folders where the source files for this mill module live.
    *
    * Python modules will be defined relative to these directories.
    */

@@ -34,7 +34,7 @@ trait TestModule extends TaskModule {
   }
 
   /**
-   * The actual task shared by `test`-tasks that runs test in a forked JVM.
+   * The actual task shared by `test`-tasks.
    */
   protected def testTask(args: Task[Seq[String]]): Task[Seq[TestResult]]
 
