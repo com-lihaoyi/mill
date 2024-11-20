@@ -45,7 +45,8 @@ trait CoursierSupport {
       ctx: Option[mill.api.Ctx.Log] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       resolveFilter: os.Path => Boolean = _ => true,
-      artifactTypes: Option[Set[Type]] = None
+      artifactTypes: Option[Set[Type]] = None,
+      resolutionParams: ResolutionParams = ResolutionParams()
   ): Result[Agg[PathRef]] = {
     def isLocalTestDep(dep: Dependency): Option[Seq[PathRef]] = {
       val org = dep.module.organization.value
@@ -75,7 +76,8 @@ trait CoursierSupport {
       mapDependencies,
       customizer,
       ctx,
-      coursierCacheCustomizer
+      coursierCacheCustomizer,
+      resolutionParams
     )
 
     resolutionRes.flatMap { resolution =>
@@ -114,6 +116,33 @@ trait CoursierSupport {
     }
   }
 
+  // bin-compat shim
+  def resolveDependencies(
+      repositories: Seq[Repository],
+      deps: IterableOnce[Dependency],
+      force: IterableOnce[Dependency],
+      sources: Boolean,
+      mapDependencies: Option[Dependency => Dependency],
+      customizer: Option[Resolution => Resolution],
+      ctx: Option[mill.api.Ctx.Log],
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]],
+      resolveFilter: os.Path => Boolean,
+      artifactTypes: Option[Set[Type]]
+  ): Result[Agg[PathRef]] =
+    resolveDependencies(
+      repositories,
+      deps,
+      force,
+      sources,
+      mapDependencies,
+      customizer,
+      ctx,
+      coursierCacheCustomizer,
+      resolveFilter,
+      artifactTypes,
+      ResolutionParams()
+    )
+
   @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
   def resolveDependencies(
       repositories: Seq[Repository],
@@ -135,7 +164,8 @@ trait CoursierSupport {
       customizer,
       ctx,
       coursierCacheCustomizer,
-      resolveFilter
+      resolveFilter,
+      None
     )
 
   @deprecated(
@@ -159,7 +189,8 @@ trait CoursierSupport {
       mapDependencies,
       customizer,
       ctx,
-      coursierCacheCustomizer
+      coursierCacheCustomizer,
+      ResolutionParams()
     )
     (deps0, res.getOrThrow)
   }
@@ -171,7 +202,8 @@ trait CoursierSupport {
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
       ctx: Option[mill.api.Ctx.Log] = None,
-      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
+      resolutionParams: ResolutionParams = ResolutionParams()
   ): Result[Resolution] = {
 
     val rootDeps = deps.iterator
@@ -185,14 +217,14 @@ trait CoursierSupport {
 
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
 
-    val resolutionParams = ResolutionParams()
-      .withForceVersion(forceVersions)
+    val resolutionParams0 = resolutionParams
+      .addForceVersion(forceVersions.toSeq: _*)
 
     val resolve = Resolve()
       .withCache(coursierCache0)
       .withDependencies(rootDeps)
       .withRepositories(repositories)
-      .withResolutionParams(resolutionParams)
+      .withResolutionParams(resolutionParams0)
       .withMapDependenciesOpt(mapDependencies)
 
     resolve.either() match {
@@ -229,6 +261,27 @@ trait CoursierSupport {
         Result.Success(resolution)
     }
   }
+
+  // bin-compat shim
+  def resolveDependenciesMetadataSafe(
+      repositories: Seq[Repository],
+      deps: IterableOnce[Dependency],
+      force: IterableOnce[Dependency],
+      mapDependencies: Option[Dependency => Dependency],
+      customizer: Option[Resolution => Resolution],
+      ctx: Option[mill.api.Ctx.Log],
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]]
+  ): Result[Resolution] =
+    resolveDependenciesMetadataSafe(
+      repositories,
+      deps,
+      force,
+      mapDependencies,
+      customizer,
+      ctx,
+      coursierCacheCustomizer,
+      ResolutionParams()
+    )
 
 }
 
