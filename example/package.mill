@@ -87,7 +87,7 @@ object `package` extends RootModule with Module {
     object large extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "large"))
 
     object sandbox extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "sandbox"))
-
+    object javahome extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "javahome"))
   }
 
   object extending extends Module {

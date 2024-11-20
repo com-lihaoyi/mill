@@ -43,7 +43,8 @@ trait JmhModule extends JavaModule {
         classPath = (runClasspath() ++ generatorDeps()).map(_.path) ++
           Seq(compileGeneratedSources().path, resources),
         mainArgs = args,
-        workingDir = T.ctx().dest
+        workingDir = T.ctx().dest,
+        javaHome = zincWorker().javaHome().map(_.path)
       )
     }
 
@@ -90,6 +91,7 @@ trait JmhModule extends JavaModule {
           resourcesDir.toString,
           "default"
         ),
+        javaHome = zincWorker().javaHome().map(_.path),
         jvmArgs = forkedArgs
       )
 

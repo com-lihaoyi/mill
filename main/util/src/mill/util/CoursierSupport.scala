@@ -5,6 +5,7 @@ import coursier.error.FetchError.DownloadingArtifacts
 import coursier.error.ResolutionError.CantDownloadModule
 import coursier.params.ResolutionParams
 import coursier.parse.RepositoryParser
+import coursier.jvm.{JvmCache, JvmChannel, JvmIndex, JavaHome}
 import coursier.util.Task
 import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Resolve, Type}
 import mill.api.Loose.Agg
@@ -12,6 +13,8 @@ import mill.api.{Ctx, PathRef, Result}
 
 import scala.collection.mutable
 import scala.util.chaining.scalaUtilChainingOps
+import coursier.cache.ArchiveCache
+import scala.util.control.NonFatal
 
 trait CoursierSupport {
   import CoursierSupport._
@@ -45,7 +48,8 @@ trait CoursierSupport {
       ctx: Option[mill.api.Ctx.Log] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       resolveFilter: os.Path => Boolean = _ => true,
-      artifactTypes: Option[Set[Type]] = None
+      artifactTypes: Option[Set[Type]] = None,
+      resolutionParams: ResolutionParams = ResolutionParams()
   ): Result[Agg[PathRef]] = {
     def isLocalTestDep(dep: Dependency): Option[Seq[PathRef]] = {
       val org = dep.module.organization.value
@@ -75,7 +79,8 @@ trait CoursierSupport {
       mapDependencies,
       customizer,
       ctx,
-      coursierCacheCustomizer
+      coursierCacheCustomizer,
+      resolutionParams
     )
 
     resolutionRes.flatMap { resolution =>
@@ -114,6 +119,33 @@ trait CoursierSupport {
     }
   }
 
+  // bin-compat shim
+  def resolveDependencies(
+      repositories: Seq[Repository],
+      deps: IterableOnce[Dependency],
+      force: IterableOnce[Dependency],
+      sources: Boolean,
+      mapDependencies: Option[Dependency => Dependency],
+      customizer: Option[Resolution => Resolution],
+      ctx: Option[mill.api.Ctx.Log],
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]],
+      resolveFilter: os.Path => Boolean,
+      artifactTypes: Option[Set[Type]]
+  ): Result[Agg[PathRef]] =
+    resolveDependencies(
+      repositories,
+      deps,
+      force,
+      sources,
+      mapDependencies,
+      customizer,
+      ctx,
+      coursierCacheCustomizer,
+      resolveFilter,
+      artifactTypes,
+      ResolutionParams()
+    )
+
   @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
   def resolveDependencies(
       repositories: Seq[Repository],
@@ -135,7 +167,8 @@ trait CoursierSupport {
       customizer,
       ctx,
       coursierCacheCustomizer,
-      resolveFilter
+      resolveFilter,
+      None
     )
 
   @deprecated(
@@ -159,9 +192,61 @@ trait CoursierSupport {
       mapDependencies,
       customizer,
       ctx,
-      coursierCacheCustomizer
+      coursierCacheCustomizer,
+      ResolutionParams()
     )
     (deps0, res.getOrThrow)
+  }
+  def jvmIndex(
+      ctx: Option[mill.api.Ctx.Log] = None,
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None
+  ): JvmIndex = {
+    val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
+    jvmIndex0(ctx, coursierCacheCustomizer).unsafeRun()(coursierCache0.ec)
+  }
+
+  def jvmIndex0(
+      ctx: Option[mill.api.Ctx.Log] = None,
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
+      jvmIndexVersion: String = "latest.release"
+  ): Task[JvmIndex] = {
+    val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
+    JvmIndex.load(
+      cache = coursierCache0, // the coursier.cache.Cache instance to use
+      repositories = Resolve().repositories, // repositories to use
+      indexChannel = JvmChannel.module(
+        JvmChannel.centralModule(),
+        version = jvmIndexVersion
+      ) // use new indices published to Maven Central
+    )
+  }
+
+  /**
+   * Resolve java home using Coursier.
+   *
+   * The id string has format "$DISTRIBUTION:$VERSION". e.g. graalvm-community:23.0.0
+   */
+  def resolveJavaHome(
+      id: String,
+      ctx: Option[mill.api.Ctx.Log] = None,
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
+      jvmIndexVersion: String = "latest.release"
+  ): Result[os.Path] = {
+    val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
+    val jvmCache = JvmCache()
+      .withArchiveCache(
+        ArchiveCache().withCache(coursierCache0)
+      )
+      .withIndex(jvmIndex0(ctx, coursierCacheCustomizer, jvmIndexVersion))
+    val javaHome = JavaHome()
+      .withCache(jvmCache)
+    try {
+      val file = javaHome.get(id).unsafeRun()(coursierCache0.ec)
+      Result.Success(os.Path(file))
+    } catch {
+      case NonFatal(error) =>
+        Result.Exception(error, new Result.OuterStack((new Exception).getStackTrace))
+    }
   }
 
   def resolveDependenciesMetadataSafe(
@@ -171,7 +256,8 @@ trait CoursierSupport {
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
       ctx: Option[mill.api.Ctx.Log] = None,
-      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
+      resolutionParams: ResolutionParams = ResolutionParams()
   ): Result[Resolution] = {
 
     val rootDeps = deps.iterator
@@ -185,14 +271,14 @@ trait CoursierSupport {
 
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
 
-    val resolutionParams = ResolutionParams()
-      .withForceVersion(forceVersions)
+    val resolutionParams0 = resolutionParams
+      .addForceVersion(forceVersions.toSeq: _*)
 
     val resolve = Resolve()
       .withCache(coursierCache0)
       .withDependencies(rootDeps)
       .withRepositories(repositories)
-      .withResolutionParams(resolutionParams)
+      .withResolutionParams(resolutionParams0)
       .withMapDependenciesOpt(mapDependencies)
 
     resolve.either() match {
@@ -229,6 +315,27 @@ trait CoursierSupport {
         Result.Success(resolution)
     }
   }
+
+  // bin-compat shim
+  def resolveDependenciesMetadataSafe(
+      repositories: Seq[Repository],
+      deps: IterableOnce[Dependency],
+      force: IterableOnce[Dependency],
+      mapDependencies: Option[Dependency => Dependency],
+      customizer: Option[Resolution => Resolution],
+      ctx: Option[mill.api.Ctx.Log],
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]]
+  ): Result[Resolution] =
+    resolveDependenciesMetadataSafe(
+      repositories,
+      deps,
+      force,
+      mapDependencies,
+      customizer,
+      ctx,
+      coursierCacheCustomizer,
+      ResolutionParams()
+    )
 
 }
 
