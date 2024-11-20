@@ -50,7 +50,8 @@ trait UnidocModule extends ScalaModule {
       scalaOrganization(),
       scalaDocClasspath(),
       scalacPluginClasspath(),
-      options ++ unidocSourceFiles.map(_.path.toString)
+      options ++ unidocSourceFiles.map(_.path.toString),
+      compilerBridge = bridgeJarTask().path
     ) match {
       case true => mill.api.Result.Success(PathRef(T.dest))
       case false => mill.api.Result.Failure("unidoc generation failed")

@@ -285,7 +285,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         reporter = T.reporter.apply(hashCode),
         reportCachedProblems = zincReportCachedProblems(),
         incrementalCompilation = zincIncrementalCompilation(),
-        auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
+        auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions(),
+        compilerBridge = bridgeJarTask().path
       )
   }
 
@@ -315,6 +316,21 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     else allSources()
   }
 
+  def bridgeJarTask = Task.Anon{
+
+    val (cp, bridgeJar) = zincWorker()
+      .scalaCompilerBridgeJar(scalaVersion(), scalaOrganization(), zincWorker().repositoriesTask())
+      .getOrThrow
+    val path = zincWorker().compileBridgeIfNeeded(
+      scalaVersion(),
+      scalaOrganization(),
+      compileClasspath(),
+      Task.dest,
+      cp.map(_.toSeq),
+      bridgeJar
+    )
+    PathRef(path)
+  }
   override def docJar: T[PathRef] = Task {
     val compileCp = Seq(
       "-classpath",
@@ -336,7 +352,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
             scalaDocClasspath(),
             scalacPluginClasspath(),
             options ++ compileCp ++ scalaDocOptions() ++
-              files.map(_.toString())
+              files.map(_.toString()),
+            compilerBridge = bridgeJarTask().path
           ) match {
           case true => Result.Success(createJar(Agg(javadocDir))(T.dest))
           case false => Result.Failure("docJar generation failed")
@@ -644,7 +661,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         reporter = None,
         reportCachedProblems = zincReportCachedProblems(),
         incrementalCompilation = zincIncrementalCompilation(),
-        auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
+        auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions(),
+        compilerBridge = bridgeJarTask().path
       )
       .map(compileRes =>
         SemanticDbJavaModule.copySemanticdbFiles(
