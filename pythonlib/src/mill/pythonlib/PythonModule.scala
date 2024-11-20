@@ -131,7 +131,6 @@ trait PythonModule extends Module with TaskModule { outer =>
     runner().run(
       (
         // format: off
-        pythonExe().path,
         "-m", "pex",
         transitivePythonDeps(),
         transitiveSources().flatMap(pr =>
