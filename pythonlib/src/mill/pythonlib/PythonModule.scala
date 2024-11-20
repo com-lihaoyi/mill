@@ -4,6 +4,7 @@ import mill._
 import mill.api.Result
 import mill.util.Util
 import mill.util.Jvm
+import mill.api.Ctx
 
 trait PythonModule extends Module with TaskModule { outer =>
   def moduleDeps: Seq[PythonModule] = Nil
@@ -42,36 +43,39 @@ trait PythonModule extends Module with TaskModule { outer =>
 
   // TODO: right now, any task that calls this helper will have its own python
   // cache. This is slow. Look into sharing the cache between tasks.
-  protected def runPythonExe(args: Task[Seq[String]]): Task[Unit] = Task.Anon {
-    Jvm.runSubprocess(
-      commandArgs = Seq(pythonExe().path.toString) ++ args(),
-      envArgs = Map(
+  def runner: Task[PythonModule.Runner] = Task.Anon {
+    new PythonModule.RunnerImpl(
+      command0 = pythonExe().path.toString,
+      env0 = Map(
         "PYTHONPATH" -> transitiveSources().map(_.path).mkString(java.io.File.pathSeparator),
         "PYTHONPYCACHEPREFIX" -> (T.dest / "cache").toString,
         if (Task.log.colored) { "FORCE_COLOR" -> "1" }
         else { "NO_COLOR" -> "1" }
       ),
-      workingDir = Task.workspace
+      workingDir0 = Task.workspace
     )
   }
 
   def typeCheck: T[Unit] = Task {
-    Task.traverse(moduleDeps)(_.typeCheck)()
-    runPythonExe(
-      Task.Anon {
+    runner().run(
+      (
         // format: off
-        Seq(
-          "-m", "mypy",
-          "--strict",
-          "--cache-dir", (T.dest / "mypycache").toString
-        ) ++ sources().map(_.path.toString)
+        "-m", "mypy",
+        "--strict",
+        "--cache-dir", (T.dest / "mypycache").toString,
+        sources().map(_.path)
         // format: on
-      }
-    )()
+      )
+    )
   }
 
   def run(args: mill.define.Args) = Task.Command {
-    runPythonExe(Task.Anon { Seq(script().path.toString) ++ args.value })()
+    runner().run(
+      (
+        script().path,
+        args.value
+      )
+    )
   }
 
   override def defaultCommandName(): String = "run"
@@ -84,7 +88,7 @@ trait PythonModule extends Module with TaskModule { outer =>
     if (!Util.isInteractive()) {
       Result.Failure("console needs to be run with the -i/--interactive flag")
     } else {
-      runPythonExe(Task.Anon { Seq() })()
+      runner().run()
       Result.Success(())
     }
   }
@@ -92,7 +96,7 @@ trait PythonModule extends Module with TaskModule { outer =>
   /** Bundles the project into a single PEX executable(bundle.pex). */
   def bundle = Task {
     val pexFile = Task.dest / "bundle.pex"
-    os.call(
+    runner().run(
       (
         // format: off
         pythonExe().path,
@@ -106,10 +110,8 @@ trait PythonModule extends Module with TaskModule { outer =>
         "--scie", "eager",
         // format: on
       ),
-      stdout = os.Inherit,
-      cwd = T.dest
+      workingDir = T.dest
     )
-
     PathRef(pexFile)
   }
 
@@ -117,4 +119,33 @@ trait PythonModule extends Module with TaskModule { outer =>
     override def moduleDeps: Seq[PythonModule] = Seq(outer)
   }
 
+}
+
+object PythonModule {
+  trait Runner {
+    def run(
+        args: os.Shellable = Seq(),
+        command: String = null,
+        env: Map[String, String] = null,
+        workingDir: os.Path = null
+    )(implicit ctx: Ctx): Unit
+  }
+
+  private class RunnerImpl(
+      command0: String,
+      env0: Map[String, String],
+      workingDir0: os.Path
+  ) extends Runner {
+    def run(
+        args: os.Shellable = Seq(),
+        command: String = null,
+        env: Map[String, String] = null,
+        workingDir: os.Path = null
+    )(implicit ctx: Ctx): Unit =
+      Jvm.runSubprocess(
+        commandArgs = Seq(Option(command).getOrElse(command0)) ++ args.value,
+        envArgs = Option(env).getOrElse(env0),
+        workingDir = Option(workingDir).getOrElse(workingDir0)
+      )
+  }
 }

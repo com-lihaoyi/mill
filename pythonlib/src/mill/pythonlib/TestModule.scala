@@ -50,14 +50,14 @@ object TestModule {
   /** TestModule that uses Python's standard unittest module to run tests. */
   trait Unittest extends PythonModule with TestModule {
     protected def testTask(args: Task[Seq[String]]) = Task.Anon {
-      runPythonExe(Task.Anon {
-        val testArgs = if (args().isEmpty) {
-          Seq("discover") ++ sources().flatMap(pr => Seq("-s", pr.path.toString))
-        } else {
-          args()
-        }
-        Seq("-m", "unittest") ++ testArgs
-      })()
+      val testArgs = if (args().isEmpty) {
+        Seq("discover") ++ sources().flatMap(pr => Seq("-s", pr.path.toString))
+      } else {
+        args()
+      }
+      runner().run(
+        ("-m", "unittest", testArgs)
+      )
       Seq()
     }
   }
@@ -70,16 +70,16 @@ object TestModule {
     }
 
     protected def testTask(args: Task[Seq[String]]) = Task.Anon {
-      runPythonExe(
-        Task.Anon {
-          Seq(
-            "-m",
-            "pytest",
-            "-o",
-            s"cache_dir=${Task.dest / "cache"}"
-          ) ++ sources().map(_.path.toString) ++ args()
-        }
-      )()
+      runner().run(
+        (
+          // format: off
+          "-m", "pytest",
+          "-o", s"cache_dir=${Task.dest / "cache"}",
+          sources().map(_.path),
+          args()
+          // format: in
+        )
+      )
       Seq()
     }
   }
