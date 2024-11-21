@@ -156,9 +156,9 @@ class ZincWorkerImpl(
 
     }
 
-    override def teardown(key: Seq[String], value: Compilers): Unit = ???
+    override def teardown(key: Seq[String], value: Compilers): Unit = ()
 
-    override def maxCacheSize: Int = ???
+    override def maxCacheSize: Int = jobs
   }
 
 
