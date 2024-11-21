@@ -1,17 +1,158 @@
 package build
-import mill._, javascriptlib._
+import mill._
+
+trait TypeScriptModule extends Module {
+  def moduleDeps: Seq[TypeScriptModule] = Nil
+
+  def npmDeps: T[Seq[String]] = Task { Seq.empty[String] }
+
+  def transitiveNpmDeps: T[Seq[String]] = Task {
+    Task.traverse(moduleDeps)(_.npmDeps)().flatten ++ npmDeps()
+  }
+
+  def npmInstall = Task {
+    os.call((
+      "npm",
+      "install",
+      "--save-dev",
+      "typescript@5.6.3",
+      "@types/node@22.7.8",
+      "esbuild@0.24.0",
+      "@types/jest",
+      "jest",
+      "ts-jest",
+      "ts-node",
+      "@babel/core",
+      "@babel/preset-env",
+      "babel-jest",
+      transitiveNpmDeps()
+    ))
+    PathRef(Task.dest)
+  }
+
+  def sources = Task.Source(millSourcePath / "src")
+  def tests = Task.Source(millSourcePath / "test")
+  val testConfigPath = millSourcePath / os.up / "jest.config.ts"
+
+  def allSources = Task { os.walk(sources().path).filter(_.ext == "ts").map(PathRef(_)) }
+
+  def allSourcesWithTest = Task {
+   (os.walk(sources().path) ++ os.walk(tests().path) ++ IndexedSeq(testConfigPath)).filter(_.ext == "ts").map(PathRef(_))
+  }
+
+  def tsConfig = T.task {
+    val nodeTypes = npmInstall().path / "node_modules/@types"
+    val javascriptOut = Task.dest / "javascript"
+    val declarationsOut = Task.dest / "declarations"
+
+    val upstreamPaths =
+      for (((jsDir, dTsDir), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps))
+        yield (mod.millSourcePath.subRelativeTo(build.millSourcePath) + "/*", dTsDir.path)
+
+    val allPaths = upstreamPaths ++ Seq("*" -> sources().path, "*" -> npmInstall().path)
+    os.write(
+      Task.dest / "tsconfig.json",
+      ujson.Obj(
+        "compilerOptions" -> ujson.Obj(
+          "outDir" -> javascriptOut.toString,
+          "declaration" -> true,
+          "declarationDir" -> declarationsOut.toString,
+          "typeRoots" -> ujson.Arr(nodeTypes.toString),
+          "paths" -> ujson.Obj.from(allPaths.map { case (k, v) => (k, ujson.Arr(s"$v/*")) })
+        ),
+        "files" -> allSources().map(_.path.toString)
+      )
+    )
+  }
+
+  def compile: T[(PathRef, PathRef)] = Task {
+    tsConfig()
+    os.call(npmInstall().path / "node_modules/typescript/bin/tsc")
+    val javascriptOut = T.dest / "javascript"
+    val declarationsOut = T.dest / "declarations"
+    (PathRef(javascriptOut), PathRef(declarationsOut))
+  }
+
+  def typeCheck: T[Unit] = Task {
+    tsConfig()
+    os.proc(
+      npmInstall().path / "node_modules/typescript/bin/tsc",
+      "--noemit"
+    ).call()
+  }
+
+  def mainFileName = Task { s"${millSourcePath.last}.js" }
+
+  def prepareRun = Task.Anon {
+    val upstream = Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
+    for (((jsDir, tTsDir), mod) <- upstream) {
+      os.copy(jsDir.path, Task.dest / mod.millSourcePath.subRelativeTo(build.millSourcePath))
+    }
+    val mainFile = compile()._1.path / mainFileName()
+    val env = Map("NODE_PATH" -> Seq(".", compile()._1.path, npmInstall().path).mkString(":"))
+    (mainFile, env)
+  }
+
+  def run(args: mill.define.Args) = Task.Command {
+    val (mainFile, env) = prepareRun()
+    println("mainFile", mainFile.toString())
+    os.call(("node", mainFile, args.value), stdout = os.Inherit, env = env)
+  }
+
+  def test = Task {
+    val nodeTypes = npmInstall().path / "node_modules/@types"
+    val javascriptOut = Task.dest / "javascript"
+    val declarationsOut = Task.dest / "declarations"
+
+    val upstreamPaths =
+      for {
+        ((jsDir, dTsDir), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
+      } yield (mod.millSourcePath.subRelativeTo(build.millSourcePath) + "/*", dTsDir.path)
+
+    val allPaths = upstreamPaths ++ Seq("*" -> sources().path, "*" -> npmInstall().path)
+
+    os.write(
+      Task.dest / "tsconfig.json",
+      ujson.Obj(
+        "compilerOptions" -> ujson.Obj(
+          "outDir" -> javascriptOut.toString,
+          "declaration" -> true,
+          "declarationDir" -> declarationsOut.toString,
+          "typeRoots" -> ujson.Arr(nodeTypes.toString),
+          "paths" -> ujson.Obj.from(allPaths.map { case (k, v) => (k, ujson.Arr(s"$v/*")) })
+        ),
+        "files" -> allSourcesWithTest().map(_.path.toString)
+      )
+    )
+
+    os.call(npmInstall().path / "node_modules/typescript/bin/tsc")
+
+    // env
+    // note: ' npmInstall().path / "node_modules" ' required in NODE_PATH for jest to find preset: ts-jest
+    val env = Map("NODE_PATH" -> Seq(".", javascriptOut, npmInstall().path, npmInstall().path / "node_modules").mkString(":"))
+
+    os.call(("node", npmInstall().path / "node_modules/jest/bin/jest.js", javascriptOut.toString()), stdout = os.Inherit, env = env)
+
+    (javascriptOut, env)
+  }
+
+  def bundle = Task {
+    val (mainFile, env) = prepareRun()
+    val esbuild = npmInstall().path / "node_modules/esbuild/bin/esbuild"
+    val bundle = Task.dest / "bundle.js"
+    os.call((esbuild, mainFile, "--bundle", s"--outfile=$bundle"), env = env)
+    PathRef(bundle)
+  }
+}
 
 object foo extends TypeScriptModule {
   object bar extends TypeScriptModule {
     def npmDeps = Seq("immutable@4.3.7")
   }
 }
-
 object qux extends TypeScriptModule {
   def moduleDeps = Seq(foo, foo.bar)
 }
-
-// Documentation for mill.javascriptlib
 
 /** Usage
 
