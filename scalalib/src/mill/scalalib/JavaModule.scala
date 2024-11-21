@@ -140,13 +140,12 @@ trait JavaModule
   def ivyDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
   /**
-   * Aggregation of mandatoryIvyDeps and ivyDeps.
+   * Aggregation of mandatoryIvyDeps and ivyDeps, with BOMs and dependency management data
+   * added to each of them.
    * In most cases, instead of overriding this Target you want to override `ivyDeps` instead.
    */
   def allIvyDeps: T[Agg[Dep]] = Task {
-    val bomDeps0 = allBomDeps().toSeq.map { bomDep =>
-      (bomDep.dep.module, bomDep.dep.version)
-    }
+    val bomDeps0 = allBomDeps().toSeq
     val rawDeps = ivyDeps() ++ mandatoryIvyDeps()
     val depsWithBoms =
       if (bomDeps0.isEmpty) rawDeps
@@ -199,27 +198,92 @@ trait JavaModule
    */
   def bomDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
-  def allBomDeps: T[Agg[Dep]] = Task { parentDep().toSeq ++ bomDeps() }
+  def allBomDeps: Task[Agg[(coursier.core.Module, String)]] = Task.Anon {
+    val modVerOrMalformed = (Agg(parentDep().toSeq: _*) ++ bomDeps()).map(bindDependency()).map { bomDep =>
+      val fromModVer = coursier.core.Dependency(bomDep.dep.module, bomDep.dep.version)
+        .withConfiguration(coursier.core.Configuration.defaultCompile)
+      if (fromModVer == bomDep.dep)
+        Right((bomDep.dep.module, bomDep.dep.version))
+      else
+        Left(bomDep)
+    }
 
+    val malformed = modVerOrMalformed.collect {
+      case Left(malformedBomDep) =>
+        malformedBomDep
+    }
+    if (malformed.isEmpty)
+      modVerOrMalformed.collect {
+        case Right(modVer) => modVer
+      }
+    else
+      throw new Exception(
+        "Found parent or BOM dependencies with invalid parameters:" + System.lineSeparator() +
+        malformed.map("- " + _.dep + System.lineSeparator()).mkString +
+        "Only organization, name, and version are accepted."
+      )
+  }
+
+  /**
+   * Dependency management data
+   *
+   * Versions and exclusions in dependency management override those of transitive dependencies,
+   * while they have no effect if the corresponding dependency isn't pulled during dependency
+   * resolution.
+   *
+   * For example, the following forces com.lihaoyi::os-lib to version 0.11.3, and
+   * excludes org.slf4j:slf4j-api from com.lihaoyi::cask that it forces to version 0.9.4
+   * {{{
+   *   def dependencyManagement = super.dependencyManagement() ++ Agg(
+   *     ivy"com.lihaoyi::os-lib:0.11.3",
+   *     ivy"com.lihaoyi::cask:0.9.4".exclude("org.slf4j", "slf4j-api")
+   *   )
+   * }}}
+   */
   def dependencyManagement: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
+  /**
+   * Data from dependencyManagement, converted to a type ready to be passed to coursier
+   * for dependency resolution
+   */
   def dependencyManagementDict: Task[Seq[(DependencyManagement.Key, DependencyManagement.Values)]] =
     Task.Anon {
-      dependencyManagement().toSeq.map(bindDependency()).map(_.dep).map { depMgmt =>
-        val key = DependencyManagement.Key(
-          depMgmt.module.organization,
-          depMgmt.module.name,
-          coursier.core.Type.jar,
-          depMgmt.publication.classifier
-        )
-        val values = DependencyManagement.Values(
-          Configuration.empty,
-          depMgmt.version,
-          depMgmt.minimizedExclusions,
-          depMgmt.optional
-        )
-        key -> values
+      val keyValuesOrErrors = dependencyManagement().toSeq.map(bindDependency()).map(_.dep).map { depMgmt =>
+        val fromUsedValues = coursier.core.Dependency(depMgmt.module, depMgmt.version)
+          .withPublication(coursier.core.Publication("", depMgmt.publication.`type`, coursier.core.Extension.empty, depMgmt.publication.classifier))
+          .withMinimizedExclusions(depMgmt.minimizedExclusions)
+          .withOptional(depMgmt.optional)
+          .withConfiguration(Configuration.defaultCompile)
+        if (fromUsedValues == depMgmt) {
+          val key = DependencyManagement.Key(
+            depMgmt.module.organization,
+            depMgmt.module.name,
+            if (depMgmt.publication.`type`.isEmpty) coursier.core.Type.jar else depMgmt.publication.`type`,
+            depMgmt.publication.classifier
+          )
+          val values = DependencyManagement.Values(
+            Configuration.empty,
+            if (depMgmt.version == "_") "" // shouldn't be needed with future coursier versions
+            else depMgmt.version,
+            depMgmt.minimizedExclusions,
+            depMgmt.optional
+          )
+          Right(key -> values)
+        }
+        else
+          Left(depMgmt)
       }
+
+      val errors = keyValuesOrErrors.collect {
+        case Left(errored) => errored
+      }
+      if (errors.isEmpty)
+        keyValuesOrErrors.collect { case Right(kv) => kv }
+      else
+        throw new Exception(
+          "Found dependency management entries with invalid values. Only organization, name, version, type, classifier, exclusions, and optionality can be specified" + System.lineSeparator() +
+            errors.map("- " + _ + System.lineSeparator()).mkString
+        )
     }
 
   /**
@@ -672,7 +736,7 @@ trait JavaModule
     defaultResolver().resolveDeps(
       transitiveCompileIvyDeps() ++ transitiveIvyDeps(),
       artifactTypes = Some(artifactTypes()),
-      bomDeps = allBomDeps().map(bindDependency())
+      bomDeps = allBomDeps()
     )
   }
 
@@ -688,7 +752,7 @@ trait JavaModule
     defaultResolver().resolveDeps(
       transitiveRunIvyDeps() ++ transitiveIvyDeps(),
       artifactTypes = Some(artifactTypes()),
-      bomDeps = allBomDeps().map(bindDependency())
+      bomDeps = allBomDeps()
     )
   }
 
@@ -956,7 +1020,7 @@ trait JavaModule
         customizer = resolutionCustomizer(),
         coursierCacheCustomizer = coursierCacheCustomizer(),
         resolutionParams = resolutionParams(),
-        bomDeps = allBomDeps().map(bindDependency())
+        bomDeps = allBomDeps()
       ).getOrThrow
 
       val roots = whatDependsOn match {
@@ -1168,14 +1232,14 @@ trait JavaModule
           defaultResolver().resolveDeps(
             transitiveCompileIvyDeps() ++ transitiveIvyDeps(),
             sources = true,
-            bomDeps = allBomDeps().map(bindDependency())
+            bomDeps = allBomDeps()
           )
         },
         Task.Anon {
           defaultResolver().resolveDeps(
             transitiveRunIvyDeps() ++ transitiveIvyDeps(),
             sources = true,
-            bomDeps = allBomDeps().map(bindDependency())
+            bomDeps = allBomDeps()
           )
         }
       )

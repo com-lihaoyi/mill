@@ -27,11 +27,17 @@ object BomTests extends UtestIntegrationTestSuite {
       ujson.read(res.out).arr.map(v => os.Path(v.str.split(":").last).last).toSeq
     }
 
-    def compileClasspathContains(module: String, fileName: String)(implicit
+    def compileClasspathContains(
+        module: String,
+        fileName: String,
+        jarCheck: Option[String => Boolean]
+    )(implicit
         tester: IntegrationTester
     ) = {
       val fileNames = compileClasspathFileNames(module)
       assert(fileNames.contains(fileName))
+      for (check <- jarCheck; fileName <- fileNames)
+        assert(check(fileName))
     }
 
     def publishLocalAndResolve(
@@ -44,7 +50,11 @@ object BomTests extends UtestIntegrationTestSuite {
 
       coursierapi.Fetch.create()
         .addDependencies(
-          coursierapi.Dependency.of("com.lihaoyi.mill-tests", module.replace('.', '-'), "0.1.0-SNAPSHOT")
+          coursierapi.Dependency.of(
+            "com.lihaoyi.mill-tests",
+            module.replace('.', '-'),
+            "0.1.0-SNAPSHOT"
+          )
         )
         .addRepositories(
           coursierapi.IvyRepository.of(localIvyRepo.toNIO.toUri.toASCIIString + "[defaultPattern]")
@@ -65,7 +75,11 @@ object BomTests extends UtestIntegrationTestSuite {
 
       coursierapi.Fetch.create()
         .addDependencies(
-          coursierapi.Dependency.of("com.lihaoyi.mill-tests", module.replace('.', '-'), "0.1.0-SNAPSHOT")
+          coursierapi.Dependency.of(
+            "com.lihaoyi.mill-tests",
+            module.replace('.', '-'),
+            "0.1.0-SNAPSHOT"
+          )
         )
         .addRepositories(
           coursierapi.MavenRepository.of(localM2Repo.toNIO.toUri.toASCIIString)
@@ -79,15 +93,23 @@ object BomTests extends UtestIntegrationTestSuite {
     def isInClassPath(
         module: String,
         jarName: String,
-        dependencyModules: Seq[String] = Nil
+        dependencyModules: Seq[String] = Nil,
+        jarCheck: Option[String => Boolean] = None,
+        ivy2LocalCheck: Boolean = true
     )(implicit tester: IntegrationTester): Unit = {
-      compileClasspathContains(module, jarName)
+      compileClasspathContains(module, jarName, jarCheck)
 
-      val resolvedCp = publishLocalAndResolve(module, dependencyModules)
-      assert(resolvedCp.map(_.last).contains(jarName))
+      if (ivy2LocalCheck) {
+        val resolvedCp = publishLocalAndResolve(module, dependencyModules)
+        assert(resolvedCp.map(_.last).contains(jarName))
+        for (check <- jarCheck; fileName <- resolvedCp.map(_.last))
+          assert(check(fileName))
+      }
 
       val resolvedM2Cp = publishM2LocalAndResolve(module, dependencyModules)
       assert(resolvedM2Cp.map(_.last).contains(jarName))
+      for (check <- jarCheck; fileName <- resolvedM2Cp.map(_.last))
+        assert(check(fileName))
     }
 
     test("bom") {
@@ -151,8 +173,66 @@ object BomTests extends UtestIntegrationTestSuite {
         isInClassPath("depMgmt", expectedProtobufJarName)
       }
 
+      test("transitiveOverride") - integrationTest { implicit tester =>
+        isInClassPath("depMgmt.transitive", expectedProtobufJarName, Seq("depMgmt"))
+      }
+
+      test("exclude") - integrationTest { implicit tester =>
+        isInClassPath(
+          "depMgmt.exclude",
+          "Java-WebSocket-1.5.2.jar",
+          jarCheck = Some { jarName =>
+            !jarName.startsWith("slf4j-api-")
+          },
+          ivy2LocalCheck = false // dep mgmt excludes can't be put in ivy.xml
+        )
+      }
+
+      test("transitiveExclude") - integrationTest { implicit tester =>
+        isInClassPath(
+          "depMgmt.exclude.transitive",
+          "Java-WebSocket-1.5.2.jar",
+          Seq("depMgmt.exclude"),
+          jarCheck = Some { jarName =>
+            !jarName.startsWith("slf4j-api-")
+          },
+          ivy2LocalCheck = false // dep mgmt excludes can't be put in ivy.xml
+        )
+      }
+
+      test("onlyExclude") - integrationTest { implicit tester =>
+        isInClassPath(
+          "depMgmt.onlyExclude",
+          "Java-WebSocket-1.5.3.jar",
+          jarCheck = Some { jarName =>
+            !jarName.startsWith("slf4j-api-")
+          },
+          ivy2LocalCheck = false // dep mgmt excludes can't be put in ivy.xml
+        )
+      }
+
+      test("transitiveOnlyExclude") - integrationTest { implicit tester =>
+        isInClassPath(
+          "depMgmt.onlyExclude.transitive",
+          "Java-WebSocket-1.5.3.jar",
+          Seq("depMgmt.onlyExclude"),
+          jarCheck = Some { jarName =>
+            !jarName.startsWith("slf4j-api-")
+          },
+          ivy2LocalCheck = false // dep mgmt excludes can't be put in ivy.xml
+        )
+      }
+
       test("placeholder") - integrationTest { implicit tester =>
         isInClassPath("depMgmt.placeholder", expectedProtobufJarName)
+      }
+
+      test("transitivePlaceholder") - integrationTest { implicit tester =>
+        isInClassPath(
+          "depMgmt.placeholder.transitive",
+          expectedProtobufJarName,
+          Seq("depMgmt.placeholder")
+        )
       }
     }
   }

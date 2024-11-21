@@ -2,7 +2,7 @@ package mill.scalalib
 
 import coursier.cache.FileCache
 import coursier.params.ResolutionParams
-import coursier.{Dependency, Repository, Resolve, Type}
+import coursier.{Dependency, Module, Repository, Resolve, Type}
 import coursier.core.{DependencyManagement, Resolution}
 import mill.define.Task
 import mill.api.PathRef
@@ -57,7 +57,7 @@ trait CoursierModule extends mill.Module {
       deps: Task[Agg[BoundDep]],
       sources: Boolean = false,
       artifactTypes: Option[Set[Type]] = None,
-      bomDeps: Task[Agg[BoundDep]] = Task.Anon(Agg.empty[BoundDep])
+      bomDeps: Task[Agg[(Module, String)]] = Task.Anon(Agg.empty[(Module, String)])
   ): Task[Agg[PathRef]] =
     Task.Anon {
       Lib.resolveDependencies(
@@ -79,14 +79,14 @@ trait CoursierModule extends mill.Module {
       sources: Boolean,
       artifactTypes: Option[Set[Type]]
   ): Task[Agg[PathRef]] =
-    resolveDeps(deps, sources, artifactTypes, Task.Anon(Agg.empty[BoundDep]))
+    resolveDeps(deps, sources, artifactTypes, Task.Anon(Agg.empty[(Module, String)]))
 
   @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
   def resolveDeps(
       deps: Task[Agg[BoundDep]],
       sources: Boolean
   ): Task[Agg[PathRef]] =
-    resolveDeps(deps, sources, None, Task.Anon(Agg.empty[BoundDep]))
+    resolveDeps(deps, sources, None, Task.Anon(Agg.empty[(Module, String)]))
 
   /**
    * Map dependencies before resolving them.
@@ -206,7 +206,7 @@ object CoursierModule {
         deps: IterableOnce[T],
         sources: Boolean = false,
         artifactTypes: Option[Set[coursier.Type]] = None,
-        bomDeps: IterableOnce[T] = Nil
+        bomDeps: IterableOnce[(Module, String)] = Nil
     ): Agg[PathRef] = {
       Lib.resolveDependencies(
         repositories = repositories,
@@ -218,10 +218,11 @@ object CoursierModule {
         coursierCacheCustomizer = coursierCacheCustomizer,
         ctx = ctx,
         resolutionParams = resolutionParams,
-        bomDeps = bomDeps.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
+        bomDeps = bomDeps
       ).getOrThrow
     }
 
+    // bin-compat shim
     def resolveDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean,
@@ -236,10 +237,24 @@ object CoursierModule {
     ): Agg[PathRef] =
       resolveDeps(deps, sources, None, Nil)
 
+    /**
+     * Processes dependencies and BOMs with coursier
+     *
+     * This makes coursier read and process BOM dependencies, and fill version placeholders
+     * in dependencies with the BOMs.
+     *
+     * Note that this doesn't throw when a version placeholder cannot be filled, and just leaves
+     * the placeholder behind.
+     *
+     * @param deps dependencies that might have placeholder versions ("_" as version)
+     * @param resolutionParams coursier resolution parameters
+     * @param bomDeps dependencies to read Bill-Of-Materials from
+     * @return dependencies with version placeholder filled and data read from the BOM dependencies
+     */
     def processDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         resolutionParams: ResolutionParams = ResolutionParams(),
-        bomDeps: IterableOnce[T] = Nil
+        bomDeps: IterableOnce[(Module, String)] = Nil
     ): (Seq[Dependency], DependencyManagement.Map) = {
       val deps0 = deps
         .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
@@ -252,7 +267,7 @@ object CoursierModule {
         coursierCacheCustomizer = coursierCacheCustomizer,
         ctx = ctx,
         resolutionParams = resolutionParams,
-        bomDeps = bomDeps.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
+        bomDeps = bomDeps
       ).getOrThrow
       (res.processedRootDependencies, res.bomDepMgmt)
     }

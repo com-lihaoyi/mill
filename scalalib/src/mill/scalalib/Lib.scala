@@ -62,7 +62,7 @@ object Lib {
         coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
       ] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
-      bomDeps: IterableOnce[BoundDep] = Nil
+      bomDeps: IterableOnce[(coursier.core.Module, String)] = Nil
   ): Result[Resolution] = {
     val depSeq = deps.iterator.toSeq
     mill.util.Jvm.resolveDependenciesMetadataSafe(
@@ -74,7 +74,7 @@ object Lib {
       ctx = ctx,
       coursierCacheCustomizer = coursierCacheCustomizer,
       resolutionParams = resolutionParams,
-      bomDeps = bomDeps.iterator.toSeq.map(_.dep)
+      bomDeps = bomDeps
     )
   }
 
@@ -118,7 +118,7 @@ object Lib {
       ] = None,
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
-      bomDeps: IterableOnce[BoundDep] = Nil
+      bomDeps: IterableOnce[(coursier.core.Module, String)] = Nil
   ): Result[Agg[PathRef]] = {
     val depSeq = deps.iterator.toSeq
     mill.util.Jvm.resolveDependencies(
@@ -132,7 +132,7 @@ object Lib {
       ctx = ctx,
       coursierCacheCustomizer = coursierCacheCustomizer,
       resolutionParams = resolutionParams,
-      bomDeps = bomDeps.iterator.map(_.dep).toSeq
+      bomDeps = bomDeps
     ).map(_.map(_.withRevalidateOnce))
   }
 

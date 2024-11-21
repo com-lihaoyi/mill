@@ -7,7 +7,7 @@ import coursier.params.ResolutionParams
 import coursier.parse.RepositoryParser
 import coursier.jvm.{JvmCache, JvmChannel, JvmIndex, JavaHome}
 import coursier.util.Task
-import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Resolve, Type}
+import coursier.{Artifacts, Classifier, Dependency, Module, Repository, Resolution, Resolve, Type}
 import mill.api.Loose.Agg
 import mill.api.{Ctx, PathRef, Result}
 
@@ -64,7 +64,7 @@ trait CoursierSupport {
       resolveFilter: os.Path => Boolean = _ => true,
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
-      bomDeps: IterableOnce[Dependency] = Nil
+      bomDeps: IterableOnce[(Module, String)] = Nil
   ): Result[Agg[PathRef]] = {
     val (localTestDeps, remoteDeps) =
       deps.iterator.toSeq.partitionMap(d => isLocalTestDep(d).toLeft(d))
@@ -257,16 +257,14 @@ trait CoursierSupport {
       ctx: Option[mill.api.Ctx.Log] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
-      bomDeps: IterableOnce[Dependency] = Nil
+      bomDeps: IterableOnce[(Module, String)] = Nil
   ): Result[Resolution] = {
 
     val rootDeps = deps.iterator
       .map(d => mapDependencies.fold(d)(_.apply(d)))
       .toSeq
 
-    val bomDeps0 = bomDeps.iterator
-      .map(d => mapDependencies.fold(d)(_.apply(d)))
-      .toSeq
+    val bomDeps0 = bomDeps.iterator.toSeq
 
     val forceVersions = force.iterator
       .map(mapDependencies.getOrElse(identity[Dependency](_)))
@@ -281,7 +279,7 @@ trait CoursierSupport {
     val resolve = Resolve()
       .withCache(coursierCache0)
       .withDependencies(rootDeps)
-      .withBomDependencies(bomDeps0)
+      .withBomModuleVersions(bomDeps0)
       .withRepositories(repositories)
       .withResolutionParams(resolutionParams0)
       .withMapDependenciesOpt(mapDependencies)

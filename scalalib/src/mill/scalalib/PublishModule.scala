@@ -119,12 +119,15 @@ trait PublishModule extends JavaModule { outer =>
     PathRef(pomPath)
   }
 
+  /**
+   * Dependencies with version placeholder filled from BOMs, alongside with BOM data
+   */
   def bomDetails: T[(Map[coursier.core.Module, String], coursier.core.DependencyManagement.Map)] =
     Task {
       val (processedDeps, depMgmt) = defaultResolver().processDeps(
         transitiveCompileIvyDeps() ++ transitiveIvyDeps(),
         resolutionParams = resolutionParams(),
-        bomDeps = bomDeps().map(bindDependency())
+        bomDeps = allBomDeps()
       )
       (processedDeps.map(_.moduleVersion).toMap, depMgmt)
     }
