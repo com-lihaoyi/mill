@@ -9,22 +9,14 @@ import mill.util.Jvm
 import mill.util.Util.millProjectModule
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.bsp.{ScalaBuildTarget, ScalaPlatform}
-import mill.scalalib.{
-  BoundDep,
-  CrossVersion,
-  Dep,
-  DepSyntax,
-  Lib,
-  SbtModule,
-  ScalaModule,
-  TestModule
-}
+import mill.scalalib.{BoundDep, CrossVersion, Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule}
 import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
-import mill.scalanativelib.api._
-import mill.scalanativelib.worker.{ScalaNativeWorkerExternalModule, api => workerApi}
+import mill.scalanativelib.api.*
+import mill.scalanativelib.worker.{ScalaNativeWorker, ScalaNativeWorkerExternalModule, api as workerApi}
 import mill.T
 import mill.api.PathRef
 import mill.main.client.EnvVars
+import mill.scalanativelib.worker.api.ScalaNativeWorkerApi
 
 trait ScalaNativeModule extends ScalaModule { outer =>
   def scalaNativeVersion: T[String]
@@ -108,10 +100,6 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     ).map(t => (scalaNativeWorkerClasspath() ++ t))
   }
 
-  private[scalanativelib] def scalaNativeBridge = Task.Anon {
-    ScalaNativeWorkerExternalModule.scalaNativeWorker().bridge(bridgeFullClassPath())
-  }
-
   override def scalacPluginIvyDeps: T[Agg[Dep]] = Task {
     super.scalacPluginIvyDeps() ++ Agg(
       ivy"org.scala-native:::nscplugin:${scalaNativeVersion()}"
@@ -149,18 +137,26 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   def nativeWorkdir = Task { T.dest }
 
+
+  class ScalaNativeBridge(scalaNativeWorkerValue: ScalaNativeWorker,
+                          bridgeFullClassPathValue: Agg[PathRef]) {
+    def apply[T](block: ScalaNativeWorkerApi => T) = {
+      scalaNativeWorkerValue.scalaNativeInstanceCache.withValue(bridgeFullClassPathValue){
+        case (cl, bridge) => block(bridge)
+      }
+    }
+  }
+  private[scalanativelib] def withScalaNativeBridge[T] = Task.Anon{
+    new ScalaNativeBridge(ScalaNativeWorkerExternalModule.scalaNativeWorker(), bridgeFullClassPath())
+  }
   // Location of the clang compiler
   def nativeClang = Task {
-    os.Path(
-      scalaNativeBridge().discoverClang()
-    )
+    os.Path(withScalaNativeBridge().apply(_.discoverClang()))
   }
 
   // Location of the clang++ compiler
   def nativeClangPP = Task {
-    os.Path(
-      scalaNativeBridge().discoverClangPP()
-    )
+    os.Path(withScalaNativeBridge().apply(_.discoverClangPP()))
   }
 
   // GC choice, either "none", "boehm", "immix" or "commix"
@@ -169,21 +165,19 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   def nativeGC = Task {
-    nativeGCInput().getOrElse(
-      scalaNativeBridge().defaultGarbageCollector()
-    )
+    nativeGCInput().getOrElse(withScalaNativeBridge().apply(_.defaultGarbageCollector()))
   }
 
   def nativeTarget: T[Option[String]] = Task { None }
 
   // Options that are passed to clang during compilation
   def nativeCompileOptions = Task {
-    scalaNativeBridge().discoverCompileOptions()
+    withScalaNativeBridge().apply(_.discoverCompileOptions())
   }
 
   // Options that are passed to clang during linking
   def nativeLinkingOptions = Task {
-    scalaNativeBridge().discoverLinkingOptions()
+    withScalaNativeBridge().apply(_.discoverLinkingOptions())
   }
 
   // Whether to link `@stub` methods, or ignore them
@@ -229,8 +223,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   private def nativeConfig: Task[NativeConfig] = Task.Anon {
     val classpath = runClasspath().map(_.path).filter(_.toIO.exists).toList
-
-    scalaNativeBridge().config(
+    withScalaNativeBridge().apply(_.config(
       finalMainClassOpt(),
       classpath.map(_.toIO),
       nativeWorkdir().toIO,
@@ -250,7 +243,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       nativeMultithreading(),
       toWorkerApi(logLevel()),
       toWorkerApi(nativeBuildTarget())
-    ) match {
+    )) match {
       case Right(config) => Result.Success(NativeConfig(config))
       case Left(error) => Result.Failure(error)
     }
@@ -274,10 +267,10 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   // Generates native binary
   def nativeLink = Task {
-    os.Path(scalaNativeBridge().nativeLink(
+    os.Path(withScalaNativeBridge().apply(_.nativeLink(
       nativeConfig().config,
       T.dest.toIO
-    ))
+    )))
   }
 
   // Runs the native binary
@@ -360,7 +353,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
       globSelectors: Task[Seq[String]]
   ): Task[(String, Seq[TestResult])] = Task.Anon {
 
-    val (close, framework) = scalaNativeBridge().getFramework(
+    val (close, framework) = withScalaNativeBridge().apply(_.getFramework(
       nativeLink().toIO,
       forkEnv() ++
         Map(
@@ -369,6 +362,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
         ),
       toWorkerApi(logLevel()),
       testFramework()
+    )
     )
 
     val (doneMsg, results) = TestRunner.runTestFramework(
