@@ -3,8 +3,14 @@
 // tasks in that they let you cache things, but the fact that they let you
 // cache the worker object in-memory allows for greater performance and
 // flexibility: you are no longer limited to caching only serializable data
-// and paying the cost of serializing it to disk every evaluation. This example
-// uses a Worker to provide simple in-memory caching for compressed files.
+// and paying the cost of serializing it to disk every evaluation.
+//
+// This example uses a Worker to provide simple two-level cache: in-memory caching
+// for compressed files, in addition to caching them on disk. This means that if the
+// Mill process is persistent (e.g. with `--watch`/`-w`) the cache lookups are instant,
+// but even if the Mill process is restarted it can load the cache values from disk
+// without having to recompute them:
+
 package build
 import mill._, scalalib._
 import java.util.Arrays
@@ -30,20 +36,25 @@ class CompressWorker(dest: os.Path) {
   val cache = collection.mutable.Map.empty[Int, Array[Byte]]
   def compress(name: String, bytes: Array[Byte]): Array[Byte] = {
     val hash = Arrays.hashCode(bytes)
-    if (!cache.contains(hash)) {
+    if (!synchronized(cache.contains(hash))) {
       val cachedPath = dest / hash.toHexString
       if (!os.exists(cachedPath)) {
         println("Compressing: " + name)
-        cache(hash) = compressBytes(bytes)
-        os.write(cachedPath, cache(hash))
+        val compressed = compressBytes(bytes)
+        synchronized {
+          cache(hash) = compressed
+          os.write(cachedPath, cache(hash))
+        }
       } else {
         println("Cached from disk: " + name)
-        cache(hash) = os.read.bytes(cachedPath)
+        synchronized {
+          cache(hash) = os.read.bytes(cachedPath)
+        }
       }
     } else {
       println("Cached from memory: " + name)
     }
-    cache(hash)
+    synchronized { cache(hash) }
   }
 }
 
@@ -67,7 +78,9 @@ def compressBytes(input: Array[Byte]) = {
 // but _usage_ of the worker's value may be done concurrently. The user of
 // `Task.Worker` is responsible for ensuring it's value is safe to use in a
 // multi-threaded environment via techniques like locks, atomics, or concurrent data
-// structures
+// structures. The example above uses `synchronized{}` around all access to the
+// shared `cache` state to allow the slow `compressBytes` operation to run in
+// parallel while the fast mutation of the `cache` is single-threaded.
 //
 // Workers live as long as the Mill process. By default, consecutive `mill`
 // commands in the same folder will re-use the same Mill process and workers,
@@ -111,6 +124,10 @@ Cached from disk: world.txt
 // https://github.com/scala-js/scala-js[Scala.js Optimizer].
 // This lets us keep them in-memory with warm caches and fast incremental execution.
 //
+// Like any other task, you can use `./mill clean` to wipe out any cached in-memory or
+// on-disk state belonging to workers. This may be necessary if your worker implementation
+// has bugs that cause the worker disk or in-memory data structures to get into a bad state.
+//
 // === `Autoclosable` Workers
 //
 // As <<Workers>> may also hold limited resources, it may be necessary to free up these resources once a worker is no longer needed.
@@ -128,3 +145,82 @@ class MyWorker() extends AutoCloseable {
 }
 
 def myWorker = Task.Worker { new MyWorker() }
+
+// === `CachedFactory` Workers
+//
+// One very common use case for workers is managing long-lived mutable state. The issue
+// with long-lived mutable state is that in the presence of parallelism (the default in
+// Mill), managing such state can be tricky:
+//
+// * If you allow unrestricted access to the mutable state across multiple threads,
+//   you are subject to race conditions and non-deterministic bugs
+//
+// * If you just synchronize/lock all access to the mutable state, you lose all benefits
+//   for parallelism
+//
+// * If you re-generate the mutable state each time for each thread, you lose the benefits
+//   of it being long lived
+//
+// The solution to these issues is to maintain an in-memory cache, with proper locking,
+// eviction, and invalidation. Doing so is tedious and error prone, and so Mill provides
+// the `CachedFactory` helper to make it easier. The example below re-implements the a simplified
+// version of `CompressWorker` we saw earlier, but using `CacheFactory` to cache, reset, and
+// re-use the `ByteArrayOutputStream` btween calls to `compressWorker2().compress`:
+//
+import mill._
+import java.lang.AutoCloseable
+import mill.api.CachedFactory
+import java.io.ByteArrayOutputStream
+
+def compressWorker2 = Task.Worker { new CompressWorker2(Task.dest) }
+class CompressWorker2(dest: os.Path) extends AutoCloseable {
+  object streamCache extends CachedFactory[Unit, ByteArrayOutputStream] {
+    def setup(key: Unit): ByteArrayOutputStream = new ByteArrayOutputStream()
+    def teardown(key: Unit, value: ByteArrayOutputStream): Unit = value.reset()
+    def maxCacheSize = 10
+  }
+
+  val cache = collection.mutable.Map.empty[Int, Array[Byte]]
+  def compress(name: String, bytes: Array[Byte]): Array[Byte] = {
+    val hash = Arrays.hashCode(bytes)
+    if (!synchronized(cache.contains(hash))) {
+      println("Compressing: " + name)
+      val compressed = streamCache.withValue(()) { bos => compressBytes2(bos, bytes) }
+      synchronized { cache(hash) = compressed }
+    } else {
+      println("Cached from memory: " + name)
+    }
+    synchronized { cache(hash) }
+  }
+
+  override def close() = { streamCache.close() }
+}
+
+def compressBytes2(bos: ByteArrayOutputStream, input: Array[Byte]) = {
+  bos.reset()
+  val gzip = new GZIPOutputStream(bos)
+  gzip.write(input)
+  gzip.close()
+  bos.toByteArray
+}
+
+// * `CachedFactory` takes two type parameters, a `K` key type and a `V` value type.
+//   In this case `K` is `Unit` since all `ByteArrayOutputStream`s are the same, but if you
+//   are caching things which take some kind of configuration (e.g. compilers with compiler
+//   flags) you can set `K` to be the config class so that values with different input
+//   configuration are cached separately.
+//
+// * `setup` creates the `ByteArrayOutputStream`, `maxCacheSize` configures the maximum
+//   number of cached entries to keep around while they are not in use, and when the count
+//   of cached entries exceeds that number `teardown` cleans them up
+//
+// * You should make sure that you wire up the worker's `AutoCloeable#close` method to
+//   `CachedFactory#close()`, so that when the worker is torn down all the respective
+//   cache entries are town down as well
+//
+// Although this example is synthetic (you don't actually need to reset, reuse, and teardown
+// `ByteArrayOutputStream`s) the same techniques would apply to any long-lived mutable state
+// or components you need to manage. This is especially important when
+// xref:extending/running-jvm-code.adoc[running JVM code in classloaders or subprocesses],
+// as those are both expensive to initialize and need to be properly closed or terminated
+// when you are done with them

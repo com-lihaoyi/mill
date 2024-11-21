@@ -1,7 +1,7 @@
 package mill.scalalib.worker
 
 import mill.api.Loose.Agg
-import mill.api.{CacheFactory, CompileProblemReporter, Ctx, PathRef, Result, internal}
+import mill.api.{CachedFactory, CompileProblemReporter, Ctx, PathRef, Result, internal}
 import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerApi, ZincWorkerUtil}
 import os.Path
 import sbt.internal.inc.{
@@ -67,7 +67,7 @@ class ZincWorkerImpl(
       combinedCompilerClasspath.hashCode() + scalaVersion.hashCode() +
         scalaOrganization.hashCode() + javacRuntimeOptions.hashCode()
   }
-  object scalaCompilerCache extends CacheFactory[CompileCacheKey, (URLClassLoader, Compilers)] {
+  object scalaCompilerCache extends CachedFactory[CompileCacheKey, (URLClassLoader, Compilers)] {
 
     override def maxCacheSize = jobs
 
@@ -142,7 +142,7 @@ class ZincWorkerImpl(
     }
   }
 
-  object javaOnlyCompilerCache extends CacheFactory[Seq[String], Compilers] {
+  object javaOnlyCompilerCache extends CachedFactory[Seq[String], Compilers] {
 
     override def setup(key: Seq[String]): Compilers = {
       // Only options relevant for the compiler runtime influence the cached instance

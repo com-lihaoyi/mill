@@ -9,10 +9,23 @@ import mill.util.Jvm
 import mill.util.Util.millProjectModule
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.bsp.{ScalaBuildTarget, ScalaPlatform}
-import mill.scalalib.{BoundDep, CrossVersion, Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule}
+import mill.scalalib.{
+  BoundDep,
+  CrossVersion,
+  Dep,
+  DepSyntax,
+  Lib,
+  SbtModule,
+  ScalaModule,
+  TestModule
+}
 import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
-import mill.scalanativelib.api.*
-import mill.scalanativelib.worker.{ScalaNativeWorker, ScalaNativeWorkerExternalModule, api as workerApi}
+import mill.scalanativelib.api._
+import mill.scalanativelib.worker.{
+  ScalaNativeWorker,
+  ScalaNativeWorkerExternalModule,
+  api => workerApi
+}
 import mill.T
 import mill.api.PathRef
 import mill.main.client.EnvVars
@@ -137,17 +150,21 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   def nativeWorkdir = Task { T.dest }
 
-
-  class ScalaNativeBridge(scalaNativeWorkerValue: ScalaNativeWorker,
-                          bridgeFullClassPathValue: Agg[PathRef]) {
+  class ScalaNativeBridge(
+      scalaNativeWorkerValue: ScalaNativeWorker,
+      bridgeFullClassPathValue: Agg[PathRef]
+  ) {
     def apply[T](block: ScalaNativeWorkerApi => T): T = {
-      scalaNativeWorkerValue.scalaNativeInstanceCache.withValue(bridgeFullClassPathValue){
+      scalaNativeWorkerValue.scalaNativeInstanceCache.withValue(bridgeFullClassPathValue) {
         case (cl, bridge) => block(bridge)
       }
     }
   }
-  private[scalanativelib] def withScalaNativeBridge[T] = Task.Anon{
-    new ScalaNativeBridge(ScalaNativeWorkerExternalModule.scalaNativeWorker(), bridgeFullClassPath())
+  private[scalanativelib] def withScalaNativeBridge[T] = Task.Anon {
+    new ScalaNativeBridge(
+      ScalaNativeWorkerExternalModule.scalaNativeWorker(),
+      bridgeFullClassPath()
+    )
   }
   // Location of the clang compiler
   def nativeClang = Task {
@@ -362,8 +379,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
         ),
       toWorkerApi(logLevel()),
       testFramework()
-    )
-    )
+    ))
 
     val (doneMsg, results) = TestRunner.runTestFramework(
       _ => framework,

@@ -2,8 +2,8 @@ package mill.scalajslib.worker
 
 import java.io.File
 import mill.scalajslib.api
-import mill.scalajslib.worker.api as workerApi
-import mill.api.{CacheFactory, Ctx, Result, internal}
+import mill.scalajslib.worker.{api => workerApi}
+import mill.api.{CachedFactory, Ctx, Result, internal}
 import mill.define.{Discover, Worker}
 import mill.{Agg, PathRef, Task}
 
@@ -11,12 +11,13 @@ import java.net.URLClassLoader
 
 @internal
 private[scalajslib] class ScalaJSWorker(jobs: Int) extends AutoCloseable {
-  object scalaJSWorkerInstanceCache extends CacheFactory[Agg[mill.PathRef], (URLClassLoader, workerApi.ScalaJSWorkerApi)]{
+  object scalaJSWorkerInstanceCache
+      extends CachedFactory[Agg[mill.PathRef], (URLClassLoader, workerApi.ScalaJSWorkerApi)] {
     override def setup(key: Agg[PathRef]) = {
       val cl = mill.api.ClassLoader.create(
         key.map(_.path.toIO.toURI.toURL).toVector,
         getClass.getClassLoader
-      )(new Ctx.Home {override def home = os.home})
+      )(new Ctx.Home { override def home = os.home })
       val bridge = cl
         .loadClass("mill.scalajslib.worker.ScalaJSWorkerImpl")
         .getDeclaredConstructor()
@@ -26,7 +27,10 @@ private[scalajslib] class ScalaJSWorker(jobs: Int) extends AutoCloseable {
       (cl, bridge)
     }
 
-    override def teardown(key: Agg[PathRef], value: (URLClassLoader, workerApi.ScalaJSWorkerApi)): Unit = {
+    override def teardown(
+        key: Agg[PathRef],
+        value: (URLClassLoader, workerApi.ScalaJSWorkerApi)
+    ): Unit = {
       value._1.close()
     }
 
@@ -222,13 +226,13 @@ private[scalajslib] class ScalaJSWorker(jobs: Int) extends AutoCloseable {
     }
   }
 
-  override def close(): Unit = {
-  }
+  override def close(): Unit = {}
 }
 
 @internal
 private[scalajslib] object ScalaJSWorkerExternalModule extends mill.define.ExternalModule {
 
-  def scalaJSWorker: Worker[ScalaJSWorker] = Task.Worker { new ScalaJSWorker(Task.ctx.asInstanceOf[mill.api.Ctx.Jobs].jobs) }
+  def scalaJSWorker: Worker[ScalaJSWorker] =
+    Task.Worker { new ScalaJSWorker(Task.ctx.asInstanceOf[mill.api.Ctx.Jobs].jobs) }
   lazy val millDiscover: Discover = Discover[this.type]
 }

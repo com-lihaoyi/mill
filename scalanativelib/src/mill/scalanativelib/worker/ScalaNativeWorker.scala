@@ -1,6 +1,6 @@
 package mill.scalanativelib.worker
 
-import mill.api.{CacheFactory, Ctx}
+import mill.api.{CachedFactory, Ctx}
 import mill.define.{Discover, Worker}
 import mill.{Agg, PathRef, Task}
 import mill.scalanativelib.worker.{api => workerApi}
@@ -9,7 +9,7 @@ import java.net.URLClassLoader
 
 private[scalanativelib] class ScalaNativeWorker(jobs: Int) extends AutoCloseable {
   object scalaNativeInstanceCache
-      extends CacheFactory[Agg[mill.PathRef], (URLClassLoader, workerApi.ScalaNativeWorkerApi)] {
+      extends CachedFactory[Agg[mill.PathRef], (URLClassLoader, workerApi.ScalaNativeWorkerApi)] {
     override def setup(key: Agg[PathRef]) = {
       val cl = mill.api.ClassLoader.create(
         key.map(_.path.toIO.toURI.toURL).toVector,

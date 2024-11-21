@@ -5,14 +5,14 @@ package mill.api
  * in a multithreaded environment.
  *
  * The user provides the [[setup]] and [[teardown]] logic along with  a [[maxCacheSize]],
- * and [[CacheFactory]] provides instances of [[V]] as requested using the [[withValue]]
+ * and [[CachedFactory]] provides instances of [[V]] as requested using the [[withValue]]
  * method. These instances are automatically constructed on-demand from the give key,
  * cached with an LRU strategy, and destroyed when they are eventually evicted
  *
  * Intended for relatively small caches approximately O(num-threads) in size that
  * will typically get used in a build system, not intended for caching large amounts of entries
  */
-abstract class CacheFactory[K, V] {
+abstract class CachedFactory[K, V] extends AutoCloseable {
   def setup(key: K): V
   def teardown(key: K, value: V): Unit
   def maxCacheSize: Int
@@ -44,5 +44,8 @@ abstract class CacheFactory[K, V] {
         for ((k, v) <- extra) teardown(k, v)
       }
     }
+  }
+  def close(): Unit = synchronized {
+    for ((k, v) <- keyValues) teardown(k, v)
   }
 }
