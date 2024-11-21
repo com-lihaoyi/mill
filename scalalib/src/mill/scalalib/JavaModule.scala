@@ -199,14 +199,15 @@ trait JavaModule
   def bomDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
   def allBomDeps: Task[Agg[(coursier.core.Module, String)]] = Task.Anon {
-    val modVerOrMalformed = (Agg(parentDep().toSeq: _*) ++ bomDeps()).map(bindDependency()).map { bomDep =>
-      val fromModVer = coursier.core.Dependency(bomDep.dep.module, bomDep.dep.version)
-        .withConfiguration(coursier.core.Configuration.defaultCompile)
-      if (fromModVer == bomDep.dep)
-        Right((bomDep.dep.module, bomDep.dep.version))
-      else
-        Left(bomDep)
-    }
+    val modVerOrMalformed =
+      (Agg(parentDep().toSeq: _*) ++ bomDeps()).map(bindDependency()).map { bomDep =>
+        val fromModVer = coursier.core.Dependency(bomDep.dep.module, bomDep.dep.version)
+          .withConfiguration(coursier.core.Configuration.defaultCompile)
+        if (fromModVer == bomDep.dep)
+          Right((bomDep.dep.module, bomDep.dep.version))
+        else
+          Left(bomDep)
+      }
 
     val malformed = modVerOrMalformed.collect {
       case Left(malformedBomDep) =>
@@ -219,8 +220,8 @@ trait JavaModule
     else
       throw new Exception(
         "Found parent or BOM dependencies with invalid parameters:" + System.lineSeparator() +
-        malformed.map("- " + _.dep + System.lineSeparator()).mkString +
-        "Only organization, name, and version are accepted."
+          malformed.map("- " + _.dep + System.lineSeparator()).mkString +
+          "Only organization, name, and version are accepted."
       )
   }
 
@@ -248,31 +249,37 @@ trait JavaModule
    */
   def dependencyManagementDict: Task[Seq[(DependencyManagement.Key, DependencyManagement.Values)]] =
     Task.Anon {
-      val keyValuesOrErrors = dependencyManagement().toSeq.map(bindDependency()).map(_.dep).map { depMgmt =>
-        val fromUsedValues = coursier.core.Dependency(depMgmt.module, depMgmt.version)
-          .withPublication(coursier.core.Publication("", depMgmt.publication.`type`, coursier.core.Extension.empty, depMgmt.publication.classifier))
-          .withMinimizedExclusions(depMgmt.minimizedExclusions)
-          .withOptional(depMgmt.optional)
-          .withConfiguration(Configuration.defaultCompile)
-        if (fromUsedValues == depMgmt) {
-          val key = DependencyManagement.Key(
-            depMgmt.module.organization,
-            depMgmt.module.name,
-            if (depMgmt.publication.`type`.isEmpty) coursier.core.Type.jar else depMgmt.publication.`type`,
-            depMgmt.publication.classifier
-          )
-          val values = DependencyManagement.Values(
-            Configuration.empty,
-            if (depMgmt.version == "_") "" // shouldn't be needed with future coursier versions
-            else depMgmt.version,
-            depMgmt.minimizedExclusions,
-            depMgmt.optional
-          )
-          Right(key -> values)
+      val keyValuesOrErrors =
+        dependencyManagement().toSeq.map(bindDependency()).map(_.dep).map { depMgmt =>
+          val fromUsedValues = coursier.core.Dependency(depMgmt.module, depMgmt.version)
+            .withPublication(coursier.core.Publication(
+              "",
+              depMgmt.publication.`type`,
+              coursier.core.Extension.empty,
+              depMgmt.publication.classifier
+            ))
+            .withMinimizedExclusions(depMgmt.minimizedExclusions)
+            .withOptional(depMgmt.optional)
+            .withConfiguration(Configuration.defaultCompile)
+          if (fromUsedValues == depMgmt) {
+            val key = DependencyManagement.Key(
+              depMgmt.module.organization,
+              depMgmt.module.name,
+              if (depMgmt.publication.`type`.isEmpty) coursier.core.Type.jar
+              else depMgmt.publication.`type`,
+              depMgmt.publication.classifier
+            )
+            val values = DependencyManagement.Values(
+              Configuration.empty,
+              if (depMgmt.version == "_") "" // shouldn't be needed with future coursier versions
+              else depMgmt.version,
+              depMgmt.minimizedExclusions,
+              depMgmt.optional
+            )
+            Right(key -> values)
+          } else
+            Left(depMgmt)
         }
-        else
-          Left(depMgmt)
-      }
 
       val errors = keyValuesOrErrors.collect {
         case Left(errored) => errored
