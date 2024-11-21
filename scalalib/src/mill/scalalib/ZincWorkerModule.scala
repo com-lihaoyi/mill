@@ -3,7 +3,7 @@ package mill.scalalib
 import coursier.Repository
 import mainargs.Flag
 import mill._
-import mill.api.{Ctx, FixSizedCache, KeyedLockedCache, PathRef, Result}
+import mill.api.{Ctx, PathRef, Result}
 import mill.define.{Discover, ExternalModule, Task}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.api.ZincWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}

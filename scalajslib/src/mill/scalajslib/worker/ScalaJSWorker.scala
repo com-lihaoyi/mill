@@ -5,7 +5,6 @@ import mill.scalajslib.api
 import mill.scalajslib.worker.api as workerApi
 import mill.api.{CacheFactory, Ctx, Result, internal}
 import mill.define.{Discover, Worker}
-import mill.scalajslib.worker.api.ScalaJSWorkerApi
 import mill.{Agg, PathRef, Task}
 
 import java.net.URLClassLoader

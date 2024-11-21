@@ -140,7 +140,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   class ScalaNativeBridge(scalaNativeWorkerValue: ScalaNativeWorker,
                           bridgeFullClassPathValue: Agg[PathRef]) {
-    def apply[T](block: ScalaNativeWorkerApi => T) = {
+    def apply[T](block: ScalaNativeWorkerApi => T): T = {
       scalaNativeWorkerValue.scalaNativeInstanceCache.withValue(bridgeFullClassPathValue){
         case (cl, bridge) => block(bridge)
       }

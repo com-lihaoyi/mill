@@ -22,8 +22,8 @@ abstract class CacheFactory[K, V] {
   private var keyValues: List[(K, V)] = List.empty
 
   def withValue[R](key: K)(block: V => R): R = {
-    val valueOpt: Option[V] = synchronized{
-      keyValues.iterator.zipWithIndex.collectFirst{case ((`key`, v), i) => (v, i)} match{
+    val valueOpt: Option[V] = synchronized {
+      keyValues.iterator.zipWithIndex.collectFirst { case ((`key`, v), i) => (v, i) } match {
         case None => None
         case Some((v, i)) =>
           keyValues = keyValues.patch(i, Nil, 1)
@@ -31,17 +31,17 @@ abstract class CacheFactory[K, V] {
       }
     }
 
-    val value: V = valueOpt match{
+    val value: V = valueOpt match {
       case Some(v) => v
       case None => setup(key)
     }
 
     try block(value)
     finally {
-      synchronized{
+      synchronized {
         val (newKeyValues, extra) = ((key, value) :: keyValues).splitAt(maxCacheSize)
         keyValues = newKeyValues
-        for((k, v) <- extra) teardown(k, v)
+        for ((k, v) <- extra) teardown(k, v)
       }
     }
   }
