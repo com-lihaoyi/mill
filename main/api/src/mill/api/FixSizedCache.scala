@@ -12,6 +12,7 @@ import java.util.concurrent.{ConcurrentHashMap, Semaphore}
  *
  * @param perKeySize Cache Size per unique key
  */
+@deprecated("Use mill.api.CachedFactory instead", "Mill since 0.12.3")
 class FixSizedCache[T](perKeySize: Int) extends KeyedLockedCache[T] {
 
   // Cache Key -> (Semaphore, Array of cached elements)
