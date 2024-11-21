@@ -12,7 +12,7 @@ Mill, like it is in Gradle, and unlike the 5 line `<dependency>` declaration you
 Like Gradle, end users can easily customize their build to fit their exact needs without
 needing to go through the process of writing plugins.
 
-* **Mill can be xref:comparisons/gradle.adoc#_performance[2-3x faster than Gradle]**:
+* **Mill can be xref:comparisons/gradle.adoc#_performance[2-4x faster than Gradle]**:
 Although both Mill and Gradle automatically cache and parallelize your build, Mill
 does so with much less fixed overhead. This means less time waiting for your build
 tool, and more time for the things that really matter to your project.
