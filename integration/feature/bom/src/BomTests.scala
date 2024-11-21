@@ -42,7 +42,8 @@ object BomTests extends UtestIntegrationTestSuite {
 
     def publishLocalAndResolve(
         module: String,
-        dependencyModules: Seq[String]
+        dependencyModules: Seq[String],
+        scalaSuffix: String
     )(implicit tester: IntegrationTester): Seq[os.Path] = {
       val localIvyRepo = tester.workspacePath / "ivy2Local"
       for (moduleName <- module +: dependencyModules)
@@ -52,7 +53,7 @@ object BomTests extends UtestIntegrationTestSuite {
         .addDependencies(
           coursierapi.Dependency.of(
             "com.lihaoyi.mill-tests",
-            module.replace('.', '-'),
+            module.replace('.', '-') + scalaSuffix,
             "0.1.0-SNAPSHOT"
           )
         )
@@ -67,7 +68,8 @@ object BomTests extends UtestIntegrationTestSuite {
 
     def publishM2LocalAndResolve(
         module: String,
-        dependencyModules: Seq[String]
+        dependencyModules: Seq[String],
+        scalaSuffix: String
     )(implicit tester: IntegrationTester): Seq[os.Path] = {
       val localM2Repo = tester.workspacePath / "m2Local"
       for (moduleName <- module +: dependencyModules)
@@ -77,7 +79,7 @@ object BomTests extends UtestIntegrationTestSuite {
         .addDependencies(
           coursierapi.Dependency.of(
             "com.lihaoyi.mill-tests",
-            module.replace('.', '-'),
+            module.replace('.', '-') + scalaSuffix,
             "0.1.0-SNAPSHOT"
           )
         )
@@ -95,18 +97,19 @@ object BomTests extends UtestIntegrationTestSuite {
         jarName: String,
         dependencyModules: Seq[String] = Nil,
         jarCheck: Option[String => Boolean] = None,
-        ivy2LocalCheck: Boolean = true
+        ivy2LocalCheck: Boolean = true,
+        scalaSuffix: String = ""
     )(implicit tester: IntegrationTester): Unit = {
       compileClasspathContains(module, jarName, jarCheck)
 
       if (ivy2LocalCheck) {
-        val resolvedCp = publishLocalAndResolve(module, dependencyModules)
+        val resolvedCp = publishLocalAndResolve(module, dependencyModules, scalaSuffix)
         assert(resolvedCp.map(_.last).contains(jarName))
         for (check <- jarCheck; fileName <- resolvedCp.map(_.last))
           assert(check(fileName))
       }
 
-      val resolvedM2Cp = publishM2LocalAndResolve(module, dependencyModules)
+      val resolvedM2Cp = publishM2LocalAndResolve(module, dependencyModules, scalaSuffix)
       assert(resolvedM2Cp.map(_.last).contains(jarName))
       for (check <- jarCheck; fileName <- resolvedM2Cp.map(_.last))
         assert(check(fileName))
@@ -156,6 +159,22 @@ object BomTests extends UtestIntegrationTestSuite {
           )
         }
       }
+
+      test("invalid") {
+        test - integrationTest { tester =>
+          import tester._
+
+          val res = eval(
+            ("show", "bom.invalid.exclude"),
+            check = false
+          )
+          assert(
+            res.err.contains(
+              "Found parent or BOM dependencies with invalid parameters:"
+            )
+          )
+        }
+      }
     }
 
     test("parent") {
@@ -165,6 +184,26 @@ object BomTests extends UtestIntegrationTestSuite {
 
       test("dependee") - integrationTest { implicit tester =>
         isInClassPath("parent.dependee", expectedCommonsCompressJarName, Seq("parent"))
+      }
+
+      test("scala") - integrationTest { implicit tester =>
+        isInClassPath("parent.scala", expectedCommonsCompressJarName, scalaSuffix = "_2.13")
+      }
+
+      test("invalid") {
+        test - integrationTest { tester =>
+          import tester._
+
+          val res = eval(
+            ("show", "parent.invalid.exclude"),
+            check = false
+          )
+          assert(
+            res.err.contains(
+              "Found parent or BOM dependencies with invalid parameters:"
+            )
+          )
+        }
       }
     }
 
@@ -221,6 +260,22 @@ object BomTests extends UtestIntegrationTestSuite {
           },
           ivy2LocalCheck = false // dep mgmt excludes can't be put in ivy.xml
         )
+      }
+
+      test("invalid") {
+        test - integrationTest { tester =>
+          import tester._
+
+          val res = eval(
+            ("show", "depMgmt.invalid.transitive"),
+            check = false
+          )
+          assert(
+            res.err.contains(
+              "Found dependency management entries with invalid values."
+            )
+          )
+        }
       }
 
       test("placeholder") - integrationTest { implicit tester =>

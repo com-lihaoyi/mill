@@ -103,7 +103,8 @@ object DocAnnotationsTests extends UtestIntegrationTestSuite {
           |
           |Inputs:
           |    core.transitiveIvyDeps
-          |    core.allBomDeps
+          |    core.parentDep
+          |    core.bomDeps
           |""".stripMargin,
         ivyDepsTree
       )

@@ -58,6 +58,14 @@ object bom extends Module {
       )
     }
   }
+
+  object invalid extends Module {
+    object exclude extends JavaModule {
+      def bomDeps = Agg(
+        ivy"com.google.cloud:libraries-bom:26.50.0".exclude(("foo", "thing"))
+      )
+    }
+  }
 }
 
 object parent extends JavaModule with TestPublishModule {
@@ -70,6 +78,22 @@ object parent extends JavaModule with TestPublishModule {
     def moduleDeps = Seq(
       parent
     )
+  }
+
+  object scala extends ScalaModule with TestPublishModule {
+    def scalaVersion = _root_.scala.util.Properties.versionNumberString
+    def parentDep = Some(ivy"org.apache.spark::spark-parent:3.5.3")
+    def ivyDeps = Agg(
+      ivy"org.apache.commons:commons-compress:_"
+    )
+  }
+
+  object invalid extends Module {
+    object exclude extends JavaModule {
+      def parentDep = Some(
+        ivy"org.apache.spark:spark-parent_2.13:3.5.3".exclude(("foo", "thing"))
+      )
+    }
   }
 }
 
@@ -110,6 +134,19 @@ object depMgmt extends JavaModule with TestPublishModule {
 
     object transitive extends JavaModule with TestPublishModule {
       def moduleDeps = Seq(onlyExclude)
+    }
+  }
+
+  object invalid extends Module {
+    object transitive extends JavaModule {
+      def dependencyManagement = {
+        val dep = ivy"org.java-websocket:Java-WebSocket:1.5.3"
+        Agg(
+          dep.copy(
+            dep = dep.dep.withTransitive(false)
+          )
+        )
+      }
     }
   }
 
