@@ -11,11 +11,9 @@ trait UnidocModule extends ScalaModule {
 
   def unidocVersion: T[Option[String]] = None
 
-  def unidocCompileClasspath = Task {
-    Seq(compile().classes) ++ T.traverse(moduleDeps)(_.compileClasspath)().flatten
-  }
-
   def unidocCommon(local: Boolean) = Task.Anon {
+    def unidocCompileClasspath =
+      Seq(compile().classes) ++ T.traverse(moduleDeps)(_.compileClasspath)().flatten
 
     val unidocSourceFiles =
       allSourceFiles() ++ T.traverse(moduleDeps)(_.allSourceFiles)().flatten
@@ -31,7 +29,7 @@ trait UnidocModule extends ScalaModule {
       "-d",
       T.dest.toString,
       "-classpath",
-      unidocCompileClasspath().map(_.path).mkString(sys.props("path.separator"))
+      unidocCompileClasspath.map(_.path).mkString(sys.props("path.separator"))
     ) ++
       unidocVersion().toSeq.flatMap(Seq("-doc-version", _)) ++
       unidocSourceUrl().toSeq.flatMap { url =>
