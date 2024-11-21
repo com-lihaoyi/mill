@@ -224,6 +224,7 @@ object PomTests extends TestSuite {
       properties,
       PackagingType.Jar,
       None,
+      Agg.empty[Dependency],
       Agg.empty[Dependency]
     ))
 
