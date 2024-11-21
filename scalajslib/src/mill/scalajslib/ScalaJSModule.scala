@@ -139,7 +139,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       esFeatures = esFeatures(),
       moduleSplitStyle = moduleSplitStyle(),
       outputPatterns = scalaJSOutputPatterns(),
-      minify = scalaJSMinify(),
+      minify = scalaJSMinify(isFullLinkJS)(),
       importMap = scalaJSImportMap(),
       experimentalUseWebAssembly = scalaJSExperimentalUseWebAssembly()
     )
@@ -326,8 +326,15 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
    *  cannot do on their own. For the best results, we expect the Scala.js
    *  minifier to be used in conjunction with a general-purpose JavaScript
    *  minifier.
+   * 
+   * @param isFullLinkJS
+   *   whether we are in full-link mode
    */
-  def scalaJSMinify: T[Boolean] = Task { true }
+  def scalaJSMinify(isFullLinkJS: Boolean): T[Boolean] = Task { 
+    // Do not minify fast link JS by default, because that makes it harder to debug the application
+    // code in development.
+    isFullLinkJS
+  }
 
   override def prepareOffline(all: Flag): Command[Unit] = {
     val tasks =
@@ -387,7 +394,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       esFeatures = esFeatures(),
       moduleSplitStyle = moduleSplitStyle(),
       outputPatterns = scalaJSOutputPatterns(),
-      minify = scalaJSMinify(),
+      minify = scalaJSMinify(isFullLinkJS = false)(),
       importMap = scalaJSImportMap(),
       experimentalUseWebAssembly = scalaJSExperimentalUseWebAssembly()
     )
