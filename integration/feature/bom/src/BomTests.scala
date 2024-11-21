@@ -216,6 +216,27 @@ object BomTests extends UtestIntegrationTestSuite {
         isInClassPath("depMgmt.transitive", expectedProtobufJarName, Seq("depMgmt"))
       }
 
+      test("extraExclude") - integrationTest { implicit tester =>
+        isInClassPath(
+          "depMgmt.extraExclude",
+          "cask_2.13-0.9.4.jar",
+          jarCheck = Some { jarName =>
+            !jarName.startsWith("slf4j-api-")
+          }
+        )
+      }
+
+      test("transitiveExtraExclude") - integrationTest { implicit tester =>
+        isInClassPath(
+          "depMgmt.extraExclude.transitive",
+          "cask_2.13-0.9.4.jar",
+          Seq("depMgmt.extraExclude"),
+          jarCheck = Some { jarName =>
+            !jarName.startsWith("slf4j-api-")
+          }
+        )
+      }
+
       test("exclude") - integrationTest { implicit tester =>
         isInClassPath(
           "depMgmt.exclude",

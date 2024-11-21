@@ -155,24 +155,28 @@ trait JavaModule
       depsWithBoms
     else {
       lazy val depMgmtMap = depMgmt.toMap
-      depsWithBoms.map { dep =>
-        val versionOverride =
-          if (dep.dep.version == "_") {
-            val key = DependencyManagement.Key(
-              dep.dep.module.organization,
-              dep.dep.module.name,
-              coursier.core.Type.jar,
-              dep.dep.publication.classifier
-            )
-            // FIXME Exclusions should be added too
-            depMgmtMap.get(key).map(_.version)
-          } else None
-        dep.copy(
-          dep = dep.dep
-            .withOverrides(dep.dep.overrides ++ depMgmt)
-            .withVersion(versionOverride.getOrElse(dep.dep.version))
-        )
-      }
+      depsWithBoms
+        .map(dep => dep.copy(dep = dep.dep.withOverrides(dep.dep.overrides ++ depMgmt)))
+        .map { dep =>
+          val key = DependencyManagement.Key(
+            dep.dep.module.organization,
+            dep.dep.module.name,
+            coursier.core.Type.jar,
+            dep.dep.publication.classifier
+          )
+          val versionOverride =
+            if (dep.dep.version == "_") depMgmtMap.get(key).map(_.version)
+            else None
+          val exclusions = depMgmtMap.get(key)
+            .map(_.minimizedExclusions)
+            .map(dep.dep.minimizedExclusions.join(_))
+            .getOrElse(dep.dep.minimizedExclusions)
+          dep.copy(
+            dep = dep.dep
+              .withVersion(versionOverride.getOrElse(dep.dep.version))
+              .withMinimizedExclusions(exclusions)
+          )
+        }
     }
   }
 

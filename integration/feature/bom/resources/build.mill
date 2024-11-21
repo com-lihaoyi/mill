@@ -109,6 +109,23 @@ object depMgmt extends JavaModule with TestPublishModule {
     def moduleDeps = Seq(depMgmt)
   }
 
+  object extraExclude extends JavaModule with TestPublishModule {
+    def ivyDeps = Agg(
+      ivy"com.lihaoyi:cask_2.13:0.9.4"
+    )
+    def dependencyManagement = Agg(
+      // The exclude should be automatically added to the dependency above
+      // thanks to dependency management, but the version should be left
+      // untouched
+      ivy"com.lihaoyi:cask_2.13:0.9.3"
+        .exclude(("org.slf4j", "slf4j-api"))
+    )
+
+    object transitive extends JavaModule with TestPublishModule {
+      def moduleDeps = Seq(extraExclude)
+    }
+  }
+
   object exclude extends JavaModule with TestPublishModule {
     def ivyDeps = Agg(
       ivy"com.lihaoyi:cask_2.13:0.9.4"
