@@ -98,6 +98,10 @@ trait PublishModule extends JavaModule { outer =>
     bomDeps().map(resolvePublishDependency.apply().apply(_))
   }
 
+  def publishXmlDepMgmt: Task[Agg[Dependency]] = Task.Anon {
+    dependencyManagement().map(resolvePublishDependency.apply().apply(_))
+  }
+
   def pom: T[PathRef] = Task {
     val pom = Pom(
       artifactMetadata(),
@@ -107,7 +111,8 @@ trait PublishModule extends JavaModule { outer =>
       publishProperties(),
       packagingType = pomPackagingType,
       parentProject = pomParentProject(),
-      bomDependencies = publishXmlBomDeps()
+      bomDependencies = publishXmlBomDeps(),
+      dependencyManagement = publishXmlDepMgmt()
     )
     val pomPath = T.dest / s"${artifactId()}-${publishVersion()}.pom"
     os.write.over(pomPath, pom)
@@ -125,7 +130,8 @@ trait PublishModule extends JavaModule { outer =>
     }
 
   def ivy: T[PathRef] = Task {
-    val (rootDepVersions, depMgmt) = bomDetails()
+    val (rootDepVersions, bomDepMgmt) = bomDetails()
+    val depMgmt = dependencyManagementDict() ++ bomDepMgmt
     val publishXmlDeps0 = publishXmlDeps().map { dep =>
       if (dep.artifact.version == "_")
         dep.copy(

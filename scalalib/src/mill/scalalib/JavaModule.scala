@@ -1,7 +1,7 @@
 package mill
 package scalalib
 
-import coursier.core.Resolution
+import coursier.core.{Configuration, DependencyManagement, Resolution}
 import coursier.parse.JavaOrScalaModule
 import coursier.parse.ModuleParser
 import coursier.util.ModuleMatcher
@@ -148,8 +148,33 @@ trait JavaModule
       (bomDep.dep.module, bomDep.dep.version)
     }
     val rawDeps = ivyDeps() ++ mandatoryIvyDeps()
-    if (bomDeps0.isEmpty) rawDeps
-    else rawDeps.map(dep => dep.copy(dep = dep.dep.addBoms(bomDeps0)))
+    val depsWithBoms =
+      if (bomDeps0.isEmpty) rawDeps
+      else rawDeps.map(dep => dep.copy(dep = dep.dep.addBoms(bomDeps0)))
+    val depMgmt = dependencyManagementDict()
+    if (depMgmt.isEmpty)
+      depsWithBoms
+    else {
+      lazy val depMgmtMap = depMgmt.toMap
+      depsWithBoms.map { dep =>
+        val versionOverride =
+          if (dep.dep.version == "_") {
+            val key = DependencyManagement.Key(
+              dep.dep.module.organization,
+              dep.dep.module.name,
+              coursier.core.Type.jar,
+              dep.dep.publication.classifier
+            )
+            // FIXME Exclusions should be added too
+            depMgmtMap.get(key).map(_.version)
+          } else None
+        dep.copy(
+          dep = dep.dep
+            .withOverrides(dep.dep.overrides ++ depMgmt)
+            .withVersion(versionOverride.getOrElse(dep.dep.version))
+        )
+      }
+    }
   }
 
   /**
@@ -175,6 +200,27 @@ trait JavaModule
   def bomDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
   def allBomDeps: T[Agg[Dep]] = Task { parentDep().toSeq ++ bomDeps() }
+
+  def dependencyManagement: T[Agg[Dep]] = Task { Agg.empty[Dep] }
+
+  def dependencyManagementDict: Task[Seq[(DependencyManagement.Key, DependencyManagement.Values)]] =
+    Task.Anon {
+      dependencyManagement().toSeq.map(bindDependency()).map(_.dep).map { depMgmt =>
+        val key = DependencyManagement.Key(
+          depMgmt.module.organization,
+          depMgmt.module.name,
+          coursier.core.Type.jar,
+          depMgmt.publication.classifier
+        )
+        val values = DependencyManagement.Values(
+          Configuration.empty,
+          depMgmt.version,
+          depMgmt.minimizedExclusions,
+          depMgmt.optional
+        )
+        key -> values
+      }
+    }
 
   /**
    * Default artifact types to fetch and put in the classpath. Add extra types

@@ -40,11 +40,12 @@ object Pom {
     properties = properties,
     packagingType = pomSettings.packaging,
     parentProject = None,
-    bomDependencies = Agg.empty[Dependency]
+    bomDependencies = Agg.empty[Dependency],
+    dependencyManagement = Agg.empty[Dependency]
   )
 
   @deprecated(
-    "Use overload with parentProject and bomDependencies parameter instead",
+    "Use overload with parentProject, bomDependencies, and dependencyManagement parameters instead",
     "Mill 0.12.1"
   )
   def apply(
@@ -62,7 +63,8 @@ object Pom {
     properties = properties,
     packagingType = packagingType,
     parentProject = None,
-    bomDependencies = Agg.empty[Dependency]
+    bomDependencies = Agg.empty[Dependency],
+    dependencyManagement = Agg.empty[Dependency]
   )
 
   def apply(
@@ -73,7 +75,8 @@ object Pom {
       properties: Map[String, String],
       packagingType: String,
       parentProject: Option[Artifact],
-      bomDependencies: Agg[Dependency]
+      bomDependencies: Agg[Dependency],
+      dependencyManagement: Agg[Dependency]
   ): String = {
     val xml =
       <project
@@ -116,6 +119,11 @@ object Pom {
           bomDependencies.map(renderDependency(_, isImport = true)).iterator
       }
         </dependencies>
+        <dependencyManagement>
+          <dependencies>
+            {dependencyManagement.map(renderDependency(_)).iterator}
+          </dependencies>
+        </dependencyManagement>
       </project>
 
     val pp = new PrettyPrinter(120, 4)

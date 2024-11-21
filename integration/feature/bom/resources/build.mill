@@ -70,3 +70,21 @@ object `parent-dependee` extends JavaModule with TestPublishModule {
     parent
   )
 }
+
+object depMgmt extends JavaModule with TestPublishModule {
+  def ivyDeps = Agg(
+    ivy"com.thesamet.scalapb:scalapbc_2.13:0.9.8"
+  )
+  override def dependencyManagement = Agg(
+    ivy"com.google.protobuf:protobuf-java:4.28.3"
+  )
+}
+
+object `version-placeholder` extends JavaModule with TestPublishModule {
+  def ivyDeps = Agg(
+    ivy"com.google.protobuf:protobuf-java:_"
+  )
+  override def dependencyManagement = Agg(
+    ivy"com.google.protobuf:protobuf-java:4.28.3"
+  )
+}

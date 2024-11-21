@@ -69,7 +69,10 @@ object Ivy {
       extras: Seq[PublishInfo]
   ): String =
     apply(
-      artifact, dependencies, extras, Nil
+      artifact,
+      dependencies,
+      extras,
+      Nil
     )
 
   private def renderDependency(dep: Dependency): Elem = {
