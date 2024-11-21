@@ -84,9 +84,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
           String => PathRef
         ]
       ], // compilerBridge
-      classOf[(Agg[PathRef], String) => PathRef], // libraryJarNameGrep
-      classOf[(Agg[PathRef], String) => PathRef], // compilerJarNameGrep
-      classOf[KeyedLockedCache[_]], // compilerCache
+      classOf[Int], // jobs
       classOf[Boolean], // compileToJar
       classOf[Boolean], // zincLogDebug
       classOf[Option[PathRef]] // javaHome
@@ -102,9 +100,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
               )
               .value
         )),
-        ZincWorkerUtil.grepJar(_, "scala-library", _, sources = false),
-        ZincWorkerUtil.grepJar(_, "scala-compiler", _, sources = false),
-        new FixSizedCache(jobs),
+        jobs,
         java.lang.Boolean.FALSE,
         java.lang.Boolean.valueOf(zincLogDebug()),
         javaHome()
