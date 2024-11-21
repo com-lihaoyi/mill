@@ -44,7 +44,7 @@ object BomTests extends UtestIntegrationTestSuite {
 
       coursierapi.Fetch.create()
         .addDependencies(
-          coursierapi.Dependency.of("com.lihaoyi.mill-tests", module, "0.1.0-SNAPSHOT")
+          coursierapi.Dependency.of("com.lihaoyi.mill-tests", module.replace('.', '-'), "0.1.0-SNAPSHOT")
         )
         .addRepositories(
           coursierapi.IvyRepository.of(localIvyRepo.toNIO.toUri.toASCIIString + "[defaultPattern]")
@@ -65,7 +65,7 @@ object BomTests extends UtestIntegrationTestSuite {
 
       coursierapi.Fetch.create()
         .addDependencies(
-          coursierapi.Dependency.of("com.lihaoyi.mill-tests", module, "0.1.0-SNAPSHOT")
+          coursierapi.Dependency.of("com.lihaoyi.mill-tests", module.replace('.', '-'), "0.1.0-SNAPSHOT")
         )
         .addRepositories(
           coursierapi.MavenRepository.of(localM2Repo.toNIO.toUri.toASCIIString)
@@ -90,61 +90,69 @@ object BomTests extends UtestIntegrationTestSuite {
       assert(resolvedM2Cp.map(_.last).contains(jarName))
     }
 
-    test("googleCloudJavaCheck") - integrationTest { tester =>
-      import tester._
+    test("bom") {
+      test("placeholder") {
+        test("check") - integrationTest { tester =>
+          import tester._
 
-      val res = eval(
-        ("show", "google-cloud-java-no-bom.compileClasspath"),
-        check = false
-      )
-      assert(
-        res.err.contains(
-          "not found: https://repo1.maven.org/maven2/com/google/protobuf/protobuf-java/_/protobuf-java-_.pom"
-        )
-      )
+          val res = eval(
+            ("show", "bom.placeholder.check.compileClasspath"),
+            check = false
+          )
+          assert(
+            res.err.contains(
+              "not found: https://repo1.maven.org/maven2/com/google/protobuf/protobuf-java/_/protobuf-java-_.pom"
+            )
+          )
+        }
+
+        test("simple") - integrationTest { implicit tester =>
+          isInClassPath("bom.placeholder", expectedProtobufJarName)
+        }
+
+        test("dependee") - integrationTest { implicit tester =>
+          isInClassPath("bom.placeholder.dependee", expectedProtobufJarName, Seq("bom.placeholder"))
+        }
+      }
+
+      test("versionOverride") {
+        test("check") - integrationTest { implicit tester =>
+          val fileNames = compileClasspathFileNames("bom.versionOverride.check")
+          assert(fileNames.exists(v => v.startsWith("protobuf-java-") && v.endsWith(".jar")))
+          assert(!fileNames.contains(expectedProtobufJarName))
+        }
+
+        test("simple") - integrationTest { implicit tester =>
+          isInClassPath("bom.versionOverride", expectedProtobufJarName)
+        }
+
+        test("dependee") - integrationTest { implicit tester =>
+          isInClassPath(
+            "bom.versionOverride.dependee",
+            expectedProtobufJarName,
+            Seq("bom.versionOverride")
+          )
+        }
+      }
     }
 
-    test("googleCloudScalaCheck") - integrationTest { implicit tester =>
-      val fileNames = compileClasspathFileNames("google-cloud-scala-no-bom")
-      assert(fileNames.exists(v => v.startsWith("protobuf-java-") && v.endsWith(".jar")))
-      assert(!fileNames.contains(expectedProtobufJarName))
-    }
+    test("parent") {
+      test("simple") - integrationTest { implicit tester =>
+        isInClassPath("parent", expectedCommonsCompressJarName)
+      }
 
-    test("googleCloudJava") - integrationTest { implicit tester =>
-      isInClassPath("google-cloud-java", expectedProtobufJarName)
-    }
-
-    test("googleCloudScala") - integrationTest { implicit tester =>
-      isInClassPath("google-cloud-scala", expectedProtobufJarName)
-    }
-
-    test("googleCloudJavaDependee") - integrationTest { implicit tester =>
-      isInClassPath("google-cloud-java-dependee", expectedProtobufJarName, Seq("google-cloud-java"))
-    }
-
-    test("googleCloudScalaDependee") - integrationTest { implicit tester =>
-      isInClassPath(
-        "google-cloud-scala-dependee",
-        expectedProtobufJarName,
-        Seq("google-cloud-scala")
-      )
-    }
-
-    test("parent") - integrationTest { implicit tester =>
-      isInClassPath("parent", expectedCommonsCompressJarName)
-    }
-
-    test("parentDependee") - integrationTest { implicit tester =>
-      isInClassPath("parent-dependee", expectedCommonsCompressJarName, Seq("parent"))
+      test("dependee") - integrationTest { implicit tester =>
+        isInClassPath("parent.dependee", expectedCommonsCompressJarName, Seq("parent"))
+      }
     }
 
     test("depMgmt") {
-      test("placeholder") - integrationTest { implicit tester =>
-        isInClassPath("version-placeholder", expectedProtobufJarName)
-      }
-
       test("override") - integrationTest { implicit tester =>
         isInClassPath("depMgmt", expectedProtobufJarName)
+      }
+
+      test("placeholder") - integrationTest { implicit tester =>
+        isInClassPath("depMgmt.placeholder", expectedProtobufJarName)
       }
     }
   }

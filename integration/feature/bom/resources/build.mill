@@ -16,46 +16,48 @@ trait TestPublishModule extends PublishModule {
   def publishVersion = "0.1.0-SNAPSHOT"
 }
 
-object `google-cloud-java` extends JavaModule with TestPublishModule {
-  def bomDeps = Agg(
-    ivy"com.google.cloud:libraries-bom:26.50.0"
-  )
-  def ivyDeps = Agg(
-    ivy"com.google.protobuf:protobuf-java:_"
-  )
-}
+object bom extends Module {
+  object placeholder extends JavaModule with TestPublishModule {
+    def bomDeps = Agg(
+      ivy"com.google.cloud:libraries-bom:26.50.0"
+    )
+    def ivyDeps = Agg(
+      ivy"com.google.protobuf:protobuf-java:_"
+    )
 
-object `google-cloud-java-no-bom` extends JavaModule {
-  def ivyDeps = Agg(
-    ivy"com.google.protobuf:protobuf-java:_"
-  )
-}
+    object dependee extends JavaModule with TestPublishModule {
+      def moduleDeps = Seq(
+        placeholder
+      )
+    }
 
-object `google-cloud-scala` extends JavaModule with TestPublishModule {
-  def bomDeps = Agg(
-    ivy"com.google.cloud:libraries-bom:26.50.0"
-  )
-  def ivyDeps = Agg(
-    ivy"com.thesamet.scalapb:scalapbc_2.13:0.9.8"
-  )
-}
+    object check extends JavaModule {
+      def ivyDeps = Agg(
+        ivy"com.google.protobuf:protobuf-java:_"
+      )
+    }
+  }
 
-object `google-cloud-scala-no-bom` extends JavaModule {
-  def ivyDeps = Agg(
-    ivy"com.thesamet.scalapb:scalapbc_2.13:0.9.8"
-  )
-}
+  object versionOverride extends JavaModule with TestPublishModule {
+    def bomDeps = Agg(
+      ivy"com.google.cloud:libraries-bom:26.50.0"
+    )
+    def ivyDeps = Agg(
+      ivy"com.thesamet.scalapb:scalapbc_2.13:0.9.8"
+    )
 
-object `google-cloud-java-dependee` extends JavaModule with TestPublishModule {
-  def moduleDeps = Seq(
-    `google-cloud-java`
-  )
-}
+    object dependee extends JavaModule with TestPublishModule {
+      def moduleDeps = Seq(
+        versionOverride
+      )
+    }
 
-object `google-cloud-scala-dependee` extends JavaModule with TestPublishModule {
-  def moduleDeps = Seq(
-    `google-cloud-scala`
-  )
+    object check extends JavaModule {
+      def ivyDeps = Agg(
+        ivy"com.thesamet.scalapb:scalapbc_2.13:0.9.8"
+      )
+    }
+  }
 }
 
 object parent extends JavaModule with TestPublishModule {
@@ -63,28 +65,28 @@ object parent extends JavaModule with TestPublishModule {
   def ivyDeps = Agg(
     ivy"org.apache.commons:commons-compress:_"
   )
-}
 
-object `parent-dependee` extends JavaModule with TestPublishModule {
-  def moduleDeps = Seq(
-    parent
-  )
+  object dependee extends JavaModule with TestPublishModule {
+    def moduleDeps = Seq(
+      parent
+    )
+  }
 }
 
 object depMgmt extends JavaModule with TestPublishModule {
   def ivyDeps = Agg(
     ivy"com.thesamet.scalapb:scalapbc_2.13:0.9.8"
   )
-  override def dependencyManagement = Agg(
+  def dependencyManagement = Agg(
     ivy"com.google.protobuf:protobuf-java:4.28.3"
   )
-}
 
-object `version-placeholder` extends JavaModule with TestPublishModule {
-  def ivyDeps = Agg(
-    ivy"com.google.protobuf:protobuf-java:_"
-  )
-  override def dependencyManagement = Agg(
-    ivy"com.google.protobuf:protobuf-java:4.28.3"
-  )
+  object placeholder extends JavaModule with TestPublishModule {
+    def ivyDeps = Agg(
+      ivy"com.google.protobuf:protobuf-java:_"
+    )
+    def dependencyManagement = Agg(
+      ivy"com.google.protobuf:protobuf-java:4.28.3"
+    )
+  }
 }
