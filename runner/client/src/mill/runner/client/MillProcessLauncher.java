@@ -198,7 +198,7 @@ public class MillProcessLauncher {
         .command("tput", s)
         .redirectOutput(ProcessBuilder.Redirect.PIPE)
         .redirectInput(ProcessBuilder.Redirect.INHERIT)
-        .redirectError(ProcessBuilder.Redirect.INHERIT)
+        .redirectError(ProcessBuilder.Redirect.PIPE)
         .start();
     proc.waitFor();
     return Integer.parseInt(new String(proc.getInputStream().readAllBytes()).trim());
