@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 import argparse
 from argparse import Namespace
 from jinja2 import Template

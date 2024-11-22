@@ -7,7 +7,7 @@ import mill._, pythonlib._
 
 object foo extends PythonModule {
 
-  def script: T[PathRef] = Task.Source { millSourcePath / "src" / "foo.py" }
+  def mainScript = Task.Source { millSourcePath / "src" / "foo.py" }
 
   /** Total number of lines in module source files */
   def lineCount = Task {
@@ -46,10 +46,10 @@ object foo extends PythonModule {
 /** Usage
 
 > ./mill foo.run
-Line Count: 21
+Line Count: 14
 
 > ./mill show foo.lineCount
-21
+14
 
 > ./mill inspect foo.lineCount
 ...

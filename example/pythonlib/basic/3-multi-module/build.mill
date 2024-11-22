@@ -7,11 +7,11 @@ trait MyModule extends PythonModule {
 
 object foo extends MyModule {
   def moduleDeps = Seq(bar)
-  def script: T[PathRef] = Task.Source { millSourcePath / "src" / "foo.py" }
+  def mainScript = Task.Source { millSourcePath / "src" / "foo.py" }
 }
 
 object bar extends MyModule {
-  def script: T[PathRef] = Task.Source { millSourcePath / "src" / "bar.py" }
+  def mainScript = Task.Source { millSourcePath / "src" / "bar.py" }
   def pythonDeps = Seq("Jinja2==3.1.4")
 }
 

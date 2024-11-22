@@ -1,19 +1,12 @@
-import os
+from pathlib import Path
+import sys
 
 
 def line_count() -> int:
-    file_path = next(
-        (
-            os.path.join(p, "line-count.txt")
-            for p in os.environ.get("PYTHONPATH", "").split(":")
-            if os.path.exists(os.path.join(p, "line-count.txt"))
-        ),
-        None,
-    )
-
-    if file_path:
-        with open(file_path) as f:
-            return int(f.readline())
+    for path in sys.path:
+        file_path = Path(path) / "line-count.txt"
+        if file_path.exists():
+            return int(file_path.read_text().splitlines()[0])
     return -1
 
 

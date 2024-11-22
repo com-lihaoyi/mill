@@ -1,9 +1,9 @@
 package build
 import mill._, pythonlib._
 
-object foo extends PythonModule { f =>
+object foo extends PythonModule {
 
-  def script: T[PathRef] = Task.Source { millSourcePath / "src" / "foo.py" }
+  def mainScript = Task.Source { millSourcePath / "src" / "foo.py" }
 
   def pythonDeps = Seq("Jinja2==3.1.4")
 

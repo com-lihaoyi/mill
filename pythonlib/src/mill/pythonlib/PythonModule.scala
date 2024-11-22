@@ -34,9 +34,9 @@ trait PythonModule extends Module with TaskModule { outer =>
   }
 
   /**
-   * The script to run. This file may not exist if this module is only a library.
+   * The mainScript to run. This file may not exist if this module is only a library.
    */
-  def script: T[PathRef] = Task.Source { millSourcePath / "src" / "main.py" }
+  def mainScript: T[PathRef] = Task.Source { millSourcePath / "src" / "main.py" }
 
   /**
    * Any python dependencies you want to add to this module. The format of each
@@ -109,14 +109,14 @@ trait PythonModule extends Module with TaskModule { outer =>
   }
 
   /**
-   * Run the main python script of this module.
+   * Run the main python mainScript of this module.
    *
-   * @see [[script]]
+   * @see [[mainScript]]
    */
   def run(args: mill.define.Args) = Task.Command {
     runner().run(
       (
-        script().path,
+        mainScript().path,
         args.value
       )
     )
@@ -148,7 +148,7 @@ trait PythonModule extends Module with TaskModule { outer =>
         transitiveSources().flatMap(pr =>
           Seq("-D", pr.path.toString)
         ),
-        "--exe", script().path,
+        "--exe", mainScript().path,
         "-o", pexFile,
         "--scie", "eager",
         // format: on
