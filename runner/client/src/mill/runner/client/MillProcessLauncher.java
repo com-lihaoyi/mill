@@ -193,7 +193,7 @@ public class MillProcessLauncher {
     return Util.readOptsFileLines(millJvmOptsFile());
   }
 
-  static int getTerminalDim(String s) throws Exception{
+  static int getTerminalDim(String s) throws Exception {
     Process proc = new ProcessBuilder()
         .command("tput", s)
         .redirectOutput(ProcessBuilder.Redirect.PIPE)
@@ -205,10 +205,9 @@ public class MillProcessLauncher {
   }
 
   static void writeTerminalDims(Path serverDir) throws Exception {
-      Files.write(
-          serverDir.resolve(ServerFiles.terminfo),
-          (getTerminalDim("cols") + " " + getTerminalDim("lines")).getBytes());
-
+    Files.write(
+        serverDir.resolve(ServerFiles.terminfo),
+        (getTerminalDim("cols") + " " + getTerminalDim("lines")).getBytes());
   }
 
   public static void runTermInfoThread(Path serverDir) throws Exception {
