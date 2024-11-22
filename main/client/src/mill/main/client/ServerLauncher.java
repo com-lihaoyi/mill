@@ -2,7 +2,6 @@ package mill.main.client;
 
 import static mill.main.client.OutFiles.*;
 
-import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -13,8 +12,6 @@ import java.nio.file.Paths;
 import java.util.Map;
 import mill.main.client.lock.Locks;
 import mill.main.client.lock.TryLocked;
-import org.newsclub.net.unix.AFUNIXSocket;
-import org.newsclub.net.unix.AFUNIXSocketAddress;
 
 /**
  * Client side code that interacts with `Server.scala` in order to launch a generic

@@ -3,8 +3,6 @@ package mill.main.server
 import java.io._
 import java.net.Socket
 import scala.jdk.CollectionConverters._
-import org.newsclub.net.unix.AFUNIXServerSocket
-import org.newsclub.net.unix.AFUNIXSocketAddress
 import mill.main.client._
 import mill.api.SystemStreams
 import mill.main.client.ProxyStream.Output
