@@ -327,7 +327,8 @@ class ZincWorkerImpl(
       reporter = reporter,
       reportCachedProblems = reportCachedProblems,
       incrementalCompilation = incrementalCompilation,
-      auxiliaryClassFileExtensions = Seq.empty[String]
+      auxiliaryClassFileExtensions = Seq.empty[String],
+      usePipeling = false
     )
   }
 
@@ -344,7 +345,8 @@ class ZincWorkerImpl(
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean,
-      auxiliaryClassFileExtensions: Seq[String]
+      auxiliaryClassFileExtensions: Seq[String],
+      usePipeling: Boolean
   )(implicit ctx: ZincWorkerApi.Ctx): Result[CompilationResult] = {
     withCompilers(
       scalaVersion = scalaVersion,
@@ -363,7 +365,8 @@ class ZincWorkerImpl(
         reporter = reporter,
         reportCachedProblems: Boolean,
         incrementalCompilation,
-        auxiliaryClassFileExtensions
+        auxiliaryClassFileExtensions,
+        usePipeling
       )
     }
   }
@@ -458,6 +461,7 @@ class ZincWorkerImpl(
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean,
       auxiliaryClassFileExtensions: Seq[String],
+      usePipeling: Boolean,
       zincCache: os.SubPath = os.sub / "zinc"
   )(implicit ctx: ZincWorkerApi.Ctx): Result[CompilationResult] = {
     os.makeDir.all(ctx.dest)
@@ -542,9 +546,12 @@ class ZincWorkerImpl(
       .map(path => converter.toVirtualFile(path.toNIO))
       .toArray
 
-    val incOptions = IncOptions.of().withAuxiliaryClassFiles(
-      auxiliaryClassFileExtensions.map(new AuxiliaryClassFileExtension(_)).toArray
-    )
+    val incOptions =
+      IncOptions.of()
+        .withAuxiliaryClassFiles(
+          auxiliaryClassFileExtensions.map(new AuxiliaryClassFileExtension(_)).toArray
+        )
+        .withPipelining(usePipeling)
 
     val inputs = ic.inputs(
       classpath = classpath,
