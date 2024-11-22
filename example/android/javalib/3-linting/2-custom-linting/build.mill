@@ -1,7 +1,7 @@
 package build
 
 import mill._
-import mill.javalib.android.{AndroidSdkModule, AndroidAppModule, AndroidLintModule}
+import mill.javalib.android.{AndroidSdkModule, AndroidLintModule}
 
 // Create and configure an Android SDK module to manage Android SDK paths and tools.
 object androidSdkModule0 extends AndroidSdkModule {
@@ -45,7 +45,7 @@ object app extends AndroidLintModule {
 > cat ".../out/app/androidLintRun.dest/report.txt" # Output report content to terminal
 No issues found.
 
-sed -i 's/severity="ignore"/severity="warning"/g' app/lint.xml # Set `MissingApplicationIcon` severity level to warning
+sed -i.bak 's/severity="ignore"/severity="warning"/g' app/lint.xml # Set `MissingApplicationIcon` severity level to warning
 
 > ./mill app.androidLintRun # Rerun the android lint task
 
