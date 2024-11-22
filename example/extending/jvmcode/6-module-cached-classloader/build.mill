@@ -16,7 +16,7 @@ package build
 import mill._, scalalib._
 import mill.util.Jvm
 import mill.api.CachedFactory
-import java.net.URLClassLoader
+import java.net.{URL, URLClassLoader}
 
 trait FooModule extends JavaModule {
   def moduleDeps = Seq(bar)
@@ -37,14 +37,13 @@ object foo2 extends FooModule
 object foo3 extends FooModule
 
 def barWorker: Worker[BarWorker] = Task.Worker {
-  new BarWorker(bar.runClasspath().map(_.path.toIO.toURL).toSeq)
+  new BarWorker(bar.runClasspath().map(_.path).toSeq)
 }
 
-class BarWorker(runClasspath: Seq[java.net.URL])(implicit ctx: mill.api.Ctx)
-    extends CachedFactory[Unit, URLClassLoader] {
+class BarWorker(runClasspath: Seq[os.Path]) extends CachedFactory[Unit, URLClassLoader] {
   def setup(key: Unit) = {
     println("Setting up Classloader")
-    mill.api.ClassLoader.create(runClasspath, parent = null)
+    Jvm.spawnClassloader(runClasspath)
   }
   def teardown(key: Unit, value: URLClassLoader) = {
     println("Tearing down Classloader")
