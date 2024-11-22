@@ -135,5 +135,53 @@ object CachedFactoryTests extends TestSuite {
       assert(resourceCount == 2)
     }
 
+    test("sizeOneKeyed") {
+      // with cache of size 1, cache entries are sometimes re-used,
+      // but only if key matches
+      object cache extends CachedFactory[Char, Resource] {
+        def setup(key: Char): Resource = new Resource
+
+        def teardown(key: Char, value: Resource): Unit = value.close()
+
+        def maxCacheSize = 1
+      }
+
+      assert(closedResourceIds == Set())
+      assert(resourceCount == 0)
+      cache.withValue('a') { resource1 =>
+        assert(resource1.id == 1)
+        assert(closedResourceIds == Set())
+        assert(resourceCount == 1)
+      }
+
+      assert(closedResourceIds == Set())
+      assert(resourceCount == 1)
+
+      cache.withValue('a') { resource2 =>
+        // With the same key, we re-use the cached resource id=1
+        assert(resource2.id == 1)
+        assert(closedResourceIds == Set())
+        assert(resourceCount == 1)
+      }
+
+      assert(closedResourceIds == Set())
+      assert(resourceCount == 1)
+
+      cache.withValue('b') { resource3 =>
+        // with a different key, we need to create a new resource
+        assert(resource3.id == 2)
+        assert(closedResourceIds == Set())
+        assert(resourceCount == 2)
+      }
+
+      // Because maxCacheSize = 1, we close the LRU resource, which is id=1
+      assert(closedResourceIds == Set(1))
+      assert(resourceCount == 2)
+
+      // close() closes the 1 cached resource id=1 who was not yet torn down
+      cache.close()
+      assert(closedResourceIds == Set(1, 2))
+      assert(resourceCount == 2)
+    }
   }
 }
