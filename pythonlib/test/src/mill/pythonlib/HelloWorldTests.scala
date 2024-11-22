@@ -16,7 +16,7 @@ object HelloWorldTests extends TestSuite {
 
     object qux extends PythonModule {
       override def moduleDeps: Seq[PythonModule] = Seq(foo)
-      override def script = T.source(millSourcePath / "src" / "qux.py")
+      override def mainScript = T.source(millSourcePath / "src" / "qux.py")
       object test extends PythonTests with TestModule.Unittest
     }
   }
