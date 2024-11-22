@@ -3,7 +3,7 @@ package mill.javalib.android
 import mill._
 import mill.api.PathRef
 import mill.define.ModuleRef
-import mill.scalalib.JavaModule
+import mill.javalib.android.AndroidAppModule
 
 /**
  * Android Lint Module for integrating the Android Lint tool in a Mill build.
@@ -12,16 +12,7 @@ import mill.scalalib.JavaModule
  * specifying lint rules, managing reports, and more.
  */
 @mill.api.experimental
-trait AndroidLintModule extends JavaModule {
-
-  /**
-   * Abstract method to provide access to the Android SDK configuration.
-   *
-   * This method must be implemented by the concrete class to specify the SDK paths.
-   *
-   * @return The Android SDK module that is used across the project.
-   */
-  def androidSdkModule: ModuleRef[AndroidSdkModule]
+trait AndroidLintModule extends AndroidAppModule {
 
   /**
    * Specifies the file format of lint report. Available file formats are "html", "xml", "txt" and "sarif".
