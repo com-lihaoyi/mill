@@ -1,0 +1,71 @@
+// Java Virtual Machines are expensive to initialize and with a large memory footprint,
+// therefore if you tend to be doing a lot of classloader or subprocess operations it
+// makes sense to re-use the JVM. You can do this using the
+// xref:fundamentals/tasks.adoc#_cachedfactory_workers[CachedFactory] helper class, which
+// makes it easy to cache, re-use, and teardown these expensive long-lived components.
+//
+// The example below is similar to <<Running a JavaModule in a Classloader>> above,
+// but in this case the `bar.Bar` class relies on class-level mutable state in its
+// implementation, and so sharing the same `URLClassLoader` across different
+// `foo*` tasks running on different threads is not thread-safe. To resolve this,
+// we make the `barWorker` contain an instance of `mill.api.CachedFactory`,
+// which ensures that the classloaders are created when necessary,
+// cached/re-used where possible, and torn down properly when no longer necessary.
+
+package build
+import mill._, scalalib._
+import mill.util.Jvm
+import mill.api.CachedFactory
+import java.net.URLClassLoader
+
+trait FooModule extends JavaModule {
+  def moduleDeps = Seq(bar)
+
+  def sources = Task {
+    barWorker().withValue(()) { classLoader =>
+      classLoader
+        .loadClass("bar.Bar")
+        .getMethod("main", classOf[Array[String]])
+        .invoke(null, Array(Task.dest.toString) ++ super.sources().map(_.path.toString))
+    }
+    Seq(PathRef(Task.dest))
+  }
+}
+
+object foo1 extends FooModule
+object foo2 extends FooModule
+object foo3 extends FooModule
+
+def barWorker: Worker[BarWorker] = Task.Worker {
+  new BarWorker(bar.runClasspath().map(_.path.toIO.toURL).toSeq)
+}
+
+class BarWorker(runClasspath: Seq[java.net.URL])(implicit ctx: mill.api.Ctx)
+    extends CachedFactory[Unit, URLClassLoader] {
+  def setup(key: Unit) = {
+    println("Setting up Classloader")
+    mill.api.ClassLoader.create(runClasspath, parent = null)
+  }
+  def teardown(key: Unit, value: URLClassLoader) = {
+    println("Tearing down Classloader")
+    value.close()
+  }
+  def maxCacheSize = 2
+}
+
+object bar extends JavaModule
+
+/** Usage
+
+> mill '{foo1,foo2,foo3}.run' # 3 classloaders are setup, one is torn down due to maxCacheSize
+Setting up Classloader
+Setting up Classloader
+Setting up Classloader
+Tearing down Classloader
+Foo.value: HELLO
+
+> mill clean # mill clean tears down the 2 remaining classloaders
+Tearing down Classloader
+Tearing down Classloader
+
+*/

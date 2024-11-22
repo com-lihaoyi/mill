@@ -48,8 +48,4 @@ include::partial$example/extending/jvmcode/5-module-classloader.adoc[]
 
 == Caching and Re-using JVM subprocesses and classloaders
 
-Java Virtual Machines are expensive to initialize and with a large memory footprint,
-therefore if you tend to be doing a lot of classloader or subprocess operations it
-makes sense to re-use the JVM. You can do this using the
-xref:fundamentals/tasks.adoc#_cachedfactory_workers[CachedFactory] helper class, which
-makes it easy to cache, re-use, and teardown these expensive long-lived components.
+include::partial$example/extending/jvmcode/6-module-cached-classloader.adoc[]
