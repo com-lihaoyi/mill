@@ -25,7 +25,7 @@ public class ServerFiles {
   /**
    * The port used to connect between server and client
    */
-  public static final String socketPort = "socket-port";
+  public static final String socketPort = "socketPort";
 
   /**
    * The pipe by which the client snd server exchange IO
