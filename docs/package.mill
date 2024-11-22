@@ -10,6 +10,14 @@ object `package` extends RootModule {
   // This module isn't really a ScalaModule, but we use it to generate
   // consolidated documentation using the Scaladoc tool.
   object site extends UnidocModule {
+    def unidocCompileClasspath =
+      super.unidocCompileClasspath().filter { ref =>
+        // Workaround for https://github.com/scala/bug/issues/10028
+        // We exclude the JAR of coursier/dependency here, so that
+        // scaladoc doesn't create an entry for its `dependency`
+        // package object in the Mill scaladoc.
+        !ref.path.lastOpt.exists(_.startsWith("dependency_2.13-"))
+      }
     def scalaVersion = build.Deps.scalaVersion
     def moduleDeps = build.millInternal.modules.collect {
       case m: build.MillStableScalaModule => m
