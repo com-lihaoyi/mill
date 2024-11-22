@@ -130,14 +130,13 @@ public abstract class ServerLauncher {
 
     while (locks.processLock.probe()) Thread.sleep(3);
 
-    String socketName = ServerFiles.pipe(serverDir.toString());
     long retryStart = System.currentTimeMillis();
     Socket ioSocket = null;
     Throwable socketThrowable = null;
     while (ioSocket == null && System.currentTimeMillis() - retryStart < serverInitWaitMillis) {
       try {
         int port = Integer.parseInt(Files.readString(serverDir.resolve(ServerFiles.socketPort)));
-        ioSocket = new java.net.Socket("localhost", port);
+        ioSocket = new java.net.Socket("127.0.0.1", port);
       } catch (Throwable e) {
         socketThrowable = e;
         Thread.sleep(10);

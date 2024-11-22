@@ -1,7 +1,7 @@
 package mill.main.server
 
 import java.io._
-import java.net.Socket
+import java.net.{InetAddress, Socket}
 import scala.jdk.CollectionConverters._
 import mill.main.client._
 import mill.api.SystemStreams
@@ -46,7 +46,7 @@ abstract class Server[T](
 
         while (
           running && {
-            val serverSocket = new java.net.ServerSocket(0)
+            val serverSocket = new java.net.ServerSocket(0, 0, InetAddress.getByName(null))
             os.write.over(serverDir / ServerFiles.socketPort, serverSocket.getLocalPort.toString)
             try
               interruptWithTimeout(() => serverSocket.close(), () => serverSocket.accept()) match {
