@@ -78,10 +78,14 @@ trait AndroidLintModule extends AndroidAppModule {
     }
 
     // Prepare the baseline argument if the baseline path is set
-    val baselineArg = androidLintBaselinePath().map(baseline => Seq("--baseline", baseline.path.toString)).getOrElse(Seq.empty)
+    val baselineArg = androidLintBaselinePath().map(baseline =>
+      Seq("--baseline", baseline.path.toString)
+    ).getOrElse(Seq.empty)
 
     // Prepare the lint configuration argument if the config path is set
-    val configArg = androidLintConfigPath().map(config => Seq("--config", config.path.toString)).getOrElse(Seq.empty)
+    val configArg = androidLintConfigPath().map(config =>
+      Seq("--config", config.path.toString)
+    ).getOrElse(Seq.empty)
 
     // Include the classpath argument if there are dependencies to include
     val classpathArg = if (androidLintClasspath().nonEmpty) {
