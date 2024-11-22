@@ -3,7 +3,7 @@ package mill.util
 private object PromptLoggerUtil {
 
   private[mill] val defaultTermWidth = 99
-  private[mill] val defaultTermHeight = 50
+  private[mill] val defaultTermHeight = 25
 
   /**
    * How often to update the multiline status prompt on the terminal.
