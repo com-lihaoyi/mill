@@ -205,13 +205,15 @@ public class MillProcessLauncher {
   }
 
   static void writeTerminalDims(Path serverDir) throws Exception {
+    String str;
     try {
-      Files.write(
-          serverDir.resolve(ServerFiles.terminfo),
-          (getTerminalDim("cols") + " " + getTerminalDim("lines")).getBytes());
+      str = java.lang.System.console() == null
+          ? "0 0"
+          : getTerminalDim("cols") + " " + getTerminalDim("lines");
     } catch (Exception e) {
-      Files.write(serverDir.resolve(ServerFiles.terminfo), "".getBytes());
+      str = "0 0";
     }
+    Files.write(serverDir.resolve(ServerFiles.terminfo), str.getBytes());
   }
 
   public static void runTermInfoThread(Path serverDir) throws Exception {
