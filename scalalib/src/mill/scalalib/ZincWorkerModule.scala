@@ -3,7 +3,7 @@ package mill.scalalib
 import coursier.Repository
 import mainargs.Flag
 import mill._
-import mill.api.{Ctx, FixSizedCache, KeyedLockedCache, PathRef, Result}
+import mill.api.{Ctx, PathRef, Result}
 import mill.define.{Discover, ExternalModule, Task}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.api.ZincWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
@@ -84,9 +84,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
           String => PathRef
         ]
       ], // compilerBridge
-      classOf[(Agg[PathRef], String) => PathRef], // libraryJarNameGrep
-      classOf[(Agg[PathRef], String) => PathRef], // compilerJarNameGrep
-      classOf[KeyedLockedCache[_]], // compilerCache
+      classOf[Int], // jobs
       classOf[Boolean], // compileToJar
       classOf[Boolean], // zincLogDebug
       classOf[Option[PathRef]] // javaHome
@@ -102,9 +100,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
               )
               .value
         )),
-        ZincWorkerUtil.grepJar(_, "scala-library", _, sources = false),
-        ZincWorkerUtil.grepJar(_, "scala-compiler", _, sources = false),
-        new FixSizedCache(jobs),
+        jobs,
         java.lang.Boolean.FALSE,
         java.lang.Boolean.valueOf(zincLogDebug()),
         javaHome()
