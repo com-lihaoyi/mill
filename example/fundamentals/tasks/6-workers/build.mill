@@ -172,32 +172,37 @@ import java.lang.AutoCloseable
 import mill.api.CachedFactory
 import java.io.ByteArrayOutputStream
 
-def compressWorker2 = Task.Worker { new CompressWorker2(Task.dest) }
-class CompressWorker2(dest: os.Path) extends AutoCloseable {
-  object streamCache extends CachedFactory[Unit, ByteArrayOutputStream] {
-    def setup(key: Unit): ByteArrayOutputStream = new ByteArrayOutputStream()
-    def teardown(key: Unit, value: ByteArrayOutputStream): Unit = value.reset()
-    def maxCacheSize = 10
+def cachedCompressWorker = Task.Worker { new CachedCompressWorker(Task.dest) }
+class CachedCompressWorker(dest: os.Path) extends CachedFactory[Unit, ByteArrayOutputStream] {
+  def setup(key: Unit): ByteArrayOutputStream = {
+    println("setup ByteArrayOutputStream")
+    new ByteArrayOutputStream()
   }
+
+  def teardown(key: Unit, value: ByteArrayOutputStream): Unit = {
+    println("teardown ByteArrayOutputStream")
+    value.reset()
+  }
+
+  def maxCacheSize = 2
 
   val cache = collection.mutable.Map.empty[Int, Array[Byte]]
   def compress(name: String, bytes: Array[Byte]): Array[Byte] = {
     val hash = Arrays.hashCode(bytes)
     if (!synchronized(cache.contains(hash))) {
       println("Compressing: " + name)
-      val compressed = streamCache.withValue(()) { bos => compressBytes2(bos, bytes) }
+      val compressed = withValue(()) { bos => compressBytes2(bos, bytes) }
       synchronized { cache(hash) = compressed }
     } else {
       println("Cached from memory: " + name)
     }
     synchronized { cache(hash) }
   }
-
-  override def close() = { streamCache.close() }
 }
 
 def compressBytes2(bos: ByteArrayOutputStream, input: Array[Byte]) = {
   bos.reset()
+  Thread.sleep(1000) // Simulate a slow operation
   val gzip = new GZIPOutputStream(bos)
   gzip.write(input)
   gzip.close()
@@ -214,13 +219,48 @@ def compressBytes2(bos: ByteArrayOutputStream, input: Array[Byte]) = {
 //   number of cached entries to keep around while they are not in use, and when the count
 //   of cached entries exceeds that number `teardown` cleans them up
 //
-// * You should make sure that you wire up the worker's `AutoCloeable#close` method to
-//   `CachedFactory#close()`, so that when the worker is torn down all the respective
-//   cache entries are town down as well
-//
 // Although this example is synthetic (you don't actually need to reset, reuse, and teardown
 // `ByteArrayOutputStream`s) the same techniques would apply to any long-lived mutable state
 // or components you need to manage. This is especially important when
 // xref:extending/running-jvm-code.adoc[running JVM code in classloaders or subprocesses],
 // as those are both expensive to initialize and need to be properly closed or terminated
 // when you are done with them
+//
+// The above `cachedCompressWorker` can be used as shown below, with three
+// `def compressed*` tasks using it to call `.compress`:
+
+def compressed1 = Task {
+  cachedCompressWorker().compress("foo.txt", "I am cow".getBytes)
+}
+
+def compressed2 = Task {
+  cachedCompressWorker().compress("bar.txt", "Hear me moo".getBytes)
+}
+
+def compressed3 = Task {
+  cachedCompressWorker().compress("qux.txt", "I weigh twice as much as you".getBytes)
+}
+
+/** Usage
+
+> # 3 streams are created on demand, 1 is torn down afer due to maxCacheSize = 2 limit
+> ./mill show '{compressed1,compressed2,compressed3}'
+setup ByteArrayOutputStream
+setup ByteArrayOutputStream
+setup ByteArrayOutputStream
+Compressing: foo.txt
+Compressing: bar.txt
+Compressing: qux.txt
+teardown ByteArrayOutputStream
+{
+  "compressed1": ...
+  "compressed2": ...
+  "compressed3": ...
+}
+
+> # `clean` clears the CachedFactory and tears down the two streams in the cache
+> ./mill clean cachedCompressWorker
+teardown ByteArrayOutputStream
+teardown ByteArrayOutputStream
+
+*/
