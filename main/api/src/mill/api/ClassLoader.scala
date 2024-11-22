@@ -89,25 +89,8 @@ object ClassLoader {
           }
         )
         retry {
-          Try {
-            os.copy(os.Path(Export.rt()), java90rtJar, createFolders = true)
-          }.recoverWith { case e: FileAlreadyExistsException =>
-            // some race?
-            if (os.exists(java90rtJar) && PathRef(java90rtJar) == PathRef(os.Path(Export.rt())))
-              Try {
-                // all good
-                ()
-              }
-            else Try {
-              // retry
-              os.copy(
-                os.Path(Export.rt()),
-                java90rtJar,
-                replaceExisting = true,
-                createFolders = true
-              )
-            }
-          }.get
+          try os.copy(os.Path(Export.rt()), java90rtJar, createFolders = true)
+          catch { case e: FileAlreadyExistsException => /* someone else already did this */}
         }
       }
       urls :+ java90rtJar.toIO.toURI().toURL()
