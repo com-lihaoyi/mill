@@ -45,3 +45,7 @@ include::partial$example/extending/jvmcode/4-module-run-task.adoc[]
 == Running a JavaModule in a Classloader
 
 include::partial$example/extending/jvmcode/5-module-classloader.adoc[]
+
+== Caching and Re-using JVM subprocesses and classloaders
+
+include::partial$example/extending/jvmcode/6-module-cached-classloader.adoc[]

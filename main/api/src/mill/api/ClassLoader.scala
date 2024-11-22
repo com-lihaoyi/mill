@@ -2,10 +2,10 @@ package mill.api
 
 import java.net.{URL, URLClassLoader}
 
-import java.nio.file.FileAlreadyExistsException
+import java.nio.file.{FileAlreadyExistsException, FileSystemException}
 
 import mill.java9rtexport.Export
-import scala.util.Try
+import scala.util.{Properties, Try}
 
 /**
  * Utilities for creating classloaders for running compiled Java/Scala code in
@@ -78,19 +78,20 @@ object ClassLoader {
     if (java9OrAbove) {
       val java90rtJar = ctx.home / Export.rtJarName
       if (!os.exists(java90rtJar)) {
-        Try {
-          os.copy(os.Path(Export.rt()), java90rtJar, createFolders = true)
-        }.recoverWith { case e: FileAlreadyExistsException =>
-          // some race?
-          if (os.exists(java90rtJar) && PathRef(java90rtJar) == PathRef(os.Path(Export.rt()))) Try {
-            // all good
-            ()
+        // Time between retries should go from 100 ms to around 10s, which should
+        // leave plenty of time for another process to write fully this 50+ MB file
+        val retry = Retry(
+          count = 7,
+          backoffMillis = 100,
+          filter = {
+            case (_, _: FileSystemException) if Properties.isWin => true
+            case _ => false
           }
-          else Try {
-            // retry
-            os.copy(os.Path(Export.rt()), java90rtJar, replaceExisting = true, createFolders = true)
-          }
-        }.get
+        )
+        retry {
+          try os.copy(os.Path(Export.rt()), java90rtJar, createFolders = true)
+          catch { case e: FileAlreadyExistsException => /* someone else already did this */}
+        }
       }
       urls :+ java90rtJar.toIO.toURI().toURL()
     } else {

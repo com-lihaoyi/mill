@@ -12,8 +12,8 @@ or xref:comparisons/gradle.adoc[2-4x faster than Gradle]
 * Mill's typed config language and immutable xref:depth/design-principles.adoc[task graph]
 helps keep builds clean and understandable
 
-* Mill is an alternative to https://bazel.build/[Bazel]
-for xref:depth/large-builds.adoc[large monorepos] with hundreds of modules in multiple languages
+* Mill is an easier alternative to https://bazel.build/[Bazel]
+for xref:depth/large-builds.adoc[large multi-language monorepos] with hundreds of modules
 
 Although the Java compiler is very fast and the Java language is easy to learn,
 JVM build tools have a reputation for being sluggish and confusing. Mill tries to
