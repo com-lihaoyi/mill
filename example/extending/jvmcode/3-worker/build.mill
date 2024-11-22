@@ -20,7 +20,7 @@ def groovyClasspath: Task[Agg[PathRef]] = Task {
 }
 
 def groovyWorker: Worker[java.net.URLClassLoader] = Task.Worker {
-  mill.api.ClassLoader.create(groovyClasspath().map(_.path.toIO.toURL).toSeq, parent = null)
+  Jvm.spawnClassloader(groovyClasspath().map(_.path).toSeq)
 }
 
 trait GroovyGenerateJavaModule extends JavaModule {
@@ -80,4 +80,5 @@ Contents of groovy-generated.html is <html><body><h1>Hello!</h1><p>Bar Groovy!</
 // the classloader contained within `groovyWorker` above is *initialized* in a single-thread,
 // but it may be *used* concurrently in a multi-threaded environment. Practically, that means
 // that the classes and methods you are invoking within the classloader do not make use of
-// un-synchronized global mutable variables.
+// un-synchronized global mutable variables. If the JVM logic within the classloader does
+// rely on mutable state, see <<Caching and Re-using JVM subprocesses and classloaders>> below

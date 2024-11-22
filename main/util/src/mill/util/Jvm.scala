@@ -440,6 +440,19 @@ object Jvm extends CoursierSupport {
       body
     )
   }
+
+  def spawnClassloader(
+      classPath: Iterable[os.Path],
+      sharedPrefixes: Seq[String] = Nil,
+      parent: ClassLoader = null
+  ): java.net.URLClassLoader = {
+    mill.api.ClassLoader.create(
+      classPath.iterator.map(_.toNIO.toUri.toURL).toVector,
+      parent,
+      sharedPrefixes = sharedPrefixes
+    )(new Ctx.Home { override def home = os.home })
+  }
+
   def inprocess[T](
       classPath: Agg[os.Path],
       classLoaderOverrideSbtTesting: Boolean,
