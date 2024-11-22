@@ -2,7 +2,7 @@ package mill.util
 
 private object PromptLoggerUtil {
 
-  private[mill] val defaultTermWidth = 119
+  private[mill] val defaultTermWidth = 99
   private[mill] val defaultTermHeight = 50
 
   /**
