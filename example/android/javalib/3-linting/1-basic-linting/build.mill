@@ -1,7 +1,7 @@
 package build
 
 import mill._
-import mill.javalib.android.{AndroidSdkModule, AndroidAppModule, AndroidLintModule}
+import mill.javalib.android.{AndroidSdkModule, AndroidLintModule}
 
 // Create and configure an Android SDK module to manage Android SDK paths and tools.
 object androidSdkModule0 extends AndroidSdkModule {
@@ -40,8 +40,9 @@ object app extends AndroidLintModule {
 
 > cat out/app/androidLintRun.dest/report.html" # Display content of the linting report
 Avoid hardcoding the debug mode; leaving it out allows debug and release builds to automatically assign one
+...
 
-> sed -i 's/ android:debuggable="true"//g' app/AndroidManifest.xml # Fix the HardcodedDebugMode warning issue from `AndroidManifest.xml`
+> sed -i.bak 's/ android:debuggable="true"//g' app/AndroidManifest.xml # Fix the HardcodedDebugMode warning issue from `AndroidManifest.xml`
 
 > ./mill app.androidLintRun # Rerun the android lint
 
