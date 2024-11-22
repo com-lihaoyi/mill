@@ -138,6 +138,14 @@ object BomTests extends UtestIntegrationTestSuite {
         test("dependee") - integrationTest { implicit tester =>
           isInClassPath("bom.placeholder.dependee", expectedProtobufJarName, Seq("bom.placeholder"))
         }
+
+        test("subDependee") - integrationTest { implicit tester =>
+          isInClassPath(
+            "bom.placeholder.subDependee",
+            expectedProtobufJarName,
+            Seq("bom.placeholder", "bom.placeholder.dependee")
+          )
+        }
       }
 
       test("versionOverride") {
@@ -156,6 +164,14 @@ object BomTests extends UtestIntegrationTestSuite {
             "bom.versionOverride.dependee",
             expectedProtobufJarName,
             Seq("bom.versionOverride")
+          )
+        }
+
+        test("subDependee") - integrationTest { implicit tester =>
+          isInClassPath(
+            "bom.versionOverride.subDependee",
+            expectedProtobufJarName,
+            Seq("bom.versionOverride", "bom.versionOverride.dependee")
           )
         }
       }
@@ -184,6 +200,14 @@ object BomTests extends UtestIntegrationTestSuite {
 
       test("dependee") - integrationTest { implicit tester =>
         isInClassPath("parent.dependee", expectedCommonsCompressJarName, Seq("parent"))
+      }
+
+      test("subDependee") - integrationTest { implicit tester =>
+        isInClassPath(
+          "parent.subDependee",
+          expectedCommonsCompressJarName,
+          Seq("parent", "parent.dependee")
+        )
       }
 
       test("scala") - integrationTest { implicit tester =>

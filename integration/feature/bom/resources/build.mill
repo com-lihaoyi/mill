@@ -31,6 +31,12 @@ object bom extends Module {
       )
     }
 
+    object subDependee extends JavaModule with TestPublishModule {
+      def moduleDeps = Seq(
+        dependee
+      )
+    }
+
     object check extends JavaModule {
       def ivyDeps = Agg(
         ivy"com.google.protobuf:protobuf-java:_"
@@ -49,6 +55,12 @@ object bom extends Module {
     object dependee extends JavaModule with TestPublishModule {
       def moduleDeps = Seq(
         versionOverride
+      )
+    }
+
+    object subDependee extends JavaModule with TestPublishModule {
+      def moduleDeps = Seq(
+        dependee
       )
     }
 
@@ -79,6 +91,12 @@ object parent extends JavaModule with TestPublishModule {
       parent
     )
   }
+
+    object subDependee extends JavaModule with TestPublishModule {
+      def moduleDeps = Seq(
+        dependee
+      )
+    }
 
   object scala extends ScalaModule with TestPublishModule {
     def scalaVersion = _root_.scala.util.Properties.versionNumberString
