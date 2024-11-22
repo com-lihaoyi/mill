@@ -134,14 +134,13 @@ public abstract class ServerLauncher {
     while (locks.processLock.probe()) Thread.sleep(3);
 
     String socketName = ServerFiles.pipe(serverDir.toString());
-    AFUNIXSocketAddress addr = AFUNIXSocketAddress.of(new File(socketName));
-
     long retryStart = System.currentTimeMillis();
     Socket ioSocket = null;
     Throwable socketThrowable = null;
     while (ioSocket == null && System.currentTimeMillis() - retryStart < serverInitWaitMillis) {
       try {
-        ioSocket = AFUNIXSocket.connectTo(addr);
+        int port = Integer.parseInt(Files.readString(serverDir.resolve(ServerFiles.socketPort)));
+        ioSocket = new java.net.Socket("localhost", port);
       } catch (Throwable e) {
         socketThrowable = e;
         Thread.sleep(10);
