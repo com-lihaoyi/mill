@@ -198,30 +198,30 @@ object ClientServerTests extends TestSuite {
       }
     }
 
-//    test("concurrency") {
-//      val tester = new Tester(testLogEvenWhenServerIdWrong = false)
-//      // Make sure concurrently running client commands results in multiple processes
-//      // being spawned, running in different folders
-//      import concurrent._
-//      import concurrent.ExecutionContext.Implicits.global
-//      val f1 = Future(tester(args = Array(" World")))
-//      val f2 = Future(tester(args = Array(" WORLD")))
-//      val f3 = Future(tester(args = Array(" wOrLd")))
-//      val resF1 = Await.result(f1, duration.Duration.Inf)
-//      val resF2 = Await.result(f2, duration.Duration.Inf)
-//      val resF3 = Await.result(f3, duration.Duration.Inf)
-//
-//      // Mutiple server processes live in same out folder
-//      assert(resF1.outDir == resF2.outDir)
-//      assert(resF2.outDir == resF3.outDir)
-//      // but the serverDir is placed in different subfolders
-//      assert(resF1.serverDir != resF2.serverDir)
-//      assert(resF2.serverDir != resF3.serverDir)
-//
-//      assert(resF1.out == s"hello World$ENDL")
-//      assert(resF2.out == s"hello WORLD$ENDL")
-//      assert(resF3.out == s"hello wOrLd$ENDL")
-//    }
+    test("concurrency") {
+      val tester = new Tester(testLogEvenWhenServerIdWrong = false)
+      // Make sure concurrently running client commands results in multiple processes
+      // being spawned, running in different folders
+      import concurrent._
+      import concurrent.ExecutionContext.Implicits.global
+      val f1 = Future(tester(args = Array(" World")))
+      val f2 = Future(tester(args = Array(" WORLD")))
+      val f3 = Future(tester(args = Array(" wOrLd")))
+      val resF1 = Await.result(f1, duration.Duration.Inf)
+      val resF2 = Await.result(f2, duration.Duration.Inf)
+      val resF3 = Await.result(f3, duration.Duration.Inf)
+
+      // Mutiple server processes live in same out folder
+      assert(resF1.outDir == resF2.outDir)
+      assert(resF2.outDir == resF3.outDir)
+      // but the serverDir is placed in different subfolders
+      assert(resF1.serverDir != resF2.serverDir)
+      assert(resF2.serverDir != resF3.serverDir)
+
+      assert(resF1.out == s"hello World$ENDL")
+      assert(resF2.out == s"hello WORLD$ENDL")
+      assert(resF3.out == s"hello wOrLd$ENDL")
+    }
 
     test("clientLockReleasedOnFailure") {
       val tester = new Tester(testLogEvenWhenServerIdWrong = false)
