@@ -154,6 +154,8 @@ object qux extends TypeScriptModule {
   def moduleDeps = Seq(foo, foo.bar)
 }
 
+// Documentation for mill.javascriptlib
+
 /** Usage
 
 > mill qux.run James Bond prof
