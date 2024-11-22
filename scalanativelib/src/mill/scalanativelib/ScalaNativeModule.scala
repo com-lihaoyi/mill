@@ -155,7 +155,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       bridgeFullClassPathValue: Agg[PathRef]
   ) {
     def apply[T](block: ScalaNativeWorkerApi => T): T = {
-      scalaNativeWorkerValue.scalaNativeInstanceCache.withValue(bridgeFullClassPathValue) {
+      scalaNativeWorkerValue.withValue(bridgeFullClassPathValue) {
         case (cl, bridge) => block(bridge)
       }
     }

@@ -7,35 +7,29 @@ import mill.scalanativelib.worker.{api => workerApi}
 
 import java.net.URLClassLoader
 
-private[scalanativelib] class ScalaNativeWorker(jobs: Int) extends AutoCloseable {
-  object scalaNativeInstanceCache
-      extends CachedFactory[Agg[mill.PathRef], (URLClassLoader, workerApi.ScalaNativeWorkerApi)] {
-    override def setup(key: Agg[PathRef]) = {
-      val cl = mill.api.ClassLoader.create(
-        key.map(_.path.toIO.toURI.toURL).toVector,
-        getClass.getClassLoader
-      )(new Ctx.Home { override def home = os.home })
-      val bridge = cl
-        .loadClass("mill.scalanativelib.worker.ScalaNativeWorkerImpl")
-        .getDeclaredConstructor()
-        .newInstance()
-        .asInstanceOf[workerApi.ScalaNativeWorkerApi]
-      (cl, bridge)
-    }
-
-    override def teardown(
-        key: Agg[PathRef],
-        value: (URLClassLoader, workerApi.ScalaNativeWorkerApi)
-    ): Unit = {
-      value._1.close()
-    }
-
-    override def maxCacheSize: Int = jobs
+private[scalanativelib] class ScalaNativeWorker(jobs: Int)
+    extends CachedFactory[Agg[mill.PathRef], (URLClassLoader, workerApi.ScalaNativeWorkerApi)] {
+  override def setup(key: Agg[PathRef]) = {
+    val cl = mill.api.ClassLoader.create(
+      key.map(_.path.toIO.toURI.toURL).toVector,
+      getClass.getClassLoader
+    )(new Ctx.Home { override def home = os.home })
+    val bridge = cl
+      .loadClass("mill.scalanativelib.worker.ScalaNativeWorkerImpl")
+      .getDeclaredConstructor()
+      .newInstance()
+      .asInstanceOf[workerApi.ScalaNativeWorkerApi]
+    (cl, bridge)
   }
 
-  override def close(): Unit = {
-    // drop instance
+  override def teardown(
+      key: Agg[PathRef],
+      value: (URLClassLoader, workerApi.ScalaNativeWorkerApi)
+  ): Unit = {
+    value._1.close()
   }
+
+  override def maxCacheSize: Int = jobs
 }
 
 private[scalanativelib] object ScalaNativeWorkerExternalModule extends mill.define.ExternalModule {

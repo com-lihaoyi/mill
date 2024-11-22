@@ -10,32 +10,30 @@ import mill.{Agg, PathRef, Task}
 import java.net.URLClassLoader
 
 @internal
-private[scalajslib] class ScalaJSWorker(jobs: Int) extends AutoCloseable {
-  object scalaJSWorkerInstanceCache
-      extends CachedFactory[Agg[mill.PathRef], (URLClassLoader, workerApi.ScalaJSWorkerApi)] {
-    override def setup(key: Agg[PathRef]) = {
-      val cl = mill.api.ClassLoader.create(
-        key.map(_.path.toIO.toURI.toURL).toVector,
-        getClass.getClassLoader
-      )(new Ctx.Home { override def home = os.home })
-      val bridge = cl
-        .loadClass("mill.scalajslib.worker.ScalaJSWorkerImpl")
-        .getDeclaredConstructor()
-        .newInstance()
-        .asInstanceOf[workerApi.ScalaJSWorkerApi]
+private[scalajslib] class ScalaJSWorker(jobs: Int)
+    extends CachedFactory[Agg[mill.PathRef], (URLClassLoader, workerApi.ScalaJSWorkerApi)] {
+  override def setup(key: Agg[PathRef]) = {
+    val cl = mill.api.ClassLoader.create(
+      key.map(_.path.toIO.toURI.toURL).toVector,
+      getClass.getClassLoader
+    )(new Ctx.Home { override def home = os.home })
+    val bridge = cl
+      .loadClass("mill.scalajslib.worker.ScalaJSWorkerImpl")
+      .getDeclaredConstructor()
+      .newInstance()
+      .asInstanceOf[workerApi.ScalaJSWorkerApi]
 
-      (cl, bridge)
-    }
-
-    override def teardown(
-        key: Agg[PathRef],
-        value: (URLClassLoader, workerApi.ScalaJSWorkerApi)
-    ): Unit = {
-      value._1.close()
-    }
-
-    override def maxCacheSize: Int = jobs
+    (cl, bridge)
   }
+
+  override def teardown(
+      key: Agg[PathRef],
+      value: (URLClassLoader, workerApi.ScalaJSWorkerApi)
+  ): Unit = {
+    value._1.close()
+  }
+
+  override def maxCacheSize: Int = jobs
 
   private def toWorkerApi(moduleKind: api.ModuleKind): workerApi.ModuleKind = moduleKind match {
     case api.ModuleKind.NoModule => workerApi.ModuleKind.NoModule
@@ -179,7 +177,7 @@ private[scalajslib] class ScalaJSWorker(jobs: Int) extends AutoCloseable {
       importMap: Seq[api.ESModuleImportMapping],
       experimentalUseWebAssembly: Boolean
   )(implicit ctx: Ctx.Home): Result[api.Report] = {
-    scalaJSWorkerInstanceCache.withValue(toolsClasspath) { case (cl, bridge) =>
+    withValue(toolsClasspath) { case (cl, bridge) =>
       bridge.link(
         runClasspath = runClasspath.iterator.map(_.path.toNIO).toSeq,
         dest = dest,
@@ -206,7 +204,7 @@ private[scalajslib] class ScalaJSWorker(jobs: Int) extends AutoCloseable {
   def run(toolsClasspath: Agg[mill.PathRef], config: api.JsEnvConfig, report: api.Report)(
       implicit ctx: Ctx.Home
   ): Unit = {
-    scalaJSWorkerInstanceCache.withValue(toolsClasspath) { case (cl, bridge) =>
+    withValue(toolsClasspath) { case (cl, bridge) =>
       bridge.run(toWorkerApi(config), toWorkerApi(report))
     }
   }
@@ -217,7 +215,7 @@ private[scalajslib] class ScalaJSWorker(jobs: Int) extends AutoCloseable {
       frameworkName: String,
       report: api.Report
   )(implicit ctx: Ctx.Home): (() => Unit, sbt.testing.Framework) = {
-    scalaJSWorkerInstanceCache.withValue(toolsClasspath) { case (cl, bridge) =>
+    withValue(toolsClasspath) { case (cl, bridge) =>
       bridge.getFramework(
         toWorkerApi(config),
         frameworkName,
