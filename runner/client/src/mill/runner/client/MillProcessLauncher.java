@@ -12,8 +12,6 @@ import java.util.*;
 import mill.main.client.EnvVars;
 import mill.main.client.ServerFiles;
 import mill.main.client.Util;
-import org.jline.terminal.Terminal;
-import org.jline.terminal.TerminalBuilder;
 
 public class MillProcessLauncher {
 
@@ -195,16 +193,52 @@ public class MillProcessLauncher {
     return Util.readOptsFileLines(millJvmOptsFile());
   }
 
+  static int getTerminalDim(String s, boolean inheritError) throws Exception {
+    Process proc = new ProcessBuilder()
+        .command("tput", s)
+        .redirectOutput(ProcessBuilder.Redirect.PIPE)
+        .redirectInput(ProcessBuilder.Redirect.INHERIT)
+        // We cannot redirect error to PIPE, because `tput` needs at least one of the
+        // outputstreams inherited so it can inspect the stream to get the console
+        // dimensions. Instead, we check up-front that `tput cols` and `tput lines` do
+        // not raise errors, and hope that means it continues to work going forward
+        .redirectError(
+            inheritError ? ProcessBuilder.Redirect.INHERIT : ProcessBuilder.Redirect.PIPE)
+        .start();
+
+    int exitCode = proc.waitFor();
+    if (exitCode != 0) throw new Exception("tput failed");
+    return Integer.parseInt(new String(proc.getInputStream().readAllBytes()).trim());
+  }
+
+  static void writeTerminalDims(boolean tputExists, Path serverDir) throws Exception {
+    String str;
+    if (tputExists) str = "0 0";
+    else {
+      try {
+        if (java.lang.System.console() == null) str = "0 0";
+        else str = getTerminalDim("cols", true) + " " + getTerminalDim("lines", true);
+      } catch (Exception e) {
+        str = "0 0";
+      }
+    }
+    Files.write(serverDir.resolve(ServerFiles.terminfo), str.getBytes());
+  }
+
   public static void runTermInfoThread(Path serverDir) throws Exception {
-    Terminal term = TerminalBuilder.builder().dumb(true).build();
     Thread termInfoPropagatorThread = new Thread(
         () -> {
           try {
+            boolean tputExists;
+            try {
+              getTerminalDim("cols", false);
+              getTerminalDim("lines", false);
+              tputExists = true;
+            } catch (Exception e) {
+              tputExists = false;
+            }
             while (true) {
-              Files.write(
-                  serverDir.resolve(ServerFiles.terminfo),
-                  (term.getWidth() + " " + term.getHeight()).getBytes());
-
+              writeTerminalDims(tputExists, serverDir);
               Thread.sleep(100);
             }
           } catch (Exception e) {
