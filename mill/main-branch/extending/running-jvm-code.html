@@ -754,7 +754,7 @@ def groovyClasspath: Task[Agg[PathRef]] = Task {
 }
 
 def groovyWorker: Worker[java.net.URLClassLoader] = Task.Worker {
-  mill.api.ClassLoader.create(groovyClasspath().map(_.path.toIO.toURL).toSeq, parent = null)
+  Jvm.spawnClassloader(groovyClasspath().map(_.path).toSeq)
 }
 
 trait GroovyGenerateJavaModule extends JavaModule {
@@ -824,7 +824,8 @@ As mentioned in documentation for <a href="../fundamentals/tasks.html#_workers" 
 the classloader contained within <code>groovyWorker</code> above is <strong>initialized</strong> in a single-thread,
 but it may be <strong>used</strong> concurrently in a multi-threaded environment. Practically, that means
 that the classes and methods you are invoking within the classloader do not make use of
-un-synchronized global mutable variables.
+un-synchronized global mutable variables. If the JVM logic within the classloader does
+rely on mutable state, see <a href="#_caching_and_re_using_jvm_subprocesses_and_classloaders">Caching and Re-using JVM subprocesses and classloaders</a> below
 </td>
 </tr>
 </tbody></table>
@@ -954,6 +955,87 @@ right place, and instead we need to pass in the <code>Task.dest</code> path expl
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run
 ...
 Foo.value: HELLO</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_caching_and_re_using_jvm_subprocesses_and_classloaders"><a class="anchor" href="#_caching_and_re_using_jvm_subprocesses_and_classloaders"></a>Caching and Re-using JVM subprocesses and classloaders</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Java Virtual Machines are expensive to initialize and with a large memory footprint,
+therefore if you tend to be doing a lot of classloader or subprocess operations it
+makes sense to re-use the JVM. You can do this using the
+<a href="../fundamentals/tasks.html#_cachedfactory_workers" class="xref page">CachedFactory</a> helper class, which
+makes it easy to cache, re-use, and teardown these expensive long-lived components.</p>
+</div>
+<div class="paragraph">
+<p>The example below is similar to <a href="#_running_a_javamodule_in_a_classloader">Running a JavaModule in a Classloader</a> above,
+but in this case the <code>bar.Bar</code> class relies on class-level mutable state in its
+implementation, and so sharing the same <code>URLClassLoader</code> across different
+<code>foo*</code> tasks running on different threads is not thread-safe. To resolve this,
+we make the <code>barWorker</code> contain an instance of <code>mill.api.CachedFactory</code>,
+which ensures that the classloaders are created when necessary,
+cached/re-used where possible, and torn down properly when no longer necessary.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2-example-extending-jvmcode-6-module-cached-classloader.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/extending/jvmcode/6-module-cached-classloader">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, scalalib._
+import mill.util.Jvm
+import mill.api.CachedFactory
+import java.net.{URL, URLClassLoader}
+
+trait FooModule extends JavaModule {
+  def moduleDeps = Seq(bar)
+
+  def sources = Task {
+    barWorker().withValue(()) { classLoader =&gt;
+      classLoader
+        .loadClass(&quot;bar.Bar&quot;)
+        .getMethod(&quot;main&quot;, classOf[Array[String]])
+        .invoke(null, Array(Task.dest.toString) ++ super.sources().map(_.path.toString))
+    }
+    Seq(PathRef(Task.dest))
+  }
+}
+
+object foo1 extends FooModule
+object foo2 extends FooModule
+object foo3 extends FooModule
+
+def barWorker: Worker[BarWorker] = Task.Worker {
+  new BarWorker(bar.runClasspath().map(_.path).toSeq)
+}
+
+class BarWorker(runClasspath: Seq[os.Path]) extends CachedFactory[Unit, URLClassLoader] {
+  def setup(key: Unit) = {
+    println(&quot;Setting up Classloader&quot;)
+    Jvm.spawnClassloader(runClasspath)
+  }
+  def teardown(key: Unit, value: URLClassLoader) = {
+    println(&quot;Tearing down Classloader&quot;)
+    value.close()
+  }
+  def maxCacheSize = 2
+}
+
+object bar extends JavaModule</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill '{foo1,foo2,foo3}.run' # 3 classloaders are setup, one is torn down due to maxCacheSize
+Setting up Classloader
+Setting up Classloader
+Setting up Classloader
+Tearing down Classloader
+Foo.value: HELLO
+
+&gt; mill clean # mill clean tears down the 2 remaining classloaders
+Tearing down Classloader
+Tearing down Classloader</code></pre>
 </div>
 </div>
 </div>
