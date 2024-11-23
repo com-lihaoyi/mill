@@ -15,7 +15,7 @@ object bar extends MyModule {
   def mainScript = Task.Source { millSourcePath / "src" / "bar.py" }
   def pythonDeps = Seq("Jinja2==3.1.4")
 }
-// 
+//
 //// SNIPPET:TREE
 // ----
 // build.mill
@@ -42,4 +42,4 @@ object bar extends MyModule {
 //              run.dest/
 //              ...
 // ----
-// 
+//
