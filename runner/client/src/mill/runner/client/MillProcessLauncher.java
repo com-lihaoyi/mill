@@ -215,9 +215,8 @@ public class MillProcessLauncher {
     if (tputExists) str = "0 0";
     else {
       try {
-        str = java.lang.System.console() == null
-            ? "0 0"
-            : getTerminalDim("cols") + " " + getTerminalDim("lines");
+        if (java.lang.System.console() == null) str = "0 0";
+        else str = getTerminalDim("cols") + " " + getTerminalDim("lines");
       } catch (Exception e) {
         str = "0 0";
       }
