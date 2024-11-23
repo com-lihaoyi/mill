@@ -130,7 +130,6 @@ object Deps {
     ivy"org.webjars.npm:viz.js-graphviz-java:2.1.3",
     ivy"org.apache.xmlgraphics:batik-rasterizer:1.18"
   )
-  val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.10.1"
 
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
   val javet = Seq(
