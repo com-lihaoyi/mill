@@ -12,4 +12,4 @@ def generate_html(bar_text):
 if __name__ == "__main__":
     # Get the argument from command line
     text = sys.argv[1]
-    print(generate_html(text))
+    print(f"Bar.value: {generate_html(text)}")
