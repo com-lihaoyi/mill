@@ -212,12 +212,15 @@ public class MillProcessLauncher {
 
   static void writeTerminalDims(boolean tputExists, Path serverDir) throws Exception {
     String str;
-    try {
-      str = java.lang.System.console() == null
-          ? "0 0"
-          : getTerminalDim("cols") + " " + getTerminalDim("lines");
-    } catch (Exception e) {
-      str = "0 0";
+    if (tputExists) str = "0 0";
+    else {
+      try {
+        str = java.lang.System.console() == null
+            ? "0 0"
+            : getTerminalDim("cols") + " " + getTerminalDim("lines");
+      } catch (Exception e) {
+        str = "0 0";
+      }
     }
     Files.write(serverDir.resolve(ServerFiles.terminfo), str.getBytes());
   }
