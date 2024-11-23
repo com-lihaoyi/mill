@@ -2,7 +2,6 @@ package mill.javalib.android
 
 import mill._
 import mill.api.PathRef
-import mill.define.ModuleRef
 import mill.javalib.android.AndroidAppModule
 
 /**
