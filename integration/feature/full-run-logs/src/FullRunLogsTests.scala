@@ -47,9 +47,9 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
             .stripMargin
             .replaceAll("(\r\n)|\r", "\n")
             .replace('\\', '/')
-          )
-          .replace("<digits>", "\\E\\d+\\Q")
-          .replace("<dashes>", "\\E=+\\Q")
+        )
+        .replace("<digits>", "\\E\\d+\\Q")
+        .replace("<dashes>", "\\E=+\\Q")
 
       assert(expectedErrorRegex.r.matches(res.err.replace('\\', '/').replaceAll("(\r\n)|\r", "\n")))
     }
