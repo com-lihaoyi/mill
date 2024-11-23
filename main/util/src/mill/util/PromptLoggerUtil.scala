@@ -188,14 +188,22 @@ private object PromptLoggerUtil {
     val headerSuffixStr = headerSuffix0
     val titleText = s" $titleText0 "
 
-    val dividerLength = 30
+    val dividerMaxLength = 30
+    val dividerMinLength = 15
     val maxTitleLength =
-      maxWidth - headerPrefixStr.length - headerSuffixStr.length - dividerLength * 2
+      maxWidth - headerPrefixStr.length - headerSuffixStr.length - dividerMinLength * 2
     val shortenedTitle = splitShorten(titleText, maxTitleLength)
 
-    val divider = "=" * dividerLength
+    val rightDiv = "=" * math.min(
+      dividerMaxLength,
+      (maxWidth - headerPrefixStr.length - headerSuffixStr.length - shortenedTitle.length) / 2
+    )
+    val leftDiv = "=" * math.min(
+      dividerMaxLength,
+      maxWidth - headerPrefixStr.length - headerSuffixStr.length - shortenedTitle.length - rightDiv.length
+    )
 
-    val headerString = headerPrefixStr + divider + shortenedTitle + divider + headerSuffixStr
+    val headerString = headerPrefixStr + leftDiv + shortenedTitle + rightDiv + headerSuffixStr
     splitShorten(headerString, maxWidth)
   }
 
