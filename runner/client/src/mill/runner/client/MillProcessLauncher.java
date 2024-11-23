@@ -213,7 +213,7 @@ public class MillProcessLauncher {
 
   static void writeTerminalDims(boolean tputExists, Path serverDir) throws Exception {
     String str;
-    if (tputExists) str = "0 0";
+    if (!tputExists) str = "0 0";
     else {
       try {
         if (java.lang.System.console() == null) str = "0 0";
