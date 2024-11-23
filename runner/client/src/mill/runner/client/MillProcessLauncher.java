@@ -12,8 +12,6 @@ import java.util.*;
 import mill.main.client.EnvVars;
 import mill.main.client.ServerFiles;
 import mill.main.client.Util;
-import org.jline.terminal.Terminal;
-import org.jline.terminal.TerminalBuilder;
 
 public class MillProcessLauncher {
 
@@ -195,16 +193,36 @@ public class MillProcessLauncher {
     return Util.readOptsFileLines(millJvmOptsFile());
   }
 
+  static int getTerminalDim(String s) throws Exception {
+    Process proc = new ProcessBuilder()
+        .command("tput", s)
+        .redirectOutput(ProcessBuilder.Redirect.PIPE)
+        .redirectInput(ProcessBuilder.Redirect.INHERIT)
+        .redirectError(ProcessBuilder.Redirect.PIPE)
+        .start();
+    proc.waitFor();
+    return Integer.parseInt(new String(proc.getInputStream().readAllBytes()).trim());
+  }
+
+  static void writeTerminalDims(Path serverDir) throws Exception {
+    String str;
+    try {
+      str = java.lang.System.console() == null
+          ? "0 0"
+          : getTerminalDim("cols") + " " + getTerminalDim("lines");
+    } catch (Exception e) {
+      str = "0 0";
+    }
+    Files.write(serverDir.resolve(ServerFiles.terminfo), str.getBytes());
+  }
+
   public static void runTermInfoThread(Path serverDir) throws Exception {
-    Terminal term = TerminalBuilder.builder().dumb(true).build();
+
     Thread termInfoPropagatorThread = new Thread(
         () -> {
           try {
             while (true) {
-              Files.write(
-                  serverDir.resolve(ServerFiles.terminfo),
-                  (term.getWidth() + " " + term.getHeight()).getBytes());
-
+              writeTerminalDims(serverDir);
               Thread.sleep(100);
             }
           } catch (Exception e) {

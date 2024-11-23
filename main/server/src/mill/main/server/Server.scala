@@ -1,10 +1,8 @@
 package mill.main.server
 
 import java.io._
-import java.net.Socket
+import java.net.{InetAddress, Socket}
 import scala.jdk.CollectionConverters._
-import org.newsclub.net.unix.AFUNIXServerSocket
-import org.newsclub.net.unix.AFUNIXSocketAddress
 import mill.main.client._
 import mill.api.SystemStreams
 import mill.main.client.ProxyStream.Output
@@ -48,7 +46,8 @@ abstract class Server[T](
 
         while (
           running && {
-            val serverSocket = bindSocket()
+            val serverSocket = new java.net.ServerSocket(0, 0, InetAddress.getByName(null))
+            os.write.over(serverDir / ServerFiles.socketPort, serverSocket.getLocalPort.toString)
             try
               interruptWithTimeout(() => serverSocket.close(), () => serverSocket.accept()) match {
                 case None => false
@@ -67,17 +66,6 @@ abstract class Server[T](
 
       }.getOrElse(throw new Exception("Mill server process already present"))
     finally exitServer()
-  }
-
-  def bindSocket(): AFUNIXServerSocket = {
-    val socketPath = os.Path(ServerFiles.pipe(serverDir.toString()))
-    os.remove.all(socketPath)
-
-    val relFile = socketPath.relativeTo(os.pwd).toNIO.toFile
-    serverLog("listening on socket " + relFile + " " + os.pwd)
-    // Use relative path because otherwise the full path might be too long for the socket API
-    val addr = AFUNIXSocketAddress.of(relFile)
-    AFUNIXServerSocket.bindOn(addr)
   }
 
   def proxyInputStreamThroughPumper(in: InputStream): PipedInputStream = {

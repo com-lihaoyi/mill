@@ -2,7 +2,6 @@ package mill.main.client;
 
 import static mill.main.client.OutFiles.*;
 
-import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -13,8 +12,6 @@ import java.nio.file.Paths;
 import java.util.Map;
 import mill.main.client.lock.Locks;
 import mill.main.client.lock.TryLocked;
-import org.newsclub.net.unix.AFUNIXSocket;
-import org.newsclub.net.unix.AFUNIXSocketAddress;
 
 /**
  * Client side code that interacts with `Server.scala` in order to launch a generic
@@ -133,15 +130,13 @@ public abstract class ServerLauncher {
 
     while (locks.processLock.probe()) Thread.sleep(3);
 
-    String socketName = ServerFiles.pipe(serverDir.toString());
-    AFUNIXSocketAddress addr = AFUNIXSocketAddress.of(new File(socketName));
-
     long retryStart = System.currentTimeMillis();
     Socket ioSocket = null;
     Throwable socketThrowable = null;
     while (ioSocket == null && System.currentTimeMillis() - retryStart < serverInitWaitMillis) {
       try {
-        ioSocket = AFUNIXSocket.connectTo(addr);
+        int port = Integer.parseInt(Files.readString(serverDir.resolve(ServerFiles.socketPort)));
+        ioSocket = new java.net.Socket("127.0.0.1", port);
       } catch (Throwable e) {
         socketThrowable = e;
         Thread.sleep(10);
