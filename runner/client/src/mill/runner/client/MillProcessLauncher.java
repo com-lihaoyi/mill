@@ -202,7 +202,8 @@ public class MillProcessLauncher {
         // outputstreams inherited so it can inspect the stream to get the console
         // dimensions. Instead, we check up-front that `tput cols` and `tput lines` do
         // not raise errors, and hope that means it continues to work going forward
-        .redirectError(inheritError? ProcessBuilder.Redirect.INHERIT : ProcessBuilder.Redirect.PIPE)
+        .redirectError(
+            inheritError ? ProcessBuilder.Redirect.INHERIT : ProcessBuilder.Redirect.PIPE)
         .start();
 
     int exitCode = proc.waitFor();
