@@ -193,7 +193,7 @@ public class MillProcessLauncher {
     return Util.readOptsFileLines(millJvmOptsFile());
   }
 
-  static int getTerminalDim(String s) throws Exception {
+  static int getTerminalDim(String s, boolean inheritError) throws Exception {
     Process proc = new ProcessBuilder()
         .command("tput", s)
         .redirectOutput(ProcessBuilder.Redirect.PIPE)
@@ -202,7 +202,7 @@ public class MillProcessLauncher {
         // outputstreams inherited so it can inspect the stream to get the console
         // dimensions. Instead, we check up-front that `tput cols` and `tput lines` do
         // not raise errors, and hope that means it continues to work going forward
-        .redirectError(ProcessBuilder.Redirect.INHERIT)
+        .redirectError(inheritError? ProcessBuilder.Redirect.INHERIT : ProcessBuilder.Redirect.PIPE)
         .start();
 
     int exitCode = proc.waitFor();
@@ -216,7 +216,7 @@ public class MillProcessLauncher {
     else {
       try {
         if (java.lang.System.console() == null) str = "0 0";
-        else str = getTerminalDim("cols") + " " + getTerminalDim("lines");
+        else str = getTerminalDim("cols", true) + " " + getTerminalDim("lines", true);
       } catch (Exception e) {
         str = "0 0";
       }
@@ -230,8 +230,8 @@ public class MillProcessLauncher {
           try {
             boolean tputExists;
             try {
-              getTerminalDim("cols");
-              getTerminalDim("lines");
+              getTerminalDim("cols", false);
+              getTerminalDim("lines", false);
               tputExists = true;
             } catch (Exception e) {
               tputExists = false;
