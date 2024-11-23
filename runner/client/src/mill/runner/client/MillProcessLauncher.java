@@ -198,13 +198,19 @@ public class MillProcessLauncher {
         .command("tput", s)
         .redirectOutput(ProcessBuilder.Redirect.PIPE)
         .redirectInput(ProcessBuilder.Redirect.INHERIT)
-        .redirectError(ProcessBuilder.Redirect.PIPE)
+        // We cannot redirect error to PIPE, because `tput` needs at least one of the
+        // outputstreams inherited so it can inspect the stream to get the console
+        // dimensions. Instead, we check up-front that `tput cols` and `tput lines` do
+        // not raise errors, and hope that means it continues to work going forward
+        .redirectError(ProcessBuilder.Redirect.INHERIT)
         .start();
-    proc.waitFor();
+
+    int exitCode = proc.waitFor();
+    if (exitCode != 0) throw new Exception("tput failed");
     return Integer.parseInt(new String(proc.getInputStream().readAllBytes()).trim());
   }
 
-  static void writeTerminalDims(Path serverDir) throws Exception {
+  static void writeTerminalDims(boolean tputExists, Path serverDir) throws Exception {
     String str;
     try {
       str = java.lang.System.console() == null
@@ -217,12 +223,19 @@ public class MillProcessLauncher {
   }
 
   public static void runTermInfoThread(Path serverDir) throws Exception {
-
     Thread termInfoPropagatorThread = new Thread(
         () -> {
           try {
+            boolean tputExists;
+            try {
+              getTerminalDim("cols");
+              getTerminalDim("lines");
+              tputExists = true;
+            } catch (Exception e) {
+              tputExists = false;
+            }
             while (true) {
-              writeTerminalDims(serverDir);
+              writeTerminalDims(tputExists, serverDir);
               Thread.sleep(100);
             }
           } catch (Exception e) {
