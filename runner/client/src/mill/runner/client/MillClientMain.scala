@@ -35,7 +35,7 @@ object MillClientMain {
     } else {
       try {
         // Start in client-server mode
-        val optsArgs = Util.readOptsFileLines(MillProcessLauncher.millOptsFile()).asScala
+        val optsArgs = Util.readOptsFileLines(MillProcessLauncher.millOptsFile).asScala
         optsArgs ++= args
 
         val launcher = new ServerLauncher(

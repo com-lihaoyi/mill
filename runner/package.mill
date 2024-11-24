@@ -1,12 +1,15 @@
 package build.runner
 // imports
 import mill._
+import mill.scalalib.ScalaModule
 import mill.T
 
 object `package` extends RootModule with build.MillPublishScalaModule {
-  object client extends build.MillPublishJavaModule {
+  object client extends build.MillPublishJavaModule with ScalaModule {
     def buildInfoPackageName = "mill.runner.client"
+    def scalaVersion: T[String] = "2.13.14"
     def moduleDeps = Seq(build.main.client)
+    def mainClass = Some("mill.runner.client.MillClientMain")
   }
 
   def moduleDeps = Seq(

@@ -6,6 +6,7 @@ import java.util.{Properties, UUID}
 import scala.jdk.CollectionConverters._
 import mill.main.client.{EnvVars, ServerFiles, Util}
 import java.util.Comparator
+import mill.main.client.OutFiles
 
 object MillProcessLauncher {
 
@@ -18,7 +19,7 @@ object MillProcessLauncher {
     val command = millLaunchJvmCommand(setJnaNoSys) ++ Seq(
       "mill.runner.MillMain",
       processDir.toAbsolutePath.toString
-    ) ++ Util.readOptsFileLines(millOptsFile()).asScala ++ args
+    ) ++ Util.readOptsFileLines(millOptsFile).asScala ++ args
 
     val builder = new ProcessBuilder()
       .command(command.asJava)
@@ -127,7 +128,7 @@ object MillProcessLauncher {
       vmOptions ++= Util.readOptsFileLines(millJvmOptsFile).asScala
     }
 
-    vmOptions ++ Seq("-cp", millClasspath.mkString(File.pathSeparator))
+    vmOptions.toSeq ++ Seq("-cp", millClasspath.mkString(File.pathSeparator))
   }
 
   def getTerminalDim(dim: String, inheritError: Boolean): Int = {
