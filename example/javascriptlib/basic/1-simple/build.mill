@@ -105,7 +105,27 @@ trait TypeScriptModule extends Module {
     os.call(("node", mainFile, args.value), stdout = os.Inherit, env = env)
   }
 
-  def test = Task {
+  def test = Task { os.call(("echo", "nothing to see here"), stdout = os.Inherit) }
+
+  def bundle = Task {
+    val (mainFile, env) = prepareRun()
+    val esbuild = npmInstall().path / "node_modules/esbuild/bin/esbuild"
+    val bundle = Task.dest / "bundle.js"
+    os.call((esbuild, mainFile, "--bundle", s"--outfile=$bundle"), env = env)
+    PathRef(bundle)
+  }
+}
+
+object foo extends TypeScriptModule {
+  object bar extends TypeScriptModule {
+    def npmDeps = Seq("immutable@4.3.7")
+  }
+}
+
+object qux extends TypeScriptModule {
+  def moduleDeps = Seq(foo, foo.bar)
+
+  override def test = Task {
     tsConfig()
     os.call(npmInstall().path / "node_modules/typescript/bin/tsc")
 
@@ -125,26 +145,7 @@ trait TypeScriptModule extends Module {
       stdout = os.Inherit,
       env = env
     )
-
-    (javascriptOut, env)
   }
-
-  def bundle = Task {
-    val (mainFile, env) = prepareRun()
-    val esbuild = npmInstall().path / "node_modules/esbuild/bin/esbuild"
-    val bundle = Task.dest / "bundle.js"
-    os.call((esbuild, mainFile, "--bundle", s"--outfile=$bundle"), env = env)
-    PathRef(bundle)
-  }
-}
-
-object foo extends TypeScriptModule {
-  object bar extends TypeScriptModule {
-    def npmDeps = Seq("immutable@4.3.7")
-  }
-}
-object qux extends TypeScriptModule {
-  def moduleDeps = Seq(foo, foo.bar)
 }
 
 // Documentation for mill.javascriptlib
