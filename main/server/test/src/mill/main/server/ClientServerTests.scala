@@ -22,8 +22,7 @@ object ClientServerTests extends TestSuite {
       override val serverId: String,
       serverDir: os.Path,
       locks: Locks,
-      testLogEvenWhenServerIdWrong: Boolean
-  ) extends Server[Option[Int]](serverDir, 1000, locks, testLogEvenWhenServerIdWrong)
+  ) extends Server[Option[Int]](serverDir, 1000, locks)
       with Runnable {
     override def exitServer() = {
       serverLog("exiting server")
@@ -69,7 +68,7 @@ object ClientServerTests extends TestSuite {
     }
   }
 
-  class Tester(testLogEvenWhenServerIdWrong: Boolean) {
+  class Tester() {
 
     var nextServerId: Int = 0
     val terminatedServers = collection.mutable.Set.empty[String]
@@ -104,7 +103,6 @@ object ClientServerTests extends TestSuite {
             serverId,
             os.Path(serverDir, os.pwd),
             locks,
-            testLogEvenWhenServerIdWrong
           )).start()
         }
       }.acquireLocksAndRun(outDir.relativeTo(os.pwd).toString)
@@ -139,7 +137,7 @@ object ClientServerTests extends TestSuite {
     test("hello") - retry(3) {
       // Continue logging when out folder is deleted so we can see the logs
       // and ensure the correct code path is taken as the server exits
-      val tester = new Tester(testLogEvenWhenServerIdWrong = true)
+      val tester = new Tester()
       val res1 = tester(args = Array("world"))
 
       assert(
@@ -179,7 +177,7 @@ object ClientServerTests extends TestSuite {
       }
     }
     test("dontLogWhenOutFolderDeleted") - retry(3) {
-      val tester = new Tester(testLogEvenWhenServerIdWrong = false)
+      val tester = new Tester()
       val res1 = tester(args = Array("world"))
 
       assert(
@@ -199,7 +197,7 @@ object ClientServerTests extends TestSuite {
     }
 
     test("concurrency") {
-      val tester = new Tester(testLogEvenWhenServerIdWrong = false)
+      val tester = new Tester()
       // Make sure concurrently running client commands results in multiple processes
       // being spawned, running in different folders
       import concurrent._
@@ -224,7 +222,7 @@ object ClientServerTests extends TestSuite {
     }
 
     test("clientLockReleasedOnFailure") {
-      val tester = new Tester(testLogEvenWhenServerIdWrong = false)
+      val tester = new Tester()
       // When the client gets interrupted via Ctrl-C, we exit the server immediately. This
       // is because Mill ends up executing arbitrary JVM code, and there is no generic way
       // to interrupt such an execution. The two options are to leave the server running
@@ -250,7 +248,7 @@ object ClientServerTests extends TestSuite {
     }
 
     test("envVars") - retry(3) {
-      val tester = new Tester(testLogEvenWhenServerIdWrong = false)
+      val tester = new Tester()
       // Make sure the simple "have the client start a server and
       // exchange one message" workflow works from end to end.
 

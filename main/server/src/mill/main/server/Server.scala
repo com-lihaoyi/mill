@@ -20,7 +20,6 @@ abstract class Server[T](
     serverDir: os.Path,
     acceptTimeoutMillis: Int,
     locks: Locks,
-    testLogEvenWhenServerIdWrong: Boolean = false
 ) {
 
   @volatile var running = true
@@ -30,9 +29,7 @@ abstract class Server[T](
 
   val serverId: String = java.lang.Long.toHexString(scala.util.Random.nextLong())
   def serverLog0(s: String): Unit = {
-    if (running && (testLogEvenWhenServerIdWrong || checkServerIdFile().isEmpty)) {
-      os.write.append(serverDir / ServerFiles.serverLog, s"$s\n", createFolders = true)
-    }
+    os.write.append(serverDir / ServerFiles.serverLog, s"$s\n", createFolders = true)
   }
 
   def serverLog(s: String): Unit = serverLog0(s"$serverId $s")
@@ -41,10 +38,13 @@ abstract class Server[T](
     serverLog("running server in " + serverDir)
     val initialSystemProperties = sys.props.toMap
 
-    try Server.tryLockBlock(locks.processLock) {
+    try {
+      Server.tryLockBlock(locks.processLock) {
+        serverLog("server file locked")
         watchServerIdFile()
         val serverSocket = new java.net.ServerSocket(0, 0, InetAddress.getByName(null))
         os.write.over(serverDir / ServerFiles.socketPort, serverSocket.getLocalPort.toString)
+        serverLog("listening on port " + serverSocket.getLocalPort)
         while (
           running && {
             interruptWithTimeout(() => serverSocket.close(), () => serverSocket.accept()) match {
@@ -60,9 +60,12 @@ abstract class Server[T](
             }
           }
         ) ()
-
+        serverLog("server loop ended")
       }.getOrElse(throw new Exception("Mill server process already present"))
-    finally exitServer()
+    } finally {
+      serverLog("exitServer")
+      exitServer()
+    }
   }
 
   def proxyInputStreamThroughPumper(in: InputStream): PipedInputStream = {
