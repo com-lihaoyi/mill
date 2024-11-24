@@ -9,4 +9,4 @@ and resolve potential issues early, promoting better performance, security,
 and user experience.
 
 
-include::partial$example/android/javalib/3-linting/1-linting.adoc[]
+include::partial$example/android/javalib/3-linting.adoc[]
