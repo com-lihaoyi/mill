@@ -116,6 +116,8 @@ public abstract class ServerLauncher {
   }
 
   int run(Path serverDir, boolean setJnaNoSys, Locks locks) throws Exception {
+    Files.deleteIfExists(serverDir.resolve(ServerFiles.exitCode));
+    Files.deleteIfExists(serverDir.resolve(ServerFiles.socketPort));
     String serverPath = serverDir + "/" + ServerFiles.runArgs;
     try (OutputStream f = Files.newOutputStream(Paths.get(serverPath))) {
       f.write(System.console() != null ? 1 : 0);
@@ -166,7 +168,7 @@ public abstract class ServerLauncher {
 
     try {
       return Integer.parseInt(
-          Files.readAllLines(Paths.get(serverDir + "/" + ServerFiles.exitCode)).get(0));
+          Files.readAllLines(serverDir.resolve(ServerFiles.exitCode)).get(0));
     } catch (Throwable e) {
       return Util.ExitClientCodeCannotReadFromExitCodeFile();
     } finally {

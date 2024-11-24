@@ -196,8 +196,9 @@ abstract class Server[T](
             )
 
             stateCache = newStateCache
-            serverLog("exitCode " + ServerFiles.exitCode)
-            os.write.over(serverDir / ServerFiles.exitCode, if (result) "0" else "1")
+            val exitCode = if (result) "0" else "1"
+            serverLog("exitCode " + exitCode)
+            os.write.over(serverDir / ServerFiles.exitCode, exitCode)
           } finally {
             done = true
             idle = true
