@@ -47,19 +47,17 @@ abstract class Server[T](
         os.write.over(serverDir / ServerFiles.socketPort, serverSocket.getLocalPort.toString)
         while (
           running && {
-            try
-              interruptWithTimeout(() => serverSocket.close(), () => serverSocket.accept()) match {
-                case None => false
-                case Some(sock) =>
-                  serverLog("handling run")
-                  try handleRun(sock, initialSystemProperties)
-                  catch {
-                    case e: Throwable =>
-                      serverLog(e.toString + "\n" + e.getStackTrace.mkString("\n"))
-                  } finally sock.close();
-                  true
-              }
-            finally serverSocket.close()
+            interruptWithTimeout(() => serverSocket.close(), () => serverSocket.accept()) match {
+              case None => false
+              case Some(sock) =>
+                serverLog("handling run")
+                try handleRun(sock, initialSystemProperties)
+                catch {
+                  case e: Throwable =>
+                    serverLog(e.toString + "\n" + e.getStackTrace.mkString("\n"))
+                } finally sock.close();
+                true
+            }
           }
         ) ()
 
