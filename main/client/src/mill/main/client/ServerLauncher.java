@@ -133,7 +133,7 @@ public abstract class ServerLauncher {
     System.out.println("lockProbe: " + lockProbe);
     if (lockProbe) initServer(serverDir, setJnaNoSys, locks);
 
-    while (locks.processLock.probe()) Thread.sleep(3);
+    while (locks.processLock.probe()) Thread.sleep(1);
 
     long retryStart = System.currentTimeMillis();
     Socket ioSocket = null;
