@@ -31,24 +31,25 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       res.isSuccess ==> true
       assert("\\[\\d+\\] <h1>hello</h1>".r.matches(res.out))
 
-      val expectedErrorRegex =
-        s"""========================================== run --text hello ======================================
-           |==================================================================================================
-           |[build.mill-<digits>/<digits>] compile
-           |[build.mill-<digits>] [info] compiling 1 Scala source to ${tester.workspacePath}/out/mill-build/compile.dest/classes ...
-           |[build.mill-<digits>] [info] done compiling
-           |[<digits>/<digits>] compile
-           |[<digits>] [info] compiling 1 Java source to ${tester.workspacePath}/out/compile.dest/classes ...
-           |[<digits>] [info] done compiling
-           |[<digits>/<digits>] run
-           |[<digits>/<digits>] ================================== run --text hello ==================================<digits>s
-           |=================================================================================================="""
-          .stripMargin
-          .replaceAll("(\r\n)|\r", "\n")
-          .replace('\\', '/')
-          .split("<digits>")
-          .map(java.util.regex.Pattern.quote)
-          .mkString("=? ?[\\d]+")
+      val expectedErrorRegex = java.util.regex.Pattern
+        .quote(
+          s"""<dashes> run --text hello <dashes>
+             |<dashes>
+             |[build.mill-<digits>/<digits>] compile
+             |[build.mill-<digits>] [info] compiling 1 Scala source to ${tester.workspacePath}/out/mill-build/compile.dest/classes ...
+             |[build.mill-<digits>] [info] done compiling
+             |[<digits>/<digits>] compile
+             |[<digits>] [info] compiling 1 Java source to ${tester.workspacePath}/out/compile.dest/classes ...
+             |[<digits>] [info] done compiling
+             |[<digits>/<digits>] run
+             |[<digits>/<digits>] <dashes> run --text hello <dashes> <digits>s
+             |<dashes>"""
+            .stripMargin
+            .replaceAll("(\r\n)|\r", "\n")
+            .replace('\\', '/')
+        )
+        .replace("<digits>", "\\E\\d+\\Q")
+        .replace("<dashes>", "\\E=+\\Q")
 
       assert(expectedErrorRegex.r.matches(res.err.replace('\\', '/').replaceAll("(\r\n)|\r", "\n")))
     }
