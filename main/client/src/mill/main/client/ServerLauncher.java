@@ -118,8 +118,7 @@ public abstract class ServerLauncher {
   int run(Path serverDir, boolean setJnaNoSys, Locks locks) throws Exception {
     Files.deleteIfExists(serverDir.resolve(ServerFiles.exitCode));
     Files.deleteIfExists(serverDir.resolve(ServerFiles.socketPort));
-    String serverPath = serverDir + "/" + ServerFiles.runArgs;
-    try (OutputStream f = Files.newOutputStream(Paths.get(serverPath))) {
+    try (OutputStream f = Files.newOutputStream(serverDir.resolve(ServerFiles.runArgs))) {
       f.write(System.console() != null ? 1 : 0);
       Util.writeString(f, BuildInfo.millVersion);
       Util.writeArgs(args, f);
