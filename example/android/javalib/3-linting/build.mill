@@ -1,9 +1,11 @@
 // == Linting with Basic Config
 
 // This Mill build configuration includes a linting step, which is essential for ensuring code
-// quality and adhering to best practices in Android development projects. Running the `androidLint` task
-// produces a detailed HTML report identifying potential issues in the code, such as performance,
+// quality and adhering to best practices in Android development projects. Running the `androidLintRun` task
+// produces a detailed HTML report by default, identifying potential issues in the code, such as performance,
 // security, and usability warnings. This helps maintain the health and quality of the codebase.
+
+// In this example, we set a custom config to generate the report file in txt format and not HTML.
 
 //// SNIPPET:BUILD
 package build
@@ -36,8 +38,7 @@ object app extends AndroidLintModule {
 
 /** See Also: app/AndroidManifest.xml */
 
-// The `AndroidManifest.xml` file shown above is flawed with hardcoded string linting problem so it can be spoted
-// by running the `androidLintRun` task in the example usage section
+// The `AndroidManifest.xml` file shown above is flawed with hardcoded string linting problem so it can be spoted by running the `androidLintRun` task.
 
 /** See Also: app/resources/values/colors.xml */
 /** See Also: app/resources/values/strings.xml */
@@ -68,8 +69,8 @@ No issues found.
 
 // == Linting with Custom Configurations
 
-// The commands below set the serverity level of `MissingApplicationIcon` to warning in the `lint.xml` file that was shown above
-// and the androidLintRun task. The output of such changes is shown in the content of the report file.
+// The commands below set the serverity level of `MissingApplicationIcon` to `warning` in the `lint.xml` file that was shown above
+// and run the `androidLintRun` task. Some output of the changes is shown below.
 
 /** Usage
 
