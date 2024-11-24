@@ -116,8 +116,14 @@ public abstract class ServerLauncher {
   }
 
   int run(Path serverDir, boolean setJnaNoSys, Locks locks) throws Exception {
+    // Clear out run-related files from the server folder to make sure we
+    // never hit issues where we are reading the files from a previous run
     Files.deleteIfExists(serverDir.resolve(ServerFiles.exitCode));
-    Files.deleteIfExists(serverDir.resolve(ServerFiles.socketPort));
+    Files.deleteIfExists(serverDir.resolve(ServerFiles.stdout));
+    Files.deleteIfExists(serverDir.resolve(ServerFiles.stderr));
+    Files.deleteIfExists(serverDir.resolve(ServerFiles.terminfo));
+    Files.deleteIfExists(serverDir.resolve(ServerFiles.runArgs));
+
     try (OutputStream f = Files.newOutputStream(serverDir.resolve(ServerFiles.runArgs))) {
       f.write(System.console() != null ? 1 : 0);
       Util.writeString(f, BuildInfo.millVersion);
@@ -140,7 +146,7 @@ public abstract class ServerLauncher {
         ioSocket = new java.net.Socket("127.0.0.1", port);
       } catch (Throwable e) {
         socketThrowable = e;
-        Thread.sleep(10);
+        Thread.sleep(1);
       }
     }
 
@@ -168,8 +174,6 @@ public abstract class ServerLauncher {
     try {
       return Integer.parseInt(
           Files.readAllLines(serverDir.resolve(ServerFiles.exitCode)).get(0));
-    } catch (Throwable e) {
-      return Util.ExitClientCodeCannotReadFromExitCodeFile();
     } finally {
       ioSocket.close();
     }

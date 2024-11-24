@@ -43,11 +43,10 @@ abstract class Server[T](
 
     try Server.tryLockBlock(locks.processLock) {
         watchServerIdFile()
-
+        val serverSocket = new java.net.ServerSocket(0, 0, InetAddress.getByName(null))
+        os.write.over(serverDir / ServerFiles.socketPort, serverSocket.getLocalPort.toString)
         while (
           running && {
-            val serverSocket = new java.net.ServerSocket(0, 0, InetAddress.getByName(null))
-            os.write.over(serverDir / ServerFiles.socketPort, serverSocket.getLocalPort.toString)
             try
               interruptWithTimeout(() => serverSocket.close(), () => serverSocket.accept()) match {
                 case None => false
