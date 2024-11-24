@@ -29,7 +29,9 @@ abstract class Server[T](
 
   val serverId: String = java.lang.Long.toHexString(scala.util.Random.nextLong())
   def serverLog0(s: String): Unit = {
-    os.write.append(serverDir / ServerFiles.serverLog, s"$s\n", createFolders = true)
+    if (os.exists(serverDir / ServerFiles.serverLog)){
+      os.write.append(serverDir / ServerFiles.serverLog, s"$s\n", createFolders = true)
+    }
   }
 
   def serverLog(s: String): Unit = serverLog0(s"$serverId $s")
@@ -260,8 +262,11 @@ object Server {
     lock.tryLock() match {
       case null => None
       case l =>
-        try Some(t)
-        finally l.release()
+        if (l.isLocked) {
+          try Some(t) finally l.release()
+        } else {
+          None
+        }
     }
   }
 }

@@ -129,9 +129,9 @@ public abstract class ServerLauncher {
       Util.writeMap(env, f);
     }
 
-    if (locks.processLock.probe()) {
-      initServer(serverDir, setJnaNoSys, locks);
-    }
+    boolean lockProbe = locks.processLock.probe();
+    System.out.println("lockProbe: " + lockProbe);
+    if (lockProbe) initServer(serverDir, setJnaNoSys, locks);
 
     while (locks.processLock.probe()) Thread.sleep(3);
 
