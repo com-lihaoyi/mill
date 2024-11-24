@@ -15,6 +15,15 @@ helps keep builds clean and understandable
 * Mill is an easier alternative to https://bazel.build/[Bazel]
 for xref:depth/large-builds.adoc[large multi-language monorepos] with hundreds of modules
 
+To get started using Mill for projects in each language:
+
+[cols="1a,1a,1a"]
+|===
+| xref:javalib/intro.adoc[image:index/iconscout-java.svg[java,32] Java with Mill]
+| xref:scalalib/intro.adoc[image:index/iconscout-scala.svg[scala,20] Scala with Mill]
+| xref:kotlinlib/intro.adoc[image:index/iconscout-kotlin.svg[kotlin,32] Kotlin with Mill]
+|===
+
 Although the Java compiler is very fast and the Java language is easy to learn,
 JVM build tools have a reputation for being sluggish and confusing. Mill tries to
 offer a better alternative, letting your build system take full advantage of the
@@ -42,16 +51,6 @@ You can xref:extending/import-ivy-plugins.adoc[import any JVM library] in your b
 use Mill's rich ecosystem of xref:extending/thirdparty-plugins.adoc[Third-Party Mill Plugins],
 or xref:extending/writing-plugins.adoc[write plugins yourself] and
 publish them to Maven Central for others to use.
-
-To begin using Mill, check out the introductory documentation for each language:
-
-
-[cols="1a,1a,1a"]
-|===
-| xref:javalib/intro.adoc[image:index/iconscout-java.svg[java,32] Java with Mill]
-| xref:scalalib/intro.adoc[image:index/iconscout-scala.svg[scala,20] Scala with Mill]
-| xref:kotlinlib/intro.adoc[image:index/iconscout-kotlin.svg[kotlin,32] Kotlin with Mill]
-|===
 
 
 For a quick introduction of why you may care about Mill, see the following page:
