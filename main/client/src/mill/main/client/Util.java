@@ -10,7 +10,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -131,7 +130,7 @@ public class Util {
     byte[] pathBytes = path.getBytes(StandardCharsets.UTF_8);
     md.update(pathBytes);
     byte[] digest = md.digest();
-    return Base64.getEncoder().encodeToString(digest);
+    return hexArray(digest);
   }
 
   /**
