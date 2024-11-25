@@ -511,6 +511,8 @@
 </aside>
 <article class="doc">
 <h1 class="page">Mill: A Fast JVM Build Tool</h1>
+<div id="preamble">
+<div class="sectionbody">
 
 <script>
 gtag('config', 'AW-16649289906');
@@ -548,7 +550,7 @@ for <a href="depth/large-builds.html" class="xref page">large multi-language mon
 </ul>
 </div>
 <div class="paragraph">
-<p>To get started using Mill for projects in each language:</p>
+<p>To get started using Mill, see the language-specific introductory documentation linked below:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -570,6 +572,10 @@ for <a href="depth/large-builds.html" class="xref page">large multi-language mon
 </tr>
 </tbody>
 </table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_why_mill"><a class="anchor" href="#_why_mill"></a>Why Mill?</h3>
 <div class="paragraph">
 <p>Although the Java compiler is very fast and the Java language is easy to learn,
 JVM build tools have a reputation for being sluggish and confusing. Mill tries to
@@ -642,8 +648,10 @@ Scala.IO Paris Conference Nov 2024</p>
 <a href="https://github.com/SpinalHDL/SpinalHDL">SpinalHDL</a> and
 <a href="https://github.com/chipsalliance/chisel">Chisel</a> hardware design frameworks.
 Mill can be used for applications built on top of common JVM frameworks like
-<a href="javalib/web-examples.html#_spring_boot_todomvc_app" class="xref page">Spring Boot</a> or
-<a href="javalib/web-examples.html#_micronaut_todomvc_app" class="xref page">Micronaut</a>.</p>
+Spring Boot (both <a href="javalib/web-examples.html#_spring_boot_todomvc_app" class="xref page">in Java</a>
+and <a href="kotlinlib/web-examples.html#_spring_boot_todomvc_app" class="xref page">in Kotlin</a>),
+<a href="javalib/web-examples.html#_micronaut_todomvc_app" class="xref page">Micronaut</a>,
+or <a href="kotlinlib/web-examples.html#_ktor_todomvc_app" class="xref page">Ktor</a>.</p>
 </div>
 <div class="paragraph">
 <p>Mill borrows ideas from other tools like <a href="https://maven.apache.org/">Maven</a>,
@@ -671,6 +679,9 @@ build tools, check out these pages:</p>
 </tr>
 </tbody>
 </table>
+</div>
+<div class="sect2">
+<h3 id="_contributing_and_community"><a class="anchor" href="#_contributing_and_community"></a>Contributing and Community</h3>
 <div class="paragraph">
 <p>If you want to contribute to Mill, or are interested in the fundamental ideas behind
 Mill rather than the user-facing benefits discussed above, check out the page on
@@ -694,7 +705,7 @@ they are interesting:</p>
 <p><a href="https://github.com/com-lihaoyi/mill/discussions">Mill Github Discussions</a></p>
 </li>
 <li>
-<p><a href="https://discord.com/invite/scala">Scala Discord</a>, in the TOOLING#mill channel</p>
+<p><a href="https://discord.com/invite/scala">Scala Discord</a>, in the <code>TOOLING#mill</code> channel</p>
 </li>
 </ul>
 </div>
@@ -714,6 +725,7 @@ hand at any bounties that may interest you</p>
 <p>Commercial support and services related to Mill are available if you need help with
 training, adoption, or maintenance in your organization. Email <a href="mailto:info@mill-build.org">info@mill-build.org</a>
 with details on what you need and we can make an arrangement.</p>
+</div>
 </div>
 <nav class="pagination">
   <span class="next"><a href="javalib/intro.html">Building Java with Mill</a></span>

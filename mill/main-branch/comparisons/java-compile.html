@@ -557,11 +557,11 @@ build tools add significant overhead over compiling Java directly:</p>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Mockito Core</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Time</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Compiler lines/s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Multiplier</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Slowdown</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Netty Common</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Time</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Compiler lines/s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Multiplier</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Slowdown</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Javac Hot</p></td>
@@ -932,6 +932,13 @@ $ ./mill clean common; time ./mill common.compile
 </div>
 </div>
 <div class="paragraph">
+<p>These benchmarks are run in similar conditions as those we saw earlier: ad-hoc on my M1
+Macbook Pro, with the metadata and jars of all third-party dependencies already downloaded and
+cached locally. So the time we are seeing above is purely the Java compilation + the overhead
+of the build tool realizing it doesn’t need to do anything except compile the Java source code
+using the dependencies we already have on disk.</p>
+</div>
+<div class="paragraph">
 <p>Tabulating this all together gives us the table we saw at the start of this page:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
@@ -950,11 +957,11 @@ $ ./mill clean common; time ./mill common.compile
 <td class="tableblock halign-left valign-top"><p class="tableblock">Mockito Core</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Time</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Compiler lines/s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Multiplier</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Slowdown</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Netty Common</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Time</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Compiler lines/s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Multiplier</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Slowdown</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Javac Hot</p></td>

@@ -513,6 +513,56 @@
 <article class="doc">
 <h1 class="page">Changelog</h1>
 <div class="sect1">
+<h2 id="0-12-3"><a class="anchor" href="#0-12-3"></a>0.12.3 - 2024-11-24</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>Set context classloader during Mill evaluation <a href="https://github.com/com-lihaoyi/mill/pull/3940">#3940</a></p>
+</li>
+<li>
+<p>Extended <code>mill init</code> to support importing an existing Maven project <a href="https://github.com/com-lihaoyi/mill/pull/3756">#3756</a></p>
+</li>
+<li>
+<p>Avoid running subsequent meta-level builds after reaching the desired meta-level in MillBuildBootstrap <a href="https://github.com/com-lihaoyi/mill/pull/3960">#3960</a></p>
+</li>
+<li>
+<p>Improvements to <code>KtlintModule</code> <a href="https://github.com/com-lihaoyi/mill/pull/3961">#3961</a> <a href="https://github.com/com-lihaoyi/mill/pull/3966">#3966</a></p>
+</li>
+<li>
+<p>Fixes for <code>runBackground</code> mutex and log management <a href="https://github.com/com-lihaoyi/mill/pull/3971">#3971</a></p>
+</li>
+<li>
+<p>Added support for Revapi <a href="https://github.com/com-lihaoyi/mill/pull/3974">#3974</a></p>
+</li>
+<li>
+<p>Fix redundant logging in junit5 test runner <a href="https://github.com/com-lihaoyi/mill/pull/3983">#3983</a></p>
+</li>
+<li>
+<p>align SonatypeCentralPublishModule with SonatypePublisher <a href="https://github.com/com-lihaoyi/mill/pull/3987">#3987</a></p>
+</li>
+<li>
+<p>Make JVM version configurable per-module <a href="https://github.com/com-lihaoyi/mill/pull/3716">#3716</a></p>
+</li>
+<li>
+<p>Overhaul worker concurrency helpers with <code>mill.api.CacheFactory</code> <a href="https://github.com/com-lihaoyi/mill/pull/4001">#4001</a></p>
+</li>
+<li>
+<p>Optimize startup time using TCP sockets instead of junixsocket and <code>tput</code> instead of jline <a href="https://github.com/com-lihaoyi/mill/pull/4009">#4009</a></p>
+</li>
+<li>
+<p>Improvements to TUI build prompt <a href="https://github.com/com-lihaoyi/mill/pull/3933">#3933</a> <a href="https://github.com/com-lihaoyi/mill/pull/4014">#4014</a></p>
+</li>
+<li>
+<p>Lots of improvements to documentation, including a new <a href="https://github.com/com-lihaoyi/mill/pull/3965">Kotlin Spring-Boot Example #3965</a>,
+a new page <a href="https://github.com/com-lihaoyi/mill/pull/3990">How Fast Does Java Compile? #3990</a>, and
+<a href="https://github.com/com-lihaoyi/mill/pull/3938">Stable Links To Older Doc-site Versions #3938</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="0-12-2"><a class="anchor" href="#0-12-2"></a>0.12.2 - 2024-11-11</h2>
 <div class="sectionbody">
 <div class="paragraph">
