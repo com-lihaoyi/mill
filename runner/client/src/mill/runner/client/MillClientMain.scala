@@ -45,7 +45,7 @@ object MillClientMain {
           System.err,
           System.getenv().asScala.toMap,
           optsArgs.toArray,
-          null,
+          None,
           -1
         ) {
           override def initServer(serverDir: Path, setJnaNoSys: Boolean, locks: Locks): Unit = {
