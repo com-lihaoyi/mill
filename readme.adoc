@@ -261,7 +261,7 @@ To run all autofixes and autoformatters:
 
 ```bash
 ./mill __.fix + mill.javalib.palantirformat.PalantirFormatModule/ + mill.scalalib.scalafmt.ScalafmtModule/ + mill.kotlinlib.ktlint.KtlintModule/
-````
+```
 
 == Project Layout
 
