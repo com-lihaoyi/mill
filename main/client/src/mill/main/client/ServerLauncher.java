@@ -168,8 +168,13 @@ public abstract class ServerLauncher {
     outPumperThread.join();
 
     try {
-      return Integer.parseInt(
-          Files.readAllLines(serverDir.resolve(ServerFiles.exitCode)).get(0));
+      Path exitCodeFile = serverDir.resolve(ServerFiles.exitCode);
+      if (Files.exists(exitCodeFile)) {
+        return Integer.parseInt(Files.readAllLines(exitCodeFile).get(0));
+      } else {
+        System.err.println("mill-server/ exitCode file not found");
+        return 1;
+      }
     } finally {
       ioSocket.close();
     }
