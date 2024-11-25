@@ -1,6 +1,5 @@
 package bar;
 
-import java.io.IOException;
 import java.nio.file.*;
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -13,7 +12,8 @@ public class Bar {
   static String mangledText;
   static Path fileDest;
 
-  public static void main(String[] args) throws IOException {
+  public static void main(String[] args) throws Exception {
+    Thread.sleep(1000); // Simulate a slow program that takes some time
     dest = Paths.get(args[0]);
     sources = Arrays.<String>copyOfRange(args, 1, args.length);
     for (String sourceStr : sources) {
