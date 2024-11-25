@@ -2,7 +2,7 @@ package mill.javascriptlib
 import mill._
 
 trait TscModule extends NodeModule {
-  def npmDevDeps: Task { Seq(
+  def npmDevDeps = Task { Seq(
     "typescript@5.6.3",
     "@types/node@22.7.8",
     "esbuild@0.24.0"
