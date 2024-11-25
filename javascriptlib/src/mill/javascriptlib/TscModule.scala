@@ -2,18 +2,23 @@ package mill.javascriptlib
 import mill._
 
 trait TscModule extends NodeModule {
-  def npmDevDeps = Task { Seq(
-    "typescript@5.6.3",
-    "@types/node@22.7.8",
-    "esbuild@0.24.0"
-  ) }
+  def npmDevDeps = Task {
+    Seq(
+      "typescript@5.6.3",
+      "@types/node@22.7.8",
+      "esbuild@0.24.0"
+    )
+  }
 
   def sources = Task.Source(millSourcePath / "src")
-  def allSources = Task { os.walk(sources().path).filter(file => file.ext == "ts" || file.ext == "tsx").map(PathRef(_)) }
+  def allSources = Task {
+    os.walk(sources().path).filter(file => file.ext == "ts" || file.ext == "tsx").map(PathRef(_))
+  }
 
   def tscArgs = Task { Seq.empty[String] }
 
-  def tscModuleDeps = moduleDeps.filter(_.isInstanceOf[TscModule]).map(_.asInstanceOf[TscModule])
+  def tscModuleDeps: Seq[TscModule] =
+    moduleDeps.filter(_.isInstanceOf[TscModule]).map(_.asInstanceOf[TscModule])
 
   def compile: T[(PathRef, PathRef)] = Task {
     val nodeTypes = install().path / "node_modules/@types"
