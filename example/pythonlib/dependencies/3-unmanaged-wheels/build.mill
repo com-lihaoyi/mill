@@ -1,0 +1,28 @@
+// In most scenarios you should rely on `pythonDeps`/`moduleDeps` and let Mill
+// manage the downloading and caching of wheels for you. But in the rare case
+// you receive a wheel or folder-full-of-wheels from somewhere and need to
+// include it in your project, `unmanagedWheels` is the way to do it.
+
+//// SNIPPET:BUILD
+package build
+import mill._, pythonlib._
+
+object `package` extends RootModule with PythonModule {
+  def unmanagedWheels: T[Seq[PathRef]] = Task.Input {
+    Seq.from(os.list(millSourcePath / "lib").map(PathRef(_)))
+  }
+}
+
+//// SNIPPET:END
+
+// You can override `unmanagedWheels` to point it at a wheel (.whl file) or
+// source distribution (.tar.gz with a pyproject.toml file) you place on the
+// filesystem, e.g. in the above snippet any files that happen to live in the
+// `lib/` folder.
+
+/** Usage
+
+> ./mill run
+b'"Hello, world!"'
+
+*/

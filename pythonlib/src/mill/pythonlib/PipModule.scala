@@ -46,7 +46,7 @@ trait PipModule extends Module {
    * requirements.txt of this module, and all other modules that this module
    * depends on, recursively.
    *
-   * @see pythonRequirementFiles
+   * @see [[pythonRequirementFiles]]
    */
   def transitivePythonRequirementFiles: T[Seq[PathRef]] = Task {
     val upstream = Task.traverse(moduleDeps)(_.transitivePythonRequirementFiles)().flatten
@@ -79,7 +79,7 @@ trait PipModule extends Module {
   /**
    * Any python wheels to install directly, for this module and all upstream modules, recursively.
    *
-   * @see [unmanagedWheels]
+   * @see [[unmanagedWheels]]
    */
   def transitiveUnmanagedWheels: T[Seq[PathRef]] = Task {
     val upstream = Task.traverse(moduleDeps)(_.transitiveUnmanagedWheels)().flatten

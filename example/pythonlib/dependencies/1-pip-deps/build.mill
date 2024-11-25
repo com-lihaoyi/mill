@@ -1,0 +1,26 @@
+//// SNIPPET:BUILD
+package build
+import mill._, pythonlib._
+
+object `package` extends RootModule with PythonModule {
+  def pythonDeps = Seq(
+    "numpy==2.1.2",
+    "pandas~=2.2.3",
+    "jinja2 @ https://github.com/pallets/jinja/releases/download/3.1.4/jinja2-3.1.4-py3-none-any.whl"
+  )
+}
+//// SNIPPET:END
+
+// You can define the `pythonDeps` field to add dependencies to your module, which will be installed
+// via https://pip.pypa.io/en/stable/[pip]. Dependencies can include
+// https://peps.python.org/pep-0440/[anything that pip understands], such as `<package>==<version>`
+// constraints, or even direct references to wheels.
+
+//// SNIPPET:USAGE
+
+/** Usage
+
+> ./mill run
+[10 20 30 40 50]
+
+*/

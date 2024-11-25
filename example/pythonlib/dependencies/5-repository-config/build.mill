@@ -1,0 +1,47 @@
+// By default, dependencies are resolved from https://pypi.org/[the Python
+// Package Index (PyPI)], the standard package index for python projects. You
+// can also add your own package indexes by overriding the `indexes` task in
+// the module:
+
+//// SNIPPET:BUILD1
+package build
+import mill._, pythonlib._
+
+object foo extends PythonModule {
+
+  def pythonDeps = Seq(
+    "testpkg-jodersky==0.0.1" // a test package, only available on test.pypi.org
+  )
+
+  // override this task to add or replace the package indexes
+  def indexes = super.indexes() ++ Seq("https://test.pypi.org/simple/")
+}
+
+//// SNIPPET:END
+
+// Mill uses https://pip.pypa.io/en/stable/[pip] to find and install dependencies.
+//
+// You can configure pip through its
+// https://pip.pypa.io/en/stable/topics/configuration/#location[normal configuration files.]
+//
+// === Private indexes
+//
+// You can read up in more detail on https://pip.pypa.io/en/stable/topics/authentication/[how to
+// configure pip to authenticate to private indexes]. Here is an example which reads a package from
+// an environment variable:
+
+object bar extends PythonModule {
+  def indexPassword = Task.Input { Task.env.apply("COMPANY_PASSWORD") }
+  def indexes = Task {
+    Seq(s"https://username:${indexPassword()}@pypi.company.com/simple")
+  }
+}
+
+// More advanced authentication techniques are available by configuring pip directly.
+
+/** Usage
+
+> ./mill foo.run
+2
+
+*/

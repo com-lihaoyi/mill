@@ -1,0 +1,37 @@
+// In case anything goes wrong, or if you're just curious, you can see what
+// arguments mill passes to `pip install` by looking at the output of the
+// `pipInstallArgs` task.
+
+//// SNIPPET:BUILD1
+package build
+import mill._, pythonlib._
+
+object `package` extends RootModule with PythonModule {
+  def pythonDeps = Seq(
+    "numpy==2.1.2",
+    "pandas~=2.2.3",
+    "jinja2 @ https://github.com/pallets/jinja/releases/download/3.1.4/jinja2-3.1.4-py3-none-any.whl"
+  )
+
+  def indexes = Seq("invalid_index")
+}
+
+//// SNIPPET:END
+
+/** Usage
+
+> ./mill show pipInstallArgs
+{
+  "args": [
+    "--index-url",
+    "invalid_index",
+    "mypy==1.13.0",
+    "pex==2.24.1",
+    "numpy==2.1.2",
+    "pandas~=2.2.3",
+    "jinja2 @ https://github.com/pallets/jinja/releases/download/3.1.4/jinja2-3.1.4-py3-none-any.whl"
+  ],
+  "sig": ...
+}
+
+*/
