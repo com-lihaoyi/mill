@@ -14,6 +14,7 @@ public class Bar {
   static Path fileDest;
 
   public static void main(String[] args) throws IOException {
+    Thread.sleep(1000); // Simulate a slow program that takes some time
     dest = Paths.get(args[0]);
     sources = Arrays.<String>copyOfRange(args, 1, args.length);
     for (String sourceStr : sources) {
