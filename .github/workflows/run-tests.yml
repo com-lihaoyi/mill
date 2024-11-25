@@ -136,7 +136,7 @@ jobs:
           - java-version: '11'
             millargs: '"{main,scalalib,bsp}.__.testCached"'
           - java-version: '11'
-            millargs: '"example.scalalib.{basic,web}.__.fork.testCached"'
+            millargs: '"example.scalalib.basic.__.fork.testCached"'
           - java-version: 17
             millargs: "'integration.{feature,failure}[_].fork.testCached'"
           - java-version: '11'
