@@ -4,11 +4,9 @@ import java.util.concurrent.locks.ReentrantLock
 
 class MemoryLock extends Lock {
 
-	private val innerLock = new ReentrantLock()
+  private val innerLock = new ReentrantLock()
 
-	override def
-
-	probe(): Boolean = {
+  override def probe(): Boolean = {
     !innerLock.isLocked
   }
 
@@ -17,7 +15,7 @@ class MemoryLock extends Lock {
     new MemoryLocked(innerLock)
   }
 
-	def tryLock(): MemoryTryLocked = {
+  def tryLock(): MemoryTryLocked = {
     if (innerLock.tryLock()) new MemoryTryLocked(innerLock)
     else new MemoryTryLocked(null)
   }
