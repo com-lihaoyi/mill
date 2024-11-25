@@ -43,7 +43,7 @@ object MillClientMain {
           System.in,
           System.out,
           System.err,
-          System.getenv().asScala.toMap.asJava,
+          System.getenv().asScala.toMap,
           optsArgs.toArray,
           null,
           -1
