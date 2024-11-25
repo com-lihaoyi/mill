@@ -13,3 +13,4 @@ mill.iml
 bsp.log
 lowered.hnir
 .dotty-ide*
+node_modules/
