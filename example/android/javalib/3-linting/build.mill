@@ -61,8 +61,9 @@ object app extends AndroidLintModule {
 
 /** Usage
 
-> ./mill show app.androidLintRun  # Display full path to the linting report in text file
-".../out/app/androidLintArgs.dest/report.txt"
+> ./mill app.androidLintRun  # Run Android Linting
+done compiling
+...
 
 > cat out/app/androidLintArgs.dest/report.txt # Display content of the linting report
 AndroidManifest.xml:3: Error: Avoid hardcoding the debug mode; leaving it out allows debug and release builds to automatically assign one [HardcodedDebugMode]
