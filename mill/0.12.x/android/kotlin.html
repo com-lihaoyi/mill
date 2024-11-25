@@ -3,9 +3,9 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>(Experimental) Android Builds :: The Mill JVM Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/kotlinlib/android-examples.html">
-    <link rel="prev" href="web-examples.html">
+    <title>Android Kotlin Projects :: The Mill JVM Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/mill/android/kotlin.html">
+    <link rel="prev" href="java.html">
     <link rel="next" href="../comparisons/why-mill.html">
     <meta name="generator" content="Antora 3.1.9">
     <link rel="stylesheet" href="../../../_/css/site.css">
@@ -89,10 +89,6 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../javalib/builtin-commands.html">Built-in Commands</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../javalib/module-config.html">Java Module Configuration</a>
   </li>
 
@@ -104,7 +100,7 @@
     <a class="nav-link" href="../javalib/testing.html">Testing Java Projects</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../javalib/linting.html">Linting Java Projects</a>
   </li>
 
@@ -119,10 +115,6 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../javalib/web-examples.html">Java Web Project Examples</a>
   </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../javalib/android-examples.html">(Experimental) Android Builds</a>
-  </li>
 </ul>
   </li>
 
@@ -130,10 +122,6 @@
     <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../scalalib/intro.html">Building Scala with Mill</a>
 <ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../scalalib/builtin-commands.html">Built-in Commands</a>
-  </li>
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
@@ -147,7 +135,7 @@
     <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../scalalib/linting.html">Linting Scala Projects</a>
   </li>
 
@@ -171,44 +159,51 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="intro.html">Kotlin with Mill</a>
+    <a class="nav-link" href="../kotlinlib/intro.html">Building Kotlin with Mill</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="builtin-commands.html">Built-in Commands</a>
+    <a class="nav-link" href="../kotlinlib/module-config.html">Kotlin Module Configuration</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="module-config.html">Kotlin Module Configuration</a>
+    <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="dependencies.html">Kotlin Library Dependencies</a>
+    <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="testing.html">Testing Kotlin Projects</a>
+    <a class="nav-link" href="../kotlinlib/linting.html">Linting Kotlin Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="linting.html">Linting Kotlin Projects</a>
+    <a class="nav-link" href="../kotlinlib/publishing.html">Publishing Kotlin Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="publishing.html">Publishing Kotlin Projects</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="web-examples.html">Kotlin Web Project Examples</a>
-  </li>
-
-  <li class="nav-item is-current-page is-active" data-depth="2">
-    <a class="nav-link" href="android-examples.html">(Experimental) Android Builds</a>
+    <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
   </li>
 </ul>
   </li>
 
   <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">(Experimental) Android with Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item is-current-page" data-depth="2">
+    <a class="nav-link" href="kotlin.html">Android Kotlin Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../comparisons/why-mill.html">Why Use Mill?</a>
 <ul class="nav-list">
@@ -228,6 +223,10 @@
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../comparisons/unique.html">What Makes Mill Unique</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../comparisons/java-compile.html">How Fast Does Java Compile?</a>
+  </li>
 </ul>
   </li>
 
@@ -245,7 +244,22 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/alternate-installation.html">Other installation methods</a>
+    <a class="nav-link" href="../cli/builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Migrating to Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
   </li>
 </ul>
   </li>
@@ -268,10 +282,6 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../fundamentals/query-syntax.html">Task Query Syntax</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
   </li>
 
@@ -281,6 +291,10 @@
 
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/configuring-jvm-versions.html">Configuring JVM Versions</a>
   </li>
 </ul>
   </li>
@@ -454,7 +468,7 @@
           <a href="../../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-latest">
-          <a href="../../index.html">latest-0.12.2</a>
+          <a href="../../index.html">latest-0.12.3</a>
         </li>
         <li class="version is-current">
           <a href="../index.html">0.12.x</a>
@@ -482,8 +496,8 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="../index.html">Mill Documentation</a></li>
-    <li><a href="intro.html">Kotlin with Mill</a></li>
-    <li><a href="android-examples.html">(Experimental) Android Builds</a></li>
+    <li>(Experimental) Android with Mill</li>
+    <li><a href="kotlin.html">Android Kotlin Projects</a></li>
   </ul>
 </nav>
 </div>
@@ -492,7 +506,7 @@
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">(Experimental) Android Builds</h1>
+<h1 class="page">Android Kotlin Projects</h1>
 <div id="preamble">
 <div class="sectionbody">
 <style>
@@ -522,9 +536,8 @@ a starting point for further experimentation and development.</p>
 </div>
 </div>
 </div>
-<div class="sect1">
-<h2 id="_relevant_modules"><a class="anchor" href="#_relevant_modules"></a>Relevant Modules</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_relevant_modules"><a class="anchor" href="#_relevant_modules"></a>Relevant Modules</h3>
 <div class="paragraph">
 <p>These are the main Mill Modules that are relevant for building Android apps:</p>
 </div>
@@ -542,7 +555,6 @@ a starting point for further experimentation and development.</p>
 </ul>
 </div>
 </div>
-</div>
 <div class="sect1">
 <h2 id="_simple_android_hello_world_application"><a class="anchor" href="#_simple_android_hello_world_application"></a>Simple Android Hello World Application</h2>
 <div class="sectionbody">
@@ -557,7 +569,7 @@ resource generation, APK building, DEX conversion, and APK signing.
 Additionally, <code>AndroidSdkModule</code> is embedded, making SDK management seamless.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2-example-kotlinlib-android-1-hello-world.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/kotlinlib/android/1-hello-world">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-android-kotlinlib-1-hello-kotlin.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/android/kotlinlib/1-hello-kotlin">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -574,6 +586,7 @@ import mill.javalib.android.AndroidSdkModule</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object androidSdkModule0 extends AndroidSdkModule {
   def buildToolsVersion = "35.0.0"
+  def bundleToolVersion = "1.17.2"
 }</code></pre>
 </div>
 </div>
@@ -584,8 +597,14 @@ import mill.javalib.android.AndroidSdkModule</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object app extends AndroidAppKotlinModule {
 
-  def kotlinVersion = "2.0.0"
+  def kotlinVersion = "2.0.20"
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+
+  // Configuration for ReleaseKey
+  def androidReleaseKeyName: T[String] = Task { "releaseKey.jks" }
+  def androidReleaseKeyAlias: T[String] = Task { "releaseKey" }
+  def androidReleaseKeyPass: T[String] = Task { "MillBuildTool" }
+  def androidReleaseKeyStorePass: T[String] = Task { "MillBuildTool" }
 }</code></pre>
 </div>
 </div>
@@ -605,19 +624,23 @@ into an APK, optimizes the APK using <code>zipalign</code>, and finally signs it
 By extending <code>AndroidAppKotlinModule</code>, we leverage its predefined Android build tasks, ensuring that
 all necessary steps (resource generation, APK creation, and signing) are executed automatically.</p>
 </div>
-<div class="sect2">
-<h3 id="_project_structure"><a class="anchor" href="#_project_structure"></a>Project Structure:</h3>
+<div class="sect3">
+<h4 id="_project_structure"><a class="anchor" href="#_project_structure"></a>Project Structure:</h4>
 <div class="paragraph">
 <p>The project follows the standard Android app layout. Below is a typical project folder structure:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre>.
-├── build.mill
-├── AndroidManifest.xml
-└── app/src/main/kotlin
-    └── com/helloworld/app
-        └── MainActivity.kt</pre>
+├── app
+│   ├── AndroidManifest.xml
+│   ├── releaseKey.jks
+│   ├── resources
+│   │   └── values
+│   │       ├── colors.xml
+│   │       └── strings.xml
+│   └── src/main/java/com/helloworld/app/MainActivity.kt
+└── build.mill</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -677,7 +700,7 @@ everything from compiling the code to generating a signed APK for distribution.<
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="web-examples.html">Kotlin Web Project Examples</a></span>
+  <span class="prev"><a href="java.html">Android Java Projects</a></span>
   <span class="next"><a href="../comparisons/why-mill.html">Why Use Mill?</a></span>
 </nav>
 </article>

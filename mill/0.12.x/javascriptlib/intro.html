@@ -3,10 +3,8 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Other installation methods :: The Mill JVM Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/cli/alternate-installation.html">
-    <link rel="prev" href="flags.html">
-    <link rel="next" href="../fundamentals/tasks.html">
+    <title>Building Javascript with Mill :: The Mill JVM Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/mill/javascriptlib/intro.html">
     <meta name="generator" content="Antora 3.1.9">
     <link rel="stylesheet" href="../../../_/css/site.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -89,10 +87,6 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../javalib/builtin-commands.html">Built-in Commands</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../javalib/module-config.html">Java Module Configuration</a>
   </li>
 
@@ -104,7 +98,7 @@
     <a class="nav-link" href="../javalib/testing.html">Testing Java Projects</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../javalib/linting.html">Linting Java Projects</a>
   </li>
 
@@ -119,10 +113,6 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../javalib/web-examples.html">Java Web Project Examples</a>
   </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../javalib/android-examples.html">(Experimental) Android Builds</a>
-  </li>
 </ul>
   </li>
 
@@ -130,10 +120,6 @@
     <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../scalalib/intro.html">Building Scala with Mill</a>
 <ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../scalalib/builtin-commands.html">Built-in Commands</a>
-  </li>
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
@@ -147,7 +133,7 @@
     <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../scalalib/linting.html">Linting Scala Projects</a>
   </li>
 
@@ -171,12 +157,8 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../kotlinlib/intro.html">Kotlin with Mill</a>
+    <a class="nav-link" href="../kotlinlib/intro.html">Building Kotlin with Mill</a>
 <ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/builtin-commands.html">Built-in Commands</a>
-  </li>
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../kotlinlib/module-config.html">Kotlin Module Configuration</a>
@@ -190,7 +172,7 @@
     <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../kotlinlib/linting.html">Linting Kotlin Projects</a>
   </li>
 
@@ -201,14 +183,25 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
   </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/android-examples.html">(Experimental) Android Builds</a>
-  </li>
 </ul>
   </li>
 
   <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">(Experimental) Android with Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../comparisons/why-mill.html">Why Use Mill?</a>
 <ul class="nav-list">
@@ -228,6 +221,10 @@
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../comparisons/unique.html">What Makes Mill Unique</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../comparisons/java-compile.html">How Fast Does Java Compile?</a>
+  </li>
 </ul>
   </li>
 
@@ -237,15 +234,30 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="installation-ide.html">Installation &amp; IDE Support</a>
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Support</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="flags.html">Mill Command-Line Flags</a>
+    <a class="nav-link" href="../cli/flags.html">Mill Command-Line Flags</a>
   </li>
 
-  <li class="nav-item is-current-page" data-depth="2">
-    <a class="nav-link" href="alternate-installation.html">Other installation methods</a>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Migrating to Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
   </li>
 </ul>
   </li>
@@ -268,10 +280,6 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../fundamentals/query-syntax.html">Task Query Syntax</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
   </li>
 
@@ -281,6 +289,10 @@
 
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/configuring-jvm-versions.html">Configuring JVM Versions</a>
   </li>
 </ul>
   </li>
@@ -454,7 +466,7 @@
           <a href="../../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-latest">
-          <a href="../../index.html">latest-0.12.2</a>
+          <a href="../../index.html">latest-0.12.3</a>
         </li>
         <li class="version is-current">
           <a href="../index.html">0.12.x</a>
@@ -482,8 +494,7 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="../index.html">Mill Documentation</a></li>
-    <li>The Mill CLI</li>
-    <li><a href="alternate-installation.html">Other installation methods</a></li>
+    <li><a href="intro.html">Building Javascript with Mill</a></li>
   </ul>
 </nav>
 </div>
@@ -492,199 +503,68 @@
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">Other installation methods</h1>
+<h1 class="page">Building Javascript with Mill</h1>
 <div id="preamble">
 <div class="sectionbody">
-<div class="admonitionblock caution">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-caution" title="Caution"></i>
-</td>
-<td class="content">
-The installation methods listed below are maintained outside of Mill and may not have
-the same features as the <a href="installation-ide.html#_bootstrap_scripts" class="xref page">bootstrap scripts</a>. You can try using them,
-but the officially supported way to use Mill is via the bootstrap script above, so the Mill
-maintainers may be unable to help you if you have issues with some alternate installation method.
-</td>
-</tr>
-</table>
-</div>
-<div class="admonitionblock caution">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-caution" title="Caution"></i>
-</td>
-<td class="content">
-Some of the installations via package managers install a fixed version of Mill and
-do not support project-specific selection of the preferred Mill version. If you want to use
-the <code>MILL_VERSION</code> environment variable or need support for <code>.mill-version</code> or
-<code>.config/mill-version</code> files to control the actual used Mill version, please use
-a <a href="installation-ide.html#_bootstrap_scripts" class="xref page">bootstrap script</a> instead.
-</td>
-</tr>
-</table>
-</div>
+<style>
+*{
+  hyphens: manual !important;
+}
+</style>
+<script>
+gtag('config', 'AW-16649289906');
+
+document.addEventListener('DOMContentLoaded', function() {
+const links = document.querySelectorAll('a');
+  links.forEach(link => {
+    if (link.textContent.trim().toLowerCase() === 'download') {
+      link.addEventListener('click', function(event) {
+        console.log("download link clicked")
+        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+      });
+    }
+  });
+});
+</script>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_os_x"><a class="anchor" href="#_os_x"></a>OS X</h2>
+<h2 id="_simple_typescript_module"><a class="anchor" href="#_simple_typescript_module"></a>Simple Typescript Module</h2>
 <div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-javascriptlib-basic-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/javascriptlib/basic/1-simple">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javascriptlib._
+
+object foo extends TypeScriptModule {
+  object bar extends TypeScriptModule {
+    def npmDeps = Seq("immutable@4.3.7")
+  }
+}
+
+object qux extends TypeScriptModule {
+  def moduleDeps = Seq(foo, foo.bar)
+}</code></pre>
+</div>
+</div>
 <div class="paragraph">
-<p>Installation via <a href="https://github.com/Homebrew/homebrew-core/blob/master/Formula/m/mill.rb">homebrew</a>:</p>
+<p>Documentation for mill.javascriptlib</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">brew install mill</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill qux.run James Bond prof
+Hello James Bond Professor
+
+&gt; mill show qux.bundle
+".../out/qux/bundle.dest/bundle.js"
+
+&gt; node out/qux/bundle.dest/bundle.js James Bond prof
+Hello James Bond Professor</code></pre>
 </div>
 </div>
 </div>
 </div>
-<div class="sect1">
-<h2 id="_arch_linux"><a class="anchor" href="#_arch_linux"></a>Arch Linux</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Arch Linux has an <a href="https://archlinux.org/packages/extra/any/mill/">Extra package for mill</a>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">pacman -S mill</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_freebsd"><a class="anchor" href="#_freebsd"></a>FreeBSD</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Installation via <a href="http://man.freebsd.org/pkg/8">pkg(8)</a>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">pkg install mill</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_gentoo_linux"><a class="anchor" href="#_gentoo_linux"></a>Gentoo Linux</h2>
-<div class="sectionbody">
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">emerge dev-java/mill-bin</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_windows"><a class="anchor" href="#_windows"></a>Windows</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>To get started, download Mill from
-<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2-assembly">Github releases</a>, and save it as <code>mill.bat</code>.</p>
-</div>
-<div class="paragraph">
-<p>If you&#8217;re using <a href="https://scoop.sh">Scoop</a> you can install Mill via</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">scoop install mill</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_wsl_msys2_cycgin_git_bash"><a class="anchor" href="#_wsl_msys2_cycgin_git_bash"></a>WSL / MSYS2 / Cycgin / Git-Bash</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Mill also works on "sh" environments on Windows (e.g.,
-<a href="https://www.msys2.org">MSYS2</a>,
-<a href="https://www.cygwin.com">Cygwin</a>,
-<a href="https://gitforwindows.org">Git-Bash</a>,
-<a href="https://docs.microsoft.com/en-us/windows/wsl">WSL</a>); to get started, follow the instructions in the <a href="#_manual">Manual</a>
-section. Note that:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>In some environments (such as WSL), Mill might have to be run without a server (using <code>-i</code>, <code>--interactive</code>, or <code>--no-server</code>.)</p>
-</li>
-<li>
-<p>On Cygwin, run the following after downloading mill:</p>
-</li>
-</ul>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">sed -i '0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}; 0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}' /usr/local/bin/mill</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_docker"><a class="anchor" href="#_docker"></a>Docker</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>You can download and run
-a <a href="https://hub.docker.com/r/nightscape/scala-mill/">"Docker image containing OpenJDK, Scala and Mill"</a> using</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">docker pull nightscape/scala-mill
-docker run -it nightscape/scala-mill</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_manual"><a class="anchor" href="#_manual"></a>Manual</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>To get started, download Mill and install it into your HOME ".local/bin" via the following
-<code>curl</code>/<code>chmod</code> command:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">sh -c "curl -L https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2 &gt; ~/.local/bin/mill &amp;&amp; chmod +x ~/.local/bin/mill"</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_coursier_unsupported"><a class="anchor" href="#_coursier_unsupported"></a>Coursier (unsupported)</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Installing mill via <code>coursier</code> or <code>cs</code> is currently not officially supported.
-There are various issues, especially with interactive mode.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_asdf_unsupported"><a class="anchor" href="#_asdf_unsupported"></a>Asdf (unsupported)</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>You can install and manage Mill via the Multiple Runtime Version Manager - <a href="https://asdf-vm.com/"><code>asdf</code></a>.</p>
-</div>
-<div class="paragraph">
-<p>Support by <code>asdf</code> is currently possible by using the <a href="https://github.com/asdf-community/asdf-mill"><code>asdf-mill</code> plugin</a>:</p>
-</div>
-<div class="listingblock">
-<div class="title">Steps to install the <code>mill</code> plugin and Mill with <code>asdf</code></div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">---
-asdf plugin add mill
-asdf install mill latest
-asdf global mill latest
----</code></pre>
-</div>
-</div>
-</div>
-</div>
-<nav class="pagination">
-  <span class="prev"><a href="flags.html">Mill Command-Line Flags</a></span>
-  <span class="next"><a href="../fundamentals/tasks.html">Tasks</a></span>
-</nav>
 </article>
   </div>
 </main>

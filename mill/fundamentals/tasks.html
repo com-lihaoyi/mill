@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Tasks :: The Mill JVM Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/fundamentals/tasks.html" />
-    <link rel="prev" href="../cli/alternate-installation.html" />
+    <link rel="prev" href="../migrating/maven.html" />
     <link rel="next" href="modules.html" />
     <meta name="generator" content="Antora 3.1.9" />
     <link rel="stylesheet" href="../../_/css/site.css" />
@@ -94,10 +94,6 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../javalib/builtin-commands.html">Built-in Commands</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../javalib/module-config.html">Java Module Configuration</a>
   </li>
 
@@ -109,7 +105,7 @@
     <a class="nav-link" href="../javalib/testing.html">Testing Java Projects</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../javalib/linting.html">Linting Java Projects</a>
   </li>
 
@@ -124,10 +120,6 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../javalib/web-examples.html">Java Web Project Examples</a>
   </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../javalib/android-examples.html">(Experimental) Android Builds</a>
-  </li>
 </ul>
   </li>
 
@@ -135,10 +127,6 @@
     <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../scalalib/intro.html">Building Scala with Mill</a>
 <ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../scalalib/builtin-commands.html">Built-in Commands</a>
-  </li>
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
@@ -152,7 +140,7 @@
     <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../scalalib/linting.html">Linting Scala Projects</a>
   </li>
 
@@ -176,12 +164,8 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../kotlinlib/intro.html">Kotlin with Mill</a>
+    <a class="nav-link" href="../kotlinlib/intro.html">Building Kotlin with Mill</a>
 <ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/builtin-commands.html">Built-in Commands</a>
-  </li>
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../kotlinlib/module-config.html">Kotlin Module Configuration</a>
@@ -195,7 +179,7 @@
     <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../kotlinlib/linting.html">Linting Kotlin Projects</a>
   </li>
 
@@ -206,14 +190,25 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
   </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/android-examples.html">(Experimental) Android Builds</a>
-  </li>
 </ul>
   </li>
 
   <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">(Experimental) Android with Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../comparisons/why-mill.html">Why Use Mill?</a>
 <ul class="nav-list">
@@ -233,6 +228,10 @@
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../comparisons/unique.html">What Makes Mill Unique</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../comparisons/java-compile.html">How Fast Does Java Compile?</a>
+  </li>
 </ul>
   </li>
 
@@ -250,7 +249,22 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/alternate-installation.html">Other installation methods</a>
+    <a class="nav-link" href="../cli/builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Migrating to Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
   </li>
 </ul>
   </li>
@@ -273,10 +287,6 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="query-syntax.html">Task Query Syntax</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="library-deps.html">Library Dependencies in Mill</a>
   </li>
 
@@ -286,6 +296,10 @@
 
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="bundled-libraries.html">Bundled Libraries</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="configuring-jvm-versions.html">Configuring JVM Versions</a>
   </li>
 </ul>
   </li>
@@ -449,7 +463,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">latest-0.12.2</span>
+    <span class="version">latest-0.12.3</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -459,7 +473,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">latest-0.12.2</a>
+          <a href="../index.html">latest-0.12.3</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.x</a>
@@ -625,7 +639,7 @@ making use of the <code>Task.Source</code> and <code>Task</code> types to define
 with some input source files and intermediate build steps:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2-example-fundamentals-tasks-1-task-graph.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/fundamentals/tasks/1-task-graph">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-fundamentals-tasks-1-task-graph.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/fundamentals/tasks/1-task-graph">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -913,7 +927,7 @@ and use the cached output of <code>compile</code> (green)</p>
 <div class="sect2">
 <h3 id="_sources"><a class="anchor" href="#_sources"></a>Sources</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2-example-fundamentals-tasks-2-primary-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/fundamentals/tasks/2-primary-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-fundamentals-tasks-2-primary-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/fundamentals/tasks/2-primary-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1023,10 +1037,10 @@ downstream tasks do not re-evaluate. This is determined using the
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show lineCount
 Computing line count
-16
+18
 
 &gt; ./mill show lineCount # line count already cached, doesn't need to be computed
-16</code></pre>
+18</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1275,7 +1289,7 @@ in <code>def largeFile</code> above running even though the <code>largeFile()</c
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show lineCount
-16
+18
 
 &gt; ./mill show hugeFileName # This still runs `largestFile` even though `lineCount() &lt; 999`
 Finding Largest File
@@ -1574,7 +1588,7 @@ object bar extends Bar</code></pre>
 <div class="sect2">
 <h3 id="_anonymous_tasks"><a class="anchor" href="#_anonymous_tasks"></a>Anonymous Tasks</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2-example-fundamentals-tasks-3-anonymous-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/fundamentals/tasks/3-anonymous-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-fundamentals-tasks-3-anonymous-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/fundamentals/tasks/3-anonymous-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, define.Task
@@ -1625,7 +1639,7 @@ World!</code></pre>
 <div class="sect2">
 <h3 id="_inputs"><a class="anchor" href="#_inputs"></a>Inputs</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2-example-fundamentals-tasks-4-inputs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/fundamentals/tasks/4-inputs">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-fundamentals-tasks-4-inputs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/fundamentals/tasks/4-inputs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -1809,7 +1823,7 @@ files in an input folder, and re-use previously-compressed files if a file in th
 input folder did not change:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2-example-fundamentals-tasks-5-persistent-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/fundamentals/tasks/5-persistent-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-fundamentals-tasks-5-persistent-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/fundamentals/tasks/5-persistent-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -1901,11 +1915,17 @@ can persistent across multiple evaluations. These are similar to persistent
 tasks in that they let you cache things, but the fact that they let you
 cache the worker object in-memory allows for greater performance and
 flexibility: you are no longer limited to caching only serializable data
-and paying the cost of serializing it to disk every evaluation. This example
-uses a Worker to provide simple in-memory caching for compressed files.</p>
+and paying the cost of serializing it to disk every evaluation.</p>
+</div>
+<div class="paragraph">
+<p>This example uses a Worker to provide simple two-level cache: in-memory caching
+for compressed files, in addition to caching them on disk. This means that if the
+Mill process is persistent (e.g. with <code>--watch</code>/<code>-w</code>) the cache lookups are instant,
+but even if the Mill process is restarted it can load the cache values from disk
+without having to recompute them:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2-example-fundamentals-tasks-6-workers.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/fundamentals/tasks/6-workers">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-fundamentals-tasks-6-workers.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/fundamentals/tasks/6-workers">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -1932,20 +1952,25 @@ class CompressWorker(dest: os.Path) {
   val cache = collection.mutable.Map.empty[Int, Array[Byte]]
   def compress(name: String, bytes: Array[Byte]): Array[Byte] = {
     val hash = Arrays.hashCode(bytes)
-    if (!cache.contains(hash)) {
+    if (!synchronized(cache.contains(hash))) {
       val cachedPath = dest / hash.toHexString
       if (!os.exists(cachedPath)) {
         println(&quot;Compressing: &quot; + name)
-        cache(hash) = compressBytes(bytes)
-        os.write(cachedPath, cache(hash))
+        val compressed = compressBytes(bytes)
+        synchronized {
+          cache(hash) = compressed
+          os.write(cachedPath, cache(hash))
+        }
       } else {
         println(&quot;Cached from disk: &quot; + name)
-        cache(hash) = os.read.bytes(cachedPath)
+        synchronized {
+          cache(hash) = os.read.bytes(cachedPath)
+        }
       }
     } else {
       println(&quot;Cached from memory: &quot; + name)
     }
-    cache(hash)
+    synchronized { cache(hash) }
   }
 }
 
@@ -1984,7 +2009,9 @@ The <em>initialization</em> of a <code>Task.Worker’s value is single threaded,
 but <em>usage</em> of the worker’s value may be done concurrently. The user of
 `Task.Worker</code> is responsible for ensuring it’s value is safe to use in a
 multi-threaded environment via techniques like locks, atomics, or concurrent data
-structures
+structures. The example above uses <code>synchronized{}</code> around all access to the
+shared <code>cache</code> state to allow the slow <code>compressBytes</code> operation to run in
+parallel while the fast mutation of the <code>cache</code> is single-threaded.
 </td>
 </tr>
 </tbody></table>
@@ -2033,6 +2060,11 @@ Cached from disk: world.txt</code></pre>
 <a href="https://github.com/scala-js/scala-js">Scala.js Optimizer</a>.
 This lets us keep them in-memory with warm caches and fast incremental execution.</p>
 </div>
+<div class="paragraph">
+<p>Like any other task, you can use <code>./mill clean</code> to wipe out any cached in-memory or
+on-disk state belonging to workers. This may be necessary if your worker implementation
+has bugs that cause the worker disk or in-memory data structures to get into a bad state.</p>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_autoclosable_workers"><a class="anchor" href="#_autoclosable_workers"></a><code>Autoclosable</code> Workers</h3>
@@ -2058,6 +2090,148 @@ def myWorker = Task.Worker { new MyWorker() }</code></pre>
 </div>
 </div>
 </div>
+<div class="sect2">
+<h3 id="_cachedfactory_workers"><a class="anchor" href="#_cachedfactory_workers"></a><code>CachedFactory</code> Workers</h3>
+<div class="paragraph">
+<p>One very common use case for workers is managing long-lived mutable state. The issue
+with long-lived mutable state is that in the presence of parallelism (the default in
+Mill), managing such state can be tricky:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>If you allow unrestricted access to the mutable state across multiple threads,
+you are subject to race conditions and non-deterministic bugs</p>
+</li>
+<li>
+<p>If you just synchronize/lock all access to the mutable state, you lose all benefits
+for parallelism</p>
+</li>
+<li>
+<p>If you re-generate the mutable state each time for each thread, you lose the benefits
+of it being long lived</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The solution to these issues is to maintain an in-memory cache, with proper locking,
+eviction, and invalidation. Doing so is tedious and error prone, and so Mill provides
+the <code>CachedFactory</code> helper to make it easier. The example below re-implements the a simplified
+version of <code>CompressWorker</code> we saw earlier, but using <code>CacheFactory</code> to cache, reset, and
+re-use the <code>ByteArrayOutputStream</code> btween calls to <code>compressWorker2().compress</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+import java.lang.AutoCloseable
+import mill.api.CachedFactory
+import java.io.ByteArrayOutputStream
+
+def cachedCompressWorker = Task.Worker { new CachedCompressWorker(Task.dest) }
+class CachedCompressWorker(dest: os.Path) extends CachedFactory[Unit, ByteArrayOutputStream] {
+  def setup(key: Unit): ByteArrayOutputStream = {
+    println(&quot;setup ByteArrayOutputStream&quot;)
+    new ByteArrayOutputStream()
+  }
+
+  def teardown(key: Unit, value: ByteArrayOutputStream): Unit = {
+    println(&quot;teardown ByteArrayOutputStream&quot;)
+    value.reset()
+  }
+
+  def maxCacheSize = 2
+
+  val cache = collection.mutable.Map.empty[Int, Array[Byte]]
+  def compress(name: String, bytes: Array[Byte]): Array[Byte] = {
+    val hash = Arrays.hashCode(bytes)
+    if (!synchronized(cache.contains(hash))) {
+      println(&quot;Compressing: &quot; + name)
+      val compressed = withValue(()) { bos =&gt; compressBytes2(bos, bytes) }
+      synchronized { cache(hash) = compressed }
+    } else {
+      println(&quot;Cached from memory: &quot; + name)
+    }
+    synchronized { cache(hash) }
+  }
+}
+
+def compressBytes2(bos: ByteArrayOutputStream, input: Array[Byte]) = {
+  bos.reset()
+  Thread.sleep(1000) // Simulate a slow operation
+  val gzip = new GZIPOutputStream(bos)
+  gzip.write(input)
+  gzip.close()
+  bos.toByteArray
+}</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>CachedFactory</code> takes two type parameters, a <code>K</code> key type and a <code>V</code> value type.
+In this case <code>K</code> is <code>Unit</code> since all <code>ByteArrayOutputStream`s are the same, but if you
+are caching things which take some kind of configuration (e.g. compilers with compiler
+flags) you can set `K</code> to be the config class so that values with different input
+configuration are cached separately.</p>
+</li>
+<li>
+<p><code>setup</code> creates the <code>ByteArrayOutputStream</code>, <code>maxCacheSize</code> configures the maximum
+number of cached entries to keep around while they are not in use, and when the count
+of cached entries exceeds that number <code>teardown</code> cleans them up</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Although this example is synthetic (you don’t actually need to reset, reuse, and teardown
+`ByteArrayOutputStream`s) the same techniques would apply to any long-lived mutable state
+or components you need to manage. This is especially important when
+<a href="../extending/running-jvm-code.html" class="xref page">running JVM code in classloaders or subprocesses</a>,
+as those are both expensive to initialize and need to be properly closed or terminated
+when you are done with them</p>
+</div>
+<div class="paragraph">
+<p>The above <code>cachedCompressWorker</code> can be used as shown below, with three
+<code>def compressed*</code> tasks using it to call <code>.compress</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def compressed1 = Task {
+  cachedCompressWorker().compress(&quot;foo.txt&quot;, &quot;I am cow&quot;.getBytes)
+}
+
+def compressed2 = Task {
+  cachedCompressWorker().compress(&quot;bar.txt&quot;, &quot;Hear me moo&quot;.getBytes)
+}
+
+def compressed3 = Task {
+  cachedCompressWorker().compress(&quot;qux.txt&quot;, &quot;I weigh twice as much as you&quot;.getBytes)
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; # 3 streams are created on demand, 1 is torn down afer due to maxCacheSize = 2 limit
+&gt; ./mill show '{compressed1,compressed2,compressed3}'
+setup ByteArrayOutputStream
+setup ByteArrayOutputStream
+setup ByteArrayOutputStream
+Compressing: foo.txt
+Compressing: bar.txt
+Compressing: qux.txt
+teardown ByteArrayOutputStream
+{
+  &quot;compressed1&quot;: ...
+  &quot;compressed2&quot;: ...
+  &quot;compressed3&quot;: ...
+}
+
+&gt; # `clean` clears the CachedFactory and tears down the two streams in the cache
+&gt; ./mill clean cachedCompressWorker
+teardown ByteArrayOutputStream
+teardown ByteArrayOutputStream</code></pre>
+</div>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -2070,7 +2244,7 @@ to support <a href="../javalib/testing.html#_test_grouping" class="xref page">pa
 but can be used in your own tasks as well:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2-example-fundamentals-tasks-7-forking-futures.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/fundamentals/tasks/7-forking-futures">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-fundamentals-tasks-7-forking-futures.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/fundamentals/tasks/7-forking-futures">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -2140,7 +2314,7 @@ run async futures on <code>T.fork</code> whenever possible.</p>
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="../cli/alternate-installation.html">Other installation methods</a></span>
+  <span class="prev"><a href="../migrating/maven.html">Migrating From Maven to Mill</a></span>
   <span class="next"><a href="modules.html">Modules</a></span>
 </nav>
 </article>

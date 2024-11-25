@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Task Query Syntax :: The Mill JVM Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/fundamentals/query-syntax.html">
-    <link rel="prev" href="out-dir.html">
-    <link rel="next" href="library-deps.html">
+    <title>Configuring JVM Versions :: The Mill JVM Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/mill/fundamentals/configuring-jvm-versions.html">
+    <link rel="prev" href="bundled-libraries.html">
+    <link rel="next" href="../extending/import-ivy-plugins.html">
     <meta name="generator" content="Antora 3.1.9">
     <link rel="stylesheet" href="../../../_/css/site.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -89,10 +89,6 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../javalib/builtin-commands.html">Built-in Commands</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../javalib/module-config.html">Java Module Configuration</a>
   </li>
 
@@ -104,7 +100,7 @@
     <a class="nav-link" href="../javalib/testing.html">Testing Java Projects</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../javalib/linting.html">Linting Java Projects</a>
   </li>
 
@@ -119,10 +115,6 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../javalib/web-examples.html">Java Web Project Examples</a>
   </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../javalib/android-examples.html">(Experimental) Android Builds</a>
-  </li>
 </ul>
   </li>
 
@@ -130,10 +122,6 @@
     <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../scalalib/intro.html">Building Scala with Mill</a>
 <ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../scalalib/builtin-commands.html">Built-in Commands</a>
-  </li>
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
@@ -147,7 +135,7 @@
     <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../scalalib/linting.html">Linting Scala Projects</a>
   </li>
 
@@ -171,12 +159,8 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../kotlinlib/intro.html">Kotlin with Mill</a>
+    <a class="nav-link" href="../kotlinlib/intro.html">Building Kotlin with Mill</a>
 <ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/builtin-commands.html">Built-in Commands</a>
-  </li>
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../kotlinlib/module-config.html">Kotlin Module Configuration</a>
@@ -190,7 +174,7 @@
     <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../kotlinlib/linting.html">Linting Kotlin Projects</a>
   </li>
 
@@ -201,14 +185,25 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
   </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/android-examples.html">(Experimental) Android Builds</a>
-  </li>
 </ul>
   </li>
 
   <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">(Experimental) Android with Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../comparisons/why-mill.html">Why Use Mill?</a>
 <ul class="nav-list">
@@ -228,6 +223,10 @@
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../comparisons/unique.html">What Makes Mill Unique</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../comparisons/java-compile.html">How Fast Does Java Compile?</a>
+  </li>
 </ul>
   </li>
 
@@ -245,7 +244,22 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/alternate-installation.html">Other installation methods</a>
+    <a class="nav-link" href="../cli/builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Migrating to Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
   </li>
 </ul>
   </li>
@@ -267,11 +281,7 @@
     <a class="nav-link" href="out-dir.html">The Output Directory</a>
   </li>
 
-  <li class="nav-item is-current-page" data-depth="2">
-    <a class="nav-link" href="query-syntax.html">Task Query Syntax</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="library-deps.html">Library Dependencies in Mill</a>
   </li>
 
@@ -281,6 +291,10 @@
 
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="bundled-libraries.html">Bundled Libraries</a>
+  </li>
+
+  <li class="nav-item is-current-page is-active" data-depth="2">
+    <a class="nav-link" href="configuring-jvm-versions.html">Configuring JVM Versions</a>
   </li>
 </ul>
   </li>
@@ -454,7 +468,7 @@
           <a href="../../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-latest">
-          <a href="../../index.html">latest-0.12.2</a>
+          <a href="../../index.html">latest-0.12.3</a>
         </li>
         <li class="version is-current">
           <a href="../index.html">0.12.x</a>
@@ -483,7 +497,7 @@
   <ul>
     <li><a href="../index.html">Mill Documentation</a></li>
     <li>Mill Fundamentals</li>
-    <li><a href="query-syntax.html">Task Query Syntax</a></li>
+    <li><a href="configuring-jvm-versions.html">Configuring JVM Versions</a></li>
   </ul>
 </nav>
 </div>
@@ -492,288 +506,173 @@
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">Task Query Syntax</h1>
+<h1 class="page">Configuring JVM Versions</h1>
 <div id="preamble">
 <div class="sectionbody">
-<style>
-*{
-  hyphens: manual !important;
-}
-</style>
-<script>
-gtag('config', 'AW-16649289906');
+<div class="paragraph">
+<p>By default, Mill uses the same JVM that it itself is running on to compile/test/run
+Java/Scala/Kotlin modules. This page goes into more detail about downloading
+and using a custom Java home on a per-module basis.</p>
+</div>
+<div class="paragraph">
+<p>To override the default Java home, you can create a custom
+<code>ZincWorkerModule</code> and override the <code>zincWorker</code> method in your
+<code>JavaModule</code> or <code>ScalaModule</code> by pointing it to that custom object:</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_downloading_jvm_by_version"><a class="anchor" href="#_downloading_jvm_by_version"></a>Downloading Jvm By Version</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>ZincWorkerModule.ForJvm</code> class takes a Jvm dependency string as its
+contructor argument and configures the module to fetch and cache the Jvm
+using coursier and use it for the compile, run, and test tasks.</p>
+</div>
+<div class="paragraph">
+<p>The string has the form:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>"{name}:{version}"</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To see what Jvms are available for download look at the index for your os
+and architecture <a href="https://github.com/coursier/jvm-index/blob/master/indices/linux-arm64.json">here</a>.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-depth-javahome-1-custom-jvms.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/depth/javahome/1-custom-jvms">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
+import mill.define.ModuleRef
 
-document.addEventListener('DOMContentLoaded', function() {
-const links = document.querySelectorAll('a');
-  links.forEach(link => {
-    if (link.textContent.trim().toLowerCase() === 'download') {
-      link.addEventListener('click', function(event) {
-        console.log("download link clicked")
-        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
-      });
+object ZincWorkerJava11 extends ZincWorkerModule {
+  def jvmId = "temurin:18.0.2"
+}
+
+object foo extends JavaModule {
+  def zincWorker = ModuleRef(ZincWorkerJava11)
+
+  object test extends JavaTests with TestModule.Junit4
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run
+Foo running on Java 18.0.2
+
+&gt; mill foo.test
+Testing with JVM version: 18.0.2
+Test foo.FooTest.testSimple finished...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Selecting a custom JVM via <code>ZincWorkerModule.ForJvm</code> means that JVM is used for
+compiling, testing, and running that module via Mill. Note that <code>.assembly</code> is not
+affected, as JVM assembly jars do not bundle a JVM and have to be run using a
+JVM installed on the target host machine. Configuration is done via <code>ZincWorkerModule</code>
+as the <a href="https://github.com/sbt/zinc">Zinc</a> incremental compiler is used for compiling
+Java and Scala sources.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_selecting_jvm_index_versions"><a class="anchor" href="#_selecting_jvm_index_versions"></a>Selecting JVM Index Versions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By default, Mill comes bundled with a version of the JVM index that was published when
+each version of Mill is released. This ensures that the JVM versions you pick are stable,
+but means that the latest JVM versions may not be available. You can pass in the JVM
+index version explicitly via <code>def jvmIndexVersion</code> below, choosing a published
+index version from the Maven Central (<a href="https://repo1.maven.org/maven2/io/get-coursier/jvm/indices/index-linux-arm64/">link</a>)</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import scalalib._
+
+object ZincWorkerJava11Latest extends ZincWorkerModule {
+  def jvmId = "temurin:23.0.1"
+  def jvmIndexVersion = "latest.release"
+}
+
+object bar extends ScalaModule {
+  def scalaVersion = "2.13.12"
+  def zincWorker = ModuleRef(ZincWorkerJava11Latest)
+
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill bar.run
+Bar running on Java 23.0.1</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_explicit_jvm_download_urls"><a class="anchor" href="#_explicit_jvm_download_urls"></a>Explicit JVM Download URLs</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can also pass in the JVM download URL explicitly. Note that if you do so, you need
+to ensure yourself that you are downloading the appropriate JVM distribution for your
+operating system and CPU architecture. In the example below we switch between Mac/ARM and
+Linux/X64, but you may have additional cases if you need to support Windows or other
+OS/CPU combinations</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import kotlinlib._
+
+object ZincWorkerJava11Url extends ZincWorkerModule {
+  def jvmId =
+    if (sys.props("os.name") == "Mac OS X") {
+      "https://github.com/adoptium/temurin22-binaries/releases/download/jdk-22.0.2%2B9/OpenJDK22U-jdk_aarch64_mac_hotspot_22.0.2_9.tar.gz"
+    } else {
+      "https://github.com/adoptium/temurin22-binaries/releases/download/jdk-22.0.2%2B9/OpenJDK22U-jdk_x64_linux_hotspot_22.0.2_9.tar.gz"
     }
-  });
-});
-</script>
-<div class="paragraph">
-<p>When interacting with Mill from the CLI, you often need to select tasks or modules.
-In most places, where Mill accepts a task, it really accepts a task selector query, which is the name of a task in its simplest form, but it can also contain wildcards, type pattern and other special syntax, making it a powerful tool to select specific tasks.</p>
+
+}
+
+object qux extends KotlinModule {
+  def kotlinVersion = "2.0.20"
+  def zincWorker = ModuleRef(ZincWorkerJava11Url)
+}</code></pre>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_selecting_dedicated_tasks"><a class="anchor" href="#_selecting_dedicated_tasks"></a>Selecting dedicated tasks</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>When invoking Mill, the simplest way to run a task is to give it with a fully qualified names.</p>
-</div>
-<div class="paragraph">
-<p>Examples:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>&gt; mill for.compile
-&gt; mill for.run hello world
-&gt; mill foo.testCached</pre>
-</div>
-</div>
-<div class="sidebarblock">
-<div class="content">
-<div class="title">Understanding task paths and path segments</div>
-<div class="paragraph">
-<p>Each Mill module and task has a unique path.
-Each part of the path is called <em>segment</em>.
-Segments are separated with a dot (<code>.</code>).
-They look like regular Scala class name qualifiers.</p>
-</div>
-<div class="paragraph">
-<p>There are two kind of segments: <em>label segments</em> and <em>cross segments</em>.</p>
-</div>
-<div class="paragraph">
-<p><em>Label segments</em> are the components of a task path and have the same restriction as Scala identifiers.
-They must start with a letter and may contain letters, numbers and a limited set of special characters <code>-</code> (dash), <code>_</code> (underscore).
-They are used to denote Mill modules, tasks, but in the case of <a href="modules.html#_external_modules" class="xref page">external modules</a> their Scala package names.</p>
-</div>
-<div class="paragraph">
-<p><em>Cross segments</em> start with a label segment but contain additional square brackets (<code>[</code>, <code>]</code>]) and are used to denote cross module and their parameters.</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-Segments can be surrounded by parentheses (<code>(</code>, <code>)</code>)).
-When combined with <a href="#type-filters">qualified type filter</a> which contain dots (<code>.</code>), the parentheses need to be used, to avoid the dots to being interpreted as path separators.
-</td>
-</tr>
-</table>
-</div>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill qux.run
+Qux running on Java 22.0.2</code></pre>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="select-multiple-tasks"><a class="anchor" href="#select-multiple-tasks"></a>Selecting multiple tasks</h2>
+<h2 id="_locally_installed_jvms"><a class="anchor" href="#_locally_installed_jvms"></a>Locally-Installed JVMs</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>If you want to select more than one task, you have multiple options:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><a href="#enumerations">Use task enumerations</a></p>
-</li>
-<li>
-<p><a href="#wildcards">Use wildcard selections</a></p>
-</li>
-<li>
-<p><a href="#type-filters">Specify type filters on wildcard selections</a></p>
-</li>
-<li>
-<p><a href="#add-task-selector">Use <code>+</code> to use more than one task selector</a></p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>You can also combine these techniques to properly select your tasks</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="enumerations"><a class="anchor" href="#enumerations"></a>Enumerations</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Enumeration are denoted by curly braces (<code>{</code>, <code>}</code>).
-Inside the curly braces you can place two or more selector paths, separated with a comma (<code>,</code>).</p>
-</div>
-<div class="paragraph">
-<p>Examples:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>{foo,bar}</code> simple enumerates two tasks, <code>foo</code> and <code>bar</code></p>
-</li>
-<li>
-<p><code>foo.{compile,run}</code> expands to <code>foo.compile</code> and <code>foo.run</code></p>
-</li>
-<li>
-<p><code>{_,foo.bar}.baz</code> expands to <code>_.baz</code> and <code>foo.bar.baz</code></p>
-</li>
-</ul>
-</div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>Some Shells like <code>bash</code> support curly braces expansion.
-Make sure to properly mask the selector path, e.g. by putting it in quotes.</p>
+<p>Lastly, you can point Mill at any JVM distribution installed locally on disk via:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>mill "foo.{compile.run}"</pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object ZincWorkerLocalJvm extends ZincWorkerModule {
+  def javaHome = Some(PathRef(os.Path("/my/java/home"), quick = true))
+}
+
+object baz extends JavaModule {
+  def zincWorker = ModuleRef(ZincWorkerLocalJvm)
+
+}</code></pre>
 </div>
-</div>
-</td>
-</tr>
-</table>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="wildcards"><a class="anchor" href="#wildcards"></a>Wildcard selections</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>There are two wildcards, you can use as path segment.</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>_</code> The single underscore acts as a placeholder for a single segment.</p>
-</li>
-<li>
-<p><code>__</code> The double underscore acts as a placeholder for many segments.
-In particular, it can represent an empty segment.</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>With wildcards, you can get explicit control over the position of a task in the build tree.</p>
-</div>
-<div class="paragraph">
-<p>E.g. the filter <code>_._._.jar</code> will match all jar tasks, that are on the third-level of the build tree.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="type-filters"><a class="anchor" href="#type-filters"></a>Type filters for wildcard selections</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Type filters are always combined with wildcard.
-They are used to limit the scope of the wildcard to only match path segments of the specified types.
-For module paths this means, the represented module needs to be an instance of the specified type.</p>
-</div>
-<div class="paragraph">
-<p>A type filter always starts with a wildcard (<code>_</code>, <code>__</code>) followed by a colon (<code>:</code>) and finally  the <em>type qualifier</em>.</p>
-</div>
-<div class="paragraph">
-<p>The type is matched by its name and optionally by its enclosing types and packages, separated by a <code>.</code> sign.
-Since this is also used to separate task path segments, a type selector segment containing a <code>.</code> needs to be enclosed in parentheses.
-A fully qualified type can be denoted with the <code>_root_</code> package.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>&gt; mill resolve __:TestModule.jar
-&gt; mill resolve "(__:scalalib.TestModule).jar"
-&gt; mill resolve "(__:mill.scalalib.TestModule).jar"
-&gt; mill resolve "(__:_root_.mill.scalalib.TestModule).jar"</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>If the type qualifier starts with a <code>^</code> or <code>!</code>, it&#8217;s only matching types which are <em>not</em> instances of the specified type.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>&gt; mill resolve __:^TestModule.jar</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>You can also add more than one type filters to a wildcard.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>&gt; mill resolve "__:JavaModule:^ScalaModule:^TestModule.jar"</pre>
-</div>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-Type filter are currently only supported for module selections, but not for task selections.
-That means, you can&#8217;t filter based on the result type of a task.
-</td>
-</tr>
-</table>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="add-task-selector"><a class="anchor" href="#add-task-selector"></a>Start a new task selector with <code>+</code></h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>On the Mill CLI you can also start a complete new task selector with the <code>+</code> sign.</p>
-</div>
-<div class="paragraph">
-<p>There is a subtle difference between the expansion of <a href="#enumerations">enumerations</a>, <a href="#wildcards">wildcards</a> and <a href="#type-filters">wildcards with type filters</a> in contrast to the  <a href="#add-task-selector">start of a new selector with <code>+</code></a>.</p>
-</div>
-<div class="paragraph">
-<p>For all the former versions, Mill parses them into a complex but single task selector path and subsequent parameters are used for all resolved tasks.</p>
-</div>
-<div class="paragraph">
-<p>Whereas the <code>+</code> start a completely new selector path to which you can also provide a different parameter list. This is important when using <a href="tasks.html#_commands" class="xref page">command tasks</a> which can accept their own parameters. The <code>JavaModule.run</code> command is an example.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>&gt; mill foo.run hello                         <i class="conum" data-value="1"></i><b>(1)</b>
-&gt; mill {foo,bar}.run hello                   <i class="conum" data-value="2"></i><b>(2)</b>
-&gt; mill __:JavaModule:^TestModule.run hello   <i class="conum" data-value="3"></i><b>(3)</b>
-&gt; mill foo.run hello + bar.run world         <i class="conum" data-value="4"></i><b>(4)</b></pre>
-</div>
-</div>
-<div class="colist arabic">
-<table>
-<tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>Runs <code>foo.run</code> with the parameter <code>hello</code></td>
-</tr>
-<tr>
-<td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>Expands to <code>foo.run</code> and <code>bar.run</code> and runs both with the parameter <code>hello</code>.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="3"></i><b>3</b></td>
-<td>Selects the <code>run</code> command of all Java modules, but not test modules, and runs them with the parameter <code>hello</code>.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="4"></i><b>4</b></td>
-<td>Runs <code>fun.run</code> with the parameter <code>hello</code> and <code>bar.run</code> with the parameter <code>world</code>.</td>
-</tr>
-</table>
 </div>
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="out-dir.html">The Output Directory</a></span>
-  <span class="next"><a href="library-deps.html">Library Dependencies in Mill</a></span>
+  <span class="prev"><a href="bundled-libraries.html">Bundled Libraries</a></span>
+  <span class="next"><a href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a></span>
 </nav>
 </article>
   </div>

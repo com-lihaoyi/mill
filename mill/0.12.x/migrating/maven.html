@@ -1,27 +1,26 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Other installation methods :: The Mill JVM Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/cli/alternate-installation.html" />
-    <link rel="prev" href="flags.html" />
-    <link rel="next" href="../fundamentals/tasks.html" />
-    <meta name="generator" content="Antora 3.1.9" />
-    <link rel="stylesheet" href="../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Migrating From Maven to Mill :: The Mill JVM Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/mill/migrating/maven.html">
+    <link rel="prev" href="../cli/query-syntax.html">
+    <link rel="next" href="../fundamentals/tasks.html">
+    <meta name="generator" content="Antora 3.1.9">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
-  
-  </head><body class="article">
-  
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill JVM Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill JVM Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -74,7 +73,7 @@
   </nav>
 </header>
 <div class="body">
-<div class="nav-container" data-component="mill" data-version="master">
+<div class="nav-container" data-component="mill" data-version="0.12.x">
   <aside class="nav">
     <div class="panels">
 <div class="nav-panel-menu is-active" data-panel="menu">
@@ -90,10 +89,6 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../javalib/builtin-commands.html">Built-in Commands</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../javalib/module-config.html">Java Module Configuration</a>
   </li>
 
@@ -105,7 +100,7 @@
     <a class="nav-link" href="../javalib/testing.html">Testing Java Projects</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../javalib/linting.html">Linting Java Projects</a>
   </li>
 
@@ -120,10 +115,6 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../javalib/web-examples.html">Java Web Project Examples</a>
   </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../javalib/android-examples.html">(Experimental) Android Builds</a>
-  </li>
 </ul>
   </li>
 
@@ -131,10 +122,6 @@
     <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../scalalib/intro.html">Building Scala with Mill</a>
 <ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../scalalib/builtin-commands.html">Built-in Commands</a>
-  </li>
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
@@ -148,7 +135,7 @@
     <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../scalalib/linting.html">Linting Scala Projects</a>
   </li>
 
@@ -172,12 +159,8 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../kotlinlib/intro.html">Kotlin with Mill</a>
+    <a class="nav-link" href="../kotlinlib/intro.html">Building Kotlin with Mill</a>
 <ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/builtin-commands.html">Built-in Commands</a>
-  </li>
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../kotlinlib/module-config.html">Kotlin Module Configuration</a>
@@ -191,7 +174,7 @@
     <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../kotlinlib/linting.html">Linting Kotlin Projects</a>
   </li>
 
@@ -202,14 +185,25 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
   </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/android-examples.html">(Experimental) Android Builds</a>
-  </li>
 </ul>
   </li>
 
   <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">(Experimental) Android with Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../comparisons/why-mill.html">Why Use Mill?</a>
 <ul class="nav-list">
@@ -229,6 +223,10 @@
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../comparisons/unique.html">What Makes Mill Unique</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../comparisons/java-compile.html">How Fast Does Java Compile?</a>
+  </li>
 </ul>
   </li>
 
@@ -238,15 +236,30 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="installation-ide.html">Installation &amp; IDE Support</a>
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Support</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="flags.html">Mill Command-Line Flags</a>
+    <a class="nav-link" href="../cli/flags.html">Mill Command-Line Flags</a>
   </li>
 
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Migrating to Mill</span>
+<ul class="nav-list">
+
   <li class="nav-item is-current-page" data-depth="2">
-    <a class="nav-link" href="alternate-installation.html">Other installation methods</a>
+    <a class="nav-link" href="maven.html">Migrating From Maven to Mill</a>
   </li>
 </ul>
   </li>
@@ -269,10 +282,6 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../fundamentals/query-syntax.html">Task Query Syntax</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
   </li>
 
@@ -282,6 +291,10 @@
 
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/configuring-jvm-versions.html">Configuring JVM Versions</a>
   </li>
 </ul>
   </li>
@@ -445,29 +458,29 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">latest-0.12.2</span>
+    <span class="version">0.12.x</span>
   </div>
   <ul class="components">
     <li class="component is-current">
-      <div class="title"><a href="../index.html">Mill Documentation</a></div>
+      <div class="title"><a href="../../index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version">
-          <a href="../main-branch/index.html">main-branch</a>
+          <a href="../../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version is-current is-latest">
-          <a href="../index.html">latest-0.12.2</a>
+        <li class="version is-latest">
+          <a href="../../index.html">latest-0.12.3</a>
         </li>
-        <li class="version">
-          <a href="../0.12.x/index.html">0.12.x</a>
-        </li>
-        <li class="version">
-          <a href="../0.11.x/index.html">0.11.x</a>
+        <li class="version is-current">
+          <a href="../index.html">0.12.x</a>
         </li>
         <li class="version">
-          <a href="../0.10.15/index.html">0.10.15</a>
+          <a href="../../0.11.x/index.html">0.11.x</a>
         </li>
         <li class="version">
-          <a href="../0.9.12/index.html">0.9.12</a>
+          <a href="../../0.10.15/index.html">0.10.15</a>
+        </li>
+        <li class="version">
+          <a href="../../0.9.12/index.html">0.9.12</a>
         </li>
       </ul>
     </li>
@@ -479,12 +492,12 @@
 <main class="article">
 <div class="toolbar" role="navigation">
 <button class="nav-toggle"></button>
-  <a href="../index.html" class="home-link"></a>
+  <a href="../../index.html" class="home-link"></a>
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="../index.html">Mill Documentation</a></li>
-    <li>The Mill CLI</li>
-    <li><a href="alternate-installation.html">Other installation methods</a></li>
+    <li>Migrating to Mill</li>
+    <li><a href="maven.html">Migrating From Maven to Mill</a></li>
   </ul>
 </nav>
 </div>
@@ -493,207 +506,365 @@
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">Other installation methods</h1>
+<h1 class="page">Migrating From Maven to Mill</h1>
 <div id="preamble">
 <div class="sectionbody">
-<div class="admonitionblock caution">
-<table>
-<tbody><tr>
-<td class="icon">
-<i class="fa icon-caution" title="Caution"></i>
-</td>
-<td class="content">
-The installation methods listed below are maintained outside of Mill and may not have
-the same features as the <a href="installation-ide.html#_bootstrap_scripts" class="xref page">bootstrap scripts</a>. You can try using them,
-but the officially supported way to use Mill is via the bootstrap script above, so the Mill
-maintainers may be unable to help you if you have issues with some alternate installation method.
-</td>
-</tr>
-</tbody></table>
-</div>
-<div class="admonitionblock caution">
-<table>
-<tbody><tr>
-<td class="icon">
-<i class="fa icon-caution" title="Caution"></i>
-</td>
-<td class="content">
-Some of the installations via package managers install a fixed version of Mill and
-do not support project-specific selection of the preferred Mill version. If you want to use
-the <code>MILL_VERSION</code> environment variable or need support for <code>.mill-version</code> or
-<code>.config/mill-version</code> files to control the actual used Mill version, please use
-a <a href="installation-ide.html#_bootstrap_scripts" class="xref page">bootstrap script</a> instead.
-</td>
-</tr>
-</tbody></table>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_os_x"><a class="anchor" href="#_os_x"></a>OS X</h2>
-<div class="sectionbody">
+<style>
+*{
+  hyphens: manual !important;
+}
+</style>
+<script>
+gtag('config', 'AW-16649289906');
+
+document.addEventListener('DOMContentLoaded', function() {
+const links = document.querySelectorAll('a');
+  links.forEach(link => {
+    if (link.textContent.trim().toLowerCase() === 'download') {
+      link.addEventListener('click', function(event) {
+        console.log("download link clicked")
+        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+      });
+    }
+  });
+});
+</script>
 <div class="paragraph">
-<p>Installation via <a href="https://github.com/Homebrew/homebrew-core/blob/master/Formula/m/mill.rb">homebrew</a>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">brew install mill</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_arch_linux"><a class="anchor" href="#_arch_linux"></a>Arch Linux</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Arch Linux has an <a href="https://archlinux.org/packages/extra/any/mill/">Extra package for mill</a>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">pacman -S mill</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_freebsd"><a class="anchor" href="#_freebsd"></a>FreeBSD</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Installation via <a href="http://man.freebsd.org/pkg/8">pkg(8)</a>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">pkg install mill</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_gentoo_linux"><a class="anchor" href="#_gentoo_linux"></a>Gentoo Linux</h2>
-<div class="sectionbody">
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">emerge dev-java/mill-bin</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_windows"><a class="anchor" href="#_windows"></a>Windows</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>To get started, download Mill from
-<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2-assembly">Github releases</a>, and save it as <code>mill.bat</code>.</p>
+<p>The Mill <code>init</code> command can be used to convert a Maven build to Mill. This has
+<a href="#limitations">limitations</a> and is not intended to reliably migrate 100% of
+Maven builds out there in the wild, but is instead meant to provide the basic
+scaffolding of a Mill build for you to further refine and update manually.</p>
 </div>
 <div class="paragraph">
-<p>If you’re using <a href="https://scoop.sh">Scoop</a> you can install Mill via</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">scoop install mill</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_wsl_msys2_cycgin_git_bash"><a class="anchor" href="#_wsl_msys2_cycgin_git_bash"></a>WSL / MSYS2 / Cycgin / Git-Bash</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Mill also works on &quot;sh&quot; environments on Windows (e.g.,
-<a href="https://www.msys2.org">MSYS2</a>,
-<a href="https://www.cygwin.com">Cygwin</a>,
-<a href="https://gitforwindows.org">Git-Bash</a>,
-<a href="https://docs.microsoft.com/en-us/windows/wsl">WSL</a>); to get started, follow the instructions in the <a href="#_manual">Manual</a>
-section. Note that:</p>
+<p>Each Maven module with a <code>pom.xml</code> is converted to a Mill <code>build.mill</code>/<code>package.mill</code>
+file containing a top-level <code>MavenModule</code>. A nested <code>test</code> module is defined if both:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>In some environments (such as WSL), Mill might have to be run without a server (using <code>-i</code>, <code>--interactive</code>, or <code>--no-server</code>.)</p>
+<p><code>src/test</code> exists</p>
 </li>
 <li>
-<p>On Cygwin, run the following after downloading mill:</p>
+<p>a supported <a href="../javalib/testing.html" class="xref page">test framework</a> is detected (for a <em>tests only</em>
+module with test sources in <code>src/main/java</code>)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Again, note that <code>mill init</code> importing Maven builds is best effort.
+This means that while small projects can be expected to complete without issue:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; rm build.mill # remove any existing build file
+
+&gt; git init .
+&gt; git remote add -f origin https://github.com/davidmoten/geo.git
+&gt; git checkout 0.8.1 # example multi-module Java project using JUnit4
+
+&gt; ./mill init
+converting Maven build
+writing Mill build file to geo/package.mill
+writing Mill build file to geo-mem/package.mill
+writing Mill build file to build.mill
+init completed, run "mill resolve _" to list available tasks
+
+&gt; ./mill __.compile
+compiling 9 Java sources to .../out/geo/compile.dest/classes ...
+compiling 2 Java sources to .../out/geo-mem/compile.dest/classes ...
+compiling 10 Java sources to .../out/geo/test/compile.dest/classes ...
+done compiling
+compiling 1 Java source to .../out/geo-mem/test/compile.dest/classes ...
+done compiling
+
+&gt; ./mill __.test # all tests pass immediately
+Test run com.github.davidmoten.geo.GeoHashTest finished: 0 failed, 0 ignored, 66 total, ...
+Test run com.github.davidmoten.geo.DirectionTest finished: 0 failed, 0 ignored, 1 total, ...
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>More larger projects often require some manual tweaking in order to work:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; rm build.mill # remove any existing build file
+
+&gt; git init .
+&gt; git remote add -f origin https://github.com/dhatim/fastexcel.git
+&gt; git checkout 0.18.4
+&gt; # pom.xml has custom profiles for JPMS that mill init does not support
+&gt; # https://github.com/dhatim/fastexcel/blob/de56e786a1fe29351e2f8dc1d81b7cdd9196de4a/pom.xml#L251
+
+&gt; ./mill init
+converting Maven build
+writing Mill build file to fastexcel-writer/package.mill
+writing Mill build file to fastexcel-reader/package.mill
+writing Mill build file to e2e/package.mill
+writing Mill build file to build.mill
+init completed, run "mill resolve _" to list available tasks
+
+&gt; ./mill -k __.compile # Compilation needs manual tweaking to pass
+error: ...fastexcel-reader/src/main/java/module-info.java:3:32: module not found: org.apache.commons.compress
+error: ...fastexcel-reader/src/main/java/module-info.java:4:27: module not found: com.fasterxml.aalto
+error: ...fastexcel-writer/src/main/java/module-info.java:2:14: module not found: opczip</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Nevertheless, even for larger builds <code>mill init</code> automates most of the tedious
+busy-work of writing <code>build.mill</code>/<code>package.mill</code> files, and makes it much quicker
+to get a working Mill build for any existing Maven project.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_capabilities"><a class="anchor" href="#_capabilities"></a>Capabilities</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The conversion</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>handles deeply nested modules</p>
+</li>
+<li>
+<p>captures project metadata</p>
+</li>
+<li>
+<p>configures dependencies for scopes:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>compile</p>
+</li>
+<li>
+<p>provided</p>
+</li>
+<li>
+<p>runtime</p>
+</li>
+<li>
+<p>test</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>configures testing frameworks:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>JUnit 4</p>
+</li>
+<li>
+<p>JUnit 5</p>
+</li>
+<li>
+<p>TestNG</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>configures multiple, compile and test, resource directories</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_command_line_arguments"><a class="anchor" href="#_command_line_arguments"></a>Command line arguments</h3>
+<div class="listingblock">
+<div class="title">name of generated base module trait defining project metadata settings</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">./mill init --base-module MyModule</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">name of generated nested test module (defaults to <code>test</code>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">./mill init --test-module test</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">name of generated companion object defining constants for dependencies</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">./mill init --deps-object Deps</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">capture properties defined in <code>pom.xml</code> for publishing</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">./mill init --publish-properties</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">merge build files generated for a multi-module build</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">./mill init --merge</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">use cache for Maven repository system</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">./mill init --cache-repository</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">process Maven plugin executions and configurations</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">./mill init --process-plugins</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_verified_projects"><a class="anchor" href="#_verified_projects"></a>Verified projects</h3>
+<div class="paragraph">
+<p>The conversion has been tested with the following projects:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/fusesource/jansi/archive/refs/tags/jansi-2.4.1.zip">jansi</a></p>
 </li>
 </ul>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">sed -i '0,/-cp &quot;\$0&quot;/{s/-cp &quot;\$0&quot;/-cp `cygpath -w &quot;\$0&quot;`/}; 0,/-cp &quot;\$0&quot;/{s/-cp &quot;\$0&quot;/-cp `cygpath -w &quot;\$0&quot;`/}' /usr/local/bin/mill</code></pre>
+<pre>./mill init --base-module JansiModule --deps-object Deps --cache-repository --process-plugins</pre>
 </div>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_docker"><a class="anchor" href="#_docker"></a>Docker</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>You can download and run
-a <a href="https://hub.docker.com/r/nightscape/scala-mill/">&quot;Docker image containing OpenJDK, Scala and Mill&quot;</a> using</p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/davidmoten/geo/archive/refs/tags/0.8.1.zip">geo</a> (multi-module build)</p>
+</li>
+</ul>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">docker pull nightscape/scala-mill
-docker run -it nightscape/scala-mill</code></pre>
+<pre>./mill init --base-module GeoModule --deps-object Deps --merge --cache-repository --process-plugins</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Post <code>init</code>, the following tasks were executed successfully:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>compile</code></p>
+</li>
+<li>
+<p><code>test</code></p>
+</li>
+<li>
+<p><code>publishLocal</code></p>
+</li>
+</ul>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_manual"><a class="anchor" href="#_manual"></a>Manual</h2>
+<h2 id="limitations"><a class="anchor" href="#limitations"></a>Limitations</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>To get started, download Mill and install it into your HOME &quot;.local/bin&quot; via the following
-<code>curl</code>/<code>chmod</code> command:</p>
+<p>The conversion does not support</p>
 </div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">sh -c &quot;curl -L https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2 &gt; ~/.local/bin/mill &amp;&amp; chmod +x ~/.local/bin/mill&quot;</code></pre>
+<div class="ulist">
+<ul>
+<li>
+<p>build extensions</p>
+</li>
+<li>
+<p>build profiles</p>
+</li>
+<li>
+<p>non-Java (native) sources</p>
+</li>
+</ul>
 </div>
+<div class="paragraph">
+<p>Maven plugin support is limited to</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://maven.apache.org/plugins/maven-compiler-plugin/">maven-compiler-plugin</a></p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>These limitations can be overcome by:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>configuring equivalent Mill <a href="../extending/contrib-plugins.html" class="xref page">contrib</a>
+or <a href="../extending/thirdparty-plugins.html" class="xref page">third party</a> plugins</p>
+</li>
+<li>
+<p>defining custom <a href="../extending/writing-plugins.html" class="xref page">plugins</a></p>
+</li>
+<li>
+<p>defining custom <a href="../fundamentals/tasks.html" class="xref page">tasks</a></p>
+</li>
+<li>
+<p>defining custom <a href="../fundamentals/cross-builds.html" class="xref page">cross modules</a></p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_coursier_unsupported"><a class="anchor" href="#_coursier_unsupported"></a>Coursier (unsupported)</h2>
+<h2 id="_faq"><a class="anchor" href="#_faq"></a>FAQ</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Installing mill via <code>coursier</code> or <code>cs</code> is currently not officially supported.
-There are various issues, especially with interactive mode.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_asdf_unsupported"><a class="anchor" href="#_asdf_unsupported"></a>Asdf (unsupported)</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>You can install and manage Mill via the Multiple Runtime Version Manager - <a href="https://asdf-vm.com/"><code>asdf</code></a>.</p>
+<div class="title">How to fix compilation errors in generated build files?</div>
+<p>This could happen if a module and task name collision occurs. Either rename the module or enclose the name in backticks.</p>
 </div>
 <div class="paragraph">
-<p>Support by <code>asdf</code> is currently possible by using the <a href="https://github.com/asdf-community/asdf-mill"><code>asdf-mill</code> plugin</a>:</p>
+<div class="title">How to fix JPMS <code>module not found</code> compilation errors?</div>
+<p>Set <a href="https://github.com/tfesenko/Java-Modules-JPMS-CheatSheet#how-to-export-or-open-a-package">additional command line options</a>
+for dependencies.</p>
 </div>
-<div class="listingblock">
-<div class="title">Steps to install the <code>mill</code> plugin and Mill with <code>asdf</code></div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">---
-asdf plugin add mill
-asdf install mill latest
-asdf global mill latest
----</code></pre>
-</div>
+<div class="ulist">
+<div class="title">How to fix test compilation errors?</div>
+<ul>
+<li>
+<p>The test framework configured may be for an unsupported version; try upgrading the
+corresponding dependencies.</p>
+</li>
+<li>
+<p>Mill does not add <code>provided</code> dependencies to the transitive dependencies of the nested
+test module; specify the dependencies again, in one of <code>ivyDeps</code>, <code>compileIvyDeps</code>, <code>runIvyDeps</code>, in the test module.</p>
+</li>
+</ul>
 </div>
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="flags.html">Mill Command-Line Flags</a></span>
+  <span class="prev"><a href="../cli/query-syntax.html">Task Query Syntax</a></span>
   <span class="next"><a href="../fundamentals/tasks.html">Tasks</a></span>
 </nav>
 </article>
   </div>
 </main>
 </div>
-<script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async="async" src="../../_/js/vendor/highlight.js"></script>
-<script src="../../_/js/vendor/lunr.js"></script>
-<script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async="async" src="../../search-index.js"></script>
-  
-</body></html>
+<script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
+<script src="../../../_/js/vendor/lunr.js"></script>
+<script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>

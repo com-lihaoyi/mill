@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>How Fast Does Java Compile? :: The Mill JVM Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/mill/comparisons/java-compile.html">
+    <link rel="prev" href="unique.html">
+    <link rel="next" href="../cli/installation-ide.html">
+    <meta name="generator" content="Antora 3.1.9">
+    <link rel="stylesheet" href="../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill JVM Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs">
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">Source Code (GitHub)</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="mill" data-version="master">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javalib/intro.html">Building Java with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/module-config.html">Java Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/dependencies.html">Java Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/testing.html">Testing Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/linting.html">Linting Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/publishing.html">Publishing Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/build-examples.html">Java Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/web-examples.html">Java Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../scalalib/intro.html">Building Scala with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/linting.html">Linting Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/publishing.html">Publishing Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/build-examples.html">Scala Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/web-examples.html">Scala Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../kotlinlib/intro.html">Building Kotlin with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/module-config.html">Kotlin Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/linting.html">Linting Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/publishing.html">Publishing Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">(Experimental) Android with Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="why-mill.html">Why Use Mill?</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="maven.html">Case Study: Mill vs Maven</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="gradle.html">Case Study: Mill vs Gradle</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="sbt.html">Case Study: Mill vs SBT</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="unique.html">What Makes Mill Unique</a>
+  </li>
+
+  <li class="nav-item is-current-page is-active" data-depth="2">
+    <a class="nav-link" href="java-compile.html">How Fast Does Java Compile?</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">The Mill CLI</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Support</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/flags.html">Mill Command-Line Flags</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Migrating to Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Fundamentals</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/modules.html">Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/out-dir.html">The Output Directory</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/cross-builds.html">Cross Builds</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/configuring-jvm-versions.html">Configuring JVM Versions</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Extending Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../extending/contrib-plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/artifactory.html">Artifactory</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/bintray.html">Bintray</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/bloop.html">Bloop</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/docker.html">Docker</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/flyway.html">Flyway</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/gitlab.html">Gitlab</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/jmh.html">JMH</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/playlib.html">Play Framework</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/proguard.html">Proguard</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scalapblib.html">ScalaPB</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scoverage.html">Scoverage</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/testng.html">TestNG</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/twirllib.html">Twirl</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/thirdparty-plugins.html">Third-Party Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/running-jvm-code.html">Running Dynamic JVM Code</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/writing-plugins.html">Writing Mill Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/meta-build.html">The Mill Meta-Build</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-typescript-support.html">Example: Typescript Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-python-support.html">Example: Python Support</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/large-builds.html">Large Builds and Monorepos</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill/index.html">Mill Scaladoc</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/changelog.html">Changelog</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Mill Documentation</span>
+    <span class="version">latest-0.12.3</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <div class="title"><a href="../index.html">Mill Documentation</a></div>
+      <ul class="versions">
+        <li class="version">
+          <a href="../main-branch/index.html">main-branch</a>
+        </li>
+        <li class="version is-current is-latest">
+          <a href="../index.html">latest-0.12.3</a>
+        </li>
+        <li class="version">
+          <a href="../0.12.x/index.html">0.12.x</a>
+        </li>
+        <li class="version">
+          <a href="../0.11.x/index.html">0.11.x</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.15/index.html">0.10.15</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../index.html">Mill Documentation</a></li>
+    <li><a href="why-mill.html">Why Use Mill?</a></li>
+    <li><a href="java-compile.html">How Fast Does Java Compile?</a></li>
+  </ul>
+</nav>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">How Fast Does Java Compile?</h1>
+<div id="preamble">
+<div class="sectionbody">
+<style>
+*{
+  hyphens: manual !important;
+}
+</style>
+<script>
+gtag('config', 'AW-16649289906');
+
+document.addEventListener('DOMContentLoaded', function() {
+const links = document.querySelectorAll('a');
+  links.forEach(link => {
+    if (link.textContent.trim().toLowerCase() === 'download') {
+      link.addEventListener('click', function(event) {
+        console.log("download link clicked")
+        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+      });
+    }
+  });
+});
+</script>
+<div class="paragraph">
+<p>Java compiles have the reputation for being slow, but that reputation does
+not match today&#8217;s reality. Nowadays the Java compiler can compile "typical" Java code at over
+100,000 lines a second on a single core. That means that even a million line project
+should take more than 10s to compile in a single-threaded fashion, and should be even
+faster in the presence of parallelism</p>
+</div>
+<div class="paragraph">
+<p>Doing some ad-hoc benchmarks, we find that although the compiler is blazing fast, all
+build tools add significant overhead over compiling Java directly:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 12.5%;">
+<col style="width: 12.5%;">
+<col style="width: 12.5%;">
+<col style="width: 12.5%;">
+<col style="width: 12.5%;">
+<col style="width: 12.5%;">
+<col style="width: 12.5%;">
+<col style="width: 12.5%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mockito Core</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Time</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Compiler lines/s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Slowdown</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Netty Common</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Time</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Compiler lines/s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Slowdown</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Javac Hot</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.36s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">115,600</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.0x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Javac Hot</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.29s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">102,500</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.0x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Javac Cold</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.29s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">32,200</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4.4x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Javac Cold</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.62s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">18,300</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.6x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mill</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.20s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">34,700</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4.1x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mill</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.11s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">26,800</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.8x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Gradle</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4.41s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9,400</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">15.2x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Maven</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4.89s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6,100</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">16.9x</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Although Mill does the best in these benchmarks among the build tools (Maven, Gradle, and Mill),
+all build tools fall short of how fast compiling Java <em>should</em> be. This post explores how
+these numbers were arrived at, and what that means in un-tapped potential for Java build
+tooling to become truly great.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_mockito_core"><a class="anchor" href="#_mockito_core"></a>Mockito Core</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To begin to understand the problem, lets consider the codebase of the popular Mockito project:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/mockito/mockito" class="bare">https://github.com/mockito/mockito</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Mockito is a medium-sized Java project with a few dozen sub-modules and about ~100,000 lines
+of code. To give us a simple reproducible scenario, let&#8217;s consider the root mockito module
+with sources in <code>src/main/java/</code>, on which all the downstream module and tests depend on.</p>
+</div>
+<div class="paragraph">
+<p>Mockito is built using Gradle. It&#8217;s not totally trivial to extract the compilation classpath
+from Gradle, but the following stackoverflow answer gives us some tips:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://stackoverflow.com/a/50639444/871202">How do I print out the Java classpath in gradle?</a></p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./gradlew clean &amp;&amp; ./gradlew :classes --no-build-cache --debug | grep "classpath "</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This gives us the following classpath:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">export MY_CLASSPATH=/Users/lihaoyi/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy/1.14.18/81e9b9a20944626e6757b5950676af901c2485/byte-buddy-1.14.18.jar:/Users/lihaoyi/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy-agent/1.14.18/417558ea01fe9f0e8a94af28b9469d281c4e3984/byte-buddy-agent-1.14.18.jar:/Users/lihaoyi/.gradle/caches/modules-2/files-2.1/junit/junit/4.13.2/8ac9e16d933b6fb43bc7f576336b8f4d7eb5ba12/junit-4.13.2.jar:/Users/lihaoyi/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/2.2/3f2bd07716a31c395e2837254f37f21f0f0ab24b/hamcrest-core-2.2.jar:/Users/lihaoyi/.gradle/caches/modules-2/files-2.1/org.opentest4j/opentest4j/1.3.0/152ea56b3a72f655d4fd677fc0ef2596c3dd5e6e/opentest4j-1.3.0.jar:/Users/lihaoyi/.gradle/caches/modules-2/files-2.1/org.objenesis/objenesis/3.3/1049c09f1de4331e8193e579448d0916d75b7631/objenesis-3.3.jar:/Users/lihaoyi/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.2/1820c0968dba3a11a1b30669bb1f01978a91dedc/hamcrest-2.2.jar</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that for this benchmark, all third-party dependencies have already been resolved
+and downloaded from Maven Central. We can thus simply reference the jars on disk directly,
+which we do above.</p>
+</div>
+<div class="paragraph">
+<p>We can then pass this classpath into <code>javac -cp</code>, together with <code>src/main/java/<strong>*/</strong>.java</code>,
+to perform the compilation outside of Gradle using <code>javac</code> directly. Running this a few
+times gives us the timings below:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; time javac -cp $MY_CLASSPATH src/main/java/**/*.java
+1.290s
+1.250s
+1.293s</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To give us an idea of how many lines of code we are compiling, we can run:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; find src/main/java | grep \\.java | xargs wc -l
+...
+41601 total</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Combining this information, we find that 41601 lines of code compiled in ~1.29 seconds
+(taking the median of the three runs above) suggests that <code>javac</code> compiles about ~32,000
+lines of code per second.</p>
+</div>
+<div class="paragraph">
+<p>These benchmarks were run ad-hoc on my laptop, an M1 10-core Macbook Pro, with OpenJDK
+Corretto 17.0.6. The numbers would differ on different Java versions, hardware, operating systems,
+and filesystems. Nevertheless, the overall trend is strong enough that you should be
+able to reproduce the results despite variations in the benchmarking environment.</p>
+</div>
+<div class="paragraph">
+<p>Compiling 32,000 lines of code per second is not bad. But it is nowhere near how fast the
+Java compiler <em>can</em> run. Any software experience with JVM experience would know the next
+obvious optimization for us to explore.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_keeping_the_jvm_hot"><a class="anchor" href="#_keeping_the_jvm_hot"></a>Keeping the JVM Hot</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>One issue with the above benchmark is that it uses <code>javac</code> as a sub-process. The Java
+compiler runs on the Java Virtual Machine, and like any JVM application, it has a slow
+startup time, takes time warming-up, but then has good steady-state performance.
+Running  <code>javac</code> from the command line and compiling ~32,000 lines/sec is thus the <em>worst</em>
+possible performance you could get out of the Java compiler on this Java codebase.</p>
+</div>
+<div class="paragraph">
+<p>To get good performance out of <code>javac</code>, like any other JVM application, we need to keep it
+long-lived so it has a chance to warm up. While running the <code>javac</code> in a long-lived Java
+program is not commonly taught, neither is it particularly difficult. Here is a complete
+<code>Bench.java</code> file that does this, repeatedly running java compilation in a loop where it
+has a chance to warm up, to emulate the long lived JVM process that a build tool like Mill
+may spawn and manage. We use the same <code>MY_CLASSPATH</code> and source files we saw earlier and
+print the output statistics to the terminal so we can see how fast Java compilation can
+occur once things have a chance to warm up:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">// Bench.java
+import javax.tools.*;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.file.*;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class Bench {
+    public static void main(String[] args) throws Exception {
+        while (true) {
+            long now = System.currentTimeMillis();
+            String classpath = System.getenv("MY_CLASSPATH");
+            Path sourceFolder = Paths.get("src/main/java");
+
+            List&lt;JavaFileObject&gt; files = Files.walk(sourceFolder)
+                .filter(p -&gt; p.toString().endsWith(".java"))
+                .map(p -&gt;
+                    new SimpleJavaFileObject(p.toUri(), JavaFileObject.Kind.SOURCE) {
+                        public CharSequence getCharContent(boolean ignoreEncodingErrors) throws IOException {
+                            return Files.readString(p);
+                        }
+                    }
+                )
+                .collect(Collectors.toList());
+
+            JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+
+            StandardJavaFileManager fileManager = compiler
+                .getStandardFileManager(null, null, null);
+
+            // Run the compiler
+            JavaCompiler.CompilationTask task = compiler.getTask(
+                new OutputStreamWriter(System.out),
+                fileManager,
+                null,
+                List.of("-classpath", classpath),
+                null,
+                files
+            );
+
+            System.out.println("Compile Result: " + task.call());
+            long end = System.currentTimeMillis();
+            long lineCount = Files.walk(sourceFolder)
+                .filter(p -&gt; p.toString().endsWith(".java"))
+                .map(p -&gt; {
+                    try { return Files.readAllLines(p).size(); }
+                    catch(Exception e){ throw new RuntimeException(e); }
+                })
+                .reduce(0, (x, y) -&gt; x + y);
+            System.out.println("Lines: " + lineCount);
+            System.out.println("Duration: " + (end - now));
+            System.out.println("Lines/second: " + lineCount / ((end - now) / 1000));
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Running this using <code>java Bench.java</code> in the Mockito repo root, eventually we see it
+settle on approximately the following numbers:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">359ms
+378ms
+353ms</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The codebase hasn&#8217;t changed - we are still compiling 41,601 lines of code -
+but now it only takes ~359ms. That tells us that using a long-lived warm Java compiler
+we can compile approximately <strong>116,000</strong> lines of Java a second on a single core.</p>
+</div>
+<div class="paragraph">
+<p>Compiling 116,000 lines of Java per second is very fast. That means we should expect
+a million-line Java codebase to compile in about 9 seconds, <em>on a single thread</em>. That
+may seem surprisingly fast, and you may be forgiven if you find it hard to believe. As
+mentioned earlier, this number is expected to vary based on the codebase being compiled;
+could it be that Mockito-Core just happens to be a very simple Java module that compiles
+quickly?</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_double_checking_our_results"><a class="anchor" href="#_double_checking_our_results"></a>Double-checking Our Results</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To double-check our results, we can pick another codebase to run some ad-hoc benchmarks.
+For this I will use the Netty codebase:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/netty/netty" class="bare">https://github.com/netty/netty</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Netty is a large-ish Java project: ~500,000 lines of code. Again, to pick a somewhat
+easily-reproducible benchmark, we want a decently-sized module that&#8217;s relatively
+standalone within the project: <code>netty-common</code> is a perfect fit. Again, we can use <code>find | grep | xargs</code>
+to see how many lines of code we are looking at:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ find common/src/main/java | grep \\.java | xargs wc -l
+29712 total</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Again, Maven doesn&#8217;t make it easy to show the classpath used to call <code>javac</code> ourselves,
+but the following stackoverflow answer gives us a hint in how to do so:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://stackoverflow.com/a/16655088/871202">In Maven, how output the classpath being used?</a></p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mvnw clean; time ./mvnw -e -X -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you grep the output for <code>-classpath</code>, we see:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">-classpath /Users/lihaoyi/Github/netty/common/target/classes:/Users/lihaoyi/.m2/repository/org/graalvm/nativeimage/svm/19.3.6/svm-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/graalvm/sdk/graal-sdk/19.3.6/graal-sdk-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/graalvm/nativeimage/objectfile/19.3.6/objectfile-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/graalvm/nativeimage/pointsto/19.3.6/pointsto-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/graalvm/truffle/truffle-nfi/19.3.6/truffle-nfi-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/graalvm/truffle/truffle-api/19.3.6/truffle-api-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/graalvm/compiler/compiler/19.3.6/compiler-19.3.6.jar:/Users/lihaoyi/.m2/repository/org/jctools/jctools-core/4.0.5/jctools-core-4.0.5.jar:/Users/lihaoyi/.m2/repository/org/jetbrains/annotations-java5/23.0.0/annotations-java5-23.0.0.jar:/Users/lihaoyi/.m2/repository/org/slf4j/slf4j-api/1.7.30/slf4j-api-1.7.30.jar:/Users/lihaoyi/.m2/repository/commons-logging/commons-logging/1.2/commons-logging-1.2.jar:/Users/lihaoyi/.m2/repository/org/apache/logging/log4j/log4j-1.2-api/2.17.2/log4j-1.2-api-2.17.2.jar:/Users/lihaoyi/.m2/repository/org/apache/logging/log4j/log4j-api/2.17.2/log4j-api-2.17.2.jar:/Users/lihaoyi/.m2/repository/io/projectreactor/tools/blockhound/1.0.6.RELEASE/blockhound-1.0.6.RELEASE.jar</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Again, we can <code>export MY_CLASSPATH</code> and start using <code>javac</code> from the command line:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; javac -cp $MY_CLASSPATH common/src/main/java/**/*.java
+1.624s
+1.757s
+1.606s</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Or programmatically using the <code>Bench.java</code> program we saw earlier:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">294ms
+282ms
+285ms</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Taking 285ms for a hot-in-memory compile of 29,712 lines of code, <code>netty-common</code>
+therefore compiles at <strong>~104,000 lines/second</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Although the choice of project is arbitrary, Mockito-Core and Netty-Common are decent
+examples of Java code found "out in the wild". They aren&#8217;t synthetic fake codebases generated
+for the purpose of benchmarks, nor are they particularly unusual or idiosyncratic. They follow
+most Java best practices and adhere to many of the most common Java linters (although those
+were disabled for this performance benchmark). This is Java code that looks just like
+any Java code you may write in your own projects, and it effortlessless compiles at
+&gt;100,000 lines/second.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_what_about_build_tools"><a class="anchor" href="#_what_about_build_tools"></a>What About Build Tools?</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Although the Java Compiler is blazing fast - compiling code at &gt;100k lines/second and
+completing both Mockito-Core and Netty-Common in ~300ms - the experience of using typical Java
+build tools is nowhere near as snappy. Consider the benchmark of clean-compiling the
+Mockito-Core codebase using Gradle or Mill:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./gradlew clean; time ./gradlew :classes --no-build-cache
+4.14s
+4.41s
+4.41s
+
+$ ./mill clean; time ./mill compile
+1.20s
+1.12s
+1.30s</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Or the benchmark of clean-compiling the Netty-Common codebase using Maven or Mill:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./mvnw clean; time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true -Dmaven.test.skip=true install
+4.85s
+4.96s
+4.89s
+
+$ ./mill clean common; time ./mill common.compile
+1.10s
+1.12s
+1.11s</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>These benchmarks are run in similar conditions as those we saw earlier: ad-hoc on my M1
+Macbook Pro, with the metadata and jars of all third-party dependencies already downloaded and
+cached locally. So the time we are seeing above is purely the Java compilation + the overhead
+of the build tool realizing it doesn&#8217;t need to do anything except compile the Java source code
+using the dependencies we already have on disk.</p>
+</div>
+<div class="paragraph">
+<p>Tabulating this all together gives us the table we saw at the start of this page:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 12.5%;">
+<col style="width: 12.5%;">
+<col style="width: 12.5%;">
+<col style="width: 12.5%;">
+<col style="width: 12.5%;">
+<col style="width: 12.5%;">
+<col style="width: 12.5%;">
+<col style="width: 12.5%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mockito Core</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Time</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Compiler lines/s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Slowdown</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Netty Common</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Time</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Compiler lines/s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Slowdown</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Javac Hot</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.36s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">115,600</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.0x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Javac Hot</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.29s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">102,500</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.0x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Javac Cold</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.29s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">32,200</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4.4x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Javac Cold</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.62s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">18,300</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.6x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mill</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.20s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">34,700</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4.1x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mill</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.11s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">26,800</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.8x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Gradle</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4.41s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9,400</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">15.2x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Maven</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4.89s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6,100</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">16.9x</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>We explore the comparison between <a href="gradle.html" class="xref page">Gradle vs Mill</a>
+or <a href="maven.html" class="xref page">Maven vs Mill</a> in more detail on their own dedicated pages.
+For this article, the important thing is not comparing the build tools against each other,
+but comparing the build tools against what how fast they <em>could</em> be if they just used
+the <code>javac</code> Java compiler directly. And it&#8217;s clear that compared to the actual work
+done by <code>javac</code> to actually compile your code, build tools add a frankly absurd amount
+of overhead ranging from ~4x for Mill to 15-16x for Maven and Gradle!</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_whole_project_compile_speed"><a class="anchor" href="#_whole_project_compile_speed"></a>Whole Project Compile Speed</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>One thing worth calling out is that the overhead of the various build tools does not
+appear to go down in larger builds. This <strong>Clean Compile Single-Module</strong> benchmark
+we explored above only deals with compiling a single small module. But a similar <strong>Sequential
+Clean Compile</strong> benchmarks which compiles the entire Mockito and Netty projects on
+a single core shows similar numbers for the various build tools:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="gradle.html#_sequential_clean_compile_all" class="xref page">Gradle compiling 100,000 lines of Java at ~5,600 lines/s</a></p>
+</li>
+<li>
+<p><a href="maven.html#_sequential_clean_compile_all" class="xref page">Maven compiling 500,000 lines of Java at ~5,100 lines/s</a></p>
+</li>
+<li>
+<p>Mill compiling at ~25,000 lines/s on both the above whole-project benchmarks</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>All of these are far below the 100,000 lines/s that we should expect from Java compilation,
+but they roughly line up with the numbers measured above. Again, these benchmarks are ad-hoc,
+on arbitrary hardware and JVM versions. They do include small amounts of other work, such
+as compiling C/C++ code in Netty or doing ad-hoc file operations in Mockito. However,
+most of the time is still spent in compilation, and this reinforces the early finding
+that build tools (especially older ones like Maven or Gradle) are indeed adding huge
+amounts of overhead on top of the extremely-fast Java compiler.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_conclusion"><a class="anchor" href="#_conclusion"></a>Conclusion</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>From this study we can see the paradox: the Java <em>compiler</em> is blazing fast,
+while Java <em>build tools</em> are dreadfully slow. Something that <em>should</em> compile in a fraction
+of a second using a warm <code>javac</code> takes several seconds (15-16x longer) to
+compile using Maven or Gradle. Mill does better, but even it adds 4x overhead and falls
+short of the snappiness you would expect from a compiler that takes ~0.3s to compile the
+30-40kLOC Java codebases we experimented with.</p>
+</div>
+<div class="paragraph">
+<p>These benchmarks were run ad-hoc and on my laptop on arbitrary codebases, and the details
+will obviously differ depending on environment and the code in question. Running it on an
+entire codebase, rather than a single module, will give different results. Nevertheless, the
+results are clear: "typical" Java code <em>should</em> compile at ~100,000 lines/second on a single
+thread. Anything less is purely build-tool overhead from Maven, Gradle, or Mill.</p>
+</div>
+<div class="paragraph">
+<p>Build tools do a lot more than the Java compiler. They do dependency management, parallelism,
+caching and invalidation, and all sorts of other auxiliary tasks. But in the common case where
+someone edits code and then compiles it, and all your dependencies are already downloaded and
+cached locally, any time doing other things and not spent <em>actually
+compiling Java</em> is pure overhead. Checking for cache invalidation in <em>shouldn&#8217;t</em> take 15-16x
+as long as actually compiling your code. I mean it obviously does <em>today</em>, but it <em>shouldn&#8217;t</em>!</p>
+</div>
+<div class="paragraph">
+<p>The Mill build tool goes to great lengths to try and minimize overhead, and already gets
+<a href="why-mill.html#_performance" class="xref page">~4x faster builds</a> than Maven or Gradle on
+real-world projects like Mockito or Netty. But there still is a long way to go give Java
+developers the fast, snappy experience that the underlying Java platform can provide. If
+Java build and compile times are things you find important, you should try out Mill on
+your own projects and get involved in the effort!</p>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="unique.html">What Makes Mill Unique</a></span>
+  <span class="next"><a href="../cli/installation-ide.html">Installation &amp; IDE Support</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
+<script src="../../_/js/vendor/lunr.js"></script>
+<script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
+<script async src="../../search-index.js"></script>
+  </body>
+</html>

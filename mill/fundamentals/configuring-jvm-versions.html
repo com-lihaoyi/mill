@@ -1,26 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>(Experimental) Android Builds :: The Mill JVM Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/kotlinlib/android-examples.html">
-    <link rel="prev" href="web-examples.html">
-    <link rel="next" href="../comparisons/why-mill.html">
-    <meta name="generator" content="Antora 3.1.9">
-    <link rel="stylesheet" href="../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Configuring JVM Versions :: The Mill JVM Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/mill/fundamentals/configuring-jvm-versions.html" />
+    <link rel="prev" href="bundled-libraries.html" />
+    <link rel="next" href="../extending/import-ivy-plugins.html" />
+    <meta name="generator" content="Antora 3.1.9" />
+    <link rel="stylesheet" href="../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
+  
+  </head><body class="article">
+  
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill JVM Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill JVM Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -89,10 +90,6 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../javalib/builtin-commands.html">Built-in Commands</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../javalib/module-config.html">Java Module Configuration</a>
   </li>
 
@@ -104,7 +101,7 @@
     <a class="nav-link" href="../javalib/testing.html">Testing Java Projects</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../javalib/linting.html">Linting Java Projects</a>
   </li>
 
@@ -119,10 +116,6 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../javalib/web-examples.html">Java Web Project Examples</a>
   </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../javalib/android-examples.html">(Experimental) Android Builds</a>
-  </li>
 </ul>
   </li>
 
@@ -130,10 +123,6 @@
     <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../scalalib/intro.html">Building Scala with Mill</a>
 <ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../scalalib/builtin-commands.html">Built-in Commands</a>
-  </li>
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
@@ -147,7 +136,7 @@
     <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../scalalib/linting.html">Linting Scala Projects</a>
   </li>
 
@@ -171,44 +160,51 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="intro.html">Kotlin with Mill</a>
+    <a class="nav-link" href="../kotlinlib/intro.html">Building Kotlin with Mill</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="builtin-commands.html">Built-in Commands</a>
+    <a class="nav-link" href="../kotlinlib/module-config.html">Kotlin Module Configuration</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="module-config.html">Kotlin Module Configuration</a>
+    <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="dependencies.html">Kotlin Library Dependencies</a>
+    <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="testing.html">Testing Kotlin Projects</a>
+    <a class="nav-link" href="../kotlinlib/linting.html">Linting Kotlin Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="linting.html">Linting Kotlin Projects</a>
+    <a class="nav-link" href="../kotlinlib/publishing.html">Publishing Kotlin Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="publishing.html">Publishing Kotlin Projects</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="web-examples.html">Kotlin Web Project Examples</a>
-  </li>
-
-  <li class="nav-item is-current-page is-active" data-depth="2">
-    <a class="nav-link" href="android-examples.html">(Experimental) Android Builds</a>
+    <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
   </li>
 </ul>
   </li>
 
   <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">(Experimental) Android with Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../comparisons/why-mill.html">Why Use Mill?</a>
 <ul class="nav-list">
@@ -228,6 +224,10 @@
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../comparisons/unique.html">What Makes Mill Unique</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../comparisons/java-compile.html">How Fast Does Java Compile?</a>
+  </li>
 </ul>
   </li>
 
@@ -245,7 +245,22 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/alternate-installation.html">Other installation methods</a>
+    <a class="nav-link" href="../cli/builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Migrating to Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
   </li>
 </ul>
   </li>
@@ -256,31 +271,31 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../fundamentals/tasks.html">Tasks</a>
+    <a class="nav-link" href="tasks.html">Tasks</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../fundamentals/modules.html">Modules</a>
+    <a class="nav-link" href="modules.html">Modules</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../fundamentals/out-dir.html">The Output Directory</a>
+    <a class="nav-link" href="out-dir.html">The Output Directory</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../fundamentals/query-syntax.html">Task Query Syntax</a>
+    <a class="nav-link" href="library-deps.html">Library Dependencies in Mill</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
+    <a class="nav-link" href="cross-builds.html">Cross Builds</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../fundamentals/cross-builds.html">Cross Builds</a>
+    <a class="nav-link" href="bundled-libraries.html">Bundled Libraries</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
+  <li class="nav-item is-current-page is-active" data-depth="2">
+    <a class="nav-link" href="configuring-jvm-versions.html">Configuring JVM Versions</a>
   </li>
 </ul>
   </li>
@@ -444,7 +459,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">latest-0.12.2</span>
+    <span class="version">latest-0.12.3</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -454,7 +469,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">latest-0.12.2</a>
+          <a href="../index.html">latest-0.12.3</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.x</a>
@@ -482,8 +497,8 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="../index.html">Mill Documentation</a></li>
-    <li><a href="intro.html">Kotlin with Mill</a></li>
-    <li><a href="android-examples.html">(Experimental) Android Builds</a></li>
+    <li>Mill Fundamentals</li>
+    <li><a href="configuring-jvm-versions.html">Configuring JVM Versions</a></li>
   </ul>
 </nav>
 </div>
@@ -492,202 +507,182 @@
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">(Experimental) Android Builds</h1>
+<h1 class="page">Configuring JVM Versions</h1>
 <div id="preamble">
 <div class="sectionbody">
-<style>
-*{
-  hyphens: manual !important;
+<div class="paragraph">
+<p>By default, Mill uses the same JVM that it itself is running on to compile/test/run
+Java/Scala/Kotlin modules. This page goes into more detail about downloading
+and using a custom Java home on a per-module basis.</p>
+</div>
+<div class="paragraph">
+<p>To override the default Java home, you can create a custom
+<code>ZincWorkerModule</code> and override the <code>zincWorker</code> method in your
+<code>JavaModule</code> or <code>ScalaModule</code> by pointing it to that custom object:</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_downloading_jvm_by_version"><a class="anchor" href="#_downloading_jvm_by_version"></a>Downloading Jvm By Version</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>ZincWorkerModule.ForJvm</code> class takes a Jvm dependency string as its
+contructor argument and configures the module to fetch and cache the Jvm
+using coursier and use it for the compile, run, and test tasks.</p>
+</div>
+<div class="paragraph">
+<p>The string has the form:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>&quot;{name}:{version}&quot;</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To see what Jvms are available for download look at the index for your os
+and architecture <a href="https://github.com/coursier/jvm-index/blob/master/indices/linux-arm64.json">here</a>.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-depth-javahome-1-custom-jvms.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/depth/javahome/1-custom-jvms">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
+import mill.define.ModuleRef
+
+object ZincWorkerJava11 extends ZincWorkerModule {
+  def jvmId = &quot;temurin:18.0.2&quot;
 }
-</style>
-<script>
-gtag('config', 'AW-16649289906');
 
-document.addEventListener('DOMContentLoaded', function() {
-const links = document.querySelectorAll('a');
-  links.forEach(link => {
-    if (link.textContent.trim().toLowerCase() === 'download') {
-      link.addEventListener('click', function(event) {
-        console.log("download link clicked")
-        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
-      });
+object foo extends JavaModule {
+  def zincWorker = ModuleRef(ZincWorkerJava11)
+
+  object test extends JavaTests with TestModule.Junit4
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run
+Foo running on Java 18.0.2
+
+&gt; mill foo.test
+Testing with JVM version: 18.0.2
+Test foo.FooTest.testSimple finished...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Selecting a custom JVM via <code>ZincWorkerModule.ForJvm</code> means that JVM is used for
+compiling, testing, and running that module via Mill. Note that <code>.assembly</code> is not
+affected, as JVM assembly jars do not bundle a JVM and have to be run using a
+JVM installed on the target host machine. Configuration is done via <code>ZincWorkerModule</code>
+as the <a href="https://github.com/sbt/zinc">Zinc</a> incremental compiler is used for compiling
+Java and Scala sources.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_selecting_jvm_index_versions"><a class="anchor" href="#_selecting_jvm_index_versions"></a>Selecting JVM Index Versions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By default, Mill comes bundled with a version of the JVM index that was published when
+each version of Mill is released. This ensures that the JVM versions you pick are stable,
+but means that the latest JVM versions may not be available. You can pass in the JVM
+index version explicitly via <code>def jvmIndexVersion</code> below, choosing a published
+index version from the Maven Central (<a href="https://repo1.maven.org/maven2/io/get-coursier/jvm/indices/index-linux-arm64/">link</a>)</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import scalalib._
+
+object ZincWorkerJava11Latest extends ZincWorkerModule {
+  def jvmId = &quot;temurin:23.0.1&quot;
+  def jvmIndexVersion = &quot;latest.release&quot;
+}
+
+object bar extends ScalaModule {
+  def scalaVersion = &quot;2.13.12&quot;
+  def zincWorker = ModuleRef(ZincWorkerJava11Latest)
+
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill bar.run
+Bar running on Java 23.0.1</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_explicit_jvm_download_urls"><a class="anchor" href="#_explicit_jvm_download_urls"></a>Explicit JVM Download URLs</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can also pass in the JVM download URL explicitly. Note that if you do so, you need
+to ensure yourself that you are downloading the appropriate JVM distribution for your
+operating system and CPU architecture. In the example below we switch between Mac/ARM and
+Linux/X64, but you may have additional cases if you need to support Windows or other
+OS/CPU combinations</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import kotlinlib._
+
+object ZincWorkerJava11Url extends ZincWorkerModule {
+  def jvmId =
+    if (sys.props(&quot;os.name&quot;) == &quot;Mac OS X&quot;) {
+      &quot;https://github.com/adoptium/temurin22-binaries/releases/download/jdk-22.0.2%2B9/OpenJDK22U-jdk_aarch64_mac_hotspot_22.0.2_9.tar.gz&quot;
+    } else {
+      &quot;https://github.com/adoptium/temurin22-binaries/releases/download/jdk-22.0.2%2B9/OpenJDK22U-jdk_x64_linux_hotspot_22.0.2_9.tar.gz&quot;
     }
-  });
-});
-</script>
-<div class="paragraph">
-<p>This page provides an example of using Mill as a build tool for Android applications.
-This workflow is still pretty rough and nowhere near production ready, but can serve as
-a starting point for further experimentation and development.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_relevant_modules"><a class="anchor" href="#_relevant_modules"></a>Relevant Modules</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>These are the main Mill Modules that are relevant for building Android apps:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><a href="https://mill-build.org/api/latest/mill/javalib/android/AndroidSdkModule.html"><code>mill.javalib.android.AndroidSdkModule</code></a>: Handles Android SDK management and tools.</p>
-</li>
-<li>
-<p><a href="https://mill-build.org/api/latest/mill/kotlinlib/android/AndroidAppKotlinModule.html"><code>mill.kotlinlib.android.AndroidAppKotlinModule</code></a>: Provides a framework for building Android applications.</p>
-</li>
-<li>
-<p><a href="https://mill-build.org/api/latest/mill/kotlinlib/KotlinModule.html"><code>mill.kotlinlib.KotlinModule</code></a>: General Kotlin build tasks like compiling Kotlin code and creating JAR files.</p>
-</li>
-</ul>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_simple_android_hello_world_application"><a class="anchor" href="#_simple_android_hello_world_application"></a>Simple Android Hello World Application</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>This section sets up a basic Android project using Mill.
-We utilize <code>AndroidAppKotlinModule</code> and <code>AndroidSdkModule</code> to streamline the process of
-building an Android application with minimal configuration.</p>
-</div>
-<div class="paragraph">
-<p>By extending <code>AndroidAppKotlinModule</code>, we inherit all Android-related tasks such as
-resource generation, APK building, DEX conversion, and APK signing.
-Additionally, <code>AndroidSdkModule</code> is embedded, making SDK management seamless.</p>
-</div>
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.2/0.12.2-example-kotlinlib-android-1-hello-world.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.2//example/kotlinlib/android/1-hello-world">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
-import mill._
-import kotlinlib._
-import mill.kotlinlib.android.AndroidAppKotlinModule
-import mill.javalib.android.AndroidSdkModule</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Create and configure an Android SDK module to manage Android SDK paths and tools.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object androidSdkModule0 extends AndroidSdkModule {
-  def buildToolsVersion = "35.0.0"
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Actual android application</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object app extends AndroidAppKotlinModule {
+}
 
-  def kotlinVersion = "2.0.0"
-  def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+object qux extends KotlinModule {
+  def kotlinVersion = &quot;2.0.20&quot;
+  def zincWorker = ModuleRef(ZincWorkerJava11Url)
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show app.androidApk
-".../out/app/androidApk.dest/app.apk"</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This command triggers the build process, which installs the Android Setup, compiles the kotlin
-code, generates Android resources, converts kotlin bytecode to DEX format, packages everything
-into an APK, optimizes the APK using <code>zipalign</code>, and finally signs it.</p>
-</div>
-<div class="paragraph">
-<p>This Mill build configuration is designed to build a simple "Hello World" Android application.
-By extending <code>AndroidAppKotlinModule</code>, we leverage its predefined Android build tasks, ensuring that
-all necessary steps (resource generation, APK creation, and signing) are executed automatically.</p>
-</div>
-<div class="sect2">
-<h3 id="_project_structure"><a class="anchor" href="#_project_structure"></a>Project Structure:</h3>
-<div class="paragraph">
-<p>The project follows the standard Android app layout. Below is a typical project folder structure:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>.
-├── build.mill
-├── AndroidManifest.xml
-└── app/src/main/kotlin
-    └── com/helloworld/app
-        └── MainActivity.kt</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This example demonstrates how to create a basic "Hello World" Android application
-using the Mill build tool. It outlines the minimum setup required to compile Kotlin code,
-package it into an APK, and run the app on an Android device.</p>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill qux.run
+Qux running on Java 22.0.2</code></pre>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_understanding_androidsdkmodule_and_androidappkotlinmodule"><a class="anchor" href="#_understanding_androidsdkmodule_and_androidappkotlinmodule"></a>Understanding <code>AndroidSdkModule</code> and <code>AndroidAppKotlinModule</code></h2>
+<h2 id="_locally_installed_jvms"><a class="anchor" href="#_locally_installed_jvms"></a>Locally-Installed JVMs</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The two main modules you need to understand when building Android apps with Mill
-are <code>AndroidSdkModule</code> and <code>AndroidAppKotlinModule</code>.</p>
+<p>Lastly, you can point Mill at any JVM distribution installed locally on disk via:</p>
 </div>
-<div class="paragraph">
-<p><code>AndroidSdkModule</code>:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object ZincWorkerLocalJvm extends ZincWorkerModule {
+  def javaHome = Some(PathRef(os.Path(&quot;/my/java/home&quot;), quick = true))
+}
+
+object baz extends JavaModule {
+  def zincWorker = ModuleRef(ZincWorkerLocalJvm)
+
+}</code></pre>
 </div>
-<div class="ulist">
-<ul>
-<li>
-<p>This module manages the installation and configuration of the Android SDK, which includes
-tools like <code>aapt</code>, <code>d8</code>, <code>zipalign</code>, and <code>apksigner</code>. These tools are used
-for compiling, packaging, and signing Android applications.</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p><code>AndroidAppKotlinModule</code>:
-This module provides the step-by-step workflow for building an Android app. It handles
-everything from compiling the code to generating a signed APK for distribution.</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p><strong>Compiling Kotlin code</strong>: The module compiles your Kotlin code into <code>.class</code> files, which is the first step in creating an Android app.</p>
-</li>
-<li>
-<p><strong>Packaging into JAR</strong>: It then packages the compiled <code>.class</code> files into a JAR file, which is necessary before converting to Android&#8217;s format.</p>
-</li>
-<li>
-<p><strong>Converting to DEX format</strong>: The JAR file is converted into DEX format, which is the executable format for Android applications.</p>
-</li>
-<li>
-<p><strong>Creating an APK</strong>: The DEX files and Android resources (like layouts and strings) are packaged together into an APK file, which is the installable file for Android devices.</p>
-</li>
-<li>
-<p><strong>Optimizing with zipalign</strong>: The APK is optimized using <code>zipalign</code> to ensure better performance on Android devices.</p>
-</li>
-<li>
-<p><strong>Signing the APK</strong>: Finally, the APK is signed with a digital signature, allowing it to be distributed and installed on Android devices.</p>
-</li>
-</ol>
 </div>
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="web-examples.html">Kotlin Web Project Examples</a></span>
-  <span class="next"><a href="../comparisons/why-mill.html">Why Use Mill?</a></span>
+  <span class="prev"><a href="bundled-libraries.html">Bundled Libraries</a></span>
+  <span class="next"><a href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a></span>
 </nav>
 </article>
   </div>
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async src="../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async src="../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../search-index.js"></script>
+  
+</body></html>
