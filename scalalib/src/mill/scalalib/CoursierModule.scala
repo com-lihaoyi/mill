@@ -195,7 +195,8 @@ object CoursierModule {
     def resolveDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean = false,
-        artifactTypes: Option[Set[coursier.Type]] = None
+        artifactTypes: Option[Set[coursier.Type]] = None,
+        config: coursier.core.Configuration = coursier.core.Configuration.default
     ): Agg[PathRef] = {
       Lib.resolveDependencies(
         repositories = repositories,
@@ -206,9 +207,18 @@ object CoursierModule {
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
         ctx = ctx,
-        resolutionParams = resolutionParams
+        resolutionParams = resolutionParams,
+        config = config
       ).getOrThrow
     }
+
+    // bin-compat shim
+    def resolveDeps[T: CoursierModule.Resolvable](
+        deps: IterableOnce[T],
+        sources: Boolean,
+        artifactTypes: Option[Set[coursier.Type]]
+    ): Agg[PathRef] =
+      resolveDeps(deps, sources, artifactTypes, coursier.core.Configuration.default)
 
     @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
     def resolveDeps[T: CoursierModule.Resolvable](

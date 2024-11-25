@@ -49,7 +49,8 @@ trait CoursierSupport {
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       resolveFilter: os.Path => Boolean = _ => true,
       artifactTypes: Option[Set[Type]] = None,
-      resolutionParams: ResolutionParams = ResolutionParams()
+      resolutionParams: ResolutionParams = ResolutionParams(),
+      config: coursier.core.Configuration = coursier.core.Configuration.default
   ): Result[Agg[PathRef]] = {
     def isLocalTestDep(dep: Dependency): Option[Seq[PathRef]] = {
       val org = dep.module.organization.value
@@ -80,7 +81,8 @@ trait CoursierSupport {
       customizer,
       ctx,
       coursierCacheCustomizer,
-      resolutionParams
+      resolutionParams,
+      config
     )
 
     resolutionRes.flatMap { resolution =>
@@ -118,6 +120,35 @@ trait CoursierSupport {
       }
     }
   }
+
+  // bin-compat shim
+  def resolveDependencies(
+      repositories: Seq[Repository],
+      deps: IterableOnce[Dependency],
+      force: IterableOnce[Dependency],
+      sources: Boolean,
+      mapDependencies: Option[Dependency => Dependency],
+      customizer: Option[Resolution => Resolution],
+      ctx: Option[mill.api.Ctx.Log],
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]],
+      resolveFilter: os.Path => Boolean,
+      artifactTypes: Option[Set[Type]],
+      resolutionParams: ResolutionParams
+  ): Result[Agg[PathRef]] =
+    resolveDependencies(
+      repositories,
+      deps,
+      force,
+      sources,
+      mapDependencies,
+      customizer,
+      ctx,
+      coursierCacheCustomizer,
+      resolveFilter,
+      artifactTypes,
+      resolutionParams,
+      coursier.core.Configuration.default
+    )
 
   // bin-compat shim
   def resolveDependencies(
@@ -257,7 +288,8 @@ trait CoursierSupport {
       customizer: Option[Resolution => Resolution] = None,
       ctx: Option[mill.api.Ctx.Log] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
-      resolutionParams: ResolutionParams = ResolutionParams()
+      resolutionParams: ResolutionParams = ResolutionParams(),
+      config: coursier.core.Configuration = coursier.core.Configuration.default
   ): Result[Resolution] = {
 
     val rootDeps = deps.iterator
@@ -273,6 +305,7 @@ trait CoursierSupport {
 
     val resolutionParams0 = resolutionParams
       .addForceVersion(forceVersions.toSeq: _*)
+      .withDefaultConfiguration(config)
 
     val resolve = Resolve()
       .withCache(coursierCache0)
@@ -315,6 +348,29 @@ trait CoursierSupport {
         Result.Success(resolution)
     }
   }
+
+  // bin-compat shim
+  def resolveDependenciesMetadataSafe(
+      repositories: Seq[Repository],
+      deps: IterableOnce[Dependency],
+      force: IterableOnce[Dependency],
+      mapDependencies: Option[Dependency => Dependency],
+      customizer: Option[Resolution => Resolution],
+      ctx: Option[mill.api.Ctx.Log],
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]],
+      resolutionParams: ResolutionParams
+  ): Result[Resolution] =
+    resolveDependenciesMetadataSafe(
+      repositories,
+      deps,
+      force,
+      mapDependencies,
+      customizer,
+      ctx,
+      coursierCacheCustomizer,
+      resolutionParams,
+      coursier.core.Configuration.default
+    )
 
   // bin-compat shim
   def resolveDependenciesMetadataSafe(
