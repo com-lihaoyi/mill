@@ -275,6 +275,12 @@ $ ./mill clean common; time ./mill common.compile
 1.11s
 ```
 
+These benchmarks are run in similar conditions as those we saw earlier: ad-hoc on my M1
+Macbook Pro, with the metadata and jars of all third-party dependencies already downloaded and
+cached locally. So the time we are seeing above is purely the Java compilation + the overhead
+of the build tool realizing it doesn't need to do anything except compile the Java source code
+using the dependencies we already have on disk.
+
 Tabulating this all together gives us the table we saw at the start of this page:
 
 |===
