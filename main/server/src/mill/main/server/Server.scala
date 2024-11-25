@@ -2,7 +2,6 @@ package mill.main.server
 
 import java.io._
 import java.net.{InetAddress, Socket}
-import scala.jdk.CollectionConverters._
 import mill.main.client._
 import mill.api.SystemStreams
 import mill.main.client.ProxyStream.Output
