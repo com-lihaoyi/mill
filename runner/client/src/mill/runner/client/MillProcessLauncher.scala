@@ -12,7 +12,9 @@ object MillProcessLauncher {
 
   def launchMillNoServer(args: Array[String]): Int = {
     val setJnaNoSys = Option(System.getProperty("jna.nosys")).isEmpty
-    val sig = f"${UUID.randomUUID().hashCode}%08x"
+    println("WANRING THIS IS NOT A RANDOM UUID")
+    val sig = "3744873%08x" //    val sig = f"${UUID.randomUUID().hashCode}%08x"
+
     val processDir =
       Paths.get(".").resolve(OutFiles.out).resolve(OutFiles.millNoServer).resolve(sig)
 
@@ -144,11 +146,17 @@ object MillProcessLauncher {
   }
 
   def writeTerminalDims(tputExists: Boolean, serverDir: Path): Unit = {
-    val dims = if (!tputExists || System.console() == null) "0 0"
-    else
-      try
-        s"${getTerminalDim("cols", inheritError = true)} ${getTerminalDim("lines", inheritError = true)}"
-      catch { case _: Exception => "0 0" }
+
+    val dims =
+      if (
+        !tputExists
+        // ||
+        // System.console() == null
+      ) "0 0"
+      else
+        try
+          s"${getTerminalDim("cols", inheritError = true)} ${getTerminalDim("lines", inheritError = true)}"
+        catch { case _: Exception => "0 0" }
 
     Files.write(serverDir.resolve(ServerFiles.terminfo), dims.getBytes)
   }

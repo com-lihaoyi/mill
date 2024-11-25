@@ -31,6 +31,7 @@ object MillClientMain {
 
     if (runNoServer) {
       // Start in no-server mode
+      // eject into the JVM here?
       MillNoServerLauncher.runMain(args)
     } else {
       try {
