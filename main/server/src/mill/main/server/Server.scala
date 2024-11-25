@@ -171,7 +171,7 @@ abstract class Server[T](
       val args = Util.parseArgs(argStream)
       val env = Util.parseMap(argStream)
       serverLog("args " + upickle.default.write(args))
-      serverLog("env " + upickle.default.write(env.asScala))
+      serverLog("env " + upickle.default.write(env))
       val userSpecifiedProperties = Util.parseMap(argStream)
       argStream.close()
 
@@ -185,9 +185,9 @@ abstract class Server[T](
               stateCache,
               interactive,
               new SystemStreams(stdout, stderr, proxiedSocketInput),
-              env.asScala.toMap,
+              env.toMap,
               idle = _,
-              userSpecifiedProperties.asScala.toMap,
+              userSpecifiedProperties.toMap,
               initialSystemProperties,
               systemExit = exitCode => {
                 os.write.over(serverDir / ServerFiles.exitCode, exitCode.toString)

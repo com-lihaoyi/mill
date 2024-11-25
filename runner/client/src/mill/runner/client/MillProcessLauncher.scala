@@ -21,7 +21,7 @@ object MillProcessLauncher {
     val command = millLaunchJvmCommand(setJnaNoSys) ++ Seq(
       "mill.runner.MillMain",
       processDir.toAbsolutePath.toString
-    ) ++ Util.readOptsFileLines(millOptsFile).asScala ++ args
+    ) ++ Util.readOptsFileLines(millOptsFile) ++ args
 
     val builder = new ProcessBuilder()
       .command(command.asJava)
@@ -127,7 +127,7 @@ object MillProcessLauncher {
     millServerTimeout.foreach(timeout => vmOptions += s"-Dmill.server_timeout=$timeout")
 
     if (millJvmOptsFile.exists()) {
-      vmOptions ++= Util.readOptsFileLines(millJvmOptsFile).asScala
+      vmOptions ++= Util.readOptsFileLines(millJvmOptsFile)
     }
 
     vmOptions.toSeq ++ Seq("-cp", millClasspath.mkString(File.pathSeparator))
