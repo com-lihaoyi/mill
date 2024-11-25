@@ -172,7 +172,7 @@ object ClientServerTests extends TestSuite {
         // Make sure if we delete the out dir, the server notices and exits
         Thread.sleep(500)
         os.remove.all(res3.outDir)
-        Thread.sleep(500)
+        Thread.sleep(1000)
 
         assert(res3.logsFor("serverId file missing") == Seq("server-1"))
         assert(res3.logsFor("exiting server") == Seq("server-1", "server-1"))
