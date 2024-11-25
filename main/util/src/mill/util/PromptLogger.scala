@@ -289,7 +289,7 @@ private[mill] object PromptLogger {
         }
       }
 
-      override def preWrite(buf: Array[Byte], end: Int): Unit = {
+      override def preWrite(buf: scala.collection.mutable.ArrayBuffer[Byte], end: Int): Unit = {
         // Before any write, make sure we clear the terminal of any prompt that was
         // written earlier and not yet cleared, so the following output can be written
         // to a clean section of the terminal
