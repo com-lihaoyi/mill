@@ -3,7 +3,7 @@ from jinja2 import Template
 from markupsafe import escape
 
 
-def generate_html(bar_text):
+def generate_html(bar_text: str) -> str:
     escaped_text = escape(bar_text)
     template = Template("<h1>{{ text }}</h1>")
     return template.render(text=escaped_text)

@@ -1,13 +1,9 @@
-from pathlib import Path
-import sys
+import importlib.resources
 
 
 def line_count() -> int:
-    for path in sys.path:
-        file_path = Path(path) / "line-count.txt"
-        if file_path.exists():
-            return int(file_path.read_text().splitlines()[0])
-    return -1
+    with importlib.resources.open_text("resources", "line-count.txt") as file:
+        return int(file.readline().strip())
 
 
 if __name__ == "__main__":

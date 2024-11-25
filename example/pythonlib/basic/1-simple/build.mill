@@ -6,7 +6,7 @@ object foo extends PythonModule {
 
   def mainScript = Task.Source { millSourcePath / "src" / "foo.py" }
 
-  def pythonDeps = Seq("Jinja2==3.1.4")
+  def pythonDeps = Agg("Jinja2==3.1.4")
 
   object test extends PythonTests with TestModule.Unittest
 
@@ -61,7 +61,7 @@ foo.typeCheck(PythonModule...)
     Run a typechecker on this module.
 Inputs:
     foo.pythonExe
-    foo.transitiveSources
+    foo.transitivePythonPath
     foo.sources
 ...
 

@@ -6,13 +6,47 @@ import mill.util.Util
 import mill.util.Jvm
 import mill.api.Ctx
 
-trait PythonModule extends Module with TaskModule { outer =>
+trait PythonModule extends PipModule with TaskModule { outer =>
 
   /**
    *  The direct dependencies of this module.
    *  This is meant to be overridden to add dependencies.
    */
   def moduleDeps: Seq[PythonModule] = Nil
+
+  /**
+   * Python interpreter found on the host system. This will be used to create a
+   * new virtual environment, which will be used by all tasks in this module.
+   *
+   * If you'd like to use a specific python version, override this task to
+   * point to a specific python executable.
+   *
+   * Examples:
+   *
+   * ```
+   * // use whatever python version is installed on the host system (default)
+   * def hostPythonCommand = T{ "python3" }
+   *
+   * // use a specific minor release
+   * def hostPythonCommand = T{ "python3.12" }
+   *
+   * // use a specific executable file
+   * def hostPythonCommand = T{ "/usr/bin/python3" }
+   * ```
+   */
+  def hostPythonCommand: T[String] = T { "python3" }
+
+  /**
+   * An executable python interpreter. This interpreter is set up to run in a
+   * virtual environment which has been initialized to contain all libraries and
+   * tools needed by this module and its dependencies.
+   */
+  def pythonExe: T[PathRef] = Task {
+    os.call((hostPythonCommand(), "-m", "venv", Task.dest / "venv"))
+    val python = Task.dest / "venv" / "bin" / "python3"
+    os.call((python, "-m", "pip", "install", pipInstallArgs()), stdout = os.Inherit)
+    PathRef(python)
+  }
 
   /**
    * The folders where the source files for this mill module live.
@@ -27,33 +61,19 @@ trait PythonModule extends Module with TaskModule { outer =>
   def resources: T[Seq[PathRef]] = Task.Sources { millSourcePath / "resources" }
 
   /**
-   * All Python source files in this module, recursively discovered from the source directories.
-   */
-  def allSourceFiles: T[Seq[PathRef]] = Task {
-    sources().flatMap(src => os.walk(src.path).filter(_.ext == "py").map(PathRef(_)))
-  }
-
-  /**
    * The mainScript to run. This file may not exist if this module is only a library.
    */
   def mainScript: T[PathRef] = Task.Source { millSourcePath / "src" / "main.py" }
 
-  /**
-   * Any python dependencies you want to add to this module. The format of each
-   * dependency should be the same as used with `pip install`, or as you would
-   * find in a `requirements.txt` file. E.g. `def pythonDeps =
-   * Seq("numpy==2.1.3")`
-   */
-  def pythonDeps: T[Seq[String]] = Task { Seq.empty[String] }
+  override def pythonDevDeps: T[Agg[String]] = Task {
+    super.pythonDevDeps() ++ Agg("mypy==1.13.0", "pex==2.24.1")
+  }
 
   /**
-   * Python dependencies of this module, and all other modules that this module
-   * depends on, recursively.
+   * Additional directories to include in the PYTHONPATH directly. These paths
+   * are "unmanaged": they'll be included as they are on disk.
    */
-  def transitivePythonDeps: T[Seq[String]] = Task {
-    val upstreamDependencies = Task.traverse(moduleDeps)(_.transitivePythonDeps)().flatten
-    pythonDeps() ++ upstreamDependencies
-  }
+  def unmanagedPythonPath: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
 
   /**
    * Source directories of this module, and all other modules that this module
@@ -61,20 +81,27 @@ trait PythonModule extends Module with TaskModule { outer =>
    */
   def transitiveSources: T[Seq[PathRef]] = Task {
     val upstreamSources = Task.traverse(moduleDeps)(_.transitiveSources)().flatten
-    sources() ++ resources() ++ upstreamSources
+    sources() ++ upstreamSources
   }
 
   /**
-   * An executable python interpreter. This interpreter is set up to run in a
-   * virtual environment which has been initialized to contain all libraries and
-   * tools needed by this module and its dependencies.
+   * The directories used to construct the PYTHONPATH for this module, used for
+   * execution, excluding upstream modules.
+   *
+   * This includes source directories, resources and other unmanaged
+   * directories.
    */
-  def pythonExe: T[PathRef] = Task {
-    os.call(("python3", "-m", "venv", Task.dest / "venv"))
-    val python = Task.dest / "venv" / "bin" / "python3"
-    os.call((python, "-m", "pip", "install", "mypy==1.13.0", "pex==2.24.1", transitivePythonDeps()))
+  def localPythonPath: T[Seq[PathRef]] = Task {
+    transitiveSources() ++ unmanagedPythonPath() ++ resources()
+  }
 
-    PathRef(python)
+  /**
+   * The transitive version of [[localPythonPath]]: this includes the
+   * directories of all upstream modules as well.
+   */
+  def transitivePythonPath: T[Seq[PathRef]] = Task {
+    val upstream = Task.traverse(moduleDeps)(_.transitivePythonPath)().flatten
+    localPythonPath() ++ upstream
   }
 
   // TODO: right now, any task that calls this helper will have its own python
@@ -83,8 +110,8 @@ trait PythonModule extends Module with TaskModule { outer =>
     new PythonModule.RunnerImpl(
       command0 = pythonExe().path.toString,
       env0 = Map(
-        "PYTHONPATH" -> transitiveSources().map(_.path).mkString(java.io.File.pathSeparator),
-        "PYTHONPYCACHEPREFIX" -> (Task.dest / "cache").toString,
+        "PYTHONPATH" -> transitivePythonPath().map(_.path).mkString(java.io.File.pathSeparator),
+        "PYTHONPYCACHEPREFIX" -> (T.dest / "cache").toString,
         if (Task.log.colored) { "FORCE_COLOR" -> "1" }
         else { "NO_COLOR" -> "1" }
       ),
@@ -101,7 +128,7 @@ trait PythonModule extends Module with TaskModule { outer =>
         // format: off
         "-m", "mypy",
         "--strict",
-        "--cache-dir", (Task.dest / "mypycache").toString,
+        "--cache-dir", (T.dest / "mypycache").toString,
         sources().map(_.path)
         // format: on
       )
@@ -144,8 +171,8 @@ trait PythonModule extends Module with TaskModule { outer =>
       (
         // format: off
         "-m", "pex",
-        transitivePythonDeps(),
-        transitiveSources().flatMap(pr =>
+        transitivePythonDeps().toSeq,
+        transitivePythonPath().flatMap(pr =>
           Seq("-D", pr.path.toString)
         ),
         "--exe", mainScript().path,
@@ -153,7 +180,7 @@ trait PythonModule extends Module with TaskModule { outer =>
         "--scie", "eager",
         // format: on
       ),
-      workingDir = Task.dest
+      workingDir = T.dest
     )
     PathRef(pexFile)
   }

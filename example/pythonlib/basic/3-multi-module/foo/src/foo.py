@@ -1,8 +1,13 @@
 import argparse
-from bar import generate_html
+from bar import generate_html  # type: ignore
 
 
-def main():
+def main(foo_text: str, bar_text: str) -> str:
+    # Print the values of foo-text and bar-text
+    return f"Foo.value: {foo_text}\nBar.value: {generate_html(bar_text)}"
+
+
+if __name__ == "__main__":
     # Create the argument parser
     parser = argparse.ArgumentParser(description="Process two text arguments")
 
@@ -13,9 +18,5 @@ def main():
     # Parse the arguments
     args = parser.parse_args()
 
-    # Print the values of foo-text and bar-text
-    return f"Foo.value: {args.foo_text}\nBar.value: {generate_html(args.bar_text)}"
-
-
-if __name__ == "__main__":
-    print(main())
+    # run the main function with given arguments
+    print(main(args.foo_text, args.bar_text))

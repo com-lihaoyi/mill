@@ -115,7 +115,8 @@ object `package` extends RootModule with Module {
           updatedLine
         case "2-custom-build-logic" =>
           val updatedLine = line
-          .replace("17", "14") // it's just the change for page count   
+          .replace("17", "10") // it's just the change for page count
+          .replace("`allSourceFiles` (an existing task)", "`allSourceFiles`")
           updatedLine
 
         case "3-multi-module" =>

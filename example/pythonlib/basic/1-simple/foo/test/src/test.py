@@ -1,6 +1,6 @@
 import unittest
 from markupsafe import escape
-from foo import generate_html
+from foo import generate_html  # type: ignore
 
 
 class TestScript(unittest.TestCase):
