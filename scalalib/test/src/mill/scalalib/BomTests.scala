@@ -99,11 +99,11 @@ object BomTests extends TestSuite {
         )
       }
 
-        object subDependee extends JavaModule with TestPublishModule {
-          def moduleDeps = Seq(
-            dependee
-          )
-        }
+      object subDependee extends JavaModule with TestPublishModule {
+        def moduleDeps = Seq(
+          dependee
+        )
+      }
 
       object scala extends ScalaModule with TestPublishModule {
         def scalaVersion = _root_.scala.util.Properties.versionNumberString
@@ -206,7 +206,6 @@ object BomTests extends TestSuite {
       }
     }
   }
-
 
   def expectedProtobufJavaVersion = "4.28.3"
   def expectedCommonsCompressVersion = "1.23.0"
