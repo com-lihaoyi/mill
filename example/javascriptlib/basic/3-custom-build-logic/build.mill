@@ -8,6 +8,7 @@ trait CustomModule extends TypeScriptModule {
     os.call((
       "npm",
       "install",
+      "esbuild@0.24.0",
       npmDevDeps()
     ))
     PathRef(Task.dest)
@@ -61,6 +62,14 @@ trait CustomModule extends TypeScriptModule {
     (PathRef(javascriptOut), PathRef(declarationsOut))
   }
 
+  override def bundle = Task {
+    val (mainFile, env) = prepareRun()
+    val esbuild = npmInstall().path / "node_modules/esbuild/bin/esbuild"
+    val bundle = Task.dest / "bundle.js"
+    os.call((esbuild, mainFile, "--bundle", "--platform=node", s"--outfile=$bundle"), env = env)
+    PathRef(bundle)
+  }
+
 }
 
 object foo extends CustomModule {
@@ -90,20 +99,11 @@ object foo extends CustomModule {
     )).filter(_.ext == "ts").map(PathRef(_))
   }
 
-  def prep = Task.Anon {
-    val upstream = Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
-    for (((jsDir, tTsDir), mod) <- upstream) {
-      os.copy(jsDir.path, Task.dest / mod.millSourcePath.subRelativeTo(build.millSourcePath))
-    }
-    val mainFile = compile()._1.path / "index.js"
-    val pathToResources = resources().path
-    val env = Map("NODE_PATH" -> Seq(".", compile()._1.path, npmInstall().path).mkString(":"))
-
-    (mainFile, pathToResources, env)
-  }
+  override def mainFileName = Task { s"index.js" }
 
   def run: T[Unit] = Task {
-    val (mainFile, pathToResources, env) = prep()
+    val pathToResources = resources().path
+    val (mainFile, env) = prepareRun()
     os.call(("node", mainFile, pathToResources.toString()), stdout = os.Inherit, env = env)
   }
 
@@ -133,13 +133,17 @@ object foo extends CustomModule {
 
 /** Usage
 
- > mill dist.run example/javascriptlib/basic/3-custom-build foo.run
+ > mill dist.run example/javascriptlib/basic/3-custom-build foo.resources
+ ".../out/qux/resources.dest/line-count.txt"
 
+ > mill dist.run example/javascriptlib/basic/3-custom-build show foo.run
+ [Reading file:] ../out/foo/resources.dest/line-count.txt
+ Line Count: 84
 
- > mill dist.run example/javascriptlib/basic/3-custom-build show foo.bundle
- ".../out/qux/bundle.dest/bundle.js"
+ > mill dist.run example/javascriptlib/basic/3-custom-build show qux.bundle
+ ".../out/foo/bundle.dest/bundle.js"
 
- > node out/qux/bundle.dest/bundle.js James Bond prof
- Hello James Bond Professor
-
+ > node out/foo/bundle.dest/bundle.js
+ [Reading file:] ../out/foo/resources.dest/line-count.txt
+ Line Count: 84
  */
