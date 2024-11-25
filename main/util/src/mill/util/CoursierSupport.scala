@@ -50,7 +50,7 @@ trait CoursierSupport {
       resolveFilter: os.Path => Boolean = _ => true,
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
-      config: coursier.core.Configuration = coursier.core.Configuration.default
+      config: coursier.core.Configuration = coursier.core.Configuration.defaultCompile
   ): Result[Agg[PathRef]] = {
     def isLocalTestDep(dep: Dependency): Option[Seq[PathRef]] = {
       val org = dep.module.organization.value
@@ -147,7 +147,7 @@ trait CoursierSupport {
       resolveFilter,
       artifactTypes,
       resolutionParams,
-      coursier.core.Configuration.default
+      coursier.core.Configuration.defaultCompile
     )
 
   // bin-compat shim
@@ -289,7 +289,7 @@ trait CoursierSupport {
       ctx: Option[mill.api.Ctx.Log] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
-      config: coursier.core.Configuration = coursier.core.Configuration.default
+      config: coursier.core.Configuration = coursier.core.Configuration.defaultCompile
   ): Result[Resolution] = {
 
     val rootDeps = deps.iterator
@@ -369,7 +369,7 @@ trait CoursierSupport {
       ctx,
       coursierCacheCustomizer,
       resolutionParams,
-      coursier.core.Configuration.default
+      coursier.core.Configuration.defaultCompile
     )
 
   // bin-compat shim

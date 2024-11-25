@@ -116,7 +116,7 @@ object Lib {
       ] = None,
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
-      config: coursier.core.Configuration = coursier.core.Configuration.default
+      config: coursier.core.Configuration = coursier.core.Configuration.defaultCompile
   ): Result[Agg[PathRef]] = {
     val depSeq = deps.iterator.toSeq
     mill.util.Jvm.resolveDependencies(
@@ -158,7 +158,7 @@ object Lib {
       coursierCacheCustomizer,
       artifactTypes,
       resolutionParams,
-      coursier.core.Configuration.default
+      coursier.core.Configuration.defaultCompile
     )
 
   // bin-compat shim
