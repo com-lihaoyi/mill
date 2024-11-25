@@ -12,7 +12,7 @@ Doing some ad-hoc benchmarks, we find that although the compiler is blazing fast
 build tools add significant overhead over compiling Java directly:
 
 |===
-| Mockito Core | Time | Compiler lines/s | Multiplier | Netty Common | Time | Compiler lines/s | Multiplier
+| Mockito Core | Time | Compiler lines/s | Slowdown | Netty Common | Time | Compiler lines/s | Slowdown
 | Javac Hot | 0.36s | 115,600 | 1.0x | Javac Hot | 0.29s | 102,500 | 1.0x
 | Javac Cold | 1.29s | 32,200 | 4.4x | Javac Cold | 1.62s | 18,300 | 5.6x
 | Mill | 1.20s | 34,700 | 4.1x | Mill | 1.11s | 26,800 | 3.8x
@@ -284,7 +284,7 @@ using the dependencies we already have on disk.
 Tabulating this all together gives us the table we saw at the start of this page:
 
 |===
-| Mockito Core | Time | Compiler lines/s | Multiplier | Netty Common | Time | Compiler lines/s | Multiplier
+| Mockito Core | Time | Compiler lines/s | Slowdown | Netty Common | Time | Compiler lines/s | Slowdown
 | Javac Hot | 0.36s | 115,600 | 1.0x | Javac Hot | 0.29s | 102,500 | 1.0x
 | Javac Cold | 1.29s | 32,200 | 4.4x | Javac Cold | 1.62s | 18,300 | 5.6x
 | Mill | 1.20s | 34,700 | 4.1x | Mill | 1.11s | 26,800 | 3.8x
