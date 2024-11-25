@@ -22,7 +22,8 @@ object ClientServerTests extends TestSuite {
       override val serverId: String,
       serverDir: os.Path,
       locks: Locks,
-  ) extends Server[Option[Int]](serverDir, 1000, locks)
+      testLogEvenWhenServerIdWrong: Boolean = false
+  ) extends Server[Option[Int]](serverDir, 1000, locks, testLogEvenWhenServerIdWrong)
       with Runnable {
     override def exitServer() = {
       serverLog("exiting server")
@@ -68,7 +69,7 @@ object ClientServerTests extends TestSuite {
     }
   }
 
-  class Tester() {
+  class Tester(testLogEvenWhenServerIdWrong: Boolean) {
 
     var nextServerId: Int = 0
     val terminatedServers = collection.mutable.Set.empty[String]
@@ -103,6 +104,7 @@ object ClientServerTests extends TestSuite {
             serverId,
             os.Path(serverDir, os.pwd),
             locks,
+            testLogEvenWhenServerIdWrong
           )).start()
         }
       }.acquireLocksAndRun(outDir.relativeTo(os.pwd).toString)
@@ -137,7 +139,7 @@ object ClientServerTests extends TestSuite {
     test("hello") - retry(3) {
       // Continue logging when out folder is deleted so we can see the logs
       // and ensure the correct code path is taken as the server exits
-      val tester = new Tester()
+      val tester = new Tester(testLogEvenWhenServerIdWrong = true)
       val res1 = tester(args = Array("world"))
 
       assert(
@@ -173,11 +175,11 @@ object ClientServerTests extends TestSuite {
         Thread.sleep(500)
 
         assert(res3.logsFor("serverId file missing") == Seq("server-1"))
-        assert(res3.logsFor("exiting server") == Seq("server-1"))
+        assert(res3.logsFor("exiting server") == Seq("server-1", "server-1"))
       }
     }
     test("dontLogWhenOutFolderDeleted") - retry(3) {
-      val tester = new Tester()
+      val tester = new Tester(testLogEvenWhenServerIdWrong = false)
       val res1 = tester(args = Array("world"))
 
       assert(
@@ -197,7 +199,7 @@ object ClientServerTests extends TestSuite {
     }
 
     test("concurrency") {
-      val tester = new Tester()
+      val tester = new Tester(testLogEvenWhenServerIdWrong = false)
       // Make sure concurrently running client commands results in multiple processes
       // being spawned, running in different folders
       import concurrent._
@@ -222,7 +224,7 @@ object ClientServerTests extends TestSuite {
     }
 
     test("clientLockReleasedOnFailure") {
-      val tester = new Tester()
+      val tester = new Tester(testLogEvenWhenServerIdWrong = false)
       // When the client gets interrupted via Ctrl-C, we exit the server immediately. This
       // is because Mill ends up executing arbitrary JVM code, and there is no generic way
       // to interrupt such an execution. The two options are to leave the server running
@@ -235,20 +237,23 @@ object ClientServerTests extends TestSuite {
       }
 
       val s"Force failure for testing: $pathStr" = res1.getMessage
-      Thread.sleep(100) // give a moment for logs to all turn up on disk
+      Thread.sleep(1000) // give a moment for logs to all turn up on disk
       val logLines = os.read.lines(os.Path(pathStr, os.pwd) / "server.log")
 
       assert(
-        logLines.takeRight(2) ==
+        logLines.takeRight(5) ==
           Seq(
             "server-0 client interrupted while server was executing command",
+            "server-0 exiting server",
+            "server-0 server loop ended",
+            "server-0 finally exitServer",
             "server-0 exiting server"
           )
       )
     }
 
     test("envVars") - retry(3) {
-      val tester = new Tester()
+      val tester = new Tester(testLogEvenWhenServerIdWrong = false)
       // Make sure the simple "have the client start a server and
       // exchange one message" workflow works from end to end.
 

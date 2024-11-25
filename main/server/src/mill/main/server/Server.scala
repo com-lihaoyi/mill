@@ -20,6 +20,7 @@ abstract class Server[T](
     serverDir: os.Path,
     acceptTimeoutMillis: Int,
     locks: Locks,
+    testLogEvenWhenServerIdWrong: Boolean = false
 ) {
 
   @volatile var running = true
@@ -29,7 +30,7 @@ abstract class Server[T](
 
   val serverId: String = java.lang.Long.toHexString(scala.util.Random.nextLong())
   def serverLog0(s: String): Unit = {
-    if (os.exists(serverDir / ServerFiles.serverLog)){
+    if (os.exists(serverDir) || testLogEvenWhenServerIdWrong) {
       os.write.append(serverDir / ServerFiles.serverLog, s"$s\n", createFolders = true)
     }
   }
@@ -65,7 +66,7 @@ abstract class Server[T](
         serverLog("server loop ended")
       }.getOrElse(throw new Exception("Mill server process already present"))
     } finally {
-      serverLog("exitServer")
+      serverLog("finally exitServer")
       exitServer()
     }
   }
@@ -208,10 +209,11 @@ abstract class Server[T](
         "MillServerActionRunner"
       )
       t.start()
+
       // We cannot simply use Lock#await here, because the filesystem doesn't
       // realize the clientLock/serverLock are held by different threads in the
       // two processes and gives a spurious deadlock error
-      while (!done && !locks.clientLock.probe()) Thread.sleep(3)
+      while (!done && !locks.clientLock.probe()) Thread.sleep(1)
 
       if (!idle) {
         serverLog("client interrupted while server was executing command")
@@ -263,7 +265,8 @@ object Server {
       case null => None
       case l =>
         if (l.isLocked) {
-          try Some(t) finally l.release()
+          try Some(t)
+          finally l.release()
         } else {
           None
         }
