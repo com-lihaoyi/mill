@@ -22,7 +22,7 @@ object ClientServerTests extends TestSuite {
       override val serverId: String,
       serverDir: os.Path,
       locks: Locks,
-      testLogEvenWhenServerIdWrong: Boolean = false
+      testLogEvenWhenServerIdWrong: Boolean
   ) extends Server[Option[Int]](serverDir, 1000, locks, testLogEvenWhenServerIdWrong)
       with Runnable {
     override def exitServer() = {
@@ -237,7 +237,7 @@ object ClientServerTests extends TestSuite {
       }
 
       val s"Force failure for testing: $pathStr" = res1.getMessage
-      Thread.sleep(1000) // give a moment for logs to all turn up on disk
+      Thread.sleep(100) // give a moment for logs to all turn up on disk
       val logLines = os.read.lines(os.Path(pathStr, os.pwd) / "server.log")
 
       assert(
