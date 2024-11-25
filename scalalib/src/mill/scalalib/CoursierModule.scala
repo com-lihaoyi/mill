@@ -231,6 +231,37 @@ object CoursierModule {
         sources: Boolean
     ): Agg[PathRef] =
       resolveDeps(deps, sources, None)
+
+    /**
+     * Processes dependencies and BOMs with coursier
+     *
+     * This makes coursier read and process BOM dependencies, and fill version placeholders
+     * in dependencies with the BOMs.
+     *
+     * Note that this doesn't throw when a version placeholder cannot be filled, and just leaves
+     * the placeholder behind.
+     *
+     * @param deps dependencies that might have placeholder versions ("_" as version)
+     * @param resolutionParams coursier resolution parameters
+     * @return dependencies with version placeholder filled
+     */
+    def processDeps[T: CoursierModule.Resolvable](
+        deps: IterableOnce[T],
+        resolutionParams: ResolutionParams = ResolutionParams()
+    ): Seq[Dependency] = {
+      val deps0 = deps
+        .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
+      val res = Lib.resolveDependenciesMetadataSafe(
+        repositories = repositories,
+        deps = deps0,
+        mapDependencies = mapDependencies,
+        customizer = customizer,
+        coursierCacheCustomizer = coursierCacheCustomizer,
+        ctx = ctx,
+        resolutionParams = resolutionParams
+      ).getOrThrow
+      res.processedRootDependencies
+    }
   }
 
   sealed trait Resolvable[T] {

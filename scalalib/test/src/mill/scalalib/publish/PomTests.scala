@@ -222,7 +222,10 @@ object PomTests extends TestSuite {
       artifactId,
       pomSettings,
       properties,
-      PackagingType.Jar
+      PackagingType.Jar,
+      None,
+      Agg.empty[Dependency],
+      Agg.empty[Dependency]
     ))
 
   def singleText(seq: NodeSeq) =

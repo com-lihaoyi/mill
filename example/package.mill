@@ -82,6 +82,7 @@ object `package` extends RootModule with Module {
     object cross extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "cross"))
     object `out-dir` extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "out-dir"))
     object libraries extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "libraries"))
+    object `library-deps` extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "library-deps"))
   }
 
   object depth extends Module {
