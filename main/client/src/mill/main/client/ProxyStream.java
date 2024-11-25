@@ -164,9 +164,6 @@ public class ProxyStream {
               }
             }
           }
-        } catch (org.newsclub.net.unix.ConnectionResetSocketException e) {
-          // This happens when you run mill shutdown and the server exits gracefully
-          break;
         } catch (IOException e) {
           // This happens when the upstream pipe was closed
           break;

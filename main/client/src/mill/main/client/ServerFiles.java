@@ -23,6 +23,11 @@ public class ServerFiles {
   public static final String processLock = "processLock";
 
   /**
+   * The port used to connect between server and client
+   */
+  public static final String socketPort = "socketPort";
+
+  /**
    * The pipe by which the client snd server exchange IO
    *
    * Use uniquely-named pipes based on the fully qualified path of the project folder

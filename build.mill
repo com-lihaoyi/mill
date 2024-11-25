@@ -38,11 +38,11 @@ object Settings {
   )
   val docTags: Seq[String] = Seq(
     "0.11.13",
-    "0.12.2"
+    "0.12.3"
   )
   val mimaBaseVersions: Seq[String] =
     0.to(13).map("0.11." + _) ++
-    Seq("0.12.0", "0.12.1", "0.12.2")
+    Seq("0.12.0", "0.12.1", "0.12.2", "0.12.3")
 }
 
 object Deps {
@@ -130,7 +130,6 @@ object Deps {
     ivy"org.webjars.npm:viz.js-graphviz-java:2.1.3",
     ivy"org.apache.xmlgraphics:batik-rasterizer:1.18"
   )
-  val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.10.1"
 
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
   val javet = Seq(
@@ -147,7 +146,7 @@ object Deps {
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
   val commonsIo = ivy"commons-io:commons-io:2.17.0"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.24.1"
-  val osLib = ivy"com.lihaoyi::os-lib:0.11.3"
+  val osLib = ivy"com.lihaoyi::os-lib:0.11.4-M2"
   val pprint = ivy"com.lihaoyi::pprint:0.9.0"
   val mainargs = ivy"com.lihaoyi::mainargs:0.7.6"
   val millModuledefsVersion = "0.11.1"
