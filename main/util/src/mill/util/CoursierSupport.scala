@@ -31,6 +31,20 @@ trait CoursierSupport {
         ctx.fold(cache)(c => cache.withLogger(new TickerResolutionLogger(c)))
       }
 
+  private def isLocalTestDep(dep: Dependency): Option[Seq[PathRef]] = {
+    val org = dep.module.organization.value
+    val name = dep.module.name.value
+    val classpathKey = s"$org-$name"
+
+    val classpathResourceText =
+      try Some(os.read(
+          os.resource(getClass.getClassLoader) / "mill/local-test-overrides" / classpathKey
+        ))
+      catch { case e: os.ResourceNotFoundException => None }
+
+    classpathResourceText.map(_.linesIterator.map(s => PathRef(os.Path(s))).toSeq)
+  }
+
   /**
    * Resolve dependencies using Coursier.
    *
@@ -51,26 +65,8 @@ trait CoursierSupport {
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams()
   ): Result[Agg[PathRef]] = {
-    def isLocalTestDep(dep: Dependency): Option[Seq[PathRef]] = {
-      val org = dep.module.organization.value
-      val name = dep.module.name.value
-      val classpathKey = s"$org-$name"
-
-      val classpathResourceText =
-        try Some(os.read(
-            os.resource(getClass.getClassLoader) / "mill/local-test-overrides" / classpathKey
-          ))
-        catch { case e: os.ResourceNotFoundException => None }
-
-      classpathResourceText.map(_.linesIterator.map(s => PathRef(os.Path(s))).toSeq)
-    }
-
-    val (localTestDeps, remoteDeps) = deps.iterator.toSeq.partitionMap(d =>
-      isLocalTestDep(d) match {
-        case None => Right(d)
-        case Some(vs) => Left(vs)
-      }
-    )
+    val (localTestDeps, remoteDeps) =
+      deps.iterator.toSeq.partitionMap(d => isLocalTestDep(d).toLeft(d))
 
     val resolutionRes = resolveDependenciesMetadataSafe(
       repositories,
@@ -262,6 +258,7 @@ trait CoursierSupport {
 
     val rootDeps = deps.iterator
       .map(d => mapDependencies.fold(d)(_.apply(d)))
+      .filter(dep => isLocalTestDep(dep).isEmpty)
       .toSeq
 
     val forceVersions = force.iterator

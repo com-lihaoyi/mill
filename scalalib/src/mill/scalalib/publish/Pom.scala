@@ -39,10 +39,15 @@ object Pom {
     pomSettings = pomSettings,
     properties = properties,
     packagingType = pomSettings.packaging,
-    parentProject = None
+    parentProject = None,
+    bomDependencies = Agg.empty[Dependency],
+    dependencyManagement = Agg.empty[Dependency]
   )
 
-  @deprecated("Use overload with parentProject parameter instead", "Mill 0.12.1")
+  @deprecated(
+    "Use overload with parentProject, bomDependencies, and dependencyManagement parameters instead",
+    "Mill 0.12.1"
+  )
   def apply(
       artifact: Artifact,
       dependencies: Agg[Dependency],
@@ -57,7 +62,9 @@ object Pom {
     pomSettings = pomSettings,
     properties = properties,
     packagingType = packagingType,
-    parentProject = None
+    parentProject = None,
+    bomDependencies = Agg.empty[Dependency],
+    dependencyManagement = Agg.empty[Dependency]
   )
 
   def apply(
@@ -68,6 +75,29 @@ object Pom {
       properties: Map[String, String],
       packagingType: String,
       parentProject: Option[Artifact]
+  ): String =
+    apply(
+      artifact,
+      dependencies,
+      name,
+      pomSettings,
+      properties,
+      packagingType,
+      parentProject,
+      Agg.empty[Dependency],
+      Agg.empty[Dependency]
+    )
+
+  def apply(
+      artifact: Artifact,
+      dependencies: Agg[Dependency],
+      name: String,
+      pomSettings: PomSettings,
+      properties: Map[String, String],
+      packagingType: String,
+      parentProject: Option[Artifact],
+      bomDependencies: Agg[Dependency],
+      dependencyManagement: Agg[Dependency]
   ): String = {
     val xml =
       <project
@@ -105,8 +135,16 @@ object Pom {
           {properties.map(renderProperty _).iterator}
         </properties>
         <dependencies>
-          {dependencies.map(renderDependency).iterator}
+          {
+        dependencies.map(renderDependency(_)).iterator ++
+          bomDependencies.map(renderDependency(_, isImport = true)).iterator
+      }
         </dependencies>
+        <dependencyManagement>
+          <dependencies>
+            {dependencyManagement.map(renderDependency(_)).iterator}
+          </dependencies>
+        </dependencyManagement>
       </project>
 
     val pp = new PrettyPrinter(120, 4)
@@ -143,29 +181,39 @@ object Pom {
     <prop>{property._2}</prop>.copy(label = property._1)
   }
 
-  private def renderDependency(d: Dependency): Elem = {
-    val scope = d.scope match {
-      case Scope.Compile => NodeSeq.Empty
-      case Scope.Provided => <scope>provided</scope>
-      case Scope.Test => <scope>test</scope>
-      case Scope.Runtime => <scope>runtime</scope>
-    }
+  private def renderDependency(d: Dependency, isImport: Boolean = false): Elem = {
+    val scope =
+      if (isImport) <scope>import</scope>
+      else
+        d.scope match {
+          case Scope.Compile => NodeSeq.Empty
+          case Scope.Provided => <scope>provided</scope>
+          case Scope.Test => <scope>test</scope>
+          case Scope.Runtime => <scope>runtime</scope>
+        }
+
+    val `type` = if (isImport) <type>pom</type> else NodeSeq.Empty
 
     val optional = if (d.optional) <optional>true</optional> else NodeSeq.Empty
+
+    val version =
+      if (d.artifact.version == "_") NodeSeq.Empty
+      else <version>{d.artifact.version}</version>
 
     if (d.exclusions.isEmpty)
       <dependency>
         <groupId>{d.artifact.group}</groupId>
         <artifactId>{d.artifact.id}</artifactId>
-        <version>{d.artifact.version}</version>
+        {version}
         {scope}
+        {`type`}
         {optional}
       </dependency>
     else
       <dependency>
         <groupId>{d.artifact.group}</groupId>
         <artifactId>{d.artifact.id}</artifactId>
-        <version>{d.artifact.version}</version>
+        {version}
         <exclusions>
           {
         d.exclusions.map(ex => <exclusion>
@@ -175,6 +223,7 @@ object Pom {
       }
         </exclusions>
         {scope}
+        {`type`}
         {optional}
       </dependency>
   }

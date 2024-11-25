@@ -70,7 +70,7 @@ trait PublishModule extends JavaModule { outer =>
 
   def publishXmlDeps: Task[Agg[Dependency]] = Task.Anon {
     val ivyPomDeps =
-      (ivyDeps() ++ mandatoryIvyDeps()).map(resolvePublishDependency.apply().apply(_))
+      processedIvyDeps().map(_.toDep).map(resolvePublishDependency.apply().apply(_))
 
     val compileIvyPomDeps = compileIvyDeps()
       .map(resolvePublishDependency.apply().apply(_))
@@ -89,6 +89,20 @@ trait PublishModule extends JavaModule { outer =>
       compileModulePomDeps.map(Dependency(_, Scope.Provided))
   }
 
+  /**
+   * BOM dependency to specify in the POM
+   */
+  def publishXmlBomDeps: Task[Agg[Dependency]] = Task.Anon {
+    bomDeps().map(resolvePublishDependency.apply().apply(_))
+  }
+
+  /**
+   * Dependency management to specify in the POM
+   */
+  def publishXmlDepMgmt: Task[Agg[Dependency]] = Task.Anon {
+    dependencyManagement().map(resolvePublishDependency.apply().apply(_))
+  }
+
   def pom: T[PathRef] = Task {
     val pom = Pom(
       artifactMetadata(),
@@ -97,15 +111,72 @@ trait PublishModule extends JavaModule { outer =>
       pomSettings(),
       publishProperties(),
       packagingType = pomPackagingType,
-      parentProject = pomParentProject()
+      parentProject = pomParentProject(),
+      bomDependencies = publishXmlBomDeps(),
+      dependencyManagement = publishXmlDepMgmt()
     )
     val pomPath = T.dest / s"${artifactId()}-${publishVersion()}.pom"
     os.write.over(pomPath, pom)
     PathRef(pomPath)
   }
 
+  /**
+   * Dependencies with version placeholder filled from BOMs, alongside with BOM data
+   */
+  def bomDetails: T[(Map[coursier.core.Module, String], coursier.core.DependencyManagement.Map)] =
+    Task {
+      val processedDeps = defaultResolver().processDeps(
+        transitiveCompileIvyDeps() ++ transitiveIvyDeps(),
+        resolutionParams = resolutionParams()
+      )
+      val depMgmt: coursier.core.DependencyManagement.Map =
+        if (processedDeps.isEmpty) Map.empty
+        else {
+          val overrides = processedDeps.map(_.overrides)
+          overrides.tail.foldLeft(overrides.head) { (acc, map) =>
+            acc.filter {
+              case (key, values) =>
+                map.get(key).contains(values)
+            }
+          }
+        }
+      (processedDeps.map(_.moduleVersion).toMap, depMgmt)
+    }
+
   def ivy: T[PathRef] = Task {
-    val ivy = Ivy(artifactMetadata(), publishXmlDeps(), extraPublish())
+    val (rootDepVersions, bomDepMgmt) = bomDetails()
+    val publishXmlDeps0 = publishXmlDeps().map { dep =>
+      if (dep.artifact.version == "_")
+        dep.copy(
+          artifact = dep.artifact.copy(
+            version = rootDepVersions.getOrElse(
+              coursier.core.Module(
+                coursier.core.Organization(dep.artifact.group),
+                coursier.core.ModuleName(dep.artifact.id),
+                Map.empty
+              ),
+              "" /* throw instead? */
+            )
+          )
+        )
+      else
+        dep
+    }
+    val overrides =
+      dependencyManagement().toSeq.map(bindDependency()).map(_.dep)
+        .filter(depMgmt => depMgmt.version.nonEmpty && depMgmt.version != "_")
+        .map { depMgmt =>
+          Ivy.Override(
+            depMgmt.module.organization.value,
+            depMgmt.module.name.value,
+            depMgmt.version
+          )
+        } ++
+        bomDepMgmt.map {
+          case (key, values) =>
+            Ivy.Override(key.organization.value, key.name.value, values.version)
+        }
+    val ivy = Ivy(artifactMetadata(), publishXmlDeps0, extraPublish(), overrides)
     val ivyPath = T.dest / "ivy.xml"
     os.write.over(ivyPath, ivy)
     PathRef(ivyPath)

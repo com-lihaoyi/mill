@@ -118,6 +118,8 @@ object Dep {
     }
 
     (module.split(':') match {
+      case Array(a, b) => Dep(a, b, "_", cross = empty(platformed = false))
+      case Array(a, "", b) => Dep(a, b, "_", cross = Binary(platformed = false))
       case Array(a, b, c) => Dep(a, b, c, cross = empty(platformed = false))
       case Array(a, b, "", c) => Dep(a, b, c, cross = empty(platformed = true))
       case Array(a, "", b, c) => Dep(a, b, c, cross = Binary(platformed = false))
