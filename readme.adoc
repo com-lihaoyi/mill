@@ -354,6 +354,32 @@ endif::[]
 // find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
 
 
+[#0-12-3]
+=== 0.12.3 - 2024-11-24
+:version: 0.12.3
+:milestone-name: 0.12.3
+:milestone: 106
+:prev-version: 0.12.2
+
+* Set context classloader during Mill evaluation {link-pr}/3940[#3940]
+* Extended `mill init` to support importing an existing Maven project {link-pr}/3756[#3756]
+* Avoid running subsequent meta-level builds after reaching the desired meta-level in MillBuildBootstrap {link-pr}/3960[#3960]
+* Improvements to `KtlintModule` {link-pr}/3961[#3961] {link-pr}/3966[#3966]
+* Fixes for `runBackground` mutex and log management {link-pr}/3971[#3971]
+* Added support for Revapi {link-pr}/3974[#3974]
+* Fix redundant logging in junit5 test runner {link-pr}/3983[#3983]
+* align SonatypeCentralPublishModule with SonatypePublisher {link-pr}/3987[#3987]
+* Make JVM version configurable per-module {link-pr}/3716[#3716]
+* Overhaul worker concurrency helpers with `mill.api.CacheFactory` {link-pr}/4001[#4001]
+* Optimize startup time using TCP sockets instead of junixsocket and `tput` instead of jline {link-pr}/4009[#4009]
+* Improvements to TUI build prompt https://github.com/com-lihaoyi/mill/pull/3933[#3933] https://github.com/com-lihaoyi/mill/pull/4014[#4014]
+* Lots of improvements to documentation, including a new https://github.com/com-lihaoyi/mill/pull/3965[Kotlin Spring-Boot Example #3965],
+  a new page https://github.com/com-lihaoyi/mill/pull/3990[How Fast Does Java Compile? #3990], and
+  https://github.com/com-lihaoyi/mill/pull/3938[Stable Links To Older Doc-site Versions #3938]
+
+
+
+
 [#0-12-2]
 === 0.12.2 - 2024-11-11
 :version: 0.12.2
