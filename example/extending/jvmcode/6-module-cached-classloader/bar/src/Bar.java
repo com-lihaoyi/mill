@@ -1,6 +1,5 @@
 package bar;
 
-import java.io.IOException;
 import java.nio.file.*;
 import java.util.Arrays;
 import java.util.stream.Collectors;
