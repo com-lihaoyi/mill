@@ -77,19 +77,6 @@ trait SimpleMod extends TypeScriptModule {
       "--noemit"
     ))
   }
-
-  def run(args: mill.define.Args) = Task.Command {
-    val (mainFile, env) = prepareRun()
-    os.call(("node", mainFile, args.value), stdout = os.Inherit, env = env)
-  }
-
-  def bundle = Task {
-    val (mainFile, env) = prepareRun()
-    val esbuild = npmInstall().path / "node_modules/esbuild/bin/esbuild"
-    val bundle = Task.dest / "bundle.js"
-    os.call((esbuild, mainFile, "--bundle", s"--outfile=$bundle"), env = env)
-    PathRef(bundle)
-  }
 }
 
 object foo extends SimpleMod {
