@@ -1,10 +1,10 @@
-import mill._
+package build
+import mill._, javascriptlib._
 
-trait TypeScriptModule extends Module {
-  def moduleDeps: Seq[TypeScriptModule] = Nil
+trait CustomModule extends TypeScriptModule {
   def npmDevDeps: T[Seq[String]] = Task { Seq.empty[String] }
 
-  def npmInstall: T[PathRef] = Task.Anon {
+  override def npmInstall: T[PathRef] = Task.Anon {
     os.call((
       "npm",
       "install",
@@ -13,15 +13,14 @@ trait TypeScriptModule extends Module {
     PathRef(Task.dest)
   }
 
-  def sources = Task.Source(millSourcePath / "src")
-  def tests = Task.Source(millSourcePath / "test")
+  def testPath = Task.Source(millSourcePath / "test")
   val testConfigPath = millSourcePath / os.up / "jest.config.ts"
 
   def sourceForTask = Task.Anon {
     val destination = T.dest.toString()
     val destSource = destination match {
       case x if !x.contains("test") => os.walk(sources().path).filter(_.ext == "ts").map(PathRef(_))
-      case _ => (os.walk(sources().path) ++ os.walk(tests().path) ++ IndexedSeq(
+      case _ => (os.walk(sources().path) ++ os.walk(testPath().path) ++ IndexedSeq(
           testConfigPath
         )).filter(_.ext == "ts").map(PathRef(_))
     }
@@ -62,11 +61,9 @@ trait TypeScriptModule extends Module {
     (PathRef(javascriptOut), PathRef(declarationsOut))
   }
 
-  def test = Task { os.call(("echo", "nothing to see here"), stdout = os.Inherit) }
-
 }
 
-object foo extends TypeScriptModule {
+object foo extends CustomModule {
   def npmDevDeps = Seq(
     "@types/jest@^29.0.0",
     "@types/node@^20.0.0",
@@ -88,12 +85,12 @@ object foo extends TypeScriptModule {
   }
 
   def allSourcesWithTest = Task {
-    (os.walk(sources().path) ++ os.walk(tests().path) ++ IndexedSeq(
+    (os.walk(sources().path) ++ os.walk(testPath().path) ++ IndexedSeq(
       testConfigPath
     )).filter(_.ext == "ts").map(PathRef(_))
   }
 
-  def prepareRun = Task.Anon {
+  def prep = Task.Anon {
     val upstream = Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
     for (((jsDir, tTsDir), mod) <- upstream) {
       os.copy(jsDir.path, Task.dest / mod.millSourcePath.subRelativeTo(build.millSourcePath))
@@ -105,12 +102,12 @@ object foo extends TypeScriptModule {
     (mainFile, pathToResources, env)
   }
 
-  def run = Task {
-    val (mainFile, pathToResources, env) = prepareRun()
+  def run: T[Unit] = Task {
+    val (mainFile, pathToResources, env) = prep()
     os.call(("node", mainFile, pathToResources.toString()), stdout = os.Inherit, env = env)
   }
 
-  override def test = Task {
+  def test = Task {
     tsConfig()
     os.call(npmInstall().path / "node_modules/typescript/bin/tsc")
     val javascriptOut = Task.dest / "javascript"
@@ -131,3 +128,18 @@ object foo extends TypeScriptModule {
     )
   }
 }
+
+// Documentation for mill.example.javascriptlib.basic
+
+/** Usage
+
+ > mill dist.run example/javascriptlib/basic/3-custom-build foo.run
+
+
+ > mill dist.run example/javascriptlib/basic/3-custom-build show foo.bundle
+ ".../out/qux/bundle.dest/bundle.js"
+
+ > node out/qux/bundle.dest/bundle.js James Bond prof
+ Hello James Bond Professor
+
+ */

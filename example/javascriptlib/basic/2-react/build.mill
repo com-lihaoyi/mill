@@ -1,23 +1,14 @@
 package build
 
-import mill._
+import mill._, javascriptlib._
 
-trait TypeScriptModule extends Module {
-  def moduleDeps: Seq[TypeScriptModule] = Nil
-
-  def npmDeps: T[Seq[String]] = Task { Seq.empty[String] }
-
+trait ReactScriptModule extends TypeScriptModule {
   def npmDevDeps: T[Seq[String]] = Task { Seq.empty[String] }
-
   def npmServeDeps: T[Seq[String]] = Task { Seq.empty[String] }
 
-  def transitiveNpmDeps: T[Seq[String]] = Task {
-    Task.traverse(moduleDeps)(_.npmDeps)().flatten ++ npmDeps()
-  }
+  override def sources = Task.Source(millSourcePath)
 
-  def sources = Task.Source(millSourcePath)
-
-  def npmInstall: T[PathRef] = Task.Anon {
+  override def npmInstall: T[PathRef] = Task.Anon {
     os.call((
       "npm",
       "install",
@@ -169,7 +160,7 @@ trait TypeScriptModule extends Module {
   }
 }
 
-object foo extends TypeScriptModule {
+object foo extends ReactScriptModule {
   override def npmDeps = Seq(
     "react@18.3.1",
     "react-dom@18.3.1",
@@ -178,7 +169,7 @@ object foo extends TypeScriptModule {
     "web-vitals@2.1.4"
   )
 
-  def npmDevDeps = Seq(
+  override def npmDevDeps = Seq(
     "@testing-library/jest-dom@^5.17.0",
     "@testing-library/react@^13.4.0",
     "@testing-library/user-event@^13.5.0",
@@ -188,7 +179,22 @@ object foo extends TypeScriptModule {
     "@types/react-dom@^18.3.1"
   )
 
-  def npmServeDeps = Seq(
+  override def npmServeDeps = Seq(
     "serve@12.0.1"
   )
 }
+
+// Documentation for mill.example.javascriptlib.basic.2-react
+
+/** Usage
+
+ > ./mill dist.run example/javascriptlib/basic/2-react foo.run
+ INFO: Accepting connections at http://localhost:65402
+
+ > ./mill dist.run example/javascriptlib/basic/2-react show foo.build
+ ".../out/foo/build.dest/build"
+
+ > serve -s -l PORT /out/foo/build.dest/build
+ INFO: Accepting connections at http://localhost:{PORT}
+
+ */
