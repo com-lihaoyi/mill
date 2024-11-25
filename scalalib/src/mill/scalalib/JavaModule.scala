@@ -146,37 +146,35 @@ trait JavaModule
    */
   def allIvyDeps: T[Agg[Dep]] = Task {
     val bomDeps0 = allBomDeps().toSeq
-    val rawDeps = ivyDeps() ++ mandatoryIvyDeps()
-    val depsWithBoms =
-      if (bomDeps0.isEmpty) rawDeps
-      else rawDeps.map(dep => dep.copy(dep = dep.dep.addBoms(bomDeps0)))
-    val depMgmt = dependencyManagementDict()
-    if (depMgmt.isEmpty)
-      depsWithBoms
-    else {
-      lazy val depMgmtMap = depMgmt.toMap
-      depsWithBoms
-        .map(dep => dep.copy(dep = dep.dep.withOverrides(dep.dep.overrides ++ depMgmt)))
-        .map { dep =>
-          val key = DependencyManagement.Key(
-            dep.dep.module.organization,
-            dep.dep.module.name,
-            coursier.core.Type.jar,
-            dep.dep.publication.classifier
+    val depMgmt = processedDependencyManagement(
+      dependencyManagement().toSeq.map(bindDependency()).map(_.dep)
+    )
+    val depMgmtMap = depMgmt.toMap
+    (ivyDeps() ++ mandatoryIvyDeps()).map { dep =>
+      val depMgmtKey = DependencyManagement.Key(
+        dep.dep.module.organization,
+        dep.dep.module.name,
+        coursier.core.Type.jar,
+        dep.dep.publication.classifier
+      )
+      val versionOverrideOpt =
+        if (dep.dep.version == "_") depMgmtMap.get(depMgmtKey).map(_.version)
+        else None
+      val extraExclusions = depMgmtMap.get(depMgmtKey).map(_.minimizedExclusions)
+      dep.copy(
+        dep = dep.dep
+          // add BOM coordinates - coursier will handle the rest
+          .addBoms(bomDeps0)
+          // add dependency management ourselves:
+          // - overrides meant to apply to transitive dependencies
+          // - fill version if it's empty
+          // - add extra exclusions from dependency management
+          .withOverrides(dep.dep.overrides ++ depMgmt)
+          .withVersion(versionOverrideOpt.getOrElse(dep.dep.version))
+          .withMinimizedExclusions(
+            extraExclusions.fold(dep.dep.minimizedExclusions)(dep.dep.minimizedExclusions.join(_))
           )
-          val versionOverride =
-            if (dep.dep.version == "_") depMgmtMap.get(key).map(_.version)
-            else None
-          val exclusions = depMgmtMap.get(key)
-            .map(_.minimizedExclusions)
-            .map(dep.dep.minimizedExclusions.join(_))
-            .getOrElse(dep.dep.minimizedExclusions)
-          dep.copy(
-            dep = dep.dep
-              .withVersion(versionOverride.getOrElse(dep.dep.version))
-              .withMinimizedExclusions(exclusions)
-          )
-        }
+      )
     }
   }
 
@@ -251,51 +249,51 @@ trait JavaModule
    * Data from dependencyManagement, converted to a type ready to be passed to coursier
    * for dependency resolution
    */
-  def dependencyManagementDict: Task[Seq[(DependencyManagement.Key, DependencyManagement.Values)]] =
-    Task.Anon {
-      val keyValuesOrErrors =
-        dependencyManagement().toSeq.map(bindDependency()).map(_.dep).map { depMgmt =>
-          val fromUsedValues = coursier.core.Dependency(depMgmt.module, depMgmt.version)
-            .withPublication(coursier.core.Publication(
-              "",
-              depMgmt.publication.`type`,
-              coursier.core.Extension.empty,
-              depMgmt.publication.classifier
-            ))
-            .withMinimizedExclusions(depMgmt.minimizedExclusions)
-            .withOptional(depMgmt.optional)
-            .withConfiguration(Configuration.defaultCompile)
-          if (fromUsedValues == depMgmt) {
-            val key = DependencyManagement.Key(
-              depMgmt.module.organization,
-              depMgmt.module.name,
-              if (depMgmt.publication.`type`.isEmpty) coursier.core.Type.jar
-              else depMgmt.publication.`type`,
-              depMgmt.publication.classifier
-            )
-            val values = DependencyManagement.Values(
-              Configuration.empty,
-              if (depMgmt.version == "_") "" // shouldn't be needed with future coursier versions
-              else depMgmt.version,
-              depMgmt.minimizedExclusions,
-              depMgmt.optional
-            )
-            Right(key -> values)
-          } else
-            Left(depMgmt)
-        }
-
-      val errors = keyValuesOrErrors.collect {
-        case Left(errored) => errored
+  private def processedDependencyManagement(deps: Seq[coursier.core.Dependency])
+      : Seq[(DependencyManagement.Key, DependencyManagement.Values)] = {
+    val keyValuesOrErrors =
+      deps.map { depMgmt =>
+        val fromUsedValues = coursier.core.Dependency(depMgmt.module, depMgmt.version)
+          .withPublication(coursier.core.Publication(
+            "",
+            depMgmt.publication.`type`,
+            coursier.core.Extension.empty,
+            depMgmt.publication.classifier
+          ))
+          .withMinimizedExclusions(depMgmt.minimizedExclusions)
+          .withOptional(depMgmt.optional)
+          .withConfiguration(Configuration.defaultCompile)
+        if (fromUsedValues == depMgmt) {
+          val key = DependencyManagement.Key(
+            depMgmt.module.organization,
+            depMgmt.module.name,
+            if (depMgmt.publication.`type`.isEmpty) coursier.core.Type.jar
+            else depMgmt.publication.`type`,
+            depMgmt.publication.classifier
+          )
+          val values = DependencyManagement.Values(
+            Configuration.empty,
+            if (depMgmt.version == "_") "" // shouldn't be needed with future coursier versions
+            else depMgmt.version,
+            depMgmt.minimizedExclusions,
+            depMgmt.optional
+          )
+          Right(key -> values)
+        } else
+          Left(depMgmt)
       }
-      if (errors.isEmpty)
-        keyValuesOrErrors.collect { case Right(kv) => kv }
-      else
-        throw new Exception(
-          "Found dependency management entries with invalid values. Only organization, name, version, type, classifier, exclusions, and optionality can be specified" + System.lineSeparator() +
-            errors.map("- " + _ + System.lineSeparator()).mkString
-        )
+
+    val errors = keyValuesOrErrors.collect {
+      case Left(errored) => errored
     }
+    if (errors.isEmpty)
+      keyValuesOrErrors.collect { case Right(kv) => kv }
+    else
+      throw new Exception(
+        "Found dependency management entries with invalid values. Only organization, name, version, type, classifier, exclusions, and optionality can be specified" + System.lineSeparator() +
+          errors.map("- " + _ + System.lineSeparator()).mkString
+      )
+  }
 
   /**
    * Default artifact types to fetch and put in the classpath. Add extra types

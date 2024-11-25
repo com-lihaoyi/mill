@@ -258,7 +258,6 @@ object CoursierModule {
     ): (Seq[Dependency], DependencyManagement.Map) = {
       val deps0 = deps
         .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
-        .filter(dep => mill.util.Jvm.isLocalTestDep(dep.dep).isEmpty)
       val res = Lib.resolveDependenciesMetadataSafe(
         repositories = repositories,
         deps = deps0,

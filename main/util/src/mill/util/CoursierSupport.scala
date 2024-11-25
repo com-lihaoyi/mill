@@ -31,7 +31,7 @@ trait CoursierSupport {
         ctx.fold(cache)(c => cache.withLogger(new TickerResolutionLogger(c)))
       }
 
-  def isLocalTestDep(dep: Dependency): Option[Seq[PathRef]] = {
+  private def isLocalTestDep(dep: Dependency): Option[Seq[PathRef]] = {
     val org = dep.module.organization.value
     val name = dep.module.name.value
     val classpathKey = s"$org-$name"
@@ -262,6 +262,7 @@ trait CoursierSupport {
 
     val rootDeps = deps.iterator
       .map(d => mapDependencies.fold(d)(_.apply(d)))
+      .filter(dep => isLocalTestDep(dep).isEmpty)
       .toSeq
 
     val bomDeps0 = bomDeps.iterator.toSeq

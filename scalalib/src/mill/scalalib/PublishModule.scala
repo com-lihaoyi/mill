@@ -134,7 +134,6 @@ trait PublishModule extends JavaModule { outer =>
 
   def ivy: T[PathRef] = Task {
     val (rootDepVersions, bomDepMgmt) = bomDetails()
-    val depMgmt = dependencyManagementDict() ++ bomDepMgmt
     val publishXmlDeps0 = publishXmlDeps().map { dep =>
       if (dep.artifact.version == "_")
         dep.copy(
@@ -152,10 +151,20 @@ trait PublishModule extends JavaModule { outer =>
       else
         dep
     }
-    val overrides = depMgmt.toSeq.map {
-      case (key, values) =>
-        Ivy.Override(key.organization.value, key.name.value, values.version)
-    }
+    val overrides =
+      dependencyManagement().toSeq.map(bindDependency()).map(_.dep)
+        .filter(depMgmt => depMgmt.version.nonEmpty && depMgmt.version != "_")
+        .map { depMgmt =>
+          Ivy.Override(
+            depMgmt.module.organization.value,
+            depMgmt.module.name.value,
+            depMgmt.version
+          )
+        } ++
+        bomDepMgmt.map {
+          case (key, values) =>
+            Ivy.Override(key.organization.value, key.name.value, values.version)
+        }
     val ivy = Ivy(artifactMetadata(), publishXmlDeps0, extraPublish(), overrides)
     val ivyPath = T.dest / "ivy.xml"
     os.write.over(ivyPath, ivy)
