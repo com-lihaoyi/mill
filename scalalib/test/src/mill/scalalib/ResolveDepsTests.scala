@@ -4,6 +4,7 @@ import coursier.maven.MavenRepository
 import mill.api.Result.{Failure, Success}
 import mill.api.{PathRef, Result}
 import mill.api.Loose.Agg
+import mill.define.Task
 import mill.testkit.{UnitTester, TestBaseModule}
 import utest._
 
@@ -41,6 +42,17 @@ object ResolveDepsTests extends TestSuite {
         ivy"org.apache.hadoop:hadoop-yarn-server:3.4.0"
       )
       def artifactTypes = super.artifactTypes() + coursier.Type("pom")
+    }
+
+    object scope extends JavaModule {
+      def ivyDeps = Agg(
+        ivy"androidx.compose.animation:animation-core:1.1.1",
+        ivy"androidx.compose.ui:ui:1.1.1"
+      )
+      def repositoriesTask = Task.Anon {
+        super.repositoriesTask() :+ coursier.Repositories.google
+      }
+      def artifactTypes = super.artifactTypes() + coursier.core.Type("aar")
     }
   }
 
@@ -122,6 +134,24 @@ object ResolveDepsTests extends TestSuite {
         val Right(runResult) = eval(TestCase.pomStuff.runClasspath)
         val runCp = runResult.value.toSeq.map(_.path)
         assert(runCp.exists(_.lastOpt.contains("hadoop-yarn-server-3.4.0.pom")))
+      }
+    }
+
+    test("scopes") {
+      UnitTester(TestCase, null).scoped { eval =>
+        val compileCp = eval(TestCase.scope.compileClasspath)
+          .toTry.get.value.toSeq.map(_.path)
+        val runtimeCp = eval(TestCase.scope.upstreamAssemblyClasspath)
+          .toTry.get.value.toSeq.map(_.path)
+        val runCp = eval(TestCase.scope.runClasspath)
+          .toTry.get.value.toSeq.map(_.path)
+
+        assert(!compileCp.exists(_.last == "lifecycle-common-2.3.0.jar"))
+        assert(!compileCp.exists(_.last == "lifecycle-runtime-2.3.0.aar"))
+        assert(runtimeCp.exists(_.last == "lifecycle-common-2.3.0.jar"))
+        assert(runtimeCp.exists(_.last == "lifecycle-runtime-2.3.0.aar"))
+        assert(runCp.exists(_.last == "lifecycle-common-2.3.0.jar"))
+        assert(runCp.exists(_.last == "lifecycle-runtime-2.3.0.aar"))
       }
     }
   }
