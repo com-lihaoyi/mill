@@ -5,7 +5,7 @@ import java.net.{URL, URLClassLoader}
 import java.nio.file.{FileAlreadyExistsException, FileSystemException}
 
 import mill.java9rtexport.Export
-import scala.util.{Properties, Try}
+import scala.util.Properties
 
 /**
  * Utilities for creating classloaders for running compiled Java/Scala code in
@@ -90,7 +90,9 @@ object ClassLoader {
         )
         retry {
           try os.copy(os.Path(Export.rt()), java90rtJar, createFolders = true)
-          catch { case e: FileAlreadyExistsException => /* someone else already did this */}
+          catch {
+            case e: FileAlreadyExistsException => /* someone else already did this */
+          }
         }
       }
       urls :+ java90rtJar.toIO.toURI().toURL()

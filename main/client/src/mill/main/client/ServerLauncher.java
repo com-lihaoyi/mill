@@ -2,7 +2,6 @@ package mill.main.client;
 
 import static mill.main.client.OutFiles.*;
 
-import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -13,8 +12,6 @@ import java.nio.file.Paths;
 import java.util.Map;
 import mill.main.client.lock.Locks;
 import mill.main.client.lock.TryLocked;
-import org.newsclub.net.unix.AFUNIXSocket;
-import org.newsclub.net.unix.AFUNIXSocketAddress;
 
 /**
  * Client side code that interacts with `Server.scala` in order to launch a generic
@@ -119,32 +116,33 @@ public abstract class ServerLauncher {
   }
 
   int run(Path serverDir, boolean setJnaNoSys, Locks locks) throws Exception {
-    String serverPath = serverDir + "/" + ServerFiles.runArgs;
-    try (OutputStream f = Files.newOutputStream(Paths.get(serverPath))) {
+    // Clear out run-related files from the server folder to make sure we
+    // never hit issues where we are reading the files from a previous run
+    Files.deleteIfExists(serverDir.resolve(ServerFiles.exitCode));
+    Files.deleteIfExists(serverDir.resolve(ServerFiles.terminfo));
+    Files.deleteIfExists(serverDir.resolve(ServerFiles.runArgs));
+
+    try (OutputStream f = Files.newOutputStream(serverDir.resolve(ServerFiles.runArgs))) {
       f.write(System.console() != null ? 1 : 0);
       Util.writeString(f, BuildInfo.millVersion);
       Util.writeArgs(args, f);
       Util.writeMap(env, f);
     }
 
-    if (locks.processLock.probe()) {
-      initServer(serverDir, setJnaNoSys, locks);
-    }
+    if (locks.processLock.probe()) initServer(serverDir, setJnaNoSys, locks);
 
-    while (locks.processLock.probe()) Thread.sleep(3);
-
-    String socketName = ServerFiles.pipe(serverDir.toString());
-    AFUNIXSocketAddress addr = AFUNIXSocketAddress.of(new File(socketName));
+    while (locks.processLock.probe()) Thread.sleep(1);
 
     long retryStart = System.currentTimeMillis();
     Socket ioSocket = null;
     Throwable socketThrowable = null;
     while (ioSocket == null && System.currentTimeMillis() - retryStart < serverInitWaitMillis) {
       try {
-        ioSocket = AFUNIXSocket.connectTo(addr);
+        int port = Integer.parseInt(Files.readString(serverDir.resolve(ServerFiles.socketPort)));
+        ioSocket = new java.net.Socket("127.0.0.1", port);
       } catch (Throwable e) {
         socketThrowable = e;
-        Thread.sleep(10);
+        Thread.sleep(1);
       }
     }
 
@@ -170,10 +168,13 @@ public abstract class ServerLauncher {
     outPumperThread.join();
 
     try {
-      return Integer.parseInt(
-          Files.readAllLines(Paths.get(serverDir + "/" + ServerFiles.exitCode)).get(0));
-    } catch (Throwable e) {
-      return Util.ExitClientCodeCannotReadFromExitCodeFile();
+      Path exitCodeFile = serverDir.resolve(ServerFiles.exitCode);
+      if (Files.exists(exitCodeFile)) {
+        return Integer.parseInt(Files.readAllLines(exitCodeFile).get(0));
+      } else {
+        System.err.println("mill-server/ exitCode file not found");
+        return 1;
+      }
     } finally {
       ioSocket.close();
     }
