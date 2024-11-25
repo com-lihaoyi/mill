@@ -1,65 +1,19 @@
 package mill.javascriptlib
 import mill._
 
-trait TypeScriptModule extends Module {
-  def moduleDeps: Seq[TypeScriptModule] = Nil
-
-  def npmDeps: T[Seq[String]] = Task { Seq.empty[String] }
-
-  def npmDevDeps: T[Seq[String]] = Task { Seq(
+trait TscModule extends NodeModule {
+  def npmDevDeps: Task { Seq(
     "typescript@5.6.3",
     "@types/node@22.7.8",
     "esbuild@0.24.0"
   ) }
 
-  def transitiveNpmDeps: T[Seq[String]] = Task {
-    Task.traverse(moduleDeps)(_.npmDeps)().flatten
-  }
-
-  def transitiveNpmDevDeps: T[Seq[String]] = Task {
-    Task.traverse(moduleDeps)(_.npmDevDeps)().flatten
-  }
-
-  def install = Task {
-    PathRef(nodeModulesInModuleRoot().path)
-  }
-
-  def npmInstall = Task {
-    val deps = npmDeps() ++ transitiveNpmDeps()
-    if (deps.nonEmpty) {
-      os.call((
-        "npm",
-        "install",
-        deps
-      ))
-    }
-    val devDeps = npmDevDeps() ++ transitiveNpmDevDeps()
-    if (devDeps.nonEmpty) {
-      os.call((
-        "npm",
-        "install",
-        "--save-dev",
-        devDeps
-      ))
-    }
-
-    PathRef(Task.dest)
-  }
-
-  def nodeModulesInModuleRoot = Task {
-    val installPath = npmInstall().path
-
-    // Copy the node_modules to the source path so that IDE can find the types. Other tasks are able to depend on this.
-    // Remove the old node_modules because this is a common thing to do in the JS world, also if the user did it manually, it won't repopulate if the task is cached.
-    os.remove.all(millSourcePath / "node_modules")
-    os.copy(installPath / "node_modules", millSourcePath / "node_modules", followLinks = false)
-    PathRef(installPath)
-  }
-
   def sources = Task.Source(millSourcePath / "src")
-  def allSources = Task { os.walk(sources().path).filter(file => file.ext == "ts" || file.ext == "tsx" || file.ext == "d.ts").map(PathRef(_)) }
+  def allSources = Task { os.walk(sources().path).filter(file => file.ext == "ts" || file.ext == "tsx").map(PathRef(_)) }
 
   def tscArgs = Task { Seq.empty[String] }
+
+  def tscModuleDeps = moduleDeps.filter(_.isInstanceOf[TscModule]).map(_.asInstanceOf[TscModule])
 
   def compile: T[(PathRef, PathRef)] = Task {
     val nodeTypes = install().path / "node_modules/@types"
@@ -67,7 +21,7 @@ trait TypeScriptModule extends Module {
     val declarationsOut = Task.dest / "declarations"
 
     val upstreamPaths =
-      for (((jsDir, dTsDir), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps))
+      for (((jsDir, dTsDir), mod) <- Task.traverse(tscModuleDeps)(_.compile)().zip(moduleDeps))
         yield (mod.millSourcePath.subRelativeTo(Task.workspace).toString + "/*", dTsDir.path)
 
     val allPaths = upstreamPaths ++ Seq("*" -> sources().path, "*" -> install().path)
@@ -94,7 +48,7 @@ trait TypeScriptModule extends Module {
   def mainFileName = Task { s"${millSourcePath.last}.js" }
 
   def prepareRun = Task.Anon {
-    val upstream = Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
+    val upstream = Task.traverse(tscModuleDeps)(_.compile)().zip(moduleDeps)
     for (((jsDir, tTsDir), mod) <- upstream) {
       os.copy(jsDir.path, Task.dest / mod.millSourcePath.subRelativeTo(Task.workspace))
     }
