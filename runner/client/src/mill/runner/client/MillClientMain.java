@@ -79,6 +79,10 @@ public class MillClientMain {
               "Loading Mill in-process isn't possible.\n" + "Please check your Mill installation!");
           throw e;
         }
+      } catch (Exception e) {
+        System.err.println("Mill client failed with unknown exception");
+        e.printStackTrace();
+        System.exit(1);
       }
   }
 }

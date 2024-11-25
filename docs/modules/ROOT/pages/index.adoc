@@ -15,6 +15,17 @@ helps keep builds clean and understandable
 * Mill is an easier alternative to https://bazel.build/[Bazel]
 for xref:depth/large-builds.adoc[large multi-language monorepos] with hundreds of modules
 
+To get started using Mill, see the language-specific introductory documentation linked below:
+
+[cols="1a,1a,1a"]
+|===
+| xref:javalib/intro.adoc[image:index/iconscout-java.svg[java,32] Java with Mill]
+| xref:scalalib/intro.adoc[image:index/iconscout-scala.svg[scala,20] Scala with Mill]
+| xref:kotlinlib/intro.adoc[image:index/iconscout-kotlin.svg[kotlin,32] Kotlin with Mill]
+|===
+
+=== Why Mill?
+
 Although the Java compiler is very fast and the Java language is easy to learn,
 JVM build tools have a reputation for being sluggish and confusing. Mill tries to
 offer a better alternative, letting your build system take full advantage of the
@@ -43,16 +54,6 @@ use Mill's rich ecosystem of xref:extending/thirdparty-plugins.adoc[Third-Party 
 or xref:extending/writing-plugins.adoc[write plugins yourself] and
 publish them to Maven Central for others to use.
 
-To begin using Mill, check out the introductory documentation for each language:
-
-
-[cols="1a,1a,1a"]
-|===
-| xref:javalib/intro.adoc[image:index/iconscout-java.svg[java,32] Java with Mill]
-| xref:scalalib/intro.adoc[image:index/iconscout-scala.svg[scala,20] Scala with Mill]
-| xref:kotlinlib/intro.adoc[image:index/iconscout-kotlin.svg[kotlin,32] Kotlin with Mill]
-|===
-
 
 For a quick introduction of why you may care about Mill, see the following page:
 
@@ -73,8 +74,10 @@ https://github.com/com-lihaoyi/Ammonite[Ammonite REPL], and the
 https://github.com/SpinalHDL/SpinalHDL[SpinalHDL] and
 https://github.com/chipsalliance/chisel[Chisel] hardware design frameworks.
 Mill can be used for applications built on top of common JVM frameworks like
-xref:javalib/web-examples.adoc#_spring_boot_todomvc_app[Spring Boot] or
-xref:javalib/web-examples.adoc#_micronaut_todomvc_app[Micronaut].
+Spring Boot (both xref:javalib/web-examples.adoc#_spring_boot_todomvc_app[in Java]
+and xref:kotlinlib/web-examples.adoc#_spring_boot_todomvc_app[in Kotlin]),
+xref:javalib/web-examples.adoc#_micronaut_todomvc_app[Micronaut],
+or xref:kotlinlib/web-examples.adoc#_ktor_todomvc_app[Ktor].
 
 Mill borrows ideas from other tools like https://maven.apache.org/[Maven],
 https://gradle.org/[Gradle], https://bazel.build/[Bazel], but tries to learn from the
@@ -89,7 +92,7 @@ build tools, check out these pages:
 | xref:comparisons/sbt.adoc[image:index/sbt.png[sbt,32] Mill vs SBT]
 |===
 
-
+=== Contributing and Community
 
 If you want to contribute to Mill, or are interested in the fundamental ideas behind 
 Mill rather than the user-facing benefits discussed above, check out the page on 
@@ -102,7 +105,7 @@ they are interesting:
 To engage Mill with the community, you can use the channels below:
 
 * https://github.com/com-lihaoyi/mill/discussions[Mill Github Discussions]
-* https://discord.com/invite/scala[Scala Discord], in the TOOLING#mill channel
+* https://discord.com/invite/scala[Scala Discord], in the `TOOLING#mill` channel
 
 Mill maintains an open list of issue bounties below, with payouts ranging from
 500USD to 3000USD per issue. Feel free to look through the list and try your

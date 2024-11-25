@@ -472,6 +472,11 @@ trait KotlinJsModule extends KotlinModule { outer =>
     // TODO may be optimized if there is a single folder for all modules
     // but may be problematic if modules use different NPM packages versions
     private def nodeModulesDir = Task(persistent = true) {
+      Jvm.runSubprocess(
+        commandArgs = Seq("npm", "install", "mocha@10.2.0", "source-map-support@0.5.21"),
+        envArgs = T.env,
+        workingDir = T.dest
+      )
       PathRef(T.dest)
     }
 
@@ -479,23 +484,11 @@ trait KotlinJsModule extends KotlinModule { outer =>
     // otherwise with random versions there is a possibility to have conflict
     // between the versions of the shared transitive deps
     private def mochaModule = Task {
-      val workingDir = nodeModulesDir().path
-      Jvm.runSubprocess(
-        commandArgs = Seq("npm", "install", "mocha@10.2.0"),
-        envArgs = T.env,
-        workingDir = workingDir
-      )
-      PathRef(workingDir / "node_modules" / "mocha" / "bin" / "mocha.js")
+      PathRef(nodeModulesDir().path / "node_modules" / "mocha" / "bin" / "mocha.js")
     }
 
     private def sourceMapSupportModule = Task {
-      val workingDir = nodeModulesDir().path
-      Jvm.runSubprocess(
-        commandArgs = Seq("npm", "install", "source-map-support@0.5.21"),
-        envArgs = T.env,
-        workingDir = workingDir
-      )
-      PathRef(workingDir / "node_modules" / "source-map-support" / "register.js")
+      PathRef(nodeModulesDir().path / "node_modules" / "source-map-support" / "register.js")
     }
 
     // endregion

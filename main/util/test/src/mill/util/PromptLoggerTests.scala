@@ -78,8 +78,8 @@ object PromptLoggerTests extends TestSuite {
         promptLogger.close()
 
         check(promptLogger, baos, width = 999 /*log file has no line wrapping*/ )(
-          "================================================ TITLE ===========================================",
-          "==================================================================================================",
+          "============================== TITLE ==============================",
+          "===================================================================",
           // Make sure that the first time a prefix is reported,
           // we print the verbose prefix along with the ticker string
           "[1/456] my-task",
@@ -89,17 +89,17 @@ object PromptLoggerTests extends TestSuite {
           // the double space prefix (since it's non-interactive and we don't need space for a cursor),
           // the time elapsed, the reported title and ticker, the list of active tickers, followed by the
           // footer
-          "[123/456] ====================================== TITLE ======================================= 10s",
+          "[123/456] ============================== TITLE ============================== 10s",
           "[1] my-task 10s",
-          "==================================================================================================",
+          "=================================================================================",
           "[1] WORLD",
           // Calling `refreshPrompt()` after closing the ticker shows the prompt without
           // the ticker in the list, with an updated time elapsed
-          "[123/456] ====================================== TITLE ======================================= 20s",
-          "==================================================================================================",
+          "[123/456] ============================== TITLE ============================== 20s",
+          "=================================================================================",
           // Closing the prompt prints the prompt one last time with an updated time elapsed
-          "[123/456] ====================================== TITLE ======================================= 30s",
-          "==================================================================================================",
+          "[123/456] ============================== TITLE ============================== 30s",
+          "=================================================================================",
           ""
         )
       }
@@ -113,7 +113,7 @@ object PromptLoggerTests extends TestSuite {
         promptLogger.setPromptHeaderPrefix("123/456")
         promptLogger.refreshPrompt()
         check(promptLogger, baos)(
-          "  [123/456] ========================== TITLE =================================="
+          "  [123/456] ============================== TITLE =============================="
         )
         promptLogger.setPromptLine(Seq("1"), "/456", "my-task")
 
@@ -130,7 +130,7 @@ object PromptLoggerTests extends TestSuite {
           "",
           "[1/456] my-task",
           "[1] HELLO",
-          "  [123/456] ========================== TITLE ============================== 10s",
+          "  [123/456] ============================ TITLE ============================ 10s",
           "[1] my-task 10s"
         )
 
@@ -143,7 +143,7 @@ object PromptLoggerTests extends TestSuite {
           "[1/456] my-task",
           "[1] HELLO",
           "[1] WORLD",
-          "  [123/456] ========================== TITLE ============================== 10s",
+          "  [123/456] ============================ TITLE ============================ 10s",
           "[1] my-task 10s"
         )
 
@@ -175,7 +175,7 @@ object PromptLoggerTests extends TestSuite {
           "[3/456] my-task-short-lived",
           "[3] hello short lived",
           "[3] goodbye short lived",
-          "  [123/456] ========================== TITLE ============================== 10s",
+          "  [123/456] ============================ TITLE ============================ 10s",
           "[1] my-task 10s"
         )
 
@@ -196,7 +196,7 @@ object PromptLoggerTests extends TestSuite {
           "[3/456] my-task-short-lived",
           "[3] hello short lived",
           "[3] goodbye short lived",
-          "  [123/456] ========================== TITLE ============================== 11s",
+          "  [123/456] ============================ TITLE ============================ 11s",
           "[1] my-task 11s",
           "[2] my-task-new 1s"
         )
@@ -218,7 +218,7 @@ object PromptLoggerTests extends TestSuite {
           "[3/456] my-task-short-lived",
           "[3] hello short lived",
           "[3] goodbye short lived",
-          "  [123/456] ========================== TITLE ============================== 11s",
+          "  [123/456] ============================ TITLE ============================ 11s",
           "[1] my-task 11s",
           "[2] my-task-new 1s"
         )
@@ -239,7 +239,7 @@ object PromptLoggerTests extends TestSuite {
           "[3/456] my-task-short-lived",
           "[3] hello short lived",
           "[3] goodbye short lived",
-          "  [123/456] ========================== TITLE ============================== 12s",
+          "  [123/456] ============================ TITLE ============================ 12s",
           "[2] my-task-new 2s",
           ""
         )
@@ -259,7 +259,7 @@ object PromptLoggerTests extends TestSuite {
           "[3/456] my-task-short-lived",
           "[3] hello short lived",
           "[3] goodbye short lived",
-          "  [123/456] ========================== TITLE ============================== 22s",
+          "  [123/456] ============================ TITLE ============================ 22s",
           "[2] my-task-new 12s"
         )
         now += 10000
@@ -275,7 +275,7 @@ object PromptLoggerTests extends TestSuite {
           "[3/456] my-task-short-lived",
           "[3] hello short lived",
           "[3] goodbye short lived",
-          "[123/456] ============================ TITLE ============================== 32s",
+          "[123/456] ============================= TITLE ============================= 32s",
           ""
         )
       }
@@ -298,20 +298,20 @@ object PromptLoggerTests extends TestSuite {
         now += 1000
         promptLogger.refreshPrompt()
         check(promptLogger, baos)(
-          "  [123/456] ========================== TITLE =============================== 1s",
+          "  [123/456] ============================= TITLE ============================ 1s",
           "[1] my-task 1s detail"
         )
         prefixLogger.ticker("detail-too-long-gets-truncated-abcdefghijklmnopqrstuvwxyz1234567890")
         promptLogger.refreshPrompt()
         check(promptLogger, baos)(
-          "  [123/456] ========================== TITLE =============================== 1s",
+          "  [123/456] ============================= TITLE ============================ 1s",
           "[1] my-task 1s detail-too-long-gets-truncated...fghijklmnopqrstuvwxyz1234567890"
         )
         promptLogger.removePromptLine(Seq("1"))
         now += 10000
         promptLogger.refreshPrompt()
         check(promptLogger, baos)(
-          "  [123/456] ========================== TITLE ============================== 11s"
+          "  [123/456] ============================ TITLE ============================ 11s"
         )
       }
     }

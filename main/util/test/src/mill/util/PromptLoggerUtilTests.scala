@@ -78,47 +78,56 @@ object PromptLoggerUtilTests extends TestSuite {
         val rendered = renderHeader(prefix, title, suffix, maxWidth)
         // leave two spaces open on the left so there's somewhere to park the cursor
         assert(expected == rendered)
-        assert(rendered.length == maxWidth)
+        assert(rendered.length <= maxWidth)
         rendered
       }
-      test("simple") - check(
-        "PREFIX",
-        "TITLE",
-        " SUFFIX",
-        60,
-        expected = "  PREFIX ==================== TITLE ================= SUFFIX"
+      def checkSimple(maxWidth: Int, expected: String) =
+        check("PREFIX", "TITLE", " SUFFIX", maxWidth, expected)
+      test("extra") - checkSimple(
+        200,
+        "  PREFIX ============================== TITLE ============================== SUFFIX"
+      )
+      test("exact") - checkSimple(
+        83,
+        "  PREFIX ============================== TITLE ============================== SUFFIX"
+      )
+      test("short") - checkSimple(
+        82, // One `=` is removed from the right
+        "  PREFIX ============================== TITLE ============================= SUFFIX"
+      )
+      test("shorter") - checkSimple(
+        81, // Next `=` is removed from the right
+        "  PREFIX ============================= TITLE ============================= SUFFIX"
       )
 
-      test("short") - check(
-        "PREFIX",
-        "TITLE",
-        " SUFFIX",
-        40,
-        expected = "  PREFIX ========== TITLE ======= SUFFIX"
+      test("shorter2") - checkSimple(
+        70, // Lots of `=`s removed from both left and right
+        "  PREFIX ======================== TITLE ======================= SUFFIX"
       )
 
-      test("shorter") - check(
-        "PREFIX",
-        "TITLE",
-        " SUFFIX",
-        25,
-        expected = "  PREFIX ========= SUFFIX"
+      test("beforeShortenTitle") - checkSimple(
+        53, // Minimum number of `=` on each side (15) before shortening title
+        "  PREFIX =============== TITLE =============== SUFFIX"
       )
-
-      test("truncateTitle") - check(
-        "PREFIX",
-        "TITLE_ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        " SUFFIX",
-        60,
-        expected = "  PREFIX ====== TITLE_ABCDEFG...OPQRSTUVWXYZ ======== SUFFIX"
+      test("shortenTitle") - checkSimple(
+        52, // Begin shortening Title
+        "  PREFIX =============== T... =============== SUFFIX"
       )
-
-      test("asymmetricTruncateTitle") - check(
-        "PREFIX_LONG",
-        "TITLE_ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        " SUFFIX",
-        60,
-        expected = "  PREFIX_LONG = TITLE_AB...TUVWXYZ ================== SUFFIX"
+      test("shortenTitle2") - checkSimple(
+        51,
+        "  PREFIX =============== ... =============== SUFFIX"
+      )
+      test("shortenTitle3") - checkSimple(
+        50, // Title is already minimized, have to shorten other parts
+        "  PREFIX =============== ...=============== SUFFIX"
+      )
+      test("titleEntirelyGone") - checkSimple(
+        30, // Title section entirely removed
+        "  PREFIX ============== SUFFIX"
+      )
+      test("shortenTitle3") - checkSimple(
+        10, // `=`s are all removed
+        "  PR...FIX"
       )
     }
 
@@ -129,7 +138,7 @@ object PromptLoggerUtilTests extends TestSuite {
           titleText: String = "__.compile"
       )(statuses: (Int, Status)*) = {
         renderPrompt(
-          consoleWidth = 60,
+          consoleWidth = 74,
           consoleHeight = 20,
           now = now,
           startTimeMillis = now - 1337000,
@@ -147,7 +156,7 @@ object PromptLoggerUtilTests extends TestSuite {
           1 -> Status(Some(StatusEntry("world", now - 2000)), 0, None)
         )
         val expected = List(
-          "  123/456 =============== __.compile ================ 1337s",
+          "  123/456 ======================= __.compile ====================== 1337s",
           "hello 1s",
           "world 2s"
         )
@@ -172,7 +181,7 @@ object PromptLoggerUtilTests extends TestSuite {
           )
 
         val expected = List(
-          "  123/456 ======== __.compile.abcdefghijklmn ======== 1337s",
+          "  123/456 =============== __.compile.abcdefghijklmn =============== 1337s",
           "#1 hello1234567890abcefghijklmnopqrstuvwxyz1234567890123 1s",
           "#2 world 2s",
           "#3 i am cow 3s",
@@ -181,7 +190,7 @@ object PromptLoggerUtilTests extends TestSuite {
         )
         assert(rendered == expected)
       }
-      test("minAfterTruncation") {
+      test("minAfterTruncateHeader") {
         val rendered =
           renderPromptTest(interactive = true, titleText = "__.compile.abcdefghijklmno")(
             0 -> Status(
@@ -204,8 +213,40 @@ object PromptLoggerUtilTests extends TestSuite {
           )
 
         val expected = List(
-          "  123/456 ======= __.compile....efghijklmno ========= 1337s",
-          "#1 hello1234567890abcefghijk...pqrstuvwxyz12345678901234 1s",
+          "  123/456 =============== __.compile....efghijklmno =============== 1337s",
+          "#1 hello1234567890abcefghijklmnopqrstuvwxyz12345678901234 1s",
+          "#2 world 2s",
+          "#3 i am cow 3s",
+          "#4 hear me moo 4s",
+          "... and 2 more threads"
+        )
+        assert(rendered == expected)
+      }
+      test("minAfterTruncateRow") {
+        val rendered =
+          renderPromptTest(interactive = true, titleText = "__.compile.abcdefghijklmno")(
+            0 -> Status(
+              Some(StatusEntry(
+                "#1 hello1234567890abcefghijklmnopqrstuvwxyz1234567890123456789012345678",
+                now - 1000
+              )),
+              0,
+              None
+            ),
+            1 -> Status(Some(StatusEntry("#2 world", now - 2000)), 0, None),
+            2 -> Status(Some(StatusEntry("#3 i am cow", now - 3000)), 0, None),
+            3 -> Status(Some(StatusEntry("#4 hear me moo", now - 4000)), 0, None),
+            4 -> Status(Some(StatusEntry("#5 i weigh twice as much as you", now - 5000)), 0, None),
+            5 -> Status(
+              Some(StatusEntry("#6 and I look good on the barbecue", now - 6000)),
+              0,
+              None
+            )
+          )
+
+        val expected = List(
+          "  123/456 =============== __.compile....efghijklmno =============== 1337s",
+          "#1 hello1234567890abcefghijklmnopqr...wxyz1234567890123456789012345678 1s",
           "#2 world 2s",
           "#3 i am cow 3s",
           "#4 hear me moo 4s",
@@ -236,13 +277,14 @@ object PromptLoggerUtilTests extends TestSuite {
           )
         )
         val expected = List(
-          "  123/456  __.compile....z1234567890 ================ 1337s",
-          "#1 hello1234567890abcefghijk...abcefghijklmnopqrstuvwxyz 1s",
+          "  123/456 =============== __.compile....z1234567890 =============== 1337s",
+          "#1 hello1234567890abcefghijklmnopqr...4567890abcefghijklmnopqrstuvwxyz 1s",
           "#2 world 2s",
           "#3 i am cow 3s",
           "#4 hear me moo 4s",
           "... and 3 more threads"
         )
+
         assert(rendered == expected)
       }
       test("detail") {
@@ -269,11 +311,11 @@ object PromptLoggerUtilTests extends TestSuite {
           )
         )
         val expected = List(
-          "  123/456 =============== __.compile ================ 1337s",
-          "1 hello 1s", // no detail
-          "2 world 2s HELLO", // simple detail
-          "3 truncated-detail 3s HELLO WORLD abcde...tuvwxyz1234567890", // truncated detail
-          "4 long-status-eliminated-det...lmnopqrstuvwxyz1234567890 4s"
+          "  123/456 ======================= __.compile ====================== 1337s",
+          "1 hello 1s",
+          "2 world 2s HELLO",
+          "3 truncated-detail 3s HELLO WORLD abcdefghijklmnopqrstuvwxyz1234567890",
+          "4 long-status-eliminated-detail-abcdefghijklmnopqrstuvwxyz1234567890 4s.."
         )
         assert(rendered == expected)
       }
@@ -322,8 +364,8 @@ object PromptLoggerUtilTests extends TestSuite {
         )
 
         val expected = List(
-          "  123/456  __.compile....z1234567890 ================ 1337s",
-          "#1 hello1234567890abcefghijk...abcefghijklmnopqrstuvwxyz 1s",
+          "  123/456 =============== __.compile....z1234567890 =============== 1337s",
+          "#1 hello1234567890abcefghijklmnopqr...4567890abcefghijklmnopqrstuvwxyz 1s",
           "#3 i am cow 3s",
           "",
           "",
@@ -358,8 +400,8 @@ object PromptLoggerUtilTests extends TestSuite {
         )
 
         val expected = List(
-          "  123/456  __.compile....z1234567890 ================ 1337s",
-          "#1 hello1234567890abcefghijk...abcefghijklmnopqrstuvwxyz 1s",
+          "  123/456 =============== __.compile....z1234567890 =============== 1337s",
+          "#1 hello1234567890abcefghijklmnopqr...4567890abcefghijklmnopqrstuvwxyz 1s",
           "#3 i am cow 3s"
         )
 
@@ -410,11 +452,11 @@ object PromptLoggerUtilTests extends TestSuite {
         // Make sure the non-interactive prompt does not show the blank lines,
         // and it contains a footer line to mark the end of the prompt in logs
         val expected = List(
-          "123/456  __.compile.ab...xyz1234567890 ============== 1337s",
-          "#1 hello1234567890abcefghijk...abcefghijklmnopqrstuvwxyz 1s",
+          "123/456 =============== __.compile.a...yz1234567890 =============== 1337s",
+          "#1 hello1234567890abcefghijklmnopqr...4567890abcefghijklmnopqrstuvwxyz 1s",
           "#2 world 2s",
           "#3 i am cow 3s",
-          "==========================================================="
+          "========================================================================="
         )
         assert(rendered == expected)
       }
