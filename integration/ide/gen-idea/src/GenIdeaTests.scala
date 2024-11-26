@@ -3,6 +3,7 @@ package mill.integration
 import mill.testkit.UtestIntegrationTestSuite
 import GenIdeaUtils._
 import os.Path
+import utest._
 
 object GenIdeaTests extends UtestIntegrationTestSuite {
 
