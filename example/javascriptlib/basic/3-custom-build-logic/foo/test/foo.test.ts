@@ -13,6 +13,7 @@ describe('Foo.getLineCount', () => {
     let consoleErrorSpy: jest.SpyInstance;
 
     beforeEach(() => {
+        process.env.NODE_ENV = "test"; // Set NODE_ENV for all tests
         jest.clearAllMocks();
         // Mock console.log and console.error
         consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
@@ -22,6 +23,7 @@ describe('Foo.getLineCount', () => {
     afterEach(() => {
         consoleLogSpy.mockRestore();
         consoleErrorSpy.mockRestore();
+        jest.clearAllMocks();
     });
 
     it('should return the content of the line-count.txt file', () => {

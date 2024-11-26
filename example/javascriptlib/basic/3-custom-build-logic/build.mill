@@ -17,100 +17,25 @@ trait CustomModule extends TypeScriptModule {
   def testPath = Task.Source(millSourcePath / "test")
   val testConfigPath = millSourcePath / os.up / "jest.config.ts"
 
-  def sourceForTask = Task.Anon {
-    val destination = T.dest.toString()
-    val destSource = destination match {
-      case x if !x.contains("test") => os.walk(sources().path).filter(_.ext == "ts").map(PathRef(_))
-      case _ => (os.walk(sources().path) ++ os.walk(testPath().path) ++ IndexedSeq(
-          testConfigPath
-        )).filter(_.ext == "ts").map(PathRef(_))
-    }
-
-    destSource
-  }
-
-  def tsConfig = Task.Anon {
-    val nodeTypes = npmInstall().path / "node_modules/@types"
-    val javascriptOut = Task.dest / "javascript"
-    val declarationsOut = Task.dest / "declarations"
-
-    val upstreamPaths =
-      for (((jsDir, dTsDir), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps))
-        yield (mod.millSourcePath.subRelativeTo(build.millSourcePath) + "/*", dTsDir.path)
-
-    val allPaths = upstreamPaths ++ Seq("*" -> sources().path, "*" -> npmInstall().path)
-    os.write(
-      Task.dest / "tsconfig.json",
-      ujson.Obj(
-        "compilerOptions" -> ujson.Obj(
-          "outDir" -> javascriptOut.toString,
-          "declaration" -> true,
-          "declarationDir" -> declarationsOut.toString,
-          "typeRoots" -> ujson.Arr(nodeTypes.toString),
-          "paths" -> ujson.Obj.from(allPaths.map { case (k, v) => (k, ujson.Arr(s"$v/*")) })
-        ),
-        "files" -> sourceForTask().map(_.path.toString)
-      )
-    )
-  }
-
-  def compile: T[(PathRef, PathRef)] = Task {
-    tsConfig()
-    os.call(npmInstall().path / "node_modules/typescript/bin/tsc")
-    val javascriptOut = T.dest / "javascript"
-    val declarationsOut = T.dest / "declarations"
-    (PathRef(javascriptOut), PathRef(declarationsOut))
-  }
-
-  override def bundle = Task {
-    val (mainFile, env) = prepareRun()
+  def bundle = Task {
+    val (_, env) = prepareRun()
     val esbuild = npmInstall().path / "node_modules/esbuild/bin/esbuild"
     val bundle = Task.dest / "bundle.js"
+    val mainFile = compile()._1.path / millSourcePath.last / "src" / mainFileName()
     os.call((esbuild, mainFile, "--bundle", "--platform=node", s"--outfile=$bundle"), env = env)
     PathRef(bundle)
   }
 
-}
-
-object foo extends CustomModule {
-  def npmDevDeps = Seq(
-    "@types/jest@^29.0.0",
-    "@types/node@^20.0.0",
-    "jest@^29.0.0",
-    "ts-jest@^29.0.0",
-    "ts-node@^10.9.2",
-    "typescript@^5.0.0"
-  )
-
-  /** Total number of lines in module source files */
-  def lineCount = Task {
-    allSourcesWithTest().map(f => os.read.lines(f.path).size).sum
-  }
-
-  /** Generate resources using lineCount of sources */
-  def resources = Task {
-    os.write(Task.dest / "line-count.txt", "" + lineCount())
-    PathRef(Task.dest)
-  }
-
-  def allSourcesWithTest = Task {
-    (os.walk(sources().path) ++ os.walk(testPath().path) ++ IndexedSeq(
-      testConfigPath
-    )).filter(_.ext == "ts").map(PathRef(_))
+  def allSources = Task.Anon {
+    (os.walk(sources().path) ++ os.walk(testPath().path) ++ IndexedSeq(testConfigPath))
+      .filter(_.ext == "ts")
+      .map(PathRef(_))
   }
 
   override def mainFileName = Task { s"index.js" }
 
-  def run: T[Unit] = Task {
-    val pathToResources = resources().path
-    val (mainFile, env) = prepareRun()
-    os.call(("node", mainFile, pathToResources.toString()), stdout = os.Inherit, env = env)
-  }
-
   def test = Task {
-    tsConfig()
-    os.call(npmInstall().path / "node_modules/typescript/bin/tsc")
-    val javascriptOut = Task.dest / "javascript"
+    val javascriptOut = compile()._1.path
 
     // env
     // note: ' npmInstall().path / "node_modules" ' required in NODE_PATH for jest to find preset: ts-jest
@@ -127,23 +52,51 @@ object foo extends CustomModule {
       env = env
     )
   }
+
 }
 
-// Documentation for mill.example.javascriptlib.basic
+object foo extends CustomModule {
+  def npmDevDeps = Seq(
+    "@types/jest@^29.0.0",
+    "@types/node@^20.0.0",
+    "jest@^29.0.0",
+    "ts-jest@^29.0.0",
+    "ts-node@^10.9.2",
+    "typescript@^5.0.0"
+  )
+
+  /** Total number of lines in module source files */
+  def lineCount = Task {
+    allSources().map(f => os.read.lines(f.path).size).sum
+  }
+
+  /** Generate resources using lineCount of sources */
+  def resources = Task {
+    os.write(Task.dest / "line-count.txt", "" + lineCount())
+    PathRef(Task.dest)
+  }
+
+  def run: T[Unit] = Task {
+    val pathToResources = resources().path
+    val (_, env) = prepareRun()
+    val mainFile = compile()._1.path / millSourcePath.last / "src" / mainFileName()
+    os.call(("node", mainFile, pathToResources.toString()), stdout = os.Inherit, env = env)
+  }
+
+}
+
+// Documentation for mill.example.javascriptlib
 
 /** Usage
 
- > mill dist.run example/javascriptlib/basic/3-custom-build foo.resources
- ".../out/qux/resources.dest/line-count.txt"
+> mill show foo.run
+[Reading file:] .../out/foo/resources.dest/line-count.txt
+Line Count: ...
 
- > mill dist.run example/javascriptlib/basic/3-custom-build show foo.run
- [Reading file:] ../out/foo/resources.dest/line-count.txt
- Line Count: 84
+> mill show foo.bundle
+".../out/foo/bundle.dest/bundle.js"
 
- > mill dist.run example/javascriptlib/basic/3-custom-build show qux.bundle
- ".../out/foo/bundle.dest/bundle.js"
-
- > node out/foo/bundle.dest/bundle.js
- [Reading file:] ../out/foo/resources.dest/line-count.txt
- Line Count: 84
- */
+> node out/foo/bundle.dest/bundle.js out/foo/resources.dest/
+[Reading file:] .../line-count.txt
+Line Count: ...
+*/
