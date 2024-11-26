@@ -6,8 +6,10 @@ import java.nio.charset.{Charset, StandardCharsets}
 import java.security.{MessageDigest, NoSuchAlgorithmException}
 import java.util.{Base64, HashMap, LinkedList, Map, Scanner}
 import scala.util.matching.Regex
+import pt.kcry.sha._
 
 object Util {
+  val sha1 = new Sha1()
   // use methods instead of constants to avoid inlining by compiler
   def ExitClientCodeCannotReadFromExitCodeFile(): Int = 1
 
@@ -93,7 +95,8 @@ object Util {
    * @return Hex encoded MD5 hash of input string.
    */
   def md5hex(str: String): String = {
-    hexArray(MessageDigest.getInstance("md5").digest(str.getBytes(StandardCharsets.UTF_8)))
+    Sha1.hash(str.getBytes).mkString
+    // hexArray(MessageDigest.getInstance("md5").digest(str.getBytes(StandardCharsets.UTF_8)))
   }
 
   private def hexArray(arr: Array[Byte]): String = {
@@ -101,10 +104,11 @@ object Util {
   }
 
   def sha1Hash(path: String): String = {
-    val md = MessageDigest.getInstance("SHA1")
-    md.reset()
-    md.update(path.getBytes(StandardCharsets.UTF_8))
-    Base64.getEncoder.encodeToString(md.digest())
+    val sha1 = new Sha1()
+    val hashed = Array.ofDim[Byte](20)
+    sha1.update(path.getBytes(StandardCharsets.UTF_8), 0, path.length)
+    sha1.finish(hashed, 0)
+    Base64.getEncoder.encodeToString(hashed)
   }
 
   /**
@@ -115,19 +119,20 @@ object Util {
   def readOptsFileLines(file: File): List[String] = {
 
     val vmOptions = scala.collection.mutable.ListBuffer[String]()
-    try {
-      val sc = new Scanner(file)
-      val env = sys.env
-      while (sc.hasNextLine) {
-        val arg = sc.nextLine()
-        val trimmed = arg.trim
-        if (trimmed.nonEmpty && !trimmed.startsWith("#")) {
-          vmOptions += interpolateEnvVars(arg, env)
-        }
-      }
-    } catch {
-      case _: FileNotFoundException => // ignored
-    }
+    println("VM OPTIONS ARE BEING IGNOREDå")
+    // try {
+    //   val sc = new Scanner(file)
+    //   val env = sys.env
+    //   while (sc.hasNextLine) {
+    //     val arg = sc.nextLine()
+    //     val trimmed = arg.trim
+    //     if (trimmed.nonEmpty && !trimmed.startsWith("#")) {
+    //       vmOptions += interpolateEnvVars(arg, env)
+    //     }
+    //   }
+    // } catch {
+    //   case _: FileNotFoundException => // ignored
+    // }
     vmOptions.toList
   }
 

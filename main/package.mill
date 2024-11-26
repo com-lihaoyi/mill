@@ -2,6 +2,7 @@ package build.main
 // imports
 import mill._
 import mill.scalalib._
+import mill.scalanativelib._
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.define.Cross
@@ -136,10 +137,13 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
     def moduleDeps = Seq(define)
   }
 
-  object client extends build.MillPublishJavaModule with ScalaModule with BuildInfo {
+  object client extends build.MillPublishJavaModule with ScalaNativeModule with BuildInfo {
     def scalaVersion: T[String] = "2.13.14"
+    def scalaNativeVersion: T[String] = "0.5.6"
     def buildInfoPackageName = "mill.main.client"
     def buildInfoMembers = Seq(BuildInfo.Value("millVersion", build.millVersion(), "Mill version."))
+
+    override def ivyDeps: T[Agg[Dep]] = Agg(ivy"pt.kcry::sha::2.0.2")
 
     object test extends JavaModuleTests with TestModule.Junit4 with ScalaModule {
       def scalaVersion: T[String] = client.scalaVersion

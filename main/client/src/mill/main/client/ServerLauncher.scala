@@ -56,7 +56,12 @@ abstract class ServerLauncher(
     val serverPath = serverDir.resolve(ServerFiles.runArgs)
 
     Using.resource(Files.newOutputStream(serverPath)) { f =>
-      f.write(if (System.console() != null) 1 else 0)
+      f.write(
+        // if (System.console() != null)
+        // 1
+        //   else
+        0
+      )
       Util.writeString(f, BuildInfo.millVersion)
       Util.writeArgs(args, f)
       Util.writeMap(env, f)

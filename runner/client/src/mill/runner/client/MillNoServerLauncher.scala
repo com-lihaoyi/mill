@@ -15,9 +15,13 @@ object MillNoServerLauncher {
       val startTime = System.currentTimeMillis()
       val millMainMethod: Option[Method] =
         try {
-          val millMainClass = getClass.getClassLoader.loadClass("mill.runner.MillMain")
-          val mainMethod = millMainClass.getMethod("main", classOf[Array[String]])
-          Some(mainMethod)
+          // val millMainClass = getClass.getClassLoader.loadClass("mill.runner.MillMain")
+          // val mainMethod = millMainClass.getMethod("main", classOf[Array[String]])
+          // Some(mainMethod)
+          throw new Exception(
+            "This needs to fall back to the JVM? Not sure how to do that right now."
+          )
+
         } catch {
           case _: ClassNotFoundException | _: NoSuchMethodException => None
         }
