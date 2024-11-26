@@ -67,6 +67,7 @@ object `package` extends RootModule with Module {
   object pythonlib extends Module {
     object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))
     object dependencies extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "dependencies"))
+    object publishing extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "publishing"))
   }
 
   object cli extends Module{
