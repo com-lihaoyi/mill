@@ -14,7 +14,7 @@ export default class Foo {
     }
 }
 
-if (require.main === module) {
+if (process.env.NODE_ENV !== "test") {
     const resourcePath = process.argv[2];
     if (!resourcePath) {
         console.error('Error: No resource path provided.');
