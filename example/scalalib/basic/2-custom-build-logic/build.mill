@@ -53,7 +53,7 @@ Line Count: 17
 17
 
 > mill inspect foo.lineCount
-foo.lineCount(build.mill:...)
+foo.lineCount(...build.mill:...)
     Total number of lines in module source files
 Inputs:
     foo.allSourceFiles

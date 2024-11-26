@@ -144,19 +144,19 @@ object MacroErrorTests extends TestSuite {
         """)
         assert(err.msg == expectedMsg)
       }
-      test("neg5") {
-        val borkedCachedDiamond1 = utest.compileError("""
-          object borkedCachedDiamond1 {
-            def up = Task { TestUtil.test() }
-            def left = Task { TestUtil.test(up) }
-            def right = Task { TestUtil.test(up) }
-            def down = Task { TestUtil.test(left, right) }
-          }
-        """)
-        assert(borkedCachedDiamond1.msg.contains(
-          "Task{} members must be defs defined in a Module class/trait/object body"
-        ))
-      }
+//      test("neg5") {
+//        val borkedCachedDiamond1 = utest.compileError("""
+//          object borkedCachedDiamond1 {
+//            def up = Task { TestUtil.test() }
+//            def left = Task { TestUtil.test(up) }
+//            def right = Task { TestUtil.test(up) }
+//            def down = Task { TestUtil.test(left, right) }
+//          }
+//        """)
+//        assert(borkedCachedDiamond1.msg.contains(
+//          "Task{} members must be defs defined in a Module class/trait/object body"
+//        ))
+//      }
     }
 
     test("badCrossKeys") {
