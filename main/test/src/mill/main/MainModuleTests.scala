@@ -2,7 +2,7 @@ package mill.main
 
 import mill.api.{PathRef, Result, Val}
 import mill.{Agg, T, Task, given}
-import mill.define.{Cross, Discover, Module}
+import mill.define.{Cross, Discover, Module, TaskModule}
 import mill.main.client.OutFiles
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
@@ -118,7 +118,7 @@ object MainModuleTests extends TestSuite {
       object sub extends Cleanable
     }
     object bar extends Cleanable {
-      def theWorker = Task.Worker {
+      override def theWorker = Task.Worker {
         new TestWorker("bar", workers)
       }
     }

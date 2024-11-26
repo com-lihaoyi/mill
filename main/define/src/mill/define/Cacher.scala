@@ -1,33 +1,58 @@
 package mill.define
 
 import scala.collection.mutable
-import scala.reflect.macros.blackbox.Context
+import scala.quoted.*
 
-private[mill] trait Cacher extends mill.moduledefs.Cacher {
-  private[this] lazy val cacherLazyMap = mutable.Map.empty[sourcecode.Enclosing, Any]
+trait Cacher {
+  private lazy val cacherLazyMap = mutable.Map.empty[sourcecode.Enclosing, Any]
 
-  override protected[this] def cachedTarget[T](t: => T)(implicit c: sourcecode.Enclosing): T =
-    synchronized {
-      cacherLazyMap.getOrElseUpdate(c, t).asInstanceOf[T]
-    }
+  protected def cachedTarget[T](t: => T)(implicit c: sourcecode.Enclosing): T = synchronized {
+    cacherLazyMap.getOrElseUpdate(c, t).asInstanceOf[T]
+  }
 }
 
-private[mill] object Cacher {
-  def impl0[T: c.WeakTypeTag](c: Context)(t: c.Expr[T]): c.Expr[T] = {
-    c.Expr[T](wrapCached[T](c)(t.tree))
+object Cacher {
+  private def withMacroOwner[T](using Quotes)(op: quotes.reflect.Symbol => T): T = {
+    import quotes.reflect.*
+
+    // In Scala 3, the top level splice of a macro is owned by a symbol called "macro" with the macro flag set,
+    // but not the method flag.
+    def isMacroOwner(sym: Symbol)(using Quotes): Boolean =
+      sym.name == "macro" && sym.flags.is(Flags.Macro | Flags.Synthetic) && !sym.flags.is(
+        Flags.Method
+      )
+
+    def loop(owner: Symbol): T =
+      if owner.isPackageDef || owner == Symbol.noSymbol then
+        report.errorAndAbort(
+          "Cannot find the owner of the macro expansion",
+          Position.ofMacroExpansion
+        )
+      else if isMacroOwner(owner) then op(owner.owner) // Skip the "macro" owner
+      else loop(owner.owner)
+
+    loop(Symbol.spliceOwner)
   }
-  def wrapCached[R: c.WeakTypeTag](c: Context)(t: c.Tree): c.universe.Tree = {
 
-    import c.universe._
-    val owner = c.internal.enclosingOwner
+  def impl0[T: Type](using Quotes)(t: Expr[T]): Expr[T] = withMacroOwner { owner =>
+    import quotes.reflect.*
+
+    val CacherSym = TypeRepr.of[Cacher].typeSymbol
+
     val ownerIsCacherClass =
-      owner.owner.isClass &&
-        owner.owner.asClass.baseClasses.exists(_.fullName == "mill.define.Cacher")
+      owner.owner.isClassDef &&
+        owner.owner.typeRef.baseClasses.contains(CacherSym)
 
-    if (ownerIsCacherClass && owner.isMethod) q"this.cachedTarget[${weakTypeTag[R]}]($t)"
-    else c.abort(
-      c.enclosingPosition,
-      "Task{} members must be defs defined in a Module class/trait/object body"
+    if (ownerIsCacherClass && owner.flags.is(Flags.Method)) {
+      val enclosingCtx = Expr.summon[sourcecode.Enclosing].getOrElse(
+        report.errorAndAbort("Cannot find enclosing context", Position.ofMacroExpansion)
+      )
+
+      val thisSel = This(owner.owner).asExprOf[Cacher]
+        '{ $thisSel.cachedTarget[T](${ t })(using $enclosingCtx) }
+    } else report.errorAndAbort(
+      "Task{} members must be defs defined in a Module class/trait/object body",
+      Position.ofMacroExpansion
     )
   }
 }

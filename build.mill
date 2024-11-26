@@ -69,8 +69,8 @@ object Deps {
     val scalajsEnvNodejs = ivy"org.scala-js::scalajs-env-nodejs:1.4.0".withDottyCompat(scalaVersion)
     val scalajsEnvPhantomjs = ivy"org.scala-js::scalajs-env-phantomjs:1.0.0".withDottyCompat(scalaVersion)
     val scalajsEnvSelenium = ivy"org.scala-js::scalajs-env-selenium:1.1.1".withDottyCompat(scalaVersion)
-    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:${scalaJsVersion}"
-    val scalajsLinker = ivy"org.scala-js::scalajs-linker:${scalaJsVersion}"
+    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:${scalaJsVersion}".withDottyCompat(scalaVersion)
+    val scalajsLinker = ivy"org.scala-js::scalajs-linker:${scalaJsVersion}".withDottyCompat(scalaVersion)
     val scalajsImportMap = ivy"com.armanbilge::scalajs-importmap:0.1.1".withDottyCompat(scalaVersion)
   }
 
@@ -121,7 +121,7 @@ object Deps {
   val coursierVersion = "2.1.18"
   val coursier = ivy"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierInterface = ivy"io.get-coursier:interface:1.0.24"
-  val coursierJvm = ivy"io.get-coursier::coursier-jvm:$coursierVersion"
+  val coursierJvm = ivy"io.get-coursier::coursier-jvm:$coursierVersion".withDottyCompat(scalaVersion)
 
   val cask = ivy"com.lihaoyi::cask:0.9.4"
   val castor = ivy"com.lihaoyi::castor:0.3.0"

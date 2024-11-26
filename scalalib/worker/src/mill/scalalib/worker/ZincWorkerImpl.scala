@@ -1036,7 +1036,7 @@ object ZincWorkerImpl {
   // copied from ModuleUtils
   private def recursive[T <: String](start: T, deps: T => Seq[T]): Seq[T] = {
 
-    @tailrec def rec(
+    @scala.annotation.tailrec def rec(
         seenModules: List[T],
         toAnalyze: List[(List[T], List[T])]
     ): List[T] = {

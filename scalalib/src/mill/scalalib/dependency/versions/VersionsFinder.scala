@@ -58,14 +58,17 @@ private[dependency] object VersionsFinder {
         .map(bindDependency)
         .iterator
         .toSeq
-      Lib.resolveDependenciesMetadataSafe(
+      val x = Lib.resolveDependenciesMetadataSafe(
         repositories = repos,
         deps = dependencies,
-        mapDependencies = Some(mapDeps),
+        mapDependencies = Option(mapDeps),
         customizer = custom,
+        ctx = Some(T.log),
         coursierCacheCustomizer = cacheCustom,
-        ctx = Some(T.log)
-      ).map { _ =>
+        resolutionParams = coursier.params.ResolutionParams()
+      )
+
+      x.map { _ =>
         (javaModule, metadataLoaders, dependencies.map(_.dep))
       }
     }
