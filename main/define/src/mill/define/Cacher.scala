@@ -3,7 +3,7 @@ package mill.define
 import scala.collection.mutable
 import scala.quoted.*
 
-trait Cacher {
+trait Cacher extends mill.moduledefs.Cacher {
   private lazy val cacherLazyMap = mutable.Map.empty[sourcecode.Enclosing, Any]
 
   protected def cachedTarget[T](t: => T)(implicit c: sourcecode.Enclosing): T = synchronized {
