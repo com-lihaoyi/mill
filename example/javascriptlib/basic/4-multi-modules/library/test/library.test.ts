@@ -19,6 +19,7 @@ describe('Library', () => {
     ];
 
     beforeEach(() => {
+        process.env.NODE_ENV = "test"; // Set NODE_ENV for all tests
         jest.resetAllMocks();
 
         // Mock the readJsonFile function

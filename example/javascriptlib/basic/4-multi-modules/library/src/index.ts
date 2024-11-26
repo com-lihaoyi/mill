@@ -46,7 +46,7 @@ export default class Library {
     }
 }
 
-if (require.main === module) {
+if (process.env.NODE_ENV !== "test") {
     const [resourcePath, authorName] = process.argv.slice(2);
 
     if (!resourcePath) {

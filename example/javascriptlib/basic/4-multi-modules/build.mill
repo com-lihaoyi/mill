@@ -17,63 +17,15 @@ trait MultipleModules extends TypeScriptModule {
     PathRef(Task.dest)
   }
 
-  def testPath = Task.Source(millSourcePath / "test")
-  val testConfigPath = millSourcePath / os.up / "jest.config.ts"
-
-  def sourceForTask = Task.Anon {
-    val destination = T.dest.toString()
-    val destSource = destination match {
-      case x if !x.contains("test") => os.walk(sources().path).filter(_.ext == "ts").map(PathRef(_))
-      case _ => (os.walk(sources().path) ++ os.walk(testPath().path) ++ IndexedSeq(
-          testConfigPath
-        )).filter(_.ext == "ts").map(PathRef(_))
-    }
-
-    destSource
-  }
-
-  def tsConfig = Task.Anon {
-    val nodeTypes = npmInstall().path / "node_modules/@types"
-    val javascriptOut = Task.dest / "javascript"
-    val declarationsOut = Task.dest / "declarations"
-
-    val upstreamPaths =
-      for (((jsDir, dTsDir), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps))
-        yield (mod.millSourcePath.subRelativeTo(build.millSourcePath) + "/*", dTsDir.path)
-
-    val allPaths = upstreamPaths ++ Seq("*" -> sources().path, "*" -> npmInstall().path)
-    os.write(
-      Task.dest / "tsconfig.json",
-      ujson.Obj(
-        "compilerOptions" -> ujson.Obj(
-          "outDir" -> javascriptOut.toString,
-          "declaration" -> true,
-          "declarationDir" -> declarationsOut.toString,
-          "typeRoots" -> ujson.Arr(nodeTypes.toString),
-          "paths" -> ujson.Obj.from(allPaths.map { case (k, v) => (k, ujson.Arr(s"$v/*")) })
-        ),
-        "files" -> sourceForTask().map(_.path.toString)
-      )
-    )
-  }
-
   override def mainFileName = Task { s"index.js" }
 
-  override def compile: T[(PathRef, PathRef)] = Task {
-    tsConfig()
-    os.call(npmInstall().path / "node_modules/typescript/bin/tsc")
-    val javascriptOut = T.dest / "javascript"
-    val declarationsOut = T.dest / "declarations"
-    (PathRef(javascriptOut), PathRef(declarationsOut))
-  }
-
-  override def run(args: mill.define.Args) = Task.Command {
-    os.call(("echo", "nothing to do here"), stdout = os.Inherit)
-  }
-
-  override def bundle = Task {
-    os.call(("echo", "nothing to do here"), stdout = os.Inherit)
-    PathRef(Task.dest)
+  def bundle = Task {
+    val (_, env) = prepareRun()
+    val esbuild = npmInstall().path / "node_modules/esbuild/bin/esbuild"
+    val bundle = Task.dest / "bundle.js"
+    val mainFile = compile()._1.path / millSourcePath.last / "src" / mainFileName()
+    os.call((esbuild, mainFile, "--bundle", "--platform=node", s"--outfile=$bundle"), env = env)
+    PathRef(bundle)
   }
 
   //  Defaullt test =>
@@ -96,10 +48,17 @@ object library extends MultipleModules {
     "esbuild@0.24.0"
   )
 
+  def testPath = Task.Source(millSourcePath / "test")
+  val testConfigPath = millSourcePath / os.up / "jest.config.ts"
+
+  def allSources = Task.Anon {
+    (os.walk(sources().path) ++ os.walk(testPath().path) ++ IndexedSeq(testConfigPath))
+      .filter(_.ext == "ts")
+      .map(PathRef(_))
+  }
+
   def test = Task {
-    tsConfig()
-    os.call(npmInstall().path / "node_modules/typescript/bin/tsc")
-    val javascriptOut = Task.dest / "javascript"
+    val javascriptOut = compile()._1.path
 
     // env
     // note: ' npmInstall().path / "node_modules" ' required in NODE_PATH for jest to find preset: ts-jest
@@ -120,8 +79,8 @@ object library extends MultipleModules {
   // intialize a data source
   def resources = Task {
     val mockAuthors = ujson.Arr(
-      ujson.Obj("id" -> 1, "name" -> "Author One"),
-      ujson.Obj("id" -> 2, "name" -> "Author Two")
+      ujson.Obj("id" -> 1, "name" -> "Ben"),
+      ujson.Obj("id" -> 2, "name" -> "Jerry")
     )
 
     val mockBooks = ujson.Arr(
@@ -154,8 +113,9 @@ object library extends MultipleModules {
   }
 
   override def run(args: mill.define.Args) = Task.Command {
-    val (mainFile, env) = prepareRun()
     val pathToResources = resources().path
+    val (_, env) = prepareRun()
+    val mainFile = compile()._1.path / millSourcePath.last / "src" / mainFileName()
     os.call(
       ("node", mainFile, pathToResources.toString(), args.value),
       stdout = os.Inherit,
@@ -163,11 +123,43 @@ object library extends MultipleModules {
     )
   }
 
-  override def bundle = Task {
-    val (mainFile, env) = prepareRun()
-    val esbuild = npmInstall().path / "node_modules/esbuild/bin/esbuild"
-    val bundle = Task.dest / "bundle.js"
-    os.call((esbuild, mainFile, "--platform=node", "--bundle", s"--outfile=$bundle"), env = env)
-    PathRef(bundle)
-  }
 }
+
+
+// Documentation for mill.example.javascriptlib
+
+/** Usage
+
+> mill library.test
+PASS .../library.test.js
+...✓ should return all authors with their books when no authorName is provided...
+...✓ should return books for a specific author when authorName is provided...
+...✓ should throw an error if the author is not found...
+...
+Test Suites:...1 passed, 1 total...
+Tests:...3 passed, 3 total...
+Snapshots:...
+Time:...
+Ran all test suites matching ...
+
+> mill library.run Jerry
+[
+  {
+    "author": "Jerry",
+    "books": [
+      {
+        "title": "Book Three",
+        "publication": 2003,
+        "sn": "SN003"
+      }
+    ]
+  }
+]
+
+> mill show library.bundle
+".../out/library/bundle.dest/bundle.js"
+
+> node out/library/bundle.dest/bundle.js out/library/resources.dest/ Jerry
+...
+*/
+
