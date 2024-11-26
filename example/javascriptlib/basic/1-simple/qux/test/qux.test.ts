@@ -1,4 +1,4 @@
-import { generateUser } from "../src/qux";
+import {generateUser} from "../src/qux";
 
 // Define the type roles object
 type RoleKeys = "admin" | "user";
@@ -10,13 +10,17 @@ type Roles = {
 jest.mock("foo/bar/bar", () => ({
     defaultRoles: {
         get: jest.fn((role: string, defaultValue: string) => {
-            const roles: Roles = { "admin": "Administrator", "user": "User" };
+            const roles: Roles = {"admin": "Administrator", "user": "User"};
             return roles[role as RoleKeys] || defaultValue;
         }),
     },
 }));
 
 describe("generateUser function", () => {
+    beforeAll(() => {
+        process.env.NODE_ENV = "test"; // Set NODE_ENV for all tests
+    });
+
     afterEach(() => {
         jest.clearAllMocks();
     });
