@@ -38,6 +38,10 @@ class ProxyStreamTests {
 
         // Run all tests both with the format `ProxyStream.END` packet
         // being sent as well as when the stream is unceremoniously closed
+
+        // println(outData.mkString(", "))
+        // println(errData.mkString(", "))
+
         test0(outData, errData, r, gracefulEnd = false)
         test0(outData, errData, r, gracefulEnd = true)
       }
@@ -91,6 +95,9 @@ class ProxyStreamTests {
 
     pumperThread.start()
     pumperThread.join()
+
+    // println("destout" + destOut.toByteArray.mkString(", "))
+    // println("errout" + destErr.toByteArray.mkString(", "))
 
     // Check that the individual `destOut` and `destErr` contain the correct bytes
     assertArrayEquals(repeatArray(outData, repeats), destOut.toByteArray)

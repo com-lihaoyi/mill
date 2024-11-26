@@ -288,7 +288,7 @@ private[mill] object PromptLogger {
           writeCurrentPrompt()
         }
       }
-
+      // override def preWrite(buf: Array[Byte], end: Int): Unit = { // JAVA
       override def preWrite(buf: Array[Byte], end: Int): Unit = {
         // Before any write, make sure we clear the terminal of any prompt that was
         // written earlier and not yet cleared, so the following output can be written
