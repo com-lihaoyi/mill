@@ -1,5 +1,5 @@
-import { User } from "foo/foo";
-import { defaultRoles } from "foo/bar/bar";
+import {User} from "foo/foo";
+import {defaultRoles} from "foo/bar/bar";
 
 /**
  * Generate a user object based on command-line arguments
@@ -15,7 +15,7 @@ export function generateUser(args: string[]): User {
 }
 
 // Main CLI logic
-if (require.main === module) {
+if (process.env.NODE_ENV !== "test") {
     const args = process.argv.slice(2); // Skip 'node' and script name
     const user = generateUser(args);
 

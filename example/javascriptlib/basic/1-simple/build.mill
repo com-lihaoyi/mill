@@ -1,5 +1,7 @@
 package build
+
 import mill._, javascriptlib._
+import scala.util.Try
 
 trait SimpleMod extends TypeScriptModule {
   override def npmInstall = Task {
@@ -22,61 +24,11 @@ trait SimpleMod extends TypeScriptModule {
     PathRef(Task.dest)
   }
 
-  def testPath = Task.Source(millSourcePath / "test")
-  val testConfigPath = millSourcePath / os.up / "jest.config.ts"
-
-  def sourceForTask = Task.Anon {
-    val destination = T.dest.toString()
-    val destSource = destination match {
-      case x if !x.contains("test") => os.walk(sources().path).filter(_.ext == "ts").map(PathRef(_))
-      case _ => (os.walk(sources().path) ++ os.walk(testPath().path) ++ IndexedSeq(
-          testConfigPath
-        )).filter(_.ext == "ts").map(PathRef(_))
+  def test =
+    Task {
+      os.call(("echo", "No tests defined for module " + millSourcePath.last), stdout = os.Inherit)
     }
 
-    destSource
-  }
-
-  def tsConfig = Task.Anon {
-    val nodeTypes = npmInstall().path / "node_modules/@types"
-    val javascriptOut = Task.dest / "javascript"
-    val declarationsOut = Task.dest / "declarations"
-
-    val upstreamPaths =
-      for (((jsDir, dTsDir), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps))
-        yield (mod.millSourcePath.subRelativeTo(build.millSourcePath) + "/*", dTsDir.path)
-
-    val allPaths = upstreamPaths ++ Seq("*" -> sources().path, "*" -> npmInstall().path)
-    os.write(
-      Task.dest / "tsconfig.json",
-      ujson.Obj(
-        "compilerOptions" -> ujson.Obj(
-          "outDir" -> javascriptOut.toString,
-          "declaration" -> true,
-          "declarationDir" -> declarationsOut.toString,
-          "typeRoots" -> ujson.Arr(nodeTypes.toString),
-          "paths" -> ujson.Obj.from(allPaths.map { case (k, v) => (k, ujson.Arr(s"$v/*")) })
-        ),
-        "files" -> sourceForTask().map(_.path.toString)
-      )
-    )
-  }
-
-  override def compile: T[(PathRef, PathRef)] = Task {
-    tsConfig()
-    os.call(npmInstall().path / "node_modules/typescript/bin/tsc")
-    val javascriptOut = T.dest / "javascript"
-    val declarationsOut = T.dest / "declarations"
-    (PathRef(javascriptOut), PathRef(declarationsOut))
-  }
-
-  def typeCheck: T[Unit] = Task {
-    tsConfig()
-    os.call((
-      npmInstall().path / "node_modules/typescript/bin/tsc",
-      "--noemit"
-    ))
-  }
 }
 
 object foo extends SimpleMod {
@@ -88,11 +40,32 @@ object foo extends SimpleMod {
 object qux extends SimpleMod {
   def moduleDeps = Seq(foo, foo.bar)
 
-  def test = Task {
-    tsConfig()
-    os.call(npmInstall().path / "node_modules/typescript/bin/tsc")
+  def testPath = Task.Source(millSourcePath / "test")
+  val testConfigPath = millSourcePath / os.up / "jest.config.ts"
 
-    val javascriptOut = Task.dest / "javascript"
+  def allSources = Task.Anon {
+    (os.walk(sources().path) ++ os.walk(testPath().path) ++ IndexedSeq(testConfigPath))
+      .filter(_.ext == "ts")
+      .map(PathRef(_))
+  }
+
+  override def run(args: mill.define.Args) = Task.Command {
+    val (_, env) = prepareRun()
+    val mainFile = compile()._1.path / millSourcePath.last / "src" / mainFileName()
+    os.call(("node", mainFile, args.value), stdout = os.Inherit, env = env)
+  }
+
+  def bundle = Task {
+    val (_, env) = prepareRun()
+    val esbuild = npmInstall().path / "node_modules/esbuild/bin/esbuild"
+    val bundle = Task.dest / "bundle.js"
+    val mainFile = compile()._1.path / millSourcePath.last / "src" / mainFileName()
+    os.call((esbuild, mainFile, "--bundle", s"--outfile=$bundle"), env = env)
+    PathRef(bundle)
+  }
+
+  def test = Task {
+    val javascriptOut = compile()._1.path
 
     // env
     // note: ' npmInstall().path / "node_modules" ' required in NODE_PATH for jest to find preset: ts-jest
@@ -104,22 +77,34 @@ object qux extends SimpleMod {
     ).mkString(":"))
 
     os.call(
-      ("node", npmInstall().path / "node_modules/jest/bin/jest.js", javascriptOut.toString()),
+      ("node", npmInstall().path / "node_modules/jest/bin/jest.js", javascriptOut),
       stdout = os.Inherit,
       env = env
     )
   }
 }
 
-// Documentation for mill.example.javascriptlib.basic
+// Documentation for mill.example.javascriptlib
 
 /** Usage
-
-> mill dist.run example/javascriptlib/basic/1-simple qux.run James Bond prof
+> mill qux.run James Bond prof
 Hello James Bond Professor
 
-> mill dist.run example/javascriptlib/basic/1-simple show qux.bundle
- ".../out/qux/bundle.dest/bundle.js"
+> mill qux.test
+PASS .../qux.test.js
+...generateUser function
+...✓ should generate a user with all specified fields...
+...✓ should default lastName and role when they are not provided...
+...✓ should default all fields when args is empty...
+...
+Test Suites:...1 passed, 1 total...
+Tests:...3 passed, 3 total...
+Snapshots:...
+Time:...
+Ran all test suites matching ...
+
+> mill show qux.bundle
+"...bundle.js..."
 
 > node out/qux/bundle.dest/bundle.js James Bond prof
 Hello James Bond Professor
