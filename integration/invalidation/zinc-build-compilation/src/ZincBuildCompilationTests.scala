@@ -18,10 +18,7 @@ object ZincBuildCompilationTests extends UtestIntegrationTestSuite {
 
       modifyFile(workspacePath / "build.mill", _.replace("running foo", "running foo2"))
       val mangledFoo = eval(("dummy"))
-      // assert(mangledFoo.err.contains("compiling 1 Scala source"))
-      assert(
-        mangledFoo.err.contains("compiling 2 Scala source")
-      ) // SCALA 3 - difference in Zinc output?
+      assert(mangledFoo.err.contains("compiling 1 Scala source"))
 
       val cached2 = eval(("dummy"))
       assert(!cached2.err.contains("compiling"))
