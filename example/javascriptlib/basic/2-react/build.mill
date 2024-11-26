@@ -184,17 +184,20 @@ object foo extends ReactScriptModule {
   )
 }
 
-// Documentation for mill.example.javascriptlib.basic.2-react
+// Documentation for mill.example.javascriptlib
 
 /** Usage
 
- > ./mill dist.run example/javascriptlib/basic/2-react foo.run
- INFO: Accepting connections at http://localhost:65402
+> mill foo.test
+PASS src/test/App.test.tsx
+  ✓ renders learn react link (...)
+Test Suites:...1 passed, 1 total
+Tests:...1 passed, 1 total
+Snapshots:...
+Time:...
+Ran all test suites...
 
- > ./mill dist.run example/javascriptlib/basic/2-react show foo.build
- ".../out/foo/build.dest/build"
+> mill foo.build # build the react app && `foo.run` serves static html using server
+...
 
- > serve -s -l PORT /out/foo/build.dest/build
- INFO: Accepting connections at http://localhost:{PORT}
-
- */
+*/
