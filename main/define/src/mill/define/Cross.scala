@@ -133,13 +133,12 @@ object Cross {
 
     /**
      * Implicitly constructs a Factory[M] for a target-typed `M`. Takes in an
-     * expression of type `Any`, but type-checking on the macro- expanded code
+     * expression of type `Any`, but type-checking on the macro-expanded code
      * provides some degree of type-safety.
      */
     implicit inline def make[M <: Module[_]](inline t: Any): Factory[M] = ${
       macros.CrossMacros.makeImpl[M]('t)
     }
-
   }
 
   trait Resolver[-T <: Cross.Module[_]] {

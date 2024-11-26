@@ -1,11 +1,30 @@
 = Case Study: Mill vs SBT
 :page-aliases: Case_Study_Mill_vs_SBT.adoc
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
+include::partial$gtag-config.adoc[]
+
+Compared to SBT,
+
+* **Mill makes customizing the build yourself much easier**: most of what build tools
+do work with files and call subprocesses, and Mill makes doing that yourself easy.
+This means you can always make your Mill build do exactly what you want, and are not
+beholden to third-party plugins that may not meet your exact needs or interact well
+with each other.
+
+* **Mill is much more performant**: SBT has enough overhead that even a dozen
+subprojects is enough to slow it down, while Mill can handle hundreds of modules without issue.
+Custom tasks in SBT re-execute every time, whereas in Mill they are cached automatically.
+Mill's watch-for-changes-and-re-run implementation has much lower latency than SBT's. The
+list of ways Mill improves upon SBT's performance is long, and at the command line you
+can really feel it
+
+* **Mill builds are much easier to understand**: Your Mill build is made of bog-standard
+``object``s and ``def``s, rather than SBT's
+https://eed3si9n.com/4th-dimension-with-sbt-013/[four-dimensional task matrix]. Your IDE's
+"*jump-to-definition*" in Mill actually brings you to the implementation of a task, rather
+than an SBT `taskKey` declaration. Customizing things is as simple as writing or overriding
+`def`s. The net effect is that despite both tools' build files being written in Scala,
+Mill's build files are much easier to understand and maintain.
 
 This page compares using Mill to SBT, using the https://github.com/gatling/gatling[Gatling Load Testing Framework]
 codebase as the example. Gatling is a medium sized codebase, 40,000 lines of Scala split over 21
@@ -50,7 +69,7 @@ real-world project compares to using SBT.
 |===
 | Benchmark | Cold SBT | Hot SBT (rounded) | Mill
 
-| <<Parallel Clean Compile All>> | 28.7s | ≈ 12s | 10.4s
+| <<Parallel Clean Compile All>> | 34.28s | ≈ 14s | 10.4s
 | <<Clean Compile Single-Module>> | 10.1s | ≈ 1s | 0.96s
 | <<Incremental Compile Single-Module>> | 6.2s | ≈ 0s | 0.48s
 | <<No-Op Compile Single-Module>> | 4.2s | ≈ 0s | 0.40s
@@ -63,9 +82,10 @@ distinction, and can only be run directly from the command line. The `Hot SBT` m
 reports timings to the nearest second, so that is the number used in this comparison.
 
 The Mill build benchmarks for Gatling is generally much snappier than the `Cold SBT` benchmark,
-and comparable to that `Hot SBT` benchmark. Mill does not have the same _Cold vs Hot_
-distinction that SBT has, as Mill is always run "cold" from the command line and keeps the
-process around to provide "hot" performance automatically.
+and comparable to that `Hot SBT` benchmark. Mill is marginally faster in the
+`Parallel Clean Compile All` benchmark (10s vs 14s), but more importantly does not have the same
+_Cold vs Hot_ distinction that SBT has: as Mill is always run "cold" from the command line and
+keeps the process around to provide "hot" performance automatically.
 
 For the benchmarks above, each provided number is the median wall time of three consecutive runs
 on my M1 Macbook Pro. While ad-hoc, these benchmarks are enough to give you a flavor of how
@@ -76,17 +96,17 @@ since Mill doesn't bundle them and instead expects them to be invoked separately
 === Parallel Clean Compile All
 
 ```bash
-$ sbt clean; time sbt compile
-28.7s
-27.6s
-31.2s
+$ sbt clean; time sbt test:compile
+34.28s
+32.84s
+34.55s
 
 $ sbt
 
-sbt> clean; compile
-12s
-12s
-10s
+sbt> clean; test:compile
+15s
+13s
+14s
 
 $ ./mill clean; time ./mill -j 10 __.compile
 10.7s
@@ -119,7 +139,7 @@ $ ./mill clean; time ./mill gatling-common.compile
 ```
 
 This benchmark indicates the use case of clean-compiling a single module. In this case,
-the `gatling-commons` module's application code in `commons/, _exluding_ the test code in
+the `gatling-commons` module's application code in `commons/, _excluding_ the test code in
 and all the downstream submodules.
 
 === Incremental Compile Single-Module

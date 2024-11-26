@@ -7,6 +7,7 @@ import pprint.Util.literalize
 
 import scala.collection.mutable
 import mill.runner.worker.api.MillScalaParser
+import scala.util.control.Breaks._
 
 object CodeGen {
 
@@ -22,7 +23,7 @@ object CodeGen {
       isScala3: Boolean,
       parser: MillScalaParser
   ): Unit = {
-    for (scriptSource <- scriptSources) {
+    for (scriptSource <- scriptSources) breakable {
       val scriptPath = scriptSource.path
       val specialNames = (nestedBuildFileNames ++ rootBuildFileNames).toSet
 
@@ -30,11 +31,11 @@ object CodeGen {
       val scriptFolderPath = scriptPath / os.up
 
       if (scriptFolderPath == projectRoot && scriptPath.last.split('.').head == "package") {
-        throw Result.Failure(s"Mill ${scriptPath.last} files can only be in subfolders")
+        break()
       }
 
       if (scriptFolderPath != projectRoot && scriptPath.last.split('.').head == "build") {
-        throw Result.Failure(s"Mill ${scriptPath.last} files can only be in the project root")
+        break()
       }
 
       val packageSegments = FileImportGraph.fileImportToSegments(projectRoot, scriptPath)
@@ -59,7 +60,7 @@ object CodeGen {
       def pkgSelector2(s: Option[String]) = s"_root_.${pkgSelector0(Some(globalPackagePrefix), s)}"
       val (childSels, childAliases0) = childNames
         .map { c =>
-          // Dummy references to sub modules. Just used as metadata for the discover and
+          // Dummy references to sub-modules. Just used as metadata for the discover and
           // resolve logic to traverse, cannot actually be evaluated and used
           val comment = "// subfolder module reference"
           val lhs = backtickWrap(c)

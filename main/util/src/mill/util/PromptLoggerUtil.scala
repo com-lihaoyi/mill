@@ -2,8 +2,8 @@ package mill.util
 
 private object PromptLoggerUtil {
 
-  private[mill] val defaultTermWidth = 119
-  private[mill] val defaultTermHeight = 50
+  private[mill] val defaultTermWidth = 99
+  private[mill] val defaultTermHeight = 25
 
   /**
    * How often to update the multiline status prompt on the terminal.
@@ -13,7 +13,7 @@ private object PromptLoggerUtil {
   private[mill] val promptUpdateIntervalMillis = 100
 
   /**
-   * How often to update the multiline status prompt in noninteractive scenarios,
+   * How often to update the multiline status prompt in non-interactive scenarios,
    * e.g. background job logs or piped to a log file. Much less frequent than the
    * interactive scenario because we cannot rely on ANSI codes to over-write the
    * previous prompt, so we have to be a lot more conservative to avoid spamming
@@ -133,7 +133,7 @@ private object PromptLoggerUtil {
       }
       // For non-interactive jobs, we do not need to preserve the height of the prompt
       // between renderings, since consecutive prompts do not appear at the same place
-      // in the log file. Thus we can aggressively remove all blank spacer lines
+      // in the log file. Thus, we can aggressively remove all blank spacer lines
       .filter(_.nonEmpty || interactive)
       .toList
       // Sort alphabetically because the `#nn` prefix is part of the string, and then
@@ -150,7 +150,7 @@ private object PromptLoggerUtil {
     // For non-interactive jobs, the prompt won't be at the bottom of the terminal but
     // will instead be in the middle of a big log file with logs above and below, so we
     // need some kind of footer to tell the reader when the prompt ends and logs begin
-    val footer = Option.when(!interactive)("=" * maxWidth).toList
+    val footer = Option.when(!interactive)("=" * header.length).toList
 
     header :: body ::: footer
   }
@@ -187,28 +187,24 @@ private object PromptLoggerUtil {
     val headerPrefixStr = if (!interactive || ending) headerPrefix else s"  $headerPrefix"
     val headerSuffixStr = headerSuffix0
     val titleText = s" $titleText0 "
-    // -12 just to ensure we always have some ==== divider on each side of the title
+
+    val dividerMaxLength = 30
+    val dividerMinLength = 15
     val maxTitleLength =
-      maxWidth - math.max(headerPrefixStr.length, headerSuffixStr.length) * 2 - 12
+      maxWidth - headerPrefixStr.length - headerSuffixStr.length - dividerMinLength * 2
     val shortenedTitle = splitShorten(titleText, maxTitleLength)
 
-    // +2 to offset the title a bit to the right so it looks centered, as the `headerPrefixStr`
-    // is usually longer than `headerSuffixStr`. We use a fixed offset rather than dynamically
-    // offsetting by `headerPrefixStr.length` to prevent the title from shifting left and right
-    // as the `headerPrefixStr` changes, even at the expense of it not being perfectly centered.
-    val leftDivider = "=" * ((maxWidth / 2) - (titleText.length / 2) - headerPrefixStr.length + 2)
-    val rightDivider =
-      "=" * (
-        maxWidth - headerPrefixStr.length - leftDivider.length -
-          shortenedTitle.length - headerSuffixStr.length
-      )
-    val headerString =
-      headerPrefixStr + leftDivider + shortenedTitle + rightDivider + headerSuffixStr
-    assert(
-      headerString.length == maxWidth,
-      s"${pprint.apply(headerString)} is length ${headerString.length}, requires $maxWidth"
+    val rightDiv = "=" * math.min(
+      dividerMaxLength,
+      (maxWidth - headerPrefixStr.length - headerSuffixStr.length - shortenedTitle.length) / 2
     )
-    headerString
+    val leftDiv = "=" * math.min(
+      dividerMaxLength,
+      maxWidth - headerPrefixStr.length - headerSuffixStr.length - shortenedTitle.length - rightDiv.length
+    )
+
+    val headerString = headerPrefixStr + leftDiv + shortenedTitle + rightDiv + headerSuffixStr
+    splitShorten(headerString, maxWidth)
   }
 
   def splitShorten(s: String, maxLength: Int): String = {

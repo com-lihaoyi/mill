@@ -1,12 +1,17 @@
 = Import Libraries and Plugins
 :page-aliases: Import_File_And_Import_Ivy.adoc, Using_Plugins.adoc
 
+include::partial$gtag-config.adoc[]
+
 This page illustrates usage of  `import $ivy`.
 `import $ivy` lets you import JVM dependencies into your `build.mill`, so
 you can use arbitrary third-party libraries at build-time. This makes
 lets you perform computations at build-time rather than run-time,
-speeding up your application start up. `import $ivy` can be used on any
-JVM library on Maven Central.
+speeding up your application start up. Unlike most other build tools that
+require purpose-built plugins to extend them, Mill's `import $ivy` can be used to pull
+in any JVM library on Maven Central to use in your custom tasks, with
+xref:extending/thirdparty-plugins.adoc[Third-Party Plugins] only necessary for
+more sophisticated integrations.
 
 
 == Importing Java Libraries
@@ -85,7 +90,7 @@ import $ivy.`com.lihaoyi:mill-contrib-bloop:`
 --
 to substitute the currently used Mill binary platform.
 
-.Example: Using `mill-vcs-version` plugin matching the current Mill Binary Platfrom
+.Example: Using `mill-vcs-version` plugin matching the current Mill Binary Platform
 ----
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill$MILL_BIN_PLATFORM:0.1.2`
 ----

@@ -59,38 +59,69 @@ jobs:
           # We also try to group tests together to manually balance out the runtimes of each jobs
           - java-version: 17
             millargs: "'{main,scalalib,testrunner,bsp,testkit}.__.testCached'"
+            install-android-sdk: false
+
           - java-version: '11'
-            millargs: "'{scalajslib,scalanativelib,kotlinlib}.__.testCached'"
+            millargs: "'{scalajslib,scalanativelib,kotlinlib,pythonlib,javascriptlib}.__.testCached'"
+            install-android-sdk: false
+
           - java-version: 17
             millargs: "contrib.__.testCached"
+            install-android-sdk: false
 
           - java-version: 17
             millargs: "'example.javalib.__.local.testCached'"
+            install-android-sdk: false
+
           - java-version: 17
             millargs: "'example.scalalib.__.local.testCached'"
+            install-android-sdk: false
+
           - java-version: 17
             millargs: "'example.kotlinlib.__.local.testCached'"
+            install-android-sdk: false
+
+          - java-version: 17
+            millargs: "'example.android.__.local.testCached'"
+            install-android-sdk: true
+
+          - java-version: 17
+            millargs: "'example.{pythonlib,javascriptlib}.__.local.testCached'"
+            install-android-sdk: false
+
           - java-version: '11'
             millargs: "'example.thirdparty[{mockito,acyclic,commons-io}].local.testCached'"
+            install-android-sdk: false
+
           - java-version: 17
             millargs: "'example.thirdparty[{fansi,jimfs,netty,gatling}].local.testCached'"
-          - java-version: '11'
-            millargs: "'example.{depth,extending}.__.local.testCached'"
+            install-android-sdk: false
 
+          - java-version: '17'
+            millargs: "'example.thirdparty[arrow].local.testCached'"
+            install-android-sdk: false
+
+          - java-version: '11'
+            millargs: "'example.{cli,fundamentals,depth,extending}.__.local.testCached'"
+            install-android-sdk: false
             # Most of these integration tests should not depend on which mode they
             # are run in, so just run them in `local`
           - java-version: '17'
             millargs: "'integration.{failure,feature,ide}.__.local.testCached'"
-
+            install-android-sdk: false
             # These invalidation tests need to be exercised in both execution modes
             # to make sure they work with and without -i/--no-server being passed
           - java-version: 17
             millargs: "'integration.invalidation.__.fork.testCached'"
+            install-android-sdk: false
+
           - java-version: 17
             millargs: "'integration.invalidation.__.server.testCached'"
+            install-android-sdk: false
 
     uses: ./.github/workflows/run-mill-action.yml
     with:
+      install-android-sdk: ${{ matrix.install-android-sdk }}
       java-version: ${{ matrix.java-version }}
       millargs: ${{ matrix.millargs }}
 
@@ -105,7 +136,7 @@ jobs:
           - java-version: '11'
             millargs: '"{main,scalalib,bsp}.__.testCached"'
           - java-version: '11'
-            millargs: '"example.scalalib.{basic,web}.__.fork.testCached"'
+            millargs: '"example.scalalib.basic.__.fork.testCached"'
           - java-version: 17
             millargs: "'integration.{feature,failure}[_].fork.testCached'"
           - java-version: '11'
@@ -146,10 +177,10 @@ jobs:
       env-bridge-versions: 'essential'
 
   # Scalafmt, Mima, and Scalafix job runs last because it's the least important:
-  # usually just a automated or mechanical manual fix to do before merging
+  # usually just an automated or mechanical manual fix to do before merging
   lint-autofix:
     needs: build-linux
     uses: ./.github/workflows/run-mill-action.yml
     with:
-      java-version: '11'
-      buildcmd: ./mill -i mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources; ./mill -i __.mimaReportBinaryIssues; ./mill -i __.fix --check
+      java-version: '17'
+      buildcmd: ./mill -i mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources + __.mimaReportBinaryIssues + __.fix --check + mill.javalib.palantirformat.PalantirFormatModule/ --check + mill.kotlinlib.ktlint.KtlintModule/checkFormatAll --check

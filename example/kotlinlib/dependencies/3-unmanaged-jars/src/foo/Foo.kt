@@ -1,7 +1,6 @@
 package foo
 
 import com.grack.nanojson.JsonParser
-import com.grack.nanojson.JsonObject
 
 fun main(args: Array<String>) {
     val jsonString = args[0]

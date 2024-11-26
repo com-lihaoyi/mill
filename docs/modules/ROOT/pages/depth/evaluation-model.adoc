@@ -1,6 +1,8 @@
 = The Mill Evaluation Model
 :page-aliases: The_Mill_Evaluation_Model.adoc
 
+include::partial$gtag-config.adoc[]
+
 Evaluating a Mill task typically goes through the following phases:
 
 1. *Compilation*: Mill compiles the `build.mill` to classfiles, following the
@@ -39,8 +41,8 @@ of. In general, we have found that having "two places" to put code - outside of
 
 The hard boundary between these two phases is what lets users easily query
 and visualize their module hierarchy and task graph without running them: using
-xref:scalalib/builtin-commands.adoc#_inspect[inspect], xref:scalalib/builtin-commands.adoc#_plan[plan],
-xref:scalalib/builtin-commands.adoc#_visualize[visualize], etc.. This helps keep your
+xref:cli/builtin-commands.adoc#_inspect[inspect], xref:cli/builtin-commands.adoc#_plan[plan],
+xref:cli/builtin-commands.adoc#_visualize[visualize], etc.. This helps keep your
 Mill build discoverable even as the `build.mill` codebase grows.
 
 == Caching at Each Layer of the Evaluation Model
@@ -128,7 +130,7 @@ a short-hand for configuring the meta-build living in `mill-build/build.mill`:
 1. `.sc` and `import $file` are a shorthand for specifying the `.scala` files
    living in `mill-build/src/`
 
-2. `import $ivy` is a short-hand for configurin the `def ivyDeps` in
+2. `import $ivy` is a short-hand for configuring the `def ivyDeps` in
    `mill-build/build.mill`
 
 Most builds would not need the flexibility of a meta-build's

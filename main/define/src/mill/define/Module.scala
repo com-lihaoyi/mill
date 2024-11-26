@@ -56,7 +56,7 @@ object Module {
    * messes up the module discovery process
    */
   @internal
-  class BaseClass(implicit outerCtx0: mill.define.Ctx) extends mill.moduledefs.Cacher {
+  class BaseClass(implicit outerCtx0: mill.define.Ctx) extends mill.define.Cacher {
     def millOuterCtx = outerCtx0
   }
 

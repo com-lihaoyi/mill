@@ -1,6 +1,8 @@
 = Third-Party Plugins
 :page-aliases: Thirdparty_Modules.adoc, Thirdparty_Plugins.adoc
 
+include::partial$gtag-config.adoc[]
+
 The Plugins in this section are developed/maintained outside the mill git tree.
 This list is most likely not complete.
 If you wrote a Mill plugin or find that one is missing in this list, please open a {mill-github-url}/pulls[pull request] and add that plugin with a short description (in alphabetical order).
@@ -132,7 +134,7 @@ where you'd normally use the Mill `PublishModule` and then ensure you implement
 everything that `PublishModule` requires.
 
 Secondly, you'll need to ensure you have a few environment variables correctly
-set in your GitHub repo. You can see detailed instuctions on which are
+set in your GitHub repo. You can see detailed instructions on which are
 necessary https://github.com/ckipp01/mill-ci-release#secrets[here].
 
 Then in CI to publish you'll simply issue a single command:
@@ -212,6 +214,14 @@ import $ivy.`com.github.ajrnz::mill-dgraph:0.2.0`
 ----
 sh> mill plugin.dgraph.browseDeps(proj)()
 ----
+
+== Docker Jib Packager
+A wrapper around the  https://github.com/GoogleContainerTools/jib[Google Jib Library].
+Allows to build Docker images without a running Docker daemon.
+Also enables to layer an image more efficiently.
+
+Project home: https://github.com/GeorgOfenbeck/mill-docker
+
 
 == Docker Native-Image Packager
 

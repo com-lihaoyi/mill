@@ -17,12 +17,12 @@ object myplugin extends ScalaModule with PublishModule {
   def ivyDeps = Agg(ivy"com.lihaoyi:mill-dist:$millVersion")
 
   // Testing Config, with necessary setup for unit/integration/example tests
-  object test extends ScalaTests with TestModule.Utest{
+  object test extends ScalaTests with TestModule.Utest {
     def ivyDeps = Agg(ivy"com.lihaoyi::mill-testkit:$millVersion")
     def forkEnv = Map("MILL_EXECUTABLE_PATH" -> millExecutable.assembly().path.toString)
 
     // Create a Mill executable configured for testing our plugin
-    object millExecutable extends JavaModule{
+    object millExecutable extends JavaModule {
       def ivyDeps = Agg(ivy"com.lihaoyi:mill-dist:$millVersion")
       def mainClass = Some("mill.runner.client.MillClientMain")
       def resources = Task {
@@ -65,7 +65,6 @@ object myplugin extends ScalaModule with PublishModule {
 //   assembly to configure it to rewire `import $ivy` to instead use the local compiled
 //   classfiles for testing.
 
-
 // == Plugin Implementation
 
 // Although Mill plugins can contain arbitrary code, the most common
@@ -93,7 +92,6 @@ object myplugin extends ScalaModule with PublishModule {
 compiling 1 Scala source...
 
 */
-
 
 // Mill provides the `mill-testkit` library to make it easy for you to test your Mill
 // plugin. The example project above has set up tests that can be run via the normal `.test`

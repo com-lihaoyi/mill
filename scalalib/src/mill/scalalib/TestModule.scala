@@ -3,7 +3,7 @@ package mill.scalalib
 import mill.api.{Ctx, PathRef, Result}
 import mill.define.{Command, Task, TaskModule}
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
-import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner, TestRunnerUtils}
+import mill.testrunner.{Framework, TestArgs, TestResult, TestRunner}
 import mill.util.Jvm
 import mill.{Agg, T}
 
@@ -20,7 +20,7 @@ trait TestModule
 
   /**
    * The classpath containing the tests. This is most likely the output of the compilation target.
-   * By default this uses the result of [[localRunClasspath]], which is most likely the result of a local compilation.
+   * By default, this uses the result of [[localRunClasspath]], which is most likely the result of a local compilation.
    */
   def testClasspath: T[Seq[PathRef]] = Task { localRunClasspath() }
 
@@ -41,21 +41,24 @@ trait TestModule
   def testFramework: T[String]
 
   def discoveredTestClasses: T[Seq[String]] = Task {
-    val classes = Jvm.inprocess(
-      runClasspath().map(_.path),
-      classLoaderOverrideSbtTesting = true,
-      isolated = true,
-      closeContextClassLoaderWhenDone = true,
-      cl => {
-        val framework = Framework.framework(testFramework())(cl)
-        val classes = TestRunnerUtils.discoverTests(cl, framework, testClasspath().map(_.path))
-        classes.toSeq.map(_._1.getName())
-          .map {
-            case s if s.endsWith("$") => s.dropRight(1)
-            case s => s
-          }
-      }
-    )
+    val classes = if (zincWorker().javaHome().isDefined) {
+      Jvm.callSubprocess(
+        mainClass = "mill.testrunner.DiscoverTestsMain",
+        classPath = zincWorker().scalalibClasspath().map(_.path),
+        mainArgs =
+          runClasspath().flatMap(p => Seq("--runCp", p.path.toString())) ++
+            testClasspath().flatMap(p => Seq("--testCp", p.path.toString())) ++
+            Seq("--framework", testFramework()),
+        javaHome = zincWorker().javaHome().map(_.path),
+        streamOut = false
+      ).out.lines()
+    } else {
+      mill.testrunner.DiscoverTestsMain.main0(
+        runClasspath().map(_.path),
+        testClasspath().map(_.path),
+        testFramework()
+      )
+    }
     classes.sorted
   }
 
@@ -122,7 +125,7 @@ trait TestModule
   }
 
   /**
-   * Controls whether the TestRunner should receive it's arguments via an args-file instead of a as long parameter list.
+   * Controls whether the TestRunner should receive its arguments via an args-file instead of a long parameter list.
    * Defaults to what `runUseArgsFile` return.
    */
   def testUseArgsFile: T[Boolean] = Task { runUseArgsFile() || scala.util.Properties.isWin }
@@ -168,7 +171,7 @@ trait TestModule
     }
 
   /**
-   * Whether or not to use the test task destination folder as the working directory
+   * Whether to use the test task destination folder as the working directory
    * when running tests. `true` means test subprocess run in the `.dest/sandbox` folder of
    * the test task, providing better isolation and encouragement of best practices
    * (e.g. not reading/writing stuff randomly from the project source tree). `false`
@@ -200,7 +203,8 @@ trait TestModule
         forkEnv(),
         testSandboxWorkingDir(),
         forkWorkingDir(),
-        testReportXml()
+        testReportXml(),
+        zincWorker().javaHome().map(_.path)
       )
     }
 
@@ -262,6 +266,61 @@ object TestModule {
     override def testFramework: T[String] = "com.github.sbt.junit.jupiter.api.JupiterFramework"
     override def ivyDeps: T[Agg[Dep]] = Task {
       super.ivyDeps() ++ Agg(ivy"${mill.scalalib.api.Versions.jupiterInterface}")
+    }
+
+    /**
+     * Overridden since Junit5 has its own discovery mechanism.
+     *
+     * This is basically a re-implementation of sbt's plugin for Junit5 test
+     * discovery mechanism. See
+     * https://github.com/sbt/sbt-jupiter-interface/blob/468d4f31f1f6ce8529fff8a8804dd733974c7686/src/plugin/src/main/scala/com/github/sbt/junit/jupiter/sbt/JupiterPlugin.scala#L97C15-L118
+     * for details.
+     *
+     * Note that we access the test discovery via reflection, to avoid mill
+     * itself having a dependency on Junit5. Hence, if you remove the
+     * `sbt-jupiter-interface` dependency from `ivyDeps`, make sure to also
+     * override this method.
+     */
+    override def discoveredTestClasses: T[Seq[String]] = T {
+      Jvm.inprocess(
+        runClasspath().map(_.path),
+        classLoaderOverrideSbtTesting = true,
+        isolated = true,
+        closeContextClassLoaderWhenDone = true,
+        cl => {
+          val builderClass: Class[_] =
+            cl.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Builder")
+          val builder = builderClass.getConstructor().newInstance()
+
+          builderClass.getMethod("withClassDirectory", classOf[java.io.File]).invoke(
+            builder,
+            compile().classes.path.wrapped.toFile
+          )
+          builderClass.getMethod("withRuntimeClassPath", classOf[Array[java.net.URL]]).invoke(
+            builder,
+            testClasspath().map(_.path.wrapped.toUri().toURL()).toArray
+          )
+          builderClass.getMethod("withClassLoader", classOf[ClassLoader]).invoke(builder, cl)
+
+          val testCollector = builderClass.getMethod("build").invoke(builder)
+          val testCollectorClass =
+            cl.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector")
+
+          val result = testCollectorClass.getMethod("collectTests").invoke(testCollector)
+          val resultClass =
+            cl.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Result")
+
+          val items = resultClass.getMethod(
+            "getDiscoveredTests"
+          ).invoke(result).asInstanceOf[java.util.List[_]]
+          val itemClass = cl.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Item")
+
+          import scala.jdk.CollectionConverters._
+          items.asScala.map { item =>
+            itemClass.getMethod("getFullyQualifiedClassName").invoke(item).asInstanceOf[String]
+          }.toSeq
+        }
+      )
     }
   }
 

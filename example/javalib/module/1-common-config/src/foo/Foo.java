@@ -1,10 +1,16 @@
 package foo;
-import org.apache.commons.text.StringEscapeUtils;
+
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 public class Foo {
-  public static final String value = "<h1>" + StringEscapeUtils.escapeHtml4("hello") + "</h1>";
+  public static String value() {
+    Context context = new Context();
+    context.setVariable("text", "hello");
+    return new TemplateEngine().process("<h1 th:text=\"${text}\"></h1>", context);
+  }
 
   public static void main(String[] args) {
-    System.out.println("Foo.value: " + Foo.value);
+    System.out.println("Foo.value: " + Foo.value());
   }
 }

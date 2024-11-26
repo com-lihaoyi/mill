@@ -1,24 +1,25 @@
-
-// The following example shows how to import the library `org.apache.commons:commons-text:1.12.0`
+// The following example shows how to import the library `org.thymeleaf:thymeleaf:3.1.1.RELEASE`
 // into your build, so you can use it at build-time to safely generate escaped HTML snippets
 // in your resource path for your application to use.
 
 package build
 import mill._, javalib._
-import $ivy.`org.apache.commons:commons-text:1.12.0`
-import org.apache.commons.text.StringEscapeUtils
+import $ivy.`org.thymeleaf:thymeleaf:3.1.1.RELEASE`
+import org.thymeleaf.TemplateEngine
+import org.thymeleaf.context.Context
 
 object foo extends JavaModule {
-  def scalaVersion = "2.13.8"
-
   def htmlSnippet = Task {
-    "<div><h1>" +
-      StringEscapeUtils.escapeHtml4("hello") +
-    "</h1><p>" +
-      StringEscapeUtils.escapeHtml4("world") +
-    "</p></div>"
+    val context = new Context
+    context.setVariable("heading", "hello")
+    context.setVariable("paragraph", "world")
+    new TemplateEngine().process(
+      """<div><h1 th:text="${heading}"></h1><p th:text="${paragraph}"></p></div>""",
+      context
+    )
   }
-  def resources = Task.Sources{
+
+  def resources = Task.Sources {
     os.write(Task.dest / "snippet.txt", htmlSnippet())
     super.resources() ++ Seq(PathRef(Task.dest))
   }

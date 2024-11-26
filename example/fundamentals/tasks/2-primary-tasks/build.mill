@@ -12,9 +12,8 @@ import mill.{Module, T, _}
 def sources = Task.Source { millSourcePath / "src" }
 def resources = Task.Source { millSourcePath / "resources" }
 
-
 // ``Source``s are defined using `Task.Source{...}` taking one `os.Path`, or `Task.Sources{...}`,
-// taking multiple ``os.Path``s as arguments. A ``Source``'s':
+// taking multiple ``os.Path``s as arguments. A ``Source``'s:
 // its build signature/`hashCode` depends not just on the path
 // it refers to (e.g. `foo/bar/baz`) but also the MD5 hash of the filesystem
 // tree under that path.
@@ -50,7 +49,8 @@ def lineCount: T[Int] = Task {
 // ``Cached Tasks``s are defined using the `def foo = Task {...}` syntax, and dependencies
 // on other tasks are defined using `foo()` to extract the value from them.
 // Apart from the `foo()` calls, the `Task {...}` block contains arbitrary code that
-// does some work and returns a result.
+// does some work and returns a result. Note that tasks cannot have circular dependencies
+// between each other.
 //
 // The `os.walk` and `os.read.lines` statements above are from the
 // https://github.com/com-lihaoyi/os-lib[OS-Lib] library, which provides all common
@@ -68,10 +68,10 @@ def lineCount: T[Int] = Task {
 
 > ./mill show lineCount
 Computing line count
-16
+18
 
 > ./mill show lineCount # line count already cached, doesn't need to be computed
-16
+18
 
 */
 
@@ -114,11 +114,12 @@ Computing line count
 
 // ==== Task.dest
 //
-// Each task, e.g. `classFiles`, is assigned a {mill-doc-url}/api/latest/mill/api/Ctx.html#dest:os.Path[Task.dest]
-// folder e.g. `out/classFiles.dest/` on disk as scratch space & to store its
-// output files , and its returned metadata is automatically JSON-serialized
-// and stored at `out/classFiles.json`. If you want to return a file or a set
-// of files as the result of a `Task`, write them to disk within your `Task.dest`
+// Each task is assigned a unique {mill-doc-url}/api/latest/mill/api/Ctx.html#dest:os.Path[Task.dest]
+// folder on disk (e.g. `classFiles` is given `out/classFiles.dest/`). `Task.dest` is
+// reset every time a task is recomputed, and can be used as scratch space or to store the task's
+// output files. Any metadata returned from the task is automatically JSON-serialized
+// and stored at `out/classFiles.json` adjacent to it's `.dest` folder. If you want to return a file
+// or a set of files as the result of a `Task`, write them to disk within your `Task.dest`
 // folder and return a `PathRef()` that referencing the files or folders
 // you want to return:
 
@@ -174,15 +175,6 @@ Generating jar
 // ==== Dependent Tasks
 //
 // Tasks can depend on other tasks via the `foo()` syntax.
-// The graph of inter-dependent tasks is evaluated in topological order; that
-// means that the body of a task will not even begin to evaluate if one of its
-// upstream dependencies has failed. Similar, even if the upstream tasks is
-// not used in one branch of an `if` condition, it will get computed regardless
-// before the `if` condition is even considered.
-//
-// The following example demonstrates this behavior, with the `println` defined
-// in `def largeFile` running even though the `largeFile()` branch of the
-// `if` conditional does not get used:
 
 def largeFile = Task {
   println("Finding Largest File")
@@ -206,10 +198,20 @@ def hugeFileName = Task {
 // }
 // ```
 
+// CAUTION: The graph of inter-dependent tasks is evaluated in topological order; that
+// means that the body of a task will not even begin to evaluate if one of its
+// upstream dependencies has failed. Similar, even if the upstream tasks is
+// not used in one branch of an `if` condition, it will get computed regardless
+// before the `if` condition is even considered.
+//
+// The output below demonstrates this behavior, with the `println` defined
+// in `def largeFile` above running even though the `largeFile()` branch of the
+// `if` conditional does not get used:
+
 /** Usage
 
 > ./mill show lineCount
-16
+18
 
 > ./mill show hugeFileName # This still runs `largestFile` even though `lineCount() < 999`
 Finding Largest File
@@ -258,7 +260,6 @@ def summarizeClassFileStats = Task {
 
 */
 
-
 // For more details on how to use uPickle, check out the
 // https://github.com/com-lihaoyi/upickle[uPickle library documentation]
 //
@@ -266,11 +267,12 @@ def summarizeClassFileStats = Task {
 
 def run(mainClass: String, args: String*) = Task.Command {
   os.proc(
-      "java",
-      "-cp", s"${classFiles().path}:${resources().path}",
-      mainClass,
-      args
-    )
+    "java",
+    "-cp",
+    s"${classFiles().path}:${resources().path}",
+    mainClass,
+    args
+  )
     .call(stdout = os.Inherit)
 }
 
@@ -333,7 +335,6 @@ args: hello world
 foo.txt resource: My Example Text
 
 */
-
 
 //
 // Like <<_cached_tasks>>, a command only evaluates after all its upstream

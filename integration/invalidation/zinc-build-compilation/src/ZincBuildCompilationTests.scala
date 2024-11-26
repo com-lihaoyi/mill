@@ -34,9 +34,7 @@ object ZincBuildCompilationTests extends UtestIntegrationTestSuite {
         _.replace("running helperFoo", "running helperFoo2")
       )
       val mangledHelperFoo = eval(("dummy"))
-      // This should only compile 1 source but it seems there's an upstream bug in Zinc
-      // https://github.com/sbt/zinc/issues/1461
-      assert(mangledHelperFoo.err.contains("compiling 2 Scala source"))
+      assert(mangledHelperFoo.err.contains("compiling 1 Scala source"))
 
     }
   }

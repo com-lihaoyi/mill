@@ -2,7 +2,8 @@
 package build
 import mill._, javalib._
 
-object `package` extends RootModule with JavaModule {
+object foo extends JavaModule {
+
   /** Total number of lines in module source files */
   def lineCount = Task {
     allSourceFiles().map(f => os.read.lines(f.path).size).sum

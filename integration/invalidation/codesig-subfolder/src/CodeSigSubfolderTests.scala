@@ -49,9 +49,7 @@ object CodeSigSubfolderTests extends UtestIntegrationTestSuite {
       // Changing stuff in subfolder/package.mill does not invalidate unrelated tasks in build.mill
       val cached3 = eval("foo")
       assert(cached3.out == "")
-      // This should only compile 1 source but it seems there's an upstream bug in Zinc
-      // https://github.com/sbt/zinc/issues/1461
-      assert(cached3.err.contains("compiling 2 Scala sources"))
+      assert(cached3.err.contains("compiling 1 Scala source"))
 
       modifyFile(
         workspacePath / "subfolder/package.mill",
@@ -59,9 +57,7 @@ object CodeSigSubfolderTests extends UtestIntegrationTestSuite {
       )
       val mangledHelperFoo = eval("foo")
       assert(mangledHelperFoo.out.linesIterator.toSeq == Seq("running foo2", "running helperFoo2"))
-      // This should only compile 1 source but it seems there's an upstream bug in Zinc
-      // https://github.com/sbt/zinc/issues/1461
-      assert(mangledHelperFoo.err.contains("compiling 2 Scala sources"))
+      assert(mangledHelperFoo.err.contains("compiling 1 Scala source"))
 
       // Make sure changing `val`s, which only affects the Module constructor and
       // not the Task method itself, causes invalidation
@@ -71,9 +67,7 @@ object CodeSigSubfolderTests extends UtestIntegrationTestSuite {
       )
       val mangledValFoo = eval("foo")
       assert(mangledValFoo.out.linesIterator.toSeq == Seq("running foo2", "running helperFoo2"))
-      // This should only compile 1 source but it seems there's an upstream bug in Zinc
-      // https://github.com/sbt/zinc/issues/1461
-      assert(mangledValFoo.err.contains("compiling 2 Scala sources"))
+      assert(mangledValFoo.err.contains("compiling 1 Scala source"))
 
       // Even modifying `val`s that do not affect the task invalidates it, because
       // we only know that the constructor changed and don't do enough analysis to
@@ -88,9 +82,7 @@ object CodeSigSubfolderTests extends UtestIntegrationTestSuite {
         "running helperFoo2"
       ))
 
-      // This should only compile 1 source but it seems there's an upstream bug in Zinc
-      // https://github.com/sbt/zinc/issues/1461
-      assert(mangledValFooUsedInBar.err.contains("compiling 2 Scala sources"))
+      assert(mangledValFooUsedInBar.err.contains("compiling 1 Scala source"))
 
       val cached4 = eval("foo")
       assert(cached4.out == "")

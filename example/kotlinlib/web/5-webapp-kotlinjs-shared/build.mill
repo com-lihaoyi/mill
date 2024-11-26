@@ -1,3 +1,9 @@
+// A Kotlin/JVM backend server wired up with a Kotlin/JS front-end, with a
+// `shared` module containing code that is used in both client and server.
+// Rather than the server sending HTML for the initial page load and HTML for
+// page updates, it sends HTML for the initial load and JSON for page updates
+// which is then rendered into HTML on the client.
+
 package build
 import mill._, kotlinlib._, kotlinlib.js._
 
@@ -5,7 +11,7 @@ trait AppKotlinModule extends KotlinModule {
   def kotlinVersion = "1.9.25"
 }
 
-trait AppKotlinJSModule extends AppKotlinModule with KotlinJSModule
+trait AppKotlinJsModule extends AppKotlinModule with KotlinJsModule
 
 object `package` extends RootModule with AppKotlinModule {
 
@@ -23,7 +29,7 @@ object `package` extends RootModule with AppKotlinModule {
     ivy"io.ktor:ktor-server-html-builder-jvm:$ktorVersion",
     ivy"io.ktor:ktor-server-content-negotiation-jvm:$ktorVersion",
     ivy"io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion",
-    ivy"ch.qos.logback:logback-classic:1.5.8",
+    ivy"ch.qos.logback:logback-classic:1.5.8"
   )
 
   def resources = Task {
@@ -60,33 +66,27 @@ object `package` extends RootModule with AppKotlinModule {
     object jvm extends SharedModule {
       def ivyDeps = super.ivyDeps() ++ Agg(
         ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:$kotlinHtmlVersion",
-        ivy"org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:$kotlinxSerializationVersion",
+        ivy"org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:$kotlinxSerializationVersion"
       )
     }
-    object js extends SharedModule with AppKotlinJSModule {
+    object js extends SharedModule with AppKotlinJsModule {
       def ivyDeps = super.ivyDeps() ++ Agg(
         ivy"org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion",
-        ivy"org.jetbrains.kotlinx:kotlinx-serialization-json-js:$kotlinxSerializationVersion",
+        ivy"org.jetbrains.kotlinx:kotlinx-serialization-json-js:$kotlinxSerializationVersion"
       )
     }
   }
 
-  object client extends AppKotlinJSModule {
+  object client extends AppKotlinJsModule {
     def splitPerModule = false
     def moduleDeps = Seq(shared.js)
     def ivyDeps = Agg(
       ivy"org.jetbrains.kotlinx:kotlinx-html-js:$kotlinHtmlVersion",
-      ivy"org.jetbrains.kotlinx:kotlinx-serialization-json-js:$kotlinxSerializationVersion",
+      ivy"org.jetbrains.kotlinx:kotlinx-serialization-json-js:$kotlinxSerializationVersion"
     )
   }
 }
 
-// A Kotlin/JVM backend server wired up with a Kotlin/JS front-end, with a
-// `shared` module containing code that is used in both client and server.
-// Rather than the server sending HTML for the initial page load and HTML for
-// page updates, it sends HTML for the initial load and JSON for page updates
-// which is then rendered into HTML on the client.
-//
 // The JSON serialization logic and HTML generation logic in the `shared` module
 // is shared between client and server, and uses libraries like `kotlinx-serialization` and
 // `kotlinx-html` which work on both Kotlin/JVM and Kotlin/JS. This allows us to freely

@@ -3,6 +3,8 @@
 :link-coursier-doc: https://get-coursier.io/docs/overview
 :page-aliases: Library_Dependencies.adoc
 
+include::partial$gtag-config.adoc[]
+
 Beside the dependencies between Mill modules, most non-trivial source projects have dependencies to other libraries.
 
 Mill uses {link-coursier}[coursier] to resolve and download dependencies.
@@ -26,7 +28,7 @@ ivy"{organization}:{name}:{version}[;{attribute}={value}]*"
 When working in other Java and Scala projects, you will find some synonyms, which typically all mean the same.
 
 For example in the Maven ecosystem, the `organization` is called the `group` and the `name` is called the `artifact`.
-The whole tripplet is ofthe called `GAV`.
+The whole triplet is often called `GAV`.
 
 In Mill we use the additional term `artifactId` which is identical to the `name` when used in the normal form shown above.
 When a different form is used, e.g. some double-colons are used between the parts, the `artifactId` typically contains suffixes, but the name doesn't.
@@ -212,7 +214,7 @@ artifact is coming from using the `--whatDependsOn` argument:
 ----
 
 By looking at the output we can see that it's our dependency on `coursier_2.13`
-that is bringining in the `jsoniter-scala-core_2.13` artifact.
+that is bringing in the `jsoniter-scala-core_2.13` artifact.
 
 The `--whatDependsOn` argument can also be repeated to target multiple
 artifacts at once. Just repeat the `--whatDependsOn <artifact>` pattern. Note

@@ -1,5 +1,5 @@
-// Persistent targets defined using `Task(persistent = true)` are similar to normal
-// ``Target``s, except their `Task.dest` folder is not cleared before every
+// Persistent tasks defined using `Task(persistent = true)` are similar to normal
+// cached ``Task``s, except their `Task.dest` folder is not cleared before every
 // evaluation. This makes them useful for caching things on disk in a more
 // fine-grained manner than Mill's own Task-level caching: the task can
 // maintain a cache of one or more files on disk, and decide itself which files
@@ -23,7 +23,7 @@ def compressedData = Task(persistent = true) {
   os.makeDir.all(Task.dest / "cache")
   os.remove.all(Task.dest / "compressed")
 
-  for(p <- os.list(data().path)){
+  for (p <- os.list(data().path)) {
     val compressedPath = Task.dest / "compressed" / s"${p.last}.gz"
     val bytes = os.read.bytes(p)
     val hash = Arrays.hashCode(bytes)
@@ -49,8 +49,8 @@ def compressBytes(input: Array[Byte]) = {
 }
 
 // In this example, we implement a `compressedData` task that takes a folder
-// of files in `inputData` and compresses them, while maintaining a cache of
-// compressed contents for each file. That means that if the `inputData` folder
+// of files in `data` and compresses them, while maintaining a cache of
+// compressed contents for each file. That means that if the `data` folder
 // is modified, but some files remain unchanged, those files would not be
 // unnecessarily re-compressed when `compressedData` evaluates.
 //

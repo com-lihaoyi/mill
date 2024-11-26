@@ -4,7 +4,7 @@ import java.io.{PipedInputStream, PrintStream}
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 import java.util.Locale
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 import mill.java9rtexport.Export
 import mill.api.{MillException, SystemStreams, WorkspaceRoot, internal}
@@ -34,7 +34,7 @@ object MillMain {
       err.println(e.getCause.getMessage())
       (false, onError)
     case NonFatal(e) =>
-      err.println("An unexpected error occurred")
+      err.println("An unexpected error occurred " + e)
       throw e
       (false, onError)
   }
@@ -229,6 +229,7 @@ object MillMain {
                   while (repeatForBsp) {
                     repeatForBsp = false
 
+                  Using.resource(new TailManager(serverDir)) { tailManager =>
                     val (isSuccess, evalStateOpt) = Watching.watchLoop(
                       ringBell = config.ringBell.value,
                       watch = config.watch.value,
@@ -244,7 +245,7 @@ object MillMain {
                           targetsAndParams,
                           streams
                         ) {
-                          val logger = getLogger(
+                          Using.resource(getLogger(
                             streams,
                             config,
                             mainInteractive,
@@ -256,8 +257,7 @@ object MillMain {
                             serverDir,
                             colored = colored,
                             colors = colors
-                          )
-                          Using.resource(logger) { _ =>
+                          ) { logger =>
                             new MillBuildBootstrap(
                               projectRoot = WorkspaceRoot.workspaceRoot,
                               output = out,
@@ -270,7 +270,7 @@ object MillMain {
                               prevRunnerState = prevState.getOrElse(stateCache),
                               logger = logger,
                               disableCallgraph = config.disableCallgraph.value,
-                              needBuildSc = needBuildSc(config),
+                              needBuildFile = needBuildFile(config),
                               requestedMetaLevel = config.metaLevel,
                               config.allowPositional.value,
                               systemExit = systemExit,
@@ -383,7 +383,7 @@ object MillMain {
   /**
    * Determine, whether we need a `build.mill` or not.
    */
-  private def needBuildSc(config: MillCliConfig): Boolean = {
+  private def needBuildFile(config: MillCliConfig): Boolean = {
     // Tasks, for which running Mill without an existing buildfile is allowed.
     val noBuildFileTaskWhitelist = Seq(
       "init",
@@ -424,7 +424,7 @@ object MillMain {
   ): Unit = {
     val currentProps = sys.props
     val desiredProps = initialSystemProperties ++ userSpecifiedProperties
-    val systemPropertiesToUnset = desiredProps.keySet -- currentProps.keySet
+    val systemPropertiesToUnset = currentProps.keySet -- desiredProps.keySet
 
     for (k <- systemPropertiesToUnset) System.clearProperty(k)
     for ((k, v) <- desiredProps) System.setProperty(k, v)

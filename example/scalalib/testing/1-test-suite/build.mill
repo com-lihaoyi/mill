@@ -70,7 +70,7 @@ object bar extends ScalaModule {
 */
 
 // You can also select multiple test suites in one command using Mill's
-// xref:fundamentals/query-syntax.adoc[Task Query Syntax]
+// xref:cli/query-syntax.adoc[Task Query Syntax]
 
 /** Usage
 
@@ -85,10 +85,10 @@ object bar extends ScalaModule {
 
 // Mill provides three ways of running tests
 /** Usage
-> mill foo.test.test
+> mill foo.test
 */
-// * `foo.test.test`: runs tests in a subprocess in an empty `sandbox/` folder. You can
-//   also enter just `foo.test` and it will run `foo.test.test` as the default task.
+// * `foo.test`: runs tests in a subprocess in an empty `sandbox/` folder. This is short
+//   for `foo.test.test`, as `test` is the default task for ``TestModule``s.
 
 /** Usage
 > mill foo.test.testCached
@@ -107,11 +107,10 @@ object bar extends ScalaModule {
 // * `foo.test.testLocal`: runs tests in an isolated classloader as part of the main Mill process.
 //   This can be faster than `.test`, but is less flexible (e.g. you cannot pass `forkEnv`)
 //   and more prone to interference (`testLocal` runs do not run in xref:depth/sandboxing.adoc[sandbox folders])
-
-
-
-
-
+//
+// It is common to run tests with xref:cli/flags.adoc#_watch_w[-w/--watch]
+// enabled, so that once you save a file to disk the selected tests get re-run.
+//
 // NOTE: Mill runs tests with the working directory set to an empty
 // xref:depth/sandboxing.adoc[sandbox/ folder] by default.
 // Tests can access files from their resource directory via the environment variable
@@ -123,7 +122,6 @@ object bar extends ScalaModule {
 // If you want to pass any arguments to the test framework, you can pass them after
 // `foo.test` in the command line. e.g. {utest-github-url}[uTest]
 // lets you pass in a selector to decide which test to run, which in Mill would be:
-
 
 /** Usage
 

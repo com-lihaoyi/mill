@@ -2,13 +2,13 @@
 package build
 import mill._, javalib._
 
-object `package` extends RootModule with JavaModule {
+object foo extends JavaModule {
   def ivyDeps = Agg(
     ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
-    ivy"org.apache.commons:commons-text:1.12.0"
+    ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
 
-  object test extends JavaTests with TestModule.Junit4{
+  object test extends JavaTests with TestModule.Junit4 {
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy"com.google.guava:guava:33.3.0-jre"
     )
@@ -16,22 +16,20 @@ object `package` extends RootModule with JavaModule {
 }
 
 // This is a basic Mill build for a single `JavaModule`, with two
-// third-party dependencies and a test suite using the JUnit framework. As a
-// single-module project, it `extends RootModule` to mark ``object `package``` as the
-// top-level module in the build. This lets us directly perform operations
-// `./mill compile` or `./mill run` without needing to prefix it as
-// `foo.compile` or `foo.run`.
+// third-party dependencies and a test suite using the JUnit framework.
+//
 //// SNIPPET:TREE
 // ----
 // build.mill
-// src/
-//     foo/Foo.java
-// resources/
-//     ...
-// test/
+// foo/
 //     src/
-//         foo/FooTest.java
-// out/
+//         foo/Foo.java
+//     resources/
+//         ...
+//     test/
+//         src/
+//             foo/FooTest.java
+// out/foo/
 //     compile.json
 //     compile.dest/
 //     ...
@@ -50,62 +48,55 @@ object `package` extends RootModule with JavaModule {
 //// SNIPPET:DEPENDENCIES
 //
 // This example project uses two third-party dependencies - https://argparse4j.github.io/[ArgParse4J] for CLI
-// argument parsing, https://commons.apache.org/proper/commons-text/[Apache Commons Text] for HTML escaping - and uses them to wrap a
+// argument parsing, https://www.thymeleaf.org//[Thymeleaf] for HTML rendering - and uses them to wrap a
 // given input string in HTML templates with proper escaping.
 //
 // Typical usage of a `JavaModule` is shown below
 
 /** Usage
 
-> ./mill resolve _ # List what tasks are available to run
-assembly
+> ./mill resolve foo._ # List what tasks are available to run
+foo.assembly
 ...
-clean
+foo.compile
 ...
-compile
-...
-run
-...
-show
-...
-inspect
-...
+foo.run
 
-> ./mill inspect compile # Show documentation and inputs of a task
-compile(JavaModule...)
+> ./mill inspect foo.compile # Show documentation and inputs of a task
+foo.compile(JavaModule...)
     Compiles the current module to generate compiled classfiles/bytecode.
 Inputs:
-    upstreamCompileOutput
-    allSourceFiles
-    compileClasspath
+    foo.upstreamCompileOutput
+    foo.allSourceFiles
+    foo.compileClasspath
 ...
 
-> ./mill compile # compile sources into classfiles
+> ./mill foo.compile # compile sources into classfiles
 ...
 compiling 1 Java source to...
 
-> ./mill run # run the main method, if any
+> ./mill foo.run # run the main method, if any
 error: argument -t/--text is required
 ...
 
-> ./mill run --text hello
+> ./mill foo.run --text hello
 <h1>hello</h1>
 
-> ./mill test
+> ./mill foo.test
 ...
 Test foo.FooTest.testEscaping finished, ...
 Test foo.FooTest.testSimple finished, ...
 Test run foo.FooTest finished: 0 failed, 0 ignored, 2 total, ...
 
-> ./mill assembly # bundle classfiles and libraries into a jar for deployment
+> ./mill foo.assembly # bundle classfiles and libraries into a jar for deployment
 
-> ./mill show assembly # show the output of the assembly task
-".../out/assembly.dest/out.jar"
+> ./mill show foo.assembly # show the output of the assembly task
+".../out/foo/assembly.dest/out.jar"
 
-> java -jar ./out/assembly.dest/out.jar --text hello
+> java -jar ./out/foo/assembly.dest/out.jar --text hello
 <h1>hello</h1>
 
-> ./out/assembly.dest/out.jar --text hello # mac/linux
+> ./out/foo/assembly.dest/out.jar --text hello # mac/linux
 <h1>hello</h1>
 
 */

@@ -15,7 +15,7 @@ object `package` extends RootModule with KotlinModule {
 
   object test extends KotlinTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1", 
+      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
       ivy"io.ktor:ktor-server-test-host-jvm:2.3.12"
     )
   }
@@ -24,7 +24,7 @@ object `package` extends RootModule with KotlinModule {
 /** See Also: src/com/example/HelloKtor.kt */
 /** See Also: test/src/com/example/HelloKtorTest.kt */
 
-// This example demonstrates how to set up a simple webserver 
+// This example demonstrates how to set up a simple webserver
 // serving a single "<h1>Hello, World!</h1>" web page using Kotlin and Ktor.
 // It includes one module which is the Ktor webserver/app, and one test module
 // using kotest

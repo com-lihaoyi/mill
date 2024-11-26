@@ -21,7 +21,7 @@ trait DetektModule extends KotlinModule {
 
   private def detekt0() = T.task {
 
-    val args = detektOptions() ++ Seq("-i", PathRef(T.workspace).path.toString()) ++
+    val args = detektOptions() ++ Seq("-i", T.workspace.toString()) ++
       Seq("-c", detektConfig().path.toString())
 
     T.log.info("running detekt ...")

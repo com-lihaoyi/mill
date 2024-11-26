@@ -36,11 +36,11 @@ private[mill] object Reflect {
     // overrides a super-class method and narrows the return type.
     //
     // 1. Make sure we sort the methods by their declaring class from lowest to
-    //    highest in the the type hierarchy, and use `distinctBy` to only keep
+    //    highest in the type hierarchy, and use `distinctBy` to only keep
     //    the lowest version, before we finally sort them by name
     //
     // 2. Sometimes traits also generate synthetic forwarders for overrides,
-    //    which messes up the the comparison since all forwarders will have the
+    //    which messes up the comparison since all forwarders will have the
     //    same `getDeclaringClass`. To handle these scenarios, also sort by
     //    return type, so we can identify the most specific override
     res

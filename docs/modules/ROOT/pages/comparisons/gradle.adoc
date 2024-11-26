@@ -1,11 +1,31 @@
 = Case Study: Mill vs Gradle
 :page-aliases: Case_Study_Mill_vs_Gradle.adoc
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
+include::partial$gtag-config.adoc[]
+
+Compared to Gradle,
+
+
+* **Mill follows Gradle's conciseness and extensibility**: Rather than pages and pages of verbose XML, every
+line in a Mill build is meaningful. e.g. adding a dependency is 1 line in
+Mill, like it is in Gradle, and unlike the 5 line `<dependency>` declaration you find in Maven.
+Like Gradle, end users can easily customize their build to fit their exact needs without
+needing to go through the process of writing plugins.
+
+* **Mill can be xref:comparisons/gradle.adoc#_performance[2-4x faster than Gradle]**:
+Although both Mill and Gradle automatically cache and parallelize your build, Mill
+does so with much less fixed overhead. This means less time waiting for your build
+tool, and more time for the things that really matter to your project.
+
+* **Mill enforces best practices by default**.
+xref:depth/evaluation-model.adoc#_caching_at_each_layer_of_the_evaluation_model[All parts of a Mill build are cached and incremental by default].
+All Mill tasks write their output to xref:fundamentals/out-dir.adoc[a standard place].
+All task inter-dependencies are automatically captured without manual annotation. Where Gradle requires
+considerable effort and expertise to understand your build and set it up in the right way, Mill's
+xref:comparisons/gradle.adoc#_ide_experience[good IDE experience] makes understanding
+your build easier, and its xref:comparisons/gradle.adoc#_extensibility[extensibility model]
+makes configuring your build foolproof, so the easiest thing to do in Mill is usually the
+right thing to do.
 
 This page compares using Mill to Gradle, using the https://github.com/mockito/mockito[Mockito Testing Library]
 codebase as the example. Mockito is a medium sized codebase, 100,000 lines of Java split over 22
@@ -22,7 +42,7 @@ change any other files in the repository:
 
 The Mill build for Mockito is not 100% complete, but it covers most of the major parts of Mockito:
 compiling Java, running JUnit tests. For now, the Android, Kotlin, and OSGI tests are skipped,
-as support for xref:javalib/android-examples.adoc[Building Android apps in Mill]
+as support for xref:android/java.adoc[Building Android apps in Mill]
 and xref:kotlinlib/intro.adoc[Kotlin with Mill] is still experimental.
 
 The goal of this exercise is not to be 100% feature complete enough to replace the Gradle build
@@ -57,7 +77,7 @@ Mill's performance compares to Gradle:
 |===
 
 The column on the right shows the speedups of how much faster Mill is compared to the
-equivalent Gradle workflow. In most cases,  Mill is 5-10x faster than Gradle. Below, we
+equivalent Gradle workflow. In most cases,  Mill is 2-4x faster than Gradle. Below, we
 will go into more detail of each benchmark: how they were run, what they mean, and how
 we can explain the difference in performing the same task with the two different build tools.
 
@@ -144,7 +164,7 @@ $ ./mill clean; time ./mill compile
 
 This benchmark indicates the use case of clean-compiling a single module. In this case,
 the root module in `src/main/java/` containing the bulk of the Mockito library code,
-_exluding_ the test code in `src/test/java/` and all the downstream subprojects in 
+_excluding_ the test code in `src/test/java/` and all the downstream subprojects in
 `subprojects/`.
 
 This benchmark gives us Mill being about ~3.7x faster than Gradle. This is in line with
@@ -220,7 +240,7 @@ The fundamental problem with tools like Gradle is that the code you write does n
 actually perform the build: rather, you are just setting up some data structure that
 is used to configure the _real_ build engine that runs later. Thus when you explore
 the Gradle build in an IDE, the IDE can only explore the configuration logic (which
-use usually un-interesting) and is unable to explore the actual build logic (which
+is usually un-interesting) and is unable to explore the actual build logic (which
 is what you actually care about!)
 
 In comparison, Mill's `.mill` files are all statically typed, and as a result IntelliJ is easily able to

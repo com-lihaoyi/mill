@@ -43,7 +43,8 @@ trait JmhModule extends JavaModule {
         classPath = (runClasspath() ++ generatorDeps()).map(_.path) ++
           Seq(compileGeneratedSources().path, resources),
         mainArgs = args,
-        workingDir = T.ctx().dest
+        workingDir = T.ctx().dest,
+        javaHome = zincWorker().javaHome().map(_.path)
       )
     }
 
@@ -72,7 +73,7 @@ trait JmhModule extends JavaModule {
   def generateBenchmarkSources =
     Task {
       val dest = T.ctx().dest
-      val javacOpts = javacOptions().toSeq
+      val forkedArgs = forkArgs().toSeq
       val sourcesDir = dest / "jmh_sources"
       val resourcesDir = dest / "jmh_resources"
 
@@ -90,7 +91,8 @@ trait JmhModule extends JavaModule {
           resourcesDir.toString,
           "default"
         ),
-        jvmArgs = javacOpts
+        javaHome = zincWorker().javaHome().map(_.path),
+        jvmArgs = forkedArgs
       )
 
       (sourcesDir, resourcesDir)

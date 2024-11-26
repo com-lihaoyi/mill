@@ -1,6 +1,7 @@
 package mill.scalalib
 
 import coursier.cache.FileCache
+import coursier.params.ResolutionParams
 import coursier.{Dependency, Repository, Resolve, Type}
 import coursier.core.Resolution
 import mill.define.Task
@@ -20,7 +21,7 @@ import mill.Agg
 trait CoursierModule extends mill.Module {
 
   /**
-   * Bind a dependency ([[Dep]]) to the actual module contetxt (e.g. the scala version and the platform suffix)
+   * Bind a dependency ([[Dep]]) to the actual module context (e.g. the scala version and the platform suffix)
    * @return The [[BoundDep]]
    */
   def bindDependency: Task[Dep => BoundDep] = Task.Anon { (dep: Dep) =>
@@ -39,7 +40,8 @@ trait CoursierModule extends mill.Module {
       mapDependencies = Some(mapDependencies()),
       customizer = resolutionCustomizer(),
       coursierCacheCustomizer = coursierCacheCustomizer(),
-      ctx = Some(implicitly[mill.api.Ctx.Log])
+      ctx = Some(implicitly[mill.api.Ctx.Log]),
+      resolutionParams = resolutionParams()
     )
   }
 
@@ -95,7 +97,7 @@ trait CoursierModule extends mill.Module {
   }
 
   /**
-   * Customize the coursier resolution resolution process.
+   * Customize the coursier resolution process.
    * This is rarely needed to changed, as the default try to provide a
    * highly reproducible resolution process. But sometime, you need
    * more control, e.g. you want to add some OS or JDK specific resolution properties
@@ -116,7 +118,7 @@ trait CoursierModule extends mill.Module {
   /**
    * Customize the coursier file cache.
    *
-   * This is rarely needed to be changed, but sometimes e.g you want to load a coursier plugin.
+   * This is rarely needed to be changed, but sometimes e.g. you want to load a coursier plugin.
    * Doing so requires adding to coursier's classpath. To do this you could use the following:
    * {{{
    *   override def coursierCacheCustomizer = Task.Anon {
@@ -131,6 +133,27 @@ trait CoursierModule extends mill.Module {
       : Task[Option[FileCache[coursier.util.Task] => FileCache[coursier.util.Task]]] =
     Task.Anon { None }
 
+  /**
+   * Resolution parameters, allowing to customize resolution internals
+   *
+   * This rarely needs to be changed. This allows to disable the new way coursier handles
+   * BOMs since coursier 2.1.17 (used in Mill since 0.12.3) for example, with:
+   * {{{
+   *   def resolutionParams = super.resolutionParams()
+   *     .withEnableDependencyOverrides(Some(false))
+   * }}}
+   *
+   * Note that versions forced with `Dep#forceVersion()` take over forced versions manually
+   * set in `resolutionParams`. The former should be favored to force versions in dependency
+   * resolution.
+   *
+   * The Scala version set via `ScalaModule#scalaVersion` also takes over any Scala version
+   * provided via `ResolutionParams#scalaVersionOpt`.
+   */
+  def resolutionParams: Task[ResolutionParams] = Task.Anon {
+    ResolutionParams()
+  }
+
 }
 object CoursierModule {
 
@@ -142,8 +165,32 @@ object CoursierModule {
       ctx: Option[mill.api.Ctx.Log] = None,
       coursierCacheCustomizer: Option[
         coursier.cache.FileCache[coursier.util.Task] => coursier.cache.FileCache[coursier.util.Task]
-      ] = None
+      ] = None,
+      resolutionParams: ResolutionParams = ResolutionParams()
   ) {
+
+    // bin-compat shim
+    def this(
+        repositories: Seq[Repository],
+        bind: Dep => BoundDep,
+        mapDependencies: Option[Dependency => Dependency],
+        customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
+        ctx: Option[mill.api.Ctx.Log],
+        coursierCacheCustomizer: Option[
+          coursier.cache.FileCache[coursier.util.Task] => coursier.cache.FileCache[
+            coursier.util.Task
+          ]
+        ]
+    ) =
+      this(
+        repositories,
+        bind,
+        mapDependencies,
+        customizer,
+        ctx,
+        coursierCacheCustomizer,
+        ResolutionParams()
+      )
 
     def resolveDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
@@ -158,7 +205,8 @@ object CoursierModule {
         mapDependencies = mapDependencies,
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
-        ctx = ctx
+        ctx = ctx,
+        resolutionParams = resolutionParams
       ).getOrThrow
     }
 

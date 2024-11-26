@@ -1,43 +1,14 @@
 
-// Author Notes:
-//
-// This is the first page a user is expected to land on when learning about
-// Mill. It is designed to be a quick, broad overview to get someone started:
-// what is Mill, why should they care, and what some simple Mill builds look
-// like and how to use them. We intentionally touch shallowly on a lot of
-// topics without giving them a proper discussion, since the other pages have
-// plenty of space to go in-depth.
-//
-// By the end of this page, a prospective Mill user should be familiar with
-// what Mill is, hopefully have downloaded an example to try out, and be
-// interested in learning more about the Mill build tool
+= Building Java with Mill
+:page-aliases: Intro_to_Mill.adoc, Intro_to_Mill_for_Java.adoc, Java_Intro_to_Mill.adoc
 
-= Building Java Projects with Mill
-:page-aliases: index.adoc, Intro_to_Mill.adoc, Intro_to_Mill_for_Java.adoc, Java_Intro_to_Mill.adoc
-
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
+include::partial$gtag-config.adoc[]
 
 
 :language: Java
 :language-small: java
 
-include::partial$Intro_to_Mill_Header.adoc[]
-
-Mill is used to build some real-world Java projects, such as the
-https://github.com/swaldman/c3p0[C3P0 JDBC Connection Pool], and
-can be used for applications built on top of common Java frameworks like
-xref:javalib/web-examples.adoc#_spring_boot_todomvc_app[Spring Boot] or
-xref:javalib/web-examples.adoc#_micronaut_todomvc_app[Micronaut].
-
-include::partial$Intro_Maven_Gradle_Comparison.adoc[]
-
-include::partial$Intro_to_Mill_BlogVideo.adoc[]
-
-
+include::partial$Intro_Header.adoc[]
 
 == Simple Java Module
 
@@ -51,8 +22,13 @@ include::partial$example/javalib/basic/2-custom-build-logic.adoc[]
 
 include::partial$example/javalib/basic/3-multi-module.adoc[]
 
-include::partial$Intro_to_Mill_Footer.adoc[]
-
 == Maven-Compatible Modules
 
 include::partial$example/javalib/basic/4-compat-modules.adoc[]
+
+
+== Realistic Java Example Project
+
+include::partial$example/javalib/basic/6-realistic.adoc[]
+
+

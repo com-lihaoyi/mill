@@ -1,0 +1,3 @@
+package `for`
+
+object foo

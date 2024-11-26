@@ -1,22 +1,28 @@
 package hello;
 
-interface Foo{
-    public int used();
-    public int other();
+interface Foo {
+  public int used();
+
+  public int other();
 }
 
-class Bar{
-    public int used(){ return 2; }
-    public int other(){ return 1; }
+class Bar {
+  public int used() {
+    return 2;
+  }
+
+  public int other() {
+    return 1;
+  }
 }
 
-class Qux extends Bar implements Foo{}
+class Qux extends Bar implements Foo {}
 
 public class Hello {
-    public static int main(){
-        Foo foo = new Qux();
-        return foo.used();
-    }
+  public static int main() {
+    Foo foo = new Qux();
+    return foo.used();
+  }
 }
 /* expected-direct-call-graph
 {

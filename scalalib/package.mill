@@ -80,7 +80,8 @@ object `package` extends RootModule with build.MillStableScalaModule {
         },
         "Dependency to jupiter-interface"
       ),
-      BuildInfo.Value("errorProneVersion", build.Deps.RuntimeDeps.errorProneCore.version)
+      BuildInfo.Value("errorProneVersion", build.Deps.RuntimeDeps.errorProneCore.version),
+      BuildInfo.Value("coursierJvmIndexVersion", build.Deps.coursierJvmIndexVersion)
     )
   }
 

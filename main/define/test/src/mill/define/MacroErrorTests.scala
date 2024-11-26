@@ -10,7 +10,7 @@ object MacroErrorTests extends TestSuite {
 
     test("errors") {
       val expectedMsg =
-        "Task{} members must be defs defined in a Cacher class/trait/object body"
+        "Task{} members must be defs defined in a Module class/trait/object body"
 
       val err = compileError("object Foo extends TestBaseModule{ val x = Task {1} }")
       assert(err.msg == expectedMsg)
@@ -84,21 +84,32 @@ object MacroErrorTests extends TestSuite {
       // of our `Target#apply()` calls, but we cannot reference any values that
       // come from inside the Task{...} block
       test("pos") {
-        val e = compileError("""
-          val a = Task { 1 }
+        // This should compile
+        object foo extends TestBaseModule {
+          def a = Task { 1 }
           val arr = Array(a)
-          val b = {
+          def b = {
             val c = 0
-            Task{
+            Task {
               arr(c)()
             }
           }
-        """)
+        }
+      }
+      test("neg1") {
+        val e = compileError("""def a = Task { 1 }""")
         assert(e.msg.contains(
-          "Modules and Tasks can only be defined within a mill Module"
+          "Task{} members must be defs defined in a Module class/trait/object body"
         ))
       }
-      test("neg") {
+
+      test("neg2") {
+        val e = compileError("object foo extends TestBaseModule{ val a = Task { 1 } }")
+        assert(e.msg.contains(
+          "Task{} members must be defs defined in a Module class/trait/object body"
+        ))
+      }
+      test("neg3") {
 
         val expectedMsg =
           "Target#apply() call cannot use `val n` defined within the Task{...} block"
@@ -116,7 +127,7 @@ object MacroErrorTests extends TestSuite {
         """)
         assert(err.msg == expectedMsg)
       }
-      test("neg2") {
+      test("neg4") {
 
         val expectedMsg =
           "Target#apply() call cannot use `val x` defined within the Task{...} block"
@@ -133,7 +144,7 @@ object MacroErrorTests extends TestSuite {
         """)
         assert(err.msg == expectedMsg)
       }
-      test("neg3") {
+      test("neg5") {
         val borkedCachedDiamond1 = utest.compileError("""
           object borkedCachedDiamond1 {
             def up = Task { TestUtil.test() }
@@ -143,7 +154,7 @@ object MacroErrorTests extends TestSuite {
           }
         """)
         assert(borkedCachedDiamond1.msg.contains(
-          "Modules and Tasks can only be defined within a mill Module"
+          "Task{} members must be defs defined in a Module class/trait/object body"
         ))
       }
     }

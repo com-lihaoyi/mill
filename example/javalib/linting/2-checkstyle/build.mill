@@ -8,7 +8,6 @@ object `package` extends RootModule with CheckstyleModule {
   def checkstyleVersion = "9.3"
 }
 
-
 // To use this plugin in a Java/Scala module,
 //
 // 1. Extend `mill.contrib.checkstyle.CheckstyleModule`.
@@ -49,32 +48,32 @@ Audit done.
 // ----
 //
 // // if an exception should be raised when violations are found
-// checkstyle --check
+// ./mill checkstyle --check
 //
 // // if Checkstyle output report should be written to System.out
-// checkstyle --stdout
+// ./mill checkstyle --stdout
 // ----
 //
 // === Checkstyle Sources (optional)
 // [source,sh]
 // ----
 // // incorrect paths will cause a command failure
-// // checkstyle a/b
+// ./mill checkstyle a/b
 //
 // // you can specify paths relative to millSourcePath
-// checkstyle src/a/b
+// ./mill checkstyle src/a/b
 //
 // // process a single file
-// checkstyle src/a/B.java
+// ./mill checkstyle src/a/B.java
 //
 // // process multiple sources
-// checkstyle src/a/b src/c/d src/e/F.java
+// ./mill checkstyle src/a/b src/c/d src/e/F.java
 //
 // // process with flags
-// checkstyle --check --stdout src/a/b src/c/d
+// ./mill checkstyle --check --stdout src/a/b src/c/d
 //
 // // process all module sources
-// checkstyle
+// ./mill checkstyle
 // ----
 //
 // === Shared Checkstyle Configuration

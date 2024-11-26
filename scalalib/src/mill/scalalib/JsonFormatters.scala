@@ -26,6 +26,10 @@ trait JsonFormatters {
   implicit lazy val configurationFormat: RW[coursier.core.Configuration] = upickle.default.macroRW
   implicit lazy val typeFormat: RW[coursier.core.Type] = upickle.default.macroRW
   implicit lazy val classifierFormat: RW[coursier.core.Classifier] = upickle.default.macroRW
+  implicit lazy val depMgmtKeyFormat: RW[coursier.core.DependencyManagement.Key] =
+    upickle.default.macroRW
+  implicit lazy val depMgmtValuesFormat: RW[coursier.core.DependencyManagement.Values] =
+    upickle.default.macroRW
 
 }
 object JsonFormatters extends JsonFormatters {

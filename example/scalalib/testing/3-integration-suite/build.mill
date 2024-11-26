@@ -18,10 +18,8 @@ object qux extends ScalaModule {
 }
 //// SNIPPET:END
 
-
-// These two test modules will expect their sources to be in their respective `foo/test` and
-// `foo/integration` folder respectively
-
+// These two test modules will expect their sources to be in their respective `qux/test` and
+// `qux/integration` folder respectively
 
 /** Usage
 

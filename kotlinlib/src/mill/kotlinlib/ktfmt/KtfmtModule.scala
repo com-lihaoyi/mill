@@ -117,6 +117,7 @@ object KtfmtModule extends ExternalModule with KtfmtBaseModule with TaskModule {
     if (!removeUnusedImports) {
       args += "--do-not-remove-unused-imports"
     }
+    if (!format) args += "--set-exit-if-changed"
     args ++= sources.iterator.map(_.path.toString())
 
     val exitCode = Jvm.callSubprocess(

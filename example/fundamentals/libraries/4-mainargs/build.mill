@@ -2,7 +2,7 @@
 // are run from the command line.
 import mill._
 
-def commandSimple(str: String, i: Int, bool: Boolean = true) = Task.Command{
+def commandSimple(str: String, i: Int, bool: Boolean = true) = Task.Command {
   println(s"$str $i $bool")
 }
 
@@ -19,14 +19,12 @@ hello 123 true
 
 */
 
-
 // === `os.Path`
 //
 // In addition to the builtin set of types that MainArgs supports, Mill also
 // supports parsing OS-Lib ``os.Path``s from the command line:
 
-
-def commandTakingPath(path: os.Path) = Task.Command{
+def commandTakingPath(path: os.Path) = Task.Command {
   println(path)
 }
 
@@ -44,7 +42,7 @@ def commandTakingPath(path: os.Path) = Task.Command{
 // command as part of another task, while passing it the value of an upstream
 // task:
 
-def commandTakingTask(str: Task[String]) = Task.Command{
+def commandTakingTask(str: Task[String]) = Task.Command {
   val result = "arg: " + str()
   println(result)
   result
@@ -65,14 +63,12 @@ def taskCallingCommand = Task {
   commandTakingTask(upstreamTask)()
 }
 
-
 /** Usage
 
 > ./mill show taskCallingCommand
 "arg: HELLO"
 
 */
-
 
 // === Evaluator (experimental)
 //
@@ -92,7 +88,7 @@ def customPlanCommand(evaluator: Evaluator, tasks: String*) = Task.Command {
     evaluator.rootModule,
     tasks,
     SelectMode.Multi
-  ) match{
+  ) match {
     case Left(err) => Left(err)
     case Right(resolved) =>
       val (sortedGroups, _) = evaluator.plan(resolved)
@@ -120,8 +116,8 @@ taskCallingCommand
 */
 
 // Many built-in tools are implemented as custom evaluator commands:
-// xref:scalalib/builtin-commands.adoc#_inspect[inspect],
-// xref:scalalib/builtin-commands.adoc#_resolve[resolve],
-// xref:scalalib/builtin-commands.adoc#_show[show].
+// xref:cli/builtin-commands.adoc#_inspect[inspect],
+// xref:cli/builtin-commands.adoc#_resolve[resolve],
+// xref:cli/builtin-commands.adoc#_show[show].
 // If you want a way to run Mill commands and programmatically manipulate the
 // tasks and outputs, you do so with your own evaluator command.

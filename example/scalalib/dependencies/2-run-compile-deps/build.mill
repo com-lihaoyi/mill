@@ -50,7 +50,6 @@ object bar extends ScalaModule {
 
 */
 
-
 // NOTE: Compile-time dependencies are translated to `provided`-scoped
 // dependencies when publish to Maven or Ivy-Repositories.
 //
@@ -70,6 +69,4 @@ object bar extends ScalaModule {
 // there is a newer version available.
 //
 // TIP: Scala Steward can also keep your
-// xref:Installation.adoc#_automatic_mill_updates[Mill version up-to-date].
-
-
+// xref:cli/installation-ide#_automatic_mill_updates[Mill version up-to-date].

@@ -50,7 +50,6 @@ symbol: object Bar
 // is only one way. For this example, we remove the reference to `Foo` in `Bar.scala`,
 // which allows the code to compile:
 
-
 /** Usage
 
 > sed -i.bak 's/Foo/Bar/g' src/Bar.scala

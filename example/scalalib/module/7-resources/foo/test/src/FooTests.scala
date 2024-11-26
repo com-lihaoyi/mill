@@ -19,7 +19,7 @@ object FooTests extends TestSuite {
       // Use `MILL_TEST_RESOURCE_DIR` to list files available in resource folder
       assert(
         os.list(testFileResourceDir).sorted ==
-        Seq(testFileResourceDir / "test-file-a.txt", testFileResourceDir / "test-file-b.txt")
+          Seq(testFileResourceDir / "test-file-a.txt", testFileResourceDir / "test-file-b.txt")
       )
 
       // Use the `OTHER_FILES_DIR` configured in your build to access the

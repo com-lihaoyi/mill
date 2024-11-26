@@ -69,7 +69,9 @@ private[mill] class PromptLogger(
           else nonInteractivePromptUpdateIntervalMillis
 
         try Thread.sleep(promptUpdateInterval)
-        catch { case e: InterruptedException => /*do nothing*/ }
+        catch {
+          case e: InterruptedException => /*do nothing*/
+        }
 
         readTerminalDims(terminfoPath).foreach(termDimensions = _)
 
@@ -164,7 +166,7 @@ private[mill] object PromptLogger {
 
   /**
    * Manages the paused/unpaused/stopped state of the prompt logger. Encapsulate in a separate
-   * class because it has to maintain some invariants and ensure book-keeping is properly done
+   * class because it has to maintain some invariants and ensure bookkeeping is properly done
    * when the paused state change, e.g. interrupting the prompt updater thread and clearing
    * the screen when the ticker is paused.
    */
@@ -263,7 +265,7 @@ private[mill] object PromptLogger {
 
         if (
           // Only bother printing the prompt after the streams have become quiescent
-          // and there is no more stuff to print. This helps us printing the prompt on
+          // and there is no more stuff to print. This helps us to print the prompt on
           // every small write when most such prompts will get immediately over-written
           // by subsequent writes
           enableTicker && src.available() == 0 &&
@@ -318,8 +320,6 @@ private[mill] object PromptLogger {
       currentTimeMillis: () => Long,
       infoColor: fansi.Attrs
   ) {
-    private var lastRenderedPromptHash = 0
-
     private val statuses = collection.mutable.SortedMap
       .empty[Seq[String], Status](PromptLoggerUtil.seqStringOrdering)
 
@@ -331,7 +331,7 @@ private[mill] object PromptLogger {
 
     def getCurrentPrompt() = currentPromptBytes
 
-    private def updatePromptBytes(ending: Boolean = false) = {
+    def updatePrompt(ending: Boolean = false): Unit = {
       val now = currentTimeMillis()
       for (k <- statuses.keySet) {
         val removedTime = statuses(k).beginTransitionTime
@@ -394,17 +394,6 @@ private[mill] object PromptLogger {
             if (stillTransitioning(existing)) existing.copy(next = sOptEntry)
             else existing.copy(next = sOptEntry, beginTransitionTime = now, prev = existing.next)
           )
-      }
-    }
-
-    def updatePrompt(ending: Boolean = false): Unit = {
-      // For non-interactive jobs, we only want to print the new prompt if the contents
-      // differs from the previous prompt, since the prompts do not overwrite each other
-      // in log files and printing large numbers of identical prompts is spammy and useless
-      lazy val statusesHashCode = statuses.hashCode
-      if (consoleDims()._1.nonEmpty || statusesHashCode != lastRenderedPromptHash) {
-        lastRenderedPromptHash = statusesHashCode
-        updatePromptBytes(ending)
       }
     }
   }

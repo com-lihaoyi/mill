@@ -163,7 +163,7 @@ object TutorialTests extends TestSuite {
     }
 
     test("useExternalProtocCompiler") {
-      /* This ensure that the `scalaPBProtocPath` is properly used.
+      /* This ensures that the `scalaPBProtocPath` is properly used.
        * As the given path is incorrect, the compilation should fail.
        */
       test("calledWithWrongProtocFile") - UnitTester(TutorialWithProtoc, resourcePath).scoped {

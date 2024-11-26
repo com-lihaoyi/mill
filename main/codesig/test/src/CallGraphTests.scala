@@ -103,7 +103,7 @@ object CallGraphTests extends TestSuite {
   }
 
   /**
-   * Make sure the direct call graph contains what we exxpect
+   * Make sure the direct call graph contains what we expect
    */
   def testDirectCallGraph(
       testCaseSourceFilesRoot: os.Path,
@@ -125,7 +125,7 @@ object CallGraphTests extends TestSuite {
   /**
    * Exercise the code computing the transitive call graph summary from the direct call graph
    *
-   * Computes a `SortedSet[String]` rather than a `Int` like we do for real usage because it's
+   * Computes a `SortedSet[String]` rather than an `Int` like we do for real usage because it's
    * easier to read and make sense of the summary for each node that way, but shares most of
    * the logic and so should hopefully catch most bugs in the transitive logic anyway
    */
@@ -184,7 +184,7 @@ object CallGraphTests extends TestSuite {
                 .takeWhile(l => l != "*/" && l != " */")
 
               Some(expectedLines.mkString("\n"))
-            case _ => sys.error(s"Only one occurence of line \"$openTagLine\" is expected in file")
+            case _ => sys.error(s"Only one occurrence of line \"$openTagLine\" is expected in file")
           }
         }
       }

@@ -47,7 +47,7 @@ object DockerModuleTest extends TestSuite {
 
   val testModuleSourcesPath: Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "docker"
 
-  val multineRegex = "\\R+".r
+  val multilineRegex = "\\R+".r
 
   private def isInstalled(executable: String): Boolean = {
     val getPathCmd = if (scala.util.Properties.isWin) "where" else "which"
@@ -91,14 +91,14 @@ object DockerModuleTest extends TestSuite {
     test("dockerfile contents") {
       test("default options") - UnitTester(Docker, null).scoped { eval =>
         val Right(result) = eval(Docker.dockerDefault.dockerfile)
-        val expected = multineRegex.replaceAllIn(
+        val expected = multilineRegex.replaceAllIn(
           """
             |FROM gcr.io/distroless/java:latest
             |COPY out.jar /out.jar
             |ENTRYPOINT ["java", "-jar", "/out.jar"]""".stripMargin,
           sys.props.getOrElse("line.separator", ???)
         )
-        val dockerfileStringRefined = multineRegex.replaceAllIn(
+        val dockerfileStringRefined = multilineRegex.replaceAllIn(
           result.value,
           sys.props.getOrElse("line.separator", ???)
         )
@@ -107,7 +107,7 @@ object DockerModuleTest extends TestSuite {
 
       test("all options") - UnitTester(Docker, null).scoped { eval =>
         val Right(result) = eval(Docker.dockerAll.dockerfile)
-        val expected = multineRegex.replaceAllIn(
+        val expected = multilineRegex.replaceAllIn(
           """
             |FROM docker.io/openjdk:11
             |LABEL "version"="1.0"
@@ -123,7 +123,7 @@ object DockerModuleTest extends TestSuite {
             |ENTRYPOINT ["java", "-jar", "/out.jar"]""".stripMargin,
           sys.props.getOrElse("line.separator", ???)
         )
-        val dockerfileStringRefined = multineRegex.replaceAllIn(
+        val dockerfileStringRefined = multilineRegex.replaceAllIn(
           result.value,
           sys.props.getOrElse("line.separator", ???)
         )
@@ -132,14 +132,14 @@ object DockerModuleTest extends TestSuite {
 
       test("extra jvm options") - UnitTester(Docker, null).scoped { eval =>
         val Right(result) = eval(Docker.dockerJvmOptions.dockerfile)
-        val expected = multineRegex.replaceAllIn(
+        val expected = multilineRegex.replaceAllIn(
           """
             |FROM gcr.io/distroless/java:latest
             |COPY out.jar /out.jar
             |ENTRYPOINT ["java", "-Xmx1024M", "-jar", "/out.jar"]""".stripMargin,
           sys.props.getOrElse("line.separator", ???)
         )
-        val dockerfileStringRefined = multineRegex.replaceAllIn(
+        val dockerfileStringRefined = multilineRegex.replaceAllIn(
           result.value,
           sys.props.getOrElse("line.separator", ???)
         )

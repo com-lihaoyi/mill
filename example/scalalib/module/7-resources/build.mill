@@ -53,7 +53,7 @@ object foo extends ScalaModule {
 //
 // Example application code demonstrating the techniques above can be seen below:
 
-
+/** See Also: foo/resources/file.txt */
 /** See Also: foo/test/resources/test-file-a.txt */
 /** See Also: foo/test/resources/test-file-b.txt */
 /** See Also: foo/test/other-files/other-file.txt */
@@ -64,7 +64,6 @@ object foo extends ScalaModule {
 /** See Also: foo/test/src/FooTests.scala */
 
 //// SNIPPET:END
-
 
 //
 //
@@ -80,7 +79,3 @@ object foo extends ScalaModule {
 // If you have legacy tests that need to run in the project root folder to work, you
 // can configure your test suite with `def testSandboxWorkingDir = false` to disable
 // the sandbox and make the tests run in the project root.
-
-
-
-

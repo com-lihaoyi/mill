@@ -1,4 +1,5 @@
 package bar
+
 /**
  * My Awesome Docs for class Bar
  */

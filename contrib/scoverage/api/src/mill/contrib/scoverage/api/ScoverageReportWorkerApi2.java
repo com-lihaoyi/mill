@@ -1,24 +1,27 @@
 package mill.contrib.scoverage.api;
 
-import java.nio.file.Path;
-import java.nio.file.Files;
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public interface ScoverageReportWorkerApi2 {
 
   interface Logger {
     void info(String msg);
+
     void error(String msg);
+
     void debug(String msg);
   }
 
   interface Ctx {
     Logger log();
+
     Path dest();
   }
 
-  public static abstract class ReportType implements Serializable {
+  public abstract static class ReportType implements Serializable {
     private String name;
 
     /*private[api]*/
@@ -35,7 +38,8 @@ public interface ScoverageReportWorkerApi2 {
       ConsoleModule() {
         super("Console");
       }
-    };
+    }
+    ;
 
     /* private[api]*/
     static final class HtmlModule extends FileReportType implements Serializable {
@@ -43,7 +47,8 @@ public interface ScoverageReportWorkerApi2 {
       HtmlModule() {
         super("Html", "htmlReport");
       }
-    };
+    }
+    ;
 
     /* private[api]*/
     static final class XmlModule extends FileReportType implements Serializable {
@@ -67,7 +72,7 @@ public interface ScoverageReportWorkerApi2 {
     }
   }
 
-  public static abstract class FileReportType extends ReportType implements Serializable {
+  public abstract static class FileReportType extends ReportType implements Serializable {
     private final String folderName;
 
     /*private[api]*/
@@ -91,5 +96,4 @@ public interface ScoverageReportWorkerApi2 {
       Files.createDirectories(path);
     }
   }
-
 }

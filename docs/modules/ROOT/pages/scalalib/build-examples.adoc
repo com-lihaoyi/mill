@@ -1,29 +1,8 @@
 = Scala Build Examples
 :page-aliases: Scala_Build_Examples.adoc
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
+include::partial$gtag-config.adoc[]
 
-On this page, we will explore the Mill build tool via a series of simple Scala
-example projects.
-
-
-== Nesting Modules
-
-include::partial$example/scalalib/builds/1-nested-modules.adoc[]
-
-
-== Cross-Scala-Version Modules
-
-include::partial$example/scalalib/builds/3-cross-scala-version.adoc[]
-
-
-== Realistic Scala Example Project
-
-include::partial$example/scalalib/builds/4-realistic.adoc[]
 
 
 == Example Builds for Real Projects

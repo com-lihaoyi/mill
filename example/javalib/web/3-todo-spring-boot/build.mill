@@ -7,26 +7,22 @@ object `package` extends RootModule with JavaModule {
     ivy"org.springframework.boot:spring-boot-starter-thymeleaf:2.5.4",
     ivy"org.springframework.boot:spring-boot-starter-validation:2.5.4",
     ivy"org.springframework.boot:spring-boot-starter-web:2.5.4",
-
     ivy"javax.xml.bind:jaxb-api:2.3.1",
-
     ivy"org.webjars:webjars-locator:0.41",
     ivy"org.webjars.npm:todomvc-common:1.0.5",
-    ivy"org.webjars.npm:todomvc-app-css:2.4.1",
-
-
+    ivy"org.webjars.npm:todomvc-app-css:2.4.1"
   )
 
-  trait HelloTests extends JavaTests with TestModule.Junit5{
+  trait HelloTests extends JavaTests with TestModule.Junit5 {
     def mainClass = Some("com.example.TodomvcApplication")
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy"org.springframework.boot:spring-boot-starter-test:2.5.6"
     )
   }
 
-  object test extends HelloTests{
+  object test extends HelloTests {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"com.h2database:h2:2.3.230",
+      ivy"com.h2database:h2:2.3.230"
     )
   }
 
@@ -35,7 +31,7 @@ object `package` extends RootModule with JavaModule {
       ivy"org.testcontainers:testcontainers:1.18.0",
       ivy"org.testcontainers:junit-jupiter:1.18.0",
       ivy"org.testcontainers:postgresql:1.18.0",
-      ivy"org.postgresql:postgresql:42.6.0",
+      ivy"org.postgresql:postgresql:42.6.0"
     )
   }
 }
@@ -49,7 +45,6 @@ object `package` extends RootModule with JavaModule {
 // * Querying a SQL database using JPA and H2
 // * Unit testing using a H2 in-memory database
 // * Integration testing using Testcontainers Postgres in Docker
-
 
 /** Usage
 

@@ -1,47 +1,18 @@
 
-// Author Notes:
-//
-// This is the first page a user is expected to land on when learning about
-// Mill. It is designed to be a quick, broad overview to get someone started:
-// what is Mill, why should they care, and what some simple Mill builds look
-// like and how to use them. We intentionally touch shallowly on a lot of
-// topics without giving them a proper discussion, since the other pages have
-// plenty of space to go in-depth.
-//
-// By the end of this page, a prospective Mill user should be familiar with
-// what Mill is, hopefully have downloaded an example to try out, and be
-// interested in learning more about the Mill build tool
-
-= (Experimental) Kotlin with Mill
+= Building Kotlin with Mill
 :page-aliases: Kotlin_Intro_to_Mill.adoc
 
-++++
-<script>
-gtag('config', 'AW-16649289906');
-</script>
-++++
+include::partial$gtag-config.adoc[]
 
 :language: Kotlin
 :language-small: kotlin
-:language-ext: kt
 
-NOTE: *Kotlin support in Mill is experimental*! A lot of stuff works, which is
-documented under this section, but a lot of stuff doesn't. In particular,
-support for Android, KotlinJS and Kotlin-Multi-Platform is still in its infancy.
-The API is not yet stable and may evolve. Try it out but please be aware of its
+include::partial$Intro_Header.adoc[]
+
+NOTE: Mill Kotlin support is currently focused on the JVM, with a lot of APIs
+still under active development. It is expected to continue evolving over time
+as Android and Multiplatform support is fleshed out. Try it out, but please be aware of its
 limitations!
-
-
-include::partial$Intro_to_Mill_Header.adoc[]
-
-
-include::partial$Intro_Maven_Gradle_Comparison.adoc[]
-
-Mill's Kotlin support originated as the third-party plugin
-https://github.com/lefou/mill-kotlin[lefou/mill-kotlin], which was later included with
-the main Mill codebase under its https://github.com/lefou/mill-kotlin/blob/main/LICENSE[Apache 2.0 License].
-
-include::partial$Intro_to_Mill_BlogVideo.adoc[]
 
 == Simple Kotlin Module
 
@@ -55,8 +26,19 @@ include::partial$example/kotlinlib/basic/2-custom-build-logic.adoc[]
 
 include::partial$example/kotlinlib/basic/3-multi-module.adoc[]
 
-include::partial$Intro_to_Mill_Footer.adoc[]
-
 == Maven-Compatible Modules
 
 include::partial$example/kotlinlib/basic/4-compat-modules.adoc[]
+
+
+== Realistic Kotlin Example Project
+
+include::partial$example/kotlinlib/basic/6-realistic.adoc[]
+
+
+== History
+
+Mill's Kotlin support originated as the third-party plugin
+https://github.com/lefou/mill-kotlin[lefou/mill-kotlin], which was later included with
+the main Mill codebase under its
+https://github.com/lefou/mill-kotlin/blob/main/LICENSE[Apache 2.0 License].

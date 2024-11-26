@@ -70,14 +70,14 @@ private[dependency] object VersionsFinder {
       }
     }
 
-  private def resolveVersions(progres: Progress)(
+  private def resolveVersions(progress: Progress)(
       resolvedDependencies: ResolvedDependencies
   ): Task[ModuleDependenciesVersions] = Task.Anon {
     val (javaModule, metadataLoaders, dependencies) = resolvedDependencies
 
     val versions = dependencies.map { dependency =>
       T.log.ticker(
-        s"Analyzing dependencies [${progres.next()}/${progres.count}]: ${javaModule} / ${dependency.module}"
+        s"Analyzing dependencies [${progress.next()}/${progress.count}]: ${javaModule} / ${dependency.module}"
       )
       val currentVersion = Version(dependency.version)
       val allVersions =

@@ -1,17 +1,16 @@
 package com.example;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.handler.HandlerList;
-import org.eclipse.jetty.server.handler.HandlerWrapper;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-
-import static org.junit.Assert.assertEquals;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.handler.HandlerList;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 public class HelloJettyTest {
   private Server server;
@@ -43,7 +42,7 @@ public class HelloJettyTest {
   public void testHelloJetty() throws IOException {
     URL url = new URL("http://localhost:" + port + "/");
     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-    
+
     connection.setRequestMethod("GET");
     connection.connect();
 
