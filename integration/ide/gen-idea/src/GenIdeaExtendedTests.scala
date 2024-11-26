@@ -18,16 +18,12 @@ object GenIdeaExtendedTests extends UtestIntegrationTestSuite {
 
       eval("mill.idea.GenIdea/")
 
-      val checks = resources.map { resource =>
-        Try {
+      for(resource <- resources) {
           GenIdeaUtils.assertIdeaXmlResourceMatchesFile(
             workspacePath,
             resource
           )
-        }
       }
-      assert(checks.forall(_.isSuccess))
     }
   }
-
 }
