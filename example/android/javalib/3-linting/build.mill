@@ -35,7 +35,7 @@ object app extends AndroidLintModule {
   // Set path to the location of the project source codes
   def sourcesPath = Task.Source { (millSourcePath / "src" / "main" / "java") }
 
-  // Specify the arguments for Android Lint
+  // Specify additional flag options for Android Lint not defined in `AndroidLintModule`
   def androidLintArgs: T[Seq[String]] = Task {
     Seq(
       "--classpath",
@@ -71,7 +71,7 @@ AndroidManifest.xml:3: Error: Avoid hardcoding the debug mode; leaving it out al
 
 > sed -i.bak 's/ android:debuggable="true"//g' app/AndroidManifest.xml # Fix the HardcodedDebugMode warning issue from `AndroidManifest.xml`
 
-> ./mill clean && ./mill app.androidLintRun # Clean the cache and rerun the android lint
+> ./mill clean app.androidLintRun && ./mill app.androidLintRun # Clean cache of androidLintRun task and rerun it new changes to reflect
 
 > cat out/app/androidLintRun.dest/report.txt # Check the content of report again
 No issues found.
@@ -87,7 +87,7 @@ No issues found.
 
 > sed -i.bak 's/severity="ignore"/severity="warning"/g' app/lint.xml # Set `MissingApplicationIcon` severity level to warning
 
-> ./mill clean && ./mill app.androidLintRun # Clean the cache and rerun the android lint
+> ./mill clean app.androidLintRun && ./mill app.androidLintRun # Clean cache of androidLintRun task and rerun it new changes to reflect
 
 > cat out/app/androidLintRun.dest/report.txt # Output the changes in the report
 AndroidManifest.xml:3: Warning: Should explicitly set android:icon, there is no default [MissingApplicationIcon]
