@@ -2,10 +2,10 @@
 
 // This Mill build configuration includes a linting step, which is essential for ensuring code
 // quality and adhering to best practices in Android development projects. Running the `androidLintRun` task
-// with the availble flag options, identify potential issues in the code, such as performance,
+// produces a detailed HTML report by default, identifying potential issues in the code, such as performance,
 // security, and usability warnings. This helps maintain the health and quality of the codebase.
 
-// In this example, we set a custom config to generate the report file in txt format.
+// In this example, we set a custom config to generate the report file in txt format and not HTML.
 
 //// SNIPPET:BUILD
 package build
@@ -23,6 +23,12 @@ object androidSdkModule0 extends AndroidSdkModule {
 object app extends AndroidLintModule {
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
 
+  // Set path to the custom `lint.xml` config file. It is usually at the root of the project
+  def androidLintConfigPath = Task { Some(PathRef(millSourcePath / "lint.xml")) }
+
+  // Set the linting report to be generated as a text file
+  def androidLintReportFmt = Task { "txt" }
+
   // Set path to generated `.jar` files in this case (or `.class` files)
   def classPath = Task.Source { androidJar() }
 
@@ -32,10 +38,6 @@ object app extends AndroidLintModule {
   // Specify the arguments for Android Lint
   def androidLintArgs: T[Seq[String]] = Task {
     Seq(
-      "--text",
-      Task.dest.toString + "/report.txt",
-      "--config",
-      millSourcePath.toString + "/lint.xml",
       "--classpath",
       classPath().path.toString,
       "--sources",
@@ -61,18 +63,17 @@ object app extends AndroidLintModule {
 
 /** Usage
 
-> ./mill app.androidLintRun  # Run Android Linting
-done compiling
-...
+> ./mill show app.androidLintRun  # Display full path to the linting report in text file
+".../out/app/androidLintRun.dest/report.txt"
 
-> cat out/app/androidLintArgs.dest/report.txt # Display content of the linting report
+> cat out/app/androidLintRun.dest/report.txt # Display content of the linting report
 AndroidManifest.xml:3: Error: Avoid hardcoding the debug mode; leaving it out allows debug and release builds to automatically assign one [HardcodedDebugMode]
 
 > sed -i.bak 's/ android:debuggable="true"//g' app/AndroidManifest.xml # Fix the HardcodedDebugMode warning issue from `AndroidManifest.xml`
 
 > ./mill clean && ./mill app.androidLintRun # Clean the cache and rerun the android lint
 
-> cat out/app/androidLintArgs.dest/report.txt # Check the content of report again
+> cat out/app/androidLintRun.dest/report.txt # Check the content of report again
 No issues found.
 
 */
@@ -88,7 +89,7 @@ No issues found.
 
 > ./mill clean && ./mill app.androidLintRun # Clean the cache and rerun the android lint
 
-> cat out/app/androidLintArgs.dest/report.txt # Output the changes in the report
+> cat out/app/androidLintRun.dest/report.txt # Output the changes in the report
 AndroidManifest.xml:3: Warning: Should explicitly set android:icon, there is no default [MissingApplicationIcon]
 
 */
