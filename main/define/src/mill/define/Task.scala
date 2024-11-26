@@ -451,7 +451,9 @@ object Target extends TaskBase {
       )
     }
 
-    def targetResultImpl[T: Type](using Quotes)(t: Expr[Result[T]])(
+    def targetResultImpl[T: Type](using
+        Quotes
+    )(t: Expr[Result[T]])(
         rw: Expr[RW[T]],
         ctx: Expr[mill.define.Ctx],
         caller: Expr[TraverseCtxHolder]
@@ -472,7 +474,9 @@ object Target extends TaskBase {
       )
     }
 
-    def persistentTargetResultImpl[T: Type](using Quotes)(t: Expr[Result[T]])(
+    def persistentTargetResultImpl[T: Type](using
+        Quotes
+    )(t: Expr[Result[T]])(
         rw: Expr[RW[T]],
         ctx: Expr[mill.define.Ctx],
         caller: Expr[Task.ApplyFactory]
@@ -500,7 +504,9 @@ object Target extends TaskBase {
       )
     }
 
-    def targetTaskImpl[T: Type](using Quotes)(t: Expr[Task[T]])(
+    def targetTaskImpl[T: Type](using
+        Quotes
+    )(t: Expr[Task[T]])(
         rw: Expr[RW[T]],
         ctx: Expr[mill.define.Ctx]
     ): Expr[Target[T]] = {
@@ -518,7 +524,9 @@ object Target extends TaskBase {
       )
     }
 
-    def sourcesImpl1(using Quotes)(values: Expr[Seq[Result[os.Path]]])(
+    def sourcesImpl1(using
+        Quotes
+    )(values: Expr[Seq[Result[os.Path]]])(
         ctx: Expr[mill.define.Ctx],
         caller: Expr[TraverseCtxHolder]
     ): Expr[Target[Seq[PathRef]]] = {
@@ -545,7 +553,9 @@ object Target extends TaskBase {
       )
     }
 
-    def sourcesImpl2(using Quotes)(
+    def sourcesImpl2(using
+        Quotes
+    )(
         values: Expr[Result[Seq[PathRef]]]
     )(
         ctx: Expr[mill.define.Ctx],
@@ -615,7 +625,9 @@ object Target extends TaskBase {
       )
     }
 
-    def inputImpl[T: Type](using Quotes)(value: Expr[Result[T]])(
+    def inputImpl[T: Type](using
+        Quotes
+    )(value: Expr[Result[T]])(
         w: Expr[upickle.default.Writer[T]],
         ctx: Expr[mill.define.Ctx],
         caller: Expr[TraverseCtxHolder]
@@ -636,7 +648,9 @@ object Target extends TaskBase {
       )
     }
 
-    def commandFromTask[T: Type](using Quotes)(t: Expr[Task[T]])(
+    def commandFromTask[T: Type](using
+        Quotes
+    )(t: Expr[Task[T]])(
         ctx: Expr[mill.define.Ctx],
         w: Expr[W[T]],
         cls: Expr[EnclosingClass]
@@ -654,7 +668,9 @@ object Target extends TaskBase {
       }
     }
 
-    def commandImpl[T: Type](using Quotes)(t: Expr[Result[T]])(
+    def commandImpl[T: Type](using
+        Quotes
+    )(t: Expr[Result[T]])(
         w: Expr[W[T]],
         ctx: Expr[mill.define.Ctx],
         cls: Expr[EnclosingClass],
@@ -675,7 +691,9 @@ object Target extends TaskBase {
       }
     }
 
-    def serialCommandImpl[T: Type](using Quotes)(t: Expr[Result[T]])(
+    def serialCommandImpl[T: Type](using
+        Quotes
+    )(t: Expr[Result[T]])(
         w: Expr[W[T]],
         ctx: Expr[mill.define.Ctx],
         cls: Expr[EnclosingClass],
@@ -729,7 +747,9 @@ object Target extends TaskBase {
       )
     }
 
-    def persistentImpl[T: Type](using Quotes)(t: Expr[Result[T]])(
+    def persistentImpl[T: Type](using
+        Quotes
+    )(t: Expr[Result[T]])(
         rw: Expr[RW[T]],
         ctx: Expr[mill.define.Ctx],
         caller: Expr[TraverseCtxHolder]

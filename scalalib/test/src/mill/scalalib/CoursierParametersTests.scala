@@ -19,7 +19,13 @@ object CoursierParametersTests extends TestSuite {
       }
       def resolutionParams = Task.Anon {
         super.resolutionParams()
-          .addForceVersion((coursier.Module(coursier.Organization("com.lihaoyi"), coursier.ModuleName("pprint_2.13")), "0.8.1"))
+          .addForceVersion((
+            coursier.Module(
+              coursier.Organization("com.lihaoyi"),
+              coursier.ModuleName("pprint_2.13")
+            ),
+            "0.8.1"
+          ))
       }
     }
   }

@@ -3,7 +3,6 @@ package mill.javalib.android
 import mill._
 import mill.scalalib._
 import mill.api.PathRef
-import mill.javalib.android.AndroidAppModule
 
 /**
  * A Trait for Android App Bundle Creation

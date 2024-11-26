@@ -59,9 +59,11 @@ object JsonFormatters extends JsonFormatters {
       Mirrors.autoRoot[coursier.core.Type]
     given Root_coursier_Classifier: Mirrors.Root[coursier.core.Classifier] =
       Mirrors.autoRoot[coursier.core.Classifier]
-    given Root_core_coursier_DependencyManagement_Key: Mirrors.Root[coursier.core.DependencyManagement.Key] =
+    given Root_core_coursier_DependencyManagement_Key
+        : Mirrors.Root[coursier.core.DependencyManagement.Key] =
       Mirrors.autoRoot[coursier.core.DependencyManagement.Key]
-    given Root_core_coursier_DependencyManagement_Values: Mirrors.Root[coursier.core.DependencyManagement.Values] =
+    given Root_core_coursier_DependencyManagement_Values
+        : Mirrors.Root[coursier.core.DependencyManagement.Values] =
       Mirrors.autoRoot[coursier.core.DependencyManagement.Values]
   }
 }

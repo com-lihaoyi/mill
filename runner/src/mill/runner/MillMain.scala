@@ -300,14 +300,13 @@ object MillMain {
                       )
                       BspContext.bspServerHandle.stop()
                     }
-
-                    // return with evaluation result
-                    loopRes
                   }
+
+                  // return with evaluation result
+                  loopRes
                 }
               }
             }
-
             if (config.ringBell.value) {
               if (success) println("\u0007")
               else {
@@ -318,9 +317,9 @@ object MillMain {
             }
             (success, nextStateCache)
 
+        }
       }
     }
-  }
   }
 
   private[runner] def parseThreadCount(
