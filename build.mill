@@ -511,6 +511,7 @@ trait MillBaseTestsModule extends TestModule {
   }
 
   def testFramework = "mill.UTestFramework"
+  def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
 }
 
 /** Published module which does not contain strictly handled API. */
