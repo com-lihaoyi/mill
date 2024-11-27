@@ -13,7 +13,7 @@ import utest.framework.TestPath
 object ProguardTests extends TestSuite {
 
   object proguard extends TestBaseModule with ScalaModule with Proguard {
-    override def scalaVersion: T[String] = T(sys.props.getOrElse("MILL_SCALA_2_13_VERSION", ???))
+    override def scalaVersion: T[String] = T(sys.props.getOrElse("MILL_SCALA_3_NEXT_VERSION", ???))
 
     def proguardContribClasspath = Task {
       millProjectModule("mill-contrib-proguard", repositoriesTask())

@@ -14,7 +14,7 @@ private[mill] object Reflect {
   def standaloneIdent[_p: P]: P[String] = P(Start ~ ident ~ End)
 
   def isLegalIdentifier(identifier: String): Boolean =
-    parse(identifier, standaloneIdent(_)).isInstanceOf[Parsed.Success[_]]
+    parse(identifier, standaloneIdent(using _)).isInstanceOf[Parsed.Success[_]]
 
   def reflect(
       outer: Class[_],

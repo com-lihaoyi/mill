@@ -231,6 +231,6 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
 private[scalajslib] object ScalaJSWorkerExternalModule extends mill.define.ExternalModule {
 
   def scalaJSWorker: Worker[ScalaJSWorker] =
-    Task.Worker { new ScalaJSWorker(Task.ctx.asInstanceOf[mill.api.Ctx.Jobs].jobs) }
+    Task.Worker { new ScalaJSWorker(Task.ctx().asInstanceOf[mill.api.Ctx.Jobs].jobs) }
   lazy val millDiscover: Discover = Discover[this.type]
 }

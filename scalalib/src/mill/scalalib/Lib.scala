@@ -128,6 +128,9 @@ object Lib {
       customizer = customizer,
       ctx = ctx,
       coursierCacheCustomizer = coursierCacheCustomizer,
+      // SCALA 3.5.0, for some reason, without resolveFilter,
+      // then coursierCacheCustomizer is not typed correctly
+      resolveFilter = _ => true,
       resolutionParams = resolutionParams
     ).map(_.map(_.withRevalidateOnce))
   }

@@ -42,6 +42,7 @@ trait Module extends Module.BaseClass {
   implicit def millModuleSegments: Segments = {
     millOuterCtx.segments ++ Seq(millOuterCtx.segment)
   }
+  final given millModuleCaller: Caller = Caller(this)
 
   override def toString = millModuleSegments.render
 }
