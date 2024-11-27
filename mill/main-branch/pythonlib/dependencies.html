@@ -3,10 +3,9 @@
 <html lang="en"><head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Testing Kotlin Projects :: The Mill JVM Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/kotlinlib/testing.html" />
-    <link rel="prev" href="dependencies.html" />
-    <link rel="next" href="linting.html" />
+    <title>Python Library Dependencies :: The Mill JVM Build Tool</title>
+    <link rel="prev" href="intro.html" />
+    <link rel="next" href="../android/java.html" />
     <meta name="generator" content="Antora 3.1.9" />
     <link rel="stylesheet" href="../../../_/css/site.css" />
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -164,42 +163,42 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="intro.html">Building Kotlin with Mill</a>
+    <a class="nav-link" href="../kotlinlib/intro.html">Building Kotlin with Mill</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="module-config.html">Kotlin Module Configuration</a>
+    <a class="nav-link" href="../kotlinlib/module-config.html">Kotlin Module Configuration</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="dependencies.html">Kotlin Library Dependencies</a>
-  </li>
-
-  <li class="nav-item is-current-page" data-depth="2">
-    <a class="nav-link" href="testing.html">Testing Kotlin Projects</a>
+    <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="linting.html">Linting Kotlin Projects</a>
+    <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/linting.html">Linting Kotlin Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="publishing.html">Publishing Kotlin Projects</a>
+    <a class="nav-link" href="../kotlinlib/publishing.html">Publishing Kotlin Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="web-examples.html">Kotlin Web Project Examples</a>
+    <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
   </li>
 </ul>
   </li>
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+    <a class="nav-link" href="intro.html">Building Python with Mill</a>
 <ul class="nav-list">
 
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  <li class="nav-item is-current-page" data-depth="2">
+    <a class="nav-link" href="dependencies.html">Python Library Dependencies</a>
   </li>
 </ul>
   </li>
@@ -512,18 +511,18 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="../index.html">Mill Documentation</a></li>
-    <li><a href="intro.html">Building Kotlin with Mill</a></li>
-    <li><a href="testing.html">Testing Kotlin Projects</a></li>
+    <li><a href="intro.html">Building Python with Mill</a></li>
+    <li><a href="dependencies.html">Python Library Dependencies</a></li>
   </ul>
 </nav>
-<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/kotlinlib/testing.adoc">Edit this Page</a></div>
+<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/pythonlib/dependencies.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">Testing Kotlin Projects</h1>
+<h1 class="page">Python Library Dependencies</h1>
 <div id="preamble">
 <div class="sectionbody">
 
@@ -543,190 +542,141 @@ const links = document.querySelectorAll('a');
 });
 </script>
 <div class="paragraph">
-<p>This page will discuss common topics around working with test suites using the Mill build tool</p>
+<p>This page goes into more detail about configuring third party dependencies
+for `PythonModule`s.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_defining_unit_test_suites"><a class="anchor" href="#_defining_unit_test_suites"></a>Defining Unit Test Suites</h2>
+<h2 id="_adding_dependencies"><a class="anchor" href="#_adding_dependencies"></a>Adding Dependencies</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-kotlinlib-testing-1-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/kotlinlib/testing/1-test-suite">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-pythonlib-dependencies-1-pip-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/pythonlib/dependencies/1-pip-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, kotlinlib._
+import mill._, pythonlib._
 
-object foo extends KotlinModule {
-
-  def mainClass = Some(&quot;foo.FooKt&quot;)
-
-  def kotlinVersion = &quot;1.9.24&quot;
-
-  object test extends KotlinTests {
-    def testFramework = &quot;com.github.sbt.junit.jupiter.api.JupiterFramework&quot;
-    def ivyDeps = Agg(
-      ivy&quot;com.github.sbt.junit:jupiter-interface:0.11.4&quot;,
-      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
-      ivy&quot;org.mockito.kotlin:mockito-kotlin:5.4.0&quot;
-    )
-
-    // This is needed because of the &quot;mockito-kotlin&quot;
-    def kotlincOptions = super.kotlincOptions() ++ Seq(&quot;-jvm-target&quot;, &quot;11&quot;)
-  }
+object `package` extends RootModule with PythonModule {
+  def pythonDeps = Seq(
+    &quot;numpy==2.1.2&quot;,
+    &quot;pandas~=2.2.3&quot;,
+    &quot;jinja2 @ https://github.com/pallets/jinja/releases/download/3.1.4/jinja2-3.1.4-py3-none-any.whl&quot;
+  )
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>This build defines a single module with a test suite, configured to use
-&quot;JUnit&quot; + &quot;Kotest&quot; as the testing framework, along with Mockito. Test suites are themselves
-<code>KotlinModule</code>s, nested within the enclosing module,
-and have all the normal tasks like
-<code>foo.test.compile</code> available to run, but with an additional <code>.test</code> task
-that runs the tests. You can also run the test suite directly, in which case
-it will run the <code>.test</code> task as the default task for that module.</p>
+<p>You can define the <code>pythonDeps</code> field to add dependencies to your module, which will be installed
+via <a href="https://pip.pypa.io/en/stable/">pip</a>. Dependencies can include
+<a href="https://peps.python.org/pep-0440/">anything that pip understands</a>, such as <code>&lt;package&gt;==&lt;version&gt;</code>
+constraints, or even direct references to wheels.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.compile
-Compiling 1 ... source...
-
-&gt; mill foo.test.compile
-Compiling 1 ... source...
-
-&gt; mill foo.test.test
-...foo.FooTests...hello ...
-...foo.FooTests...world ...
-
-&gt; mill foo.test # same as above, `.test` is the default task for the `test` module
-...foo.FooTests...hello ...
-...foo.FooTests...world ...
-
-&gt; mill foo.test.testOnly foo.FooTests # explicitly select the test class you wish to run
-...foo.FooTests...hello ...
-...foo.FooTests...world ...</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
+[10 20 30 40 50]</code></pre>
 </div>
 </div>
+<div class="sect2">
+<h3 id="_adding_dependencies_via_requirements_txt_files"><a class="anchor" href="#_adding_dependencies_via_requirements_txt_files"></a>Adding Dependencies via requirements.txt files</h3>
 <div class="paragraph">
-<p>For convenience, you can also use one of the predefined test frameworks:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>TestModule.Junit4</code></p>
-</li>
-<li>
-<p><code>TestModule.Junit5</code></p>
-</li>
-<li>
-<p><code>TestModule.TestNg</code></p>
-</li>
-<li>
-<p><code>TestModule.Munit</code></p>
-</li>
-<li>
-<p><code>TestModule.ScalaTest</code></p>
-</li>
-<li>
-<p><code>TestModule.Specs2</code></p>
-</li>
-<li>
-<p><code>TestModule.Utest</code></p>
-</li>
-<li>
-<p><code>TestModule.ZioTest</code></p>
-</li>
-</ul>
+<p>You can also read dependencies from <code>requirements.txt</code> files. This can be
+useful if you’re migrating an existing project to mill.</p>
 </div>
 <div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-pythonlib-dependencies-2-pip-requirements.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/pythonlib/dependencies/2-pip-requirements">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends KotlinModule {
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, pythonlib._
 
-  def mainClass = Some(&quot;bar.BarKt&quot;)
-
-  def kotlinVersion = &quot;1.9.24&quot;
-
-  object test extends KotlinTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
-      ivy&quot;org.mockito.kotlin:mockito-kotlin:5.4.0&quot;
-    )
-
-    // This is needed because of the &quot;mockito-kotlin&quot;
-    def kotlincOptions = super.kotlincOptions() ++ Seq(&quot;-jvm-target&quot;, &quot;11&quot;)
+object `package` extends RootModule with PythonModule {
+  def pythonRequirementFiles = Task.Sources {
+    millSourcePath / &quot;requirements.txt&quot;
   }
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill bar.test
-...bar.BarTests...hello ...
-...bar.BarTests...world ...</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
+[10 20 30 40 50]</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_unmanaged_wheels"><a class="anchor" href="#_unmanaged_wheels"></a>Unmanaged Wheels</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In most scenarios you should rely on <code>pythonDeps</code>/<code>moduleDeps</code> and let Mill
+manage the downloading and caching of wheels for you. But in the rare case
+you receive a wheel or folder-full-of-wheels from somewhere and need to
+include it in your project, <code>unmanagedWheels</code> is the way to do it.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-pythonlib-dependencies-3-unmanaged-wheels.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/pythonlib/dependencies/3-unmanaged-wheels">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, pythonlib._
+
+object `package` extends RootModule with PythonModule {
+  def unmanagedWheels: T[Seq[PathRef]] = Task.Input {
+    Seq.from(os.list(millSourcePath / &quot;lib&quot;).map(PathRef(_)))
+  }
+}</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>You can also select multiple test suites in one command using Mill’s
-<a href="../cli/query-syntax.html" class="xref page">Task Query Syntax</a></p>
+<p>You can override <code>unmanagedWheels</code> to point it at a wheel (.whl file) or
+source distribution (.tar.gz with a pyproject.toml file) you place on the
+filesystem, e.g. in the above snippet any files that happen to live in the
+<code>lib/</code> folder.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill __.test
-...bar.BarTests...hello ...
-...bar.BarTests...world ...
-...foo.FooTests...hello ...
-...foo.FooTests...world ...
-...</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
+b'&quot;Hello, world!&quot;'</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_downloading_unmanaged_wheels"><a class="anchor" href="#_downloading_unmanaged_wheels"></a>Downloading Unmanaged Wheels</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can also override <code>unmanagedWheels</code> to point it at wheels that you want to
+download from arbitrary URLs.
+<code>requests.get</code> comes from the <a href="https://github.com/com-lihaoyi/requests-scala">Requests-Scala</a>
+library, one of Mill’s <a href="../fundamentals/bundled-libraries.html" class="xref page">Bundled Libraries</a>.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-pythonlib-dependencies-4-downloading-unmanaged-wheels.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/pythonlib/dependencies/4-downloading-unmanaged-wheels">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, pythonlib._
+
+object `package` extends RootModule with PythonModule {
+  def unmanagedWheels = Task {
+    val name = &quot;jinja2-3.1.4-py3-none-any.whl&quot;
+    val url = s&quot;https://github.com/pallets/jinja/releases/download/3.1.4/$name&quot;
+    os.write(Task.dest / name, requests.get.stream(url))
+    Seq(PathRef(Task.dest / name))
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
+Hello, world!</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Mill provides three ways of running tests</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.test</code></pre>
-</div>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>foo.test</code>: runs tests in a subprocess in an empty <code>sandbox/</code> folder. This is short
-for <code>foo.test.test</code>, as <code>test</code> is the default task for <code>TestModule</code>s.</p>
-</li>
-</ul>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.test.testCached</code></pre>
-</div>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>foo.test.testCached</code>: runs the tests in an empty <code>sandbox/</code> folder and caches the results
-if successful. This can be handy if you are you working on some upstream modules and only
-want to run downstream tests which are affected: using <code>testCached</code>, downstream tests which
-are not affected will be cached after the first run and not re-run unless you change some
-file upstream of them.</p>
-</li>
-</ul>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.test.testLocal</code></pre>
-</div>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>foo.test.testLocal</code>: runs tests in an isolated classloader as part of the main Mill process.
-This can be faster than <code>.test</code>, but is less flexible (e.g. you cannot pass <code>forkEnv</code>)
-and more prone to interference (<code>testLocal</code> runs do not run in <a href="../depth/sandboxing.html" class="xref page">sandbox folders</a>)</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>It is common to run tests with <a href="../cli/flags.html#_watch_w" class="xref page">-w/--watch</a>
-enabled, so that once you save a file to disk the selected tests get re-run.</p>
+<p>Tasks like <code>unmanagedWheels</code> and <code>pythonDeps</code> are cached, so your wheel is downloaded only
+once and re-used indefinitely after that. This is usually not a problem, because usually URLs
+follow the rule that <a href="https://www.w3.org/Provider/Style/URI">Cool URIs don’t change</a>, and so files
+downloaded from the same URL will always contain the same contents.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -735,300 +685,129 @@ enabled, so that once you save a file to disk the selected tests get re-run.</p>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-Mill runs tests with the working directory set to an empty
-<a href="../depth/sandboxing.html" class="xref page">sandbox/ folder</a> by default.
-Tests can access files from their resource directory via the environment variable
-<code>MILL_TEST_RESOURCE_DIR</code> which provides the path to the resource folder, and additional
-paths can be provided to test via <code>forkEnv</code>. See
-<a href="../javalib/module-config.html#_classpath_and_filesystem_resources" class="xref page">Classpath and Filesystem Resources</a>
-for more details.
+An unmanaged wheel downloaded via <code>requests.get</code> is still unmanaged: even though you
+downloaded it from somewhere, <code>requests.get</code> does not know how to pull in third party
+dependencies or de-duplicate different versions on the classpath. All the same caveats you need
+to worry about when dealing with <a href="#_unmanaged_wheels">unmanaged wheels</a> apply here as well. In
+case you <strong>do</strong> want mill to take care of managing dependencies of a package which is not
+available on PyPI, you shouldn’t get that package in <code>unmanagedWheels</code> (like we did in the
+example above). Instead, you can declare the dependency as a regular <code>pythonDep</code>
+<a href="https://peps.python.org/pep-0440/#direct-references">as a direct URL that pip understands</a>.
 </td>
 </tr>
 </tbody></table>
 </div>
-<div class="paragraph">
-<p>If you want to pass any arguments to the test framework, you can pass them after
-<code>foo.test</code> in the command line. e.g. <a href="https://github.com/com-lihaoyi/utest">uTest</a>
-lets you pass in a selector to decide which test to run, which in Mill would be:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; kotest_filter_tests='hello' kotest_filter_specs='bar.BarTests' ./mill bar.test
-...bar.BarTests...hello ...</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This command only runs the <code>hello</code> test case in the <code>bar.BarTests</code> test suite class.</p>
-</div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_test_dependencies"><a class="anchor" href="#_test_dependencies"></a>Test Dependencies</h2>
+<h2 id="_using_custom_package_indexes"><a class="anchor" href="#_using_custom_package_indexes"></a>Using Custom Package Indexes</h2>
 <div class="sectionbody">
-<div class="admonitionblock important">
-<table>
-<tbody><tr>
-<td class="icon">
-<i class="fa icon-important" title="Important"></i>
-</td>
-<td class="content">
 <div class="paragraph">
-<p><em>Mill has no <code>test</code>-scoped dependencies!</em></p>
-</div>
-</td>
-</tr>
-</tbody></table>
-</div>
-<div class="paragraph">
-<p>You might be used to test-scoped dependencies from other build tools like
-Maven, Gradle or sbt. As test modules in Mill are just regular modules,
-there is no special need for a dedicated test-scope. You can use <code>ivyDeps</code>
-and <code>runIvyDeps</code> to declare dependencies in test modules, and test modules
-can use their <code>moduleDeps</code> to also depend on each other</p>
+<p>By default, dependencies are resolved from <a href="https://pypi.org/">the Python
+Package Index (PyPI)</a>, the standard package index for python projects. You
+can also add your own package indexes by overriding the <code>indexes</code> task in
+the module:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-kotlinlib-testing-2-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/kotlinlib/testing/2-test-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-pythonlib-dependencies-5-repository-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/pythonlib/dependencies/5-repository-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, kotlinlib._
+import mill._, pythonlib._
 
-object qux extends KotlinModule {
+object foo extends PythonModule {
 
-  def kotlinVersion = &quot;1.9.24&quot;
+  def pythonDeps = Seq(
+    &quot;testpkg-jodersky==0.0.1&quot; // a test package, only available on test.pypi.org
+  )
 
-  def moduleDeps = Seq(baz)
-
-  object test extends KotlinTests with TestModule.Junit5 {
-    def moduleDeps = super.moduleDeps ++ Seq(baz.test)
-    def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
-      ivy&quot;com.google.guava:guava:33.3.0-jre&quot;
-    )
-  }
-}
-
-object baz extends KotlinModule {
-
-  def kotlinVersion = &quot;1.9.24&quot;
-
-  object test extends KotlinTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
-      ivy&quot;com.google.guava:guava:33.3.0-jre&quot;
-    )
+  // override this task to add or replace the package indexes
+  def indexes = super.indexes() ++ Seq(&quot;https://test.pypi.org/simple/&quot;)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Mill uses <a href="https://pip.pypa.io/en/stable/">pip</a> to find and install dependencies.</p>
+</div>
+<div class="paragraph">
+<p>You can configure pip through its
+<a href="https://pip.pypa.io/en/stable/topics/configuration/#location">normal configuration files.</a></p>
+</div>
+<div class="sect2">
+<h3 id="_private_indexes"><a class="anchor" href="#_private_indexes"></a>Private indexes</h3>
+<div class="paragraph">
+<p>You can read up in more detail on <a href="https://pip.pypa.io/en/stable/topics/authentication/">how to
+configure pip to authenticate to private indexes</a>. Here is an example which reads a package from
+an environment variable:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends PythonModule {
+  def indexPassword = Task.Input { Task.env.apply(&quot;COMPANY_PASSWORD&quot;) }
+  def indexes = Task {
+    Seq(s&quot;https://username:${indexPassword()}@pypi.company.com/simple&quot;)
   }
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>In this example, not only does <code>qux</code> depend on <code>baz</code>, but we also make
-<code>qux.test</code> depend on <code>baz.test</code>.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="../_images/basic/VisualizeTestDeps.svg" alt="VisualizeTestDeps.svg" />
-</div>
-</div>
-<div class="paragraph">
-<p>That lets <code>qux.test</code> make use of the
-<code>BazTestUtils</code> class that <code>baz.test</code> defines, allowing us to re-use this
-test helper throughout multiple modules' test suites</p>
+<p>More advanced authentication techniques are available by configuring pip directly.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill qux.test
-Using BazTestUtils.bazAssertEquals
-... qux.QuxTests...simple ...
-...
-
-&gt; ./mill baz.test
-Using BazTestUtils.bazAssertEquals
-... baz.BazTests...simple ...
-...</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.run
+2</code></pre>
+</div>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_defining_integration_test_suites"><a class="anchor" href="#_defining_integration_test_suites"></a>Defining Integration Test Suites</h2>
+<h2 id="_debugging"><a class="anchor" href="#_debugging"></a>Debugging</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>You can also define test suites with different names other than <code>test</code>. For example,
-the build below defines a test suite with the name <code>integration</code>, in addition
-to that named <code>test</code>.</p>
+<p>In case anything goes wrong, or if you’re just curious, you can see what
+arguments mill passes to <code>pip install</code> by looking at the output of the
+<code>pipInstallArgs</code> task.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-kotlinlib-testing-3-integration-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/kotlinlib/testing/3-integration-suite">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-pythonlib-dependencies-6-debugging.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/pythonlib/dependencies/6-debugging">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, kotlinlib._
-object qux extends KotlinModule {
+import mill._, pythonlib._
 
-  def kotlinVersion = &quot;1.9.24&quot;
+object `package` extends RootModule with PythonModule {
+  def pythonDeps = Seq(
+    &quot;numpy==2.1.2&quot;,
+    &quot;pandas~=2.2.3&quot;,
+    &quot;jinja2 @ https://github.com/pallets/jinja/releases/download/3.1.4/jinja2-3.1.4-py3-none-any.whl&quot;
+  )
 
-  object test extends KotlinTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;
-    )
-  }
-  object integration extends KotlinTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;
-    )
-  }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The integration suite is just another regular test module within the parent KotlinModule
-(This example also demonstrates using Junit 5 instead of Junit 4)</p>
-</div>
-<div class="paragraph">
-<p>These two test modules will expect their sources to be in their respective <code>qux/test</code> and
-<code>qux/integration</code> folder respectively</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill 'qux.{test,integration}' # run both test suites
-...qux.QuxTests...hello...
-...qux.QuxTests...world...
-...qux.QuxIntegrationTests...helloworld...
-
-&gt; mill __.integration.testCached # run all integration test suites</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_test_grouping"><a class="anchor" href="#_test_grouping"></a>Test Grouping</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Test Grouping is an opt-in feature that allows you to take a single
-test module and group the test classes such that each group will
-execute in parallel when you call <code>test</code>. Test grouping is enabled
-by overriding <code>def testForkGrouping</code>, as shown below:</p>
-</div>
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-kotlinlib-testing-4-test-grouping.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/kotlinlib/testing/4-test-grouping">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, kotlinlib._
-
-object foo extends KotlinModule {
-
-  def mainClass = Some(&quot;foo.FooKt&quot;)
-
-  def kotlinVersion = &quot;1.9.24&quot;
-
-  object test extends KotlinTests {
-    def testFramework = &quot;com.github.sbt.junit.jupiter.api.JupiterFramework&quot;
-    def ivyDeps = Agg(
-      ivy&quot;com.github.sbt.junit:jupiter-interface:0.11.4&quot;,
-      ivy&quot;io.kotest:kotest-runner-junit5-jvm:5.9.1&quot;,
-      ivy&quot;org.mockito.kotlin:mockito-kotlin:5.4.0&quot;
-    )
-
-    def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
-  }
+  def indexes = Seq(&quot;invalid_index&quot;)
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/foo/HelloTests.kt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/kotlinlib/testing/4-test-grouping/foo/test/src/foo/HelloTests.kt">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
-
-import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.string.shouldStartWith
-
-class HelloTests :
-    FunSpec({
-        test(&quot;hello&quot;) {
-            println(&quot;Testing Hello&quot;)
-            val result = Foo().hello()
-            result shouldStartWith &quot;Hello&quot;
-            java.lang.Thread.sleep(1000)
-            println(&quot;Testing Hello Completed&quot;)
-        }
-    })</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show pipInstallArgs
+{
+  &quot;args&quot;: [
+    &quot;--index-url&quot;,
+    &quot;invalid_index&quot;,
+    &quot;mypy==1.13.0&quot;,
+    &quot;pex==2.24.1&quot;,
+    &quot;numpy==2.1.2&quot;,
+    &quot;pandas~=2.2.3&quot;,
+    &quot;jinja2 @ https://github.com/pallets/jinja/releases/download/3.1.4/jinja2-3.1.4-py3-none-any.whl&quot;
+  ],
+  &quot;sig&quot;: ...
+}</code></pre>
 </div>
-</div>
-<div class="listingblock">
-<div class="title">foo/test/src/foo/WorldTests.kt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/kotlinlib/testing/4-test-grouping/foo/test/src/foo/WorldTests.kt">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
-
-import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.string.shouldEndWith
-
-class WorldTests :
-    FunSpec({
-        test(&quot;world&quot;) {
-            println(&quot;Testing World&quot;)
-            val result = Foo().hello()
-            result shouldEndWith &quot;World&quot;
-            java.lang.Thread.sleep(1000)
-            println(&quot;Testing World Completed&quot;)
-        }
-    })</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>In this example, we have one test module <code>foo.test</code>, and two test classes
-<code>HelloTests</code> and <code>WorldTests</code>. By default, all test classes in the same
-module run sequentially in the same JVM, but with <code>testForkGrouping</code> we can break up the
-module and run each test class in parallel in separate JVMs, each with their own
-separate <code>sandbox</code> folder and <code>.log</code> file:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.test
-
-&gt; find out/foo/test/test.dest
-...
-out/foo/test/test.dest/foo.HelloTests.log
-out/foo/test/test.dest/foo.HelloTests/sandbox
-out/foo/test/test.dest/foo.WorldTests.log
-out/foo/test/test.dest/foo.WorldTests/sandbox
-out/foo/test/test.dest/test-report.xml</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Test grouping allows you to run tests in parallel while keeping things deterministic and
-debuggable: parallel test groups will not write over each others files in their
-sandbox, and each one will have a separate set of logs that can be easily read
-without the others mixed in</p>
-</div>
-<div class="paragraph">
-<p>In this example, <code>def testForkGrouping = discoveredTestClasses().grouped(1).toSeq</code> assigns
-each test class to its own group, running in its own JVM. This comes with some overhead
-on a per-JVM basis, so if your test classes are numerous and small you may want to assign
-multiple test classes per group. You can also configure <code>testForkGrouping</code> to choose which
-test classes you want to run together and which to run alone:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>If some test classes
-are much slower than others, you may want to put the slow test classes each in its own
-group to reduce latency, while grouping multiple fast test classes together to reduce the
-per-group overhead of spinning up a separate JVM.</p>
-</li>
-<li>
-<p>Some test classes may have global JVM-wide or filesystem side effects that means they
-have to run alone, while other test classes may be better-behaved and OK to run in a group</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>In general, <code>testForkGrouping</code> leaves it up to you how you want to group your tests for
-execution, based on the unique constraints of your test suite.</p>
 </div>
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="dependencies.html">Kotlin Library Dependencies</a></span>
-  <span class="next"><a href="linting.html">Linting Kotlin Projects</a></span>
+  <span class="prev"><a href="intro.html">Building Python with Mill</a></span>
+  <span class="next"><a href="../android/java.html">Android Java Projects</a></span>
 </nav>
 </article>
   </div>
