@@ -1,0 +1,18 @@
+// You can also read dependencies from `requirements.txt` files. This can be
+// useful if you're migrating an existing project to mill.
+
+package build
+import mill._, pythonlib._
+
+object `package` extends RootModule with PythonModule {
+  def pythonRequirementFiles = Task.Sources {
+    millSourcePath / "requirements.txt"
+  }
+}
+
+/** Usage
+
+> ./mill run
+[10 20 30 40 50]
+
+*/

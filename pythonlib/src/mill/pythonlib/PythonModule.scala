@@ -44,7 +44,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
   def pythonExe: T[PathRef] = Task {
     os.call((hostPythonCommand(), "-m", "venv", Task.dest / "venv"))
     val python = Task.dest / "venv" / "bin" / "python3"
-    os.call((python, "-m", "pip", "install", pipInstallArgs()), stdout = os.Inherit)
+    os.call((python, "-m", "pip", "install", pipInstallArgs().args), stdout = os.Inherit)
     PathRef(python)
   }
 
@@ -61,12 +61,12 @@ trait PythonModule extends PipModule with TaskModule { outer =>
   def resources: T[Seq[PathRef]] = Task.Sources { millSourcePath / "resources" }
 
   /**
-   * The mainScript to run. This file may not exist if this module is only a library.
+   * The python script to run. This file may not exist if this module is only a library.
    */
   def mainScript: T[PathRef] = Task.Source { millSourcePath / "src" / "main.py" }
 
-  override def pythonDevDeps: T[Agg[String]] = Task {
-    super.pythonDevDeps() ++ Agg("mypy==1.13.0", "pex==2.24.1")
+  override def pythonToolDeps: T[Seq[String]] = Task {
+    super.pythonToolDeps() ++ Seq("mypy==1.13.0", "pex==2.24.1")
   }
 
   /**
@@ -76,15 +76,6 @@ trait PythonModule extends PipModule with TaskModule { outer =>
   def unmanagedPythonPath: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
 
   /**
-   * Source directories of this module, and all other modules that this module
-   * depends on, recursively.
-   */
-  def transitiveSources: T[Seq[PathRef]] = Task {
-    val upstreamSources = Task.traverse(moduleDeps)(_.transitiveSources)().flatten
-    sources() ++ upstreamSources
-  }
-
-  /**
    * The directories used to construct the PYTHONPATH for this module, used for
    * execution, excluding upstream modules.
    *
@@ -92,7 +83,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
    * directories.
    */
   def localPythonPath: T[Seq[PathRef]] = Task {
-    transitiveSources() ++ unmanagedPythonPath() ++ resources()
+    sources() ++ resources() ++ unmanagedPythonPath()
   }
 
   /**
@@ -136,7 +127,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
   }
 
   /**
-   * Run the main python mainScript of this module.
+   * Run the main python script of this module.
    *
    * @see [[mainScript]]
    */

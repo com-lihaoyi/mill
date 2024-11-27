@@ -1,6 +1,5 @@
 package mill.pythonlib
 
-import mill.Agg
 import mill.Task
 import mill.Command
 import mill.TaskModule
@@ -66,8 +65,8 @@ object TestModule {
   /** TestModule that uses pytest to run tests. */
   trait Pytest extends PythonModule with TestModule {
 
-    override def pythonDeps: T[Agg[String]] = T {
-      super.pythonDeps() ++ Agg("pytest==8.3.3")
+    override def pythonDeps: T[Seq[String]] = T {
+      super.pythonDeps() ++ Seq("pytest==8.3.3")
     }
 
     protected def testTask(args: Task[Seq[String]]) = Task.Anon {

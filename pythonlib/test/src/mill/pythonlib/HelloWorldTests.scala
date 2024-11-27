@@ -30,8 +30,6 @@ object HelloWorldTests extends TestSuite {
       val Right(result) = eval.apply(HelloWorldPython.qux.run(Args()))
 
       assert(baos.toString().contains("Hello,  Qux!\n"))
-      // may need future update
-      // assert(baos.toString() == "Hello,  Qux!\n")
     }
 
     test("test") {
