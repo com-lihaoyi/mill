@@ -718,7 +718,7 @@ object ZincWorkerImpl {
 
             val lines = str.linesWithSeparators.toVector
             val adjustedFile = lines
-              .collectFirst { case s"//MILL_ORIGINAL_FILE_PATH=$rest" => rest.trim }
+              .collectFirst { case s"//SOURCECODE_ORIGINAL_FILE_PATH=$rest" => rest.trim }
               .getOrElse(sys.error(vf.id()))
 
             vf.id() -> remap(lines, adjustedFile)

@@ -84,8 +84,8 @@ object CodeGen {
       val scriptCode = allScriptCode(scriptPath)
 
       val markerComment =
-        s"""//MILL_ORIGINAL_FILE_PATH=$scriptPath
-           |//MILL_USER_CODE_START_MARKER""".stripMargin
+        s"""//SOURCECODE_ORIGINAL_FILE_PATH=$scriptPath
+           |//SOURCECODE_ORIGINAL_CODE_START_MARKER""".stripMargin
 
       val parts =
         if (!isBuildScript) {
