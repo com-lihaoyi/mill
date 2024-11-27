@@ -10,6 +10,13 @@ object `package` extends RootModule {
   // This module isn't really a ScalaModule, but we use it to generate
   // consolidated documentation using the Scaladoc tool.
   object site extends UnidocModule {
+    def unidocSourceFiles = Task {
+      (Seq(compile().classes) ++ T.traverse(moduleDeps)(_.compile)().map(_.classes))
+        .filter(pr => os.exists(pr.path))
+        .flatMap(pr => os.walk(pr.path))
+        .filter(_.ext == "tasty")
+        .map(PathRef(_))
+    }
     def unidocCompileClasspath =
       super.unidocCompileClasspath().filter { ref =>
         // Workaround for https://github.com/scala/bug/issues/10028
