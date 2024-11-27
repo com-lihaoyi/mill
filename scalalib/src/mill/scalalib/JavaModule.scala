@@ -360,6 +360,13 @@ trait JavaModule
     T.traverse(transitiveModuleRunModuleDeps)(_.localClasspath)().flatten
   }
 
+   /**
+   * Almost the same as [[transitiveLocalClasspath]], but using the [[jar]]s instead of [[localClasspath]].
+   */
+  def transitiveJars: T[Seq[PathRef]] = Task {
+    T.traverse(transitiveModuleCompileModuleDeps)(_.jar)()
+  }
+
   /**
    * Same as [[transitiveLocalClasspath]], but with all dependencies on [[compile]]
    * replaced by their non-compiling [[bspCompileClassesPath]] variants.

@@ -1,0 +1,55 @@
+//// SNIPPET:BUILD
+package build
+import mill._, javalib._
+import mill.javalib.Assembly._
+import mill.scalalib.JpackageModule
+
+object foo extends JavaModule with JpackageModule {
+  override def jpackageType = "pkg"
+
+  def assemblyRules = Seq(
+    // all application.conf files will be concatenated into single file
+    Rule.Append("application.conf"),
+    // all *.conf files will be concatenated into single file
+    Rule.AppendPattern(".*\\.conf"),
+  )
+}
+
+
+/** Usage
+
+> mill foo.assembly
+
+> unzip -p ./out/foo/assembly.dest/out.jar application.conf
+Foo Application Conf
+
+> java -jar ./out/foo/assembly.dest/out.jar
+Loaded application.conf from resources: Foo Application Conf
+
+> mill show foo.jpackageAppImage
+".../out/foo/jpackageAppImage.dest/image"
+
+
+# jpackageType accepts 3 values on macOS: "dmg" or "pkg" or "app-image" (default).
+# macOS: jpackageType = "dmg"
+> ls -l ./out/foo/jpackageAppImage.dest/image
+-rw-r--r--@ 1 mac  staff  6291968 Nov 25 15:14 foo-1.0.dmg
+
+# macOS: jpackageType = "pkg"
+> ls -l ./out/foo/jpackageAppImage.dest/image
+total 106360
+-rw-r--r--  1 mac  staff  54456037 Nov 25 15:19 foo-1.0.pkg
+
+# macOS: jpackageType = "app-image"
+> ls -l ./out/foo/jpackageAppImage.dest/image
+drwxr-xr-x  3 mac  staff  96 Nov 25 15:10 foo.app/
+
+> ./out/foo/jpackageAppImage.dest/image/foo.app/Contents/MacOS/foo 
+Loaded application.conf from resources: Foo Application Conf
+
+
+# Linux: jpackageType = "app-image"
+> ./out/foo/jpackageAppImage.dest/image/foo/bin/foo
+Loaded application.conf from resources: Foo Application Conf
+
+*/

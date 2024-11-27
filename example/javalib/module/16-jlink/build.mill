@@ -1,0 +1,23 @@
+//// SNIPPET:BUILD
+package build
+import mill._, javalib._
+import mill.javalib.Assembly._
+import mill.scalalib.JlinkModule
+
+object foo extends JavaModule with JlinkModule {
+  override def jlinkModuleName: T[String] = T { "foo" }
+  override def jlinkModuleVersion: T[Option[String]] = T { Option("1.0.0") }
+}
+
+/** Usage
+
+> mill foo.jlinkAppImage
+
+> mill show foo.jlinkAppImage
+".../out/foo/jlinkAppImage.dest/jlink-runtime"
+
+> ./out/foo/jlinkAppImage.dest/jlink-runtime/bin/jlink
+Nov 27, 2024 7:21:12 PM foo.Bar main
+INFO: Hello World!
+
+*/
