@@ -17,7 +17,7 @@ object GenIdeaTests extends UtestIntegrationTestSuite {
 
       eval("mill.idea.GenIdea/")
 
-      for(resource <- resources) assertIdeaXmlResourceMatchesFile(workspacePath, resource)
+      for (resource <- resources) assertIdeaXmlResourceMatchesFile(workspacePath, resource)
     }
   }
 

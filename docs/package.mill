@@ -475,13 +475,17 @@ object `package` extends RootModule {
       for ((path, remoteLinks, localLinks, ids) <- allLinksAndAnchors0) yield{
         (
           path,
-          localLinks.flatMap{case (elementString, url) =>
-            val (baseUrl, anchorOpt) = url match {
-              case s"#$anchor" => (path.toString, Some(anchor))
-              case s"$prefix#$anchor" => (prefix, Some(anchor))
+          localLinks
+            .filter(_._2 != "#")
+            .filter(_._2.contains("AggWrapper$")) // Not sure why these pages are not getting generated
+            .filter(_._2.startsWith("///")) 
+            .flatMap{case (elementString, url) =>
+              val (baseUrl, anchorOpt) = url match {
+                case s"#$anchor" => (path.toString, Some(anchor))
+                case s"$prefix#$anchor" => (prefix, Some(anchor))
 
-              case url => (url, None)
-            }
+                case url => (url, None)
+              }
 
             val dest0 = os.Path(baseUrl, path / "..")
             val possibleDests = Seq(dest0, dest0 / "index.html")
