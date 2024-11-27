@@ -61,8 +61,7 @@ object Lib {
       coursierCacheCustomizer: Option[
         coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
       ] = None,
-      resolutionParams: ResolutionParams = ResolutionParams(),
-      bomDeps: IterableOnce[(coursier.core.Module, String)] = Nil
+      resolutionParams: ResolutionParams = ResolutionParams()
   ): Result[Resolution] = {
     val depSeq = deps.iterator.toSeq
     mill.util.Jvm.resolveDependenciesMetadataSafe(
@@ -73,8 +72,7 @@ object Lib {
       customizer = customizer,
       ctx = ctx,
       coursierCacheCustomizer = coursierCacheCustomizer,
-      resolutionParams = resolutionParams,
-      bomDeps = bomDeps
+      resolutionParams = resolutionParams
     )
   }
 
@@ -117,8 +115,7 @@ object Lib {
         coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
       ] = None,
       artifactTypes: Option[Set[Type]] = None,
-      resolutionParams: ResolutionParams = ResolutionParams(),
-      bomDeps: IterableOnce[(coursier.core.Module, String)] = Nil
+      resolutionParams: ResolutionParams = ResolutionParams()
   ): Result[Agg[PathRef]] = {
     val depSeq = deps.iterator.toSeq
     mill.util.Jvm.resolveDependencies(
@@ -131,8 +128,7 @@ object Lib {
       customizer = customizer,
       ctx = ctx,
       coursierCacheCustomizer = coursierCacheCustomizer,
-      resolutionParams = resolutionParams,
-      bomDeps = bomDeps
+      resolutionParams = resolutionParams
     ).map(_.map(_.withRevalidateOnce))
   }
 
@@ -182,8 +178,7 @@ object Lib {
       ctx,
       coursierCacheCustomizer,
       None,
-      ResolutionParams(),
-      Nil
+      ResolutionParams()
     )
 
   def scalaCompilerIvyDeps(scalaOrganization: String, scalaVersion: String): Loose.Agg[Dep] =

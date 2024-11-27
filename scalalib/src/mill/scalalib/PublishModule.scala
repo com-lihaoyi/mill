@@ -75,7 +75,7 @@ trait PublishModule extends JavaModule { outer =>
 
   def publishXmlDeps: Task[Agg[Dependency]] = Task.Anon {
     val ivyPomDeps =
-      allIvyDeps().map(resolvePublishDependency.apply().apply(_))
+      processedIvyDeps().map(_.toDep).map(resolvePublishDependency.apply().apply(_))
 
     val compileIvyPomDeps = compileIvyDeps()
       .map(resolvePublishDependency.apply().apply(_))
@@ -126,8 +126,7 @@ trait PublishModule extends JavaModule { outer =>
     Task {
       val (processedDeps, depMgmt) = defaultResolver().processDeps(
         transitiveCompileIvyDeps() ++ transitiveIvyDeps(),
-        resolutionParams = resolutionParams(),
-        bomDeps = allBomDeps()
+        resolutionParams = resolutionParams()
       )
       (processedDeps.map(_.moduleVersion).toMap, depMgmt)
     }
@@ -151,9 +150,28 @@ trait PublishModule extends JavaModule { outer =>
       else
         dep
     }
+    def rootDepsAdjustment = publishXmlDeps0.iterator.flatMap { dep =>
+      val key = coursier.core.DependencyManagement.Key(
+        coursier.core.Organization(dep.artifact.group),
+        coursier.core.ModuleName(dep.artifact.id),
+        coursier.core.Type.jar,
+        coursier.core.Classifier.empty
+      )
+      bomDepMgmt.get(key).flatMap { values =>
+        if (values.version.nonEmpty && values.version != dep.artifact.version)
+          Some(key -> values.withVersion(""))
+        else
+          None
+      }
+    }
+    val bomDepMgmt0 = bomDepMgmt ++ rootDepsAdjustment
+    lazy val moduleSet = publishXmlDeps0.map(dep => (dep.artifact.group, dep.artifact.id)).toSet
     val overrides =
       dependencyManagement().toSeq.map(bindDependency()).map(_.dep)
         .filter(depMgmt => depMgmt.version.nonEmpty && depMgmt.version != "_")
+        .filter { depMgmt =>
+          !moduleSet.contains((depMgmt.module.organization.value, depMgmt.module.name.value))
+        }
         .map { depMgmt =>
           Ivy.Override(
             depMgmt.module.organization.value,
@@ -161,10 +179,15 @@ trait PublishModule extends JavaModule { outer =>
             depMgmt.version
           )
         } ++
-        bomDepMgmt.map {
-          case (key, values) =>
-            Ivy.Override(key.organization.value, key.name.value, values.version)
-        }
+        bomDepMgmt0
+          .filter {
+            case (key, _) =>
+              !moduleSet.contains((key.organization.value, key.name.value))
+          }
+          .map {
+            case (key, values) =>
+              Ivy.Override(key.organization.value, key.name.value, values.version)
+          }
     val ivy = Ivy(artifactMetadata(), publishXmlDeps0, extraPublish(), overrides)
     val ivyPath = T.dest / "ivy.xml"
     os.write.over(ivyPath, ivy)

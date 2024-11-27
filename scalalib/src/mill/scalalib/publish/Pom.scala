@@ -165,7 +165,7 @@ object Pom {
       if (isImport) <scope>import</scope>
       else
         d.scope match {
-          case Scope.Compile => NodeSeq.Empty
+          case Scope.Compile => <scope>compile</scope>
           case Scope.Provided => <scope>provided</scope>
           case Scope.Test => <scope>test</scope>
           case Scope.Runtime => <scope>runtime</scope>

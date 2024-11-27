@@ -56,8 +56,7 @@ trait CoursierModule extends mill.Module {
   def resolveDeps(
       deps: Task[Agg[BoundDep]],
       sources: Boolean = false,
-      artifactTypes: Option[Set[Type]] = None,
-      bomDeps: Task[Agg[(Module, String)]] = Task.Anon(Agg.empty[(Module, String)])
+      artifactTypes: Option[Set[Type]] = None
   ): Task[Agg[PathRef]] =
     Task.Anon {
       Lib.resolveDependencies(
@@ -68,25 +67,16 @@ trait CoursierModule extends mill.Module {
         mapDependencies = Some(mapDependencies()),
         customizer = resolutionCustomizer(),
         coursierCacheCustomizer = coursierCacheCustomizer(),
-        ctx = Some(implicitly[mill.api.Ctx.Log]),
-        bomDeps = bomDeps()
+        ctx = Some(implicitly[mill.api.Ctx.Log])
       )
     }
-
-  // bin-compat shim
-  def resolveDeps(
-      deps: Task[Agg[BoundDep]],
-      sources: Boolean,
-      artifactTypes: Option[Set[Type]]
-  ): Task[Agg[PathRef]] =
-    resolveDeps(deps, sources, artifactTypes, Task.Anon(Agg.empty[(Module, String)]))
 
   @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
   def resolveDeps(
       deps: Task[Agg[BoundDep]],
       sources: Boolean
   ): Task[Agg[PathRef]] =
-    resolveDeps(deps, sources, None, Task.Anon(Agg.empty[(Module, String)]))
+    resolveDeps(deps, sources, None)
 
   /**
    * Map dependencies before resolving them.
@@ -205,8 +195,7 @@ object CoursierModule {
     def resolveDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean = false,
-        artifactTypes: Option[Set[coursier.Type]] = None,
-        bomDeps: IterableOnce[(Module, String)] = Nil
+        artifactTypes: Option[Set[coursier.Type]] = None
     ): Agg[PathRef] = {
       Lib.resolveDependencies(
         repositories = repositories,
@@ -217,25 +206,16 @@ object CoursierModule {
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
         ctx = ctx,
-        resolutionParams = resolutionParams,
-        bomDeps = bomDeps
+        resolutionParams = resolutionParams
       ).getOrThrow
     }
-
-    // bin-compat shim
-    def resolveDeps[T: CoursierModule.Resolvable](
-        deps: IterableOnce[T],
-        sources: Boolean,
-        artifactTypes: Option[Set[coursier.Type]]
-    ): Agg[PathRef] =
-      resolveDeps(deps, sources, artifactTypes, Nil)
 
     @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
     def resolveDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean
     ): Agg[PathRef] =
-      resolveDeps(deps, sources, None, Nil)
+      resolveDeps(deps, sources, None)
 
     /**
      * Processes dependencies and BOMs with coursier
@@ -248,13 +228,11 @@ object CoursierModule {
      *
      * @param deps dependencies that might have placeholder versions ("_" as version)
      * @param resolutionParams coursier resolution parameters
-     * @param bomDeps dependencies to read Bill-Of-Materials from
      * @return dependencies with version placeholder filled and data read from the BOM dependencies
      */
     def processDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
-        resolutionParams: ResolutionParams = ResolutionParams(),
-        bomDeps: IterableOnce[(Module, String)] = Nil
+        resolutionParams: ResolutionParams = ResolutionParams()
     ): (Seq[Dependency], DependencyManagement.Map) = {
       val deps0 = deps
         .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
@@ -265,10 +243,20 @@ object CoursierModule {
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
         ctx = ctx,
-        resolutionParams = resolutionParams,
-        bomDeps = bomDeps
+        resolutionParams = resolutionParams
       ).getOrThrow
-      (res.processedRootDependencies, res.bomDepMgmt)
+      val depMgmt: DependencyManagement.Map =
+        if (res.processedRootDependencies.isEmpty) Map.empty
+        else {
+          val overrides = res.processedRootDependencies.map(_.overrides)
+          overrides.tail.foldLeft(overrides.head) { (acc, map) =>
+            acc.filter {
+              case (key, values) =>
+                map.get(key).contains(values)
+            }
+          }
+        }
+      (res.processedRootDependencies, depMgmt)
     }
   }
 

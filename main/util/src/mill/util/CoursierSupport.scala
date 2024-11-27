@@ -63,8 +63,7 @@ trait CoursierSupport {
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       resolveFilter: os.Path => Boolean = _ => true,
       artifactTypes: Option[Set[Type]] = None,
-      resolutionParams: ResolutionParams = ResolutionParams(),
-      bomDeps: IterableOnce[(Module, String)] = Nil
+      resolutionParams: ResolutionParams = ResolutionParams()
   ): Result[Agg[PathRef]] = {
     val (localTestDeps, remoteDeps) =
       deps.iterator.toSeq.partitionMap(d => isLocalTestDep(d).toLeft(d))
@@ -77,8 +76,7 @@ trait CoursierSupport {
       customizer,
       ctx,
       coursierCacheCustomizer,
-      resolutionParams,
-      bomDeps
+      resolutionParams
     )
 
     resolutionRes.flatMap { resolution =>
@@ -191,8 +189,7 @@ trait CoursierSupport {
       customizer,
       ctx,
       coursierCacheCustomizer,
-      ResolutionParams(),
-      Nil
+      ResolutionParams()
     )
     (deps0, res.getOrThrow)
   }
@@ -256,16 +253,13 @@ trait CoursierSupport {
       customizer: Option[Resolution => Resolution] = None,
       ctx: Option[mill.api.Ctx.Log] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
-      resolutionParams: ResolutionParams = ResolutionParams(),
-      bomDeps: IterableOnce[(Module, String)] = Nil
+      resolutionParams: ResolutionParams = ResolutionParams()
   ): Result[Resolution] = {
 
     val rootDeps = deps.iterator
       .map(d => mapDependencies.fold(d)(_.apply(d)))
       .filter(dep => isLocalTestDep(dep).isEmpty)
       .toSeq
-
-    val bomDeps0 = bomDeps.iterator.toSeq
 
     val forceVersions = force.iterator
       .map(mapDependencies.getOrElse(identity[Dependency](_)))
@@ -280,7 +274,6 @@ trait CoursierSupport {
     val resolve = Resolve()
       .withCache(coursierCache0)
       .withDependencies(rootDeps)
-      .withBomModuleVersions(bomDeps0)
       .withRepositories(repositories)
       .withResolutionParams(resolutionParams0)
       .withMapDependenciesOpt(mapDependencies)

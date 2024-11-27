@@ -1,7 +1,7 @@
 package mill
 package scalalib
 
-import coursier.core.{Configuration, DependencyManagement, Resolution}
+import coursier.core.{BomDependency, Configuration, DependencyManagement, Resolution}
 import coursier.parse.JavaOrScalaModule
 import coursier.parse.ModuleParser
 import coursier.util.ModuleMatcher
@@ -55,6 +55,10 @@ trait JavaModule
       for (src <- outer.sources()) yield {
         PathRef(this.millSourcePath / src.path.relativeTo(outer.millSourcePath))
       }
+    }
+
+    override def extraBomDeps = Task.Anon {
+      outer.allBomDeps().map(_.withConfig(Configuration.test)): Agg[BomDependency]
     }
 
     /**
@@ -145,36 +149,63 @@ trait JavaModule
    * In most cases, instead of overriding this Target you want to override `ivyDeps` instead.
    */
   def allIvyDeps: T[Agg[Dep]] = Task {
-    val bomDeps0 = allBomDeps().toSeq
+    ivyDeps() ++ mandatoryIvyDeps()
+  }
+
+  private def addBoms(
+      dep: coursier.core.Dependency,
+      bomDeps: Seq[coursier.core.BomDependency],
+      depMgmt: Seq[(DependencyManagement.Key, DependencyManagement.Values)],
+      depMgmtMap: DependencyManagement.Map,
+      overrideVersions: Boolean = false
+  ): coursier.core.Dependency = {
+    val depMgmtKey = DependencyManagement.Key(
+      dep.module.organization,
+      dep.module.name,
+      coursier.core.Type.jar,
+      dep.publication.classifier
+    )
+    val versionOverrideOpt =
+      if (dep.version == "_") depMgmtMap.get(depMgmtKey).map(_.version)
+      else None
+    val extraExclusions = depMgmtMap.get(depMgmtKey).map(_.minimizedExclusions)
+    dep
+      // add BOM coordinates - coursier will handle the rest
+      .addBomDependencies(
+        if (overrideVersions) bomDeps.map(_.withForceOverrideVersions(overrideVersions))
+        else bomDeps
+      )
+      // add dependency management ourselves:
+      // - overrides meant to apply to transitive dependencies
+      // - fill version if it's empty
+      // - add extra exclusions from dependency management
+      .withOverrides(dep.overrides ++ depMgmt)
+      .withVersion(versionOverrideOpt.getOrElse(dep.version))
+      .withMinimizedExclusions(
+        extraExclusions.fold(dep.minimizedExclusions)(dep.minimizedExclusions.join(_))
+      )
+  }
+
+  def allCompileIvyDeps: T[Agg[Dep]] = Task {
+    val bomDeps0 = allBomDeps().toSeq.map(_.withConfig(Configuration.provided))
     val depMgmt = processedDependencyManagement(
-      dependencyManagement().toSeq.map(bindDependency()).map(_.dep)
+      compileDependencyManagement().toSeq.map(bindDependency()).map(_.dep)
     )
     val depMgmtMap = depMgmt.toMap
-    (ivyDeps() ++ mandatoryIvyDeps()).map { dep =>
-      val depMgmtKey = DependencyManagement.Key(
-        dep.dep.module.organization,
-        dep.dep.module.name,
-        coursier.core.Type.jar,
-        dep.dep.publication.classifier
-      )
-      val versionOverrideOpt =
-        if (dep.dep.version == "_") depMgmtMap.get(depMgmtKey).map(_.version)
-        else None
-      val extraExclusions = depMgmtMap.get(depMgmtKey).map(_.minimizedExclusions)
-      dep.copy(
-        dep = dep.dep
-          // add BOM coordinates - coursier will handle the rest
-          .addBoms(bomDeps0)
-          // add dependency management ourselves:
-          // - overrides meant to apply to transitive dependencies
-          // - fill version if it's empty
-          // - add extra exclusions from dependency management
-          .withOverrides(dep.dep.overrides ++ depMgmt)
-          .withVersion(versionOverrideOpt.getOrElse(dep.dep.version))
-          .withMinimizedExclusions(
-            extraExclusions.fold(dep.dep.minimizedExclusions)(dep.dep.minimizedExclusions.join(_))
-          )
-      )
+    compileIvyDeps().map { dep =>
+      dep.copy(dep = addBoms(dep.dep, bomDeps0, depMgmt, depMgmtMap))
+    }
+  }
+
+  def allRunIvyDeps: T[Agg[Dep]] = Task {
+    val bomDeps0 =
+      allBomDeps().toSeq.map(_.withConfig(Configuration.defaultCompile)) ++ extraBomDeps().toSeq
+    val depMgmt = processedDependencyManagement(
+      compileDependencyManagement().toSeq.map(bindDependency()).map(_.dep)
+    )
+    val depMgmtMap = depMgmt.toMap
+    runIvyDeps().map { dep =>
+      dep.copy(dep = addBoms(dep.dep, bomDeps0, depMgmt, depMgmtMap))
     }
   }
 
@@ -200,13 +231,13 @@ trait JavaModule
    */
   def bomDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
-  def allBomDeps: Task[Agg[(coursier.core.Module, String)]] = Task.Anon {
+  def allBomDeps: Task[Agg[BomDependency]] = Task.Anon {
     val modVerOrMalformed =
       (Agg(parentDep().toSeq: _*) ++ bomDeps()).map(bindDependency()).map { bomDep =>
         val fromModVer = coursier.core.Dependency(bomDep.dep.module, bomDep.dep.version)
           .withConfiguration(coursier.core.Configuration.defaultCompile)
         if (fromModVer == bomDep.dep)
-          Right((bomDep.dep.module, bomDep.dep.version))
+          Right(bomDep.dep.asBomDependency)
         else
           Left(bomDep)
       }
@@ -217,7 +248,7 @@ trait JavaModule
     }
     if (malformed.isEmpty)
       modVerOrMalformed.collect {
-        case Right(modVer) => modVer
+        case Right(bomDep) => bomDep
       }
     else
       throw new Exception(
@@ -226,6 +257,8 @@ trait JavaModule
           "Only organization, name, and version are accepted."
       )
   }
+
+  def extraBomDeps: Task[Agg[BomDependency]] = Task.Anon { Agg.empty[BomDependency] }
 
   /**
    * Dependency management data
@@ -244,6 +277,8 @@ trait JavaModule
    * }}}
    */
   def dependencyManagement: T[Agg[Dep]] = Task { Agg.empty[Dep] }
+
+  def compileDependencyManagement: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
   /**
    * Data from dependencyManagement, converted to a type ready to be passed to coursier
@@ -427,7 +462,7 @@ trait JavaModule
   /** The compile-only transitive ivy dependencies of this module and all it's upstream compile-only modules. */
   def transitiveCompileIvyDeps: T[Agg[BoundDep]] = Task {
     // We never include compile-only dependencies transitively, but we must include normal transitive dependencies!
-    compileIvyDeps().map(bindDependency()) ++
+    allCompileIvyDeps().map(bindDependency()) ++
       T.traverse(compileModuleDepsChecked)(_.transitiveIvyDeps)().flatten
   }
 
@@ -467,8 +502,28 @@ trait JavaModule
    * This is calculated from [[ivyDeps]], [[mandatoryIvyDeps]] and recursively from [[moduleDeps]].
    */
   def transitiveIvyDeps: T[Agg[BoundDep]] = Task {
-    allIvyDeps().map(bindDependency()) ++
-      T.traverse(moduleDepsChecked)(_.transitiveIvyDeps)().flatten
+    val bomDeps0 =
+      allBomDeps().toSeq.map(_.withConfig(Configuration.compile)) ++ extraBomDeps().toSeq
+    val depMgmt = processedDependencyManagement(
+      dependencyManagement().toSeq.map(bindDependency()).map(_.dep)
+    )
+    val depMgmtMap = depMgmt.toMap
+    processedIvyDeps() ++
+      T.traverse(moduleDepsChecked)(_.transitiveIvyDeps)().flatten.map { dep =>
+        dep.copy(dep = addBoms(dep.dep, bomDeps0, depMgmt, depMgmtMap, overrideVersions = true))
+      }
+  }
+
+  def processedIvyDeps: T[Agg[BoundDep]] = Task {
+    val bomDeps0 =
+      allBomDeps().toSeq.map(_.withConfig(Configuration.compile)) ++ extraBomDeps().toSeq
+    val depMgmt = processedDependencyManagement(
+      dependencyManagement().toSeq.map(bindDependency()).map(_.dep)
+    )
+    val depMgmtMap = depMgmt.toMap
+    allIvyDeps().map(bindDependency()).map { dep =>
+      dep.copy(dep = addBoms(dep.dep, bomDeps0, depMgmt, depMgmtMap))
+    }
   }
 
   /**
@@ -744,8 +799,7 @@ trait JavaModule
   def resolvedIvyDeps: T[Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(
       transitiveCompileIvyDeps() ++ transitiveIvyDeps(),
-      artifactTypes = Some(artifactTypes()),
-      bomDeps = allBomDeps()
+      artifactTypes = Some(artifactTypes())
     )
   }
 
@@ -760,8 +814,7 @@ trait JavaModule
   def resolvedRunIvyDeps: T[Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(
       transitiveRunIvyDeps() ++ transitiveIvyDeps(),
-      artifactTypes = Some(artifactTypes()),
-      bomDeps = allBomDeps()
+      artifactTypes = Some(artifactTypes())
     )
   }
 
@@ -1028,8 +1081,7 @@ trait JavaModule
         Some(mapDependencies()),
         customizer = resolutionCustomizer(),
         coursierCacheCustomizer = coursierCacheCustomizer(),
-        resolutionParams = resolutionParams(),
-        bomDeps = allBomDeps()
+        resolutionParams = resolutionParams()
       ).getOrThrow
 
       val roots = whatDependsOn match {
@@ -1240,15 +1292,13 @@ trait JavaModule
         Task.Anon {
           defaultResolver().resolveDeps(
             transitiveCompileIvyDeps() ++ transitiveIvyDeps(),
-            sources = true,
-            bomDeps = allBomDeps()
+            sources = true
           )
         },
         Task.Anon {
           defaultResolver().resolveDeps(
             transitiveRunIvyDeps() ++ transitiveIvyDeps(),
-            sources = true,
-            bomDeps = allBomDeps()
+            sources = true
           )
         }
       )

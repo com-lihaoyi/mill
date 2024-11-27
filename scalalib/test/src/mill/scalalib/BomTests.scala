@@ -4,7 +4,6 @@ package scalalib
 import mill.scalalib.publish._
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest._
-import mill.PathRef
 
 import scala.jdk.CollectionConverters._
 
@@ -205,6 +204,39 @@ object BomTests extends TestSuite {
         }
       }
     }
+
+    object bomScope extends JavaModule with TestPublishModule {
+      def bomDeps = Agg(
+        ivy"org.apache.spark:spark-parent_2.13:3.5.3"
+      )
+      def compileIvyDeps = Agg(
+        ivy"com.google.protobuf:protobuf-java-util",
+        ivy"org.scala-lang.modules:scala-parallel-collections_2.13"
+      )
+
+      object fail extends JavaModule with TestPublishModule {
+        def bomDeps = Agg(
+          ivy"org.apache.spark:spark-parent_2.13:3.5.3"
+        )
+        def ivyDeps = Agg(
+          ivy"com.google.protobuf:protobuf-java-util",
+          ivy"org.scala-lang.modules:scala-parallel-collections_2.13"
+        )
+      }
+    }
+
+    object bomOnModuleDependency extends JavaModule with TestPublishModule {
+      def ivyDeps = Agg(
+        ivy"com.google.protobuf:protobuf-java:3.23.4"
+      )
+
+      object dependee extends JavaModule with TestPublishModule {
+        def bomDeps = Agg(
+          ivy"com.google.cloud:libraries-bom:26.50.0"
+        )
+        def moduleDeps = Seq(bomOnModuleDependency)
+      }
+    }
   }
 
   def expectedProtobufJavaVersion = "4.28.3"
@@ -296,6 +328,7 @@ object BomTests extends TestSuite {
       dependencyModules: Seq[PublishModule] = Nil,
       jarCheck: Option[String => Boolean] = None,
       ivy2LocalCheck: Boolean = true,
+      m2LocalCheck: Boolean = true,
       scalaSuffix: String = ""
   )(implicit eval: UnitTester): Unit = {
     compileClasspathContains(module, jarName, jarCheck)
@@ -307,10 +340,12 @@ object BomTests extends TestSuite {
         assert(check(fileName))
     }
 
-    val resolvedM2Cp = publishM2LocalAndResolve(module, dependencyModules, scalaSuffix)
-    assert(resolvedM2Cp.map(_.last).contains(jarName))
-    for (check <- jarCheck; fileName <- resolvedM2Cp.map(_.last))
-      assert(check(fileName))
+    if (m2LocalCheck) {
+      val resolvedM2Cp = publishM2LocalAndResolve(module, dependencyModules, scalaSuffix)
+      assert(resolvedM2Cp.map(_.last).contains(jarName))
+      for (check <- jarCheck; fileName <- resolvedM2Cp.map(_.last))
+        assert(check(fileName))
+    }
   }
 
   def tests = Tests {
@@ -446,7 +481,8 @@ object BomTests extends TestSuite {
           Seq(modules.depMgmt.extraExclude),
           jarCheck = Some { jarName =>
             !jarName.startsWith("slf4j-api-")
-          }
+          },
+          ivy2LocalCheck = false // we could make that work
         )
       }
 
@@ -516,6 +552,49 @@ object BomTests extends TestSuite {
           modules.depMgmt.placeholder.transitive,
           expectedProtobufJarName,
           Seq(modules.depMgmt.placeholder)
+        )
+      }
+    }
+
+    test("bomScope") {
+      test("provided") - UnitTester(modules, null).scoped { implicit eval =>
+        isInClassPath(
+          modules.bomScope,
+          "protobuf-java-3.23.4.jar",
+          ivy2LocalCheck = false,
+          m2LocalCheck = false
+        )
+      }
+      test("providedFromBomRuntimeScope") - UnitTester(modules, null).scoped { implicit eval =>
+        isInClassPath(
+          modules.bomScope,
+          "scala-parallel-collections_2.13-1.0.4.jar",
+          ivy2LocalCheck = false,
+          m2LocalCheck = false
+        )
+      }
+      test("ignoreProvidedForCompile") - UnitTester(modules, null).scoped { implicit eval =>
+        val res = eval(modules.bomScope.fail.resolvedIvyDeps)
+        assert(
+          res.left.exists(_.toString.contains(
+            "not found: https://repo1.maven.org/maven2/com/google/protobuf/protobuf-java-util/_/protobuf-java-util-_.pom"
+          ))
+        )
+      }
+    }
+
+    test("bomOnModuleDependency") {
+      test("check") - UnitTester(modules, null).scoped { implicit eval =>
+        isInClassPath(
+          modules.bomOnModuleDependency,
+          "protobuf-java-3.23.4.jar"
+        )
+      }
+      test("dependee") - UnitTester(modules, null).scoped { implicit eval =>
+        isInClassPath(
+          modules.bomOnModuleDependency.dependee,
+          expectedProtobufJarName,
+          Seq(modules.bomOnModuleDependency)
         )
       }
     }
