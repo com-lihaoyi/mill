@@ -686,7 +686,7 @@ object ZincWorkerImpl {
   private object PositionMapper {
     import sbt.util.InterfaceUtil
 
-    private val userCodeStartMarker = "//MILL_USER_CODE_START_MARKER"
+    private val userCodeStartMarker = "//SOURCECODE_ORIGINAL_CODE_START_MARKER"
     private val splicedCodeStartMarker = "//MILL_SPLICED_CODE_START_MARKER"
     private val splicedCodeEndMarker = "//MILL_SPLICED_CODE_END_MARKER"
 
