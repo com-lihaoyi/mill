@@ -55,8 +55,8 @@ object Discover {
         if (seen.add(tpe)) {
           val typeSym = tpe.typeSymbol
           for {
-            // for some reason mill.define.Foreign has NoSymbol as field member.
-            m <- typeSym.fieldMembers.filterNot(_ == Symbol.noSymbol).toList.sortBy(_.name.toString)
+            m <- typeSym.fieldMembers ++ typeSym.methodMembers
+            if m != Symbol.noSymbol
             memberTpe = m.termRef
             if memberTpe.baseClasses.contains(moduleSym)
           } {
