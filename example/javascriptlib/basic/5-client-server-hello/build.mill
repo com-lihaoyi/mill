@@ -33,59 +33,15 @@ trait CSModule extends HelloModule {
 
   val testConfigPath = millSourcePath / "jest.config.ts"
 
-  def sourceForTask = Task.Anon {
-    val destination = T.dest.toString()
-    val destSource = destination match {
-      case x if !x.contains("test") => os.walk(sources().path).filter(_.ext == "ts").map(PathRef(_))
-      case _ =>
-        (os.walk(sources().path) ++ os.walk(testPath().path) ++ IndexedSeq(
-          testConfigPath
-        )).filter(_.ext == "ts").map(PathRef(_))
-    }
-
-    destSource
+  def allSources = Task.Anon {
+    (os.walk(sources().path) ++ os.walk(testPath().path) ++ IndexedSeq(testConfigPath))
+      .filter(_.ext == "ts")
+      .map(PathRef(_))
   }
 
-  def tsConfig = Task.Anon {
-    val nodeTypes = npmInstall().path / "node_modules/@types"
-    val javascriptOut = Task.dest / "javascript"
-    val declarationsOut = Task.dest / "declarations"
+  def test = Task {
+    val javascriptOut = compile()._1.path
 
-    val upstreamPaths =
-      for (((jsDir, dTsDir), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps))
-        yield (mod.millSourcePath.subRelativeTo(build.millSourcePath) + "/*", dTsDir.path)
-
-    val allPaths = upstreamPaths ++ Seq("*" -> sources().path, "*" -> npmInstall().path)
-
-    os.write(
-      Task.dest / "tsconfig.json",
-      ujson.Obj(
-        "compilerOptions" -> ujson.Obj(
-          "outDir" -> javascriptOut.toString,
-          "declaration" -> true,
-          "declarationDir" -> declarationsOut.toString,
-          "typeRoots" -> ujson.Arr(nodeTypes.toString),
-          "paths" -> ujson.Obj.from(allPaths.map { case (k, v) => (k, ujson.Arr(s"$v/*")) })
-        ),
-        "files" -> sourceForTask().map(_.path.toString)
-      )
-    )
-  }
-
-  override def compile: T[(PathRef, PathRef)] = Task {
-    tsConfig()
-    os.call(npmInstall().path / "node_modules/typescript/bin/tsc")
-    val javascriptOut = T.dest / "javascript"
-    val declarationsOut = T.dest / "declarations"
-    (PathRef(javascriptOut), PathRef(declarationsOut))
-  }
-
-  override def test = Task {
-    tsConfig()
-    os.call(npmInstall().path / "node_modules/typescript/bin/tsc")
-    val javascriptOut = Task.dest / "javascript"
-
-    // env
     // note: ' npmInstall().path / "node_modules" ' required in NODE_PATH for jest to find preset: ts-jest
     val env = Map("NODE_PATH" -> Seq(
       ".",
@@ -108,11 +64,18 @@ trait CSModule extends HelloModule {
   }
 
   override def bundle = Task {
-    val (mainFile, env) = prepareRun()
+    val (_, env) = prepareRun()
     val esbuild = npmInstall().path / "node_modules/esbuild/bin/esbuild"
     val bundle = Task.dest / "bundle.js"
+    val mainFile = compile()._1.path / "src" / mainFileName()
     os.call((esbuild, mainFile, "--platform=node", "--bundle", s"--outfile=$bundle"), env = env)
     PathRef(bundle)
+  }
+
+  def run(args: mill.define.Args) = Task.Command {
+    val (_, env) = prepareRun()
+    val mainFile = compile()._1.path / "src" / mainFileName()
+    os.call(("node", mainFile, args.value), stdout = os.Inherit, stdin = os.Inherit, env = env)
   }
 }
 
@@ -123,18 +86,57 @@ object server extends CSModule
 object app extends HelloModule {
   def moduleDeps = Seq(client, server)
 
-  override def compile: T[(PathRef, PathRef)] =
+  def bundleApp =
     Task {
-      os.call(("echo", "nothing to do here"), stdout = os.Inherit);
-      (PathRef(Task.dest), PathRef(Task.dest))
+      val serverPath = server.bundle().path
+      val clientPath = client.bundle().path
+      os.call(
+        ("echo", s"client bundled@$clientPath\nserver bundled@$serverPath"),
+        stdout = os.Inherit
+      );
+      (PathRef(serverPath), PathRef(clientPath))
     }
 
-  override def bundle =
-    Task { os.call(("echo", "nothing to do here"), stdout = os.Inherit); PathRef(Task.dest) }
-
-  def run(args: mill.define.Args) =
-    Task.Command {
-      server.run(args)()
-      client.run(args)()
-    }
 }
+
+// Documentation for mill.example.javascriptlib
+
+/** Usage
+
+> mill client.test
+PASS .../client.test.js
+...getServerResponse
+...✓ should return mocked response...
+Test Suites:...1 passed, 1 total...
+Tests:...1 passed, 1 total...
+Snapshots:...
+Time:...
+Ran all test suites matching ...
+
+> mill server.test
+PASS .../server.test.js
+...Server Tests
+...✓ GET /hello should return "Hello from the server!"...
+...
+Test Suites:...
+Tests:...
+Snapshots:...
+Time:...
+Ran all test suites matching ...
+
+> mill show app.bundleApp
+...
+...
+...
+...
+client bundled@...client/bundle.dest/bundle.js
+server bundled@...server/bundle.dest/bundle.js
+...
+
+> node out/server/bundle.dest/bundle.js & echo "hello" | node out/client/bundle.dest/bundle.js &  sleep 2 && kill -9 $(lsof -t -i:3000) # 1) start server 2) start client 3) send client input 4) kill server
+...
+...
+...
+Response from server: Hello from the server!
+...
+*/

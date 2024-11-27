@@ -5,6 +5,7 @@ describe('Server Tests', () => {
 
     beforeAll(() => {
         server = require('../src/server').default;
+        process.env.NODE_ENV = "test";
     });
 
     afterAll(() => {

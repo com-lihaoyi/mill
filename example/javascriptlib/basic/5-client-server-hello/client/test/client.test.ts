@@ -3,6 +3,10 @@ import {getServerResponse} from '../src/client';
 
 jest.mock('http');
 
+beforeEach(() => {
+    process.env.NODE_ENV = "test";
+})
+
 describe('getServerResponse', () => {
     it('should return mocked response', async () => {
         const mockedResponse = 'Mocked response data';

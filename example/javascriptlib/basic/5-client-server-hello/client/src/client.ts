@@ -23,7 +23,7 @@ export function getServerResponse(path: string): Promise<string> {
     });
 }
 
-if (require.main === module) {
+if (process.env.NODE_ENV !== "test") {
     (async () => {
         const rl = readline.createInterface({
             input: process.stdin,
