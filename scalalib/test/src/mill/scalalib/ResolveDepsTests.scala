@@ -146,12 +146,15 @@ object ResolveDepsTests extends TestSuite {
         val runCp = eval(TestCase.scope.runClasspath)
           .toTry.get.value.toSeq.map(_.path)
 
-        assert(!compileCp.exists(_.last == "lifecycle-common-2.3.0.jar"))
-        assert(!compileCp.exists(_.last == "lifecycle-runtime-2.3.0.aar"))
-        assert(runtimeCp.exists(_.last == "lifecycle-common-2.3.0.jar"))
-        assert(runtimeCp.exists(_.last == "lifecycle-runtime-2.3.0.aar"))
-        assert(runCp.exists(_.last == "lifecycle-common-2.3.0.jar"))
-        assert(runCp.exists(_.last == "lifecycle-runtime-2.3.0.aar"))
+        val runtimeOnlyJars = Seq(
+          "lifecycle-common-2.3.0.jar",
+          "lifecycle-runtime-2.3.0.aar"
+        )
+        for (runtimeOnlyJar <- runtimeOnlyJars) {
+          assert(!compileCp.exists(_.last == runtimeOnlyJar))
+          assert(runtimeCp.exists(_.last == runtimeOnlyJar))
+          assert(runCp.exists(_.last == runtimeOnlyJar))
+        }
       }
     }
   }

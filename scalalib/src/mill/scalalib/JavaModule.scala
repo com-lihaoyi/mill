@@ -609,7 +609,7 @@ trait JavaModule
     defaultResolver().resolveDeps(
       transitiveCompileIvyDeps() ++ transitiveIvyDeps(),
       artifactTypes = Some(artifactTypes()),
-      config = coursier.core.Configuration.compile
+      resolutionParamsMapOpt = Some(_.withDefaultConfiguration(coursier.core.Configuration.compile))
     )
   }
 
@@ -1103,7 +1103,8 @@ trait JavaModule
           defaultResolver().resolveDeps(
             transitiveCompileIvyDeps() ++ transitiveIvyDeps(),
             sources = true,
-            config = coursier.core.Configuration.compile
+            resolutionParamsMapOpt =
+              Some(_.withDefaultConfiguration(coursier.core.Configuration.compile))
           )
         },
         Task.Anon {
