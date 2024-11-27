@@ -29,16 +29,9 @@
 ** xref:kotlinlib/publishing.adoc[]
 // ** xref:kotlinlib/build-examples.adoc[]
 ** xref:kotlinlib/web-examples.adoc[]
-* xref:pythonlib/intro.adoc[]
 
-// Future Additions
-// ** xref:pythonlib/module-config.adoc[]
-// ** xref:pythonlib/dependencies.adoc[]
-// ** xref:pythonlib/testing.adoc[]
-// ** xref:pythonlib/linting.adoc[]
-// ** xref:pythonlib/publishing.adoc[]
-// ** xref:pythonlib/build-examples.adoc[]
-// ** xref:pythonlib/web-examples.adoc[]
+* xref:pythonlib/intro.adoc[]
+** xref:pythonlib/dependencies.adoc[]
 
 * (Experimental) Android with Mill
 ** xref:android/java.adoc[]
