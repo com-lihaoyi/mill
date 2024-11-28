@@ -1,43 +1,19 @@
 package build
 import mill._, javascriptlib._
 
-trait MultipleModules extends JestModule {
-  def npmDevDeps: T[Seq[String]] = Task { Seq.empty[String] }
-
-  override def npmInstall: T[PathRef] = Task {
-    os.call((
-      "npm",
-      "install",
-      "--save-dev",
-      "@types/node@^20.0.0",
-      "ts-node@^10.9.2",
-      "typescript@^5.0.0",
-      npmDevDeps()
-    ))
-    PathRef(Task.dest)
-  }
-
-  override def mainFileName = Task { s"index.js" }
-
-  override def mainFilePath =
-    Task { compile()._1.path / millSourcePath.last / "src" / mainFileName() }
-}
-
 object authors extends TypeScriptModule
 
 object books extends TypeScriptModule {
   def moduleDeps = Seq(authors)
 }
 
-object library extends MultipleModules {
+object library extends JestModule {
   def moduleDeps = Seq(authors, books)
 
-  def npmDevDeps = Seq(
-    "@types/jest@^29.0.0",
-    "jest@^29.0.0",
-    "ts-jest@^29.0.0",
-    "esbuild@0.24.0"
-  )
+  override def mainFileName = Task { s"index.js" }
+
+  override def mainFilePath =
+    Task { compile()._1.path / millSourcePath.last / "src" / mainFileName() }
 
   // intialize a data source
   def resources = Task {
