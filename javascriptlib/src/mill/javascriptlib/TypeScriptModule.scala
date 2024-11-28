@@ -1,6 +1,7 @@
 package mill.javascriptlib
 import mill.*
 import os.*
+import scala.collection.immutable.IndexedSeq
 
 trait TypeScriptModule extends Module {
   def moduleDeps: Seq[TypeScriptModule] = Nil

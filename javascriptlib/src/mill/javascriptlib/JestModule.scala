@@ -1,13 +1,14 @@
 package mill.javascriptlib
-import mill.*, javascriptlib.*
+import mill.*
 import os.*
+import scala.collection.immutable.IndexedSeq
 
 trait JestModule extends TypeScriptModule {
   def testPath: Target[PathRef] = Task.Source(millSourcePath / "test")
-  val testConfigPath = millSourcePath / os.up / "jest.config.ts"
+  val testConfig = Task.Source(millSourcePath / os.up / "jest.config.ts")
 
-  override def allSources: Target[IndexedSeq[PathRef]] = Task.Anon {
-    (os.walk(sources().path) ++ os.walk(testPath().path) ++ IndexedSeq(testConfigPath))
+  override def allSources: Target[IndexedSeq[PathRef]] = Task {
+    (os.walk(sources().path) ++ os.walk(testPath().path) ++ IndexedSeq(testConfig().path))
       .filter(_.ext == "ts")
       .map(PathRef(_))
   }

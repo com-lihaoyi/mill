@@ -1,6 +1,6 @@
 package mill.javascriptlib
 
-import mill._, javascriptlib._
+import mill._
 import os.*
 
 // create-react-app scripts
