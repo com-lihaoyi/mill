@@ -1,0 +1,361 @@
+package build
+import mill._, javascriptlib._
+
+trait ServerModule extends TypeScriptModule {
+  def npmDeps: T[Seq[String]] = Task {
+    Seq(
+      "@types/node@^20.0.0",
+      "@types/jest@^29.0.0",
+      "ts-node@^10.9.2",
+      "@types/supertest@^6.0.2",
+      "@types/cors@^2.8.17",
+      "@types/express@^5.0.0",
+      "typescript@^5.0.0",
+      "jest@^29.0.0",
+      "ts-jest@^29.0.0",
+      "cors@^2.8.5",
+      "express@^4.21.1",
+      "supertest@^7.0.0",
+      "esbuild@0.24.0"
+    )
+  }
+
+  override def compile: T[(PathRef, PathRef)] = Task {
+    val nodeTypes = npmInstall().path / "node_modules/@types"
+    val javascriptOut = Task.dest / "javascript"
+    val declarationsOut = Task.dest / "declarations"
+
+    val upstreamPaths =
+      for (((jsDir, dTsDir), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps))
+        yield (mod.millSourcePath.subRelativeTo(Task.workspace).toString + "/*", dTsDir.path)
+
+    val allPaths = upstreamPaths ++ Seq("*" -> sources().path, "*" -> npmInstall().path)
+
+    os.write(
+      Task.dest / "tsconfig.json",
+      ujson.Obj(
+        "compilerOptions" -> ujson.Obj(
+          "outDir" -> javascriptOut.toString,
+          "declaration" -> true,
+          "esModuleInterop" -> true,
+          "declarationDir" -> declarationsOut.toString,
+          "typeRoots" -> ujson.Arr(nodeTypes.toString),
+          "paths" -> ujson.Obj.from(allPaths.map { case (k, v) => (k, ujson.Arr(s"$v/*")) })
+        ),
+        "files" -> allSources().map(_.path.toString)
+      )
+    )
+
+    os.call((npmInstall().path / "node_modules/typescript/bin/tsc"))
+
+    (PathRef(javascriptOut), PathRef(declarationsOut))
+  }
+
+  override def npmInstall: T[PathRef] = Task.Anon {
+    os.call((
+      "npm",
+      "install",
+      "--save-dev",
+      npmDeps(),
+      transitiveNpmDeps()
+    ))
+    PathRef(Task.dest)
+  }
+
+  def testPath = Task.Source(millSourcePath / "test")
+
+  val testConfigPath = millSourcePath / "jest.config.ts"
+
+  def allSources = Task.Anon {
+    (os.walk(sources().path) ++ os.walk(testPath().path) ++ IndexedSeq(testConfigPath))
+      .filter(_.ext == "ts")
+      .map(PathRef(_))
+  }
+
+  def test = Task {
+    val javascriptOut = compile()._1.path
+
+    // note: ' npmInstall().path / "node_modules" ' required in NODE_PATH for jest to find preset: ts-jest
+    val env = Map("NODE_PATH" -> Seq(
+      ".",
+      javascriptOut,
+      npmInstall().path,
+      npmInstall().path / "node_modules"
+    ).mkString(":"))
+
+    os.call(
+      (
+        "node",
+        npmInstall().path / "node_modules/jest/bin/jest.js",
+        "--config",
+        javascriptOut / "jest.config.js",
+        javascriptOut.toString()
+      ),
+      stdout = os.Inherit,
+      env = env
+    )
+  }
+
+  override def bundle = Task {
+    val (_, env) = prepareRun()
+    val esbuild = npmInstall().path / "node_modules/esbuild/bin/esbuild"
+    val bundle = Task.dest / "bundle.js"
+    val mainFile = compile()._1.path / "src" / mainFileName()
+    os.call(
+      (
+        esbuild,
+        mainFile,
+        "--platform=node",
+        "--external:express",
+        "--external:cors",
+        "--bundle",
+        s"--outfile=$bundle"
+      ),
+      env = env
+    )
+    PathRef(bundle)
+  }
+
+  def prepareRun = Task.Anon {
+    val upstream = Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
+    for (((jsDir, tTsDir), mod) <- upstream) {
+      os.copy(jsDir.path, Task.dest / mod.millSourcePath.subRelativeTo(Task.workspace))
+    }
+    val mainFile = compile()._1.path / mainFileName()
+    val env = Map("NODE_PATH" -> Seq(
+      ".",
+      compile()._1.path,
+      npmInstall().path,
+      npmInstall().path / "node_modules"
+    ).mkString(":"))
+    (mainFile, env)
+  }
+
+  def run(args: mill.define.Args) = Task.Command {
+    val (_, env) = prepareRun()
+    val mainFile = compile()._1.path / "src" / mainFileName()
+    os.call(("node", mainFile, args.value), stdout = os.Inherit, stdin = os.Inherit, env = env)
+  }
+}
+trait ReactScriptModule extends TypeScriptModule {
+  def npmDevDeps: T[Seq[String]] = Task { Seq.empty[String] }
+  def npmServeDeps: T[Seq[String]] = Task { Seq.empty[String] }
+
+  override def sources = Task.Source(millSourcePath)
+
+  override def npmInstall: T[PathRef] = Task.Anon {
+    os.call((
+      "npm",
+      "install",
+      transitiveNpmDeps(),
+      npmDevDeps(),
+      npmServeDeps()
+    ))
+    PathRef(Task.dest)
+  }
+
+  def setup = Task.Anon {
+    // copy src files
+    os.copy(sources().path, Task.dest, mergeFolders = true)
+
+    def buildDependencies(dependencies: Seq[String]): ujson.Obj = {
+      val dependenciesObj = dependencies.map { dep =>
+        val lastAtIndex = dep.lastIndexOf('@')
+        if (lastAtIndex == -1)
+          dep -> ujson.Str("latest") // No '@' found, default version to "latest"; you probably should always provide the dependency version
+        else {
+          val name = dep.substring(0, lastAtIndex)
+          val version = dep.substring(lastAtIndex + 1)
+          name -> ujson.Str(version)
+        }
+      }
+      ujson.Obj.from(dependenciesObj)
+    }
+
+    val allPaths = Seq(
+      "*" -> Task.dest / "node_modules",
+      "app/*" -> "app",
+      "typescript" -> Task.dest / "node_modules" / "typescript"
+    )
+
+    // mk tsconfig.json
+    os.write(
+      Task.dest / "tsconfig.json",
+      ujson.Obj(
+        "compilerOptions" -> ujson.Obj(
+          "target" -> "es5",
+          "lib" -> ujson.Arr("dom", "dom.iterable", "esnext"),
+          "allowJs" -> true,
+          "skipLibCheck" -> true,
+          "esModuleInterop" -> true,
+          "allowSyntheticDefaultImports" -> true,
+          "strict" -> true,
+          "forceConsistentCasingInFileNames" -> true,
+          "noFallthroughCasesInSwitch" -> true,
+          "module" -> "esnext",
+          "typeRoots" -> ujson.Arr((Task.dest / "node_modules" / "@types").toString),
+          "moduleResolution" -> "node",
+          "resolveJsonModule" -> true,
+          "isolatedModules" -> true,
+          "noEmit" -> true,
+          "jsx" -> "react-jsx",
+          "baseUrl" -> "src",
+          "paths" -> ujson.Obj.from(allPaths.map { case (k, v) => (k, ujson.Arr(s"$v/*")) })
+        ),
+        "include" -> ujson.Arr((sources().path / "src").toString)
+      )
+    )
+
+    // mk package.json
+    os.write(
+      Task.dest / "package.json",
+      ujson.Obj(
+        "name" -> "foo",
+        "version" -> "0.1.0",
+        "private" -> true,
+        "dependencies" -> buildDependencies(transitiveNpmDeps()),
+        "devDependencies" -> buildDependencies(npmDevDeps()),
+        "scripts" -> ujson.Obj(
+          "build" -> s"${Task.dest / "node_modules" / "react-scripts" / "bin" / "react-scripts.js"} build",
+          "test" -> s"${Task.dest / "node_modules" / "react-scripts" / "bin" / "react-scripts.js"} test --watchAll=false"
+        ),
+        "eslintConfig" -> ujson.Obj(
+          "extends" -> ujson.Arr("react-app", "react-app/jest")
+        ),
+        "browserslist" -> ujson.Obj(
+          "production" -> ujson.Arr(">0.2%", "not dead", "not op_mini all"),
+          "development" -> ujson.Arr(
+            "last 1 chrome version",
+            "last 1 firefox version",
+            "last 1 safari version"
+          )
+        )
+      )
+    )
+  }
+
+  def cpNodeModules = Task.Anon {
+    val nodeModulesPath = npmInstall().path / "node_modules"
+
+    // Check if the directory exists and is not empty
+    if (os.exists(nodeModulesPath) && os.list(nodeModulesPath).nonEmpty) {
+      os.copy(nodeModulesPath, Task.dest / "node_modules")
+      println(s"Copied $nodeModulesPath to ${Task.dest / "node_modules"}")
+    } else
+      println(
+        s"The directory $nodeModulesPath does not exist or is empty. Skipping copy operation."
+      )
+  }
+
+  def build: T[PathRef] = Task {
+    cpNodeModules()
+    setup()
+    val env =
+      Map("NODE_PATH" -> (Task.dest / "node_modules").toString)
+
+    os.call(
+      ("npm", "run", "build"),
+      stdout = os.Inherit,
+      env = env
+    )
+    PathRef(Task.dest)
+  }
+
+  def test: T[PathRef] = Task {
+    cpNodeModules()
+    setup()
+    val env =
+      Map("NODE_PATH" -> (Task.dest / "node_modules").toString)
+
+    println("[env]", env)
+
+    os.call(
+      ("npm", "run", "test"),
+      stdout = os.Inherit,
+      env = env
+    )
+    PathRef(Task.dest)
+  }
+
+  // serve static Html page
+  def run: T[Unit] = Task {
+    val pathToBuild = build().path
+    val env = Map("NODE_PATH" -> Seq(".", pathToBuild, pathToBuild / "node_modules").mkString(":"))
+    os.call(
+      (
+        (pathToBuild / "node_modules" / "serve" / "bin" / "serve.js").toString,
+        "-s",
+        (pathToBuild / "build").toString,
+        "-l",
+        "3000"
+      ),
+      stdout = os.Inherit,
+      env = env
+    )
+  }
+}
+
+object server extends ServerModule
+object client extends ReactScriptModule {
+  override def npmDeps = Seq(
+    "react@18.3.1",
+    "react-dom@18.3.1",
+    "react-scripts@5.0.1",
+    "typescript@^4.9.5",
+    "web-vitals@2.1.4"
+  )
+
+  override def npmDevDeps = Seq(
+    "@testing-library/jest-dom@^5.17.0",
+    "@testing-library/react@^13.4.0",
+    "@testing-library/user-event@^13.5.0",
+    "@types/jest@^27.5.2",
+    "@types/node@^16.18.119",
+    "@types/react@^18.3.12",
+    "@types/react-dom@^18.3.1"
+  )
+
+  override def npmServeDeps = Seq(
+    "serve@12.0.1"
+  )
+}
+
+// Documentation for mill.example.javascriptlib
+
+/** Usage
+
+> mill server.test
+PASS .../server.test.js
+...Server Tests
+...✓ should return an empty array of todos...
+...✓ should add a new todo...
+...✓ should handle errors gracefully...
+...✓ should handle invalid todo text gracefully...
+...
+Test Suites:...
+Tests:...
+Snapshots:...
+Time:...
+Ran all test suites matching ...
+
+> mill show server.bundle
+".../out/server/bundle.dest/bundle.js"
+
+> mill client.test
+PASS src/test/App.test.tsx
+...
+...✓ renders todos fetched from server...
+...✓ adds a new todo item...
+...✓ does not add a todo if input is empty...
+...
+Test Suites:...1 passed, 1 total
+Tests:...3 passed, 3 total
+Snapshots:...
+Time:...
+Ran all test suites...
+...
+
+> mill client.build     # build the react app; `client.run` serves static html using server
+...
+*/
+
