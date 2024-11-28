@@ -7,9 +7,11 @@ import java.security.{MessageDigest, NoSuchAlgorithmException}
 import java.util.{Base64, HashMap, LinkedList, Map, Scanner}
 import scala.util.matching.Regex
 import pt.kcry.sha._
+import scala.util.Try
+import scala.io.Source
 
 object Util {
-  val sha1 = new Sha1()
+
   // use methods instead of constants to avoid inlining by compiler
   def ExitClientCodeCannotReadFromExitCodeFile(): Int = 1
 
@@ -116,49 +118,37 @@ object Util {
    *
    * @return The non-empty lines of the files or an empty list, if the file does not exist
    */
-  def readOptsFileLines(file: File): List[String] = {
-
+  def readOptsFileLines(filePath: File): List[String] = {
     val vmOptions = scala.collection.mutable.ListBuffer[String]()
-    println("VM OPTIONS ARE BEING IGNOREDå")
-    // try {
-    //   val sc = new Scanner(file)
-    //   val env = sys.env
-    //   while (sc.hasNextLine) {
-    //     val arg = sc.nextLine()
-    //     val trimmed = arg.trim
-    //     if (trimmed.nonEmpty && !trimmed.startsWith("#")) {
-    //       vmOptions += interpolateEnvVars(arg, env)
-    //     }
-    //   }
-    // } catch {
-    //   case _: FileNotFoundException => // ignored
-    // }
+    // Attempt to read the file
+    val env: scala.collection.immutable.Map[String, String] = sys.env
+    Try {
+      val source = Source.fromFile(filePath)
+      try {
+        for (line <- source.getLines()) {
+          val trimmed = line.trim
+          if (trimmed.nonEmpty && !trimmed.startsWith("#")) {
+            vmOptions += interpolateEnvVars(trimmed, env)
+          }
+        }
+      } finally {
+        source.close()
+      }
+    }.recover {
+      case _: java.io.FileNotFoundException => // File not found, ignore
+    }
+    println(vmOptions.mkString(" "))
     vmOptions.toList
   }
 
-  /**
-   * Interpolate variables in the form of <code>${VARIABLE}</code> based on the given Map <code>env</code>.
-   * Missing vars will be replaced by the empty string.
-   */
-
   def interpolateEnvVars(
-      input: String,
+      line: String,
       env: scala.collection.immutable.Map[String, String]
   ): String = {
-    val envInterpolatorPattern: Regex = """\$\{(\$|[A-Z_][A-Z0-9_]*)\}""".r
+    env.foldLeft(line) { case (acc, (key, value)) =>
+      acc.replace(s"$$$key", value)
+    }
 
-    // Replace the matched variables with values from the env map
-    envInterpolatorPattern.replaceAllIn(
-      input,
-      m => {
-        val matchStr = m.group(1)
-        if (matchStr == "$") {
-          "$" // If it's the "$" symbol itself, keep it
-        } else {
-          env.getOrElse(matchStr, "") // Replace with env value or empty string
-        }
-      }
-    )
   }
 
   private val envInterpolatorPattern: Regex = "\\$\\{(\\$|[A-Z_][A-Z0-9_]*)\\}".r

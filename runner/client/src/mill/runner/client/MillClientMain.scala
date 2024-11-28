@@ -35,7 +35,7 @@ object MillClientMain {
       MillNoServerLauncher.runMain(args)
     } else {
       try {
-        // Start in client-server mode
+        // Start in client- server mode
         val optsArgs1 = Util.readOptsFileLines(MillProcessLauncher.millOptsFile)
         val optsArgs = optsArgs1 ++ args
 
@@ -58,7 +58,9 @@ object MillClientMain {
         }
 
         var exitCode = launcher.acquireLocksAndRun(OutFiles.out).exitCode
+
         if (exitCode == Util.ExitServerCodeWhenVersionMismatch()) {
+          println("exit due to version mismatch")
           exitCode = launcher.acquireLocksAndRun(OutFiles.out).exitCode
         }
         System.exit(exitCode)

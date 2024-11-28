@@ -48,7 +48,6 @@ abstract class ServerLauncher(
         }
       }
     }
-
     throw new ServerCouldNotBeStarted(s"Reached max server processes limit: $serverProcessesLimit")
   }
 
@@ -56,6 +55,7 @@ abstract class ServerLauncher(
     val serverPath = serverDir.resolve(ServerFiles.runArgs)
 
     Using.resource(Files.newOutputStream(serverPath)) { f =>
+      println("I don't think system.console is a thing on native - help???")
       f.write(
         // if (System.console() != null)
         // 1
@@ -71,7 +71,14 @@ abstract class ServerLauncher(
       initServer(serverDir, setJnaNoSys, locks)
     }
 
-    while (locks.processLock.probe()) Thread.sleep(3)
+    println(
+      "HELP! The code below here is commented out, because it appears to break the client."
+    )
+    println("I do not understand the implications of commenting this out.")
+    // while (locks.processLock.probe()) {
+    //   // println("wait 3 millis")
+    //   Thread.sleep(5)
+    // }
 
     val retryStart = System.currentTimeMillis()
     var ioSocket: Socket = null
@@ -80,9 +87,11 @@ abstract class ServerLauncher(
     while (ioSocket == null && System.currentTimeMillis() - retryStart < serverInitWaitMillis) {
       try {
         val port = Files.readString(serverDir.resolve(ServerFiles.socketPort)).toInt
+        print("Port: " + port)
         ioSocket = new Socket("127.0.0.1", port)
       } catch {
         case e: Throwable =>
+          // println(e)
           socketThrowable = e
           Thread.sleep(10)
       }

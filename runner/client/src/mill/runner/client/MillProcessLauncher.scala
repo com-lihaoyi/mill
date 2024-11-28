@@ -12,8 +12,10 @@ object MillProcessLauncher {
 
   def launchMillNoServer(args: Array[String]): Int = {
     val setJnaNoSys = Option(System.getProperty("jna.nosys")).isEmpty
-    println("WANRING THIS IS NOT A RANDOM UUID")
-    val sig = "3744873%08x" //    val sig = f"${UUID.randomUUID().hashCode}%08x"
+    // println("WANRING THIS IS NOT A RANDOM UUID")
+    val r = new scala.util.Random
+    val uuid = new UUID(r.nextLong(), r.nextLong())
+    val sig = f"${uuid.hashCode}%08x"
 
     val processDir =
       Paths.get(".").resolve(OutFiles.out).resolve(OutFiles.millNoServer).resolve(sig)
@@ -35,6 +37,7 @@ object MillProcessLauncher {
       process.waitFor()
     } catch {
       case e: InterruptedException =>
+        println(e.printStackTrace())
         interrupted = true
         throw e
     } finally {
@@ -108,7 +111,10 @@ object MillProcessLauncher {
     val selfJars = Option(System.getProperty("MILL_CLASSPATH"))
       .orElse(Option(System.getenv("MILL_CLASSPATH")))
       .orElse(Option(System.getProperty("java.class.path")).map(_.replace(File.pathSeparator, ",")))
-      .getOrElse(throw new RuntimeException("MILL_CLASSPATH is empty!"))
+      .getOrElse {
+        println("MILL_CLASSPATH is empty!")
+        throw new RuntimeException("MILL_CLASSPATH is empty!")
+      }
 
     selfJars.split(",").map(new File(_).getCanonicalPath)
   }
@@ -130,7 +136,10 @@ object MillProcessLauncher {
       vmOptions ++= Util.readOptsFileLines(millJvmOptsFile)
     }
 
-    vmOptions.toSeq ++ Seq("-cp", millClasspath.mkString(File.pathSeparator))
+    val tmp = vmOptions.toSeq ++ Seq("-cp", millClasspath.mkString(File.pathSeparator))
+    // println("tmp: " + tmp.mkString(" "))
+    tmp
+
   }
 
   def getTerminalDim(dim: String, inheritError: Boolean): Int = {
