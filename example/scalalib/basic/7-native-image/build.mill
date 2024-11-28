@@ -1,0 +1,58 @@
+//// SNIPPET:BUILD
+package build
+import mill._, scalalib._
+import mill.define.ModuleRef
+
+import scala.util.Properties
+
+object foo extends ScalaModule {
+
+  def scalaVersion = "2.13.11"
+
+  def nativeImage: T[PathRef] = Task {
+    val dest = T.dest
+
+    val program = zincWorker().javaHome() match {
+      case None =>
+        throw new RuntimeException("zincWorker javaHome not found")
+      case Some(home) =>
+        (home.path / "bin/native-image").toString
+    }
+    val classPath = runClasspath().iterator
+      .map(_.path)
+      .mkString(java.io.File.pathSeparator)
+    val executableName = "HelloWorld" + (if (Properties.isWin) ".exe" else "")
+
+    val command = Seq(
+      program,
+      "--class-path",
+      classPath,
+      finalMainClass(),
+      executableName
+    )
+
+    os.proc(command).call(cwd = dest)
+
+    PathRef(dest / executableName)
+  }
+
+  def zincWorker = ModuleRef(ZincWorkerModuleGraalVm)
+
+  object ZincWorkerModuleGraalVm extends ZincWorkerModule {
+    def jvmId = "graalvm-community:23.0.1"
+  }
+}
+
+// This example demonstrates how to build a native image for a Scala application using https://www.graalvm.org/[Graal VM].
+//
+// - The `native-image` program is downloaded with a custom Java home.
+//
+// - The application main class is auto detected with `finalMainClass`.
+
+/** Usage
+
+> ./mill foo.nativeImage
+
+> ./out/foo/nativeImage.dest/HelloWorld
+Hello, World!
+*/

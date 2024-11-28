@@ -36,6 +36,10 @@ include::partial$example/kotlinlib/basic/4-compat-modules.adoc[]
 include::partial$example/kotlinlib/basic/6-realistic.adoc[]
 
 
+== Building Native Image with Graal VM
+
+include::partial$example/kotlinlib/basic/7-native-image.adoc[]
+
 == History
 
 Mill's Kotlin support originated as the third-party plugin
