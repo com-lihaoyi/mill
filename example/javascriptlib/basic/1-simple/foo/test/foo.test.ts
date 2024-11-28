@@ -1,4 +1,4 @@
-import {generateUser, defaultRoles} from "../src/qux";
+import {generateUser, defaultRoles} from "../src/foo";
 import {Map} from 'node_modules/immutable';
 
 // Define the type roles object

@@ -2,7 +2,7 @@ package build
 
 import mill._, javascriptlib._
 
-object foo extends ReactScriptsModule
+object foo extends CreateReactAppModule
 
 // Documentation for mill.example.javascriptlib
 

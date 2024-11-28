@@ -8,8 +8,14 @@ trait TypeScriptModule extends Module {
 
   def npmDeps: T[Seq[String]] = Task { Seq.empty[String] }
 
+  def npmDevDeps: T[Seq[String]] = Task { Seq.empty[String] }
+
   def transitiveNpmDeps: T[Seq[String]] = Task {
     Task.traverse(moduleDeps)(_.npmDeps)().flatten ++ npmDeps()
+  }
+
+  def transitiveNpmDevDeps: T[Seq[String]] = Task {
+    Task.traverse(moduleDeps)(_.npmDevDeps)().flatten ++ npmDevDeps()
   }
 
   def npmInstall: Target[PathRef] = Task {
@@ -17,10 +23,12 @@ trait TypeScriptModule extends Module {
       "npm",
       "install",
       "--save-dev",
-      "typescript@5.6.3",
       "@types/node@22.7.8",
+      "typescript@5.6.3",
+      "ts-node@^10.9.2",
       "esbuild@0.24.0",
-      transitiveNpmDeps()
+      transitiveNpmDeps(),
+      transitiveNpmDevDeps()
     ))
     PathRef(Task.dest)
   }

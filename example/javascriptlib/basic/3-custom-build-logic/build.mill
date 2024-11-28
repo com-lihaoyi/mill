@@ -2,34 +2,11 @@ package build
 
 import mill._, javascriptlib._
 
-trait CustomModule extends JestModule {
-  def npmDeps: T[Seq[String]] = Task { Seq.empty[String] }
-
-  override def npmInstall: T[PathRef] = Task.Anon {
-    os.call((
-      "npm",
-      "install",
-      "esbuild@0.24.0",
-      npmDeps()
-    ))
-    PathRef(Task.dest)
-  }
-
+object foo extends JestModule {
   override def mainFileName = Task { s"index.js" }
+
   override def mainFilePath =
     Task { compile()._1.path / millSourcePath.last / "src" / mainFileName() }
-
-}
-
-object foo extends CustomModule {
-  def npmDeps = Seq(
-    "@types/jest@^29.0.0",
-    "@types/node@^20.0.0",
-    "jest@^29.0.0",
-    "ts-jest@^29.0.0",
-    "ts-node@^10.9.2",
-    "typescript@^5.0.0"
-  )
 
   /** Total number of lines in module source files */
   def lineCount = Task {
@@ -50,6 +27,18 @@ object foo extends CustomModule {
 // Documentation for mill.example.javascriptlib
 
 /** Usage
+
+> mill foo.test
+PASS .../foo.test.js
+...Foo.getLineCount
+...✓ should return the content of the line-count.txt file...
+...✓ should return null if the file cannot be read...
+...
+Test Suites:...1 passed, 1 total...
+Tests:...2 passed, 2 total...
+Snapshots:...
+Time:...
+Ran all test suites matching...
 
 > mill foo.run
 [Reading file:] .../out/foo/resources.dest/line-count.txt

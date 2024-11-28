@@ -1,35 +1,27 @@
 package mill.javascriptlib
-
 import mill._
 import os.*
 
-// create-react-app scripts
-trait ReactScriptsModule extends TypeScriptModule {
-  def npmDevDeps: T[Seq[String]] = Task { Seq.empty[String] }
+// create-react-app: https://create-react-app.dev/docs/documentation-intro
+trait CreateReactAppModule extends TypeScriptModule {
+  def npmDeps = Seq(
+    "react@18.3.1",
+    "react-dom@18.3.1",
+    "react-scripts@5.0.1",
+    "typescript@^4.9.5",
+    "web-vitals@2.1.4",
+    "@types/node@^16.18.119",
+    "@types/react@^18.3.12",
+    "@types/react-dom@^18.3.1",
+  )
 
-  override def npmInstall: T[PathRef] = Task.Anon {
-    os.call((
-      "npm",
-      "install",
-      "--save-dev",
-      "react@18.3.1",
-      "react-dom@18.3.1",
-      "react-scripts@5.0.1",
-      "typescript@^4.9.5",
-      "web-vitals@2.1.4",
-      "@testing-library/jest-dom@^5.17.0",
-      "@testing-library/react@^13.4.0",
-      "@testing-library/user-event@^13.5.0",
-      "@types/jest@^27.5.2",
-      "@types/node@^16.18.119",
-      "@types/react@^18.3.12",
-      "@types/react-dom@^18.3.1",
-      "serve@12.0.1",
-      npmDevDeps(),
-      transitiveNpmDeps()
-    ))
-    PathRef(Task.dest)
-  }
+  def npmDevDeps = Seq(
+    "@testing-library/jest-dom@^5.17.0",
+    "@testing-library/react@^13.4.0",
+    "@testing-library/user-event@^13.5.0",
+    "@types/jest@^27.5.2",
+    "serve@12.0.1",
+  )
 
   override def sources: Target[PathRef] = Task.Source(millSourcePath)
 
@@ -113,7 +105,7 @@ trait ReactScriptsModule extends TypeScriptModule {
     )
   }
 
-  def cpNodeModules: Task[Unit] = Task.Anon {
+  def copyNodeModules: Task[Unit] = Task.Anon {
     val nodeModulesPath = npmInstall().path / "node_modules"
 
     // Check if the directory exists and is not empty
@@ -127,7 +119,7 @@ trait ReactScriptsModule extends TypeScriptModule {
   }
 
   def build: T[PathRef] = Task {
-    cpNodeModules()
+    copyNodeModules()
     setup()
     val env =
       Map("NODE_PATH" -> (Task.dest / "node_modules").toString)
@@ -141,7 +133,7 @@ trait ReactScriptsModule extends TypeScriptModule {
   }
 
   def test: T[PathRef] = Task {
-    cpNodeModules()
+    copyNodeModules()
     setup()
     val env =
       Map("NODE_PATH" -> (Task.dest / "node_modules").toString)

@@ -2,43 +2,21 @@ package build
 
 import mill._, javascriptlib._
 
-trait SimpleMod extends JestModule {
-  override def npmInstall = Task {
-    os.call((
-      "npm",
-      "install",
-      "--save-dev",
-      "@types/node@22.7.8",
-      "@types/jest@^29.5.14",
-      "@babel/core@^7.26.0",
-      "@babel/preset-env@^7.26.0",
-      "typescript@5.6.3",
-      "jest@^29.7.0",
-      "ts-jest@^29.2.5",
-      "ts-node@^10.9.2",
-      "babel-jest@^29.7.0",
-      "esbuild@0.24.0",
-      "immutable@4.3.7",
-      transitiveNpmDeps()
-    ))
-    PathRef(Task.dest)
-  }
+object foo extends JestModule {
+  def npmDeps = Seq("immutable@4.3.7")
 
   override def mainFilePath =
     Task { compile()._1.path / millSourcePath.last / "src" / mainFileName() }
-
 }
-
-object qux extends SimpleMod
 
 // Documentation for mill.example.javascriptlib
 
 /** Usage
-> mill qux.run James Bond prof
+> mill foo.run James Bond prof
 Hello James Bond Professor
 
-> mill qux.test
-PASS .../qux.test.js
+> mill foo.test
+PASS .../foo.test.js
 ...generateUser function
 ...✓ should generate a user with all specified fields...
 ...✓ should default lastName and role when they are not provided...
@@ -50,9 +28,9 @@ Snapshots:...
 Time:...
 Ran all test suites matching ...
 
-> mill show qux.bundle
+> mill show foo.bundle
 "...bundle.js..."
 
-> node out/qux/bundle.dest/bundle.js James Bond prof
+> node out/foo/bundle.dest/bundle.js James Bond prof
 Hello James Bond Professor
 */
