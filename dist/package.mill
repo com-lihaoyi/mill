@@ -372,27 +372,35 @@ object `package` extends RootModule with build.MillPublishJavaModule {
   def nativeImage: T[PathRef] = Task {
     val dest = T.dest
 
-    val program = zincWorker().javaHome() match {
-      case None =>
-        throw new RuntimeException("zincWorker javaHome not found")
-      case Some(home) =>
-        (home.path / "bin/native-image").toString
-    }
     val classPath = runClasspath().iterator
       .map(_.path)
       .mkString(java.io.File.pathSeparator)
     val executableName = "mill-native" + (if (Properties.isWin) ".exe" else "")
 
     val command =
-      Seq(program) ++
-        Seq("--class-path", classPath) ++
-        nativeImageOptions() ++
-        Seq(finalMainClass(), executableName)
+      Seq.newBuilder[String]
+        .+=(nativeImageCli().path.toString)
+        .++=(Seq("--class-path", classPath))
+        .++=(nativeImageOptions())
+        .++=(Seq(finalMainClass(), executableName))
+        .result()
 
     T.log.info(s"building native image $executableName")
     os.proc(command).call(cwd = dest)
 
     PathRef(dest / executableName)
+  }
+
+  def nativeImageCli: T[PathRef] = Task {
+    zincWorker().javaHome() match {
+      case None =>
+        throw new RuntimeException("ZincWorkerModule.javaHome not found")
+      case Some(home) =>
+        val ext = if (Properties.isWin) ".cmd" else ""
+        val path = (home.path / "bin" / s"native-image$ext")
+        if (os.exists(path)) PathRef(path)
+        else throw new RuntimeException("native-image not found at $path")
+    }
   }
 
   def nativeImageOptions: T[Seq[String]] = Task {
@@ -413,9 +421,9 @@ object `package` extends RootModule with build.MillPublishJavaModule {
       .result()
   }
 
-  def zincWorker = ModuleRef(ZincWorkerModuleGraalVm)
+  def zincWorker = ModuleRef(ZincWorkerGraalvm)
 
-  object ZincWorkerModuleGraalVm extends ZincWorkerModule {
-    def jvmId = build.Settings.graalVmJvmId
+  object ZincWorkerGraalvm extends ZincWorkerModule {
+    def jvmId = build.Settings.graalvmJvmId
   }
 }
