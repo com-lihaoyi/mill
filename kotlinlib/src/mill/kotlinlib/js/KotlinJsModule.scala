@@ -208,8 +208,10 @@ trait KotlinJsModule extends KotlinModule { outer =>
   def linkBinary: T[CompilationResult] = Task {
     kotlinJsCompile(
       outputMode = binaryKindToOutputMode(kotlinJsBinaryKind()),
+      // classpath with classes of this module's code
       irClasspath = Some(compile().classes),
       allKotlinSourceFiles = Seq.empty,
+      // classpath of libraries to be used to run this module's code
       librariesClasspath = upstreamAssemblyClasspath(),
       callMain = callMain(),
       moduleKind = moduleKind(),

@@ -65,7 +65,8 @@ object `package` extends RootModule with Module {
     object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))
   }
   object pythonlib extends Module {
-    object basic extends Cross[ExampleCrossModulePython](build.listIn(millSourcePath / "basic"))
+    object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))
+    object dependencies extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "dependencies"))
   }
 
   object cli extends Module{
@@ -97,40 +98,6 @@ object `package` extends RootModule with Module {
     object jvmcode extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "jvmcode"))
     object python extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "python"))
     object typescript extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "typescript"))
-  }
-
-  trait ExampleCrossModulePython extends ExampleCrossModuleJava {
-    override def lineTransform(line: String) ={
-      this.millModuleSegments.parts.last match {
-        case "1-simple" =>
-          val updatedLine = line
-          .replace("xref:{language-small}lib/web-examples.adoc", "link:") // Need updated link
-          .replace("xref:{language-small}lib/build-examples.adoc", "link:") // Need updated link
-          .replace("compile", "typeCheck")
-          .replace("Scala console", "Python console")
-          .replace("Ammonite Scala", "Python")
-          .replace("assembly", "typeCheck")
-          .replace(s"// $$ mill jar           # bundle the classfiles into a jar suitable for publishing", "")
-          .replace("foo.scalaVersion", "foo.typeCheck")
-          updatedLine
-        case "2-custom-build-logic" =>
-          val updatedLine = line
-          .replace("17", "10") // it's just the change for page count
-          .replace("`allSourceFiles` (an existing task)", "`allSourceFiles`")
-          updatedLine
-
-        case "3-multi-module" =>
-          val updatedLine = line
-          .replace("compiled", "typeChecked")
-          .replace("compile", "typeCheck")
-          .replace("...bar.BarTests...simple...", "test_escaping (...test.TestScript...) ... ok")
-          .replace("...bar.BarTests...escaping...", "test_simple (...test.TestScript...) ... ok")
-          updatedLine
-
-        case _ => line
-
-      }
-    }
   }
 
   trait ExampleCrossModuleKotlin extends ExampleCrossModuleJava {
