@@ -12,8 +12,8 @@ some of the scaffolding the general principles laid out on this page still apply
 == How Long Does Migration Take?
 
 Migrating an existing project to Mill may take anywhere from an hour for small projects
-to several days or more for larger projects. These steps come experience doing proof-of-concept
-migrations a range of real-world projects to Mill, from simple single-module codebases to
+to several days or more for larger projects. These steps come from experience doing proof-of-concept
+migrations of a range of real-world projects to Mill, from simple single-module codebases to
 complex multi-module builds with dozens of modules:
 
 |===
@@ -60,7 +60,7 @@ The basic approach taken for any such migration is as follows:
 
 3. *Once completed, the Mill build can be used as the default for some period of time*
 
-** This period gives to time to be confident in the robustness of the new Mill build system,
+** This period gives the time to be confident in the robustness of the new Mill build system,
    during which both old and new build systems should be maintained and kept up top date.
 
 4. *After you are comfortable with the new Mill build, the old build
@@ -297,9 +297,9 @@ whether bundled in Mill or your own DIY scripts, but there will always be a long
 tail of manual debugging and investigation necessary to reproduce every quirk and
 idiosyncrasy of your old build system in your new Mill build.
 
-However, while _tedious_, such migrations are not usually not _difficult_. Most
+However, while _tedious_, such migrations are usually not _difficult_. Most
 build systems use a relatively small set of third-party tools with small amounts of
-custom logic, and Mill has built-in integrations with all the common JVM tools and
+custom logic, and Mill has built-in integrations with many common JVM tools and
 makes custom logic easy to implement. In the end the decision to migrate comes down to
 the benefits of Mill (see xref:comparisons/why-mill.adoc[]) outweighing the cost of migration,
 which becomes more true as the lifespan and pace of development on a project grows.
