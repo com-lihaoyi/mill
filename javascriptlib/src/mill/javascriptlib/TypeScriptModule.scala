@@ -1,5 +1,6 @@
 package mill.javascriptlib
-import mill._
+import mill.*
+import os.*
 
 trait TypeScriptModule extends Module {
   def moduleDeps: Seq[TypeScriptModule] = Nil
@@ -10,7 +11,7 @@ trait TypeScriptModule extends Module {
     Task.traverse(moduleDeps)(_.npmDeps)().flatten ++ npmDeps()
   }
 
-  def npmInstall = Task {
+  def npmInstall: Target[PathRef] = Task {
     os.call((
       "npm",
       "install",
@@ -23,8 +24,10 @@ trait TypeScriptModule extends Module {
     PathRef(Task.dest)
   }
 
-  def sources = Task.Source(millSourcePath / "src")
-  def allSources = Task { os.walk(sources().path).filter(_.ext == "ts").map(PathRef(_)) }
+  def sources: Target[PathRef] = Task.Source(millSourcePath / "src")
+
+  def allSources: Target[IndexedSeq[PathRef]] =
+    Task { os.walk(sources().path).filter(_.ext == "ts").map(PathRef(_)) }
 
   def compile: T[(PathRef, PathRef)] = Task {
     val nodeTypes = npmInstall().path / "node_modules/@types"
@@ -56,28 +59,35 @@ trait TypeScriptModule extends Module {
     (PathRef(javascriptOut), PathRef(declarationsOut))
   }
 
-  def mainFileName = Task { s"${millSourcePath.last}.js" }
+  def mainFileName: Target[String] = Task { s"${millSourcePath.last}.js" }
 
-  def prepareRun = Task.Anon {
+  def mainFilePath: Target[Path] = Task { compile()._1.path / mainFileName() }
+
+  def mkENV: Target[Map[String, String]] =
+    Task { Map("NODE_PATH" -> Seq(".", compile()._1.path, npmInstall().path).mkString(":")) }
+
+  def prepareRun: Task[(Path, Map[String, String])] = Task.Anon {
     val upstream = Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
-    for (((jsDir, tTsDir), mod) <- upstream) {
+    for (((jsDir, _), mod) <- upstream) {
       os.copy(jsDir.path, Task.dest / mod.millSourcePath.subRelativeTo(Task.workspace))
     }
-    val mainFile = compile()._1.path / mainFileName()
-    val env = Map("NODE_PATH" -> Seq(".", compile()._1.path, npmInstall().path).mkString(":"))
-    (mainFile, env)
+    (mainFilePath(), mkENV())
   }
 
-  def run(args: mill.define.Args) = Task.Command {
+  def runArguments: Task[String] = Task { "" }
+
+  def run(args: mill.define.Args): Command[CommandResult] = Task.Command {
     val (mainFile, env) = prepareRun()
-    os.call(("node", mainFile, args.value), stdout = os.Inherit, env = env)
+    os.call(("node", mainFile, args.value, runArguments()), stdout = os.Inherit, env = env)
   }
 
-  def bundle = Task {
+  def bundleFlags: Target[String] = Task { "--platform=node" }
+
+  def bundle: Target[PathRef] = Task {
     val (mainFile, env) = prepareRun()
     val esbuild = npmInstall().path / "node_modules/esbuild/bin/esbuild"
     val bundle = Task.dest / "bundle.js"
-    os.call((esbuild, mainFile, "--bundle", s"--outfile=$bundle"), env = env)
+    os.call((esbuild, mainFile, "--bundle", bundleFlags(), s"--outfile=$bundle"), env = env)
     PathRef(bundle)
   }
 }
