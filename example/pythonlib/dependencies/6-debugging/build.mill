@@ -2,6 +2,7 @@
 // arguments mill passes to `pip install` by looking at the output of the
 // `pipInstallArgs` task.
 
+//// SNIPPET:BUILD1
 package build
 import mill._, pythonlib._
 
@@ -14,6 +15,8 @@ object `package` extends RootModule with PythonModule {
 
   def indexes = Seq("invalid_index")
 }
+
+//// SNIPPET:END
 
 /** Usage
 

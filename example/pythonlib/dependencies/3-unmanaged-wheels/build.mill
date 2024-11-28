@@ -3,6 +3,7 @@
 // you receive a wheel or folder-full-of-wheels from somewhere and need to
 // include it in your project, `unmanagedWheels` is the way to do it.
 
+//// SNIPPET:BUILD
 package build
 import mill._, pythonlib._
 
@@ -11,6 +12,8 @@ object `package` extends RootModule with PythonModule {
     Seq.from(os.list(millSourcePath / "lib").map(PathRef(_)))
   }
 }
+
+//// SNIPPET:END
 
 // You can override `unmanagedWheels` to point it at a wheel (.whl file) or
 // source distribution (.tar.gz with a pyproject.toml file) you place on the

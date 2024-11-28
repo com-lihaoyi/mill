@@ -1,3 +1,4 @@
+//// SNIPPET:BUILD
 package build
 import mill._, pythonlib._
 
@@ -15,6 +16,7 @@ object bar extends MyModule {
   def pythonDeps = Seq("Jinja2==3.1.4")
 }
 //
+//// SNIPPET:TREE
 // ----
 // build.mill
 // foo/

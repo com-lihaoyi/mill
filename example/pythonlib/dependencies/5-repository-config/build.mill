@@ -3,6 +3,7 @@
 // can also add your own package indexes by overriding the `indexes` task in
 // the module:
 
+//// SNIPPET:BUILD1
 package build
 import mill._, pythonlib._
 
@@ -15,6 +16,8 @@ object foo extends PythonModule {
   // override this task to add or replace the package indexes
   def indexes = super.indexes() ++ Seq("https://test.pypi.org/simple/")
 }
+
+//// SNIPPET:END
 
 // Mill uses https://pip.pypa.io/en/stable/[pip] to find and install dependencies.
 //
