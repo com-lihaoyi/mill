@@ -44,6 +44,11 @@ abstract class ServerLauncher(
         if (clientLocked.isLocked) {
           preRun(serverDir)
           val exitCode = run(serverDir, setJnaNoSys, locks)
+          if (exitCode == 0) {
+            println("tidy locks")
+            locks.clientLock.close()
+            locks.processLock.close()
+          }
           return Result(exitCode, serverDir)
         }
       }

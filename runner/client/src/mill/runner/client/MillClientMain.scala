@@ -4,6 +4,7 @@ import mill.main.client._
 import mill.main.client.lock.Locks
 import java.nio.file.Path
 import scala.jdk.CollectionConverters._
+import java.nio.file.Files
 
 object MillClientMain {
   def main(args: Array[String]): Unit = {
@@ -57,13 +58,14 @@ object MillClientMain {
           }
         }
 
-        var exitCode = launcher.acquireLocksAndRun(OutFiles.out).exitCode
+        var exitConditions = launcher.acquireLocksAndRun(OutFiles.out)
 
-        if (exitCode == Util.ExitServerCodeWhenVersionMismatch()) {
+        if (exitConditions.exitCode == Util.ExitServerCodeWhenVersionMismatch()) {
           println("exit due to version mismatch")
-          exitCode = launcher.acquireLocksAndRun(OutFiles.out).exitCode
+          exitConditions = launcher.acquireLocksAndRun(OutFiles.out)
         }
-        System.exit(exitCode)
+
+        System.exit(exitConditions.exitCode)
       } catch {
         case e: ServerCouldNotBeStarted =>
           System.err.println(
