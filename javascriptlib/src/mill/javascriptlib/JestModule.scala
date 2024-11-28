@@ -26,7 +26,7 @@ trait JestModule extends TypeScriptModule {
       .map(PathRef(_))
   }
 
-  override def mkENV: Target[Map[String, String]] = Task {
+  override def mkENV = Task.Anon {
     val javascriptOut = compile()._1.path
     // env
     // note: ' npmInstall().path / "node_modules" ' required in NODE_PATH for jest to find preset: ts-jest
@@ -38,9 +38,23 @@ trait JestModule extends TypeScriptModule {
     ).mkString(":"))
   }
 
+  // specify config file path: --config /path/to/jest/config
+  def jestConfigFile: Task[String] =
+    Task { (compile()._1.path / "jest.config.js").toString() }
+
+  // specify test dir path/to/test
+  def jestPathToTest: Task[String] =
+    Task { compile()._1.path.toString() }
+
   def test: Target[CommandResult] = Task {
     os.call(
-      ("node", npmInstall().path / "node_modules/jest/bin/jest.js", compile()._1.path),
+      (
+        "node",
+        npmInstall().path / "node_modules/jest/bin/jest.js",
+        "--config",
+        jestConfigFile(),
+        jestPathToTest()
+      ),
       stdout = os.Inherit,
       env = mkENV()
     )

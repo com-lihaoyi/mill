@@ -72,8 +72,8 @@ trait TypeScriptModule extends Module {
 
   def mainFilePath: Target[Path] = Task { compile()._1.path / mainFileName() }
 
-  def mkENV: Target[Map[String, String]] =
-    Task { Map("NODE_PATH" -> Seq(".", compile()._1.path, npmInstall().path).mkString(":")) }
+  def mkENV =
+    Task.Anon { Map("NODE_PATH" -> Seq(".", compile()._1.path, npmInstall().path).mkString(":")) }
 
   def prepareRun: Task[(Path, Map[String, String])] = Task.Anon {
     val upstream = Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
