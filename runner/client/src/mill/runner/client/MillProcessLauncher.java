@@ -147,7 +147,11 @@ public class MillProcessLauncher {
 
     if (selfJars == null || selfJars.trim().isEmpty()) {
       // Assuming native assembly run
-      selfJars = MillProcessLauncher.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+      selfJars = MillProcessLauncher.class
+          .getProtectionDomain()
+          .getCodeSource()
+          .getLocation()
+          .getPath();
     }
 
     if (selfJars == null || selfJars.trim().isEmpty()) {
