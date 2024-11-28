@@ -1,9 +1,8 @@
 package build
 
 import mill._, javascriptlib._
-import scala.util.Try
 
-trait SimpleMod extends TypeScriptModule {
+trait SimpleMod extends JestModule {
   override def npmInstall = Task {
     os.call((
       "npm",
@@ -19,70 +18,18 @@ trait SimpleMod extends TypeScriptModule {
       "ts-node@^10.9.2",
       "babel-jest@^29.7.0",
       "esbuild@0.24.0",
+      "immutable@4.3.7",
       transitiveNpmDeps()
     ))
     PathRef(Task.dest)
   }
 
-  def test =
-    Task {
-      os.call(("echo", "No tests defined for module " + millSourcePath.last), stdout = os.Inherit)
-    }
+  override def mainFilePath =
+    Task { compile()._1.path / millSourcePath.last / "src" / mainFileName() }
 
 }
 
-object foo extends SimpleMod {
-  object bar extends SimpleMod {
-    def npmDeps = Seq("immutable@4.3.7")
-  }
-}
-
-object qux extends SimpleMod {
-  def moduleDeps = Seq(foo, foo.bar)
-
-  def testPath = Task.Source(millSourcePath / "test")
-  val testConfigPath = millSourcePath / os.up / "jest.config.ts"
-
-  def allSources = Task.Anon {
-    (os.walk(sources().path) ++ os.walk(testPath().path) ++ IndexedSeq(testConfigPath))
-      .filter(_.ext == "ts")
-      .map(PathRef(_))
-  }
-
-  override def run(args: mill.define.Args) = Task.Command {
-    val (_, env) = prepareRun()
-    val mainFile = compile()._1.path / millSourcePath.last / "src" / mainFileName()
-    os.call(("node", mainFile, args.value), stdout = os.Inherit, env = env)
-  }
-
-  def bundle = Task {
-    val (_, env) = prepareRun()
-    val esbuild = npmInstall().path / "node_modules/esbuild/bin/esbuild"
-    val bundle = Task.dest / "bundle.js"
-    val mainFile = compile()._1.path / millSourcePath.last / "src" / mainFileName()
-    os.call((esbuild, mainFile, "--bundle", s"--outfile=$bundle"), env = env)
-    PathRef(bundle)
-  }
-
-  def test = Task {
-    val javascriptOut = compile()._1.path
-
-    // env
-    // note: ' npmInstall().path / "node_modules" ' required in NODE_PATH for jest to find preset: ts-jest
-    val env = Map("NODE_PATH" -> Seq(
-      ".",
-      javascriptOut,
-      npmInstall().path,
-      npmInstall().path / "node_modules"
-    ).mkString(":"))
-
-    os.call(
-      ("node", npmInstall().path / "node_modules/jest/bin/jest.js", javascriptOut),
-      stdout = os.Inherit,
-      env = env
-    )
-  }
-}
+object qux extends SimpleMod
 
 // Documentation for mill.example.javascriptlib
 
@@ -108,5 +55,4 @@ Ran all test suites matching ...
 
 > node out/qux/bundle.dest/bundle.js James Bond prof
 Hello James Bond Professor
-
 */

@@ -1,5 +1,12 @@
-import {User} from "foo/foo";
-import {defaultRoles} from "foo/bar/bar";
+import {Map} from 'node_modules/immutable';
+
+interface User {
+    firstName: string
+    lastName: string
+    role: string
+}
+
+export const defaultRoles: Map<string, string> = Map({prof: "Professor"});
 
 /**
  * Generate a user object based on command-line arguments
@@ -8,9 +15,9 @@ import {defaultRoles} from "foo/bar/bar";
  */
 export function generateUser(args: string[]): User {
     return {
-        firstName: args[0] || "unknown", // Default to "unknown" if first-name not found
-        lastName: args[1] || "unknown", // Default to "unknown" if last-name not found
-        role: defaultRoles.get(args[2], ""), // Default to empty string if role not found
+        firstName: args[0] || "unknown",
+        lastName: args[1] || "unknown",
+        role: defaultRoles.get(args[2], ""),
     };
 }
 

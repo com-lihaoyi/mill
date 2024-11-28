@@ -9,8 +9,5 @@ export default {
         '^.+\\.(ts|tsx)$': ['ts-jest', { tsconfig: 'tsconfig.json' }],
         '^.+\\.(js|jsx)$': 'babel-jest', // Use babel-jest for JS/JSX files
     },
-    moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
-    moduleNameMapper: {
-        "^foo/bar/(.*)$": "<rootDir>/foo/bar/src/$1"
-    }
+    moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node']
 };
