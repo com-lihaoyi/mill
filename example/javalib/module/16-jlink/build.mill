@@ -5,8 +5,8 @@ import mill.javalib.Assembly._
 import mill.scalalib.JlinkModule
 
 object foo extends JavaModule with JlinkModule {
-  override def jlinkModuleName: T[String] = T { "foo" }
-  override def jlinkModuleVersion: T[Option[String]] = T { Option("1.0.0") }
+  def jlinkModuleName: T[String] = T { "foo" }
+  def jlinkModuleVersion: T[Option[String]] = T { Option("1.0") }
 }
 
 /** Usage
