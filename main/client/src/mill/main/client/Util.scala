@@ -137,7 +137,6 @@ object Util {
     }.recover {
       case _: java.io.FileNotFoundException => // File not found, ignore
     }
-    println(vmOptions.mkString(" "))
     vmOptions.toList
   }
 

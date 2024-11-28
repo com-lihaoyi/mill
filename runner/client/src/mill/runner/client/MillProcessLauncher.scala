@@ -136,9 +136,7 @@ object MillProcessLauncher {
       vmOptions ++= Util.readOptsFileLines(millJvmOptsFile)
     }
 
-    val tmp = vmOptions.toSeq ++ Seq("-cp", millClasspath.mkString(File.pathSeparator))
-    // println("tmp: " + tmp.mkString(" "))
-    tmp
+    vmOptions.toSeq ++ Seq("-cp", millClasspath.mkString(File.pathSeparator))
 
   }
 
