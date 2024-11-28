@@ -6,5 +6,10 @@
     {
       "type": "mill.runner.MillServerMain"
     }
+  ],
+  "resources": [
+    {
+      "glob": "logback.xml"
+    }
   ]
 }

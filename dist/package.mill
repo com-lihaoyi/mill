@@ -6,8 +6,10 @@ import mill.api.JarManifest
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import $file.ci.upload
 
+import java.nio.file.Paths
 import scala.util.{Properties, Using}
 
+// TODO remove nativeImage* tasks and extend NativeImageModule once available
 object `package` extends RootModule with build.MillPublishJavaModule {
 
   /**
@@ -375,7 +377,7 @@ object `package` extends RootModule with build.MillPublishJavaModule {
     val classPath = runClasspath().iterator
       .map(_.path)
       .mkString(java.io.File.pathSeparator)
-    val executableName = "mill-native" + (if (Properties.isWin) ".exe" else "")
+    val executableName = nativeImageExecutableName()
 
     val command =
       Seq.newBuilder[String]
@@ -392,15 +394,20 @@ object `package` extends RootModule with build.MillPublishJavaModule {
   }
 
   def nativeImageCli: T[PathRef] = Task {
-    zincWorker().javaHome() match {
+    val ext = if (Properties.isWin) ".cmd" else ""
+    val path = zincWorker().javaHome() match {
       case None =>
-        throw new RuntimeException("ZincWorkerModule.javaHome not found")
+        os.Path(Paths.get(s"native-image$ext").toAbsolutePath)
       case Some(home) =>
-        val ext = if (Properties.isWin) ".cmd" else ""
-        val path = (home.path / "bin" / s"native-image$ext")
-        if (os.exists(path)) PathRef(path)
-        else throw new RuntimeException("native-image not found at $path")
+        home.path / "bin" / s"native-image$ext"
     }
+    if (os.exists(path)) PathRef(path)
+    else throw new RuntimeException(s"native-image not found at $path")
+  }
+
+  def nativeImageExecutableName: T[String] = Task {
+    val name = finalMainClass().split('.').last
+    if (Properties.isWin) s"$name.exe" else name
   }
 
   def nativeImageOptions: T[Seq[String]] = Task {
@@ -415,7 +422,6 @@ object `package` extends RootModule with build.MillPublishJavaModule {
     os.write(vmOptionsFile, millOptionsContent)
     Seq.newBuilder[String]
       .+=("--no-fallback")
-      .+=("-H:IncludeResources=logback.xml")
       .+=(s"-DMILL_OPTIONS_PATH=$vmOptionsFile")
       .++=(otherArgs)
       .result()
