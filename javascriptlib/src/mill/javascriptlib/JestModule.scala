@@ -1,19 +1,23 @@
 package mill.javascriptlib
 import mill.*
 import os.*
+import mill.define.Target
 import scala.collection.immutable.IndexedSeq
 
 trait JestModule extends TypeScriptModule {
-  def npmDevDeps = Seq(
-    "@types/jest@^29.5.14",
-    "@babel/core@^7.26.0",
-    "@babel/preset-env@^7.26.0",
-    "jest@^29.7.0",
-    "ts-jest@^29.2.5",
-    "babel-jest@^29.7.0"
-  )
+  override def npmDevDeps: T[Seq[String]] = Task {
+    Seq(
+      "@types/jest@^29.5.14",
+      "@babel/core@^7.26.0",
+      "@babel/preset-env@^7.26.0",
+      "jest@^29.7.0",
+      "ts-jest@^29.2.5",
+      "babel-jest@^29.7.0"
+    )
+  }
 
   def testPath: Target[PathRef] = Task.Source(millSourcePath / "test")
+
   val testConfig = Task.Source(millSourcePath / os.up / "jest.config.ts")
 
   override def allSources: Target[IndexedSeq[PathRef]] = Task {

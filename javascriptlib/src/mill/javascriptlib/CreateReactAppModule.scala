@@ -1,27 +1,32 @@
 package mill.javascriptlib
 import mill._
 import os.*
+import mill.define.Target
 
 // create-react-app: https://create-react-app.dev/docs/documentation-intro
 trait CreateReactAppModule extends TypeScriptModule {
-  def npmDeps = Seq(
-    "react@18.3.1",
-    "react-dom@18.3.1",
-    "react-scripts@5.0.1",
-    "typescript@^4.9.5",
-    "web-vitals@2.1.4",
-    "@types/node@^16.18.119",
-    "@types/react@^18.3.12",
-    "@types/react-dom@^18.3.1",
-  )
+  override def npmDeps: T[Seq[String]] = Task {
+    Seq(
+      "react@18.3.1",
+      "react-dom@18.3.1",
+      "react-scripts@5.0.1",
+      "typescript@^4.9.5",
+      "web-vitals@2.1.4",
+      "@types/node@^16.18.119",
+      "@types/react@^18.3.12",
+      "@types/react-dom@^18.3.1"
+    )
+  }
 
-  def npmDevDeps = Seq(
-    "@testing-library/jest-dom@^5.17.0",
-    "@testing-library/react@^13.4.0",
-    "@testing-library/user-event@^13.5.0",
-    "@types/jest@^27.5.2",
-    "serve@12.0.1",
-  )
+  override def npmDevDeps: T[Seq[String]] = Task {
+    Seq(
+      "@testing-library/jest-dom@^5.17.0",
+      "@testing-library/react@^13.4.0",
+      "@testing-library/user-event@^13.5.0",
+      "@types/jest@^27.5.2",
+      "serve@12.0.1"
+    )
+  }
 
   override def sources: Target[PathRef] = Task.Source(millSourcePath)
 
@@ -85,7 +90,7 @@ trait CreateReactAppModule extends TypeScriptModule {
         "version" -> "0.1.0",
         "private" -> true,
         "dependencies" -> buildDependencies(transitiveNpmDeps()),
-        "devDependencies" -> buildDependencies(npmDevDeps()),
+        "devDependencies" -> buildDependencies(transitiveNpmDevDeps()),
         "scripts" -> ujson.Obj(
           "build" -> s"${Task.dest / "node_modules" / "react-scripts" / "bin" / "react-scripts.js"} build",
           "test" -> s"${Task.dest / "node_modules" / "react-scripts" / "bin" / "react-scripts.js"} test --watchAll=false"

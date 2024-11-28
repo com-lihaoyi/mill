@@ -19,6 +19,8 @@ trait TypeScriptModule extends Module {
   }
 
   def npmInstall: Target[PathRef] = Task {
+    val npm = transitiveNpmDeps()
+    val npmDeps = transitiveNpmDevDeps()
     os.call((
       "npm",
       "install",
@@ -27,8 +29,8 @@ trait TypeScriptModule extends Module {
       "typescript@5.6.3",
       "ts-node@^10.9.2",
       "esbuild@0.24.0",
-      transitiveNpmDeps(),
-      transitiveNpmDevDeps()
+      npm, npmDeps
+
     ))
     PathRef(Task.dest)
   }
