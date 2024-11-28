@@ -60,7 +60,7 @@ The basic approach taken for any such migration is as follows:
 
 3. *Once completed, the Mill build can be used as the default for some period of time*
 
-** This period gives to time to be confident in the robustness of the new Mill build system,
+** This period gives the time to be confident in the robustness of the new Mill build system,
    during which both old and new build systems should be maintained and kept up top date.
 
 4. *After you are comfortable with the new Mill build, the old build
