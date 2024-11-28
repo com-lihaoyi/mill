@@ -87,7 +87,6 @@ abstract class ServerLauncher(
     while (ioSocket == null && System.currentTimeMillis() - retryStart < serverInitWaitMillis) {
       try {
         val port = Files.readString(serverDir.resolve(ServerFiles.socketPort)).toInt
-        print("Port: " + port)
         ioSocket = new Socket("127.0.0.1", port)
       } catch {
         case e: Throwable =>
