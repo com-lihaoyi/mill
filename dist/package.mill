@@ -1,9 +1,12 @@
 package build.dist
 import mill._, scalalib._, publish._
+import mill.define.ModuleRef
 import mill.util.Jvm
 import mill.api.JarManifest
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import $file.ci.upload
+
+import scala.util.{Properties, Using}
 
 object `package` extends RootModule with build.MillPublishJavaModule {
 
@@ -157,7 +160,7 @@ object `package` extends RootModule with build.MillPublishJavaModule {
 
   def run(args: Task[Args] = Task.Anon(Args())) = Task.Command(exclusive = true) {
     args().value match {
-      case Nil => mill.api.Result.Failure("Need to pass in cwd as first argument to dev.run")
+      case Nil => mill.api.Result.Failure("Need to pass in cwd as first argument to dist.run")
       case wd0 +: rest =>
         val wd = os.Path(wd0, Task.workspace)
         os.makeDir.all(wd)
@@ -341,5 +344,78 @@ object `package` extends RootModule with build.MillPublishJavaModule {
         build.Settings.githubRepo
       )
     }
+  }
+
+  def mainClass = Some("mill.runner.client.MillClientMain")
+
+  def native: T[PathRef] = Task {
+    val executable = Task.dest / "mill"
+
+    Task.traverse(allPublishModules)(m => m.publishLocalCached)()
+
+    Using(os.write.outputStream(
+        executable,
+        if (Properties.isWin) null else "rwxrwxrwx",
+        createFolders = true)
+    ) { out =>
+      // concatenate native image and assembly as prescribed in:
+      // https://github.com/com-lihaoyi/mill/issues/4007#issuecomment-2495933167
+      out.write(os.read.bytes(nativeImage().path))
+      out.write(System.lineSeparator.getBytes)
+      out.write(os.read.bytes(super.assembly().path))
+      out.flush()
+    }
+
+    PathRef(executable)
+  }
+
+  def nativeImage: T[PathRef] = Task {
+    val dest = T.dest
+
+    val program = zincWorker().javaHome() match {
+      case None =>
+        throw new RuntimeException("zincWorker javaHome not found")
+      case Some(home) =>
+        (home.path / "bin/native-image").toString
+    }
+    val classPath = runClasspath().iterator
+      .map(_.path)
+      .mkString(java.io.File.pathSeparator)
+    val executableName = "mill-native" + (if (Properties.isWin) ".exe" else "")
+
+    val command =
+      Seq(program) ++
+        Seq("--class-path", classPath) ++
+        nativeImageOptions() ++
+        Seq(finalMainClass(), executableName)
+
+    T.log.info(s"building native image $executableName")
+    os.proc(command).call(cwd = dest)
+
+    PathRef(dest / executableName)
+  }
+
+  def nativeImageOptions: T[Seq[String]] = Task {
+    val (millArgs, otherArgs) =
+      forkArgs().partition(arg => arg.startsWith("-DMILL") && !arg.startsWith("-DMILL_VERSION"))
+    // Pass Mill options via file, due to small max args limit in Windows
+    val vmOptionsFile = Task.dest / "mill.properties"
+    val millOptionsContent =
+      millArgs.map(_.drop(2).replace("\\", "/")).mkString(
+        "\r\n"
+      ) // drop -D prefix, replace \ with /
+    os.write(vmOptionsFile, millOptionsContent)
+    Seq.newBuilder[String]
+      .+=("--no-fallback")
+      .+=("-H:IncludeResources=logback.xml")
+      .+=(s"-DMILL_OPTIONS_PATH=$vmOptionsFile")
+      .++=(otherArgs)
+      .result()
+  }
+
+  def zincWorker = ModuleRef(ZincWorkerModuleGraalVm)
+
+  object ZincWorkerModuleGraalVm extends ZincWorkerModule {
+    def jvmId = build.Settings.graalVmJvmId
   }
 }

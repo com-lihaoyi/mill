@@ -256,7 +256,6 @@ object Lib {
     Util.millProperty(EnvVars.MILL_BUILD_LIBRARIES) match {
       case Some(found) => found.split(',').map(os.Path(_)).distinct.toList
       case None =>
-        millAssemblyEmbeddedDeps
         val Result.Success(res) = scalalib.Lib.resolveDependencies(
           repositories = repos.toList,
           deps = millAssemblyEmbeddedDeps,

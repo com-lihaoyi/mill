@@ -146,6 +146,11 @@ public class MillProcessLauncher {
     }
 
     if (selfJars == null || selfJars.trim().isEmpty()) {
+      // Assuming native assembly run
+      selfJars = MillProcessLauncher.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+    }
+
+    if (selfJars == null || selfJars.trim().isEmpty()) {
       throw new RuntimeException("MILL_CLASSPATH is empty!");
     }
     String[] selfJarsArray = selfJars.split("[,]");
