@@ -1,22 +1,18 @@
 package build
 import mill._, javascriptlib._
 
-trait HelloModule extends TypeScriptModule {
-  def npmDevDeps: T[Seq[String]] = Task { Seq.empty[String] }
-
-  def test = Task { os.call(("echo", "nothing to do here")) }
-}
-
-trait CSModule extends HelloModule {
-  def npmDevDeps = Seq(
-    "@types/node@^20.0.0",
-    "ts-node@^10.9.2",
-    "typescript@^5.0.0",
-    "@types/jest@^29.0.0",
-    "jest@^29.0.0",
-    "ts-jest@^29.0.0",
-    "esbuild@0.24.0"
-  )
+trait HelloModule extends JestModule {
+  def npmDevDeps: T[Seq[String]] = Task {
+    Seq(
+      "@types/node@^20.0.0",
+      "ts-node@^10.9.2",
+      "typescript@^5.0.0",
+      "@types/jest@^29.0.0",
+      "jest@^29.0.0",
+      "ts-jest@^29.0.0",
+      "esbuild@0.24.0"
+    )
+  }
 
   override def npmInstall: T[PathRef] = Task.Anon {
     os.call((
@@ -29,59 +25,13 @@ trait CSModule extends HelloModule {
     PathRef(Task.dest)
   }
 
-  def testPath = Task.Source(millSourcePath / "test")
-
-  val testConfigPath = millSourcePath / "jest.config.ts"
-
-  def allSources = Task.Anon {
-    (os.walk(sources().path) ++ os.walk(testPath().path) ++ IndexedSeq(testConfigPath))
-      .filter(_.ext == "ts")
-      .map(PathRef(_))
-  }
-
-  def test = Task {
-    val javascriptOut = compile()._1.path
-
-    // note: ' npmInstall().path / "node_modules" ' required in NODE_PATH for jest to find preset: ts-jest
-    val env = Map("NODE_PATH" -> Seq(
-      ".",
-      javascriptOut,
-      npmInstall().path,
-      npmInstall().path / "node_modules"
-    ).mkString(":"))
-
-    os.call(
-      (
-        "node",
-        npmInstall().path / "node_modules/jest/bin/jest.js",
-        "--config",
-        javascriptOut / "jest.config.js",
-        javascriptOut.toString()
-      ),
-      stdout = os.Inherit,
-      env = env
-    )
-  }
-
-  override def bundle = Task {
-    val (_, env) = prepareRun()
-    val esbuild = npmInstall().path / "node_modules/esbuild/bin/esbuild"
-    val bundle = Task.dest / "bundle.js"
-    val mainFile = compile()._1.path / "src" / mainFileName()
-    os.call((esbuild, mainFile, "--platform=node", "--bundle", s"--outfile=$bundle"), env = env)
-    PathRef(bundle)
-  }
-
-  def run(args: mill.define.Args) = Task.Command {
-    val (_, env) = prepareRun()
-    val mainFile = compile()._1.path / "src" / mainFileName()
-    os.call(("node", mainFile, args.value), stdout = os.Inherit, stdin = os.Inherit, env = env)
-  }
 }
 
-object client extends CSModule
+object client extends HelloModule {
+  def test = Task { os.call(("echo", "nothing to do here")) }
+}
 
-object server extends CSModule
+object server extends HelloModule
 
 object app extends HelloModule {
   def moduleDeps = Seq(client, server)
