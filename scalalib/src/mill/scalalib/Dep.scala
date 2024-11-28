@@ -193,7 +193,7 @@ object Dep {
       coursier.Dependency(
         coursier.Module(coursier.Organization(org), coursier.ModuleName(name)),
         version
-      ).withConfiguration(DefaultConfiguration),
+      ),
       cross,
       force
     )

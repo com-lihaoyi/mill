@@ -1,0 +1,305 @@
+= Migrating to Mill
+
+include::partial$gtag-config.adoc[]
+
+This page documents a playbook for migrating existing projects
+from Maven, Gradle, or SBT to Mill. Some build tools also have additional semi-automated
+tooling (e.g. see xref:migrating/maven.adoc[]), other automation is work-in-process
+(e.g. migrating from https://github.com/com-lihaoyi/mill/issues/3962[Gradle] or
+https://github.com/com-lihaoyi/mill/issues/3450[SBT]) but while automation helps with
+some of the scaffolding the general principles laid out on this page still apply.
+
+== How Long Does Migration Take?
+
+Migrating an existing project to Mill may take anywhere from an hour for small projects
+to several days or more for larger projects. These steps come from experience doing proof-of-concept
+migrations of a range of real-world projects to Mill, from simple single-module codebases to
+complex multi-module builds with dozens of modules:
+
+|===
+| Migrated Project | Lines | Modules | Estimated Implementation Time
+| https://github.com/com-lihaoyi/mill/tree/main/example/thirdparty/jimfs/build.mill[JimFS] | ~26kLOC | 1 module | ~2 hours
+| https://github.com/com-lihaoyi/mill/tree/main/example/thirdparty/commons-io/build.mill[Apache Commons-IO] | ~100kLOC | 1 module | ~2 hours
+| https://github.com/com-lihaoyi/mill/tree/main/example/thirdparty/gatling/build.mill[Gatling] | ~70kLOC | 21 modules | ~1 day
+| https://github.com/com-lihaoyi/mill/tree/main/example/thirdparty/arrow/build.mill[Arrow] | ~60kLOC | 22 modules | ~5 days
+| https://github.com/com-lihaoyi/mill/tree/main/example/thirdparty/mockito/build.mill[Mockito] | ~100kLOC | 22 modules | ~5 days
+| https://github.com/com-lihaoyi/mill/tree/main/example/thirdparty/netty/build.mill[Netty] | ~500kLOC | 47 modules | ~5 days
+|===
+
+
+
+The numbers above are for proof-of-concept migrations, for someone with prior
+build system expertise; you may need twice the implementation time for a complete
+production-ready migration, with additional time for change-management work.
+
+Build system migrations are not cheap, but the productivity benefits of a
+faster and easier to use build system are significant (see xref:comparisons/why-mill.adoc[]),
+especially multiplied over an entire team of engineers who may be working on
+the codebase for multiple years. Generally the more actively a project is developed, and the
+longer you expect development to continue, the more worthwhile it is to migrate from
+Maven/Gradle/SBT
+to Mill.
+
+== How to Approach Migration
+
+The basic approach taken for any such migration is as follows:
+
+1. *The existing source code and build system for the project is to
+   be left in-place and fully working.*
+
+** This ensures you have the flexibility to back out of the migration at any point in time
+** On completion, this allows you to
+   perform head-to-head comparisons between old and new build systems
+
+2. *A parallel Mill build is set up for the project.*
+
+** Sub-project `pom.xml` and `build.gradle` files need to be translated into Mill ``Module``s
+** Third-party dependencies need to be translated into Mill's `def ivyDeps`
+** Third-party Plugins need to be replaced by their Mill equivalent, or re-implemented
+** Custom build logic may need to be re-implemented in Mill
+
+3. *Once completed, the Mill build can be used as the default for some period of time*
+
+** This period gives the time to be confident in the robustness of the new Mill build system,
+   during which both old and new build systems should be maintained and kept up top date.
+
+4. *After you are comfortable with the new Mill build, the old build
+   system can be removed.*
+
+Of the four steps above, most of the work goes into (2) setting up the parallel Mill
+build for your project. We will walk through each of the sub-bullets in that step
+below
+
+== Translating Subprojects to Modules
+
+* Download a `mill` bootstrap file as discussed in xref:cli/installation-ide.adoc[] and
+  create a `build.mill` file as described in xref:javalib/intro.adoc[]
+
+* Define a Mill `Module` for each subproject in the existing build,
+   and a `test` module for each.
+
+[cols="1,3"]
+|===
+| Build Tool | Dependency
+| Java
+a|
+```scala
+object foo extends MavenModule{
+  object test extends MavenTests{
+  }
+}
+```
+
+| Kotlin
+a|
+```scala
+object foo extends KotlinMavenModule{
+  object test extends KotlinMavenTests{
+  }
+}
+```
+
+| Scala
+a|
+```scala
+object foo extends SbtModule{
+  object test extends SbtTests{
+  }
+}
+```
+|===
+
+
+* These modules should have names corresponding to the existing subprojects
+path on disk, e.g. a subproject inside `foo/` should be `object foo extends MavenModule`,
+or a subproject `bar/qux/` should be a nested:
+
+```scala
+object bar extends MavenModule {
+  object qux extends MavenModule
+}
+```
+
+* Wire up the existing inter-subproject dependencies using `def moduleDeps = Seq(...)` inside `object foo`.
+
+** Test dependencies can also be specified, using `def moduleDeps = super.moduleDeps ++ Seq(...)`
+inside the `object test`. Note that test modules need to use `super.moduleDeps` to preserve
+the dependency on the enclosing application module
+
+```scala
+object foo extends MavenModule{
+  object test extends MavenTests{
+  }
+}
+
+object bar extends MavenModule{
+  def moduleDeps = Seq(foo) // application code dependency
+  object test extends MavenTests{
+    def moduleDeps = super.moduleDeps ++ Seq(foo) // test code dependency
+  }
+}
+```
+
+
+
+At this point, you have the rough skeleton of the project laid out. You can run
+`./mill visualize __.compile` to show an SVG graph of how the project is laid out, and
+`./mill show __.sources` to show where the source folders for each module are to eyeball
+them and verify they are pointing at the right place. For a fully-self-contained project
+with no external dependencies you could even compile it at this point, but most projects
+will require some degree of third party dependencies that will need to be configured:
+
+
+== Translating Third-Party Dependencies
+
+* Define the third-party dependencies for each module with `def ivyDeps`.
+
+These are a relatively straightforward translation:
+
+[cols="1,3"]
+|===
+| Build Tool | Dependency
+| Maven
+a|
+```xml
+<dependency>
+  <groupId>com.google.guava</groupId>
+  <artifactId>guava</artifactId>
+  <version>3.3.1-jre</version>
+</dependency>
+```
+
+| Gradle
+a|
+```scala
+implementation "com.google.guava:guava:3.3.1-jre"
+```
+
+| SBT
+a|
+```scala
+libraryDependencies += "com.google.guava" % "guava" % "3.3.1-jre"
+```
+
+| Mill
+a|
+```scala
+def ivyDeps = Agg(ivy"com.google.guava:guava:3.3.1-jre")
+```
+|===
+
+If you are building a Scala project using SBT:
+
+[cols="1,3"]
+|===
+| Build Tool | Dependency
+| SBT
+a|
+```scala
+libraryDependencies += "com.lihaoyi" %% "scalatags" % "0.12.0"
+```
+
+| Mill
+a|
+```scala
+def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:0.12.0")
+```
+|===
+
+* Again, test-only third-party dependencies are defined inside the `object test` submodule.
+
+* Compile-only dependencies can be defined with `def compileIvyDeps`, and runtime-only/provided
+  dependencies defined with `def runIvyDeps`
+
+The documentation for xref:javalib/dependencies.adoc[] and xref:fundamentals/library-deps.adoc[]
+has more details: how to configure unmanaged jars, repositories, pinning versions, etc.
+
+
+== Translating Third-Party Plugins
+
+At a high level, you want to take plugins that you use in Maven/Gradle/SBT and replace
+them either with builtin Mill functionality:
+
+* xref:javalib/linting.adoc[]
+* xref:javalib/testing.adoc[]
+* xref:javalib/publishing.adoc[]
+* Mill xref:extending/contrib-plugins.adoc[] or Mill xref:extending/thirdparty-plugins.adoc[]
+
+Third-party plugins differ between build systems, so the configuration and behavior may
+differ in minor ways, but the high-level functionality should mostly be there.
+
+== Translating Custom Build Logic
+
+Generally, custom build logic from your own custom plugins or extensions will need to
+be re-implemented. This is usually not terribly difficult, as either the logic is simple
+(just moving some files around and zipping/unzipping them), or the logic is complex but
+comes from an external tool (e.g. third-party compilers, code-generators, linters, etc.)
+
+1. For the simple cases, you can usually accomplish what you want using Mill's
+   xref:javalib/intro.adoc#_custom_build_logic[custom build logic]. Mill provides bundled
+   libraries for working with filesystem/subprocesses (xref:fundamentals/bundled-libraries.adoc#_os_lib[OS-Lib]),
+   JSON/binary serialization (xref:fundamentals/bundled-libraries.adoc#_upickle[uPickle]),
+   HTTP requests (xref:fundamentals/bundled-libraries.adoc#_requests_scala[Requests-Scala]).
+
+2. For using third-party libraries in your build, these are usually published
+   to Maven Central or some other package repository, in which case they are
+   easy to directly import and use in your custom tasks (see xref:extending/import-ivy-plugins.adoc[])
+
+3. For more sophisticated integrations, e.g. if you need to dynamically compile
+   and run JVM programs or build plugins as part of your build, you can do so via
+   (see xref:extending/running-jvm-code.adoc[])
+
+== Long Tail Issues
+
+Typically, after you are done with the rough skeleton of your new Mill build with
+most things compiling, you will find that some code does not yet compile and other
+code compiles but does not pass tests. There will always be a long tail of small
+configuration tweaks that need to be ported from your existing build system to your
+new Mill build:
+
+* You may need to update code to use the `MILL_TEST_RESOURCE_DIR` environment variable
+  rather than the `"resources/"` folder directly in code, since Mill runs tests in
+  xref:depth/sandboxing.adoc[Sandboxes] that guard against unwanted filesystem access.
+* Similarly, you may need to us `Task.workspace` or `mill.api.WorkspaceRoot.workspaceRoot`
+  to access the project root folder in custom build tasks, since the Mill build process
+  also runs in a sandbox by default
+* Some tests may require xref:fundamentals/configuring-jvm-versions.adoc[] to run
+* Some modules may require specific xref:javalib/module-config.adoc#_compilation_execution_flags[Compilation & Execution Flags]
+* Some code may make use of xref:javalib/module-config.adoc#_annotation_processors[Annotation Processors]
+* You may have xref:javalib/module-config.adoc#_native_c_code_with_jni[native code you need to compile and interop with using JNI]
+* def may need to use frameworks like xref:javalib/web-examples.adoc#_spring_boot_hello_world_app[Spring Boot]
+  or xref:javalib/web-examples.adoc#_micronaut_hello_world_app[Micronaut]
+
+In general none of these issues are blocking, but they do require you to investigate
+the various failures and figure out which part of your existing Mill build is missing.
+
+== Cleanup
+
+Lastly, at this point you have a Mill build that works, but you may not have a Mill build
+that is easily maintainable. Mill provides a lot of tools to improve the maintainability
+and understandability of your build system, and while you may not want to apply them up
+front during the migration, once you have everything working you can go back and revisit
+to see which ones may help:
+
+* xref:fundamentals/modules.adoc#_trait_modules[Trait Modules] to centralize common config
+
+* xref:depth/large-builds.adoc#_multi_file_builds[Multi-File Builds] to let you co-locate
+  build logic and the code being built
+
+* xref:extending/writing-plugins.adoc[Writing and Publishing your own Mill Plugins]
+  if you want to share your build logic across multiple projects/repos in your organization
+
+== Conclusion
+
+As mentioned at the start of this page, migrating to a new build tool is not cheap
+or easy, and can easily take a significant time commitment. Automation does help,
+whether bundled in Mill or your own DIY scripts, but there will always be a long
+tail of manual debugging and investigation necessary to reproduce every quirk and
+idiosyncrasy of your old build system in your new Mill build.
+
+However, while _tedious_, such migrations are usually not _difficult_. Most
+build systems use a relatively small set of third-party tools with small amounts of
+custom logic, and Mill has built-in integrations with many common JVM tools and
+makes custom logic easy to implement. In the end the decision to migrate comes down to
+the benefits of Mill (see xref:comparisons/why-mill.adoc[]) outweighing the cost of migration,
+which becomes more true as the lifespan and pace of development on a project grows.
