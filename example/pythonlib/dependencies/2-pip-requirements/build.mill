@@ -1,7 +1,6 @@
 // You can also read dependencies from `requirements.txt` files. This can be
 // useful if you're migrating an existing project to mill.
 
-//// SNIPPET:BUILD
 package build
 import mill._, pythonlib._
 
@@ -10,7 +9,6 @@ object `package` extends RootModule with PythonModule {
     millSourcePath / "requirements.txt"
   }
 }
-//// SNIPPET:END
 
 /** Usage
 

@@ -3,7 +3,6 @@
 // `requests.get` comes from the https://github.com/com-lihaoyi/requests-scala[Requests-Scala]
 // library, one of Mill's xref:fundamentals/bundled-libraries.adoc[Bundled Libraries].
 //
-//// SNIPPET:BUILD
 package build
 import mill._, pythonlib._
 
@@ -15,8 +14,6 @@ object `package` extends RootModule with PythonModule {
     Seq(PathRef(Task.dest / name))
   }
 }
-
-//// SNIPPET:END
 
 /** Usage
 
