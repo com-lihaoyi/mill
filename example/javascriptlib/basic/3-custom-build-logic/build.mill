@@ -42,7 +42,8 @@ object foo extends CustomModule {
     PathRef(Task.dest)
   }
 
-  def runArguments: Task[String] = Task { resources().path.toString() }
+  override def argsOrder: Task[(Boolean, Seq[String])] =
+    Task { (true, Seq(resources().path.toString())) }
 
 }
 

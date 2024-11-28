@@ -36,7 +36,7 @@ trait TypeScriptModule extends Module {
     val declarationsOut = Task.dest / "declarations"
 
     val upstreamPaths =
-      for (((jsDir, dTsDir), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps))
+      for (((_, dTsDir), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps))
         yield (mod.millSourcePath.subRelativeTo(Task.workspace).toString + "/*", dTsDir.path)
 
     val allPaths = upstreamPaths ++ Seq("*" -> sources().path, "*" -> npmInstall().path)
@@ -75,11 +75,16 @@ trait TypeScriptModule extends Module {
     (mainFilePath(), mkENV())
   }
 
-  def runArguments: Task[String] = Task { "" }
+  def argsOrder: Task[(Boolean, Seq[String])] = Task { (false, Seq("")) }
 
   def run(args: mill.define.Args): Command[CommandResult] = Task.Command {
     val (mainFile, env) = prepareRun()
-    os.call(("node", mainFile, args.value, runArguments()), stdout = os.Inherit, env = env)
+    val (before, innerArgs) = argsOrder()
+    val orderedArgs: Seq[String] =
+      if (before) { innerArgs ++ args.value }
+      else args.value ++ innerArgs
+
+    os.call(("node", mainFile, orderedArgs), stdout = os.Inherit, env = env)
   }
 
   def bundleFlags: Target[String] = Task { "--platform=node" }
