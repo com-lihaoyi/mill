@@ -5,7 +5,7 @@ import mill._
 
 /**
  * Support building modular runtime images with the `jlink` tool, which is included in JDK 9 and later.
- * 
+ *
  * The official `jlink` docs: https://docs.oracle.com/en/java/javase/23/docs/specs/man/jlink.html
  */
 trait JlinkModule extends JavaModule {
@@ -22,12 +22,13 @@ trait JlinkModule extends JavaModule {
   /** The main class to use as the runtime entry point. */
   def jlinkMainClass: T[String] = T { finalMainClass() }
 
-  /** Compress level for the runtime image. 
-   * Valid values range between: 
+  /**
+   * Compress level for the runtime image.
+   * Valid values range between:
    *  "zip-0" (no compression) and "zip-9" (best compression)
-   * Defaults to "zip-6" */
+   * Defaults to "zip-6"
+   */
   def jlinkCompressLevel: T[String] = T { "zip-6" }
-
 
   /**
    * Creates a Java module file (.jmod) from compiled classes
@@ -44,15 +45,18 @@ trait JlinkModule extends JavaModule {
       os.copy(p, dest, createFolders = true)
       dest
     }
-    
+
     val classPath = jars.map(_.toString).mkString(sys.props("path.separator"))
     val args = {
       val baseArgs = Seq(
-        "jmod", 
+        "jmod",
         "create",
-        "--class-path", classPath.toString,
-        "--main-class", mainClass,
-        "--module-path", classPath.toString,
+        "--class-path",
+        classPath.toString,
+        "--main-class",
+        mainClass,
+        "--module-path",
+        classPath.toString,
         outputPath.toString
       )
 
@@ -61,11 +65,11 @@ trait JlinkModule extends JavaModule {
       }
 
       baseArgs ++ versionArgs
-    }    
+    }
     os.proc(args).call()
 
     PathRef(outputPath)
-  }  
+  }
 
   /** Builds a custom runtime image using jlink */
   def jlinkAppImage: T[PathRef] = T {
@@ -74,11 +78,16 @@ trait JlinkModule extends JavaModule {
 
     val args = Seq(
       "jlink",
-      "--launcher", s"${jlinkImageName()}=${jlinkModuleName()}/${jlinkMainClass()}",
-      "--module-path", modulePath,
-      "--add-modules", jlinkModuleName(),
-      "--output", outputPath.toString,
-      "--compress", jlinkCompressLevel().toString,
+      "--launcher",
+      s"${jlinkImageName()}=${jlinkModuleName()}/${jlinkMainClass()}",
+      "--module-path",
+      modulePath,
+      "--add-modules",
+      jlinkModuleName(),
+      "--output",
+      outputPath.toString,
+      "--compress",
+      jlinkCompressLevel().toString,
       "--no-header-files",
       "--no-man-pages"
     )
@@ -87,4 +96,3 @@ trait JlinkModule extends JavaModule {
     PathRef(outputPath)
   }
 }
-

@@ -11,10 +11,9 @@ object foo extends JavaModule with JpackageModule {
     // all application.conf files will be concatenated into single file
     Rule.Append("application.conf"),
     // all *.conf files will be concatenated into single file
-    Rule.AppendPattern(".*\\.conf"),
+    Rule.AppendPattern(".*\\.conf")
   )
 }
-
 
 /** Usage
 

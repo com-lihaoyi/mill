@@ -360,7 +360,7 @@ trait JavaModule
     T.traverse(transitiveModuleRunModuleDeps)(_.localClasspath)().flatten
   }
 
-   /**
+  /**
    * Almost the same as [[transitiveLocalClasspath]], but using the [[jar]]s instead of [[localClasspath]].
    */
   def transitiveJars: T[Seq[PathRef]] = Task {

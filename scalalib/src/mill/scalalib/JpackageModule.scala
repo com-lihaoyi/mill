@@ -5,7 +5,7 @@ import mill._
 
 /**
  * Support for building a native package / installer with the `jpackage` tool which comes bundled with JDK 14 and later.
- * 
+ *
  * The official `jpackage` docs: https://docs.oracle.com/en/java/javase/23/docs/specs/man/jpackage.html
  */
 trait JpackageModule extends JavaModule {
@@ -16,17 +16,17 @@ trait JpackageModule extends JavaModule {
   /** The main class to use as the entry point to the native package / installer. */
   def jpackageMainClass: T[String] = T { finalMainClass() }
 
-  /** 
-   * The type of native package / installer to be created. 
-   * 
-   * Valid values are: 
-   *  "app-image" - any OS 
+  /**
+   * The type of native package / installer to be created.
+   *
+   * Valid values are:
+   *  "app-image" - any OS
    *  "dmg", "pkg" - macOS (native package, installer)
    *  "exe", "msi" - Windows (native package, installer)
    *  "rpm", "deb" - Linux
-   * 
-   * If unspecified, defaults to "app-image" which will build a package native to the host platform. 
-   * */
+   *
+   * If unspecified, defaults to "app-image" which will build a package native to the host platform.
+   */
   def jpackageType: T[String] = T { "app-image" }
 
   /**

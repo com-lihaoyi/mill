@@ -1,4 +1,3 @@
-module foo
-{
-    requires java.logging;
+module foo {
+  requires java.logging;
 }
