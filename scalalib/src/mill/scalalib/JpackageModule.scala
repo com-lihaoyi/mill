@@ -2,6 +2,7 @@ package mill
 package scalalib
 
 import mill._
+import mill.util.Jvm
 
 /**
  * Support for building a native package / installer with the `jpackage` tool which comes bundled with JDK 14 and later.
@@ -61,7 +62,7 @@ trait JpackageModule extends JavaModule {
     val mainJarName = jars.head.last
 
     val args: Seq[String] = Seq(
-      "jpackage",
+      Jvm.jdkTool("jpackage", this.zincWorker().javaHome().map(_.path)),
       "--type",
       appType,
       "--name",

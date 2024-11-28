@@ -7,9 +7,12 @@ import mill.scalalib.JlinkModule
 object foo extends JavaModule with JlinkModule {
   def jlinkModuleName: T[String] = T { "foo" }
   def jlinkModuleVersion: T[Option[String]] = T { Option("1.0") }
+  def jlinkCompressLevel: T[String] = T { "2" }
 }
 
 /** Usage
+
+export JAVA_HOME=/Users/mac/.sdkman/candidates/java/17.0.9-oracle/
 
 > mill foo.jlinkAppImage
 

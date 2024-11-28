@@ -2,6 +2,7 @@ package mill
 package scalalib
 
 import mill._
+import mill.util.Jvm
 
 /**
  * Support building modular runtime images with the `jlink` tool, which is included in JDK 9 and later.
@@ -24,9 +25,13 @@ trait JlinkModule extends JavaModule {
 
   /**
    * Compress level for the runtime image.
-   * Valid values range between:
-   *  "zip-0" (no compression) and "zip-9" (best compression)
-   * Defaults to "zip-6"
+   * On newer versions of OpenJDK, valid values range between:
+   *  "zip-0" (no compression) and "zip-9" (best compression).
+   *
+   * On all versions of Oracle's JDK, valid values range between:
+   *  0 (no compression), 1 (constant string sharing) and 2 (ZIP).
+   *
+   * Assumes you are on a recent OpenJDK version thus defaults to "zip-6".
    */
   def jlinkCompressLevel: T[String] = T { "zip-6" }
 
@@ -49,7 +54,7 @@ trait JlinkModule extends JavaModule {
     val classPath = jars.map(_.toString).mkString(sys.props("path.separator"))
     val args = {
       val baseArgs = Seq(
-        "jmod",
+        Jvm.jdkTool("jmod", this.zincWorker().javaHome().map(_.path)),
         "create",
         "--class-path",
         classPath.toString,
@@ -77,7 +82,7 @@ trait JlinkModule extends JavaModule {
     val outputPath = T.dest / "jlink-runtime"
 
     val args = Seq(
-      "jlink",
+      Jvm.jdkTool("jlink", this.zincWorker().javaHome().map(_.path)),
       "--launcher",
       s"${jlinkImageName()}=${jlinkModuleName()}/${jlinkMainClass()}",
       "--module-path",
