@@ -275,9 +275,9 @@ whether bundled in Mill or your own DIY scripts, but there will always be a long
 tail of manual debugging and investigation necessary to reproduce every quirk and
 idiosyncrasy of your old build system in your new Mill build.
 
-However, while _tedious_, such migrations are not usually not _difficult_. Most
+However, while _tedious_, such migrations are usually not _difficult_. Most
 build systems use a relatively small set of third-party tools with small amounts of
-custom logic, and Mill has built-in integrations with all the common JVM tools and
+custom logic, and Mill has built-in integrations with many common JVM tools and
 makes custom logic easy to implement. In the end the decision to migrate comes down to
 the benefits of Mill (see xref:comparisons/why-mill.adoc[]) outweighing the cost of migration,
 which becomes more true as the lifespan and pace of development on a project grows.
