@@ -1,10 +1,10 @@
 package build
 import mill._, javascriptlib._
 
-trait MultipleModules extends TypeScriptModule {
+trait MultipleModules extends JestModule {
   def npmDevDeps: T[Seq[String]] = Task { Seq.empty[String] }
 
-  override def npmInstall: T[PathRef] = Task.Anon {
+  override def npmInstall: T[PathRef] = Task {
     os.call((
       "npm",
       "install",
@@ -19,22 +19,13 @@ trait MultipleModules extends TypeScriptModule {
 
   override def mainFileName = Task { s"index.js" }
 
-  def bundle = Task {
-    val (_, env) = prepareRun()
-    val esbuild = npmInstall().path / "node_modules/esbuild/bin/esbuild"
-    val bundle = Task.dest / "bundle.js"
-    val mainFile = compile()._1.path / millSourcePath.last / "src" / mainFileName()
-    os.call((esbuild, mainFile, "--bundle", "--platform=node", s"--outfile=$bundle"), env = env)
-    PathRef(bundle)
-  }
-
-  //  Defaullt test =>
-  //  def test = Task { os.call(("echo", "nothing to see here"), stdout = os.Inherit) }
+  override def mainFilePath =
+    Task { compile()._1.path / millSourcePath.last / "src" / mainFileName() }
 }
 
-object authors extends MultipleModules
+object authors extends TypeScriptModule
 
-object books extends MultipleModules {
+object books extends TypeScriptModule {
   def moduleDeps = Seq(authors)
 }
 
@@ -47,34 +38,6 @@ object library extends MultipleModules {
     "ts-jest@^29.0.0",
     "esbuild@0.24.0"
   )
-
-  def testPath = Task.Source(millSourcePath / "test")
-  val testConfigPath = millSourcePath / os.up / "jest.config.ts"
-
-  def allSources = Task.Anon {
-    (os.walk(sources().path) ++ os.walk(testPath().path) ++ IndexedSeq(testConfigPath))
-      .filter(_.ext == "ts")
-      .map(PathRef(_))
-  }
-
-  def test = Task {
-    val javascriptOut = compile()._1.path
-
-    // env
-    // note: ' npmInstall().path / "node_modules" ' required in NODE_PATH for jest to find preset: ts-jest
-    val env = Map("NODE_PATH" -> Seq(
-      ".",
-      javascriptOut,
-      npmInstall().path,
-      npmInstall().path / "node_modules"
-    ).mkString(":"))
-
-    os.call(
-      ("node", npmInstall().path / "node_modules/jest/bin/jest.js", javascriptOut.toString()),
-      stdout = os.Inherit,
-      env = env
-    )
-  }
 
   // intialize a data source
   def resources = Task {
@@ -112,19 +75,9 @@ object library extends MultipleModules {
     PathRef(Task.dest)
   }
 
-  override def run(args: mill.define.Args) = Task.Command {
-    val pathToResources = resources().path
-    val (_, env) = prepareRun()
-    val mainFile = compile()._1.path / millSourcePath.last / "src" / mainFileName()
-    os.call(
-      ("node", mainFile, pathToResources.toString(), args.value),
-      stdout = os.Inherit,
-      env = env
-    )
-  }
+  def runArguments: Task[String] = Task { resources().path.toString() }
 
 }
-
 
 // Documentation for mill.example.javascriptlib
 
@@ -162,4 +115,3 @@ Ran all test suites matching ...
 > node out/library/bundle.dest/bundle.js out/library/resources.dest/ Jerry
 ...
 */
-
