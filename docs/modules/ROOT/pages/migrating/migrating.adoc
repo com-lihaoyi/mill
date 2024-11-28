@@ -12,8 +12,8 @@ some of the scaffolding the general principles laid out on this page still apply
 == How Long Does Migration Take?
 
 Migrating an existing project to Mill may take anywhere from an hour for small projects
-to several days or more for larger projects. These steps come experience doing proof-of-concept
-migrations a range of real-world projects to Mill, from simple single-module codebases to
+to several days or more for larger projects. These steps come from experience doing proof-of-concept
+migrations of a range of real-world projects to Mill, from simple single-module codebases to
 complex multi-module builds with dozens of modules:
 
 |===
