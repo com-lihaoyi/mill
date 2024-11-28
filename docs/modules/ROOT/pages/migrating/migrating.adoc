@@ -54,7 +54,7 @@ The basic approach taken for any such migration is as follows:
 2. *A parallel Mill build is set up for the project.*
 
 ** Sub-project `pom.xml` and `build.gradle` files need to be translated into Mill ``Module``s
-** Third-party dependencies need to be translated into Mill's def `ivyDeps`
+** Third-party dependencies need to be translated into Mill's `def ivyDeps`
 ** Third-party Plugins need to be replaced by their Mill equivalent, or re-implemented
 ** Custom build logic may need to be re-implemented in Mill
 
@@ -249,7 +249,7 @@ comes from an external tool (e.g. third-party compilers, code-generators, linter
    and run JVM programs or build plugins as part of your build, you can do so via
    (see xref:extending/running-jvm-code.adoc[])
 
-== Cleaning Up
+== Long Tail Issues
 
 Typically, after you are done with the rough skeleton of your new Mill build with
 most things compiling, you will find that some code does not yet compile and other
@@ -257,15 +257,37 @@ code compiles but does not pass tests. There will always be a long tail of small
 configuration tweaks that need to be ported from your existing build system to your
 new Mill build:
 
+* You may need to update code to use the `MILL_TEST_RESOURCE_DIR` environment variable
+  rather than the `"resources/"` folder directly in code, since Mill runs tests in
+  xref:depth/sandboxing.adoc[Sandboxes] that guard against unwanted filesystem access.
+* Similarly, you may need to us `Task.workspace` or `mill.api.WorkspaceRoot.workspaceRoot`
+  to access the project root folder in custom build tasks, since the Mill build process
+  also runs in a sandbox by default
 * Some tests may require xref:fundamentals/configuring-jvm-versions.adoc[] to run
 * Some modules may require specific xref:javalib/module-config.adoc#_compilation_execution_flags[Compilation & Execution Flags]
 * Some code may make use of xref:javalib/module-config.adoc#_annotation_processors[Annotation Processors]
 * You may have xref:javalib/module-config.adoc#_native_c_code_with_jni[native code you need to compile and interop with using JNI]
-* Applications may need to use frameworks like xref:javalib/web-examples.adoc#_spring_boot_hello_world_app[Spring Boot]
+* def may need to use frameworks like xref:javalib/web-examples.adoc#_spring_boot_hello_world_app[Spring Boot]
   or xref:javalib/web-examples.adoc#_micronaut_hello_world_app[Micronaut]
 
 In general none of these issues are blocking, but they do require you to investigate
-the various failures and figure out which part of your existing Mill build is missing
+the various failures and figure out which part of your existing Mill build is missing.
+
+== Cleanup
+
+Lastly, at this point you have a Mill build that works, but you may not have a Mill build
+that is easily maintainable. Mill provides a lot of tools to improve the maintainability
+and understandability of your build system, and while you may not want to apply them up
+front during the migration, once you have everything working you can go back and revisit
+to see which ones may help:
+
+* xref:fundamentals/modules.adoc#_trait_modules[Trait Modules] to centralize common config
+
+* xref:depth/large-builds.adoc#_multi_file_builds[Multi-File Builds] to let you co-locate
+  build logic and the code being built
+
+* xref:extending/writing-plugins.adoc[Writing and Publishing your own Mill Plugins]
+  if you want to share your build logic across multiple projects/repos in your organization
 
 == Conclusion
 
