@@ -1,9 +1,13 @@
 package build
 import mill._, javascriptlib._
 
-object client extends TypeScriptModule
+trait CSModule extends JestModule {
+  override def testConfig = Task.Source(millSourcePath / "jest.config.ts")
+}
 
-object server extends JestModule
+object client extends CSModule
+
+object server extends CSModule
 
 object app extends TypeScriptModule {
   def moduleDeps = Seq(client, server)
