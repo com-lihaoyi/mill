@@ -10,20 +10,20 @@ trait CreateReactAppModule extends TypeScriptModule {
       "react@18.3.1",
       "react-dom@18.3.1",
       "react-scripts@5.0.1",
-      "typescript@^4.9.5",
+      "typescript@4.9.5",
       "web-vitals@2.1.4",
-      "@types/node@^16.18.119",
-      "@types/react@^18.3.12",
-      "@types/react-dom@^18.3.1"
+      "@types/node@16.18.121",
+      "@types/react@18.3.12",
+      "@types/react-dom@18.3.1",
     )
   }
 
   override def npmDevDeps: T[Seq[String]] = Task {
     Seq(
-      "@testing-library/jest-dom@^5.17.0",
-      "@testing-library/react@^13.4.0",
-      "@testing-library/user-event@^13.5.0",
-      "@types/jest@^27.5.2",
+      "@testing-library/jest-dom@5.17.0",
+      "@testing-library/react@16.0.1",
+      "@testing-library/user-event@13.5.0",
+      "@types/jest@27.5.2",
       "serve@12.0.1"
     )
   }
@@ -50,7 +50,7 @@ trait CreateReactAppModule extends TypeScriptModule {
 
     val allPaths = Seq(
       "*" -> Task.dest / "node_modules",
-      "app/*" -> "app",
+      "app/*" -> "src/app/*",
       "typescript" -> Task.dest / "node_modules" / "typescript"
     )
 
@@ -75,7 +75,7 @@ trait CreateReactAppModule extends TypeScriptModule {
           "isolatedModules" -> true,
           "noEmit" -> true,
           "jsx" -> "react-jsx",
-          "baseUrl" -> "src",
+          "baseUrl" -> ".",
           "paths" -> ujson.Obj.from(allPaths.map { case (k, v) => (k, ujson.Arr(s"$v/*")) })
         ),
         "include" -> ujson.Arr((sources().path / "src").toString)
@@ -89,6 +89,11 @@ trait CreateReactAppModule extends TypeScriptModule {
         "name" -> "foo",
         "version" -> "0.1.0",
         "private" -> true,
+        "jest" -> ujson.Obj(
+          "moduleNameMapper" -> ujson.Obj(
+            "^app/(.*)$" -> "<rootDir>/src/app/$1"
+          )
+        ),
         "dependencies" -> buildDependencies(transitiveNpmDeps()),
         "devDependencies" -> buildDependencies(transitiveNpmDevDeps()),
         "scripts" -> ujson.Obj(
