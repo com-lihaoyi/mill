@@ -24,6 +24,8 @@ To get started using Mill, see the language-specific introductory documentation 
 | xref:kotlinlib/intro.adoc[image:index/iconscout-kotlin.svg[kotlin,32] Kotlin with Mill]
 |===
 
+If you want to use Mill on an existing codebase, see xref:migrating/migrating.adoc[]
+
 === Why Mill?
 
 Although the Java compiler is very fast and the Java language is easy to learn,
