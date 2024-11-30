@@ -22,7 +22,7 @@ trait RsWithServeModule extends ReactScriptsModule {
         env.get("PORT").orElse(Option("3000"))
       ),
       stdout = os.Inherit,
-      env = mkENV()
+      env = env
     )
   }
 }
