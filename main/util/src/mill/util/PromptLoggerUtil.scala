@@ -171,7 +171,7 @@ private object PromptLoggerUtil {
         if (ending) "\n"
         else AnsiNav.left(9999) + AnsiNav.up(currentPromptLines.length - 1)
 
-      currentPromptLines.map(_ + AnsiNav.clearLine(0)).mkString("\n") + backUp
+      currentPromptLines.map(_ + AnsiNav.clearLine(0)).mkString("\n") + AnsiNav.clearScreen(0) + backUp
     }
   }
 
