@@ -224,8 +224,9 @@ object `package` extends RootModule with build.MillPublishJavaModule {
     )
   }
 
+  val batExt = if (scala.util.Properties.isWin) ".bat" else ""
   val DefaultLocalMillReleasePath =
-    s"target/mill-release${if (scala.util.Properties.isWin) ".bat" else ""}"
+    s"target/mill-release$batExt"
 
   /**
    * Build and install Mill locally.
@@ -240,7 +241,7 @@ object `package` extends RootModule with build.MillPublishJavaModule {
 
   def installLocalCache() = Task.Command {
     val path = installLocalTask(
-      Task.Anon((os.home / ".cache" / "mill" / "download" / build.millVersion()).toString())
+      Task.Anon((os.home / ".cache" / "mill" / "download" / (build.millVersion() + batExt)).toString())
     )()
     Task.log.outputStream.println(path.toString())
     PathRef(path)
