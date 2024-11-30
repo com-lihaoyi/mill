@@ -48,15 +48,18 @@ trait NativeImageModule extends RunModule {
 
   /**
    * Path to [[https://www.graalvm.org/latest/reference-manual/native-image/ `native-image`]] CLI.
-   * Defaults to a value relative to [[ZincWorkerModule.javaHome]] or to the installed `native-image` path.
+   * Defaults to `bin/native-image` relative to [[ZincWorkerModule.javaHome]] or `GRAALVM_HOME` environment variable.
    */
   def nativeImageCli: T[PathRef] = Task {
     val ext = if (Properties.isWin) ".cmd" else ""
-    val path = zincWorker().javaHome() match {
+    val path = zincWorker().javaHome()
+      .map(_.path)
+      .orElse(sys.env.get("GRAALVM_HOME").map(os.Path(_))) match {
       case None =>
+        // assume native-image is installed
         os.Path(Paths.get(s"native-image$ext").toAbsolutePath)
       case Some(home) =>
-        home.path / "bin" / s"native-image$ext"
+        home / "bin" / s"native-image$ext"
     }
     if (os.exists(path)) PathRef(path)
     else throw new RuntimeException(s"native-image not found at $path")
