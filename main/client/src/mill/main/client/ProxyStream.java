@@ -154,7 +154,6 @@ public class ProxyStream {
 
             if (delta != -1) {
               synchronized (synchronizer) {
-
                 switch (stream) {
                   case ProxyStream.OUT:
                     this.write(destOut, buffer, offset);

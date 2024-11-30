@@ -2,13 +2,7 @@ package mill.util
 
 import mill.api.SystemStreams
 import mill.main.client.ProxyStream
-import mill.util.PromptLoggerUtil.{
-  Status,
-  clearScreenToEndBytes,
-  defaultTermHeight,
-  defaultTermWidth,
-  renderPrompt
-}
+import mill.util.PromptLoggerUtil.{Status, defaultTermHeight, defaultTermWidth, renderPrompt}
 import pprint.Util.literalize
 
 import java.io._
@@ -294,6 +288,11 @@ private[mill] object PromptLogger {
         if (interactive() && !paused() && promptShown) {
           promptShown = false
         }
+
+        // Clear each line as they are drawn, rather than relying on clearing
+        // the entire screen before each batch of writes, to try and reduce the
+        // amount of terminal flickering in slow terminals (e.g. windows)
+        // https://stackoverflow.com/questions/71452837/how-to-reduce-flicker-in-terminal-re-drawing
         dest.write(
           new String(buf, 0, end)
             .replaceAll("(\r\n|\n)", AnsiNav.clearLine(0) + "$1")
