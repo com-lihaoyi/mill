@@ -61,11 +61,11 @@ trait TypeScriptModule extends Module {
         yield (mod.millSourcePath.subRelativeTo(Task.workspace).toString + "/*", dTsDir.path)
 
     val combinedPaths = upstreamPaths ++ tsCompilerOptionsPaths().toSeq
-    val combinedCompilerOptions: Map[String, ujson.Value] = tsCompilerOptions() ++ Map(
+    val combinedCompilerOptions: Map[String, ujson.Value] = Map(
       "declarationDir" -> ujson.Str(declarationsOut.toString),
       "outDir" -> ujson.Str(javascriptOut.toString),
       "paths" -> ujson.Obj.from(combinedPaths.map { case (k, v) => (k, ujson.Arr(s"$v/*")) })
-    )
+    ) ++ tsCompilerOptions()
 
     os.write(
       Task.dest / "tsconfig.json",
@@ -95,15 +95,19 @@ trait TypeScriptModule extends Module {
     (mainFilePath(), mkENV())
   }
 
-  // define
-  def argsOrder: Task[(Boolean, Seq[String])] = Task { (false, Seq("")) }
+  // define computed arguments and where they should be placed (before/after user arguments)
+  def computedArgs: Task[(Option[Seq[String]], Option[Seq[String]])] = Task { (None, None) }
 
   def run(args: mill.define.Args): Command[CommandResult] = Task.Command {
     val (mainFile, env) = prepareRun()
-    val (before, innerArgs) = argsOrder()
-    val orderedArgs: Seq[String] =
-      if (before) { innerArgs ++ args.value }
-      else args.value ++ innerArgs
+    val orderedArgs: Seq[String] = computedArgs() match {
+      case (None, None) => args.value
+      case (Some(x), None) => x ++ args.value
+      case (None, Some(x)) => x ++ args.value
+      case (Some(x), Some(y)) => x ++ args.value ++ y
+    }
+
+    // before ++ args.value ++ after
 
     os.call(("node", mainFile, orderedArgs), stdout = os.Inherit, env = env)
   }
