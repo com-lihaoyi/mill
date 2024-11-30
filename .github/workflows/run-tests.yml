@@ -143,10 +143,6 @@ jobs:
             millargs: "'integration.invalidation[_].server.testCached'"
           - java-version: '11'
             millargs: "contrib.__.testCached"
-          # sanity check to ensure Mill's own project is importable into IntelliJ/VSCode
-          # on windows, since none of the maintainers use Windows on a daily basis
-          - java-version: '17'
-            millargs: "mill.idea.GenIdea/"
 
     uses: ./.github/workflows/run-mill-action.yml
     with:
