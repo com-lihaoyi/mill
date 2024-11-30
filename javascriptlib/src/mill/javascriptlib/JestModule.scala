@@ -18,10 +18,10 @@ trait JestModule extends TypeScriptModule {
 
   def testPath: Target[PathRef] = Task.Source(millSourcePath / "test")
 
-  def testConfig: Target[PathRef] = Task.Source(millSourcePath / os.up / "jest.config.ts")
+  def jestConfig: Target[PathRef] = Task.Source(millSourcePath / os.up / "jest.config.ts")
 
   override def allSources: Target[IndexedSeq[PathRef]] = Task {
-    (os.walk(sources().path) ++ os.walk(testPath().path) ++ IndexedSeq(testConfig().path))
+    (os.walk(sources().path) ++ os.walk(testPath().path) ++ IndexedSeq(jestConfig().path))
       .filter(_.ext == "ts")
       .map(PathRef(_))
   }

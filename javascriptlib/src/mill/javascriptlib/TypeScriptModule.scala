@@ -1,6 +1,7 @@
 package mill.javascriptlib
 import mill.*
 import os.*
+
 import scala.collection.immutable.IndexedSeq
 
 trait TypeScriptModule extends Module {
@@ -38,8 +39,20 @@ trait TypeScriptModule extends Module {
   def allSources: Target[IndexedSeq[PathRef]] =
     Task { os.walk(sources().path).filter(_.ext == "ts").map(PathRef(_)) }
 
+  // specify tsconfig.compilerOptions
+  def tsCompilerOptions: Target[Map[String, ujson.Value]] = Task {
+    Map(
+      "esModuleInterop" -> ujson.Bool(true),
+      "declaration" -> ujson.Bool(true),
+      "typeRoots" -> ujson.Arr((npmInstall().path / "node_modules/@types").toString())
+    )
+  }
+
+  // specify tsconfig.compilerOptions.Paths
+  def tsCompilerOptionsPaths: Target[Map[String, String]] =
+    Task { Map("*" -> sources().path.toString(), "*" -> npmInstall().path.toString()) }
+
   def compile: T[(PathRef, PathRef)] = Task {
-    val nodeTypes = npmInstall().path / "node_modules/@types"
     val javascriptOut = Task.dest / "javascript"
     val declarationsOut = Task.dest / "declarations"
 
@@ -47,23 +60,22 @@ trait TypeScriptModule extends Module {
       for (((_, dTsDir), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps))
         yield (mod.millSourcePath.subRelativeTo(Task.workspace).toString + "/*", dTsDir.path)
 
-    val allPaths = upstreamPaths ++ Seq("*" -> sources().path, "*" -> npmInstall().path)
+    val combinedPaths = upstreamPaths ++ tsCompilerOptionsPaths().toSeq
+    val combinedCompilerOptions: Map[String, ujson.Value] = tsCompilerOptions() ++ Map(
+      "declarationDir" -> ujson.Str(declarationsOut.toString),
+      "outDir" -> ujson.Str(javascriptOut.toString),
+      "paths" -> ujson.Obj.from(combinedPaths.map { case (k, v) => (k, ujson.Arr(s"$v/*")) })
+    )
 
     os.write(
       Task.dest / "tsconfig.json",
       ujson.Obj(
-        "compilerOptions" -> ujson.Obj(
-          "outDir" -> javascriptOut.toString,
-          "declaration" -> true,
-          "declarationDir" -> declarationsOut.toString,
-          "typeRoots" -> ujson.Arr(nodeTypes.toString),
-          "paths" -> ujson.Obj.from(allPaths.map { case (k, v) => (k, ujson.Arr(s"$v/*")) })
-        ),
+        "compilerOptions" -> ujson.Obj.from(combinedCompilerOptions.toSeq),
         "files" -> allSources().map(_.path.toString)
       )
     )
 
-    os.call((npmInstall().path / "node_modules/typescript/bin/tsc"))
+    os.call(npmInstall().path / "node_modules/typescript/bin/tsc")
 
     (PathRef(javascriptOut), PathRef(declarationsOut))
   }
@@ -95,13 +107,14 @@ trait TypeScriptModule extends Module {
     os.call(("node", mainFile, orderedArgs), stdout = os.Inherit, env = env)
   }
 
-  def bundleFlags: Target[String] = Task { "--platform=node" }
+  def bundleFlags: Target[Seq[String]] = Task { Seq("--platform=node") }
 
   def bundle: Target[PathRef] = Task {
     val (mainFile, env) = prepareRun()
     val esbuild = npmInstall().path / "node_modules/esbuild/bin/esbuild"
     val bundle = Task.dest / "bundle.js"
-    os.call((esbuild, mainFile, "--bundle", bundleFlags(), s"--outfile=$bundle"), env = env)
+    os.call((esbuild, mainFile, bundleFlags(), "--bundle", s"--outfile=$bundle"), env = env)
     PathRef(bundle)
   }
+
 }
