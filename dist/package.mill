@@ -327,7 +327,7 @@ object `package` extends RootModule with build.MillPublishJavaModule {
     val zips = examples ++ Seq(
       (build.dist.assembly().path, label + "-assembly"),
       (bootstrapLauncher().path, label),
-      (bootstrapLauncherBat().path, label)
+      (bootstrapLauncherBat().path, label + ".bat")
     )
 
     for ((zip, name) <- zips) {
