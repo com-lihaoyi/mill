@@ -689,6 +689,9 @@ implicit object DepSegment extends Cross.ToSegments[Dep]({ dep =>
  */
 object dummy extends Cross[DependencyFetchDummy](dummyDeps)
 trait DependencyFetchDummy extends ScalaModule with Cross.Module[Dep] {
+  // these cross module names cause problems on windows, and anyway they
+  // are not necessary in order to load the project into IntelliJ anyway
+//  def skipIdea = true
   def scalaVersion = Deps.scalaVersion
   def compileIvyDeps = Agg(crossValue)
 }
