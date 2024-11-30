@@ -85,7 +85,7 @@ private[mill] class PromptLogger(
 
   def refreshPrompt(ending: Boolean = false): Unit = synchronized {
     val updated = promptLineState.updatePrompt(ending)
-    streamManager.refreshPrompt()
+    if (updated) streamManager.refreshPrompt()
   }
 
   if (enableTicker && autoUpdate) promptUpdaterThread.start()

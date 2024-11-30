@@ -1,6 +1,7 @@
 package mill.runner.client;
 
 import static mill.main.client.OutFiles.*;
+
 import io.github.alexarchambault.windowsansi.WindowsAnsi;
 import java.io.File;
 import java.io.IOException;
@@ -217,18 +218,17 @@ public class MillProcessLauncher {
     try {
       if (java.lang.System.console() == null) str = "0 0";
       else {
-        if (isWin()){
+        if (isWin()) {
 
-
-            WindowsAnsi.Size size = WindowsAnsi.terminalSize();
-            int width = size.getWidth();
-            int height = size.getHeight();
-            str = width + " " + height;
-        } else if (!tputExists){
-             // Hardcoded size of a quarter screen terminal on 13" windows laptop
-            str = "78 24";
+          WindowsAnsi.Size size = WindowsAnsi.terminalSize();
+          int width = size.getWidth();
+          int height = size.getHeight();
+          str = width + " " + height;
+        } else if (!tputExists) {
+          // Hardcoded size of a quarter screen terminal on 13" windows laptop
+          str = "78 24";
         } else {
-            str = getTerminalDim("cols", true) + " " + getTerminalDim("lines", true);
+          str = getTerminalDim("cols", true) + " " + getTerminalDim("lines", true);
         }
       }
     } catch (Exception e) {
