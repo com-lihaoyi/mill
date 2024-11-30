@@ -90,8 +90,8 @@ private[mill] class PromptLogger(
   )
 
   def refreshPrompt(ending: Boolean = false): Unit = synchronized {
-    promptLineState.updatePrompt(ending)
-    streamManager.refreshPrompt()
+    val updated = promptLineState.updatePrompt(ending)
+    if (updated) streamManager.refreshPrompt()
   }
 
   if (enableTicker && autoUpdate) promptUpdaterThread.start()
@@ -289,16 +289,16 @@ private[mill] object PromptLogger {
         }
       }
 
-      override def preWrite(buf: Array[Byte], end: Int): Unit = {
-        // Before any write, make sure we clear the terminal of any prompt that was
-        // written earlier and not yet cleared, so the following output can be written
-        // to a clean section of the terminal
-
+      override def write(dest: OutputStream, buf: Array[Byte], end: Int): Unit = {
         lastCharWritten = buf(end - 1).toChar
         if (interactive() && !paused() && promptShown) {
-          systemStreams0.err.write(clearScreenToEndBytes)
           promptShown = false
         }
+        dest.write(
+          new String(buf, 0, end)
+            .replaceAll("(\r\n|\n)", AnsiNav.clearLine(0) + "$1")
+            .getBytes
+        )
       }
     }
 
@@ -338,7 +338,7 @@ private[mill] object PromptLogger {
 
     def getCurrentPrompt() = currentPromptBytes
 
-    def updatePrompt(ending: Boolean = false): Unit = {
+    def updatePrompt(ending: Boolean = false): Boolean = {
       val now = currentTimeMillis()
       for (k <- statuses.keySet) {
         val removedTime = statuses(k).beginTransitionTime
@@ -367,8 +367,9 @@ private[mill] object PromptLogger {
         ending = ending
       )
 
+      val oldPromptBytes = currentPromptBytes
       currentPromptBytes = renderPromptWrapped(currentPromptLines, interactive, ending).getBytes
-
+      !java.util.Arrays.equals(oldPromptBytes, currentPromptBytes)
     }
 
     def clearStatuses(): Unit = { statuses.clear() }
