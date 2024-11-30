@@ -95,6 +95,7 @@ trait TypeScriptModule extends Module {
     (mainFilePath(), mkENV())
   }
 
+  // define
   def argsOrder: Task[(Boolean, Seq[String])] = Task { (false, Seq("")) }
 
   def run(args: mill.define.Args): Command[CommandResult] = Task.Command {
