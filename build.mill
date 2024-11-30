@@ -576,6 +576,9 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
     ),
     ProblemFilter.exclude[Problem](
       "mill.scalalib.RunModule#RunnerImpl.*"
+    ),
+    ProblemFilter.exclude[Problem](
+      "mill.util.PromptLogger#*"
     )
   )
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
