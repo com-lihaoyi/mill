@@ -15,29 +15,23 @@ object foo extends JavaModule with JlinkModule {
 
 // Most of the work is done by the `trait JlinkModule` in two steps:
 
-// 1. it uses the `jmod` tool to create a `jlink.jmod` file for the main Java module. 
-// The main Java module is typically the module containing the `mainClass`. 
-// You can explicitly specify a `mainClass` by adding this line to your build file:
-// def mainClass: T[Option[String]] = { Option("com.foo.app.Main") }
-// If no `mainClass` is not explicitly specified, `JlinkModule` will infer it from `JavaModule` which is its parent trait . 
+// 1. it uses the `jmod` tool to create a `jlink.jmod` file for the main Java module.
+// The main Java module is typically the module containing the `mainClass`.
+// If your build file doesn't explicitly specify a `mainClass`, `JlinkModule` will infer it from `JavaModule`, which is its parent trait.
 // See xref:javalib/module-config.adoc[Java Module Configuration] to learn more on how to influence the inference process.
-
+// You can explicitly specify a `mainClass` like so in your build file:
+// def mainClass: T[Option[String]] = { Option("com.foo.app.Main") }
 
 // 2. it then uses the `jlink` tool, to link the previously created `jlink.jmod` with a runtime image.
 
+// NOTE: With respect to the `jlinkCompressLevel` option, the version of `jlink` that
+// ships with the JDK distribution from Oracle will only accept [`0`, `1`, `2`]
+// as valid values for compression, with `0` being "no compression"
+// and 2 being "ZIP compression".
 
-// Note with respect to the `jlinkCompressLevel` option, the version of `jlink` that 
-// ships with the JDK distribution from Oracle JDK will only accept [`0`, `1`, `2`] 
-// as valid values for compression, with `0` being "no compression" 
-// and 2 being "zip compression".
-
-// On recent builds of OpenJDK and related distributions, `jlink` will accept those values 
+// On recent builds of OpenJDK and derivative distributions, `jlink` will accept those values
 // but it will issue a deprecation warning.
 // Valid values on OpenJDK range between: ["zip-0" - "zip-9"].
-
-
-
-
 
 /** Usage
 

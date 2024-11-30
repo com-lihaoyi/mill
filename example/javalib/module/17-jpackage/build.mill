@@ -16,20 +16,19 @@ object foo extends JavaModule with JpackageModule {
 }
 //// SNIPPET:END
 
+// This example illustrates how to use Mill to generate a native package/installer
+// using the `jpackage` tool.
 
-// This example illustrates how to use Mill to generate a native package/installer 
-// using the `jpackage` tool. 
-
-// JPMS (Java Platform Module System) is a modern distribution format that was designed 
+// JPMS (Java Platform Module System) is a modern distribution format that was designed
 // to avoid several of the shortcomings of the ubiquitous JAR format, especially "JAR Hell".
 
-// A defining characteristic of module-based Java applications based on the JPMS format 
-// is that a `module-info.java` must be defined at the root of the module’s source-file hierarchy. 
-// The `module-info.java` must explicitly list modules that it depends on, and also list 
-// packages that it exports, to make the integrity of these relationships easy to verify, 
+// A defining characteristic of module-based Java applications based on the JPMS format
+// is that a `module-info.java` must be defined at the root of the module’s source-file hierarchy.
+// The `module-info.java` must explicitly list modules that it depends on, and also list
+// packages that it exports, to make the integrity of these relationships easy to verify,
 // both at compile-time and run-time.
 
-// Starting with version 14, the JDK now ships with the `jpackage` tool which can 
+// Starting with version 14, the JDK now ships with the `jpackage` tool which can
 // assemble any module-based Java application into a native package/installer.
 
 // The above build file expects the following project layout:
@@ -42,17 +41,18 @@ object foo extends JavaModule with JpackageModule {
 //     src/
 //         Foo.java
 //         Bar.java
-//	
+//
 //     module-info.java
 // ----
 //
 //// SNIPPET:END
 
 // The build defines a `foo` module that uses the `trait JpackageModule`.
-// (Note: Mill also uses the term `Module` for traits xref:fundamentals/modules.adoc[Trait Module]. 
-// This is not to be confused with Java application code structured as modules according to the JPMS format.) 
 
-// The `JpackageModule` will infer most of the options needed to assemble a native 
+// NOTE: Mill also uses the term `Module` for traits xref:fundamentals/modules.adoc[Trait Module].
+// This is not to be confused with Java application code structured as modules according to the JPMS format.
+
+// The `JpackageModule` trait will infer most of the options needed to assemble a native
 // package/installer, but you can still customize its output. In our example, we specified:
 
 // def jpackageType = "pkg"
@@ -60,11 +60,9 @@ object foo extends JavaModule with JpackageModule {
 // This tells `jpackage` to generate a `.pkg`, which is the native installer format on macOS.
 // Valid values on macOS are: `dmg`, `pkg` and `app-image`.
 
-// Note that `jpackage` doesn't not support cross-targeting. Cross-targeting in this 
-// context means the `jpackage` binary that is shipped with a JDK installation on macOS 
+// NOTE: `jpackage` doesn't not support cross-targeting. Cross-targeting in this
+// context means the `jpackage` binary shipped with a macOS JDK
 // cannot be used to produce a binary package for another OS like Windows or Linux.
-
-
 
 /** Usage
 
