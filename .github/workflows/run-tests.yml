@@ -69,6 +69,15 @@ jobs:
             millargs: "contrib.__.testCached"
             install-android-sdk: false
 
+          - java-version: 21
+            millargs: "'{main,scalalib,testrunner,bsp,testkit}.__.testCached'"
+          - java-version: 21
+            millargs: "'{scalajslib,scalanativelib,kotlinlib}.__.testCached'"
+          - java-version: 23
+            millargs: "'{main,scalalib,testrunner,bsp,testkit}.__.testCached'"
+          - java-version: 23
+            millargs: "'{scalajslib,scalanativelib,kotlinlib}.__.testCached'"
+
           - java-version: 17
             millargs: "'example.javalib.__.local.testCached'"
             install-android-sdk: false
