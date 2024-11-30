@@ -615,7 +615,8 @@ trait JavaModule
   def resolvedIvyDeps: T[Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(
       transitiveCompileIvyDeps() ++ transitiveIvyDeps(),
-      artifactTypes = Some(artifactTypes())
+      artifactTypes = Some(artifactTypes()),
+      resolutionParamsMapOpt = Some(_.withDefaultConfiguration(coursier.core.Configuration.compile))
     )
   }
 
@@ -1108,7 +1109,9 @@ trait JavaModule
         Task.Anon {
           defaultResolver().resolveDeps(
             transitiveCompileIvyDeps() ++ transitiveIvyDeps(),
-            sources = true
+            sources = true,
+            resolutionParamsMapOpt =
+              Some(_.withDefaultConfiguration(coursier.core.Configuration.compile))
           )
         },
         Task.Anon {

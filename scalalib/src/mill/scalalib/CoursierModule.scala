@@ -149,6 +149,12 @@ trait CoursierModule extends mill.Module {
    *
    * The Scala version set via `ScalaModule#scalaVersion` also takes over any Scala version
    * provided via `ResolutionParams#scalaVersionOpt`.
+   *
+   * The default configuration set in `ResolutionParams#defaultConfiguration` is ignored when
+   * Mill fetches dependencies to be passed to the compiler (equivalent to Maven "compile scope").
+   * In that case, it forces the default configuration to be "compile". On the other hand, when
+   * fetching dependencies for runtime (equivalent to Maven "runtime scope"), the value in
+   * `ResolutionParams#defaultConfiguration` is used.
    */
   def resolutionParams: Task[ResolutionParams] = Task.Anon {
     ResolutionParams()
@@ -195,7 +201,8 @@ object CoursierModule {
     def resolveDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean = false,
-        artifactTypes: Option[Set[coursier.Type]] = None
+        artifactTypes: Option[Set[coursier.Type]] = None,
+        resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams] = None
     ): Agg[PathRef] = {
       Lib.resolveDependencies(
         repositories = repositories,
@@ -206,9 +213,17 @@ object CoursierModule {
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
         ctx = ctx,
-        resolutionParams = resolutionParams
+        resolutionParams = resolutionParamsMapOpt.fold(resolutionParams)(_(resolutionParams))
       ).getOrThrow
     }
+
+    // bin-compat shim
+    def resolveDeps[T: CoursierModule.Resolvable](
+        deps: IterableOnce[T],
+        sources: Boolean,
+        artifactTypes: Option[Set[coursier.Type]]
+    ): Agg[PathRef] =
+      resolveDeps(deps, sources, artifactTypes, None)
 
     @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
     def resolveDeps[T: CoursierModule.Resolvable](

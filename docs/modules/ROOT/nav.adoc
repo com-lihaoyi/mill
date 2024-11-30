@@ -11,7 +11,6 @@
 ** xref:javalib/publishing.adoc[]
 ** xref:javalib/build-examples.adoc[]
 ** xref:javalib/web-examples.adoc[]
-
 * xref:scalalib/intro.adoc[]
 ** xref:scalalib/module-config.adoc[]
 ** xref:scalalib/dependencies.adoc[]
@@ -29,13 +28,11 @@
 ** xref:kotlinlib/publishing.adoc[]
 // ** xref:kotlinlib/build-examples.adoc[]
 ** xref:kotlinlib/web-examples.adoc[]
-
-* xref:pythonlib/intro.adoc[]
-** xref:pythonlib/dependencies.adoc[]
-
-* (Experimental) Android with Mill
+* Experimental Platform Support
 ** xref:android/java.adoc[]
 ** xref:android/kotlin.adoc[]
+** xref:pythonlib/intro.adoc[]
+*** xref:pythonlib/dependencies.adoc[]
 * xref:comparisons/why-mill.adoc[]
 ** xref:comparisons/maven.adoc[]
 ** xref:comparisons/gradle.adoc[]
@@ -47,7 +44,7 @@
 ** xref:cli/flags.adoc[]
 ** xref:cli/builtin-commands.adoc[]
 ** xref:cli/query-syntax.adoc[]
-* Migrating to Mill
+* xref:migrating/migrating.adoc[]
 ** xref:migrating/maven.adoc[]
 // This section gives a tour of the various user-facing features of Mill:
 // library deps, out folder, queries, tasks, etc.. These are things that

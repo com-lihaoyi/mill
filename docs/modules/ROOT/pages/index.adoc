@@ -24,6 +24,8 @@ To get started using Mill, see the language-specific introductory documentation 
 | xref:kotlinlib/intro.adoc[image:index/iconscout-kotlin.svg[kotlin,32] Kotlin with Mill]
 |===
 
+If you want to use Mill on an existing codebase, see xref:migrating/migrating.adoc[]
+
 === Why Mill?
 
 Although the Java compiler is very fast and the Java language is easy to learn,
@@ -38,8 +40,8 @@ tasks, keeping your workflows fast and responsive. Mill adds minimal overhead ov
 the logic necessary to build your project, and avoids the long configuration
 times often seen in other build tools like Gradle or SBT
 
-* *Maintainability*: Mill's config and custom logic is written in
-xref:javalib/intro.adoc#_custom_build_logic[concise type-checked code],
+* *Maintainability*: Mill's config and xref:javalib/intro.adoc#_custom_build_logic[custom logic]
+is written in xref:depth/why-scala.adoc[concise type-checked Scala code],
 with an immutable xref:depth/design-principles.adoc[module tree and task graph]. This
 catches config issues early, and helps both humans and IDEs
 (xref:cli/installation-ide.adoc#_intellij[IntelliJ] or
