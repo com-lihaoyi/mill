@@ -576,6 +576,9 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
     ),
     ProblemFilter.exclude[Problem](
       "mill.scalalib.RunModule#RunnerImpl.*"
+    ),
+    ProblemFilter.exclude[Problem](
+      "mill.util.PromptLogger#*"
     )
   )
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
@@ -691,7 +694,6 @@ implicit object DepSegment extends Cross.ToSegments[Dep]({ dep =>
  */
 object dummy extends Cross[DependencyFetchDummy](dummyDeps)
 trait DependencyFetchDummy extends ScalaModule with Cross.Module[Dep] {
-
   def scalaVersion = Deps.scalaVersion
   def compileIvyDeps = Agg(crossValue)
 }
