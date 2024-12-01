@@ -34,7 +34,7 @@ include::partial$example/javalib/module/8-annotation-processors.adoc[]
 
 include::partial$example/javalib/module/9-docjar.adoc[]
 
-
+[[specifying-main-class]]
 == Specifying the Main Class
 
 include::partial$example/javalib/module/11-main-class.adoc[]
