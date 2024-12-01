@@ -213,18 +213,15 @@ public class MillProcessLauncher {
 
   static void writeTerminalDims(boolean tputExists, Path serverDir) throws Exception {
     String str;
-
-    try {
-      if (java.lang.System.console() == null) str = "0 0";
-      else {
-        if (!tputExists)
-          str = "78 24"; // Hardcoded size of a quarter screen terminal on 13" windows laptop
+    if (!tputExists) str = "0 0";
+    else {
+      try {
+        if (java.lang.System.console() == null) str = "0 0";
         else str = getTerminalDim("cols", true) + " " + getTerminalDim("lines", true);
+      } catch (Exception e) {
+        str = "0 0";
       }
-    } catch (Exception e) {
-      str = "0 0";
     }
-
     Files.write(serverDir.resolve(ServerFiles.terminfo), str.getBytes());
   }
 
