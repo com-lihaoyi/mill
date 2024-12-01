@@ -1,13 +1,42 @@
 package foo;
 
 import java.awt.*;
-import java.util.logging.Logger;
+import java.io.IOException;
 import javax.swing.*;
+import static foo.Foo.LOGGER;
 
 public class Bar {
-  private static final Logger LOGGER = Logger.getLogger(Bar.class.getName());
 
-  public static void main(String[] args) {
+  public static boolean isCI() {
+    String[] ciEnvironments = {
+        "CI",
+        "CONTINUOUS_INTEGRATION",
+        "JENKINS_URL",
+        "TRAVIS",
+        "CIRCLECI",
+        "GITHUB_ACTIONS",
+        "GITLAB_CI",
+        "BITBUCKET_PIPELINE",
+        "TEAMCITY_VERSION"
+    };
+
+    for (String env : ciEnvironments) {
+        if (System.getenv(env) != null) {
+            return true;
+        }
+    }
+
+    return false;
+  }
+
+  public static void main(String[] args) throws IOException {
+    // Needed because Swing GUIs don't work in headless CI environments
+    if (isCI()) {
+      Foo.readConf();
+      LOGGER.info("Hello World application started successfully");
+      System.exit(0);
+    }
+
     // Use SwingUtilities.invokeLater to ensure thread safety
     SwingUtilities.invokeLater(() -> {
       try {
