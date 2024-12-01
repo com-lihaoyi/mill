@@ -81,27 +81,29 @@ INFO: Hello World application started successfully
 
 > mill show foo.jpackageAppImage
 ".../out/foo/jpackageAppImage.dest/image"
-
+*/
 
 // On macOS, `jpackageType` accepts 3 values: "dmg" or "pkg" or "app-image" (default).
 
-// Setting `jpackageType = "dmg"` will produce:
-// > ls -l ./out/foo/jpackageAppImage.dest/image
+// Setting `def jpackageType = "dmg"` will produce:
+// ----
+// ls -l ./out/foo/jpackageAppImage.dest/image
 // ... foo-1.0.dmg
+// ----
 
-// Setting `jpackageType = "pkg"` will produce:
-// > ls -l ./out/foo/jpackageAppImage.dest/image
+// Setting `def jpackageType = "pkg"` will produce:
+// ----
+// ls -l ./out/foo/jpackageAppImage.dest/image
 // ... foo-1.0.pkg
+// ----
 
-// Setting `jpackageType = "app-image"` will produce:
-// > ls -l ./out/foo/jpackageAppImage.dest/image
+// Setting `def jpackageType = "app-image"` will produce:
+// ----
+// ls -l ./out/foo/jpackageAppImage.dest/image
 // ... foo.app/
-
-> ./out/foo/jpackageAppImage.dest/image/foo.app/Contents/MacOS/foo 
+// ./out/foo/jpackageAppImage.dest/image/foo.app/Contents/MacOS/foo
 // ... foo.Foo readConf
 // INFO: Loaded application.conf from resources: Foo Application Conf
-
 // ... foo.Bar ...
 // INFO: Hello World application started successfully
-
-*/
+// ----
