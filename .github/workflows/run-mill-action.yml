@@ -30,10 +30,6 @@ on:
       install-android-sdk:
         default: false
         type: boolean
-      setup-msvc:
-        default: false
-        type: boolean
-        description: 'sets up Windows environment for compiling C/C++ code'
 
 jobs:
   run:
@@ -59,9 +55,6 @@ jobs:
         run: "chmod -R +x ."
 
       - uses: coursier/cache-action@v6
-
-      - uses: ilammy/msvc-dev-cmd@v1
-        if: inputs.setup-msvc && startsWith(inputs.os, 'windows')
 
       - uses: actions/setup-java@v4
         with:

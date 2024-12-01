@@ -135,26 +135,20 @@ jobs:
           # the whole suite can take hours on windows v.s. half an hour on linux
           - java-version: '11'
             millargs: '"{main,scalalib,bsp}.__.testCached"'
-            setup-msvc: false
           - java-version: '11'
             millargs: '"example.scalalib.basic.__.fork.testCached"'
-            setup-msvc: true # required by Graal VM native-image
           - java-version: 17
             millargs: "'integration.{feature,failure}[_].fork.testCached'"
-            setup-msvc: false
           - java-version: '11'
             millargs: "'integration.invalidation[_].server.testCached'"
-            setup-msvc: false
           - java-version: '11'
             millargs: "contrib.__.testCached"
-            setup-msvc: false
 
     uses: ./.github/workflows/run-mill-action.yml
     with:
       os: windows-latest
       java-version: ${{ matrix.java-version }}
       millargs: ${{ matrix.millargs }}
-      setup-msvc: ${{ matrix.setup-msvc }}
 
   itest:
     needs: build-linux

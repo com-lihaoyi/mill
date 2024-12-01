@@ -6,10 +6,9 @@ import mill.api.JarManifest
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import $file.ci.upload
 
-import java.nio.file.Paths
 import scala.util.{Properties, Using}
 
-// TODO remove nativeImage* tasks and extend NativeImageModule once available
+// TODO extend NativeImageModule once available
 object `package` extends RootModule with build.MillPublishJavaModule {
 
   /**
@@ -348,83 +347,49 @@ object `package` extends RootModule with build.MillPublishJavaModule {
     }
   }
 
-  def mainClass = Some("mill.runner.client.MillClientMain")
-
-  def native: T[PathRef] = Task {
-    val executable = Task.dest / "mill"
+  def nativeImage(args: String*): Command[PathRef] = Task.Command {
+    val dest = T.dest
+    val executableName = if (Properties.isWin) "mill.exe" else "mill"
+    val executable = Task.dest / executableName
 
     Task.traverse(allPublishModules)(m => m.publishLocalCached)()
+    val assembly = super.assembly().path
 
-    Using(os.write.outputStream(
-        executable,
-        if (Properties.isWin) null else "rwxrwxrwx",
-        createFolders = true)
-    ) { out =>
-      // concatenate native image and assembly as prescribed in:
-      // https://github.com/com-lihaoyi/mill/issues/4007#issuecomment-2495933167
-      out.write(os.read.bytes(nativeImage().path))
+    val command = Seq.newBuilder[String]
+      .+=(nativeImageTool().path.toString)
+      .++=(Seq("-cp", assembly.toString))
+      // Workaround for Zinc/JNA bug
+      // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
+      .+=("-Djna.nosys=true")
+      .+=("--no-fallback")
+      .++=(args)
+      .+=("mill.runner.client.MillClientMain")
+      .+=(executableName)
+      .result()
+    os.proc(command).call(cwd = dest, stdout = os.Inherit)
+
+    // concatenate executable and assembly as prescribed in:
+    // https://github.com/com-lihaoyi/mill/issues/4007#issuecomment-2495933167
+    Using(os.write.append.outputStream(executable)) { out =>
       out.write(System.lineSeparator.getBytes)
-      out.write(os.read.bytes(super.assembly().path))
+      out.write(os.read.bytes(assembly))
       out.flush()
     }
 
     PathRef(executable)
   }
 
-  def nativeImage: T[PathRef] = Task {
-    val dest = T.dest
-
-    val classPath = runClasspath().iterator
-      .map(_.path)
-      .mkString(java.io.File.pathSeparator)
-    val executableName = nativeImageExecutableName()
-
-    val command =
-      Seq.newBuilder[String]
-        .+=(nativeImageCli().path.toString)
-        .++=(Seq("--class-path", classPath))
-        .++=(nativeImageOptions())
-        .++=(Seq(finalMainClass(), executableName))
-        .result()
-
-    T.log.info(s"building native image $executableName")
-    os.proc(command).call(cwd = dest)
-
-    PathRef(dest / executableName)
-  }
-
-  def nativeImageCli: T[PathRef] = Task {
-    val ext = if (Properties.isWin) ".cmd" else ""
-    val path = zincWorker().javaHome() match {
-      case None =>
-        os.Path(Paths.get(s"native-image$ext").toAbsolutePath)
+  def nativeImageTool: T[PathRef] = Task {
+    zincWorker().javaHome().map(_.path)
+      .orElse(sys.env.get("GRAALVM_HOME").map(os.Path(_))) match {
       case Some(home) =>
-        home.path / "bin" / s"native-image$ext"
+        val tool = if (Properties.isWin) "native-image.cmd" else "native-image"
+        val path = home / "bin" / tool
+        if (os.exists(path)) PathRef(path)
+        else throw new RuntimeException(s"$path not found")
+      case None =>
+        throw new RuntimeException("ZincWorkerModule.javaHome/GRAALVM_HOME not defined")
     }
-    if (os.exists(path)) PathRef(path)
-    else throw new RuntimeException(s"native-image not found at $path")
-  }
-
-  def nativeImageExecutableName: T[String] = Task {
-    val name = finalMainClass().split('.').last
-    if (Properties.isWin) s"$name.exe" else name
-  }
-
-  def nativeImageOptions: T[Seq[String]] = Task {
-    val (millArgs, otherArgs) =
-      forkArgs().partition(arg => arg.startsWith("-DMILL") && !arg.startsWith("-DMILL_VERSION"))
-    // Pass Mill options via file, due to small max args limit in Windows
-    val vmOptionsFile = Task.dest / "mill.properties"
-    val millOptionsContent =
-      millArgs.map(_.drop(2).replace("\\", "/")).mkString(
-        "\r\n"
-      ) // drop -D prefix, replace \ with /
-    os.write(vmOptionsFile, millOptionsContent)
-    Seq.newBuilder[String]
-      .+=("--no-fallback")
-      .+=(s"-DMILL_OPTIONS_PATH=$vmOptionsFile")
-      .++=(otherArgs)
-      .result()
   }
 
   def zincWorker = ModuleRef(ZincWorkerGraalvm)

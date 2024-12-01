@@ -5,8 +5,6 @@ import mill.define.ModuleRef
 
 object foo extends JavaModule with NativeImageModule {
 
-  def nativeImageOptions = Seq("--no-fallback")
-
   def zincWorker = ModuleRef(ZincWorkerGraalvm)
 
   object ZincWorkerGraalvm extends ZincWorkerModule {
@@ -14,16 +12,15 @@ object foo extends JavaModule with NativeImageModule {
   }
 }
 
-// This example demonstrates how to build a native image for a Java application using https://www.graalvm.org/[Graal VM].
-//
-// - The `native-image` CLI is downloaded with a custom Java home.
-//
-// - The main class, `foo.HelloWorld` is auto detected by `NativeImageModule` using `finalMainClass`.
+// This example uses `NativeImageModule` to generate a native executable using https://www.graalvm.org/[Graal VM].
+// NOTE: For build portability, it is recommended to use a custom JDK.
 
 /** Usage
 
 > ./mill foo.nativeImage
+GraalVM Native Image: Generating...App...
+Finished generating...App...
 
-> ./out/foo/nativeImage.dest/HelloWorld
+> ./out/foo/nativeImage.dest/App
 Hello, World!
 */

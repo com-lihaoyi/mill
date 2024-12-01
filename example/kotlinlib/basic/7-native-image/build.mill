@@ -5,27 +5,24 @@ import mill.define.ModuleRef
 
 object foo extends KotlinModule with NativeImageModule {
 
-  def kotlinVersion = "1.9.24"
-
-  def nativeImageOptions = Seq("--no-fallback")
-
   def zincWorker = ModuleRef(ZincWorkerGraalvm)
 
   object ZincWorkerGraalvm extends ZincWorkerModule {
     def jvmId = "graalvm-community:23.0.1"
   }
+
+  def kotlinVersion = "1.9.24"
 }
 
-// This example demonstrates how to build a native image for a Kotlin application using https://www.graalvm.org/[Graal VM].
-//
-// - The `native-image` CLI is downloaded with a custom Java home.
-//
-// - The main class, `foo.HelloWorld` is auto detected by `NativeImageModule` using `finalMainClass`.
+// This example uses `NativeImageModule` to generate a native executable using https://www.graalvm.org/[Graal VM].
+// NOTE: For build portability, it is recommended to use a custom JDK.
 
 /** Usage
 
 > ./mill foo.nativeImage
+GraalVM Native Image: Generating...AppKt...
+Finished generating...AppKt...
 
-> ./out/foo/nativeImage.dest/HelloWorldKt
+> ./out/foo/nativeImage.dest/AppKt
 Hello, World!
 */

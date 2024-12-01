@@ -2,13 +2,12 @@ package mill.scalalib
 
 import mill.*
 
-import java.nio.file.Paths
 import scala.util.Properties
 
 /**
- * Provides a [[nativeImage task]] to generate a native binary for this JVM application.
+ * Provides a [[NativeImageModule.nativeImage task]] to build a native executable using [[https://www.graalvm.org/ Graal VM]].
  *
- * For reproducible builds, specify a custom Java home.
+ * It is recommended to specify a custom JDK that includes the `native-image` Tool.
  * {{{
  * trait AppModule extends NativeImageModule {
  *   def zincWorker = ModuleRef(ZincWorkerGraalvm)
@@ -19,54 +18,43 @@ import scala.util.Properties
  * }
  * }}}
  */
-trait NativeImageModule extends RunModule {
+@mill.api.experimental
+trait NativeImageModule extends RunModule with WithZincWorker {
 
   /**
-   * Generates a native binary for [[finalMainClass]] using [[nativeImageCli]].
+   * [[https://www.graalvm.org/latest/reference-manual/native-image/#from-a-class Builds a native executable]] for this
+   * module with [[finalMainClass]] as the application entry point.
+   *
+   * @param args Additional options for the `native-image` Tool. Use for
+   *             - passing debug options
+   *             - passing target specific options
    */
-  def nativeImage: T[PathRef] = Task {
+  def nativeImage(args: String*): Command[PathRef] = Task.Command {
     val dest = T.dest
-
-    val classPath = runClasspath().iterator
-      .map(_.path)
-      .mkString(java.io.File.pathSeparator)
     val executableName = nativeImageExecutableName()
-
-    val command =
-      Seq.newBuilder[String]
-        .+=(nativeImageCli().path.toString)
-        .++=(Seq("--class-path", classPath))
-        .++=(nativeImageOptions())
-        .++=(Seq(finalMainClass(), executableName))
-        .result()
-
-    T.log.info(s"building native image $executableName")
-    os.proc(command).call(cwd = dest)
-
+    val command = Seq.newBuilder[String]
+      .+=(nativeImageTool().path.toString)
+      .++=(nativeImageOptions())
+      .++=(args)
+      .+=("-cp")
+      .+=(nativeImageClasspath().iterator.map(_.path).mkString(java.io.File.pathSeparator))
+      .+=(finalMainClass())
+      .+=(executableName)
+      .result()
+    os.proc(command).call(cwd = dest, stdout = os.Inherit)
     PathRef(dest / executableName)
   }
 
   /**
-   * Path to [[https://www.graalvm.org/latest/reference-manual/native-image/ `native-image`]] CLI.
-   * Defaults to `bin/native-image` relative to [[ZincWorkerModule.javaHome]] or `GRAALVM_HOME` environment variable.
+   * The classpath to use to generate the native image. Defaults to [[runClasspath]].
    */
-  def nativeImageCli: T[PathRef] = Task {
-    val ext = if (Properties.isWin) ".cmd" else ""
-    val path = zincWorker().javaHome()
-      .map(_.path)
-      .orElse(sys.env.get("GRAALVM_HOME").map(os.Path(_))) match {
-      case None =>
-        // assume native-image is installed
-        os.Path(Paths.get(s"native-image$ext").toAbsolutePath)
-      case Some(home) =>
-        home / "bin" / s"native-image$ext"
-    }
-    if (os.exists(path)) PathRef(path)
-    else throw new RuntimeException(s"native-image not found at $path")
+  def nativeImageClasspath: T[Seq[PathRef]] = Task {
+    runClasspath()
   }
 
   /**
-   * The name of the generated native binary.
+   * The name of the generated executable.
+   * Defaults to name of [[finalMainClass]] (with `exe` extension, on Windows).
    */
   def nativeImageExecutableName: T[String] = Task {
     val name = finalMainClass().split('.').last
@@ -74,7 +62,30 @@ trait NativeImageModule extends RunModule {
   }
 
   /**
-   * Additional options for [[nativeImageCli]].
+   * Additional options for the `native-image` Tool.
+   *
+   * @note It is recommended to restrict this list to options that can be shared across targets.
    */
   def nativeImageOptions: T[Seq[String]] = Seq.empty[String]
+
+  /**
+   * Path to the [[https://www.graalvm.org/latest/reference-manual/native-image/ `native-image` Tool]].
+   * Defaults to a path relative to
+   *  - [[ZincWorkerModule.javaHome]], if defined
+   *  - environment variable `GRAALVM_HOME`, if defined
+   *
+   * @note The task fails if the `native-image` Tool is not found.
+   */
+  def nativeImageTool: T[PathRef] = Task {
+    zincWorker().javaHome().map(_.path)
+      .orElse(sys.env.get("GRAALVM_HOME").map(os.Path(_))) match {
+      case Some(home) =>
+        val tool = if (Properties.isWin) "native-image.cmd" else "native-image"
+        val path = home / "bin" / tool
+        if (os.exists(path)) PathRef(path)
+        else throw new RuntimeException(s"$path not found")
+      case None =>
+        throw new RuntimeException("ZincWorkerModule.javaHome/GRAALVM_HOME not defined")
+    }
+  }
 }
