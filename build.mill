@@ -680,7 +680,9 @@ val dummyDeps: Seq[Dep] = Seq(
 
 implicit object DepSegment extends Cross.ToSegments[Dep]({ dep =>
       val depString = formatDep(dep)
-      List(depString)
+      // these cross module names cause problems on windows, and anyway they
+      // are not necessary in order to load the project into IntelliJ anyway
+      List(depString.replace(':', '_'))
     })
 
 /**
@@ -689,6 +691,7 @@ implicit object DepSegment extends Cross.ToSegments[Dep]({ dep =>
  */
 object dummy extends Cross[DependencyFetchDummy](dummyDeps)
 trait DependencyFetchDummy extends ScalaModule with Cross.Module[Dep] {
+
   def scalaVersion = Deps.scalaVersion
   def compileIvyDeps = Agg(crossValue)
 }

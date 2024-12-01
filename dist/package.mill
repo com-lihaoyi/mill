@@ -256,23 +256,29 @@ object `package` extends RootModule with build.MillPublishJavaModule {
     targetFile
   }
 
-  def millBootstrap = Task.Sources(Task.workspace / "mill")
+  def millBootstrap = Task.Source(Task.workspace / "mill")
+  def millBootstrapBat = Task.Source(Task.workspace / "mill.bat")
 
-  def bootstrapLauncher = Task {
-    val outputPath = Task.dest / "mill"
+  def prepareBootstrapLauncher(bootstrap: os.Path, dest: os.Path, buildVersion: String) = {
+    val outputPath = dest / "mill"
     val millBootstrapGrepPrefix = "(\n *DEFAULT_MILL_VERSION=)"
-    val millDownloadUrlPrefix = "(\n *MILL_DOWNLOAD_URL=)"
 
     os.write(
       outputPath,
-      os.read(millBootstrap().head.path)
+      os.read(bootstrap)
         .replaceAll(
           millBootstrapGrepPrefix + "[^\\n]+",
-          "$1" + build.millVersion()
+          "$1" + buildVersion
         )
     )
     os.perms.set(outputPath, "rwxrwxrwx")
     PathRef(outputPath)
+  }
+  def bootstrapLauncher = Task {
+    prepareBootstrapLauncher(millBootstrap().path, Task.dest, build.millVersion())
+  }
+  def bootstrapLauncherBat = Task {
+    prepareBootstrapLauncher(millBootstrapBat().path, Task.dest, build.millVersion())
   }
 
   def examplePathsWithArtifactName:Task[Seq[(os.Path,String)]] = Task.Anon{
@@ -292,6 +298,7 @@ object `package` extends RootModule with build.MillPublishJavaModule {
       os.copy(examplePath, Task.dest / exampleStr, createFolders = true)
       os.write(Task.dest / exampleStr / ".mill-version", build.millLastTag())
       os.copy(bootstrapLauncher().path, Task.dest / exampleStr / "mill")
+      os.copy(bootstrapLauncherBat().path, Task.dest / exampleStr / "mill.bat")
       val zip = Task.dest / s"$exampleStr.zip"
       os.proc("zip", "-r", zip, exampleStr).call(cwd = Task.dest)
       PathRef(zip)
@@ -319,7 +326,8 @@ object `package` extends RootModule with build.MillPublishJavaModule {
 
     val zips = examples ++ Seq(
       (build.dist.assembly().path, label + "-assembly"),
-      (bootstrapLauncher().path, label)
+      (bootstrapLauncher().path, label),
+      (bootstrapLauncherBat().path, label + ".bat")
     )
 
     for ((zip, name) <- zips) {
