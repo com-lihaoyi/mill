@@ -541,12 +541,17 @@ globally.</p>
 <h2 id="_bootstrap_scripts"><a class="anchor" href="#_bootstrap_scripts"></a>Bootstrap Scripts</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Although the Mill example projects come with their own <code>./mill</code> bootstrap script,
+<p>Although the Mill example projects come with their own <code>./mill</code> and <code>./mill.bat</code> bootstrap script,
 you can also download it manually:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -L https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3 &gt; mill &amp;&amp; chmod +x mill
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Mac/Linux
+curl -L https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3 &gt; mill &amp;&amp; chmod +x mill
+echo 0.12.3 &gt; .mill-version
+
+# Windows
+curl -L https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3.bat -o mill.bat
 echo 0.12.3 &gt; .mill-version</code></pre>
 </div>
 </div>
