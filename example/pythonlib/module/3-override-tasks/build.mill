@@ -1,0 +1,68 @@
+package build
+import mill._, pythonlib._
+
+object foo extends PythonModule {
+  def sources = Task.Sources {
+    val destPath = Task.dest / "src"
+    os.makeDir.all(destPath)
+
+    os.write(
+      destPath / "foo.py",
+      s"""
+         |class Foo:
+         |    def main(self) -> None:
+         |        print("Hello World")
+         |
+         |if __name__ ==  '__main__':
+         |    Foo().main()
+      """.stripMargin
+    )
+    Seq(PathRef(destPath))
+  }
+
+  def mainScript = Task.Source { sources().head.path / "foo.py" }
+
+  def typeCheck = Task {
+    println("Type Checking...")
+    super.typeCheck()
+  }
+
+  def run(args: mill.define.Args) = Task.Command {
+    typeCheck()
+    println("Running..." + args.value.mkString(" "))
+    super.run(args)()
+  }
+}
+
+object foo2 extends PythonModule {
+  def generatedSources = Task {
+    val destPath = Task.dest / "src"
+    os.makeDir.all(destPath)
+    os.write(destPath / "foo.py", """...""")
+    Seq(PathRef(destPath))
+  }
+
+  def mainScript = Task.Source { generatedSources().head.path / "foo.py" }
+
+}
+
+object foo3 extends PythonModule {
+  def sources = Task {
+    val destPath = Task.dest / "src"
+    os.makeDir.all(destPath)
+    os.write(destPath / "foo.py", """...""")
+    super.sources() ++ Seq(PathRef(destPath))
+  }
+  def mainScript = Task.Source { sources().head.path / "foo.py" }
+
+}
+
+/** Usage
+
+> ./mill foo.run
+Type Checking...
+Success: no issues found in 1 source file
+Running...
+Hello World
+
+*/

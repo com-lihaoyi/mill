@@ -1,0 +1,57 @@
+package build
+import mill._, pythonlib._
+
+object `package` extends RootModule with PythonModule {
+
+  def pythonDeps = Seq("argparse==1.4.0", "jinja2==3.1.4")
+
+  def mainScript = Task.Source { millSourcePath / "src" / "foo.py" }
+
+  def generatedSources: T[Seq[PathRef]] = Task {
+    val destPath = Task.dest / "generatedSources"
+    os.makeDir.all(destPath)
+
+    val prettyPythonDeps = pythonDeps().map { dep =>
+      val parts = dep.split("==")
+      s"""("${parts(0)}", "${parts(1)}")"""
+    }.mkString(", ")
+
+    os.write(
+      destPath / s"myDeps.py",
+      s"""
+         |class MyDeps:
+         |    value = [${prettyPythonDeps}]
+			""".stripMargin
+    )
+
+    Seq(PathRef(destPath))
+  }
+
+  def lineCount: T[Int] = Task {
+    sources()
+      .flatMap(pathRef => os.walk(pathRef.path))
+      .filter(_.ext == "py")
+      .map(os.read.lines(_).size)
+      .sum
+  }
+
+  def forkEnv: T[Map[String, String]] = Map("MY_LINE_COUNT" -> s"${lineCount()}")
+
+  def printLineCount() = Task.Command { println(lineCount()) }
+
+}
+
+/** Usage
+
+> ./mill run --text hello
+text:  hello
+MyDeps.value:  [('argparse', '1.4.0'), ('jinja2', '3.1.4')]
+My_Line_Count:  22
+
+> ./mill show lineCount
+22
+
+> ./mill printLineCount
+22
+
+*/

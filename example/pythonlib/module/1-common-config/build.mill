@@ -1,0 +1,75 @@
+package build
+import mill._, pythonlib._
+
+object `package` extends RootModule with PythonModule {
+  // You can have arbitrary numbers of third-party libraries
+  def pythonDeps = Seq("MarkupSafe==3.0.2", "Jinja2==3.1.4")
+
+  // choose a main Script to run if there are multiple present
+  def mainScript = Task.Source { millSourcePath / "custom-src" / "foo2.py" }
+
+  // TODO: we have to choose whether to include `millSourcePath` by default in PYTHONPATH or not.
+  // def sources = Task.Sources {
+  // 	super.sources() ++ Seq(PathRef(millSourcePath))
+  // }
+
+  // def resources = Task.Sources {
+  //   super.resources() ++ Seq(PathRef(millSourcePath))
+  // }
+
+  def generatedSources: T[Seq[PathRef]] = Task {
+    val destPath = Task.dest / "generatedSources"
+    os.makeDir.all(destPath)
+    for (name <- Seq("A", "B", "C")) os.write(
+      destPath / s"foo$name.py",
+      s"""
+         |class Foo$name:
+         |    value = "hello $name"
+      """.stripMargin
+    )
+
+    Seq(PathRef(destPath))
+  }
+
+  def forkEnv: T[Map[String, String]] = Map("MY_CUSTOM_ENV" -> "my-env-value")
+
+  // Additional Python options e.g. to Turn On Warnings
+  // we can use -Werror to treat warnings as errors
+  def pythonOptions: T[Seq[String]] = Seq("-Wall")
+
+}
+
+/** Usage
+
+> ./mill run
+...
+Foo2.value: <h1>hello2</h1>
+Foo.value: <h1>hello</h1>
+FooA.value: hello A
+FooB.value: hello B
+FooC.value: hello C
+MyResource: My Resource Contents
+MyOtherResource: My Other Resource Contents
+MY_CUSTOM_ENV: my-env-value
+...
+
+> ./mill show bundle
+".../out/bundle.dest/bundle.pex"
+
+> ./out/bundle.dest/bundle.pex
+...
+Foo2.value: <h1>hello2</h1>
+Foo.value: <h1>hello</h1>
+FooA.value: hello A
+FooB.value: hello B
+FooC.value: hello C
+MyResource: My Resource Contents
+MyOtherResource: My Other Resource Contents
+...
+
+> sed -i.bak 's/import os/import os, warnings; warnings.warn("This is a test warning!")/g' custom-src/foo2.py
+
+> ./mill run
+...UserWarning: This is a test warning!...
+
+*/

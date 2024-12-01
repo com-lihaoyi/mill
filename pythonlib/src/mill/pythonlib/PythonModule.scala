@@ -75,6 +75,9 @@ trait PythonModule extends PipModule with TaskModule { outer =>
    */
   def unmanagedPythonPath: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
 
+  def generatedSources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
+
+  // TODO: we have to choose whether to include `millSourcePath` by default in PYTHONPATH or not.
   /**
    * The directories used to construct the PYTHONPATH for this module, used for
    * execution, excluding upstream modules.
@@ -83,7 +86,9 @@ trait PythonModule extends PipModule with TaskModule { outer =>
    * directories.
    */
   def localPythonPath: T[Seq[PathRef]] = Task {
-    sources() ++ resources() ++ unmanagedPythonPath()
+    Seq(
+      PathRef(millSourcePath)
+    ) ++ sources() ++ resources() ++ generatedSources() ++ unmanagedPythonPath()
   }
 
   /**
@@ -95,17 +100,22 @@ trait PythonModule extends PipModule with TaskModule { outer =>
     localPythonPath() ++ upstream
   }
 
+  def forkEnv: T[Map[String, String]] = Task { Map.empty[String, String] }
+
+  def pythonOptions: T[Seq[String]] = Task { Seq.empty[String] }
+
   // TODO: right now, any task that calls this helper will have its own python
   // cache. This is slow. Look into sharing the cache between tasks.
   def runner: Task[PythonModule.Runner] = Task.Anon {
     new PythonModule.RunnerImpl(
       command0 = pythonExe().path.toString,
+      options = pythonOptions(),
       env0 = Map(
         "PYTHONPATH" -> transitivePythonPath().map(_.path).mkString(java.io.File.pathSeparator),
         "PYTHONPYCACHEPREFIX" -> (T.dest / "cache").toString,
         if (Task.log.colored) { "FORCE_COLOR" -> "1" }
         else { "NO_COLOR" -> "1" }
-      ),
+      ) ++ forkEnv(),
       workingDir0 = Task.workspace
     )
   }
@@ -194,6 +204,7 @@ object PythonModule {
 
   private class RunnerImpl(
       command0: String,
+      options: Seq[String],
       env0: Map[String, String],
       workingDir0: os.Path
   ) extends Runner {
@@ -204,7 +215,7 @@ object PythonModule {
         workingDir: os.Path = null
     )(implicit ctx: Ctx): Unit =
       Jvm.runSubprocess(
-        commandArgs = Seq(Option(command).getOrElse(command0)) ++ args.value,
+        commandArgs = Seq(Option(command).getOrElse(command0)) ++ options ++ args.value,
         envArgs = Option(env).getOrElse(env0),
         workingDir = Option(workingDir).getOrElse(workingDir0)
       )
