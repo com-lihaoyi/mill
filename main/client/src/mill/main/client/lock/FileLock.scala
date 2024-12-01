@@ -2,10 +2,11 @@ package mill.main.client.lock
 
 import java.io.RandomAccessFile
 import java.nio.channels.FileChannel
+import scala.util.Try
 
 class FileLock(path: String) extends Lock with AutoCloseable {
-  private val raf: RandomAccessFile = new RandomAccessFile(path, "rw")
-  private val chan: FileChannel = raf.getChannel
+  private final val raf: RandomAccessFile = new RandomAccessFile(path, "rw")
+  private final val chan: FileChannel = raf.getChannel
 
   @throws[Exception]
   def lock(): Locked = new FileLocked(chan.lock())
@@ -30,5 +31,6 @@ class FileLock(path: String) extends Lock with AutoCloseable {
   }
 
   @throws[Exception]
-  override def delete(): Unit = close()
+  override def delete(): Unit =
+    close()
 }

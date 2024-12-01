@@ -7,6 +7,7 @@ import java.net.Socket
 import java.nio.file.{Files, Path, Paths}
 import scala.collection.JavaConverters._
 import scala.util.Using
+import mill.main.client
 
 abstract class ServerLauncher(
     stdin: InputStream,
@@ -17,7 +18,7 @@ abstract class ServerLauncher(
     memoryLocks: Option[Array[Locks]],
     forceFailureForTestingMillisDelay: Int
 ) {
-  final val serverProcessesLimit = 5
+  final val serverProcessesLimit = 2
   final val serverInitWaitMillis = 10000
 
   def initServer(serverDir: Path, setJnaNoSys: Boolean, locks: Locks): Unit
@@ -31,7 +32,10 @@ abstract class ServerLauncher(
     val versionAndJvmHomeEncoding =
       Util.sha1Hash(BuildInfo.millVersion + System.getProperty("java.home"))
 
-    (1 to serverProcessesLimit).foreach { serverIndex =>
+    println(versionAndJvmHomeEncoding)
+    println(outDir)
+
+    (1 to serverProcessesLimit).iterator.map { serverIndex =>
       val serverDir = Paths.get(outDir, millServer, s"$versionAndJvmHomeEncoding-$serverIndex")
       Files.createDirectories(serverDir)
 
@@ -40,20 +44,25 @@ abstract class ServerLauncher(
         case None => Locks.files(serverDir.toString)
       }
 
-      Using(locks.clientLock.tryLock()) { clientLocked =>
-        if (clientLocked.isLocked) {
-          preRun(serverDir)
-          val exitCode = run(serverDir, setJnaNoSys, locks)
-          if (exitCode == 0) {
-            println("tidy locks")
-            locks.clientLock.close()
-            locks.processLock.close()
+      (serverDir, locks)
+
+    }.collectFirst {
+      case (serverDir, locks) =>
+        Using(locks.clientLock.tryLock()) { clientLocked =>
+          if (clientLocked.isLocked) {
+            preRun(serverDir)
+            val exitCode = run(serverDir, setJnaNoSys, locks)
+            Result(exitCode, serverDir)
+          } else {
+            val exitCode = run(serverDir, setJnaNoSys, locks)
+            Result(exitCode, serverDir)
           }
-          return Result(exitCode, serverDir)
-        }
-      }
+        }.get
+    }.getOrElse {
+      throw new ServerCouldNotBeStarted(
+        s"Reached max server processes limit: $serverProcessesLimit"
+      )
     }
-    throw new ServerCouldNotBeStarted(s"Reached max server processes limit: $serverProcessesLimit")
   }
 
   private def run(serverDir: Path, setJnaNoSys: Boolean, locks: Locks): Int = {
