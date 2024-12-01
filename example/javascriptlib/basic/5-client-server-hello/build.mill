@@ -2,9 +2,14 @@ package build
 import mill._, javascriptlib._
 
 trait CSModule extends JestModule {
-  override def testConfig = Task.Source(millSourcePath / "jest.config.ts")
+  override def mainFilePath =
+    Task { compile()._1.path / "src" / mainFileName() }
+
+  override def jestConfig = Task.Source(millSourcePath / "jest.config.ts")
 }
 
+//  /compile.dest/javascript/client.js
+//  /compile.dest/javascript/src/client.js
 object client extends CSModule
 
 object server extends CSModule

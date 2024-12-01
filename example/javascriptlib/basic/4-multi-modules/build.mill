@@ -51,8 +51,7 @@ object library extends JestModule {
     PathRef(Task.dest)
   }
 
-  override def argsOrder: Task[(Boolean, Seq[String])] =
-    Task { (true, Seq(resources().path.toString())) }
+  def computedArgs = Task { (Some(Seq(resources().path.toString)), None) }
 
 }
 
