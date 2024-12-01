@@ -576,6 +576,9 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
     ),
     ProblemFilter.exclude[Problem](
       "mill.scalalib.RunModule#RunnerImpl.*"
+    ),
+    ProblemFilter.exclude[Problem](
+      "mill.util.PromptLogger#*"
     )
   )
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
@@ -680,7 +683,9 @@ val dummyDeps: Seq[Dep] = Seq(
 
 implicit object DepSegment extends Cross.ToSegments[Dep]({ dep =>
       val depString = formatDep(dep)
-      List(depString)
+      // these cross module names cause problems on windows, and anyway they
+      // are not necessary in order to load the project into IntelliJ anyway
+      List(depString.replace(':', '_'))
     })
 
 /**
