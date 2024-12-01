@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import mill.*
+import mill._
 
 import scala.util.Properties
 
