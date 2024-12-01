@@ -68,8 +68,8 @@ object foo extends JavaModule with JpackageModule {
 
 > mill foo.assembly
 
-> unzip -p ./out/foo/assembly.dest/out.jar application.conf
-Foo Application Conf
+> mill show foo.assembly
+".../out/foo/assembly.dest/out.jar"
 
 > java -jar ./out/foo/assembly.dest/out.jar
 ... foo.Foo readConf
