@@ -5,8 +5,6 @@ import mill._, javascriptlib._
 object foo extends JestModule {
   def npmDeps = Seq("immutable@4.3.7")
 
-  override def mainFilePath =
-    Task { compile()._1.path / millSourcePath.last / "src" / mainFileName() }
 }
 
 // Documentation for mill.example.javascriptlib
@@ -16,7 +14,7 @@ object foo extends JestModule {
 Hello James Bond Professor
 
 > mill foo.test
-PASS .../foo.test.js
+PASS .../foo.test.ts
 ...generateUser function
 ...✓ should generate a user with all specified fields...
 ...✓ should default lastName and role when they are not provided...
@@ -29,7 +27,7 @@ Time:...
 Ran all test suites matching ...
 
 > mill show foo.bundle
-"...bundle.js..."
+Build succeeded!
 
 > node out/foo/bundle.dest/bundle.js James Bond prof
 Hello James Bond Professor

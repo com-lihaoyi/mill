@@ -16,12 +16,12 @@ trait JestModule extends TypeScriptModule {
     )
   }
 
-  def testPath: Target[PathRef] = Task.Source(millSourcePath / "test")
+  def testSource: Target[PathRef] = Task.Source(millSourcePath / "test")
 
-  def jestConfig: Target[PathRef] = Task.Source(millSourcePath / os.up / "jest.config.ts")
+  def testConfigSource: Target[PathRef] = Task.Source(millSourcePath / os.up / "jest.config.ts")
 
   override def allSources: Target[IndexedSeq[PathRef]] = Task {
-    (os.walk(sources().path) ++ os.walk(testPath().path) ++ IndexedSeq(jestConfig().path))
+    (os.walk(sources().path) ++ os.walk(testSource().path) ++ IndexedSeq(testConfigSource().path))
       .filter(_.ext == "ts")
       .map(PathRef(_))
   }
@@ -39,24 +39,33 @@ trait JestModule extends TypeScriptModule {
   }
 
   // specify config file path: --config /path/to/jest/config
-  def jestConfigFile: Task[String] =
-    Task { (compile()._1.path / "jest.config.js").toString() }
+  def getConfigFile: Task[String] =
+    Task { (compile()._1.path / "jest.config.ts").toString }
 
   // specify test dir path/to/test
-  def jestPathToTest: Task[String] =
-    Task { compile()._1.path.toString() }
+  def getPathToTest: Task[String] =
+    Task { compile()._2.path.toString }
+
+  private def copyJestConfig: Task[Unit] = Task.Anon {
+    os.copy.over(
+      millSourcePath / os.up / "jest.config.ts",
+      compile()._1.path / "jest.config.ts"
+    )
+  }
 
   def test: Target[CommandResult] = Task {
+    copyJestConfig()
     os.call(
       (
         "node",
         npmInstall().path / "node_modules/jest/bin/jest.js",
         "--config",
-        jestConfigFile(),
-        jestPathToTest()
+        getConfigFile(),
+        getPathToTest()
       ),
       stdout = os.Inherit,
-      env = mkENV()
+      env = mkENV(),
+      cwd = compile()._1.path
     )
   }
 }

@@ -28,6 +28,7 @@ trait TypeScriptModule extends Module {
       "typescript@5.6.3",
       "ts-node@^10.9.2",
       "esbuild@0.24.0",
+      "@esbuild-plugins/tsconfig-paths@0.1.2",
       transitiveNpmDeps(),
       transitiveNpmDevDeps()
     ))
@@ -40,66 +41,72 @@ trait TypeScriptModule extends Module {
     Task { os.walk(sources().path).filter(_.ext == "ts").map(PathRef(_)) }
 
   // specify tsconfig.compilerOptions
-  def tsCompilerOptions: Target[Map[String, ujson.Value]] = Task {
+  def compilerOptions: Task[Map[String, ujson.Value]] = Task.Anon {
     Map(
       "esModuleInterop" -> ujson.Bool(true),
       "declaration" -> ujson.Bool(true),
-      "typeRoots" -> ujson.Arr((npmInstall().path / "node_modules/@types").toString())
+      "emitDeclarationOnly" -> ujson.Bool(true),
+      "typeRoots" -> ujson.Arr((npmInstall().path / "node_modules/@types").toString)
     )
   }
 
   // specify tsconfig.compilerOptions.Paths
-  def tsCompilerOptionsPaths: Target[Map[String, String]] =
-    Task { Map("*" -> sources().path.toString(), "*" -> npmInstall().path.toString()) }
+  def compilerOptionsPaths: Task[Map[String, String]] =
+    Task.Anon { Map("*" -> sources().path.toString(), "*" -> npmInstall().path.toString()) }
 
-  def compile: T[(PathRef, PathRef)] = Task {
-    val javascriptOut = Task.dest / "javascript"
+  def compilerOptionsBuilder: Task[Map[String, ujson.Value]] = Task.Anon {
     val declarationsOut = Task.dest / "declarations"
 
     val upstreamPaths =
-      for (((_, dTsDir), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps))
-        yield (mod.millSourcePath.subRelativeTo(Task.workspace).toString + "/*", dTsDir.path)
+      for {
+        ((jsDir, dTsDir), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
+      } yield (
+        mod.millSourcePath.subRelativeTo(Task.workspace).toString + "/*",
+        (dTsDir.path / mod.toString / "src").toString + ":" + (jsDir.path / mod.toString / "src").toString
+      )
 
-    val combinedPaths = upstreamPaths ++ tsCompilerOptionsPaths().toSeq
+    val combinedPaths = upstreamPaths ++ compilerOptionsPaths().toSeq
     val combinedCompilerOptions: Map[String, ujson.Value] = Map(
       "declarationDir" -> ujson.Str(declarationsOut.toString),
-      "outDir" -> ujson.Str(javascriptOut.toString),
-      "paths" -> ujson.Obj.from(combinedPaths.map { case (k, v) => (k, ujson.Arr(s"$v/*")) })
-    ) ++ tsCompilerOptions()
+      "paths" -> ujson.Obj.from(combinedPaths.map { case (k, v) =>
+        val splitValues =
+          v.split(":").map(s => s"$s/*") // Split by ":" and append "/*" to each part
+        (k, ujson.Arr.from(splitValues))
+      })
+    ) ++ compilerOptions()
 
+    combinedCompilerOptions
+  }
+
+  def compile: T[(PathRef, PathRef)] = Task {
     os.write(
       Task.dest / "tsconfig.json",
       ujson.Obj(
-        "compilerOptions" -> ujson.Obj.from(combinedCompilerOptions.toSeq),
+        "compilerOptions" -> ujson.Obj.from(compilerOptionsBuilder().toSeq),
         "files" -> allSources().map(_.path.toString)
       )
     )
 
     os.call(npmInstall().path / "node_modules/typescript/bin/tsc")
+    os.copy.over(millSourcePath, Task.dest / "typescript")
 
-    (PathRef(javascriptOut), PathRef(declarationsOut))
+    (PathRef(Task.dest), PathRef(Task.dest / "typescript"))
   }
 
-  def mainFileName: Target[String] = Task { s"${millSourcePath.last}.js" }
+  def mainFileName: Target[String] = Task { s"${millSourcePath.last}.ts" }
 
-  def mainFilePath: Target[Path] = Task { compile()._1.path / mainFileName() }
+  def mainFilePath: Target[Path] = Task { compile()._2.path / "src" / mainFileName() }
 
-  def mkENV =
-    Task.Anon { Map("NODE_PATH" -> Seq(".", compile()._1.path, npmInstall().path).mkString(":")) }
-
-  def prepareRun: Task[(Path, Map[String, String])] = Task.Anon {
-    val upstream = Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
-    for (((jsDir, _), mod) <- upstream) {
-      os.copy(jsDir.path, Task.dest / mod.millSourcePath.subRelativeTo(Task.workspace))
-    }
-    (mainFilePath(), mkENV())
-  }
+  def mkENV: Task[Map[String, String]] =
+    Task.Anon { Map("NODE_PATH" -> Seq(".", compile()._2.path, npmInstall().path).mkString(":")) }
 
   // define computed arguments and where they should be placed (before/after user arguments)
   def computedArgs: Task[(Option[Seq[String]], Option[Seq[String]])] = Task { (None, None) }
 
   def run(args: mill.define.Args): Command[CommandResult] = Task.Command {
-    val (mainFile, env) = prepareRun()
+    val (mainFile, env) = (mainFilePath(), mkENV())
+    val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
+
     val orderedArgs: Seq[String] = computedArgs() match {
       case (None, None) => args.value
       case (Some(x), None) => x ++ args.value
@@ -107,18 +114,54 @@ trait TypeScriptModule extends Module {
       case (Some(x), Some(y)) => x ++ args.value ++ y
     }
 
-    // before ++ args.value ++ after
-
-    os.call(("node", mainFile, orderedArgs), stdout = os.Inherit, env = env)
+    os.call(
+      (tsnode, mainFile, orderedArgs),
+      stdout = os.Inherit,
+      env = env
+    )
   }
 
-  def bundleFlags: Target[Seq[String]] = Task { Seq("--platform=node") }
+  // configure esbuild with @esbuild-plugins/tsconfig-paths
+  def bundleScriptBuilder: Task[String] = Task.Anon {
+    val mainFile = mainFilePath()
+    val bundle = Task.dest / "bundle.js"
+
+    s"""|import * as esbuild from 'node_modules/esbuild';
+        |import TsconfigPathsPlugin from 'node_modules/@esbuild-plugins/tsconfig-paths'
+        |
+        |esbuild.build({
+        |  entryPoints: ['$mainFile'],
+        |  bundle: true,
+        |  outfile: '$bundle',
+        |  plugins: [TsconfigPathsPlugin({tsconfig: 'tsconfig.json'})],
+        |  platform: 'node'
+        |}).then(() => {
+        |  console.log('Build succeeded!');
+        |}).catch(() => {
+        |  console.error('Build failed!');
+        |  process.exit(1);
+        |});
+        |""".stripMargin
+
+  }
 
   def bundle: Target[PathRef] = Task {
-    val (mainFile, env) = prepareRun()
-    val esbuild = npmInstall().path / "node_modules/esbuild/bin/esbuild"
+    val env = mkENV()
+    val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
+    val bundleScript = compile()._1.path / "build.ts"
     val bundle = Task.dest / "bundle.js"
-    os.call((esbuild, mainFile, bundleFlags(), "--bundle", s"--outfile=$bundle"), env = env)
+
+    os.write.over(
+      bundleScript,
+      bundleScriptBuilder()
+    )
+
+    os.call(
+      (tsnode, bundleScript),
+      stdout = os.Inherit,
+      env = env,
+      cwd = compile()._1.path
+    )
     PathRef(bundle)
   }
 

@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import Foo from '../src';
+import Foo from '../src/foo';
 
 // Mock the 'fs' module
 jest.mock('fs');
@@ -16,8 +16,10 @@ describe('Foo.getLineCount', () => {
         process.env.NODE_ENV = "test"; // Set NODE_ENV for all tests
         jest.clearAllMocks();
         // Mock console.log and console.error
-        consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
-        consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {
+        });
+        consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {
+        });
     });
 
     afterEach(() => {

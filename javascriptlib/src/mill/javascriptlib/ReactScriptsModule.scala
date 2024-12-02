@@ -41,24 +41,8 @@ trait ReactScriptsModule extends TypeScriptModule {
     )
   }
 
-  override def tsCompilerOptionsPaths: Target[Map[String, String]] =
-    Task { Map("app/*" -> "src/app/*") }
-
-  // build react project via react scripts
-  override def compile: T[(PathRef, PathRef)] = Task {
-    // copy src files
-    os.copy(sources().path, Task.dest, mergeFolders = true)
-
-    val npm = npmInstall().path
-
-    copyNodeModules()
-
-    val combinedPaths = tsCompilerOptionsPaths() ++ Seq(
-      "*" -> npm / "node_modules",
-      "typescript" -> npm / "node_modules" / "typescript"
-    )
-
-    val combinedCompilerOptions: Map[String, ujson.Value] = tsCompilerOptions() ++ Map(
+  override def compilerOptions: Task[Map[String, ujson.Value]] = Task.Anon {
+    Map(
       "declaration" -> ujson.Bool(false),
       "typeRoots" -> ujson.Arr(),
       "target" -> ujson.Str("es5"),
@@ -75,15 +59,38 @@ trait ReactScriptsModule extends TypeScriptModule {
       "isolatedModules" -> ujson.Bool(true),
       "noEmit" -> ujson.Bool(true),
       "jsx" -> ujson.Str("react-jsx"),
-      "baseUrl" -> ujson.Str("."),
+      "baseUrl" -> ujson.Str(".")
+    )
+  }
+
+  override def compilerOptionsPaths: Task[Map[String, String]] =
+    Task.Anon { Map("app/*" -> "src/app/*") }
+
+  override def compilerOptionsBuilder: Task[Map[String, ujson.Value]] = Task.Anon {
+    val npm = npmInstall().path
+    val combinedPaths = compilerOptionsPaths() ++ Seq(
+      "*" -> npm / "node_modules",
+      "typescript" -> npm / "node_modules" / "typescript"
+    )
+
+    val combinedCompilerOptions: Map[String, ujson.Value] = compilerOptions() ++ Map(
       "paths" -> ujson.Obj.from(combinedPaths.map { case (k, v) => (k, ujson.Arr(s"$v/*")) })
     )
+
+    combinedCompilerOptions
+  }
+
+  // build react project via react scripts
+  override def compile: T[(PathRef, PathRef)] = Task {
+    // copy src files
+    os.copy(sources().path, Task.dest, mergeFolders = true)
+    copyNodeModules()
 
     // mk tsconfig.json
     os.write(
       Task.dest / "tsconfig.json",
       ujson.Obj(
-        "compilerOptions" -> ujson.Obj.from(combinedCompilerOptions.toSeq),
+        "compilerOptions" -> ujson.Obj.from(compilerOptionsBuilder().toSeq),
         "include" -> ujson.Arr((sources().path / "src").toString)
       )
     )

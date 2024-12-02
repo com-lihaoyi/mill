@@ -15,11 +15,14 @@ export default class Foo {
 }
 
 if (process.env.NODE_ENV !== "test") {
-    const resourcePath = process.argv[2];
+    let resourcePath = process.argv[2];
+    if (!resourcePath) resourcePath = process.env.RESOURCE_PATH;
+    // no resource found, exit
     if (!resourcePath) {
         console.error('Error: No resource path provided.');
         process.exit(1);
     }
+
     const lineCount = Foo.getLineCount(resourcePath);
     console.log('Line Count:', lineCount);
 }

@@ -3,10 +3,6 @@ package build
 import mill._, javascriptlib._
 
 object foo extends JestModule {
-  override def mainFileName = Task { s"index.js" }
-
-  override def mainFilePath =
-    Task { compile()._1.path / millSourcePath.last / "src" / mainFileName() }
 
   /** Total number of lines in module source files */
   def lineCount = Task {
@@ -19,8 +15,10 @@ object foo extends JestModule {
     PathRef(Task.dest)
   }
 
-  override def computedArgs: Task[(Option[Seq[String]], Option[Seq[String]])] =
-    Task { (Some(Seq(resources().path.toString)), None) }
+  // define resource path for the node app
+  override def mkENV = Task {
+    super.mkENV() ++ Map("RESOURCE_PATH" -> resources().path.toString)
+  }
 
 }
 
@@ -29,7 +27,7 @@ object foo extends JestModule {
 /** Usage
 
 > mill foo.test
-PASS .../foo.test.js
+PASS .../foo.test.ts
 ...Foo.getLineCount
 ...✓ should return the content of the line-count.txt file...
 ...✓ should return null if the file cannot be read...
@@ -45,7 +43,7 @@ Ran all test suites matching...
 Line Count: ...
 
 > mill show foo.bundle
-".../out/foo/bundle.dest/bundle.js"
+Build succeeded!
 
 > node out/foo/bundle.dest/bundle.js out/foo/resources.dest/
 [Reading file:] .../line-count.txt
