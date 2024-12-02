@@ -480,19 +480,22 @@ trait JavaModule
       addBoms(dep, bomDeps0, depMgmt, depMgmtMap, overrideVersions = overrideVersions)
   }
 
-  def processCompileDependency: Task[coursier.core.Dependency => coursier.core.Dependency] =
-    Task.Anon {
-      val bomDeps0 = allBomDeps().toSeq.map(_.withConfig(Configuration.provided))
-      val depMgmt = processedDependencyManagement(
-        compileDependencyManagement().toSeq.map(bindDependency()).map(_.dep)
-      )
-      val depMgmtMap = depMgmt.toMap
+  def processCompileDependency(
+      overrideVersions: Boolean = false
+  ): Task[coursier.core.Dependency => coursier.core.Dependency] = Task.Anon {
+    val bomDeps0 = allBomDeps().toSeq.map(_.withConfig(Configuration.provided))
+    val depMgmt = processedDependencyManagement(
+      compileDependencyManagement().toSeq.map(bindDependency()).map(_.dep)
+    )
+    val depMgmtMap = depMgmt.toMap
 
-      dep =>
-        addBoms(dep, bomDeps0, depMgmt, depMgmtMap, overrideVersions = false)
-    }
+    dep =>
+      addBoms(dep, bomDeps0, depMgmt, depMgmtMap, overrideVersions = overrideVersions)
+  }
 
-  def processRunDependency: Task[coursier.core.Dependency => coursier.core.Dependency] = Task.Anon {
+  def processRunDependency(
+      overrideVersions: Boolean = false
+  ): Task[coursier.core.Dependency => coursier.core.Dependency] = Task.Anon {
     val bomDeps0 = allBomDeps().toSeq.map(_.withConfig(Configuration.defaultCompile))
     val depMgmt = processedDependencyManagement(
       runDependencyManagement().toSeq.map(bindDependency()).map(_.dep)
@@ -500,7 +503,7 @@ trait JavaModule
     val depMgmtMap = depMgmt.toMap
 
     dep =>
-      addBoms(dep, bomDeps0, depMgmt, depMgmtMap, overrideVersions = false)
+      addBoms(dep, bomDeps0, depMgmt, depMgmtMap, overrideVersions = overrideVersions)
   }
 
   /**
@@ -516,14 +519,14 @@ trait JavaModule
   }
 
   def processedCompileIvyDeps: Task[Agg[Dep]] = Task.Anon {
-    val processDependency0 = processCompileDependency()
+    val processDependency0 = processCompileDependency()()
     compileIvyDeps().map { dep =>
       dep.copy(dep = processDependency0(dep.dep))
     }
   }
 
   def processedRunIvyDeps: Task[Agg[Dep]] = Task.Anon {
-    val processDependency0 = processRunDependency()
+    val processDependency0 = processRunDependency()()
     runIvyDeps().map { dep =>
       dep.copy(dep = processDependency0(dep.dep))
     }
@@ -543,9 +546,12 @@ trait JavaModule
 
   /** The compile-only transitive ivy dependencies of this module and all it's upstream compile-only modules. */
   def transitiveCompileIvyDeps: T[Agg[BoundDep]] = Task {
+    val processDependency0 = processCompileDependency(overrideVersions = true)()
     // We never include compile-only dependencies transitively, but we must include normal transitive dependencies!
     processedCompileIvyDeps().map(bindDependency()) ++
-      T.traverse(compileModuleDepsChecked)(_.transitiveIvyDeps)().flatten
+      T.traverse(compileModuleDepsChecked)(_.transitiveIvyDeps)().flatten.map { dep =>
+        dep.copy(dep = processDependency0(dep.dep))
+      }
   }
 
   /**
@@ -553,10 +559,16 @@ trait JavaModule
    * This is calculated from [[runIvyDeps]], [[mandatoryIvyDeps]] and recursively from [[moduleDeps]].
    */
   def transitiveRunIvyDeps: T[Agg[BoundDep]] = Task {
-    runIvyDeps().map(bindDependency()) ++
-      T.traverse(moduleDepsChecked)(_.transitiveRunIvyDeps)().flatten ++
-      T.traverse(runModuleDepsChecked)(_.transitiveIvyDeps)().flatten ++
-      T.traverse(runModuleDepsChecked)(_.transitiveRunIvyDeps)().flatten
+    val processDependency0 = processRunDependency(overrideVersions = true)()
+    runIvyDeps().map(bindDependency()) ++ {
+      val viaModules =
+        T.traverse(moduleDepsChecked)(_.transitiveRunIvyDeps)().flatten ++
+          T.traverse(runModuleDepsChecked)(_.transitiveIvyDeps)().flatten ++
+          T.traverse(runModuleDepsChecked)(_.transitiveRunIvyDeps)().flatten
+      viaModules.map { dep =>
+        dep.copy(dep = processDependency0(dep.dep))
+      }
+    }
   }
 
   /**
