@@ -1,29 +1,30 @@
 package foo;
 
+import static foo.Foo.LOGGER;
+
 import java.awt.*;
 import java.io.IOException;
 import javax.swing.*;
-import static foo.Foo.LOGGER;
 
 public class Bar {
 
   public static boolean isCI() {
     String[] ciEnvironments = {
-        "CI",
-        "CONTINUOUS_INTEGRATION",
-        "JENKINS_URL",
-        "TRAVIS",
-        "CIRCLECI",
-        "GITHUB_ACTIONS",
-        "GITLAB_CI",
-        "BITBUCKET_PIPELINE",
-        "TEAMCITY_VERSION"
+      "CI",
+      "CONTINUOUS_INTEGRATION",
+      "JENKINS_URL",
+      "TRAVIS",
+      "CIRCLECI",
+      "GITHUB_ACTIONS",
+      "GITLAB_CI",
+      "BITBUCKET_PIPELINE",
+      "TEAMCITY_VERSION"
     };
 
     for (String env : ciEnvironments) {
-        if (System.getenv(env) != null) {
-            return true;
-        }
+      if (System.getenv(env) != null) {
+        return true;
+      }
     }
 
     return false;
