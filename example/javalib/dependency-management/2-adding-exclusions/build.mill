@@ -1,4 +1,3 @@
-
 //// SNIPPET:BUILD1
 package build
 import mill._, javalib._

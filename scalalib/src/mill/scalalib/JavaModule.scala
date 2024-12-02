@@ -160,13 +160,13 @@ trait JavaModule
   def runIvyDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
   /**
-    * Dependency to use as a "parent".
-    *
-    * This dependency is advertized as "parent dependency" in POM files,
-    * when publishing this module.
-    *
-    * In practice, from Mill, this is equivalent to a BOM dependency.
-    */
+   * Dependency to use as a "parent".
+   *
+   * This dependency is advertized as "parent dependency" in POM files,
+   * when publishing this module.
+   *
+   * In practice, from Mill, this is equivalent to a BOM dependency.
+   */
   def parentDep: T[Option[Dep]] = Task { None }
 
   /**
@@ -487,10 +487,10 @@ trait JavaModule
   }
 
   /**
-    * The Ivy dependencies of this module, with BOM and dependency management details
-    * added to them. This should be used when propagating the dependencies transitively
-    * to other modules.
-    */
+   * The Ivy dependencies of this module, with BOM and dependency management details
+   * added to them. This should be used when propagating the dependencies transitively
+   * to other modules.
+   */
   def processedIvyDeps: Task[Agg[BoundDep]] = Task.Anon {
     val processDependency0 = processDependency()()
     allIvyDeps().map(bindDependency()).map { dep =>

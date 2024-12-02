@@ -42,7 +42,7 @@ object bom extends JavaModule {
 
 object dependencyManagement extends JavaModule {
   def dependencyManagement = Agg(
-    ivy"com.google.protobuf:protobuf-java:4.28.3"
+    ivy"com.google.protobuf:protobuf-java:4.28.3",
     ivy"io.grpc:grpc-protobuf:1.67.1"
   )
   def ivyDeps = Agg(
