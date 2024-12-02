@@ -3,7 +3,7 @@
 <html lang="en"><head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Publishing Scala Projects :: The Mill JVM Build Tool</title>
+    <title>Scala Packaging &amp; Publishing :: The Mill JVM Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/scalalib/publishing.html" />
     <link rel="prev" href="linting.html" />
     <link rel="next" href="build-examples.html" />
@@ -110,7 +110,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../javalib/publishing.html">Publishing Java Projects</a>
+    <a class="nav-link" href="../javalib/publishing.html">Java Packaging &amp; Publishing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -145,7 +145,7 @@
   </li>
 
   <li class="nav-item is-current-page is-active" data-depth="2">
-    <a class="nav-link" href="publishing.html">Publishing Scala Projects</a>
+    <a class="nav-link" href="publishing.html">Scala Packaging &amp; Publishing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -184,7 +184,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/publishing.html">Publishing Kotlin Projects</a>
+    <a class="nav-link" href="../kotlinlib/publishing.html">Kotlin Packaging &amp; Publishing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -513,7 +513,7 @@
   <ul>
     <li><a href="../index.html">Mill Documentation</a></li>
     <li><a href="intro.html">Building Scala with Mill</a></li>
-    <li><a href="publishing.html">Publishing Scala Projects</a></li>
+    <li><a href="publishing.html">Scala Packaging &amp; Publishing</a></li>
   </ul>
 </nav>
 <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/scalalib/publishing.adoc">Edit this Page</a></div>
@@ -523,7 +523,7 @@
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">Publishing Scala Projects</h1>
+<h1 class="page">Scala Packaging &amp; Publishing</h1>
 <div id="preamble">
 <div class="sectionbody">
 
@@ -543,7 +543,65 @@ const links = document.querySelectorAll('a');
 });
 </script>
 <div class="paragraph">
-<p>This page will discuss common topics around publishing your Scala projects for others to use</p>
+<p>This page will discuss common topics around packaging and publishing your Scala projects for others to use</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_customizing_the_assembly"><a class="anchor" href="#_customizing_the_assembly"></a>Customizing the Assembly</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-scalalib-publishing-1-assembly-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/scalalib/publishing/1-assembly-config">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, scalalib._
+import mill.scalalib.Assembly._
+
+object foo extends ScalaModule {
+  def moduleDeps = Seq(bar)
+  def scalaVersion = &quot;2.13.8&quot;
+  def ivyDeps = Agg(ivy&quot;com.lihaoyi::os-lib:0.10.7&quot;)
+  def assemblyRules = Seq(
+    // all application.conf files will be concatenated into single file
+    Rule.Append(&quot;application.conf&quot;),
+    // all *.conf files will be concatenated into single file
+    Rule.AppendPattern(&quot;.*\\.conf&quot;),
+    // all *.temp files will be excluded from a final jar
+    Rule.ExcludePattern(&quot;.*\\.temp&quot;),
+    // the `shapeless` package will be relocated under the `shade` package
+    Rule.Relocate(&quot;shapeless.**&quot;, &quot;shade.shapless.@1&quot;)
+  )
+}
+
+object bar extends ScalaModule {
+  def scalaVersion = &quot;2.13.8&quot;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When you make a runnable jar of your project with <code>assembly</code> command,
+you may want to exclude some files from a final jar (like signature files,
+and manifest files from library jars), and merge duplicated files (for
+instance <code>reference.conf</code> files from library dependencies).</p>
+</div>
+<div class="paragraph">
+<p>By default mill excludes all <code>*.sf</code>, <code>*.dsa</code>, <code>*.rsa</code>, and
+<code>META-INF/MANIFEST.MF</code> files from assembly, and concatenates all
+<code>reference.conf</code> files. You can also define your own merge/exclude rules.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.assembly
+
+&gt; unzip -p ./out/foo/assembly.dest/out.jar application.conf || true
+Bar Application Conf
+Foo Application Conf
+
+&gt; java -jar ./out/foo/assembly.dest/out.jar
+Loaded application.conf from resources:...
+...Foo Application Conf
+...Bar Application Conf</code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -793,6 +851,26 @@ there are also others that you can use. Mill supports these largely through cont
 </li>
 <li>
 <p><a href="../contrib/sonatypecentral.html" class="xref page">Sonatype Central</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_jlink_and_jpackage"><a class="anchor" href="#_jlink_and_jpackage"></a><code>jlink</code> and <code>jpackage</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill has builtin support for the <a href="https://docs.oracle.com/en/java/javase/11/tools/jlink.html">JLink</a> and
+<a href="https://docs.oracle.com/en/java/javase/17/docs/specs/man/jpackage.html">JPackage</a> command line tools.
+For more details, see:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="../javalib/publishing.html#_java_app_and_bundles_using_jlink" class="xref page">Java App and Bundles using JLink</a></p>
+</li>
+<li>
+<p><a href="../javalib/publishing.html#_java_installers_using_jpackage" class="xref page">Java Installers using JPackage</a></p>
 </li>
 </ul>
 </div>
