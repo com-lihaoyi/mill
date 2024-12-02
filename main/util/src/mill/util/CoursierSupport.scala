@@ -7,7 +7,7 @@ import coursier.params.ResolutionParams
 import coursier.parse.RepositoryParser
 import coursier.jvm.{JvmCache, JvmChannel, JvmIndex, JavaHome}
 import coursier.util.Task
-import coursier.{Artifacts, Classifier, Dependency, Module, Repository, Resolution, Resolve, Type}
+import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Resolve, Type}
 import mill.api.Loose.Agg
 import mill.api.{Ctx, PathRef, Result}
 

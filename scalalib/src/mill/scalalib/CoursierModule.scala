@@ -2,8 +2,8 @@ package mill.scalalib
 
 import coursier.cache.FileCache
 import coursier.params.ResolutionParams
-import coursier.{Dependency, Module, Repository, Resolve, Type}
-import coursier.core.{DependencyManagement, Resolution}
+import coursier.{Dependency, Repository, Resolve, Type}
+import coursier.core.Resolution
 import mill.define.Task
 import mill.api.PathRef
 
@@ -243,12 +243,12 @@ object CoursierModule {
      *
      * @param deps dependencies that might have placeholder versions ("_" as version)
      * @param resolutionParams coursier resolution parameters
-     * @return dependencies with version placeholder filled and data read from the BOM dependencies
+     * @return dependencies with version placeholder filled
      */
     def processDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         resolutionParams: ResolutionParams = ResolutionParams()
-    ): (Seq[Dependency], DependencyManagement.Map) = {
+    ): Seq[Dependency] = {
       val deps0 = deps
         .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
       val res = Lib.resolveDependenciesMetadataSafe(
@@ -260,18 +260,7 @@ object CoursierModule {
         ctx = ctx,
         resolutionParams = resolutionParams
       ).getOrThrow
-      val depMgmt: DependencyManagement.Map =
-        if (res.processedRootDependencies.isEmpty) Map.empty
-        else {
-          val overrides = res.processedRootDependencies.map(_.overrides)
-          overrides.tail.foldLeft(overrides.head) { (acc, map) =>
-            acc.filter {
-              case (key, values) =>
-                map.get(key).contains(values)
-            }
-          }
-        }
-      (res.processedRootDependencies, depMgmt)
+      res.processedRootDependencies
     }
   }
 

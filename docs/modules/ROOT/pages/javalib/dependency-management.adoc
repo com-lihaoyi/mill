@@ -1,0 +1,19 @@
+= Java Dependency Management
+:page-aliases: Java_Dependency_Management.adoc
+
+include::partial$gtag-config.adoc[]
+
+This section is about Java so-called "dependency management" or Bill of Materials. To add
+simple dependencies, see xref:./dependencies.adoc[].
+
+== Managing versions
+
+include::partial$example/javalib/dependency-management/1-managing-versions.adoc[]
+
+== Adding exclusions
+
+include::partial$example/javalib/dependency-management/2-adding-exclusions.adoc[]
+
+== Precedence
+
+include::partial$example/javalib/dependency-management/3-precedence.adoc[]

@@ -74,6 +74,27 @@ object Pom {
       pomSettings: PomSettings,
       properties: Map[String, String],
       packagingType: String,
+      parentProject: Option[Artifact]
+  ): String =
+    apply(
+      artifact,
+      dependencies,
+      name,
+      pomSettings,
+      properties,
+      packagingType,
+      parentProject,
+      Agg.empty[Dependency],
+      Agg.empty[Dependency]
+    )
+
+  def apply(
+      artifact: Artifact,
+      dependencies: Agg[Dependency],
+      name: String,
+      pomSettings: PomSettings,
+      properties: Map[String, String],
+      packagingType: String,
       parentProject: Option[Artifact],
       bomDependencies: Agg[Dependency],
       dependencyManagement: Agg[Dependency]
@@ -165,7 +186,7 @@ object Pom {
       if (isImport) <scope>import</scope>
       else
         d.scope match {
-          case Scope.Compile => <scope>compile</scope>
+          case Scope.Compile => NodeSeq.Empty
           case Scope.Provided => <scope>provided</scope>
           case Scope.Test => <scope>test</scope>
           case Scope.Runtime => <scope>runtime</scope>

@@ -9,6 +9,7 @@
 ** xref:javalib/testing.adoc[]
 ** xref:javalib/linting.adoc[]
 ** xref:javalib/publishing.adoc[]
+** xref:javalib/dependency-management.adoc[]
 ** xref:javalib/build-examples.adoc[]
 ** xref:javalib/web-examples.adoc[]
 * xref:scalalib/intro.adoc[]
