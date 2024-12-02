@@ -38,10 +38,6 @@ include::partial$example/scalalib/module/9-docjar.adoc[]
 
 include::partial$example/scalalib/module/11-main-class.adoc[]
 
-== Customizing the Assembly
-
-include::partial$example/scalalib/module/13-assembly-config.adoc[]
-
 
 == Cross-Scala-Version Modules
 
