@@ -14,6 +14,7 @@ trait CompileProblemReporter {
   def fileVisited(file: os.Path): Unit
   def printSummary(): Unit
   def finish(): Unit
+  def notifyProgress(percentage: Long, total: Long): Unit
 }
 
 /**
