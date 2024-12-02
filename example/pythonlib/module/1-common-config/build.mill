@@ -1,6 +1,7 @@
 package build
 import mill._, pythonlib._
 
+// TODO: When we use `package` instead of foo then it fails for `show` command in CI test Why?
 object foo extends PythonModule {
   // You can have arbitrary numbers of third-party libraries
   def pythonDeps = Seq("MarkupSafe==3.0.2", "Jinja2==3.1.4")
