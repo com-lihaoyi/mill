@@ -63,7 +63,7 @@ jobs:
         with:
           java-version: ${{ inputs.java-version }}
           distribution: temurin
-        if: !inputs.use-graalvm
+        if: ${{ !inputs.use-graalvm }}
 
       - uses: graalvm/setup-graalvm@v1
         with:
