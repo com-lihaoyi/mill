@@ -209,6 +209,8 @@ trait JavaModule
    */
   def dependencyManagement: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
+  def compileDependencyManagement: T[Agg[Dep]] = Task { Agg.empty[Dep] }
+
   private def addBoms(
       dep: coursier.core.Dependency,
       bomDeps: Seq[coursier.core.BomDependency],
@@ -469,6 +471,18 @@ trait JavaModule
       addBoms(dep, bomDeps0, depMgmt, depMgmtMap, overrideVersions = overrideVersions)
   }
 
+  def processCompileDependency: Task[coursier.core.Dependency => coursier.core.Dependency] =
+    Task.Anon {
+      val bomDeps0 = allBomDeps().toSeq.map(_.withConfig(Configuration.provided))
+      val depMgmt = processedDependencyManagement(
+        compileDependencyManagement().toSeq.map(bindDependency()).map(_.dep)
+      )
+      val depMgmtMap = depMgmt.toMap
+
+      dep =>
+        addBoms(dep, bomDeps0, depMgmt, depMgmtMap, overrideVersions = false)
+    }
+
   /**
    * The Ivy dependencies of this module, with BOM and dependency management details
    * added to them. This should be used when propagating the dependencies transitively
@@ -477,6 +491,13 @@ trait JavaModule
   def processedIvyDeps: Task[Agg[BoundDep]] = Task.Anon {
     val processDependency0 = processDependency()()
     (ivyDeps() ++ mandatoryIvyDeps()).map(bindDependency()).map { dep =>
+      dep.copy(dep = processDependency0(dep.dep))
+    }
+  }
+
+  def processedCompileIvyDeps: Task[Agg[Dep]] = Task.Anon {
+    val processDependency0 = processCompileDependency()
+    compileIvyDeps().map { dep =>
       dep.copy(dep = processDependency0(dep.dep))
     }
   }
@@ -496,7 +517,7 @@ trait JavaModule
   /** The compile-only transitive ivy dependencies of this module and all it's upstream compile-only modules. */
   def transitiveCompileIvyDeps: T[Agg[BoundDep]] = Task {
     // We never include compile-only dependencies transitively, but we must include normal transitive dependencies!
-    compileIvyDeps().map(bindDependency()) ++
+    processedCompileIvyDeps().map(bindDependency()) ++
       T.traverse(compileModuleDepsChecked)(_.transitiveIvyDeps)().flatten
   }
 
