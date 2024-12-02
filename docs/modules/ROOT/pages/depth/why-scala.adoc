@@ -8,10 +8,108 @@ other hundred programming and configuration languages in widespread use today? S
 is definitely a niche language, but it also has some unique properties that make it
 especially suitable to be used for configuring the build system of a small or large project.
 
-For the purposes of this page, these reasons largely break down into two groups: those
-related to _Scala the Language_, and those related to Scala's _JVM Runtime_
+For the purposes of this page, we will break down this topic into three top-level questions: why
+Mill uses a _general-purpose programming language_, why Mill uses
+the _Scala_ Language, and why Mill wants to run on the _Java Virtual Machine_
 
-== Scala Language
+== Why a General Purpose Language?
+
+While Mill uses a general-purpose programming language (Scala), many build tools use
+restricted config languages instead, or their own custom tool-specific languages. Why
+that is the case is an interesting discussion.
+
+=== Why Not Config Languages?
+
+Many build tools use restricted config languages rather than a general-purpose language:
+
+|===
+| Language | Tool
+| https://en.wikipedia.org/wiki/XML[XML] | https://maven.apache.org/[Maven], https://en.wikipedia.org/wiki/MSBuild[MSBuild], https://ant.apache.org/[Ant]
+| https://toml.io/en/[TOML] | https://packaging.python.org/en/latest/guides/writing-pyproject-toml/[pyproject.toml], https://doc.rust-lang.org/cargo/guide/[Cargo], https://python-poetry.org/[Poetry]
+| https://en.wikipedia.org/wiki/JSON[JSON] | https://docs.npmjs.com/cli/v10/configuring-npm/package-json/[NPM]
+| https://en.wikipedia.org/wiki/YAML[YAML] | https://bleep.build/docs/[Bleep]
+|===
+
+At a first glance, using a restricted language is tempting: restricted languages _are_
+simpler than general purpose languages, with less complexity. However, build systems
+are often fundamentally complex systems, especially as codebases or organizations grow.
+Often projects find themselves with custom build system requirements that do not fit nicely
+into these "simple metadata formats":
+
+* Code generation: https://protobuf.dev/[protobuf], https://www.openapis.org/[OpenAPI/Swagger], https://stackoverflow.com/questions/26217488/what-is-vendoring[vendoring code], etc.
+* Resource generation: static resource pipelines, version metadata, https://www.cisa.gov/sbom[SBOM]s, etc.
+* Deployment workflows: https://www.docker.com/[docker], https://kubernetes.io/[kubernetes], https://aws.amazon.com/[AWS], etc.
+
+While most "common" workflows in "common" build tools will have _some_ built in support
+or plugin, it may not do exactly what you need, the plugin may be unmaintained, or you
+may hit some requirement unique to your business.
+When using a restricted config language to configure your build, and you hit one of these
+unusual requirements, there are usually four outcomes:
+
+1. Find some third-party "plugin" (and these build systems always have plugins!) written
+   in a general-purpose language to use in your XML/TOML/JSON file, or write your own plugin
+   if none of the off-the-shelve plugins exactly match your requirements (which is very likely!)
+
+2. Have your build tool delegate the logic to some "run bash script" step, and implement your
+   custom logic in the bash script that the build tool wraps
+
+3. Take the build tool and wrap _it_ in a bash script, that implements the custom logic and
+   configures the build tool dynamically on the fly by generating XML/TOML/JSON files or
+   passing environment variables or properties
+
+4. Extend your XML/TOML/JSON config language with general-purpose programming language
+   features: conditionals, variables, functions, etc. (see https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/evaluate-expressions-in-workflows-and-actions[Github Config Expressions],
+   https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference.html[AWS Cloudformation Functions],
+   https://helm.sh/docs/chart_best_practices/templates/[Helm Chart Templating])
+
+Anyone who has been in industry for some time has likely seen all of these outcomes at various
+companies and in various codebases. The fundamental issue is that _build systems are inherently
+complex_, and if your built tool _language_ does not accommodate that complexity, the complexity
+ends up leaking elsewhere outside the purview of the build tool.
+
+Mill's choice of using a general purpose language does mean more complexity in the core
+language or build tool, but it also allows you to _move complexity into the build tool_
+rather than having it live in third-party plugins, ad-hoc bash scripts, or weird pseudo-languages
+embedded in your config. A general-purpose language likely has better IDE integration,
+tooling, safety, performance, and ecosystem support than bash scripts or
+embedded-pseudo-config-languages, and if your build system complexity has to live _somewhere_,
+it's better to write it in a general-purpose language where it can be properly managed,
+as long as a suitable general-purpose language can be found.
+
+=== Why Not A Custom Language?
+
+Many build tools do use custom languages:
+
+- https://cmake.org/[CMake]
+- https://www.gnu.org/software/autoconf/[Autoconf]
+- https://earthly.dev/[Earthly]
+- https://www.gnu.org/software/make/[Make]
+
+The basic issue with custom languages is that although they may in theory match your
+build tool requirements perfectly, they lack in all other areas that a widely-used
+general-purpose language does well:
+
+- IDE support in all popular IDEs and editors
+- Library ecosystem of publicly available helpers and plugins
+- Package publishing and distribution infrastructure
+- Tooling: debuggers, profilers
+- _Quality_ of the language itself: things like type systems, basic syntax, standard library,
+  error messages, etc.
+
+A custom tool-specific language implemented in a few person-months will definitely be
+much less polished in all these areas that a widely-used general-purpose language that
+has been gradually improved upon for a decade or two. While in theory a custom language could
+catch up with enough staffing to implement all these features, in practice even projects
+like https://www.gnu.org/software/make/[Make] that are used for decades fall behind niche
+general-purpose languages when it comes to the supporting ecosystem above. As an example,
+how do you publish a re-usable makefile that others can depend on and adjust to fit their
+requirements? And how is the IDE experience of navigating around large `Makefiles`?
+
+Using a general-purpose language to configure a build tool provides all these things
+out of the box. Provided, again, that a suitable language can be found!
+
+
+== Why the Scala Language?
 === Conciseness
 
 A build language has to be concise; although Java and C++ are popular and widely used,
@@ -19,15 +117,18 @@ you rarely see people writing their build logic in Java or C++
 (with https://rife2.com/bld[some exceptions]), and even XML is pretty rare these days
 (with https://maven.apache.org/[Maven] being the notable exception). Programming and Configuration language
 verbosity is a spectrum, and the languages used to configure the build are typically
-in the less-verbose end of the spectrum: https://www.python.org/[Python] (https://bazel.build/[Bazel],
-https://www.pantsbuild.org/[Pants], https://buck.build/[Buck], https://scons.org/[Scons]),
-https://groovy-lang.org/[Groovy] (https://gradle.org/[Gradle]),
-https://www.ruby-lang.org/en/[Ruby] (https://github.com/ruby/rake[Rake]),
-https://toml.io/en/[TOML] (https://doc.rust-lang.org/cargo/guide/[Cargo],
-https://packaging.python.org/en/latest/guides/writing-pyproject-toml/[pyproject.toml]),
-https://yaml.org/[YAML] (too many to count), etc. While some tools go even
-more concise (e.g. Bash, Make, etc.), typically this Python/Groovy/Ruby/TOML/YAML level
-of conciseness is where most build tools end up.
+in the less-verbose end of the spectrum:
+
+|===
+| Language | Tool
+| https://www.python.org/[Python] (or https://github.com/bazelbuild/starlark[StarLark]) | https://bazel.build/[Bazel], https://www.pantsbuild.org/[Pants], https://buck.build/[Buck], https://scons.org/[Scons]
+| https://groovy-lang.org/[Groovy] | https://gradle.org/[Gradle]
+| https://www.ruby-lang.org/en/[Ruby]  | https://github.com/ruby/rake[Rake]
+| https://en.wikipedia.org/wiki/JavaScript[Javascript]  | https://en.wikipedia.org/wiki/Grunt_(software)[Grunt], https://en.wikipedia.org/wiki/Gulp.js[Gulp], etc.
+|===
+
+While some tools go even more concise (e.g. Bash, Make, etc.), typically this
+Python/Groovy/Ruby/TOML/YAML level of conciseness is where most build tools end up.
 
 Given that, Scala fits right in: it is neither too verbose (like Java/C++/XML), nor is
 it as terse as the syntaxes of Bash or Make. Mill's bundled libraries like
@@ -100,7 +201,7 @@ typically modifying a build system to do so in a familiar and intuitive manner e
 they know nothing about the Scala language.
 
 
-== JVM Runtime
+== Why the JVM Runtime?
 
 === Dynamic Classloading
 

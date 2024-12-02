@@ -1,0 +1,27 @@
+package build
+import mill._, pythonlib._
+
+object foo extends PythonModule {
+
+  def mainScript = Task.Source { millSourcePath / "src" / "foo.py" }
+
+  /** All Python source files in this module, recursively from the source directories.*/
+  def allSourceFiles: T[Seq[PathRef]] = Task {
+    sources().flatMap(src => os.walk(src.path).filter(_.ext == "py").map(PathRef(_)))
+  }
+
+  /** Total number of lines in module source files */
+  def lineCount = Task {
+    allSourceFiles().map(f => os.read.lines(f.path).size).sum
+  }
+
+  /** Generate resources using lineCount of sources */
+  override def resources = Task {
+    val resourcesDir = Task.dest / "resources"
+    os.makeDir.all(resourcesDir)
+    os.write(resourcesDir / "line-count.txt", "" + lineCount())
+    super.resources() ++ Seq(PathRef(Task.dest))
+  }
+
+  object test extends PythonTests with TestModule.Unittest
+}

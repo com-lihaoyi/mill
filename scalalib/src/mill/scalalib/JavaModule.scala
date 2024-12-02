@@ -361,6 +361,13 @@ trait JavaModule
   }
 
   /**
+   * Almost the same as [[transitiveLocalClasspath]], but using the [[jar]]s instead of [[localClasspath]].
+   */
+  def transitiveJars: T[Seq[PathRef]] = Task {
+    T.traverse(transitiveModuleCompileModuleDeps)(_.jar)()
+  }
+
+  /**
    * Same as [[transitiveLocalClasspath]], but with all dependencies on [[compile]]
    * replaced by their non-compiling [[bspCompileClassesPath]] variants.
    *
@@ -608,7 +615,8 @@ trait JavaModule
   def resolvedIvyDeps: T[Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(
       transitiveCompileIvyDeps() ++ transitiveIvyDeps(),
-      artifactTypes = Some(artifactTypes())
+      artifactTypes = Some(artifactTypes()),
+      resolutionParamsMapOpt = Some(_.withDefaultConfiguration(coursier.core.Configuration.compile))
     )
   }
 
@@ -1101,7 +1109,9 @@ trait JavaModule
         Task.Anon {
           defaultResolver().resolveDeps(
             transitiveCompileIvyDeps() ++ transitiveIvyDeps(),
-            sources = true
+            sources = true,
+            resolutionParamsMapOpt =
+              Some(_.withDefaultConfiguration(coursier.core.Configuration.compile))
           )
         },
         Task.Anon {
