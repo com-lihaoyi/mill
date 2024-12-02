@@ -1,7 +1,7 @@
 package build
 import mill._, pythonlib._
 
-object `package` extends RootModule with PythonModule {
+object foo extends PythonModule {
   // You can have arbitrary numbers of third-party libraries
   def pythonDeps = Seq("MarkupSafe==3.0.2", "Jinja2==3.1.4")
 
@@ -42,7 +42,7 @@ object `package` extends RootModule with PythonModule {
 
 /** Usage
 
-> ./mill run
+> ./mill foo.run
 ...
 Foo2.value: <h1>hello2</h1>
 Foo.value: <h1>hello</h1>
@@ -54,10 +54,10 @@ MyOtherResource: My Other Resource Contents
 MY_CUSTOM_ENV: my-env-value
 ...
 
-> ./mill show bundle
-".../out/bundle.dest/bundle.pex"
+> ./mill show foo.bundle
+".../out/foo/bundle.dest/bundle.pex"
 
-> out/bundle.dest/bundle.pex
+> out/foo/bundle.dest/bundle.pex
 ...
 Foo2.value: <h1>hello2</h1>
 Foo.value: <h1>hello</h1>
@@ -68,9 +68,9 @@ MyResource: My Resource Contents
 MyOtherResource: My Other Resource Contents
 ...
 
-> sed -i.bak 's/import os/import os, warnings; warnings.warn("This is a test warning!")/g' custom-src/foo2.py
+> sed -i.bak 's/import os/import os, warnings; warnings.warn("This is a test warning!")/g' foo/custom-src/foo2.py
 
-> ./mill run
+> ./mill foo.run
 ...UserWarning: This is a test warning!...
 
 */

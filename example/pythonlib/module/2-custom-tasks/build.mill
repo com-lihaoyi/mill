@@ -1,7 +1,7 @@
 package build
 import mill._, pythonlib._
 
-object `package` extends RootModule with PythonModule {
+object foo extends PythonModule {
 
   def pythonDeps = Seq("argparse==1.4.0", "jinja2==3.1.4")
 
@@ -43,15 +43,15 @@ object `package` extends RootModule with PythonModule {
 
 /** Usage
 
-> ./mill run --text hello
+> ./mill foo.run --text hello
 text:  hello
 MyDeps.value:  [('argparse', '1.4.0'), ('jinja2', '3.1.4')]
 My_Line_Count:  22
 
-> ./mill show lineCount
+> ./mill show foo.lineCount
 22
 
-> ./mill printLineCount
+> ./mill foo.printLineCount
 22
 
 */
