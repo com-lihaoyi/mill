@@ -35,7 +35,8 @@ object `package` extends RootModule with PythonModule {
 
   // Additional Python options e.g. to Turn On Warnings and ignore import and resource warnings
   // we can use -Werror to treat warnings as errors
-  def pythonOptions: T[Seq[String]] = Seq("-Wall", "-Wignore::ImportWarning", "-Wignore::ResourceWarning")
+  def pythonOptions: T[Seq[String]] =
+    Seq("-Wall", "-Wignore::ImportWarning", "-Wignore::ResourceWarning")
 
 }
 
