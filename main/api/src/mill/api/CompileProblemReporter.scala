@@ -14,7 +14,9 @@ trait CompileProblemReporter {
   def fileVisited(file: os.Path): Unit
   def printSummary(): Unit
   def finish(): Unit
-  def notifyProgress(percentage: Long, total: Long): Unit
+  // TODO: cleanup once we break bin-compat in Mill 0.13
+  // Remove default implementation: `= ()`
+  def notifyProgress(percentage: Long, total: Long): Unit = ()
 }
 
 /**
