@@ -139,10 +139,10 @@ trait JavaModule
    */
   def ivyDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
-  /**
-   * Aggregation of mandatoryIvyDeps and ivyDeps.
-   * In most cases, instead of overriding this Target you want to override `ivyDeps` instead.
-   */
+  @deprecated(
+    "Use processedIvyDeps or ivyDeps() ++ mandatoryIvyDeps() instead",
+    "Mill after 0.12.3"
+  )
   def allIvyDeps: T[Agg[Dep]] = Task { ivyDeps() ++ mandatoryIvyDeps() }
 
   /**
@@ -483,7 +483,7 @@ trait JavaModule
    */
   def processedIvyDeps: Task[Agg[BoundDep]] = Task.Anon {
     val processDependency0 = processDependency()()
-    allIvyDeps().map(bindDependency()).map { dep =>
+    (ivyDeps() ++ mandatoryIvyDeps()).map(bindDependency()).map { dep =>
       dep.copy(dep = processDependency0(dep.dep))
     }
   }
