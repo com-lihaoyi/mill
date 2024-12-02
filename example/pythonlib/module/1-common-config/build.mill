@@ -33,9 +33,9 @@ object `package` extends RootModule with PythonModule {
 
   def forkEnv: T[Map[String, String]] = Map("MY_CUSTOM_ENV" -> "my-env-value")
 
-  // Additional Python options e.g. to Turn On Warnings
+  // Additional Python options e.g. to Turn On Warnings and ignore import and resource warnings
   // we can use -Werror to treat warnings as errors
-  def pythonOptions: T[Seq[String]] = Seq("-Wall")
+  def pythonOptions: T[Seq[String]] = Seq("-Wall", "-Wignore::ImportWarning", "-Wignore::ResourceWarning")
 
 }
 
@@ -56,7 +56,7 @@ MY_CUSTOM_ENV: my-env-value
 > ./mill show bundle
 ".../out/bundle.dest/bundle.pex"
 
-> ./out/bundle.dest/bundle.pex
+> out/bundle.dest/bundle.pex
 ...
 Foo2.value: <h1>hello2</h1>
 Foo.value: <h1>hello</h1>
