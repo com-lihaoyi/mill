@@ -1,12 +1,28 @@
-= Publishing Kotlin Projects
+= Kotlin Packaging & Publishing
 :page-aliases: Publishing_Kotlin_Projects.adoc
 
 include::partial$gtag-config.adoc[]
 
-This page will discuss common topics around publishing your Kotlin projects for others to use
+This page will discuss common topics around packaging and publishing your Kotlin projects for others to use
+
+
+== Customizing the Assembly
+
+include::partial$example/kotlinlib/publishing/1-assembly-config.adoc[]
+
 
 == Publishing Locally
 
 include::partial$example/kotlinlib/publishing/2-publish-module.adoc[]
 
 include::partial$Publishing_Footer.adoc[]
+
+== `jlink` and `jpackage`
+
+
+Mill has builtin support for the https://docs.oracle.com/en/java/javase/11/tools/jlink.html[JLink] and
+https://docs.oracle.com/en/java/javase/17/docs/specs/man/jpackage.html[JPackage] command line tools.
+For more details, see:
+
+* xref:javalib/publishing.adoc#_java_app_and_bundles_using_jlink[Java App and Bundles using JLink]
+* xref:javalib/publishing.adoc#_java_installers_using_jpackage[Java Installers using JPackage]
