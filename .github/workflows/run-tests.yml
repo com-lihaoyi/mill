@@ -134,20 +134,27 @@ jobs:
           # just run a subset of examples/ on Windows, because for some reason running
           # the whole suite can take hours on windows v.s. half an hour on linux
           - java-version: '11'
+            use-graalvm: false
             millargs: '"{main,scalalib,bsp}.__.testCached"'
           - java-version: '11'
+            # native-client requires MSVC build tools to be configured for x86
+            use-graalvm: true
             millargs: '"example.scalalib.basic.__.fork.testCached"'
           - java-version: 17
+            use-graalvm: false
             millargs: "'integration.{feature,failure}[_].fork.testCached'"
           - java-version: '11'
+            use-graalvm: false
             millargs: "'integration.invalidation[_].server.testCached'"
           - java-version: '11'
+            use-graalvm: false
             millargs: "contrib.__.testCached"
 
     uses: ./.github/workflows/run-mill-action.yml
     with:
       os: windows-latest
       java-version: ${{ matrix.java-version }}
+      use-graalvm: ${{ matrix.use-graalvm }}
       millargs: ${{ matrix.millargs }}
 
   itest:
