@@ -14,12 +14,17 @@ globally.
 [#_bootstrap_scripts]
 == Bootstrap Scripts
 
-Although the Mill example projects come with their own `./mill` bootstrap script,
+Although the Mill example projects come with their own `./mill` and `./mill.bat` bootstrap script,
 you can also download it manually:
 
 [source,bash,subs="verbatim,attributes"]
 ----
+# Mac/Linux
 curl -L {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag} > mill && chmod +x mill
+echo {mill-last-tag} > .mill-version
+
+# Windows
+curl -L {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag}.bat -o mill.bat
 echo {mill-last-tag} > .mill-version
 ----
 

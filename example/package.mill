@@ -117,6 +117,7 @@ object `package` extends RootModule with Module {
       case "testing" => Some(scalalib.testing)
       case "dependencies" => Some(scalalib.dependencies)
       case "web" => Some(scalalib.web)
+      case "publishing" => Some(scalalib.publishing)
       case _ => None
     }
     val upstreamOpt = upstreamCross(this.millModuleSegments.parts.dropRight(1).last)

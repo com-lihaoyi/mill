@@ -151,7 +151,8 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
         else withModuleSplitStyle
 
       val withMinify =
-        if (minorIsGreaterThanOrEqual(16)) withOutputPatterns.withMinify(input.minify)
+        if (minorIsGreaterThanOrEqual(16))
+          withOutputPatterns.withMinify(input.minify && input.isFullLinkJS)
         else withOutputPatterns
 
       val withWasm =
