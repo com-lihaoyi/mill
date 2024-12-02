@@ -57,6 +57,10 @@ trait JavaModule
       }
     }
 
+    override def extraBomDeps = Task.Anon[Agg[BomDependency]] {
+      outer.allBomDeps().map(_.withConfig(Configuration.test))
+    }
+
     /**
      * JavaModule and its derivatives define inner test modules.
      * To avoid unexpected misbehavior due to the use of the wrong inner test trait
@@ -190,6 +194,8 @@ trait JavaModule
           "Only organization, name, and version are accepted."
       )
   }
+
+  def extraBomDeps: Task[Agg[BomDependency]] = Task.Anon { Agg.empty[BomDependency] }
 
   /**
    * Dependency management data
@@ -461,7 +467,8 @@ trait JavaModule
   def processDependency(
       overrideVersions: Boolean = false
   ): Task[coursier.core.Dependency => coursier.core.Dependency] = Task.Anon {
-    val bomDeps0 = allBomDeps().toSeq.map(_.withConfig(Configuration.compile))
+    val bomDeps0 =
+      allBomDeps().toSeq.map(_.withConfig(Configuration.compile)) ++ extraBomDeps().toSeq
     val depMgmt = processedDependencyManagement(
       dependencyManagement().toSeq.map(bindDependency()).map(_.dep)
     )
