@@ -217,6 +217,8 @@ trait JavaModule
 
   def compileDependencyManagement: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
+  def runDependencyManagement: T[Agg[Dep]] = Task { Agg.empty[Dep] }
+
   private def addBoms(
       dep: coursier.core.Dependency,
       bomDeps: Seq[coursier.core.BomDependency],
@@ -490,6 +492,17 @@ trait JavaModule
         addBoms(dep, bomDeps0, depMgmt, depMgmtMap, overrideVersions = false)
     }
 
+  def processRunDependency: Task[coursier.core.Dependency => coursier.core.Dependency] = Task.Anon {
+    val bomDeps0 = allBomDeps().toSeq.map(_.withConfig(Configuration.defaultCompile))
+    val depMgmt = processedDependencyManagement(
+      runDependencyManagement().toSeq.map(bindDependency()).map(_.dep)
+    )
+    val depMgmtMap = depMgmt.toMap
+
+    dep =>
+      addBoms(dep, bomDeps0, depMgmt, depMgmtMap, overrideVersions = false)
+  }
+
   /**
    * The Ivy dependencies of this module, with BOM and dependency management details
    * added to them. This should be used when propagating the dependencies transitively
@@ -505,6 +518,13 @@ trait JavaModule
   def processedCompileIvyDeps: Task[Agg[Dep]] = Task.Anon {
     val processDependency0 = processCompileDependency()
     compileIvyDeps().map { dep =>
+      dep.copy(dep = processDependency0(dep.dep))
+    }
+  }
+
+  def processedRunIvyDeps: Task[Agg[Dep]] = Task.Anon {
+    val processDependency0 = processRunDependency()
+    runIvyDeps().map { dep =>
       dep.copy(dep = processDependency0(dep.dep))
     }
   }
