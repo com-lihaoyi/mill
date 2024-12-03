@@ -223,7 +223,7 @@ trait JavaModule
       dep.publication.classifier
     )
     val versionOverrideOpt =
-      if (dep.version == "_") depMgmtMap.get(depMgmtKey).map(_.version)
+      if (dep.version == "_") depMgmtMap.get(depMgmtKey).map(_.version).filter(_.nonEmpty)
       else None
     val extraExclusions = depMgmtMap.get(depMgmtKey).map(_.minimizedExclusions)
     dep

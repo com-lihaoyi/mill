@@ -170,6 +170,74 @@ object BomTests extends TestSuite {
       }
     }
 
+    object precedence extends Module {
+      object higher extends JavaModule with TestPublishModule {
+        def bomDeps = Agg(
+          ivy"com.google.protobuf:protobuf-bom:4.28.1"
+        )
+        def depManagement = Agg(
+          ivy"com.google.protobuf:protobuf-java:4.28.3"
+        )
+
+        def ivyDeps = Agg(
+          ivy"com.google.protobuf:protobuf-java"
+        )
+      }
+
+      object higherTransitive extends JavaModule with TestPublishModule {
+        def bomDeps = Agg(
+          ivy"com.google.protobuf:protobuf-bom:4.28.1"
+        )
+        def depManagement = Agg(
+          ivy"com.google.protobuf:protobuf-java:4.28.3"
+        )
+
+        def ivyDeps = Agg(
+          ivy"com.google.protobuf:protobuf-java-util"
+        )
+      }
+
+      object lower extends JavaModule with TestPublishModule {
+        def bomDeps = Agg(
+          ivy"com.google.protobuf:protobuf-bom:4.28.1"
+        )
+        def depManagement = Agg(
+          ivy"com.google.protobuf:protobuf-java:3.22.0"
+        )
+
+        def ivyDeps = Agg(
+          ivy"com.google.protobuf:protobuf-java"
+        )
+      }
+
+      object lowerTransitive extends JavaModule with TestPublishModule {
+        def bomDeps = Agg(
+          ivy"com.google.protobuf:protobuf-bom:4.28.1"
+        )
+        def depManagement = Agg(
+          ivy"com.google.protobuf:protobuf-java:3.22.0"
+        )
+
+        def ivyDeps = Agg(
+          ivy"com.google.protobuf:protobuf-java-util"
+        )
+      }
+
+      object addExclude extends JavaModule with TestPublishModule {
+        def bomDeps = Agg(
+          ivy"com.google.protobuf:protobuf-bom:4.28.3"
+        )
+        def depManagement = Agg(
+          ivy"com.google.protobuf:protobuf-java-util"
+            .exclude(("com.google.protobuf", "protobuf-java"))
+        )
+
+        def ivyDeps = Agg(
+          ivy"com.google.protobuf:protobuf-java-util"
+        )
+      }
+    }
+
     object bomOnModuleDependency extends JavaModule with TestPublishModule {
       def ivyDeps = Agg(
         ivy"com.google.protobuf:protobuf-java:3.23.4"
@@ -461,6 +529,39 @@ object BomTests extends TestSuite {
           modules.depMgmt.placeholder.transitive,
           expectedProtobufJarName,
           Seq(modules.depMgmt.placeholder)
+        )
+      }
+    }
+
+    test("precedence") {
+      test("higher") - UnitTester(modules, null).scoped { implicit eval =>
+        isInClassPath(
+          modules.precedence.higher,
+          "protobuf-java-4.28.3.jar"
+        )
+      }
+      test("higherTransitive") - UnitTester(modules, null).scoped { implicit eval =>
+        isInClassPath(
+          modules.precedence.higherTransitive,
+          "protobuf-java-4.28.3.jar"
+        )
+      }
+      test("lower") - UnitTester(modules, null).scoped { implicit eval =>
+        isInClassPath(
+          modules.precedence.lower,
+          "protobuf-java-3.22.0.jar"
+        )
+      }
+      test("lowerTransitive") - UnitTester(modules, null).scoped { implicit eval =>
+        isInClassPath(
+          modules.precedence.lowerTransitive,
+          "protobuf-java-3.22.0.jar"
+        )
+      }
+      test("addExclude") - UnitTester(modules, null).scoped { implicit eval =>
+        isInClassPath(
+          modules.precedence.addExclude,
+          "protobuf-java-4.28.3.jar"
         )
       }
     }
