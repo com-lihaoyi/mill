@@ -341,6 +341,9 @@ trait CoursierSupport {
 
 object CoursierSupport {
 
+  def millLogger()(implicit ctx: Ctx.Log): CacheLogger =
+    new TickerResolutionLogger(ctx)
+
   /**
    * A Coursier Cache.Logger implementation that updates the ticker with the count and
    * overall byte size of artifacts being downloaded.
