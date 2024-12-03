@@ -86,41 +86,6 @@ object BomTests extends TestSuite {
       }
     }
 
-    object parent extends JavaModule with TestPublishModule {
-      def parentDep = Some(ivy"org.apache.spark:spark-parent_2.13:3.5.3")
-      def ivyDeps = Agg(
-        ivy"org.apache.commons:commons-compress"
-      )
-
-      object dependee extends JavaModule with TestPublishModule {
-        def moduleDeps = Seq(
-          parent
-        )
-      }
-
-      object subDependee extends JavaModule with TestPublishModule {
-        def moduleDeps = Seq(
-          dependee
-        )
-      }
-
-      object scala extends ScalaModule with TestPublishModule {
-        def scalaVersion = _root_.scala.util.Properties.versionNumberString
-        def parentDep = Some(ivy"org.apache.spark::spark-parent:3.5.3")
-        def ivyDeps = Agg(
-          ivy"org.apache.commons:commons-compress"
-        )
-      }
-
-      object invalid extends TestBaseModule {
-        object exclude extends JavaModule {
-          def parentDep = Some(
-            ivy"org.apache.spark:spark-parent_2.13:3.5.3".exclude(("foo", "thing"))
-          )
-        }
-      }
-    }
-
     object depMgmt extends JavaModule with TestPublishModule {
       def ivyDeps = Agg(
         ivy"com.thesamet.scalapb:scalapbc_2.13:0.9.8"
@@ -392,40 +357,7 @@ object BomTests extends TestSuite {
           val res = eval(modules.bom.invalid.exclude.compileClasspath)
           assert(
             res.left.exists(_.toString.contains(
-              "Found parent or BOM dependencies with invalid parameters:"
-            ))
-          )
-        }
-      }
-    }
-
-    test("parent") {
-      test("simple") - UnitTester(modules, null).scoped { implicit eval =>
-        isInClassPath(modules.parent, expectedCommonsCompressJarName)
-      }
-
-      test("dependee") - UnitTester(modules, null).scoped { implicit eval =>
-        isInClassPath(modules.parent.dependee, expectedCommonsCompressJarName, Seq(modules.parent))
-      }
-
-      test("subDependee") - UnitTester(modules, null).scoped { implicit eval =>
-        isInClassPath(
-          modules.parent.subDependee,
-          expectedCommonsCompressJarName,
-          Seq(modules.parent, modules.parent.dependee)
-        )
-      }
-
-      test("scala") - UnitTester(modules, null).scoped { implicit eval =>
-        isInClassPath(modules.parent.scala, expectedCommonsCompressJarName, scalaSuffix = "_2.13")
-      }
-
-      test("invalid") {
-        test - UnitTester(modules, null).scoped { eval =>
-          val res = eval(modules.parent.invalid.exclude.compileClasspath)
-          assert(
-            res.left.exists(_.toString.contains(
-              "Found parent or BOM dependencies with invalid parameters:"
+              "Found BOM dependencies with invalid parameters:"
             ))
           )
         }

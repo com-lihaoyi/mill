@@ -96,6 +96,34 @@ def runIvyDeps = Agg(
 
 It is also possible to use a higher version of the same library dependencies already defined in `ivyDeps`, to ensure you compile against a minimal API version, but actually run with the latest available version.
 
+== Dependency management
+
+Dependency management consists in listing dependencies whose versions we want to force. Having
+a dependency in dependency management doesn't mean that this dependency will be fetched, only
+that
+
+* if it ends up being fetched transitively, its version will be forced to the one in dependency management
+
+* if its version is empty in an `ivyDeps` section in Mill, the version from dependency management will be used
+
+Dependency management also allows to add exclusions to dependencies, both explicit dependencies and
+transitive ones.
+
+Dependency management can be passed to Mill in two ways:
+
+* via external Maven BOMs, like https://repo1.maven.org/maven2/com/google/cloud/libraries-bom/26.50.0/libraries-bom-26.50.0.pom[this one],
+whose Maven coordinates are `com.google.cloud:libraries-bom:26.50.0`
+
+* via the `dependencyManagement` task, that allows to directly list dependencies whose versions we want to enforce
+
+=== External BOMs
+
+include::partial$example/fundamentals/library-deps/bom-1-external-bom.adoc[]
+
+=== Dependency management task
+
+include::partial$example/fundamentals/library-deps/bom-2-dependency-management.adoc[]
+
 == Searching For Dependency Updates
 
 include::partial$example/fundamentals/dependencies/1-search-updates.adoc[]

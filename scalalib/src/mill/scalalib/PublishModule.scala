@@ -36,12 +36,7 @@ trait PublishModule extends JavaModule { outer =>
    *
    * @see [[https://maven.apache.org/guides/introduction/introduction-to-the-pom.html#Project_Inheritance Project Inheritance]]
    */
-  def pomParentProject: T[Option[Artifact]] = Task {
-    parentDep().map { parentDep =>
-      val parentDep0 = bindDependency().apply(parentDep)
-      Artifact(parentDep0.organization, parentDep0.name, parentDep0.version)
-    }
-  }
+  def pomParentProject: T[Option[Artifact]] = None
 
   /**
    * Configuration for the `pom.xml` metadata file published with this module

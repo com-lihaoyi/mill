@@ -160,16 +160,6 @@ trait JavaModule
   def runIvyDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
   /**
-   * Dependency to use as a "parent".
-   *
-   * This dependency is advertized as "parent dependency" in POM files,
-   * when publishing this module.
-   *
-   * In practice, from Mill, this is equivalent to a BOM dependency.
-   */
-  def parentDep: T[Option[Dep]] = Task { None }
-
-  /**
    * Any BOM dependencies you want to add to this Module, in the format
    * ivy"org:name:version"
    */
@@ -177,7 +167,7 @@ trait JavaModule
 
   def allBomDeps: Task[Agg[BomDependency]] = Task.Anon {
     val modVerOrMalformed =
-      (Agg(parentDep().toSeq: _*) ++ bomDeps()).map(bindDependency()).map { bomDep =>
+      bomDeps().map(bindDependency()).map { bomDep =>
         val fromModVer = coursier.core.Dependency(bomDep.dep.module, bomDep.dep.version)
         if (fromModVer == bomDep.dep)
           Right(bomDep.dep.asBomDependency)
@@ -195,7 +185,7 @@ trait JavaModule
       }
     else
       throw new Exception(
-        "Found parent or BOM dependencies with invalid parameters:" + System.lineSeparator() +
+        "Found BOM dependencies with invalid parameters:" + System.lineSeparator() +
           malformed.map("- " + _.dep + System.lineSeparator()).mkString +
           "Only organization, name, and version are accepted."
       )
