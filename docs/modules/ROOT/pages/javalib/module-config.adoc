@@ -40,11 +40,6 @@ include::partial$example/javalib/module/9-docjar.adoc[]
 include::partial$example/javalib/module/11-main-class.adoc[]
 
 
-== Customizing the Assembly
-
-include::partial$example/javalib/module/13-assembly-config.adoc[]
-
-
 == Custom Tasks
 
 include::partial$example/javalib/module/2-custom-tasks.adoc[]
@@ -57,10 +52,3 @@ include::partial$example/javalib/module/3-override-tasks.adoc[]
 
 include::partial$example/javalib/module/15-jni.adoc[]
 
-== Java App and JVM Bundle using jlink
-
-include::partial$example/javalib/module/16-jlink.adoc[]
-
-== Java App, JVM Bundle and Installer using jpackage
-
-include::partial$example/javalib/module/17-jpackage.adoc[]

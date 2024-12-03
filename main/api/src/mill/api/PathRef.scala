@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap
 import scala.util.{DynamicVariable, Using}
 import upickle.default.{ReadWriter => RW}
 import scala.annotation.nowarn
+import os.Path
 
 /**
  * A wrapper around `os.Path` that calculates it's hashcode based
@@ -54,7 +55,7 @@ object PathRef {
       .getOrElse(path)
   }
 
-  val defaultMapping = Seq(
+  val defaultMapping: Seq[(Path, Path)] = Seq(
     mill.api.WorkspaceRoot.workspaceRoot -> os.root / "$WORKSPACE",
     os.home -> os.root / "$HOME"
   )

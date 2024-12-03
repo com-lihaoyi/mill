@@ -75,7 +75,7 @@ object `package` extends RootModule with KotlinModule {
 Hello, World!
 
 > ./mill test
-Test foo.HelloWorldTestsimple started
-Test foo.HelloWorldTestsimple finished...
+Test foo.HelloWorldTest simple started
+Test foo.HelloWorldTest simple finished...
 ...
 */

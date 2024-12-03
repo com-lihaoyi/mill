@@ -7,14 +7,16 @@ import java.util.zip.GZIPInputStream
 
 object ReproducibilityTests extends UtestIntegrationTestSuite {
 
-  def normalize(workspacePath: os.Path) = {
-    for(p <- os.walk(workspacePath / "out")){
+  def normalize(workspacePath: os.Path): Unit = {
+    for (p <- os.walk(workspacePath / "out")) {
       val sub = p.subRelativeTo(workspacePath).toString()
 
       val cacheable =
         (sub.contains(".dest") || sub.contains(".json") || os.isDir(p)) &&
           !sub.replace("out/mill-build", "").contains("mill-") &&
-          !(p.ext == "json" && ujson.read(os.read(p)).objOpt.flatMap(_.get("value")).flatMap(_.objOpt).flatMap(_.get("worker")).nonEmpty)
+          !(p.ext == "json" && ujson.read(
+            os.read(p)
+          ).objOpt.flatMap(_.get("value")).flatMap(_.objOpt).flatMap(_.get("worker")).nonEmpty)
 
       if (!cacheable) {
         os.remove.all(p)
@@ -54,12 +56,13 @@ object ReproducibilityTests extends UtestIntegrationTestSuite {
       val src = workspacePath / "out/mill-build/compile.dest/zinc"
       os.write(dest, new GZIPInputStream(os.read.inputStream(src)))
       normalize(workspacePath)
-      for(p <- os.walk(workspacePath)){
-        if ((p.ext == "json" || p.ext == "txt")
+      for (p <- os.walk(workspacePath)) {
+        if (
+          (p.ext == "json" || p.ext == "txt")
           && !p.segments.contains("enablePluginScalacOptions.super")
           && !p.segments.contains("allScalacOptions.json")
           && !p.segments.contains("scalacOptions.json")
-        ){
+        ) {
           val txt = os.read(p)
           Predef.assert(!txt.contains(mill.api.WorkspaceRoot.workspaceRoot.toString), p)
           Predef.assert(!txt.contains(os.home.toString), p)

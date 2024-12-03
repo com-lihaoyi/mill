@@ -43,10 +43,9 @@ private[mill] trait GroupEvaluator {
   val effectiveThreadCount: Int =
     this.threadCount.getOrElse(Runtime.getRuntime().availableProcessors())
 
-
-  def getValueHash(t: Task[_], inputsHash: Int, v: Val, jsonOpt: Option[ujson.Value]) = {
+  def getValueHash(t: Task[_], inputsHash: Int, v: Val, jsonOpt: Option[ujson.Value]): Int = {
     if (t.isInstanceOf[Worker[_]]) inputsHash
-    else jsonOpt match{
+    else jsonOpt match {
       case Some(json) => json.hashCode()
       case None => v.##
     }
@@ -159,7 +158,13 @@ private[mill] trait GroupEvaluator {
             executionContext,
             exclusive
           )
-          GroupEvaluator.Results(transformResults(newResults), newEvaluated.toSeq, null, inputsHash, -1)
+          GroupEvaluator.Results(
+            transformResults(newResults),
+            newEvaluated.toSeq,
+            null,
+            inputsHash,
+            -1
+          )
 
         case labelled: Terminal.Labelled[_] =>
           val out =
@@ -172,7 +177,7 @@ private[mill] trait GroupEvaluator {
           )
 
           val cached = Option
-            .when(sideHashes == 0){ loadCachedJson(logger, inputsHash, labelled, paths) }
+            .when(sideHashes == 0) { loadCachedJson(logger, inputsHash, labelled, paths) }
             .flatten
 
           val upToDateWorker = loadUpToDateWorker(
@@ -336,9 +341,9 @@ private[mill] trait GroupEvaluator {
         }
 
         newResults(task) = for (v <- res) yield {
-          val jsonOpt = task match{
+          val jsonOpt = task match {
             case n: NamedTask[_] =>
-              for(w <- n.writerOpt) yield {
+              for (w <- n.writerOpt) yield {
                 upickle.default.writeJs(v.value)(using w.asInstanceOf[upickle.default.Writer[Any]])
               }
             case _ => None

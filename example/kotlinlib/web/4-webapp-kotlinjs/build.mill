@@ -59,7 +59,7 @@ object `package` extends RootModule with KotlinModule {
 /** Usage
 
 > ./mill test
-...webapp.WebAppTestssimpleRequest ...
+...webapp.WebAppTests simpleRequest ...
 
 > ./mill runBackground
 

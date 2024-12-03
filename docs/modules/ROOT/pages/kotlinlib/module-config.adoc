@@ -40,10 +40,6 @@ include::partial$example/kotlinlib/module/9-docjar.adoc[]
 
 include::partial$example/kotlinlib/module/11-main-class.adoc[]
 
-== Customizing the Assembly
-
-include::partial$example/kotlinlib/module/13-assembly-config.adoc[]
-
 
 
 == Custom Tasks
