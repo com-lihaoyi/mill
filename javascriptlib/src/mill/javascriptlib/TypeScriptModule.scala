@@ -123,10 +123,16 @@ trait TypeScriptModule extends Module {
     )
   }
 
+  def bundleFlags: Task[Map[String, Seq[String]]] = Task.Anon { Map.empty[String, Seq[String]] }
+
   // configure esbuild with @esbuild-plugins/tsconfig-paths
   def bundleScriptBuilder: Task[String] = Task.Anon {
     val mainFile = mainFilePath()
     val bundle = Task.dest / "bundle.js"
+
+    val flags = bundleFlags().map { case (key, values) =>
+      s"""  $key: [${values.map(v => s"'$v'").mkString(", ")}],"""
+    }.mkString("\n")
 
     s"""|import * as esbuild from 'node_modules/esbuild';
         |import TsconfigPathsPlugin from 'node_modules/@esbuild-plugins/tsconfig-paths'
@@ -137,6 +143,7 @@ trait TypeScriptModule extends Module {
         |  outfile: '$bundle',
         |  plugins: [TsconfigPathsPlugin({tsconfig: 'tsconfig.json'})],
         |  platform: 'node'
+        |  $flags
         |}).then(() => {
         |  console.log('Build succeeded!');
         |}).catch(() => {
