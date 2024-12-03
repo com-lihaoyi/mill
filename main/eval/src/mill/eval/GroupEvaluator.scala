@@ -172,7 +172,7 @@ private[mill] trait GroupEvaluator {
           )
 
           val cached = Option
-            .when(sideHashes == 31337){ loadCachedJson(logger, inputsHash, labelled, paths) }
+            .when(sideHashes == 0){ loadCachedJson(logger, inputsHash, labelled, paths) }
             .flatten
 
           val upToDateWorker = loadUpToDateWorker(
