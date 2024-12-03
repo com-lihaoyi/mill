@@ -1,6 +1,6 @@
-package test.src
+package webapp
 
-import utest.*
+import utest._
 
 object WebAppTests extends TestSuite {
   def withServer[T](example: cask.main.Main)(f: String => T): T = {

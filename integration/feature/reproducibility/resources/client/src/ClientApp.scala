@@ -1,4 +1,6 @@
-package client.src
+package client
+import org.scalajs.dom
+import shared.{Todo, Shared}
 object ClientApp {
   var state = "all"
   var todoApp = dom.document.getElementsByClassName("todoapp")(0)

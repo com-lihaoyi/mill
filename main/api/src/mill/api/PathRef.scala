@@ -48,18 +48,20 @@ case class PathRef private (
 }
 
 object PathRef {
-  def normalizePath(path: os.Path): os.Path = {
-    if (path.startsWith(mill.api.WorkspaceRoot.workspaceRoot))
-      os.root / "$WORKSPACE" / path.subRelativeTo(mill.api.WorkspaceRoot.workspaceRoot)
-    else if (path.startsWith(os.home)) os.root / "$HOME" / path.subRelativeTo(os.home)
-    else path
+  def mapPathPrefixes(path: os.Path, mapping: Seq[(os.Path, os.Path)]): os.Path = {
+    mapping
+      .collectFirst { case (from, to) if path.startsWith(from) => to / path.subRelativeTo(from) }
+      .getOrElse(path)
   }
-  def denormalizePath(path: os.Path): os.Path = {
-    if (path.startsWith(os.root / "$WORKSPACE")){
-      mill.api.WorkspaceRoot.workspaceRoot / path.subRelativeTo(os.root / "$WORKSPACE")
-    }else if (path.startsWith(os.root / "$HOME")) os.home / path.subRelativeTo(os.root / "$HOME")
-    else path
-  }
+
+  val defaultMapping = Seq(
+    mill.api.WorkspaceRoot.workspaceRoot -> os.root / "$WORKSPACE",
+    os.home -> os.root / "$HOME"
+  )
+  def normalizePath(path: os.Path): os.Path = mapPathPrefixes(path, defaultMapping)
+
+  def denormalizePath(path: os.Path): os.Path = mapPathPrefixes(path, defaultMapping.map(_.swap))
+
   implicit def shellable(p: PathRef): os.Shellable = p.path
 
   /**

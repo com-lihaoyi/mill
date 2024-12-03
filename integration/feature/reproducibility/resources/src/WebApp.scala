@@ -1,4 +1,7 @@
-package src
+package webapp
+import scalatags.Text.all._
+import scalatags.Text.tags2
+import shared.{Shared, Todo}
 
 object WebApp extends cask.MainRoutes {
   override def port = 8083
