@@ -32,7 +32,7 @@ object `package` extends RootModule with KotlinModule {
 /** Usage
 
 > mill test
-Test com.example.HelloKtorTest finished, took...
+Test com.example.HelloKtor Test finished, took...
 
 > mill runBackground
 
