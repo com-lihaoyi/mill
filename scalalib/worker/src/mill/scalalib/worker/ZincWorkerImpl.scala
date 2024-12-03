@@ -482,14 +482,15 @@ class ZincWorkerImpl(
     }
   }
 
-  private def fileAnalysisStore(path: os.Path): AnalysisStore =
-    ConsistentFileAnalysisStore.binary(
+  private def fileAnalysisStore(path: os.Path): AnalysisStore = {
+    ConsistentFileAnalysisStore.text(
       file = path.toIO,
-      mappers = ReadWriteMappers.getEmptyMappers(),
+      mappers = ReadWriteMappers.getMachineIndependentMappers(mill.api.WorkspaceRoot.workspaceRoot.toNIO),
       sort = true,
       // No need to utilize more than 8 cores to serialize a small file
       parallelism = math.min(Runtime.getRuntime.availableProcessors(), 8)
     )
+  }
 
   private def compileInternal(
       upstreamCompileOutput: Seq[CompilationResult],
@@ -502,7 +503,7 @@ class ZincWorkerImpl(
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean,
       auxiliaryClassFileExtensions: Seq[String],
-      zincCache: os.SubPath = os.sub / "zinc"
+      zincCache: os.SubPath = os.sub / "zinc.txt"
   )(implicit ctx: ZincWorkerApi.Ctx): Result[CompilationResult] = {
     os.makeDir.all(ctx.dest)
 
