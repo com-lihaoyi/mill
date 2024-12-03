@@ -142,7 +142,7 @@ trait TypeScriptModule extends Module {
         |  bundle: true,
         |  outfile: '$bundle',
         |  plugins: [TsconfigPathsPlugin({tsconfig: 'tsconfig.json'})],
-        |  platform: 'node'
+        |  platform: 'node',
         |  $flags
         |}).then(() => {
         |  console.log('Build succeeded!');
