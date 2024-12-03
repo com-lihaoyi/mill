@@ -9,11 +9,11 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 object HelloWorldTests extends TestSuite {
 
   object HelloWorldJavascript extends TestBaseModule {
-    object foo extends TypeScriptModule {
-      object bar extends TypeScriptModule
+    object foo extends TscModule {
+      object bar extends TscModule
     }
 
-    object qux extends TypeScriptModule
+    object qux extends TscModule
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-typescript"
