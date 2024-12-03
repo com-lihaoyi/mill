@@ -46,7 +46,7 @@ object `package` extends RootModule with KotlinModule with KoverModule {
 
 > ./mill test # Run the tests and produce the coverage data
 ...
-... foo.FooTestskotlin - success started
+... foo.FooTests kotlin - success started
 
 > ./mill resolve kover._ # List what tasks are available to run from kover
 ...
