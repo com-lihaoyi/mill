@@ -79,7 +79,7 @@ private[mill] trait GroupEvaluator {
           .flatMap(results(_).result.asSuccess.map(_.value._2))
       )
 
-      val sideHashes = MurmurHash3.orderedHash(group.iterator.map(_.sideHash))
+      val sideHashes = group.iterator.map(_.sideHash).sum
 
       val scriptsHash =
         if (disableCallgraph) 0
