@@ -43,11 +43,23 @@ case class PathRef private (
       case PathRef.Revalidate.Always => "vn:"
     }
     val sig = String.format("%08x", this.sig: Integer)
-    quick + valid + sig + ":" + path.toString()
+    quick + valid + sig + ":" + PathRef.normalizePath(path).toString()
   }
 }
 
 object PathRef {
+  def normalizePath(path: os.Path): os.Path = {
+    if (path.startsWith(mill.api.WorkspaceRoot.workspaceRoot))
+      os.root / "$WORKSPACE" / path.subRelativeTo(mill.api.WorkspaceRoot.workspaceRoot)
+    else if (path.startsWith(os.home)) os.root / "$HOME" / path.subRelativeTo(os.home)
+    else path
+  }
+  def denormalizePath(path: os.Path): os.Path = {
+    if (path.startsWith(os.root / "$WORKSPACE")){
+      mill.api.WorkspaceRoot.workspaceRoot / path.subRelativeTo(os.root / "$WORKSPACE")
+    }else if (path.startsWith(os.root / "$HOME")) os.home / path.subRelativeTo(os.root / "$HOME")
+    else  path
+  }
   implicit def shellable(p: PathRef): os.Shellable = p.path
 
   /**
@@ -92,7 +104,7 @@ object PathRef {
   }
 
   def apply(path: os.Path, quick: Boolean, sig: Int, revalidate: Revalidate): PathRef =
-    new PathRef(path, quick, sig, revalidate)
+    new PathRef(PathRef.denormalizePath(path), quick, sig, revalidate)
 
   /**
    * Create a [[PathRef]] by recursively digesting the content of a given `path`.
@@ -107,10 +119,10 @@ object PathRef {
       quick: Boolean = false,
       revalidate: Revalidate = Revalidate.Never
   ): PathRef = {
-    val basePath = path
+    val basePath = PathRef.denormalizePath(path)
 
     val sig = {
-      val isPosix = path.wrapped.getFileSystem.supportedFileAttributeViews().contains("posix")
+      val isPosix = basePath.wrapped.getFileSystem.supportedFileAttributeViews().contains("posix")
       val digest = MessageDigest.getInstance("MD5")
       val digestOut = new DigestOutputStream(DummyOutputStream, digest)
 
@@ -121,10 +133,10 @@ object PathRef {
         digest.update(value.toByte)
       }
 
-      if (os.exists(path)) {
+      if (os.exists(basePath)) {
         for (
           (path, attrs) <-
-            os.walk.attrs(path, includeTarget = true, followLinks = true).sortBy(_._1.toString)
+            os.walk.attrs(basePath, includeTarget = true, followLinks = true).sortBy(_._1.toString)
         ) {
           val sub = path.subRelativeTo(basePath)
           digest.update(sub.toString().getBytes())
@@ -169,7 +181,7 @@ object PathRef {
       java.util.Arrays.hashCode(digest.digest())
     }
 
-    new PathRef(path, quick, sig, revalidate)
+    new PathRef(basePath, quick, sig, revalidate)
   }
 
   /**

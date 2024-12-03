@@ -43,6 +43,15 @@ private[mill] trait GroupEvaluator {
   val effectiveThreadCount: Int =
     this.threadCount.getOrElse(Runtime.getRuntime().availableProcessors())
 
+
+  def getValueHash(t: Task[_], inputsHash: Int, v: Val, jsonOpt: Option[ujson.Value]) = {
+    if (t.isInstanceOf[Worker[_]]) inputsHash
+    else jsonOpt match{
+      case Some(json) => json.hashCode()
+      case None => v.##
+    }
+  }
+
   // those result which are inputs but not contained in this terminal group
   def evaluateGroupCached(
       terminal: Terminal,
@@ -129,6 +138,11 @@ private[mill] trait GroupEvaluator {
 
       val inputsHash = externalInputsHash + sideHashes + classLoaderSigHash + scriptsHash
 
+      def transformResults(results: Map[Task[_], TaskResult[(Val, Option[ujson.Value])]]) = {
+        for ((k, v0) <- results)
+          yield k -> v0.map { case (v, jsonOpt) => (v, getValueHash(k, inputsHash, v, jsonOpt)) }
+      }
+
       terminal match {
         case Terminal.Task(task) =>
           val (newResults, newEvaluated) = evaluateGroup(
@@ -145,7 +159,7 @@ private[mill] trait GroupEvaluator {
             executionContext,
             exclusive
           )
-          GroupEvaluator.Results(newResults, newEvaluated.toSeq, null, inputsHash, -1)
+          GroupEvaluator.Results(transformResults(newResults), newEvaluated.toSeq, null, inputsHash, -1)
 
         case labelled: Terminal.Labelled[_] =>
           val out =
@@ -157,7 +171,9 @@ private[mill] trait GroupEvaluator {
             Terminal.destSegments(labelled)
           )
 
-          val cached = loadCachedJson(logger, inputsHash, labelled, paths)
+          val cached = Option
+            .when(sideHashes == 31337){ loadCachedJson(logger, inputsHash, labelled, paths) }
+            .flatten
 
           val upToDateWorker = loadUpToDateWorker(
             logger,
@@ -202,12 +218,13 @@ private[mill] trait GroupEvaluator {
                   exclusive
                 )
 
+              val transformedResults = transformResults(newResults)
               newResults(labelled.task) match {
-                case TaskResult(Result.Failure(_, Some((v, _))), _) =>
-                  handleTaskResult(v, v.##, paths.meta, inputsHash, labelled)
+                case TaskResult(Result.Failure(_, Some((v, jsonOpt))), _) =>
+                  handleTaskResult(v, jsonOpt, paths.meta, inputsHash, labelled)
 
-                case TaskResult(Result.Success((v, _)), _) =>
-                  handleTaskResult(v, v.##, paths.meta, inputsHash, labelled)
+                case TaskResult(Result.Success((v, jsonOpt)), _) =>
+                  handleTaskResult(v, jsonOpt, paths.meta, inputsHash, labelled)
 
                 case _ =>
                   // Wipe out any cached meta.json file that exists, so
@@ -218,7 +235,7 @@ private[mill] trait GroupEvaluator {
               }
 
               GroupEvaluator.Results(
-                newResults,
+                transformedResults,
                 newEvaluated.toSeq,
                 cached = if (labelled.task.isInstanceOf[InputImpl[_]]) null else false,
                 inputsHash,
@@ -242,11 +259,11 @@ private[mill] trait GroupEvaluator {
       logger: mill.api.Logger,
       executionContext: mill.api.Ctx.Fork.Api,
       exclusive: Boolean
-  ): (Map[Task[_], TaskResult[(Val, Int)]], mutable.Buffer[Task[_]]) = {
+  ): (Map[Task[_], TaskResult[(Val, Option[ujson.Value])]], mutable.Buffer[Task[_]]) = {
 
     def computeAll() = {
       val newEvaluated = mutable.Buffer.empty[Task[_]]
-      val newResults = mutable.Map.empty[Task[_], Result[(Val, Int)]]
+      val newResults = mutable.Map.empty[Task[_], Result[(Val, Option[ujson.Value])]]
 
       val nonEvaluatedTargets = group.indexed.filterNot(results.contains)
 
@@ -319,11 +336,15 @@ private[mill] trait GroupEvaluator {
         }
 
         newResults(task) = for (v <- res) yield {
-          (
-            v,
-            if (task.isInstanceOf[Worker[_]]) inputsHash
-            else v.##
-          )
+          val jsonOpt = task match{
+            case n: NamedTask[_] =>
+              for(w <- n.writerOpt) yield {
+                upickle.default.writeJs(v.value)(using w.asInstanceOf[upickle.default.Writer[Any]])
+              }
+            case _ => None
+          }
+
+          (v, jsonOpt)
         }
       }
 
@@ -369,39 +390,33 @@ private[mill] trait GroupEvaluator {
 
   private def handleTaskResult(
       v: Val,
-      hashCode: Int,
+      jsonOpt: Option[ujson.Value],
       metaPath: os.Path,
       inputsHash: Int,
       labelled: Terminal.Labelled[_]
   ): Unit = {
+
     for (w <- labelled.task.asWorker)
       workerCache.synchronized {
         workerCache.update(w.ctx.segments, (workerCacheHash(inputsHash), v))
       }
 
-    val terminalResult = labelled
-      .task
-      .writerOpt
-      .map { w =>
-        upickle.default.writeJs(v.value)(using w.asInstanceOf[upickle.default.Writer[Any]])
+    val valueHash = getValueHash(labelled.task, inputsHash, v, jsonOpt)
+
+    val terminalResult = jsonOpt.orElse {
+      labelled.task.asWorker.map { w =>
+        ujson.Obj(
+          "worker" -> ujson.Str(labelled.segments.render),
+          "toString" -> ujson.Str(v.value.toString),
+          "inputsHash" -> ujson.Num(inputsHash)
+        )
       }
-      .orElse {
-        labelled.task.asWorker.map { w =>
-          ujson.Obj(
-            "worker" -> ujson.Str(labelled.segments.render),
-            "toString" -> ujson.Str(v.value.toString),
-            "inputsHash" -> ujson.Num(inputsHash)
-          )
-        }
-      }
+    }
 
     for (json <- terminalResult) {
       os.write.over(
         metaPath,
-        upickle.default.stream(
-          Evaluator.Cached(json, hashCode, inputsHash),
-          indent = 4
-        ),
+        upickle.default.stream(Evaluator.Cached(json, valueHash, inputsHash), indent = 4),
         createFolders = true
       )
     }

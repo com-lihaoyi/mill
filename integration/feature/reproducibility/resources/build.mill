@@ -1,0 +1,49 @@
+package build
+import mill._, scalalib._, scalajslib._
+
+trait AppScalaModule extends ScalaModule {
+  def scalaVersion = "3.3.3"
+}
+
+trait AppScalaJSModule extends AppScalaModule with ScalaJSModule {
+  def scalaJSVersion = "1.16.0"
+}
+
+object `package` extends RootModule with AppScalaModule {
+  def moduleDeps = Seq(shared.jvm)
+  def ivyDeps = Agg(ivy"com.lihaoyi::cask:0.9.1")
+
+  def resources = Task {
+    os.makeDir(Task.dest / "webapp")
+    val jsPath = client.fastLinkJS().dest.path
+    os.copy(jsPath / "main.js", Task.dest / "webapp/main.js")
+    os.copy(jsPath / "main.js.map", Task.dest / "webapp/main.js.map")
+    super.resources() ++ Seq(PathRef(Task.dest))
+  }
+
+  object test extends ScalaTests with TestModule.Utest {
+
+    def ivyDeps = Agg(
+      ivy"com.lihaoyi::utest::0.8.4",
+      ivy"com.lihaoyi::requests::0.6.9"
+    )
+  }
+
+  object shared extends Module {
+    trait SharedModule extends AppScalaModule with PlatformScalaModule {
+      def ivyDeps = Agg(
+        ivy"com.lihaoyi::scalatags::0.12.0",
+        ivy"com.lihaoyi::upickle::3.0.0"
+      )
+    }
+
+    object jvm extends SharedModule
+    object js extends SharedModule with AppScalaJSModule
+  }
+
+  object client extends AppScalaJSModule {
+    def moduleDeps = Seq(shared.js)
+    def ivyDeps = Agg(ivy"org.scala-js::scalajs-dom::2.2.0")
+  }
+}
+

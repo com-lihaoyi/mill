@@ -1,6 +1,7 @@
 package mill.main
 
 import mill.api.internal
+import mill.api.PathRef
 import mill.define.{Caller, Discover}
 import scala.annotation.compileTimeOnly
 
@@ -45,10 +46,10 @@ object RootModule {
         output0: String,
         topLevelProjectRoot0: String
     ) = this(
-      enclosingClasspath0.map(os.Path(_)),
-      os.Path(projectRoot0),
-      os.Path(output0),
-      os.Path(topLevelProjectRoot0)
+      enclosingClasspath0.map(s => PathRef.denormalizePath(os.Path(s))),
+      PathRef.denormalizePath(os.Path(projectRoot0)),
+      PathRef.denormalizePath(os.Path(output0)),
+      PathRef.denormalizePath(os.Path(topLevelProjectRoot0))
     )
 
     implicit val millMiscInfo: Info = this

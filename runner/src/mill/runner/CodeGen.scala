@@ -80,7 +80,7 @@ object CodeGen {
       val scriptCode = allScriptCode(scriptPath)
 
       val markerComment =
-        s"""//MILL_ORIGINAL_FILE_PATH=$scriptPath
+        s"""//MILL_ORIGINAL_FILE_PATH=${PathRef.normalizePath(scriptPath)}
            |//MILL_USER_CODE_START_MARKER""".stripMargin
 
       val parts =
@@ -200,10 +200,10 @@ object CodeGen {
     s"""import _root_.mill.runner.MillBuildRootModule
        |@_root_.scala.annotation.nowarn
        |object MillMiscInfo extends mill.main.RootModule.Info(
-       |  ${enclosingClasspath.map(p => literalize(p.toString))},
-       |  ${literalize(scriptFolderPath.toString)},
-       |  ${literalize(output.toString)},
-       |  ${literalize(millTopLevelProjectRoot.toString)}
+       |  ${enclosingClasspath.map(p => literalize(PathRef.normalizePath(p).toString))},
+       |  ${literalize(PathRef.normalizePath(scriptFolderPath).toString)},
+       |  ${literalize(PathRef.normalizePath(output).toString)},
+       |  ${literalize(PathRef.normalizePath(millTopLevelProjectRoot).toString)}
        |)
        |import MillMiscInfo._
        |""".stripMargin
