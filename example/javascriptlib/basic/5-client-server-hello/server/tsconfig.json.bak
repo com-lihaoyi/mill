@@ -1,9 +1,0 @@
-{
-  "compilerOptions": {
-    "target": "ES6",
-    "module": "CommonJS",
-    "outDir": "./build",
-    "strict": true
-  },
-  "include": ["src"]
-}

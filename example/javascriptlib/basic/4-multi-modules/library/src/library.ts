@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import Book from 'books/index';
-import Author from 'authors/index';
+import Book from 'books/books';
+import Author from 'authors/authors';
 
 interface LibraryData {
     author: string;
@@ -47,8 +47,10 @@ export default class Library {
 }
 
 if (process.env.NODE_ENV !== "test") {
-    const [resourcePath, authorName] = process.argv.slice(2);
+    let [authorName, resourcePath] = process.argv.slice(2);
 
+    if (!resourcePath) resourcePath = process.env.RESOURCE_PATH;
+    // no resource found, exit
     if (!resourcePath) {
         console.error('Error: No resource path provided.');
         process.exit(1);

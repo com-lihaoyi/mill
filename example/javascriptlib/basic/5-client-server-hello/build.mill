@@ -1,18 +1,9 @@
 package build
 import mill._, javascriptlib._
 
-trait CSModule extends JestModule {
-  override def mainFilePath =
-    Task { compile()._1.path / "src" / mainFileName() }
+object client extends JestModule
 
-  override def jestConfig = Task.Source(millSourcePath / "jest.config.ts")
-}
-
-//  /compile.dest/javascript/client.js
-//  /compile.dest/javascript/src/client.js
-object client extends CSModule
-
-object server extends CSModule
+object server extends JestModule
 
 object app extends TypeScriptModule {
   def moduleDeps = Seq(client, server)
@@ -21,10 +12,7 @@ object app extends TypeScriptModule {
     Task {
       val serverPath = server.bundle().path
       val clientPath = client.bundle().path
-      os.call(
-        ("echo", s"client bundled@$clientPath\nserver bundled@$serverPath"),
-        stdout = os.Inherit
-      );
+      println(s"client bundled@$clientPath\nserver bundled@$serverPath")
       (PathRef(serverPath), PathRef(clientPath))
     }
 
@@ -35,7 +23,7 @@ object app extends TypeScriptModule {
 /** Usage
 
 > mill client.test
-PASS .../client.test.js
+PASS .../client.test.ts
 ...getServerResponse
 ...✓ should return mocked response...
 Test Suites:...1 passed, 1 total...
@@ -45,7 +33,7 @@ Time:...
 Ran all test suites matching ...
 
 > mill server.test
-PASS .../server.test.js
+PASS .../server.test.ts
 ...Server Tests
 ...✓ GET /hello should return "Hello from the server!"...
 ...

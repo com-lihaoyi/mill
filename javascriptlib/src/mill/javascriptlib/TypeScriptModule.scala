@@ -42,7 +42,7 @@ trait TypeScriptModule extends Module {
     Task { os.walk(sources().path).filter(_.ext == "ts").map(PathRef(_)) }
 
   // specify tsconfig.compilerOptions
-  def compilerOptions: Task[Map[String, ujson.Value]] = Task.Anon {
+  def compilerOptions: Task[Map[String, ujson.Value]] = Task {
     Map(
       "esModuleInterop" -> ujson.Bool(true),
       "declaration" -> ujson.Bool(true),
@@ -53,7 +53,7 @@ trait TypeScriptModule extends Module {
 
   // specify tsconfig.compilerOptions.Paths
   def compilerOptionsPaths: Task[Map[String, String]] =
-    Task.Anon { Map("*" -> sources().path.toString(), "*" -> npmInstall().path.toString()) }
+    Task { Map("*" -> sources().path.toString(), "*" -> npmInstall().path.toString()) }
 
   def compilerOptionsBuilder: Task[Map[String, ujson.Value]] = Task.Anon {
     val declarationsOut = Task.dest / "declarations"
@@ -104,27 +104,20 @@ trait TypeScriptModule extends Module {
     Task.Anon { Map("NODE_PATH" -> Seq(".", compile()._2.path, npmInstall().path).mkString(":")) }
 
   // define computed arguments and where they should be placed (before/after user arguments)
-  def computedArgs: Task[(Option[Seq[String]], Option[Seq[String]])] = Task { (None, None) }
+  def computedArgs: Task[Seq[String]] = Task { Seq.empty[String] }
 
   def run(args: mill.define.Args): Command[CommandResult] = Task.Command {
     val (mainFile, env) = (mainFilePath(), mkENV())
     val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
 
-    val orderedArgs: Seq[String] = computedArgs() match {
-      case (None, None) => args.value
-      case (Some(x), None) => x ++ args.value
-      case (None, Some(x)) => x ++ args.value
-      case (Some(x), Some(y)) => x ++ args.value ++ y
-    }
-
     os.call(
-      (tsnode, mainFile, orderedArgs),
+      (tsnode, mainFile, computedArgs(), args.value),
       stdout = os.Inherit,
       env = env
     )
   }
 
-  def bundleFlags: Task[Map[String, Seq[String]]] = Task.Anon { Map.empty[String, Seq[String]] }
+  def bundleFlags: T[Map[String, Seq[String]]] = Task { Map.empty[String, Seq[String]] }
 
   // configure esbuild with @esbuild-plugins/tsconfig-paths
   def bundleScriptBuilder: Task[String] = Task.Anon {

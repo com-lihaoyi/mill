@@ -48,7 +48,7 @@ trait JestModule extends TypeScriptModule {
 
   private def copyJestConfig: Task[Unit] = Task.Anon {
     os.copy.over(
-      millSourcePath / os.up / "jest.config.ts",
+      testConfigSource().path,
       compile()._1.path / "jest.config.ts"
     )
   }

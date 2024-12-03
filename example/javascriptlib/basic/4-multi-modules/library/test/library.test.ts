@@ -1,4 +1,4 @@
-import Index from '../src';
+import Index from '../src/library';
 import * as fs from 'fs';
 import * as path from 'path';
 

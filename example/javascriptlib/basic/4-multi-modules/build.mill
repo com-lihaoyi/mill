@@ -10,12 +10,7 @@ object books extends TypeScriptModule {
 object library extends JestModule {
   def moduleDeps = Seq(authors, books)
 
-  override def mainFileName = Task { s"index.js" }
-
-  override def mainFilePath =
-    Task { compile()._1.path / millSourcePath.last / "src" / mainFileName() }
-
-  // intialize a data source
+  /** Generate resources for library */
   def resources = Task {
     val mockAuthors = ujson.Arr(
       ujson.Obj("id" -> 1, "name" -> "Ben"),
@@ -51,7 +46,10 @@ object library extends JestModule {
     PathRef(Task.dest)
   }
 
-  def computedArgs = Task { (Some(Seq(resources().path.toString)), None) }
+  // define resource path for the node app
+  override def mkENV = Task {
+    super.mkENV() ++ Map("RESOURCE_PATH" -> resources().path.toString)
+  }
 
 }
 
@@ -60,7 +58,7 @@ object library extends JestModule {
 /** Usage
 
 > mill library.test
-PASS .../library.test.js
+PASS .../library.test.ts
 ...✓ should return all authors with their books when no authorName is provided...
 ...✓ should return books for a specific author when authorName is provided...
 ...✓ should throw an error if the author is not found...
@@ -86,8 +84,8 @@ Ran all test suites matching ...
 ]
 
 > mill show library.bundle
-".../out/library/bundle.dest/bundle.js"
+Build succeeded!
 
-> node out/library/bundle.dest/bundle.js out/library/resources.dest/ Jerry
+> node out/library/bundle.dest/bundle.js Jerry out/library/resources.dest/
 ...
 */

@@ -1,6 +1,6 @@
-import Author from 'authors/index';
+import Author from 'authors/authors';
 
-export default interface Index {
+export default interface Books {
     id: number;
     title: string;
     publication: string;
