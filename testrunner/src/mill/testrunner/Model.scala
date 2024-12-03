@@ -5,12 +5,12 @@ import mill.api.internal
 
 @internal case class TestArgs(
     framework: String,
-    classpath: Seq[os.Path],
+    classpath: Seq[String],
     arguments: Seq[String],
     sysProps: Map[String, String],
-    outputPath: os.Path,
+    outputPath: String,
     colored: Boolean,
-    testCp: Seq[os.Path],
+    testCp: Seq[String],
     home: os.Path,
     globSelectors: Seq[String]
 )

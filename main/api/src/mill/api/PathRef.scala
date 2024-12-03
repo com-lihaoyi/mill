@@ -58,7 +58,7 @@ object PathRef {
     if (path.startsWith(os.root / "$WORKSPACE")){
       mill.api.WorkspaceRoot.workspaceRoot / path.subRelativeTo(os.root / "$WORKSPACE")
     }else if (path.startsWith(os.root / "$HOME")) os.home / path.subRelativeTo(os.root / "$HOME")
-    else  path
+    else path
   }
   implicit def shellable(p: PathRef): os.Shellable = p.path
 
