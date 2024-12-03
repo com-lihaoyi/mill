@@ -59,11 +59,13 @@ trait TypeScriptModule extends Module {
 
     val upstreamPaths =
       for {
-        ((jsDir, dTsDir), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
-      } yield (
-        mod.millSourcePath.subRelativeTo(Task.workspace).toString + "/*",
-        (dTsDir.path / mod.toString / "src").toString + ":" + (jsDir.path / mod.toString / "src").toString
-      )
+        ((comp, ts), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
+      } yield {
+        (
+          mod.millSourcePath.subRelativeTo(Task.workspace).toString + "/*",
+          (ts.path / "src").toString + ":" + (comp.path / "declarations").toString
+        )
+      }
 
     val combinedPaths = upstreamPaths ++ compilerOptionsPaths().toSeq
     val combinedCompilerOptions: Map[String, ujson.Value] = Map(
