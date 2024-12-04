@@ -66,7 +66,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
   def mainScript: T[PathRef] = Task.Source { millSourcePath / "src" / "main.py" }
 
   override def pythonToolDeps: T[Seq[String]] = Task {
-    super.pythonToolDeps() ++ Seq("mypy==1.13.0", "pex==2.24.1")
+    super.pythonToolDeps() ++ Seq("mypy==1.13.0", "pex==2.24.1", "ruff>=0.8.1")
   }
 
   /**
@@ -237,6 +237,62 @@ trait PythonModule extends PipModule with TaskModule { outer =>
   trait PythonTests extends PythonModule {
     override def moduleDeps: Seq[PythonModule] = Seq(outer)
   }
+
+  // def getRuff(): PathRef = Task {
+  //   import coursier.cache.FileCache
+  //   import coursier.util.Artifact
+
+  //   val cache = FileCache()
+  //   val file = cache
+  //     .file(Artifact(""))
+  //     .run
+  //     .unsafeRun()(cache.ec)
+  //     .fold(ex => throw new Exception(ex), identity)
+  //   os.unzip(os.Path(file), T.dest)
+  //   PathRef(T.dest)
+  // }
+
+  /** Command line options to pass the the black code formatter.
+   *
+   * This is the way to configure black in mill, since mill doesn't use a
+   * pyproject.toml file.
+   */
+  def blackOptions: T[Seq[String]] = Task { Seq.empty[String] }
+
+  /** Reformat all source files of this module. */
+  def reformat(): Command[Unit] = Task.Command {
+    runner().run(
+      // format: off
+      (
+        "-m", "ruff",
+        "format",
+        blackOptions(),
+        sources().map(_.path)
+      ),
+      // format: on
+      workingDir = T.dest
+    )
+  }
+
+  /** Check the format of all source files of this module. */
+  def checkFormat(): Command[Unit] = Task.Command {
+    runner().run(
+      // format: off
+      (
+        "-m", "ruff",
+        "format",
+        "--check",
+        blackOptions(),
+        sources().map(_.path)
+      ),
+      // format: on
+      workingDir = T.dest
+    )
+  }
+
+  def fix(): Command[Unit] = ???
+
+  def check(): Command[Unit] = ???
 
 }
 
