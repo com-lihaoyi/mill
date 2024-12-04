@@ -252,6 +252,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
   //   PathRef(T.dest)
   // }
 
+  // Move these into a RuffModule, and consolidate all tasks into one.
   /** Command line options to pass the the black code formatter.
    *
    * This is the way to configure black in mill, since mill doesn't use a
