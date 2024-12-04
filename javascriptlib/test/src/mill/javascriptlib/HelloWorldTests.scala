@@ -10,10 +10,15 @@ object HelloWorldTests extends TestSuite {
 
   object HelloWorldJavascript extends TestBaseModule {
     object foo extends TypeScriptModule {
-      object bar extends TypeScriptModule
+      object bar extends TypeScriptModule {}
+
+      override def moduleDeps: Seq[TypeScriptModule] = Seq(bar)
+
     }
 
-    object qux extends TypeScriptModule
+    object qux extends TypeScriptModule {
+      override def moduleDeps: Seq[TypeScriptModule] = Seq(foo, foo.bar)
+    }
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-typescript"
