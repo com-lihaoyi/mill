@@ -73,7 +73,8 @@ object Result {
    * @param value The optional result value.
    * @tparam T The result type of the computed task.
    */
-  case class Failure[T](msg: String, value: Option[T] = None) extends Failing[T] {
+  case class Failure[T](msg: String, value: Option[T] = None)
+      extends java.lang.Exception(msg + value.fold("")(", " + _)) with Failing[T] {
     def map[V](f: T => V): Failure[V] = Result.Failure(msg, value.map(f(_)))
     def flatMap[V](f: T => Result[V]): Failure[V] = {
       Failure(msg, value.flatMap(f(_).asSuccess.map(_.value)))
@@ -86,7 +87,8 @@ object Result {
    * @param throwable The exception that describes or caused the failure.
    * @param outerStack The [[OuterStack]] of the failed task.
    */
-  case class Exception(throwable: Throwable, outerStack: OuterStack) extends Failing[Nothing] {
+  case class Exception(throwable: Throwable, outerStack: OuterStack)
+      extends java.lang.Exception(throwable) with Failing[Nothing] {
     def map[V](f: Nothing => V): Exception = this
     def flatMap[V](f: Nothing => Result[V]): Exception = this
 
