@@ -14,6 +14,16 @@ object foo extends PythonModule {
 // This is a basic Mill build for a single `PythonModule`, with one
 // dependency and a test suite using the `Unittest` Library.
 //
+// You can download the example project using the **download** link above,
+// or browse the full sources via the **browse** link.
+// Ensure you have a JVM installed; the `./mill` script manages all other dependencies.
+// All examples, from simple hello-world projects on this page to advanced
+// link:[web build examples(Coming Soon...)] and link:[real-world projects(Coming Soon...)],
+// are fully executable and tested in Mill’s CI workflows.
+//
+// The source code for this module lives in the `src/` folder.
+// Output for this module (typeChecked files, resolved dependency lists, …​) lives in `out/`.
+//
 // ----
 // build.mill
 // foo/
@@ -72,9 +82,7 @@ Success: no issues found in 1 source file
 ...
 test_escaping (test.TestScript...) ... ok
 test_simple (test.TestScript...) ... ok
-...
-----------------------------------------------------------------------
-Ran 2 tests...
+...Ran 2 tests...
 OK
 ...
 
@@ -90,3 +98,17 @@ OK
 error: ...Name "maaain" is not defined...
 
 */
+
+// The output of every Mill task is stored in the `out/` folder under a name corresponding to
+// the task that created it. e.g. The `typeCheck` task puts its metadata output in `out/typeCheck.json`,
+// and its output files in `out/typeCheck.dest`.
+// You can also use `show` to make Mill print out the metadata output for a particular task.
+//
+// You can run mill `resolve __` to see a full list of the different tasks that are available,
+// `mill resolve _` to see the tasks within foo, `mill inspect typeCheck` to inspect a task’s doc-comment
+// documentation or what it depends on, or `mill show foo.typeCheck` to show the output of any task.
+//
+// The most common **tasks** that Mill can run are cached tasks, such as `typeCheck`, `test`, `bundle` and
+// `run`. Cached tasks do not re-evaluate unless one of their inputs changes, whereas commands re-run every time.
+// See the documentation for https://mill-build.org/mill/main-branch/fundamentals/tasks.html[Tasks]
+// for details on the different task types.
