@@ -90,7 +90,7 @@ object BomTests extends TestSuite {
       def ivyDeps = Agg(
         ivy"com.thesamet.scalapb:scalapbc_2.13:0.9.8"
       )
-      def dependencyManagement = Agg(
+      def depManagement = Agg(
         ivy"com.google.protobuf:protobuf-java:4.28.3"
       )
 
@@ -102,7 +102,7 @@ object BomTests extends TestSuite {
         def ivyDeps = Agg(
           ivy"com.lihaoyi:cask_2.13:0.9.4"
         )
-        def dependencyManagement = Agg(
+        def depManagement = Agg(
           // The exclude should be automatically added to the dependency above
           // thanks to dependency management, but the version should be left
           // untouched
@@ -119,7 +119,7 @@ object BomTests extends TestSuite {
         def ivyDeps = Agg(
           ivy"com.lihaoyi:cask_2.13:0.9.4"
         )
-        def dependencyManagement = Agg(
+        def depManagement = Agg(
           ivy"org.java-websocket:Java-WebSocket:1.5.2"
             .exclude(("org.slf4j", "slf4j-api"))
         )
@@ -133,7 +133,7 @@ object BomTests extends TestSuite {
         def ivyDeps = Agg(
           ivy"com.lihaoyi:cask_2.13:0.9.4"
         )
-        def dependencyManagement = Agg(
+        def depManagement = Agg(
           ivy"org.java-websocket:Java-WebSocket"
             .exclude(("org.slf4j", "slf4j-api"))
         )
@@ -145,7 +145,7 @@ object BomTests extends TestSuite {
 
       object invalid extends TestBaseModule {
         object transitive extends JavaModule {
-          def dependencyManagement = {
+          def depManagement = {
             val dep = ivy"org.java-websocket:Java-WebSocket:1.5.3"
             Agg(
               dep.copy(
@@ -160,7 +160,7 @@ object BomTests extends TestSuite {
         def ivyDeps = Agg(
           ivy"com.google.protobuf:protobuf-java"
         )
-        def dependencyManagement = Agg(
+        def depManagement = Agg(
           ivy"com.google.protobuf:protobuf-java:4.28.3"
         )
 

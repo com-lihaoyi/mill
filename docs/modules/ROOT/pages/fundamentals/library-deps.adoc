@@ -114,7 +114,7 @@ Dependency management can be passed to Mill in two ways:
 * via external Maven BOMs, like https://repo1.maven.org/maven2/com/google/cloud/libraries-bom/26.50.0/libraries-bom-26.50.0.pom[this one],
 whose Maven coordinates are `com.google.cloud:libraries-bom:26.50.0`
 
-* via the `dependencyManagement` task, that allows to directly list dependencies whose versions we want to enforce
+* via the `depManagement` task, that allows to directly list dependencies whose versions we want to enforce
 
 === External BOMs
 

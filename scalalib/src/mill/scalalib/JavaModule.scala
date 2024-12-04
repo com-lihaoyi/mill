@@ -201,13 +201,13 @@ trait JavaModule
    * For example, the following forces com.lihaoyi::os-lib to version 0.11.3, and
    * excludes org.slf4j:slf4j-api from com.lihaoyi::cask that it forces to version 0.9.4
    * {{{
-   *   def dependencyManagement = super.dependencyManagement() ++ Agg(
+   *   def depManagement = super.depManagement() ++ Agg(
    *     ivy"com.lihaoyi::os-lib:0.11.3",
    *     ivy"com.lihaoyi::cask:0.9.4".exclude("org.slf4j", "slf4j-api")
    *   )
    * }}}
    */
-  def dependencyManagement: T[Agg[Dep]] = Task { Agg.empty[Dep] }
+  def depManagement: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
   private def addBoms(
       dep: coursier.core.Dependency,
@@ -244,7 +244,7 @@ trait JavaModule
   }
 
   /**
-   * Data from dependencyManagement, converted to a type ready to be passed to coursier
+   * Data from depManagement, converted to a type ready to be passed to coursier
    * for dependency resolution
    */
   private def processedDependencyManagement(deps: Seq[coursier.core.Dependency])
@@ -468,7 +468,7 @@ trait JavaModule
   ): Task[coursier.core.Dependency => coursier.core.Dependency] = Task.Anon {
     val bomDeps0 = allBomDeps().toSeq.map(_.withConfig(Configuration.compile))
     val depMgmt = processedDependencyManagement(
-      dependencyManagement().toSeq.map(bindDependency()).map(_.dep)
+      depManagement().toSeq.map(bindDependency()).map(_.dep)
     )
     val depMgmtMap = depMgmt.toMap
 

@@ -1,11 +1,11 @@
-// Pass dependencies to `dependencyManagement` in a `JavaModule` / `ScalaModule` / `KotlinModule`, like
+// Pass dependencies to `depManagement` in a `JavaModule` / `ScalaModule` / `KotlinModule`, like
 
 //// SNIPPET:BUILD1
 package build
 import mill._, javalib._
 
-object dependencyManagement extends JavaModule {
-  def dependencyManagement = Agg(
+object foo extends JavaModule {
+  def depManagement = Agg(
     ivy"com.google.protobuf:protobuf-java:4.28.3",
     ivy"io.grpc:grpc-protobuf:1.67.1"
   )
@@ -15,16 +15,16 @@ object dependencyManagement extends JavaModule {
 }
 
 // The version of grpc-protobuf (`io.grpc:grpc-protobuf`) isn't written down here, so the version
-// found in `dependencyManagement`, `1.67.1` is used.
+// found in `depManagement`, `1.67.1` is used.
 //
 // Also, by default, grpc-protobuf `1.67.1` pulls version `3.25.3` of protobuf-java (`com.google.protobuf:protobuf-java`) .
-// But `dependencyManagement` specifies another version for that dependency, `4.28.3`, so
+// But `depManagement` specifies another version for that dependency, `4.28.3`, so
 // protobuf-java `4.28.3` ends up being pulled here.
 
 // One can also add exclusions via dependency management, like
 
-object dependencyManagementWithVersionAndExclusions extends JavaModule {
-  def dependencyManagement = Agg(
+object bar extends JavaModule {
+  def depManagement = Agg(
     ivy"io.grpc:grpc-protobuf:1.67.1"
       .exclude(("com.google.protobuf", "protobuf-java"))
   )
@@ -33,15 +33,15 @@ object dependencyManagementWithVersionAndExclusions extends JavaModule {
   )
 }
 
-// Here, grpc-protobuf has an empty version in `ivyDeps`, so the one in `dependencyManagement`,
+// Here, grpc-protobuf has an empty version in `ivyDeps`, so the one in `depManagement`,
 // `1.67.1`, is used. Also, `com.google.protobuf:protobuf-java` is excluded from grpc-protobuf
-// in `dependencyManagement`, so it ends up being excluded from it in `ivyDeps` too.
+// in `depManagement`, so it ends up being excluded from it in `ivyDeps` too.
 
-// If one wants to add exclusions via `dependencyManagement`, specifying a version is optional,
+// If one wants to add exclusions via `depManagement`, specifying a version is optional,
 // like
 
-object dependencyManagementWithExclusions extends JavaModule {
-  def dependencyManagement = Agg(
+object baz extends JavaModule {
+  def depManagement = Agg(
     ivy"io.grpc:grpc-protobuf"
       .exclude(("com.google.protobuf", "protobuf-java"))
   )
