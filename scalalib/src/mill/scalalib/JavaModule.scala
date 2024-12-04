@@ -214,7 +214,7 @@ trait JavaModule
       bomDeps: Seq[coursier.core.BomDependency],
       depMgmt: Seq[(DependencyManagement.Key, DependencyManagement.Values)],
       depMgmtMap: DependencyManagement.Map,
-      overrideVersions: Boolean = false
+      overrideVersions: Boolean
   ): coursier.core.Dependency = {
     val depMgmtKey = DependencyManagement.Key(
       dep.module.organization,
