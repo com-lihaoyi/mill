@@ -154,6 +154,18 @@ private class BspCompileProblemReporter(
     client.onBuildTaskStart(taskStartParams)
   }
 
+  override def notifyProgress(percentage: Long, total: Long): Unit = {
+    val params = new TaskProgressParams(taskId).tap { it =>
+      it.setEventTime(System.currentTimeMillis())
+      it.setData(new CompileTask(targetId))
+      it.setDataKind("compile-progress")
+      it.setMessage(s"Compiling target ${targetDisplayName} ($percentage%)")
+      it.setProgress(percentage)
+      it.setTotal(total)
+    }
+    client.onBuildTaskProgress(params)
+  }
+
   override def finish(): Unit = {
     val taskFinishParams =
       new TaskFinishParams(taskId, if (errors > 0) StatusCode.ERROR else StatusCode.OK).tap { it =>

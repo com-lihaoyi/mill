@@ -2,8 +2,8 @@ import importlib.resources
 
 
 def line_count() -> int:
-    with importlib.resources.open_text("resources", "line-count.txt") as file:
-        return int(file.readline().strip())
+    resource_content = (importlib.resources.files("resources").joinpath("line-count.txt").read_text())
+    return int(resource_content.strip())
 
 
 if __name__ == "__main__":
