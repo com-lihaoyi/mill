@@ -238,63 +238,6 @@ trait PythonModule extends PipModule with TaskModule { outer =>
     override def moduleDeps: Seq[PythonModule] = Seq(outer)
   }
 
-  // def getRuff(): PathRef = Task {
-  //   import coursier.cache.FileCache
-  //   import coursier.util.Artifact
-
-  //   val cache = FileCache()
-  //   val file = cache
-  //     .file(Artifact(""))
-  //     .run
-  //     .unsafeRun()(cache.ec)
-  //     .fold(ex => throw new Exception(ex), identity)
-  //   os.unzip(os.Path(file), T.dest)
-  //   PathRef(T.dest)
-  // }
-
-  // Move these into a RuffModule, and consolidate all tasks into one.
-  /** Command line options to pass the the black code formatter.
-   *
-   * This is the way to configure black in mill, since mill doesn't use a
-   * pyproject.toml file.
-   */
-  def blackOptions: T[Seq[String]] = Task { Seq.empty[String] }
-
-  /** Reformat all source files of this module. */
-  def reformat(): Command[Unit] = Task.Command {
-    runner().run(
-      // format: off
-      (
-        "-m", "ruff",
-        "format",
-        blackOptions(),
-        sources().map(_.path)
-      ),
-      // format: on
-      workingDir = T.dest
-    )
-  }
-
-  /** Check the format of all source files of this module. */
-  def checkFormat(): Command[Unit] = Task.Command {
-    runner().run(
-      // format: off
-      (
-        "-m", "ruff",
-        "format",
-        "--check",
-        blackOptions(),
-        sources().map(_.path)
-      ),
-      // format: on
-      workingDir = T.dest
-    )
-  }
-
-  def fix(): Command[Unit] = ???
-
-  def check(): Command[Unit] = ???
-
 }
 
 object PythonModule {
