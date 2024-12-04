@@ -34,6 +34,7 @@ import xsbti.compile.{
   PreviousResult
 }
 import xsbti.{PathBasedFile, VirtualFile}
+import xsbti.compile.CompileProgress
 
 import java.io.File
 import java.net.URLClassLoader
@@ -589,6 +590,20 @@ class ZincWorkerImpl(
     val incOptions = IncOptions.of().withAuxiliaryClassFiles(
       auxiliaryClassFileExtensions.map(new AuxiliaryClassFileExtension(_)).toArray
     )
+    val compileProgress = reporter.map { reporter =>
+      new CompileProgress {
+        override def advance(
+            current: Int,
+            total: Int,
+            prevPhase: String,
+            nextPhase: String
+        ): Boolean = {
+          val percentage = current * 100 / total
+          reporter.notifyProgress(percentage = percentage, total = total)
+          true
+        }
+      }
+    }
 
     val inputs = ic.inputs(
       classpath = classpath,
@@ -608,7 +623,7 @@ class ZincWorkerImpl(
         cache = new FreshCompilerCache,
         incOptions = incOptions,
         reporter = newReporter,
-        progress = None,
+        progress = compileProgress,
         earlyAnalysisStore = None,
         extra = Array()
       ),
