@@ -210,37 +210,37 @@ trait JavaModule
   def depManagement: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
   private def addBoms(
-      dep: coursier.core.Dependency,
       bomDeps: Seq[coursier.core.BomDependency],
       depMgmt: Seq[(DependencyManagement.Key, DependencyManagement.Values)],
-      depMgmtMap: DependencyManagement.Map,
       overrideVersions: Boolean
-  ): coursier.core.Dependency = {
-    val depMgmtKey = DependencyManagement.Key(
-      dep.module.organization,
-      dep.module.name,
-      coursier.core.Type.jar,
-      dep.publication.classifier
-    )
-    val versionOverrideOpt =
-      if (dep.version == "_") depMgmtMap.get(depMgmtKey).map(_.version)
-      else None
-    val extraExclusions = depMgmtMap.get(depMgmtKey).map(_.minimizedExclusions)
-    dep
-      // add BOM coordinates - coursier will handle the rest
-      .addBomDependencies(
-        if (overrideVersions) bomDeps.map(_.withForceOverrideVersions(overrideVersions))
-        else bomDeps
+  ): coursier.core.Dependency => coursier.core.Dependency = {
+    val depMgmtMap = depMgmt.toMap
+    dep =>
+      val depMgmtKey = DependencyManagement.Key(
+        dep.module.organization,
+        dep.module.name,
+        coursier.core.Type.jar,
+        dep.publication.classifier
       )
-      // add dependency management ourselves:
-      // - overrides meant to apply to transitive dependencies
-      // - fill version if it's empty
-      // - add extra exclusions from dependency management
-      .withOverrides(dep.overrides ++ depMgmt)
-      .withVersion(versionOverrideOpt.getOrElse(dep.version))
-      .withMinimizedExclusions(
-        extraExclusions.fold(dep.minimizedExclusions)(dep.minimizedExclusions.join(_))
-      )
+      val versionOverrideOpt =
+        if (dep.version == "_") depMgmtMap.get(depMgmtKey).map(_.version)
+        else None
+      val extraExclusions = depMgmtMap.get(depMgmtKey).map(_.minimizedExclusions)
+      dep
+        // add BOM coordinates - coursier will handle the rest
+        .addBomDependencies(
+          if (overrideVersions) bomDeps.map(_.withForceOverrideVersions(overrideVersions))
+          else bomDeps
+        )
+        // add dependency management ourselves:
+        // - overrides meant to apply to transitive dependencies
+        // - fill version if it's empty
+        // - add extra exclusions from dependency management
+        .withOverrides(dep.overrides ++ depMgmt)
+        .withVersion(versionOverrideOpt.getOrElse(dep.version))
+        .withMinimizedExclusions(
+          extraExclusions.fold(dep.minimizedExclusions)(dep.minimizedExclusions.join(_))
+        )
   }
 
   /**
@@ -470,10 +470,8 @@ trait JavaModule
     val depMgmt = processedDependencyManagement(
       depManagement().toSeq.map(bindDependency()).map(_.dep)
     )
-    val depMgmtMap = depMgmt.toMap
 
-    dep =>
-      addBoms(dep, bomDeps0, depMgmt, depMgmtMap, overrideVersions = overrideVersions)
+    addBoms(bomDeps0, depMgmt, overrideVersions = overrideVersions)
   }
 
   /**
