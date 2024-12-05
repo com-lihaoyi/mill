@@ -213,48 +213,48 @@ trait JavaModule
    *   )
    * }}}
    */
-  def dependencyManagement: T[Agg[Dep]] = Task { Agg.empty[Dep] }
+  def depManagement: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
   def compileDependencyManagement: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
   def runDependencyManagement: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
   private def addBoms(
-      dep: coursier.core.Dependency,
       bomDeps: Seq[coursier.core.BomDependency],
       depMgmt: Seq[(DependencyManagement.Key, DependencyManagement.Values)],
-      depMgmtMap: DependencyManagement.Map,
-      overrideVersions: Boolean = false
-  ): coursier.core.Dependency = {
-    val depMgmtKey = DependencyManagement.Key(
-      dep.module.organization,
-      dep.module.name,
-      coursier.core.Type.jar,
-      dep.publication.classifier
-    )
-    val versionOverrideOpt =
-      if (dep.version == "_") depMgmtMap.get(depMgmtKey).map(_.version)
-      else None
-    val extraExclusions = depMgmtMap.get(depMgmtKey).map(_.minimizedExclusions)
-    dep
-      // add BOM coordinates - coursier will handle the rest
-      .addBomDependencies(
-        if (overrideVersions) bomDeps.map(_.withForceOverrideVersions(overrideVersions))
-        else bomDeps
+      overrideVersions: Boolean
+  ): coursier.core.Dependency => coursier.core.Dependency = {
+    val depMgmtMap = depMgmt.toMap
+    dep =>
+      val depMgmtKey = DependencyManagement.Key(
+        dep.module.organization,
+        dep.module.name,
+        coursier.core.Type.jar,
+        dep.publication.classifier
       )
-      // add dependency management ourselves:
-      // - overrides meant to apply to transitive dependencies
-      // - fill version if it's empty
-      // - add extra exclusions from dependency management
-      .withOverrides(dep.overrides ++ depMgmt)
-      .withVersion(versionOverrideOpt.getOrElse(dep.version))
-      .withMinimizedExclusions(
-        extraExclusions.fold(dep.minimizedExclusions)(dep.minimizedExclusions.join(_))
-      )
+      val versionOverrideOpt =
+        if (dep.version == "_") depMgmtMap.get(depMgmtKey).map(_.version)
+        else None
+      val extraExclusions = depMgmtMap.get(depMgmtKey).map(_.minimizedExclusions)
+      dep
+        // add BOM coordinates - coursier will handle the rest
+        .addBomDependencies(
+          if (overrideVersions) bomDeps.map(_.withForceOverrideVersions(overrideVersions))
+          else bomDeps
+        )
+        // add dependency management ourselves:
+        // - overrides meant to apply to transitive dependencies
+        // - fill version if it's empty
+        // - add extra exclusions from dependency management
+        .withOverrides(dep.overrides ++ depMgmt)
+        .withVersion(versionOverrideOpt.getOrElse(dep.version))
+        .withMinimizedExclusions(
+          extraExclusions.fold(dep.minimizedExclusions)(dep.minimizedExclusions.join(_))
+        )
   }
 
   /**
-   * Data from dependencyManagement, converted to a type ready to be passed to coursier
+   * Data from depManagement, converted to a type ready to be passed to coursier
    * for dependency resolution
    */
   private def processedDependencyManagement(deps: Seq[coursier.core.Dependency])
@@ -474,10 +474,8 @@ trait JavaModule
     val depMgmt = processedDependencyManagement(
       dependencyManagement().toSeq.map(bindDependency()).map(_.dep)
     )
-    val depMgmtMap = depMgmt.toMap
 
-    dep =>
-      addBoms(dep, bomDeps0, depMgmt, depMgmtMap, overrideVersions = overrideVersions)
+    addBoms(bomDeps0, depMgmt, overrideVersions = overrideVersions)
   }
 
   def processCompileDependency(
@@ -513,7 +511,7 @@ trait JavaModule
    */
   def processedIvyDeps: Task[Agg[BoundDep]] = Task.Anon {
     val processDependency0 = processDependency()()
-    (ivyDeps() ++ mandatoryIvyDeps()).map(bindDependency()).map { dep =>
+    allIvyDeps().map(bindDependency()).map { dep =>
       dep.copy(dep = processDependency0(dep.dep))
     }
   }
