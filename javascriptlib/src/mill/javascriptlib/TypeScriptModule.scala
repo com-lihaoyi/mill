@@ -1,7 +1,6 @@
 package mill.javascriptlib
 import mill.*
 import os.*
-import scala.collection.immutable.IndexedSeq
 
 import scala.collection.immutable.IndexedSeq
 
