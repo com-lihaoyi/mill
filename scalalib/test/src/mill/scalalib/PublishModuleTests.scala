@@ -331,6 +331,8 @@ object PublishModuleTests extends TestSuite {
       val m2RuntimeTransitiveCompileCp = m2Cp("runtimeTransitive", "compile")
       val m2RuntimeTransitiveRunCp = m2Cp("runtimeTransitive", "runtime")
 
+      // runtime dependency on the main module - doesn't pull anything from it
+      // at compile time, hence the nothingClassPathCheck-s
       nothingClassPathCheck(ivy2RuntimeTransitiveCompileCp)
       nothingClassPathCheck(m2RuntimeTransitiveCompileCp)
       runtimeClassPathCheck(ivy2RuntimeTransitiveRunCp)
