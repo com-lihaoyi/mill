@@ -230,20 +230,20 @@ public class MillProcessLauncher {
     Files.write(serverDir.resolve(ServerFiles.terminfo), str.getBytes());
   }
 
-  public static boolean checkTputExists(){
-      try {
-          getTerminalDim("cols", false);
-          getTerminalDim("lines", false);
-          return true;
-      } catch (Exception e) {
-          return false;
-      }
+  public static boolean checkTputExists() {
+    try {
+      getTerminalDim("cols", false);
+      getTerminalDim("lines", false);
+      return true;
+    } catch (Exception e) {
+      return false;
+    }
   }
-  
-  public static void runTermInfoThread(Path serverDir) throws Exception {
-      boolean tputExists = checkTputExists();
 
-      writeTerminalDims(tputExists, serverDir);
+  public static void runTermInfoThread(Path serverDir) throws Exception {
+    boolean tputExists = checkTputExists();
+
+    writeTerminalDims(tputExists, serverDir);
     Thread termInfoPropagatorThread = new Thread(
         () -> {
           try {
