@@ -1,6 +1,7 @@
 package mill.util
 
 import coursier.cache.{CacheLogger, FileCache}
+import coursier.core.BomDependency
 import coursier.error.FetchError.DownloadingArtifacts
 import coursier.error.ResolutionError.CantDownloadModule
 import coursier.params.ResolutionParams
@@ -253,7 +254,8 @@ trait CoursierSupport {
       customizer: Option[Resolution => Resolution] = None,
       ctx: Option[mill.api.Ctx.Log] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
-      resolutionParams: ResolutionParams = ResolutionParams()
+      resolutionParams: ResolutionParams = ResolutionParams(),
+      boms: IterableOnce[BomDependency] = Nil
   ): Result[Resolution] = {
 
     val rootDeps = deps.iterator
@@ -277,6 +279,7 @@ trait CoursierSupport {
       .withRepositories(repositories)
       .withResolutionParams(resolutionParams0)
       .withMapDependenciesOpt(mapDependencies)
+      .withBoms(boms.toSeq)
 
     resolve.either() match {
       case Left(error) =>
@@ -331,7 +334,8 @@ trait CoursierSupport {
       customizer,
       ctx,
       coursierCacheCustomizer,
-      ResolutionParams()
+      ResolutionParams(),
+      Nil
     )
 
 }
