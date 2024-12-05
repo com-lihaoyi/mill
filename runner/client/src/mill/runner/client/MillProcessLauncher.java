@@ -32,8 +32,8 @@ public class MillProcessLauncher {
     boolean interrupted = false;
 
     try {
-      Process p = configureRunMillProcess(builder, processDir);
       MillProcessLauncher.runTermInfoThread(processDir);
+      Process p = configureRunMillProcess(builder, processDir);
       return p.waitFor();
 
     } catch (InterruptedException e) {
@@ -230,18 +230,23 @@ public class MillProcessLauncher {
     Files.write(serverDir.resolve(ServerFiles.terminfo), str.getBytes());
   }
 
+  public static boolean checkTputExists(){
+      try {
+          getTerminalDim("cols", false);
+          getTerminalDim("lines", false);
+          return true;
+      } catch (Exception e) {
+          return false;
+      }
+  }
+  
   public static void runTermInfoThread(Path serverDir) throws Exception {
+      boolean tputExists = checkTputExists();
+
+      writeTerminalDims(tputExists, serverDir);
     Thread termInfoPropagatorThread = new Thread(
         () -> {
           try {
-            boolean tputExists;
-            try {
-              getTerminalDim("cols", false);
-              getTerminalDim("lines", false);
-              tputExists = true;
-            } catch (Exception e) {
-              tputExists = false;
-            }
             while (true) {
               writeTerminalDims(tputExists, serverDir);
               Thread.sleep(100);
