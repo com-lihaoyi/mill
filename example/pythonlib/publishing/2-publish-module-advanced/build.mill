@@ -1,0 +1,73 @@
+// Behind the scenes, Mill delegates most Python packaging tasks to other tools,
+// and only takes care of configuring them with information it has on your build.
+//
+// By default, it will:
+//
+// * create a synthetic `pyproject.toml` file from its own metadata
+//
+// * use `setuptools` to package the module
+//
+// * first create a source distribution and then use that to build a wheel (instead of building a wheel directly)
+//
+// While this should be sufficient for most projects, sometimes you need a little
+// customization.
+//
+// === Customizing the `pyproject.toml` and other build files
+//
+// If you're happy to use a PEP-518-compliant `pyproject.toml` to describe how to
+// package your published project, but would like some customization, you can amend
+// or override the `pyproject` task with your own metadata.
+//
+// You can also include additional files in the packaging process by adding them to
+// `buildFiles`. You can then reference these in your `pyproject.toml` file.
+//
+// The following example shows how to override the packaging process by providing a
+// custom `setup.py` file.
+
+import mill._, pythonlib._
+
+object `package` extends RootModule with PythonModule with PublishModule {
+
+  def publishMeta = PublishMeta(
+    name = "testpackage",
+    description = "an example package",
+    requiresPython = ">= 3.12",
+    license = License.MIT,
+    authors = Seq(Developer("John Doe", "jdoe@example.org"))
+  )
+
+  def publishVersion = "0.0.3"
+
+  // you could also reference an existing setup.py file directly, e.g.
+  // `def setup = Task.Source { millSourcePath / "setup.py" }`
+  def setup = Task {
+    val str =
+      s"""#from setuptools import setup
+          #
+          #print("hello from custom setup.py!")
+          #
+          ## empty setup, defers to using values in pyproject.toml
+          #setup()
+          #""".stripMargin('#')
+    os.write(Task.dest / "setup.py", str)
+    PathRef(Task.dest / "setup.py")
+  }
+
+  override def buildFiles = Task {
+    super.buildFiles() ++ Map("setup.py" -> setup())
+  }
+
+}
+
+/** Usage
+> mill sdist
+...
+hello from custom setup.py!
+...
+*/
+
+// === Changing the packaging process entirely
+//
+// In case customizing of `pyproject` is too cumbersome, or you cannot use it for
+// some reason, you can always override the `sdist` and `wheel` tasks with your own
+// packaging implementation. Publishing with `__.publish` will still work as usual.

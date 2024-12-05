@@ -100,7 +100,7 @@ trait PublishModule extends JavaModule { outer =>
    * Dependency management to specify in the POM
    */
   def publishXmlDepMgmt: Task[Agg[Dependency]] = Task.Anon {
-    dependencyManagement().map(resolvePublishDependency.apply().apply(_))
+    depManagement().map(resolvePublishDependency.apply().apply(_))
   }
 
   def pom: T[PathRef] = Task {
@@ -163,7 +163,7 @@ trait PublishModule extends JavaModule { outer =>
         dep
     }
     val overrides =
-      dependencyManagement().toSeq.map(bindDependency()).map(_.dep)
+      depManagement().toSeq.map(bindDependency()).map(_.dep)
         .filter(depMgmt => depMgmt.version.nonEmpty && depMgmt.version != "_")
         .map { depMgmt =>
           Ivy.Override(
