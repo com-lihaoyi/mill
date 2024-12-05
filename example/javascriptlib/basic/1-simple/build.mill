@@ -9,8 +9,6 @@ object foo extends JestModule {
 
 // Documentation for mill.example.javascriptlib
 
-// Documentation for mill.javascriptlib
-
 /** Usage
 > mill foo.run James Bond prof
 Hello James Bond Professor
