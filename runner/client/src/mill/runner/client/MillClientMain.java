@@ -55,8 +55,6 @@ public class MillClientMain {
               }
 
               public void preRun(Path serverDir) throws Exception {
-                Path sandbox = serverDir.resolve(ServerFiles.sandbox);
-                Files.createDirectories(sandbox);
                 MillProcessLauncher.runTermInfoThread(serverDir);
               }
             };

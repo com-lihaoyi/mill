@@ -32,8 +32,6 @@ public class MillProcessLauncher {
     boolean interrupted = false;
 
     try {
-      Path sandbox = processDir.resolve(ServerFiles.sandbox);
-      Files.createDirectories(sandbox);
       MillProcessLauncher.runTermInfoThread(processDir);
       Process p = configureRunMillProcess(builder, processDir);
       return p.waitFor();
@@ -243,6 +241,8 @@ public class MillProcessLauncher {
   }
 
   public static void runTermInfoThread(Path serverDir) throws Exception {
+    Path sandbox = serverDir.resolve(ServerFiles.sandbox);
+    Files.createDirectories(sandbox);
     boolean tputExists = checkTputExists();
 
     writeTerminalDims(tputExists, serverDir);
