@@ -1,0 +1,68 @@
+// This Example is used to create a Python bundle (`bundle.pex`) for a Python project.
+// The script defines key components such as the mainScript, dependencies,
+// options for Python compilation, and bundle creation settings.
+
+package build
+import mill._, pythonlib._
+
+object foo extends PythonModule {
+  // This Script will be the entry point for the bundle
+  def mainScript = Task.Source { millSourcePath / "src" / "foo.py" }
+
+  // These Dependencies will be used in the bundle
+  def pythonDeps = Seq("pyfiglet==1.0.2", "termcolor==2.5.0")
+
+  // Python Options to use while creating bundle
+  def pythonOptions: T[Seq[String]] =
+    Seq("-Wall", "-Wignore::ImportWarning", "-Wignore::ResourceWarning")
+
+  // TODO: Should we allow user to change the default config/function available: `bundle`?
+  // These configs wil be used while creating the bundle
+  // use -h to see all available options
+  def bundleOptions = Seq(
+    "--compress", // Compress the output file
+    "--compile", // compile will help in fast loading of pex output file
+    "-v", // verbose
+    "--inject-args= --text 'Hello World'" // Fixed Argument if not overrided
+  )
+
+}
+
+// Your project structure for this would look something like this:
+//
+// ----
+// .
+// ├── build.mill
+// └── foo
+//     └── src
+//         └── foo.py
+// ----
+//
+// After generating your bundle with `mill foo.bundle` you'll find by running
+// your `out/foo/bundle.dest/bundle.pex` you'll get the programmed output
+// and usage is based on project logic like which args to include with command.
+
+/** Usage
+
+> ./mill show foo.bundle
+".../out/foo/bundle.dest/bundle.pex"
+
+> out/foo/bundle.dest/bundle.pex
+...
+ _   _      _ _        __        __         _     _ 
+| | | | ___| | | ___   \ \      / /__  _ __| | __| |
+| |_| |/ _ \ | |/ _ \   \ \ /\ / / _ \| '__| |/ _` |
+|  _  |  __/ | | (_) |   \ V  V / (_) | |  | | (_| |
+|_| |_|\___|_|_|\___/     \_/\_/ \___/|_|  |_|\__,_|
+...
+
+> out/foo/bundle.dest/bundle.pex --text 'Hello Mill'
+...
+ _   _      _ _         __  __ _ _ _ 
+| | | | ___| | | ___   |  \/  (_) | |
+| |_| |/ _ \ | |/ _ \  | |\/| | | | |
+|  _  |  __/ | | (_) | | |  | | | | |
+|_| |_|\___|_|_|\___/  |_|  |_|_|_|_|
+...
+
+*/

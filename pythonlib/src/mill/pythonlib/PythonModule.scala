@@ -75,9 +75,13 @@ trait PythonModule extends PipModule with TaskModule { outer =>
    */
   def unmanagedPythonPath: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
 
+  /**
+   * Folders containing source files that are generated rather than
+   * handwritten; these files can be generated in this target itself,
+   * or can refer to files generated from other targets
+   */
   def generatedSources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
 
-  // TODO: we have to choose whether to include `millSourcePath` by default in PYTHONPATH or not.
   /**
    * The directories used to construct the PYTHONPATH for this module, used for
    * execution, excluding upstream modules.
@@ -86,9 +90,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
    * directories.
    */
   def localPythonPath: T[Seq[PathRef]] = Task {
-    Seq(
-      PathRef(millSourcePath)
-    ) ++ sources() ++ resources() ++ generatedSources() ++ unmanagedPythonPath()
+    sources() ++ resources() ++ generatedSources() ++ unmanagedPythonPath()
   }
 
   /**
@@ -100,9 +102,20 @@ trait PythonModule extends PipModule with TaskModule { outer =>
     localPythonPath() ++ upstream
   }
 
+  /**
+   * Any environment variables you want to pass to the forked Env
+   */
   def forkEnv: T[Map[String, String]] = Task { Map.empty[String, String] }
 
+  /**
+   * Command-line options to pass to the Python Interpreter defined by the user.
+   */
   def pythonOptions: T[Seq[String]] = Task { Seq.empty[String] }
+
+  /**
+   * Command-line options to pass as bundle configuration defined by the user.
+   */
+  def bundleOptions: T[Seq[String]] = Task { Seq.empty[String] }
 
   // TODO: right now, any task that calls this helper will have its own python
   // cache. This is slow. Look into sharing the cache between tasks.
@@ -179,6 +192,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
         "--exe", mainScript().path,
         "-o", pexFile,
         "--scie", "eager",
+        bundleOptions()
         // format: on
       ),
       workingDir = T.dest

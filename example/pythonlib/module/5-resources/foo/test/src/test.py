@@ -7,16 +7,16 @@ from foo import Foo  # type: ignore
 
 class TestScript(unittest.TestCase):
     def test_all(self) -> None:
-        appClasspathResourceText = Foo().PythonPathResourceText("resources", "file.txt")
-        self.assertEqual(appClasspathResourceText, "Hello World Resource File")
+        appPythonPathResourceText = Foo().PythonPathResourceText("resources", "file.txt")
+        self.assertEqual(appPythonPathResourceText, "Hello World Resource File")
 
-        testClasspathResourceText = (
+        testPythonPathResourceText = (
             importlib.resources.files("resources")
             .joinpath("test-file-a.txt")
             .read_text()
             .strip()
         )
-        self.assertEqual(testClasspathResourceText, "Test Hello World Resource File A")
+        self.assertEqual(testPythonPathResourceText, "Test Hello World Resource File A")
 
         testFileResourceFile = next(
             Path(os.getenv("MILL_TEST_RESOURCE_DIR")).rglob("test-file-b.txt"), None

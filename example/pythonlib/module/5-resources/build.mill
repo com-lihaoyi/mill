@@ -2,10 +2,13 @@ package build
 import mill._, pythonlib._
 
 object foo extends PythonModule {
-
   def mainScript = Task.Source { millSourcePath / "src" / "foo.py" }
 
+  def resources = Task.Sources { super.resources() ++ Seq(PathRef(millSourcePath)) }
+
   object test extends PythonTests with TestModule.Unittest {
+    def resources = Task.Sources { super.resources() ++ Seq(PathRef(millSourcePath)) }
+
     def otherFiles = Task.Source(millSourcePath / "other-files")
 
     def forkEnv: T[Map[String, String]] =
@@ -22,8 +25,50 @@ Hello World Resource File
 ...
 test_all (test.TestScript...) ... ok
 ...Ran 1 test...
-...
 OK
 ...
 
 */
+
+// This section discusses how tests can depend on resources locally on disk.
+// Mill provides two ways to do this: via the Python PYTHONPATH resources, and via
+// the resource folder which is made available as the environment variable
+// `MILL_TEST_RESOURCE_DIR`;
+//
+// * The *PythonPath resources* are useful when you want to fetch individual files,
+//   and are bundled with the application by the `.bundle` step when constructing
+//   an bundle pex for deployment. But they do not allow you to list folders
+//   or perform other filesystem operations.
+//
+// * The *resource folder*, available via `MILL_TEST_RESOURCE_DIR`, gives you
+//   access to the folder path of the resources on disk. This is useful in allowing
+//   you to list and otherwise manipulate the filesystem, which you cannot do with
+//   *pythonPath resources*. However, the `MILL_TEST_RESOURCE_DIR` only exists
+//   when running tests using Mill, and is not available when executing applications
+//   packaged for deployment via `.bundle`
+//
+// * Apart from `resources/`, you can provide additional folders to your test suite
+//   by defining a `Task.Source` (`otherFiles` above) and passing it to `forkEnv`. This
+//   provide the folder path as an environment variable that the test can make use of
+//
+// Example application code demonstrating the techniques above can be seen below:
+
+/** See Also: foo/resources/file.txt */
+/** See Also: foo/test/resources/test-file-a.txt */
+/** See Also: foo/test/resources/test-file-b.txt */
+/** See Also: foo/test/other-files/other-file.txt */
+/** See Also: foo/src/foo.py */
+/** See Also: foo/test/src/test.py */
+
+// Note that tests require that you pass in any files that they depend on explicitly.
+// This is necessary so that Mill knows when a test needs to be re-run and when a
+// previous result can be cached. This also ensures that tests reading and writing
+// to the current working directory do not accidentally interfere with each others
+// files, especially when running in parallel.
+//
+// Mill runs test processes in a xref:depth/sandboxing.adoc[sandbox/ folder], not in your project root folder, to
+// prevent you from accidentally accessing files without explicitly passing them. Thus
+// you cannot just read resources off disk via `with open("foo/resources/test-file-a.txt")` as file.
+// If you have legacy tests that need to run in the project root folder to work, you
+// can configure your test suite with `def testSandboxWorkingDir = false` to disable
+// the sandbox and make the tests run in the project root.

@@ -1,7 +1,12 @@
+// This example shows some of the common tasks you may want to override on a
+// `PythonModule`: specifying the `mainScript`, adding additional
+// sources/resources, generating sources, and setting typecheck/run options.
+// Also we have support for `forkenv` and  `pythonOptions` to allow user to
+// add variables for environment and options for python respectively.
+
 package build
 import mill._, pythonlib._
 
-// TODO: When we use `package` instead of foo then it fails for `show` command in CI test Why?
 object foo extends PythonModule {
   // You can have arbitrary numbers of third-party libraries
   def pythonDeps = Seq("MarkupSafe==3.0.2", "Jinja2==3.1.4")
@@ -9,15 +14,18 @@ object foo extends PythonModule {
   // choose a main Script to run if there are multiple present
   def mainScript = Task.Source { millSourcePath / "custom-src" / "foo2.py" }
 
-  // TODO: we have to choose whether to include `millSourcePath` by default in PYTHONPATH or not.
-  // def sources = Task.Sources {
-  // 	super.sources() ++ Seq(PathRef(millSourcePath))
-  // }
+  // TODO: should we include only one(it is sufficient) or both tasks(for demo purpose)?
+  // Add (or replace) source folders for the module to use
+  def sources = Task.Sources {
+    super.sources() ++ Seq(PathRef(millSourcePath))
+  }
 
-  // def resources = Task.Sources {
-  //   super.resources() ++ Seq(PathRef(millSourcePath))
-  // }
+  // Add (or replace) resource folders for the module to use
+  def resources = Task.Sources {
+    super.resources() ++ Seq(PathRef(millSourcePath))
+  }
 
+  // Generate sources at build time
   def generatedSources: T[Seq[PathRef]] = Task {
     val destPath = Task.dest / "generatedSources"
     os.makeDir.all(destPath)
@@ -31,7 +39,7 @@ object foo extends PythonModule {
 
     Seq(PathRef(destPath))
   }
-
+  // Pass additional environmental variables when `.run` is called.
   def forkEnv: T[Map[String, String]] = Map("MY_CUSTOM_ENV" -> "my-env-value")
 
   // Additional Python options e.g. to Turn On Warnings and ignore import and resource warnings
@@ -41,6 +49,20 @@ object foo extends PythonModule {
 
 }
 
+// Note the use of `millSourcePath`, `Task.dest`, and `PathRef` when preforming
+// various filesystem operations:
+//
+// 1. `millSourcePath`: Base path of the module. For the root module, it's the repo root.
+//    For inner modules, it's the module path (e.g., `foo/bar/qux` for `foo.bar.qux`). Can be overridden if needed.
+//
+// 2. `Task.dest`: Destination folder in the `out/` folder for task output.
+//    Prevents filesystem conflicts and serves as temporary storage or output for tasks.
+//
+// 3. `PathRef`: Represents the contents of a file or folder, not just its path,
+//    ensuring downstream tasks properly invalidate when contents change.
+//
+// Typical Usage is given below:
+//
 /** Usage
 
 > ./mill foo.run

@@ -61,7 +61,7 @@ object `package` extends RootModule with ScalaModule {
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0]
-//   ivyDeps -> generatedSources -> compile -> "..."
+//   ivyDeps -> generatedSources -> "..."
 //
 //   sources -> lineCount -> forkArgs -> "..." -> run
 //   lineCount -> printLineCount
