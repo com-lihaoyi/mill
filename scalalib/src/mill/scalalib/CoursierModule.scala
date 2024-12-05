@@ -235,15 +235,15 @@ object CoursierModule {
     /**
      * Processes dependencies and BOMs with coursier
      *
-     * This makes coursier read and process BOM dependencies, and fill version placeholders
+     * This makes coursier read and process BOM dependencies, and fill empty versions
      * in dependencies with the BOMs.
      *
-     * Note that this doesn't throw when a version placeholder cannot be filled, and just leaves
-     * the placeholder behind.
+     * Note that this doesn't throw when an empty version cannot be filled, and just leaves
+     * the empty version behind.
      *
-     * @param deps dependencies that might have placeholder versions ("_" as version)
+     * @param deps dependencies that might have empty versions
      * @param resolutionParams coursier resolution parameters
-     * @return dependencies with version placeholder filled
+     * @return dependencies with empty version filled
      */
     def processDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
