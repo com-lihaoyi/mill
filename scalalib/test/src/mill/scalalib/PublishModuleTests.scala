@@ -281,12 +281,13 @@ object PublishModuleTests extends TestSuite {
 
       def localRepoCp(localRepo: coursierapi.Repository, moduleName: String, config: String) = {
         val dep = coursierapi.Dependency.of("com.lihaoyi.pubmodtests", moduleName, "0.1.0-SNAPSHOT")
-        val dep0 =
-          if (config.isEmpty) dep
-          else dep.withConfiguration(config)
         coursierapi.Fetch.create()
-          .addDependencies(dep0)
+          .addDependencies(dep)
           .addRepositories(localRepo)
+          .withResolutionParams(
+            coursierapi.ResolutionParams.create()
+              .withDefaultConfiguration(if (config.isEmpty) null else config)
+          )
           .fetch()
           .asScala
           .map(os.Path(_))
@@ -321,7 +322,7 @@ object PublishModuleTests extends TestSuite {
       val m2TransitiveRunCp = m2Cp("transitive", "runtime")
 
       compileClassPathCheck(ivy2TransitiveCompileCp)
-      // compileClassPathCheck(m2TransitiveCompileCp)
+      compileClassPathCheck(m2TransitiveCompileCp)
       runtimeClassPathCheck(ivy2TransitiveRunCp)
       runtimeClassPathCheck(m2TransitiveRunCp)
 
