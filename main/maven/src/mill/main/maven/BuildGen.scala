@@ -159,7 +159,6 @@ object BuildGen {
                |
                |override def bomDeps = super.bomDeps() ++ Agg(ivy"$group:$id:$version")
                |""".stripMargin
-            s""
           }
         }
         val metadataSettings = if (cfg.baseModule.isEmpty) metadata(model, cfg) else ""

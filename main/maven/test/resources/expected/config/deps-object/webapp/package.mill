@@ -29,6 +29,9 @@ object `package` extends RootModule with PublishModule with MavenModule {
     Artifact("com.example.maven-samples", "multi-module-parent", "1.0-SNAPSHOT")
   )
 
+  override def bomDeps = super.bomDeps() ++
+    Agg(ivy"com.example.maven-samples:multi-module-parent:1.0-SNAPSHOT")
+
   override def pomSettings = PomSettings(
     "Webapp.",
     "com.example.maven-samples",
