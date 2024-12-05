@@ -99,6 +99,14 @@ object Pom {
       bomDependencies: Agg[Dependency],
       dependencyManagement: Agg[Dependency]
   ): String = {
+    val depMgmtSection =
+      if (dependencyManagement.isEmpty) NodeSeq.Empty
+      else
+        <dependencyManagement>
+          <dependencies>
+            {dependencyManagement.map(renderDependency(_)).iterator}
+          </dependencies>
+        </dependencyManagement>
     val xml =
       <project
         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
@@ -140,11 +148,7 @@ object Pom {
           bomDependencies.map(renderDependency(_, isImport = true)).iterator
       }
         </dependencies>
-        <dependencyManagement>
-          <dependencies>
-            {dependencyManagement.map(renderDependency(_)).iterator}
-          </dependencies>
-        </dependencyManagement>
+        {depMgmtSection}
       </project>
 
     val pp = new PrettyPrinter(120, 4)
