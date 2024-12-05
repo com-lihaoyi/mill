@@ -74,8 +74,10 @@ private[mill] class PromptLogger(
         readTerminalDims(terminfoPath).foreach(termDimensions = _)
 
         val now = System.currentTimeMillis()
-        if (termDimensions._1.nonEmpty ||
-          (now - lastUpdate > nonInteractivePromptUpdateIntervalMillis)){
+        if (
+          termDimensions._1.nonEmpty ||
+          (now - lastUpdate > nonInteractivePromptUpdateIntervalMillis)
+        ) {
           lastUpdate = now
           synchronized {
             if (!runningState.paused && !runningState.stopped) refreshPrompt()
