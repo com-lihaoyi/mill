@@ -143,10 +143,10 @@ trait JavaModule
    */
   def ivyDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
-  @deprecated(
-    "Use processedIvyDeps or ivyDeps() ++ mandatoryIvyDeps() instead",
-    "Mill after 0.12.3"
-  )
+  /**
+   * Aggregation of mandatoryIvyDeps and ivyDeps.
+   * In most cases, instead of overriding this Target you want to override `ivyDeps` instead.
+   */
   def allIvyDeps: T[Agg[Dep]] = Task { ivyDeps() ++ mandatoryIvyDeps() }
 
   /**
@@ -207,7 +207,7 @@ trait JavaModule
    * For example, the following forces com.lihaoyi::os-lib to version 0.11.3, and
    * excludes org.slf4j:slf4j-api from com.lihaoyi::cask that it forces to version 0.9.4
    * {{{
-   *   def dependencyManagement = super.dependencyManagement() ++ Agg(
+   *   def depManagement = super.depManagement() ++ Agg(
    *     ivy"com.lihaoyi::os-lib:0.11.3",
    *     ivy"com.lihaoyi::cask:0.9.4".exclude("org.slf4j", "slf4j-api")
    *   )
@@ -472,7 +472,7 @@ trait JavaModule
     val bomDeps0 =
       allBomDeps().toSeq.map(_.withConfig(Configuration.compile)) ++ extraBomDeps().toSeq
     val depMgmt = processedDependencyManagement(
-      dependencyManagement().toSeq.map(bindDependency()).map(_.dep)
+      depManagement().toSeq.map(bindDependency()).map(_.dep)
     )
 
     addBoms(bomDeps0, depMgmt, overrideVersions = overrideVersions)
@@ -485,10 +485,8 @@ trait JavaModule
     val depMgmt = processedDependencyManagement(
       compileDependencyManagement().toSeq.map(bindDependency()).map(_.dep)
     )
-    val depMgmtMap = depMgmt.toMap
 
-    dep =>
-      addBoms(dep, bomDeps0, depMgmt, depMgmtMap, overrideVersions = overrideVersions)
+    addBoms(bomDeps0, depMgmt, overrideVersions = overrideVersions)
   }
 
   def processRunDependency(
@@ -498,10 +496,8 @@ trait JavaModule
     val depMgmt = processedDependencyManagement(
       runDependencyManagement().toSeq.map(bindDependency()).map(_.dep)
     )
-    val depMgmtMap = depMgmt.toMap
 
-    dep =>
-      addBoms(dep, bomDeps0, depMgmt, depMgmtMap, overrideVersions = overrideVersions)
+    addBoms(bomDeps0, depMgmt, overrideVersions = overrideVersions)
   }
 
   /**
@@ -516,16 +512,16 @@ trait JavaModule
     }
   }
 
-  def processedCompileIvyDeps: Task[Agg[Dep]] = Task.Anon {
+  def processedCompileIvyDeps: Task[Agg[BoundDep]] = Task.Anon {
     val processDependency0 = processCompileDependency()()
-    compileIvyDeps().map { dep =>
+    compileIvyDeps().map(bindDependency()).map { dep =>
       dep.copy(dep = processDependency0(dep.dep))
     }
   }
 
-  def processedRunIvyDeps: Task[Agg[Dep]] = Task.Anon {
+  def processedRunIvyDeps: Task[Agg[BoundDep]] = Task.Anon {
     val processDependency0 = processRunDependency()()
-    runIvyDeps().map { dep =>
+    runIvyDeps().map(bindDependency()).map { dep =>
       dep.copy(dep = processDependency0(dep.dep))
     }
   }
@@ -546,7 +542,7 @@ trait JavaModule
   def transitiveCompileIvyDeps: T[Agg[BoundDep]] = Task {
     val processDependency0 = processCompileDependency(overrideVersions = true)()
     // We never include compile-only dependencies transitively, but we must include normal transitive dependencies!
-    processedCompileIvyDeps().map(bindDependency()) ++
+    processedCompileIvyDeps() ++
       T.traverse(compileModuleDepsChecked)(_.transitiveIvyDeps)().flatten.map { dep =>
         dep.copy(dep = processDependency0(dep.dep))
       }

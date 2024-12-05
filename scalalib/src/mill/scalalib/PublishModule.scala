@@ -191,7 +191,7 @@ trait PublishModule extends JavaModule { outer =>
             depMgmt.version
           )
         } ++
-        bomDepMgmt0
+        bomDepMgmt
           .filter {
             case (key, _) =>
               !moduleSet.contains((key.organization.value, key.name.value))
