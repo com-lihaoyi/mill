@@ -322,7 +322,7 @@ object PublishModuleTests extends TestSuite {
 
       compileClassPathCheck(ivy2TransitiveCompileCp)
       // compileClassPathCheck(m2TransitiveCompileCp)
-      // runtimeClassPathCheck(ivy2TransitiveRunCp)
+      runtimeClassPathCheck(ivy2TransitiveRunCp)
       runtimeClassPathCheck(m2TransitiveRunCp)
 
       val ivy2RuntimeTransitiveCompileCp = ivy2Cp("runtimeTransitive", "compile")
@@ -332,7 +332,7 @@ object PublishModuleTests extends TestSuite {
 
       nothingClassPathCheck(ivy2RuntimeTransitiveCompileCp)
       nothingClassPathCheck(m2RuntimeTransitiveCompileCp)
-      // runtimeClassPathCheck(ivy2RuntimeTransitiveRunCp)
+      runtimeClassPathCheck(ivy2RuntimeTransitiveRunCp)
       runtimeClassPathCheck(m2RuntimeTransitiveRunCp)
     }
   }

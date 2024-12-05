@@ -78,11 +78,11 @@ object Ivy {
   private def renderDependency(dep: Dependency): Elem = {
     if (dep.exclusions.isEmpty)
       <dependency org={dep.artifact.group} name={dep.artifact.id} rev={dep.artifact.version} conf={
-        s"${depIvyConf(dep)}->${dep.configuration.getOrElse("default(compile)")}"
+        depIvyConf(dep)
       } />
     else
       <dependency org={dep.artifact.group} name={dep.artifact.id} rev={dep.artifact.version} conf={
-        s"${depIvyConf(dep)}->${dep.configuration.getOrElse("default(compile)")}"
+        depIvyConf(dep)
       }>
         {dep.exclusions.map(ex => <exclude org={ex._1} name={ex._2} matcher="exact"/>)}
       </dependency>
@@ -92,12 +92,15 @@ object Ivy {
     <override org={override0.organization} module={override0.name} rev={override0.version} />
 
   private def depIvyConf(d: Dependency): String = {
-    if (d.optional) "optional"
+    val defaultTargetOpt = d.configuration
+    def target(value: String) = defaultTargetOpt.getOrElse(value)
+
+    if (d.optional) s"optional->${target("runtime")}"
     else d.scope match {
-      case Scope.Compile => "compile"
-      case Scope.Provided => "provided"
-      case Scope.Test => "test"
-      case Scope.Runtime => "runtime"
+      case Scope.Compile => s"compile->${target("compile")};runtime->${target("runtime")}"
+      case Scope.Provided => s"provided->${target("compile")}"
+      case Scope.Test => s"test->${target("runtime")}"
+      case Scope.Runtime => s"runtime->${target("runtime")}"
     }
   }
 
