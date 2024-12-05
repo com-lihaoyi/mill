@@ -63,23 +63,26 @@ private[mill] class PromptLogger(
   if (enableTicker) refreshPrompt()
 
   val promptUpdaterThread = new Thread(
-    () =>
+    () => {
+      var lastUpdate = System.currentTimeMillis()
       while (!runningState.stopped) {
-        val promptUpdateInterval =
-          if (termDimensions._1.isDefined) promptUpdateIntervalMillis
-          else nonInteractivePromptUpdateIntervalMillis
-
-        try Thread.sleep(promptUpdateInterval)
+        try Thread.sleep(promptUpdateIntervalMillis)
         catch {
           case e: InterruptedException => /*do nothing*/
         }
 
         readTerminalDims(terminfoPath).foreach(termDimensions = _)
 
-        synchronized {
-          if (!runningState.paused && !runningState.stopped) refreshPrompt()
+        val now = System.currentTimeMillis()
+        if (termDimensions._1.nonEmpty ||
+          (now - lastUpdate > nonInteractivePromptUpdateIntervalMillis)){
+          lastUpdate = now
+          synchronized {
+            if (!runningState.paused && !runningState.stopped) refreshPrompt()
+          }
         }
-      },
+      }
+    },
     "prompt-logger-updater-thread"
   )
 
