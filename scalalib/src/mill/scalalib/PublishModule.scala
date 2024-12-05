@@ -69,18 +69,17 @@ trait PublishModule extends JavaModule { outer =>
   }
 
   def publishXmlDeps: Task[Agg[Dependency]] = Task.Anon {
-    val runIvyPomDeps = runIvyDeps()
-      .map(resolvePublishDependency.apply().apply(_))
-
     val ivyPomDeps =
       processedIvyDeps().map(_.toDep)
         .map(resolvePublishDependency.apply().apply(_))
-        .filter(!runIvyPomDeps.contains(_))
+
+    val runIvyPomDeps = runIvyDeps()
+      .map(resolvePublishDependency.apply().apply(_))
+      .filter(!ivyPomDeps.contains(_))
 
     val compileIvyPomDeps = compileIvyDeps()
       .map(resolvePublishDependency.apply().apply(_))
       .filter(!ivyPomDeps.contains(_))
-      .filter(!runIvyPomDeps.contains(_))
 
     val modulePomDeps = T.sequence(moduleDepsChecked.collect {
       case m: PublishModule => m.publishSelfDependency
