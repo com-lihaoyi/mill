@@ -598,7 +598,7 @@ object BomTests extends TestSuite {
           "protobuf-java-util-4.28.3.jar",
           jarCheck = Some { jarName =>
             !jarName.startsWith("protobuf-java-") ||
-              jarName.startsWith("protobuf-java-util")
+            jarName.startsWith("protobuf-java-util")
           }
         )
       }
@@ -609,7 +609,7 @@ object BomTests extends TestSuite {
           Seq(modules.precedence.addExclude),
           jarCheck = Some { jarName =>
             !jarName.startsWith("protobuf-java-") ||
-              jarName.startsWith("protobuf-java-util")
+            jarName.startsWith("protobuf-java-util")
           }
         )
       }
@@ -632,12 +632,13 @@ object BomTests extends TestSuite {
           "protobuf-java-3.22.0.jar"
         )
       }
-      test("firstInDepMgmtTransitivelyTransitive") - UnitTester(modules, null).scoped { implicit eval =>
-        isInClassPath(
-          modules.precedence.firstInDepMgmtTransitively.transitive,
-          "protobuf-java-3.22.0.jar",
-          Seq(modules.precedence.firstInDepMgmtTransitively)
-        )
+      test("firstInDepMgmtTransitivelyTransitive") - UnitTester(modules, null).scoped {
+        implicit eval =>
+          isInClassPath(
+            modules.precedence.firstInDepMgmtTransitively.transitive,
+            "protobuf-java-3.22.0.jar",
+            Seq(modules.precedence.firstInDepMgmtTransitively)
+          )
       }
     }
 
