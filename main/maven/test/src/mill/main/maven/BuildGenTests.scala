@@ -1,5 +1,6 @@
 package mill.main.maven
 
+import com.github.difflib.{DiffUtils, UnifiedDiffUtils}
 import mill.T
 import mill.api.PathRef
 import mill.scalalib.scalafmt.ScalafmtModule
@@ -7,7 +8,12 @@ import mill.testkit.{TestBaseModule, UnitTester}
 import utest.*
 import utest.framework.TestPath
 
+import scala.jdk.CollectionConverters._
+
 object BuildGenTests extends TestSuite {
+
+  // Change this to true to update test data on disk
+  def updateSnapshots = false
 
   def tests: Tests = Tests {
     val resources = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
@@ -33,7 +39,7 @@ object BuildGenTests extends TestSuite {
       eval(module.reformat())
 
       // test
-      checkFiles(files, resources / expectedRel)
+      checkFiles(files.map(_.path.relativeTo(dest).asSubPath), dest, resources / expectedRel)
     }
 
     // multi level nested modules
@@ -125,15 +131,78 @@ object BuildGenTests extends TestSuite {
       .map(PathRef(_))
       .toSeq
 
-  def checkFiles(actualFiles: Seq[PathRef], expectedRoot: os.Path): Boolean = {
-    val expectedFiles = buildFiles(expectedRoot)
+  def checkFiles(actualFiles: Seq[os.SubPath], root: os.Path, expectedRoot: os.Path): Boolean = {
+    val expectedFiles = buildFiles(expectedRoot).map(_.path.relativeTo(expectedRoot).asSubPath)
 
-    actualFiles.nonEmpty &&
-    actualFiles.length == expectedFiles.length &&
-    actualFiles.iterator.zip(expectedFiles.iterator).forall {
-      case (actual, expected) =>
-        actual.path.endsWith(expected.path.relativeTo(expectedRoot)) &&
-        os.read.lines(actual.path) == os.read.lines(expected.path)
+    val actualFilesSet = actualFiles.toSet
+    val expectedFilesSet = expectedFiles.toSet
+
+    val missing = expectedFiles.filterNot(actualFilesSet)
+    val extra = actualFiles.filterNot(expectedFilesSet)
+
+    val shared = actualFiles.filter(expectedFilesSet)
+
+    val differentContent = shared.filter { subPath =>
+      val actual = os.read.lines(root / subPath)
+      val expected = os.read.lines(expectedRoot / subPath)
+      actual != expected
     }
+
+    val valid = missing.isEmpty && extra.isEmpty && differentContent.isEmpty
+
+    if (!valid)
+      if (updateSnapshots) {
+        System.err.println(
+          s"Expected and actual files differ, updating expected files in resources under $expectedRoot"
+        )
+
+        for (subPath <- missing) {
+          val path = expectedRoot / subPath
+          System.err.println(s"Removing $subPath")
+          os.remove(path)
+        }
+
+        for (subPath <- extra) {
+          val source = root / subPath
+          val dest = expectedRoot / subPath
+          System.err.println(s"Creating $subPath")
+          os.copy(source, dest, createFolders = true)
+        }
+
+        for (subPath <- differentContent) {
+          val source = root / subPath
+          val dest = expectedRoot / subPath
+          System.err.println(s"Updating $subPath")
+          os.copy.over(source, dest, createFolders = true)
+        }
+      } else {
+        for (subPath <- missing)
+          System.err.println(s"Not found: $subPath")
+        for (subPath <- extra)
+          System.err.println(s"Found extra file: $subPath")
+
+        for (subPath <- differentContent) {
+          val actual = os.read.lines(root / subPath)
+          val expected = os.read.lines(expectedRoot / subPath)
+          val patch = DiffUtils.diff(expected.asJava, actual.asJava)
+          val printablePatch = UnifiedDiffUtils.generateUnifiedDiff(
+            s"expected / $subPath",
+            s"obtained / $subPath",
+            expected.asJava,
+            patch,
+            3
+          )
+          for (line <- printablePatch.asScala) {
+            val color =
+              if (line.startsWith("+")) Console.GREEN
+              else if (line.startsWith("-")) Console.RED
+              else if (line.startsWith("@")) Console.CYAN
+              else ""
+            System.err.println(color + line + Console.RESET)
+          }
+        }
+      }
+
+    updateSnapshots || valid
   }
 }
