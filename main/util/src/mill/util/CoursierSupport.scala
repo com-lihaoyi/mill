@@ -324,6 +324,29 @@ trait CoursierSupport {
       mapDependencies: Option[Dependency => Dependency],
       customizer: Option[Resolution => Resolution],
       ctx: Option[mill.api.Ctx.Log],
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]],
+      resolutionParams: ResolutionParams
+  ): Result[Resolution] =
+    resolveDependenciesMetadataSafe(
+      repositories,
+      deps,
+      force,
+      mapDependencies,
+      customizer,
+      ctx,
+      coursierCacheCustomizer,
+      resolutionParams,
+      Nil
+    )
+
+  // bin-compat shim
+  def resolveDependenciesMetadataSafe(
+      repositories: Seq[Repository],
+      deps: IterableOnce[Dependency],
+      force: IterableOnce[Dependency],
+      mapDependencies: Option[Dependency => Dependency],
+      customizer: Option[Resolution => Resolution],
+      ctx: Option[mill.api.Ctx.Log],
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]]
   ): Result[Resolution] =
     resolveDependenciesMetadataSafe(
