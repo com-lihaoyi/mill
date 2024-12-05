@@ -217,7 +217,7 @@ object PublishModuleTests extends TestSuite {
         val ivyXml = scala.xml.XML.loadFile(result.value.path.toString)
         val deps: NodeSeq = (ivyXml \ "dependencies" \ "dependency")
         assert(deps.exists(n =>
-          (n \ "@conf").text == "compile->default(compile)" &&
+          (n \ "@conf").text == "compile->compile;runtime->runtime" &&
             (n \ "@name").text == "scala-library" && (n \ "@org").text == "org.scala-lang"
         ))
       }
@@ -263,10 +263,10 @@ object PublishModuleTests extends TestSuite {
 
       val compileCp =
         eval(compileAndRuntimeStuff.main.compileClasspath).toTry.get.value.toSeq.map(_.path)
-      compileClassPathCheck(compileCp)
-
       val runtimeCp =
         eval(compileAndRuntimeStuff.main.runClasspath).toTry.get.value.toSeq.map(_.path)
+
+      compileClassPathCheck(compileCp)
       runtimeClassPathCheck(runtimeCp)
 
       val ivy2Repo = eval.evaluator.workspace / "ivy2Local"

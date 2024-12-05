@@ -92,9 +92,7 @@ object Ivy {
     <override org={override0.organization} module={override0.name} rev={override0.version} />
 
   private def depIvyConf(d: Dependency): String = {
-    val defaultTargetOpt = d.configuration
-    def target(value: String) = defaultTargetOpt.getOrElse(value)
-
+    def target(value: String) = d.configuration.getOrElse(value)
     if (d.optional) s"optional->${target("runtime")}"
     else d.scope match {
       case Scope.Compile => s"compile->${target("compile")};runtime->${target("runtime")}"
