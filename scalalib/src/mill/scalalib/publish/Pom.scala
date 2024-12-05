@@ -99,6 +99,18 @@ object Pom {
       bomDependencies: Agg[Dependency],
       dependencyManagement: Agg[Dependency]
   ): String = {
+    val developersSection =
+      if (pomSettings.developers.isEmpty) NodeSeq.Empty
+      else
+        <developers>
+          {pomSettings.developers.map(renderDeveloper)}
+        </developers>
+    val propertiesSection =
+      if (properties.isEmpty) NodeSeq.Empty
+      else
+        <properties>
+          {properties.map(renderProperty _).iterator}
+        </properties>
     val depMgmtSection =
       if (dependencyManagement.isEmpty) NodeSeq.Empty
       else
@@ -136,12 +148,8 @@ object Pom {
           {<tag>{pomSettings.versionControl.tag}</tag>.optional}
           {<url>{pomSettings.versionControl.browsableRepository}</url>.optional}
         </scm>
-        <developers>
-          {pomSettings.developers.map(renderDeveloper)}
-        </developers>
-        <properties>
-          {properties.map(renderProperty _).iterator}
-        </properties>
+        {developersSection}
+        {propertiesSection}
         <dependencies>
           {
         dependencies.map(renderDependency(_)).iterator ++
