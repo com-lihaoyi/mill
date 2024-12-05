@@ -1,27 +1,34 @@
 package build
+
 import mill._, javascriptlib._
 
-object foo extends TypeScriptModule {
-  object bar extends TypeScriptModule {
-    def npmDeps = Seq("immutable@4.3.7")
-  }
+object foo extends JestModule {
+  def npmDeps = Seq("immutable@4.3.7")
+
 }
 
-object qux extends TypeScriptModule {
-  def moduleDeps = Seq(foo, foo.bar)
-}
-
-// Documentation for mill.javascriptlib
+// Documentation for mill.example.javascriptlib
 
 /** Usage
-
-> mill qux.run James Bond prof
+> mill foo.run James Bond prof
 Hello James Bond Professor
 
-> mill show qux.bundle
-".../out/qux/bundle.dest/bundle.js"
+> mill foo.test
+PASS .../foo.test.ts
+...generateUser function
+...should generate a user with all specified fields...
+...should default lastName and role when they are not provided...
+...should default all fields when args is empty...
+...
+Test Suites:...1 passed, 1 total...
+Tests:...3 passed, 3 total...
+Snapshots:...
+Time:...
+Ran all test suites matching ...
 
-> node out/qux/bundle.dest/bundle.js James Bond prof
+> mill show foo.bundle
+Build succeeded!
+
+> node out/foo/bundle.dest/bundle.js James Bond prof
 Hello James Bond Professor
-
 */
