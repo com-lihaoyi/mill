@@ -103,6 +103,10 @@ object PublishModuleTests extends TestSuite {
     object transitive extends JavaModule with TestPublishModule {
       def moduleDeps = Seq(main)
     }
+
+    object runtimeTransitive extends JavaModule with TestPublishModule {
+      def runModuleDeps = Seq(main)
+    }
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "publish"
@@ -244,6 +248,10 @@ object PublishModuleTests extends TestSuite {
       def assertClassPathDoesntContain(cp: Seq[os.Path], prefix: String) =
         assert(cp.map(_.last).forall(!_.startsWith(prefix)))
 
+      def nothingClassPathCheck(cp: Seq[os.Path]): Unit = {
+        assertClassPathDoesntContain(cp, "slf4j")
+        assertClassPathDoesntContain(cp, "logback")
+      }
       def compileClassPathCheck(cp: Seq[os.Path]): Unit = {
         assertClassPathContains(cp, "slf4j-api-2.0.15.jar")
         assertClassPathDoesntContain(cp, "logback")
@@ -266,8 +274,10 @@ object PublishModuleTests extends TestSuite {
 
       eval(compileAndRuntimeStuff.main.publishLocal(ivy2Repo.toString)).toTry.get
       eval(compileAndRuntimeStuff.transitive.publishLocal(ivy2Repo.toString)).toTry.get
+      eval(compileAndRuntimeStuff.runtimeTransitive.publishLocal(ivy2Repo.toString)).toTry.get
       eval(compileAndRuntimeStuff.main.publishM2Local(m2Repo.toString)).toTry.get
       eval(compileAndRuntimeStuff.transitive.publishM2Local(m2Repo.toString)).toTry.get
+      eval(compileAndRuntimeStuff.runtimeTransitive.publishM2Local(m2Repo.toString)).toTry.get
 
       def localRepoCp(localRepo: coursierapi.Repository, moduleName: String, config: String) = {
         val dep = coursierapi.Dependency.of("com.lihaoyi.pubmodtests", moduleName, "0.1.0-SNAPSHOT")
@@ -304,6 +314,26 @@ object PublishModuleTests extends TestSuite {
       compileClassPathCheck(m2CompileCp)
       runtimeClassPathCheck(ivy2RunCp)
       runtimeClassPathCheck(m2RunCp)
+
+      val ivy2TransitiveCompileCp = ivy2Cp("transitive", "compile")
+      val ivy2TransitiveRunCp = ivy2Cp("transitive", "runtime")
+      val m2TransitiveCompileCp = m2Cp("transitive", "compile")
+      val m2TransitiveRunCp = m2Cp("transitive", "runtime")
+
+      compileClassPathCheck(ivy2TransitiveCompileCp)
+      // compileClassPathCheck(m2TransitiveCompileCp)
+      // runtimeClassPathCheck(ivy2TransitiveRunCp)
+      runtimeClassPathCheck(m2TransitiveRunCp)
+
+      val ivy2RuntimeTransitiveCompileCp = ivy2Cp("runtimeTransitive", "compile")
+      val ivy2RuntimeTransitiveRunCp = ivy2Cp("runtimeTransitive", "runtime")
+      val m2RuntimeTransitiveCompileCp = m2Cp("runtimeTransitive", "compile")
+      val m2RuntimeTransitiveRunCp = m2Cp("runtimeTransitive", "runtime")
+
+      nothingClassPathCheck(ivy2RuntimeTransitiveCompileCp)
+      nothingClassPathCheck(m2RuntimeTransitiveCompileCp)
+      // runtimeClassPathCheck(ivy2RuntimeTransitiveRunCp)
+      runtimeClassPathCheck(m2RuntimeTransitiveRunCp)
     }
   }
 
