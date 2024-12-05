@@ -33,6 +33,7 @@
 ** xref:android/kotlin.adoc[]
 ** xref:pythonlib/intro.adoc[]
 *** xref:pythonlib/dependencies.adoc[]
+*** xref:pythonlib/publishing.adoc[]
 * xref:comparisons/why-mill.adoc[]
 ** xref:comparisons/maven.adoc[]
 ** xref:comparisons/gradle.adoc[]

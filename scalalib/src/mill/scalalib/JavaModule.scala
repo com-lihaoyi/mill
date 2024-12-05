@@ -1,7 +1,7 @@
 package mill
 package scalalib
 
-import coursier.core.Resolution
+import coursier.core.{BomDependency, Configuration, DependencyManagement, Resolution}
 import coursier.parse.JavaOrScalaModule
 import coursier.parse.ModuleParser
 import coursier.util.ModuleMatcher
@@ -158,6 +158,139 @@ trait JavaModule
    * code has already been compiled.
    */
   def runIvyDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
+
+  /**
+   * Any BOM dependencies you want to add to this Module, in the format
+   * ivy"org:name:version"
+   */
+  def bomDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
+
+  def allBomDeps: Task[Agg[BomDependency]] = Task.Anon {
+    val modVerOrMalformed =
+      bomDeps().map(bindDependency()).map { bomDep =>
+        val fromModVer = coursier.core.Dependency(bomDep.dep.module, bomDep.dep.version)
+        if (fromModVer == bomDep.dep)
+          Right(bomDep.dep.asBomDependency)
+        else
+          Left(bomDep)
+      }
+
+    val malformed = modVerOrMalformed.collect {
+      case Left(malformedBomDep) =>
+        malformedBomDep
+    }
+    if (malformed.isEmpty)
+      modVerOrMalformed.collect {
+        case Right(bomDep) => bomDep
+      }
+    else
+      throw new Exception(
+        "Found BOM dependencies with invalid parameters:" + System.lineSeparator() +
+          malformed.map("- " + _.dep + System.lineSeparator()).mkString +
+          "Only organization, name, and version are accepted."
+      )
+  }
+
+  /**
+   * Dependency management data
+   *
+   * Versions and exclusions in dependency management override those of transitive dependencies,
+   * while they have no effect if the corresponding dependency isn't pulled during dependency
+   * resolution.
+   *
+   * For example, the following forces com.lihaoyi::os-lib to version 0.11.3, and
+   * excludes org.slf4j:slf4j-api from com.lihaoyi::cask that it forces to version 0.9.4
+   * {{{
+   *   def depManagement = super.depManagement() ++ Agg(
+   *     ivy"com.lihaoyi::os-lib:0.11.3",
+   *     ivy"com.lihaoyi::cask:0.9.4".exclude("org.slf4j", "slf4j-api")
+   *   )
+   * }}}
+   */
+  def depManagement: T[Agg[Dep]] = Task { Agg.empty[Dep] }
+
+  private def addBoms(
+      bomDeps: Seq[coursier.core.BomDependency],
+      depMgmt: Seq[(DependencyManagement.Key, DependencyManagement.Values)],
+      overrideVersions: Boolean
+  ): coursier.core.Dependency => coursier.core.Dependency = {
+    val depMgmtMap = depMgmt.toMap
+    dep =>
+      val depMgmtKey = DependencyManagement.Key(
+        dep.module.organization,
+        dep.module.name,
+        coursier.core.Type.jar,
+        dep.publication.classifier
+      )
+      val versionOverrideOpt =
+        if (dep.version == "_") depMgmtMap.get(depMgmtKey).map(_.version)
+        else None
+      val extraExclusions = depMgmtMap.get(depMgmtKey).map(_.minimizedExclusions)
+      dep
+        // add BOM coordinates - coursier will handle the rest
+        .addBomDependencies(
+          if (overrideVersions) bomDeps.map(_.withForceOverrideVersions(overrideVersions))
+          else bomDeps
+        )
+        // add dependency management ourselves:
+        // - overrides meant to apply to transitive dependencies
+        // - fill version if it's empty
+        // - add extra exclusions from dependency management
+        .withOverrides(dep.overrides ++ depMgmt)
+        .withVersion(versionOverrideOpt.getOrElse(dep.version))
+        .withMinimizedExclusions(
+          extraExclusions.fold(dep.minimizedExclusions)(dep.minimizedExclusions.join(_))
+        )
+  }
+
+  /**
+   * Data from depManagement, converted to a type ready to be passed to coursier
+   * for dependency resolution
+   */
+  private def processedDependencyManagement(deps: Seq[coursier.core.Dependency])
+      : Seq[(DependencyManagement.Key, DependencyManagement.Values)] = {
+    val keyValuesOrErrors =
+      deps.map { depMgmt =>
+        val fromUsedValues = coursier.core.Dependency(depMgmt.module, depMgmt.version)
+          .withPublication(coursier.core.Publication(
+            "",
+            depMgmt.publication.`type`,
+            coursier.core.Extension.empty,
+            depMgmt.publication.classifier
+          ))
+          .withMinimizedExclusions(depMgmt.minimizedExclusions)
+          .withOptional(depMgmt.optional)
+        if (fromUsedValues == depMgmt) {
+          val key = DependencyManagement.Key(
+            depMgmt.module.organization,
+            depMgmt.module.name,
+            if (depMgmt.publication.`type`.isEmpty) coursier.core.Type.jar
+            else depMgmt.publication.`type`,
+            depMgmt.publication.classifier
+          )
+          val values = DependencyManagement.Values(
+            Configuration.empty,
+            if (depMgmt.version == "_") "" // shouldn't be needed with future coursier versions
+            else depMgmt.version,
+            depMgmt.minimizedExclusions,
+            depMgmt.optional
+          )
+          Right(key -> values)
+        } else
+          Left(depMgmt)
+      }
+
+    val errors = keyValuesOrErrors.collect {
+      case Left(errored) => errored
+    }
+    if (errors.isEmpty)
+      keyValuesOrErrors.collect { case Right(kv) => kv }
+    else
+      throw new Exception(
+        "Found dependency management entries with invalid values. Only organization, name, version, type, classifier, exclusions, and optionality can be specified" + System.lineSeparator() +
+          errors.map("- " + _ + System.lineSeparator()).mkString
+      )
+  }
 
   /**
    * Default artifact types to fetch and put in the classpath. Add extra types
@@ -327,12 +460,42 @@ trait JavaModule
   def unmanagedClasspath: T[Agg[PathRef]] = Task { Agg.empty[PathRef] }
 
   /**
+   * Returns a function adding BOM and dependency management details of
+   * this module to a `coursier.core.Dependency`
+   */
+  def processDependency(
+      overrideVersions: Boolean = false
+  ): Task[coursier.core.Dependency => coursier.core.Dependency] = Task.Anon {
+    val bomDeps0 = allBomDeps().toSeq.map(_.withConfig(Configuration.compile))
+    val depMgmt = processedDependencyManagement(
+      depManagement().toSeq.map(bindDependency()).map(_.dep)
+    )
+
+    addBoms(bomDeps0, depMgmt, overrideVersions = overrideVersions)
+  }
+
+  /**
+   * The Ivy dependencies of this module, with BOM and dependency management details
+   * added to them. This should be used when propagating the dependencies transitively
+   * to other modules.
+   */
+  def processedIvyDeps: Task[Agg[BoundDep]] = Task.Anon {
+    val processDependency0 = processDependency()()
+    allIvyDeps().map(bindDependency()).map { dep =>
+      dep.copy(dep = processDependency0(dep.dep))
+    }
+  }
+
+  /**
    * The transitive ivy dependencies of this module and all it's upstream modules.
    * This is calculated from [[ivyDeps]], [[mandatoryIvyDeps]] and recursively from [[moduleDeps]].
    */
   def transitiveIvyDeps: T[Agg[BoundDep]] = Task {
-    allIvyDeps().map(bindDependency()) ++
-      T.traverse(moduleDepsChecked)(_.transitiveIvyDeps)().flatten
+    val processDependency0 = processDependency(overrideVersions = true)()
+    processedIvyDeps() ++
+      T.traverse(moduleDepsChecked)(_.transitiveIvyDeps)().flatten.map { dep =>
+        dep.copy(dep = processDependency0(dep.dep))
+      }
   }
 
   /**
