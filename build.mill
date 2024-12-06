@@ -571,15 +571,10 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
       "mill.scalalib.ScalaModule#ScalaTests.mill$scalalib$ScalaModule$ScalaTests$$super$mandatoryScalacOptions"
     ),
     // Not sure why Mima is complaining when these are internal and private
-    ProblemFilter.exclude[Problem](
-      "*.bspJvmBuildTarget"
-    ),
-    ProblemFilter.exclude[Problem](
-      "mill.scalalib.RunModule#RunnerImpl.*"
-    ),
-    ProblemFilter.exclude[Problem](
-      "mill.util.PromptLogger#*"
-    )
+    ProblemFilter.exclude[Problem]("*.bspJvmBuildTarget"),
+    ProblemFilter.exclude[Problem]("mill.scalalib.RunModule#RunnerImpl.*"),
+    ProblemFilter.exclude[Problem]("mill.util.PromptLogger#*"),
+    ProblemFilter.exclude[Problem]("mill.util.PromptLoggerUtil.*")
   )
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
 
