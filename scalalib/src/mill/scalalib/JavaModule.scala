@@ -224,7 +224,7 @@ trait JavaModule
       depMgmt: Seq[(DependencyManagement.Key, DependencyManagement.Values)],
       overrideVersions: Boolean
   ): coursier.core.Dependency => coursier.core.Dependency = {
-    val depMgmtMap = depMgmt.toMap
+    val depMgmtMap = DependencyManagement.add(Map.empty, depMgmt)
     dep =>
       val depMgmtKey = DependencyManagement.Key(
         dep.module.organization,
@@ -233,7 +233,7 @@ trait JavaModule
         dep.publication.classifier
       )
       val versionOverrideOpt =
-        if (dep.version == "_") depMgmtMap.get(depMgmtKey).map(_.version)
+        if (dep.version == "_") depMgmtMap.get(depMgmtKey).map(_.version).filter(_.nonEmpty)
         else None
       val extraExclusions = depMgmtMap.get(depMgmtKey).map(_.minimizedExclusions)
       dep
@@ -246,7 +246,7 @@ trait JavaModule
         // - overrides meant to apply to transitive dependencies
         // - fill version if it's empty
         // - add extra exclusions from dependency management
-        .withOverrides(dep.overrides ++ depMgmt)
+        .addOverrides(depMgmt)
         .withVersion(versionOverrideOpt.getOrElse(dep.version))
         .withMinimizedExclusions(
           extraExclusions.fold(dep.minimizedExclusions)(dep.minimizedExclusions.join(_))
@@ -257,7 +257,7 @@ trait JavaModule
    * Data from depManagement, converted to a type ready to be passed to coursier
    * for dependency resolution
    */
-  private def processedDependencyManagement(deps: Seq[coursier.core.Dependency])
+  protected def processedDependencyManagement(deps: Seq[coursier.core.Dependency])
       : Seq[(DependencyManagement.Key, DependencyManagement.Values)] = {
     val keyValuesOrErrors =
       deps.map { depMgmt =>

@@ -1,9 +1,9 @@
 package mill.scalalib
 
 import coursier.cache.FileCache
+import coursier.core.{BomDependency, Resolution}
 import coursier.params.ResolutionParams
 import coursier.{Dependency, Repository, Resolve, Type}
-import coursier.core.Resolution
 import mill.define.Task
 import mill.api.PathRef
 
@@ -247,10 +247,12 @@ object CoursierModule {
      */
     def processDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
-        resolutionParams: ResolutionParams = ResolutionParams()
-    ): Seq[Dependency] = {
+        resolutionParams: ResolutionParams = ResolutionParams(),
+        boms: IterableOnce[BomDependency] = Nil
+    ): (Seq[coursier.core.Dependency], coursier.core.DependencyManagement.Map) = {
       val deps0 = deps
         .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
+      val boms0 = boms.toSeq
       val res = Lib.resolveDependenciesMetadataSafe(
         repositories = repositories,
         deps = deps0,
@@ -258,9 +260,11 @@ object CoursierModule {
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
         ctx = ctx,
-        resolutionParams = resolutionParams
+        resolutionParams = resolutionParams,
+        boms = boms0
       ).getOrThrow
-      res.processedRootDependencies
+
+      (res.processedRootDependencies, res.bomDepMgmt)
     }
   }
 
