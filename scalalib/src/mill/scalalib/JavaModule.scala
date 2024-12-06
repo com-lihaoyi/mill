@@ -215,9 +215,9 @@ trait JavaModule
    */
   def depManagement: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
-  def compileDependencyManagement: T[Agg[Dep]] = Task { Agg.empty[Dep] }
+  def compileDepManagement: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
-  def runDependencyManagement: T[Agg[Dep]] = Task { Agg.empty[Dep] }
+  def runDepManagement: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
   private def addBoms(
       bomDeps: Seq[coursier.core.BomDependency],
@@ -483,7 +483,7 @@ trait JavaModule
   ): Task[coursier.core.Dependency => coursier.core.Dependency] = Task.Anon {
     val bomDeps0 = allBomDeps().toSeq.map(_.withConfig(Configuration.provided))
     val depMgmt = processedDependencyManagement(
-      compileDependencyManagement().toSeq.map(bindDependency()).map(_.dep)
+      compileDepManagement().toSeq.map(bindDependency()).map(_.dep)
     )
 
     addBoms(bomDeps0, depMgmt, overrideVersions = overrideVersions)
@@ -494,7 +494,7 @@ trait JavaModule
   ): Task[coursier.core.Dependency => coursier.core.Dependency] = Task.Anon {
     val bomDeps0 = allBomDeps().toSeq.map(_.withConfig(Configuration.defaultCompile))
     val depMgmt = processedDependencyManagement(
-      runDependencyManagement().toSeq.map(bindDependency()).map(_.dep)
+      runDepManagement().toSeq.map(bindDependency()).map(_.dep)
     )
 
     addBoms(bomDeps0, depMgmt, overrideVersions = overrideVersions)
@@ -554,7 +554,7 @@ trait JavaModule
    */
   def transitiveRunIvyDeps: T[Agg[BoundDep]] = Task {
     val processDependency0 = processRunDependency(overrideVersions = true)()
-    runIvyDeps().map(bindDependency()) ++ {
+    processedRunIvyDeps() ++ {
       val viaModules =
         T.traverse(moduleDepsChecked)(_.transitiveRunIvyDeps)().flatten ++
           T.traverse(runModuleDepsChecked)(_.transitiveIvyDeps)().flatten ++

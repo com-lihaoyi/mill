@@ -137,9 +137,10 @@ trait PublishModule extends JavaModule { outer =>
   def bomDetails: T[(Map[coursier.core.Module, String], coursier.core.DependencyManagement.Map)] =
     Task {
       val (processedDeps, depMgmt) = defaultResolver().processDeps(
-        processedIvyDeps(),
+        processedRunIvyDeps() ++ processedIvyDeps(),
         resolutionParams = resolutionParams(),
-        boms = allBomDeps().toSeq.map(_.withConfig(Configuration.compile))
+        boms =
+          allBomDeps().toSeq.map(_.withConfig(Configuration.defaultCompile)) ++ extraBomDeps().toSeq
       )
       (processedDeps.map(_.moduleVersion).toMap, depMgmt)
     }
@@ -191,7 +192,7 @@ trait PublishModule extends JavaModule { outer =>
       )
       val entries = coursier.core.DependencyManagement.add(
         Map.empty,
-        depMgmtEntries ++ bomDepMgmt
+        depMgmtEntries ++ bomDepMgmt0
           .filter {
             case (key, _) =>
               !moduleSet.contains((key.organization.value, key.name.value))
@@ -200,10 +201,14 @@ trait PublishModule extends JavaModule { outer =>
       entries.toVector
         .map {
           case (key, values) =>
+            val confString =
+              if (values.config == Configuration.runtime) "runtime->runtime"
+              else ""
             Ivy.Override(
               key.organization.value,
               key.name.value,
-              values.version
+              values.version,
+              confString
             )
         }
         .sortBy(value => (value.organization, value.name, value.version))

@@ -8,7 +8,7 @@ object Ivy {
 
   val head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 
-  case class Override(organization: String, name: String, version: String)
+  case class Override(organization: String, name: String, version: String, confString: String)
 
   def apply(
       artifact: Artifact,
@@ -89,7 +89,11 @@ object Ivy {
   }
 
   private def renderOverride(override0: Override): Elem =
-    <override org={override0.organization} module={override0.name} rev={override0.version} />
+    if (override0.confString.isEmpty)
+      <override org={override0.organization} module={override0.name} rev={override0.version} />
+    else
+      <override org={override0.organization} module={override0.name} rev={override0.version}
+        conf={override0.confString} />
 
   private def depIvyConf(d: Dependency): String = {
     def target(value: String) = d.configuration.getOrElse(value)
