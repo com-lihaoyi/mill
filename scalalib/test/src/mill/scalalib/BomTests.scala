@@ -170,6 +170,108 @@ object BomTests extends TestSuite {
       }
     }
 
+    object precedence extends Module {
+      object higher extends JavaModule with TestPublishModule {
+        def bomDeps = Agg(
+          ivy"com.google.protobuf:protobuf-bom:4.28.1"
+        )
+        def depManagement = Agg(
+          ivy"com.google.protobuf:protobuf-java:4.28.3"
+        )
+
+        def ivyDeps = Agg(
+          ivy"com.google.protobuf:protobuf-java"
+        )
+      }
+
+      object higherTransitive extends JavaModule with TestPublishModule {
+        def bomDeps = Agg(
+          ivy"com.google.protobuf:protobuf-bom:4.28.1"
+        )
+        def depManagement = Agg(
+          ivy"com.google.protobuf:protobuf-java:4.28.3"
+        )
+
+        def ivyDeps = Agg(
+          ivy"com.google.protobuf:protobuf-java-util"
+        )
+      }
+
+      object lower extends JavaModule with TestPublishModule {
+        def bomDeps = Agg(
+          ivy"com.google.protobuf:protobuf-bom:4.28.1"
+        )
+        def depManagement = Agg(
+          ivy"com.google.protobuf:protobuf-java:3.22.0"
+        )
+
+        def ivyDeps = Agg(
+          ivy"com.google.protobuf:protobuf-java"
+        )
+      }
+
+      object lowerTransitive extends JavaModule with TestPublishModule {
+        def bomDeps = Agg(
+          ivy"com.google.protobuf:protobuf-bom:4.28.1"
+        )
+        def depManagement = Agg(
+          ivy"com.google.protobuf:protobuf-java:3.22.0"
+        )
+
+        def ivyDeps = Agg(
+          ivy"com.google.protobuf:protobuf-java-util"
+        )
+      }
+
+      object addExclude extends JavaModule with TestPublishModule {
+        def bomDeps = Agg(
+          ivy"com.google.protobuf:protobuf-bom:4.28.3"
+        )
+        def depManagement = Agg(
+          ivy"com.google.protobuf:protobuf-java-util"
+            .exclude(("com.google.protobuf", "protobuf-java"))
+        )
+
+        def ivyDeps = Agg(
+          ivy"com.google.protobuf:protobuf-java-util"
+        )
+
+        object transitive extends JavaModule with TestPublishModule {
+          def moduleDeps = Seq(addExclude)
+        }
+      }
+
+      object firstInDepMgmt extends JavaModule with TestPublishModule {
+        def depManagement = Agg(
+          ivy"com.google.protobuf:protobuf-java:3.22.0",
+          ivy"com.google.protobuf:protobuf-java:4.28.3"
+        )
+
+        def ivyDeps = Agg(
+          ivy"com.google.protobuf:protobuf-java"
+        )
+
+        object transitive extends JavaModule with TestPublishModule {
+          def moduleDeps = Seq(firstInDepMgmt)
+        }
+      }
+
+      object firstInDepMgmtTransitively extends JavaModule with TestPublishModule {
+        def depManagement = Agg(
+          ivy"com.google.protobuf:protobuf-java:3.22.0",
+          ivy"com.google.protobuf:protobuf-java:4.28.3"
+        )
+
+        def ivyDeps = Agg(
+          ivy"com.google.protobuf:protobuf-java-util:4.28.3"
+        )
+
+        object transitive extends JavaModule with TestPublishModule {
+          def moduleDeps = Seq(firstInDepMgmtTransitively)
+        }
+      }
+    }
+
     object bomOnModuleDependency extends JavaModule with TestPublishModule {
       def ivyDeps = Agg(
         ivy"com.google.protobuf:protobuf-java:3.23.4"
@@ -462,6 +564,81 @@ object BomTests extends TestSuite {
           expectedProtobufJarName,
           Seq(modules.depMgmt.placeholder)
         )
+      }
+    }
+
+    test("precedence") {
+      test("higher") - UnitTester(modules, null).scoped { implicit eval =>
+        isInClassPath(
+          modules.precedence.higher,
+          "protobuf-java-4.28.3.jar"
+        )
+      }
+      test("higherTransitive") - UnitTester(modules, null).scoped { implicit eval =>
+        isInClassPath(
+          modules.precedence.higherTransitive,
+          "protobuf-java-4.28.3.jar"
+        )
+      }
+      test("lower") - UnitTester(modules, null).scoped { implicit eval =>
+        isInClassPath(
+          modules.precedence.lower,
+          "protobuf-java-3.22.0.jar"
+        )
+      }
+      test("lowerTransitive") - UnitTester(modules, null).scoped { implicit eval =>
+        isInClassPath(
+          modules.precedence.lowerTransitive,
+          "protobuf-java-3.22.0.jar"
+        )
+      }
+      test("addExclude") - UnitTester(modules, null).scoped { implicit eval =>
+        isInClassPath(
+          modules.precedence.addExclude,
+          "protobuf-java-util-4.28.3.jar",
+          jarCheck = Some { jarName =>
+            !jarName.startsWith("protobuf-java-") ||
+            jarName.startsWith("protobuf-java-util")
+          }
+        )
+      }
+      test("addExcludeTransitive") - UnitTester(modules, null).scoped { implicit eval =>
+        isInClassPath(
+          modules.precedence.addExclude.transitive,
+          "protobuf-java-util-4.28.3.jar",
+          Seq(modules.precedence.addExclude),
+          jarCheck = Some { jarName =>
+            !jarName.startsWith("protobuf-java-") ||
+            jarName.startsWith("protobuf-java-util")
+          }
+        )
+      }
+      test("firstInDepMgmt") - UnitTester(modules, null).scoped { implicit eval =>
+        isInClassPath(
+          modules.precedence.firstInDepMgmt,
+          "protobuf-java-3.22.0.jar"
+        )
+      }
+      test("firstInDepMgmtTransitive") - UnitTester(modules, null).scoped { implicit eval =>
+        isInClassPath(
+          modules.precedence.firstInDepMgmt.transitive,
+          "protobuf-java-3.22.0.jar",
+          Seq(modules.precedence.firstInDepMgmt)
+        )
+      }
+      test("firstInDepMgmtTransitively") - UnitTester(modules, null).scoped { implicit eval =>
+        isInClassPath(
+          modules.precedence.firstInDepMgmtTransitively,
+          "protobuf-java-3.22.0.jar"
+        )
+      }
+      test("firstInDepMgmtTransitivelyTransitive") - UnitTester(modules, null).scoped {
+        implicit eval =>
+          isInClassPath(
+            modules.precedence.firstInDepMgmtTransitively.transitive,
+            "protobuf-java-3.22.0.jar",
+            Seq(modules.precedence.firstInDepMgmtTransitively)
+          )
       }
     }
 
