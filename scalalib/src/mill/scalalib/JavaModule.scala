@@ -232,6 +232,10 @@ trait JavaModule
    *     ivy"com.lihaoyi::cask:0.9.4".exclude("org.slf4j", "slf4j-api")
    *   )
    * }}}
+   *
+   * Versions and exclusions specified here apply to dependencies pulled via
+   * `ivyDeps`, `compileIvyDeps` (compile-only or "provided" dependencies), and
+   * `runIvyDeps` (runtime dependencies).
    */
   def depManagement: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
