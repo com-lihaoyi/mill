@@ -77,7 +77,6 @@ object PromptLoggerTests extends TestSuite {
 
       check(promptLogger, baos, width = 999 /*log file has no line wrapping*/ )(
         "============================== TITLE ==============================",
-        "===================================================================",
         // Make sure that the first time a prefix is reported,
         // we print the verbose prefix along with the ticker string
         "[1/456] my-task",
@@ -89,15 +88,12 @@ object PromptLoggerTests extends TestSuite {
         // footer
         "[123/456] ============================== TITLE ============================== 10s",
         "[1] my-task 10s",
-        "=================================================================================",
         "[1] WORLD",
         // Calling `refreshPrompt()` after closing the ticker shows the prompt without
         // the ticker in the list, with an updated time elapsed
         "[123/456] ============================== TITLE ============================== 20s",
-        "=================================================================================",
         // Closing the prompt prints the prompt one last time with an updated time elapsed
         "[123/456] ============================== TITLE ============================== 30s",
-        "=================================================================================",
         ""
       )
 

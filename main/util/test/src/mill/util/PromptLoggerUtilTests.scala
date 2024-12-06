@@ -456,7 +456,6 @@ object PromptLoggerUtilTests extends TestSuite {
           "#1 hello1234567890abcefghijklmnopqr...4567890abcefghijklmnopqrstuvwxyz 1s",
           "#2 world 2s",
           "#3 i am cow 3s",
-          "========================================================================="
         )
         assert(rendered == expected)
       }

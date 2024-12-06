@@ -147,12 +147,7 @@ private object PromptLoggerUtil {
         s"... and ${nonEmptyBodyCount - maxHeight + 1} more threads"
       )
 
-    // For non-interactive jobs, the prompt won't be at the bottom of the terminal but
-    // will instead be in the middle of a big log file with logs above and below, so we
-    // need some kind of footer to tell the reader when the prompt ends and logs begin
-    val footer = Option.when(!interactive)("=" * header.length).toList
-
-    header :: body ::: footer
+    header :: body
   }
 
   // Wrap the prompt in the necessary clear-screens/newlines/move-cursors
