@@ -71,12 +71,16 @@ trait PublishModule extends JavaModule { outer =>
 
   def publishXmlDeps: Task[Agg[Dependency]] = Task.Anon {
     val ivyPomDeps =
-      processedIvyDeps().map(_.toDep).map(resolvePublishDependency.apply().apply(_))
+      processedIvyDeps().map(_.toDep)
+        .map(resolvePublishDependency.apply().apply(_))
+
+    val runIvyPomDeps = runIvyDeps()
+      .map(resolvePublishDependency.apply().apply(_))
+      .filter(!ivyPomDeps.contains(_))
 
     val compileIvyPomDeps = compileIvyDeps()
       .map(resolvePublishDependency.apply().apply(_))
       .filter(!ivyPomDeps.contains(_))
-      .map(_.copy(scope = Scope.Provided))
 
     val modulePomDeps = T.sequence(moduleDepsChecked.collect {
       case m: PublishModule => m.publishSelfDependency
@@ -84,10 +88,16 @@ trait PublishModule extends JavaModule { outer =>
     val compileModulePomDeps = T.sequence(compileModuleDepsChecked.collect {
       case m: PublishModule => m.publishSelfDependency
     })()
+    val runModulePomDeps = T.sequence(runModuleDepsChecked.collect {
+      case m: PublishModule => m.publishSelfDependency
+    })()
 
-    ivyPomDeps ++ compileIvyPomDeps ++
+    ivyPomDeps ++
+      compileIvyPomDeps.map(_.copy(scope = Scope.Provided)) ++
+      runIvyPomDeps.map(_.copy(scope = Scope.Runtime)) ++
       modulePomDeps.map(Dependency(_, Scope.Compile)) ++
-      compileModulePomDeps.map(Dependency(_, Scope.Provided))
+      compileModulePomDeps.map(Dependency(_, Scope.Provided)) ++
+      runModulePomDeps.map(Dependency(_, Scope.Runtime))
   }
 
   /**
