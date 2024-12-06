@@ -171,21 +171,24 @@ trait PublishModule extends JavaModule { outer =>
       else
         dep
     }
-    def rootDepsAdjustment = publishXmlDeps0.iterator.flatMap { dep =>
-      val key = coursier.core.DependencyManagement.Key(
-        coursier.core.Organization(dep.artifact.group),
-        coursier.core.ModuleName(dep.artifact.id),
-        coursier.core.Type.jar,
-        coursier.core.Classifier.empty
-      )
-      bomDepMgmt.get(key).flatMap { values =>
-        if (values.version.nonEmpty && values.version != dep.artifact.version)
-          Some(key -> values.withVersion(""))
-        else
-          None
+    val bomDepMgmt0 = {
+      // Ensure we don't override versions of root dependencies with overrides from the BOM
+      val rootDepsAdjustment = publishXmlDeps0.iterator.flatMap { dep =>
+        val key = coursier.core.DependencyManagement.Key(
+          coursier.core.Organization(dep.artifact.group),
+          coursier.core.ModuleName(dep.artifact.id),
+          coursier.core.Type.jar,
+          coursier.core.Classifier.empty
+        )
+        bomDepMgmt.get(key).flatMap { values =>
+          if (values.version.nonEmpty && values.version != dep.artifact.version)
+            Some(key -> values.withVersion(""))
+          else
+            None
+        }
       }
+      bomDepMgmt ++ rootDepsAdjustment
     }
-    val bomDepMgmt0 = bomDepMgmt ++ rootDepsAdjustment
     lazy val moduleSet = publishXmlDeps0.map(dep => (dep.artifact.group, dep.artifact.id)).toSet
     val overrides = {
       val depMgmtEntries = processedDependencyManagement(
@@ -194,6 +197,7 @@ trait PublishModule extends JavaModule { outer =>
           .map(_.dep)
           .filter(depMgmt => depMgmt.version.nonEmpty && depMgmt.version != "_")
           .filter { depMgmt =>
+            // Ensure we don't override versions of root dependencies with overrides from the BOM
             !moduleSet.contains((depMgmt.module.organization.value, depMgmt.module.name.value))
           }
       )
@@ -202,6 +206,7 @@ trait PublishModule extends JavaModule { outer =>
         depMgmtEntries ++ bomDepMgmt0
           .filter {
             case (key, _) =>
+              // Ensure we don't override versions of root dependencies with overrides from the BOM
               !moduleSet.contains((key.organization.value, key.name.value))
           }
       )
@@ -209,6 +214,7 @@ trait PublishModule extends JavaModule { outer =>
         .map {
           case (key, values) =>
             val confString =
+              // we pull the runtime dependency of runtime dependencies, like Maven does
               if (values.config == Configuration.runtime) "runtime->runtime"
               else ""
             Ivy.Override(
