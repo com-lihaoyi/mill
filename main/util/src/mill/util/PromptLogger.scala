@@ -367,8 +367,7 @@ private[mill] object PromptLogger {
         titleText,
         statuses.toSeq.map { case (k, v) => (k.mkString("-"), v) },
         interactive = interactive,
-        infoColor = infoColor,
-        ending = ending
+        infoColor = infoColor
       )
 
       val oldPromptBytes = currentPromptBytes
