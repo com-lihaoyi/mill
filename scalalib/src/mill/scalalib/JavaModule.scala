@@ -214,7 +214,7 @@ trait JavaModule
       depMgmt: Seq[(DependencyManagement.Key, DependencyManagement.Values)],
       overrideVersions: Boolean
   ): coursier.core.Dependency => coursier.core.Dependency = {
-    val depMgmtMap = depMgmt.toMap
+    val depMgmtMap = DependencyManagement.add(Map.empty, depMgmt)
     dep =>
       val depMgmtKey = DependencyManagement.Key(
         dep.module.organization,
@@ -223,7 +223,7 @@ trait JavaModule
         dep.publication.classifier
       )
       val versionOverrideOpt =
-        if (dep.version == "_") depMgmtMap.get(depMgmtKey).map(_.version)
+        if (dep.version == "_") depMgmtMap.get(depMgmtKey).map(_.version).filter(_.nonEmpty)
         else None
       val extraExclusions = depMgmtMap.get(depMgmtKey).map(_.minimizedExclusions)
       dep
@@ -236,7 +236,7 @@ trait JavaModule
         // - overrides meant to apply to transitive dependencies
         // - fill version if it's empty
         // - add extra exclusions from dependency management
-        .withOverrides(dep.overrides ++ depMgmt)
+        .addOverrides(depMgmt)
         .withVersion(versionOverrideOpt.getOrElse(dep.version))
         .withMinimizedExclusions(
           extraExclusions.fold(dep.minimizedExclusions)(dep.minimizedExclusions.join(_))
@@ -247,7 +247,7 @@ trait JavaModule
    * Data from depManagement, converted to a type ready to be passed to coursier
    * for dependency resolution
    */
-  private def processedDependencyManagement(deps: Seq[coursier.core.Dependency])
+  protected def processedDependencyManagement(deps: Seq[coursier.core.Dependency])
       : Seq[(DependencyManagement.Key, DependencyManagement.Values)] = {
     val keyValuesOrErrors =
       deps.map { depMgmt =>
@@ -318,6 +318,18 @@ trait JavaModule
   def moduleDeps: Seq[JavaModule] = Seq.empty
 
   /**
+   *  The compile-only direct dependencies of this module. These are *not*
+   *  transitive, and only take effect in the module that they are declared in.
+   */
+  def compileModuleDeps: Seq[JavaModule] = Seq.empty
+
+  /**
+   * The runtime-only direct dependencies of this module. These *are* transitive,
+   * and so get propagated to downstream modules automatically
+   */
+  def runModuleDeps: Seq[JavaModule] = Seq.empty
+
+  /**
    * Same as [[moduleDeps]] but checked to not contain cycles.
    * Prefer this over using [[moduleDeps]] directly.
    */
@@ -325,6 +337,13 @@ trait JavaModule
     // trigger initialization to check for cycles
     recModuleDeps
     moduleDeps
+  }
+
+  /** Same as [[compileModuleDeps]] but checked to not contain cycles. */
+  final def compileModuleDepsChecked: Seq[JavaModule] = {
+    // trigger initialization to check for cycles
+    recCompileModuleDeps
+    compileModuleDeps
   }
 
   /**
@@ -345,39 +364,20 @@ trait JavaModule
       _.moduleDeps
     )
 
-  /** Should only be called from [[runModuleDepsChecked]] */
-  private lazy val recRunModuleDeps: Seq[JavaModule] =
-    ModuleUtils.recursive[JavaModule](
-      (millModuleSegments ++ Seq(Segment.Label("runModuleDeps"))).render,
-      this,
-      m => m.runModuleDeps ++ m.moduleDeps
-    )
-
-  /**
-   *  The compile-only direct dependencies of this module. These are *not*
-   *  transitive, and only take effect in the module that they are declared in.
-   */
-  def compileModuleDeps: Seq[JavaModule] = Seq.empty
-
-  /**
-   * The runtime-only direct dependencies of this module. These *are* transitive,
-   * and so get propagated to downstream modules automatically
-   */
-  def runModuleDeps: Seq[JavaModule] = Seq.empty
-
-  /** Same as [[compileModuleDeps]] but checked to not contain cycles. */
-  final def compileModuleDepsChecked: Seq[JavaModule] = {
-    // trigger initialization to check for cycles
-    recCompileModuleDeps
-    compileModuleDeps
-  }
-
   /** Should only be called from [[compileModuleDeps]] */
   private lazy val recCompileModuleDeps: Seq[JavaModule] =
     ModuleUtils.recursive[JavaModule](
       (millModuleSegments ++ Seq(Segment.Label("compileModuleDeps"))).render,
       this,
       _.compileModuleDeps
+    )
+
+  /** Should only be called from [[runModuleDepsChecked]] */
+  private lazy val recRunModuleDeps: Seq[JavaModule] =
+    ModuleUtils.recursive[JavaModule](
+      (millModuleSegments ++ Seq(Segment.Label("runModuleDeps"))).render,
+      this,
+      m => m.runModuleDeps ++ m.moduleDeps
     )
 
   /** The direct and indirect dependencies of this module */
@@ -419,13 +419,6 @@ trait JavaModule
    */
   def transitiveModuleRunModuleDeps: Seq[JavaModule] = {
     (runModuleDepsChecked ++ moduleDepsChecked).flatMap(_.transitiveRunModuleDeps).distinct
-  }
-
-  /** The compile-only transitive ivy dependencies of this module and all it's upstream compile-only modules. */
-  def transitiveCompileIvyDeps: T[Agg[BoundDep]] = Task {
-    // We never include compile-only dependencies transitively, but we must include normal transitive dependencies!
-    compileIvyDeps().map(bindDependency()) ++
-      T.traverse(compileModuleDepsChecked)(_.transitiveIvyDeps)().flatten
   }
 
   /**
@@ -496,6 +489,13 @@ trait JavaModule
       T.traverse(moduleDepsChecked)(_.transitiveIvyDeps)().flatten.map { dep =>
         dep.copy(dep = processDependency0(dep.dep))
       }
+  }
+
+  /** The compile-only transitive ivy dependencies of this module and all it's upstream compile-only modules. */
+  def transitiveCompileIvyDeps: T[Agg[BoundDep]] = Task {
+    // We never include compile-only dependencies transitively, but we must include normal transitive dependencies!
+    compileIvyDeps().map(bindDependency()) ++
+      T.traverse(compileModuleDepsChecked)(_.transitiveIvyDeps)().flatten
   }
 
   /**

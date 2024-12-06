@@ -17,6 +17,8 @@ import utest._
 import utest.framework.TestPath
 
 import java.io.PrintStream
+
+import scala.jdk.CollectionConverters._
 import scala.xml.NodeSeq
 
 object PublishModuleTests extends TestSuite {
@@ -74,6 +76,36 @@ object PublishModuleTests extends TestSuite {
       override def jar: T[PathRef] = Task { ???.asInstanceOf[PathRef] }
       override def docJar: T[PathRef] = Task { ???.asInstanceOf[PathRef] }
       override def sourceJar: T[PathRef] = Task { ???.asInstanceOf[PathRef] }
+    }
+  }
+
+  trait TestPublishModule extends PublishModule {
+    def publishVersion = "0.1.0-SNAPSHOT"
+    def pomSettings = PomSettings(
+      organization = "com.lihaoyi.pubmodtests",
+      description = "test thing",
+      url = "https://github.com/com-lihaoyi/mill",
+      licenses = Seq(License.Common.Apache2),
+      versionControl = VersionControl.github("com-lihaoyi", "mill"),
+      developers = Nil
+    )
+  }
+  object compileAndRuntimeStuff extends TestBaseModule {
+    object main extends JavaModule with TestPublishModule {
+      def ivyDeps = Agg(
+        ivy"org.slf4j:slf4j-api:2.0.15"
+      )
+      def runIvyDeps = Agg(
+        ivy"ch.qos.logback:logback-classic:1.5.12"
+      )
+    }
+
+    object transitive extends JavaModule with TestPublishModule {
+      def moduleDeps = Seq(main)
+    }
+
+    object runtimeTransitive extends JavaModule with TestPublishModule {
+      def runModuleDeps = Seq(main)
     }
   }
 
@@ -185,7 +217,7 @@ object PublishModuleTests extends TestSuite {
         val ivyXml = scala.xml.XML.loadFile(result.value.path.toString)
         val deps: NodeSeq = (ivyXml \ "dependencies" \ "dependency")
         assert(deps.exists(n =>
-          (n \ "@conf").text == "compile->default(compile)" &&
+          (n \ "@conf").text == "compile->compile;runtime->runtime" &&
             (n \ "@name").text == "scala-library" && (n \ "@org").text == "org.scala-lang"
         ))
       }
@@ -208,6 +240,103 @@ object PublishModuleTests extends TestSuite {
 //          (scalaLibrary \ "groupId").text == "org.slf4j"
 //        )
       }
+    }
+
+    test("scopes") - UnitTester(compileAndRuntimeStuff, null).scoped { eval =>
+      def assertClassPathContains(cp: Seq[os.Path], fileName: String) =
+        assert(cp.map(_.last).contains(fileName))
+      def assertClassPathDoesntContain(cp: Seq[os.Path], prefix: String) =
+        assert(cp.map(_.last).forall(!_.startsWith(prefix)))
+
+      def nothingClassPathCheck(cp: Seq[os.Path]): Unit = {
+        assertClassPathDoesntContain(cp, "slf4j")
+        assertClassPathDoesntContain(cp, "logback")
+      }
+      def compileClassPathCheck(cp: Seq[os.Path]): Unit = {
+        assertClassPathContains(cp, "slf4j-api-2.0.15.jar")
+        assertClassPathDoesntContain(cp, "logback")
+      }
+      def runtimeClassPathCheck(cp: Seq[os.Path]): Unit = {
+        assertClassPathContains(cp, "slf4j-api-2.0.15.jar")
+        assertClassPathContains(cp, "logback-classic-1.5.12.jar")
+      }
+
+      val compileCp =
+        eval(compileAndRuntimeStuff.main.compileClasspath).toTry.get.value.toSeq.map(_.path)
+      val runtimeCp =
+        eval(compileAndRuntimeStuff.main.runClasspath).toTry.get.value.toSeq.map(_.path)
+
+      compileClassPathCheck(compileCp)
+      runtimeClassPathCheck(runtimeCp)
+
+      val ivy2Repo = eval.evaluator.workspace / "ivy2Local"
+      val m2Repo = eval.evaluator.workspace / "m2Local"
+
+      eval(compileAndRuntimeStuff.main.publishLocal(ivy2Repo.toString)).toTry.get
+      eval(compileAndRuntimeStuff.transitive.publishLocal(ivy2Repo.toString)).toTry.get
+      eval(compileAndRuntimeStuff.runtimeTransitive.publishLocal(ivy2Repo.toString)).toTry.get
+      eval(compileAndRuntimeStuff.main.publishM2Local(m2Repo.toString)).toTry.get
+      eval(compileAndRuntimeStuff.transitive.publishM2Local(m2Repo.toString)).toTry.get
+      eval(compileAndRuntimeStuff.runtimeTransitive.publishM2Local(m2Repo.toString)).toTry.get
+
+      def localRepoCp(localRepo: coursierapi.Repository, moduleName: String, config: String) = {
+        val dep = coursierapi.Dependency.of("com.lihaoyi.pubmodtests", moduleName, "0.1.0-SNAPSHOT")
+        coursierapi.Fetch.create()
+          .addDependencies(dep)
+          .addRepositories(localRepo)
+          .withResolutionParams(
+            coursierapi.ResolutionParams.create()
+              .withDefaultConfiguration(if (config.isEmpty) null else config)
+          )
+          .fetch()
+          .asScala
+          .map(os.Path(_))
+          .toSeq
+      }
+      def ivy2Cp(moduleName: String, config: String) =
+        localRepoCp(
+          coursierapi.IvyRepository.of(ivy2Repo.toNIO.toUri.toASCIIString + "[defaultPattern]"),
+          moduleName,
+          config
+        )
+      def m2Cp(moduleName: String, config: String) =
+        localRepoCp(
+          coursierapi.MavenRepository.of(m2Repo.toNIO.toUri.toASCIIString),
+          moduleName,
+          config
+        )
+
+      val ivy2CompileCp = ivy2Cp("main", "compile")
+      val ivy2RunCp = ivy2Cp("main", "runtime")
+      val m2CompileCp = m2Cp("main", "compile")
+      val m2RunCp = m2Cp("main", "runtime")
+
+      compileClassPathCheck(ivy2CompileCp)
+      compileClassPathCheck(m2CompileCp)
+      runtimeClassPathCheck(ivy2RunCp)
+      runtimeClassPathCheck(m2RunCp)
+
+      val ivy2TransitiveCompileCp = ivy2Cp("transitive", "compile")
+      val ivy2TransitiveRunCp = ivy2Cp("transitive", "runtime")
+      val m2TransitiveCompileCp = m2Cp("transitive", "compile")
+      val m2TransitiveRunCp = m2Cp("transitive", "runtime")
+
+      compileClassPathCheck(ivy2TransitiveCompileCp)
+      compileClassPathCheck(m2TransitiveCompileCp)
+      runtimeClassPathCheck(ivy2TransitiveRunCp)
+      runtimeClassPathCheck(m2TransitiveRunCp)
+
+      val ivy2RuntimeTransitiveCompileCp = ivy2Cp("runtimeTransitive", "compile")
+      val ivy2RuntimeTransitiveRunCp = ivy2Cp("runtimeTransitive", "runtime")
+      val m2RuntimeTransitiveCompileCp = m2Cp("runtimeTransitive", "compile")
+      val m2RuntimeTransitiveRunCp = m2Cp("runtimeTransitive", "runtime")
+
+      // runtime dependency on the main module - doesn't pull anything from it
+      // at compile time, hence the nothingClassPathCheck-s
+      nothingClassPathCheck(ivy2RuntimeTransitiveCompileCp)
+      nothingClassPathCheck(m2RuntimeTransitiveCompileCp)
+      runtimeClassPathCheck(ivy2RuntimeTransitiveRunCp)
+      runtimeClassPathCheck(m2RuntimeTransitiveRunCp)
     }
   }
 
