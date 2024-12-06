@@ -92,7 +92,6 @@ private object PromptLoggerUtil {
       statuses: Iterable[(String, Status)],
       interactive: Boolean,
       infoColor: fansi.Attrs,
-      ending: Boolean = false
   ): List[String] = {
     // -1 to leave a bit of buffer
     val maxWidth = consoleWidth - 1
@@ -100,7 +99,7 @@ private object PromptLoggerUtil {
     val maxHeight = math.max(1, consoleHeight / 3 - 1)
     val headerSuffix = renderSecondsSuffix(now - startTimeMillis)
 
-    val header = renderHeader(headerPrefix, titleText, headerSuffix, maxWidth, ending, interactive)
+    val header = renderHeader(headerPrefix, titleText, headerSuffix, maxWidth)
 
     val body0 = statuses
       .flatMap {
@@ -177,11 +176,8 @@ private object PromptLoggerUtil {
       titleText0: String,
       headerSuffix0: String,
       maxWidth: Int,
-      ending: Boolean = false,
-      interactive: Boolean = true
   ): String = {
-    val headerPrefix = if (headerPrefix0.isEmpty) "" else s"$headerPrefix0 "
-    val headerPrefixStr = if (!interactive || ending) headerPrefix else s"  $headerPrefix"
+    val headerPrefixStr = if (headerPrefix0.isEmpty) "" else s"$headerPrefix0 "
     val headerSuffixStr = headerSuffix0
     val titleText = s" $titleText0 "
 
