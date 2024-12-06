@@ -1,14 +1,12 @@
 package mill.main.maven
 
-import com.github.difflib.{DiffUtils, UnifiedDiffUtils}
 import mill.T
 import mill.api.PathRef
+import mill.main.client.OutFiles
 import mill.scalalib.scalafmt.ScalafmtModule
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.*
 import utest.framework.TestPath
-
-import scala.jdk.CollectionConverters._
 
 object BuildGenTests extends TestSuite {
 
@@ -176,31 +174,14 @@ object BuildGenTests extends TestSuite {
           os.copy.over(source, dest, createFolders = true)
         }
       } else {
-        for (subPath <- missing)
-          System.err.println(s"Not found: $subPath")
-        for (subPath <- extra)
-          System.err.println(s"Found extra file: $subPath")
-
-        for (subPath <- differentContent) {
-          val actual = os.read.lines(root / subPath)
-          val expected = os.read.lines(expectedRoot / subPath)
-          val patch = DiffUtils.diff(expected.asJava, actual.asJava)
-          val printablePatch = UnifiedDiffUtils.generateUnifiedDiff(
-            s"expected / $subPath",
-            s"obtained / $subPath",
-            expected.asJava,
-            patch,
-            3
-          )
-          for (line <- printablePatch.asScala) {
-            val color =
-              if (line.startsWith("+")) Console.GREEN
-              else if (line.startsWith("-")) Console.RED
-              else if (line.startsWith("@")) Console.CYAN
-              else ""
-            System.err.println(color + line + Console.RESET)
-          }
-        }
+        // Non *.mill files, that are not in test data, that we don't want
+        // to see in the diff
+        val toCleanUp = os.walk(root, skip = _.startsWith(root / OutFiles.defaultOut))
+          .filter(os.isFile)
+          .filter(!_.lastOpt.exists(_.endsWith(".mill")))
+        toCleanUp.foreach(os.remove)
+        os.proc("git", "diff", "--no-index", expectedRoot, root)
+          .call(stdin = os.Inherit, stdout = os.Inherit)
       }
 
     updateSnapshots || valid
