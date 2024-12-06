@@ -24,7 +24,7 @@ object BomTests extends TestSuite {
   object modules extends TestBaseModule {
     object bom extends Module {
       object placeholder extends JavaModule with TestPublishModule {
-        def bomDeps = Agg(
+        def bomIvyDeps = Agg(
           ivy"com.google.cloud:libraries-bom:26.50.0"
         )
         def ivyDeps = Agg(
@@ -51,7 +51,7 @@ object BomTests extends TestSuite {
       }
 
       object versionOverride extends JavaModule with TestPublishModule {
-        def bomDeps = Agg(
+        def bomIvyDeps = Agg(
           ivy"com.google.cloud:libraries-bom:26.50.0"
         )
         def ivyDeps = Agg(
@@ -79,7 +79,7 @@ object BomTests extends TestSuite {
 
       object invalid extends TestBaseModule {
         object exclude extends JavaModule {
-          def bomDeps = Agg(
+          def bomIvyDeps = Agg(
             ivy"com.google.cloud:libraries-bom:26.50.0".exclude(("foo", "thing"))
           )
         }
@@ -172,7 +172,7 @@ object BomTests extends TestSuite {
 
     object precedence extends Module {
       object higher extends JavaModule with TestPublishModule {
-        def bomDeps = Agg(
+        def bomIvyDeps = Agg(
           ivy"com.google.protobuf:protobuf-bom:4.28.1"
         )
         def depManagement = Agg(
@@ -185,7 +185,7 @@ object BomTests extends TestSuite {
       }
 
       object higherTransitive extends JavaModule with TestPublishModule {
-        def bomDeps = Agg(
+        def bomIvyDeps = Agg(
           ivy"com.google.protobuf:protobuf-bom:4.28.1"
         )
         def depManagement = Agg(
@@ -198,7 +198,7 @@ object BomTests extends TestSuite {
       }
 
       object lower extends JavaModule with TestPublishModule {
-        def bomDeps = Agg(
+        def bomIvyDeps = Agg(
           ivy"com.google.protobuf:protobuf-bom:4.28.1"
         )
         def depManagement = Agg(
@@ -211,7 +211,7 @@ object BomTests extends TestSuite {
       }
 
       object lowerTransitive extends JavaModule with TestPublishModule {
-        def bomDeps = Agg(
+        def bomIvyDeps = Agg(
           ivy"com.google.protobuf:protobuf-bom:4.28.1"
         )
         def depManagement = Agg(
@@ -224,7 +224,7 @@ object BomTests extends TestSuite {
       }
 
       object addExclude extends JavaModule with TestPublishModule {
-        def bomDeps = Agg(
+        def bomIvyDeps = Agg(
           ivy"com.google.protobuf:protobuf-bom:4.28.3"
         )
         def depManagement = Agg(
@@ -278,7 +278,7 @@ object BomTests extends TestSuite {
       )
 
       object dependee extends JavaModule with TestPublishModule {
-        def bomDeps = Agg(
+        def bomIvyDeps = Agg(
           ivy"com.google.cloud:libraries-bom:26.50.0"
         )
         def moduleDeps = Seq(bomOnModuleDependency)
