@@ -111,7 +111,14 @@ trait PublishModule extends JavaModule { outer =>
    * Dependency management to specify in the POM
    */
   def publishXmlDepMgmt: Task[Agg[Dependency]] = Task.Anon {
-    depManagement().map(resolvePublishDependency.apply().apply(_))
+    (extraDepManagement() ++ depManagement())
+      .map(resolvePublishDependency.apply().apply(_)) ++
+      compileDepManagement()
+        .map(resolvePublishDependency.apply().apply(_))
+        .map(_.copy(scope = Scope.Provided)) ++
+      runDepManagement()
+        .map(resolvePublishDependency.apply().apply(_))
+        .map(_.copy(scope = Scope.Runtime))
   }
 
   def pom: T[PathRef] = Task {
@@ -182,7 +189,7 @@ trait PublishModule extends JavaModule { outer =>
     lazy val moduleSet = publishXmlDeps0.map(dep => (dep.artifact.group, dep.artifact.id)).toSet
     val overrides = {
       val depMgmtEntries = processedDependencyManagement(
-        depManagement().toSeq
+        (extraDepManagement().toSeq ++ depManagement().toSeq)
           .map(bindDependency())
           .map(_.dep)
           .filter(depMgmt => depMgmt.version.nonEmpty && depMgmt.version != "_")

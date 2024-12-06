@@ -348,6 +348,75 @@ object BomTests extends TestSuite {
       }
     }
 
+    object depMgmtScope extends Module {
+      object provided extends JavaModule with TestPublishModule {
+        // Version in compileDepManagement should be used in compileIvyDeps
+        def compileDepManagement = Agg(
+          ivy"com.google.protobuf:protobuf-java-util:3.23.4"
+        )
+        def depManagement = Agg(
+          ivy"org.scala-lang.modules:scala-parallel-collections_2.13:1.0.4"
+        )
+        def compileIvyDeps = Agg(
+          ivy"com.google.protobuf:protobuf-java-util",
+          ivy"org.scala-lang.modules:scala-parallel-collections_2.13"
+        )
+
+        object fail extends JavaModule with TestPublishModule {
+          // Same as above, except the dependencies are in the
+          // default scope for us here, so the protobuf-java-util version
+          // shouldn't be read, as it's in provided scope in the BOM.
+          def compileDepManagement = Agg(
+            ivy"com.google.protobuf:protobuf-java-util:3.23.4"
+          )
+          def depManagement = Agg(
+            ivy"org.scala-lang.modules:scala-parallel-collections_2.13:1.0.4"
+          )
+          def ivyDeps = Agg(
+            ivy"com.google.protobuf:protobuf-java-util",
+            ivy"org.scala-lang.modules:scala-parallel-collections_2.13"
+          )
+        }
+      }
+
+      object runtimeScope extends JavaModule with TestPublishModule {
+        // Dep mgmt has a version for org.mvnpm.at.hpcc-js:wasm marked as runtime.
+        // This version should be taken into account in runtime deps here.
+        def runDepManagement = Agg(
+          ivy"org.mvnpm.at.hpcc-js:wasm:2.15.3"
+        )
+        def runIvyDeps = Agg(
+          ivy"org.mvnpm.at.hpcc-js:wasm"
+        )
+      }
+
+      object runtimeScopeFail extends JavaModule with TestPublishModule {
+        // Dep mgmt has a version for org.mvnpm.at.hpcc-js:wasm marked as runtime.
+        // This version shouldn't be taken into account in main deps here.
+        def runDepManagement = Agg(
+          ivy"org.mvnpm.at.hpcc-js:wasm:2.15.3"
+        )
+        def ivyDeps = Agg(
+          ivy"org.mvnpm.at.hpcc-js:wasm"
+        )
+      }
+
+      object testScope extends JavaModule with TestPublishModule {
+        // Dep mgmt in main module has a version for scalatest_2.13.
+        // This version should be taken into account in test modules here.
+        def depManagement = Agg(
+          ivy"org.scalatest:scalatest_2.13:3.2.16"
+        )
+        object test extends JavaTests {
+          def testFramework = "com.novocode.junit.JUnitFramework"
+          def ivyDeps = Agg(
+            ivy"com.novocode:junit-interface:0.11",
+            ivy"org.scalatest:scalatest_2.13"
+          )
+        }
+      }
+    }
+
     object bomOnModuleDependency extends JavaModule with TestPublishModule {
       def ivyDeps = Agg(
         ivy"com.google.protobuf:protobuf-java:3.23.4"
@@ -419,13 +488,14 @@ object BomTests extends TestSuite {
 
     val moduleString = eval(module.artifactName).toTry.get.value
 
-    val dep = coursierapi.Dependency.of(
-      "com.lihaoyi.mill-tests",
-      moduleString.replace('.', '-') + scalaSuffix,
-      "0.1.0-SNAPSHOT"
-    )
     coursierapi.Fetch.create()
-      .addDependencies(dep)
+      .addDependencies(
+        coursierapi.Dependency.of(
+          "com.lihaoyi.mill-tests",
+          moduleString.replace('.', '-') + scalaSuffix,
+          "0.1.0-SNAPSHOT"
+        )
+      )
       .addRepositories(
         coursierapi.IvyRepository.of(localIvyRepo.toNIO.toUri.toASCIIString + "[defaultPattern]")
       )
@@ -809,6 +879,46 @@ object BomTests extends TestSuite {
           modules.bomOnModuleDependency.dependee,
           expectedProtobufJarName,
           Seq(modules.bomOnModuleDependency)
+        )
+      }
+    }
+
+    test("depMgmtScope") {
+      test("provided") - UnitTester(modules, null).scoped { implicit eval =>
+        // test about provided scope, nothing to see in published stuff
+        compileClasspathContains(
+          modules.depMgmtScope.provided,
+          "protobuf-java-3.23.4.jar"
+        )
+      }
+      test("providedFromBomRuntimeScope") - UnitTester(modules, null).scoped { implicit eval =>
+        // test about provided scope, nothing to see in published stuff
+        compileClasspathContains(
+          modules.depMgmtScope.provided,
+          "scala-parallel-collections_2.13-1.0.4.jar"
+        )
+      }
+      test("ignoreProvidedForCompile") - UnitTester(modules, null).scoped { implicit eval =>
+        val res = eval(modules.depMgmtScope.provided.fail.resolvedIvyDeps)
+        assert(
+          res.left.exists(_.toString.contains(
+            "not found: https://repo1.maven.org/maven2/com/google/protobuf/protobuf-java-util/_/protobuf-java-util-_.pom"
+          ))
+        )
+      }
+
+      test("test") - UnitTester(modules, null).scoped { implicit eval =>
+        compileClasspathContains(
+          modules.depMgmtScope.testScope.test,
+          "scalatest_2.13-3.2.16.jar"
+        )
+      }
+
+      test("runtime") - UnitTester(modules, null).scoped { implicit eval =>
+        isInClassPath(
+          modules.depMgmtScope.runtimeScope,
+          "wasm-2.15.3.jar",
+          runtimeOnly = true
         )
       }
     }

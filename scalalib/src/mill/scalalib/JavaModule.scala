@@ -58,7 +58,12 @@ trait JavaModule
     }
 
     override def extraBomDeps = Task.Anon[Agg[BomDependency]] {
-      outer.allBomDeps().map(_.withConfig(Configuration.test))
+      super.extraBomDeps() ++
+        outer.allBomDeps().map(_.withConfig(Configuration.test))
+    }
+    override def extraDepManagement = Task.Anon[Agg[Dep]] {
+      super.extraDepManagement() ++
+        outer.depManagement()
     }
 
     /**
@@ -195,7 +200,22 @@ trait JavaModule
       )
   }
 
+  /**
+   * BOM dependencies that are not meant to be overridden or changed by users.
+   *
+   * This is mainly used to add BOM dependencies of the main module to its test
+   * modules, while ensuring test dependencies of the BOM are taken into account too
+   * in the test module.
+   */
   def extraBomDeps: Task[Agg[BomDependency]] = Task.Anon { Agg.empty[BomDependency] }
+
+  /**
+   * Dependency management entries that are not meant to be overridden or changed by users.
+   *
+   * This is mainly used to add dependency management entries of the main module to its test
+   * modules.
+   */
+  def extraDepManagement: Task[Agg[Dep]] = Task.Anon { Agg.empty[Dep] }
 
   /**
    * Dependency management data
@@ -215,8 +235,20 @@ trait JavaModule
    */
   def depManagement: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
+  /**
+   * Dependency management data for the compile only or "provided" scope.
+   *
+   * Versions and exclusions specified here apply only to dependencies pulled via
+   * `compileIvyDeps`.
+   */
   def compileDepManagement: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
+  /**
+   * Dependency management data for the runtime scope.
+   *
+   * Versions and exclusions specified here apply only to dependencies pulled via
+   * `runIvyDeps`.
+   */
   def runDepManagement: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
   private def addBoms(
@@ -472,7 +504,9 @@ trait JavaModule
     val bomDeps0 =
       allBomDeps().toSeq.map(_.withConfig(Configuration.compile)) ++ extraBomDeps().toSeq
     val depMgmt = processedDependencyManagement(
-      depManagement().toSeq.map(bindDependency()).map(_.dep)
+      (extraDepManagement().toSeq ++ depManagement().toSeq)
+        .map(bindDependency())
+        .map(_.dep)
     )
 
     addBoms(bomDeps0, depMgmt, overrideVersions = overrideVersions)
@@ -483,7 +517,9 @@ trait JavaModule
   ): Task[coursier.core.Dependency => coursier.core.Dependency] = Task.Anon {
     val bomDeps0 = allBomDeps().toSeq.map(_.withConfig(Configuration.provided))
     val depMgmt = processedDependencyManagement(
-      compileDepManagement().toSeq.map(bindDependency()).map(_.dep)
+      (compileDepManagement().toSeq ++ extraDepManagement().toSeq ++ depManagement().toSeq)
+        .map(bindDependency())
+        .map(_.dep)
     )
 
     addBoms(bomDeps0, depMgmt, overrideVersions = overrideVersions)
@@ -494,7 +530,9 @@ trait JavaModule
   ): Task[coursier.core.Dependency => coursier.core.Dependency] = Task.Anon {
     val bomDeps0 = allBomDeps().toSeq.map(_.withConfig(Configuration.defaultCompile))
     val depMgmt = processedDependencyManagement(
-      runDepManagement().toSeq.map(bindDependency()).map(_.dep)
+      (runDepManagement().toSeq ++ depManagement())
+        .map(bindDependency())
+        .map(_.dep)
     )
 
     addBoms(bomDeps0, depMgmt, overrideVersions = overrideVersions)
