@@ -91,7 +91,7 @@ private object PromptLoggerUtil {
       titleText: String,
       statuses: Iterable[(String, Status)],
       interactive: Boolean,
-      infoColor: fansi.Attrs,
+      infoColor: fansi.Attrs
   ): List[String] = {
     // -1 to leave a bit of buffer
     val maxWidth = consoleWidth - 1
@@ -175,7 +175,7 @@ private object PromptLoggerUtil {
       headerPrefix0: String,
       titleText0: String,
       headerSuffix0: String,
-      maxWidth: Int,
+      maxWidth: Int
   ): String = {
     val headerPrefixStr = if (headerPrefix0.isEmpty) "" else s"$headerPrefix0 "
     val headerSuffixStr = headerSuffix0

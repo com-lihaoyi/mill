@@ -455,7 +455,7 @@ object PromptLoggerUtilTests extends TestSuite {
           "123/456 =============== __.compile.a...yz1234567890 =============== 1337s",
           "#1 hello1234567890abcefghijklmnopqr...4567890abcefghijklmnopqrstuvwxyz 1s",
           "#2 world 2s",
-          "#3 i am cow 3s",
+          "#3 i am cow 3s"
         )
         assert(rendered == expected)
       }
