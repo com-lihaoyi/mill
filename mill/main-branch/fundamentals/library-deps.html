@@ -704,7 +704,7 @@ whose Maven coordinates are <code>com.google.cloud:libraries-bom:26.50.0</code><
 <div class="sect2">
 <h3 id="_external_boms"><a class="anchor" href="#_external_boms"></a>External BOMs</h3>
 <div class="paragraph">
-<p>Pass an external BOM to a <code>JavaModule</code> / <code>ScalaModule</code> / <code>KotlinModule</code> with <code>bomDeps</code>, like</p>
+<p>Pass an external BOM to a <code>JavaModule</code> / <code>ScalaModule</code> / <code>KotlinModule</code> with <code>bomIvyDeps</code>, like</p>
 </div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-fundamentals-library-deps-bom-1-external-bom.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/fundamentals/library-deps/bom-1-external-bom">browse</a>)</div>
@@ -713,7 +713,7 @@ whose Maven coordinates are <code>com.google.cloud:libraries-bom:26.50.0</code><
 import mill._, javalib._
 
 object foo extends JavaModule {
-  def bomDeps = Agg(
+  def bomIvyDeps = Agg(
     ivy&quot;com.google.cloud:libraries-bom:26.50.0&quot;
   )
   def ivyDeps = Agg(
@@ -732,8 +732,8 @@ But the BOM specifies another version for that dependency, <code>4.28.3</code>, 
 protobuf-java <code>4.28.3</code> ends up being pulled here.</p>
 </div>
 <div class="paragraph">
-<p>Several BOMs can be passed to <code>bomDeps</code>. If several specify a version for a dependency,
-the version from the first one in the <code>bomDeps</code> list is used. If several specify exclusions
+<p>Several BOMs can be passed to <code>bomIvyDeps</code>. If several specify a version for a dependency,
+the version from the first one in the <code>bomIvyDeps</code> list is used. If several specify exclusions
 for a dependency, all exclusions are added to that dependency.</p>
 </div>
 </div>
