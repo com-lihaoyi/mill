@@ -104,7 +104,7 @@ trait PublishModule extends JavaModule { outer =>
    * BOM dependency to specify in the POM
    */
   def publishXmlBomDeps: Task[Agg[Dependency]] = Task.Anon {
-    bomDeps().map(resolvePublishDependency.apply().apply(_))
+    bomIvyDeps().map(resolvePublishDependency.apply().apply(_))
   }
 
   /**

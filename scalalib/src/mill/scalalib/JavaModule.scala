@@ -163,11 +163,11 @@ trait JavaModule
    * Any BOM dependencies you want to add to this Module, in the format
    * ivy"org:name:version"
    */
-  def bomDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
+  def bomIvyDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
   def allBomDeps: Task[Agg[BomDependency]] = Task.Anon {
     val modVerOrMalformed =
-      bomDeps().map(bindDependency()).map { bomDep =>
+      bomIvyDeps().map(bindDependency()).map { bomDep =>
         val fromModVer = coursier.core.Dependency(bomDep.dep.module, bomDep.dep.version)
         if (fromModVer == bomDep.dep)
           Right(bomDep.dep.asBomDependency)
@@ -210,7 +210,7 @@ trait JavaModule
   def depManagement: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
   private def addBoms(
-      bomDeps: Seq[coursier.core.BomDependency],
+      bomIvyDeps: Seq[coursier.core.BomDependency],
       depMgmt: Seq[(DependencyManagement.Key, DependencyManagement.Values)],
       overrideVersions: Boolean
   ): coursier.core.Dependency => coursier.core.Dependency = {
@@ -229,8 +229,8 @@ trait JavaModule
       dep
         // add BOM coordinates - coursier will handle the rest
         .addBomDependencies(
-          if (overrideVersions) bomDeps.map(_.withForceOverrideVersions(overrideVersions))
-          else bomDeps
+          if (overrideVersions) bomIvyDeps.map(_.withForceOverrideVersions(overrideVersions))
+          else bomIvyDeps
         )
         // add dependency management ourselves:
         // - overrides meant to apply to transitive dependencies
