@@ -26,7 +26,7 @@ trait JestModule extends TypeScriptModule {
       .map(PathRef(_))
   }
 
-  override def mkENV = Task.Anon {
+  override def mkENV = Task {
     val javascriptOut = compile()._1.path
     // env
     // note: ' npmInstall().path / "node_modules" ' required in NODE_PATH for jest to find preset: ts-jest

@@ -12,11 +12,15 @@ object server extends JestModule {
 
   override def bundleFlags = Map("external" -> Seq("express", "cors"))
 
+  override def mkENV = Task {
+    super.mkENV() ++ Map("PORT" -> "3001")
+  }
+
 }
 
 object client extends RsWithServeModule {
   override def mkENV = Task {
-    super.mkENV() ++ Map("PORT" -> "3000")
+    super.mkENV() ++ Map("SERVER" -> "3001")
   }
 }
 

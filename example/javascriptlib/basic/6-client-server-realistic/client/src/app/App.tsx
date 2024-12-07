@@ -8,10 +8,10 @@ interface Todo {
 const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [newTodoText, setNewTodoText] = useState('');
-  const serverUrl = 'http://localhost:3001'; // <--- Add this line
+  const serverUrl = `http://localhost:${process.env.SERVER || "3001"}`;
 
   useEffect(() => {
-    fetch(`${serverUrl}/todos`) // <--- Use serverUrl here
+    fetch(`${serverUrl}/todos`)
         .then(res => res.json())
         .then(data => setTodos(data));
   }, []);
@@ -19,7 +19,7 @@ const App: React.FC = () => {
   const addTodo = async () => {
     if (newTodoText.trim() === '') return;
 
-    const response = await fetch(`${serverUrl}/todos`, { // <--- Use serverUrl here
+    const response = await fetch(`${serverUrl}/todos`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
