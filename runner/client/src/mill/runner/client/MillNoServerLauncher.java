@@ -27,8 +27,7 @@ class MillNoServerLauncher {
       long startTime = System.currentTimeMillis();
       Optional<Method> millMainMethod = Optional.empty();
       try {
-        Class<?> millMainClass =
-            MillNoServerLauncher.class.getClassLoader().loadClass("mill.runner.MillMain");
+        Class<?> millMainClass = Class.forName("mill.runner.MillMain");
         Method mainMethod = millMainClass.getMethod("main", String[].class);
         millMainMethod = Optional.of(mainMethod);
       } catch (ClassNotFoundException | NoSuchMethodException e) {

@@ -1,0 +1,28 @@
+//// SNIPPET:BUILD
+package build
+import mill._, scalalib._
+import mill.define.ModuleRef
+
+object foo extends ScalaModule with NativeImageModule {
+
+  def zincWorker = ModuleRef(ZincWorkerGraalvm)
+
+  object ZincWorkerGraalvm extends ZincWorkerModule {
+    def jvmId = "graalvm-community:23.0.1"
+  }
+
+  def scalaVersion = "2.13.11"
+}
+
+// This example uses `NativeImageModule` to generate a native executable using https://www.graalvm.org/[Graal VM].
+// NOTE: For build portability, it is recommended to use a custom JDK.
+
+/** Usage
+
+> ./mill foo.nativeImage
+GraalVM Native Image: Generating...App...
+Finished generating...App...
+
+> ./out/foo/nativeImage.dest/App
+Hello, World!
+*/
