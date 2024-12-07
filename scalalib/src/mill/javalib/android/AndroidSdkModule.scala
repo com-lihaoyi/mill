@@ -75,6 +75,14 @@ trait AndroidSdkModule extends Module {
   }
 
   /**
+   * Provides path to the Android cmdline tools for the selected version.
+   */
+  def cmdlineToolsPath: T[PathRef] = Task {
+    installAndroidSdkComponents()
+    PathRef(sdkPath().path / "cmdline-tools" / "latest" / "bin")
+  }
+
+  /**
    * Provides path to D8 Dex compiler, used for converting Java bytecode into Dalvik bytecode.
    *
    * For More Read D8 [[https://developer.android.com/tools/d8 Documentation]]

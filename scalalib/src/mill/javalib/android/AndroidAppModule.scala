@@ -339,4 +339,5 @@ trait AndroidAppModule extends JavaModule {
 
     PathRef(keystoreFile)
   }
+
 }
