@@ -1,6 +1,8 @@
 package build
 import mill._, javascriptlib._
 
+object client extends ReactScriptsModule
+
 object server extends JestModule {
   def npmDeps =
     Seq("@types/cors@^2.8.17", "@types/express@^5.0.0", "cors@^2.8.5", "express@^4.21.1")
@@ -18,10 +20,10 @@ object server extends JestModule {
 
 }
 
-object client extends RsWithServeModule {
-  override def mkENV = Task {
-    super.mkENV() ++ Map("SERVER" -> "3001")
-  }
+object app extends RsWithExpressModule {
+  def clientMod = client
+  def serverMod = server
+
 }
 
 // Documentation for mill.example.javascriptlib
@@ -42,7 +44,7 @@ Snapshots:...
 Time:...
 Ran all test suites matching ...
 
-> mill show server.bundle
+> mill show server.bundle # bundle the express server
 Build succeeded!
 
 > mill client.test
@@ -59,6 +61,6 @@ Time:...
 Ran all test suites...
 ...
 
-> mill client.bundle     # bundle the react app; `client.run` serves static html using server
+> mill client.bundle   # bundle the react app; `app.run` serves static html using server
 ...
 */

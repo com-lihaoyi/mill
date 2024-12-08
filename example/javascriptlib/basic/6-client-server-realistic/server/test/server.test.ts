@@ -20,7 +20,7 @@ describe('Server Tests', () => {
 
 
     it('should return an empty array of todos', async () => {
-        const response = await request(app).get('/todos');
+        const response = await request(app).get('/api/todos');
         expect(response.status).toBe(200);
         expect(response.body).toEqual([]);
     });
@@ -28,26 +28,26 @@ describe('Server Tests', () => {
     it('should add a new todo', async () => {
         const newTodoText = 'Buy milk';
         const response = await request(app)
-            .post('/todos')
+            .post('/api/todos')
             .send({text: newTodoText});
 
         expect(response.status).toBe(201);
         expect(response.body.text).toBe(newTodoText);
         expect(response.body.id).toBeDefined();
 
-        const getResponse = await request(app).get('/todos');
+        const getResponse = await request(app).get('/api/todos');
         expect(getResponse.body.length).toBe(1);
         expect(getResponse.body[0].text).toBe(newTodoText);
     });
 
     it('should handle errors gracefully', async () => {
-        const response = await request(app).post('/todos').send({});
+        const response = await request(app).post('/api/todos').send({});
         expect(response.status).toBe(400);
         expect(response.body).toHaveProperty('error'); //Check for error message
     });
 
     it('should handle invalid todo text gracefully', async () => {
-        const response = await request(app).post('/todos').send({text: '   '}); //Whitespace only
+        const response = await request(app).post('/api/todos').send({text: '   '}); //Whitespace only
         expect(response.status).toBe(400);
         expect(response.body).toHaveProperty('error'); //Check for error message
     });

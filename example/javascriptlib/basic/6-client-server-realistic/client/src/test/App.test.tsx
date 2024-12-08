@@ -26,7 +26,7 @@ describe('App Component', () => {
             expect(screen.getByText('Learn React')).toBeInTheDocument();
         });
 
-        expect(global.fetch).toHaveBeenCalledWith('http://localhost:3001/todos');
+        expect(global.fetch).toHaveBeenCalledWith('http://localhost:3001/api/todos');
     });
 
     test('adds a new todo item', async () => {
@@ -69,7 +69,7 @@ describe('App Component', () => {
 
         // Assert fetch was called with correct arguments
         expect(global.fetch).toHaveBeenCalledWith(
-            'http://localhost:3001/todos',
+            'http://localhost:3001/api/todos',
             expect.objectContaining({
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},

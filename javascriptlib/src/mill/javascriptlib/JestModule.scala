@@ -6,7 +6,7 @@ import scala.collection.immutable.IndexedSeq
 
 trait JestModule extends TypeScriptModule {
   override def npmDevDeps: T[Seq[String]] = Task {
-    Seq(
+    super.npmDeps() ++ Seq(
       "@types/jest@^29.5.14",
       "@babel/core@^7.26.0",
       "@babel/preset-env@^7.26.0",

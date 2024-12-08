@@ -1,35 +1,27 @@
-import express, {Request, Response, Express} from 'express';
+import express, {Express} from 'express';
 import cors from 'cors';
+import path from 'path'
+import api from "./api"
 
 const app: Express = express();
 const port = process.env.PORT || 3001;
 
+const client = process.env.CLIENT_PATH || ""
+
 app.use(cors());
 app.use(express.json());
 
-interface Todo {
-    id: number;
-    text: string;
-}
+// Middleware to serve static files from the "build" directory
+app.use(express.static(path.join(client)));
 
-let todos: Todo[] = [];
-let nextId = 1;
+// Mount API routes at /api
+app.use('/api', api);
 
-app.get('/todos', (req: Request, res: Response) => {
-    res.json(todos);
+// Serve the React app for all other routes
+app.get('*', (req, res) => {
+    res.sendFile(path.join(client, 'index.html'));
 });
 
-app.post('/todos', (req: Request, res: Response) => {
-    const {text} = req.body;
-
-    if (!text || text.trim() === '') {
-        res.status(400).json({error: 'Todo text is required'});
-    }
-
-    const newTodo: Todo = {id: nextId++, text};
-    todos.push(newTodo);
-    res.status(201).json(newTodo);
-});
 
 if (process.env.NODE_ENV !== 'test') {
     app.listen(port, () => {
@@ -37,4 +29,4 @@ if (process.env.NODE_ENV !== 'test') {
     });
 }
 
-export default app; //Make the app exportable.
+export default app;

@@ -8,7 +8,7 @@ interface Todo {
 const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [newTodoText, setNewTodoText] = useState('');
-  const serverUrl = `http://localhost:${process.env.SERVER || "3001"}`;
+  const serverUrl = `http://localhost:${process.env.SERVER || "3001"}/api`;
 
   useEffect(() => {
     fetch(`${serverUrl}/todos`)
