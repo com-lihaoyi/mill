@@ -26,6 +26,6 @@ OK
 > curl http://localhost:8000
 ...<h1>Hello, Mill!</h1>...
 
-> ./mill clean foo.runBackgrouund
+> ./mill clean foo.runBackground
 
 */
