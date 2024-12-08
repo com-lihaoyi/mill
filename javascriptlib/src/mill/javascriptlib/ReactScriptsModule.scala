@@ -22,7 +22,8 @@ trait ReactScriptsModule extends TypeScriptModule {
       "@testing-library/jest-dom@5.17.0",
       "@testing-library/react@16.0.1",
       "@testing-library/user-event@13.5.0",
-      "@types/jest@27.5.2"
+      "@types/jest@27.5.2",
+      "@babel/plugin-proposal-private-property-in-object@7.21.11"
     )
   }
 
