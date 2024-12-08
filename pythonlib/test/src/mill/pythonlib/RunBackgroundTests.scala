@@ -28,6 +28,8 @@ object RunBackgroundTests extends TestSuite {
         if (System.currentTimeMillis() - now1 > maxSleep) throw new Exception(error)
       }
 
+      Thread.sleep(1000) // Make sure that the file remains locked even after a significant sleep
+
       while (lock.probe()) sleepIfTimeAvailable("File never locked by python subprocess")
 
       os.remove.all(eval.outPath / "foo" / "runBackground.dest")
