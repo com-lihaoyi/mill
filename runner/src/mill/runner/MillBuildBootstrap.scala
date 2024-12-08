@@ -167,7 +167,7 @@ class MillBuildBootstrap(
             .headOption
             .map(_.runClasspath)
             .getOrElse(millBootClasspathPathRefs)
-            .map(p => (p.path, p.sig))
+            .map(p => (PathRef.normalizePath(p.path), p.sig))
             .hashCode(),
           nestedState
             .frames
