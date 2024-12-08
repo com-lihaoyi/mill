@@ -38,6 +38,9 @@ object `package` extends RootModule with MyModule {
         "1.0-SNAPSHOT"
       ))
 
+      override def bomDeps = super.bomDeps() ++
+        Agg(ivy"com.example.maven-samples:multi-module-parent:1.0-SNAPSHOT")
+
       object tests extends MavenTests with TestModule.Junit4 {
 
         override def ivyDeps = super.ivyDeps() ++ Agg(
@@ -65,6 +68,9 @@ object `package` extends RootModule with MyModule {
         "multi-module-parent",
         "1.0-SNAPSHOT"
       ))
+
+      override def bomDeps = super.bomDeps() ++
+        Agg(ivy"com.example.maven-samples:multi-module-parent:1.0-SNAPSHOT")
 
     }
   }
