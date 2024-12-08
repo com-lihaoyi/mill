@@ -12,8 +12,10 @@ trait RsWithExpressModule extends TypeScriptModule {
     val serverBundle = serverMod.bundle().path
     val serverEnv = serverMod.mkENV()
 
-
-    val env = serverEnv ++ Map("CLIENT_PATH" -> clientBundle.toString, "SERVER" -> serverEnv.getOrElse("PORT", ""))
+    val env = serverEnv ++ Map(
+      "CLIENT_PATH" -> clientBundle.toString,
+      "SERVER" -> serverEnv.getOrElse("PORT", "")
+    )
 
     os.call(
       (
