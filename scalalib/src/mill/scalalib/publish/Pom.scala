@@ -99,6 +99,26 @@ object Pom {
       bomDependencies: Agg[Dependency],
       dependencyManagement: Agg[Dependency]
   ): String = {
+    val developersSection =
+      if (pomSettings.developers.isEmpty) NodeSeq.Empty
+      else
+        <developers>
+          {pomSettings.developers.map(renderDeveloper)}
+        </developers>
+    val propertiesSection =
+      if (properties.isEmpty) NodeSeq.Empty
+      else
+        <properties>
+          {properties.map(renderProperty _).iterator}
+        </properties>
+    val depMgmtSection =
+      if (dependencyManagement.isEmpty) NodeSeq.Empty
+      else
+        <dependencyManagement>
+          <dependencies>
+            {dependencyManagement.map(renderDependency(_)).iterator}
+          </dependencies>
+        </dependencyManagement>
     val xml =
       <project
         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
@@ -128,23 +148,15 @@ object Pom {
           {<tag>{pomSettings.versionControl.tag}</tag>.optional}
           {<url>{pomSettings.versionControl.browsableRepository}</url>.optional}
         </scm>
-        <developers>
-          {pomSettings.developers.map(renderDeveloper)}
-        </developers>
-        <properties>
-          {properties.map(renderProperty _).iterator}
-        </properties>
+        {developersSection}
+        {propertiesSection}
         <dependencies>
           {
         dependencies.map(renderDependency(_)).iterator ++
           bomDependencies.map(renderDependency(_, isImport = true)).iterator
       }
         </dependencies>
-        <dependencyManagement>
-          <dependencies>
-            {dependencyManagement.map(renderDependency(_)).iterator}
-          </dependencies>
-        </dependencyManagement>
+        {depMgmtSection}
       </project>
 
     val pp = new PrettyPrinter(120, 4)

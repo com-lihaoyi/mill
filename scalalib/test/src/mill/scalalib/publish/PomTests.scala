@@ -180,32 +180,81 @@ object PomTests extends TestSuite {
       }
     }
 
+    test("pomNoDepMgmt") {
+      val pomNoDepMgmt =
+        pomXml(
+          artifact,
+          dependencies = Agg.empty,
+          artifactId = artifactId,
+          pomSettings = settings,
+          properties,
+          depMgmt = Nil
+        )
+      val pomDepMgmt =
+        pomXml(
+          artifact,
+          dependencies = Agg.empty,
+          artifactId = artifactId,
+          pomSettings = settings,
+          properties,
+          depMgmt = Seq(
+            Dependency(Artifact("io.quarkus", "quarkus-bom", "3.16.2"), Scope.Compile)
+          )
+        )
+
+      test("noDepMgmt") {
+        assert(
+          (pomNoDepMgmt \ "dependencyManagement").isEmpty
+        )
+      }
+      test("someDepMgmt") {
+        assert(
+          (pomDepMgmt \ "dependencyManagement").nonEmpty,
+          (pomDepMgmt \ "dependencyManagement" \ "dependencies").nonEmpty,
+          (pomDepMgmt \ "dependencyManagement" \ "dependencies" \ "dependency").nonEmpty
+        )
+      }
+    }
+
     test("pomNoDevelopers") {
       val updatedSettings = settings.copy(developers = Seq.empty)
       val pomNoDevelopers = pomXml(artifact, deps, artifactId, updatedSettings, properties)
 
       test("developers") {
         assert(
-          (pomNoDevelopers \ "developers").nonEmpty,
-          (pomNoDevelopers \ "developers" \ "developer").isEmpty
+          (pomNoDevelopers \ "developers").isEmpty
         )
       }
     }
 
     test("pomProperties") {
-      val pom = pomXml(
-        artifact,
-        deps,
-        artifactId,
-        settings,
-        Map("myVersion" -> "1.0", "scala.version" -> "2.13.7")
-      )
-      assert(
-        (pom \ "properties").nonEmpty,
-        (pom \ "properties" \ "myVersion").text == "1.0",
-        (pom \ "properties" \ "scala.version").text == "2.13.7"
-      )
-      pom \ "properties"
+      test("simple") {
+        val pom = pomXml(
+          artifact,
+          deps,
+          artifactId,
+          settings,
+          Map("myVersion" -> "1.0", "scala.version" -> "2.13.7")
+        )
+        assert(
+          (pom \ "properties").nonEmpty,
+          (pom \ "properties" \ "myVersion").text == "1.0",
+          (pom \ "properties" \ "scala.version").text == "2.13.7"
+        )
+      }
+
+      test("empty") {
+        val pom = pomXml(
+          artifact,
+          deps,
+          artifactId,
+          settings,
+          Map.empty
+        )
+        assert(
+          (pom \ "properties").isEmpty
+        )
+      }
     }
   }
 
@@ -214,7 +263,8 @@ object PomTests extends TestSuite {
       dependencies: Agg[Dependency],
       artifactId: String,
       pomSettings: PomSettings,
-      properties: Map[String, String]
+      properties: Map[String, String],
+      depMgmt: Seq[Dependency] = Nil
   ) =
     XML.loadString(Pom(
       artifact,
@@ -225,7 +275,7 @@ object PomTests extends TestSuite {
       PackagingType.Jar,
       None,
       Agg.empty[Dependency],
-      Agg.empty[Dependency]
+      Agg(depMgmt: _*)
     ))
 
   def singleText(seq: NodeSeq) =

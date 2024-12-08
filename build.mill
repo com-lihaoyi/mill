@@ -116,9 +116,9 @@ object Deps {
   val asmTree = ivy"org.ow2.asm:asm-tree:9.7.1"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
 
-  val coursierVersion = "2.1.19"
+  val coursierVersion = "2.1.20"
   val coursier = ivy"io.get-coursier::coursier:$coursierVersion"
-  val coursierInterface = ivy"io.get-coursier:interface:1.0.25"
+  val coursierInterface = ivy"io.get-coursier:interface:1.0.26"
   val coursierJvm = ivy"io.get-coursier::coursier-jvm:$coursierVersion"
 
   val cask = ivy"com.lihaoyi::cask:0.9.4"
@@ -571,15 +571,10 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
       "mill.scalalib.ScalaModule#ScalaTests.mill$scalalib$ScalaModule$ScalaTests$$super$mandatoryScalacOptions"
     ),
     // Not sure why Mima is complaining when these are internal and private
-    ProblemFilter.exclude[Problem](
-      "*.bspJvmBuildTarget"
-    ),
-    ProblemFilter.exclude[Problem](
-      "mill.scalalib.RunModule#RunnerImpl.*"
-    ),
-    ProblemFilter.exclude[Problem](
-      "mill.util.PromptLogger#*"
-    )
+    ProblemFilter.exclude[Problem]("*.bspJvmBuildTarget"),
+    ProblemFilter.exclude[Problem]("mill.scalalib.RunModule#RunnerImpl.*"),
+    ProblemFilter.exclude[Problem]("mill.util.PromptLogger#*"),
+    ProblemFilter.exclude[Problem]("mill.util.PromptLoggerUtil.*")
   )
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
 
