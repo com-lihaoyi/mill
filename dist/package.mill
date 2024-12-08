@@ -272,7 +272,9 @@ object `package` extends RootModule with build.MillPublishJavaModule {
           "$1" + buildVersion
         )
     )
-    os.perms.set(outputPath, "rwxrwxrwx")
+
+    if (!scala.util.Properties.isWin) os.perms.set(outputPath, "rwxrwxrwx")
+
     PathRef(outputPath)
   }
   def bootstrapLauncher = Task {
