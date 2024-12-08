@@ -44,8 +44,13 @@ object `package` extends RootModule {
       def forkEnv =
         super.forkEnv() ++
           IntegrationTestModule.this.forkEnv() ++
-          Map("MILL_INTEGRATION_SERVER_MODE" -> (mode == "local" || mode == "server").toString) ++
+          Map(
+            "MILL_INTEGRATION_SERVER_MODE" -> (mode == "local" || mode == "server").toString,
+            "MILL_LAUNCHER" -> build.dist.bootstrapLauncher().path.toString,
+            "MILL_LAUNCHER_BAT" -> build.dist.bootstrapLauncherBat().path.toString,
+          ) ++
           testReleaseEnv()
+
 
       def forkArgs = Task { super.forkArgs() ++ build.dist.forkArgs() }
 
@@ -60,6 +65,8 @@ object `package` extends RootModule {
 
       def compile: T[mill.scalalib.api.CompilationResult] =
         T { mill.scalalib.api.CompilationResult(null, null) } // binary compatibility stub, not used
+
+      def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
     }
 
     object local extends ModeModule
