@@ -8,7 +8,7 @@ class LauncherOldVersionsTests(version: String) extends UtestIntegrationTestSuit
   val tests: Tests = Tests {
     test - integrationTest { tester =>
       val launcherEnv =
-        if(mill.main.client.Util.isWindows) "MILL_LAUNCHER_BAT"
+        if (mill.main.client.Util.isWindows) "MILL_LAUNCHER_BAT"
         else "MILL_LAUNCHER"
 
       val workspacePath = tester.workspacePath
