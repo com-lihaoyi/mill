@@ -105,7 +105,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
     )
   }
 
-  private def runnerEnvTask = Task.Anon{
+  private def runnerEnvTask = Task.Anon {
     Map(
       "PYTHONPATH" -> transitivePythonPath().map(_.path).mkString(java.io.File.pathSeparator),
       "PYTHONPYCACHEPREFIX" -> (T.dest / "cache").toString,
@@ -113,6 +113,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
       else { "NO_COLOR" -> "1" }
     )
   }
+
   /**
    * Run a typechecker on this module.
    */
@@ -142,6 +143,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
       )
     )
   }
+
   /**
    * Run the main python script of this module.
    *
@@ -168,7 +170,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
       background = true,
       useCpPassingJar = false,
       runBackgroundLogToConsole = true,
-      javaHome = mill.scalalib.ZincWorkerModule.javaHome().map(_.path),
+      javaHome = mill.scalalib.ZincWorkerModule.javaHome().map(_.path)
     )
     ()
   }

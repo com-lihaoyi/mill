@@ -52,29 +52,27 @@ public class MillBackgroundWrapper {
     // Actually start the Java main method we wanted to run in the background
     String realMain = args[4];
     String[] realArgs = java.util.Arrays.copyOfRange(args, 5, args.length);
-    if (!realMain.equals("<subprocess>")){
-        Class.forName(realMain).getMethod("main", String[].class).invoke(null, (Object) realArgs);
+    if (!realMain.equals("<subprocess>")) {
+      Class.forName(realMain).getMethod("main", String[].class).invoke(null, (Object) realArgs);
     } else {
-        Process subprocess = new ProcessBuilder()
-            .command(realArgs)
-            .inheritIO()
-            .start();
+      Process subprocess = new ProcessBuilder().command(realArgs).inheritIO().start();
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            subprocess.destroy();
+      Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+        subprocess.destroy();
 
-            long now = System.currentTimeMillis();
+        long now = System.currentTimeMillis();
 
-            while (subprocess.isAlive() && System.currentTimeMillis() - now < 100) {
-                try {
-                    Thread.sleep(1);
-                }catch (InterruptedException e){}
-                if (subprocess.isAlive()) {
-                    subprocess.destroyForcibly();
-                }
-            }
-        }));
-        System.exit(subprocess.waitFor());
+        while (subprocess.isAlive() && System.currentTimeMillis() - now < 100) {
+          try {
+            Thread.sleep(1);
+          } catch (InterruptedException e) {
+          }
+          if (subprocess.isAlive()) {
+            subprocess.destroyForcibly();
+          }
+        }
+      }));
+      System.exit(subprocess.waitFor());
     }
   }
 }

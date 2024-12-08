@@ -28,15 +28,13 @@ object RunBackgroundTests extends TestSuite {
         if (System.currentTimeMillis() - now1 > maxSleep) throw new Exception(error)
       }
 
-      while(lock.probe()) sleepIfTimeAvailable("File never locked by python subprocess")
+      while (lock.probe()) sleepIfTimeAvailable("File never locked by python subprocess")
 
       os.remove.all(eval.outPath / "foo" / "runBackground.dest")
 
-      while(!lock.probe()) {
+      while (!lock.probe()) {
         sleepIfTimeAvailable("File never unlocked after runBackground.dest removed")
       }
     }
   }
 }
-
-

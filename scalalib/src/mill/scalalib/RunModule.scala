@@ -235,7 +235,6 @@ trait RunModule extends WithZincWorker {
 
 object RunModule {
 
-
   private[mill] def backgroundSetup(dest: os.Path): (Path, Path, String) = {
     val procUuid = java.util.UUID.randomUUID().toString
     val procUuidPath = dest / ".mill-background-process-uuid"
