@@ -29,6 +29,7 @@ trait TypeScriptModule extends Module {
       "ts-node@^10.9.2",
       "esbuild@0.24.0",
       "@esbuild-plugins/tsconfig-paths@0.1.2",
+      "tsconfig-paths@4.2.0",
       transitiveNpmDeps(),
       transitiveNpmDevDeps()
     ))
@@ -54,28 +55,27 @@ trait TypeScriptModule extends Module {
   def compilerOptionsPaths: Task[Map[String, String]] =
     Task { Map("*" -> sources().path.toString(), "*" -> npmInstall().path.toString()) }
 
+  def upstreamPathsBuilder: Task[Seq[(String, String)]] = Task.Anon {
+    for {
+      ((comp, ts), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
+    } yield (
+      mod.millSourcePath.subRelativeTo(Task.workspace).toString + "/*",
+      (ts.path / "src").toString + ":" + (comp.path / "declarations").toString
+    )
+  }
+
   def compilerOptionsBuilder: Task[Map[String, ujson.Value]] = Task.Anon {
     val declarationsOut = Task.dest / "declarations"
 
-    val upstreamPaths =
-      for {
-        ((comp, ts), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
-      } yield {
-        (
-          mod.millSourcePath.subRelativeTo(Task.workspace).toString + "/*",
-          (ts.path / "src").toString + ":" + (comp.path / "declarations").toString
-        )
-      }
-
-    val combinedPaths = upstreamPaths ++ compilerOptionsPaths().toSeq
-    val combinedCompilerOptions: Map[String, ujson.Value] = Map(
+    val combinedPaths = upstreamPathsBuilder() ++ compilerOptionsPaths().toSeq
+    val combinedCompilerOptions: Map[String, ujson.Value] = compilerOptions() ++ Map(
       "declarationDir" -> ujson.Str(declarationsOut.toString),
       "paths" -> ujson.Obj.from(combinedPaths.map { case (k, v) =>
         val splitValues =
           v.split(":").map(s => s"$s/*") // Split by ":" and append "/*" to each part
         (k, ujson.Arr.from(splitValues))
       })
-    ) ++ compilerOptions()
+    )
 
     combinedCompilerOptions
   }
@@ -108,11 +108,13 @@ trait TypeScriptModule extends Module {
   def run(args: mill.define.Args): Command[CommandResult] = Task.Command {
     val (mainFile, env) = (mainFilePath(), mkENV())
     val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
+    val tsconfigpaths = npmInstall().path / "node_modules/tsconfig-paths/register"
 
     os.call(
-      (tsnode, mainFile, computedArgs(), args.value),
+      (tsnode, "-r", tsconfigpaths, mainFile, computedArgs(), args.value),
       stdout = os.Inherit,
-      env = env
+      env = env,
+      cwd = compile()._1.path
     )
   }
 

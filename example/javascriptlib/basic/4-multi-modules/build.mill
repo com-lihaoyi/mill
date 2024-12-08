@@ -1,91 +1,28 @@
 package build
+
 import mill._, javascriptlib._
 
-object authors extends TypeScriptModule
+object foo extends TypeScriptModule {
+  object bar extends TypeScriptModule {
+    def npmDeps = Seq("immutable@4.3.7")
+  }
 
-object books extends TypeScriptModule {
-  def moduleDeps = Seq(authors)
 }
 
-object library extends JestModule {
-  def moduleDeps = Seq(authors, books)
-
-  /** Generate resources for library */
-  def resources = Task {
-    val mockAuthors = ujson.Arr(
-      ujson.Obj("id" -> 1, "name" -> "Ben"),
-      ujson.Obj("id" -> 2, "name" -> "Jerry")
-    )
-
-    val mockBooks = ujson.Arr(
-      ujson.Obj(
-        "id" -> 1,
-        "title" -> "Book One",
-        "publication" -> 2001,
-        "sn" -> "SN001",
-        "author" -> ujson.Obj("id" -> 1)
-      ),
-      ujson.Obj(
-        "id" -> 2,
-        "title" -> "Book Two",
-        "publication" -> 2002,
-        "sn" -> "SN002",
-        "author" -> ujson.Obj("id" -> 1)
-      ),
-      ujson.Obj(
-        "id" -> 3,
-        "title" -> "Book Three",
-        "publication" -> 2003,
-        "sn" -> "SN003",
-        "author" -> ujson.Obj("id" -> 2)
-      )
-    )
-
-    os.write(Task.dest / "authors.json", ujson.write(mockAuthors, indent = 2))
-    os.write(Task.dest / "books.json", ujson.write(mockBooks, indent = 2))
-    PathRef(Task.dest)
-  }
-
-  // define resource path for the node app
-  override def mkENV = Task {
-    super.mkENV() ++ Map("RESOURCE_PATH" -> resources().path.toString)
-  }
-
+object qux extends JestModule {
+  def moduleDeps = Seq(foo, foo.bar)
 }
 
 // Documentation for mill.example.javascriptlib
 
 /** Usage
 
-> mill library.test
-PASS .../library.test.ts
-...should return all authors with their books when no authorName is provided...
-...should return books for a specific author when authorName is provided...
-...should throw an error if the author is not found...
-...
-Test Suites:...1 passed, 1 total...
-Tests:...3 passed, 3 total...
-Snapshots:...
-Time:...
-Ran all test suites matching ...
+> mill qux.run James Bond prof
+Hello James Bond Professor
 
-> mill library.run Jerry
-[
-  {
-    "author": "Jerry",
-    "books": [
-      {
-        "title": "Book Three",
-        "publication": 2003,
-        "sn": "SN003"
-      }
-    ]
-  }
-]
+> mill show qux.bundle
+".../out/qux/bundle.dest/bundle.js"
 
-> mill show library.bundle
-Build succeeded!
-
-> node out/library/bundle.dest/bundle.js Jerry out/library/resources.dest/
-...
+> node out/qux/bundle.dest/bundle.js James Bond prof
+Hello James Bond Professor
 */

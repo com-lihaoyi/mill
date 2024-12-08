@@ -42,6 +42,9 @@ trait JestModule extends TypeScriptModule {
   def getConfigFile: Task[String] =
     Task { (compile()._1.path / "jest.config.ts").toString }
 
+  override def compilerOptions: T[Map[String, ujson.Value]] =
+    Task { super.compilerOptions() + ("resolveJsonModule" -> ujson.Bool(true)) }
+
   // specify test dir path/to/test
   def getPathToTest: Task[String] =
     Task { compile()._2.path.toString }
