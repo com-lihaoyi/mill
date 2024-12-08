@@ -14,6 +14,7 @@ object qux extends JestModule {
 }
 
 // Documentation for mill.example.javascriptlib
+// This example demonstrates inter-related typescript modules
 
 /** Usage
 
@@ -21,8 +22,12 @@ object qux extends JestModule {
 Hello James Bond Professor
 
 > mill show qux.bundle
-".../out/qux/bundle.dest/bundle.js"
+Build succeeded!
 
 > node out/qux/bundle.dest/bundle.js James Bond prof
 Hello James Bond Professor
+
+> mill qux.test
+PASS .../qux.test.ts
+...
 */
