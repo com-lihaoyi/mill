@@ -23,10 +23,14 @@ object server extends JestModule {
 object app extends RsWithExpressModule {
   def clientMod = client
   def serverMod = server
-
 }
 
 // Documentation for mill.example.javascriptlib
+
+// This example demonstrates how to set up a simple React web app running on an Express JS server
+// implementing the popular Todo-MVC demo application. It includes a test suite
+// for both client and server modules.
+// Runninng `mill app.run` serves bundled static HTML files through the server.
 
 /** Usage
 
@@ -47,7 +51,7 @@ Ran all test suites matching ...
 > mill show server.bundle # bundle the express server
 Build succeeded!
 
-> mill client.test
+> mill client.test    # bundle the node-js express app
 PASS src/test/App.test.tsx
 ...
 ...renders todos fetched from server...
@@ -61,6 +65,6 @@ Time:...
 Ran all test suites...
 ...
 
-> mill client.bundle   # bundle the react app; `app.run` serves static html using server
+> mill client.bundle   # bundle the react app;
 ...
 */
