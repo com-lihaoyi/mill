@@ -15,11 +15,13 @@ class LauncherOldVersionsTests(version: String) extends UtestIntegrationTestSuit
 
       val launcherScript = sys.env(launcherEnv)
       os.write.over(workspacePath / ".mill-version", version)
+
+      // Run Mill once beforehand just to make sure it gets initialized and
+      // none of the initialization output gets into `outText`
+      os.call(cmd = (launcherScript, "version"), cwd = workspacePath, stderr = os.Pipe)
+
       val res = os.call(cmd = (launcherScript, "version"), cwd = workspacePath, stderr = os.Pipe)
       val outText = res.out.text().trim
-      val errText = res.err.text().trim
-      pprint.log(outText)
-      pprint.log(errText)
       assert(outText == version)
     }
   }
