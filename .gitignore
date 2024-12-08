@@ -17,3 +17,5 @@ node_modules/
 dist/
 build/
 *.bak
+db.sqlite3
+__pycache__
