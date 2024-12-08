@@ -1,51 +1,32 @@
 package build
 import mill._, javascriptlib._
 
-object client extends JestModule
+object client extends ReactScriptsModule
 
-object server extends JestModule
+object server extends JestModule {
+  override def mkENV = Task {
+    super.mkENV() ++ Map("PORT" -> "3000")
+  }
+}
 
-object app extends TypeScriptModule {
-  def moduleDeps = Seq(client, server)
-
-  def bundleApp =
-    Task {
-      val serverPath = server.bundle().path
-      val clientPath = client.bundle().path
-      println(s"client bundled@$clientPath\nserver bundled@$serverPath")
-      (PathRef(serverPath), PathRef(clientPath))
-    }
-
+object app extends RsWithExpressModule {
+  def clientMod = client
+  def serverMod = server
 }
 
 // Documentation for mill.example.javascriptlib
 // This example demonstrated a js client module and js server module,
 // wired up and interacting
+// Runninng `mill app.run` serves bundled static HTML files through the server.
 
 /** Usage
 
 > mill client.test
-PASS .../client.test.ts
+PASS .../App.test.tsx
 ...
 
 > mill server.test
+...
 PASS .../server.test.ts
-...
-
-> mill show app.bundleApp
-...
-...
-...
-...
-client bundled@...client/bundle.dest/bundle.js
-server bundled@...server/bundle.dest/bundle.js
-...
-
-// # start server and client; send client input
-> node out/server/bundle.dest/bundle.js & echo "hello" | node out/client/bundle.dest/bundle.js & sleep 2 && kill -9 $(lsof -t -i:3000)
-...
-...
-...
-Response from server: Hello from the server!
 ...
 */

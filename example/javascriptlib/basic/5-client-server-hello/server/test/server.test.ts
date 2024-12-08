@@ -16,7 +16,7 @@ describe('Server Tests', () => {
         const options = {
             hostname: 'localhost',
             port: 3000,
-            path: '/hello',
+            path: '/api/hello',
             method: 'GET'
         };
 
