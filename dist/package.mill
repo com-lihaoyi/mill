@@ -260,8 +260,8 @@ object `package` extends RootModule with build.MillPublishJavaModule {
   def millBootstrap = Task.Source(Task.workspace / "mill")
   def millBootstrapBat = Task.Source(Task.workspace / "mill.bat")
 
-  def prepareBootstrapLauncher(bootstrap: os.Path, dest: os.Path, buildVersion: String) = {
-    val outputPath = dest / "mill"
+  def prepareBootstrapLauncher(bootstrap: os.Path, dest: os.Path, buildVersion: String, fileName: String) = {
+    val outputPath = dest / fileName
     val millBootstrapGrepPrefix = "(\n *DEFAULT_MILL_VERSION=)"
 
     os.write(
@@ -272,14 +272,16 @@ object `package` extends RootModule with build.MillPublishJavaModule {
           "$1" + buildVersion
         )
     )
-    os.perms.set(outputPath, "rwxrwxrwx")
+
+    if (!scala.util.Properties.isWin) os.perms.set(outputPath, "rwxrwxrwx")
+
     PathRef(outputPath)
   }
   def bootstrapLauncher = Task {
-    prepareBootstrapLauncher(millBootstrap().path, Task.dest, build.millVersion())
+    prepareBootstrapLauncher(millBootstrap().path, Task.dest, build.millVersion(), "mill")
   }
   def bootstrapLauncherBat = Task {
-    prepareBootstrapLauncher(millBootstrapBat().path, Task.dest, build.millVersion())
+    prepareBootstrapLauncher(millBootstrapBat().path, Task.dest, build.millVersion(), "mill.bat")
   }
 
   def examplePathsWithArtifactName:Task[Seq[(os.Path,String)]] = Task.Anon{
