@@ -100,16 +100,19 @@ trait PythonModule extends PipModule with TaskModule { outer =>
   def runner: Task[PythonModule.Runner] = Task.Anon {
     new PythonModule.RunnerImpl(
       command0 = pythonExe().path.toString,
-      env0 = Map(
-        "PYTHONPATH" -> transitivePythonPath().map(_.path).mkString(java.io.File.pathSeparator),
-        "PYTHONPYCACHEPREFIX" -> (T.dest / "cache").toString,
-        if (Task.log.colored) { "FORCE_COLOR" -> "1" }
-        else { "NO_COLOR" -> "1" }
-      ),
+      env0 = runnerEnvTask(),
       workingDir0 = Task.workspace
     )
   }
 
+  private def runnerEnvTask = Task.Anon{
+    Map(
+      "PYTHONPATH" -> transitivePythonPath().map(_.path).mkString(java.io.File.pathSeparator),
+      "PYTHONPYCACHEPREFIX" -> (T.dest / "cache").toString,
+      if (Task.log.colored) { "FORCE_COLOR" -> "1" }
+      else { "NO_COLOR" -> "1" }
+    )
+  }
   /**
    * Run a typechecker on this module.
    */
@@ -138,6 +141,36 @@ trait PythonModule extends PipModule with TaskModule { outer =>
         args.value
       )
     )
+  }
+  /**
+   * Run the main python script of this module.
+   *
+   * @see [[mainScript]]
+   */
+  def runBackground(args: mill.define.Args) = Task.Command {
+    val (procUuidPath, procLockfile, procUuid) = mill.scalalib.RunModule.backgroundSetup(T.dest)
+
+    Jvm.runSubprocess(
+      mainClass = "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
+      classPath = mill.scalalib.ZincWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
+      jvmArgs = Nil,
+      envArgs = runnerEnvTask(),
+      mainArgs = Seq(
+        procUuidPath.toString,
+        procLockfile.toString,
+        procUuid,
+        "500",
+        "<subprocess>",
+        pythonExe().path.toString,
+        mainScript().path.toString
+      ) ++ args.value,
+      workingDir = T.workspace,
+      background = true,
+      useCpPassingJar = false,
+      runBackgroundLogToConsole = true,
+      javaHome = mill.scalalib.ZincWorkerModule.javaHome().map(_.path),
+    )
+    ()
   }
 
   override def defaultCommandName(): String = "run"
