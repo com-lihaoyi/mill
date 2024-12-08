@@ -1,57 +1,55 @@
 // This example shows how to define task that depend on other tasks:
 //
 // 1. For `generatedSources`, we override the task and make it depend
-//    directly on `ivyDeps` to generate its source files. In this example,
-//    to include the list of dependencies as tuples within a static `object`
+//    directly on `pythonDeps` to generate its source files. In this example,
+//    to include the list of dependencies as tuples in the `value` variable.
 //
-// 2. For `lineCount`, we define a brand new task that depends on `sources`,
-//    and then override `forkArgs` to use it. That lets us access the line
-//    count at runtime using `sys.props` and print it when the program runs
-
-//// SNIPPET:BUILD
+// 2. For `lineCount`, we define a brand new task that depends on `sources`.
+//    That lets us access the line count at runtime using `MY_LINE_COUNT`
+//    env variable defined in `forkEnv` and print it when the program runs
+//
 package build
-import mill._, scalalib._
+import mill._, pythonlib._
 
-object `package` extends RootModule with ScalaModule {
-  def scalaVersion = "2.13.8"
-  def ivyDeps = Agg(ivy"com.lihaoyi::mainargs:0.4.0")
+object foo extends PythonModule {
+
+  def pythonDeps = Seq("argparse==1.4.0", "jinja2==3.1.4")
+
+  def mainScript = Task.Source { millSourcePath / "src" / "foo.py" }
 
   def generatedSources: T[Seq[PathRef]] = Task {
-    val prettyIvyDeps = for (ivyDep <- ivyDeps()) yield {
-      val org = ivyDep.dep.module.organization.value
-      val name = ivyDep.dep.module.name.value
-      val version = ivyDep.dep.version
-      s"""("$org", "$name", "$version")"""
-    }
+    val destPath = Task.dest / "generatedSources"
+    os.makeDir.all(destPath)
+
+    val prettyPythonDeps = pythonDeps().map { dep =>
+      val parts = dep.split("==")
+      s"""("${parts(0)}", "${parts(1)}")"""
+    }.mkString(", ")
+
     os.write(
-      Task.dest / s"MyDeps.scala",
+      destPath / s"myDeps.py",
       s"""
-         |package foo
-         |object MyDeps {
-         |  val value = List(
-         |    ${prettyIvyDeps.mkString(",\n")}
-         |  )
-         |}
-      """.stripMargin
+         |class MyDeps:
+         |    value = [${prettyPythonDeps}]
+			""".stripMargin
     )
 
-    Seq(PathRef(Task.dest))
+    Seq(PathRef(destPath))
   }
 
   def lineCount: T[Int] = Task {
     sources()
       .flatMap(pathRef => os.walk(pathRef.path))
-      .filter(_.ext == "scala")
+      .filter(_.ext == "py")
       .map(os.read.lines(_).size)
       .sum
   }
 
-  def forkArgs: T[Seq[String]] = Seq(s"-Dmy.line.count=${lineCount()}")
+  def forkEnv: T[Map[String, String]] = Map("MY_LINE_COUNT" -> s"${lineCount()}")
 
   def printLineCount() = Task.Command { println(lineCount()) }
-}
 
-//// SNIPPET:END
+}
 
 // The above build defines the customizations to the Mill task graph shown below,
 // with the boxes representing tasks defined or overriden above and the un-boxed
@@ -61,9 +59,9 @@ object `package` extends RootModule with ScalaModule {
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0]
-//   ivyDeps -> generatedSources -> "..."
+//   pythonDeps -> generatedSources -> compile -> "..."
 //
-//   sources -> lineCount -> forkArgs -> "..." -> run
+//   sources -> lineCount -> forkEnv -> "..." -> run
 //   lineCount -> printLineCount
 //
 //   sources [color=white]
@@ -84,37 +82,31 @@ object `package` extends RootModule with ScalaModule {
 // cannot take parameters.
 //
 // Note that depending on a task requires use of parentheses after the task
-// name, e.g. `ivyDeps()`, `sources()` and `lineCount()`. This converts the
+// name, e.g. `pythonDeps()`, `sources()` and `lineCount()`. This converts the
 // task of type `T[V]` into a value of type `V` you can make use in your task
 // implementation.
 //
 // This example can be run as follows:
-
-//// SNIPPET:COMMANDS
-
+//
 /** Usage
 
-> mill run --text hello
-text: hello
-MyDeps.value: List((com.lihaoyi,mainargs,0.4.0))
-my.line.count: 14
+> ./mill foo.run --text hello
+text:  hello
+MyDeps.value:  [('argparse', '1.4.0'), ('jinja2', '3.1.4')]
+My_Line_Count:  22
 
-> mill show lineCount
-14
+> ./mill show foo.lineCount
+22
 
-> mill printLineCount
-14
+> ./mill foo.printLineCount
+22
+
 */
 
-//// SNIPPET:END
-
-// Custom tasks can contain arbitrary code. Whether you want to
-// download files using `requests.get`, shell-out to Webpack
-// to compile some Javascript, generate sources to feed into a compiler, or
-// create some custom jar/zip assembly with the files you want , all of these
+// Custom tasks can contain arbitrary code. Whether you want to download files
+// using `requests.get`, generate sources to feed into a Python Interpreter, or
+// create some custom pex bundle with the files you want , all of these
 // can simply be custom tasks with your code running in the `Task {...}` block.
-// You can also import arbitrary Java or Scala libraries from Maven Central via
-// xref:extending/import-ivy-plugins.adoc[import $ivy] to use in your build.
 //
 // You can create arbitrarily long chains of dependent tasks, and Mill will
 // handle the re-evaluation and caching of the tasks' output for you.
@@ -130,8 +122,7 @@ my.line.count: 14
 // * Any files that a task returns should be returned as a `PathRef` to a path
 //   within `Task.dest`
 //
-// That ensures that the files belonging to a
-// particular task all live in one place, avoiding file-name conflicts,
-// preventing race conditions when tasks evaluate in parallel, and
-// letting Mill automatically invalidate the files when the task's inputs
-// change.
+// That ensures that the files belonging to a particular task all live in one place,
+// avoiding file-name conflicts, preventing race conditions when tasks evaluate
+// in parallel, and letting Mill automatically invalidate the files when
+// the task's inputs change.
