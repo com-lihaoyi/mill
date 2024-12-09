@@ -18,11 +18,11 @@ object server extends JestModule {
     super.mkENV() ++ Map("PORT" -> "3001")
   }
 
-}
-
-object app extends RsWithExpressModule {
-  def clientMod = client
-  def serverMod = server
+  override def resources = Task {
+    val clientBundle = client.bundle().path
+    os.copy(clientBundle, Task.dest / "build")
+    PathRef(Task.dest)
+  }
 }
 
 // Documentation for mill.example.javascriptlib

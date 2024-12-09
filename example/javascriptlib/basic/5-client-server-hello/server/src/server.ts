@@ -2,7 +2,8 @@ import * as http from 'http';
 import * as fs from 'fs';
 import * as path from 'path';
 
-const client = process.env.CLIENT_PATH || "";
+const resource = process.env.RESOURCES || ""
+const client = resource + "/build"
 
 const server = http.createServer((req, res) => {
     if (req.url?.startsWith('/api') && req.method === 'GET') {

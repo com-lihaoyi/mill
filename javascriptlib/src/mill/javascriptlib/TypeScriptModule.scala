@@ -106,9 +106,10 @@ trait TypeScriptModule extends Module {
   def computedArgs: Task[Seq[String]] = Task { Seq.empty[String] }
 
   def run(args: mill.define.Args): Command[CommandResult] = Task.Command {
-    val (mainFile, env) = (mainFilePath(), mkENV())
+    val mainFile = mainFilePath()
     val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
     val tsconfigpaths = npmInstall().path / "node_modules/tsconfig-paths/register"
+    val env = mkENV() + ("RESOURCES" -> resources().path.toString)
 
     os.call(
       (tsnode, "-r", tsconfigpaths, mainFile, computedArgs(), args.value),
@@ -168,5 +169,7 @@ trait TypeScriptModule extends Module {
     )
     PathRef(bundle)
   }
+
+  def resources: T[PathRef] = Task { PathRef(Task.dest) }
 
 }
