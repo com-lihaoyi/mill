@@ -7,6 +7,11 @@ import mill.define.ModuleRef
 
 import upickle.default._
 
+/**
+ * Enumeration for Android Lint report formats, providing predefined formats
+ * with corresponding flags and file extensions. Includes utility methods
+ * for implicit conversions, serialization, and retrieving all supported formats.
+ */
 object AndroidLintReportFormat extends Enumeration {
   protected case class Format(flag: String, extension: String) extends super.Val {
     override def toString: String = extension
@@ -25,7 +30,6 @@ object AndroidLintReportFormat extends Enumeration {
   // Optional: Add a method to retrieve all possible values
   val allFormats: List[Format] = List(Html, Xml, Txt, Sarif)
 }
-
 
 /**
  * Trait for building Android applications using the Mill build tool.
@@ -86,8 +90,6 @@ trait AndroidAppModule extends JavaModule {
 
   /**
    * Specifies the file format of lint report. Available file formats are "html", "xml", "txt" and "sarif".
-   * Specifies additional arguments for the Android Lint tool.
-   * Allows for complete customization of the lint command.
    */
   def androidLintReportFmt: T[AndroidLintReportFormat.Value] = Task { AndroidLintReportFormat.Html }
 
