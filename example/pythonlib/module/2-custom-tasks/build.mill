@@ -59,7 +59,7 @@ object foo extends PythonModule {
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0]
-//   pythonDeps -> generatedSources -> compile -> "..."
+//   pythonDeps -> generatedSources -> "..."
 //
 //   sources -> lineCount -> forkEnv -> "..." -> run
 //   lineCount -> printLineCount
@@ -67,7 +67,6 @@ object foo extends PythonModule {
 //   sources [color=white]
 //   run [color=white]
 //
-//   compile [color=white]
 //   "..." [color=white]
 // }
 // ```
