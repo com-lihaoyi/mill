@@ -4,7 +4,7 @@ import fcntl
 
 def main():
     with open(sys.argv[1], 'a+') as file:
-        fcntl.flock(file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        fcntl.lockf(file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
         time.sleep(9999)
 
 if __name__ == "__main__":
