@@ -1,0 +1,13 @@
+import mill._
+
+def foo = Task.Source(millSourcePath / "foo.txt")
+def bar() = Task.Command {
+  System.out.println("Computing bar")
+  os.read(foo().path)
+}
+
+def qux = Task.Source(millSourcePath / "qux.txt")
+def baz() = Task.Command {
+  System.out.println("Computing baz")
+  os.read(qux().path)
+}

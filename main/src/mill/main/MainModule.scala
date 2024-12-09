@@ -625,4 +625,91 @@ trait MainModule extends BaseModule0 {
         }
     }
   }
+
+  case class SelectiveHashes(inputHashes: Map[String, Int],
+                             methodCodeHashSignatures: Map[String, Int])
+
+  object SelectiveHashes {
+    implicit val jsonify: upickle.default.ReadWriter[SelectiveHashes] = upickle.default.macroRW
+
+    def apply(evaluator: Evaluator, targets: Seq[String]) = {
+      val res = plan0(evaluator, targets).getOrElse(???)
+      val inputTasksToLabels: Map[Task[_], String] = res
+        .collect{ case labelled if labelled.task.isInstanceOf[InputImpl[_]] =>
+          labelled.task -> labelled.segments.render
+        }
+        .toMap
+
+      val results = evaluator.evaluate(Strict.Agg.from(inputTasksToLabels.keys))
+      new SelectiveHashes(
+        inputHashes = results
+          .results
+          .flatMap{case (task, taskResult) =>
+            inputTasksToLabels.get(task).map{l =>
+              l -> taskResult.result.getOrThrow.value.hashCode
+            }
+          }
+          .toMap,
+        methodCodeHashSignatures = evaluator.methodCodeHashSignatures
+      )
+    }
+  }
+
+  def selectivePrepare(evaluator: Evaluator, targets: String*) = Task.Command(exclusive = true) {
+    val selectiveHashes = SelectiveHashes(evaluator, targets)
+    os.write(
+      Task.workspace / "out" / "mill-selective-hashes.json",
+      upickle.default.write(selectiveHashes)
+    )
+  }
+  def selectiveRun(evaluator: Evaluator, targets: String*) = Task.Command(exclusive = true) {
+
+    val terminals = plan0(evaluator, targets).getOrElse(???)
+    val namesToTasks = terminals.map(t => (t.render -> t.task)).toMap
+
+    val oldHashes = upickle.default.read[SelectiveHashes](
+      os.read(Task.workspace / "out" / "mill-selective-hashes.json")
+    )
+
+    val newHashes = SelectiveHashes(evaluator, targets)
+
+    val changedInputs =
+      (oldHashes.inputHashes.keys ++ newHashes.inputHashes.keys)
+        .toSet
+        .filter{k => oldHashes.inputHashes.get(k) != newHashes.inputHashes.get(k)}
+        .map(namesToTasks)
+
+
+    val allNodes = breadthFirst(terminals.map(_.task: Task[_]))(_.inputs)
+    val downstreamEdges = for{
+      t <- allNodes
+      up <- t.inputs
+    } yield up -> t
+    pprint.err.log(downstreamEdges)
+    val downstreamEdgeMap = downstreamEdges.groupMap(_._1)(_._2)
+    pprint.err.log(downstreamEdgeMap)
+
+    val downstreamAll = breadthFirst(changedInputs.map(x => x: Task[_]))(downstreamEdgeMap.get(_).map(_.toSeq).getOrElse(Nil))
+
+    pprint.err.log(downstreamAll)
+    evaluator.evaluate(Loose.Agg.from(downstreamAll))
+    ()
+  }
+
+  def breadthFirst[T](start: IterableOnce[T])(edges: T => IterableOnce[T]): Seq[T] = {
+    val seen = collection.mutable.Set.empty[T]
+    val seenList = collection.mutable.Buffer.empty[T]
+    val queued = collection.mutable.Queue.from(start)
+
+    while (queued.nonEmpty) {
+      val current = queued.dequeue()
+      seen.add(current)
+      seenList.append(current)
+
+      for (next <- edges(current).iterator) {
+        if (!seen.contains(next)) queued.enqueue(next)
+      }
+    }
+    seenList.toSeq
+  }
 }
