@@ -11,7 +11,7 @@
 package build
 
 import mill._
-import mill.javalib.android.{AndroidSdkModule, AndroidLintModule}
+import mill.javalib.android.{AndroidSdkModule, AndroidAppModule, AndroidLintReportFormat}
 
 // Create and configure an Android SDK module to manage Android SDK paths and tools.
 object androidSdkModule0 extends AndroidSdkModule {
@@ -20,14 +20,17 @@ object androidSdkModule0 extends AndroidSdkModule {
 }
 
 // Actual android application with linting config
-object app extends AndroidLintModule {
+object app extends AndroidAppModule {
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
 
   // Set path to the custom `lint.xml` config file. It is usually at the root of the project
   def androidLintConfigPath = Task { Some(PathRef(millSourcePath / "lint.xml")) }
 
+  // Set path to the custom `baseline.xml` file. It is usually at the root of the project
+  def androidLintBaselinePath = Task { Some(PathRef(millSourcePath / "lint-baseline.xml")) }
+
   // Set the linting report to be generated as a text file
-  def androidLintReportFmt = Task { "txt" }
+  def androidLintReportFmt = Task { AndroidLintReportFormat.Txt }
 
   // Set path to generated `.jar` files in this case (or `.class` files)
   def classPath = Task.Source { androidJar() }

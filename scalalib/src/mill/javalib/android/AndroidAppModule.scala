@@ -5,6 +5,28 @@ import mill.scalalib._
 import mill.api.PathRef
 import mill.define.ModuleRef
 
+import upickle.default._
+
+object AndroidLintReportFormat extends Enumeration {
+  protected case class Format(flag: String, extension: String) extends super.Val {
+    override def toString: String = extension
+  }
+
+  implicit def valueToFormat(v: Value): Format = v.asInstanceOf[Format]
+
+  val Html: Format = Format("--html", "html")
+  val Xml: Format = Format("--xml", "xml")
+  val Txt: Format = Format("--text", "txt")
+  val Sarif: Format = Format("--sarif", "sarif")
+
+  // Define an implicit ReadWriter for the Format case class
+  implicit val formatRW: ReadWriter[Format] = macroRW
+
+  // Optional: Add a method to retrieve all possible values
+  val allFormats: List[Format] = List(Html, Xml, Txt, Sarif)
+}
+
+
 /**
  * Trait for building Android applications using the Mill build tool.
  *
@@ -61,6 +83,29 @@ trait AndroidAppModule extends JavaModule {
    * Users can customize the keystore file name to change this path.
    */
   def androidReleaseKeyPath: T[PathRef] = Task.Source(millSourcePath / androidReleaseKeyName())
+
+  /**
+   * Specifies the file format of lint report. Available file formats are "html", "xml", "txt" and "sarif".
+   * Specifies additional arguments for the Android Lint tool.
+   * Allows for complete customization of the lint command.
+   */
+  def androidLintReportFmt: T[AndroidLintReportFormat.Value] = Task { AndroidLintReportFormat.Html }
+
+  /**
+   * Specifies the lint configuration XML file path. This allows setting custom lint rules or modifying existing ones.
+   */
+  def androidLintConfigPath: T[Option[PathRef]] = Task { None }
+
+  /**
+   * Specifies the lint baseline XML file path. This allows using a baseline to suppress known lint warnings.
+   */
+  def androidLintBaselinePath: T[Option[PathRef]] = Task { None }
+
+  /**
+   * Specifies additional arguments for the Android Lint tool.
+   * Allows for complete customization of the lint command.
+   */
+  def androidLintArgs: T[Seq[String]] = Task { Seq.empty[String] }
 
   /**
    * Extracts JAR files and resources from AAR dependencies.
@@ -338,6 +383,47 @@ trait AndroidAppModule extends JavaModule {
     }
 
     PathRef(keystoreFile)
+  }
+
+  /**
+   * Runs the Android Lint tool to generate a report on code quality issues.
+   *
+   * This method utilizes Android Lint, a tool provided by the Android SDK,
+   * to analyze the source code for potential bugs, performance issues, and
+   * best practices compliance. It generates a report in the specified format.
+   *
+   * The lint tool requires the Android SDK's command-line tools to be installed.
+   * The report is saved in the task's destination directory as "report.html".
+   *
+   * For more details on the Android Lint tool, refer to:
+   * [[https://developer.android.com/studio/write/lint]]
+   */
+  def androidLintRun: T[PathRef] = Task.Input {
+
+    val format = androidLintReportFmt()
+    val lintReport: os.Path = T.dest / s"report.${format.extension}"
+    val lintReportFlag: String = format.flag
+
+    // Prepare the lint configuration argument if the config path is set
+    val configArg = androidLintConfigPath().map(config =>
+      Seq("--config", config.path.toString)
+    ).getOrElse(Seq.empty)
+
+    // Prepare the lint baseline argument if the baseline path is set
+    val baselineArg = androidLintBaselinePath().map(baseline =>
+      Seq("--write-reference-baseline", baseline.path.toString)
+    ).getOrElse(Seq.empty)
+
+    os.call(
+      Seq(
+        androidSdkModule().cmdlineToolsPath().path.toString + "/lint",
+        millSourcePath.toString,
+        lintReportFlag,
+        lintReport.toString
+      ) ++ configArg ++ baselineArg ++ androidLintArgs()
+    )
+
+    PathRef(lintReport)
   }
 
 }
