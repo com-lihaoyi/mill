@@ -1,19 +1,26 @@
 import mill._
 
-def foo = Task.Source(millSourcePath / "foo.txt")
-def fooHelper(p: os.Path) = {
-  "fooHelper " + os.read(p)
-}
-def fooCommand() = Task.Command {
-  System.out.println("Computing fooCommand")
-  fooHelper(foo().path)
-}
+object foo extends Module {
+  def fooTask = Task.Source(millSourcePath / "foo.txt")
 
-def bar = Task.Source(millSourcePath / "bar.txt")
-def barHelper(p: os.Path) = {
-  "barHelper " + os.read(p)
+  def fooHelper(p: os.Path) = {
+    "fooHelper " + os.read(p)
+  }
+
+  def fooCommand() = Task.Command {
+    System.out.println("Computing fooCommand")
+    fooHelper(fooTask().path)
+  }
 }
-def barCommand() = Task.Command {
-  System.out.println("Computing barCommand")
-  barHelper(bar().path)
+object bar extends Module {
+  def barTask = Task.Source(millSourcePath / "bar.txt")
+
+  def barHelper(p: os.Path) = {
+    "barHelper " + os.read(p)
+  }
+
+  def barCommand() = Task.Command {
+    System.out.println("Computing barCommand")
+    barHelper(barTask().path)
+  }
 }

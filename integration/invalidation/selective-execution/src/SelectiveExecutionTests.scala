@@ -5,29 +5,12 @@ import utest._
 
 object SelectiveExecutionTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
-    test("control") - integrationTest { tester =>
-      import tester._
-
-      val initial = eval("{fooCommand,barCommand}")
-      assert(initial.out.contains("Computing fooCommand"))
-      assert(initial.out.contains("Computing barCommand"))
-
-      modifyFile(workspacePath / "bar.txt", _ + "!")
-
-      val cached = eval("{fooCommand,barCommand}")
-      assert(cached.out.contains("Computing fooCommand"))
-      assert(cached.out.contains("Computing barCommand"))
-    }
     test("selective-changed-inputs") - integrationTest { tester =>
       import tester._
 
-      val initial = eval("{fooCommand,barCommand}")
-      assert(initial.out.contains("Computing fooCommand"))
-      assert(initial.out.contains("Computing barCommand"))
-
-      eval(("selectivePrepare", "{fooCommand,barCommand}"), check = true)
-      modifyFile(workspacePath / "bar.txt", _ + "!")
-      val cached = eval(("selectiveRun", "{fooCommand,barCommand}"), check = true, stderr = os.Inherit)
+      eval(("selectivePrepare", "{foo.fooCommand,bar.barCommand}"), check = true)
+      modifyFile(workspacePath / "bar/bar.txt", _ + "!")
+      val cached = eval(("selectiveRun", "{foo.fooCommand,bar.barCommand}"), check = true, stderr = os.Inherit)
 
       assert(!cached.out.contains("Computing fooCommand"))
       assert(cached.out.contains("Computing barCommand"))
@@ -35,16 +18,21 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
     test("selective-changed-code") - integrationTest { tester =>
       import tester._
 
-      val initial = eval("{fooCommand,barCommand}", stderr = os.Inherit)
-      assert(initial.out.contains("Computing fooCommand"))
-      assert(initial.out.contains("Computing barCommand"))
-
-      eval(("selectivePrepare", "{fooCommand,barCommand}"), check = true, stderr = os.Inherit)
+      // Check method body code changes correctly trigger downstream evaluation
+      eval(("selectivePrepare", "{foo.fooCommand,bar.barCommand}"), check = true, stderr = os.Inherit)
       modifyFile(workspacePath / "build.mill", _.replace("\"barHelper \"", "\"barHelper! \""))
-      val cached = eval(("selectiveRun", "{fooCommand,barCommand}"), check = true, stderr = os.Inherit)
+      val cached1 = eval(("selectiveRun", "{foo.fooCommand,bar.barCommand}"), check = true, stderr = os.Inherit)
 
-      assert(!cached.out.contains("Computing fooCommand"))
-      assert(cached.out.contains("Computing barCommand"))
+      assert(!cached1.out.contains("Computing fooCommand"))
+      assert(cached1.out.contains("Computing barCommand"))
+
+      // Check module body code changes correctly trigger downstream evaluation
+      eval(("selectivePrepare", "{foo.fooCommand,bar.barCommand}"), check = true, stderr = os.Inherit)
+      modifyFile(workspacePath / "build.mill", _.replace("object foo extends Module {", "object foo extends Module { println(123)"))
+      val cached2 = eval(("selectiveRun", "{foo.fooCommand,bar.barCommand}"), check = true, stderr = os.Inherit)
+
+      assert(cached2.out.contains("Computing fooCommand"))
+      assert(!cached2.out.contains("Computing barCommand"))
     }
   }
 }

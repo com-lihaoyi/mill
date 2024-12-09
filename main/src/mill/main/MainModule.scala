@@ -613,65 +613,23 @@ trait MainModule extends BaseModule0 {
     }
   }
 
-
-
   def selectivePrepare(evaluator: Evaluator, targets: String*) = Task.Command(exclusive = true) {
     val selectiveHashes = SelectiveExecution.Signatures(evaluator, targets)
-    os.write(
+    os.write.over(
       Task.workspace / "out" / "mill-selective-hashes.json",
       upickle.default.write(selectiveHashes)
     )
   }
 
   def selectiveRun(evaluator: Evaluator, targets: String*) = Task.Command(exclusive = true) {
-
-    val terminals = SelectiveExecution.plan0(evaluator, targets).getOrElse(???)
-    val namesToTasks = terminals.map(t => (t.render -> t.task)).toMap
-
     val oldHashes = upickle.default.read[SelectiveExecution.Signatures](
       os.read(Task.workspace / "out" / "mill-selective-hashes.json")
     )
-
     val newHashes = SelectiveExecution.Signatures(evaluator, targets)
-
-    def diffMap[K, V](lhs: Map[K, V], rhs: Map[K, V]) = {
-      (lhs.keys ++ rhs.keys)
-        .iterator
-        .distinct
-        .filter{k => lhs.get(k) != rhs.get(k)}
-        .toSet
-    }
-    val changedInputNames = diffMap(oldHashes.inputHashes, newHashes.inputHashes)
-    val changedCodeNames = diffMap(oldHashes.taskCodeSignatures, newHashes.taskCodeSignatures)
-    val changedRootTasks = (changedInputNames ++ changedCodeNames).map(namesToTasks(_): Task[_])
-
-    val allNodes = breadthFirst(terminals.map(_.task: Task[_]))(_.inputs)
-    val downstreamEdgeMap = allNodes
-      .flatMap(t => t.inputs.map(_ -> t))
-      .groupMap(_._1)(_._2)
-
-    val downstreamAll = breadthFirst(changedRootTasks){t =>
-      downstreamEdgeMap.getOrElse(t, Nil)
-    }
+    val downstreamAll = SelectiveExecution
+      .computeDownstream(evaluator, targets, oldHashes, newHashes)
 
     evaluator.evaluate(Loose.Agg.from(downstreamAll))
     ()
-  }
-
-  def breadthFirst[T](start: IterableOnce[T])(edges: T => IterableOnce[T]): Seq[T] = {
-    val seen = collection.mutable.Set.empty[T]
-    val seenList = collection.mutable.Buffer.empty[T]
-    val queued = collection.mutable.Queue.from(start)
-
-    while (queued.nonEmpty) {
-      val current = queued.dequeue()
-      seen.add(current)
-      seenList.append(current)
-
-      for (next <- edges(current).iterator) {
-        if (!seen.contains(next)) queued.enqueue(next)
-      }
-    }
-    seenList.toSeq
   }
 }

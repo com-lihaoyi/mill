@@ -72,4 +72,47 @@ private[mill] object SelectiveExecution {
     }
   }
 
+  def computeDownstream(evaluator: Evaluator,
+                        targets: Seq[String],
+                        oldHashes: Signatures,
+                        newHashes: Signatures) = {
+    val terminals = SelectiveExecution.plan0(evaluator, targets).getOrElse(???)
+    val namesToTasks = terminals.map(t => (t.render -> t.task)).toMap
+
+    def diffMap[K, V](lhs: Map[K, V], rhs: Map[K, V]) = {
+      (lhs.keys ++ rhs.keys)
+        .iterator
+        .distinct
+        .filter{k => lhs.get(k) != rhs.get(k)}
+        .toSet
+    }
+    val changedInputNames = diffMap(oldHashes.inputHashes, newHashes.inputHashes)
+    val changedCodeNames = diffMap(oldHashes.taskCodeSignatures, newHashes.taskCodeSignatures)
+    val changedRootTasks = (changedInputNames ++ changedCodeNames).map(namesToTasks(_): Task[_])
+
+    val allNodes = breadthFirst(terminals.map(_.task: Task[_]))(_.inputs)
+    val downstreamEdgeMap = allNodes
+      .flatMap(t => t.inputs.map(_ -> t))
+      .groupMap(_._1)(_._2)
+
+    breadthFirst(changedRootTasks)(downstreamEdgeMap.getOrElse(_, Nil))
+  }
+
+  def breadthFirst[T](start: IterableOnce[T])(edges: T => IterableOnce[T]): Seq[T] = {
+    val seen = collection.mutable.Set.empty[T]
+    val seenList = collection.mutable.Buffer.empty[T]
+    val queued = collection.mutable.Queue.from(start)
+
+    while (queued.nonEmpty) {
+      val current = queued.dequeue()
+      seen.add(current)
+      seenList.append(current)
+
+      for (next <- edges(current).iterator) {
+        if (!seen.contains(next)) queued.enqueue(next)
+      }
+    }
+    seenList.toSeq
+  }
+
 }
