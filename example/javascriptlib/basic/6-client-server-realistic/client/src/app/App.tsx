@@ -6,6 +6,10 @@ interface Todo {
     checked: boolean;
 }
 
+// React.js implementation of todoMVC found in example/scalalib/web/1-todo-webapp
+// working css was pulled from: https://todomvc.com/examples/typescript-react/#/
+// Api service is defined in: example/javascriptlib/basic/6-client-server-realistic/server/src/api/index.ts
+
 const App: React.FC = () => {
     const [todos, setTodos] = useState<Todo[]>([]);
     const [newTodoText, setNewTodoText] = useState('');
