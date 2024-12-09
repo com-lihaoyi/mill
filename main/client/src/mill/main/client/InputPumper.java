@@ -38,7 +38,7 @@ public class InputPumper implements Runnable {
       while (running) {
         if (!runningCheck.getAsBoolean()) {
           running = false;
-        } else if (checkAvailable && src.available() == 0) Thread.sleep(1);
+        } else if (src.available() == 0) Thread.sleep(1);
         else {
           int n;
           try {
