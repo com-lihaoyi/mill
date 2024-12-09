@@ -7,29 +7,29 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
     test("control") - integrationTest { tester =>
       import tester._
 
-      val initial = eval("{bar,baz}")
-      assert(initial.out.contains("Computing bar"))
-      assert(initial.out.contains("Computing baz"))
+      val initial = eval("{fooCommand,barCommand}")
+      assert(initial.out.contains("Computing fooCommand"))
+      assert(initial.out.contains("Computing barCommand"))
 
       modifyFile(workspacePath / "qux.txt", _ + "!")
 
-      val cached = eval("{bar,baz}")
-      assert(cached.out.contains("Computing bar"))
-      assert(cached.out.contains("Computing baz"))
+      val cached = eval("{fooCommand,barCommand}")
+      assert(cached.out.contains("Computing fooCommand"))
+      assert(cached.out.contains("Computing barCommand"))
     }
     test("selective-changed-inputs") - integrationTest { tester =>
       import tester._
 
-      val initial = eval("{bar,baz}")
-      assert(initial.out.contains("Computing bar"))
-      assert(initial.out.contains("Computing baz"))
+      val initial = eval("{fooCommand,barCommand}")
+      assert(initial.out.contains("Computing fooCommand"))
+      assert(initial.out.contains("Computing barCommand"))
 
-      eval(("selectivePrepare", "{bar,baz}"), check = true)
+      eval(("selectivePrepare", "{fooCommand,barCommand}"), check = true)
       modifyFile(workspacePath / "qux.txt", _ + "!")
-      val cached = eval(("selectiveRun", "{bar,baz}"), check = true, stderr = os.Inherit)
+      val cached = eval(("selectiveRun", "{fooCommand,barCommand}"), check = true, stderr = os.Inherit)
 
-      assert(!cached.out.contains("Computing bar"))
-      assert(cached.out.contains("Computing baz"))
+      assert(!cached.out.contains("Computing fooCommand"))
+      assert(cached.out.contains("Computing barCommand"))
     }
   }
 }
