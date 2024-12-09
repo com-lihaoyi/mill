@@ -1,3 +1,4 @@
+package mill.integration
 import mill.testkit.UtestIntegrationTestSuite
 
 import utest._
@@ -34,11 +35,11 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
     test("selective-changed-code") - integrationTest { tester =>
       import tester._
 
-      val initial = eval("{fooCommand,barCommand}")
+      val initial = eval("{fooCommand,barCommand}", stderr = os.Inherit)
       assert(initial.out.contains("Computing fooCommand"))
       assert(initial.out.contains("Computing barCommand"))
 
-      eval(("selectivePrepare", "{fooCommand,barCommand}"), check = true)
+      eval(("selectivePrepare", "{fooCommand,barCommand}"), check = true, stderr = os.Inherit)
       modifyFile(workspacePath / "build.mill", _.replace("\"barHelper \"", "\"barHelper! \""))
       val cached = eval(("selectiveRun", "{fooCommand,barCommand}"), check = true, stderr = os.Inherit)
 

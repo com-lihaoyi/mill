@@ -1,8 +1,8 @@
 package mill.main
 
-import mill.api.{Ctx, _}
-import mill.define.{BaseModule0, Command, NamedTask, Segments, Target, Task, _}
-import mill.eval.{Evaluator, EvaluatorPaths, Terminal}
+import mill.api.{Ctx, *}
+import mill.define.{BaseModule0, Command, NamedTask, Segments, Target, Task, *}
+import mill.eval.{Evaluator, EvaluatorCore, EvaluatorPaths, GroupEvaluator, Plan, Terminal}
 import mill.moduledefs.Scaladoc
 import mill.resolve.SelectMode.Separated
 import mill.resolve.{Resolve, SelectMode}
@@ -120,7 +120,7 @@ trait MainModule extends BaseModule0 {
    */
   def plan(evaluator: Evaluator, targets: String*): Command[Array[String]] =
     Task.Command(exclusive = true) {
-      plan0(evaluator, targets) match {
+      SelectiveExecution.plan0(evaluator, targets) match {
         case Left(err) => Result.Failure(err)
         case Right(success) =>
           val renderedTasks = success.map(_.segments.render)
@@ -128,19 +128,6 @@ trait MainModule extends BaseModule0 {
           Result.Success(renderedTasks)
       }
     }
-
-  private def plan0(evaluator: Evaluator, targets: Seq[String]) = {
-    Resolve.Tasks.resolve(
-      evaluator.rootModule,
-      targets,
-      SelectMode.Multi
-    ) match {
-      case Left(err) => Left(err)
-      case Right(rs) =>
-        val (sortedGroups, _) = evaluator.plan(rs)
-        Right(sortedGroups.keys().collect { case r: Terminal.Labelled[_] => r }.toArray)
-    }
-  }
 
   /**
    * Prints out some dependency path from the `src` task to the `dest` task.
@@ -528,7 +515,7 @@ trait MainModule extends BaseModule0 {
    */
   def visualizePlan(evaluator: Evaluator, targets: String*): Command[Seq[PathRef]] =
     Task.Command(exclusive = true) {
-      plan0(evaluator, targets) match {
+      SelectiveExecution.plan0(evaluator, targets) match {
         case Left(err) => Result.Failure(err)
         case Right(planResults) => visualize0(
             evaluator,
@@ -626,72 +613,47 @@ trait MainModule extends BaseModule0 {
     }
   }
 
-  case class SelectiveHashes(inputHashes: Map[String, Int],
-                             methodCodeHashSignatures: Map[String, Int])
 
-  object SelectiveHashes {
-    implicit val jsonify: upickle.default.ReadWriter[SelectiveHashes] = upickle.default.macroRW
-
-    def apply(evaluator: Evaluator, targets: Seq[String]) = {
-      val res = plan0(evaluator, targets).getOrElse(???)
-      val inputTasksToLabels: Map[Task[_], String] = res
-        .collect{ case labelled if labelled.task.isInstanceOf[InputImpl[_]] =>
-          labelled.task -> labelled.segments.render
-        }
-        .toMap
-
-      val results = evaluator.evaluate(Strict.Agg.from(inputTasksToLabels.keys))
-      new SelectiveHashes(
-        inputHashes = results
-          .results
-          .flatMap{case (task, taskResult) =>
-            inputTasksToLabels.get(task).map{l =>
-              l -> taskResult.result.getOrThrow.value.hashCode
-            }
-          }
-          .toMap,
-        methodCodeHashSignatures = evaluator.methodCodeHashSignatures
-      )
-    }
-  }
 
   def selectivePrepare(evaluator: Evaluator, targets: String*) = Task.Command(exclusive = true) {
-    val selectiveHashes = SelectiveHashes(evaluator, targets)
+    val selectiveHashes = SelectiveExecution.Signatures(evaluator, targets)
     os.write(
       Task.workspace / "out" / "mill-selective-hashes.json",
       upickle.default.write(selectiveHashes)
     )
   }
+
   def selectiveRun(evaluator: Evaluator, targets: String*) = Task.Command(exclusive = true) {
 
-    val terminals = plan0(evaluator, targets).getOrElse(???)
+    val terminals = SelectiveExecution.plan0(evaluator, targets).getOrElse(???)
     val namesToTasks = terminals.map(t => (t.render -> t.task)).toMap
 
-    val oldHashes = upickle.default.read[SelectiveHashes](
+    val oldHashes = upickle.default.read[SelectiveExecution.Signatures](
       os.read(Task.workspace / "out" / "mill-selective-hashes.json")
     )
 
-    val newHashes = SelectiveHashes(evaluator, targets)
+    val newHashes = SelectiveExecution.Signatures(evaluator, targets)
 
-    val changedInputs =
-      (oldHashes.inputHashes.keys ++ newHashes.inputHashes.keys)
+    def diffMap[K, V](lhs: Map[K, V], rhs: Map[K, V]) = {
+      (lhs.keys ++ rhs.keys)
+        .iterator
+        .distinct
+        .filter{k => lhs.get(k) != rhs.get(k)}
         .toSet
-        .filter{k => oldHashes.inputHashes.get(k) != newHashes.inputHashes.get(k)}
-        .map(namesToTasks)
-
+    }
+    val changedInputNames = diffMap(oldHashes.inputHashes, newHashes.inputHashes)
+    val changedCodeNames = diffMap(oldHashes.taskCodeSignatures, newHashes.taskCodeSignatures)
+    val changedRootTasks = (changedInputNames ++ changedCodeNames).map(namesToTasks(_): Task[_])
 
     val allNodes = breadthFirst(terminals.map(_.task: Task[_]))(_.inputs)
-    val downstreamEdges = for{
-      t <- allNodes
-      up <- t.inputs
-    } yield up -> t
-    pprint.err.log(downstreamEdges)
-    val downstreamEdgeMap = downstreamEdges.groupMap(_._1)(_._2)
-    pprint.err.log(downstreamEdgeMap)
+    val downstreamEdgeMap = allNodes
+      .flatMap(t => t.inputs.map(_ -> t))
+      .groupMap(_._1)(_._2)
 
-    val downstreamAll = breadthFirst(changedInputs.map(x => x: Task[_]))(downstreamEdgeMap.get(_).map(_.toSeq).getOrElse(Nil))
+    val downstreamAll = breadthFirst(changedRootTasks){t =>
+      downstreamEdgeMap.getOrElse(t, Nil)
+    }
 
-    pprint.err.log(downstreamAll)
     evaluator.evaluate(Loose.Agg.from(downstreamAll))
     ()
   }

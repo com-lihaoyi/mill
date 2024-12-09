@@ -35,10 +35,8 @@ private[mill] trait GroupEvaluator {
   def systemExit: Int => Nothing
   def exclusiveSystemStreams: SystemStreams
 
-  lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] = methodCodeHashSignatures
-    .toSeq
-    .collect { case (method @ s"$prefix#<init>($args)void", hash) => (prefix, method, hash) }
-    .groupMap(_._1)(t => (t._2, t._3))
+  lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =
+    CodeSigUtils.constructorHashSignatures(methodCodeHashSignatures)
 
   val effectiveThreadCount: Int =
     this.threadCount.getOrElse(Runtime.getRuntime().availableProcessors())
@@ -76,53 +74,11 @@ private[mill] trait GroupEvaluator {
         if (disableCallgraph) 0
         else group
           .iterator
-          .collect {
-            case namedTask: NamedTask[_] =>
-              val encodedTaskName = encode(namedTask.ctx.segment.pathSegments.head)
-              val methodOpt = for {
-                parentCls <- classToTransitiveClasses(namedTask.ctx.enclosingCls).iterator
-                m <- allTransitiveClassMethods(parentCls).get(encodedTaskName)
-              } yield m
-
-              val methodClass = methodOpt
-                .nextOption()
-                .getOrElse(throw new MillException(
-                  s"Could not detect the parent class of target ${namedTask}. " +
-                    s"Please report this at ${BuildInfo.millReportNewIssueUrl} . "
-                ))
-                .getDeclaringClass.getName
-
-              val name = namedTask.ctx.segment.pathSegments.last
-              val expectedName = methodClass + "#" + name + "()mill.define.Target"
-
-              // We not only need to look up the code hash of the Target method being called,
-              // but also the code hash of the constructors required to instantiate the Module
-              // that the Target is being called on. This can be done by walking up the nested
-              // modules and looking at their constructors (they're `object`s and should each
-              // have only one)
-              val allEnclosingModules = Vector.unfold(namedTask.ctx) {
-                case null => None
-                case ctx =>
-                  ctx.enclosingModule match {
-                    case null => None
-                    case m: mill.define.Module => Some((m, m.millOuterCtx))
-                    case unknown =>
-                      throw new MillException(s"Unknown ctx of target ${namedTask}: $unknown")
-                  }
-              }
-
-              val constructorHashes = allEnclosingModules
-                .map(m =>
-                  constructorHashSignatures.get(m.getClass.getName) match {
-                    case Some(Seq((singleMethod, hash))) => hash
-                    case Some(multiple) => throw new MillException(
-                        s"Multiple constructors found for module $m: ${multiple.mkString(",")}"
-                      )
-                    case None => 0
-                  }
-                )
-
-              methodCodeHashSignatures.get(expectedName) ++ constructorHashes
+          .collect { case namedTask: NamedTask[_] =>
+            CodeSigUtils.codeSigForTask(
+              namedTask,
+              classToTransitiveClasses, allTransitiveClassMethods, methodCodeHashSignatures, constructorHashSignatures
+            )
           }
           .flatten
           .sum
