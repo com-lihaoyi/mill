@@ -2,7 +2,7 @@ package mill.main
 
 import mill.api.{Ctx, *}
 import mill.define.{BaseModule0, Command, NamedTask, Segments, Target, Task, *}
-import mill.eval.{Evaluator, EvaluatorCore, EvaluatorPaths, GroupEvaluator, Plan, Terminal}
+import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.moduledefs.Scaladoc
 import mill.resolve.SelectMode.Separated
 import mill.resolve.{Resolve, SelectMode}
@@ -613,23 +613,25 @@ trait MainModule extends BaseModule0 {
     }
   }
 
-  def selectivePrepare(evaluator: Evaluator, targets: String*) = Task.Command(exclusive = true) {
-    val selectiveHashes = SelectiveExecution.Signatures(evaluator, targets)
-    os.write.over(
-      Task.workspace / "out" / "mill-selective-hashes.json",
-      upickle.default.write(selectiveHashes)
-    )
-  }
+  def selectivePrepare(evaluator: Evaluator, targets: String*): Command[Unit] =
+    Task.Command(exclusive = true) {
+      val selectiveHashes = SelectiveExecution.Signatures(evaluator, targets)
+      os.write.over(
+        Task.workspace / "out" / "mill-selective-hashes.json",
+        upickle.default.write(selectiveHashes)
+      )
+    }
 
-  def selectiveRun(evaluator: Evaluator, targets: String*) = Task.Command(exclusive = true) {
-    val oldHashes = upickle.default.read[SelectiveExecution.Signatures](
-      os.read(Task.workspace / "out" / "mill-selective-hashes.json")
-    )
-    val newHashes = SelectiveExecution.Signatures(evaluator, targets)
-    val downstreamAll = SelectiveExecution
-      .computeDownstream(evaluator, targets, oldHashes, newHashes)
+  def selectiveRun(evaluator: Evaluator, targets: String*): Command[Unit] =
+    Task.Command(exclusive = true) {
+      val oldHashes = upickle.default.read[SelectiveExecution.Signatures](
+        os.read(Task.workspace / "out" / "mill-selective-hashes.json")
+      )
+      val newHashes = SelectiveExecution.Signatures(evaluator, targets)
+      val downstreamAll = SelectiveExecution
+        .computeDownstream(evaluator, targets, oldHashes, newHashes)
 
-    evaluator.evaluate(Loose.Agg.from(downstreamAll))
-    ()
-  }
+      evaluator.evaluate(Loose.Agg.from(downstreamAll))
+      ()
+    }
 }

@@ -1,5 +1,7 @@
 package mill.integration
 import mill.testkit.UtestIntegrationTestSuite
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 import utest._
 
@@ -10,7 +12,8 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
 
       eval(("selectivePrepare", "{foo.fooCommand,bar.barCommand}"), check = true)
       modifyFile(workspacePath / "bar/bar.txt", _ + "!")
-      val cached = eval(("selectiveRun", "{foo.fooCommand,bar.barCommand}"), check = true, stderr = os.Inherit)
+      val cached =
+        eval(("selectiveRun", "{foo.fooCommand,bar.barCommand}"), check = true, stderr = os.Inherit)
 
       assert(!cached.out.contains("Computing fooCommand"))
       assert(cached.out.contains("Computing barCommand"))
@@ -19,20 +22,105 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
       import tester._
 
       // Check method body code changes correctly trigger downstream evaluation
-      eval(("selectivePrepare", "{foo.fooCommand,bar.barCommand}"), check = true, stderr = os.Inherit)
+      eval(
+        ("selectivePrepare", "{foo.fooCommand,bar.barCommand}"),
+        check = true,
+        stderr = os.Inherit
+      )
       modifyFile(workspacePath / "build.mill", _.replace("\"barHelper \"", "\"barHelper! \""))
-      val cached1 = eval(("selectiveRun", "{foo.fooCommand,bar.barCommand}"), check = true, stderr = os.Inherit)
+      val cached1 =
+        eval(("selectiveRun", "{foo.fooCommand,bar.barCommand}"), check = true, stderr = os.Inherit)
 
       assert(!cached1.out.contains("Computing fooCommand"))
       assert(cached1.out.contains("Computing barCommand"))
 
       // Check module body code changes correctly trigger downstream evaluation
-      eval(("selectivePrepare", "{foo.fooCommand,bar.barCommand}"), check = true, stderr = os.Inherit)
-      modifyFile(workspacePath / "build.mill", _.replace("object foo extends Module {", "object foo extends Module { println(123)"))
-      val cached2 = eval(("selectiveRun", "{foo.fooCommand,bar.barCommand}"), check = true, stderr = os.Inherit)
+      eval(
+        ("selectivePrepare", "{foo.fooCommand,bar.barCommand}"),
+        check = true,
+        stderr = os.Inherit
+      )
+      modifyFile(
+        workspacePath / "build.mill",
+        _.replace("object foo extends Module {", "object foo extends Module { println(123)")
+      )
+      val cached2 =
+        eval(("selectiveRun", "{foo.fooCommand,bar.barCommand}"), check = true, stderr = os.Inherit)
 
       assert(cached2.out.contains("Computing fooCommand"))
       assert(!cached2.out.contains("Computing barCommand"))
+    }
+
+    test("watch") {
+      test("selective-changed-inputs") - integrationTest { tester =>
+        import tester._
+        @volatile var output0 = List.empty[String]
+        def output = output0.mkString("\n")
+        Future {
+          eval(
+            ("--watch", "{foo.fooCommand,bar.barCommand}"),
+            check = true,
+            timeout = 60000,
+            stdout = os.ProcessOutput.Readlines(line => output0 = output0 :+ line),
+            stderr = os.Inherit
+          )
+        }
+
+        Thread.sleep(10000)
+        eventually(
+          output.contains("Computing fooCommand") && output.contains("Computing barCommand")
+        )
+        output0 = Nil
+        modifyFile(workspacePath / "bar/bar.txt", _ + "!")
+        Thread.sleep(2000)
+        eventually(
+          !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
+        )
+        eventually(
+          !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
+        )
+      }
+
+      test("selective-changed-code") - integrationTest { tester =>
+        import tester._
+
+        @volatile var output0 = List.empty[String]
+        def output = output0.mkString("\n")
+        Future {
+          eval(
+            ("--watch", "{foo.fooCommand,bar.barCommand}"),
+            check = true,
+            timeout = 60000,
+            stdout = os.ProcessOutput.Readlines(line => output0 = output0 :+ line),
+            stderr = os.Inherit
+          )
+        }
+
+        Thread.sleep(10000)
+        eventually(
+          output.contains("Computing fooCommand") && output.contains("Computing barCommand")
+        )
+        output0 = Nil
+
+        // Check method body code changes correctly trigger downstream evaluation
+        modifyFile(workspacePath / "build.mill", _.replace("\"barHelper \"", "\"barHelper! \""))
+
+        Thread.sleep(2000)
+        eventually(
+          !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
+        )
+        output0 = Nil
+
+        // Check module body code changes correctly trigger downstream evaluation
+        modifyFile(
+          workspacePath / "build.mill",
+          _.replace("object foo extends Module {", "object foo extends Module { println(123)")
+        )
+        Thread.sleep(2000)
+        eventually(
+          output.contains("Computing fooCommand") && !output.contains("Computing barCommand")
+        )
+      }
     }
   }
 }

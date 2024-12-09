@@ -2,48 +2,24 @@ package mill.main
 
 import mill.api.Strict
 import mill.define.{InputImpl, NamedTask, Task}
-import mill.eval.{CodeSigUtils, Evaluator, EvaluatorCore, GroupEvaluator, Plan, Terminal}
+import mill.eval.{CodeSigUtils, Evaluator, Plan, Terminal}
 import mill.resolve.{Resolve, SelectMode}
 
-
-
 private[mill] object SelectiveExecution {
-  case class Signatures(inputHashes: Map[String, Int],
-                        taskCodeSignatures: Map[String, Int])
+  case class Signatures(inputHashes: Map[String, Int], methodCodeHashSignatures: Map[String, Int])
   implicit val jsonify: upickle.default.ReadWriter[Signatures] = upickle.default.macroRW
 
   object Signatures {
-    def apply(evaluator: Evaluator, targets: Seq[String]) = {
+    def apply(evaluator: Evaluator, targets: Seq[String]): Signatures = {
       val res = plan0(evaluator, targets).getOrElse(???)
       val inputTasksToLabels: Map[Task[_], String] = res
-        .collect { case labelled if labelled.task.isInstanceOf[InputImpl[_]] =>
-          labelled.task -> labelled.segments.render
+        .collect {
+          case labelled if labelled.task.isInstanceOf[InputImpl[_]] =>
+            labelled.task -> labelled.segments.render
         }
         .toMap
-
-      val (sortedGroups, transitive) = Plan.plan(res.map(_.task).toSeq)
-
-      val (classToTransitiveClasses, allTransitiveClassMethods) =
-        CodeSigUtils.precomputeMethodNamesPerClass(sortedGroups)
-
-      lazy val constructorHashSignatures = CodeSigUtils
-        .constructorHashSignatures(evaluator.methodCodeHashSignatures)
 
       val results = evaluator.evaluate(Strict.Agg.from(inputTasksToLabels.keys))
-
-      val taskCodeSignatures = transitive
-        .collect { case namedTask: NamedTask[_] =>
-          namedTask.ctx.segments.render -> CodeSigUtils
-            .codeSigForTask(
-              namedTask,
-              classToTransitiveClasses,
-              allTransitiveClassMethods,
-              evaluator.methodCodeHashSignatures,
-              constructorHashSignatures
-            )
-            .sum
-        }
-        .toMap
 
       new Signatures(
         inputHashes = results
@@ -54,12 +30,15 @@ private[mill] object SelectiveExecution {
             }
           }
           .toMap,
-        taskCodeSignatures = taskCodeSignatures
+        methodCodeHashSignatures = evaluator.methodCodeHashSignatures
       )
     }
   }
 
-  def plan0(evaluator: Evaluator, targets: Seq[String]) = {
+  def plan0(
+      evaluator: Evaluator,
+      targets: Seq[String]
+  ): Either[String, Array[Terminal.Labelled[_]]] = {
     Resolve.Tasks.resolve(
       evaluator.rootModule,
       targets,
@@ -72,10 +51,40 @@ private[mill] object SelectiveExecution {
     }
   }
 
-  def computeDownstream(evaluator: Evaluator,
-                        targets: Seq[String],
-                        oldHashes: Signatures,
-                        newHashes: Signatures) = {
+  def computeHashCodeSignatures(
+      res: Array[Terminal.Labelled[_]],
+      methodCodeHashSignatures: Map[String, Int]
+  ): Map[String, Int] = {
+
+    val (sortedGroups, transitive) = Plan.plan(res.map(_.task).toSeq)
+
+    val (classToTransitiveClasses, allTransitiveClassMethods) =
+      CodeSigUtils.precomputeMethodNamesPerClass(sortedGroups)
+
+    lazy val constructorHashSignatures = CodeSigUtils
+      .constructorHashSignatures(methodCodeHashSignatures)
+
+    transitive
+      .collect { case namedTask: NamedTask[_] =>
+        namedTask.ctx.segments.render -> CodeSigUtils
+          .codeSigForTask(
+            namedTask,
+            classToTransitiveClasses,
+            allTransitiveClassMethods,
+            methodCodeHashSignatures,
+            constructorHashSignatures
+          )
+          .sum
+      }
+      .toMap
+  }
+
+  def computeDownstream(
+      evaluator: Evaluator,
+      targets: Seq[String],
+      oldHashes: Signatures,
+      newHashes: Signatures
+  ): Seq[Task[Any]] = {
     val terminals = SelectiveExecution.plan0(evaluator, targets).getOrElse(???)
     val namesToTasks = terminals.map(t => (t.render -> t.task)).toMap
 
@@ -83,11 +92,17 @@ private[mill] object SelectiveExecution {
       (lhs.keys ++ rhs.keys)
         .iterator
         .distinct
-        .filter{k => lhs.get(k) != rhs.get(k)}
+        .filter { k => lhs.get(k) != rhs.get(k) }
         .toSet
     }
+
     val changedInputNames = diffMap(oldHashes.inputHashes, newHashes.inputHashes)
-    val changedCodeNames = diffMap(oldHashes.taskCodeSignatures, newHashes.taskCodeSignatures)
+    val changedCodeNames = diffMap(
+      computeHashCodeSignatures(terminals, oldHashes.methodCodeHashSignatures),
+      computeHashCodeSignatures(terminals, newHashes.methodCodeHashSignatures)
+    )
+    pprint.err.log(changedInputNames)
+    pprint.err.log(changedCodeNames)
     val changedRootTasks = (changedInputNames ++ changedCodeNames).map(namesToTasks(_): Task[_])
 
     val allNodes = breadthFirst(terminals.map(_.task: Task[_]))(_.inputs)

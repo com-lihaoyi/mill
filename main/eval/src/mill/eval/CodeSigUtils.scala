@@ -5,9 +5,11 @@ import mill.define.{NamedTask, Task}
 import mill.util.MultiBiMap
 
 import scala.reflect.NameTransformer.encode
+import java.lang.reflect.Method
 
 object CodeSigUtils {
-  def precomputeMethodNamesPerClass(sortedGroups: MultiBiMap[Terminal, Task[_]]) = {
+  def precomputeMethodNamesPerClass(sortedGroups: MultiBiMap[Terminal, Task[_]])
+      : (Map[Class[_], IndexedSeq[Class[_]]], Map[Class[_], Map[String, Method]]) = {
     def resolveTransitiveParents(c: Class[_]): Iterator[Class[_]] = {
       Iterator(c) ++
         Option(c.getSuperclass).iterator.flatMap(resolveTransitiveParents) ++
@@ -47,18 +49,20 @@ object CodeSigUtils {
     (classToTransitiveClasses, allTransitiveClassMethods)
   }
 
-  def constructorHashSignatures(methodCodeHashSignatures: Map[String, Int]): Map[String, Seq[(String, Int)]] =
+  def constructorHashSignatures(methodCodeHashSignatures: Map[String, Int])
+      : Map[String, Seq[(String, Int)]] =
     methodCodeHashSignatures
       .toSeq
       .collect { case (method @ s"$prefix#<init>($args)void", hash) => (prefix, method, hash) }
       .groupMap(_._1)(t => (t._2, t._3))
 
-  def codeSigForTask(namedTask: => NamedTask[_],
-                  classToTransitiveClasses: => Map[Class[?], IndexedSeq[Class[?]]],
-                  allTransitiveClassMethods: => Map[Class[?], Map[String, java.lang.reflect.Method]],
-                  methodCodeHashSignatures: => Map[String, Int],
-                  constructorHashSignatures: => Map[String, Seq[(String, Int)]]) = {
-
+  def codeSigForTask(
+      namedTask: => NamedTask[_],
+      classToTransitiveClasses: => Map[Class[?], IndexedSeq[Class[?]]],
+      allTransitiveClassMethods: => Map[Class[?], Map[String, java.lang.reflect.Method]],
+      methodCodeHashSignatures: => Map[String, Int],
+      constructorHashSignatures: => Map[String, Seq[(String, Int)]]
+  ): Iterable[Int] = {
 
     val encodedTaskName = encode(namedTask.ctx.segment.pathSegments.head)
 
@@ -100,8 +104,8 @@ object CodeSigUtils {
         constructorHashSignatures.get(m.getClass.getName) match {
           case Some(Seq((singleMethod, hash))) => hash
           case Some(multiple) => throw new MillException(
-            s"Multiple constructors found for module $m: ${multiple.mkString(",")}"
-          )
+              s"Multiple constructors found for module $m: ${multiple.mkString(",")}"
+            )
           case None => 0
         }
       )

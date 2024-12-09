@@ -9,7 +9,6 @@ import mill.util._
 
 import java.lang.reflect.Method
 import scala.collection.mutable
-import scala.reflect.NameTransformer.encode
 import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
 
@@ -77,7 +76,10 @@ private[mill] trait GroupEvaluator {
           .collect { case namedTask: NamedTask[_] =>
             CodeSigUtils.codeSigForTask(
               namedTask,
-              classToTransitiveClasses, allTransitiveClassMethods, methodCodeHashSignatures, constructorHashSignatures
+              classToTransitiveClasses,
+              allTransitiveClassMethods,
+              methodCodeHashSignatures,
+              constructorHashSignatures
             )
           }
           .flatten

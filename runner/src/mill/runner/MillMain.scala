@@ -33,7 +33,7 @@ object MillMain {
       err.println(e.getCause.getMessage())
       (false, onError)
     case NonFatal(e) =>
-      err.println("An unexpected error occurred " + e)
+      err.println("An unexpected error occurred " + e + "\n" + e.getStackTrace.mkString("\n"))
       throw e
       (false, onError)
   }
@@ -268,7 +268,8 @@ object MillMain {
                                   requestedMetaLevel = config.metaLevel,
                                   config.allowPositional.value,
                                   systemExit = systemExit,
-                                  streams0 = streams0
+                                  streams0 = streams0,
+                                  selectiveExecution = config.watch.value
                                 ).evaluate()
                               }
                             }

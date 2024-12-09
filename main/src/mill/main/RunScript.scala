@@ -15,7 +15,8 @@ object RunScript {
   def evaluateTasksNamed(
       evaluator: Evaluator,
       scriptArgs: Seq[String],
-      selectMode: SelectMode
+      selectMode: SelectMode,
+      selectiveExecution: Boolean = false
   ): Either[
     String,
     (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]])
@@ -28,7 +29,7 @@ object RunScript {
         evaluator.allowPositionalCommandArgs
       )
     }
-    for (targets <- resolved) yield evaluateNamed(evaluator, Agg.from(targets))
+    for (targets <- resolved) yield evaluateNamed(evaluator, Agg.from(targets), selectiveExecution)
   }
 
   /**
@@ -38,9 +39,29 @@ object RunScript {
    */
   def evaluateNamed(
       evaluator: Evaluator,
-      targets: Agg[Task[Any]]
+      targets: Agg[Task[Any]],
+      selectiveExecution: Boolean = false
   ): (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]]) = {
-    val evaluated: Results = evaluator.evaluate(targets, serialCommandExec = true)
+    val selectedTargets =
+      if (!selectiveExecution || !os.exists(evaluator.outPath / "mill-selective-hashes.json"))
+        targets
+      else {
+        val oldHashes = upickle.default.read[SelectiveExecution.Signatures](
+          os.read(evaluator.outPath / "mill-selective-hashes.json")
+        )
+        val targetLabels = targets.map { case t: NamedTask[_] => t.ctx.segments.render }.toSeq
+        val newHashes = SelectiveExecution.Signatures(evaluator, targetLabels)
+        val res = SelectiveExecution
+          .computeDownstream(evaluator, targetLabels, oldHashes, newHashes)
+          .collect { case n: NamedTask[_] => n.ctx.segments.render }
+          .toSet
+        val res2 =
+          targets.collect { case n: NamedTask[_] if res.contains(n.ctx.segments.render) => n }
+
+        pprint.err.log(res2)
+        Agg.from(res2)
+      }
+    val evaluated: Results = evaluator.evaluate(selectedTargets, serialCommandExec = true)
 
     val watched = evaluated.results
       .iterator
@@ -56,6 +77,22 @@ object RunScript {
       .flatten
       .toSeq
 
+    val allInputHashes = evaluated.results
+      .iterator
+      .collect {
+        case (t: InputImpl[_], TaskResult(Result.Success(Val(value)), _)) =>
+          (t.ctx.segments.render, value.hashCode())
+      }
+      .toMap
+
+    if (selectiveExecution) {
+      os.write.over(
+        evaluator.outPath / "mill-selective-hashes.json",
+        upickle.default.write(
+          SelectiveExecution.Signatures(allInputHashes, evaluator.methodCodeHashSignatures)
+        )
+      )
+    }
     val errorStr = Evaluator.formatFailing(evaluated)
 
     evaluated.failing.keyCount match {
