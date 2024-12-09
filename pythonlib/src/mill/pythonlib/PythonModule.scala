@@ -167,6 +167,37 @@ trait PythonModule extends PipModule with TaskModule { outer =>
     )
   }
 
+  /**
+   * Run the main python script of this module.
+   *
+   * @see [[mainScript]]
+   */
+  def runBackground(args: mill.define.Args) = Task.Command {
+    val (procUuidPath, procLockfile, procUuid) = mill.scalalib.RunModule.backgroundSetup(T.dest)
+
+    Jvm.runSubprocess(
+      mainClass = "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
+      classPath = mill.scalalib.ZincWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
+      jvmArgs = Nil,
+      envArgs = runnerEnvTask(),
+      mainArgs = Seq(
+        procUuidPath.toString,
+        procLockfile.toString,
+        procUuid,
+        "500",
+        "<subprocess>",
+        pythonExe().path.toString,
+        mainScript().path.toString
+      ) ++ args.value,
+      workingDir = T.workspace,
+      background = true,
+      useCpPassingJar = false,
+      runBackgroundLogToConsole = true,
+      javaHome = mill.scalalib.ZincWorkerModule.javaHome().map(_.path)
+    )
+    ()
+  }
+
   override def defaultCommandName(): String = "run"
 
   /**
