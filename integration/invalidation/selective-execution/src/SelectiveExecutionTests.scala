@@ -31,5 +31,19 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
       assert(!cached.out.contains("Computing fooCommand"))
       assert(cached.out.contains("Computing barCommand"))
     }
+    test("selective-changed-code") - integrationTest { tester =>
+      import tester._
+
+      val initial = eval("{fooCommand,barCommand}")
+      assert(initial.out.contains("Computing fooCommand"))
+      assert(initial.out.contains("Computing barCommand"))
+
+      eval(("selectivePrepare", "{fooCommand,barCommand}"), check = true)
+      modifyFile(workspacePath / "build.mill", _.replace("\"barHelper \"", "\"barHelper! \""))
+      val cached = eval(("selectiveRun", "{fooCommand,barCommand}"), check = true, stderr = os.Inherit)
+
+      assert(!cached.out.contains("Computing fooCommand"))
+      assert(cached.out.contains("Computing barCommand"))
+    }
   }
 }
