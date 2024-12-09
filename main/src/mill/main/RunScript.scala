@@ -100,7 +100,7 @@ object RunScript {
       .iterator
       .collect {
         case (t: InputImpl[_], TaskResult(Result.Success(Val(value)), _)) =>
-          (t.ctx.segments.render, value.hashCode())
+          (t.ctx.segments.render, value.##)
       }
       .toMap
 
