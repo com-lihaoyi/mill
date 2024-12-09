@@ -101,8 +101,7 @@ private[mill] object SelectiveExecution {
       computeHashCodeSignatures(terminals, oldHashes.methodCodeHashSignatures),
       computeHashCodeSignatures(terminals, newHashes.methodCodeHashSignatures)
     )
-    pprint.err.log(changedInputNames)
-    pprint.err.log(changedCodeNames)
+
     val changedRootTasks = (changedInputNames ++ changedCodeNames).map(namesToTasks(_): Task[_])
 
     val allNodes = breadthFirst(terminals.map(_.task: Task[_]))(_.inputs)

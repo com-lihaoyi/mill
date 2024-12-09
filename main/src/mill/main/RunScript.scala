@@ -77,7 +77,6 @@ object RunScript {
         val res2 =
           targets.collect { case n: NamedTask[_] if res.contains(n.ctx.segments.render) => n }
 
-        pprint.err.log(res2)
         Agg.from(res2)
       }
     val evaluated: Results = evaluator.evaluate(selectedTargets, serialCommandExec = true)
