@@ -7,11 +7,11 @@ from foo import Foo  # type: ignore
 
 class TestScript(unittest.TestCase):
     def test_all(self) -> None:
-        appPythonPathResourceText = Foo().PythonPathResourceText("resources", "file.txt")
+        appPythonPathResourceText = Foo().PythonPathResourceText("res", "file.txt")
         self.assertEqual(appPythonPathResourceText, "Hello World Resource File")
 
         testPythonPathResourceText = (
-            importlib.resources.files("resources")
+            importlib.resources.files("res")
             .joinpath("test-file-a.txt")
             .read_text()
             .strip()

@@ -14,15 +14,14 @@ object foo extends PythonModule {
   // choose a main Script to run if there are multiple present
   def mainScript = Task.Source { millSourcePath / "custom-src" / "foo2.py" }
 
-  // TODO: should we include only one(it is sufficient) or both tasks(for demo purpose)?
   // Add (or replace) source folders for the module to use
   def sources = Task.Sources {
-    super.sources() ++ Seq(PathRef(millSourcePath))
+    super.sources() ++ Seq(PathRef(millSourcePath / "custom-src"))
   }
 
   // Add (or replace) resource folders for the module to use
   def resources = Task.Sources {
-    super.resources() ++ Seq(PathRef(millSourcePath))
+    super.resources() ++ Seq(PathRef(millSourcePath / "custom-resources"))
   }
 
   // Generate sources at build time

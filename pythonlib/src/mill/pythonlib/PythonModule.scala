@@ -115,7 +115,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
   /**
    * Command-line options to pass as bundle configuration defined by the user.
    */
-  def bundleOptions: T[Seq[String]] = Task { Seq.empty[String] }
+  def bundleOptions: T[Seq[String]] = Task { Seq("--scie", "eager") }
 
   // TODO: right now, any task that calls this helper will have its own python
   // cache. This is slow. Look into sharing the cache between tasks.
@@ -125,7 +125,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
       options = pythonOptions(),
       env0 = Map(
         "PYTHONPATH" -> transitivePythonPath().map(_.path).mkString(java.io.File.pathSeparator),
-        "PYTHONPYCACHEPREFIX" -> (T.dest / "cache").toString,
+        "PYTHONPYCACHEPREFIX" -> (Task.dest / "cache").toString,
         if (Task.log.colored) { "FORCE_COLOR" -> "1" }
         else { "NO_COLOR" -> "1" }
       ) ++ forkEnv(),
@@ -142,7 +142,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
         // format: off
         "-m", "mypy",
         "--strict",
-        "--cache-dir", (T.dest / "mypycache").toString,
+        "--cache-dir", (Task.dest / "mypycache").toString,
         sources().map(_.path)
         // format: on
       )
@@ -191,11 +191,10 @@ trait PythonModule extends PipModule with TaskModule { outer =>
         ),
         "--exe", mainScript().path,
         "-o", pexFile,
-        "--scie", "eager",
         bundleOptions()
         // format: on
       ),
-      workingDir = T.dest
+      workingDir = Task.dest
     )
     PathRef(pexFile)
   }

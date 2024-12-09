@@ -33,9 +33,9 @@ class Foo2:
         print(f"FooC.value: {FooC.value}")
 
         # Reading resources
-        print(f"MyResource: {self.read_resource('resources', 'MyResource.txt')}")
+        print(f"MyResource: {self.read_resource('res', 'MyResource.txt')}")
         print(
-            f"MyOtherResource: {self.read_resource('custom-resources', 'MyOtherResources.txt')}"
+            f"MyOtherResource: {self.read_resource('custom-res', 'MyOtherResources.txt')}"
         )
 
         # Accessing environment variable

@@ -1,6 +1,6 @@
 import argparse
 import os
-from myDeps import MyDeps # type: ignore
+from myDeps import MyDeps  # type: ignore
 
 
 class Foo:
@@ -9,7 +9,8 @@ class Foo:
         print("MyDeps.value: ", MyDeps.value)
         print("My_Line_Count: ", os.environ.get("MY_LINE_COUNT"))
 
-if __name__  == '__main__':
+
+if __name__ == "__main__":
     # Create the argument parser
     parser = argparse.ArgumentParser(description="Process text argument")
 
@@ -18,5 +19,5 @@ if __name__  == '__main__':
 
     # Parse the arguments
     args = parser.parse_args()
-    
+
     Foo().main(args.text)

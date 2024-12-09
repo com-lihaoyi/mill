@@ -16,10 +16,9 @@ object foo extends PythonModule {
   def pythonOptions: T[Seq[String]] =
     Seq("-Wall", "-Wignore::ImportWarning", "-Wignore::ResourceWarning")
 
-  // TODO: Should we allow user to change the default config/function available: `bundle`?
   // These configs wil be used while creating the bundle
   // use -h to see all available options
-  def bundleOptions = Seq(
+  def bundleOptions = super.bundleOptions() ++ Seq(
     "--compress", // Compress the output file
     "--compile", // compile will help in fast loading of pex output file
     "-v", // verbose

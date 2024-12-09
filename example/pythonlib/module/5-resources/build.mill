@@ -4,10 +4,9 @@ import mill._, pythonlib._
 object foo extends PythonModule {
   def mainScript = Task.Source { millSourcePath / "src" / "foo.py" }
 
-  def resources = Task.Sources { super.resources() ++ Seq(PathRef(millSourcePath)) }
+  def resources = Task.Sources { super.resources() ++ Seq(PathRef(millSourcePath / "custom")) }
 
   object test extends PythonTests with TestModule.Unittest {
-    def resources = Task.Sources { super.resources() ++ Seq(PathRef(millSourcePath)) }
 
     def otherFiles = Task.Source(millSourcePath / "other-files")
 
@@ -53,9 +52,9 @@ OK
 //
 // Example application code demonstrating the techniques above can be seen below:
 
-/** See Also: foo/resources/file.txt */
-/** See Also: foo/test/resources/test-file-a.txt */
-/** See Also: foo/test/resources/test-file-b.txt */
+/** See Also: foo/resources/res/file.txt */
+/** See Also: foo/test/resources/res/test-file-a.txt */
+/** See Also: foo/test/resources/res/test-file-b.txt */
 /** See Also: foo/test/other-files/other-file.txt */
 /** See Also: foo/src/foo.py */
 /** See Also: foo/test/src/test.py */
