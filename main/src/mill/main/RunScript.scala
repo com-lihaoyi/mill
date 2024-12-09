@@ -15,6 +15,19 @@ object RunScript {
   def evaluateTasksNamed(
       evaluator: Evaluator,
       scriptArgs: Seq[String],
+      selectMode: SelectMode
+  ): Either[
+    String,
+    (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]])
+  ] = evaluateTasksNamed(
+    evaluator,
+    scriptArgs,
+    selectMode,
+    selectiveExecution = false
+  )
+  def evaluateTasksNamed(
+      evaluator: Evaluator,
+      scriptArgs: Seq[String],
       selectMode: SelectMode,
       selectiveExecution: Boolean = false
   ): Either[
@@ -31,6 +44,12 @@ object RunScript {
     }
     for (targets <- resolved) yield evaluateNamed(evaluator, Agg.from(targets), selectiveExecution)
   }
+
+  def evaluateNamed(
+      evaluator: Evaluator,
+      targets: Agg[Task[Any]]
+  ): (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]]) =
+    evaluateNamed(evaluator, targets, selectiveExecution = false)
 
   /**
    * @param evaluator

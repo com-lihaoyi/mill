@@ -1,7 +1,7 @@
 package mill.main
 
-import mill.api.{Ctx, *}
-import mill.define.{BaseModule0, Command, NamedTask, Segments, Target, Task, *}
+import mill.api._
+import mill.define._
 import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.moduledefs.Scaladoc
 import mill.resolve.SelectMode.Separated
@@ -583,7 +583,7 @@ trait MainModule extends BaseModule0 {
   private def visualize0(
       evaluator: Evaluator,
       targets: Seq[String],
-      ctx: Ctx,
+      ctx: mill.api.Ctx,
       vizWorker: VizWorker,
       planTasks: Option[List[NamedTask[_]]] = None
   ): Result[Seq[PathRef]] = {
