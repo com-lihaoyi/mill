@@ -89,8 +89,7 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
           eval(
             ("--watch", "show", "{foo.fooCommand,bar.barCommand}"),
             check = true,
-            stdout = os.ProcessOutput.Readlines(line => output0 = output0 :+ line),
-            stderr = os.Inherit
+            stderr = os.ProcessOutput.Readlines(line => output0 = output0 :+ line),
           )
         }
 
@@ -99,11 +98,14 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
         )
         output0 = Nil
         modifyFile(workspacePath / "bar/bar.txt", _ + "!")
+        // For now, selective execution doesn't work with `show`, and always runs all provided
+        // tasks. This is necessary because we need all specified tasks to be run in order to
+        // get their value to render as JSON at the end of `show`
         eventually(
-          !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
+          output.contains("Computing fooCommand") && output.contains("Computing barCommand")
         )
         eventually(
-          !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
+          output.contains("Computing fooCommand") && output.contains("Computing barCommand")
         )
       }
 
