@@ -24,7 +24,7 @@ object BomTests extends TestSuite {
   object modules extends TestBaseModule {
     object bom extends Module {
       object placeholder extends JavaModule with TestPublishModule {
-        def bomDeps = Agg(
+        def bomIvyDeps = Agg(
           ivy"com.google.cloud:libraries-bom:26.50.0"
         )
         def ivyDeps = Agg(
@@ -51,7 +51,7 @@ object BomTests extends TestSuite {
       }
 
       object versionOverride extends JavaModule with TestPublishModule {
-        def bomDeps = Agg(
+        def bomIvyDeps = Agg(
           ivy"com.google.cloud:libraries-bom:26.50.0"
         )
         def ivyDeps = Agg(
@@ -79,7 +79,7 @@ object BomTests extends TestSuite {
 
       object invalid extends Module {
         object exclude extends JavaModule {
-          def bomDeps = Agg(
+          def bomIvyDeps = Agg(
             ivy"com.google.cloud:libraries-bom:26.50.0".exclude(("foo", "thing"))
           )
         }
@@ -172,7 +172,7 @@ object BomTests extends TestSuite {
 
     object precedence extends Module {
       object higher extends JavaModule with TestPublishModule {
-        def bomDeps = Agg(
+        def bomIvyDeps = Agg(
           ivy"com.google.protobuf:protobuf-bom:4.28.1"
         )
         def depManagement = Agg(
@@ -185,7 +185,7 @@ object BomTests extends TestSuite {
       }
 
       object higherTransitive extends JavaModule with TestPublishModule {
-        def bomDeps = Agg(
+        def bomIvyDeps = Agg(
           ivy"com.google.protobuf:protobuf-bom:4.28.1"
         )
         def depManagement = Agg(
@@ -198,7 +198,7 @@ object BomTests extends TestSuite {
       }
 
       object lower extends JavaModule with TestPublishModule {
-        def bomDeps = Agg(
+        def bomIvyDeps = Agg(
           ivy"com.google.protobuf:protobuf-bom:4.28.1"
         )
         def depManagement = Agg(
@@ -211,7 +211,7 @@ object BomTests extends TestSuite {
       }
 
       object lowerTransitive extends JavaModule with TestPublishModule {
-        def bomDeps = Agg(
+        def bomIvyDeps = Agg(
           ivy"com.google.protobuf:protobuf-bom:4.28.1"
         )
         def depManagement = Agg(
@@ -224,7 +224,7 @@ object BomTests extends TestSuite {
       }
 
       object addExclude extends JavaModule with TestPublishModule {
-        def bomDeps = Agg(
+        def bomIvyDeps = Agg(
           ivy"com.google.protobuf:protobuf-bom:4.28.3"
         )
         def depManagement = Agg(
@@ -277,7 +277,7 @@ object BomTests extends TestSuite {
         // This BOM has a versions for protobuf-java-util marked as provided,
         // and one for scala-parallel-collections_2.13 in the default scope.
         // Both should be taken into account here.
-        def bomDeps = Agg(
+        def bomIvyDeps = Agg(
           ivy"org.apache.spark:spark-parent_2.13:3.5.3"
         )
         def compileIvyDeps = Agg(
@@ -289,7 +289,7 @@ object BomTests extends TestSuite {
           // Same as above, except the dependencies are in the
           // default scope for us here, so the protobuf-java-util version
           // shouldn't be read, as it's in provided scope in the BOM.
-          def bomDeps = Agg(
+          def bomIvyDeps = Agg(
             ivy"org.apache.spark:spark-parent_2.13:3.5.3"
           )
           def ivyDeps = Agg(
@@ -302,7 +302,7 @@ object BomTests extends TestSuite {
       object runtimeScope extends JavaModule with TestPublishModule {
         // BOM has a version for org.mvnpm.at.hpcc-js:wasm marked as runtime.
         // This version should be taken into account in runtime deps here.
-        def bomDeps = Agg(
+        def bomIvyDeps = Agg(
           ivy"io.quarkus:quarkus-bom:3.15.1"
         )
         def runIvyDeps = Agg(
@@ -313,7 +313,7 @@ object BomTests extends TestSuite {
       object runtimeScopeFail extends JavaModule with TestPublishModule {
         // BOM has a version for org.mvnpm.at.hpcc-js:wasm marked as runtime.
         // This version shouldn't be taken into account in main deps here.
-        def bomDeps = Agg(
+        def bomIvyDeps = Agg(
           ivy"io.quarkus:quarkus-bom:3.15.1"
         )
         def ivyDeps = Agg(
@@ -324,7 +324,7 @@ object BomTests extends TestSuite {
       object testScope extends JavaModule with TestPublishModule {
         // BOM has a version for scalatest_2.13 marked as test scope.
         // This version should be taken into account in test modules here.
-        def bomDeps = Agg(
+        def bomIvyDeps = Agg(
           ivy"org.apache.spark:spark-parent_2.13:3.5.3"
         )
         object test extends JavaTests {
@@ -339,7 +339,7 @@ object BomTests extends TestSuite {
       object testScopeFail extends JavaModule with TestPublishModule {
         // BOM has a version for scalatest_2.13 marked as test scope.
         // This version shouldn't be taken into account in main module here.
-        def bomDeps = Agg(
+        def bomIvyDeps = Agg(
           ivy"org.apache.spark:spark-parent_2.13:3.5.3"
         )
         def ivyDeps = Agg(
@@ -423,7 +423,7 @@ object BomTests extends TestSuite {
       )
 
       object dependee extends JavaModule with TestPublishModule {
-        def bomDeps = Agg(
+        def bomIvyDeps = Agg(
           ivy"com.google.cloud:libraries-bom:26.50.0"
         )
         def moduleDeps = Seq(bomOnModuleDependency)

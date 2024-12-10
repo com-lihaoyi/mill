@@ -158,14 +158,14 @@ You can reproduce any of the tests manually using `dist.run`, e.g.
 
 [source,bash]
 ----
-./mill dist.run example/basic/1-simple run --text hello
+./mill dist.run example/javalib/basic/1-simple foo.run --text hello
 ----
 
 **Manual Test using Launcher Script**
 
 [source,bash]
 ----
-./mill dist.launcher && (cd example/javalib/basic/1-simple && ../../../../out/dist/launcher.dest/run run --text hello)
+./mill dist.launcher && (cd example/javalib/basic/1-simple && ../../../../out/dist/launcher.dest/run foo.run --text hello)
 ----
 
 === Sub-Process Tests *with* Packaging/Publishing

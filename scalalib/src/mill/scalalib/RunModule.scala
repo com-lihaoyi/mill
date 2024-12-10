@@ -166,7 +166,7 @@ trait RunModule extends WithZincWorker {
 
   def runBackgroundTask(mainClass: Task[String], args: Task[Args] = Task.Anon(Args())): Task[Unit] =
     Task.Anon {
-      val (procUuidPath, procLockfile, procUuid) = backgroundSetup(T.dest)
+      val (procUuidPath, procLockfile, procUuid) = RunModule.backgroundSetup(T.dest)
       runner().run(
         args = Seq(
           procUuidPath.toString,
@@ -207,7 +207,7 @@ trait RunModule extends WithZincWorker {
       runUseArgsFile: Boolean,
       backgroundOutputs: Option[Tuple2[ProcessOutput, ProcessOutput]]
   )(args: String*): Ctx => Result[Unit] = ctx => {
-    val (procUuidPath, procLockfile, procUuid) = backgroundSetup(taskDest)
+    val (procUuidPath, procLockfile, procUuid) = RunModule.backgroundSetup(taskDest)
     try Result.Success(
         Jvm.runSubprocessWithBackgroundOutputs(
           "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
@@ -231,16 +231,16 @@ trait RunModule extends WithZincWorker {
         Result.Failure("subprocess failed")
     }
   }
+}
 
-  private[this] def backgroundSetup(dest: os.Path): (Path, Path, String) = {
+object RunModule {
+
+  private[mill] def backgroundSetup(dest: os.Path): (Path, Path, String) = {
     val procUuid = java.util.UUID.randomUUID().toString
     val procUuidPath = dest / ".mill-background-process-uuid"
     val procLockfile = dest / ".mill-background-process-lock"
     (procUuidPath, procLockfile, procUuid)
   }
-}
-
-object RunModule {
   trait Runner {
     def run(
         args: os.Shellable,
