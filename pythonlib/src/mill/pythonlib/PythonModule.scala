@@ -76,6 +76,13 @@ trait PythonModule extends PipModule with TaskModule { outer =>
   def unmanagedPythonPath: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
 
   /**
+   * Folders containing source files that are generated rather than
+   * handwritten; these files can be generated in this target itself,
+   * or can refer to files generated from other targets
+   */
+  def generatedSources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
+
+  /**
    * The directories used to construct the PYTHONPATH for this module, used for
    * execution, excluding upstream modules.
    *
@@ -83,7 +90,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
    * directories.
    */
   def localPythonPath: T[Seq[PathRef]] = Task {
-    sources() ++ resources() ++ unmanagedPythonPath()
+    sources() ++ resources() ++ generatedSources() ++ unmanagedPythonPath()
   }
 
   /**
@@ -95,12 +102,28 @@ trait PythonModule extends PipModule with TaskModule { outer =>
     localPythonPath() ++ upstream
   }
 
+  /**
+   * Any environment variables you want to pass to the forked Env
+   */
+  def forkEnv: T[Map[String, String]] = Task { Map.empty[String, String] }
+
+  /**
+   * Command-line options to pass to the Python Interpreter defined by the user.
+   */
+  def pythonOptions: T[Seq[String]] = Task { Seq.empty[String] }
+
+  /**
+   * Command-line options to pass as bundle configuration defined by the user.
+   */
+  def bundleOptions: T[Seq[String]] = Task { Seq("--scie", "eager") }
+
   // TODO: right now, any task that calls this helper will have its own python
   // cache. This is slow. Look into sharing the cache between tasks.
   def runner: Task[PythonModule.Runner] = Task.Anon {
     new PythonModule.RunnerImpl(
       command0 = pythonExe().path.toString,
-      env0 = runnerEnvTask(),
+      options = pythonOptions(),
+      env0 = runnerEnvTask() ++ forkEnv(),
       workingDir0 = Task.workspace
     )
   }
@@ -108,7 +131,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
   private def runnerEnvTask = Task.Anon {
     Map(
       "PYTHONPATH" -> transitivePythonPath().map(_.path).mkString(java.io.File.pathSeparator),
-      "PYTHONPYCACHEPREFIX" -> (T.dest / "cache").toString,
+      "PYTHONPYCACHEPREFIX" -> (Task.dest / "cache").toString,
       if (Task.log.colored) { "FORCE_COLOR" -> "1" }
       else { "NO_COLOR" -> "1" }
     )
@@ -123,7 +146,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
         // format: off
         "-m", "mypy",
         "--strict",
-        "--cache-dir", (T.dest / "mypycache").toString,
+        "--cache-dir", (Task.dest / "mypycache").toString,
         sources().map(_.path)
         // format: on
       )
@@ -203,10 +226,10 @@ trait PythonModule extends PipModule with TaskModule { outer =>
         ),
         "--exe", mainScript().path,
         "-o", pexFile,
-        "--scie", "eager",
+        bundleOptions()
         // format: on
       ),
-      workingDir = T.dest
+      workingDir = Task.dest
     )
     PathRef(pexFile)
   }
@@ -229,6 +252,7 @@ object PythonModule {
 
   private class RunnerImpl(
       command0: String,
+      options: Seq[String],
       env0: Map[String, String],
       workingDir0: os.Path
   ) extends Runner {
@@ -239,7 +263,7 @@ object PythonModule {
         workingDir: os.Path = null
     )(implicit ctx: Ctx): Unit =
       Jvm.runSubprocess(
-        commandArgs = Seq(Option(command).getOrElse(command0)) ++ args.value,
+        commandArgs = Seq(Option(command).getOrElse(command0)) ++ options ++ args.value,
         envArgs = Option(env).getOrElse(env0),
         workingDir = Option(workingDir).getOrElse(workingDir0)
       )
