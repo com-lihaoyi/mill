@@ -7,7 +7,7 @@ import mill.util.MultiBiMap
 import scala.reflect.NameTransformer.encode
 import java.lang.reflect.Method
 
-object CodeSigUtils {
+private[mill] object CodeSigUtils {
   def precomputeMethodNamesPerClass(sortedGroups: MultiBiMap[Terminal, Task[_]])
       : (Map[Class[_], IndexedSeq[Class[_]]], Map[Class[_], Map[String, Method]]) = {
     def resolveTransitiveParents(c: Class[_]): Iterator[Class[_]] = {
