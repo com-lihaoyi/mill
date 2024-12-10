@@ -142,10 +142,13 @@ object BuildGenTests extends TestSuite {
     // Try to normalize permissions while not touching those of committed test data
     val supportsPerms = FileSystems.getDefault.supportedFileAttributeViews().contains("posix")
     if (supportsPerms)
-      for (testFile <- os.walk(expectedRoot) if os.isFile(testFile)) {
-        val subPath = testFile.relativeTo(expectedRoot).asSubPath
-        os.perms.set(root / subPath, os.perms(testFile))
+      for {
+        testFile <- os.walk(expectedRoot)
+        if os.isFile(testFile)
+        targetFile = root / testFile.relativeTo(expectedRoot).asSubPath
+        if os.isFile(targetFile)
       }
+        os.perms.set(targetFile, os.perms(testFile))
 
     val diffExitCode = os.proc("git", "diff", "--no-index", expectedRoot, root)
       .call(stdin = os.Inherit, stdout = os.Inherit, check = !updateSnapshots)
