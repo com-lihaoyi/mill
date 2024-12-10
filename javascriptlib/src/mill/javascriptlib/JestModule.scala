@@ -6,7 +6,7 @@ import scala.collection.immutable.IndexedSeq
 
 trait JestModule extends TypeScriptModule {
   override def npmDevDeps: T[Seq[String]] = Task {
-    Seq(
+    super.npmDeps() ++ Seq(
       "@types/jest@^29.5.14",
       "@babel/core@^7.26.0",
       "@babel/preset-env@^7.26.0",
@@ -26,7 +26,7 @@ trait JestModule extends TypeScriptModule {
       .map(PathRef(_))
   }
 
-  override def mkENV = Task.Anon {
+  override def mkENV = Task {
     val javascriptOut = compile()._1.path
     // env
     // note: ' npmInstall().path / "node_modules" ' required in NODE_PATH for jest to find preset: ts-jest
@@ -42,13 +42,16 @@ trait JestModule extends TypeScriptModule {
   def getConfigFile: Task[String] =
     Task { (compile()._1.path / "jest.config.ts").toString }
 
+  override def compilerOptions: T[Map[String, ujson.Value]] =
+    Task { super.compilerOptions() + ("resolveJsonModule" -> ujson.Bool(true)) }
+
   // specify test dir path/to/test
   def getPathToTest: Task[String] =
     Task { compile()._2.path.toString }
 
   private def copyJestConfig: Task[Unit] = Task.Anon {
     os.copy.over(
-      millSourcePath / os.up / "jest.config.ts",
+      testConfigSource().path,
       compile()._1.path / "jest.config.ts"
     )
   }
