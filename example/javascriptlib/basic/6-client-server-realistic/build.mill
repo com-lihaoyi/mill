@@ -1,5 +1,5 @@
 package build
-import mill._, javascriptlib._
+import mill._, javascriptlib._, javascriptlib.testmods._
 
 object client extends ReactScriptsModule
 
@@ -10,7 +10,7 @@ object server extends JestModule {
   def npmDevDeps =
     super.npmDevDeps() ++ Seq("@types/supertest@^6.0.2", "supertest@^7.0.0")
 
-  override def testConfigSource = Task.Source(millSourcePath / "jest.config.ts")
+  override def testConfigSource = Task { Some(PathRef(millSourcePath / "jest.config.ts")) }
 
   override def bundleFlags = Map("external" -> Seq("express", "cors"))
 

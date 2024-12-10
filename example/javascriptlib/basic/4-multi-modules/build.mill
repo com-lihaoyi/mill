@@ -1,6 +1,6 @@
 package build
 
-import mill._, javascriptlib._
+import mill._, javascriptlib._, javascriptlib.testmods._
 
 object foo extends TypeScriptModule {
   object bar extends TypeScriptModule {

@@ -1,0 +1,22 @@
+package build
+
+import mill._, javascriptlib._, javascriptlib.testmods._
+
+object bar extends JestModule
+
+object foo extends MochaModule
+
+// Documentation for mill.example.javascriptlib
+// This build defines two modules bar and foo with test suites configured to use
+// Mocha & Jest resepectively.
+
+/** Usage
+
+> mill foo.test
+...Calculator
+...
+
+> mill bar.test
+PASS .../calculator.test.ts
+...
+*/
