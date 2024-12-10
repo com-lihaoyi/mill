@@ -2,10 +2,14 @@ package mill.integration
 import mill.testkit.UtestIntegrationTestSuite
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 
 import utest._
+import utest.asserts.{RetryMax, RetryInterval}
 
 object SelectiveExecutionTests extends UtestIntegrationTestSuite {
+  implicit val retryMax: RetryMax = RetryMax(60.seconds)
+  implicit val retryInterval: RetryInterval = RetryInterval(1.seconds)
   val tests: Tests = Tests {
     test("selective-changed-inputs") - integrationTest { tester =>
       import tester._
@@ -60,19 +64,16 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
           eval(
             ("--watch", "{foo.fooCommand,bar.barCommand}"),
             check = true,
-            timeout = 60000,
             stdout = os.ProcessOutput.Readlines(line => output0 = output0 :+ line),
             stderr = os.Inherit
           )
         }
 
-        Thread.sleep(10000)
         eventually(
           output.contains("Computing fooCommand") && output.contains("Computing barCommand")
         )
         output0 = Nil
         modifyFile(workspacePath / "bar/bar.txt", _ + "!")
-        Thread.sleep(2000)
         eventually(
           !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
         )
@@ -90,13 +91,11 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
           eval(
             ("--watch", "{foo.fooCommand,bar.barCommand}"),
             check = true,
-            timeout = 60000,
             stdout = os.ProcessOutput.Readlines(line => output0 = output0 :+ line),
             stderr = os.Inherit
           )
         }
 
-        Thread.sleep(10000)
         eventually(
           output.contains("Computing fooCommand") && output.contains("Computing barCommand")
         )
@@ -105,7 +104,6 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
         // Check method body code changes correctly trigger downstream evaluation
         modifyFile(workspacePath / "build.mill", _.replace("\"barHelper \"", "\"barHelper! \""))
 
-        Thread.sleep(2000)
         eventually(
           !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
         )
@@ -116,7 +114,7 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
           workspacePath / "build.mill",
           _.replace("object foo extends Module {", "object foo extends Module { println(123)")
         )
-        Thread.sleep(2000)
+
         eventually(
           output.contains("Computing fooCommand") && !output.contains("Computing barCommand")
         )
