@@ -120,5 +120,18 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
         )
       }
     }
+    test("failures"){
+      test("missing-prepare") - integrationTest { tester =>
+        import tester._
+
+        val cached = eval(
+          ("selectiveRun", "{foo.fooCommand,bar.barCommand}"),
+          check = false,
+          stderr = os.Pipe
+        )
+
+        assert(cached.err.contains("`selectiveRun` can only be run after `selectivePrepare`"))
+      }
+    }
   }
 }

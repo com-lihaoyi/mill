@@ -616,23 +616,32 @@ trait MainModule extends BaseModule0 {
 
   def selectivePrepare(evaluator: Evaluator, targets: String*): Command[Unit] =
     Task.Command(exclusive = true) {
-      val selectiveHashes = SelectiveExecution.Signatures(evaluator, targets)
-      os.write.over(
-        evaluator.outPath / OutFiles.millSelectiveExecution,
-        upickle.default.write(selectiveHashes)
-      )
+
+      val res: Either[String, Unit] = SelectiveExecution.Metadata(evaluator, targets)
+        .map(SelectiveExecution.saveMetadata(evaluator, _))
+
+      res match {
+        case Left(err) => Result.Failure(err)
+        case Right(res) =>
+          Result.Success(())
+      }
     }
 
   def selectiveRun(evaluator: Evaluator, targets: String*): Command[Unit] =
     Task.Command(exclusive = true) {
-      val oldHashes = upickle.default.read[SelectiveExecution.Signatures](
-        os.read(evaluator.outPath / OutFiles.millSelectiveExecution)
-      )
-      val newHashes = SelectiveExecution.Signatures(evaluator, targets)
-      val downstreamAll = SelectiveExecution
-        .computeDownstream(evaluator, targets, oldHashes, newHashes)
-
-      evaluator.evaluate(Loose.Agg.from(downstreamAll))
-      ()
+      if (!os.exists(evaluator.outPath / OutFiles.millSelectiveExecution)) {
+        Result.Failure("`selectiveRun` can only be run after `selectivePrepare`")
+      } else {
+        RunScript.evaluateTasksNamed(
+          evaluator,
+          targets,
+          Separated,
+          selectiveExecution = true
+        ) match {
+          case Left(err) => Result.Failure(err)
+          case Right((watched, Left(err))) => Result.Failure(err)
+          case Right((watched, Right(res))) => Result.Success(res)
+        }
+      }
     }
 }

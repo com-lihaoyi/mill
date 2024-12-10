@@ -3,35 +3,36 @@ package mill.main
 import mill.api.Strict
 import mill.define.{InputImpl, NamedTask, Task}
 import mill.eval.{CodeSigUtils, Evaluator, Plan, Terminal}
+import mill.main.client.OutFiles
 import mill.resolve.{Resolve, SelectMode}
 
 private[mill] object SelectiveExecution {
-  case class Signatures(inputHashes: Map[String, Int], methodCodeHashSignatures: Map[String, Int])
-  implicit val jsonify: upickle.default.ReadWriter[Signatures] = upickle.default.macroRW
+  case class Metadata(inputHashes: Map[String, Int], methodCodeHashSignatures: Map[String, Int])
+  implicit val rw: upickle.default.ReadWriter[Metadata] = upickle.default.macroRW
 
-  object Signatures {
-    def apply(evaluator: Evaluator, targets: Seq[String]): Signatures = {
-      val res = plan0(evaluator, targets).getOrElse(???)
-      val inputTasksToLabels: Map[Task[_], String] = res
-        .collect {
-          case labelled if labelled.task.isInstanceOf[InputImpl[_]] =>
-            labelled.task -> labelled.segments.render
-        }
-        .toMap
-
-      val results = evaluator.evaluate(Strict.Agg.from(inputTasksToLabels.keys))
-
-      new Signatures(
-        inputHashes = results
-          .results
-          .flatMap { case (task, taskResult) =>
-            inputTasksToLabels.get(task).map { l =>
-              l -> taskResult.result.getOrThrow.value.hashCode
-            }
+  object Metadata {
+    def apply(evaluator: Evaluator, targets: Seq[String]): Either[String, Metadata] = {
+      for(transitive <- plan0(evaluator, targets)) yield {
+        val inputTasksToLabels: Map[Task[_], String] = transitive
+          .collect { case Terminal.Labelled(task: InputImpl[_], segments) =>
+            task -> segments.render
           }
-          .toMap,
-        methodCodeHashSignatures = evaluator.methodCodeHashSignatures
-      )
+          .toMap
+
+        val results = evaluator.evaluate(Strict.Agg.from(inputTasksToLabels.keys))
+
+        new Metadata(
+          inputHashes = results
+            .results
+            .flatMap { case (task, taskResult) =>
+              inputTasksToLabels.get(task).map { l =>
+                l -> taskResult.result.getOrThrow.value.hashCode
+              }
+            }
+            .toMap,
+          methodCodeHashSignatures = evaluator.methodCodeHashSignatures
+        )
+      }
     }
   }
 
@@ -80,10 +81,10 @@ private[mill] object SelectiveExecution {
   }
 
   def computeDownstream(
-      evaluator: Evaluator,
-      targets: Seq[String],
-      oldHashes: Signatures,
-      newHashes: Signatures
+                         evaluator: Evaluator,
+                         targets: Seq[String],
+                         oldHashes: Metadata,
+                         newHashes: Metadata
   ): Seq[Task[Any]] = {
     val terminals = SelectiveExecution.plan0(evaluator, targets).getOrElse(???)
     val namesToTasks = terminals.map(t => (t.render -> t.task)).toMap
@@ -129,4 +130,21 @@ private[mill] object SelectiveExecution {
     seenList.toSeq
   }
 
+  def saveMetadata(evaluator: Evaluator, metadata: SelectiveExecution.Metadata) = {
+    os.write.over(
+      evaluator.outPath / OutFiles.millSelectiveExecution,
+      upickle.default.write(metadata)
+    )
+  }
+
+  def diffMetadata(evaluator: Evaluator, targets: Seq[String]): Either[String, Set[String]] = {
+    val oldMetadata = upickle.default.read[SelectiveExecution.Metadata](
+      os.read(evaluator.outPath / OutFiles.millSelectiveExecution)
+    )
+    for(newMetadata <- SelectiveExecution.Metadata(evaluator, targets)) yield {
+      SelectiveExecution.computeDownstream(evaluator, targets, oldMetadata, newMetadata)
+        .collect { case n: NamedTask[_] => n.ctx.segments.render }
+        .toSet
+    }
+  }
 }
