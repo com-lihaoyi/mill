@@ -11,7 +11,7 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
   implicit val retryMax: RetryMax = RetryMax(120.seconds)
   implicit val retryInterval: RetryInterval = RetryInterval(1.seconds)
   val tests: Tests = Tests {
-    test("selective-changed-inputs") - integrationTest { tester =>
+    test("changed-inputs") - integrationTest { tester =>
       import tester._
 
       eval(("selectivePrepare", "{foo.fooCommand,bar.barCommand}"), check = true)
@@ -22,7 +22,7 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
       assert(!cached.out.contains("Computing fooCommand"))
       assert(cached.out.contains("Computing barCommand"))
     }
-    test("selective-changed-code") - integrationTest { tester =>
+    test("changed-code") - integrationTest { tester =>
       import tester._
 
       // Check method body code changes correctly trigger downstream evaluation
@@ -56,7 +56,7 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
     }
 
     test("watch") {
-      test("selective-changed-inputs") - integrationTest { tester =>
+      test("changed-inputs") - integrationTest { tester =>
         import tester._
         @volatile var output0 = List.empty[String]
         def output = output0.mkString("\n")
@@ -81,8 +81,33 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
           !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
         )
       }
+      test("show-changed-inputs") - integrationTest { tester =>
+        import tester._
+        @volatile var output0 = List.empty[String]
+        def output = output0.mkString("\n")
+        Future {
+          eval(
+            ("--watch", "show", "{foo.fooCommand,bar.barCommand}"),
+            check = true,
+            stdout = os.ProcessOutput.Readlines(line => output0 = output0 :+ line),
+            stderr = os.Inherit
+          )
+        }
 
-      test("selective-changed-code") - integrationTest { tester =>
+        eventually(
+          output.contains("Computing fooCommand") && output.contains("Computing barCommand")
+        )
+        output0 = Nil
+        modifyFile(workspacePath / "bar/bar.txt", _ + "!")
+        eventually(
+          !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
+        )
+        eventually(
+          !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
+        )
+      }
+
+      test("changed-code") - integrationTest { tester =>
         import tester._
 
         @volatile var output0 = List.empty[String]
