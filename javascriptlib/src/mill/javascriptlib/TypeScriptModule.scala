@@ -29,6 +29,7 @@ trait TypeScriptModule extends Module {
       "ts-node@^10.9.2",
       "esbuild@0.24.0",
       "@esbuild-plugins/tsconfig-paths@0.1.2",
+      "tsconfig-paths@4.2.0",
       transitiveNpmDeps(),
       transitiveNpmDevDeps()
     ))
@@ -41,7 +42,7 @@ trait TypeScriptModule extends Module {
     Task { os.walk(sources().path).filter(_.ext == "ts").map(PathRef(_)) }
 
   // specify tsconfig.compilerOptions
-  def compilerOptions: Task[Map[String, ujson.Value]] = Task.Anon {
+  def compilerOptions: Task[Map[String, ujson.Value]] = Task {
     Map(
       "esModuleInterop" -> ujson.Bool(true),
       "declaration" -> ujson.Bool(true),
@@ -52,30 +53,29 @@ trait TypeScriptModule extends Module {
 
   // specify tsconfig.compilerOptions.Paths
   def compilerOptionsPaths: Task[Map[String, String]] =
-    Task.Anon { Map("*" -> sources().path.toString(), "*" -> npmInstall().path.toString()) }
+    Task { Map("*" -> sources().path.toString(), "*" -> npmInstall().path.toString()) }
+
+  def upstreamPathsBuilder: Task[Seq[(String, String)]] = Task.Anon {
+    for {
+      ((comp, ts), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
+    } yield (
+      mod.millSourcePath.subRelativeTo(Task.workspace).toString + "/*",
+      (ts.path / "src").toString + ":" + (comp.path / "declarations").toString
+    )
+  }
 
   def compilerOptionsBuilder: Task[Map[String, ujson.Value]] = Task.Anon {
     val declarationsOut = Task.dest / "declarations"
 
-    val upstreamPaths =
-      for {
-        ((comp, ts), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
-      } yield {
-        (
-          mod.millSourcePath.subRelativeTo(Task.workspace).toString + "/*",
-          (ts.path / "src").toString + ":" + (comp.path / "declarations").toString
-        )
-      }
-
-    val combinedPaths = upstreamPaths ++ compilerOptionsPaths().toSeq
-    val combinedCompilerOptions: Map[String, ujson.Value] = Map(
+    val combinedPaths = upstreamPathsBuilder() ++ compilerOptionsPaths().toSeq
+    val combinedCompilerOptions: Map[String, ujson.Value] = compilerOptions() ++ Map(
       "declarationDir" -> ujson.Str(declarationsOut.toString),
       "paths" -> ujson.Obj.from(combinedPaths.map { case (k, v) =>
         val splitValues =
           v.split(":").map(s => s"$s/*") // Split by ":" and append "/*" to each part
         (k, ujson.Arr.from(splitValues))
       })
-    ) ++ compilerOptions()
+    )
 
     combinedCompilerOptions
   }
@@ -103,27 +103,23 @@ trait TypeScriptModule extends Module {
     Task.Anon { Map("NODE_PATH" -> Seq(".", compile()._2.path, npmInstall().path).mkString(":")) }
 
   // define computed arguments and where they should be placed (before/after user arguments)
-  def computedArgs: Task[(Option[Seq[String]], Option[Seq[String]])] = Task { (None, None) }
+  def computedArgs: Task[Seq[String]] = Task { Seq.empty[String] }
 
   def run(args: mill.define.Args): Command[CommandResult] = Task.Command {
-    val (mainFile, env) = (mainFilePath(), mkENV())
+    val mainFile = mainFilePath()
     val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
-
-    val orderedArgs: Seq[String] = computedArgs() match {
-      case (None, None) => args.value
-      case (Some(x), None) => x ++ args.value
-      case (None, Some(x)) => x ++ args.value
-      case (Some(x), Some(y)) => x ++ args.value ++ y
-    }
+    val tsconfigpaths = npmInstall().path / "node_modules/tsconfig-paths/register"
+    val env = mkENV() + ("RESOURCES" -> resources().path.toString)
 
     os.call(
-      (tsnode, mainFile, orderedArgs),
+      (tsnode, "-r", tsconfigpaths, mainFile, computedArgs(), args.value),
       stdout = os.Inherit,
-      env = env
+      env = env,
+      cwd = compile()._1.path
     )
   }
 
-  def bundleFlags: Task[Map[String, Seq[String]]] = Task.Anon { Map.empty[String, Seq[String]] }
+  def bundleFlags: T[Map[String, Seq[String]]] = Task { Map.empty[String, Seq[String]] }
 
   // configure esbuild with @esbuild-plugins/tsconfig-paths
   def bundleScriptBuilder: Task[String] = Task.Anon {
@@ -173,5 +169,7 @@ trait TypeScriptModule extends Module {
     )
     PathRef(bundle)
   }
+
+  def resources: T[PathRef] = Task { PathRef(Task.dest) }
 
 }
