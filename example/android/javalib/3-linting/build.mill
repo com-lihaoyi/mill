@@ -35,15 +35,13 @@ object app extends AndroidAppModule {
   // Set to true (default), stops the build if errors are found
   def abortOnError = false
 
-  // Set path to generated `.jar` files in this case (or `.class` files)
-  def classPath = Task.Source { androidJar() }
-
-  // Set path to the location of the project source codes
-  def sourcesPath = Task.Source { (millSourcePath / "src" / "main" / "java") }
-
   // Specify additional flag options for Android Lint not defined in `AndroidLintModule`
   def androidLintArgs: T[Seq[String]] = T {
+
+    // Set path to generated `.jar` files in this case (or `.class` files)
     val cp = runClasspath().map(_.path).filter(os.exists).mkString(":")
+
+    // Set path to the location of the project source codes
     val src = sources().map(_.path).filter(os.exists).mkString(":")
     Seq(
       "--classpath",
