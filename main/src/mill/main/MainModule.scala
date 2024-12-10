@@ -3,6 +3,7 @@ package mill.main
 import mill.api._
 import mill.define._
 import mill.eval.{Evaluator, EvaluatorPaths}
+import mill.main.client.OutFiles
 import mill.moduledefs.Scaladoc
 import mill.resolve.SelectMode.Separated
 import mill.resolve.{Resolve, SelectMode}
@@ -617,7 +618,7 @@ trait MainModule extends BaseModule0 {
     Task.Command(exclusive = true) {
       val selectiveHashes = SelectiveExecution.Signatures(evaluator, targets)
       os.write.over(
-        Task.workspace / "out" / "mill-selective-hashes.json",
+        evaluator.outPath / OutFiles.millSelectiveExecution,
         upickle.default.write(selectiveHashes)
       )
     }
@@ -625,7 +626,7 @@ trait MainModule extends BaseModule0 {
   def selectiveRun(evaluator: Evaluator, targets: String*): Command[Unit] =
     Task.Command(exclusive = true) {
       val oldHashes = upickle.default.read[SelectiveExecution.Signatures](
-        os.read(Task.workspace / "out" / "mill-selective-hashes.json")
+        os.read(evaluator.outPath / OutFiles.millSelectiveExecution)
       )
       val newHashes = SelectiveExecution.Signatures(evaluator, targets)
       val downstreamAll = SelectiveExecution

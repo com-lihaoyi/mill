@@ -6,6 +6,7 @@ import mill.util.Watchable
 import mill.api.{PathRef, Result, Val}
 import mill.api.Strict.Agg
 import Evaluator._
+import mill.main.client.OutFiles
 import mill.resolve.{Resolve, SelectMode}
 
 object RunScript {
@@ -62,11 +63,11 @@ object RunScript {
       selectiveExecution: Boolean = false
   ): (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]]) = {
     val selectedTargets =
-      if (!selectiveExecution || !os.exists(evaluator.outPath / "mill-selective-hashes.json"))
+      if (!selectiveExecution || !os.exists(evaluator.outPath / OutFiles.millSelectiveExecution))
         targets
       else {
         val oldHashes = upickle.default.read[SelectiveExecution.Signatures](
-          os.read(evaluator.outPath / "mill-selective-hashes.json")
+          os.read(evaluator.outPath / OutFiles.millSelectiveExecution)
         )
         val targetLabels = targets.map { case t: NamedTask[_] => t.ctx.segments.render }.toSeq
         val newHashes = SelectiveExecution.Signatures(evaluator, targetLabels)
@@ -105,7 +106,7 @@ object RunScript {
 
     if (selectiveExecution) {
       os.write.over(
-        evaluator.outPath / "mill-selective-hashes.json",
+        evaluator.outPath / OutFiles.millSelectiveExecution,
         upickle.default.write(
           SelectiveExecution.Signatures(allInputHashes, evaluator.methodCodeHashSignatures)
         )
