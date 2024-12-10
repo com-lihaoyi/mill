@@ -70,8 +70,7 @@ object RunScript {
           .map { selected => targets.filter(t => selected(t.ctx.segments.render)) }
       } else Right(targets)
 
-
-    selectedTargetsOrErr match{
+    selectedTargetsOrErr match {
       case Left(err) => (Nil, Left(err))
       case Right(selectedTargets) =>
         val evaluated: Results = evaluator.evaluate(selectedTargets, serialCommandExec = true)

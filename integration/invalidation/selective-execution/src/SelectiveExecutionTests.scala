@@ -120,7 +120,7 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
         )
       }
     }
-    test("failures"){
+    test("failures") {
       test("missing-prepare") - integrationTest { tester =>
         import tester._
 
