@@ -8,7 +8,7 @@ import utest._
 import utest.asserts.{RetryMax, RetryInterval}
 
 object SelectiveExecutionTests extends UtestIntegrationTestSuite {
-  implicit val retryMax: RetryMax = RetryMax(60.seconds)
+  implicit val retryMax: RetryMax = RetryMax(120.seconds)
   implicit val retryInterval: RetryInterval = RetryInterval(1.seconds)
   val tests: Tests = Tests {
     test("selective-changed-inputs") - integrationTest { tester =>

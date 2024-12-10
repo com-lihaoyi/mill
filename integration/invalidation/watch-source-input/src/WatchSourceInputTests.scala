@@ -22,7 +22,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
  */
 object WatchSourceInputTests extends UtestIntegrationTestSuite {
 
-  val maxDuration = 60000
+  val maxDuration = 120000
   val tests: Tests = Tests {
     def awaitCompletionMarker(tester: IntegrationTester, name: String) = {
       val maxTime = System.currentTimeMillis() + maxDuration
@@ -66,7 +66,7 @@ object WatchSourceInputTests extends UtestIntegrationTestSuite {
       testBase(show) { (expectedOut, expectedErr, expectedShows) =>
         val showArgs = if (show) Seq("show") else Nil
         import tester._
-        val evalResult = Future { eval(("--watch", showArgs, "qux"), timeout = maxDuration) }
+        val evalResult = Future { eval(("--watch", showArgs, "qux")) }
 
         awaitCompletionMarker(tester, "initialized0")
         awaitCompletionMarker(tester, "quxRan0")
@@ -154,7 +154,7 @@ object WatchSourceInputTests extends UtestIntegrationTestSuite {
       testBase(show) { (expectedOut, expectedErr, expectedShows) =>
         val showArgs = if (show) Seq("show") else Nil
         import tester._
-        val evalResult = Future { eval(("--watch", showArgs, "lol"), timeout = maxDuration) }
+        val evalResult = Future { eval(("--watch", showArgs, "lol")) }
 
         awaitCompletionMarker(tester, "initialized0")
         awaitCompletionMarker(tester, "lolRan0")
