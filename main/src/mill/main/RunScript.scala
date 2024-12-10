@@ -67,7 +67,12 @@ object RunScript {
       if (selectiveExecution && os.exists(evaluator.outPath / OutFiles.millSelectiveExecution)) {
         SelectiveExecution
           .diffMetadata(evaluator, targets.map(_.ctx.segments.render).toSeq)
-          .map { selected => targets.filter(t => selected(t.ctx.segments.render)) }
+          .map { selected =>
+            targets.filter{
+              case c: Command[_] if c.exclusive => true
+              case t => selected(t.ctx.segments.render)
+            }
+          }
       } else Right(targets)
 
     selectedTargetsOrErr match {
