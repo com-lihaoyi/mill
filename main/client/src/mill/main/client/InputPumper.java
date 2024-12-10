@@ -36,9 +36,7 @@ public class InputPumper implements Runnable {
     byte[] buffer = new byte[1024];
     try {
       while (running) {
-        if (!runningCheck.getAsBoolean()) {
-          running = false;
-        } else if (src.available() == 0) Thread.sleep(1);
+        if (!runningCheck.getAsBoolean()) running = false;
         else {
           int n;
           try {
@@ -46,9 +44,9 @@ public class InputPumper implements Runnable {
           } catch (Exception e) {
             n = -1;
           }
-          if (n == -1) {
-            running = false;
-          } else {
+          if (n == -1) running = false;
+          else if (n == 0) Thread.sleep(1);
+          else {
             try {
               dest.write(buffer, 0, n);
               dest.flush();
