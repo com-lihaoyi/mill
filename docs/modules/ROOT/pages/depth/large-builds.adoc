@@ -14,7 +14,33 @@ or resource usage, build files are incrementally re-compiled when modified, and 
 lazily loaded and initialized only when needed. So you are encouraged to break up your project 
 into modules to manage the layering of your codebase or benefit from parallelism.
 
+== Selective Test Execution
 
+Mill allows you to filter the tests and other tasks you execute based on the set
+of files that changed via `mill selectivePrepare <selector>` and
+`mill selectiveRun <selector>`. This is useful for managing large codebases, where
+running the entire test suite in CI is often very slow, so you only want to run the
+tests or tasks in `<selector>` that are affected by the changes you are making.
+
+For example, if you want to run all tests related to the code changes in a pull
+request branch, you can do that as follows:
+
+```bash
+> git checkout main # start from the target branch of the PR
+
+> ./mill selectivePrepare __.test
+
+> git checkout pull-request-branch # go to the pull request branch
+
+> ./mill selectiveRun __.test
+```
+
+In the example above, the first call to `selectivePrepare` will store the input tasks
+hashes and task code signatures in `out/mill-selective-execution.json` for the `main`
+branch, and the second call to `selectiveRun` will compute the same signatures for
+your `pull-request-branch`, and only run tests or other tasks that are downstream of
+the files that were changed. This helps keep CI and testing times acceptable by skipping
+tests that are unrelated to the code change being tested.
 
 == Multi-file Builds
 
