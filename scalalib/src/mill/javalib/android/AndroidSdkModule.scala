@@ -75,11 +75,11 @@ trait AndroidSdkModule extends Module {
   }
 
   /**
-   * Provides path to the Android cmdline tools for the selected version.
+   * Provides path to the Android CLI lint tool.
    */
-  def cmdlineToolsPath: T[PathRef] = Task {
+  def lintToolPath: T[PathRef] = Task {
     installAndroidSdkComponents()
-    PathRef(sdkPath().path / "cmdline-tools" / "latest" / "bin")
+    PathRef(sdkPath().path / "cmdline-tools" / "latest" / "bin" / "lint")
   }
 
   /**

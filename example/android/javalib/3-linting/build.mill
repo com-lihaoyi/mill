@@ -33,23 +33,7 @@ object app extends AndroidAppModule {
   def androidLintReportFmt = Task { AndroidLintReportFormat.Txt }
 
   // Set to true (default), stops the build if errors are found
-  def abortOnError = false
-
-  // Specify additional flag options for Android Lint not defined in `AndroidLintModule`
-  def androidLintArgs: T[Seq[String]] = T {
-
-    // Set path to generated `.jar` files in this case (or `.class` files)
-    val cp = runClasspath().map(_.path).filter(os.exists).mkString(":")
-
-    // Set path to the location of the project source codes
-    val src = sources().map(_.path).filter(os.exists).mkString(":")
-    Seq(
-      "--classpath",
-      cp,
-      "--sources",
-      src
-    )
-  }
+  def androidLintAbortOnError = false
 
 }
 

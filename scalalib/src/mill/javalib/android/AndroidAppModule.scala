@@ -89,7 +89,8 @@ trait AndroidAppModule extends JavaModule {
   def androidReleaseKeyPath: T[PathRef] = Task.Source(millSourcePath / androidReleaseKeyName())
 
   /**
-   * Specifies the file format of lint report. Available file formats are "html", "xml", "txt" and "sarif".
+   * Specifies the file format of the lint report. Available file formats are defined in AndroidLintReportFormat,
+   * such as AndroidLintReportFormat.Html, AndroidLintReportFormat.Xml, AndroidLintReportFormat.Txt, and AndroidLintReportFormat.Sarif.
    */
   def androidLintReportFmt: T[AndroidLintReportFormat.Value] = Task { AndroidLintReportFormat.Html }
 
@@ -106,7 +107,7 @@ trait AndroidAppModule extends JavaModule {
   /**
    * Determines whether the build should fail if Android Lint detects any issues.
    */
-  def abortOnError: Boolean = true
+  def androidLintAbortOnError: Boolean = true
 
   /**
    * Specifies additional arguments for the Android Lint tool.
@@ -399,8 +400,8 @@ trait AndroidAppModule extends JavaModule {
    * to analyze the source code for potential bugs, performance issues, and
    * best practices compliance. It generates a report in the specified format.
    *
-   * The lint tool requires the Android SDK's command-line tools to be installed.
-   * The report is saved in the task's destination directory as "report.html".
+   * The report is saved in the task's destination directory as "report.html" by
+   * default. It can be changed to other file format such as xml, txt and sarif.
    *
    * For more details on the Android Lint tool, refer to:
    * [[https://developer.android.com/studio/write/lint]]
@@ -410,6 +411,12 @@ trait AndroidAppModule extends JavaModule {
     val format = androidLintReportFmt()
     val lintReport: os.Path = T.dest / s"report.${format.extension}"
     val lintReportFlag: String = format.flag
+
+    // Set path to generated `.jar` files in this case (or `.class` files)
+    val cp = runClasspath().map(_.path).filter(os.exists).mkString(":")
+
+    // Set path to the location of the project source codes
+    val src = sources().map(_.path).filter(os.exists).mkString(":")
 
     // Prepare the lint configuration argument if the config path is set
     val configArg = androidLintConfigPath().map(config =>
@@ -423,12 +430,16 @@ trait AndroidAppModule extends JavaModule {
 
     os.call(
       Seq(
-        androidSdkModule().cmdlineToolsPath().path.toString + "/lint",
+        androidSdkModule().lintToolPath().path.toString,
         millSourcePath.toString,
         lintReportFlag,
-        lintReport.toString
+        lintReport.toString,
+        "--classpath",
+        cp,
+        "--sources",
+        src
       ) ++ configArg ++ baselineArg ++ androidLintArgs(),
-      check = abortOnError
+      check = androidLintAbortOnError
     )
 
     PathRef(lintReport)
