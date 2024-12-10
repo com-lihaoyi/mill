@@ -320,7 +320,7 @@ object `package` extends RootModule with build.MillPublishJavaModule {
       // TODO: check if the tag already exists (e.g. because we created it manually) and do not fail
       requests.post(
         s"https://api.github.com/repos/${build.Settings.githubOrg}/${build.Settings.githubRepo}/releases",
-        data = ujson.Obj("tag_name" -> releaseTag, "name" -> releaseTag),
+        data = ujson.Obj("tag_name" -> releaseTag, "name" -> releaseTag, "prerelease" -> true),
         headers = Seq("Authorization" -> ("token " + authKey))
       )
     }
