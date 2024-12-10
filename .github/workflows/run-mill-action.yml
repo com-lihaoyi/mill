@@ -46,7 +46,7 @@ jobs:
       - uses: actions/download-artifact@v4
         if: ${{ !inputs.populate_cache }}
         with:
-          path: .
+          path: out
           name: ${{ inputs.os }}-artifact
 
       # Need to fix cached artifact file permissions because github actions screws it up
@@ -96,7 +96,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4.4.3
         with:
-          path: .
+          path: out
           name: ${{ inputs.os }}-artifact
           include-hidden-files: true
         if: ${{ inputs.populate_cache }}
