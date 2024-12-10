@@ -14,7 +14,7 @@ trait JestModule extends TestModule {
       "babel-jest@^29.7.0"
     )
   }
-  
+
   override def allSources: T[IndexedSeq[PathRef]] = Task {
     val tc = testConfigSource() match {
       case Some(s) => IndexedSeq(s.path)

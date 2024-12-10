@@ -28,7 +28,8 @@ trait MochaModule extends TestModule {
     testRunner
   }
 
-  override def getPathToTest: T[String] = Task { (compile()._2.path / "test").toString + "/**/*.test.ts" }
+  override def getPathToTest: T[String] =
+    Task { (compile()._2.path / "test").toString + "/**/*.test.ts" }
 
   // node test-runner.js path/to/test
   override def test: T[CommandResult] = Task {
