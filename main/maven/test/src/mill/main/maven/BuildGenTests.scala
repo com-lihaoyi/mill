@@ -8,6 +8,8 @@ import mill.testkit.{TestBaseModule, UnitTester}
 import utest.*
 import utest.framework.TestPath
 
+import java.nio.file.FileSystems
+
 object BuildGenTests extends TestSuite {
 
   // Change this to true to update test data on disk
@@ -136,6 +138,14 @@ object BuildGenTests extends TestSuite {
       .filter(os.isFile)
       .filter(!_.lastOpt.exists(_.endsWith(".mill")))
     toCleanUp.foreach(os.remove)
+
+    // Try to normalize permissions while not touching those of committed test data
+    val supportsPerms = FileSystems.getDefault.supportedFileAttributeViews().contains("posix")
+    if (supportsPerms)
+      for (testFile <- os.walk(expectedRoot) if os.isFile(testFile)) {
+        val subPath = testFile.relativeTo(expectedRoot).asSubPath
+        os.perms.set(root / subPath, os.perms(testFile))
+      }
 
     val diffExitCode = os.proc("git", "diff", "--no-index", expectedRoot, root)
       .call(stdin = os.Inherit, stdout = os.Inherit, check = !updateSnapshots)
