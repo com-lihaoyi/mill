@@ -68,7 +68,7 @@ object RunScript {
         SelectiveExecution
           .diffMetadata(evaluator, targets.map(_.ctx.segments.render).toSeq)
           .map { selected =>
-            targets.filter{
+            targets.filter {
               case c: Command[_] if c.exclusive => true
               case t => selected(t.ctx.segments.render)
             }
