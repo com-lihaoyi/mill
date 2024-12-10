@@ -36,19 +36,3 @@ trait RuffModule extends PythonModule {
   }
 
 }
-
-/**
- * Includes some common tasks to reformat and check all sources. This mimics ScalafmtModule, so that
- *
-*/
-object RuffModule extends ExternalModule with TaskModule {
-
-  def defaultCommandName() = "reformatAll"
-
-  lazy val millDiscover: Discover = Discover[this.type]
-
-  def reformatAll
-
-
-}
-
