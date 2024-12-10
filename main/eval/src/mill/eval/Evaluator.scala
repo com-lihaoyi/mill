@@ -21,6 +21,7 @@ trait Evaluator extends AutoCloseable {
   def outPath: os.Path
   def externalOutPath: os.Path
   def pathsResolver: EvaluatorPathsResolver
+  def methodCodeHashSignatures: Map[String, Int] = Map.empty
   // TODO In 0.13.0, workerCache should have the type of mutableWorkerCache,
   // while the latter should be removed
   def workerCache: collection.Map[Segments, (Int, Val)]

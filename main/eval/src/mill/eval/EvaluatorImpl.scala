@@ -28,7 +28,7 @@ private[mill] case class EvaluatorImpl(
     failFast: Boolean,
     threadCount: Option[Int],
     scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])],
-    methodCodeHashSignatures: Map[String, Int],
+    override val methodCodeHashSignatures: Map[String, Int],
     override val disableCallgraph: Boolean,
     override val allowPositionalCommandArgs: Boolean,
     val systemExit: Int => Nothing,

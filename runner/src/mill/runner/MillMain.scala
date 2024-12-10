@@ -33,7 +33,7 @@ object MillMain {
       err.println(e.getCause.getMessage())
       (false, onError)
     case NonFatal(e) =>
-      err.println("An unexpected error occurred " + e)
+      err.println("An unexpected error occurred " + e + "\n" + e.getStackTrace.mkString("\n"))
       throw e
       (false, onError)
   }
@@ -222,6 +222,12 @@ object MillMain {
                   repeatForBsp = false
 
                   Using.resource(new TailManager(serverDir)) { tailManager =>
+                    if (config.watch.value) {
+                      // When starting a --watch, clear the `mill-selective-execution.json`
+                      // file, so that the first run always selects everything and only
+                      // subsequent re-runs are selective depending on what changed.
+                      os.remove(out / OutFiles.millSelectiveExecution)
+                    }
                     val (isSuccess, evalStateOpt) = Watching.watchLoop(
                       ringBell = config.ringBell.value,
                       watch = config.watch.value,
@@ -268,7 +274,8 @@ object MillMain {
                                   requestedMetaLevel = config.metaLevel,
                                   config.allowPositional.value,
                                   systemExit = systemExit,
-                                  streams0 = streams0
+                                  streams0 = streams0,
+                                  selectiveExecution = config.watch.value
                                 ).evaluate()
                               }
                             }

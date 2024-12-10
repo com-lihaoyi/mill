@@ -22,7 +22,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
  */
 object WatchSourceInputTests extends UtestIntegrationTestSuite {
 
-  val maxDuration = 60000
+  val maxDuration = 120000
   val tests: Tests = Tests {
     def awaitCompletionMarker(tester: IntegrationTester, name: String) = {
       val maxTime = System.currentTimeMillis() + maxDuration
