@@ -89,7 +89,7 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
           eval(
             ("--watch", "show", "{foo.fooCommand,bar.barCommand}"),
             check = true,
-            stderr = os.ProcessOutput.Readlines(line => output0 = output0 :+ line),
+            stderr = os.ProcessOutput.Readlines(line => output0 = output0 :+ line)
           )
         }
 
