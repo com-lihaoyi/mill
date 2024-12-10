@@ -140,50 +140,26 @@ object BuildGenTests extends TestSuite {
 
     val shared = actualFiles.filter(expectedFilesSet)
 
-    val differentContent = shared.filter { subPath =>
-      val actual = os.read.lines(root / subPath)
-      val expected = os.read.lines(expectedRoot / subPath)
-      actual != expected
+    // Non *.mill files, that are not in test data, that we don't want
+    // to see in the diff
+    val toCleanUp = os.walk(root, skip = _.startsWith(root / OutFiles.defaultOut))
+      .filter(os.isFile)
+      .filter(!_.lastOpt.exists(_.endsWith(".mill")))
+    toCleanUp.foreach(os.remove)
+
+    val diffExitCode = os.proc("git", "diff", "--no-index", expectedRoot, root)
+      .call(stdin = os.Inherit, stdout = os.Inherit, check = !updateSnapshots)
+      .exitCode
+
+    if (updateSnapshots && diffExitCode != 0) {
+      System.err.println(
+        s"Expected and actual files differ, updating expected files in resources under $expectedRoot"
+      )
+
+      os.remove.all(expectedRoot)
+      os.copy(root, expectedRoot)
     }
 
-    val valid = missing.isEmpty && extra.isEmpty && differentContent.isEmpty
-
-    if (!valid)
-      if (updateSnapshots) {
-        System.err.println(
-          s"Expected and actual files differ, updating expected files in resources under $expectedRoot"
-        )
-
-        for (subPath <- missing) {
-          val path = expectedRoot / subPath
-          System.err.println(s"Removing $subPath")
-          os.remove(path)
-        }
-
-        for (subPath <- extra) {
-          val source = root / subPath
-          val dest = expectedRoot / subPath
-          System.err.println(s"Creating $subPath")
-          os.copy(source, dest, createFolders = true)
-        }
-
-        for (subPath <- differentContent) {
-          val source = root / subPath
-          val dest = expectedRoot / subPath
-          System.err.println(s"Updating $subPath")
-          os.copy.over(source, dest, createFolders = true)
-        }
-      } else {
-        // Non *.mill files, that are not in test data, that we don't want
-        // to see in the diff
-        val toCleanUp = os.walk(root, skip = _.startsWith(root / OutFiles.defaultOut))
-          .filter(os.isFile)
-          .filter(!_.lastOpt.exists(_.endsWith(".mill")))
-        toCleanUp.foreach(os.remove)
-        os.proc("git", "diff", "--no-index", expectedRoot, root)
-          .call(stdin = os.Inherit, stdout = os.Inherit)
-      }
-
-    updateSnapshots || valid
+    diffExitCode == 0 || updateSnapshots
   }
 }
