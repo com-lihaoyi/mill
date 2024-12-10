@@ -130,16 +130,6 @@ object BuildGenTests extends TestSuite {
       .toSeq
 
   def checkFiles(actualFiles: Seq[os.SubPath], root: os.Path, expectedRoot: os.Path): Boolean = {
-    val expectedFiles = buildFiles(expectedRoot).map(_.path.relativeTo(expectedRoot).asSubPath)
-
-    val actualFilesSet = actualFiles.toSet
-    val expectedFilesSet = expectedFiles.toSet
-
-    val missing = expectedFiles.filterNot(actualFilesSet)
-    val extra = actualFiles.filterNot(expectedFilesSet)
-
-    val shared = actualFiles.filter(expectedFilesSet)
-
     // Non *.mill files, that are not in test data, that we don't want
     // to see in the diff
     val toCleanUp = os.walk(root, skip = _.startsWith(root / OutFiles.defaultOut))
