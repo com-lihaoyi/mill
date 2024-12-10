@@ -405,7 +405,7 @@ trait AndroidAppModule extends JavaModule {
    * For more details on the Android Lint tool, refer to:
    * [[https://developer.android.com/studio/write/lint]]
    */
-  def androidLintRun: T[PathRef] = Task.Input {
+  def androidLintRun() = Task.Command {
 
     val format = androidLintReportFmt()
     val lintReport: os.Path = T.dest / s"report.${format.extension}"

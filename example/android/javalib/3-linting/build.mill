@@ -42,12 +42,14 @@ object app extends AndroidAppModule {
   def sourcesPath = Task.Source { (millSourcePath / "src" / "main" / "java") }
 
   // Specify additional flag options for Android Lint not defined in `AndroidLintModule`
-  def androidLintArgs: T[Seq[String]] = Task {
+  def androidLintArgs: T[Seq[String]] = T {
+    val cp = runClasspath().map(_.path).filter(os.exists).mkString(":")
+    val src = sources().map(_.path).filter(os.exists).mkString(":")
     Seq(
       "--classpath",
-      classPath().path.toString,
+      cp,
       "--sources",
-      sourcesPath().path.toString
+      src
     )
   }
 
