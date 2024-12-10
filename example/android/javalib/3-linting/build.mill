@@ -32,6 +32,9 @@ object app extends AndroidAppModule {
   // Set the linting report to be generated as a text file
   def androidLintReportFmt = Task { AndroidLintReportFormat.Txt }
 
+  // Set to true (default), stops the build if errors are found
+  def abortOnError = false
+
   // Set path to generated `.jar` files in this case (or `.class` files)
   def classPath = Task.Source { androidJar() }
 
@@ -69,6 +72,13 @@ object app extends AndroidAppModule {
 > ./mill show app.androidLintRun  # Display full path to the linting report in text file
 ".../out/app/androidLintRun.dest/report.txt"
 
+> ls app/ # List out all files in the app directory to check lint-baseline file exists
+AndroidManifest.xml
+lint-baseline.xml
+lint.xml
+resources
+src
+
 > cat out/app/androidLintRun.dest/report.txt # Display content of the linting report
 AndroidManifest.xml:3: Error: Avoid hardcoding the debug mode; leaving it out allows debug and release builds to automatically assign one [HardcodedDebugMode]
 
@@ -77,7 +87,7 @@ AndroidManifest.xml:3: Error: Avoid hardcoding the debug mode; leaving it out al
 > ./mill app.androidLintRun # Rerun it for new changes to reflect
 
 > cat out/app/androidLintRun.dest/report.txt # Check the content of report again
-No issues found.
+lint-baseline.xml: Information: 1 errors/warnings were listed in the baseline file (lint-baseline.xml) but not found in the project; perhaps they have been fixed? Unmatched issue types: HardcodedDebugMode [LintBaseline]
 
 */
 

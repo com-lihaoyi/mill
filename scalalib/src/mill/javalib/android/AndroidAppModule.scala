@@ -104,6 +104,11 @@ trait AndroidAppModule extends JavaModule {
   def androidLintBaselinePath: T[Option[PathRef]] = Task { None }
 
   /**
+   * Determines whether the build should fail if Android Lint detects any issues.
+   */
+  def abortOnError: Boolean = true
+
+  /**
    * Specifies additional arguments for the Android Lint tool.
    * Allows for complete customization of the lint command.
    */
@@ -413,7 +418,7 @@ trait AndroidAppModule extends JavaModule {
 
     // Prepare the lint baseline argument if the baseline path is set
     val baselineArg = androidLintBaselinePath().map(baseline =>
-      Seq("--write-reference-baseline", baseline.path.toString)
+      Seq("--baseline", baseline.path.toString)
     ).getOrElse(Seq.empty)
 
     os.call(
@@ -422,7 +427,8 @@ trait AndroidAppModule extends JavaModule {
         millSourcePath.toString,
         lintReportFlag,
         lintReport.toString
-      ) ++ configArg ++ baselineArg ++ androidLintArgs()
+      ) ++ configArg ++ baselineArg ++ androidLintArgs(),
+      check = abortOnError
     )
 
     PathRef(lintReport)
