@@ -7,7 +7,7 @@ import mill.main.client.OutFiles
 import mill.resolve.{Resolve, SelectMode}
 import mill.resolve.SelectMode.Separated
 
-trait SelectiveExecutionModule extends mill.Module {
+trait SelectiveExecutionModule extends mill.define.Module {
 
   /**
    * Run to store a baseline snapshot of the Mill task inputs or implementations
