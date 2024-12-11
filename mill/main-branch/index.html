@@ -607,12 +607,12 @@ Java platform’s performance and usability:</p>
 <div class="ulist">
 <ul>
 <li>
-<p><strong>Performance</strong>: Mill’s <a href="fundamentals/tasks.html" class="xref page">build graph</a> automatically
+<p><strong>Performance</strong>: Mill automatically
 <a href="depth/evaluation-model.html#_caching_at_each_layer_of_the_evaluation_model" class="xref page">caches</a>
-and <a href="cli/flags.html#_jobs_j" class="xref page">parallelizes</a> build
-tasks, keeping your workflows fast and responsive. Mill adds minimal overhead over
-the logic necessary to build your project, and avoids the long configuration
-times often seen in other build tools like Gradle or SBT</p>
+and <a href="cli/flags.html#_jobs_j" class="xref page">parallelizes</a> build tasks to keep local development fast,
+and avoids the long configuration times seen in other tools like Gradle or SBT.
+<a href="depth/large-builds.html#_selective_execution" class="xref page">Selective execution</a> keeps
+CI validation times short by only running the tests necessary to validate a code change.</p>
 </li>
 <li>
 <p><strong>Maintainability</strong>: Mill’s config and <a href="javalib/intro.html#_custom_build_logic" class="xref page">custom logic</a>

@@ -566,6 +566,137 @@ into modules to manage the layering of your codebase or benefit from parallelism
 </div>
 </div>
 <div class="sect1">
+<h2 id="_selective_execution"><a class="anchor" href="#_selective_execution"></a>Selective Execution</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill allows you to filter the tests and other tasks you execute by limiting them
+to those affected by a code change. This is useful in managing large codebases where
+running the entire test suite in CI is often very slow, so you only want to run the
+tests or tasks that are affected by the changes you are making.</p>
+</div>
+<div class="paragraph">
+<p>This is done via the following commands:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>mill selective.prepare &lt;selector&gt;</code>: run on the codebase before the code change,
+stores a snapshot of task inputs and implementations</p>
+</li>
+<li>
+<p><code>mill selective.run &lt;selector&gt;</code>: run on the codebase after the code change,
+runs tasks in the given <code>&lt;selector&gt;</code> which are affected by the code changes
+that have happen since <code>selective.prepare</code> was run</p>
+</li>
+<li>
+<p><code>mill selective.resolve &lt;selector&gt;</code>: a dry-run version of <code>selective.run</code>, prints
+out the tasks in <code>&lt;selector&gt;</code> that are affected by the code changes and would have
+run, without actually tunning them.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For example, if you want to run all tests related to the code changes in a pull
+request branch, you can do that as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; git checkout main # start from the target branch of the PR
+
+&gt; ./mill selective.prepare __.test
+
+&gt; git checkout pull-request-branch # go to the pull request branch
+
+&gt; ./mill selective.run __.test</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The example below demonstrates selective test execution on a small 3-module Java build,
+where <code>bar</code> depends on <code>foo</code> but <code>qux</code> is standalone:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-depth-large-9-selective-execution.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/depth/large/9-selective-execution">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javalib._
+
+trait MyModule extends JavaModule {
+  object test extends JavaTests with TestModule.Junit4
+}
+
+object foo extends MyModule {
+  def moduleDeps = Seq(bar)
+}
+
+object bar extends MyModule
+
+object qux extends MyModule</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example, <code>qux.test</code> starts off failing with an error, while <code>foo.test</code> and
+<code>bar.test</code> pass successfully. Normally, running <code>__.test</code> will run all three test
+suites and show both successes and the one failure:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill __.test
+error: Test run foo.FooTests finished: 0 failed, 0 ignored, 1 total, ...
+Test run bar.BarTests finished: 0 failed, 0 ignored, 1 total, ...
+Test run qux.QuxTests finished: 1 failed, 0 ignored, 1 total, ...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>However, this is not always what you want. For example:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>If you are validating a pull request
+in CI that only touches <code>bar/</code>, you do not want the failure in <code>qux.test</code> to fail
+your tests, because you know that <code>qux.test</code> does not depend on <code>bar/</code> and thus the
+failure cannot be related to your changes.</p>
+</li>
+<li>
+<p>Even if <code>qux.test</code> wasn’t failing, running it on a pull request that changes <code>bar/</code> is
+wasteful, taking up compute resources to run tests that could not possibly be affected
+by the code change in question.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To solve this, you can run <code>selective.prepare</code> before the code change, then <code>selective.run</code>
+after the code change, to only run the tests downstream of the change (below, <code>foo.test</code> and <code>bar.test</code>):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill selective.prepare __.test
+
+&gt; echo '//' &gt;&gt; bar/src/bar/Bar.java # emulate the code change
+
+&gt; mill selective.resolve __.test # dry-run selective execution to show what would get run
+foo.test.test
+bar.test.test
+
+&gt; mill selective.run __.test
+Test run foo.FooTests finished: 0 failed, 0 ignored, 1 total, ...
+Test run bar.BarTests finished: 0 failed, 0 ignored, 1 total, ...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Similarly, if we make a change <code>qux/</code>, using selective execution will only run tests
+in <code>qux.test</code>, and skip those in <code>foo.test</code> and <code>bar.test</code>.
+These examples all use <code>__.test</code> to selectively run tasks named <code>.test</code>, but you can
+use selective execution on any subset of tasks by specifying them in the selector.</p>
+</div>
+<div class="paragraph">
+<p>Selective execution is very useful for larger codebases, where you are usually changing
+only small parts of it, and thus only want to run the tests related to your changes.
+This keeps CI times fast and prevents unrelated breakages from affecting your CI runs.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_multi_file_builds"><a class="anchor" href="#_multi_file_builds"></a>Multi-file Builds</h2>
 <div class="sectionbody">
 <div class="paragraph">
