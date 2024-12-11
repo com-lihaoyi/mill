@@ -617,6 +617,6 @@ trait MainModule extends BaseModule0 {
    * Commands related to selective execution, where Mill runs tasks selectively
    * depending on what task inputs or implementations changed
    */
-  lazy val selective: SelectiveExecutionModule = new SelectiveExecutionModule{}
+  lazy val selective: SelectiveExecutionModule = new SelectiveExecutionModule {}
 
 }
