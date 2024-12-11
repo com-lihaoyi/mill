@@ -66,6 +66,7 @@ private[mill] object SelectiveExecution {
       .constructorHashSignatures(methodCodeHashSignatures)
 
     transitive
+      .iterator
       .collect { case namedTask: NamedTask[_] =>
         namedTask.ctx.segments.render -> CodeSigUtils
           .codeSigForTask(

@@ -14,45 +14,10 @@ or resource usage, build files are incrementally re-compiled when modified, and 
 lazily loaded and initialized only when needed. So you are encouraged to break up your project 
 into modules to manage the layering of your codebase or benefit from parallelism.
 
-== Selective Test Execution
+== Selective Execution
 
-Mill allows you to filter the tests and other tasks you execute by limiting them
-to those affected by a code change. This is useful for managing large codebases, where
-running the entire test suite in CI is often very slow, so you only want to run the
-tests or tasks that are affected by the changes you are making.
 
-This is done via the following commands:
-
-* `mill selective.prepare <selector>`: run on the codebase before the code change,
-  stores a snapshot of task inputs and implementations
-
-* `mill selective.run <selector>`: run on the codebase after the code change,
-  runs tasks in the given `<selector>` which are affected by the code changes
-  that have happen since `selective.prepare` was run
-
-* `mill selective.resolve <selector>`: a dry-run version of `selective.run`, prints
-  out the tasks in `<selector>` that are affected by the code changes and would have
-  run, without actually tunning them.
-
-For example, if you want to run all tests related to the code changes in a pull
-request branch, you can do that as follows:
-
-```bash
-> git checkout main # start from the target branch of the PR
-
-> ./mill selective.prepare __.test
-
-> git checkout pull-request-branch # go to the pull request branch
-
-> ./mill selective.run __.test
-```
-
-In the example above, the first call to `selective.prepare` will store the input tasks
-hashes and task code signatures in `out/mill-selective-execution.json` for the `main`
-branch, and the second call to `selective.run` will compute the same signatures for
-your `pull-request-branch`, and only run tests or other tasks that are downstream of
-the files that were changed. This helps keep CI and testing times acceptable by skipping
-tests that are unrelated to the code change being tested.
+include::partial$example/depth/large/9-selective-execution.adoc[]
 
 == Multi-file Builds
 

@@ -33,12 +33,12 @@ JVM build tools have a reputation for being sluggish and confusing. Mill tries t
 offer a better alternative, letting your build system take full advantage of the
 Java platform's performance and usability:
 
-* *Performance*: Mill's xref:fundamentals/tasks.adoc[build graph] automatically
+* *Performance*: Mill automatically
 xref:depth/evaluation-model.adoc#_caching_at_each_layer_of_the_evaluation_model[caches]
-and xref:cli/flags.adoc#_jobs_j[parallelizes] build
-tasks, keeping your workflows fast and responsive. Mill adds minimal overhead over
-the logic necessary to build your project, and avoids the long configuration
-times often seen in other build tools like Gradle or SBT
+and xref:cli/flags.adoc#_jobs_j[parallelizes] build tasks to keep local development fast,
+and avoids the long configuration times seen in other tools like Gradle or SBT.
+xref:depth/large-builds.adoc#_selective_execution[Selective execution] keeps
+CI validation times short by only running the tests necessary to validate a code change.
 
 * *Maintainability*: Mill's config and xref:javalib/intro.adoc#_custom_build_logic[custom logic]
 is written in xref:depth/why-scala.adoc[concise type-checked Scala code],
