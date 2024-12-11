@@ -8,7 +8,9 @@ from wtforms.validators import DataRequired, Length
 app = Flask(__name__, static_folder="../static", template_folder="../templates")
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///todo.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["SECRET_KEY"] = "your_secret_key"
+app.config["SECRET_KEY"] = (
+    "8f41b7124eec1c73f2fbe77e6e76c54602a40c44c842da93b09f48b79c023c88"
+)
 
 # Import models
 from models import Task, db
@@ -45,7 +47,10 @@ def add_task():
 
 @app.route("/edit/<int:task_id>", methods=["GET", "POST"])
 def edit_task(task_id):
-    task = Task.query.get_or_404(task_id)
+    task = db.session.get(Task, task_id)
+    if not task:  # Handle case where task doesn't exist
+        flash("Task not found.", "error")
+        return redirect(url_for("index"))
     form = TaskForm(obj=task)
     if form.validate_on_submit():
         task.title = form.title.data
@@ -60,7 +65,10 @@ def edit_task(task_id):
 
 @app.route("/delete/<int:task_id>")
 def delete_task(task_id):
-    task = Task.query.get_or_404(task_id)
+    task = db.session.get(Task, task_id)
+    if not task:  # Handle case where task doesn't exist
+        flash("Task not found.", "error")
+        return redirect(url_for("index"))
     db.session.delete(task)
     db.session.commit()
     flash("Task deleted successfully!", "success")

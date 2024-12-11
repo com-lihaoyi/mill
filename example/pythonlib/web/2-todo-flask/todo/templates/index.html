@@ -2,6 +2,8 @@
 {% block content %}
 <h1 class="mb-4">Task List</h1>
 <a href="{{ url_for('add_task') }}" class="btn btn-primary mb-3">Add Task</a>
+
+{% if tasks %}
 <table class="table table-bordered">
     <thead>
         <tr>
@@ -27,4 +29,7 @@
         {% endfor %}
     </tbody>
 </table>
+{% else %}
+<p class="text-center text-muted">No tasks found</p>
+{% endif %}
 {% endblock %}

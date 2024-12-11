@@ -7,17 +7,40 @@ object todo extends PythonModule {
 
   def pythonDeps = Seq("flask==3.1.0", "Flask-SQLAlchemy==3.1.1", "Flask-WTF==1.2.2")
 
-  object test extends PythonTests with TestModule.Unittest
+  object unitTest extends PythonTests with TestModule.Unittest
+  object integrationTest extends PythonTests with TestModule.Unittest
 
 }
 
-// TODO: Testing will be added soon...
-
 /** Usage
+
+> ./mill todo.unitTest
+...
+test_task_creation (test_unit.UnitTest...) ... ok
+test_task_status_update (test_unit.UnitTest...) ... ok
+...
+Ran 2 tests...
+OK
+...
+
+> ./mill todo.integrationTest
+...
+test_add_task (test_integration.IntegrationTest...)
+Test adding a task through the /add route. ... ok
+test_delete_task (test_integration.IntegrationTest...) ... ok
+test_edit_task (test_integration.IntegrationTest...)
+Test editing a task through the /edit/<int:task_id> route. ... ok
+test_index_empty (test_integration.IntegrationTest...)
+Test the index route with no tasks. ... ok
+...
+Ran 4 tests...
+OK
+...
 
 > ./mill todo.runBackground
 
 > curl http://localhost:5001
+...To-Do App Using Mill Build Tool...
 
 > ./mill clean todo.runBackground
 
