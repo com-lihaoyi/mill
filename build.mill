@@ -256,7 +256,12 @@ object Deps {
   }
 }
 
-def millVersion: T[String] = Task { VcsVersion.vcsState().format() }
+def millStableVersion = Task.Input{ Task.env.contains("MILL_STABLE_ENV") }
+def millVersion: T[String] = Task {
+  /*if (millStableVersion()) VcsVersion.vcsState().format()
+  else*/ "SNAPSHOT"
+}
+
 
 def millLastTag: T[String] = Task {
   VcsVersion.vcsState().lastTag.getOrElse(
