@@ -128,7 +128,7 @@ object MultiLevelBuildTests extends UtestIntegrationTestSuite {
       savedClassLoaderIds = currentClassLoaderIds
     }
 
-    val retryCount = if (sys.env.contains("CI")) 3 else 0
+    val retryCount = if (sys.env.contains("CI")) 1 else 0
     test("validEdits") - retry(retryCount) {
       integrationTest { tester =>
         import tester._
