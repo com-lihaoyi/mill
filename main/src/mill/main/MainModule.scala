@@ -3,7 +3,6 @@ package mill.main
 import mill.api._
 import mill.define._
 import mill.eval.{Evaluator, EvaluatorPaths}
-import mill.main.client.OutFiles
 import mill.moduledefs.Scaladoc
 import mill.resolve.SelectMode.Separated
 import mill.resolve.{Resolve, SelectMode}
