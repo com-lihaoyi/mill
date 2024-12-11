@@ -549,7 +549,7 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
       "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$runMain"
     ),
     // Added overrides for a new targets, should be safe
-    ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.scalalib.JavaModule#JavaModuleTests.mill$scalalib$JavaModule$JavaModuleTests$$super$extraBomDeps"),
+    ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.scalalib.JavaModule#JavaModuleTests.mill$scalalib$JavaModule$JavaModuleTests$$super$extraBomIvyDeps"),
     ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.scalalib.JavaModule#JavaModuleTests.mill$scalalib$JavaModule$JavaModuleTests$$super$extraDepManagement"),
     // Terminal is sealed, not sure why MIMA still complains
     ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.eval.Terminal.task"),

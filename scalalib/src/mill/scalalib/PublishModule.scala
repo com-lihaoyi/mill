@@ -146,8 +146,8 @@ trait PublishModule extends JavaModule { outer =>
       val (processedDeps, depMgmt) = defaultResolver().processDeps(
         processedRunIvyDeps() ++ processedIvyDeps(),
         resolutionParams = resolutionParams(),
-        boms =
-          allBomDeps().toSeq.map(_.withConfig(Configuration.defaultCompile)) ++ extraBomDeps().toSeq
+        boms = allBomIvyDeps().toSeq.map(_.withConfig(Configuration.defaultCompile)) ++
+          extraBomIvyDeps().toSeq
       )
       (processedDeps.map(_.moduleVersion).toMap, depMgmt)
     }

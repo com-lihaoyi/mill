@@ -57,9 +57,9 @@ trait JavaModule
       }
     }
 
-    override def extraBomDeps = Task.Anon[Agg[BomDependency]] {
-      super.extraBomDeps() ++
-        outer.allBomDeps().map(_.withConfig(Configuration.test))
+    override def extraBomIvyDeps = Task.Anon[Agg[BomDependency]] {
+      super.extraBomIvyDeps() ++
+        outer.allBomIvyDeps().map(_.withConfig(Configuration.test))
     }
     override def extraDepManagement = Task.Anon[Agg[Dep]] {
       super.extraDepManagement() ++
@@ -174,7 +174,7 @@ trait JavaModule
    */
   def bomIvyDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
-  def allBomDeps: Task[Agg[BomDependency]] = Task.Anon {
+  def allBomIvyDeps: Task[Agg[BomDependency]] = Task.Anon {
     val modVerOrMalformed =
       bomIvyDeps().map(bindDependency()).map { bomDep =>
         val fromModVer = coursier.core.Dependency(bomDep.dep.module, bomDep.dep.version)
@@ -207,7 +207,7 @@ trait JavaModule
    * modules, while ensuring test dependencies of the BOM are taken into account too
    * in the test module.
    */
-  def extraBomDeps: Task[Agg[BomDependency]] = Task.Anon { Agg.empty[BomDependency] }
+  def extraBomIvyDeps: Task[Agg[BomDependency]] = Task.Anon { Agg.empty[BomDependency] }
 
   /**
    * Dependency management entries that are not meant to be overridden or changed by users.
@@ -511,7 +511,7 @@ trait JavaModule
       overrideVersions: Boolean = false
   ): Task[coursier.core.Dependency => coursier.core.Dependency] = Task.Anon {
     val bomDeps0 =
-      allBomDeps().toSeq.map(_.withConfig(Configuration.compile)) ++ extraBomDeps().toSeq
+      allBomIvyDeps().toSeq.map(_.withConfig(Configuration.compile)) ++ extraBomIvyDeps().toSeq
     val depMgmt = processedDependencyManagement(
       (extraDepManagement().toSeq ++ depManagement().toSeq)
         .map(bindDependency())
@@ -533,7 +533,7 @@ trait JavaModule
   def processCompileDependency(
       overrideVersions: Boolean = false
   ): Task[coursier.core.Dependency => coursier.core.Dependency] = Task.Anon {
-    val bomDeps0 = allBomDeps().toSeq.map(_.withConfig(Configuration.provided))
+    val bomDeps0 = allBomIvyDeps().toSeq.map(_.withConfig(Configuration.provided))
     val depMgmt = processedDependencyManagement(
       (compileDepManagement().toSeq ++ extraDepManagement().toSeq ++ depManagement().toSeq)
         .map(bindDependency())
@@ -555,7 +555,7 @@ trait JavaModule
   def processRunDependency(
       overrideVersions: Boolean = false
   ): Task[coursier.core.Dependency => coursier.core.Dependency] = Task.Anon {
-    val bomDeps0 = allBomDeps().toSeq.map(_.withConfig(Configuration.defaultCompile))
+    val bomDeps0 = allBomIvyDeps().toSeq.map(_.withConfig(Configuration.defaultCompile))
     val depMgmt = processedDependencyManagement(
       (runDepManagement().toSeq ++ depManagement())
         .map(bindDependency())
