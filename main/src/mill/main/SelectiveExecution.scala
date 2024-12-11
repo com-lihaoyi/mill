@@ -65,10 +65,9 @@ private[mill] object SelectiveExecution {
     lazy val constructorHashSignatures = CodeSigUtils
       .constructorHashSignatures(methodCodeHashSignatures)
 
-    transitive
-      .iterator // Necessary to safely de-duplicate tasks and their supers
-      .collect { case namedTask: NamedTask[_] =>
-        namedTask.ctx.segments.render -> CodeSigUtils
+    sortedGroups.keys()
+      .collect { case Terminal.Labelled(namedTask: NamedTask[_], segments) =>
+        segments.render -> CodeSigUtils
           .codeSigForTask(
             namedTask,
             classToTransitiveClasses,
