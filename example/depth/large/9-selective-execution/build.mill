@@ -1,0 +1,100 @@
+// Mill allows you to filter the tests and other tasks you execute by limiting them
+// to those affected by a code change. This is useful in managing large codebases where
+// running the entire test suite in CI is often very slow, so you only want to run the
+// tests or tasks that are affected by the changes you are making.
+//
+// This is done via the following commands:
+//
+// * `mill selective.prepare <selector>`: run on the codebase before the code change,
+// stores a snapshot of task inputs and implementations
+//
+// * `mill selective.run <selector>`: run on the codebase after the code change,
+// runs tasks in the given `<selector>` which are affected by the code changes
+// that have happen since `selective.prepare` was run
+//
+// * `mill selective.resolve <selector>`: a dry-run version of `selective.run`, prints
+// out the tasks in `<selector>` that are affected by the code changes and would have
+// run, without actually tunning them.
+//
+// For example, if you want to run all tests related to the code changes in a pull
+// request branch, you can do that as follows:
+//
+// ```bash
+// > git checkout main # start from the target branch of the PR
+//
+// > ./mill selective.prepare __.test
+//
+// > git checkout pull-request-branch # go to the pull request branch
+//
+// > ./mill selective.run __.test
+// ```
+//
+// The example below demonstrates selective test execution on a small 3-module Java build,
+// where `bar` depends on `foo` but `qux` is standalone:
+
+package build
+import mill._, javalib._
+
+trait MyModule extends JavaModule {
+  object test extends JavaTests with TestModule.Junit4
+}
+
+object foo extends MyModule {
+  def moduleDeps = Seq(bar)
+}
+
+object bar extends MyModule
+
+object qux extends MyModule
+
+// In this example, `qux.test` starts off failing with an error, while `foo.test` and
+// `bar.test` pass successfully. Normally, running `__.test` will run all three test
+// suites and show both successes and the one failure:
+
+/** Usage
+
+> mill __.test
+error: Test run foo.FooTests finished: 0 failed, 0 ignored, 1 total, ...
+Test run bar.BarTests finished: 0 failed, 0 ignored, 1 total, ...
+Test run qux.QuxTests finished: 1 failed, 0 ignored, 1 total, ...
+
+*/
+
+// However, this is not always what you want. For example:
+//
+// * If you are validating a pull request
+//   in CI that only touches `bar/`, you do not want the failure in `qux.test` to fail
+//   your tests, because you know that `qux.test` does not depend on `bar/` and thus the
+//   failure cannot be related to your changes.
+//
+// * Even if `qux.test` wasn't failing, running it on a pull request that changes `bar/` is
+//   wasteful, taking up compute resources to run tests that could not possibly be affected
+//   by the code change in question.
+//
+// To solve this, you can run `selective.prepare` before the code change, then `selective.run`
+// after the code change, to only run the tests downstream of the change (below, `foo.test` and `bar.test`):
+
+/** Usage
+
+> mill selective.prepare __.test
+
+> echo '//' >> bar/src/bar/Bar.java # emulate the code change
+
+> mill selective.resolve __.test # dry-run selective execution to show what would get run
+foo.test.test
+bar.test.test
+
+> mill selective.run __.test
+Test run foo.FooTests finished: 0 failed, 0 ignored, 1 total, ...
+Test run bar.BarTests finished: 0 failed, 0 ignored, 1 total, ...
+
+*/
+
+// Similarly, if we make a change `qux/`, using selective execution will only run tests
+// in `qux.test`, and skip those in `foo.test` and `bar.test`.
+// These examples all use `__.test` to selectively run tasks named `.test`, but you can
+// use selective execution on any subset of tasks by specifying them in the selector.
+//
+// Selective execution is very useful for larger codebases, where you are usually changing
+// only small parts of it, and thus only want to run the tests related to your changes.
+// This keeps CI times fast and prevents unrelated breakages from affecting your CI runs.
