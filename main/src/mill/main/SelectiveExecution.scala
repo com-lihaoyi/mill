@@ -133,7 +133,7 @@ private[mill] object SelectiveExecution {
   def saveMetadata(evaluator: Evaluator, metadata: SelectiveExecution.Metadata): Unit = {
     os.write.over(
       evaluator.outPath / OutFiles.millSelectiveExecution,
-      upickle.default.write(metadata)
+      upickle.default.write(metadata, indent = 2)
     )
   }
 

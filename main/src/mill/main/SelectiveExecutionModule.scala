@@ -34,9 +34,10 @@ trait SelectiveExecutionModule extends mill.define.Module {
   def resolve(evaluator: Evaluator, tasks: String*): Command[Array[String]] =
     Task.Command(exclusive = true) {
       val result = for {
-        resolved <- Resolve.Segments.resolve(evaluator.rootModule, tasks, SelectMode.Multi)
+        resolved <- Resolve.Tasks.resolve(evaluator.rootModule, tasks, SelectMode.Multi)
         diffed <- SelectiveExecution.diffMetadata(evaluator, tasks)
-      } yield resolved.map(_.render).toSet.intersect(diffed).toArray.sorted
+      } yield resolved.map(_.ctx.segments.render).toSet.intersect(diffed).toArray.sorted
+
 
       result match {
         case Left(err) => Result.Failure(err)
