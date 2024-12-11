@@ -21,7 +21,11 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
       assert(plan.out == "bar.barCommand")
 
       val cached =
-        eval(("selective.run", "{foo.fooCommand,bar.barCommand}"), check = true, stderr = os.Inherit)
+        eval(
+          ("selective.run", "{foo.fooCommand,bar.barCommand}"),
+          check = true,
+          stderr = os.Inherit
+        )
 
       assert(!cached.out.contains("Computing fooCommand"))
       assert(cached.out.contains("Computing barCommand"))
@@ -37,7 +41,11 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
       )
       modifyFile(workspacePath / "build.mill", _.replace("\"barHelper \"", "\"barHelper! \""))
       val cached1 =
-        eval(("selective.run", "{foo.fooCommand,bar.barCommand}"), check = true, stderr = os.Inherit)
+        eval(
+          ("selective.run", "{foo.fooCommand,bar.barCommand}"),
+          check = true,
+          stderr = os.Inherit
+        )
 
       assert(!cached1.out.contains("Computing fooCommand"))
       assert(cached1.out.contains("Computing barCommand"))
@@ -53,7 +61,11 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
         _.replace("object foo extends Module {", "object foo extends Module { println(123)")
       )
       val cached2 =
-        eval(("selective.run", "{foo.fooCommand,bar.barCommand}"), check = true, stderr = os.Inherit)
+        eval(
+          ("selective.run", "{foo.fooCommand,bar.barCommand}"),
+          check = true,
+          stderr = os.Inherit
+        )
 
       assert(cached2.out.contains("Computing fooCommand"))
       assert(!cached2.out.contains("Computing barCommand"))

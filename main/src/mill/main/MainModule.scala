@@ -618,7 +618,8 @@ trait MainModule extends BaseModule0 {
    * Commands related to selective execution, where Mill runs tasks selectively
    * depending on what task inputs or implementations changed
    */
-  object selective extends Module{
+  object selective extends Module {
+
     /**
      * Run to store a baseline snapshot of the Mill task inputs or implementations
      * necessary to run [[tasks]], to be later compared against metadata computed
@@ -643,12 +644,12 @@ trait MainModule extends BaseModule0 {
      */
     def resolve(evaluator: Evaluator, tasks: String*): Command[Array[String]] =
       Task.Command(exclusive = true) {
-        val result = for{
+        val result = for {
           resolved <- Resolve.Segments.resolve(evaluator.rootModule, tasks, SelectMode.Multi)
           diffed <- SelectiveExecution.diffMetadata(evaluator, tasks)
         } yield resolved.map(_.render).toSet.intersect(diffed).toArray.sorted
 
-        result match{
+        result match {
           case Left(err) => Result.Failure(err)
           case Right(success) =>
             success.foreach(println)
