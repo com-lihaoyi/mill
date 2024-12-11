@@ -1,0 +1,24 @@
+package build
+import mill._, pythonlib._
+
+object todo extends PythonModule {
+
+  def mainScript = Task.Source { millSourcePath / "src" / "app.py" }
+
+  def pythonDeps = Seq("flask==3.1.0", "Flask-SQLAlchemy==3.1.1", "Flask-WTF==1.2.2")
+
+  object test extends PythonTests with TestModule.Unittest
+
+}
+
+// TODO: Testing will be added soon...
+
+/** Usage
+
+> ./mill todo.runBackground
+
+> curl http://localhost:5001
+
+> ./mill clean todo.runBackground
+
+*/
