@@ -14,7 +14,10 @@ or resource usage, build files are incrementally re-compiled when modified, and 
 lazily loaded and initialized only when needed. So you are encouraged to break up your project 
 into modules to manage the layering of your codebase or benefit from parallelism.
 
+== Selective Execution
 
+
+include::partial$example/depth/large/9-selective-execution.adoc[]
 
 == Multi-file Builds
 
