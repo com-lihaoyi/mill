@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import mill.main.client.EnvVars;
 import mill.main.client.ServerFiles;
 import mill.main.client.Util;
@@ -211,6 +212,8 @@ public class MillProcessLauncher {
     return Integer.parseInt(new String(proc.getInputStream().readAllBytes()).trim());
   }
 
+  private static AtomicReference<String> memoizedTerminalDims = new AtomicReference();
+
   static void writeTerminalDims(boolean tputExists, Path serverDir) throws Exception {
     String str;
 
@@ -227,7 +230,19 @@ public class MillProcessLauncher {
     } catch (Exception e) {
       str = "0 0";
     }
-    Files.write(serverDir.resolve(ServerFiles.terminfo), str.getBytes());
+
+    // We memoize previously seen values to avoid causing lots
+    // of upstream work if the value hasn't actually changed.
+    // The upstream work could cause significant load, see
+    //
+    //    https://github.com/com-lihaoyi/mill/discussions/4092
+    //
+    // The cause is currently unknown, but this fixes the symptoms at least.
+    //
+    String oldValue = memoizedTerminalDims.getAndSet(str);
+    if ((oldValue == null) || !oldValue.equals(str)) {
+      Files.write(serverDir.resolve(ServerFiles.terminfo), str.getBytes());
+    }
   }
 
   public static boolean checkTputExists() {
