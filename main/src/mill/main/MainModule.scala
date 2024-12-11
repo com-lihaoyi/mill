@@ -614,34 +614,69 @@ trait MainModule extends BaseModule0 {
     }
   }
 
-  def selectivePrepare(evaluator: Evaluator, targets: String*): Command[Unit] =
-    Task.Command(exclusive = true) {
+  /**
+   * Commands related to selective execution, where Mill runs tasks selectively
+   * depending on what task inputs or implementations changed
+   */
+  object selective extends Module{
+    /**
+     * Run to store a baseline snapshot of the Mill task inputs or implementations
+     * necessary to run [[tasks]], to be later compared against metadata computed
+     * after a code change to determine which tasks were affected and need to be re-run
+     */
+    def prepare(evaluator: Evaluator, tasks: String*): Command[Unit] =
+      Task.Command(exclusive = true) {
+        val res: Either[String, Unit] = SelectiveExecution.Metadata(evaluator, tasks)
+          .map(SelectiveExecution.saveMetadata(evaluator, _))
 
-      val res: Either[String, Unit] = SelectiveExecution.Metadata(evaluator, targets)
-        .map(SelectiveExecution.saveMetadata(evaluator, _))
-
-      res match {
-        case Left(err) => Result.Failure(err)
-        case Right(res) =>
-          Result.Success(())
-      }
-    }
-
-  def selectiveRun(evaluator: Evaluator, targets: String*): Command[Unit] =
-    Task.Command(exclusive = true) {
-      if (!os.exists(evaluator.outPath / OutFiles.millSelectiveExecution)) {
-        Result.Failure("`selectiveRun` can only be run after `selectivePrepare`")
-      } else {
-        RunScript.evaluateTasksNamed(
-          evaluator,
-          targets,
-          Separated,
-          selectiveExecution = true
-        ) match {
+        res match {
           case Left(err) => Result.Failure(err)
-          case Right((watched, Left(err))) => Result.Failure(err)
-          case Right((watched, Right(res))) => Result.Success(res)
+          case Right(res) => Result.Success(())
         }
       }
-    }
+
+    /**
+     * Run after [[prepare]], prints out the tasks in [[tasks]] that are affected by
+     * any changes to the task inputs or task implementations since [[prepare]]
+     * was run. Effectively a dry-run version of [[run]] that lets you show the tasks
+     * that would be run without actually running them
+     */
+    def resolve(evaluator: Evaluator, tasks: String*): Command[Array[String]] =
+      Task.Command(exclusive = true) {
+        val result = for{
+          resolved <- Resolve.Segments.resolve(evaluator.rootModule, tasks, SelectMode.Multi)
+          diffed <- SelectiveExecution.diffMetadata(evaluator, tasks)
+        } yield resolved.map(_.render).toSet.intersect(diffed).toArray.sorted
+
+        result match{
+          case Left(err) => Result.Failure(err)
+          case Right(success) =>
+            success.foreach(println)
+            Result.Success(success)
+        }
+      }
+
+    /**
+     * Run after [[prepare]], selectively executes the tasks in [[tasks]] that are
+     * affected by any changes to the task inputs or task implementations since [[prepare]]
+     * was run
+     */
+    def run(evaluator: Evaluator, tasks: String*): Command[Unit] =
+      Task.Command(exclusive = true) {
+        if (!os.exists(evaluator.outPath / OutFiles.millSelectiveExecution)) {
+          Result.Failure("`selective.run` can only be run after `selective.prepare`")
+        } else {
+          RunScript.evaluateTasksNamed(
+            evaluator,
+            tasks,
+            Separated,
+            selectiveExecution = true
+          ) match {
+            case Left(err) => Result.Failure(err)
+            case Right((watched, Left(err))) => Result.Failure(err)
+            case Right((watched, Right(res))) => Result.Success(res)
+          }
+        }
+      }
+  }
 }

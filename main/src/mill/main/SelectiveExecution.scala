@@ -11,8 +11,8 @@ private[mill] object SelectiveExecution {
   implicit val rw: upickle.default.ReadWriter[Metadata] = upickle.default.macroRW
 
   object Metadata {
-    def apply(evaluator: Evaluator, targets: Seq[String]): Either[String, Metadata] = {
-      for (transitive <- plan0(evaluator, targets)) yield {
+    def apply(evaluator: Evaluator, tasks: Seq[String]): Either[String, Metadata] = {
+      for (transitive <- plan0(evaluator, tasks)) yield {
         val inputTasksToLabels: Map[Task[_], String] = transitive
           .collect { case Terminal.Labelled(task: InputImpl[_], segments) =>
             task -> segments.render
@@ -38,11 +38,11 @@ private[mill] object SelectiveExecution {
 
   def plan0(
       evaluator: Evaluator,
-      targets: Seq[String]
+      tasks: Seq[String]
   ): Either[String, Array[Terminal.Labelled[_]]] = {
     Resolve.Tasks.resolve(
       evaluator.rootModule,
-      targets,
+      tasks,
       SelectMode.Multi
     ) match {
       case Left(err) => Left(err)
@@ -82,11 +82,11 @@ private[mill] object SelectiveExecution {
 
   def computeDownstream(
       evaluator: Evaluator,
-      targets: Seq[String],
+      tasks: Seq[String],
       oldHashes: Metadata,
       newHashes: Metadata
   ): Seq[Task[Any]] = {
-    val terminals = SelectiveExecution.plan0(evaluator, targets).getOrElse(???)
+    val terminals = SelectiveExecution.plan0(evaluator, tasks).getOrElse(???)
     val namesToTasks = terminals.map(t => (t.render -> t.task)).toMap
 
     def diffMap[K, V](lhs: Map[K, V], rhs: Map[K, V]) = {
@@ -137,12 +137,12 @@ private[mill] object SelectiveExecution {
     )
   }
 
-  def diffMetadata(evaluator: Evaluator, targets: Seq[String]): Either[String, Set[String]] = {
+  def diffMetadata(evaluator: Evaluator, tasks: Seq[String]): Either[String, Set[String]] = {
     val oldMetadata = upickle.default.read[SelectiveExecution.Metadata](
       os.read(evaluator.outPath / OutFiles.millSelectiveExecution)
     )
-    for (newMetadata <- SelectiveExecution.Metadata(evaluator, targets)) yield {
-      SelectiveExecution.computeDownstream(evaluator, targets, oldMetadata, newMetadata)
+    for (newMetadata <- SelectiveExecution.Metadata(evaluator, tasks)) yield {
+      SelectiveExecution.computeDownstream(evaluator, tasks, oldMetadata, newMetadata)
         .collect { case n: NamedTask[_] => n.ctx.segments.render }
         .toSet
     }
