@@ -1,31 +1,26 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>The Output Directory :: The Mill JVM Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/fundamentals/out-dir.html" />
-    <link rel="prev" href="modules.html" />
-    <link rel="next" href="library-deps.html" />
-    <meta name="generator" content="Antora 3.1.9" />
-    <link rel="stylesheet" href="../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/fundamentals/out-dir.html">
+    <link rel="prev" href="modules.html">
+    <link rel="next" href="library-deps.html">
+    <meta name="generator" content="Antora 3.1.9">
+    <link rel="stylesheet" href="../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
-  
-  <style>
-*{
-  hyphens: manual !important;
-}
-</style></head><body class="article">
-  
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill JVM Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill JVM Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -514,7 +509,11 @@
 <h1 class="page">The Output Directory</h1>
 <div id="preamble">
 <div class="sectionbody">
-
+<style>
+*{
+  hyphens: manual !important;
+}
+</style>
 <script>
 gtag('config', 'AW-16649289906');
 
@@ -540,7 +539,7 @@ const links = document.querySelectorAll('a');
 <div class="sectionbody">
 <div class="paragraph">
 <p>The <code>out/</code> folder contains all the generated files &amp; metadata for your build.
-It holds some files needed to manage Mill’s longer running server instances (<code>out/mill-server/*</code>) as well as a directory and file structure resembling the project’s module structure.</p>
+It holds some files needed to manage Mill&#8217;s longer running server instances (<code>out/mill-server/*</code>) as well as a directory and file structure resembling the project&#8217;s module structure.</p>
 </div>
 <div class="listingblock">
 <div class="title">Example of the <code>out/</code> directory after running <code>mill main.compile</code></div>
@@ -587,7 +586,7 @@ It holds some files needed to manage Mill’s longer running server instances (<
 </div>
 <div class="colist arabic">
 <table>
-<tbody><tr>
+<tr>
 <td><i class="conum" data-value="1"></i><b>1</b></td>
 <td>The <code>main</code> directory contains all files associated with tasks and submodules of the <code>main</code> module.</td>
 </tr>
@@ -603,7 +602,7 @@ It holds some files needed to manage Mill’s longer running server instances (<
 <td><i class="conum" data-value="4"></i><b>4</b></td>
 <td>Three tasks are overridden but re-use the result of their <code>super</code>-tasks in some way. You can find these result under the <code>*.super/</code> path.</td>
 </tr>
-</tbody></table>
+</table>
 </div>
 </div>
 </div>
@@ -658,7 +657,7 @@ rebuilt, e.g. by deleting the <code>out/main/</code> or <code>out/main/compile.*
 </div>
 <div class="admonitionblock warning">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-warning" title="Warning"></i>
 </td>
@@ -671,7 +670,7 @@ rebuilt, e.g. by deleting the <code>out/main/</code> or <code>out/main/compile.*
 </div>
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 </div>
 </div>
@@ -690,7 +689,7 @@ This is very useful if Mill is being unexpectedly slow, and you want to find out
 </dd>
 <dt class="hdlist1"><code>mill-chrome-profile.json</code></dt>
 <dd>
-<p>This file is only written if you run Mill in parallel mode, e.g. <code>mill --jobs 4</code>. This file can be opened in Google Chrome with the built-in <code>tracing:</code> protocol even while Mill is still running, so you get a nice chart of what’s going on in parallel.</p>
+<p>This file is only written if you run Mill in parallel mode, e.g. <code>mill --jobs 4</code>. This file can be opened in Google Chrome with the built-in <code>tracing:</code> protocol even while Mill is still running, so you get a nice chart of what&#8217;s going on in parallel.</p>
 </dd>
 <dt class="hdlist1"><code>mill-server/*</code></dt>
 <dd>
@@ -704,8 +703,8 @@ This is very useful if Mill is being unexpectedly slow, and you want to find out
 <h2 id="_using_another_location_than_the_out_directory"><a class="anchor" href="#_using_another_location_than_the_out_directory"></a>Using another location than the <code>out/</code> directory</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The default location for Mill’s output directory is <code>out/</code> under the project workspace.
-If you’d rather use another location than <code>out/</code>, that lives
+<p>The default location for Mill&#8217;s output directory is <code>out/</code> under the project workspace.
+If you&#8217;d rather use another location than <code>out/</code>, that lives
 in a faster or a writable filesystem for example, you can change the output directory
 via the <code>MILL_OUTPUT_DIR</code> environment variable.</p>
 </div>
@@ -741,9 +740,9 @@ object foo extends Module {
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async="async" src="../../_/js/vendor/highlight.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async="async" src="../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../search-index.js"></script>
+  </body>
+</html>
