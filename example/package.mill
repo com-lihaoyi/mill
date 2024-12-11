@@ -63,6 +63,7 @@ object `package` extends RootModule with Module {
   }
   object javascriptlib extends Module {
     object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))
+    object testing extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "testing"))
   }
   object pythonlib extends Module {
     object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))

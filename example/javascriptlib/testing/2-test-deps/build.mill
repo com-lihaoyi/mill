@@ -1,0 +1,30 @@
+package build
+
+import mill._, javascriptlib._, javascriptlib.testmods._
+
+object bar extends JestModule {
+  def npmDeps = Seq("immutable@4.3.7")
+}
+
+object foo extends JestModule with SharedTestUtils {
+  def moduleDeps = Seq(bar)
+
+}
+
+// Documentation for mill.example.javascriptlib
+// In this example, `foo` depend on `bar`, but we also make
+// `foo.test` depend on `bar.test`.
+
+// That lets `foo.test` make use of the default function exported from
+// `bar/test/utils/bar.tests.utils.ts`, allowing us to re-use this
+// test helper throughout multiple modules' test suites.
+
+/** Usage
+> mill foo.test
+PASS .../foo.test.ts
+...
+
+> mill bar.test
+PASS .../bar.test.ts
+...
+*/
