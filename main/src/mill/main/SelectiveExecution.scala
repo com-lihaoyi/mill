@@ -66,7 +66,7 @@ private[mill] object SelectiveExecution {
       .constructorHashSignatures(methodCodeHashSignatures)
 
     transitive
-      .iterator
+      .iterator // Necessary to safely de-duplicate tasks and their supers
       .collect { case namedTask: NamedTask[_] =>
         namedTask.ctx.segments.render -> CodeSigUtils
           .codeSigForTask(
