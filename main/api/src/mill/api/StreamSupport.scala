@@ -22,15 +22,7 @@ trait StreamSupport {
    * Pump the data from the `src` stream into the `dest` stream.
    */
   def stream(src: InputStream, dest: OutputStream): Unit = {
-    val buffer = new Array[Byte](4096)
-    while ({
-      src.read(buffer) match {
-        case -1 => false
-        case n =>
-          dest.write(buffer, 0, n)
-          true
-      }
-    }) ()
+    geny.Internal.transfer(src, dest)
   }
 
 }
