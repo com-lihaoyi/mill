@@ -179,9 +179,13 @@ object LocalSummary {
         name: String,
         descriptor: String
     ): Unit = {
-      if (name.startsWith("bitmap$") && (opcode == Opcodes.GETSTATIC || opcode == Opcodes.GETFIELD)) {
+      val isBitmap = name match {
+        case s"bitmap$$$n" => n.forall(_.isDigit)
+        case _ => false
+      }
+      if (isBitmap && (opcode == Opcodes.GETSTATIC || opcode == Opcodes.GETFIELD)) {
         inLazyValCheck = true
-      } else if (name.startsWith("bitmap$") && (opcode == Opcodes.PUTSTATIC || opcode == Opcodes.PUTFIELD)) {
+      } else if (isBitmap && (opcode == Opcodes.PUTSTATIC || opcode == Opcodes.PUTFIELD)) {
         inLazyValCheck = false
       } else {
         hash(opcode)
