@@ -1,3 +1,4 @@
+name: post-build-setup
 on:
   workflow_call:
     inputs:

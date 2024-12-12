@@ -1,3 +1,4 @@
+name: post-build-raw
 on:
   workflow_call:
     inputs:

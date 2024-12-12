@@ -1,3 +1,4 @@
+name: post-build-selective
 on:
   workflow_call:
     inputs:

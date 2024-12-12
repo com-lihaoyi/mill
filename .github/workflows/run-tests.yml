@@ -24,12 +24,12 @@ jobs:
   # Jobs are listed in rough order of priority: if multiple jobs fail, the first job
   # in the list should be the one that's most worth looking into
   build-linux:
-    uses: ./.github/workflows/pre-build.yml
+    uses: .github/workflows/pre-build.yml
     with:
       os: ubuntu-latest
 
   build-windows:
-    uses: ./.github/workflows/pre-build.yml
+    uses: .github/workflows/pre-build.yml
     with:
       os: windows-latest
 
@@ -114,7 +114,7 @@ jobs:
             millargs: "'integration.invalidation.__.server.testCached'"
             install-android-sdk: false
 
-    uses: ./.github/workflows/post-build-selective.yml
+    uses: .github/workflows/post-build-selective.yml
     with:
       install-android-sdk: ${{ matrix.install-android-sdk }}
       java-version: ${{ matrix.java-version }}
@@ -139,7 +139,7 @@ jobs:
           - java-version: '11'
             millargs: "contrib.__.testCached"
 
-    uses: ./.github/workflows/post-build-selective.yml
+    uses: .github/workflows/post-build-selective.yml
     with:
       os: windows-latest
       java-version: ${{ matrix.java-version }}
@@ -157,7 +157,7 @@ jobs:
           - java-version: 17 # Have one job on default JVM
             buildcmd: ci/test-mill-bootstrap.sh
 
-    uses: ./.github/workflows/post-build-raw.yml
+    uses: .github/workflows/post-build-raw.yml
     with:
       java-version: ${{ matrix.java-version }}
       buildcmd: ${{ matrix.buildcmd }}
@@ -166,7 +166,7 @@ jobs:
   # usually just an automated or mechanical manual fix to do before merging
   lint-autofix:
     needs: build-linux
-    uses: ./.github/workflows/post-build-raw.yml
+    uses: .github/workflows/post-build-raw.yml
     with:
       java-version: '17'
       buildcmd: ./mill -i mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources + __.mimaReportBinaryIssues + __.fix --check + mill.javalib.palantirformat.PalantirFormatModule/ --check + mill.kotlinlib.ktlint.KtlintModule/checkFormatAll --check
