@@ -20,7 +20,7 @@ object foo extends PythonModule {
     Seq(PathRef(destPath))
   }
 
-  def mainScript = Task { sources().head.path / "foo.py" }
+  def mainScript = Task { PathRef(sources().head.path / "foo.py") }
 
   def typeCheck = Task {
     println("Type Checking...")
@@ -53,7 +53,7 @@ object foo2 extends PythonModule {
     Seq(PathRef(destPath))
   }
 
-  def mainScript = Task { generatedSources().head.path / "foo.py" }
+  def mainScript = Task { PathRef(generatedSources().head.path / "foo.py") }
 
 }
 
@@ -64,7 +64,7 @@ object foo3 extends PythonModule {
     os.write(destPath / "foo.py", """...""")
     super.sources() ++ Seq(PathRef(destPath))
   }
-  def mainScript = Task { sources().head.path / "foo.py" }
+  def mainScript = Task { PathRef(sources().head.path / "foo.py") }
 
 }
 
