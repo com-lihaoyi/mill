@@ -1,0 +1,52 @@
+package build
+import mill._, pythonlib._
+
+object todo extends PythonModule {
+
+  def mainScript = Task.Source { millSourcePath / "src" / "manage.py" }
+
+  def pythonDeps = Seq("django==5.1.4")
+
+}
+
+/** Usage
+
+> ./mill todo.run makemigrations
+
+> ./mill todo.run migrate
+
+> ./mill todo.run test main -v 2 # using inbuilt `django test`, `main` is the app name, `-v 2` is verbosity level 2
+...
+test_add_task_message (main.tests.TestScript...)
+Test that a success message appears when a task is successfully added. ... ok
+test_add_task_view_get (main.tests.TestScript...)
+Test that the 'Add Task' page loads successfully with an empty form. ... ok
+test_add_task_view_post_invalid_data (main.tests.TestScript...)
+Test that submitting the form with invalid data shows errors. ... ok
+test_add_task_view_post_valid_data (main.tests.TestScript...)
+Test that submitting the form with valid data creates a new task. ... ok
+test_default_status (main.tests.TestScript...)
+Test that the default status of a task is 'Pending'. ... ok
+test_delete_task_message (main.tests.TestScript...)
+Test that a success message appears when a task is deleted. ... ok
+test_delete_task_view (main.tests.TestScript...)
+Test that deleting a task works and redirects to the task list. ... ok
+test_edit_task_view_post_valid_data (main.tests.TestScript...)
+Test that editing a task updates its details. ... ok
+test_str_method (main.tests.TestScript...)
+Test the __str__ method of the Task model. ... ok
+test_url_resolves_to_correct_view (main.tests.TestScript...)
+Test that the correct view function is mapped to each URL. ... ok
+...
+...Ran 10 tests...
+OK
+...
+
+> ./mill todo.runBackground runserver 8001
+
+> curl http://localhost:8001
+...To-Do Django App Using Mill Build Tool...
+
+> ./mill clean todo.runBackground
+
+*/

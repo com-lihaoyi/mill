@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4 text-center">{{ title }}</h1>
+    <form method="POST" class="needs-validation" novalidate>
+        {% csrf_token %}
+        {{ form.hidden_tag }}
+        
+        <!-- Title field -->
+        <div class="mb-3">
+            <label for="title" class="form-label">{{ form.title.label }}</label>
+            <input type="text" name="title" class="form-control" id="title" 
+                   placeholder="Enter task title" 
+                   value="{{ form.title.value|default:'' }}">
+            <!-- Displaying errors for title -->
+            {% if form.title.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.title.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Description field -->
+        <div class="mb-3">
+            <label for="description" class="form-label">{{ form.description.label }}</label>
+            <textarea name="description" class="form-control" id="description" 
+                      placeholder="Enter task description">{{ form.description.value|default:'' }}</textarea>
+            <!-- Displaying errors for description -->
+            {% if form.description.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.description.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Status field -->
+        <div class="mb-3">
+            <label for="status" class="form-label">{{ form.status.label }}</label>
+            <select name="status" class="form-control" id="status">
+                {% for choice in form.status.field.choices %}
+                    <option value="{{ choice.0 }}" {% if form.status.value == choice.0 %}selected{% endif %}>
+                        {{ choice.1 }}
+                    </option>
+                {% endfor %}
+            </select>
+            <!-- Displaying errors for status -->
+            {% if form.status.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.status.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Deadline field -->
+        <div class="mb-3">
+            <label for="deadline" class="form-label">{{ form.deadline.label }}</label>
+            <input type="date" name="deadline" class="form-control" id="deadline" 
+                   placeholder="Select task deadline" 
+                   value="{{ form.deadline.value|default:'' }}">
+            <!-- Displaying errors for deadline -->
+            {% if form.deadline.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.deadline.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="text-center">
+            <button type="submit" class="btn btn-success btn-lg">Submit</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

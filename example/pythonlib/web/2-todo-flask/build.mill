@@ -40,7 +40,7 @@ OK
 > ./mill todo.runBackground
 
 > curl http://localhost:5001
-...To-Do App Using Mill Build Tool...
+...To-Do Flask App Using Mill Build Tool...
 
 > ./mill clean todo.runBackground
 
