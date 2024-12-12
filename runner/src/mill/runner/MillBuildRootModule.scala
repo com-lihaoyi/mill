@@ -49,7 +49,7 @@ abstract class MillBuildRootModule()(implicit
       .keys
       .map(PathRef(_))
       .toSeq
-      .sorted
+      .sortBy(_.path)
   }
 
   def parseBuildFiles: T[FileImportGraph] = Task {
