@@ -27,21 +27,17 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.base_ref }}
-        if: inputs.millargs != '' && inputs.populate_cache
 
       - name: Prepare Mill Selective '__.test'
         run: ./mill -i -k selective.prepare __.test
-        if: inputs.millargs != '' && inputs.populate_cache
 
       - uses: coursier/cache-action@v6
 
       - name: Run Mill '${{ inputs.millargs }}'
         run: ./mill -i -k ${{ inputs.millargs }}
-        if: inputs.millargs != '' && inputs.populate_cache
 
       - uses: actions/upload-artifact@v4.4.3
         with:
           path: .
           name: ${{ inputs.os }}-artifact
           include-hidden-files: true
-        if: ${{ inputs.populate_cache }}
