@@ -158,7 +158,7 @@ available as well as the task and module structure of your project, as tasks tha
 depend on one another other cannot be processed in parallel
 
 
-== Custom Mill Options
+== Repo-Level Mill Options
 
 Mill supports the `.mill-opts` file for passing a default set of command line
 options to Mill itself. For example, if your project's tasks are CPU heavy, you
