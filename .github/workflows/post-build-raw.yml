@@ -4,9 +4,6 @@ on:
       buildcmd:
         default: ''
         type: string
-      millargs:
-        default: ''
-        type: string
       java-version:
         required: true
         type: string
