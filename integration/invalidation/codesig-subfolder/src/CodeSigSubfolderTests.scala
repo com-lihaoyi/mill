@@ -85,7 +85,7 @@ object CodeSigSubfolderTests extends UtestIntegrationTestSuite {
       assert(mangledValFooUsedInBar.err.contains("compiling 1 Scala source"))
     }
 
-    test("subfolder-renames-same-order") - integrationTest{ tester =>
+    test("subfolder-renames-same-order") - integrationTest { tester =>
       import tester._
       val cached4 = eval("foo")
       assert(cached4.out.contains("running foo"))
@@ -100,7 +100,7 @@ object CodeSigSubfolderTests extends UtestIntegrationTestSuite {
       val cached5 = eval("foo")
       assert(!cached5.out.contains("running foo"))
     }
-    test("subfolder-renames-reorder") - integrationTest{ tester =>
+    test("subfolder-renames-reorder") - integrationTest { tester =>
       import tester._
       val cached4 = eval("foo")
       assert(cached4.out.contains("running foo"))
