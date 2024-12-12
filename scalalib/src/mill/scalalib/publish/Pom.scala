@@ -209,7 +209,7 @@ object Pom {
     val optional = if (d.optional) <optional>true</optional> else NodeSeq.Empty
 
     val version =
-      if (d.artifact.version == "_") NodeSeq.Empty
+      if (d.artifact.version.isEmpty) NodeSeq.Empty
       else <version>{d.artifact.version}</version>
 
     if (d.exclusions.isEmpty)
