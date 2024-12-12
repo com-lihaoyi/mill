@@ -53,65 +53,65 @@ jobs:
           # each test on each Java version and each operating system
           # We also try to group tests together to manually balance out the runtimes of each jobs
           - java-version: 17
-            millargs: "'{main,scalalib,testrunner,bsp,testkit}.__.testCached'"
+            millargs: "'{main,scalalib,testrunner,bsp,testkit}.__.test'"
             install-android-sdk: false
 
           - java-version: '11'
-            millargs: "'{scalajslib,scalanativelib,kotlinlib,pythonlib,javascriptlib}.__.testCached'"
+            millargs: "'{scalajslib,scalanativelib,kotlinlib,pythonlib,javascriptlib}.__.test'"
             install-android-sdk: false
 
           - java-version: 17
-            millargs: "contrib.__.testCached"
+            millargs: "contrib.__.test"
             install-android-sdk: false
 
           - java-version: 17
-            millargs: "'example.javalib.__.local.testCached'"
+            millargs: "'example.javalib.__.local.test'"
             install-android-sdk: false
 
           - java-version: 17
-            millargs: "'example.scalalib.__.local.testCached'"
+            millargs: "'example.scalalib.__.local.test'"
             install-android-sdk: false
 
           - java-version: 17
-            millargs: "'example.kotlinlib.__.local.testCached'"
+            millargs: "'example.kotlinlib.__.local.test'"
             install-android-sdk: false
 
           - java-version: 17
-            millargs: "'example.android.__.local.testCached'"
+            millargs: "'example.android.__.local.test'"
             install-android-sdk: true
 
           - java-version: 17
-            millargs: "'example.{pythonlib,javascriptlib}.__.local.testCached'"
+            millargs: "'example.{pythonlib,javascriptlib}.__.local.test'"
             install-android-sdk: false
 
           - java-version: '11'
-            millargs: "'example.thirdparty[{mockito,acyclic,commons-io}].local.testCached'"
+            millargs: "'example.thirdparty[{mockito,acyclic,commons-io}].local.test'"
             install-android-sdk: false
 
           - java-version: 17
-            millargs: "'example.thirdparty[{fansi,jimfs,netty,gatling}].local.testCached'"
+            millargs: "'example.thirdparty[{fansi,jimfs,netty,gatling}].local.test'"
             install-android-sdk: false
 
           - java-version: '17'
-            millargs: "'example.thirdparty[arrow].local.testCached'"
+            millargs: "'example.thirdparty[arrow].local.test'"
             install-android-sdk: false
 
           - java-version: '11'
-            millargs: "'example.{cli,fundamentals,depth,extending}.__.local.testCached'"
+            millargs: "'example.{cli,fundamentals,depth,extending}.__.local.test'"
             install-android-sdk: false
             # Most of these integration tests should not depend on which mode they
             # are run in, so just run them in `local`
           - java-version: '17'
-            millargs: "'integration.{failure,feature,ide}.__.local.testCached'"
+            millargs: "'integration.{failure,feature,ide}.__.local.test'"
             install-android-sdk: false
             # These invalidation tests need to be exercised in both execution modes
             # to make sure they work with and without -i/--no-server being passed
           - java-version: 17
-            millargs: "'integration.invalidation.__.fork.testCached'"
+            millargs: "'integration.invalidation.__.fork.test'"
             install-android-sdk: false
 
           - java-version: 17
-            millargs: "'integration.invalidation.__.server.testCached'"
+            millargs: "'integration.invalidation.__.server.test'"
             install-android-sdk: false
 
     uses: ./.github/workflows/post-build-selective.yml
@@ -129,15 +129,15 @@ jobs:
           # just run a subset of examples/ on Windows, because for some reason running
           # the whole suite can take hours on windows v.s. half an hour on linux
           - java-version: '11'
-            millargs: '"{main,scalalib,bsp}.__.testCached"'
+            millargs: '"{main,scalalib,bsp}.__.test"'
           - java-version: '11'
-            millargs: '"example.scalalib.basic.__.fork.testCached"'
+            millargs: '"example.scalalib.basic.__.fork.test"'
           - java-version: 17
-            millargs: "'integration.{feature,failure}[_].fork.testCached'"
+            millargs: "'integration.{feature,failure}[_].fork.test'"
           - java-version: '11'
-            millargs: "'integration.invalidation[_].server.testCached'"
+            millargs: "'integration.invalidation[_].server.test'"
           - java-version: '11'
-            millargs: "contrib.__.testCached"
+            millargs: "contrib.__.test"
 
     uses: ./.github/workflows/post-build-selective.yml
     with:
