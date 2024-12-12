@@ -48,6 +48,7 @@ object CodeGen {
           } else None
         }
         .distinct
+        .sorted
 
       val pkg = packageSegments.drop(1).dropRight(1)
 
