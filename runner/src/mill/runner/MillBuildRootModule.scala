@@ -46,8 +46,10 @@ abstract class MillBuildRootModule()(implicit
   def scriptSources: Target[Seq[PathRef]] = Task.Sources {
     MillBuildRootModule.parseBuildFiles(rootModuleInfo)
       .seenScripts
-      .keys.map(PathRef(_))
+      .keys
+      .map(PathRef(_))
       .toSeq
+      .sorted
   }
 
   def parseBuildFiles: T[FileImportGraph] = Task {
