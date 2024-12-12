@@ -48,7 +48,7 @@ abstract class MillBuildRootModule()(implicit
       .seenScripts
       .keys
       .toSeq
-      .sorted
+      .sorted // Ensure ordering is deterministic
       .map(PathRef(_))
   }
 

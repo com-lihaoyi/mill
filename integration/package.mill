@@ -99,5 +99,3 @@ object `package` extends RootModule {
     T { PathRef(build.dist.installLocalTask(binFile = T.task((T.dest / name).toString()))()) }
   }
 }
-
-
