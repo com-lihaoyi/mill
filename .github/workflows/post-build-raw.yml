@@ -23,7 +23,7 @@ jobs:
     continue-on-error: false
     timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
-      - uses: ./.github/workflows/post-build-setup.yml
+      - uses: .github/workflows/post-build-setup.yml
         with:
           java-version: ${{ inputs.java-version }}
           os: ${{ inputs.os }}
