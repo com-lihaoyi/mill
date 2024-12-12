@@ -88,10 +88,10 @@ jobs:
 #        run: ./mill -i -j3 -k selective.run ${{ inputs.millargs }}
 #        if: inputs.millargs != '' && !startsWith(inputs.os, 'windows') && !inputs.populate_cache
 
-      - name: Populate Cache '${{ inputs.millargs }}'
-        # Mill tests are pretty heavy so run them only 3x parallel on 4 core Github Actions runners
-        run: ./mill -i -j3 -k ${{ inputs.millargs }}
-        if: !startsWith(inputs.os, 'windows') && inputs.populate_cache
+#      - name: Populate Cache '${{ inputs.millargs }}'
+#        # Mill tests are pretty heavy so run them only 3x parallel on 4 core Github Actions runners
+#        run: ./mill -i -j3 -k ${{ inputs.millargs }}
+#        if: !startsWith(inputs.os, 'windows') && inputs.populate_cache
 
       - name: Run Mill (on Windows) '${{ inputs.millargs }}'
         run: cmd /C %GITHUB_WORKSPACE%\mill.bat -i -j3 -k ${{ inputs.millargs }}
