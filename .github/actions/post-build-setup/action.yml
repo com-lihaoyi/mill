@@ -28,5 +28,6 @@ runs:
     # https://github.com/actions/upload-artifact/issues/38
     - name: chmod executable
       run: "chmod -R +x ."
+      shell: bash
 
     - uses: coursier/cache-action@v6
