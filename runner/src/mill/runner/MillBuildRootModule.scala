@@ -46,8 +46,10 @@ abstract class MillBuildRootModule()(implicit
   def scriptSources: Target[Seq[PathRef]] = Task.Sources {
     MillBuildRootModule.parseBuildFiles(rootModuleInfo)
       .seenScripts
-      .keys.map(PathRef(_))
+      .keys
       .toSeq
+      .sorted // Ensure ordering is deterministic
+      .map(PathRef(_))
   }
 
   def parseBuildFiles: T[FileImportGraph] = Task {
@@ -167,7 +169,14 @@ abstract class MillBuildRootModule()(implicit
           def isCommand =
             calledSig.desc.ret.pretty == classOf[mill.define.Command[_]].getName
 
-          (isSimpleTarget && !isForwarderCallsite) || isCommand
+          // Skip calls to `millDiscover`. `millDiscover` is bundled as part of `RootModule` for
+          // convenience, but it should really never be called by any normal Mill module/task code,
+          // and is only used by downstream code in `mill.eval`/`mill.resolve`. Thus although CodeSig's
+          // conservative analysis considers potential calls from `build_.package_$#<init>` to
+          // `millDiscover()`, we can safely ignore that possibility
+          def isMillDiscover = calledSig.name == "millDiscover$lzycompute"
+
+          (isSimpleTarget && !isForwarderCallsite) || isCommand || isMillDiscover
         },
         logger = new mill.codesig.Logger(Option.when(debugEnabled)(T.dest / "current")),
         prevTransitiveCallGraphHashesOpt = () =>
