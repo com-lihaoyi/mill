@@ -88,9 +88,9 @@ jobs:
         run: ./mill -i -j3 -k selective.run ${{ inputs.millargs }}
         if: inputs.millargs != '' && !startsWith(inputs.os, 'windows') && !inputs.populate_cache
 
-#      - name: Populate Cache '${{ inputs.millargs }}'
-#        run: ./mill -i -j3 -k ${{ inputs.millargs }}
-#        if: !startsWith(inputs.os, 'windows') && inputs.populate_cache
+      - name: Populate Cache '${{ inputs.millargs }}'
+        run: ./mill -i -j3 -k ${{ inputs.millargs }}
+        if: !startsWith(inputs.os, 'windows') && inputs.populate_cache
 
       - name: Run Mill (on Windows) '${{ inputs.millargs }}'
         run: cmd /C %GITHUB_WORKSPACE%\mill.bat -i -j3 -k ${{ inputs.millargs }}
