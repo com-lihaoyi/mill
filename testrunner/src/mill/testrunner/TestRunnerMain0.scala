@@ -30,7 +30,7 @@ import mill.util.PrintLogger
 
       val result = TestRunnerUtils.runTestFramework0(
         frameworkInstances = Framework.framework(testArgs.framework),
-        testClassfilePath = Agg.from(testArgs.testCp),
+        testClassfilePath = Agg.from(testArgs.testCp.map(os.Path(_))),
         args = testArgs.arguments,
         classFilter = cls => filter(cls.getName),
         cl = classLoader,
@@ -41,7 +41,7 @@ import mill.util.PrintLogger
       // dirtied the thread-interrupted flag and forgot to clean up. Otherwise,
       // that flag causes writing the results to disk to fail
       Thread.interrupted()
-      os.write(testArgs.outputPath, upickle.default.stream(result))
+      os.write(os.Path(testArgs.outputPath), upickle.default.stream(result))
     } catch {
       case e: Throwable =>
         println(e)

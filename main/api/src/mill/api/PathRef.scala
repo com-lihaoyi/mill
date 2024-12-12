@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap
 import scala.util.{DynamicVariable, Using}
 import upickle.default.{ReadWriter => RW}
 import scala.annotation.nowarn
+import os.Path
 
 /**
  * A wrapper around `os.Path` that calculates it's hashcode based
@@ -43,11 +44,25 @@ case class PathRef private (
       case PathRef.Revalidate.Always => "vn:"
     }
     val sig = String.format("%08x", this.sig: Integer)
-    quick + valid + sig + ":" + path.toString()
+    quick + valid + sig + ":" + PathRef.normalizePath(path).toString()
   }
 }
 
 object PathRef {
+  def mapPathPrefixes(path: os.Path, mapping: Seq[(os.Path, os.Path)]): os.Path = {
+    mapping
+      .collectFirst { case (from, to) if path.startsWith(from) => to / path.subRelativeTo(from) }
+      .getOrElse(path)
+  }
+
+  val defaultMapping: Seq[(Path, Path)] = Seq(
+    mill.api.WorkspaceRoot.workspaceRoot -> os.root / "$WORKSPACE",
+    os.home -> os.root / "$HOME"
+  )
+  def normalizePath(path: os.Path): os.Path = mapPathPrefixes(path, defaultMapping)
+
+  def denormalizePath(path: os.Path): os.Path = mapPathPrefixes(path, defaultMapping.map(_.swap))
+
   implicit def shellable(p: PathRef): os.Shellable = p.path
 
   /**
@@ -92,7 +107,7 @@ object PathRef {
   }
 
   def apply(path: os.Path, quick: Boolean, sig: Int, revalidate: Revalidate): PathRef =
-    new PathRef(path, quick, sig, revalidate)
+    new PathRef(PathRef.denormalizePath(path), quick, sig, revalidate)
 
   /**
    * Create a [[PathRef]] by recursively digesting the content of a given `path`.
@@ -107,10 +122,10 @@ object PathRef {
       quick: Boolean = false,
       revalidate: Revalidate = Revalidate.Never
   ): PathRef = {
-    val basePath = path
+    val basePath = PathRef.denormalizePath(path)
 
     val sig = {
-      val isPosix = path.wrapped.getFileSystem.supportedFileAttributeViews().contains("posix")
+      val isPosix = basePath.wrapped.getFileSystem.supportedFileAttributeViews().contains("posix")
       val digest = MessageDigest.getInstance("MD5")
       val digestOut = new DigestOutputStream(DummyOutputStream, digest)
 
@@ -121,10 +136,10 @@ object PathRef {
         digest.update(value.toByte)
       }
 
-      if (os.exists(path)) {
+      if (os.exists(basePath)) {
         for (
           (path, attrs) <-
-            os.walk.attrs(path, includeTarget = true, followLinks = true).sortBy(_._1.toString)
+            os.walk.attrs(basePath, includeTarget = true, followLinks = true).sortBy(_._1.toString)
         ) {
           val sub = path.subRelativeTo(basePath)
           digest.update(sub.toString().getBytes())
@@ -169,7 +184,7 @@ object PathRef {
       java.util.Arrays.hashCode(digest.digest())
     }
 
-    new PathRef(path, quick, sig, revalidate)
+    new PathRef(basePath, quick, sig, revalidate)
   }
 
   /**
