@@ -20,12 +20,33 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
       val resolve = eval(("selective.resolve", "{foo.fooCommand,bar.barCommand}"), check = true)
       assert(resolve.out == "bar.barCommand")
 
-      val cached =
-        eval(
-          ("selective.run", "{foo.fooCommand,bar.barCommand}"),
-          check = true,
-          stderr = os.Inherit
-        )
+      val cached = eval(
+        ("selective.run", "{foo.fooCommand,bar.barCommand}"),
+        check = true,
+        stderr = os.Inherit
+      )
+
+      assert(!cached.out.contains("Computing fooCommand"))
+      assert(cached.out.contains("Computing barCommand"))
+    }
+    test("changed-inputs-generic") - integrationTest { tester =>
+      // Make sure you can run `selective.prepare` on a broader set of tasks than
+      // `selective.resolve` or `selective.run` and thingsstill work
+      import tester._
+
+      eval(("selective.prepare", "{foo.fooCommand,bar.barCommand}"), check = true)
+      modifyFile(workspacePath / "bar/bar.txt", _ + "!")
+
+      val resolve = eval(("selective.resolve", "bar.barCommand"), check = true)
+      assert(resolve.out == "bar.barCommand")
+      val resolve2 = eval(("selective.resolve", "foo.fooCommand"), check = true)
+      assert(resolve2.out == "")
+
+      val cached = eval(
+        ("selective.run", "bar.barCommand"),
+        check = true,
+        stderr = os.Inherit
+      )
 
       assert(!cached.out.contains("Computing fooCommand"))
       assert(cached.out.contains("Computing barCommand"))
