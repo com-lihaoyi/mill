@@ -40,10 +40,6 @@ jobs:
       MILL_COMPILER_BRIDGE_VERSIONS: ${{ inputs.env-bridge-versions }}
 
     steps:
-      # Need to fix cached artifact file permissions because github actions screws it up
-      # https://github.com/actions/upload-artifact/issues/38
-      - name: chmod executable
-        run: "chmod -R +x ."
 
       - uses: actions/setup-java@v4
         with:
@@ -63,6 +59,11 @@ jobs:
 
       - uses: actions/checkout@v4
         if: ${{ inputs.populate_cache }}
+
+      # Need to fix cached artifact file permissions because github actions screws it up
+      # https://github.com/actions/upload-artifact/issues/38
+      - name: chmod executable
+        run: "chmod -R +x ."
 
       - uses: actions/download-artifact@v4
         if: ${{ !inputs.populate_cache }}
