@@ -81,7 +81,7 @@ jobs:
 
       - name: Run Mill '${{ inputs.millargs }}'
         run: ./mill -i -k ${{ inputs.millargs }}
-        if: inputs.millargs != '' && !startsWith(inputs.os, 'windows')
+        if: inputs.millargs != ''
 
       - name: Run Mill (on Windows) Worker Cleanup
         run: 'taskkill -f -im java* && rm -rf out/mill-server/*'
