@@ -103,7 +103,8 @@ private[mill] object SelectiveExecution {
       computeHashCodeSignatures(terminals, newHashes.methodCodeHashSignatures)
     )
 
-    val changedRootTasks = (changedInputNames ++ changedCodeNames).flatMap(namesToTasks.get(_): Option[Task[_]])
+    val changedRootTasks = (changedInputNames ++ changedCodeNames)
+      .flatMap(namesToTasks.get(_): Option[Task[_]])
 
     val allNodes = breadthFirst(terminals.map(_.task: Task[_]))(_.inputs)
     val downstreamEdgeMap = allNodes
