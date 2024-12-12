@@ -111,7 +111,14 @@ trait PublishModule extends JavaModule { outer =>
    * Dependency management to specify in the POM
    */
   def publishXmlDepMgmt: Task[Agg[Dependency]] = Task.Anon {
-    depManagement().map(resolvePublishDependency.apply().apply(_))
+    (extraDepManagement() ++ depManagement())
+      .map(resolvePublishDependency.apply().apply(_)) ++
+      compileDepManagement()
+        .map(resolvePublishDependency.apply().apply(_))
+        .map(_.copy(scope = Scope.Provided)) ++
+      runDepManagement()
+        .map(resolvePublishDependency.apply().apply(_))
+        .map(_.copy(scope = Scope.Runtime))
   }
 
   def pom: T[PathRef] = Task {
@@ -137,9 +144,10 @@ trait PublishModule extends JavaModule { outer =>
   def bomDetails: T[(Map[coursier.core.Module, String], coursier.core.DependencyManagement.Map)] =
     Task {
       val (processedDeps, depMgmt) = defaultResolver().processDeps(
-        processedIvyDeps(),
+        processedRunIvyDeps() ++ processedIvyDeps(),
         resolutionParams = resolutionParams(),
-        boms = allBomDeps().toSeq.map(_.withConfig(Configuration.compile))
+        boms = allBomIvyDeps().toSeq.map(_.withConfig(Configuration.defaultCompile)) ++
+          extraBomIvyDeps().toSeq
       )
       (processedDeps.map(_.moduleVersion).toMap, depMgmt)
     }
@@ -163,24 +171,57 @@ trait PublishModule extends JavaModule { outer =>
       else
         dep
     }
+    val bomDepMgmt0 = {
+      // Ensure we don't override versions of root dependencies with overrides from the BOM
+      val rootDepsAdjustment = publishXmlDeps0.iterator.flatMap { dep =>
+        val key = coursier.core.DependencyManagement.Key(
+          coursier.core.Organization(dep.artifact.group),
+          coursier.core.ModuleName(dep.artifact.id),
+          coursier.core.Type.jar,
+          coursier.core.Classifier.empty
+        )
+        bomDepMgmt.get(key).flatMap { values =>
+          if (values.version.nonEmpty && values.version != dep.artifact.version)
+            Some(key -> values.withVersion(""))
+          else
+            None
+        }
+      }
+      bomDepMgmt ++ rootDepsAdjustment
+    }
+    lazy val moduleSet = publishXmlDeps0.map(dep => (dep.artifact.group, dep.artifact.id)).toSet
     val overrides = {
       val depMgmtEntries = processedDependencyManagement(
-        depManagement().toSeq
+        (extraDepManagement().toSeq ++ depManagement().toSeq)
           .map(bindDependency())
           .map(_.dep)
           .filter(depMgmt => depMgmt.version.nonEmpty && depMgmt.version != "_")
+          .filter { depMgmt =>
+            // Ensure we don't override versions of root dependencies with overrides from the BOM
+            !moduleSet.contains((depMgmt.module.organization.value, depMgmt.module.name.value))
+          }
       )
       val entries = coursier.core.DependencyManagement.add(
         Map.empty,
-        depMgmtEntries ++ bomDepMgmt
+        depMgmtEntries ++ bomDepMgmt0
+          .filter {
+            case (key, _) =>
+              // Ensure we don't override versions of root dependencies with overrides from the BOM
+              !moduleSet.contains((key.organization.value, key.name.value))
+          }
       )
       entries.toVector
         .map {
           case (key, values) =>
+            val confString =
+              // we pull the runtime dependency of runtime dependencies, like Maven does
+              if (values.config == Configuration.runtime) "runtime->runtime"
+              else ""
             Ivy.Override(
               key.organization.value,
               key.name.value,
-              values.version
+              values.version,
+              confString
             )
         }
         .sortBy(value => (value.organization, value.name, value.version))
