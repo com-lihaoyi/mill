@@ -17,8 +17,8 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
       eval(("selective.prepare", "{foo.fooCommand,bar.barCommand}"), check = true)
       modifyFile(workspacePath / "bar/bar.txt", _ + "!")
 
-      val plan = eval(("selective.resolve", "{foo.fooCommand,bar.barCommand}"), check = true)
-      assert(plan.out == "bar.barCommand")
+      val resolve = eval(("selective.resolve", "{foo.fooCommand,bar.barCommand}"), check = true)
+      assert(resolve.out == "bar.barCommand")
 
       val cached =
         eval(
@@ -26,6 +26,23 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
           check = true,
           stderr = os.Inherit
         )
+
+      assert(!cached.out.contains("Computing fooCommand"))
+      assert(cached.out.contains("Computing barCommand"))
+    }
+    test("default-command") - integrationTest { tester =>
+      import tester._
+
+      eval(("selective.prepare", "bar"), check = true)
+
+      val resolve = eval(("selective.resolve", "bar"), check = true)
+      assert(resolve.out == "")
+
+      modifyFile(workspacePath / "bar/bar.txt", _ + "!")
+      val resolve2 = eval(("selective.resolve", "bar"), check = true)
+      assert(resolve2.out != "")
+
+      val cached = eval(("selective.run", "bar"), check = true, stderr = os.Inherit)
 
       assert(!cached.out.contains("Computing fooCommand"))
       assert(cached.out.contains("Computing barCommand"))

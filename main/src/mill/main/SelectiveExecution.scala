@@ -103,7 +103,8 @@ private[mill] object SelectiveExecution {
       computeHashCodeSignatures(terminals, newHashes.methodCodeHashSignatures)
     )
 
-    val changedRootTasks = (changedInputNames ++ changedCodeNames).map(namesToTasks(_): Task[_])
+    val changedRootTasks = (changedInputNames ++ changedCodeNames)
+      .flatMap(namesToTasks.get(_): Option[Task[_]])
 
     val allNodes = breadthFirst(terminals.map(_.task: Task[_]))(_.inputs)
     val downstreamEdgeMap = allNodes
@@ -133,7 +134,7 @@ private[mill] object SelectiveExecution {
   def saveMetadata(evaluator: Evaluator, metadata: SelectiveExecution.Metadata): Unit = {
     os.write.over(
       evaluator.outPath / OutFiles.millSelectiveExecution,
-      upickle.default.write(metadata)
+      upickle.default.write(metadata, indent = 2)
     )
   }
 

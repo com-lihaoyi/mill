@@ -12,7 +12,8 @@ object foo extends Module {
     fooHelper(fooTask().path)
   }
 }
-object bar extends Module {
+
+object bar extends mill.define.TaskModule {
   def barTask = Task.Source(millSourcePath / "bar.txt")
 
   def barHelper(p: os.Path) = {
@@ -23,4 +24,6 @@ object bar extends Module {
     System.out.println("Computing barCommand")
     barHelper(barTask().path)
   }
+
+  def defaultCommandName(): String = "barCommand"
 }
