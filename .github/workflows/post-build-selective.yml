@@ -1,0 +1,53 @@
+on:
+  workflow_call:
+    inputs:
+      buildcmd:
+        default: ''
+        type: string
+      millargs:
+        default: ''
+        type: string
+      java-version:
+        required: true
+        type: string
+      os:
+        default: 'ubuntu-latest'
+        type: string
+      timeout-minutes:
+        default: 60
+        type: number
+      install-android-sdk:
+        default: false
+        type: boolean
+
+jobs:
+  run:
+    runs-on: ${{ inputs.os }}
+    continue-on-error: false
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    steps:
+      - uses: ./.github/workflows/post-build-setup.yml
+        with:
+          java-version: ${{ inputs.java-version }}
+          os: ${{ inputs.os }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - uses: android-actions/setup-android@v3
+        if: ${{ inputs.install-android-sdk }}
+        with:
+          log-accepted-android-sdk-licenses: false
+
+      - name: Resolve Mill Selective '${{ inputs.millargs }}'
+        run: ./mill -i -k selective.resolve ${{ inputs.millargs }}
+
+      - name: Run Mill Selective '${{ inputs.millargs }}'
+        run: ./mill -i -k selective.run ${{ inputs.millargs }}
+
+      - name: Run Mill (on Windows) Worker Cleanup
+        run: 'taskkill -f -im java* && rm -rf out/mill-server/*'
+        if: startsWith(inputs.os, 'windows')
+        shell: bash
+        continue-on-error: true

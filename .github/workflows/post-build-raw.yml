@@ -1,0 +1,32 @@
+on:
+  workflow_call:
+    inputs:
+      buildcmd:
+        default: ''
+        type: string
+      millargs:
+        default: ''
+        type: string
+      java-version:
+        required: true
+        type: string
+      os:
+        default: 'ubuntu-latest'
+        type: string
+      timeout-minutes:
+        default: 60
+        type: number
+
+jobs:
+  run:
+    runs-on: ${{ inputs.os }}
+    continue-on-error: false
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    steps:
+      - uses: ./.github/workflows/post-build-setup.yml
+        with:
+          java-version: ${{ inputs.java-version }}
+          os: ${{ inputs.os }}
+
+      - name: Run '${{ inputs.buildcmd }}'
+        run: ${{ inputs.buildcmd }}

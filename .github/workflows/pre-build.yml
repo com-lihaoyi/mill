@@ -1,0 +1,47 @@
+on:
+  workflow_call:
+    inputs:
+      millargs:
+        default: '__.compile'
+        type: string
+      java-version:
+        default: '11'
+        type: string
+      os:
+        type: string
+      timeout-minutes:
+        default: 60
+        type: number
+
+jobs:
+  run:
+    runs-on: ${{ inputs.os }}
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    steps:
+      - uses: actions/setup-java@v4
+        with:
+          java-version: ${{ inputs.java-version }}
+          distribution: temurin
+
+      - name: Checkout target branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.base_ref }}
+        if: inputs.millargs != '' && inputs.populate_cache
+
+      - name: Prepare Mill Selective '__.test'
+        run: ./mill -i -k selective.prepare __.test
+        if: inputs.millargs != '' && inputs.populate_cache
+
+      - uses: coursier/cache-action@v6
+
+      - name: Run Mill '${{ inputs.millargs }}'
+        run: ./mill -i -k ${{ inputs.millargs }}
+        if: inputs.millargs != '' && inputs.populate_cache
+
+      - uses: actions/upload-artifact@v4.4.3
+        with:
+          path: .
+          name: ${{ inputs.os }}-artifact
+          include-hidden-files: true
+        if: ${{ inputs.populate_cache }}
