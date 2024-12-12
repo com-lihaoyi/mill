@@ -26,7 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: ./.github/workflows/post-build-setup.yml
+      - uses: ./.github/actions/post-build-setup
         with:
           java-version: ${{ inputs.java-version }}
           os: ${{ inputs.os }}

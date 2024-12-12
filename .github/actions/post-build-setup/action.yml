@@ -1,0 +1,32 @@
+# action.yml
+inputs:
+  java-version:
+    required: true
+    type: string
+
+  timeout-minutes:
+    default: 60
+    type: number
+outputs:
+  time: # id of output
+    description: 'The time we greeted you'
+runs:
+  steps:
+    - uses: actions/setup-java@v4
+      with:
+        java-version: ${{ inputs.java-version }}
+        distribution: temurin
+
+    - uses: actions/checkout@v4
+
+    - uses: actions/download-artifact@v4
+      with:
+        path: .
+        name: ${{ inputs.os }}-artifact
+
+    # Need to fix cached artifact file permissions because github actions screws it up
+    # https://github.com/actions/upload-artifact/issues/38
+    - name: chmod executable
+      run: "chmod -R +x ."
+
+    - uses: coursier/cache-action@v6
