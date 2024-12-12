@@ -179,8 +179,10 @@ object LocalSummary {
         name: String,
         descriptor: String
     ): Unit = {
-      if (name.startsWith("bitmap$") && opcode == Opcodes.GETSTATIC || opcode == Opcodes.GETFIELD) {
+      if (name.startsWith("bitmap$") && (opcode == Opcodes.GETSTATIC || opcode == Opcodes.GETFIELD)) {
         inLazyValCheck = true
+      } else if (name.startsWith("bitmap$") && (opcode == Opcodes.PUTSTATIC || opcode == Opcodes.PUTFIELD)) {
+        inLazyValCheck = false
       } else {
         hash(opcode)
         hash(owner.hashCode)
