@@ -52,7 +52,8 @@ jobs:
 
       - name: Checkout target branch
         uses: actions/checkout@v4
-        with: { ref: ${{ github.base_ref }} }
+        with:
+          ref: ${{ github.base_ref }}
         if: inputs.millargs != '' && inputs.populate_cache
 
       - name: Prepare Mill Selective '${{ inputs.millargs }}'
@@ -69,7 +70,7 @@ jobs:
           path: .
           name: ${{ inputs.os }}-artifact
 
-    
+
       - uses: coursier/cache-action@v6
 
       - uses: actions/setup-node@v4
