@@ -38,7 +38,6 @@ trait SelectiveExecutionModule extends mill.define.Module {
         diffed <- SelectiveExecution.diffMetadata(evaluator, tasks)
       } yield resolved.map(_.ctx.segments.render).toSet.intersect(diffed).toArray.sorted
 
-
       result match {
         case Left(err) => Result.Failure(err)
         case Right(success) =>

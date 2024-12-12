@@ -36,7 +36,7 @@ trait BuildInfo extends JavaModule {
   def buildInfoMembers: T[Seq[BuildInfo.Value]] = Seq.empty[BuildInfo.Value]
 
   def resources: T[Seq[PathRef]] =
-    if (buildInfoStaticCompiled) Task{ super.resources() }
+    if (buildInfoStaticCompiled) Task { super.resources() }
     else Task { super.resources() ++ Seq(buildInfoResources()) }
 
   def buildInfoResources = Task {
