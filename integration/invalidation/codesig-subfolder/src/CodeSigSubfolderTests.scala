@@ -7,6 +7,9 @@ import utest._
 // Basically a copy of CodeSigHelloTests, but split across two files
 // (build.mill and subfolder/package.mill) and with some extra assertions
 // to exercise invalidation behavior specific to multi-file-builds
+//
+// Add a bunch of dummy subfolders to try and ensure that codesig is computed
+// correctly even in the presence of non-trivial subfolder `package.mill` setups
 object CodeSigSubfolderTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("simple") - integrationTest { tester =>
@@ -15,7 +18,7 @@ object CodeSigSubfolderTests extends UtestIntegrationTestSuite {
       val initial = eval("foo")
 
       assert(initial.out.linesIterator.toSeq == Seq("running foo", "running helperFoo"))
-      assert(initial.err.contains("compiling 2 Scala sources"))
+      assert(initial.err.contains("compiling 10 Scala sources"))
 
       val cached = eval("foo")
       assert(cached.out == "")
