@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="mb-4">{{ title }}</h1>
+<form method="POST">
+    {{ form.hidden_tag() }}
+    <div class="mb-3">
+        {{ form.title.label }}<br>
+        {{ form.title(class="form-control") }}
+    </div>
+    <div class="mb-3">
+        {{ form.description.label }}<br>
+        {{ form.description(class="form-control") }}
+    </div>
+    <div class="mb-3">
+        {{ form.status.label }}<br>
+        {{ form.status(class="form-control") }}
+    </div>
+    <div class="mb-3">
+        {{ form.deadline.label }}<br>
+        {{ form.deadline(class="form-control") }}
+    </div>
+    <button type="submit" class="btn btn-success">{{ form.submit.label }}</button>
+</form>
+{% endblock %}
