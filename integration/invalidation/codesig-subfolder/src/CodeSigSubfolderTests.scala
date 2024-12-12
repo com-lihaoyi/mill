@@ -83,10 +83,37 @@ object CodeSigSubfolderTests extends UtestIntegrationTestSuite {
       ))
 
       assert(mangledValFooUsedInBar.err.contains("compiling 1 Scala source"))
+    }
 
+    test("subfolder-renames-same-order") - integrationTest { tester =>
+      import tester._
       val cached4 = eval("foo")
-      assert(cached4.out == "")
-      assert(!cached4.err.contains("compiling"))
+      assert(cached4.out.contains("running foo"))
+
+      // Make sure if we rename a subfolder without re-ordering it
+      // alphabetically, it does not cause spurious invalidations
+      modifyFile(
+        workspacePath / "subfolder9/package.mill",
+        _.replace("package build.subfolder9", "package build.z_subfolder9")
+      )
+      os.move(workspacePath / "subfolder9", workspacePath / "z_subfolder9")
+      val cached5 = eval("foo")
+      assert(!cached5.out.contains("running foo"))
+    }
+    test("subfolder-renames-reorder") - integrationTest { tester =>
+      import tester._
+      val cached4 = eval("foo")
+      assert(cached4.out.contains("running foo"))
+
+      // Make sure if we rename a subfolder while moving it to the top of
+      // the list alphabetically, it does not cause spurious invalidations
+      modifyFile(
+        workspacePath / "subfolder9/package.mill",
+        _.replace("package build.subfolder9", "package build.a_subfolder9")
+      )
+      os.move(workspacePath / "subfolder9", workspacePath / "a_subfolder9")
+      val cached5 = eval("foo")
+      assert(!cached5.out.contains("running foo"))
     }
   }
 }
