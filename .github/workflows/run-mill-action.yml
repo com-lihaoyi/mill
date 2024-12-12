@@ -89,11 +89,7 @@ jobs:
 
       - name: Run Mill Selective '${{ inputs.millargs }}'
         run: ./mill -i -k selective.prepare __.test
-        if: inputs.millargs != '' && !startsWith(inputs.os, 'windows') && inputs.populate_cache
-
-      - name: Run Mill (on Windows) '${{ inputs.millargs }}'
-        run: cmd /C %GITHUB_WORKSPACE%\mill.bat -i -k selective.prepare __.test
-        if: inputs.millargs != '' && startsWith(inputs.os, 'windows') && inputs.populate_cache
+        if: inputs.millargs != '' && inputs.populate_cache
 
       - name: Run Mill (on Windows) Worker Cleanup
         run: 'taskkill -f -im java* && rm -rf out/mill-server/*'
