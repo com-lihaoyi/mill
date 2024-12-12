@@ -40,6 +40,26 @@ jobs:
       MILL_COMPILER_BRIDGE_VERSIONS: ${{ inputs.env-bridge-versions }}
 
     steps:
+      # Need to fix cached artifact file permissions because github actions screws it up
+      # https://github.com/actions/upload-artifact/issues/38
+      - name: chmod executable
+        run: "chmod -R +x ."
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: ${{ inputs.java-version }}
+          distribution: temurin
+
+      - name: Checkout target branch
+        uses: actions/checkout@v4
+        with: { ref: ${{ github.base_ref }} }
+        if: inputs.millargs != '' && inputs.populate_cache
+
+      - name: Prepare Mill Selective '${{ inputs.millargs }}'
+        run: ./mill -i -k selective.prepare __.test
+        if: inputs.millargs != '' && inputs.populate_cache
+
+
       - uses: actions/checkout@v4
         if: ${{ inputs.populate_cache }}
 
@@ -49,17 +69,8 @@ jobs:
           path: .
           name: ${{ inputs.os }}-artifact
 
-      # Need to fix cached artifact file permissions because github actions screws it up
-      # https://github.com/actions/upload-artifact/issues/38
-      - name: chmod executable
-        run: "chmod -R +x ."
-
+    
       - uses: coursier/cache-action@v6
-
-      - uses: actions/setup-java@v4
-        with:
-          java-version: ${{ inputs.java-version }}
-          distribution: temurin
 
       - uses: actions/setup-node@v4
         with:
@@ -74,6 +85,7 @@ jobs:
         run: |
           git config --global user.name "Mill GithHub Actions"
           git config --global user.email "mill-ci@localhost"
+      
 
       - name: Run '${{ inputs.buildcmd }}'
         run: ${{ inputs.buildcmd }}
@@ -91,9 +103,6 @@ jobs:
         run: ./mill -i -k ${{ inputs.millargs }}
         if: inputs.millargs != '' && inputs.populate_cache
 
-      - name: Prepare Mill Selective '${{ inputs.millargs }}'
-        run: ./mill -i -k selective.prepare __.test
-        if: inputs.millargs != '' && inputs.populate_cache
 
       - name: Run Mill (on Windows) Worker Cleanup
         run: 'taskkill -f -im java* && rm -rf out/mill-server/*'
