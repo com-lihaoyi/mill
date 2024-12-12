@@ -23,18 +23,17 @@ jobs:
           java-version: ${{ inputs.java-version }}
           distribution: temurin
 
-      - name: Checkout target branch
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.base_ref }}
 
-      - name: Prepare Mill Selective '__.test'
-        run: ./mill -i -k selective.prepare __.test
+      - run: ./mill -i -k selective.prepare __.test
+
+      - uses: actions/checkout@v4
 
       - uses: coursier/cache-action@v6
 
-#      - name: Run Mill '${{ inputs.millargs }}'
-#        run: ./mill -i -k ${{ inputs.millargs }}
+      - run: ./mill -i -k ${{ inputs.millargs }}
 
       - uses: actions/upload-artifact@v4.4.3
         with:
