@@ -919,7 +919,7 @@ trait JavaModule
    * Typically, includes the source files to generate documentation from.
    * @see [[docResources]]
    */
-  def docSources: T[Seq[PathRef]] = Task.Sources(allSources())
+  def docSources: T[Seq[PathRef]] = Task{ allSources() }
 
   /**
    * Extra directories to be copied into the documentation.

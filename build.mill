@@ -606,7 +606,7 @@ trait BridgeModule extends MillPublishJavaModule with CrossScalaModule {
     ivy"org.scala-lang:scala-compiler:${crossScalaVersion}"
   )
 
-  def resources = Task.Sources {
+  def resources = Task  {
     os.copy(generatedSources().head.path / "META-INF", Task.dest / "META-INF")
     Seq(PathRef(Task.dest))
   }
