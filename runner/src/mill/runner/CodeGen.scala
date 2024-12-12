@@ -61,7 +61,7 @@ object CodeGen {
           val comment = "// subfolder module reference"
           val lhs = backtickWrap(c)
           val rhs = s"${pkgSelector2(Some(c))}.package_"
-          s"final lazy val $lhs: $rhs.type = $rhs $comment"
+          s"final def $lhs: $rhs.type = $rhs $comment"
         }
         .mkString("\n")
 
