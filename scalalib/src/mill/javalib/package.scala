@@ -15,6 +15,8 @@ package object javalib extends mill.scalalib.JsonFormatters {
 
   type JavaModule = mill.scalalib.JavaModule
 
+  type NativeImageModule = mill.scalalib.NativeImageModule
+
   val ZincWorkerModule = mill.scalalib.ZincWorkerModule
   type ZincWorkerModule = mill.scalalib.ZincWorkerModule
 

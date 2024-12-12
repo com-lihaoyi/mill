@@ -18,4 +18,9 @@ package object kotlinlib {
 
   type PublishModule = mill.scalalib.PublishModule
   val PublishModule = mill.scalalib.PublishModule
+
+  type NativeImageModule = mill.scalalib.NativeImageModule
+
+  type ZincWorkerModule = mill.scalalib.ZincWorkerModule
+  val ZincWorkerModule = mill.scalalib.ZincWorkerModule
 }
