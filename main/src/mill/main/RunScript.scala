@@ -30,7 +30,8 @@ object RunScript {
       evaluator: Evaluator,
       scriptArgs: Seq[String],
       selectMode: SelectMode,
-      selectiveExecution: Boolean = false
+      selectiveExecution: Boolean = false,
+      selectiveExecutionSave: Boolean = false
   ): Either[
     String,
     (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]])
@@ -43,14 +44,15 @@ object RunScript {
         evaluator.allowPositionalCommandArgs
       )
     }
-    for (targets <- resolved) yield evaluateNamed(evaluator, Agg.from(targets), selectiveExecution)
+    for (targets <- resolved)
+      yield evaluateNamed(evaluator, Agg.from(targets), selectiveExecution, selectiveExecutionSave)
   }
 
   def evaluateNamed(
       evaluator: Evaluator,
       targets: Agg[NamedTask[Any]]
   ): (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]]) =
-    evaluateNamed(evaluator, targets, selectiveExecution = false)
+    evaluateNamed(evaluator, targets, selectiveExecution = false, selectiveExecutionSave = false)
 
   /**
    * @param evaluator
@@ -60,7 +62,8 @@ object RunScript {
   def evaluateNamed(
       evaluator: Evaluator,
       targets: Agg[NamedTask[Any]],
-      selectiveExecution: Boolean = false
+      selectiveExecution: Boolean = false,
+      selectiveExecutionSave: Boolean = false
   ): (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]]) = {
 
     val selectedTargetsOrErr =
@@ -101,7 +104,7 @@ object RunScript {
           }
           .toMap
 
-        if (selectiveExecution) {
+        if (selectiveExecutionSave) {
           SelectiveExecution.saveMetadata(
             evaluator,
             SelectiveExecution.Metadata(allInputHashes, evaluator.methodCodeHashSignatures)
