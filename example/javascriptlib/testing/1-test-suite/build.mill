@@ -1,0 +1,30 @@
+package build
+
+import mill._, javascriptlib._
+
+object bar extends TypeScriptModule {
+  object test extends TypeScriptTests with TestModule.Jest
+}
+
+object foo extends TypeScriptModule {
+  object test extends TypeScriptTests with TestModule.Mocha
+}
+
+// Documentation for mill.example.javascriptlib
+// This build defines two modules bar and foo with test suites configured to use
+// Mocha & Jest resepectively.
+
+/** Usage
+
+> mill foo.test
+...
+...4 passing...
+...
+
+> mill bar.test
+...Calculator
+...
+Test Suites:...1 passed, 1 total...
+Tests:...4 passed, 4 total...
+...
+*/

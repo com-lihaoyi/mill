@@ -9,7 +9,7 @@ describe('Server Tests', () => {
     beforeAll((done) => {
         process.env.PORT = '3002';
         process.env.NODE_ENV = 'test';
-        app = require('../src/server').default;
+        app = require('server/server').default;
         server = app.listen(process.env.PORT, done);
     });
 
