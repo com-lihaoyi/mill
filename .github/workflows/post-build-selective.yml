@@ -36,7 +36,7 @@ jobs:
           path: .
           name: ${{ inputs.os }}-artifact
 
-      - run: chmod -R 777 .
+#      - run: chmod -R 777 .
       - run: ./mill -i -k selective.prepare main.__.test
 
       - run: cat out/mill-selective-execution.json
