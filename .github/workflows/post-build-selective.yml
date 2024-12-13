@@ -52,7 +52,7 @@ jobs:
         with:
           log-accepted-android-sdk-licenses: false
 
-      - run: git fetch ${{ github.base_ref }} && git diff ${{ github.base_ref }} --
+      - run: git fetch https://github.com/com-lihaoyi/mill ${{ github.base_ref }} && git diff FETCH_HEAD --
 
       - run: ./mill -i -k selective.resolve ${{ inputs.millargs }}
 
