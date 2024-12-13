@@ -4,7 +4,7 @@ describe('Server Tests', () => {
     let server: http.Server;
 
     beforeAll(() => {
-        server = require('../src/server').default;
+        server = require('server/server').default;
         process.env.NODE_ENV = "test";
     });
 

@@ -1,4 +1,4 @@
-import { generateUser } from "../src/qux";
+import { generateUser } from "qux/qux";
 
 // Define the type roles object
 type RoleKeys = "admin" | "user";
