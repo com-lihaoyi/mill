@@ -6,18 +6,18 @@ import os.*
 trait TestModule extends TaskModule {
   import TestModule.TestResult
 
-  def test(args: String*): Command[Seq[TestResult]] =
+  def test(args: String*): Command[TestResult] =
     Task.Command {
       testTask(Task.Anon { args })()
     }
 
   def testCachedArgs: T[Seq[String]] = Task { Seq[String]() }
 
-  def testCached: T[Seq[TestResult]] = Task {
+  def testCached: T[Unit] = Task {
     testTask(testCachedArgs)()
   }
 
-  protected def testTask(args: Task[Seq[String]]): Task[Seq[TestResult]]
+  protected def testTask(args: Task[Seq[String]]): Task[TestResult]
 
   override def defaultCommandName() = "test"
 }
@@ -32,7 +32,7 @@ object TestModule {
           ((_, ts), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
         } yield (
           mod.millSourcePath.subRelativeTo(Task.workspace).toString + "/test/utils/*",
-          (ts.path / "test" / "src" / "utils").toString
+          (ts.path / "test/src/utils").toString
         )
 
         stuUpstreams ++ super.upstreamPathsBuilder()
@@ -54,7 +54,7 @@ object TestModule {
     }
 
     def testConfigSource: T[PathRef] =
-      Task.Source(millSourcePath / os.up / os.up / "jest.config.ts")
+      Task.Source(Task.workspace / "jest.config.ts")
 
     override def allSources: T[IndexedSeq[PathRef]] = Task {
       super.allSources() ++ IndexedSeq(testConfigSource())
@@ -66,14 +66,14 @@ object TestModule {
     def getConfigFile: T[String] =
       Task { (compile()._1.path / "jest.config.ts").toString }
 
-    private def copyConfig: Task[Unit] = Task.Anon {
+    private def copyConfig: Task[TestResult] = Task.Anon {
       os.copy.over(
         testConfigSource().path,
         compile()._1.path / "jest.config.ts"
       )
     }
 
-    private def runTest: T[CommandResult] = Task {
+    private def runTest: T[TestResult] = Task {
       copyConfig()
       os.call(
         (
@@ -87,11 +87,11 @@ object TestModule {
         env = mkENV(),
         cwd = compile()._1.path
       )
+      ()
     }
 
-    protected def testTask(args: Task[Seq[String]]): Task[Seq[TestResult]] = Task.Anon {
+    protected def testTask(args: Task[Seq[String]]): Task[TestResult] = Task.Anon {
       runTest()
-      Seq()
     }
 
   }
@@ -125,7 +125,7 @@ object TestModule {
       testRunner
     }
 
-    private def runTest: T[CommandResult] = Task {
+    private def runTest: T[Unit] = Task {
       os.call(
         (
           "node",
@@ -136,11 +136,11 @@ object TestModule {
         env = mkENV(),
         cwd = compile()._1.path
       )
+      ()
     }
 
-    protected def testTask(args: Task[Seq[String]]) = Task.Anon {
+    protected def testTask(args: Task[Seq[String]]): Task[TestResult] = Task.Anon {
       runTest()
-      Seq()
     }
 
   }
