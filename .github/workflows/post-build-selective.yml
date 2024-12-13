@@ -36,6 +36,11 @@ jobs:
           path: .
           name: ${{ inputs.os }}-artifact
 
+      - uses: actions/download-artifact@v4
+        with:
+          path: out/mill-selective-execution.json
+          name: ${{ inputs.os }}-selective-execution-artifact
+
       - run: ls out
 
       - uses: actions/setup-node@v4
