@@ -1,7 +1,10 @@
 on:
   workflow_call:
     inputs:
-      millargs:
+      compileargs:
+        default: '__.compile'
+        type: string
+      prepareargs:
         default: '__.compile'
         type: string
       java-version:
@@ -29,7 +32,7 @@ jobs:
 
       - run: chmod -R 777 . # normalize permissions before and after upload/download-artifact
 
-      - run: ./mill -i -k selective.prepare ${{ inputs.millargs }}
+      - run: ./mill -i -k selective.prepare ${{ inputs.prepareargs }}
 
       - uses: actions/upload-artifact@v4.4.3
         with:
@@ -41,7 +44,7 @@ jobs:
 
       - uses: coursier/cache-action@v6
 
-      - run: ./mill -i -k ${{ inputs.millargs }}
+      - run: ./mill -i -k ${{ inputs.compileargs }}
 
       - uses: actions/upload-artifact@v4.4.3
         with:
