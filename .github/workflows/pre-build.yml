@@ -32,7 +32,7 @@ jobs:
 
       - run: chmod -R 777 . # normalize permissions before and after upload/download-artifact
 
-      - run: mkdir out && echo -n > out/mill-selective-execution.json
+      - run: mkdir out && touch out/mill-selective-execution.json
         shell: bash
 
       - run: ./mill -i -k selective.prepare ${{ inputs.prepareargs }}
