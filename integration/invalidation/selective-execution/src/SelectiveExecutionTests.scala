@@ -15,6 +15,18 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
       import tester._
 
       eval(("selective.prepare", "{foo.fooCommand,bar.barCommand}"), check = true)
+
+      // no op
+      val noOp = eval(
+        ("selective.run", "{foo.fooCommand,bar.barCommand}"),
+        check = true,
+        stderr = os.Inherit
+      )
+
+      assert(!noOp.out.contains("Computing fooCommand"))
+      assert(!noOp.out.contains("Computing barCommand"))
+
+      // After one input changed
       modifyFile(workspacePath / "bar/bar.txt", _ + "!")
 
       val resolve = eval(("selective.resolve", "{foo.fooCommand,bar.barCommand}"), check = true)
@@ -28,7 +40,19 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
 
       assert(!cached.out.contains("Computing fooCommand"))
       assert(cached.out.contains("Computing barCommand"))
+
+      // zero out the `mill-selective-execution.json` file to run all tasks
+      os.write.over(workspacePath / "out/mill-selective-execution.json", "")
+      val runAll = eval(
+        ("selective.run", "{foo.fooCommand,bar.barCommand}"),
+        check = true,
+        stderr = os.Inherit
+      )
+
+      assert(runAll.out.contains("Computing fooCommand"))
+      assert(runAll.out.contains("Computing barCommand"))
     }
+
     test("changed-inputs-generic") - integrationTest { tester =>
       // Make sure you can run `selective.prepare` on a broader set of tasks than
       // `selective.resolve` or `selective.run` and thingsstill work
