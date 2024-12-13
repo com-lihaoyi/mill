@@ -27,11 +27,7 @@ jobs:
         with:
           ref: ${{ github.base_ref }}
 
-#      - run: chmod -R 777 .
-
-      - run: ./mill -i -k selective.prepare main.__.test
-
-      - run: cat out/mill-selective-execution.json
+      - run: chmod -R 777 . # normalize permissions before and after upload/download-artifact
 
       - uses: actions/upload-artifact@v4.4.3
         with:
@@ -43,7 +39,7 @@ jobs:
 
       - uses: coursier/cache-action@v6
 
-#      - run: ./mill -i -k ${{ inputs.millargs }}
+      - run: ./mill -i -k ${{ inputs.millargs }}
 
       - uses: actions/upload-artifact@v4.4.3
         with:
