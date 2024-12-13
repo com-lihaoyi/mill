@@ -36,6 +36,10 @@ jobs:
           path: .
           name: ${{ inputs.os }}-artifact
 
+      - run: ./mill -i -k selective.prepare __.test
+
+      - run: cat out/mill-selective-execution.json
+
       - uses: actions/download-artifact@v4
         with:
           path: out/mill-selective-execution
