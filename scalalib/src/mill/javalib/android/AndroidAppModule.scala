@@ -1,9 +1,10 @@
 package mill.javalib.android
 
-import mill._
-import mill.scalalib._
+import mill.*
+import mill.scalalib.*
 import mill.api.PathRef
 import mill.define.ModuleRef
+import os.{CommandResult, Path, home}
 
 /**
  * Trait for building Android applications using the Mill build tool.
@@ -56,11 +57,13 @@ trait AndroidAppModule extends JavaModule {
    */
   def androidReleaseKeyStorePass: T[String] = Task { "android" }
 
+  /** The location of the keystore */
+  def releaseKeyPath: Path
   /**
    * Default path to the keystore file, derived from `androidReleaseKeyName()`.
    * Users can customize the keystore file name to change this path.
    */
-  def androidReleaseKeyPath: T[PathRef] = Task.Source(millSourcePath / androidReleaseKeyName())
+  def androidReleaseKeyPath: T[PathRef] = Task.Source(releaseKeyPath / androidReleaseKeyName())
 
   /**
    * Extracts JAR files and resources from AAR dependencies.
@@ -302,6 +305,14 @@ trait AndroidAppModule extends JavaModule {
     )
     PathRef(signedApk)
   }
+
+  /** Generates a debug apk
+   * TODO: this needs to work as the android debug apk functionality,
+   * which uses a debug keystore in $HOME/.android/debug.keystore .
+   * For now this method is a placeholder and uses androidApk to make
+   * integration tests work
+   */
+  def androidDebugApk: T[PathRef] = androidApk
 
   /**
    * Generates a new keystore file if it does not exist.

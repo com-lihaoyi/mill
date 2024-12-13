@@ -1,6 +1,8 @@
 package mill.javalib.android
 
-import mill._
+import mill.*
+import os.CommandResult
+
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
@@ -109,6 +111,25 @@ trait AndroidSdkModule extends Module {
   def apksignerPath: T[PathRef] = Task {
     PathRef(buildToolsPath().path / "apksigner")
   }
+
+  /**
+   * Provides the path for the Android Debug Bridge (adt) tool.
+   *
+   * For more information, refer to the official Android documentation [[https://developer.android.com/tools/adb]]
+   */
+
+  def adbPath: T[PathRef] = Task {
+    PathRef(sdkPath().path / "platform-tools" / "adb")
+  }
+  /**
+   * List all attached devices and emulators.
+   *
+   * For more information, refer to the official Android documentation [[https://developer.android.com/tools/adb]]
+   */
+  def listAvailableDeviceTargets: Target[CommandResult] = Task {
+    os.proc(adbPath().path / "-l").call()
+  }
+
 
   /**
    * Installs the necessary Android SDK components such as platform-tools, build-tools, and Android platforms.

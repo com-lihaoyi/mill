@@ -2,10 +2,10 @@ package mill.kotlinlib.android
 
 import mill.T
 import mill.api.PathRef
-import mill.define.Task
+import mill.define.{ModuleRef, Task}
 import mill.kotlinlib.KotlinModule
-import mill.javalib.android.AndroidAppModule
-import os.Path
+import mill.javalib.android.{AndroidAppModule, AndroidSdkModule, AndroidTestModule}
+import os.{Path, home}
 
 /**
  * Trait for building Android applications using the Mill build tool.
@@ -24,16 +24,26 @@ import os.Path
 @mill.api.experimental
 trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule {
 
-  private def src: Path = super.millSourcePath / "src"
+  final def root: Path = super.millSourcePath
+  private def src: Path = root / "src"
   override def millSourcePath: Path = src / "main"
 
-
   trait AndroidAppKotlinTests extends KotlinTests {
-    def testPath = Task.Sources(src / "test")
+    def testPath: T[Seq[PathRef]] = Task.Sources(src / "test")
 
     override def allSources: T[Seq[PathRef]] = Task { super.allSources() ++ testPath() }
   }
 
-  trait AndroidAppKotlinIntegrationTests extends  KotlinTests {
+  private def sdk = androidSdkModule
+  trait AndroidAppKotlinIntegrationTests extends AndroidAppModule with AndroidTestModule {
+    override def millSourcePath: Path = src / "main"
+    def androidTestPath: T[Seq[PathRef]] = Task.Sources(src / "androidTest")
+
+    override def androidSdkModule: ModuleRef[AndroidSdkModule] = sdk
+
+    override def allSources: T[Seq[PathRef]] = Task { super.allSources() ++ androidTestPath() }
+
+    /** Builds the apk including the integration tests (e.g. from androidTest) */
+    def androidInstantApk: T[PathRef] = super.androidDebugApk
   }
 }
