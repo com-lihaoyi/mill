@@ -5,7 +5,7 @@ on:
         default: '__.compile'
         type: string
       prepareargs:
-        default: '__.compile'
+        default: '__.test'
         type: string
       java-version:
         default: '11'
