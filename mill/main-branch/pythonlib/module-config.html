@@ -923,7 +923,7 @@ the task’s inputs change.</p>
 import mill._, pythonlib._
 
 object foo extends PythonModule {
-  def sources = Task.Sources {
+  def sources = Task {
     val destPath = Task.dest / &quot;src&quot;
     os.makeDir.all(destPath)
 
@@ -941,7 +941,7 @@ if __name__ ==  '__main__':
     Seq(PathRef(destPath))
   }
 
-  def mainScript = Task.Source { sources().head.path / &quot;foo.py&quot; }
+  def mainScript = Task { PathRef(sources().head.path / &quot;foo.py&quot;) }
 
   def typeCheck = Task {
     println(&quot;Type Checking...&quot;)
@@ -988,7 +988,7 @@ override <code>sources</code> and use <code>super</code> to include the original
     Seq(PathRef(destPath))
   }
 
-  def mainScript = Task.Source { generatedSources().head.path / &quot;foo.py&quot; }
+  def mainScript = Task { PathRef(generatedSources().head.path / &quot;foo.py&quot;) }
 
 }
 
@@ -999,7 +999,7 @@ object foo3 extends PythonModule {
     os.write(destPath / &quot;foo.py&quot;, &quot;&quot;&quot;...&quot;&quot;&quot;)
     super.sources() ++ Seq(PathRef(destPath))
   }
-  def mainScript = Task.Source { sources().head.path / &quot;foo.py&quot; }
+  def mainScript = Task { PathRef(sources().head.path / &quot;foo.py&quot;) }
 
 }</code></pre>
 </div>

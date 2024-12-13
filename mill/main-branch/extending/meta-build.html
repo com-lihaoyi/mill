@@ -635,7 +635,7 @@ object `package` extends RootModule with ScalaModule {
   )
 
   def htmlSnippet = Task { h1(&quot;hello&quot;).toString }
-  def resources = Task.Sources {
+  def resources = Task {
     os.write(Task.dest / &quot;snippet.txt&quot;, htmlSnippet())
     super.resources() ++ Seq(PathRef(Task.dest))
   }
