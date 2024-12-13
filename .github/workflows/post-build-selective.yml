@@ -41,6 +41,10 @@ jobs:
           path: out/mill-selective-execution
           name: ${{ inputs.os }}-selective-execution-artifact
 
+      - run: ./mill -i -k selective.prepare __.test
+
+      - run: cat out/mill-selective-execution.json
+
       - run: mv out/mill-selective-execution/mill-selective-execution.json out/mill-selective-execution.json
 
       - uses: actions/setup-node@v4
