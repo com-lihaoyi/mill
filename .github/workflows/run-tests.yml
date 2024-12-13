@@ -120,16 +120,16 @@ jobs:
       java-version: ${{ matrix.java-version }}
       millargs: ${{ matrix.millargs }}
 
-#  windows:
-#    needs: build-windows
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        include:
-#          # just run a subset of examples/ on Windows, because for some reason running
-#          # the whole suite can take hours on windows v.s. half an hour on linux
-#          - java-version: '11'
-#            millargs: '"{main,scalalib,bsp}.__.test"'
+  windows:
+    needs: build-windows
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # just run a subset of examples/ on Windows, because for some reason running
+          # the whole suite can take hours on windows v.s. half an hour on linux
+          - java-version: '11'
+            millargs: '"main.__.test"'
 #          - java-version: '11'
 #            millargs: '"example.scalalib.basic.__.fork.test"'
 #          - java-version: 17
@@ -138,29 +138,29 @@ jobs:
 #            millargs: "'integration.invalidation[_].server.test'"
 #          - java-version: '11'
 #            millargs: "contrib.__.test"
-#
-#    uses: ./.github/workflows/post-build-selective.yml
-#    with:
-#      os: windows-latest
-#      java-version: ${{ matrix.java-version }}
-#      millargs: ${{ matrix.millargs }}
 
-#  itest:
-#    needs: build-linux
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        include:
-#          # bootstrap tests
-#          - java-version: '11' # Have one job on oldest JVM
-#            buildcmd: ci/test-mill-dev.sh && ci/test-mill-release.sh && ./mill -i -k __.ivyDepsTree && ./mill -i -k __.ivyDepsTree --withRuntime
-#          - java-version: 17 # Have one job on default JVM
-#            buildcmd: ci/test-mill-bootstrap.sh
-#
-#    uses: ./.github/workflows/post-build-raw.yml
-#    with:
-#      java-version: ${{ matrix.java-version }}
-#      buildcmd: ${{ matrix.buildcmd }}
+    uses: ./.github/workflows/post-build-selective.yml
+    with:
+      os: windows-latest
+      java-version: ${{ matrix.java-version }}
+      millargs: ${{ matrix.millargs }}
+
+  itest:
+    needs: build-linux
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # bootstrap tests
+          - java-version: '11' # Have one job on oldest JVM
+            buildcmd: ci/test-mill-dev.sh && ci/test-mill-release.sh && ./mill -i -k __.ivyDepsTree && ./mill -i -k __.ivyDepsTree --withRuntime
+          - java-version: 17 # Have one job on default JVM
+            buildcmd: ci/test-mill-bootstrap.sh
+
+    uses: ./.github/workflows/post-build-raw.yml
+    with:
+      java-version: ${{ matrix.java-version }}
+      buildcmd: ${{ matrix.buildcmd }}
 
   # Scalafmt, Mima, and Scalafix job runs last because it's the least important:
   # usually just an automated or mechanical manual fix to do before merging
