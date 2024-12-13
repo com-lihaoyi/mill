@@ -1,16 +1,14 @@
 package build
-import mill._, javascriptlib._, javascriptlib.testmods._
+import mill._, javascriptlib._
 
 object client extends ReactScriptsModule
 
-object server extends JestModule {
+object server extends TypeScriptModule {
   def npmDeps =
     Seq("@types/cors@^2.8.17", "@types/express@^5.0.0", "cors@^2.8.5", "express@^4.21.1")
 
   def npmDevDeps =
     super.npmDevDeps() ++ Seq("@types/supertest@^6.0.2", "supertest@^7.0.0")
-
-  override def testConfigSource = Task { Some(PathRef(millSourcePath / "jest.config.ts")) }
 
   override def bundleFlags = Map("external" -> Seq("express", "cors"))
 
@@ -22,6 +20,10 @@ object server extends JestModule {
     val clientBundle = client.bundle().path
     os.copy(clientBundle, Task.dest / "build")
     PathRef(Task.dest)
+  }
+
+  object test extends TypeScriptTests with TestModule.Jest {
+    override def testConfigSource = Task.Source(millSourcePath / os.up / "jest.config.ts")
   }
 }
 
@@ -36,6 +38,9 @@ object server extends JestModule {
 
 > mill server.test
 PASS .../server.test.ts
+...
+Test Suites:...1 passed, 1 total...
+Tests:...3 passed, 3 total...
 ...
 
 > mill show server.bundle # bundle the express server

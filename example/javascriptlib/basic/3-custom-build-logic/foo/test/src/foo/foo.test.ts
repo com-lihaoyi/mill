@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import Foo from '../src/foo';
+import Foo from 'foo/foo';
 
 // Mock the 'fs' module
 jest.mock('fs');

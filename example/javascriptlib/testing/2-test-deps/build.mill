@@ -1,14 +1,15 @@
 package build
 
-import mill._, javascriptlib._, javascriptlib.testmods._
+import mill._, javascriptlib._
 
-object bar extends JestModule {
+object bar extends TypeScriptModule {
   def npmDeps = Seq("immutable@4.3.7")
+  object test extends TypeScriptTests with TestModule.Jest
 }
 
-object foo extends JestModule with SharedTestUtils {
+object foo extends TypeScriptModule {
   def moduleDeps = Seq(bar)
-
+  object test extends TypeScriptTests with TestModule.Jest
 }
 
 // Documentation for mill.example.javascriptlib
@@ -23,8 +24,14 @@ object foo extends JestModule with SharedTestUtils {
 > mill foo.test
 PASS .../foo.test.ts
 ...
+Test Suites:...1 passed, 1 total...
+Tests:...3 passed, 3 total...
+...
 
 > mill bar.test
 PASS .../bar.test.ts
+...
+Test Suites:...1 passed, 1 total...
+Tests:...2 passed, 2 total...
 ...
 */

@@ -1,6 +1,6 @@
-import {defaultRoles} from '../src/bar';
+import {defaultRoles} from 'bar/bar';
 import {Map} from 'node_modules/immutable';
-import {compare} from './utils/bar.tests.utils';
+import {compare} from 'bar/test/utils/bar.tests.utils';
 
 test('defaultRoles map should have correct values', () => {
     expect(compare(defaultRoles.size, 2)).toBeTruthy()

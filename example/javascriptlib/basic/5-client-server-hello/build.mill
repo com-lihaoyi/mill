@@ -1,9 +1,9 @@
 package build
-import mill._, javascriptlib._, javascriptlib.testmods._
+import mill._, javascriptlib._
 
 object client extends ReactScriptsModule
 
-object server extends JestModule {
+object server extends TypeScriptModule {
   override def mkENV = Task {
     super.mkENV() ++ Map("PORT" -> "3000")
   }
@@ -13,6 +13,8 @@ object server extends JestModule {
     os.copy(clientBundle, Task.dest / "build")
     PathRef(Task.dest)
   }
+
+  object test extends TypeScriptTests with TestModule.Jest
 }
 
 // Documentation for mill.example.javascriptlib
@@ -32,6 +34,9 @@ PASS .../App.test.tsx
 > mill server.test
 ...
 PASS .../server.test.ts
+...
+Test Suites:...1 passed, 1 total...
+Tests:...1 passed, 1 total...
 ...
 
 > mill show server.bundle # bundle the express server

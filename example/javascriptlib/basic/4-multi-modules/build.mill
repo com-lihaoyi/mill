@@ -1,6 +1,6 @@
 package build
 
-import mill._, javascriptlib._, javascriptlib.testmods._
+import mill._, javascriptlib._
 
 object foo extends TypeScriptModule {
   object bar extends TypeScriptModule {
@@ -9,8 +9,9 @@ object foo extends TypeScriptModule {
 
 }
 
-object qux extends JestModule {
+object qux extends TypeScriptModule {
   def moduleDeps = Seq(foo, foo.bar)
+  object test extends TypeScriptTests with TestModule.Jest
 }
 
 // Documentation for mill.example.javascriptlib

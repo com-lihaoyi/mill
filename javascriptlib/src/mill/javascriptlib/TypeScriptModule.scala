@@ -4,7 +4,7 @@ import os.*
 
 import scala.collection.immutable.IndexedSeq
 
-trait TypeScriptModule extends Module {
+trait TypeScriptModule extends Module { outer =>
   def moduleDeps: Seq[TypeScriptModule] = Nil
 
   def npmDeps: T[Seq[String]] = Task { Seq.empty[String] }
@@ -99,8 +99,16 @@ trait TypeScriptModule extends Module {
 
   def mainFilePath: Target[Path] = Task { compile()._2.path / "src" / mainFileName() }
 
-  def mkENV: Task[Map[String, String]] =
-    Task.Anon { Map("NODE_PATH" -> Seq(".", compile()._2.path, npmInstall().path).mkString(":")) }
+  def mkENV: T[Map[String, String]] =
+    Task {
+      Map("NODE_PATH" -> Seq(
+        ".",
+        compile()._1.path,
+        compile()._2.path,
+        npmInstall().path,
+        npmInstall().path / "node_modules"
+      ).mkString(":"))
+    }
 
   // define computed arguments and where they should be placed (before/after user arguments)
   def computedArgs: Task[Seq[String]] = Task { Seq.empty[String] }
@@ -171,5 +179,9 @@ trait TypeScriptModule extends Module {
   }
 
   def resources: T[PathRef] = Task { PathRef(Task.dest) }
+
+  trait TypeScriptTests extends TypeScriptModule {
+    override def moduleDeps: Seq[TypeScriptModule] = Seq(outer) ++ outer.moduleDeps
+  }
 
 }
