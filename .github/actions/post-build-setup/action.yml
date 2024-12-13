@@ -21,11 +21,6 @@ runs:
 
     - uses: actions/checkout@v4
 
-    - uses: actions/download-artifact@v4
-      with:
-        path: .
-        name: ${{ inputs.os }}-artifact
-
     # Need to fix cached artifact file permissions because github actions screws it up
     # https://github.com/actions/upload-artifact/issues/38
     - name: chmod executable

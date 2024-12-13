@@ -28,5 +28,11 @@ jobs:
           java-version: ${{ inputs.java-version }}
           os: ${{ inputs.os }}
 
-      - name: Run '${{ inputs.buildcmd }}'
-        run: ${{ inputs.buildcmd }}
+      - uses: actions/download-artifact@v4
+        with:
+          path: .
+          name: ${{ inputs.os }}-artifact
+
+      - run: find .
+
+      - run: ${{ inputs.buildcmd }}

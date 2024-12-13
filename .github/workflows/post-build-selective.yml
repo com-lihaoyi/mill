@@ -31,6 +31,13 @@ jobs:
           java-version: ${{ inputs.java-version }}
           os: ${{ inputs.os }}
 
+      - uses: actions/download-artifact@v4
+        with:
+          path: .
+          name: ${{ inputs.os }}-artifact
+
+      - run: find .
+
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -40,14 +47,11 @@ jobs:
         with:
           log-accepted-android-sdk-licenses: false
 
-      - name: Resolve Mill Selective '${{ inputs.millargs }}'
-        run: ./mill -i -k selective.resolve ${{ inputs.millargs }}
+      - run: ./mill -i -k selective.resolve ${{ inputs.millargs }}
 
-      - name: Run Mill Selective '${{ inputs.millargs }}'
-        run: ./mill -i -k selective.run ${{ inputs.millargs }}
+      - run: ./mill -i -k selective.run ${{ inputs.millargs }}
 
-      - name: Run Mill (on Windows) Worker Cleanup
-        run: 'taskkill -f -im java* && rm -rf out/mill-server/*'
+      - run: 'taskkill -f -im java* && rm -rf out/mill-server/*'
         if: startsWith(inputs.os, 'windows')
         shell: bash
         continue-on-error: true
