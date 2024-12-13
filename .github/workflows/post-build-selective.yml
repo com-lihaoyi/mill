@@ -52,7 +52,7 @@ jobs:
         with:
           log-accepted-android-sdk-licenses: false
 
-      - run: git diff ${{ github.base_ref }} --
+      - run: git fetch ${{ github.base_ref }} && git diff ${{ github.base_ref }} --
 
       - run: ./mill -i -k selective.resolve ${{ inputs.millargs }}
 
