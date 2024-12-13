@@ -36,6 +36,7 @@ jobs:
           path: .
           name: ${{ inputs.os }}-artifact
 
+      - run: chmod -R 777 .
       - run: ./mill -i -k selective.prepare __.test
 
       - run: cat out/mill-selective-execution.json
@@ -45,7 +46,7 @@ jobs:
           path: out/mill-selective-execution
           name: ${{ inputs.os }}-selective-execution-artifact
 
-      - run: mv out/mill-selective-execution/mill-selective-execution.json out/mill-selective-execution.json
+      - run: rm out/mill-selective-execution.json && mv out/mill-selective-execution/mill-selective-execution.json out/mill-selective-execution.json
 
       - uses: actions/setup-node@v4
         with:
