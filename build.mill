@@ -405,7 +405,11 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
   }
 
   def artifactName = "mill-" + super.artifactName()
-  def publishVersion = millVersion()
+  def publishVersion = {
+    val version = millVersion()
+    assert(version != "DEV")
+    version
+  }
   def publishProperties = super.publishProperties() ++ Map(
     "info.releaseNotesURL" -> Settings.changelogUrl
   )
