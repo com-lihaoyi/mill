@@ -42,6 +42,7 @@ jobs:
           name: ${{ inputs.os }}-selective-execution-artifact
 
       - run: ls out
+      - run: ls out/mill-selective-execution.json
 
       - uses: actions/setup-node@v4
         with:
