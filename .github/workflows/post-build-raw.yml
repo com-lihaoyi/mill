@@ -33,6 +33,6 @@ jobs:
           path: .
           name: ${{ inputs.os }}-artifact
 
-      - run: find .
+      - run: ls out
 
       - run: ${{ inputs.buildcmd }}

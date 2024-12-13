@@ -36,7 +36,7 @@ jobs:
           path: .
           name: ${{ inputs.os }}-artifact
 
-      - run: find .
+      - run: ls out
 
       - uses: actions/setup-node@v4
         with:
