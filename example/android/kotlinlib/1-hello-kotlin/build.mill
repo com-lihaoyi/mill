@@ -31,7 +31,15 @@ object app extends AndroidAppKotlinModule {
   def androidReleaseKeyAlias: T[String] = Task { "releaseKey" }
   def androidReleaseKeyPass: T[String] = Task { "MillBuildTool" }
   def androidReleaseKeyStorePass: T[String] = Task { "MillBuildTool" }
+
+  object test extends AndroidAppKotlinTests with TestModule.Junit4 {
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy"junit:junit:4.13.2"
+    )
+  }
 }
+
+
 
 ////SNIPPET:END
 

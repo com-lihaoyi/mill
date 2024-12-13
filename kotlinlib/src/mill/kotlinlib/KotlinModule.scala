@@ -24,7 +24,8 @@ trait KotlinModule extends JavaModule { outer =>
    * All individual source files fed into the compiler.
    */
   override def allSourceFiles: T[Seq[PathRef]] = Task {
-    Lib.findSourceFiles(allSources(), Seq("kt", "kts", "java")).map(PathRef(_))
+    val sourceFiles = Lib.findSourceFiles(allSources(), Seq("kt", "kts", "java")).map(PathRef(_))
+    sourceFiles
   }
 
   /**

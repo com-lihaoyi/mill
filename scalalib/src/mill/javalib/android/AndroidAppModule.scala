@@ -85,12 +85,13 @@ trait AndroidAppModule extends JavaModule {
     (jarFiles, resFolders)
   }
 
+  def res: T[Seq[PathRef]] = Task.Sources { millSourcePath / "res" }
   /**
    * Combines module resources with those unpacked from AARs.
    */
   def resources: T[Seq[PathRef]] = Task {
     val (_, resFolders) = androidUnpackArchives()
-    super.resources() ++ resFolders
+    res() ++ resFolders
   }
 
   /**
@@ -124,7 +125,8 @@ trait AndroidAppModule extends JavaModule {
 
     for (resDir <- resources().map(_.path).filter(os.exists)) {
       val segmentsSeq = resDir.segments.toSeq
-      val zipDir = if (segmentsSeq.last == "resources") compiledResDir else compiledLibsResDir
+      val zipDir = if (segmentsSeq.last == "res") compiledResDir else compiledLibsResDir
+      println(s"Zip dir is $zipDir")
       val zipName = segmentsSeq.takeRight(2).mkString("-") + ".zip"
       val zipPath = zipDir / zipName
 

@@ -1,7 +1,11 @@
 package mill.kotlinlib.android
 
+import mill.T
+import mill.api.PathRef
+import mill.define.Task
 import mill.kotlinlib.KotlinModule
 import mill.javalib.android.AndroidAppModule
+import os.Path
 
 /**
  * Trait for building Android applications using the Mill build tool.
@@ -18,4 +22,18 @@ import mill.javalib.android.AndroidAppModule
  * [[https://developer.android.com/studio Android Studio Documentation]]
  */
 @mill.api.experimental
-trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule {}
+trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule {
+
+  private def src: Path = super.millSourcePath / "src"
+  override def millSourcePath: Path = src / "main"
+
+
+  trait AndroidAppKotlinTests extends KotlinTests {
+    def testPath = Task.Sources(src / "test")
+
+    override def allSources: T[Seq[PathRef]] = Task { super.allSources() ++ testPath() }
+  }
+
+  trait AndroidAppKotlinIntegrationTests extends  KotlinTests {
+  }
+}
