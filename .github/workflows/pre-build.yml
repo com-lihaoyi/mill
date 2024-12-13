@@ -27,7 +27,7 @@ jobs:
         with:
           ref: ${{ github.base_ref }}
 
-      - run: ./mill -i -k selective.prepare __.test
+      - run: if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then ./mill -i -k selective.prepare __.test else touch out/mill-selective-execution.json fi
 
       - uses: actions/upload-artifact@v4.4.3
         with:
