@@ -258,7 +258,7 @@ object Deps {
 
 def millVersion: T[String] = Task {
   if (Task.env.contains("MILL_STABLE_VERSION")) VcsVersion.calcVcsState(Task.log).format()
-  else "DEV"
+  else "SNAPSHOT"
 }
 
 def millLastTag: T[String] = Task {
@@ -405,11 +405,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
   }
 
   def artifactName = "mill-" + super.artifactName()
-  def publishVersion = Task {
-    val version = millVersion()
-    assert(version != "DEV")
-    version
-  }
+  def publishVersion = millVersion()
   def publishProperties = super.publishProperties() ++ Map(
     "info.releaseNotesURL" -> Settings.changelogUrl
   )
