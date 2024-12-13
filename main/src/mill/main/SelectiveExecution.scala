@@ -139,13 +139,15 @@ private[mill] object SelectiveExecution {
   }
 
   def diffMetadata(evaluator: Evaluator, tasks: Seq[String]): Either[String, Set[String]] = {
-    val oldMetadata = upickle.default.read[SelectiveExecution.Metadata](
-      os.read(evaluator.outPath / OutFiles.millSelectiveExecution)
-    )
-    for (newMetadata <- SelectiveExecution.Metadata(evaluator, tasks)) yield {
-      SelectiveExecution.computeDownstream(evaluator, tasks, oldMetadata, newMetadata)
-        .collect { case n: NamedTask[_] => n.ctx.segments.render }
-        .toSet
+    val oldMetadataTxt = os.read(evaluator.outPath / OutFiles.millSelectiveExecution)
+    if (oldMetadataTxt == "") Right(tasks.toSet)
+    else {
+      val oldMetadata = upickle.default.read[SelectiveExecution.Metadata](oldMetadataTxt)
+      for (newMetadata <- SelectiveExecution.Metadata(evaluator, tasks)) yield {
+        SelectiveExecution.computeDownstream(evaluator, tasks, oldMetadata, newMetadata)
+          .collect { case n: NamedTask[_] => n.ctx.segments.render }
+          .toSet
+      }
     }
   }
 }

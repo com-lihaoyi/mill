@@ -27,7 +27,7 @@ object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
         assert(
           conf.value.map(_.path.relativeTo(playsingle.millSourcePath).toString()) == Seq("conf"),
           app.value.map(_.path.relativeTo(playsingle.millSourcePath).toString()) == Seq("app"),
-          sources == app,
+          sources.value == app.value,
           resources.value.map(_.path.relativeTo(playsingle.millSourcePath).toString()).contains(
             "conf"
           ),

@@ -38,8 +38,8 @@ object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
             "conf"
           ),
           app.value.map(_.path.relativeTo(playsingleapi.millSourcePath).toString()) == Seq("app"),
-          sources == app,
-          resources == conf,
+          sources.value == app.value,
+          resources.value == conf.value,
           testSources.value.map(
             _.path.relativeTo(playsingleapi.millSourcePath).toString()
           ) == Seq(
