@@ -261,7 +261,6 @@ def millVersion: T[String] = Task {
   else "DEV"
 }
 
-
 def millLastTag: T[String] = Task {
   VcsVersion.vcsState().lastTag.getOrElse(
     sys.error("No (last) git tag found. Your git history seems incomplete!")

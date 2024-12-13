@@ -1,0 +1,53 @@
+on:
+  workflow_call:
+    inputs:
+      compileargs:
+        default: '__.compile'
+        type: string
+      prepareargs:
+        default: '__.test'
+        type: string
+      java-version:
+        default: '11'
+        type: string
+      os:
+        type: string
+      timeout-minutes:
+        default: 60
+        type: number
+
+jobs:
+  run:
+    runs-on: ${{ inputs.os }}
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    steps:
+      - uses: actions/setup-java@v4
+        with:
+          java-version: ${{ inputs.java-version }}
+          distribution: temurin
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.base_ref }}
+
+      - run: chmod -R 777 . # normalize permissions before and after upload/download-artifact
+
+      - run: ./mill -i -k selective.prepare ${{ inputs.prepareargs }}
+
+      - uses: actions/upload-artifact@v4.4.3
+        with:
+          path: out/mill-selective-execution.json
+          name: ${{ inputs.os }}-selective-execution-artifact
+          include-hidden-files: true
+
+      - uses: actions/checkout@v4
+
+      - uses: coursier/cache-action@v6
+
+      - run: ./mill -i -k ${{ inputs.compileargs }}
+
+      - uses: actions/upload-artifact@v4.4.3
+        with:
+          path: .
+          name: ${{ inputs.os }}-artifact
+          include-hidden-files: true

@@ -52,6 +52,7 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
       assert(runAll.out.contains("Computing fooCommand"))
       assert(runAll.out.contains("Computing barCommand"))
     }
+
     test("changed-inputs-generic") - integrationTest { tester =>
       // Make sure you can run `selective.prepare` on a broader set of tasks than
       // `selective.resolve` or `selective.run` and thingsstill work
