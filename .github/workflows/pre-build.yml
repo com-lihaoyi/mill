@@ -29,6 +29,8 @@ jobs:
 
       - run: chmod -R 777 . # normalize permissions before and after upload/download-artifact
 
+      - run: ./mill -i -k selective.prepare ${{ inputs.millargs }}
+
       - uses: actions/upload-artifact@v4.4.3
         with:
           path: out/mill-selective-execution.json
