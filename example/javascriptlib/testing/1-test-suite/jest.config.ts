@@ -7,14 +7,6 @@ const moduleDeps = {...compilerOptions.paths};
 delete moduleDeps['*'];
 delete moduleDeps['typeRoots'];
 
-// moduleNameMapper evaluates in order they appear,
-// sortedModuleDeps makes sure more specific path mappings always appear first
-const sortedModuleDeps = Object.keys(moduleDeps)
-    .sort((a, b) => b.length - a.length) // Sort by descending length
-    .reduce((acc, key) => {
-        acc[key] = moduleDeps[key];
-        return acc;
-    }, {});
 
 export default {
     preset: 'ts-jest',
@@ -24,9 +16,9 @@ export default {
         '<rootDir>/**/**/**/*.test.js',
     ],
     transform: {
-        '^.+\\.(ts|tsx)$': ['ts-jest', { tsconfig: 'tsconfig.json' }],
+        '^.+\\.(ts|tsx)$': ['ts-jest', {tsconfig: 'tsconfig.json'}],
         '^.+\\.(js|jsx)$': 'babel-jest', // Use babel-jest for JS/JSX files
     },
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
-    moduleNameMapper: pathsToModuleNameMapper(sortedModuleDeps) // use absolute paths generated in tsconfig.
+    moduleNameMapper: pathsToModuleNameMapper(moduleDeps) // use absolute paths generated in tsconfig.
 };

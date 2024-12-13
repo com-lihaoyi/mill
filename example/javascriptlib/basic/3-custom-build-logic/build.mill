@@ -2,7 +2,7 @@ package build
 
 import mill._, javascriptlib._
 
-object foo extends JestModule {
+object foo extends TypeScriptModule {
 
   /** Total number of lines in module source files */
   def lineCount = Task {
@@ -20,6 +20,8 @@ object foo extends JestModule {
     super.mkENV() ++ Map("RESOURCE_PATH" -> resources().path.toString)
   }
 
+  object test extends TypeScriptTests with TestModule.Jest
+
 }
 
 // Documentation for mill.example.javascriptlib
@@ -28,15 +30,10 @@ object foo extends JestModule {
 
 > mill foo.test
 PASS .../foo.test.ts
-...Foo.getLineCount
-...should return the content of the line-count.txt file...
-...should return null if the file cannot be read...
 ...
 Test Suites:...1 passed, 1 total...
 Tests:...2 passed, 2 total...
-Snapshots:...
-Time:...
-Ran all test suites matching...
+...
 
 > mill foo.run
 [Reading file:] .../out/foo/resources.dest/line-count.txt
