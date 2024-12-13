@@ -1,0 +1,28 @@
+package build
+
+import mill._
+import mill.javascriptlib._
+
+object foo extends TypeScriptModule {
+  def compilerOptions =
+    Task {
+      super.compilerOptions() +
+        (
+          "skipLibCheck" -> ujson.True,
+          "module" -> ujson.Str("commonjs"),
+          "target" -> ujson.Str("es6")
+        )
+    }
+}
+
+
+// Documentation for mill.example.javascriptlib
+
+// This example demonstrates defining compilation execution flags
+
+/** Usage
+
+> mill foo.run
+Foo:
+Hello World!
+*/

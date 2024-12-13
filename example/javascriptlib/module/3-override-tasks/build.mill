@@ -1,0 +1,47 @@
+package build
+
+import mill._
+import mill.javascriptlib._
+
+object foo extends TypeScriptModule {
+  def sources = Task {
+    val srcPath = millSourcePath / "src"
+    val filePath = srcPath / "foo.ts"
+
+    // Ensure the directory exists
+    os.makeDir.all(srcPath)
+
+    os.write.over(
+      filePath,
+      """(function () {
+        |  console.log("Hello World!")
+        |})()
+      """.stripMargin
+    )
+
+    PathRef(millSourcePath / "src")
+  }
+
+  def compile = Task {
+    println("Compiling...")
+    super.compile()
+  }
+
+  def run(args: mill.define.Args) = Task.Command {
+    println("Running... " + args.value.mkString(" "))
+    super.run(args)()
+  }
+
+}
+
+// Documentation for mill.example.javascriptlib
+
+// This example demonstrates overriding mill tasks
+
+/** Usage
+
+> mill foo.run "added tags"
+Compiling...
+Hello World!
+Running... added tags
+*/

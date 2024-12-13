@@ -113,14 +113,31 @@ trait TypeScriptModule extends Module { outer =>
   // define computed arguments and where they should be placed (before/after user arguments)
   def computedArgs: Task[Seq[String]] = Task { Seq.empty[String] }
 
+  def executionFlags: Task[Map[String, String]] = Task { Map.empty[String, String] }
+
   def run(args: mill.define.Args): Command[CommandResult] = Task.Command {
     val mainFile = mainFilePath()
     val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
     val tsconfigpaths = npmInstall().path / "node_modules/tsconfig-paths/register"
     val env = mkENV() + ("RESOURCES" -> resources().path.toString)
 
+    val execFlags: Seq[String] = executionFlags().map {
+      case (key, "") => s"--$key"
+      case (key, value) => s"--$key=$value"
+      case _ => ""
+    }.toSeq
+
     os.call(
-      (tsnode, "-r", tsconfigpaths, mainFile, computedArgs(), args.value),
+      (
+        "node",
+        execFlags,
+        tsnode,
+        "-r",
+        tsconfigpaths,
+        mainFile,
+        computedArgs(),
+        args.value
+      ),
       stdout = os.Inherit,
       env = env,
       cwd = compile()._1.path

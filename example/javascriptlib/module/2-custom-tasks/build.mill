@@ -1,0 +1,45 @@
+package build
+
+import mill._, javascriptlib._
+
+object foo extends TypeScriptModule {
+
+  /** Total number of lines in module source files */
+  def lineCount = Task {
+    allSources().map(f => os.read.lines(f.path).size).sum
+  }
+
+  def generatedSources = Task {
+    os.write(
+      Task.dest / "bar.ts",
+      s"""export default class Bar {
+         |  static value: number = 123
+         |}
+      """.stripMargin
+    )
+
+    Seq(PathRef(Task.dest))
+  }
+
+  def mkENV = Task {
+    super.mkENV() ++ Map(
+      "LINE_COUNT" -> lineCount().toString,
+      "BAR_MODULE_PATH" -> generatedSources().map(_.path).mkString(":")
+    )
+  }
+
+  def printLineCount() = Task.Command { println(lineCount()) }
+
+}
+
+// Documentation for mill.example.javascriptlib
+
+// This example demonstrates defining custom mill tasks
+
+/** Usage
+
+> mill foo.run "Hello World!"
+Bar.value: 123
+text: Hello World!
+Line count: 13
+*/

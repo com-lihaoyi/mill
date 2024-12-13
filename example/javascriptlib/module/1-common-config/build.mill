@@ -1,0 +1,21 @@
+package build
+
+import mill._
+import mill.javascriptlib._
+
+object foo extends TypeScriptModule {
+  def mkENV = Task {
+    super.mkENV() ++ Map("FOO" -> "Hello World!")
+  }
+
+}
+
+// Documentation for mill.example.javascriptlib
+
+// This example demonstrates the usage of common configs
+
+/** Usage
+
+> mill foo.run
+Hello World!
+*/
