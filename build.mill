@@ -405,7 +405,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
   }
 
   def artifactName = "mill-" + super.artifactName()
-  def publishVersion = {
+  def publishVersion = Task {
     val version = millVersion()
     assert(version != "DEV")
     version
