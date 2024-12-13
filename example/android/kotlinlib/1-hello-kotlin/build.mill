@@ -55,7 +55,21 @@ object app extends AndroidAppKotlinModule {
 
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy"androidx.test.ext:junit:1.1.3",
+      ivy"androidx.test:runner:1.6.1",
+      ivy"junit:junit:4.13.2"
     )
+
+    /*
+     * TODO: The following functionality is missing but you can test using the android tools:
+     *  Install the integration tests
+     *
+     * mill show app.it.androidInstantApk
+     * $ANDROID_HOME/platform-tools/adb install -r /home/vnicolaou/mill/example/android/kotlinlib/1-hello-kotlin/out/app/it/androidApk.dest/app.apk
+     *
+     * Run the integration tests
+     * $ANDROID_HOME/platform-tools/adb shell am instrument -w -m com.example.helloworld/androidx.test.runner.AndroidJUnitRunner
+     *
+     */
   }
 }
 
