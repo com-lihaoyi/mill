@@ -33,6 +33,4 @@ jobs:
           path: .
           name: ${{ inputs.os }}-artifact
 
-      - run: ls out
-
       - run: ${{ inputs.buildcmd }}
