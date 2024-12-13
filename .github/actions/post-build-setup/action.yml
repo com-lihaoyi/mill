@@ -8,6 +8,9 @@ inputs:
     default: 60
     type: number
 
+  os:
+    type: string
+
 runs:
   using: "composite"
   steps:
