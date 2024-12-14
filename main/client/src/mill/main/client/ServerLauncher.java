@@ -116,11 +116,6 @@ public abstract class ServerLauncher {
   }
 
   int run(Path serverDir, boolean setJnaNoSys, Locks locks) throws Exception {
-    // Clear out run-related files from the server folder to make sure we
-    // never hit issues where we are reading the files from a previous run
-    Files.deleteIfExists(serverDir.resolve(ServerFiles.exitCode));
-    Files.deleteIfExists(serverDir.resolve(ServerFiles.terminfo));
-    Files.deleteIfExists(serverDir.resolve(ServerFiles.runArgs));
 
     try (OutputStream f = Files.newOutputStream(serverDir.resolve(ServerFiles.runArgs))) {
       f.write(System.console() != null ? 1 : 0);
