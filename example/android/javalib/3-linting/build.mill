@@ -116,21 +116,21 @@ resources/values/strings.xml:5: Warning: The resource R.string.unused_string app
     <issue id="MissingApplicationIcon" severity="ignore" />
 </lint>
 
-> sed -i.bak '$a\\n class SyntheticAccessorViolation {\n  private String privateField = "access me, if you dare";\n\n  static class Inner {\n      static void usePrivateField(SyntheticAccessorViolation instance) {\n          System.out.println(instance.privateField);\n      }\n  }\n}' app/src/main/java/com/helloworld/app/MainActivity.java
+> sed -i.bak '$a\\n class SyntheticAccessorViolation {\n  private String privateField = "access me, if you dare";\n\n  static class Inner {\n      static void usePrivateField(SyntheticAccessorViolation instance) {\n          System.out.println(instance.privateField);\n      }\n  }\n}' app/src/main/java/com/helloworld/app/MainActivity.java # Add SyntheticAccessor issue to code
 
 > ./mill app.androidLintRun # Rerun it for new changes to reflect
 
 > cat out/app/androidLintRun.dest/report.txt # Output the report content
 src/main/java/com/helloworld/app/MainActivity.java:46: Error: Access to private field privateField of class SyntheticAccessorViolation requires synthetic accessor [SyntheticAccessor]
 
-> sed -i.bak -e '/import android.annotation.SuppressLint;/d' -e '/class SyntheticAccessorViolation {/,/^}/d' app/src/main/java/com/helloworld/app/MainActivity.java
+> sed -i.bak -e '/import android.annotation.SuppressLint;/d' -e '/class SyntheticAccessorViolation {/,/^}/d' app/src/main/java/com/helloworld/app/MainActivity.java # Add Suppression to SyntheticAccessor issue
 
 > ./mill app.androidLintRun # Rerun it for new changes to reflect
 
 > cat out/app/androidLintRun.dest/report.txt # Output the report content
 0 errors, 0 warnings (1 error filtered by baseline lint-baseline.xml)
 
-> sed -i.bak -e '/import android.annotation.SuppressLint;/d' -e '/class SyntheticAccessorViolation {/,/^}/d' app/src/main/java/com/helloworld/app/MainActivity.java
+> sed -i.bak -e '/import android.annotation.SuppressLint;/d' -e '/class SyntheticAccessorViolation {/,/^}/d' app/src/main/java/com/helloworld/app/MainActivity.java Remove the SyntheticAccessor issue from code
 
 > ./mill app.androidLintRun # Rerun it for new changes to reflect
 
