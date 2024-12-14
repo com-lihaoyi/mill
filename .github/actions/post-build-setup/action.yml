@@ -29,4 +29,7 @@ runs:
     - uses: coursier/cache-action@v6
 
     - run: git config --global user.email "you@example.com"
+      shell: bash
+
     - run: git config --global user.name "Your Name"
+      shell: bash
