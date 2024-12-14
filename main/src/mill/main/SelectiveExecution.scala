@@ -143,7 +143,7 @@ private[mill] object SelectiveExecution {
     if (oldMetadataTxt == "") Right(tasks.toSet)
     else {
       val oldMetadata = upickle.default.read[SelectiveExecution.Metadata](oldMetadataTxt)
-      for (newMetadata <- SelectiveExecution.Metadata(evaluator, tasks)) yield {
+      for (newMetadata <- SelectiveExecution.Metadata.compute(evaluator, tasks)) yield {
         SelectiveExecution.computeDownstream(evaluator, tasks, oldMetadata, newMetadata)
           .collect { case n: NamedTask[_] => n.ctx.segments.render }
           .toSet
