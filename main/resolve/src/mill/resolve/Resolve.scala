@@ -310,10 +310,9 @@ trait Resolve[T] {
       }
 
     resolved
-      .map(_.sortBy(_.segments))
-      .flatMap(handleResolved(
+      .flatMap(r => handleResolved(
         rootModule,
-        _,
+        r.sortBy(_.segments),
         args,
         sel,
         nullCommandDefaults,
