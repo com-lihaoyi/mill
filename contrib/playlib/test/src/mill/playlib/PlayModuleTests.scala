@@ -40,7 +40,7 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
               app.value.map(_.path.relativeTo(playmulti.millSourcePath).toString()) == Seq(
                 "core/app"
               ),
-              sources == app,
+              sources.value == app.value,
               resources.value.map(_.path.relativeTo(playmulti.millSourcePath).toString()).contains(
                 "core/conf"
               ),

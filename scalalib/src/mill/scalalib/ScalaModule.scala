@@ -308,7 +308,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
       }
     }
 
-  override def docSources: T[Seq[PathRef]] = Task.Sources {
+  override def docSources: T[Seq[PathRef]] = Task {
     if (
       ZincWorkerUtil.isScala3(scalaVersion()) && !ZincWorkerUtil.isScala3Milestone(scalaVersion())
     ) Seq(compile().classes)

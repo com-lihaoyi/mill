@@ -165,18 +165,36 @@ object LocalSummary {
 
     def discardPreviousInsn(): Unit = insnSigs(insnSigs.size - 1) = 0
 
+    /**
+     * Hack to skip the bitmap loading and comparison of Scala `lazy val`s. These
+     * snippets of code have constants that differ based on the ordering of the
+     * `lazy val` definitions, but this is invisible to the outside world, so we
+     * hack [[MyMethodVisitor]] to try and identify and skip those snippets of bytecode
+     */
+    var inLazyValCheck = false
+
     override def visitFieldInsn(
         opcode: Int,
         owner: String,
         name: String,
         descriptor: String
     ): Unit = {
-      hash(opcode)
-      hash(owner.hashCode)
-      hash(name.hashCode)
-      hash(descriptor.hashCode)
-      completeHash()
-      clinitCall(owner)
+      val isBitmap = name match {
+        case s"bitmap$$$n" => n.forall(_.isDigit)
+        case _ => false
+      }
+      if (isBitmap && (opcode == Opcodes.GETSTATIC || opcode == Opcodes.GETFIELD)) {
+        inLazyValCheck = true
+      } else if (isBitmap && (opcode == Opcodes.PUTSTATIC || opcode == Opcodes.PUTFIELD)) {
+        inLazyValCheck = false
+      } else {
+        hash(opcode)
+        hash(owner.hashCode)
+        hash(name.hashCode)
+        hash(descriptor.hashCode)
+        completeHash()
+        clinitCall(owner)
+      }
     }
 
     override def visitIincInsn(varIndex: Int, increment: Int): Unit = {
@@ -186,14 +204,18 @@ object LocalSummary {
     }
 
     override def visitInsn(opcode: Int): Unit = {
-      hash(opcode)
-      completeHash()
+      if (!inLazyValCheck) {
+        hash(opcode)
+        completeHash()
+      }
     }
 
     override def visitIntInsn(opcode: Int, operand: Int): Unit = {
-      hash(opcode)
-      hash(operand)
-      completeHash()
+      if (!inLazyValCheck) {
+        hash(opcode)
+        hash(operand)
+        completeHash()
+      }
     }
 
     override def visitInvokeDynamicInsn(
@@ -228,6 +250,7 @@ object LocalSummary {
     }
 
     override def visitJumpInsn(opcode: Int, label: Label): Unit = {
+      if (inLazyValCheck) inLazyValCheck = false
       hashlabel(label)
       hash(opcode)
       completeHash()
@@ -337,6 +360,7 @@ object LocalSummary {
     }
 
     override def visitEnd(): Unit = {
+      assert(!inLazyValCheck)
       clsVisitor.classCallGraph.addOne((methodSig, outboundCalls.toSet))
       clsVisitor.classMethodHashes.addOne((
         methodSig,

@@ -577,7 +577,7 @@ object BomTests extends TestSuite {
           val res = eval(modules.bom.placeholder.check.compileClasspath)
           assert(
             res.left.exists(_.toString.contains(
-              "not found: https://repo1.maven.org/maven2/com/google/protobuf/protobuf-java/_/protobuf-java-_.pom"
+              "not found: https://repo1.maven.org/maven2/com/google/protobuf/protobuf-java//protobuf-java-.pom"
             ))
           )
         }

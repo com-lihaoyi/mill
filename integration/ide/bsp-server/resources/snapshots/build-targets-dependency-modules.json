@@ -2,12 +2,6 @@
   "items": [
     {
       "target": {
-        "uri": "file:///workspace/hello-java"
-      },
-      "modules": []
-    },
-    {
-      "target": {
         "uri": "file:///workspace/hello-kotlin"
       },
       "modules": [
@@ -27,6 +21,12 @@
           "version": "<scala-version>"
         }
       ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-java"
+      },
+      "modules": []
     }
   ]
 }

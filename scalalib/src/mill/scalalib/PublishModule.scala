@@ -155,7 +155,7 @@ trait PublishModule extends JavaModule { outer =>
   def ivy: T[PathRef] = Task {
     val (rootDepVersions, bomDepMgmt) = bomDetails()
     val publishXmlDeps0 = publishXmlDeps().map { dep =>
-      if (dep.artifact.version == "_")
+      if (dep.artifact.version.isEmpty)
         dep.copy(
           artifact = dep.artifact.copy(
             version = rootDepVersions.getOrElse(
@@ -195,11 +195,12 @@ trait PublishModule extends JavaModule { outer =>
         (extraDepManagement().toSeq ++ depManagement().toSeq)
           .map(bindDependency())
           .map(_.dep)
-          .filter(depMgmt => depMgmt.version.nonEmpty && depMgmt.version != "_")
+          .filter(_.version.nonEmpty)
           .filter { depMgmt =>
             // Ensure we don't override versions of root dependencies with overrides from the BOM
             !moduleSet.contains((depMgmt.module.organization.value, depMgmt.module.name.value))
           }
+
       )
       val entries = coursier.core.DependencyManagement.add(
         Map.empty,

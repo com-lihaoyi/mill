@@ -116,7 +116,7 @@ object Deps {
   val asmTree = ivy"org.ow2.asm:asm-tree:9.7.1"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
 
-  val coursierVersion = "2.1.20"
+  val coursierVersion = "2.1.21"
   val coursier = ivy"io.get-coursier::coursier:$coursierVersion"
   val coursierInterface = ivy"io.get-coursier:interface:1.0.26"
   val coursierJvm = ivy"io.get-coursier::coursier-jvm:$coursierVersion"
@@ -256,7 +256,10 @@ object Deps {
   }
 }
 
-def millVersion: T[String] = Task { VcsVersion.vcsState().format() }
+def millVersion: T[String] = Task {
+  if (Task.env.contains("MILL_STABLE_VERSION")) VcsVersion.calcVcsState(Task.log).format()
+  else "SNAPSHOT"
+}
 
 def millLastTag: T[String] = Task {
   VcsVersion.vcsState().lastTag.getOrElse(
@@ -609,7 +612,7 @@ trait BridgeModule extends MillPublishJavaModule with CrossScalaModule {
     ivy"org.scala-lang:scala-compiler:${crossScalaVersion}"
   )
 
-  def resources = Task.Sources {
+  def resources = Task {
     os.copy(generatedSources().head.path / "META-INF", Task.dest / "META-INF")
     Seq(PathRef(Task.dest))
   }
