@@ -64,7 +64,7 @@ private[mill] object Reflect {
       }
     )
 
-    arr.reverse.distinctBy(_.getName)
+    arr.reverseIterator.distinctBy(_.getName).toArray
   }
 
   // For some reason, this fails to pick up concrete `object`s nested directly within
