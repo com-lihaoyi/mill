@@ -4,8 +4,6 @@ import mill.define._
 import mill.util.EitherOps
 
 import java.lang.reflect.InvocationTargetException
-import scala.collection.immutable.Seq
-import scala.reflect.NameTransformer.decode
 
 /**
  * Takes a single list of segments, without braces but including wildcards, and
@@ -59,7 +57,12 @@ private object ResolveCore {
    * just cache all module instantiations and re-use them to avoid repeatedly instantiating the
    * same module
    */
-  class ModuleCache(val value: collection.mutable.Map[Segments, Either[String, Module]] = collection.mutable.Map())
+  class Cache(val instantiatedModules: collection.mutable.Map[Segments, Either[String, Module]] = collection.mutable.Map(),
+              val decodedNames: collection.mutable.Map[String, String] = collection.mutable.Map()) {
+    def decode(s: String): String = {
+      decodedNames.getOrElseUpdate(s, scala.reflect.NameTransformer.decode(s))
+    }
+  }
 
   def catchWrapException[T](t: => T): Either[String, T] = {
     try Right(t)
@@ -83,7 +86,7 @@ private object ResolveCore {
       current: Resolved,
       querySoFar: Segments,
       seenModules: Set[Class[_]] = Set.empty,
-      moduleCache: ModuleCache
+      cache: Cache
   ): Result = {
     def moduleClasses(resolved: Iterable[Resolved]): Set[Class[_]] = {
       resolved.collect { case Resolved.Module(_, cls) => cls }.toSet
@@ -105,7 +108,7 @@ private object ResolveCore {
                   r,
                   querySoFar ++ Seq(head),
                   seenModules ++ moduleClasses(Set(current)),
-                  moduleCache
+                  cache
                 )
               }
             }
@@ -121,7 +124,7 @@ private object ResolveCore {
           else if (successesLists.flatten.nonEmpty) Success(successesLists.flatten)
           else notFounds.size match {
             case 1 => notFounds.head
-            case _ => notFoundResult(rootModule, querySoFar, current, head, moduleCache)
+            case _ => notFoundResult(rootModule, querySoFar, current, head, cache)
           }
 
         }
@@ -139,7 +142,7 @@ private object ResolveCore {
                     current.segments,
                     Nil,
                     seenModules,
-                    moduleCache
+                    cache
                   )
 
                 transitiveOrErr.map(transitive => self ++ transitive)
@@ -150,7 +153,7 @@ private object ResolveCore {
                   m.cls,
                   None,
                   current.segments,
-                  moduleCache = moduleCache,
+                  cache = cache,
                 )
 
               case pattern if pattern.startsWith("__:") =>
@@ -164,7 +167,7 @@ private object ResolveCore {
                   current.segments,
                   typePattern,
                   seenModules,
-                  moduleCache
+                  cache
                 )
 
                 transitiveOrErr.map(transitive => self ++ transitive)
@@ -177,7 +180,7 @@ private object ResolveCore {
                   None,
                   current.segments,
                   typePattern,
-                  moduleCache
+                  cache
                 )
 
               case _ =>
@@ -186,7 +189,7 @@ private object ResolveCore {
                   m.cls,
                   Some(singleLabel),
                   current.segments,
-                  moduleCache = moduleCache
+                  cache = cache
                 )
             }
 
@@ -197,7 +200,7 @@ private object ResolveCore {
 
           case (Segment.Cross(cross), m: Resolved.Module) =>
             if (classOf[Cross[_]].isAssignableFrom(m.cls)) {
-              instantiateModule(rootModule, current.segments, moduleCache).flatMap {
+              instantiateModule(rootModule, current.segments, cache).flatMap {
                 case c: Cross[_] =>
                   catchWrapException(
                     if (cross == Seq("__")) for ((_, v) <- c.valuesToModules.toSeq) yield v
@@ -225,9 +228,9 @@ private object ResolveCore {
                   )
               }
 
-            } else notFoundResult(rootModule, querySoFar, current, head, moduleCache)
+            } else notFoundResult(rootModule, querySoFar, current, head, cache)
 
-          case _ => notFoundResult(rootModule, querySoFar, current, head, moduleCache)
+          case _ => notFoundResult(rootModule, querySoFar, current, head, cache)
         }
     }
   }
@@ -235,8 +238,8 @@ private object ResolveCore {
   def instantiateModule(
       rootModule: BaseModule,
       segments: Segments,
-      moduleCache: ModuleCache
-  ): Either[String, Module] = moduleCache.value.getOrElseUpdate (
+      cache: Cache
+  ): Either[String, Module] = cache.instantiatedModules.getOrElseUpdate (
     segments,
     {
       segments.value.foldLeft[Either[String, Module]](Right(rootModule)) {
@@ -247,7 +250,7 @@ private object ResolveCore {
             current.millModuleSegments,
             current.getClass,
             Some(s),
-            moduleCache = moduleCache
+            cache = cache
           ).flatMap {
             case Seq((_, Some(f))) => f(current)
             case unknown =>
@@ -281,12 +284,12 @@ private object ResolveCore {
       segments: Segments,
       typePattern: Seq[String],
       seenModules: Set[Class[_]],
-      moduleCache: ModuleCache
+      cache: Cache
   ): Either[String, Set[Resolved]] = {
     if (seenModules.contains(cls)) Left(cyclicModuleErrorMsg(segments))
     else {
-      val errOrDirect = resolveDirectChildren(rootModule, cls, nameOpt, segments, typePattern, moduleCache)
-      val directTraverse = resolveDirectChildren(rootModule, cls, nameOpt, segments, Nil, moduleCache)
+      val errOrDirect = resolveDirectChildren(rootModule, cls, nameOpt, segments, typePattern, cache)
+      val directTraverse = resolveDirectChildren(rootModule, cls, nameOpt, segments, Nil, cache)
 
       val errOrModules = directTraverse.map { modules =>
         modules.flatMap {
@@ -305,7 +308,7 @@ private object ResolveCore {
               m.segments,
               typePattern,
               seenModules + cls,
-              moduleCache
+              cache
             ))
           }
         case Left(err) => Seq(Left(err))
@@ -358,10 +361,10 @@ private object ResolveCore {
       nameOpt: Option[String],
       segments: Segments,
       typePattern: Seq[String] = Nil,
-      moduleCache: ModuleCache
+      cache: Cache
   ): Either[String, Set[Resolved]] = {
     val crossesOrErr = if (classOf[Cross[_]].isAssignableFrom(cls) && nameOpt.isEmpty) {
-      instantiateModule(rootModule, segments, moduleCache).map {
+      instantiateModule(rootModule, segments, cache).map {
         case cross: Cross[_] =>
           for (item <- cross.items) yield {
             Resolved.Module(segments ++ Segment.Cross(item.crossSegments), item.cls)
@@ -384,7 +387,7 @@ private object ResolveCore {
       filteredCrosses = crosses.filter { c =>
         classMatchesTypePred(typePattern)(c.cls)
       }
-      direct0 <- resolveDirectChildren0(rootModule, segments, cls, nameOpt, typePattern, moduleCache)
+      direct0 <- resolveDirectChildren0(rootModule, segments, cls, nameOpt, typePattern, cache)
       direct <- Right(expandSegments(direct0))
     } yield {
       direct.toSet ++ filteredCrosses
@@ -397,13 +400,13 @@ private object ResolveCore {
       cls: Class[_],
       nameOpt: Option[String],
       typePattern: Seq[String] = Nil,
-      moduleCache: ModuleCache
+      cache: Cache
   ): Either[String, Seq[(Resolved, Option[Module => Either[String, Module]])]] = {
     def namePred(n: String) = nameOpt.isEmpty || nameOpt.contains(n)
 
     val modulesOrErr: Either[String, Seq[(Resolved, Option[Module => Either[String, Module]])]] = {
       if (classOf[DynamicModule].isAssignableFrom(cls)) {
-        instantiateModule(rootModule, segments, moduleCache).map {
+        instantiateModule(rootModule, segments, cache).map {
           case m: DynamicModule =>
             m.millModuleDirectChildren
               .filter(c => namePred(c.millModuleSegments.parts.last))
@@ -423,7 +426,7 @@ private object ResolveCore {
           .reflectNestedObjects02[Module](cls, namePred)
           .collect {
             case (name, memberCls, getter) if classMatchesTypePred(typePattern)(memberCls) =>
-              val resolved = Resolved.Module(Segments.labels(decode(name)), memberCls)
+              val resolved = Resolved.Module(Segments.labels(cache.decode(name)), memberCls)
               val getter2 = Some((mod: Module) => catchWrapException(getter(mod)))
               (resolved, getter2)
           }
@@ -435,13 +438,13 @@ private object ResolveCore {
     val namedTasks = Reflect
       .reflect(cls, classOf[NamedTask[_]], namePred, noParams = true)
       .map { m =>
-        Resolved.NamedTask(Segments.labels(decode(m.getName))) ->
+        Resolved.NamedTask(Segments.labels(cache.decode(m.getName))) ->
           None
       }
 
     val commands = Reflect
       .reflect(cls, classOf[Command[_]], namePred, noParams = false)
-      .map(m => decode(m.getName))
+      .map(m => cache.decode(m.getName))
       .map { name => Resolved.Command(Segments.labels(name)) -> None }
 
     modulesOrErr.map(_ ++ namedTasks ++ commands)
@@ -452,7 +455,7 @@ private object ResolveCore {
       querySoFar: Segments,
       current: Resolved,
       next: Segment,
-      moduleCache: ModuleCache
+      cache: Cache
   ): NotFound = {
     val possibleNexts = current match {
       case m: Resolved.Module =>
@@ -461,7 +464,7 @@ private object ResolveCore {
           m.cls,
           None,
           current.segments,
-          moduleCache = moduleCache
+          cache = cache
         ).toOption.get.map(
           _.segments.value.last
         )
