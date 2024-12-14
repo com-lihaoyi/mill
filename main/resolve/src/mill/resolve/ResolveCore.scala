@@ -94,7 +94,7 @@ private object ResolveCore {
       remainingQuery: List[Segment],
       current: Resolved,
       querySoFar: Segments,
-      seenModules: Set[Class[_]] = Set.empty,
+      seenModules: Set[Class[_]],
       cache: Cache
   ): Result = {
     def moduleClasses(resolved: Iterable[Resolved]): Set[Class[_]] = {
