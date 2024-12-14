@@ -52,10 +52,10 @@ object Resolve {
 
         case r: Resolved.Command =>
           val instantiated = ResolveCore
-            .instantiateModule0(rootModule, r.segments.init)
-            .flatMap { case (mod, rootMod) =>
+            .instantiateModule(rootModule, r.segments.init)
+            .flatMap { mod =>
               instantiateCommand(
-                rootMod,
+                rootModule,
                 r,
                 mod,
                 args,

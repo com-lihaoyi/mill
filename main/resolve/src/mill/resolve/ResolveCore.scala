@@ -213,22 +213,14 @@ private object ResolveCore {
         }
     }
   }
+
   def instantiateModule(
       rootModule: BaseModule,
-      segments: Segments
-  ): Either[String, Module] =
-    instantiateModule0(rootModule, segments).map(_._1)
+      segments: Segments,
+  ): Either[String, Module] = {
 
-  def instantiateModule0(
-      rootModule: BaseModule,
-      segments: Segments
-  ): Either[String, (Module, BaseModule)] = {
-
-    segments.value.foldLeft[Either[String, (Module, BaseModule)]](Right((
-      rootModule,
-      rootModule
-    ))) {
-      case (Right((current, currentRoot)), Segment.Label(s)) =>
+    segments.value.foldLeft[Either[String, Module]](Right(rootModule)) {
+      case (Right(current), Segment.Label(s)) =>
         assert(s != "_", s)
         resolveDirectChildren0(
           rootModule,
@@ -236,12 +228,7 @@ private object ResolveCore {
           current.getClass,
           Some(s)
         ).flatMap {
-          case Seq((_, Some(f))) =>
-            val res = f(current)
-            res.map {
-              case b: BaseModule => (b, b)
-              case b => (b, currentRoot)
-            }
+          case Seq((_, Some(f))) => f(current)
           case unknown =>
             sys.error(
               s"Unable to resolve single child " +
@@ -250,14 +237,14 @@ private object ResolveCore {
             )
         }
 
-      case (Right((current, currentRoot)), Segment.Cross(vs)) =>
+      case (Right(current), Segment.Cross(vs)) =>
         assert(!vs.contains("_"), vs)
 
         catchWrapException(
           current
             .asInstanceOf[Cross[_]]
             .segmentsToModules(vs.toList)
-            .asInstanceOf[Module] -> currentRoot
+            .asInstanceOf[Module]
         )
 
       case (Left(err), _) => Left(err)
