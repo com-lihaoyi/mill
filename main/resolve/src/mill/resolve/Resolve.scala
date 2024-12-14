@@ -50,7 +50,7 @@ object Resolve {
         case r: Resolved.NamedTask =>
           val instantiated = ResolveCore
             .instantiateModule(rootModule, r.segments.init, cache)
-            .flatMap(instantiateNamedTask(r, _))
+            .flatMap(instantiateNamedTask(r, _, cache.decode))
           instantiated.map(Some(_))
 
         case r: Resolved.Command =>
@@ -82,7 +82,7 @@ object Resolve {
 
               directChildrenOrErr.flatMap(directChildren =>
                 directChildren.head match {
-                  case r: Resolved.NamedTask => instantiateNamedTask(r, value).map(Some(_))
+                  case r: Resolved.NamedTask => instantiateNamedTask(r, value, cache.decode).map(Some(_))
                   case r: Resolved.Command =>
                     instantiateCommand(
                       rootModule,
@@ -112,10 +112,11 @@ object Resolve {
 
   private def instantiateNamedTask(
       r: Resolved.NamedTask,
-      p: Module
+      p: Module,
+      decode: String => String
   ): Either[String, NamedTask[_]] = {
     val definition = Reflect
-      .reflect(p.getClass, classOf[NamedTask[_]], _ == r.segments.parts.last, true)
+      .reflect(p.getClass, classOf[NamedTask[_]], _ == r.segments.last.value, true, decode)
       .head
 
     ResolveCore.catchWrapException(
@@ -134,7 +135,7 @@ object Resolve {
     ResolveCore.catchWrapException {
       val invoked = invokeCommand0(
         p,
-        r.segments.parts.last,
+        r.segments.last.value,
         rootModule.millDiscover.asInstanceOf[Discover],
         args,
         nullCommandDefaults,

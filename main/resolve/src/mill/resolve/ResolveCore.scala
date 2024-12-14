@@ -409,12 +409,12 @@ private object ResolveCore {
         instantiateModule(rootModule, segments, cache).map {
           case m: DynamicModule =>
             m.millModuleDirectChildren
-              .filter(c => namePred(c.millModuleSegments.parts.last))
+              .filter(c => namePred(c.millModuleSegments.last.value))
               .filter(c => classMatchesTypePred(typePattern)(c.getClass))
               .map(c =>
                 (
                   Resolved.Module(
-                    Segments.labels(c.millModuleSegments.parts.last),
+                    Segments.labels(c.millModuleSegments.last.value),
                     c.getClass
                   ),
                   Some((x: Module) => Right(c))
@@ -423,7 +423,7 @@ private object ResolveCore {
         }
       } else Right {
         val reflectMemberObjects = Reflect
-          .reflectNestedObjects02[Module](cls, namePred)
+          .reflectNestedObjects02[Module](cls, namePred, cache.decode)
           .collect {
             case (name, memberCls, getter) if classMatchesTypePred(typePattern)(memberCls) =>
               val resolved = Resolved.Module(Segments.labels(cache.decode(name)), memberCls)
@@ -436,14 +436,14 @@ private object ResolveCore {
     }
 
     val namedTasks = Reflect
-      .reflect(cls, classOf[NamedTask[_]], namePred, noParams = true)
+      .reflect(cls, classOf[NamedTask[_]], namePred, noParams = true, cache.decode)
       .map { m =>
         Resolved.NamedTask(Segments.labels(cache.decode(m.getName))) ->
           None
       }
 
     val commands = Reflect
-      .reflect(cls, classOf[Command[_]], namePred, noParams = false)
+      .reflect(cls, classOf[Command[_]], namePred, noParams = false, cache.decode)
       .map(m => cache.decode(m.getName))
       .map { name => Resolved.Command(Segments.labels(name)) -> None }
 

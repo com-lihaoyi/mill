@@ -5,7 +5,6 @@ import fastparse._
 
 import java.lang.reflect.Modifier
 import scala.reflect.ClassTag
-import scala.reflect.NameTransformer.decode
 
 private[mill] object Reflect {
 
@@ -20,7 +19,8 @@ private[mill] object Reflect {
       outer: Class[_],
       inner: Class[_],
       filter: String => Boolean,
-      noParams: Boolean
+      noParams: Boolean,
+      decode: String => String
   ): Seq[java.lang.reflect.Method] = {
     val res = for {
       m <- outer.getMethods
@@ -62,14 +62,16 @@ private[mill] object Reflect {
   // script/REPL runner always wraps user code in a wrapper object/trait
   def reflectNestedObjects0[T: ClassTag](
       outerCls: Class[_],
-      filter: String => Boolean = Function.const(true)
+      filter: String => Boolean = Function.const(true),
+      decode: String => String
   ): Seq[(String, java.lang.reflect.Member)] = {
 
     val first = reflect(
       outerCls,
       implicitly[ClassTag[T]].runtimeClass,
       filter,
-      noParams = true
+      noParams = true,
+      decode
     )
       .map(m => (m.getName, m))
 
@@ -92,9 +94,10 @@ private[mill] object Reflect {
 
   def reflectNestedObjects02[T: ClassTag](
       outerCls: Class[_],
-      filter: String => Boolean = Function.const(true)
+      filter: String => Boolean = Function.const(true),
+      decode: String => String
   ): Seq[(String, Class[_], Any => T)] = {
-    reflectNestedObjects0[T](outerCls, filter).map {
+    reflectNestedObjects0[T](outerCls, filter, decode).map {
       case (name, m: java.lang.reflect.Method) =>
         (name, m.getReturnType, (outer: Any) => m.invoke(outer).asInstanceOf[T])
       case (name, m: java.lang.reflect.Field) =>
