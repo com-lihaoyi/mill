@@ -89,10 +89,11 @@ trait AndroidAppModule extends JavaModule {
   def androidReleaseKeyPath: T[PathRef] = Task.Source(millSourcePath / androidReleaseKeyName())
 
   /**
-   * Specifies the file format of the lint report. Available file formats are defined in AndroidLintReportFormat,
+   * Specifies the file format(s) of the lint report. Available file formats are defined in AndroidLintReportFormat,
    * such as AndroidLintReportFormat.Html, AndroidLintReportFormat.Xml, AndroidLintReportFormat.Txt, and AndroidLintReportFormat.Sarif.
    */
-  def androidLintReportFmt: T[AndroidLintReportFormat.Value] = Task { AndroidLintReportFormat.Html }
+  def androidLintReportFmt: T[Seq[AndroidLintReportFormat.Value]] =
+    Task { Seq(AndroidLintReportFormat.Html) }
 
   /**
    * Specifies the lint configuration XML file path. This allows setting custom lint rules or modifying existing ones.
@@ -408,15 +409,21 @@ trait AndroidAppModule extends JavaModule {
    */
   def androidLintRun() = Task.Command {
 
-    val format = androidLintReportFmt()
-    val lintReport: os.Path = T.dest / s"report.${format.extension}"
-    val lintReportFlag: String = format.flag
+    val formats = androidLintReportFmt()
 
-    // Set path to generated `.jar` files in this case (or `.class` files)
+    // Generate the alternating flag and file path strings
+    val reportArg: Seq[String] = formats.toSeq.flatMap { format =>
+      Seq(format.flag, (Task.dest / s"report.${format.extension}").toString)
+    }
+
+    // Set path to generated `.jar` files and/or `.class` files
     val cp = runClasspath().map(_.path).filter(os.exists).mkString(":")
 
     // Set path to the location of the project source codes
     val src = sources().map(_.path).filter(os.exists).mkString(":")
+
+    // Set path to the location of the project ressource codes
+    val res = resources().map(_.path).filter(os.exists).mkString(":")
 
     // Prepare the lint configuration argument if the config path is set
     val configArg = androidLintConfigPath().map(config =>
@@ -432,17 +439,17 @@ trait AndroidAppModule extends JavaModule {
       Seq(
         androidSdkModule().lintToolPath().path.toString,
         millSourcePath.toString,
-        lintReportFlag,
-        lintReport.toString,
         "--classpath",
         cp,
         "--sources",
-        src
-      ) ++ configArg ++ baselineArg ++ androidLintArgs(),
+        src,
+        "--resources",
+        res
+      ) ++ configArg ++ baselineArg ++ reportArg ++ androidLintArgs(),
       check = androidLintAbortOnError
     )
 
-    PathRef(lintReport)
+    PathRef(Task.dest)
   }
 
 }

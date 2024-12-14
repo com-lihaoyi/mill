@@ -29,12 +29,11 @@ object app extends AndroidAppModule {
   // Set path to the custom `baseline.xml` file. It is usually at the root of the project
   def androidLintBaselinePath = Task { Some(PathRef(millSourcePath / "lint-baseline.xml")) }
 
-  // Set the linting report to be generated as a text file
-  def androidLintReportFmt = Task { AndroidLintReportFormat.Txt }
+  // Set the linting report to be generated as both text and html files
+  def androidLintReportFmt = Task { Seq(AndroidLintReportFormat.Txt, AndroidLintReportFormat.Html) }
 
   // Set to true (default), stops the build if errors are found
   def androidLintAbortOnError = false
-
 }
 
 /** See Also: app/AndroidManifest.xml */
@@ -53,8 +52,11 @@ object app extends AndroidAppModule {
 
 /** Usage
 
-> ./mill show app.androidLintRun  # Display full path to the linting report in text file
-".../out/app/androidLintRun.dest/report.txt"
+> ./mill app.androidLintRun
+
+> ls out/app/androidLintRun.dest  # Display full path to the linting report in text file
+report.html
+report.txt
 
 > ls app/ # List out all files in the app directory to check lint-baseline file exists
 AndroidManifest.xml
@@ -88,5 +90,51 @@ lint-baseline.xml: Information: 1 errors/warnings were listed in the baseline fi
 
 > cat out/app/androidLintRun.dest/report.txt # Output the changes in the report
 AndroidManifest.xml:3: Warning: Should explicitly set android:icon, there is no default [MissingApplicationIcon]
+
+> sed -i.bak 's/severity="warning"/severity="ignore"/g' app/lint.xml # Revert the severity level of `MissingApplicationIcon`
+
+> sed -i '$s|.*|<!-- Unused resource -->\n<string name="unused_string">This string is unused</string>\n</resources>|' app/resources/values/strings.xml # Add UnusedResources issue
+
+> ./mill app.androidLintRun # Rerun it for the linting tool to detect the UnusedResources
+
+> cat out/app/androidLintRun.dest/report.txt # Output the changes in the report
+resources/values/strings.xml:5: Warning: The resource R.string.unused_string appears to be unused [UnusedResources]
+
+> sed -i 's|<resources|<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="UnusedResources"|' app/resources/values/strings.xml # Suppress linting check for UnusedResources issue
+
+> ./mill app.androidLintRun # Rerun it for new changes to reflect
+
+> cat out/app/androidLintRun.dest/report.txt # Output the report content
+0 errors, 0 warnings (1 error filtered by baseline lint-baseline.xml)
+
+> sed -i.bak '/<lint>/a \    <issue id="SyntheticAccessor" severity="error" />' app/lint.xml # Enable SyntheticAccessor issue cause it's disabled by default
+
+> cat app/lint.xml
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <issue id="SyntheticAccessor" severity="error" />
+    <issue id="MissingApplicationIcon" severity="ignore" />
+</lint>
+
+> sed -i.bak '$a\\n class SyntheticAccessorViolation {\n  private String privateField = "access me, if you dare";\n\n  static class Inner {\n      static void usePrivateField(SyntheticAccessorViolation instance) {\n          System.out.println(instance.privateField);\n      }\n  }\n}' app/src/main/java/com/helloworld/app/MainActivity.java
+
+> ./mill app.androidLintRun # Rerun it for new changes to reflect
+
+> cat out/app/androidLintRun.dest/report.txt # Output the report content
+src/main/java/com/helloworld/app/MainActivity.java:46: Error: Access to private field privateField of class SyntheticAccessorViolation requires synthetic accessor [SyntheticAccessor]
+
+> sed -i.bak -e '/import android.annotation.SuppressLint;/d' -e '/class SyntheticAccessorViolation {/,/^}/d' app/src/main/java/com/helloworld/app/MainActivity.java
+
+> ./mill app.androidLintRun # Rerun it for new changes to reflect
+
+> cat out/app/androidLintRun.dest/report.txt # Output the report content
+0 errors, 0 warnings (1 error filtered by baseline lint-baseline.xml)
+
+> sed -i.bak -e '/import android.annotation.SuppressLint;/d' -e '/class SyntheticAccessorViolation {/,/^}/d' app/src/main/java/com/helloworld/app/MainActivity.java
+
+> ./mill app.androidLintRun # Rerun it for new changes to reflect
+
+> cat out/app/androidLintRun.dest/report.txt # Output the report content
+0 errors, 0 warnings (1 error filtered by baseline lint-baseline.xml)
 
 */
