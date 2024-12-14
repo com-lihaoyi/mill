@@ -43,7 +43,9 @@ trait SelectiveExecutionModule extends mill.define.Module {
           evaluator.allowPositionalCommandArgs
         )
       } yield {
-        resolved.map(_.ctx.segments.render).toSet.intersect(resolvedDiffed.map(_.render).toSet).toArray.sorted
+        resolved.map(
+          _.ctx.segments.render
+        ).toSet.intersect(resolvedDiffed.map(_.render).toSet).toArray.sorted
       }
 
       result match {
