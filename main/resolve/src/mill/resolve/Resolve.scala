@@ -25,7 +25,8 @@ object Resolve {
         selector: Segments,
         nullCommandDefaults: Boolean,
         allowPositionalCommandArgs: Boolean,
-        resolveToModuleTasks: Boolean
+        resolveToModuleTasks: Boolean,
+        moduleCache: ResolveCore.ModuleCache
     ) = {
       Right(resolved.map(_.segments))
     }
@@ -41,18 +42,20 @@ object Resolve {
         selector: Segments,
         nullCommandDefaults: Boolean,
         allowPositionalCommandArgs: Boolean,
-        resolveToModuleTasks: Boolean
+        resolveToModuleTasks: Boolean,
+        moduleCache: ResolveCore.ModuleCache
     ) = {
+
       val taskList = resolved.map {
         case r: Resolved.NamedTask =>
           val instantiated = ResolveCore
-            .instantiateModule(rootModule, r.segments.init)
+            .instantiateModule(rootModule, r.segments.init, moduleCache)
             .flatMap(instantiateNamedTask(r, _))
           instantiated.map(Some(_))
 
         case r: Resolved.Command =>
           val instantiated = ResolveCore
-            .instantiateModule(rootModule, r.segments.init)
+            .instantiateModule(rootModule, r.segments.init, moduleCache)
             .flatMap { mod =>
               instantiateCommand(
                 rootModule,
@@ -66,14 +69,15 @@ object Resolve {
           instantiated.map(Some(_))
 
         case r: Resolved.Module =>
-          ResolveCore.instantiateModule(rootModule, r.segments).flatMap {
+          ResolveCore.instantiateModule(rootModule, r.segments, moduleCache).flatMap {
             case value if resolveToModuleTasks => Right(Some(ModuleTask(value)))
             case value: TaskModule if !resolveToModuleTasks =>
               val directChildrenOrErr = ResolveCore.resolveDirectChildren(
                 rootModule,
                 value.getClass,
                 Some(value.defaultCommandName()),
-                value.millModuleSegments
+                value.millModuleSegments,
+                moduleCache = moduleCache
               )
 
               directChildrenOrErr.flatMap(directChildren =>
@@ -214,7 +218,8 @@ trait Resolve[T] {
       segments: Segments,
       nullCommandDefaults: Boolean,
       allowPositionalCommandArgs: Boolean,
-      resolveToModuleTasks: Boolean
+      resolveToModuleTasks: Boolean,
+      moduleCache: ResolveCore.ModuleCache
   ): Either[String, Seq[T]]
 
   def resolve(
@@ -279,13 +284,15 @@ trait Resolve[T] {
       resolveToModuleTasks: Boolean
   ): Either[String, Seq[T]] = {
     val rootResolved = ResolveCore.Resolved.Module(Segments(), rootModule.getClass)
+    val moduleCache = new ResolveCore.ModuleCache()
     val resolved =
       ResolveCore.resolve(
         rootModule = rootModule,
         remainingQuery = sel.value.toList,
         current = rootResolved,
         querySoFar = Segments(),
-        seenModules = Set.empty
+        seenModules = Set.empty,
+        moduleCache = moduleCache
       ) match {
         case ResolveCore.Success(value) => Right(value)
         case ResolveCore.NotFound(segments, found, next, possibleNexts) =>
@@ -310,7 +317,8 @@ trait Resolve[T] {
         sel,
         nullCommandDefaults,
         allowPositionalCommandArgs,
-        resolveToModuleTasks
+        resolveToModuleTasks,
+        moduleCache = moduleCache
       ))
   }
 
