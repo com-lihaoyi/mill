@@ -57,9 +57,13 @@ private object ResolveCore {
    * just cache all module instantiations and re-use them to avoid repeatedly instantiating the
    * same module
    */
-  class Cache(val instantiatedModules: collection.mutable.Map[Segments, Either[String, Module]] = collection.mutable.Map(),
-              decodedNames: collection.mutable.Map[String, String] = collection.mutable.Map(),
-              methods: collection.mutable.Map[String, Array[(java.lang.reflect.Method, String)]] = collection.mutable.Map()) {
+  class Cache(
+      val instantiatedModules: collection.mutable.Map[Segments, Either[String, Module]] =
+        collection.mutable.Map(),
+      decodedNames: collection.mutable.Map[String, String] = collection.mutable.Map(),
+      methods: collection.mutable.Map[String, Array[(java.lang.reflect.Method, String)]] =
+        collection.mutable.Map()
+  ) {
     def decode(s: String): String = {
       decodedNames.getOrElseUpdate(s, scala.reflect.NameTransformer.decode(s))
     }
@@ -157,7 +161,7 @@ private object ResolveCore {
                   m.cls,
                   None,
                   current.segments,
-                  cache = cache,
+                  cache = cache
                 )
 
               case pattern if pattern.startsWith("__:") =>
@@ -242,9 +246,8 @@ private object ResolveCore {
       rootModule: BaseModule,
       segments: Segments,
       cache: Cache
-  ): Either[String, Module] = cache.instantiatedModules.getOrElseUpdate (
-    segments,
-    {
+  ): Either[String, Module] = cache.instantiatedModules.getOrElseUpdate(
+    segments, {
       segments.value.foldLeft[Either[String, Module]](Right(rootModule)) {
         case (Right(current), Segment.Label(s)) =>
           assert(s != "_", s)
@@ -291,7 +294,8 @@ private object ResolveCore {
   ): Either[String, Seq[Resolved]] = {
     if (seenModules.contains(cls)) Left(cyclicModuleErrorMsg(segments))
     else {
-      val errOrDirect = resolveDirectChildren(rootModule, cls, nameOpt, segments, typePattern, cache)
+      val errOrDirect =
+        resolveDirectChildren(rootModule, cls, nameOpt, segments, typePattern, cache)
       val directTraverse = resolveDirectChildren(rootModule, cls, nameOpt, segments, Nil, cache)
 
       val errOrModules = directTraverse.map { modules =>

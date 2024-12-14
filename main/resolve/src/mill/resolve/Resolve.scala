@@ -116,7 +116,13 @@ object Resolve {
       cache: ResolveCore.Cache
   ): Either[String, NamedTask[_]] = {
     val definition = Reflect
-      .reflect(p.getClass, classOf[NamedTask[_]], _ == r.segments.last.value, true, getMethods = cache.getMethods)
+      .reflect(
+        p.getClass,
+        classOf[NamedTask[_]],
+        _ == r.segments.last.value,
+        true,
+        getMethods = cache.getMethods
+      )
       .head
 
     ResolveCore.catchWrapException(
@@ -310,16 +316,18 @@ trait Resolve[T] {
       }
 
     resolved
-      .flatMap(r => handleResolved(
-        rootModule,
-        r.sortBy(_.segments),
-        args,
-        sel,
-        nullCommandDefaults,
-        allowPositionalCommandArgs,
-        resolveToModuleTasks,
-        cache = cache
-      ))
+      .flatMap(r =>
+        handleResolved(
+          rootModule,
+          r.sortBy(_.segments),
+          args,
+          sel,
+          nullCommandDefaults,
+          allowPositionalCommandArgs,
+          resolveToModuleTasks,
+          cache = cache
+        )
+      )
   }
 
   private[mill] def deduplicate(items: List[T]): List[T] = items
