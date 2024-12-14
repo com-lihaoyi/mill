@@ -11,7 +11,7 @@ private[mill] object SelectiveExecution {
   implicit val rw: upickle.default.ReadWriter[Metadata] = upickle.default.macroRW
 
   object Metadata {
-    def apply(evaluator: Evaluator, tasks: Seq[String]): Either[String, Metadata] = {
+    def compute(evaluator: Evaluator, tasks: Seq[String]): Either[String, Metadata] = {
       for (transitive <- plan0(evaluator, tasks)) yield {
         val inputTasksToLabels: Map[Task[_], String] = transitive
           .collect { case Terminal.Labelled(task: InputImpl[_], segments) =>
@@ -143,7 +143,7 @@ private[mill] object SelectiveExecution {
     if (oldMetadataTxt == "") Right(tasks.toSet)
     else {
       val oldMetadata = upickle.default.read[SelectiveExecution.Metadata](oldMetadataTxt)
-      for (newMetadata <- SelectiveExecution.Metadata(evaluator, tasks)) yield {
+      for (newMetadata <- SelectiveExecution.Metadata.compute(evaluator, tasks)) yield {
         SelectiveExecution.computeDownstream(evaluator, tasks, oldMetadata, newMetadata)
           .collect { case n: NamedTask[_] => n.ctx.segments.render }
           .toSet

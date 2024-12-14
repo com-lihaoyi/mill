@@ -16,7 +16,8 @@ trait SelectiveExecutionModule extends mill.define.Module {
    */
   def prepare(evaluator: Evaluator, tasks: String*): Command[Unit] =
     Task.Command(exclusive = true) {
-      val res: Either[String, Unit] = SelectiveExecution.Metadata(evaluator, tasks)
+      val res: Either[String, Unit] = SelectiveExecution.Metadata
+        .compute(evaluator, if (tasks.isEmpty) Seq("__") else tasks)
         .map(SelectiveExecution.saveMetadata(evaluator, _))
 
       res match {

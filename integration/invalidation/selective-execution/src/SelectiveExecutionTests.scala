@@ -58,7 +58,8 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
       // `selective.resolve` or `selective.run` and thingsstill work
       import tester._
 
-      eval(("selective.prepare", "{foo.fooCommand,bar.barCommand}"), check = true)
+      // `selective.prepare` defaults to `__` if no selector is passed
+      eval(("selective.prepare"), check = true)
       modifyFile(workspacePath / "bar/bar.txt", _ + "!")
 
       val resolve = eval(("selective.resolve", "bar.barCommand"), check = true)
