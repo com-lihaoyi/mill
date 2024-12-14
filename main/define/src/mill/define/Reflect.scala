@@ -33,25 +33,26 @@ private[mill] object Reflect {
       noParams: Boolean,
       getMethods: Class[_] => Seq[(java.lang.reflect.Method, String)]
   ): Seq[java.lang.reflect.Method] = {
-    val res = for {
-      (m, n) <- getMethods(outer)
-      if filter(n) &&
-        (!noParams || m.getParameterCount == 0) &&
-        inner.isAssignableFrom(m.getReturnType)
-    } yield m
 
-    // There can be multiple methods of the same name on a class if a sub-class
-    // overrides a super-class method and narrows the return type.
-    //
-    // 1. Make sure we sort the methods by their declaring class from lowest to
-    //    highest in the type hierarchy, and use `distinctBy` to only keep
-    //    the lowest version, before we finally sort them by name
-    //
-    // 2. Sometimes traits also generate synthetic forwarders for overrides,
-    //    which messes up the comparison since all forwarders will have the
-    //    same `getDeclaringClass`. To handle these scenarios, also sort by
-    //    return type, so we can identify the most specific override
-    res
+    getMethods(outer)
+      .collect{
+        case (m, n)
+          if filter(n) &&
+            (!noParams || m.getParameterCount == 0) &&
+            inner.isAssignableFrom(m.getReturnType) =>
+          m
+      }
+      // There can be multiple methods of the same name on a class if a sub-class
+      // overrides a super-class method and narrows the return type.
+      //
+      // 1. Make sure we sort the methods by their declaring class from lowest to
+      //    highest in the type hierarchy, and use `distinctBy` to only keep
+      //    the lowest version, before we finally sort them by name
+      //
+      // 2. Sometimes traits also generate synthetic forwarders for overrides,
+      //    which messes up the comparison since all forwarders will have the
+      //    same `getDeclaringClass`. To handle these scenarios, also sort by
+      //    return type, so we can identify the most specific override
       .sortWith((m1, m2) =>
         if (m1.getDeclaringClass.equals(m2.getDeclaringClass)) false
         else m1.getDeclaringClass.isAssignableFrom(m2.getDeclaringClass)

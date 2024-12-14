@@ -310,7 +310,7 @@ trait Resolve[T] {
       }
 
     resolved
-      .map(_.toSeq.sortBy(_.segments.render))
+      .map(_.sortBy(_.segments))
       .flatMap(handleResolved(
         rootModule,
         _,
