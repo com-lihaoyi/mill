@@ -87,6 +87,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       CodeSigUtils.precomputeMethodNamesPerClass(sortedGroups)
 
     val uncached = new java.util.concurrent.ConcurrentHashMap[Terminal, Unit]()
+
     def evaluateTerminals(
         terminals: Seq[Terminal],
         forkExecutionContext: mill.api.Ctx.Fork.Impl,
@@ -267,6 +268,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     val terminalToIndex = indexToTerminal.zipWithIndex.toMap
     val downstreamIndexEdges = indexToTerminal.map(t => reverseInterGroupDeps.getOrElse(t, Nil).map(terminalToIndex).toArray)
     val upstreamIndexEdges = indexToTerminal.map(t => interGroupDeps.getOrElse(t, Nil).map(terminalToIndex).toArray)
+
     os.write.over(
       outPath / OutFiles.millInvalidationForest,
       SpanningForest.spanningTreeToJsonTree(
@@ -277,7 +279,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     os.write.over(
       outPath / OutFiles.millDependencyForest,
       SpanningForest.spanningTreeToJsonTree(
-        SpanningForest.apply(downstreamIndexEdges, indexToTerminal.indices.toSet),
+        SpanningForest(downstreamIndexEdges, indexToTerminal.indices.toSet),
         i => indexToTerminal(i).render
       ).render(indent = 2)
     )

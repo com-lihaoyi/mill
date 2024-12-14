@@ -15,9 +15,7 @@ import scala.collection.mutable
 private[mill] object SpanningForest {
   def spanningTreeToJsonTree(node: SpanningForest.Node, stringify: Int => String): ujson.Obj = {
     ujson.Obj.from(
-      node.values.map { case (k, v) =>
-        stringify(k) -> spanningTreeToJsonTree(v, stringify)
-      }
+      node.values.map { case (k, v) => stringify(k) -> spanningTreeToJsonTree(v, stringify) }
     )
   }
   case class Node(values: mutable.Map[Int, Node] = mutable.Map())
@@ -43,11 +41,11 @@ private[mill] object SpanningForest {
       .groupMap(_._1)(_._2)
 
     breadthFirst(rootChangedNodeIndices) { index =>
-      val nextIndices =
-        downstreamGraphEdges.getOrElse(
-          index,
-          Array[Int]()
-        ) // needed to add explicit type for Scala 3.5.0-RC6
+      // needed to add explicit type for Scala 3.5.0-RC6
+      val nextIndices = downstreamGraphEdges
+        .getOrElse(index, Array[Int]())
+        .filter(importantVertices)
+
       // We build up the spanningForest during a normal breadth first search,
       // using the `nodeMapping` to quickly find a vertice's tree node so we
       // can add children to it. We need to duplicate the `seen.contains` logic
