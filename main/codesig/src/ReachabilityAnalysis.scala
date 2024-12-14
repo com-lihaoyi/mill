@@ -1,7 +1,7 @@
 package mill.codesig
-import mill.util.Tarjans
+import mill.util.{SpanningForest, Tarjans}
 import upickle.default.{Writer, writer}
-import JvmModel._
+import JvmModel.*
 
 import scala.collection.immutable.SortedMap
 import ujson.Obj
@@ -126,15 +126,10 @@ object CallGraphAnalysis {
       }
       .toSet
 
-    def spanningTreeToJsonTree(node: SpanningForest.Node): ujson.Obj = {
-      ujson.Obj.from(
-        node.values.map { case (k, v) =>
-          indexToNodes(k).toString -> spanningTreeToJsonTree(v)
-        }
-      )
-    }
-
-    spanningTreeToJsonTree(SpanningForest.apply(indexGraphEdges, nodesWithChangedHashes))
+    SpanningForest.spanningTreeToJsonTree(
+      SpanningForest.apply(indexGraphEdges, nodesWithChangedHashes),
+      k => indexToNodes(k).toString
+    )
   }
 
   def indexGraphEdges(

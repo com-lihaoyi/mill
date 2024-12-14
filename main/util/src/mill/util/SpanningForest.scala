@@ -1,5 +1,6 @@
-package mill.codesig
-import collection.mutable
+package mill.util
+
+import scala.collection.mutable
 
 /**
  * Algorithm to compute the minimal spanning forest of a directed acyclic graph
@@ -11,8 +12,14 @@ import collection.mutable
  * Returns the forest as a [[Node]] structure with the top-level node containing
  * the roots of the forest
  */
-object SpanningForest {
-
+private[mill] object SpanningForest {
+  def spanningTreeToJsonTree(node: SpanningForest.Node, stringify: Int => String): ujson.Obj = {
+    ujson.Obj.from(
+      node.values.map { case (k, v) =>
+        stringify(k) -> spanningTreeToJsonTree(v, stringify)
+      }
+    )
+  }
   case class Node(values: mutable.Map[Int, Node] = mutable.Map())
   def apply(indexGraphEdges: Array[Array[Int]], importantVertices: Set[Int]): Node = {
     // Find all importantVertices which are "roots" with no incoming edges
@@ -35,7 +42,7 @@ object SpanningForest {
       .flatMap { case (vs, k) => vs.map((_, k)) }
       .groupMap(_._1)(_._2)
 
-    ResolvedCalls.breadthFirst(rootChangedNodeIndices) { index =>
+    breadthFirst(rootChangedNodeIndices) { index =>
       val nextIndices =
         downstreamGraphEdges.getOrElse(
           index,
@@ -54,4 +61,22 @@ object SpanningForest {
     }
     spanningForest
   }
+
+  def breadthFirst[T](start: IterableOnce[T])(edges: T => IterableOnce[T]): Seq[T] = {
+    val seen = collection.mutable.Set.empty[T]
+    val seenList = collection.mutable.Buffer.empty[T]
+    val queued = collection.mutable.Queue.from(start)
+
+    while (queued.nonEmpty) {
+      val current = queued.dequeue()
+      seen.add(current)
+      seenList.append(current)
+
+      for (next <- edges(current).iterator) {
+        if (!seen.contains(next)) queued.enqueue(next)
+      }
+    }
+    seenList.toSeq
+  }
+
 }
