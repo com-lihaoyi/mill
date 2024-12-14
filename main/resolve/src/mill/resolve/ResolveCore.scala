@@ -62,7 +62,7 @@ private object ResolveCore {
       val instantiatedModules: collection.mutable.Map[Segments, Either[String, Module]] =
         collection.mutable.Map(),
       decodedNames: collection.mutable.Map[String, String] = collection.mutable.Map(),
-      methods: collection.mutable.Map[String, Array[(java.lang.reflect.Method, String)]] =
+      methods: collection.mutable.Map[Class[_], Array[(java.lang.reflect.Method, String)]] =
         collection.mutable.Map()
   ) {
     def decode(s: String): String = {
@@ -70,7 +70,7 @@ private object ResolveCore {
     }
 
     def getMethods(cls: Class[_]): Array[(Method, String)] = {
-      methods.getOrElseUpdate(cls.getName, Reflect.getMethods(cls, decode))
+      methods.getOrElseUpdate(cls, Reflect.getMethods(cls, decode))
     }
   }
 
