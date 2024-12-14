@@ -11,7 +11,7 @@ private[mill] object SelectiveExecution {
   implicit val rw: upickle.default.ReadWriter[Metadata] = upickle.default.macroRW
 
   object Metadata {
-    def apply(evaluator: Evaluator, tasks: Seq[String]): Either[String, Metadata] = {
+    def compute(evaluator: Evaluator, tasks: Seq[String]): Either[String, Metadata] = {
       for (transitive <- plan0(evaluator, tasks)) yield {
         val inputTasksToLabels: Map[Task[_], String] = transitive
           .collect { case Terminal.Labelled(task: InputImpl[_], segments) =>
