@@ -1,5 +1,7 @@
 package mill.define
 
+import scala.math.Ordering.Implicits.seqOrdering
+
 /**
  * Models a path with the Mill build hierarchy, e.g. `amm.util[2.11].test.compile`.
  * Segments must start with a [[Segment.Label]].
@@ -52,9 +54,11 @@ case class Segments private (value: Seq[Segment]) {
     case Segment.Cross(_) :: _ =>
       throw new IllegalArgumentException("Segments must start with a Label, but found a Cross.")
   }
+  override lazy val hashCode = value.hashCode()
 }
 
 object Segments {
+  implicit def ordering: Ordering[Segments] = Ordering.by(_.value)
   def apply(): Segments = new Segments(Nil)
   def apply(items: Seq[Segment]): Segments = new Segments(items)
   def labels(values: String*): Segments = Segments(values.map(Segment.Label))

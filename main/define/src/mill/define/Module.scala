@@ -79,7 +79,7 @@ object Module {
         implicitly[ClassTag[T]].runtimeClass,
         filter,
         noParams = true,
-        scala.reflect.NameTransformer.decode
+          Reflect.getMethods(_, scala.reflect.NameTransformer.decode)
       )
         .map(_.invoke(outer).asInstanceOf[T])
     }
@@ -91,7 +91,7 @@ object Module {
       Reflect.reflectNestedObjects02(
           outer.getClass,
           filter,
-          scala.reflect.NameTransformer.decode
+          Reflect.getMethods(_, scala.reflect.NameTransformer.decode)
         )
         .map { case (name, cls, getter) => getter(outer) }
     }

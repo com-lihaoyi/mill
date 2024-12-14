@@ -1,34 +1,42 @@
 package mill.define
 
-import fastparse.NoWhitespace._
-import fastparse._
-
-import java.lang.reflect.Modifier
 import scala.reflect.ClassTag
 
 private[mill] object Reflect {
+  import java.lang.reflect.Modifier
 
-  def ident[_p: P]: P[String] = P(CharsWhileIn("a-zA-Z0-9_\\-")).!
+  def isLegalIdentifier(identifier: String): Boolean = {
+    var i = 0
+    val len = identifier.length
+    while(i < len){
+      val c = identifier.charAt(i)
+      if ('a' <= c && c <= 'z' || 'A' <= c && c <= 'Z' || '0' <= c && c <= '9' || c == '_' || c == '-'){
+        i += 1
+      } else{
+        return false
+      }
+    }
+    true
+  }
 
-  def standaloneIdent[_p: P]: P[String] = P(Start ~ ident ~ End)
-
-  def isLegalIdentifier(identifier: String): Boolean =
-    parse(identifier, standaloneIdent(_)).isInstanceOf[Parsed.Success[_]]
+  def getMethods(cls: Class[_], decode: String => String) =
+    for {
+      m <- cls.getMethods
+      n = decode(m.getName)
+      if isLegalIdentifier(n) && (m.getModifiers & Modifier.STATIC) == 0
+    } yield (m, n)
 
   def reflect(
       outer: Class[_],
       inner: Class[_],
       filter: String => Boolean,
       noParams: Boolean,
-      decode: String => String
+      getMethods: Class[_] => Seq[(java.lang.reflect.Method, String)]
   ): Seq[java.lang.reflect.Method] = {
     val res = for {
-      m <- outer.getMethods
-      n = decode(m.getName)
+      (m, n) <- getMethods(outer)
       if filter(n) &&
-        isLegalIdentifier(n) &&
         (!noParams || m.getParameterCount == 0) &&
-        (m.getModifiers & Modifier.STATIC) == 0 &&
         inner.isAssignableFrom(m.getReturnType)
     } yield m
 
@@ -63,15 +71,17 @@ private[mill] object Reflect {
   def reflectNestedObjects0[T: ClassTag](
       outerCls: Class[_],
       filter: String => Boolean = Function.const(true),
-      decode: String => String
-  ): Seq[(String, java.lang.reflect.Member)] = {
+      getMethods: Class[_] => Seq[(java.lang.reflect.Method, String)]
+
+                                        ): Seq[(String, java.lang.reflect.Member)] = {
 
     val first = reflect(
       outerCls,
       implicitly[ClassTag[T]].runtimeClass,
       filter,
       noParams = true,
-      decode
+      getMethods,
+
     )
       .map(m => (m.getName, m))
 
@@ -95,9 +105,10 @@ private[mill] object Reflect {
   def reflectNestedObjects02[T: ClassTag](
       outerCls: Class[_],
       filter: String => Boolean = Function.const(true),
-      decode: String => String
-  ): Seq[(String, Class[_], Any => T)] = {
-    reflectNestedObjects0[T](outerCls, filter, decode).map {
+      getMethods: Class[_] => Seq[(java.lang.reflect.Method, String)]
+
+                                         ): Seq[(String, Class[_], Any => T)] = {
+    reflectNestedObjects0[T](outerCls, filter, getMethods).map {
       case (name, m: java.lang.reflect.Method) =>
         (name, m.getReturnType, (outer: Any) => m.invoke(outer).asInstanceOf[T])
       case (name, m: java.lang.reflect.Field) =>

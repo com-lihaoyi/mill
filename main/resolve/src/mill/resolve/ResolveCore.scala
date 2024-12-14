@@ -33,7 +33,7 @@ private object ResolveCore {
 
   sealed trait Result
 
-  case class Success(value: Set[Resolved]) extends Result {
+  case class Success(value: Seq[Resolved]) extends Result {
     assert(value.nonEmpty)
   }
 
@@ -58,9 +58,14 @@ private object ResolveCore {
    * same module
    */
   class Cache(val instantiatedModules: collection.mutable.Map[Segments, Either[String, Module]] = collection.mutable.Map(),
-              val decodedNames: collection.mutable.Map[String, String] = collection.mutable.Map()) {
+              decodedNames: collection.mutable.Map[String, String] = collection.mutable.Map(),
+              methods: collection.mutable.Map[String, Array[(java.lang.reflect.Method, String)]] = collection.mutable.Map()) {
     def decode(s: String): String = {
       decodedNames.getOrElseUpdate(s, scala.reflect.NameTransformer.decode(s))
+    }
+
+    def getMethods(cls: Class[_]) = {
+      methods.getOrElseUpdate(cls.getName, Reflect.getMethods(cls, decode))
     }
   }
 
@@ -93,10 +98,10 @@ private object ResolveCore {
     }
 
     remainingQuery match {
-      case Nil => Success(Set(current))
+      case Nil => Success(Seq(current))
       case head :: tail =>
-        def recurse(searchModules: Set[Resolved]): Result = {
-          val results = searchModules
+        def recurse(searchModules: Seq[Resolved]): Result = {
+          val (failures, successesLists) = searchModules
             .map { r =>
               val rClasses = moduleClasses(Set(r))
               if (seenModules.intersect(rClasses).nonEmpty) {
@@ -114,7 +119,6 @@ private object ResolveCore {
             }
             .partitionMap { case s: Success => Right(s.value); case f: Failed => Left(f) }
 
-          val (failures, successesLists) = results
           val (errors, notFounds) = failures.partitionMap {
             case s: NotFound => Right(s)
             case s: Error => Left(s.msg)
@@ -131,7 +135,7 @@ private object ResolveCore {
 
         (head, current) match {
           case (Segment.Label(singleLabel), m: Resolved.Module) =>
-            val resOrErr: Either[String, Iterable[Resolved]] = singleLabel match {
+            val resOrErr: Either[String, Seq[Resolved]] = singleLabel match {
               case "__" =>
                 val self = Seq(Resolved.Module(m.segments, m.cls))
                 val transitiveOrErr =
@@ -195,7 +199,7 @@ private object ResolveCore {
 
             resOrErr match {
               case Left(err) => Error(err)
-              case Right(res) => recurse(res.toSet)
+              case Right(res) => recurse(res.distinct)
             }
 
           case (Segment.Cross(cross), m: Resolved.Module) =>
@@ -224,7 +228,6 @@ private object ResolveCore {
                   recurse(
                     searchModules
                       .map(m => Resolved.Module(m.millModuleSegments, m.getClass))
-                      .toSet
                   )
               }
 
@@ -285,7 +288,7 @@ private object ResolveCore {
       typePattern: Seq[String],
       seenModules: Set[Class[_]],
       cache: Cache
-  ): Either[String, Set[Resolved]] = {
+  ): Either[String, Seq[Resolved]] = {
     if (seenModules.contains(cls)) Left(cyclicModuleErrorMsg(segments))
     else {
       val errOrDirect = resolveDirectChildren(rootModule, cls, nameOpt, segments, typePattern, cache)
@@ -362,7 +365,7 @@ private object ResolveCore {
       segments: Segments,
       typePattern: Seq[String] = Nil,
       cache: Cache
-  ): Either[String, Set[Resolved]] = {
+  ): Either[String, Seq[Resolved]] = {
     val crossesOrErr = if (classOf[Cross[_]].isAssignableFrom(cls) && nameOpt.isEmpty) {
       instantiateModule(rootModule, segments, cache).map {
         case cross: Cross[_] =>
@@ -389,9 +392,7 @@ private object ResolveCore {
       }
       direct0 <- resolveDirectChildren0(rootModule, segments, cls, nameOpt, typePattern, cache)
       direct <- Right(expandSegments(direct0))
-    } yield {
-      direct.toSet ++ filteredCrosses
-    }
+    } yield direct ++ filteredCrosses
   }
 
   def resolveDirectChildren0(
@@ -423,7 +424,7 @@ private object ResolveCore {
         }
       } else Right {
         val reflectMemberObjects = Reflect
-          .reflectNestedObjects02[Module](cls, namePred, cache.decode)
+          .reflectNestedObjects02[Module](cls, namePred, cache.getMethods)
           .collect {
             case (name, memberCls, getter) if classMatchesTypePred(typePattern)(memberCls) =>
               val resolved = Resolved.Module(Segments.labels(cache.decode(name)), memberCls)
@@ -436,14 +437,14 @@ private object ResolveCore {
     }
 
     val namedTasks = Reflect
-      .reflect(cls, classOf[NamedTask[_]], namePred, noParams = true, cache.decode)
+      .reflect(cls, classOf[NamedTask[_]], namePred, noParams = true, cache.getMethods)
       .map { m =>
         Resolved.NamedTask(Segments.labels(cache.decode(m.getName))) ->
           None
       }
 
     val commands = Reflect
-      .reflect(cls, classOf[Command[_]], namePred, noParams = false, cache.decode)
+      .reflect(cls, classOf[Command[_]], namePred, noParams = false, cache.getMethods)
       .map(m => cache.decode(m.getName))
       .map { name => Resolved.Command(Segments.labels(name)) -> None }
 
@@ -472,6 +473,6 @@ private object ResolveCore {
       case _ => Set[Segment]()
     }
 
-    NotFound(querySoFar, Set(current), next, possibleNexts)
+    NotFound(querySoFar, Set(current), next, possibleNexts.toSet)
   }
 }
