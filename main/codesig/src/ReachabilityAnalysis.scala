@@ -126,8 +126,16 @@ object CallGraphAnalysis {
       }
       .toSet
 
+    val reverseGraphMap = indexGraphEdges
+      .zipWithIndex
+      .flatMap { case (vs, k) => vs.map((_, k)) }
+      .groupMap(_._1)(_._2)
+
     SpanningForest.spanningTreeToJsonTree(
-      SpanningForest.apply(indexGraphEdges, nodesWithChangedHashes),
+      SpanningForest.apply(
+        indexGraphEdges.indices.map(reverseGraphMap(_)).toArray,
+        nodesWithChangedHashes
+      ),
       k => indexToNodes(k).toString
     )
   }

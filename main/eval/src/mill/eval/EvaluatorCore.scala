@@ -272,14 +272,14 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     os.write.over(
       outPath / OutFiles.millInvalidationForest,
       SpanningForest.spanningTreeToJsonTree(
-        SpanningForest(upstreamIndexEdges, uncached.keys().asScala.map(terminalToIndex).toSet),
+        SpanningForest(downstreamIndexEdges, uncached.keys().asScala.map(terminalToIndex).toSet),
         i => indexToTerminal(i).render
       ).render(indent = 2)
     )
     os.write.over(
       outPath / OutFiles.millDependencyForest,
       SpanningForest.spanningTreeToJsonTree(
-        SpanningForest(downstreamIndexEdges, indexToTerminal.indices.toSet),
+        SpanningForest(upstreamIndexEdges, indexToTerminal.indices.toSet),
         i => indexToTerminal(i).render
       ).render(indent = 2)
     )

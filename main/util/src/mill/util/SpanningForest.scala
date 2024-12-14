@@ -22,9 +22,8 @@ private[mill] object SpanningForest {
   def apply(indexGraphEdges: Array[Array[Int]], importantVertices: Set[Int]): Node = {
     // Find all importantVertices which are "roots" with no incoming edges
     // from other importantVertices
-    val rootChangedNodeIndices = importantVertices.filter(i =>
-      !indexGraphEdges(i).exists(importantVertices.contains(_))
-    )
+    val destinations = importantVertices.flatMap(indexGraphEdges(_))
+    val rootChangedNodeIndices = importantVertices.filter(!destinations.contains(_))
 
     // Prepare a mutable tree structure that we will return, pre-populated with
     // just the first level of nodes from the `rootChangedNodeIndices`, as well
@@ -35,15 +34,9 @@ private[mill] object SpanningForest {
 
     // Do a breadth first search from the `rootChangedNodeIndices` across the
     // reverse edges of the graph to build up the spanning forest
-    val downstreamGraphEdges = indexGraphEdges
-      .zipWithIndex
-      .flatMap { case (vs, k) => vs.map((_, k)) }
-      .groupMap(_._1)(_._2)
-
     breadthFirst(rootChangedNodeIndices) { index =>
       // needed to add explicit type for Scala 3.5.0-RC6
-      val nextIndices = downstreamGraphEdges
-        .getOrElse(index, Array[Int]())
+      val nextIndices = indexGraphEdges(index)
         .filter(importantVertices)
 
       // We build up the spanningForest during a normal breadth first search,
