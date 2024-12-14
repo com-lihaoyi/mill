@@ -103,7 +103,7 @@ private[mill] trait GroupEvaluator {
             executionContext,
             exclusive
           )
-          GroupEvaluator.Results(newResults, newEvaluated.toSeq, null, inputsHash, -1)
+          GroupEvaluator.Results(newResults, newEvaluated.toSeq, null, inputsHash, -1, changedValueHash = false)
 
         case labelled: Terminal.Labelled[_] =>
           val out =
@@ -126,7 +126,7 @@ private[mill] trait GroupEvaluator {
               cached.isEmpty
           )
 
-          upToDateWorker.map((_, inputsHash)) orElse cached.flatMap(_._2) match {
+          upToDateWorker.map((_, inputsHash)) orElse cached.flatMap { case (inputHash, valOpt, valueHash) => valOpt.map((_, valueHash))} match {
             case Some((v, hashCode)) =>
               val res = Result.Success((v, hashCode))
               val newResults: Map[Task[_], TaskResult[(Val, Int)]] =
@@ -137,7 +137,8 @@ private[mill] trait GroupEvaluator {
                 Nil,
                 cached = true,
                 inputsHash,
-                -1
+                -1,
+                changedValueHash = false
               )
 
             case _ =>
@@ -160,12 +161,14 @@ private[mill] trait GroupEvaluator {
                   exclusive
                 )
 
-              newResults(labelled.task) match {
+              val valueHash = newResults(labelled.task) match {
                 case TaskResult(Result.Failure(_, Some((v, _))), _) =>
                   handleTaskResult(v, v.##, paths.meta, inputsHash, labelled)
+                  v.##
 
                 case TaskResult(Result.Success((v, _)), _) =>
                   handleTaskResult(v, v.##, paths.meta, inputsHash, labelled)
+                  v.##
 
                 case _ =>
                   // Wipe out any cached meta.json file that exists, so
@@ -173,14 +176,21 @@ private[mill] trait GroupEvaluator {
                   // assume it's associated with the possibly-borked state of the
                   // destPath after an evaluation failure.
                   os.remove.all(paths.meta)
+                  0
               }
+
+              mill.main.client.DebugLog.println("")
+              mill.main.client.DebugLog.println(labelled.render)
+              mill.main.client.DebugLog.println(cached.map(_._3).toString)
+              mill.main.client.DebugLog.println(valueHash.toString)
 
               GroupEvaluator.Results(
                 newResults,
                 newEvaluated.toSeq,
                 cached = if (labelled.task.isInstanceOf[InputImpl[_]]) null else false,
                 inputsHash,
-                cached.map(_._1).getOrElse(-1)
+                cached.map(_._1).getOrElse(-1),
+                !cached.map(_._3).contains(valueHash)
               )
           }
       }
@@ -383,7 +393,7 @@ private[mill] trait GroupEvaluator {
       inputsHash: Int,
       labelled: Terminal.Labelled[_],
       paths: EvaluatorPaths
-  ): Option[(Int, Option[(Val, Int)])] = {
+  ): Option[(Int, Option[Val], Int)] = {
     for {
       cached <-
         try Some(upickle.default.read[Evaluator.Cached](paths.meta.toIO))
@@ -405,7 +415,8 @@ private[mill] trait GroupEvaluator {
               None
             case NonFatal(_) => None
           }
-      } yield (Val(parsed), cached.valueHash)
+      } yield Val(parsed),
+      cached.valueHash
     )
   }
 
@@ -457,6 +468,7 @@ private[mill] object GroupEvaluator {
       newEvaluated: Seq[Task[_]],
       cached: java.lang.Boolean,
       inputsHash: Int,
-      previousInputsHash: Int
+      previousInputsHash: Int,
+      changedValueHash: Boolean
   )
 }

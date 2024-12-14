@@ -87,6 +87,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       CodeSigUtils.precomputeMethodNamesPerClass(sortedGroups)
 
     val uncached = new java.util.concurrent.ConcurrentHashMap[Terminal, Unit]()
+    val changedValueHash = new java.util.concurrent.ConcurrentHashMap[Terminal, Unit]()
 
     def evaluateTerminals(
         terminals: Seq[Terminal],
@@ -118,7 +119,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
           val taskResults =
             group.map(t => (t, TaskResult[(Val, Int)](failure, () => failure))).toMap
           futures(terminal) = Future.successful(
-            Some(GroupEvaluator.Results(taskResults, group.toSeq, false, -1, -1))
+            Some(GroupEvaluator.Results(taskResults, group.toSeq, false, -1, -1, false))
           )
         } else {
           futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
@@ -195,6 +196,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
                 cached = res.cached
               )
               if (!res.cached) uncached.put(terminal, ())
+              if (res.changedValueHash) changedValueHash.put(terminal, ())
 
               profileLogger.log(
                 ProfileLogger.Timing(
@@ -266,7 +268,12 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
     val indexToTerminal = sortedGroups.keys().toArray
     val terminalToIndex = indexToTerminal.zipWithIndex.toMap
-    val downstreamIndexEdges = indexToTerminal.map(t => reverseInterGroupDeps.getOrElse(t, Nil).map(terminalToIndex).toArray)
+    val changedTerminalIndices = changedValueHash.keys().asScala.toSet
+    val downstreamIndexEdges = indexToTerminal
+      .map(t =>
+        if (changedTerminalIndices(t)) reverseInterGroupDeps.getOrElse(t, Nil).map(terminalToIndex).toArray
+        else Array.empty[Int]
+      )
     val upstreamIndexEdges = indexToTerminal.map(t => interGroupDeps.getOrElse(t, Nil).map(terminalToIndex).toArray)
 
     os.write.over(
