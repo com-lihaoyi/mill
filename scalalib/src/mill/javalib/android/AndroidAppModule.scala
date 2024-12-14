@@ -420,7 +420,7 @@ trait AndroidAppModule extends JavaModule {
     val cp = runClasspath().map(_.path).filter(os.exists).mkString(":")
 
     // Set path to the location of the project source codes
-    val src = sources().map(_.path).filter(os.exists).mkString(":")
+    val src = sources().map(_.path / "main" / "java").filter(os.exists).mkString(":")
 
     // Set path to the location of the project ressource codes
     val res = resources().map(_.path).filter(os.exists).mkString(":")
