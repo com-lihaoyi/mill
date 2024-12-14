@@ -54,7 +54,7 @@ case class Segments private (value: Seq[Segment]) {
     case Segment.Cross(_) :: _ =>
       throw new IllegalArgumentException("Segments must start with a Label, but found a Cross.")
   }
-  override lazy val hashCode = value.hashCode()
+  override lazy val hashCode: Int = value.hashCode()
 }
 
 object Segments {

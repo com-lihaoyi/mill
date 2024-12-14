@@ -1,6 +1,7 @@
 package mill.define
 
 import scala.reflect.ClassTag
+import java.lang.reflect.Method
 
 private[mill] object Reflect {
   import java.lang.reflect.Modifier
@@ -21,7 +22,7 @@ private[mill] object Reflect {
     true
   }
 
-  def getMethods(cls: Class[_], decode: String => String) =
+  def getMethods(cls: Class[_], decode: String => String): Array[(Method, String)] =
     for {
       m <- cls.getMethods
       n = decode(m.getName)

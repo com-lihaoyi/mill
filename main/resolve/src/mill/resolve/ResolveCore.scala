@@ -4,6 +4,7 @@ import mill.define._
 import mill.util.EitherOps
 
 import java.lang.reflect.InvocationTargetException
+import java.lang.reflect.Method
 
 /**
  * Takes a single list of segments, without braces but including wildcards, and
@@ -68,7 +69,7 @@ private object ResolveCore {
       decodedNames.getOrElseUpdate(s, scala.reflect.NameTransformer.decode(s))
     }
 
-    def getMethods(cls: Class[_]) = {
+    def getMethods(cls: Class[_]): Array[(Method, String)] = {
       methods.getOrElseUpdate(cls.getName, Reflect.getMethods(cls, decode))
     }
   }
