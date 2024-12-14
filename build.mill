@@ -258,9 +258,8 @@ object Deps {
 
 def millVersion: T[String] = Task {
   if (Task.env.contains("MILL_STABLE_VERSION")) VcsVersion.calcVcsState(Task.log).format()
-  else "DEV"
+  else "SNAPSHOT"
 }
-
 
 def millLastTag: T[String] = Task {
   VcsVersion.vcsState().lastTag.getOrElse(
