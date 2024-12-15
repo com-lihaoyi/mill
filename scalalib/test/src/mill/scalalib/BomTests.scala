@@ -838,7 +838,7 @@ object BomTests extends TestSuite {
         val res = eval(modules.bomScope.provided.fail.resolvedIvyDeps)
         assert(
           res.left.exists(_.toString.contains(
-            "not found: https://repo1.maven.org/maven2/com/google/protobuf/protobuf-java-util/_/protobuf-java-util-_.pom"
+            "not found: https://repo1.maven.org/maven2/com/google/protobuf/protobuf-java-util//protobuf-java-util-.pom"
           ))
         )
       }
@@ -853,7 +853,7 @@ object BomTests extends TestSuite {
         val res = eval(modules.bomScope.testScopeFail.compileClasspath)
         assert(
           res.left.exists(_.toString.contains(
-            "not found: https://repo1.maven.org/maven2/org/scalatest/scalatest_2.13/_/scalatest_2.13-_.pom"
+            "not found: https://repo1.maven.org/maven2/org/scalatest/scalatest_2.13//scalatest_2.13-.pom"
           ))
         )
       }
@@ -902,7 +902,7 @@ object BomTests extends TestSuite {
         val res = eval(modules.depMgmtScope.provided.fail.resolvedIvyDeps)
         assert(
           res.left.exists(_.toString.contains(
-            "not found: https://repo1.maven.org/maven2/com/google/protobuf/protobuf-java-util/_/protobuf-java-util-_.pom"
+            "not found: https://repo1.maven.org/maven2/com/google/protobuf/protobuf-java-util//protobuf-java-util-.pom"
           ))
         )
       }
