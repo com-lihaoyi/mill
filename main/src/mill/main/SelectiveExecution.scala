@@ -4,6 +4,7 @@ import mill.api.Strict
 import mill.define.{InputImpl, NamedTask, Task}
 import mill.eval.{CodeSigUtils, Evaluator, Plan, Terminal}
 import mill.main.client.OutFiles
+import mill.util.SpanningForest.breadthFirst
 import mill.resolve.{Resolve, SelectMode}
 
 private[mill] object SelectiveExecution {
@@ -11,7 +12,7 @@ private[mill] object SelectiveExecution {
   implicit val rw: upickle.default.ReadWriter[Metadata] = upickle.default.macroRW
 
   object Metadata {
-    def apply(evaluator: Evaluator, tasks: Seq[String]): Either[String, Metadata] = {
+    def compute(evaluator: Evaluator, tasks: Seq[String]): Either[String, Metadata] = {
       for (transitive <- plan0(evaluator, tasks)) yield {
         val inputTasksToLabels: Map[Task[_], String] = transitive
           .collect { case Terminal.Labelled(task: InputImpl[_], segments) =>
@@ -114,23 +115,6 @@ private[mill] object SelectiveExecution {
     breadthFirst(changedRootTasks)(downstreamEdgeMap.getOrElse(_, Nil))
   }
 
-  def breadthFirst[T](start: IterableOnce[T])(edges: T => IterableOnce[T]): Seq[T] = {
-    val seen = collection.mutable.Set.empty[T]
-    val seenList = collection.mutable.Buffer.empty[T]
-    val queued = collection.mutable.Queue.from(start)
-
-    while (queued.nonEmpty) {
-      val current = queued.dequeue()
-      seen.add(current)
-      seenList.append(current)
-
-      for (next <- edges(current).iterator) {
-        if (!seen.contains(next)) queued.enqueue(next)
-      }
-    }
-    seenList.toSeq
-  }
-
   def saveMetadata(evaluator: Evaluator, metadata: SelectiveExecution.Metadata): Unit = {
     os.write.over(
       evaluator.outPath / OutFiles.millSelectiveExecution,
@@ -143,7 +127,7 @@ private[mill] object SelectiveExecution {
     if (oldMetadataTxt == "") Right(tasks.toSet)
     else {
       val oldMetadata = upickle.default.read[SelectiveExecution.Metadata](oldMetadataTxt)
-      for (newMetadata <- SelectiveExecution.Metadata(evaluator, tasks)) yield {
+      for (newMetadata <- SelectiveExecution.Metadata.compute(evaluator, tasks)) yield {
         SelectiveExecution.computeDownstream(evaluator, tasks, oldMetadata, newMetadata)
           .collect { case n: NamedTask[_] => n.ctx.segments.render }
           .toSet

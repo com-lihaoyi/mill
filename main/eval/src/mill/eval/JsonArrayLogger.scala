@@ -43,6 +43,7 @@ private object ProfileLogger {
       label: String,
       millis: Int,
       cached: java.lang.Boolean = null,
+      valueHashChanged: java.lang.Boolean = null,
       dependencies: Seq[String] = Nil,
       inputsHash: Int,
       previousInputsHash: Int = -1

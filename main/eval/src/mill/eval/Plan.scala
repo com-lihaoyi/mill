@@ -4,6 +4,9 @@ import mill.api.Strict
 import mill.define.{NamedTask, Segment, Segments, Task}
 import mill.util.MultiBiMap
 
+import java.util.StringTokenizer
+import scala.jdk.CollectionConverters.IteratorHasAsScala
+
 private[mill] object Plan {
   def plan(goals: Agg[Task[_]]): (MultiBiMap[Terminal, Task[_]], Strict.Agg[Task[_]]) = {
     val transitive = Graph.transitiveTargets(goals)
@@ -45,7 +48,12 @@ private[mill] object Plan {
    * suffix that uniquely distinguishes them.
    */
   private def assignOverridenTaskSegments(overriddenEnclosings: Seq[String], t: NamedTask[Any]) = {
-    def splitEnclosing(s: String) = s.split("[.# ]").filter(_ != "<empty>")
+    // StringTokenizer is faster than String#split due to not using regexes
+    def splitEnclosing(s: String) = new StringTokenizer(s, ".# ")
+      .asIterator()
+      .asScala.map(_.asInstanceOf[String])
+      .filter(_ != "<empty>")
+      .toArray
     val segments = t.ctx.segments
     val superSegmentStrings = overriddenEnclosings.map(splitEnclosing)
 

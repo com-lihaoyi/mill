@@ -1,7 +1,7 @@
 package mill.codesig
-import mill.util.Tarjans
+import mill.util.{SpanningForest, Tarjans}
 import upickle.default.{Writer, writer}
-import JvmModel._
+import JvmModel.*
 
 import scala.collection.immutable.SortedMap
 import ujson.Obj
@@ -77,6 +77,7 @@ class CallGraphAnalysis(
     .collect { case (CallGraphAnalysis.LocalDef(d), v) => (d.toString, v) }
     .to(SortedMap)
 
+  logger.mandatoryLog(transitiveCallGraphHashes0)
   logger.log(transitiveCallGraphHashes)
 
   lazy val spanningInvalidationForest: Obj = prevTransitiveCallGraphHashesOpt() match {
@@ -90,7 +91,7 @@ class CallGraphAnalysis(
     case None => ujson.Obj()
   }
 
-  logger.log(spanningInvalidationForest)
+  logger.mandatoryLog(spanningInvalidationForest)
 }
 
 object CallGraphAnalysis {
@@ -121,20 +122,22 @@ object CallGraphAnalysis {
       .filter { nodeIndex =>
         val currentValue = transitiveCallGraphHashes0Map(indexToNodes(nodeIndex))
         val prevValue = prevTransitiveCallGraphHashes.get(indexToNodes(nodeIndex).toString)
-
         !prevValue.contains(currentValue)
       }
       .toSet
 
-    def spanningTreeToJsonTree(node: SpanningForest.Node): ujson.Obj = {
-      ujson.Obj.from(
-        node.values.map { case (k, v) =>
-          indexToNodes(k).toString -> spanningTreeToJsonTree(v)
-        }
-      )
-    }
+    val reverseGraphMap = indexGraphEdges
+      .zipWithIndex
+      .flatMap { case (vs, k) => vs.map((_, k)) }
+      .groupMap(_._1)(_._2)
 
-    spanningTreeToJsonTree(SpanningForest.apply(indexGraphEdges, nodesWithChangedHashes))
+    val reverseGraphEdges =
+      indexGraphEdges.indices.map(reverseGraphMap.getOrElse(_, Array())).toArray
+
+    SpanningForest.spanningTreeToJsonTree(
+      SpanningForest.apply(reverseGraphEdges, nodesWithChangedHashes, false),
+      k => indexToNodes(k).toString
+    )
   }
 
   def indexGraphEdges(

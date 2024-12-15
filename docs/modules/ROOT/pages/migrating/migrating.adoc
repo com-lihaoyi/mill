@@ -283,7 +283,7 @@ to see which ones may help:
 
 * xref:fundamentals/modules.adoc#_trait_modules[Trait Modules] to centralize common config
 
-* xref:depth/large-builds.adoc#_multi_file_builds[Multi-File Builds] to let you co-locate
+* xref:large/multi-file-builds.adoc[Multi-File Builds] to let you co-locate
   build logic and the code being built
 
 * xref:extending/writing-plugins.adoc[Writing and Publishing your own Mill Plugins]

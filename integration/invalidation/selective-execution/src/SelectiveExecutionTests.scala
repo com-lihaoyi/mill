@@ -52,12 +52,14 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
       assert(runAll.out.contains("Computing fooCommand"))
       assert(runAll.out.contains("Computing barCommand"))
     }
+
     test("changed-inputs-generic") - integrationTest { tester =>
       // Make sure you can run `selective.prepare` on a broader set of tasks than
       // `selective.resolve` or `selective.run` and thingsstill work
       import tester._
 
-      eval(("selective.prepare", "{foo.fooCommand,bar.barCommand}"), check = true)
+      // `selective.prepare` defaults to `__` if no selector is passed
+      eval(("selective.prepare"), check = true)
       modifyFile(workspacePath / "bar/bar.txt", _ + "!")
 
       val resolve = eval(("selective.resolve", "bar.barCommand"), check = true)

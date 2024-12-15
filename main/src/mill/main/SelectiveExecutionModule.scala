@@ -16,7 +16,8 @@ trait SelectiveExecutionModule extends mill.define.Module {
    */
   def prepare(evaluator: Evaluator, tasks: String*): Command[Unit] =
     Task.Command(exclusive = true) {
-      val res: Either[String, Unit] = SelectiveExecution.Metadata(evaluator, tasks)
+      val res: Either[String, Unit] = SelectiveExecution.Metadata
+        .compute(evaluator, if (tasks.isEmpty) Seq("__") else tasks)
         .map(SelectiveExecution.saveMetadata(evaluator, _))
 
       res match {
@@ -36,7 +37,20 @@ trait SelectiveExecutionModule extends mill.define.Module {
       val result = for {
         resolved <- Resolve.Tasks.resolve(evaluator.rootModule, tasks, SelectMode.Multi)
         diffed <- SelectiveExecution.diffMetadata(evaluator, tasks)
-      } yield resolved.map(_.ctx.segments.render).toSet.intersect(diffed).toArray.sorted
+        resolvedDiffed <- {
+          if (diffed.isEmpty) Right(Nil)
+          else Resolve.Segments.resolve(
+            evaluator.rootModule,
+            diffed.toSeq,
+            SelectMode.Multi,
+            evaluator.allowPositionalCommandArgs
+          )
+        }
+      } yield {
+        resolved.map(
+          _.ctx.segments.render
+        ).toSet.intersect(resolvedDiffed.map(_.render).toSet).toArray.sorted
+      }
 
       result match {
         case Left(err) => Result.Failure(err)
