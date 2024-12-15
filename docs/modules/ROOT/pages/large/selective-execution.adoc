@@ -1,0 +1,44 @@
+= Selective Execution
+
+include::partial$gtag-config.adoc[]
+
+
+include::partial$example/large/selective/9-selective-execution.adoc[]
+
+
+== Reproducibility and Determinism
+
+Selective execution relies on the inputs to your project being deterministic
+and reproducible, except for the code changes between the two versions, so that
+Mill can compare the state of the build inputs before and after and only run
+tasks downstream of those that changed. This is usually the case, but there are
+some subtleties to be aware of:
+
+- *Dynamic `Task.Input` to capture Git metadata must be disabled*, e.g. using
+  https://github.com/lefou/mill-vcs-version[mill-vcs-version]. The easiest way to do
+  this is to guard such dynamic inputs on an environment variable, such that
+  in most scenarios it returns a constant `"SNAPSHOT"` string, and only when
+  necessary do you pass in the environment variable to compute a real version (e.g.
+  during publishing)
+
+```scala
+def myProjectVersion: T[String] = Task.Input {
+  if (Task.env.contains("MY_PROJECT_STABLE_VERSION")) VcsVersion.calcVcsState(Task.log).format()
+  else "SNAPSHOT"
+}
+```
+
+- *The filesystem layout and position of the before/after codebases must be exactly
+  the same*. This is not an issue when running `selective.prepare`/`selective.run` on
+  the same folder on one machine, but if the two calls are run on separate machines
+  you need to make sure the directory path is the same.
+
+- *You must use the same Operating System amd Filesystem*, as differences there will
+  cause the filesystem signatures to change and thus spuriously trigger downstream tasks.
+  e.g. you cannot run `selective.prepare` on a Windows machine and `selective.run` on Linux
+
+- *Filesystem permissions must be preserved before/after*. e.g. running `selective,run}`
+  on different Github Actions machines sharing artifacts can cause issues as
+  `upload-artifact`/`download-artifact` https://github.com/actions/download-artifact#permission-loss[does not preserve filesystem permissions].
+  If this is an issue, you can run `chmod -R . 777` before each of `selective.{prepare,run}`
+  to ensure they have the exact same filesystem permissions.
