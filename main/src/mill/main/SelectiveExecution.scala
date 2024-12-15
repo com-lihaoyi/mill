@@ -4,6 +4,7 @@ import mill.api.Strict
 import mill.define.{InputImpl, NamedTask, Task}
 import mill.eval.{CodeSigUtils, Evaluator, Plan, Terminal}
 import mill.main.client.OutFiles
+import mill.util.SpanningForest.breadthFirst
 import mill.resolve.{Resolve, SelectMode}
 
 private[mill] object SelectiveExecution {
@@ -112,23 +113,6 @@ private[mill] object SelectiveExecution {
       .groupMap(_._1)(_._2)
 
     breadthFirst(changedRootTasks)(downstreamEdgeMap.getOrElse(_, Nil))
-  }
-
-  def breadthFirst[T](start: IterableOnce[T])(edges: T => IterableOnce[T]): Seq[T] = {
-    val seen = collection.mutable.Set.empty[T]
-    val seenList = collection.mutable.Buffer.empty[T]
-    val queued = collection.mutable.Queue.from(start)
-
-    while (queued.nonEmpty) {
-      val current = queued.dequeue()
-      seen.add(current)
-      seenList.append(current)
-
-      for (next <- edges(current).iterator) {
-        if (!seen.contains(next)) queued.enqueue(next)
-      }
-    }
-    seenList.toSeq
   }
 
   def saveMetadata(evaluator: Evaluator, metadata: SelectiveExecution.Metadata): Unit = {

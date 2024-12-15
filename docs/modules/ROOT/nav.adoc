@@ -95,8 +95,11 @@
 // These are things that most Mill developers would not encounter day to day,
 // but people developing Mill plugins or working on particularly large or
 // sophisticated Mill builds will need to understand.
+* xref:large/large.adoc[]
+** xref:large/selective-execution.adoc[]
+** xref:large/multi-file-builds.adoc[]
+
 * Mill In Depth
-** xref:depth/large-builds.adoc[]
 ** xref:depth/sandboxing.adoc[]
 ** xref:depth/evaluation-model.adoc[]
 ** xref:depth/design-principles.adoc[]
