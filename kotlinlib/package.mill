@@ -12,15 +12,6 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
   def moduleDeps = Seq(build.main, build.scalalib, build.testrunner, worker)
   def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker.impl.testDep())
 
-  val x = 1
-  val y = 1
-  val z = 1
-  val z2 = 1
-  val z3 = 1
-  val z4 = 1
-  val z5 = 1
-  val z6 = 1
-  val z7 = 7
   def buildInfoPackageName = "mill.kotlinlib"
   def buildInfoObjectName = "Versions"
   def buildInfoMembers = Seq(
