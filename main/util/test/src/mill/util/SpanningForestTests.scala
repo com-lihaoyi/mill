@@ -16,7 +16,8 @@ object SpanningForestTests extends TestSuite {
           Array(),
           Array(),
         ),
-        Set(0)
+        Set(0),
+        limitToImportantVertices = false
       )
 
       val expected =           Node(

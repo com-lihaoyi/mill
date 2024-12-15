@@ -39,7 +39,7 @@ class CallGraphAnalysis(
   lazy val methodCodeHashes: SortedMap[String, Int] =
     methods.map { case (k, vs) => (k.toString, vs.codeHash) }.to(SortedMap)
 
-  logger.log(methodCodeHashes)
+  logger.mandatoryLog(methodCodeHashes)
 
   lazy val prettyCallGraph: SortedMap[String, Array[CallGraphAnalysis.Node]] = {
     indexGraphEdges.zip(indexToNodes).map { case (vs, k) =>
@@ -48,7 +48,7 @@ class CallGraphAnalysis(
       .to(SortedMap)
   }
 
-  logger.log(prettyCallGraph)
+  logger.mandatoryLog(prettyCallGraph)
 
   def transitiveCallGraphValues[V: scala.reflect.ClassTag](
       nodeValues: Array[V],
@@ -132,10 +132,11 @@ object CallGraphAnalysis {
       .groupMap(_._1)(_._2)
 
     val reverseGraphEdges = indexGraphEdges.indices.map(reverseGraphMap.getOrElse(_, Array())).toArray
-    mill.main.client.DebugLog.println(pprint.apply(nodesWithChangedHashes).toString())
-    mill.main.client.DebugLog.println(pprint.apply(reverseGraphEdges).toString())
+//    pprint.log(nodesWithChangedHashes)
+//    pprint.log(reverseGraphEdges)
+
     SpanningForest.spanningTreeToJsonTree(
-      SpanningForest.apply(reverseGraphEdges, nodesWithChangedHashes),
+      SpanningForest.apply(reverseGraphEdges, nodesWithChangedHashes, false),
       k => indexToNodes(k).toString
     )
   }

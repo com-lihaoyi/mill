@@ -183,24 +183,14 @@ abstract class MillBuildRootModule()(implicit
           Option.when(debugEnabled)(T.dest / "current")
         ),
         prevTransitiveCallGraphHashesOpt = () =>
-          Option.when(os.exists(T.dest / "previous/result.json"))(
+          Option.when(os.exists(T.dest / "previous/transitiveCallGraphHashes.json"))(
             upickle.default.read[Map[String, Int]](
-              os.read.stream(T.dest / "previous/result.json")
+              os.read.stream(T.dest / "previous/transitiveCallGraphHashes.json")
             )
           )
       )
 
-    val result = codesig.transitiveCallGraphHashes
-    if (debugEnabled) {
-      os.write(
-        T.dest / "current/result.json",
-        upickle.default.stream(
-          SortedMap.from(codesig.transitiveCallGraphHashes0.map { case (k, v) => (k.toString, v) }),
-          indent = 4
-        )
-      )
-    }
-    result
+    codesig.transitiveCallGraphHashes
   }
 
   override def sources: T[Seq[PathRef]] = Task {

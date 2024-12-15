@@ -18,6 +18,9 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
   val z2 = 1
   val z3 = 1
   val z4 = 1
+  val z5 = 1
+  val z6 = 1
+  val z7 = 7
   def buildInfoPackageName = "mill.kotlinlib"
   def buildInfoObjectName = "Versions"
   def buildInfoMembers = Seq(

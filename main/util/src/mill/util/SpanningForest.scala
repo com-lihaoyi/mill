@@ -19,7 +19,9 @@ private[mill] object SpanningForest {
     )
   }
   case class Node(values: mutable.Map[Int, Node] = mutable.Map())
-  def apply(indexGraphEdges: Array[Array[Int]], importantVertices: Set[Int]): Node = {
+  def apply(indexGraphEdges: Array[Array[Int]],
+            importantVertices: Set[Int],
+            limitToImportantVertices: Boolean): Node = {
     // Find all importantVertices which are "roots" with no incoming edges
     // from other importantVertices
     val destinations = importantVertices.flatMap(indexGraphEdges(_))
@@ -37,7 +39,7 @@ private[mill] object SpanningForest {
     breadthFirst(rootChangedNodeIndices) { index =>
       // needed to add explicit type for Scala 3.5.0-RC6
       val nextIndices = indexGraphEdges(index)
-        .filter(importantVertices)
+        .filter(e => !limitToImportantVertices || importantVertices(e))
 
       // We build up the spanningForest during a normal breadth first search,
       // using the `nodeMapping` to quickly find a vertice's tree node so we
