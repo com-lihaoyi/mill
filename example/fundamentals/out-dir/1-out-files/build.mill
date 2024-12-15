@@ -219,9 +219,7 @@ out/mill-server
       }
     }
   },
-  "mill.scalalib.ZincWorkerModule.zincLogDebug": {},
-  "foo.zincReportCachedProblems": {},
-  "foo.compileResources": {}
+  ...
 }
 
 */
