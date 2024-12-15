@@ -77,7 +77,7 @@ class CallGraphAnalysis(
     .collect { case (CallGraphAnalysis.LocalDef(d), v) => (d.toString, v) }
     .to(SortedMap)
 
-  logger.log(transitiveCallGraphHashes)
+  logger.mandatoryLog(transitiveCallGraphHashes)
 
   lazy val spanningInvalidationForest: Obj = prevTransitiveCallGraphHashesOpt() match {
     case Some(prevTransitiveCallGraphHashes) =>
@@ -90,7 +90,7 @@ class CallGraphAnalysis(
     case None => ujson.Obj()
   }
 
-  logger.log(spanningInvalidationForest)
+  logger.mandatoryLog(spanningInvalidationForest)
 }
 
 object CallGraphAnalysis {
@@ -131,11 +131,11 @@ object CallGraphAnalysis {
       .flatMap { case (vs, k) => vs.map((_, k)) }
       .groupMap(_._1)(_._2)
 
+    val reverseGraphEdges = indexGraphEdges.indices.map(reverseGraphMap.getOrElse(_, Array())).toArray
+    mill.main.client.DebugLog.println(pprint.apply(nodesWithChangedHashes).toString())
+    mill.main.client.DebugLog.println(pprint.apply(reverseGraphEdges).toString())
     SpanningForest.spanningTreeToJsonTree(
-      SpanningForest.apply(
-        indexGraphEdges.indices.map(reverseGraphMap(_)).toArray,
-        nodesWithChangedHashes
-      ),
+      SpanningForest.apply(reverseGraphEdges, nodesWithChangedHashes),
       k => indexToNodes(k).toString
     )
   }

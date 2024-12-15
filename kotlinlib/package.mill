@@ -12,10 +12,19 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
   def moduleDeps = Seq(build.main, build.scalalib, build.testrunner, worker)
   def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker.impl.testDep())
 
+  val x = 1
+  val y = 1
+  val z = 1
+  val z2 = 1
+  val z3 = 1
+  val z4 = 1
   def buildInfoPackageName = "mill.kotlinlib"
   def buildInfoObjectName = "Versions"
   def buildInfoMembers = Seq(
     BuildInfo.Value("kotlinVersion", build.Deps.kotlinVersion, "Version of Kotlin"),
+    BuildInfo.Value("kotlinVersion2", build.Deps.kotlinVersion, "Version of Kotlin"),
+    BuildInfo.Value("kotlinVersion3", build.Deps.kotlinVersion, "Version of Kotlin"),
+    BuildInfo.Value("kotlinVersion4", build.Deps.kotlinVersion, "Version of Kotlin"),
     BuildInfo.Value("koverVersion", build.Deps.RuntimeDeps.koverVersion, "Version of Kover."),
     BuildInfo.Value("ktfmtVersion", build.Deps.RuntimeDeps.ktfmt.version, "Version of Ktfmt."),
     BuildInfo.Value("ktlintVersion", build.Deps.RuntimeDeps.ktlint.version, "Version of ktlint."),
@@ -24,7 +33,6 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
     BuildInfo.Value("kotlinxHtmlJvmDep", Dep.unparse(build.Deps.RuntimeDeps.kotlinxHtmlJvm).get, "kotlinx-html-jvm dependency (used for Dokka)"),
     BuildInfo.Value("freemarkerDep", Dep.unparse(build.Deps.RuntimeDeps.freemarker).get, "freemarker dependency (used for Dokka)")
   )
-
 
   trait MillKotlinModule extends build.MillPublishScalaModule {
     override def javacOptions = {

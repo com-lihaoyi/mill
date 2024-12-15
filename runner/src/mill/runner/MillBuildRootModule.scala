@@ -178,7 +178,10 @@ abstract class MillBuildRootModule()(implicit
 
           (isSimpleTarget && !isForwarderCallsite) || isCommand || isMillDiscover
         },
-        logger = new mill.codesig.Logger(Option.when(debugEnabled)(T.dest / "current")),
+        logger = new mill.codesig.Logger(
+          T.dest / "current",
+          Option.when(debugEnabled)(T.dest / "current")
+        ),
         prevTransitiveCallGraphHashesOpt = () =>
           Option.when(os.exists(T.dest / "previous/result.json"))(
             upickle.default.read[Map[String, Int]](
