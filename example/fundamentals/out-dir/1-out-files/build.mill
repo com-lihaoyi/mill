@@ -147,7 +147,6 @@ out/mill-server
 
 */
 
-
 // === `mill-chrome-profile.json`
 // This file can be opened in any Google Chrome browser with the built-in `chrome://tracing`
 // URL to show you runtime profile of the last Mill command, so you can see what was executed
@@ -171,7 +170,6 @@ out/mill-server
 // that hsows how `foo.compile` depends on `foo.allSourceFiles`/`foo.allSources`/`foo.sources`
 // (the files in the `src/` folder), `foo.compileClasspath`/`localCompileClasspath`/`compileResources`
 // (i.e. the files in the `compile-resources/` folder:
-
 
 /** Usage
 
@@ -227,7 +225,6 @@ out/mill-server
 }
 
 */
-
 
 // Again, if there are multiple paths through which one task was invalidated by another,
 // one path is chosen arbitrarily to be shown in the spanning tree
