@@ -100,11 +100,11 @@ out/foo/compile.dest
 /** Usage
 
 > find out/mill-* -maxdepth 0
-out/mill-build
 out/mill-chrome-profile.json
 out/mill-dependency-tree.json
 out/mill-invalidation-tree.json
 out/mill-profile.json
+out/mill-build
 out/mill-server
 
 */
@@ -228,6 +228,19 @@ out/mill-server
 
 // Again, if there are multiple paths through which one task was invalidated by another,
 // one path is chosen arbitrarily to be shown in the spanning tree
+//
+// Sometimes invalidation can be caused by a code change in your `build.mill`/`package.mill`
+// files, rather than by a change in the project's source files or inputs. In such cases,
+// the root tasks in `mill-invalidation-tree.json` may not necessarily be inputs. In such
+// cases, you can look at `out/mill-build/methodCodeHashSignatures.dest/current/spanningInvalidationForest.json`
+// to see an invalidation tree for how code changes in specfic methods propagate throughout
+// the `build.mill` codebase.
+//
+// === `mill-build/`
+//
+// Contains the files related ot the xref:extending/meta-build.adoc[]. It contains many
+// of thd same task-related and Mill-related files as the top-level `out/` folder, but
+// related for compiling your `build.mill` rather than compiling your project's source files.
 //
 // === `mill-server/`, `mill-no-server/`
 //
