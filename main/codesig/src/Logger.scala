@@ -16,7 +16,10 @@ class Logger(mandatoryLogFolder: os.Path, logFolder: Option[os.Path]) {
   def log[T: upickle.default.Writer](t: => sourcecode.Text[T], prefix: String = ""): Unit = {
     logFolder.foreach(log0(_, t, s"$count-$prefix"))
   }
-  def mandatoryLog[T: upickle.default.Writer](t: => sourcecode.Text[T], prefix: String = ""): Unit = {
+  def mandatoryLog[T: upickle.default.Writer](
+      t: => sourcecode.Text[T],
+      prefix: String = ""
+  ): Unit = {
     log0(mandatoryLogFolder, t, prefix)
   }
 }

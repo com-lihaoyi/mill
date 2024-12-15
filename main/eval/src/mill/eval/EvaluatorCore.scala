@@ -79,7 +79,8 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     val count = new AtomicInteger(1)
     val indexToTerminal = sortedGroups.keys().toArray
     val terminalToIndex = indexToTerminal.zipWithIndex.toMap
-    val upstreamIndexEdges = indexToTerminal.map(t => interGroupDeps.getOrElse(t, Nil).map(terminalToIndex).toArray)
+    val upstreamIndexEdges =
+      indexToTerminal.map(t => interGroupDeps.getOrElse(t, Nil).map(terminalToIndex).toArray)
     os.write.over(
       outPath / OutFiles.millDependencyForest,
       SpanningForest.spanningTreeToJsonTree(
@@ -273,23 +274,26 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
     val reverseInterGroupDeps = interGroupDeps
       .iterator
-      .flatMap{case (k, vs) => vs.map(_ -> k)}
+      .flatMap { case (k, vs) => vs.map(_ -> k) }
       .toSeq
       .groupMap(_._1)(_._2)
-
 
     val changedTerminalIndices = changedValueHash.keys().asScala.toSet
     val downstreamIndexEdges = indexToTerminal
       .map(t =>
-        if (changedTerminalIndices(t)) reverseInterGroupDeps.getOrElse(t, Nil).map(terminalToIndex).toArray
+        if (changedTerminalIndices(t))
+          reverseInterGroupDeps.getOrElse(t, Nil).map(terminalToIndex).toArray
         else Array.empty[Int]
       )
-
 
     os.write.over(
       outPath / OutFiles.millInvalidationForest,
       SpanningForest.spanningTreeToJsonTree(
-        SpanningForest(downstreamIndexEdges, uncached.keys().asScala.map(terminalToIndex).toSet, true),
+        SpanningForest(
+          downstreamIndexEdges,
+          uncached.keys().asScala.map(terminalToIndex).toSet,
+          true
+        ),
         i => indexToTerminal(i).render
       ).render(indent = 2)
     )

@@ -103,7 +103,14 @@ private[mill] trait GroupEvaluator {
             executionContext,
             exclusive
           )
-          GroupEvaluator.Results(newResults, newEvaluated.toSeq, null, inputsHash, -1, valueHashChanged = false)
+          GroupEvaluator.Results(
+            newResults,
+            newEvaluated.toSeq,
+            null,
+            inputsHash,
+            -1,
+            valueHashChanged = false
+          )
 
         case labelled: Terminal.Labelled[_] =>
           val out =
@@ -122,7 +129,9 @@ private[mill] trait GroupEvaluator {
             forceDiscard = cached.isEmpty
           )
 
-          upToDateWorker.map((_, inputsHash)) orElse cached.flatMap { case (inputHash, valOpt, valueHash) => valOpt.map((_, valueHash))} match {
+          upToDateWorker.map((_, inputsHash)) orElse cached.flatMap {
+            case (inputHash, valOpt, valueHash) => valOpt.map((_, valueHash))
+          } match {
             case Some((v, hashCode)) =>
               val res = Result.Success((v, hashCode))
               val newResults: Map[Task[_], TaskResult[(Val, Int)]] =
@@ -157,12 +166,10 @@ private[mill] trait GroupEvaluator {
                   exclusive
                 )
 
-
               val valueHash = newResults(labelled.task) match {
                 case TaskResult(Result.Failure(_, Some((v, _))), _) =>
                   val valueHash = if (terminal.task.asWorker.isEmpty) v.## else inputsHash
                   handleTaskResult(v, valueHash, paths.meta, inputsHash, labelled)
-
 
                 case TaskResult(Result.Success((v, _)), _) =>
                   val valueHash = if (terminal.task.asWorker.isEmpty) v.## else inputsHash
@@ -458,11 +465,11 @@ private[mill] trait GroupEvaluator {
 private[mill] object GroupEvaluator {
 
   case class Results(
-                      newResults: Map[Task[_], TaskResult[(Val, Int)]],
-                      newEvaluated: Seq[Task[_]],
-                      cached: java.lang.Boolean,
-                      inputsHash: Int,
-                      previousInputsHash: Int,
-                      valueHashChanged: Boolean
+      newResults: Map[Task[_], TaskResult[(Val, Int)]],
+      newEvaluated: Seq[Task[_]],
+      cached: java.lang.Boolean,
+      inputsHash: Int,
+      previousInputsHash: Int,
+      valueHashChanged: Boolean
   )
 }

@@ -14,13 +14,13 @@ object SpanningForestTests extends TestSuite {
           Array(2),
           Array(3),
           Array(),
-          Array(),
+          Array()
         ),
         Set(0),
         limitToImportantVertices = false
       )
 
-      val expected =           Node(
+      val expected = Node(
         mutable.Map(
           0 -> Node(
             mutable.Map(
@@ -38,8 +38,7 @@ object SpanningForestTests extends TestSuite {
         )
       )
 
-      assert(forest == expected
-      )
+      assert(forest == expected)
     }
 
   }
