@@ -9,6 +9,7 @@ object foo extends JavaModule {
   )
 
   object test extends JavaTests with TestModule.Junit4 {
+    val x = 8
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy"com.google.guava:guava:33.3.0-jre"
     )

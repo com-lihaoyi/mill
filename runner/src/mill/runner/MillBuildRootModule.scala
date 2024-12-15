@@ -183,9 +183,9 @@ abstract class MillBuildRootModule()(implicit
           Option.when(debugEnabled)(T.dest / "current")
         ),
         prevTransitiveCallGraphHashesOpt = () =>
-          Option.when(os.exists(T.dest / "previous/transitiveCallGraphHashes.json"))(
+          Option.when(os.exists(T.dest / "previous/transitiveCallGraphHashes0.json"))(
             upickle.default.read[Map[String, Int]](
-              os.read.stream(T.dest / "previous/transitiveCallGraphHashes.json")
+              os.read.stream(T.dest / "previous/transitiveCallGraphHashes0.json")
             )
           )
       )
