@@ -200,7 +200,6 @@ trait PublishModule extends JavaModule { outer =>
             // Ensure we don't override versions of root dependencies with overrides from the BOM
             !moduleSet.contains((depMgmt.module.organization.value, depMgmt.module.name.value))
           }
-
       )
       val entries = coursier.core.DependencyManagement.add(
         Map.empty,
