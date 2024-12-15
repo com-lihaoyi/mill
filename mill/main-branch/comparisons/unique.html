@@ -435,12 +435,23 @@
 
   <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Mill In Depth</span>
+    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/large-builds.html">Large Builds and Monorepos</a>
+    <a class="nav-link" href="../large/selective-execution.html">Selective Execution</a>
   </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
@@ -454,7 +465,7 @@
     <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
   </li>
 </ul>
@@ -648,8 +659,8 @@ more distant toolchains like <a href="../extending/example-typescript-support.ht
 and <a href="../extending/example-python-support.html" class="xref page">Python</a>.</p>
 </div>
 <div class="paragraph">
-<p>Mill also works well with <a href="../depth/large-builds.html" class="xref page">large builds</a>: its build logic can be
-split into multiple folders, is incrementally compiled,
+<p>Mill also works well with <a href="../large/large.html" class="xref page">large builds</a>: its build logic can be
+<a href="../large/multi-file-builds.html" class="xref page">split into multiple folders</a>, is incrementally compiled,
 lazily initialized, and automatically cached and parallelized. That means that even large
 codebases can remain fast and responsive: Mill’s own build easily manages over 400 modules,
 and the tool can likely handle thousands of modules without issue.</p>

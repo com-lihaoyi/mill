@@ -3,10 +3,9 @@
 <html lang="en"><head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Large Builds and Monorepos :: The Mill JVM Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/depth/large-builds.html" />
-    <link rel="prev" href="../extending/example-python-support.html" />
-    <link rel="next" href="sandboxing.html" />
+    <title>Selective Execution :: The Mill JVM Build Tool</title>
+    <link rel="prev" href="large.html" />
+    <link rel="next" href="multi-file-builds.html" />
     <meta name="generator" content="Antora 3.1.9" />
     <link rel="stylesheet" href="../../../_/css/site.css" />
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -435,27 +434,38 @@
 
   <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Mill In Depth</span>
+    <a class="nav-link" href="large.html">Large Builds and Monorepos</a>
 <ul class="nav-list">
 
   <li class="nav-item is-current-page" data-depth="2">
-    <a class="nav-link" href="large-builds.html">Large Builds and Monorepos</a>
+    <a class="nav-link" href="selective-execution.html">Selective Execution</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="sandboxing.html">Mill Sandboxing</a>
+    <a class="nav-link" href="multi-file-builds.html">Multi-File Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="evaluation-model.html">The Mill Evaluation Model</a>
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="design-principles.html">Mill Design Principles</a>
+    <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="why-scala.html">Why does Mill use Scala?</a>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
   </li>
 </ul>
   </li>
@@ -520,18 +530,18 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="../index.html">Mill Documentation</a></li>
-    <li>Mill In Depth</li>
-    <li><a href="large-builds.html">Large Builds and Monorepos</a></li>
+    <li><a href="large.html">Large Builds and Monorepos</a></li>
+    <li><a href="selective-execution.html">Selective Execution</a></li>
   </ul>
 </nav>
-<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/depth/large-builds.adoc">Edit this Page</a></div>
+<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/large/selective-execution.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">Large Builds and Monorepos</h1>
+<h1 class="page">Selective Execution</h1>
 <div id="preamble">
 <div class="sectionbody">
 
@@ -550,24 +560,6 @@ const links = document.querySelectorAll('a');
   });
 });
 </script>
-<div class="paragraph">
-<p>This section walks through Mill features and techniques used for managing large builds.
-While Mill works great for small single-module projects, it is also able to work
-effectively with large projects with hundreds of modules. Mill’s own build for the
-<a href="https://github.com/com-lihaoyi/mill">com-lihaoyi/mill</a> project has ~400 modules, and
-other proprietary projects may have many more.</p>
-</div>
-<div class="paragraph">
-<p>Mill modules are cheap. Having more modules does not significantly impact performance
-or resource usage, build files are incrementally re-compiled when modified, and modules are
-lazily loaded and initialized only when needed. So you are encouraged to break up your project
-into modules to manage the layering of your codebase or benefit from parallelism.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_selective_execution"><a class="anchor" href="#_selective_execution"></a>Selective Execution</h2>
-<div class="sectionbody">
 <div class="paragraph">
 <p>Mill allows you to filter the tests and other tasks you execute by limiting them
 to those affected by a code change. This is useful in managing large codebases where
@@ -603,7 +595,7 @@ request branch, you can do that as follows:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; git checkout main # start from the target branch of the PR
 
-&gt; ./mill selective.prepare __.test
+&gt; ./mill selective.prepare
 
 &gt; git checkout pull-request-branch # go to the pull request branch
 
@@ -615,7 +607,7 @@ request branch, you can do that as follows:</p>
 where <code>bar</code> depends on <code>foo</code> but <code>qux</code> is standalone:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-depth-large-9-selective-execution.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/depth/large/9-selective-execution">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-large-selective-9-selective-execution.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/large/selective/9-selective-execution">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -705,268 +697,62 @@ requests but not post-merge on the main branch)</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_multi_file_builds"><a class="anchor" href="#_multi_file_builds"></a>Multi-file Builds</h2>
+<h2 id="_reproducibility_and_determinism"><a class="anchor" href="#_reproducibility_and_determinism"></a>Reproducibility and Determinism</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill allows you to break up your <code>build.mill</code> file into smaller files by defining the
-build-related logic for any particular subfolder as a <code>package.mill</code> file in that subfolder.
-This can be very useful to keep large Mill builds maintainable, as each folder’s build logic
-gets co-located with the files that need to be built, and speeds up compilation of the
-build logic since each <code>build.mill</code> or <code>package.mill</code> file can be compiled independently when
-it is modified without re-compiling all the others.</p>
-</div>
-<div class="paragraph">
-<p>Usage of sub-folder <code>package.mill</code> files is enabled by the magic import <code>import $packages._</code></p>
-</div>
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-depth-large-10-multi-file-builds.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/depth/large/10-multi-file-builds">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import $packages._
-
-import mill._, scalalib._
-
-trait MyModule extends ScalaModule {
-  def scalaVersion = &quot;2.13.11&quot;
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">foo/package.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/depth/large/10-multi-file-builds/foo/package.mill">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.foo
-import mill._, scalalib._
-
-object `package` extends RootModule with build.MyModule {
-  def moduleDeps = Seq(build.bar.qux.mymodule)
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::mainargs:0.4.0&quot;)
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">bar/qux/package.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/depth/large/10-multi-file-builds/bar/qux/package.mill">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.bar.qux
-import mill._, scalalib._
-
-object mymodule extends build.MyModule {
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags:0.8.2&quot;)
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>In this example, the root <code>build.mill</code> only contains the <code>trait MyModule</code>, but it is
-<code>foo/package.mill</code> and <code>bar/qux/package.mill</code> that define modules using it. The modules
-defined in <code>foo/package.mill</code> and <code>bar/qux/package.mill</code> are automatically nested within
-<code>foo</code> and <code>bar.qux</code> respectively, and can be referenced from the command line as below:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill resolve __
-bar
-...
-bar.qux.mymodule
-...
-bar.qux.mymodule.compile
-...
-foo
-...
-foo.compile
-
-&gt; ./mill bar.qux.mymodule.compile
-
-&gt; ./mill foo.compile
-
-&gt; ./mill foo.run --foo-text hello --bar-qux-text world
-Foo.value: hello
-BarQux.value: &lt;p&gt;world&lt;/p&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Note that in this example, <code>foo/package.mill</code> defines <code>object module extends RootModule</code>,
-and so the name <code>.module</code> does not need to be provided at the command line. In contrast,
-<code>bar/qux/package.mill</code> defines <code>object mymodule</code> that does not extend <code>RootModule</code>, and so
-we need to explicitly reference it with a <code>.mymodule</code> suffix.</p>
-</div>
-<div class="paragraph">
-<p><code>package.mill</code> files are only discovered in direct subfolders of the root <code>build.mill</code> or
-subfolders of another folder containing a <code>package.mill</code>; Hence in this example, we need
-an <code>bar/package.mill</code> to be present for <code>bar/qux/package.mill</code> to be discovered, even
-though <code>bar/package.mill</code> is empty</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_helper_files"><a class="anchor" href="#_helper_files"></a>Helper Files</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Apart from having <code>package</code> files in subfolders to define modules, Mill
-also allows you to have helper code in any <code>*.mill</code> file in the same folder
-as your <code>build.mill</code> or a <code>package.mill</code>.</p>
-</div>
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-depth-large-11-helper-files.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/depth/large/11-helper-files">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import $packages._
-import mill._, scalalib._
-import $file.foo.versions
-import $file.util.MyModule
-
-object `package` extends RootModule with MyModule {
-  def forkEnv = Map(
-    &quot;MY_SCALA_VERSION&quot; -&gt; build.scalaVersion(),
-    &quot;MY_PROJECT_VERSION&quot; -&gt; versions.myProjectVersion
-  )
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">util.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/depth/large/11-helper-files/util.mill">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, scalalib._
-
-def myScalaVersion = &quot;2.13.14&quot;
-
-trait MyModule extends ScalaModule {
-  def scalaVersion = myScalaVersion
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">foo/package.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/depth/large/11-helper-files/foo/package.mill">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.foo
-import mill._, scalalib._
-import $file.util
-import $file.foo.versions.myProjectVersion
-object `package` extends RootModule with build_.util.MyModule {
-  def forkEnv = Map(
-    &quot;MY_SCALA_VERSION&quot; -&gt; util.myScalaVersion,
-    &quot;MY_PROJECT_VERSION&quot; -&gt; myProjectVersion
-  )
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">foo/versions.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/depth/large/11-helper-files/foo/versions.mill">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.foo
-
-def myProjectVersion = &quot;0.0.1&quot;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Different helper scripts and <code>build.mill</code>/<code>package</code> files can all refer to
-each other using the <code>build</code> object, which marks the root object of your build.
-In this example:</p>
+<p>Selective execution relies on the inputs to your project being deterministic
+and reproducible, except for the code changes between the two versions, so that
+Mill can compare the state of the build inputs before and after and only run
+tasks downstream of those that changed. This is usually the case, but there are
+some subtleties to be aware of:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><code>build.mill</code> can be referred to as simple <code>build</code></p>
-</li>
-<li>
-<p><code>util.mill</code> can be referred to as simple <code>$file.util</code></p>
-</li>
-<li>
-<p><code>foo/package</code> can be referred to as simple <code>build.foo</code></p>
-</li>
-<li>
-<p><code>foo/versions.mill</code> can be referred to as simple <code>$file.foo.versions</code></p>
+<p><strong>Dynamic <code>Task.Input</code> to capture Git metadata must be disabled</strong>, e.g. using
+<a href="https://github.com/lefou/mill-vcs-version">mill-vcs-version</a>. The easiest way to do
+this is to guard such dynamic inputs on an environment variable, such that
+in most scenarios it returns a constant <code>&quot;SNAPSHOT&quot;</code> string, and only when
+necessary do you pass in the environment variable to compute a real version (e.g.
+during publishing)</p>
 </li>
 </ul>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
-Main Env build.util.myScalaVersion: 2.13.14
-Main Env build.foo.versions.myProjectVersion: 0.0.1
-
-&gt; ./mill foo.run
-Foo Env build.util.myScalaVersion: 2.13.14
-Foo Env build.foo.versions.myProjectVersion: 0.0.1</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_legacy_sc_extension"><a class="anchor" href="#_legacy_sc_extension"></a>Legacy <code>.sc</code> extension</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>To ease the migration from Mill 0.11.x, the older <code>.sc</code> file extension is also supported
-for Mill build files, and the <code>package</code> declaration is optional in such files. Note that
-this means that IDE support using <code>.sc</code> files will not be as good as IDE support using the
-current <code>.mill</code> extension with <code>package</code> declaration, so you should use <code>.mill</code> whenever
-possible</p>
-</div>
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-depth-large-12-helper-files-sc.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/depth/large/12-helper-files-sc">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
-import $packages._
-import $file.foo.versions
-import $file.util, util.MyModule
-
-object `package` extends RootModule with MyModule {
-  def forkEnv = T {
-    Map(
-      &quot;MY_SCALA_VERSION&quot; -&gt; build.scalaVersion(),
-      &quot;MY_PROJECT_VERSION&quot; -&gt; versions.myProjectVersion
-    )
-  }
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def myProjectVersion: T[String] = Task.Input {
+  if (Task.env.contains(&quot;MY_PROJECT_STABLE_VERSION&quot;)) VcsVersion.calcVcsState(Task.log).format()
+  else &quot;SNAPSHOT&quot;
 }</code></pre>
 </div>
 </div>
-<div class="listingblock">
-<div class="title">util.sc (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/depth/large/12-helper-files-sc/util.sc">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
-
-def myScalaVersion = &quot;2.13.14&quot;
-
-trait MyModule extends ScalaModule {
-  def scalaVersion = myScalaVersion
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">foo/package.sc (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/depth/large/12-helper-files-sc/foo/package.sc">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
-import $file.^.util
-import $file.versions, versions.myProjectVersion
-object `package` extends RootModule with build_.util.MyModule {
-  def forkEnv = Map(
-    &quot;MY_SCALA_VERSION&quot; -&gt; util.myScalaVersion,
-    &quot;MY_PROJECT_VERSION&quot; -&gt; myProjectVersion
-  )
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">foo/versions.sc (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/depth/large/12-helper-files-sc/foo/versions.sc">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def myProjectVersion = &quot;0.0.1&quot;</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
-Main Env build.util.myScalaVersion: 2.13.14
-Main Env build.foo.versions.myProjectVersion: 0.0.1
-
-&gt; ./mill foo.run
-Foo Env build.util.myScalaVersion: 2.13.14
-Foo Env build.foo.versions.myProjectVersion: 0.0.1</code></pre>
-</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>The filesystem layout and position of the before/after codebases must be exactly
+the same</strong>. This is not an issue when running <code>selective.prepare</code>/<code>selective.run</code> on
+the same folder on one machine, but if the two calls are run on separate machines
+you need to make sure the directory path is the same.</p>
+</li>
+<li>
+<p><strong>You must use the same Operating System amd Filesystem</strong>, as differences there will
+cause the filesystem signatures to change and thus spuriously trigger downstream tasks.
+e.g. you cannot run <code>selective.prepare</code> on a Windows machine and <code>selective.run</code> on Linux</p>
+</li>
+<li>
+<p><strong>Filesystem permissions must be preserved before/after</strong>. e.g. running <code>selective,run}</code>
+on different Github Actions machines sharing artifacts can cause issues as
+<code>upload-artifact</code>/<code>download-artifact</code> <a href="https://github.com/actions/download-artifact#permission-loss">does not preserve filesystem permissions</a>.
+If this is an issue, you can run <code>chmod -R . 777</code> before each of <code>selective.{prepare,run}</code>
+to ensure they have the exact same filesystem permissions.</p>
+</li>
+</ul>
 </div>
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="../extending/example-python-support.html">Example: Python Support</a></span>
-  <span class="next"><a href="sandboxing.html">Mill Sandboxing</a></span>
+  <span class="prev"><a href="large.html">Large Builds and Monorepos</a></span>
+  <span class="next"><a href="multi-file-builds.html">Multi-File Builds</a></span>
 </nav>
 </article>
   </div>

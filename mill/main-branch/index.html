@@ -434,12 +434,23 @@
 
   <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Mill In Depth</span>
+    <a class="nav-link" href="large/large.html">Large Builds and Monorepos</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="depth/large-builds.html">Large Builds and Monorepos</a>
+    <a class="nav-link" href="large/selective-execution.html">Selective Execution</a>
   </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="large/multi-file-builds.html">Multi-File Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="depth/sandboxing.html">Mill Sandboxing</a>
@@ -453,7 +464,7 @@
     <a class="nav-link" href="depth/design-principles.html">Mill Design Principles</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="depth/why-scala.html">Why does Mill use Scala?</a>
   </li>
 </ul>
@@ -564,7 +575,7 @@ helps keep builds clean and understandable</p>
 </li>
 <li>
 <p>Mill is an easier alternative to <a href="https://bazel.build/">Bazel</a>
-for <a href="depth/large-builds.html" class="xref page">large multi-language monorepos</a> with hundreds of modules</p>
+for <a href="large/large.html" class="xref page">large multi-language monorepos</a> with hundreds of modules</p>
 </li>
 </ul>
 </div>
@@ -611,7 +622,7 @@ Java platform’s performance and usability:</p>
 <a href="depth/evaluation-model.html#_caching_at_each_layer_of_the_evaluation_model" class="xref page">caches</a>
 and <a href="cli/flags.html#_jobs_j" class="xref page">parallelizes</a> build tasks to keep local development fast,
 and avoids the long configuration times seen in other tools like Gradle or SBT.
-<a href="depth/large-builds.html#_selective_execution" class="xref page">Selective execution</a> keeps
+<a href="large/selective-execution.html" class="xref page">Selective execution</a> keeps
 CI validation times short by only running the tests necessary to validate a code change.</p>
 </li>
 <li>
