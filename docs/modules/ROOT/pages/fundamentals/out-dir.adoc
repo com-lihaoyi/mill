@@ -4,8 +4,6 @@
 include::partial$gtag-config.adoc[]
 
 
-== Structure of the `out/` Directory
-
 include::partial$example/fundamentals/out-dir/1-out-files.adoc[]
 
 == Using another location than the `out/` directory
