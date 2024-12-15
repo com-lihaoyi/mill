@@ -12,7 +12,6 @@ import mill.main.client.OutFiles._
 import mill.main.client.CodeGenConstants.buildFileExtensions
 import mill.main.{BuildInfo, RootModule}
 
-import scala.collection.immutable.SortedMap
 import scala.util.Try
 import mill.define.Target
 

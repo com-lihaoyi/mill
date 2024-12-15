@@ -5,7 +5,11 @@ class Logger(mandatoryLogFolder: os.Path, logFolder: Option[os.Path]) {
   os.remove.all(mandatoryLogFolder)
   private var count = 1
 
-  def log0[T: upickle.default.Writer](p: os.Path, res: sourcecode.Text[T], prefix: String = "") = {
+  def log0[T: upickle.default.Writer](
+      p: os.Path,
+      res: sourcecode.Text[T],
+      prefix: String = ""
+  ): Unit = {
     os.write(
       p / s"$prefix${res.source}.json",
       upickle.default.stream(res.value, indent = 4),
