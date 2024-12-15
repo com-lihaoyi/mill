@@ -179,11 +179,6 @@ private[mill] trait GroupEvaluator {
                   0
               }
 
-              mill.main.client.DebugLog.println("")
-              mill.main.client.DebugLog.println(labelled.render)
-              mill.main.client.DebugLog.println(cached.map(_._3).toString)
-              mill.main.client.DebugLog.println(valueHash.toString)
-
               GroupEvaluator.Results(
                 newResults,
                 newEvaluated.toSeq,

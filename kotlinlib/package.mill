@@ -25,6 +25,7 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
     BuildInfo.Value("freemarkerDep", Dep.unparse(build.Deps.RuntimeDeps.freemarker).get, "freemarker dependency (used for Dokka)")
   )
 
+
   trait MillKotlinModule extends build.MillPublishScalaModule {
     override def javacOptions = {
       val release =
