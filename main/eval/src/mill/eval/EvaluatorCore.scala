@@ -82,7 +82,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     val upstreamIndexEdges =
       indexToTerminal.map(t => interGroupDeps.getOrElse(t, Nil).map(terminalToIndex).toArray)
     os.write.over(
-      outPath / OutFiles.millDependencyForest,
+      outPath / OutFiles.millDependencyTree,
       SpanningForest.spanningTreeToJsonTree(
         SpanningForest(upstreamIndexEdges, indexToTerminal.indices.toSet, true),
         i => indexToTerminal(i).render
@@ -287,7 +287,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       )
 
     os.write.over(
-      outPath / OutFiles.millInvalidationForest,
+      outPath / OutFiles.millInvalidationTree,
       SpanningForest.spanningTreeToJsonTree(
         SpanningForest(
           downstreamIndexEdges,

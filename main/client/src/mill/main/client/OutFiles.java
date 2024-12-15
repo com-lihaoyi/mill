@@ -74,6 +74,6 @@ public class OutFiles {
    */
   public static final String millSelectiveExecution = "mill-selective-execution.json";
 
-  public static final String millDependencyForest = "mill-dependency-tree.json";
-  public static final String millInvalidationForest = "mill-invalidation-tree.json";
+  public static final String millDependencyTree = "mill-dependency-tree.json";
+  public static final String millInvalidationTree = "mill-invalidation-tree.json";
 }
