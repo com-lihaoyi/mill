@@ -206,13 +206,14 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
                 cached = res.cached
               )
               if (!res.cached) uncached.put(terminal, ())
-              if (res.changedValueHash) changedValueHash.put(terminal, ())
+              if (res.valueHashChanged) changedValueHash.put(terminal, ())
 
               profileLogger.log(
                 ProfileLogger.Timing(
                   terminal.render,
                   (duration / 1000).toInt,
                   res.cached,
+                  res.valueHashChanged,
                   deps.map(_.render),
                   res.inputsHash,
                   res.previousInputsHash

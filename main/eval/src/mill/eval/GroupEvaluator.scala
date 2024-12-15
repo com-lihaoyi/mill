@@ -103,17 +103,14 @@ private[mill] trait GroupEvaluator {
             executionContext,
             exclusive
           )
-          GroupEvaluator.Results(newResults, newEvaluated.toSeq, null, inputsHash, -1, changedValueHash = false)
+          GroupEvaluator.Results(newResults, newEvaluated.toSeq, null, inputsHash, -1, valueHashChanged = false)
 
         case labelled: Terminal.Labelled[_] =>
           val out =
             if (!labelled.task.ctx.external) outPath
             else externalOutPath
 
-          val paths = EvaluatorPaths.resolveDestPaths(
-            out,
-            Terminal.destSegments(labelled)
-          )
+          val paths = EvaluatorPaths.resolveDestPaths(out, Terminal.destSegments(labelled))
 
           val cached = loadCachedJson(logger, inputsHash, labelled, paths)
 
@@ -121,9 +118,8 @@ private[mill] trait GroupEvaluator {
             logger,
             inputsHash,
             labelled,
-            forceDiscard =
-              // worker metadata file removed by user, let's recompute the worker
-              cached.isEmpty
+            // worker metadata file removed by user, let's recompute the worker
+            forceDiscard = cached.isEmpty
           )
 
           upToDateWorker.map((_, inputsHash)) orElse cached.flatMap { case (inputHash, valOpt, valueHash) => valOpt.map((_, valueHash))} match {
@@ -138,7 +134,7 @@ private[mill] trait GroupEvaluator {
                 cached = true,
                 inputsHash,
                 -1,
-                changedValueHash = false
+                valueHashChanged = false
               )
 
             case _ =>
@@ -161,14 +157,17 @@ private[mill] trait GroupEvaluator {
                   exclusive
                 )
 
+
               val valueHash = newResults(labelled.task) match {
                 case TaskResult(Result.Failure(_, Some((v, _))), _) =>
-                  handleTaskResult(v, v.##, paths.meta, inputsHash, labelled)
-                  v.##
+                  val valueHash = if (terminal.task.asWorker.isEmpty) v.## else inputsHash
+                  handleTaskResult(v, valueHash, paths.meta, inputsHash, labelled)
+
 
                 case TaskResult(Result.Success((v, _)), _) =>
-                  handleTaskResult(v, v.##, paths.meta, inputsHash, labelled)
-                  v.##
+                  val valueHash = if (terminal.task.asWorker.isEmpty) v.## else inputsHash
+                  handleTaskResult(v, valueHash, paths.meta, inputsHash, labelled)
+                  valueHash
 
                 case _ =>
                   // Wipe out any cached meta.json file that exists, so
@@ -459,11 +458,11 @@ private[mill] trait GroupEvaluator {
 private[mill] object GroupEvaluator {
 
   case class Results(
-      newResults: Map[Task[_], TaskResult[(Val, Int)]],
-      newEvaluated: Seq[Task[_]],
-      cached: java.lang.Boolean,
-      inputsHash: Int,
-      previousInputsHash: Int,
-      changedValueHash: Boolean
+                      newResults: Map[Task[_], TaskResult[(Val, Int)]],
+                      newEvaluated: Seq[Task[_]],
+                      cached: java.lang.Boolean,
+                      inputsHash: Int,
+                      previousInputsHash: Int,
+                      valueHashChanged: Boolean
   )
 }
