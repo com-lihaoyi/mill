@@ -47,12 +47,12 @@ private[scalalib] object TestModuleUtil {
       val outputPath = base / "out.json"
       val testArgs = TestArgs(
         framework = testFramework,
-        classpath = runClasspath.map(_.path),
+        classpath = runClasspath.map(_.path.toString),
         arguments = args,
         sysProps = props,
-        outputPath = outputPath,
+        outputPath = outputPath.toString,
         colored = T.log.colored,
-        testCp = testClasspath.map(_.path),
+        testCp = testClasspath.map(_.path.toString),
         home = T.home,
         globSelectors = selectors2
       )

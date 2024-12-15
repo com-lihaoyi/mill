@@ -10,6 +10,7 @@ import sbt.internal.inc.{
   FreshCompilerCache,
   ManagedLoggedReporter,
   MappedFileConverter,
+  MappedVirtualFile,
   ScalaInstance,
   Stamps,
   ZincUtil,
@@ -19,6 +20,8 @@ import sbt.internal.inc.classpath.ClasspathUtil
 import sbt.internal.inc.consistent.ConsistentFileAnalysisStore
 import sbt.internal.util.{ConsoleAppender, ConsoleOut}
 import sbt.mill.SbtLoggerUtils
+import xsbti.compile.analysis.{ReadMapper, Stamp, WriteMapper}
+import xsbti.VirtualFileRef
 import xsbti.compile.analysis.ReadWriteMappers
 import xsbti.compile.{
   AnalysisContents,
@@ -38,6 +41,7 @@ import xsbti.compile.CompileProgress
 
 import java.io.File
 import java.net.URLClassLoader
+import java.nio.file
 import java.util.Optional
 import scala.collection.mutable
 import scala.util.Properties.isWin
@@ -483,14 +487,80 @@ class ZincWorkerImpl(
     }
   }
 
-  private def fileAnalysisStore(path: os.Path): AnalysisStore =
-    ConsistentFileAnalysisStore.binary(
-      file = path.toIO,
-      mappers = ReadWriteMappers.getEmptyMappers(),
-      sort = true,
-      // No need to utilize more than 8 cores to serialize a small file
-      parallelism = math.min(Runtime.getRuntime.availableProcessors(), 8)
+  private def fileAnalysisStore(path: os.Path): AnalysisStore = {
+    def denormalizeVirtualFile(file: VirtualFileRef) = file match {
+      case b: MappedVirtualFile =>
+        MappedVirtualFile(PathRef.denormalizePath(os.Path(b.toPath())).toString(), Map())
+      case b => b
+    }
+    def normalizeVirtualFile(file: VirtualFileRef) = file match {
+      case b: MappedVirtualFile =>
+        MappedVirtualFile(PathRef.normalizePath(os.Path(b.toPath())).toString(), Map())
+      case b => b
+    }
+    def denormalizeNioPath(file: java.nio.file.Path) = PathRef.denormalizePath(os.Path(file)).toNIO
+    def normalizeNioPath(file: java.nio.file.Path) = PathRef.normalizePath(os.Path(file)).toNIO
+    def normalizeString(str: String) = {
+      PathRef.defaultMapping.foldLeft(str) { case (s, (long, short)) =>
+        s.replace(long.toString(), short.toString())
+      }
+    }
+    def denormalizeString(str: String) = {
+      PathRef.defaultMapping.foldLeft(str) { case (s, (long, short)) =>
+        s.replace(short.toString(), long.toString())
+      }
+    }
+    val mappers = new ReadWriteMappers(
+      new ReadMapper {
+        override def mapSourceFile(sourceFile: VirtualFileRef): VirtualFileRef =
+          denormalizeVirtualFile(sourceFile)
+        override def mapBinaryFile(binaryFile: VirtualFileRef): VirtualFileRef =
+          denormalizeVirtualFile(binaryFile)
+        override def mapProductFile(productFile: VirtualFileRef): VirtualFileRef =
+          denormalizeVirtualFile(productFile)
+        override def mapOutputDir(outputDir: file.Path): file.Path = denormalizeNioPath(outputDir)
+        override def mapSourceDir(sourceDir: file.Path): file.Path = denormalizeNioPath(sourceDir)
+        override def mapClasspathEntry(classpathEntry: file.Path): file.Path =
+          denormalizeNioPath(classpathEntry)
+        override def mapJavacOption(javacOption: String): String = denormalizeString(javacOption)
+        override def mapScalacOption(scalacOption: String): String = denormalizeString(scalacOption)
+        override def mapBinaryStamp(file: VirtualFileRef, binaryStamp: Stamp): Stamp = binaryStamp
+        override def mapSourceStamp(file: VirtualFileRef, sourceStamp: Stamp): Stamp = sourceStamp
+        override def mapProductStamp(file: VirtualFileRef, productStamp: Stamp): Stamp =
+          productStamp
+        override def mapMiniSetup(miniSetup: MiniSetup): MiniSetup = miniSetup
+      },
+      new WriteMapper {
+        override def mapSourceFile(sourceFile: VirtualFileRef): VirtualFileRef =
+          normalizeVirtualFile(sourceFile)
+        override def mapBinaryFile(binaryFile: VirtualFileRef): VirtualFileRef =
+          normalizeVirtualFile(binaryFile)
+        override def mapProductFile(productFile: VirtualFileRef): VirtualFileRef =
+          normalizeVirtualFile(productFile)
+        override def mapOutputDir(outputDir: file.Path): file.Path = normalizeNioPath(outputDir)
+        override def mapSourceDir(sourceDir: file.Path): file.Path = normalizeNioPath(sourceDir)
+        override def mapClasspathEntry(classpathEntry: file.Path): file.Path =
+          normalizeNioPath(classpathEntry)
+        override def mapJavacOption(javacOption: String): String = normalizeString(javacOption)
+        override def mapScalacOption(scalacOption: String): String = normalizeString(scalacOption)
+        override def mapBinaryStamp(file: VirtualFileRef, binaryStamp: Stamp): Stamp = binaryStamp
+        override def mapSourceStamp(file: VirtualFileRef, sourceStamp: Stamp): Stamp = sourceStamp
+        override def mapProductStamp(file: VirtualFileRef, productStamp: Stamp): Stamp =
+          productStamp
+        override def mapMiniSetup(miniSetup: MiniSetup): MiniSetup = miniSetup
+      }
     )
+    // No need to utilize more than 8 cores to serialize a small file
+    val parallelism = math.min(Runtime.getRuntime.availableProcessors(), 8)
+
+    if (System.getenv("MILL_TEST_TEXT_ANALYSIS_STORE") != null) {
+      ConsistentFileAnalysisStore
+        .text(file = path.toIO, mappers = mappers, sort = true, parallelism = parallelism)
+    } else {
+      ConsistentFileAnalysisStore
+        .binary(file = path.toIO, mappers = mappers, sort = true, parallelism = parallelism)
+    }
+  }
 
   private def compileInternal(
       upstreamCompileOutput: Seq[CompilationResult],
