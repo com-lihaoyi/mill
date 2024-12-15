@@ -95,7 +95,7 @@ object ParseArgs {
 
   private def selector[_p: P]: P[(Option[Segments], Option[Segments])] = {
     def wildcard = P("__" | "_")
-    def label = mill.define.Reflect.ident
+    def label = P(CharsWhileIn("a-zA-Z0-9_\\-")).!
 
     def typeQualifier(simple: Boolean) = {
       val maxSegments = if (simple) 0 else Int.MaxValue

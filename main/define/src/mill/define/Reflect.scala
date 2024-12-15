@@ -1,36 +1,49 @@
 package mill.define
 
-import fastparse.NoWhitespace._
-import fastparse._
-
-import java.lang.reflect.Modifier
 import scala.reflect.ClassTag
-import scala.reflect.NameTransformer.decode
+import java.lang.reflect.Method
 
 private[mill] object Reflect {
+  import java.lang.reflect.Modifier
 
-  def ident[_p: P]: P[String] = P(CharsWhileIn("a-zA-Z0-9_\\-")).!
+  def isLegalIdentifier(identifier: String): Boolean = {
+    var i = 0
+    val len = identifier.length
+    while (i < len) {
+      val c = identifier.charAt(i)
+      if (
+        'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z' || '0' <= c && c <= '9' || c == '_' || c == '-'
+      ) {
+        i += 1
+      } else {
+        return false
+      }
+    }
+    true
+  }
 
-  def standaloneIdent[_p: P]: P[String] = P(Start ~ ident ~ End)
-
-  def isLegalIdentifier(identifier: String): Boolean =
-    parse(identifier, standaloneIdent(_)).isInstanceOf[Parsed.Success[_]]
+  def getMethods(cls: Class[_], decode: String => String): Array[(Method, String)] =
+    for {
+      m <- cls.getMethods
+      n = decode(m.getName)
+      if isLegalIdentifier(n) && (m.getModifiers & Modifier.STATIC) == 0
+    } yield (m, n)
 
   def reflect(
       outer: Class[_],
       inner: Class[_],
       filter: String => Boolean,
-      noParams: Boolean
-  ): Seq[java.lang.reflect.Method] = {
-    val res = for {
-      m <- outer.getMethods
-      n = decode(m.getName)
-      if filter(n) &&
-        isLegalIdentifier(n) &&
-        (!noParams || m.getParameterCount == 0) &&
-        (m.getModifiers & Modifier.STATIC) == 0 &&
-        inner.isAssignableFrom(m.getReturnType)
-    } yield m
+      noParams: Boolean,
+      getMethods: Class[_] => Array[(java.lang.reflect.Method, String)]
+  ): Array[java.lang.reflect.Method] = {
+    val arr: Array[java.lang.reflect.Method] = getMethods(outer)
+      .collect {
+        case (m, n)
+            if filter(n) &&
+              (!noParams || m.getParameterCount == 0) &&
+              inner.isAssignableFrom(m.getReturnType) =>
+          m
+      }
 
     // There can be multiple methods of the same name on a class if a sub-class
     // overrides a super-class method and narrows the return type.
@@ -43,18 +56,16 @@ private[mill] object Reflect {
     //    which messes up the comparison since all forwarders will have the
     //    same `getDeclaringClass`. To handle these scenarios, also sort by
     //    return type, so we can identify the most specific override
-    res
-      .sortWith((m1, m2) =>
-        if (m1.getDeclaringClass.equals(m2.getDeclaringClass)) false
-        else m1.getDeclaringClass.isAssignableFrom(m2.getDeclaringClass)
-      )
-      .sortWith((m1, m2) =>
+
+    arr.sortInPlaceWith((m1, m2) =>
+      if (m1.getDeclaringClass.equals(m2.getDeclaringClass)) {
         m1.getReturnType.isAssignableFrom(m2.getReturnType)
-      )
-      .reverse
-      .distinctBy(_.getName)
-      .sortBy(_.getName)
-      .toIndexedSeq
+      } else {
+        m1.getDeclaringClass.isAssignableFrom(m2.getDeclaringClass)
+      }
+    )
+
+    arr.reverseIterator.distinctBy(_.getName).toArray
   }
 
   // For some reason, this fails to pick up concrete `object`s nested directly within
@@ -62,14 +73,16 @@ private[mill] object Reflect {
   // script/REPL runner always wraps user code in a wrapper object/trait
   def reflectNestedObjects0[T: ClassTag](
       outerCls: Class[_],
-      filter: String => Boolean = Function.const(true)
-  ): Seq[(String, java.lang.reflect.Member)] = {
+      filter: String => Boolean = Function.const(true),
+      getMethods: Class[_] => Array[(java.lang.reflect.Method, String)]
+  ): Array[(String, java.lang.reflect.Member)] = {
 
     val first = reflect(
       outerCls,
       implicitly[ClassTag[T]].runtimeClass,
       filter,
-      noParams = true
+      noParams = true,
+      getMethods
     )
       .map(m => (m.getName, m))
 
@@ -92,9 +105,10 @@ private[mill] object Reflect {
 
   def reflectNestedObjects02[T: ClassTag](
       outerCls: Class[_],
-      filter: String => Boolean = Function.const(true)
-  ): Seq[(String, Class[_], Any => T)] = {
-    reflectNestedObjects0[T](outerCls, filter).map {
+      filter: String => Boolean = Function.const(true),
+      getMethods: Class[_] => Array[(java.lang.reflect.Method, String)]
+  ): Array[(String, Class[_], Any => T)] = {
+    reflectNestedObjects0[T](outerCls, filter, getMethods).map {
       case (name, m: java.lang.reflect.Method) =>
         (name, m.getReturnType, (outer: Any) => m.invoke(outer).asInstanceOf[T])
       case (name, m: java.lang.reflect.Field) =>

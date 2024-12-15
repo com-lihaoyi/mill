@@ -5,12 +5,13 @@ import mill.api.Strict.Agg
 import mill.api._
 import mill.define._
 import mill.eval.Evaluator.TaskResult
-
+import mill.main.client.OutFiles
 import mill.util._
 
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import scala.collection.mutable
 import scala.concurrent._
+import scala.jdk.CollectionConverters.EnumerationHasAsScala
 
 /**
  * Core logic of evaluating tasks, without any user-facing helper methods
@@ -76,6 +77,17 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     val terminals0 = sortedGroups.keys().toVector
     val failed = new AtomicBoolean(false)
     val count = new AtomicInteger(1)
+    val indexToTerminal = sortedGroups.keys().toArray
+    val terminalToIndex = indexToTerminal.zipWithIndex.toMap
+    val upstreamIndexEdges =
+      indexToTerminal.map(t => interGroupDeps.getOrElse(t, Nil).map(terminalToIndex).toArray)
+    os.write.over(
+      outPath / OutFiles.millDependencyForest,
+      SpanningForest.spanningTreeToJsonTree(
+        SpanningForest(upstreamIndexEdges, indexToTerminal.indices.toSet, true),
+        i => indexToTerminal(i).render
+      ).render(indent = 2)
+    )
 
     val futures = mutable.Map.empty[Terminal, Future[Option[GroupEvaluator.Results]]]
 
@@ -84,6 +96,9 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     // each target belongs to determine of the enclosing class code signature changed.
     val (classToTransitiveClasses, allTransitiveClassMethods) =
       CodeSigUtils.precomputeMethodNamesPerClass(sortedGroups)
+
+    val uncached = new java.util.concurrent.ConcurrentHashMap[Terminal, Unit]()
+    val changedValueHash = new java.util.concurrent.ConcurrentHashMap[Terminal, Unit]()
 
     def evaluateTerminals(
         terminals: Seq[Terminal],
@@ -115,7 +130,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
           val taskResults =
             group.map(t => (t, TaskResult[(Val, Int)](failure, () => failure))).toMap
           futures(terminal) = Future.successful(
-            Some(GroupEvaluator.Results(taskResults, group.toSeq, false, -1, -1))
+            Some(GroupEvaluator.Results(taskResults, group.toSeq, false, -1, -1, false))
           )
         } else {
           futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
@@ -191,12 +206,15 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
                 threadId = threadNumberer.getThreadId(Thread.currentThread()),
                 cached = res.cached
               )
+              if (!res.cached) uncached.put(terminal, ())
+              if (res.valueHashChanged) changedValueHash.put(terminal, ())
 
               profileLogger.log(
                 ProfileLogger.Timing(
                   terminal.render,
                   (duration / 1000).toInt,
                   res.cached,
+                  res.valueHashChanged,
                   deps.map(_.render),
                   res.inputsHash,
                   res.previousInputsHash
@@ -253,6 +271,32 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       }
 
     val results: Map[Task[_], TaskResult[(Val, Int)]] = results0.toMap
+
+    val reverseInterGroupDeps = interGroupDeps
+      .iterator
+      .flatMap { case (k, vs) => vs.map(_ -> k) }
+      .toSeq
+      .groupMap(_._1)(_._2)
+
+    val changedTerminalIndices = changedValueHash.keys().asScala.toSet
+    val downstreamIndexEdges = indexToTerminal
+      .map(t =>
+        if (changedTerminalIndices(t))
+          reverseInterGroupDeps.getOrElse(t, Nil).map(terminalToIndex).toArray
+        else Array.empty[Int]
+      )
+
+    os.write.over(
+      outPath / OutFiles.millInvalidationForest,
+      SpanningForest.spanningTreeToJsonTree(
+        SpanningForest(
+          downstreamIndexEdges,
+          uncached.keys().asScala.map(terminalToIndex).toSet,
+          true
+        ),
+        i => indexToTerminal(i).render
+      ).render(indent = 2)
+    )
 
     EvaluatorCore.Results(
       goals.indexed.map(results(_).map(_._1).result),
