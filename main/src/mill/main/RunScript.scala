@@ -26,6 +26,7 @@ object RunScript {
     selectMode,
     selectiveExecution = false
   )
+
   def evaluateTasksNamed(
       evaluator: Evaluator,
       scriptArgs: Seq[String],
@@ -35,23 +36,50 @@ object RunScript {
     String,
     (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]])
   ] = {
-    val resolved = mill.eval.Evaluator.currentEvaluator.withValue(evaluator) {
-      Resolve.Tasks.resolve(
-        evaluator.rootModule,
-        scriptArgs,
-        selectMode,
-        evaluator.allowPositionalCommandArgs
-      )
-    }
-    for (targets <- resolved)
-      yield evaluateNamed(evaluator, Agg.from(targets), selectiveExecution)
-  }
+    val selectedTargetsOrErr =
+      if (selectiveExecution && os.exists(evaluator.outPath / OutFiles.millSelectiveExecution)) {
+        mill.main.client.DebugLog.println("A")
+        SelectiveExecution.resolve0(evaluator, scriptArgs)
+          .map(_.flatMap(Array("+", _)).drop(1))
+      } else {
+        mill.main.client.DebugLog.println("B " + scriptArgs)
+        Right(scriptArgs.toArray)
+      }
 
-  def evaluateNamed(
-      evaluator: Evaluator,
-      targets: Agg[NamedTask[Any]]
-  ): (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]]) =
-    evaluateNamed(evaluator, targets, selectiveExecution = false)
+    selectedTargetsOrErr.flatMap{ resolvedTaskNames =>
+
+      val resolved = mill.eval.Evaluator.currentEvaluator.withValue(evaluator) {
+        Resolve.Tasks.resolve(
+          evaluator.rootModule,
+          resolvedTaskNames,
+          selectMode,
+          evaluator.allowPositionalCommandArgs
+        )
+      }
+      resolved.map{ t =>
+        mill.main.client.DebugLog.println("C " + t)
+        val evaluated = evaluateNamed0(evaluator, Agg.from(t))
+        if (selectiveExecution) {
+          for(res <- evaluated._2){
+            val (results, _) = res
+            val allInputHashes = results
+              .iterator
+              .collect {
+                case (t: InputImpl[_], TaskResult(Result.Success(Val(value)), _)) =>
+                  (t.ctx.segments.render, value.##)
+              }
+              .toMap
+            SelectiveExecution.saveMetadata(
+              evaluator,
+              SelectiveExecution.Metadata(allInputHashes, evaluator.methodCodeHashSignatures)
+            )
+          }
+        }
+        val (ws, either) = evaluated
+        (ws, either.map{case (r, v) => v})
+      }
+    }
+  }
 
   /**
    * @param evaluator
@@ -59,74 +87,52 @@ object RunScript {
    * @return (watched-paths, Either[err-msg, Seq[(task-result, Option[(task-name, task-return-as-json)])]])
    */
   def evaluateNamed(
-      evaluator: Evaluator,
-      targets: Agg[NamedTask[Any]],
-      selectiveExecution: Boolean = false,
-  ): (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]]) = {
+                     evaluator: Evaluator,
+                     targets: Agg[NamedTask[Any]]
+                   ): (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]]) = {
+    val (ws, either) = evaluateNamed0(evaluator, targets)
+    (ws, either.map{case (r, v) => v})
+  }
 
-    val selectedTargetsOrErr =
-      if (selectiveExecution && os.exists(evaluator.outPath / OutFiles.millSelectiveExecution)) {
-        SelectiveExecution
-          .diffMetadata(evaluator, targets.map(_.ctx.segments.render).toSeq)
-          .map { selected =>
-            val selectedSet = selected.toSet
-            targets.filter {
-              case c: Command[_] if c.exclusive => true
-              case t => selectedSet(t.ctx.segments.render)
-            }
+  def evaluateNamed0(
+                      evaluator: Evaluator,
+                      targets: Agg[NamedTask[Any]]
+                    ): (Seq[Watchable], Either[String, (Map[Task[_], TaskResult[Val]], Seq[(Any, Option[(TaskName, ujson.Value)])])]) = {
+    val evaluated: Results = evaluator.evaluate(targets, serialCommandExec = true)
+    val watched = evaluated.results
+      .iterator
+      .collect {
+        case (t: SourcesImpl, TaskResult(Result.Success(Val(ps: Seq[PathRef])), _)) =>
+          ps.map(Watchable.Path(_))
+        case (t: SourceImpl, TaskResult(Result.Success(Val(p: PathRef)), _)) =>
+          Seq(Watchable.Path(p))
+        case (t: InputImpl[_], TaskResult(result, recalc)) =>
+          val pretty = t.ctx0.fileName + ":" + t.ctx0.lineNum
+          Seq(Watchable.Value(() => recalc().hashCode(), result.hashCode(), pretty))
+      }
+      .flatten
+      .toSeq
+
+    val errorStr = Evaluator.formatFailing(evaluated)
+    evaluated.failing.keyCount match {
+      case 0 =>
+        val nameAndJson = for (t <- targets.toSeq) yield {
+          t match {
+            case t: mill.define.NamedTask[_] =>
+              val jsonFile = EvaluatorPaths.resolveDestPaths(evaluator.outPath, t).meta
+              val metadata = upickle.default.read[Evaluator.Cached](ujson.read(jsonFile.toIO))
+              Some((t.toString, metadata.value))
+
+            case _ => None
           }
-      } else Right(targets)
-
-    selectedTargetsOrErr match {
-      case Left(err) => (Nil, Left(err))
-      case Right(selectedTargets) =>
-        val evaluated: Results = evaluator.evaluate(selectedTargets, serialCommandExec = true)
-        val watched = evaluated.results
-          .iterator
-          .collect {
-            case (t: SourcesImpl, TaskResult(Result.Success(Val(ps: Seq[PathRef])), _)) =>
-              ps.map(Watchable.Path(_))
-            case (t: SourceImpl, TaskResult(Result.Success(Val(p: PathRef)), _)) =>
-              Seq(Watchable.Path(p))
-            case (t: InputImpl[_], TaskResult(result, recalc)) =>
-              val pretty = t.ctx0.fileName + ":" + t.ctx0.lineNum
-              Seq(Watchable.Value(() => recalc().hashCode(), result.hashCode(), pretty))
-          }
-          .flatten
-          .toSeq
-
-
-        if (selectiveExecution) {
-          val allInputHashes = evaluated.results
-            .iterator
-            .collect {
-              case (t: InputImpl[_], TaskResult(Result.Success(Val(value)), _)) =>
-                (t.ctx.segments.render, value.##)
-            }
-            .toMap
-          SelectiveExecution.saveMetadata(
-            evaluator,
-            SelectiveExecution.Metadata(allInputHashes, evaluator.methodCodeHashSignatures)
-          )
         }
 
-        val errorStr = Evaluator.formatFailing(evaluated)
-        evaluated.failing.keyCount match {
-          case 0 =>
-            val nameAndJson = for (t <- selectedTargets.toSeq) yield {
-              t match {
-                case t: mill.define.NamedTask[_] =>
-                  val jsonFile = EvaluatorPaths.resolveDestPaths(evaluator.outPath, t).meta
-                  val metadata = upickle.default.read[Evaluator.Cached](ujson.read(jsonFile.toIO))
-                  Some((t.toString, metadata.value))
+        val rhs: Seq[(Any, Option[(TaskName, ujson.Value)])] = evaluated.values.zip(nameAndJson)
+        val results: Map[Task[_], TaskResult[Val]] = evaluated.results.toMap
 
-                case _ => None
-              }
-            }
+        watched -> Right(results -> rhs)
 
-            watched -> Right(evaluated.values.zip(nameAndJson))
-          case n => watched -> Left(s"$n tasks failed\n$errorStr")
-        }
+      case n => watched -> Left(s"$n tasks failed\n$errorStr")
     }
   }
 }
