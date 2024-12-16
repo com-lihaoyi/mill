@@ -835,14 +835,55 @@ a second time, and thus this file shows how <code>foo.sources</code> invalidated
 <p>Again, if there are multiple paths through which one task was invalidated by another,
 one path is chosen arbitrarily to be shown in the spanning tree</p>
 </div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_methodcodehashsignatures_spanninginvalidationtree"><a class="anchor" href="#_methodcodehashsignatures_spanninginvalidationtree"></a><code>methodCodeHashSignatures spanningInvalidationTree</code></h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>Sometimes invalidation can be caused by a code change in your <code>build.mill</code>/<code>package.mill</code>
 files, rather than by a change in the project’s source files or inputs. In such cases,
 the root tasks in <code>mill-invalidation-tree.json</code> may not necessarily be inputs. In such
-cases, you can look at <code>out/mill-build/methodCodeHashSignatures.dest/current/spanningInvalidationForest.json</code>
+cases, you can look at <code>out/mill-build/methodCodeHashSignatures.dest/current/spanningInvalidationTree.json</code>
 to see an invalidation tree for how code changes in specfic methods propagate throughout
 the <code>build.mill</code> codebase.</p>
 </div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; sed -i.bak 's/{}/{println(123)}/g' build.mill
+
+&gt; ./mill foo.compile # compile after changing build.mill
+
+&gt; cat out/mill-build/methodCodeHashSignatures.dest/current/spanningInvalidationTree.json
+{
+  &quot;call scala.runtime.BoxesRunTime.boxToInteger(int)java.lang.Integer&quot;: {},
+  &quot;call scala.Predef$#println(java.lang.Object)void&quot;: {
+    &quot;def build_.package_$foo$#&lt;init&gt;(build_.package_)void&quot;: {
+      &quot;call build_.package_$foo$!&lt;init&gt;(build_.package_)void&quot;: {
+        &quot;def build_.package_#foo$lzycompute$1()void&quot;: {
+          &quot;call build_.package_!foo$lzycompute$1()void&quot;: {
+            &quot;def build_.package_#foo()build_.package_$foo$&quot;: {}
+          }
+        }
+      }
+    }
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the <code>spanningInvalidationTree.json</code> above, we can see how to addition of the call
+to <code>scala.Predef.println</code> caused the <code>&lt;init&gt;</code> constructor method of <code>build_.package_.foo</code>
+to invalidation, and ends up invalidating <code>def build_.package_#foo()</code> which is the method
+representing the <code>build.foo</code> task that will thus need to be re-evaluated.</p>
+</div>
+<div class="paragraph">
+<p>Mill’s code-change invalidation analysis is <em>approximate</em> and <em>conservative</em>. That means
+that it invalidates each task when any method it calls (transitively) is changed. This may
+sometimes invalidate <em>too many</em> tasks, but it generally does not invalidate <em>too few</em> tasks,
+except in code using Java Reflection or similar techniques which the code-change analysis
+does not understand.</p>
 </div>
 <div class="sect2">
 <h3 id="_mill_build"><a class="anchor" href="#_mill_build"></a><code>mill-build/</code></h3>
