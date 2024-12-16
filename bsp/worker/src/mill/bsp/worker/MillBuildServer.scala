@@ -296,7 +296,10 @@ private class MillBuildServer(
           Task.Anon {
             (
               m.defaultResolver().resolveDeps(
-                m.transitiveCompileIvyDeps() ++ m.transitiveIvyDeps(),
+                Seq(
+                  m.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
+                  m.coursierDependency
+                ),
                 sources = true
               ),
               m.unmanagedClasspath(),
@@ -332,7 +335,13 @@ private class MillBuildServer(
       hint = "buildTargetDependencyModules",
       targetIds = _ => params.getTargets.asScala.toSeq,
       tasks = { case m: JavaModule =>
-        Task.Anon { (m.transitiveCompileIvyDeps(), m.transitiveIvyDeps(), m.unmanagedClasspath()) }
+        Task.Anon {
+          (
+            m.compileIvyDeps(),
+            m.ivyDeps(),
+            m.unmanagedClasspath()
+          )
+        }
       }
     ) {
       case (
@@ -340,9 +349,9 @@ private class MillBuildServer(
             state,
             id,
             m: JavaModule,
-            (transitiveCompileIvyDeps, transitiveIvyDeps, unmanagedClasspath)
+            (compileIvyDeps, ivyDeps, unmanagedClasspath)
           ) =>
-        val ivy = transitiveCompileIvyDeps ++ transitiveIvyDeps
+        val ivy = compileIvyDeps ++ ivyDeps
         val deps = ivy.map { dep =>
           // TODO: add data with "maven" data kind using a ...
 //          MavenDependencyModule
