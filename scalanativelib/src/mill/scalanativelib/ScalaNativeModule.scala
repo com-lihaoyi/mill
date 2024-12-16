@@ -314,7 +314,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     ))
   }
 
-  override def transitiveIvyDeps: T[Agg[BoundDep]] = Task {
+  override def ivyDeps: T[Agg[Dep]] = Task {
 
     // Exclude cross published version dependencies leading to conflicts in Scala 3 vs 2.13
     // When using Scala 3 exclude Scala 2.13 standard native libraries,
@@ -337,7 +337,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       )
     }
 
-    super.transitiveIvyDeps().map { dep =>
+    super.ivyDeps().map { dep =>
       dep.exclude(exclusions: _*)
     }
   }

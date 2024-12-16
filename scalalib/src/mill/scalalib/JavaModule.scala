@@ -1,10 +1,11 @@
 package mill
 package scalalib
 
+import coursier.{core => cs}
 import coursier.core.{BomDependency, Configuration, DependencyManagement, Resolution}
 import coursier.parse.JavaOrScalaModule
 import coursier.parse.ModuleParser
-import coursier.util.ModuleMatcher
+import coursier.util.{EitherT, ModuleMatcher, Monad}
 import coursier.{Repository, Type}
 import mainargs.{Flag, arg}
 import mill.Agg
@@ -44,7 +45,9 @@ trait JavaModule
 
     override def resources = super[JavaModule].resources
     override def moduleDeps: Seq[JavaModule] = Seq(outer)
-    override def repositoriesTask: Task[Seq[Repository]] = outer.repositoriesTask
+    override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
+      internalRepositories() ++ outer.repositoriesTask()
+    }
     override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
       outer.resolutionCustomizer
     override def javacOptions: T[Seq[String]] = Task { outer.javacOptions() }
@@ -208,41 +211,6 @@ trait JavaModule
    * }}}
    */
   def depManagement: T[Agg[Dep]] = Task { Agg.empty[Dep] }
-
-  private def addBoms(
-      bomIvyDeps: Seq[coursier.core.BomDependency],
-      depMgmt: Seq[(DependencyManagement.Key, DependencyManagement.Values)],
-      overrideVersions: Boolean
-  ): coursier.core.Dependency => coursier.core.Dependency = {
-    val depMgmtMap = DependencyManagement.add(Map.empty, depMgmt)
-    dep =>
-      val depMgmtKey = DependencyManagement.Key(
-        dep.module.organization,
-        dep.module.name,
-        coursier.core.Type.jar,
-        dep.publication.classifier
-      )
-      val versionOverrideOpt =
-        if (dep.version.isEmpty)
-          depMgmtMap.get(depMgmtKey).map(_.version).filter(_.nonEmpty)
-        else None
-      val extraExclusions = depMgmtMap.get(depMgmtKey).map(_.minimizedExclusions)
-      dep
-        // add BOM coordinates - coursier will handle the rest
-        .addBomDependencies(
-          if (overrideVersions) bomIvyDeps.map(_.withForceOverrideVersions(overrideVersions))
-          else bomIvyDeps
-        )
-        // add dependency management ourselves:
-        // - overrides meant to apply to transitive dependencies
-        // - fill version if it's empty
-        // - add extra exclusions from dependency management
-        .addOverrides(depMgmt)
-        .withVersion(versionOverrideOpt.getOrElse(dep.version))
-        .withMinimizedExclusions(
-          extraExclusions.fold(dep.minimizedExclusions)(dep.minimizedExclusions.join(_))
-        )
-  }
 
   /**
    * Data from depManagement, converted to a type ready to be passed to coursier
@@ -453,60 +421,120 @@ trait JavaModule
   def unmanagedClasspath: T[Agg[PathRef]] = Task { Agg.empty[PathRef] }
 
   /**
-   * Returns a function adding BOM and dependency management details of
-   * this module to a `coursier.core.Dependency`
+   * The `coursier.Dependency` to use to refer to this module
    */
-  def processDependency(
-      overrideVersions: Boolean = false
-  ): Task[coursier.core.Dependency => coursier.core.Dependency] = Task.Anon {
-    val bomDeps0 = allBomDeps().toSeq.map(_.withConfig(Configuration.compile))
-    val depMgmt = processedDependencyManagement(
-      depManagement().toSeq.map(bindDependency()).map(_.dep)
+  def coursierDependency: cs.Dependency =
+    // this is a simple def, and not a Task, as this is simple enough and needed in places
+    // where eval'ing a Task would be impractical or not allowed
+    cs.Dependency(
+      cs.Module(
+        coursier.core.Organization("mill-internal"),
+        coursier.core.ModuleName(millModuleSegments.parts.mkString("-")),
+        Map.empty
+      ),
+      "0+mill-internal"
+    ).withConfiguration(cs.Configuration.compile)
+
+  /**
+   * The `coursier.Project` corresponding to this `JavaModule`.
+   *
+   * This provides details about this module to the coursier resolver (details such as
+   * dependencies, BOM dependencies, dependency management, etc.). Beyond more general
+   * resolution parameters (such as artifact types, etc.), this should be the only way
+   * we provide details about this module to coursier.
+   */
+  def coursierProject: Task[cs.Project] = Task.Anon {
+
+    // FIXME That's coursier.maven.MavenRepositoryInternal.defaultConfigurations (private for now)
+    // plus hack for provided
+    val mavenScopes = Map(
+      cs.Configuration.compile -> Seq.empty,
+      cs.Configuration.runtime -> Seq(cs.Configuration.compile),
+      cs.Configuration.default -> Seq(cs.Configuration.runtime),
+      cs.Configuration.test -> Seq(cs.Configuration.runtime),
+      // hack, so that depending on `coursierDependency.withConfiguration(Configuration.provided)`
+      // pulls the compile-scope of our provided dependencies (rather than nothing)
+      cs.Configuration.provided -> Seq(cs.Configuration.compile)
     )
 
-    addBoms(bomDeps0, depMgmt, overrideVersions = overrideVersions)
-  }
+    val internalDependencies =
+      moduleDepsChecked.map { modDep =>
+        (cs.Configuration.compile, modDep.coursierDependency)
+      } ++
+        compileModuleDepsChecked.map { modDep =>
+          (cs.Configuration.provided, modDep.coursierDependency)
+        } ++
+        runModuleDepsChecked.map { modDep =>
+          (cs.Configuration.runtime, modDep.coursierDependency)
+        }
 
-  /**
-   * The Ivy dependencies of this module, with BOM and dependency management details
-   * added to them. This should be used when propagating the dependencies transitively
-   * to other modules.
-   */
-  def processedIvyDeps: Task[Agg[BoundDep]] = Task.Anon {
-    val processDependency0 = processDependency()()
-    allIvyDeps().map(bindDependency()).map { dep =>
-      dep.copy(dep = processDependency0(dep.dep))
-    }
-  }
+    val dependencies =
+      (mandatoryIvyDeps() ++ ivyDeps()).map(bindDependency()).map(_.dep).iterator.toSeq.map { dep =>
+        (cs.Configuration.compile, dep)
+      } ++
+        compileIvyDeps().map(bindDependency()).map(_.dep).map { dep =>
+          (cs.Configuration.provided, dep)
+        } ++
+        runIvyDeps().map(bindDependency()).map(_.dep).map { dep =>
+          (cs.Configuration.runtime, dep)
+        } ++
+        allBomDeps().map { bomDep =>
+          val dep =
+            cs.Dependency(bomDep.module, bomDep.version).withConfiguration(bomDep.config)
+          (cs.Configuration.`import`, dep)
+        }
 
-  /**
-   * The transitive ivy dependencies of this module and all it's upstream modules.
-   * This is calculated from [[ivyDeps]], [[mandatoryIvyDeps]] and recursively from [[moduleDeps]].
-   */
-  def transitiveIvyDeps: T[Agg[BoundDep]] = Task {
-    val processDependency0 = processDependency(overrideVersions = true)()
-    processedIvyDeps() ++
-      T.traverse(moduleDepsChecked)(_.transitiveIvyDeps)().flatten.map { dep =>
-        dep.copy(dep = processDependency0(dep.dep))
+    val depMgmt =
+      processedDependencyManagement(
+        depManagement().iterator.toSeq.map(bindDependency()).map(_.dep)
+      ).map {
+        case (key, values) =>
+          (cs.Configuration.compile, values.fakeDependency(key))
       }
-  }
 
-  /** The compile-only transitive ivy dependencies of this module and all it's upstream compile-only modules. */
-  def transitiveCompileIvyDeps: T[Agg[BoundDep]] = Task {
-    // We never include compile-only dependencies transitively, but we must include normal transitive dependencies!
-    compileIvyDeps().map(bindDependency()) ++
-      T.traverse(compileModuleDepsChecked)(_.transitiveIvyDeps)().flatten
+    cs.Project(
+      module = coursierDependency.module,
+      version = coursierDependency.version,
+      dependencies = internalDependencies ++ dependencies,
+      configurations = mavenScopes,
+      parent = None,
+      dependencyManagement = depMgmt,
+      properties = Nil,
+      profiles = Nil,
+      versions = None,
+      snapshotVersioning = None,
+      packagingOpt = None,
+      relocated = false,
+      actualVersionOpt = None,
+      publications = Nil,
+      info = coursier.core.Info.empty
+    )
   }
 
   /**
-   * The transitive run ivy dependencies of this module and all it's upstream modules.
-   * This is calculated from [[runIvyDeps]], [[mandatoryIvyDeps]] and recursively from [[moduleDeps]].
+   * Coursier project of this module and those of all its transitive module dependencies
    */
-  def transitiveRunIvyDeps: T[Agg[BoundDep]] = Task {
-    runIvyDeps().map(bindDependency()) ++
-      T.traverse(moduleDepsChecked)(_.transitiveRunIvyDeps)().flatten ++
-      T.traverse(runModuleDepsChecked)(_.transitiveIvyDeps)().flatten ++
-      T.traverse(runModuleDepsChecked)(_.transitiveRunIvyDeps)().flatten
+  def transitiveCoursierProjects: Task[Seq[cs.Project]] = Task.Anon {
+    val projects =
+      coursierProject() +: T.traverse(moduleDepsChecked)(_.transitiveCoursierProjects)().flatten
+    projects.distinct
+  }
+
+  /**
+   * The repository that knows about this project itself and its module dependencies
+   */
+  def internalDependenciesRepository: Task[cs.Repository] = Task.Anon {
+    JavaModule.InternalRepo(transitiveCoursierProjects())
+  }
+
+  /**
+   * Mill internal repositories to be used during dependency resolution
+   *
+   * These are not meant to be modified by Mill users, unless you really know what you're
+   * doing.
+   */
+  def internalRepositories: Task[Seq[cs.Repository]] = Task.Anon {
+    super.internalRepositories() ++ Seq(internalDependenciesRepository())
   }
 
   /**
@@ -773,11 +801,17 @@ trait JavaModule
   }
 
   /**
-   * Resolved dependencies based on [[transitiveIvyDeps]] and [[transitiveCompileIvyDeps]].
+   * Resolved dependencies
    */
   def resolvedIvyDeps: T[Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(
-      transitiveCompileIvyDeps() ++ transitiveIvyDeps(),
+      Seq(
+        BoundDep(
+          coursierDependency.withConfiguration(cs.Configuration.provided),
+          force = false
+        ),
+        BoundDep(coursierDependency, force = false)
+      ),
       artifactTypes = Some(artifactTypes()),
       resolutionParamsMapOpt = Some(_.withDefaultConfiguration(coursier.core.Configuration.compile))
     )
@@ -793,8 +827,14 @@ trait JavaModule
 
   def resolvedRunIvyDeps: T[Agg[PathRef]] = Task {
     defaultResolver().resolveDeps(
-      transitiveRunIvyDeps() ++ transitiveIvyDeps(),
-      artifactTypes = Some(artifactTypes())
+      Seq(
+        BoundDep(
+          coursierDependency.withConfiguration(cs.Configuration.runtime),
+          force = false
+        )
+      ),
+      artifactTypes = Some(artifactTypes()),
+      resolutionParamsMapOpt = Some(_.withDefaultConfiguration(cs.Configuration.runtime))
     )
   }
 
@@ -1054,7 +1094,8 @@ trait JavaModule
       whatDependsOn: List[JavaOrScalaModule]
   ): Task[Unit] =
     Task.Anon {
-      val dependencies = (additionalDeps() ++ transitiveIvyDeps()).iterator.to(Seq)
+      val dependencies =
+        (additionalDeps() ++ Seq(BoundDep(coursierDependency, force = false))).iterator.to(Seq)
       val resolution: Resolution = Lib.resolveDependenciesMetadataSafe(
         repositoriesTask(),
         dependencies,
@@ -1108,20 +1149,37 @@ trait JavaModule
             printDepsTree(
               args.inverse.value,
               Task.Anon {
-                transitiveCompileIvyDeps() ++ transitiveRunIvyDeps()
+                Agg(
+                  coursierDependency.withConfiguration(cs.Configuration.provided),
+                  coursierDependency.withConfiguration(cs.Configuration.runtime)
+                ).map(BoundDep(_, force = false))
               },
               validModules
             )()
           }
         case (Flag(true), Flag(false)) =>
           Task.Command {
-            printDepsTree(args.inverse.value, transitiveCompileIvyDeps, validModules)()
+            printDepsTree(
+              args.inverse.value,
+              Task.Anon {
+                Agg(BoundDep(
+                  coursierDependency.withConfiguration(cs.Configuration.provided),
+                  force = false
+                ))
+              },
+              validModules
+            )()
           }
         case (Flag(false), Flag(true)) =>
           Task.Command {
             printDepsTree(
               args.inverse.value,
-              Task.Anon { transitiveRunIvyDeps() },
+              Task.Anon {
+                Agg(BoundDep(
+                  coursierDependency.withConfiguration(cs.Configuration.runtime),
+                  force = false
+                ))
+              },
               validModules
             )()
           }
@@ -1271,7 +1329,10 @@ trait JavaModule
       if (all.value) Seq(
         Task.Anon {
           defaultResolver().resolveDeps(
-            transitiveCompileIvyDeps() ++ transitiveIvyDeps(),
+            Seq(
+              coursierDependency.withConfiguration(cs.Configuration.provided),
+              coursierDependency
+            ),
             sources = true,
             resolutionParamsMapOpt =
               Some(_.withDefaultConfiguration(coursier.core.Configuration.compile))
@@ -1279,7 +1340,7 @@ trait JavaModule
         },
         Task.Anon {
           defaultResolver().resolveDeps(
-            transitiveRunIvyDeps() ++ transitiveIvyDeps(),
+            Seq(coursierDependency.withConfiguration(cs.Configuration.runtime)),
             sources = true
           )
         }
@@ -1325,5 +1386,37 @@ trait JavaModule
   @internal
   override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = Task.Anon {
     Some((JvmBuildTarget.dataKind, bspJvmBuildTargetTask()))
+  }
+}
+
+object JavaModule {
+  final case class InternalRepo(projects: Seq[cs.Project])
+      extends cs.Repository {
+
+    lazy val map = projects.map(proj => proj.moduleVersion -> proj).toMap
+
+    override def toString(): String =
+      pprint.apply(this).toString
+
+    def find[F[_]: Monad](
+        module: cs.Module,
+        version: String,
+        fetch: cs.Repository.Fetch[F]
+    ): EitherT[F, String, (cs.ArtifactSource, cs.Project)] =
+      EitherT(
+        Monad[F].point {
+          map.get((module, version))
+            .map((this, _))
+            .toRight(s"Not an internal Mill module: ${module.repr}:$version")
+        }
+      )
+
+    def artifacts(
+        dependency: cs.Dependency,
+        project: cs.Project,
+        overrideClassifiers: Option[Seq[coursier.core.Classifier]]
+    ): Seq[(coursier.core.Publication, coursier.util.Artifact)] =
+      // Mill modules' artifacts are handled by Mill itself
+      Nil
   }
 }

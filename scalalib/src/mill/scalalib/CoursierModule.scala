@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import coursier.cache.FileCache
-import coursier.core.{BomDependency, Resolution}
+import coursier.core.{BomDependency, DependencyManagement, Resolution}
 import coursier.params.ResolutionParams
 import coursier.{Dependency, Repository, Resolve, Type}
 import mill.define.Task
@@ -84,6 +84,8 @@ trait CoursierModule extends mill.Module {
    */
   def mapDependencies: Task[Dependency => Dependency] = Task.Anon { (d: Dependency) => d }
 
+  def internalRepositories: Task[Seq[Repository]] = Task.Anon(Nil)
+
   /**
    * The repositories used to resolved dependencies with [[resolveDeps()]].
    */
@@ -93,7 +95,7 @@ trait CoursierModule extends mill.Module {
       resolve.finalRepositories.future()(resolve.cache.ec),
       Duration.Inf
     )
-    repos
+    internalRepositories() ++ repos
   }
 
   /**
@@ -249,9 +251,10 @@ object CoursierModule {
         deps: IterableOnce[T],
         resolutionParams: ResolutionParams = ResolutionParams(),
         boms: IterableOnce[BomDependency] = Nil
-    ): (Seq[coursier.core.Dependency], coursier.core.DependencyManagement.Map) = {
+    ): Seq[(Seq[coursier.core.Dependency], DependencyManagement.Map)] = {
       val deps0 = deps
         .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
+        .iterator.toSeq
       val boms0 = boms.toSeq
       val res = Lib.resolveDependenciesMetadataSafe(
         repositories = repositories,
@@ -264,7 +267,15 @@ object CoursierModule {
         boms = boms0
       ).getOrThrow
 
-      (res.processedRootDependencies, res.bomDepMgmt)
+      deps0.map { dep =>
+        (
+          res.finalDependenciesCache.getOrElse(dep.dep, ???),
+          DependencyManagement.addDependencies(
+            Map.empty,
+            res.projectCache.get(dep.dep.moduleVersion).getOrElse(???)._2.dependencyManagement
+          )
+        )
+      }
     }
   }
 
@@ -276,5 +287,9 @@ object CoursierModule {
   }
   implicit case object ResolvableBoundDep extends Resolvable[BoundDep] {
     def bind(t: BoundDep, bind: Dep => BoundDep): BoundDep = t
+  }
+  implicit case object ResolvableCoursierDep extends Resolvable[coursier.core.Dependency] {
+    def bind(t: coursier.core.Dependency, bind: Dep => BoundDep): BoundDep =
+      BoundDep(t, force = false)
   }
 }
