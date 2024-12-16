@@ -122,15 +122,21 @@ private[mill] object SelectiveExecution {
     )
   }
 
-  def diffMetadata(evaluator: Evaluator, tasks: Seq[String]): Either[String, Set[String]] = {
+  def diffMetadata(evaluator: Evaluator, tasks: Seq[String]): Either[String, Seq[String]] = {
     val oldMetadataTxt = os.read(evaluator.outPath / OutFiles.millSelectiveExecution)
-    if (oldMetadataTxt == "") Right(tasks.toSet)
-    else {
+    if (oldMetadataTxt == "") {
+      Resolve.Segments.resolve(
+        evaluator.rootModule,
+        tasks,
+        SelectMode.Multi,
+        evaluator.allowPositionalCommandArgs
+      ).map(_.map(_.render))
+    } else {
       val oldMetadata = upickle.default.read[SelectiveExecution.Metadata](oldMetadataTxt)
       for (newMetadata <- SelectiveExecution.Metadata.compute(evaluator, tasks)) yield {
         SelectiveExecution.computeDownstream(evaluator, tasks, oldMetadata, newMetadata)
-          .collect { case n: NamedTask[_] if !n.isPrivate.contains(true) => n.ctx.segments.render }
-          .toSet
+          .collect { case n: NamedTask[_] => n.ctx.segments.render }
+
       }
     }
   }

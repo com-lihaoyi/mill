@@ -37,19 +37,13 @@ trait SelectiveExecutionModule extends mill.define.Module {
       val result = for {
         resolved <- Resolve.Tasks.resolve(evaluator.rootModule, tasks, SelectMode.Multi)
         diffed <- SelectiveExecution.diffMetadata(evaluator, tasks)
-        resolvedDiffed <- {
-          if (diffed.isEmpty) Right(Nil)
-          else Resolve.Segments.resolve(
-            evaluator.rootModule,
-            diffed.toSeq,
-            SelectMode.Multi,
-            evaluator.allowPositionalCommandArgs
-          )
-        }
       } yield {
-        resolved.map(
-          _.ctx.segments.render
-        ).toSet.intersect(resolvedDiffed.map(_.render).toSet).toArray.sorted
+        resolved
+          .map(_.ctx.segments.render)
+          .toSet
+          .intersect(diffed.toSet)
+          .toArray
+          .sorted
       }
 
       result match {
