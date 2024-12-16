@@ -1,14 +1,12 @@
 package mill.runner
 
 import mill.util.{ColorLogger, PrefixLogger, Watchable}
-import mill.main.{BuildInfo, RootModule, RunScript, SelectiveExecution}
+import mill.main.{BuildInfo, RootModule, RunScript}
 import mill.main.client.CodeGenConstants.*
-import mill.api.{PathRef, Result, SystemStreams, Val, internal}
+import mill.api.{PathRef, SystemStreams, Val, internal}
 import mill.eval.Evaluator
 import mill.resolve.SelectMode
-import mill.define.{BaseModule, InputImpl, Segments}
-import mill.eval.Evaluator.TaskResult
-import mill.main.client.OutFiles
+import mill.define.{BaseModule, Segments}
 import mill.main.client.OutFiles.{millBuild, millRunnerState}
 
 import java.net.URLClassLoader
@@ -401,20 +399,17 @@ object MillBuildBootstrap {
   ): (Either[String, Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
     rootModule.evalWatchedValues.clear()
     val previousClassloader = Thread.currentThread().getContextClassLoader
-    val selectedTargetsAndParamsRes =
-      if (selectiveExecution && os.exists(evaluator.outPath / OutFiles.millSelectiveExecution)) {
-        SelectiveExecution.resolve0(evaluator, targetsAndParams)
-      } else {
-        Right(targetsAndParams.toArray)
-      }
-
-
-    val evalTaskResult = selectedTargetsAndParamsRes.flatMap(selectedTargetsAndParams =>
+    val evalTaskResult =
       try {
         Thread.currentThread().setContextClassLoader(rootModule.getClass.getClassLoader)
-        RunScript.evaluateTasksNamed0(evaluator, selectedTargetsAndParams, SelectMode.Separated)
+        RunScript.evaluateTasksNamed(
+          evaluator,
+          targetsAndParams,
+          SelectMode.Separated,
+          selectiveExecution = selectiveExecution,
+          selectiveExecutionSave = selectiveExecution
+        )
       } finally Thread.currentThread().setContextClassLoader(previousClassloader)
-    )
 
     val moduleWatched = rootModule.watchedValues.toVector
     val addedEvalWatched = rootModule.evalWatchedValues.toVector
@@ -424,21 +419,7 @@ object MillBuildBootstrap {
       case Right((watched, evaluated)) =>
         evaluated match {
           case Left(msg) => (Left(msg), watched ++ addedEvalWatched, moduleWatched)
-          case Right((taskMapping, results)) =>
-
-            if (selectiveExecution) {
-              val allInputHashes = taskMapping
-                .iterator
-                .collect {
-                  case (t: InputImpl[_], TaskResult(Result.Success(Val(value)), _)) =>
-                    (t.ctx.segments.render, value.##)
-                }
-                .toMap
-              SelectiveExecution.saveMetadata(
-                evaluator,
-                SelectiveExecution.Metadata(allInputHashes, evaluator.methodCodeHashSignatures)
-              )
-            }
+          case Right(results) =>
             (Right(results.map(_._1)), watched ++ addedEvalWatched, moduleWatched)
         }
     }
