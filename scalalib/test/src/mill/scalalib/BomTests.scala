@@ -77,7 +77,7 @@ object BomTests extends TestSuite {
         }
       }
 
-      object invalid extends TestBaseModule {
+      object invalid extends Module {
         object exclude extends JavaModule {
           def bomIvyDeps = Agg(
             ivy"com.google.cloud:libraries-bom:26.50.0".exclude(("foo", "thing"))
@@ -143,7 +143,7 @@ object BomTests extends TestSuite {
         }
       }
 
-      object invalid extends TestBaseModule {
+      object invalid extends Module {
         object transitive extends JavaModule {
           def depManagement = {
             val dep = ivy"org.java-websocket:Java-WebSocket:1.5.3"
