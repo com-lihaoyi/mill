@@ -29,5 +29,5 @@ object Terminal {
   }
 
   @deprecated("User Terminal#render instead")
-  def printTerm(term: Terminal): String = term.toString
+  def printTerm(term: Terminal): String = term.render
 }
