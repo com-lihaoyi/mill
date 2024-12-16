@@ -15,7 +15,7 @@ object foo extends Module {
 
 object bar extends mill.define.TaskModule {
   // make sure it works with private tasks as well
-  private def barTask = Task.Source(millSourcePath / "bar.txt")
+  def barTask = Task.Source(millSourcePath / "bar.txt")
 
   def barHelper(p: os.Path) = {
     "barHelper " + os.read(p)
