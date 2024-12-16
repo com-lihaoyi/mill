@@ -383,7 +383,7 @@ endif::[]
 * Significant speedups for task resolution logic https://github.com/com-lihaoyi/mill/pull/4132[#4132],
   which should speed up cached-build workflows in particular
 
-* Improve precise of code signature task invalidation, reducing the amount of spurious
+* Improve precision of code signature task invalidation, reducing the amount of spurious
   task invalidations in the presence of multi-file builds https://github.com/com-lihaoyi/mill/pull/4113[#4113]
   https://github.com/com-lihaoyi/mill/pull/4116[#4116]
 
