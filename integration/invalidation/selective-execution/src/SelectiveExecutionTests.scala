@@ -157,9 +157,9 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
         )
         output0 = Nil
         modifyFile(workspacePath / "bar/bar.txt", _ + "!")
-        eventually(
+        eventually {
           !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
-        )
+        }
         eventually(
           !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
         )
