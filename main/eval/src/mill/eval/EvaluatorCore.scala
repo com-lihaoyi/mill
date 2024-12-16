@@ -5,7 +5,6 @@ import mill.api.Strict.Agg
 import mill.api._
 import mill.define._
 import mill.eval.Evaluator.TaskResult
-import mill.main.client.OutFiles
 import mill.util._
 
 import java.util.concurrent.ConcurrentHashMap

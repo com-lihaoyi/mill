@@ -41,7 +41,7 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] {
   def asCommand: Option[Command[T]] = None
   def asWorker: Option[Worker[T]] = None
   def self: Task[T] = this
-  def isExclusiveCommand = this match {
+  def isExclusiveCommand: Boolean = this match {
     case c: Command[_] if c.exclusive => true
     case _ => false
   }

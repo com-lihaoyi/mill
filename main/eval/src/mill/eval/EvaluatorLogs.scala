@@ -12,7 +12,7 @@ private[mill] object EvaluatorLogs {
       indexToTerminal: Array[Terminal],
       terminalToIndex: Map[Terminal, Int],
       outPath: os.Path
-  ) = {
+  ): Unit = {
     SpanningForest.writeJsonFile(
       outPath / OutFiles.millDependencyTree,
       indexToTerminal.map(t => interGroupDeps.getOrElse(t, Nil).map(terminalToIndex).toArray),
@@ -27,7 +27,7 @@ private[mill] object EvaluatorLogs {
       outPath: os.Path,
       uncached: ConcurrentHashMap[Terminal, Unit],
       changedValueHash: ConcurrentHashMap[Terminal, Unit]
-  ) = {
+  ): Unit = {
 
     val reverseInterGroupDeps = interGroupDeps
       .iterator

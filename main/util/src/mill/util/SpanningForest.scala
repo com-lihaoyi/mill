@@ -1,7 +1,5 @@
 package mill.util
 
-import mill.main.client.OutFiles
-
 import scala.collection.mutable
 
 /**
@@ -20,7 +18,7 @@ private[mill] object SpanningForest {
       indexEdges: Array[Array[Int]],
       interestingIndices: Set[Int],
       render: Int => String
-  ) = {
+  ): Unit = {
     os.write.over(
       path,
       SpanningForest.spanningTreeToJsonTree(

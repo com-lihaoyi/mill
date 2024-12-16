@@ -405,7 +405,7 @@ private[mill] trait GroupEvaluator {
     )
   }
 
-  def getValueHash(v: Val, task: Task[_], inputsHash: Int) = {
+  def getValueHash(v: Val, task: Task[_], inputsHash: Int): Int = {
     if (task.isInstanceOf[Worker[_]]) inputsHash else v.##
   }
   private def loadUpToDateWorker(
