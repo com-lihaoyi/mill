@@ -122,7 +122,6 @@ object WatchSourceInputTests extends UtestIntegrationTestSuite {
           //        "Running qux bar contents edited-bar"
         )
 
-
         if (show) expectedOut.append("{}")
         os.write.over(workspacePath / "watchValue.txt", "exit")
         awaitCompletionMarker(tester, "initialized2")
