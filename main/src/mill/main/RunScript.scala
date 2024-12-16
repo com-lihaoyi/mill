@@ -31,7 +31,6 @@ object RunScript {
       scriptArgs: Seq[String],
       selectMode: SelectMode,
       selectiveExecution: Boolean = false,
-      selectiveExecutionSave: Boolean = false
   ): Either[
     String,
     (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]])
@@ -45,14 +44,14 @@ object RunScript {
       )
     }
     for (targets <- resolved)
-      yield evaluateNamed(evaluator, Agg.from(targets), selectiveExecution, selectiveExecutionSave)
+      yield evaluateNamed(evaluator, Agg.from(targets), selectiveExecution)
   }
 
   def evaluateNamed(
       evaluator: Evaluator,
       targets: Agg[NamedTask[Any]]
   ): (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]]) =
-    evaluateNamed(evaluator, targets, selectiveExecution = false, selectiveExecutionSave = false)
+    evaluateNamed(evaluator, targets, selectiveExecution = false)
 
   /**
    * @param evaluator
@@ -63,7 +62,6 @@ object RunScript {
       evaluator: Evaluator,
       targets: Agg[NamedTask[Any]],
       selectiveExecution: Boolean = false,
-      selectiveExecutionSave: Boolean = false
   ): (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]]) = {
 
     val selectedTargetsOrErr =
@@ -98,7 +96,7 @@ object RunScript {
           .toSeq
 
 
-        if (selectiveExecutionSave) {
+        if (selectiveExecution) {
           val allInputHashes = evaluated.results
             .iterator
             .collect {

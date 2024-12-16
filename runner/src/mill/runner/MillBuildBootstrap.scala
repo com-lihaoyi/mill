@@ -406,8 +406,7 @@ object MillBuildBootstrap {
           evaluator,
           targetsAndParams,
           SelectMode.Separated,
-          selectiveExecution = selectiveExecution,
-          selectiveExecutionSave = selectiveExecution
+          selectiveExecution = selectiveExecution
         )
       } finally Thread.currentThread().setContextClassLoader(previousClassloader)
 
