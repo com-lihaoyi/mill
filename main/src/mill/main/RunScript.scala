@@ -66,31 +66,34 @@ object RunScript {
 
     val (sortedGroups, transitive) = Plan.plan(targets)
     val terminals = sortedGroups.keys.map(t => (t.task, t)).toMap
-    mill.main.client.DebugLog.println("selectiveExecution " + selectiveExecution)
-    mill.main.client.DebugLog.println(
-      "os.exists(evaluator.outPath / OutFiles.millSelectiveExecution) " + os.exists(
-        evaluator.outPath / OutFiles.millSelectiveExecution
-      )
-    )
+    val selectiveExecutionEnabled = selectiveExecution && targets
+      .collectFirst { case c: Command[_] if c.exclusive => true }
+      .isEmpty
+
     val selectedTargetsOrErr =
-      if (selectiveExecution && os.exists(evaluator.outPath / OutFiles.millSelectiveExecution)) {
+      if (
+        selectiveExecutionEnabled && os.exists(evaluator.outPath / OutFiles.millSelectiveExecution)
+      ) {
         SelectiveExecution
           .diffMetadata(evaluator, targets.map(terminals(_).render).toSeq)
-          .map { selected =>
+          .map { x =>
+            val (selected, results) = x
             val selectedSet = selected.toSet
-            targets.filter {
-              case c: Command[_] if c.exclusive => true
-              case t => selectedSet(terminals(t).render)
-            }
+            (
+              targets.filter {
+                case c: Command[_] if c.exclusive => true
+                case t => selectedSet(terminals(t).render)
+              },
+              results
+            )
           }
-      } else Right(targets)
+      } else Right(targets -> Map.empty)
 
     selectedTargetsOrErr match {
       case Left(err) => (Nil, Left(err))
-      case Right(selectedTargets) =>
+      case Right((selectedTargets, selectiveResults)) =>
         val evaluated: Results = evaluator.evaluate(selectedTargets, serialCommandExec = true)
-        val watched = evaluated.results
-          .iterator
+        val watched = (evaluated.results.iterator ++ selectiveResults)
           .collect {
             case (t: SourcesImpl, TaskResult(Result.Success(Val(ps: Seq[PathRef])), _)) =>
               ps.map(Watchable.Path(_))
@@ -111,7 +114,7 @@ object RunScript {
           }
           .toMap
 
-        if (selectiveExecution) {
+        if (selectiveExecutionEnabled) {
           SelectiveExecution.saveMetadata(
             evaluator,
             SelectiveExecution.Metadata(allInputHashes, evaluator.methodCodeHashSignatures)

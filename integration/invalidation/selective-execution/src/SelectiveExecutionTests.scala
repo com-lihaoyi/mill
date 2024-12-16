@@ -155,14 +155,21 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
         eventually(
           output.contains("Computing fooCommand") && output.contains("Computing barCommand")
         )
+
+        // Make sure editing each individual input results in the corresponding downstream
+        // command being re-run, and watches on both are maintained even if in a prior run
+        // one set of tasks was ignored.
         output0 = Nil
         modifyFile(workspacePath / "bar/bar.txt", _ + "!")
         eventually {
           !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
         }
-        eventually(
-          !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
-        )
+
+        output0 = Nil
+        modifyFile(workspacePath / "foo/foo.txt", _ + "!")
+        eventually {
+          output.contains("Computing fooCommand") && !output.contains("Computing barCommand")
+        }
       }
       test("show-changed-inputs") - integrationTest { tester =>
         import tester._
@@ -182,11 +189,15 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
         }
         output0 = Nil
         modifyFile(workspacePath / "bar/bar.txt", _ + "!")
-        // For now, selective execution doesn't work with `show`, and always runs all provided
-        // tasks. This is necessary because we need all specified tasks to be run in order to
-        // get their value to render as JSON at the end of `show`
+
         eventually {
-          output.contains("Computing fooCommand") && output.contains("Computing barCommand")
+          !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
+        }
+
+        output0 = Nil
+        modifyFile(workspacePath / "foo/foo.txt", _ + "!")
+        eventually {
+          output.contains("Computing fooCommand") && !output.contains("Computing barCommand")
         }
       }
 

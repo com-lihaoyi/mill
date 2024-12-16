@@ -335,6 +335,6 @@ private[mill] object EvaluatorCore {
       evaluated: Agg[Task[_]],
       transitive: Agg[Task[_]],
       failing: MultiBiMap[Terminal, Result.Failing[Val]],
-      results: Map[Task[_], TaskResult[Val]],
+      results: Map[Task[_], TaskResult[Val]]
   ) extends Evaluator.Results
 }
