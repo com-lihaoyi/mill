@@ -1,11 +1,11 @@
 package mill.main
 
-import mill.define.*
+import mill.define._
 import mill.eval.{Evaluator, EvaluatorPaths, Terminal}
 import mill.util.Watchable
 import mill.api.{PathRef, Result, Val}
 import mill.api.Strict.Agg
-import Evaluator.*
+import Evaluator._
 import mill.main.client.OutFiles
 import mill.resolve.{Resolve, SelectMode}
 
