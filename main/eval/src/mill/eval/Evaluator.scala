@@ -78,7 +78,7 @@ object Evaluator {
     def transitive: Agg[Task[_]]
     def failing: MultiBiMap[Terminal, Result.Failing[Val]]
     def results: collection.Map[Task[_], TaskResult[Val]]
-
+    def terminals: Map[Task[_], Terminal]
     def values: Seq[Val] = rawValues.collect { case Result.Success(v) => v }
   }
 

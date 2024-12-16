@@ -8,7 +8,6 @@ object foo extends Module {
   }
 
   def fooCommand() = Task.Command {
-    mill.main.client.DebugLog.println("DEBUG Computing fooCommand")
     System.out.println("Computing fooCommand")
     fooHelper(fooTask().path)
   }
@@ -23,7 +22,6 @@ object bar extends mill.define.TaskModule {
   }
 
   def barCommand() = Task.Command {
-    mill.main.client.DebugLog.println("DEBUG Computing barCommand")
     System.out.println("Computing barCommand")
     barHelper(barTask().path)
   }

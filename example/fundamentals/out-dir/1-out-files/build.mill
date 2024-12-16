@@ -233,7 +233,17 @@ out/mill-server
 // cases, you can look at `out/mill-build/methodCodeHashSignatures.dest/current/spanningInvalidationForest.json`
 // to see an invalidation tree for how code changes in specfic methods propagate throughout
 // the `build.mill` codebase.
-//
+
+/** Usage
+
+> sed -i.bak 's/{}/{println(123)}/g' build.mill
+
+> ./mill foo.compile # compile after changing build.mill
+
+> cat out/mill-build/methodCodeHashSignatures.dest/current/spanningInvalidationForest.json
+
+*/
+
 // === `mill-build/`
 //
 // Contains the files related ot the xref:extending/meta-build.adoc[]. It contains many

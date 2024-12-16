@@ -10,22 +10,6 @@ import utest.asserts.{RetryMax, RetryInterval}
 object SelectiveExecutionTests extends UtestIntegrationTestSuite {
   implicit val retryMax: RetryMax = RetryMax(120.seconds)
   implicit val retryInterval: RetryInterval = RetryInterval(1.seconds)
-  def eventually(f: => Boolean) = {
-    var running = true
-    val start = System.currentTimeMillis()
-    while(running){
-      scala.util.Try(f) match{
-        case scala.util.Success(true) => running = false
-        case res =>
-          if (System.currentTimeMillis() - start > retryMax.d.toMillis){
-            res match{
-              case scala.util.Success(false) => throw new Exception("Eventually returned false")
-              case scala.util.Failure(e) => throw new Exception("Eventually failed", e)
-            }
-          } else Thread.sleep(retryInterval.d.toMillis)
-      }
-    }
-  }
   val tests: Tests = Tests {
     test("changed-inputs") - integrationTest { tester =>
       import tester._
@@ -194,7 +178,6 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
         }
 
         eventually {
-          pprint.log(output)
           output.contains("Computing fooCommand") && output.contains("Computing barCommand")
         }
         output0 = Nil
@@ -203,12 +186,8 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
         // tasks. This is necessary because we need all specified tasks to be run in order to
         // get their value to render as JSON at the end of `show`
         eventually {
-          pprint.log(output)
           output.contains("Computing fooCommand") && output.contains("Computing barCommand")
         }
-        eventually(
-          output.contains("Computing fooCommand") && output.contains("Computing barCommand")
-        )
       }
 
       test("changed-code") - integrationTest { tester =>
@@ -220,12 +199,12 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
           eval(
             ("--watch", "{foo.fooCommand,bar.barCommand}"),
             check = true,
-            stdout = os.ProcessOutput.Readlines{line => output0 = output0 :+ line},
+            stdout = os.ProcessOutput.Readlines { line => output0 = output0 :+ line },
             stderr = os.Inherit
           )
         }
 
-        eventually{
+        eventually {
           output.contains("Computing fooCommand") && output.contains("Computing barCommand")
         }
         output0 = Nil
@@ -239,14 +218,12 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
         output0 = Nil
 
         // Check module body code changes correctly trigger downstream evaluation
-        println("MODIFYING FILE")
         modifyFile(
           workspacePath / "build.mill",
           _.replace("object foo extends Module {", "object foo extends Module { println(123)")
         )
 
         eventually {
-          println("eventually")
           output.contains("Computing fooCommand") && !output.contains("Computing barCommand")
         }
       }

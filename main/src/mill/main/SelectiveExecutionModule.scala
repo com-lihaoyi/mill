@@ -4,8 +4,7 @@ import mill.api.Result
 import mill.define.{Command, Task}
 import mill.eval.Evaluator
 import mill.main.client.OutFiles
-import mill.resolve.{Resolve, SelectMode}
-import mill.resolve.SelectMode.Separated
+import mill.resolve.SelectMode
 
 trait SelectiveExecutionModule extends mill.define.Module {
 

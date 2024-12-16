@@ -141,7 +141,7 @@ private[mill] object SelectiveExecution {
     }
   }
 
-  def resolve0(evaluator: Evaluator, tasks: Seq[String]) = {
+  def resolve0(evaluator: Evaluator, tasks: Seq[String]): Either[String, Array[String]] = {
     for {
       resolved <- Resolve.Tasks.resolve(evaluator.rootModule, tasks, SelectMode.Multi)
       diffed <- SelectiveExecution.diffMetadata(evaluator, tasks)

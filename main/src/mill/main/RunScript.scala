@@ -1,11 +1,11 @@
 package mill.main
 
-import mill.define._
-import mill.eval.{Evaluator, EvaluatorPaths}
+import mill.define.*
+import mill.eval.{Evaluator, EvaluatorPaths, Terminal}
 import mill.util.Watchable
 import mill.api.{PathRef, Result, Val}
 import mill.api.Strict.Agg
-import Evaluator._
+import Evaluator.*
 import mill.main.client.OutFiles
 import mill.resolve.{Resolve, SelectMode}
 
@@ -31,23 +31,19 @@ object RunScript {
       evaluator: Evaluator,
       scriptArgs: Seq[String],
       selectMode: SelectMode,
-      selectiveExecution: Boolean = false,
+      selectiveExecution: Boolean = false
   ): Either[
     String,
     (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]])
   ] = {
     val selectedTargetsOrErr =
       if (selectiveExecution && os.exists(evaluator.outPath / OutFiles.millSelectiveExecution)) {
-        mill.main.client.DebugLog.println("A")
-        SelectiveExecution.resolve0(evaluator, scriptArgs)
-          .map(_.flatMap(Array("+", _)).drop(1))
+        SelectiveExecution.resolve0(evaluator, scriptArgs).map(_.flatMap(Array("+", _)).drop(1))
       } else {
-        mill.main.client.DebugLog.println("B " + scriptArgs)
         Right(scriptArgs.toArray)
       }
 
-    selectedTargetsOrErr.flatMap{ resolvedTaskNames =>
-
+    selectedTargetsOrErr.flatMap { resolvedTaskNames =>
       val resolved = mill.eval.Evaluator.currentEvaluator.withValue(evaluator) {
         Resolve.Tasks.resolve(
           evaluator.rootModule,
@@ -56,17 +52,17 @@ object RunScript {
           evaluator.allowPositionalCommandArgs
         )
       }
-      resolved.map{ t =>
-        mill.main.client.DebugLog.println("C " + t)
+
+      resolved.map { t =>
         val evaluated = evaluateNamed0(evaluator, Agg.from(t))
         if (selectiveExecution) {
-          for(res <- evaluated._2){
-            val (results, _) = res
+          for (res <- evaluated._2) {
+            val (results, terminals, _) = res
             val allInputHashes = results
               .iterator
               .collect {
                 case (t: InputImpl[_], TaskResult(Result.Success(Val(value)), _)) =>
-                  (t.ctx.segments.render, value.##)
+                  (terminals(t).render, value.##)
               }
               .toMap
             SelectiveExecution.saveMetadata(
@@ -76,7 +72,7 @@ object RunScript {
           }
         }
         val (ws, either) = evaluated
-        (ws, either.map{case (r, v) => v})
+        (ws, either.map { case (r, t, v) => v })
       }
     }
   }
@@ -87,17 +83,27 @@ object RunScript {
    * @return (watched-paths, Either[err-msg, Seq[(task-result, Option[(task-name, task-return-as-json)])]])
    */
   def evaluateNamed(
-                     evaluator: Evaluator,
-                     targets: Agg[NamedTask[Any]]
-                   ): (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]]) = {
+      evaluator: Evaluator,
+      targets: Agg[NamedTask[Any]]
+  ): (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]]) = {
     val (ws, either) = evaluateNamed0(evaluator, targets)
-    (ws, either.map{case (r, v) => v})
+    (ws, either.map { case (r, t, v) => v })
   }
 
   def evaluateNamed0(
-                      evaluator: Evaluator,
-                      targets: Agg[NamedTask[Any]]
-                    ): (Seq[Watchable], Either[String, (Map[Task[_], TaskResult[Val]], Seq[(Any, Option[(TaskName, ujson.Value)])])]) = {
+      evaluator: Evaluator,
+      targets: Agg[NamedTask[Any]]
+  ): (
+      Seq[Watchable],
+      Either[
+        String,
+        (
+            Map[Task[_], TaskResult[Val]],
+            Map[Task[_], Terminal],
+            Seq[(Any, Option[(TaskName, ujson.Value)])]
+        )
+      ]
+  ) = {
     val evaluated: Results = evaluator.evaluate(targets, serialCommandExec = true)
     val watched = evaluated.results
       .iterator
@@ -130,7 +136,7 @@ object RunScript {
         val rhs: Seq[(Any, Option[(TaskName, ujson.Value)])] = evaluated.values.zip(nameAndJson)
         val results: Map[Task[_], TaskResult[Val]] = evaluated.results.toMap
 
-        watched -> Right(results -> rhs)
+        watched -> Right((results, evaluated.terminals, rhs))
 
       case n => watched -> Left(s"$n tasks failed\n$errorStr")
     }
