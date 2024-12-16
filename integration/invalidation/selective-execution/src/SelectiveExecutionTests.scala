@@ -14,7 +14,11 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
     test("changed-inputs") - integrationTest { tester =>
       import tester._
 
-      eval(("selective.prepare", "{foo.fooCommand,bar.barCommand}"), check = true)
+      eval(
+        ("selective.prepare", "{foo.fooCommand,bar.barCommand}"),
+        check = true,
+        stderr = os.Inherit
+      )
 
       // no op
       val noOp = eval(
@@ -238,6 +242,20 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
 
         assert(cached.err.contains("`selective.run` can only be run after `selective.prepare`"))
       }
+    }
+    test("renamed-tasks") - integrationTest { tester =>
+      import tester._
+      eval(("selective.prepare", "{foo,bar}._"), check = true)
+
+      modifyFile(workspacePath / "build.mill", _.replace("fooTask", "fooTaskRenamed"))
+      modifyFile(workspacePath / "build.mill", _.replace("barCommand", "barCommandRenamed"))
+
+      val cached = eval(("selective.resolve", "{foo,bar}._"), stderr = os.Pipe)
+
+      assert(
+        cached.out.linesIterator.toList ==
+          Seq("bar.barCommandRenamed", "foo.fooCommand", "foo.fooTaskRenamed")
+      )
     }
   }
 }

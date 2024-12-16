@@ -129,7 +129,7 @@ private[mill] object SelectiveExecution {
       val oldMetadata = upickle.default.read[SelectiveExecution.Metadata](oldMetadataTxt)
       for (newMetadata <- SelectiveExecution.Metadata.compute(evaluator, tasks)) yield {
         SelectiveExecution.computeDownstream(evaluator, tasks, oldMetadata, newMetadata)
-          .collect { case n: NamedTask[_] => n.ctx.segments.render }
+          .collect { case n: NamedTask[_] if !n.isPrivate.contains(true) => n.ctx.segments.render }
           .toSet
       }
     }
