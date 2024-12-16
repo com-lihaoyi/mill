@@ -7,10 +7,12 @@ import java.util.concurrent.ConcurrentHashMap
 import scala.jdk.CollectionConverters.EnumerationHasAsScala
 
 private[mill] object EvaluatorLogs {
-  def logDependencyTree(interGroupDeps:  Map[Terminal, Seq[Terminal]],
-                        indexToTerminal: Array[Terminal],
-                        terminalToIndex: Map[Terminal, Int],
-                        outPath: os.Path) = {
+  def logDependencyTree(
+      interGroupDeps: Map[Terminal, Seq[Terminal]],
+      indexToTerminal: Array[Terminal],
+      terminalToIndex: Map[Terminal, Int],
+      outPath: os.Path
+  ) = {
     SpanningForest.writeJsonFile(
       outPath / OutFiles.millDependencyTree,
       indexToTerminal.map(t => interGroupDeps.getOrElse(t, Nil).map(terminalToIndex).toArray),
@@ -18,12 +20,14 @@ private[mill] object EvaluatorLogs {
       indexToTerminal(_).render
     )
   }
-  def logInvalidationTree(interGroupDeps:  Map[Terminal, Seq[Terminal]],
-                          indexToTerminal: Array[Terminal],
-                          terminalToIndex: Map[Terminal, Int],
-                          outPath: os.Path,
-                          uncached: ConcurrentHashMap[Terminal, Unit],
-                          changedValueHash: ConcurrentHashMap[Terminal, Unit]) = {
+  def logInvalidationTree(
+      interGroupDeps: Map[Terminal, Seq[Terminal]],
+      indexToTerminal: Array[Terminal],
+      terminalToIndex: Map[Terminal, Int],
+      outPath: os.Path,
+      uncached: ConcurrentHashMap[Terminal, Unit],
+      changedValueHash: ConcurrentHashMap[Terminal, Unit]
+  ) = {
 
     val reverseInterGroupDeps = interGroupDeps
       .iterator
@@ -41,14 +45,14 @@ private[mill] object EvaluatorLogs {
 
     val edgeSourceIndices = downstreamIndexEdges
       .zipWithIndex
-      .collect{case (es, i) if es.nonEmpty => i}
+      .collect { case (es, i) if es.nonEmpty => i }
       .toSet
 
     SpanningForest.writeJsonFile(
       outPath / OutFiles.millInvalidationTree,
       downstreamIndexEdges,
       uncached.keys().asScala
-        .flatMap{uncachedTask =>
+        .flatMap { uncachedTask =>
           val uncachedIndex = terminalToIndex(uncachedTask)
           Option.when(
             // Filter out input and source tasks which do not cause downstream invalidations
@@ -56,7 +60,7 @@ private[mill] object EvaluatorLogs {
             // user really only cares about (a) inputs that cause downstream tasks to invalidate
             // or (b) non-input tasks that were invalidated alone (e.g. due to a codesig change)
             !uncachedTask.task.isInstanceOf[InputImpl[_]] || edgeSourceIndices(uncachedIndex)
-          ){
+          ) {
             uncachedIndex
           }
         }

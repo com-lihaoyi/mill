@@ -13,7 +13,6 @@ import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import scala.collection.mutable
 import scala.concurrent._
 
-
 /**
  * Core logic of evaluating tasks, without any user-facing helper methods
  */
@@ -157,7 +156,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
               val contextLogger = new PrefixLogger(
                 logger0 = logger,
                 key0 = if (!logger.enableTicker) Nil else Seq(countMsg),
-                verboseKeySuffix =verboseKeySuffix,
+                verboseKeySuffix = verboseKeySuffix,
                 message = tickerPrefix,
                 noPrefix = exclusive
               )
@@ -211,7 +210,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
     val tasksTransitive = tasksTransitive0.toSet
     val (tasks, leafExclusiveCommands) = terminals0.partition {
-      case Terminal.Labelled(t, _) => tasksTransitive.contains(t) ||  !t.isExclusiveCommand
+      case Terminal.Labelled(t, _) => tasksTransitive.contains(t) || !t.isExclusiveCommand
       case _ => !serialCommandExec
     }
 
@@ -231,7 +230,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       terminalToIndex,
       outPath,
       uncached,
-      changedValueHash,
+      changedValueHash
     )
 
     val results0: Vector[(Task[_], TaskResult[(Val, Int)])] = terminals0

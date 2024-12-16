@@ -117,7 +117,9 @@ private[mill] trait GroupEvaluator {
 
           val cachedValueAndHash =
             upToDateWorker.map((_, inputsHash))
-              .orElse(cached.flatMap { case (inputHash, valOpt, valueHash) => valOpt.map((_, valueHash))})
+              .orElse(cached.flatMap { case (inputHash, valOpt, valueHash) =>
+                valOpt.map((_, valueHash))
+              })
 
           cachedValueAndHash match {
             case Some((v, hashCode)) =>
@@ -253,7 +255,7 @@ private[mill] trait GroupEvaluator {
               os.dynamicPwdFunction.withValue(destFunc) {
                 SystemStreams.withStreams(streams) {
                   if (!exclusive) t
-                  else{
+                  else {
                     logger.reportKey(Seq(counterMsg))
                     logger.withPromptPaused { t }
                   }

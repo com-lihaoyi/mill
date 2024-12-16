@@ -15,10 +15,12 @@ import scala.collection.mutable
  * the roots of the forest
  */
 private[mill] object SpanningForest {
-  def writeJsonFile(path: os.Path,
-                    indexEdges: Array[Array[Int]],
-                    interestingIndices: Set[Int],
-                    render: Int => String) = {
+  def writeJsonFile(
+      path: os.Path,
+      indexEdges: Array[Array[Int]],
+      interestingIndices: Set[Int],
+      render: Int => String
+  ) = {
     os.write.over(
       path,
       SpanningForest.spanningTreeToJsonTree(
