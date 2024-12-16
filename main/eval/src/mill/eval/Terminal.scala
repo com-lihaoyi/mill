@@ -1,6 +1,6 @@
 package mill.eval
 
-import mill.define.{NamedTask, Segment, Segments}
+import mill.define.{NamedTask, Segments}
 
 /**
  * A terminal or terminal target is some important work unit, that in most cases has a name (Right[Labelled])
