@@ -55,12 +55,6 @@ private[mill] trait GroupEvaluator {
       executionContext: mill.api.Ctx.Fork.Api,
       exclusive: Boolean
   ): GroupEvaluator.Results = {
-
-    val targetLabel = terminal match {
-      case Terminal.Task(task) => None
-      case t: Terminal.Labelled[_] => Some(Terminal.printTerm(t))
-    }
-
     logger.withPrompt {
       val externalInputsHash = MurmurHash3.orderedHash(
         group.items.flatMap(_.inputs).filter(!group.contains(_))
@@ -71,19 +65,20 @@ private[mill] trait GroupEvaluator {
 
       val scriptsHash =
         if (disableCallgraph) 0
-        else group
-          .iterator
-          .collect { case namedTask: NamedTask[_] =>
-            CodeSigUtils.codeSigForTask(
-              namedTask,
-              classToTransitiveClasses,
-              allTransitiveClassMethods,
-              methodCodeHashSignatures,
-              constructorHashSignatures
-            )
-          }
-          .flatten
-          .sum
+        else MurmurHash3.orderedHash(
+          group
+            .iterator
+            .collect { case namedTask: NamedTask[_] =>
+              CodeSigUtils.codeSigForTask(
+                namedTask,
+                classToTransitiveClasses,
+                allTransitiveClassMethods,
+                methodCodeHashSignatures,
+                constructorHashSignatures
+              )
+            }
+            .flatten
+        )
 
       val inputsHash = externalInputsHash + sideHashes + classLoaderSigHash + scriptsHash
 
@@ -113,25 +108,18 @@ private[mill] trait GroupEvaluator {
           )
 
         case labelled: Terminal.Labelled[_] =>
-          val out =
-            if (!labelled.task.ctx.external) outPath
-            else externalOutPath
-
+          val out = if (!labelled.task.ctx.external) outPath else externalOutPath
           val paths = EvaluatorPaths.resolveDestPaths(out, Terminal.destSegments(labelled))
-
           val cached = loadCachedJson(logger, inputsHash, labelled, paths)
 
-          val upToDateWorker = loadUpToDateWorker(
-            logger,
-            inputsHash,
-            labelled,
-            // worker metadata file removed by user, let's recompute the worker
-            forceDiscard = cached.isEmpty
-          )
+          // `cached.isEmpty` means worker metadata file removed by user so recompute the worker
+          val upToDateWorker = loadUpToDateWorker(logger, inputsHash, labelled, cached.isEmpty)
 
-          upToDateWorker.map((_, inputsHash)) orElse cached.flatMap {
-            case (inputHash, valOpt, valueHash) => valOpt.map((_, valueHash))
-          } match {
+          val cachedValueAndHash =
+            upToDateWorker.map((_, inputsHash))
+              .orElse(cached.flatMap { case (inputHash, valOpt, valueHash) => valOpt.map((_, valueHash))})
+
+          cachedValueAndHash match {
             case Some((v, hashCode)) =>
               val res = Result.Success((v, hashCode))
               val newResults: Map[Task[_], TaskResult[(Val, Int)]] =
@@ -156,7 +144,7 @@ private[mill] trait GroupEvaluator {
                   results,
                   inputsHash,
                   paths = Some(paths),
-                  maybeTargetLabel = targetLabel,
+                  maybeTargetLabel = Some(terminal.render),
                   counterMsg = countMsg,
                   verboseKeySuffix = verboseKeySuffix,
                   zincProblemReporter,
@@ -168,11 +156,12 @@ private[mill] trait GroupEvaluator {
 
               val valueHash = newResults(labelled.task) match {
                 case TaskResult(Result.Failure(_, Some((v, _))), _) =>
-                  val valueHash = if (terminal.task.asWorker.isEmpty) v.## else inputsHash
+                  val valueHash = getValueHash(v, terminal.task, inputsHash)
                   handleTaskResult(v, valueHash, paths.meta, inputsHash, labelled)
+                  valueHash
 
                 case TaskResult(Result.Success((v, _)), _) =>
-                  val valueHash = if (terminal.task.asWorker.isEmpty) v.## else inputsHash
+                  val valueHash = getValueHash(v, terminal.task, inputsHash)
                   handleTaskResult(v, valueHash, paths.meta, inputsHash, labelled)
                   valueHash
 
@@ -218,7 +207,6 @@ private[mill] trait GroupEvaluator {
       val newResults = mutable.Map.empty[Task[_], Result[(Val, Int)]]
 
       val nonEvaluatedTargets = group.indexed.filterNot(results.contains)
-
       val multiLogger = resolveLogger(paths.map(_.log), logger)
 
       var usedDest = Option.empty[os.Path]
@@ -258,17 +246,17 @@ private[mill] trait GroupEvaluator {
             }
 
             def wrap[T](t: => T): T = {
-
               val (streams, destFunc) =
                 if (exclusive) (exclusiveSystemStreams, () => workspace)
                 else (multiLogger.systemStreams, () => makeDest())
 
               os.dynamicPwdFunction.withValue(destFunc) {
                 SystemStreams.withStreams(streams) {
-                  if (exclusive) {
+                  if (!exclusive) t
+                  else{
                     logger.reportKey(Seq(counterMsg))
                     logger.withPromptPaused { t }
-                  } else t
+                  }
                 }
               }
             }
@@ -287,13 +275,7 @@ private[mill] trait GroupEvaluator {
           }
         }
 
-        newResults(task) = for (v <- res) yield {
-          (
-            v,
-            if (task.isInstanceOf[Worker[_]]) inputsHash
-            else v.##
-          )
-        }
+        newResults(task) = for (v <- res) yield (v, getValueHash(v, task, inputsHash))
       }
 
       multiLogger.close()
@@ -421,6 +403,9 @@ private[mill] trait GroupEvaluator {
     )
   }
 
+  def getValueHash(v: Val, task: Task[_], inputsHash: Int) = {
+    if (task.isInstanceOf[Worker[_]]) inputsHash else v.##
+  }
   private def loadUpToDateWorker(
       logger: ColorLogger,
       inputsHash: Int,

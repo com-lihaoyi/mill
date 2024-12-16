@@ -8,6 +8,7 @@ import mill.eval.Evaluator.TaskResult
 import mill.main.client.OutFiles
 import mill.util._
 
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import scala.collection.mutable
 import scala.concurrent._
@@ -82,16 +83,16 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
     EvaluatorLogs.logDependencyTree(interGroupDeps, indexToTerminal, terminalToIndex, outPath)
 
-    val futures = mutable.Map.empty[Terminal, Future[Option[GroupEvaluator.Results]]]
-
     // Prepare a lookup tables up front of all the method names that each class owns,
     // and the class hierarchy, so during evaluation it is cheap to look up what class
     // each target belongs to determine of the enclosing class code signature changed.
     val (classToTransitiveClasses, allTransitiveClassMethods) =
       CodeSigUtils.precomputeMethodNamesPerClass(sortedGroups)
 
-    val uncached = new java.util.concurrent.ConcurrentHashMap[Terminal, Unit]()
-    val changedValueHash = new java.util.concurrent.ConcurrentHashMap[Terminal, Unit]()
+    val uncached = new ConcurrentHashMap[Terminal, Unit]()
+    val changedValueHash = new ConcurrentHashMap[Terminal, Unit]()
+
+    val futures = mutable.Map.empty[Terminal, Future[Option[GroupEvaluator.Results]]]
 
     def evaluateTerminals(
         terminals: Seq[Terminal],
@@ -141,19 +142,13 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
                 .toMap
 
               val startTime = System.nanoTime() / 1000
-              val targetLabel = terminal match {
-                case Terminal.Task(task) => None
-                case t: Terminal.Labelled[_] => Some(Terminal.printTerm(t))
-              }
 
               // should we log progress?
-              val logRun = targetLabel.isDefined && {
-                val inputResults = for {
-                  target <- group.indexed.filterNot(upstreamResults.contains)
-                  item <- target.inputs.filterNot(group.contains)
-                } yield upstreamResults(item).map(_._1)
-                inputResults.forall(_.result.isInstanceOf[Result.Success[_]])
-              }
+              val inputResults = for {
+                target <- group.indexed.filterNot(upstreamResults.contains)
+                item <- target.inputs.filterNot(group.contains)
+              } yield upstreamResults(item).map(_._1)
+              val logRun = inputResults.forall(_.result.isInstanceOf[Result.Success[_]])
 
               val tickerPrefix = terminal.render.collect {
                 case targetLabel if logRun && logger.enableTicker => targetLabel
@@ -162,7 +157,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
               val contextLogger = new PrefixLogger(
                 logger0 = logger,
                 key0 = if (!logger.enableTicker) Nil else Seq(countMsg),
-                verboseKeySuffix = verboseKeySuffix,
+                verboseKeySuffix =verboseKeySuffix,
                 message = tickerPrefix,
                 noPrefix = exclusive
               )
@@ -186,31 +181,15 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
                 failed.set(true)
 
               val endTime = System.nanoTime() / 1000
-
               val duration = endTime - startTime
 
-              chromeProfileLogger.log(
-                task = Terminal.printTerm(terminal),
-                cat = "job",
-                startTime = startTime,
-                duration = duration,
-                threadId = threadNumberer.getThreadId(Thread.currentThread()),
-                cached = res.cached
-              )
+              val threadId = threadNumberer.getThreadId(Thread.currentThread())
+              chromeProfileLogger.log(terminal, "job", startTime, duration, threadId, res.cached)
+
               if (!res.cached) uncached.put(terminal, ())
               if (res.valueHashChanged) changedValueHash.put(terminal, ())
 
-              profileLogger.log(
-                ProfileLogger.Timing(
-                  terminal.render,
-                  (duration / 1000).toInt,
-                  res.cached,
-                  res.valueHashChanged,
-                  deps.map(_.render),
-                  res.inputsHash,
-                  res.previousInputsHash
-                )
-              )
+              profileLogger.log(terminal, duration, res, deps)
 
               Some(res)
             }
@@ -232,10 +211,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
     val tasksTransitive = tasksTransitive0.toSet
     val (tasks, leafExclusiveCommands) = terminals0.partition {
-      case Terminal.Labelled(t, _) =>
-        if (tasksTransitive.contains(t)) true
-        else !t.isExclusiveCommand
-
+      case Terminal.Labelled(t, _) => tasksTransitive.contains(t) ||  !t.isExclusiveCommand
       case _ => !serialCommandExec
     }
 
