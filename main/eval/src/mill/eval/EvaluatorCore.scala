@@ -308,8 +308,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       ),
       transitive,
       getFailing(sortedGroups, results),
-      results.map { case (k, v) => (k, v.map(_._1)) },
-      terminals0.map(t => (t.task, t)).toMap
+      results.map { case (k, v) => (k, v.map(_._1)) }
     )
   }
 
@@ -337,6 +336,5 @@ private[mill] object EvaluatorCore {
       transitive: Agg[Task[_]],
       failing: MultiBiMap[Terminal, Result.Failing[Val]],
       results: Map[Task[_], TaskResult[Val]],
-      override val terminals: Map[Task[_], Terminal]
   ) extends Evaluator.Results
 }
