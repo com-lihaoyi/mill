@@ -28,6 +28,6 @@ object Terminal {
     }
   }
 
-  @deprecated("User Terminal#toString instead")
+  @deprecated("User Terminal#render instead")
   def printTerm(term: Terminal): String = term.toString
 }
