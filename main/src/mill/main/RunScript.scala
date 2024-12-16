@@ -97,15 +97,15 @@ object RunScript {
           .flatten
           .toSeq
 
-        val allInputHashes = evaluated.results
-          .iterator
-          .collect {
-            case (t: InputImpl[_], TaskResult(Result.Success(Val(value)), _)) =>
-              (t.ctx.segments.render, value.##)
-          }
-          .toMap
 
         if (selectiveExecutionSave) {
+          val allInputHashes = evaluated.results
+            .iterator
+            .collect {
+              case (t: InputImpl[_], TaskResult(Result.Success(Val(value)), _)) =>
+                (t.ctx.segments.render, value.##)
+            }
+            .toMap
           SelectiveExecution.saveMetadata(
             evaluator,
             SelectiveExecution.Metadata(allInputHashes, evaluator.methodCodeHashSignatures)

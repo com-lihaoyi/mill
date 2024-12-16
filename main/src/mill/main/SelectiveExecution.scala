@@ -140,4 +140,18 @@ private[mill] object SelectiveExecution {
       }
     }
   }
+
+  def resolve0(evaluator: Evaluator, tasks: Seq[String]) = {
+    for {
+      resolved <- Resolve.Tasks.resolve(evaluator.rootModule, tasks, SelectMode.Multi)
+      diffed <- SelectiveExecution.diffMetadata(evaluator, tasks)
+    } yield {
+      resolved
+        .map(_.ctx.segments.render)
+        .toSet
+        .intersect(diffed.toSet)
+        .toArray
+        .sorted
+    }
+  }
 }
