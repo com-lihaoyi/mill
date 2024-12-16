@@ -3,7 +3,7 @@ from app import app, db, Task
 from datetime import date
 
 class IntegrationTest(unittest.TestCase):
-    def set_up(self):
+    def setUp(self):
         """Set up the test client and initialize the in-memory database."""
         app.config['TESTING'] = True
         app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///:memory:"
@@ -13,7 +13,7 @@ class IntegrationTest(unittest.TestCase):
         with app.app_context():
             db.create_all()
 
-    def tear_down(self):
+    def tearDown(self):
         """Clean up the database after each test."""
         with app.app_context():
             db.session.remove()

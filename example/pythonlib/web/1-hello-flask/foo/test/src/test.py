@@ -3,7 +3,7 @@ from foo import app  # type: ignore
 
 
 class TestScript(unittest.TestCase):
-    def set_up(self):
+    def setUp(self):
         """Set up the test client before each test."""
         self.app = app.test_client()  # Initialize the test client
         self.app.testing = True  # Enable testing mode for better error handling
