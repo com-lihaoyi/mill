@@ -353,7 +353,8 @@ class MillBuildBootstrap(
       disableCallgraph = disableCallgraph,
       allowPositionalCommandArgs = allowPositionalCommandArgs,
       systemExit = systemExit,
-      exclusiveSystemStreams = streams0
+      exclusiveSystemStreams = streams0,
+      selectiveExecution = selectiveExecution
     )
   }
 

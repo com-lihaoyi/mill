@@ -35,44 +35,47 @@ object RunScript {
   ): Either[
     String,
     (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]])
-  ] = {
+  ] = mill.eval.Evaluator.currentEvaluator.withValue(evaluator) {
+    val enableSelective = selectiveExecution && os.exists(evaluator.outPath / OutFiles.millSelectiveExecution)
     val selectedTargetsOrErr =
-      if (selectiveExecution && os.exists(evaluator.outPath / OutFiles.millSelectiveExecution)) {
+      if (enableSelective) {
         SelectiveExecution.resolve0(evaluator, scriptArgs).map(_.flatMap(Array("+", _)).drop(1))
       } else {
         Right(scriptArgs.toArray)
       }
 
     selectedTargetsOrErr.flatMap { resolvedTaskNames =>
-      val resolved = mill.eval.Evaluator.currentEvaluator.withValue(evaluator) {
-        Resolve.Tasks.resolve(
+      if (enableSelective && resolvedTaskNames.isEmpty) Right((Nil, Right(Nil)))
+      else {
+        val resolved = Resolve.Tasks.resolve(
           evaluator.rootModule,
           resolvedTaskNames,
           selectMode,
           evaluator.allowPositionalCommandArgs
         )
-      }
 
-      resolved.map { t =>
-        val evaluated = evaluateNamed0(evaluator, Agg.from(t))
-        if (selectiveExecution) {
-          for (res <- evaluated._2) {
-            val (results, terminals, _) = res
-            val allInputHashes = results
-              .iterator
-              .collect {
-                case (t: InputImpl[_], TaskResult(Result.Success(Val(value)), _)) =>
-                  (terminals(t).render, value.##)
-              }
-              .toMap
-            SelectiveExecution.saveMetadata(
-              evaluator,
-              SelectiveExecution.Metadata(allInputHashes, evaluator.methodCodeHashSignatures)
-            )
+
+        resolved.map { t =>
+          val evaluated = evaluateNamed0(evaluator, Agg.from(t))
+          if (selectiveExecution) {
+            for (res <- evaluated._2) {
+              val (results, terminals, _) = res
+              val allInputHashes = results
+                .iterator
+                .collect {
+                  case (t: InputImpl[_], TaskResult(Result.Success(Val(value)), _)) =>
+                    (terminals(t).render, value.##)
+                }
+                .toMap
+              SelectiveExecution.saveMetadata(
+                evaluator,
+                SelectiveExecution.Metadata(allInputHashes, evaluator.methodCodeHashSignatures)
+              )
+            }
           }
+          val (ws, either) = evaluated
+          (ws, either.map { case (r, t, v) => v })
         }
-        val (ws, either) = evaluated
-        (ws, either.map { case (r, t, v) => v })
       }
     }
   }

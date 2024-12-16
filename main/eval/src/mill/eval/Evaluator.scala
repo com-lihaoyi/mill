@@ -19,6 +19,7 @@ trait Evaluator extends AutoCloseable {
   def rootModule: BaseModule
   def effectiveThreadCount: Int
   def outPath: os.Path
+  def selectiveExecution: Boolean = false
   def externalOutPath: os.Path
   def pathsResolver: EvaluatorPathsResolver
   def methodCodeHashSignatures: Map[String, Int] = Map.empty
