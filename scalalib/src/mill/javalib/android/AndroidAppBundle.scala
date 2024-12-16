@@ -41,10 +41,12 @@ trait AndroidAppBundle extends AndroidAppModule with JavaModule {
     )
 
     for (file <- os.walk(appDir).filter(_.ext == "pb")) {
+      println(s"Adding $file to bundle")
       os.copy(file, baseDir / file.last)
     }
 
     for ((file, idx) <- os.walk(Task.dest).filter(_.ext == "dex").zipWithIndex) {
+      println(s"Adding $file to bundle")
       os.copy(file, baseDir / "dex" / file.last, createFolders = true)
     }
 

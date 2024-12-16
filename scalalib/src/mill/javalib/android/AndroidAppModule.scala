@@ -1,10 +1,12 @@
 package mill.javalib.android
 
 import mill.*
-import mill.scalalib.*
 import mill.api.PathRef
 import mill.define.ModuleRef
-import os.{CommandResult, Path, home}
+import mill.scalalib.*
+import os.zip.ZipSource
+import os.{CommandResult, Path}
+
 
 /**
  * Trait for building Android applications using the Mill build tool.
@@ -102,7 +104,9 @@ trait AndroidAppModule extends JavaModule {
    */
   override def compileClasspath: T[Agg[PathRef]] = Task {
     val (jarFiles, _) = androidUnpackArchives()
-    super.compileClasspath().filter(_.path.ext == "jar") ++ jarFiles
+    val jarFilesAgg = super.compileClasspath().filter(_.path.ext == "jar")
+
+    jarFilesAgg ++ jarFiles
   }
 
   /**
@@ -129,7 +133,7 @@ trait AndroidAppModule extends JavaModule {
     for (resDir <- resources().map(_.path).filter(os.exists)) {
       val segmentsSeq = resDir.segments.toSeq
       val zipDir = if (segmentsSeq.last == "res") compiledResDir else compiledLibsResDir
-      println(s"Zip dir is $zipDir")
+
       val zipName = segmentsSeq.takeRight(2).mkString("-") + ".zip"
       val zipPath = zipDir / zipName
 
@@ -138,6 +142,7 @@ trait AndroidAppModule extends JavaModule {
     }
 
     val compiledLibsArgs = libZips.map(zip => Seq("-R", zip.toString)).flatten
+    println(s"compiledLIbArgs ${compiledLibsArgs}")
     val resourceZipArg = resourceZip.headOption.map(_.toString).getOrElse("")
 
     os.call(
@@ -190,7 +195,8 @@ trait AndroidAppModule extends JavaModule {
       Seq(
         androidSdkModule().d8Path().path.toString,
         "--output",
-        jarFile.toString
+        jarFile.toString,
+        "--file-per-class",
       ) ++ os.walk(compile().classes.path).filter(_.ext == "class").map(
         _.toString
       )
@@ -217,6 +223,20 @@ trait AndroidAppModule extends JavaModule {
     PathRef(Task.dest)
   }
 
+  private def androidDexWithPath(jar: PathRef, dest: Path, d8Path: Path, androidJarPath: Path): CommandResult = {
+    os.call((
+      d8Path,
+      "--output",
+      dest,
+      jar.path,
+      "--file-per-class",
+      "--no-desugaring",
+      "--min-api",
+      "26", // default interface methods available since 24, Invoke-customs are only supported starting with 26
+      androidJarPath
+    ))
+  }
+
   /**
    * Packages DEX files and Android resources into an unsigned APK.
    *
@@ -227,8 +247,34 @@ trait AndroidAppModule extends JavaModule {
 
     os.copy(androidResources().path / "res.apk", unsignedApk)
     os.zip(unsignedApk, Seq(androidDex().path / "classes.dex"))
+    val dependenciesDest = convertJarDepsToDex().path
+    os.walk(dependenciesDest).foreach {
+      dexFile =>
+        if (os.isFile(dexFile) && dexFile.ext == "dex") {
+          val subPath = dexFile.subRelativeTo(dependenciesDest)
+          os.zip(unsignedApk, Seq(ZipSource.fromPathTuple((dexFile, subPath))))
+        }
+    }
+    // dex files = convertJarFepsToDex
+    // for each dex file add it to the unsigned Apk like it's done above
 
     PathRef(unsignedApk)
+  }
+
+  /** Gets all the jars from the classpath and creates an apk with them
+   * to be bundled with the app's code apk */
+  def convertJarDepsToDex: T[PathRef] = Task {
+    val dependenciesDest = Task.dest / "dependencies"
+    os.makeDir(dependenciesDest)
+    val dependenciesClasspath = resolvedIvyDeps()
+    val compiledClassPathJars: Seq[PathRef] = dependenciesClasspath.toSeq
+    println(s"Compiled classpath jars ${compiledClassPathJars}")
+    for (jarPath <- compiledClassPathJars) {
+//       make jar into dex (jarname.dex) , use androidDex, create a new method that accepts
+      androidDexWithPath(jarPath, dependenciesDest, androidSdkModule().d8Path().path, androidSdkModule().androidJarPath().path)
+    }
+    //return a list of pathrefs of all the generated dex files
+    PathRef(dependenciesDest)
   }
 
   /**
@@ -292,7 +338,7 @@ trait AndroidAppModule extends JavaModule {
    */
   def androidApk: T[PathRef] = Task {
     val signedApk: os.Path = Task.dest / "app.apk"
-
+    println("signedApk = ", signedApk.toString())
     os.call(
       Seq(
         androidSdkModule().apksignerPath().path.toString,

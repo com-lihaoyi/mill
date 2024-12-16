@@ -11,5 +11,5 @@
     </application>
     <instrumentation
             android:name="androidx.test.runner.AndroidJUnitRunner"
-            android:targetPackage="com.example.helloworld" />
+            android:targetPackage="com.helloworld.app" />
 </manifest>

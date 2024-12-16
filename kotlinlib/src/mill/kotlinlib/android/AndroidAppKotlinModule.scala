@@ -28,6 +28,8 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule {
   private def src: Path = root / "src"
   override def millSourcePath: Path = src / "main"
 
+  override def sources: T[Seq[PathRef]] = Task.Sources(millSourcePath)
+
   trait AndroidAppKotlinTests extends KotlinTests {
     def testPath: T[Seq[PathRef]] = Task.Sources(src / "test")
 
@@ -35,15 +37,14 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule {
   }
 
   private def sdk = androidSdkModule
-  trait AndroidAppKotlinIntegrationTests extends AndroidAppModule with AndroidTestModule {
+  trait AndroidAppKotlinIntegrationTests extends AndroidAppKotlinModule with AndroidTestModule {
     override def millSourcePath: Path = src / "main"
-    def androidTestPath: T[Seq[PathRef]] = Task.Sources(src / "androidTest")
+    def androidTestPath: Path = src / "androidTest"
+    override def sources: T[Seq[PathRef]] = Task.Sources(millSourcePath, androidTestPath)
 
     override def androidSdkModule: ModuleRef[AndroidSdkModule] = sdk
 
-    override def allSources: T[Seq[PathRef]] = Task { super.allSources() ++ androidTestPath() }
-
     /** Builds the apk including the integration tests (e.g. from androidTest) */
-    def androidInstantApk: T[PathRef] = super.androidDebugApk
+    def androidInstantApk: T[PathRef] = androidDebugApk
   }
 }
