@@ -1,3 +1,6 @@
+// This example demonstrates a minimal `Django` application managed with Mill.
+// It features a simple view that returns `<h1>Hello, Mill!</h1>` and
+// includes `Django's` core functionality for `testing` and `running` a development server.
 package build
 import mill._, pythonlib._
 
@@ -8,6 +11,8 @@ object foo extends PythonModule {
   def pythonDeps = Seq("django==5.1.4")
 
 }
+// Using `Mill`, we can easily manage dependencies, run `Django tests`, and `launch the server`.
+// With just a few commands, the app is ready to serve at `http://localhost:8000`.
 
 /** Usage
 

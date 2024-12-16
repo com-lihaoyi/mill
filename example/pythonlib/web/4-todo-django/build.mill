@@ -1,3 +1,6 @@
+// This `Django TodoMVC` example is a task management application built using `Mill` Build Tool.
+// It features dynamic `HTML` rendering with `Django's` template engine, `CRUD` operations with
+// Django `ORM`, and efficient form handling for managing tasks.
 package build
 import mill._, pythonlib._
 
@@ -8,6 +11,19 @@ object todo extends PythonModule {
   def pythonDeps = Seq("django==5.1.4")
 
 }
+
+// Apart from running a `web server`, this example demonstrates:
+
+// - **Serving HTML templates** using **Django's template engine**.
+// - **Managing static files** such as JavaScript, CSS, and images.
+// - **Querying a SQL database** using **Django ORM** with an **SQLite** backend.
+// - **Form handling and validation** with **Django forms**.
+// - **Unit testing** using Django's inbuilt testing framework with SQLite in-memory database.
+// - **URL routing** and **views** for CRUD operations.
+
+// This Mill Build File simplifies `dependency management`, `database migrations`, and `testing workflows`.
+
+// Running these commands will `test` and `run` the `Django Todo App`.
 
 /** Usage
 
@@ -20,7 +36,7 @@ object todo extends PythonModule {
 ...Running migrations...
 ...OK...
 
-> ./mill todo.run test main -v 2 # using inbuilt `django test`, `main` is the app name, `-v 2` is verbosity level 2
+> ./mill todo.run test main -v 2
 ...
 test_add_task_message (main.tests.TestScript...)
 Test that a success message appears when a task is successfully added. ... ok

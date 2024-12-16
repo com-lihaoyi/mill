@@ -1,3 +1,7 @@
+// This is a `Flask`-based `Todo` application managed and build using `Mill`.
+// It allows users to `add`, `edit`, `delete`, and `view` tasks stored in a `SQLite` database.
+// `Flask-SQLAlchemy` handles database operations, while `Flask-WTF` manages forms
+// for task creation and updates.
 package build
 import mill._, pythonlib._
 
@@ -11,6 +15,18 @@ object todo extends PythonModule {
   object integrationTest extends PythonTests with TestModule.Unittest
 
 }
+
+// Apart from running a web server, this example demonstrates:
+
+// - **Serving HTML templates** using **Jinja2** (Flask's default templating engine).
+// - **Managing static files** such as JavaScript, CSS, and images.
+// - **Querying a SQL database** using **Flask-SQLAlchemy** with an **SQLite** backend.
+// - **Form handling and validation** with **Flask-WTF**.
+// - **Unit testing** using **unittest** with SQLite in-memory database.
+// - **Integration testing** using **unittest**.
+
+// This example also utilizes **Mill** for managing `dependencies`, `builds`, and `tests`,
+// offering an efficient development workflow.
 
 /** Usage
 
