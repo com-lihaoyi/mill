@@ -43,6 +43,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     override def logLevel: T[NativeLogLevel] = outer.logLevel()
   }
 
+  val y = 2
   def scalaNativeBinaryVersion =
     Task { ZincWorkerUtil.scalaNativeBinaryVersion(scalaNativeVersion()) }
 
