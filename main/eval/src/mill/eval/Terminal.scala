@@ -28,14 +28,6 @@ object Terminal {
     }
   }
 
-  def printTerm(term: Terminal): String = term match {
-    case Terminal.Task(task) => task.toString()
-    case labelled: Terminal.Labelled[_] =>
-      val Seq(first, rest @ _*) = destSegments(labelled).value
-      val msgParts = Seq(first.asInstanceOf[Segment.Label].value) ++ rest.map {
-        case Segment.Label(s) => "." + s
-        case Segment.Cross(s) => "[" + s.mkString(",") + "]"
-      }
-      msgParts.mkString
-  }
+  @deprecated("User Terminal#toString instead")
+  def printTerm(term: Terminal): String = term.toString
 }
