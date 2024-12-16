@@ -19,13 +19,13 @@ trait TypeScriptModule extends Module { outer =>
     Task.traverse(moduleDeps)(_.npmDevDeps)().flatten ++ npmDevDeps()
   }
 
-  def npmInstall: Target[PathRef] = Task {
+  def npmInstall: T[PathRef] = Task {
     os.call((
       "npm",
       "install",
       "--save-dev",
-      "@types/node@22.7.8",
-      "typescript@5.6.3",
+      "@types/node@22.10.2",
+      "typescript@5.7.2",
       "ts-node@^10.9.2",
       "esbuild@0.24.0",
       "@esbuild-plugins/tsconfig-paths@0.1.2",
@@ -36,13 +36,13 @@ trait TypeScriptModule extends Module { outer =>
     PathRef(Task.dest)
   }
 
-  def sources: Target[PathRef] = Task.Source(millSourcePath / "src")
+  def sources: T[PathRef] = Task.Source(millSourcePath / "src")
 
-  def allSources: Target[IndexedSeq[PathRef]] =
+  def allSources: T[IndexedSeq[PathRef]] =
     Task { os.walk(sources().path).filter(_.ext == "ts").map(PathRef(_)) }
 
   // specify tsconfig.compilerOptions
-  def compilerOptions: Task[Map[String, ujson.Value]] = Task {
+  def compilerOptions: Task[Map[String, ujson.Value]] = Task.Anon {
     Map(
       "esModuleInterop" -> ujson.Bool(true),
       "declaration" -> ujson.Bool(true),
@@ -89,15 +89,15 @@ trait TypeScriptModule extends Module { outer =>
       )
     )
 
-    os.call(npmInstall().path / "node_modules/typescript/bin/tsc")
+    os.call(npmInstall().path / "node_modules/.bin/tsc")
     os.copy.over(millSourcePath, Task.dest / "typescript")
 
     (PathRef(Task.dest), PathRef(Task.dest / "typescript"))
   }
 
-  def mainFileName: Target[String] = Task { s"${millSourcePath.last}.ts" }
+  def mainFileName: T[String] = Task { s"${millSourcePath.last}.ts" }
 
-  def mainFilePath: Target[Path] = Task { compile()._2.path / "src" / mainFileName() }
+  def mainFilePath: T[Path] = Task { compile()._2.path / "src" / mainFileName() }
 
   def mkENV: T[Map[String, String]] =
     Task {
@@ -158,7 +158,7 @@ trait TypeScriptModule extends Module { outer =>
 
   }
 
-  def bundle: Target[PathRef] = Task {
+  def bundle: T[PathRef] = Task {
     val env = mkENV()
     val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
     val bundleScript = compile()._1.path / "build.ts"
