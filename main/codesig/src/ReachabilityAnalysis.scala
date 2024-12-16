@@ -80,9 +80,9 @@ class CallGraphAnalysis(
   logger.mandatoryLog(transitiveCallGraphHashes0)
   logger.log(transitiveCallGraphHashes)
 
-  lazy val spanningInvalidationForest: Obj = prevTransitiveCallGraphHashesOpt() match {
+  lazy val spanningInvalidationTree: Obj = prevTransitiveCallGraphHashesOpt() match {
     case Some(prevTransitiveCallGraphHashes) =>
-      CallGraphAnalysis.spanningInvalidationForest(
+      CallGraphAnalysis.spanningInvalidationTree(
         prevTransitiveCallGraphHashes,
         transitiveCallGraphHashes0,
         indexToNodes,
@@ -91,7 +91,7 @@ class CallGraphAnalysis(
     case None => ujson.Obj()
   }
 
-  logger.mandatoryLog(spanningInvalidationForest)
+  logger.mandatoryLog(spanningInvalidationTree)
 }
 
 object CallGraphAnalysis {
@@ -109,7 +109,7 @@ object CallGraphAnalysis {
    * typically are investigating why there's a path to a node at all where none
    * should exist, rather than trying to fully analyse all possible paths
    */
-  def spanningInvalidationForest(
+  def spanningInvalidationTree(
       prevTransitiveCallGraphHashes: Map[String, Int],
       transitiveCallGraphHashes0: Array[(CallGraphAnalysis.Node, Int)],
       indexToNodes: Array[Node],

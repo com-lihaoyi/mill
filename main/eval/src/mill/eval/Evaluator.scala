@@ -19,6 +19,7 @@ trait Evaluator extends AutoCloseable {
   def rootModule: BaseModule
   def effectiveThreadCount: Int
   def outPath: os.Path
+  def selectiveExecution: Boolean = false
   def externalOutPath: os.Path
   def pathsResolver: EvaluatorPathsResolver
   def methodCodeHashSignatures: Map[String, Int] = Map.empty
@@ -78,7 +79,6 @@ object Evaluator {
     def transitive: Agg[Task[_]]
     def failing: MultiBiMap[Terminal, Result.Failing[Val]]
     def results: collection.Map[Task[_], TaskResult[Val]]
-
     def values: Seq[Val] = rawValues.collect { case Result.Success(v) => v }
   }
 

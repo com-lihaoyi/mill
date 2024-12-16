@@ -61,7 +61,8 @@ object MainModule {
     RunScript.evaluateTasksNamed(
       evaluator.withBaseLogger(redirectLogger),
       targets,
-      Separated
+      Separated,
+      selectiveExecution = evaluator.selectiveExecution
     ) match {
       case Left(err) => Result.Failure(err)
       case Right((watched, Left(err))) =>
