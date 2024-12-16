@@ -128,7 +128,7 @@ private[mill] object SelectiveExecution {
       Resolve.Segments.resolve(
         evaluator.rootModule,
         tasks,
-        SelectMode.Multi,
+        SelectMode.Separated,
         evaluator.allowPositionalCommandArgs
       ).map(_.map(_.render))
     } else {
@@ -143,7 +143,7 @@ private[mill] object SelectiveExecution {
 
   def resolve0(evaluator: Evaluator, tasks: Seq[String]): Either[String, Array[String]] = {
     for {
-      resolved <- Resolve.Tasks.resolve(evaluator.rootModule, tasks, SelectMode.Multi)
+      resolved <- Resolve.Tasks.resolve(evaluator.rootModule, tasks, SelectMode.Separated)
       diffed <- SelectiveExecution.diffMetadata(evaluator, tasks)
     } yield {
       resolved
