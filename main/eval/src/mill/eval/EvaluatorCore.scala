@@ -11,7 +11,7 @@ import mill.util._
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import scala.collection.mutable
 import scala.concurrent._
-import scala.jdk.CollectionConverters.EnumerationHasAsScala
+
 
 /**
  * Core logic of evaluating tasks, without any user-facing helper methods
@@ -79,15 +79,8 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     val count = new AtomicInteger(1)
     val indexToTerminal = sortedGroups.keys().toArray
     val terminalToIndex = indexToTerminal.zipWithIndex.toMap
-    val upstreamIndexEdges =
-      indexToTerminal.map(t => interGroupDeps.getOrElse(t, Nil).map(terminalToIndex).toArray)
-    os.write.over(
-      outPath / OutFiles.millDependencyTree,
-      SpanningForest.spanningTreeToJsonTree(
-        SpanningForest(upstreamIndexEdges, indexToTerminal.indices.toSet, true),
-        i => indexToTerminal(i).render
-      ).render(indent = 2)
-    )
+
+    EvaluatorLogs.logDependencyTree(interGroupDeps, indexToTerminal, terminalToIndex, outPath)
 
     val futures = mutable.Map.empty[Terminal, Future[Option[GroupEvaluator.Results]]]
 
@@ -114,21 +107,19 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       // due to the topological order of traversal.
       for (terminal <- terminals) {
         val deps = interGroupDeps(terminal)
-        def isExclusiveCommand(t: Task[_]) = t match {
-          case c: Command[_] if c.exclusive => true
-          case _ => false
-        }
 
         val group = sortedGroups.lookupKey(terminal)
-        val exclusiveDeps = deps.filter(d => isExclusiveCommand(d.task))
+        val exclusiveDeps = deps.filter(d => d.task.isExclusiveCommand)
 
-        if (!isExclusiveCommand(terminal.task) && exclusiveDeps.nonEmpty) {
+        if (!terminal.task.isExclusiveCommand && exclusiveDeps.nonEmpty) {
           val failure = Result.Failure(
             s"Non-exclusive task ${terminal.render} cannot depend on exclusive task " +
               exclusiveDeps.map(_.render).mkString(", ")
           )
-          val taskResults =
-            group.map(t => (t, TaskResult[(Val, Int)](failure, () => failure))).toMap
+          val taskResults = group
+            .map(t => (t, TaskResult[(Val, Int)](failure, () => failure)))
+            .toMap
+
           futures(terminal) = Future.successful(
             Some(GroupEvaluator.Results(taskResults, group.toSeq, false, -1, -1, false))
           )
@@ -243,10 +234,8 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     val (tasks, leafExclusiveCommands) = terminals0.partition {
       case Terminal.Labelled(t, _) =>
         if (tasksTransitive.contains(t)) true
-        else t match {
-          case t: Command[_] => !t.exclusive
-          case _ => false
-        }
+        else !t.isExclusiveCommand
+
       case _ => !serialCommandExec
     }
 
@@ -260,6 +249,15 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
     val finishedOptsMap = (nonExclusiveResults ++ exclusiveResults).toMap
 
+    EvaluatorLogs.logInvalidationTree(
+      interGroupDeps,
+      indexToTerminal,
+      terminalToIndex,
+      outPath,
+      uncached,
+      changedValueHash,
+    )
+
     val results0: Vector[(Task[_], TaskResult[(Val, Int)])] = terminals0
       .flatMap { t =>
         sortedGroups.lookupKey(t).flatMap { t0 =>
@@ -271,50 +269,6 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       }
 
     val results: Map[Task[_], TaskResult[(Val, Int)]] = results0.toMap
-
-    val reverseInterGroupDeps = interGroupDeps
-      .iterator
-      .flatMap { case (k, vs) => vs.map(_ -> k) }
-      .toSeq
-      .groupMap(_._1)(_._2)
-
-    val changedTerminalIndices = changedValueHash.keys().asScala.toSet
-    val downstreamIndexEdges = indexToTerminal
-      .map(t =>
-        if (changedTerminalIndices(t))
-          reverseInterGroupDeps.getOrElse(t, Nil).map(terminalToIndex).toArray
-        else Array.empty[Int]
-      )
-
-    val edgeSourceIndices = downstreamIndexEdges
-      .zipWithIndex
-      .collect{case (es, i) if es.nonEmpty => i}
-      .toSet
-
-    os.write.over(
-      outPath / OutFiles.millInvalidationTree,
-      SpanningForest.spanningTreeToJsonTree(
-        SpanningForest(
-          downstreamIndexEdges,
-          uncached.keys().asScala
-            .flatMap{uncachedTask =>
-              val uncachedIndex = terminalToIndex(uncachedTask)
-              Option.when(
-                // Filter out input and source tasks which do not cause downstream invalidations
-                // from the invalidation tree, because most of them are un-interesting and the
-                // user really only cares about (a) inputs that cause downstream tasks to invalidate
-                // or (b) non-input tasks that were invalidated alone (e.g. due to a codesig change)
-                !uncachedTask.task.isInstanceOf[InputImpl[_]] || edgeSourceIndices(uncachedIndex)
-              ){
-                uncachedIndex
-              }
-            }
-            .toSet,
-          true
-        ),
-        i => indexToTerminal(i).render
-      ).render(indent = 2)
-    )
 
     EvaluatorCore.Results(
       goals.indexed.map(results(_).map(_._1).result),
