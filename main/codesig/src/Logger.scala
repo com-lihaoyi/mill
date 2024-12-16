@@ -12,7 +12,7 @@ class Logger(mandatoryLogFolder: os.Path, logFolder: Option[os.Path]) {
   ): Unit = {
     os.write(
       p / s"$prefix${res.source}.json",
-      upickle.default.stream(res.value, indent = 4),
+      upickle.default.stream(res.value, indent = 2),
       createFolders = true
     )
     count += 1

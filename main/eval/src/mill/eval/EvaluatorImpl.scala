@@ -34,7 +34,8 @@ private[mill] case class EvaluatorImpl(
     val systemExit: Int => Nothing,
     val exclusiveSystemStreams: SystemStreams,
     protected[eval] val chromeProfileLogger: ChromeProfileLogger,
-    protected[eval] val profileLogger: ProfileLogger
+    protected[eval] val profileLogger: ProfileLogger,
+    override val selectiveExecution: Boolean = false
 ) extends Evaluator with EvaluatorCore {
   import EvaluatorImpl._
 
@@ -93,7 +94,8 @@ private[mill] object EvaluatorImpl {
       disableCallgraph: Boolean,
       allowPositionalCommandArgs: Boolean,
       systemExit: Int => Nothing,
-      exclusiveSystemStreams: SystemStreams
+      exclusiveSystemStreams: SystemStreams,
+      selectiveExecution: Boolean
   ) = new EvaluatorImpl(
     home,
     workspace,
@@ -114,7 +116,8 @@ private[mill] object EvaluatorImpl {
     systemExit,
     exclusiveSystemStreams,
     chromeProfileLogger = new ChromeProfileLogger(outPath / millChromeProfile),
-    profileLogger = new ProfileLogger(outPath / millProfile)
+    profileLogger = new ProfileLogger(outPath / millProfile),
+    selectiveExecution = selectiveExecution
   )
 
   class EvalOrThrow(evaluator: Evaluator, exceptionFactory: Evaluator.Results => Throwable)
