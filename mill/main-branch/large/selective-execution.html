@@ -750,6 +750,25 @@ to ensure they have the exact same filesystem permissions.</p>
 </div>
 </div>
 </div>
+<div class="sect1">
+<h2 id="_debugging_selective_execution"><a class="anchor" href="#_debugging_selective_execution"></a>Debugging Selective Execution</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>Use <code>selective.resolve</code> before <code>selective.run</code>: this will print out what it was going to run,
+and can give you a chance to eyeball if the list of targets to run makes sense or not</p>
+</li>
+<li>
+<p>Look at <a href="../fundamentals/out-dir.html#_mill_invalidation_tree_json" class="xref page">out/mill-invalidation-tree.json</a>,
+whether on disk locally or printing it out (e.g via <code>cat</code>) on your CI machines to diagnose issues
+there. This would give you a richer view of what source tasks or inputs are the ones actually
+triggered the invalidation, and what tasks were just invalidated due to being downstream of them.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
 <nav class="pagination">
   <span class="prev"><a href="large.html">Large Builds and Monorepos</a></span>
   <span class="next"><a href="multi-file-builds.html">Multi-File Builds</a></span>
