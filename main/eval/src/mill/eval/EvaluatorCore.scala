@@ -288,7 +288,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
     val edgeSourceIndices = downstreamIndexEdges
       .zipWithIndex
-      .collect{case (es, i) if es.nonEmpty => i}
+      .collect { case (es, i) if es.nonEmpty => i }
       .toSet
 
     os.write.over(
@@ -297,7 +297,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
         SpanningForest(
           downstreamIndexEdges,
           uncached.keys().asScala
-            .flatMap{uncachedTask =>
+            .flatMap { uncachedTask =>
               val uncachedIndex = terminalToIndex(uncachedTask)
               Option.when(
                 // Filter out input and source tasks which do not cause downstream invalidations
@@ -305,7 +305,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
                 // user really only cares about (a) inputs that cause downstream tasks to invalidate
                 // or (b) non-input tasks that were invalidated alone (e.g. due to a codesig change)
                 !uncachedTask.task.isInstanceOf[InputImpl[_]] || edgeSourceIndices(uncachedIndex)
-              ){
+              ) {
                 uncachedIndex
               }
             }
