@@ -1,69 +1,24 @@
 package build
 
 import mill._, javascriptlib._
+import ujson._
 
 object foo extends TypeScriptModule {
-
-  /** Generate resources for foo */
-  def resources = Task {
-    val mockAuthors = ujson.Arr(
-      ujson.Obj("id" -> 1, "name" -> "Ben"),
-      ujson.Obj("id" -> 2, "name" -> "Jerry")
-    )
-
-    val mockBooks = ujson.Arr(
-      ujson.Obj(
-        "id" -> 1,
-        "title" -> "Book One",
-        "publication" -> 2001,
-        "sn" -> "SN001",
-        "author" -> ujson.Obj("id" -> 1)
-      ),
-      ujson.Obj(
-        "id" -> 2,
-        "title" -> "Book Two",
-        "publication" -> 2002,
-        "sn" -> "SN002",
-        "author" -> ujson.Obj("id" -> 1)
-      ),
-      ujson.Obj(
-        "id" -> 3,
-        "title" -> "Book Three",
-        "publication" -> 2003,
-        "sn" -> "SN003",
-        "author" -> ujson.Obj("id" -> 2)
-      )
-    )
-
-    os.write(Task.dest / "authors.json", ujson.write(mockAuthors, indent = 2))
-    os.write(Task.dest / "books.json", ujson.write(mockBooks, indent = 2))
-    PathRef(Task.dest)
+  object test extends TypeScriptTests with TestModule.Jest {
+    def mkENV = super.mkENV() + ("OTHER_FILES" -> (compile()._2.path / "other-files").toString)
   }
-
-  // define resource path for the node app
-  def mkENV = Task {
-    super.mkENV() ++ Map("RESOURCE_PATH" -> resources().path.toString)
-  }
-
 }
 
 // Documentation for mill.example.javascriptlib
 
-// This example demonstrates resources usage
-
 /** Usage
+> mill foo.run
+Hello World Resource File
 
-> mill foo.run Jerry
-[
-  {
-    "author": "Jerry",
-    "books": [
-      {
-        "title": "Book Three",
-        "publication": 2003,
-        "sn": "SN003"
-      }
-    ]
-  }
-]
+> mill foo.test
+PASS .../foo.test.ts
+...
+Test Suites:...1 passed, 1 total...
+Tests:...3 passed, 3 total...
+...
 */

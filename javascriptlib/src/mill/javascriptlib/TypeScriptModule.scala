@@ -1,8 +1,8 @@
 package mill.javascriptlib
+
 import mill.*
 import os.*
-
-import scala.collection.immutable.IndexedSeq
+import scala.util.Try
 
 trait TypeScriptModule extends Module { outer =>
   def moduleDeps: Seq[TypeScriptModule] = Nil
@@ -39,17 +39,24 @@ trait TypeScriptModule extends Module { outer =>
 
   def sources: T[PathRef] = Task.Source(millSourcePath / "src")
 
+  def resources: T[PathRef] = Task.Source(millSourcePath / "resources")
+
   def generatedSources: T[Seq[PathRef]] = Task { Seq[PathRef]() }
 
   def allSources: T[IndexedSeq[PathRef]] =
     Task {
-      val fileExt: Path => Boolean = file => file.ext == "ts"
+      val fileExt: Path => Boolean = _.ext == "ts"
+
       val generated =
         generatedSources().flatMap(pr =>
           os.walk(pr.path).filter(fileExt).map(PathRef(_))
         ).toIndexedSeq
 
+      val resources_ =
+        Try(os.walk(resources().path)).getOrElse(IndexedSeq()).filter(fileExt).map(PathRef(_))
+
       os.walk(sources().path).filter(fileExt).map(PathRef(_)) ++
+        resources_ ++
         generated
     }
 
@@ -58,8 +65,7 @@ trait TypeScriptModule extends Module { outer =>
     Map(
       "esModuleInterop" -> ujson.Bool(true),
       "declaration" -> ujson.Bool(true),
-      "emitDeclarationOnly" -> ujson.Bool(true),
-      "typeRoots" -> ujson.Arr((npmInstall().path / "node_modules/@types").toString)
+      "emitDeclarationOnly" -> ujson.Bool(true)
     )
   }
 
@@ -68,11 +74,34 @@ trait TypeScriptModule extends Module { outer =>
     Task { Map("*" -> npmInstall().path.toString()) }
 
   def upstreamPathsBuilder: Task[Seq[(String, String)]] = Task.Anon {
-    for {
+    val upstreams = (for {
       ((comp, ts), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
-    } yield (
-      mod.millSourcePath.subRelativeTo(Task.workspace).toString + "/*",
-      (ts.path / "src").toString + ":" + (comp.path / "declarations").toString
+    } yield {
+      Seq(
+        (
+          mod.millSourcePath.subRelativeTo(Task.workspace).toString + "/*",
+          (ts.path / "src").toString + ":" + (comp.path / "declarations").toString
+        ),
+        (
+          mod.millSourcePath.subRelativeTo(Task.workspace).toString + "/resources/*",
+          (ts.path / "resources").toString + ":" + (comp.path / "declarations").toString
+        )
+      )
+    }).flatten
+
+    upstreams
+  }
+
+  def modulePaths: Task[Seq[(String, String)]] = Task.Anon {
+    val module = millSourcePath.last
+    val declarationsOut = Task.dest / "declarations"
+
+    Seq(
+      (
+        s"$module/resources/*",
+        (Task.dest / "typescript/resources").toString + ":" + declarationsOut.toString
+      ),
+      (s"$module/*", sources().path.toString + ":" + declarationsOut.toString)
     )
   }
 
@@ -82,10 +111,15 @@ trait TypeScriptModule extends Module { outer =>
     val combinedPaths =
       upstreamPathsBuilder() ++
         generatedSources().map(p => ("@generated/*", p.path.toString)) ++
+        modulePaths() ++
         compilerOptionsPaths().toSeq
 
     val combinedCompilerOptions: Map[String, ujson.Value] = compilerOptions() ++ Map(
       "declarationDir" -> ujson.Str(declarationsOut.toString),
+      "typeRoots" -> ujson.Arr(
+        (npmInstall().path / "node_modules/@types").toString,
+        declarationsOut.toString
+      ),
       "paths" -> ujson.Obj.from(combinedPaths.map { case (k, v) =>
         val splitValues =
           v.split(":").map(s => s"$s/*") // Split by ":" and append "/*" to each part
@@ -105,8 +139,8 @@ trait TypeScriptModule extends Module { outer =>
       )
     )
 
-    os.call(npmInstall().path / "node_modules/typescript/bin/tsc")
     os.copy.over(millSourcePath, Task.dest / "typescript")
+    os.call(npmInstall().path / "node_modules/typescript/bin/tsc")
 
     (PathRef(Task.dest), PathRef(Task.dest / "typescript"))
   }
