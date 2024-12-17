@@ -19,7 +19,7 @@ trait TypeScriptModule extends Module { outer =>
     Task.traverse(moduleDeps)(_.npmDevDeps)().flatten ++ npmDevDeps()
   }
 
-  def npmInstall: Target[PathRef] = Task {
+  def npmInstall: T[PathRef] = Task {
     os.call((
       "npm",
       "install",
@@ -28,6 +28,7 @@ trait TypeScriptModule extends Module { outer =>
       "typescript@5.6.3",
       "ts-node@^10.9.2",
       "esbuild@0.24.0",
+      "esbuild-plugin-copy@2.1.1",
       "@esbuild-plugins/tsconfig-paths@0.1.2",
       "tsconfig-paths@4.2.0",
       transitiveNpmDeps(),
@@ -36,10 +37,21 @@ trait TypeScriptModule extends Module { outer =>
     PathRef(Task.dest)
   }
 
-  def sources: Target[PathRef] = Task.Source(millSourcePath / "src")
+  def sources: T[PathRef] = Task.Source(millSourcePath / "src")
 
-  def allSources: Target[IndexedSeq[PathRef]] =
-    Task { os.walk(sources().path).filter(_.ext == "ts").map(PathRef(_)) }
+  def generatedSources: T[Seq[PathRef]] = Task { Seq[PathRef]() }
+
+  def allSources: T[IndexedSeq[PathRef]] =
+    Task {
+      val fileExt: Path => Boolean = file => file.ext == "ts"
+      val generated =
+        generatedSources().flatMap(pr =>
+          os.walk(pr.path).filter(fileExt).map(PathRef(_))
+        ).toIndexedSeq
+
+      os.walk(sources().path).filter(fileExt).map(PathRef(_)) ++
+        generated
+    }
 
   // specify tsconfig.compilerOptions
   def compilerOptions: Task[Map[String, ujson.Value]] = Task {
@@ -53,7 +65,7 @@ trait TypeScriptModule extends Module { outer =>
 
   // specify tsconfig.compilerOptions.Paths
   def compilerOptionsPaths: Task[Map[String, String]] =
-    Task { Map("*" -> sources().path.toString(), "*" -> npmInstall().path.toString()) }
+    Task { Map("*" -> npmInstall().path.toString()) }
 
   def upstreamPathsBuilder: Task[Seq[(String, String)]] = Task.Anon {
     for {
@@ -67,7 +79,11 @@ trait TypeScriptModule extends Module { outer =>
   def compilerOptionsBuilder: Task[Map[String, ujson.Value]] = Task.Anon {
     val declarationsOut = Task.dest / "declarations"
 
-    val combinedPaths = upstreamPathsBuilder() ++ compilerOptionsPaths().toSeq
+    val combinedPaths =
+      upstreamPathsBuilder() ++
+        generatedSources().map(p => ("@generated/*", p.path.toString)) ++
+        compilerOptionsPaths().toSeq
+
     val combinedCompilerOptions: Map[String, ujson.Value] = compilerOptions() ++ Map(
       "declarationDir" -> ujson.Str(declarationsOut.toString),
       "paths" -> ujson.Obj.from(combinedPaths.map { case (k, v) =>
@@ -95,9 +111,9 @@ trait TypeScriptModule extends Module { outer =>
     (PathRef(Task.dest), PathRef(Task.dest / "typescript"))
   }
 
-  def mainFileName: Target[String] = Task { s"${millSourcePath.last}.ts" }
+  def mainFileName: T[String] = Task { s"${millSourcePath.last}.ts" }
 
-  def mainFilePath: Target[Path] = Task { compile()._2.path / "src" / mainFileName() }
+  def mainFilePath: T[Path] = Task { compile()._2.path / "src" / mainFileName() }
 
   def mkENV: T[Map[String, String]] =
     Task {
@@ -110,7 +126,6 @@ trait TypeScriptModule extends Module { outer =>
       ).mkString(":"))
     }
 
-  // define computed arguments and where they should be placed (before/after user arguments)
   def computedArgs: Task[Seq[String]] = Task { Seq.empty[String] }
 
   def executionFlags: Task[Map[String, String]] = Task { Map.empty[String, String] }
@@ -119,7 +134,7 @@ trait TypeScriptModule extends Module { outer =>
     val mainFile = mainFilePath()
     val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
     val tsconfigpaths = npmInstall().path / "node_modules/tsconfig-paths/register"
-    val env = mkENV() + ("RESOURCES" -> resources().path.toString)
+    val env = mkENV()
 
     val execFlags: Seq[String] = executionFlags().map {
       case (key, "") => s"--$key"
@@ -144,27 +159,40 @@ trait TypeScriptModule extends Module { outer =>
     )
   }
 
-  def bundleFlags: T[Map[String, Seq[String]]] = Task { Map.empty[String, Seq[String]] }
+  def bundleFlags: T[Map[String, String]] = Task {
+    Map(
+      "platform" -> "'node'",
+      "entryPoints" -> s"['${mainFilePath()}']",
+      "bundle" -> "true"
+    )
+  }
 
   // configure esbuild with @esbuild-plugins/tsconfig-paths
   def bundleScriptBuilder: Task[String] = Task.Anon {
-    val mainFile = mainFilePath()
     val bundle = Task.dest / "bundle.js"
+    val resourcePath = compile()._2.path / "resources"
 
-    val flags = bundleFlags().map { case (key, values) =>
-      s"""  $key: [${values.map(v => s"'$v'").mkString(", ")}],"""
+    val flags = bundleFlags().map { case (key, value) =>
+      s"""  $key: $value,"""
     }.mkString("\n")
 
     s"""|import * as esbuild from 'node_modules/esbuild';
         |import TsconfigPathsPlugin from 'node_modules/@esbuild-plugins/tsconfig-paths'
+        |import Copy from 'node_modules/esbuild-plugin-copy';
         |
         |esbuild.build({
-        |  entryPoints: ['$mainFile'],
-        |  bundle: true,
-        |  outfile: '$bundle',
-        |  plugins: [TsconfigPathsPlugin({tsconfig: 'tsconfig.json'})],
-        |  platform: 'node',
         |  $flags
+        |  outfile: '$bundle',
+        |  plugins: [
+        |  Copy({
+        |    resolveFrom: 'cwd',
+        |    assets: {
+        |       from: ['$resourcePath' + '/**/*'],
+        |       to: ['${Task.dest}' + '/resources']
+        |    }
+        |  }),
+        |  TsconfigPathsPlugin({tsconfig: 'tsconfig.json'}),
+        |  ]
         |}).then(() => {
         |  console.log('Build succeeded!');
         |}).catch(() => {
@@ -175,7 +203,7 @@ trait TypeScriptModule extends Module { outer =>
 
   }
 
-  def bundle: Target[PathRef] = Task {
+  def bundle: T[PathRef] = Task {
     val env = mkENV()
     val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
     val bundleScript = compile()._1.path / "build.ts"
@@ -194,8 +222,6 @@ trait TypeScriptModule extends Module { outer =>
     )
     PathRef(bundle)
   }
-
-  def resources: T[PathRef] = Task { PathRef(Task.dest) }
 
   trait TypeScriptTests extends TypeScriptModule {
     override def moduleDeps: Seq[TypeScriptModule] = Seq(outer) ++ outer.moduleDeps

@@ -12,6 +12,16 @@ object foo extends TypeScriptModule {
       )
     }
 
+  def bundleFlags =
+    Task {
+      Map(
+        "platform" -> "'node'",
+        "entryPoints" -> s"['${mainFilePath()}']",
+        "bundle" -> "true",
+        "minify" -> "true"
+      )
+    }
+
 }
 
 // Documentation for mill.example.javascriptlib
@@ -24,4 +34,7 @@ object foo extends TypeScriptModule {
 Debugger listening on ws://...
 ...
 Hello World!
+
+> mill foo.bundle
+Build succeeded!
 */
