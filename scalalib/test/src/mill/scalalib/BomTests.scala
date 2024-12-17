@@ -398,6 +398,116 @@ object BomTests extends TestSuite {
         def moduleDeps = Seq(bomOnModuleDependency)
       }
     }
+
+    object bomModule extends Module {
+      object depMgmtBomMod extends BomModule with TestPublishModule {
+        def depManagement = Agg(
+          ivy"com.lihaoyi:os-lib_2.13:0.11.3"
+        )
+
+        object bomUser extends BomModule.Consumer with TestPublishModule {
+          def bomModuleDeps = Seq(depMgmtBomMod)
+          def ivyDeps = Agg(
+            ivy"com.lihaoyi:os-lib_2.13"
+          )
+        }
+      }
+
+      object scalaDepMgmtBomMod extends ScalaModule with BomModule with TestPublishModule {
+        def scalaVersion = "2.13.15"
+        def depManagement = Agg(
+          ivy"com.lihaoyi::os-lib:0.11.3"
+        )
+
+        object bomUser extends ScalaModule with BomModule.Consumer with TestPublishModule {
+          def scalaVersion = "2.13.15"
+          def bomModuleDeps = Seq(scalaDepMgmtBomMod)
+          def ivyDeps = Agg(
+            ivy"com.lihaoyi::os-lib"
+          )
+        }
+      }
+
+      object bomWithBom extends BomModule with TestPublishModule {
+        def bomIvyDeps = Agg(
+          ivy"com.google.protobuf:protobuf-bom:4.28.1"
+        )
+        def depManagement = Agg(
+          ivy"com.lihaoyi:os-lib_2.13:0.11.3"
+        )
+
+        object bomUser extends BomModule.Consumer with TestPublishModule {
+          def bomModuleDeps = Seq(bomWithBom)
+          def ivyDeps = Agg(
+            ivy"com.lihaoyi:os-lib_2.13",
+            ivy"com.google.protobuf:protobuf-java"
+          )
+        }
+      }
+
+      object bomWithBomOverride extends BomModule with TestPublishModule {
+        def bomIvyDeps = Agg(
+          ivy"com.google.protobuf:protobuf-bom:4.28.1"
+        )
+        def depManagement = Agg(
+          ivy"com.lihaoyi:os-lib_2.13:0.11.3",
+          ivy"com.google.protobuf:protobuf-java:4.28.0"
+        )
+
+        object bomUser extends BomModule.Consumer with TestPublishModule {
+          def bomModuleDeps = Seq(bomWithBomOverride)
+          def ivyDeps = Agg(
+            ivy"com.lihaoyi:os-lib_2.13",
+            ivy"com.google.protobuf:protobuf-java"
+          )
+        }
+      }
+
+      object chainedBoms extends BomModule with TestPublishModule {
+        def bomIvyDeps = Agg(
+          ivy"com.google.protobuf:protobuf-bom:4.28.1"
+        )
+        def depManagement = Agg(
+          ivy"com.fasterxml.jackson.core:jackson-core:2.18.1"
+        )
+
+        object simpleOverrides extends BomModule with TestPublishModule {
+          def bomModuleDeps = Seq(chainedBoms)
+          def bomIvyDeps = Agg(
+            ivy"com.google.protobuf:protobuf-bom:4.28.2"
+          )
+          def depManagement = Agg(
+            ivy"com.fasterxml.jackson.core:jackson-core:2.18.2"
+          )
+
+          object bomUser extends BomModule.Consumer with TestPublishModule {
+            def bomModuleDeps = Seq(simpleOverrides)
+            def ivyDeps = Agg(
+              ivy"com.fasterxml.jackson.core:jackson-core",
+              ivy"com.google.protobuf:protobuf-java"
+            )
+          }
+        }
+
+        object crossedOverrides extends BomModule with TestPublishModule {
+          def bomModuleDeps = Seq(chainedBoms)
+          def bomIvyDeps = Agg(
+            ivy"com.fasterxml.jackson:jackson-bom:2.18.2"
+          )
+          def depManagement = Agg(
+            ivy"com.google.protobuf:protobuf-java:4.28.2"
+          )
+
+          object bomUser extends BomModule.Consumer with TestPublishModule {
+            def bomModuleDeps = Seq(crossedOverrides)
+            def ivyDeps = Agg(
+              ivy"com.fasterxml.jackson.core:jackson-core",
+              ivy"com.google.protobuf:protobuf-java"
+            )
+          }
+        }
+      }
+    }
   }
 
   def expectedProtobufJavaVersion = "4.28.3"
@@ -870,6 +980,79 @@ object BomTests extends TestSuite {
           "wasm-2.15.3.jar",
           runtimeOnly = true
         )
+      }
+    }
+
+    test("bomModule") {
+      test("depMgmt") - UnitTester(modules, null).scoped { implicit eval =>
+        isInClassPath(
+          modules.bomModule.depMgmtBomMod.bomUser,
+          "os-lib_2.13-0.11.3.jar",
+          Seq(modules.bomModule.depMgmtBomMod)
+        )
+      }
+
+      test("scalaDepMgmt") - UnitTester(modules, null).scoped { implicit eval =>
+        isInClassPath(
+          modules.bomModule.scalaDepMgmtBomMod.bomUser,
+          "os-lib_2.13-0.11.3.jar",
+          Seq(modules.bomModule.scalaDepMgmtBomMod),
+          scalaSuffix = "_2.13"
+        )
+      }
+
+      test("externalBom") - UnitTester(modules, null).scoped { implicit eval =>
+        isInClassPath(
+          modules.bomModule.bomWithBom.bomUser,
+          "os-lib_2.13-0.11.3.jar",
+          Seq(modules.bomModule.bomWithBom)
+        )
+        isInClassPath(
+          modules.bomModule.bomWithBom.bomUser,
+          "protobuf-java-4.28.1.jar",
+          Seq(modules.bomModule.bomWithBom)
+        )
+      }
+
+      test("overrideBom") - UnitTester(modules, null).scoped { implicit eval =>
+        isInClassPath(
+          modules.bomModule.bomWithBomOverride.bomUser,
+          "os-lib_2.13-0.11.3.jar",
+          Seq(modules.bomModule.bomWithBomOverride)
+        )
+        isInClassPath(
+          modules.bomModule.bomWithBomOverride.bomUser,
+          "protobuf-java-4.28.0.jar",
+          Seq(modules.bomModule.bomWithBomOverride)
+        )
+      }
+
+      test("chainedBoms") {
+        test("simple") - UnitTester(modules, null).scoped { implicit eval =>
+          isInClassPath(
+            modules.bomModule.chainedBoms.simpleOverrides.bomUser,
+            "jackson-core-2.18.2.jar",
+            Seq(modules.bomModule.chainedBoms, modules.bomModule.chainedBoms.simpleOverrides)
+          )
+          isInClassPath(
+            modules.bomModule.chainedBoms.simpleOverrides.bomUser,
+            "protobuf-java-4.28.1.jar",
+            Seq(modules.bomModule.chainedBoms, modules.bomModule.chainedBoms.simpleOverrides)
+          )
+        }
+
+        test("crossed") - UnitTester(modules, null).scoped { implicit eval =>
+          isInClassPath(
+            modules.bomModule.chainedBoms.crossedOverrides.bomUser,
+            "jackson-core-2.18.1.jar",
+            Seq(modules.bomModule.chainedBoms, modules.bomModule.chainedBoms.crossedOverrides)
+          )
+          isInClassPath(
+            modules.bomModule.chainedBoms.crossedOverrides.bomUser,
+            "protobuf-java-4.28.2.jar",
+            Seq(modules.bomModule.chainedBoms, modules.bomModule.chainedBoms.crossedOverrides)
+          )
+        }
       }
     }
   }
