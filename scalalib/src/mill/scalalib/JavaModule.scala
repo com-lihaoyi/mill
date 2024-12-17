@@ -63,6 +63,9 @@ trait JavaModule
     override def extraBomIvyDeps = Task.Anon[Agg[Dep]] {
       super.extraBomIvyDeps() ++ outer.bomIvyDeps()
     }
+    override def extraDepManagement = Task.Anon[Agg[Dep]] {
+      super.extraDepManagement() ++ outer.depManagement()
+    }
 
     /**
      * JavaModule and its derivatives define inner test modules.
@@ -206,6 +209,14 @@ trait JavaModule
    * in the test module.
    */
   def extraBomIvyDeps: Task[Agg[Dep]] = Task.Anon { Agg.empty[Dep] }
+
+  /**
+   * Dependency management entries that are not meant to be overridden or changed by users.
+   *
+   * This is mainly used to add dependency management entries of the main module to its test
+   * modules.
+   */
+  def extraDepManagement: Task[Agg[Dep]] = Task.Anon { Agg.empty[Dep] }
 
   /**
    * Dependency management data
@@ -517,7 +528,8 @@ trait JavaModule
 
     val depMgmt =
       processedDependencyManagement(
-        depManagement().iterator.toSeq.map(bindDependency()).map(_.dep)
+        (depManagement() ++ extraDepManagement())
+          .iterator.toSeq.map(bindDependency()).map(_.dep)
       ).map {
         case (key, values) =>
           (cs.Configuration.compile, values.fakeDependency(key))

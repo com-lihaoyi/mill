@@ -369,6 +369,21 @@ object BomTests extends TestSuite {
           ivy"org.mvnpm.at.hpcc-js:wasm"
         )
       }
+
+      object testScope extends JavaModule with TestPublishModule {
+        // Dep mgmt in main module has a version for scalatest_2.13.
+        // This version should be taken into account in test modules here.
+        def depManagement = Agg(
+          ivy"org.scalatest:scalatest_2.13:3.2.16"
+        )
+        object test extends JavaTests {
+          def testFramework = "com.novocode.junit.JUnitFramework"
+          def ivyDeps = Agg(
+            ivy"com.novocode:junit-interface:0.11",
+            ivy"org.scalatest:scalatest_2.13"
+          )
+        }
+      }
     }
 
     object bomOnModuleDependency extends JavaModule with TestPublishModule {
@@ -839,6 +854,13 @@ object BomTests extends TestSuite {
         compileClasspathContains(
           modules.depMgmtScope.provided,
           "scala-parallel-collections_2.13-1.0.4.jar"
+        )
+      }
+
+      test("test") - UnitTester(modules, null).scoped { implicit eval =>
+        compileClasspathContains(
+          modules.depMgmtScope.testScope.test,
+          "scalatest_2.13-3.2.16.jar"
         )
       }
 
