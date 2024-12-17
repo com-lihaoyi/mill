@@ -31,7 +31,11 @@ trait PublishModule extends JavaModule { outer =>
   /**
    * The packaging type. See [[PackagingType]] for specially handled values.
    */
-  def pomPackagingType: String = PackagingType.Jar
+  def pomPackagingType: String =
+    this match {
+      case _: BomModule => PackagingType.Pom
+      case _ => PackagingType.Jar
+    }
 
   /**
    * POM parent project.
@@ -171,7 +175,13 @@ trait PublishModule extends JavaModule { outer =>
    * BOM dependency to specify in the POM
    */
   def publishXmlBomDeps: Task[Agg[Dependency]] = Task.Anon {
-    bomIvyDeps().map(resolvePublishDependency.apply().apply(_))
+    val fromBomMods = T.traverse(
+      bomModuleDepsChecked.collect { case p: PublishModule => p }
+    )(_.artifactMetadata)().map { a =>
+      Dependency(a, Scope.Import)
+    }
+    Agg(fromBomMods: _*) ++
+      bomIvyDeps().map(resolvePublishDependency.apply().apply(_))
   }
 
   /**

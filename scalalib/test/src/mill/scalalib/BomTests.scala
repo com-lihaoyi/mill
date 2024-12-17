@@ -405,7 +405,7 @@ object BomTests extends TestSuite {
           ivy"com.lihaoyi:os-lib_2.13:0.11.3"
         )
 
-        object bomUser extends BomModule.Consumer with TestPublishModule {
+        object bomUser extends JavaModule with TestPublishModule {
           def bomModuleDeps = Seq(depMgmtBomMod)
           def ivyDeps = Agg(
             ivy"com.lihaoyi:os-lib_2.13"
@@ -419,7 +419,7 @@ object BomTests extends TestSuite {
           ivy"com.lihaoyi::os-lib:0.11.3"
         )
 
-        object bomUser extends ScalaModule with BomModule.Consumer with TestPublishModule {
+        object bomUser extends ScalaModule with TestPublishModule {
           def scalaVersion = "2.13.15"
           def bomModuleDeps = Seq(scalaDepMgmtBomMod)
           def ivyDeps = Agg(
@@ -436,7 +436,7 @@ object BomTests extends TestSuite {
           ivy"com.lihaoyi:os-lib_2.13:0.11.3"
         )
 
-        object bomUser extends BomModule.Consumer with TestPublishModule {
+        object bomUser extends JavaModule with TestPublishModule {
           def bomModuleDeps = Seq(bomWithBom)
           def ivyDeps = Agg(
             ivy"com.lihaoyi:os-lib_2.13",
@@ -454,7 +454,7 @@ object BomTests extends TestSuite {
           ivy"com.google.protobuf:protobuf-java:4.28.0"
         )
 
-        object bomUser extends BomModule.Consumer with TestPublishModule {
+        object bomUser extends JavaModule with TestPublishModule {
           def bomModuleDeps = Seq(bomWithBomOverride)
           def ivyDeps = Agg(
             ivy"com.lihaoyi:os-lib_2.13",
@@ -480,7 +480,7 @@ object BomTests extends TestSuite {
             ivy"com.fasterxml.jackson.core:jackson-core:2.18.2"
           )
 
-          object bomUser extends BomModule.Consumer with TestPublishModule {
+          object bomUser extends JavaModule with TestPublishModule {
             def bomModuleDeps = Seq(simpleOverrides)
             def ivyDeps = Agg(
               ivy"com.fasterxml.jackson.core:jackson-core",
@@ -498,7 +498,7 @@ object BomTests extends TestSuite {
             ivy"com.google.protobuf:protobuf-java:4.28.2"
           )
 
-          object bomUser extends BomModule.Consumer with TestPublishModule {
+          object bomUser extends JavaModule with TestPublishModule {
             def bomModuleDeps = Seq(crossedOverrides)
             def ivyDeps = Agg(
               ivy"com.fasterxml.jackson.core:jackson-core",

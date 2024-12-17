@@ -322,6 +322,15 @@ trait JavaModule
   def runModuleDeps: Seq[JavaModule] = Seq.empty
 
   /**
+   *  BOM dependencies of this module.
+   *  This is meant to be overridden to add BOM dependencies.
+   *  To read the value, you should use [[bomModuleDepsChecked]] instead,
+   *  which uses a cached result which is also checked to be free of cycle.
+   *  @see [[bomModuleDepsChecked]]
+   */
+  def bomModuleDeps: Seq[BomModule] = Seq.empty
+
+  /**
    * Same as [[moduleDeps]] but checked to not contain cycles.
    * Prefer this over using [[moduleDeps]] directly.
    */
@@ -348,6 +357,16 @@ trait JavaModule
     runModuleDeps
   }
 
+  /**
+   * Same as [[bomModuleDeps]] but checked to not contain cycles.
+   * Prefer this over using [[bomModuleDeps]] directly.
+   */
+  final def bomModuleDepsChecked: Seq[BomModule] = {
+    // trigger initialization to check for cycles
+    recBomModuleDeps
+    bomModuleDeps
+  }
+
   /** Should only be called from [[moduleDepsChecked]] */
   private lazy val recModuleDeps: Seq[JavaModule] =
     ModuleUtils.recursive[JavaModule](
@@ -370,6 +389,14 @@ trait JavaModule
       (millModuleSegments ++ Seq(Segment.Label("runModuleDeps"))).render,
       this,
       m => m.runModuleDeps ++ m.moduleDeps
+    )
+
+  /** Should only be called from [[bomModuleDepsChecked]] */
+  private lazy val recBomModuleDeps: Seq[BomModule] =
+    ModuleUtils.recursive[BomModule](
+      (millModuleSegments ++ Seq(Segment.Label("bomModuleDeps"))).render,
+      null,
+      mod => if (mod == null) bomModuleDeps else mod.bomModuleDeps
     )
 
   /** The direct and indirect dependencies of this module */
@@ -482,15 +509,26 @@ trait JavaModule
     )
 
     val internalDependencies =
-      moduleDepsChecked.flatMap { modDep =>
-        Seq(
-          (cs.Configuration.compile, modDep.coursierDependency),
-          (
-            cs.Configuration.runtime,
-            modDep.coursierDependency.withConfiguration(cs.Configuration.runtime)
-          )
+      bomModuleDepsChecked.map { modDep =>
+        val dep = coursier.core.Dependency(
+          coursier.core.Module(
+            coursier.core.Organization("mill-internal"),
+            coursier.core.ModuleName(modDep.millModuleSegments.parts.mkString("-")),
+            Map.empty
+          ),
+          "0+mill-internal"
         )
+        (coursier.core.Configuration.`import`, dep)
       } ++
+        moduleDepsChecked.flatMap { modDep =>
+          Seq(
+            (cs.Configuration.compile, modDep.coursierDependency),
+            (
+              cs.Configuration.runtime,
+              modDep.coursierDependency.withConfiguration(cs.Configuration.runtime)
+            )
+          )
+        } ++
         compileModuleDepsChecked.map { modDep =>
           (cs.Configuration.provided, modDep.coursierDependency)
         } ++
@@ -561,7 +599,8 @@ trait JavaModule
     val projects = Seq(coursierProject()) ++
       T.traverse(compileModuleDepsChecked)(_.transitiveCoursierProjects)().flatten ++
       T.traverse(moduleDepsChecked)(_.transitiveCoursierProjects)().flatten ++
-      T.traverse(runModuleDepsChecked)(_.transitiveCoursierProjects)().flatten
+      T.traverse(runModuleDepsChecked)(_.transitiveCoursierProjects)().flatten ++
+      T.traverse(bomModuleDepsChecked)(_.transitiveCoursierProjects)().flatten
     projects.distinct
   }
 
@@ -1473,5 +1512,31 @@ object JavaModule {
     ): Seq[(coursier.core.Publication, coursier.util.Artifact)] =
       // Mill modules' artifacts are handled by Mill itself
       Nil
+  }
+}
+
+trait BomModule extends JavaModule {
+  def compile: T[CompilationResult] = Task {
+    val sources = allSourceFiles()
+    if (sources.nonEmpty)
+      throw new Exception(s"A BomModule cannot have sources")
+    CompilationResult(T.dest / "zinc", PathRef(T.dest / "classes"))
+  }
+
+  def resources: T[Seq[PathRef]] = Task {
+    val value = super.resources()
+    if (value.nonEmpty)
+      throw new Exception(s"A BomModule cannot have ressources")
+    Seq.empty[PathRef]
+  }
+
+  def jar: T[PathRef] = Task {
+    (throw new Exception(s"A BomModule doesn't have a JAR")): PathRef
+  }
+  def docJar: T[PathRef] = Task {
+    (throw new Exception(s"A BomModule doesn't have a doc JAR")): PathRef
+  }
+  def sourceJar: T[PathRef] = Task {
+    (throw new Exception(s"A BomModule doesn't have a source JAR")): PathRef
   }
 }
