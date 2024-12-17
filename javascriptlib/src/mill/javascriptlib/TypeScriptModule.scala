@@ -2,7 +2,6 @@ package mill.javascriptlib
 
 import mill.*
 import os.*
-import scala.util.Try
 
 trait TypeScriptModule extends Module { outer =>
   def moduleDeps: Seq[TypeScriptModule] = Nil
@@ -39,25 +38,50 @@ trait TypeScriptModule extends Module { outer =>
 
   def sources: T[PathRef] = Task.Source(millSourcePath / "src")
 
-  def resources: T[PathRef] = Task.Source(millSourcePath / "resources")
-
   def generatedSources: T[Seq[PathRef]] = Task { Seq[PathRef]() }
 
-  def allSources: T[IndexedSeq[PathRef]] =
-    Task {
+  def resources: Task[IndexedSeq[PathRef]] = Task.Anon {
+    val resourcePath = millSourcePath / "resources"
+    val compiledResourcePath = Task.dest / "typescript" / "resources"
+    val indexFile = compiledResourcePath / "index.ts"
+
+    if (!os.exists(resourcePath) || os.list(resourcePath).isEmpty) {
+      IndexedSeq.empty[PathRef]
+    } else {
+      os.makeDir.all(compiledResourcePath)
+      val files = os.list(resourcePath)
+        .filter(os.isFile)
+        .filter(_.last != "index.ts")
+
+      val exports = files.map { file =>
+        val fileName = file.last
+        val key = fileName.takeWhile(_ != '.')
+        s"""    "$key": path.resolve(__dirname, './$fileName')"""
+      }.mkString(",\n")
+
+      val content =
+        s"""import * as path from 'path';
+           |// dynamically generated resources
+           |
+           |export default {
+           |$exports
+           |}
+           |""".stripMargin
+
+      os.write(indexFile, content)
+      IndexedSeq(PathRef(indexFile))
+    }
+  }
+
+  def allSources: Task[IndexedSeq[PathRef]] =
+    Task.Anon {
       val fileExt: Path => Boolean = _.ext == "ts"
-
-      val generated =
-        generatedSources().flatMap(pr =>
-          os.walk(pr.path).filter(fileExt).map(PathRef(_))
-        ).toIndexedSeq
-
-      val resources_ =
-        Try(os.walk(resources().path)).getOrElse(IndexedSeq()).filter(fileExt).map(PathRef(_))
-
-      os.walk(sources().path).filter(fileExt).map(PathRef(_)) ++
-        resources_ ++
-        generated
+      val generated = for {
+        pr <- generatedSources()
+        file <- os.walk(pr.path)
+        if fileExt(file)
+      } yield PathRef(file)
+      os.walk(sources().path).filter(fileExt).map(PathRef(_)) ++ resources() ++ generated
     }
 
   // specify tsconfig.compilerOptions
@@ -139,7 +163,7 @@ trait TypeScriptModule extends Module { outer =>
       )
     )
 
-    os.copy.over(millSourcePath, Task.dest / "typescript")
+    os.copy(millSourcePath, Task.dest / "typescript", mergeFolders = true)
     os.call(npmInstall().path / "node_modules/typescript/bin/tsc")
 
     (PathRef(Task.dest), PathRef(Task.dest / "typescript"))

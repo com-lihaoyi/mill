@@ -4,7 +4,7 @@ import Resources from "foo/resources/index";
 
 export default class Foo {
     static async resourceText(): Promise<string> {
-        const filePath = path.join(Resources.file1);
+        const filePath = path.join(Resources.file);
         try {
             return await fs.readFile(filePath, 'utf8');
         } catch (err) {

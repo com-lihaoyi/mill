@@ -19,8 +19,8 @@ describe("simple", () => {
     });
 
     it("should return the correct resource text from 'foo/test/resources'", async () => {
-        const expectedA = await getResource(Resources.TestFileA);
-        const expectedB = await getResource(Resources.TestFileB);
+        const expectedA = await getResource(Resources["test-file-a"]);
+        const expectedB = await getResource(Resources["test-file-b"]);
 
         expect(expectedA).toEqual("Test Hello World Resource File A");
         expect(expectedB).toEqual("Test Hello World Resource File B");

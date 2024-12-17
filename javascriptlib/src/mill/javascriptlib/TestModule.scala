@@ -56,7 +56,7 @@ object TestModule {
     def testConfigSource: T[PathRef] =
       Task.Source(Task.workspace / "jest.config.ts")
 
-    override def allSources: T[IndexedSeq[PathRef]] = Task {
+    override def allSources: Task[IndexedSeq[PathRef]] = Task.Anon {
       super.allSources() ++ IndexedSeq(testConfigSource())
     }
 
