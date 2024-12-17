@@ -233,7 +233,7 @@ object MillMain {
                       watch = config.watch.value,
                       streams = streams,
                       setIdle = setIdle,
-                      evaluate = (prevState: Option[RunnerState]) => {
+                      evaluate = (enterKeyPressed: Boolean, prevState: Option[RunnerState]) => {
                         adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
 
                         withOutLock(
@@ -256,6 +256,9 @@ object MillMain {
                             colored = colored,
                             colors = colors
                           )) { logger =>
+                            // Enter key pressed, removing mill-selective-execution.json to
+                            // ensure all tasks re-run even though no inputs may have changed
+                            if (enterKeyPressed) os.remove(out / OutFiles.millSelectiveExecution)
                             SystemStreams.withStreams(logger.systemStreams) {
                               tailManager.withOutErr(logger.outputStream, logger.errorStream) {
                                 new MillBuildBootstrap(
