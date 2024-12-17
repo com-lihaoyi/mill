@@ -9,16 +9,7 @@ import mill.util.Jvm
 import mill.util.Util.millProjectModule
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.bsp.{ScalaBuildTarget, ScalaPlatform}
-import mill.scalalib.{
-  BoundDep,
-  CrossVersion,
-  Dep,
-  DepSyntax,
-  Lib,
-  SbtModule,
-  ScalaModule,
-  TestModule
-}
+import mill.scalalib.{CrossVersion, Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule}
 import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
 import mill.scalanativelib.api._
 import mill.scalanativelib.worker.{
@@ -314,7 +305,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     ))
   }
 
-  override def ivyDeps: T[Agg[Dep]] = Task {
+  def coursierProject: Task[coursier.core.Project] = Task.Anon {
 
     // Exclude cross published version dependencies leading to conflicts in Scala 3 vs 2.13
     // When using Scala 3 exclude Scala 2.13 standard native libraries,
@@ -331,15 +322,27 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
     val nativeSuffix = platformSuffix()
 
-    val exclusions = scalaBinaryVersionToExclude.flatMap { scalaBinVersion =>
-      nativeStandardLibraries.map(library =>
-        "org.scala-native" -> s"$library${nativeSuffix}_$scalaBinVersion"
-      )
-    }
+    val exclusions = coursier.core.MinimizedExclusions(
+      scalaBinaryVersionToExclude
+        .flatMap { scalaBinVersion =>
+          nativeStandardLibraries.map { library =>
+            coursier.core.Organization("org.scala-native") ->
+              coursier.core.ModuleName(s"$library${nativeSuffix}_$scalaBinVersion")
+          }
+        }
+        .toSet
+    )
 
-    super.ivyDeps().map { dep =>
-      dep.exclude(exclusions: _*)
-    }
+    val proj = super.coursierProject()
+
+    proj.withDependencies(
+      proj.dependencies.map {
+        case (config, dep) =>
+          config -> dep.withMinimizedExclusions(
+            dep.minimizedExclusions.join(exclusions)
+          )
+      }
+    )
   }
 
   override def prepareOffline(all: Flag): Command[Unit] = {

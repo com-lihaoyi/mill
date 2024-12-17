@@ -458,25 +458,43 @@ trait JavaModule
     )
 
     val internalDependencies =
-      moduleDepsChecked.map { modDep =>
-        (cs.Configuration.compile, modDep.coursierDependency)
+      moduleDepsChecked.flatMap { modDep =>
+        Seq(
+          (cs.Configuration.compile, modDep.coursierDependency),
+          (
+            cs.Configuration.runtime,
+            modDep.coursierDependency.withConfiguration(cs.Configuration.runtime)
+          )
+        )
       } ++
         compileModuleDepsChecked.map { modDep =>
           (cs.Configuration.provided, modDep.coursierDependency)
         } ++
         runModuleDepsChecked.map { modDep =>
-          (cs.Configuration.runtime, modDep.coursierDependency)
+          (
+            cs.Configuration.runtime,
+            modDep.coursierDependency.withConfiguration(cs.Configuration.runtime)
+          )
         }
 
     val dependencies =
-      (mandatoryIvyDeps() ++ ivyDeps()).map(bindDependency()).map(_.dep).iterator.toSeq.map { dep =>
-        (cs.Configuration.compile, dep)
+      (mandatoryIvyDeps() ++ ivyDeps()).map(bindDependency()).map(_.dep).iterator.toSeq.flatMap {
+        dep =>
+          Seq(
+            (cs.Configuration.compile, dep),
+            (cs.Configuration.runtime, dep.withConfiguration(cs.Configuration.runtime))
+          )
       } ++
         compileIvyDeps().map(bindDependency()).map(_.dep).map { dep =>
           (cs.Configuration.provided, dep)
         } ++
         runIvyDeps().map(bindDependency()).map(_.dep).map { dep =>
-          (cs.Configuration.runtime, dep)
+          (
+            cs.Configuration.runtime,
+            dep.withConfiguration(
+              if (dep.configuration.isEmpty) cs.Configuration.runtime else dep.configuration
+            )
+          )
         } ++
         allBomDeps().map { bomDep =>
           val dep =
@@ -515,8 +533,10 @@ trait JavaModule
    * Coursier project of this module and those of all its transitive module dependencies
    */
   def transitiveCoursierProjects: Task[Seq[cs.Project]] = Task.Anon {
-    val projects =
-      coursierProject() +: T.traverse(moduleDepsChecked)(_.transitiveCoursierProjects)().flatten
+    val projects = Seq(coursierProject()) ++
+      T.traverse(compileModuleDepsChecked)(_.transitiveCoursierProjects)().flatten ++
+      T.traverse(moduleDepsChecked)(_.transitiveCoursierProjects)().flatten ++
+      T.traverse(runModuleDepsChecked)(_.transitiveCoursierProjects)().flatten
     projects.distinct
   }
 
@@ -1106,7 +1126,12 @@ trait JavaModule
       ).getOrThrow
 
       val roots = whatDependsOn match {
-        case List() => dependencies.map(_.dep)
+        case List() =>
+          val mandatoryModules =
+            mandatoryIvyDeps().map(bindDependency()).iterator.map(_.dep.module).toSet
+          val (mandatory, main) = resolution.dependenciesOf(coursierDependency)
+            .partition(dep => mandatoryModules.contains(dep.module))
+          additionalDeps().iterator.toSeq.map(_.dep) ++ main ++ mandatory
         case _ =>
           // We don't really care what scalaVersions is set as here since the user
           // will be passing in `_2.13` or `._3` anyways. Or it may even be a java
@@ -1122,14 +1147,19 @@ trait JavaModule
             .filter(dep => matchers.exists(matcher => matcher.matches(dep.module))).toSeq
       }
 
-      println(
-        coursier.util.Print.dependencyTree(
-          resolution = resolution,
-          roots = roots,
-          printExclusions = false,
-          reverse = if (whatDependsOn.isEmpty) inverse else true
-        )
+      val tree = coursier.util.Print.dependencyTree(
+        resolution = resolution,
+        roots = roots,
+        printExclusions = false,
+        reverse = if (whatDependsOn.isEmpty) inverse else true
       )
+
+      val processedTree = tree
+        .replace(" mill-internal:", " ")
+        .replace(":0+mill-internal ", " ")
+        .replace(":0+mill-internal" + System.lineSeparator(), System.lineSeparator())
+
+      println(processedTree)
 
       Result.Success(())
     }
@@ -1393,7 +1423,7 @@ object JavaModule {
   final case class InternalRepo(projects: Seq[cs.Project])
       extends cs.Repository {
 
-    lazy val map = projects.map(proj => proj.moduleVersion -> proj).toMap
+    private lazy val map = projects.map(proj => proj.moduleVersion -> proj).toMap
 
     override def toString(): String =
       pprint.apply(this).toString
