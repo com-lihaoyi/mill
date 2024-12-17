@@ -110,7 +110,6 @@ trait TypeScriptModule extends Module { outer =>
   def compilerOptionsPaths: Task[Map[String, String]] =
     Task.Anon { Map("*" -> npmInstall().path.toString()) }
 
-  // todo:
   def upstreamPathsBuilder: Task[Seq[(String, String)]] = Task.Anon {
     val upstreams = (for {
       ((comp, ts), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)

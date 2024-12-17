@@ -5,7 +5,7 @@ import mill.javascriptlib._
 
 object foo extends TypeScriptModule {
   def sources = Task {
-    val srcPath = millSourcePath / "src"
+    val srcPath = Task.dest / "src"
     val filePath = srcPath / "foo.ts"
 
     os.makeDir.all(srcPath)
@@ -18,11 +18,12 @@ object foo extends TypeScriptModule {
       """.stripMargin
     )
 
-    PathRef(millSourcePath / "src")
+    PathRef(Task.dest)
   }
 
   def compile = Task {
     println("Compiling...")
+    os.copy(sources().path, super.compile()._2.path, mergeFolders = true)
     super.compile()
   }
 
