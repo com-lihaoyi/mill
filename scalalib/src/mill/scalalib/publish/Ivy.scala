@@ -14,10 +14,36 @@ object Ivy {
       artifact: Artifact,
       dependencies: Agg[Dependency],
       extras: Seq[PublishInfo] = Seq.empty,
-      overrides: Seq[Override] = Nil
+      overrides: Seq[Override] = Nil,
+      hasJar: Boolean = true
   ): String = {
 
-    def renderExtra(e: PublishInfo): Elem = {
+    val mainPublishInfo = {
+      val pomInfo = PublishInfo(null, ivyType = "pom", ext = "pom", ivyConfig = "pom")
+      if (hasJar)
+        Seq(
+          pomInfo,
+          PublishInfo(null, ivyType = "jar", ext = "jar", ivyConfig = "compile"),
+          PublishInfo(
+            null,
+            ivyType = "src",
+            ext = "jar",
+            ivyConfig = "compile",
+            classifier = Some("sources")
+          ),
+          PublishInfo(
+            null,
+            ivyType = "doc",
+            ext = "jar",
+            ivyConfig = "compile",
+            classifier = Some("javadoc")
+          )
+        )
+      else
+        Seq(pomInfo)
+    }
+
+    def renderArtifact(e: PublishInfo): Elem = {
       e.classifier match {
         case None =>
           <artifact name={artifact.id} type={e.ivyType} ext={e.ext} conf={e.ivyConfig} />
@@ -46,11 +72,7 @@ object Ivy {
         </configurations>
 
         <publications>
-          <artifact name={artifact.id} type="pom" ext="pom" conf="pom"/>
-          <artifact name={artifact.id} type="jar" ext="jar" conf="compile"/>
-          <artifact name={artifact.id} type="src" ext="jar" conf="compile" e:classifier="sources"/>
-          <artifact name={artifact.id} type="doc" ext="jar" conf="compile" e:classifier="javadoc"/>
-          {extras.map(renderExtra)}
+          {(mainPublishInfo ++ extras).map(renderArtifact)}
         </publications>
         <dependencies>
           {dependencies.map(renderDependency).toSeq}

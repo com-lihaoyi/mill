@@ -199,6 +199,13 @@ trait PublishModule extends JavaModule { outer =>
   }
 
   def ivy: T[PathRef] = Task {
+    val content = ivy(hasJar = pomPackagingType != PackagingType.Pom)()
+    val ivyPath = T.dest / "ivy.xml"
+    os.write.over(ivyPath, content)
+    PathRef(ivyPath)
+  }
+
+  def ivy(hasJar: Boolean): Task[String] = Task.Anon {
     val results = defaultResolver().processDeps(
       Seq(
         BoundDep(
@@ -263,10 +270,7 @@ trait PublishModule extends JavaModule { outer =>
         }
         .sortBy(value => (value.organization, value.name, value.version))
     }
-    val ivy = Ivy(artifactMetadata(), publishXmlDeps0, extraPublish(), overrides)
-    val ivyPath = T.dest / "ivy.xml"
-    os.write.over(ivyPath, ivy)
-    PathRef(ivyPath)
+    Ivy(artifactMetadata(), publishXmlDeps0, extraPublish(), overrides, hasJar = hasJar)
   }
 
   def artifactMetadata: T[Artifact] = Task {
@@ -306,20 +310,34 @@ trait PublishModule extends JavaModule { outer =>
     publishLocalTask(Task.Anon(None))().map(p => PathRef(p).withRevalidateOnce)
   }
 
-  private def publishLocalTask(localIvyRepo: Task[Option[os.Path]]): Task[Seq[Path]] = Task.Anon {
-    val publisher = localIvyRepo() match {
-      case None => LocalIvyPublisher
-      case Some(path) => new LocalIvyPublisher(path)
+  private def publishLocalTask(localIvyRepo: Task[Option[os.Path]]): Task[Seq[Path]] = {
+    val jarTask = pomPackagingType match {
+      case PackagingType.Pom => Task.Anon(None)
+      case _ => Task.Anon(Some(jar().path))
     }
-    publisher.publishLocal(
-      jar = jar().path,
-      sourcesJar = sourceJar().path,
-      docJar = docJar().path,
-      pom = pom().path,
-      ivy = ivy().path,
-      artifact = artifactMetadata(),
-      extras = extraPublish()
-    )
+    val sourcesJarTask = pomPackagingType match {
+      case PackagingType.Pom => Task.Anon(None)
+      case _ => Task.Anon(Some(sourceJar().path))
+    }
+    val docJarTask = pomPackagingType match {
+      case PackagingType.Pom => Task.Anon(None)
+      case _ => Task.Anon(Some(docJar().path))
+    }
+    Task.Anon {
+      val publisher = localIvyRepo() match {
+        case None => LocalIvyPublisher
+        case Some(path) => new LocalIvyPublisher(path)
+      }
+      publisher.publishLocal(
+        jar = jarTask(),
+        sourcesJar = sourcesJarTask(),
+        docJar = docJarTask(),
+        pom = pom().path,
+        ivy = Right(ivy().path),
+        artifact = artifactMetadata(),
+        extras = extraPublish()
+      )
+    }
   }
 
   /**
@@ -344,17 +362,31 @@ trait PublishModule extends JavaModule { outer =>
     })()
   }
 
-  private def publishM2LocalTask(m2RepoPath: Task[os.Path]): Task[Seq[PathRef]] = Task.Anon {
-    val path = m2RepoPath()
-    new LocalM2Publisher(path)
-      .publish(
-        jar = jar().path,
-        sourcesJar = sourceJar().path,
-        docJar = docJar().path,
-        pom = pom().path,
-        artifact = artifactMetadata(),
-        extras = extraPublish()
-      ).map(PathRef(_).withRevalidateOnce)
+  private def publishM2LocalTask(m2RepoPath: Task[os.Path]): Task[Seq[PathRef]] = {
+    val jarTask = pomPackagingType match {
+      case PackagingType.Pom => Task.Anon(None)
+      case _ => Task.Anon(Some(jar().path))
+    }
+    val sourcesJarTask = pomPackagingType match {
+      case PackagingType.Pom => Task.Anon(None)
+      case _ => Task.Anon(Some(sourceJar().path))
+    }
+    val docJarTask = pomPackagingType match {
+      case PackagingType.Pom => Task.Anon(None)
+      case _ => Task.Anon(Some(docJar().path))
+    }
+    Task.Anon {
+      val path = m2RepoPath()
+      new LocalM2Publisher(path)
+        .publish(
+          jar = jarTask(),
+          sourcesJar = sourcesJarTask(),
+          docJar = docJarTask(),
+          pom = pom().path,
+          artifact = artifactMetadata(),
+          extras = extraPublish()
+        ).map(PathRef(_).withRevalidateOnce)
+    }
   }
 
   def sonatypeUri: String = "https://oss.sonatype.org/service/local"
@@ -364,7 +396,12 @@ trait PublishModule extends JavaModule { outer =>
   def publishArtifacts: T[PublishModule.PublishData] = {
     val baseNameTask: Task[String] = Task.Anon { s"${artifactId()}-${publishVersion()}" }
     val defaultPayloadTask: Task[Seq[(PathRef, String)]] = pomPackagingType match {
-      case PackagingType.Pom => Task.Anon { Seq.empty[(PathRef, String)] }
+      case PackagingType.Pom => Task.Anon {
+          val baseName = baseNameTask()
+          Seq(
+            pom() -> s"$baseName.pom"
+          )
+        }
       case PackagingType.Jar | _ => Task.Anon {
           val baseName = baseNameTask()
           Seq(
