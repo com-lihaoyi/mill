@@ -543,6 +543,52 @@
 <article class="doc">
 <h1 class="page">Changelog</h1>
 <div class="sect1">
+<h2 id="0-12-4"><a class="anchor" href="#0-12-4"></a>0.12.4 - 2024-12-16</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>Mill now supports <a href="https://mill-build.org/mill/large/selective-execution.html">Selective Execution</a>,
+allowing you to run tests and other tasks only if they are downstream of a code change.
+This can be used to greatly speed up pull-request validation and other CI workflows
+by skipping unrelated tests that cannot possibly be broken by the code change in question</p>
+</li>
+<li>
+<p>Mill now generates <a href="https://mill-build.org/mill/fundamentals/out-dir.html#_mill_dependency_tree_json">dependency-tree.json</a>
+and <a href="https://mill-build.org/mill/main-branch/fundamentals/out-dir.html#_mill_invalidation_tree_json">invalidation-tree.json</a>
+metadata for every run, which should help make it easier for a user to figure out why a task
+is being selected and run.</p>
+</li>
+<li>
+<p>Support for Bill-Of-Materials/Dependency-Management when downloading third-party JVM dependencies
+(<a href="https://mill-build.org/mill/main-branch/javalib/dependencies.html#_dependency_management">Documentation</a>)</p>
+</li>
+<li>
+<p>Built-in support for <code>mill.bat</code> launcher to run Mill natively on a Windows environment
+<a href="https://github.com/com-lihaoyi/mill/pull/4052">#4052</a></p>
+</li>
+<li>
+<p>Added documentation for <a href="https://mill-build.org/mill/migrating/migrating.html">Migrating to Mill</a>,
+to try and help people who may be trying to move their existing codebase onto Mill from other build tools</p>
+</li>
+<li>
+<p>Significant speedups for task resolution logic <a href="https://github.com/com-lihaoyi/mill/pull/4132">#4132</a>,
+which should speed up cached-build workflows in particular</p>
+</li>
+<li>
+<p>Improve precision of code signature task invalidation, reducing the amount of spurious
+task invalidations in the presence of multi-file builds <a href="https://github.com/com-lihaoyi/mill/pull/4113">#4113</a>
+<a href="https://github.com/com-lihaoyi/mill/pull/4116">#4116</a></p>
+</li>
+<li>
+<p>Reduced overhead of terminal prompt UI <a href="https://github.com/com-lihaoyi/mill/pull/4095">#4095</a>
+<a href="https://github.com/com-lihaoyi/mill/pull/4110">#4110</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="0-12-3"><a class="anchor" href="#0-12-3"></a>0.12.3 - 2024-11-24</h2>
 <div class="sectionbody">
 <div class="ulist">
