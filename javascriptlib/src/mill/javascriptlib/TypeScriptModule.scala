@@ -47,6 +47,8 @@ trait TypeScriptModule extends Module { outer =>
 
     if (!os.exists(resourcePath) || os.list(resourcePath).isEmpty) {
       IndexedSeq.empty[PathRef]
+    } else if (os.exists(resourcePath / "index.ts")) {
+      IndexedSeq(PathRef(resourcePath / "index.ts"))
     } else {
       os.makeDir.all(compiledResourcePath)
       val files = os.list(resourcePath)
@@ -56,12 +58,11 @@ trait TypeScriptModule extends Module { outer =>
       val exports = files.map { file =>
         val fileName = file.last
         val key = fileName.takeWhile(_ != '.')
-        s"""    "$key": path.resolve(__dirname, './$fileName')"""
+        s"""    "$key": path.join(__dirname, process.env.RESOURCE_DIR || "", './$fileName')"""
       }.mkString(",\n")
 
       val content =
         s"""import * as path from 'path';
-           |// dynamically generated resources
            |
            |export default {
            |$exports
@@ -217,6 +218,8 @@ trait TypeScriptModule extends Module { outer =>
     )
   }
 
+  def bundleExternal: T[Seq[String]] = Task { Seq("'fs'", "'path'") }
+
   def bundleFlags: T[Map[String, String]] = Task {
     Map(
       "platform" -> "'node'",
@@ -234,9 +237,16 @@ trait TypeScriptModule extends Module { outer =>
       s"""  $key: $value,"""
     }.mkString("\n")
 
+    //  ['$resourcePath' + '/**/*'],
+
     s"""|import * as esbuild from 'node_modules/esbuild';
         |import TsconfigPathsPlugin from 'node_modules/@esbuild-plugins/tsconfig-paths'
         |import Copy from 'node_modules/esbuild-plugin-copy';
+        |import {join} from 'path';
+        |import {readdirSync} from 'fs';
+        |
+        |// Dynamically filter out `index.ts`
+        |const filesToCopy = readdirSync('$resourcePath').filter(file => file !== 'index.ts');
         |
         |esbuild.build({
         |  $flags
@@ -245,12 +255,16 @@ trait TypeScriptModule extends Module { outer =>
         |  Copy({
         |    resolveFrom: 'cwd',
         |    assets: {
-        |       from: ['$resourcePath' + '/**/*'],
+        |       from: filesToCopy.map(file => join('$resourcePath', file)),
         |       to: ['${Task.dest}' + '/resources']
         |    }
         |  }),
         |  TsconfigPathsPlugin({tsconfig: 'tsconfig.json'}),
-        |  ]
+        |  ],
+        |  define: {
+        |        "process.env.RESOURCE_DIR": JSON.stringify("./resources") // replace '__dirname' in builds
+        |    },
+        |  external: [${bundleExternal().mkString(", ")}] // Exclude Node.js built-ins
         |}).then(() => {
         |  console.log('Build succeeded!');
         |}).catch(() => {
