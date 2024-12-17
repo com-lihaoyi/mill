@@ -105,7 +105,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../javalib/publishing.html">Publishing Java Projects</a>
+    <a class="nav-link" href="../javalib/publishing.html">Java Packaging &amp; Publishing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -140,7 +140,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../scalalib/publishing.html">Publishing Scala Projects</a>
+    <a class="nav-link" href="../scalalib/publishing.html">Scala Packaging &amp; Publishing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -179,7 +179,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/publishing.html">Publishing Kotlin Projects</a>
+    <a class="nav-link" href="../kotlinlib/publishing.html">Kotlin Packaging &amp; Publishing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -190,7 +190,7 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">(Experimental) Android with Mill</span>
+    <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
@@ -199,6 +199,25 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+</ul>
   </li>
 </ul>
   </li>
@@ -255,7 +274,7 @@
 
   <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Migrating to Mill</span>
+    <a class="nav-link" href="../migrating/migrating.html">Migrating to Mill</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
@@ -411,12 +430,23 @@
 
   <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Mill In Depth</span>
+    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="large-builds.html">Large Builds and Monorepos</a>
+    <a class="nav-link" href="../large/selective-execution.html">Selective Execution</a>
   </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="sandboxing.html">Mill Sandboxing</a>
@@ -430,7 +460,7 @@
     <a class="nav-link" href="design-principles.html">Mill Design Principles</a>
   </li>
 
-  <li class="nav-item is-current-page is-active" data-depth="2">
+  <li class="nav-item is-current-page" data-depth="2">
     <a class="nav-link" href="why-scala.html">Why does Mill use Scala?</a>
   </li>
 </ul>
@@ -468,7 +498,7 @@
           <a href="../../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-latest">
-          <a href="../../index.html">latest-0.12.3</a>
+          <a href="../../index.html">latest-0.12.4</a>
         </li>
         <li class="version is-current">
           <a href="../index.html">0.12.x</a>
@@ -537,13 +567,186 @@ is definitely a niche language, but it also has some unique properties that make
 especially suitable to be used for configuring the build system of a small or large project.</p>
 </div>
 <div class="paragraph">
-<p>For the purposes of this page, these reasons largely break down into two groups: those
-related to <em>Scala the Language</em>, and those related to Scala&#8217;s <em>JVM Runtime</em></p>
+<p>For the purposes of this page, we will break down this topic into three top-level questions: why
+Mill uses a <em>general-purpose programming language</em>, why Mill uses
+the <em>Scala</em> Language, and why Mill wants to run on the <em>Java Virtual Machine</em></p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_scala_language"><a class="anchor" href="#_scala_language"></a>Scala Language</h2>
+<h2 id="_why_a_general_purpose_language"><a class="anchor" href="#_why_a_general_purpose_language"></a>Why a General Purpose Language?</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>While Mill uses a general-purpose programming language (Scala), many build tools use
+restricted config languages instead, or their own custom tool-specific languages. Why
+that is the case is an interesting discussion.</p>
+</div>
+<div class="sect2">
+<h3 id="_why_not_config_languages"><a class="anchor" href="#_why_not_config_languages"></a>Why Not Config Languages?</h3>
+<div class="paragraph">
+<p>Many build tools use restricted config languages rather than a general-purpose language:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Language</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Tool</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://en.wikipedia.org/wiki/XML">XML</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://maven.apache.org/">Maven</a>, <a href="https://en.wikipedia.org/wiki/MSBuild">MSBuild</a>, <a href="https://ant.apache.org/">Ant</a></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://toml.io/en/">TOML</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://packaging.python.org/en/latest/guides/writing-pyproject-toml/">pyproject.toml</a>, <a href="https://doc.rust-lang.org/cargo/guide/">Cargo</a>, <a href="https://python-poetry.org/">Poetry</a></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://en.wikipedia.org/wiki/JSON">JSON</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://docs.npmjs.com/cli/v10/configuring-npm/package-json/">NPM</a></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://en.wikipedia.org/wiki/YAML">YAML</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://bleep.build/docs/">Bleep</a></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>At a first glance, using a restricted language is tempting: restricted languages <em>are</em>
+simpler than general purpose languages, with less complexity. However, build systems
+are often fundamentally complex systems, especially as codebases or organizations grow.
+Often projects find themselves with custom build system requirements that do not fit nicely
+into these "simple metadata formats":</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Code generation: <a href="https://protobuf.dev/">protobuf</a>, <a href="https://www.openapis.org/">OpenAPI/Swagger</a>, <a href="https://stackoverflow.com/questions/26217488/what-is-vendoring">vendoring code</a>, etc.</p>
+</li>
+<li>
+<p>Resource generation: static resource pipelines, version metadata, <a href="https://www.cisa.gov/sbom">SBOM</a>s, etc.</p>
+</li>
+<li>
+<p>Deployment workflows: <a href="https://www.docker.com/">docker</a>, <a href="https://kubernetes.io/">kubernetes</a>, <a href="https://aws.amazon.com/">AWS</a>, etc.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>While most "common" workflows in "common" build tools will have <em>some</em> built in support
+or plugin, it may not do exactly what you need, the plugin may be unmaintained, or you
+may hit some requirement unique to your business.
+When using a restricted config language to configure your build, and you hit one of these
+unusual requirements, there are usually four outcomes:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Find some third-party "plugin" (and these build systems always have plugins!) written
+in a general-purpose language to use in your XML/TOML/JSON file, or write your own plugin
+if none of the off-the-shelve plugins exactly match your requirements (which is very likely!)</p>
+</li>
+<li>
+<p>Have your build tool delegate the logic to some "run bash script" step, and implement your
+custom logic in the bash script that the build tool wraps</p>
+</li>
+<li>
+<p>Take the build tool and wrap <em>it</em> in a bash script, that implements the custom logic and
+configures the build tool dynamically on the fly by generating XML/TOML/JSON files or
+passing environment variables or properties</p>
+</li>
+<li>
+<p>Extend your XML/TOML/JSON config language with general-purpose programming language
+features: conditionals, variables, functions, etc. (see <a href="https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/evaluate-expressions-in-workflows-and-actions">Github Config Expressions</a>,
+<a href="https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference.html">AWS Cloudformation Functions</a>,
+<a href="https://helm.sh/docs/chart_best_practices/templates/">Helm Chart Templating</a>)</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Anyone who has been in industry for some time has likely seen all of these outcomes at various
+companies and in various codebases. The fundamental issue is that <em>build systems are inherently
+complex</em>, and if your built tool <em>language</em> does not accommodate that complexity, the complexity
+ends up leaking elsewhere outside the purview of the build tool.</p>
+</div>
+<div class="paragraph">
+<p>Mill&#8217;s choice of using a general purpose language does mean more complexity in the core
+language or build tool, but it also allows you to <em>move complexity into the build tool</em>
+rather than having it live in third-party plugins, ad-hoc bash scripts, or weird pseudo-languages
+embedded in your config. A general-purpose language likely has better IDE integration,
+tooling, safety, performance, and ecosystem support than bash scripts or
+embedded-pseudo-config-languages, and if your build system complexity has to live <em>somewhere</em>,
+it&#8217;s better to write it in a general-purpose language where it can be properly managed,
+as long as a suitable general-purpose language can be found.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_why_not_a_custom_language"><a class="anchor" href="#_why_not_a_custom_language"></a>Why Not A Custom Language?</h3>
+<div class="paragraph">
+<p>Many build tools do use custom languages:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://cmake.org/">CMake</a></p>
+</li>
+<li>
+<p><a href="https://www.gnu.org/software/autoconf/">Autoconf</a></p>
+</li>
+<li>
+<p><a href="https://earthly.dev/">Earthly</a></p>
+</li>
+<li>
+<p><a href="https://www.gnu.org/software/make/">Make</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The basic issue with custom languages is that although they may in theory match your
+build tool requirements perfectly, they lack in all other areas that a widely-used
+general-purpose language does well:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>IDE support in all popular IDEs and editors</p>
+</li>
+<li>
+<p>Library ecosystem of publicly available helpers and plugins</p>
+</li>
+<li>
+<p>Package publishing and distribution infrastructure</p>
+</li>
+<li>
+<p>Tooling: debuggers, profilers</p>
+</li>
+<li>
+<p><em>Quality</em> of the language itself: things like type systems, basic syntax, standard library,
+error messages, etc.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>A custom tool-specific language implemented in a few person-months will definitely be
+much less polished in all these areas that a widely-used general-purpose language that
+has been gradually improved upon for a decade or two. While in theory a custom language could
+catch up with enough staffing to implement all these features, in practice even projects
+like <a href="https://www.gnu.org/software/make/">Make</a> that are used for decades fall behind niche
+general-purpose languages when it comes to the supporting ecosystem above. As an example,
+how do you publish a re-usable makefile that others can depend on and adjust to fit their
+requirements? And how is the IDE experience of navigating around large <code>Makefiles</code>?</p>
+</div>
+<div class="paragraph">
+<p>Using a general-purpose language to configure a build tool provides all these things
+out of the box. Provided, again, that a suitable language can be found!</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_why_the_scala_language"><a class="anchor" href="#_why_the_scala_language"></a>Why the Scala Language?</h2>
 <div class="sectionbody">
 <div class="sect2">
 <h3 id="_conciseness"><a class="anchor" href="#_conciseness"></a>Conciseness</h3>
@@ -553,15 +756,39 @@ you rarely see people writing their build logic in Java or C
 (with <a href="https://rife2.com/bld">some exceptions</a>), and even XML is pretty rare these days
 (with <a href="https://maven.apache.org/">Maven</a> being the notable exception). Programming and Configuration language
 verbosity is a spectrum, and the languages used to configure the build are typically
-in the less-verbose end of the spectrum: <a href="https://www.python.org/">Python</a> (<a href="https://bazel.build/">Bazel</a>,
-<a href="https://www.pantsbuild.org/">Pants</a>, <a href="https://buck.build/">Buck</a>, <a href="https://scons.org/">Scons</a>),
-<a href="https://groovy-lang.org/">Groovy</a> (<a href="https://gradle.org/">Gradle</a>),
-<a href="https://www.ruby-lang.org/en/">Ruby</a> (<a href="https://github.com/ruby/rake">Rake</a>),
-<a href="https://toml.io/en/">TOML</a> (<a href="https://doc.rust-lang.org/cargo/guide/">Cargo</a>,
-<a href="https://packaging.python.org/en/latest/guides/writing-pyproject-toml/">pyproject.toml</a>),
-<a href="https://yaml.org/">YAML</a> (too many to count), etc. While some tools go even
-more concise (e.g. Bash, Make, etc.), typically this Python/Groovy/Ruby/TOML/YAML level
-of conciseness is where most build tools end up.</p>
+in the less-verbose end of the spectrum:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Language</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Tool</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://www.python.org/">Python</a> (or <a href="https://github.com/bazelbuild/starlark">StarLark</a>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://bazel.build/">Bazel</a>, <a href="https://www.pantsbuild.org/">Pants</a>, <a href="https://buck.build/">Buck</a>, <a href="https://scons.org/">Scons</a></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://groovy-lang.org/">Groovy</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://gradle.org/">Gradle</a></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://www.ruby-lang.org/en/">Ruby</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/ruby/rake">Rake</a></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://en.wikipedia.org/wiki/JavaScript">Javascript</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://en.wikipedia.org/wiki/Grunt_(software)">Grunt</a>, <a href="https://en.wikipedia.org/wiki/Gulp.js">Gulp</a>, etc.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>While some tools go even more concise (e.g. Bash, Make, etc.), typically this
+Python/Groovy/Ruby/TOML/YAML level of conciseness is where most build tools end up.</p>
 </div>
 <div class="paragraph">
 <p>Given that, Scala fits right in: it is neither too verbose (like Java/C++/XML), nor is
@@ -654,7 +881,7 @@ they know nothing about the Scala language.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_jvm_runtime"><a class="anchor" href="#_jvm_runtime"></a>JVM Runtime</h2>
+<h2 id="_why_the_jvm_runtime"><a class="anchor" href="#_why_the_jvm_runtime"></a>Why the JVM Runtime?</h2>
 <div class="sectionbody">
 <div class="sect2">
 <h3 id="_dynamic_classloading"><a class="anchor" href="#_dynamic_classloading"></a>Dynamic Classloading</h3>

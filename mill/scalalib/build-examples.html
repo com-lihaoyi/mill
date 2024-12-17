@@ -110,7 +110,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../javalib/publishing.html">Publishing Java Projects</a>
+    <a class="nav-link" href="../javalib/publishing.html">Java Packaging &amp; Publishing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -145,7 +145,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="publishing.html">Publishing Scala Projects</a>
+    <a class="nav-link" href="publishing.html">Scala Packaging &amp; Publishing</a>
   </li>
 
   <li class="nav-item is-current-page is-active" data-depth="2">
@@ -184,7 +184,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/publishing.html">Publishing Kotlin Projects</a>
+    <a class="nav-link" href="../kotlinlib/publishing.html">Kotlin Packaging &amp; Publishing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -195,7 +195,7 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">(Experimental) Android with Mill</span>
+    <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
@@ -204,6 +204,25 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+</ul>
   </li>
 </ul>
   </li>
@@ -260,7 +279,7 @@
 
   <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Migrating to Mill</span>
+    <a class="nav-link" href="../migrating/migrating.html">Migrating to Mill</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
@@ -416,12 +435,23 @@
 
   <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Mill In Depth</span>
+    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/large-builds.html">Large Builds and Monorepos</a>
+    <a class="nav-link" href="../large/selective-execution.html">Selective Execution</a>
   </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
@@ -435,7 +465,7 @@
     <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
   </li>
 </ul>
@@ -463,7 +493,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">latest-0.12.3</span>
+    <span class="version">latest-0.12.4</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -473,7 +503,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">latest-0.12.3</a>
+          <a href="../index.html">latest-0.12.4</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.x</a>
@@ -542,7 +572,7 @@ demonstrating how Mill can be used to build code outside of tiny example codebas
 <div class="sect2">
 <h3 id="_acyclic"><a class="anchor" href="#_acyclic"></a>Acyclic</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-thirdparty-acyclic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/thirdparty/acyclic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-thirdparty-acyclic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/thirdparty/acyclic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._, publish._</code></pre>
@@ -641,7 +671,7 @@ compiling 6 Scala sources...
 <div class="sect2">
 <h3 id="_fansi"><a class="anchor" href="#_fansi"></a>Fansi</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-thirdparty-fansi.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/thirdparty/fansi">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-thirdparty-fansi.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/thirdparty/fansi">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._, scalajslib._, scalanativelib._, publish._
@@ -771,7 +801,7 @@ used in many build tools down resolve and download third party dependencies</p>
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="publishing.html">Publishing Scala Projects</a></span>
+  <span class="prev"><a href="publishing.html">Scala Packaging &amp; Publishing</a></span>
   <span class="next"><a href="web-examples.html">Scala Web Project Examples</a></span>
 </nav>
 </article>

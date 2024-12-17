@@ -1,31 +1,26 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Large Builds and Monorepos :: The Mill JVM Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/depth/large-builds.html" />
-    <link rel="prev" href="../extending/example-python-support.html" />
-    <link rel="next" href="sandboxing.html" />
-    <meta name="generator" content="Antora 3.1.9" />
-    <link rel="stylesheet" href="../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Python Library Dependencies :: The Mill JVM Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/mill/pythonlib/dependencies.html">
+    <link rel="prev" href="module-config.html">
+    <link rel="next" href="publishing.html">
+    <meta name="generator" content="Antora 3.1.9">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
-  
-  <style>
-*{
-  hyphens: manual !important;
-}
-</style></head><body class="article">
-  
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill JVM Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill JVM Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -78,7 +73,7 @@
   </nav>
 </header>
 <div class="body">
-<div class="nav-container" data-component="mill" data-version="master">
+<div class="nav-container" data-component="mill" data-version="0.12.x">
   <aside class="nav">
     <div class="panels">
 <div class="nav-panel-menu is-active" data-panel="menu">
@@ -110,7 +105,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../javalib/publishing.html">Publishing Java Projects</a>
+    <a class="nav-link" href="../javalib/publishing.html">Java Packaging &amp; Publishing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -145,7 +140,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../scalalib/publishing.html">Publishing Scala Projects</a>
+    <a class="nav-link" href="../scalalib/publishing.html">Scala Packaging &amp; Publishing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -184,7 +179,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/publishing.html">Publishing Kotlin Projects</a>
+    <a class="nav-link" href="../kotlinlib/publishing.html">Kotlin Packaging &amp; Publishing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -195,7 +190,7 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">(Experimental) Android with Mill</span>
+    <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
@@ -204,6 +199,25 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item is-current-page" data-depth="3">
+    <a class="nav-link" href="dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+</ul>
   </li>
 </ul>
   </li>
@@ -260,7 +274,7 @@
 
   <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Migrating to Mill</span>
+    <a class="nav-link" href="../migrating/migrating.html">Migrating to Mill</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
@@ -416,27 +430,38 @@
 
   <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/selective-execution.html">Selective Execution</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
     <span class="nav-text">Mill In Depth</span>
 <ul class="nav-list">
 
-  <li class="nav-item is-current-page" data-depth="2">
-    <a class="nav-link" href="large-builds.html">Large Builds and Monorepos</a>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="sandboxing.html">Mill Sandboxing</a>
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="evaluation-model.html">The Mill Evaluation Model</a>
+    <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="design-principles.html">Mill Design Principles</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="why-scala.html">Why does Mill use Scala?</a>
+    <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
   </li>
 </ul>
   </li>
@@ -463,29 +488,29 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">latest-0.12.3</span>
+    <span class="version">0.12.x</span>
   </div>
   <ul class="components">
     <li class="component is-current">
-      <div class="title"><a href="../index.html">Mill Documentation</a></div>
+      <div class="title"><a href="../../index.html">Mill Documentation</a></div>
       <ul class="versions">
         <li class="version">
-          <a href="../main-branch/index.html">main-branch</a>
+          <a href="../../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version is-current is-latest">
-          <a href="../index.html">latest-0.12.3</a>
+        <li class="version is-latest">
+          <a href="../../index.html">latest-0.12.4</a>
         </li>
-        <li class="version">
-          <a href="../0.12.x/index.html">0.12.x</a>
-        </li>
-        <li class="version">
-          <a href="../0.11.x/index.html">0.11.x</a>
+        <li class="version is-current">
+          <a href="../index.html">0.12.x</a>
         </li>
         <li class="version">
-          <a href="../0.10.15/index.html">0.10.15</a>
+          <a href="../../0.11.x/index.html">0.11.x</a>
         </li>
         <li class="version">
-          <a href="../0.9.12/index.html">0.9.12</a>
+          <a href="../../0.10.15/index.html">0.10.15</a>
+        </li>
+        <li class="version">
+          <a href="../../0.9.12/index.html">0.9.12</a>
         </li>
       </ul>
     </li>
@@ -497,12 +522,13 @@
 <main class="article">
 <div class="toolbar" role="navigation">
 <button class="nav-toggle"></button>
-  <a href="../index.html" class="home-link"></a>
+  <a href="../../index.html" class="home-link"></a>
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="../index.html">Mill Documentation</a></li>
-    <li>Mill In Depth</li>
-    <li><a href="large-builds.html">Large Builds and Monorepos</a></li>
+    <li>Experimental Platform Support</li>
+    <li><a href="intro.html">Building Python with Mill</a></li>
+    <li><a href="dependencies.html">Python Library Dependencies</a></li>
   </ul>
 </nav>
 </div>
@@ -511,10 +537,14 @@
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">Large Builds and Monorepos</h1>
+<h1 class="page">Python Library Dependencies</h1>
 <div id="preamble">
 <div class="sectionbody">
-
+<style>
+*{
+  hyphens: manual !important;
+}
+</style>
 <script>
 gtag('config', 'AW-16649289906');
 
@@ -531,292 +561,281 @@ const links = document.querySelectorAll('a');
 });
 </script>
 <div class="paragraph">
-<p>This section walks through Mill features and techniques used for managing large builds.
-While Mill works great for small single-module projects, it is also able to work
-effectively with large projects with hundreds of modules. Mill’s own build for the
-<a href="https://github.com/com-lihaoyi/mill">com-lihaoyi/mill</a> project has ~400 modules, and
-other proprietary projects may have many more.</p>
-</div>
-<div class="paragraph">
-<p>Mill modules are cheap. Having more modules does not significantly impact performance
-or resource usage, build files are incrementally re-compiled when modified, and modules are
-lazily loaded and initialized only when needed. So you are encouraged to break up your project
-into modules to manage the layering of your codebase or benefit from parallelism.</p>
+<p>This page goes into more detail about configuring third party dependencies
+for `PythonModule`s.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_multi_file_builds"><a class="anchor" href="#_multi_file_builds"></a>Multi-file Builds</h2>
+<h2 id="_adding_dependencies"><a class="anchor" href="#_adding_dependencies"></a>Adding Dependencies</h2>
 <div class="sectionbody">
-<div class="paragraph">
-<p>Mill allows you to break up your <code>build.mill</code> file into smaller files by defining the
-build-related logic for any particular subfolder as a <code>package.mill</code> file in that subfolder.
-This can be very useful to keep large Mill builds maintainable, as each folder’s build logic
-gets co-located with the files that need to be built, and speeds up compilation of the
-build logic since each <code>build.mill</code> or <code>package.mill</code> file can be compiled independently when
-it is modified without re-compiling all the others.</p>
-</div>
-<div class="paragraph">
-<p>Usage of sub-folder <code>package.mill</code> files is enabled by the magic import <code>import $packages._</code></p>
-</div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-depth-large-10-multi-file-builds.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/depth/large/10-multi-file-builds">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-pythonlib-dependencies-1-pip-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/pythonlib/dependencies/1-pip-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import $packages._
+import mill._, pythonlib._
 
-import mill._, scalalib._
-
-trait MyModule extends ScalaModule {
-  def scalaVersion = &quot;2.13.11&quot;
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">foo/package.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/depth/large/10-multi-file-builds/foo/package.mill">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.foo
-import mill._, scalalib._
-
-object `package` extends RootModule with build.MyModule {
-  def moduleDeps = Seq(build.bar.qux.mymodule)
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::mainargs:0.4.0&quot;)
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">bar/qux/package.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/depth/large/10-multi-file-builds/bar/qux/package.mill">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.bar.qux
-import mill._, scalalib._
-
-object mymodule extends build.MyModule {
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags:0.8.2&quot;)
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>In this example, the root <code>build.mill</code> only contains the <code>trait MyModule</code>, but it is
-<code>foo/package.mill</code> and <code>bar/qux/package.mill</code> that define modules using it. The modules
-defined in <code>foo/package.mill</code> and <code>bar/qux/package.mill</code> are automatically nested within
-<code>foo</code> and <code>bar.qux</code> respectively, and can be referenced from the command line as below:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill resolve __
-bar
-...
-bar.qux.mymodule
-...
-bar.qux.mymodule.compile
-...
-foo
-...
-foo.compile
-
-&gt; ./mill bar.qux.mymodule.compile
-
-&gt; ./mill foo.compile
-
-&gt; ./mill foo.run --foo-text hello --bar-qux-text world
-Foo.value: hello
-BarQux.value: &lt;p&gt;world&lt;/p&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Note that in this example, <code>foo/package.mill</code> defines <code>object module extends RootModule</code>,
-and so the name <code>.module</code> does not need to be provided at the command line. In contrast,
-<code>bar/qux/package.mill</code> defines <code>object mymodule</code> that does not extend <code>RootModule</code>, and so
-we need to explicitly reference it with a <code>.mymodule</code> suffix.</p>
-</div>
-<div class="paragraph">
-<p><code>package.mill</code> files are only discovered in direct subfolders of the root <code>build.mill</code> or
-subfolders of another folder containing a <code>package.mill</code>; Hence in this example, we need
-an <code>bar/package.mill</code> to be present for <code>bar/qux/package.mill</code> to be discovered, even
-though <code>bar/package.mill</code> is empty</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_helper_files"><a class="anchor" href="#_helper_files"></a>Helper Files</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Apart from having <code>package</code> files in subfolders to define modules, Mill
-also allows you to have helper code in any <code>*.mill</code> file in the same folder
-as your <code>build.mill</code> or a <code>package.mill</code>.</p>
-</div>
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-depth-large-11-helper-files.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/depth/large/11-helper-files">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import $packages._
-import mill._, scalalib._
-import $file.foo.versions
-import $file.util.MyModule
-
-object `package` extends RootModule with MyModule {
-  def forkEnv = Map(
-    &quot;MY_SCALA_VERSION&quot; -&gt; build.scalaVersion(),
-    &quot;MY_PROJECT_VERSION&quot; -&gt; versions.myProjectVersion
+object `package` extends RootModule with PythonModule {
+  def pythonDeps = Seq(
+    "numpy==2.1.2",
+    "pandas~=2.2.3",
+    "jinja2 @ https://github.com/pallets/jinja/releases/download/3.1.4/jinja2-3.1.4-py3-none-any.whl"
   )
 }</code></pre>
 </div>
 </div>
-<div class="listingblock">
-<div class="title">util.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/depth/large/11-helper-files/util.mill">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, scalalib._
-
-def myScalaVersion = &quot;2.13.14&quot;
-
-trait MyModule extends ScalaModule {
-  def scalaVersion = myScalaVersion
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">foo/package.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/depth/large/11-helper-files/foo/package.mill">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.foo
-import mill._, scalalib._
-import $file.util
-import $file.foo.versions.myProjectVersion
-object `package` extends RootModule with build_.util.MyModule {
-  def forkEnv = Map(
-    &quot;MY_SCALA_VERSION&quot; -&gt; util.myScalaVersion,
-    &quot;MY_PROJECT_VERSION&quot; -&gt; myProjectVersion
-  )
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">foo/versions.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/depth/large/11-helper-files/foo/versions.mill">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.foo
-
-def myProjectVersion = &quot;0.0.1&quot;</code></pre>
-</div>
-</div>
 <div class="paragraph">
-<p>Different helper scripts and <code>build.mill</code>/<code>package</code> files can all refer to
-each other using the <code>build</code> object, which marks the root object of your build.
-In this example:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>build.mill</code> can be referred to as simple <code>build</code></p>
-</li>
-<li>
-<p><code>util.mill</code> can be referred to as simple <code>$file.util</code></p>
-</li>
-<li>
-<p><code>foo/package</code> can be referred to as simple <code>build.foo</code></p>
-</li>
-<li>
-<p><code>foo/versions.mill</code> can be referred to as simple <code>$file.foo.versions</code></p>
-</li>
-</ul>
+<p>You can define the <code>pythonDeps</code> field to add dependencies to your module, which will be installed
+via <a href="https://pip.pypa.io/en/stable/">pip</a>. Dependencies can include
+<a href="https://peps.python.org/pep-0440/">anything that pip understands</a>, such as <code>&lt;package&gt;==&lt;version&gt;</code>
+constraints, or even direct references to wheels.</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
-Main Env build.util.myScalaVersion: 2.13.14
-Main Env build.foo.versions.myProjectVersion: 0.0.1
-
-&gt; ./mill foo.run
-Foo Env build.util.myScalaVersion: 2.13.14
-Foo Env build.foo.versions.myProjectVersion: 0.0.1</code></pre>
+[10 20 30 40 50]</code></pre>
 </div>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_legacy_sc_extension"><a class="anchor" href="#_legacy_sc_extension"></a>Legacy <code>.sc</code> extension</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_adding_dependencies_via_requirements_txt_files"><a class="anchor" href="#_adding_dependencies_via_requirements_txt_files"></a>Adding Dependencies via requirements.txt files</h3>
 <div class="paragraph">
-<p>To ease the migration from Mill 0.11.x, the older <code>.sc</code> file extension is also supported
-for Mill build files, and the <code>package</code> declaration is optional in such files. Note that
-this means that IDE support using <code>.sc</code> files will not be as good as IDE support using the
-current <code>.mill</code> extension with <code>package</code> declaration, so you should use <code>.mill</code> whenever
-possible</p>
+<p>You can also read dependencies from <code>requirements.txt</code> files. This can be
+useful if you&#8217;re migrating an existing project to mill.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-depth-large-12-helper-files-sc.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/depth/large/12-helper-files-sc">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-pythonlib-dependencies-2-pip-requirements.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/pythonlib/dependencies/2-pip-requirements">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
-import $packages._
-import $file.foo.versions
-import $file.util, util.MyModule
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, pythonlib._
 
-object `package` extends RootModule with MyModule {
-  def forkEnv = T {
-    Map(
-      &quot;MY_SCALA_VERSION&quot; -&gt; build.scalaVersion(),
-      &quot;MY_PROJECT_VERSION&quot; -&gt; versions.myProjectVersion
-    )
+object `package` extends RootModule with PythonModule {
+  def pythonRequirementFiles = Task.Sources {
+    millSourcePath / "requirements.txt"
   }
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">util.sc (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/depth/large/12-helper-files-sc/util.sc">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
+[10 20 30 40 50]</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_unmanaged_wheels"><a class="anchor" href="#_unmanaged_wheels"></a>Unmanaged Wheels</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In most scenarios you should rely on <code>pythonDeps</code>/<code>moduleDeps</code> and let Mill
+manage the downloading and caching of wheels for you. But in the rare case
+you receive a wheel or folder-full-of-wheels from somewhere and need to
+include it in your project, <code>unmanagedWheels</code> is the way to do it.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-pythonlib-dependencies-3-unmanaged-wheels.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/pythonlib/dependencies/3-unmanaged-wheels">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, pythonlib._
 
-def myScalaVersion = &quot;2.13.14&quot;
-
-trait MyModule extends ScalaModule {
-  def scalaVersion = myScalaVersion
+object `package` extends RootModule with PythonModule {
+  def unmanagedWheels: T[Seq[PathRef]] = Task.Input {
+    Seq.from(os.list(millSourcePath / "lib").map(PathRef(_)))
+  }
 }</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>You can override <code>unmanagedWheels</code> to point it at a wheel (.whl file) or
+source distribution (.tar.gz with a pyproject.toml file) you place on the
+filesystem, e.g. in the above snippet any files that happen to live in the
+<code>lib/</code> folder.</p>
+</div>
 <div class="listingblock">
-<div class="title">foo/package.sc (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/depth/large/12-helper-files-sc/foo/package.sc">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
-import $file.^.util
-import $file.versions, versions.myProjectVersion
-object `package` extends RootModule with build_.util.MyModule {
-  def forkEnv = Map(
-    &quot;MY_SCALA_VERSION&quot; -&gt; util.myScalaVersion,
-    &quot;MY_PROJECT_VERSION&quot; -&gt; myProjectVersion
-  )
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
+b'"Hello, world!"'</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_downloading_unmanaged_wheels"><a class="anchor" href="#_downloading_unmanaged_wheels"></a>Downloading Unmanaged Wheels</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can also override <code>unmanagedWheels</code> to point it at wheels that you want to
+download from arbitrary URLs.
+<code>requests.get</code> comes from the <a href="https://github.com/com-lihaoyi/requests-scala">Requests-Scala</a>
+library, one of Mill&#8217;s <a href="../fundamentals/bundled-libraries.html" class="xref page">Bundled Libraries</a>.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-pythonlib-dependencies-4-downloading-unmanaged-wheels.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/pythonlib/dependencies/4-downloading-unmanaged-wheels">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, pythonlib._
+
+object `package` extends RootModule with PythonModule {
+  def unmanagedWheels = Task {
+    val name = "jinja2-3.1.4-py3-none-any.whl"
+    val url = s"https://github.com/pallets/jinja/releases/download/3.1.4/$name"
+    os.write(Task.dest / name, requests.get.stream(url))
+    Seq(PathRef(Task.dest / name))
+  }
 }</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">foo/versions.sc (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/depth/large/12-helper-files-sc/foo/versions.sc">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def myProjectVersion = &quot;0.0.1&quot;</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
-Main Env build.util.myScalaVersion: 2.13.14
-Main Env build.foo.versions.myProjectVersion: 0.0.1
+Hello, world!</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Tasks like <code>unmanagedWheels</code> and <code>pythonDeps</code> are cached, so your wheel is downloaded only
+once and re-used indefinitely after that. This is usually not a problem, because usually URLs
+follow the rule that <a href="https://www.w3.org/Provider/Style/URI">Cool URIs don&#8217;t change</a>, and so files
+downloaded from the same URL will always contain the same contents.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+An unmanaged wheel downloaded via <code>requests.get</code> is still unmanaged: even though you
+downloaded it from somewhere, <code>requests.get</code> does not know how to pull in third party
+dependencies or de-duplicate different versions on the classpath. All the same caveats you need
+to worry about when dealing with <a href="#_unmanaged_wheels">unmanaged wheels</a> apply here as well. In
+case you <strong>do</strong> want mill to take care of managing dependencies of a package which is not
+available on PyPI, you shouldn&#8217;t get that package in <code>unmanagedWheels</code> (like we did in the
+example above). Instead, you can declare the dependency as a regular <code>pythonDep</code>
+<a href="https://peps.python.org/pep-0440/#direct-references">as a direct URL that pip understands</a>.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_using_custom_package_indexes"><a class="anchor" href="#_using_custom_package_indexes"></a>Using Custom Package Indexes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By default, dependencies are resolved from <a href="https://pypi.org/">the Python
+Package Index (PyPI)</a>, the standard package index for python projects. You
+can also add your own package indexes by overriding the <code>indexes</code> task in
+the module:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-pythonlib-dependencies-5-repository-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/pythonlib/dependencies/5-repository-config">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, pythonlib._
 
-&gt; ./mill foo.run
-Foo Env build.util.myScalaVersion: 2.13.14
-Foo Env build.foo.versions.myProjectVersion: 0.0.1</code></pre>
+object foo extends PythonModule {
+
+  def pythonDeps = Seq(
+    "testpkg-jodersky==0.0.1" // a test package, only available on test.pypi.org
+  )
+
+  // override this task to add or replace the package indexes
+  def indexes = super.indexes() ++ Seq("https://test.pypi.org/simple/")
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Mill uses <a href="https://pip.pypa.io/en/stable/">pip</a> to find and install dependencies.</p>
+</div>
+<div class="paragraph">
+<p>You can configure pip through its
+<a href="https://pip.pypa.io/en/stable/topics/configuration/#location">normal configuration files.</a></p>
+</div>
+<div class="sect2">
+<h3 id="_private_indexes"><a class="anchor" href="#_private_indexes"></a>Private indexes</h3>
+<div class="paragraph">
+<p>You can read up in more detail on <a href="https://pip.pypa.io/en/stable/topics/authentication/">how to
+configure pip to authenticate to private indexes</a>. Here is an example which reads a package from
+an environment variable:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends PythonModule {
+  def indexPassword = Task.Input { Task.env.apply("COMPANY_PASSWORD") }
+  def indexes = Task {
+    Seq(s"https://username:${indexPassword()}@pypi.company.com/simple")
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>More advanced authentication techniques are available by configuring pip directly.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.run
+2</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_debugging"><a class="anchor" href="#_debugging"></a>Debugging</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In case anything goes wrong, or if you&#8217;re just curious, you can see what
+arguments mill passes to <code>pip install</code> by looking at the output of the
+<code>pipInstallArgs</code> task.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-pythonlib-dependencies-6-debugging.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/pythonlib/dependencies/6-debugging">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, pythonlib._
+
+object `package` extends RootModule with PythonModule {
+  def pythonDeps = Seq(
+    "numpy==2.1.2",
+    "pandas~=2.2.3",
+    "jinja2 @ https://github.com/pallets/jinja/releases/download/3.1.4/jinja2-3.1.4-py3-none-any.whl"
+  )
+
+  def indexes = Seq("invalid_index")
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show pipInstallArgs
+{
+  "args": [
+    "--index-url",
+    "invalid_index",
+    "mypy==1.13.0",
+    "pex==2.24.1",
+    "numpy==2.1.2",
+    "pandas~=2.2.3",
+    "jinja2 @ https://github.com/pallets/jinja/releases/download/3.1.4/jinja2-3.1.4-py3-none-any.whl"
+  ],
+  "sig": ...
+}</code></pre>
 </div>
 </div>
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="../extending/example-python-support.html">Example: Python Support</a></span>
-  <span class="next"><a href="sandboxing.html">Mill Sandboxing</a></span>
+  <span class="prev"><a href="module-config.html">Python Module Configuration</a></span>
+  <span class="next"><a href="publishing.html">Python Packaging &amp; Publishing</a></span>
 </nav>
 </article>
   </div>
 </main>
 </div>
-<script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async="async" src="../../_/js/vendor/highlight.js"></script>
-<script src="../../_/js/vendor/lunr.js"></script>
-<script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async="async" src="../../search-index.js"></script>
-  
-</body></html>
+<script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
+<script src="../../../_/js/vendor/lunr.js"></script>
+<script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>

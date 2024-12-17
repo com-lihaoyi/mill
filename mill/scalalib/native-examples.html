@@ -106,7 +106,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../javalib/publishing.html">Publishing Java Projects</a>
+    <a class="nav-link" href="../javalib/publishing.html">Java Packaging &amp; Publishing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -141,7 +141,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="publishing.html">Publishing Scala Projects</a>
+    <a class="nav-link" href="publishing.html">Scala Packaging &amp; Publishing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -180,7 +180,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/publishing.html">Publishing Kotlin Projects</a>
+    <a class="nav-link" href="../kotlinlib/publishing.html">Kotlin Packaging &amp; Publishing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -191,7 +191,7 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">(Experimental) Android with Mill</span>
+    <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
@@ -200,6 +200,25 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+</ul>
   </li>
 </ul>
   </li>
@@ -256,7 +275,7 @@
 
   <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Migrating to Mill</span>
+    <a class="nav-link" href="../migrating/migrating.html">Migrating to Mill</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
@@ -412,12 +431,23 @@
 
   <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Mill In Depth</span>
+    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/large-builds.html">Large Builds and Monorepos</a>
+    <a class="nav-link" href="../large/selective-execution.html">Selective Execution</a>
   </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
@@ -431,7 +461,7 @@
     <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
   </li>
 </ul>
@@ -459,7 +489,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">latest-0.12.3</span>
+    <span class="version">latest-0.12.4</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -469,7 +499,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">latest-0.12.3</a>
+          <a href="../index.html">latest-0.12.4</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.x</a>
@@ -524,7 +554,7 @@ as well as example of two modules with a scala-native application.</p>
 <h2 id="_simple"><a class="anchor" href="#_simple"></a>Simple</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-scalalib-native-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/scalalib/native/1-simple">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-scalalib-native-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/scalalib/native/1-simple">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._, scalanativelib._
@@ -568,7 +598,7 @@ Native for native integration and <code>mainargs</code> for command-line argumen
 <h2 id="_interop"><a class="anchor" href="#_interop"></a>Interop</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-scalalib-native-2-interop.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/scalalib/native/2-interop">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-scalalib-native-2-interop.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/scalalib/native/2-interop">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._, scalanativelib._
@@ -636,7 +666,7 @@ Tests: 1, Passed: 1, Failed: 0</code></pre>
 <h2 id="_multi_module"><a class="anchor" href="#_multi_module"></a>Multi-Module</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-scalalib-native-3-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/scalalib/native/3-multi-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-scalalib-native-3-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/scalalib/native/3-multi-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._, scalanativelib._
@@ -725,7 +755,7 @@ Bar.value: The string length of 'hello' is 5</code></pre>
 <h2 id="_common_config"><a class="anchor" href="#_common_config"></a>Common Config</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-scalalib-native-4-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/scalalib/native/4-common-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-scalalib-native-4-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/scalalib/native/4-common-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._, scalanativelib._, scalanativelib.api._

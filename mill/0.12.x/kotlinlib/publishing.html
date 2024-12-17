@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Publishing Kotlin Projects :: The Mill JVM Build Tool</title>
+    <title>Kotlin Packaging &amp; Publishing :: The Mill JVM Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/kotlinlib/publishing.html">
     <link rel="prev" href="linting.html">
     <link rel="next" href="web-examples.html">
@@ -105,7 +105,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../javalib/publishing.html">Publishing Java Projects</a>
+    <a class="nav-link" href="../javalib/publishing.html">Java Packaging &amp; Publishing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -140,7 +140,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../scalalib/publishing.html">Publishing Scala Projects</a>
+    <a class="nav-link" href="../scalalib/publishing.html">Scala Packaging &amp; Publishing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -179,7 +179,7 @@
   </li>
 
   <li class="nav-item is-current-page is-active" data-depth="2">
-    <a class="nav-link" href="publishing.html">Publishing Kotlin Projects</a>
+    <a class="nav-link" href="publishing.html">Kotlin Packaging &amp; Publishing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -190,7 +190,7 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">(Experimental) Android with Mill</span>
+    <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
@@ -199,6 +199,25 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+</ul>
   </li>
 </ul>
   </li>
@@ -255,7 +274,7 @@
 
   <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Migrating to Mill</span>
+    <a class="nav-link" href="../migrating/migrating.html">Migrating to Mill</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
@@ -411,12 +430,23 @@
 
   <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Mill In Depth</span>
+    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/large-builds.html">Large Builds and Monorepos</a>
+    <a class="nav-link" href="../large/selective-execution.html">Selective Execution</a>
   </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
@@ -430,7 +460,7 @@
     <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
   </li>
 </ul>
@@ -468,7 +498,7 @@
           <a href="../../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-latest">
-          <a href="../../index.html">latest-0.12.3</a>
+          <a href="../../index.html">latest-0.12.4</a>
         </li>
         <li class="version is-current">
           <a href="../index.html">0.12.x</a>
@@ -497,7 +527,7 @@
   <ul>
     <li><a href="../index.html">Mill Documentation</a></li>
     <li><a href="intro.html">Building Kotlin with Mill</a></li>
-    <li><a href="publishing.html">Publishing Kotlin Projects</a></li>
+    <li><a href="publishing.html">Kotlin Packaging &amp; Publishing</a></li>
   </ul>
 </nav>
 </div>
@@ -506,7 +536,7 @@
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">Publishing Kotlin Projects</h1>
+<h1 class="page">Kotlin Packaging &amp; Publishing</h1>
 <div id="preamble">
 <div class="sectionbody">
 <style>
@@ -530,7 +560,68 @@ const links = document.querySelectorAll('a');
 });
 </script>
 <div class="paragraph">
-<p>This page will discuss common topics around publishing your Kotlin projects for others to use</p>
+<p>This page will discuss common topics around packaging and publishing your Kotlin projects for others to use</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_customizing_the_assembly"><a class="anchor" href="#_customizing_the_assembly"></a>Customizing the Assembly</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-kotlinlib-publishing-1-assembly-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/kotlinlib/publishing/1-assembly-config">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, kotlinlib._
+import mill.javalib.Assembly._
+
+object foo extends KotlinModule {
+
+  def kotlinVersion = "1.9.24"
+
+  def mainClass = Some("foo.FooKt")
+
+  def moduleDeps = Seq(bar)
+  def assemblyRules = Seq(
+    // all application.conf files will be concatenated into single file
+    Rule.Append("application.conf"),
+    // all *.conf files will be concatenated into single file
+    Rule.AppendPattern(".*\\.conf"),
+    // all *.temp files will be excluded from a final jar
+    Rule.ExcludePattern(".*\\.temp"),
+    // the `shapeless` package will be relocated under the `shade` package
+    Rule.Relocate("shapeless.**", "shade.shapless.@1")
+  )
+}
+
+object bar extends KotlinModule {
+  def kotlinVersion = "1.9.24"
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When you make a runnable jar of your project with <code>assembly</code> command,
+you may want to exclude some files from a final jar (like signature files,
+and manifest files from library jars), and merge duplicated files (for
+instance <code>reference.conf</code> files from library dependencies).</p>
+</div>
+<div class="paragraph">
+<p>By default mill excludes all <code>*.sf</code>, <code>*.dsa</code>, <code>*.rsa</code>, and
+<code>META-INF/MANIFEST.MF</code> files from assembly, and concatenates all
+<code>reference.conf</code> files. You can also define your own merge/exclude rules.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.assembly
+
+&gt; unzip -p ./out/foo/assembly.dest/out.jar application.conf || true
+Bar Application Conf
+Foo Application Conf
+
+&gt; java -jar ./out/foo/assembly.dest/out.jar
+Loaded application.conf from resources:...
+...Foo Application Conf
+...Bar Application Conf</code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -538,7 +629,7 @@ const links = document.querySelectorAll('a');
 <h2 id="_publishing_locally"><a class="anchor" href="#_publishing_locally"></a>Publishing Locally</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-kotlinlib-publishing-2-publish-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/kotlinlib/publishing/2-publish-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-kotlinlib-publishing-2-publish-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/kotlinlib/publishing/2-publish-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._, publish._
@@ -574,6 +665,13 @@ machine or to the central maven repository</p>
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.publishLocal
 Publishing Artifact(com.lihaoyi,foo,0.0.1) to ivy repo...</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p><code>publishLocal</code> publishes the artifacts to the <code>~/.ivy2/local</code> folder on your
+machine, allowing them to be resolved by other projects and build tools. This
+is useful as a lightweight way of testing out the published artifacts, without
+the setup overhead and long latencies of publishing artifacts globally accessible
+to anyone in the world.</p>
 </div>
 </div>
 </div>
@@ -775,6 +873,26 @@ there are also others that you can use. Mill supports these largely through cont
 </li>
 <li>
 <p><a href="../contrib/sonatypecentral.html" class="xref page">Sonatype Central</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_jlink_and_jpackage"><a class="anchor" href="#_jlink_and_jpackage"></a><code>jlink</code> and <code>jpackage</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill has builtin support for the <a href="https://docs.oracle.com/en/java/javase/11/tools/jlink.html">JLink</a> and
+<a href="https://docs.oracle.com/en/java/javase/17/docs/specs/man/jpackage.html">JPackage</a> command line tools.
+For more details, see:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="../javalib/publishing.html#_java_app_and_bundles_using_jlink" class="xref page">Java App and Bundles using JLink</a></p>
+</li>
+<li>
+<p><a href="../javalib/publishing.html#_java_installers_using_jpackage" class="xref page">Java Installers using JPackage</a></p>
 </li>
 </ul>
 </div>

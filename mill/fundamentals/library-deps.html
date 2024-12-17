@@ -105,7 +105,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../javalib/publishing.html">Publishing Java Projects</a>
+    <a class="nav-link" href="../javalib/publishing.html">Java Packaging &amp; Publishing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -140,7 +140,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../scalalib/publishing.html">Publishing Scala Projects</a>
+    <a class="nav-link" href="../scalalib/publishing.html">Scala Packaging &amp; Publishing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -179,7 +179,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/publishing.html">Publishing Kotlin Projects</a>
+    <a class="nav-link" href="../kotlinlib/publishing.html">Kotlin Packaging &amp; Publishing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -190,7 +190,7 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">(Experimental) Android with Mill</span>
+    <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
@@ -199,6 +199,25 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+</ul>
   </li>
 </ul>
   </li>
@@ -255,7 +274,7 @@
 
   <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Migrating to Mill</span>
+    <a class="nav-link" href="../migrating/migrating.html">Migrating to Mill</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
@@ -411,12 +430,23 @@
 
   <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Mill In Depth</span>
+    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/large-builds.html">Large Builds and Monorepos</a>
+    <a class="nav-link" href="../large/selective-execution.html">Selective Execution</a>
   </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
@@ -430,7 +460,7 @@
     <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
   </li>
 </ul>
@@ -458,7 +488,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">latest-0.12.3</span>
+    <span class="version">latest-0.12.4</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -468,7 +498,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">latest-0.12.3</a>
+          <a href="../index.html">latest-0.12.4</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.x</a>
@@ -649,6 +679,154 @@ There is no special test scope in Mill.</p>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_dependency_management"><a class="anchor" href="#_dependency_management"></a>Dependency management</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Dependency management consists in listing dependencies whose versions we want to force. Having
+a dependency in dependency management doesn&#8217;t mean that this dependency will be fetched, only
+that</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>if it ends up being fetched transitively, its version will be forced to the one in dependency management</p>
+</li>
+<li>
+<p>if its version is empty in an <code>ivyDeps</code> section in Mill, the version from dependency management will be used</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Dependency management also allows to add exclusions to dependencies, both explicit dependencies and
+transitive ones.</p>
+</div>
+<div class="paragraph">
+<p>Dependency management can be passed to Mill in two ways:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>via external Maven BOMs, like <a href="https://repo1.maven.org/maven2/com/google/cloud/libraries-bom/26.50.0/libraries-bom-26.50.0.pom">this one</a>,
+whose Maven coordinates are <code>com.google.cloud:libraries-bom:26.50.0</code></p>
+</li>
+<li>
+<p>via the <code>depManagement</code> task, that allows to directly list dependencies whose versions we want to enforce</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_external_boms"><a class="anchor" href="#_external_boms"></a>External BOMs</h3>
+<div class="paragraph">
+<p>Pass an external BOM to a <code>JavaModule</code> / <code>ScalaModule</code> / <code>KotlinModule</code> with <code>bomIvyDeps</code>, like</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-fundamentals-library-deps-bom-1-external-bom.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/fundamentals/library-deps/bom-1-external-bom">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javalib._
+
+object foo extends JavaModule {
+  def bomIvyDeps = Agg(
+    ivy"com.google.cloud:libraries-bom:26.50.0"
+  )
+  def ivyDeps = Agg(
+    ivy"io.grpc:grpc-protobuf"
+  )
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The version of grpc-protobuf (<code>io.grpc:grpc-protobuf</code>) isn&#8217;t written down here, so the version
+from the BOM, <code>1.67.1</code> is used.</p>
+</div>
+<div class="paragraph">
+<p>Also, by default, grpc-protobuf <code>1.67.1</code> pulls version <code>3.25.3</code> of protobuf-java (<code>com.google.protobuf:protobuf-java</code>) .
+But the BOM specifies another version for that dependency, <code>4.28.3</code>, so
+protobuf-java <code>4.28.3</code> ends up being pulled here.</p>
+</div>
+<div class="paragraph">
+<p>Several BOMs can be passed to <code>bomIvyDeps</code>. If several specify a version for a dependency,
+the version from the first one in the <code>bomIvyDeps</code> list is used. If several specify exclusions
+for a dependency, all exclusions are added to that dependency.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_dependency_management_task"><a class="anchor" href="#_dependency_management_task"></a>Dependency management task</h3>
+<div class="paragraph">
+<p>Pass dependencies to <code>depManagement</code> in a <code>JavaModule</code> / <code>ScalaModule</code> / <code>KotlinModule</code>, like</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-fundamentals-library-deps-bom-2-dependency-management.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/fundamentals/library-deps/bom-2-dependency-management">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javalib._
+
+object foo extends JavaModule {
+  def depManagement = Agg(
+    ivy"com.google.protobuf:protobuf-java:4.28.3",
+    ivy"io.grpc:grpc-protobuf:1.67.1"
+  )
+  def ivyDeps = Agg(
+    ivy"io.grpc:grpc-protobuf"
+  )
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The version of grpc-protobuf (<code>io.grpc:grpc-protobuf</code>) isn&#8217;t written down here, so the version
+found in <code>depManagement</code>, <code>1.67.1</code> is used.</p>
+</div>
+<div class="paragraph">
+<p>Also, by default, grpc-protobuf <code>1.67.1</code> pulls version <code>3.25.3</code> of protobuf-java (<code>com.google.protobuf:protobuf-java</code>) .
+But <code>depManagement</code> specifies another version for that dependency, <code>4.28.3</code>, so
+protobuf-java <code>4.28.3</code> ends up being pulled here.</p>
+</div>
+<div class="paragraph">
+<p>One can also add exclusions via dependency management, like</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends JavaModule {
+  def depManagement = Agg(
+    ivy"io.grpc:grpc-protobuf:1.67.1"
+      .exclude(("com.google.protobuf", "protobuf-java"))
+  )
+  def ivyDeps = Agg(
+    ivy"io.grpc:grpc-protobuf"
+  )
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Here, grpc-protobuf has an empty version in <code>ivyDeps</code>, so the one in <code>depManagement</code>,
+<code>1.67.1</code>, is used. Also, <code>com.google.protobuf:protobuf-java</code> is excluded from grpc-protobuf
+in <code>depManagement</code>, so it ends up being excluded from it in <code>ivyDeps</code> too.</p>
+</div>
+<div class="paragraph">
+<p>If one wants to add exclusions via <code>depManagement</code>, specifying a version is optional,
+like</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object baz extends JavaModule {
+  def depManagement = Agg(
+    ivy"io.grpc:grpc-protobuf"
+      .exclude(("com.google.protobuf", "protobuf-java"))
+  )
+  def ivyDeps = Agg(
+    ivy"io.grpc:grpc-protobuf:1.67.1"
+  )
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Here, given that grpc-protobuf is fetched during dependency resolution,
+<code>com.google.protobuf:protobuf-java</code> is excluded from it because of the dependency management.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_searching_for_dependency_updates"><a class="anchor" href="#_searching_for_dependency_updates"></a>Searching For Dependency Updates</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -659,7 +837,7 @@ dependencies with particularly weird version numbers. For example, given the fol
 build:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.3/0.12.3-example-fundamentals-dependencies-1-search-updates.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.3//example/fundamentals/dependencies/1-search-updates">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-fundamentals-dependencies-1-search-updates.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/fundamentals/dependencies/1-search-updates">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._

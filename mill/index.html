@@ -109,7 +109,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="javalib/publishing.html">Publishing Java Projects</a>
+    <a class="nav-link" href="javalib/publishing.html">Java Packaging &amp; Publishing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -144,7 +144,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="scalalib/publishing.html">Publishing Scala Projects</a>
+    <a class="nav-link" href="scalalib/publishing.html">Scala Packaging &amp; Publishing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -183,7 +183,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="kotlinlib/publishing.html">Publishing Kotlin Projects</a>
+    <a class="nav-link" href="kotlinlib/publishing.html">Kotlin Packaging &amp; Publishing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -194,7 +194,7 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">(Experimental) Android with Mill</span>
+    <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
@@ -203,6 +203,25 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+</ul>
   </li>
 </ul>
   </li>
@@ -259,7 +278,7 @@
 
   <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Migrating to Mill</span>
+    <a class="nav-link" href="migrating/migrating.html">Migrating to Mill</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
@@ -415,12 +434,23 @@
 
   <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Mill In Depth</span>
+    <a class="nav-link" href="large/large.html">Large Builds and Monorepos</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="depth/large-builds.html">Large Builds and Monorepos</a>
+    <a class="nav-link" href="large/selective-execution.html">Selective Execution</a>
   </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="large/multi-file-builds.html">Multi-File Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="depth/sandboxing.html">Mill Sandboxing</a>
@@ -434,7 +464,7 @@
     <a class="nav-link" href="depth/design-principles.html">Mill Design Principles</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="depth/why-scala.html">Why does Mill use Scala?</a>
   </li>
 </ul>
@@ -462,7 +492,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">latest-0.12.3</span>
+    <span class="version">latest-0.12.4</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -472,7 +502,7 @@
           <a href="main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="index.html">latest-0.12.3</a>
+          <a href="index.html">latest-0.12.4</a>
         </li>
         <li class="version">
           <a href="0.12.x/index.html">0.12.x</a>
@@ -544,7 +574,7 @@ helps keep builds clean and understandable</p>
 </li>
 <li>
 <p>Mill is an easier alternative to <a href="https://bazel.build/">Bazel</a>
-for <a href="depth/large-builds.html" class="xref page">large multi-language monorepos</a> with hundreds of modules</p>
+for <a href="large/large.html" class="xref page">large multi-language monorepos</a> with hundreds of modules</p>
 </li>
 </ul>
 </div>
@@ -571,6 +601,9 @@ for <a href="depth/large-builds.html" class="xref page">large multi-language mon
 </tr>
 </tbody>
 </table>
+<div class="paragraph">
+<p>If you want to use Mill on an existing codebase, see <a href="migrating/migrating.html" class="xref page">Migrating to Mill</a></p>
+</div>
 </div>
 </div>
 <div class="sect2">
@@ -584,16 +617,16 @@ Java platform’s performance and usability:</p>
 <div class="ulist">
 <ul>
 <li>
-<p><strong>Performance</strong>: Mill’s <a href="fundamentals/tasks.html" class="xref page">build graph</a> automatically
+<p><strong>Performance</strong>: Mill automatically
 <a href="depth/evaluation-model.html#_caching_at_each_layer_of_the_evaluation_model" class="xref page">caches</a>
-and <a href="cli/flags.html#_jobs_j" class="xref page">parallelizes</a> build
-tasks, keeping your workflows fast and responsive. Mill adds minimal overhead over
-the logic necessary to build your project, and avoids the long configuration
-times often seen in other build tools like Gradle or SBT</p>
+and <a href="cli/flags.html#_jobs_j" class="xref page">parallelizes</a> build tasks to keep local development fast,
+and avoids the long configuration times seen in other tools like Gradle or SBT.
+<a href="large/selective-execution.html" class="xref page">Selective execution</a> keeps
+CI validation times short by only running the tests necessary to validate a code change.</p>
 </li>
 <li>
-<p><strong>Maintainability</strong>: Mill’s config and custom logic is written in
-<a href="javalib/intro.html#_custom_build_logic" class="xref page">concise type-checked code</a>,
+<p><strong>Maintainability</strong>: Mill’s config and <a href="javalib/intro.html#_custom_build_logic" class="xref page">custom logic</a>
+is written in <a href="depth/why-scala.html" class="xref page">concise type-checked Scala code</a>,
 with an immutable <a href="depth/design-principles.html" class="xref page">module tree and task graph</a>. This
 catches config issues early, and helps both humans and IDEs
 (<a href="cli/installation-ide.html#_intellij" class="xref page">IntelliJ</a> or
