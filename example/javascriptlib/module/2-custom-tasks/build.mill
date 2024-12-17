@@ -23,8 +23,7 @@ object foo extends TypeScriptModule {
 
   def mkENV = Task {
     super.mkENV() ++ Map(
-      "LINE_COUNT" -> lineCount().toString,
-      "BAR_MODULE_PATH" -> generatedSources().map(_.path).mkString(":")
+      "LINE_COUNT" -> lineCount().toString
     )
   }
 
