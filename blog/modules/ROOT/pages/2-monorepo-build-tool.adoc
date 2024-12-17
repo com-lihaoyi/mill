@@ -15,7 +15,7 @@ Software build tools mostly fall into two categories:
    https://doc.rust-lang.org/cargo/[Cargo] (Rust)
 
 2. Monorepo build tools targeting large codebases, e.g. https://bazel.build/[Bazel],
-   https://www.pantsbuild.org/[Pants], https://buck.build/[Buck], and https://mill-build.org/[]Mill
+   https://www.pantsbuild.org/[Pants], https://buck.build/[Buck], and https://mill-build.org/[Mill]
 
 One question that comes up constantly is why do people use Monorepo build tools? Tools
 like Bazel are orders of magnitude more complicated and hard to use than tools
