@@ -52,6 +52,8 @@ object app extends AndroidAppKotlinModule {
     def kotlinVersion = "2.0.20"
     def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
 
+    override def instrumentationPackage = "com.helloworld.app"
+
     /* TODO this needs to change to something better once integration tests work with debug keystore */
     override def releaseKeyPath = mainRoot
     def androidReleaseKeyName: T[String] = Task { "releaseKey.jks" }
@@ -68,6 +70,22 @@ object app extends AndroidAppKotlinModule {
     )
 
     /*
+    androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+     */
+
+    /*
      * TODO: The following functionality is missing but you can test using the android tools:
      *  Install the integration tests
      *
@@ -75,7 +93,7 @@ object app extends AndroidAppKotlinModule {
      * $ANDROID_HOME/platform-tools/adb install -r /home/vnicolaou/mill/example/android/kotlinlib/1-hello-kotlin/out/app/it/androidApk.dest/app.apk
      *
      * Run the integration tests
-     * $ANDROID_HOME/platform-tools/adb shell am instrument -w -m com.example.helloworld/androidx.test.runner.AndroidJUnitRunner
+     * $ANDROID_HOME/platform-tools/adb shell am instrument -w -m com.helloworld.app/androidx.test.runner.AndroidJUnitRunner
      *
      */
   }

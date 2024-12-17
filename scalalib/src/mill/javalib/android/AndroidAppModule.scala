@@ -4,8 +4,7 @@ import mill.*
 import mill.api.PathRef
 import mill.define.ModuleRef
 import mill.scalalib.*
-import os.zip.ZipSource
-import os.{CommandResult, Path, SubPath}
+import os.{CommandResult, Path}
 
 
 /**
@@ -142,7 +141,7 @@ trait AndroidAppModule extends JavaModule {
     }
 
     val compiledLibsArgs = libZips.map(zip => Seq("-R", zip.toString)).flatten
-    println(s"compiledLIbArgs ${compiledLibsArgs}")
+
     val resourceZipArg = resourceZip.headOption.map(_.toString).getOrElse("")
 
     os.call(
@@ -196,12 +195,11 @@ trait AndroidAppModule extends JavaModule {
         androidSdkModule().d8Path().path.toString,
         "--output",
         jarFile.toString,
-        "--file-per-class",
         "--lib",
         androidSdkModule().androidJarPath().path.toString()
       ) ++ os.walk(compile().classes.path).filter(p => p.ext == "class").map(
         _.toString
-      )
+      ) ++ convertJarDepsToDex().map(_.path.toString())
     )
 
     PathRef(jarFile)
@@ -226,18 +224,6 @@ trait AndroidAppModule extends JavaModule {
     PathRef(Task.dest)
   }
 
-  private def androidDexWithPath(jar: PathRef, dest: Path, d8Path: Path, androidJarPath: Path): CommandResult = {
-    os.call((
-      d8Path,
-      "--output",
-      dest,
-      "--no-desugaring",
-      "--min-api",
-      "26", // default interface methods available since 24, Invoke-customs are only supported starting with 26
-      jar.path,
-      androidJarPath
-    ))
-  }
 
   /**
    * Packages DEX files and Android resources into an unsigned APK.
@@ -249,19 +235,13 @@ trait AndroidAppModule extends JavaModule {
 
     os.copy(androidResources().path / "res.apk", unsignedApk)
     os.zip(unsignedApk, Seq(androidDex().path / "classes.dex"))
-    val dependenciesDest = convertJarDepsToDex().path
-    val zipSources = os.walk(dependenciesDest).filter(os.isFile).filter(_.ext == "dex").zipWithIndex.map {
-      case (file, index) =>
-        ZipSource.fromPathTuple((file, SubPath(s"classes${index}.dex")))
-    }
-    os.zip(unsignedApk, zipSources)
 
     PathRef(unsignedApk)
   }
 
   /** Gets all the jars from the classpath and creates an apk with them
    * to be bundled with the app's code apk */
-  def convertJarDepsToDex: T[PathRef] = Task {
+  def convertJarDepsToDex: T[Seq[PathRef]] = Task {
     val dependenciesDest = Task.dest / "dependencies"
     os.makeDir(dependenciesDest)
     val androidJar = androidSdkModule().androidJarPath()
@@ -272,18 +252,8 @@ trait AndroidAppModule extends JavaModule {
         pr.path == androidJar.path
     )
     val compiledClassPathJars: Seq[PathRef] = dependenciesClasspath.toSeq
-    println(s"Compiled classpath jars ${compiledClassPathJars}")
-    for (jarPath <- compiledClassPathJars) {
-//       make jar into dex (jarname.dex) , use androidDex, create a new method that accepts
-      androidDexWithPath(jarPath, dependenciesDest, androidSdkModule().d8Path().path, androidSdkModule().androidJarPath().path)
-    }
-    compiledClassPathJars.zipWithIndex.map {
-      case (jar, index) =>
-        os.makeDir(dependenciesDest / s"$index")
-        androidDexWithPath(jar, dependenciesDest / s"$index", androidSdkModule().d8Path().path, androidSdkModule().androidJarPath().path)
-    }
-    //return a list of pathrefs of all the generated dex files
-    PathRef(dependenciesDest)
+
+    compiledClassPathJars
   }
 
   /**
@@ -406,5 +376,16 @@ trait AndroidAppModule extends JavaModule {
     }
 
     PathRef(keystoreFile)
+  }
+
+  /**
+   * Installs the app to the available android device.
+   *
+   * @return
+   */
+  def install: Target[CommandResult] = Task {
+    os.call(
+      (androidSdkModule().adbPath().path, "install", "-r", androidApk().path)
+    )
   }
 }

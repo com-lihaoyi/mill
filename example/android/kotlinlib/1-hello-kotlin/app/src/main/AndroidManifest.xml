@@ -9,6 +9,7 @@
             </intent-filter>
         </activity>
     </application>
+    <!-- TODO this needs to be constructed by Mill's integration tests (android tests) -->
     <instrumentation
             android:name="androidx.test.runner.AndroidJUnitRunner"
             android:targetPackage="com.helloworld.app" />
