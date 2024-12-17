@@ -1,0 +1,370 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Mill Build Tool Development Blog :: The Mill JVM Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/blog/index.html" />
+    <link rel="next" href="2-monorepo-build-tool.html" />
+    <meta name="generator" content="Antora 3.1.9" />
+    <link rel="stylesheet" href="../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../_/favicon.png" type="image/x-icon" />
+  
+  <style>
+*{
+  hyphens: manual !important;
+}
+</style><style>
+*{
+  hyphens: manual !important;
+}
+</style><style>
+*{
+  hyphens: manual !important;
+}
+</style></head><body class="article">
+  
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" /> The Mill JVM Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs" />
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
+        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="blog" data-version="">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="2-monorepo-build-tool.html">Why Use a Monorepo Build Tool?</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="1-java-compile.html">How Fast Does Java Compile?</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Mill Blog</span>
+    <span class="version"></span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <div class="title"><a href="index.html">Mill Blog</a></div>
+    </li>
+    <li class="component">
+      <div class="title"><a href="../mill/index.html">Mill Documentation</a></div>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mill/main-branch/index.html">main-branch</a>
+        </li>
+        <li class="version is-latest">
+          <a href="../mill/index.html">latest-0.12.4</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.12.x/index.html">0.12.x</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.11.x/index.html">0.11.x</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.10.15/index.html">0.10.15</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../mill/index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="index.html">Mill Blog</a></li>
+    <li><a href="index.html">Mill Build Tool Development Blog</a></li>
+  </ul>
+</nav>
+<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/blog/modules/ROOT/pages/index.adoc">Edit this Page</a></div>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Mill Build Tool Development Blog</h1>
+<div id="preamble">
+<div class="sectionbody">
+
+<script>
+gtag('config', 'AW-16649289906');
+
+document.addEventListener('DOMContentLoaded', function() {
+const links = document.querySelectorAll('a');
+  links.forEach(link => {
+    if (link.textContent.trim().toLowerCase() === 'download') {
+      link.addEventListener('click', function(event) {
+        console.log("download link clicked")
+        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+      });
+    }
+  });
+});
+</script>
+<div class="paragraph">
+<p>Welcome to the Mill development blog! This page contains posts and articles on
+technical topics related to the development of the Mill build tool. These discuss
+topics related to JVM languages and monorepo build tooling.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_why_use_a_monorepo_build_tool"><a class="anchor" href="#_why_use_a_monorepo_build_tool"></a>Why Use a Monorepo Build Tool?</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><em>Li Haoyi, 17 December 2024</em></p>
+</div>
+
+<script>
+gtag('config', 'AW-16649289906');
+
+document.addEventListener('DOMContentLoaded', function() {
+const links = document.querySelectorAll('a');
+  links.forEach(link => {
+    if (link.textContent.trim().toLowerCase() === 'download') {
+      link.addEventListener('click', function(event) {
+        console.log("download link clicked")
+        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+      });
+    }
+  });
+});
+</script>
+<div class="paragraph">
+<p>Software build tools mostly fall into two categories:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Single-language build tools, e.g.
+<a href="https://maven.apache.org/">Maven</a> (Java), <a href="https://python-poetry.org/">Poetry</a> (Python),
+<a href="https://doc.rust-lang.org/cargo/">Cargo</a> (Rust)</p>
+</li>
+<li>
+<p>Monorepo build tools targeting large codebases, e.g. <a href="https://bazel.build/">Bazel</a>,
+<a href="https://www.pantsbuild.org/">Pants</a>, <a href="https://buck.build/">Buck</a>, and <a href="https://mill-build.org/">Mill</a></p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>One question that comes up constantly is why do people use Monorepo build tools? Tools
+like Bazel are orders of magnitude more complicated and hard to use than tools
+like Poetry or Cargo, so why do people use them at all?
+<a href="https://knowyourmeme.com/memes/is-he-stupid-is-she-smart-are-they-stupid">Are they stupid?</a></p>
+</div>
+<div class="paragraph">
+<p>It turns out that Monorepo build tools like Bazel or Mill do a lot of non-obvious things that
+other build tools don’t, that become important in larger codebases (100-10,000 active developers).
+These features are generally irrelevant for smaller projects, which explains why most people
+do not miss them. But past a certain size of codebase and engineering organization these
+features become critical. We’ll explore some of the core features of &quot;Monorepo Build Tools&quot;
+below, from the perspective of Bazel (which I am familiar with) and Mill (which this
+technical blog is about).</p>
+</div>
+<div class="paragraph">
+<p><a href="2-monorepo-build-tool.html" class="xref page">Read More…​</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_how_fast_does_java_compile"><a class="anchor" href="#_how_fast_does_java_compile"></a>How Fast Does Java Compile?</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><em>Li Haoyi, 29 November 2024</em></p>
+</div>
+
+<script>
+gtag('config', 'AW-16649289906');
+
+document.addEventListener('DOMContentLoaded', function() {
+const links = document.querySelectorAll('a');
+  links.forEach(link => {
+    if (link.textContent.trim().toLowerCase() === 'download') {
+      link.addEventListener('click', function(event) {
+        console.log("download link clicked")
+        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+      });
+    }
+  });
+});
+</script>
+<div class="paragraph">
+<p>Java compiles have the reputation for being slow, but that reputation does
+not match today’s reality. Nowadays the Java compiler can compile &quot;typical&quot; Java code at over
+100,000 lines a second on a single core. That means that even a million line project
+should take more than 10s to compile in a single-threaded fashion, and should be even
+faster in the presence of parallelism</p>
+</div>
+<div class="paragraph">
+<p>Doing some ad-hoc benchmarks, we find that although the compiler is blazing fast, all
+build tools add significant overhead over compiling Java directly:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 12.5%;" />
+<col style="width: 12.5%;" />
+<col style="width: 12.5%;" />
+<col style="width: 12.5%;" />
+<col style="width: 12.5%;" />
+<col style="width: 12.5%;" />
+<col style="width: 12.5%;" />
+<col style="width: 12.5%;" />
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Mockito Core</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Time</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Compiler lines/s</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Slowdown</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Netty Common</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Time</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Compiler lines/s</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Slowdown</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Javac Hot</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.36s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">115,600</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.0x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Javac Hot</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.29s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">102,500</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.0x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Javac Cold</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.29s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">32,200</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4.4x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Javac Cold</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.62s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">18,300</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.6x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Mill</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.20s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">34,700</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4.1x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Mill</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.11s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">26,800</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.8x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Gradle</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4.41s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9,400</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">15.2x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Maven</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4.89s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6,100</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">16.9x</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Although Mill does the best in these benchmarks among the build tools (Maven, Gradle, and Mill),
+all build tools fall short of how fast compiling Java <em>should</em> be. This post explores how
+these numbers were arrived at, and what that means in un-tapped potential for Java build
+tooling to become truly great.</p>
+</div>
+<div class="paragraph">
+<p><a href="1-java-compile.html" class="xref page">Read More…​</a></p>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="next"><a href="2-monorepo-build-tool.html">Why Use a Monorepo Build Tool?</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
+<script async="async" src="../_/js/vendor/highlight.js"></script>
+<script src="../_/js/vendor/lunr.js"></script>
+<script src="../_/js/search-ui.js" id="search-ui-script" data-site-root-path=".." data-snippet-length="100" data-stylesheet="../_/css/search.css"></script>
+<script async="async" src="../search-index.js"></script>
+  
+</body></html>
