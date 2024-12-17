@@ -5,7 +5,20 @@ import mill.api.JarManifest
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import $file.ci.upload
 
-object `package` extends RootModule with build.MillPublishJavaModule {
+
+object `package` extends RootModule with DistModule{
+
+  object kotlinlib extends DistModule{
+    def moduleDeps = super.moduleDeps ++ Seq(build.kotlinlib)
+  }
+  object javascriptlib extends DistModule{
+    def moduleDeps = super.moduleDeps ++ Seq(build.javascriptlib)
+  }
+  object pythonlib extends DistModule{
+    def moduleDeps = super.moduleDeps ++ Seq(build.pythonlib)
+  }
+}
+trait DistModule extends build.MillPublishJavaModule {
 
   /**
    * Version of [[dist]] meant for local integration testing within the Mill
@@ -15,7 +28,12 @@ object `package` extends RootModule with build.MillPublishJavaModule {
   object dist0 extends build.MillPublishJavaModule {
     // disable scalafix here because it crashes when a module has no sources
     def fix(args: String*): Command[Unit] = Task.Command {}
-    def moduleDeps = Seq(build.runner, build.idea)
+    def moduleDeps = Seq(
+      build.runner,
+      build.idea,
+      build.scalajslib,
+      build.scalanativelib
+    )
 
     def testTransitiveDeps = build.runner.testTransitiveDeps() ++ Seq(
       build.main.graphviz.testDep(),
