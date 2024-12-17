@@ -96,7 +96,7 @@ trait TypeScriptModule extends Module { outer =>
 
   // specify tsconfig.compilerOptions.Paths
   def compilerOptionsPaths: Task[Map[String, String]] =
-    Task { Map("*" -> npmInstall().path.toString()) }
+    Task.Anon { Map("*" -> npmInstall().path.toString()) }
 
   def upstreamPathsBuilder: Task[Seq[(String, String)]] = Task.Anon {
     val upstreams = (for {

@@ -4,9 +4,34 @@ import mill._
 import mill.javascriptlib._
 
 object foo extends TypeScriptModule {
-  def mkENV = Task {
-    super.mkENV() ++ Map("FOO" -> "Hello World!")
+
+  def customSource = Task {
+    Seq(PathRef(millSourcePath / "custom-src" / "foo2.ts"))
   }
+
+  def allSources = Task.Anon {
+    super.allSources() ++ customSource()
+  }
+
+  def generatedSources = Task {
+    for (name <- Seq("A", "B", "C")) os.write(
+      Task.dest / s"foo-$name.ts",
+      s"""export default class Foo$name {
+         |  static value: string = "Hello $name"
+         |}
+      """.stripMargin
+    )
+
+    Seq(PathRef(Task.dest))
+  }
+
+  def mkENV = Task {
+    super.mkENV() ++ Map("MY_CUSTOM_ENV" -> "my-env-value")
+  }
+
+  def mainFileName = Task { s"foo2.ts" }
+
+  def mainFilePath = Task { compile()._2.path / "custom-src" / mainFileName() }
 
 }
 
@@ -17,5 +42,10 @@ object foo extends TypeScriptModule {
 /** Usage
 
 > mill foo.run
-Hello World!
+hello2
+Hello A
+Hello B
+Hello C
+my-env-value
+MyResource: My Resource Contents
 */
