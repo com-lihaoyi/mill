@@ -321,6 +321,21 @@ object BomTests extends TestSuite {
         )
       }
 
+      object testScope extends JavaModule with TestPublishModule {
+        // BOM has a version for scalatest_2.13 marked as test scope.
+        // This version should be taken into account in test modules here.
+        def bomIvyDeps = Agg(
+          ivy"org.apache.spark:spark-parent_2.13:3.5.3"
+        )
+        object test extends JavaTests {
+          def testFramework = "com.novocode.junit.JUnitFramework"
+          def ivyDeps = Agg(
+            ivy"com.novocode:junit-interface:0.11",
+            ivy"org.scalatest:scalatest_2.13"
+          )
+        }
+      }
+
       object testScopeLeak extends JavaModule with TestPublishModule {
         // BOM has a version for scalatest_2.13 marked as test scope.
         // This version shouldn't be taken into account in main module here.
@@ -780,6 +795,12 @@ object BomTests extends TestSuite {
         )
       }
 
+      test("test") - UnitTester(modules, null).scoped { implicit eval =>
+        compileClasspathContains(
+          modules.bomScope.testScope.test,
+          "scalatest_2.13-3.2.16.jar"
+        )
+      }
       test("testCheck") - UnitTester(modules, null).scoped { implicit eval =>
         compileClasspathContains(
           modules.bomScope.testScopeLeak,

@@ -60,6 +60,10 @@ trait JavaModule
       }
     }
 
+    override def extraBomIvyDeps = Task.Anon[Agg[Dep]] {
+      super.extraBomIvyDeps() ++ outer.bomIvyDeps()
+    }
+
     /**
      * JavaModule and its derivatives define inner test modules.
      * To avoid unexpected misbehavior due to the use of the wrong inner test trait
@@ -170,7 +174,7 @@ trait JavaModule
 
   def allBomDeps: Task[Agg[BomDependency]] = Task.Anon {
     val modVerOrMalformed =
-      bomIvyDeps().map(bindDependency()).map { bomDep =>
+      (bomIvyDeps() ++ extraBomIvyDeps()).map(bindDependency()).map { bomDep =>
         val fromModVer = coursier.core.Dependency(bomDep.dep.module, bomDep.dep.version)
         if (fromModVer == bomDep.dep)
           Right(bomDep.dep.asBomDependency)
@@ -193,6 +197,15 @@ trait JavaModule
           "Only organization, name, and version are accepted."
       )
   }
+
+  /**
+   * BOM dependencies that are not meant to be overridden or changed by users.
+   *
+   * This is mainly used to add BOM dependencies of the main module to its test
+   * modules, while ensuring test dependencies of the BOM are taken into account too
+   * in the test module.
+   */
+  def extraBomIvyDeps: Task[Agg[Dep]] = Task.Anon { Agg.empty[Dep] }
 
   /**
    * Dependency management data
