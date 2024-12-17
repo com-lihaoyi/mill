@@ -10,21 +10,23 @@ _{author}, {revdate}_
 
 Software build tools mostly fall into two categories:
 
-1. Single-language build tools targeting a single technology, e.g.
-   Maven (Java), Poetry (Python), Cargo (Rust)
+1. Single-language build tools, e.g.
+   https://maven.apache.org/[Maven] (Java), https://python-poetry.org/[Poetry] (Python),
+   https://doc.rust-lang.org/cargo/[Cargo] (Rust)
 
-2. Monorepo build tools targeting large codebases, e.g. Bazel, Pants, Buck, and Mill
+2. Monorepo build tools targeting large codebases, e.g. https://bazel.build/[Bazel],
+   https://www.pantsbuild.org/[Pants], https://buck.build/[Buck], and https://mill-build.org/[]Mill
 
-One question that comes up constantly is why do people use Monorepo build tools at all? Tools
+One question that comes up constantly is why do people use Monorepo build tools? Tools
 like Bazel are orders of magnitude more complicated and hard to use than tools
-like Poetry or Npm, so why do people use tools like Bazel?
+like Poetry or Cargo, so why do people use them at all?
 https://knowyourmeme.com/memes/is-he-stupid-is-she-smart-are-they-stupid[Are they stupid?]
 
 It turns out that Monorepo build tools like Bazel or Mill do a lot of non-obvious things that
 other build tools don't, that become important in larger codebases (100-10,000 active developers).
 These features are generally irrelevant for smaller projects, which explains why most people
 do not miss them. But past a certain size of codebase and engineering organization these
-features become crucial. We'll explore some of the core features of "Monorepo Build Tools"
+features become critical. We'll explore some of the core features of "Monorepo Build Tools"
 below, from the perspective of Bazel (which I am familiar with) and Mill (which this
 technical blog is about).
 
@@ -33,10 +35,11 @@ technical blog is about).
 ## Support for Multiple Languages
 
 While small software projects usually start in one programming language, larger ones
-inevitably grow more heterogenous over time. For example, you may be building a Go binary
+inevitably grow more heterogeneous over time. For example, you may be building a Go binary
 and Rust library which are both used in a Python executable, which is then tested using a
 Bash script and deployed as part of a Java backend server. The Java backend server may also
-server a front-end web interface compiled from Typescript.
+server a front-end web interface compiled from Typescript, and the whole deployment again
+tested using Selenium in Python or Playwright in Javascript.
 
 The reality of working in any large codebase and organization, such rube-goldberg
 code paths _do_ happen on a regular basis, and any monorepo build tool has to accommodate them.
@@ -53,14 +56,14 @@ you may have:
 Although each tool does its job, none of those tools are sufficient to build/test/deploy
 your project! Instead, you end up having a `bin/` or `build/` folder full of `.sh` scripts
 that wire up these simpler per-language build tools in ad-hoc ways. And while the individual
-language-specific build tools may be excellently-designed and well-maintained, the rats nest
-of shell scripts usually ends up a complete mess that is difficult to impossible to work with.
+language-specific build tools may be clean and simple, the rats nest of shell scripts that
+you also need usually ends up being a mess that is impossible to work with.
 
 That is why monorepo build tools like Bazel and Mill try to be _language agnostic_.
-Although they may come with some built in functionality (e.g. Bazel comes with C/C++/Javac
-built in, Mill comes with Java/Scala/Kotlin built in), monorepo build tools must make
+Although they may come with some built in functionality (e.g. Bazel comes with C/C++/Java
+support built in, Mill comes with Java/Scala/Kotlin), monorepo build tools must make
 it extending them to support additional languages _easy_. Bazel via its ecosystem
-of `rules_*` libraries, Mill via it's extensibility APIs which make it easy to e.g.
+of `rules_*` libraries, Mill via it's extensibility APIs which make it easy to
 implement your own support for additional languages like
 xref:mill:ROOT:extending/example-python-support.adoc[Python] or
 xref:mill:ROOT:extending/example-typescript-support.adoc[Typescript]. That means that when
@@ -76,11 +79,15 @@ requirements that no-one else does, for example:
 
 - Invoking a bespoke code-generator to integrate with your company's internal RPC system
 
-- Downloading third-party dependency sources, patching them, and building them from source
-  to work around issues that you have fixed but not yet succeeded in upstreaming
 
 - Generating custom deployment artifact formats to support that one legacy datacenter you
   need to get your code running in
+
+- Downloading third-party dependency sources, patching them, and building them from source
+  to work around issues that you have fixed but not yet succeeded in upstreaming
+
+- Compiling the compiler you need to compile the rest of your codebase, again perhaps
+  to make use of compiler bugfixes that you have not yet managed to get into an upstream release.
 
 The happy paths in build tools are usually great, and the slightly-off-the-beaten-path
 workflows usually have third-party plugins supporting them: things like linting, generating
@@ -96,8 +103,9 @@ you need to do something more far afield. The alternative is the aforementioned 
 of shell scripts - either wrapping or wrapped by the traditional build tools - that implement
 the custom build tasks you require.
 
-That is why monorepo build tools like Bazel and Mill make it easy to write custom tasks: in Mill
-a custom task is just `def foo = Task { ... }` with a block of code doing what you need,
+That is why monorepo build tools like Bazel and Mill make it easy to write custom tasks. In
+Bazel a custom task is just a https://bazel.build/reference/be/general#genrule[genrule()], in Mill
+just `def foo = Task { ... }` with a block of code doing what you need,
 and you can even xref:mill:ROOT:extending/import-ivy-plugins.adoc[use any third-party JVM library]
 you are already familiar with as part of your custom task. This helps ensure your custom
 tasks are written in concise type-checked code with automatic caching and parallelism,
@@ -130,9 +138,10 @@ The importance of caching and parallelism grows together with the codebase:
 
 Take ad-hoc source code generation as an example: a small codebase may not have any. A
 medium-sized codebase may have some but little enough that it doesn't matter if it runs
-sequentially un-cached. But a large codebase has enough may have multiple RPC IDL
-code generators, static resource pre-processors, that not caching and parallelizing these
-ad-hoc build tasks causes real inconvenience.
+sequentially un-cached. But a large codebase may have multiple RPC IDL
+code generators (e.g. https://protobuf.dev/[protobuf], https://thrift.apache.org/[thrift],
+static resource pre-processors, and other custom tasks that not caching and parallelizing
+these causes visible slowdowns and inconvenience.
 
 In monorepo build tools like Mill or Bazel, caching and parallelism are automatic and
 enabled by default. That means that it doesn't matter what you are running - whether
@@ -197,13 +206,17 @@ to only run tests downstream of a PR diff and skip unrelated ones. The Mill buil
 this, as xref:mill:ROOT:large/selective-execution.adoc[Selective Execution], letting you snapshot
 your code before and after a code change and only run tasks that are downstream of those changes.
 
+Fundamentally, running "all tests" in CI is wasteful when you know from the build tool
+that only some tests are relevant to the code change being tested. If every pull request always
+runs every single test in a monorepo, then it's natural for PR validation times to grow unbounded
+as the monorepo grows. Sooner or later this will start causing issues.
+
+
 Any large codebase that doesn't use a monorepo build tool ends up re-inventing this manually, e.g.
 consider this code in apache/spark that re-implements this in a Python script that wraps
 `mvn` or `sbt` (https://github.com/apache/spark/blob/290b4b31bae2e02b648d2c5ef61183f337b18f8f/dev/sparktestsupport/modules.py#L108-L126[link]).
-Fundamentally, running "all tests" in CI is wasteful when you know from the build tool
-that only some tests are relevant to the code change being tested, and monorepo build tools
-like Bazel or Mill make it easy to select exactly that subset of tests to run.
-
+With a proper monorepo build tool, such functionality comes for free out-of-the-box with better
+precision and correctness than anything you could hack together manually.
 
 ## Build Task Sandboxing
 
@@ -218,9 +231,10 @@ There are two kinds of sandboxing that monorepo build tools like Bazel do:
    (e.g. https://en.wikipedia.org/wiki/Cgroups[CGroups] on Linux,
    https://www.chromium.org/developers/design-documents/sandbox/osx-sandboxing-design/[Seatbelt Sandboxes] on Mac-OSX).
 
-1. *Resource sandboxing*: Bazel also has the ability to limit CPU/Memory usage, which eliminates the noisy neighbour
+1. *Resource sandboxing*: Bazel also has the ability to limit CPU/Memory usage
+  (https://github.com/bazelbuild/bazel/pull/21322), which eliminates the noisy neighbour
    problem and ensures a build step or test gets the same compute footprint whether run alone
-   during development or 96x parallel on a CI worker (https://github.com/bazelbuild/bazel/pull/21322).
+   during development or 96x parallel on a CI worker.
    Otherwise it's common for tests to pass when run alone during manual development, then timeout
    or OOM when run in CI under resource pressure from other tests hogging the CPU or RAM
 
@@ -260,5 +274,6 @@ bring down CI times, sandboxing improvements to reduce flakiness, and structured
 of replacing the ubiquitous folder-full-of-bash-scripts. It is these features that really
 let a codebase _scale_, allowing you to grow your developer team from 100 to 1,000 developers
 and beyond without everything grinding to a halt. That is why people use "monorepo build tools"
-like Bazel or Mill.
+like Mill (most suitable for projects 10-1,000 active developers) or Bazel
+(most suitable for larger projects 100-10,000 active developers) .
 
