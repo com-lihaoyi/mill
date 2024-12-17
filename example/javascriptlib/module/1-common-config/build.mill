@@ -13,6 +13,10 @@ object foo extends TypeScriptModule {
     super.allSources() ++ customSource()
   }
 
+  def resources = Task.Sources {
+    super.resources() ++ Seq(PathRef(millSourcePath / "custom-resources"))
+  }
+
   def generatedSources = Task {
     for (name <- Seq("A", "B", "C")) os.write(
       Task.dest / s"foo-$name.ts",
@@ -48,4 +52,16 @@ Hello B
 Hello C
 my-env-value
 MyResource: My Resource Contents
+
+> mill foo.bundle
+Build succeeded!
+
+> MY_CUSTOM_ENV=my-env-value node out/foo/bundle.dest/bundle.js
+hello2
+Hello A
+Hello B
+Hello C
+my-env-value
+MyResource: My Resource Contents
+MyOtherResource: My Other Resource Contents
 */

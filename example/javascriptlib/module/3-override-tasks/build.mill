@@ -8,7 +8,6 @@ object foo extends TypeScriptModule {
     val srcPath = millSourcePath / "src"
     val filePath = srcPath / "foo.ts"
 
-    // Ensure the directory exists
     os.makeDir.all(srcPath)
 
     os.write.over(

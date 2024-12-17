@@ -38,40 +38,52 @@ trait TypeScriptModule extends Module { outer =>
 
   def sources: T[PathRef] = Task.Source(millSourcePath / "src")
 
+  def resources: T[Seq[PathRef]] = Task { Seq(PathRef(millSourcePath / "resources")) }
+
   def generatedSources: T[Seq[PathRef]] = Task { Seq[PathRef]() }
 
-  def resources: Task[IndexedSeq[PathRef]] = Task.Anon {
-    val resourcePath = millSourcePath / "resources"
-    val compiledResourcePath = Task.dest / "typescript" / "resources"
-    val indexFile = compiledResourcePath / "index.ts"
+  private def resourceHandler: Task[IndexedSeq[PathRef]] = Task.Anon {
+    val compiledResourcePath = Task.dest / "typescript"
 
-    if (!os.exists(resourcePath) || os.list(resourcePath).isEmpty) {
-      IndexedSeq.empty[PathRef]
-    } else if (os.exists(resourcePath / "index.ts")) {
-      IndexedSeq(PathRef(resourcePath / "index.ts"))
-    } else {
-      os.makeDir.all(compiledResourcePath)
-      val files = os.list(resourcePath)
-        .filter(os.isFile)
-        .filter(_.last != "index.ts")
-
-      val exports = files.map { file =>
-        val fileName = file.last
-        val key = fileName.takeWhile(_ != '.')
-        s"""    "$key": path.join(__dirname, process.env.RESOURCE_DIR || "", './$fileName')"""
-      }.mkString(",\n")
-
-      val content =
-        s"""import * as path from 'path';
-           |
-           |export default {
-           |$exports
-           |}
-           |""".stripMargin
-
-      os.write(indexFile, content)
-      IndexedSeq(PathRef(indexFile))
+    def envName(input: String): String = {
+      val cleaned = input.replaceAll("[^a-zA-Z0-9]", "") // remove special characters
+      cleaned.toUpperCase
     }
+
+    resources().toIndexedSeq.flatMap { rp =>
+      val resourceRoot = rp.path.last
+      val indexFile = compiledResourcePath / resourceRoot / "index.ts"
+      if (!os.exists(rp.path) || os.list(rp.path).isEmpty) {
+        IndexedSeq.empty[PathRef]
+      } else if (os.exists(rp.path / "index.ts")) {
+        IndexedSeq(PathRef(rp.path / "index.ts"))
+      } else {
+        os.makeDir.all(compiledResourcePath / resourceRoot)
+        val files = os.list(rp.path)
+          .filter(os.isFile)
+          .filter(_.last != "index.ts")
+
+        val exports = files.map { file =>
+          val fileName = file.last
+          val key = fileName.takeWhile(_ != '.')
+          s"""    "$key": path.join(__dirname, process.env.${envName(
+              resourceRoot
+            )} || "", './$fileName')"""
+        }.mkString(",\n")
+
+        val content =
+          s"""import * as path from 'path';
+             |
+             |export default {
+             |$exports
+             |}
+             |""".stripMargin
+
+        os.write(indexFile, content)
+        IndexedSeq(PathRef(indexFile))
+      }
+    }
+
   }
 
   def allSources: Task[IndexedSeq[PathRef]] =
@@ -82,7 +94,7 @@ trait TypeScriptModule extends Module { outer =>
         file <- os.walk(pr.path)
         if fileExt(file)
       } yield PathRef(file)
-      os.walk(sources().path).filter(fileExt).map(PathRef(_)) ++ resources() ++ generated
+      os.walk(sources().path).filter(fileExt).map(PathRef(_)) ++ resourceHandler() ++ generated
     }
 
   // specify tsconfig.compilerOptions
@@ -98,20 +110,27 @@ trait TypeScriptModule extends Module { outer =>
   def compilerOptionsPaths: Task[Map[String, String]] =
     Task.Anon { Map("*" -> npmInstall().path.toString()) }
 
+  // todo:
   def upstreamPathsBuilder: Task[Seq[(String, String)]] = Task.Anon {
     val upstreams = (for {
       ((comp, ts), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
     } yield {
-      Seq(
-        (
-          mod.millSourcePath.subRelativeTo(Task.workspace).toString + "/*",
-          (ts.path / "src").toString + ":" + (comp.path / "declarations").toString
-        ),
-        (
-          mod.millSourcePath.subRelativeTo(Task.workspace).toString + "/resources/*",
-          (ts.path / "resources").toString + ":" + (comp.path / "declarations").toString
-        )
-      )
+      //  (
+      //          mod.millSourcePath.subRelativeTo(Task.workspace).toString + "/resources/*",
+      //          (ts.path / "resources").toString + ":" + (comp.path / "declarations").toString
+      //        )
+      Seq((
+        mod.millSourcePath.subRelativeTo(Task.workspace).toString + "/*",
+        (ts.path / "src").toString + ":" + (comp.path / "declarations").toString
+      )) ++
+        resources().map { rp =>
+          val resourceRoot = rp.path.last
+          (
+            mod.millSourcePath.subRelativeTo(Task.workspace).toString + s"/$resourceRoot/*",
+            (ts.path / resourceRoot).toString + ":" + (comp.path / "declarations").toString
+          )
+
+        }
     }).flatten
 
     upstreams
@@ -121,13 +140,14 @@ trait TypeScriptModule extends Module { outer =>
     val module = millSourcePath.last
     val declarationsOut = Task.dest / "declarations"
 
-    Seq(
-      (
-        s"$module/resources/*",
-        (Task.dest / "typescript/resources").toString + ":" + declarationsOut.toString
-      ),
-      (s"$module/*", sources().path.toString + ":" + declarationsOut.toString)
-    )
+    Seq((s"$module/*", sources().path.toString + ":" + declarationsOut.toString)) ++
+      resources().map { rp =>
+        val resourceRoot = rp.path.last
+        (
+          s"$module/$resourceRoot/*",
+          (Task.dest / "typescript" / resourceRoot).toString + ":" + declarationsOut.toString
+        )
+      }
   }
 
   def compilerOptionsBuilder: Task[Map[String, ujson.Value]] = Task.Anon {
@@ -231,13 +251,45 @@ trait TypeScriptModule extends Module { outer =>
   // configure esbuild with @esbuild-plugins/tsconfig-paths
   def bundleScriptBuilder: Task[String] = Task.Anon {
     val bundle = Task.dest / "bundle.js"
-    val resourcePath = compile()._2.path / "resources"
+    val rps = resources().map { p => p.path }
+
+    def envName(input: String): String = {
+      val cleaned = input.replaceAll("[^a-zA-Z0-9]", "") // remove special characters
+      cleaned.toUpperCase
+    }
 
     val flags = bundleFlags().map { case (key, value) =>
       s"""  $key: $value,"""
     }.mkString("\n")
 
-    //  ['$resourcePath' + '/**/*'],
+    val copyPluginCode =
+      s"""
+         |  plugins: [
+         |  Copy({
+         |    resolveFrom: 'cwd',
+         |    assets: [
+         |      ${rps
+          .map { rp =>
+            val filesToCopy =
+              os.list(rp).filter(os.isFile).filter(_.last != "index.ts")
+            filesToCopy
+              .map { file =>
+                s"""{ from: join('$rp', '${file.last}'), to: ['${Task.dest}' + '/${rp.last}'] }"""
+              }
+              .mkString(",\n")
+          }
+          .mkString(",\n")}
+         |    ]
+         |  }),
+         |  TsconfigPathsPlugin({tsconfig: 'tsconfig.json'}),
+         |  ],
+         |""".stripMargin
+
+    val defineSection = resources().map { rp =>
+      val resourceRoot = rp.path.last
+      val envVarName = envName(resourceRoot)
+      s""" "process.env.$envVarName": JSON.stringify("./$resourceRoot")"""
+    }.mkString(",\n")
 
     s"""|import * as esbuild from 'node_modules/esbuild';
         |import TsconfigPathsPlugin from 'node_modules/@esbuild-plugins/tsconfig-paths'
@@ -245,24 +297,12 @@ trait TypeScriptModule extends Module { outer =>
         |import {join} from 'path';
         |import {readdirSync} from 'fs';
         |
-        |// Dynamically filter out `index.ts`
-        |const filesToCopy = readdirSync('$resourcePath').filter(file => file !== 'index.ts');
-        |
         |esbuild.build({
         |  $flags
         |  outfile: '$bundle',
-        |  plugins: [
-        |  Copy({
-        |    resolveFrom: 'cwd',
-        |    assets: {
-        |       from: filesToCopy.map(file => join('$resourcePath', file)),
-        |       to: ['${Task.dest}' + '/resources']
-        |    }
-        |  }),
-        |  TsconfigPathsPlugin({tsconfig: 'tsconfig.json'}),
-        |  ],
+        |  $copyPluginCode
         |  define: {
-        |        "process.env.RESOURCE_DIR": JSON.stringify("./resources") // replace '__dirname' in builds
+        |       $defineSection // replace '__dirname' in builds
         |    },
         |  external: [${bundleExternal().mkString(", ")}] // Exclude Node.js built-ins
         |}).then(() => {
