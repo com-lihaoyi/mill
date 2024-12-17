@@ -1,0 +1,219 @@
+// tag::header[]
+
+# What's Needed in a Monorepo Build Tool?
+
+
+:author: Li Haoyi
+:revdate: 17 December 2024
+_{author}, {revdate}_
+
+
+Software build tools mostly fall into two categories:
+
+1. Single-language build tools targeting a single technology, e.g.
+   Maven (Java), Poetry (Python), Cargo (Rust)
+
+2. Monorepo build tools targeting large codebases, e.g. Bazel, Pants, Buck, and Mill
+
+One question that comes up constantly is why do people use Monorepo build tools at all? Tools
+like Bazel are orders of magnitude more complicated and hard to use than tools
+like Poetry or Npm, so why do people use Bazel at all?
+https://knowyourmeme.com/memes/is-he-stupid-is-she-smart-are-they-stupid[Are they stupid?]
+
+It turns out that Monorepo build tools like Bazel or Mill do a lot of non-obvious things that
+other build tools don't, that become important in larger codebases (100-10,000 active developers).
+These features are generally irrelevant for smaller projects, which explains why most people
+do not miss them. But past a certain size of codebase and engineering organization these
+features become crucial. We'll explore some of the core features of "Monorepo Build Tools"
+below.
+
+// end::header[]
+
+## Support for Multiple Languages
+
+While small software projects usually start in one programming language, larger ones
+inevitably grow more heterogenous over time. For example, you may be building a Go binary
+and Rust library which are both used in a Python executable, which is then tested using a
+Bash script and deployed as part of a Java backend server. The Java backend server may also
+server a front-end web interface compiled from Typescript.
+
+The reality of working in any large codebase and organization, such rube-goldberg
+code paths _do_ happen on a regular basis, and any monorepo build tool has to accommodate them.
+If the build tool does not accommodate multiple languages, then what ends up happening is you
+end up having lots of small build tools wired together. Taking the example above,
+you may have:
+
+- A simple Maven build for your backend server,
+- A simple Webpack build for the Web frontend
+- A simple Poetry build for your Python executable
+- A simple Cargo build for your Rust library
+- A simple Go build for your Go binary
+
+But none of those tools are sufficient to build, test or deploy your project! Instead, you
+end up having a `bin/` or `build/` folder full of `.sh` scripts that wire up these simpler
+per-language build tools in ad-hoc ways. And while the individual language-specific build
+tools may be excellently-designed and well-maintained, the rats nest of shell scripts usually
+ends up a complete mess that is difficult to impossible to work with.
+
+## Support for Custom Build Tasks
+
+As projects get large, they also get more unique. Every hello-world Java or Python or
+Javascript project looks about the same, but larger projects start having unusual
+requirements that no-one else does, for example:
+
+- Invoking a bespoke code-generator to integrate with your company's internal RPC system
+
+- Downloading third-party dependency sources, patching them, and building them from source
+  to work around issues that you have fixed but not yet succeeded in upstreaming
+
+- Generating custom deployment artifact formats to support that one legacy datacenter you
+  need to get your code running in
+
+The happy paths in build tools are usually great, and the slightly-off-the-beaten-path
+workflows usually have third-party plugins supporting them: things like linting, generating
+docker containers, and so on. But as any growing software organization quickly finds itself
+with build-time use cases that nobody else in the world has. At that point the paved paths
+have ended and the build engineers will need to implement the custom build tasks themselves
+
+Every build tool allows some degree of customization, but how easy and flexible they are
+differs from tool to tool. e.g. a build tool like Maven requires its plugins to fit into
+a very restricted Build Lifecycle (https://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html[link]):
+this is good when compiling Java source code is all you need to do, but can be problematic when
+you need to do something more far afield. The alternative is the afore-mentioned rats-nest
+of shell scripts - either wrapping or wrapped by the traditional build tools - that implement
+the custom build tasks you require.
+
+## Automatically Caching and Parallelizing Everything
+
+In most build tools, caching is opt in, so the core build/compile tasks usually end up getting
+cached but everything else is not and ends up being wastefully recomputed all the time. In
+Monorepo build tools like Bazel or Mill, everything is cached and everything is parallelized.
+Even tests are cached so if you run a test twice on the same code and inputs (transitively),
+the second time it is skipped.
+
+The importance of caching and parallelism grows together with the codebase:
+
+- For smaller codebases, you do not need to cache or parallelize at all: compilation and
+  testing are fast enough that you can just run them every time from a clean slate without inconvenience
+
+- For medium-sized codebases, caching and parallelizing the slowest tasks (e.g. compilation
+  or testing) is usually enough. Most build tools have some support for manually opting-in to
+  some kind of caching or parallelization framework, and although you will likely miss out
+  on many "ad-hoc" build tasks that still run un-cached and sequentially, those are few
+  enough not to matter
+
+- For large codebases, you want everything to be cached and parallelized. Caching just the
+  "core" build tasks is no longer enough, and any non-cached or non-parallel build tasks
+  results in noticeable slowness and inconvenience.
+
+Take ad-hoc source code generation as an example: a small codebase may not have any! A
+medium-sized codebase may have some but little enough that it doesn't matter if it runs
+sequentially un-cached. But a large codebase has enough may have multiple RPC IDL
+code generators, static resource pre-processors, that not caching and parallelizing these
+ad-hoc build tasks causes real inconvenience.
+
+
+## Seamless Remote Caching
+
+"Remote caching" means I can compile something on my laptop, you download it to your laptop
+for usage. "Seamless" means I don't need to do anything to get this behavior: no manual
+commands to upload and download, so the distribution of build outputs from my laptop to
+yours happens completely automatically.
+
+This also applies to tests: e.g. if TestFoo was run in CI on master, if I pull
+master and run all tests without changing the Foo code, TestFoo is skipped and uses the
+CI result.
+
+Bazel, Pants, and many other monorepo build tools support this out of the box, with
+open source back-end servers such as https://github.com/buchgr/bazel-remote[Bazel Remote].
+The clients and servers all conform to a https://github.com/bazelbuild/remote-apis[standardize
+protocol], so you can easily drop in a new server or new build client and have it work
+with all your existing infrastructure.
+
+## Remote Execution
+
+"Remote execution" means that I can run "compile" on my laptop and have it automatically
+happen in the cloud on 96 core machines, or I run a lot of tests (e.g. after a big refactor)
+on my laptop and it automatically gets farmed out to run 1024x parallel on a large compute cluster.
+
+Remote execution is valuable for two reasons:
+
+1. *Better Parallelism*:
+   The largest EC2 machines you can get are typically around 96 cores, whereas if you farm
+   out the execution to a cluster you can easily run on many 100s of cores in parallel
+
+2. *Better Utilization*: e.g. If you
+   give every individual a 96 core devbox, most of the time when they are not actively running
+   anything (e.g. they are thinking, typing, talking to someone, etc.) those 96 cores are
+   completely idle. It's not usual for utilization on devboxes to be <1% while you are still
+   paying for the other 99% of idle CPU time. In contrast, an auto-scaling remote execution
+   cluster can spin down machines that are not in use, and achieve >50% utilization rates
+
+One surprising thing is that remote execution can be both faster _and_ cheaper_than running
+things locally on a laptop or devbox! Running 256 cores for 1 minute doesn't cause any more
+cloud spending than running 16 cores for 16 minutes, even though the former finishes 16x
+faster! And due to the improved utilization from remote execution clusters, the total savings
+can be significant.
+
+## Dependency based test selection
+
+When using Bazel to build a large project, you can use bazel query to determine the possible
+targets and tests affected by a code change, allowing you to easily set up pull-request validation
+to only run tests downstream of a PR diff and skip unrelated ones. The Mill build tool also supports
+this, as xref:mill:ROOT:large/selective-execution.adoc[Selective Execution].
+
+Any large codebase that doesn't use a monorepo build tool ends up re-inventing this manually, e.g.
+consider this code in apache/spark that re-implements this in a Python script that wraps
+`mvn` or `sbt` (which are build tools that do not provide this functionality)
+https://github.com/apache/spark/blob/290b4b31bae2e02b648d2c5ef61183f337b18f8f/dev/sparktestsupport/modules.py#L108-L126.
+
+
+## Automatic sandboxing of your build steps
+
+There are two kinds of sandboxing that monorepo build tools like Bazel do:
+
+1. *Semantic sandboxing*: this ensures your build tasks do not make use of un-declared files,
+   or write to places on disk that can affect other tasks. In most build tools, this
+   kind of mistake results in confusing nondeterministic parallelism and cache invalidation
+   problems down the road, where e.g. your build step may rely on a file on disk but not realize
+   it needs to re-compute when the file changes. In Bazel, these mis-configurations result in a
+   deterministic error up front
+
+1. *Resource sandboxing*: Bazel also has the ability to limit CPU/Memory usage, which eliminates the noisy neighbour
+   problem and ensures a build step or test gets the same compute footprint whether run alone
+   during development or 96x parallel on a CI worker (https://github.com/bazelbuild/bazel/pull/21322).
+   Otherwise it's common for tests to pass when run during manual development then timeout or OOM
+   when run in CI under resource pressure due to other tests hogging the CPU or RAM
+
+Both kinds of sandboxing have the same goal: to make sure your build tasks behave the same
+way no matter how they are run sequentially or in parallel with one another.
+
+While Bazel uses CGroups and other kernel features to implement sandboxing,
+the Mill build tool supports a xref:mill:ROOT:depth/sandboxing.adoc[lighter-weight sandboxing]
+just by running tasks and subprocesses in sandbox directories. But the end goal of trying to
+add best-effort guardrails to mitigate race conditions and non-determinism is the same.
+
+## Who Needs Monorepo Build Tools?
+
+Most small projects never need the features listed above: small projects build quickly
+without any optimizations, use a single language toolchain without customization, and
+any bugs related to non-determinism or resource footprint can usually be investigated
+and dealt with manually. Any missing build-tool features can be papered over with shell
+scripts.
+
+That is how every small project starts, and as most small projects never grow big you
+can go quite a distance without needing anything more.
+
+But once in a while, a project _does_ grow large. Sometimes the rocket-ship really _does_
+take off! In such cases, as the number of developers grows from 1 to 10 to 1,000,
+you will inevitably start feeling pain:
+
+1. Local build times slowing to a crawl on your laptop, using 1 out of 16 available CPUs
+2. Pull-request validation taking 4 hours to run mostly-unnecessary tests with a 50% flake rate
+3. An unmaintainable multi-layer jungle of shell, Python, and Make scripts layered on
+   top of your classic build tools like Maven/Poetry/Cargo, that everyone knows should be
+   cleaned up but nobody knows how.
+
+It is when you hit these really pain points that adopting a "monorepo build tool" like
+Maven, Buck, Pants, or Mill becomes valuable.
+

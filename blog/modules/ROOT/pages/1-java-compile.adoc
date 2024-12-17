@@ -3,7 +3,9 @@
 # How Fast Does Java Compile?
 :page-aliases: xref:mill:ROOT:comparisons/java-compile.adoc
 
-_Li Haoyi, 29 November 2024_
+:author: Li Haoyi
+:revdate: 29 November 2024
+_{author}, {revdate}_
 
 include::mill:ROOT:partial$gtag-config.adoc[]
 
