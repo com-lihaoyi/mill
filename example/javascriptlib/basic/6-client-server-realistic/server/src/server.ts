@@ -6,7 +6,7 @@ import api from "./api"
 const app: Express = express();
 const port = process.env.PORT || 3001;
 
-const resource = process.env.RESOURCES || ""
+const resource = process.env.SERVER_RESOURCES || ""
 const client = resource + "/build"
 
 app.use(cors());

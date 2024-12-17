@@ -2,7 +2,7 @@ import * as http from 'http';
 import * as fs from 'fs';
 import * as path from 'path';
 
-const resource = process.env.RESOURCES || ""
+const resource = process.env.SERVER_RESOURCES || ""
 const client = resource + "/build"
 
 const server = http.createServer((req, res) => {

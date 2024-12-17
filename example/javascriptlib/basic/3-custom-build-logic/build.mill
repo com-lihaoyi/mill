@@ -9,15 +9,15 @@ object foo extends TypeScriptModule {
     allSources().map(f => os.read.lines(f.path).size).sum
   }
 
-  /** Generate resources using lineCount of sources */
-  def resources = Task {
+  /** Generate lineResource using lineCount of sources */
+  def lineResource = Task {
     os.write(Task.dest / "line-count.txt", "" + lineCount())
     PathRef(Task.dest)
   }
 
   // define resource path for the node app
   override def mkENV = Task {
-    super.mkENV() ++ Map("RESOURCE_PATH" -> resources().path.toString)
+    super.mkENV() ++ Map("RESOURCE_PATH" -> lineResource().path.toString)
   }
 
   object test extends TypeScriptTests with TestModule.Jest
@@ -36,13 +36,13 @@ Tests:...2 passed, 2 total...
 ...
 
 > mill foo.run
-[Reading file:] .../out/foo/resources.dest/line-count.txt
+[Reading file:] .../out/foo/lineResource.dest/line-count.txt
 Line Count: ...
 
 > mill show foo.bundle
 Build succeeded!
 
-> node out/foo/bundle.dest/bundle.js out/foo/resources.dest/
+> node out/foo/bundle.dest/bundle.js out/foo/lineResource.dest/
 [Reading file:] .../line-count.txt
 Line Count: ...
 */

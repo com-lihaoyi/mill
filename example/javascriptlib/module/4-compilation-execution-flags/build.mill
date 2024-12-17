@@ -15,7 +15,6 @@ object foo extends TypeScriptModule {
     }
 }
 
-
 // Documentation for mill.example.javascriptlib
 
 // This example demonstrates defining compilation execution flags

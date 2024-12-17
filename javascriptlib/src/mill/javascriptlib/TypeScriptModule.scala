@@ -114,10 +114,6 @@ trait TypeScriptModule extends Module { outer =>
     val upstreams = (for {
       ((comp, ts), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
     } yield {
-      //  (
-      //          mod.millSourcePath.subRelativeTo(Task.workspace).toString + "/resources/*",
-      //          (ts.path / "resources").toString + ":" + (comp.path / "declarations").toString
-      //        )
       Seq((
         mod.millSourcePath.subRelativeTo(Task.workspace).toString + "/*",
         (ts.path / "src").toString + ":" + (comp.path / "declarations").toString
@@ -250,7 +246,7 @@ trait TypeScriptModule extends Module { outer =>
   // configure esbuild with @esbuild-plugins/tsconfig-paths
   def bundleScriptBuilder: Task[String] = Task.Anon {
     val bundle = Task.dest / "bundle.js"
-    val rps = resources().map { p => p.path }
+    val rps = resources().map { p => p.path }.filter(os.exists)
 
     def envName(input: String): String = {
       val cleaned = input.replaceAll("[^a-zA-Z0-9]", "") // remove special characters

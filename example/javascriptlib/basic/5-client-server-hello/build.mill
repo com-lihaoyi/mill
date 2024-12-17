@@ -4,14 +4,14 @@ import mill._, javascriptlib._
 object client extends ReactScriptsModule
 
 object server extends TypeScriptModule {
-  override def mkENV = Task {
-    super.mkENV() ++ Map("PORT" -> "3000")
+
+  def serverResource = Task {
+    os.copy(client.bundle().path, Task.dest / "build")
+    PathRef(Task.dest)
   }
 
-  override def resources = Task {
-    val clientBundle = client.bundle().path
-    os.copy(clientBundle, Task.dest / "build")
-    PathRef(Task.dest)
+  override def mkENV = Task {
+    super.mkENV() ++ Map("PORT" -> "3000", "SERVER_RESOURCES" -> serverResource().path.toString)
   }
 
   object test extends TypeScriptTests with TestModule.Jest
