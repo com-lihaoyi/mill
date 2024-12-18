@@ -109,10 +109,12 @@ private[mill] object SelectiveExecution {
 
     val changedRootTasks = (changedInputNames ++ changedCodeNames)
       .flatMap(namesToTasks.get(_): Option[Task[_]])
+      .filter(_.selective)
 
     val allNodes = breadthFirst(terminals.map(_.task: Task[_]))(_.inputs)
     val downstreamEdgeMap = allNodes
       .flatMap(t => t.inputs.map(_ -> t))
+      .filter { t => t._1.selective && t._2.selective }
       .groupMap(_._1)(_._2)
 
     breadthFirst(changedRootTasks)(downstreamEdgeMap.getOrElse(_, Nil))

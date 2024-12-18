@@ -28,3 +28,19 @@ object bar extends mill.define.TaskModule {
 
   def defaultCommandName(): String = "barCommand"
 }
+object qux extends mill.define.Module {
+  def quxTask = Task.Source(millSourcePath / "qux.txt")
+
+  def quxNonSelective = Task.nonSelective(quxTask)
+  def quxSelective = Task{ quxTask() }
+
+  def quxCommandNonSelective() = Task.Command {
+    System.out.println("Computing quxCommandNonSelective")
+    quxNonSelective().path
+  }
+  def quxCommandSelective() = Task.Command {
+    System.out.println("Computing quxCommandSelective")
+    quxSelective().path
+  }
+
+}

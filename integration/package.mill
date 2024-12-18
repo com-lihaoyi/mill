@@ -36,6 +36,8 @@ object `package` extends RootModule {
     def runClasspath: T[Seq[PathRef]]
     def localRunClasspath: T[Seq[PathRef]]
     def forkEnv: T[Map[String, String]]
+
+    def localLauncher = Task{ build.dist.launcher() }
     trait ModeModule extends build.MillBaseTestsModule {
 
       def mode: String = millModuleSegments.parts.last
@@ -54,9 +56,10 @@ object `package` extends RootModule {
 
       def forkArgs = Task { super.forkArgs() ++ build.dist.forkArgs() }
 
+
       def testReleaseEnv =
         if (mode == "local")
-          T { Map("MILL_INTEGRATION_LAUNCHER" -> build.dist.launcher().path.toString()) }
+          T { Map("MILL_INTEGRATION_LAUNCHER" -> localLauncher().path.toString()) }
         else T { Map("MILL_INTEGRATION_LAUNCHER" -> testMill().path.toString()) }
 
       def resources = IntegrationTestModule.this.resources()

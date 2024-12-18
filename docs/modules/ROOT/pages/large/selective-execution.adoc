@@ -53,3 +53,12 @@ def myProjectVersion: T[String] = Task.Input {
   whether on disk locally or printing it out (e.g via `cat`) on your CI machines to diagnose issues
   there. This would give you a richer view of what source tasks or inputs are the ones actually
   triggered the invalidation, and what tasks were just invalidated due to being downstream of them.
+
+
+== Non-Selective Tasks
+
+
+include::partial$example/large/selective/10-non-selective.adoc[]
+
+
+

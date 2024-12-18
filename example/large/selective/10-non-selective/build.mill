@@ -1,0 +1,49 @@
+// In some circumstances, you may want to disable selective execution for
+// certain task dependencies. For example, you may have a task that contains its own
+// test suite, and so exercising all downstream test suites during selective
+// execution would be redundant. You can make a task dependency not considered
+// during selective execution via `Task.NonSelective`:
+
+package build
+import mill._
+
+object qux extends mill.define.Module {
+  def quxSource = Task.Source(millSourcePath / "qux.txt")
+
+  def quxNonSelective = Task.nonSelective(quxSource)
+
+  def quxSelective = Task { quxSource() }
+
+  def quxCommandNonSelective() = Task.Command {
+    System.out.println("Computing quxCommandNonSelective")
+    quxNonSelective().path
+  }
+  def quxCommandSelective() = Task.Command {
+    System.out.println("Computing quxCommandSelective")
+    quxSelective().path
+  }
+}
+
+// In this example, `quxNonSelective` is an anonymous `Task.NonSelective`, meaning that
+// dependencies on `quxNonSelective` are not considered during selective execution. Thus,
+// if you make a change to `qux/qux.txt`, only `quxCommandSelective` is run, while
+// `quxCommandNonSelective` is ignored:
+
+/** Usage
+
+> ./mill selective.prepare qux._
+
+> echo "" >> qux/qux.txt
+
+> ./mill selective.resolve qux._ # does not resolve `quxCommandNonSelective`
+qux.quxSource
+qux.quxSelective
+qux.quxCommandSelective
+
+> ./mill selective.run qux._ # does not run `quxCommandNonSelective`
+Computing quxCommandSelective
+
+*/
+
+// `Task.NonSelective` can be used to wrap any task reference to ignore it during selective
+// execution.

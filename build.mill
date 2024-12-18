@@ -646,7 +646,7 @@ def formatDep(dep: Dep) = {
 def listIn(path: os.Path) = interp.watchValue(os.list(path).map(_.last))
 
 object idea extends MillPublishScalaModule {
-  def moduleDeps = Seq(build.scalalib, build.runner)
+  def moduleDeps = Seq(build.scalalib, build.scalajslib, build.scalanativelib, build.runner)
 }
 
 

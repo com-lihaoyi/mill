@@ -51,6 +51,18 @@ object `package` extends RootModule with Module {
     object publishing extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "publishing"))
     object web extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "web"))
   }
+
+  trait ExampleCrossModuleKotlin extends ExampleCrossModuleJava {
+
+    override def localLauncher = build.dist.kotlinlib.launcher()
+    override def lineTransform(line: String) = this.millModuleSegments.parts.last match {
+      case "1-test-suite" => line
+        .replace("mill bar.test bar.BarTests.hello", "kotest_filter_tests='hello' kotest_filter_specs='bar.BarTests' ./mill bar.test")
+        .replace("compiling 1 ... source...", "Compiling 1 ... source...")
+      case _ => line
+    }
+  }
+
   object scalalib extends Module {
     object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))
     object module extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "module"))
@@ -61,15 +73,25 @@ object `package` extends RootModule with Module {
     object web extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "web"))
     object native extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "native"))
   }
+
   object javascriptlib extends Module {
-    object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))
-    object testing extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "testing"))
+    object basic extends Cross[ExampleCrossModuleJavascript](build.listIn(millSourcePath / "basic"))
+    object testing extends Cross[ExampleCrossModuleJavascript](build.listIn(millSourcePath / "testing"))
   }
+
+  trait ExampleCrossModuleJavascript extends ExampleCrossModule{
+    override def localLauncher = build.dist.javascriptlib.launcher()
+  }
+
   object pythonlib extends Module {
-    object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))
-    object dependencies extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "dependencies"))
-    object publishing extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "publishing"))
-    object module extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "module"))
+    object basic extends Cross[ExampleCrossModulePython](build.listIn(millSourcePath / "basic"))
+    object dependencies extends Cross[ExampleCrossModulePython](build.listIn(millSourcePath / "dependencies"))
+    object publishing extends Cross[ExampleCrossModulePython](build.listIn(millSourcePath / "publishing"))
+    object module extends Cross[ExampleCrossModulePython](build.listIn(millSourcePath / "module"))
+  }
+
+  trait ExampleCrossModulePython extends ExampleCrossModule{
+    override def localLauncher = build.dist.pythonlib.launcher()
   }
 
   object cli extends Module{
@@ -105,16 +127,6 @@ object `package` extends RootModule with Module {
     object jvmcode extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "jvmcode"))
     object python extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "python"))
     object typescript extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "typescript"))
-  }
-
-  trait ExampleCrossModuleKotlin extends ExampleCrossModuleJava {
-
-    override def lineTransform(line: String) = this.millModuleSegments.parts.last match {
-      case "1-test-suite" => line
-        .replace("mill bar.test bar.BarTests.hello", "kotest_filter_tests='hello' kotest_filter_specs='bar.BarTests' ./mill bar.test")
-        .replace("compiling 1 ... source...", "Compiling 1 ... source...")
-      case _ => line
-    }
   }
 
   trait ExampleCrossModuleJava extends ExampleCrossModule {

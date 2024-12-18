@@ -266,5 +266,18 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
           Seq("bar.barCommandRenamed", "foo.fooCommand", "foo.fooTaskRenamed")
       )
     }
+    test("non-selective") - integrationTest { tester =>
+      import tester._
+      eval(("selective.prepare", "qux._"), check = true)
+
+      modifyFile(workspacePath / "qux" / "qux.txt", _ + "!")
+
+      val cached = eval(("selective.resolve", "qux._"))
+
+      assert(
+        cached.out.linesIterator.toSet ==
+          Set("qux.quxTask", "qux.quxSelective", "qux.quxCommandSelective")
+      )
+    }
   }
 }

@@ -45,9 +45,17 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] {
     case c: Command[_] if c.exclusive => true
     case _ => false
   }
+
+  def selective: Boolean = true
 }
 
 object Task extends TaskBase {
+
+  private class NonSelectiveTask[+T](t: Task[T]) extends Task[T] {
+    val inputs: Seq[Task[_]] = Seq(t)
+    def evaluate(args: mill.api.Ctx): Result[T] = Result.Success(args.args(0).asInstanceOf[T])
+    override def selective = false
+  }
 
   /**
    * A specialization of [[InputImpl]] defined via `Task.Sources`, [[SourcesImpl]]
@@ -155,6 +163,7 @@ object Task extends TaskBase {
    */
   def Anon[T](t: Result[T]): Task[T] = macro Applicative.impl[Task, T, mill.api.Ctx]
 
+  def nonSelective[T](t: Task[T]): Task[T] = new NonSelectiveTask(t)
   @deprecated(
     "Creating a target from a task is deprecated. You most likely forgot a parenthesis pair `()`",
     "Mill after 0.12.0-RC1"
@@ -758,8 +767,11 @@ class TargetImpl[+T](
     val t: Task[T],
     val ctx0: mill.define.Ctx,
     val readWriter: RW[_],
-    val isPrivate: Option[Boolean]
+    val isPrivate: Option[Boolean],
+    override val selective: Boolean = true
 ) extends Target[T] {
+  def this(t: Task[T], ctx0: mill.define.Ctx, readWriter: RW[_], isPrivate: Option[Boolean]) =
+    this(t, ctx0, readWriter, isPrivate, true)
   override def asTarget: Option[Target[T]] = Some(this)
   // FIXME: deprecated return type: Change to Option
   override def readWriterOpt: Some[RW[_]] = Some(readWriter)
@@ -769,8 +781,11 @@ class PersistentImpl[+T](
     t: Task[T],
     ctx0: mill.define.Ctx,
     readWriter: RW[_],
-    isPrivate: Option[Boolean]
+    isPrivate: Option[Boolean],
+    override val selective: Boolean = true
 ) extends TargetImpl[T](t, ctx0, readWriter, isPrivate) {
+  def this(t: Task[T], ctx0: mill.define.Ctx, readWriter: RW[_], isPrivate: Option[Boolean]) =
+    this(t, ctx0, readWriter, isPrivate, true)
   override def flushDest = false
 }
 
