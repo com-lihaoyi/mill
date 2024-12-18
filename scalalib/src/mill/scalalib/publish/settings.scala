@@ -44,6 +44,7 @@ object Scope {
   case object Provided extends Scope
   case object Runtime extends Scope
   case object Test extends Scope
+  case object Import extends Scope
 }
 
 case class Dependency(
