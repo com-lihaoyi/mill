@@ -36,7 +36,12 @@ public class InputPumper implements Runnable {
     byte[] buffer = new byte[1024];
     try {
       while (running) {
-        if (!runningCheck.getAsBoolean()) running = false;
+        if (!runningCheck.getAsBoolean()) {
+          running = false;
+          // We need to check `.available` and avoid calling `.read`, because if we call `.read`
+          // and there is nothing to read, it can unnecessarily delay the JVM exit by 350ms
+          // https://stackoverflow.com/questions/48951611/blocking-on-stdin-makes-java-process-take-350ms-more-to-exit
+        } else if (checkAvailable && src.available() == 0) Thread.sleep(1);
         else {
           int n;
           try {
