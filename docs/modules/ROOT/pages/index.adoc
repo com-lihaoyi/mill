@@ -34,7 +34,7 @@ offer a better alternative, letting your build system take full advantage of the
 Java platform's performance and usability:
 
 * *Performance*: Mill automatically
-xref:depth/evaluation-model.adoc#_caching_at_each_layer_of_the_evaluation_model[caches]
+xref:depth/execution-model.adoc#_caching_in_mill[caches]
 and xref:cli/flags.adoc#_jobs_j[parallelizes] build tasks to keep local development fast,
 and avoids the long configuration times seen in other tools like Gradle or SBT.
 xref:large/selective-execution.adoc[Selective execution] keeps

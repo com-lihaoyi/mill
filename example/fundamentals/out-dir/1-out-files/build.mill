@@ -218,8 +218,7 @@ out/mill-server
         "foo.compile": {}
       }
     }
-  },
-  ...
+  }
 }
 
 */
