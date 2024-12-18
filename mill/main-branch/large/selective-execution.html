@@ -770,6 +770,38 @@ triggered the invalidation, and what tasks were just invalidated due to being do
 </div>
 </div>
 </div>
+<div class="sect1">
+<h2 id="_limitations"><a class="anchor" href="#_limitations"></a>Limitations</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Selective execution can only work at the Mill Task granularity</strong>. e.g. When working with
+Java/Scala/Kotlin modules and test modules, the granularity of selection is at entire modules.
+That means that if your modules are individually large, selective execution may not be able
+to significantly narrow down the set of tests that need to run</p>
+</li>
+<li>
+<p><strong>Selective execution usually cannot narrow down the set of integration tests to run</strong>. Integration
+tests by their nature depend on the entire application or system, and run test cases that
+exercise different parts of it. But selective execution works at the task level and can only
+see that every integration test depends on the entire codebase, and so any change in the
+entire codebase could potentially affect any integration test, so selective execution will
+select all of them.</p>
+</li>
+<li>
+<p><strong>Selective execution is coarser-grained than runtime task caching</strong>. e.g. If you add a newline
+to a <code>foo/src/Foo.java</code> file and run <code>foo.testCached</code>, selective testing only knows that
+<code>foo.sources</code> changed and <code>foo.testCached</code> is downstream of it, but it cannot know that
+when you run <code>foo.compile</code> on the changed sources, the compilation output is unchanged, and
+so <code>.testCached</code> can be skipped. This is inherent in the nature of selective execution, which
+does its analysis without evaluation-time information and thus will always be more conservative
+than the task skipping and cache-reuse that is done during evaluation.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
 <nav class="pagination">
   <span class="prev"><a href="large.html">Large Builds and Monorepos</a></span>
   <span class="next"><a href="multi-file-builds.html">Multi-File Builds</a></span>
