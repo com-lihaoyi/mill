@@ -208,6 +208,20 @@ trait PublishModule extends JavaModule { outer =>
     PathRef(pomPath)
   }
 
+  /**
+   * Dependencies with version placeholder filled from BOMs, alongside with BOM data
+   */
+  @deprecated("Unused by Mill", "Mill after 0.12.4")
+  def bomDetails: T[(Map[coursier.core.Module, String], coursier.core.DependencyManagement.Map)] =
+    Task {
+      val (processedDeps, depMgmt) = defaultResolver().processDeps(
+        processedIvyDeps(),
+        resolutionParams = resolutionParams(),
+        boms = allBomDeps().toSeq.map(_.withConfig(Configuration.compile))
+      )
+      (processedDeps.map(_.moduleVersion).toMap, depMgmt)
+    }
+
   def ivy: T[PathRef] = Task {
     val content = ivy(hasJar = pomPackagingType != PackagingType.Pom)()
     val ivyPath = T.dest / "ivy.xml"
@@ -216,7 +230,7 @@ trait PublishModule extends JavaModule { outer =>
   }
 
   def ivy(hasJar: Boolean): Task[String] = Task.Anon {
-    val results = defaultResolver().processDeps(
+    val (results, bomDepMgmt) = defaultResolver().processDeps(
       Seq(
         BoundDep(
           coursierDependency.withConfiguration(Configuration.runtime),
@@ -225,9 +239,8 @@ trait PublishModule extends JavaModule { outer =>
       ),
       resolutionParams = resolutionParams()
     )
-    val bomDepMgmt = results.last._2
     val publishXmlDeps0 = {
-      val rootDepVersions = results.last._1.map(_.moduleVersion).toMap
+      val rootDepVersions = results.map(_.moduleVersion).toMap
       publishIvyDeps().apply(rootDepVersions, bomDepMgmt)
     }
     val overrides = {

@@ -251,7 +251,7 @@ object CoursierModule {
         deps: IterableOnce[T],
         resolutionParams: ResolutionParams = ResolutionParams(),
         boms: IterableOnce[BomDependency] = Nil
-    ): Seq[(Seq[coursier.core.Dependency], DependencyManagement.Map)] = {
+    ): (Seq[coursier.core.Dependency], DependencyManagement.Map) = {
       val deps0 = deps
         .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
         .iterator.toSeq
@@ -267,15 +267,13 @@ object CoursierModule {
         boms = boms0
       ).getOrThrow
 
-      deps0.map { dep =>
-        (
-          res.finalDependenciesCache.getOrElse(dep.dep, ???),
-          DependencyManagement.addDependencies(
-            Map.empty,
-            res.projectCache.get(dep.dep.moduleVersion).getOrElse(???)._2.dependencyManagement
-          )
+      (
+        res.finalDependenciesCache.getOrElse(deps0.head.dep, ???),
+        DependencyManagement.addDependencies(
+          Map.empty,
+          res.projectCache.get(deps0.head.dep.moduleVersion).getOrElse(???)._2.dependencyManagement
         )
-      }
+      )
     }
   }
 

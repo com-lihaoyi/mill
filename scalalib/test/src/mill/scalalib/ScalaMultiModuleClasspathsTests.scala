@@ -158,12 +158,12 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
           "out/ModMod/qux/compile.dest/classes"
         ),
         expectedCompileClasspath = List(
-          "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
-          "com/lihaoyi/sourcecode_2.13/0.2.2/sourcecode_2.13-0.2.2.jar",
           // Make sure we only have geny 0.6.4 from the current module, and not newer
           // versions pulled in by the upstream modules, because as `compileIvyDeps` it
           // is not picked up transitively
           "com/lihaoyi/geny_2.13/0.4.0/geny_2.13-0.4.0.jar",
+          "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
+          "com/lihaoyi/sourcecode_2.13/0.2.2/sourcecode_2.13-0.2.2.jar",
           //
           "ModMod/foo/compile-resources",
           "ModMod/foo/unmanaged",
@@ -212,13 +212,13 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
           "out/ModCompile/qux/compile.dest/classes"
         ),
         expectedCompileClasspath = List(
+          "com/lihaoyi/geny_2.13/0.4.0/geny_2.13-0.4.0.jar",
           "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
           // `sourcecode` is a `ivyDeps` from a `compileModuleDeps, which still
           // gets picked up transitively, but only for compilation. This is necessary
           // in order to make sure that we can correctly compile against the upstream
           // module's classes.
           "com/lihaoyi/sourcecode_2.13/0.2.2/sourcecode_2.13-0.2.2.jar",
-          "com/lihaoyi/geny_2.13/0.4.0/geny_2.13-0.4.0.jar",
           //
           "ModCompile/foo/compile-resources",
           "ModCompile/foo/unmanaged",
@@ -272,10 +272,9 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
           "out/CompileMod/qux/compile.dest/classes"
         ),
         expectedCompileClasspath = List(
-          "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
-          //
-          "com/lihaoyi/sourcecode_2.13/0.2.1/sourcecode_2.13-0.2.1.jar",
           "com/lihaoyi/geny_2.13/0.4.0/geny_2.13-0.4.0.jar",
+          "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
+          "com/lihaoyi/sourcecode_2.13/0.2.1/sourcecode_2.13-0.2.1.jar",
           // We do not include `foo`s compile output here, because `foo` is a
           // `compileModuleDep` of `bar`, and `compileModuleDep`s are non-transitive
           //
@@ -322,9 +321,9 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
           "out/ModRun/qux/compile.dest/classes"
         ),
         expectedCompileClasspath = List(
+          "com/lihaoyi/geny_2.13/0.4.0/geny_2.13-0.4.0.jar",
           "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
           "com/lihaoyi/sourcecode_2.13/0.2.0/sourcecode_2.13-0.2.0.jar",
-          "com/lihaoyi/geny_2.13/0.4.0/geny_2.13-0.4.0.jar",
           "ModRun/qux/compile-resources",
           "ModRun/qux/unmanaged"
         ),
@@ -365,9 +364,9 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
           "out/RunMod/qux/compile.dest/classes"
         ),
         expectedCompileClasspath = List(
+          "com/lihaoyi/geny_2.13/0.4.0/geny_2.13-0.4.0.jar",
           "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
           "com/lihaoyi/sourcecode_2.13/0.2.1/sourcecode_2.13-0.2.1.jar",
-          "com/lihaoyi/geny_2.13/0.4.0/geny_2.13-0.4.0.jar",
           // `bar` ends up here because it's a normal `moduleDep`, but not `foo` because
           // it's a `runtimeModuleDep
           "RunMod/bar/compile-resources",

@@ -496,16 +496,24 @@ trait JavaModule
    */
   def coursierProject: Task[cs.Project] = Task.Anon {
 
-    // FIXME That's coursier.maven.MavenRepositoryInternal.defaultConfigurations (private for now)
-    // plus hack for provided
-    val mavenScopes = Map(
+    // Tells coursier that if something depends on a given scope of ours, we should also
+    // pull other scopes of our own dependencies.
+    //
+    // E.g. scope(runtime) contains compile, so depending on us as a runtime dependency
+    // will not only pull our runtime dependencies, but also our compile ones.
+    //
+    // This is the default scope mapping used in coursier for Maven dependencies, but for
+    // one scope: provided. By default in Maven, depending on a dependency as provided
+    // doesn't pull anything. Here, by explicitly adding provided to the values,
+    // we make coursier pull our own provided dependencies.
+    val scopes = Map(
       cs.Configuration.compile -> Seq.empty,
       cs.Configuration.runtime -> Seq(cs.Configuration.compile),
       cs.Configuration.default -> Seq(cs.Configuration.runtime),
       cs.Configuration.test -> Seq(cs.Configuration.runtime),
       // hack, so that depending on `coursierDependency.withConfiguration(Configuration.provided)`
-      // pulls the compile-scope of our provided dependencies (rather than nothing)
-      cs.Configuration.provided -> Seq(cs.Configuration.compile)
+      // pulls our provided dependencies (rather than nothing)
+      cs.Configuration.provided -> Seq(cs.Configuration.provided)
     )
 
     val internalDependencies =
@@ -521,6 +529,9 @@ trait JavaModule
         (coursier.core.Configuration.`import`, dep)
       } ++
         moduleDepsChecked.flatMap { modDep =>
+          // Standard dependencies
+          // We pull their compile scope when our compile scope is asked,
+          // and pull their runtime scope when our runtime scope is asked.
           Seq(
             (cs.Configuration.compile, modDep.coursierDependency),
             (
@@ -530,27 +541,41 @@ trait JavaModule
           )
         } ++
         compileModuleDepsChecked.map { modDep =>
+          // Compile-only (aka provided) dependencies
+          // We pull their compile scope when our provided scope is asked (see scopes above)
           (cs.Configuration.provided, modDep.coursierDependency)
         } ++
         runModuleDepsChecked.map { modDep =>
+          // Runtime dependencies
+          // We pull their runtime scope when our runtime scope is pulled
           (
             cs.Configuration.runtime,
-            modDep.coursierDependency.withConfiguration(cs.Configuration.runtime)
+            modDep.coursierDependency.withConfiguration(
+              if (modDep.coursierDependency.configuration.isEmpty) cs.Configuration.runtime
+              else modDep.coursierDependency.configuration
+            )
           )
         }
 
     val dependencies =
       (mandatoryIvyDeps() ++ ivyDeps()).map(bindDependency()).map(_.dep).iterator.toSeq.flatMap {
         dep =>
+          // Standard dependencies, like above
+          // We pull their compile scope when our compile scope is asked,
+          // and pull their runtime scope when our runtime scope is asked.
           Seq(
             (cs.Configuration.compile, dep),
             (cs.Configuration.runtime, dep.withConfiguration(cs.Configuration.runtime))
           )
       } ++
         compileIvyDeps().map(bindDependency()).map(_.dep).map { dep =>
+          // Compile-only (aka provided) dependencies, like above
+          // We pull their compile scope when our provided scope is asked (see scopes above)
           (cs.Configuration.provided, dep)
         } ++
         runIvyDeps().map(bindDependency()).map(_.dep).map { dep =>
+          // Runtime dependencies, like above
+          // We pull their runtime scope when our runtime scope is pulled
           (
             cs.Configuration.runtime,
             dep.withConfiguration(
@@ -559,6 +584,8 @@ trait JavaModule
           )
         } ++
         allBomDeps().map { bomDep =>
+          // BOM dependencies
+          // Maven has a special scope for those: "import"
           val dep =
             cs.Dependency(bomDep.module, bomDep.version).withConfiguration(bomDep.config)
           (cs.Configuration.`import`, dep)
@@ -570,14 +597,17 @@ trait JavaModule
           .iterator.toSeq.map(bindDependency()).map(_.dep)
       ).map {
         case (key, values) =>
-          (cs.Configuration.compile, values.fakeDependency(key))
+          val config0 =
+            if (values.config.isEmpty) cs.Configuration.compile
+            else values.config
+          (config0, values.fakeDependency(key))
       }
 
     cs.Project(
       module = coursierDependency.module,
       version = coursierDependency.version,
       dependencies = internalDependencies ++ dependencies,
-      configurations = mavenScopes,
+      configurations = scopes,
       parent = None,
       dependencyManagement = depMgmt,
       properties = Nil,
@@ -605,9 +635,95 @@ trait JavaModule
   }
 
   /**
+   * The Ivy dependencies of this module, with BOM and dependency management details
+   * added to them. This should be used when propagating the dependencies transitively
+   * to other modules.
+   */
+  @deprecated("Unused by Mill, use allIvyDeps instead", "Mill after 0.12.4")
+  def processedIvyDeps: Task[Agg[BoundDep]] = Task {
+    allIvyDeps().map(bindDependency())
+  }
+
+  /**
+   * Returns a function adding BOM and dependency management details of
+   * this module to a `coursier.core.Dependency`
+   */
+  @deprecated("Unused by Mill", "Mill after 0.12.4")
+  def processDependency(
+      overrideVersions: Boolean = false
+  ): Task[coursier.core.Dependency => coursier.core.Dependency] =
+    Task.Anon((x: coursier.core.Dependency) => x)
+
+  /**
+   * The transitive ivy dependencies of this module and all it's upstream modules.
+   * This is calculated from [[ivyDeps]], [[mandatoryIvyDeps]] and recursively from [[moduleDeps]].
+   *
+   * This isn't used by Mill anymore. Instead of this, consider using either:
+   *   * `coursierDependency`, which will pull all this module's dependencies transitively
+   *   * `allIvyDeps`, which contains the full list of direct (external) dependencies of this module
+   */
+  @deprecated("Unused by Mill, use coursierDependency or allIvyDeps instead", "Mill after 0.12.4")
+  def transitiveIvyDeps: T[Agg[BoundDep]] = Task {
+    allIvyDeps().map(bindDependency()) ++
+      T.traverse(moduleDepsChecked)(_.transitiveIvyDeps)().flatten
+  }
+
+  /**
+   * The compile-only transitive ivy dependencies of this module and all its upstream compile-only modules.
+   *
+   * This isn't used by Mill anymore. Instead of this, consider using either:
+   *   * `coursierDependency().withConfiguration(Configuration.provided`), which will pull all
+   *      this module's compile-only dependencies transitively
+   *   * `compileIvyDeps`, which contains the full list of direct (external) compile-only
+   *      dependencies of this module
+   */
+  @deprecated(
+    "Unused by Mill, use coursierDependency().withConfiguration(Configuration.provided) or compileIvyDeps instead",
+    "Mill after 0.12.4"
+  )
+  def transitiveCompileIvyDeps: T[Agg[BoundDep]] = Task {
+    compileIvyDeps().map(bindDependency()) ++
+      T.traverse(moduleDepsChecked)(_.transitiveCompileIvyDeps)().flatten
+  }
+
+  /**
+   * The transitive run ivy dependencies of this module and all it's upstream modules.
+   * This is calculated from [[runIvyDeps]], [[mandatoryIvyDeps]] and recursively from [[moduleDeps]].
+   *
+   * This isn't used by Mill anymore. Instead of this, consider using either:
+   *   * `coursierDependency().withConfiguration(Configuration.runtime`), which will pull all
+   *      this module's runtime dependencies transitively
+   *   * `runIvyDeps`, which contains the full list of direct (external) runtime
+   *      dependencies of this module
+   */
+  @deprecated(
+    "Unused by Mill, use coursierDependency().withConfiguration(Configuration.runtime) or runIvyDeps instead",
+    "Mill after 0.12.4"
+  )
+  def transitiveRunIvyDeps: T[Agg[BoundDep]] = Task {
+    runIvyDeps().map(bindDependency()) ++
+      T.traverse(moduleDepsChecked)(_.transitiveRunIvyDeps)().flatten
+  }
+
+  /**
    * The repository that knows about this project itself and its module dependencies
    */
   def internalDependenciesRepository: Task[cs.Repository] = Task.Anon {
+    // This is the main point of contact between the coursier resolver and Mill.
+    // Basically, all relevant Mill modules are aggregated and converted to a
+    // coursier.Project (provided by JavaModule#coursierProject).
+    //
+    // Dependencies, both external ones (like ivyDeps, bomIvyDeps, etc.) and internal ones
+    // (like moduleDeps) are put in coursier.Project#dependencies. The coursier.Dependency
+    // used to represent each module is built by JavaModule#coursierDependency. So we put
+    // JavaModule#coursierDependency in the dependencies field of other modules'
+    // JavaModule#coursierProject to represent links between them.
+    //
+    // coursier.Project#dependencies accepts (coursier.Configuration, coursier.Dependency) tuples.
+    // The configuration is different for compile-time only / runtime / BOM dependencies
+    // (it's respectively provided, runtime, import). The configuration is compile for
+    // standard ivyDeps / moduleDeps.
+    //
     JavaModule.InternalRepo(transitiveCoursierProjects())
   }
 
@@ -1484,6 +1600,15 @@ trait JavaModule
 }
 
 object JavaModule {
+
+  /**
+   * An in-memory [[coursier.Repository]] that exposes the passed projects
+   *
+   * Doesn't generate artifacts for these. These are assumed to be managed
+   * externally for now.
+   *
+   * @param projects
+   */
   final case class InternalRepo(projects: Seq[cs.Project])
       extends cs.Repository {
 
