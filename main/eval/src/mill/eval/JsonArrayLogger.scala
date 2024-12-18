@@ -36,7 +36,26 @@ private class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path, inden
 }
 
 private[eval] class ProfileLogger(outPath: os.Path)
-    extends JsonArrayLogger[ProfileLogger.Timing](outPath, indent = 2)
+    extends JsonArrayLogger[ProfileLogger.Timing](outPath, indent = 2) {
+  def log(
+      terminal: Terminal,
+      duration: Long,
+      res: GroupEvaluator.Results,
+      deps: Seq[Terminal]
+  ): Unit = {
+    log(
+      ProfileLogger.Timing(
+        terminal.render,
+        (duration / 1000).toInt,
+        res.cached,
+        res.valueHashChanged,
+        deps.map(_.render),
+        res.inputsHash,
+        res.previousInputsHash
+      )
+    )
+  }
+}
 
 private object ProfileLogger {
   case class Timing(
@@ -58,7 +77,7 @@ private[eval] class ChromeProfileLogger(outPath: os.Path)
     extends JsonArrayLogger[ChromeProfileLogger.TraceEvent](outPath, indent = -1) {
 
   def log(
-      task: String,
+      terminal: Terminal,
       cat: String,
       startTime: Long,
       duration: Long,
@@ -67,7 +86,7 @@ private[eval] class ChromeProfileLogger(outPath: os.Path)
   ): Unit = {
 
     val event = ChromeProfileLogger.TraceEvent(
-      name = task,
+      name = Terminal.printTerm(terminal),
       cat = cat,
       ph = "X",
       ts = startTime,
