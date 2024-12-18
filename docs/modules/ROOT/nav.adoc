@@ -100,7 +100,7 @@
 
 * Mill In Depth
 ** xref:depth/sandboxing.adoc[]
-** xref:depth/evaluation-model.adoc[]
+** xref:depth/execution-model.adoc[]
 ** xref:depth/design-principles.adoc[]
 ** xref:depth/why-scala.adoc[]
 // Reference pages that a typical user would not typically read top-to-bottom,
