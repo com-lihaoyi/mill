@@ -16,6 +16,11 @@ include::partial$example/scalalib/dependencies/1-ivy-deps.adoc[]
 
 include::partial$example/scalalib/dependencies/2-run-compile-deps.adoc[]
 
+== Dependency Management
+
+Mill has support for dependency management, see the
+xref:fundamentals/library-deps.adoc#_dependency_management[Dependency Management section]
+in xref:fundamentals/library-deps.adoc[].
 
 == Unmanaged Jars
 

@@ -1,0 +1,8 @@
+name: blog
+title: Mill Blog
+version: ~
+nav:
+  - modules/ROOT/nav.adoc
+asciidoc:
+  attributes:
+    mill-version: dummy-mill-version

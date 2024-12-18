@@ -158,14 +158,14 @@ You can reproduce any of the tests manually using `dist.run`, e.g.
 
 [source,bash]
 ----
-./mill dist.run example/basic/1-simple run --text hello
+./mill dist.run example/javalib/basic/1-simple foo.run --text hello
 ----
 
 **Manual Test using Launcher Script**
 
 [source,bash]
 ----
-./mill dist.launcher && (cd example/javalib/basic/1-simple && ../../../../out/dist/launcher.dest/run run --text hello)
+./mill dist.launcher && (cd example/javalib/basic/1-simple && ../../../../out/dist/launcher.dest/run foo.run --text hello)
 ----
 
 === Sub-Process Tests *with* Packaging/Publishing
@@ -353,6 +353,45 @@ endif::[]
 :link-milestone: {link-github}/milestone
 // find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
 
+
+[#0-12-4]
+=== 0.12.4 - 2024-12-16
+:version: 0.12.4
+:milestone-name: 0.12.4
+:milestone: 107
+:prev-version: 0.12.3
+
+* Mill now supports https://mill-build.org/mill/large/selective-execution.html[Selective Execution],
+  allowing you to run tests and other tasks only if they are downstream of a code change.
+  This can be used to greatly speed up pull-request validation and other CI workflows
+  by skipping unrelated tests that cannot possibly be broken by the code change in question
+
+* Mill now generates https://mill-build.org/mill/fundamentals/out-dir.html#_mill_dependency_tree_json[dependency-tree.json]
+  and https://mill-build.org/mill/main-branch/fundamentals/out-dir.html#_mill_invalidation_tree_json[invalidation-tree.json]
+  metadata for every run, which should help make it easier for a user to figure out why a task
+  is being selected and run.
+
+* Support for Bill-Of-Materials/Dependency-Management when downloading third-party JVM dependencies
+  (https://mill-build.org/mill/main-branch/javalib/dependencies.html#_dependency_management[Documentation])
+
+* Built-in support for `mill.bat` launcher to run Mill natively on a Windows environment
+  https://github.com/com-lihaoyi/mill/pull/4052[#4052]
+
+* Added documentation for https://mill-build.org/mill/migrating/migrating.html[Migrating to Mill],
+  to try and help people who may be trying to move their existing codebase onto Mill from other build tools
+
+* Significant speedups for task resolution logic https://github.com/com-lihaoyi/mill/pull/4132[#4132],
+  which should speed up cached-build workflows in particular
+
+* Improve precision of code signature task invalidation, reducing the amount of spurious
+  task invalidations in the presence of multi-file builds https://github.com/com-lihaoyi/mill/pull/4113[#4113]
+  https://github.com/com-lihaoyi/mill/pull/4116[#4116]
+
+* Reduced overhead of terminal prompt UI https://github.com/com-lihaoyi/mill/pull/4095[#4095]
+  https://github.com/com-lihaoyi/mill/pull/4110[#4110]
+
+* Launch of the https://mill-build.org/blog[Mill Build Engineering Blog], where we will post articles
+  discussing topics around JVM build tooling
 
 [#0-12-3]
 === 0.12.3 - 2024-11-24

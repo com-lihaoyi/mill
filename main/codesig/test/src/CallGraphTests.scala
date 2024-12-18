@@ -115,8 +115,8 @@ object CallGraphTests extends TestSuite {
 
     val foundCallGraph = simplifyCallGraph(codeSig, skipped)
 
-    val expectedCallGraphJson = write(expectedCallGraph, indent = 4)
-    val foundCallGraphJson = write(foundCallGraph, indent = 4)
+    val expectedCallGraphJson = write(expectedCallGraph, indent = 2)
+    val foundCallGraphJson = write(foundCallGraph, indent = 2)
 
     assert(expectedCallGraphJson == foundCallGraphJson)
     foundCallGraphJson
@@ -156,8 +156,8 @@ object CallGraphTests extends TestSuite {
       .to(SortedMap)
 
     for (expectedTransitiveGraph <- expectedTransitiveGraphOpt) {
-      val expectedTransitiveGraphJson = upickle.default.write(expectedTransitiveGraph, indent = 4)
-      val transitiveGraphJson = upickle.default.write(transitiveGraph, indent = 4)
+      val expectedTransitiveGraphJson = upickle.default.write(expectedTransitiveGraph, indent = 2)
+      val transitiveGraphJson = upickle.default.write(transitiveGraph, indent = 2)
       assert(expectedTransitiveGraphJson == transitiveGraphJson)
     }
   }

@@ -207,6 +207,7 @@ object `package` extends RootModule {
     os.write.over(dest / "antora.yml", (lines ++ newLines).mkString("\n"))
   }
 
+  def blogFolder = Task.Source(build.millSourcePath / "blog")
   def githubPagesPlaybookText(authorMode: Boolean) = T.task { extraSources: Seq[os.Path] =>
     val taggedSources = for (path <- extraSources) yield {
       s"""    - url: ${build.baseDir}
@@ -233,6 +234,9 @@ object `package` extends RootModule {
        |
        |    - url: ${build.baseDir}
        |      start_path: ${devAntoraSources().path.relativeTo(build.baseDir)}
+       |
+       |    - url: ${build.baseDir}
+       |      start_path: ${blogFolder().path.relativeTo(build.baseDir)}
        |ui:
        |  bundle:
        |    url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/master/raw/build/ui-bundle.zip?job=bundle-stable

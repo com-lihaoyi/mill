@@ -1,0 +1,55 @@
+package build
+import mill._, javascriptlib._
+
+object client extends ReactScriptsModule
+
+object server extends TypeScriptModule {
+  def npmDeps =
+    Seq("@types/cors@^2.8.17", "@types/express@^5.0.0", "cors@^2.8.5", "express@^4.21.1")
+
+  def npmDevDeps =
+    super.npmDevDeps() ++ Seq("@types/supertest@^6.0.2", "supertest@^7.0.0")
+
+  override def bundleFlags = Map("external" -> Seq("express", "cors"))
+
+  override def mkENV = Task {
+    super.mkENV() ++ Map("PORT" -> "3001")
+  }
+
+  override def resources = Task {
+    val clientBundle = client.bundle().path
+    os.copy(clientBundle, Task.dest / "build")
+    PathRef(Task.dest)
+  }
+
+  object test extends TypeScriptTests with TestModule.Jest {
+    override def testConfigSource = Task.Source(millSourcePath / os.up / "jest.config.ts")
+  }
+}
+
+// Documentation for mill.example.javascriptlib
+
+// This example demonstrates how to set up a simple React web app running on an Express JS server
+// implementing the popular Todo-MVC demo application. It includes a test suite
+// for both client and server modules.
+// Runninng `mill app.run` serves bundled static HTML files through the server.
+
+/** Usage
+
+> mill server.test
+PASS .../server.test.ts
+...
+Test Suites:...1 passed, 1 total...
+Tests:...3 passed, 3 total...
+...
+
+> mill show server.bundle # bundle the express server
+Build succeeded!
+
+> mill client.test    # bundle the node-js express app
+PASS src/test/App.test.tsx
+...
+
+> mill client.bundle   # bundle the react app;
+...
+*/

@@ -1,0 +1,25 @@
+// Pass an external BOM to a `JavaModule` / `ScalaModule` / `KotlinModule` with `bomIvyDeps`, like
+
+//// SNIPPET:BUILD1
+package build
+import mill._, javalib._
+
+object foo extends JavaModule {
+  def bomIvyDeps = Agg(
+    ivy"com.google.cloud:libraries-bom:26.50.0"
+  )
+  def ivyDeps = Agg(
+    ivy"io.grpc:grpc-protobuf"
+  )
+}
+
+// The version of grpc-protobuf (`io.grpc:grpc-protobuf`) isn't written down here, so the version
+// from the BOM, `1.67.1` is used.
+//
+// Also, by default, grpc-protobuf `1.67.1` pulls version `3.25.3` of protobuf-java (`com.google.protobuf:protobuf-java`) .
+// But the BOM specifies another version for that dependency, `4.28.3`, so
+// protobuf-java `4.28.3` ends up being pulled here.
+//
+// Several BOMs can be passed to `bomIvyDeps`. If several specify a version for a dependency,
+// the version from the first one in the `bomIvyDeps` list is used. If several specify exclusions
+// for a dependency, all exclusions are added to that dependency.

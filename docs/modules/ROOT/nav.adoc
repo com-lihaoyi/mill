@@ -11,7 +11,6 @@
 ** xref:javalib/publishing.adoc[]
 ** xref:javalib/build-examples.adoc[]
 ** xref:javalib/web-examples.adoc[]
-
 * xref:scalalib/intro.adoc[]
 ** xref:scalalib/module-config.adoc[]
 ** xref:scalalib/dependencies.adoc[]
@@ -29,21 +28,24 @@
 ** xref:kotlinlib/publishing.adoc[]
 // ** xref:kotlinlib/build-examples.adoc[]
 ** xref:kotlinlib/web-examples.adoc[]
-* (Experimental) Android with Mill
+* Experimental Platform Support
 ** xref:android/java.adoc[]
 ** xref:android/kotlin.adoc[]
+** xref:pythonlib/intro.adoc[]
+*** xref:pythonlib/module-config.adoc[]
+*** xref:pythonlib/dependencies.adoc[]
+*** xref:pythonlib/publishing.adoc[]
 * xref:comparisons/why-mill.adoc[]
 ** xref:comparisons/maven.adoc[]
 ** xref:comparisons/gradle.adoc[]
 ** xref:comparisons/sbt.adoc[]
 ** xref:comparisons/unique.adoc[]
-** xref:comparisons/java-compile.adoc[]
 * The Mill CLI
 ** xref:cli/installation-ide.adoc[]
 ** xref:cli/flags.adoc[]
 ** xref:cli/builtin-commands.adoc[]
 ** xref:cli/query-syntax.adoc[]
-* Migrating to Mill
+* xref:migrating/migrating.adoc[]
 ** xref:migrating/maven.adoc[]
 // This section gives a tour of the various user-facing features of Mill:
 // library deps, out folder, queries, tasks, etc.. These are things that
@@ -92,10 +94,13 @@
 // These are things that most Mill developers would not encounter day to day,
 // but people developing Mill plugins or working on particularly large or
 // sophisticated Mill builds will need to understand.
+* xref:large/large.adoc[]
+** xref:large/selective-execution.adoc[]
+** xref:large/multi-file-builds.adoc[]
+
 * Mill In Depth
-** xref:depth/large-builds.adoc[]
 ** xref:depth/sandboxing.adoc[]
-** xref:depth/evaluation-model.adoc[]
+** xref:depth/execution-model.adoc[]
 ** xref:depth/design-principles.adoc[]
 ** xref:depth/why-scala.adoc[]
 // Reference pages that a typical user would not typically read top-to-bottom,

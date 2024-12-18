@@ -11,6 +11,7 @@ trait JsonFormatters {
   implicit lazy val extensionFormat: RW[coursier.core.Extension] = upickle.default.macroRW
 
   implicit lazy val modFormat: RW[coursier.Module] = upickle.default.macroRW
+  implicit lazy val bomDepFormat: RW[coursier.core.BomDependency] = upickle.default.macroRW
   implicit lazy val depFormat: RW[coursier.core.Dependency] = upickle.default.macroRW
   implicit lazy val minimizedExclusionsFormat: RW[coursier.core.MinimizedExclusions] =
     upickle.default.macroRW
@@ -33,13 +34,15 @@ trait JsonFormatters {
 
 }
 object JsonFormatters extends JsonFormatters {
-  private[JsonFormatters] object mirrors {
+  private[mill] object mirrors {
     given Root_coursier_Publication: Mirrors.Root[coursier.core.Publication] =
       Mirrors.autoRoot[coursier.core.Publication]
     given Root_coursier_Extension: Mirrors.Root[coursier.core.Extension] =
       Mirrors.autoRoot[coursier.core.Extension]
     given Root_coursier_Module: Mirrors.Root[coursier.core.Module] =
       Mirrors.autoRoot[coursier.core.Module]
+    given Root_coursier_BomDependency: Mirrors.Root[coursier.core.BomDependency] =
+      Mirrors.autoRoot[coursier.core.BomDependency]
     given Root_coursier_Dependency: Mirrors.Root[coursier.core.Dependency] =
       Mirrors.autoRoot[coursier.core.Dependency]
     given Root_coursier_MinimizedExclusions: Mirrors.Root[coursier.core.MinimizedExclusions] =

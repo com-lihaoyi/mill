@@ -1,0 +1,4 @@
+package build.subfolder9
+import mill._
+
+def subFolder2Task = Task { println("running subFolder3Task") }

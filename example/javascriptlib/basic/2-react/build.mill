@@ -1,0 +1,26 @@
+package build
+
+import mill._, javascriptlib._
+
+object foo extends RsWithServeModule {
+  override def mkENV = Task {
+    super.mkENV() ++ Map("PORT" -> "3000")
+  }
+}
+
+// Documentation for mill.example.javascriptlib
+
+/** Usage
+
+> mill foo.test
+PASS src/test/App.test.tsx
+...renders learn react link...
+Test Suites:...1 passed, 1 total
+Tests:...1 passed, 1 total
+Snapshots:...
+Time:...
+Ran all test suites...
+
+> mill show foo.bundle # build the react app with react-scripts # `foo.run` serves static html using serve
+...
+*/

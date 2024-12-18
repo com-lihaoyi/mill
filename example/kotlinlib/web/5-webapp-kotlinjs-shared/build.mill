@@ -101,7 +101,7 @@ object `package` extends RootModule with AppKotlinModule {
 /** Usage
 
 > ./mill test
-...webapp.WebAppTestssimpleRequest ...
+...webapp.WebAppTests simpleRequest ...
 
 > ./mill runBackground
 

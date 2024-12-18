@@ -16,6 +16,7 @@ object CachedFactoryTests extends TestSuite {
 
       def teardown(key: Unit, value: Resource): Unit = value.close()
     }
+
     test("sizeZero") {
       // with cache of size 0, cache entries are never re-used
       object cache extends Cache(maxCacheSize = 0)

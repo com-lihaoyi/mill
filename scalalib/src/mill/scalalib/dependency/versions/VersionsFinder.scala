@@ -3,10 +3,11 @@ package mill.scalalib.dependency.versions
 import mill.define.{BaseModule, Task}
 import mill.eval.Evaluator
 import mill.scalalib.dependency.metadata.{MetadataLoader, MetadataLoaderFactory}
-import mill.scalalib.{JavaModule, Lib}
+import mill.scalalib.{BoundDep, JavaModule, Lib}
 import mill.api.Ctx.{Home, Log}
 import mill.T
 
+import java.time.{Clock, Instant, ZoneId}
 import java.util.concurrent.atomic.AtomicInteger
 
 private[dependency] object VersionsFinder {
@@ -26,9 +27,16 @@ private[dependency] object VersionsFinder {
       javaModules.map(resolveDeps(progress))
     }
 
+    // Using a fixed time clock, so that the TTL cut-off is the same for all version checks,
+    // and we don't run into race conditions like one check assuming a file in cache is valid,
+    // another one a fraction of a second later assuming it's invalid and proceeding to
+    // re-downloading it and deleting the former one, making the first check crash
+    // (see https://github.com/com-lihaoyi/mill/issues/3876).
+    val clock = Clock.fixed(Instant.now(), ZoneId.systemDefault())
+
     evaluator.evalOrThrow() {
       val progress = new Progress(resolvedDependencies.map(_._3.size).sum)
-      resolvedDependencies.map(resolveVersions(progress))
+      resolvedDependencies.map(resolveVersions(progress, clock))
     }
   }
 
@@ -58,14 +66,16 @@ private[dependency] object VersionsFinder {
         .map(bindDependency)
         .iterator
         .toSeq
+
       val x = Lib.resolveDependenciesMetadataSafe(
         repositories = repos,
-        deps = dependencies,
+        deps = dependencies: IterableOnce[BoundDep],
         mapDependencies = Option(mapDeps),
         customizer = custom,
-        ctx = Some(T.log),
+        ctx = Option(T.log),
         coursierCacheCustomizer = cacheCustom,
-        resolutionParams = coursier.params.ResolutionParams()
+        resolutionParams = coursier.params.ResolutionParams(),
+        boms = Nil
       )
 
       x.map { _ =>
@@ -73,7 +83,7 @@ private[dependency] object VersionsFinder {
       }
     }
 
-  private def resolveVersions(progress: Progress)(
+  private def resolveVersions(progress: Progress, clock: Clock)(
       resolvedDependencies: ResolvedDependencies
   ): Task[ModuleDependenciesVersions] = Task.Anon {
     val (javaModule, metadataLoaders, dependencies) = resolvedDependencies
@@ -85,7 +95,7 @@ private[dependency] object VersionsFinder {
       val currentVersion = Version(dependency.version)
       val allVersions =
         metadataLoaders
-          .flatMap(_.getVersions(dependency.module))
+          .flatMap(_.getVersions(dependency.module, clock))
           .toSet
       DependencyVersions(dependency, currentVersion, allVersions)
     }

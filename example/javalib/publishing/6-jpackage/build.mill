@@ -1,0 +1,107 @@
+// This example illustrates how to use Mill to generate a native package/installer
+// using the `jpackage` tool.
+
+//// SNIPPET:BUILD
+package build
+import mill._, javalib._
+import mill.javalib.Assembly._
+import mill.scalalib.JpackageModule
+
+object foo extends JavaModule with JpackageModule {
+  def jpackageType = "app-image"
+
+  def assemblyRules = Seq(
+    // all application.conf files will be concatenated into single file
+    Rule.Append("application.conf"),
+    // all *.conf files will be concatenated into single file
+    Rule.AppendPattern(".*\\.conf")
+  )
+}
+//// SNIPPET:END
+
+// JPMS (Java Platform Module System) is a modern distribution format that was designed
+// to avoid several of the shortcomings of the ubiquitous JAR format, especially "JAR Hell".
+
+// A defining characteristic of module-based Java applications based on the JPMS format
+// is that a `module-info.java` must be defined at the root of the module’s source file hierarchy.
+// The `module-info.java` must explicitly list modules that it depends on, and also list
+// packages that it exports, to make the integrity of these relationships easy to verify,
+// both at compile-time and run-time.
+
+// Starting with version 14, the JDK ships with the `jpackage` tool which can
+// assemble any module-based Java application into a native package/installer.
+
+// The above build file expects the following project layout:
+//
+//// SNIPPET:TREE
+//
+// ----
+// build.mill
+// foo/
+//     src/
+//         Foo.java
+//         Bar.java
+//
+//     module-info.java
+// ----
+//
+//// SNIPPET:END
+
+// The build defines a `foo` module that uses the `trait JpackageModule`.
+
+// NOTE: The term `Module` is also used in Mill to refer to xref:fundamentals/modules.adoc[traits].
+// This is not to be confused with Java app code structured as modules according to the JPMS format.
+
+// The `JpackageModule` trait will infer most of the options needed to assemble a native
+// package/installer, but you can still customize its output. In our example, we specified:
+
+// def jpackageType = "pkg"
+
+// This tells `jpackage` to generate a `.pkg`, which is the native installer format on macOS.
+// Valid values on macOS are: `dmg`, `pkg` and `app-image`.
+
+// NOTE: `jpackage` doesn't not support cross-targeting. Cross-targeting in this
+// context means the `jpackage` binary shipped with a macOS JDK
+// cannot be used to produce a native installer for another OS like Windows or Linux.
+
+/** Usage
+
+> mill foo.assembly
+
+> mill show foo.assembly
+".../out/foo/assembly.dest/out.jar"
+
+> java -jar ./out/foo/assembly.dest/out.jar
+INFO: Loaded application.conf from resources: Foo Application Conf
+INFO: Hello World application started successfully
+
+> mill foo.jpackageAppImage
+
+> mill show foo.jpackageAppImage
+".../out/foo/jpackageAppImage.dest/image"
+*/
+
+// On macOS, `jpackageType` accepts 3 values: "dmg" or "pkg" or "app-image" (default).
+
+// Setting `def jpackageType = "dmg"` will produce:
+// ----
+// ls -l ./out/foo/jpackageAppImage.dest/image
+// ... foo-1.0.dmg
+// ----
+
+// Setting `def jpackageType = "pkg"` will produce:
+// ----
+// ls -l ./out/foo/jpackageAppImage.dest/image
+// ... foo-1.0.pkg
+// ----
+
+// Setting `def jpackageType = "app-image"` will produce:
+// ----
+// ls -l ./out/foo/jpackageAppImage.dest/image
+// ... foo.app/
+// ./out/foo/jpackageAppImage.dest/image/foo.app/Contents/MacOS/foo
+// ... foo.Foo readConf
+// INFO: Loaded application.conf from resources: Foo Application Conf
+// ... foo.Bar ...
+// INFO: Hello World application started successfully
+// ----

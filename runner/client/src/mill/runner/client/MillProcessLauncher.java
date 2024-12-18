@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import mill.main.client.EnvVars;
 import mill.main.client.ServerFiles;
 import mill.main.client.Util;
@@ -32,8 +33,8 @@ public class MillProcessLauncher {
     boolean interrupted = false;
 
     try {
+      MillProcessLauncher.prepareMillRunFolder(processDir);
       Process p = configureRunMillProcess(builder, processDir);
-      MillProcessLauncher.runTermInfoThread(processDir);
       return p.waitFor();
 
     } catch (InterruptedException e) {
@@ -211,32 +212,64 @@ public class MillProcessLauncher {
     return Integer.parseInt(new String(proc.getInputStream().readAllBytes()).trim());
   }
 
+  private static AtomicReference<String> memoizedTerminalDims = new AtomicReference();
+
   static void writeTerminalDims(boolean tputExists, Path serverDir) throws Exception {
     String str;
-    if (!tputExists) str = "0 0";
-    else {
-      try {
-        if (java.lang.System.console() == null) str = "0 0";
-        else str = getTerminalDim("cols", true) + " " + getTerminalDim("lines", true);
-      } catch (Exception e) {
-        str = "0 0";
+
+    try {
+      if (java.lang.System.console() == null) str = "0 0";
+      else {
+        if (!tputExists) {
+          // Hardcoded size of a quarter screen terminal on 13" windows laptop
+          str = "78 24";
+        } else {
+          str = getTerminalDim("cols", true) + " " + getTerminalDim("lines", true);
+        }
       }
+    } catch (Exception e) {
+      str = "0 0";
     }
-    Files.write(serverDir.resolve(ServerFiles.terminfo), str.getBytes());
+
+    // We memoize previously seen values to avoid causing lots
+    // of upstream work if the value hasn't actually changed.
+    // The upstream work could cause significant load, see
+    //
+    //    https://github.com/com-lihaoyi/mill/discussions/4092
+    //
+    // The cause is currently unknown, but this fixes the symptoms at least.
+    //
+    String oldValue = memoizedTerminalDims.getAndSet(str);
+    if ((oldValue == null) || !oldValue.equals(str)) {
+      Files.write(serverDir.resolve(ServerFiles.terminfo), str.getBytes());
+    }
   }
 
-  public static void runTermInfoThread(Path serverDir) throws Exception {
+  public static boolean checkTputExists() {
+    try {
+      getTerminalDim("cols", false);
+      getTerminalDim("lines", false);
+      return true;
+    } catch (Exception e) {
+      return false;
+    }
+  }
+
+  public static void prepareMillRunFolder(Path serverDir) throws Exception {
+    // Clear out run-related files from the server folder to make sure we
+    // never hit issues where we are reading the files from a previous run
+    Files.deleteIfExists(serverDir.resolve(ServerFiles.exitCode));
+    Files.deleteIfExists(serverDir.resolve(ServerFiles.terminfo));
+    Files.deleteIfExists(serverDir.resolve(ServerFiles.runArgs));
+
+    Path sandbox = serverDir.resolve(ServerFiles.sandbox);
+    Files.createDirectories(sandbox);
+    boolean tputExists = checkTputExists();
+
+    writeTerminalDims(tputExists, serverDir);
     Thread termInfoPropagatorThread = new Thread(
         () -> {
           try {
-            boolean tputExists;
-            try {
-              getTerminalDim("cols", false);
-              getTerminalDim("lines", false);
-              tputExists = true;
-            } catch (Exception e) {
-              tputExists = false;
-            }
             while (true) {
               writeTerminalDims(tputExists, serverDir);
               Thread.sleep(100);

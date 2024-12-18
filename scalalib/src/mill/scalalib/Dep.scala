@@ -118,6 +118,8 @@ object Dep {
     }
 
     (module.split(':') match {
+      case Array(a, b) => Dep(a, b, "", cross = empty(platformed = false))
+      case Array(a, "", b) => Dep(a, b, "", cross = Binary(platformed = false))
       case Array(a, b, c) => Dep(a, b, c, cross = empty(platformed = false))
       case Array(a, b, "", c) => Dep(a, b, c, cross = empty(platformed = true))
       case Array(a, "", b, c) => Dep(a, b, c, cross = Binary(platformed = false))
@@ -191,7 +193,7 @@ object Dep {
       coursier.Dependency(
         coursier.Module(coursier.Organization(org), coursier.ModuleName(name)),
         version
-      ).withConfiguration(DefaultConfiguration),
+      ),
       cross,
       force
     )

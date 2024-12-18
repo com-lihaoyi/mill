@@ -1,9 +1,9 @@
 package mill.scalalib
 
 import coursier.cache.FileCache
+import coursier.core.{BomDependency, Resolution}
 import coursier.params.ResolutionParams
 import coursier.{Dependency, Repository, Resolve, Type}
-import coursier.core.Resolution
 import mill.define.Task
 import mill.api.PathRef
 
@@ -149,6 +149,12 @@ trait CoursierModule extends mill.Module {
    *
    * The Scala version set via `ScalaModule#scalaVersion` also takes over any Scala version
    * provided via `ResolutionParams#scalaVersionOpt`.
+   *
+   * The default configuration set in `ResolutionParams#defaultConfiguration` is ignored when
+   * Mill fetches dependencies to be passed to the compiler (equivalent to Maven "compile scope").
+   * In that case, it forces the default configuration to be "compile". On the other hand, when
+   * fetching dependencies for runtime (equivalent to Maven "runtime scope"), the value in
+   * `ResolutionParams#defaultConfiguration` is used.
    */
   def resolutionParams: Task[ResolutionParams] = Task.Anon {
     ResolutionParams()
@@ -195,7 +201,8 @@ object CoursierModule {
     def resolveDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean = false,
-        artifactTypes: Option[Set[coursier.Type]] = None
+        artifactTypes: Option[Set[coursier.Type]] = None,
+        resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams] = None
     ): Agg[PathRef] = {
       Lib.resolveDependencies(
         repositories = repositories,
@@ -206,9 +213,17 @@ object CoursierModule {
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
         ctx = ctx,
-        resolutionParams = resolutionParams
+        resolutionParams = resolutionParamsMapOpt.fold(resolutionParams)(_(resolutionParams))
       ).getOrThrow
     }
+
+    // bin-compat shim
+    def resolveDeps[T: CoursierModule.Resolvable](
+        deps: IterableOnce[T],
+        sources: Boolean,
+        artifactTypes: Option[Set[coursier.Type]]
+    ): Agg[PathRef] =
+      resolveDeps(deps, sources, artifactTypes, None)
 
     @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
     def resolveDeps[T: CoursierModule.Resolvable](
@@ -216,6 +231,41 @@ object CoursierModule {
         sources: Boolean
     ): Agg[PathRef] =
       resolveDeps(deps, sources, None)
+
+    /**
+     * Processes dependencies and BOMs with coursier
+     *
+     * This makes coursier read and process BOM dependencies, and fill empty versions
+     * in dependencies with the BOMs.
+     *
+     * Note that this doesn't throw when an empty version cannot be filled, and just leaves
+     * the empty version behind.
+     *
+     * @param deps dependencies that might have empty versions
+     * @param resolutionParams coursier resolution parameters
+     * @return dependencies with empty version filled
+     */
+    def processDeps[T: CoursierModule.Resolvable](
+        deps: IterableOnce[T],
+        resolutionParams: ResolutionParams = ResolutionParams(),
+        boms: IterableOnce[BomDependency] = Nil
+    ): (Seq[coursier.core.Dependency], coursier.core.DependencyManagement.Map) = {
+      val deps0 = deps
+        .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
+      val boms0 = boms.toSeq
+      val res = Lib.resolveDependenciesMetadataSafe(
+        repositories = repositories,
+        deps = deps0,
+        mapDependencies = mapDependencies,
+        customizer = customizer,
+        coursierCacheCustomizer = coursierCacheCustomizer,
+        ctx = ctx,
+        resolutionParams = resolutionParams,
+        boms = boms0
+      ).getOrThrow
+
+      (res.processedRootDependencies, res.bomDepMgmt)
+    }
   }
 
   sealed trait Resolvable[T] {

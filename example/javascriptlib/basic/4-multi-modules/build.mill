@@ -1,0 +1,34 @@
+package build
+
+import mill._, javascriptlib._
+
+object foo extends TypeScriptModule {
+  object bar extends TypeScriptModule {
+    def npmDeps = Seq("immutable@4.3.7")
+  }
+
+}
+
+object qux extends TypeScriptModule {
+  def moduleDeps = Seq(foo, foo.bar)
+  object test extends TypeScriptTests with TestModule.Jest
+}
+
+// Documentation for mill.example.javascriptlib
+// This example demonstrates inter-related typescript modules
+
+/** Usage
+
+> mill qux.run James Bond prof
+Hello James Bond Professor
+
+> mill show qux.bundle
+Build succeeded!
+
+> node out/qux/bundle.dest/bundle.js James Bond prof
+Hello James Bond Professor
+
+> mill qux.test
+PASS .../qux.test.ts
+...
+*/

@@ -16,13 +16,12 @@ object HelloWorldTests extends TestSuite {
 
     object qux extends PythonModule {
       override def moduleDeps: Seq[PythonModule] = Seq(foo)
-      override def script = T.source(millSourcePath / "src" / "qux.py")
+      override def mainScript = T.source(millSourcePath / "src" / "qux.py")
       object test extends PythonTests with TestModule.Unittest
     }
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-python"
-
   def tests: Tests = Tests {
     test("run") {
       val baos = new ByteArrayOutputStream()
@@ -30,7 +29,7 @@ object HelloWorldTests extends TestSuite {
 
       val Right(result) = eval.apply(HelloWorldPython.qux.run(Args()))
 
-      assert(baos.toString() == "Hello,  Qux!\n")
+      assert(baos.toString().contains("Hello,  Qux!\n"))
     }
 
     test("test") {

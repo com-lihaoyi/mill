@@ -1,7 +1,7 @@
 package mill.codesig
-import mill.util.Tarjans
+import mill.util.{SpanningForest, Tarjans}
 import upickle.default.{Writer, writer}
-import JvmModel._
+import JvmModel.*
 
 import scala.collection.immutable.SortedMap
 import ujson.Obj
@@ -77,11 +77,12 @@ class CallGraphAnalysis(
     .collect { case (CallGraphAnalysis.LocalDef(d), v) => (d.toString, v) }
     .to(SortedMap)
 
+  logger.mandatoryLog(transitiveCallGraphHashes0)
   logger.log(transitiveCallGraphHashes)
 
-  lazy val spanningInvalidationForest: Obj = prevTransitiveCallGraphHashesOpt() match {
+  lazy val spanningInvalidationTree: Obj = prevTransitiveCallGraphHashesOpt() match {
     case Some(prevTransitiveCallGraphHashes) =>
-      CallGraphAnalysis.spanningInvalidationForest(
+      CallGraphAnalysis.spanningInvalidationTree(
         prevTransitiveCallGraphHashes,
         transitiveCallGraphHashes0,
         indexToNodes,
@@ -90,7 +91,7 @@ class CallGraphAnalysis(
     case None => ujson.Obj()
   }
 
-  logger.log(spanningInvalidationForest)
+  logger.mandatoryLog(spanningInvalidationTree)
 }
 
 object CallGraphAnalysis {
@@ -108,7 +109,7 @@ object CallGraphAnalysis {
    * typically are investigating why there's a path to a node at all where none
    * should exist, rather than trying to fully analyse all possible paths
    */
-  def spanningInvalidationForest(
+  def spanningInvalidationTree(
       prevTransitiveCallGraphHashes: Map[String, Int],
       transitiveCallGraphHashes0: Array[(CallGraphAnalysis.Node, Int)],
       indexToNodes: Array[Node],
@@ -121,20 +122,22 @@ object CallGraphAnalysis {
       .filter { nodeIndex =>
         val currentValue = transitiveCallGraphHashes0Map(indexToNodes(nodeIndex))
         val prevValue = prevTransitiveCallGraphHashes.get(indexToNodes(nodeIndex).toString)
-
         !prevValue.contains(currentValue)
       }
       .toSet
 
-    def spanningTreeToJsonTree(node: SpanningForest.Node): ujson.Obj = {
-      ujson.Obj.from(
-        node.values.map { case (k, v) =>
-          indexToNodes(k).toString -> spanningTreeToJsonTree(v)
-        }
-      )
-    }
+    val reverseGraphMap = indexGraphEdges
+      .zipWithIndex
+      .flatMap { case (vs, k) => vs.map((_, k)) }
+      .groupMap(_._1)(_._2)
 
-    spanningTreeToJsonTree(SpanningForest.apply(indexGraphEdges, nodesWithChangedHashes))
+    val reverseGraphEdges =
+      indexGraphEdges.indices.map(reverseGraphMap.getOrElse(_, Array[Int]())).toArray
+
+    SpanningForest.spanningTreeToJsonTree(
+      SpanningForest.apply(reverseGraphEdges, nodesWithChangedHashes, false),
+      k => indexToNodes(k).toString
+    )
   }
 
   def indexGraphEdges(

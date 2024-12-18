@@ -14,3 +14,7 @@ mill.iml
 bsp.log
 lowered.hnir
 .dotty-ide*
+node_modules/
+dist/
+build/
+*.bak

@@ -25,7 +25,8 @@ jobs:
     # when in master repo, publish all tags and manual runs on main
     if: github.repository == 'com-lihaoyi/mill'
     runs-on: ubuntu-latest
-
+    env:
+      MILL_STABLE_VERSION: 1
     steps:
       - uses: actions/checkout@v4
         with: {fetch-depth: 0}
@@ -56,6 +57,7 @@ jobs:
     concurrency: publish-sonatype-${{ github.sha }}
 
     env:
+      MILL_STABLE_VERSION: 1
       MILL_SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
       MILL_SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
       MILL_PGP_SECRET_BASE64: ${{ secrets.SONATYPE_PGP_SECRET }}
@@ -93,6 +95,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
+      MILL_STABLE_VERSION: 1
       REPO_ACCESS_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
 
     steps:

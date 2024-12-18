@@ -30,7 +30,7 @@ object Settings {
   val docUrl = "https://mill-build.org"
   // the exact branches containing a doc root
   val docBranches = Seq()
-  // the exact tags containing a doc root. Publish docs for 
+  // the exact tags containing a doc root. Publish docs for
   // the last point version in each minor release series
   val legacyDocTags: Seq[String] = Seq(
     "0.9.12",
@@ -38,11 +38,11 @@ object Settings {
   )
   val docTags: Seq[String] = Seq(
     "0.11.13",
-    "0.12.3"
+    "0.12.4"
   )
   val mimaBaseVersions: Seq[String] =
     0.to(13).map("0.11." + _) ++
-    Seq("0.12.0", "0.12.1", "0.12.2", "0.12.3")
+    Seq("0.12.0", "0.12.1", "0.12.2", "0.12.3", "0.12.4")
 }
 
 object Deps {
@@ -118,9 +118,9 @@ object Deps {
   val asmTree = ivy"org.ow2.asm:asm-tree:9.7.1"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
 
-  val coursierVersion = "2.1.18"
+  val coursierVersion = "2.1.21"
   val coursier = ivy"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
-  val coursierInterface = ivy"io.get-coursier:interface:1.0.24"
+  val coursierInterface = ivy"io.get-coursier:interface:1.0.26"
   val coursierJvm = ivy"io.get-coursier::coursier-jvm:$coursierVersion".withDottyCompat(scalaVersion)
 
   val cask = ivy"com.lihaoyi::cask:0.9.4"
@@ -212,7 +212,7 @@ object Deps {
     val dokkaCli = ivy"org.jetbrains.dokka:dokka-cli:$dokkaVersion"
     val errorProneCore = ivy"com.google.errorprone:error_prone_core:2.31.0"
     val freemarker = ivy"org.freemarker:freemarker:2.3.33"
-    val jupiterInterface = ivy"com.github.sbt.junit:jupiter-interface:0.11.4"
+    val jupiterInterface = ivy"com.github.sbt.junit:jupiter-interface:0.13.3"
     val kotlinxHtmlJvm = ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.8.0"
     val koverCli = ivy"org.jetbrains.kotlinx:kover-cli:$koverVersion"
     val koverJvmAgent = ivy"org.jetbrains.kotlinx:kover-jvm-agent:$koverVersion"
@@ -263,7 +263,10 @@ object Deps {
   }
 }
 
-def millVersion: T[String] = Task { VcsVersion.vcsState().format() }
+def millVersion: T[String] = Task.Input {
+  if (Task.env.contains("MILL_STABLE_VERSION")) VcsVersion.calcVcsState(Task.log).format()
+  else "SNAPSHOT"
+}
 
 def millLastTag: T[String] = Task {
   VcsVersion.vcsState().lastTag.getOrElse(
@@ -524,7 +527,9 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
     // (5x) MIMA doesn't properly ignore things which are nested inside other private things
     // so we have to put explicit ignores here (https://github.com/lightbend/mima/issues/771)
     ProblemFilter.exclude[Problem]("mill.eval.ProfileLogger*"),
+    ProblemFilter.exclude[Problem]("mill.eval.ChromeProfileLogger*"),
     ProblemFilter.exclude[Problem]("mill.eval.GroupEvaluator*"),
+    ProblemFilter.exclude[Problem]("mill.eval.EvaluatorCore*"),
     ProblemFilter.exclude[Problem]("mill.eval.Tarjans*"),
     ProblemFilter.exclude[Problem]("mill.define.Ctx#Impl*"),
     ProblemFilter.exclude[Problem]("mill.resolve.ResolveNotFoundHandler*"),
@@ -610,12 +615,10 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
       "mill.scalalib.ScalaModule#ScalaTests.mill$scalalib$ScalaModule$ScalaTests$$super$mandatoryScalacOptions"
     ),
     // Not sure why Mima is complaining when these are internal and private
-    ProblemFilter.exclude[Problem](
-      "*.bspJvmBuildTarget"
-    ),
-    ProblemFilter.exclude[Problem](
-      "mill.scalalib.RunModule#RunnerImpl.*"
-    )
+    ProblemFilter.exclude[Problem]("*.bspJvmBuildTarget"),
+    ProblemFilter.exclude[Problem]("mill.scalalib.RunModule#RunnerImpl.*"),
+    ProblemFilter.exclude[Problem]("mill.util.PromptLogger#*"),
+    ProblemFilter.exclude[Problem]("mill.util.PromptLoggerUtil.*")
   )
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
 
@@ -665,7 +668,7 @@ trait BridgeModule extends MillPublishJavaModule with CrossScalaModule {
     else ivy"org.scala-lang:scala-compiler:${crossScalaVersion}"
   )
 
-  def resources = Task.Sources {
+  def resources = Task {
     os.copy(generatedSources().head.path / "META-INF", Task.dest / "META-INF")
     Seq(PathRef(Task.dest))
   }
@@ -737,7 +740,9 @@ val dummyDeps: Seq[Dep] = Seq(
 
 implicit object DepSegment extends Cross.ToSegments[Dep]({ dep =>
       val depString = formatDep(dep)
-      List(depString)
+      // these cross module names cause problems on windows, and anyway they
+      // are not necessary in order to load the project into IntelliJ anyway
+      List(depString.replace(':', '_'))
     })
 
 /**

@@ -1,27 +1,28 @@
 package build
+
 import mill._, javascriptlib._
 
 object foo extends TypeScriptModule {
-  object bar extends TypeScriptModule {
-    def npmDeps = Seq("immutable@4.3.7")
-  }
+  def npmDeps = Seq("immutable@4.3.7")
+  object test extends TypeScriptTests with TestModule.Jest
 }
 
-object qux extends TypeScriptModule {
-  def moduleDeps = Seq(foo, foo.bar)
-}
-
-// Documentation for mill.javascriptlib
+// Documentation for mill.example.javascriptlib
 
 /** Usage
-
-> mill qux.run James Bond prof
+> mill foo.run James Bond prof
 Hello James Bond Professor
 
-> mill show qux.bundle
-".../out/qux/bundle.dest/bundle.js"
+> mill foo.test
+PASS .../foo.test.ts
+...
+Test Suites:...1 passed, 1 total...
+Tests:...3 passed, 3 total...
+...
 
-> node out/qux/bundle.dest/bundle.js James Bond prof
+> mill show foo.bundle
+Build succeeded!
+
+> node out/foo/bundle.dest/bundle.js James Bond prof
 Hello James Bond Professor
-
 */

@@ -2,14 +2,6 @@
   "items": [
     {
       "target": {
-        "uri": "file:///workspace/hello-java"
-      },
-      "classpath": [
-        "file:///workspace/hello-java/compile-resources"
-      ]
-    },
-    {
-      "target": {
         "uri": "file:///workspace/hello-kotlin"
       },
       "classpath": [
@@ -25,6 +17,14 @@
       "classpath": [
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
         "file:///workspace/hello-scala/compile-resources"
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-java"
+      },
+      "classpath": [
+        "file:///workspace/hello-java/compile-resources"
       ]
     }
   ]

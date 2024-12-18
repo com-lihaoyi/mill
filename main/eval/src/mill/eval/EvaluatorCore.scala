@@ -5,9 +5,9 @@ import mill.api.Strict.Agg
 import mill.api._
 import mill.define._
 import mill.eval.Evaluator.TaskResult
-
 import mill.util._
 
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import scala.collection.mutable
 import scala.concurrent._
@@ -76,14 +76,21 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     val terminals0 = sortedGroups.keys().toVector
     val failed = new AtomicBoolean(false)
     val count = new AtomicInteger(1)
+    val indexToTerminal = sortedGroups.keys().toArray
+    val terminalToIndex = indexToTerminal.zipWithIndex.toMap
 
-    val futures = mutable.Map.empty[Terminal, Future[Option[GroupEvaluator.Results]]]
+    EvaluatorLogs.logDependencyTree(interGroupDeps, indexToTerminal, terminalToIndex, outPath)
 
     // Prepare a lookup tables up front of all the method names that each class owns,
     // and the class hierarchy, so during evaluation it is cheap to look up what class
     // each target belongs to determine of the enclosing class code signature changed.
     val (classToTransitiveClasses, allTransitiveClassMethods) =
-      precomputeMethodNamesPerClass(sortedGroups)
+      CodeSigUtils.precomputeMethodNamesPerClass(sortedGroups)
+
+    val uncached = new ConcurrentHashMap[Terminal, Unit]()
+    val changedValueHash = new ConcurrentHashMap[Terminal, Unit]()
+
+    val futures = mutable.Map.empty[Terminal, Future[Option[GroupEvaluator.Results]]]
 
     def evaluateTerminals(
         terminals: Seq[Terminal],
@@ -99,23 +106,21 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       // due to the topological order of traversal.
       for (terminal <- terminals) {
         val deps = interGroupDeps(terminal)
-        def isExclusiveCommand(t: Task[_]) = t match {
-          case c: Command[_] if c.exclusive => true
-          case _ => false
-        }
 
         val group = sortedGroups.lookupKey(terminal)
-        val exclusiveDeps = deps.filter(d => isExclusiveCommand(d.task))
+        val exclusiveDeps = deps.filter(d => d.task.isExclusiveCommand)
 
-        if (!isExclusiveCommand(terminal.task) && exclusiveDeps.nonEmpty) {
+        if (!terminal.task.isExclusiveCommand && exclusiveDeps.nonEmpty) {
           val failure = Result.Failure(
             s"Non-exclusive task ${terminal.render} cannot depend on exclusive task " +
               exclusiveDeps.map(_.render).mkString(", ")
           )
-          val taskResults =
-            group.map(t => (t, TaskResult[(Val, Int)](failure, () => failure))).toMap
+          val taskResults = group
+            .map(t => (t, TaskResult[(Val, Int)](failure, () => failure)))
+            .toMap
+
           futures(terminal) = Future.successful(
-            Some(GroupEvaluator.Results(taskResults, group.toSeq, false, -1, -1))
+            Some(GroupEvaluator.Results(taskResults, group.toSeq, false, -1, -1, false))
           )
         } else {
           futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
@@ -135,19 +140,13 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
                 .toMap
 
               val startTime = System.nanoTime() / 1000
-              val targetLabel = terminal match {
-                case Terminal.Task(task) => None
-                case t: Terminal.Labelled[_] => Some(Terminal.printTerm(t))
-              }
 
               // should we log progress?
-              val logRun = targetLabel.isDefined && {
-                val inputResults = for {
-                  target <- group.indexed.filterNot(upstreamResults.contains)
-                  item <- target.inputs.filterNot(group.contains)
-                } yield upstreamResults(item).map(_._1)
-                inputResults.forall(_.result.isInstanceOf[Result.Success[_]])
-              }
+              val inputResults = for {
+                target <- group.indexed.filterNot(upstreamResults.contains)
+                item <- target.inputs.filterNot(group.contains)
+              } yield upstreamResults(item).map(_._1)
+              val logRun = inputResults.forall(_.result.isInstanceOf[Result.Success[_]])
 
               val tickerPrefix = terminal.render.collect {
                 case targetLabel if logRun && logger.enableTicker => targetLabel
@@ -180,28 +179,15 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
                 failed.set(true)
 
               val endTime = System.nanoTime() / 1000
-
               val duration = endTime - startTime
 
-              chromeProfileLogger.log(
-                task = Terminal.printTerm(terminal),
-                cat = "job",
-                startTime = startTime,
-                duration = duration,
-                threadId = threadNumberer.getThreadId(Thread.currentThread()),
-                cached = res.cached
-              )
+              val threadId = threadNumberer.getThreadId(Thread.currentThread())
+              chromeProfileLogger.log(terminal, "job", startTime, duration, threadId, res.cached)
 
-              profileLogger.log(
-                ProfileLogger.Timing(
-                  terminal.render,
-                  (duration / 1000).toInt,
-                  res.cached,
-                  deps.map(_.render),
-                  res.inputsHash,
-                  res.previousInputsHash
-                )
-              )
+              if (!res.cached) uncached.put(terminal, ())
+              if (res.valueHashChanged) changedValueHash.put(terminal, ())
+
+              profileLogger.log(terminal, duration, res, deps)
 
               Some(res)
             }
@@ -223,12 +209,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
     val tasksTransitive = tasksTransitive0.toSet
     val (tasks, leafExclusiveCommands) = terminals0.partition {
-      case Terminal.Labelled(t, _) =>
-        if (tasksTransitive.contains(t)) true
-        else t match {
-          case t: Command[_] => !t.exclusive
-          case _ => false
-        }
+      case Terminal.Labelled(t, _) => tasksTransitive.contains(t) || !t.isExclusiveCommand
       case _ => !serialCommandExec
     }
 
@@ -241,6 +222,15 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     logger.clearPromptStatuses()
 
     val finishedOptsMap = (nonExclusiveResults ++ exclusiveResults).toMap
+
+    EvaluatorLogs.logInvalidationTree(
+      interGroupDeps,
+      indexToTerminal,
+      terminalToIndex,
+      outPath,
+      uncached,
+      changedValueHash
+    )
 
     val results0: Vector[(Task[_], TaskResult[(Val, Int)])] = terminals0
       .flatMap { t =>
@@ -266,46 +256,6 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       getFailing(sortedGroups, results),
       results.map { case (k, v) => (k, v.map(_._1)) }
     )
-  }
-
-  private def precomputeMethodNamesPerClass(sortedGroups: MultiBiMap[Terminal, Task[_]]) = {
-    def resolveTransitiveParents(c: Class[_]): Iterator[Class[_]] = {
-      Iterator(c) ++
-        Option(c.getSuperclass).iterator.flatMap(resolveTransitiveParents) ++
-        c.getInterfaces.iterator.flatMap(resolveTransitiveParents)
-    }
-
-    val classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]] = sortedGroups
-      .values()
-      .flatten
-      .collect { case namedTask: NamedTask[?] => namedTask.ctx.enclosingCls }
-      .map(cls => cls -> resolveTransitiveParents(cls).toVector)
-      .toMap
-
-    val allTransitiveClasses = classToTransitiveClasses
-      .iterator
-      .flatMap(_._2)
-      .toSet
-
-    val allTransitiveClassMethods: Map[Class[?], Map[String, java.lang.reflect.Method]] =
-      allTransitiveClasses
-        .map { cls =>
-          val cMangledName = cls.getName.replace('.', '$')
-          cls -> cls.getDeclaredMethods
-            .flatMap { m =>
-              Seq(
-                m.getName -> m,
-                // Handle scenarios where private method names get mangled when they are
-                // not really JVM-private due to being accessed by Scala nested objects
-                // or classes https://github.com/scala/bug/issues/9306
-                m.getName.stripPrefix(cMangledName + "$$") -> m,
-                m.getName.stripPrefix(cMangledName + "$") -> m
-              )
-            }.toMap
-        }
-        .toMap
-
-    (classToTransitiveClasses, allTransitiveClassMethods)
   }
 
   private def findInterGroupDeps(sortedGroups: MultiBiMap[Terminal, Task[_]])

@@ -14,12 +14,17 @@ globally.
 [#_bootstrap_scripts]
 == Bootstrap Scripts
 
-Although the Mill example projects come with their own `./mill` bootstrap script,
+Although the Mill example projects come with their own `./mill` and `./mill.bat` bootstrap script,
 you can also download it manually:
 
 [source,bash,subs="verbatim,attributes"]
 ----
+# Mac/Linux
 curl -L {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag} > mill && chmod +x mill
+echo {mill-last-tag} > .mill-version
+
+# Windows
+curl -L {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag}.bat -o mill.bat
 echo {mill-last-tag} > .mill-version
 ----
 
@@ -47,13 +52,6 @@ xref:cli/builtin-commands.adoc#_init[mill init] to initialize the project
 folder with one of the Mill example projects. There are a wide range of example projects,
 from hello-world to multi-module libraries to client-server web applications, and you can
 pick one most similar to what you are doing so you can hit the ground running working.
-
-=== Windows
-
-If you are running on Windows, you should use https://github.com/lefou/millw[lefou/millw]
-as a drop-in replacement for `./mill` that supports running on all major platforms including MS Windows.
-
-`./millw` will likely be merged into `./mill` in the near future.
 
 == IDE Support
 

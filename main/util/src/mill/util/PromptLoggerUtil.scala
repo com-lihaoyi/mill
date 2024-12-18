@@ -91,8 +91,7 @@ private object PromptLoggerUtil {
       titleText: String,
       statuses: Iterable[(String, Status)],
       interactive: Boolean,
-      infoColor: fansi.Attrs,
-      ending: Boolean = false
+      infoColor: fansi.Attrs
   ): List[String] = {
     // -1 to leave a bit of buffer
     val maxWidth = consoleWidth - 1
@@ -100,7 +99,7 @@ private object PromptLoggerUtil {
     val maxHeight = math.max(1, consoleHeight / 3 - 1)
     val headerSuffix = renderSecondsSuffix(now - startTimeMillis)
 
-    val header = renderHeader(headerPrefix, titleText, headerSuffix, maxWidth, ending, interactive)
+    val header = renderHeader(headerPrefix, titleText, headerSuffix, maxWidth)
 
     val body0 = statuses
       .flatMap {
@@ -147,12 +146,7 @@ private object PromptLoggerUtil {
         s"... and ${nonEmptyBodyCount - maxHeight + 1} more threads"
       )
 
-    // For non-interactive jobs, the prompt won't be at the bottom of the terminal but
-    // will instead be in the middle of a big log file with logs above and below, so we
-    // need some kind of footer to tell the reader when the prompt ends and logs begin
-    val footer = Option.when(!interactive)("=" * header.length).toList
-
-    header :: body ::: footer
+    header :: body
   }
 
   // Wrap the prompt in the necessary clear-screens/newlines/move-cursors
@@ -171,7 +165,9 @@ private object PromptLoggerUtil {
         if (ending) "\n"
         else AnsiNav.left(9999) + AnsiNav.up(currentPromptLines.length - 1)
 
-      AnsiNav.clearScreen(0) + currentPromptLines.mkString("\n") + backUp
+      currentPromptLines.map(_ + AnsiNav.clearLine(0)).mkString("\n") +
+        AnsiNav.clearScreen(0) +
+        backUp
     }
   }
 
@@ -179,12 +175,9 @@ private object PromptLoggerUtil {
       headerPrefix0: String,
       titleText0: String,
       headerSuffix0: String,
-      maxWidth: Int,
-      ending: Boolean = false,
-      interactive: Boolean = true
+      maxWidth: Int
   ): String = {
-    val headerPrefix = if (headerPrefix0.isEmpty) "" else s"$headerPrefix0 "
-    val headerPrefixStr = if (!interactive || ending) headerPrefix else s"  $headerPrefix"
+    val headerPrefixStr = if (headerPrefix0.isEmpty) "" else s"$headerPrefix0 "
     val headerSuffixStr = headerSuffix0
     val titleText = s" $titleText0 "
 
