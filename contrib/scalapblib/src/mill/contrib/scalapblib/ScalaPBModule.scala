@@ -86,7 +86,12 @@ trait ScalaPBModule extends ScalaModule {
   else Task { Seq.empty[PathRef] }
 
   def scalaPBProtoClasspath: T[Agg[PathRef]] = Task {
-    defaultResolver().resolveDeps(transitiveCompileIvyDeps() ++ transitiveIvyDeps())
+    defaultResolver().resolveDeps(
+      Seq(
+        coursierDependency.withConfiguration(coursier.core.Configuration.provided),
+        coursierDependency
+      )
+    )
   }
 
   def scalaPBUnpackProto: T[PathRef] = Task {
