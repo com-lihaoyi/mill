@@ -16,8 +16,8 @@ object foo extends TypeScriptModule {
   }
 
   // define resource path for the node app
-  override def mkENV = Task {
-    super.mkENV() ++ Map("RESOURCE_PATH" -> lineResource().path.toString)
+  override def forkEnv = Task {
+    super.forkEnv() ++ Map("RESOURCE_PATH" -> lineResource().path.toString)
   }
 
   object test extends TypeScriptTests with TestModule.Jest

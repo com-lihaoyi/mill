@@ -1,6 +1,7 @@
 import * as fs from 'fs/promises';
 import Foo from "foo/foo";
-import Resources from "test/resources/index";
+const TestFileA = require.resolve("@test/resources/test-file-a.txt");
+const TestFileB = require.resolve("@test/resources/test-file-b.txt");
 
 
 async function getResource(filePath: string): Promise<string> {
@@ -19,8 +20,8 @@ describe("simple", () => {
     });
 
     it("should return the correct resource text from 'foo/test/resources'", async () => {
-        const expectedA = await getResource(Resources["test-file-a"]);
-        const expectedB = await getResource(Resources["test-file-b"]);
+        const expectedA = await getResource(TestFileA);
+        const expectedB = await getResource(TestFileB);
 
         expect(expectedA).toEqual("Test Hello World Resource File A");
         expect(expectedB).toEqual("Test Hello World Resource File B");

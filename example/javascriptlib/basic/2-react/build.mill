@@ -3,8 +3,8 @@ package build
 import mill._, javascriptlib._
 
 object foo extends RsWithServeModule {
-  override def mkENV = Task {
-    super.mkENV() ++ Map("PORT" -> "3000")
+  override def forkEnv = Task {
+    super.forkEnv() ++ Map("PORT" -> "3000")
   }
 }
 

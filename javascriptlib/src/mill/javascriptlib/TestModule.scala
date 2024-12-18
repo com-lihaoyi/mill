@@ -84,7 +84,7 @@ object TestModule {
           getPathToTest()
         ),
         stdout = os.Inherit,
-        env = mkENV(),
+        env = forkEnv(),
         cwd = compile()._1.path
       )
       ()
@@ -133,7 +133,7 @@ object TestModule {
           getPathToTest()
         ),
         stdout = os.Inherit,
-        env = mkENV(),
+        env = forkEnv(),
         cwd = compile()._1.path
       )
       ()
@@ -194,7 +194,7 @@ object TestModule {
           getPathToTest()
         ),
         stdout = os.Inherit,
-        env = mkENV(),
+        env = forkEnv(),
         cwd = compile()._1.path
       )
       ()
@@ -258,7 +258,7 @@ object TestModule {
           s"--require=$tsconfigPath"
         ),
         stdout = os.Inherit,
-        env = mkENV(),
+        env = forkEnv(),
         cwd = compile()._1.path
       )
       ()

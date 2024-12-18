@@ -111,13 +111,13 @@ trait ReactScriptsModule extends TypeScriptModule {
       ("node", compiled / "node_modules" / "react-scripts" / "bin" / "react-scripts.js", "build"),
       cwd = compiled,
       stdout = os.Inherit,
-      env = mkENV()
+      env = forkEnv()
     )
 
     compile()._2
   }
 
-  override def mkENV =
+  override def forkEnv =
     Task.Anon {
       Map("NODE_PATH" -> Seq(
         ".",
@@ -148,7 +148,7 @@ trait ReactScriptsModule extends TypeScriptModule {
       ),
       cwd = compiled,
       stdout = os.Inherit,
-      env = mkENV()
+      env = forkEnv()
     )
   }
 

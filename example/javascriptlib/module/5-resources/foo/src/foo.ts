@@ -1,11 +1,11 @@
 import * as fs from 'fs/promises';
-import * as path from 'path';
-import Resources from "foo/resources/index";
+require('tsconfig-paths/register');
+const Resources = "@foo/resources"
 
 export default class Foo {
     static async resourceText(): Promise<string> {
-        const filePath = path.join(Resources.file);
         try {
+            const filePath = require.resolve(`${Resources}/file.txt`);
             return await fs.readFile(filePath, 'utf8');
         } catch (err) {
             console.error('Error reading the file:', err);

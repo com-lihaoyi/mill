@@ -21,8 +21,8 @@ object foo extends TypeScriptModule {
     Seq(PathRef(Task.dest))
   }
 
-  def mkENV = Task {
-    super.mkENV() ++ Map(
+  def forkEnv = Task {
+    super.forkEnv() ++ Map(
       "LINE_COUNT" -> lineCount().toString
     )
   }

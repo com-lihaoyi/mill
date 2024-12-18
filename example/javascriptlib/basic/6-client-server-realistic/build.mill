@@ -12,8 +12,8 @@ object server extends TypeScriptModule {
 
   override def bundleExternal = super.bundleExternal() ++ Seq("'express'", "'cors'")
 
-  override def mkENV = Task {
-    super.mkENV() ++ Map("PORT" -> "3001", "SERVER_RESOURCES" -> serverResource().path.toString)
+  override def forkEnv = Task {
+    super.forkEnv() ++ Map("PORT" -> "3001", "SERVER_RESOURCES" -> serverResource().path.toString)
   }
 
   def serverResource = Task {

@@ -29,8 +29,8 @@ object foo extends TypeScriptModule {
     Seq(PathRef(Task.dest))
   }
 
-  def mkENV = Task {
-    super.mkENV() ++ Map("MY_CUSTOM_ENV" -> "my-env-value")
+  def forkEnv = Task {
+    super.forkEnv() ++ Map("MY_CUSTOM_ENV" -> "my-env-value")
   }
 
   def mainFileName = Task { s"foo2.ts" }

@@ -42,50 +42,6 @@ trait TypeScriptModule extends Module { outer =>
 
   def generatedSources: T[Seq[PathRef]] = Task { Seq[PathRef]() }
 
-  private def resourceHandler: Task[IndexedSeq[PathRef]] = Task.Anon {
-    val compiledResourcePath = Task.dest / "typescript"
-
-    def envName(input: String): String = {
-      val cleaned = input.replaceAll("[^a-zA-Z0-9]", "") // remove special characters
-      cleaned.toUpperCase
-    }
-
-    resources().toIndexedSeq.flatMap { rp =>
-      val resourceRoot = rp.path.last
-      val indexFile = compiledResourcePath / resourceRoot / "index.ts"
-      if (!os.exists(rp.path) || os.list(rp.path).isEmpty) {
-        IndexedSeq.empty[PathRef]
-      } else if (os.exists(rp.path / "index.ts")) {
-        IndexedSeq(PathRef(rp.path / "index.ts"))
-      } else {
-        os.makeDir.all(compiledResourcePath / resourceRoot)
-        val files = os.list(rp.path)
-          .filter(os.isFile)
-          .filter(_.last != "index.ts")
-
-        val exports = files.map { file =>
-          val fileName = file.last
-          val key = fileName.takeWhile(_ != '.')
-          s"""    "$key": path.join(__dirname, process.env.${envName(
-              resourceRoot
-            )} || "", './$fileName')"""
-        }.mkString(",\n")
-
-        val content =
-          s"""import * as path from 'path';
-             |
-             |export default {
-             |$exports
-             |}
-             |""".stripMargin
-
-        os.write(indexFile, content)
-        IndexedSeq(PathRef(indexFile))
-      }
-    }
-
-  }
-
   def allSources: Task[IndexedSeq[PathRef]] =
     Task.Anon {
       val fileExt: Path => Boolean = _.ext == "ts"
@@ -94,7 +50,7 @@ trait TypeScriptModule extends Module { outer =>
         file <- os.walk(pr.path)
         if fileExt(file)
       } yield PathRef(file)
-      os.walk(sources().path).filter(fileExt).map(PathRef(_)) ++ resourceHandler() ++ generated
+      os.walk(sources().path).filter(fileExt).map(PathRef(_)) ++ generated
     }
 
   // specify tsconfig.compilerOptions
@@ -121,7 +77,7 @@ trait TypeScriptModule extends Module { outer =>
         resources().map { rp =>
           val resourceRoot = rp.path.last
           (
-            mod.millSourcePath.subRelativeTo(Task.workspace).toString + s"/$resourceRoot/*",
+            "@" + mod.millSourcePath.subRelativeTo(Task.workspace).toString + s"/$resourceRoot/*",
             (ts.path / resourceRoot).toString + ":" + (comp.path / "declarations").toString
           )
 
@@ -139,7 +95,7 @@ trait TypeScriptModule extends Module { outer =>
       resources().map { rp =>
         val resourceRoot = rp.path.last
         (
-          s"$module/$resourceRoot/*",
+          s"@$module/$resourceRoot/*",
           (Task.dest / "typescript" / resourceRoot).toString + ":" + declarationsOut.toString
         )
       }
@@ -189,7 +145,7 @@ trait TypeScriptModule extends Module { outer =>
 
   def mainFilePath: T[Path] = Task { compile()._2.path / "src" / mainFileName() }
 
-  def mkENV: T[Map[String, String]] =
+  def forkEnv: T[Map[String, String]] =
     Task {
       Map("NODE_PATH" -> Seq(
         ".",
@@ -208,7 +164,7 @@ trait TypeScriptModule extends Module { outer =>
     val mainFile = mainFilePath()
     val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
     val tsconfigpaths = npmInstall().path / "node_modules/tsconfig-paths/register"
-    val env = mkENV()
+    val env = forkEnv()
 
     val execFlags: Seq[String] = executionFlags().map {
       case (key, "") => s"--$key"
@@ -311,7 +267,7 @@ trait TypeScriptModule extends Module { outer =>
   }
 
   def bundle: T[PathRef] = Task {
-    val env = mkENV()
+    val env = forkEnv()
     val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
     val bundleScript = compile()._1.path / "build.ts"
     val bundle = Task.dest / "bundle.js"
