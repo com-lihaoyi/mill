@@ -32,6 +32,13 @@ trait CoursierSupport {
         ctx.fold(cache)(c => cache.withLogger(new TickerResolutionLogger(c)))
       }
 
+  /**
+   * A `coursier.Repository` that exposes modules with hard-coded artifact list
+   *
+   * Used in Mill tests. This exposes internal workers for example, so that these
+   * come from the build and not from remote repositories or ~/.ivy2/local. See
+   * `MillJavaModule#{testTransitiveDeps,writeLocalTestOverrides}` in the Mill build.
+   */
   private class TestOverridesRepo(root: os.ResourcePath) extends Repository {
 
     private def listFor(mod: Module): Either[os.ResourceNotFoundException, String] = {
