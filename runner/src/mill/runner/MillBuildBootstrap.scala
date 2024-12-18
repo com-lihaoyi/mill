@@ -49,7 +49,7 @@ class MillBuildBootstrap(
     streams0: SystemStreams,
     selectiveExecution: Boolean,
     scalaCompilerWorker: ScalaCompilerWorker.ResolvedWorker
-  ) { outer =>
+) { outer =>
   import MillBuildBootstrap._
 
   val millBootClasspath: Seq[os.Path] = prepareMillBootClasspath(output)

@@ -237,7 +237,9 @@ trait PublishModule extends PythonModule {
 }
 
 object PublishModule {
-  private implicit lazy val licenseFormat: upickle.default.ReadWriter[License] = upickle.default.macroRW
+  private implicit lazy val licenseFormat: upickle.default.ReadWriter[License] =
+    upickle.default.macroRW
+
   /**
    * Static metadata about a project.
    *

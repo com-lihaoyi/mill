@@ -10,7 +10,7 @@ object ClientApp {
       new dom.RequestInit {
         method = dom.HttpMethod.POST
       }
-    ).then[String](response => response.text())
+    ).`then`[String](response => response.text())
       .then[Unit] { text =>
         todoApp.innerHTML = text
         initListeners()
@@ -57,7 +57,7 @@ object ClientApp {
               method = dom.HttpMethod.POST
               body = newTodoInput.value
             }
-          ).then[String](response => response.text())
+          ).`then`[String](response => response.text())
             .then[Unit] { text =>
               newTodoInput.value = ""
               todoApp.innerHTML = text

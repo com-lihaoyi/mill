@@ -2,7 +2,6 @@ package mill.util
 
 import mill.api.SystemStreams
 import mill.main.client.ProxyStream
-import mill.util.PromptLoggerUtil.{Status, defaultTermHeight, defaultTermWidth, renderPrompt}
 import pprint.Util.literalize
 
 import java.io._

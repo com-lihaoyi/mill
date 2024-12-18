@@ -23,14 +23,14 @@ import scala.util.Using
 object MillMain {
 
   def handleMillException[T](
-                              err: PrintStream,
-                              onError: => T
-                            ): PartialFunction[Throwable, (Boolean, T)] = {
+      err: PrintStream,
+      onError: => T
+  ): PartialFunction[Throwable, (Boolean, T)] = {
     case e: MillException =>
       err.println(e.getMessage())
       (false, onError)
     case e: InvocationTargetException
-      if e.getCause != null && e.getCause.isInstanceOf[MillException] =>
+        if e.getCause != null && e.getCause.isInstanceOf[MillException] =>
       err.println(e.getCause.getMessage())
       (false, onError)
     case NonFatal(e) =>
@@ -74,18 +74,18 @@ object MillMain {
 
     val (result, _) =
       try main0(
-        args = args.tail,
-        stateCache = RunnerState.empty,
-        mainInteractive = mill.util.Util.isInteractive(),
-        streams0 = runnerStreams,
-        bspLog = bspLog,
-        env = System.getenv().asScala.toMap,
-        setIdle = b => (),
-        userSpecifiedProperties0 = Map(),
-        initialSystemProperties = sys.props.toMap,
-        systemExit = i => sys.exit(i),
-        serverDir = os.Path(args.head)
-      )
+          args = args.tail,
+          stateCache = RunnerState.empty,
+          mainInteractive = mill.util.Util.isInteractive(),
+          streams0 = runnerStreams,
+          bspLog = bspLog,
+          env = System.getenv().asScala.toMap,
+          setIdle = b => (),
+          userSpecifiedProperties0 = Map(),
+          initialSystemProperties = sys.props.toMap,
+          systemExit = i => sys.exit(i),
+          serverDir = os.Path(args.head)
+        )
       catch handleMillException(runnerStreams.err, ())
       finally {
         cleanupStreams.foreach(_.close())
@@ -94,18 +94,18 @@ object MillMain {
   }
 
   def main0(
-             args: Array[String],
-             stateCache: RunnerState,
-             mainInteractive: Boolean,
-             streams0: SystemStreams,
-             bspLog: Option[PrintStream],
-             env: Map[String, String],
-             setIdle: Boolean => Unit,
-             userSpecifiedProperties0: Map[String, String],
-             initialSystemProperties: Map[String, String],
-             systemExit: Int => Nothing,
-             serverDir: os.Path
-           ): (Boolean, RunnerState) = {
+      args: Array[String],
+      stateCache: RunnerState,
+      mainInteractive: Boolean,
+      streams0: SystemStreams,
+      bspLog: Option[PrintStream],
+      env: Map[String, String],
+      setIdle: Boolean => Unit,
+      userSpecifiedProperties0: Map[String, String],
+      initialSystemProperties: Map[String, String],
+      systemExit: Int => Nothing,
+      serverDir: os.Path
+  ): (Boolean, RunnerState) = {
     val printLoggerState = new PrintLogger.State()
     val streams = streams0
     SystemStreams.withStreams(streams) {
@@ -139,8 +139,8 @@ object MillMain {
             (true, RunnerState.empty)
 
           case Right(config)
-            if (
-              config.interactive.value || config.noServer.value || config.bsp.value
+              if (
+                config.interactive.value || config.noServer.value || config.bsp.value
               ) && streams.in.getClass == classOf[PipedInputStream] =>
             // because we have stdin as dummy, we assume we were already started in server process
             streams.err.println(
@@ -149,11 +149,11 @@ object MillMain {
             (false, RunnerState.empty)
 
           case Right(config)
-            if Seq(
-              config.interactive.value,
-              config.noServer.value,
-              config.bsp.value
-            ).count(identity) > 1 =>
+              if Seq(
+                config.interactive.value,
+                config.noServer.value,
+                config.bsp.value
+              ).count(identity) > 1 =>
             streams.err.println(
               "Only one of -i/--interactive, --no-server or --bsp may be given"
             )
@@ -338,9 +338,9 @@ object MillMain {
   }
 
   private[runner] def parseThreadCount(
-                                        threadCountRaw: Option[String],
-                                        availableCores: Int
-                                      ): Either[String, Int] = {
+      threadCountRaw: Option[String],
+      availableCores: Int
+  ): Either[String, Int] = {
     def err(detail: String) =
       s"Invalid value \"${threadCountRaw.getOrElse("")}\" for flag -j/--jobs: $detail"
 
@@ -348,26 +348,26 @@ object MillMain {
       case None => Right(availableCores)
       case Some("0") => Right(availableCores)
       case Some(s"${n}C") => n.toDoubleOption
-        .toRight(err("Failed to find a float number before \"C\"."))
-        .map(m => (m * availableCores).toInt)
+          .toRight(err("Failed to find a float number before \"C\"."))
+          .map(m => (m * availableCores).toInt)
       case Some(s"C-${n}") => n.toIntOption
-        .toRight(err("Failed to find a int number after \"C-\"."))
-        .map(availableCores - _)
+          .toRight(err("Failed to find a int number after \"C-\"."))
+          .map(availableCores - _)
       case Some(n) => n.toIntOption
-        .toRight(err("Failed to find a int number"))
+          .toRight(err("Failed to find a int number"))
     }).map { x => if (x < 1) 1 else x }
   }
 
   def getLogger(
-                 streams: SystemStreams,
-                 config: MillCliConfig,
-                 mainInteractive: Boolean,
-                 enableTicker: Option[Boolean],
-                 printLoggerState: PrintLogger.State,
-                 serverDir: os.Path,
-                 colored: Boolean,
-                 colors: Colors
-               ): mill.util.ColorLogger = {
+      streams: SystemStreams,
+      config: MillCliConfig,
+      mainInteractive: Boolean,
+      enableTicker: Option[Boolean],
+      printLoggerState: PrintLogger.State,
+      serverDir: os.Path,
+      colored: Boolean,
+      colors: Colors
+  ): mill.util.ColorLogger = {
 
     val logger = if (config.disablePrompt.value) {
       new mill.util.PrintLogger(
@@ -436,9 +436,9 @@ object MillMain {
   }
 
   def adjustJvmProperties(
-                           userSpecifiedProperties: Map[String, String],
-                           initialSystemProperties: Map[String, String]
-                         ): Unit = {
+      userSpecifiedProperties: Map[String, String],
+      initialSystemProperties: Map[String, String]
+  ): Unit = {
     val currentProps = sys.props
     val desiredProps = initialSystemProperties ++ userSpecifiedProperties
     val systemPropertiesToUnset = currentProps.keySet -- desiredProps.keySet
@@ -448,12 +448,12 @@ object MillMain {
   }
 
   def withOutLock[T](
-                      noBuildLock: Boolean,
-                      noWaitForBuildLock: Boolean,
-                      out: os.Path,
-                      targetsAndParams: Seq[String],
-                      streams: SystemStreams
-                    )(t: => T): T = {
+      noBuildLock: Boolean,
+      noWaitForBuildLock: Boolean,
+      out: os.Path,
+      targetsAndParams: Seq[String],
+      streams: SystemStreams
+  )(t: => T): T = {
     if (noBuildLock) t
     else {
       val outLock = Lock.file((out / OutFiles.millLock).toString)
