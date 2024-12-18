@@ -126,11 +126,12 @@ object `package` extends RootModule {
 
     // Worker for Scoverage 2.0
     object worker2 extends build.MillPublishScalaModule {
-      def compileModuleDeps = Seq(build.main.api)
-      def moduleDeps = Seq(scoverage.api)
-      def testDepPaths = Task { Seq(compile().classes) }
+      def compileModuleDeps = Seq(
+        build.main.api,
+        scoverage.api
+      )
       def compileIvyDeps = Task {
-        Agg(
+        super.mandatoryIvyDeps() ++ Agg(
           // compile-time only, need to provide the correct scoverage version at runtime
           build.Deps.scalacScoverage2Plugin,
           build.Deps.scalacScoverage2Reporter,
@@ -138,6 +139,7 @@ object `package` extends RootModule {
           build.Deps.scalacScoverage2Serializer
         )
       }
+      def mandatoryIvyDeps = Agg.empty[Dep]
     }
   }
 
