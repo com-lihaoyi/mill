@@ -571,6 +571,10 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
       "mill.main.MainModule.mill$define$BaseModule0$_setter_$evalWatchedValues_="
     ),
 
+    // Overrides added for new methods, ought to be safe
+    ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$internalRepositories"),
+    ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.scalanativelib.ScalaNativeModule.mill$scalanativelib$ScalaNativeModule$$super$coursierProject"),
+
     // https://github.com/com-lihaoyi/mill/pull/3503
     ProblemFilter.exclude[ReversedMissingMethodProblem](
       "mill.scalalib.ScalaModule#ScalaTests.mill$scalalib$ScalaModule$ScalaTests$$super$mandatoryScalacOptions"

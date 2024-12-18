@@ -541,6 +541,59 @@ trait JavaModule
   }
 
   /**
+   * The Ivy dependencies of this module, with BOM and dependency management details
+   * added to them. This should be used when propagating the dependencies transitively
+   * to other modules.
+   */
+  @deprecated("Unused by Mill, use allIvyDeps instead", "Mill after 0.12.4")
+  def processedIvyDeps: Task[Agg[BoundDep]] = Task {
+    allIvyDeps().map(bindDependency())
+  }
+
+  /**
+   * Returns a function adding BOM and dependency management details of
+   * this module to a `coursier.core.Dependency`
+   */
+  @deprecated("Unused by Mill", "Mill after 0.12.4")
+  def processDependency(
+      overrideVersions: Boolean = false
+  ): Task[coursier.core.Dependency => coursier.core.Dependency] =
+    Task.Anon(identity[coursier.core.Dependency])
+
+  /**
+   * The transitive ivy dependencies of this module and all it's upstream modules.
+   * This is calculated from [[ivyDeps]], [[mandatoryIvyDeps]] and recursively from [[moduleDeps]].
+   */
+  @deprecated("Unused by Mill, use coursierDependency or allIvyDeps instead", "Mill after 0.12.4")
+  def transitiveIvyDeps: T[Agg[BoundDep]] = Task {
+    allIvyDeps().map(bindDependency()) ++
+      T.traverse(moduleDepsChecked)(_.transitiveIvyDeps)().flatten
+  }
+
+  /** The compile-only transitive ivy dependencies of this module and all its upstream compile-only modules. */
+  @deprecated(
+    "Unused by Mill, use coursierDependency().withConfiguration(Configuration.provided) or compileIvyDeps instead",
+    "Mill after 0.12.4"
+  )
+  def transitiveCompileIvyDeps: T[Agg[BoundDep]] = Task {
+    compileIvyDeps().map(bindDependency()) ++
+      T.traverse(moduleDepsChecked)(_.transitiveCompileIvyDeps)().flatten
+  }
+
+  /**
+   * The transitive run ivy dependencies of this module and all it's upstream modules.
+   * This is calculated from [[runIvyDeps]], [[mandatoryIvyDeps]] and recursively from [[moduleDeps]].
+   */
+  @deprecated(
+    "Unused by Mill, use coursierDependency().withConfiguration(Configuration.runtime) or runIvyDeps instead",
+    "Mill after 0.12.4"
+  )
+  def transitiveRunIvyDeps: T[Agg[BoundDep]] = Task {
+    runIvyDeps().map(bindDependency()) ++
+      T.traverse(moduleDepsChecked)(_.transitiveRunIvyDeps)().flatten
+  }
+
+  /**
    * The repository that knows about this project itself and its module dependencies
    */
   def internalDependenciesRepository: Task[cs.Repository] = Task.Anon {
