@@ -66,9 +66,7 @@ object RunScript {
 
     val (sortedGroups, transitive) = Plan.plan(targets)
     val terminals = sortedGroups.keys.map(t => (t.task, t)).toMap
-    val selectiveExecutionEnabled = selectiveExecution && targets
-      .collectFirst { case c: Command[_] if c.exclusive => true }
-      .isEmpty
+    val selectiveExecutionEnabled = selectiveExecution && !targets.exists(_.isExclusiveCommand)
 
     val selectedTargetsOrErr =
       if (
@@ -80,10 +78,7 @@ object RunScript {
             val (selected, results) = x
             val selectedSet = selected.toSet
             (
-              targets.filter {
-                case c: Command[_] if c.exclusive => true
-                case t => selectedSet(terminals(t).render)
-              },
+              targets.filter(t => t.isExclusiveCommand || selectedSet(terminals(t).render)),
               results
             )
           }

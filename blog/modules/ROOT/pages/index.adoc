@@ -1,0 +1,17 @@
+# Mill Build Tool Engineering Blog
+
+include::mill:ROOT:partial$gtag-config.adoc[]
+
+
+Welcome to the Mill development blog! This page contains posts and articles on
+technical topics related to the development of the Mill build tool. These discuss
+topics related to JVM languages and monorepo build tooling.
+
+include::2-monorepo-build-tool.adoc[tag=header,leveloffset=1]
+
+xref:2-monorepo-build-tool.adoc[Read More...]
+
+include::1-java-compile.adoc[tag=header,leveloffset=1]
+
+xref:1-java-compile.adoc[Read More...]
+
