@@ -31,10 +31,7 @@ object CodeSigSubfolderTests extends UtestIntegrationTestSuite {
       modifyFile(workspacePath / "build.mill", _.replace("running foo", "running foo2"))
       val mangledFoo = eval("foo")
       assert(mangledFoo.out.linesIterator.toSeq == Seq("running foo2", "running helperFoo"))
-      // assert(mangledFoo.err.contains("compiling 1 Scala source"))
-      assert(
-        initial.err.contains("compiling 2 Scala sources")
-      ) // SCALA 3 - difference in Zinc output?
+      assert(mangledFoo.err.contains("compiling 1 Scala source"))
 
       val cached2 = eval("foo")
       assert(cached2.out == "")
