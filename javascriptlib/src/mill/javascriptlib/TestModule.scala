@@ -144,4 +144,129 @@ object TestModule {
     }
 
   }
+
+  trait Vitest extends TypeScriptModule with Shared with TestModule {
+    override def npmDevDeps: T[Seq[String]] =
+      Task {
+        Seq(
+          "@vitest/runner@2.1.8",
+          "vite@5.4.11",
+          "vite-tsconfig-paths@3.6.0",
+          "vitest@2.1.8"
+        )
+      }
+
+    def testConfigSource: T[PathRef] =
+      Task.Source(Task.workspace / "vite.config.ts")
+
+    override def compilerOptions: T[Map[String, ujson.Value]] =
+      Task {
+        super.compilerOptions() + (
+          "target" -> ujson.Str("ESNext"),
+          "module" -> ujson.Str("ESNext"),
+          "moduleResolution" -> ujson.Str("Node"),
+          "skipLibCheck" -> ujson.Bool(true),
+          "types" -> ujson.Arr(
+            s"${npmInstall().path}/node_modules/vitest/globals"
+          )
+        )
+      }
+
+    def getConfigFile: T[String] =
+      Task { (compile()._1.path / "vite.config.ts").toString }
+
+    private def copyConfig: Task[Unit] = Task.Anon {
+      os.copy.over(
+        testConfigSource().path,
+        compile()._1.path / "vite.config.ts"
+      )
+    }
+
+    private def runTest: T[TestResult] = Task {
+      copyConfig()
+      os.call(
+        (
+          "node",
+          npmInstall().path / "node_modules/.bin/vitest",
+          "--run",
+          "--config",
+          getConfigFile(),
+          getPathToTest()
+        ),
+        stdout = os.Inherit,
+        env = mkENV(),
+        cwd = compile()._1.path
+      )
+      ()
+    }
+
+    protected def testTask(args: Task[Seq[String]]): Task[TestResult] = Task.Anon {
+      runTest()
+    }
+
+  }
+
+  trait Jasmine extends TypeScriptModule with Shared with TestModule {
+    override def npmDevDeps: T[Seq[String]] =
+      Task {
+        Seq(
+          "@types/jasmine@5.1.2",
+          "jasmine@5.1.0",
+          "ts-node@10.9.1",
+          "tsconfig-paths@4.2.0",
+          "typescript@5.2.2"
+        )
+      }
+
+    override def compilerOptions: T[Map[String, ujson.Value]] =
+      Task {
+        super.compilerOptions() + (
+          "target" -> ujson.Str("ES5"),
+          "module" -> ujson.Str("commonjs"),
+          "moduleResolution" -> ujson.Str("node"),
+          "allowJs" -> ujson.Bool(true)
+        )
+      }
+
+    def configBuilder: T[PathRef] = Task {
+      val path = compile()._1.path / "jasmine.json"
+      os.write(
+        path,
+        ujson.write(
+          ujson.Obj(
+            "spec_dir" -> ujson.Str("typescript/src"),
+            "spec_files" -> ujson.Arr(ujson.Str("**/*.test.ts")),
+            "stopSpecOnExpectationFailure" -> ujson.Bool(false),
+            "random" -> ujson.Bool(false)
+          )
+        )
+      )
+      PathRef(path)
+    }
+
+    private def runTest: T[Unit] = Task {
+      configBuilder()
+      val jasmine = npmInstall().path / "node_modules/jasmine/bin/jasmine.js"
+      val tsnode = npmInstall().path / "node_modules/ts-node/register/transpile-only.js"
+      val tsconfigPath = npmInstall().path / "node_modules/tsconfig-paths/register.js"
+      os.call(
+        (
+          "node",
+          jasmine,
+          "--config=jasmine.json",
+          s"--require=$tsnode",
+          s"--require=$tsconfigPath"
+        ),
+        stdout = os.Inherit,
+        env = mkENV(),
+        cwd = compile()._1.path
+      )
+      ()
+    }
+
+    protected def testTask(args: Task[Seq[String]]): Task[TestResult] = Task.Anon {
+      runTest()
+    }
+
+  }
 }

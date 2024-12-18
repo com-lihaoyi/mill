@@ -61,7 +61,8 @@ object MainModule {
     RunScript.evaluateTasksNamed(
       evaluator.withBaseLogger(redirectLogger),
       targets,
-      Separated
+      Separated,
+      selectiveExecution = evaluator.selectiveExecution
     ) match {
       case Left(err) => Result.Failure(err)
       case Right((watched, Left(err))) =>
@@ -249,7 +250,7 @@ trait MainModule extends BaseModule0 {
                 .millDiscover
                 .value
                 .get(t.ctx.enclosingCls)
-                .flatMap(_._2.find(_.name == t.ctx.segments.parts.last))
+                .flatMap(_._2.find(_.name == t.ctx.segments.last.value))
                 .headOption
 
               mainDataOpt match {

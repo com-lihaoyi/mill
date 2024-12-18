@@ -73,4 +73,7 @@ public class OutFiles {
    * root tasks changed so Mill can decide which tasks to execute.
    */
   public static final String millSelectiveExecution = "mill-selective-execution.json";
+
+  public static final String millDependencyTree = "mill-dependency-tree.json";
+  public static final String millInvalidationTree = "mill-invalidation-tree.json";
 }

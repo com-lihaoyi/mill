@@ -14,7 +14,11 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
     test("changed-inputs") - integrationTest { tester =>
       import tester._
 
-      eval(("selective.prepare", "{foo.fooCommand,bar.barCommand}"), check = true)
+      eval(
+        ("selective.prepare", "{foo.fooCommand,bar.barCommand}"),
+        check = true,
+        stderr = os.Inherit
+      )
 
       // no op
       val noOp = eval(
@@ -52,12 +56,14 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
       assert(runAll.out.contains("Computing fooCommand"))
       assert(runAll.out.contains("Computing barCommand"))
     }
+
     test("changed-inputs-generic") - integrationTest { tester =>
       // Make sure you can run `selective.prepare` on a broader set of tasks than
       // `selective.resolve` or `selective.run` and thingsstill work
       import tester._
 
-      eval(("selective.prepare", "{foo.fooCommand,bar.barCommand}"), check = true)
+      // `selective.prepare` defaults to `__` if no selector is passed
+      eval(("selective.prepare"), check = true)
       modifyFile(workspacePath / "bar/bar.txt", _ + "!")
 
       val resolve = eval(("selective.resolve", "bar.barCommand"), check = true)
@@ -149,14 +155,21 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
         eventually(
           output.contains("Computing fooCommand") && output.contains("Computing barCommand")
         )
+
+        // Make sure editing each individual input results in the corresponding downstream
+        // command being re-run, and watches on both are maintained even if in a prior run
+        // one set of tasks was ignored.
         output0 = Nil
         modifyFile(workspacePath / "bar/bar.txt", _ + "!")
-        eventually(
+        eventually {
           !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
-        )
-        eventually(
-          !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
-        )
+        }
+
+        output0 = Nil
+        modifyFile(workspacePath / "foo/foo.txt", _ + "!")
+        eventually {
+          output.contains("Computing fooCommand") && !output.contains("Computing barCommand")
+        }
       }
       test("show-changed-inputs") - integrationTest { tester =>
         import tester._
@@ -166,24 +179,26 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
           eval(
             ("--watch", "show", "{foo.fooCommand,bar.barCommand}"),
             check = true,
-            stderr = os.ProcessOutput.Readlines(line => output0 = output0 :+ line)
+            stderr = os.ProcessOutput.Readlines(line => output0 = output0 :+ line),
+            stdout = os.ProcessOutput.Readlines(line => output0 = output0 :+ line)
           )
         }
 
-        eventually(
+        eventually {
           output.contains("Computing fooCommand") && output.contains("Computing barCommand")
-        )
+        }
         output0 = Nil
         modifyFile(workspacePath / "bar/bar.txt", _ + "!")
-        // For now, selective execution doesn't work with `show`, and always runs all provided
-        // tasks. This is necessary because we need all specified tasks to be run in order to
-        // get their value to render as JSON at the end of `show`
-        eventually(
-          output.contains("Computing fooCommand") && output.contains("Computing barCommand")
-        )
-        eventually(
-          output.contains("Computing fooCommand") && output.contains("Computing barCommand")
-        )
+
+        eventually {
+          !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
+        }
+
+        output0 = Nil
+        modifyFile(workspacePath / "foo/foo.txt", _ + "!")
+        eventually {
+          output.contains("Computing fooCommand") && !output.contains("Computing barCommand")
+        }
       }
 
       test("changed-code") - integrationTest { tester =>
@@ -195,22 +210,22 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
           eval(
             ("--watch", "{foo.fooCommand,bar.barCommand}"),
             check = true,
-            stdout = os.ProcessOutput.Readlines(line => output0 = output0 :+ line),
+            stdout = os.ProcessOutput.Readlines { line => output0 = output0 :+ line },
             stderr = os.Inherit
           )
         }
 
-        eventually(
+        eventually {
           output.contains("Computing fooCommand") && output.contains("Computing barCommand")
-        )
+        }
         output0 = Nil
 
         // Check method body code changes correctly trigger downstream evaluation
         modifyFile(workspacePath / "build.mill", _.replace("\"barHelper \"", "\"barHelper! \""))
 
-        eventually(
+        eventually {
           !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
-        )
+        }
         output0 = Nil
 
         // Check module body code changes correctly trigger downstream evaluation
@@ -219,9 +234,9 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
           _.replace("object foo extends Module {", "object foo extends Module { println(123)")
         )
 
-        eventually(
+        eventually {
           output.contains("Computing fooCommand") && !output.contains("Computing barCommand")
-        )
+        }
       }
     }
     test("failures") {
@@ -236,6 +251,20 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
 
         assert(cached.err.contains("`selective.run` can only be run after `selective.prepare`"))
       }
+    }
+    test("renamed-tasks") - integrationTest { tester =>
+      import tester._
+      eval(("selective.prepare", "{foo,bar}._"), check = true)
+
+      modifyFile(workspacePath / "build.mill", _.replace("fooTask", "fooTaskRenamed"))
+      modifyFile(workspacePath / "build.mill", _.replace("barCommand", "barCommandRenamed"))
+
+      val cached = eval(("selective.resolve", "{foo,bar}._"), stderr = os.Pipe)
+
+      assert(
+        cached.out.linesIterator.toList ==
+          Seq("bar.barCommandRenamed", "foo.fooCommand", "foo.fooTaskRenamed")
+      )
     }
   }
 }

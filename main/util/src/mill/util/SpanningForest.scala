@@ -1,5 +1,6 @@
-package mill.codesig
-import collection.mutable
+package mill.util
+
+import scala.collection.mutable
 
 /**
  * Algorithm to compute the minimal spanning forest of a directed acyclic graph
@@ -11,15 +12,36 @@ import collection.mutable
  * Returns the forest as a [[Node]] structure with the top-level node containing
  * the roots of the forest
  */
-object SpanningForest {
-
+private[mill] object SpanningForest {
+  def writeJsonFile(
+      path: os.Path,
+      indexEdges: Array[Array[Int]],
+      interestingIndices: Set[Int],
+      render: Int => String
+  ): Unit = {
+    os.write.over(
+      path,
+      SpanningForest.spanningTreeToJsonTree(
+        SpanningForest(indexEdges, interestingIndices, true),
+        render
+      ).render(indent = 2)
+    )
+  }
+  def spanningTreeToJsonTree(node: SpanningForest.Node, stringify: Int => String): ujson.Obj = {
+    ujson.Obj.from(
+      node.values.map { case (k, v) => stringify(k) -> spanningTreeToJsonTree(v, stringify) }
+    )
+  }
   case class Node(values: mutable.Map[Int, Node] = mutable.Map())
-  def apply(indexGraphEdges: Array[Array[Int]], importantVertices: Set[Int]): Node = {
+  def apply(
+      indexGraphEdges: Array[Array[Int]],
+      importantVertices: Set[Int],
+      limitToImportantVertices: Boolean
+  ): Node = {
     // Find all importantVertices which are "roots" with no incoming edges
     // from other importantVertices
-    val rootChangedNodeIndices = importantVertices.filter(i =>
-      !indexGraphEdges(i).exists(importantVertices.contains(_))
-    )
+    val destinations = importantVertices.flatMap(indexGraphEdges(_))
+    val rootChangedNodeIndices = importantVertices.filter(!destinations.contains(_))
 
     // Prepare a mutable tree structure that we will return, pre-populated with
     // just the first level of nodes from the `rootChangedNodeIndices`, as well
@@ -30,17 +52,11 @@ object SpanningForest {
 
     // Do a breadth first search from the `rootChangedNodeIndices` across the
     // reverse edges of the graph to build up the spanning forest
-    val downstreamGraphEdges = indexGraphEdges
-      .zipWithIndex
-      .flatMap { case (vs, k) => vs.map((_, k)) }
-      .groupMap(_._1)(_._2)
+    breadthFirst(rootChangedNodeIndices) { index =>
+      // needed to add explicit type for Scala 3.5.0-RC6
+      val nextIndices = indexGraphEdges(index)
+        .filter(e => !limitToImportantVertices || importantVertices(e))
 
-    ResolvedCalls.breadthFirst(rootChangedNodeIndices) { index =>
-      val nextIndices =
-        downstreamGraphEdges.getOrElse(
-          index,
-          Array[Int]()
-        ) // needed to add explicit type for Scala 3.5.0-RC6
       // We build up the spanningForest during a normal breadth first search,
       // using the `nodeMapping` to quickly find a vertice's tree node so we
       // can add children to it. We need to duplicate the `seen.contains` logic
@@ -54,4 +70,22 @@ object SpanningForest {
     }
     spanningForest
   }
+
+  def breadthFirst[T](start: IterableOnce[T])(edges: T => IterableOnce[T]): Seq[T] = {
+    val seen = collection.mutable.Set.empty[T]
+    val seenList = collection.mutable.Buffer.empty[T]
+    val queued = collection.mutable.Queue.from(start)
+
+    while (queued.nonEmpty) {
+      val current = queued.dequeue()
+      seen.add(current)
+      seenList.append(current)
+
+      for (next <- edges(current).iterator) {
+        if (!seen.contains(next)) queued.enqueue(next)
+      }
+    }
+    seenList.toSeq
+  }
+
 }

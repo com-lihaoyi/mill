@@ -102,7 +102,8 @@ class UnitTester(
     disableCallgraph = false,
     allowPositionalCommandArgs = false,
     systemExit = i => ???,
-    exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream)
+    exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),
+    selectiveExecution = false
   )
 
   def apply(args: String*): Either[Result.Failing[_], UnitTester.Result[Seq[_]]] = {
