@@ -33,6 +33,13 @@ object server extends TypeScriptModule {
 
 /** Usage
 
+> mill client.test
+PASS src/test/App.test.tsx
+...
+
+> mill client.bundle   # bundle the react app;
+...
+
 > mill server.test
 PASS .../server.test.ts
 ...
@@ -43,11 +50,4 @@ Tests:...3 passed, 3 total...
 > mill show server.bundle # bundle the express server
 ...
 Build succeeded!
-
-> mill client.test
-PASS src/test/App.test.tsx
-...
-
-> mill client.bundle   # bundle the react app;
-...
 */
