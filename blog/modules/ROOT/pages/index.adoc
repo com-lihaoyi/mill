@@ -1,4 +1,4 @@
-# Mill Build Tool Development Blog
+# Mill Build Tool Engineering Blog
 
 include::mill:ROOT:partial$gtag-config.adoc[]
 
