@@ -198,11 +198,14 @@ abstract class MillBuildRootModule()(implicit
           // and is only used by downstream code in `mill.eval`/`mill.resolve`. Thus although CodeSig's
           // conservative analysis considers potential calls from `build_.package_$#<init>` to
           // `millDiscover()`, we can safely ignore that possibility
-          def isMillDiscover = calledSig.name == "millDiscover$lzycompute"
+          def isMillDiscover =
+            calledSig.name == "millDiscover$lzyINIT1" ||
+              calledSig.name == "millDiscover"  ||
+              callSiteOpt.exists(_.sig.name == "millDiscover")
 
-          (isSimpleTarget(
-            calledSig.desc
-          ) && !isForwarderCallsiteOrLambda) || isCommand || isMillDiscover
+          (isSimpleTarget(calledSig.desc) && !isForwarderCallsiteOrLambda) ||
+            isCommand ||
+            isMillDiscover
         },
         logger = new mill.codesig.Logger(
           T.dest / "current",

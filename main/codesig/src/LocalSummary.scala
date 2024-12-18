@@ -172,6 +172,11 @@ object LocalSummary {
      * hack [[MyMethodVisitor]] to try and identify and skip those snippets of bytecode
      */
     var inLazyValCheck = false
+    /**
+     * Hack to skip the lazy val setup code that Scala 3 generates in `<clinit>`,
+     * which tends to be very unstable and causes unnecessary invalidations
+     */
+    var inScala3LazyValClinit = false
 
     override def visitFieldInsn(
         opcode: Int,
@@ -183,10 +188,22 @@ object LocalSummary {
         case s"bitmap$$$n" => n.forall(_.isDigit)
         case _ => false
       }
+      val isLazyValsGet = (owner, name, descriptor)  match {
+        case ("scala/runtime/LazyVals$", "MODULE$", "Lscala/runtime/LazyVals$;") => true
+        case _ => false
+      }
+      val isLazyValsPut = (name, descriptor)  match {
+        case (s"OFFSET$$_m_$n", "J") if n.forall(_.isDigit)=> true
+        case _ => false
+      }
       if (isBitmap && (opcode == Opcodes.GETSTATIC || opcode == Opcodes.GETFIELD)) {
         inLazyValCheck = true
       } else if (isBitmap && (opcode == Opcodes.PUTSTATIC || opcode == Opcodes.PUTFIELD)) {
         inLazyValCheck = false
+      } else if (isLazyValsGet && (opcode == Opcodes.GETSTATIC || opcode == Opcodes.GETFIELD)) {
+        inScala3LazyValClinit = true
+      } else if (isLazyValsPut && (opcode == Opcodes.PUTSTATIC || opcode == Opcodes.PUTFIELD)) {
+        inScala3LazyValClinit = false
       } else {
         hash(opcode)
         hash(owner.hashCode)
@@ -261,7 +278,7 @@ object LocalSummary {
     }
 
     override def visitLdcInsn(value: Any): Unit = {
-      hash(
+      if (!inScala3LazyValClinit) hash(
         value match {
           case v: java.lang.String => v.hashCode()
           case v: java.lang.Integer => v.hashCode()
