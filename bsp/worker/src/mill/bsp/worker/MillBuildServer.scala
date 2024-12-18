@@ -338,7 +338,7 @@ private class MillBuildServer(
         Task.Anon {
           (
             m.compileIvyDeps(),
-            m.ivyDeps(),
+            m.mandatoryIvyDeps() ++ m.ivyDeps(),
             m.unmanagedClasspath()
           )
         }

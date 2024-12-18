@@ -45,9 +45,9 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
   trait WorkerModule extends build.MillPublishScalaModule with Cross.Module[String] {
     def scalajsWorkerVersion = crossValue
     def millSourcePath: os.Path = super.millSourcePath / scalajsWorkerVersion
-    def testDepPaths = Task { Seq(compile().classes) }
-    def moduleDeps = Seq(build.scalajslib.`worker-api`, build.main.client, build.main.api)
-    def ivyDeps = Agg(
+    def compileModuleDeps = Seq(build.scalajslib.`worker-api`, build.main.client, build.main.api)
+    def mandatoryIvyDeps = Agg.empty[Dep]
+    def compileIvyDeps = super.mandatoryIvyDeps() ++ Agg(
       build.Deps.Scalajs_1.scalajsLinker,
       build.Deps.Scalajs_1.scalajsSbtTestAdapter,
       build.Deps.Scalajs_1.scalajsEnvNodejs,

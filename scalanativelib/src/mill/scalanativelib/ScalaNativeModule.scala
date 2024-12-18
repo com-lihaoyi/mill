@@ -43,8 +43,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   def scalaNativeWorkerClasspath = Task {
     millProjectModule(
       s"mill-scalanativelib-worker-${scalaNativeWorkerVersion()}",
-      repositoriesTask(),
-      resolveFilter = _.toString.contains("mill-scalanativelib-worker")
+      repositoriesTask()
     )
   }
 
@@ -304,6 +303,10 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       )
     ))
   }
+
+  // override added for binary compatibility
+  override def transitiveIvyDeps: T[Agg[mill.scalalib.BoundDep]] =
+    super.transitiveIvyDeps
 
   def coursierProject: Task[coursier.core.Project] = Task.Anon {
 

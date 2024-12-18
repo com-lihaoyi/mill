@@ -102,11 +102,11 @@ object DocAnnotationsTests extends UtestIntegrationTestSuite {
           |                             tree.
           |
           |Inputs:
-          |    core.bomIvyDeps
           |    core.mandatoryIvyDeps
           |    core.ivyDeps
           |    core.compileIvyDeps
           |    core.runIvyDeps
+          |    core.bomIvyDeps
           |    core.depManagement
           |""".stripMargin,
         ivyDepsTree
