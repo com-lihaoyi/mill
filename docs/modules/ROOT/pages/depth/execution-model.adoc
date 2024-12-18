@@ -321,7 +321,7 @@ starting from just the bootstrap script (available as `./mill` for Linux/Mac and
 for Windows). The documentation for xref:extending/meta-build.adoc[The Mill Meta Build]
 goes into more detail of how you can configure and make use of it.
 
-== Consequences of the Mill Evaluation Model
+== Consequences of the Mill Execution Model
 
 This four-phase evaluation model has consequences for how you structure your
 build. For example:
@@ -341,7 +341,10 @@ build. For example:
 This should not be a problem for most builds, but it is something to be aware
 of. In general, we have found that having "two places" to put code - outside of
 ``Task``s to run during <<Planning>> or inside of ``Task``s to run during
-<<Evaluation>> - is generally enough flexibility for most use cases.
+<<Evaluation>> - is generally enough flexibility for most use cases. You
+can generally just write "direct style" business logic you need - in the example
+above counting the lints in `allSourceFiles` - and Mill handles all the caching,
+invalidation, and parallelism for you without any additional work.
 
 The hard boundary between these two phases is what lets users easily query
 and visualize their module hierarchy and task graph without running them: using
