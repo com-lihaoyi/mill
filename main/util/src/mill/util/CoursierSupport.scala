@@ -114,7 +114,6 @@ trait CoursierSupport {
       customizer: Option[Resolution => Resolution] = None,
       ctx: Option[mill.api.Ctx.Log] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
-      resolveFilter: os.Path => Boolean = _ => true,
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams()
   ): Result[Agg[PathRef]] = {
@@ -157,7 +156,6 @@ trait CoursierSupport {
             Agg.from(
               res.files
                 .map(os.Path(_))
-                .filter(resolveFilter)
                 .map(PathRef(_, quick = true))
             )
           )
@@ -175,7 +173,6 @@ trait CoursierSupport {
       customizer: Option[Resolution => Resolution],
       ctx: Option[mill.api.Ctx.Log],
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]],
-      resolveFilter: os.Path => Boolean,
       artifactTypes: Option[Set[Type]]
   ): Result[Agg[PathRef]] =
     resolveDependencies(
@@ -187,7 +184,6 @@ trait CoursierSupport {
       customizer,
       ctx,
       coursierCacheCustomizer,
-      resolveFilter,
       artifactTypes,
       ResolutionParams()
     )
@@ -201,8 +197,7 @@ trait CoursierSupport {
       mapDependencies: Option[Dependency => Dependency],
       customizer: Option[Resolution => Resolution],
       ctx: Option[mill.api.Ctx.Log],
-      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]],
-      resolveFilter: os.Path => Boolean
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]]
   ): Result[Agg[PathRef]] =
     resolveDependencies(
       repositories,
@@ -213,7 +208,6 @@ trait CoursierSupport {
       customizer,
       ctx,
       coursierCacheCustomizer,
-      resolveFilter,
       None
     )
 
