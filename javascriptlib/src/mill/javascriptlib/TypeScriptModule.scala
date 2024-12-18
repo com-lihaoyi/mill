@@ -98,7 +98,7 @@ trait TypeScriptModule extends Module { outer =>
     }
 
   // specify tsconfig.compilerOptions
-  def compilerOptions: Task[Map[String, ujson.Value]] = Task {
+  def compilerOptions: T[Map[String, ujson.Value]] = Task {
     Map(
       "esModuleInterop" -> ujson.Bool(true),
       "declaration" -> ujson.Bool(true),

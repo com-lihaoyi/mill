@@ -42,7 +42,7 @@ trait ReactScriptsModule extends TypeScriptModule {
     )
   }
 
-  override def compilerOptions: Task[Map[String, ujson.Value]] = Task.Anon {
+  override def compilerOptions: T[Map[String, ujson.Value]] = Task {
     Map(
       "declaration" -> ujson.Bool(false),
       "typeRoots" -> ujson.Arr(),
