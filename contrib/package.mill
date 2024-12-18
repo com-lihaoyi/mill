@@ -130,7 +130,6 @@ object `package` extends RootModule {
         build.main.api,
         scoverage.api
       )
-      def testDepPaths = Task { Seq(compile().classes) }
       def compileIvyDeps = Task {
         super.mandatoryIvyDeps() ++ Agg(
           // compile-time only, need to provide the correct scoverage version at runtime

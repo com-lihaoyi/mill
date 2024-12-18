@@ -73,6 +73,7 @@ object Util {
   def millProjectModule(
       artifact: String,
       repositories: Seq[Repository],
+      deprecatedResolveFilter: os.Path => Boolean = _ => true,
       // this should correspond to the mill runtime Scala version
       artifactSuffix: String = "_2.13"
   ): Result[Agg[PathRef]] = {
@@ -88,7 +89,8 @@ object Util {
           BuildInfo.millVersion
         )
       ),
-      force = Nil
+      force = Nil,
+      deprecatedResolveFilter = deprecatedResolveFilter
     ).map(_.map(_.withRevalidateOnce))
   }
 
