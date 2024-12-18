@@ -390,6 +390,9 @@ endif::[]
 * Reduced overhead of terminal prompt UI https://github.com/com-lihaoyi/mill/pull/4095[#4095]
   https://github.com/com-lihaoyi/mill/pull/4110[#4110]
 
+* Launch of the https://mill-build.org/blog[Mill Build Engineering Blog], where we will post articles
+  discussing topics around JVM build tooling
+
 [#0-12-3]
 === 0.12.3 - 2024-11-24
 :version: 0.12.3
