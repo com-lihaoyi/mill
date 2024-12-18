@@ -200,12 +200,12 @@ abstract class MillBuildRootModule()(implicit
           // `millDiscover()`, we can safely ignore that possibility
           def isMillDiscover =
             calledSig.name == "millDiscover$lzyINIT1" ||
-              calledSig.name == "millDiscover"  ||
+              calledSig.name == "millDiscover" ||
               callSiteOpt.exists(_.sig.name == "millDiscover")
 
           (isSimpleTarget(calledSig.desc) && !isForwarderCallsiteOrLambda) ||
-            isCommand ||
-            isMillDiscover
+          isCommand ||
+          isMillDiscover
         },
         logger = new mill.codesig.Logger(
           T.dest / "current",

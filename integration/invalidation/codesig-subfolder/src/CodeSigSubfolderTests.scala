@@ -112,8 +112,8 @@ object CodeSigSubfolderTests extends UtestIntegrationTestSuite {
         _.replace("package build.subfolder9", "package build.a_subfolder9")
       )
       os.move(workspacePath / "subfolder9", workspacePath / "a_subfolder9")
-//      val cached5 = eval("foo")
-//      assert(!cached5.out.contains("running foo"))
+      val cached5 = eval("foo")
+      assert(!cached5.out.contains("running foo"))
     }
   }
 }

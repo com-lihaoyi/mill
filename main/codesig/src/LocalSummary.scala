@@ -144,7 +144,12 @@ object LocalSummary {
 
     var insnHash = 0
 
-    def hash(x: Int): Unit = insnHash = scala.util.hashing.MurmurHash3.mix(insnHash, x)
+    // Scala 3 `$lzyINIT1` methods seem to do nothing but forward to other methods, but
+    // their contents seems very unstable and prone to causing spurious invalidations
+    val isScala3LazyInit = name.endsWith("$lzyINIT1")
+    def hash(x: Int): Unit = {
+      if (!isScala3LazyInit) insnHash = scala.util.hashing.MurmurHash3.mix(insnHash, x)
+    }
 
     def completeHash(): Unit = {
       insnSigs.append(scala.util.hashing.MurmurHash3.finalizeHash(0, insnHash))
@@ -172,6 +177,7 @@ object LocalSummary {
      * hack [[MyMethodVisitor]] to try and identify and skip those snippets of bytecode
      */
     var inLazyValCheck = false
+
     /**
      * Hack to skip the lazy val setup code that Scala 3 generates in `<clinit>`,
      * which tends to be very unstable and causes unnecessary invalidations
@@ -188,12 +194,12 @@ object LocalSummary {
         case s"bitmap$$$n" => n.forall(_.isDigit)
         case _ => false
       }
-      val isLazyValsGet = (owner, name, descriptor)  match {
+      val isLazyValsGet = (owner, name, descriptor) match {
         case ("scala/runtime/LazyVals$", "MODULE$", "Lscala/runtime/LazyVals$;") => true
         case _ => false
       }
-      val isLazyValsPut = (name, descriptor)  match {
-        case (s"OFFSET$$_m_$n", "J") if n.forall(_.isDigit)=> true
+      val isLazyValsPut = (name, descriptor) match {
+        case (s"OFFSET$$_m_$n", "J") if n.forall(_.isDigit) => true
         case _ => false
       }
       if (isBitmap && (opcode == Opcodes.GETSTATIC || opcode == Opcodes.GETFIELD)) {
