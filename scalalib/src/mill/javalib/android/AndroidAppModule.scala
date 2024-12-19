@@ -242,8 +242,6 @@ trait AndroidAppModule extends JavaModule {
   /** Gets all the jars from the classpath and creates an apk with them
    * to be bundled with the app's code apk */
   def convertJarDepsToDex: T[Seq[PathRef]] = Task {
-    val dependenciesDest = Task.dest / "dependencies"
-    os.makeDir(dependenciesDest)
     val androidJar = androidSdkModule().androidJarPath()
     // TODO hack until android classpath resolution + dependencies is
     // properly fixed

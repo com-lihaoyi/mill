@@ -9,8 +9,12 @@
 //// SNIPPET:BUILD
 package build
 
-import mill._
-import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}
+import mill._, javalib._
+
+import mill.javalib.android.{AndroidAppModule, AndroidSdkModule, AndroidAppJavaModule}
+import coursier.maven.MavenRepository
+import mill.javalib.android.AndroidTestModule
+
 
 // Create and configure an Android SDK module to manage Android SDK paths and tools.
 object androidSdkModule0 extends AndroidSdkModule {
@@ -19,16 +23,81 @@ object androidSdkModule0 extends AndroidSdkModule {
 }
 
 // Actual android application
-object app extends AndroidAppModule {
+object app extends AndroidAppJavaModule {
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
 
   // Configuration for ReleaseKey
+  override def releaseKeyPath = root
+
   def androidReleaseKeyName: T[String] = Task { "releaseKey.jks" }
   def androidReleaseKeyAlias: T[String] = Task { "releaseKey" }
   def androidReleaseKeyPass: T[String] = Task { "MillBuildTool" }
   def androidReleaseKeyStorePass: T[String] = Task { "MillBuildTool" }
 
+  private def mainRoot = root
+
+  object test extends AndroidAppJavaTests with TestModule.Junit4 {
+    def testFramework = "com.novocode.junit.JUnitFramework"
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy"junit:junit:4.13.2"
+    )
+  }
+
+  object it extends AndroidAppJavaIntegrationTests with AndroidTestModule.AndroidJUnit {
+    def repositoriesTask = Task.Anon {
+      super.repositoriesTask() ++
+        Seq(MavenRepository("https://maven.google.com"))
+    }
+
+
+    def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+
+    override def instrumentationPackage = "com.helloworld.app"
+
+    /* TODO this needs to change to something better once integration tests work with debug keystore */
+    override def releaseKeyPath = mainRoot
+
+    def androidReleaseKeyName: T[String] = Task {
+      "releaseKey.jks"
+    }
+
+    def androidReleaseKeyAlias: T[String] = Task {
+      "releaseKey"
+    }
+
+    def androidReleaseKeyPass: T[String] = Task {
+      "MillBuildTool"
+    }
+
+    def androidReleaseKeyStorePass: T[String] = Task {
+      "MillBuildTool"
+    }
+
+
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy"androidx.test.ext:junit:1.2.1",
+      ivy"androidx.test:runner:1.6.2",
+      ivy"androidx.test.espresso:espresso-core:3.5.1",
+      ivy"junit:junit:4.13.2"
+    )
+  }
+
 }
+
+
+/*
+ * TODO: The following functionality is missing but you can test using the android tools:
+ *  Install the integration tests
+ *
+ * mill show app.it.androidInstantApk
+ * $ANDROID_HOME/platform-tools/adb install -r /home/irodotos/mill/example/android/javalib/1-hello-world/out/app/it/androidApk.dest/app.apk
+
+ *
+ * Run the integration tests
+ * $ANDROID_HOME/platform-tools/adb shell am instrument -w -m com.helloworld.app/androidx.test.runner.AndroidJUnitRunner
+ *
+ */
+
 
 ////SNIPPET:END
 
