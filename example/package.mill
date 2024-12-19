@@ -70,6 +70,7 @@ object `package` extends RootModule with Module {
     object dependencies extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "dependencies"))
     object publishing extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "publishing"))
     object module extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "module"))
+    object testing extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "testing"))
   }
 
   object cli extends Module{
