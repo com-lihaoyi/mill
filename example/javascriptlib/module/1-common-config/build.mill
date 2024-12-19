@@ -9,13 +9,9 @@ object foo extends TypeScriptModule {
     Seq(PathRef(millSourcePath / "custom-src" / "foo2.ts"))
   }
 
-  def allSources = Task.Anon {
-    super.allSources() ++ customSource()
-  }
+  def allSources = super.allSources() ++ customSource()
 
-  def resources = Task.Sources {
-    super.resources() ++ Seq(PathRef(millSourcePath / "custom-resources"))
-  }
+  def resources = super.resources() ++ Seq(PathRef(millSourcePath / "custom-resources"))
 
   def generatedSources = Task {
     for (name <- Seq("A", "B", "C")) os.write(
@@ -29,13 +25,11 @@ object foo extends TypeScriptModule {
     Seq(PathRef(Task.dest))
   }
 
-  def forkEnv = Task {
-    super.forkEnv() ++ Map("MY_CUSTOM_ENV" -> "my-env-value")
-  }
+  def forkEnv = super.forkEnv() ++ Map("MY_CUSTOM_ENV" -> "my-env-value")
 
-  def mainFileName = Task { s"foo2.ts" }
+  def mainFileName = s"foo2.ts"
 
-  def mainFilePath = Task { compile()._2.path / "custom-src" / mainFileName() }
+  def mainFilePath = compile()._2.path / "custom-src" / mainFileName()
 
 }
 

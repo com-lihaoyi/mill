@@ -66,13 +66,17 @@ trait TypeScriptModule extends Module { outer =>
   def compilerOptionsPaths: Task[Map[String, String]] =
     Task.Anon { Map("*" -> npmInstall().path.toString()) }
 
+  private def upstreams: T[(PathRef, PathRef, Seq[PathRef])] = Task {
+    val comp = compile()
+
+    (comp._1, comp._2, resources())
+  }
+
   def upstreamPathsBuilder: Task[Seq[(String, String)]] = Task.Anon {
+
     val upstreams = (for {
-      (comp, ts) <- Task.traverse(moduleDeps)(_.compile)()
-      res <- Task.traverse(moduleDeps)(_.resources)()
-      mod <- moduleDeps
+      ((comp, ts, res), mod) <- Task.traverse(moduleDeps)(_.upstreams)().zip(moduleDeps)
     } yield {
-      println("[res] =>", res)
       Seq((
         mod.millSourcePath.subRelativeTo(Task.workspace).toString + "/*",
         (ts.path / "src").toString + ":" + (comp.path / "declarations").toString
@@ -88,7 +92,6 @@ trait TypeScriptModule extends Module { outer =>
                 (ts.path / resourceRoot).toString + ":" + (comp.path / "declarations").toString
             }
           )
-
         }
 
     }).flatten
@@ -98,9 +101,10 @@ trait TypeScriptModule extends Module { outer =>
 
   def modulePaths: Task[Seq[(String, String)]] = Task.Anon {
     val module = millSourcePath.last
+    val typescriptOut = Task.dest / "typescript"
     val declarationsOut = Task.dest / "declarations"
 
-    Seq((s"$module/*", sources().path.toString + ":" + declarationsOut.toString)) ++
+    Seq((s"$module/*", (typescriptOut / "src").toString + ":" + declarationsOut.toString)) ++
       resources().map { rp =>
         val resourceRoot = rp.path.last
         val result = (
@@ -108,7 +112,7 @@ trait TypeScriptModule extends Module { outer =>
           resourceRoot match {
             case s if s.contains(".dest") => rp.path.toString + ":" + declarationsOut.toString
             case _ =>
-              (Task.dest / "typescript" / resourceRoot).toString + ":" + declarationsOut.toString
+              (typescriptOut / resourceRoot).toString + ":" + declarationsOut.toString
           }
         )
         result
