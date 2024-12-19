@@ -6,12 +6,19 @@ import mill.javascriptlib._
 object foo extends TypeScriptModule {
   def compilerOptions =
     Task {
-      super.compilerOptions() +
-        (
-          "skipLibCheck" -> ujson.True,
-          "module" -> ujson.Str("commonjs"),
-          "target" -> ujson.Str("es6")
-        )
+      super.compilerOptions() + (
+        "skipLibCheck" -> ujson.True,
+        "module" -> ujson.Str("commonjs"),
+        "target" -> ujson.Str("es6")
+      )
+    }
+
+  def executionFlags =
+    Task {
+      Map(
+        "inspect" -> "",
+        "max-old-space-size" -> "4096"
+      )
     }
 }
 
@@ -22,6 +29,8 @@ object foo extends TypeScriptModule {
 /** Usage
 
 > mill foo.run
+Debugger listening on ws://...
+...
 Foo:
 Hello World!
 */

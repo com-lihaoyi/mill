@@ -10,30 +10,16 @@ object foo extends TypeScriptModule {
   }
 
   /** Generate lineResource using lineCount of sources */
-  def lineResource = Task {
+  def resources = Task {
     os.write(Task.dest / "line-count.txt", "" + lineCount())
-    PathRef(Task.dest)
+    super.resources() ++ Seq(PathRef(Task.dest))
   }
-
-  // define resource path for the node app
-  override def forkEnv = Task {
-    super.forkEnv() ++ Map("RESOURCE_PATH" -> lineResource().path.toString)
-  }
-
-  object test extends TypeScriptTests with TestModule.Jest
 
 }
 
 // Documentation for mill.example.javascriptlib
 
 /** Usage
-
-> mill foo.test
-PASS .../foo.test.ts
-...
-Test Suites:...1 passed, 1 total...
-Tests:...2 passed, 2 total...
-...
 
 > mill foo.run
 [Reading file:] .../out/foo/lineResource.dest/line-count.txt

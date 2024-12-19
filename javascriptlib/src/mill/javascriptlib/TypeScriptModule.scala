@@ -42,8 +42,8 @@ trait TypeScriptModule extends Module { outer =>
 
   def generatedSources: T[Seq[PathRef]] = Task { Seq[PathRef]() }
 
-  def allSources: Task[IndexedSeq[PathRef]] =
-    Task.Anon {
+  def allSources: T[IndexedSeq[PathRef]] =
+    Task {
       val fileExt: Path => Boolean = _.ext == "ts"
       val generated = for {
         pr <- generatedSources()
@@ -94,10 +94,15 @@ trait TypeScriptModule extends Module { outer =>
     Seq((s"$module/*", sources().path.toString + ":" + declarationsOut.toString)) ++
       resources().map { rp =>
         val resourceRoot = rp.path.last
-        (
+        val result = (
           s"@$module/$resourceRoot/*",
-          (Task.dest / "typescript" / resourceRoot).toString + ":" + declarationsOut.toString
+          resourceRoot match {
+            case s if s.contains(".dest") => rp.path.toString + ":" + declarationsOut.toString
+            case _ =>
+              (Task.dest / "typescript" / resourceRoot).toString + ":" + declarationsOut.toString
+          }
         )
+        result
       }
   }
 
@@ -156,9 +161,9 @@ trait TypeScriptModule extends Module { outer =>
       ).mkString(":"))
     }
 
-  def computedArgs: Task[Seq[String]] = Task { Seq.empty[String] }
+  def computedArgs: T[Seq[String]] = Task { Seq.empty[String] }
 
-  def executionFlags: Task[Map[String, String]] = Task { Map.empty[String, String] }
+  def executionFlags: T[Map[String, String]] = Task { Map.empty[String, String] }
 
   def run(args: mill.define.Args): Command[CommandResult] = Task.Command {
     val mainFile = mainFilePath()
@@ -222,10 +227,10 @@ trait TypeScriptModule extends Module { outer =>
          |      ${rps
           .map { rp =>
             val filesToCopy =
-              os.list(rp).filter(os.isFile).filter(_.last != "index.ts")
+              os.list(rp).filter(os.isFile)
             filesToCopy
               .map { file =>
-                s"""{ from: join('$rp', '${file.last}'), to: ['${Task.dest}' + '/${rp.last}'] }"""
+                s"""{ from: join('$rp', '${file.last}'), to: join('${Task.dest}', '/${rp.last}', '${file.last}') }"""
               }
               .mkString(",\n")
           }

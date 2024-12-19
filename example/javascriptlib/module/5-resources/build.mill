@@ -5,7 +5,9 @@ import ujson._
 
 object foo extends TypeScriptModule {
   object test extends TypeScriptTests with TestModule.Jest {
-    def forkEnv = super.forkEnv() + ("OTHER_FILES" -> (compile()._2.path / "other-files").toString)
+    def otherFiles = T.source(millSourcePath / "other-files")
+
+    def forkEnv = super.forkEnv() + ("OTHER_FILES_DIR" -> otherFiles().path.toString)
   }
 }
 

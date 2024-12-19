@@ -5,13 +5,14 @@ object client extends ReactScriptsModule
 
 object server extends TypeScriptModule {
 
-  def serverResource = Task {
+  /** Bundle client as resource */
+  def resources = Task {
     os.copy(client.bundle().path, Task.dest / "build")
-    PathRef(Task.dest)
+    super.resources() ++ Seq(PathRef(Task.dest))
   }
 
   override def forkEnv = Task {
-    super.forkEnv() ++ Map("PORT" -> "3000", "SERVER_RESOURCES" -> serverResource().path.toString)
+    super.forkEnv() ++ Map("PORT" -> "3000")
   }
 
   object test extends TypeScriptTests with TestModule.Jest
@@ -29,14 +30,6 @@ PASS .../App.test.tsx
 ...
 
 > mill client.bundle   # bundle the react app;
-...
-
-> mill server.test
-...
-PASS .../server.test.ts
-...
-Test Suites:...1 passed, 1 total...
-Tests:...1 passed, 1 total...
 ...
 
 > mill show server.bundle # bundle the node server

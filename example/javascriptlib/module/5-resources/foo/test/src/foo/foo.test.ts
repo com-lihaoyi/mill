@@ -28,7 +28,7 @@ describe("simple", () => {
     });
 
     it("should return the correct resource text from 'foo/test/other-files'", async () => {
-        const expected = await getResource(`${process.env.OTHER_FILES}/other-file.txt`);
+        const expected = await getResource(`${process.env.OTHER_FILES_DIR}/other-file.txt`);
         expect(expected).toEqual("Other Hello World File");
     });
 

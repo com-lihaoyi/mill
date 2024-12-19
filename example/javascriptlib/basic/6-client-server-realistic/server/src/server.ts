@@ -3,24 +3,24 @@ import cors from 'cors';
 import path from 'path'
 import api from "./api"
 
+const Resources: string = process.env.RESOURCESDEST || "@server/resources.dest" + "/build" // `RESOURCES` is generated on bundle
+const Client = require.resolve(`${Resources}/index.html`);
+const BuildPath = Client.replace(/index\.html$/, "");
 const app: Express = express();
 const port = process.env.PORT || 3001;
-
-const resource = process.env.SERVER_RESOURCES || ""
-const client = resource + "/build"
 
 app.use(cors());
 app.use(express.json());
 
 // Middleware to serve static files from the "build" directory
-app.use(express.static(path.join(client)));
+app.use(express.static(BuildPath));
 
 // Mount API routes at /api
 app.use('/api', api);
 
 // Serve the React app for all other routes
 app.get('*', (req, res) => {
-    res.sendFile(path.join(client, 'index.html'));
+    res.sendFile(Client);
 });
 
 

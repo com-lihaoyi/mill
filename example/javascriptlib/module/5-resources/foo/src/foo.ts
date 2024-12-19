@@ -1,16 +1,11 @@
 import * as fs from 'fs/promises';
-require('tsconfig-paths/register');
-const Resources = "@foo/resources"
+
+const Resources: string = process.env.RESOURCES || "@foo/resources" // `RESOURCES` is generated on bundle
+const File = require.resolve(`${Resources}/file.txt`);
 
 export default class Foo {
     static async resourceText(): Promise<string> {
-        try {
-            const filePath = require.resolve(`${Resources}/file.txt`);
-            return await fs.readFile(filePath, 'utf8');
-        } catch (err) {
-            console.error('Error reading the file:', err);
-            throw err;
-        }
+        return await fs.readFile(File, 'utf8')
     }
 }
 
