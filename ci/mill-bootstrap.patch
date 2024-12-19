@@ -1,5 +1,5 @@
 diff --git a/build.mill b/build.mill
-index 07f869ee60..b656c325eb 100644
+index 72a2741ea9..4a32b9ad28 100644
 --- a/build.mill
 +++ b/build.mill
 @@ -1,9 +1,9 @@
@@ -15,25 +15,28 @@ index 07f869ee60..b656c325eb 100644
  import mill._
  import mill.define.NamedTask
  import mill.main.Tasks
-@@ -263,12 +263,13 @@ object Deps {
-   }
+@@ -264,14 +264,15 @@ object Deps {
  }
 
--def millVersion: T[String] = Task { VcsVersion.vcsState().format() }
-+def millVersion: T[String] = Task { "0.13.0-SCALA3" } // Task { VcsVersion.vcsState().format() }
+ def millVersion: T[String] = Task.Input {
+-  if (Task.env.contains("MILL_STABLE_VERSION")) VcsVersion.calcVcsState(Task.log).format()
+-  else "SNAPSHOT"
++  /*if (Task.env.contains("MILL_STABLE_VERSION")) VcsVersion.calcVcsState(Task.log).format()
++  else */"SNAPSHOT"
+ }
 
  def millLastTag: T[String] = Task {
 -  VcsVersion.vcsState().lastTag.getOrElse(
 -    sys.error("No (last) git tag found. Your git history seems incomplete!")
 -  )
-+  "0.12.0-RC3"
-+  // VcsVersion.vcsState().lastTag.getOrElse(
-+  //   sys.error("No (last) git tag found. Your git history seems incomplete!")
-+  // )
++//  VcsVersion.vcsState().lastTag.getOrElse(
++//    sys.error("No (last) git tag found. Your git history seems incomplete!")
++//  )
++  "SNAPSHOT"
  }
 
  def millBinPlatform: T[String] = Task {
-@@ -420,7 +421,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
+@@ -423,7 +424,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
  /**
   * Some custom scala settings and test convenience
   */
@@ -42,212 +45,18 @@ index 07f869ee60..b656c325eb 100644
    def scalaVersion = Deps.scalaVersion
    def scalapVersion: T[String] = Deps.scala2Version
    def scalafixScalaBinaryVersion = T {
-@@ -518,105 +519,105 @@ trait MillBaseTestsModule extends TestModule {
+@@ -521,8 +522,9 @@ trait MillBaseTestsModule extends TestModule {
  trait MillPublishScalaModule extends MillScalaModule with MillPublishJavaModule
 
  /** Publishable module which contains strictly handled API. */
 -trait MillStableScalaModule extends MillPublishScalaModule with Mima {
--  import com.github.lolgab.mill.mima._
--  override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq(
--    // (5x) MIMA doesn't properly ignore things which are nested inside other private things
--    // so we have to put explicit ignores here (https://github.com/lightbend/mima/issues/771)
--    ProblemFilter.exclude[Problem]("mill.eval.ProfileLogger*"),
--    ProblemFilter.exclude[Problem]("mill.eval.GroupEvaluator*"),
--    ProblemFilter.exclude[Problem]("mill.eval.Tarjans*"),
--    ProblemFilter.exclude[Problem]("mill.define.Ctx#Impl*"),
--    ProblemFilter.exclude[Problem]("mill.resolve.ResolveNotFoundHandler*"),
--    // (4x) See https://github.com/com-lihaoyi/mill/pull/2739
--    ProblemFilter.exclude[ReversedMissingMethodProblem](
--      "mill.scalajslib.ScalaJSModule.mill$scalajslib$ScalaJSModule$$super$scalaLibraryIvyDeps"
--    ),
--    ProblemFilter.exclude[ReversedMissingMethodProblem](
--      "mill.scalalib.ScalaModule.mill$scalalib$ScalaModule$$super$zincAuxiliaryClassFileExtensions"
--    ),
--    ProblemFilter.exclude[ReversedMissingMethodProblem](
--      "mill.scalajslib.ScalaJSModule.mill$scalajslib$ScalaJSModule$$super$zincAuxiliaryClassFileExtensions"
--    ),
--    ProblemFilter.exclude[ReversedMissingMethodProblem](
--      "mill.scalanativelib.ScalaNativeModule.mill$scalanativelib$ScalaNativeModule$$super$zincAuxiliaryClassFileExtensions"
--    ),
--    // (6x) See https://github.com/com-lihaoyi/mill/pull/3064
--    // Moved targets up in trait hierarchy, but also call them via super, which I think is safe
--    ProblemFilter.exclude[ReversedMissingMethodProblem](
--      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$zincWorker"
--    ),
--    ProblemFilter.exclude[ReversedMissingMethodProblem](
--      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$runClasspath"
--    ),
--    ProblemFilter.exclude[ReversedMissingMethodProblem](
--      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$runUseArgsFile"
--    ),
--    ProblemFilter.exclude[ReversedMissingMethodProblem](
--      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$forkArgs"
--    ),
--    ProblemFilter.exclude[ReversedMissingMethodProblem](
--      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$forkEnv"
--    ),
--    ProblemFilter.exclude[ReversedMissingMethodProblem](
--      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$forkWorkingDir"
--    ),
--    // (8x)
--    // Moved targets up in trait hierarchy, but also call them via super, which I think is safe
--    ProblemFilter.exclude[ReversedMissingMethodProblem](
--      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$localRunClasspath"
--    ),
--    ProblemFilter.exclude[ReversedMissingMethodProblem](
--      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$runLocal"
--    ),
--    ProblemFilter.exclude[ReversedMissingMethodProblem](
--      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$run"
--    ),
--    ProblemFilter.exclude[ReversedMissingMethodProblem](
--      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$doRunBackground"
--    ),
--    ProblemFilter.exclude[ReversedMissingMethodProblem](
--      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$runBackgroundLogToConsole"
--    ),
--    ProblemFilter.exclude[ReversedMissingMethodProblem](
--      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$runMainBackground"
--    ),
--    ProblemFilter.exclude[ReversedMissingMethodProblem](
--      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$runMainLocal"
--    ),
--    ProblemFilter.exclude[ReversedMissingMethodProblem](
--      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$runMain"
--    ),
--    // Terminal is sealed, not sure why MIMA still complains
--    ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.eval.Terminal.task"),
--
--    // Not sure why mima is picking up this stuff which is private[mill]
--    ProblemFilter.exclude[Problem]("mill.resolve.*.resolve0"),
--    ProblemFilter.exclude[Problem]("mill.resolve.*.resolveRootModule"),
--
--    // These methods are private so it doesn't matter
--    ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.resolve.Resolve.handleResolved"),
--    ProblemFilter.exclude[Problem]("mill.resolve.*.resolveNonEmptyAndHandle*"),
--    ProblemFilter.exclude[Problem]("mill.resolve.ResolveCore*"),
--    ProblemFilter.exclude[InheritedNewAbstractMethodProblem](
--      "mill.main.MainModule.mill$define$BaseModule0$_setter_$watchedValues_="
--    ),
--    ProblemFilter.exclude[InheritedNewAbstractMethodProblem](
--      "mill.main.MainModule.mill$define$BaseModule0$_setter_$evalWatchedValues_="
--    ),
--
--    // https://github.com/com-lihaoyi/mill/pull/3503
--    ProblemFilter.exclude[ReversedMissingMethodProblem](
--      "mill.scalalib.ScalaModule#ScalaTests.mill$scalalib$ScalaModule$ScalaTests$$super$mandatoryScalacOptions"
--    ),
--    // Not sure why Mima is complaining when these are internal and private
--    ProblemFilter.exclude[Problem](
--      "*.bspJvmBuildTarget"
--    ),
--    ProblemFilter.exclude[Problem](
--      "mill.scalalib.RunModule#RunnerImpl.*"
--    )
--  )
-+trait MillStableScalaModule extends MillPublishScalaModule /*with Mima */{
-+//  import com.github.lolgab.mill.mima._
-+//  override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq(
-+//    // (5x) MIMA doesn't properly ignore things which are nested inside other private things
-+//    // so we have to put explicit ignores here (https://github.com/lightbend/mima/issues/771)
-+//    ProblemFilter.exclude[Problem]("mill.eval.ProfileLogger*"),
-+//    ProblemFilter.exclude[Problem]("mill.eval.GroupEvaluator*"),
-+//    ProblemFilter.exclude[Problem]("mill.eval.Tarjans*"),
-+//    ProblemFilter.exclude[Problem]("mill.define.Ctx#Impl*"),
-+//    ProblemFilter.exclude[Problem]("mill.resolve.ResolveNotFoundHandler*"),
-+//    // (4x) See https://github.com/com-lihaoyi/mill/pull/2739
-+//    ProblemFilter.exclude[ReversedMissingMethodProblem](
-+//      "mill.scalajslib.ScalaJSModule.mill$scalajslib$ScalaJSModule$$super$scalaLibraryIvyDeps"
-+//    ),
-+//    ProblemFilter.exclude[ReversedMissingMethodProblem](
-+//      "mill.scalalib.ScalaModule.mill$scalalib$ScalaModule$$super$zincAuxiliaryClassFileExtensions"
-+//    ),
-+//    ProblemFilter.exclude[ReversedMissingMethodProblem](
-+//      "mill.scalajslib.ScalaJSModule.mill$scalajslib$ScalaJSModule$$super$zincAuxiliaryClassFileExtensions"
-+//    ),
-+//    ProblemFilter.exclude[ReversedMissingMethodProblem](
-+//      "mill.scalanativelib.ScalaNativeModule.mill$scalanativelib$ScalaNativeModule$$super$zincAuxiliaryClassFileExtensions"
-+//    ),
-+//    // (6x) See https://github.com/com-lihaoyi/mill/pull/3064
-+//    // Moved targets up in trait hierarchy, but also call them via super, which I think is safe
-+//    ProblemFilter.exclude[ReversedMissingMethodProblem](
-+//      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$zincWorker"
-+//    ),
-+//    ProblemFilter.exclude[ReversedMissingMethodProblem](
-+//      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$runClasspath"
-+//    ),
-+//    ProblemFilter.exclude[ReversedMissingMethodProblem](
-+//      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$runUseArgsFile"
-+//    ),
-+//    ProblemFilter.exclude[ReversedMissingMethodProblem](
-+//      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$forkArgs"
-+//    ),
-+//    ProblemFilter.exclude[ReversedMissingMethodProblem](
-+//      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$forkEnv"
-+//    ),
-+//    ProblemFilter.exclude[ReversedMissingMethodProblem](
-+//      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$forkWorkingDir"
-+//    ),
-+//    // (8x)
-+//    // Moved targets up in trait hierarchy, but also call them via super, which I think is safe
-+//    ProblemFilter.exclude[ReversedMissingMethodProblem](
-+//      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$localRunClasspath"
-+//    ),
-+//    ProblemFilter.exclude[ReversedMissingMethodProblem](
-+//      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$runLocal"
-+//    ),
-+//    ProblemFilter.exclude[ReversedMissingMethodProblem](
-+//      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$run"
-+//    ),
-+//    ProblemFilter.exclude[ReversedMissingMethodProblem](
-+//      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$doRunBackground"
-+//    ),
-+//    ProblemFilter.exclude[ReversedMissingMethodProblem](
-+//      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$runBackgroundLogToConsole"
-+//    ),
-+//    ProblemFilter.exclude[ReversedMissingMethodProblem](
-+//      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$runMainBackground"
-+//    ),
-+//    ProblemFilter.exclude[ReversedMissingMethodProblem](
-+//      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$runMainLocal"
-+//    ),
-+//    ProblemFilter.exclude[ReversedMissingMethodProblem](
-+//      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$runMain"
-+//    ),
-+//    // Terminal is sealed, not sure why MIMA still complains
-+//    ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.eval.Terminal.task"),
-+//
-+//    // Not sure why mima is picking up this stuff which is private[mill]
-+//    ProblemFilter.exclude[Problem]("mill.resolve.*.resolve0"),
-+//    ProblemFilter.exclude[Problem]("mill.resolve.*.resolveRootModule"),
-+//
-+//    // These methods are private so it doesn't matter
-+//    ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.resolve.Resolve.handleResolved"),
-+//    ProblemFilter.exclude[Problem]("mill.resolve.*.resolveNonEmptyAndHandle*"),
-+//    ProblemFilter.exclude[Problem]("mill.resolve.ResolveCore*"),
-+//    ProblemFilter.exclude[InheritedNewAbstractMethodProblem](
-+//      "mill.main.MainModule.mill$define$BaseModule0$_setter_$watchedValues_="
-+//    ),
-+//    ProblemFilter.exclude[InheritedNewAbstractMethodProblem](
-+//      "mill.main.MainModule.mill$define$BaseModule0$_setter_$evalWatchedValues_="
-+//    ),
-+//
-+//    // https://github.com/com-lihaoyi/mill/pull/3503
-+//    ProblemFilter.exclude[ReversedMissingMethodProblem](
-+//      "mill.scalalib.ScalaModule#ScalaTests.mill$scalalib$ScalaModule$ScalaTests$$super$mandatoryScalacOptions"
-+//    ),
-+//    // Not sure why Mima is complaining when these are internal and private
-+//    ProblemFilter.exclude[Problem](
-+//      "*.bspJvmBuildTarget"
-+//    ),
-+//    ProblemFilter.exclude[Problem](
-+//      "mill.scalalib.RunModule#RunnerImpl.*"
-+//    )
-+//  )
-   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
-
-   def mimaPreviousArtifacts: T[Agg[Dep]] = Task {
-@@ -643,7 +644,7 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
++trait MillStableScalaModule extends MillPublishScalaModule /*with Mima*/ {
+   import com.github.lolgab.mill.mima._
++  /*
+   override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq(
+     // (5x) MIMA doesn't properly ignore things which are nested inside other private things
+     // so we have to put explicit ignores here (https://github.com/lightbend/mima/issues/771)
+@@ -646,11 +648,11 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
    }
 
    def mimaExcludeAnnotations = Seq("mill.api.internal", "mill.api.experimental")
@@ -256,6 +65,11 @@ index 07f869ee60..b656c325eb 100644
    def skipPreviousVersions: T[Seq[String]] = T {
      T.log.info("Skipping mima for previous versions (!!1000s of errors due to Scala 3)")
      mimaPreviousVersions() // T(Seq.empty[String])
+-  }
++  }*/
+ }
+
+ object bridge extends Cross[BridgeModule](compilerBridgeScalaVersions)
 diff --git a/contrib/package.mill b/contrib/package.mill
 index 3fd6b65999..3e51d630c4 100644
 --- a/contrib/package.mill
@@ -272,7 +86,7 @@ index 3fd6b65999..3e51d630c4 100644
  import mill.api.JarManifest
  import mill.main.Tasks
 diff --git a/dist/package.mill b/dist/package.mill
-index 105e491fe3..6816ef8b8e 100644
+index ef5fb1145b..a35d92d699 100644
 --- a/dist/package.mill
 +++ b/dist/package.mill
 @@ -2,7 +2,7 @@ package build.dist
@@ -284,7 +98,7 @@ index 105e491fe3..6816ef8b8e 100644
  import $file.ci.upload
 
  object `package` extends RootModule with build.MillPublishJavaModule {
-@@ -299,38 +299,41 @@ object `package` extends RootModule with build.MillPublishJavaModule {
+@@ -309,39 +309,39 @@ object `package` extends RootModule with build.MillPublishJavaModule {
    }
 
    def uploadToGithub(authKey: String) = Task.Command {
@@ -299,7 +113,7 @@ index 105e491fe3..6816ef8b8e 100644
 -      // TODO: check if the tag already exists (e.g. because we created it manually) and do not fail
 -      requests.post(
 -        s"https://api.github.com/repos/${build.Settings.githubOrg}/${build.Settings.githubRepo}/releases",
--        data = ujson.Obj("tag_name" -> releaseTag, "name" -> releaseTag),
+-        data = ujson.Obj("tag_name" -> releaseTag, "name" -> releaseTag, "prerelease" -> true),
 -        headers = Seq("Authorization" -> ("token " + authKey))
 -      )
 -    }
@@ -308,7 +122,8 @@ index 105e491fe3..6816ef8b8e 100644
 -
 -    val zips = examples ++ Seq(
 -      (build.dist.assembly().path, label + "-assembly"),
--      (bootstrapLauncher().path, label)
+-      (bootstrapLauncher().path, label),
+-      (bootstrapLauncherBat().path, label + ".bat")
 -    )
 -
 -    for ((zip, name) <- zips) {
@@ -329,13 +144,10 @@ index 105e491fe3..6816ef8b8e 100644
 +//    ))
 +//
 +//    if (releaseTag == label) {
-+//      val jsonBlob = ujson.Obj("tag_name" -> releaseTag, "name" -> releaseTag)
 +//      // TODO: check if the tag already exists (e.g. because we created it manually) and do not fail
 +//      requests.post(
 +//        s"https://api.github.com/repos/${build.Settings.githubOrg}/${build.Settings.githubRepo}/releases",
-+//        // Scala 3.5.0 bug - without these parens, the `data =` is spliced in the conversion, causing a type error.
-+//        // hard to replicate!
-+//        data = (jsonBlob: requests.RequestBlob),
++//        data = ujson.Obj("tag_name" -> releaseTag, "name" -> releaseTag, "prerelease" -> true),
 +//        headers = Seq("Authorization" -> ("token " + authKey))
 +//      )
 +//    }
@@ -344,7 +156,8 @@ index 105e491fe3..6816ef8b8e 100644
 +//
 +//    val zips = examples ++ Seq(
 +//      (build.dist.assembly().path, label + "-assembly"),
-+//      (bootstrapLauncher().path, label)
++//      (bootstrapLauncher().path, label),
++//      (bootstrapLauncherBat().path, label + ".bat")
 +//    )
 +//
 +//    for ((zip, name) <- zips) {
@@ -360,7 +173,7 @@ index 105e491fe3..6816ef8b8e 100644
    }
  }
 diff --git a/docs/package.mill b/docs/package.mill
-index bb51074e74..16e51726d5 100644
+index 85aa2da935..46b30df958 100644
 --- a/docs/package.mill
 +++ b/docs/package.mill
 @@ -2,7 +2,7 @@ package build.docs
@@ -381,16 +194,7 @@ index bb51074e74..16e51726d5 100644
        Some(s"${build.Settings.projectUrl}/blob/$sha")
      }
    }
-@@ -207,7 +207,7 @@ object `package` extends RootModule {
-     os.write.over(dest / "antora.yml", (lines ++ newLines).mkString("\n"))
-   }
-
--  def githubPagesPlaybookText(authorMode: Boolean) = T.task { extraSources: Seq[os.Path] =>
-+  def githubPagesPlaybookText(authorMode: Boolean) = Task.Anon { (extraSources: Seq[os.Path]) =>
-     val taggedSources = for (path <- extraSources) yield {
-       s"""    - url: ${build.baseDir}
-          |      start_path: ${path.relativeTo(build.baseDir)}
-@@ -281,25 +281,25 @@ object `package` extends RootModule {
+@@ -285,25 +285,25 @@ object `package` extends RootModule {
    }
 
    def githubPages: T[PathRef] = Task {
@@ -420,7 +224,7 @@ index bb51074e74..16e51726d5 100644
      T.log.errorStream.println("Creating Antora playbook ...")
      // dependency to sources
      source()
-@@ -308,7 +308,7 @@ object `package` extends RootModule {
+@@ -312,7 +312,7 @@ object `package` extends RootModule {
      val siteDir = docSite / "site"
      os.write(
        target = playbook,
@@ -430,7 +234,7 @@ index bb51074e74..16e51726d5 100644
      )
      T.log.errorStream.println("Running Antora ...")
 diff --git a/example/package.mill b/example/package.mill
-index f87b18c58b..8c8028a6d4 100644
+index 79d9e84f90..b4f5523932 100644
 --- a/example/package.mill
 +++ b/example/package.mill
 @@ -1,10 +1,7 @@
@@ -445,7 +249,7 @@ index f87b18c58b..8c8028a6d4 100644
  import mill.api.JarManifest
  import mill.main.Tasks
 diff --git a/integration/package.mill b/integration/package.mill
-index 0747b10750..7a7c7ab9c1 100644
+index 4268947e76..9ff520b24f 100644
 --- a/integration/package.mill
 +++ b/integration/package.mill
 @@ -1,10 +1,7 @@
@@ -459,26 +263,6 @@ index 0747b10750..7a7c7ab9c1 100644
  import mill._
  import mill.api.JarManifest
  import mill.main.Tasks
-diff --git a/mill-build/build.mill b/mill-build/build.mill
-index 50160ced14..e5dce309ca 100644
---- a/mill-build/build.mill
-+++ b/mill-build/build.mill
-@@ -4,12 +4,12 @@ import mill.scalalib._
-
- object `package` extends MillBuildRootModule {
-   override def ivyDeps = Agg(
--    ivy"de.tototec::de.tobiasroeser.mill.vcs.version::0.4.0",
--    ivy"com.github.lolgab::mill-mima::0.1.1",
-+//    ivy"de.tototec::de.tobiasroeser.mill.vcs.version::0.4.0",
-+//    ivy"com.github.lolgab::mill-mima::0.1.1",
-     ivy"net.sourceforge.htmlcleaner:htmlcleaner:2.29",
-     // TODO: implement empty version for ivy deps as we do in import parser
-     ivy"com.lihaoyi::mill-contrib-buildinfo:${mill.api.BuildInfo.millVersion}",
--    ivy"com.goyeau::mill-scalafix::0.4.2",
-+//    ivy"com.goyeau::mill-scalafix::0.4.2",
-     ivy"com.lihaoyi::mill-main-graphviz:${mill.api.BuildInfo.millVersion}",
-     // TODO: document, why we have this dependency
-     ivy"org.jsoup:jsoup:1.18.1"
 diff --git a/scalalib/package.mill b/scalalib/package.mill
 index 5f7705dd2f..0e7fa1e796 100644
 --- a/scalalib/package.mill
