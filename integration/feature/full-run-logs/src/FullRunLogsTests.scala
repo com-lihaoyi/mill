@@ -49,7 +49,8 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         .replace("<digits>", "\\E\\d+\\Q")
         .replace("<dashes>", "\\E=+\\Q")
 
-      assert(expectedErrorRegex.r.matches(res.err.replace('\\', '/').replaceAll("(\r\n)|\r", "\n")))
+      val normErr = res.err.replace('\\', '/').replaceAll("(\r\n)|\r", "\n")
+      assert(expectedErrorRegex.r.matches(normErr))
     }
     test("show") - integrationTest { tester =>
       import tester._

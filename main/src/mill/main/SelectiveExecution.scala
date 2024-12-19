@@ -115,7 +115,9 @@ private[mill] object SelectiveExecution {
       .flatMap(t => t.inputs.map(_ -> t))
       .groupMap(_._1)(_._2)
 
-    breadthFirst(changedRootTasks)(downstreamEdgeMap.getOrElse(_, Nil))
+    breadthFirst(changedRootTasks) { t =>
+      downstreamEdgeMap.getOrElse(t.asInstanceOf[Task[Nothing]], Nil)
+    }
   }
 
   def saveMetadata(evaluator: Evaluator, metadata: SelectiveExecution.Metadata): Unit = {
