@@ -92,7 +92,7 @@ trait AndroidAppModule extends JavaModule {
    * Specifies the file format(s) of the lint report. Available file formats are defined in AndroidLintReportFormat,
    * such as AndroidLintReportFormat.Html, AndroidLintReportFormat.Xml, AndroidLintReportFormat.Txt, and AndroidLintReportFormat.Sarif.
    */
-  def androidLintReportFmt: T[Seq[AndroidLintReportFormat.Value]] =
+  def androidLintReportFormat: T[Seq[AndroidLintReportFormat.Value]] =
     Task { Seq(AndroidLintReportFormat.Html) }
 
   /**
@@ -409,7 +409,7 @@ trait AndroidAppModule extends JavaModule {
    */
   def androidLintRun() = Task.Command {
 
-    val formats = androidLintReportFmt()
+    val formats = androidLintReportFormat()
 
     // Generate the alternating flag and file path strings
     val reportArg: Seq[String] = formats.toSeq.flatMap { format =>
@@ -420,7 +420,7 @@ trait AndroidAppModule extends JavaModule {
     val cp = runClasspath().map(_.path).filter(os.exists).mkString(":")
 
     // Set path to the location of the project source codes
-    val src = sources().map(_.path / "main" / "java").filter(os.exists).mkString(":")
+    val src = sources().map(_.path).filter(os.exists).mkString(":")
 
     // Set path to the location of the project ressource codes
     val res = resources().map(_.path).filter(os.exists).mkString(":")

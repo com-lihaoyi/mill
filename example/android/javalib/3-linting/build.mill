@@ -5,7 +5,7 @@
 // produces a detailed HTML report by default, identifying potential issues in the code, such as performance,
 // security, and usability warnings. This helps maintain the health and quality of the codebase.
 
-// In this example, we set a custom config to generate the report file in txt format and not HTML.
+// In this example, we set a custom config to generate the report in both txt and HTML formats.
 
 //// SNIPPET:BUILD
 package build
@@ -23,6 +23,10 @@ object androidSdkModule0 extends AndroidSdkModule {
 object app extends AndroidAppModule {
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
 
+  // Set the source path to the root directory of Java source code (com/example/app)
+  def sources: T[Seq[PathRef]] =
+    Task.Sources { Seq(PathRef(millSourcePath / "src" / "main" / "java")) }
+
   // Set path to the custom `lint.xml` config file. It is usually at the root of the project
   def androidLintConfigPath = Task { Some(PathRef(millSourcePath / "lint.xml")) }
 
@@ -30,7 +34,8 @@ object app extends AndroidAppModule {
   def androidLintBaselinePath = Task { Some(PathRef(millSourcePath / "lint-baseline.xml")) }
 
   // Set the linting report to be generated as both text and html files
-  def androidLintReportFmt = Task { Seq(AndroidLintReportFormat.Txt, AndroidLintReportFormat.Html) }
+  def androidLintReportFormat =
+    Task { Seq(AndroidLintReportFormat.Txt, AndroidLintReportFormat.Html) }
 
   // Set to true (default), stops the build if errors are found
   def androidLintAbortOnError = false
@@ -54,7 +59,7 @@ object app extends AndroidAppModule {
 
 > ./mill app.androidLintRun
 
-> ls out/app/androidLintRun.dest  # Display full path to the linting report in text file
+> ls out/app/androidLintRun.dest  # Display path to the linting reports generated. A text and HTML reports
 report.html
 report.txt
 
@@ -80,7 +85,7 @@ lint-baseline.xml: Information: 1 errors/warnings were listed in the baseline fi
 // == Linting with Custom Configurations
 
 // The commands below are demos on using `androidLintRun` task with some custom configuratins on a sample project.
-// The demos are adjusting severity lelvel of linting issue, enable and disable linting issue
+// The demos are adjusting severity level of linting issue, enable and disable linting issue
 // and lastly suppressing linting issue in both XML and Java files. Some output of the changes are shown below.
 
 /** Usage
