@@ -1,5 +1,5 @@
 diff --git a/build.mill b/build.mill
-index 72a2741ea9..4a32b9ad28 100644
+index 72a2741ea9..d0e064974f 100644
 --- a/build.mill
 +++ b/build.mill
 @@ -1,9 +1,9 @@
@@ -45,17 +45,16 @@ index 72a2741ea9..4a32b9ad28 100644
    def scalaVersion = Deps.scalaVersion
    def scalapVersion: T[String] = Deps.scala2Version
    def scalafixScalaBinaryVersion = T {
-@@ -521,8 +522,9 @@ trait MillBaseTestsModule extends TestModule {
+@@ -521,7 +522,8 @@ trait MillBaseTestsModule extends TestModule {
  trait MillPublishScalaModule extends MillScalaModule with MillPublishJavaModule
  
  /** Publishable module which contains strictly handled API. */
 -trait MillStableScalaModule extends MillPublishScalaModule with Mima {
 +trait MillStableScalaModule extends MillPublishScalaModule /*with Mima*/ {
-   import com.github.lolgab.mill.mima._
 +  /*
+   import com.github.lolgab.mill.mima._
    override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq(
      // (5x) MIMA doesn't properly ignore things which are nested inside other private things
-     // so we have to put explicit ignores here (https://github.com/lightbend/mima/issues/771)
 @@ -646,11 +648,11 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
    }
  
@@ -173,7 +172,7 @@ index ef5fb1145b..a35d92d699 100644
    }
  }
 diff --git a/docs/package.mill b/docs/package.mill
-index 85aa2da935..46b30df958 100644
+index 85aa2da935..7471c6b4a5 100644
 --- a/docs/package.mill
 +++ b/docs/package.mill
 @@ -2,7 +2,7 @@ package build.docs
@@ -194,6 +193,15 @@ index 85aa2da935..46b30df958 100644
        Some(s"${build.Settings.projectUrl}/blob/$sha")
      }
    }
+@@ -208,7 +208,7 @@ object `package` extends RootModule {
+   }
+ 
+   def blogFolder = Task.Source(build.millSourcePath / "blog")
+-  def githubPagesPlaybookText(authorMode: Boolean) = T.task { extraSources: Seq[os.Path] =>
++  def githubPagesPlaybookText(authorMode: Boolean) = T.task { (extraSources: Seq[os.Path]) =>
+     val taggedSources = for (path <- extraSources) yield {
+       s"""    - url: ${build.baseDir}
+          |      start_path: ${path.relativeTo(build.baseDir)}
 @@ -285,25 +285,25 @@ object `package` extends RootModule {
    }
  
