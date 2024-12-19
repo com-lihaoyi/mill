@@ -1,0 +1,40 @@
+package build
+
+import mill._
+import mill.javascriptlib._
+
+object foo extends TypeScriptModule {
+  def executionFlags =
+    Task {
+      Map(
+        "inspect" -> "",
+        "max-old-space-size" -> "4096"
+      )
+    }
+
+  def bundleFlags =
+    Task {
+      Map(
+        "platform" -> "'node'",
+        "entryPoints" -> s"['${mainFilePath()}']",
+        "bundle" -> "true",
+        "minify" -> "true"
+      )
+    }
+
+}
+
+// Documentation for mill.example.javascriptlib
+
+// This example demonstrates defining node executable configs
+
+/** Usage
+
+> mill foo.run
+Debugger listening on ws://...
+...
+Hello World!
+
+> mill foo.bundle
+Build succeeded!
+*/
