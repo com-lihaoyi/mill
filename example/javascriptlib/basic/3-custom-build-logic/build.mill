@@ -15,6 +15,8 @@ object foo extends TypeScriptModule {
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 
+  object test extends TypeScriptTests with TestModule.Jest
+
 }
 
 // Documentation for mill.example.javascriptlib

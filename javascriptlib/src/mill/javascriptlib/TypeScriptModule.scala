@@ -68,20 +68,29 @@ trait TypeScriptModule extends Module { outer =>
 
   def upstreamPathsBuilder: Task[Seq[(String, String)]] = Task.Anon {
     val upstreams = (for {
-      ((comp, ts), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
+      (comp, ts) <- Task.traverse(moduleDeps)(_.compile)()
+      res <- Task.traverse(moduleDeps)(_.resources)()
+      mod <- moduleDeps
     } yield {
+      println("[res] =>", res)
       Seq((
         mod.millSourcePath.subRelativeTo(Task.workspace).toString + "/*",
         (ts.path / "src").toString + ":" + (comp.path / "declarations").toString
       )) ++
-        resources().map { rp =>
+        res.map { rp =>
           val resourceRoot = rp.path.last
           (
             "@" + mod.millSourcePath.subRelativeTo(Task.workspace).toString + s"/$resourceRoot/*",
-            (ts.path / resourceRoot).toString + ":" + (comp.path / "declarations").toString
+            resourceRoot match {
+              case s if s.contains(".dest") =>
+                rp.path.toString + ":" + (comp.path / "declarations").toString
+              case _ =>
+                (ts.path / resourceRoot).toString + ":" + (comp.path / "declarations").toString
+            }
           )
 
         }
+
     }).flatten
 
     upstreams
