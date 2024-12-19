@@ -8,7 +8,7 @@ import mill._, scalalib._, publish._
 import mill.main.BuildInfo.millVersion
 
 object myplugin extends ScalaModule with PublishModule {
-  def scalaVersion = "3.5.0"
+  def scalaVersion = "3.6.2"
 
   // Set the `platformSuffix` so the name indicates what Mill version it is compiled for
   def platformSuffix = "_mill" + mill.main.BuildInfo.millBinPlatform
