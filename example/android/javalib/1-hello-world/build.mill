@@ -11,7 +11,7 @@ package build
 
 import mill._, javalib._
 
-import mill.javalib.android.{AndroidAppModule, AndroidSdkModule, AndroidAppJavaModule}
+import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}
 import coursier.maven.MavenRepository
 import mill.javalib.android.AndroidTestModule
 
@@ -36,14 +36,14 @@ object app extends AndroidAppJavaModule {
 
   private def mainRoot = root
 
-  object test extends AndroidAppJavaTests with TestModule.Junit4 {
+  object test extends AndroidAppTests with TestModule.Junit4 {
     def testFramework = "com.novocode.junit.JUnitFramework"
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy"junit:junit:4.13.2"
     )
   }
 
-  object it extends AndroidAppJavaIntegrationTests with AndroidTestModule.AndroidJUnit {
+  object it extends AndroidAppIntegrationTests with AndroidTestModule.AndroidJUnit {
     def repositoriesTask = Task.Anon {
       super.repositoriesTask() ++
         Seq(MavenRepository("https://maven.google.com"))
