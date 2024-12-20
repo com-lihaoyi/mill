@@ -58,6 +58,7 @@ object `package` extends RootModule with build.MillPublishJavaModule {
 
     testArgs() ++
       Seq(
+        "-Xmx24m",
         "-DMILL_CLASSPATH=" + runClasspath().map(_.path.toString).mkString(","),
         "-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","),
         s"-DBSP4J_VERSION=${build.Deps.bsp4j.dep.version}"
@@ -93,6 +94,8 @@ object `package` extends RootModule with build.MillPublishJavaModule {
     val devRunClasspath = runClasspath().map(_.path)
     val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
     val commonArgs = Seq(
+      // Avoid reserving a lot of memory for the client
+      "-Xmx24m",
       // Workaround for Zinc/JNA bug
       // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
       "-Djna.nosys=true"
