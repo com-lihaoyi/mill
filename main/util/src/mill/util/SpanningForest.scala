@@ -79,10 +79,10 @@ private[mill] object SpanningForest {
     while (queued.nonEmpty) {
       val current = queued.dequeue()
 
-      for (next <- edges(current).iterator) {
+      seenList.append(current)
+      for (next <- edges(current)) {
         if (!seen.contains(next)) {
           seen.add(next)
-          seenList.append(next)
           queued.enqueue(next)
         }
       }
