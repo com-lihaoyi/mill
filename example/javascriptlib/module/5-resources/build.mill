@@ -1,0 +1,34 @@
+package build
+
+import mill._, javascriptlib._
+import ujson._
+
+object foo extends TypeScriptModule {
+  object test extends TypeScriptTests with TestModule.Jest {
+    def otherFiles = T.source(millSourcePath / "other-files")
+
+    def forkEnv = super.forkEnv() + ("OTHER_FILES_DIR" -> otherFiles().path.toString)
+  }
+}
+
+// Documentation for mill.example.javascriptlib
+
+/** Usage
+> mill foo.run
+Hello World Resource File
+
+> mill foo.test
+PASS .../foo.test.ts
+...
+Test Suites:...1 passed, 1 total...
+Tests:...3 passed, 3 total...
+...
+
+> mill foo.bundle
+Build succeeded!
+
+> mv out/foo/bundle.dest ~/bundle.dest && rm -rf out/
+
+> node ~/bundle.dest/bundle.js
+Hello World Resource File
+*/
