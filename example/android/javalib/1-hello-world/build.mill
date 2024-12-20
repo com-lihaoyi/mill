@@ -106,14 +106,18 @@ object app extends AndroidAppModule {
 //
 // ----
 // .
-// ├── app
-// │   ├── AndroidManifest.xml
-// │   ├── releaseKey.jks
-// │   ├── resources
-// │   │   └── values
-// │   │       ├── colors.xml
-// │   │       └── strings.xml
-// │   └── src/main/java/com/helloworld/app/MainActivity.java
-// └── build.mill
+//├── app
+//│     └── src
+//│         ├── androidTest
+//│         │     └── java/com/helloworld/app/ExampleInstrumentedTest.java
+//│         ├── main
+//│         │     ├── AndroidManifest.xml
+//│         │     ├── java/com/helloworld/app/MainActivity.java
+//│         │     └── res
+//│         │         └── values
+//│         │             ├── colors.xml
+//│         │             └── strings.xml
+//│         └── test/java/com/helloworld/app/ExampleUnitTest.java
+//└── build.mill
 // ----
 //

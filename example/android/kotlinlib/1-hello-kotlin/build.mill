@@ -93,14 +93,17 @@ object app extends AndroidAppKotlinModule {
 //
 // ----
 // .
-// ├── app
-// │   ├── AndroidManifest.xml
-// │   ├── releaseKey.jks
-// │   ├── resources
-// │   │   └── values
-// │   │       ├── colors.xml
-// │   │       └── strings.xml
-// │   └── src/main/java/com/helloworld/app/MainActivity.kt
-// └── build.mill
+//├── app
+//│   └── src
+//│       ├── androidTest/java/com/helloworld/app/ExampleInstrumentedTest.kt
+//│       ├── main
+//│       │   ├── AndroidManifest.xml
+//│       │   ├── java/com/helloworld/app/MainActivity.kt
+//│       │   └── res
+//│       │       └── values
+//│       │           ├── colors.xml
+//│       │           └── strings.xml
+//│       └── test/java/com/helloworld/app/BarTests.kt
+//└── build.mill
 // ----
 //
