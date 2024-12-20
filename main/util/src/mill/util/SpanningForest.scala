@@ -78,6 +78,7 @@ private[mill] object SpanningForest {
 
     while (queued.nonEmpty) {
       val current = queued.dequeue()
+      println(seen.size + "\t" + current)
       seen.add(current)
       seenList.append(current)
 
