@@ -148,14 +148,17 @@ object BuildGen {
           }
           optional(s"override def pomPackagingType = ", packagingType)
         }
-        val pomParentProjectSetting = {
+        val pomParentProjectSettings = {
           val parent = model.getParent
           if (null == parent) ""
           else {
             val group = parent.getGroupId
             val id = parent.getArtifactId
             val version = parent.getVersion
-            s"override def pomParentProject = Some(Artifact(\"$group\", \"$id\", \"$version\"))"
+            s"""override def pomParentProject = Some(Artifact("$group", "$id", "$version"))
+               |
+               |override def bomDeps = super.bomDeps() ++ Agg(ivy"$group:$id:$version")
+               |""".stripMargin
           }
         }
         val metadataSettings = if (cfg.baseModule.isEmpty) metadata(model, cfg) else ""
@@ -191,7 +194,7 @@ object BuildGen {
            |
            |$pomPackagingTypeSetting
            |
-           |$pomParentProjectSetting
+           |$pomParentProjectSettings
            |
            |$metadataSettings
            |
