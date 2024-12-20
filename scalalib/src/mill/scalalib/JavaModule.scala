@@ -625,9 +625,7 @@ trait JavaModule
   /**
    * The folders containing all source files fed into the compiler
    */
-  def allSources: T[Seq[PathRef]] = Task {
-    sources() ++ generatedSources()
-  }
+  def allSources: T[Seq[PathRef]] = Task { sources() ++ generatedSources() }
 
   /**
    * All individual source files fed into the Java compiler
