@@ -125,8 +125,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
 
     millProjectModule(
       workerArtifact,
-      repositoriesTask(),
-      resolveFilter = _.toString.contains(workerArtifact)
+      repositoriesTask()
     )
   }
 
