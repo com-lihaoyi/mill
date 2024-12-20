@@ -81,8 +81,8 @@ private[mill] object SpanningForest {
 
       for (next <- edges(current).iterator) {
         if (!seen.contains(next)) {
-          seen.add(current)
-          seenList.append(current)
+          seen.add(next)
+          seenList.append(next)
           queued.enqueue(next)
         }
       }
