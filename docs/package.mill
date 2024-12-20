@@ -2,7 +2,7 @@ package build.docs
 import org.jsoup._
 import mill.util.Jvm
 import mill._, scalalib._
-//import de.tobiasroeser.mill.vcs.version.VcsVersion
+import de.tobiasroeser.mill.vcs.version.VcsVersion
 import scala.jdk.CollectionConverters._
 
 /** Generates the mill documentation with Antora. */
@@ -31,7 +31,7 @@ object `package` extends RootModule {
       case m: JavaModule if m eq build.kotlinlib => m
     }
     def unidocSourceUrl = Task {
-      val sha = "main"//VcsVersion.vcsState().currentRevision
+      val sha = VcsVersion.vcsState().currentRevision
       Some(s"${build.Settings.projectUrl}/blob/$sha")
     }
   }
@@ -208,7 +208,7 @@ object `package` extends RootModule {
   }
 
   def blogFolder = Task.Source(build.millSourcePath / "blog")
-  def githubPagesPlaybookText(authorMode: Boolean) = T.task { (extraSources: Seq[os.Path]) =>
+  def githubPagesPlaybookText(authorMode: Boolean) = T.task { extraSources: Seq[os.Path] =>
     val taggedSources = for (path <- extraSources) yield {
       s"""    - url: ${build.baseDir}
          |      start_path: ${path.relativeTo(build.baseDir)}
@@ -285,25 +285,25 @@ object `package` extends RootModule {
   }
 
   def githubPages: T[PathRef] = Task {
-    generatePages(authorMode = false).apply().apply(oldDocSources().map(_.path))
+    generatePages(authorMode = false)().apply(oldDocSources().map(_.path))
   }
 
   def localPages: T[PathRef] = Task {
-    val pages = generatePages(authorMode = true).apply().apply(oldDocSources().map(_.path))
+    val pages = generatePages(authorMode = true)().apply(oldDocSources().map(_.path))
     T.log.outputStream.println(
       s"You can browse the pages at: ${(pages.path / "index.html").toNIO.toUri()}"
     )
     pages
   }
   def fastPages: T[PathRef] = Task {
-    val pages = generatePages(authorMode = true).apply().apply(Nil)
+    val pages = generatePages(authorMode = true)().apply(Nil)
     T.log.outputStream.println(
       s"You can browse the pages at: ${(pages.path / "index.html").toNIO.toUri()}"
     )
     pages
   }
 
-  def generatePages(authorMode: Boolean) = Task.Anon { (extraSources: Seq[os.Path]) =>
+  def generatePages(authorMode: Boolean) = Task.Anon { extraSources: Seq[os.Path] =>
     T.log.errorStream.println("Creating Antora playbook ...")
     // dependency to sources
     source()
@@ -312,7 +312,7 @@ object `package` extends RootModule {
     val siteDir = docSite / "site"
     os.write(
       target = playbook,
-      data = githubPagesPlaybookText(authorMode).apply().apply(extraSources),
+      data = githubPagesPlaybookText(authorMode)().apply(extraSources),
       createFolders = true
     )
     T.log.errorStream.println("Running Antora ...")

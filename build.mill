@@ -1,9 +1,9 @@
 package build
 // imports
-//import com.github.lolgab.mill.mima.Mima
+import com.github.lolgab.mill.mima.Mima
 import coursier.maven.MavenRepository
-//import de.tobiasroeser.mill.vcs.version.VcsVersion
-//import com.goyeau.mill.scalafix.ScalafixModule
+import de.tobiasroeser.mill.vcs.version.VcsVersion
+import com.goyeau.mill.scalafix.ScalafixModule
 import mill._
 import mill.define.NamedTask
 import mill.main.Tasks
@@ -264,15 +264,14 @@ object Deps {
 }
 
 def millVersion: T[String] = Task.Input {
-  /*if (Task.env.contains("MILL_STABLE_VERSION")) VcsVersion.calcVcsState(Task.log).format()
-  else */"SNAPSHOT"
+  if (Task.env.contains("MILL_STABLE_VERSION")) VcsVersion.calcVcsState(Task.log).format()
+  else "SNAPSHOT"
 }
 
 def millLastTag: T[String] = Task {
-//  VcsVersion.vcsState().lastTag.getOrElse(
-//    sys.error("No (last) git tag found. Your git history seems incomplete!")
-//  )
-  "SNAPSHOT"
+  VcsVersion.vcsState().lastTag.getOrElse(
+    sys.error("No (last) git tag found. Your git history seems incomplete!")
+  )
 }
 
 def millBinPlatform: T[String] = Task {
@@ -424,7 +423,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
 /**
  * Some custom scala settings and test convenience
  */
-trait MillScalaModule extends ScalaModule with MillJavaModule /*with ScalafixModule*/ { outer =>
+trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModule { outer =>
   def scalaVersion = Deps.scalaVersion
   def scalapVersion: T[String] = Deps.scala2Version
   def scalafixScalaBinaryVersion = T {
@@ -522,8 +521,7 @@ trait MillBaseTestsModule extends TestModule {
 trait MillPublishScalaModule extends MillScalaModule with MillPublishJavaModule
 
 /** Publishable module which contains strictly handled API. */
-trait MillStableScalaModule extends MillPublishScalaModule /*with Mima*/ {
-  /*
+trait MillStableScalaModule extends MillPublishScalaModule with Mima {
   import com.github.lolgab.mill.mima._
   override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq(
     // (5x) MIMA doesn't properly ignore things which are nested inside other private things
@@ -648,11 +646,11 @@ trait MillStableScalaModule extends MillPublishScalaModule /*with Mima*/ {
   }
 
   def mimaExcludeAnnotations = Seq("mill.api.internal", "mill.api.experimental")
-//  def mimaCheckDirection = CheckDirection.Backward
+  def mimaCheckDirection = CheckDirection.Backward
   def skipPreviousVersions: T[Seq[String]] = T {
     T.log.info("Skipping mima for previous versions (!!1000s of errors due to Scala 3)")
     mimaPreviousVersions() // T(Seq.empty[String])
-  }*/
+  }
 }
 
 object bridge extends Cross[BridgeModule](compilerBridgeScalaVersions)
