@@ -23,7 +23,7 @@ object androidSdkModule0 extends AndroidSdkModule {
 }
 
 // Actual android application
-object app extends AndroidAppJavaModule {
+object app extends AndroidAppModule {
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
 
   // Configuration for ReleaseKey
@@ -83,21 +83,6 @@ object app extends AndroidAppJavaModule {
   }
 
 }
-
-
-/*
- * TODO: The following functionality is missing but you can test using the android tools:
- *  Install the integration tests
- *
- * mill show app.it.androidInstantApk
- * $ANDROID_HOME/platform-tools/adb install -r /home/irodotos/mill/example/android/javalib/1-hello-world/out/app/it/androidApk.dest/app.apk
-
- *
- * Run the integration tests
- * $ANDROID_HOME/platform-tools/adb shell am instrument -w -m com.helloworld.app/androidx.test.runner.AndroidJUnitRunner
- *
- */
-
 
 ////SNIPPET:END
 

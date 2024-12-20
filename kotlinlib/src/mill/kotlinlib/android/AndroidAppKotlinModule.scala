@@ -27,9 +27,7 @@ import java.nio.charset.StandardCharsets
 @mill.api.experimental
 trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule {
 
-  trait AndroidAppKotlinTests extends AndroidAppTests
-
-  private def sdk = androidSdkModule
+  trait AndroidAppKotlinTests extends AndroidAppTests with KotlinTests
 
   trait AndroidAppKotlinIntegrationTests extends AndroidAppKotlinModule with AndroidAppIntegrationTests
 }
