@@ -108,8 +108,7 @@ object app extends AndroidAppModule {
 // .
 //├── app
 //│     └── src
-//│         ├── androidTest
-//│         │     └── java/com/helloworld/app/ExampleInstrumentedTest.java
+//│         ├── androidTest/java/com/helloworld/app/ExampleInstrumentedTest.java
 //│         ├── main
 //│         │     ├── AndroidManifest.xml
 //│         │     ├── java/com/helloworld/app/MainActivity.java
