@@ -23,6 +23,14 @@ import os.{CommandResult, Path}
 @mill.api.experimental
 trait AndroidAppModule extends JavaModule {
 
+  final def root: Path = super.millSourcePath
+  private def src: Path = root / "src"
+  override def millSourcePath: Path = src / "main"
+
+  override def sources: T[Seq[PathRef]] = Task.Sources(millSourcePath)
+
+  private def bannedModules(classpath: PathRef): Boolean =
+    !classpath.path.last.contains("-jvm")
   /**
    * Provides access to the Android SDK configuration.
    */
@@ -105,7 +113,7 @@ trait AndroidAppModule extends JavaModule {
     val (jarFiles, _) = androidUnpackArchives()
     val jarFilesAgg = super.compileClasspath().filter(_.path.ext == "jar")
 
-    jarFilesAgg ++ jarFiles
+    (jarFilesAgg ++ jarFiles).filter(bannedModules)
   }
 
   /**
@@ -315,7 +323,6 @@ trait AndroidAppModule extends JavaModule {
    */
   def androidApk: T[PathRef] = Task {
     val signedApk: os.Path = Task.dest / "app.apk"
-    println("signedApk = ", signedApk.toString())
     os.call(
       Seq(
         androidSdkModule().apksignerPath().path.toString,
@@ -385,5 +392,44 @@ trait AndroidAppModule extends JavaModule {
     os.call(
       (androidSdkModule().adbPath().path, "install", "-r", androidApk().path)
     )
+  }
+
+  trait AndroidAppTests extends JavaTests {
+    def testPath: T[Seq[PathRef]] = Task.Sources(src / "test")
+
+    override def allSources: T[Seq[PathRef]] = Task {
+      super.allSources() ++ testPath()
+    }
+  }
+
+  trait AndroidAppIntegrationTests extends AndroidAppModule with AndroidTestModule {
+    override def millSourcePath: Path = src / "main"
+
+    def androidTestPath: Path = src / "androidTest"
+
+    override def sources: T[Seq[PathRef]] = Task.Sources(millSourcePath, androidTestPath)
+
+    def instrumentationPackage: String
+
+    def testFramework: T[String]
+
+    override def install: Target[CommandResult] = Task {
+      os.call(
+        (androidSdkModule().adbPath().path, "install", "-r", androidInstantApk().path)
+      )
+    }
+
+    def test: T[Vector[String]] = Task {
+      install()
+      val instrumentOutput = os.call(
+        (androidSdkModule().adbPath().path, "shell", "am", "instrument", "-w", "-m", s"${instrumentationPackage}/${testFramework()}")
+      )
+
+      instrumentOutput.out.lines()
+    }
+
+
+    /** Builds the apk including the integration tests (e.g. from androidTest) */
+    def androidInstantApk: T[PathRef] = androidDebugApk
   }
 }
