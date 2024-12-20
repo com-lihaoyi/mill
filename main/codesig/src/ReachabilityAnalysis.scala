@@ -39,7 +39,7 @@ class CallGraphAnalysis(
   lazy val methodCodeHashes: SortedMap[String, Int] =
     methods.map { case (k, vs) => (k.toString, vs.codeHash) }.to(SortedMap)
 
-  logger.mandatoryLog(methodCodeHashes)
+  logger.log(methodCodeHashes)
 
   lazy val prettyCallGraph: SortedMap[String, Array[CallGraphAnalysis.Node]] = {
     indexGraphEdges.zip(indexToNodes).map { case (vs, k) =>
@@ -48,7 +48,7 @@ class CallGraphAnalysis(
       .to(SortedMap)
   }
 
-  logger.mandatoryLog(prettyCallGraph)
+  logger.log(prettyCallGraph)
 
   def transitiveCallGraphValues[V: scala.reflect.ClassTag](
       nodeValues: Array[V],
