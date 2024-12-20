@@ -121,6 +121,7 @@ trait AndroidSdkModule extends Module {
   def adbPath: T[PathRef] = Task {
     PathRef(sdkPath().path / "platform-tools" / "adb")
   }
+
   /**
    * List all attached devices and emulators.
    *
