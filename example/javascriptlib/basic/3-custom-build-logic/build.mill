@@ -24,13 +24,11 @@ object foo extends TypeScriptModule {
 /** Usage
 
 > mill foo.run
-[Reading file:] .../out/foo/resources.dest/line-count.txt
 Line Count: ...
 
 > mill show foo.bundle
 Build succeeded!
 
-> node out/foo/bundle.dest/bundle.js out/foo/resources.dest/
-[Reading file:] .../line-count.txt
+> node out/foo/bundle.dest/bundle.js
 Line Count: ...
 */
