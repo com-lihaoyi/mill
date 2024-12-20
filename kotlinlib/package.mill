@@ -45,11 +45,13 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
     )
 
     object impl extends MillKotlinModule {
-      override def moduleDeps: Seq[PublishModule] = Seq(worker)
-      override def compileIvyDeps: T[Agg[Dep]] = Agg(
-        build.Deps.osLib,
-        build.Deps.kotlinCompiler
-      )
+      override def compileModuleDeps = Seq(worker)
+      def mandatoryIvyDeps = Agg.empty[Dep]
+      override def compileIvyDeps: T[Agg[Dep]] =
+        super.mandatoryIvyDeps() ++ Agg(
+          build.Deps.osLib,
+          build.Deps.kotlinCompiler
+        )
     }
   }
 }
