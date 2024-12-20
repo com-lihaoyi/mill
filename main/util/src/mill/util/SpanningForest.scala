@@ -78,7 +78,6 @@ private[mill] object SpanningForest {
 
     while (queued.nonEmpty) {
       val current = queued.dequeue()
-      println(seen.size + "\t" + current)
 
       for (next <- edges(current).iterator) {
         if (!seen.contains(next)) {
