@@ -459,17 +459,18 @@ trait AndroidAppModule extends JavaModule {
     val formats = androidLintReportFormat()
 
     // Generate the alternating flag and file path strings
-    val reportArg: Seq[String] = formats.toSeq.flatMap { format =>
+    val reportArg: Seq[String] = formats.flatMap { format =>
       Seq(format.flag, (Task.dest / s"report.${format.extension}").toString)
     }
 
     // Set path to generated `.jar` files and/or `.class` files
-    val cp = runClasspath().map(_.path).filter(os.exists).mkString(":")
+    // TODO change to runtimeClasspath once the runtime dependencies + source refs are fixed
+    val cp = compileClasspath().map(_.path).filter(os.exists).mkString(":")
 
     // Set path to the location of the project source codes
     val src = sources().map(_.path).filter(os.exists).mkString(":")
 
-    // Set path to the location of the project ressource codes
+    // Set path to the location of the project resource code
     val res = resources().map(_.path).filter(os.exists).mkString(":")
 
     // Prepare the lint configuration argument if the config path is set
