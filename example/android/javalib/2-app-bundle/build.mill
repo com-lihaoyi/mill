@@ -47,14 +47,15 @@ object bundle extends AndroidAppBundle {
 //
 // ----
 // .
-// ├── app
-// │   ├── AndroidManifest.xml
-// │   ├── releaseKey.jks
-// │   ├── resources
-// │   │   └── values
-// │   │       ├── colors.xml
-// │   │       └── strings.xml
-// │   └── src/main/java/com/helloworld/app/MainActivity.java
-// └── build.mill
+//bundle/
+//  └── src
+//      ├── main
+//      │   └── java
+//      │       ├── AndroidManifest.xml
+//      │       └── com/helloworld/app/MainActivity.java
+//      └── res
+//          └── values
+//              ├── colors.xml
+//              └── strings.xml
 // ----
 //
