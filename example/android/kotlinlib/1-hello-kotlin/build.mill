@@ -103,7 +103,7 @@ object app extends AndroidAppKotlinModule {
 //│       │       └── values
 //│       │           ├── colors.xml
 //│       │           └── strings.xml
-//│       └── test/java/com/helloworld/app/BarTests.kt
+//│       └── test/java/com/helloworld/app/ExampleUnitTest.kt
 //└── build.mill
 // ----
 //
