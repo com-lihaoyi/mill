@@ -75,6 +75,8 @@ AndroidManifest.xml:3: Error: Avoid hardcoding the debug mode; leaving it out al
 > cat out/app/androidLintRun.dest/report.txt # Check the content of report again
  ../../lint-baseline.xml: Information: 1 errors/warnings were listed in the baseline file (../../lint-baseline.xml) but not found in the project; perhaps they have been fixed? Unmatched issue types: HardcodedDebugMode [LintBaselineFixed]
 
+*/
+
 // == Linting with Custom Configurations
 
 // The commands below are demos on using `androidLintRun` task with some custom configuratins on a sample project.
