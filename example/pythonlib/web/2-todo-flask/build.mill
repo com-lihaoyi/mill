@@ -1,7 +1,7 @@
-// This is a `Flask`-based `Todo` application managed and build using `Mill`.
-// It allows users to `add`, `edit`, `delete`, and `view` tasks stored in a `SQLite` database.
-// `Flask-SQLAlchemy` handles database operations, while `Flask-WTF` manages forms
-// for task creation and updates.
+// This is a `Flask`-based `TodoMVC` application managed and built using `Mill`.
+// It allows users to `add`, `edit`, `delete`, and `view` tasks stored in a Python Data Structure.
+// Tasks can be filtered as `all`, `active`, or `completed` based on their state.
+// The application demonstrates dynamic rendering using Flask's routing and templating features.
 package build
 import mill._, pythonlib._
 
@@ -11,8 +11,8 @@ object todo extends PythonModule {
 
   def pythonDeps = Seq("flask==3.1.0", "Flask-SQLAlchemy==3.1.1", "Flask-WTF==1.2.2")
 
-  object unitTest extends PythonTests with TestModule.Unittest
-  object integrationTest extends PythonTests with TestModule.Unittest
+  object test extends PythonTests with TestModule.Unittest
+  object itest extends PythonTests with TestModule.Unittest
 
 }
 
@@ -20,43 +20,42 @@ object todo extends PythonModule {
 
 // - **Serving HTML templates** using **Jinja2** (Flask's default templating engine).
 // - **Managing static files** such as JavaScript, CSS, and images.
-// - **Querying a SQL database** using **Flask-SQLAlchemy** with an **SQLite** backend.
-// - **Form handling and validation** with **Flask-WTF**.
-// - **Unit testing** using **unittest** with SQLite in-memory database.
-// - **Integration testing** using **unittest**.
+// - **Filtering and managing tasks** in-memory using Python data structures.
+// - **Unit testing** using **unittest** for testing task operations.
+// - **Integration testing** using **unittest** for end-to-end application behavior.
 
 // This example also utilizes **Mill** for managing `dependencies`, `builds`, and `tests`,
 // offering an efficient development workflow.
 
 /** Usage
 
-> ./mill todo.unitTest
+> ./mill todo.test
 ...
-test_task_creation (test_unit.UnitTest...) ... ok
-test_task_status_update (test_unit.UnitTest...) ... ok
-...
-Ran 2 tests...
+test_add_todo (test.TestTodoApp...) ... ok
+test_delete_todo (test.TestTodoApp...) ... ok
+test_edit_todo (test.TestTodoApp...) ... ok
+test_filter_todos (test.TestTodoApp...) ... ok
+test_toggle_all (test.TestTodoApp...) ... ok
+test_toggle_todo (test.TestTodoApp...) ... ok
+...Ran 6 tests...
 OK
 ...
 
-> ./mill todo.integrationTest
+> ./mill todo.itest
 ...
-test_add_task (test_integration.IntegrationTest...)
-Test adding a task through the /add route. ... ok
-test_delete_task (test_integration.IntegrationTest...) ... ok
-test_edit_task (test_integration.IntegrationTest...)
-Test editing a task through the /edit/<int:task_id> route. ... ok
-test_index_empty (test_integration.IntegrationTest...)
-Test the index route with no tasks. ... ok
-...
-Ran 4 tests...
+test_add_and_list_todos (test.TestTodoAppIntegration...) ... ok
+test_delete_todo (test.TestTodoAppIntegration...) ... ok
+test_edit_and_list_todos (test.TestTodoAppIntegration...) ... ok
+test_toggle_all_todos (test.TestTodoAppIntegration...) ... ok
+test_toggle_and_list_todos (test.TestTodoAppIntegration...) ... ok
+...Ran 5 tests...
 OK
 ...
 
 > ./mill todo.runBackground
 
 > curl http://localhost:5001
-...To-Do Flask App Using Mill Build Tool...
+...What needs to be done...
 
 > ./mill clean todo.runBackground
 

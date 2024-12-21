@@ -1,82 +1,96 @@
-from flask import Flask, render_template, redirect, url_for, flash, request
-from flask_sqlalchemy import SQLAlchemy
-from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, SelectField, DateField, SubmitField
-from wtforms.validators import DataRequired, Length
+from flask import Flask, render_template, request
+from dataclasses import dataclass
+from typing import List
 
-# Initialize Flask App and Database
 app = Flask(__name__, static_folder="../static", template_folder="../templates")
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///todo.db"
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["SECRET_KEY"] = (
-    "8f41b7124eec1c73f2fbe77e6e76c54602a40c44c842da93b09f48b79c023c88"
-)
-
-# Import models
-from models import Task, db
-
-# Import forms
-from forms import TaskForm
-
-db.init_app(app)
 
 
-# Routes
+@dataclass
+class Todo:
+    checked: bool
+    text: str
+
+
+todos: List[Todo] = []
+
+
 @app.route("/")
 def index():
-    tasks = Task.query.all()
-    return render_template("index.html", tasks=tasks)
+    return render_template("base.html", todos=todos, state="all")
 
 
-@app.route("/add", methods=["GET", "POST"])
-def add_task():
-    form = TaskForm()
-    if form.validate_on_submit():
-        new_task = Task(
-            title=form.title.data,
-            description=form.description.data,
-            status=form.status.data,
-            deadline=form.deadline.data,
-        )
-        db.session.add(new_task)
-        db.session.commit()
-        flash("Task added successfully!", "success")
-        return redirect(url_for("index"))
-    return render_template("task.html", form=form, title="Add Task")
+def render_body(state: str):
+    filtered_todos = {
+        "all": todos,
+        "active": [todo for todo in todos if not todo.checked],
+        "completed": [todo for todo in todos if todo.checked],
+    }[state]
+    return render_template("index.html", todos=filtered_todos, state=state)
 
 
-@app.route("/edit/<int:task_id>", methods=["GET", "POST"])
-def edit_task(task_id):
-    task = db.session.get(Task, task_id)
-    if not task:  # Handle case where task doesn't exist
-        flash("Task not found.", "error")
-        return redirect(url_for("index"))
-    form = TaskForm(obj=task)
-    if form.validate_on_submit():
-        task.title = form.title.data
-        task.description = form.description.data
-        task.status = form.status.data
-        task.deadline = form.deadline.data
-        db.session.commit()
-        flash("Task updated successfully!", "success")
-        return redirect(url_for("index"))
-    return render_template("task.html", form=form, title="Edit Task")
+def filter_todos(state):
+    """Filter todos based on the state (all, active, completed)."""
+    if state == "all":
+        return todos
+    elif state == "active":
+        return [todo for todo in todos if not todo.checked]
+    elif state == "completed":
+        return [todo for todo in todos if todo.checked]
 
 
-@app.route("/delete/<int:task_id>")
-def delete_task(task_id):
-    task = db.session.get(Task, task_id)
-    if not task:  # Handle case where task doesn't exist
-        flash("Task not found.", "error")
-        return redirect(url_for("index"))
-    db.session.delete(task)
-    db.session.commit()
-    flash("Task deleted successfully!", "success")
-    return redirect(url_for("index"))
+@app.route("/edit/<state>/<int:index>", methods=["POST"])
+def edit_todo(state, index):
+    """Edit the text of a todo."""
+    global todos
+    updated_text = request.data.decode("utf-8")
+    # Update the text attribute of the Todo object
+    todos[index].text = updated_text
+    filtered_todos = filter_todos(state)
+    return render_template("index.html", todos=filtered_todos, state=state)
 
 
-# Create database tables and run the app
+@app.route("/list/<state>", methods=["POST"])
+def list_todos(state):
+    return render_body(state)
+
+
+@app.route("/add/<state>", methods=["POST"])
+def add_todo(state):
+    todos.insert(0, Todo(checked=False, text=request.data.decode("utf-8")))
+    return render_body(state)
+
+
+@app.route("/delete/<state>/<int:index>", methods=["POST"])
+def delete_todo(state, index):
+    if 0 <= index < len(todos):
+        todos.pop(index)
+    return render_body(state)
+
+
+@app.route("/toggle/<state>/<int:index>", methods=["POST"])
+def toggle(state, index):
+    if 0 <= index < len(todos):
+        todos[index].checked = not todos[index].checked
+    return render_body(state)
+
+
+@app.route("/clear-completed/<state>", methods=["POST"])
+def clear_completed(state):
+    global todos
+    todos = [todo for todo in todos if not todo.checked]
+    return render_body(state)
+
+
+@app.route("/toggle-all/<state>", methods=["POST"])
+def toggle_all(state):
+    global todos
+
+    all_checked = all(todo.checked for todo in todos)
+    for todo in todos:
+        todo.checked = not all_checked
+
+    return render_body(state)
+
+
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
-    app.run(debug=True, port=5001)
+    app.run(debug=True)
