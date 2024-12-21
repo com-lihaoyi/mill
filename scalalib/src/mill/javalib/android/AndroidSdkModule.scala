@@ -139,7 +139,6 @@ trait AndroidSdkModule extends Module {
     os.proc(adbPath().path / "-l").call()
   }
 
-
   /**
    * Installs the necessary Android SDK components such as platform-tools, build-tools, and Android platforms.
    *

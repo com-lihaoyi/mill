@@ -22,7 +22,6 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule {
 
   trait AndroidAppKotlinTests extends AndroidAppTests with KotlinTests
 
-  trait AndroidAppKotlinIntegrationTests extends AndroidAppKotlinModule with AndroidAppIntegrationTests
+  trait AndroidAppKotlinIntegrationTests extends AndroidAppKotlinModule
+      with AndroidAppIntegrationTests
 }
-
-

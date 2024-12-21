@@ -61,7 +61,6 @@ object app extends AndroidAppKotlinModule {
     def androidReleaseKeyPass: T[String] = Task { "MillBuildTool" }
     def androidReleaseKeyStorePass: T[String] = Task { "MillBuildTool" }
 
-
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy"androidx.test.ext:junit:1.2.1",
       ivy"androidx.test:runner:1.6.2",

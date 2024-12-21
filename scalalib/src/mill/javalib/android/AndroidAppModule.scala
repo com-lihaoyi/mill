@@ -6,7 +6,6 @@ import mill.api.PathRef
 import mill.define.ModuleRef
 import os.{CommandResult, Path}
 
-
 import upickle.default._
 
 /**
@@ -57,6 +56,7 @@ trait AndroidAppModule extends JavaModule {
 
   private def bannedModules(classpath: PathRef): Boolean =
     !classpath.path.last.contains("-jvm")
+
   /**
    * Provides access to the Android SDK configuration.
    */
@@ -94,6 +94,7 @@ trait AndroidAppModule extends JavaModule {
 
   /** The location of the keystore */
   def releaseKeyPath: Path
+
   /**
    * Default path to the keystore file, derived from `androidReleaseKeyName()`.
    * Users can customize the keystore file name to change this path.
@@ -152,6 +153,7 @@ trait AndroidAppModule extends JavaModule {
   }
 
   def res: T[Seq[PathRef]] = Task.Sources { millSourcePath / "res" }
+
   /**
    * Combines module resources with those unpacked from AARs.
    */
@@ -300,15 +302,16 @@ trait AndroidAppModule extends JavaModule {
     PathRef(unsignedApk)
   }
 
-  /** Gets all the jars from the classpath and creates an apk with them
-   * to be bundled with the app's code apk */
+  /**
+   * Gets all the jars from the classpath and creates an apk with them
+   * to be bundled with the app's code apk
+   */
   def runtimeDependencies: T[Seq[PathRef]] = Task {
     val androidJar = androidSdkModule().androidJarPath()
     // TODO hack until android classpath resolution + dependencies is
     // properly fixed
-    val dependenciesClasspath = compileClasspath().filterNot(
-      pr =>
-        pr.path == androidJar.path
+    val dependenciesClasspath = compileClasspath().filterNot(pr =>
+      pr.path == androidJar.path
     )
     val compiledClassPathJars: Seq[PathRef] = dependenciesClasspath.toSeq
 
@@ -390,7 +393,8 @@ trait AndroidAppModule extends JavaModule {
     PathRef(signedApk)
   }
 
-  /** Generates a debug apk
+  /**
+   * Generates a debug apk
    * TODO: this needs to work as the android debug apk functionality,
    * which uses a debug keystore in $HOME/.android/debug.keystore .
    * For now this method is a placeholder and uses androidApk to make
@@ -495,7 +499,6 @@ trait AndroidAppModule extends JavaModule {
     PathRef(Task.dest)
   }
 
-
   /**
    * Installs the app to the available android device.
    *
@@ -535,12 +538,19 @@ trait AndroidAppModule extends JavaModule {
     def test: T[Vector[String]] = Task {
       install()
       val instrumentOutput = os.call(
-        (androidSdkModule().adbPath().path, "shell", "am", "instrument", "-w", "-m", s"${instrumentationPackage}/${testFramework()}")
+        (
+          androidSdkModule().adbPath().path,
+          "shell",
+          "am",
+          "instrument",
+          "-w",
+          "-m",
+          s"${instrumentationPackage}/${testFramework()}"
+        )
       )
 
       instrumentOutput.out.lines()
     }
-
 
     /** Builds the apk including the integration tests (e.g. from androidTest) */
     def androidInstantApk: T[PathRef] = androidDebugApk

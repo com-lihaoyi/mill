@@ -15,7 +15,6 @@ import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}
 import coursier.maven.MavenRepository
 import mill.javalib.android.AndroidTestModule
 
-
 // Create and configure an Android SDK module to manage Android SDK paths and tools.
 object androidSdkModule0 extends AndroidSdkModule {
   def buildToolsVersion = "35.0.0"
@@ -49,7 +48,6 @@ object app extends AndroidAppModule {
         Seq(MavenRepository("https://maven.google.com"))
     }
 
-
     def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
 
     override def instrumentationPackage = "com.helloworld.app"
@@ -72,7 +70,6 @@ object app extends AndroidAppModule {
     def androidReleaseKeyStorePass: T[String] = Task {
       "MillBuildTool"
     }
-
 
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy"androidx.test.ext:junit:1.2.1",
