@@ -2,6 +2,7 @@ package mill
 package scalalib
 
 import coursier.core.{BomDependency, Configuration, DependencyManagement, Resolution}
+import coursier.params.ResolutionParams
 import coursier.parse.JavaOrScalaModule
 import coursier.parse.ModuleParser
 import coursier.util.ModuleMatcher
@@ -779,7 +780,8 @@ trait JavaModule
     defaultResolver().resolveDeps(
       transitiveCompileIvyDeps() ++ transitiveIvyDeps(),
       artifactTypes = Some(artifactTypes()),
-      resolutionParamsMapOpt = Some(_.withDefaultConfiguration(coursier.core.Configuration.compile))
+      resolutionParamsMapOpt =
+        Some((_: ResolutionParams).withDefaultConfiguration(coursier.core.Configuration.compile))
     )
   }
 
@@ -1274,7 +1276,9 @@ trait JavaModule
             transitiveCompileIvyDeps() ++ transitiveIvyDeps(),
             sources = true,
             resolutionParamsMapOpt =
-              Some(_.withDefaultConfiguration(coursier.core.Configuration.compile))
+              Some(
+                (_: ResolutionParams).withDefaultConfiguration(coursier.core.Configuration.compile)
+              )
           )
         },
         Task.Anon {

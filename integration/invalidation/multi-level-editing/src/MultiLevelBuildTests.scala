@@ -342,7 +342,7 @@ object MultiLevelBuildTests extends UtestIntegrationTestSuite {
           // Ensure the file path in the compile error is properly adjusted to point
           // at the original source file and not the generated file
           (workspacePath / "build.mill").toString,
-          "not found: value doesnt"
+          "Not found: doesnt"
         )
         checkWatchedFiles(tester, Nil, buildPaths(tester), buildPaths2(tester), buildPaths3(tester))
         checkChangedClassloaders(tester, null, null, false, false)
@@ -352,7 +352,7 @@ object MultiLevelBuildTests extends UtestIntegrationTestSuite {
           tester,
           "\n1 tasks failed",
           (workspacePath / "mill-build/build.mill").toString,
-          "not found: object doesnt"
+          "Not found: doesnt"
         )
         checkWatchedFiles(tester, Nil, Nil, buildPaths2(tester), buildPaths3(tester))
         checkChangedClassloaders(tester, null, null, null, false)
@@ -362,7 +362,7 @@ object MultiLevelBuildTests extends UtestIntegrationTestSuite {
           tester,
           "\n1 tasks failed",
           (workspacePath / "mill-build/mill-build/build.mill").toString,
-          "not found: object doesnt"
+          "Not found: doesnt"
         )
         checkWatchedFiles(tester, Nil, Nil, Nil, buildPaths3(tester))
         checkChangedClassloaders(tester, null, null, null, null)
@@ -372,7 +372,7 @@ object MultiLevelBuildTests extends UtestIntegrationTestSuite {
           tester,
           "\n1 tasks failed",
           (workspacePath / "mill-build/build.mill").toString,
-          "not found: object doesnt"
+          "Not found: doesnt"
         )
         checkWatchedFiles(tester, Nil, Nil, buildPaths2(tester), buildPaths3(tester))
         checkChangedClassloaders(tester, null, null, null, true)
@@ -382,7 +382,7 @@ object MultiLevelBuildTests extends UtestIntegrationTestSuite {
           tester,
           "\n1 tasks failed",
           (workspacePath / "build.mill").toString,
-          "not found: value doesnt"
+          "Not found: doesnt"
         )
         checkWatchedFiles(tester, Nil, buildPaths(tester), buildPaths2(tester), buildPaths3(tester))
         checkChangedClassloaders(tester, null, null, true, false)
