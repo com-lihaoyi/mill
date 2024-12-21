@@ -482,19 +482,18 @@ trait AndroidAppModule extends JavaModule {
     val baselineArg = androidLintBaselinePath().map(baseline =>
       Seq("--baseline", baseline.path.toString)
     ).getOrElse(Seq.empty)
-    val command = Seq(
-      androidSdkModule().lintToolPath().path.toString,
-      millSourcePath.toString,
-      "--classpath",
-      cp,
-      "--sources",
-      src,
-      "--resources",
-      res
-    ) ++ configArg ++ baselineArg ++ reportArg ++ androidLintArgs()
-    println(command.mkString(" "))
+
     os.call(
-      command,
+      Seq(
+        androidSdkModule().lintToolPath().path.toString,
+        millSourcePath.toString,
+        "--classpath",
+        cp,
+        "--sources",
+        src,
+        "--resources",
+        res
+      ) ++ configArg ++ baselineArg ++ reportArg ++ androidLintArgs(),
       check = androidLintAbortOnError
     )
 
