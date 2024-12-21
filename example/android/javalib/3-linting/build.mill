@@ -65,10 +65,8 @@ report.html
 report.txt
 
 > ls app/ # List out all files in the app directory to check lint-baseline file exists
-AndroidManifest.xml
 lint-baseline.xml
 lint.xml
-resources
 src
 
 > cat out/app/androidLintRun.dest/report.txt # Display content of the linting report
