@@ -48,14 +48,14 @@ object bundle extends AndroidAppBundle {
 // ----
 // .
 //bundle/
-//  └── src
-//      ├── main
-//      │   └── java
-//      │       ├── AndroidManifest.xml
-//      │       └── com/helloworld/app/MainActivity.java
-//      └── res
-//          └── values
-//              ├── colors.xml
-//              └── strings.xml
+//└── src
+//    ├── main
+//    │   ├── AndroidManifest.xml
+//    │   └── java/com/helloworld/app/MainActivity.java
+//    └── res
+//        └── values
+//            ├── colors.xml
+//            └── strings.xml
+//
 // ----
 //
