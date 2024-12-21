@@ -223,7 +223,8 @@ trait JavaModule
         dep.publication.classifier
       )
       val versionOverrideOpt =
-        if (dep.version == "_") depMgmtMap.get(depMgmtKey).map(_.version).filter(_.nonEmpty)
+        if (dep.version.isEmpty)
+          depMgmtMap.get(depMgmtKey).map(_.version).filter(_.nonEmpty)
         else None
       val extraExclusions = depMgmtMap.get(depMgmtKey).map(_.minimizedExclusions)
       dep
@@ -270,8 +271,7 @@ trait JavaModule
           )
           val values = DependencyManagement.Values(
             Configuration.empty,
-            if (depMgmt.version == "_") "" // shouldn't be needed with future coursier versions
-            else depMgmt.version,
+            depMgmt.version,
             depMgmt.minimizedExclusions,
             depMgmt.optional
           )
@@ -919,7 +919,7 @@ trait JavaModule
    * Typically, includes the source files to generate documentation from.
    * @see [[docResources]]
    */
-  def docSources: T[Seq[PathRef]] = Task.Sources(allSources())
+  def docSources: T[Seq[PathRef]] = Task { allSources() }
 
   /**
    * Extra directories to be copied into the documentation.

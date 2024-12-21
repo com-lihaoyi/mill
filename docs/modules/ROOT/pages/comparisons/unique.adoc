@@ -85,8 +85,8 @@ xref:android/java.adoc[Android], and has demonstrated the ability to branch out 
 more distant toolchains like xref:extending/example-typescript-support.adoc[Typescript]
 and xref:extending/example-python-support.adoc[Python].
 
-Mill also works well with xref:depth/large-builds.adoc[large builds]: its build logic can be
-split into multiple folders, is incrementally compiled,
+Mill also works well with xref:large/large.adoc[large builds]: its build logic can be
+xref:large/multi-file-builds.adoc[split into multiple folders], is incrementally compiled,
 lazily initialized, and automatically cached and parallelized. That means that even large
 codebases can remain fast and responsive: Mill's own build easily manages over 400 modules,
 and the tool can likely handle thousands of modules without issue.
@@ -480,7 +480,7 @@ functionality, but at 10% the complexity:
 * Bazel itself is not getting any simpler over time - instead is getting more complex with
   additional features and functionality, as tends to happen to projects over time
 
-Mill provides many of the same things Bazel does: automatic xref:depth/evaluation-model.adoc[caching],
+Mill provides many of the same things Bazel does: automatic xref:depth/execution-model.adoc[caching],
 parallelization, xref:depth/sandboxing.adoc[sandboxing],
 xref:extending/import-ivy-plugins.adoc[extensibility]. Mill
 can already work with a wide variety of programming languages,

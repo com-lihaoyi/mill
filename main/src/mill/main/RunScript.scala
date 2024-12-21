@@ -1,7 +1,7 @@
 package mill.main
 
 import mill.define._
-import mill.eval.{Evaluator, EvaluatorPaths}
+import mill.eval.{Evaluator, EvaluatorPaths, Plan}
 import mill.util.Watchable
 import mill.api.{PathRef, Result, Val}
 import mill.api.Strict.Agg
@@ -43,7 +43,8 @@ object RunScript {
         evaluator.allowPositionalCommandArgs
       )
     }
-    for (targets <- resolved) yield evaluateNamed(evaluator, Agg.from(targets), selectiveExecution)
+    for (targets <- resolved)
+      yield evaluateNamed(evaluator, Agg.from(targets), selectiveExecution)
   }
 
   def evaluateNamed(
@@ -63,24 +64,31 @@ object RunScript {
       selectiveExecution: Boolean = false
   ): (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]]) = {
 
+    val (sortedGroups, transitive) = Plan.plan(targets)
+    val terminals = sortedGroups.keys.map(t => (t.task, t)).toMap
+    val selectiveExecutionEnabled = selectiveExecution && !targets.exists(_.isExclusiveCommand)
+
     val selectedTargetsOrErr =
-      if (selectiveExecution && os.exists(evaluator.outPath / OutFiles.millSelectiveExecution)) {
+      if (
+        selectiveExecutionEnabled && os.exists(evaluator.outPath / OutFiles.millSelectiveExecution)
+      ) {
         SelectiveExecution
-          .diffMetadata(evaluator, targets.map(_.ctx.segments.render).toSeq)
-          .map { selected =>
-            targets.filter {
-              case c: Command[_] if c.exclusive => true
-              case t => selected(t.ctx.segments.render)
-            }
+          .diffMetadata(evaluator, targets.map(terminals(_).render).toSeq)
+          .map { x =>
+            val (selected, results) = x
+            val selectedSet = selected.toSet
+            (
+              targets.filter(t => t.isExclusiveCommand || selectedSet(terminals(t).render)),
+              results
+            )
           }
-      } else Right(targets)
+      } else Right(targets -> Map.empty)
 
     selectedTargetsOrErr match {
       case Left(err) => (Nil, Left(err))
-      case Right(selectedTargets) =>
+      case Right((selectedTargets, selectiveResults)) =>
         val evaluated: Results = evaluator.evaluate(selectedTargets, serialCommandExec = true)
-        val watched = evaluated.results
-          .iterator
+        val watched = (evaluated.results.iterator ++ selectiveResults)
           .collect {
             case (t: SourcesImpl, TaskResult(Result.Success(Val(ps: Seq[PathRef])), _)) =>
               ps.map(Watchable.Path(_))
@@ -97,11 +105,11 @@ object RunScript {
           .iterator
           .collect {
             case (t: InputImpl[_], TaskResult(Result.Success(Val(value)), _)) =>
-              (t.ctx.segments.render, value.##)
+              (terminals(t).render, value.##)
           }
           .toMap
 
-        if (selectiveExecution) {
+        if (selectiveExecutionEnabled) {
           SelectiveExecution.saveMetadata(
             evaluator,
             SelectiveExecution.Metadata(allInputHashes, evaluator.methodCodeHashSignatures)

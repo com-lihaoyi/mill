@@ -33,7 +33,7 @@ public class MillProcessLauncher {
     boolean interrupted = false;
 
     try {
-      MillProcessLauncher.runTermInfoThread(processDir);
+      MillProcessLauncher.prepareMillRunFolder(processDir);
       Process p = configureRunMillProcess(builder, processDir);
       return p.waitFor();
 
@@ -255,7 +255,13 @@ public class MillProcessLauncher {
     }
   }
 
-  public static void runTermInfoThread(Path serverDir) throws Exception {
+  public static void prepareMillRunFolder(Path serverDir) throws Exception {
+    // Clear out run-related files from the server folder to make sure we
+    // never hit issues where we are reading the files from a previous run
+    Files.deleteIfExists(serverDir.resolve(ServerFiles.exitCode));
+    Files.deleteIfExists(serverDir.resolve(ServerFiles.terminfo));
+    Files.deleteIfExists(serverDir.resolve(ServerFiles.runArgs));
+
     Path sandbox = serverDir.resolve(ServerFiles.sandbox);
     Files.createDirectories(sandbox);
     boolean tputExists = checkTputExists();

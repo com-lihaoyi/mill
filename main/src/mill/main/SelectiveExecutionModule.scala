@@ -4,8 +4,7 @@ import mill.api.Result
 import mill.define.{Command, Task}
 import mill.eval.Evaluator
 import mill.main.client.OutFiles
-import mill.resolve.{Resolve, SelectMode}
-import mill.resolve.SelectMode.Separated
+import mill.resolve.SelectMode
 
 trait SelectiveExecutionModule extends mill.define.Module {
 
@@ -16,8 +15,9 @@ trait SelectiveExecutionModule extends mill.define.Module {
    */
   def prepare(evaluator: Evaluator, tasks: String*): Command[Unit] =
     Task.Command(exclusive = true) {
-      val res: Either[String, Unit] = SelectiveExecution.Metadata(evaluator, tasks)
-        .map(SelectiveExecution.saveMetadata(evaluator, _))
+      val res: Either[String, Unit] = SelectiveExecution.Metadata
+        .compute(evaluator, if (tasks.isEmpty) Seq("__") else tasks)
+        .map(x => SelectiveExecution.saveMetadata(evaluator, x._1))
 
       res match {
         case Left(err) => Result.Failure(err)
@@ -33,12 +33,7 @@ trait SelectiveExecutionModule extends mill.define.Module {
    */
   def resolve(evaluator: Evaluator, tasks: String*): Command[Array[String]] =
     Task.Command(exclusive = true) {
-      val result = for {
-        resolved <- Resolve.Tasks.resolve(evaluator.rootModule, tasks, SelectMode.Multi)
-        diffed <- SelectiveExecution.diffMetadata(evaluator, tasks)
-      } yield resolved.map(_.ctx.segments.render).toSet.intersect(diffed).toArray.sorted
-
-      result match {
+      SelectiveExecution.resolve0(evaluator, tasks) match {
         case Left(err) => Result.Failure(err)
         case Right(success) =>
           success.foreach(println)
@@ -56,12 +51,10 @@ trait SelectiveExecutionModule extends mill.define.Module {
       if (!os.exists(evaluator.outPath / OutFiles.millSelectiveExecution)) {
         Result.Failure("`selective.run` can only be run after `selective.prepare`")
       } else {
-        RunScript.evaluateTasksNamed(
-          evaluator,
-          tasks,
-          Separated,
-          selectiveExecution = true
-        ) match {
+        SelectiveExecution.resolve0(evaluator, tasks).flatMap { resolved =>
+          if (resolved.isEmpty) Right((Nil, Right(Nil)))
+          else RunScript.evaluateTasksNamed(evaluator, resolved, SelectMode.Multi)
+        } match {
           case Left(err) => Result.Failure(err)
           case Right((watched, Left(err))) => Result.Failure(err)
           case Right((watched, Right(res))) => Result.Success(res)

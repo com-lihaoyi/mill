@@ -1,9 +1,10 @@
 package mill.main
 
-import mill.api.Strict
+import mill.api.{Strict, Val}
 import mill.define.{InputImpl, NamedTask, Task}
 import mill.eval.{CodeSigUtils, Evaluator, Plan, Terminal}
 import mill.main.client.OutFiles
+import mill.util.SpanningForest.breadthFirst
 import mill.resolve.{Resolve, SelectMode}
 
 private[mill] object SelectiveExecution {
@@ -11,7 +12,10 @@ private[mill] object SelectiveExecution {
   implicit val rw: upickle.default.ReadWriter[Metadata] = upickle.default.macroRW
 
   object Metadata {
-    def apply(evaluator: Evaluator, tasks: Seq[String]): Either[String, Metadata] = {
+    def compute(
+        evaluator: Evaluator,
+        tasks: Seq[String]
+    ): Either[String, (Metadata, Map[Task[_], Evaluator.TaskResult[Val]])] = {
       for (transitive <- plan0(evaluator, tasks)) yield {
         val inputTasksToLabels: Map[Task[_], String] = transitive
           .collect { case Terminal.Labelled(task: InputImpl[_], segments) =>
@@ -31,7 +35,7 @@ private[mill] object SelectiveExecution {
             }
             .toMap,
           methodCodeHashSignatures = evaluator.methodCodeHashSignatures
-        )
+        ) -> results.results.toMap
       }
     }
   }
@@ -114,23 +118,6 @@ private[mill] object SelectiveExecution {
     breadthFirst(changedRootTasks)(downstreamEdgeMap.getOrElse(_, Nil))
   }
 
-  def breadthFirst[T](start: IterableOnce[T])(edges: T => IterableOnce[T]): Seq[T] = {
-    val seen = collection.mutable.Set.empty[T]
-    val seenList = collection.mutable.Buffer.empty[T]
-    val queued = collection.mutable.Queue.from(start)
-
-    while (queued.nonEmpty) {
-      val current = queued.dequeue()
-      seen.add(current)
-      seenList.append(current)
-
-      for (next <- edges(current).iterator) {
-        if (!seen.contains(next)) queued.enqueue(next)
-      }
-    }
-    seenList.toSeq
-  }
-
   def saveMetadata(evaluator: Evaluator, metadata: SelectiveExecution.Metadata): Unit = {
     os.write.over(
       evaluator.outPath / OutFiles.millSelectiveExecution,
@@ -138,14 +125,41 @@ private[mill] object SelectiveExecution {
     )
   }
 
-  def diffMetadata(evaluator: Evaluator, tasks: Seq[String]): Either[String, Set[String]] = {
-    val oldMetadata = upickle.default.read[SelectiveExecution.Metadata](
-      os.read(evaluator.outPath / OutFiles.millSelectiveExecution)
-    )
-    for (newMetadata <- SelectiveExecution.Metadata(evaluator, tasks)) yield {
-      SelectiveExecution.computeDownstream(evaluator, tasks, oldMetadata, newMetadata)
-        .collect { case n: NamedTask[_] => n.ctx.segments.render }
+  def diffMetadata(
+      evaluator: Evaluator,
+      tasks: Seq[String]
+  ): Either[String, (Seq[String], Map[Task[_], Evaluator.TaskResult[Val]])] = {
+    val oldMetadataTxt = os.read(evaluator.outPath / OutFiles.millSelectiveExecution)
+    if (oldMetadataTxt == "") {
+      Resolve.Segments.resolve(
+        evaluator.rootModule,
+        tasks,
+        SelectMode.Separated,
+        evaluator.allowPositionalCommandArgs
+      ).map(_.map(_.render) -> Map.empty)
+    } else {
+      val oldMetadata = upickle.default.read[SelectiveExecution.Metadata](oldMetadataTxt)
+      for (x <- SelectiveExecution.Metadata.compute(evaluator, tasks)) yield {
+        val (newMetadata, results) = x
+        SelectiveExecution.computeDownstream(evaluator, tasks, oldMetadata, newMetadata)
+          .collect { case n: NamedTask[_] => n.ctx.segments.render } -> results
+
+      }
+    }
+  }
+
+  def resolve0(evaluator: Evaluator, tasks: Seq[String]): Either[String, Array[String]] = {
+    for {
+      resolved <- Resolve.Tasks.resolve(evaluator.rootModule, tasks, SelectMode.Separated)
+      x <- SelectiveExecution.diffMetadata(evaluator, tasks)
+    } yield {
+      val (newTasks, results) = x
+      resolved
+        .map(_.ctx.segments.render)
         .toSet
+        .intersect(newTasks.toSet)
+        .toArray
+        .sorted
     }
   }
 }

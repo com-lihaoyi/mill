@@ -77,7 +77,7 @@ trait NettyModule extends NettyBaseModule {
     def ivyDeps = super.ivyDeps() ++ testIvyDeps()
     def forkWorkingDir = NettyModule.this.millSourcePath
     def forkArgs = super.forkArgs() ++ Seq(
-      "-Dnativeimage.handlerMetadataArtifactId=netty-" + NettyModule.this.millModuleSegments.parts.last
+      "-Dnativeimage.handlerMetadataArtifactId=netty-" + NettyModule.this.millModuleSegments.last.value
     )
 
   }

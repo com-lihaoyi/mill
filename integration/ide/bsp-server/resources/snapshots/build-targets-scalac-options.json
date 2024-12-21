@@ -2,16 +2,6 @@
   "items": [
     {
       "target": {
-        "uri": "file:///workspace/hello-java"
-      },
-      "options": [],
-      "classpath": [
-        "file:///workspace/hello-java/compile-resources"
-      ],
-      "classDirectory": "file:///workspace/out/hello-java/compile.dest/classes"
-    },
-    {
-      "target": {
         "uri": "file:///workspace/hello-kotlin"
       },
       "options": [],
@@ -32,6 +22,16 @@
         "file:///workspace/hello-scala/compile-resources"
       ],
       "classDirectory": "file:///workspace/out/hello-scala/compile.dest/classes"
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-java"
+      },
+      "options": [],
+      "classpath": [
+        "file:///workspace/hello-java/compile-resources"
+      ],
+      "classDirectory": "file:///workspace/out/hello-java/compile.dest/classes"
     }
   ]
 }

@@ -1,0 +1,78 @@
+= Selective Execution
+
+include::partial$gtag-config.adoc[]
+
+
+include::partial$example/large/selective/9-selective-execution.adoc[]
+
+
+== Reproducibility and Determinism
+
+Selective execution relies on the inputs to your project being deterministic
+and reproducible, except for the code changes between the two versions, so that
+Mill can compare the state of the build inputs before and after and only run
+tasks downstream of those that changed. This is usually the case, but there are
+some subtleties to be aware of:
+
+- *Dynamic `Task.Input` to capture Git metadata must be disabled*, e.g. using
+  https://github.com/lefou/mill-vcs-version[mill-vcs-version]. The easiest way to do
+  this is to guard such dynamic inputs on an environment variable, such that
+  in most scenarios it returns a constant `"SNAPSHOT"` string, and only when
+  necessary do you pass in the environment variable to compute a real version (e.g.
+  during publishing)
+
+```scala
+def myProjectVersion: T[String] = Task.Input {
+  if (Task.env.contains("MY_PROJECT_STABLE_VERSION")) VcsVersion.calcVcsState(Task.log).format()
+  else "SNAPSHOT"
+}
+```
+
+- *The filesystem layout and position of the before/after codebases must be exactly
+  the same*. This is not an issue when running `selective.prepare`/`selective.run` on
+  the same folder on one machine, but if the two calls are run on separate machines
+  you need to make sure the directory path is the same.
+
+- *You must use the same Operating System amd Filesystem*, as differences there will
+  cause the filesystem signatures to change and thus spuriously trigger downstream tasks.
+  e.g. you cannot run `selective.prepare` on a Windows machine and `selective.run` on Linux
+
+- *Filesystem permissions must be preserved before/after*. e.g. running `selective,run}`
+  on different Github Actions machines sharing artifacts can cause issues as
+  `upload-artifact`/`download-artifact` https://github.com/actions/download-artifact#permission-loss[does not preserve filesystem permissions].
+  If this is an issue, you can run `chmod -R . 777` before each of `selective.{prepare,run}`
+  to ensure they have the exact same filesystem permissions.
+
+
+== Debugging Selective Execution
+
+* Use `selective.resolve` before `selective.run`: this will print out what it was going to run,
+  and can give you a chance to eyeball if the list of targets to run makes sense or not
+
+* Look at xref:fundamentals/out-dir.adoc#_mill_invalidation_tree_json[out/mill-invalidation-tree.json],
+  whether on disk locally or printing it out (e.g via `cat`) on your CI machines to diagnose issues
+  there. This would give you a richer view of what source tasks or inputs are the ones actually
+  triggered the invalidation, and what tasks were just invalidated due to being downstream of them.
+
+
+== Limitations
+
+* *Selective execution can only work at the Mill Task granularity*. e.g. When working with
+  Java/Scala/Kotlin modules and test modules, the granularity of selection is at entire modules.
+  That means that if your modules are individually large, selective execution may not be able
+  to significantly narrow down the set of tests that need to run
+
+* *Selective execution usually cannot narrow down the set of integration tests to run*. Integration
+  tests by their nature depend on the entire application or system, and run test cases that
+  exercise different parts of it. But selective execution works at the task level and can only
+  see that every integration test depends on the entire codebase, and so any change in the
+  entire codebase could potentially affect any integration test, so selective execution will
+  select all of them.
+
+* *Selective execution is coarser-grained than runtime task caching*. e.g. If you add a newline
+  to a `foo/src/Foo.java` file and run `foo.testCached`, selective testing only knows that
+  `foo.sources` changed and `foo.testCached` is downstream of it, but it cannot know that
+  when you run `foo.compile` on the changed sources, the compilation output is unchanged, and
+  so `.testCached` can be skipped. This is inherent in the nature of selective execution, which
+  does its analysis without evaluation-time information and thus will always be more conservative
+  than the task skipping and cache-reuse that is done during evaluation.

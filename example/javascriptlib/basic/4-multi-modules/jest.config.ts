@@ -20,8 +20,8 @@ export default {
     preset: 'ts-jest',
     testEnvironment: 'node',
     testMatch: [
-        '<rootDir>/**/test/**/*.test.ts',
-        '<rootDir>/**/test/**/*.test.js',
+        '<rootDir>/**/**/**/*.test.ts',
+        '<rootDir>/**/**/**/*.test.js',
     ],
     transform: {
         '^.+\\.(ts|tsx)$': ['ts-jest', { tsconfig: 'tsconfig.json' }],

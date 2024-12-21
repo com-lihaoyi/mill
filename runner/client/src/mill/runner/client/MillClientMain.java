@@ -54,7 +54,7 @@ public class MillClientMain {
               }
 
               public void preRun(Path serverDir) throws Exception {
-                MillProcessLauncher.runTermInfoThread(serverDir);
+                MillProcessLauncher.prepareMillRunFolder(serverDir);
               }
             };
         int exitCode = launcher.acquireLocksAndRun(OutFiles.out).exitCode;

@@ -43,8 +43,8 @@ object WatchSourceInputTests extends UtestIntegrationTestSuite {
       // Most of these are normal `println`s, so they go to `stdout` by
       // default unless you use `show` in which case they go to `stderr`.
       val expectedErr = if (show) mutable.Buffer.empty[String] else expectedOut
-      val expectedShows = mutable.Buffer.empty[String]
-      val res = f(expectedOut, expectedErr, expectedShows)
+      val expectedShows0 = mutable.Buffer.empty[String]
+      val res = f(expectedOut, expectedErr, expectedShows0)
       val (shows, out) = res.out.linesIterator.toVector.partition(_.startsWith("\""))
       val err = res.err.linesIterator.toVector
         .filter(!_.contains("Compiling compiler interface..."))
@@ -59,7 +59,8 @@ object WatchSourceInputTests extends UtestIntegrationTestSuite {
       if (show) assert(err == expectedErr)
       else assert(err.isEmpty)
 
-      if (show) assert(shows == expectedShows.map('"' + _ + '"'))
+      val expectedShows = expectedShows0.map('"' + _ + '"')
+      if (show) assert(shows == expectedShows)
     }
 
     def testWatchSource(tester: IntegrationTester, show: Boolean) =
@@ -120,10 +121,8 @@ object WatchSourceInputTests extends UtestIntegrationTestSuite {
           //        "Running qux foo contents edited-foo1 edited-foo2",
           //        "Running qux bar contents edited-bar"
         )
-        expectedShows.append(
-          "Running qux foo contents edited-foo1 edited-foo2 Running qux bar contents edited-bar"
-        )
 
+        if (show) expectedOut.append("{}")
         os.write.over(workspacePath / "watchValue.txt", "exit")
         awaitCompletionMarker(tester, "initialized2")
         expectedOut.append("Setting up build.mill")
@@ -174,10 +173,10 @@ object WatchSourceInputTests extends UtestIntegrationTestSuite {
         os.write.over(workspacePath / "watchValue.txt", "edited-watchValue")
         awaitCompletionMarker(tester, "initialized1")
         expectedOut.append("Setting up build.mill")
-        expectedShows.append("Running lol baz contents edited-baz")
 
         os.write.over(workspacePath / "watchValue.txt", "exit")
         awaitCompletionMarker(tester, "initialized2")
+        if (show) expectedOut.append("{}")
         expectedOut.append("Setting up build.mill")
 
         Await.result(evalResult, Duration.apply(maxDuration, SECONDS))
