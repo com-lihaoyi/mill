@@ -6,10 +6,10 @@ import mill.javascriptlib._
 object foo extends TypeScriptModule {
   def bundleFlags =
     Map(
-      "platform" -> "'node'",
-      "entryPoints" -> s"['${mainFilePath()}']",
-      "bundle" -> "true",
-      "minify" -> "true"
+      "platform" -> ujson.Str("node"),
+      "entryPoints" -> ujson.Arr(mainFilePath().toString),
+      "bundle" -> ujson.Bool(true),
+      "minify" -> ujson.Bool(true)
     )
 
 }
@@ -23,3 +23,24 @@ object foo extends TypeScriptModule {
 > mill foo.bundle
 Build succeeded!
 */
+
+//   def compilerOptions: T[Map[String, ujson.Value]] = Task {
+//    Map(
+//      "esModuleInterop" -> ujson.Bool(true),
+//      "declaration" -> ujson.Bool(true),
+//      "emitDeclarationOnly" -> ujson.Bool(true)
+//    )
+//  }
+
+//   val combinedCompilerOptions: Map[String, ujson.Value] = compilerOptions() ++ Map(
+//      "declarationDir" -> ujson.Str(declarationsOut.toString),
+//      "typeRoots" -> ujson.Arr(
+//        (npmInstall().path / "node_modules/@types").toString,
+//        declarationsOut.toString
+//      ),
+//      "paths" -> ujson.Obj.from(combinedPaths.map { case (k, v) =>
+//        val splitValues =
+//          v.split(":").map(s => s"$s/*") // Split by ":" and append "/*" to each part
+//        (k, ujson.Arr.from(splitValues))
+//      })
+//    )

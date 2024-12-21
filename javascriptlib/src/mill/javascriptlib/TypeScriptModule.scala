@@ -2,6 +2,7 @@ package mill.javascriptlib
 
 import mill.*
 import os.*
+import ujson.*
 
 trait TypeScriptModule extends Module { outer =>
   def moduleDeps: Seq[TypeScriptModule] = Nil
@@ -24,11 +25,13 @@ trait TypeScriptModule extends Module { outer =>
       "install",
       "--save-dev",
       "@types/node@22.10.2",
+      "@types/esbuild-copy-static-files@0.1.4",
       "typescript@5.7.2",
       "ts-node@^10.9.2",
       "esbuild@0.24.0",
       "esbuild-plugin-copy@2.1.1",
       "@esbuild-plugins/tsconfig-paths@0.1.2",
+      "esbuild-copy-static-files@0.1.0",
       "tsconfig-paths@4.2.0",
       transitiveNpmDeps(),
       transitiveNpmDevDeps()
@@ -87,9 +90,9 @@ trait TypeScriptModule extends Module { outer =>
             "@" + mod.millSourcePath.subRelativeTo(Task.workspace).toString + s"/$resourceRoot/*",
             resourceRoot match {
               case s if s.contains(".dest") =>
-                rp.path.toString + ":" + (comp.path / "declarations").toString
+                rp.path.toString
               case _ =>
-                (ts.path / resourceRoot).toString + ":" + (comp.path / "declarations").toString
+                (ts.path / resourceRoot).toString
             }
           )
         }
@@ -110,9 +113,9 @@ trait TypeScriptModule extends Module { outer =>
         val result = (
           s"@$module/$resourceRoot/*",
           resourceRoot match {
-            case s if s.contains(".dest") => rp.path.toString + ":" + declarationsOut.toString
+            case s if s.contains(".dest") => rp.path.toString
             case _ =>
-              (typescriptOut / resourceRoot).toString + ":" + declarationsOut.toString
+              (typescriptOut / resourceRoot).toString
           }
         )
         result
@@ -207,19 +210,19 @@ trait TypeScriptModule extends Module { outer =>
     )
   }
 
-  def bundleExternal: T[Seq[String]] = Task { Seq("'fs'", "'path'") }
+  def bundleExternal: T[Seq[ujson.Value]] = Task { Seq(ujson.Str("fs"), ujson.Str("path")) }
 
-  def bundleFlags: T[Map[String, String]] = Task {
+  def bundleFlags: T[Map[String, ujson.Value]] = Task {
     Map(
-      "platform" -> "'node'",
-      "entryPoints" -> s"['${mainFilePath()}']",
-      "bundle" -> "true"
+      "entryPoints" -> ujson.Arr(mainFilePath().toString),
+      "bundle" -> ujson.Bool(true),
+      "platform" -> ujson.Str("node"),
     )
   }
 
   // configure esbuild with @esbuild-plugins/tsconfig-paths
   def bundleScriptBuilder: Task[String] = Task.Anon {
-    val bundle = Task.dest / "bundle.js"
+    val bundle = (Task.dest / "bundle.js").toString
     val rps = resources().map { p => p.path }.filter(os.exists)
 
     def envName(input: String): String = {
@@ -234,50 +237,44 @@ trait TypeScriptModule extends Module { outer =>
     val copyPluginCode =
       s"""
          |  plugins: [
-         |  Copy({
-         |    resolveFrom: 'cwd',
-         |    assets: [
-         |      ${rps
-          .map { rp =>
-            val filesToCopy =
-              os.list(rp).filter(os.isFile)
-            filesToCopy
-              .map { file =>
-                s"""{ from: join('$rp', '${file.last}'), to: join('${Task.dest}', '/${rp.last}', '${file.last}') }"""
-              }
-              .mkString(",\n")
-          }
-          .mkString(",\n")}
-         |    ]
-         |  }),
-         |  TsconfigPathsPlugin({tsconfig: 'tsconfig.json'}),
+         |    ${rps.map { rp =>
+          s"""    copyStaticFiles({
+             |      src: ${ujson.Str(rp.toString)},
+             |      dest: ${ujson.Str(Task.dest.toString + "/" + rp.last.toString)},
+             |      dereference: true,
+             |      preserveTimestamps: true,
+             |      recursive: true,
+             |    }),
+             """.stripMargin
+        }.mkString(", \n")}
+         |    TsconfigPathsPlugin({ tsconfig: 'tsconfig.json' }),
          |  ],
          |""".stripMargin
 
     val defineSection = resources().map { rp =>
       val resourceRoot = rp.path.last
       val envVarName = envName(resourceRoot)
-      s""" "process.env.$envVarName": JSON.stringify("./$resourceRoot")"""
+      s""" "process.env.$envVarName": JSON.stringify(${ujson.Str("./" + resourceRoot)})"""
     }.mkString(",\n")
 
     s"""|import * as esbuild from 'node_modules/esbuild';
         |import TsconfigPathsPlugin from 'node_modules/@esbuild-plugins/tsconfig-paths'
-        |import Copy from 'node_modules/esbuild-plugin-copy';
+        |import copyStaticFiles from 'node_modules/esbuild-copy-static-files';
         |import {join} from 'path';
-        |import {readdirSync} from 'fs';
         |
         |esbuild.build({
         |  $flags
-        |  outfile: '$bundle',
+        |  outfile: ${ujson.Str(bundle)},
         |  $copyPluginCode
         |  define: {
-        |       $defineSection // replace '__dirname' in builds
+        |       $defineSection
         |    },
         |  external: [${bundleExternal().mkString(", ")}] // Exclude Node.js built-ins
         |}).then(() => {
         |  console.log('Build succeeded!');
-        |}).catch(() => {
+        |}).catch((e) => {
         |  console.error('Build failed!');
+        |  console.error(e)
         |  process.exit(1);
         |});
         |""".stripMargin

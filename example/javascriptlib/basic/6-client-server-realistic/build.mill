@@ -10,11 +10,9 @@ object server extends TypeScriptModule {
   def npmDevDeps =
     super.npmDevDeps() ++ Seq("@types/supertest@^6.0.2", "supertest@^7.0.0")
 
-  override def bundleExternal = super.bundleExternal() ++ Seq("'express'", "'cors'")
+  def bundleExternal = super.bundleExternal() ++ Seq(ujson.Str("express"), ujson.Str("cors"))
 
-  override def forkEnv = Task {
-    super.forkEnv() ++ Map("PORT" -> "3001")
-  }
+  def forkEnv = super.forkEnv() + ("PORT" -> "3001")
 
   /** Bundle client as resource */
   def resources = Task {

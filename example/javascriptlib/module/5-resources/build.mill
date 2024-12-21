@@ -27,8 +27,8 @@ Tests:...3 passed, 3 total...
 > mill foo.bundle
 Build succeeded!
 
-> mv out/foo/bundle.dest ~/bundle.dest && rm -rf out/
+> mv out/foo/bundle.dest ./bundle.dest && rm -rf out/
 
-> node ~/bundle.dest/bundle.js
+> node ./bundle.dest/bundle.js
 Hello World Resource File
 */
