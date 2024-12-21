@@ -52,7 +52,7 @@ trait AndroidAppModule extends JavaModule {
   private def src: Path = root / "src"
   override def millSourcePath: Path = src / "main"
 
-  override def sources: T[Seq[PathRef]] = Task.Sources(millSourcePath)
+  override def sources: T[Seq[PathRef]] = Task.Sources(millSourcePath / "java")
 
   private def bannedModules(classpath: PathRef): Boolean =
     !classpath.path.last.contains("-jvm")
@@ -464,7 +464,7 @@ trait AndroidAppModule extends JavaModule {
     }
 
     // Set path to generated `.jar` files and/or `.class` files
-    // TODO change to runtimeClasspath once the runtime dependencies + source refs are fixed
+    // TODO change to runClasspath once the runtime dependencies + source refs are fixed
     val cp = compileClasspath().map(_.path).filter(os.exists).mkString(":")
 
     // Set path to the location of the project source codes
@@ -482,18 +482,19 @@ trait AndroidAppModule extends JavaModule {
     val baselineArg = androidLintBaselinePath().map(baseline =>
       Seq("--baseline", baseline.path.toString)
     ).getOrElse(Seq.empty)
-
+    val command = Seq(
+      androidSdkModule().lintToolPath().path.toString,
+      millSourcePath.toString,
+      "--classpath",
+      cp,
+      "--sources",
+      src,
+      "--resources",
+      res
+    ) ++ configArg ++ baselineArg ++ reportArg ++ androidLintArgs()
+    println(command.mkString(" "))
     os.call(
-      Seq(
-        androidSdkModule().lintToolPath().path.toString,
-        millSourcePath.toString,
-        "--classpath",
-        cp,
-        "--sources",
-        src,
-        "--resources",
-        res
-      ) ++ configArg ++ baselineArg ++ reportArg ++ androidLintArgs(),
+      command,
       check = androidLintAbortOnError
     )
 
