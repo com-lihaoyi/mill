@@ -1,9 +1,9 @@
-package com.helloworld.app
+package foo
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
-class BarTests :
+class FooTests :
     FunSpec({
 
         test("testSimple") {
