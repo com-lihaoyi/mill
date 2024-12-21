@@ -469,7 +469,12 @@ object `package` extends RootModule {
       .toMap
 
     val brokenLinksPerPath: Seq[(os.Path, Seq[(String, String)])] =
-      for ((path, remoteLinks, localLinks, ids) <- allLinksAndAnchors0) yield{
+      for {
+        (path, remoteLinks, localLinks, ids) <- allLinksAndAnchors0
+        // Skip scaladoc files when scanning for broken links because some
+        // of those are scaladoc bugs outside of our control.
+        if !path.segments.contains("api")
+      } yield{
         (
           path,
           localLinks.flatMap{case (elementString, url) =>
