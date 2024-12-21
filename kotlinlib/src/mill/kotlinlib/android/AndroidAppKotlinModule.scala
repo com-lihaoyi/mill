@@ -1,14 +1,7 @@
 package mill.kotlinlib.android
 
-import mill.api.PathRef
-import mill.define.ModuleRef
-import mill.javalib.android.{AndroidAppModule, AndroidSdkModule, AndroidTestModule}
+import mill.javalib.android.AndroidAppModule
 import mill.kotlinlib.KotlinModule
-import mill.{Agg, T, Target, Task}
-import mill.*
-import os.{CommandResult, Path}
-
-import java.nio.charset.StandardCharsets
 
 /**
  * Trait for building Android applications using the Mill build tool.
