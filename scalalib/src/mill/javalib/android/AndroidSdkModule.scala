@@ -1,6 +1,6 @@
 package mill.javalib.android
 
-import mill.*
+import mill._
 import os.CommandResult
 
 import java.math.BigInteger
