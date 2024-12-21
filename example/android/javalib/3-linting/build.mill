@@ -24,10 +24,6 @@ object app extends AndroidAppModule {
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
   override def releaseKeyPath = root
 
-  // Set the source path to the root directory of Java source code (com/example/app)
-  def sources: T[Seq[PathRef]] =
-    Task.Sources { Seq(PathRef(millSourcePath / "src" / "main" / "java")) }
-
   // Set path to the custom `lint.xml` config file. It is usually at the root of the project
   def androidLintConfigPath = Task { Some(PathRef(root / "lint.xml")) }
 
@@ -77,9 +73,9 @@ AndroidManifest.xml:3: Error: Avoid hardcoding the debug mode; leaving it out al
 > ./mill app.androidLintRun # Rerun it for new changes to reflect
 
 > cat out/app/androidLintRun.dest/report.txt # Check the content of report again
-lint-baseline.xml: Information: 1 errors/warnings were listed in the baseline file (lint-baseline.xml) but not found in the project; perhaps they have been fixed? Unmatched issue types: HardcodedDebugMode [LintBaseline]
+../../lint-baseline.xml: Information: 2 errors were filtered out because they are listed in the baseline file, ../../lint-baseline.xml [LintBaseline]
 
-*/
+ */
 
 // == Linting with Custom Configurations
 

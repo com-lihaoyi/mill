@@ -204,7 +204,7 @@ trait AndroidAppModule extends JavaModule {
       os.call((androidSdkModule().aapt2Path().path, "compile", "--dir", resDir, "-o", zipPath))
     }
 
-    val compiledLibsArgs = libZips.map(zip => Seq("-R", zip.toString)).flatten
+    val compiledLibsArgs = libZips.flatMap(zip => Seq("-R", zip.toString))
 
     val resourceZipArg = resourceZip.headOption.map(_.toString).getOrElse("")
 
