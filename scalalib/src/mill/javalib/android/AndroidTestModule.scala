@@ -3,10 +3,10 @@ package mill.javalib.android
 import mill.T
 import mill.scalalib.TestModule
 
-trait AndroidTestModule extends TestModule {
+@mill.api.experimental
+trait AndroidTestModule extends TestModule
 
-}
-
+@mill.api.experimental
 object AndroidTestModule {
 
   trait AndroidJUnit extends AndroidTestModule {
