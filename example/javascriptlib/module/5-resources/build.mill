@@ -13,6 +13,8 @@ object foo extends TypeScriptModule {
 
 // Documentation for mill.example.javascriptlib
 
+// This example demonstrates resources usage
+
 /** Usage
 > mill foo.run
 Hello World Resource File
