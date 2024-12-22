@@ -2,7 +2,6 @@ package mill.javascriptlib
 
 import mill.*
 import os.*
-import ujson.*
 
 trait TypeScriptModule extends Module { outer =>
   def moduleDeps: Seq[TypeScriptModule] = Nil
