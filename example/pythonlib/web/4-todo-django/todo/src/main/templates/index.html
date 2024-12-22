@@ -1,45 +1,30 @@
-{% extends 'base.html' %}
-
-{% block content %}
-<div class="container">
-    <h1 class="mb-4 text-center">Task List</h1>
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <span class="text-muted">Total Tasks: {{ tasks|length }}</span>
-        <a href="{% url 'add_task' %}" class="btn btn-primary">Add Task</a>
-    </div>
-
-    {% if tasks %}
-    <table class="table table-striped table-hover">
-        <thead class="table-dark">
-            <tr>
-                <th>#</th>
-                <th>Title</th>
-                <th>Status</th>
-                <th>Deadline</th>
-                <th class="text-center">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for task in tasks %}
-            <tr>
-                <td>{{ forloop.counter }}</td>
-                <td>{{ task.title }}</td>
-                <td>
-                    <span class="badge {% if task.status == 'Completed' %}bg-success{% else %}bg-warning text-dark{% endif %}">
-                        {{ task.status }}
-                    </span>                    
-                </td>
-                <td>{{ task.deadline|date:"M d, Y" }}</td>
-                <td class="text-center">
-                    <a href="{% url 'edit_task' task.id %}" class="btn btn-sm btn-warning me-2">Edit</a>
-                    <a href="{% url 'delete_task' task.id %}" class="btn btn-sm btn-danger">Delete</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <p class="text-center text-muted">No tasks found. Start by adding a new task!</p>
+<header class="header">
+    <h1>todos</h1>
+    <input class="new-todo" placeholder="What needs to be done?" autofocus>
+</header>
+<section class="main">
+    <input id="toggle-all" class="toggle-all" type="checkbox" {% if total_count > 0 and completed_count == total_count %}checked{% endif %}>
+    <ul class="todo-list">
+        {% for todo in todos %}
+        <li class="{% if todo.checked %}completed{% endif %}">
+            <div class="view">
+                <input class="toggle" type="checkbox" data-todo-index="{{ forloop.counter0 }}" {% if todo.checked %}checked{% endif %}>
+                <label>{{ todo.text }}</label>
+                <button class="destroy" data-todo-index="{{ forloop.counter0 }}"></button>
+            </div>
+            <input class="edit" value="{{ todo.text }}">
+        </li>
+        {% endfor %}
+    </ul>
+</section>
+<footer class="footer">
+    <span class="todo-count"><strong>{{ active_count }}</strong> items left</span>
+    <ul class="filters">
+        <li class="todo-all"><a href="#" class="{% if state == 'all' %}selected{% endif %}">All</a></li>
+        <li class="todo-active"><a href="#" class="{% if state == 'active' %}selected{% endif %}">Active</a></li>
+        <li class="todo-completed"><a href="#" class="{% if state == 'completed' %}selected{% endif %}">Completed</a></li>
+    </ul>
+    {% if has_completed %}
+    <button class="clear-completed">Clear completed</button>
     {% endif %}
-</div>
-{% endblock %}
+</footer>

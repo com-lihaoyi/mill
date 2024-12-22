@@ -1,45 +1,69 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib import messages
-from .models import Task
-from .forms import TaskForm
-
+from django.shortcuts import render
+from .models import Todo
 
 def index(request):
-    tasks = Task.objects.all()
-    return render(request, "index.html", {"tasks": tasks})
+    todos = Todo.objects.all()
+    context = get_todo_context(todos, 'all')
+    return render(request, 'base.html', context)
 
+def list_todos(request, state):
+    todos = get_filtered_todos(state)
+    context = get_todo_context(todos, state)
+    return render(request, 'index.html', context)
 
-def add_task(request):
-    if request.method == "POST":
-        form = TaskForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Task added successfully!")
-            return redirect("index")
-        else:
-            # If the form is not valid, pass the form back to the template with errors
-            messages.warning(request, "Please Add Required Fields!")
-            return render(request, "task.html", {"form": form, "title": "Add Task"})
-    else:
-        form = TaskForm()
-    return render(request, "task.html", {"form": form, "title": "Add Task"})
+def add(request, state):
+    if request.method == 'POST':
+        Todo.objects.create(text=request.body.decode('utf-8'), checked=False)
+    return list_todos(request, state)
 
+def delete(request, state, index):
+    todos = get_filtered_todos(state)
+    todo = todos[int(index)]
+    todo.delete()
+    return list_todos(request, state)
 
-def edit_task(request, task_id):
-    task = get_object_or_404(Task, id=task_id)
-    if request.method == "POST":
-        form = TaskForm(request.POST, instance=task)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Task updated successfully!")
-            return redirect("index")
-    else:
-        form = TaskForm(instance=task)
-    return render(request, "task.html", {"form": form, "title": "Edit Task"})
+def toggle(request, state, index):
+    todos = get_filtered_todos(state)
+    todo = todos[int(index)]
+    todo.checked = not todo.checked
+    todo.save()
+    return list_todos(request, state)
 
+def clear_completed(request, state):
+    Todo.objects.filter(checked=True).delete()
+    return list_todos(request, state)
 
-def delete_task(request, task_id):
-    task = get_object_or_404(Task, id=task_id)
-    task.delete()
-    messages.success(request, "Task deleted successfully!")
-    return redirect("index")
+def toggle_all(request, state):
+    todos = Todo.objects.all()
+    next_state = not all(todo.checked for todo in todos)
+    todos.update(checked=next_state)
+    return list_todos(request, state)
+
+def edit(request, state, index):
+    if request.method == 'POST':
+        todos = get_filtered_todos(state)
+        todo = todos[int(index)]
+        todo.text = request.body.decode('utf-8')
+        todo.save()
+    return list_todos(request, state)
+
+def get_filtered_todos(state):
+    if state == 'active':
+        return Todo.objects.filter(checked=False)
+    elif state == 'completed':
+        return Todo.objects.filter(checked=True)
+    return Todo.objects.all()
+
+def get_todo_context(todos, state):
+    total_count = todos.count()
+    active_count = todos.filter(checked=False).count()
+    completed_count = todos.filter(checked=True).count()
+    has_completed = completed_count > 0
+    return {
+        'todos': todos,
+        'state': state,
+        'total_count': total_count,
+        'active_count': active_count,
+        'completed_count': completed_count,
+        'has_completed': has_completed,
+    }

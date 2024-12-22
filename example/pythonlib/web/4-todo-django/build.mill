@@ -17,8 +17,8 @@ object todo extends PythonModule {
 // - **Serving HTML templates** using **Django's template engine**.
 // - **Managing static files** such as JavaScript, CSS, and images.
 // - **Querying a SQL database** using **Django ORM** with an **SQLite** backend.
-// - **Form handling and validation** with **Django forms**.
-// - **Unit testing** using Django's inbuilt testing framework with SQLite in-memory database.
+// - **Filtering and managing tasks** using SQLite database.
+// - **Unit + Integration testing** using Django's inbuilt testing framework.
 // - **URL routing** and **views** for CRUD operations.
 
 // This Mill Build File simplifies `dependency management`, `database migrations`, and `testing workflows`.
@@ -29,44 +29,31 @@ object todo extends PythonModule {
 
 > ./mill todo.run makemigrations
 ...Migrations for 'main'...
-...Create model Task...
+...+ Create model Todo...
 
 > ./mill todo.run migrate
+...Operations to perform...
 ...Apply all migrations: admin, auth, contenttypes, main, sessions...
 ...Running migrations...
 ...OK...
 
 > ./mill todo.run test main -v 2
-...
-test_add_task_message (main.tests.TestScript...)
-Test that a success message appears when a task is successfully added. ... ok
-test_add_task_view_get (main.tests.TestScript...)
-Test that the 'Add Task' page loads successfully with an empty form. ... ok
-test_add_task_view_post_invalid_data (main.tests.TestScript...)
-Test that submitting the form with invalid data shows errors. ... ok
-test_add_task_view_post_valid_data (main.tests.TestScript...)
-Test that submitting the form with valid data creates a new task. ... ok
-test_default_status (main.tests.TestScript...)
-Test that the default status of a task is 'Pending'. ... ok
-test_delete_task_message (main.tests.TestScript...)
-Test that a success message appears when a task is deleted. ... ok
-test_delete_task_view (main.tests.TestScript...)
-Test that deleting a task works and redirects to the task list. ... ok
-test_edit_task_view_post_valid_data (main.tests.TestScript...)
-Test that editing a task updates its details. ... ok
-test_str_method (main.tests.TestScript...)
-Test the __str__ method of the Task model. ... ok
-test_url_resolves_to_correct_view (main.tests.TestScript...)
-Test that the correct view function is mapped to each URL. ... ok
-...
-...Ran 10 tests...
-OK
-...
+...Found 8 test(s)...
+test_add_todo_view (main.tests.TodoAppTests...) ... ok
+test_clear_completed_view (main.tests.TodoAppTests...) ... ok
+test_delete_todo_view (main.tests.TodoAppTests...) ... ok
+test_edit_todo_view (main.tests.TodoAppTests...) ... ok
+test_index_view (main.tests.TodoAppTests...) ... ok
+test_list_todos_view (main.tests.TodoAppTests...) ... ok
+test_toggle_all_view (main.tests.TodoAppTests...) ... ok
+test_toggle_todo_view (main.tests.TodoAppTests...) ... ok
+...Ran 8 tests...
+...OK...
 
 > ./mill todo.runBackground runserver 8001
 
 > curl http://localhost:8001
-...To-Do Django App Using Mill Build Tool...
+...What needs to be done...
 
 > ./mill clean todo.runBackground
 
