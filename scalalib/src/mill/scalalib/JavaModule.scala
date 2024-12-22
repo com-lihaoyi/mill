@@ -57,6 +57,15 @@ trait JavaModule
       }
     }
 
+    override def extraBomIvyDeps = Task.Anon[Agg[BomDependency]] {
+      super.extraBomIvyDeps() ++
+        outer.allBomIvyDeps().map(_.withConfig(Configuration.test))
+    }
+    override def extraDepManagement = Task.Anon[Agg[Dep]] {
+      super.extraDepManagement() ++
+        outer.depManagement()
+    }
+
     /**
      * JavaModule and its derivatives define inner test modules.
      * To avoid unexpected misbehavior due to the use of the wrong inner test trait
@@ -165,7 +174,7 @@ trait JavaModule
    */
   def bomIvyDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
-  def allBomDeps: Task[Agg[BomDependency]] = Task.Anon {
+  def allBomIvyDeps: Task[Agg[BomDependency]] = Task.Anon {
     val modVerOrMalformed =
       bomIvyDeps().map(bindDependency()).map { bomDep =>
         val fromModVer = coursier.core.Dependency(bomDep.dep.module, bomDep.dep.version)
@@ -192,6 +201,23 @@ trait JavaModule
   }
 
   /**
+   * BOM dependencies that are not meant to be overridden or changed by users.
+   *
+   * This is mainly used to add BOM dependencies of the main module to its test
+   * modules, while ensuring test dependencies of the BOM are taken into account too
+   * in the test module.
+   */
+  def extraBomIvyDeps: Task[Agg[BomDependency]] = Task.Anon { Agg.empty[BomDependency] }
+
+  /**
+   * Dependency management entries that are not meant to be overridden or changed by users.
+   *
+   * This is mainly used to add dependency management entries of the main module to its test
+   * modules.
+   */
+  def extraDepManagement: Task[Agg[Dep]] = Task.Anon { Agg.empty[Dep] }
+
+  /**
    * Dependency management data
    *
    * Versions and exclusions in dependency management override those of transitive dependencies,
@@ -206,8 +232,31 @@ trait JavaModule
    *     ivy"com.lihaoyi::cask:0.9.4".exclude("org.slf4j", "slf4j-api")
    *   )
    * }}}
+   *
+   * Versions and exclusions specified here apply to dependencies pulled via
+   * `ivyDeps`, `compileIvyDeps` (compile-only or "provided" dependencies), and
+   * `runIvyDeps` (runtime dependencies).
    */
   def depManagement: T[Agg[Dep]] = Task { Agg.empty[Dep] }
+
+  /**
+   * Dependency management data for the compile only or "provided" scope.
+   *
+   * Versions and exclusions specified here apply only to dependencies pulled via
+   * `compileIvyDeps`.
+   */
+  def compileDepManagement: T[Agg[Dep]] = Task { Agg.empty[Dep] }
+
+  /**
+   * Dependency management data for the runtime scope.
+   *
+   * Versions and exclusions specified here apply only to dependencies pulled via
+   * `runIvyDeps`.
+   *
+   * @param overrideVersions Whether versions in BOMs should override those of the passed
+   *                         dependencies themselves
+   */
+  def runDepManagement: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
   private def addBoms(
       bomIvyDeps: Seq[coursier.core.BomDependency],
@@ -455,13 +504,62 @@ trait JavaModule
   /**
    * Returns a function adding BOM and dependency management details of
    * this module to a `coursier.core.Dependency`
+   *
+   * Meant to be called on values originating from `ivyDeps`
    */
   def processDependency(
       overrideVersions: Boolean = false
   ): Task[coursier.core.Dependency => coursier.core.Dependency] = Task.Anon {
-    val bomDeps0 = allBomDeps().toSeq.map(_.withConfig(Configuration.compile))
+    val bomDeps0 =
+      allBomIvyDeps().toSeq.map(_.withConfig(Configuration.compile)) ++ extraBomIvyDeps().toSeq
     val depMgmt = processedDependencyManagement(
-      depManagement().toSeq.map(bindDependency()).map(_.dep)
+      (extraDepManagement().toSeq ++ depManagement().toSeq)
+        .map(bindDependency())
+        .map(_.dep)
+    )
+
+    addBoms(bomDeps0, depMgmt, overrideVersions = overrideVersions)
+  }
+
+  /**
+   * Returns a function adding BOM and dependency management details of
+   * this module to a `coursier.core.Dependency`
+   *
+   * Meant to be called on values originating from `compileIvyDeps`
+   *
+   * @param overrideVersions Whether versions in BOMs should override those of the passed
+   *                         dependencies themselves
+   */
+  def processCompileDependency(
+      overrideVersions: Boolean = false
+  ): Task[coursier.core.Dependency => coursier.core.Dependency] = Task.Anon {
+    val bomDeps0 = allBomIvyDeps().toSeq.map(_.withConfig(Configuration.provided))
+    val depMgmt = processedDependencyManagement(
+      (compileDepManagement().toSeq ++ extraDepManagement().toSeq ++ depManagement().toSeq)
+        .map(bindDependency())
+        .map(_.dep)
+    )
+
+    addBoms(bomDeps0, depMgmt, overrideVersions = overrideVersions)
+  }
+
+  /**
+   * Returns a function adding BOM and dependency management details of
+   * this module to a `coursier.core.Dependency`
+   *
+   * Meant to be called on values originating from `runIvyDeps`
+   *
+   * @param overrideVersions Whether versions in BOMs should override those of the passed
+   *                         dependencies themselves
+   */
+  def processRunDependency(
+      overrideVersions: Boolean = false
+  ): Task[coursier.core.Dependency => coursier.core.Dependency] = Task.Anon {
+    val bomDeps0 = allBomIvyDeps().toSeq.map(_.withConfig(Configuration.defaultCompile))
+    val depMgmt = processedDependencyManagement(
+      (runDepManagement().toSeq ++ depManagement())
+        .map(bindDependency())
+        .map(_.dep)
     )
 
     addBoms(bomDeps0, depMgmt, overrideVersions = overrideVersions)
@@ -480,10 +578,37 @@ trait JavaModule
   }
 
   /**
+   * The compile-time Ivy dependencies of this module, with BOM and dependency management details
+   * added to them. This should be used when propagating the dependencies transitively
+   * to other modules.
+   */
+  def processedCompileIvyDeps: Task[Agg[BoundDep]] = Task.Anon {
+    val processDependency0 = processCompileDependency()()
+    compileIvyDeps().map(bindDependency()).map { dep =>
+      dep.copy(dep = processDependency0(dep.dep))
+    }
+  }
+
+  /**
+   * The runtime Ivy dependencies of this module, with BOM and dependency management details
+   * added to them. This should be used when propagating the dependencies transitively
+   * to other modules.
+   */
+  def processedRunIvyDeps: Task[Agg[BoundDep]] = Task.Anon {
+    val processDependency0 = processRunDependency()()
+    runIvyDeps().map(bindDependency()).map { dep =>
+      dep.copy(dep = processDependency0(dep.dep))
+    }
+  }
+
+  /**
    * The transitive ivy dependencies of this module and all it's upstream modules.
    * This is calculated from [[ivyDeps]], [[mandatoryIvyDeps]] and recursively from [[moduleDeps]].
    */
   def transitiveIvyDeps: T[Agg[BoundDep]] = Task {
+    // overrideVersions is true for dependencies originating from moduleDeps,
+    // as these are transitive (the direct dependency is the one in moduleDeps),
+    // so versions in BOMs should override their versions
     val processDependency0 = processDependency(overrideVersions = true)()
     processedIvyDeps() ++
       T.traverse(moduleDepsChecked)(_.transitiveIvyDeps)().flatten.map { dep =>
@@ -493,9 +618,15 @@ trait JavaModule
 
   /** The compile-only transitive ivy dependencies of this module and all it's upstream compile-only modules. */
   def transitiveCompileIvyDeps: T[Agg[BoundDep]] = Task {
+    // overrideVersions is true for dependencies originating from moduleDeps,
+    // as these are transitive (the direct dependency is the one in moduleDeps),
+    // so versions in BOMs should override their versions
+    val processDependency0 = processCompileDependency(overrideVersions = true)()
     // We never include compile-only dependencies transitively, but we must include normal transitive dependencies!
-    compileIvyDeps().map(bindDependency()) ++
-      T.traverse(compileModuleDepsChecked)(_.transitiveIvyDeps)().flatten
+    processedCompileIvyDeps() ++
+      T.traverse(compileModuleDepsChecked)(_.transitiveIvyDeps)().flatten.map { dep =>
+        dep.copy(dep = processDependency0(dep.dep))
+      }
   }
 
   /**
@@ -503,10 +634,19 @@ trait JavaModule
    * This is calculated from [[runIvyDeps]], [[mandatoryIvyDeps]] and recursively from [[moduleDeps]].
    */
   def transitiveRunIvyDeps: T[Agg[BoundDep]] = Task {
-    runIvyDeps().map(bindDependency()) ++
-      T.traverse(moduleDepsChecked)(_.transitiveRunIvyDeps)().flatten ++
-      T.traverse(runModuleDepsChecked)(_.transitiveIvyDeps)().flatten ++
-      T.traverse(runModuleDepsChecked)(_.transitiveRunIvyDeps)().flatten
+    // overrideVersions is true for dependencies originating from moduleDeps,
+    // as these are transitive (the direct dependency is the one in moduleDeps),
+    // so versions in BOMs should override their versions
+    val processDependency0 = processRunDependency(overrideVersions = true)()
+    processedRunIvyDeps() ++ {
+      val viaModules =
+        T.traverse(moduleDepsChecked)(_.transitiveRunIvyDeps)().flatten ++
+          T.traverse(runModuleDepsChecked)(_.transitiveIvyDeps)().flatten ++
+          T.traverse(runModuleDepsChecked)(_.transitiveRunIvyDeps)().flatten
+      viaModules.map { dep =>
+        dep.copy(dep = processDependency0(dep.dep))
+      }
+    }
   }
 
   /**
