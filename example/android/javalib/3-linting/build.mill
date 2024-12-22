@@ -73,7 +73,7 @@ AndroidManifest.xml:3: Error: Avoid hardcoding the debug mode; leaving it out al
 > ./mill app.androidLintRun # Rerun it for new changes to reflect
 
 > cat out/app/androidLintRun.dest/report.txt # Check the content of report again
- ../../lint-baseline.xml: Information: 1 errors/warnings were listed in the baseline file (../../lint-baseline.xml) but not found in the project; perhaps they have been fixed? Unmatched issue types: HardcodedDebugMode [LintBaselineFixed]
+../../lint-baseline.xml: Information: 1 errors/warnings were listed in the baseline file (../../lint-baseline.xml) but not found in the project; perhaps they have been fixed? Unmatched issue types: HardcodedDebugMode [LintBaselineFixed]
 
 */
 
@@ -99,7 +99,7 @@ AndroidManifest.xml:3: Warning: Should explicitly set android:icon, there is no 
 > ./mill app.androidLintRun # Rerun it for the linting tool to detect the UnusedResources
 
 > cat out/app/androidLintRun.dest/report.txt # Output the changes in the report
-resources/values/strings.xml:5: Warning: The resource R.string.unused_string appears to be unused [UnusedResources]
+res/values/strings.xml:5: Warning: The resource R.string.unused_string appears to be unused [UnusedResources]
 
 > sed -i 's|<resources|<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="UnusedResources"|' app/src/main/res/values/strings.xml # Suppress linting check for UnusedResources issue
 
@@ -122,7 +122,7 @@ resources/values/strings.xml:5: Warning: The resource R.string.unused_string app
 > ./mill app.androidLintRun # Rerun it for new changes to reflect
 
 > cat out/app/androidLintRun.dest/report.txt # Output the report content
-src/main/java/com/helloworld/app/MainActivity.java:46: Error: Access to private field privateField of class SyntheticAccessorViolation requires synthetic accessor [SyntheticAccessor]
+java/com/helloworld/app/MainActivity.java:46: Error: Access to private field privateField of class SyntheticAccessorViolation requires synthetic accessor [SyntheticAccessor]
 
 > sed -i.bak -e '/import android.annotation.SuppressLint;/d' -e '/class SyntheticAccessorViolation {/,/^}/d' app/src/main/java/com/helloworld/app/MainActivity.java # Add SuppressLint import
 
