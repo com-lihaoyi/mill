@@ -16,31 +16,10 @@ object foo extends TypeScriptModule {
 
 // Documentation for mill.example.javascriptlib
 
-// This example demonstrates defining node executable configs
+// This example demonstrates defining node bundling configs
 
 /** Usage
 
 > mill foo.bundle
 Build succeeded!
 */
-
-//   def compilerOptions: T[Map[String, ujson.Value]] = Task {
-//    Map(
-//      "esModuleInterop" -> ujson.Bool(true),
-//      "declaration" -> ujson.Bool(true),
-//      "emitDeclarationOnly" -> ujson.Bool(true)
-//    )
-//  }
-
-//   val combinedCompilerOptions: Map[String, ujson.Value] = compilerOptions() ++ Map(
-//      "declarationDir" -> ujson.Str(declarationsOut.toString),
-//      "typeRoots" -> ujson.Arr(
-//        (npmInstall().path / "node_modules/@types").toString,
-//        declarationsOut.toString
-//      ),
-//      "paths" -> ujson.Obj.from(combinedPaths.map { case (k, v) =>
-//        val splitValues =
-//          v.split(":").map(s => s"$s/*") // Split by ":" and append "/*" to each part
-//        (k, ujson.Arr.from(splitValues))
-//      })
-//    )

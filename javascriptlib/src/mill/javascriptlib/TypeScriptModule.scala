@@ -216,7 +216,7 @@ trait TypeScriptModule extends Module { outer =>
     Map(
       "entryPoints" -> ujson.Arr(mainFilePath().toString),
       "bundle" -> ujson.Bool(true),
-      "platform" -> ujson.Str("node"),
+      "platform" -> ujson.Str("node")
     )
   }
 
@@ -246,7 +246,7 @@ trait TypeScriptModule extends Module { outer =>
              |      recursive: true,
              |    }),
              """.stripMargin
-        }.mkString(", \n")}
+        }.mkString("\n")}
          |    TsconfigPathsPlugin({ tsconfig: 'tsconfig.json' }),
          |  ],
          |""".stripMargin
@@ -260,7 +260,6 @@ trait TypeScriptModule extends Module { outer =>
     s"""|import * as esbuild from 'node_modules/esbuild';
         |import TsconfigPathsPlugin from 'node_modules/@esbuild-plugins/tsconfig-paths'
         |import copyStaticFiles from 'node_modules/esbuild-copy-static-files';
-        |import {join} from 'path';
         |
         |esbuild.build({
         |  $flags
