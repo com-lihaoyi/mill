@@ -1,4 +1,4 @@
-package com.helloworld.app;
+package com.helloworld;
 
 import static org.junit.Assert.*;
 
@@ -11,7 +11,7 @@ import org.junit.Test;
  */
 public class ExampleUnitTest {
   @Test
-  public void addition_isCorrect() {
-    assertEquals(4, 2 + 2);
+  public void textSize_isCorrect() {
+    assertEquals(32f, SampleLogic.textSize(), 0.000001f);
   }
 }

@@ -124,7 +124,7 @@ object app extends AndroidAppModule {
 ...compiling 1 Java source...
 
 > cat out/app/test/test.dest/out.json
-["",[{"fullyQualifiedName":"com.helloworld.app.ExampleUnitTest.addition_isCorrect","selector":"com.helloworld.app.ExampleUnitTest.addition_isCorrect","duration":...,"status":"Success"}]]
+["",[{"fullyQualifiedName":"com.helloworld.ExampleUnitTest.textSize_isCorrect","selector":"com.helloworld.ExampleUnitTest.textSize_isCorrect","duration":...,"status":"Success"}]]
 
 */
 
