@@ -62,10 +62,10 @@ trait AndroidAppModule extends JavaModule {
   }
 
   /* TODO this is a temporary hack to exclude any jvm only tagged dependencies
-  * which may conflict with android dependencies. For example, the
-  * kotlin coroutines which are provided by both kotlin-core and
-  * kotlin-core-jvm
-  */
+   * which may conflict with android dependencies. For example, the
+   * kotlin coroutines which are provided by both kotlin-core and
+   * kotlin-core-jvm
+   */
   private def bannedModules(classpath: PathRef): Boolean =
     !classpath.path.last.contains("-jvm")
 
@@ -560,8 +560,8 @@ trait AndroidAppModule extends JavaModule {
     ).stdout
 
     out.buffered.lines().filter(l => {
-        l.contains("Boot completed in") ||
-          l.contains("Successfully loaded snapshot")
+      l.contains("Boot completed in") ||
+      l.contains("Successfully loaded snapshot")
     }).findFirst().toScala
   }
 
@@ -571,7 +571,6 @@ trait AndroidAppModule extends JavaModule {
       (androidSdkModule().adbPath().path, "emu", "kill")
     )
   }
-
 
   /**
    * Installs the app to the available android device.

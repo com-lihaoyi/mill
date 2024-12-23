@@ -1,7 +1,6 @@
 package mill.javalib.android
 
 import mill.*
-import os.CommandResult
 
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
@@ -130,7 +129,8 @@ trait AndroidSdkModule extends Module {
     PathRef(sdkPath().path / "platform-tools" / "adb")
   }
 
-  /** Provides the path for the Android Virtual Device Manager (avdmanager) tool
+  /**
+   * Provides the path for the Android Virtual Device Manager (avdmanager) tool
    *
    *  For more information refer to the official Android documentation [[https://developer.android.com/tools/avdmanager]]
    */
@@ -138,13 +138,15 @@ trait AndroidSdkModule extends Module {
     PathRef(sdkPath().path / "cmdline-tools" / "latest" / "bin" / "avdmanager")
   }
 
-  /** Provides the path for the android emulator tool
+  /**
+   * Provides the path for the android emulator tool
    *
    * For more information refer to [[https://developer.android.com/studio/run/emulator]]
    */
   def emulatorPath = Task {
     PathRef(sdkPath().path / "emulator" / "emulator")
   }
+
   /**
    * Installs the necessary Android SDK components such as platform-tools, build-tools, and Android platforms.
    *
