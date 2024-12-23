@@ -515,17 +515,20 @@ trait AndroidAppModule extends JavaModule {
   /** The name of the virtual device to be created by  [[createAndroidVirtualDevice]] */
   def virtualDeviceIdentifier: String = "test"
 
-  /** The target architecture of the virtual device to be created by  [[createAndroidVirtualDevice]]
+  /**
+   * The target architecture of the virtual device to be created by  [[createAndroidVirtualDevice]]
    *  For example, "x86_64" (default). For a list of system images and their architectures,
    *  see the Android SDK Manager `sdkmanager --list`.
    */
   def emulatorArchitecture: String = "x86_64"
 
-  /** Installs the user specified system image for the emulator
+  /**
+   * Installs the user specified system image for the emulator
    * using sdkmanager . E.g. "system-images;android-30;google_apis_playstore;x86_64"
    */
   def sdkInstallSystemImage: Target[String] = Task {
-    val image = s"system-images;${androidSdkModule().platformsVersion()};google_apis_playstore;${emulatorArchitecture}"
+    val image =
+      s"system-images;${androidSdkModule().platformsVersion()};google_apis_playstore;${emulatorArchitecture}"
     os.call((
       androidSdkModule().sdkManagerPath().path,
       "--install",

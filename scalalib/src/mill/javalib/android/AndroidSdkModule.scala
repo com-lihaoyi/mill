@@ -160,7 +160,6 @@ trait AndroidSdkModule extends Module {
    *
    * For more details on the `sdkmanager` tool, refer to:
    * [[https://developer.android.com/tools/sdkmanager sdkmanager Documentation]]
-   *
    */
   def installAndroidSdkComponents: T[Unit] = Task {
     val sdkPath0 = sdkPath()
