@@ -20,8 +20,16 @@ import mill.kotlinlib.KotlinModule
 @mill.api.experimental
 trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule {
 
+  private def ktVersion = kotlinVersion
+  private def sdkModule = androidSdkModule
+
   trait AndroidAppKotlinTests extends AndroidAppTests with KotlinTests
 
   trait AndroidAppKotlinIntegrationTests extends AndroidAppKotlinModule
-      with AndroidAppIntegrationTests
+      with AndroidAppIntegrationTests {
+
+    override final def kotlinVersion = ktVersion
+    override final def androidSdkModule = sdkModule
+
+  }
 }

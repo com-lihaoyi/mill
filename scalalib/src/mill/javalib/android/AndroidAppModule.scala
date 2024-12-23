@@ -514,13 +514,14 @@ trait AndroidAppModule extends JavaModule {
 
   /** The name of the virtual device to be created by  [[createAndroidVirtualDevice]] */
   def virtualDeviceIdentifier: String = "test"
-
+  private def deviceIdentifier = virtualDeviceIdentifier
   /**
    * The target architecture of the virtual device to be created by  [[createAndroidVirtualDevice]]
    *  For example, "x86_64" (default). For a list of system images and their architectures,
    *  see the Android SDK Manager `sdkmanager --list`.
    */
   def emulatorArchitecture: String = "x86_64"
+  private def arch = emulatorArchitecture
 
   /**
    * Installs the user specified system image for the emulator
@@ -608,11 +609,12 @@ trait AndroidAppModule extends JavaModule {
    */
   def runningEmulator: T[Option[String]] = Task {
     val out = os.call((androidSdkModule().adbPath().path, "devices")).out.lines()
-    val emulators = out.drop(1).filter(_.contains("emulator")).map(_.split("\t")(0))
+    val emulators = out.drop(1).filter(_.contains("emulator")).flatMap(_.split("\\s+").headOption)
+
     val emulatorForThisSession = emulators.find {
       emu =>
         os.call((androidSdkModule().adbPath().path, "-s", emu, "emu", "avd", "name"))
-          .out.text().trim() == virtualDeviceIdentifier
+          .out.lines().map(_.trim()).contains(virtualDeviceIdentifier)
     }
     emulatorForThisSession
 
@@ -647,6 +649,9 @@ trait AndroidAppModule extends JavaModule {
     def androidTestPath: os.Path = src / "androidTest"
 
     override def sources: T[Seq[PathRef]] = Task.Sources(millSourcePath, androidTestPath)
+
+    override def virtualDeviceIdentifier: String = deviceIdentifier
+    override def emulatorArchitecture: String = arch
 
     def instrumentationPackage: String
 
