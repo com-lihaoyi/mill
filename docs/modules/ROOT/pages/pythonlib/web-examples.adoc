@@ -5,14 +5,14 @@ include::partial$gtag-config.adoc[]
  
 This page provides examples of using Mill as a build tool for Python web applications.
 It includes setting up a basic "Hello, World!" application and developing a fully
-functional Todo-MVC app with Flask and Django, showcasing best practices 
+functional https://todomvc.com/[TodoMVC] app with Flask and Django, showcasing best practices
 for project organization, scalability, and maintainability.
 
 == Flask Hello World App
 
 include::partial$example/pythonlib/web/1-hello-flask.adoc[]
 
-== Flask TodoMvc App
+== Flask TodoMVC App
 
 include::partial$example/pythonlib/web/2-todo-flask.adoc[]
 
@@ -20,6 +20,6 @@ include::partial$example/pythonlib/web/2-todo-flask.adoc[]
 
 include::partial$example/pythonlib/web/3-hello-django.adoc[]
 
-== Django TodoMvc App
+== Django TodoMVC App
 
 include::partial$example/pythonlib/web/4-todo-django.adoc[]

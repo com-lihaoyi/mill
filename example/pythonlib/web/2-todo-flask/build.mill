@@ -1,4 +1,4 @@
-// This is a `Flask`-based `TodoMVC` application managed and built using `Mill`.
+// This is a `Flask`-based https://todomvc.com/[TodoMVC] application managed and built using `Mill`.
 // It allows users to `add`, `edit`, `delete`, and `view` tasks stored in a Python Data Structure.
 // Tasks can be filtered as `all`, `active`, or `completed` based on their state.
 // The application demonstrates dynamic rendering using Flask's routing and templating features.
@@ -7,7 +7,7 @@ import mill._, pythonlib._
 
 object todo extends PythonModule {
 
-  def mainScript = Task.Source { millSourcePath / "src" / "app.py" }
+  def mainScript = Task.Source { millSourcePath / "src/app.py" }
 
   def pythonDeps = Seq("flask==3.1.0", "Flask-SQLAlchemy==3.1.1", "Flask-WTF==1.2.2")
 
@@ -26,6 +26,8 @@ object todo extends PythonModule {
 
 // This example also utilizes **Mill** for managing `dependencies`, `builds`, and `tests`,
 // offering an efficient development workflow.
+
+// The app is ready to serve at `http://localhost:5001`.
 
 /** Usage
 

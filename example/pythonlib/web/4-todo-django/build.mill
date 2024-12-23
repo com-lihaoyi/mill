@@ -1,4 +1,4 @@
-// This `Django TodoMVC` example is a task management application built using `Mill` Build Tool.
+// This `Django` https://todomvc.com/[TodoMVC] example is a task management application built using `Mill` Build Tool.
 // It features dynamic `HTML` rendering with `Django's` template engine, `CRUD` operations with
 // Django `ORM`, and efficient form handling for managing tasks.
 package build
@@ -6,7 +6,7 @@ import mill._, pythonlib._
 
 object todo extends PythonModule {
 
-  def mainScript = Task.Source { millSourcePath / "src" / "manage.py" }
+  def mainScript = Task.Source { millSourcePath / "src/manage.py" }
 
   def pythonDeps = Seq("django==5.1.4")
 
@@ -24,6 +24,7 @@ object todo extends PythonModule {
 // This Mill Build File simplifies `dependency management`, `database migrations`, and `testing workflows`.
 
 // Running these commands will `test` and `run` the `Django Todo App`.
+// The app is ready to serve at `http://localhost:5003`.
 
 /** Usage
 
@@ -50,9 +51,9 @@ test_toggle_todo_view (main.tests.TodoAppTests...) ... ok
 ...Ran 8 tests...
 ...OK...
 
-> ./mill todo.runBackground runserver 8001
+> ./mill todo.runBackground runserver 5003
 
-> curl http://localhost:8001
+> curl http://localhost:5003
 ...What needs to be done...
 
 > ./mill clean todo.runBackground

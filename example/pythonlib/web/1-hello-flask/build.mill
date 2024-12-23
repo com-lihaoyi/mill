@@ -1,4 +1,4 @@
-// This example uses Mill to manage a Flask app that serves "Hello, Mill!"
+// This example uses Mill to manage a Flask app that serves `"Hello, Mill!"`
 // at the root URL (`/`), with Flask installed as a dependency
 // and tests enabled using `unittest`.
 package build
@@ -6,7 +6,7 @@ import mill._, pythonlib._
 
 object foo extends PythonModule {
 
-  def mainScript = Task.Source { millSourcePath / "src" / "foo.py" }
+  def mainScript = Task.Source { millSourcePath / "src/foo.py" }
 
   def pythonDeps = Seq("flask==3.1.0")
 
@@ -15,6 +15,8 @@ object foo extends PythonModule {
 }
 
 //  Running these commands will test and run the Flask server with desired outputs.
+
+// The app is ready to serve at `http://localhost:5000`.
 
 /** Usage
 
