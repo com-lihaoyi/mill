@@ -594,7 +594,7 @@ trait AndroidAppModule extends JavaModule {
    */
   def stopAndroidEmulator: T[Option[String]] = Task {
     val emulatorMaybe = runningEmulator()
-    emulatorMaybe.foreach( emulator =>
+    emulatorMaybe.foreach(emulator =>
       os.call(
         (androidSdkModule().adbPath().path, "-s", emulatorMaybe, "emu", "kill")
       )
@@ -602,7 +602,8 @@ trait AndroidAppModule extends JavaModule {
     emulatorMaybe
   }
 
-  /** Returns the emulator identifier for created from startAndroidEmulator
+  /**
+   * Returns the emulator identifier for created from startAndroidEmulator
    * by iterating the adb device list
    */
   def runningEmulator: T[Option[String]] = Task {
@@ -624,7 +625,7 @@ trait AndroidAppModule extends JavaModule {
    */
   def install: Target[Option[String]] = Task {
     val emulatorMaybe = runningEmulator()
-    emulatorMaybe.foreach( emulator =>
+    emulatorMaybe.foreach(emulator =>
       os.call(
         (androidSdkModule().adbPath().path, "-s", emulator, "install", "-r", androidApk().path)
       )
@@ -651,12 +652,18 @@ trait AndroidAppModule extends JavaModule {
 
     def testFramework: T[String]
 
-
     override def install: Target[Option[String]] = Task {
       val emulatorMaybe = runningEmulator()
-      emulatorMaybe.foreach( emulator =>
+      emulatorMaybe.foreach(emulator =>
         os.call(
-          (androidSdkModule().adbPath().path, "-s", emulator, "install", "-r", androidInstantApk().path)
+          (
+            androidSdkModule().adbPath().path,
+            "-s",
+            emulator,
+            "install",
+            "-r",
+            androidInstantApk().path
+          )
         )
       )
       emulatorMaybe
