@@ -34,6 +34,7 @@ object app extends AndroidAppKotlinModule {
   def androidReleaseKeyAlias: T[String] = Task { "releaseKey" }
   def androidReleaseKeyPass: T[String] = Task { "MillBuildTool" }
   def androidReleaseKeyStorePass: T[String] = Task { "MillBuildTool" }
+  override def virtualDeviceIdentifier: String = "kotlin-test"
 
   /* TODO this won't be needed once the debug keystore is implemented */
   private def mainRoot = root

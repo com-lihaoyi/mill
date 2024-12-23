@@ -33,6 +33,8 @@ object app extends AndroidAppModule {
   def androidReleaseKeyPass: T[String] = Task { "MillBuildTool" }
   def androidReleaseKeyStorePass: T[String] = Task { "MillBuildTool" }
 
+  override def virtualDeviceIdentifier: String = "java-test"
+
   private def mainRoot = root
 
   object test extends AndroidAppTests with TestModule.Junit4 {

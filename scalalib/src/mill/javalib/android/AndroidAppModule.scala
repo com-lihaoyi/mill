@@ -63,7 +63,7 @@ trait AndroidAppModule extends JavaModule {
   /* TODO this is a temporary hack to exclude any jvm only tagged dependencies
    * which may conflict with android dependencies. For example, the
    * kotlin coroutines which are provided by both kotlin-core and
-   * kotlin-core-jvm
+   * kotlin-core-jvm . See also https://github.com/com-lihaoyi/mill/issues/3867
    */
   private def bannedModules(classpath: PathRef): Boolean =
     !classpath.path.last.contains("-jvm")
@@ -568,6 +568,11 @@ trait AndroidAppModule extends JavaModule {
     ))
   }
 
+  /**
+   * Starts the android emulator and waits until it is ready before returning
+   *
+   * @return The log line that indicates the emulator is ready
+   */
   def startAndroidEmulator: T[Option[String]] = Task {
     val command = (
       androidSdkModule().emulatorPath().path,
@@ -587,21 +592,44 @@ trait AndroidAppModule extends JavaModule {
   /**
    * Stops the android emulator
    */
-  def stopAndroidEmulator: T[os.CommandResult] = Task {
-    os.call(
-      (androidSdkModule().adbPath().path, "emu", "kill")
+  def stopAndroidEmulator: T[Option[String]] = Task {
+    val emulatorMaybe = runningEmulator()
+    emulatorMaybe.foreach( emulator =>
+      os.call(
+        (androidSdkModule().adbPath().path, "-s", emulatorMaybe, "emu", "kill")
+      )
     )
+    emulatorMaybe
+  }
+
+  /** Returns the emulator identifier for created from startAndroidEmulator
+   * by iterating the adb device list
+   */
+  def runningEmulator: T[Option[String]] = Task {
+    val out = os.call((androidSdkModule().adbPath().path, "devices")).out.lines()
+    val emulators = out.drop(1).filter(_.contains("emulator")).map(_.split("\t")(0))
+    val emulatorForThisSession = emulators.find {
+      emu =>
+        os.call((androidSdkModule().adbPath().path, "-s", emu, "emu", "avd", "name"))
+          .out.text().trim() == virtualDeviceIdentifier
+    }
+    emulatorForThisSession
+
   }
 
   /**
-   * Installs the app to the available android device.
+   * Installs the app to the android device identified by this configuration in [[virtualDeviceIdentifier]].
    *
-   * @return
+   * @return The name of the device the app was installed to
    */
-  def install: Target[os.CommandResult] = Task {
-    os.call(
-      (androidSdkModule().adbPath().path, "install", "-r", androidApk().path)
+  def install: Target[Option[String]] = Task {
+    val emulatorMaybe = runningEmulator()
+    emulatorMaybe.foreach( emulator =>
+      os.call(
+        (androidSdkModule().adbPath().path, "-s", emulator, "install", "-r", androidApk().path)
+      )
     )
+    emulatorMaybe
   }
 
   trait AndroidAppTests extends JavaTests {
@@ -623,27 +651,36 @@ trait AndroidAppModule extends JavaModule {
 
     def testFramework: T[String]
 
-    override def install: Target[os.CommandResult] = Task {
-      os.call(
-        (androidSdkModule().adbPath().path, "install", "-r", androidInstantApk().path)
+
+    override def install: Target[Option[String]] = Task {
+      val emulatorMaybe = runningEmulator()
+      emulatorMaybe.foreach( emulator =>
+        os.call(
+          (androidSdkModule().adbPath().path, "-s", emulator, "install", "-r", androidInstantApk().path)
+        )
       )
+      emulatorMaybe
     }
 
     def test: T[Vector[String]] = Task {
-      install()
-      val instrumentOutput = os.call(
-        (
-          androidSdkModule().adbPath().path,
-          "shell",
-          "am",
-          "instrument",
-          "-w",
-          "-m",
-          s"${instrumentationPackage}/${testFramework()}"
+      val deviceMaybe = install()
+      deviceMaybe.map { device =>
+        val instrumentOutput = os.call(
+          (
+            androidSdkModule().adbPath().path,
+            "-s",
+            device,
+            "shell",
+            "am",
+            "instrument",
+            "-w",
+            "-m",
+            s"${instrumentationPackage}/${testFramework()}"
+          )
         )
-      )
+        instrumentOutput.out.lines()
+      }.toVector.flatten
 
-      instrumentOutput.out.lines()
     }
 
     /** Builds the apk including the integration tests (e.g. from androidTest) */
