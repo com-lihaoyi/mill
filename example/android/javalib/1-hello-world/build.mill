@@ -117,3 +117,34 @@ object app extends AndroidAppModule {
 //└── build.mill
 // ----
 //
+
+/** Usage
+
+> ./mill show app.test
+...compiling 1 Java source...
+
+> cat out/app/test/test.dest/out.json
+["",[{"fullyQualifiedName":"com.helloworld.app.ExampleUnitTest.addition_isCorrect","selector":"com.helloworld.app.ExampleUnitTest.addition_isCorrect","duration":...,"status":"Success"}]]
+
+*/
+
+// This command runs unit tests on your local environment.
+
+/** Usage
+
+> echo no | $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd -n test -k "system-images;android-35;google_apis_playstore;x86_64"
+
+> $ANDROID_HOME/emulator/emulator -avd test -delay-adb > /dev/null 2>&1 &
+
+> ./mill show app.it | grep '"OK (1 test)"'
+..."OK (1 test)",
+
+> cat out/app/it/test.json | grep '"OK (1 test)"'
+"OK (1 test)"
+
+> $ANDROID_HOME/platform-tools/adb -s emulator-5554 emu kill > /dev/null 2>&1
+
+> $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager destroy avd -n test > /dev/null 2>&1
+
+
+*/

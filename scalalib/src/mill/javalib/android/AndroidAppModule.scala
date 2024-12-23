@@ -1,12 +1,13 @@
 package mill.javalib.android
 
-import mill._
-import mill.scalalib._
+import mill.*
+import mill.scalalib.*
 import mill.api.PathRef
 import mill.define.ModuleRef
 import os.{CommandResult, Path}
+import upickle.default.*
 
-import upickle.default._
+import scala.jdk.OptionConverters.RichOptional
 
 /**
  * Enumeration for Android Lint report formats, providing predefined formats
@@ -454,7 +455,7 @@ trait AndroidAppModule extends JavaModule {
    * For more details on the Android Lint tool, refer to:
    * [[https://developer.android.com/studio/write/lint]]
    */
-  def androidLintRun() = Task.Command {
+  def androidLintRun(): Command[PathRef] = Task.Command {
 
     val formats = androidLintReportFormat()
 
@@ -499,6 +500,63 @@ trait AndroidAppModule extends JavaModule {
 
     PathRef(Task.dest)
   }
+
+  def virtualDeviceIdentifier: String = "test"
+  def emulatorArchitecture: String = "x86_64"
+
+  /** Creates the android virtual device identified in virtualDeviceIdentifier */
+  def createAndroidVirtualDevice: Target[CommandResult] = Task {
+    os.call((
+      androidSdkModule().avdPath().path,
+      "create",
+      "avd",
+      "--name",
+      virtualDeviceIdentifier,
+      "--package",
+      s"system-images;${androidSdkModule().platformsVersion()};google_apis_playstore;x86_64",
+      "--device",
+      "Nexus 5X",
+      "--force"
+    ))
+  }
+
+  /** Deletes  the android device */
+  def deleteAndroidVirtualDevice: Target[CommandResult] = Task {
+    os.call((
+      androidSdkModule().avdPath().path,
+      "delete",
+      "avd",
+      "--name",
+      virtualDeviceIdentifier
+    ))
+  }
+
+  /**
+   * Starts the Android emulator with the specified virtual device. Yields only when the
+   * emulator boot has been completed by listening for either log line:
+   * INFO    | Boot completed in
+   * or
+   * INFO    | Successfully loaded snapshot
+   */
+  def startAndroidEmulator: Target[Option[String]] = Task {
+    val command = (
+      androidSdkModule().emulatorPath().path,
+      "-avd",
+      virtualDeviceIdentifier
+    )
+    val out = os.spawn(
+      command,
+      stdout = os.Inherit
+    ).stdout
+
+    out.buffered.lines().filter(l => {
+      l.startsWith("INFO") && (
+        l.contains("Boot completed in") ||
+          l.contains("Successfully loaded snapshot")
+      )
+    }).findFirst().toScala
+  }
+
 
   /**
    * Installs the app to the available android device.

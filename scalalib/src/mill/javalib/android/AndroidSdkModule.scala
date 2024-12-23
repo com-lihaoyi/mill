@@ -1,6 +1,6 @@
 package mill.javalib.android
 
-import mill._
+import mill.*
 import os.CommandResult
 
 import java.math.BigInteger
@@ -130,15 +130,21 @@ trait AndroidSdkModule extends Module {
     PathRef(sdkPath().path / "platform-tools" / "adb")
   }
 
-  /**
-   * List all attached devices and emulators.
+  /** Provides the path for the Android Virtual Device Manager (avdmanager) tool
    *
-   * For more information, refer to the official Android documentation [[https://developer.android.com/tools/adb]]
+   *  For more information refer to the official Android documentation [[https://developer.android.com/tools/avdmanager]]
    */
-  def listAvailableDeviceTargets: Target[CommandResult] = Task {
-    os.proc(adbPath().path / "-l").call()
+  def avdPath = Task {
+    PathRef(sdkPath().path / "cmdline-tools" / "latest" / "bin" / "avdmanager")
   }
 
+  /** Provides the path for the android emulator tool
+   *
+   * For more information refer to [[https://developer.android.com/studio/run/emulator]]
+   */
+  def emulatorPath = Task {
+    PathRef(sdkPath().path / "emulator" / "emulator")
+  }
   /**
    * Installs the necessary Android SDK components such as platform-tools, build-tools, and Android platforms.
    *
