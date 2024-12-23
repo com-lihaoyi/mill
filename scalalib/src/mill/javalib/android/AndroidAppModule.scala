@@ -545,16 +545,20 @@ trait AndroidAppModule extends JavaModule {
       virtualDeviceIdentifier
     )
     val out = os.spawn(
-      command,
-      stdout = os.Inherit
+      command
     ).stdout
 
     out.buffered.lines().filter(l => {
-      l.startsWith("INFO") && (
         l.contains("Boot completed in") ||
           l.contains("Successfully loaded snapshot")
-      )
     }).findFirst().toScala
+  }
+
+  /** Stops the android emulator */
+  def stopAndroidEmulator: Target[CommandResult] = Task {
+    os.call(
+      (androidSdkModule().adbPath().path, "emu", "kill")
+    )
   }
 
 
