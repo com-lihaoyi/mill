@@ -515,6 +515,7 @@ trait AndroidAppModule extends JavaModule {
   /** The name of the virtual device to be created by  [[createAndroidVirtualDevice]] */
   def virtualDeviceIdentifier: String = "test"
   private def deviceIdentifier = virtualDeviceIdentifier
+
   /**
    * The target architecture of the virtual device to be created by  [[createAndroidVirtualDevice]]
    *  For example, "x86_64" (default). For a list of system images and their architectures,
