@@ -1,5 +1,6 @@
 package mill.javalib.android
 
+import coursier.{MavenRepository, Repository}
 import mill.*
 import mill.scalalib.*
 import mill.api.PathRef
@@ -55,6 +56,16 @@ trait AndroidAppModule extends JavaModule {
 
   override def sources: T[Seq[PathRef]] = Task.Sources(millSourcePath / "java")
 
+  override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
+    super.repositoriesTask() ++
+      Seq(MavenRepository("https://maven.google.com"))
+  }
+
+  /* TODO this is a temporary hack to exclude any jvm only tagged dependencies
+  * which may conflict with android dependencies. For example, the
+  * kotlin coroutines which are provided by both kotlin-core and
+  * kotlin-core-jvm
+  */
   private def bannedModules(classpath: PathRef): Boolean =
     !classpath.path.last.contains("-jvm")
 

@@ -45,10 +45,7 @@ object app extends AndroidAppKotlinModule {
   }
 
   object it extends AndroidAppKotlinIntegrationTests with AndroidTestModule.AndroidJUnit {
-    def repositoriesTask = Task.Anon {
-      super.repositoriesTask() ++
-        Seq(MavenRepository("https://maven.google.com"))
-    }
+
     def kotlinVersion = "2.0.20"
     def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
 
@@ -106,3 +103,42 @@ object app extends AndroidAppKotlinModule {
 //└── build.mill
 // ----
 //
+
+
+/** Usage
+
+> ./mill show app.test
+...Compiling 1 Kotlin sources...
+
+> cat out/app/test/test.dest/out.json
+["",[{"fullyQualifiedName":"com.helloworld.ExampleUnitTest.text_size_is_correct","selector":"com.helloworld.ExampleUnitTest.text_size_is_correct","duration":...,"status":"Success"}]]
+
+*/
+
+// This command runs unit tests on your local environment.
+
+/** Usage
+
+> ./mill app.createAndroidVirtualDevice
+
+> ./mill show app.startAndroidEmulator
+
+> ./mill show app.it | grep '"OK (1 test)"'
+ ..."OK (1 test)",
+
+> cat out/app/it/test.json | grep '"OK (1 test)"'
+..."OK (1 test)"...
+
+> ./mill show app.stopAndroidEmulator
+
+> ./mill show app.deleteAndroidVirtualDevice
+
+*/
+
+// The android tests (existing typically in androidTest directory, aka integration tests)
+// typically run on an android device.
+// The createAndroidVirtualDevice command creates an AVD (Android Virtual Device)
+// and the startAndroidEmulator command starts the AVD. The it task runs the integration tests
+// against the available AVD. The stopAndroidEmulator command stops the AVD and the
+// destroyAndroidVirtualDevice command destroys the AVD.
+// The provided commands can be used in a CI/CD pipeline assuming the right setup is in place.

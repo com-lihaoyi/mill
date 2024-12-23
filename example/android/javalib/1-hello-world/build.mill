@@ -148,7 +148,8 @@ object app extends AndroidAppModule {
 
 */
 
-// The android tests (aka integration tests) typically run on an android device.
+// The android tests (existing typically in androidTest directory, aka integration tests)
+// typically run on an android device.
 // The createAndroidVirtualDevice command creates an AVD (Android Virtual Device)
 // and the startAndroidEmulator command starts the AVD. The it task runs the integration tests
 // against the available AVD. The stopAndroidEmulator command stops the AVD and the

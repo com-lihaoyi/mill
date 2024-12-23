@@ -1,4 +1,4 @@
-package com.helloworld.app
+package com.helloworld
 
 import org.junit.Assert.*
 import org.junit.Test
@@ -10,7 +10,7 @@ import org.junit.Test
  */
 class ExampleUnitTest {
     @Test
-    fun addition_isCorrect() {
-        assertEquals(1, 2 + 2)
+    fun text_size_is_correct() {
+        assertEquals(32f, SampleLogic.textSize())
     }
 }
