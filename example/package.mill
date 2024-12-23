@@ -70,6 +70,7 @@ object `package` extends RootModule with Module {
     object dependencies extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "dependencies"))
     object publishing extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "publishing"))
     object module extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "module"))
+    object web extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "web"))
   }
 
   object cli extends Module{
@@ -123,6 +124,7 @@ object `package` extends RootModule with Module {
       case "basic" => Some(scalalib.basic)
       case "testing" => Some(scalalib.testing)
       case "dependencies" => Some(scalalib.dependencies)
+      case "module" => Some(scalalib.module)
       case "web" => Some(scalalib.web)
       case "publishing" => Some(scalalib.publishing)
       case _ => None
