@@ -54,6 +54,7 @@ jobs:
         with:
           log-accepted-android-sdk-licenses: false
           cmdline-tools-version: 11076708
+          packages: sdkmanager tools platform-tools emulator
 
       - run: ./mill -i -k selective.resolve ${{ inputs.millargs }}
 

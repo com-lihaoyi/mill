@@ -5,6 +5,7 @@ import mill.*
 import mill.scalalib.*
 import mill.api.PathRef
 import mill.define.ModuleRef
+import os.CommandResult
 import upickle.default.*
 
 import scala.jdk.OptionConverters.RichOptional
@@ -515,6 +516,19 @@ trait AndroidAppModule extends JavaModule {
   def virtualDeviceIdentifier: String = "test"
   def emulatorArchitecture: String = "x86_64"
 
+  /** Installs the user specified system image for the emulator
+   * using sdkmanager . E.g. "system-images;android-30;google_apis_playstore;x86_64"
+   */
+  def sdkInstallSystemImage: Target[String] = Task {
+    val image = s"system-images;${androidSdkModule().platformsVersion()};google_apis_playstore;${emulatorArchitecture}"
+    os.call((
+      androidSdkModule().sdkManagerPath().path,
+      "--install",
+      image
+    ))
+    image
+  }
+
   /**
    * Creates the android virtual device identified in virtualDeviceIdentifier
    */
@@ -526,7 +540,7 @@ trait AndroidAppModule extends JavaModule {
       "--name",
       virtualDeviceIdentifier,
       "--package",
-      s"system-images;${androidSdkModule().platformsVersion()};google_apis_playstore;${emulatorArchitecture}",
+      sdkInstallSystemImage(),
       "--device",
       "Nexus 5X",
       "--force"

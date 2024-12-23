@@ -124,7 +124,6 @@ trait AndroidSdkModule extends Module {
    *
    * For more information, refer to the official Android documentation [[https://developer.android.com/tools/adb]]
    */
-
   def adbPath: T[PathRef] = Task {
     PathRef(sdkPath().path / "platform-tools" / "adb")
   }
@@ -134,7 +133,7 @@ trait AndroidSdkModule extends Module {
    *
    *  For more information refer to the official Android documentation [[https://developer.android.com/tools/avdmanager]]
    */
-  def avdPath = Task {
+  def avdPath: T[PathRef] = Task {
     PathRef(sdkPath().path / "cmdline-tools" / "latest" / "bin" / "avdmanager")
   }
 
@@ -143,8 +142,17 @@ trait AndroidSdkModule extends Module {
    *
    * For more information refer to [[https://developer.android.com/studio/run/emulator]]
    */
-  def emulatorPath = Task {
+  def emulatorPath: T[PathRef] = Task {
     PathRef(sdkPath().path / "emulator" / "emulator")
+  }
+
+  /**
+   * Provides the path for the Android SDK Manager tool
+   *
+   * @return A task containing a [[PathRef]] pointing to the SDK directory.
+   */
+  def sdkManagerPath: T[PathRef] = Task {
+    PathRef(sdkPath().path / "cmdline-tools" / "latest" / "bin" / "sdkmanager")
   }
 
   /**
@@ -153,7 +161,6 @@ trait AndroidSdkModule extends Module {
    * For more details on the `sdkmanager` tool, refer to:
    * [[https://developer.android.com/tools/sdkmanager sdkmanager Documentation]]
    *
-   * @return A task containing a [[PathRef]] pointing to the SDK directory.
    */
   def installAndroidSdkComponents: T[Unit] = Task {
     val sdkPath0 = sdkPath()
@@ -258,6 +265,7 @@ trait AndroidSdkModule extends Module {
   private def hexArray(arr: Array[Byte]) =
     String.format("%0" + (arr.length << 1) + "x", new BigInteger(1, arr))
 
+  // TODO consolidate with sdkmanager path
   private def findLatestSdkManager(sdkPath: os.Path): Option[os.Path] = {
     var sdkManagerPath = sdkPath / "cmdline-tools/latest/bin/sdkmanager"
     if (!os.exists(sdkManagerPath)) {
