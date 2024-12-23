@@ -5,7 +5,6 @@ import mill.*
 import mill.scalalib.*
 import mill.api.PathRef
 import mill.define.ModuleRef
-import os.{CommandResult, Path}
 import upickle.default.*
 
 import scala.jdk.OptionConverters.RichOptional
@@ -50,9 +49,9 @@ object AndroidLintReportFormat extends Enumeration {
 @mill.api.experimental
 trait AndroidAppModule extends JavaModule {
 
-  final def root: Path = super.millSourcePath
-  private def src: Path = root / "src"
-  override def millSourcePath: Path = src / "main"
+  final def root: os.Path = super.millSourcePath
+  private def src: os.Path = root / "src"
+  override def millSourcePath: os.Path = src / "main"
 
   override def sources: T[Seq[PathRef]] = Task.Sources(millSourcePath / "java")
 
@@ -75,7 +74,7 @@ trait AndroidAppModule extends JavaModule {
   def androidSdkModule: ModuleRef[AndroidSdkModule]
 
   /**
-   * Provides Path to an XML file containing configuration and metadata about your android application.
+   * Provides os.Path to an XML file containing configuration and metadata about your android application.
    */
   def androidManifest: Task[PathRef] = Task.Source(millSourcePath / "AndroidManifest.xml")
 
@@ -105,10 +104,10 @@ trait AndroidAppModule extends JavaModule {
   def androidReleaseKeyStorePass: T[String] = Task { "android" }
 
   /** The location of the keystore */
-  def releaseKeyPath: Path
+  def releaseKeyPath: os.Path
 
   /**
-   * Default path to the keystore file, derived from `androidReleaseKeyName()`.
+   * Default os.Path to the keystore file, derived from `androidReleaseKeyName()`.
    * Users can customize the keystore file name to change this path.
    */
   def androidReleaseKeyPath: T[PathRef] = Task.Source(releaseKeyPath / androidReleaseKeyName())
@@ -284,7 +283,7 @@ trait AndroidAppModule extends JavaModule {
   /**
    * Converts the generated JAR file into a DEX file using the `d8` tool.
    *
-   * @return Path to the Generated DEX File Directory
+   * @return os.Path to the Generated DEX File Directory
    */
   def androidDex: T[PathRef] = Task {
 
@@ -354,7 +353,7 @@ trait AndroidAppModule extends JavaModule {
   /**
    * Generates the command-line arguments required for Android app signing.
    *
-   * Uses the release keystore path if available; otherwise, defaults to a standard keystore path.
+   * Uses the release keystore os.Path if available; otherwise, defaults to a standard keystore path.
    * Includes arguments for the keystore path, key alias, and passwords.
    *
    * @return A `Task` producing a sequence of strings for signing configuration.
@@ -405,12 +404,13 @@ trait AndroidAppModule extends JavaModule {
     PathRef(signedApk)
   }
 
-  /**
-   * Generates a debug apk
-   * TODO: this needs to work as the android debug apk functionality,
+  /* TODO: this needs to work as the android debug apk functionality,
    * which uses a debug keystore in $HOME/.android/debug.keystore .
    * For now this method is a placeholder and uses androidApk to make
    * integration tests work
+   */
+  /**
+   * Generates a debug apk
    */
   def androidDebugApk: T[PathRef] = androidApk
 
@@ -470,27 +470,27 @@ trait AndroidAppModule extends JavaModule {
 
     val formats = androidLintReportFormat()
 
-    // Generate the alternating flag and file path strings
+    // Generate the alternating flag and file os.Path strings
     val reportArg: Seq[String] = formats.flatMap { format =>
       Seq(format.flag, (Task.dest / s"report.${format.extension}").toString)
     }
 
-    // Set path to generated `.jar` files and/or `.class` files
+    // Set os.Path to generated `.jar` files and/or `.class` files
     // TODO change to runClasspath once the runtime dependencies + source refs are fixed
     val cp = compileClasspath().map(_.path).filter(os.exists).mkString(":")
 
-    // Set path to the location of the project source codes
+    // Set os.Path to the location of the project source codes
     val src = sources().map(_.path).filter(os.exists).mkString(":")
 
-    // Set path to the location of the project resource code
+    // Set os.Path to the location of the project resource code
     val res = resources().map(_.path).filter(os.exists).mkString(":")
 
-    // Prepare the lint configuration argument if the config path is set
+    // Prepare the lint configuration argument if the config os.Path is set
     val configArg = androidLintConfigPath().map(config =>
       Seq("--config", config.path.toString)
     ).getOrElse(Seq.empty)
 
-    // Prepare the lint baseline argument if the baseline path is set
+    // Prepare the lint baseline argument if the baseline os.Path is set
     val baselineArg = androidLintBaselinePath().map(baseline =>
       Seq("--baseline", baseline.path.toString)
     ).getOrElse(Seq.empty)
@@ -515,8 +515,10 @@ trait AndroidAppModule extends JavaModule {
   def virtualDeviceIdentifier: String = "test"
   def emulatorArchitecture: String = "x86_64"
 
-  /** Creates the android virtual device identified in virtualDeviceIdentifier */
-  def createAndroidVirtualDevice: Target[CommandResult] = Task {
+  /**
+   * Creates the android virtual device identified in virtualDeviceIdentifier
+   */
+  def createAndroidVirtualDevice: T[os.CommandResult] = Task {
     os.call((
       androidSdkModule().avdPath().path,
       "create",
@@ -524,15 +526,17 @@ trait AndroidAppModule extends JavaModule {
       "--name",
       virtualDeviceIdentifier,
       "--package",
-      s"system-images;${androidSdkModule().platformsVersion()};google_apis_playstore;x86_64",
+      s"system-images;${androidSdkModule().platformsVersion()};google_apis_playstore;${emulatorArchitecture}",
       "--device",
       "Nexus 5X",
       "--force"
     ))
   }
 
-  /** Deletes  the android device */
-  def deleteAndroidVirtualDevice: Target[CommandResult] = Task {
+  /**
+   * Deletes  the android device
+   */
+  def deleteAndroidVirtualDevice: T[os.CommandResult] = Task {
     os.call((
       androidSdkModule().avdPath().path,
       "delete",
@@ -542,14 +546,7 @@ trait AndroidAppModule extends JavaModule {
     ))
   }
 
-  /**
-   * Starts the Android emulator with the specified virtual device. Yields only when the
-   * emulator boot has been completed by listening for either log line:
-   * INFO    | Boot completed in
-   * or
-   * INFO    | Successfully loaded snapshot
-   */
-  def startAndroidEmulator: Target[Option[String]] = Task {
+  def startAndroidEmulator: T[Option[String]] = Task {
     val command = (
       androidSdkModule().emulatorPath().path,
       "-avd",
@@ -565,8 +562,10 @@ trait AndroidAppModule extends JavaModule {
     }).findFirst().toScala
   }
 
-  /** Stops the android emulator */
-  def stopAndroidEmulator: Target[CommandResult] = Task {
+  /**
+   * Stops the android emulator
+   */
+  def stopAndroidEmulator: T[os.CommandResult] = Task {
     os.call(
       (androidSdkModule().adbPath().path, "emu", "kill")
     )
@@ -577,7 +576,7 @@ trait AndroidAppModule extends JavaModule {
    *
    * @return
    */
-  def install: Target[CommandResult] = Task {
+  def install: Target[os.CommandResult] = Task {
     os.call(
       (androidSdkModule().adbPath().path, "install", "-r", androidApk().path)
     )
@@ -592,9 +591,9 @@ trait AndroidAppModule extends JavaModule {
   }
 
   trait AndroidAppIntegrationTests extends AndroidAppModule with AndroidTestModule {
-    override def millSourcePath: Path = src / "main"
+    override def millSourcePath: os.Path = src / "main"
 
-    def androidTestPath: Path = src / "androidTest"
+    def androidTestPath: os.Path = src / "androidTest"
 
     override def sources: T[Seq[PathRef]] = Task.Sources(millSourcePath, androidTestPath)
 
@@ -602,7 +601,7 @@ trait AndroidAppModule extends JavaModule {
 
     def testFramework: T[String]
 
-    override def install: Target[CommandResult] = Task {
+    override def install: Target[os.CommandResult] = Task {
       os.call(
         (androidSdkModule().adbPath().path, "install", "-r", androidInstantApk().path)
       )
