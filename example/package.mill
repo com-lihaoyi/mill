@@ -123,6 +123,7 @@ object `package` extends RootModule with Module {
       case "basic" => Some(scalalib.basic)
       case "testing" => Some(scalalib.testing)
       case "dependencies" => Some(scalalib.dependencies)
+      case "module" => Some(scalalib.module)
       case "web" => Some(scalalib.web)
       case "publishing" => Some(scalalib.publishing)
       case _ => None
