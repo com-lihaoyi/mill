@@ -1,12 +1,11 @@
 package mill.javalib.android
 
 import coursier.{MavenRepository, Repository}
-import mill.*
-import mill.scalalib.*
+import mill._
+import mill.scalalib._
 import mill.api.PathRef
 import mill.define.ModuleRef
-import os.CommandResult
-import upickle.default.*
+import upickle.default._
 
 import scala.jdk.OptionConverters.RichOptional
 
@@ -513,7 +512,13 @@ trait AndroidAppModule extends JavaModule {
     PathRef(Task.dest)
   }
 
+  /** The name of the virtual device to be created by  [[createAndroidVirtualDevice]] */
   def virtualDeviceIdentifier: String = "test"
+
+  /** The target architecture of the virtual device to be created by  [[createAndroidVirtualDevice]]
+   *  For example, "x86_64" (default). For a list of system images and their architectures,
+   *  see the Android SDK Manager `sdkmanager --list`.
+   */
   def emulatorArchitecture: String = "x86_64"
 
   /** Installs the user specified system image for the emulator

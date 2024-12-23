@@ -1,6 +1,6 @@
 package mill.javalib.android
 
-import mill.*
+import mill._
 
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
