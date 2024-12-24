@@ -12,7 +12,9 @@ package build
 import mill._
 import kotlinlib._
 import mill.kotlinlib.android.AndroidAppKotlinModule
+import mill.javalib.android.AndroidTestModule
 import mill.javalib.android.AndroidSdkModule
+import coursier.maven.MavenRepository
 
 // Create and configure an Android SDK module to manage Android SDK paths and tools.
 object androidSdkModule0 extends AndroidSdkModule {
@@ -27,10 +29,40 @@ object app extends AndroidAppKotlinModule {
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
 
   // Configuration for ReleaseKey
+  override def releaseKeyPath = root
   def androidReleaseKeyName: T[String] = Task { "releaseKey.jks" }
   def androidReleaseKeyAlias: T[String] = Task { "releaseKey" }
   def androidReleaseKeyPass: T[String] = Task { "MillBuildTool" }
   def androidReleaseKeyStorePass: T[String] = Task { "MillBuildTool" }
+  override def virtualDeviceIdentifier: String = "kotlin-test"
+
+  /* TODO this won't be needed once the debug keystore is implemented */
+  private def mainRoot = root
+
+  object test extends AndroidAppKotlinTests with TestModule.Junit4 {
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy"junit:junit:4.13.2"
+    )
+  }
+
+  object it extends AndroidAppKotlinIntegrationTests with AndroidTestModule.AndroidJUnit {
+
+    override def instrumentationPackage = "com.helloworld.app"
+
+    /* TODO this needs to change to something better once integration tests work with debug keystore */
+    override def releaseKeyPath = mainRoot
+    def androidReleaseKeyName: T[String] = Task { "releaseKey.jks" }
+    def androidReleaseKeyAlias: T[String] = Task { "releaseKey" }
+    def androidReleaseKeyPass: T[String] = Task { "MillBuildTool" }
+    def androidReleaseKeyStorePass: T[String] = Task { "MillBuildTool" }
+
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy"androidx.test.ext:junit:1.2.1",
+      ivy"androidx.test:runner:1.6.2",
+      ivy"androidx.test.espresso:espresso-core:3.5.1",
+      ivy"junit:junit:4.13.2"
+    )
+  }
 }
 
 ////SNIPPET:END
@@ -55,14 +87,17 @@ object app extends AndroidAppKotlinModule {
 //
 // ----
 // .
-// ├── app
-// │   ├── AndroidManifest.xml
-// │   ├── releaseKey.jks
-// │   ├── resources
-// │   │   └── values
-// │   │       ├── colors.xml
-// │   │       └── strings.xml
-// │   └── src/main/java/com/helloworld/app/MainActivity.kt
-// └── build.mill
+//├── app
+//│   └── src
+//│       ├── androidTest/java/com/helloworld/app/ExampleInstrumentedTest.kt
+//│       ├── main
+//│       │   ├── AndroidManifest.xml
+//│       │   ├── java/com/helloworld/app/MainActivity.kt
+//│       │   └── res
+//│       │       └── values
+//│       │           ├── colors.xml
+//│       │           └── strings.xml
+//│       └── test/java/com/helloworld/app/ExampleUnitTest.kt
+//└── build.mill
 // ----
 //

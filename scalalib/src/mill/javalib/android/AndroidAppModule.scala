@@ -1,11 +1,13 @@
 package mill.javalib.android
 
+import coursier.{MavenRepository, Repository}
 import mill._
 import mill.scalalib._
 import mill.api.PathRef
 import mill.define.ModuleRef
-
 import upickle.default._
+
+import scala.jdk.OptionConverters.RichOptional
 
 /**
  * Enumeration for Android Lint report formats, providing predefined formats
@@ -47,13 +49,32 @@ object AndroidLintReportFormat extends Enumeration {
 @mill.api.experimental
 trait AndroidAppModule extends JavaModule {
 
+  final def root: os.Path = super.millSourcePath
+  private def src: os.Path = root / "src"
+  override def millSourcePath: os.Path = src / "main"
+
+  override def sources: T[Seq[PathRef]] = Task.Sources(millSourcePath / "java")
+
+  override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
+    super.repositoriesTask() ++
+      Seq(MavenRepository("https://maven.google.com"))
+  }
+
+  /* TODO this is a temporary hack to exclude any jvm only tagged dependencies
+   * which may conflict with android dependencies. For example, the
+   * kotlin coroutines which are provided by both kotlin-core and
+   * kotlin-core-jvm . See also https://github.com/com-lihaoyi/mill/issues/3867
+   */
+  private def bannedModules(classpath: PathRef): Boolean =
+    !classpath.path.last.contains("-jvm")
+
   /**
    * Provides access to the Android SDK configuration.
    */
   def androidSdkModule: ModuleRef[AndroidSdkModule]
 
   /**
-   * Provides Path to an XML file containing configuration and metadata about your android application.
+   * Provides os.Path to an XML file containing configuration and metadata about your android application.
    */
   def androidManifest: Task[PathRef] = Task.Source(millSourcePath / "AndroidManifest.xml")
 
@@ -82,11 +103,14 @@ trait AndroidAppModule extends JavaModule {
    */
   def androidReleaseKeyStorePass: T[String] = Task { "android" }
 
+  /** The location of the keystore */
+  def releaseKeyPath: os.Path
+
   /**
-   * Default path to the keystore file, derived from `androidReleaseKeyName()`.
+   * Default os.Path to the keystore file, derived from `androidReleaseKeyName()`.
    * Users can customize the keystore file name to change this path.
    */
-  def androidReleaseKeyPath: T[PathRef] = Task.Source(millSourcePath / androidReleaseKeyName())
+  def androidReleaseKeyPath: T[PathRef] = Task.Source(releaseKeyPath / androidReleaseKeyName())
 
   /**
    * Specifies the file format(s) of the lint report. Available file formats are defined in AndroidLintReportFormat,
@@ -139,12 +163,14 @@ trait AndroidAppModule extends JavaModule {
     (jarFiles, resFolders)
   }
 
+  def res: T[Seq[PathRef]] = Task.Sources { millSourcePath / "res" }
+
   /**
    * Combines module resources with those unpacked from AARs.
    */
   def resources: T[Seq[PathRef]] = Task {
     val (_, resFolders) = androidUnpackArchives()
-    super.resources() ++ resFolders
+    res() ++ resFolders
   }
 
   /**
@@ -152,7 +178,9 @@ trait AndroidAppModule extends JavaModule {
    */
   override def compileClasspath: T[Agg[PathRef]] = Task {
     val (jarFiles, _) = androidUnpackArchives()
-    super.compileClasspath().filter(_.path.ext == "jar") ++ jarFiles
+    val jarFilesAgg = super.compileClasspath().filter(_.path.ext == "jar")
+
+    (jarFilesAgg ++ jarFiles).filter(bannedModules)
   }
 
   /**
@@ -178,7 +206,8 @@ trait AndroidAppModule extends JavaModule {
 
     for (resDir <- resources().map(_.path).filter(os.exists)) {
       val segmentsSeq = resDir.segments.toSeq
-      val zipDir = if (segmentsSeq.last == "resources") compiledResDir else compiledLibsResDir
+      val zipDir = if (segmentsSeq.last == "res") compiledResDir else compiledLibsResDir
+
       val zipName = segmentsSeq.takeRight(2).mkString("-") + ".zip"
       val zipPath = zipDir / zipName
 
@@ -186,7 +215,8 @@ trait AndroidAppModule extends JavaModule {
       os.call((androidSdkModule().aapt2Path().path, "compile", "--dir", resDir, "-o", zipPath))
     }
 
-    val compiledLibsArgs = libZips.map(zip => Seq("-R", zip.toString)).flatten
+    val compiledLibsArgs = libZips.flatMap(zip => Seq("-R", zip.toString))
+
     val resourceZipArg = resourceZip.headOption.map(_.toString).getOrElse("")
 
     os.call(
@@ -239,10 +269,12 @@ trait AndroidAppModule extends JavaModule {
       Seq(
         androidSdkModule().d8Path().path.toString,
         "--output",
-        jarFile.toString
-      ) ++ os.walk(compile().classes.path).filter(_.ext == "class").map(
+        jarFile.toString,
+        "--lib",
+        androidSdkModule().androidJarPath().path.toString()
+      ) ++ os.walk(compile().classes.path).filter(p => p.ext == "class").map(
         _.toString
-      )
+      ) ++ runtimeDependencies().map(_.path.toString())
     )
 
     PathRef(jarFile)
@@ -251,7 +283,7 @@ trait AndroidAppModule extends JavaModule {
   /**
    * Converts the generated JAR file into a DEX file using the `d8` tool.
    *
-   * @return Path to the Generated DEX File Directory
+   * @return os.Path to the Generated DEX File Directory
    */
   def androidDex: T[PathRef] = Task {
 
@@ -260,6 +292,7 @@ trait AndroidAppModule extends JavaModule {
       "--output",
       Task.dest,
       androidJar().path,
+      "--lib",
       androidSdkModule().androidJarPath().path
     ))
 
@@ -278,6 +311,22 @@ trait AndroidAppModule extends JavaModule {
     os.zip(unsignedApk, Seq(androidDex().path / "classes.dex"))
 
     PathRef(unsignedApk)
+  }
+
+  /**
+   * Gets all the jars from the classpath and creates an apk with them
+   * to be bundled with the app's code apk
+   */
+  def runtimeDependencies: T[Seq[PathRef]] = Task {
+    val androidJar = androidSdkModule().androidJarPath()
+    // TODO hack until android classpath resolution + dependencies is
+    // properly fixed
+    val dependenciesClasspath = compileClasspath().filterNot(pr =>
+      pr.path == androidJar.path
+    )
+    val compiledClassPathJars: Seq[PathRef] = dependenciesClasspath.toSeq
+
+    compiledClassPathJars
   }
 
   /**
@@ -304,7 +353,7 @@ trait AndroidAppModule extends JavaModule {
   /**
    * Generates the command-line arguments required for Android app signing.
    *
-   * Uses the release keystore path if available; otherwise, defaults to a standard keystore path.
+   * Uses the release keystore os.Path if available; otherwise, defaults to a standard keystore path.
    * Includes arguments for the keystore path, key alias, and passwords.
    *
    * @return A `Task` producing a sequence of strings for signing configuration.
@@ -354,6 +403,16 @@ trait AndroidAppModule extends JavaModule {
     )
     PathRef(signedApk)
   }
+
+  /* TODO: this needs to work as the android debug apk functionality,
+   * which uses a debug keystore in $HOME/.android/debug.keystore .
+   * For now this method is a placeholder and uses androidApk to make
+   * integration tests work
+   */
+  /**
+   * Generates a debug apk
+   */
+  def androidDebugApk: T[PathRef] = androidApk
 
   /**
    * Generates a new keystore file if it does not exist.
@@ -407,30 +466,31 @@ trait AndroidAppModule extends JavaModule {
    * For more details on the Android Lint tool, refer to:
    * [[https://developer.android.com/studio/write/lint]]
    */
-  def androidLintRun() = Task.Command {
+  def androidLintRun(): Command[PathRef] = Task.Command {
 
     val formats = androidLintReportFormat()
 
-    // Generate the alternating flag and file path strings
-    val reportArg: Seq[String] = formats.toSeq.flatMap { format =>
+    // Generate the alternating flag and file os.Path strings
+    val reportArg: Seq[String] = formats.flatMap { format =>
       Seq(format.flag, (Task.dest / s"report.${format.extension}").toString)
     }
 
-    // Set path to generated `.jar` files and/or `.class` files
-    val cp = runClasspath().map(_.path).filter(os.exists).mkString(":")
+    // Set os.Path to generated `.jar` files and/or `.class` files
+    // TODO change to runClasspath once the runtime dependencies + source refs are fixed
+    val cp = compileClasspath().map(_.path).filter(os.exists).mkString(":")
 
-    // Set path to the location of the project source codes
+    // Set os.Path to the location of the project source codes
     val src = sources().map(_.path).filter(os.exists).mkString(":")
 
-    // Set path to the location of the project ressource codes
+    // Set os.Path to the location of the project resource code
     val res = resources().map(_.path).filter(os.exists).mkString(":")
 
-    // Prepare the lint configuration argument if the config path is set
+    // Prepare the lint configuration argument if the config os.Path is set
     val configArg = androidLintConfigPath().map(config =>
       Seq("--config", config.path.toString)
     ).getOrElse(Seq.empty)
 
-    // Prepare the lint baseline argument if the baseline path is set
+    // Prepare the lint baseline argument if the baseline os.Path is set
     val baselineArg = androidLintBaselinePath().map(baseline =>
       Seq("--baseline", baseline.path.toString)
     ).getOrElse(Seq.empty)
@@ -452,4 +512,227 @@ trait AndroidAppModule extends JavaModule {
     PathRef(Task.dest)
   }
 
+  /** The name of the virtual device to be created by  [[createAndroidVirtualDevice]] */
+  def virtualDeviceIdentifier: String = "test"
+  private def deviceIdentifier = virtualDeviceIdentifier
+
+  /**
+   * The target architecture of the virtual device to be created by  [[createAndroidVirtualDevice]]
+   *  For example, "x86_64" (default). For a list of system images and their architectures,
+   *  see the Android SDK Manager `sdkmanager --list`.
+   */
+  def emulatorArchitecture: String = "x86_64"
+  private def arch = emulatorArchitecture
+
+  /**
+   * Installs the user specified system image for the emulator
+   * using sdkmanager . E.g. "system-images;android-35;google_apis_playstore;x86_64"
+   */
+  def sdkInstallSystemImage: Target[String] = Task {
+    val image =
+      s"system-images;${androidSdkModule().platformsVersion()};google_apis_playstore;${emulatorArchitecture}"
+    os.call((
+      androidSdkModule().sdkManagerPath().path,
+      "--install",
+      image
+    ))
+    image
+  }
+
+  /**
+   * Creates the android virtual device identified in virtualDeviceIdentifier
+   */
+  def createAndroidVirtualDevice: T[os.CommandResult] = Task {
+    os.call((
+      androidSdkModule().avdPath().path,
+      "create",
+      "avd",
+      "--name",
+      virtualDeviceIdentifier,
+      "--package",
+      sdkInstallSystemImage(),
+      "--device",
+      "Nexus 5X",
+      "--force"
+    ))
+  }
+
+  /**
+   * Deletes  the android device
+   */
+  def deleteAndroidVirtualDevice: T[os.CommandResult] = Task {
+    os.call((
+      androidSdkModule().avdPath().path,
+      "delete",
+      "avd",
+      "--name",
+      virtualDeviceIdentifier
+    ))
+  }
+
+  /**
+   * Starts the android emulator and waits until it is booted
+   *
+   * @return The log line that indicates the emulator is ready
+   */
+  def startAndroidEmulator: T[Option[String]] = Task {
+    val ciSettings = Seq(
+      "-no-snapshot-save",
+      "-no-window",
+      "-gpu",
+      "swiftshader_indirect",
+      "-noaudio",
+      "-no-boot-anim",
+      "-camera-back",
+      "none"
+    )
+    val settings = if (sys.env.getOrElse("GITHUB_ACTIONS", "false") == "true")
+      ciSettings
+    else Seq.empty[String]
+    val command = Seq(
+      androidSdkModule().emulatorPath().path.toString(),
+      "-delay-adb",
+      "-port",
+      emulatorPort
+    ) ++ settings ++ Seq("-avd", virtualDeviceIdentifier)
+
+    Task.log.debug(s"Starting emulator with command ${command.mkString(" ")}")
+
+    val startEmuCmd = os.spawn(
+      command
+    )
+
+    val bootMessage = startEmuCmd.stdout.buffered.lines().filter(l => {
+      Task.log.debug(l.trim())
+      l.contains("Boot completed in")
+    }).findFirst().toScala
+
+    if (bootMessage.isEmpty) {
+      throw new Exception(s"Emulator failed to start: ${startEmuCmd.exitCode()}")
+    }
+
+    Task.log.info(s"Emulator started with message ${bootMessage}")
+
+    bootMessage
+  }
+
+  def waitForDevice = Task {
+    val emulator = runningEmulator()
+    os.call((
+      androidSdkModule().adbPath(),
+      "-s",
+      emulator,
+      "wait-for-device"
+    ))
+    val bootflag = os.call(
+      (
+        androidSdkModule().adbPath(),
+        "-s",
+        emulator,
+        "shell",
+        "getprop",
+        "sys.boot_completed"
+      )
+    )
+
+    Task.log.info(s"${emulator}, bootflag is ${bootflag}")
+
+    emulator
+  }
+
+  /**
+   * Stops the android emulator
+   */
+  def stopAndroidEmulator: T[String] = Task {
+    val emulator = runningEmulator()
+    os.call(
+      (androidSdkModule().adbPath().path, "-s", emulator, "emu", "kill")
+    )
+    emulator
+  }
+
+  def emulatorPort: String = "5554"
+
+  /**
+   * Returns the emulator identifier for created from startAndroidEmulator
+   * by iterating the adb device list
+   */
+  def runningEmulator: T[String] = Task {
+    s"emulator-${emulatorPort}"
+  }
+
+  /**
+   * Installs the app to the android device identified by this configuration in [[virtualDeviceIdentifier]].
+   *
+   * @return The name of the device the app was installed to
+   */
+  def install: Target[String] = Task {
+    val emulator = runningEmulator()
+
+    os.call(
+      (androidSdkModule().adbPath().path, "-s", emulator, "install", "-r", androidApk().path)
+    )
+
+    emulator
+  }
+
+  trait AndroidAppTests extends JavaTests {
+    def testPath: T[Seq[PathRef]] = Task.Sources(src / "test")
+
+    override def allSources: T[Seq[PathRef]] = Task {
+      super.allSources() ++ testPath()
+    }
+  }
+
+  trait AndroidAppIntegrationTests extends AndroidAppModule with AndroidTestModule {
+    override def millSourcePath: os.Path = src / "main"
+
+    def androidTestPath: os.Path = src / "androidTest"
+
+    override def sources: T[Seq[PathRef]] = Task.Sources(millSourcePath, androidTestPath)
+
+    override def virtualDeviceIdentifier: String = deviceIdentifier
+    override def emulatorArchitecture: String = arch
+
+    def instrumentationPackage: String
+
+    def testFramework: T[String]
+
+    override def install: Target[String] = Task {
+      val emulator = runningEmulator()
+      os.call(
+        (
+          androidSdkModule().adbPath().path,
+          "-s",
+          emulator,
+          "install",
+          "-r",
+          androidInstantApk().path
+        )
+      )
+      emulator
+    }
+
+    def test: T[Vector[String]] = Task {
+      val device = install()
+
+      val instrumentOutput = os.call(
+        (
+          androidSdkModule().adbPath().path,
+          "-s",
+          device,
+          "shell",
+          "am",
+          "instrument",
+          "-w",
+          "-m",
+          s"${instrumentationPackage}/${testFramework()}"
+        )
+      )
+      instrumentOutput.out.lines()
+    }
+
+    /** Builds the apk including the integration tests (e.g. from androidTest) */
+    def androidInstantApk: T[PathRef] = androidDebugApk
+  }
 }
