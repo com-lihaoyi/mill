@@ -520,14 +520,18 @@ The Mill build tool's xref:mill::large/selective-execution.adoc[Selective Test E
 supports <<Dependency-based Selective Testing>> out of the box. This makes it easy to set up
 CI for your projects using Mill that only run tests that are downstream of the code
 you changed in a pull-request. Selective Test Execution in Mill is implemented at the _task
-level_, so even custom tasks and overrides can benefit from it.
+level_, so even custom tasks and overrides can benefit from it. Mill's own pull-request
+validation jobs benefit greatly for selective testing.
 
-Although Mill provides better support for selective testing that most build tools (which provide
-none), the <<Limitations of Dependency-based Selective Testing>> do cause issues. Even in Mill's
-own pull-request validation jobs, the fact that the most expensive integration or end-to-end
-tests are selected every time causes slowness. What kind of <<Heuristic-based Selective Testing>>
-can help improve things is an open question.
+However, although Mill provides better support for selective testing that most build tools
+(which provide none), the <<Limitations of Dependency-based Selective Testing>> do cause issues.
+Even in Mill's own pull-request validation jobs, the fact that the most expensive integration
+or end-to-end tests are selected every time causes slowness. What kind of
+<<Heuristic-based Selective Testing>> can help improve things remains an open question.
 
 If you are interested in build tools, especially where they apply to selective testing on
 large codebases and monorepos, you should definitely give the
-https://mill-build.org/[Mill Build Tool] a try!
+https://mill-build.org/[Mill Build Tool] a try! Mill's support for selective testing can
+definitely help you keep pull-request validation times reasonable in a large codebase or
+monorepo, which is key to keeping developers productive and development velocity fast
+even as the size and scope of a project grows.
