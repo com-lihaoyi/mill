@@ -580,9 +580,6 @@ trait AndroidAppModule extends JavaModule {
       "-no-window",
       "-no-boot-anim",
       "-no-audio",
-      "-gpu",
-      "swiftshader_indirect",
-      "-no-accel"
     )
     val settings = if (sys.env.getOrElse("GITHUB_ACTIONS", "false") == "true")
       ciSettings
