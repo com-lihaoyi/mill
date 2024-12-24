@@ -47,9 +47,36 @@ object bar extends MyModule
 
 object qux extends MyModule
 
+
+// ```graphviz
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   qux -> "qux.test"
+//   bar -> "bar.test"
+//   bar -> foo
+//   foo -> "foo.test"
+// }
+// ```
+//
+//
 // In this example, `qux.test` starts off failing with an error, while `foo.test` and
 // `bar.test` pass successfully. Normally, running `__.test` will run all three test
 // suites and show both successes and the one failure:
+//
+// ```graphviz
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   "qux.test" [color=red penwidth=2]
+//   qux -> "qux.test"
+//   bar -> "bar.test"
+//   bar -> foo
+//   foo -> "foo.test"
+//   "bar.test"  [color=red penwidth=2]
+//   "foo.test"  [color=red penwidth=2]
+// }
+// ```
 
 /** Usage
 
@@ -89,6 +116,24 @@ Test run foo.FooTests finished: 0 failed, 0 ignored, 1 total, ...
 Test run bar.BarTests finished: 0 failed, 0 ignored, 1 total, ...
 
 */
+
+// As we only touched ``bar``'s source files, we only need to run tests for
+//
+//
+// ```graphviz
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   qux -> "qux.test"
+//   bar [color=red penwidth=2]
+//   bar -> "bar.test" [color=red penwidth=2]
+//   foo [color=red penwidth=2]
+//   bar -> foo [color=red penwidth=2]
+//   foo -> "foo.test" [color=red penwidth=2]
+//   "bar.test" [color=red penwidth=2]
+//   "foo.test" [color=red penwidth=2]
+// }
+// ```
 
 // Similarly, if we make a change `qux/`, using selective execution will only run tests
 // in `qux.test`, and skip those in `foo.test` and `bar.test`.
