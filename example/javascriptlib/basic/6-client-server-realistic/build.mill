@@ -10,21 +10,17 @@ object server extends TypeScriptModule {
   def npmDevDeps =
     super.npmDevDeps() ++ Seq("@types/supertest@^6.0.2", "supertest@^7.0.0")
 
-  override def bundleFlags = Map("external" -> Seq("express", "cors"))
+  def bundleExternal = super.bundleExternal() ++ Seq(ujson.Str("express"), ujson.Str("cors"))
 
-  override def mkENV = Task {
-    super.mkENV() ++ Map("PORT" -> "3001")
+  def forkEnv = super.forkEnv() + ("PORT" -> "3001")
+
+  /** Bundle client as resource */
+  def resources = Task {
+    os.copy(client.bundle().path, Task.dest / "build")
+    super.resources() ++ Seq(PathRef(Task.dest))
   }
 
-  override def resources = Task {
-    val clientBundle = client.bundle().path
-    os.copy(clientBundle, Task.dest / "build")
-    PathRef(Task.dest)
-  }
-
-  object test extends TypeScriptTests with TestModule.Jest {
-    override def testConfigSource = Task.Source(millSourcePath / os.up / "jest.config.ts")
-  }
+  object test extends TypeScriptTests with TestModule.Jest
 }
 
 // Documentation for mill.example.javascriptlib
@@ -36,6 +32,13 @@ object server extends TypeScriptModule {
 
 /** Usage
 
+> mill client.test
+PASS src/test/App.test.tsx
+...
+
+> mill client.bundle   # bundle the react app;
+...
+
 > mill server.test
 PASS .../server.test.ts
 ...
@@ -44,12 +47,6 @@ Tests:...3 passed, 3 total...
 ...
 
 > mill show server.bundle # bundle the express server
+...
 Build succeeded!
-
-> mill client.test    # bundle the node-js express app
-PASS src/test/App.test.tsx
-...
-
-> mill client.bundle   # bundle the react app;
-...
 */

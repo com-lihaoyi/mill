@@ -1,0 +1,25 @@
+package build
+
+import mill._
+import mill.javascriptlib._
+
+object foo extends TypeScriptModule {
+  def bundleFlags =
+    Map(
+      "platform" -> ujson.Str("node"),
+      "entryPoints" -> ujson.Arr(mainFilePath().toString),
+      "bundle" -> ujson.Bool(true),
+      "minify" -> ujson.Bool(true)
+    )
+
+}
+
+// Documentation for mill.example.javascriptlib
+
+// This example demonstrates defining node bundling configs
+
+/** Usage
+
+> mill foo.bundle
+Build succeeded!
+*/

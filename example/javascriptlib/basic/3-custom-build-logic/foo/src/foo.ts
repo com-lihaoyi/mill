@@ -1,28 +1,21 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'fs/promises';
+
+const Resources: string = process.env.RESOURCESDEST || "@foo/resources.dest" // `RESOURCES` is generated on bundle
+const LineCount = require.resolve(`${Resources}/line-count.txt`);
 
 export default class Foo {
-    static getLineCount(resourcePath: string): string | null {
-        try {
-            const filePath = path.join(resourcePath, 'line-count.txt');
-            console.log('[Reading file:]', filePath);
-            return fs.readFileSync(filePath, 'utf-8');
-        } catch (error) {
-            console.error('Error reading file:', error);
-            return null;
-        }
+    static async getLineCount(): Promise<string> {
+        return await fs.readFile(LineCount, 'utf-8');
     }
 }
 
 if (process.env.NODE_ENV !== "test") {
-    let resourcePath = process.argv[2];
-    if (!resourcePath) resourcePath = process.env.RESOURCE_PATH;
-    // no resource found, exit
-    if (!resourcePath) {
-        console.error('Error: No resource path provided.');
-        process.exit(1);
-    }
-
-    const lineCount = Foo.getLineCount(resourcePath);
-    console.log('Line Count:', lineCount);
+    (async () => {
+        try {
+            const lineCount = await Foo.getLineCount();
+            console.log('Line Count:', lineCount);
+        } catch (err) {
+            console.error('Error:', err);
+        }
+    })()
 }
