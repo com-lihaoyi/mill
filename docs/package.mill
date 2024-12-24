@@ -200,7 +200,12 @@ object `package` extends RootModule {
     os.write.over(dest / "antora.yml", (lines ++ newLines).mkString("\n"))
   }
 
-  def blogFolder = Task.Source(build.millSourcePath / "blog")
+  def blogFolder0 = Task.Source(build.millSourcePath / "blog")
+  def blogFolder = Task{
+    os.copy(blogFolder0().path, Task.dest, mergeFolders = true)
+    expandDiagramsInDirectoryAdocFile(Task.dest, mill.main.VisualizeModule.classpath().map(_.path))
+    PathRef(Task.dest)
+  }
   def githubPagesPlaybookText(authorMode: Boolean) = T.task { extraSources: Seq[os.Path] =>
     val taggedSources = for (path <- extraSources) yield {
       s"""    - url: ${build.baseDir}
