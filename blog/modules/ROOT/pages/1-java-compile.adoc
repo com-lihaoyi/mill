@@ -15,6 +15,9 @@ not match today's reality. Nowadays the Java compiler can compile "typical" Java
 should take more than 10s to compile in a single-threaded fashion, and should be even
 faster in the presence of parallelism
 
+// end::header[]
+
+
 Doing some ad-hoc benchmarks, we find that although the compiler is blazing fast, all
 build tools add significant overhead over compiling Java directly:
 
@@ -30,8 +33,6 @@ Although Mill does the best in these benchmarks among the build tools (Maven, Gr
 all build tools fall short of how fast compiling Java _should_ be. This post explores how
 these numbers were arrived at, and what that means in un-tapped potential for Java build
 tooling to become truly great.
-
-// end::header[]
 
 ## Mockito Core
 
