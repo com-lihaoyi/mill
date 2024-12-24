@@ -258,6 +258,15 @@ kvstore = Module(
   so it is better to get the information from your build tool that already has it
   (e.g. via xref:mill::large/selective-execution.adoc[Mill Selective Execution]).
 
+An alternate mechanism for achieving dependency-based selective testing is via caching
+of test results, e.g. in tools like Bazel which support https://bazel.build/remote/caching[Remote Caching].
+In this approach, rather than using `git diff` and a graph traversal to decide what tests
+to run, we simply run every test and rely on the fact that tests that are run without
+any changes to their upstream dependencies will re-use a version from the cache automatically.
+Although the implementation is different, this caching-based approach largely has the
+same behavioral and performance characteristics as the ``git diff``-based approach
+to dependency-based selective testing.
+
 ### Limitations of Dependency-based Selective Testing
 
 Dependency-based selective test execution can get you pretty far: 100s to 1,000 developers
@@ -521,7 +530,10 @@ supports <<Dependency-based Selective Testing>> out of the box. This makes it ea
 CI for your projects using Mill that only run tests that are downstream of the code
 you changed in a pull-request. Selective Test Execution in Mill is implemented at the _task
 level_, so even custom tasks and overrides can benefit from it. Mill's own pull-request
-validation jobs benefit greatly for selective testing.
+validation jobs benefit greatly for selective testing, and you can see documentation-only
+pull-requests such as https://github.com/com-lihaoyi/mill/pull/4175[#4175] basically 
+https://github.com/com-lihaoyi/mill/actions/runs/12482782465[skipping the entire test suite]
+since it did not touch any files that could affect those tests.
 
 However, although Mill provides better support for selective testing that most build tools
 (which provide none), the <<Limitations of Dependency-based Selective Testing>> do cause issues.
