@@ -101,5 +101,3 @@ object app extends AndroidAppKotlinModule {
 //└── build.mill
 // ----
 //
-
-

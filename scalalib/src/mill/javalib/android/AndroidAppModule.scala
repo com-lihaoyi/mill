@@ -579,7 +579,7 @@ trait AndroidAppModule extends JavaModule {
     val ciSettings = Seq(
       "-no-window",
       "-no-boot-anim",
-      "-no-audio",
+      "-no-audio"
     )
     val settings = if (sys.env.getOrElse("GITHUB_ACTIONS", "false") == "true")
       ciSettings
