@@ -52,6 +52,10 @@ trait CoursierSupport {
    * We do not bother breaking this out into the separate ZincWorkerApi classpath,
    * because Coursier is already bundled with mill/Ammonite to support the
    * `import $ivy` syntax.
+   *
+   * Avoid using `deprecatedResolveFilter` if you can. As a substitute, use exclusions
+   * (or upfront, mark some dependencies as provided aka compile-time when you publish them),
+   * or as a last resort, manually filter the file sequence returned by this function.
    */
   def resolveDependencies(
       repositories: Seq[Repository],
@@ -62,7 +66,7 @@ trait CoursierSupport {
       customizer: Option[Resolution => Resolution] = None,
       ctx: Option[mill.api.Ctx.Log] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
-      resolveFilter: os.Path => Boolean = _ => true,
+      deprecatedResolveFilter: os.Path => Boolean = _ => true,
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams()
   ): Result[Agg[PathRef]] = {
@@ -108,7 +112,7 @@ trait CoursierSupport {
             Agg.from(
               res.files
                 .map(os.Path(_))
-                .filter(resolveFilter)
+                .filter(deprecatedResolveFilter)
                 .map(PathRef(_, quick = true))
             ) ++ localTestDeps.flatten
           )
@@ -126,7 +130,7 @@ trait CoursierSupport {
       customizer: Option[Resolution => Resolution],
       ctx: Option[mill.api.Ctx.Log],
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]],
-      resolveFilter: os.Path => Boolean,
+      deprecatedResolveFilter: os.Path => Boolean,
       artifactTypes: Option[Set[Type]]
   ): Result[Agg[PathRef]] =
     resolveDependencies(
@@ -138,7 +142,7 @@ trait CoursierSupport {
       customizer,
       ctx,
       coursierCacheCustomizer,
-      resolveFilter,
+      deprecatedResolveFilter,
       artifactTypes,
       ResolutionParams()
     )
@@ -153,7 +157,7 @@ trait CoursierSupport {
       customizer: Option[Resolution => Resolution],
       ctx: Option[mill.api.Ctx.Log],
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]],
-      resolveFilter: os.Path => Boolean
+      deprecatedResolveFilter: os.Path => Boolean
   ): Result[Agg[PathRef]] =
     resolveDependencies(
       repositories,
@@ -164,8 +168,7 @@ trait CoursierSupport {
       customizer,
       ctx,
       coursierCacheCustomizer,
-      resolveFilter,
-      None
+      deprecatedResolveFilter
     )
 
   @deprecated(
