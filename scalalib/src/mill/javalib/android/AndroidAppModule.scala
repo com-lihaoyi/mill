@@ -526,7 +526,7 @@ trait AndroidAppModule extends JavaModule {
 
   /**
    * Installs the user specified system image for the emulator
-   * using sdkmanager . E.g. "system-images;android-30;google_apis_playstore;x86_64"
+   * using sdkmanager . E.g. "system-images;android-35;google_apis_playstore;x86_64"
    */
   def sdkInstallSystemImage: Target[String] = Task {
     val image =
@@ -576,11 +576,23 @@ trait AndroidAppModule extends JavaModule {
    * @return The log line that indicates the emulator is ready
    */
   def startAndroidEmulator: T[Option[String]] = Task {
-    val command = (
-      androidSdkModule().emulatorPath().path,
+    val ciSettings = Seq(
+      "-no-window",
+      "-no-boot-anim",
+      "-no-audio",
+      "-gpu",
+      "swiftshader_indirect",
+      "-no-accel"
+    )
+    val settings = if (sys.env.getOrElse("GITHUB_ACTIONS", "false") == "true")
+      ciSettings
+    else Seq.empty[String]
+    val command = Seq(
+      androidSdkModule().emulatorPath().path.toString(),
       "-avd",
       virtualDeviceIdentifier
-    )
+    ) ++ settings
+
     val out = os.spawn(
       command
     ).stdout
