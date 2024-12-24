@@ -37,11 +37,12 @@ digraph G {
   rankdir=LR
   node [shape=box width=0 height=0 style=filled fillcolor=white]
 
-  frontend_web_utils -> frontend_web_1 -> deployment_1
   frontend_web_utils -> frontend_web_2 -> deployment_2
-  backend_service_utils -> backend_service_1 -> deployment_1
-  backend_service_utils -> backend_service_2 -> deployment_2
+  frontend_web_utils -> frontend_web_1 -> deployment_1
+
   backend_service_utils -> backend_service_3 -> deployment_3
+  backend_service_utils -> backend_service_2 -> deployment_2
+  backend_service_utils -> backend_service_1 -> deployment_1
   deployment_1 -> staging_environment
   deployment_2 -> staging_environment
   deployment_3 -> staging_environment
@@ -150,15 +151,16 @@ digraph G {
   rankdir=LR
   node [shape=box width=0 height=0 style=filled fillcolor=white]
 
-  frontend_web_utils -> frontend_web_1 -> deployment_1
   frontend_web_utils -> frontend_web_2 -> deployment_2
+  frontend_web_utils -> frontend_web_1 -> deployment_1
+
+  backend_service_utils -> backend_service_3 -> deployment_3
+  backend_service_utils -> backend_service_2 -> deployment_2
+
   backend_service_utils -> backend_service_1
   backend_service_1 [color=red, penwidth=2]
   deployment_1 [color=red, penwidth=2]
   backend_service_1 -> deployment_1 [color=red, penwidth=2]
-  backend_service_utils -> backend_service_2 -> deployment_2
-  backend_service_utils -> backend_service_3 -> deployment_3
-
 }
 ```
 
@@ -171,15 +173,17 @@ digraph G {
   rankdir=LR
   node [shape=box width=0 height=0 style=filled fillcolor=white]
   frontend_web_utils [color=red, penwidth=2]
-  frontend_web_1 [color=red, penwidth=2]
-  deployment_1 [color=red, penwidth=2]
   frontend_web_2 [color=red, penwidth=2]
   deployment_2 [color=red, penwidth=2]
+  frontend_web_1 [color=red, penwidth=2]
+  deployment_1 [color=red, penwidth=2]
+
   frontend_web_utils -> frontend_web_1 -> deployment_1 [color=red, penwidth=2]
   frontend_web_utils -> frontend_web_2 -> deployment_2 [color=red, penwidth=2]
-  backend_service_utils -> backend_service_1 -> deployment_1
-  backend_service_utils -> backend_service_2 -> deployment_2
+
   backend_service_utils -> backend_service_3 -> deployment_3
+  backend_service_utils -> backend_service_2 -> deployment_2
+  backend_service_utils -> backend_service_1 -> deployment_1
 }
 ```
 
@@ -223,14 +227,16 @@ developers grows beyond 1,000, you begin noticing issues and inefficiency:
    are also the slowest tests in your codebase, so running every end-to-end test every time
    you touch any line of code is extremely expensive and wasteful.
 
+For example, touching `backend_service_1` is enough to trigger all the `end_to_end` tests:
 
 ```graphviz
 digraph G {
   rankdir=LR
   node [shape=box width=0 height=0 style=filled fillcolor=white]
 
-  frontend_web_utils -> frontend_web_1 -> deployment_1
   frontend_web_utils -> frontend_web_2 -> deployment_2
+  frontend_web_utils -> frontend_web_1 -> deployment_1
+
   backend_service_utils -> backend_service_1
   backend_service_1 [color=red, penwidth=2]
   deployment_1 [color=red, penwidth=2]
@@ -251,6 +257,40 @@ digraph G {
   staging_environment -> end_to_end_tests_3 [color=red, penwidth=2]
 }
 ```
+
+Touching `frontend_web_2` is also enough to trigger all the `end_to_end` tests:
+
+```graphviz
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+
+
+
+  frontend_web_2 [color=red, penwidth=2]
+  frontend_web_2 -> deployment_2  [color=red, penwidth=2]
+  frontend_web_utils -> frontend_web_1 -> deployment_1
+  frontend_web_utils -> frontend_web_2
+  deployment_2 [color=red, penwidth=2]
+  backend_service_utils -> backend_service_1
+  backend_service_1 -> deployment_1
+  backend_service_utils -> backend_service_2 -> deployment_2
+  backend_service_utils -> backend_service_3 -> deployment_3
+
+  deployment_1 -> staging_environment
+  deployment_2 -> staging_environment
+  deployment_3 -> staging_environment
+  staging_environment [color=red, penwidth=2]
+  end_to_end_tests_1 [color=red, penwidth=2]
+  end_to_end_tests_2 [color=red, penwidth=2]
+  end_to_end_tests_3 [color=red, penwidth=2]
+
+  staging_environment -> end_to_end_tests_1 [color=red, penwidth=2]
+  staging_environment -> end_to_end_tests_2 [color=red, penwidth=2]
+  staging_environment -> end_to_end_tests_3 [color=red, penwidth=2]
+}
+```
+
 
 While there are some ways you can improve the granularity of the module graph to improve
 the precision of dependency-based selective test execution, generally that only gets you
@@ -275,8 +315,9 @@ digraph G {
   rankdir=LR
   node [shape=box width=0 height=0 style=filled fillcolor=white]
 
-  frontend_web_utils -> frontend_web_1 -> deployment_1
   frontend_web_utils -> frontend_web_2 -> deployment_2
+  frontend_web_utils -> frontend_web_1 -> deployment_1
+
   backend_service_utils -> backend_service_1
   backend_service_1 [color=red, penwidth=2]
   deployment_1 [color=red, penwidth=2]
@@ -304,30 +345,28 @@ digraph G {
   rankdir=LR
   node [shape=box width=0 height=0 style=filled fillcolor=white]
 
-  frontend_web_utils -> frontend_web_1 -> deployment_1
   frontend_web_utils -> frontend_web_2 -> deployment_2
+  frontend_web_utils -> frontend_web_1 -> deployment_1
+
+  backend_service_utils -> backend_service_3 -> deployment_3
+  backend_service_utils -> backend_service_2 -> deployment_2
   backend_service_utils -> backend_service_1
+
   backend_service_1 [color=red, penwidth=2]
   deployment_1 [color=red, penwidth=2]
   backend_service_1 -> deployment_1 [color=red, penwidth=2]
-  backend_service_utils -> backend_service_2 -> deployment_2
-  backend_service_utils -> backend_service_3 -> deployment_3
 
-  deployment_1 -> staging_environment [style=dashed]
-  deployment_2 -> staging_environment [style=dashed]
-  deployment_3 -> staging_environment [style=dashed]
+
+  deployment_3 -> staging_environment -> end_to_end_tests_1 [style=dashed]
+
+  deployment_2 -> staging_environment -> end_to_end_tests_2 [style=dashed]
+  deployment_1 -> staging_environment -> end_to_end_tests_3 [style=dashed]
   staging_environment [style=dashed]
+
+
   end_to_end_tests_1 [color=red, penwidth=2]
   end_to_end_tests_2
   end_to_end_tests_3
-
-  staging_environment -> end_to_end_tests_1 [style=dashed]
-  staging_environment -> end_to_end_tests_2 [style=dashed]
-  staging_environment -> end_to_end_tests_3 [style=dashed]
-
-  deployment_1 -> end_to_end_tests_1  [color=red, penwidth=2]
-  deployment_2 -> end_to_end_tests_2
-  deployment_3 -> end_to_end_tests_3
 }
 ```
 
