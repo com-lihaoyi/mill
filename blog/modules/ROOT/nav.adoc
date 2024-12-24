@@ -1,4 +1,4 @@
 
-* xref:3-selective-test-execution.adoc[]
+* xref:3-selective-testing.adoc[]
 * xref:2-monorepo-build-tool.adoc[]
 * xref:1-java-compile.adoc[]

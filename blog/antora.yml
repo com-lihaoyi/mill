@@ -1,5 +1,5 @@
 name: blog
-title: Mill Blog
+title: The Mill Build Engineering Blog
 version: ~
 nav:
   - modules/ROOT/nav.adoc
