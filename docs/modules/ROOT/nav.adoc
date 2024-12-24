@@ -37,6 +37,7 @@
 *** xref:pythonlib/dependencies.adoc[]
 *** xref:pythonlib/publishing.adoc[]
 *** xref:pythonlib/web-examples.adoc[]
+*** xref:pythonlib/testing.adoc[]
 * xref:comparisons/why-mill.adoc[]
 ** xref:comparisons/maven.adoc[]
 ** xref:comparisons/gradle.adoc[]

@@ -1,9 +1,20 @@
+// [IMPORTANT]
+// --
+// _Mill has no `test`-scoped dependencies!_
+// --
+//
+// You might be used to test-scoped dependencies from other build tools like
+// Maven, Gradle or sbt. As test modules in Mill are just regular modules,
+// there is no special need for a dedicated test-scope. You can use `pythonDeps`
+// to declare dependencies in test modules, and test modules
+// can use their `moduleDeps` to also depend on each other
+
 package build
 import mill._, pythonlib._
 
 object foo extends PythonModule {
 
-  def mainScript = Task.Source { millSourcePath / "src" / "foo.py" }
+  def mainScript = Task.Source { millSourcePath / "src/foo.py" }
 
   def moduleDeps = Seq(bar)
 
@@ -16,11 +27,27 @@ object foo extends PythonModule {
 
 object bar extends PythonModule {
 
-  def mainScript = Task.Source { millSourcePath / "src" / "bar.py" }
+  def mainScript = Task.Source { millSourcePath / "src/bar.py" }
 
   object test extends PythonTests with TestModule.Unittest
 
 }
+
+// In this example, not only does `foo` depend on `bar`, but we also make
+// `foo.test` depend on `bar.test`.
+//
+// ```graphviz
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0]
+//   "bar.typeCheck" -> "bar.test.typeCheck" -> "foo.test.typeCheck"
+//   "bar.typeCheck" -> "foo.typeCheck" -> "foo.test.typeCheck"
+// }
+// ```
+//
+// That lets `foo.test` make use of the
+// `BarTestUtils` class that `bar.test` defines, allowing us to re-use this
+// test helper throughout multiple modules test suites
 
 /** Usage
 
