@@ -571,63 +571,94 @@ trait AndroidAppModule extends JavaModule {
   }
 
   /**
-   * Starts the android emulator and waits until it is ready before returning
+   * Starts the android emulator and waits until it is booted
    *
    * @return The log line that indicates the emulator is ready
    */
   def startAndroidEmulator: T[Option[String]] = Task {
     val ciSettings = Seq(
+      "-no-snapshot-save",
       "-no-window",
+      "-gpu",
+      "swiftshader_indirect",
+      "-noaudio",
       "-no-boot-anim",
-      "-no-audio"
+      "-camera-back",
+      "none"
     )
     val settings = if (sys.env.getOrElse("GITHUB_ACTIONS", "false") == "true")
       ciSettings
     else Seq.empty[String]
     val command = Seq(
       androidSdkModule().emulatorPath().path.toString(),
-      "-avd",
-      virtualDeviceIdentifier
-    ) ++ settings
+      "-delay-adb",
+      "-port",
+      emulatorPort
+    ) ++ settings ++ Seq("-avd", virtualDeviceIdentifier)
 
-    val out = os.spawn(
+    Task.log.debug(s"Starting emulator with command ${command.mkString(" ")}")
+
+    val startEmuCmd = os.spawn(
       command
-    ).stdout
+    )
 
-    out.buffered.lines().filter(l => {
-      l.contains("Boot completed in") ||
-      l.contains("Successfully loaded snapshot")
+    val bootMessage = startEmuCmd.stdout.buffered.lines().filter(l => {
+      Task.log.debug(l.trim())
+      l.contains("Boot completed in")
     }).findFirst().toScala
+
+    if (bootMessage.isEmpty) {
+      throw new Exception(s"Emulator failed to start: ${startEmuCmd.exitCode()}")
+    }
+
+    Task.log.info(s"Emulator started with message ${bootMessage}")
+
+    bootMessage
+  }
+
+  def waitForDevice = Task {
+    val emulator = runningEmulator()
+    os.call((
+      androidSdkModule().adbPath(),
+      "-s",
+      emulator,
+      "wait-for-device"
+    ))
+    val bootflag = os.call(
+      (
+        androidSdkModule().adbPath(),
+        "-s",
+        emulator,
+        "shell",
+        "getprop",
+        "sys.boot_completed"
+      )
+    )
+
+    Task.log.info(s"${emulator}, bootflag is ${bootflag}")
+
+    emulator
   }
 
   /**
    * Stops the android emulator
    */
-  def stopAndroidEmulator: T[Option[String]] = Task {
-    val emulatorMaybe = runningEmulator()
-    emulatorMaybe.foreach(emulator =>
-      os.call(
-        (androidSdkModule().adbPath().path, "-s", emulatorMaybe, "emu", "kill")
-      )
+  def stopAndroidEmulator: T[String] = Task {
+    val emulator = runningEmulator()
+    os.call(
+      (androidSdkModule().adbPath().path, "-s", emulator, "emu", "kill")
     )
-    emulatorMaybe
+    emulator
   }
+
+  def emulatorPort: String = "5554"
 
   /**
    * Returns the emulator identifier for created from startAndroidEmulator
    * by iterating the adb device list
    */
-  def runningEmulator: T[Option[String]] = Task {
-    val out = os.call((androidSdkModule().adbPath().path, "devices")).out.lines()
-    val emulators = out.drop(1).filter(_.contains("emulator")).flatMap(_.split("\\s+").headOption)
-
-    val emulatorForThisSession = emulators.find {
-      emu =>
-        os.call((androidSdkModule().adbPath().path, "-s", emu, "emu", "avd", "name"))
-          .out.lines().map(_.trim()).contains(virtualDeviceIdentifier)
-    }
-    emulatorForThisSession
-
+  def runningEmulator: T[String] = Task {
+    s"emulator-${emulatorPort}"
   }
 
   /**
@@ -635,14 +666,14 @@ trait AndroidAppModule extends JavaModule {
    *
    * @return The name of the device the app was installed to
    */
-  def install: Target[Option[String]] = Task {
-    val emulatorMaybe = runningEmulator()
-    emulatorMaybe.foreach(emulator =>
-      os.call(
-        (androidSdkModule().adbPath().path, "-s", emulator, "install", "-r", androidApk().path)
-      )
+  def install: Target[String] = Task {
+    val emulator = runningEmulator()
+
+    os.call(
+      (androidSdkModule().adbPath().path, "-s", emulator, "install", "-r", androidApk().path)
     )
-    emulatorMaybe
+
+    emulator
   }
 
   trait AndroidAppTests extends JavaTests {
@@ -667,42 +698,38 @@ trait AndroidAppModule extends JavaModule {
 
     def testFramework: T[String]
 
-    override def install: Target[Option[String]] = Task {
-      val emulatorMaybe = runningEmulator()
-      emulatorMaybe.foreach(emulator =>
-        os.call(
-          (
-            androidSdkModule().adbPath().path,
-            "-s",
-            emulator,
-            "install",
-            "-r",
-            androidInstantApk().path
-          )
+    override def install: Target[String] = Task {
+      val emulator = runningEmulator()
+      os.call(
+        (
+          androidSdkModule().adbPath().path,
+          "-s",
+          emulator,
+          "install",
+          "-r",
+          androidInstantApk().path
         )
       )
-      emulatorMaybe
+      emulator
     }
 
     def test: T[Vector[String]] = Task {
-      val deviceMaybe = install()
-      deviceMaybe.map { device =>
-        val instrumentOutput = os.call(
-          (
-            androidSdkModule().adbPath().path,
-            "-s",
-            device,
-            "shell",
-            "am",
-            "instrument",
-            "-w",
-            "-m",
-            s"${instrumentationPackage}/${testFramework()}"
-          )
-        )
-        instrumentOutput.out.lines()
-      }.toVector.flatten
+      val device = install()
 
+      val instrumentOutput = os.call(
+        (
+          androidSdkModule().adbPath().path,
+          "-s",
+          device,
+          "shell",
+          "am",
+          "instrument",
+          "-w",
+          "-m",
+          s"${instrumentationPackage}/${testFramework()}"
+        )
+      )
+      instrumentOutput.out.lines()
     }
 
     /** Builds the apk including the integration tests (e.g. from androidTest) */
