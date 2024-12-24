@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Why Use a Monorepo Build Tool? :: The Mill JVM Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/blog/2-monorepo-build-tool.html" />
-    <link rel="prev" href="index.html" />
+    <link rel="prev" href="3-selective-testing.html" />
     <link rel="next" href="1-java-compile.html" />
     <meta name="generator" content="Antora 3.1.9" />
     <link rel="stylesheet" href="../_/css/site.css" />
@@ -89,6 +89,10 @@
   <li class="nav-item" data-depth="0">
 <ul class="nav-list">
 
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="3-selective-testing.html">Understanding Selective Testing</a>
+  </li>
+
   <li class="nav-item is-current-page" data-depth="1">
     <a class="nav-link" href="2-monorepo-build-tool.html">Why Use a Monorepo Build Tool?</a>
   </li>
@@ -103,13 +107,10 @@
 </div>
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
-    <span class="title">Mill Blog</span>
+    <span class="title">The Mill Build Engineering Blog</span>
     <span class="version"></span>
   </div>
   <ul class="components">
-    <li class="component is-current">
-      <div class="title"><a href="index.html">Mill Blog</a></div>
-    </li>
     <li class="component">
       <div class="title"><a href="../mill/index.html">Mill Documentation</a></div>
       <ul class="versions">
@@ -133,6 +134,9 @@
         </li>
       </ul>
     </li>
+    <li class="component is-current">
+      <div class="title"><a href="index.html">The Mill Build Engineering Blog</a></div>
+    </li>
   </ul>
 </div>
     </div>
@@ -144,11 +148,11 @@
   <a href="../mill/index.html" class="home-link"></a>
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
-    <li><a href="index.html">Mill Blog</a></li>
+    <li><a href="index.html">The Mill Build Engineering Blog</a></li>
     <li><a href="2-monorepo-build-tool.html">Why Use a Monorepo Build Tool?</a></li>
   </ul>
 </nav>
-<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/blog/modules/ROOT/pages/2-monorepo-build-tool.adoc">Edit this Page</a></div>
+<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/docs/blogFolder.dest/modules/ROOT/pages/2-monorepo-build-tool.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -196,8 +200,7 @@ const links = document.querySelectorAll('a');
 <div class="paragraph">
 <p>One question that comes up constantly is why do people use Monorepo build tools? Tools
 like Bazel are orders of magnitude more complicated and hard to use than tools
-like Poetry or Cargo, so why do people use them at all?
-<a href="https://knowyourmeme.com/memes/is-he-stupid-is-she-smart-are-they-stupid">Are they stupid?</a></p>
+like Poetry or Cargo, so why do people use them at all?</p>
 </div>
 <div class="paragraph">
 <p>It turns out that Monorepo build tools like Bazel or Mill do a lot of non-obvious things that
@@ -556,7 +559,7 @@ like Mill (most suitable for projects 10-1,000 active developers) or Bazel
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="index.html">Mill Blog</a></span>
+  <span class="prev"><a href="3-selective-testing.html">Understanding Selective Testing</a></span>
   <span class="next"><a href="1-java-compile.html">How Fast Does Java Compile?</a></span>
 </nav>
 </article>

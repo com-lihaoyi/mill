@@ -1,0 +1,1957 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Understanding Selective Testing :: The Mill JVM Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/blog/3-selective-testing.html" />
+    <link rel="prev" href="index.html" />
+    <link rel="next" href="2-monorepo-build-tool.html" />
+    <meta name="generator" content="Antora 3.1.9" />
+    <link rel="stylesheet" href="../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../_/favicon.png" type="image/x-icon" />
+  
+  <style>
+*{
+  hyphens: manual !important;
+}
+</style></head><body class="article">
+  
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" /> The Mill JVM Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs" />
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
+        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="blog" data-version="">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="3-selective-testing.html">Understanding Selective Testing</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="2-monorepo-build-tool.html">Why Use a Monorepo Build Tool?</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="1-java-compile.html">How Fast Does Java Compile?</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">The Mill Build Engineering Blog</span>
+    <span class="version"></span>
+  </div>
+  <ul class="components">
+    <li class="component">
+      <div class="title"><a href="../mill/index.html">Mill Documentation</a></div>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mill/main-branch/index.html">main-branch</a>
+        </li>
+        <li class="version is-latest">
+          <a href="../mill/index.html">latest-0.12.4</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.12.x/index.html">0.12.x</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.11.x/index.html">0.11.x</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.10.15/index.html">0.10.15</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component is-current">
+      <div class="title"><a href="index.html">The Mill Build Engineering Blog</a></div>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../mill/index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="index.html">The Mill Build Engineering Blog</a></li>
+    <li><a href="3-selective-testing.html">Understanding Selective Testing</a></li>
+  </ul>
+</nav>
+<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/docs/blogFolder.dest/modules/ROOT/pages/3-selective-testing.adoc">Edit this Page</a></div>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Understanding Selective Testing</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p><em>Li Haoyi, 24 December 2024</em></p>
+</div>
+
+<script>
+gtag('config', 'AW-16649289906');
+
+document.addEventListener('DOMContentLoaded', function() {
+const links = document.querySelectorAll('a');
+  links.forEach(link => {
+    if (link.textContent.trim().toLowerCase() === 'download') {
+      link.addEventListener('click', function(event) {
+        console.log("download link clicked")
+        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+      });
+    }
+  });
+});
+</script>
+<div class="paragraph">
+<p>Selective testing is a key technique necessary for working with any large codebase
+or monorepo: picking which tests to run to validate a change or pull-request, because
+running every test every time is costly and slow. This blog post will explore what
+selective testing is all about, the different approaches you can take with selective
+testing, based on my experience working on developer tooling for the last decade at
+Dropbox and Databricks. Lastly, we will discuss how selective testing is supported by
+the Mill build tool.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_large_codebases"><a class="anchor" href="#_large_codebases"></a>Large Codebases</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Although codebases can be large, in any large codebase you are typically only working on
+a fraction of it at any point in time. As an example that we will use throughout this
+article, consider a large codebase or monorepo that contains the code for:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>3 backend services: <code>backend_service_1</code>, <code>backend_service_2</code>, <code>backend_service_3</code></p>
+</li>
+<li>
+<p>2 frontend web codebases: <code>frontend_web_1</code>, <code>frontend_web_2</code></p>
+</li>
+<li>
+<p>1 <code>backend_service_utils</code> module, and 1 <code>frontend_web_utils</code> module</p>
+</li>
+<li>
+<p>3 deployments: <code>deployment_1</code>, <code>deployment_2</code>, <code>deployment_3</code>, that make use of the
+backend services and frontend web codebases.</p>
+</li>
+<li>
+<p>The three deployments may be combined into a <code>staging_environment</code>, which is then
+used in three sets of <code>end_to_end_test</code>s, one for each deployment</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>These modules may depend on each other as shown in the diagram below,
+with the various <code>backend_service</code> and <code>frontend_web</code> codebases
+grouped into <code>deployments</code>, and the <code>_utils</code> files shared between them:</p>
+</div>
+<center>
+<svg width="768px" height="205px" viewBox="0.00 0.00 767.75 204.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 200.8)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-200.8 763.75,-200.8 763.75,4 -4,4"></polygon>
+<!-- frontend_web_utils -->
+<g id="node1" class="node">
+<title>frontend_web_utils</title>
+<polygon fill="white" stroke="black" points="132.56,-174.7 7.84,-174.7 7.84,-150.1 132.56,-150.1 132.56,-174.7"></polygon>
+<text text-anchor="middle" x="70.2" y="-158.2" font-family="Times,serif" font-size="14.00">frontend_web_utils</text>
+</g>
+<!-- frontend_web_2 -->
+<g id="node2" class="node">
+<title>frontend_web_2</title>
+<polygon fill="white" stroke="black" points="291.79,-153.7 184.29,-153.7 184.29,-129.1 291.79,-129.1 291.79,-153.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-137.2" font-family="Times,serif" font-size="14.00">frontend_web_2</text>
+</g>
+<!-- frontend_web_utils&#45;&gt;frontend_web_2 -->
+<g id="edge1" class="edge">
+<title>frontend_web_utils-&gt;frontend_web_2</title>
+<path fill="none" stroke="black" d="M132.95,-154.58C146.38,-152.88 160.61,-151.08 174.08,-149.37"></path>
+<polygon fill="black" stroke="black" points="174.73,-152.82 184.22,-148.09 173.86,-145.87 174.73,-152.82"></polygon>
+</g>
+<!-- frontend_web_1 -->
+<g id="node4" class="node">
+<title>frontend_web_1</title>
+<polygon fill="white" stroke="black" points="291.79,-196.7 184.29,-196.7 184.29,-172.1 291.79,-172.1 291.79,-196.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-180.2" font-family="Times,serif" font-size="14.00">frontend_web_1</text>
+</g>
+<!-- frontend_web_utils&#45;&gt;frontend_web_1 -->
+<g id="edge3" class="edge">
+<title>frontend_web_utils-&gt;frontend_web_1</title>
+<path fill="none" stroke="black" d="M132.95,-170.59C146.38,-172.37 160.61,-174.26 174.08,-176.05"></path>
+<polygon fill="black" stroke="black" points="173.84,-179.55 184.22,-177.39 174.76,-172.61 173.84,-179.55"></polygon>
+</g>
+<!-- deployment_2 -->
+<g id="node3" class="node">
+<title>deployment_2</title>
+<polygon fill="white" stroke="black" points="431.83,-67.7 335.63,-67.7 335.63,-43.1 431.83,-43.1 431.83,-67.7"></polygon>
+<text text-anchor="middle" x="383.73" y="-51.2" font-family="Times,serif" font-size="14.00">deployment_2</text>
+</g>
+<!-- frontend_web_2&#45;&gt;deployment_2 -->
+<g id="edge2" class="edge">
+<title>frontend_web_2-&gt;deployment_2</title>
+<path fill="none" stroke="black" d="M281.85,-129.04C288.1,-126.35 294.25,-123.16 299.68,-119.4 319.9,-105.41 316.11,-92.27 335.68,-77.4 337.76,-75.82 339.96,-74.32 342.24,-72.9"></path>
+<polygon fill="black" stroke="black" points="344.28,-75.77 351.28,-67.82 340.85,-69.67 344.28,-75.77"></polygon>
+</g>
+<!-- staging_environment -->
+<g id="node11" class="node">
+<title>staging_environment</title>
+<polygon fill="white" stroke="black" points="602.09,-67.7 467.68,-67.7 467.68,-43.1 602.09,-43.1 602.09,-67.7"></polygon>
+<text text-anchor="middle" x="534.89" y="-51.2" font-family="Times,serif" font-size="14.00">staging_environment</text>
+</g>
+<!-- deployment_2&#45;&gt;staging_environment -->
+<g id="edge12" class="edge">
+<title>deployment_2-&gt;staging_environment</title>
+<path fill="none" stroke="black" d="M431.93,-55.4C440.08,-55.4 448.75,-55.4 457.45,-55.4"></path>
+<polygon fill="black" stroke="black" points="457.65,-58.9 467.65,-55.4 457.65,-51.9 457.65,-58.9"></polygon>
+</g>
+<!-- deployment_1 -->
+<g id="node5" class="node">
+<title>deployment_1</title>
+<polygon fill="white" stroke="black" points="431.83,-110.7 335.63,-110.7 335.63,-86.1 431.83,-86.1 431.83,-110.7"></polygon>
+<text text-anchor="middle" x="383.73" y="-94.2" font-family="Times,serif" font-size="14.00">deployment_1</text>
+</g>
+<!-- frontend_web_1&#45;&gt;deployment_1 -->
+<g id="edge4" class="edge">
+<title>frontend_web_1-&gt;deployment_1</title>
+<path fill="none" stroke="black" d="M278.64,-172.04C285.82,-169.24 293.11,-166.01 299.68,-162.4 322.37,-149.94 345.48,-131.57 361.54,-117.71"></path>
+<polygon fill="black" stroke="black" points="364.06,-120.15 369.26,-110.92 359.44,-114.9 364.06,-120.15"></polygon>
+</g>
+<!-- deployment_1&#45;&gt;staging_environment -->
+<g id="edge11" class="edge">
+<title>deployment_1-&gt;staging_environment</title>
+<path fill="none" stroke="black" d="M427.47,-86.08C444.17,-81.26 463.48,-75.7 481.04,-70.64"></path>
+<polygon fill="black" stroke="black" points="482.5,-73.86 491.14,-67.72 480.56,-67.13 482.5,-73.86"></polygon>
+</g>
+<!-- backend_service_utils -->
+<g id="node6" class="node">
+<title>backend_service_utils</title>
+<polygon fill="white" stroke="black" points="140.6,-67.7 -0.2,-67.7 -0.2,-43.1 140.6,-43.1 140.6,-67.7"></polygon>
+<text text-anchor="middle" x="70.2" y="-51.2" font-family="Times,serif" font-size="14.00">backend_service_utils</text>
+</g>
+<!-- backend_service_3 -->
+<g id="node7" class="node">
+<title>backend_service_3</title>
+<polygon fill="white" stroke="black" points="299.83,-24.7 176.26,-24.7 176.26,-0.1 299.83,-0.1 299.83,-24.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-8.2" font-family="Times,serif" font-size="14.00">backend_service_3</text>
+</g>
+<!-- backend_service_utils&#45;&gt;backend_service_3 -->
+<g id="edge5" class="edge">
+<title>backend_service_utils-&gt;backend_service_3</title>
+<path fill="none" stroke="black" d="M118.72,-43.08C137.72,-38.15 159.77,-32.44 179.65,-27.28"></path>
+<polygon fill="black" stroke="black" points="180.71,-30.62 189.51,-24.72 178.95,-23.85 180.71,-30.62"></polygon>
+</g>
+<!-- backend_service_2 -->
+<g id="node9" class="node">
+<title>backend_service_2</title>
+<polygon fill="white" stroke="black" points="299.83,-67.7 176.26,-67.7 176.26,-43.1 299.83,-43.1 299.83,-67.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-51.2" font-family="Times,serif" font-size="14.00">backend_service_2</text>
+</g>
+<!-- backend_service_utils&#45;&gt;backend_service_2 -->
+<g id="edge7" class="edge">
+<title>backend_service_utils-&gt;backend_service_2</title>
+<path fill="none" stroke="black" d="M140.57,-55.4C149.03,-55.4 157.68,-55.4 166.15,-55.4"></path>
+<polygon fill="black" stroke="black" points="166.38,-58.9 176.38,-55.4 166.38,-51.9 166.38,-58.9"></polygon>
+</g>
+<!-- backend_service_1 -->
+<g id="node10" class="node">
+<title>backend_service_1</title>
+<polygon fill="white" stroke="black" points="299.83,-110.7 176.26,-110.7 176.26,-86.1 299.83,-86.1 299.83,-110.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-94.2" font-family="Times,serif" font-size="14.00">backend_service_1</text>
+</g>
+<!-- backend_service_utils&#45;&gt;backend_service_1 -->
+<g id="edge9" class="edge">
+<title>backend_service_utils-&gt;backend_service_1</title>
+<path fill="none" stroke="black" d="M118.72,-67.72C137.72,-72.65 159.77,-78.36 179.65,-83.52"></path>
+<polygon fill="black" stroke="black" points="178.95,-86.95 189.51,-86.08 180.71,-80.18 178.95,-86.95"></polygon>
+</g>
+<!-- deployment_3 -->
+<g id="node8" class="node">
+<title>deployment_3</title>
+<polygon fill="white" stroke="black" points="431.83,-24.7 335.63,-24.7 335.63,-0.1 431.83,-0.1 431.83,-24.7"></polygon>
+<text text-anchor="middle" x="383.73" y="-8.2" font-family="Times,serif" font-size="14.00">deployment_3</text>
+</g>
+<!-- backend_service_3&#45;&gt;deployment_3 -->
+<g id="edge6" class="edge">
+<title>backend_service_3-&gt;deployment_3</title>
+<path fill="none" stroke="black" d="M299.98,-12.4C308.46,-12.4 317.15,-12.4 325.57,-12.4"></path>
+<polygon fill="black" stroke="black" points="325.65,-15.9 335.65,-12.4 325.65,-8.9 325.65,-15.9"></polygon>
+</g>
+<!-- deployment_3&#45;&gt;staging_environment -->
+<g id="edge13" class="edge">
+<title>deployment_3-&gt;staging_environment</title>
+<path fill="none" stroke="black" d="M427.47,-24.72C444.17,-29.54 463.48,-35.1 481.04,-40.16"></path>
+<polygon fill="black" stroke="black" points="480.56,-43.67 491.14,-43.08 482.5,-36.94 480.56,-43.67"></polygon>
+</g>
+<!-- backend_service_2&#45;&gt;deployment_2 -->
+<g id="edge8" class="edge">
+<title>backend_service_2-&gt;deployment_2</title>
+<path fill="none" stroke="black" d="M299.98,-55.4C308.46,-55.4 317.15,-55.4 325.57,-55.4"></path>
+<polygon fill="black" stroke="black" points="325.65,-58.9 335.65,-55.4 325.65,-51.9 325.65,-58.9"></polygon>
+</g>
+<!-- backend_service_1&#45;&gt;deployment_1 -->
+<g id="edge10" class="edge">
+<title>backend_service_1-&gt;deployment_1</title>
+<path fill="none" stroke="black" d="M299.98,-98.4C308.46,-98.4 317.15,-98.4 325.57,-98.4"></path>
+<polygon fill="black" stroke="black" points="325.65,-101.9 335.65,-98.4 325.65,-94.9 325.65,-101.9"></polygon>
+</g>
+<!-- end_to_end_test_1 -->
+<g id="node12" class="node">
+<title>end_to_end_test_1</title>
+<polygon fill="white" stroke="black" points="759.63,-110.7 638.11,-110.7 638.11,-86.1 759.63,-86.1 759.63,-110.7"></polygon>
+<text text-anchor="middle" x="698.87" y="-94.2" font-family="Times,serif" font-size="14.00">end_to_end_test_1</text>
+</g>
+<!-- staging_environment&#45;&gt;end_to_end_test_1 -->
+<g id="edge14" class="edge">
+<title>staging_environment-&gt;end_to_end_test_1</title>
+<path fill="none" stroke="black" d="M582.3,-67.72C600.77,-72.63 622.19,-78.31 641.54,-83.45"></path>
+<polygon fill="black" stroke="black" points="640.88,-86.89 651.44,-86.08 642.68,-80.13 640.88,-86.89"></polygon>
+</g>
+<!-- end_to_end_test_2 -->
+<g id="node13" class="node">
+<title>end_to_end_test_2</title>
+<polygon fill="white" stroke="black" points="759.63,-67.7 638.11,-67.7 638.11,-43.1 759.63,-43.1 759.63,-67.7"></polygon>
+<text text-anchor="middle" x="698.87" y="-51.2" font-family="Times,serif" font-size="14.00">end_to_end_test_2</text>
+</g>
+<!-- staging_environment&#45;&gt;end_to_end_test_2 -->
+<g id="edge15" class="edge">
+<title>staging_environment-&gt;end_to_end_test_2</title>
+<path fill="none" stroke="black" d="M602.24,-55.4C610.62,-55.4 619.22,-55.4 627.67,-55.4"></path>
+<polygon fill="black" stroke="black" points="627.86,-58.9 637.86,-55.4 627.86,-51.9 627.86,-58.9"></polygon>
+</g>
+<!-- end_to_end_test_3 -->
+<g id="node14" class="node">
+<title>end_to_end_test_3</title>
+<polygon fill="white" stroke="black" points="759.63,-24.7 638.11,-24.7 638.11,-0.1 759.63,-0.1 759.63,-24.7"></polygon>
+<text text-anchor="middle" x="698.87" y="-8.2" font-family="Times,serif" font-size="14.00">end_to_end_test_3</text>
+</g>
+<!-- staging_environment&#45;&gt;end_to_end_test_3 -->
+<g id="edge16" class="edge">
+<title>staging_environment-&gt;end_to_end_test_3</title>
+<path fill="none" stroke="black" d="M582.3,-43.08C600.77,-38.17 622.19,-32.49 641.54,-27.35"></path>
+<polygon fill="black" stroke="black" points="642.68,-30.67 651.44,-24.72 640.88,-23.91 642.68,-30.67"></polygon>
+</g>
+</g>
+</svg>
+
+</center>
+<div class="paragraph">
+<p>These various modules would typically each have their own test suite, which
+for simplicity I left out of the diagrams.</p>
+</div>
+<div class="paragraph">
+<p>Although the codebase described above is just an example, it reflects the kind of
+codebase structure that exists in many real-world codebases. Using this example,
+let us now consider a few ways in which selective testing can be used.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_no_selective_testing"><a class="anchor" href="#_no_selective_testing"></a>No Selective Testing</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Most software projects start off naively running every test on every pull-request
+to validate the changes. For small projects this is fine. Every project starts
+small and most projects stay small, so this approach is not a problem at all.</p>
+</div>
+<div class="paragraph">
+<p>However, for the projects that do continue growing, this strategy quickly
+becomes infeasible:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The size of the codebase (in number of modules, lines of code, or number of tests) grows
+linearly <code>O(n)</code> over time</p>
+</li>
+<li>
+<p>The number of tests necessary to validate any pull-request also grows linearly <code>O(n)</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This means that although the test runs may start off running quickly, they naturally slow
+down over time:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>A week-old project may have a test suite that runs in seconds</p>
+</li>
+<li>
+<p>By a few months, the test suite may start taking minutes to run</p>
+</li>
+<li>
+<p>After a few years, the tests may be taking over an hour.</p>
+</li>
+<li>
+<p>And there is no upper bound: in a large growing project test runs can easily
+take several hours or even days to run</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Although at a small scale waiting seconds or minutes for tests to run is not a problem,
+the fact that it grows unbounded means it will <em>eventually</em> become a problem on any growing
+codebase. Large codebases with test suites taking 4-8 hours to run are not uncommon at all, and
+this can become a real bottleneck in how fast developers can implement features or otherwise
+improve the functionality of the codebase.</p>
+</div>
+<div class="paragraph">
+<p>In general, &quot;no selective testing&quot; works fine for small projects with 1-10 developers, but
+beyond that the inefficiency of running tests not relevant to your changes starts noticeably
+slowing down day to day development. At that point, the first thing people reach for is
+some kind of folder-based selective testing.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_folder_based_selective_testing"><a class="anchor" href="#_folder_based_selective_testing"></a>Folder-based Selective Testing</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Typically, in any large codebase, most work happens within a single part of it: e.g. a
+developer may be working on <code>backend_service_1</code>, another may be working on <code>frontend_web_2</code>.
+The obvious thing to do would be make sure each module is in its own folder, e.g.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">my_repo/
+    backend_service_1/
+    backend_service_2/
+    backend_service_3/
+    frontend_web_1/
+    frontend_web_2/
+    backend_service_utils/
+    frontend_web_utils/
+    deployment_1/
+    deployment_2/
+    deployment_3/
+    ...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To do simple module-based selective execution generally involves:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Run a <code>git diff</code> on the code change you want to validate</p>
+</li>
+<li>
+<p>For any folders which contain changed files, run their tests</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>For example,</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>A PR changing <code>backend_service_1/</code> will need to run the <code>backend_service_1/</code> tests</p>
+</li>
+<li>
+<p>A PR changing <code>frontend_web_2/</code> will need to run the <code>frontend_web_2/</code> tests</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This does limit the number of tests any individual needs to execute: someone working on
+<code>backend_service_1</code> does not need to run the tests for <code>backend_service_2</code>, <code>backend_service_3</code>,
+etc.. This helps keep the test times when working on the monorepo from growing unbounded.</p>
+</div>
+<div class="paragraph">
+<p>However, folder-based selective testing is not enough: it is possible that changing
+a module would not break its own tests, but it could cause problems with downstream modules that
+depend on it:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Changing <code>backend_service_1</code> may require corresponding changes to <code>frontend_web_1</code>, and
+if those changes are not coordinated the integration tests in <code>deployment_1</code> would fail</p>
+</li>
+<li>
+<p>Changing <code>frontend_web_utils</code> could potentially break both <code>frontend_web_1</code> and <code>frontend_web_2</code>
+that depend on it, and thus we need to run the tests for both those modules to validate our change.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>In these cases, the failure mode of folder-based selective testing is:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>You change code in a folder</p>
+</li>
+<li>
+<p><em>That folder’s</em> tests may pass</p>
+</li>
+<li>
+<p>You merge your change into the main repository</p>
+</li>
+<li>
+<p>Only after merging, you notice <em>other folders' tests</em> failing, which you did not
+notice up front because you didn’t run their tests before merging. But because you
+merged the breaking change, you have inconvenienced other people working in other
+parts of the codebase</p>
+</li>
+<li>
+<p>You now have to tediously revert your breaking change, or rush
+a fix-forward to un-break the folders whose tests you broke, and unblock the developers
+working in those folders</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Folder-based selective testing works fine for codebases with 10-100 developers: there are
+occasional cases where a breakage might slip through, but generally it’s infrequent enough
+that it’s tolerable. But as the development organization grows beyond 100, these breakages
+affect more and more people and become more and more painful. To resolve this, we need
+something more sophisticated.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_dependency_based_selective_testing"><a class="anchor" href="#_dependency_based_selective_testing"></a>Dependency-based Selective Testing</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To solve the problem of code changes potentially breaking downstream modules, we need to make
+sure that for every code change, we run both the tests for that module as well as every downstream
+test. For example, if we make a change to <code>backend_service_1</code>, we need to run the unit tests for
+<code>backend_service_1</code> as well as the integration tests for <code>deployment_1</code>:</p>
+</div>
+<center>
+<svg width="440px" height="205px" viewBox="0.00 0.00 439.78 204.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 200.8)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-200.8 435.78,-200.8 435.78,4 -4,4"></polygon>
+<!-- frontend_web_utils -->
+<g id="node1" class="node">
+<title>frontend_web_utils</title>
+<polygon fill="white" stroke="black" points="132.56,-174.7 7.84,-174.7 7.84,-150.1 132.56,-150.1 132.56,-174.7"></polygon>
+<text text-anchor="middle" x="70.2" y="-158.2" font-family="Times,serif" font-size="14.00">frontend_web_utils</text>
+</g>
+<!-- frontend_web_2 -->
+<g id="node2" class="node">
+<title>frontend_web_2</title>
+<polygon fill="white" stroke="black" points="291.79,-153.7 184.29,-153.7 184.29,-129.1 291.79,-129.1 291.79,-153.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-137.2" font-family="Times,serif" font-size="14.00">frontend_web_2</text>
+</g>
+<!-- frontend_web_utils&#45;&gt;frontend_web_2 -->
+<g id="edge1" class="edge">
+<title>frontend_web_utils-&gt;frontend_web_2</title>
+<path fill="none" stroke="black" d="M132.95,-154.58C146.38,-152.88 160.61,-151.08 174.08,-149.37"></path>
+<polygon fill="black" stroke="black" points="174.73,-152.82 184.22,-148.09 173.86,-145.87 174.73,-152.82"></polygon>
+</g>
+<!-- frontend_web_1 -->
+<g id="node4" class="node">
+<title>frontend_web_1</title>
+<polygon fill="white" stroke="black" points="291.79,-196.7 184.29,-196.7 184.29,-172.1 291.79,-172.1 291.79,-196.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-180.2" font-family="Times,serif" font-size="14.00">frontend_web_1</text>
+</g>
+<!-- frontend_web_utils&#45;&gt;frontend_web_1 -->
+<g id="edge3" class="edge">
+<title>frontend_web_utils-&gt;frontend_web_1</title>
+<path fill="none" stroke="black" d="M132.95,-170.59C146.38,-172.37 160.61,-174.26 174.08,-176.05"></path>
+<polygon fill="black" stroke="black" points="173.84,-179.55 184.22,-177.39 174.76,-172.61 173.84,-179.55"></polygon>
+</g>
+<!-- deployment_2 -->
+<g id="node3" class="node">
+<title>deployment_2</title>
+<polygon fill="white" stroke="black" points="431.83,-110.7 335.63,-110.7 335.63,-86.1 431.83,-86.1 431.83,-110.7"></polygon>
+<text text-anchor="middle" x="383.73" y="-94.2" font-family="Times,serif" font-size="14.00">deployment_2</text>
+</g>
+<!-- frontend_web_2&#45;&gt;deployment_2 -->
+<g id="edge2" class="edge">
+<title>frontend_web_2-&gt;deployment_2</title>
+<path fill="none" stroke="black" d="M280.22,-129.08C296.3,-124.26 314.91,-118.7 331.82,-113.64"></path>
+<polygon fill="black" stroke="black" points="332.97,-116.94 341.55,-110.72 330.97,-110.24 332.97,-116.94"></polygon>
+</g>
+<!-- deployment_1 -->
+<g id="node5" class="node">
+<title>deployment_1</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="431.83,-174.7 335.63,-174.7 335.63,-150.1 431.83,-150.1 431.83,-174.7"></polygon>
+<text text-anchor="middle" x="383.73" y="-158.2" font-family="Times,serif" font-size="14.00">deployment_1</text>
+</g>
+<!-- frontend_web_1&#45;&gt;deployment_1 -->
+<g id="edge4" class="edge">
+<title>frontend_web_1-&gt;deployment_1</title>
+<path fill="none" stroke="black" d="M292.14,-176.27C303.03,-174.6 314.55,-172.84 325.58,-171.15"></path>
+<polygon fill="black" stroke="black" points="326.19,-174.6 335.54,-169.63 325.13,-167.68 326.19,-174.6"></polygon>
+</g>
+<!-- backend_service_utils -->
+<g id="node6" class="node">
+<title>backend_service_utils</title>
+<polygon fill="white" stroke="black" points="140.6,-67.7 -0.2,-67.7 -0.2,-43.1 140.6,-43.1 140.6,-67.7"></polygon>
+<text text-anchor="middle" x="70.2" y="-51.2" font-family="Times,serif" font-size="14.00">backend_service_utils</text>
+</g>
+<!-- backend_service_3 -->
+<g id="node7" class="node">
+<title>backend_service_3</title>
+<polygon fill="white" stroke="black" points="299.83,-24.7 176.26,-24.7 176.26,-0.1 299.83,-0.1 299.83,-24.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-8.2" font-family="Times,serif" font-size="14.00">backend_service_3</text>
+</g>
+<!-- backend_service_utils&#45;&gt;backend_service_3 -->
+<g id="edge5" class="edge">
+<title>backend_service_utils-&gt;backend_service_3</title>
+<path fill="none" stroke="black" d="M118.72,-43.08C137.72,-38.15 159.77,-32.44 179.65,-27.28"></path>
+<polygon fill="black" stroke="black" points="180.71,-30.62 189.51,-24.72 178.95,-23.85 180.71,-30.62"></polygon>
+</g>
+<!-- backend_service_2 -->
+<g id="node9" class="node">
+<title>backend_service_2</title>
+<polygon fill="white" stroke="black" points="299.83,-67.7 176.26,-67.7 176.26,-43.1 299.83,-43.1 299.83,-67.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-51.2" font-family="Times,serif" font-size="14.00">backend_service_2</text>
+</g>
+<!-- backend_service_utils&#45;&gt;backend_service_2 -->
+<g id="edge7" class="edge">
+<title>backend_service_utils-&gt;backend_service_2</title>
+<path fill="none" stroke="black" d="M140.57,-55.4C149.03,-55.4 157.68,-55.4 166.15,-55.4"></path>
+<polygon fill="black" stroke="black" points="166.38,-58.9 176.38,-55.4 166.38,-51.9 166.38,-58.9"></polygon>
+</g>
+<!-- backend_service_1 -->
+<g id="node10" class="node">
+<title>backend_service_1</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="299.83,-110.7 176.26,-110.7 176.26,-86.1 299.83,-86.1 299.83,-110.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-94.2" font-family="Times,serif" font-size="14.00">backend_service_1</text>
+</g>
+<!-- backend_service_utils&#45;&gt;backend_service_1 -->
+<g id="edge9" class="edge">
+<title>backend_service_utils-&gt;backend_service_1</title>
+<path fill="none" stroke="black" d="M118.72,-67.72C137.72,-72.65 159.77,-78.36 179.65,-83.52"></path>
+<polygon fill="black" stroke="black" points="178.95,-86.95 189.51,-86.08 180.71,-80.18 178.95,-86.95"></polygon>
+</g>
+<!-- deployment_3 -->
+<g id="node8" class="node">
+<title>deployment_3</title>
+<polygon fill="white" stroke="black" points="431.83,-24.7 335.63,-24.7 335.63,-0.1 431.83,-0.1 431.83,-24.7"></polygon>
+<text text-anchor="middle" x="383.73" y="-8.2" font-family="Times,serif" font-size="14.00">deployment_3</text>
+</g>
+<!-- backend_service_3&#45;&gt;deployment_3 -->
+<g id="edge6" class="edge">
+<title>backend_service_3-&gt;deployment_3</title>
+<path fill="none" stroke="black" d="M299.98,-12.4C308.46,-12.4 317.15,-12.4 325.57,-12.4"></path>
+<polygon fill="black" stroke="black" points="325.65,-15.9 335.65,-12.4 325.65,-8.9 325.65,-15.9"></polygon>
+</g>
+<!-- backend_service_2&#45;&gt;deployment_2 -->
+<g id="edge8" class="edge">
+<title>backend_service_2-&gt;deployment_2</title>
+<path fill="none" stroke="black" d="M280.22,-67.72C296.3,-72.54 314.91,-78.1 331.82,-83.16"></path>
+<polygon fill="black" stroke="black" points="330.97,-86.56 341.55,-86.08 332.97,-79.86 330.97,-86.56"></polygon>
+</g>
+<!-- backend_service_1&#45;&gt;deployment_1 -->
+<g id="edge10" class="edge">
+<title>backend_service_1-&gt;deployment_1</title>
+<path fill="none" stroke="red" stroke-width="2" d="M275.24,-110.72C283.35,-113.71 291.87,-117.02 299.68,-120.4 317,-127.89 335.8,-137.28 351.12,-145.29"></path>
+<polygon fill="red" stroke="red" stroke-width="2" points="349.69,-148.49 360.17,-150.06 352.96,-142.3 349.69,-148.49"></polygon>
+</g>
+</g>
+</svg>
+
+</center>
+<div class="paragraph">
+<p>On the other hand, if we make a change to <code>frontend_web_utils</code>, we need to run the unit tests
+for <code>frontend_web_1</code> and <code>frontend_web_2</code>, as well as the integration tests for <code>deployment_1</code>
+and <code>deployment_2</code>, but <em>not</em> <code>deployment_3</code> since (in this example) it doesn’t depend on any frontend codebase:</p>
+</div>
+<center>
+<svg width="440px" height="205px" viewBox="0.00 0.00 439.78 204.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 200.8)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-200.8 435.78,-200.8 435.78,4 -4,4"></polygon>
+<!-- frontend_web_utils -->
+<g id="node1" class="node">
+<title>frontend_web_utils</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="132.56,-174.7 7.84,-174.7 7.84,-150.1 132.56,-150.1 132.56,-174.7"></polygon>
+<text text-anchor="middle" x="70.2" y="-158.2" font-family="Times,serif" font-size="14.00">frontend_web_utils</text>
+</g>
+<!-- frontend_web_2 -->
+<g id="node2" class="node">
+<title>frontend_web_2</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="291.79,-153.7 184.29,-153.7 184.29,-129.1 291.79,-129.1 291.79,-153.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-137.2" font-family="Times,serif" font-size="14.00">frontend_web_2</text>
+</g>
+<!-- frontend_web_utils&#45;&gt;frontend_web_2 -->
+<g id="edge3" class="edge">
+<title>frontend_web_utils-&gt;frontend_web_2</title>
+<path fill="none" stroke="red" stroke-width="2" d="M132.95,-154.58C146.38,-152.88 160.61,-151.08 174.08,-149.37"></path>
+<polygon fill="red" stroke="red" stroke-width="2" points="174.73,-152.82 184.22,-148.09 173.86,-145.87 174.73,-152.82"></polygon>
+</g>
+<!-- frontend_web_1 -->
+<g id="node4" class="node">
+<title>frontend_web_1</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="291.79,-196.7 184.29,-196.7 184.29,-172.1 291.79,-172.1 291.79,-196.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-180.2" font-family="Times,serif" font-size="14.00">frontend_web_1</text>
+</g>
+<!-- frontend_web_utils&#45;&gt;frontend_web_1 -->
+<g id="edge1" class="edge">
+<title>frontend_web_utils-&gt;frontend_web_1</title>
+<path fill="none" stroke="red" stroke-width="2" d="M132.95,-170.59C146.38,-172.37 160.61,-174.26 174.08,-176.05"></path>
+<polygon fill="red" stroke="red" stroke-width="2" points="173.84,-179.55 184.22,-177.39 174.76,-172.61 173.84,-179.55"></polygon>
+</g>
+<!-- deployment_2 -->
+<g id="node3" class="node">
+<title>deployment_2</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="431.83,-110.7 335.63,-110.7 335.63,-86.1 431.83,-86.1 431.83,-110.7"></polygon>
+<text text-anchor="middle" x="383.73" y="-94.2" font-family="Times,serif" font-size="14.00">deployment_2</text>
+</g>
+<!-- frontend_web_2&#45;&gt;deployment_2 -->
+<g id="edge4" class="edge">
+<title>frontend_web_2-&gt;deployment_2</title>
+<path fill="none" stroke="red" stroke-width="2" d="M280.22,-129.08C296.3,-124.26 314.91,-118.7 331.82,-113.64"></path>
+<polygon fill="red" stroke="red" stroke-width="2" points="332.97,-116.94 341.55,-110.72 330.97,-110.24 332.97,-116.94"></polygon>
+</g>
+<!-- deployment_1 -->
+<g id="node5" class="node">
+<title>deployment_1</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="431.83,-174.7 335.63,-174.7 335.63,-150.1 431.83,-150.1 431.83,-174.7"></polygon>
+<text text-anchor="middle" x="383.73" y="-158.2" font-family="Times,serif" font-size="14.00">deployment_1</text>
+</g>
+<!-- frontend_web_1&#45;&gt;deployment_1 -->
+<g id="edge2" class="edge">
+<title>frontend_web_1-&gt;deployment_1</title>
+<path fill="none" stroke="red" stroke-width="2" d="M292.14,-176.27C303.03,-174.6 314.55,-172.84 325.58,-171.15"></path>
+<polygon fill="red" stroke="red" stroke-width="2" points="326.19,-174.6 335.54,-169.63 325.13,-167.68 326.19,-174.6"></polygon>
+</g>
+<!-- backend_service_utils -->
+<g id="node6" class="node">
+<title>backend_service_utils</title>
+<polygon fill="white" stroke="black" points="140.6,-67.7 -0.2,-67.7 -0.2,-43.1 140.6,-43.1 140.6,-67.7"></polygon>
+<text text-anchor="middle" x="70.2" y="-51.2" font-family="Times,serif" font-size="14.00">backend_service_utils</text>
+</g>
+<!-- backend_service_3 -->
+<g id="node7" class="node">
+<title>backend_service_3</title>
+<polygon fill="white" stroke="black" points="299.83,-24.7 176.26,-24.7 176.26,-0.1 299.83,-0.1 299.83,-24.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-8.2" font-family="Times,serif" font-size="14.00">backend_service_3</text>
+</g>
+<!-- backend_service_utils&#45;&gt;backend_service_3 -->
+<g id="edge5" class="edge">
+<title>backend_service_utils-&gt;backend_service_3</title>
+<path fill="none" stroke="black" d="M118.72,-43.08C137.72,-38.15 159.77,-32.44 179.65,-27.28"></path>
+<polygon fill="black" stroke="black" points="180.71,-30.62 189.51,-24.72 178.95,-23.85 180.71,-30.62"></polygon>
+</g>
+<!-- backend_service_2 -->
+<g id="node9" class="node">
+<title>backend_service_2</title>
+<polygon fill="white" stroke="black" points="299.83,-67.7 176.26,-67.7 176.26,-43.1 299.83,-43.1 299.83,-67.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-51.2" font-family="Times,serif" font-size="14.00">backend_service_2</text>
+</g>
+<!-- backend_service_utils&#45;&gt;backend_service_2 -->
+<g id="edge7" class="edge">
+<title>backend_service_utils-&gt;backend_service_2</title>
+<path fill="none" stroke="black" d="M140.57,-55.4C149.03,-55.4 157.68,-55.4 166.15,-55.4"></path>
+<polygon fill="black" stroke="black" points="166.38,-58.9 176.38,-55.4 166.38,-51.9 166.38,-58.9"></polygon>
+</g>
+<!-- backend_service_1 -->
+<g id="node10" class="node">
+<title>backend_service_1</title>
+<polygon fill="white" stroke="black" points="299.83,-110.7 176.26,-110.7 176.26,-86.1 299.83,-86.1 299.83,-110.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-94.2" font-family="Times,serif" font-size="14.00">backend_service_1</text>
+</g>
+<!-- backend_service_utils&#45;&gt;backend_service_1 -->
+<g id="edge9" class="edge">
+<title>backend_service_utils-&gt;backend_service_1</title>
+<path fill="none" stroke="black" d="M118.72,-67.72C137.72,-72.65 159.77,-78.36 179.65,-83.52"></path>
+<polygon fill="black" stroke="black" points="178.95,-86.95 189.51,-86.08 180.71,-80.18 178.95,-86.95"></polygon>
+</g>
+<!-- deployment_3 -->
+<g id="node8" class="node">
+<title>deployment_3</title>
+<polygon fill="white" stroke="black" points="431.83,-24.7 335.63,-24.7 335.63,-0.1 431.83,-0.1 431.83,-24.7"></polygon>
+<text text-anchor="middle" x="383.73" y="-8.2" font-family="Times,serif" font-size="14.00">deployment_3</text>
+</g>
+<!-- backend_service_3&#45;&gt;deployment_3 -->
+<g id="edge6" class="edge">
+<title>backend_service_3-&gt;deployment_3</title>
+<path fill="none" stroke="black" d="M299.98,-12.4C308.46,-12.4 317.15,-12.4 325.57,-12.4"></path>
+<polygon fill="black" stroke="black" points="325.65,-15.9 335.65,-12.4 325.65,-8.9 325.65,-15.9"></polygon>
+</g>
+<!-- backend_service_2&#45;&gt;deployment_2 -->
+<g id="edge8" class="edge">
+<title>backend_service_2-&gt;deployment_2</title>
+<path fill="none" stroke="black" d="M280.22,-67.72C296.3,-72.54 314.91,-78.1 331.82,-83.16"></path>
+<polygon fill="black" stroke="black" points="330.97,-86.56 341.55,-86.08 332.97,-79.86 330.97,-86.56"></polygon>
+</g>
+<!-- backend_service_1&#45;&gt;deployment_1 -->
+<g id="edge10" class="edge">
+<title>backend_service_1-&gt;deployment_1</title>
+<path fill="none" stroke="black" d="M275.24,-110.72C283.35,-113.71 291.87,-117.02 299.68,-120.4 317,-127.89 335.8,-137.28 351.12,-145.29"></path>
+<polygon fill="black" stroke="black" points="349.69,-148.49 360.17,-150.06 352.96,-142.3 349.69,-148.49"></polygon>
+</g>
+</g>
+</svg>
+
+</center>
+<div class="paragraph">
+<p>This kind of dependency-based selective test execution is generally straightforward:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>You need to know which modules own which source files (e.g. based on the folder),</p>
+</li>
+<li>
+<p>You need to know which modules depend on which other modules</p>
+</li>
+<li>
+<p>Run a <code>git diff</code> on the code change you want to validate</p>
+</li>
+<li>
+<p>For any modules which contain changed files, run a breadth-first traversal of the module graph</p>
+</li>
+<li>
+<p>For all the modules discovered during the traversal, run their tests</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The algorithm (i.e. a breadth first search) is pretty trivial, the interesting part
+is generally how you know <em>&quot;which modules own which source files&quot;</em> and
+<em>&quot;which modules depend on which other modules&quot;</em>.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>For smaller projects this can be
+managed manually in a bash or python script, e.g.
+<a href="https://github.com/apache/spark/blob/290b4b31bae2e02b648d2c5ef61183f337b18f8f/dev/sparktestsupport/modules.py#L108-L126">this code in Apache Spark</a>
+that manually maintains a list of source folders and dependencies per-module,
+as well as what command in the underlying build tool you need to run
+in order to test that module (<code>sbt_test_goals</code>):</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">tags = Module(
+    name=&quot;tags&quot;,
+    dependencies=[],
+    source_file_regexes=[&quot;common/tags/&quot;],
+)
+
+utils = Module(
+    name=&quot;utils&quot;,
+    dependencies=[tags],
+    source_file_regexes=[&quot;common/utils/&quot;],
+    sbt_test_goals=[&quot;common-utils/test&quot;],
+)
+
+kvstore = Module(
+    name=&quot;kvstore&quot;,
+    dependencies=[tags],
+    source_file_regexes=[&quot;common/kvstore/&quot;],
+    sbt_test_goals=[&quot;kvstore/test&quot;],
+)
+
+...</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>In a larger project maintaining this information by hand is tedious and error prone,
+so it is better to get the information from your build tool that already has it
+(e.g. via <a href="../mill/large/selective-execution.html" class="xref page">Mill Selective Execution</a>).</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_limitations_of_dependency_based_selective_testing"><a class="anchor" href="#_limitations_of_dependency_based_selective_testing"></a>Limitations of Dependency-based Selective Testing</h3>
+<div class="paragraph">
+<p>Dependency-based selective test execution can get you pretty far: 100s to 1,000 developers
+working on a shared codebase. But it still has weaknesses, and as the number of
+developers grows beyond 1,000, you begin noticing issues and inefficiency:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>You are limited by the granularity of your module graph</strong>. For example,
+<code>backend_service_utils</code> may be used by all three <code>backend_service</code>s,
+but not <em>all</em> of <code>backend_service_utils</code> is used by all three services. Thus
+a change to <code>backend_service_utils</code> may result in running tests for all three
+<code>backend_service</code>s, even if that change may not affect that particular service</p>
+</li>
+<li>
+<p><strong>You may over-test things redundantly</strong>. For example, a function in <code>backend_service_utils</code>
+may be exhaustively tested in <code>backend_service_utils</code>'s own test suite. If so, running
+unit tests for all three <code>backend_service</code>s
+as well as integration tests for all three <code>deployment</code>s may be unnecessary, as they
+will just exercise code paths that are already exercised as part of the <code>backend_service_utils</code>
+test suite</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>These failure modes are especially problematic for integration or end-to-end tests.
+The nature of end-to-end tests is that they depend on <em>everything</em>, and so you find
+<em>any change</em> in your codebase triggering <em>every end-to-end_test</em> to be run. These
+are also the slowest tests in your codebase, so running every end-to-end test every time
+you touch any line of code is extremely expensive and wasteful.</p>
+</div>
+<div class="paragraph">
+<p>For example, touching <code>backend_service_1</code> is enough to trigger all the <code>end_to_end</code> tests:</p>
+</div>
+<center>
+<svg width="768px" height="205px" viewBox="0.00 0.00 767.75 204.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 200.8)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-200.8 763.75,-200.8 763.75,4 -4,4"></polygon>
+<!-- frontend_web_utils -->
+<g id="node1" class="node">
+<title>frontend_web_utils</title>
+<polygon fill="white" stroke="black" points="132.56,-174.7 7.84,-174.7 7.84,-150.1 132.56,-150.1 132.56,-174.7"></polygon>
+<text text-anchor="middle" x="70.2" y="-158.2" font-family="Times,serif" font-size="14.00">frontend_web_utils</text>
+</g>
+<!-- frontend_web_2 -->
+<g id="node2" class="node">
+<title>frontend_web_2</title>
+<polygon fill="white" stroke="black" points="291.79,-153.7 184.29,-153.7 184.29,-129.1 291.79,-129.1 291.79,-153.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-137.2" font-family="Times,serif" font-size="14.00">frontend_web_2</text>
+</g>
+<!-- frontend_web_utils&#45;&gt;frontend_web_2 -->
+<g id="edge1" class="edge">
+<title>frontend_web_utils-&gt;frontend_web_2</title>
+<path fill="none" stroke="black" d="M132.95,-154.58C146.38,-152.88 160.61,-151.08 174.08,-149.37"></path>
+<polygon fill="black" stroke="black" points="174.73,-152.82 184.22,-148.09 173.86,-145.87 174.73,-152.82"></polygon>
+</g>
+<!-- frontend_web_1 -->
+<g id="node4" class="node">
+<title>frontend_web_1</title>
+<polygon fill="white" stroke="black" points="291.79,-196.7 184.29,-196.7 184.29,-172.1 291.79,-172.1 291.79,-196.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-180.2" font-family="Times,serif" font-size="14.00">frontend_web_1</text>
+</g>
+<!-- frontend_web_utils&#45;&gt;frontend_web_1 -->
+<g id="edge3" class="edge">
+<title>frontend_web_utils-&gt;frontend_web_1</title>
+<path fill="none" stroke="black" d="M132.95,-170.59C146.38,-172.37 160.61,-174.26 174.08,-176.05"></path>
+<polygon fill="black" stroke="black" points="173.84,-179.55 184.22,-177.39 174.76,-172.61 173.84,-179.55"></polygon>
+</g>
+<!-- deployment_2 -->
+<g id="node3" class="node">
+<title>deployment_2</title>
+<polygon fill="white" stroke="black" points="431.83,-67.7 335.63,-67.7 335.63,-43.1 431.83,-43.1 431.83,-67.7"></polygon>
+<text text-anchor="middle" x="383.73" y="-51.2" font-family="Times,serif" font-size="14.00">deployment_2</text>
+</g>
+<!-- frontend_web_2&#45;&gt;deployment_2 -->
+<g id="edge2" class="edge">
+<title>frontend_web_2-&gt;deployment_2</title>
+<path fill="none" stroke="black" d="M281.85,-129.04C288.1,-126.35 294.25,-123.16 299.68,-119.4 319.9,-105.41 316.11,-92.27 335.68,-77.4 337.76,-75.82 339.96,-74.32 342.24,-72.9"></path>
+<polygon fill="black" stroke="black" points="344.28,-75.77 351.28,-67.82 340.85,-69.67 344.28,-75.77"></polygon>
+</g>
+<!-- staging_environment -->
+<g id="node11" class="node">
+<title>staging_environment</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="602.09,-67.7 467.68,-67.7 467.68,-43.1 602.09,-43.1 602.09,-67.7"></polygon>
+<text text-anchor="middle" x="534.89" y="-51.2" font-family="Times,serif" font-size="14.00">staging_environment</text>
+</g>
+<!-- deployment_2&#45;&gt;staging_environment -->
+<g id="edge12" class="edge">
+<title>deployment_2-&gt;staging_environment</title>
+<path fill="none" stroke="black" d="M431.93,-55.4C440.08,-55.4 448.75,-55.4 457.45,-55.4"></path>
+<polygon fill="black" stroke="black" points="457.65,-58.9 467.65,-55.4 457.65,-51.9 457.65,-58.9"></polygon>
+</g>
+<!-- deployment_1 -->
+<g id="node5" class="node">
+<title>deployment_1</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="431.83,-110.7 335.63,-110.7 335.63,-86.1 431.83,-86.1 431.83,-110.7"></polygon>
+<text text-anchor="middle" x="383.73" y="-94.2" font-family="Times,serif" font-size="14.00">deployment_1</text>
+</g>
+<!-- frontend_web_1&#45;&gt;deployment_1 -->
+<g id="edge4" class="edge">
+<title>frontend_web_1-&gt;deployment_1</title>
+<path fill="none" stroke="black" d="M278.64,-172.04C285.82,-169.24 293.11,-166.01 299.68,-162.4 322.37,-149.94 345.48,-131.57 361.54,-117.71"></path>
+<polygon fill="black" stroke="black" points="364.06,-120.15 369.26,-110.92 359.44,-114.9 364.06,-120.15"></polygon>
+</g>
+<!-- deployment_1&#45;&gt;staging_environment -->
+<g id="edge11" class="edge">
+<title>deployment_1-&gt;staging_environment</title>
+<path fill="none" stroke="black" d="M427.47,-86.08C444.17,-81.26 463.48,-75.7 481.04,-70.64"></path>
+<polygon fill="black" stroke="black" points="482.5,-73.86 491.14,-67.72 480.56,-67.13 482.5,-73.86"></polygon>
+</g>
+<!-- backend_service_utils -->
+<g id="node6" class="node">
+<title>backend_service_utils</title>
+<polygon fill="white" stroke="black" points="140.6,-67.7 -0.2,-67.7 -0.2,-43.1 140.6,-43.1 140.6,-67.7"></polygon>
+<text text-anchor="middle" x="70.2" y="-51.2" font-family="Times,serif" font-size="14.00">backend_service_utils</text>
+</g>
+<!-- backend_service_1 -->
+<g id="node7" class="node">
+<title>backend_service_1</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="299.83,-110.7 176.26,-110.7 176.26,-86.1 299.83,-86.1 299.83,-110.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-94.2" font-family="Times,serif" font-size="14.00">backend_service_1</text>
+</g>
+<!-- backend_service_utils&#45;&gt;backend_service_1 -->
+<g id="edge5" class="edge">
+<title>backend_service_utils-&gt;backend_service_1</title>
+<path fill="none" stroke="black" d="M118.72,-67.72C137.72,-72.65 159.77,-78.36 179.65,-83.52"></path>
+<polygon fill="black" stroke="black" points="178.95,-86.95 189.51,-86.08 180.71,-80.18 178.95,-86.95"></polygon>
+</g>
+<!-- backend_service_2 -->
+<g id="node8" class="node">
+<title>backend_service_2</title>
+<polygon fill="white" stroke="black" points="299.83,-67.7 176.26,-67.7 176.26,-43.1 299.83,-43.1 299.83,-67.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-51.2" font-family="Times,serif" font-size="14.00">backend_service_2</text>
+</g>
+<!-- backend_service_utils&#45;&gt;backend_service_2 -->
+<g id="edge7" class="edge">
+<title>backend_service_utils-&gt;backend_service_2</title>
+<path fill="none" stroke="black" d="M140.57,-55.4C149.03,-55.4 157.68,-55.4 166.15,-55.4"></path>
+<polygon fill="black" stroke="black" points="166.38,-58.9 176.38,-55.4 166.38,-51.9 166.38,-58.9"></polygon>
+</g>
+<!-- backend_service_3 -->
+<g id="node9" class="node">
+<title>backend_service_3</title>
+<polygon fill="white" stroke="black" points="299.83,-24.7 176.26,-24.7 176.26,-0.1 299.83,-0.1 299.83,-24.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-8.2" font-family="Times,serif" font-size="14.00">backend_service_3</text>
+</g>
+<!-- backend_service_utils&#45;&gt;backend_service_3 -->
+<g id="edge9" class="edge">
+<title>backend_service_utils-&gt;backend_service_3</title>
+<path fill="none" stroke="black" d="M118.72,-43.08C137.72,-38.15 159.77,-32.44 179.65,-27.28"></path>
+<polygon fill="black" stroke="black" points="180.71,-30.62 189.51,-24.72 178.95,-23.85 180.71,-30.62"></polygon>
+</g>
+<!-- backend_service_1&#45;&gt;deployment_1 -->
+<g id="edge6" class="edge">
+<title>backend_service_1-&gt;deployment_1</title>
+<path fill="none" stroke="red" stroke-width="2" d="M299.98,-98.4C308.46,-98.4 317.15,-98.4 325.57,-98.4"></path>
+<polygon fill="red" stroke="red" stroke-width="2" points="325.65,-101.9 335.65,-98.4 325.65,-94.9 325.65,-101.9"></polygon>
+</g>
+<!-- backend_service_2&#45;&gt;deployment_2 -->
+<g id="edge8" class="edge">
+<title>backend_service_2-&gt;deployment_2</title>
+<path fill="none" stroke="black" d="M299.98,-55.4C308.46,-55.4 317.15,-55.4 325.57,-55.4"></path>
+<polygon fill="black" stroke="black" points="325.65,-58.9 335.65,-55.4 325.65,-51.9 325.65,-58.9"></polygon>
+</g>
+<!-- deployment_3 -->
+<g id="node10" class="node">
+<title>deployment_3</title>
+<polygon fill="white" stroke="black" points="431.83,-24.7 335.63,-24.7 335.63,-0.1 431.83,-0.1 431.83,-24.7"></polygon>
+<text text-anchor="middle" x="383.73" y="-8.2" font-family="Times,serif" font-size="14.00">deployment_3</text>
+</g>
+<!-- backend_service_3&#45;&gt;deployment_3 -->
+<g id="edge10" class="edge">
+<title>backend_service_3-&gt;deployment_3</title>
+<path fill="none" stroke="black" d="M299.98,-12.4C308.46,-12.4 317.15,-12.4 325.57,-12.4"></path>
+<polygon fill="black" stroke="black" points="325.65,-15.9 335.65,-12.4 325.65,-8.9 325.65,-15.9"></polygon>
+</g>
+<!-- deployment_3&#45;&gt;staging_environment -->
+<g id="edge13" class="edge">
+<title>deployment_3-&gt;staging_environment</title>
+<path fill="none" stroke="black" d="M427.47,-24.72C444.17,-29.54 463.48,-35.1 481.04,-40.16"></path>
+<polygon fill="black" stroke="black" points="480.56,-43.67 491.14,-43.08 482.5,-36.94 480.56,-43.67"></polygon>
+</g>
+<!-- end_to_end_test_1 -->
+<g id="node12" class="node">
+<title>end_to_end_test_1</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="759.63,-110.7 638.11,-110.7 638.11,-86.1 759.63,-86.1 759.63,-110.7"></polygon>
+<text text-anchor="middle" x="698.87" y="-94.2" font-family="Times,serif" font-size="14.00">end_to_end_test_1</text>
+</g>
+<!-- staging_environment&#45;&gt;end_to_end_test_1 -->
+<g id="edge14" class="edge">
+<title>staging_environment-&gt;end_to_end_test_1</title>
+<path fill="none" stroke="red" stroke-width="2" d="M582.3,-67.72C600.77,-72.63 622.19,-78.31 641.54,-83.45"></path>
+<polygon fill="red" stroke="red" stroke-width="2" points="640.88,-86.89 651.44,-86.08 642.68,-80.13 640.88,-86.89"></polygon>
+</g>
+<!-- end_to_end_test_2 -->
+<g id="node13" class="node">
+<title>end_to_end_test_2</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="759.63,-67.7 638.11,-67.7 638.11,-43.1 759.63,-43.1 759.63,-67.7"></polygon>
+<text text-anchor="middle" x="698.87" y="-51.2" font-family="Times,serif" font-size="14.00">end_to_end_test_2</text>
+</g>
+<!-- staging_environment&#45;&gt;end_to_end_test_2 -->
+<g id="edge15" class="edge">
+<title>staging_environment-&gt;end_to_end_test_2</title>
+<path fill="none" stroke="red" stroke-width="2" d="M602.24,-55.4C610.62,-55.4 619.22,-55.4 627.67,-55.4"></path>
+<polygon fill="red" stroke="red" stroke-width="2" points="627.86,-58.9 637.86,-55.4 627.86,-51.9 627.86,-58.9"></polygon>
+</g>
+<!-- end_to_end_test_3 -->
+<g id="node14" class="node">
+<title>end_to_end_test_3</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="759.63,-24.7 638.11,-24.7 638.11,-0.1 759.63,-0.1 759.63,-24.7"></polygon>
+<text text-anchor="middle" x="698.87" y="-8.2" font-family="Times,serif" font-size="14.00">end_to_end_test_3</text>
+</g>
+<!-- staging_environment&#45;&gt;end_to_end_test_3 -->
+<g id="edge16" class="edge">
+<title>staging_environment-&gt;end_to_end_test_3</title>
+<path fill="none" stroke="red" stroke-width="2" d="M582.3,-43.08C600.77,-38.17 622.19,-32.49 641.54,-27.35"></path>
+<polygon fill="red" stroke="red" stroke-width="2" points="642.68,-30.67 651.44,-24.72 640.88,-23.91 642.68,-30.67"></polygon>
+</g>
+</g>
+</svg>
+
+</center>
+<div class="paragraph">
+<p>Touching <code>frontend_web_2</code> is also enough to trigger all the <code>end_to_end</code> tests:</p>
+</div>
+<center>
+<svg width="768px" height="205px" viewBox="0.00 0.00 767.75 204.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 200.8)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-200.8 763.75,-200.8 763.75,4 -4,4"></polygon>
+<!-- frontend_web_2 -->
+<g id="node1" class="node">
+<title>frontend_web_2</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="291.79,-153.7 184.29,-153.7 184.29,-129.1 291.79,-129.1 291.79,-153.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-137.2" font-family="Times,serif" font-size="14.00">frontend_web_2</text>
+</g>
+<!-- deployment_2 -->
+<g id="node2" class="node">
+<title>deployment_2</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="431.83,-67.7 335.63,-67.7 335.63,-43.1 431.83,-43.1 431.83,-67.7"></polygon>
+<text text-anchor="middle" x="383.73" y="-51.2" font-family="Times,serif" font-size="14.00">deployment_2</text>
+</g>
+<!-- frontend_web_2&#45;&gt;deployment_2 -->
+<g id="edge1" class="edge">
+<title>frontend_web_2-&gt;deployment_2</title>
+<path fill="none" stroke="red" stroke-width="2" d="M281.85,-129.04C288.1,-126.35 294.25,-123.16 299.68,-119.4 319.9,-105.41 316.11,-92.27 335.68,-77.4 337.76,-75.82 339.96,-74.32 342.24,-72.9"></path>
+<polygon fill="red" stroke="red" stroke-width="2" points="344.28,-75.77 351.28,-67.82 340.85,-69.67 344.28,-75.77"></polygon>
+</g>
+<!-- staging_environment -->
+<g id="node11" class="node">
+<title>staging_environment</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="602.09,-67.7 467.68,-67.7 467.68,-43.1 602.09,-43.1 602.09,-67.7"></polygon>
+<text text-anchor="middle" x="534.89" y="-51.2" font-family="Times,serif" font-size="14.00">staging_environment</text>
+</g>
+<!-- deployment_2&#45;&gt;staging_environment -->
+<g id="edge12" class="edge">
+<title>deployment_2-&gt;staging_environment</title>
+<path fill="none" stroke="black" d="M431.93,-55.4C440.08,-55.4 448.75,-55.4 457.45,-55.4"></path>
+<polygon fill="black" stroke="black" points="457.65,-58.9 467.65,-55.4 457.65,-51.9 457.65,-58.9"></polygon>
+</g>
+<!-- frontend_web_utils -->
+<g id="node3" class="node">
+<title>frontend_web_utils</title>
+<polygon fill="white" stroke="black" points="132.56,-174.7 7.84,-174.7 7.84,-150.1 132.56,-150.1 132.56,-174.7"></polygon>
+<text text-anchor="middle" x="70.2" y="-158.2" font-family="Times,serif" font-size="14.00">frontend_web_utils</text>
+</g>
+<!-- frontend_web_utils&#45;&gt;frontend_web_2 -->
+<g id="edge4" class="edge">
+<title>frontend_web_utils-&gt;frontend_web_2</title>
+<path fill="none" stroke="black" d="M132.95,-154.58C146.38,-152.88 160.61,-151.08 174.08,-149.37"></path>
+<polygon fill="black" stroke="black" points="174.73,-152.82 184.22,-148.09 173.86,-145.87 174.73,-152.82"></polygon>
+</g>
+<!-- frontend_web_1 -->
+<g id="node4" class="node">
+<title>frontend_web_1</title>
+<polygon fill="white" stroke="black" points="291.79,-196.7 184.29,-196.7 184.29,-172.1 291.79,-172.1 291.79,-196.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-180.2" font-family="Times,serif" font-size="14.00">frontend_web_1</text>
+</g>
+<!-- frontend_web_utils&#45;&gt;frontend_web_1 -->
+<g id="edge2" class="edge">
+<title>frontend_web_utils-&gt;frontend_web_1</title>
+<path fill="none" stroke="black" d="M132.95,-170.59C146.38,-172.37 160.61,-174.26 174.08,-176.05"></path>
+<polygon fill="black" stroke="black" points="173.84,-179.55 184.22,-177.39 174.76,-172.61 173.84,-179.55"></polygon>
+</g>
+<!-- deployment_1 -->
+<g id="node5" class="node">
+<title>deployment_1</title>
+<polygon fill="white" stroke="black" points="431.83,-110.7 335.63,-110.7 335.63,-86.1 431.83,-86.1 431.83,-110.7"></polygon>
+<text text-anchor="middle" x="383.73" y="-94.2" font-family="Times,serif" font-size="14.00">deployment_1</text>
+</g>
+<!-- frontend_web_1&#45;&gt;deployment_1 -->
+<g id="edge3" class="edge">
+<title>frontend_web_1-&gt;deployment_1</title>
+<path fill="none" stroke="black" d="M278.64,-172.04C285.82,-169.24 293.11,-166.01 299.68,-162.4 322.37,-149.94 345.48,-131.57 361.54,-117.71"></path>
+<polygon fill="black" stroke="black" points="364.06,-120.15 369.26,-110.92 359.44,-114.9 364.06,-120.15"></polygon>
+</g>
+<!-- deployment_1&#45;&gt;staging_environment -->
+<g id="edge11" class="edge">
+<title>deployment_1-&gt;staging_environment</title>
+<path fill="none" stroke="black" d="M427.47,-86.08C444.17,-81.26 463.48,-75.7 481.04,-70.64"></path>
+<polygon fill="black" stroke="black" points="482.5,-73.86 491.14,-67.72 480.56,-67.13 482.5,-73.86"></polygon>
+</g>
+<!-- backend_service_utils -->
+<g id="node6" class="node">
+<title>backend_service_utils</title>
+<polygon fill="white" stroke="black" points="140.6,-67.7 -0.2,-67.7 -0.2,-43.1 140.6,-43.1 140.6,-67.7"></polygon>
+<text text-anchor="middle" x="70.2" y="-51.2" font-family="Times,serif" font-size="14.00">backend_service_utils</text>
+</g>
+<!-- backend_service_1 -->
+<g id="node7" class="node">
+<title>backend_service_1</title>
+<polygon fill="white" stroke="black" points="299.83,-110.7 176.26,-110.7 176.26,-86.1 299.83,-86.1 299.83,-110.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-94.2" font-family="Times,serif" font-size="14.00">backend_service_1</text>
+</g>
+<!-- backend_service_utils&#45;&gt;backend_service_1 -->
+<g id="edge5" class="edge">
+<title>backend_service_utils-&gt;backend_service_1</title>
+<path fill="none" stroke="black" d="M118.72,-67.72C137.72,-72.65 159.77,-78.36 179.65,-83.52"></path>
+<polygon fill="black" stroke="black" points="178.95,-86.95 189.51,-86.08 180.71,-80.18 178.95,-86.95"></polygon>
+</g>
+<!-- backend_service_2 -->
+<g id="node8" class="node">
+<title>backend_service_2</title>
+<polygon fill="white" stroke="black" points="299.83,-67.7 176.26,-67.7 176.26,-43.1 299.83,-43.1 299.83,-67.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-51.2" font-family="Times,serif" font-size="14.00">backend_service_2</text>
+</g>
+<!-- backend_service_utils&#45;&gt;backend_service_2 -->
+<g id="edge7" class="edge">
+<title>backend_service_utils-&gt;backend_service_2</title>
+<path fill="none" stroke="black" d="M140.57,-55.4C149.03,-55.4 157.68,-55.4 166.15,-55.4"></path>
+<polygon fill="black" stroke="black" points="166.38,-58.9 176.38,-55.4 166.38,-51.9 166.38,-58.9"></polygon>
+</g>
+<!-- backend_service_3 -->
+<g id="node9" class="node">
+<title>backend_service_3</title>
+<polygon fill="white" stroke="black" points="299.83,-24.7 176.26,-24.7 176.26,-0.1 299.83,-0.1 299.83,-24.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-8.2" font-family="Times,serif" font-size="14.00">backend_service_3</text>
+</g>
+<!-- backend_service_utils&#45;&gt;backend_service_3 -->
+<g id="edge9" class="edge">
+<title>backend_service_utils-&gt;backend_service_3</title>
+<path fill="none" stroke="black" d="M118.72,-43.08C137.72,-38.15 159.77,-32.44 179.65,-27.28"></path>
+<polygon fill="black" stroke="black" points="180.71,-30.62 189.51,-24.72 178.95,-23.85 180.71,-30.62"></polygon>
+</g>
+<!-- backend_service_1&#45;&gt;deployment_1 -->
+<g id="edge6" class="edge">
+<title>backend_service_1-&gt;deployment_1</title>
+<path fill="none" stroke="black" d="M299.98,-98.4C308.46,-98.4 317.15,-98.4 325.57,-98.4"></path>
+<polygon fill="black" stroke="black" points="325.65,-101.9 335.65,-98.4 325.65,-94.9 325.65,-101.9"></polygon>
+</g>
+<!-- backend_service_2&#45;&gt;deployment_2 -->
+<g id="edge8" class="edge">
+<title>backend_service_2-&gt;deployment_2</title>
+<path fill="none" stroke="black" d="M299.98,-55.4C308.46,-55.4 317.15,-55.4 325.57,-55.4"></path>
+<polygon fill="black" stroke="black" points="325.65,-58.9 335.65,-55.4 325.65,-51.9 325.65,-58.9"></polygon>
+</g>
+<!-- deployment_3 -->
+<g id="node10" class="node">
+<title>deployment_3</title>
+<polygon fill="white" stroke="black" points="431.83,-24.7 335.63,-24.7 335.63,-0.1 431.83,-0.1 431.83,-24.7"></polygon>
+<text text-anchor="middle" x="383.73" y="-8.2" font-family="Times,serif" font-size="14.00">deployment_3</text>
+</g>
+<!-- backend_service_3&#45;&gt;deployment_3 -->
+<g id="edge10" class="edge">
+<title>backend_service_3-&gt;deployment_3</title>
+<path fill="none" stroke="black" d="M299.98,-12.4C308.46,-12.4 317.15,-12.4 325.57,-12.4"></path>
+<polygon fill="black" stroke="black" points="325.65,-15.9 335.65,-12.4 325.65,-8.9 325.65,-15.9"></polygon>
+</g>
+<!-- deployment_3&#45;&gt;staging_environment -->
+<g id="edge13" class="edge">
+<title>deployment_3-&gt;staging_environment</title>
+<path fill="none" stroke="black" d="M427.47,-24.72C444.17,-29.54 463.48,-35.1 481.04,-40.16"></path>
+<polygon fill="black" stroke="black" points="480.56,-43.67 491.14,-43.08 482.5,-36.94 480.56,-43.67"></polygon>
+</g>
+<!-- end_to_end_test_1 -->
+<g id="node12" class="node">
+<title>end_to_end_test_1</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="759.63,-110.7 638.11,-110.7 638.11,-86.1 759.63,-86.1 759.63,-110.7"></polygon>
+<text text-anchor="middle" x="698.87" y="-94.2" font-family="Times,serif" font-size="14.00">end_to_end_test_1</text>
+</g>
+<!-- staging_environment&#45;&gt;end_to_end_test_1 -->
+<g id="edge14" class="edge">
+<title>staging_environment-&gt;end_to_end_test_1</title>
+<path fill="none" stroke="red" stroke-width="2" d="M582.3,-67.72C600.77,-72.63 622.19,-78.31 641.54,-83.45"></path>
+<polygon fill="red" stroke="red" stroke-width="2" points="640.88,-86.89 651.44,-86.08 642.68,-80.13 640.88,-86.89"></polygon>
+</g>
+<!-- end_to_end_test_2 -->
+<g id="node13" class="node">
+<title>end_to_end_test_2</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="759.63,-67.7 638.11,-67.7 638.11,-43.1 759.63,-43.1 759.63,-67.7"></polygon>
+<text text-anchor="middle" x="698.87" y="-51.2" font-family="Times,serif" font-size="14.00">end_to_end_test_2</text>
+</g>
+<!-- staging_environment&#45;&gt;end_to_end_test_2 -->
+<g id="edge15" class="edge">
+<title>staging_environment-&gt;end_to_end_test_2</title>
+<path fill="none" stroke="red" stroke-width="2" d="M602.24,-55.4C610.62,-55.4 619.22,-55.4 627.67,-55.4"></path>
+<polygon fill="red" stroke="red" stroke-width="2" points="627.86,-58.9 637.86,-55.4 627.86,-51.9 627.86,-58.9"></polygon>
+</g>
+<!-- end_to_end_test_3 -->
+<g id="node14" class="node">
+<title>end_to_end_test_3</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="759.63,-24.7 638.11,-24.7 638.11,-0.1 759.63,-0.1 759.63,-24.7"></polygon>
+<text text-anchor="middle" x="698.87" y="-8.2" font-family="Times,serif" font-size="14.00">end_to_end_test_3</text>
+</g>
+<!-- staging_environment&#45;&gt;end_to_end_test_3 -->
+<g id="edge16" class="edge">
+<title>staging_environment-&gt;end_to_end_test_3</title>
+<path fill="none" stroke="red" stroke-width="2" d="M582.3,-43.08C600.77,-38.17 622.19,-32.49 641.54,-27.35"></path>
+<polygon fill="red" stroke="red" stroke-width="2" points="642.68,-30.67 651.44,-24.72 640.88,-23.91 642.68,-30.67"></polygon>
+</g>
+</g>
+</svg>
+
+</center>
+<div class="paragraph">
+<p>The two examples above demonstrate both failure modes:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><code>staging_environment</code> is very coarse grained, causing all <code>end_to_end_test</code>s to be run
+even if they don’t actually test the code in question</p>
+</li>
+<li>
+<p>Every <code>end_to_end_test</code> likely exercises the same setup/teardown/plumbing code,
+in addition to the core logic under test, resulting in the same code being exercised
+redundantly by many different tests</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>This results in the selective testing system wasting both time and compute resources,
+running tests that aren’t relevant or repeatedly testing the same code paths over and over.
+While there are some ways you can improve the granularity of the module graph to mitigate
+these two issues, these issues are fundamental to dependency-based selective testing:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Dependency-based Selective Testing means <em>a problematic code change cases all affected tests to break</em></p>
+</li>
+<li>
+<p>For an effectivec CI system, all we need is that <em>every problematic code change breaks at least one test</em></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Fundamentally, CI just needs to ensure that every problematic code change breaks <em>at least one thing</em>,
+because that is usually enough for the pull-request author to act on it and resolve the problem.
+Running more tests to display more breakages is usually a waste of time and resources. Thus,
+although dependency-based selective testing helps, it still falls short of the ideal of how a CI
+system should behave.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_heuristic_based_selective_testing"><a class="anchor" href="#_heuristic_based_selective_testing"></a>Heuristic-based Selective Testing</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The next stage of selective testing that most teams encounter is using heuristics: these are
+ad-hoc rules that you put in place to decide what tests to run based on a code change.
+Common heuristics include:</p>
+</div>
+<div class="sect2">
+<h3 id="_limiting_dependency_depth"><a class="anchor" href="#_limiting_dependency_depth"></a>Limiting Dependency Depth</h3>
+<div class="paragraph">
+<p>The chances
+are that a breaking in module X will be caught by X’s test suite, or the test suite of
+X’s direct downstream modules, so we don’t need to run every single transitive downstream
+module’s test suite. e.g. if we set <code>N = 1</code>, then a change to <code>backend_service_1</code> shown below
+will only run tests for <code>backend_service_1</code> and <code>deployment_1</code>, but not the <code>end_to_end_test</code>s
+downstream of the <code>staging_environment</code>:</p>
+</div>
+<center>
+<svg width="768px" height="205px" viewBox="0.00 0.00 767.75 204.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 200.8)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-200.8 763.75,-200.8 763.75,4 -4,4"></polygon>
+<!-- frontend_web_utils -->
+<g id="node1" class="node">
+<title>frontend_web_utils</title>
+<polygon fill="white" stroke="black" points="132.56,-174.7 7.84,-174.7 7.84,-150.1 132.56,-150.1 132.56,-174.7"></polygon>
+<text text-anchor="middle" x="70.2" y="-158.2" font-family="Times,serif" font-size="14.00">frontend_web_utils</text>
+</g>
+<!-- frontend_web_2 -->
+<g id="node2" class="node">
+<title>frontend_web_2</title>
+<polygon fill="white" stroke="black" points="291.79,-153.7 184.29,-153.7 184.29,-129.1 291.79,-129.1 291.79,-153.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-137.2" font-family="Times,serif" font-size="14.00">frontend_web_2</text>
+</g>
+<!-- frontend_web_utils&#45;&gt;frontend_web_2 -->
+<g id="edge1" class="edge">
+<title>frontend_web_utils-&gt;frontend_web_2</title>
+<path fill="none" stroke="black" d="M132.95,-154.58C146.38,-152.88 160.61,-151.08 174.08,-149.37"></path>
+<polygon fill="black" stroke="black" points="174.73,-152.82 184.22,-148.09 173.86,-145.87 174.73,-152.82"></polygon>
+</g>
+<!-- frontend_web_1 -->
+<g id="node4" class="node">
+<title>frontend_web_1</title>
+<polygon fill="white" stroke="black" points="291.79,-196.7 184.29,-196.7 184.29,-172.1 291.79,-172.1 291.79,-196.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-180.2" font-family="Times,serif" font-size="14.00">frontend_web_1</text>
+</g>
+<!-- frontend_web_utils&#45;&gt;frontend_web_1 -->
+<g id="edge3" class="edge">
+<title>frontend_web_utils-&gt;frontend_web_1</title>
+<path fill="none" stroke="black" d="M132.95,-170.59C146.38,-172.37 160.61,-174.26 174.08,-176.05"></path>
+<polygon fill="black" stroke="black" points="173.84,-179.55 184.22,-177.39 174.76,-172.61 173.84,-179.55"></polygon>
+</g>
+<!-- deployment_2 -->
+<g id="node3" class="node">
+<title>deployment_2</title>
+<polygon fill="white" stroke="black" points="431.83,-67.7 335.63,-67.7 335.63,-43.1 431.83,-43.1 431.83,-67.7"></polygon>
+<text text-anchor="middle" x="383.73" y="-51.2" font-family="Times,serif" font-size="14.00">deployment_2</text>
+</g>
+<!-- frontend_web_2&#45;&gt;deployment_2 -->
+<g id="edge2" class="edge">
+<title>frontend_web_2-&gt;deployment_2</title>
+<path fill="none" stroke="black" d="M281.85,-129.04C288.1,-126.35 294.25,-123.16 299.68,-119.4 319.9,-105.41 316.11,-92.27 335.68,-77.4 337.76,-75.82 339.96,-74.32 342.24,-72.9"></path>
+<polygon fill="black" stroke="black" points="344.28,-75.77 351.28,-67.82 340.85,-69.67 344.28,-75.77"></polygon>
+</g>
+<!-- staging_environment -->
+<g id="node11" class="node">
+<title>staging_environment</title>
+<polygon fill="white" stroke="black" points="602.09,-67.7 467.68,-67.7 467.68,-43.1 602.09,-43.1 602.09,-67.7"></polygon>
+<text text-anchor="middle" x="534.89" y="-51.2" font-family="Times,serif" font-size="14.00">staging_environment</text>
+</g>
+<!-- deployment_2&#45;&gt;staging_environment -->
+<g id="edge12" class="edge">
+<title>deployment_2-&gt;staging_environment</title>
+<path fill="none" stroke="black" d="M431.93,-55.4C440.08,-55.4 448.75,-55.4 457.45,-55.4"></path>
+<polygon fill="black" stroke="black" points="457.65,-58.9 467.65,-55.4 457.65,-51.9 457.65,-58.9"></polygon>
+</g>
+<!-- deployment_1 -->
+<g id="node5" class="node">
+<title>deployment_1</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="431.83,-110.7 335.63,-110.7 335.63,-86.1 431.83,-86.1 431.83,-110.7"></polygon>
+<text text-anchor="middle" x="383.73" y="-94.2" font-family="Times,serif" font-size="14.00">deployment_1</text>
+</g>
+<!-- frontend_web_1&#45;&gt;deployment_1 -->
+<g id="edge4" class="edge">
+<title>frontend_web_1-&gt;deployment_1</title>
+<path fill="none" stroke="black" d="M278.64,-172.04C285.82,-169.24 293.11,-166.01 299.68,-162.4 322.37,-149.94 345.48,-131.57 361.54,-117.71"></path>
+<polygon fill="black" stroke="black" points="364.06,-120.15 369.26,-110.92 359.44,-114.9 364.06,-120.15"></polygon>
+</g>
+<!-- deployment_1&#45;&gt;staging_environment -->
+<g id="edge11" class="edge">
+<title>deployment_1-&gt;staging_environment</title>
+<path fill="none" stroke="black" d="M427.47,-86.08C444.17,-81.26 463.48,-75.7 481.04,-70.64"></path>
+<polygon fill="black" stroke="black" points="482.5,-73.86 491.14,-67.72 480.56,-67.13 482.5,-73.86"></polygon>
+</g>
+<!-- backend_service_utils -->
+<g id="node6" class="node">
+<title>backend_service_utils</title>
+<polygon fill="white" stroke="black" points="140.6,-67.7 -0.2,-67.7 -0.2,-43.1 140.6,-43.1 140.6,-67.7"></polygon>
+<text text-anchor="middle" x="70.2" y="-51.2" font-family="Times,serif" font-size="14.00">backend_service_utils</text>
+</g>
+<!-- backend_service_1 -->
+<g id="node7" class="node">
+<title>backend_service_1</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="299.83,-110.7 176.26,-110.7 176.26,-86.1 299.83,-86.1 299.83,-110.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-94.2" font-family="Times,serif" font-size="14.00">backend_service_1</text>
+</g>
+<!-- backend_service_utils&#45;&gt;backend_service_1 -->
+<g id="edge5" class="edge">
+<title>backend_service_utils-&gt;backend_service_1</title>
+<path fill="none" stroke="black" d="M118.72,-67.72C137.72,-72.65 159.77,-78.36 179.65,-83.52"></path>
+<polygon fill="black" stroke="black" points="178.95,-86.95 189.51,-86.08 180.71,-80.18 178.95,-86.95"></polygon>
+</g>
+<!-- backend_service_2 -->
+<g id="node8" class="node">
+<title>backend_service_2</title>
+<polygon fill="white" stroke="black" points="299.83,-67.7 176.26,-67.7 176.26,-43.1 299.83,-43.1 299.83,-67.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-51.2" font-family="Times,serif" font-size="14.00">backend_service_2</text>
+</g>
+<!-- backend_service_utils&#45;&gt;backend_service_2 -->
+<g id="edge7" class="edge">
+<title>backend_service_utils-&gt;backend_service_2</title>
+<path fill="none" stroke="black" d="M140.57,-55.4C149.03,-55.4 157.68,-55.4 166.15,-55.4"></path>
+<polygon fill="black" stroke="black" points="166.38,-58.9 176.38,-55.4 166.38,-51.9 166.38,-58.9"></polygon>
+</g>
+<!-- backend_service_3 -->
+<g id="node9" class="node">
+<title>backend_service_3</title>
+<polygon fill="white" stroke="black" points="299.83,-24.7 176.26,-24.7 176.26,-0.1 299.83,-0.1 299.83,-24.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-8.2" font-family="Times,serif" font-size="14.00">backend_service_3</text>
+</g>
+<!-- backend_service_utils&#45;&gt;backend_service_3 -->
+<g id="edge9" class="edge">
+<title>backend_service_utils-&gt;backend_service_3</title>
+<path fill="none" stroke="black" d="M118.72,-43.08C137.72,-38.15 159.77,-32.44 179.65,-27.28"></path>
+<polygon fill="black" stroke="black" points="180.71,-30.62 189.51,-24.72 178.95,-23.85 180.71,-30.62"></polygon>
+</g>
+<!-- backend_service_1&#45;&gt;deployment_1 -->
+<g id="edge6" class="edge">
+<title>backend_service_1-&gt;deployment_1</title>
+<path fill="none" stroke="red" stroke-width="2" d="M299.98,-98.4C308.46,-98.4 317.15,-98.4 325.57,-98.4"></path>
+<polygon fill="red" stroke="red" stroke-width="2" points="325.65,-101.9 335.65,-98.4 325.65,-94.9 325.65,-101.9"></polygon>
+</g>
+<!-- backend_service_2&#45;&gt;deployment_2 -->
+<g id="edge8" class="edge">
+<title>backend_service_2-&gt;deployment_2</title>
+<path fill="none" stroke="black" d="M299.98,-55.4C308.46,-55.4 317.15,-55.4 325.57,-55.4"></path>
+<polygon fill="black" stroke="black" points="325.65,-58.9 335.65,-55.4 325.65,-51.9 325.65,-58.9"></polygon>
+</g>
+<!-- deployment_3 -->
+<g id="node10" class="node">
+<title>deployment_3</title>
+<polygon fill="white" stroke="black" points="431.83,-24.7 335.63,-24.7 335.63,-0.1 431.83,-0.1 431.83,-24.7"></polygon>
+<text text-anchor="middle" x="383.73" y="-8.2" font-family="Times,serif" font-size="14.00">deployment_3</text>
+</g>
+<!-- backend_service_3&#45;&gt;deployment_3 -->
+<g id="edge10" class="edge">
+<title>backend_service_3-&gt;deployment_3</title>
+<path fill="none" stroke="black" d="M299.98,-12.4C308.46,-12.4 317.15,-12.4 325.57,-12.4"></path>
+<polygon fill="black" stroke="black" points="325.65,-15.9 335.65,-12.4 325.65,-8.9 325.65,-15.9"></polygon>
+</g>
+<!-- deployment_3&#45;&gt;staging_environment -->
+<g id="edge13" class="edge">
+<title>deployment_3-&gt;staging_environment</title>
+<path fill="none" stroke="black" d="M427.47,-24.72C444.17,-29.54 463.48,-35.1 481.04,-40.16"></path>
+<polygon fill="black" stroke="black" points="480.56,-43.67 491.14,-43.08 482.5,-36.94 480.56,-43.67"></polygon>
+</g>
+<!-- end_to_end_test_1 -->
+<g id="node12" class="node">
+<title>end_to_end_test_1</title>
+<polygon fill="white" stroke="black" points="759.63,-110.7 638.11,-110.7 638.11,-86.1 759.63,-86.1 759.63,-110.7"></polygon>
+<text text-anchor="middle" x="698.87" y="-94.2" font-family="Times,serif" font-size="14.00">end_to_end_test_1</text>
+</g>
+<!-- staging_environment&#45;&gt;end_to_end_test_1 -->
+<g id="edge14" class="edge">
+<title>staging_environment-&gt;end_to_end_test_1</title>
+<path fill="none" stroke="black" d="M582.3,-67.72C600.77,-72.63 622.19,-78.31 641.54,-83.45"></path>
+<polygon fill="black" stroke="black" points="640.88,-86.89 651.44,-86.08 642.68,-80.13 640.88,-86.89"></polygon>
+</g>
+<!-- end_to_end_test_2 -->
+<g id="node13" class="node">
+<title>end_to_end_test_2</title>
+<polygon fill="white" stroke="black" points="759.63,-67.7 638.11,-67.7 638.11,-43.1 759.63,-43.1 759.63,-67.7"></polygon>
+<text text-anchor="middle" x="698.87" y="-51.2" font-family="Times,serif" font-size="14.00">end_to_end_test_2</text>
+</g>
+<!-- staging_environment&#45;&gt;end_to_end_test_2 -->
+<g id="edge15" class="edge">
+<title>staging_environment-&gt;end_to_end_test_2</title>
+<path fill="none" stroke="black" d="M602.24,-55.4C610.62,-55.4 619.22,-55.4 627.67,-55.4"></path>
+<polygon fill="black" stroke="black" points="627.86,-58.9 637.86,-55.4 627.86,-51.9 627.86,-58.9"></polygon>
+</g>
+<!-- end_to_end_test_3 -->
+<g id="node14" class="node">
+<title>end_to_end_test_3</title>
+<polygon fill="white" stroke="black" points="759.63,-24.7 638.11,-24.7 638.11,-0.1 759.63,-0.1 759.63,-24.7"></polygon>
+<text text-anchor="middle" x="698.87" y="-8.2" font-family="Times,serif" font-size="14.00">end_to_end_test_3</text>
+</g>
+<!-- staging_environment&#45;&gt;end_to_end_test_3 -->
+<g id="edge16" class="edge">
+<title>staging_environment-&gt;end_to_end_test_3</title>
+<path fill="none" stroke="black" d="M582.3,-43.08C600.77,-38.17 622.19,-32.49 641.54,-27.35"></path>
+<polygon fill="black" stroke="black" points="642.68,-30.67 651.44,-24.72 640.88,-23.91 642.68,-30.67"></polygon>
+</g>
+</g>
+</svg>
+
+</center>
+<div class="paragraph">
+<p>At my last job, we picked <code>N = 8</code> somewhat arbitrarily, but as a heuristic there is
+no &quot;right&quot; answer, and the exact choice can be chosen to tradeoff between thoroughness
+and test latency. The principle here is that &quot;most&quot; code is tested
+by its own tests and those of its direct dependencies, so running tests for downstream
+folders which are too far removed in the dependency graph is &quot;generally&quot; not useful.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_hard_coding_dependency_relationships"><a class="anchor" href="#_hard_coding_dependency_relationships"></a>Hard-coding Dependency Relationships</h3>
+<div class="paragraph">
+<p>For example if I change <code>deployment_1</code>, I can choose to ignore the <code>staging_environment</code>
+when finding downstream tests, and only run <code>end_to_end_test_1</code> since it is end-to-end
+tests for the <code>deployment_1</code> module. We represent this by rendering <code>staging_environment</code>
+in dashed lines below, and adding additional arrows representing the hard-coded dependency
+from <code>deployment_1</code> to <code>end_to_end_test_1</code>:</p>
+</div>
+<center>
+<svg width="768px" height="205px" viewBox="0.00 0.00 767.75 204.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 200.8)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-200.8 763.75,-200.8 763.75,4 -4,4"></polygon>
+<!-- frontend_web_utils -->
+<g id="node1" class="node">
+<title>frontend_web_utils</title>
+<polygon fill="white" stroke="black" points="132.56,-174.7 7.84,-174.7 7.84,-150.1 132.56,-150.1 132.56,-174.7"></polygon>
+<text text-anchor="middle" x="70.2" y="-158.2" font-family="Times,serif" font-size="14.00">frontend_web_utils</text>
+</g>
+<!-- frontend_web_2 -->
+<g id="node2" class="node">
+<title>frontend_web_2</title>
+<polygon fill="white" stroke="black" points="291.79,-153.7 184.29,-153.7 184.29,-129.1 291.79,-129.1 291.79,-153.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-137.2" font-family="Times,serif" font-size="14.00">frontend_web_2</text>
+</g>
+<!-- frontend_web_utils&#45;&gt;frontend_web_2 -->
+<g id="edge1" class="edge">
+<title>frontend_web_utils-&gt;frontend_web_2</title>
+<path fill="none" stroke="black" d="M132.95,-154.58C146.38,-152.88 160.61,-151.08 174.08,-149.37"></path>
+<polygon fill="black" stroke="black" points="174.73,-152.82 184.22,-148.09 173.86,-145.87 174.73,-152.82"></polygon>
+</g>
+<!-- frontend_web_1 -->
+<g id="node4" class="node">
+<title>frontend_web_1</title>
+<polygon fill="white" stroke="black" points="291.79,-196.7 184.29,-196.7 184.29,-172.1 291.79,-172.1 291.79,-196.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-180.2" font-family="Times,serif" font-size="14.00">frontend_web_1</text>
+</g>
+<!-- frontend_web_utils&#45;&gt;frontend_web_1 -->
+<g id="edge3" class="edge">
+<title>frontend_web_utils-&gt;frontend_web_1</title>
+<path fill="none" stroke="black" d="M132.95,-170.59C146.38,-172.37 160.61,-174.26 174.08,-176.05"></path>
+<polygon fill="black" stroke="black" points="173.84,-179.55 184.22,-177.39 174.76,-172.61 173.84,-179.55"></polygon>
+</g>
+<!-- deployment_2 -->
+<g id="node3" class="node">
+<title>deployment_2</title>
+<polygon fill="white" stroke="black" points="431.83,-67.7 335.63,-67.7 335.63,-43.1 431.83,-43.1 431.83,-67.7"></polygon>
+<text text-anchor="middle" x="383.73" y="-51.2" font-family="Times,serif" font-size="14.00">deployment_2</text>
+</g>
+<!-- frontend_web_2&#45;&gt;deployment_2 -->
+<g id="edge2" class="edge">
+<title>frontend_web_2-&gt;deployment_2</title>
+<path fill="none" stroke="black" d="M281.85,-129.04C288.1,-126.35 294.25,-123.16 299.68,-119.4 319.9,-105.41 316.11,-92.27 335.68,-77.4 337.76,-75.82 339.96,-74.32 342.24,-72.9"></path>
+<polygon fill="black" stroke="black" points="344.28,-75.77 351.28,-67.82 340.85,-69.67 344.28,-75.77"></polygon>
+</g>
+<!-- staging_environment -->
+<g id="node11" class="node">
+<title>staging_environment</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="602.09,-67.7 467.68,-67.7 467.68,-43.1 602.09,-43.1 602.09,-67.7"></polygon>
+<text text-anchor="middle" x="534.89" y="-51.2" font-family="Times,serif" font-size="14.00">staging_environment</text>
+</g>
+<!-- deployment_2&#45;&gt;staging_environment -->
+<g id="edge13" class="edge">
+<title>deployment_2-&gt;staging_environment</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M431.93,-55.4C440.08,-55.4 448.75,-55.4 457.45,-55.4"></path>
+<polygon fill="black" stroke="black" points="457.65,-58.9 467.65,-55.4 457.65,-51.9 457.65,-58.9"></polygon>
+</g>
+<!-- deployment_1 -->
+<g id="node5" class="node">
+<title>deployment_1</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="431.83,-110.7 335.63,-110.7 335.63,-86.1 431.83,-86.1 431.83,-110.7"></polygon>
+<text text-anchor="middle" x="383.73" y="-94.2" font-family="Times,serif" font-size="14.00">deployment_1</text>
+</g>
+<!-- frontend_web_1&#45;&gt;deployment_1 -->
+<g id="edge4" class="edge">
+<title>frontend_web_1-&gt;deployment_1</title>
+<path fill="none" stroke="black" d="M278.64,-172.04C285.82,-169.24 293.11,-166.01 299.68,-162.4 322.37,-149.94 345.48,-131.57 361.54,-117.71"></path>
+<polygon fill="black" stroke="black" points="364.06,-120.15 369.26,-110.92 359.44,-114.9 364.06,-120.15"></polygon>
+</g>
+<!-- deployment_1&#45;&gt;staging_environment -->
+<g id="edge15" class="edge">
+<title>deployment_1-&gt;staging_environment</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M427.47,-86.08C444.17,-81.26 463.48,-75.7 481.04,-70.64"></path>
+<polygon fill="black" stroke="black" points="482.5,-73.86 491.14,-67.72 480.56,-67.13 482.5,-73.86"></polygon>
+</g>
+<!-- end_to_end_test_1 -->
+<g id="node12" class="node">
+<title>end_to_end_test_1</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="759.63,-110.7 638.11,-110.7 638.11,-86.1 759.63,-86.1 759.63,-110.7"></polygon>
+<text text-anchor="middle" x="698.87" y="-94.2" font-family="Times,serif" font-size="14.00">end_to_end_test_1</text>
+</g>
+<!-- deployment_1&#45;&gt;end_to_end_test_1 -->
+<g id="edge17" class="edge">
+<title>deployment_1-&gt;end_to_end_test_1</title>
+<path fill="none" stroke="red" stroke-width="2" d="M431.95,-98.4C483.96,-98.4 568.11,-98.4 627.81,-98.4"></path>
+<polygon fill="red" stroke="red" stroke-width="2" points="627.92,-101.9 637.92,-98.4 627.92,-94.9 627.92,-101.9"></polygon>
+</g>
+<!-- backend_service_utils -->
+<g id="node6" class="node">
+<title>backend_service_utils</title>
+<polygon fill="white" stroke="black" points="140.6,-67.7 -0.2,-67.7 -0.2,-43.1 140.6,-43.1 140.6,-67.7"></polygon>
+<text text-anchor="middle" x="70.2" y="-51.2" font-family="Times,serif" font-size="14.00">backend_service_utils</text>
+</g>
+<!-- backend_service_3 -->
+<g id="node7" class="node">
+<title>backend_service_3</title>
+<polygon fill="white" stroke="black" points="299.83,-24.7 176.26,-24.7 176.26,-0.1 299.83,-0.1 299.83,-24.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-8.2" font-family="Times,serif" font-size="14.00">backend_service_3</text>
+</g>
+<!-- backend_service_utils&#45;&gt;backend_service_3 -->
+<g id="edge5" class="edge">
+<title>backend_service_utils-&gt;backend_service_3</title>
+<path fill="none" stroke="black" d="M118.72,-43.08C137.72,-38.15 159.77,-32.44 179.65,-27.28"></path>
+<polygon fill="black" stroke="black" points="180.71,-30.62 189.51,-24.72 178.95,-23.85 180.71,-30.62"></polygon>
+</g>
+<!-- backend_service_2 -->
+<g id="node9" class="node">
+<title>backend_service_2</title>
+<polygon fill="white" stroke="black" points="299.83,-67.7 176.26,-67.7 176.26,-43.1 299.83,-43.1 299.83,-67.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-51.2" font-family="Times,serif" font-size="14.00">backend_service_2</text>
+</g>
+<!-- backend_service_utils&#45;&gt;backend_service_2 -->
+<g id="edge7" class="edge">
+<title>backend_service_utils-&gt;backend_service_2</title>
+<path fill="none" stroke="black" d="M140.57,-55.4C149.03,-55.4 157.68,-55.4 166.15,-55.4"></path>
+<polygon fill="black" stroke="black" points="166.38,-58.9 176.38,-55.4 166.38,-51.9 166.38,-58.9"></polygon>
+</g>
+<!-- backend_service_1 -->
+<g id="node10" class="node">
+<title>backend_service_1</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="299.83,-110.7 176.26,-110.7 176.26,-86.1 299.83,-86.1 299.83,-110.7"></polygon>
+<text text-anchor="middle" x="238.04" y="-94.2" font-family="Times,serif" font-size="14.00">backend_service_1</text>
+</g>
+<!-- backend_service_utils&#45;&gt;backend_service_1 -->
+<g id="edge9" class="edge">
+<title>backend_service_utils-&gt;backend_service_1</title>
+<path fill="none" stroke="black" d="M118.72,-67.72C137.72,-72.65 159.77,-78.36 179.65,-83.52"></path>
+<polygon fill="black" stroke="black" points="178.95,-86.95 189.51,-86.08 180.71,-80.18 178.95,-86.95"></polygon>
+</g>
+<!-- deployment_3 -->
+<g id="node8" class="node">
+<title>deployment_3</title>
+<polygon fill="white" stroke="black" points="431.83,-24.7 335.63,-24.7 335.63,-0.1 431.83,-0.1 431.83,-24.7"></polygon>
+<text text-anchor="middle" x="383.73" y="-8.2" font-family="Times,serif" font-size="14.00">deployment_3</text>
+</g>
+<!-- backend_service_3&#45;&gt;deployment_3 -->
+<g id="edge6" class="edge">
+<title>backend_service_3-&gt;deployment_3</title>
+<path fill="none" stroke="black" d="M299.98,-12.4C308.46,-12.4 317.15,-12.4 325.57,-12.4"></path>
+<polygon fill="black" stroke="black" points="325.65,-15.9 335.65,-12.4 325.65,-8.9 325.65,-15.9"></polygon>
+</g>
+<!-- deployment_3&#45;&gt;staging_environment -->
+<g id="edge11" class="edge">
+<title>deployment_3-&gt;staging_environment</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M427.47,-24.72C444.17,-29.54 463.48,-35.1 481.04,-40.16"></path>
+<polygon fill="black" stroke="black" points="480.56,-43.67 491.14,-43.08 482.5,-36.94 480.56,-43.67"></polygon>
+</g>
+<!-- end_to_end_test_3 -->
+<g id="node14" class="node">
+<title>end_to_end_test_3</title>
+<polygon fill="white" stroke="black" points="759.63,-24.7 638.11,-24.7 638.11,-0.1 759.63,-0.1 759.63,-24.7"></polygon>
+<text text-anchor="middle" x="698.87" y="-8.2" font-family="Times,serif" font-size="14.00">end_to_end_test_3</text>
+</g>
+<!-- deployment_3&#45;&gt;end_to_end_test_3 -->
+<g id="edge18" class="edge">
+<title>deployment_3-&gt;end_to_end_test_3</title>
+<path fill="none" stroke="black" d="M431.95,-12.4C483.96,-12.4 568.11,-12.4 627.81,-12.4"></path>
+<polygon fill="black" stroke="black" points="627.92,-15.9 637.92,-12.4 627.92,-8.9 627.92,-15.9"></polygon>
+</g>
+<!-- backend_service_2&#45;&gt;deployment_2 -->
+<g id="edge8" class="edge">
+<title>backend_service_2-&gt;deployment_2</title>
+<path fill="none" stroke="black" d="M299.98,-55.4C308.46,-55.4 317.15,-55.4 325.57,-55.4"></path>
+<polygon fill="black" stroke="black" points="325.65,-58.9 335.65,-55.4 325.65,-51.9 325.65,-58.9"></polygon>
+</g>
+<!-- backend_service_1&#45;&gt;deployment_1 -->
+<g id="edge10" class="edge">
+<title>backend_service_1-&gt;deployment_1</title>
+<path fill="none" stroke="red" stroke-width="2" d="M299.98,-98.4C308.46,-98.4 317.15,-98.4 325.57,-98.4"></path>
+<polygon fill="red" stroke="red" stroke-width="2" points="325.65,-101.9 335.65,-98.4 325.65,-94.9 325.65,-101.9"></polygon>
+</g>
+<!-- staging_environment&#45;&gt;end_to_end_test_1 -->
+<g id="edge12" class="edge">
+<title>staging_environment-&gt;end_to_end_test_1</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M582.3,-67.72C600.77,-72.63 622.19,-78.31 641.54,-83.45"></path>
+<polygon fill="black" stroke="black" points="640.88,-86.89 651.44,-86.08 642.68,-80.13 640.88,-86.89"></polygon>
+</g>
+<!-- end_to_end_test_2 -->
+<g id="node13" class="node">
+<title>end_to_end_test_2</title>
+<polygon fill="white" stroke="black" points="759.63,-67.7 638.11,-67.7 638.11,-43.1 759.63,-43.1 759.63,-67.7"></polygon>
+<text text-anchor="middle" x="698.87" y="-51.2" font-family="Times,serif" font-size="14.00">end_to_end_test_2</text>
+</g>
+<!-- staging_environment&#45;&gt;end_to_end_test_2 -->
+<g id="edge14" class="edge">
+<title>staging_environment-&gt;end_to_end_test_2</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M602.24,-55.4C610.62,-55.4 619.22,-55.4 627.67,-55.4"></path>
+<polygon fill="black" stroke="black" points="627.86,-58.9 637.86,-55.4 627.86,-51.9 627.86,-58.9"></polygon>
+</g>
+<!-- staging_environment&#45;&gt;end_to_end_test_3 -->
+<g id="edge16" class="edge">
+<title>staging_environment-&gt;end_to_end_test_3</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M582.3,-43.08C600.77,-38.17 622.19,-32.49 641.54,-27.35"></path>
+<polygon fill="black" stroke="black" points="642.68,-30.67 651.44,-24.72 640.88,-23.91 642.68,-30.67"></polygon>
+</g>
+</g>
+</svg>
+
+</center>
+<div class="paragraph">
+<p>This approach does work, as developers usually have <em>some</em> idea of what tests
+should be run to exercise their application code. But maintaining these hard-coded
+dependency relationships is difficult in a large and evolving codebase:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Generally only the most senior engineers with the most experience working in the
+codebase are able to make such judgements</p>
+</li>
+<li>
+<p>The nature of heuristics is that there is no right or wrong answer, and it is difficult
+to determine whether a selection of hard-coded dependencies is good or not</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Fundamentally, tweaking magic configuration values to try and optimize an unclear
+result is not a good use of developer time, but in some cases doing so may be necessary
+in large codebases to keep pull-request validation time and cost under control.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_machine_learning_based_selective_testing"><a class="anchor" href="#_machine_learning_based_selective_testing"></a>Machine-Learning-based Selective Testing</h3>
+<div class="paragraph">
+<p>The last option I’ve seen in the wild is machine-learning based test selection. This
+has two steps:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Train a machine learning model using the 10,000 commits on the codebase,
+with the <code>git diff</code> and any tests that were broken on.</p>
+</li>
+<li>
+<p>For any new pull-request, feed the <code>git diff</code> into the model trained in (1) above
+to get a list of likely-affected tests, and only run those</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>This approach basically automates the manual tweaking described in
+<a href="#_hard_coding_dependency_relationships">Hard-coding Dependency Relationships</a>, and instead of some senior engineer trying to use
+their intuition to guess what tests to run, the ML model does the same thing.
+You can then easily tune the model to optimize for different tradeoffs between latency
+and thoroughness, depending on what is important for your development team at any point in time.</p>
+</div>
+<div class="paragraph">
+<p>One downside of machine-learning-based selective testing is the ML models are a black box,
+and you have very little idea of why they do what they do. However, all of the heuristics
+people use in <a href="#_heuristic_based_selective_testing">Heuristic-based Selective Testing</a> are effectively black boxes anyway,
+since you’ll be hard-pressed to come up with an answer for why someone
+<a href="#_limiting_dependency_depth">Limiting Dependency Depth</a> decided to set <code>N = 8</code> rather than <code>7</code> or <code>9</code>, or why
+someone <a href="#_hard_coding_dependency_relationships">Hard-coding Dependency Relationships</a> decided on the exact hard-coded config they
+ended up choosing.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_limitations_of_heuristics"><a class="anchor" href="#_limitations_of_heuristics"></a>Limitations of Heuristics</h3>
+<div class="paragraph">
+<p>The nature of heuristics is that they are <em>approximate</em>. That means that it is possible
+both that we run too may tests and waste time, and also that we run too few tests and allow
+a breakage to slip through. Typically this sort of heuristic is only used early in the testing
+pipeline, e.g.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>When validating pull-requests, use heuristics to trim down the set of tests to run before merging</p>
+</li>
+<li>
+<p>After merging a pull-request, run a more thorough set of tests without heuristics
+to catch any bugs that slipped through and prevent bugs from being shipped to customers.</p>
+</li>
+<li>
+<p>If a bug is noticed during post-merge testing, bisect it and revert/fix the offending commit</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>This may seem hacky and complicated, and bisecting/reverting commits post-merge can indeed
+waste a lot of time. But such a workflow necessary in any large codebase and organization.
+The heuristics also do not need to be 100% precise, and as long as they are precise <em>enough</em> that
+the time saved skipping tests outweighs the time spend dealing with post-merge breakages, it
+still ends up being worth it.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_selective_testing_in_mill"><a class="anchor" href="#_selective_testing_in_mill"></a>Selective Testing in Mill</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Mill build tool’s <a href="../mill/large/selective-execution.html" class="xref page">Selective Test Execution</a>
+supports <a href="#_dependency_based_selective_testing">Dependency-based Selective Testing</a> out of the box. This makes it easy to set up
+CI for your projects using Mill that only run tests that are downstream of the code
+you changed in a pull-request. Selective Test Execution in Mill is implemented at the <em>task
+level</em>, so even custom tasks and overrides can benefit from it. Mill’s own pull-request
+validation jobs benefit greatly for selective testing.</p>
+</div>
+<div class="paragraph">
+<p>However, although Mill provides better support for selective testing that most build tools
+(which provide none), the <a href="#_limitations_of_dependency_based_selective_testing">Limitations of Dependency-based Selective Testing</a> do cause issues.
+Even in Mill’s own pull-request validation jobs, the fact that the most expensive integration
+or end-to-end tests are selected every time causes slowness. What kind of
+<a href="#_heuristic_based_selective_testing">Heuristic-based Selective Testing</a> can help improve things remains an open question.</p>
+</div>
+<div class="paragraph">
+<p>If you are interested in build tools, especially where they apply to selective testing on
+large codebases and monorepos, you should definitely give the
+<a href="https://mill-build.org/">Mill Build Tool</a> a try! Mill’s support for selective testing can
+definitely help you keep pull-request validation times reasonable in a large codebase or
+monorepo, which is key to keeping developers productive and development velocity fast
+even as the size and scope of a project grows.</p>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="index.html">The Mill Build Engineering Blog</a></span>
+  <span class="next"><a href="2-monorepo-build-tool.html">Why Use a Monorepo Build Tool?</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
+<script async="async" src="../_/js/vendor/highlight.js"></script>
+<script src="../_/js/vendor/lunr.js"></script>
+<script src="../_/js/search-ui.js" id="search-ui-script" data-site-root-path=".." data-snippet-length="100" data-stylesheet="../_/css/search.css"></script>
+<script async="async" src="../search-index.js"></script>
+  
+</body></html>

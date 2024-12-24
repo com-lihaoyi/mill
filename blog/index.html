@@ -3,9 +3,9 @@
 <html lang="en"><head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Mill Build Tool Engineering Blog :: The Mill JVM Build Tool</title>
+    <title>The Mill Build Engineering Blog :: The Mill JVM Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/blog/index.html" />
-    <link rel="next" href="2-monorepo-build-tool.html" />
+    <link rel="next" href="3-selective-testing.html" />
     <meta name="generator" content="Antora 3.1.9" />
     <link rel="stylesheet" href="../_/css/site.css" />
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -13,6 +13,10 @@
 <link rel="icon" href="../_/favicon.png" type="image/x-icon" />
   
   <style>
+*{
+  hyphens: manual !important;
+}
+</style><style>
 *{
   hyphens: manual !important;
 }
@@ -97,6 +101,10 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="3-selective-testing.html">Understanding Selective Testing</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="2-monorepo-build-tool.html">Why Use a Monorepo Build Tool?</a>
   </li>
 
@@ -110,13 +118,10 @@
 </div>
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
-    <span class="title">Mill Blog</span>
+    <span class="title">The Mill Build Engineering Blog</span>
     <span class="version"></span>
   </div>
   <ul class="components">
-    <li class="component is-current">
-      <div class="title"><a href="index.html">Mill Blog</a></div>
-    </li>
     <li class="component">
       <div class="title"><a href="../mill/index.html">Mill Documentation</a></div>
       <ul class="versions">
@@ -140,6 +145,9 @@
         </li>
       </ul>
     </li>
+    <li class="component is-current">
+      <div class="title"><a href="index.html">The Mill Build Engineering Blog</a></div>
+    </li>
   </ul>
 </div>
     </div>
@@ -151,18 +159,17 @@
   <a href="../mill/index.html" class="home-link"></a>
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
-    <li><a href="index.html">Mill Blog</a></li>
-    <li><a href="index.html">Mill Build Tool Engineering Blog</a></li>
+    <li><a href="index.html">The Mill Build Engineering Blog</a></li>
   </ul>
 </nav>
-<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/blog/modules/ROOT/pages/index.adoc">Edit this Page</a></div>
+<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/docs/blogFolder.dest/modules/ROOT/pages/index.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">Mill Build Tool Engineering Blog</h1>
+<h1 class="page">The Mill Build Engineering Blog</h1>
 <div id="preamble">
 <div class="sectionbody">
 
@@ -185,6 +192,42 @@ const links = document.querySelectorAll('a');
 <p>Welcome to the Mill development blog! This page contains posts and articles on
 technical topics related to the development of the Mill build tool. These discuss
 topics related to JVM languages and monorepo build tooling.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_understanding_selective_testing"><a class="anchor" href="#_understanding_selective_testing"></a>Understanding Selective Testing</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><em>Li Haoyi, 24 December 2024</em></p>
+</div>
+
+<script>
+gtag('config', 'AW-16649289906');
+
+document.addEventListener('DOMContentLoaded', function() {
+const links = document.querySelectorAll('a');
+  links.forEach(link => {
+    if (link.textContent.trim().toLowerCase() === 'download') {
+      link.addEventListener('click', function(event) {
+        console.log("download link clicked")
+        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+      });
+    }
+  });
+});
+</script>
+<div class="paragraph">
+<p>Selective testing is a key technique necessary for working with any large codebase
+or monorepo: picking which tests to run to validate a change or pull-request, because
+running every test every time is costly and slow. This blog post will explore what
+selective testing is all about, the different approaches you can take with selective
+testing, based on my experience working on developer tooling for the last decade at
+Dropbox and Databricks. Lastly, we will discuss how selective testing is supported by
+the Mill build tool.</p>
+</div>
+<div class="paragraph">
+<p><a href="3-selective-testing.html" class="xref page">Read More…​</a></p>
 </div>
 </div>
 </div>
@@ -229,17 +272,7 @@ const links = document.querySelectorAll('a');
 <div class="paragraph">
 <p>One question that comes up constantly is why do people use Monorepo build tools? Tools
 like Bazel are orders of magnitude more complicated and hard to use than tools
-like Poetry or Cargo, so why do people use them at all?
-<a href="https://knowyourmeme.com/memes/is-he-stupid-is-she-smart-are-they-stupid">Are they stupid?</a></p>
-</div>
-<div class="paragraph">
-<p>It turns out that Monorepo build tools like Bazel or Mill do a lot of non-obvious things that
-other build tools don’t, that become important in larger codebases (100-10,000 active developers).
-These features are generally irrelevant for smaller projects, which explains why most people
-do not miss them. But past a certain size of codebase and engineering organization these
-features become critical. We’ll explore some of the core features of &quot;Monorepo Build Tools&quot;
-below, from the perspective of Bazel (which I am familiar with) and Mill (which this
-technical blog is about).</p>
+like Poetry or Cargo, so why do people use them at all?</p>
 </div>
 <div class="paragraph">
 <p><a href="2-monorepo-build-tool.html" class="xref page">Read More…​</a></p>
@@ -276,86 +309,12 @@ should take more than 10s to compile in a single-threaded fashion, and should be
 faster in the presence of parallelism</p>
 </div>
 <div class="paragraph">
-<p>Doing some ad-hoc benchmarks, we find that although the compiler is blazing fast, all
-build tools add significant overhead over compiling Java directly:</p>
-</div>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 12.5%;" />
-<col style="width: 12.5%;" />
-<col style="width: 12.5%;" />
-<col style="width: 12.5%;" />
-<col style="width: 12.5%;" />
-<col style="width: 12.5%;" />
-<col style="width: 12.5%;" />
-<col style="width: 12.5%;" />
-</colgroup>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Mockito Core</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Time</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Compiler lines/s</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Slowdown</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Netty Common</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Time</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Compiler lines/s</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Slowdown</strong></p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Javac Hot</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">0.36s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">115,600</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">1.0x</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Javac Hot</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">0.29s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">102,500</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">1.0x</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Javac Cold</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">1.29s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">32,200</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">4.4x</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Javac Cold</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">1.62s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">18,300</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">5.6x</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Mill</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">1.20s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">34,700</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">4.1x</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Mill</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">1.11s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">26,800</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.8x</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Gradle</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">4.41s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">9,400</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">15.2x</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Maven</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">4.89s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">6,100</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">16.9x</p></td>
-</tr>
-</tbody>
-</table>
-<div class="paragraph">
-<p>Although Mill does the best in these benchmarks among the build tools (Maven, Gradle, and Mill),
-all build tools fall short of how fast compiling Java <em>should</em> be. This post explores how
-these numbers were arrived at, and what that means in un-tapped potential for Java build
-tooling to become truly great.</p>
-</div>
-<div class="paragraph">
 <p><a href="1-java-compile.html" class="xref page">Read More…​</a></p>
 </div>
 </div>
 </div>
 <nav class="pagination">
-  <span class="next"><a href="2-monorepo-build-tool.html">Why Use a Monorepo Build Tool?</a></span>
+  <span class="next"><a href="3-selective-testing.html">Understanding Selective Testing</a></span>
 </nav>
 </article>
   </div>
