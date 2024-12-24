@@ -247,8 +247,8 @@ out/mill-server
   "call scala.Predef$#println(java.lang.Object)void": {
     "def build_.package_$foo$#<init>(build_.package_)void": {
       "call build_.package_$foo$!<init>(build_.package_)void": {
-        "def build_.package_#foo$lzycompute$1()void": {
-          "call build_.package_!foo$lzycompute$1()void": {
+        "def build_.package_#foo$lzyINIT1()java.lang.Object": {
+          "call build_.package_!foo$lzyINIT1()java.lang.Object": {
             "def build_.package_#foo()build_.package_$foo$": {}
           }
         }

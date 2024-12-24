@@ -117,14 +117,13 @@ trait ReactScriptsModule extends TypeScriptModule {
     compile()._2
   }
 
-  override def mkENV =
-    Task.Anon {
-      Map("NODE_PATH" -> Seq(
-        ".",
-        compile()._1.path,
-        compile()._1.path / "node_modules"
-      ).mkString(":"))
-    }
+  override def mkENV = Task {
+    Map("NODE_PATH" -> Seq(
+      ".",
+      compile()._1.path,
+      compile()._1.path / "node_modules"
+    ).mkString(":"))
+  }
 
   private def copyNodeModules: Task[Unit] = Task.Anon {
     val nodeModulesPath = npmInstall().path / "node_modules"

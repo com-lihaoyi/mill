@@ -3,7 +3,6 @@ package mill.integration
 import mill.testkit.UtestIntegrationTestSuite
 import utest._
 
-import scala.util.Try
 import os.Path
 
 object GenIdeaExtendedTests extends UtestIntegrationTestSuite {
@@ -18,16 +17,12 @@ object GenIdeaExtendedTests extends UtestIntegrationTestSuite {
 
       eval("mill.idea.GenIdea/")
 
-      val checks = resources.map { resource =>
-        Try {
-          GenIdeaUtils.assertIdeaXmlResourceMatchesFile(
-            workspacePath,
-            resource
-          )
-        }
+      for (resource <- resources) {
+        GenIdeaUtils.assertIdeaXmlResourceMatchesFile(
+          workspacePath,
+          resource
+        )
       }
-      assert(checks.forall(_.isSuccess))
     }
   }
-
 }

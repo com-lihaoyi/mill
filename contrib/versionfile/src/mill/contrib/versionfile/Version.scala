@@ -34,8 +34,8 @@ sealed trait Version {
     }
 
     this match {
-      case release: Release => Release.tupled(segments)
-      case snapshot: Snapshot => Snapshot.tupled(segments)
+      case release: Release => Release.apply.tupled(segments)
+      case snapshot: Snapshot => Snapshot.apply.tupled(segments)
     }
   }
 }
