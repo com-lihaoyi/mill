@@ -116,7 +116,7 @@ object Deps {
   val asmTree = ivy"org.ow2.asm:asm-tree:9.7.1"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
 
-  val coursierVersion = "2.1.21"
+  val coursierVersion = "2.1.22"
   val coursier = ivy"io.get-coursier::coursier:$coursierVersion"
   val coursierInterface = ivy"io.get-coursier:interface:1.0.26"
   val coursierJvm = ivy"io.get-coursier::coursier-jvm:$coursierVersion"
@@ -570,6 +570,10 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
     ProblemFilter.exclude[InheritedNewAbstractMethodProblem](
       "mill.main.MainModule.mill$define$BaseModule0$_setter_$evalWatchedValues_="
     ),
+
+    // Overrides added for new methods, ought to be safe
+    ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$internalRepositories"),
+    ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.scalanativelib.ScalaNativeModule.mill$scalanativelib$ScalaNativeModule$$super$coursierProject"),
 
     // https://github.com/com-lihaoyi/mill/pull/3503
     ProblemFilter.exclude[ReversedMissingMethodProblem](
