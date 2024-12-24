@@ -47,7 +47,6 @@ object bar extends MyModule
 
 object qux extends MyModule
 
-
 // ```graphviz
 // digraph G {
 //   rankdir=LR
