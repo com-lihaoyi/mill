@@ -1,6 +1,6 @@
 // tag::header[]
 
-# Selective Test Execution in Mill 0.12.4
+# Selective Test Execution in Mill
 
 
 :author: Li Haoyi
@@ -51,11 +51,18 @@ digraph G {
 }
 ```
 
-These various modules would typically each have their own test suite: e.g. each backend
-service would have `backend_service_1_tests`, `backend_service_2_tests`, frontend
-web codebases `frontend_web_1_tests`, `frontend_web_2_tests`, utility modules
-`backend_service_utils_tests`, `frontend_web_utils_tests`, etc. Even the deployments
-will have integration or end-to-end tests to verify that everything is wired up correctly.
+These various modules would typically each have their own test suite, e.g.
+
+* Each backend
+  service would have `backend_service_1_tests`, `backend_service_2_tests`,
+* Each frontend
+  web codebase would have  `frontend_web_1_tests`, `frontend_web_2_tests`,
+* Utility modules would have
+  `backend_service_utils_tests`, `frontend_web_utils_tests`, etc.
+* The deployments
+  will have integration or end-to-end tests to verify that everything is wired up correctly.
+* The entire system is aggregated into a `staging_environment`, which is then used
+  to run `end_to_end_tests`
 
 ## Naive Global Test Selection
 
@@ -152,12 +159,6 @@ digraph G {
   backend_service_utils -> backend_service_2 -> deployment_2
   backend_service_utils -> backend_service_3 -> deployment_3
 
-  deployment_1 -> staging_environment
-  deployment_2 -> staging_environment
-  deployment_3 -> staging_environment
-  staging_environment -> end_to_end_tests_1
-  staging_environment -> end_to_end_tests_2
-  staging_environment -> end_to_end_tests_3
 }
 ```
 
@@ -179,12 +180,6 @@ digraph G {
   backend_service_utils -> backend_service_1 -> deployment_1
   backend_service_utils -> backend_service_2 -> deployment_2
   backend_service_utils -> backend_service_3 -> deployment_3
-  deployment_1 -> staging_environment
-  deployment_2 -> staging_environment
-  deployment_3 -> staging_environment
-  staging_environment -> end_to_end_tests_1
-  staging_environment -> end_to_end_tests_2
-  staging_environment -> end_to_end_tests_3
 }
 ```
 
@@ -359,5 +354,7 @@ still ends up being worth it.
 ## Selective Execution in Mill
 
 Any project can use <<Naive Global Test Selection>> for free, and the Mill build tool's
-xref:mill::large/selective-execution.adoc[Selective Execution] supports for
-<<Dependency-based Test Selection>> out of the box.
+xref:mill::large/selective-execution.adoc[Selective Test Execution] supports for
+<<Dependency-based Test Selection>> out of the box. This makes it easy to set up
+CI for your projects using Mill that only run tests that are downstream of the code
+you changed in a pull request.

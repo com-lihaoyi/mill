@@ -106,3 +106,5 @@ Test run bar.BarTests finished: 0 failed, 0 ignored, 1 total, ...
 // execution (e.g. perhaps you want to perform selective execution on pre-merge on pull
 // requests but not post-merge on the main branch)
 //
+// Although selective execution is most commonly used for testing, it is a general-purpose
+// tool that can be used to selectively run any Mill tasks based on the code that changed.
