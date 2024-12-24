@@ -1,0 +1,61 @@
+// This `Django` https://todomvc.com/[TodoMVC] example is a task management application built using `Mill` Build Tool.
+// It features dynamic `HTML` rendering with `Django's` template engine, `CRUD` operations with
+// Django `ORM`, and efficient form handling for managing tasks.
+package build
+import mill._, pythonlib._
+
+object todo extends PythonModule {
+
+  def mainScript = Task.Source { millSourcePath / "src/manage.py" }
+
+  def pythonDeps = Seq("django==5.1.4")
+
+}
+
+// Apart from running a `web server`, this example demonstrates:
+
+// - **Serving HTML templates** using **Django's template engine**.
+// - **Managing static files** such as JavaScript, CSS, and images.
+// - **Querying a SQL database** using **Django ORM** with an **SQLite** backend.
+// - **Filtering and managing tasks** using SQLite database.
+// - **Unit + Integration testing** using Django's inbuilt testing framework.
+// - **URL routing** and **views** for CRUD operations.
+
+// This Mill Build File simplifies `dependency management`, `database migrations`, and `testing workflows`.
+
+// Running these commands will `test` and `run` the `Django Todo App`.
+// The app is ready to serve at `http://localhost:5003`.
+
+/** Usage
+
+> ./mill todo.run makemigrations
+...Migrations for 'main'...
+...+ Create model Todo...
+
+> ./mill todo.run migrate
+...Operations to perform...
+...Apply all migrations: admin, auth, contenttypes, main, sessions...
+...Running migrations...
+...OK...
+
+> ./mill todo.run test main -v 2
+...Found 8 test(s)...
+test_add_todo_view (main.tests.TodoAppTests...) ... ok
+test_clear_completed_view (main.tests.TodoAppTests...) ... ok
+test_delete_todo_view (main.tests.TodoAppTests...) ... ok
+test_edit_todo_view (main.tests.TodoAppTests...) ... ok
+test_index_view (main.tests.TodoAppTests...) ... ok
+test_list_todos_view (main.tests.TodoAppTests...) ... ok
+test_toggle_all_view (main.tests.TodoAppTests...) ... ok
+test_toggle_todo_view (main.tests.TodoAppTests...) ... ok
+...Ran 8 tests...
+...OK...
+
+> ./mill todo.runBackground runserver 5003
+
+> curl http://localhost:5003
+...What needs to be done...
+
+> ./mill clean todo.runBackground
+
+*/
