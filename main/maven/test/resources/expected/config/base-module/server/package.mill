@@ -13,6 +13,9 @@ object `package` extends RootModule with MyModule {
     Artifact("com.example.maven-samples", "multi-module-parent", "1.0-SNAPSHOT")
   )
 
+  override def bomDeps = super.bomDeps() ++
+    Agg(ivy"com.example.maven-samples:multi-module-parent:1.0-SNAPSHOT")
+
   object test extends MavenTests with TestModule.Junit4 {
 
     override def ivyDeps = super.ivyDeps() ++ Agg(
