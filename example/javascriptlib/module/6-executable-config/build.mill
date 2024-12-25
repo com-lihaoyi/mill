@@ -19,7 +19,6 @@ object foo extends TypeScriptModule {
 // your `out/foo/bundle.dest/bundle.js` you'll get the programmed output
 // and usage is based on project logic like which args to include with command.
 
-
 /** Usage
 
 > mill foo.bundle
