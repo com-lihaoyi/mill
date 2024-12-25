@@ -1,6 +1,6 @@
 // tag::header[]
 
-# Understanding Selective Testing
+# Faster CI with Selective Testing
 
 
 :author: Li Haoyi
@@ -13,7 +13,7 @@ Selective testing is a key technique necessary for working with any large codeba
 or monorepo: picking which tests to run to validate a change or pull-request, because
 running every test every time is costly and slow. This blog post will explore what
 selective testing is all about, the different approaches you can take with selective
-testing, based on my experience working on developer tooling for the last decade at
+testing, based on my experience working on developer tooling and CI for the last decade at
 Dropbox and Databricks. Lastly, we will discuss how selective testing is supported by
 the Mill build tool.
 
