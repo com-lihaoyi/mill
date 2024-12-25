@@ -14,12 +14,17 @@ object foo extends TypeScriptModule {
 
 }
 
-// Documentation for mill.example.javascriptlib
+// The above build demonstrates passing bundle flags
+// After generating your bundle with `mill foo.bundle` you'll find by running
+// your `out/foo/bundle.dest/bundle.js` you'll get the programmed output
+// and usage is based on project logic like which args to include with command.
 
-// This example demonstrates defining node bundling configs
 
 /** Usage
 
 > mill foo.bundle
 Build succeeded!
+
+> node out/foo/bundle.dest/bundle.js
+Hello World!
 */

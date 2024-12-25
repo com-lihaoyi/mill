@@ -19,9 +19,7 @@ object foo extends TypeScriptModule {
 
 }
 
-// Documentation for mill.example.javascriptlib
-
-// This example demonstrates defining compilation execution flags
+// This example demonstrates defining typescript compiler options and node.js execution flags
 
 /** Usage
 

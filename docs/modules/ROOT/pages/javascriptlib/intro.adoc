@@ -23,7 +23,7 @@ include::partial$example/javascriptlib/basic/4-multi-modules.adoc[]
 
 == Simple Client-Server
 
-include::partial$example/javascriptlib/basic/5-client-server.adoc[]
+include::partial$example/javascriptlib/basic/5-client-server-hello.adoc[]
 
 == Realistic Client-Server Example Project
 
