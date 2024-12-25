@@ -3,7 +3,7 @@
 <html lang="en"><head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Understanding Selective Testing :: The Mill JVM Build Tool</title>
+    <title>Faster CI with Selective Testing :: The Mill JVM Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/blog/3-selective-testing.html" />
     <link rel="prev" href="index.html" />
     <link rel="next" href="2-monorepo-build-tool.html" />
@@ -90,7 +90,7 @@
 <ul class="nav-list">
 
   <li class="nav-item is-current-page" data-depth="1">
-    <a class="nav-link" href="3-selective-testing.html">Understanding Selective Testing</a>
+    <a class="nav-link" href="3-selective-testing.html">Faster CI with Selective Testing</a>
   </li>
 
   <li class="nav-item" data-depth="1">
@@ -149,7 +149,7 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="index.html">The Mill Build Engineering Blog</a></li>
-    <li><a href="3-selective-testing.html">Understanding Selective Testing</a></li>
+    <li><a href="3-selective-testing.html">Faster CI with Selective Testing</a></li>
   </ul>
 </nav>
 <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/docs/blogFolder.dest/modules/ROOT/pages/3-selective-testing.adoc">Edit this Page</a></div>
@@ -159,7 +159,7 @@
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">Understanding Selective Testing</h1>
+<h1 class="page">Faster CI with Selective Testing</h1>
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
@@ -186,7 +186,7 @@ const links = document.querySelectorAll('a');
 or monorepo: picking which tests to run to validate a change or pull-request, because
 running every test every time is costly and slow. This blog post will explore what
 selective testing is all about, the different approaches you can take with selective
-testing, based on my experience working on developer tooling for the last decade at
+testing, based on my experience working on developer tooling and CI for the last decade at
 Dropbox and Databricks. Lastly, we will discuss how selective testing is supported by
 the Mill build tool.</p>
 </div>
