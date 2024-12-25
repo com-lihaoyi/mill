@@ -13,8 +13,8 @@ object SpanningForestTests extends TestSuite {
           Array(1),
           Array(2),
           Array(3),
-          Array(),
-          Array()
+          Array[Int](),
+          Array[Int]()
         ),
         Set(0),
         limitToImportantVertices = false

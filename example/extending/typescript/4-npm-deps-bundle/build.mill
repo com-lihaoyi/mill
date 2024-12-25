@@ -49,7 +49,7 @@ trait TypeScriptModule extends Module {
 
     val upstreamPaths =
       for (((jsDir, dTsDir), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps))
-        yield (mod.millSourcePath.subRelativeTo(build.millSourcePath) + "/*", dTsDir.path)
+        yield (mod.millSourcePath.subRelativeTo(build.millSourcePath).toString + "/*", dTsDir.path)
 
     val allPaths = upstreamPaths ++ Seq("*" -> sources().path, "*" -> npmInstall().path)
 
