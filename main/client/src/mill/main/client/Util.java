@@ -45,13 +45,13 @@ public class Util {
    * Determines if we have an interactive console attached to the application.
    * <p>
    * Before JDK 22 we could use <code>System.console() != null</code> to do that check.
-   * However, with JDK >= 22 it no longer works because <code>System.console()</code>
+   * However, with JDK &gt;= 22 it no longer works because <code>System.console()</code>
    * always returns a console instance even for redirected streams. Instead,
-   * JDK >= 22 introduced the method <a href="https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/io/Console.html#isTerminal()">`Console.isTerminal`</a>.
+   * JDK &gt;= 22 introduced the method <a href="https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/io/Console.html#isTerminal()">`Console.isTerminal`</a>.
    * See: JLine As The Default Console Provider (JDK-8308591)
    * <p>
    * This method takes into account these differences and is compatible with
-   * both JDK versions < 22 and later.
+   * both JDK versions before 22 and later.
    */
   public static boolean hasConsole() {
     Console console = System.console();
@@ -63,8 +63,7 @@ public class Util {
       } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException ignored) {
         return true;
       }
-    } else
-      return false;
+    } else return false;
   }
 
   public static String[] parseArgs(InputStream argStream) throws IOException {
