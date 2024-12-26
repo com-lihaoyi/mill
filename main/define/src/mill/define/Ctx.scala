@@ -52,7 +52,6 @@ object Ctx extends LowPriCtx {
       override val enclosingModule: Any,
       crossValues: Seq[Any]
   ) extends Ctx {
-    pprint.log(segments)
     def enclosingCls = enclosingModule.getClass
     def withCrossValues(crossValues: Seq[Any]): Ctx = copy(crossValues = crossValues)
     def withMillSourcePath(millSourcePath: os.Path): Ctx = copy(millSourcePath = millSourcePath)
@@ -93,7 +92,6 @@ object Ctx extends LowPriCtx {
     // `sourcecode.Name` to work around bug with anonymous classes
     // returning `$anon` names
     val lastSegmentStr = millModuleEnclosing0.value.split("\\.|#| ").filter(!_.startsWith("$anon")).last
-    pprint.log(segments0)
     Impl(
       millModuleEnclosing0.value,
       millModuleLine0.value,
@@ -104,8 +102,6 @@ object Ctx extends LowPriCtx {
           case Some(value) =>
             val mapping = value.asInstanceOf[mill.define.OverrideMapping.Wrapper].overrideMapping
             val key = (enclosingClass.value, lastSegmentStr)
-
-            pprint.log(mapping.value(key))
             mapping.value(key)
           case None => Segments()
         }

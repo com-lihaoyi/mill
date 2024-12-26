@@ -255,7 +255,9 @@ trait NamedTask[+T] extends Task[T] {
 
   def evaluate(ctx: mill.api.Ctx): Result[T] = ctx.arg[T](0)
 
-  val ctx: Ctx = ctx0.withSegments(segments = ctx0.segments ++ Seq(ctx0.segment))
+  val ctx: Ctx =
+    if (ctx0.segments.value.exists(_.pathSegments.exists(_.endsWith(".super")))) ctx0
+    else ctx0.withSegments(segments = ctx0.segments ++ Seq(ctx0.segment))
   val inputs: Seq[Task[_]] = Seq(t)
 
   def readWriterOpt: Option[upickle.default.ReadWriter[_]] = None

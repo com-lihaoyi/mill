@@ -70,8 +70,6 @@ trait Module extends Module.BaseClass with OverrideMapping.Wrapper {
         val enclosings = groupRest.map(_.getDeclaringClass.getName)
         Seq((groupHead.getDeclaringClass, names) -> Segments()) ++
           groupRest.map{ taskMethod =>
-            pprint.log(taskMethod.getDeclaringClass.getName)
-            pprint.log(taskMethod.getName)
             (taskMethod.getDeclaringClass, names) ->
               Module.assignOverridenTaskSegments(
                 enclosings,
@@ -80,7 +78,6 @@ trait Module extends Module.BaseClass with OverrideMapping.Wrapper {
               )
           }
       }
-    pprint.log(result)
 
     OverrideMapping(result)
   }
@@ -141,7 +138,7 @@ object Module {
                                           taskMethodName: String,
                                           taskClassName: String) = {
     // StringTokenizer is faster than String#split due to not using regexes
-    def splitEnclosing(s: String) = new StringTokenizer(s, ".# ")
+    def splitEnclosing(s: String) = new StringTokenizer(s, ".# $")
       .asIterator()
       .asScala.map(_.asInstanceOf[String])
       .filter(_ != "<empty>")
@@ -160,7 +157,6 @@ object Module {
     // `dropRight(1)` to always drop the task name, which has to be
     // the same for all overriden tasks with the same segments
     val superSuffix0 = splitted.drop(dropLeft)
-    pprint.log(dropLeft)
 
     // If there are no different segments between the enclosing strings,
     // preserve at least one path segment which is the class name

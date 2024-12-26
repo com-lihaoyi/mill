@@ -20,7 +20,6 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
     // Make sure data is persisted even if we re-create the evaluator each time
     val evaluator = UnitTester(module, null, threads = threadCount).evaluator
 
-    pprint.log(evaluator.outPath)
     def apply(
         target: Task[_],
         expValue: Any,
@@ -226,7 +225,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
 
         val public = os.read(checker.evaluator.outPath / "foo.json")
         val overridden = os.read(
-          checker.evaluator.outPath / "foo.super/TestGraphs$BaseModule.json"
+          checker.evaluator.outPath / "foo.super/BaseModule.json"
         )
 
         assert(
