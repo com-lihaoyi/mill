@@ -102,7 +102,8 @@ object Ctx extends LowPriCtx {
           case Some(value) =>
             val mapping = value.asInstanceOf[mill.define.OverrideMapping.Wrapper].overrideMapping
             val key = (enclosingClass.value, lastSegmentStr)
-            mapping.value(key)
+            mapping.value.getOrElse(key, Segments())
+
           case None => Segments()
         }
       },

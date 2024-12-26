@@ -50,12 +50,14 @@ trait Module extends Module.BaseClass with OverrideMapping.Wrapper {
 
   implicit lazy val overrideMapping: OverrideMapping = {
     type Cls = Class[_]
-    val classHierarchy = SpanningForest.breadthFirst(Seq(this.getClass: Any)) {
-      case cls: Cls => Option(cls.getSuperclass).toSeq ++ cls.getInterfaces
-    }
+    val classHierarchy = SpanningForest
+      .breadthFirst(Seq(this.getClass: Any)) {
+        case cls: Cls => Option(cls.getSuperclass).toSeq ++ cls.getInterfaces
+      }
+      .distinct
 
-    val reflectedTaskMethods = classHierarchy.flatMap { cls =>
-      Reflect.reflect(
+    val reflectedTaskMethodsLists = classHierarchy.map { cls =>
+      cls -> Reflect.reflect(
         cls.asInstanceOf[Cls],
         classOf[NamedTask[_]],
         _ => true,
@@ -64,7 +66,7 @@ trait Module extends Module.BaseClass with OverrideMapping.Wrapper {
       )
     }
 
-    val result = reflectedTaskMethods
+    val result = reflectedTaskMethodsLists.flatMap(_._2)
       .groupBy(_.getName)
       .flatMap{ case (names, Seq(groupHead, groupRest@_*)) =>
         val enclosings = groupRest.map(_.getDeclaringClass.getName)
