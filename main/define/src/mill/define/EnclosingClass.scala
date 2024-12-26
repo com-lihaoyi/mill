@@ -1,13 +1,13 @@
 package mill.define
 
+import sourcecode.Compat.Context
+import language.experimental.macros
 case class EnclosingClass(value: Class[_])
 object EnclosingClass {
   def apply()(implicit c: EnclosingClass) = c.value
-  implicit def generate: EnclosingClass = EnclosingClass{
-    StackWalker.getInstance(java.util.Set.of(StackWalker.Option.RETAIN_CLASS_REFERENCE))
-      .walk(_.skip(1).findFirst())
-      .get()
-      .getDeclaringClass()
+  implicit def generate: EnclosingClass = macro impl
+  def impl(c: Context): c.Tree = {
+    import c.universe._
+    q"new _root_.mill.define.EnclosingClass(classOf[${c.enclosingClass.symbol.info.typeSymbol.asClass.toType}])"
   }
 }
-
