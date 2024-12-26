@@ -289,23 +289,25 @@ object `package` extends RootModule with Module {
     val (repoPath, repoHash) = repoInfo(crossValue)
     def repoSlug = repoPath.split("/").last
 
-    def testRepoRoot = Task {
+    def downloadedRepo = Task{
       shared.downloadTestRepo(repoPath, repoHash, T.dest)
       val wrapperFolder = T.dest / s"$repoSlug-$repoHash"
+      PathRef(wrapperFolder)
+    }
 
-      os.makeDir(T.dest / "merged")
-      os.copy(wrapperFolder, T.dest / "merged", mergeFolders = true)
-      os.remove.all(wrapperFolder)
+    def testRepoRoot = Task {
+      val wrapperFolder = downloadedRepo().path
+      os.copy(wrapperFolder, T.dest, mergeFolders = true)
       os.copy(
         super.testRepoRoot().path,
-        T.dest / "merged",
+        T.dest,
         mergeFolders = true,
         replaceExisting = true
       )
-      os.remove.all(T.dest / "merged" / ".mill-version")
+      os.remove.all(T.dest / ".mill-version")
 
-      os.remove.all(T.dest / "merged" / "build.sc")
-      PathRef(T.dest / "merged")
+      os.remove.all(T.dest / "build.sc")
+      PathRef(T.dest)
     }
   }
 }
