@@ -18,6 +18,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
 
   class Checker[T <: mill.testkit.TestBaseModule](module: T) {
     // Make sure data is persisted even if we re-create the evaluator each time
+
     val evaluator = UnitTester(module, null, threads = threadCount).evaluator
 
     def apply(
@@ -227,7 +228,6 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         val overridden = os.read(
           checker.evaluator.outPath / "foo.super/BaseModule.json"
         )
-
         assert(
           public.contains("base"),
           public.contains("object"),
