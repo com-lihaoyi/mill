@@ -27,7 +27,8 @@ abstract class BaseModule(
         Ctx.External(external0),
         Ctx.Foreign(foreign0),
         millFile0,
-        caller
+        caller,
+        EnclosingClass(null)
       )
     ) with Module with BaseModule0 {
 

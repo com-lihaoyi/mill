@@ -1,6 +1,6 @@
 package mill.main;
 import mill._
-import mill.define.{Caller, Ctx, Segments}
+import mill.define.{Caller, Ctx, EnclosingClass, Segments}
 
 object SubfolderModule {
   class Info(val millSourcePath0: os.Path, val segments: Seq[String]) {
@@ -21,6 +21,7 @@ abstract class SubfolderModule()(implicit
         external0 = Ctx.External(false),
         foreign0 = Ctx.Foreign(None),
         fileName = millFile0,
-        enclosing = Caller(null)
+        enclosing = Caller(null),
+        enclosingClass = EnclosingClass(null)
       )
     ) with Module {}

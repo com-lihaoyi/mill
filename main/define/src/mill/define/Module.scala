@@ -1,7 +1,10 @@
 package mill.define
 
 import mill.api.internal
+import mill.util.SpanningForest
 
+import java.util.StringTokenizer
+import scala.collection.JavaConverters.*
 import scala.reflect.ClassTag
 
 /**
@@ -13,7 +16,7 @@ import scala.reflect.ClassTag
  * instantiation site so they can capture the enclosing/line information of
  * the concrete instance.
  */
-trait Module extends Module.BaseClass {
+trait Module extends Module.BaseClass with OverrideMapping.Wrapper {
 
   /**
    * Miscellaneous machinery around traversing & querying the build hierarchy,
@@ -44,6 +47,43 @@ trait Module extends Module.BaseClass {
   }
 
   override def toString = millModuleSegments.render
+
+  implicit lazy val overrideMapping: OverrideMapping = {
+    type Cls = Class[_]
+    val classHierarchy = SpanningForest.breadthFirst(Seq(this.getClass: Any)) {
+      case cls: Cls => Option(cls.getSuperclass).toSeq ++ cls.getInterfaces
+    }
+
+    val reflectedTaskMethods = classHierarchy.flatMap { cls =>
+      Reflect.reflect(
+        cls.asInstanceOf[Cls],
+        classOf[NamedTask[_]],
+        _ => true,
+        noParams = false,
+        Reflect.getMethods(_, scala.reflect.NameTransformer.decode)
+      )
+    }
+
+    val result = reflectedTaskMethods
+      .groupBy(_.getName)
+      .flatMap{ case (names, Seq(groupHead, groupRest@_*)) =>
+        val enclosings = groupRest.map(_.getDeclaringClass.getName)
+        Seq((groupHead.getDeclaringClass, names) -> Segments()) ++
+          groupRest.map{ taskMethod =>
+            pprint.log(taskMethod.getDeclaringClass.getName)
+            pprint.log(taskMethod.getName)
+            (taskMethod.getDeclaringClass, names) ->
+              Module.assignOverridenTaskSegments(
+                enclosings,
+                taskMethod.getName,
+                taskMethod.getDeclaringClass.getName
+              )
+          }
+      }
+    pprint.log(result)
+
+    OverrideMapping(result)
+  }
 }
 
 object Module {
@@ -95,6 +135,41 @@ object Module {
       )
         .map { case (name, cls, getter) => getter(outer) }
     }
+  }
+
+  private def assignOverridenTaskSegments(overriddenEnclosings: Seq[String],
+                                          taskMethodName: String,
+                                          taskClassName: String) = {
+    // StringTokenizer is faster than String#split due to not using regexes
+    def splitEnclosing(s: String) = new StringTokenizer(s, ".# ")
+      .asIterator()
+      .asScala.map(_.asInstanceOf[String])
+      .filter(_ != "<empty>")
+      .toArray
+
+    val superSegmentStrings = overriddenEnclosings.map(splitEnclosing)
+
+    // Find out how many segments of the enclosing strings are identical
+    // among all overriden tasks, so we can drop them
+    val shortestSuperLength = superSegmentStrings.map(_.length).min
+    val dropLeft = Range(0, shortestSuperLength)
+      .find(i => superSegmentStrings.distinctBy(_(i)).size != 1)
+      .getOrElse(shortestSuperLength)
+
+    val splitted = splitEnclosing(taskClassName)
+    // `dropRight(1)` to always drop the task name, which has to be
+    // the same for all overriden tasks with the same segments
+    val superSuffix0 = splitted.drop(dropLeft)
+    pprint.log(dropLeft)
+
+    // If there are no different segments between the enclosing strings,
+    // preserve at least one path segment which is the class name
+    val superSuffix =
+      if (superSuffix0.nonEmpty) superSuffix0.toSeq
+      else Seq(splitted.last)
+    Segments(
+      Seq(Segment.Label(taskMethodName + ".super")) ++ superSuffix.map(Segment.Label)
+    )
   }
 }
 
