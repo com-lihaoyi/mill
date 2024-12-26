@@ -1,8 +1,15 @@
 package build.ci
 
+import coursier.cache.FileCache
+import coursier.util.Artifact
 
-
-def downloadTestRepo(label: String, commit: String, dest: os.Path) = {
-  os.unzip.stream(requests.get.stream(s"https://github.com/$label/archive/$commit.zip"), dest)
+def downloadTestRepo(label: String, commit: String, dest: os.Path)(implicit ctx: mill.api.Ctx.Log) = {
+  val cache = FileCache()
+  // Uncomment when rebootstrapping Mill, to get better logging
+  //   .withLogger(mill.util.CoursierSupport.millLogger())
+  val file = cache.file(Artifact(s"https://github.com/$label/archive/$commit.zip"))
+    .run.unsafeRun()(cache.ec)
+    .fold(ex => throw new Exception(ex), identity)
+  os.unzip(os.Path(file), dest)
   dest
 }
