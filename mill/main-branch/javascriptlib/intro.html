@@ -612,6 +612,243 @@ Hello James Bond Professor</code></pre>
 </div>
 </div>
 </div>
+<div class="sect1">
+<h2 id="_react_module"><a class="anchor" href="#_react_module"></a>React Module</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-javascriptlib-basic-2-react.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/javascriptlib/basic/2-react">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill._, javascriptlib._
+
+object foo extends RsWithServeModule {
+  override def forkEnv = super.forkEnv() + (&quot;PORT&quot; -&gt; &quot;3000&quot;)
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Documentation for mill.example.javascriptlib</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.test
+PASS src/test/App.test.tsx
+...renders learn react link...
+Test Suites:...1 passed, 1 total
+Tests:...1 passed, 1 total
+Snapshots:...
+Time:...
+Ran all test suites...
+
+&gt; mill show foo.bundle # build the react app with react-scripts # `foo.run` serves static html using serve
+...</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_custom_build_logic"><a class="anchor" href="#_custom_build_logic"></a>Custom Build Logic</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-javascriptlib-basic-3-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/javascriptlib/basic/3-custom-build-logic">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill._, javascriptlib._
+
+object foo extends TypeScriptModule {
+
+  /** Total number of lines in module source files */
+  def lineCount = Task {
+    allSources().map(f =&gt; os.read.lines(f.path).size).sum
+  }
+
+  /** Generate resource using lineCount of sources */
+  def resources = Task {
+    os.write(Task.dest / &quot;line-count.txt&quot;, &quot;&quot; + lineCount())
+    super.resources() ++ Seq(PathRef(Task.dest))
+  }
+
+  object test extends TypeScriptTests with TestModule.Jest
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Documentation for mill.example.javascriptlib</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run
+Line Count: 21
+
+&gt; mill show foo.bundle
+Build succeeded!
+
+&gt; node out/foo/bundle.dest/bundle.js
+Line Count: 21</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_multi_module_project"><a class="anchor" href="#_multi_module_project"></a>Multi Module Project</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-javascriptlib-basic-4-multi-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/javascriptlib/basic/4-multi-modules">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill._, javascriptlib._
+
+object foo extends TypeScriptModule {
+  object bar extends TypeScriptModule {
+    def npmDeps = Seq(&quot;immutable@4.3.7&quot;)
+  }
+
+}
+
+object qux extends TypeScriptModule {
+  def moduleDeps = Seq(foo, foo.bar)
+  object test extends TypeScriptTests with TestModule.Jest
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Documentation for mill.example.javascriptlib
+This example demonstrates inter-related typescript modules</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill qux.run James Bond prof
+Hello James Bond Professor
+
+&gt; mill show qux.bundle
+Build succeeded!
+
+&gt; node out/qux/bundle.dest/bundle.js James Bond prof
+Hello James Bond Professor
+
+&gt; mill qux.test
+PASS .../qux.test.ts
+...</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_simple_client_server"><a class="anchor" href="#_simple_client_server"></a>Simple Client-Server</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-javascriptlib-basic-5-client-server-hello.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/javascriptlib/basic/5-client-server-hello">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javascriptlib._
+
+object client extends ReactScriptsModule
+
+object server extends TypeScriptModule {
+
+  /** Bundle client as resource */
+  def resources = Task {
+    os.copy(client.bundle().path, Task.dest / &quot;build&quot;)
+    super.resources() ++ Seq(PathRef(Task.dest))
+  }
+
+  override def forkEnv = super.forkEnv() + (&quot;PORT&quot; -&gt; &quot;3000&quot;)
+
+  object test extends TypeScriptTests with TestModule.Jest
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Documentation for mill.example.javascriptlib
+This example demonstrated a js client module and js server module,
+wired up and interacting
+Runninng <code>mill server.run</code> serves bundled static HTML files through the server.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill client.test
+PASS .../App.test.tsx
+...
+
+&gt; mill client.bundle   # bundle the react app;
+...
+
+&gt; mill show server.bundle # bundle the node server
+...
+Build succeeded!</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_realistic_client_server_example_project"><a class="anchor" href="#_realistic_client_server_example_project"></a>Realistic Client-Server Example Project</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-javascriptlib-basic-6-client-server-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/javascriptlib/basic/6-client-server-realistic">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javascriptlib._
+
+object client extends ReactScriptsModule
+
+object server extends TypeScriptModule {
+  def npmDeps =
+    Seq(&quot;@types/cors@^2.8.17&quot;, &quot;@types/express@^5.0.0&quot;, &quot;cors@^2.8.5&quot;, &quot;express@^4.21.1&quot;)
+
+  def npmDevDeps =
+    super.npmDevDeps() ++ Seq(&quot;@types/supertest@^6.0.2&quot;, &quot;supertest@^7.0.0&quot;)
+
+  def bundleExternal = super.bundleExternal() ++ Seq(ujson.Str(&quot;express&quot;), ujson.Str(&quot;cors&quot;))
+
+  def forkEnv = super.forkEnv() + (&quot;PORT&quot; -&gt; &quot;3001&quot;)
+
+  /** Bundle client as resource */
+  def resources = Task {
+    os.copy(client.bundle().path, Task.dest / &quot;build&quot;)
+    super.resources() ++ Seq(PathRef(Task.dest))
+  }
+
+  object test extends TypeScriptTests with TestModule.Jest
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Documentation for mill.example.javascriptlib</p>
+</div>
+<div class="paragraph">
+<p>This example demonstrates how to set up a simple React web app running on an Express JS server
+implementing the popular Todo-MVC demo application. It includes a test suite
+for both client and server modules.
+Runninng <code>mill app.run</code> serves bundled static HTML files through the server.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill client.test
+PASS src/test/App.test.tsx
+...
+
+&gt; mill client.bundle   # bundle the react app;
+...
+
+&gt; mill server.test
+PASS .../server.test.ts
+...
+Test Suites:...1 passed, 1 total...
+Tests:...3 passed, 3 total...
+...
+
+&gt; mill show server.bundle # bundle the express server
+...
+Build succeeded!</code></pre>
+</div>
+</div>
+</div>
+</div>
 </article>
   </div>
 </main>
