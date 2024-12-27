@@ -30,11 +30,13 @@
 ** xref:kotlinlib/web-examples.adoc[]
 * Experimental Platform Support
 ** xref:android/java.adoc[]
+** xref:android/android-linting.adoc[]
 ** xref:android/kotlin.adoc[]
 ** xref:pythonlib/intro.adoc[]
 *** xref:pythonlib/module-config.adoc[]
 *** xref:pythonlib/dependencies.adoc[]
 *** xref:pythonlib/publishing.adoc[]
+*** xref:pythonlib/web-examples.adoc[]
 * xref:comparisons/why-mill.adoc[]
 ** xref:comparisons/maven.adoc[]
 ** xref:comparisons/gradle.adoc[]

@@ -1,4 +1,4 @@
-= Selective Execution
+= Selective Test Execution
 
 include::partial$gtag-config.adoc[]
 
