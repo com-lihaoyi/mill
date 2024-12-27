@@ -652,6 +652,7 @@ trait AndroidAppModule extends JavaModule {
   }
 
   def emulatorPort: String = "5554"
+  private def parentEmulatorPort = emulatorPort
 
   /**
    * Returns the emulator identifier for created from startAndroidEmulator
@@ -688,6 +689,8 @@ trait AndroidAppModule extends JavaModule {
     override def millSourcePath: os.Path = src / "main"
 
     def androidTestPath: os.Path = src / "androidTest"
+
+    override def emulatorPort: String = parentEmulatorPort
 
     override def sources: T[Seq[PathRef]] = Task.Sources(millSourcePath, androidTestPath)
 
