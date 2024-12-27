@@ -56,6 +56,10 @@ object TestModule {
     def testConfigSource: T[PathRef] =
       Task.Source(Task.workspace / "jest.config.ts")
 
+    override def allSources: T[IndexedSeq[PathRef]] = Task {
+      super.allSources() ++ IndexedSeq(testConfigSource())
+    }
+
     override def compilerOptions: T[Map[String, ujson.Value]] =
       Task { super.compilerOptions() + ("resolveJsonModule" -> ujson.Bool(true)) }
 
@@ -80,7 +84,7 @@ object TestModule {
           getPathToTest()
         ),
         stdout = os.Inherit,
-        env = mkENV(),
+        env = forkEnv(),
         cwd = compile()._1.path
       )
       ()
@@ -129,7 +133,7 @@ object TestModule {
           getPathToTest()
         ),
         stdout = os.Inherit,
-        env = mkENV(),
+        env = forkEnv(),
         cwd = compile()._1.path
       )
       ()
@@ -190,7 +194,7 @@ object TestModule {
           getPathToTest()
         ),
         stdout = os.Inherit,
-        env = mkENV(),
+        env = forkEnv(),
         cwd = compile()._1.path
       )
       ()
@@ -254,7 +258,7 @@ object TestModule {
           s"--require=$tsconfigPath"
         ),
         stdout = os.Inherit,
-        env = mkENV(),
+        env = forkEnv(),
         cwd = compile()._1.path
       )
       ()
