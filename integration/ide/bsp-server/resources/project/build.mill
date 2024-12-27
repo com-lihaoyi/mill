@@ -11,3 +11,9 @@ object `hello-scala` extends scalalib.ScalaModule {
 object `hello-kotlin` extends kotlinlib.KotlinModule {
   def kotlinVersion = Option(System.getenv("TEST_KOTLIN_VERSION")).getOrElse(???)
 }
+
+object lib extends scalalib.JavaModule
+
+object app extends scalalib.JavaModule {
+  def moduleDeps = Seq(lib)
+}

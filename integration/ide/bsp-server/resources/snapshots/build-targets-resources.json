@@ -20,6 +20,18 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/app"
+      },
+      "resources": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/lib"
+      },
+      "resources": []
+    },
+    {
+      "target": {
         "uri": "file:///workspace/mill-build"
       },
       "resources": []

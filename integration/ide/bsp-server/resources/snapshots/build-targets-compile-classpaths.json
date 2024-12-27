@@ -26,6 +26,24 @@
       "classpath": [
         "file:///workspace/hello-java/compile-resources"
       ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/app"
+      },
+      "classpath": [
+        "file:///workspace/lib/compile-resources",
+        "file:///workspace/out/lib/compile.dest/classes",
+        "file:///workspace/app/compile-resources"
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/lib"
+      },
+      "classpath": [
+        "file:///workspace/lib/compile-resources"
+      ]
     }
   ]
 }

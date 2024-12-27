@@ -22,6 +22,18 @@
         "uri": "file:///workspace/hello-java"
       },
       "sources": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/app"
+      },
+      "sources": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/lib"
+      },
+      "sources": []
     }
   ]
 }

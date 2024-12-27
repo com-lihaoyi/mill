@@ -20,6 +20,18 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/app"
+      },
+      "outputPaths": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/lib"
+      },
+      "outputPaths": []
+    },
+    {
+      "target": {
         "uri": "file:///workspace/mill-build"
       },
       "outputPaths": []

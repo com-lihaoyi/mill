@@ -27,6 +27,18 @@
         "uri": "file:///workspace/hello-java"
       },
       "modules": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/app"
+      },
+      "modules": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/lib"
+      },
+      "modules": []
     }
   ]
 }

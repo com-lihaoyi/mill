@@ -32,6 +32,28 @@
         "file:///workspace/hello-java/compile-resources"
       ],
       "classDirectory": "file:///workspace/out/hello-java/compile.dest/classes"
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/app"
+      },
+      "options": [],
+      "classpath": [
+        "file:///workspace/lib/compile-resources",
+        "file:///workspace/out/lib/compile.dest/classes",
+        "file:///workspace/app/compile-resources"
+      ],
+      "classDirectory": "file:///workspace/out/app/compile.dest/classes"
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/lib"
+      },
+      "options": [],
+      "classpath": [
+        "file:///workspace/lib/compile-resources"
+      ],
+      "classDirectory": "file:///workspace/out/lib/compile.dest/classes"
     }
   ]
 }

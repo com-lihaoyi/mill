@@ -44,6 +44,37 @@
       "workingDirectory": "/workspace",
       "environmentVariables": {},
       "mainClasses": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/app"
+      },
+      "classpath": [
+        "file:///workspace/lib/compile-resources",
+        "file:///workspace/lib/resources",
+        "file:///workspace/out/lib/compile.dest/classes",
+        "file:///workspace/app/compile-resources",
+        "file:///workspace/app/resources",
+        "file:///workspace/out/app/compile.dest/classes"
+      ],
+      "jvmOptions": [],
+      "workingDirectory": "/workspace",
+      "environmentVariables": {},
+      "mainClasses": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/lib"
+      },
+      "classpath": [
+        "file:///workspace/lib/compile-resources",
+        "file:///workspace/lib/resources",
+        "file:///workspace/out/lib/compile.dest/classes"
+      ],
+      "jvmOptions": [],
+      "workingDirectory": "/workspace",
+      "environmentVariables": {},
+      "mainClasses": []
     }
   ]
 }
