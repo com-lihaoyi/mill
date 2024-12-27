@@ -14,6 +14,9 @@ object `hello-kotlin` extends kotlinlib.KotlinModule {
 
 object lib extends scalalib.JavaModule {
   import scalalib._
+  def compileIvyDeps = Agg(
+    ivy"junit:junit:4.13.2"
+  )
   def ivyDeps = Agg(
     ivy"org.slf4j:slf4j-api:2.0.16"
   )
