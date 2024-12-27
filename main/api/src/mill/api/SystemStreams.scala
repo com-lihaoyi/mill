@@ -78,9 +78,9 @@ object SystemStreams {
     // ensures that interactive applications involving console IO work, as the
     // presence of a `PumpedProcess` would cause most interactive CLIs (e.g.
     // scala console, REPL, etc.) to misbehave
-    val inheritIn =
+    val inheritIn: os.ProcessInput =
       if (systemStreams.in eq original.in) os.InheritRaw
-      else new PumpedProcessInput
+      else DummyInputStream
 
     val inheritOut =
       if (systemStreams.out eq original.out) os.InheritRaw
