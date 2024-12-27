@@ -218,7 +218,7 @@ public class MillProcessLauncher {
     String str;
 
     try {
-      if (java.lang.System.console() == null) str = "0 0";
+      if (!Util.hasConsole()) str = "0 0";
       else {
         if (!tputExists) {
           // Hardcoded size of a quarter screen terminal on 13" windows laptop
