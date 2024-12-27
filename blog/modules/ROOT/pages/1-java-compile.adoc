@@ -1,12 +1,22 @@
-# How Fast Does Java Compile?
+// tag::header[]
 
-include::partial$gtag-config.adoc[]
+# How Fast Does Java Compile?
+:page-aliases: xref:mill:ROOT:comparisons/java-compile.adoc
+
+:author: Li Haoyi
+:revdate: 29 November 2024
+_{author}, {revdate}_
+
+include::mill:ROOT:partial$gtag-config.adoc[]
 
 Java compiles have the reputation for being slow, but that reputation does
 not match today's reality. Nowadays the Java compiler can compile "typical" Java code at over
 100,000 lines a second on a single core. That means that even a million line project
 should take more than 10s to compile in a single-threaded fashion, and should be even
 faster in the presence of parallelism
+
+// end::header[]
+
 
 Doing some ad-hoc benchmarks, we find that although the compiler is blazing fast, all
 build tools add significant overhead over compiling Java directly:
@@ -291,8 +301,8 @@ Tabulating this all together gives us the table we saw at the start of this page
 | Gradle | 4.41s | 9,400 | 15.2x | Maven | 4.89s | 6,100 | 16.9x
 |===
 
-We explore the comparison between xref:comparisons/gradle.adoc[Gradle vs Mill]
-or xref:comparisons/maven.adoc[Maven vs Mill] in more detail on their own dedicated pages.
+We explore the comparison between xref:mill:ROOT:comparisons/gradle.adoc[Gradle vs Mill]
+or xref:mill:ROOT:comparisons/maven.adoc[Maven vs Mill] in more detail on their own dedicated pages.
 For this article, the important thing is not comparing the build tools against each other,
 but comparing the build tools against what how fast they _could_ be if they just used
 the `javac` Java compiler directly. And it's clear that compared to the actual work
@@ -307,8 +317,8 @@ we explored above only deals with compiling a single small module. But a similar
 Clean Compile* benchmarks which compiles the entire Mockito and Netty projects on
 a single core shows similar numbers for the various build tools:
 
-* xref:comparisons/gradle.adoc#_sequential_clean_compile_all[Gradle compiling 100,000 lines of Java at ~5,600 lines/s]
-* xref:comparisons/maven.adoc#_sequential_clean_compile_all[Maven compiling 500,000 lines of Java at ~5,100 lines/s]
+* xref:mill:ROOT:comparisons/gradle.adoc#_sequential_clean_compile_all[Gradle compiling 100,000 lines of Java at ~5,600 lines/s]
+* xref:mill:ROOT:comparisons/maven.adoc#_sequential_clean_compile_all[Maven compiling 500,000 lines of Java at ~5,100 lines/s]
 * Mill compiling at ~25,000 lines/s on both the above whole-project benchmarks
 
 All of these are far below the 100,000 lines/s that we should expect from Java compilation,
@@ -342,7 +352,7 @@ compiling Java_ is pure overhead. Checking for cache invalidation in _shouldn't_
 as long as actually compiling your code. I mean it obviously does _today_, but it _shouldn't_!
 
 The Mill build tool goes to great lengths to try and minimize overhead, and already gets
-xref:comparisons/why-mill.adoc#_performance[~4x faster builds] than Maven or Gradle on
+xref:mill:ROOT:comparisons/why-mill.adoc#_performance[~4x faster builds] than Maven or Gradle on
 real-world projects like Mockito or Netty. But there still is a long way to go give Java
 developers the fast, snappy experience that the underlying Java platform can provide. If
 Java build and compile times are things you find important, you should try out Mill on

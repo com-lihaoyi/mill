@@ -38,11 +38,11 @@ object Settings {
   )
   val docTags: Seq[String] = Seq(
     "0.11.13",
-    "0.12.3"
+    "0.12.4"
   )
   val mimaBaseVersions: Seq[String] =
     0.to(13).map("0.11." + _) ++
-    Seq("0.12.0", "0.12.1", "0.12.2", "0.12.3")
+    Seq("0.12.0", "0.12.1", "0.12.2", "0.12.3", "0.12.4")
 }
 
 object Deps {
@@ -387,6 +387,14 @@ trait MillJavaModule extends JavaModule {
     Deps.jline,
     Deps.jna
   )
+
+  def javadocOptions = super.javadocOptions() ++ Seq(
+    // Disable warnings for missing documentation comments or tags (for example,
+    // a missing comment or class, or a missing @return tag or similar tag on a method).
+    // We have many methods without JavaDoc comments, so those warnings are useless
+    // and significantly clutter the output.
+    "-Xdoclint:all,-missing"
+  )
 }
 
 trait MillPublishJavaModule extends MillJavaModule with PublishModule {
@@ -488,6 +496,7 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
     // (5x) MIMA doesn't properly ignore things which are nested inside other private things
     // so we have to put explicit ignores here (https://github.com/lightbend/mima/issues/771)
     ProblemFilter.exclude[Problem]("mill.eval.ProfileLogger*"),
+    ProblemFilter.exclude[Problem]("mill.eval.ChromeProfileLogger*"),
     ProblemFilter.exclude[Problem]("mill.eval.GroupEvaluator*"),
     ProblemFilter.exclude[Problem]("mill.eval.EvaluatorCore*"),
     ProblemFilter.exclude[Problem]("mill.eval.Tarjans*"),

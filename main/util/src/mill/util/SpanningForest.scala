@@ -13,6 +13,20 @@ import scala.collection.mutable
  * the roots of the forest
  */
 private[mill] object SpanningForest {
+  def writeJsonFile(
+      path: os.Path,
+      indexEdges: Array[Array[Int]],
+      interestingIndices: Set[Int],
+      render: Int => String
+  ): Unit = {
+    os.write.over(
+      path,
+      SpanningForest.spanningTreeToJsonTree(
+        SpanningForest(indexEdges, interestingIndices, true),
+        render
+      ).render(indent = 2)
+    )
+  }
   def spanningTreeToJsonTree(node: SpanningForest.Node, stringify: Int => String): ujson.Obj = {
     ujson.Obj.from(
       node.values.map { case (k, v) => stringify(k) -> spanningTreeToJsonTree(v, stringify) }
