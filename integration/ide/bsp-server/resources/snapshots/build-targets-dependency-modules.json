@@ -32,13 +32,27 @@
       "target": {
         "uri": "file:///workspace/app"
       },
-      "modules": []
+      "modules": [
+        {
+          "name": "ch.qos.logback:logback-core",
+          "version": "1.5.15"
+        },
+        {
+          "name": "org.slf4j:slf4j-api",
+          "version": "2.0.16"
+        }
+      ]
     },
     {
       "target": {
         "uri": "file:///workspace/lib"
       },
-      "modules": []
+      "modules": [
+        {
+          "name": "org.slf4j:slf4j-api",
+          "version": "2.0.16"
+        }
+      ]
     }
   ]
 }

@@ -12,8 +12,17 @@ object `hello-kotlin` extends kotlinlib.KotlinModule {
   def kotlinVersion = Option(System.getenv("TEST_KOTLIN_VERSION")).getOrElse(???)
 }
 
-object lib extends scalalib.JavaModule
+object lib extends scalalib.JavaModule {
+  import scalalib._
+  def ivyDeps = Agg(
+    ivy"org.slf4j:slf4j-api:2.0.16"
+  )
+}
 
 object app extends scalalib.JavaModule {
+  import scalalib._
   def moduleDeps = Seq(lib)
+  def ivyDeps = Agg(
+    ivy"ch.qos.logback:logback-core:1.5.15"
+  )
 }
