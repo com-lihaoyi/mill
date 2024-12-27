@@ -118,7 +118,7 @@ public abstract class ServerLauncher {
   int run(Path serverDir, boolean setJnaNoSys, Locks locks) throws Exception {
 
     try (OutputStream f = Files.newOutputStream(serverDir.resolve(ServerFiles.runArgs))) {
-      f.write(System.console() != null ? 1 : 0);
+      f.write(Util.hasConsole() ? 1 : 0);
       Util.writeString(f, BuildInfo.millVersion);
       Util.writeArgs(args, f);
       Util.writeMap(env, f);
