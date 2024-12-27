@@ -38,7 +38,7 @@ jobs:
       - run: ./mill -i -k selective.prepare ${{ inputs.prepareargs }}
         if: ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'run-all-tests') }}
 
-      - uses: actions/upload-artifact@v4.4.3
+      - uses: actions/upload-artifact@v4.5.0
         with:
           path: out/mill-selective-execution.json
           name: ${{ inputs.os }}-selective-execution-artifact
@@ -50,7 +50,7 @@ jobs:
 
       - run: ./mill -i -k ${{ inputs.compileargs }}
 
-      - uses: actions/upload-artifact@v4.4.3
+      - uses: actions/upload-artifact@v4.5.0
         with:
           path: .
           name: ${{ inputs.os }}-artifact
