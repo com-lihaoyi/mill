@@ -28,4 +28,7 @@ object app extends scalalib.JavaModule {
   def ivyDeps = Agg(
     ivy"ch.qos.logback:logback-core:1.5.15"
   )
+  def runIvyDeps = Agg(
+    ivy"com.mysql:mysql-connector-j:9.1.0"
+  )
 }
