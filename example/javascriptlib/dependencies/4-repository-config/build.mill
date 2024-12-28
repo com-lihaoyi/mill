@@ -14,7 +14,6 @@ object foo extends TypeScriptModule {
 // For more information on npmrc see: https://docs.npmjs.com/cli/v9/configuring-npm/npmrc.
 // The example below uses the alternate registry https://registry.npmmirror.com
 
-
 /** Usage
 
 > mill foo.run e b k a l m o p
