@@ -56,14 +56,6 @@ trait AndroidAppModule extends JavaModule {
       Seq(MavenRepository("https://maven.google.com"))
   }
 
-  /* TODO this is a temporary hack to exclude any jvm only tagged dependencies
-   * which may conflict with android dependencies. For example, the
-   * kotlin coroutines which are provided by both kotlin-core and
-   * kotlin-core-jvm . See also https://github.com/com-lihaoyi/mill/issues/3867
-   */
-  private def bannedModules(classpath: PathRef): Boolean =
-    !classpath.path.last.contains("-jvm")
-
   /**
    * Provides access to the Android SDK configuration.
    */
@@ -174,7 +166,7 @@ trait AndroidAppModule extends JavaModule {
     val (jarFiles, _) = androidUnpackArchives()
     val jarFilesAgg = super.compileClasspath().filter(_.path.ext == "jar")
 
-    (jarFilesAgg ++ jarFiles).filter(bannedModules)
+    (jarFilesAgg ++ jarFiles)
   }
 
   /**
