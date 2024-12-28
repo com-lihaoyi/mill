@@ -518,11 +518,18 @@ trait AndroidAppModule extends JavaModule {
   def sdkInstallSystemImage: Target[String] = Task {
     val image =
       s"system-images;${androidSdkModule().platformsVersion()};google_apis_playstore;${androidEmulatorArchitecture}"
-    os.call((
+    val installCall = os.call((
       androidSdkModule().sdkManagerPath().path,
       "--install",
       image
     ))
+
+    if (installCall.exitCode != 0) {
+      Task.log.error(
+        s"Error trying to install android emulator system image ${installCall.out.trim()}"
+      )
+      throw new Exception(s"Failed to install system image ${image}: ${installCall.exitCode}")
+    }
     image
   }
 
@@ -603,7 +610,7 @@ trait AndroidAppModule extends JavaModule {
     bootMessage
   }
 
-  def waitForDevice = Task {
+  def waitForDevice: Target[String] = Task {
     val emulator = runningEmulator()
     os.call((
       androidSdkModule().adbPath(),
