@@ -515,10 +515,10 @@ trait AndroidAppModule extends JavaModule {
    * Installs the user specified system image for the emulator
    * using sdkmanager . E.g. "system-images;android-35;google_apis_playstore;x86_64"
    */
-  def sdkInstallSystemImage: Target[String] = Task {
+  def sdkInstallSystemImage(): Command[String] = Task.Command {
     val image =
       s"system-images;${androidSdkModule().platformsVersion()};google_apis_playstore;${androidEmulatorArchitecture}"
-
+    println(s"Downloading ${image}")
     val installCall = os.call((
       androidSdkModule().sdkManagerPath().path,
       "--install",
@@ -537,7 +537,7 @@ trait AndroidAppModule extends JavaModule {
   /**
    * Creates the android virtual device identified in virtualDeviceIdentifier
    */
-  def createAndroidVirtualDevice: T[String] = Task {
+  def createAndroidVirtualDevice(): Command[String] = Task.Command {
     val command = os.call((
       androidSdkModule().avdPath().path,
       "create",
@@ -545,7 +545,7 @@ trait AndroidAppModule extends JavaModule {
       "--name",
       androidVirtualDeviceIdentifier,
       "--package",
-      sdkInstallSystemImage(),
+      sdkInstallSystemImage()(),
       "--device",
       androidDeviceId,
       "--force"
