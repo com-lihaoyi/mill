@@ -697,12 +697,11 @@ trait AndroidAppModule extends JavaModule {
       parent.res() :+ PathRef(androidTestPath / "res")
 
     /* TODO on debug work, an AndroidManifest.xml with debug and instrumentation settings
-    * will need to be created. Then this needs to point to the location of that debug
-    * AndroidManifest.xml
-    */
+     * will need to be created. Then this needs to point to the location of that debug
+     * AndroidManifest.xml
+     */
     override def androidManifest: Task[PathRef] =
       Task.Source(androidMainSourcePath / "src/main/AndroidManifest.xml")
-
 
     override def androidVirtualDeviceIdentifier: String = parent.androidVirtualDeviceIdentifier
     override def androidEmulatorArchitecture: String = parent.androidEmulatorArchitecture
