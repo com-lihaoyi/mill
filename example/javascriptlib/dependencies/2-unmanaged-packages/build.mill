@@ -1,0 +1,18 @@
+package build
+import mill._, javascriptlib._
+
+object foo extends TypeScriptModule {
+  def unmanagedDeps = Seq.from(os.list(millSourcePath / "lib").map(PathRef(_)))
+}
+
+
+// You can override `unmanagedDeps` to point to a
+// source distribution .tar.gz you place on the
+// filesystem, e.g. in the above snippet any files that happen to live in the
+// `lib/` folder.
+
+
+/** Usage
+> mill foo.run e b k a l m o p
+Sorted with lodash: [a,b,e,k,l,m,o,p]
+*/
