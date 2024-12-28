@@ -10,6 +10,13 @@ object foo extends TypeScriptModule {
 // filesystem, e.g. in the above snippet any files that happen to live in the
 // `lib/` folder.
 
+// Note:
+// When installing from a .tgz file, Node.js and npm determine the package name
+// and how to import it from the package.json file inside the .tgz archive.
+
+// For more info on `package.json`, see: https://docs.npmjs.com/cli/v10/configuring-npm/package-json?v=true&utm_source=chatgpt.com
+// For more info on creating unmanaged dependecies, see: https://docs.npmjs.com/cli/v10/commands/npm-pack
+
 /** Usage
 > mill foo.run e b k a l m o p
 Sorted with lodash: [a,b,e,k,l,m,o,p]
