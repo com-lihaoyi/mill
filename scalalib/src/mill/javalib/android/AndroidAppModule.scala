@@ -158,15 +158,12 @@ trait AndroidAppModule extends JavaModule {
 
     (jarFiles, resFolders)
   }
-
-  def res: T[Seq[PathRef]] = Task.Sources { millSourcePath / "src/main/res" }
-
   /**
    * Combines module resources with those unpacked from AARs.
    */
   override def resources: T[Seq[PathRef]] = Task {
     val (_, resFolders) = androidUnpackArchives()
-    res() ++ resFolders
+    resFolders :+ PathRef(millSourcePath / "src/main/res")
   }
 
   /**
@@ -681,7 +678,7 @@ trait AndroidAppModule extends JavaModule {
 
     override def sources: T[Seq[PathRef]] = parent.sources() :+ PathRef(testPath / "java")
 
-    override def resources: T[Seq[PathRef]] = parent.res() :+ PathRef(testPath / "res")
+    override def resources: T[Seq[PathRef]] = parent.resources() :+ PathRef(testPath / "res")
   }
 
   trait AndroidAppIntegrationTests extends AndroidAppModule with AndroidTestModule {
@@ -693,8 +690,8 @@ trait AndroidAppModule extends JavaModule {
     override def sources: T[Seq[PathRef]] = parent.sources() :+ PathRef(androidTestPath / "java")
 
     /** The resources in res directories of both main source and androidTest sources */
-    override def res: T[Seq[PathRef]] =
-      parent.res() :+ PathRef(androidTestPath / "res")
+    override def resources: T[Seq[PathRef]] =
+      parent.resources() :+ PathRef(androidTestPath / "res")
 
     /* TODO on debug work, an AndroidManifest.xml with debug and instrumentation settings
      * will need to be created. Then this needs to point to the location of that debug
