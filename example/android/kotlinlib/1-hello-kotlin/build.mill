@@ -19,7 +19,6 @@ import coursier.maven.MavenRepository
 // Create and configure an Android SDK module to manage Android SDK paths and tools.
 object androidSdkModule0 extends AndroidSdkModule {
   def buildToolsVersion = "35.0.0"
-  def bundleToolVersion = "1.17.2"
 }
 
 // Actual android application
@@ -27,18 +26,16 @@ object app extends AndroidAppKotlinModule {
 
   def kotlinVersion = "2.0.20"
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+  def androidMinSdk = 19
+  def androidCompileSdk = 35
 
   // Configuration for ReleaseKey
-  override def releaseKeyPath = millSourcePath
-  def androidReleaseKeyName: T[String] = Task { "releaseKey.jks" }
-  def androidReleaseKeyAlias: T[String] = Task { "releaseKey" }
-  def androidReleaseKeyPass: T[String] = Task { "MillBuildTool" }
-  def androidReleaseKeyStorePass: T[String] = Task { "MillBuildTool" }
+  def androidReleaseKeyName: T[Option[String]] = Task { Some("releaseKey.jks") }
+  def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
+  def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
+  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
   override def androidVirtualDeviceIdentifier: String = "kotlin-test"
   override def androidEmulatorPort: String = "5556"
-
-  /* TODO this won't be needed once the debug keystore is implemented */
-  private def mainRoot = millSourcePath
 
   object test extends AndroidAppKotlinTests with TestModule.Junit4 {
     def ivyDeps = super.ivyDeps() ++ Agg(
@@ -46,16 +43,9 @@ object app extends AndroidAppKotlinModule {
     )
   }
 
-  object it extends AndroidAppKotlinIntegrationTests with AndroidTestModule.AndroidJUnit {
+  object it extends AndroidAppKotlinInstrumentedTests with AndroidTestModule.AndroidJUnit {
 
     override def instrumentationPackage = "com.helloworld.app"
-
-    /* TODO this needs to change to something better once integration tests work with debug keystore */
-    override def releaseKeyPath = mainRoot
-    def androidReleaseKeyName: T[String] = Task { "releaseKey.jks" }
-    def androidReleaseKeyAlias: T[String] = Task { "releaseKey" }
-    def androidReleaseKeyPass: T[String] = Task { "MillBuildTool" }
-    def androidReleaseKeyStorePass: T[String] = Task { "MillBuildTool" }
 
     /* TODO currently the dependency resolution ignores the platform type and kotlinx-coroutines-core has
      * conflicting classes with kotlinx-coroutines-core-jvm . Remove the exclusions once the dependency
