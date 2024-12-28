@@ -158,6 +158,7 @@ trait AndroidAppModule extends JavaModule {
 
     (jarFiles, resFolders)
   }
+
   /**
    * Combines module resources with those unpacked from AARs.
    */

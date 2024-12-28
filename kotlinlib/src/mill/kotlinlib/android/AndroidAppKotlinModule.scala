@@ -2,7 +2,6 @@ package mill.kotlinlib.android
 
 import mill.T
 import mill.api.PathRef
-import mill.define.Task
 import mill.javalib.android.AndroidAppModule
 import mill.kotlinlib.KotlinModule
 
@@ -26,12 +25,14 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule {
   private def ktVersion = kotlinVersion
   private def sdkModule = androidSdkModule
 
-  override def sources: T[Seq[PathRef]] = super.sources() :+ PathRef(millSourcePath / "src/main/kotlin")
+  override def sources: T[Seq[PathRef]] =
+    super.sources() :+ PathRef(millSourcePath / "src/main/kotlin")
 
   private val parent = this
 
   trait AndroidAppKotlinTests extends AndroidAppTests with KotlinTests {
-    override def sources: T[Seq[PathRef]] = super.sources() :+ PathRef(parent.millSourcePath / "src/test/kotlin")
+    override def sources: T[Seq[PathRef]] =
+      super.sources() :+ PathRef(parent.millSourcePath / "src/test/kotlin")
   }
 
   trait AndroidAppKotlinIntegrationTests extends AndroidAppKotlinModule
@@ -40,7 +41,8 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule {
     override final def kotlinVersion = ktVersion
     override final def androidSdkModule = sdkModule
 
-    override def sources: T[Seq[PathRef]] = super.sources() :+ PathRef(parent.millSourcePath / "src/androidTest/kotlin")
+    override def sources: T[Seq[PathRef]] =
+      super.sources() :+ PathRef(parent.millSourcePath / "src/androidTest/kotlin")
 
   }
 }
