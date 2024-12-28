@@ -29,16 +29,16 @@ object app extends AndroidAppKotlinModule {
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
 
   // Configuration for ReleaseKey
-  override def releaseKeyPath = root
+  override def releaseKeyPath = millSourcePath
   def androidReleaseKeyName: T[String] = Task { "releaseKey.jks" }
   def androidReleaseKeyAlias: T[String] = Task { "releaseKey" }
   def androidReleaseKeyPass: T[String] = Task { "MillBuildTool" }
   def androidReleaseKeyStorePass: T[String] = Task { "MillBuildTool" }
-  override def virtualDeviceIdentifier: String = "kotlin-test"
-  override def emulatorPort: String = "5556"
+  override def androidVirtualDeviceIdentifier: String = "kotlin-test"
+  override def androidEmulatorPort: String = "5556"
 
   /* TODO this won't be needed once the debug keystore is implemented */
-  private def mainRoot = root
+  private def mainRoot = millSourcePath
 
   object test extends AndroidAppKotlinTests with TestModule.Junit4 {
     def ivyDeps = super.ivyDeps() ++ Agg(
@@ -106,7 +106,7 @@ object app extends AndroidAppKotlinModule {
 /** Usage
 
 > ./mill show app.test
-...Compiling 1 Kotlin sources...
+...Compiling 3 Kotlin sources...
 
 > cat out/app/test/test.dest/out.json
 ["",[{"fullyQualifiedName":"com.helloworld.ExampleUnitTest.text_size_is_correct","selector":"com.helloworld.ExampleUnitTest.text_size_is_correct","duration":...,"status":"Success"}]]
@@ -136,7 +136,7 @@ object app extends AndroidAppKotlinModule {
 
 */
 
-// The android tests (existing typically in androidTest directory, aka integration tests)
+// The android tests (existing typically in androidTest directory, aka instrumented tests)
 // typically run on an android device.
 // The createAndroidVirtualDevice command creates an AVD (Android Virtual Device)
 // and the startAndroidEmulator command starts the AVD. The it task runs the integration tests

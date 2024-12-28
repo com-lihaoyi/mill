@@ -26,16 +26,16 @@ object app extends AndroidAppModule {
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
 
   // Configuration for ReleaseKey
-  override def releaseKeyPath = root
+  override def releaseKeyPath = super.millSourcePath
 
   def androidReleaseKeyName: T[String] = Task { "releaseKey.jks" }
   def androidReleaseKeyAlias: T[String] = Task { "releaseKey" }
   def androidReleaseKeyPass: T[String] = Task { "MillBuildTool" }
   def androidReleaseKeyStorePass: T[String] = Task { "MillBuildTool" }
 
-  override def virtualDeviceIdentifier: String = "java-test"
+  override def androidVirtualDeviceIdentifier: String = "java-test"
 
-  private def mainRoot = root
+  private def mainRoot = millSourcePath
 
   object test extends AndroidAppTests with TestModule.Junit4 {
     def testFramework = "com.novocode.junit.JUnitFramework"
@@ -54,7 +54,7 @@ object app extends AndroidAppModule {
 
     override def instrumentationPackage = "com.helloworld.app"
 
-    /* TODO this needs to change to something better once integration tests work with debug keystore */
+    /* TODO this needs to change to the location of the debug keystore once integration test */
     override def releaseKeyPath = mainRoot
 
     def androidReleaseKeyName: T[String] = Task {
@@ -123,7 +123,7 @@ object app extends AndroidAppModule {
 /** Usage
 
 > ./mill show app.test
-...compiling 1 Java source...
+...compiling 3 Java sources...
 
 > cat out/app/test/test.dest/out.json
 ["",[{"fullyQualifiedName":"com.helloworld.ExampleUnitTest.textSize_isCorrect","selector":"com.helloworld.ExampleUnitTest.textSize_isCorrect","duration":...,"status":"Success"}]]
@@ -153,10 +153,10 @@ object app extends AndroidAppModule {
 
 */
 
-// The android tests (existing typically in androidTest directory, aka integration tests)
+// The android tests (existing typically in androidTest directory, aka instrumented tests)
 // typically run on an android device.
 // The createAndroidVirtualDevice command creates an AVD (Android Virtual Device)
-// and the startAndroidEmulator command starts the AVD. The it task runs the integration tests
+// and the startAndroidEmulator command starts the AVD. The it task runs the android tests
 // against the available AVD. The stopAndroidEmulator command stops the AVD and the
 // destroyAndroidVirtualDevice command destroys the AVD.
 // The provided commands can be used in a CI/CD pipeline assuming the right setup is in place.

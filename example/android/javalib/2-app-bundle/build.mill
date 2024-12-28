@@ -18,7 +18,7 @@ object androidSdkModule0 extends AndroidSdkModule {
 object bundle extends AndroidAppBundle {
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
 
-  override def releaseKeyPath = root
+  override def releaseKeyPath = millSourcePath
 
   def androidReleaseKeyName: T[String] = Task { "releaseKey.jks" }
   def androidReleaseKeyAlias: T[String] = Task { "releaseKey" }

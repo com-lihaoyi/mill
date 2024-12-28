@@ -22,13 +22,13 @@ object androidSdkModule0 extends AndroidSdkModule {
 // Actual android application with linting config
 object app extends AndroidAppModule {
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
-  override def releaseKeyPath = root
+  override def releaseKeyPath = millSourcePath
 
   // Set path to the custom `lint.xml` config file. It is usually at the root of the project
-  def androidLintConfigPath = Task { Some(PathRef(root / "lint.xml")) }
+  def androidLintConfigPath = Task { Some(PathRef(millSourcePath / "lint.xml")) }
 
   // Set path to the custom `baseline.xml` file. It is usually at the root of the project
-  def androidLintBaselinePath = Task { Some(PathRef(root / "lint-baseline.xml")) }
+  def androidLintBaselinePath = Task { Some(PathRef(millSourcePath / "lint-baseline.xml")) }
 
   // Set the linting report to be generated as both text and html files
   def androidLintReportFormat =
@@ -66,7 +66,7 @@ lint.xml
 src
 
 > cat out/app/androidLintRun.dest/report.txt # Display content of the linting report
-AndroidManifest.xml:3: Error: Avoid hardcoding the debug mode; leaving it out allows debug and release builds to automatically assign one [HardcodedDebugMode]
+src/main/AndroidManifest.xml:3: Error: Avoid hardcoding the debug mode; leaving it out allows debug and release builds to automatically assign one [HardcodedDebugMode]
 
 > sed -i.bak 's/ android:debuggable="true"//g' app/src/main/AndroidManifest.xml # Fix the HardcodedDebugMode warning issue from `AndroidManifest.xml`
 

@@ -125,7 +125,7 @@ trait AndroidSdkModule extends Module {
    * For more information, refer to the official Android documentation [[https://developer.android.com/tools/adb]]
    */
   def adbPath: T[PathRef] = Task {
-    PathRef(sdkPath().path / "platform-tools" / "adb")
+    PathRef(sdkPath().path / "platform-tools/adb")
   }
 
   /**
@@ -134,7 +134,7 @@ trait AndroidSdkModule extends Module {
    *  For more information refer to the official Android documentation [[https://developer.android.com/tools/avdmanager]]
    */
   def avdPath: T[PathRef] = Task {
-    PathRef(sdkPath().path / "cmdline-tools" / "latest" / "bin" / "avdmanager")
+    PathRef(sdkPath().path / "cmdline-tools/latest/bin/avdmanager")
   }
 
   /**
@@ -143,7 +143,7 @@ trait AndroidSdkModule extends Module {
    * For more information refer to [[https://developer.android.com/studio/run/emulator]]
    */
   def emulatorPath: T[PathRef] = Task {
-    PathRef(sdkPath().path / "emulator" / "emulator")
+    PathRef(sdkPath().path / "emulator/emulator")
   }
 
   /**
@@ -152,7 +152,7 @@ trait AndroidSdkModule extends Module {
    * @return A task containing a [[PathRef]] pointing to the SDK directory.
    */
   def sdkManagerPath: T[PathRef] = Task {
-    PathRef(sdkPath().path / "cmdline-tools" / "latest" / "bin" / "sdkmanager")
+    PathRef(sdkPath().path / "cmdline-tools/latest/bin/sdkmanager")
   }
 
   /**
