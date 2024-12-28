@@ -484,7 +484,7 @@ trait AndroidAppModule extends JavaModule {
     os.call(
       Seq(
         androidSdkModule().lintToolPath().path.toString,
-        millSourcePath.toString,
+        (millSourcePath / "src/main").toString,
         "--classpath",
         cp,
         "--sources",

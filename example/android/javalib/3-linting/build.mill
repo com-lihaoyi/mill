@@ -66,14 +66,14 @@ lint.xml
 src
 
 > cat out/app/androidLintRun.dest/report.txt # Display content of the linting report
-src/main/AndroidManifest.xml:3: Error: Avoid hardcoding the debug mode; leaving it out allows debug and release builds to automatically assign one [HardcodedDebugMode]
+AndroidManifest.xml:3: Error: Avoid hardcoding the debug mode; leaving it out allows debug and release builds to automatically assign one [HardcodedDebugMode]
 
 > sed -i.bak 's/ android:debuggable="true"//g' app/src/main/AndroidManifest.xml # Fix the HardcodedDebugMode warning issue from `AndroidManifest.xml`
 
 > ./mill app.androidLintRun # Rerun it for new changes to reflect
 
 > cat out/app/androidLintRun.dest/report.txt # Check the content of report again
-lint-baseline.xml: Information: 1 errors/warnings were listed in the baseline file (lint-baseline.xml) but not found in the project; perhaps they have been fixed? Unmatched issue types: HardcodedDebugMode [LintBaseline]
+../../lint-baseline.xml: Information: 1 errors/warnings were listed in the baseline file (../../lint-baseline.xml) but not found in the project; perhaps they have been fixed? Unmatched issue types: HardcodedDebugMode [LintBaseline]
 
 */
 
