@@ -175,8 +175,7 @@ trait AndroidSdkModule extends Module {
     val packages = Seq(
       "platform-tools",
       s"build-tools;${buildToolsVersion()}",
-      s"platforms;${platformsVersion()}",
-      "cmdline-tools;latest"
+      s"platforms;${platformsVersion()}"
     )
     // sdkmanager executable and state of the installed package is a shared resource, which can be accessed
     // from the different Android SDK modules.
