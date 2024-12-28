@@ -518,6 +518,7 @@ trait AndroidAppModule extends JavaModule {
   def sdkInstallSystemImage: Target[String] = Task {
     val image =
       s"system-images;${androidSdkModule().platformsVersion()};google_apis_playstore;${androidEmulatorArchitecture}"
+
     val installCall = os.call((
       androidSdkModule().sdkManagerPath().path,
       "--install",
@@ -526,7 +527,7 @@ trait AndroidAppModule extends JavaModule {
 
     if (installCall.exitCode != 0) {
       Task.log.error(
-        s"Error trying to install android emulator system image ${installCall.out.trim()}"
+        s"Error trying to install android emulator system image ${installCall.err.text()}"
       )
       throw new Exception(s"Failed to install system image ${image}: ${installCall.exitCode}")
     }
@@ -536,8 +537,8 @@ trait AndroidAppModule extends JavaModule {
   /**
    * Creates the android virtual device identified in virtualDeviceIdentifier
    */
-  def createAndroidVirtualDevice: T[os.CommandResult] = Task {
-    os.call((
+  def createAndroidVirtualDevice: T[String] = Task {
+    val command = os.call((
       androidSdkModule().avdPath().path,
       "create",
       "avd",
@@ -549,6 +550,11 @@ trait AndroidAppModule extends JavaModule {
       androidDeviceId,
       "--force"
     ))
+    if (command.exitCode != 0) {
+      Task.log.error(s"Failed to create android virtual device: ${command.err.text()}")
+      throw new Exception(s"Failed to create android virtual device: ${command.exitCode}")
+    }
+    s"DeviceName: ${androidVirtualDeviceIdentifier}, DeviceId: ${androidDeviceId}"
   }
 
   /**
