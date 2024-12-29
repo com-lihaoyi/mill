@@ -20,6 +20,6 @@ object `package` extends RootModule with PythonModule {
 /** Usage
 
 > ./mill run
-b'"Hello, world!"'
+Hello, world!
 
 */
