@@ -103,10 +103,10 @@ object Deps {
     val playVersion = "2.8.22"
   }
   object Play_2_9 extends Play {
-    val playVersion = "2.9.5"
+    val playVersion = "2.9.6"
   }
   object Play_3_0 extends Play {
-    val playVersion = "3.0.5"
+    val playVersion = "3.0.6"
   }
   val play =
     Seq(Play_3_0, Play_2_9, Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
@@ -138,7 +138,7 @@ object Deps {
     ivy"com.caoccao.javet:javet-macos:4.0.0"
   )
 
-  val jline = ivy"org.jline:jline:3.27.1"
+  val jline = ivy"org.jline:jline:3.28.0"
   val jnaVersion = "5.15.0"
   val jna = ivy"net.java.dev.jna:jna:${jnaVersion}"
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:${jnaVersion}"
@@ -170,11 +170,11 @@ object Deps {
   val scalatags = ivy"com.lihaoyi::scalatags:0.12.0"
   def scalaXml = ivy"org.scala-lang.modules::scala-xml:2.3.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.11.0"
+  val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.12.3"
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.10.3"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.4.2"
   val upickle = ivy"com.lihaoyi::upickle:3.3.1"
-  val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.5"
+  val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.6"
   val zinc = ivy"org.scala-sbt::zinc:1.10.4"
   // keep in sync with doc/antora/antory.yml
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.2.0-M2"
@@ -235,7 +235,7 @@ object Deps {
     ivy"org.apache.ant:ant:1.10.15",
     Deps.commonsIo,
     ivy"com.google.code.gson:gson:2.11.0",
-    ivy"com.google.protobuf:protobuf-java:4.28.2",
+    ivy"com.google.protobuf:protobuf-java:4.29.2",
     ivy"com.google.guava:guava:33.4.0-jre",
     ivy"org.yaml:snakeyaml:2.3",
     ivy"org.apache.commons:commons-compress:1.27.1"
