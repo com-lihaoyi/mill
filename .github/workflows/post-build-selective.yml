@@ -25,17 +25,15 @@ jobs:
     timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
 
-      - uses: ./.github/actions/post-build-setup
-        with:
-          java-version: ${{ inputs.java-version }}
-          os: ${{ inputs.os }}
-
       - uses: actions/download-artifact@v4
         with:
           path: .
           name: ${{ inputs.os }}-artifact
 
-      - run: chmod -R 777 . # normalize permissions before and after upload/download-artifact
+      - uses: ./.github/actions/post-build-setup
+        with:
+          java-version: ${{ inputs.java-version }}
+          os: ${{ inputs.os }}
 
       - uses: actions/download-artifact@v4
         with:
