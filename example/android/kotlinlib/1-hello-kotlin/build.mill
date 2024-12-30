@@ -12,7 +12,9 @@ package build
 import mill._
 import kotlinlib._
 import mill.kotlinlib.android.AndroidAppKotlinModule
+import mill.javalib.android.AndroidTestModule
 import mill.javalib.android.AndroidSdkModule
+import coursier.maven.MavenRepository
 
 // Create and configure an Android SDK module to manage Android SDK paths and tools.
 object androidSdkModule0 extends AndroidSdkModule {
@@ -27,10 +29,51 @@ object app extends AndroidAppKotlinModule {
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
 
   // Configuration for ReleaseKey
+  override def releaseKeyPath = millSourcePath
   def androidReleaseKeyName: T[String] = Task { "releaseKey.jks" }
   def androidReleaseKeyAlias: T[String] = Task { "releaseKey" }
   def androidReleaseKeyPass: T[String] = Task { "MillBuildTool" }
   def androidReleaseKeyStorePass: T[String] = Task { "MillBuildTool" }
+  override def androidVirtualDeviceIdentifier: String = "kotlin-test"
+  override def androidEmulatorPort: String = "5556"
+
+  /* TODO this won't be needed once the debug keystore is implemented */
+  private def mainRoot = millSourcePath
+
+  object test extends AndroidAppKotlinTests with TestModule.Junit4 {
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy"junit:junit:4.13.2"
+    )
+  }
+
+  object it extends AndroidAppKotlinIntegrationTests with AndroidTestModule.AndroidJUnit {
+
+    override def instrumentationPackage = "com.helloworld.app"
+
+    /* TODO this needs to change to something better once integration tests work with debug keystore */
+    override def releaseKeyPath = mainRoot
+    def androidReleaseKeyName: T[String] = Task { "releaseKey.jks" }
+    def androidReleaseKeyAlias: T[String] = Task { "releaseKey" }
+    def androidReleaseKeyPass: T[String] = Task { "MillBuildTool" }
+    def androidReleaseKeyStorePass: T[String] = Task { "MillBuildTool" }
+
+    /* TODO currently the dependency resolution ignores the platform type and kotlinx-coroutines-core has
+     * conflicting classes with kotlinx-coroutines-core-jvm . Remove the exclusions once the dependency
+     * resolution resolves conflicts between androidJvm and jvm platform types
+     */
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy"androidx.test.ext:junit:1.2.1".exclude((
+        "org.jetbrains.kotlinx",
+        "kotlinx-coroutines-core-jvm"
+      )),
+      ivy"androidx.test:runner:1.6.2",
+      ivy"androidx.test.espresso:espresso-core:3.5.1".exclude((
+        "org.jetbrains.kotlinx",
+        "kotlinx-coroutines-core-jvm"
+      )),
+      ivy"junit:junit:4.13.2"
+    )
+  }
 }
 
 ////SNIPPET:END
@@ -55,14 +98,58 @@ object app extends AndroidAppKotlinModule {
 //
 // ----
 // .
-// ├── app
-// │   ├── AndroidManifest.xml
-// │   ├── releaseKey.jks
-// │   ├── resources
-// │   │   └── values
-// │   │       ├── colors.xml
-// │   │       └── strings.xml
-// │   └── src/main/java/com/helloworld/app/MainActivity.kt
-// └── build.mill
+//├── app
+//│   └── src
+//│       ├── androidTest/java/com/helloworld/app/ExampleInstrumentedTest.kt
+//│       ├── main
+//│       │   ├── AndroidManifest.xml
+//│       │   ├── java/com/helloworld/app/MainActivity.kt
+//│       │   └── res
+//│       │       └── values
+//│       │           ├── colors.xml
+//│       │           └── strings.xml
+//│       └── test/java/com/helloworld/app/ExampleUnitTest.kt
+//└── build.mill
 // ----
 //
+
+/** Usage
+
+> ./mill show app.test
+...Compiling 5 Kotlin sources...
+
+> cat out/app/test/test.dest/out.json
+["",[{"fullyQualifiedName":"com.helloworld.ExampleUnitTest.text_size_is_correct","selector":"com.helloworld.ExampleUnitTest.text_size_is_correct","duration":...,"status":"Success"},{"fullyQualifiedName":"com.helloworld.ExampleUnitTestInKotlinDir.kotlin_dir_text_size_is_correct","selector":"com.helloworld.ExampleUnitTestInKotlinDir.kotlin_dir_text_size_is_correct","duration":...,"status":"Success"}]]
+
+*/
+
+// This command runs unit tests on your local environment.
+
+/** Usage
+
+> ./mill app.createAndroidVirtualDevice
+
+> sleep 60 && ./mill show app.startAndroidEmulator
+
+> ./mill show app.waitForDevice
+...emulator-5556...
+
+> ./mill show app.it | grep '"OK (1 test)"'
+ ..."OK (1 test)",
+
+> cat out/app/it/test.json | grep '"OK (1 test)"'
+..."OK (1 test)"...
+
+> ./mill show app.stopAndroidEmulator
+
+> ./mill show app.deleteAndroidVirtualDevice
+
+*/
+
+// The android tests (existing typically in androidTest directory, aka instrumented tests)
+// typically run on an android device.
+// The createAndroidVirtualDevice command creates an AVD (Android Virtual Device)
+// and the startAndroidEmulator command starts the AVD. The it task runs the integration tests
+// against the available AVD. The stopAndroidEmulator command stops the AVD and the
+// destroyAndroidVirtualDevice command destroys the AVD.
+// The provided commands can be used in a CI/CD pipeline assuming the right setup is in place.

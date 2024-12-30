@@ -53,6 +53,19 @@ jobs:
         if: ${{ inputs.install-android-sdk }}
         with:
           log-accepted-android-sdk-licenses: false
+          cmdline-tools-version: 11076708
+          packages: tools platform-tools emulator system-images;android-35;google_apis_playstore;x86_64
+
+      - name: Enable KVM group perms
+        if: ${{ inputs.install-android-sdk }}
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Set AVD environment variable globally
+        if: ${{ inputs.install-android-sdk }}
+        run: echo "ANDROID_AVD_HOME=/home/runner/.config/.android/avd" >> $GITHUB_ENV
 
       - run: ./mill -i -k selective.resolve ${{ inputs.millargs }}
 
