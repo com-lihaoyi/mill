@@ -2,10 +2,7 @@ package mill.api
 
 import java.net.{URL, URLClassLoader}
 
-import java.nio.file.{FileAlreadyExistsException, FileSystemException}
 
-import mill.java9rtexport.Export
-import scala.util.Properties
 
 /**
  * Utilities for creating classloaders for running compiled Java/Scala code in
