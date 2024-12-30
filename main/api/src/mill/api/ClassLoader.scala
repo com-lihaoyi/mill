@@ -22,10 +22,7 @@ object ClassLoader {
       sharedPrefixes: Seq[String] = Seq(),
       logger: Option[mill.api.Logger] = None
   )(implicit ctx: Ctx.Home): URLClassLoader = {
-    new URLClassLoader(
-      makeUrls(urls).toArray,
-      refinePlatformParent(parent)
-    ) {
+    new URLClassLoader(urls.toArray, refinePlatformParent(parent)) {
       override def findClass(name: String): Class[?] = {
         if (sharedPrefixes.exists(name.startsWith)) {
           logger.foreach(
@@ -71,33 +68,6 @@ object ClassLoader {
       val getClassLoaderMethod = launcher.getClass().getMethod("getClassLoader")
       val appClassLoader = getClassLoaderMethod.invoke(launcher).asInstanceOf[ClassLoader]
       appClassLoader.getParent()
-    }
-  }
-
-  private def makeUrls(urls: Seq[URL])(implicit ctx: Ctx.Home): Seq[URL] = {
-    if (java9OrAbove) {
-      val java90rtJar = ctx.home / Export.rtJarName
-      if (!os.exists(java90rtJar)) {
-        // Time between retries should go from 100 ms to around 10s, which should
-        // leave plenty of time for another process to write fully this 50+ MB file
-        val retry = Retry(
-          count = 7,
-          backoffMillis = 100,
-          filter = {
-            case (_, _: FileSystemException) if Properties.isWin => true
-            case _ => false
-          }
-        )
-        retry {
-          try os.copy(os.Path(Export.rt()), java90rtJar, createFolders = true)
-          catch {
-            case e: FileAlreadyExistsException => /* someone else already did this */
-          }
-        }
-      }
-      urls :+ java90rtJar.toIO.toURI().toURL()
-    } else {
-      urls
     }
   }
 }
