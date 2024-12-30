@@ -70,6 +70,10 @@ jobs:
       - run: ./mill -i -k selective.resolve ${{ inputs.millargs }}
 
       - run: ./mill -i -k selective.run ${{ inputs.millargs }}
+        if: ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'run-all-tests') }}
+
+      - run: ./mill -i -k ${{ inputs.millargs }}
+        if: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'run-all-tests') }}
 
       - run: 'taskkill -f -im java* && rm -rf out/mill-server/*'
         if: startsWith(inputs.os, 'windows')
