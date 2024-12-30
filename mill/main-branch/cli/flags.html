@@ -723,6 +723,13 @@ explicitly how many concurrent tasks you wish to run. To disable parallel execut
 </div>
 </div>
 <div class="paragraph">
+<p>You can also set Mill’s parallelism to some multiple of the number of cores, e.g.
+<code>-j0.5C</code> to use half as many threads as cores, or <code>-j2C</code> to use twice as many threads as cores.
+These can be useful as <a href="#_repo_level_mill_options">Repo-Level Mill Options</a> to configure an appropriate level
+of parallelism that scales based on the number of cores available (which might differ
+between e.g. developer laptops and CI machines)</p>
+</div>
+<div class="paragraph">
 <p>Every <code>mill</code> run generates an output file in <code>out/mill-chrome-profile.json</code> that can be
 loaded into the Chrome browser’s <code>chrome://tracing</code> page for visualization.
 This can make it much easier to analyze your parallel runs to find out what’s
