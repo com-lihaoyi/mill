@@ -144,7 +144,8 @@ Example: Use up to 4 parallel threads to compile all modules:
 mill -j4 __.compile
 ----
 
-
+You can also set Mill's parallelism to some multiple of the number of cores, e.g.
+`-j0.5C` to use half as many threads as cores, or `-j2C` to use twice as many threads as cores.
 
 Every `mill` run generates an output file in `out/mill-chrome-profile.json` that can be
 loaded into the Chrome browser's `chrome://tracing` page for visualization.
