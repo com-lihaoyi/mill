@@ -619,10 +619,7 @@ import mill.javalib.android.{AndroidSdkModule, AndroidAppModule, AndroidLintRepo
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object app extends AndroidAppModule {
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
-
-  // Set the source path to the root directory of Java source code (com/example/app)
-  def sources: T[Seq[PathRef]] =
-    Task.Sources { Seq(PathRef(millSourcePath / &quot;src&quot; / &quot;main&quot; / &quot;java&quot;)) }
+  override def releaseKeyPath = millSourcePath
 
   // Set path to the custom `lint.xml` config file. It is usually at the root of the project
   def androidLintConfigPath = Task { Some(PathRef(millSourcePath / &quot;lint.xml&quot;)) }
@@ -640,7 +637,7 @@ import mill.javalib.android.{AndroidSdkModule, AndroidAppModule, AndroidLintRepo
 </div>
 </div>
 <div class="listingblock">
-<div class="title">app/AndroidManifest.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/android/javalib/3-linting/app/AndroidManifest.xml">browse</a>)</div>
+<div class="title">app/src/main/AndroidManifest.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/android/javalib/3-linting/app/src/main/AndroidManifest.xml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">&lt;manifest xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot; package=&quot;com.helloworld.app&quot; android:versionCode=&quot;1&quot; android:versionName=&quot;1.0&quot;&gt;
     &lt;uses-sdk android:minSdkVersion=&quot;9&quot; android:targetSdkVersion=&quot;35&quot;/&gt;
@@ -660,7 +657,7 @@ import mill.javalib.android.{AndroidSdkModule, AndroidAppModule, AndroidLintRepo
 <p>The <code>AndroidManifest.xml</code> file shown above is flawed with hardcoded string linting problem so it can be spoted by running the <code>androidLintRun</code> task.</p>
 </div>
 <div class="listingblock">
-<div class="title">app/resources/values/colors.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/android/javalib/3-linting/app/resources/values/colors.xml">browse</a>)</div>
+<div class="title">app/src/main/res/values/colors.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/android/javalib/3-linting/app/src/main/res/values/colors.xml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">&lt;resources&gt;
     &lt;color name=&quot;white&quot;&gt;#FFFFFF&lt;/color&gt;
@@ -669,7 +666,7 @@ import mill.javalib.android.{AndroidSdkModule, AndroidAppModule, AndroidLintRepo
 </div>
 </div>
 <div class="listingblock">
-<div class="title">app/resources/values/strings.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/android/javalib/3-linting/app/resources/values/strings.xml">browse</a>)</div>
+<div class="title">app/src/main/res/values/strings.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/android/javalib/3-linting/app/src/main/res/values/strings.xml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">&lt;resources&gt;
     &lt;string name=&quot;app_name&quot;&gt;HelloWorldApp&lt;/string&gt;
@@ -743,21 +740,19 @@ report.html
 report.txt
 
 &gt; ls app/ # List out all files in the app directory to check lint-baseline file exists
-AndroidManifest.xml
 lint-baseline.xml
 lint.xml
-resources
 src
 
 &gt; cat out/app/androidLintRun.dest/report.txt # Display content of the linting report
 AndroidManifest.xml:3: Error: Avoid hardcoding the debug mode; leaving it out allows debug and release builds to automatically assign one [HardcodedDebugMode]
 
-&gt; sed -i.bak 's/ android:debuggable=&quot;true&quot;//g' app/AndroidManifest.xml # Fix the HardcodedDebugMode warning issue from `AndroidManifest.xml`
+&gt; sed -i.bak 's/ android:debuggable=&quot;true&quot;//g' app/src/main/AndroidManifest.xml # Fix the HardcodedDebugMode warning issue from `AndroidManifest.xml`
 
 &gt; ./mill app.androidLintRun # Rerun it for new changes to reflect
 
 &gt; cat out/app/androidLintRun.dest/report.txt # Check the content of report again
-lint-baseline.xml: Information: 1 errors/warnings were listed in the baseline file (lint-baseline.xml) but not found in the project; perhaps they have been fixed? Unmatched issue types: HardcodedDebugMode [LintBaseline]</code></pre>
+../../lint-baseline.xml: Information: 1 errors/warnings were listed in the baseline file (../../lint-baseline.xml) but not found in the project; perhaps they have been fixed? Unmatched issue types: HardcodedDebugMode [LintBaseline]</code></pre>
 </div>
 </div>
 </div>
@@ -781,14 +776,14 @@ AndroidManifest.xml:3: Warning: Should explicitly set android:icon, there is no 
 
 &gt; sed -i.bak 's/severity=&quot;warning&quot;/severity=&quot;ignore&quot;/g' app/lint.xml # Revert the severity level of `MissingApplicationIcon`
 
-&gt; sed -i '$s|.*|&lt;!-- Unused resource --&gt;\n&lt;string name=&quot;unused_string&quot;&gt;This string is unused&lt;/string&gt;\n&lt;/resources&gt;|' app/resources/values/strings.xml # Add UnusedResources issue
+&gt; sed -i '$s|.*|&lt;!-- Unused resource --&gt;\n&lt;string name=&quot;unused_string&quot;&gt;This string is unused&lt;/string&gt;\n&lt;/resources&gt;|' app/src/main/res/values/strings.xml # Add UnusedResources issue
 
 &gt; ./mill app.androidLintRun # Rerun it for the linting tool to detect the UnusedResources
 
 &gt; cat out/app/androidLintRun.dest/report.txt # Output the changes in the report
-resources/values/strings.xml:5: Warning: The resource R.string.unused_string appears to be unused [UnusedResources]
+res/values/strings.xml:5: Warning: The resource R.string.unused_string appears to be unused [UnusedResources]
 
-&gt; sed -i 's|&lt;resources|&lt;resources xmlns:tools=&quot;http://schemas.android.com/tools&quot; tools:ignore=&quot;UnusedResources&quot;|' app/resources/values/strings.xml # Suppress linting check for UnusedResources issue
+&gt; sed -i 's|&lt;resources|&lt;resources xmlns:tools=&quot;http://schemas.android.com/tools&quot; tools:ignore=&quot;UnusedResources&quot;|' app/src/main/res/values/strings.xml # Suppress linting check for UnusedResources issue
 
 &gt; ./mill app.androidLintRun # Rerun it for new changes to reflect
 
@@ -809,7 +804,7 @@ resources/values/strings.xml:5: Warning: The resource R.string.unused_string app
 &gt; ./mill app.androidLintRun # Rerun it for new changes to reflect
 
 &gt; cat out/app/androidLintRun.dest/report.txt # Output the report content
-src/main/java/com/helloworld/app/MainActivity.java:46: Error: Access to private field privateField of class SyntheticAccessorViolation requires synthetic accessor [SyntheticAccessor]
+java/com/helloworld/app/MainActivity.java:46: Error: Access to private field privateField of class SyntheticAccessorViolation requires synthetic accessor [SyntheticAccessor]
 
 &gt; sed -i.bak -e '/import android.annotation.SuppressLint;/d' -e '/class SyntheticAccessorViolation {/,/^}/d' app/src/main/java/com/helloworld/app/MainActivity.java # Add SuppressLint import
 

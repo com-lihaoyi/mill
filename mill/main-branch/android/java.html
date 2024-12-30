@@ -617,8 +617,11 @@ Additionally, <code>AndroidSdkModule</code> is embedded, making SDK management s
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
-import mill._
-import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}</code></pre>
+import mill._, javalib._
+
+import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}
+import coursier.maven.MavenRepository
+import mill.javalib.android.AndroidTestModule</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -641,10 +644,70 @@ import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}</code></pre>
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
 
   // Configuration for ReleaseKey
+  override def releaseKeyPath = super.millSourcePath
+
   def androidReleaseKeyName: T[String] = Task { &quot;releaseKey.jks&quot; }
   def androidReleaseKeyAlias: T[String] = Task { &quot;releaseKey&quot; }
   def androidReleaseKeyPass: T[String] = Task { &quot;MillBuildTool&quot; }
   def androidReleaseKeyStorePass: T[String] = Task { &quot;MillBuildTool&quot; }
+
+  override def androidVirtualDeviceIdentifier: String = &quot;java-test&quot;
+
+  private def mainRoot = millSourcePath
+
+  object test extends AndroidAppTests with TestModule.Junit4 {
+    def testFramework = &quot;com.novocode.junit.JUnitFramework&quot;
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy&quot;junit:junit:4.13.2&quot;
+    )
+  }
+
+  object it extends AndroidAppIntegrationTests with AndroidTestModule.AndroidJUnit {
+    def repositoriesTask = Task.Anon {
+      super.repositoriesTask() ++
+        Seq(MavenRepository(&quot;https://maven.google.com&quot;))
+    }
+
+    def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+
+    override def instrumentationPackage = &quot;com.helloworld.app&quot;
+
+    /* TODO this needs to change to the location of the debug keystore once integration test */
+    override def releaseKeyPath = mainRoot
+
+    def androidReleaseKeyName: T[String] = Task {
+      &quot;releaseKey.jks&quot;
+    }
+
+    def androidReleaseKeyAlias: T[String] = Task {
+      &quot;releaseKey&quot;
+    }
+
+    def androidReleaseKeyPass: T[String] = Task {
+      &quot;MillBuildTool&quot;
+    }
+
+    def androidReleaseKeyStorePass: T[String] = Task {
+      &quot;MillBuildTool&quot;
+    }
+
+    /* TODO currently the dependency resolution ignores the platform type and kotlinx-coroutines-core has
+     * conflicting classes with kotlinx-coroutines-core-jvm . Remove the exclusions once the dependency
+     * resolution resolves conflicts between androidJvm and jvm platform types
+     */
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy&quot;androidx.test.ext:junit:1.2.1&quot;.exclude((
+        &quot;org.jetbrains.kotlinx&quot;,
+        &quot;kotlinx-coroutines-core-jvm&quot;
+      )),
+      ivy&quot;androidx.test:runner:1.6.2&quot;,
+      ivy&quot;androidx.test.espresso:espresso-core:3.5.1&quot;.exclude((
+        &quot;org.jetbrains.kotlinx&quot;,
+        &quot;kotlinx-coroutines-core-jvm&quot;
+      )),
+      ivy&quot;junit:junit:4.13.2&quot;
+    )
+  }
 
 }</code></pre>
 </div>
@@ -674,15 +737,60 @@ all necessary steps (resource generation, APK creation, and signing) are execute
 <div class="content">
 <pre>.
 ├── app
-│   ├── AndroidManifest.xml
-│   ├── releaseKey.jks
-│   ├── resources
-│   │   └── values
-│   │       ├── colors.xml
-│   │       └── strings.xml
-│   └── src/main/java/com/helloworld/app/MainActivity.java
+│     └── src
+│         ├── androidTest/java/com/helloworld/app/ExampleInstrumentedTest.java
+│         ├── main
+│         │     ├── AndroidManifest.xml
+│         │     ├── java/com/helloworld/app/MainActivity.java
+│         │     └── res
+│         │         └── values
+│         │             ├── colors.xml
+│         │             └── strings.xml
+│         └── test/java/com/helloworld/app/ExampleUnitTest.java
 └── build.mill</pre>
 </div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show app.test
+...compiling 3 Java sources...
+
+&gt; cat out/app/test/test.dest/out.json
+[&quot;&quot;,[{&quot;fullyQualifiedName&quot;:&quot;com.helloworld.ExampleUnitTest.textSize_isCorrect&quot;,&quot;selector&quot;:&quot;com.helloworld.ExampleUnitTest.textSize_isCorrect&quot;,&quot;duration&quot;:...,&quot;status&quot;:&quot;Success&quot;}]]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This command runs unit tests on your local environment.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show app.createAndroidVirtualDevice
+...Name: java-test, DeviceId: medium_phone...
+
+&gt; ./mill show app.startAndroidEmulator
+
+&gt; ./mill show app.waitForDevice
+...emulator-5554...
+
+&gt; ./mill show app.it | grep '&quot;OK (1 test)&quot;'
+...&quot;OK (1 test)&quot;,
+
+&gt; cat out/app/it/test.json | grep '&quot;OK (1 test)&quot;'
+...&quot;OK (1 test)&quot;...
+
+&gt; ./mill show app.stopAndroidEmulator
+
+&gt; ./mill show app.deleteAndroidVirtualDevice</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The android tests (existing typically in androidTest directory, aka instrumented tests)
+typically run on an android device.
+The createAndroidVirtualDevice command creates an AVD (Android Virtual Device)
+and the startAndroidEmulator command starts the AVD. The it task runs the android tests
+against the available AVD. The stopAndroidEmulator command stops the AVD and the
+destroyAndroidVirtualDevice command destroys the AVD.
+The provided commands can be used in a CI/CD pipeline assuming the right setup is in place.</p>
 </div>
 <div class="paragraph">
 <p>This example demonstrates how to create a basic &quot;Hello World&quot; Android application
@@ -770,6 +878,8 @@ object androidSdkModule0 extends AndroidSdkModule {
 object bundle extends AndroidAppBundle {
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
 
+  override def releaseKeyPath = millSourcePath
+
   def androidReleaseKeyName: T[String] = Task { &quot;releaseKey.jks&quot; }
   def androidReleaseKeyAlias: T[String] = Task { &quot;releaseKey&quot; }
   def androidReleaseKeyPass: T[String] = Task { &quot;MillBuildTool&quot; }
@@ -800,15 +910,15 @@ ensuring that all necessary steps (generation, creation, and signing) are execut
 <div class="listingblock">
 <div class="content">
 <pre>.
-├── app
-│   ├── AndroidManifest.xml
-│   ├── releaseKey.jks
-│   ├── resources
-│   │   └── values
-│   │       ├── colors.xml
-│   │       └── strings.xml
-│   └── src/main/java/com/helloworld/app/MainActivity.java
-└── build.mill</pre>
+bundle/
+└── src
+   ├── main
+   │   ├── AndroidManifest.xml
+   │   └── java/com/helloworld/app/MainActivity.java
+   └── res
+       └── values
+           ├── colors.xml
+           └── strings.xml</pre>
 </div>
 </div>
 </div>
