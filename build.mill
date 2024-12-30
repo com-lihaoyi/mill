@@ -236,7 +236,7 @@ object Deps {
     Deps.commonsIo,
     ivy"com.google.code.gson:gson:2.11.0",
     ivy"com.google.protobuf:protobuf-java:4.29.2",
-    ivy"com.google.guava:guava:33.3.1-jre",
+    ivy"com.google.guava:guava:33.4.0-jre",
     ivy"org.yaml:snakeyaml:2.3",
     ivy"org.apache.commons:commons-compress:1.27.1"
   )
