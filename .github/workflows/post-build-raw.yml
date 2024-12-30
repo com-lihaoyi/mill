@@ -21,8 +21,6 @@ jobs:
     continue-on-error: false
     timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
-      - uses: actions/checkout@v4
-
       - uses: ./.github/actions/post-build-setup
         with:
           java-version: ${{ inputs.java-version }}

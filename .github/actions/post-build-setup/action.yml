@@ -19,8 +19,6 @@ runs:
         java-version: ${{ inputs.java-version }}
         distribution: temurin
 
-    - uses: actions/checkout@v4
-
     # Need to fix cached artifact file permissions because github actions screws it up
     # https://github.com/actions/upload-artifact/issues/38
     - run: "chmod -R +x ."
