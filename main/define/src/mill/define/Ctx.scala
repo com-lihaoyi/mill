@@ -85,19 +85,28 @@ object Ctx extends LowPriCtx {
       external0: External,
       foreign0: Foreign,
       fileName: sourcecode.File,
-      enclosing: Caller
+      enclosing: Caller,
+      enclosingClass: EnclosingClass
   ): Ctx = {
+    // Manually break apart `sourcecode.Enclosing` instead of using
+    // `sourcecode.Name` to work around bug with anonymous classes
+    // returning `$anon` names
+    val lastSegmentStr = millModuleEnclosing0.value.split("\\.|#| ").filter(!_.startsWith("$anon")).last
     Impl(
       millModuleEnclosing0.value,
       millModuleLine0.value,
-      Segment.Label(
-        // Manually break apart `sourcecode.Enclosing` instead of using
-        // `sourcecode.Name` to work around bug with anonymous classes
-        // returning `$anon` names
-        millModuleEnclosing0.value.split("\\.|#| ").filter(!_.startsWith("$anon")).last
-      ),
+      Segment.Label(lastSegmentStr),
       millModuleBasePath0.value,
-      segments0,
+      segments0 ++ {
+        Option(enclosing.value) match {
+          case Some(value) =>
+            val mapping = value.asInstanceOf[mill.define.OverrideMapping.Wrapper].overrideMapping
+            val key = (enclosingClass.value, lastSegmentStr)
+            mapping.value.getOrElse(key, Segments())
+
+          case None => Segments()
+        }
+      },
       external0.value,
       foreign0.value,
       fileName.value,
