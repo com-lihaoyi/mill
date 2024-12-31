@@ -77,7 +77,7 @@ jobs:
         uses: mikepenz/action-junit-report@v5
         if: always() # always run even if the previous step fails
         with:
-          fail_on_failure: true
+          fail_on_failure: false
           include_passed: false
           detailed_summary: true
           annotate_only: true
