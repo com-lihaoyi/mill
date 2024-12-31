@@ -154,6 +154,11 @@ mitigate them:
 4. Mock out external services: e.g. AWS and Azure can be mocked using https://www.localstack.cloud/[LocalStack], parts of Azure
    Kubernetes can be mocked using https://kind.sigs.k8s.io/[KIND], etc..
 
+5. xref:3-selective-testing.adoc[Selective Testing], e.g. via
+   xref:mill::large/selective-execution.adoc[Mill's Selective Test Execution], reduces the
+   number of tests you run
+   and thus  the impact of flakiness,
+
 However, although you can mitigate the flakiness, you should not expect to make it go away
 entirely.
 
