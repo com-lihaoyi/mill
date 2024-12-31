@@ -203,7 +203,7 @@ trait JavaModule
    * {{{
    *   def depManagement = super.depManagement() ++ Agg(
    *     ivy"com.lihaoyi::os-lib:0.11.3",
-   *     ivy"com.lihaoyi::cask:0.9.4".exclude("org.slf4j", "slf4j-api")
+   *     ivy"com.lihaoyi::cask:0.9.5".exclude("org.slf4j", "slf4j-api")
    *   )
    * }}}
    */
