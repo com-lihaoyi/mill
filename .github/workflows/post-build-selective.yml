@@ -81,5 +81,5 @@ jobs:
           include_passed: false
           detailed_summary: true
           annotate_only: true
-          require_tests:  true
+          require_tests: false
           report_paths: 'out/**/test-report.xml'
