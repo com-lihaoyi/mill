@@ -78,7 +78,7 @@ jobs:
         if: always() # always run even if the previous step fails
         with:
           fail_on_failure: true
-          include_passed: true
+          include_passed: false
           detailed_summary: true
           annotate_only: true
           require_tests:  true
