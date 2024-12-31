@@ -13,11 +13,11 @@ Many projects suffer from the problem of flaky tests: tests that pass or fail
 non-deterministically. These cause confusion, slow development cycles, and endless
 arguments between individuals and teams in an organization.
 
-This article dives deep into the problems and solutions of working with flaky tests
-from the perspective of someone who supervised the implementation of the first flaky
+This article dives deep into working with flaky tests,
+from the perspective of someone who built the first flaky
 test management systems at Dropbox and Databricks. The issue of flaky tests can be
-surprisingly unintuitive, with many "obvious" approaches to managing them being ineffective
-or counterproductive. But there are both "right" and "wrong" answers to many of
+surprisingly unintuitive, with many "obvious" approaches being ineffective
+or counterproductive. But it turns out there are right and wrong answers to many of
 these issues, and we will discuss both so you can better understand what flaky tests
 are all about.
 
@@ -35,7 +35,7 @@ Often this manifest as `sleep`/`time.sleep`/`Thread.sleep` calls in your test
 expecting some concurrent code path to complete, which may or may not wait
 long enough depending on how much CPU contention there is slowing down your test code.
 But any multi-threaded or multi-process code has the potential for race conditions or
-concurrency bugs.
+concurrency bugs, and these days most systems make use of multiple cores.
 
 ### Race conditions between tests
 
@@ -49,7 +49,10 @@ test that fails when run in parallel may not be the one that is misbehaving!
 Even in the absence of parallelism, tests may interfere
 with one another by mutating global variables or files on disk. Depending on the exact
 tests you run or the order in which you run them, the tests can behave differently
-and pass or fail unpredictably.
+and pass or fail unpredictably. Perhaps not strictly non-deterministic - the same
+tests run in the same order will behave the same - but practically non-deterministic
+since different CI runs may run tests in different orders (e.g. due to
+xref:3-selective-testing.adoc[Selective Testing]) which would make the result unpredictable.
 
 ### Resource contention
 
@@ -388,9 +391,11 @@ it is left as an exercise to the reader, but is usually a mix of:
 Usually flaky test management starts off as an entirely manual process, which works fine for small
 projects. But as the size of the project grows, you inevitably need to augment the manual work
 with some basic automation, and over time build out a fully automated system to do what you want.
+So far I have not seen a popular out-of-the-box solution for this, and in my interviews with ~30
+silicon valley companies it seems everyone ends up building their own.
 
 None of the techniques discussed in this article are rocket science, and the challenge is mostly
 just plumbing the necessary data back and forth between different parts of your CI system. But
-hopefully the high-level discussion of how to manage flaky tests should give you a head start,
-and save you weeks, months, or even years of problematic designs until you learn all the same
+hopefully this high-level discussion of how to manage flaky tests should give you a head start,
+and save you the weeks or months it would take to learn the same
 things that I have learned working on flaky tests over the past decade.
