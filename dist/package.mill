@@ -93,6 +93,8 @@ object `package` extends RootModule with build.MillPublishJavaModule {
     val devRunClasspath = runClasspath().map(_.path)
     val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
     val commonArgs = Seq(
+      // Avoid reserving a lot of memory for the client, as the client only forward information
+      "-Xmx24m",
       // Workaround for Zinc/JNA bug
       // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
       "-Djna.nosys=true"
@@ -126,7 +128,7 @@ object `package` extends RootModule with build.MillPublishJavaModule {
         "\r\n"
       ) // drop -D prefix, replace \ with /
     os.write(vmOptionsFile, millOptionsContent)
-    val jvmArgs = otherArgs ++ List(s"-DMILL_OPTIONS_PATH=$vmOptionsFile")
+    val jvmArgs = otherArgs ++ List(s"-DMILL_OPTIONS_PATH=$vmOptionsFile", "-Xmx24m")
     val classpath = runClasspath().map(_.path.toString)
     launcherScript(
       jvmArgs,
