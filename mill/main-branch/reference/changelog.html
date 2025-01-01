@@ -581,6 +581,68 @@
 <article class="doc">
 <h1 class="page">Changelog</h1>
 <div class="sect1">
+<h2 id="0-12-5"><a class="anchor" href="#0-12-5"></a>0.12.5 - 2025-01-01</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>Optimize Mill startup overhead by not blocking on stdin <a href="https://github.com/com-lihaoyi/mill/pull/4159">#4159</a></p>
+</li>
+<li>
+<p>Fix system console detection on JDK &gt;=22 <a href="https://github.com/com-lihaoyi/mill/pull/4178">#4178</a></p>
+</li>
+<li>
+<p>Fix thread leak when spawning JVM subprocesses, which caused instability and unresponsiveness
+in long-lived Mill processes <a href="https://github.com/com-lihaoyi/mill/pull/4185">#4185</a></p>
+</li>
+<li>
+<p>Fix crash in <code>mill -i</code> on Windows ARM64 <a href="https://github.com/com-lihaoyi/mill/pull/4196">#4196</a></p>
+</li>
+<li>
+<p>Fix log rendering in terminals where <code>\t</code> does not clear existing text <a href="https://github.com/com-lihaoyi/mill/pull/4173">#4173</a></p>
+</li>
+<li>
+<p>Fix generation of unnecessary <code>rt.jar</code> files in home folder <a href="https://github.com/com-lihaoyi/mill/pull/4206">#4206</a></p>
+</li>
+<li>
+<p>Addition of several experimental language toolchains, to support using Mill to build
+projects in other languages</p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://mill-build.org/mill/main-branch/pythonlib/intro.html">Experimental Python Support</a></p>
+</li>
+<li>
+<p><a href="https://mill-build.org/mill/main-branch/javascriptlib/intro.html">Experimental Javascript/Typescript Support</a></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Lots of doc improvements:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Overhaul of <a href="https://mill-build.org/mill/depth/execution-model.html">The Mill Execution Model</a>
+<a href="https://github.com/com-lihaoyi/mill/pull/4156">#4156</a></p>
+</li>
+<li>
+<p>Fix missing text in Java Module Configuration docs <a href="https://github.com/com-lihaoyi/mill/pull/4172">#4172</a></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Introduction of the <a href="https://mill-build.org/blog/index.html">Mill Engineering Blog</a>,
+with posts such as <a href="https://mill-build.org/blog/1-java-compile.html">How Fast does Java Compile?</a>,
+<a href="https://mill-build.org/blog/2-monorepo-build-tool.html">Why Use a Monorepo Build Tool?</a>,
+and <a href="https://mill-build.org/blog/3-selective-testing.html">Faster CI with Selective Testing</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="0-12-4"><a class="anchor" href="#0-12-4"></a>0.12.4 - 2024-12-16</h2>
 <div class="sectionbody">
 <div class="ulist">
