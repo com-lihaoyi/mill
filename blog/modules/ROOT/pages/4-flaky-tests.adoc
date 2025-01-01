@@ -13,13 +13,13 @@ Many projects suffer from the problem of flaky tests: tests that pass or fail
 non-deterministically. These cause confusion, slow development cycles, and endless
 arguments between individuals and teams in an organization.
 
-This article dives deep into working with flaky tests,
-from the perspective of someone who built the first flaky
-test management systems at Dropbox and Databricks. The issue of flaky tests can be
+This article dives deep into working with flaky tests, from the perspective of someone
+who built the first flaky test management systems at Dropbox and Databricks and maintained
+the related build and CI workflows over the past decade. The issue of flaky tests can be
 surprisingly unintuitive, with many "obvious" approaches being ineffective
-or counterproductive. But it turns out there are right and wrong answers to many of
-these issues, and we will discuss both so you can better understand what flaky tests
-are all about.
+or counterproductive. But it turns out there _are_ right and wrong answers to many of
+these issues, and we will discuss both so you can better understand what managing flaky tests
+is all about.
 
 // end::header[]
 
@@ -51,8 +51,10 @@ with one another by mutating global variables or files on disk. Depending on the
 tests you run or the order in which you run them, the tests can behave differently
 and pass or fail unpredictably. Perhaps not strictly non-deterministic - the same
 tests run in the same order will behave the same - but practically non-deterministic
-since different CI runs may run tests in different orders (e.g. due to
-xref:3-selective-testing.adoc[Selective Testing]) which would make the result unpredictable.
+since different CI runs may run tests in different orders.
+xref:3-selective-testing.adoc[Selective Testing] may cause this kind of issue,
+or dynamic load-balancing of tests between parallel workers to minimize total wall
+clock time (which https://github.com/dropbox/changes[Dropbox's Changes CI system] did)
 
 ### Resource contention
 
@@ -72,7 +74,8 @@ packages from a package repository" can be subject to flaky failures
 
 Sometimes the flakiness is test-specific, sometimes it is actually flakiness in the
 code being tested, which may manifest as real flakiness when customers are trying
-to use your software.
+to use your software. Both scenarios manifest the same to developers - a test passing
+and failing non-deterministically when run locally or in CI.
 
 ## Why Are Flaky Tests Problematic?
 
@@ -80,16 +83,18 @@ to use your software.
 
 Flaky tests generally make it impossible to know the state of your test suite,
 which in turns makes it impossible to know whether the software you are working on
-is broken or not. In general, even a small number of flaky tests is enough to
-destroy the core value of your test suite:
+is broken or not, which is the reason you wanted tests in the first place.
+Even a small number of flaky tests is enough to destroy the core value of your test suite.
 
 * Ideally, if the tests pass on a proposed code change, even someone
   unfamiliar with the codebase can be confident that the code change did not break
   anything.
 
 * Once test failures start happening spuriously, it quickly becomes
-  impossible to get a fully "green" test run without failures, so in order to make
-  progress (merging a pull-request, deploying a service, etc.) the developer then
+  impossible to get a fully "green" test run without failures
+
+* So in order to make
+  validate a code change (merging a pull-request, deploying a service, etc.) the developer then
   needs to individually triage and make judgements on those test failures to determine
   if they are real issues or spurious
 
@@ -113,7 +118,11 @@ Although 1% of tests each failing 1% of the time may not seem like a huge deal, 
 that someone running the entire test suite only has a `0.99^100 = ~37%` chance of getting
 a green test report! The other 63% of the time, someone running the test suite without any
 real breakages gets one or more spurious failures, that they then have to spend time and energy
-triaging and investigating.
+triaging and investigating. If the developer needs to retry the test runs to get a successful
+result, they would need to retry on average `1 / 0.37 = 2.7` times: in this scenario
+the retries alone may be enough to increase your testing latencies and infrastructure costs by
+170%, on top of the manual work needed to triage and investigate the test failures!
+
 
 ### Inter-team Conflict
 
@@ -125,34 +134,36 @@ One fundamental issue with flaky tests is organizational:
 * Other teams that run the test in CI suffer from the spurious failures and wasted time
   that hitting flaky tests entails
 
-This is a fundamental mis-alignment between the different teams in an organization, and
-it leads to no end of discussion:
+xref:3-selective-testing.adoc[Selective Testing] can help mitigate this to some extent by
+letting you avoid running unrelated tests, but it doesn't make the problem fully disappear.
+For example, a downstream service may be triggered every time an upstream utility library
+is changed, and if the tests are flaky and the service and library are owned by different
+teams, you end up with the conflict described above.
 
-* For the team that owns a flaky test, it is in their best interest to keep running it in CI,
-  because it provides coverage on their code. And fixing the flakiness usually isn't a top priority.
-
-* For teams that do not own the flaky test but run it, it is in their best interest to disable
-  it, because they don't care about the code being covered, or at least fixing the flakiness right away
-
-There really is no way to square this mis-alignment as long as flaky tests are allowed to exist,
-as the two teams fundamentally want different things. This results in all sorts of conflict and
-endless debates or arguments between teams, wasting enormous amounts of time and energy.
+What ends up happening is that _nobody_ prioritizes fixing their flaky tests, because
+that is the selfishly-optimal thing to do, but as a result _everyone_
+suffers from _everyone else's_ flaky tests, even if everyone would be better if all flaky tests
+were fixed. This is a classic https://en.wikipedia.org/wiki/Tragedy_of_the_commons[Tragedy of the Commons],
+and as long as flaky tests are allowed to exist, this will result in
+endless debates or arguments between teams about who needs to fix their flaky tests,
+wasting enormous amounts of time and energy.
 
 ## Mitigating Flaky Tests
 
 In general it is impossible to completely avoid flaky tests, but you can take steps to
 mitigate them:
 
-1. Avoid race conditions in your application code to prevent random crashes
+1. Avoid race conditions in your application code to prevent random crashes or behavioral changes
    affecting users, and avoid race conditions in your test code
 
 2. Run parallel test processes inside "sandbox" empty temp folders, to try and avoid
    them reading and writing to the same files on the filesystem and risking race conditions.
-  (See https://bazel.build/docs/sandboxing[Bazel Sandboxing])
+   (See xref:mill:ROOT:depth/sandboxing.adoc[Mill Sandboxing])
 
 3. Run test processes inside CGroups to mitigate resource contention: e.g. if every test process is limited
    in how much memory it uses, it cannot cause memory pressure that might cause other tests
-   to be OOM-killed (See Bazel's https://github.com/bazelbuild/bazel/pull/21322[Extended CGroup Support])
+   to be OOM-killed (See Bazel's https://github.com/bazelbuild/bazel/pull/21322[Extended CGroup Support],
+   which we implemented in https://www.databricks.com/blog/2021/10/14/developing-databricks-runbot-ci-solution.html[Databricks' Runbot CI system])
 
 4. Mock out external services: e.g. AWS and Azure can be mocked using https://www.localstack.cloud/[LocalStack], parts of Azure
    Kubernetes can be mocked using https://kind.sigs.k8s.io/[KIND], etc..
@@ -165,7 +176,8 @@ mitigate them:
 However, although you can mitigate the flakiness, you should not expect to make it go away
 entirely.
 
-* Race conditions _will_ find their way into your code despite your best efforts.
+* Race conditions _will_ find their way into your code despite your best efforts, and you _will_
+  need some hardcoded timeouts to prevent your test suite hanging forever.
 
 * There will always be _some_ limited physical resource you didn't realize could run out,
   until it does.
@@ -178,8 +190,11 @@ End-to-end tests and integration tests are especially prone to flakiness, as are
 tests exercising web or mobile app UIs.
 
 As a developer, you should work hard in trying to make your application and test
-code as deterministic as possible. But you should also accept that despite your best efforts,
-flaky tests will appear, and so you will need some plan or strategy to deal with them when they do.
+code as deterministic as possible. You should have a properly-shaped
+https://martinfowler.com/articles/practical-test-pyramid.html[Test Pyramid], with more small unit
+tests that tend to be stable and fewer integration/end-to-end/UI tests that tend to be flaky.
+But you should also accept that despite your best efforts, flaky tests _will_ appear, and so you
+will need some plan or strategy to deal with them when they do.
 
 ## How Not To Manage Flaky Tests
 
@@ -202,7 +217,8 @@ for a variety of reasons:
 
 2. The flaky test may be in a part of the system totally unrelated to the code change
    being tested, which means the individual working on the code change has zero context
-   on why it might be flaky
+   on why it might be flaky, and unexpectedly context switching to deal with the flaky test
+   is mentally costly.
 
 3. Blocking progress on a flaky test introduces an incentives problem: The code/test owner
    benefits from the flaky test's existence, but other people working in that codebase
@@ -219,31 +235,32 @@ your flaky test management, to try and catch them before they end up landing in 
 But doing so ends up being surprisingly difficult.
 
 Consider the example we used earlier: 10,000 tests, with 1% of them flaky, each failing 1% of
-the time.
+the time. These are arbitrary numbers but pretty representative of what you will likely find
+in the wild
 
-* If someone adds a new test case, in order to have a 95% confidence that it is not flaky,
+1. If someone adds a new test case, in order to have a 95% confidence that it is not flaky,
   you would need to run it about 300 times (`log(0.05) / log(0.99)`).
 
-* Even if we do run every new test 300 times, that 1 in 20 flaky tests will still slip through,
+2. Even if we do run every new test 300 times, that 1 in 20 flaky tests will still slip through,
   and over time will still build up into a population of flaky tests actively causing flakiness
   in your test suite
 
-* Furthermore, many tests are not flaky alone! Running the same test 300 times in
+3. Furthermore, many tests are not flaky alone! Running the same test 300 times in
   isolation may not demonstrate any flakiness, since e.g. the test may only be flaky when
-  run in parallel with another test due to <<Race conditions between tests>> or <<Resource contention>>
-  in a specific order after other tests due to <<Test ordering dependencies>>.
+  run in parallel with another test due to <<Race conditions between tests>> or <<Resource contention>>,
+  or in a specific order after other tests due to <<Test ordering dependencies>>.
 
-* Lastly, it is not only new tests that are flaky! When I was working on this area at Dropbox
+4. Lastly, it is not only new tests that are flaky! When I was working on this area at Dropbox
   and Databricks, the majority of flaky tests we detected were existing tests that
   were stable for days/weeks/months before turning flaky (presumably due to a code change
   in the application code or test code). Blocking new tests that are flaky does nothing
   to prevent the code changes causing old tests to become flaky!
 
-* To block code changes that cause either new and old tests from becoming flaky, we would need
-  to run every single test about 300 times on each pull request, to give us 95% confidence that
-  each 1% flaky test introduced by the code change would get caught. This is prohibitively
-  slow and expensive, causing a test suite that may take 5 minute to run costing $1 to instead
-  take 25 hours to run costing $300.
+To block code changes that cause either new and old tests from becoming flaky, we would need
+to run every single test about 300 times on each pull request, to give us 95% confidence that
+each 1% flaky test introduced by the code change would get caught. This is prohibitively
+slow and expensive, causing a test suite that may take 5 minutes to run costing $1 to instead
+take 25 hours to run costing $300.
 
 In general, it is very hard to block flaky tests "up front". You have to accept that
 over time some parts of your test suite will become flaky, and then make plans on how
@@ -252,7 +269,7 @@ to respond and manage those flaky tests when they inevitably appear.
 ## Managing Flaky Tests
 
 Once flaky tests start appearing in your test suite, you need to do something about them.
-This generally involves (a) noticiing that flaky tests exist, (b) identifying which tests
+This generally involves (a) noticing that flaky tests exist, (b) identifying which tests
 are flaky, and (c) mitigating those specific problematic test to prevent them from
 causing pain to your developers.
 
@@ -264,9 +281,12 @@ and monitor the flakiness when it occurs. This can be done in a variety of ways,
 
 1. Most CI systems allow manual retries, and developers usually retry tests they suspect are
    flaky. If a test fails once then passes when retried on the same version of the code, it
-   was a flaky failure
+   was a flaky failure. This is the metric we used in
+   https://www.databricks.com/blog/2021/10/14/developing-databricks-runbot-ci-solution.html[Databricks' CI system]
+   to monitor the flaky test numbers.
 
-2. Some CI systems or test frameworks have automatic retries. If a test fails initially and then
+2. Some CI systems or test frameworks have automatic retries: e.g. in https://github.com/dropbox/changes[Dropbox's Changes CI system]
+   all tests were retried twice by default. If a test fails initially and then
    passes on the retry, it is flaky: the fact that it's non-deterministic means that
    next time, it might fail initially and then fail on the retry!
 
@@ -275,11 +295,12 @@ and monitor the flakiness when it occurs. This can be done in a variety of ways,
    suffers breakages or flakiness. If a test passes, fails, then passes on three consecutive
    commit test runs post-merge, it is likely to be flaky. Breakages
    tend to cause a string of consecutive test failures before being fixed or reverted, and
-   very rarely get noticed and dealt with immedaitely
+   very rarely get noticed and dealt with immediately
 
 Notably, most test failures when validating code changes (e.g. on pull requests) are not useful
-here, as tests are _meant_ to break when validating code changes in order to catch problems!
-Hence the need for the slightly-roundabout ways above to determine what tests are flaky
+here: tests are _meant_ to break when validating code changes in order to catch problems!
+Hence the need for the slightly-roundabout ways above to determine what tests are flaky,
+by looking for failures at times when you wouldn't expect failures to occur.
 
 Once you have noticed a test is flaky, there are two main options: retries and quarantine
 
@@ -290,39 +311,47 @@ in the system that can cause real problems to customers, which is true. However,
 we already discussed why we xref:_do_not_block_code_changes_on_flaky_tests[should
 not block code changes on flaky tests], since doing so just causes pain while
 not being an effective way of getting the flakiness fixed.
-Thus, we should feel free to add retries around flaky tests, to try and make them pass
+
+Furthermore, developers
+are going to be manually retrying flaky tests anyway: whether by restarting the job
+validating their pull request, or running the test manually on their laptop or devbox
+to check if it's truly broken. Thus, we should feel free to add automatic retries around
+flaky tests to automate that tedious manual process.
 
 Retrying flaky tests can be surprisingly effective. As mentioned earlier, even
 infrequently flaky tests can cause issues, with a small subset of tests flaking
 1% of the time being enough to block all progress. However, one retry
 turns it into a 0.01% flaky test, and two retries turns it into a 0.0001% flaky test.
-So even one or two retries is enough to make most flaky tests stable that the
-flakiness does not cause issues.
+So even one or two retries is enough to make most flaky tests stable enough to not cause issues.
 
 Retrying flaky tests has two weaknesses:
 
-* Retries can be expensive for real failures. If you retry a test twice, that
-  means that an actually-failed test would run three times before giving up.
-  If you retry every test by default, and a code change breaks a large number of
-  them, running all those failing tests three times can be a significant performance
-  and latency penalty
+#### Retries can be expensive for real failures
 
-** To mitigate this, you should generally avoid "blanket" retries, and only add
-   retries around specific tests that you have detected as being flaky
+If you retry a test twice, that
+means that an actually-failed test would run three times before giving up.
+If you retry every test by default, and a code change breaks a large number of
+them, running all those failing tests three times can be a significant performance
+and latency penalty
 
-* Retries may not work if not coarse grained enough. For example, if `test_a` fails
-  due to interference with `test_b` running concurrently, retrying `test_a`
-  immediately while `test_b` is still running will fail again. Or if the flakiness is
-  due to some bad state on the filesystem, the test may continue flaking until
-  it is run on a completely new machine with a clean filesystem.
+To mitigate this, you should generally avoid "blanket" retries, and only add
+retries around specific tests that you have detected as being flaky
 
-** This failure mode can be mitigated by retrying the failed tests only after the
-   entire test suite has completed, possibly on a clean test machine.
+#### Retries may not work if not coarse grained enough
+
+For example, if `test_a` fails
+due to interference with `test_b` running concurrently, retrying `test_a`
+immediately while `test_b` is still running will fail again. Or if the flakiness is
+due to some bad state on the filesystem, the test may continue flaking until
+it is run on a completely new machine with a clean filesystem.
+
+This failure mode can be mitigated by retrying the failed tests only after the
+entire test suite has completed, possibly on a clean test machine.
 
 ### Auto-Quarantining Flaky Tests
 
 Quarantine involves detecting that a test is flaky, and simply not counting it when deciding
-whether or not to merge a code change.
+whether or not to accept a code change for merge or deployment.
 
 This is much more aggressive than retrying flaky tests, as even real breakages will get
 ignored for quarantined tests. You effectively lose the test coverage given by a particular
@@ -396,7 +425,10 @@ Usually flaky test management starts off as an entirely manual process, which wo
 projects. But as the size of the project grows, you inevitably need to augment the manual work
 with some basic automation, and over time build out a fully automated system to do what you want.
 So far I have not seen a popular out-of-the-box solution for this, and in my interviews with ~30
-silicon valley companies it seems everyone ends up building their own.
+silicon valley companies it seems everyone ends up building their own. The
+https://github.com/dropbox/changes[Dropbox CI System] and
+https://www.databricks.com/blog/2021/10/14/developing-databricks-runbot-ci-solution.html[Databricks CI System]
+I worked on both had their flaky test management bespoke and built in to the infrastructure.
 
 None of the techniques discussed in this article are rocket science, and the challenge is mostly
 just plumbing the necessary data back and forth between different parts of your CI system. But
