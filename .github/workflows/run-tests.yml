@@ -1,5 +1,8 @@
 name: Run Tests
 
+permissions:
+  checks: write
+
 # We run full CI on push builds to main and on all pull requests
 #
 # Manual builds (workflow_dispatch) to the main branch are also published
