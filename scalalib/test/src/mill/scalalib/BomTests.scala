@@ -100,7 +100,7 @@ object BomTests extends TestSuite {
 
       object extraExclude extends JavaModule with TestPublishModule {
         def ivyDeps = Agg(
-          ivy"com.lihaoyi:cask_2.13:0.9.4"
+          ivy"com.lihaoyi:cask_2.13:0.9.5"
         )
         def depManagement = Agg(
           // The exclude should be automatically added to the dependency above
@@ -117,7 +117,7 @@ object BomTests extends TestSuite {
 
       object exclude extends JavaModule with TestPublishModule {
         def ivyDeps = Agg(
-          ivy"com.lihaoyi:cask_2.13:0.9.4"
+          ivy"com.lihaoyi:cask_2.13:0.9.5"
         )
         def depManagement = Agg(
           ivy"org.java-websocket:Java-WebSocket:1.5.2"
@@ -131,7 +131,7 @@ object BomTests extends TestSuite {
 
       object onlyExclude extends JavaModule with TestPublishModule {
         def ivyDeps = Agg(
-          ivy"com.lihaoyi:cask_2.13:0.9.4"
+          ivy"com.lihaoyi:cask_2.13:0.9.5"
         )
         def depManagement = Agg(
           ivy"org.java-websocket:Java-WebSocket"
