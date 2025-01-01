@@ -7,6 +7,10 @@ Welcome to the Mill development blog! This page contains posts and articles on
 technical topics related to the development of the Mill build tool. These discuss
 topics related to JVM languages and monorepo build tooling.
 
+include::4-flaky-tests.adoc[tag=header,leveloffset=1]
+
+xref:4-flaky-tests.adoc[Read More...]
+
 include::3-selective-testing.adoc[tag=header,leveloffset=1]
 
 xref:3-selective-testing.adoc[Read More...]

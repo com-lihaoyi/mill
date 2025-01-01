@@ -24,19 +24,16 @@ jobs:
     continue-on-error: false
     timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: ./.github/actions/post-build-setup
-        with:
-          java-version: ${{ inputs.java-version }}
-          os: ${{ inputs.os }}
 
       - uses: actions/download-artifact@v4
         with:
           path: .
           name: ${{ inputs.os }}-artifact
 
-      - run: chmod -R 777 . # normalize permissions before and after upload/download-artifact
+      - uses: ./.github/actions/post-build-setup
+        with:
+          java-version: ${{ inputs.java-version }}
+          os: ${{ inputs.os }}
 
       - uses: actions/download-artifact@v4
         with:
@@ -70,12 +67,19 @@ jobs:
       - run: ./mill -i -k selective.resolve ${{ inputs.millargs }}
 
       - run: ./mill -i -k selective.run ${{ inputs.millargs }}
-        if: ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'run-all-tests') }}
-
-      - run: ./mill -i -k ${{ inputs.millargs }}
-        if: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'run-all-tests') }}
 
       - run: 'taskkill -f -im java* && rm -rf out/mill-server/*'
         if: startsWith(inputs.os, 'windows')
         shell: bash
         continue-on-error: true
+       
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@v5
+        if: always() # always run even if the previous step fails
+        with:
+          fail_on_failure: false
+          include_passed: false
+          detailed_summary: true
+          annotate_only: true
+          require_tests: false
+          report_paths: 'out/**/test-report.xml'

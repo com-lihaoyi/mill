@@ -6,7 +6,6 @@ import java.nio.file.StandardOpenOption
 import java.util.Locale
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
-import mill.java9rtexport.Export
 import mill.api.{MillException, SystemStreams, WorkspaceRoot, internal}
 import mill.bsp.{BspContext, BspServerResult}
 import mill.main.BuildInfo
@@ -194,16 +193,6 @@ object MillMain {
                   userSpecifiedProperties0 ++ config.extraSystemProperties
 
                 val threadCount = Some(maybeThreadCount.toOption.get)
-
-                if (mill.main.client.Util.isJava9OrAbove) {
-                  val rt = config.home / Export.rtJarName
-                  if (!os.exists(rt)) {
-                    streams.err.println(
-                      s"Preparing Java ${System.getProperty("java.version")} runtime; this may take a minute or two ..."
-                    )
-                    Export.rtTo(rt.toIO, false)
-                  }
-                }
 
                 val bspContext =
                   if (bspMode) Some(new BspContext(streams, bspLog, config.home)) else None
