@@ -1,0 +1,13 @@
+// tag::header[]
+
+# How Mill's Executable Jars Work
+
+
+:author: Li Haoyi
+:revdate: ???
+_{author}, {revdate}_
+
+include::mill:ROOT:partial$gtag-config.adoc[]
+
+// end::header[]
+
