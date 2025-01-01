@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>The Mill Build Engineering Blog :: The Mill JVM Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/blog/index.html" />
-    <link rel="next" href="3-selective-testing.html" />
+    <link rel="next" href="4-flaky-tests.html" />
     <meta name="generator" content="Antora 3.1.9" />
     <link rel="stylesheet" href="../_/css/site.css" />
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -13,6 +13,10 @@
 <link rel="icon" href="../_/favicon.png" type="image/x-icon" />
   
   <style>
+*{
+  hyphens: manual !important;
+}
+</style><style>
 *{
   hyphens: manual !important;
 }
@@ -99,6 +103,10 @@
 
   <li class="nav-item" data-depth="0">
 <ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="4-flaky-tests.html">How To Manage Flaky Tests</a>
+  </li>
 
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="3-selective-testing.html">Faster CI with Selective Testing</a>
@@ -196,6 +204,47 @@ topics related to JVM languages and monorepo build tooling.</p>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_how_to_manage_flaky_tests"><a class="anchor" href="#_how_to_manage_flaky_tests"></a>How To Manage Flaky Tests</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><em>Li Haoyi, 1 Jan 2025</em></p>
+</div>
+
+<script>
+gtag('config', 'AW-16649289906');
+
+document.addEventListener('DOMContentLoaded', function() {
+const links = document.querySelectorAll('a');
+  links.forEach(link => {
+    if (link.textContent.trim().toLowerCase() === 'download') {
+      link.addEventListener('click', function(event) {
+        console.log("download link clicked")
+        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+      });
+    }
+  });
+});
+</script>
+<div class="paragraph">
+<p>Many projects suffer from the problem of flaky tests: tests that pass or fail
+non-deterministically. These cause confusion, slow development cycles, and endless
+arguments between individuals and teams in an organization.</p>
+</div>
+<div class="paragraph">
+<p>This article dives deep into working with flaky tests, from the perspective of someone
+who built the first flaky test management systems at Dropbox and Databricks and maintained
+the related build and CI workflows over the past decade. The issue of flaky tests can be
+surprisingly unintuitive, with many &quot;obvious&quot; approaches being ineffective
+or counterproductive. But it turns out there <em>are</em> right and wrong answers to many of
+these issues, and we will discuss both so you can better understand what managing flaky tests
+is all about.</p>
+</div>
+<div class="paragraph">
+<p><a href="4-flaky-tests.html" class="xref page">Read More…​</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_faster_ci_with_selective_testing"><a class="anchor" href="#_faster_ci_with_selective_testing"></a>Faster CI with Selective Testing</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -223,8 +272,8 @@ or monorepo: picking which tests to run to validate a change or pull-request, be
 running every test every time is costly and slow. This blog post will explore what
 selective testing is all about, the different approaches you can take with selective
 testing, based on my experience working on developer tooling and CI for the last decade at
-Dropbox and Databricks. Lastly, we will discuss how selective testing is supported by
-the Mill build tool.</p>
+Dropbox and Databricks. Lastly, we will discuss
+<a href="../mill/large/selective-execution.html" class="xref page">how the Mill build tool supports selective testing</a>.</p>
 </div>
 <div class="paragraph">
 <p><a href="3-selective-testing.html" class="xref page">Read More…​</a></p>
@@ -314,7 +363,7 @@ faster in the presence of parallelism</p>
 </div>
 </div>
 <nav class="pagination">
-  <span class="next"><a href="3-selective-testing.html">Faster CI with Selective Testing</a></span>
+  <span class="next"><a href="4-flaky-tests.html">How To Manage Flaky Tests</a></span>
 </nav>
 </article>
   </div>
