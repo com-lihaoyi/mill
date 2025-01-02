@@ -1,13 +1,14 @@
 import mill._, javalib._
 import mainargs.arg
-object `package` extends RootModule with JavaModule{
-  def runMainBackground(@arg(positional = true) mainClass: String, args: String*): Command[Unit] = Task.Command {
-    val res = super.runMainBackground(mainClass, args:_*)()
-    // Manually force an exit after runBackground has had a chance to run for a bit
-    new Thread(() => {
-      Thread.sleep(2000)
-      System.exit(0)
-    }).start()
-    res
-  }
+object `package` extends RootModule with JavaModule {
+  def runMainBackground(@arg(positional = true) mainClass: String, args: String*): Command[Unit] =
+    Task.Command {
+      val res = super.runMainBackground(mainClass, args: _*)()
+      // Manually force an exit after runBackground has had a chance to run for a bit
+      new Thread(() => {
+        Thread.sleep(2000)
+        System.exit(0)
+      }).start()
+      res
+    }
 }

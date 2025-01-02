@@ -175,11 +175,11 @@ object `package` extends RootModule with build.MillPublishJavaModule {
     }
   }
   def launcherScript(
-                      shellJvmArgs: Seq[String],
-                      cmdJvmArgs: Seq[String],
-                      shellClassPath: Agg[String],
-                      cmdClassPath: Agg[String]
-                    ) = {
+      shellJvmArgs: Seq[String],
+      cmdJvmArgs: Seq[String],
+      shellClassPath: Agg[String],
+      cmdClassPath: Agg[String]
+  ) = {
 
     val millMainClass = "mill.runner.client.MillClientMain"
 
@@ -241,7 +241,9 @@ object `package` extends RootModule with build.MillPublishJavaModule {
 
   def installLocalCache() = Task.Command {
     val path = installLocalTask(
-      Task.Anon((os.home / ".cache" / "mill" / "download" / (build.millVersion() + batExt)).toString())
+      Task.Anon(
+        (os.home / ".cache" / "mill" / "download" / (build.millVersion() + batExt)).toString()
+      )
     )()
     Task.log.outputStream.println(path.toString())
     PathRef(path)
@@ -253,14 +255,21 @@ object `package` extends RootModule with build.MillPublishJavaModule {
     if (os.exists(targetFile))
       Task.log.info(s"Overwriting existing local Mill binary at ${targetFile}")
     os.copy.over(millBin.path, targetFile, createFolders = true)
-    Task.log.info(s"Published ${build.dist.allPublishModules.size} modules and installed ${targetFile}")
+    Task.log.info(
+      s"Published ${build.dist.allPublishModules.size} modules and installed ${targetFile}"
+    )
     targetFile
   }
 
   def millBootstrap = Task.Source(Task.workspace / "mill")
   def millBootstrapBat = Task.Source(Task.workspace / "mill.bat")
 
-  def prepareBootstrapLauncher(bootstrap: os.Path, dest: os.Path, buildVersion: String, fileName: String) = {
+  def prepareBootstrapLauncher(
+      bootstrap: os.Path,
+      dest: os.Path,
+      buildVersion: String,
+      fileName: String
+  ) = {
     val outputPath = dest / fileName
     val millBootstrapGrepPrefix = "(\n *DEFAULT_MILL_VERSION=)"
 
@@ -284,7 +293,7 @@ object `package` extends RootModule with build.MillPublishJavaModule {
     prepareBootstrapLauncher(millBootstrapBat().path, Task.dest, build.millVersion(), "mill.bat")
   }
 
-  def examplePathsWithArtifactName:Task[Seq[(os.Path,String)]] = Task.Anon{
+  def examplePathsWithArtifactName: Task[Seq[(os.Path, String)]] = Task.Anon {
     for {
       exampleMod <- build.example.exampleModules
       path = exampleMod.millSourcePath
@@ -295,9 +304,8 @@ object `package` extends RootModule with build.MillPublishJavaModule {
     }
   }
 
-
   def exampleZips: T[Seq[PathRef]] = Task {
-    examplePathsWithArtifactName().map{ case (examplePath, exampleStr) =>
+    examplePathsWithArtifactName().map { case (examplePath, exampleStr) =>
       os.copy(examplePath, Task.dest / exampleStr, createFolders = true)
       os.write(Task.dest / exampleStr / ".mill-version", build.millLastTag())
       os.copy(bootstrapLauncher().path, Task.dest / exampleStr / "mill")
