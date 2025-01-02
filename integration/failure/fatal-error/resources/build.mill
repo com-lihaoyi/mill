@@ -4,7 +4,9 @@ import mill._
 def fatalTask = Task{
   // Needs to be a fatal error according to scala.util.control.NonFatal,
   // not just any error!
-  throw new java.lang.LinkageError("CUSTOM FATAL ERROR IN TASK")
+  val ex = new java.lang.LinkageError("CUSTOM FATAL ERROR IN TASK")
+  assert(scala.util.control.NonFatal.apply(ex))
+  throw ex
   123
 }
 
