@@ -126,6 +126,15 @@ that we use to make the `out.jar` file executable
 
 ## What is a Zip file?
 
+A zip file is an archive made of multiple smaller files, individually compressed,
+concatenated together followed by a "directory" listing out the starting offsets of
+every file within the archive. This diagram from Wikipedia lists it out:
+
+https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/ZIP-64_Internal_Layout.svg/2880px-ZIP-64_Internal_Layout.svg.png
+
+The typical way someone reads from a zip file is a follows:
+
+* Seek to the end of zip, which contains the directory listing
 
 
 ## What about Windows?
