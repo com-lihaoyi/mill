@@ -14,7 +14,7 @@ poorly understood. This article
 will discuss the fundamental design of how garbage collectors work, and tie it to real
 benchmarks of how the JVM garbage collector performs running some synthetic workloads. You
 should come away with a deeper understanding of how the JVM garbage collector works and
-how you can work to optimize its performance.
+how you can work to optimize its performance in your own real-world projects.
 
 // end::header[]
 
@@ -43,9 +43,10 @@ digraph G {
 ```
 
 These storage locations can contain objects (below named `foo`, `bar`, `qux`, `baz`) that take
-up memory and many reference other objects. Furthermore, the values may be referenced from outside
-the heap, e.g. from the "stack" which represents all objects referenced by local variables in
-methods that are currently being run (shown below) or from static global variables (not shown).
+up memory and may reference other objects (solid arrows). Furthermore, the values may be referenced from outside
+the heap (dashed lines), e.g. from the "stack" which represents all objects referenced by
+local variables in methods that are currently being run (shown below) or from static global
+variables (not shown). We keep a `free memory` pointer to the first empty slot on the right.
 
 
 ```graphviz
@@ -66,7 +67,7 @@ digraph G {
 ```
 
 If we want to allocate a new object `new1`, we can simply put it at the location of
-the `free memory` pointer, and bump `free memory` 1 slot to the right
+the `free memory` pointer (green below), and bump `free memory` 1 slot to the right
 
 ```graphviz
 digraph G {
@@ -82,7 +83,7 @@ digraph G {
   stack [shape=record label="STACK | <f0> | <f1> | <f2> | <f3> | <f4> | <f5> | <f6> | <f7> "]
   stack:f0 -> heap:f1 [dir=none, style=dashed]
   stack:f1 -> heap:f2 [dir=none, style=dashed]
-  stack:f2 -> heap:f4 [dir=none, style=dashed]
+  stack:f2 -> heap:f4 [dir=none, style=dashed,  color=green, penwidth=3]
 }
 ```
 
@@ -141,7 +142,7 @@ digraph G {
 Here, we can see that `foo` is not referenced, `bar` and `qux` are referenced directly from the
 `STACK`, and `baz` is referenced indirectly from `qux`.
 
-We then copy all objects we traced referenced from `HALF1` to `HALF2`, adjust all the references
+We then copy all objects we traced (often called the _live-set_) from `HALF1` to `HALF2`, adjust all the references
 appropriately. Now `HALF2` is the half of the heap in use, and `HALF1` can be reset to empty.
 We now have space to allocate the 4 `new2` to `new5` objects we wanted (green):
 
@@ -167,7 +168,7 @@ digraph G {
 }
 ```
 
-You may notice that the object `foo` got has disappeared. This is because `foo` was not
+You may notice that the object `foo` has disappeared. This is because `foo` was not
 referenced directly by any stack reference or indirectly, and so it is "garbage". It was
 not explicitly deleted, by rather simply did not get copied over from `HALF1` to `HALF2`
 during collection, and thus was wiped out when `HALF1` was cleared.
@@ -201,7 +202,8 @@ digraph G {
 
 Although `bar`, `new2` and `new3` are now "garbage", our heap is still "full". Thus, if we want
 to allocate a new object (e.g. `new6`) we need to repeat the garbage collection process: tracing
-the objects transitively reachable (`qux`, `bax`, `new1`, `new4`, `new5`) from `HALF2` to `HALF1`,
+the objects transitively reachable (`qux`, `bax`, `new1`, `new4`, `new5`), copying them
+from `HALF2` to `HALF1`,
 adjusting any references to now use `HALF1` as the new heap, and clearing anything that was left
 behind in `HALF2`.
 
@@ -229,20 +231,28 @@ digraph G {
 }
 ```
 
-Some other terms that apply to this kind of GC include:
+This process can repeat as many times as necessary: as long as there are _some_ objects
+that are unreachable, you can run a GC cycle and copy the "live" objects to the other
+half of the heap, freeing up some space to allocate new objects. The only reason this
+may fail is that if you run a GC cycle and there _still_ isn't enough space to allocate
+the objects you want; that means your program  has run out of memory, and will fail with
+an `OutOfMemoryError` or similar.
 
-* _semi-space_ garbage collector, because of the way it splits the heap into two halves
+Even this simple GC has a lot of interesting properties, and you may have heard these
+terms or labels that can apply to it:
 
-* _copying_ garbage collector, because it needs to copy the heap objects back and forth
+* *semi-space* garbage collector, because of the way it splits the heap into two halves
 
-* _tracing_ garbage collector, because of the way it traces the graph of heap
+* *copying* garbage collector, because it needs to copy the heap objects back and forth
+
+* *tracing* garbage collector, because of the way it traces the graph of heap
   references in order to decide what to copy.
 
-* _stop the world_ garbage collector, because while this whole trace-copy-update-references
+* *stop the world* garbage collector, because while this whole trace-copy-update-references
   workflow is happening, we have to stop the program to avoid race conditions between the garbage
   collector and the program code.
 
-* _compacting_ garbage collector, because every time we run a GC, we copy everything to the
+* *compacting* garbage collector, because every time we run a GC, we copy everything to the
   left-most memory, avoiding fragmentation.
 
 Most modern GCs are considerably more complicated than this, but at their heart
@@ -258,45 +268,66 @@ Typically, GC performance focuses on two main aspects:
 - *Throughput*: what % of the time your program is spending on real work, rather than collecting garbage
 - *Pause Times*: what is the longest time your program is spent stuck collecting garbage and making zero progress on real work
 
-These two metrics are separate: some programs only care about throughput, e.g. if you only care
-about how long a big batch analysis takes to complete. Others only care about pause times, e.g.
-someone playing a videogame doesn't care if it can run faster than the refresh rate of their
-monitor, but they will care if the game randomly pauses for 1-2 seconds while they're playing it.
+These two metrics are separate:
+
+* *Some programs only care about throughput*, e.g. if you only care about how long a big batch
+  analysis takes to complete, and don't care if it pauses in the middle to GC.
+* *Other programs only care about pause times*, e.g. someone playing a videogame doesn't care if
+  it can run faster than the refresh rate of their monitor, but they will care if the game
+  randomly pauses for 1-2 seconds while they're playing it.
 
 Even from the limited description above, we can already make some interesting inferences
 about how the performance of a simply garbage collector will be like.
 
-1. When the heap is not yet full, we can just allocate things on the first empty slots
-   on the right side of the heap. Thus, allocations in garbage collectors are _cheap_.
+1. *Allocations in garbage collectors are _cheap_*: when the heap is not yet full, we can
+   just allocate things on the first empty slots on the right side of the heap and bump `free-pointer`,
+   without having to scan the heap to find empty slots.
 
-2. When we do a garbage collection, the amount of work that we need to do _scanning_ and then
-   _copying_ is proportional to the size of the "live set", or the objects on the heap
-   that are _not_ garbage. Thus, we would expect the pause times of a GC - how long it has
-   to stop-the-world during a collection before the program can proceed - to be proportional
-   to the live set in the program
+2. *Pause times should be proportional to the size of the live-set*. That is because
+   A GC cycle involves tracing, copying, then updating the references within the live-set.
 
-3. How frequently we do a garbage collection depends on how fast the heap fills up, which
-   is proportional to how fast we are allocating, and inversely proportional to how large
-   the heap is. Thus providing more heap memory or allocating less garbage will reduce
-   how _frequently_ a garbage collection needs to take place
+3. *Pause times would not depend on the amount of garbage to be collected*. The GC cycle
+   we looked at above spend no time at all looking at or scanning for garbage objects,
+   they simply all disappeared when their half of the heap was wiped out following a collection.
+
+4. *Interval between GC cycles depends on how fast we allocate garbage and how much extra memory we have*.
+   We only need to run a GC cycle when the garbage we allocate fills up the "extra" memory
+   our program has on top of what is necessary to store the live-set.
+
+5. *GC throughput is the pause time divided by the interval, or proportional
+   to the extra memory and inversely proportional to the live-set size and allocation rate*
+
+In other words:
+
+* `allocation_cost = O(1)`
+
+* `gc_pause_time = O(live-set)`
+
+* `gc_interval = O(extra-memory / allocation-rate)`
+
+* `gc_throughput = gc_interval / gc_pause_time = O(extra-memory / allocation-rate / live-set)`
 
 Even from this small conclusions, we can already see some unintuitive results:
 
-1. How much garbage your program generates, and how much memory you give it, does not
-   affect how long a GC takes. If you have problems with GC pause-times taking too long,
-   providing more memory does _not_ help!
+1. *More memory does _not_ reduce pause times!* `gc_pause_time = O(live-set)`, and so
+   pause times do not depend on how much `extra-memory` you have.
 
-2. Providing more and more memory means GCs happen less and less frequently, and although
-   each GC stops-the-world for the same time, a lower and lower % of your program runtime
-   is spent garbage collecting. _There is no point at which providing more memory does
-   not improve program throughput_!
+2. *There is no point at which providing more memory does not improve GC throughput!*
+   `gc_throughput = O(extra-memory / allocation-rate / live-set)`, so
+   providing more and more memory means GCs happen less and less frequently, meaning a
+   larger % of your program time is spent on useful work, but there is no "maximum" and
+   you can always add more memory to eke out a bit more performance.
 
-3. Conversely, providing _exactly as much memory as the program requires_ is the worst
-   case for a garbage collector! That means every single allocation the program will
-   need to run a GC cycle, whose duration is proportional to the _live set_ and _not_
-   the amount of garbage that the cycle collects! Garbage collectors therefore _need_
+3. *Conversely, providing exactly as much memory as the program requires_ is the worst
+   case possible!* `gc_throughput = O(extra-memory / allocation-rate / live-set)` when
+   `extra-memory = 0` means `gc_throughput = 0`: every single allocation the program will
+   need to run an expensive GC cycle to free up very little memory, and your program will
+   spend all its time running GC cycles. Garbage collectors therefore _need_
    excess memory to work with, on top of the memory you would expect to need to allocate
    all the objects in your program.
+
+Even from this theoretical analysis, we have already found a number of surprising results
+in how GCs perform over time.
 
 ## Java Garbage Collectors
 
@@ -307,11 +338,11 @@ monitor how garbage collection happens when using them:
 ```java
 public class GC {
     public static void main(String[] args) throws Exception{
-        final int workingSet = Integer.parseInt(args[0]);
+        final int liveSetSize = Integer.parseInt(args[0]);
         final int maxObjectSize = 200;
         final int garbageRate = Integer.parseInt(args[1]);
-        Object[] base = new Object[workingSet];
-        for(int i = 0; i < workingSet; i++) base[i] = new Object[i % maxObjectSize];
+        Object[] liveSet = new Object[liveSetSize];
+        for(int i = 0; i < liveSetSize; i++) liveSet[i] = new Object[i % maxObjectSize];
 
         long maxPause = 0;
         long lastPrintTime = System.currentTimeMillis();
@@ -322,10 +353,10 @@ public class GC {
             long loopStartTime = System.currentTimeMillis();
 
             for(int i = 0; i < garbageRate; i++){
-                int baseIndex = (accumulator * garbageRate + i) % workingSet;
-                if (baseIndex < 0) baseIndex *= -1;
-                base[baseIndex] = new Object[i % maxObjectSize];
-                accumulator += base[baseIndex].hashCode();
+                int liveSetIndex = (accumulator * garbageRate + i) % liveSetSize;
+                if (liveSetIndex < 0) liveSetIndex *= -1;
+                liveSet[liveSetIndex] = new Object[i % maxObjectSize];
+                accumulator += liveSet[liveSetIndex].hashCode();
             }
             long loopTime = System.currentTimeMillis() - loopStartTime;
 
@@ -339,14 +370,14 @@ public class GC {
             }
         }
         System.out.println(accumulator);
-        System.out.println(base);
+        System.out.println(liveSet);
     }
 }
 ```
 
-This is a small Java program that starts off allocating a bunch of `Object[]` arrays in `workingSet`,
+This is a small Java program that starts off allocating a bunch of `Object[]` arrays in `liveSet`,
 and then in a loop continuously allocates more ``Object[]``s and over-writes the references
-to older ones. We cycle through the slots in `workingSet` such objects stay around a bit
+to older ones. We cycle through the slots in `liveSet` such objects stay around a bit
 before becoming unreachable (garbage). Lastly, we use a few oddities like
 `while (Math.abs(1) == 1)` and `System.out.println` to prevent the JVM from optimizing
 it all away.
@@ -354,7 +385,7 @@ it all away.
 This is a bit of a synthetic benchmark, and much less complex than a real-world
 application would be, but it is enough for the purposes of this article.
 
-You can run this program with different Java garbage collectors, heap sizes, `workingSet` size and `garbageRate`
+You can run this program with different Java garbage collectors, heap sizes, `liveSet` size and `garbageRate`
 via:
 
 ```bash
@@ -364,12 +395,13 @@ via:
 > java -Xmx1g -XX:+UseG1GC GC 500000 200
 ```
 
-Above, `-Xmx1g` sets the heap size, the `-XX:` flags set the garbage collector, 500000 sets the `workingSet`
-(or _live set_) size and `garbageRate` sets how fast to allocate new objects.
+Above, `-Xmx1g` sets the heap size, the `-XX:` flags set the garbage collector, 500000 sets the `liveSet`
+size and `garbageRate` sets how fast to allocate new objects.
 
-NOTE: the following numbers were run a while back, on older hardware (~2017 Macbook Pro)
+NOTE: the following numbers were run on older hardware (~2017 Macbook Pro)
 and on an older JVM. Performance should be better on newer hardware and software, but I
-expect the overall trends to be very similar.
+expect the overall trends to be very similar. You can try out this program on your own machine
+by copying the code and running the listed commands!
 
 ### The Parallel GC
 
@@ -380,22 +412,25 @@ Java 9.
 
 The interesting thing about ParallelGC is that it works roughly the same as our "naive"
 copying semi-space garbage collector we discussed above. There are a lot of optimizations -
-e.g. the tracing and copying is done in parallel - but at a high level it works basically as
-we saw above.
+e.g. the tracing and copying is done in parallel, and
+it has xref:#_generational_optimizations[optimizations for GCing recently-allocated objects] -
+but at a high level it works basically as the example GC we discussed above.
 
-When we run `java -Xmx1g -XX:+UseParallelGC GC 500000 200` and hook it up to JProfiler to monitor the heap size, we can see the classic
-"sawtooth" pattern that a GC creates: allocations slowly building up the size of the heap
-followed by a garbage collection that shrinks it back down
+When we run `java -Xmx1g -XX:+UseParallelGC GC 500000 200` and hook it up to JProfiler to
+monitor the heap size, we can see the classic  "sawtooth" pattern that a GC creates: allocations
+slowly building up the size of the heap followed by a garbage collection that shrinks it back down.
+From this graph we can visually see the GC interval and GC pause time, and from there compute
+the GC throughput via `gc_throughput = gc_interval / gc_pause_time`
 
 image::ParallelGC.png[]
 
-If we run this a bunch of times with different values for `Live Set` and `Garbage Rate`,
-we can see that the pause times are purely proportional to the `Live SAet` size, and
-independent of `Garbage Rate`:
+If we run this a bunch of times with different values for `live-set` and `garbage-rate`,
+we can see that the pause times are purely proportional to the `live-set` size, and
+independent of `garbage-rate`:
 
 
 |===
-| Live Set\Garbage Rate | 1,600 | 6,400 | 25,600
+| live-set\garbage-rate | 1,600 | 6,400 | 25,600
 | 100,000  | 17ms  | 17ms  | 20ms
 | 200,000  | 30ms  | 31ms  | 30ms
 | 400,000  | 362ms  | 355ms  | 356ms
@@ -404,18 +439,17 @@ independent of `Garbage Rate`:
 |===
 
 Looking at the JProfiler graph of heap size, we can see the theoretical
-performance characteristics we discussed earlier play out:
+behavior we discussed earlier play out: as we increase the garbage rate,
+the GC cycles get more frequency, but each cycle still takes the same
+amount of time and collects the same amount of garbage:
 
 |===
-| Working Set | Garbage Rate | Maximum Pause |
+| Working Set | garbage-rate | Maximum Pause |
 a| 400,000 | 200 |  345ms | image:ParallelGC200.png[]
 a| 400,000 | 800 | 351ms | image:ParallelGC800.png[]
 a| 400,000 | 3,200 | 389ms | image:ParallelGC3200.png[]
 a| 400,000 | 12,800|  388ms | image:ParallelGC12800.png[]
 |===
-
-Doubling the garbage rate each test doubles the frequency of garbage collection,
-but does not affect the pause times.
 
 ### G1 GC
 
@@ -425,10 +459,12 @@ than the Parallel GC, and trades off a bit of throughput for much better pause t
 At a high level, G1GC accomplishes this by breaking the heap not into two halfs
 (as a naive copying semi-space garbage collector would), but by breaking the heap
 into up to 2048 smaller blocks. This means that _most cases_, each small block
-can allocate objects and be GCed much more quickly than GCing the entire heap. This
-provides shorter pause times overall, at the expense of additional book-keeping
-managing all these small blocks and the inter-block object references that are now possible
-between them.
+can allocate objects and run a GC cycle much more quickly than running a GC cycle for
+the entire heap. Furthermore, it means we do not need an _half the heap sitting around empty
+all the time_, as it can perform the copying on a block-by-block basis, leading to lower
+memory overhead. The cost of this is additional
+book-keeping managing all these small blocks and the inter-block object references that
+are now possible between them.
 
 We can see this when we run the above benchmarks with `-XX:+UseG1GC` and hook
 up JProfiler to show the heap size: G1 tries to perform frequent small and fast GCs
@@ -441,26 +477,27 @@ we see that G1GC generally has _much_ lower pause times than ParallelGC,
 to a point:
 
 |===
-| Live Set\Garbage Rate | 1,600 | 6,400 | 25,600
+| live-set\garbage-rate | 1,600 | 6,400 | 25,600
 | 100,000 | 21ms | 15ms | 18ms
 | 200,000 | 29ms | 30ms | 32ms
 | 400,000 | 43ms | 45ms | 48ms
-| 800,000 | 29ms | 842ms | 757ms
-| 1,600,000 | 1564ms | 1324ms | 1374ms
+| 800,000 | 29ms | _*842ms*_ | _*757ms*_
+| 1,600,000 | _*1564ms*_ | _*1324ms*_ | _*1374ms*_
 |===
 
 G1GC is able to provide 20-40ms pause times pretty consistently for a wide
-range of `Live Set` sizes and ``Garbage Rate``s. But if we increase those parameters
+range of `live-set` sizes and ``garbage-rate``s. But if we increase those parameters
 past a certain point, G1's frequent/small/fast GCs are no longer able
 to keep up with the garbage being generated, and G1 falls back
-to large, slow collections similar to ParallelGC
+to large, slow collections similar to ParallelGC (bold above)
 
-## Generational Optimizations
+### Generational Optimizations
 
-_"Most"_ objects do not live a long time, e.g. objects allocated within a method are often
+One additional GC behavior worth discussing is the "Generational Hypothesis".
+The idea is that _"most"_ objects do not live a long time, e.g. objects allocated within a method are often
 collect when the method returns. Given that assumption, many GCs have made optimizations
 for the collection of objects that become garbage quickly, such that collecting them is
-much cheaper. Practically, that means that the same live set and allocation rate can have
+much cheaper. Practically, that means that the same live-set and allocation rate can have
 vastly different performance depending on how the allocations are structured:
 
 1. "Least Recently Used" garbage collections, where the _oldest_ objects are the ones that
@@ -470,12 +507,13 @@ vastly different performance depending on how the allocations are structured:
    get collected, will perform the best,.
 
 The example Java benchmark above keeps objects around a while before they become garbage,
-by rotating new allocations through the different index slots in the `workingSet` array.
+by rotating new allocations through the different index slots in the `liveSet` array.
 We can instead always assign new allocations to index `0`, meaning that every allocated object
-becomes unreachable (garbage) immediately when the next allocation is performed.
+becomes unreachable (garbage) immediately when the next allocation is performed and over-writes
+the reference to the previous allocation in the `liveSet` array.
 
 ```diff
--int baseIndex = (accumulator * garbageRate + i) % workingSet;
+-int baseIndex = (accumulator * garbageRate + i) % liveSet;
 +int baseIndex = 0
 ```
 
@@ -492,37 +530,41 @@ a| Generational | ~2ms | image:ParallelGenerational.png[]
 Most GCs have some kind of optimization to make collecting recently-allocated objects
 cheaper than collecting long-lived objects; these are often called _generational_
 garbage collectors. Java's ParallelGC is no different, and we can see that even with
-the same live set size and garbage allocation rate, shorter-lived objects are dramatically
+the same live-set size and garbage allocation rate, shorter-lived objects are dramatically
 cheaper to collect than long-lived objects.
+
+The Java benchmarks above were run on one particular set of hardware on one version
+of the JVM, and the exact numbers will differ when run on newer hardware or JVM versions.
+Nevertheless, the overall trends that you can see would remain the same, as would the
+take-aways of what you need to know to understand garbage collector performance.
 
 ## Performance Consequences of GC Design
 
 Now that we've studied garbage collections in theory, and looked at some concrete
 numbers, there are some interesting conclusions that can be drawn:
 
-1. Caching data _in-process_ makes garbage collection pause times _worse_! If your
+1. *Caching data _in-process_ makes garbage collection pause times _worse_!* If your
    program in CPU-bottlenecked then caching to save computation can be worthwhile,
    but if you have problems with GC pause times then caching things in-memory will
-   increase the size of your _live set_ and therefore make your pause times even worse!
+   increase the size of your _live-set_ and therefore make your pause times even worse!
 
-2. In contrast, caching things _out of process_ does not have this problem. So feel free
+2. *In contrast, caching things _out of process_ does not have this problem.* So feel free
    to cache things on disk, cache things in https://www.sqlite.org/[SQLite],
    https://github.com/redis/redis[Redis], https://memcached.org/[Memcached], and so on.
    These are not traced by your program's GC, and will not slow it in.
 
-3. Collecting Garbage doesn't actually slow the garbage collector down! Most of the GC time
-   is spent _tracing_ and _copying_ and live set, and the garbage is basically ignored
+3. *Collecting Garbage doesn't actually slow the garbage collector down!* Most of the GC time
+   is spent _tracing_ and _copying_ and live-set, and the garbage is basically ignored
    then wiped out in bulk. So it doesn't not matter how much garbage the GC has to collect:
    the time taken to run the GC cycle will be the same regardless
 
-4. There will never be an _exact_ amount of memory that a garbage-collected application
-   needs. You can _always_ increase throughput by providing more memory, to make GCs less
+4. *There will never be an _exact_ amount of memory that a garbage-collected application
+   needs.* You can _always_ increase throughput by providing more memory, to make GCs less
    and less frequent, leaving more time to do useful work. And you can usually provide
    less memory, at the cost of more and more frequent GCs. Exactly how much memory to
    provide is thus something you tweak and tune rather than something you can calculate exactly.
 
-5. Exactly when to declare the memory "enough" and stop providing more to your application ,
-   or "not enough" and to throw an `OutOfMemoryError`, can be very arbitrary.
+5. *Exactly when to declare the memory "enough" can be very arbitrary.*
    For example Java may throw an `OutOfMemoryError`
    https://docs.oracle.com/javase/8/docs/technotes/guides/troubleshoot/memleaks002.html[when
    it spends 98% of the time in Garbage Collection], which is an arbitrary threshold
@@ -530,10 +572,11 @@ numbers, there are some interesting conclusions that can be drawn:
    and also arguably too high (do you really want to wait until your program slows down 50x
    before declaring there's not enough memory?)
 
-6. Shorter-lived objects are cheaper to collect, due to most GCs being _generational_. This
+6. *Shorter-lived objects are cheaper to collect*, due to most GCs being _generational_. This
    also ties into (1) above: caches tend to keep lots of long-lived objects in memory, which
-   apart from slowing down GC cycles due to the size of the live set, _also_ slows them down
+   apart from slowing down GC cycles due to the size of the live-set, _also_ slows them down
    by missing out on the GC's optimizations for short-lived objects.
+
 
 ## Conclusion
 
@@ -544,6 +587,7 @@ https://docs.oracle.com/en/java/javase/17/gctuning/garbage-first-g1-garbage-coll
 the newer https://docs.oracle.com/en/java/javase/21/gctuning/z-garbage-collector.html[ZGC], etc.).
 There are endless clever optimizations for the language designers to implement and knobs
 for language users to tweak and tune.
+
 
 However, at a high level most GCs are actually surprisingly similar, have the same
 odd performance characteristics, and surprising pitfalls (e.g. in-process caching slowing them down).
