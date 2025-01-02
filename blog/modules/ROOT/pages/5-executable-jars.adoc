@@ -34,7 +34,7 @@ other build tools and toolchains will be able to provide the same convenience
 
 // end::header[]
 
-## Trying Out Mill's Executable Assmeblies
+## Trying Out Mill's Executable Assemblies
 
 To try out Mill's executable assembly jars, you can reproduce the above steps
 with the following code and config:
