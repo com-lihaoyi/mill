@@ -23,9 +23,9 @@ object LocalM2PublisherTests extends TestSuite {
       val publisher = new LocalM2Publisher(repo)
       val artifact = Artifact("group.org", "id", "version")
       val res = publisher.publish(
-        repo / "jar",
-        repo / "src",
-        repo / "doc",
+        Some(repo / "jar"),
+        Some(repo / "src"),
+        Some(repo / "doc"),
         repo / "pom",
         artifact,
         Seq(PublishInfo(

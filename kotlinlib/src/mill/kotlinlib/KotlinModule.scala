@@ -88,8 +88,7 @@ trait KotlinModule extends JavaModule { outer =>
   private[kotlinlib] def kotlinWorkerClasspath = Task {
     millProjectModule(
       "mill-kotlinlib-worker-impl",
-      repositoriesTask(),
-      resolveFilter = _.toString.contains("mill-kotlinlib-worker-impl")
+      repositoriesTask()
     )
   }
 
