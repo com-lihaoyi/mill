@@ -4,7 +4,7 @@
 // and also escapes the input strings on your behalf:
 
 import mill._, scalalib._
-import $ivy.`com.lihaoyi::scalatags:0.12.0`, scalatags.Text.all._
+import $ivy.`com.lihaoyi::scalatags:0.13.1`, scalatags.Text.all._
 
 object bar extends ScalaModule {
   def scalaVersion = "2.13.8"
