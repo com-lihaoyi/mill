@@ -16,6 +16,9 @@ class LauncherOldVersionsTests(version: String) extends UtestIntegrationTestSuit
       val launcherScript = sys.env(launcherEnv)
       os.write.over(workspacePath / ".mill-version", version)
 
+      // Remove `rt.jar` cache to make sure each old version can download it properly
+      os.remove.all(os.home / ".mill/ammonite")
+
       // Run Mill once beforehand just to make sure it gets initialized and
       // none of the initialization output gets into `outText`
       os.call(cmd = (launcherScript, "version"), cwd = workspacePath, stderr = os.Pipe)
