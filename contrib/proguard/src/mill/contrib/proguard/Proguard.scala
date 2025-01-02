@@ -97,7 +97,7 @@ trait Proguard extends ScalaModule {
       outJar,
       "-libraryjars",
       (
-        libraryJars().map(_.path) ++ 
+        libraryJars().map(_.path) ++
           Seq("<java.home>/jmods/java.base.jmod(!**.jar;!module-info.class)")
       ).mkString(java.io.File.pathSeparator),
       entryPoint(),
