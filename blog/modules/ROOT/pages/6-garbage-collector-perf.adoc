@@ -591,4 +591,5 @@ for language users to tweak and tune.
 
 However, at a high level most GCs are actually surprisingly similar, have the same
 odd performance characteristics, and surprising pitfalls (e.g. in-process caching slowing them down).
-Although the exact configuration options
+Hopefully this article will have given you a good intuition for how garbage collectors work and behave, so
+next time you need to do something with your GC you have a solid understanding to work with.
