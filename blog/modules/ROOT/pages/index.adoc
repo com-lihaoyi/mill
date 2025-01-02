@@ -3,9 +3,14 @@
 include::mill:ROOT:partial$gtag-config.adoc[]
 
 
-Welcome to the Mill development blog! This page contains posts and articles on
-technical topics related to the development of the Mill build tool. These discuss
-topics related to JVM languages and monorepo build tooling.
+Welcome to the Mill build engineering blog! This is the home for articles on
+technical topics related to JVM platform tooling and language-agnostic build tooling,
+some specific to the Mill build tool but mostly applicable to anyone working on
+build tooling for large codebases in JVM and non-JVM languages.
+
+include::5-executable-jars.adoc[tag=header,leveloffset=1]
+
+xref:5-executable-jars.adoc[Read More...]
 
 include::4-flaky-tests.adoc[tag=header,leveloffset=1]
 
