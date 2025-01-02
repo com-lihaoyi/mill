@@ -344,9 +344,14 @@ public class GC {
 }
 ```
 
-This is a small Java program that starts off allocating a bunch of `Object[]` arrays,
-and then in a loop continuously allocates more `Object[]`s and over-writes the references
-to older ones. This is a bit of a synthetic benchmark, and much less complex than a real-world
+This is a small Java program that starts off allocating a bunch of `Object[]` arrays in `workingSet`,
+and then in a loop continuously allocates more ``Object[]``s and over-writes the references
+to older ones. We cycle through the slots in `workingSet` such objects stay around a bit
+before becoming unreachable (garbage). Lastly, we use a few oddities like
+`while (Math.abs(1) == 1)` and `System.out.println` to prevent the JVM from optimizing
+it all away.
+
+This is a bit of a synthetic benchmark, and much less complex than a real-world
 application would be, but it is enough for the purposes of this article.
 
 You can run this program with different Java garbage collectors, heap sizes, `workingSet` size and `garbageRate`
@@ -360,7 +365,7 @@ via:
 ```
 
 Above, `-Xmx1g` sets the heap size, the `-XX:` flags set the garbage collector, 500000 sets the `workingSet`
-size and `garbageRate` sets how fast to allocate new objects.
+(or _live set_) size and `garbageRate` sets how fast to allocate new objects.
 
 NOTE: the following numbers were run a while back, on older hardware (~2017 Macbook Pro)
 and on an older JVM. Performance should be better on newer hardware and software, but I
@@ -450,6 +455,46 @@ past a certain point, G1's frequent/small/fast GCs are no longer able
 to keep up with the garbage being generated, and G1 falls back
 to large, slow collections similar to ParallelGC
 
+## Generational Optimizations
+
+_"Most"_ objects do not live a long time, e.g. objects allocated within a method are often
+collect when the method returns. Given that assumption, many GCs have made optimizations
+for the collection of objects that become garbage quickly, such that collecting them is
+much cheaper. Practically, that means that the same live set and allocation rate can have
+vastly different performance depending on how the allocations are structured:
+
+1. "Least Recently Used" garbage collections, where the _oldest_ objects are the ones that
+   get collected, will perform the worst
+
+2. "Most Recently Used" garbage collections, where the _newest_ objects are the ones that
+   get collected, will perform the best,.
+
+The example Java benchmark above keeps objects around a while before they become garbage,
+by rotating new allocations through the different index slots in the `workingSet` array.
+We can instead always assign new allocations to index `0`, meaning that every allocated object
+becomes unreachable (garbage) immediately when the next allocation is performed.
+
+```diff
+-int baseIndex = (accumulator * garbageRate + i) % workingSet;
++int baseIndex = 0
+```
+
+If we do this and measure the pause times and memory usage of the ParallelGC, we can see
+that this makes a dramatic difference in the pause times:
+
+
+|===
+| Workload | Maximum Pause | Memory Usage Over Time
+a| Non-Generational |  ~500ms | image:ParallelNonGenerational.png[]
+a| Generational | ~2ms | image:ParallelGenerational.png[]
+|===
+
+Most GCs have some kind of optimization to make collecting recently-allocated objects
+cheaper than collecting long-lived objects; these are often called _generational_
+garbage collectors. Java's ParallelGC is no different, and we can see that even with
+the same live set size and garbage allocation rate, shorter-lived objects are dramatically
+cheaper to collect than long-lived objects.
+
 ## Performance Consequences of GC Design
 
 Now that we've studied garbage collections in theory, and looked at some concrete
@@ -484,6 +529,11 @@ numbers, there are some interesting conclusions that can be drawn:
    that is arguably too low (the program can still make progress after all!)
    and also arguably too high (do you really want to wait until your program slows down 50x
    before declaring there's not enough memory?)
+
+6. Shorter-lived objects are cheaper to collect, due to most GCs being _generational_. This
+   also ties into (1) above: caches tend to keep lots of long-lived objects in memory, which
+   apart from slowing down GC cycles due to the size of the live set, _also_ slows them down
+   by missing out on the GC's optimizations for short-lived objects.
 
 ## Conclusion
 
