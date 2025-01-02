@@ -1,10 +1,10 @@
 // tag::header[]
 
-# How Mill's Executable Jars Work
+# Executable Assembly Jars in Mill
 
 
 :author: Li Haoyi
-:revdate: ???
+:revdate: 2 January 2024
 _{author}, {revdate}_
 
 include::mill:ROOT:partial$gtag-config.adoc[]
@@ -13,10 +13,10 @@ One feature of the https://mill-build.org[Mill JVM build tool] is that the
 assembly jars it creates are directly executable:
 
 ```bash
-> ./mill show foo.assembly
+> ./mill show foo.assembly # generate the assembly jar
 "ref:v0:bd2c6c70:/Users/lihaoyi/test/out/foo/assembly.dest/out.jar"
 
-> /Users/lihaoyi/test/out/foo/assembly.dest/out.jar
+> out/foo/assembly.dest/out.jar # run the assembly jar directly
 Hello World
 ```
 
@@ -24,8 +24,8 @@ Other JVM build tools also can generate assemblies, but most need you to run the
 via `java -jar` or `java -cp`,
 or require you to use https://docs.oracle.com/en/java/javase/11/tools/jlink.html[jlink] or
 https://docs.oracle.com/en/java/javase/17/docs/specs/man/jpackage.html[jpackage]
-which are much more heavyweight and troublesome to set up. While not
-groundbreaking, Mill's executable assemblies is a nice convenience that makes your JVM
+which are much more heavyweight and troublesome to set up. Mill automates that, and while not
+groundbreaking, it is a nice convenience that makes your JVM
 code built with Mill fit more nicely into command-line centric workflows common in modern
 software systems.
 
@@ -75,7 +75,8 @@ projects with multiple modules and third-party dependencies. The assembly jar wi
 the code from all upstream modules and dependencies into a single `.jar` file that you can then
 execute from the command line.
 
-Most `.jar` files are not directly executable. To understand how Mill makes direct execution
+Most `.jar` files are not directly executable, hence the need for a `java -jar` or `java -cp`
+command to run them. To understand how Mill makes direct execution
 possible, we first need to understand what a `.jar` file is.
 
 ## What is an Assembly Jar?
@@ -83,8 +84,8 @@ possible, we first need to understand what a `.jar` file is.
 An "assembly" jar is just a jar file that includes all transitive dependencies.
 What makes an assembly different from a "normal" jar is that it should (in theory) contain
 everything needed to run you JVM program. In contrast, most "normal" jars do not contain
-their dependencies, and you need to separately go download those dependencies before you
-can run your jar
+their dependencies, and you need to separately go download those dependencies and pass them in
+via `-classpath`/`-cp` before you can run your Java program.
 
 One thing that many people don't know is that jar files are just zip files. You can see
 that from the command line, where although you normally use `jar tf` to list the contents
@@ -137,23 +138,24 @@ that we use to make the `out.jar` file executable
 ## What is a Zip file?
 
 A https://en.wikipedia.org/wiki/ZIP_(file_format)[zip file] is an archive made of multiple smaller files, individually compressed,
-concatenated together followed by a "directory listing" containing the _reverse offsets_ of
-every file within the archive, relative to the directory listing.
+concatenated together followed by a "central directory" containing the _reverse offsets_ of
+every file within the archive, relative to the central directory.
 
 ```graphviz
 digraph G {
   label="archive.zip"
   node [shape=box width=0 height=0 style=filled fillcolor=white]
-  zip [shape=record label="<f0> Foo.class | <f1> MANIFEST.MF | ... | <f2> directory"]
-  zip:f2:n -> zip:f1:n [label="reverse offset"]
+  zip [shape=record label="<f0> Foo.class | <f1> MANIFEST.MF | <f3> ...other files... | <f2> central directory"]
+  zip:f2:n -> zip:f1:n [label="reverse offsets"]
   zip:f2:n -> zip:f0:n
+  zip:f2:n -> zip:f3:n
 }
 ```
 
 The typical way someone reads from a zip file is a follows:
 
-* Seek to the end of zip, which contains the directory listing
-* Find the metadata containing the offset for the entry you want in the directory listing
+* Seek to the end of zip and find the central directory
+* Find the metadata containing the offset for the file you want
 * Seek backwards using that offset to the start of the entry you want
 * Read and decompress your entry
 
@@ -165,7 +167,7 @@ individually on-demand without having to first decompress the whole archive up f
 
 One quirk of the above Zip format is that _the zip data does not need to start at the
 beginning of the file_! The zip data can be at the end of an arbitrarily long file, and
-as long as programs can scan to the end of the zip to find the directory listing, they
+as long as programs can scan to the end of the zip to find the central directory, they
 will be able to extract the zip.
 
 ```graphviz
@@ -174,9 +176,10 @@ digraph G {
   label="archive.zip"
   extra_label:s ->  zip:fe:n [color=red penwidth=3]
   extra_label [color=white style=invisible]
-  zip [shape=record label="<fe> ...extra data... | <f0> Foo.class | <f1> MANIFEST.MF | ... | <f2> directory"]
+  zip [shape=record label="<fe> ...extra data... | <f0> Foo.class | <f1> MANIFEST.MF | <f3> ...other files... | <f2> central directory"]
   zip:f2:n -> zip:f1:n
   zip:f2:n -> zip:f0:n
+  zip:f2:n -> zip:f3:n
 }
 ```
 
@@ -186,22 +189,27 @@ Thus, we can actually use the `.zip` format in two ways:
 2. As something else, such as a bash script, which is read and executed starting from start of the file on the left
 
 This technique is used in common Zip
-https://en.wikipedia.org/wiki/Self-extracting_archives[self-extracting archives], and although
+https://en.wikipedia.org/wiki/Self-extracting_archives[self-extracting archives], where
+a short bash script is pre-pended to the zip archive that when run extracts the archive using
+`unzip`. Although
 this article is about Jars, `.jar` files are really just ``.zip``s with a different name!
-So we can prepend a bash script to our `.jar` file, one that will run `java` with the current
-executable `"$0"` as the classpath, and any of the current executable's command-line
-arguments `"$@"`as the Java program's command-line arguments:
+So we can prepend a bash script to our `.jar` file to
+
+* Run `java` with the current executable `"$0"` as the classpath
+* Pass any of the current executable's command-line arguments `"$@"`as the Java program's command-line arguments
+* Allow configuration of the `java` process (since we're no longer calling it ourselves) via a `JAVA_OPTS` environment variable
 
 ```graphviz
 digraph G {
   label="out.jar"
-  left [shape=plaintext label="bash script starts executing here"]
-  right [shape=plaintext label="zip/jar is unpacked starting from here"]
+  left [shape=plaintext label="bash script starts executing at start of file\nruns `java` passing itself as the classpath"]
+  right [shape=plaintext label="`java` loads compiled classfiles from jar/zip\nby reading the central directory at end of file"]
 
   node [shape=box width=0 height=0 style=filled fillcolor=white]
-  zip [shape=record label="<fe> exec java -cp \"$0\" 'foo.Foo' \"$@\" | <f0> Foo.class | <f1> MANIFEST.MF | ... | <f2> directory"]
+  zip [shape=record label="<fe> exec java $JAVA_OPTS -cp \"$0\" 'foo.Foo' \"$@\" | <f0> Foo.class | <f1> MANIFEST.MF | <f3>...other files... | <f2> central directory"]
   zip:f2:n -> zip:f1:n
   zip:f2:n -> zip:f0:n
+  zip:f2:n -> zip:f3:n
   left -> zip:fe:n [color=red penwidth=3]
   zip:f2:s -> right [dir=back color=red penwidth=3]
 }
@@ -318,19 +326,41 @@ N<91><FA>%<FD>3ri^T*<8F><E1>1<8B><E8>CD<81><82>^WPK^G^HB?^Xo[^@^@^@n^@^@^@PK^C^D
 /Users/lihaoyi/test/out/foo/assembly.dest/out.jar (END)
 ```
 
-On Windows you cannot run `./out.jar` from the command line, as Windows uses the file
-extension to determine how to execute a program. But if you rename the Jar file from
-`out.jar` to `out.bat`, you can then use `./out.bat` or `./out` to execute it
+We can run it directly on Mac/Linux:
+
+```bash
+> ./mill show foo.assembly # generate the assembly jar
+"ref:v0:bd2c6c70:/Users/lihaoyi/test/out/foo/assembly.dest/out.jar"
+
+> out/foo/assembly.dest/out.jar # run the assembly jar directly
+Hello World
+```
+
+And we can run it on windows, although we need to rename
+`out.jar` to `out.bat` before executing it:
+
+```bash
+> ./mill show foo.assembly
+"ref:v0:bd2c6c70:C:\\Users\\haoyi\\test\\out\\foo\\assembly.dest\\out.jar"
+
+> cp out\foo\assembly.dest\out.jar out.bat
+
+> ./out.bat
+Hello World
+```
 
 ## Conclusion
 
 The executable assembly jars that Mill generates are very convenient; it means that
 you can use Mill to compile (almost) any Java program into an executable you can run with
 `./out.jar`, as long as you have the appropriate version of Java globally installed. This
-is much easier than setting up JLink or JPackage.
+is much easier than setting up JLink or JPackage. You can even have an executable jar that
+runs on all of Mac/Linux/Windows just by carefully crafting a launcher script that runs
+on all platforms.
 
 The Mill JVM build tool provides these executable assembly jars out-of-the-box, the SBT
-build tool as part of the https://github.com/sbt/sbt-assembly[SBT Assembly] plugin.
+build tool as part of the https://github.com/sbt/sbt-assembly[SBT Assembly] plugin,
+via the `prependShellScript` config.
 Maven and Gradle do not provide this by default but it is pretty easy to set up yourself
 simply by concatenating a shell script with an assembly jar, as described above.
 
