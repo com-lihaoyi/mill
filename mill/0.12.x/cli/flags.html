@@ -195,11 +195,22 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../android/java.html">Android Java Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -217,6 +228,29 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/dependencies.html">Typescript Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/module-config.html">Typescript Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
   </li>
 </ul>
   </li>
@@ -242,10 +276,6 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../comparisons/unique.html">What Makes Mill Unique</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../comparisons/java-compile.html">How Fast Does Java Compile?</a>
   </li>
 </ul>
   </li>
@@ -435,7 +465,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../large/selective-execution.html">Selective Execution</a>
+    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -454,14 +484,18 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
+    <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/process-architecture.html">The Mill Process Architecture</a>
   </li>
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
   </li>
 </ul>
@@ -499,7 +533,7 @@
           <a href="../../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-latest">
-          <a href="../../index.html">latest-0.12.4</a>
+          <a href="../../index.html">latest-0.12.5</a>
         </li>
         <li class="version is-current">
           <a href="../index.html">0.12.x</a>
@@ -711,6 +745,13 @@ explicitly how many concurrent tasks you wish to run. To disable parallel execut
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill -j4 __.compile</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>You can also set Mill&#8217;s parallelism to some multiple of the number of cores, e.g.
+<code>-j0.5C</code> to use half as many threads as cores, or <code>-j2C</code> to use twice as many threads as cores.
+These can be useful as <a href="#_repo_level_mill_options">Repo-Level Mill Options</a> to configure an appropriate level
+of parallelism that scales based on the number of cores available (which might differ
+between e.g. developer laptops and CI machines)</p>
 </div>
 <div class="paragraph">
 <p>Every <code>mill</code> run generates an output file in <code>out/mill-chrome-profile.json</code> that can be

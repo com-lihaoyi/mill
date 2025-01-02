@@ -200,11 +200,22 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../android/java.html">Android Java Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -222,6 +233,29 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/dependencies.html">Typescript Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/module-config.html">Typescript Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
   </li>
 </ul>
   </li>
@@ -247,10 +281,6 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../comparisons/unique.html">What Makes Mill Unique</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../comparisons/java-compile.html">How Fast Does Java Compile?</a>
   </li>
 </ul>
   </li>
@@ -440,7 +470,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../large/selective-execution.html">Selective Execution</a>
+    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -459,14 +489,18 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
+    <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/process-architecture.html">The Mill Process Architecture</a>
   </li>
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
   </li>
 </ul>
@@ -494,7 +528,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">latest-0.12.4</span>
+    <span class="version">latest-0.12.5</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -504,7 +538,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">latest-0.12.4</a>
+          <a href="../index.html">latest-0.12.5</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.x</a>
@@ -583,8 +617,16 @@ for <code>JavaModule</code>.</p>
 <div class="sect1">
 <h2 id="_common_configuration_overrides"><a class="anchor" href="#_common_configuration_overrides"></a>Common Configuration Overrides</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>This example shows some of the common tasks you may want to override on a
+<code>JavaModule</code>: specifying the <code>mainClass</code>, adding additional
+sources/resources, generating resources, and setting compilation/run
+options. We also define it as a <a href="../fundamentals/modules.html#_rootmodule" class="xref page">RootModule</a>,
+so its sources will live in the top-level <code>src/</code> folder and its tasks can be
+called directly via <code>compile</code> or <code>run</code> without needing a <code>foo.</code> module prefix.</p>
+</div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-javalib-module-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/javalib/module/1-common-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-javalib-module-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javalib/module/1-common-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -650,13 +692,66 @@ a task of interest, such as <code>run</code>, you can visualize their relationsh
 <div class="paragraph">
 <p>(right-click open in new tab to see full sized)</p>
 </div>
+<div class="paragraph">
+<p>Note the use of <code>millSourcePath</code>, <code>Task.dest</code>, and <code>PathRef</code> when preforming
+various filesystem operations:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><code>millSourcePath</code> refers to the base path of the module. For the root
+module, this is the root of the repo, and for inner modules it would be
+the module path e.g. for module <code>foo.bar.qux</code> the <code>millSourcePath</code> would
+be <code>foo/bar/qux</code>. This can also be overriden if necessary</p>
+</li>
+<li>
+<p><code>Task.dest</code> refers to the destination folder for a task in the <code>out/</code>
+folder. This is unique to each task, and can act as both a scratch space
+for temporary computations as well as a place to put &quot;output&quot; files,
+without worrying about filesystem conflicts with other tasks</p>
+</li>
+<li>
+<p><code>PathRef</code> is a way to return the <strong>contents</strong> of a file or folder, rather
+than just its path as a string. This ensures that downstream tasks
+properly invalidate when the contents changes even when the path stays
+the same</p>
+</li>
+</ol>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill run
+Foo2.value: &lt;h1&gt;hello2&lt;/h1&gt;
+Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
+FooA.value: hello A
+FooB.value: hello B
+FooC.value: hello C
+MyResource: My Resource Contents
+MyOtherResource: My Other Resource Contents
+my.custom.property: my-prop-value
+MY_CUSTOM_ENV: my-env-value
+
+&gt; mill show assembly
+&quot;.../out/assembly.dest/out.jar&quot;
+
+&gt; ./out/assembly.dest/out.jar # mac/linux
+Foo2.value: &lt;h1&gt;hello2&lt;/h1&gt;
+Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
+FooA.value: hello A
+FooB.value: hello B
+FooC.value: hello C
+MyResource: My Resource Contents
+MyOtherResource: My Other Resource Contents
+my.custom.property: my-prop-value</code></pre>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_compilation_execution_flags"><a class="anchor" href="#_compilation_execution_flags"></a>Compilation &amp; Execution Flags</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-javalib-module-4-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/javalib/module/4-compilation-execution-flags">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-javalib-module-4-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javalib/module/4-compilation-execution-flags">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -680,13 +775,40 @@ object `package` extends RootModule with JavaModule {
 hello WORLD</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>By default,
+<code>run</code> runs the compiled code in a subprocess, and you can pass in JVM flags
+via <code>forkArgs</code> or environment-variables via <code>forkEnv</code>.</p>
+</div>
+<div class="paragraph">
+<p>You can also run your code via</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill foo.runLocal</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Which runs it in-process within an isolated classloader. This may be faster
+since you avoid the JVM startup, but does not support <code>forkArgs</code> or <code>forkEnv</code>.</p>
+</div>
+<div class="paragraph">
+<p>If you want to pass main-method arguments to <code>run</code> or <code>runLocal</code>, simply pass
+them after the <code>foo.run</code>/<code>foo.runLocal</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill foo.run arg1 arg2 arg3
+mill foo.runLocal arg1 arg2 arg3</code></pre>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_classpath_and_filesystem_resources"><a class="anchor" href="#_classpath_and_filesystem_resources"></a>Classpath and Filesystem Resources</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-javalib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/javalib/module/7-resources">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-javalib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javalib/module/7-resources">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -703,7 +825,70 @@ object foo extends JavaModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/src/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/javalib/module/7-resources/foo/src/Foo.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.test
+... foo.FooTests...simple ...
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This section discusses how tests can depend on resources locally on disk.
+Mill provides two ways to do this: via the JVM classpath resources, and via
+the resource folder which is made available as the environment variable
+<code>MILL_TEST_RESOURCE_DIR</code>;</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <strong>classpath resources</strong> are useful when you want to fetch individual files,
+and are bundled with the application by the <code>.assembly</code> step when constructing
+an assembly jar for deployment. But they do not allow you to list folders
+or perform other filesystem operations.</p>
+</li>
+<li>
+<p>The <strong>resource folder</strong>, available via <code>MILL_TEST_RESOURCE_DIR</code>, gives you
+access to the folder path of the resources on disk. This is useful in allowing
+you to list and otherwise manipulate the filesystem, which you cannot do with
+<strong>classpath resources</strong>. However, the <code>MILL_TEST_RESOURCE_DIR</code> only exists
+when running tests using Mill, and is not available when executing applications
+packaged for deployment via <code>.assembly</code></p>
+</li>
+<li>
+<p>Apart from <code>resources/</code>, you can provide additional folders to your test suite
+by defining a <code>Task.Source</code> (<code>otherFiles</code> above) and passing it to <code>forkEnv</code>. This
+provide the folder path as an environment variable that the test can make use of</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Example application code demonstrating the techniques above can be seen below:</p>
+</div>
+<div class="listingblock">
+<div class="title">foo/resources/file.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javalib/module/7-resources/foo/resources/file.txt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Hello World Resource File</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">foo/test/resources/test-file-a.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javalib/module/7-resources/foo/test/resources/test-file-a.txt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Test Hello World Resource File A</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">foo/test/resources/test-file-b.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javalib/module/7-resources/foo/test/resources/test-file-b.txt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Test Hello World Resource File B</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">foo/test/other-files/other-file.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javalib/module/7-resources/foo/test/other-files/other-file.txt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Other Hello World File</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">foo/src/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javalib/module/7-resources/foo/src/Foo.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
@@ -723,7 +908,7 @@ public class Foo {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/FooTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/javalib/module/7-resources/foo/test/src/FooTests.java">browse</a>)</div>
+<div class="title">foo/test/src/FooTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javalib/module/7-resources/foo/test/src/FooTests.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
@@ -776,13 +961,28 @@ public class FooTests {
 }</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>Note that tests require that you pass in any files that they depend on explicitly.
+This is necessary so that Mill knows when a test needs to be re-run and when a
+previous result can be cached. This also ensures that tests reading and writing
+to the current working directory do not accidentally interfere with each others
+files, especially when running in parallel.</p>
+</div>
+<div class="paragraph">
+<p>Mill runs test processes in a <a href="../depth/sandboxing.html" class="xref page">sandbox/ folder</a>, not in your project root folder, to
+prevent you from accidentally accessing files without explicitly passing them. Thus
+you cannot just read resources off disk via <code>new FileInputStream(&quot;foo/resources/test-file-a.txt&quot;)</code>.
+If you have legacy tests that need to run in the project root folder to work, you
+can configure your test suite with <code>def testSandboxWorkingDir = false</code> to disable
+the sandbox and make the tests run in the project root.</p>
+</div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_annotation_processors"><a class="anchor" href="#_annotation_processors"></a>Annotation Processors</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-javalib-module-8-annotation-processors.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/javalib/module/8-annotation-processors">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-javalib-module-8-annotation-processors.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javalib/module/8-annotation-processors">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -853,8 +1053,13 @@ Test bar.HelloWorldTest.testSimple finished...
 <div class="sect1">
 <h2 id="_javadoc_config"><a class="anchor" href="#_javadoc_config"></a>Javadoc Config</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>To generate API documenation you can use the <code>docJar</code> task on the module you’d
+like to create the documentation for, configured via <code>scalaDocOptions</code> or
+<code>javadocOptions</code>:</p>
+</div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-javalib-module-9-docjar.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/javalib/module/9-docjar">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-javalib-module-9-docjar.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javalib/module/9-docjar">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -879,7 +1084,7 @@ object foo extends JavaModule {
 <h2 id="specifying-main-class"><a class="anchor" href="#specifying-main-class"></a>Specifying the Main Class</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-javalib-module-11-main-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/javalib/module/11-main-class">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-javalib-module-11-main-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javalib/module/11-main-class">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -889,13 +1094,42 @@ object `package` extends RootModule with JavaModule {
 }</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>Mill’s <code>foo.run</code> by default will discover which main class to run from your
+compilation output, but if there is more than one or the main class comes from
+some library you can explicitly specify which one to use. This also adds the
+main class to your <code>foo.jar</code> and <code>foo.assembly</code> jars.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
+Hello Qux</code></pre>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_custom_tasks"><a class="anchor" href="#_custom_tasks"></a>Custom Tasks</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>This example shows how to define task that depend on other tasks:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>For <code>generatedSources</code>, we override the task and make it depend
+directly on <code>ivyDeps</code> to generate its source files. In this example,
+to include the list of dependencies as tuples within a static <code>object</code></p>
+</li>
+<li>
+<p>For <code>lineCount</code>, we define a brand new task that depends on <code>sources</code>,
+and then override <code>forkArgs</code> to use it. That lets us access the line
+count at runtime using <code>sys.props</code> and print it when the program runs</p>
+</li>
+</ol>
+</div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-javalib-module-2-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/javalib/module/2-custom-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-javalib-module-2-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javalib/module/2-custom-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -939,6 +1173,141 @@ public class MyDeps {
 }</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>The above build defines the customizations to the Mill task graph shown below,
+with the boxes representing tasks defined or overriden above and the un-boxed
+labels representing existing Mill tasks:</p>
+</div>
+<center>
+<svg width="493px" height="119px" viewBox="0.00 0.00 492.87 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 488.87,-114.8 488.87,4 -4,4"></polygon>
+<!-- ivyDeps -->
+<g id="node1" class="node">
+<title>ivyDeps</title>
+<polygon fill="none" stroke="black" points="62.49,-110.7 0.17,-110.7 0.17,-86.1 62.49,-86.1 62.49,-110.7"></polygon>
+<text text-anchor="middle" x="31.33" y="-94.2" font-family="Times,serif" font-size="14.00">ivyDeps</text>
+</g>
+<!-- generatedSources -->
+<g id="node2" class="node">
+<title>generatedSources</title>
+<polygon fill="none" stroke="black" points="213.25,-110.7 98.79,-110.7 98.79,-86.1 213.25,-86.1 213.25,-110.7"></polygon>
+<text text-anchor="middle" x="156.02" y="-94.2" font-family="Times,serif" font-size="14.00">generatedSources</text>
+</g>
+<!-- ivyDeps&#45;&gt;generatedSources -->
+<g id="edge1" class="edge">
+<title>ivyDeps-&gt;generatedSources</title>
+<path fill="none" stroke="black" d="M62.66,-98.4C70.6,-98.4 79.48,-98.4 88.51,-98.4"></path>
+<polygon fill="black" stroke="black" points="88.73,-101.9 98.73,-98.4 88.73,-94.9 88.73,-101.9"></polygon>
+</g>
+<!-- compile -->
+<g id="node3" class="node">
+<title>compile</title>
+<polygon fill="none" stroke="white" points="331.15,-110.7 269.95,-110.7 269.95,-86.1 331.15,-86.1 331.15,-110.7"></polygon>
+<text text-anchor="middle" x="300.55" y="-94.2" font-family="Times,serif" font-size="14.00">compile</text>
+</g>
+<!-- generatedSources&#45;&gt;compile -->
+<g id="edge2" class="edge">
+<title>generatedSources-&gt;compile</title>
+<path fill="none" stroke="black" d="M213.35,-98.4C228.88,-98.4 245.4,-98.4 259.77,-98.4"></path>
+<polygon fill="black" stroke="black" points="259.82,-101.9 269.82,-98.4 259.82,-94.9 259.82,-101.9"></polygon>
+</g>
+<!-- ... -->
+<g id="node4" class="node">
+<title>...</title>
+<polygon fill="none" stroke="white" points="414.46,-88.7 387.45,-88.7 387.45,-64.1 414.46,-64.1 414.46,-88.7"></polygon>
+<text text-anchor="middle" x="400.96" y="-72.2" font-family="Times,serif" font-size="14.00">...</text>
+</g>
+<!-- compile&#45;&gt;... -->
+<g id="edge3" class="edge">
+<title>compile-&gt;...</title>
+<path fill="none" stroke="black" d="M331.34,-91.74C346.25,-88.41 363.99,-84.44 377.7,-81.38"></path>
+<polygon fill="black" stroke="black" points="378.7,-84.74 387.7,-79.14 377.17,-77.91 378.7,-84.74"></polygon>
+</g>
+<!-- run -->
+<g id="node8" class="node">
+<title>run</title>
+<polygon fill="none" stroke="white" points="484.7,-88.7 450.38,-88.7 450.38,-64.1 484.7,-64.1 484.7,-88.7"></polygon>
+<text text-anchor="middle" x="467.54" y="-72.2" font-family="Times,serif" font-size="14.00">run</text>
+</g>
+<!-- ...&#45;&gt;run -->
+<g id="edge7" class="edge">
+<title>...-&gt;run</title>
+<path fill="none" stroke="black" d="M414.41,-76.4C421.6,-76.4 430.94,-76.4 439.72,-76.4"></path>
+<polygon fill="black" stroke="black" points="439.97,-79.9 449.97,-76.4 439.97,-72.9 439.97,-79.9"></polygon>
+</g>
+<!-- sources -->
+<g id="node5" class="node">
+<title>sources</title>
+<polygon fill="none" stroke="white" points="60.31,-46.7 2.35,-46.7 2.35,-22.1 60.31,-22.1 60.31,-46.7"></polygon>
+<text text-anchor="middle" x="31.33" y="-30.2" font-family="Times,serif" font-size="14.00">sources</text>
+</g>
+<!-- lineCount -->
+<g id="node6" class="node">
+<title>lineCount</title>
+<polygon fill="none" stroke="black" points="191.74,-46.7 120.3,-46.7 120.3,-22.1 191.74,-22.1 191.74,-46.7"></polygon>
+<text text-anchor="middle" x="156.02" y="-30.2" font-family="Times,serif" font-size="14.00">lineCount</text>
+</g>
+<!-- sources&#45;&gt;lineCount -->
+<g id="edge4" class="edge">
+<title>sources-&gt;lineCount</title>
+<path fill="none" stroke="black" d="M60.48,-34.4C75.12,-34.4 93.38,-34.4 109.94,-34.4"></path>
+<polygon fill="black" stroke="black" points="109.98,-37.9 119.98,-34.4 109.98,-30.9 109.98,-37.9"></polygon>
+</g>
+<!-- forkArgs -->
+<g id="node7" class="node">
+<title>forkArgs</title>
+<polygon fill="none" stroke="black" points="333.58,-67.7 267.51,-67.7 267.51,-43.1 333.58,-43.1 333.58,-67.7"></polygon>
+<text text-anchor="middle" x="300.55" y="-51.2" font-family="Times,serif" font-size="14.00">forkArgs</text>
+</g>
+<!-- lineCount&#45;&gt;forkArgs -->
+<g id="edge5" class="edge">
+<title>lineCount-&gt;forkArgs</title>
+<path fill="none" stroke="black" d="M191.89,-39.54C211.63,-42.45 236.46,-46.1 257.3,-49.18"></path>
+<polygon fill="black" stroke="black" points="257.07,-52.68 267.48,-50.67 258.09,-45.75 257.07,-52.68"></polygon>
+</g>
+<!-- printLineCount -->
+<g id="node9" class="node">
+<title>printLineCount</title>
+<polygon fill="none" stroke="black" points="351.87,-24.7 249.22,-24.7 249.22,-0.1 351.87,-0.1 351.87,-24.7"></polygon>
+<text text-anchor="middle" x="300.55" y="-8.2" font-family="Times,serif" font-size="14.00">printLineCount</text>
+</g>
+<!-- lineCount&#45;&gt;printLineCount -->
+<g id="edge8" class="edge">
+<title>lineCount-&gt;printLineCount</title>
+<path fill="none" stroke="black" d="M191.89,-29.02C206.15,-26.82 223.07,-24.2 239.23,-21.71"></path>
+<polygon fill="black" stroke="black" points="239.81,-25.16 249.16,-20.18 238.74,-18.24 239.81,-25.16"></polygon>
+</g>
+<!-- forkArgs&#45;&gt;... -->
+<g id="edge6" class="edge">
+<title>forkArgs-&gt;...</title>
+<path fill="none" stroke="black" d="M333.77,-62.28C348.14,-65.34 364.7,-68.88 377.67,-71.64"></path>
+<polygon fill="black" stroke="black" points="377.07,-75.09 387.58,-73.76 378.53,-68.25 377.07,-75.09"></polygon>
+</g>
+</g>
+</svg>
+
+</center>
+<div class="paragraph">
+<p>Mill lets you define new cached Tasks using the <code>Task {…​}</code> syntax,
+depending on existing Tasks e.g. <code>foo.sources</code> via the <code>foo.sources()</code>
+syntax to extract their current value, as shown in <code>lineCount</code> above. The
+return-type of a Task has to be JSON-serializable (using
+<a href="https://github.com/lihaoyi/upickle">uPickle</a>, one of Mill’s <a href="../fundamentals/bundled-libraries.html" class="xref page">Bundled Libraries</a>)
+and the Task is cached when first run until its inputs change (in this case, if
+someone edits the <code>foo.sources</code> files which live in <code>foo/src</code>). Cached Tasks
+cannot take parameters.</p>
+</div>
+<div class="paragraph">
+<p>Note that depending on a task requires use of parentheses after the task
+name, e.g. <code>ivyDeps()</code>, <code>sources()</code> and <code>lineCount()</code>. This converts the
+task of type <code>T[V]</code> into a value of type <code>V</code> you can make use in your task
+implementation.</p>
+</div>
+<div class="paragraph">
+<p>This example can be run as follows:</p>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill run --text hello
@@ -953,13 +1322,51 @@ my.line.count: 22
 22</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>Custom tasks can contain arbitrary code. Whether you want to
+download files using <code>requests.get</code>, shell-out to Webpack
+to compile some Javascript, generate sources to feed into a compiler, or
+create some custom jar/zip assembly with the files you want , all of these
+can simply be custom tasks with your code running in the <code>Task {…​}</code> block.
+You can also import arbitrary Java or Scala libraries from Maven Central via
+<a href="../extending/import-ivy-plugins.html" class="xref page">import $ivy</a> to use in your build.</p>
+</div>
+<div class="paragraph">
+<p>You can create arbitrarily long chains of dependent tasks, and Mill will
+handle the re-evaluation and caching of the tasks' output for you.
+Mill also provides you a <code>Task.dest</code> folder for you to use as scratch space or
+to store files you want to return:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Any files a task creates should live
+within <code>Task.dest</code></p>
+</li>
+<li>
+<p>Any files a task modifies should be copied into
+<code>Task.dest</code> before being modified.</p>
+</li>
+<li>
+<p>Any files that a task returns should be returned as a <code>PathRef</code> to a path
+within <code>Task.dest</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>That ensures that the files belonging to a
+particular task all live in one place, avoiding file-name conflicts,
+preventing race conditions when tasks evaluate in parallel, and
+letting Mill automatically invalidate the files when the task’s inputs
+change.</p>
+</div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_overriding_tasks"><a class="anchor" href="#_overriding_tasks"></a>Overriding Tasks</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-javalib-module-3-override-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/javalib/module/3-override-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-javalib-module-3-override-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javalib/module/3-override-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -993,6 +1400,28 @@ public class Foo {
 }</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>You can re-define tasks to override them, and use <code>super</code> if you
+want to refer to the originally defined task. The above example shows how to
+override <code>compile</code> and <code>run</code> to add additional logging messages, and we
+override <code>sources</code> which was <code>Task.Sources</code> for the <code>src/</code> folder with a plain
+<code>T{…​}</code> task that generates the  necessary source files on-the-fly.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+that this example <strong>replaces</strong> your <code>src/</code> folder with the generated
+sources, as we are overriding the <code>def sources</code> task. If you want to <strong>add</strong>
+generated sources, you can either override <code>generatedSources</code>, or you can
+override <code>sources</code> and use <code>super</code> to include the original source folder with <code>super</code>:
+</td>
+</tr>
+</tbody></table>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo2 extends JavaModule {
@@ -1010,6 +1439,17 @@ object foo3 extends JavaModule {
 }</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>In Mill builds the <code>override</code> keyword is optional.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run
+Compiling...
+Running...
+Hello World</code></pre>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -1020,7 +1460,7 @@ object foo3 extends JavaModule {
 code using JNI.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-javalib-module-15-jni.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/javalib/module/15-jni">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-javalib-module-15-jni.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javalib/module/15-jni">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._, util.Jvm

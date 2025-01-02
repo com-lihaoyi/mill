@@ -195,11 +195,22 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../android/java.html">Android Java Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -217,6 +228,29 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/dependencies.html">Typescript Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/module-config.html">Typescript Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
   </li>
 </ul>
   </li>
@@ -242,10 +276,6 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../comparisons/unique.html">What Makes Mill Unique</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../comparisons/java-compile.html">How Fast Does Java Compile?</a>
   </li>
 </ul>
   </li>
@@ -435,7 +465,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../large/selective-execution.html">Selective Execution</a>
+    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -454,14 +484,18 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
+    <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/process-architecture.html">The Mill Process Architecture</a>
   </li>
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
   </li>
 </ul>
@@ -489,7 +523,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">latest-0.12.4</span>
+    <span class="version">latest-0.12.5</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -499,7 +533,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">latest-0.12.4</a>
+          <a href="../index.html">latest-0.12.5</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.x</a>
@@ -573,7 +607,7 @@ It covers setting up a basic backend server with a variety of server frameworks<
 <h2 id="_ktor_hello_world_app"><a class="anchor" href="#_ktor_hello_world_app"></a>Ktor Hello World App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-kotlinlib-web-1-hello-ktor.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/kotlinlib/web/1-hello-ktor">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-kotlinlib-web-1-hello-ktor.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/kotlinlib/web/1-hello-ktor">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
@@ -599,7 +633,7 @@ object `package` extends RootModule with KotlinModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">src/com/example/HelloKtor.kt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/kotlinlib/web/1-hello-ktor/src/com/example/HelloKtor.kt">browse</a>)</div>
+<div class="title">src/com/example/HelloKtor.kt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/kotlinlib/web/1-hello-ktor/src/com/example/HelloKtor.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package com.example
 
@@ -626,7 +660,7 @@ fun Application.module() {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">test/src/com/example/HelloKtorTest.kt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/kotlinlib/web/1-hello-ktor/test/src/com/example/HelloKtorTest.kt">browse</a>)</div>
+<div class="title">test/src/com/example/HelloKtorTest.kt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/kotlinlib/web/1-hello-ktor/test/src/com/example/HelloKtorTest.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package com.example
 
@@ -681,7 +715,7 @@ Test com.example.HelloKtorTest HelloKtorTest finished, took...
 <a href="https://todomvc.com/">TodoMVC</a> example app using Kotlin and Ktor.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-kotlinlib-web-2-todo-ktor.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/kotlinlib/web/2-todo-ktor">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-kotlinlib-web-2-todo-ktor.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/kotlinlib/web/2-todo-ktor">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
@@ -772,7 +806,7 @@ fully developing Kotlin/JS support, see the following ticket:</p>
 </ul>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-kotlinlib-web-3-hello-kotlinjs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/kotlinlib/web/3-hello-kotlinjs">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-kotlinlib-web-3-hello-kotlinjs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/kotlinlib/web/3-hello-kotlinjs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._, kotlinlib.js._
@@ -824,7 +858,7 @@ we replace the <code>main.js</code> client side code with the Javascript output 
 <code>ClientApp.kt</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-kotlinlib-web-4-webapp-kotlinjs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/kotlinlib/web/4-webapp-kotlinjs">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-kotlinlib-web-4-webapp-kotlinjs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/kotlinlib/web/4-webapp-kotlinjs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -911,7 +945,7 @@ page updates, it sends HTML for the initial load and JSON for page updates
 which is then rendered into HTML on the client.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-kotlinlib-web-5-webapp-kotlinjs-shared.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/kotlinlib/web/5-webapp-kotlinjs-shared">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-kotlinlib-web-5-webapp-kotlinjs-shared.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/kotlinlib/web/5-webapp-kotlinjs-shared">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._, kotlinlib.js._
@@ -1034,7 +1068,7 @@ is beyond the scope of this example.</p>
 <h2 id="_spring_boot_hello_world_app"><a class="anchor" href="#_spring_boot_hello_world_app"></a>Spring Boot Hello World App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-kotlinlib-web-6-hello-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/kotlinlib/web/6-hello-spring-boot">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-kotlinlib-web-6-hello-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/kotlinlib/web/6-hello-spring-boot">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
@@ -1081,7 +1115,7 @@ able to handle a single HTTP request at <code>/</code> and reply with a single r
 <h2 id="_spring_boot_todomvc_app"><a class="anchor" href="#_spring_boot_todomvc_app"></a>Spring Boot TodoMvc App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-kotlinlib-web-7-todo-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/kotlinlib/web/7-todo-spring-boot">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-kotlinlib-web-7-todo-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/kotlinlib/web/7-todo-spring-boot">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._

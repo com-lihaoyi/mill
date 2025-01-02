@@ -200,11 +200,22 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../android/java.html">Android Java Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -222,6 +233,29 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/dependencies.html">Typescript Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/module-config.html">Typescript Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
   </li>
 </ul>
   </li>
@@ -247,10 +281,6 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../comparisons/unique.html">What Makes Mill Unique</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../comparisons/java-compile.html">How Fast Does Java Compile?</a>
   </li>
 </ul>
   </li>
@@ -440,7 +470,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../large/selective-execution.html">Selective Execution</a>
+    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -459,14 +489,18 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
+    <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/process-architecture.html">The Mill Process Architecture</a>
   </li>
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
   </li>
 </ul>
@@ -494,7 +528,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">latest-0.12.4</span>
+    <span class="version">latest-0.12.5</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -504,7 +538,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">latest-0.12.4</a>
+          <a href="../index.html">latest-0.12.5</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.x</a>
@@ -575,7 +609,7 @@ for `PythonModule`s.</p>
 <h2 id="_adding_dependencies"><a class="anchor" href="#_adding_dependencies"></a>Adding Dependencies</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-pythonlib-dependencies-1-pip-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/pythonlib/dependencies/1-pip-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-pythonlib-dependencies-1-pip-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/pythonlib/dependencies/1-pip-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, pythonlib._
@@ -608,7 +642,7 @@ constraints, or even direct references to wheels.</p>
 useful if you’re migrating an existing project to mill.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-pythonlib-dependencies-2-pip-requirements.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/pythonlib/dependencies/2-pip-requirements">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-pythonlib-dependencies-2-pip-requirements.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/pythonlib/dependencies/2-pip-requirements">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, pythonlib._
@@ -639,7 +673,7 @@ you receive a wheel or folder-full-of-wheels from somewhere and need to
 include it in your project, <code>unmanagedWheels</code> is the way to do it.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-pythonlib-dependencies-3-unmanaged-wheels.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/pythonlib/dependencies/3-unmanaged-wheels">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-pythonlib-dependencies-3-unmanaged-wheels.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/pythonlib/dependencies/3-unmanaged-wheels">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, pythonlib._
@@ -660,7 +694,7 @@ filesystem, e.g. in the above snippet any files that happen to live in the
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
-b'&quot;Hello, world!&quot;'</code></pre>
+Hello, world!</code></pre>
 </div>
 </div>
 </div>
@@ -675,7 +709,7 @@ download from arbitrary URLs.
 library, one of Mill’s <a href="../fundamentals/bundled-libraries.html" class="xref page">Bundled Libraries</a>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-pythonlib-dependencies-4-downloading-unmanaged-wheels.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/pythonlib/dependencies/4-downloading-unmanaged-wheels">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-pythonlib-dependencies-4-downloading-unmanaged-wheels.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/pythonlib/dependencies/4-downloading-unmanaged-wheels">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, pythonlib._
@@ -733,7 +767,7 @@ can also add your own package indexes by overriding the <code>indexes</code> tas
 the module:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-pythonlib-dependencies-5-repository-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/pythonlib/dependencies/5-repository-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-pythonlib-dependencies-5-repository-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/pythonlib/dependencies/5-repository-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, pythonlib._
@@ -794,7 +828,7 @@ arguments mill passes to <code>pip install</code> by looking at the output of th
 <code>pipInstallArgs</code> task.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-pythonlib-dependencies-6-debugging.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/pythonlib/dependencies/6-debugging">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-pythonlib-dependencies-6-debugging.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/pythonlib/dependencies/6-debugging">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, pythonlib._

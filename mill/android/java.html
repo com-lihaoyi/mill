@@ -199,12 +199,23 @@
     <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
-  <li class="nav-item is-current-page" data-depth="2">
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item is-current-page" data-depth="3">
     <a class="nav-link" href="java.html">Android Java Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -222,6 +233,29 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/dependencies.html">Typescript Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/module-config.html">Typescript Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
   </li>
 </ul>
   </li>
@@ -247,10 +281,6 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../comparisons/unique.html">What Makes Mill Unique</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../comparisons/java-compile.html">How Fast Does Java Compile?</a>
   </li>
 </ul>
   </li>
@@ -440,7 +470,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../large/selective-execution.html">Selective Execution</a>
+    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -459,14 +489,18 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
+    <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/process-architecture.html">The Mill Process Architecture</a>
   </li>
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
   </li>
 </ul>
@@ -494,7 +528,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">latest-0.12.4</span>
+    <span class="version">latest-0.12.5</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -504,7 +538,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">latest-0.12.4</a>
+          <a href="../index.html">latest-0.12.5</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.x</a>
@@ -536,6 +570,7 @@
   <ul>
     <li><a href="../index.html">Mill Documentation</a></li>
     <li>Experimental Platform Support</li>
+    <li>Building Android Apps</li>
     <li><a href="java.html">Android Java Projects</a></li>
   </ul>
 </nav>
@@ -604,12 +639,15 @@ resource generation, APK building, DEX conversion, and APK signing.
 Additionally, <code>AndroidSdkModule</code> is embedded, making SDK management seamless.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-android-javalib-1-hello-world.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/android/javalib/1-hello-world">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-android-javalib-1-hello-world.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/android/javalib/1-hello-world">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
-import mill._
-import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}</code></pre>
+import mill._, javalib._
+
+import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}
+import coursier.maven.MavenRepository
+import mill.javalib.android.AndroidTestModule</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -632,10 +670,70 @@ import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}</code></pre>
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
 
   // Configuration for ReleaseKey
+  override def releaseKeyPath = super.millSourcePath
+
   def androidReleaseKeyName: T[String] = Task { &quot;releaseKey.jks&quot; }
   def androidReleaseKeyAlias: T[String] = Task { &quot;releaseKey&quot; }
   def androidReleaseKeyPass: T[String] = Task { &quot;MillBuildTool&quot; }
   def androidReleaseKeyStorePass: T[String] = Task { &quot;MillBuildTool&quot; }
+
+  override def androidVirtualDeviceIdentifier: String = &quot;java-test&quot;
+
+  private def mainRoot = millSourcePath
+
+  object test extends AndroidAppTests with TestModule.Junit4 {
+    def testFramework = &quot;com.novocode.junit.JUnitFramework&quot;
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy&quot;junit:junit:4.13.2&quot;
+    )
+  }
+
+  object it extends AndroidAppIntegrationTests with AndroidTestModule.AndroidJUnit {
+    def repositoriesTask = Task.Anon {
+      super.repositoriesTask() ++
+        Seq(MavenRepository(&quot;https://maven.google.com&quot;))
+    }
+
+    def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+
+    override def instrumentationPackage = &quot;com.helloworld.app&quot;
+
+    /* TODO this needs to change to the location of the debug keystore once integration test */
+    override def releaseKeyPath = mainRoot
+
+    def androidReleaseKeyName: T[String] = Task {
+      &quot;releaseKey.jks&quot;
+    }
+
+    def androidReleaseKeyAlias: T[String] = Task {
+      &quot;releaseKey&quot;
+    }
+
+    def androidReleaseKeyPass: T[String] = Task {
+      &quot;MillBuildTool&quot;
+    }
+
+    def androidReleaseKeyStorePass: T[String] = Task {
+      &quot;MillBuildTool&quot;
+    }
+
+    /* TODO currently the dependency resolution ignores the platform type and kotlinx-coroutines-core has
+     * conflicting classes with kotlinx-coroutines-core-jvm . Remove the exclusions once the dependency
+     * resolution resolves conflicts between androidJvm and jvm platform types
+     */
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy&quot;androidx.test.ext:junit:1.2.1&quot;.exclude((
+        &quot;org.jetbrains.kotlinx&quot;,
+        &quot;kotlinx-coroutines-core-jvm&quot;
+      )),
+      ivy&quot;androidx.test:runner:1.6.2&quot;,
+      ivy&quot;androidx.test.espresso:espresso-core:3.5.1&quot;.exclude((
+        &quot;org.jetbrains.kotlinx&quot;,
+        &quot;kotlinx-coroutines-core-jvm&quot;
+      )),
+      ivy&quot;junit:junit:4.13.2&quot;
+    )
+  }
 
 }</code></pre>
 </div>
@@ -665,15 +763,60 @@ all necessary steps (resource generation, APK creation, and signing) are execute
 <div class="content">
 <pre>.
 ├── app
-│   ├── AndroidManifest.xml
-│   ├── releaseKey.jks
-│   ├── resources
-│   │   └── values
-│   │       ├── colors.xml
-│   │       └── strings.xml
-│   └── src/main/java/com/helloworld/app/MainActivity.java
+│     └── src
+│         ├── androidTest/java/com/helloworld/app/ExampleInstrumentedTest.java
+│         ├── main
+│         │     ├── AndroidManifest.xml
+│         │     ├── java/com/helloworld/app/MainActivity.java
+│         │     └── res
+│         │         └── values
+│         │             ├── colors.xml
+│         │             └── strings.xml
+│         └── test/java/com/helloworld/app/ExampleUnitTest.java
 └── build.mill</pre>
 </div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show app.test
+...compiling 3 Java sources...
+
+&gt; cat out/app/test/test.dest/out.json
+[&quot;&quot;,[{&quot;fullyQualifiedName&quot;:&quot;com.helloworld.ExampleUnitTest.textSize_isCorrect&quot;,&quot;selector&quot;:&quot;com.helloworld.ExampleUnitTest.textSize_isCorrect&quot;,&quot;duration&quot;:...,&quot;status&quot;:&quot;Success&quot;}]]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This command runs unit tests on your local environment.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show app.createAndroidVirtualDevice
+...Name: java-test, DeviceId: medium_phone...
+
+&gt; ./mill show app.startAndroidEmulator
+
+&gt; ./mill show app.waitForDevice
+...emulator-5554...
+
+&gt; ./mill show app.it | grep '&quot;OK (1 test)&quot;'
+...&quot;OK (1 test)&quot;,
+
+&gt; cat out/app/it/test.json | grep '&quot;OK (1 test)&quot;'
+...&quot;OK (1 test)&quot;...
+
+&gt; ./mill show app.stopAndroidEmulator
+
+&gt; ./mill show app.deleteAndroidVirtualDevice</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The android tests (existing typically in androidTest directory, aka instrumented tests)
+typically run on an android device.
+The createAndroidVirtualDevice command creates an AVD (Android Virtual Device)
+and the startAndroidEmulator command starts the AVD. The it task runs the android tests
+against the available AVD. The stopAndroidEmulator command stops the AVD and the
+destroyAndroidVirtualDevice command destroys the AVD.
+The provided commands can be used in a CI/CD pipeline assuming the right setup is in place.</p>
 </div>
 <div class="paragraph">
 <p>This example demonstrates how to create a basic &quot;Hello World&quot; Android application
@@ -746,7 +889,7 @@ Android Bundle zip generation, Bundle Creation and Bundle signing.
 Additionally, <code>AndroidSdkModule</code> is embedded, making SDK management seamless.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-android-javalib-2-app-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/android/javalib/2-app-bundle">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-android-javalib-2-app-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/android/javalib/2-app-bundle">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -760,6 +903,8 @@ object androidSdkModule0 extends AndroidSdkModule {
 
 object bundle extends AndroidAppBundle {
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+
+  override def releaseKeyPath = millSourcePath
 
   def androidReleaseKeyName: T[String] = Task { &quot;releaseKey.jks&quot; }
   def androidReleaseKeyAlias: T[String] = Task { &quot;releaseKey&quot; }
@@ -791,15 +936,15 @@ ensuring that all necessary steps (generation, creation, and signing) are execut
 <div class="listingblock">
 <div class="content">
 <pre>.
-├── app
-│   ├── AndroidManifest.xml
-│   ├── releaseKey.jks
-│   ├── resources
-│   │   └── values
-│   │       ├── colors.xml
-│   │       └── strings.xml
-│   └── src/main/java/com/helloworld/app/MainActivity.java
-└── build.mill</pre>
+bundle/
+└── src
+   ├── main
+   │   ├── AndroidManifest.xml
+   │   └── java/com/helloworld/app/MainActivity.java
+   └── res
+       └── values
+           ├── colors.xml
+           └── strings.xml</pre>
 </div>
 </div>
 </div>

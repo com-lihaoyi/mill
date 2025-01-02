@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Installation &amp; IDE Support :: The Mill JVM Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/cli/installation-ide.html">
-    <link rel="prev" href="../comparisons/java-compile.html">
+    <link rel="prev" href="../comparisons/unique.html">
     <link rel="next" href="flags.html">
     <meta name="generator" content="Antora 3.1.9">
     <link rel="stylesheet" href="../../../_/css/site.css">
@@ -195,11 +195,22 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../android/java.html">Android Java Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -217,6 +228,29 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/dependencies.html">Typescript Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/module-config.html">Typescript Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
   </li>
 </ul>
   </li>
@@ -242,10 +276,6 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../comparisons/unique.html">What Makes Mill Unique</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../comparisons/java-compile.html">How Fast Does Java Compile?</a>
   </li>
 </ul>
   </li>
@@ -435,7 +465,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../large/selective-execution.html">Selective Execution</a>
+    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -454,14 +484,18 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
+    <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/process-architecture.html">The Mill Process Architecture</a>
   </li>
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
   </li>
 </ul>
@@ -499,7 +533,7 @@
           <a href="../../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-latest">
-          <a href="../../index.html">latest-0.12.4</a>
+          <a href="../../index.html">latest-0.12.5</a>
         </li>
         <li class="version is-current">
           <a href="../index.html">0.12.x</a>
@@ -568,12 +602,12 @@ you can also download it manually:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Mac/Linux
-curl -L https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4 &gt; mill &amp;&amp; chmod +x mill
-echo 0.12.4 &gt; .mill-version
+curl -L https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5 &gt; mill &amp;&amp; chmod +x mill
+echo 0.12.5 &gt; .mill-version
 
 # Windows
-curl -L https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4.bat -o mill.bat
-echo 0.12.4 &gt; .mill-version</code></pre>
+curl -L https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5.bat -o mill.bat
+echo 0.12.5 &gt; .mill-version</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -973,7 +1007,7 @@ a <a href="#_bootstrap_scripts">bootstrap script</a> instead.
 <h3 id="_windows"><a class="anchor" href="#_windows"></a>Windows</h3>
 <div class="paragraph">
 <p>To get started, download Mill from
-<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-assembly">Github releases</a>, and save it as <code>mill.bat</code>.</p>
+<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-assembly">Github releases</a>, and save it as <code>mill.bat</code>.</p>
 </div>
 <div class="paragraph">
 <p>If you&#8217;re using <a href="https://scoop.sh">Scoop</a> you can install Mill via</p>
@@ -1031,7 +1065,7 @@ docker run -it nightscape/scala-mill</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">sh -c "curl -L https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4 &gt; ~/.local/bin/mill &amp;&amp; chmod +x ~/.local/bin/mill"</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">sh -c "curl -L https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5 &gt; ~/.local/bin/mill &amp;&amp; chmod +x ~/.local/bin/mill"</code></pre>
 </div>
 </div>
 </div>
@@ -1064,7 +1098,7 @@ asdf global mill latest
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="../comparisons/java-compile.html">How Fast Does Java Compile?</a></span>
+  <span class="prev"><a href="../comparisons/unique.html">What Makes Mill Unique</a></span>
   <span class="next"><a href="flags.html">Mill Command-Line Flags</a></span>
 </nav>
 </article>

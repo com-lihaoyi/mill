@@ -200,11 +200,22 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../android/java.html">Android Java Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -222,6 +233,29 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/dependencies.html">Typescript Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/module-config.html">Typescript Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
   </li>
 </ul>
   </li>
@@ -247,10 +281,6 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../comparisons/unique.html">What Makes Mill Unique</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../comparisons/java-compile.html">How Fast Does Java Compile?</a>
   </li>
 </ul>
   </li>
@@ -440,7 +470,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../large/selective-execution.html">Selective Execution</a>
+    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -459,14 +489,18 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
+    <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/process-architecture.html">The Mill Process Architecture</a>
   </li>
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
   </li>
 </ul>
@@ -494,7 +528,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">latest-0.12.4</span>
+    <span class="version">latest-0.12.5</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -504,7 +538,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">latest-0.12.4</a>
+          <a href="../index.html">latest-0.12.5</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.x</a>
@@ -594,7 +628,7 @@ used in building language toolchains, and is not intended for production use.
 type hints, helping to catch errors in development.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-extending-python-1-hello-python.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/extending/python/1-hello-python">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-extending-python-1-hello-python.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/extending/python/1-hello-python">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -681,7 +715,7 @@ def pythonExe: T[PathRef] = Task {
 <p>Here is the <code>main.py</code> file</p>
 </div>
 <div class="listingblock">
-<div class="title">src/main.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/extending/python/1-hello-python/src/main.py">browse</a>)</div>
+<div class="title">src/main.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/extending/python/1-hello-python/src/main.py">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import sys
 def add(a: int, b: int) -&gt; int: return a + b
@@ -825,7 +859,7 @@ earlier with <code>sources</code>, <code>pythonExe</code>, <code>typeCheck</code
 that can be re-used.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-extending-python-2-python-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/extending/python/2-python-modules">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-extending-python-2-python-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/extending/python/2-python-modules">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -905,11 +939,6 @@ Hello, Mill Qux!</code></pre>
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 492.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-492 308.95,-492 308.95,4 -4,4"></polygon>
-<g id="clust1" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="14.44,-8 14.44,-159 290.51,-159 290.51,-8 14.44,-8"></polygon>
-<text text-anchor="middle" x="152.47" y="-142.4" font-family="Times,serif" font-size="14.00">qux</text>
-</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-167 8,-480 296.95,-480 296.95,-167 8,-167"></polygon>
@@ -919,6 +948,11 @@ Hello, Mill Qux!</code></pre>
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="16,-296 16,-447 288.95,-447 288.95,-296 16,-296"></polygon>
 <text text-anchor="middle" x="152.47" y="-430.4" font-family="Times,serif" font-size="14.00">bar</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="14.44,-8 14.44,-159 290.51,-159 290.51,-8 14.44,-8"></polygon>
+<text text-anchor="middle" x="152.47" y="-142.4" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
 <!-- qux.pythonExe -->
 <g id="node1" class="node">
@@ -1123,7 +1157,7 @@ We then use <code>Task.traverse</code> to aggregate the <code>sources</code> of 
 make them available during <code>typeCheck</code> and <code>run</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-extending-python-3-python-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/extending/python/3-python-module-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-extending-python-3-python-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/extending/python/3-python-module-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -1200,21 +1234,21 @@ object qux extends PythonModule {
 depend on one another:</p>
 </div>
 <div class="listingblock">
-<div class="title">foo/src/foo.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/extending/python/3-python-module-deps/foo/src/foo.py">browse</a>)</div>
+<div class="title">foo/src/foo.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/extending/python/3-python-module-deps/foo/src/foo.py">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import sys
 def multiply(a: int, b: int) -&gt; int: return a * b</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/bar/src/bar.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/extending/python/3-python-module-deps/foo/bar/src/bar.py">browse</a>)</div>
+<div class="title">foo/bar/src/bar.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/extending/python/3-python-module-deps/foo/bar/src/bar.py">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import sys
 def add(a: int, b: int) -&gt; int: return a + b</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">qux/src/qux.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/extending/python/3-python-module-deps/qux/src/qux.py">browse</a>)</div>
+<div class="title">qux/src/qux.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/extending/python/3-python-module-deps/qux/src/qux.py">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">from foo.bar.src.bar import add # type: ignore
 from foo.src.foo import multiply # type: ignore
@@ -1490,7 +1524,7 @@ making deployment easier.</p>
 </ul>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-extending-python-4-python-libs-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/extending/python/4-python-libs-bundle">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-extending-python-4-python-libs-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/extending/python/4-python-libs-bundle">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -1625,11 +1659,6 @@ tasks with upstream and the bundle tasks downstream:</p>
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 613.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-613 602.86,-613 602.86,4 -4,4"></polygon>
-<g id="clust1" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="164.03,-8 164.03,-159 590.86,-159 590.86,-8 164.03,-8"></polygon>
-<text text-anchor="middle" x="377.44" y="-142.4" font-family="Times,serif" font-size="14.00">qux</text>
-</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-288 8,-601 449.26,-601 449.26,-288 8,-288"></polygon>
@@ -1639,6 +1668,11 @@ tasks with upstream and the bundle tasks downstream:</p>
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="16,-417 16,-568 441.26,-568 441.26,-417 16,-417"></polygon>
 <text text-anchor="middle" x="228.63" y="-551.4" font-family="Times,serif" font-size="14.00">bar</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="164.03,-8 164.03,-159 590.86,-159 590.86,-8 164.03,-8"></polygon>
+<text text-anchor="middle" x="377.44" y="-142.4" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
 <!-- qux.pythonDeps -->
 <g id="node1" class="node">

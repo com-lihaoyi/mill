@@ -6,7 +6,7 @@
     <title>Android Kotlin Projects :: The Mill JVM Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/android/kotlin.html">
     <link rel="prev" href="java.html">
-    <link rel="next" href="../pythonlib/intro.html">
+    <link rel="next" href="android-linting.html">
     <meta name="generator" content="Antora 3.1.9">
     <link rel="stylesheet" href="../../../_/css/site.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -195,11 +195,22 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="java.html">Android Java Projects</a>
   </li>
 
-  <li class="nav-item is-current-page" data-depth="2">
+  <li class="nav-item is-current-page" data-depth="3">
     <a class="nav-link" href="kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -217,6 +228,29 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/dependencies.html">Typescript Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/module-config.html">Typescript Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
   </li>
 </ul>
   </li>
@@ -242,10 +276,6 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../comparisons/unique.html">What Makes Mill Unique</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../comparisons/java-compile.html">How Fast Does Java Compile?</a>
   </li>
 </ul>
   </li>
@@ -435,7 +465,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../large/selective-execution.html">Selective Execution</a>
+    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -454,14 +484,18 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
+    <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/process-architecture.html">The Mill Process Architecture</a>
   </li>
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
   </li>
 </ul>
@@ -499,7 +533,7 @@
           <a href="../../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-latest">
-          <a href="../../index.html">latest-0.12.4</a>
+          <a href="../../index.html">latest-0.12.5</a>
         </li>
         <li class="version is-current">
           <a href="../index.html">0.12.x</a>
@@ -531,6 +565,7 @@
   <ul>
     <li><a href="../index.html">Mill Documentation</a></li>
     <li>Experimental Platform Support</li>
+    <li>Building Android Apps</li>
     <li><a href="kotlin.html">Android Kotlin Projects</a></li>
   </ul>
 </nav>
@@ -603,14 +638,16 @@ resource generation, APK building, DEX conversion, and APK signing.
 Additionally, <code>AndroidSdkModule</code> is embedded, making SDK management seamless.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-android-kotlinlib-1-hello-kotlin.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/android/kotlinlib/1-hello-kotlin">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-android-kotlinlib-1-hello-kotlin.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/android/kotlinlib/1-hello-kotlin">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
 import mill._
 import kotlinlib._
 import mill.kotlinlib.android.AndroidAppKotlinModule
-import mill.javalib.android.AndroidSdkModule</code></pre>
+import mill.javalib.android.AndroidTestModule
+import mill.javalib.android.AndroidSdkModule
+import coursier.maven.MavenRepository</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -635,10 +672,51 @@ import mill.javalib.android.AndroidSdkModule</code></pre>
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
 
   // Configuration for ReleaseKey
+  override def releaseKeyPath = millSourcePath
   def androidReleaseKeyName: T[String] = Task { "releaseKey.jks" }
   def androidReleaseKeyAlias: T[String] = Task { "releaseKey" }
   def androidReleaseKeyPass: T[String] = Task { "MillBuildTool" }
   def androidReleaseKeyStorePass: T[String] = Task { "MillBuildTool" }
+  override def androidVirtualDeviceIdentifier: String = "kotlin-test"
+  override def androidEmulatorPort: String = "5556"
+
+  /* TODO this won't be needed once the debug keystore is implemented */
+  private def mainRoot = millSourcePath
+
+  object test extends AndroidAppKotlinTests with TestModule.Junit4 {
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy"junit:junit:4.13.2"
+    )
+  }
+
+  object it extends AndroidAppKotlinIntegrationTests with AndroidTestModule.AndroidJUnit {
+
+    override def instrumentationPackage = "com.helloworld.app"
+
+    /* TODO this needs to change to something better once integration tests work with debug keystore */
+    override def releaseKeyPath = mainRoot
+    def androidReleaseKeyName: T[String] = Task { "releaseKey.jks" }
+    def androidReleaseKeyAlias: T[String] = Task { "releaseKey" }
+    def androidReleaseKeyPass: T[String] = Task { "MillBuildTool" }
+    def androidReleaseKeyStorePass: T[String] = Task { "MillBuildTool" }
+
+    /* TODO currently the dependency resolution ignores the platform type and kotlinx-coroutines-core has
+     * conflicting classes with kotlinx-coroutines-core-jvm . Remove the exclusions once the dependency
+     * resolution resolves conflicts between androidJvm and jvm platform types
+     */
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy"androidx.test.ext:junit:1.2.1".exclude((
+        "org.jetbrains.kotlinx",
+        "kotlinx-coroutines-core-jvm"
+      )),
+      ivy"androidx.test:runner:1.6.2",
+      ivy"androidx.test.espresso:espresso-core:3.5.1".exclude((
+        "org.jetbrains.kotlinx",
+        "kotlinx-coroutines-core-jvm"
+      )),
+      ivy"junit:junit:4.13.2"
+    )
+  }
 }</code></pre>
 </div>
 </div>
@@ -667,15 +745,59 @@ all necessary steps (resource generation, APK creation, and signing) are execute
 <div class="content">
 <pre>.
 ├── app
-│   ├── AndroidManifest.xml
-│   ├── releaseKey.jks
-│   ├── resources
-│   │   └── values
-│   │       ├── colors.xml
-│   │       └── strings.xml
-│   └── src/main/java/com/helloworld/app/MainActivity.kt
+│   └── src
+│       ├── androidTest/java/com/helloworld/app/ExampleInstrumentedTest.kt
+│       ├── main
+│       │   ├── AndroidManifest.xml
+│       │   ├── java/com/helloworld/app/MainActivity.kt
+│       │   └── res
+│       │       └── values
+│       │           ├── colors.xml
+│       │           └── strings.xml
+│       └── test/java/com/helloworld/app/ExampleUnitTest.kt
 └── build.mill</pre>
 </div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show app.test
+...Compiling 5 Kotlin sources...
+
+&gt; cat out/app/test/test.dest/out.json
+["",[{"fullyQualifiedName":"com.helloworld.ExampleUnitTest.text_size_is_correct","selector":"com.helloworld.ExampleUnitTest.text_size_is_correct","duration":...,"status":"Success"},{"fullyQualifiedName":"com.helloworld.ExampleUnitTestInKotlinDir.kotlin_dir_text_size_is_correct","selector":"com.helloworld.ExampleUnitTestInKotlinDir.kotlin_dir_text_size_is_correct","duration":...,"status":"Success"}]]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This command runs unit tests on your local environment.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill app.createAndroidVirtualDevice
+
+&gt; sleep 60 &amp;&amp; ./mill show app.startAndroidEmulator
+
+&gt; ./mill show app.waitForDevice
+...emulator-5556...
+
+&gt; ./mill show app.it | grep '"OK (1 test)"'
+ ..."OK (1 test)",
+
+&gt; cat out/app/it/test.json | grep '"OK (1 test)"'
+..."OK (1 test)"...
+
+&gt; ./mill show app.stopAndroidEmulator
+
+&gt; ./mill show app.deleteAndroidVirtualDevice</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The android tests (existing typically in androidTest directory, aka instrumented tests)
+typically run on an android device.
+The createAndroidVirtualDevice command creates an AVD (Android Virtual Device)
+and the startAndroidEmulator command starts the AVD. The it task runs the integration tests
+against the available AVD. The stopAndroidEmulator command stops the AVD and the
+destroyAndroidVirtualDevice command destroys the AVD.
+The provided commands can be used in a CI/CD pipeline assuming the right setup is in place.</p>
 </div>
 <div class="paragraph">
 <p>This example demonstrates how to create a basic "Hello World" Android application
@@ -735,7 +857,7 @@ everything from compiling the code to generating a signed APK for distribution.<
 </div>
 <nav class="pagination">
   <span class="prev"><a href="java.html">Android Java Projects</a></span>
-  <span class="next"><a href="../pythonlib/intro.html">Building Python with Mill</a></span>
+  <span class="next"><a href="android-linting.html">Linting Android Projects</a></span>
 </nav>
 </article>
   </div>

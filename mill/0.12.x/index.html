@@ -194,11 +194,22 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="android/java.html">Android Java Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="android/android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -216,6 +227,29 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="javascriptlib/intro.html">Building Javascript with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="javascriptlib/dependencies.html">Typescript Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="javascriptlib/module-config.html">Typescript Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="javascriptlib/testing.html">Testing Typescript Projects</a>
   </li>
 </ul>
   </li>
@@ -241,10 +275,6 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="comparisons/unique.html">What Makes Mill Unique</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="comparisons/java-compile.html">How Fast Does Java Compile?</a>
   </li>
 </ul>
   </li>
@@ -434,7 +464,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="large/selective-execution.html">Selective Execution</a>
+    <a class="nav-link" href="large/selective-execution.html">Selective Test Execution</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -453,14 +483,18 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="depth/evaluation-model.html">The Mill Evaluation Model</a>
+    <a class="nav-link" href="depth/execution-model.html">The Mill Execution Model</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="depth/process-architecture.html">The Mill Process Architecture</a>
   </li>
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="depth/design-principles.html">Mill Design Principles</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="depth/why-scala.html">Why does Mill use Scala?</a>
   </li>
 </ul>
@@ -498,7 +532,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-latest">
-          <a href="../index.html">latest-0.12.4</a>
+          <a href="../index.html">latest-0.12.5</a>
         </li>
         <li class="version is-current">
           <a href="index.html">0.12.x</a>
@@ -621,7 +655,7 @@ Java platform&#8217;s performance and usability:</p>
 <ul>
 <li>
 <p><strong>Performance</strong>: Mill automatically
-<a href="depth/evaluation-model.html#_caching_at_each_layer_of_the_evaluation_model" class="xref page">caches</a>
+<a href="depth/execution-model.html#_caching_in_mill" class="xref page">caches</a>
 and <a href="cli/flags.html#_jobs_j" class="xref page">parallelizes</a> build tasks to keep local development fast,
 and avoids the long configuration times seen in other tools like Gradle or SBT.
 <a href="large/selective-execution.html" class="xref page">Selective execution</a> keeps

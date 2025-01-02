@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Selective Execution :: The Mill JVM Build Tool</title>
+    <title>Selective Test Execution :: The Mill JVM Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/large/selective-execution.html">
     <link rel="prev" href="large.html">
     <link rel="next" href="multi-file-builds.html">
@@ -195,11 +195,22 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../android/java.html">Android Java Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -217,6 +228,29 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/dependencies.html">Typescript Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/module-config.html">Typescript Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
   </li>
 </ul>
   </li>
@@ -242,10 +276,6 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../comparisons/unique.html">What Makes Mill Unique</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../comparisons/java-compile.html">How Fast Does Java Compile?</a>
   </li>
 </ul>
   </li>
@@ -435,7 +465,7 @@
 <ul class="nav-list">
 
   <li class="nav-item is-current-page" data-depth="2">
-    <a class="nav-link" href="selective-execution.html">Selective Execution</a>
+    <a class="nav-link" href="selective-execution.html">Selective Test Execution</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -454,14 +484,18 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
+    <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/process-architecture.html">The Mill Process Architecture</a>
   </li>
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
   </li>
 </ul>
@@ -489,7 +523,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">latest-0.12.4</span>
+    <span class="version">latest-0.12.5</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -499,7 +533,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">latest-0.12.4</a>
+          <a href="../index.html">latest-0.12.5</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.x</a>
@@ -531,7 +565,7 @@
   <ul>
     <li><a href="../index.html">Mill Documentation</a></li>
     <li><a href="large.html">Large Builds and Monorepos</a></li>
-    <li><a href="selective-execution.html">Selective Execution</a></li>
+    <li><a href="selective-execution.html">Selective Test Execution</a></li>
   </ul>
 </nav>
 </div>
@@ -540,7 +574,7 @@
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">Selective Execution</h1>
+<h1 class="page">Selective Test Execution</h1>
 <div id="preamble">
 <div class="sectionbody">
 <style>
@@ -610,7 +644,7 @@ request branch, you can do that as follows:</p>
 where <code>bar</code> depends on <code>foo</code> but <code>qux</code> is standalone:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-large-selective-9-selective-execution.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/large/selective/9-selective-execution">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-large-selective-9-selective-execution.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/large/selective/9-selective-execution">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -628,11 +662,151 @@ object bar extends MyModule
 object qux extends MyModule</code></pre>
 </div>
 </div>
+<center>
+<svg width="235px" height="129px"
+ viewBox="0.00 0.00 234.54 128.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 124.8)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-124.8 230.54,-124.8 230.54,4 -4,4"/>
+<!-- qux -->
+<g id="node1" class="node">
+<title>qux</title>
+<polygon fill="white" stroke="black" points="37,-24.7 0,-24.7 0,-0.1 37,-0.1 37,-24.7"/>
+<text text-anchor="middle" x="18.5" y="-8.2" font-family="Times,serif" font-size="14.00">qux</text>
+</g>
+<!-- qux.test -->
+<g id="node2" class="node">
+<title>qux.test</title>
+<polygon fill="white" stroke="black" points="132.91,-24.7 73.03,-24.7 73.03,-0.1 132.91,-0.1 132.91,-24.7"/>
+<text text-anchor="middle" x="102.97" y="-8.2" font-family="Times,serif" font-size="14.00">qux.test</text>
+</g>
+<!-- qux&#45;&gt;qux.test -->
+<g id="edge1" class="edge">
+<title>qux&#45;&gt;qux.test</title>
+<path fill="none" stroke="black" d="M37.39,-12.4C44.82,-12.4 53.74,-12.4 62.56,-12.4"/>
+<polygon fill="black" stroke="black" points="62.76,-15.9 72.76,-12.4 62.76,-8.9 62.76,-15.9"/>
+</g>
+<!-- bar -->
+<g id="node3" class="node">
+<title>bar</title>
+<polygon fill="white" stroke="black" points="35.38,-88.7 1.62,-88.7 1.62,-64.1 35.38,-64.1 35.38,-88.7"/>
+<text text-anchor="middle" x="18.5" y="-72.2" font-family="Times,serif" font-size="14.00">bar</text>
+</g>
+<!-- bar.test -->
+<g id="node4" class="node">
+<title>bar.test</title>
+<polygon fill="white" stroke="black" points="131.29,-120.7 74.65,-120.7 74.65,-96.1 131.29,-96.1 131.29,-120.7"/>
+<text text-anchor="middle" x="102.97" y="-104.2" font-family="Times,serif" font-size="14.00">bar.test</text>
+</g>
+<!-- bar&#45;&gt;bar.test -->
+<g id="edge2" class="edge">
+<title>bar&#45;&gt;bar.test</title>
+<path fill="none" stroke="black" d="M35.4,-82.57C43.86,-85.85 54.64,-90.03 65.05,-94.07"/>
+<polygon fill="black" stroke="black" points="63.83,-97.36 74.42,-97.71 66.37,-90.83 63.83,-97.36"/>
+</g>
+<!-- foo -->
+<g id="node5" class="node">
+<title>foo</title>
+<polygon fill="white" stroke="black" points="120.13,-77.7 85.81,-77.7 85.81,-53.1 120.13,-53.1 120.13,-77.7"/>
+<text text-anchor="middle" x="102.97" y="-61.2" font-family="Times,serif" font-size="14.00">foo</text>
+</g>
+<!-- bar&#45;&gt;foo -->
+<g id="edge3" class="edge">
+<title>bar&#45;&gt;foo</title>
+<path fill="none" stroke="black" d="M35.4,-74.28C46.78,-72.76 62.35,-70.68 75.58,-68.92"/>
+<polygon fill="black" stroke="black" points="76.1,-72.38 85.55,-67.59 75.18,-65.44 76.1,-72.38"/>
+</g>
+<!-- foo.test -->
+<g id="node6" class="node">
+<title>foo.test</title>
+<polygon fill="white" stroke="black" points="226.34,-77.7 169.14,-77.7 169.14,-53.1 226.34,-53.1 226.34,-77.7"/>
+<text text-anchor="middle" x="197.74" y="-61.2" font-family="Times,serif" font-size="14.00">foo.test</text>
+</g>
+<!-- foo&#45;&gt;foo.test -->
+<g id="edge4" class="edge">
+<title>foo&#45;&gt;foo.test</title>
+<path fill="none" stroke="black" d="M120.56,-65.4C131.17,-65.4 145.38,-65.4 158.66,-65.4"/>
+<polygon fill="black" stroke="black" points="159.02,-68.9 169.02,-65.4 159.02,-61.9 159.02,-68.9"/>
+</g>
+</g>
+</svg>
+
+</center>
 <div class="paragraph">
 <p>In this example, <code>qux.test</code> starts off failing with an error, while <code>foo.test</code> and
 <code>bar.test</code> pass successfully. Normally, running <code>__.test</code> will run all three test
 suites and show both successes and the one failure:</p>
 </div>
+<center>
+<svg width="235px" height="129px"
+ viewBox="0.00 0.00 234.54 128.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 124.8)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-124.8 230.54,-124.8 230.54,4 -4,4"/>
+<!-- qux.test -->
+<g id="node1" class="node">
+<title>qux.test</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="132.91,-24.7 73.03,-24.7 73.03,-0.1 132.91,-0.1 132.91,-24.7"/>
+<text text-anchor="middle" x="102.97" y="-8.2" font-family="Times,serif" font-size="14.00">qux.test</text>
+</g>
+<!-- qux -->
+<g id="node2" class="node">
+<title>qux</title>
+<polygon fill="white" stroke="black" points="37,-24.7 0,-24.7 0,-0.1 37,-0.1 37,-24.7"/>
+<text text-anchor="middle" x="18.5" y="-8.2" font-family="Times,serif" font-size="14.00">qux</text>
+</g>
+<!-- qux&#45;&gt;qux.test -->
+<g id="edge1" class="edge">
+<title>qux&#45;&gt;qux.test</title>
+<path fill="none" stroke="black" d="M37.39,-12.4C44.82,-12.4 53.74,-12.4 62.56,-12.4"/>
+<polygon fill="black" stroke="black" points="62.76,-15.9 72.76,-12.4 62.76,-8.9 62.76,-15.9"/>
+</g>
+<!-- bar -->
+<g id="node3" class="node">
+<title>bar</title>
+<polygon fill="white" stroke="black" points="35.38,-88.7 1.62,-88.7 1.62,-64.1 35.38,-64.1 35.38,-88.7"/>
+<text text-anchor="middle" x="18.5" y="-72.2" font-family="Times,serif" font-size="14.00">bar</text>
+</g>
+<!-- bar.test -->
+<g id="node4" class="node">
+<title>bar.test</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="131.29,-120.7 74.65,-120.7 74.65,-96.1 131.29,-96.1 131.29,-120.7"/>
+<text text-anchor="middle" x="102.97" y="-104.2" font-family="Times,serif" font-size="14.00">bar.test</text>
+</g>
+<!-- bar&#45;&gt;bar.test -->
+<g id="edge2" class="edge">
+<title>bar&#45;&gt;bar.test</title>
+<path fill="none" stroke="black" d="M35.4,-82.57C43.86,-85.85 54.64,-90.03 65.05,-94.07"/>
+<polygon fill="black" stroke="black" points="63.83,-97.36 74.42,-97.71 66.37,-90.83 63.83,-97.36"/>
+</g>
+<!-- foo -->
+<g id="node5" class="node">
+<title>foo</title>
+<polygon fill="white" stroke="black" points="120.13,-77.7 85.81,-77.7 85.81,-53.1 120.13,-53.1 120.13,-77.7"/>
+<text text-anchor="middle" x="102.97" y="-61.2" font-family="Times,serif" font-size="14.00">foo</text>
+</g>
+<!-- bar&#45;&gt;foo -->
+<g id="edge3" class="edge">
+<title>bar&#45;&gt;foo</title>
+<path fill="none" stroke="black" d="M35.4,-74.28C46.78,-72.76 62.35,-70.68 75.58,-68.92"/>
+<polygon fill="black" stroke="black" points="76.1,-72.38 85.55,-67.59 75.18,-65.44 76.1,-72.38"/>
+</g>
+<!-- foo.test -->
+<g id="node6" class="node">
+<title>foo.test</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="226.34,-77.7 169.14,-77.7 169.14,-53.1 226.34,-53.1 226.34,-77.7"/>
+<text text-anchor="middle" x="197.74" y="-61.2" font-family="Times,serif" font-size="14.00">foo.test</text>
+</g>
+<!-- foo&#45;&gt;foo.test -->
+<g id="edge4" class="edge">
+<title>foo&#45;&gt;foo.test</title>
+<path fill="none" stroke="black" d="M120.56,-65.4C131.17,-65.4 145.38,-65.4 158.66,-65.4"/>
+<polygon fill="black" stroke="black" points="159.02,-68.9 169.02,-65.4 159.02,-61.9 159.02,-68.9"/>
+</g>
+</g>
+</svg>
+
+</center>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill __.test
@@ -679,6 +853,79 @@ Test run bar.BarTests finished: 0 failed, 0 ignored, 1 total, ...</code></pre>
 </div>
 </div>
 <div class="paragraph">
+<p>As we only touched <code>bar</code>'s source files, we only need to run tests for</p>
+</div>
+<center>
+<svg width="235px" height="129px"
+ viewBox="0.00 0.00 234.54 128.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 124.8)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-124.8 230.54,-124.8 230.54,4 -4,4"/>
+<!-- qux -->
+<g id="node1" class="node">
+<title>qux</title>
+<polygon fill="white" stroke="black" points="37,-24.7 0,-24.7 0,-0.1 37,-0.1 37,-24.7"/>
+<text text-anchor="middle" x="18.5" y="-8.2" font-family="Times,serif" font-size="14.00">qux</text>
+</g>
+<!-- qux.test -->
+<g id="node2" class="node">
+<title>qux.test</title>
+<polygon fill="white" stroke="black" points="132.91,-24.7 73.03,-24.7 73.03,-0.1 132.91,-0.1 132.91,-24.7"/>
+<text text-anchor="middle" x="102.97" y="-8.2" font-family="Times,serif" font-size="14.00">qux.test</text>
+</g>
+<!-- qux&#45;&gt;qux.test -->
+<g id="edge1" class="edge">
+<title>qux&#45;&gt;qux.test</title>
+<path fill="none" stroke="black" d="M37.39,-12.4C44.82,-12.4 53.74,-12.4 62.56,-12.4"/>
+<polygon fill="black" stroke="black" points="62.76,-15.9 72.76,-12.4 62.76,-8.9 62.76,-15.9"/>
+</g>
+<!-- bar -->
+<g id="node3" class="node">
+<title>bar</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="35.38,-88.7 1.62,-88.7 1.62,-64.1 35.38,-64.1 35.38,-88.7"/>
+<text text-anchor="middle" x="18.5" y="-72.2" font-family="Times,serif" font-size="14.00">bar</text>
+</g>
+<!-- bar.test -->
+<g id="node4" class="node">
+<title>bar.test</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="131.29,-120.7 74.65,-120.7 74.65,-96.1 131.29,-96.1 131.29,-120.7"/>
+<text text-anchor="middle" x="102.97" y="-104.2" font-family="Times,serif" font-size="14.00">bar.test</text>
+</g>
+<!-- bar&#45;&gt;bar.test -->
+<g id="edge2" class="edge">
+<title>bar&#45;&gt;bar.test</title>
+<path fill="none" stroke="red" stroke-width="2" d="M35.4,-82.57C43.86,-85.85 54.64,-90.03 65.05,-94.07"/>
+<polygon fill="red" stroke="red" stroke-width="2" points="63.83,-97.36 74.42,-97.71 66.37,-90.83 63.83,-97.36"/>
+</g>
+<!-- foo -->
+<g id="node5" class="node">
+<title>foo</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="120.13,-77.7 85.81,-77.7 85.81,-53.1 120.13,-53.1 120.13,-77.7"/>
+<text text-anchor="middle" x="102.97" y="-61.2" font-family="Times,serif" font-size="14.00">foo</text>
+</g>
+<!-- bar&#45;&gt;foo -->
+<g id="edge3" class="edge">
+<title>bar&#45;&gt;foo</title>
+<path fill="none" stroke="red" stroke-width="2" d="M35.4,-74.28C46.78,-72.76 62.35,-70.68 75.58,-68.92"/>
+<polygon fill="red" stroke="red" stroke-width="2" points="76.1,-72.38 85.55,-67.59 75.18,-65.44 76.1,-72.38"/>
+</g>
+<!-- foo.test -->
+<g id="node6" class="node">
+<title>foo.test</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="226.34,-77.7 169.14,-77.7 169.14,-53.1 226.34,-53.1 226.34,-77.7"/>
+<text text-anchor="middle" x="197.74" y="-61.2" font-family="Times,serif" font-size="14.00">foo.test</text>
+</g>
+<!-- foo&#45;&gt;foo.test -->
+<g id="edge4" class="edge">
+<title>foo&#45;&gt;foo.test</title>
+<path fill="none" stroke="red" stroke-width="2" d="M120.56,-65.4C131.17,-65.4 145.38,-65.4 158.66,-65.4"/>
+<polygon fill="red" stroke="red" stroke-width="2" points="159.02,-68.9 169.02,-65.4 159.02,-61.9 159.02,-68.9"/>
+</g>
+</g>
+</svg>
+
+</center>
+<div class="paragraph">
 <p>Similarly, if we make a change <code>qux/</code>, using selective execution will only run tests
 in <code>qux.test</code>, and skip those in <code>foo.test</code> and <code>bar.test</code>.
 These examples all use <code>__.test</code> to selectively run tasks named <code>.test</code>, but you can
@@ -696,6 +943,10 @@ You can also zero out that file to explicitly tell <code>selective.run</code> to
 tasks non-selectively, which is convenient if you want to conditionally disable selective
 execution (e.g. perhaps you want to perform selective execution on pre-merge on pull
 requests but not post-merge on the main branch)</p>
+</div>
+<div class="paragraph">
+<p>Although selective execution is most commonly used for testing, it is a general-purpose
+tool that can be used to selectively run any Mill tasks based on the code that changed.</p>
 </div>
 </div>
 </div>
@@ -767,6 +1018,38 @@ and can give you a chance to eyeball if the list of targets to run makes sense o
 whether on disk locally or printing it out (e.g via <code>cat</code>) on your CI machines to diagnose issues
 there. This would give you a richer view of what source tasks or inputs are the ones actually
 triggered the invalidation, and what tasks were just invalidated due to being downstream of them.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_limitations"><a class="anchor" href="#_limitations"></a>Limitations</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Selective execution can only work at the Mill Task granularity</strong>. e.g. When working with
+Java/Scala/Kotlin modules and test modules, the granularity of selection is at entire modules.
+That means that if your modules are individually large, selective execution may not be able
+to significantly narrow down the set of tests that need to run</p>
+</li>
+<li>
+<p><strong>Selective execution usually cannot narrow down the set of integration tests to run</strong>. Integration
+tests by their nature depend on the entire application or system, and run test cases that
+exercise different parts of it. But selective execution works at the task level and can only
+see that every integration test depends on the entire codebase, and so any change in the
+entire codebase could potentially affect any integration test, so selective execution will
+select all of them.</p>
+</li>
+<li>
+<p><strong>Selective execution is coarser-grained than runtime task caching</strong>. e.g. If you add a newline
+to a <code>foo/src/Foo.java</code> file and run <code>foo.testCached</code>, selective testing only knows that
+<code>foo.sources</code> changed and <code>foo.testCached</code> is downstream of it, but it cannot know that
+when you run <code>foo.compile</code> on the changed sources, the compilation output is unchanged, and
+so <code>.testCached</code> can be skipped. This is inherent in the nature of selective execution, which
+does its analysis without evaluation-time information and thus will always be more conservative
+than the task skipping and cache-reuse that is done during evaluation.</p>
 </li>
 </ul>
 </div>

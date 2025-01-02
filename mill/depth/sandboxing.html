@@ -6,7 +6,7 @@
     <title>Mill Sandboxing :: The Mill JVM Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/depth/sandboxing.html" />
     <link rel="prev" href="../large/multi-file-builds.html" />
-    <link rel="next" href="evaluation-model.html" />
+    <link rel="next" href="execution-model.html" />
     <meta name="generator" content="Antora 3.1.9" />
     <link rel="stylesheet" href="../../_/css/site.css" />
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -200,11 +200,22 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../android/java.html">Android Java Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -222,6 +233,29 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/dependencies.html">Typescript Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/module-config.html">Typescript Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
   </li>
 </ul>
   </li>
@@ -247,10 +281,6 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../comparisons/unique.html">What Makes Mill Unique</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../comparisons/java-compile.html">How Fast Does Java Compile?</a>
   </li>
 </ul>
   </li>
@@ -440,7 +470,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../large/selective-execution.html">Selective Execution</a>
+    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -459,14 +489,18 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="evaluation-model.html">The Mill Evaluation Model</a>
+    <a class="nav-link" href="execution-model.html">The Mill Execution Model</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="process-architecture.html">The Mill Process Architecture</a>
   </li>
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="design-principles.html">Mill Design Principles</a>
   </li>
 
-  <li class="nav-item" data-depth="2">
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="why-scala.html">Why does Mill use Scala?</a>
   </li>
 </ul>
@@ -494,7 +528,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">latest-0.12.4</span>
+    <span class="version">latest-0.12.5</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -504,7 +538,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">latest-0.12.4</a>
+          <a href="../index.html">latest-0.12.5</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.x</a>
@@ -585,7 +619,7 @@ property. This is available within any task, and gives you access to the
 each task is lazily initialized when <code>Task.dest</code> is referenced and used:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-depth-sandbox-1-task.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/depth/sandbox/1-task">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-depth-sandbox-1-task.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/depth/sandbox/1-task">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -683,7 +717,7 @@ following build with two modules <code>foo</code> and <code>bar</code>, and thei
 <code>foo.test</code> and <code>bar.test</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-depth-sandbox-2-test.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/depth/sandbox/2-test">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-depth-sandbox-2-test.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/depth/sandbox/2-test">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -705,7 +739,7 @@ logic in their corresponding non-test module, but also do some basic filesystem
 operations at the same time, writing out a <code>generated.html</code> file and then reading it:</p>
 </div>
 <div class="listingblock">
-<div class="title">foo/src/foo/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/depth/sandbox/2-test/foo/src/foo/Foo.java">browse</a>)</div>
+<div class="title">foo/src/foo/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/depth/sandbox/2-test/foo/src/foo/Foo.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
@@ -717,7 +751,7 @@ public class Foo {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/foo/FooTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/depth/sandbox/2-test/foo/test/src/foo/FooTests.java">browse</a>)</div>
+<div class="title">foo/test/src/foo/FooTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/depth/sandbox/2-test/foo/test/src/foo/FooTests.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
@@ -738,7 +772,7 @@ public class FooTests {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">bar/src/bar/Bar.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/depth/sandbox/2-test/bar/src/bar/Bar.java">browse</a>)</div>
+<div class="title">bar/src/bar/Bar.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/depth/sandbox/2-test/bar/src/bar/Bar.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package bar;
 
@@ -750,7 +784,7 @@ public class Bar {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">bar/test/src/bar/BarTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/depth/sandbox/2-test/bar/test/src/bar/BarTests.java">browse</a>)</div>
+<div class="title">bar/test/src/bar/BarTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/depth/sandbox/2-test/bar/test/src/bar/BarTests.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package bar;
 
@@ -856,7 +890,7 @@ code auto-formatters, auto-fixers, auto-updaters. etc.</p>
 <p><code>Task.workspace</code> can be used in tasks:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.4/0.12.4-example-depth-sandbox-3-breaking.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/depth/sandbox/3-breaking">browse</a>)</div>
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-depth-sandbox-3-breaking.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/depth/sandbox/3-breaking">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -881,7 +915,7 @@ workspace root via the <code>MILL_WORKSPACE_ROOT</code> environment variable</p>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/src/foo/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/depth/sandbox/3-breaking/foo/src/foo/Foo.java">browse</a>)</div>
+<div class="title">foo/src/foo/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/depth/sandbox/3-breaking/foo/src/foo/Foo.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
@@ -893,7 +927,7 @@ public class Foo {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/foo/FooTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.4//example/depth/sandbox/3-breaking/foo/test/src/foo/FooTests.java">browse</a>)</div>
+<div class="title">foo/test/src/foo/FooTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/depth/sandbox/3-breaking/foo/test/src/foo/FooTests.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
@@ -953,7 +987,7 @@ someone accidentally causes issues with their build by doing the wrong thing.</p
 </div>
 <nav class="pagination">
   <span class="prev"><a href="../large/multi-file-builds.html">Multi-File Builds</a></span>
-  <span class="next"><a href="evaluation-model.html">The Mill Evaluation Model</a></span>
+  <span class="next"><a href="execution-model.html">The Mill Execution Model</a></span>
 </nav>
 </article>
   </div>
