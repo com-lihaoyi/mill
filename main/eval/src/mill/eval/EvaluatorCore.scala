@@ -124,7 +124,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
           )
         } else {
           futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
-            try{
+            try {
               val countMsg = mill.util.Util.leftPad(
                 count.getAndIncrement().toString,
                 terminals.length.toString.length,
@@ -192,8 +192,9 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
                 Some(res)
               }
-            } catch{case e: Throwable if !scala.util.control.NonFatal(e) =>
-              throw new Exception(e)
+            } catch {
+              case e: Throwable if !scala.util.control.NonFatal(e) =>
+                throw new Exception(e)
             }
           }
         }
