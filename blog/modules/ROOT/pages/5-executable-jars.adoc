@@ -1,6 +1,6 @@
 // tag::header[]
 
-# How Java's Executable Assembly Jars Work
+# How JVM Executable Assembly Jars Work
 
 
 :author: Li Haoyi
