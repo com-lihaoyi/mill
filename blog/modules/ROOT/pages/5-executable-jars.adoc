@@ -1,6 +1,6 @@
 // tag::header[]
 
-# Executable Assembly Jars in Mill
+# How Executable Assembly Jars Work
 
 
 :author: Li Haoyi
