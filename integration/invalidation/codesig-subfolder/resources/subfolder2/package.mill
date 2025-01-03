@@ -1,5 +1,4 @@
 package build.subfolder2
 import mill._
 
-
 def subFolder2Task = Task { println("running subFolder2Task") }

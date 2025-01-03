@@ -22,10 +22,22 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
     BuildInfo.Value("koverVersion", build.Deps.RuntimeDeps.koverVersion, "Version of Kover."),
     BuildInfo.Value("ktfmtVersion", build.Deps.RuntimeDeps.ktfmt.version, "Version of Ktfmt."),
     BuildInfo.Value("ktlintVersion", build.Deps.RuntimeDeps.ktlint.version, "Version of ktlint."),
-    BuildInfo.Value("detektVersion", build.Deps.RuntimeDeps.detektCli.version, "Version of Detekt."),
+    BuildInfo.Value(
+      "detektVersion",
+      build.Deps.RuntimeDeps.detektCli.version,
+      "Version of Detekt."
+    ),
     BuildInfo.Value("dokkaVersion", build.Deps.RuntimeDeps.dokkaVersion, "Version of Dokka."),
-    BuildInfo.Value("kotlinxHtmlJvmDep", Dep.unparse(build.Deps.RuntimeDeps.kotlinxHtmlJvm).get, "kotlinx-html-jvm dependency (used for Dokka)"),
-    BuildInfo.Value("freemarkerDep", Dep.unparse(build.Deps.RuntimeDeps.freemarker).get, "freemarker dependency (used for Dokka)")
+    BuildInfo.Value(
+      "kotlinxHtmlJvmDep",
+      Dep.unparse(build.Deps.RuntimeDeps.kotlinxHtmlJvm).get,
+      "kotlinx-html-jvm dependency (used for Dokka)"
+    ),
+    BuildInfo.Value(
+      "freemarkerDep",
+      Dep.unparse(build.Deps.RuntimeDeps.freemarker).get,
+      "freemarker dependency (used for Dokka)"
+    )
   )
 
   trait MillKotlinModule extends build.MillPublishScalaModule {

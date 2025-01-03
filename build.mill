@@ -34,7 +34,7 @@ object Settings {
   // the last point version in each minor release series
   val legacyDocTags: Seq[String] = Seq(
     "0.9.12",
-    "0.10.15",
+    "0.10.15"
   )
   val docTags: Seq[String] = Seq(
     "0.11.13",
@@ -42,7 +42,7 @@ object Settings {
   )
   val mimaBaseVersions: Seq[String] =
     0.to(13).map("0.11." + _) ++
-    Seq("0.12.0", "0.12.1", "0.12.2", "0.12.3", "0.12.4", "0.12.5")
+      Seq("0.12.0", "0.12.1", "0.12.2", "0.12.3", "0.12.4", "0.12.5")
 }
 
 object Deps {
@@ -166,7 +166,8 @@ object Deps {
   val scalacScoverage2Plugin = ivy"org.scoverage:::scalac-scoverage-plugin:${scoverage2Version}"
   val scalacScoverage2Reporter = ivy"org.scoverage::scalac-scoverage-reporter:${scoverage2Version}"
   val scalacScoverage2Domain = ivy"org.scoverage::scalac-scoverage-domain:${scoverage2Version}"
-  val scalacScoverage2Serializer = ivy"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
+  val scalacScoverage2Serializer =
+    ivy"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
   val scalaparse = ivy"com.lihaoyi::scalaparse:${fastparse.version}"
   val scalatags = ivy"com.lihaoyi::scalatags:0.12.0"
   def scalaXml = ivy"org.scala-lang.modules::scala-xml:2.3.0"
@@ -189,11 +190,16 @@ object Deps {
   val mavenVersion = "3.9.9"
   val mavenEmbedder = ivy"org.apache.maven:maven-embedder:$mavenVersion"
   val mavenResolverVersion = "1.9.22"
-  val mavenResolverConnectorBasic = ivy"org.apache.maven.resolver:maven-resolver-connector-basic:$mavenResolverVersion"
-  val mavenResolverSupplier = ivy"org.apache.maven.resolver:maven-resolver-supplier:$mavenResolverVersion"
-  val mavenResolverTransportFile = ivy"org.apache.maven.resolver:maven-resolver-transport-file:$mavenResolverVersion"
-  val mavenResolverTransportHttp = ivy"org.apache.maven.resolver:maven-resolver-transport-http:$mavenResolverVersion"
-  val mavenResolverTransportWagon = ivy"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
+  val mavenResolverConnectorBasic =
+    ivy"org.apache.maven.resolver:maven-resolver-connector-basic:$mavenResolverVersion"
+  val mavenResolverSupplier =
+    ivy"org.apache.maven.resolver:maven-resolver-supplier:$mavenResolverVersion"
+  val mavenResolverTransportFile =
+    ivy"org.apache.maven.resolver:maven-resolver-transport-file:$mavenResolverVersion"
+  val mavenResolverTransportHttp =
+    ivy"org.apache.maven.resolver:maven-resolver-transport-http:$mavenResolverVersion"
+  val mavenResolverTransportWagon =
+    ivy"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
   val coursierJvmIndexVersion = "0.0.4-70-51469f"
 
   object RuntimeDeps {
@@ -201,7 +207,8 @@ object Deps {
     val koverVersion = "0.8.3"
 
     val detektCli = ivy"io.gitlab.arturbosch.detekt:detekt-cli:1.23.7"
-    val dokkaAnalysisDescriptors = ivy"org.jetbrains.dokka:analysis-kotlin-descriptors:$dokkaVersion"
+    val dokkaAnalysisDescriptors =
+      ivy"org.jetbrains.dokka:analysis-kotlin-descriptors:$dokkaVersion"
     val dokkaBase = ivy"org.jetbrains.dokka:dokka-base:$dokkaVersion"
     val dokkaCli = ivy"org.jetbrains.dokka:dokka-cli:$dokkaVersion"
     val errorProneCore = ivy"com.google.errorprone:error_prone_core:2.31.0"
@@ -227,7 +234,7 @@ object Deps {
       koverJvmAgent,
       ktfmt,
       ktlint,
-      sbtTestInterface,
+      sbtTestInterface
     )
   }
 
@@ -651,13 +658,11 @@ def formatDep(dep: Dep) = {
   s"${d.module.organization.value}:${d.module.name.value}:${d.version}"
 }
 
-
 def listIn(path: os.Path) = interp.watchValue(os.list(path).map(_.last))
 
 object idea extends MillPublishScalaModule {
   def moduleDeps = Seq(build.scalalib, build.runner)
 }
-
 
 private def resolveTasks[T](taskNames: String*): Seq[NamedTask[T]] = {
   mill.resolve.Resolve.Tasks.resolve(
