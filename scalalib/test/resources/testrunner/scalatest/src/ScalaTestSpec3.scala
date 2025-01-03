@@ -17,7 +17,7 @@ class ScalaTestSpec3 extends AnyFreeSpec {
         }
       }
 
-      "should be tagged" taggedAs(TaggedTest) in {
+      "should be tagged" taggedAs (TaggedTest) in {
         assert(true)
       }
     }

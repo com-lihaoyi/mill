@@ -4,4 +4,3 @@ import mill._, scalalib._
 object `package` extends RootModule {
   def task = Task { true }
 }
-

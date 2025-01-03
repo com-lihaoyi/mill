@@ -4,19 +4,19 @@ import mill._
 def testSource = Task.Source(millSourcePath / "source-file.txt")
 def testTask = Task { os.read(testSource().path).toUpperCase() }
 
-/** Usage
-
-> ./mill testTask
-...compiling 1 Scala source...
-
-> cat out/testTask.json
-..."HELLO WORLD SOURCE FILE"...
-
-> sed -i.bak 's/file/file!!!/g' source-file.txt
-
-> ./mill testTask
-
-> cat out/testTask.json
-..."HELLO WORLD SOURCE FILE!!!"...
-
-*/
+/**
+ * Usage
+ *
+ * > ./mill testTask
+ * ...compiling 1 Scala source...
+ *
+ * > cat out/testTask.json
+ * ..."HELLO WORLD SOURCE FILE"...
+ *
+ * > sed -i.bak 's/file/file!!!/g' source-file.txt
+ *
+ * > ./mill testTask
+ *
+ * > cat out/testTask.json
+ * ..."HELLO WORLD SOURCE FILE!!!"...
+ */
