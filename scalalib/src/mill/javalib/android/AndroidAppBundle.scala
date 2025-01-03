@@ -3,7 +3,6 @@ package mill.javalib.android
 import mill._
 import mill.scalalib._
 import mill.api.PathRef
-import mill.javalib.android.AndroidAppModule
 
 /**
  * A Trait for Android App Bundle Creation
@@ -44,7 +43,7 @@ trait AndroidAppBundle extends AndroidAppModule with JavaModule {
       os.copy(file, baseDir / file.last)
     }
 
-    for ((file, idx) <- os.walk(Task.dest).filter(_.ext == "dex").zipWithIndex) {
+    for ((file, _) <- os.walk(Task.dest).filter(_.ext == "dex").zipWithIndex) {
       os.copy(file, baseDir / "dex" / file.last, createFolders = true)
     }
 
@@ -77,8 +76,8 @@ trait AndroidAppBundle extends AndroidAppModule with JavaModule {
       "-jar",
       androidSdkModule().bundleToolPath().path,
       "build-bundle",
-      s"--modules=${zipPath}",
-      s"--output=${bundleFile}"
+      s"--modules=$zipPath",
+      s"--output=$bundleFile"
     ))
 
     PathRef(bundleFile)
@@ -94,10 +93,20 @@ trait AndroidAppBundle extends AndroidAppModule with JavaModule {
    */
   def androidBundle: T[PathRef] = Task {
     val signedBundle = Task.dest / "signedBundle.aab"
-    val keyPath = {
-      if (!os.exists(androidReleaseKeyPath().path)) { androidKeystore().path }
-      else { androidReleaseKeyPath().path }
+    val keyPath = androidKeystore()
+
+    // TODO this is duplicated with the parent module. Can we do it better without leaking sensitive credentials
+    //  in plain to disk/console? put behind Task.Anon?
+    val keystorePass = {
+      if (androidIsDebug()) debugKeyStorePass else androidReleaseKeyStorePass().get
     }
+    val keyAlias = {
+      if (androidIsDebug()) debugKeyAlias else androidReleaseKeyAlias().get
+    }
+    val keyPass = {
+      if (androidIsDebug()) debugKeyPass else androidReleaseKeyPass().get
+    }
+
     os.call((
       "jarsigner",
       "-sigalg",
@@ -105,15 +114,15 @@ trait AndroidAppBundle extends AndroidAppModule with JavaModule {
       "-digestalg",
       "SHA-256",
       "-keypass",
-      androidReleaseKeyPass(),
+      keyPass,
       "-storepass",
-      androidReleaseKeyStorePass(),
+      keystorePass,
       "-keystore",
       keyPath,
       "-signedjar",
       signedBundle,
       androidUnsignedBundle().path,
-      androidReleaseKeyAlias()
+      keyAlias
     ))
 
     PathRef(signedBundle)
