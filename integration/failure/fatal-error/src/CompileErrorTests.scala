@@ -12,12 +12,16 @@ object CompileErrorTests extends UtestIntegrationTestSuite {
       assert(res.isSuccess == false)
       assert(res.err.contains("""java.lang.LinkageError: CUSTOM FATAL ERROR IN TASK"""))
 
-      // This worker invalidates re-evaluates every time due to being dependent on
-      // an upstream `Task.Input`. Make sure that a fatal error in the `close()`
-      // call does not hang the Mill process
-      tester.eval("fatalCloseWorker")
-      val res3 = tester.eval("fatalCloseWorker")
-      assert(res3.err.contains("""java.lang.LinkageError: CUSTOM FATAL ERROR"""))
+      // Only run this test in client-server mode, since workers are not shutdown
+      // with `close()` in no-server mode so the error does not trigger
+      if (clientServerMode) {
+        // This worker invalidates re-evaluates every time due to being dependent on
+        // an upstream `Task.Input`. Make sure that a fatal error in the `close()`
+        // call does not hang the Mill process
+        tester.eval("fatalCloseWorker")
+        val res3 = tester.eval("fatalCloseWorker")
+        assert(res3.err.contains("""java.lang.LinkageError: CUSTOM FATAL ERROR"""))
+      }
     }
   }
 }
