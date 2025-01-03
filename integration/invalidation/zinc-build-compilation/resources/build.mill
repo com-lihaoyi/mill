@@ -2,7 +2,6 @@ package build
 import $packages._
 import mill._
 
-
 def foo = { println("running foo"); build_.subfolder.package_.helperFoo }
 
-def dummy = Task{ 1 }
+def dummy = Task { 1 }

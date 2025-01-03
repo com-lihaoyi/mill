@@ -21,7 +21,8 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
   )
 
   def compileIvyDeps = T {
-    if (ZincWorkerUtil.isScala3(scalaVersion())) Agg.empty else Agg(build.Deps.scalaReflect(scalaVersion()))
+    if (ZincWorkerUtil.isScala3(scalaVersion())) Agg.empty
+    else Agg(build.Deps.scalaReflect(scalaVersion()))
   }
 
   def buildInfoPackageName = "mill.main"
@@ -59,8 +60,8 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
             Some(T.ctx()),
             build.dist.coursierCacheCustomizer()
           )._2.minDependencies.toSeq
-          // change to this when bumping Mill
-          //   ).getOrThrow.minDependencies.toSeq
+            // change to this when bumping Mill
+            //   ).getOrThrow.minDependencies.toSeq
             .map(d => s"${d.module.organization.value}:${d.module.name.value}:${d.version}")
       )
         //      T.traverse(dev.moduleDeps)(_.publishSelfDependency)()

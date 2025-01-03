@@ -41,7 +41,7 @@ object `package` extends RootModule {
         "@antora/cli@3.1.9",
         "@antora/site-generator-default@3.1.9",
         "gitlab:antora/xref-validator",
-        "@antora/lunr-extension@v1.0.0-alpha.6",
+        "@antora/lunr-extension@v1.0.0-alpha.6"
       ),
       envArgs = Map(),
       workingDir = npmDir
@@ -104,22 +104,22 @@ object `package` extends RootModule {
     PathRef(T.dest)
   }
 
-  def expandDiagramsInDirectoryAdocFile(dest: os.Path,
-                                        visualizeClassPath: Agg[os.Path])
-                                       (implicit ctx: mill.api.Ctx) = {
+  def expandDiagramsInDirectoryAdocFile(dest: os.Path, visualizeClassPath: Agg[os.Path])(implicit
+      ctx: mill.api.Ctx
+  ) = {
 
     // Walk all files to render graphviz templates ourselves because the only Antora graphviz
     // plugin (Kroki) relies on an online web service that is super slow and flaky
     def walkAllFiles(inputs: Map[(os.Path, Int), String]): Map[(os.Path, Int), String] = {
       val output = collection.mutable.Map.empty[(os.Path, Int), String]
-      for (p <- os.walk(dest) if p.ext == "adoc"){
+      for (p <- os.walk(dest) if p.ext == "adoc") {
         val outputLines = collection.mutable.ArrayDeque.empty[String]
         val graphvizLines = collection.mutable.ArrayDeque.empty[String]
         var isGraphViz = false
         var isGraphViz0 = false
 
-        for((line, i) <- os.read.lines(p).zipWithIndex){
-          line match{
+        for ((line, i) <- os.read.lines(p).zipWithIndex) {
+          line match {
             case "[graphviz]" => isGraphViz0 = true
             case "...." if isGraphViz0 => isGraphViz0 = false; isGraphViz = true
             case "```graphviz" => isGraphViz = true
@@ -148,15 +148,19 @@ object `package` extends RootModule {
     val diagrams = walkAllFiles(Map())
     // Batch the rendering so later it can be done in one call to a single subprocess,
     // minimizing per-subprocess overhead needed to spawn them over and over
-    val orderedDiagrams = diagrams.toSeq.map{case ((p, i), s) => (p, i, os.temp(s), os.temp.dir())}
+    val orderedDiagrams = diagrams.toSeq.map { case ((p, i), s) =>
+      (p, i, os.temp(s), os.temp.dir())
+    }
 
     mill.util.Jvm.runSubprocess(
       "mill.main.graphviz.GraphvizTools",
       visualizeClassPath,
-      mainArgs = orderedDiagrams.map{case (p, i, src, dest) => s"$src;$dest;svg"}
+      mainArgs = orderedDiagrams.map { case (p, i, src, dest) => s"$src;$dest;svg" }
     )
 
-    walkAllFiles(orderedDiagrams.map{case (p, i, src, dest) => ((p, i), os.read(dest / "out.svg"))}.toMap)
+    walkAllFiles(orderedDiagrams.map { case (p, i, src, dest) =>
+      ((p, i), os.read(dest / "out.svg"))
+    }.toMap)
 
   }
 
@@ -201,7 +205,7 @@ object `package` extends RootModule {
   }
 
   def blogFolder0 = Task.Source(build.millSourcePath / "blog")
-  def blogFolder = Task{
+  def blogFolder = Task {
     os.copy(blogFolder0().path, Task.dest, mergeFolders = true)
     expandDiagramsInDirectoryAdocFile(Task.dest, mill.main.VisualizeModule.classpath().map(_.path))
     PathRef(Task.dest)
@@ -224,7 +228,9 @@ object `package` extends RootModule {
        |  sources:
        |    - url: ${if (authorMode) build.baseDir else build.Settings.projectUrl}
        |      branches: []
-       |      tags: ${build.Settings.legacyDocTags.filter(_ => !authorMode).map("'" + _ + "'").mkString("[", ",", "]")}
+       |      tags: ${build.Settings.legacyDocTags.filter(_ => !authorMode).map(
+        "'" + _ + "'"
+      ).mkString("[", ",", "]")}
        |      edit_url: false
        |      start_path: docs/antora
        |
@@ -262,12 +268,12 @@ object `package` extends RootModule {
 
   def oldDocSources: T[Seq[PathRef]] = Task {
     val versionLabels =
-      build.Settings.docTags.map{v =>
+      build.Settings.docTags.map { v =>
         val xVersion = v.split('.').dropRight(1).mkString(".") + ".x"
         (v, xVersion, xVersion)
       } ++
-      // Set the latest stable branch as the "master" docs that people default to
-      Seq((build.Settings.docTags.last, "master", s"latest-${build.Settings.docTags.last}"))
+        // Set the latest stable branch as the "master" docs that people default to
+        Seq((build.Settings.docTags.last, "master", s"latest-${build.Settings.docTags.last}"))
 
     for ((millLastTag, version, displayVersion) <- versionLabels) yield {
       val checkout = T.dest / displayVersion
@@ -275,7 +281,10 @@ object `package` extends RootModule {
       os.proc("git", "checkout", millLastTag).call(cwd = checkout, stdout = os.Inherit)
       val outputFolder = checkout / "out" / "docs" / "source.dest"
       os.proc("./mill", "-i", "docs.source").call(cwd = checkout, stdout = os.Inherit)
-      expandDiagramsInDirectoryAdocFile(outputFolder, mill.main.VisualizeModule.classpath().map(_.path))
+      expandDiagramsInDirectoryAdocFile(
+        outputFolder,
+        mill.main.VisualizeModule.classpath().map(_.path)
+      )
 
       sanitizeAntoraYml(outputFolder, version, displayVersion, millLastTag)
       PathRef(outputFolder)
@@ -381,53 +390,54 @@ object `package` extends RootModule {
     }
   }
 
-  def allLinksAndAnchors: T[IndexedSeq[(os.Path, Seq[(String, String)], Seq[(String, String)], Set[String])]] = Task {
+  def allLinksAndAnchors
+      : T[IndexedSeq[(os.Path, Seq[(String, String)], Seq[(String, String)], Set[String])]] = Task {
     val base = fastPages().path
     val validExtensions = Set("html", "scala")
     for (path <- os.walk(base) if validExtensions(path.ext))
-    yield {
-      val parsed = Jsoup.parse(os.read(path))
-      val (remoteLinks, localLinks) = parsed
-        .select("a")
-        .asScala
-        .map(e => (e.toString, e.attr("href")))
-        .toSeq
-        .filter(!_._2.startsWith("mailto:"))
-        .partition{case (e, l) => l.startsWith("http://") || l.startsWith("https://")}
-      (
-        path,
-        remoteLinks,
-        localLinks.map{case (e, l) => (e, l.stripPrefix("file:"))},
-        parsed.select("*").asScala.map(_.attr("id")).filter(_.nonEmpty).toSet,
-      )
-    }
+      yield {
+        val parsed = Jsoup.parse(os.read(path))
+        val (remoteLinks, localLinks) = parsed
+          .select("a")
+          .asScala
+          .map(e => (e.toString, e.attr("href")))
+          .toSeq
+          .filter(!_._2.startsWith("mailto:"))
+          .partition { case (e, l) => l.startsWith("http://") || l.startsWith("https://") }
+        (
+          path,
+          remoteLinks,
+          localLinks.map { case (e, l) => (e, l.stripPrefix("file:")) },
+          parsed.select("*").asScala.map(_.attr("id")).filter(_.nonEmpty).toSet
+        )
+      }
   }
 
-  def brokenRemoteLinks: T[Map[os.Path, Seq[(String, String, Int)]]] = Task{
+  def brokenRemoteLinks: T[Map[os.Path, Seq[(String, String, Int)]]] = Task {
     val allLinks = allLinksAndAnchors()
       .flatMap { case (path, remoteLinks, localLinks, ids) => remoteLinks }
       .map(_._2)
-      .filter{l =>
+      .filter { l =>
         // ignore example links since those are expected to be unresolved until
         // a stable version is published and artifacts are uploaded to github
         !l.contains("/example/") &&
-          !l.contains("/releases/download/") &&
-          // Ignore internal repo links in the changelog because there are a lot
-          // of them, and they're not very interesting to check and verify.
-          !l.contains("https://github.com/com-lihaoyi/mill/pull/") &&
-          !l.contains("https://github.com/com-lihaoyi/mill/milestone/") &&
-          !l.contains("https://github.com/com-lihaoyi/mill/compare/") &&
-          // Link meant for API configuration, not for clicking
-          !l.contains("https://s01.oss.sonatype.org/service/local") &&
-          // Somehow this server doesn't respond properly to HEAD requests even though GET works
-          !l.contains("https://marketplace.visualstudio.com/items")
+        !l.contains("/releases/download/") &&
+        // Ignore internal repo links in the changelog because there are a lot
+        // of them, and they're not very interesting to check and verify.
+        !l.contains("https://github.com/com-lihaoyi/mill/pull/") &&
+        !l.contains("https://github.com/com-lihaoyi/mill/milestone/") &&
+        !l.contains("https://github.com/com-lihaoyi/mill/compare/") &&
+        // Link meant for API configuration, not for clicking
+        !l.contains("https://s01.oss.sonatype.org/service/local") &&
+        // Somehow this server doesn't respond properly to HEAD requests even though GET works
+        !l.contains("https://marketplace.visualstudio.com/items")
       }
       .toSet
 
     // Try to fetch all the links serially. It isn't worth trying to parallelize it
     // because if we go too fast the remote websites tend to rate limit us anyway
     val linksToStatusCodes = allLinks.toSeq.zipWithIndex
-      .map{ case (link, i) =>
+      .map { case (link, i) =>
         val key = s"$i/${allLinks.size}"
         println(s"Checking link $link $key")
         val start = System.currentTimeMillis()
@@ -440,14 +450,14 @@ object `package` extends RootModule {
       .toMap
 
     allLinksAndAnchors()
-      .map{case (path, remoteLinks, localLinks, ids) =>
+      .map { case (path, remoteLinks, localLinks, ids) =>
         (
           path,
-          remoteLinks.collect{
+          remoteLinks.collect {
             case (e, l)
-              if allLinks.contains(l)
-              && !linksToStatusCodes(l).toString.startsWith("2")  =>
-                (e, l, linksToStatusCodes(l))
+                if allLinks.contains(l)
+                  && !linksToStatusCodes(l).toString.startsWith("2") =>
+              (e, l, linksToStatusCodes(l))
           }
         )
       }
@@ -455,10 +465,12 @@ object `package` extends RootModule {
       .toMap
   }
 
-
-  def checkBrokenLinks() = Task.Command{
-    if (brokenLocalLinks().nonEmpty){
-      throw new Exception("Broken Local Links: " + upickle.default.write(brokenLocalLinks(), indent = 2))
+  def checkBrokenLinks() = Task.Command {
+    if (brokenLocalLinks().nonEmpty) {
+      throw new Exception("Broken Local Links: " + upickle.default.write(
+        brokenLocalLinks(),
+        indent = 2
+      ))
     }
     // This is flaky due to rate limits so ignore it for now
 
@@ -467,10 +479,10 @@ object `package` extends RootModule {
     // }
   }
 
-  def brokenLocalLinks: T[Map[os.Path, Seq[(String, String)]]] = Task{
+  def brokenLocalLinks: T[Map[os.Path, Seq[(String, String)]]] = Task {
     val allLinksAndAnchors0 = allLinksAndAnchors()
     val pathsToIds = allLinksAndAnchors0
-      .map{case (path, remoteLinks, localLinks, ids) => (path, ids)}
+      .map { case (path, remoteLinks, localLinks, ids) => (path, ids) }
       .toMap
 
     val brokenLinksPerPath: Seq[(os.Path, Seq[(String, String)])] =
@@ -479,10 +491,10 @@ object `package` extends RootModule {
         // Skip scaladoc files when scanning for broken links because some
         // of those are scaladoc bugs outside of our control.
         if !path.segments.contains("api")
-      } yield{
+      } yield {
         (
           path,
-          localLinks.flatMap{case (elementString, url) =>
+          localLinks.flatMap { case (elementString, url) =>
             val (baseUrl, anchorOpt) = url match {
               case s"#$anchor" => (path.toString, Some(anchor))
               case s"$prefix#$anchor" => (prefix, Some(anchor))
@@ -492,17 +504,19 @@ object `package` extends RootModule {
 
             val dest0 = os.Path(baseUrl, path / "..")
             val possibleDests = Seq(dest0, dest0 / "index.html")
-            possibleDests.find(os.exists(_)) match{
+            possibleDests.find(os.exists(_)) match {
               case None => Some((elementString, url))
               case Some(dest) =>
-                anchorOpt.collect{case a if !pathsToIds.getOrElse(dest, Set()).contains(a) => (elementString, url)}
+                anchorOpt.collect {
+                  case a if !pathsToIds.getOrElse(dest, Set()).contains(a) => (elementString, url)
+                }
             }
           }
         )
       }
 
     val nonEmptyBrokenLinksPerPath = brokenLinksPerPath
-      .filter{ case (path, items) => path.last != "404.html" && items.nonEmpty }
+      .filter { case (path, items) => path.last != "404.html" && items.nonEmpty }
 
     nonEmptyBrokenLinksPerPath.toMap
   }

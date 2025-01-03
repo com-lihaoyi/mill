@@ -40,4 +40,3 @@ object crossOuter extends Cross[CrossOuter](1337, 31337, 31415926)
 trait CrossOuter extends TraitOuter with Cross.Module[Int] {
   override val valueTraitOuter = crossValue
 }
-
