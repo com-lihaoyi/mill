@@ -1,13 +1,5 @@
-// [IMPORTANT]
-// --
-// _Mill has no `test`-scoped dependencies!_
-// --
-//
-// You might be used to test-scoped dependencies from other build tools like
-// Maven, Gradle or sbt. As test modules in Mill are just regular modules,
-// there is no special need for a dedicated test-scope. You can use `pythonDeps`
-// to declare dependencies in test modules, and test modules
-// can use their `moduleDeps` to also depend on each other
+// You can use `pythonDeps` to declare dependencies in test modules,
+// and test modules can use their `moduleDeps` to also depend on each other
 
 package build
 import mill._, pythonlib._
@@ -17,6 +9,8 @@ object foo extends PythonModule {
   def mainScript = Task.Source { millSourcePath / "src/foo.py" }
 
   def moduleDeps = Seq(bar)
+
+  def pythonDeps = Seq("mypy==1.13.0")
 
   object test extends PythonTests with TestModule.Unittest {
     def moduleDeps = super.moduleDeps ++ Seq(bar.test)
@@ -40,8 +34,8 @@ object bar extends PythonModule {
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0]
-//   "bar.typeCheck" -> "bar.test.typeCheck" -> "foo.test.typeCheck"
-//   "bar.typeCheck" -> "foo.typeCheck" -> "foo.test.typeCheck"
+//   "bar" -> "bar.test" -> "foo.test"
+//   "bar" -> "foo" -> "foo.test"
 // }
 // ```
 //

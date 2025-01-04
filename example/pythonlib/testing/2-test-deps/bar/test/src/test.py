@@ -1,7 +1,7 @@
 import unittest
 import statistics
 from bar import get_value  # type: ignore
-from testUtils import BarTestUtils  # type: ignore
+from test_utils import BarTestUtils  # type: ignore
 
 
 class TestScript(unittest.TestCase):

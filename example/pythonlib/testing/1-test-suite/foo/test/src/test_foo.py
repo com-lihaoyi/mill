@@ -22,7 +22,3 @@ class TestScript(unittest.TestCase):
             "Mocked hello() did not return expected value",
         )
         mock_foo.main.assert_called_once()
-
-
-if __name__ == "__main__":
-    unittest.main()

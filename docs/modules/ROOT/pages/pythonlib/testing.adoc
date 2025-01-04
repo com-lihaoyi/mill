@@ -3,7 +3,7 @@
 
 include::partial$gtag-config.adoc[]
 
-This page will discuss common topics around working with test suites using the Mill build tool
+This page will discuss topics around defining and running Python tests using the Mill build tool
 
 == Defining Unit Test Suites
 
