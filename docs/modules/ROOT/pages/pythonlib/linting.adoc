@@ -1,0 +1,26 @@
+= Linting Python Projects
+
+include::partial$gtag-config.adoc[]
+
+This page will discuss common topics around maintaining the code quality of Python
+codebases using the Mill build tool
+
+
+== Linting and Formatting with Ruff
+
+Scalafix is a tool that analyzes your Scala source code, performing intelligent analyses and
+code quality checks, and is often able to automatically fix the issues that it discovers.
+It can also perform automated refactoring.
+
+Mill supports Scalafix through the Mill-Scalafix third party module. See the module documentation
+for more details:
+
+* https://github.com/joan38/mill-scalafix
+
+=== Linting
+
+=== Formatting
+
+include::partial$example/pythonlin/linting/1-ruff-format.adoc[]
+
+== Code coverage

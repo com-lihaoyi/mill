@@ -124,7 +124,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
       command0 = pythonExe().path.toString,
       options = pythonOptions(),
       env0 = runnerEnvTask() ++ forkEnv(),
-      workingDir0 = Task.workspace
+      workingDir0 = Task.dest
     )
   }
 

@@ -1,0 +1,69 @@
+package build
+import mill._, pythonlib._
+
+object `package` extends RootModule with PythonModule with RuffModule {
+
+  def ruffConfig = Task.Source(millSourcePath / "ruff.toml")
+
+  def ruffOptions = Seq("--config", ruffConfig().path.toString)
+
+}
+
+/** See Also: .scalafmt.conf */
+
+// Mill supports code formatting via https://scalameta.org/scalafmt/[scalafmt] out of the box.
+// You can reformat your project's code globally with `mill mill.scalalib.scalafmt.ScalafmtModule/` command,
+// specific modules via `mill mill.scalalib.scalafmt.ScalafmtModule/ '{foo,bar}.sources`
+// or only check the code's format with `+mill mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll`.
+// By default, ScalaFmt checks for a `.scalafmt.conf` file at the root of repository.
+
+/** Usage
+
+> cat src/Foo.scala # initial poorly formatted source code
+package foo
+object Foo{
+def main(args:
+Array[String
+]
+):Unit=
+{println("hello world")
+}
+}
+
+
+> mill mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll
+error: ...Found 1 misformatted files
+
+> mill mill.scalalib.scalafmt.ScalafmtModule/
+
+> cat src/Foo.scala
+package foo
+object Foo {
+  def main(args: Array[String]): Unit = { println("hello world") }
+}
+
+> mill mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll
+Everything is formatted already
+
+*/
+
+// You can modify `.scalafmt.conf` to adjust the formatting as desired:
+
+/** Usage
+> echo "maxColumn: 50" >> .scalafmt.conf
+
+> mill mill.scalalib.scalafmt.ScalafmtModule/
+
+> cat src/Foo.scala
+package foo
+object Foo {
+  def main(args: Array[String]): Unit = {
+    println("hello world")
+  }
+}
+*/
+
+// If entering the long fully-qualified module name `mill.scalalib.scalafmt.ScalafmtModule/`
+// is tedious, you can add
+// an xref:fundamentals/modules.adoc#_aliasing_external_modules[External Module Alias]
+// to give it a shorter name that's easier to type
