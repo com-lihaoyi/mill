@@ -1,0 +1,22 @@
+// This is a `Fastify`-based application managed and built using `Mill`.
+// It demonstrates the execution of end-to-end integration tests using browser automation tools
+// The demo uses Cypress and Playwright.
+
+package build
+import mill._, javascriptlib._
+
+object web extends TypeScriptModule {
+
+  def npmDeps =
+    Seq("fastify@^4.26.0")
+
+  def npmDevDeps =
+    super.npmDevDeps() ++ Seq("@playwright/test@^1.49.1", "cypress@^13.17.0")
+
+  def forkEnv = super.forkEnv() + ("PORT" -> "3000")
+//  def mainFileName: T[String] = Task { "index.ts" }
+
+//  object playwright extends TypeScriptTests with TestModule.Jest
+//  object cypress extends TypeScriptTests with TestModule.Vitest
+
+}

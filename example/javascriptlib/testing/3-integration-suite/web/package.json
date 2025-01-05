@@ -1,0 +1,21 @@
+{
+  "name": "web",
+  "version": "1.0.0",
+  "description": "TypeScript project with Browser Integration Tests",
+  "scripts": {
+    "test:pw": "playwright test",
+    "test:pw:headed": "playwright test --headed",
+    "test:cy": "cypress run",
+    "test:cy:open": "cypress open",
+    "test": "npm run test:pw && npm run test:cy"
+  },
+  "dependencies": {
+    "fastify": "^4.26.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.1",
+    "cypress": "^13.17.0",
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  }
+}
