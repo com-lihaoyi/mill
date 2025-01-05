@@ -107,7 +107,7 @@ case class MillCliConfig(
     )
     leftoverArgs: Leftover[String] = Leftover(),
     @arg(doc =
-      """Toggle colored output; by default enabled only if the console is interactive and NO_COLOR environment variable is not set (following https://no-color.org spec)"""
+      """Toggle colored output; by default enabled only if the console is interactive and NO_COLOR environment variable is not set"""
     )
     color: Option[Boolean] = None,
     @arg(
