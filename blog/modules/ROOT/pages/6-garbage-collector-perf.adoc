@@ -93,7 +93,7 @@ or if it's a variable-length array.
 
 ### A Simple Garbage Collector
 
-The simplest kind of garbage collector splits the 16-slot heap we saw earlier is split into
+The simplest kind of garbage collector splits the 16-slot heap we saw earlier into
 two 8-slot halves. If
 we want to allocate 4 more objects (`new2`, to `new5`), but there are only 3 slots left on the
 heap, we will need to do a garbage collection:
@@ -285,7 +285,7 @@ These two metrics are separate:
   pause for noticeable amounts of time when it needs to run a GC cycle
 
 Even from the limited description above, we can already make some interesting inferences
-about how the performance of a simply garbage collector will be like.
+about how the performance of a simple garbage collector will be like.
 
 1. *Allocations in garbage collectors are _cheap_*: when the heap is not yet full, we can
    just allocate things on the first empty slots on the right side of the heap and bump `free-pointer`,
@@ -617,7 +617,7 @@ Now that we've studied garbage collections in theory, and looked at some concret
 numbers, there are some interesting conclusions that can be drawn:
 
 1. *Caching data _in-process_ makes garbage collection pause times _worse_!* If your
-   program in CPU-bottlenecked then caching to save computation can be worthwhile,
+   program is CPU-bottlenecked then caching to save computation can be worthwhile,
    but if you have problems with GC pause times then caching things in-memory will
    increase the size of your _live-set_ and therefore make your pause times even worse!
    "LRU" caches in particular are the worst case for garbage collectors, which are typically
