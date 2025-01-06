@@ -87,7 +87,7 @@ object KtlintModule extends ExternalModule with KtlintModule with TaskModule {
         Tasks.resolveMainDefault("__.sources")
   ): Command[Unit] = Task.Command {
     ktlintAction(
-      KtlintArgs(format = false, check = false),
+      KtlintArgs(format = false, check = true),
       T.sequence(sources.value)().flatten,
       ktlintConfig(),
       ktlintOptions(),
