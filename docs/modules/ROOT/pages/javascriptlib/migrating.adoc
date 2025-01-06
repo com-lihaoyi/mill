@@ -2,7 +2,35 @@
 
 include::partial$gtag-config.adoc[]
 
-This page will look at some of the changes that need to be made to an existing Typescript project so it can gradually be built and run using Mill.
+This page will look at some of the changes that must be made to an existing Typescript project so it can gradually be built and run using Mill.
+
+
+== Adjusting your Source Folder Layout
+`TypescriptModule` and it subclasses assume the following folder layout for source and test files:
+
+[source,sh]
+----
+   packageA/src/
+   packageB/test/src
+   ...
+   packageB/src/
+   packageB/test/src
+----
+
+Many Typescript projects tend to use the following folder layout:
+
+[source,sh]
+----
+   packageA/src/
+   packageB/tests
+   ...
+   packageB/src/
+   packageB/test
+----
+
+So you might need to adjust your source and test folder names, as well as how they are nested, to conform to Mill's
+expectations, as part of your adoption of Mill for building Typescript projects.
+
 
 == Partial Support for the `package.json` Format
 Mill is not intended to 100% replace builds managed by tools like `npm`, `pnpm`, `yarn` or `bun` since it doesn't yet
@@ -20,7 +48,33 @@ how to adopt Mill in your Typescript project. Although the build examples are ba
 the ideas should carry over to any of the build tools used in the Node.js ecosystem.
 
 
-== Typescript Compilation
+== Typescript Compilation and Execution
+Mill uses the following strategy to execute server-side `.ts` code directly:
+[source,sh]
+----
+node path/to/ts-node -r path/to/tsconfig-paths/register path/to/<app>.ts
+----
+Where `<app>.ts` is the entrypoint to the application.
+
+
+Mill handles the installation and caching of dependencies needed to compile Typescript projects.
+It also uses the entries in the `npmDeps` & `npmDevDeps` declarations in your `build.mill` to a create a specially
+crafted `tsconfig.json` file that contains all the information needed by `tsc`—the Typescript compiler—to locate imports
+for first-party and third-party dependencies that your `<app>.ts` depends on.
+
+Download and installation of dependencies from the NPM registry all happen inside a folder named `out/`,
+which is Mill's build output folder.
+
+When you execute `./mill app.run`, here's an approximation of what Mill will execute using assets inside the `out/` folder:
+[source,sh]
+----
+node ./out/<app>/npmInstall.dest/node_modules/.bin/ts-node -r ./out/<app>/npmInstall.dest/node_modules/tsconfig-paths/register ./out/<app>/compile.dest/typescript/src/<app>.ts
+----
+
+
+
+
+== Typescript Compilation Example
 
 include::partial$example/javascriptlib/testing/3-integration-suite.adoc[]
 
