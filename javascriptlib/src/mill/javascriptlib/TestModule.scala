@@ -359,6 +359,7 @@ object TestModule {
   trait PlayWright extends TypeScriptModule with IntegrationSuite with TestModule {
     override def npmDevDeps: T[Seq[String]] = Task {
       super.npmDevDeps() ++ Seq(
+        "playwright@1.49.0",
         "@playwright/test@1.49.0",
         "glob@10.4.5"
       )
