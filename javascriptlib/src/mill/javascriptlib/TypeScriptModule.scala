@@ -150,7 +150,7 @@ trait TypeScriptModule extends Module { outer =>
       ),
       "paths" -> ujson.Obj.from(combinedPaths.map { case (k, v) =>
         val splitValues =
-          v.split(":").map(s => s"$s/*") // Split by ":" and append "/*" to each part
+          v.split(":").map(s => if (s == "*") s else s"$s/*") // Split by ":" and append "/*" to each part
         (k, ujson.Arr.from(splitValues))
       })
     )
@@ -203,7 +203,6 @@ trait TypeScriptModule extends Module { outer =>
       case (key, value) => s"--$key=$value"
       case _ => ""
     }.toSeq
-
     os.call(
       (
         "node",

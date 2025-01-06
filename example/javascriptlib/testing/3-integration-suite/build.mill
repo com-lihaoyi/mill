@@ -2,6 +2,7 @@
 // It demonstrates the execution of end-to-end integration tests using browser automation tools
 // The demo uses Cypress and Playwright.
 
+//// SNIPPET:BUILD
 package build
 import mill._, javascriptlib._
 
@@ -14,9 +15,36 @@ object web extends TypeScriptModule {
     super.npmDevDeps() ++ Seq("@playwright/test@^1.49.1", "cypress@^13.17.0")
 
   def forkEnv = super.forkEnv() + ("PORT" -> "3000")
-//  def mainFileName: T[String] = Task { "index.ts" }
+
+  /**
+   * This customizes [[compilerOptions]] and [[compilerOptionsPaths]] because type declarations for Fastify
+   * are not in the default location for `tsc` to find them (i.e. "node_modules/@types/fastify").
+   *
+   * Fastify's types are instead bundled inside it's npm package (i.e. "node_modules/fastify").
+   * The override fixes this by explicitly setting `tsconfig.json#baseUrl` to the full path to "node_modules".
+   *
+   * See https://stackoverflow.com/a/74917456/ and
+   * related explanation https://github.com/microsoft/TypeScript/issues/22217#issuecomment-369783776
+   */
+  def compilerOptions: T[Map[String, ujson.Value]] = Task {
+    super.compilerOptions() ++
+      Map("baseUrl" -> ujson.Str((npmInstall().path / "node_modules").toString))
+  }
+
+  def compilerOptionsPaths: Task[Map[String, String]] = Task.Anon { Map("*" -> "*") }
 
 //  object playwright extends TypeScriptTests with TestModule.Jest
 //  object cypress extends TypeScriptTests with TestModule.Vitest
 
 }
+//// SNIPPET:END
+
+// This example includes the original `tsconfig.json` used to step the project in the file named `old-tsconfig.json`.
+
+/** Usage
+
+ > ./mill web.run
+...
+ Server running at http://localhost:3000
+
+*/

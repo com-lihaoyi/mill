@@ -34,7 +34,7 @@ fastify.get('/', async (request: FastifyRequest, reply: FastifyReply) => {
           <title>Javascript Integration Testing</title>
         </head>
         <body>
-          <h1>Welcome to Javascript Integration Testing using Playwright</h1>
+          <h1>Welcome to Javascript Integration Testing</h1>
           <button id="counter" onclick="this.textContent = Number(this.textContent) + 1">0</button>
         </body>
       </html>
