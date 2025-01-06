@@ -27,7 +27,7 @@ To see a cheat sheet of all the command line flags that Mill supports, you can u
 
 ```scala
 $ ./mill --help
-Mill Build Tool, version 0.12.0
+Mill Build Tool, version 0.12.5-13-0e02e6
 Usage: mill [options] task [task-options] [+ task ...]
 
 task cheat sheet:
@@ -60,6 +60,7 @@ options:
   -b --bell            Ring the bell once if the run completes successfully, twice if it fails.
   --bsp                Enable BSP server mode.
   --color <bool>       Toggle colored output; by default enabled only if the console is interactive
+                       and NO_COLOR environment variable is not set
   -d --debug           Show debug output on STDOUT
   --disable-callgraph  Disables fine-grained invalidation of tasks based on analyzing code changes.
                        If passed, you need to manually run `clean` yourself after build changes.
