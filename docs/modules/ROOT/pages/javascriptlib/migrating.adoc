@@ -1,0 +1,27 @@
+= Migrating Typescript Projects to Mill
+
+include::partial$gtag-config.adoc[]
+
+This page will look at some of the changes that need to be made to an existing Typescript project so it can gradually be built and run using Mill.
+
+== Partial Support for the `package.json` Format
+Mill is not intended to 100% replace builds managed by tools like `npm`, `pnpm`, `yarn` or `bun` since it doesn't yet
+have 2-way support for the `package.json` format.
+
+Mill's support for the `package.json` format is currently 1-way i.e it can *write* a `package.json` file for all `dependencies` and
+`devDependencies` necessary to compile, build and run a Typescript project, as long as those third-party dependencies are clearly specified
+in `build.mill`.
+
+But, it can't *read* dependencies from a `package.json` file for an existing project. Instead, reading of
+`package.json` is delegated to `npm`, so Mill assumes you at least have the correct versions of `node` and `npm` in your `PATH`
+
+Be sure to review xref:migrating/migrating.adoc#how-to-approach-migration[How to Approach Migration] for general tips on
+how to adopt Mill in your Typescript project. Although the build examples are based on `Maven`, `Gradle` and `SBT`, which are all JVM-based build tools,
+the ideas should carry over to any of the build tools used in the Node.js ecosystem.
+
+
+== Typescript Compilation
+
+include::partial$example/javascriptlib/testing/3-integration-suite.adoc[]
+
+
