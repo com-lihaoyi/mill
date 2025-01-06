@@ -13,122 +13,125 @@ import scala.util.matching.Regex
 // that the proper messages are reported, proper build classloaders are
 // re-used or invalidated, and the proper files end up getting watched
 // in all cases.
-object MultiLevelBuildTests extends UtestIntegrationTestSuite {
+trait MultiLevelBuildTests extends UtestIntegrationTestSuite {
+  var savedClassLoaderIds = Seq.empty[Option[Int]]
+  val retryCount = if (sys.env.contains("CI")) 2 else 0
+  def runAssertSuccess(tester: IntegrationTester, expected: String) = {
+    val res = tester.eval("foo.run")
+    assert(res.isSuccess == true)
+    assert(res.out.contains(expected))
+  }
+
+  def fooPaths(tester: IntegrationTester) = Seq(
+    tester.workspacePath / "foo/compile-resources",
+    tester.workspacePath / "foo/resources",
+    tester.workspacePath / "foo/src"
+  )
+  def buildPaths(tester: IntegrationTester) = Seq(
+    tester.workspacePath / "build.mill",
+    tester.workspacePath / "mill-build/compile-resources",
+    tester.workspacePath / "mill-build/resources",
+    tester.workspacePath / "mill-build/src"
+  )
+  def buildPaths2(tester: IntegrationTester) = Seq(
+    tester.workspacePath / "mill-build/build.mill",
+    tester.workspacePath / "mill-build/mill-build/compile-resources",
+    tester.workspacePath / "mill-build/mill-build/resources",
+    tester.workspacePath / "mill-build/mill-build/src"
+  )
+  def buildPaths3(tester: IntegrationTester) = Seq(
+    tester.workspacePath / "mill-build/mill-build/build.mill",
+    tester.workspacePath / "mill-build/mill-build/mill-build/compile-resources",
+    tester.workspacePath / "mill-build/mill-build/mill-build/resources",
+    tester.workspacePath / "mill-build/mill-build/mill-build/src"
+  )
+
+  def loadFrames(tester: IntegrationTester, n: Int) = {
+    for (depth <- Range(0, n))
+      yield {
+        val path =
+          tester.workspacePath / "out" / Seq.fill(depth)(millBuild) / millRunnerState
+        if (os.exists(path)) upickle.default.read[RunnerState.Frame.Logged](os.read(path)) -> path
+        else RunnerState.Frame.Logged(Map(), Seq(), Seq(), None, Seq(), 0) -> path
+      }
+  }
+
+  /**
+   * Verify that each level of the multi-level build ends upcausing the
+   * appropriate files to get watched
+   */
+  def checkWatchedFiles(tester: IntegrationTester, expected0: Seq[os.Path]*) = {
+    for (
+      (expectedWatched0, (frame, path)) <- expected0.zip(loadFrames(tester, expected0.length))
+    ) {
+      val frameWatched = frame
+        .evalWatched
+        .map(_.path)
+        .filter(_.startsWith(tester.workspacePath))
+        .filter(!_.segments.contains("mill-launcher"))
+        .sorted
+
+      val expectedWatched = expectedWatched0.sorted
+      assert(frameWatched == expectedWatched)
+    }
+  }
+
+  def evalCheckErr(tester: IntegrationTester, expectedSnippets: String*) = {
+    // Wipe out stale state files to make sure they don't get picked up when
+    // Mill aborts early and fails to generate a new one
+    os.walk(tester.workspacePath / "out").filter(_.last == "mill-runner-state.json").foreach(
+      os.remove(_)
+    )
+
+    val res = tester.eval("foo.run")
+    assert(res.isSuccess == false)
+    // Prepend a "\n" to allow callsites to use "\n" to test for start of
+    // line, even though the first line doesn't have a "\n" at the start
+    val err = "```\n" + res.err + "\n```"
+    for (expected <- expectedSnippets) {
+      assert(err.contains(expected))
+    }
+  }
+
+  /**
+   * Check whether the classloaders of the nested meta-builds are changing as
+   * expected. `true` means a new classloader was created, `false` means
+   * the previous classloader was re-used, `null` means there is no
+   * classloader at that level
+   */
+  def checkChangedClassloaders(
+                                tester: IntegrationTester,
+                                expectedChanged0: java.lang.Boolean*
+                              ) = {
+    val currentClassLoaderIds =
+      for ((frame, path) <- loadFrames(tester, expectedChanged0.length))
+        yield frame.classLoaderIdentity
+
+    val changed = currentClassLoaderIds
+      .zipAll(savedClassLoaderIds, None, None)
+      .map { case (cur, old) =>
+        if (cur.isEmpty) null
+        else cur != old
+      }
+
+    val expectedChanged =
+      if (clientServerMode) expectedChanged0
+      else expectedChanged0.map {
+        case java.lang.Boolean.FALSE => true
+        case n => n
+      }
+
+    assert(changed == expectedChanged)
+
+    savedClassLoaderIds = currentClassLoaderIds
+  }
+
+}
+
+object MultiLevelBuildTestsValidEdits extends  MultiLevelBuildTests{
   val tests: Tests = Tests {
+    savedClassLoaderIds = Seq.empty[Option[Int]]
 
-    def runAssertSuccess(tester: IntegrationTester, expected: String) = {
-      val res = tester.eval("foo.run")
-      assert(res.isSuccess == true)
-      assert(res.out.contains(expected))
-    }
-
-    def fooPaths(tester: IntegrationTester) = Seq(
-      tester.workspacePath / "foo/compile-resources",
-      tester.workspacePath / "foo/resources",
-      tester.workspacePath / "foo/src"
-    )
-    def buildPaths(tester: IntegrationTester) = Seq(
-      tester.workspacePath / "build.mill",
-      tester.workspacePath / "mill-build/compile-resources",
-      tester.workspacePath / "mill-build/resources",
-      tester.workspacePath / "mill-build/src"
-    )
-    def buildPaths2(tester: IntegrationTester) = Seq(
-      tester.workspacePath / "mill-build/build.mill",
-      tester.workspacePath / "mill-build/mill-build/compile-resources",
-      tester.workspacePath / "mill-build/mill-build/resources",
-      tester.workspacePath / "mill-build/mill-build/src"
-    )
-    def buildPaths3(tester: IntegrationTester) = Seq(
-      tester.workspacePath / "mill-build/mill-build/build.mill",
-      tester.workspacePath / "mill-build/mill-build/mill-build/compile-resources",
-      tester.workspacePath / "mill-build/mill-build/mill-build/resources",
-      tester.workspacePath / "mill-build/mill-build/mill-build/src"
-    )
-
-    def loadFrames(tester: IntegrationTester, n: Int) = {
-      for (depth <- Range(0, n))
-        yield {
-          val path =
-            tester.workspacePath / "out" / Seq.fill(depth)(millBuild) / millRunnerState
-          if (os.exists(path)) upickle.default.read[RunnerState.Frame.Logged](os.read(path)) -> path
-          else RunnerState.Frame.Logged(Map(), Seq(), Seq(), None, Seq(), 0) -> path
-        }
-    }
-
-    /**
-     * Verify that each level of the multi-level build ends upcausing the
-     * appropriate files to get watched
-     */
-    def checkWatchedFiles(tester: IntegrationTester, expected0: Seq[os.Path]*) = {
-      for (
-        (expectedWatched0, (frame, path)) <- expected0.zip(loadFrames(tester, expected0.length))
-      ) {
-        val frameWatched = frame
-          .evalWatched
-          .map(_.path)
-          .filter(_.startsWith(tester.workspacePath))
-          .filter(!_.segments.contains("mill-launcher"))
-          .sorted
-
-        val expectedWatched = expectedWatched0.sorted
-        assert(frameWatched == expectedWatched)
-      }
-    }
-
-    def evalCheckErr(tester: IntegrationTester, expectedSnippets: String*) = {
-      // Wipe out stale state files to make sure they don't get picked up when
-      // Mill aborts early and fails to generate a new one
-      os.walk(tester.workspacePath / "out").filter(_.last == "mill-runner-state.json").foreach(
-        os.remove(_)
-      )
-
-      val res = tester.eval("foo.run")
-      assert(res.isSuccess == false)
-      // Prepend a "\n" to allow callsites to use "\n" to test for start of
-      // line, even though the first line doesn't have a "\n" at the start
-      val err = "```\n" + res.err + "\n```"
-      for (expected <- expectedSnippets) {
-        assert(err.contains(expected))
-      }
-    }
-
-    var savedClassLoaderIds = Seq.empty[Option[Int]]
-
-    /**
-     * Check whether the classloaders of the nested meta-builds are changing as
-     * expected. `true` means a new classloader was created, `false` means
-     * the previous classloader was re-used, `null` means there is no
-     * classloader at that level
-     */
-    def checkChangedClassloaders(
-        tester: IntegrationTester,
-        expectedChanged0: java.lang.Boolean*
-    ) = {
-      val currentClassLoaderIds =
-        for ((frame, path) <- loadFrames(tester, expectedChanged0.length))
-          yield frame.classLoaderIdentity
-
-      val changed = currentClassLoaderIds
-        .zipAll(savedClassLoaderIds, None, None)
-        .map { case (cur, old) =>
-          if (cur.isEmpty) null
-          else cur != old
-        }
-
-      val expectedChanged =
-        if (clientServerMode) expectedChanged0
-        else expectedChanged0.map {
-          case java.lang.Boolean.FALSE => true
-          case n => n
-        }
-
-      assert(changed == expectedChanged)
-
-      savedClassLoaderIds = currentClassLoaderIds
-    }
-
-    val retryCount = if (sys.env.contains("CI")) 2 else 0
     test("validEdits") - retry(retryCount) {
       integrationTest { tester =>
         import tester._
@@ -246,7 +249,11 @@ object MultiLevelBuildTests extends UtestIntegrationTestSuite {
         checkChangedClassloaders(tester, null, false, false, false)
       }
     }
-
+  }
+}
+object MultiLevelBuildTestsParseErrorEdits extends  MultiLevelBuildTests{
+  val tests: Tests = Tests {
+    savedClassLoaderIds = Seq.empty[Option[Int]]
     test("parseErrorEdits") - retry(retryCount) {
       integrationTest { tester =>
         import tester._
@@ -315,7 +322,11 @@ object MultiLevelBuildTests extends UtestIntegrationTestSuite {
         checkChangedClassloaders(tester, null, true, true, true)
       }
     }
-
+  }
+}
+object MultiLevelBuildTestsCompileErrorEdits extends  MultiLevelBuildTests{
+  val tests: Tests = Tests {
+    savedClassLoaderIds = Seq.empty[Option[Int]]
     test("compileErrorEdits") - retry(retryCount) {
       integrationTest { tester =>
         import tester._
@@ -399,7 +410,11 @@ object MultiLevelBuildTests extends UtestIntegrationTestSuite {
         checkChangedClassloaders(tester, null, true, false, false)
       }
     }
-
+  }
+}
+object MultiLevelBuildTestsRuntimeErrorEdits extends  MultiLevelBuildTests{
+  val tests: Tests = Tests {
+    savedClassLoaderIds = Seq.empty[Option[Int]]
     test("runtimeErrorEdits") - retry(retryCount) {
       integrationTest { tester =>
         import tester._
