@@ -203,7 +203,7 @@ object Deps {
   val coursierJvmIndexVersion = "0.0.4-70-51469f"
 
   object RuntimeDeps {
-    val dokkaVersion = "1.9.20"
+    val dokkaVersion = "2.0.0"
     val koverVersion = "0.8.3"
 
     val detektCli = ivy"io.gitlab.arturbosch.detekt:detekt-cli:1.23.7"
