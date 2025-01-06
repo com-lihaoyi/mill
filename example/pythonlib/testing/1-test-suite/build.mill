@@ -21,29 +21,20 @@ object foo extends PythonModule {
 Hello World
 
 > ./mill foo.test.test
-...
 test_hello (test_foo.TestScript...) ... ok
 test_mock (test_foo.TestScript...) ... ok
 test_world (test_foo.TestScript...) ... ok
 ...Ran 3 tests...
 OK
-...
 
 > ./mill foo.test # same as above, `.test` is the default task for the `test` module
-...
-test_hello (test_foo.TestScript...) ... ok
-test_mock (test_foo.TestScript...) ... ok
-test_world (test_foo.TestScript...) ... ok
 ...Ran 3 tests...
 OK
-...
 
 > ./mill foo.test test_foo.TestScript.test_mock # explicitly select the test class you wish to run 
-...
 test_mock (test_foo.TestScript...) ... ok
 ...Ran 1 test...
 OK
-...
 
 */
 
@@ -77,7 +68,6 @@ object bar extends PythonModule {
 /** Usage
 
 > ./mill __.test
-...
 test_hello (test_foo.TestScript...) ... ok
 test_mock (test_foo.TestScript...) ... ok
 test_world (test_foo.TestScript...) ... ok
@@ -87,7 +77,6 @@ OK
 ...test_bar.py::test_world PASSED...
 ...test_bar.py::test_mock PASSED...
 ...3 passed...
-...
 
 */
 
@@ -96,13 +85,11 @@ OK
 /** Usage
 
 > ./mill foo.test
-...
 test_hello (test_foo.TestScript...) ... ok
 test_mock (test_foo.TestScript...) ... ok
 test_world (test_foo.TestScript...) ... ok
 ...Ran 3 tests...
 OK
-...
 
 */
 
@@ -112,13 +99,12 @@ OK
 /** Usage
 
 > ./mill foo.test.testCached
-...
 test_hello (test_foo.TestScript...) ... ok
 test_mock (test_foo.TestScript...) ... ok
 test_world (test_foo.TestScript...) ... ok
 ...Ran 3 tests...
 OK
-...
+
 */
 
 // * `foo.test.testCached`: runs the tests in an empty `sandbox/` folder and caches the results

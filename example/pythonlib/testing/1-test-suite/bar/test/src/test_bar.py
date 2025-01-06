@@ -1,4 +1,3 @@
-import pytest
 from unittest.mock import MagicMock
 from bar import Bar  # type: ignore
 
@@ -18,7 +17,5 @@ def test_mock():
     mock_bar.main.return_value = "Hello Mockito World"
     result = mock_bar.main()
 
-    assert (
-        result == "Hello Mockito World"
-    ), "Mocked main() did not return expected value"
+    assert (result == "Hello Mockito World"), "Mocked main() did not return expected value"
     mock_bar.main.assert_called_once()
