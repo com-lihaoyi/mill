@@ -384,7 +384,7 @@ object Jvm extends CoursierSupport {
    * respectively must be defined in the backgroundOutputs tuple. Non-background process should set
    * backgroundOutputs to [[None]].
    */
-  def spawnSubprocessWithBackgroundOutputs(
+  def  spawnSubprocessWithBackgroundOutputs(
       commandArgs: Seq[String],
       envArgs: Map[String, String],
       workingDir: os.Path,
@@ -395,7 +395,8 @@ object Jvm extends CoursierSupport {
       env = envArgs,
       stdin = if (backgroundOutputs.isEmpty) os.Inherit else "",
       stdout = backgroundOutputs.map(_._1).getOrElse(os.Inherit),
-      stderr = backgroundOutputs.map(_._2).getOrElse(os.Inherit)
+      stderr = backgroundOutputs.map(_._2).getOrElse(os.Inherit),
+      destroyOnExit = backgroundOutputs.isEmpty
     )
   }
 
