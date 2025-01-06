@@ -15,11 +15,11 @@ object server extends TypeScriptModule {
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 
-  override def forkEnv = super.forkEnv() + ("PORT" -> "3000")
+  def forkEnv = super.forkEnv() + ("PORT" -> "3000")
 
   object test extends TypeScriptTests with TestModule.PlayWright {
     def service = server
-    def port = "3000"
+    def port = "6000"
   }
 }
 

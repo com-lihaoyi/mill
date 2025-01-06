@@ -327,7 +327,8 @@ object TestModule {
       val mainFile = service.mainFilePath()
       val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
       val tsconfigpaths = npmInstall().path / "node_modules/tsconfig-paths/register"
-      val env = forkEnv() + ("PORT" -> port())
+      val port_ = port()
+      val env = service.forkEnv() + ("PORT" -> port_)
 
       val serviceProcess = os.proc("node", tsnode, "-r", tsconfigpaths, mainFile).spawn(
         stdout = os.Inherit,
@@ -379,7 +380,8 @@ object TestModule {
       val mainFile = service.mainFilePath()
       val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
       val tsconfigpaths = npmInstall().path / "node_modules/tsconfig-paths/register"
-      val env = forkEnv() + ("PORT" -> port())
+      val port_ = port()
+      val env = service.forkEnv() + ("PORT" -> port_)
 
       val serviceProcess = os.proc("node", tsnode, "-r", tsconfigpaths, mainFile).spawn(
         stdout = os.Inherit,

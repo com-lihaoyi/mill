@@ -19,7 +19,7 @@ object server extends TypeScriptModule {
 
   object test extends TypeScriptTests with TestModule.Cypress {
     def service = server
-    def port = "3000"
+    def port = "4000"
   }
 }
 
