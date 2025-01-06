@@ -269,4 +269,57 @@ object TestModule {
     }
 
   }
+
+  trait Playwright extends TypeScriptModule with Shared with TestModule {
+    override def npmDevDeps: T[Seq[String]] =
+      Task {
+        Seq(
+          "@playwright/test@^1.49.1",
+          "ts-node@^10.9.2",
+          "tsconfig-paths@4.2.0",
+          "typescript@5.7.2"
+        )
+      }
+
+    def testConfigSource: T[PathRef] =
+      Task.Source(Task.workspace / "playwright.config.ts")
+
+    override def allSources: T[IndexedSeq[PathRef]] = Task {
+      super.allSources() ++ IndexedSeq(testConfigSource())
+    }
+
+    override def compilerOptions: T[Map[String, ujson.Value]] =
+      Task { super.compilerOptions() + ("resolveJsonModule" -> ujson.Bool(true)) }
+
+    def testConfigTarget: T[Path] =
+      Task { (compile()._1.path / "playwright.config.ts") }
+
+    private def copyConfig: Task[TestResult] = Task.Anon {
+      os.copy.over(
+        testConfigSource().path,
+        testConfigTarget()
+      )
+    }
+
+    private def runTest: T[TestResult] = Task {
+      copyConfig()
+      os.call(
+        (
+          "node",
+          npmInstall().path / "node_modules/playwright/cli.js",
+          "--config",
+          testConfigTarget().toString(),
+          getPathToTest()
+        ),
+        stdout = os.Inherit,
+        env = forkEnv(),
+        cwd = compile()._1.path
+      )
+      ()
+    }
+
+    protected def testTask(args: Task[Seq[String]]): Task[TestResult] = Task.Anon {
+      runTest()
+    }
+  }
 }
