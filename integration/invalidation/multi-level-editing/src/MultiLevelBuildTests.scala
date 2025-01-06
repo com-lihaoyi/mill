@@ -15,6 +15,7 @@ import scala.util.matching.Regex
 // in all cases.
 trait MultiLevelBuildTests extends UtestIntegrationTestSuite {
   var savedClassLoaderIds: Seq[Option[Int]] = Nil
+  var savedServerId: String = ""
   val retryCount: Int = if (sys.env.contains("CI")) 2 else 0
   def runAssertSuccess(tester: IntegrationTester, expected: String): Unit = {
     val res = tester.eval("foo.run")
@@ -104,6 +105,20 @@ trait MultiLevelBuildTests extends UtestIntegrationTestSuite {
       tester: IntegrationTester,
       expectedChanged0: java.lang.Boolean*
   ): Unit = {
+
+    // Before checking classloaders, make sure we check to ensure server spawns and
+    // restarts behave as expected:
+
+    // Only one server should be running at any point in time
+    val Seq(serverFolder) = os.list(tester.workspacePath / "out" / "mill-server")
+
+    // client-server mode should never restart in these tests and preserve the same process,
+    // while --no-server mode should always restart a new process each time a command is run
+    val currentServerId = os.read(serverFolder / "serverId")
+    if (clientServerMode) assert(currentServerId == savedServerId || savedServerId == "")
+    else assert(currentServerId != savedServerId)
+    savedServerId = currentServerId
+
     val currentClassLoaderIds =
       for ((frame, path) <- loadFrames(tester, expectedChanged0.length))
         yield frame.classLoaderIdentity
@@ -132,7 +147,7 @@ trait MultiLevelBuildTests extends UtestIntegrationTestSuite {
 object MultiLevelBuildTestsValidEdits extends MultiLevelBuildTests {
   val tests: Tests = Tests {
     savedClassLoaderIds = Seq.empty[Option[Int]]
-
+    savedServerId = ""
     test("validEdits") - retry(retryCount) {
       integrationTest { tester =>
         import tester._
@@ -255,6 +270,7 @@ object MultiLevelBuildTestsValidEdits extends MultiLevelBuildTests {
 object MultiLevelBuildTestsParseErrorEdits extends MultiLevelBuildTests {
   val tests: Tests = Tests {
     savedClassLoaderIds = Seq.empty[Option[Int]]
+    savedServerId = ""
     test("parseErrorEdits") - retry(retryCount) {
       integrationTest { tester =>
         import tester._
@@ -328,6 +344,7 @@ object MultiLevelBuildTestsParseErrorEdits extends MultiLevelBuildTests {
 object MultiLevelBuildTestsCompileErrorEdits extends MultiLevelBuildTests {
   val tests: Tests = Tests {
     savedClassLoaderIds = Seq.empty[Option[Int]]
+    savedServerId = ""
     test("compileErrorEdits") - retry(retryCount) {
       integrationTest { tester =>
         import tester._
@@ -416,6 +433,7 @@ object MultiLevelBuildTestsCompileErrorEdits extends MultiLevelBuildTests {
 object MultiLevelBuildTestsRuntimeErrorEdits extends MultiLevelBuildTests {
   val tests: Tests = Tests {
     savedClassLoaderIds = Seq.empty[Option[Int]]
+    savedServerId = ""
     test("runtimeErrorEdits") - retry(retryCount) {
       integrationTest { tester =>
         import tester._

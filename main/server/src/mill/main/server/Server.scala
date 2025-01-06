@@ -142,8 +142,8 @@ abstract class Server[T](
       else res
 
     } finally {
-      interrupt = false
       thread.interrupt()
+      interrupt = false
     }
   }
 
