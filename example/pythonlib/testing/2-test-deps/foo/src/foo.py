@@ -1,12 +1,10 @@
-import pyfiglet
-from termcolor import colored
+from jinja2 import Template
 
 
-def get_value() -> str:
-    ascii_art = pyfiglet.figlet_format("XYZ")
-    colored_art = colored(ascii_art, "cyan")
-    return colored_art
+def get_value(text: str) -> str:
+    template = Template("<h1>{{ text | safe }}</h1>")
+    return template.render(text=text)
 
 
 if __name__ == "__main__":
-    print(get_value())
+    print(get_value(text="<XYZ>"))

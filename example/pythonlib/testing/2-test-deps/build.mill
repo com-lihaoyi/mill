@@ -10,12 +10,12 @@ object foo extends PythonModule {
 
   def moduleDeps = Seq(bar)
 
-  def pythonDeps = Seq("pyfiglet==1.0.2", "termcolor==2.5.0")
+  def pythonDeps = Seq("jinja2==3.1.4")
 
   object test extends PythonTests with TestModule.Unittest {
     def moduleDeps = super.moduleDeps ++ Seq(bar.test)
 
-    def pythonDeps = Seq("pyfiglet==1.0.2", "termcolor==2.5.0")
+    def pythonDeps = Seq("MarkupSafe==3.0.2")
 
   }
 
@@ -60,13 +60,7 @@ object bar extends PythonModule {
 ...OK...
 
 > ./mill foo.run
-...
-__  ____   _______
-\ \/ /\ \ / /__  /
- \  /  \ V /  / / 
- /  \   | |  / /_ 
-/_/\_\  |_| /____|
-...
+<h1><XYZ></h1>
 
 > ./mill bar.run
 123
