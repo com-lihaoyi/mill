@@ -26,6 +26,7 @@ class LauncherOldVersionsTests(version: String) extends UtestIntegrationTestSuit
       val res = os.call(cmd = (launcherScript, "version"), cwd = workspacePath, stderr = os.Pipe)
       val outText = res.out.text().trim
       assert(outText == version)
+      os.call(cmd = (launcherScript, "shutdown"), cwd = workspacePath)
       os.remove.all(workspacePath / "out")
     }
   }
