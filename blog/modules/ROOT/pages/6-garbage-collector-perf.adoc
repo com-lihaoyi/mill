@@ -589,7 +589,7 @@ Some things worth noting with ZGC:
 
 1. In the lower `heap-size` benchmarks - with `heap-size` twice `live-set` - ZGC
 has similar pause times as the default G1GC (10s to 100s of milliseconds) but
-with significantly worse throughput
+with significantly worse throughput (`2300-2600 mb/s` rather than the `2800-3100 mb/s` of G1GC)
 
 2. For larger ``heap-size``s - 4 times the `live-set` and above - ZGC's pause times drop to
 single-digit milliseconds (1-2 ms), much lower than those of G1GC
