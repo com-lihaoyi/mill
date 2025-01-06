@@ -14,39 +14,42 @@ import scala.util.matching.Regex
 // re-used or invalidated, and the proper files end up getting watched
 // in all cases.
 trait MultiLevelBuildTests extends UtestIntegrationTestSuite {
-  var savedClassLoaderIds = Seq.empty[Option[Int]]
-  val retryCount = if (sys.env.contains("CI")) 2 else 0
-  def runAssertSuccess(tester: IntegrationTester, expected: String) = {
+  var savedClassLoaderIds: Seq[Option[Int]] = Nil
+  val retryCount: Int = if (sys.env.contains("CI")) 2 else 0
+  def runAssertSuccess(tester: IntegrationTester, expected: String): Unit = {
     val res = tester.eval("foo.run")
     assert(res.isSuccess == true)
     assert(res.out.contains(expected))
   }
 
-  def fooPaths(tester: IntegrationTester) = Seq(
+  def fooPaths(tester: IntegrationTester): Seq[os.Path] = Seq(
     tester.workspacePath / "foo/compile-resources",
     tester.workspacePath / "foo/resources",
     tester.workspacePath / "foo/src"
   )
-  def buildPaths(tester: IntegrationTester) = Seq(
+  def buildPaths(tester: IntegrationTester): Seq[os.Path] = Seq(
     tester.workspacePath / "build.mill",
     tester.workspacePath / "mill-build/compile-resources",
     tester.workspacePath / "mill-build/resources",
     tester.workspacePath / "mill-build/src"
   )
-  def buildPaths2(tester: IntegrationTester) = Seq(
+  def buildPaths2(tester: IntegrationTester): Seq[os.Path] = Seq(
     tester.workspacePath / "mill-build/build.mill",
     tester.workspacePath / "mill-build/mill-build/compile-resources",
     tester.workspacePath / "mill-build/mill-build/resources",
     tester.workspacePath / "mill-build/mill-build/src"
   )
-  def buildPaths3(tester: IntegrationTester) = Seq(
+  def buildPaths3(tester: IntegrationTester): Seq[os.Path] = Seq(
     tester.workspacePath / "mill-build/mill-build/build.mill",
     tester.workspacePath / "mill-build/mill-build/mill-build/compile-resources",
     tester.workspacePath / "mill-build/mill-build/mill-build/resources",
     tester.workspacePath / "mill-build/mill-build/mill-build/src"
   )
 
-  def loadFrames(tester: IntegrationTester, n: Int) = {
+  def loadFrames(
+      tester: IntegrationTester,
+      n: Int
+  ): IndexedSeq[(RunnerState.Frame.Logged, os.Path)] = {
     for (depth <- Range(0, n))
       yield {
         val path =
@@ -60,10 +63,8 @@ trait MultiLevelBuildTests extends UtestIntegrationTestSuite {
    * Verify that each level of the multi-level build ends upcausing the
    * appropriate files to get watched
    */
-  def checkWatchedFiles(tester: IntegrationTester, expected0: Seq[os.Path]*) = {
-    for (
-      (expectedWatched0, (frame, path)) <- expected0.zip(loadFrames(tester, expected0.length))
-    ) {
+  def checkWatchedFiles(tester: IntegrationTester, expected0: Seq[os.Path]*): Unit = {
+    for ((expectedWatched0, (frame, path)) <- expected0.zip(loadFrames(tester, expected0.length))) {
       val frameWatched = frame
         .evalWatched
         .map(_.path)
@@ -76,7 +77,7 @@ trait MultiLevelBuildTests extends UtestIntegrationTestSuite {
     }
   }
 
-  def evalCheckErr(tester: IntegrationTester, expectedSnippets: String*) = {
+  def evalCheckErr(tester: IntegrationTester, expectedSnippets: String*): Unit = {
     // Wipe out stale state files to make sure they don't get picked up when
     // Mill aborts early and fails to generate a new one
     os.walk(tester.workspacePath / "out").filter(_.last == "mill-runner-state.json").foreach(
@@ -100,9 +101,9 @@ trait MultiLevelBuildTests extends UtestIntegrationTestSuite {
    * classloader at that level
    */
   def checkChangedClassloaders(
-                                tester: IntegrationTester,
-                                expectedChanged0: java.lang.Boolean*
-                              ) = {
+      tester: IntegrationTester,
+      expectedChanged0: java.lang.Boolean*
+  ): Unit = {
     val currentClassLoaderIds =
       for ((frame, path) <- loadFrames(tester, expectedChanged0.length))
         yield frame.classLoaderIdentity
@@ -128,7 +129,7 @@ trait MultiLevelBuildTests extends UtestIntegrationTestSuite {
 
 }
 
-object MultiLevelBuildTestsValidEdits extends  MultiLevelBuildTests{
+object MultiLevelBuildTestsValidEdits extends MultiLevelBuildTests {
   val tests: Tests = Tests {
     savedClassLoaderIds = Seq.empty[Option[Int]]
 
@@ -251,7 +252,7 @@ object MultiLevelBuildTestsValidEdits extends  MultiLevelBuildTests{
     }
   }
 }
-object MultiLevelBuildTestsParseErrorEdits extends  MultiLevelBuildTests{
+object MultiLevelBuildTestsParseErrorEdits extends MultiLevelBuildTests {
   val tests: Tests = Tests {
     savedClassLoaderIds = Seq.empty[Option[Int]]
     test("parseErrorEdits") - retry(retryCount) {
@@ -324,7 +325,7 @@ object MultiLevelBuildTestsParseErrorEdits extends  MultiLevelBuildTests{
     }
   }
 }
-object MultiLevelBuildTestsCompileErrorEdits extends  MultiLevelBuildTests{
+object MultiLevelBuildTestsCompileErrorEdits extends MultiLevelBuildTests {
   val tests: Tests = Tests {
     savedClassLoaderIds = Seq.empty[Option[Int]]
     test("compileErrorEdits") - retry(retryCount) {
@@ -412,7 +413,7 @@ object MultiLevelBuildTestsCompileErrorEdits extends  MultiLevelBuildTests{
     }
   }
 }
-object MultiLevelBuildTestsRuntimeErrorEdits extends  MultiLevelBuildTests{
+object MultiLevelBuildTestsRuntimeErrorEdits extends MultiLevelBuildTests {
   val tests: Tests = Tests {
     savedClassLoaderIds = Seq.empty[Option[Int]]
     test("runtimeErrorEdits") - retry(retryCount) {
