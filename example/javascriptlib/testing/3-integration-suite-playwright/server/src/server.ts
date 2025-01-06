@@ -7,21 +7,17 @@ const Client = require.resolve(`${Resources}/index.html`);
 
 const server = http.createServer((req, res) => {
     if (req.url?.startsWith('/api') && req.method === 'GET') {
-        // Handle API routes
         if (req.url === '/api/hello') {
             res.writeHead(200, {'Content-Type': 'text/plain'});
             res.end('Hello from the server!');
-        } else {
-            res.writeHead(404, {'Content-Type': 'text/plain'});
-            res.end('API Not Found');
         }
     } else {
         // Serve static files or fallback to index.html for React routes
         const buildPath = Client.replace(/index\.html$/, "");
         const requestedPath = path.join(buildPath, req.url || '');
         const filePath = path.extname(requestedPath)
-            ? requestedPath // Serve the requested file if it has an extension
-            : Client; // Fallback to index.html for non-file paths
+            ? requestedPath
+            : Client;
 
         fs.readFile(filePath, (err, data) => {
             if (err) {
@@ -29,7 +25,6 @@ const server = http.createServer((req, res) => {
                     // If file not found, fallback to index.html for React routes
                     fs.readFile(Client, (error, indexData) => {
                         if (error) {
-                            console.log("[error], ", error)
                             res.writeHead(500, {'Content-Type': 'text/plain'});
                             res.end('Internal Server Error');
                         } else {
@@ -37,9 +32,6 @@ const server = http.createServer((req, res) => {
                             res.end(indexData);
                         }
                     });
-                } else {
-                    res.writeHead(500, {'Content-Type': 'text/plain'});
-                    res.end('Internal Server Error');
                 }
             } else {
                 // Serve the static file
@@ -68,14 +60,6 @@ function getContentType(ext: string): string {
             return 'application/javascript';
         case '.css':
             return 'text/css';
-        case '.png':
-            return 'image/png';
-        case '.jpg':
-            return 'image/jpeg';
-        case '.svg':
-            return 'image/svg+xml';
-        case '.json':
-            return 'application/json';
         default:
             return 'application/octet-stream';
     }
