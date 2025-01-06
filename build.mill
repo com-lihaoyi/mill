@@ -217,7 +217,7 @@ object Deps {
     val kotlinxHtmlJvm = ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.8.1"
     val koverCli = ivy"org.jetbrains.kotlinx:kover-cli:$koverVersion"
     val koverJvmAgent = ivy"org.jetbrains.kotlinx:kover-jvm-agent:$koverVersion"
-    val ktfmt = ivy"com.facebook:ktfmt:0.52"
+    val ktfmt = ivy"com.facebook:ktfmt:0.53"
     val ktlint = ivy"com.pinterest.ktlint:ktlint-core:0.49.1"
     val sbtTestInterface = ivy"com.github.sbt:junit-interface:0.13.2"
 
