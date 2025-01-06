@@ -150,7 +150,7 @@ object Deps {
   val osLib = ivy"com.lihaoyi::os-lib:0.11.4-M2"
   val pprint = ivy"com.lihaoyi::pprint:0.9.0"
   val mainargs = ivy"com.lihaoyi::mainargs:0.7.6"
-  val millModuledefsVersion = "0.11.1"
+  val millModuledefsVersion = "0.11.2"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = ivy"${millModuledefsString}"
   val millModuledefsPlugin =
