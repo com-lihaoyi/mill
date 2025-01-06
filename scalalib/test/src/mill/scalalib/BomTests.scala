@@ -478,7 +478,7 @@ object BomTests extends TestSuite {
       test("extraExclude") - UnitTester(modules, null).scoped { implicit eval =>
         isInClassPath(
           modules.depMgmt.extraExclude,
-          "cask_2.13-0.9.4.jar",
+          "cask_2.13-0.9.5.jar",
           jarCheck = Some { jarName =>
             !jarName.startsWith("slf4j-api-")
           }
@@ -488,7 +488,7 @@ object BomTests extends TestSuite {
       test("transitiveExtraExclude") - UnitTester(modules, null).scoped { implicit eval =>
         isInClassPath(
           modules.depMgmt.extraExclude.transitive,
-          "cask_2.13-0.9.4.jar",
+          "cask_2.13-0.9.5.jar",
           Seq(modules.depMgmt.extraExclude),
           jarCheck = Some { jarName =>
             !jarName.startsWith("slf4j-api-")
