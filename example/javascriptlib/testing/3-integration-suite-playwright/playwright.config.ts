@@ -15,6 +15,13 @@ export default defineConfig({
         trace: 'on-first-retry',
         launchOptions: {
             args: ['--explicitly-allowed-ports=6000']
-        }
+        },
+        channel: 'chrome', // Use the stable Chrome channel
     },
+    projects: [
+        {
+            name: 'chromium',
+            use: {browserName: 'chromium'}
+        }
+    ]
 });
