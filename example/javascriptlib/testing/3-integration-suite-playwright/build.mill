@@ -1,0 +1,35 @@
+package build
+
+import mill._, javascriptlib._
+
+object client extends ReactScriptsModule
+
+object server extends TypeScriptModule {
+
+  /** Bundle client as resource */
+  def resources = Task {
+    os.copy(client.bundle().path, Task.dest / "build")
+    super.resources() ++ Seq(PathRef(Task.dest))
+  }
+
+  override def forkEnv = super.forkEnv() + ("PORT" -> "3000")
+
+  object test extends TypeScriptTests with TestModule.PlayWright {
+    def service = server
+    def port = "3000"
+  }
+}
+
+// Documentation for mill.example.javascriptlib
+// In this example we demonstrate integration testing using playwright
+// `mill server.test` will start the service on the speicifed port, run tests with configurations defined in playwright.config.ts
+// and kill the service once completed
+
+/** Usage
+
+> mill server.test
+...
+... 1 typescript/src/server/playwright/app.test.ts:4:9 › React App › displays the heading...
+... 1 passed...
+...
+*/

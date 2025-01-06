@@ -1,0 +1,51 @@
+{
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --watchAll=false"
+  },
+  "jest": {
+    "moduleNameMapper": {
+      "setupFilesAfterEnv": [
+        "<rootDir>/src/setupTests.ts"
+      ],
+      "^app/(.*)$": "<rootDir>/src/app/$1"
+    }
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@esbuild-plugins/tsconfig-paths": "^0.1.2",
+    "@playwright/test": "^1.49.0",
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^16.0.1",
+    "@testing-library/user-event": "^13.5.0",
+    "@types/jest": "^27.5.2",
+    "@types/node": "^16.18.121",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@types/testing-library__jest-dom": "^5.14.9",
+    "cypress": "^13.16.1",
+    "esbuild": "^0.24.0",
+    "playwright": "^1.49.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-scripts": "^5.0.1",
+    "serve": "^12.0.1",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^4.9.5",
+    "web-vitals": "^2.1.4"
+  }
+}
