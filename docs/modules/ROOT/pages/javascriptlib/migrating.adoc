@@ -43,7 +43,7 @@ in `build.mill`.
 But, it can't *read* dependencies from a `package.json` file for an existing project. Instead, reading of
 `package.json` is delegated to `npm`, so Mill assumes you at least have the correct versions of `node` and `npm` in your `PATH`
 
-Be sure to review xref:migrating/migrating.adoc#how-to-approach-migration[How to Approach Migration] for general tips on
+Be sure to review xref:migrating/migrating.adoc#_how_to_approach_migration[How to Approach Migration] for general tips on
 how to adopt Mill in your Typescript project. Although the build examples are based on `Maven`, `Gradle` and `SBT`, which are all JVM-based build tools,
 the ideas should carry over to any of the build tools used in the Node.js ecosystem.
 
