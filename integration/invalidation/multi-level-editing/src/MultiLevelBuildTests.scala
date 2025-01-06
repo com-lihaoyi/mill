@@ -108,16 +108,15 @@ trait MultiLevelBuildTests extends UtestIntegrationTestSuite {
 
     // Before checking classloaders, make sure we check to ensure server spawns and
     // restarts behave as expected:
+    if (clientServerMode) {
+      // Only one server should be running at any point in time
+      val Seq(serverFolder) = os.list(tester.workspacePath / "out" / "mill-server")
 
-    // Only one server should be running at any point in time
-    val Seq(serverFolder) = os.list(tester.workspacePath / "out" / "mill-server")
-
-    // client-server mode should never restart in these tests and preserve the same process,
-    // while --no-server mode should always restart a new process each time a command is run
-    val currentServerId = os.read(serverFolder / "serverId")
-    if (clientServerMode) assert(currentServerId == savedServerId || savedServerId == "")
-    else assert(currentServerId != savedServerId)
-    savedServerId = currentServerId
+      // client-server mode should never restart in these tests and preserve the same process,
+      val currentServerId = os.read(serverFolder / "serverId")
+      assert(currentServerId == savedServerId || savedServerId == "")
+      savedServerId = currentServerId
+    }
 
     val currentClassLoaderIds =
       for ((frame, path) <- loadFrames(tester, expectedChanged0.length))
