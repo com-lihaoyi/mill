@@ -6,6 +6,9 @@ object client extends ReactScriptsModule
 
 object server extends TypeScriptModule {
 
+  def npmDeps =
+    Seq("@types/cors@^2.8.17", "@types/express@^5.0.0", "cors@^2.8.5", "express@^4.21.1")
+
   /** Bundle client as resource */
   def resources = Task {
     os.copy(client.bundle().path, Task.dest / "build")
