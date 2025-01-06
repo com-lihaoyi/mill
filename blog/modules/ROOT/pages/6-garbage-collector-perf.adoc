@@ -4,7 +4,7 @@
 
 
 :author: Li Haoyi
-:revdate: 3 January 2024
+:revdate: ??? January 2024
 _{author}, {revdate}_
 
 include::mill:ROOT:partial$gtag-config.adoc[]
