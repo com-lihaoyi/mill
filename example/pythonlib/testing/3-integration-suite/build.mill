@@ -1,0 +1,47 @@
+// You can also define test suites with different names other than `test`. For example,
+// the build below defines a test suite with the name `itest`, in addition
+// to that named `test`.
+
+package build
+import mill._, pythonlib._
+
+object foo extends PythonModule {
+
+  def mainScript = Task.Source { millSourcePath / "src/foo.py" }
+
+  object test extends PythonTests with TestModule.Unittest
+
+  object itest extends PythonTests with TestModule.Unittest
+
+}
+
+// These two test modules will expect their sources to be in their respective `foo/test` and
+// `foo/itest` folder respectively.
+
+/** Usage
+
+> ./mill foo.test # run Unit test suite
+test_hello (test.TestScript...) ... ok
+test_world (test.TestScript...) ... ok
+...Ran 2 tests...
+...OK...
+
+> ./mill foo.itest # run Integration test suite
+...test_hello_world (test.TestScript...) ... ok
+...Ran 1 test...
+...OK...
+
+> ./mill 'foo.{test,itest}' # run both test suites
+...test_hello (test.TestScript...)...ok...
+...test_world (test.TestScript...)...ok...
+...Ran 2 tests...
+...test_hello_world (test.TestScript...)...ok...
+...Ran 1 test...
+...OK...
+
+> ./mill __.itest.testCached # run all integration test suites
+...test_hello_world (test.TestScript...) ... ok
+...Ran 1 test...
+...OK...
+
+*/
