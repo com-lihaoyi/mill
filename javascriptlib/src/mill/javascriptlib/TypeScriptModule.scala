@@ -3,12 +3,16 @@ package mill.javascriptlib
 import mill.*
 import os.*
 
+import scala.util.Try
+
 trait TypeScriptModule extends Module { outer =>
   def moduleDeps: Seq[TypeScriptModule] = Nil
 
   def npmDeps: T[Seq[String]] = Task { Seq.empty[String] }
 
   def npmDevDeps: T[Seq[String]] = Task { Seq.empty[String] }
+
+  def unmanagedDeps: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
 
   def transitiveNpmDeps: T[Seq[String]] = Task {
     Task.traverse(moduleDeps)(_.npmDeps)().flatten ++ npmDeps()
@@ -18,10 +22,17 @@ trait TypeScriptModule extends Module { outer =>
     Task.traverse(moduleDeps)(_.npmDevDeps)().flatten ++ npmDevDeps()
   }
 
+  def transitiveUnmanagedDeps: T[Seq[PathRef]] = Task {
+    Task.traverse(moduleDeps)(_.unmanagedDeps)().flatten ++ unmanagedDeps()
+  }
+
   def npmInstall: T[PathRef] = Task {
+    Try(os.copy.over(Task.workspace / ".npmrc", Task.dest / ".npmrc")).getOrElse(())
     os.call((
       "npm",
       "install",
+      "--userconfig",
+      ".npmrc",
       "--save-dev",
       "@types/node@22.10.2",
       "@types/esbuild-copy-static-files@0.1.4",
@@ -33,7 +44,8 @@ trait TypeScriptModule extends Module { outer =>
       "esbuild-copy-static-files@0.1.0",
       "tsconfig-paths@4.2.0",
       transitiveNpmDeps(),
-      transitiveNpmDevDeps()
+      transitiveNpmDevDeps(),
+      transitiveUnmanagedDeps().map(_.path.toString)
     ))
     PathRef(Task.dest)
   }
