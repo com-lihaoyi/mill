@@ -479,11 +479,11 @@ trait JavaModule
     // where eval'ing a Task would be impractical or not allowed
     cs.Dependency(
       cs.Module(
-        coursier.core.Organization("mill-internal"),
+        JavaModule.internalOrg,
         coursier.core.ModuleName(millModuleSegments.parts.mkString("-")),
         Map.empty
       ),
-      "0+mill-internal"
+      JavaModule.internalVersion
     ).withConfiguration(cs.Configuration.compile)
 
   /**
@@ -533,7 +533,10 @@ trait JavaModule
           // We pull their compile scope when our compile scope is asked,
           // and pull their runtime scope when our runtime scope is asked.
           Seq(
-            (cs.Configuration.compile, modDep.coursierDependency),
+            (
+              cs.Configuration.compile,
+              modDep.coursierDependency.withConfiguration(cs.Configuration.compile)
+            ),
             (
               cs.Configuration.runtime,
               modDep.coursierDependency.withConfiguration(cs.Configuration.runtime)
@@ -543,17 +546,17 @@ trait JavaModule
         compileModuleDepsChecked.map { modDep =>
           // Compile-only (aka provided) dependencies
           // We pull their compile scope when our provided scope is asked (see scopes above)
-          (cs.Configuration.provided, modDep.coursierDependency)
+          (
+            cs.Configuration.provided,
+            modDep.coursierDependency.withConfiguration(cs.Configuration.compile)
+          )
         } ++
         runModuleDepsChecked.map { modDep =>
           // Runtime dependencies
           // We pull their runtime scope when our runtime scope is pulled
           (
             cs.Configuration.runtime,
-            modDep.coursierDependency.withConfiguration(
-              if (modDep.coursierDependency.configuration.isEmpty) cs.Configuration.runtime
-              else modDep.coursierDependency.configuration
-            )
+            modDep.coursierDependency.withConfiguration(cs.Configuration.runtime)
           )
         }
 
@@ -564,23 +567,21 @@ trait JavaModule
           // We pull their compile scope when our compile scope is asked,
           // and pull their runtime scope when our runtime scope is asked.
           Seq(
-            (cs.Configuration.compile, dep),
+            (cs.Configuration.compile, dep.withConfiguration(cs.Configuration.compile)),
             (cs.Configuration.runtime, dep.withConfiguration(cs.Configuration.runtime))
           )
       } ++
         compileIvyDeps().map(bindDependency()).map(_.dep).map { dep =>
           // Compile-only (aka provided) dependencies, like above
           // We pull their compile scope when our provided scope is asked (see scopes above)
-          (cs.Configuration.provided, dep)
+          (cs.Configuration.provided, dep.withConfiguration(cs.Configuration.compile))
         } ++
         runIvyDeps().map(bindDependency()).map(_.dep).map { dep =>
           // Runtime dependencies, like above
           // We pull their runtime scope when our runtime scope is pulled
           (
             cs.Configuration.runtime,
-            dep.withConfiguration(
-              if (dep.configuration.isEmpty) cs.Configuration.runtime else dep.configuration
-            )
+            dep.withConfiguration(cs.Configuration.runtime)
           )
         } ++
         allBomDeps().map { bomDep =>
@@ -1638,8 +1639,16 @@ object JavaModule {
       // Mill modules' artifacts are handled by Mill itself
       Nil
   }
+
+  private[mill] def internalOrg = coursier.core.Organization("mill-internal")
+  private[mill] def internalVersion = "0+mill-internal"
 }
 
+/**
+  * A module that consists solely of dependency management
+  *
+  * To be used by other modules via `JavaModule#bomModuleDeps`
+  */
 trait BomModule extends JavaModule {
   def compile: T[CompilationResult] = Task {
     val sources = allSourceFiles()

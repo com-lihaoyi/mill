@@ -54,6 +54,25 @@ class LocalIvyPublisher(localIvyRepo: os.Path) {
     }
   }
 
+  // bin-compat shim
+  def publishLocal(
+      jar: os.Path,
+      sourcesJar: os.Path,
+      docJar: os.Path,
+      pom: os.Path,
+      ivy: os.Path,
+      artifact: Artifact,
+      extras: Seq[PublishInfo]
+  )(implicit ctx: Ctx.Log): Seq[os.Path] =
+    publishLocal(
+      Some(jar),
+      Some(sourcesJar),
+      Some(docJar),
+      pom,
+      Right(ivy),
+      artifact,
+      extras
+    )
 }
 
 object LocalIvyPublisher

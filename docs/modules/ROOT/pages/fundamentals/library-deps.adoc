@@ -120,9 +120,9 @@ whose Maven coordinates are `com.google.cloud:libraries-bom:26.50.0`
 
 include::partial$example/fundamentals/library-deps/bom-1-external-bom.adoc[]
 
-=== Dependency management task
+=== Managed BOMs
 
-include::partial$example/fundamentals/library-deps/bom-2-dependency-management.adoc[]
+include::partial$example/fundamentals/library-deps/bom-2-managed.adoc[]
 
 == Searching For Dependency Updates
 

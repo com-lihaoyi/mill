@@ -28,6 +28,14 @@ trait PublishModule extends JavaModule { outer =>
       )
   }
 
+  override def bomModuleDeps: Seq[BomModule with PublishModule] = super.bomModuleDeps.map {
+    case m: BomModule with PublishModule => m
+    case other =>
+      throw new Exception(
+        s"PublishModule bomModuleDeps need to be also PublishModules. $other is not a PublishModule"
+      )
+  }
+
   /**
    * The packaging type. See [[PackagingType]] for specially handled values.
    */
