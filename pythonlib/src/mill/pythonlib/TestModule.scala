@@ -74,7 +74,7 @@ object TestModule {
         (
           // format: off
           "-m", "pytest",
-          "-o", s"cache_dir=${Task.dest / "cache"}",
+          "-o", s"cache_dir=${Task.dest / "cache"}", "-v",
           sources().map(_.path),
           args()
           // format: in
