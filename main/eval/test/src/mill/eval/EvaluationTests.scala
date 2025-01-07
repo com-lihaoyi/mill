@@ -228,6 +228,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         val overridden = os.read(
           checker.evaluator.outPath / "foo.super/BaseModule.json"
         )
+        throw new Exception("boom")
         assert(
           public.contains("base"),
           public.contains("object"),
