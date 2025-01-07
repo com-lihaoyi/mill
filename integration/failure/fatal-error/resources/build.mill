@@ -1,0 +1,23 @@
+package build
+import mill._
+
+def fatalException(msg: String) = {
+  // Needs to be a fatal error according to scala.util.control.NonFatal,
+  // not just any error!
+  val ex = new java.lang.LinkageError(msg)
+  assert(!scala.util.control.NonFatal.apply(ex))
+  ex
+}
+def fatalTask = Task{
+  throw fatalException("CUSTOM FATAL ERROR IN TASK")
+  123
+}
+
+def alwaysInvalidates = Task.Input(math.random())
+def fatalCloseWorker = Task.Worker{
+  alwaysInvalidates()
+  new AutoCloseable {
+    override def close(): Unit =
+      throw fatalException("CUSTOM FATAL ERROR ON CLOSE")
+  }
+}

@@ -27,7 +27,7 @@ To see a cheat sheet of all the command line flags that Mill supports, you can u
 
 ```scala
 $ ./mill --help
-Mill Build Tool, version 0.12.0
+Mill Build Tool, version 0.12.5-13-0e02e6
 Usage: mill [options] task [task-options] [+ task ...]
 
 task cheat sheet:
@@ -60,6 +60,7 @@ options:
   -b --bell            Ring the bell once if the run completes successfully, twice if it fails.
   --bsp                Enable BSP server mode.
   --color <bool>       Toggle colored output; by default enabled only if the console is interactive
+                       and NO_COLOR environment variable is not set
   -d --debug           Show debug output on STDOUT
   --disable-callgraph  Disables fine-grained invalidation of tasks based on analyzing code changes.
                        If passed, you need to manually run `clean` yourself after build changes.
@@ -144,7 +145,11 @@ Example: Use up to 4 parallel threads to compile all modules:
 mill -j4 __.compile
 ----
 
-
+You can also set Mill's parallelism to some multiple of the number of cores, e.g.
+`-j0.5C` to use half as many threads as cores, or `-j2C` to use twice as many threads as cores.
+These can be useful as xref:_repo_level_mill_options[] to configure an appropriate level
+of parallelism that scales based on the number of cores available (which might differ
+between e.g. developer laptops and CI machines)
 
 Every `mill` run generates an output file in `out/mill-chrome-profile.json` that can be
 loaded into the Chrome browser's `chrome://tracing` page for visualization.
