@@ -636,7 +636,6 @@ import mill.javalib.android.{AndroidSdkModule, AndroidAppModule, AndroidLintRepo
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object androidSdkModule0 extends AndroidSdkModule {
   def buildToolsVersion = &quot;35.0.0&quot;
-  def bundleToolVersion = &quot;1.17.2&quot;
 }</code></pre>
 </div>
 </div>
@@ -647,7 +646,7 @@ import mill.javalib.android.{AndroidSdkModule, AndroidAppModule, AndroidLintRepo
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object app extends AndroidAppModule {
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
-  override def releaseKeyPath = millSourcePath
+  def androidCompileSdk = 35
 
   // Set path to the custom `lint.xml` config file. It is usually at the root of the project
   def androidLintConfigPath = Task { Some(PathRef(millSourcePath / &quot;lint.xml&quot;)) }
