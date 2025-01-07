@@ -2,6 +2,7 @@ package mill.runner.client;
 
 import static mill.main.client.OutFiles.*;
 
+import io.github.alexarchambault.windowsansi.WindowsAnsi;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -218,9 +219,16 @@ public class MillProcessLauncher {
     String str;
 
     try {
-      if (!Util.hasConsole()) str = "0 0";
+      if (java.lang.System.console() == null) str = "0 0";
       else {
-        if (!tputExists) {
+        if (isWin()) {
+
+          WindowsAnsi.Size size = WindowsAnsi.terminalSize();
+          int width = size.getWidth();
+          int height = size.getHeight();
+          str = width + " " + height;
+          mill.main.client.DebugLog.println(str);
+        } else if (!tputExists) {
           // Hardcoded size of a quarter screen terminal on 13" windows laptop
           str = "78 24";
         } else {
