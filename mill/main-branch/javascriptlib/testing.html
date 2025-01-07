@@ -238,6 +238,10 @@
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
 </ul>
   </li>
 
@@ -709,6 +713,106 @@ PASS .../bar.test.ts
 ...
 Test Suites:...1 passed, 1 total...
 Tests:...2 passed, 2 total...
+...</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_integration_suite_with_cypress"><a class="anchor" href="#_integration_suite_with_cypress"></a>Integration Suite with Cypress</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-javascriptlib-testing-3-integration-suite-cypress.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javascriptlib/testing/3-integration-suite-cypress">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill._, javascriptlib._
+
+object client extends ReactScriptsModule
+
+object server extends TypeScriptModule {
+
+  def npmDeps =
+    Seq(&quot;@types/cors@^2.8.17&quot;, &quot;@types/express@^5.0.0&quot;, &quot;cors@^2.8.5&quot;, &quot;express@^4.21.1&quot;)
+
+  /** Bundle client as resource */
+  def resources = Task {
+    os.copy(client.bundle().path, Task.dest / &quot;build&quot;)
+    super.resources() ++ Seq(PathRef(Task.dest))
+  }
+
+  override def forkEnv = super.forkEnv() + (&quot;PORT&quot; -&gt; &quot;4000&quot;)
+
+  object test extends TypeScriptTests with TestModule.Cypress {
+    def service = server
+    def port = &quot;4000&quot;
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Documentation for mill.example.javascriptlib
+In this example we demonstrate integration testing using cypress
+<code>mill server.test</code> will start the service on the speicifed port, run tests with configurations defined in cypress.config.ts
+and kill the service once completed</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill server.test
+...
+...Server listening on port 4000
+... app.cy.ts...
+... All specs passed!...
+...</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_integration_suite_with_playwright"><a class="anchor" href="#_integration_suite_with_playwright"></a>Integration Suite with PlayWright</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-javascriptlib-testing-3-integration-suite-playwright.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javascriptlib/testing/3-integration-suite-playwright">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill._, javascriptlib._
+
+object client extends ReactScriptsModule
+
+object server extends TypeScriptModule {
+
+  def npmDeps =
+    Seq(&quot;@types/cors@^2.8.17&quot;, &quot;@types/express@^5.0.0&quot;, &quot;cors@^2.8.5&quot;, &quot;express@^4.21.1&quot;)
+
+  /** Bundle client as resource */
+  def resources = Task {
+    os.copy(client.bundle().path, Task.dest / &quot;build&quot;)
+    super.resources() ++ Seq(PathRef(Task.dest))
+  }
+
+  def forkEnv = super.forkEnv() + (&quot;PORT&quot; -&gt; &quot;3000&quot;)
+
+  object test extends TypeScriptTests with TestModule.PlayWright {
+    def service = server
+    def port = &quot;6000&quot;
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Documentation for mill.example.javascriptlib
+In this example we demonstrate integration testing using playwright
+<code>mill server.test</code> will start the service on the speicifed port, run tests with configurations defined in playwright.config.ts
+and kill the service once completed</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill server.test
+...
+...Server listening on port 6000
+...
+...1 passed...
 ...</code></pre>
 </div>
 </div>
