@@ -354,6 +354,46 @@ endif::[]
 // find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
 
 
+[#0-12-5]
+=== 0.12.5 - 2025-01-01
+:version: 0.12.5
+:milestone-name: 0.12.5
+:milestone: 108
+:prev-version: 0.12.4
+
+* Optimize Mill startup overhead by not blocking on stdin {link-pr}/4159[#4159]
+
+* Fix system console detection on JDK >=22 {link-pr}/4178[#4178]
+
+* Fix thread leak when spawning JVM subprocesses, which caused instability and unresponsiveness
+  in long-lived Mill processes {link-pr}/4185[#4185]
+
+* Fix crash in `mill -i` on Windows ARM64 {link-pr}/4196[#4196]
+
+* Fix log rendering in terminals where `\t` does not clear existing text {link-pr}/4173[#4173]
+
+* Fix generation of unnecessary `rt.jar` files in home folder {link-pr}/4206[#4206]
+
+* Addition of several experimental language toolchains, to support using Mill to build
+  projects in other languages
+
+** https://mill-build.org/mill/main-branch/pythonlib/intro.html[Experimental Python Support]
+
+** https://mill-build.org/mill/main-branch/javascriptlib/intro.html[Experimental Javascript/Typescript Support]
+
+* Lots of doc improvements:
+
+** Overhaul of https://mill-build.org/mill/depth/execution-model.html[The Mill Execution Model]
+   {link-pr}/4156[#4156]
+
+** Fix missing text in Java Module Configuration docs {link-pr}/4172[#4172]
+
+* New posts to the https://mill-build.org/blog/index.html[Mill Engineering Blog]:
+  https://mill-build.org/blog/1-java-compile.html[How Fast does Java Compile?],
+  https://mill-build.org/blog/2-monorepo-build-tool.html[Why Use a Monorepo Build Tool?],
+  https://mill-build.org/blog/3-selective-testing.html[Faster CI with Selective Testing],
+  and https://mill-build.org/blog/4-flaky-tests.html[How to Manage Flaky Tests],
+
 [#0-12-4]
 === 0.12.4 - 2024-12-16
 :version: 0.12.4
