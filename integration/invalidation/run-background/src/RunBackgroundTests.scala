@@ -38,15 +38,21 @@ object RunBackgroundTests extends UtestIntegrationTestSuite {
       eventually { probeLockAvailable(lock) }
     }
     test("clean") - integrationTest { tester =>
-      import tester._
-      val lock = os.temp()
-      val stop = os.temp()
-      os.remove(stop)
-      eval(("foo.runBackground", lock, stop))
-      eventually { !probeLockAvailable(lock) }
+      if (!mill.main.client.Util.isWindows) {
+        import tester._
+        val lock = os.temp()
+        val stop = os.temp()
+        os.remove(stop)
+        eval(("foo.runBackground", lock, stop))
+        eventually {
+          !probeLockAvailable(lock)
+        }
 
-      eval(("clean", "foo.runBackground"))
-      eventually { probeLockAvailable(lock) }
+        eval(("clean", "foo.runBackground"))
+        eventually {
+          probeLockAvailable(lock)
+        }
+      }
     }
   }
 }
