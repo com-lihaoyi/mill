@@ -63,7 +63,7 @@ object BspServerTestUtil {
         value,
         implicitly[ClassTag[T]].runtimeClass
       )
-      lazy val expectedJsonStr = expectedValueOpt match{
+      lazy val expectedJsonStr = expectedValueOpt match {
         case Some(v) => gson.toJson(v, implicitly[ClassTag[T]].runtimeClass)
         case None => ""
       }
@@ -75,9 +75,10 @@ object BspServerTestUtil {
           false,
           if (exists) {
             val diff = os.call((
-              "git", "diff",
-              os.temp(jsonStr, suffix = "jsonStr"),
-              os.temp(expectedJsonStr, suffix = "expectedJsonStr")
+              "git",
+              "diff",
+              os.temp(jsonStr, suffix = s"${snapshotPath.last}-jsonStr"),
+              os.temp(expectedJsonStr, suffix = s"${snapshotPath.last}-expectedJsonStr")
             ))
             s"""Error: value differs from snapshot in $snapshotPath
                |
