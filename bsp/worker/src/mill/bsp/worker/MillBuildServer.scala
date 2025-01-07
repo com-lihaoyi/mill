@@ -337,8 +337,13 @@ private class MillBuildServer(
       tasks = { case m: JavaModule =>
         Task.Anon {
           (
-            m.compileIvyDeps(),
-            m.mandatoryIvyDeps() ++ m.ivyDeps(),
+            // full list of dependencies, including transitive ones
+            m.defaultResolver().allDeps(
+              Seq(
+                m.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
+                m.coursierDependency
+              )
+            ),
             m.unmanagedClasspath()
           )
         }
@@ -349,14 +354,14 @@ private class MillBuildServer(
             state,
             id,
             m: JavaModule,
-            (compileIvyDeps, ivyDeps, unmanagedClasspath)
+            (ivyDeps, unmanagedClasspath)
           ) =>
-        val ivy = compileIvyDeps ++ ivyDeps
-        val deps = ivy.map { dep =>
-          // TODO: add data with "maven" data kind using a ...
+        val deps = ivyDeps.collect {
+          case dep if dep.module.organization != JavaModule.internalOrg =>
+            // TODO: add data with "maven" data kind using a ...
 //          MavenDependencyModule
 
-          new DependencyModule(dep.dep.module.repr, dep.dep.version)
+            new DependencyModule(dep.module.repr, dep.version)
         }
         val unmanaged = unmanagedClasspath.map { dep =>
           new DependencyModule(s"unmanaged-${dep.path.last}", "")
