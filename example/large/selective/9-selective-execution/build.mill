@@ -47,9 +47,35 @@ object bar extends MyModule
 
 object qux extends MyModule
 
+// ```graphviz
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   qux -> "qux.test"
+//   bar -> "bar.test"
+//   bar -> foo
+//   foo -> "foo.test"
+// }
+// ```
+//
+//
 // In this example, `qux.test` starts off failing with an error, while `foo.test` and
 // `bar.test` pass successfully. Normally, running `__.test` will run all three test
 // suites and show both successes and the one failure:
+//
+// ```graphviz
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   "qux.test" [color=red penwidth=2]
+//   qux -> "qux.test"
+//   bar -> "bar.test"
+//   bar -> foo
+//   foo -> "foo.test"
+//   "bar.test"  [color=red penwidth=2]
+//   "foo.test"  [color=red penwidth=2]
+// }
+// ```
 
 /** Usage
 
@@ -90,6 +116,24 @@ Test run bar.BarTests finished: 0 failed, 0 ignored, 1 total, ...
 
 */
 
+// As we only touched ``bar``'s source files, we only need to run tests for
+//
+//
+// ```graphviz
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   qux -> "qux.test"
+//   bar [color=red penwidth=2]
+//   bar -> "bar.test" [color=red penwidth=2]
+//   foo [color=red penwidth=2]
+//   bar -> foo [color=red penwidth=2]
+//   foo -> "foo.test" [color=red penwidth=2]
+//   "bar.test" [color=red penwidth=2]
+//   "foo.test" [color=red penwidth=2]
+// }
+// ```
+
 // Similarly, if we make a change `qux/`, using selective execution will only run tests
 // in `qux.test`, and skip those in `foo.test` and `bar.test`.
 // These examples all use `__.test` to selectively run tasks named `.test`, but you can
@@ -106,3 +150,5 @@ Test run bar.BarTests finished: 0 failed, 0 ignored, 1 total, ...
 // execution (e.g. perhaps you want to perform selective execution on pre-merge on pull
 // requests but not post-merge on the main branch)
 //
+// Although selective execution is most commonly used for testing, it is a general-purpose
+// tool that can be used to selectively run any Mill tasks based on the code that changed.

@@ -1,4 +1,4 @@
-= Selective Execution
+= Selective Test Execution
 
 include::partial$gtag-config.adoc[]
 
@@ -53,3 +53,26 @@ def myProjectVersion: T[String] = Task.Input {
   whether on disk locally or printing it out (e.g via `cat`) on your CI machines to diagnose issues
   there. This would give you a richer view of what source tasks or inputs are the ones actually
   triggered the invalidation, and what tasks were just invalidated due to being downstream of them.
+
+
+== Limitations
+
+* *Selective execution can only work at the Mill Task granularity*. e.g. When working with
+  Java/Scala/Kotlin modules and test modules, the granularity of selection is at entire modules.
+  That means that if your modules are individually large, selective execution may not be able
+  to significantly narrow down the set of tests that need to run
+
+* *Selective execution usually cannot narrow down the set of integration tests to run*. Integration
+  tests by their nature depend on the entire application or system, and run test cases that
+  exercise different parts of it. But selective execution works at the task level and can only
+  see that every integration test depends on the entire codebase, and so any change in the
+  entire codebase could potentially affect any integration test, so selective execution will
+  select all of them.
+
+* *Selective execution is coarser-grained than runtime task caching*. e.g. If you add a newline
+  to a `foo/src/Foo.java` file and run `foo.testCached`, selective testing only knows that
+  `foo.sources` changed and `foo.testCached` is downstream of it, but it cannot know that
+  when you run `foo.compile` on the changed sources, the compilation output is unchanged, and
+  so `.testCached` can be skipped. This is inherent in the nature of selective execution, which
+  does its analysis without evaluation-time information and thus will always be more conservative
+  than the task skipping and cache-reuse that is done during evaluation.

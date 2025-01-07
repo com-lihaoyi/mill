@@ -34,15 +34,15 @@ object Settings {
   // the last point version in each minor release series
   val legacyDocTags: Seq[String] = Seq(
     "0.9.12",
-    "0.10.15",
+    "0.10.15"
   )
   val docTags: Seq[String] = Seq(
     "0.11.13",
-    "0.12.3"
+    "0.12.5"
   )
   val mimaBaseVersions: Seq[String] =
     0.to(13).map("0.11." + _) ++
-    Seq("0.12.0", "0.12.1", "0.12.2", "0.12.3")
+      Seq("0.12.0", "0.12.1", "0.12.2", "0.12.3", "0.12.4", "0.12.5")
 }
 
 object Deps {
@@ -53,7 +53,7 @@ object Deps {
   val scalaVersion = "2.13.15"
   val scala2Version = "2.13.15"
   // The Scala 2.12.x version to use for some workers
-  val workerScalaVersion212 = "2.12.19"
+  val workerScalaVersion212 = "2.12.20"
 
   val testScala213Version = "2.13.15"
   // Scala Native 4.2 will not get releases for new Scala version
@@ -75,7 +75,7 @@ object Deps {
   }
 
   object Scalanative_0_5 {
-    val scalanativeVersion = "0.5.5"
+    val scalanativeVersion = "0.5.6"
     val scalanativeTools = ivy"org.scala-native::tools:${scalanativeVersion}"
     val scalanativeUtil = ivy"org.scala-native::util:${scalanativeVersion}"
     val scalanativeNir = ivy"org.scala-native::nir:${scalanativeVersion}"
@@ -103,10 +103,10 @@ object Deps {
     val playVersion = "2.8.22"
   }
   object Play_2_9 extends Play {
-    val playVersion = "2.9.5"
+    val playVersion = "2.9.6"
   }
   object Play_3_0 extends Play {
-    val playVersion = "3.0.5"
+    val playVersion = "3.0.6"
   }
   val play =
     Seq(Play_3_0, Play_2_9, Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
@@ -138,18 +138,19 @@ object Deps {
     ivy"com.caoccao.javet:javet-macos:4.0.0"
   )
 
-  val jline = ivy"org.jline:jline:3.27.1"
-  val jnaVersion = "5.15.0"
+  val jline = ivy"org.jline:jline:3.28.0"
+  val jnaVersion = "5.16.0"
+
   val jna = ivy"net.java.dev.jna:jna:${jnaVersion}"
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:${jnaVersion}"
 
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
-  val commonsIo = ivy"commons-io:commons-io:2.17.0"
-  val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.24.1"
+  val commonsIo = ivy"commons-io:commons-io:2.18.0"
+  val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.24.3"
   val osLib = ivy"com.lihaoyi::os-lib:0.11.4-M2"
   val pprint = ivy"com.lihaoyi::pprint:0.9.0"
   val mainargs = ivy"com.lihaoyi::mainargs:0.7.6"
-  val millModuledefsVersion = "0.11.1"
+  val millModuledefsVersion = "0.11.2"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = ivy"${millModuledefsString}"
   val millModuledefsPlugin =
@@ -165,51 +166,58 @@ object Deps {
   val scalacScoverage2Plugin = ivy"org.scoverage:::scalac-scoverage-plugin:${scoverage2Version}"
   val scalacScoverage2Reporter = ivy"org.scoverage::scalac-scoverage-reporter:${scoverage2Version}"
   val scalacScoverage2Domain = ivy"org.scoverage::scalac-scoverage-domain:${scoverage2Version}"
-  val scalacScoverage2Serializer = ivy"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
+  val scalacScoverage2Serializer =
+    ivy"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
   val scalaparse = ivy"com.lihaoyi::scalaparse:${fastparse.version}"
   val scalatags = ivy"com.lihaoyi::scalatags:0.12.0"
   def scalaXml = ivy"org.scala-lang.modules::scala-xml:2.3.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.11.0"
+  val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.12.3"
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.10.3"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.4.2"
   val upickle = ivy"com.lihaoyi::upickle:3.3.1"
-  val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.5"
-  val zinc = ivy"org.scala-sbt::zinc:1.10.4"
+  val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.6"
+  val zinc = ivy"org.scala-sbt::zinc:1.10.7"
   // keep in sync with doc/antora/antory.yml
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.2.0-M2"
   val fansi = ivy"com.lihaoyi::fansi:0.5.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.0"
   val requests = ivy"com.lihaoyi::requests:0.9.0"
-  val logback = ivy"ch.qos.logback:logback-classic:1.5.11"
+  val logback = ivy"ch.qos.logback:logback-classic:1.5.16"
   val sonatypeCentralClient = ivy"com.lumidion::sonatype-central-client-requests:0.3.0"
   val kotlinVersion = "2.0.21"
   val kotlinCompiler = ivy"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
   val mavenVersion = "3.9.9"
   val mavenEmbedder = ivy"org.apache.maven:maven-embedder:$mavenVersion"
   val mavenResolverVersion = "1.9.22"
-  val mavenResolverConnectorBasic = ivy"org.apache.maven.resolver:maven-resolver-connector-basic:$mavenResolverVersion"
-  val mavenResolverSupplier = ivy"org.apache.maven.resolver:maven-resolver-supplier:$mavenResolverVersion"
-  val mavenResolverTransportFile = ivy"org.apache.maven.resolver:maven-resolver-transport-file:$mavenResolverVersion"
-  val mavenResolverTransportHttp = ivy"org.apache.maven.resolver:maven-resolver-transport-http:$mavenResolverVersion"
-  val mavenResolverTransportWagon = ivy"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
+  val mavenResolverConnectorBasic =
+    ivy"org.apache.maven.resolver:maven-resolver-connector-basic:$mavenResolverVersion"
+  val mavenResolverSupplier =
+    ivy"org.apache.maven.resolver:maven-resolver-supplier:$mavenResolverVersion"
+  val mavenResolverTransportFile =
+    ivy"org.apache.maven.resolver:maven-resolver-transport-file:$mavenResolverVersion"
+  val mavenResolverTransportHttp =
+    ivy"org.apache.maven.resolver:maven-resolver-transport-http:$mavenResolverVersion"
+  val mavenResolverTransportWagon =
+    ivy"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
   val coursierJvmIndexVersion = "0.0.4-70-51469f"
 
   object RuntimeDeps {
-    val dokkaVersion = "1.9.20"
+    val dokkaVersion = "2.0.0"
     val koverVersion = "0.8.3"
 
     val detektCli = ivy"io.gitlab.arturbosch.detekt:detekt-cli:1.23.7"
-    val dokkaAnalysisDescriptors = ivy"org.jetbrains.dokka:analysis-kotlin-descriptors:$dokkaVersion"
+    val dokkaAnalysisDescriptors =
+      ivy"org.jetbrains.dokka:analysis-kotlin-descriptors:$dokkaVersion"
     val dokkaBase = ivy"org.jetbrains.dokka:dokka-base:$dokkaVersion"
     val dokkaCli = ivy"org.jetbrains.dokka:dokka-cli:$dokkaVersion"
     val errorProneCore = ivy"com.google.errorprone:error_prone_core:2.31.0"
-    val freemarker = ivy"org.freemarker:freemarker:2.3.33"
+    val freemarker = ivy"org.freemarker:freemarker:2.3.34"
     val jupiterInterface = ivy"com.github.sbt.junit:jupiter-interface:0.13.3"
-    val kotlinxHtmlJvm = ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.8.0"
+    val kotlinxHtmlJvm = ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"
     val koverCli = ivy"org.jetbrains.kotlinx:kover-cli:$koverVersion"
     val koverJvmAgent = ivy"org.jetbrains.kotlinx:kover-jvm-agent:$koverVersion"
-    val ktfmt = ivy"com.facebook:ktfmt:0.52"
+    val ktfmt = ivy"com.facebook:ktfmt:0.53"
     val ktlint = ivy"com.pinterest.ktlint:ktlint-core:0.49.1"
     val sbtTestInterface = ivy"com.github.sbt:junit-interface:0.13.2"
 
@@ -226,7 +234,7 @@ object Deps {
       koverJvmAgent,
       ktfmt,
       ktlint,
-      sbtTestInterface,
+      sbtTestInterface
     )
   }
 
@@ -235,8 +243,8 @@ object Deps {
     ivy"org.apache.ant:ant:1.10.15",
     Deps.commonsIo,
     ivy"com.google.code.gson:gson:2.11.0",
-    ivy"com.google.protobuf:protobuf-java:4.28.2",
-    ivy"com.google.guava:guava:33.3.1-jre",
+    ivy"com.google.protobuf:protobuf-java:4.29.2",
+    ivy"com.google.guava:guava:33.4.0-jre",
     ivy"org.yaml:snakeyaml:2.3",
     ivy"org.apache.commons:commons-compress:1.27.1"
   )
@@ -247,7 +255,7 @@ object Deps {
     val scalaCheck = ivy"org.scalacheck::scalacheck:1.18.1"
     val scalaTest = ivy"org.scalatest::scalatest:3.2.19"
     val utest = ivy"com.lihaoyi::utest:0.8.4"
-    val zioTest = ivy"dev.zio::zio-test:2.0.22"
+    val zioTest = ivy"dev.zio::zio-test:2.1.14"
   }
 
   /** Used in documentation. */
@@ -387,6 +395,14 @@ trait MillJavaModule extends JavaModule {
     Deps.jline,
     Deps.jna
   )
+
+  def javadocOptions = super.javadocOptions() ++ Seq(
+    // Disable warnings for missing documentation comments or tags (for example,
+    // a missing comment or class, or a missing @return tag or similar tag on a method).
+    // We have many methods without JavaDoc comments, so those warnings are useless
+    // and significantly clutter the output.
+    "-Xdoclint:all,-missing"
+  )
 }
 
 trait MillPublishJavaModule extends MillJavaModule with PublishModule {
@@ -488,6 +504,7 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
     // (5x) MIMA doesn't properly ignore things which are nested inside other private things
     // so we have to put explicit ignores here (https://github.com/lightbend/mima/issues/771)
     ProblemFilter.exclude[Problem]("mill.eval.ProfileLogger*"),
+    ProblemFilter.exclude[Problem]("mill.eval.ChromeProfileLogger*"),
     ProblemFilter.exclude[Problem]("mill.eval.GroupEvaluator*"),
     ProblemFilter.exclude[Problem]("mill.eval.EvaluatorCore*"),
     ProblemFilter.exclude[Problem]("mill.eval.Tarjans*"),
@@ -641,13 +658,11 @@ def formatDep(dep: Dep) = {
   s"${d.module.organization.value}:${d.module.name.value}:${d.version}"
 }
 
-
 def listIn(path: os.Path) = interp.watchValue(os.list(path).map(_.last))
 
 object idea extends MillPublishScalaModule {
   def moduleDeps = Seq(build.scalalib, build.runner)
 }
-
 
 private def resolveTasks[T](taskNames: String*): Seq[NamedTask[T]] = {
   mill.resolve.Resolve.Tasks.resolve(

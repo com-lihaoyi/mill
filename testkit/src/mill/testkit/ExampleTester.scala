@@ -104,7 +104,7 @@ class ExampleTester(
     val commandStr = commandStr0 match {
       case s"mill $rest" => s"./mill --disable-ticker $rest"
       case s"./mill $rest" => s"./mill --disable-ticker $rest"
-      case s"curl $rest" => s"curl --retry 5 --retry-all-errors $rest"
+      case s"curl $rest" => s"curl --retry 7 --retry-all-errors $rest"
       case s => s
     }
     Console.err.println(s"$workspacePath> $commandStr")

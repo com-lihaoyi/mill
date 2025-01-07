@@ -19,8 +19,8 @@ object qux extends TypeScriptModule {
 }
 
 // Documentation for mill.example.javascriptlib
-// This build defines two modules bar and foo with test suites configured to use
-// Mocha & Jest resepectively.
+// This build defines 4 modules bar, baz, foo & qux with test suites configured to use
+// Jest, Vitest, Mocaha & Jasmine respectively
 
 /** Usage
 

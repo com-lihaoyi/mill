@@ -354,6 +354,85 @@ endif::[]
 // find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
 
 
+[#0-12-5]
+=== 0.12.5 - 2025-01-01
+:version: 0.12.5
+:milestone-name: 0.12.5
+:milestone: 108
+:prev-version: 0.12.4
+
+* Optimize Mill startup overhead by not blocking on stdin {link-pr}/4159[#4159]
+
+* Fix system console detection on JDK >=22 {link-pr}/4178[#4178]
+
+* Fix thread leak when spawning JVM subprocesses, which caused instability and unresponsiveness
+  in long-lived Mill processes {link-pr}/4185[#4185]
+
+* Fix crash in `mill -i` on Windows ARM64 {link-pr}/4196[#4196]
+
+* Fix log rendering in terminals where `\t` does not clear existing text {link-pr}/4173[#4173]
+
+* Fix generation of unnecessary `rt.jar` files in home folder {link-pr}/4206[#4206]
+
+* Addition of several experimental language toolchains, to support using Mill to build
+  projects in other languages
+
+** https://mill-build.org/mill/main-branch/pythonlib/intro.html[Experimental Python Support]
+
+** https://mill-build.org/mill/main-branch/javascriptlib/intro.html[Experimental Javascript/Typescript Support]
+
+* Lots of doc improvements:
+
+** Overhaul of https://mill-build.org/mill/depth/execution-model.html[The Mill Execution Model]
+   {link-pr}/4156[#4156]
+
+** Fix missing text in Java Module Configuration docs {link-pr}/4172[#4172]
+
+* New posts to the https://mill-build.org/blog/index.html[Mill Engineering Blog]:
+  https://mill-build.org/blog/1-java-compile.html[How Fast does Java Compile?],
+  https://mill-build.org/blog/2-monorepo-build-tool.html[Why Use a Monorepo Build Tool?],
+  https://mill-build.org/blog/3-selective-testing.html[Faster CI with Selective Testing],
+  and https://mill-build.org/blog/4-flaky-tests.html[How to Manage Flaky Tests],
+
+[#0-12-4]
+=== 0.12.4 - 2024-12-16
+:version: 0.12.4
+:milestone-name: 0.12.4
+:milestone: 107
+:prev-version: 0.12.3
+
+* Mill now supports https://mill-build.org/mill/large/selective-execution.html[Selective Execution],
+  allowing you to run tests and other tasks only if they are downstream of a code change.
+  This can be used to greatly speed up pull-request validation and other CI workflows
+  by skipping unrelated tests that cannot possibly be broken by the code change in question
+
+* Mill now generates https://mill-build.org/mill/fundamentals/out-dir.html#_mill_dependency_tree_json[dependency-tree.json]
+  and https://mill-build.org/mill/main-branch/fundamentals/out-dir.html#_mill_invalidation_tree_json[invalidation-tree.json]
+  metadata for every run, which should help make it easier for a user to figure out why a task
+  is being selected and run.
+
+* Support for Bill-Of-Materials/Dependency-Management when downloading third-party JVM dependencies
+  (https://mill-build.org/mill/main-branch/javalib/dependencies.html#_dependency_management[Documentation])
+
+* Built-in support for `mill.bat` launcher to run Mill natively on a Windows environment
+  https://github.com/com-lihaoyi/mill/pull/4052[#4052]
+
+* Added documentation for https://mill-build.org/mill/migrating/migrating.html[Migrating to Mill],
+  to try and help people who may be trying to move their existing codebase onto Mill from other build tools
+
+* Significant speedups for task resolution logic https://github.com/com-lihaoyi/mill/pull/4132[#4132],
+  which should speed up cached-build workflows in particular
+
+* Improve precision of code signature task invalidation, reducing the amount of spurious
+  task invalidations in the presence of multi-file builds https://github.com/com-lihaoyi/mill/pull/4113[#4113]
+  https://github.com/com-lihaoyi/mill/pull/4116[#4116]
+
+* Reduced overhead of terminal prompt UI https://github.com/com-lihaoyi/mill/pull/4095[#4095]
+  https://github.com/com-lihaoyi/mill/pull/4110[#4110]
+
+* Launch of the https://mill-build.org/blog[Mill Build Engineering Blog], where we will post articles
+  discussing topics around JVM build tooling
+
 [#0-12-3]
 === 0.12.3 - 2024-11-24
 :version: 0.12.3

@@ -65,6 +65,11 @@ abstract class Server[T](
         ) ()
         serverLog("server loop ended")
       }.getOrElse(throw new Exception("Mill server process already present"))
+    } catch {
+      case e: Throwable =>
+        serverLog("server loop error: " + e)
+        serverLog("server loop stack trace: " + e.getStackTrace.mkString("\n"))
+        throw e
     } finally {
       serverLog("finally exitServer")
       exitServer()
@@ -139,8 +144,8 @@ abstract class Server[T](
       else res
 
     } finally {
-      thread.interrupt()
       interrupt = false
+      thread.interrupt()
     }
   }
 

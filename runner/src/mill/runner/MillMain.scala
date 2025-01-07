@@ -6,11 +6,10 @@ import java.nio.file.StandardOpenOption
 import java.util.Locale
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
-import mill.java9rtexport.Export
 import mill.api.{MillException, SystemStreams, WorkspaceRoot, internal}
 import mill.bsp.{BspContext, BspServerResult}
 import mill.main.BuildInfo
-import mill.main.client.{OutFiles, ServerFiles}
+import mill.main.client.{OutFiles, ServerFiles, Util}
 import mill.main.client.lock.Lock
 import mill.util.{Colors, PrintLogger, PromptLogger}
 
@@ -68,7 +67,7 @@ object MillMain {
         (initialSystemStreams, Seq(), None)
       }
 
-    if (Properties.isWin && System.console() != null)
+    if (Properties.isWin && Util.hasConsole())
       io.github.alexarchambault.windowsansi.WindowsAnsi.setup()
 
     val (result, _) =
@@ -163,7 +162,8 @@ object MillMain {
             (false, RunnerState.empty)
 
           case Right(config) =>
-            val colored = config.color.getOrElse(mainInteractive)
+            val noColorViaEnv = env.get("NO_COLOR").exists(_.nonEmpty)
+            val colored = config.color.getOrElse(mainInteractive && !noColorViaEnv)
             val colors = if (colored) mill.util.Colors.Default else mill.util.Colors.BlackWhite
 
             if (!config.silent.value) {
@@ -195,16 +195,6 @@ object MillMain {
 
                 val threadCount = Some(maybeThreadCount.toOption.get)
 
-                if (mill.main.client.Util.isJava9OrAbove) {
-                  val rt = config.home / Export.rtJarName
-                  if (!os.exists(rt)) {
-                    streams.err.println(
-                      s"Preparing Java ${System.getProperty("java.version")} runtime; this may take a minute or two ..."
-                    )
-                    Export.rtTo(rt.toIO, false)
-                  }
-                }
-
                 val bspContext =
                   if (bspMode) Some(new BspContext(streams, bspLog, config.home)) else None
 
@@ -233,7 +223,7 @@ object MillMain {
                       watch = config.watch.value,
                       streams = streams,
                       setIdle = setIdle,
-                      evaluate = (prevState: Option[RunnerState]) => {
+                      evaluate = (enterKeyPressed: Boolean, prevState: Option[RunnerState]) => {
                         adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
 
                         withOutLock(
@@ -256,6 +246,9 @@ object MillMain {
                             colored = colored,
                             colors = colors
                           )) { logger =>
+                            // Enter key pressed, removing mill-selective-execution.json to
+                            // ensure all tasks re-run even though no inputs may have changed
+                            if (enterKeyPressed) os.remove(out / OutFiles.millSelectiveExecution)
                             SystemStreams.withStreams(logger.systemStreams) {
                               tailManager.withOutErr(logger.outputStream, logger.errorStream) {
                                 new MillBuildBootstrap(

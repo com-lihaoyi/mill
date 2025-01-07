@@ -12,7 +12,7 @@ trait RsWithServeModule extends ReactScriptsModule {
   def run: Target[CommandResult] = Task {
     val compiled = compile()._1.path
     val build = bundle().path
-    val env = mkENV()
+    val env = forkEnv()
     os.call(
       (
         (compiled / "node_modules" / "serve" / "bin" / "serve.js").toString,
