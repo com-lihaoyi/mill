@@ -21,16 +21,14 @@ jobs:
     continue-on-error: false
     timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: .
+          name: ${{ inputs.os }}-artifact
 
       - uses: ./.github/actions/post-build-setup
         with:
           java-version: ${{ inputs.java-version }}
           os: ${{ inputs.os }}
-
-      - uses: actions/download-artifact@v4
-        with:
-          path: .
-          name: ${{ inputs.os }}-artifact
 
       - run: ${{ inputs.buildcmd }}

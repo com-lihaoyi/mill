@@ -1,0 +1,22 @@
+= Typescript Library Dependencies
+
+include::partial$gtag-config.adoc[]
+
+This page goes into more detail about configuring third party dependencies
+for `TypescriptModule`s.
+
+== Adding Dependencies
+
+include::partial$example/javascriptlib/dependencies/1-npm-deps.adoc[]
+
+== Unmanaged Packages
+
+include::partial$example/javascriptlib/dependencies/2-unmanaged-packages.adoc[]
+
+== Downloading Unmanaged Packages
+
+include::partial$example/javascriptlib/dependencies/3-downloading-unmanaged-packages.adoc[]
+
+== Using Custom or Private Registries
+
+include::partial$example/javascriptlib/dependencies/4-repository-config.adoc[]

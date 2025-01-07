@@ -224,7 +224,7 @@ object SemanticDbJavaModule {
 
     // copy over all found semanticdb-files into the target directory
     // but with corrected directory layout
-    os.walk(classesDir, preOrder = true)
+    if (os.exists(classesDir)) os.walk(classesDir, preOrder = true)
       .filter(os.isFile)
       .foreach { p =>
         if (p.ext == "semanticdb") {
