@@ -2,6 +2,7 @@ package mill.runner.client;
 
 import static mill.main.client.OutFiles.*;
 
+import io.github.alexarchambault.windowsansi.WindowsAnsi;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -217,19 +218,27 @@ public class MillProcessLauncher {
   static void writeTerminalDims(boolean tputExists, Path serverDir) throws Exception {
     String str;
 
-    try {
-      if (!Util.hasConsole()) str = "0 0";
-      else {
-        if (!tputExists) {
-          // Hardcoded size of a quarter screen terminal on 13" windows laptop
-          str = "78 24";
-        } else {
-          str = getTerminalDim("cols", true) + " " + getTerminalDim("lines", true);
-        }
+      try {
+          if (java.lang.System.console() == null) str = "0 0";
+          else {
+              if (isWin()) {
+
+                  WindowsAnsi.Size size = WindowsAnsi.terminalSize();
+                  int width = size.getWidth();
+                  int height = size.getHeight();
+                  str = width + " " + height;
+                  mill.main.client.DebugLog.println(str);
+              } else if (!tputExists) {
+                  // Hardcoded size of a quarter screen terminal on 13" windows laptop
+                  str = "78 24";
+              } else {
+                  str = getTerminalDim("cols", true) + " " + getTerminalDim("lines", true);
+              }
+          }
+      } catch (Exception e) {
+          str = "0 0";
       }
-    } catch (Exception e) {
-      str = "0 0";
-    }
+
 
     // We memoize previously seen values to avoid causing lots
     // of upstream work if the value hasn't actually changed.
