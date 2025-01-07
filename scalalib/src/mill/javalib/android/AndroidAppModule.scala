@@ -810,7 +810,7 @@ trait AndroidAppModule extends JavaModule {
    *
    * @return The log line that indicates the emulator is ready
    */
-  def startAndroidEmulator: T[Option[String]] = Task {
+  def startAndroidEmulator: T[String] = Task {
     val ciSettings = Seq(
       "-no-snapshot-save",
       "-no-window",
@@ -848,7 +848,11 @@ trait AndroidAppModule extends JavaModule {
 
     T.log.info(s"Emulator started with message $bootMessage")
 
-    bootMessage
+    bootMessage.get
+  }
+
+  def adbDevices: T[String] = Task {
+    os.call((androidSdkModule().adbPath().path, "devices", "-l")).out.text()
   }
 
   def waitForDevice: Target[String] = Task {

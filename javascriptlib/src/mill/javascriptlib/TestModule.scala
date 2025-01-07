@@ -41,6 +41,12 @@ object TestModule {
     def getPathToTest: T[String] = Task { compile()._2.path.toString }
   }
 
+  trait IntegrationSuite extends TypeScriptModule {
+    def service: TypeScriptModule
+
+    def port: T[String]
+  }
+
   trait Jest extends TypeScriptModule with Shared with TestModule {
     override def npmDevDeps: T[Seq[String]] = Task {
       Seq(
@@ -269,4 +275,139 @@ object TestModule {
     }
 
   }
+
+  trait Cypress extends TypeScriptModule with IntegrationSuite with TestModule {
+    override def npmDevDeps: T[Seq[String]] = Task {
+      Seq(
+        "cypress@13.17.0"
+      )
+    }
+
+    def testConfigSource: T[PathRef] =
+      Task.Source(Task.workspace / "cypress.config.ts")
+
+    override def compilerOptions: T[Map[String, ujson.Value]] =
+      Task {
+        super.compilerOptions() + (
+          "target" -> ujson.Str("ES5"),
+          "module" -> ujson.Str("ESNext"),
+          "moduleResolution" -> ujson.Str("Node"),
+          "skipLibCheck" -> ujson.Bool(true),
+          "types" -> ujson.Arr(
+            s"${npmInstall().path}/node_modules/cypress/types"
+          )
+        )
+      }
+
+    private def mkConfig: Task[TestResult] = Task {
+      val tsc = npmInstall().path / "node_modules/.bin/tsc"
+      os.call((
+        tsc,
+        testConfigSource().path.toString,
+        "--outDir",
+        compile()._1.path,
+        "--target",
+        "ES2020",
+        "--module",
+        "CommonJS",
+        "--esModuleInterop"
+      ))
+      ()
+    }
+
+    override def forkEnv: T[Map[String, String]] =
+      Task {
+        Map("NODE_PATH" -> Seq(
+          npmInstall().path,
+          npmInstall().path / "node_modules"
+        ).mkString(":"))
+      }
+
+    private def runTest: T[TestResult] = Task {
+      val mainFile = service.mainFilePath()
+      val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
+      val tsconfigpaths = npmInstall().path / "node_modules/tsconfig-paths/register"
+      val port_ = port()
+      val env = service.forkEnv() + ("PORT" -> port_)
+
+      val serviceProcess = os.proc("node", tsnode, "-r", tsconfigpaths, mainFile).spawn(
+        stdout = os.Inherit,
+        env = env,
+        cwd = service.compile()._1.path
+      )
+
+      mkConfig()
+      val cypress = npmInstall().path / "node_modules/.bin/cypress"
+      os.call(
+        (
+          cypress,
+          "run"
+        ),
+        stdout = os.Inherit,
+        env = forkEnv(),
+        cwd = compile()._1.path
+      )
+
+      serviceProcess.destroy()
+    }
+
+    protected def testTask(args: Task[Seq[String]]): Task[TestResult] = Task.Anon {
+      runTest()
+    }
+
+  }
+
+  trait PlayWright extends TypeScriptModule with IntegrationSuite with TestModule {
+    override def npmDevDeps: T[Seq[String]] = Task {
+      super.npmDevDeps() ++ Seq(
+        "playwright@1.49.0",
+        "@playwright/test@1.49.0",
+        "glob@10.4.5"
+      )
+    }
+
+    def testConfigSource: T[PathRef] =
+      Task.Source(Task.workspace / "playwright.config.ts")
+
+    private def copyConfig: Task[TestResult] = Task.Anon {
+      os.copy.over(
+        testConfigSource().path,
+        compile()._1.path / "playwright.config.ts"
+      )
+    }
+
+    private def runTest: T[TestResult] = Task {
+      val mainFile = service.mainFilePath()
+      val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
+      val tsconfigpaths = npmInstall().path / "node_modules/tsconfig-paths/register"
+      val port_ = port()
+      val env = service.forkEnv() + ("PORT" -> port_)
+
+      val serviceProcess = os.proc("node", tsnode, "-r", tsconfigpaths, mainFile).spawn(
+        stdout = os.Inherit,
+        env = env,
+        cwd = service.compile()._1.path
+      )
+
+      copyConfig()
+      os.call(
+        (
+          "node",
+          npmInstall().path / "node_modules/.bin/playwright",
+          "test"
+        ),
+        stdout = os.Inherit,
+        env = forkEnv(),
+        cwd = compile()._1.path
+      )
+
+      serviceProcess.destroy()
+    }
+
+    protected def testTask(args: Task[Seq[String]]): Task[TestResult] = Task.Anon {
+      runTest()
+    }
+
+  }
+
 }
