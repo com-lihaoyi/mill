@@ -1645,10 +1645,10 @@ object JavaModule {
 }
 
 /**
-  * A module that consists solely of dependency management
-  *
-  * To be used by other modules via `JavaModule#bomModuleDeps`
-  */
+ * A module that consists solely of dependency management
+ *
+ * To be used by other modules via `JavaModule#bomModuleDeps`
+ */
 trait BomModule extends JavaModule {
   def compile: T[CompilationResult] = Task {
     val sources = allSourceFiles()
