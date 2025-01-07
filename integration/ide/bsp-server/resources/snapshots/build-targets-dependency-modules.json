@@ -8,6 +8,10 @@
         {
           "name": "org.jetbrains.kotlin:kotlin-stdlib",
           "version": "<kotlin-version>"
+        },
+        {
+          "name": "org.jetbrains:annotations",
+          "version": "13.0"
         }
       ]
     },
