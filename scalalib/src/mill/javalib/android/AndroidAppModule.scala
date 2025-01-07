@@ -784,7 +784,7 @@ trait AndroidAppModule extends JavaModule {
       "--device",
       androidDeviceId,
       "--force"
-    ))
+    ), stdin = os.InheritRaw, stdout = os.InheritRaw)
     if (command.exitCode != 0) {
       T.log.error(s"Failed to create android virtual device: ${command.err.text()}")
       throw new Exception(s"Failed to create android virtual device: ${command.exitCode}")
@@ -810,7 +810,7 @@ trait AndroidAppModule extends JavaModule {
    *
    * @return The log line that indicates the emulator is ready
    */
-  def startAndroidEmulator: T[Option[String]] = Task {
+  def startAndroidEmulator() = Task.Command {
     val ciSettings = Seq(
       "-no-snapshot-save",
       "-no-window",
@@ -827,6 +827,7 @@ trait AndroidAppModule extends JavaModule {
     val command = Seq(
       androidSdkModule().emulatorPath().path.toString(),
       "-delay-adb",
+      "-verbose",
       "-port",
       androidEmulatorPort
     ) ++ settings ++ Seq("-avd", androidVirtualDeviceIdentifier)
@@ -834,7 +835,8 @@ trait AndroidAppModule extends JavaModule {
     T.log.debug(s"Starting emulator with command ${command.mkString(" ")}")
 
     val startEmuCmd = os.spawn(
-      command
+      command, stdin = os.InheritRaw,
+      destroyOnExit = false
     )
 
     val bootMessage = startEmuCmd.stdout.buffered.lines().filter(l => {
@@ -851,14 +853,16 @@ trait AndroidAppModule extends JavaModule {
     bootMessage
   }
 
-  def waitForDevice: Target[String] = Task {
+  def waitForDevice() = Task.Command {
     val emulator = runningEmulator()
+    System.err.println("Running first command")
     os.call((
       androidSdkModule().adbPath().path,
       "-s",
       emulator,
       "wait-for-device"
-    ))
+    ), stdin = os.InheritRaw, stdout = os.InheritRaw)
+    System.err.println("Running second command")
     val bootflag = os.call(
       (
         androidSdkModule().adbPath().path,
@@ -867,7 +871,9 @@ trait AndroidAppModule extends JavaModule {
         "shell",
         "getprop",
         "sys.boot_completed"
-      )
+      ),
+      stdin = os.InheritRaw,
+      stdout = os.InheritRaw
     )
 
     T.log.info(s"$emulator, bootflag is $bootflag")
@@ -878,7 +884,7 @@ trait AndroidAppModule extends JavaModule {
   /**
    * Stops the android emulator
    */
-  def stopAndroidEmulator: T[String] = Task {
+  def stopAndroidEmulator() = Task.Command {
     val emulator = runningEmulator()
     os.call(
       (androidSdkModule().adbPath().path, "-s", emulator, "emu", "kill")
