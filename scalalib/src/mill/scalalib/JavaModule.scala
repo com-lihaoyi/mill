@@ -428,11 +428,11 @@ trait JavaModule
     // where eval'ing a Task would be impractical or not allowed
     cs.Dependency(
       cs.Module(
-        coursier.core.Organization("mill-internal"),
+        JavaModule.internalOrg,
         coursier.core.ModuleName(millModuleSegments.parts.mkString("-")),
         Map.empty
       ),
-      "0+mill-internal"
+      JavaModule.internalVersion
     ).withConfiguration(cs.Configuration.compile)
 
   /**
@@ -1575,4 +1575,7 @@ object JavaModule {
       // Mill modules' artifacts are handled by Mill itself
       Nil
   }
+
+  private[mill] def internalOrg = coursier.core.Organization("mill-internal")
+  private[mill] def internalVersion = "0+mill-internal"
 }

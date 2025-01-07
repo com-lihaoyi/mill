@@ -275,6 +275,32 @@ object CoursierModule {
         )
       )
     }
+
+    /**
+     * All dependencies pulled by the passed dependencies
+     *
+     * @param deps root dependencies
+     * @return full - ordered - list of dependencies pulled by `deps`
+     */
+    def allDeps[T: CoursierModule.Resolvable](
+        deps: IterableOnce[T]
+    ): Seq[coursier.core.Dependency] = {
+      val deps0 = deps
+        .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
+        .iterator.toSeq
+      val res = Lib.resolveDependenciesMetadataSafe(
+        repositories = repositories,
+        deps = deps0,
+        mapDependencies = mapDependencies,
+        customizer = customizer,
+        coursierCacheCustomizer = coursierCacheCustomizer,
+        ctx = ctx,
+        resolutionParams = ResolutionParams(),
+        boms = Nil
+      ).getOrThrow
+
+      res.orderedDependencies
+    }
   }
 
   sealed trait Resolvable[T] {
