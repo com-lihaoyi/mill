@@ -214,7 +214,7 @@ object Deps {
     val errorProneCore = ivy"com.google.errorprone:error_prone_core:2.31.0"
     val freemarker = ivy"org.freemarker:freemarker:2.3.34"
     val jupiterInterface = ivy"com.github.sbt.junit:jupiter-interface:0.13.3"
-    val kotlinxHtmlJvm = ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.8.1"
+    val kotlinxHtmlJvm = ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"
     val koverCli = ivy"org.jetbrains.kotlinx:kover-cli:$koverVersion"
     val koverJvmAgent = ivy"org.jetbrains.kotlinx:kover-jvm-agent:$koverVersion"
     val ktfmt = ivy"com.facebook:ktfmt:0.53"
