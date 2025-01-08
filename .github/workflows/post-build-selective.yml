@@ -8,9 +8,9 @@ on:
       java-version:
         required: true
         type: string
-      use-graalvm:
-        default: false
-        type: boolean
+#      use-graalvm:
+#        default: false
+#        type: boolean
       os:
         default: 'ubuntu-latest'
         type: string
@@ -37,7 +37,7 @@ jobs:
         with:
           java-version: ${{ inputs.java-version }}
           os: ${{ inputs.os }}
-          use-graalvm: ${{ inputs.use-graalvm }}
+#          use-graalvm: ${{ inputs.use-graalvm }}
 
       - uses: actions/download-artifact@v4
         with:

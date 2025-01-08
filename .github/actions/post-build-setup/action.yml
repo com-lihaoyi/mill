@@ -10,9 +10,9 @@ inputs:
 
   os:
     type: string
-  use-graalvm:
-    default: false
-    type: boolean
+#  use-graalvm:
+#    default: false
+#    type: boolean
 runs:
   using: "composite"
   steps:
@@ -20,13 +20,13 @@ runs:
       with:
         java-version: ${{ inputs.java-version }}
         distribution: temurin
-      if: ${{ !inputs.use-graalvm }}
-
-    - uses: graalvm/setup-graalvm@v1
-      with:
-        java-version: ${{ inputs.java-version }}
-        distribution: graalvm-community
-      if: inputs.use-graalvm
+#      if: ${{ !inputs.use-graalvm }}
+#
+#    - uses: graalvm/setup-graalvm@v1
+#      with:
+#        java-version: ${{ inputs.java-version }}
+#        distribution: graalvm-community
+#      if: inputs.use-graalvm
 
     # Need to fix cached artifact file permissions because github actions screws it up
     # https://github.com/actions/upload-artifact/issues/38

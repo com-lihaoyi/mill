@@ -130,25 +130,25 @@ jobs:
           # the whole suite can take hours on windows v.s. half an hour on linux
           - java-version: 11
             millargs: '"{main,scalalib,bsp}.__.test"'
-            use-graalvm: false
+#            use-graalvm: false
           - java-version: 11
             millargs: '"example.scalalib.basic.__.fork.test"'
-            use-graalvm: true
+#            use-graalvm: true
           - java-version: 17
             millargs: "'integration.{feature,failure}[_].fork.test'"
-            use-graalvm: false
+#            use-graalvm: false
           - java-version: 11
             millargs: "'integration.invalidation[_].server.test'"
-            use-graalvm: false
+#            use-graalvm: false
           - java-version: 11
             millargs: "contrib.__.test"
-            use-graalvm: false
+#            use-graalvm: false
 
     uses: ./.github/workflows/post-build-selective.yml
     with:
       os: windows-latest
       java-version: ${{ matrix.java-version }}
-      use-graalvm: ${{ matrix.use-graalvm }}
+#      use-graalvm: ${{ matrix.use-graalvm }}
       millargs: ${{ matrix.millargs }}
 
   itest:
