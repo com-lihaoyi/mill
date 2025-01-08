@@ -572,9 +572,9 @@ object CoursierSupport {
         f.cancel(false)
       f = pool.scheduleWithFixedDelay(
         DependencyWatcher,
-        2L,
-        10L,
-        TimeUnit.MINUTES
+        30L,
+        600L,
+        TimeUnit.SECONDS
       )
     }
 
