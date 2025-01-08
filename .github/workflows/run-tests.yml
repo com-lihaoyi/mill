@@ -107,11 +107,11 @@ jobs:
             # These invalidation tests need to be exercised in both execution modes
             # to make sure they work with and without -i/--no-server being passed
           - java-version: 17
-            millargs: "'integration.invalidation.__.assembly.fork.test'"
+            millargs: "'integration.invalidation.__.packaged.fork.test'"
             install-android-sdk: false
 
           - java-version: 17
-            millargs: "'integration.invalidation.__.assembly.server.test'"
+            millargs: "'integration.invalidation.__.packaged.server.test'"
             install-android-sdk: false
 
           # Run some smoketests with Graal native image launcher
@@ -140,11 +140,11 @@ jobs:
           - java-version: 11
             millargs: '"{main,scalalib,bsp}.__.test"'
           - java-version: 11
-            millargs: '"example.scalalib.basic.__.assembly.fork.test"'
+            millargs: '"example.scalalib.basic.__.packaged.fork.test"'
           - java-version: 17
-            millargs: "'integration.{feature,failure}.__.assembly.fork.test'"
+            millargs: "'integration.{feature,failure}.__.packaged.fork.test'"
           - java-version: 11
-            millargs: "'integration.invalidation.__.assembly.server.test'"
+            millargs: "'integration.invalidation.__.packaged.server.test'"
           - java-version: 11
             millargs: "'integration.invalidation.__.native.server.test'"
           - java-version: 11
