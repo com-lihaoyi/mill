@@ -2,6 +2,62 @@
   "targets": [
     {
       "id": {
+        "uri": "file:///workspace/app"
+      },
+      "displayName": "app",
+      "baseDirectory": "file:///workspace/app",
+      "tags": [
+        "library",
+        "application"
+      ],
+      "languageIds": [
+        "java"
+      ],
+      "dependencies": [
+        {
+          "uri": "file:///workspace/lib"
+        }
+      ],
+      "capabilities": {
+        "canCompile": true,
+        "canTest": false,
+        "canRun": true,
+        "canDebug": false
+      },
+      "dataKind": "jvm",
+      "data": {
+        "javaHome": "file:///java-home/",
+        "javaVersion": "<java-version>"
+      }
+    },
+    {
+      "id": {
+        "uri": "file:///workspace/lib"
+      },
+      "displayName": "lib",
+      "baseDirectory": "file:///workspace/lib",
+      "tags": [
+        "library",
+        "application"
+      ],
+      "languageIds": [
+        "java"
+      ],
+      "dependencies": [],
+      "capabilities": {
+        "canCompile": true,
+        "canTest": false,
+        "canRun": true,
+        "canDebug": false
+      },
+      "dataKind": "jvm",
+      "data": {
+        "javaHome": "file:///java-home/",
+        "javaVersion": "<java-version>"
+      }
+    },
+    {
+      "id": {
         "uri": "file:///workspace/hello-java"
       },
       "displayName": "hello-java",
