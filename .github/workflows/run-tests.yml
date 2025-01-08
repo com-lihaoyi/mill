@@ -114,12 +114,13 @@ jobs:
             millargs: "'integration.invalidation.__.assembly.server.test'"
             install-android-sdk: false
 
+          # Run some smoketests with Graal native image launcher
           - java-version: 17
-            millargs: "'integration.invalidation.__.native.fork.test'"
+            millargs: "'example.javalib.__.native.server.test'"
             install-android-sdk: false
 
-          - java-version: 17
-            millargs: "'integration.invalidation.__.native.server.test'"
+          - java-version: '17'
+            millargs: "'integration.{failure,feature,ide}.__.native.server.test'"
             install-android-sdk: false
 
     uses: ./.github/workflows/post-build-selective.yml
@@ -141,11 +142,11 @@ jobs:
           - java-version: 11
             millargs: '"example.scalalib.basic.__.assembly.fork.test"'
           - java-version: 17
-            millargs: "'integration.{feature,failure}[_].assembly.fork.test'"
+            millargs: "'integration.{feature,failure}.__.assembly.fork.test'"
           - java-version: 11
-            millargs: "'integration.invalidation[_].assembly.server.test'"
+            millargs: "'integration.invalidation.__.assembly.server.test'"
           - java-version: 11
-            millargs: "'integration.invalidation[_].native.server.test'"
+            millargs: "'integration.invalidation.__.native.server.test'"
           - java-version: 11
             millargs: "contrib.__.test"
 

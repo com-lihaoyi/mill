@@ -69,13 +69,13 @@ object `package` extends RootModule {
     object local extends IntegrationLauncherModule {
       def millIntegrationLauncher = build.dist.launcher()
     }
-    object assembly extends IntegrationLauncherModule {
+    object packaged extends IntegrationLauncherModule {
       def millIntegrationLauncher = build.dist.assembly()
     }
     object native extends IntegrationLauncherModule {
       def millIntegrationLauncher = build.dist.nativeImage()
     }
-    trait IntegrationLauncherModule {
+    trait IntegrationLauncherModule extends Module {
       def millIntegrationLauncher: T[PathRef]
       object fork extends ModeModule{
         def millIntegrationLauncher = IntegrationLauncherModule.this.millIntegrationLauncher
