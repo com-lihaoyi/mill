@@ -347,7 +347,7 @@ object MillMain {
       colors: Colors
   ): mill.util.ColorLogger = {
 
-    val logger = if (config.disablePrompt.value) {
+    val logger = if (true || config.disablePrompt.value) {
       new mill.util.PrintLogger(
         colored = colored,
         enableTicker = enableTicker.getOrElse(mainInteractive),
