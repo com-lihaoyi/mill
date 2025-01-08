@@ -173,7 +173,7 @@ object MillMain {
             // special BSP mode, in which we spawn a server and register the current evaluator when-ever we start to eval a dedicated command
             val bspMode = config.bsp.value && config.leftoverArgs.value.isEmpty
             val maybeThreadCount =
-              parseThreadCount(config.threadCountRaw, Runtime.getRuntime.availableProcessors())
+              parseThreadCount(config.threadCountRaw, 6)
 
             val (success, nextStateCache) = {
               if (config.repl.value) {
