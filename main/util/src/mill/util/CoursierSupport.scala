@@ -145,6 +145,10 @@ trait CoursierSupport {
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams()
   ): Result[Agg[PathRef]] = {
+
+    DependencyWatcher.ref()
+    try {
+
     val resolutionRes = resolveDependenciesMetadataSafe(
       repositories,
       deps,
@@ -189,6 +193,10 @@ trait CoursierSupport {
             )
           )
       }
+    }
+    }
+    finally {
+      DependencyWatcher.unref()
     }
   }
 
@@ -531,6 +539,71 @@ object CoursierSupport {
         Result.Failure(msg, Some(Seq()))
       case Right(repos) =>
         Result.Success(repos)
+    }
+  }
+
+  private object DependencyWatcher extends Runnable {
+    import java.util.concurrent.atomic.AtomicInteger
+    import java.util.concurrent.Executors
+    import java.util.concurrent.ScheduledExecutorService
+    import java.util.concurrent.TimeUnit
+    import java.util.concurrent.ScheduledFuture
+    import java.util.Locale
+    import scala.jdk.CollectionConverters._
+
+    def run(): Unit = {
+      val stackTraces = Thread.getAllStackTraces()
+        .asScala
+        .toVector
+        .sortBy(_._1.getId)
+      for ((t, stackTrace) <- stackTraces) {
+        System.err.println(s"Thread ${t.getName} (${t.getId}, ${t.getState.toString.toLowerCase(Locale.ROOT)}${if (t.isDaemon()) ", daemon" else ""})")
+        for (elem <- stackTrace)
+          System.err.println(s"  $elem")
+        System.err.println()
+      }
+    }
+
+    private var pool: ScheduledExecutorService = null
+    private var f: ScheduledFuture[_] = null
+    private val count = new AtomicInteger
+
+    private def resetWatcher(): Unit = {
+      if (f != null)
+        f.cancel(false)
+      f = pool.scheduleWithFixedDelay(
+        DependencyWatcher,
+        2L,
+        10L,
+        TimeUnit.MINUTES
+      )
+    }
+
+    private def setup(): Unit = {
+      assert(pool == null)
+      pool = Executors.newSingleThreadScheduledExecutor()
+    }
+
+    private def tearDown(): Unit = {
+      assert(pool != null)
+      assert(f != null)
+      f.cancel(true)
+      f = null
+      pool.shutdown()
+      pool = null
+    }
+
+    def ref(): Unit = {
+      val prevCount = count.getAndIncrement()
+      if (prevCount == 0)
+        setup()
+      resetWatcher()
+    }
+
+    def unref(): Unit = {
+      val newCount = count.decrementAndGet()
+      if (newCount == 0)
+        tearDown()
     }
   }
 
