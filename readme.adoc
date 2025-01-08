@@ -83,8 +83,8 @@ The following table contains the main ways you can test the code in
 |===
 | Config | Automated Testing | Manual Testing | Manual Testing CI
 | In-Process Tests | `main.__.test`, `scalalib.test`, `contrib.buildinfo.test`, etc. |  |
-| Sub-Process w/o packaging/publishing| `example.\\__.local`, `integration.__.local` | `dist.run` | `test-mill-dev.sh`
-| Sub-Process w/ packaging/publishing | `example.\\__.server`, `integration.__.server` | `dist.assembly` | `test-mill-release.sh`
+| Sub-Process w/o packaging/publishing| `example.\\__.local.server`, `integration.__.local.server` | `dist.run` | `test-mill-dev.sh`
+| Sub-Process w/ packaging/publishing | `example.\\__.assembly.server`, `integration.__.assembly.server` | `dist.assembly` | `test-mill-release.sh`
 | Bootstrapping: Building Mill with your current checkout of Mill |  | `dist.installLocal` | `test-mill-bootstrap.sh`
 |===
 

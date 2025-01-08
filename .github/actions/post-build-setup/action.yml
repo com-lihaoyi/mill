@@ -10,6 +10,7 @@ inputs:
 
   os:
     type: string
+
 runs:
   using: "composite"
   steps:
