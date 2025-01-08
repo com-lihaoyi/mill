@@ -80,7 +80,8 @@ trait CoursierSupport {
         module: Module,
         version: String,
         fetch: Repository.Fetch[F]
-    ): EitherT[F, String, (ArtifactSource, Project)] =
+    ): EitherT[F, String, (ArtifactSource, Project)] = {
+      val res = try { scala.util.Success {
       EitherT.fromEither[F] {
         listFor(module)
           .left.map(e => s"No test override found at ${e.path}")
@@ -102,15 +103,26 @@ trait CoursierSupport {
               publications = Nil,
               info = Info.empty
             )
-            (this, proj)
+            (this: ArtifactSource, proj)
           }
       }
+      }}
+      catch {
+        case t: Throwable => scala.util.Failure(t)
+      }
+      if (res.isFailure) {
+        SystemStreams.originalErr.println(s"Caught $res")
+        res.failed.get.printStackTrace(SystemStreams.originalErr)
+      }
+      res.get
+    }
 
     def artifacts(
         dependency: Dependency,
         project: Project,
         overrideClassifiers: Option[Seq[Classifier]]
-    ): Seq[(Publication, Artifact)] =
+    ): Seq[(Publication, Artifact)] = {
+      val res = try { scala.util.Success {
       listFor(project.module)
         .toTry.get
         .linesIterator
@@ -127,6 +139,16 @@ trait CoursierSupport {
           (pub, art)
         }
         .toSeq
+      }}
+      catch {
+        case t: Throwable => scala.util.Failure(t)
+      }
+      if (res.isFailure) {
+        SystemStreams.originalErr.println(s"Caught $res")
+        res.failed.get.printStackTrace(SystemStreams.originalErr)
+      }
+      res.get
+    }
   }
 
   /**
