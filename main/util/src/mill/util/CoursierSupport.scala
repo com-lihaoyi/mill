@@ -19,6 +19,7 @@ import scala.util.chaining.scalaUtilChainingOps
 import coursier.cache.ArchiveCache
 import scala.util.control.NonFatal
 import mill.api.SystemStreams
+import coursier.cache.loggers.RefreshLogger
 
 trait CoursierSupport {
   import CoursierSupport._
@@ -32,7 +33,13 @@ trait CoursierSupport {
         coursierCacheCustomizer.fold(cache)(c => c.apply(cache))
       }
       .pipe { cache =>
-        ctx.fold(cache)(c => cache.withLogger(new TickerResolutionLogger(c)))
+        cache.withLogger(
+          RefreshLogger.create(
+            SystemStreams.originalErr,
+            RefreshLogger.defaultDisplay(fallbackMode = true, quiet = false),
+            logChanging = true
+          )
+        )
       }
 
   /**
