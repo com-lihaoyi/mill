@@ -543,7 +543,6 @@ object CoursierSupport {
   }
 
   private object DependencyWatcher extends Runnable {
-    import java.util.concurrent.atomic.AtomicInteger
     import java.util.concurrent.Executors
     import java.util.concurrent.ScheduledExecutorService
     import java.util.concurrent.TimeUnit
@@ -566,7 +565,7 @@ object CoursierSupport {
 
     private var pool: ScheduledExecutorService = null
     private var f: ScheduledFuture[_] = null
-    private val count = new AtomicInteger
+    private var count = 0
 
     private def resetWatcher(): Unit = {
       if (f != null)
@@ -593,16 +592,16 @@ object CoursierSupport {
       pool = null
     }
 
-    def ref(): Unit = {
-      val prevCount = count.getAndIncrement()
-      if (prevCount == 0)
+    def ref(): Unit = synchronized {
+      count += 1
+      if (count == 1)
         setup()
       resetWatcher()
     }
 
-    def unref(): Unit = {
-      val newCount = count.decrementAndGet()
-      if (newCount == 0)
+    def unref(): Unit = synchronized {
+      count -= 1
+      if (count == 0)
         tearDown()
     }
   }
