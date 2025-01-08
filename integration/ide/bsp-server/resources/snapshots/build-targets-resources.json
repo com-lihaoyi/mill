@@ -2,13 +2,13 @@
   "items": [
     {
       "target": {
-        "uri": "file:///workspace/hello-kotlin"
+        "uri": "file:///workspace/app"
       },
       "resources": []
     },
     {
       "target": {
-        "uri": "file:///workspace/hello-scala"
+        "uri": "file:///workspace/lib"
       },
       "resources": []
     },
@@ -20,13 +20,13 @@
     },
     {
       "target": {
-        "uri": "file:///workspace/app"
+        "uri": "file:///workspace/hello-kotlin"
       },
       "resources": []
     },
     {
       "target": {
-        "uri": "file:///workspace/lib"
+        "uri": "file:///workspace/hello-scala"
       },
       "resources": []
     },

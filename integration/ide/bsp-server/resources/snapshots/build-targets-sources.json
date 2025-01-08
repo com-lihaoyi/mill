@@ -2,11 +2,11 @@
   "items": [
     {
       "target": {
-        "uri": "file:///workspace/hello-kotlin"
+        "uri": "file:///workspace/app"
       },
       "sources": [
         {
-          "uri": "file:///workspace/hello-kotlin/src",
+          "uri": "file:///workspace/app/src",
           "kind": 2,
           "generated": false
         }
@@ -14,11 +14,11 @@
     },
     {
       "target": {
-        "uri": "file:///workspace/hello-scala"
+        "uri": "file:///workspace/lib"
       },
       "sources": [
         {
-          "uri": "file:///workspace/hello-scala/src",
+          "uri": "file:///workspace/lib/src",
           "kind": 2,
           "generated": false
         }
@@ -38,11 +38,11 @@
     },
     {
       "target": {
-        "uri": "file:///workspace/app"
+        "uri": "file:///workspace/hello-kotlin"
       },
       "sources": [
         {
-          "uri": "file:///workspace/app/src",
+          "uri": "file:///workspace/hello-kotlin/src",
           "kind": 2,
           "generated": false
         }
@@ -50,11 +50,11 @@
     },
     {
       "target": {
-        "uri": "file:///workspace/lib"
+        "uri": "file:///workspace/hello-scala"
       },
       "sources": [
         {
-          "uri": "file:///workspace/lib/src",
+          "uri": "file:///workspace/hello-scala/src",
           "kind": 2,
           "generated": false
         }

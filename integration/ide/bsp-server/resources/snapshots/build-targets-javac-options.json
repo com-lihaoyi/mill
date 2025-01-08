@@ -2,39 +2,6 @@
   "items": [
     {
       "target": {
-        "uri": "file:///workspace/hello-kotlin"
-      },
-      "options": [],
-      "classpath": [
-        "file:///coursier-cache/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/<kotlin-version>/kotlin-stdlib-<kotlin-version>.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/org/jetbrains/annotations/<annotations-version>/annotations-<annotations-version>.jar",
-        "file:///workspace/hello-kotlin/compile-resources"
-      ],
-      "classDirectory": "file:///workspace/out/hello-kotlin/compile.dest/classes"
-    },
-    {
-      "target": {
-        "uri": "file:///workspace/hello-scala"
-      },
-      "options": [],
-      "classpath": [
-        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
-        "file:///workspace/hello-scala/compile-resources"
-      ],
-      "classDirectory": "file:///workspace/out/hello-scala/compile.dest/classes"
-    },
-    {
-      "target": {
-        "uri": "file:///workspace/hello-java"
-      },
-      "options": [],
-      "classpath": [
-        "file:///workspace/hello-java/compile-resources"
-      ],
-      "classDirectory": "file:///workspace/out/hello-java/compile.dest/classes"
-    },
-    {
-      "target": {
         "uri": "file:///workspace/app"
       },
       "options": [],
@@ -59,6 +26,39 @@
         "file:///workspace/lib/compile-resources"
       ],
       "classDirectory": "file:///workspace/out/lib/compile.dest/classes"
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-java"
+      },
+      "options": [],
+      "classpath": [
+        "file:///workspace/hello-java/compile-resources"
+      ],
+      "classDirectory": "file:///workspace/out/hello-java/compile.dest/classes"
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-kotlin"
+      },
+      "options": [],
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/<kotlin-version>/kotlin-stdlib-<kotlin-version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/jetbrains/annotations/<annotations-version>/annotations-<annotations-version>.jar",
+        "file:///workspace/hello-kotlin/compile-resources"
+      ],
+      "classDirectory": "file:///workspace/out/hello-kotlin/compile.dest/classes"
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-scala"
+      },
+      "options": [],
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
+        "file:///workspace/hello-scala/compile-resources"
+      ],
+      "classDirectory": "file:///workspace/out/hello-scala/compile.dest/classes"
     }
   ]
 }
