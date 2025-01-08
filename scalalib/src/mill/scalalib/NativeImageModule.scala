@@ -35,6 +35,7 @@ trait NativeImageModule extends RunModule with WithZincWorker {
     val command = Seq.newBuilder[String]
       .+=(nativeImageTool().path.toString)
       .++=(nativeImageOptions())
+      .+=("--no-fallback")
       .++=(args)
       .+=("-cp")
       .+=(nativeImageClasspath().iterator.map(_.path).mkString(java.io.File.pathSeparator))

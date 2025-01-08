@@ -8,8 +8,7 @@ import $file.ci.upload
 
 import scala.util.{Properties, Using}
 
-// TODO extend NativeImageModule once available
-object `package` extends RootModule with build.MillPublishJavaModule {
+object `package` extends RootModule with build.MillPublishJavaModule with mill.scalalib.NativeImageModule{
 
   /**
    * Version of [[dist]] meant for local integration testing within the Mill
@@ -349,50 +348,23 @@ object `package` extends RootModule with build.MillPublishJavaModule {
     }
   }
 
+  def nativeImageExecutableName = if (Properties.isWin) "mill.exe" else "mill"
+  def mainClass = Some("mill.runner.client.MillClientMain")
   def nativeImage(args: String*): Command[PathRef] = Task.Command {
-    val dest = T.dest
-    val executableName = if (Properties.isWin) "mill.exe" else "mill"
-    val executable = Task.dest / executableName
-
-    Task.traverse(allPublishModules)(m => m.publishLocalCached)()
-    val assembly = super.assembly().path
-
-    val command = Seq.newBuilder[String]
-      .+=(nativeImageTool().path.toString)
-      .++=(Seq("-cp", assembly.toString))
-      // Workaround for Zinc/JNA bug
-      // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
-      .+=("-Djna.nosys=true")
-      .+=("--no-fallback")
-      .++=(args)
-      .+=("mill.runner.client.MillClientMain")
-      .+=(executableName)
-      .result()
-    os.proc(command).call(cwd = dest, stdout = os.Inherit)
+    val executable = Task.dest / nativeImageExecutableName()
 
     // concatenate executable and assembly as prescribed in:
     // https://github.com/com-lihaoyi/mill/issues/4007#issuecomment-2495933167
-    Using(os.write.append.outputStream(executable)) { out =>
+    Using(os.write.outputStream(executable)) { out =>
+      out.write(os.read.bytes(super.nativeImage(args:_*)().path))
       out.write(System.lineSeparator.getBytes)
-      out.write(os.read.bytes(assembly))
-      out.flush()
+      out.write(os.read.bytes(assembly().path))
     }
 
+    os.perms.set(executable, "rwxrwxrwx")
     PathRef(executable)
   }
 
-  def nativeImageTool: T[PathRef] = Task {
-    zincWorker().javaHome().map(_.path)
-      .orElse(sys.env.get("GRAALVM_HOME").map(os.Path(_))) match {
-      case Some(home) =>
-        val tool = if (Properties.isWin) "native-image.cmd" else "native-image"
-        val path = home / "bin" / tool
-        if (os.exists(path)) PathRef(path)
-        else throw new RuntimeException(s"$path not found")
-      case None =>
-        throw new RuntimeException("ZincWorkerModule.javaHome/GRAALVM_HOME not defined")
-    }
-  }
 
   def zincWorker = ModuleRef(ZincWorkerGraalvm)
 
