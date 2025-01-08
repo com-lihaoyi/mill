@@ -268,10 +268,22 @@ object CoursierModule {
       ).getOrThrow
 
       (
-        res.finalDependenciesCache.getOrElse(deps0.head.dep, ???),
+        res.finalDependenciesCache.getOrElse(
+          deps0.head.dep,
+          sys.error(
+            s"Should not happen - could not find root dependency ${deps0.head.dep} in Resolution#finalDependenciesCache"
+          )
+        ),
         DependencyManagement.addDependencies(
           Map.empty,
-          res.projectCache.get(deps0.head.dep.moduleVersion).getOrElse(???)._2.dependencyManagement
+          res.projectCache
+            .get(deps0.head.dep.moduleVersion)
+            .map(_._2.dependencyManagement)
+            .getOrElse {
+              sys.error(
+                s"Should not happen - could not find root dependency ${deps0.head.dep.moduleVersion} in Resolution#projectCache"
+              )
+            }
         )
       )
     }

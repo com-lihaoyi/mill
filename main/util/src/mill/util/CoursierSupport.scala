@@ -12,6 +12,8 @@ import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Reso
 import mill.api.Loose.Agg
 import mill.api.{Ctx, PathRef, Result}
 
+import java.util.concurrent.ConcurrentHashMap
+
 import scala.collection.mutable
 import scala.util.chaining.scalaUtilChainingOps
 import coursier.cache.ArchiveCache
@@ -39,17 +41,31 @@ trait CoursierSupport {
    * come from the build and not from remote repositories or ~/.ivy2/local. See
    * `MillJavaModule#{testTransitiveDeps,writeLocalTestOverrides}` in the Mill build.
    */
-  private class TestOverridesRepo(root: os.ResourcePath) extends Repository {
+  private final class TestOverridesRepo(root: os.ResourcePath) extends Repository {
+
+    private val map = new ConcurrentHashMap[Module, Option[String]]
 
     private def listFor(mod: Module): Either[os.ResourceNotFoundException, String] = {
-      val classpathKey = s"${mod.organization.value}-${mod.name.value}"
-      val entryPath = root / classpathKey
 
-      try Right(os.read(entryPath))
-      catch {
-        case e: os.ResourceNotFoundException =>
-          Left(e)
-      }
+      def entryPath = root / s"${mod.organization.value}-${mod.name.value}"
+
+      val inCacheOpt = Option(map.get(mod))
+
+      inCacheOpt
+        .getOrElse {
+
+          val computedOpt =
+            try Some(os.read(entryPath))
+            catch {
+              case _: os.ResourceNotFoundException =>
+                None
+            }
+          val concurrentOpt = Option(map.putIfAbsent(mod, computedOpt))
+          concurrentOpt.getOrElse(computedOpt)
+        }
+        .toRight {
+          new os.ResourceNotFoundException(entryPath)
+        }
     }
 
     def find[F[_]: Monad](
