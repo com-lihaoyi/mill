@@ -63,21 +63,31 @@ object BspServerTestUtil {
         value,
         implicitly[ClassTag[T]].runtimeClass
       )
+      lazy val expectedJsonStr = expectedValueOpt match {
+        case Some(v) => gson.toJson(v, implicitly[ClassTag[T]].runtimeClass)
+        case None => ""
+      }
       if (updateSnapshots) {
         System.err.println(if (exists) s"Updating $snapshotPath" else s"Writing $snapshotPath")
         os.write.over(snapshotPath, normalizeLocalValues(jsonStr), createFolders = true)
       } else {
-        System.err.println("Expected JSON:")
-        System.err.println(jsonStr)
         Predef.assert(
           false,
-          if (exists)
+          if (exists) {
+            val diff = os.call((
+              "git",
+              "diff",
+              os.temp(jsonStr, suffix = s"${snapshotPath.last}-jsonStr"),
+              os.temp(expectedJsonStr, suffix = s"${snapshotPath.last}-expectedJsonStr")
+            ))
             s"""Error: value differs from snapshot in $snapshotPath
                |
                |You might want to set BspServerTestUtil.updateSnapshots to true,
                |run this test again, and commit the updated test data files.
+               |
+               |$diff
                |""".stripMargin
-          else s"Error: no snapshot found at $snapshotPath"
+          } else s"Error: no snapshot found at $snapshotPath"
         )
       }
     } else if (updateSnapshots) {
