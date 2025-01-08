@@ -116,7 +116,7 @@ and do not exercise the Mill script-file bootstrapping, transformation, and comp
 
 === Sub-Process Tests *without* Packaging/Publishing
 
-`example.\\__.local` and `integration.__.local` tests run Mill end-to-end in a subprocess,
+`example.\\__.local.server` and `integration.__.local.server` tests run Mill end-to-end in a subprocess,
 but *without* the expensive/slow steps of packaging the core packages into an assembly jar
 and publishing the remaining packages to
 `~/.ivy2/local`.
@@ -151,7 +151,7 @@ You can reproduce any of the tests manually using `dist.run`, e.g.
 
 [source,bash]
 ----
-./mill "example.javalib.basic[1-simple].local"
+./mill "example.javalib.basic[1-simple].local.server"
 ----
 
 **Manual Test**
@@ -171,7 +171,7 @@ You can reproduce any of the tests manually using `dist.run`, e.g.
 === Sub-Process Tests *with* Packaging/Publishing
 
 `example.\\__.server`, `integration.__.server`, `example.\\__.fork` and
-`integration.__.fork` cover the same test cases as the `.local` tests described above, but
+`integration.__.fork` cover the same test cases as the `.local.server` tests described above, but
 they perform packaging of the Mill core modules into an assembly jar, and publish the
 remaining modules to `~/.ivy2/local`.
 This results in a more realistic test environment, but at the cost of taking tens-of-seconds
@@ -184,7 +184,22 @@ You can reproduce these tests manually using `dist.assembly`:
 ./mill dist.assembly && (cd example/basic/1-simple && ../../../out/dist/assembly.dest/mill run --text hello)
 ----
 
-There are two flavors of these tests:
+There are two six of these tests, `.{local,assembly,native}.{server,fork}`.
+
+The first label specifies how the Mill code is packaged before testing
+
+1. `.local` runs using all compiled Mill code directly in the `out/` folder. This is the fastest
+   and should be used for most testing
+
+2. `.assembly` runs using the compiled Mill code either packaged into an assembly (for the Mill executable).
+   This is slower than `.local`, and normally isn't necessary unless you are debugging issues in the Mill
+   packaging logic.
+
+3. `.native` runs using the compiled Mill code packaged into an assembly with a Graal native binary launcher.
+   This is the slowest mode is only really necessary for debugging Mill's Graal native binary configuration.
+
+The second label specifies how the Mill process is managed during the test:
+
 
 1. `.server` test run the test cases with the default configuration, so consecutive commands
    run in the same long-lived background server process
@@ -192,9 +207,9 @@ There are two flavors of these tests:
 2. `.fork` test run the test cases with `--no-server`, meaning each command runs in a newly
    spawned Mill process
 
-In general you should spend most of your time working with the `.local` version of the
-`example` and `integration` tests to save time, and only run `.fork`
-or `.server` once `.local` is passing.
+In general you should spend most of your time working with the `.local.server` version of the
+`example` and `integration` tests to save time, and only run `.assembly.fork`
+or `.assembly.server` once `.local` is passing.
 
 === Bootstrapping: Building Mill with your current checkout of Mill
 
