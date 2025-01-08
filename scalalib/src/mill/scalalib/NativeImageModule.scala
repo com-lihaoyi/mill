@@ -29,14 +29,12 @@ trait NativeImageModule extends RunModule with WithZincWorker {
    *             - passing debug options
    *             - passing target specific options
    */
-  def nativeImage(args: String*): Command[PathRef] = Task.Command {
+  def nativeImage: T[PathRef] = Task {
     val dest = T.dest
     val executableName = nativeImageExecutableName()
     val command = Seq.newBuilder[String]
       .+=(nativeImageTool().path.toString)
       .++=(nativeImageOptions())
-      .+=("--no-fallback")
-      .++=(args)
       .+=("-cp")
       .+=(nativeImageClasspath().iterator.map(_.path).mkString(java.io.File.pathSeparator))
       .+=(finalMainClass())
