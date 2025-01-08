@@ -18,8 +18,6 @@ import scala.collection.mutable
 import scala.util.chaining.scalaUtilChainingOps
 import coursier.cache.ArchiveCache
 import scala.util.control.NonFatal
-import mill.api.SystemStreams
-import coursier.cache.loggers.RefreshLogger
 
 trait CoursierSupport {
   import CoursierSupport._
@@ -33,13 +31,7 @@ trait CoursierSupport {
         coursierCacheCustomizer.fold(cache)(c => c.apply(cache))
       }
       .pipe { cache =>
-        cache.withLogger(
-          RefreshLogger.create(
-            SystemStreams.originalErr,
-            RefreshLogger.defaultDisplay(fallbackMode = true, quiet = false),
-            logChanging = true
-          )
-        )
+        ctx.fold(cache)(c => cache.withLogger(new TickerResolutionLogger(c)))
       }
 
   /**
@@ -80,8 +72,7 @@ trait CoursierSupport {
         module: Module,
         version: String,
         fetch: Repository.Fetch[F]
-    ): EitherT[F, String, (ArtifactSource, Project)] = {
-      val res = try { scala.util.Success {
+    ): EitherT[F, String, (ArtifactSource, Project)] =
       EitherT.fromEither[F] {
         listFor(module)
           .left.map(e => s"No test override found at ${e.path}")
@@ -103,26 +94,15 @@ trait CoursierSupport {
               publications = Nil,
               info = Info.empty
             )
-            (this: ArtifactSource, proj)
+            (this, proj)
           }
       }
-      }}
-      catch {
-        case t: Throwable => scala.util.Failure(t)
-      }
-      if (res.isFailure) {
-        SystemStreams.originalErr.println(s"Caught $res")
-        res.failed.get.printStackTrace(SystemStreams.originalErr)
-      }
-      res.get
-    }
 
     def artifacts(
         dependency: Dependency,
         project: Project,
         overrideClassifiers: Option[Seq[Classifier]]
-    ): Seq[(Publication, Artifact)] = {
-      val res = try { scala.util.Success {
+    ): Seq[(Publication, Artifact)] =
       listFor(project.module)
         .toTry.get
         .linesIterator
@@ -139,16 +119,6 @@ trait CoursierSupport {
           (pub, art)
         }
         .toSeq
-      }}
-      catch {
-        case t: Throwable => scala.util.Failure(t)
-      }
-      if (res.isFailure) {
-        SystemStreams.originalErr.println(s"Caught $res")
-        res.failed.get.printStackTrace(SystemStreams.originalErr)
-      }
-      res.get
-    }
   }
 
   /**
@@ -175,10 +145,6 @@ trait CoursierSupport {
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams()
   ): Result[Agg[PathRef]] = {
-
-    DependencyWatcher.ref()
-    try {
-
     val resolutionRes = resolveDependenciesMetadataSafe(
       repositories,
       deps,
@@ -223,10 +189,6 @@ trait CoursierSupport {
             )
           )
       }
-    }
-    }
-    finally {
-      DependencyWatcher.unref()
     }
   }
 
@@ -569,70 +531,6 @@ object CoursierSupport {
         Result.Failure(msg, Some(Seq()))
       case Right(repos) =>
         Result.Success(repos)
-    }
-  }
-
-  private object DependencyWatcher extends Runnable {
-    import java.util.concurrent.Executors
-    import java.util.concurrent.ScheduledExecutorService
-    import java.util.concurrent.TimeUnit
-    import java.util.concurrent.ScheduledFuture
-    import java.util.Locale
-    import scala.jdk.CollectionConverters._
-
-    def run(): Unit = {
-      val stackTraces = Thread.getAllStackTraces()
-        .asScala
-        .toVector
-        .sortBy(_._1.getId)
-      for ((t, stackTrace) <- stackTraces) {
-        SystemStreams.originalErr.println(s"Thread ${t.getName} (${t.getId}, ${t.getState.toString.toLowerCase(Locale.ROOT)}${if (t.isDaemon()) ", daemon" else ""})")
-        for (elem <- stackTrace)
-          SystemStreams.originalErr.println(s"  $elem")
-        SystemStreams.originalErr.println()
-      }
-    }
-
-    private var pool: ScheduledExecutorService = null
-    private var f: ScheduledFuture[_] = null
-    private var count = 0
-
-    private def resetWatcher(): Unit = {
-      if (f != null)
-        f.cancel(false)
-      f = pool.scheduleWithFixedDelay(
-        DependencyWatcher,
-        30L,
-        600L,
-        TimeUnit.SECONDS
-      )
-    }
-
-    private def setup(): Unit = {
-      assert(pool == null)
-      pool = Executors.newSingleThreadScheduledExecutor()
-    }
-
-    private def tearDown(): Unit = {
-      assert(pool != null)
-      assert(f != null)
-      f.cancel(true)
-      f = null
-      pool.shutdown()
-      pool = null
-    }
-
-    def ref(): Unit = synchronized {
-      count += 1
-      if (count == 1)
-        setup()
-      resetWatcher()
-    }
-
-    def unref(): Unit = synchronized {
-      count -= 1
-      if (count == 0)
-        tearDown()
     }
   }
 

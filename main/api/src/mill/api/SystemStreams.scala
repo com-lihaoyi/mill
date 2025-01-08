@@ -90,22 +90,22 @@ object SystemStreams {
       if (systemStreams.out eq original.out) os.InheritRaw
       else new PumpedProcessOutput(systemStreams.out)
 
-    // val inheritErr =
-    //   if (systemStreams.err eq original.err) os.InheritRaw
-    //   else new PumpedProcessOutput(systemStreams.err)
+    val inheritErr =
+      if (systemStreams.err eq original.err) os.InheritRaw
+      else new PumpedProcessOutput(systemStreams.err)
 
     ThreadLocalStreams.current.withValue(systemStreams) {
       Console.withIn(systemStreams.in) {
         Console.withOut(systemStreams.out) {
-          // Console.withErr(systemStreams.err) {
+          Console.withErr(systemStreams.err) {
             os.Inherit.in.withValue(inheritIn) {
               os.Inherit.out.withValue(inheritOut) {
-                // os.Inherit.err.withValue(inheritErr) {
+                os.Inherit.err.withValue(inheritErr) {
                   t
-                // }
+                }
               }
             }
-          // }
+          }
         }
       }
     }
@@ -122,13 +122,13 @@ object SystemStreams {
   def withTopLevelSystemStreamProxy[T](t: => T): T = {
     val in = System.in
     val out = System.out
-    // val err = System.err
+    val err = System.err
 
     try {
       setTopLevelSystemStreamProxy()
       t
     } finally {
-      // System.setErr(err)
+      System.setErr(err)
       System.setOut(out)
       System.setIn(in)
     }
@@ -137,18 +137,18 @@ object SystemStreams {
     // Make sure to initialize `Console` to cache references to the original
     // `System.{in,out,err}` streams before we redirect them
     val _ = Console.out
-    // val _ = Console.err
+    val _ = Console.err
     val _ = Console.in
     System.setIn(ThreadLocalStreams.In)
     System.setOut(ThreadLocalStreams.Out)
-    // System.setErr(ThreadLocalStreams.Err)
+    System.setErr(ThreadLocalStreams.Err)
   }
 
   private[mill] object ThreadLocalStreams {
     val current = new DynamicVariable(original)
 
     object Out extends PrintStream(new ProxyOutputStream { def delegate() = current.value.out })
-    // object Err extends PrintStream(new ProxyOutputStream { def delegate() = current.value.err })
+    object Err extends PrintStream(new ProxyOutputStream { def delegate() = current.value.err })
     object In extends ProxyInputStream { def delegate() = current.value.in }
 
     abstract class ProxyOutputStream extends OutputStream {
