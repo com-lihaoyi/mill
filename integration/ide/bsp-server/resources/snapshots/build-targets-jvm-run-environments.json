@@ -5,8 +5,8 @@
         "uri": "file:///workspace/app"
       },
       "classpath": [
-        "file:///coursier-cache/https/repo1.maven.org/maven2/com/mysql/mysql-connector-j/9.1.0/mysql-connector-j-9.1.0.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.5.15/logback-core-1.5.15.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/mysql/mysql-connector-j/9.1.0/mysql-connector-j-9.1.0.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.16/slf4j-api-2.0.16.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/4.26.1/protobuf-java-4.26.1.jar",
         "file:///workspace/lib/compile-resources",
