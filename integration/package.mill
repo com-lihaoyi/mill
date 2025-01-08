@@ -56,6 +56,7 @@ object `package` extends RootModule {
 
       def testReleaseEnv =
         if (mode == "local")
+          // TODO: revert this before merging
           T { Map("MILL_INTEGRATION_LAUNCHER" -> build.dist.nativeImage().path.toString()) }
 //          T { Map("MILL_INTEGRATION_LAUNCHER" -> build.dist.launcher().path.toString()) }
         else T { Map("MILL_INTEGRATION_LAUNCHER" -> build.dist.nativeImage().path.toString) }
