@@ -49,3 +49,8 @@ include::partial$example/javalib/publishing/5-jlink.adoc[]
 == Java Installers using `jpackage`
 
 include::partial$example/javalib/publishing/6-jpackage.adoc[]
+
+
+== Building Native Image with Graal VM
+
+include::partial$example/javalib/basic/7-native-image.adoc[]

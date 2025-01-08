@@ -1,0 +1,15 @@
+//// SNIPPET:BUILD
+package build
+import mill._, javalib._
+import mill.define.ModuleRef
+
+object foo extends JavaModule with NativeImageModule {
+
+  def zincWorker = ModuleRef(ZincWorkerGraalvm)
+
+  object ZincWorkerGraalvm extends ZincWorkerModule {
+    def jvmId = "graalvm-community:23.0.1"
+  }
+}
+
+//// SNIPPET:END

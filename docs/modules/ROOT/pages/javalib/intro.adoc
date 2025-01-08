@@ -30,7 +30,3 @@ include::partial$example/javalib/basic/4-compat-modules.adoc[]
 == Realistic Java Example Project
 
 include::partial$example/javalib/basic/6-realistic.adoc[]
-
-== Building Native Image with Graal VM
-
-include::partial$example/javalib/basic/7-native-image.adoc[]

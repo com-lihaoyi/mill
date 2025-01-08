@@ -14,8 +14,11 @@ object foo extends ScalaModule with NativeImageModule {
   def scalaVersion = "2.13.11"
 }
 
+//// SNIPPET:END
+//
 // This example uses `NativeImageModule` to generate a native executable using https://www.graalvm.org/[Graal VM].
-// NOTE: For build portability, it is recommended to use a custom JDK.
+// NOTE: For build portability, it is recommended to use a custom JDK via a custom `ZincWorkerModule` overriding
+// `def jvmId`.
 
 /** Usage
 
