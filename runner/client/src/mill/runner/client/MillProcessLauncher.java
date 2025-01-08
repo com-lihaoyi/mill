@@ -236,7 +236,6 @@ public class MillProcessLauncher {
           int width = size.getWidth();
           int height = size.getHeight();
           str = width + " " + height;
-          mill.main.client.DebugLog.println(str);
         } else if (!tputExists) {
           // Hardcoded size of a quarter screen terminal on 13" windows laptop
           str = "78 24";
