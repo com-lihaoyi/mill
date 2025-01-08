@@ -65,7 +65,10 @@ private[mill] object Reflect {
       }
     )
 
-    arr.reverseIterator.distinctBy(_.getName).toArray
+    val res = arr.reverseIterator.distinctBy(_.getName).toArray
+    // Sometimes `getMethods` returns stuff in odd orders, make sure to sort for determinism
+    res.sortInPlaceBy(_.getName)
+    res
   }
 
   // For some reason, this fails to pick up concrete `object`s nested directly within
@@ -99,6 +102,9 @@ private[mill] object Reflect {
 
         }
         .distinct
+
+    // Sometimes `getClasses` returns stuff in odd orders, make sure to sort for determinism
+    second.sortInPlaceBy(_._1)
 
     first ++ second
   }
