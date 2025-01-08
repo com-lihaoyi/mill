@@ -208,8 +208,8 @@ The second label specifies how the Mill process is managed during the test:
    spawned Mill process
 
 In general you should spend most of your time working with the `.local.server` version of the
-`example` and `integration` tests to save time, and only run `.assembly.fork`
-or `.assembly.server` once `.local` is passing.
+`example` and `integration` tests to save time, and only run the others if you have a specific
+thing you want to test that needs those code paths to run.
 
 === Bootstrapping: Building Mill with your current checkout of Mill
 
