@@ -494,7 +494,7 @@ trait JavaModule
    * resolution parameters (such as artifact types, etc.), this should be the only way
    * we provide details about this module to coursier.
    */
-  def coursierProject: Task[cs.Project] = Task.Anon {
+  def coursierProject: Task[cs.Project] = Task {
 
     // Tells coursier that if something depends on a given scope of ours, we should also
     // pull other scopes of our own dependencies.
@@ -626,13 +626,12 @@ trait JavaModule
   /**
    * Coursier project of this module and those of all its transitive module dependencies
    */
-  def transitiveCoursierProjects: Task[Seq[cs.Project]] = Task.Anon {
-    val projects = Seq(coursierProject()) ++
+  def transitiveCoursierProjects: Task[Seq[cs.Project]] = Task {
+    Seq(coursierProject()) ++
       T.traverse(compileModuleDepsChecked)(_.transitiveCoursierProjects)().flatten ++
       T.traverse(moduleDepsChecked)(_.transitiveCoursierProjects)().flatten ++
       T.traverse(runModuleDepsChecked)(_.transitiveCoursierProjects)().flatten ++
       T.traverse(bomModuleDepsChecked)(_.transitiveCoursierProjects)().flatten
-    projects.distinct
   }
 
   /**
@@ -725,7 +724,7 @@ trait JavaModule
     // (it's respectively provided, runtime, import). The configuration is compile for
     // standard ivyDeps / moduleDeps.
     //
-    JavaModule.InternalRepo(transitiveCoursierProjects())
+    JavaModule.InternalRepo(transitiveCoursierProjects().distinctBy(_.module.name.value))
   }
 
   /**

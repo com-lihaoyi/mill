@@ -274,17 +274,14 @@ object CoursierModule {
             s"Should not happen - could not find root dependency ${deps0.head.dep} in Resolution#finalDependenciesCache"
           )
         ),
-        DependencyManagement.addDependencies(
-          Map.empty,
-          res.projectCache
-            .get(deps0.head.dep.moduleVersion)
-            .map(_._2.dependencyManagement)
-            .getOrElse {
-              sys.error(
-                s"Should not happen - could not find root dependency ${deps0.head.dep.moduleVersion} in Resolution#projectCache"
-              )
-            }
-        )
+        res.projectCache
+          .get(deps0.head.dep.moduleVersion)
+          .map(_._2.overrides.flatten.toMap)
+          .getOrElse {
+            sys.error(
+              s"Should not happen - could not find root dependency ${deps0.head.dep.moduleVersion} in Resolution#projectCache"
+            )
+          }
       )
     }
 
