@@ -2,16 +2,21 @@ package build
 
 import mill._
 
+// testing a simple Java module
 object `hello-java` extends scalalib.JavaModule
 
+// testing a simple Scala module
 object `hello-scala` extends scalalib.ScalaModule {
   def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
 }
 
+// testing a simple Kotlin module
 object `hello-kotlin` extends kotlinlib.KotlinModule {
   def kotlinVersion = Option(System.getenv("TEST_KOTLIN_VERSION")).getOrElse(???)
 }
 
+// testing a two-module setup, with one module depending on the other,
+// involving a ivyDeps, but also compile-time only and runtime only dependencies
 object lib extends scalalib.JavaModule {
   import scalalib._
   def compileIvyDeps = Agg(
