@@ -149,6 +149,8 @@ jobs:
             millargs: "'integration.invalidation.__.native.server.test'"
           - java-version: 11
             millargs: "contrib.__.test"
+          - java-version: 11
+            millargs: "example.javalib.publishing[7-native-image].local.server.test"
 
     uses: ./.github/workflows/post-build-selective.yml
     with:
