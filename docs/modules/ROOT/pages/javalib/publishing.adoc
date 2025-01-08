@@ -53,4 +53,4 @@ include::partial$example/javalib/publishing/6-jpackage.adoc[]
 
 == Building Native Image with Graal VM
 
-include::partial$example/javalib/basic/7-native-image.adoc[]
+include::partial$example/javalib/publishing/7-native-image.adoc[]

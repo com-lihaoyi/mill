@@ -29,4 +29,4 @@ For more details, see:
 
 == Building Native Image with Graal VM
 
-include::partial$example/scalalib/basic/7-native-image.adoc[]
+include::partial$example/scalalib/publishing/7-native-image.adoc[]

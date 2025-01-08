@@ -352,10 +352,11 @@ object `package` extends RootModule with build.MillPublishJavaModule with mill.s
   def mainClass = Some("mill.runner.client.MillClientMain")
   def nativeImageClasspath = build.runner.client.runClasspath()
   def nativeImage = Task {
-    val executable = Task.dest / nativeImageExecutableName()
+    val previous = super.nativeImage().path
+    val executable = Task.dest / previous.last
 
     Using(os.write.outputStream(executable)) { out =>
-      out.write(os.read.bytes(super.nativeImage().path))
+      out.write(os.read.bytes(previous))
       out.write(System.lineSeparator.getBytes)
       out.write(os.read.bytes(assembly().path))
     }
