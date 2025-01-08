@@ -27,6 +27,10 @@
         {
           "name": "org.slf4j:slf4j-api",
           "version": "2.0.16"
+        },
+        {
+          "name": "org.hamcrest:hamcrest-core",
+          "version": "1.3"
         }
       ]
     },
