@@ -124,7 +124,7 @@ object Deps {
   val cask = ivy"com.lihaoyi::cask:0.9.4"
   val castor = ivy"com.lihaoyi::castor:0.3.0"
   val fastparse = ivy"com.lihaoyi::fastparse:3.1.1"
-  val flywayCore = ivy"org.flywaydb:flyway-core:8.5.13"
+  val flywayCore = ivy"org.flywaydb:flyway-core:11.1.1"
   val graphvizJava = Seq(
     ivy"guru.nidi:graphviz-java-min-deps:0.18.1",
     ivy"org.webjars.npm:viz.js-graphviz-java:2.1.3",
