@@ -200,7 +200,7 @@ public class MillProcessLauncher {
     return vmOptions;
   }
 
-  static List<String> readMillJvmOpts() {
+  static List<String> readMillJvmOpts() throws Exception {
     return Util.readOptsFileLines(millJvmOptsFile());
   }
 
