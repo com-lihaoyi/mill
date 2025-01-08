@@ -12,16 +12,16 @@ import mill.javalib.android.{AndroidSdkModule, AndroidAppBundle}
 
 object androidSdkModule0 extends AndroidSdkModule {
   def buildToolsVersion = "35.0.0"
-  def bundleToolVersion = "1.17.2"
 }
 
 object bundle extends AndroidAppBundle {
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+  def androidCompileSdk = 35
 
-  def androidReleaseKeyName: T[String] = Task { "releaseKey.jks" }
-  def androidReleaseKeyAlias: T[String] = Task { "releaseKey" }
-  def androidReleaseKeyPass: T[String] = Task { "MillBuildTool" }
-  def androidReleaseKeyStorePass: T[String] = Task { "MillBuildTool" }
+  def androidReleaseKeyName: T[Option[String]] = Task { Some("releaseKey.jks") }
+  def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
+  def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
+  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
 }
 
 ////SNIPPET:END
@@ -45,14 +45,15 @@ object bundle extends AndroidAppBundle {
 //
 // ----
 // .
-// ├── app
-// │   ├── AndroidManifest.xml
-// │   ├── releaseKey.jks
-// │   ├── resources
-// │   │   └── values
-// │   │       ├── colors.xml
-// │   │       └── strings.xml
-// │   └── src/main/java/com/helloworld/app/MainActivity.java
-// └── build.mill
+//bundle/
+//└── src
+//    ├── main
+//    │   ├── AndroidManifest.xml
+//    │   └── java/com/helloworld/app/MainActivity.java
+//    └── res
+//        └── values
+//            ├── colors.xml
+//            └── strings.xml
+//
 // ----
 //

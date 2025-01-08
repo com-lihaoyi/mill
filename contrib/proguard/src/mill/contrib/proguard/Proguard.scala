@@ -76,7 +76,7 @@ trait Proguard extends ScalaModule {
   def libraryJars: T[Seq[PathRef]] = Task {
     val javaJars =
       os.list(javaHome().path / "lib", sort = false).filter(_.ext == "jar").toSeq.map(PathRef(_))
-    javaJars ++ java9RtJar()
+    javaJars
   }
 
   /**
@@ -96,7 +96,10 @@ trait Proguard extends ScalaModule {
       "-outjars",
       outJar,
       "-libraryjars",
-      libraryJars().map(_.path).mkString(java.io.File.pathSeparator),
+      (
+        libraryJars().map(_.path) ++
+          Seq("<java.home>/jmods/java.base.jmod(!**.jar;!module-info.class)")
+      ).mkString(java.io.File.pathSeparator),
       entryPoint(),
       additionalOptions()
     ).flatMap(_.value)

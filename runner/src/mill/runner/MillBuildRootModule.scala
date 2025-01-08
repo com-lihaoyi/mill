@@ -12,7 +12,6 @@ import mill.main.client.OutFiles._
 import mill.main.client.CodeGenConstants.buildFileExtensions
 import mill.main.{BuildInfo, RootModule}
 
-import scala.collection.immutable.SortedMap
 import scala.util.Try
 import mill.define.Target
 
@@ -46,8 +45,10 @@ abstract class MillBuildRootModule()(implicit
   def scriptSources: Target[Seq[PathRef]] = Task.Sources {
     MillBuildRootModule.parseBuildFiles(rootModuleInfo)
       .seenScripts
-      .keys.map(PathRef(_))
+      .keys
       .toSeq
+      .sorted // Ensure ordering is deterministic
+      .map(PathRef(_))
   }
 
   def parseBuildFiles: T[FileImportGraph] = Task {
@@ -167,28 +168,28 @@ abstract class MillBuildRootModule()(implicit
           def isCommand =
             calledSig.desc.ret.pretty == classOf[mill.define.Command[_]].getName
 
-          (isSimpleTarget && !isForwarderCallsite) || isCommand
+          // Skip calls to `millDiscover`. `millDiscover` is bundled as part of `RootModule` for
+          // convenience, but it should really never be called by any normal Mill module/task code,
+          // and is only used by downstream code in `mill.eval`/`mill.resolve`. Thus although CodeSig's
+          // conservative analysis considers potential calls from `build_.package_$#<init>` to
+          // `millDiscover()`, we can safely ignore that possibility
+          def isMillDiscover = calledSig.name == "millDiscover$lzycompute"
+
+          (isSimpleTarget && !isForwarderCallsite) || isCommand || isMillDiscover
         },
-        logger = new mill.codesig.Logger(Option.when(debugEnabled)(T.dest / "current")),
+        logger = new mill.codesig.Logger(
+          T.dest / "current",
+          Option.when(debugEnabled)(T.dest / "current")
+        ),
         prevTransitiveCallGraphHashesOpt = () =>
-          Option.when(os.exists(T.dest / "previous/result.json"))(
+          Option.when(os.exists(T.dest / "previous/transitiveCallGraphHashes0.json"))(
             upickle.default.read[Map[String, Int]](
-              os.read.stream(T.dest / "previous/result.json")
+              os.read.stream(T.dest / "previous/transitiveCallGraphHashes0.json")
             )
           )
       )
 
-    val result = codesig.transitiveCallGraphHashes
-    if (debugEnabled) {
-      os.write(
-        T.dest / "current/result.json",
-        upickle.default.stream(
-          SortedMap.from(codesig.transitiveCallGraphHashes0.map { case (k, v) => (k.toString, v) }),
-          indent = 4
-        )
-      )
-    }
-    result
+    codesig.transitiveCallGraphHashes
   }
 
   override def sources: T[Seq[PathRef]] = Task {

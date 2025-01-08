@@ -8,10 +8,13 @@ object Ivy {
 
   val head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 
+  case class Override(organization: String, name: String, version: String)
+
   def apply(
       artifact: Artifact,
       dependencies: Agg[Dependency],
-      extras: Seq[PublishInfo] = Seq.empty
+      extras: Seq[PublishInfo] = Seq.empty,
+      overrides: Seq[Override] = Nil
   ): String = {
 
     def renderExtra(e: PublishInfo): Elem = {
@@ -49,33 +52,53 @@ object Ivy {
           <artifact name={artifact.id} type="doc" ext="jar" conf="compile" e:classifier="javadoc"/>
           {extras.map(renderExtra)}
         </publications>
-        <dependencies>{dependencies.map(renderDependency).toSeq}</dependencies>
+        <dependencies>
+          {dependencies.map(renderDependency).toSeq}
+          {overrides.map(renderOverride)}
+        </dependencies>
       </ivy-module>
 
     val pp = new PrettyPrinter(120, 4)
     head + pp.format(xml).replaceAll("&gt;", ">")
   }
 
+  // bin-compat shim
+  def apply(
+      artifact: Artifact,
+      dependencies: Agg[Dependency],
+      extras: Seq[PublishInfo]
+  ): String =
+    apply(
+      artifact,
+      dependencies,
+      extras,
+      Nil
+    )
+
   private def renderDependency(dep: Dependency): Elem = {
     if (dep.exclusions.isEmpty)
       <dependency org={dep.artifact.group} name={dep.artifact.id} rev={dep.artifact.version} conf={
-        s"${depIvyConf(dep)}->${dep.configuration.getOrElse("default(compile)")}"
+        depIvyConf(dep)
       } />
     else
       <dependency org={dep.artifact.group} name={dep.artifact.id} rev={dep.artifact.version} conf={
-        s"${depIvyConf(dep)}->${dep.configuration.getOrElse("default(compile)")}"
+        depIvyConf(dep)
       }>
         {dep.exclusions.map(ex => <exclude org={ex._1} name={ex._2} matcher="exact"/>)}
       </dependency>
   }
 
+  private def renderOverride(override0: Override): Elem =
+    <override org={override0.organization} module={override0.name} rev={override0.version} />
+
   private def depIvyConf(d: Dependency): String = {
-    if (d.optional) "optional"
+    def target(value: String) = d.configuration.getOrElse(value)
+    if (d.optional) s"optional->${target("runtime")}"
     else d.scope match {
-      case Scope.Compile => "compile"
-      case Scope.Provided => "provided"
-      case Scope.Test => "test"
-      case Scope.Runtime => "runtime"
+      case Scope.Compile => s"compile->${target("compile")};runtime->${target("runtime")}"
+      case Scope.Provided => s"provided->${target("compile")}"
+      case Scope.Test => s"test->${target("runtime")}"
+      case Scope.Runtime => s"runtime->${target("runtime")}"
     }
   }
 

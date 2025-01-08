@@ -1,6 +1,8 @@
 package mill.javalib.android
 
+import coursier.MavenRepository
 import mill._
+
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
@@ -28,7 +30,12 @@ trait AndroidSdkModule extends Module {
   /**
    * Specifies the version of the Android Bundle tool to be used.
    */
-  def bundleToolVersion: T[String]
+  def bundleToolVersion: T[String] = "1.17.2"
+
+  /**
+   * Specifies the version of the Manifest Merger.
+   */
+  def manifestMergerVersion: T[String] = "31.7.3"
 
   /**
    * Specifies the version of the Android build tools to be used.
@@ -75,6 +82,14 @@ trait AndroidSdkModule extends Module {
   }
 
   /**
+   * Provides path to the Android CLI lint tool.
+   */
+  def lintToolPath: T[PathRef] = Task {
+    installAndroidSdkComponents()
+    PathRef(sdkPath().path / "cmdline-tools" / "latest" / "bin" / "lint")
+  }
+
+  /**
    * Provides path to D8 Dex compiler, used for converting Java bytecode into Dalvik bytecode.
    *
    * For More Read D8 [[https://developer.android.com/tools/d8 Documentation]]
@@ -111,12 +126,46 @@ trait AndroidSdkModule extends Module {
   }
 
   /**
+   * Provides the path for the Android Debug Bridge (adt) tool.
+   *
+   * For more information, refer to the official Android documentation [[https://developer.android.com/tools/adb]]
+   */
+  def adbPath: T[PathRef] = Task {
+    PathRef(sdkPath().path / "platform-tools/adb")
+  }
+
+  /**
+   * Provides the path for the Android Virtual Device Manager (avdmanager) tool
+   *
+   *  For more information refer to the official Android documentation [[https://developer.android.com/tools/avdmanager]]
+   */
+  def avdPath: T[PathRef] = Task {
+    PathRef(sdkPath().path / "cmdline-tools/latest/bin/avdmanager")
+  }
+
+  /**
+   * Provides the path for the android emulator tool
+   *
+   * For more information refer to [[https://developer.android.com/studio/run/emulator]]
+   */
+  def emulatorPath: T[PathRef] = Task {
+    PathRef(sdkPath().path / "emulator/emulator")
+  }
+
+  /**
+   * Provides the path for the Android SDK Manager tool
+   *
+   * @return A task containing a [[PathRef]] pointing to the SDK directory.
+   */
+  def sdkManagerPath: T[PathRef] = Task {
+    PathRef(sdkPath().path / "cmdline-tools/latest/bin/sdkmanager")
+  }
+
+  /**
    * Installs the necessary Android SDK components such as platform-tools, build-tools, and Android platforms.
    *
    * For more details on the `sdkmanager` tool, refer to:
    * [[https://developer.android.com/tools/sdkmanager sdkmanager Documentation]]
-   *
-   * @return A task containing a [[PathRef]] pointing to the SDK directory.
    */
   def installAndroidSdkComponents: T[Unit] = Task {
     val sdkPath0 = sdkPath()
@@ -132,7 +181,8 @@ trait AndroidSdkModule extends Module {
     val packages = Seq(
       "platform-tools",
       s"build-tools;${buildToolsVersion()}",
-      s"platforms;${platformsVersion()}"
+      s"platforms;${platformsVersion()}",
+      "cmdline-tools;latest"
     )
     // sdkmanager executable and state of the installed package is a shared resource, which can be accessed
     // from the different Android SDK modules.
@@ -221,6 +271,7 @@ trait AndroidSdkModule extends Module {
   private def hexArray(arr: Array[Byte]) =
     String.format("%0" + (arr.length << 1) + "x", new BigInteger(1, arr))
 
+  // TODO consolidate with sdkmanager path
   private def findLatestSdkManager(sdkPath: os.Path): Option[os.Path] = {
     var sdkManagerPath = sdkPath / "cmdline-tools/latest/bin/sdkmanager"
     if (!os.exists(sdkManagerPath)) {
@@ -244,3 +295,11 @@ trait AndroidSdkModule extends Module {
 }
 
 private object AndroidSdkLock
+
+object AndroidSdkModule {
+
+  /**
+   * Declaration of the Maven Google Repository.
+   */
+  val mavenGoogle: MavenRepository = MavenRepository("https://maven.google.com/")
+}

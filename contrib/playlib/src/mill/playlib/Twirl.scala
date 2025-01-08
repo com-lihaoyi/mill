@@ -5,7 +5,7 @@ import mill.twirllib._
 
 trait Twirl extends TwirlModule with Layout {
 
-  override def twirlSources = Task.Sources { app() }
+  override def twirlSources = Task { app() }
 
   override def twirlImports = Task {
     super.twirlImports() ++ Seq(

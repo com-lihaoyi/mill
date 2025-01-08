@@ -37,8 +37,8 @@ object foo extends KotlinModule {
 /** Usage
 
 > ./mill foo.test
-Test foo.ProjectTestsimple started
-Test foo.ProjectTestsimple finished...
+Test foo.ProjectTest simple started
+Test foo.ProjectTest simple finished...
 ...
 
 */

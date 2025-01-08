@@ -34,7 +34,6 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       val expectedErrorRegex = java.util.regex.Pattern
         .quote(
           s"""<dashes> run --text hello <dashes>
-             |<dashes>
              |[build.mill-<digits>/<digits>] compile
              |[build.mill-<digits>] [info] compiling 1 Scala source to ${tester.workspacePath}/out/mill-build/compile.dest/classes ...
              |[build.mill-<digits>] [info] done compiling
@@ -42,8 +41,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
              |[<digits>] [info] compiling 1 Java source to ${tester.workspacePath}/out/compile.dest/classes ...
              |[<digits>] [info] done compiling
              |[<digits>/<digits>] run
-             |[<digits>/<digits>] <dashes> run --text hello <dashes> <digits>s
-             |<dashes>"""
+             |[<digits>/<digits>] <dashes> run --text hello <dashes> <digits>s"""
             .stripMargin
             .replaceAll("(\r\n)|\r", "\n")
             .replace('\\', '/')

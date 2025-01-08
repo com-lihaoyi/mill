@@ -1,0 +1,6 @@
+
+* xref:5-executable-jars.adoc[]
+* xref:4-flaky-tests.adoc[]
+* xref:3-selective-testing.adoc[]
+* xref:2-monorepo-build-tool.adoc[]
+* xref:1-java-compile.adoc[]

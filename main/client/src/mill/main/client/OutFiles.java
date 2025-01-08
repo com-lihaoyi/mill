@@ -66,4 +66,14 @@ public class OutFiles {
    * Any active Mill command that is currently run, for debugging purposes
    */
   public static final String millActiveCommand = "mill-active-command";
+
+  /**
+   * File used to store metadata related to selective execution, mostly
+   * input hashes and method code signatures necessary to determine what
+   * root tasks changed so Mill can decide which tasks to execute.
+   */
+  public static final String millSelectiveExecution = "mill-selective-execution.json";
+
+  public static final String millDependencyTree = "mill-dependency-tree.json";
+  public static final String millInvalidationTree = "mill-invalidation-tree.json";
 }

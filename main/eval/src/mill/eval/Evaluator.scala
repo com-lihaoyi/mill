@@ -19,8 +19,10 @@ trait Evaluator extends AutoCloseable {
   def rootModule: BaseModule
   def effectiveThreadCount: Int
   def outPath: os.Path
+  def selectiveExecution: Boolean = false
   def externalOutPath: os.Path
   def pathsResolver: EvaluatorPathsResolver
+  def methodCodeHashSignatures: Map[String, Int] = Map.empty
   // TODO In 0.13.0, workerCache should have the type of mutableWorkerCache,
   // while the latter should be removed
   def workerCache: collection.Map[Segments, (Int, Val)]
@@ -77,7 +79,6 @@ object Evaluator {
     def transitive: Agg[Task[_]]
     def failing: MultiBiMap[Terminal, Result.Failing[Val]]
     def results: collection.Map[Task[_], TaskResult[Val]]
-
     def values: Seq[Val] = rawValues.collect { case Result.Success(v) => v }
   }
 

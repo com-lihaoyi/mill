@@ -1,0 +1,54 @@
+package build
+
+import mill._
+import mill.javascriptlib._
+
+object foo extends TypeScriptModule {
+  def sources = Task {
+    val srcPath = Task.dest / "src"
+    val filePath = srcPath / "foo.ts"
+
+    os.makeDir.all(srcPath)
+
+    os.write.over(
+      filePath,
+      """(function () {
+        |  console.log("Hello World!")
+        |})()
+      """.stripMargin
+    )
+
+    PathRef(Task.dest)
+  }
+
+  def compile = Task {
+    println("Compiling...")
+    os.copy(sources().path, super.compile()._2.path, mergeFolders = true)
+    super.compile()
+  }
+
+  def run(args: mill.define.Args) = Task.Command {
+    println("Running... " + args.value.mkString(" "))
+    super.run(args)()
+  }
+
+}
+
+// You can re-define tasks to override them, and use `super` if you
+// want to refer to the originally defined task. The above example shows how to
+// override `compile` and `run` to add additional logging messages, and we
+// override `sources` which was `Task.Sources` for the `src/` folder with a plain
+// `T{...}` task that generates the  necessary source files on-the-fly.
+//
+// NOTE: that this example *replaces* your `src/` folder with the generated
+// sources, as we are overriding the `def sources` task. If you want to *add*
+// generated sources, you can either override `generatedSources`, or you can
+// override `sources` and use `super` to include the original source folder with `super`:
+
+/** Usage
+
+> mill foo.run "added tags"
+Compiling...
+Hello World!
+Running... added tags
+*/

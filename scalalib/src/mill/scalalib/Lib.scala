@@ -1,6 +1,7 @@
 package mill
 package scalalib
 
+import coursier.core.BomDependency
 import coursier.params.ResolutionParams
 import coursier.util.Task
 import coursier.{Dependency, Repository, Resolution, Type}
@@ -61,7 +62,8 @@ object Lib {
       coursierCacheCustomizer: Option[
         coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
       ] = None,
-      resolutionParams: ResolutionParams = ResolutionParams()
+      resolutionParams: ResolutionParams = ResolutionParams(),
+      boms: IterableOnce[BomDependency] = Nil
   ): Result[Resolution] = {
     val depSeq = deps.iterator.toSeq
     mill.util.Jvm.resolveDependenciesMetadataSafe(
@@ -72,9 +74,33 @@ object Lib {
       customizer = customizer,
       ctx = ctx,
       coursierCacheCustomizer = coursierCacheCustomizer,
-      resolutionParams = resolutionParams
+      resolutionParams = resolutionParams,
+      boms = boms
     )
   }
+
+  // bin-compat shim
+  def resolveDependenciesMetadataSafe(
+      repositories: Seq[Repository],
+      deps: IterableOnce[BoundDep],
+      mapDependencies: Option[Dependency => Dependency],
+      customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
+      ctx: Option[Ctx.Log],
+      coursierCacheCustomizer: Option[
+        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
+      ],
+      resolutionParams: ResolutionParams
+  ): Result[Resolution] =
+    resolveDependenciesMetadataSafe(
+      repositories,
+      deps,
+      mapDependencies,
+      customizer,
+      ctx,
+      coursierCacheCustomizer,
+      resolutionParams,
+      Nil
+    )
 
   // bin-compat shim
   def resolveDependenciesMetadataSafe(
@@ -94,7 +120,8 @@ object Lib {
       customizer,
       ctx,
       coursierCacheCustomizer,
-      ResolutionParams()
+      ResolutionParams(),
+      Nil
     )
 
   /**

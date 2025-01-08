@@ -4,7 +4,7 @@ import mill.scalalib._
 
 object `package` extends MillBuildRootModule {
   override def ivyDeps = Agg(
-    ivy"de.tototec::de.tobiasroeser.mill.vcs.version::0.4.0",
+    ivy"de.tototec::de.tobiasroeser.mill.vcs.version::0.4.1",
     ivy"com.github.lolgab::mill-mima::0.1.1",
     ivy"net.sourceforge.htmlcleaner:htmlcleaner:2.29",
     // TODO: implement empty version for ivy deps as we do in import parser

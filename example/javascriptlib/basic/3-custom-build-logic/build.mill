@@ -1,0 +1,34 @@
+package build
+
+import mill._, javascriptlib._
+
+object foo extends TypeScriptModule {
+
+  /** Total number of lines in module source files */
+  def lineCount = Task {
+    allSources().map(f => os.read.lines(f.path).size).sum
+  }
+
+  /** Generate resource using lineCount of sources */
+  def resources = Task {
+    os.write(Task.dest / "line-count.txt", "" + lineCount())
+    super.resources() ++ Seq(PathRef(Task.dest))
+  }
+
+  object test extends TypeScriptTests with TestModule.Jest
+
+}
+
+// Documentation for mill.example.javascriptlib
+
+/** Usage
+
+> mill foo.run
+Line Count: 21
+
+> mill show foo.bundle
+Build succeeded!
+
+> node out/foo/bundle.dest/bundle.js
+Line Count: 21
+*/

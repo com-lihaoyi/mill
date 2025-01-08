@@ -63,23 +63,28 @@ private[mill] class PromptLogger(
   if (enableTicker) refreshPrompt()
 
   val promptUpdaterThread = new Thread(
-    () =>
+    () => {
+      var lastUpdate = System.currentTimeMillis()
       while (!runningState.stopped) {
-        val promptUpdateInterval =
-          if (termDimensions._1.isDefined) promptUpdateIntervalMillis
-          else nonInteractivePromptUpdateIntervalMillis
-
-        try Thread.sleep(promptUpdateInterval)
+        try Thread.sleep(promptUpdateIntervalMillis)
         catch {
           case e: InterruptedException => /*do nothing*/
         }
 
         readTerminalDims(terminfoPath).foreach(termDimensions = _)
 
-        synchronized {
-          if (!runningState.paused && !runningState.stopped) refreshPrompt()
+        val now = System.currentTimeMillis()
+        if (
+          termDimensions._1.nonEmpty ||
+          (now - lastUpdate > nonInteractivePromptUpdateIntervalMillis)
+        ) {
+          lastUpdate = now
+          synchronized {
+            if (!runningState.paused && !runningState.stopped) refreshPrompt()
+          }
         }
-      },
+      }
+    },
     "prompt-logger-updater-thread"
   )
 
@@ -295,7 +300,7 @@ private[mill] object PromptLogger {
         // https://stackoverflow.com/questions/71452837/how-to-reduce-flicker-in-terminal-re-drawing
         dest.write(
           new String(buf, 0, end)
-            .replaceAll("(\r\n|\n)", AnsiNav.clearLine(0) + "$1")
+            .replaceAll("(\r\n|\n|\t)", AnsiNav.clearLine(0) + "$1")
             .getBytes
         )
       }
@@ -362,8 +367,7 @@ private[mill] object PromptLogger {
         titleText,
         statuses.toSeq.map { case (k, v) => (k.mkString("-"), v) },
         interactive = interactive,
-        infoColor = infoColor,
-        ending = ending
+        infoColor = infoColor
       )
 
       val oldPromptBytes = currentPromptBytes
