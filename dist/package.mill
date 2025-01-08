@@ -173,7 +173,7 @@ object `package` extends RootModule with build.MillPublishJavaModule with mill.s
           mill.api.Result.Success(())
         } catch {
           case e: Throwable =>
-            mill.api.Result.Failure(s"dev.run failed with an exception. ${e.getMessage()}")
+            mill.api.Result.Failure(s"dist.run failed with an exception. ${e.getMessage()}")
         }
     }
   }
@@ -350,6 +350,7 @@ object `package` extends RootModule with build.MillPublishJavaModule with mill.s
 
   def nativeImageExecutableName = if (Properties.isWin) "mill.exe" else "mill"
   def mainClass = Some("mill.runner.client.MillClientMain")
+  def nativeImageClasspath = build.runner.client.runClasspath()
   def nativeImage = Task {
     val executable = Task.dest / nativeImageExecutableName()
 
