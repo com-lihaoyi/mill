@@ -18,6 +18,7 @@ import scala.collection.mutable
 import scala.util.chaining.scalaUtilChainingOps
 import coursier.cache.ArchiveCache
 import scala.util.control.NonFatal
+import mill.api.SystemStreams
 
 trait CoursierSupport {
   import CoursierSupport._
@@ -556,10 +557,10 @@ object CoursierSupport {
         .toVector
         .sortBy(_._1.getId)
       for ((t, stackTrace) <- stackTraces) {
-        System.err.println(s"Thread ${t.getName} (${t.getId}, ${t.getState.toString.toLowerCase(Locale.ROOT)}${if (t.isDaemon()) ", daemon" else ""})")
+        SystemStreams.originalErr.println(s"Thread ${t.getName} (${t.getId}, ${t.getState.toString.toLowerCase(Locale.ROOT)}${if (t.isDaemon()) ", daemon" else ""})")
         for (elem <- stackTrace)
-          System.err.println(s"  $elem")
-        System.err.println()
+          SystemStreams.originalErr.println(s"  $elem")
+        SystemStreams.originalErr.println()
       }
     }
 
