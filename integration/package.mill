@@ -48,18 +48,13 @@ object `package` extends RootModule {
             "MILL_INTEGRATION_SERVER_MODE" -> (mode == "local" || mode == "server").toString,
             "MILL_LAUNCHER" -> build.dist.bootstrapLauncher().path.toString,
             "MILL_LAUNCHER_BAT" -> build.dist.bootstrapLauncherBat().path.toString,
-          ) ++
-          testReleaseEnv()
+            "MILL_INTEGRATION_LAUNCHER" -> millIntegrationLauncher().path.toString
+          )
 
+
+      def millIntegrationLauncher: T[PathRef]
 
       def forkArgs = Task { super.forkArgs() ++ build.dist.forkArgs() }
-
-      def testReleaseEnv =
-        if (mode == "local")
-          // TODO: revert this before merging
-          T { Map("MILL_INTEGRATION_LAUNCHER" -> build.dist.nativeImage().path.toString()) }
-//          T { Map("MILL_INTEGRATION_LAUNCHER" -> build.dist.launcher().path.toString()) }
-        else T { Map("MILL_INTEGRATION_LAUNCHER" -> build.dist.nativeImage().path.toString) }
 
       def resources = IntegrationTestModule.this.resources()
       def runClasspath = IntegrationTestModule.this.runClasspath()
@@ -71,9 +66,24 @@ object `package` extends RootModule {
       def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
     }
 
-    object local extends ModeModule
-    object fork extends ModeModule
-    object server extends ModeModule
+    object local extends IntegrationLauncherModule {
+      def millIntegrationLauncher = build.dist.launcher()
+    }
+    object assembly extends IntegrationLauncherModule {
+      def millIntegrationLauncher = build.dist.assembly()
+    }
+    object native extends IntegrationLauncherModule {
+      def millIntegrationLauncher = build.dist.nativeImage()
+    }
+    trait IntegrationLauncherModule {
+      def millIntegrationLauncher: T[PathRef]
+      object fork extends ModeModule{
+        def millIntegrationLauncher = IntegrationLauncherModule.this.millIntegrationLauncher
+      }
+      object server extends ModeModule{
+        def millIntegrationLauncher = IntegrationLauncherModule.this.millIntegrationLauncher
+      }
+    }
   }
 
   object failure extends Cross[IntegrationCrossModule](build.listIn(millSourcePath / "failure"))
