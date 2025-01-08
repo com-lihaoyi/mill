@@ -498,7 +498,7 @@ trait MainModule extends BaseModule0 {
 
           val existing = paths.filter(p => os.exists(p))
           Target.log.debug(s"Cleaning ${existing.size} paths ...")
-          existing.foreach(os.remove.all)
+          existing.foreach(os.remove.all(_, ignoreErrors = true))
           Result.Success(existing.map(PathRef(_)))
       }
     }
