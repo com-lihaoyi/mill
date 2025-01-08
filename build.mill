@@ -204,7 +204,7 @@ object Deps {
 
   object RuntimeDeps {
     val dokkaVersion = "2.0.0"
-    val koverVersion = "0.8.3"
+    val koverVersion = "0.9.1"
 
     val detektCli = ivy"io.gitlab.arturbosch.detekt:detekt-cli:1.23.7"
     val dokkaAnalysisDescriptors =
