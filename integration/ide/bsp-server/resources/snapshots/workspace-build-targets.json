@@ -2,6 +2,32 @@
   "targets": [
     {
       "id": {
+        "uri": "file:///workspace/hello-java"
+      },
+      "displayName": "hello-java",
+      "baseDirectory": "file:///workspace/hello-java",
+      "tags": [
+        "library",
+        "application"
+      ],
+      "languageIds": [
+        "java"
+      ],
+      "dependencies": [],
+      "capabilities": {
+        "canCompile": true,
+        "canTest": false,
+        "canRun": true,
+        "canDebug": false
+      },
+      "dataKind": "jvm",
+      "data": {
+        "javaHome": "file:///java-home/",
+        "javaVersion": "<java-version>"
+      }
+    },
+    {
+      "id": {
         "uri": "file:///workspace/hello-kotlin"
       },
       "displayName": "hello-kotlin",
@@ -66,32 +92,6 @@
           "javaHome": "file:///java-home/",
           "javaVersion": "<java-version>"
         }
-      }
-    },
-    {
-      "id": {
-        "uri": "file:///workspace/hello-java"
-      },
-      "displayName": "hello-java",
-      "baseDirectory": "file:///workspace/hello-java",
-      "tags": [
-        "library",
-        "application"
-      ],
-      "languageIds": [
-        "java"
-      ],
-      "dependencies": [],
-      "capabilities": {
-        "canCompile": true,
-        "canTest": false,
-        "canRun": true,
-        "canDebug": false
-      },
-      "dataKind": "jvm",
-      "data": {
-        "javaHome": "file:///java-home/",
-        "javaVersion": "<java-version>"
       }
     },
     {
