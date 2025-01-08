@@ -146,11 +146,13 @@ jobs:
           - java-version: 11
             millargs: "'integration.invalidation.__.packaged.server.test'"
           - java-version: 11
+            millargs: "'integration.invalidation.__.native.server.test'"
+          - java-version: 11
             millargs: "contrib.__.test"
 
     uses: ./.github/workflows/post-build-selective.yml
     with:
-      os: windows-latest
+      os: windows-amd64
       java-version: ${{ matrix.java-version }}
       millargs: ${{ matrix.millargs }}
 
