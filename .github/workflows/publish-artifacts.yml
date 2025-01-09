@@ -101,7 +101,8 @@ jobs:
       matrix:
         include:
         - os: macos-latest
-        - os: ubuntu-latest
+        # Skip this because the main publishing job handles it
+        # - os: ubuntu-latest 
     env:
       MILL_STABLE_VERSION: 1
       MILL_SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
@@ -123,7 +124,7 @@ jobs:
           java-version: '11'
           distribution: temurin
 
-      - run: ./mill -i mill.scalalib.PublishModule/ dist.native.publishArtifacts
+      - run: ./mill -i mill.scalalib.PublishModule/ --publishArtifacts dist.native.publishArtifacts
 
   release-github:
     # when in master repo, publish all tags and manual runs on main
