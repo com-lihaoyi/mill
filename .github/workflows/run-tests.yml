@@ -19,6 +19,8 @@ jobs:
           java-version: '17'
 
       - run: ./mill 'example.javalib.publishing[7-native-image].packaged.server.test'
+        env:
+          COURSIER_CACHE: "C:/coursier"
 #
 
 #name: Run Tests
