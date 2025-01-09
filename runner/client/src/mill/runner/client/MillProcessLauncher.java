@@ -111,7 +111,7 @@ public class MillProcessLauncher {
     if (javaHome == null || javaHome.isEmpty()){
         System.err.println("Downloading JDK " + jvmId);
         javaHome = CoursierClient
-            .resolveJavaHome(jvmId, "latest.release")
+            .resolveJavaHome(jvmId)
             .getAbsolutePath();
         System.err.println("Finished Downloading JDK " + jvmId + " to " + javaHome);
     }
