@@ -184,7 +184,7 @@ You can reproduce these tests manually using `dist.installLocal`:
 ./mill dist.installLocal && (cd example/basic/1-simple && ../../../mill-assembly.jar run --text hello)
 ----
 
-ThYou can also use `dist.native.installLocal` for a Graal Native Image executable,
+You can also use `dist.native.installLocal` for a Graal Native Image executable,
 which is slower to create but faster to start than the default executable assembly.
 
 There are two six of these tests, `.{local,assembly,native}.{server,fork}`.
