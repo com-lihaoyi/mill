@@ -18,7 +18,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
       - run: ./mill show dist.ZincWorkerGraalvm.javaHome
-      
+        env: COURSIER_CACHE=/coursier
       - run: ls C:\\Users\\runneradmin\\AppData\\Local\\Coursier\\cache\\arc\\https\\github.com\\graalvm\\graalvm-ce-builds\\releases\\download\\jdk-23.0.1\\graalvm-community-jdk-23.0.1_windows-x64_bin.zip\\graalvm-community-openjdk-23.0.1+11.1
       - run: ls C:\\Users\\runneradmin\\AppData\\Local\\Coursier\\cache\\arc\\https\\github.com\\graalvm\\graalvm-ce-builds\\releases\\download\\jdk-23.0.1\\graalvm-community-jdk-23.0.1_windows-x64_bin.zip\\graalvm-community-openjdk-23.0.1+11.1\\lib
       - run: ls C:\\Users\\runneradmin\\AppData\\Local\\Coursier\\cache\\arc\\https\\github.com\\graalvm\\graalvm-ce-builds\\releases\\download\\jdk-23.0.1\\graalvm-community-jdk-23.0.1_windows-x64_bin.zip\\graalvm-community-openjdk-23.0.1+11.1\\lib\\svm
@@ -26,7 +26,7 @@ jobs:
       - run: ls C:\\Users\\runneradmin\\AppData\\Local\\Coursier\\cache\\arc\\https\\github.com\\graalvm\\graalvm-ce-builds\\releases\\download\\jdk-23.0.1\\graalvm-community-jdk-23.0.1_windows-x64_bin.zip\\graalvm-community-openjdk-23.0.1+11.1\\lib\\svm\\clibraries\\windows-amd64
 
       - run: ./mill 'example.javalib.publishing[7-native-image].packaged.server.test'
-
+        env: COURSIER_CACHE=/coursier
       - run: ls C:\\Users\\runneradmin\\AppData\\Local\\Coursier\\cache\\arc\\https\\github.com\\graalvm\\graalvm-ce-builds\\releases\\download\\jdk-17.0.7\\graalvm-community-jdk-17.0.7_windows-x64_bin.zip\\graalvm-community-openjdk-17.0.7+7.1
         if: always()
       - run: ls C:\\Users\\runneradmin\\AppData\\Local\\Coursier\\cache\\arc\\https\\github.com\\graalvm\\graalvm-ce-builds\\releases\\download\\jdk-17.0.7\\graalvm-community-jdk-17.0.7_windows-x64_bin.zip\\graalvm-community-openjdk-17.0.7+7.1\\lib
