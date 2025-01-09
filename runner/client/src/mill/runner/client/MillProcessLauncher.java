@@ -114,7 +114,9 @@ public class MillProcessLauncher {
         return exePath.getAbsolutePath();
       }
     }
-    return "java";
+    return CoursierClient
+        .resolveJavaHome("temurin:17", "latest.release")
+        .getAbsolutePath();
   }
 
   static String[] millClasspath() throws Exception {

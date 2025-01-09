@@ -4,10 +4,14 @@ import mill._
 import mill.T
 
 object `package` extends RootModule with build.MillPublishScalaModule {
-  object client extends build.MillPublishJavaModule {
+  object client extends build.MillPublishScalaModule {
     def buildInfoPackageName = "mill.runner.client"
     def moduleDeps = Seq(build.main.client)
-    def ivyDeps = Agg(build.Deps.windowsAnsi)
+    def ivyDeps = Agg(
+      build.Deps.windowsAnsi,
+      build.Deps.coursier,
+      build.Deps.coursierJvm
+    )
   }
 
   def moduleDeps = Seq(
