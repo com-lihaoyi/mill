@@ -18,6 +18,8 @@ object CoursierClient {
 
   def jvmIndex0(): Task[JvmIndex] = {
     val coursierCache0 = FileCache[Task]()
+      .withLogger(coursier.cache.loggers.RefreshLogger.create())
+
     JvmIndex.load(
       cache = coursierCache0,
       repositories = Resolve().repositories,

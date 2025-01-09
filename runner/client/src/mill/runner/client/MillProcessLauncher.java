@@ -76,6 +76,13 @@ public class MillProcessLauncher {
     return builder.start();
   }
 
+  static File millJvmVersionFile() {
+    String millJvmOptsPath = System.getenv(EnvVars.MILL_JVM_VERSION_PATH);
+    if (millJvmOptsPath == null || millJvmOptsPath.trim().equals("")) {
+      millJvmOptsPath = ".mill-jvm-version";
+    }
+    return new File(millJvmOptsPath).getAbsoluteFile();
+  }
   static File millJvmOptsFile() {
     String millJvmOptsPath = System.getenv(EnvVars.MILL_JVM_OPTS_PATH);
     if (millJvmOptsPath == null || millJvmOptsPath.trim().equals("")) {
@@ -105,13 +112,26 @@ public class MillProcessLauncher {
     return System.getProperty("os.name", "").startsWith("Windows");
   }
 
-  static String javaExe() {
+  static String javaExe() throws IOException {
     String javaHome = System.getProperty("java.home");
-    String jvmId = "temurin:17";
+
+
     if (javaHome == null || javaHome.isEmpty()) {
-      System.err.println("Downloading JDK " + jvmId);
+      if (System.getenv("JAVA_HOME") != null){
+          javaHome = System.getenv("JAVA_HOME");
+      }
+    }
+
+    if (javaHome == null || javaHome.isEmpty()) {
+      String jvmId;
+      File millJvmVersionFile = millJvmVersionFile();
+
+      if (millJvmVersionFile.exists()) {
+        jvmId = Files.readString(millJvmVersionFile.toPath()).trim();;
+      }else{
+        jvmId = "temurin:17";
+      }
       javaHome = CoursierClient.resolveJavaHome(jvmId).getAbsolutePath();
-      System.err.println("Finished Downloading JDK " + jvmId + " to " + javaHome);
     }
     final File exePath = new File(
         javaHome + File.separator + "bin" + File.separator + "java" + (isWin() ? ".exe" : ""));

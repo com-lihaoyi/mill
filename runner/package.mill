@@ -12,7 +12,8 @@ object `package` extends RootModule with build.MillPublishScalaModule {
     def ivyDeps = Agg(
       build.Deps.windowsAnsi,
       build.Deps.coursier,
-      build.Deps.coursierJvm
+      build.Deps.coursierJvm,
+      build.Deps.logback
     )
     def buildInfoObjectName = "Versions"
     def buildInfoMembers = Seq(
