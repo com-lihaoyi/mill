@@ -104,6 +104,7 @@ fi
 MILL_NATIVE_SUFFIX="-native"
 case "$MILL_VERSION" in
     *"$MILL_NATIVE_SUFFIX")
+  FULL_MILL_VERSION=$MILL_VERSION
   MILL_VERSION=${MILL_VERSION%"$MILL_NATIVE_SUFFIX"}
   if [ "$(expr substr $(uname -s) 1 5 2>/dev/null)" = "Linux" ]; then
     ARTIFACT_SUFFIX="-native-linux-amd64"
@@ -116,7 +117,7 @@ case "$MILL_VERSION" in
 esac
 
 
-MILL="${MILL_DOWNLOAD_PATH}/${MILL_VERSION}"
+MILL="${MILL_DOWNLOAD_PATH}/${FULL_MILL_VERSION}"
 
 try_to_use_system_mill() {
   if [ "$(uname)" != "Linux" ]; then
