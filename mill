@@ -104,17 +104,14 @@ fi
 MILL_NATIVE_SUFFIX="-native"
 if [[ "$MILL_VERSION" == *"$MILL_NATIVE_SUFFIX" ]]; then
   MILL_VERSION=${MILL_VERSION%"$MILL_NATIVE_SUFFIX"}
-  echo "NATIVE MILL"
-  echo "STRIPPING SUFFIX: $MILL_VERSION"
   if [ "$(expr substr $(uname -s) 1 5 2>/dev/null)" == "Linux" ]; then
-    ARTIFACT_SUFFIX="-native-linux-x64"
+    ARTIFACT_SUFFIX="-native-linux-amd64"
   elif [ "$(uname)" == "Darwin" ]; then
-    ARTIFACT_SUFFIX="-native-macos-aarch"
+    ARTIFACT_SUFFIX="-native-mac-aarch64"
   else
-     echo "This standalone cs launcher supports only Linux and macOS." 1>&2
+     echo "This native mill launcher supports only Linux and macOS." 1>&2
      exit 1
   fi
-  echo "ARTIFACT_SUFFIX: $ARTIFACT_SUFFIX"
 fi
 
 
