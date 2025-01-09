@@ -113,7 +113,7 @@ object `package` extends RootModule with build.MillPublishJavaModule {
     PathRef(Task.dest / filename)
   }
   def assembly = Task {
-    Task.traverse(allPublishModules)(m => m.publishLocalCached)()
+    Task.traverse(allPublishModules.filter(_ != native))(m => m.publishLocalCached)()
     val raw = rawAssembly().path
     os.copy(raw, Task.dest / raw.last)
     PathRef(Task.dest / raw.last)
