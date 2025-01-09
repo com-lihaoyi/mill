@@ -52,9 +52,7 @@ class LocalIvyPublisher(localIvyRepo: os.Path) {
 
 object LocalIvyPublisher
     extends LocalIvyPublisher(
-      sys.props.get("ivy.home")
-        .map(os.Path(_))
-        .getOrElse(sys.env.get("IVY_HOME")
-                   .map(os.Path(_))
-                   .getOrElse(os.home / ".ivy2") / "local")
+      sys.props.get("ivy.home").map(os.Path(_))
+        .getOrElse(sys.env.get("IVY_HOME").map(os.Path(_))
+          .getOrElse(os.home / ".ivy2") / "local")
     )
