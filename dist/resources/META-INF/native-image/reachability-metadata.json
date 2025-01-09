@@ -1,0 +1,15 @@
+{
+  "reflection": [
+    {
+      "type": "mill.runner.MillMain"
+    },
+    {
+      "type": "mill.runner.MillServerMain"
+    }
+  ],
+  "resources": [
+    {
+      "glob": "logback.xml"
+    }
+  ]
+}
