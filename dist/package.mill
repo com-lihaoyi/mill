@@ -359,7 +359,7 @@ object `package` extends RootModule with build.MillPublishJavaModule {
       else "linux"
     }
     def publishVersionCpuSuffix = T{ System.getProperty("os.arch") }
-    def publishVersion = s"${super.publishVersion()}-${artifactOsSuffix()}-${artifactCpuSuffix()}"
+    def publishVersion = s"${super.publishVersion()}-${publishVersionOsSuffix()}-${publishVersionCpuSuffix()}"
 
     def mainClass = Some("mill.runner.client.MillClientMain")
 
