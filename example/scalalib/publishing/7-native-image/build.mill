@@ -24,7 +24,7 @@ object foo extends ScalaModule with NativeImageModule {
 
 > ./mill show foo.ZincWorkerGraalvm.javaHome
 
-> ls /Users/runneradmin/AppData/Local/Coursier/Cache/arc/https/github.com/graalvm/graalvm-ce-builds/releases/download/jdk-17.0.7/graalvm-community-jdk-17.0.7_windows-x64_bin.zip/graalvm-community-openjdk-17.0.7+7.1/lib/svm/clibraries/windows-amd64/include/
+> ls C:\\Users\\runneradmin\\AppData\\Local\\Coursier\\Cache\\arc\\https\\github.com\\graalvm\\graalvm-ce-builds\\releases\\download\\jdk-17.0.7\\graalvm-community-jdk-17.0.7_windows-x64_bin.zip\\graalvm-community-openjdk-17.0.7+7.1\\lib\\svm\\clibraries\\windows-amd64\\include
 
 > ./mill foo.nativeImage
 GraalVM Native Image: Generating...native-image...
