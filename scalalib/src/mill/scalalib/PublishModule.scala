@@ -251,12 +251,12 @@ trait PublishModule extends JavaModule { outer =>
    * @return [[PathRef]]s to published files.
    */
   def publishM2Local(m2RepoPath: String = (
-                       sys.props.get("maven.repo.local").map(os.Path(_))
-                         .getOrElse(sys.env.get("MAVEN_LOCAL_REPO").map(os.Path(_))
-                         .getOrElse((os.home / ".m2")) / "repository")
-                     ).toString()): Command[Seq[PathRef]] = Task.Command {
-      publishM2LocalTask(Task.Anon {
-        os.Path(m2RepoPath, T.workspace)
+    sys.props.get("maven.repo.local").map(os.Path(_))
+      .getOrElse(sys.env.get("MAVEN_LOCAL_REPO").map(os.Path(_))
+        .getOrElse((os.home / ".m2")) / "repository")
+  ).toString()): Command[Seq[PathRef]] = Task.Command {
+    publishM2LocalTask(Task.Anon {
+      os.Path(m2RepoPath, T.workspace)
     })()
   }
 
@@ -268,7 +268,7 @@ trait PublishModule extends JavaModule { outer =>
     publishM2LocalTask(Task.Anon {
       sys.props.get("maven.repo.local").map(os.Path(_))
         .getOrElse(sys.env.get("MAVEN_LOCAL_REPO").map(os.Path(_))
-        .getOrElse(os.Path(os.home / ".m2", T.workspace))) / "repository"
+          .getOrElse(os.Path(os.home / ".m2", T.workspace))) / "repository"
     })()
   }
 
