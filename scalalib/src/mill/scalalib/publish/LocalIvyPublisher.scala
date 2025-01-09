@@ -56,5 +56,5 @@ object LocalIvyPublisher
         .map(os.Path(_))
         .getOrElse(sys.env.get("IVY_HOME")
                    .map(os.Path(_))
-                   .getOrElse(os.home / ".ivy2") / "local"
+                   .getOrElse(os.home / ".ivy2") / "local")
     )
