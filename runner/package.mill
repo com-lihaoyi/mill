@@ -1,16 +1,19 @@
 package build.runner
 // imports
 import mill._
-import mill.T
-
+import mill.contrib.buildinfo.BuildInfo
 object `package` extends RootModule with build.MillPublishScalaModule {
-  object client extends build.MillPublishScalaModule {
+  object client extends build.MillPublishScalaModule with BuildInfo{
     def buildInfoPackageName = "mill.runner.client"
     def moduleDeps = Seq(build.main.client)
     def ivyDeps = Agg(
       build.Deps.windowsAnsi,
       build.Deps.coursier,
       build.Deps.coursierJvm
+    )
+    def buildInfoObjectName = "Versions"
+    def buildInfoMembers = Seq(
+      BuildInfo.Value("coursierJvmIndexVersion", build.Deps.coursierJvmIndexVersion)
     )
   }
 

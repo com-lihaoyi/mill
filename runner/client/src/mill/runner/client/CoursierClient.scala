@@ -5,14 +5,11 @@ import coursier.util.Task
 import coursier.Resolve
 
 object CoursierClient {
-  def resolveJavaHome(id: String,
-                      jvmIndexVersion: String = "latest.release"): java.io.File = {
+  def resolveJavaHome(id: String): java.io.File = {
     val coursierCache0 = FileCache[Task]()
     val jvmCache = JvmCache()
-      .withArchiveCache(
-        ArchiveCache().withCache(coursierCache0)
-      )
-      .withIndex(jvmIndex0(jvmIndexVersion))
+      .withArchiveCache(ArchiveCache().withCache(coursierCache0))
+      .withIndex(jvmIndex0())
 
     val javaHome = JavaHome()
       .withCache(jvmCache)
@@ -20,18 +17,15 @@ object CoursierClient {
     javaHome.get(id).unsafeRun()(coursierCache0.ec)
   }
 
-
-  def jvmIndex0(
-                 jvmIndexVersion: String = "latest.release"
-               ): Task[JvmIndex] = {
+  def jvmIndex0(): Task[JvmIndex] = {
     val coursierCache0 = FileCache[Task]()
     JvmIndex.load(
-      cache = coursierCache0, // the coursier.cache.Cache instance to use
-      repositories = Resolve().repositories, // repositories to use
+      cache = coursierCache0,
+      repositories = Resolve().repositories,
       indexChannel = JvmChannel.module(
         JvmChannel.centralModule(),
-        version = jvmIndexVersion
-      ) // use new indices published to Maven Central
+        version = mill.runner.client.Versions.coursierJvmIndexVersion
+      )
     )
   }
 }
