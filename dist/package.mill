@@ -1,9 +1,12 @@
 package build.dist
 import mill._, scalalib._, publish._
+import mill.define.ModuleRef
 import mill.util.Jvm
 import mill.api.JarManifest
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import $file.ci.upload
+
+import scala.util.{Properties, Using}
 
 object `package` extends RootModule with build.MillPublishJavaModule {
 
@@ -110,7 +113,7 @@ object `package` extends RootModule with build.MillPublishJavaModule {
     PathRef(Task.dest / filename)
   }
   def assembly = Task {
-    Task.traverse(allPublishModules)(m => m.publishLocalCached)()
+    Task.traverse(allPublishModules.filter(_ != native))(m => m.publishLocalCached)()
     val raw = rawAssembly().path
     os.copy(raw, Task.dest / raw.last)
     PathRef(Task.dest / raw.last)
@@ -157,7 +160,7 @@ object `package` extends RootModule with build.MillPublishJavaModule {
 
   def run(args: Task[Args] = Task.Anon(Args())) = Task.Command(exclusive = true) {
     args().value match {
-      case Nil => mill.api.Result.Failure("Need to pass in cwd as first argument to dev.run")
+      case Nil => mill.api.Result.Failure("Need to pass in cwd as first argument to dist.run")
       case wd0 +: rest =>
         val wd = os.Path(wd0, Task.workspace)
         os.makeDir.all(wd)
@@ -170,7 +173,7 @@ object `package` extends RootModule with build.MillPublishJavaModule {
           mill.api.Result.Success(())
         } catch {
           case e: Throwable =>
-            mill.api.Result.Failure(s"dev.run failed with an exception. ${e.getMessage()}")
+            mill.api.Result.Failure(s"dist.run failed with an exception. ${e.getMessage()}")
         }
     }
   }
@@ -342,6 +345,44 @@ object `package` extends RootModule with build.MillPublishJavaModule {
         build.Settings.githubOrg,
         build.Settings.githubRepo
       )
+    }
+  }
+
+  object native extends build.MillPublishJavaModule with mill.scalalib.NativeImageModule {
+    def moduleDeps = build.dist.moduleDeps
+    def nativeImageExecutableName = if (Properties.isWin) "mill.exe" else "mill"
+
+    def mainClass = Some("mill.runner.client.MillClientMain")
+
+    def nativeImageClasspath = build.runner.client.runClasspath()
+
+    def rawNativeImage = Task {
+      val previous = super.nativeImage().path
+      val executable = Task.dest / previous.last
+
+      Using(os.write.outputStream(executable)) { out =>
+        out.write(os.read.bytes(previous))
+        out.write(System.lineSeparator.getBytes)
+        out.write(os.read.bytes(assembly().path))
+      }
+
+      os.perms.set(executable, "rwxrwxrwx")
+      PathRef(executable)
+    }
+
+    def nativeImage = Task {
+      Task.traverse(allPublishModules.filter(_ != native))(m => m.publishLocalCached)()
+      rawNativeImage()
+    }
+
+    def jar = rawNativeImage()
+
+    def nativeImageOptions = Seq("--no-fallback")
+
+    def zincWorker = ModuleRef(ZincWorkerGraalvm)
+
+    object ZincWorkerGraalvm extends ZincWorkerModule {
+      def jvmId = build.Settings.graalvmJvmId
     }
   }
 }
