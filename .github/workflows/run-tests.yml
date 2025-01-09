@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  test-docs:
+  debug:
 #    runs-on: ubuntu-latest
     runs-on: windows-latest
     steps:
