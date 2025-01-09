@@ -9,7 +9,7 @@ on:
 jobs:
   test-docs:
 #    runs-on: ubuntu-latest
-     runs-on: windows-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
