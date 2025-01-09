@@ -35,6 +35,7 @@ jobs:
         if: always()
 
       - run: ./mill 'example.javalib.publishing[7-native-image].packaged.server.test'
+        if: always()
 #
 #
 #name: Run Tests
