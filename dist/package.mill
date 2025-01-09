@@ -65,7 +65,6 @@ object `package` extends RootModule  with InstallModule {
    */
   object dist0 extends build.MillPublishJavaModule {
     // disable scalafix here because it crashes when a module has no sources
-    def fix(args: String*): Command[Unit] = Task.Command {}
     def moduleDeps = Seq(build.runner, build.idea)
 
     def testTransitiveDeps = build.runner.testTransitiveDeps() ++ Seq(

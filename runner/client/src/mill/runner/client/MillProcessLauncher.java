@@ -108,12 +108,10 @@ public class MillProcessLauncher {
   static String javaExe() {
     String javaHome = System.getProperty("java.home");
     String jvmId = "temurin:17";
-    if (javaHome == null || javaHome.isEmpty()){
-        System.err.println("Downloading JDK " + jvmId);
-        javaHome = CoursierClient
-            .resolveJavaHome(jvmId)
-            .getAbsolutePath();
-        System.err.println("Finished Downloading JDK " + jvmId + " to " + javaHome);
+    if (javaHome == null || javaHome.isEmpty()) {
+      System.err.println("Downloading JDK " + jvmId);
+      javaHome = CoursierClient.resolveJavaHome(jvmId).getAbsolutePath();
+      System.err.println("Finished Downloading JDK " + jvmId + " to " + javaHome);
     }
     final File exePath = new File(
         javaHome + File.separator + "bin" + File.separator + "java" + (isWin() ? ".exe" : ""));
