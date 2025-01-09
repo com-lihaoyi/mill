@@ -247,12 +247,13 @@ trait PublishModule extends JavaModule { outer =>
   /**
    * Publish artifacts to a local Maven repository.
    * @param m2RepoPath The path to the local repository  as string (default: `$HOME/.m2repository`).
+   *                   If set, environment variable `MAVEN_LOCAL_REPO` will be used.
    * @return [[PathRef]]s to published files.
    */
-  def publishM2Local(m2RepoPath: String = (os.home / ".m2/repository").toString())
-      : Command[Seq[PathRef]] = Task.Command {
-    publishM2LocalTask(Task.Anon {
-      os.Path(m2RepoPath, T.workspace)
+  def publishM2Local(m2RepoPath: String = sys.env.get("MAVEN_LOCAL_REPO").map(os.Path(_)).getOrElse(
+    (os.home / ".m2/repository").toString()).toString()): Command[Seq[PathRef]] = Task.Command {
+      publishM2LocalTask(Task.Anon {
+        os.Path(m2RepoPath, T.workspace)
     })()
   }
 
@@ -262,7 +263,8 @@ trait PublishModule extends JavaModule { outer =>
    */
   def publishM2LocalCached: T[Seq[PathRef]] = Task {
     publishM2LocalTask(Task.Anon {
-      os.Path(os.home / ".m2/repository", T.workspace)
+      sys.env.get("MAVEN_LOCAL_REPO").map(os.Path(_)).getOrElse(
+        os.Path(os.home / ".m2/repository", T.workspace))
     })()
   }
 
