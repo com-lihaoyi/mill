@@ -19,8 +19,7 @@ jobs:
           java-version: '17'
       - run: ./mill show dist.ZincWorkerGraalvm.javaHome
       
-      - run: find /Users/runneradmin/AppData/Local/Coursier/cache/arc/https/github.com/graalvm/graalvm-ce-builds/releases/download/jdk-23.0.1/graalvm-community-jdk-23.0.1_windows-x64_bin.zip/graalvm-community-openjdk-23.0.1+11.1
-        shell: bash
+      - run: ls C:\\Users\\runneradmin\\AppData\\Local\\Coursier\\cache\\arc\\https\\github.com\\graalvm\\graalvm-ce-builds\\releases\\download\\jdk-23.0.1\\graalvm-community-jdk-23.0.1_windows-x64_bin.zip\\graalvm-community-openjdk-23.0.1+11.1
 
       - run: ./mill 'example.javalib.publishing[7-native-image].packaged.server.test'
 
