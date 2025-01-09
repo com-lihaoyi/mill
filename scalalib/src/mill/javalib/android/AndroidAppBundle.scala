@@ -3,6 +3,7 @@ package mill.javalib.android
 import mill._
 import mill.scalalib._
 import mill.api.PathRef
+import os.zip.ZipSource
 
 /**
  * A Trait for Android App Bundle Creation
@@ -54,7 +55,7 @@ trait AndroidAppBundle extends AndroidAppModule with JavaModule {
       }
     }
 
-    os.zip(Task.dest / "bundle.zip", Seq(baseDir))
+    os.zip(Task.dest / "bundle.zip", os.list(baseDir).map(ZipSource.fromPath))
 
     PathRef(Task.dest / "bundle.zip")
   }
