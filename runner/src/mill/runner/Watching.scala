@@ -82,7 +82,6 @@ object Watching {
     @tailrec def statWatchWait0(): Boolean = {
       if (watched.forall(_.validate())) {
         if (lookForEnterKey()) {
-          mill.main.client.DebugLog.println("ENTER KEY DETECTED")
           true
         } else {
           Thread.sleep(100)

@@ -123,7 +123,7 @@ object app extends AndroidAppModule {
 
 > ./mill show app.startAndroidEmulator
 
-> sleep 20 && ./mill show app.adbDevices
+> ./mill show app.adbDevices
 ...emulator-5554...device...
 
 > ./mill show app.it | grep '"OK (1 test)"'

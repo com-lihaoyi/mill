@@ -26,3 +26,7 @@ For more details, see:
 
 * xref:javalib/publishing.adoc#_java_app_and_bundles_using_jlink[Java App and Bundles using JLink]
 * xref:javalib/publishing.adoc#_java_installers_using_jpackage[Java Installers using JPackage]
+
+== Building Native Image with Graal VM
+
+include::partial$example/kotlinlib/publishing/7-native-image.adoc[]
