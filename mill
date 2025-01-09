@@ -102,7 +102,8 @@ if [ -z "${MILL_VERSION}" ] ; then
 fi
 
 MILL_NATIVE_SUFFIX="-native"
-if [ "$MILL_VERSION" == *"$MILL_NATIVE_SUFFIX" ]; then
+case "$MILL_VERSION" in
+    *"$MILL_NATIVE_SUFFIX")
   MILL_VERSION=${MILL_VERSION%"$MILL_NATIVE_SUFFIX"}
   if [ "$(expr substr $(uname -s) 1 5 2>/dev/null)" == "Linux" ]; then
     ARTIFACT_SUFFIX="-native-linux-amd64"
@@ -112,7 +113,7 @@ if [ "$MILL_VERSION" == *"$MILL_NATIVE_SUFFIX" ]; then
      echo "This native mill launcher supports only Linux and macOS." 1>&2
      exit 1
   fi
-fi
+esac
 
 
 MILL="${MILL_DOWNLOAD_PATH}/${MILL_VERSION}"
