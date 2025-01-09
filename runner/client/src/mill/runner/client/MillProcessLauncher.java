@@ -76,27 +76,28 @@ public class MillProcessLauncher {
     return builder.start();
   }
 
-  static File millJvmVersionFile() {
+  static Path millJvmVersionFile() {
     String millJvmOptsPath = System.getenv(EnvVars.MILL_JVM_VERSION_PATH);
     if (millJvmOptsPath == null || millJvmOptsPath.trim().equals("")) {
       millJvmOptsPath = ".mill-jvm-version";
     }
-    return new File(millJvmOptsPath).getAbsoluteFile();
+    return Paths.get(millJvmOptsPath).toAbsolutePath();
   }
-  static File millJvmOptsFile() {
+
+  static Path millJvmOptsFile() {
     String millJvmOptsPath = System.getenv(EnvVars.MILL_JVM_OPTS_PATH);
     if (millJvmOptsPath == null || millJvmOptsPath.trim().equals("")) {
       millJvmOptsPath = ".mill-jvm-opts";
     }
-    return new File(millJvmOptsPath).getAbsoluteFile();
+    return Paths.get(millJvmOptsPath).toAbsolutePath();
   }
 
-  static File millOptsFile() {
+  static Path millOptsFile() {
     String millJvmOptsPath = System.getenv(EnvVars.MILL_OPTS_PATH);
     if (millJvmOptsPath == null || millJvmOptsPath.trim().equals("")) {
       millJvmOptsPath = ".mill-opts";
     }
-    return new File(millJvmOptsPath).getAbsoluteFile();
+    return Paths.get(millJvmOptsPath).toAbsolutePath();
   }
 
   static boolean millJvmOptsAlreadyApplied() {
@@ -113,30 +114,25 @@ public class MillProcessLauncher {
   }
 
   static String javaExe() throws IOException {
-    String javaHome = System.getProperty("java.home");
+    String jvmId;
+    Path millJvmVersionFile = millJvmVersionFile();
 
-
-    if (javaHome == null || javaHome.isEmpty()) {
-      if (System.getenv("JAVA_HOME") != null){
-          javaHome = System.getenv("JAVA_HOME");
-      }
-    }
-
-    if (javaHome == null || javaHome.isEmpty()) {
-      String jvmId;
-      File millJvmVersionFile = millJvmVersionFile();
-
-      if (millJvmVersionFile.exists()) {
-        jvmId = Files.readString(millJvmVersionFile.toPath()).trim();;
-      }else{
-        jvmId = "temurin:17";
-      }
+    String javaHome = null;
+    if (Files.exists(millJvmVersionFile)) {
+      jvmId = Files.readString(millJvmVersionFile).trim();
+      ;
       javaHome = CoursierClient.resolveJavaHome(jvmId).getAbsolutePath();
     }
-    final File exePath = new File(
-        javaHome + File.separator + "bin" + File.separator + "java" + (isWin() ? ".exe" : ""));
 
-    return exePath.getAbsolutePath();
+    if (javaHome == null || javaHome.isEmpty()) javaHome = System.getProperty("java.home");
+    if (javaHome == null || javaHome.isEmpty()) javaHome = System.getenv("JAVA_HOME");
+    if (javaHome == null || javaHome.isEmpty()) return "java";
+    else {
+      final Path exePath = Paths.get(
+          javaHome + File.separator + "bin" + File.separator + "java" + (isWin() ? ".exe" : ""));
+
+      return exePath.toAbsolutePath().toString();
+    }
   }
 
   static String[] millClasspath() throws Exception {
@@ -211,8 +207,8 @@ public class MillProcessLauncher {
     if (serverTimeout != null) vmOptions.add("-D" + "mill.server_timeout" + "=" + serverTimeout);
 
     // extra opts
-    File millJvmOptsFile = millJvmOptsFile();
-    if (millJvmOptsFile.exists()) {
+    Path millJvmOptsFile = millJvmOptsFile();
+    if (Files.exists(millJvmOptsFile)) {
       vmOptions.addAll(Util.readOptsFileLines(millJvmOptsFile));
     }
 

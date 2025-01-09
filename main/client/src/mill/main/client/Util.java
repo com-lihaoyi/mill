@@ -1,7 +1,6 @@
 package mill.main.client;
 
 import java.io.Console;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,6 +10,7 @@ import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
@@ -166,9 +166,9 @@ public class Util {
    *
    * @return The non-empty lines of the files or an empty list, if the file does not exist
    */
-  public static List<String> readOptsFileLines(final File file) throws Exception {
+  public static List<String> readOptsFileLines(final Path file) throws Exception {
     final List<String> vmOptions = new LinkedList<>();
-    try (final Scanner sc = new Scanner(file)) {
+    try (final Scanner sc = new Scanner(file.toFile())) {
       final Map<String, String> env = System.getenv();
       while (sc.hasNextLine()) {
         String arg = sc.nextLine();
