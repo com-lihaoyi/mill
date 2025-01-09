@@ -102,7 +102,7 @@ if [ -z "${MILL_VERSION}" ] ; then
 fi
 
 MILL_NATIVE_SUFFIX="-native"
-if [[ "$MILL_VERSION" == *"$MILL_NATIVE_SUFFIX" ]]; then
+if [ "$MILL_VERSION" == *"$MILL_NATIVE_SUFFIX" ]; then
   MILL_VERSION=${MILL_VERSION%"$MILL_NATIVE_SUFFIX"}
   if [ "$(expr substr $(uname -s) 1 5 2>/dev/null)" == "Linux" ]; then
     ARTIFACT_SUFFIX="-native-linux-amd64"
