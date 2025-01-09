@@ -3,7 +3,7 @@ package mill.javalib.android
 import coursier.Repository
 import mill._
 import mill.scalalib._
-import mill.api.PathRef
+import mill.api.{Logger, PathRef}
 import mill.define.ModuleRef
 import mill.util.Jvm
 import os.RelPath
@@ -810,7 +810,7 @@ trait AndroidAppModule extends JavaModule {
    *
    * @return The log line that indicates the emulator is ready
    */
-  def startAndroidEmulator: T[String] = Task {
+  def startAndroidEmulator(): Command[String] = Task.Command(exclusive = true) {
     val ciSettings = Seq(
       "-no-snapshot-save",
       "-no-window",
@@ -837,7 +837,7 @@ trait AndroidAppModule extends JavaModule {
       command
     )
 
-    val bootMessage = startEmuCmd.stdout.buffered.lines().filter(l => {
+    val bootMessage: Option[String] = startEmuCmd.stdout.buffered.lines().filter(l => {
       T.log.debug(l.trim())
       l.contains("Boot completed in")
     }).findFirst().toScala
@@ -846,37 +846,15 @@ trait AndroidAppModule extends JavaModule {
       throw new Exception(s"Emulator failed to start: ${startEmuCmd.exitCode()}")
     }
 
-    T.log.info(s"Emulator started with message $bootMessage")
+    val emulator: String = waitForDevice(androidSdkModule().adbPath(), runningEmulator(), T.log)
+
+    T.log.info(s"Emulator ${emulator} started with message $bootMessage")
 
     bootMessage.get
   }
 
   def adbDevices: T[String] = Task {
     os.call((androidSdkModule().adbPath().path, "devices", "-l")).out.text()
-  }
-
-  def waitForDevice: Target[String] = Task {
-    val emulator = runningEmulator()
-    os.call((
-      androidSdkModule().adbPath().path,
-      "-s",
-      emulator,
-      "wait-for-device"
-    ))
-    val bootflag = os.call(
-      (
-        androidSdkModule().adbPath().path,
-        "-s",
-        emulator,
-        "shell",
-        "getprop",
-        "sys.boot_completed"
-      )
-    )
-
-    T.log.info(s"$emulator, bootflag is $bootflag")
-
-    emulator
   }
 
   /**
@@ -974,6 +952,42 @@ trait AndroidAppModule extends JavaModule {
     relPath.last == "NOTICE.TXT" ||
     relPath.last == "kotlin-project-structure-metadata.json" ||
     relPath.last == "module-info.class"
+  }
+
+  private def waitForDevice(adbPath: PathRef, emulator: String, logger: Logger): String = {
+    val BootedIndicator = "1"
+    def getBootflag: String = {
+      val result = os.call(
+        (
+          adbPath.path,
+          "-s",
+          emulator,
+          "shell",
+          "getprop",
+          "sys.boot_completed"
+        ),
+        check = false
+      )
+      if (result.exitCode != 0)
+        "0"
+      else
+        result.out.trim()
+    }
+
+    var bootflag = getBootflag
+    var triesLeft = 25
+
+    while (bootflag != BootedIndicator && triesLeft > 0) {
+      logger.debug(s"Waiting for device to boot. Bootflag: $bootflag . Tries left ${triesLeft}")
+      Thread.sleep(1000)
+      triesLeft -= 1
+      bootflag = getBootflag
+    }
+
+    if (bootflag == BootedIndicator)
+      emulator
+    else
+      throw new Exception("Device failed to boot")
   }
 
   trait AndroidAppTests extends JavaTests {
