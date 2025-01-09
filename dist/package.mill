@@ -352,14 +352,14 @@ object `package` extends RootModule with build.MillPublishJavaModule {
     def moduleDeps = build.dist.moduleDeps
     def nativeImageExecutableName = if (Properties.isWin) "mill.exe" else "mill"
 
-    def publishVersionOsSuffix = T{
+    def artifactOsSuffix = T{
       val osName = System.getProperty("os.name").toLowerCase
       if (osName.contains("mac")) "mac"
       else if (osName.contains("windows")) "windows"
       else "linux"
     }
-    def publishVersionCpuSuffix = T{ System.getProperty("os.arch") }
-    def publishVersion = s"${super.publishVersion()}-${publishVersionOsSuffix()}-${publishVersionCpuSuffix()}"
+    def artifactCpuSuffix = T{ System.getProperty("os.arch") }
+    def artifactName = s"${super.artifactName()}-${artifactOsSuffix()}-${artifactCpuSuffix()}"
 
     def mainClass = Some("mill.runner.client.MillClientMain")
 
