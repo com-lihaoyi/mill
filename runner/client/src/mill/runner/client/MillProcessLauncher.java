@@ -148,6 +148,15 @@ public class MillProcessLauncher {
     }
 
     if (selfJars == null || selfJars.trim().isEmpty()) {
+      // Assuming native assembly run
+      selfJars = MillProcessLauncher.class
+          .getProtectionDomain()
+          .getCodeSource()
+          .getLocation()
+          .getPath();
+    }
+
+    if (selfJars == null || selfJars.trim().isEmpty()) {
       throw new RuntimeException("MILL_CLASSPATH is empty!");
     }
     String[] selfJarsArray = selfJars.split("[,]");
@@ -191,7 +200,7 @@ public class MillProcessLauncher {
     return vmOptions;
   }
 
-  static List<String> readMillJvmOpts() {
+  static List<String> readMillJvmOpts() throws Exception {
     return Util.readOptsFileLines(millJvmOptsFile());
   }
 
@@ -227,7 +236,6 @@ public class MillProcessLauncher {
           int width = size.getWidth();
           int height = size.getHeight();
           str = width + " " + height;
-          mill.main.client.DebugLog.println(str);
         } else if (!tputExists) {
           // Hardcoded size of a quarter screen terminal on 13" windows laptop
           str = "78 24";
