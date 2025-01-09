@@ -356,7 +356,7 @@ object `package` extends RootModule with build.MillPublishJavaModule {
 
     def nativeImageClasspath = build.runner.client.runClasspath()
 
-    def nativeImage = Task {
+    def rawNativeImage = Task {
       val previous = super.nativeImage().path
       val executable = Task.dest / previous.last
 
@@ -370,7 +370,12 @@ object `package` extends RootModule with build.MillPublishJavaModule {
       PathRef(executable)
     }
 
-    def jar = nativeImage()
+    def nativeImage = Task {
+      Task.traverse(allPublishModules.filter(_ != native))(m => m.publishLocalCached)()
+      rawNativeImage()
+    }
+
+    def jar = rawNativeImage()
 
     def nativeImageOptions = Seq("--no-fallback")
 
