@@ -19,7 +19,8 @@ jobs:
           java-version: '17'
 
       - run: ./mill 'example.javalib.publishing[7-native-image].packaged.server.test'
-
+        env:
+          COURSIER_CACHE: D:/a/mill/coursier_cache
       - run: type C:\\Users\\runneradmin\\AppData\\Local\\Coursier\\cache\\arc\\https\\github.com\\graalvm\\graalvm-ce-builds\\releases\\download\\jdk-17.0.7\\graalvm-community-jdk-17.0.7_windows-x64_bin.zip\\graalvm-community-openjdk-17.0.7+7.1\\lib\\svm\\clibraries\\windows-amd64\\include\\aarch64cpufeatures.h
         if: always()
 
@@ -37,6 +38,8 @@ jobs:
 
       - run: ./mill 'example.javalib.publishing[7-native-image].packaged.server.test'
         if: always()
+        env:
+          COURSIER_CACHE: D:/a/mill/coursier_cache
 
       - run: ls C:\\Users\\runneradmin\\AppData\\Local\\Coursier\\cache\\arc\\https\\github.com\\graalvm\\graalvm-ce-builds\\releases\\download\\jdk-17.0.7\\graalvm-community-jdk-17.0.7_windows-x64_bin.zip\\graalvm-community-openjdk-17.0.7+7.1\\lib\\svm\\clibraries\\windows-amd64\\include
         if: always()
