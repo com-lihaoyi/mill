@@ -8,7 +8,7 @@ import $file.ci.upload
 
 import scala.util.{Properties, Using}
 
-object `package` extends RootModule with build.MillPublishJavaModule with mill.scalalib.NativeImageModule{
+object `package` extends RootModule with build.MillPublishJavaModule {
 
   /**
    * Version of [[dist]] meant for local integration testing within the Mill
@@ -348,28 +348,36 @@ object `package` extends RootModule with build.MillPublishJavaModule with mill.s
     }
   }
 
-  def nativeImageExecutableName = if (Properties.isWin) "mill.exe" else "mill"
-  def mainClass = Some("mill.runner.client.MillClientMain")
-  def nativeImageClasspath = build.runner.client.runClasspath()
-  def nativeImage = Task {
-    val previous = super.nativeImage().path
-    val executable = Task.dest / previous.last
+  object native extends build.MillPublishJavaModule with mill.scalalib.NativeImageModule {
+    def moduleDeps = build.dist.moduleDeps
+    def nativeImageExecutableName = if (Properties.isWin) "mill.exe" else "mill"
 
-    Using(os.write.outputStream(executable)) { out =>
-      out.write(os.read.bytes(previous))
-      out.write(System.lineSeparator.getBytes)
-      out.write(os.read.bytes(assembly().path))
+    def mainClass = Some("mill.runner.client.MillClientMain")
+
+    def nativeImageClasspath = build.runner.client.runClasspath()
+
+    def nativeImage = Task {
+      val previous = super.nativeImage().path
+      val executable = Task.dest / previous.last
+
+      Using(os.write.outputStream(executable)) { out =>
+        out.write(os.read.bytes(previous))
+        out.write(System.lineSeparator.getBytes)
+        out.write(os.read.bytes(assembly().path))
+      }
+
+      os.perms.set(executable, "rwxrwxrwx")
+      PathRef(executable)
     }
 
-    os.perms.set(executable, "rwxrwxrwx")
-    PathRef(executable)
-  }
+    def jar = nativeImage()
 
-  def nativeImageOptions = Seq("--no-fallback")
+    def nativeImageOptions = Seq("--no-fallback")
 
-  def zincWorker = ModuleRef(ZincWorkerGraalvm)
+    def zincWorker = ModuleRef(ZincWorkerGraalvm)
 
-  object ZincWorkerGraalvm extends ZincWorkerModule {
-    def jvmId = build.Settings.graalvmJvmId
+    object ZincWorkerGraalvm extends ZincWorkerModule {
+      def jvmId = build.Settings.graalvmJvmId
+    }
   }
 }

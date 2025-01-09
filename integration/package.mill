@@ -73,7 +73,7 @@ object `package` extends RootModule {
       def millIntegrationLauncher = build.dist.assembly()
     }
     object native extends IntegrationLauncherModule {
-      def millIntegrationLauncher = build.dist.nativeImage()
+      def millIntegrationLauncher = build.dist.native.nativeImage()
     }
     trait IntegrationLauncherModule extends Module {
       def millIntegrationLauncher: T[PathRef]
