@@ -18,8 +18,6 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - run: ls C:\\Users\\runneradmin\\AppData\\Local\\Coursier\\cache\\arc\\https\\github.com\\graalvm\\graalvm-ce-builds\\releases\\download\\jdk-17.0.7\\graalvm-community-jdk-17.0.7_windows-x64_bin.zip\\graalvm-community-openjdk-17.0.7+7.1\\lib\\svm\\clibraries\\windows-amd64\\include
-
       - run: ./mill 'example.javalib.publishing[7-native-image].packaged.server.test'
 
       - run: ls C:\\Users\\runneradmin\\AppData\\Local\\Coursier\\cache\\arc\\https\\github.com\\graalvm\\graalvm-ce-builds\\releases\\download\\jdk-17.0.7\\graalvm-community-jdk-17.0.7_windows-x64_bin.zip\\graalvm-community-openjdk-17.0.7+7.1
@@ -36,6 +34,7 @@ jobs:
       - run: ls C:\\Users\\runneradmin\\AppData\\Local\\Coursier\\cache\\arc\\https\\github.com\\graalvm\\graalvm-ce-builds\\releases\\download\\jdk-17.0.7\\graalvm-community-jdk-17.0.7_windows-x64_bin.zip\\graalvm-community-openjdk-17.0.7+7.1\\lib\\svm\\clibraries\\windows-amd64\\include\\riscv64cpufeatures.h
         if: always()
 
+      - run: ./mill 'example.javalib.publishing[7-native-image].packaged.server.test'
 #
 #
 #name: Run Tests
