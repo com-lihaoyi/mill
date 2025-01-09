@@ -106,17 +106,19 @@ public class MillProcessLauncher {
   }
 
   static String javaExe() {
-    final String javaHome = System.getProperty("java.home");
-    if (javaHome != null && !javaHome.isEmpty()) {
-      final File exePath = new File(
-          javaHome + File.separator + "bin" + File.separator + "java" + (isWin() ? ".exe" : ""));
-      if (exePath.exists()) {
-        return exePath.getAbsolutePath();
-      }
+    String javaHome = System.getProperty("java.home");
+    String jvmId = "temurin:17";
+    if (javaHome == null || javaHome.isEmpty()){
+        System.err.println("Downloading JDK " + jvmId);
+        javaHome = CoursierClient
+            .resolveJavaHome(jvmId, "latest.release")
+            .getAbsolutePath();
+        System.err.println("Finished Downloading JDK " + jvmId + " to " + javaHome);
     }
-    return CoursierClient
-        .resolveJavaHome("temurin:17", "latest.release")
-        .getAbsolutePath();
+    final File exePath = new File(
+        javaHome + File.separator + "bin" + File.separator + "java" + (isWin() ? ".exe" : ""));
+
+    return exePath.getAbsolutePath();
   }
 
   static String[] millClasspath() throws Exception {

@@ -70,10 +70,10 @@ object `package` extends RootModule {
       def millIntegrationLauncher = build.dist.launcher()
     }
     object packaged extends IntegrationLauncherModule {
-      def millIntegrationLauncher = build.dist.assembly()
+      def millIntegrationLauncher = build.dist.executable()
     }
     object native extends IntegrationLauncherModule {
-      def millIntegrationLauncher = build.dist.native.nativeImage()
+      def millIntegrationLauncher = build.dist.native.executable()
     }
     trait IntegrationLauncherModule extends Module {
       def millIntegrationLauncher: T[PathRef]

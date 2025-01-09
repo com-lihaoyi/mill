@@ -19,7 +19,9 @@ import scala.util.Properties
  * }}}
  */
 @mill.api.experimental
-trait NativeImageModule extends RunModule with WithZincWorker {
+trait NativeImageModule extends WithZincWorker {
+  def runClasspath: T[Seq[PathRef]]
+  def finalMainClass: T[String]
 
   /**
    * [[https://www.graalvm.org/latest/reference-manual/native-image/#from-a-class Builds a native executable]] for this
