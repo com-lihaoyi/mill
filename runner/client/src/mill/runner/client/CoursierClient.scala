@@ -11,8 +11,7 @@ object CoursierClient {
       .withArchiveCache(ArchiveCache().withCache(coursierCache0))
       .withIndex(jvmIndex0())
 
-    val javaHome = JavaHome()
-      .withCache(jvmCache)
+    val javaHome = JavaHome().withCache(jvmCache)
 
     javaHome.get(id).unsafeRun()(coursierCache0.ec)
   }
