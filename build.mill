@@ -20,7 +20,6 @@ import $file.ci.shared
 import $file.ci.upload
 import $packages._
 
-
 object Settings {
   val pomOrg = "com.lihaoyi"
   val githubOrg = "com-lihaoyi"
