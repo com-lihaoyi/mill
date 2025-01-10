@@ -20,7 +20,7 @@ jobs:
 
       - run: ./mill 'example.javalib.publishing[7-native-image].packaged.server.test'
         env:
-          COURSIER_CACHE: "C:/coursier"
+          COURSIER_ARCHIVE_CACHE: "C:/coursier-arc"
 #
 
 #name: Run Tests
