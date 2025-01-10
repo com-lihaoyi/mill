@@ -395,7 +395,8 @@ object Jvm extends CoursierSupport {
       env = envArgs,
       stdin = if (backgroundOutputs.isEmpty) os.Inherit else "",
       stdout = backgroundOutputs.map(_._1).getOrElse(os.Inherit),
-      stderr = backgroundOutputs.map(_._2).getOrElse(os.Inherit)
+      stderr = backgroundOutputs.map(_._2).getOrElse(os.Inherit),
+      destroyOnExit = backgroundOutputs.isEmpty
     )
   }
 

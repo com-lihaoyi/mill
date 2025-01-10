@@ -60,13 +60,21 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
+      - name: Cleanup any previous avd's to avoid signing key conflicts
+        if : ${{ inputs.install-android-sdk }}
+        run: rm -rf /home/runner/.config/.android/avd
+
       - name: Set AVD environment variable globally
         if: ${{ inputs.install-android-sdk }}
         run: echo "ANDROID_AVD_HOME=/home/runner/.config/.android/avd" >> $GITHUB_ENV
 
       - run: ./mill -i -k selective.resolve ${{ inputs.millargs }}
 
+      - run: ./mill -i -j1 -k selective.run ${{ inputs.millargs }}
+        if: ${{ inputs.install-android-sdk }}
+
       - run: ./mill -i -k selective.run ${{ inputs.millargs }}
+        if: ${{ !inputs.install-android-sdk }}
 
       - run: 'taskkill -f -im java* && rm -rf out/mill-server/*'
         if: startsWith(inputs.os, 'windows')
