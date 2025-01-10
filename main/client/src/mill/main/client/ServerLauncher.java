@@ -1,14 +1,11 @@
 package mill.main.client;
 
-import static mill.main.client.OutFiles.*;
-
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Map;
 import mill.main.client.lock.Locks;
 import mill.main.client.lock.TryLocked;
@@ -81,21 +78,19 @@ public abstract class ServerLauncher {
     this.forceFailureForTestingMillisDelay = forceFailureForTestingMillisDelay;
   }
 
-  public Result acquireLocksAndRun(String outDir) throws Exception {
+  public Result acquireLocksAndRun(Path serverDir0) throws Exception {
 
     final boolean setJnaNoSys = System.getProperty("jna.nosys") == null;
     if (setJnaNoSys) {
       System.setProperty("jna.nosys", "true");
     }
 
-    final String versionAndJvmHomeEncoding =
-        Util.sha1Hash(BuildInfo.millVersion + System.getProperty("java.home"));
-
     int serverIndex = 0;
     while (serverIndex < serverProcessesLimit) { // Try each possible server process (-1 to -5)
       serverIndex++;
       final Path serverDir =
-          Paths.get(outDir, millServer, versionAndJvmHomeEncoding + "-" + serverIndex);
+          serverDir0.getParent().resolve(serverDir0.getFileName() + "-" + serverIndex);
+
       Files.createDirectories(serverDir);
 
       try (Locks locks = memoryLocks != null
