@@ -40,7 +40,7 @@ trait NativeImageModule extends RunModule with WithZincWorker {
       .+=("-cp")
       .+=(nativeImageClasspath().iterator.map(_.path).mkString(java.io.File.pathSeparator))
       .+=(finalMainClass())
-      .+=(executableName)
+      .+=((dest / executableName).toString())
       .result()
     os.proc(command).call(cwd = dest, stdout = os.Inherit)
     PathRef(dest / executableName)
