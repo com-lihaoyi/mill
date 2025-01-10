@@ -243,10 +243,8 @@ const links = document.querySelectorAll('a');
 });
 </script>
 <div class="paragraph">
-<p>Garbage collectors are a core part of many programming languages, but are surprisingly
-poorly understood. In developing the <a href="https://mill-build.org">Mill JVM build tool</a>,
-we sometimes have to deal with GC-related issues to keep the tool fast and responsive,
-but these issues can occur in any JVM application.
+<p>Garbage collectors are a core part of many programming languages. While they generally work
+well, on occasion when they go wrong they can fail in very unintuitive ways.
 This article will discuss the fundamental design of how garbage collectors
 work, and tie it to real benchmarks of how GCs perform on the Java Virtual Machine. You
 should come away with a deeper understanding of how the JVM garbage collector works and
