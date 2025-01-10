@@ -27,7 +27,6 @@ object foo extends ScalaModule with NativeImageModule {
 > ./mill show foo.nativeImage
 GraalVM Native Image: Generating...native-image...
 Finished generating...native-image...
-???
 
 > ./out/foo/nativeImage.dest/native-image.exe
 Hello, World!
