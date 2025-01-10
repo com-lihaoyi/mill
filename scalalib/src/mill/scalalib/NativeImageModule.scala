@@ -31,8 +31,6 @@ trait NativeImageModule extends RunModule with WithZincWorker {
    */
   def nativeImage: T[PathRef] = Task {
     val dest = T.dest
-    val executableName =
-      if (mill.main.client.Util.isWindows) "native-image.exe" else "native-image"
 
     val command = Seq.newBuilder[String]
       .+=(nativeImageTool().path.toString)
@@ -40,10 +38,10 @@ trait NativeImageModule extends RunModule with WithZincWorker {
       .+=("-cp")
       .+=(nativeImageClasspath().iterator.map(_.path).mkString(java.io.File.pathSeparator))
       .+=(finalMainClass())
-      .+=((dest / executableName).toString())
+      .+=((dest / "native-image").toString())
       .result()
     os.proc(command).call(cwd = dest, stdout = os.Inherit)
-    PathRef(dest / executableName)
+    PathRef(dest / "native-image")
   }
 
   /**
