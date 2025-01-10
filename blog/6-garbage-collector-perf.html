@@ -1544,20 +1544,17 @@ from left-to-right:</p>
 <!-- stack&#45;&gt;heap1 -->
 <g id="edge1" class="edge">
 <title>stack:f0-&gt;heap1:f0</title>
-<path fill="none" stroke="black" d="M103.33,-122.6C103.33,-106.45 85.55,-106.05 78.32,-96.3"></path>
-<polygon fill="black" stroke="black" points="81.62,-95.12 75.33,-86.6 74.94,-97.19 81.62,-95.12"></polygon>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M103.33,-122.6C103.33,-102.33 75.33,-106.87 75.33,-86.6"></path>
 </g>
 <!-- stack&#45;&gt;heap1 -->
 <g id="edge2" class="edge">
 <title>stack:f1-&gt;heap1:f1</title>
-<path fill="none" stroke="black" d="M122.33,-122.6C122.33,-110.6 122.33,-105.35 122.33,-96.72"></path>
-<polygon fill="black" stroke="black" points="125.83,-96.6 122.33,-86.6 118.83,-96.6 125.83,-96.6"></polygon>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M122.33,-122.6C122.33,-106.6 122.33,-102.6 122.33,-86.6"></path>
 </g>
 <!-- stack&#45;&gt;heap1 -->
 <g id="edge5" class="edge">
 <title>stack:f4-&gt;heap1:f4</title>
-<path fill="none" stroke="black" d="M181.33,-122.6C181.33,-87.72 245.34,-117.64 258.85,-96.42"></path>
-<polygon fill="black" stroke="black" points="262.27,-97.15 261.33,-86.6 255.48,-95.44 262.27,-97.15"></polygon>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M181.33,-122.6C181.33,-83.61 261.33,-125.59 261.33,-86.6"></path>
 </g>
 </g>
 </svg>
@@ -1613,21 +1610,15 @@ and the allocated objects jumbled up in no particular order</p>
 </g>
 <!-- heap&#45;&gt;heap -->
 <g id="edge3" class="edge">
-<title>heap:s-&gt;heap:s</title>
-<path fill="none" stroke="black" d="M75.33,-30.9C66.33,-20 66.33,0 98.83,0 123.46,0 129.42,-11.49 126.95,-21.79"></path>
-<polygon fill="black" stroke="black" points="123.73,-20.4 122.33,-30.9 129.97,-23.57 123.73,-20.4"></polygon>
+<title>heap:n-&gt;heap:n</title>
+<path fill="none" stroke="black" d="M75.33,-54.9C66.33,-65.8 66.33,-85.8 98.83,-85.8 123.46,-85.8 129.42,-74.31 126.95,-64.01"></path>
+<polygon fill="black" stroke="black" points="129.97,-62.23 122.33,-54.9 123.73,-65.4 129.97,-62.23"></polygon>
 </g>
 <!-- heap&#45;&gt;heap -->
 <g id="edge4" class="edge">
-<title>heap:n-&gt;heap:n</title>
-<path fill="none" stroke="black" d="M122.33,-54.9C113.33,-65.8 113.33,-85.8 138.83,-85.8 158.15,-85.8 162.83,-74.31 160.05,-64.01"></path>
-<polygon fill="black" stroke="black" points="163.04,-62.17 155.33,-54.9 156.82,-65.39 163.04,-62.17"></polygon>
-</g>
-<!-- heap&#45;&gt;heap -->
-<g id="edge5" class="edge">
 <title>heap:s-&gt;heap:s</title>
-<path fill="none" stroke="black" d="M155.33,-30.9C146.33,-20 146.33,0 204.33,0 248.28,0 258.93,-11.49 257.59,-21.79"></path>
-<polygon fill="black" stroke="black" points="254.39,-20.36 253.33,-30.9 260.73,-23.32 254.39,-20.36"></polygon>
+<path fill="none" stroke="black" d="M122.33,-30.9C113.33,-20 113.33,0 187.83,0 243.7,0 257.67,-11.25 257.37,-21.47"></path>
+<polygon fill="black" stroke="black" points="254.05,-20.33 253.33,-30.9 260.48,-23.09 254.05,-20.33"></polygon>
 </g>
 <!-- stack -->
 <g id="node2" class="node">
@@ -1662,7 +1653,7 @@ and the allocated objects jumbled up in no particular order</p>
 <path fill="none" stroke="black" stroke-dasharray="5,2" d="M226.33,-91.8C226.33,-22.81 75.33,-124.79 75.33,-55.8"></path>
 </g>
 <!-- stack&#45;&gt;heap -->
-<g id="edge6" class="edge">
+<g id="edge5" class="edge">
 <title>stack:f4-&gt;heap:f6</title>
 <path fill="none" stroke="black" stroke-dasharray="5,2" d="M285.33,-91.8C285.33,-74.47 300.33,-73.13 300.33,-55.8"></path>
 </g>
@@ -1820,7 +1811,7 @@ despite the reference cycle between them</p>
 is strictly superior to the other in all scenarios.
 Many programming languages (e.g. Python) that use reference counting also have a backup
 tracing garbage collector that runs once in a while to clean up unreachable reference cycles
-and compact the heap, and most modern GCs (e.g. ZGC discussed above) use some reference-counting
+and compact the heap, and most modern GCs (e.g. ZGC discussed below) use some reference-counting
 techniques as part of their implementation.</p>
 </div>
 </div>
