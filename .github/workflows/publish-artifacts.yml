@@ -101,6 +101,7 @@ jobs:
       matrix:
         include:
         - os: macos-latest
+        - os: windows-latest
         # Skip this because the main publishing job handles it
         # - os: ubuntu-latest 
     env:
@@ -112,7 +113,7 @@ jobs:
       LANG: "en_US.UTF-8"
       LC_MESSAGES: "en_US.UTF-8"
       LC_ALL: "en_US.UTF-8"
-
+      COURSIER_ARCHIVE_CACHE: "/coursier-arc"
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }

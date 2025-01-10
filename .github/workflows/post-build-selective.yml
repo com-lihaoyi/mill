@@ -65,12 +65,18 @@ jobs:
         run: echo "ANDROID_AVD_HOME=/home/runner/.config/.android/avd" >> $GITHUB_ENV
 
       - run: ./mill -i -k selective.resolve ${{ inputs.millargs }}
+        env:
+          COURSIER_ARCHIVE_CACHE: "/coursier-arc"
 
       - run: ./mill -i -j1 -k selective.run ${{ inputs.millargs }}
         if: ${{ inputs.install-android-sdk }}
+        env:
+          COURSIER_ARCHIVE_CACHE: "/coursier-arc"
 
       - run: ./mill -i -k selective.run ${{ inputs.millargs }}
         if: ${{ !inputs.install-android-sdk }}
+        env:
+          COURSIER_ARCHIVE_CACHE: "/coursier-arc"
 
       - run: 'taskkill -f -im java* && rm -rf out/mill-server/*'
         if: startsWith(inputs.os, 'windows')
