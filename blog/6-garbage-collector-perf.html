@@ -199,7 +199,10 @@ well, on occasion when they go wrong they can fail in very unintuitive ways.
 This article will discuss the fundamental design of how garbage collectors
 work, and tie it to real benchmarks of how GCs perform on the Java Virtual Machine. You
 should come away with a deeper understanding of how the JVM garbage collector works and
-how you can work to optimize its performance in your own real-world projects.</p>
+concrete ways you can work to improve its performance in your own real-world projects.</p>
+</div>
+<div class="paragraph">
+<p>For TL,DR see the <a href="#_gc_performance_takeaways">GC Performance Takeaways</a> section at the end.</p>
 </div>
 </div>
 </div>
@@ -1955,7 +1958,7 @@ be using the following Java program:</p>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="_attachments/GC-bench.sc" class="xref attachment">GC.java</a></p>
+<p><a href="_attachments/GC.java" class="xref attachment">GC.java</a></p>
 </li>
 </ul>
 </div>
@@ -2006,13 +2009,13 @@ iterations to run the benchmark (here 10 seconds, 5 iterations). The measured pa
 and allocation rate are averaged over those 5 iterations.</p>
 </div>
 <div class="paragraph">
-<p>I used the following <a href="https://ammonite.io/">Ammonite Scala script</a> to run the benchmark for a
+<p>I used the following Java program to run the benchmark for a
 range of inputs to collect the numbers shown below:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="_attachments/GC-bench.sc" class="xref attachment">GC-bench.sc</a></p>
+<p><a href="_attachments/GCBenchmark.java" class="xref attachment">GCBenchmark.java</a></p>
 </li>
 </ul>
 </div>
@@ -2044,35 +2047,35 @@ range of inputs to collect the numbers shown below:</p>
 </tr>
 <tr>
 <td class="tableblock halign-right valign-top"><p class="tableblock">400 mb</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">66 ms</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">60 ms</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">78 ms</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">93 ms</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">135 ms</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">39 ms</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">48 ms</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">74 ms</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">63 ms</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">90 ms</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-right valign-top"><p class="tableblock">800 mb</p></td>
 <td class="tableblock halign-right valign-top"></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">108 ms</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">93 ms</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">160 ms</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">262 ms</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">72 ms</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">82 ms</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">144 ms</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">165 ms</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-right valign-top"><p class="tableblock">1600 mb</p></td>
 <td class="tableblock halign-right valign-top"></td>
 <td class="tableblock halign-right valign-top"></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">158 ms</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">164 ms</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">564 ms</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">129 ms</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">137 ms</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">267 ms</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-right valign-top"><p class="tableblock">3200 mb</p></td>
 <td class="tableblock halign-right valign-top"></td>
 <td class="tableblock halign-right valign-top"></td>
 <td class="tableblock halign-right valign-top"></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">331 ms</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">5909 ms</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">248 ms</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">307 ms</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-right valign-top"><p class="tableblock">6400 mb</p></td>
@@ -2080,7 +2083,7 @@ range of inputs to collect the numbers shown below:</p>
 <td class="tableblock halign-right valign-top"></td>
 <td class="tableblock halign-right valign-top"></td>
 <td class="tableblock halign-right valign-top"></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">14222 ms</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">624 ms</p></td>
 </tr>
 </tbody>
 </table>
@@ -2107,35 +2110,35 @@ range of inputs to collect the numbers shown below:</p>
 </tr>
 <tr>
 <td class="tableblock halign-right valign-top"><p class="tableblock">400 mb</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">3140 mb/s</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">3823 mb/s</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">5087 mb/s</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">4871 mb/s</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">5199 mb/s</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">3238 mb/s</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">3938 mb/s</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">5329 mb/s</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">5198 mb/s</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">5410 mb/s</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-right valign-top"><p class="tableblock">800 mb</p></td>
 <td class="tableblock halign-right valign-top"></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">3022 mb/s</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">3598 mb/s</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">4374 mb/s</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">3741 mb/s</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">3180 mb/s</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">3765 mb/s</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">4602 mb/s</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">4550 mb/s</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-right valign-top"><p class="tableblock">1600 mb</p></td>
 <td class="tableblock halign-right valign-top"></td>
 <td class="tableblock halign-right valign-top"></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">2911 mb/s</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">3440 mb/s</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">2095 mb/s</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">3046 mb/s</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">3632 mb/s</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">3777 mb/s</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-right valign-top"><p class="tableblock">3200 mb</p></td>
 <td class="tableblock halign-right valign-top"></td>
 <td class="tableblock halign-right valign-top"></td>
 <td class="tableblock halign-right valign-top"></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">2797 mb/s</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">888 mb/s</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">3000 mb/s</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">3148 mb/s</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-right valign-top"><p class="tableblock">6400 mb</p></td>
@@ -2143,7 +2146,7 @@ range of inputs to collect the numbers shown below:</p>
 <td class="tableblock halign-right valign-top"></td>
 <td class="tableblock halign-right valign-top"></td>
 <td class="tableblock halign-right valign-top"></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">338 mb/s</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">2618 mb/s</p></td>
 </tr>
 </tbody>
 </table>
@@ -2159,24 +2162,20 @@ of the <code>live-set</code> size.</p>
 <ol class="arabic">
 <li>
 <p><strong>GC pause times go up as the size of the live set increases</strong>. With a <code>800 mb</code> heap and
-<code>400 mb</code> live set the average pause time is <code>66 ms</code>, and it scales smoothly up to a
-<code>6400 mb</code> heap and <code>3200 mb</code> live set where the pause time is <code>331 ms</code></p>
+<code>400 mb</code> live set the average pause time is <code>39 ms</code>, and it scales smoothly up to a
+<code>6400 mb</code> heap and <code>3200 mb</code> live set where the pause time is <code>624 ms</code></p>
 </li>
 <li>
 <p><strong>GC pause times are relatively constant regardless of the heap size</strong>.
-e.g. for <code>400 mb</code> live set a <code>800 mb</code> heap has a <code>66 ms</code> pause time, while a <code>400 mb</code> live set and
-<code>6400 mb</code> heap (8 times as large!) has a <code>93 ms</code> pause time. There’s some variation
-not a lot</p>
+e.g. for <code>400 mb</code> live set a <code>800 mb</code> heap has a <code>39 ms</code> pause time, while a <code>400 mb</code> live set and
+<code>6400 mb</code> heap (8 times as large!) has a <code>90 ms</code> pause time. In fact, increasing the heap
+size while keeping other things constant seems to make pause times go up slightly in
+this benchmark!</p>
 </li>
 <li>
 <p><strong>GC throughput goes up as the heap size increases</strong>, e.g. for a <code>400 mb</code> live set it goes
-smoothly from <code>3140 mb/s</code> for a <code>800 mb</code> heap to a <code>4871 mb/s</code> pause time for a <code>6400 mb</code>
+smoothly from <code>3238 mb/s</code> for a <code>800 mb</code> heap to a <code>5410 mb/s</code> pause time for a <code>6400 mb</code>
 heap.</p>
-</li>
-<li>
-<p><strong>Both pause times and throughput seems to suffer for very large live sets and very large
-heaps</strong>: the <code>12800 mb</code> heap has disproportionately higher pause times compared to smaller
-heap sizes, even compared to <code>6400 mb</code>, regardless of live-set size.</p>
 </li>
 </ol>
 </div>
@@ -2403,35 +2402,35 @@ even without the <a href="#_generational_optimizations">Generational Optimizatio
 </tr>
 <tr>
 <td class="tableblock halign-right valign-top"><p class="tableblock">400 mb</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">49 ms</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">2 ms</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">2 ms</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">7 ms</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">39 ms</p></td>
 <td class="tableblock halign-right valign-top"><p class="tableblock">12 ms</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">1 ms</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">1 ms</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">1 ms</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-right valign-top"><p class="tableblock">800 mb</p></td>
 <td class="tableblock halign-right valign-top"></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">71 ms</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">63 ms</p></td>
 <td class="tableblock halign-right valign-top"><p class="tableblock">1 ms</p></td>
 <td class="tableblock halign-right valign-top"><p class="tableblock">1 ms</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">5 ms</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">3 ms</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-right valign-top"><p class="tableblock">1600 mb</p></td>
 <td class="tableblock halign-right valign-top"></td>
 <td class="tableblock halign-right valign-top"></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">136 ms</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">208 ms</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">9 ms</p></td>
 <td class="tableblock halign-right valign-top"><p class="tableblock">1 ms</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">5 ms</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-right valign-top"><p class="tableblock">3200 mb</p></td>
 <td class="tableblock halign-right valign-top"></td>
 <td class="tableblock halign-right valign-top"></td>
 <td class="tableblock halign-right valign-top"></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">346 ms</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">5 ms</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">378 ms</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">2 ms</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-right valign-top"><p class="tableblock">6400 mb</p></td>
@@ -2439,7 +2438,7 @@ even without the <a href="#_generational_optimizations">Generational Optimizatio
 <td class="tableblock halign-right valign-top"></td>
 <td class="tableblock halign-right valign-top"></td>
 <td class="tableblock halign-right valign-top"></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">886 ms</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">701 ms</p></td>
 </tr>
 </tbody>
 </table>
@@ -2466,35 +2465,35 @@ even without the <a href="#_generational_optimizations">Generational Optimizatio
 </tr>
 <tr>
 <td class="tableblock halign-right valign-top"><p class="tableblock">400 mb</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">2305 mb/s</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">3959 mb/s</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">4858 mb/s</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">5318 mb/s</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">3261 mb/s</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">2428 mb/s</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">4130 mb/s</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">5139 mb/s</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">5647 mb/s</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">5943 mb/s</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-right valign-top"><p class="tableblock">800 mb</p></td>
 <td class="tableblock halign-right valign-top"></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">2573 mb/s</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">3888 mb/s</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">4707 mb/s</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">4645 mb/s</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">2587 mb/s</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">3920 mb/s</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">4776 mb/s</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">4975 mb/s</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-right valign-top"><p class="tableblock">1600 mb</p></td>
 <td class="tableblock halign-right valign-top"></td>
 <td class="tableblock halign-right valign-top"></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">2633 mb/s</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">3555 mb/s</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">3350 mb/s</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">2383 mb/s</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">3513 mb/s</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">4088 mb/s</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-right valign-top"><p class="tableblock">3200 mb</p></td>
 <td class="tableblock halign-right valign-top"></td>
 <td class="tableblock halign-right valign-top"></td>
 <td class="tableblock halign-right valign-top"></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">2381 mb/s</p></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">2089 mb/s</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">2282 mb/s</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">3186 mb/s</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-right valign-top"><p class="tableblock">6400 mb</p></td>
@@ -2502,7 +2501,7 @@ even without the <a href="#_generational_optimizations">Generational Optimizatio
 <td class="tableblock halign-right valign-top"></td>
 <td class="tableblock halign-right valign-top"></td>
 <td class="tableblock halign-right valign-top"></td>
-<td class="tableblock halign-right valign-top"><p class="tableblock">936 mb/s</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock">2304 mb/s</p></td>
 </tr>
 </tbody>
 </table>
@@ -2513,16 +2512,12 @@ even without the <a href="#_generational_optimizations">Generational Optimizatio
 <ol class="arabic">
 <li>
 <p>In the lower <code>heap-size</code> benchmarks - with <code>heap-size</code> twice <code>live-set</code> - ZGC
-has similar pause times as the default G1GC (10s to 100s of milliseconds) but
-with significantly worse throughput (<code>2300-2600 mb/s</code> rather than the <code>2800-3100 mb/s</code> of G1GC)</p>
+has worse pause times than the default G1GC (10s to 100s of milliseconds) but
+and worse throughput (<code>2300-2600 mb/s</code> rather than the <code>2800-3100 mb/s</code> of G1GC)</p>
 </li>
 <li>
 <p>For larger <code>heap-size</code>s - 4 times the <code>live-set</code> and above - ZGC’s pause times drop to
-single-digit milliseconds (1-2 ms), much lower than those of G1GC</p>
-</li>
-<li>
-<p>Z1 does seem to have slower pause times with large 12800 mb heaps as well, although
-instead of 100s to 1000s of millisecond pause times it slows down to 5-10 ms.</p>
+single-digit milliseconds (1-10 ms), much lower than those of G1GC</p>
 </li>
 </ol>
 </div>
@@ -2536,10 +2531,12 @@ of live data to be kept in memory, so shrinking the live-set is not possible.</p
 </div>
 <div class="paragraph">
 <p>ZGC provides an option here, where if you are willing to provide <em>significantly</em>
-more memory than the default G1GC requires, perhaps twice as much, you can get your pause times from
-10-100s of milliseconds down to 1-2 milliseconds. These pause times remain low for a wide
-range of heap sizes and live set sizes, and can be beneficial for a lot of applications
-that cannot afford to just randomly stop for 100ms at a time.</p>
+more memory than the default G1GC requires, perhaps twice as much, you can get your
+pause times from 10-100s of milliseconds down to 1-2 milliseconds. These pause times
+remain low for a wide range of heap sizes and live set sizes, and can be beneficial
+for a lot of applications that cannot afford to just randomly stop for 100ms at a time.
+But the extra memory requirement means it’s not a strict improvement, and it really
+depends on your use case whether the tradeoff is worth it.</p>
 </div>
 </div>
 </div>
@@ -2549,29 +2546,26 @@ that cannot afford to just randomly stop for 100ms at a time.</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Now that we’ve studied garbage collections in theory, and looked at some concrete
-numbers, there are some interesting conclusions that can be drawn:</p>
+numbers, there are some interesting conclusions. First, the unintuitive things:</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p><strong>Caching data <em>in-process</em> can make garbage collection pause times <em>worse</em>!</strong> If your
-program is CPU-bottlenecked then caching to save computation can be worthwhile,
-but if you have problems with GC pause times then caching things in-memory will
+<p><strong>Adding more memory does <em>not improve</em> GC pause times</strong>. It may even make things worse!
+This is perhaps the most unintuitive thing about garbage collectors: it seems so
+obvious that problems with memory management would be solved by adding more memory,
+but we can see from our theoretical analysis above why that is not the case,
+and we verified that empirically in benchmarks.</p>
+</li>
+<li>
+<p><strong>Caching data <em>in-process</em> can make garbage collection pause times <em>worse</em>!</strong> If
+you have problems with GC pause times then caching things in-memory will
 increase the size of your <em>live-set</em> and therefore make your pause times even worse!
 &quot;LRU&quot; caches in particular are the worst case for garbage collectors, which are typically
-optimized for collecting recently-allocated short-lived objects.</p>
-</li>
-<li>
-<p><strong>In contrast, caching things <em>out of process</em> does not have this problem.</strong> So feel free
-to cache things on disk, cache things in <a href="https://www.sqlite.org/">SQLite</a>,
-<a href="https://github.com/redis/redis">Redis</a>, <a href="https://memcached.org/">Memcached</a>, and so on.
-These are not traced by your program’s GC, and will not slow it down.</p>
-</li>
-<li>
-<p><strong>Collecting Garbage doesn’t actually slow the garbage collector down!</strong> Most of the GC time
-is spent <em>tracing</em> and <em>copying</em> and live-set, and the garbage is basically ignored
-then wiped out in bulk. So it doesn’t not matter how much garbage the GC has to collect:
-the time taken to run the collection will be the same regardless</p>
+optimized for collecting recently-allocated short-lived objects.
+In contrast, caching things <em>out of process</em>
+does not have this problem. Caching can be worthwhile to reduce redundant computation,
+but it is not a solution to garbage collection problems.</p>
 </li>
 <li>
 <p><strong>There will never be an <em>exact</em> amount of memory that a garbage-collected application
@@ -2582,30 +2576,34 @@ memory to provide is thus something you tweak and tune rather than something you
 calculate exactly.</p>
 </li>
 <li>
-<p><strong>Even when to declare the memory &quot;enough&quot; or &quot;not enough&quot; can be very arbitrary.</strong>
-For example Java may throw an <code>OutOfMemoryError</code>
-<a href="https://docs.oracle.com/javase/8/docs/technotes/guides/troubleshoot/memleaks002.html">when
-it spends 98% of the time in Garbage Collection</a>, which is an arbitrary threshold
-that is arguably too low (the program can still make progress after all!)
-and also arguably too high (do you really want to wait until your program slows down 50x
-before declaring there’s not enough memory?)</p>
+<p><strong>Fewer larger processes can have worse GC performance than more smaller processes!</strong>
+There are many ways in which consolidating smaller processes into larger ones can
+improve efficiency: less per-process overhead, eliminating
+<a href="https://en.wikipedia.org/wiki/Inter-process_communication">inter-process communication</a> cost,
+etc. But GC pause times scale with <em>total live set size</em>, so combining two smaller
+processes into one large one can make pause times <em>worse</em> than they were before.
+Even if the large process does the same thing as the smaller processes, it can
+suffer from worse GC pause times.</p>
 </li>
 <li>
-<p><strong>Shorter-lived objects are cheaper to collect</strong>, due to most GCs being <em>generational</em>. This
+<p><strong>You can reduce pause times by reducing the <em>live-set</em></strong>. If you have very large
+in-process data structures, moving them somewhere else (e.g. into
+<a href="https://www.sqlite.org/">SQLite</a>, <a href="https://github.com/redis/redis">Redis</a>,
+or <a href="https://memcached.org/">Memcached</a>) would reduce the amount of objects the GC
+needs to trace and copy every collection, and reduce the pause times</p>
+</li>
+<li>
+<p><strong>Shorter-lived objects are faster to collect</strong>, due to most GCs being <em>generational</em>. This
 also ties into (1) above: caches tend to keep lots of long-lived objects in memory, which
 apart from slowing down collections due to the size of the live-set, <em>also</em> slows them down
 by missing out on the GC’s optimizations for short-lived objects.</p>
 </li>
 <li>
-<p><strong>Fewer larger processes can have worse GC performance than more smaller processes, even if
-they do the same things!</strong> There are
-many ways in which consolidating smaller processes into larger ones can
-improve efficiency: less per-process overhead, eliminating
-<a href="https://en.wikipedia.org/wiki/Inter-process_communication">inter-process communication</a> cost,
-etc. But GC pause times scale with <em>total live set size</em>, so combining two smaller
-processes into one large one can make pause times <em>worse</em> than they were before.
-And as we saw earlier, even within a single process allocating a large heap can make pause
-times worse</p>
+<p><strong>Switch to the Z garbage collector lets you trade off memory for pause times.</strong>
+JVM programs are by default already very memory hungry compared to other languages
+(Go, Rust, etc.) and ZGC requires perhaps another 2x as much memory to work. But
+if you are willing to pay the cost, ZGC can bring pause times down from 50-500ms
+down to 1-5ms, which may make a big different for latency-sensitive applications.</p>
 </li>
 </ol>
 </div>
