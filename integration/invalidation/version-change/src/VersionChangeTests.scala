@@ -12,7 +12,7 @@ object VersionChangeTests extends UtestIntegrationTestSuite {
       // method is properly invalidated when either the task body, or the helper method's body
       // is changed, or something changed in the constructor
       val javaVersion1 = eval(("show", "javaVersion"))
-      assert(javaVersion1.out.contains("17.0.")
+      assert(javaVersion1.out.contains("17.0."))
 
       os.write(workspacePath / ".mill-jvm-version", "temurin:19.0.2")
       os.remove.all(workspacePath / "out")
