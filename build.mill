@@ -42,7 +42,7 @@ object Settings {
   )
   val mimaBaseVersions: Seq[String] =
     0.to(13).map("0.11." + _) ++
-    Seq("0.12.0", "0.12.1", "0.12.2", "0.12.3", "0.12.4", "0.12.5")
+      Seq("0.12.0", "0.12.1", "0.12.2", "0.12.3", "0.12.4", "0.12.5")
 
   val graalvmJvmId = "graalvm-community:23.0.1"
 }
@@ -177,7 +177,7 @@ object Deps {
   val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.12.3"
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.10.3"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.4.2"
-  val upickle = ivy"com.lihaoyi::upickle:3.3.1"
+  val upickle = ivy"com.lihaoyi::upickle:4.1.0"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.6"
   val zinc = ivy"org.scala-sbt::zinc:1.10.7"
   // keep in sync with doc/antora/antory.yml
