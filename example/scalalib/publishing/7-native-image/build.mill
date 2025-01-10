@@ -11,6 +11,8 @@ object foo extends ScalaModule with NativeImageModule {
     def jvmId = "graalvm-community:17.0.7"
   }
 
+  def nativeImageOptions = Seq("--no-fallback")
+
   def scalaVersion = "2.13.11"
 }
 
