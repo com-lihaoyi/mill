@@ -4,13 +4,14 @@ import utest._
 
 object WebAppTests extends TestSuite {
   def withServer[T](example: cask.main.Main)(f: String => T): T = {
+    val port = cask.util.SocketUtils.getFreeTcpPort
     val server = io.undertow.Undertow.builder
-      .addHttpListener(8182, "localhost")
+      .addHttpListener(port, "localhost")
       .setHandler(example.defaultHandler)
       .build
     server.start()
     val res =
-      try f("http://localhost:8182")
+      try f(s"http://localhost:$port")
       finally server.stop()
     res
   }

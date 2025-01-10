@@ -5,7 +5,7 @@ object `package` extends RootModule with ScalaModule {
 
   def scalaVersion = "2.13.14"
   def ivyDeps = Agg(
-    ivy"com.lihaoyi::cask:0.9.1",
+    ivy"com.lihaoyi::cask:0.9.6",
     ivy"com.lihaoyi::scalatags:0.12.0"
   )
 

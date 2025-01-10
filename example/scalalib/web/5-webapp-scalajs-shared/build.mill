@@ -11,7 +11,7 @@ trait AppScalaJSModule extends AppScalaModule with ScalaJSModule {
 
 object `package` extends RootModule with AppScalaModule {
   def moduleDeps = Seq(shared.jvm)
-  def ivyDeps = Agg(ivy"com.lihaoyi::cask:0.9.1")
+  def ivyDeps = Agg(ivy"com.lihaoyi::cask:0.9.6")
 
   def resources = Task {
     os.makeDir(Task.dest / "webapp")
