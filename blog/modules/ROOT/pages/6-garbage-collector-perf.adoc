@@ -10,9 +10,11 @@ _{author}, {revdate}_
 include::mill:ROOT:partial$gtag-config.adoc[]
 
 Garbage collectors are a core part of many programming languages, but are surprisingly
-poorly understood. This article
-will discuss the fundamental design of how garbage collectors work, and tie it to real
-benchmarks of how the JVM garbage collector performs running some synthetic workloads. You
+poorly understood. In developing the https://mill-build.org[Mill JVM build tool],
+we sometimes have to deal with GC-related issues to keep the tool fast and responsive,
+but these issues can occur in any JVM application.
+This article will discuss the fundamental design of how garbage collectors
+work, and tie it to real benchmarks of how GCs perform on the Java Virtual Machine. You
 should come away with a deeper understanding of how the JVM garbage collector works and
 how you can work to optimize its performance in your own real-world projects.
 
@@ -20,8 +22,8 @@ how you can work to optimize its performance in your own real-world projects.
 
 ## A Theoretical Garbage Collector
 
-To understand how the real-world JVM garbage collector works, its best to start from
-a simplification: the simplest copying garbage collector. This will both give an intuition
+To understand how the real-world JVM garbage collector works, it is best to start
+by looking at the simplest possible garbage collector. This will both give an intuition
 for how things work in general, and also help you notice when things diverge from this
 idealized example.
 
@@ -46,7 +48,7 @@ These storage locations can contain objects (below named `foo`, `bar`, `qux`, `b
 up memory and may reference other objects (solid arrows). Furthermore, the values may be referenced from outside
 the heap (dashed lines), e.g. from the "stack" which represents all objects referenced by
 local variables in methods that are currently being run (shown below) or from static global
-variables (not shown). We keep a `free memory` pointer to the first empty slot on the right.
+variables (not shown). We keep a `free-memory` pointer to the first empty slot on the right.
 
 
 ```graphviz
@@ -67,7 +69,7 @@ digraph G {
 ```
 
 If we want to allocate a new object `new1`, we can simply put it at the location of
-the `free memory` pointer (green below), and bump `free memory` 1 slot to the right
+the `free-memory` pointer (green below), and bump `free-memory` 1 slot to the right
 
 ```graphviz
 digraph G {
@@ -87,6 +89,29 @@ digraph G {
 }
 ```
 
+Similarly, objects may stop being referenced, e.g. `bar` below no longer has a reference
+pointing at it from the stack. This may happen because a local variable on the stack is
+set to `null`, or because a method call returned and the local variables associated with
+it are no longer necessary
+
+
+```graphviz
+digraph G {
+
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  heap [shape=record label="HEAP | <f0> foo | <f1> bar | <f2> qux | <f3> baz | <f4> new1 | <f5> | <f6> | <f7> | <f8> | <f9> | <f10> | <f11> | <f12> | <f13> | <f14> | <f15>"]
+  heap:f0:s -> heap:f1:s
+  heap:f0:s -> heap:f2:s
+  heap:f2:n -> heap:f3:n
+  heap:f5:s -> alloc:n [dir=back, style=dotted]
+  alloc [label = "free memory", shape=plaintext]
+
+  stack [shape=record label="STACK | <f0> | <f1> | <f2> | <f3> | <f4> | <f5> | <f6> | <f7> "]
+  stack:f1 -> heap:f2 [dir=none, style=dashed]
+  stack:f2 -> heap:f4 [dir=none, style=dashed]
+}
+```
+
 For the purposes of this example, we show all objects on the heap taking up 1 slot, but
 in real programs the size of each object may vary depending on how many fields it has
 or if it's a variable-length array.
@@ -96,7 +121,7 @@ or if it's a variable-length array.
 The simplest kind of garbage collector splits the 16-slot heap we saw earlier into
 two 8-slot halves. If
 we want to allocate 4 more objects (`new2`, to `new5`), but there are only 3 slots left on the
-heap, we will need to do a garbage collection:
+heap, we will need to do a collection:
 
 ```graphviz
 digraph G {
@@ -113,14 +138,13 @@ digraph G {
   alloc [label = "free memory", shape=plaintext]
 
   stack [shape=record label="STACK | <f0> | <f1> | <f2> | <f3> | <f4> | <f5> | <f6> | <f7> "]
-  stack:f0 -> heap1:f1 [dir=none, style=dashed]
   stack:f1 -> heap1:f2 [dir=none, style=dashed]
   stack:f2 -> heap1:f4 [dir=none, style=dashed]
 }
 ```
 
-To do a garbage collection, the simplest garbage collector first starts from all non-heap
-references (e.g. the `STACK` references above) often called "heap roots". It then traces
+To do a collection, the GC first starts from all non-heap
+references (e.g. the `STACK` references above) often called "GC roots". It then traces
 the graph of references, highlighted red below:
 
 ```graphviz
@@ -135,82 +159,105 @@ digraph G {
   heap1:f0:s -> heap1:f2:s
   heap1:f2:n -> heap1:f3:n [color=red, penwidth=3]
   heap1:f5:s -> alloc:n [dir=back, style=dotted]
-  alloc [label = "free memory", shape=plaintext]
+  alloc [label = "free memory", shape=plaintext]GC 
   stack [shape=record label="STACK | <f0> | <f1> | <f2> | <f3> | <f4> | <f5> | <f6> | <f7> "]
-  stack:f0 -> heap1:f1 [dir=none, style=dashed, color=red, penwidth=3]
   stack:f1 -> heap1:f2 [dir=none, style=dashed, color=red, penwidth=3]
-  stack:f1 -> heap1:f4 [dir=none, style=dashed, color=red, penwidth=3]
+  stack:f2 -> heap1:f4 [dir=none, style=dashed, color=red, penwidth=3]
 }
 ```
 
-Here, we can see that `foo` is not referenced, `bar` and `qux` are referenced directly from the
-`STACK`, and `baz` is referenced indirectly from `qux`.
+Here, we can see that `foo` is not referenced ("garbage"), `qux` and `new1` are referenced directly from the
+`STACK`, and `baz` is referenced indirectly from `qux`. `bar` is referenced by `foo`, but
+because `foo` is itself garbage we can count `bar` as garbage as well.
 
 We then copy all objects we traced (often called the _live-set_) from `HALF1` to `HALF2`, adjust all the references
 appropriately. Now `HALF2` is the half of the heap in use, and `HALF1` can be reset to empty.
-We now have space to allocate the 4 `new2` to `new5` objects we wanted (green):
+
+
+```graphviz
+digraph G {
+
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  {rank=same; heap1; heap2}
+  heap2 [shape=record label="HALF2 | <f0> qux | <f1> baz | <f2> new1 | <f3> | <f4> | <f5> | <f6> | <f7>"]
+
+  heap1 [shape=record label="HALF1 | <f0> | <f1> | <f2> | <f3> | <f4> | <f5> | <f6> | <f7> "]
+  heap2:f0:s -> heap2:f1:s [color=red, penwidth=3]
+
+  heap2:f2:s -> alloc:n [dir=back, style=dotted]
+  alloc [label = "free memory", shape=plaintext]
+  stack [shape=record label="STACK | <f0> | <f1> | <f2> | <f3> | <f4> | <f5> | <f6> | <f7> "]
+  stack:f0 -> heap2:f0 [dir=none, style=dashed, color=red, penwidth=3]
+  stack:f1 -> heap2:f2 [dir=none, style=dashed, color=red, penwidth=3]
+}
+```
+
+This collection has free up 5 slots, so we now have space to allocate the
+4 `new2` to `new5` objects we wanted (green) starting from our `free-memory` pointer:
 
 ```graphviz
 digraph G {
   
   node [shape=box width=0 height=0 style=filled fillcolor=white]
   {rank=same; heap1; heap2}
-  heap2 [shape=record label="HALF2 | <f0> bar | <f1> qux | <f2> baz | <f3> new1 | <f4> new2 | <f5> new3 | <f6> new4 | <f7> new5 "]
+  heap2 [shape=record label="HALF2 | <f0> qux | <f1> baz | <f2> new1 | <f3> new2 | <f4> new3 | <f5> new4 | <f6> new5 | <f7>"]
 
   heap1 [shape=record label="HALF1 | <f0> | <f1> | <f2> | <f3> | <f4> | <f5> | <f6> | <f7> "]
-  heap2:f1:s -> heap2:f2:s [color=red, penwidth=3]
+  heap2:f0:s -> heap2:f1:s 
 
+  heap2:f7:s -> alloc:n [dir=back, style=dotted]
+  alloc [label = "free memory", shape=plaintext]
   stack [shape=record label="STACK | <f0> | <f1> | <f2> | <f3> | <f4> | <f5> | <f6> | <f7> "]
-  stack:f0 -> heap2:f0 [dir=none, style=dashed, color=red, penwidth=3]
-  stack:f1 -> heap2:f1 [dir=none, style=dashed, color=red, penwidth=3]
-  stack:f2 -> heap2:f3 [dir=none, style=dashed, color=red, penwidth=3]
+  stack:f0 -> heap2:f0 [dir=none, style=dashed]
+  stack:f1 -> heap2:f2 [dir=none, style=dashed]
+  stack:f2 -> heap2:f3 [dir=none, style=dashed, color=green, penwidth=3]
   stack:f3 -> heap2:f4 [dir=none, style=dashed, color=green, penwidth=3]
   stack:f4 -> heap2:f5 [dir=none, style=dashed, color=green, penwidth=3]
   stack:f5 -> heap2:f6 [dir=none, style=dashed, color=green, penwidth=3]
-  stack:f6 -> heap2:f7 [dir=none, style=dashed, color=green, penwidth=3]
-
 }
 ```
 
-You may notice that the object `foo` has disappeared. This is because `foo` was not
-referenced directly by any stack reference or indirectly: it was unreachable, and thus
-considered "garbage". `foo` was
-not explicitly deleted, but rather simply did not get copied over from `HALF1` to `HALF2`
+You may notice that the objects `foo` and `bar` disappeared. This is because `foo` and `bar`
+were not referenced directly or indirectly by any GC roots: they were unreachable, and thus
+considered "garbage". These garbage objects were
+not explicitly deleted, but  simply did not get copied over from `HALF1` to `HALF2`
 during collection, and thus was wiped out when `HALF1` was cleared.
 
 As your program executes, the methods actively running may change, and thus the references
 (both from stack to heap and within entries on your heap) may change. For example, we may
-stop referencing `bar`, `new2`, and `new3`:
+stop referencing `qux`, which also means that `baz` is now unreachable:
 
 ```graphviz
 digraph G {
   
   node [shape=box width=0 height=0 style=filled fillcolor=white]
   {rank=same; heap1; heap2}
-  heap2 [shape=record label="HALF2 | <f0> bar | <f1> qux | <f2> baz | <f3> new1 | <f4> new2 | <f5> new3 | <f6> new4 | <f7> new5 "]
+  heap2 [shape=record label="HALF2 | <f0> qux | <f1> baz | <f2> new1 | <f3> new2 | <f4> new3 | <f5> new4 | <f6> new5 | <f7>"]
 
   heap1 [shape=record label="HALF1 | <f0> | <f1> | <f2> | <f3> | <f4> | <f5> | <f6> | <f7> "]
-  heap2:f1:s -> heap2:f2:s
-
+  heap2:f0:s -> heap2:f1:s
+  alloc [label = "free memory", shape=plaintext]
+  heap2:f7:s -> alloc:n [dir=back, style=dotted]
+  stack [shape=record label="STACK | <f0> | <f1> | <f2> | <f3> | <f4> | <f5> | <f6> | <f7> "]
   stack [shape=record label="STACK | <f0> | <f1> | <f2> | <f3> | <f4> | <f5> | <f6> | <f7> "]
 
-  stack:f1 -> heap2:f1 [dir=none, style=dashed]
+  stack:f1 -> heap2:f2 [dir=none, style=dashed]
   stack:f2 -> heap2:f3 [dir=none, style=dashed]
-
-
+  stack:f3 -> heap2:f4 [dir=none, style=dashed]
+  stack:f4 -> heap2:f5 [dir=none, style=dashed]
   stack:f5 -> heap2:f6 [dir=none, style=dashed]
-  stack:f6 -> heap2:f7 [dir=none, style=dashed]
 
 
 }
 ```
 
-Although `bar`, `new2` and `new3` are now "garbage", our heap is still "full". Thus, if we want
-to allocate a new object (e.g. `new6`) we need to repeat the garbage collection process: tracing
+Although `qux` and `baz` are now "garbage", they still take up space in the heap. Thus, if we want
+to allocate two new objects (e.g. `new6` and `new7`), and there is only one slot left on the heap (above),
+we need to repeat the garbage collection process: tracing
 the objects transitively reachable (`qux`, `bax`, `new1`, `new4`, `new5`), copying them
 from `HALF2` to `HALF1`,
 adjusting any references to now use `HALF1` as the new heap, and clearing anything that was left
-behind in `HALF2`.
+behind in `HALF2`. This then gives us enough space to allocate `new6` and `new7` (below in green):
 
 ```graphviz
 digraph G {
@@ -219,38 +266,40 @@ digraph G {
   {rank=same; heap1; heap2}
   heap2 [shape=record label="HALF2 | <f0> | <f1>  | <f2>  | <f3>  | <f4> | <f5> | <f6>  | <f7>  "]
 
-  heap1 [shape=record label="HALF1 | <f0> qux | <f1> baz | <f2> new1 | <f3> new4 | <f4> new5 | <f5> new6 | <f6> | <f7> "]
-  heap1:f0:s -> heap1:f1:s [color=red, penwidth=3]
+  heap1 [shape=record label="HALF1 | <f0> new1 | <f1> new2 | <f2> new3 | <f3> new4 | <f4> new5 | <f5> new6 | <f6> new7 | <f7> "]
 
   stack [shape=record label="STACK | <f0> | <f1> | <f2> | <f3> | <f4> | <f5> | <f6> | <f7> "]
 
-  stack:f1 -> heap1:f0 [dir=none, style=dashed, color=red, penwidth=3]
+  stack:f0 -> heap1:f0 [dir=none, style=dashed, color=red, penwidth=3]
+  stack:f1 -> heap1:f1 [dir=none, style=dashed, color=red, penwidth=3]
+
+
   stack:f2 -> heap1:f2 [dir=none, style=dashed, color=red, penwidth=3]
-
-
-  stack:f5 -> heap1:f3 [dir=none, style=dashed, color=red, penwidth=3]
-  stack:f6 -> heap1:f4 [dir=none, style=dashed, color=red, penwidth=3]
-  stack:f7 -> heap1:f5 [dir=none, style=dashed, color=green, penwidth=3]
-  heap1:f6:s -> alloc:n [dir=back, style=dotted]
+  stack:f3 -> heap1:f3 [dir=none, style=dashed, color=red, penwidth=3]
+  stack:f4 -> heap1:f4 [dir=none, style=dashed, color=red, penwidth=3]
+  stack:f5 -> heap1:f5 [dir=none, style=dashed, color=green, penwidth=3]
+  stack:f6 -> heap1:f6 [dir=none, style=dashed, color=green, penwidth=3]
+  heap1:f7:s -> alloc:n [dir=back, style=dotted]
   alloc [label = "free memory", shape=plaintext]
 }
 ```
 
 This process can repeat as many times as necessary: as long as there are _some_ objects
-that are unreachable, you can run a GC cycle and copy the "live" objects to the other
+that are unreachable, you can run a collection and copy the "live" objects to the other
 half of the heap, freeing up some space to allocate new objects. The only reason this
-may fail is that if you run a GC cycle and there _still_ isn't enough space to allocate
+may fail is that if you run a collection and there _still_ isn't enough space to allocate
 the objects you want; that means your program  has run out of memory, and will fail with
 an `OutOfMemoryError` or similar.
 
-Even this simple GC has a lot of interesting properties, and you may have heard these
+Even this simplistic GC has a lot of interesting properties, and you may have heard these
 terms or labels that can apply to it:
 
 * *semi-space* garbage collector, because of the way it splits the heap into two halves
 
 * *copying* garbage collector, because it needs to copy the heap objects back and forth
+  between `HALF1` and `HALF2`
 
-* *tracing* garbage collector, because of the way it traces the graph of heap
+* *tracing* garbage collector, because of the way it traverses the graph of heap
   references in order to decide what to copy.
 
 * *stop the world* garbage collector, because while this whole trace-copy-update-references
@@ -265,15 +314,135 @@ Most modern GCs are considerably more complicated than this: e.g. they may have 
 to avoid wasting half the heap by leaving it empty, or they may have
 xref:_generational_optimizations[optimizations for handling short-lived objects], but at
 their heart this is still what they do. And understanding the performance characteristics of
-this simple, naive GC can help give you an intuition in how modern high-performance GCs work.
+this simple, naive GC can help give you an intuition in how GCs compare to other memory management
+strategies, and how modern GCs behave in terms of performance.
 
 
-### Theoretical GC Performance
+
+## Compared to Reference Counting
+
+There are a few major advantages that tracing garbage collector has over
+https://en.wikipedia.org/wiki/Reference_counting[Reference Counting], another popular
+memory management strategy. Reference counting works by counting how many incoming
+references each object has, and when that number reaches zero the object can be collected.
+This approach has a few major differences from that of a tracing GC. We discuss a few of
+them below:
+
+### Reference counting does not compact the heap
+
+Program that use reference
+counting tend to find their heap getting more and more fragmented over time
+We can see this in the heap diagrams: the tracing garbage collector heaps above always had a
+single block of empty space to the right, and had the `new` objects allocated in ascending order
+from left-to-right:
+
+```graphviz
+digraph G {
+
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  heap1 [shape=record label="HEAP | <f0> new1 | <f1> new2 | <f2> new3 | <f3> new4 | <f4> new5 | <f5> new6 | <f6> new7 | <f7> | <f8> | <f9> | <f10> | <f11> | <f12> | <f13> | <f14> | <f15>"]
+
+  stack [shape=record label="STACK | <f0> | <f1> | <f2> | <f3> | <f4> | <f5> | <f6> | <f7> "]
+
+  stack:f0 -> heap1:f0
+  stack:f1 -> heap1:f1
+  stack:f2 -> heap1:f2
+  stack:f3 -> heap1:f3
+  stack:f4 -> heap1:f4
+  stack:f5 -> heap1:f5
+  stack:f6 -> heap1:f6
+  heap1:f7:s -> alloc:n [dir=back, style=dotted]
+  alloc [label = "free memory", shape=plaintext]
+}
+```
+
+
+In contrast,
+reference counted heaps (e.g. below) tend to get fragmented, with free space scattered about,
+and the allocated objects jumbled up in no particular order
+
+
+```graphviz
+digraph G {
+
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  heap [shape=record label="HEAP | <f0> new2 | <f1> new3 | <f2>  | <f3>  | <f4> new1 | <f5> new4 | <f6> new5 | <f7> | <f8> | <f9> | <f10> | <f11> | <f12> | <f13> | <f14> | <f15>"]
+
+  stack [shape=record label="STACK | <f0> | <f1> | <f2> | <f3> | <f4> | <f5> | <f6> | <f7> "]
+  stack:f0 -> heap:f0 [dir=none, style=dashed]
+  stack:f1 -> heap:f1 [dir=none, style=dashed]
+  stack:f2 -> heap:f4 [dir=none, style=dashed]
+  stack:f3 -> heap:f5 [dir=none, style=dashed]
+  stack:f4 -> heap:f6 [dir=none, style=dashed]
+}
+```
+
+
+There are two main ways this affect performance:
+
+* With garbage collection all the free memory is always on the right in one contiguous block,
+  so an allocation just involves putting the object at the `free-pointer` location and moving
+  `free-pointer` one slot to the right. Furthermore, newly allocated objects (which tend to
+  be used together) are placed next to each other, making them more cache-friendly and
+  improving access performance
+
+* With reference counting objects are usually freed in-place, meaning that the free space is
+  scattered throughout the heap, and you may need to scan the entire heap from left-to-right
+  in order to find a spot to allocate something. There are data structures and algorithms that
+  can make allocation faster than a linear scan, but they will never be as fast as the single
+  pointer lookup necessary with a GC
+
+### Reference counting cannot collect cycles
+
+Objects that reference each other cyclically can thus
+cause memory leaks when their objects never get collected, resulting in the program running
+out of memory even though much of the heap could be cleaned up by a tracing garbage collector.
+
+
+For example, consider the following heap, identical to the one we started with, but with an
+additional edge from `bar` to `foo` (green), and with the edge from the stack to `bar` removed:
+
+
+```graphviz
+digraph G {
+
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  heap [shape=record label="HEAP | <f0> foo | <f1> bar | <f2> qux | <f3> baz | <f4> | <f5> | <f6> | <f7> | <f8> | <f9> | <f10> | <f11> | <f12> | <f13> | <f14> | <f15>"]
+  heap:f0:s -> heap:f1:s
+  heap:f1:n -> heap:f0:n [penwidth=3 color=green]
+  heap:f0:s -> heap:f2:s
+  heap:f2:n -> heap:f3:n [color=red, penwidth=3]
+
+  stack [shape=record label="STACK | <f0> | <f1> | <f2> | <f3> | <f4> | <f5> | <f6> | <f7> "]
+  stack:f1 -> heap:f2 [dir=none, style=dashed, color=red, penwidth=3]
+}
+```
+
+* With reference counting, even though `foo` and `bar` cannot be reached by any external reference -
+they are "garbage" - each one still has a reference pointing at it from the other. Thus
+they will never get collected
+
+* But with a tracing garbage collector, a collection can traverse the reference graph (red),
+and copy `qux` and `baz` to the other half of the heap, leaving `foo` and `bar` behind as garbage,
+despite the reference cycle between them
+
+_Garbage Collection_ and _Reference Counting_ have very different characteristics, and neither
+is strictly superior to the other in all scenarios.
+Many programming languages (e.g. Python) that use reference counting also have a backup
+tracing garbage collector that runs once in a while to clean up unreachable reference cycles
+and compact the heap, and most modern GCs (e.g. ZGC discussed above) use some reference-counting
+techniques as part of their implementation.
+
+
+## Theoretical GC Performance
 
 Typically, GC performance focuses on two main aspects:
 
-- *Throughput*: what % of the time your program is spending on real work, rather than collecting garbage
-- *Pause Times*: what is the longest time your program is spent stuck collecting garbage and making zero progress on real work
+- *Overhead*: what % of the time your program is spent collecting garbage, rather than
+  real work. Lower is better
+- *Pause Times*: what is the longest time your program is completely paused while
+  collecting garbage. Lower is better
+
 
 These two metrics are separate:
 
@@ -282,7 +451,7 @@ These two metrics are separate:
   it to finish as soon as possible
 * *Other programs only care about pause times*, e.g. someone playing a videogame doesn't care if
   it can run faster than their eye can perceive, but they do care that it does not freeze or
-  pause for noticeable amounts of time when it needs to run a GC cycle
+  pause for noticeable amounts of time while you are playing it
 
 Even from the limited description above, we can already make some interesting inferences
 about how the performance of a simple garbage collector will be like.
@@ -292,17 +461,17 @@ about how the performance of a simple garbage collector will be like.
    without having to scan the heap to find empty slots.
 
 2. *Pause times should be proportional to the size of the live-set*. That is because
-   A GC cycle involves tracing, copying, then updating the references within the live-set.
+   a collection involves tracing, copying, then updating the references within the live-set.
 
-3. *Pause times would _not_ depend on the amount of garbage to be collected*. The GC cycle
+3. *Pause times would _not_ depend on the amount of garbage to be collected*. The collection
    we looked at above spend no time at all looking at or scanning for garbage objects,
    they simply all disappeared when their half of the heap was wiped out following a collection.
 
-4. *Interval between GC cycles is inversely proportional to free memory*.
-   We only need to run a GC cycle when the garbage we allocate fills up the "extra" heap memory
+4. *Interval between collections is inversely proportional to free memory*.
+   We only need to run a collection when the garbage we allocate fills up the "extra" heap memory
    our program has on top of what is necessary to store the live-set.
 
-5. *GC throughput is the pause time divided by the interval, or proportional
+5. *GC overhead is the pause time divided by the interval, or proportional
    to the extra memory and inversely proportional to the live-set size and heap size*
 
 In other words:
@@ -311,28 +480,28 @@ In other words:
 
 * `gc_pause_time = O(live-set)`
 
-* `gc_interval = O((heap-size - live-set) / throughput)`
+* `gc_interval = O(heap-size - live-set)`
 
-* `gc_throughput = gc_interval / gc_pause_time = O((heap-size - live-set) / throughput / live-set)`
+* `gc_overhead = gc_pause_time / gc_interval`
+
+* `gc_overhead = O(live-set / (heap-size - live-set))`
 
 Even from this small conclusions, we can already see some unintuitive results:
 
 1. *More memory does _not_ reduce pause times!* `gc_pause_time = O(live-set)`, and so
    pause times do not depend on how much `heap-size` you have.
 
-2. *There is no point at which providing more memory does not improve GC throughput!*
-   `gc_throughput = O((heap-size - live-set) / throughput / live-set)`, so
-   providing larger and larger ``heap-size``s means GCs happen less and less frequently, meaning a
-   larger % of your program time is spent on useful work. But there is no "maximum" and
-   you can always add more memory to eke out a bit more performance.
+2. *There is no point at which providing more memory does not improve GC overhead!*
+   `gc_overhead = O(live-set / (heap-size - live-set))`, so
+   providing larger and larger ``heap-size``s means less and less GC overhead, meaning a
+   larger % of your program time is spent on useful work.
 
 3. *Conversely, providing exactly as much memory as the program requires_ is the worst
-   case possible!* `gc_throughput = O((heap-size - live-set) / throughput / live-set)` when
-   `heap-size = live-set` means `gc_interval = 0` and `gc_throughput = 0`: every single allocation the program will
-   need to run an expensive GC cycle to free up very little memory, and your program will
-   spend all its time running GC cycles. Garbage collectors therefore _need_
-   excess memory to work with, on top of the memory you would expect to need to allocate
-   all the objects in your program.
+   case possible!* `gc_overhead = O(live-set / (heap-size - live-set))` when
+   `heap-size = live-set` means `gc_interval = 0` and `gc_overhead = infinity`:
+   the program will constantly need to run an expensive collections and have no time left
+   to do actual work. Garbage collectors therefore _need_ excess memory to work with, on top
+   of the memory you would expect to need to allocate all the objects in your program.
 
 Even from this theoretical analysis, we have already found a number of surprising results
 in how GCs perform over time. Let's now see how this applies to some real-world garbage
@@ -413,24 +582,29 @@ performance. For each benchmark, it:
 
 4. Lastly, we print out the two numbers we care about
    in a GC: the `maxPause` time in milliseconds, and the `throughput` it is able to handle
-   in megabytes per second.
+   in megabytes per second (`throughput` being the opposite of `overhead` we mentioned earlier).
 
-This is a bit of a synthetic benchmark, and much less complex than a real-world
-application would be, but it is enough for the purposes of this article.
+To be clear, this benchmark is _rough_. Performance will vary between runs, and on what hardware
+and software you run it (I ran it on a M1 Macbook Pro running Java 17). But the results should be
+clear even if the exact numbers will differ between runs.
 
 You can run this program via:
 
 ```bash
-> javac GC.java
-> java -Xmx1g GC 800 10000 5 # Default is -XX:+UseG1GC
-> java -Xmx1g -XX:+UseParallelGC GC 800 10000 5
-> java -Xmx1g -XX:+UseZGC GC 800 10000 5
+> javac -Xmx1g GC.java 800 10000 5 # Default is -XX:+UseG1GC
+> javac -Xmx1g -XX:+UseParallelGC GC.java 800 10000 5
+> javac -Xmx1g -XX:+UseZGC GC.java 800 10000 5
 ```
 
 Above, `-Xmx1g` sets the heap size, the `-XX:` flags set the garbage collector, 800 sets
 the `liveSet` size (in megabytes), and `10000` and `5` set the duration and number of
 iterations to run the benchmark (here 10 seconds, 5 iterations). The measured pause times
 and allocation rate are averaged over those 5 iterations.
+
+I used the following https://ammonite.io/[Ammonite Scala script] to run the benchmark for a
+range of inputs to collect the numbers shown below:
+
+- xref:attachment$GC-bench.sc[GC-bench.sc]
 
 ### G1 Garbage Collector Benchmarks
 
@@ -462,22 +636,23 @@ As mentioned earlier, garbage collectors require some amount of free space in or
 work well, and so we only ran the benchmarks where the `heap-size` was twice or more
 of the `live-set` size.
 
-Above, we can see the behavior we discussed earlier:
+Above, we can see the behavior we discussed earlier in the theoretical performance analysis:
 
-1. GC pause times go up as the size of the live set increases. With a `800 mb` heap and
+1. *GC pause times go up as the size of the live set increases*. With a `800 mb` heap and
    `400 mb` live set the average pause time is `66 ms`, and it scales smoothly up to a
    `6400 mb` heap and `3200 mb` live set where the pause time is `331 ms`
 
-2. GC pause times are relatively constant regardless of the heap size:
+2. *GC pause times are relatively constant regardless of the heap size*.
    e.g. for `400 mb` live set a `800 mb` heap has a `66 ms` pause time, while a `400 mb` live set and
-  `6400 mb` heap (8 times as large!) has a `93 ms` pause time.
+   `6400 mb` heap (8 times as large!) has a `93 ms` pause time. There's some variation
+   not a lot
 
-3. GC throughput goes up as the heap size increases, for a `400 mb` live set it goes
+3. *GC throughput goes up as the heap size increases*, e.g. for a `400 mb` live set it goes
    smoothly from `3140 mb/s` for a `800 mb` heap to a `4871 mb/s` pause time for a `6400 mb`
    heap.
 
-4. Both pause times and throughput seems to suffer for very large live sets and very large
-   heaps: the `12800 mb` heap has disproportionately higher pause times compared to smaller
+4. *Both pause times and throughput seems to suffer for very large live sets and very large
+   heaps*: the `12800 mb` heap has disproportionately higher pause times compared to smaller
    heap sizes, even compared to `6400 mb`, regardless of live-set size.
 
 ### Generational Optimizations
@@ -486,7 +661,7 @@ One additional GC behavior worth discussing is the "Generational Hypothesis".
 The idea is that _"most"_ objects do not live a long time, e.g. objects allocated within a method are often
 collect when the method returns. Given that assumption, many GCs have made optimizations
 for the collection of objects that become garbage quickly, such that collecting them is
-much cheaper. Practically, that means that the same live-set and allocation rate can have
+much cheaper. Practically, that means that the same `live-set` and `heap-size` can have
 vastly different performance depending on how the allocations are structured:
 
 1. "Least Recently Used" garbage collections, where the _oldest_ objects are the ones that
@@ -606,8 +781,9 @@ of live data to be kept in memory, so shrinking the live-set is not possible.
 
 ZGC provides an option here, where if you are willing to provide _significantly_
 more memory than the default G1GC requires, perhaps twice as much, you can get your pause times from
-10-100s of milliseconds down to 1-2 milliseconds. And pause times remain low for a wide
-range of heap sizes and live set sizes.
+10-100s of milliseconds down to 1-2 milliseconds. These pause times remain low for a wide
+range of heap sizes and live set sizes, and can be beneficial for a lot of applications
+that cannot afford to just randomly stop for 100ms at a time.
 
 
 ## GC Performance Takeaways
@@ -616,7 +792,7 @@ range of heap sizes and live set sizes.
 Now that we've studied garbage collections in theory, and looked at some concrete
 numbers, there are some interesting conclusions that can be drawn:
 
-1. *Caching data _in-process_ makes garbage collection pause times _worse_!* If your
+1. *Caching data _in-process_ can make garbage collection pause times _worse_!* If your
    program is CPU-bottlenecked then caching to save computation can be worthwhile,
    but if you have problems with GC pause times then caching things in-memory will
    increase the size of your _live-set_ and therefore make your pause times even worse!
@@ -626,20 +802,21 @@ numbers, there are some interesting conclusions that can be drawn:
 2. *In contrast, caching things _out of process_ does not have this problem.* So feel free
    to cache things on disk, cache things in https://www.sqlite.org/[SQLite],
    https://github.com/redis/redis[Redis], https://memcached.org/[Memcached], and so on.
-   These are not traced by your program's GC, and will not slow it in.
+   These are not traced by your program's GC, and will not slow it down.
 
 3. *Collecting Garbage doesn't actually slow the garbage collector down!* Most of the GC time
    is spent _tracing_ and _copying_ and live-set, and the garbage is basically ignored
    then wiped out in bulk. So it doesn't not matter how much garbage the GC has to collect:
-   the time taken to run the GC cycle will be the same regardless
+   the time taken to run the collection will be the same regardless
 
 4. *There will never be an _exact_ amount of memory that a garbage-collected application
-   needs.* You can _always_ increase throughput by providing more memory, to make GCs less
-   and less frequent, leaving more time to do useful work. And you can usually provide
-   less memory, at the cost of more and more frequent GCs. Exactly how much memory to
-   provide is thus something you tweak and tune rather than something you can calculate exactly.
+   needs.* You can _always_ reduce-overhead/increase-throughput by providing more memory,
+   to make GCs less and less frequent, leaving more time to do useful work. And you can
+   usually provide less memory, at the cost of more and more frequent GCs. Exactly how much
+   memory to provide is thus something you tweak and tune rather than something you can
+   calculate exactly.
 
-5. *Exactly when to declare the memory "enough" can be very arbitrary.*
+5. *Even when to declare the memory "enough" or "not enough" can be very arbitrary.*
    For example Java may throw an `OutOfMemoryError`
    https://docs.oracle.com/javase/8/docs/technotes/guides/troubleshoot/memleaks002.html[when
    it spends 98% of the time in Garbage Collection], which is an arbitrary threshold
@@ -649,11 +826,11 @@ numbers, there are some interesting conclusions that can be drawn:
 
 6. *Shorter-lived objects are cheaper to collect*, due to most GCs being _generational_. This
    also ties into (1) above: caches tend to keep lots of long-lived objects in memory, which
-   apart from slowing down GC cycles due to the size of the live-set, _also_ slows them down
+   apart from slowing down collections due to the size of the live-set, _also_ slows them down
    by missing out on the GC's optimizations for short-lived objects.
 
 7. *Fewer larger processes can have worse GC performance than more smaller processes, even if
-   they do the same thingds!* There are
+   they do the same things!* There are
    many ways in which consolidating smaller processes into larger ones can
    improve efficiency: less per-process overhead, eliminating
    https://en.wikipedia.org/wiki/Inter-process_communication[inter-process communication] cost,
