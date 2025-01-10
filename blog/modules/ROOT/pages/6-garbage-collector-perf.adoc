@@ -427,7 +427,7 @@ _Garbage Collection_ and _Reference Counting_ have very different characteristic
 is strictly superior to the other in all scenarios.
 Many programming languages (e.g. Python) that use reference counting also have a backup
 tracing garbage collector that runs once in a while to clean up unreachable reference cycles
-and compact the heap, and most modern GCs (e.g. ZGC discussed above) use some reference-counting
+and compact the heap, and most modern GCs (e.g. ZGC discussed below) use some reference-counting
 techniques as part of their implementation.
 
 
