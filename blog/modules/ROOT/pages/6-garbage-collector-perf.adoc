@@ -342,11 +342,11 @@ digraph G {
 
   stack [shape=record label="STACK | <f0> | <f1> | <f2> | <f3> | <f4> | <f5> | <f6> | <f7> "]
 
-  stack:f0 -> heap1:f0
-  stack:f1 -> heap1:f1
+  stack:f0 -> heap1:f0 [dir=none, style=dashed]
+  stack:f1 -> heap1:f1 [dir=none, style=dashed]
   heap1:f1:n -> heap1:f2:n
   heap1:f2:s -> heap1:f3:s
-  stack:f4 -> heap1:f4
+  stack:f4 -> heap1:f4 [dir=none, style=dashed]
   heap1:f5:s -> alloc:n [dir=back, style=dotted]
   alloc [label = "free memory", shape=plaintext]
 }
@@ -367,9 +367,8 @@ digraph G {
   stack [shape=record label="STACK | <f0> | <f1> | <f2> | <f3> | <f4> | <f5> | <f6> | <f7> "]
   stack:f0 -> heap:f4 [dir=none, style=dashed]
   stack:f1 -> heap:f0 [dir=none, style=dashed]
-  heap:f0:s -> heap:f1:s
-  heap:f1:n -> heap:f2:n
-  heap:f2:s -> heap:f5:s
+  heap:f0:n -> heap:f1:n
+  heap:f1:s -> heap:f5:s
   stack:f4 -> heap:f6 [dir=none, style=dashed]
 }
 ```
