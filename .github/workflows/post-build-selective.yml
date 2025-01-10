@@ -5,6 +5,9 @@ on:
       millargs:
         default: ''
         type: string
+      coursierarchive:
+        default: ''
+        type: string
       java-version:
         required: true
         type: string
@@ -66,17 +69,17 @@ jobs:
 
       - run: ./mill -i -k selective.resolve ${{ inputs.millargs }}
         env:
-          COURSIER_ARCHIVE_CACHE: "/coursier-arc"
+          COURSIER_ARCHIVE_CACHE: ${{ inputs.coursierarchive }}
 
       - run: ./mill -i -j1 -k selective.run ${{ inputs.millargs }}
         if: ${{ inputs.install-android-sdk }}
         env:
-          COURSIER_ARCHIVE_CACHE: "/coursier-arc"
+          COURSIER_ARCHIVE_CACHE: ${{ inputs.coursierarchive }}
 
       - run: ./mill -i -k selective.run ${{ inputs.millargs }}
         if: ${{ !inputs.install-android-sdk }}
         env:
-          COURSIER_ARCHIVE_CACHE: "/coursier-arc"
+          COURSIER_ARCHIVE_CACHE: ${{ inputs.coursierarchive }}
 
       - run: 'taskkill -f -im java* && rm -rf out/mill-server/*'
         if: startsWith(inputs.os, 'windows')

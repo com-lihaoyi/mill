@@ -172,6 +172,7 @@ jobs:
       os: windows-latest
       java-version: ${{ matrix.java-version }}
       millargs: ${{ matrix.millargs }}
+      coursierarchive: "C:/coursier-arc"
 
   itest:
     needs: build-linux
