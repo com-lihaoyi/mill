@@ -13,7 +13,7 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
 
       def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.2")
       def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.4.2")
-      def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
+      def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.8.5")
       def unmanagedClasspath = Task { Agg(PathRef(millSourcePath / "unmanaged")) }
     }
     trait BarModule extends ScalaModule {
@@ -21,7 +21,7 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
 
       def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.1")
       def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.4.1")
-      def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
+      def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.8.5")
       def unmanagedClasspath = Task { Agg(PathRef(millSourcePath / "unmanaged")) }
     }
     trait QuxModule extends ScalaModule {
@@ -29,7 +29,7 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
 
       def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.0")
       def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.4.0")
-      def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
+      def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.8.5")
       def unmanagedClasspath = Task { Agg(PathRef(millSourcePath / "unmanaged")) }
     }
     object ModMod extends Module {

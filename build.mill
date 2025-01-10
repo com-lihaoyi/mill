@@ -42,7 +42,7 @@ object Settings {
   )
   val mimaBaseVersions: Seq[String] =
     0.to(13).map("0.11." + _) ++
-    Seq("0.12.0", "0.12.1", "0.12.2", "0.12.3", "0.12.4", "0.12.5")
+      Seq("0.12.0", "0.12.1", "0.12.2", "0.12.3", "0.12.4", "0.12.5")
 
   val graalvmJvmId = "graalvm-community:23.0.1"
 }
@@ -256,7 +256,7 @@ object Deps {
     // tests framework (test)
     val scalaCheck = ivy"org.scalacheck::scalacheck:1.18.1"
     val scalaTest = ivy"org.scalatest::scalatest:3.2.19"
-    val utest = ivy"com.lihaoyi::utest:0.8.4"
+    val utest = ivy"com.lihaoyi::utest:0.8.5"
     val zioTest = ivy"dev.zio::zio-test:2.1.14"
   }
 
