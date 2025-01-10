@@ -20,7 +20,6 @@ import $file.ci.shared
 import $file.ci.upload
 import $packages._
 
-def javaVersion = Task{ sys.props("java.version") }
 object Settings {
   val pomOrg = "com.lihaoyi"
   val githubOrg = "com-lihaoyi"
