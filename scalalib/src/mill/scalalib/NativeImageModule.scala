@@ -31,7 +31,9 @@ trait NativeImageModule extends RunModule with WithZincWorker {
    */
   def nativeImage: T[PathRef] = Task {
     val dest = T.dest
-    val executableName = "native-image"
+    val executableName =
+      if (mill.main.client.Util.isWindows) "native-image.exe" else "native-image"
+
     val command = Seq.newBuilder[String]
       .+=(nativeImageTool().path.toString)
       .++=(nativeImageOptions())
