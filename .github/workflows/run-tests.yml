@@ -21,6 +21,7 @@ jobs:
       - run: ./mill 'example.scalalib.publishing[7-native-image].packaged.server.test'
         env:
           COURSIER_ARCHIVE_CACHE: "C:/coursier-arc"
+          COURSIER_CACHE: "C:/coursier-v1"
 #
 #name: Run Tests
 #
