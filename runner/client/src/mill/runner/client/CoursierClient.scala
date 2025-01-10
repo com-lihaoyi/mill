@@ -7,6 +7,7 @@ import coursier.Resolve
 object CoursierClient {
   def resolveJavaHome(id: String): java.io.File = {
     val coursierCache0 = FileCache[Task]()
+      .withLogger(coursier.cache.loggers.RefreshLogger.create())
     val jvmCache = JvmCache()
       .withArchiveCache(ArchiveCache().withCache(coursierCache0))
       .withIndex(jvmIndex0())
