@@ -10,24 +10,19 @@ object CoursierClient {
       .withLogger(coursier.cache.loggers.RefreshLogger.create())
     val jvmCache = JvmCache()
       .withArchiveCache(ArchiveCache().withCache(coursierCache0))
-      .withIndex(jvmIndex0())
+      .withIndex(
+        JvmIndex.load(
+          cache = coursierCache0,
+          repositories = Resolve().repositories,
+          indexChannel = JvmChannel.module(
+            JvmChannel.centralModule(),
+            version = mill.runner.client.Versions.coursierJvmIndexVersion
+          )
+        )
+      )
 
     val javaHome = JavaHome().withCache(jvmCache)
 
     javaHome.get(id).unsafeRun()(coursierCache0.ec)
-  }
-
-  def jvmIndex0(): Task[JvmIndex] = {
-    val coursierCache0 = FileCache[Task]()
-      .withLogger(coursier.cache.loggers.RefreshLogger.create())
-
-    JvmIndex.load(
-      cache = coursierCache0,
-      repositories = Resolve().repositories,
-      indexChannel = JvmChannel.module(
-        JvmChannel.centralModule(),
-        version = mill.runner.client.Versions.coursierJvmIndexVersion
-      )
-    )
   }
 }
