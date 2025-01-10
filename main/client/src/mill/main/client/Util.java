@@ -152,7 +152,7 @@ public class Util {
     return String.format("%0" + (arr.length << 1) + "x", new BigInteger(1, arr));
   }
 
-  static String sha1Hash(String path) throws NoSuchAlgorithmException {
+  public static String sha1Hash(String path) throws NoSuchAlgorithmException {
     MessageDigest md = MessageDigest.getInstance("SHA1");
     md.reset();
     byte[] pathBytes = path.getBytes(StandardCharsets.UTF_8);

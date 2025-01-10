@@ -113,7 +113,7 @@ public class MillProcessLauncher {
     return System.getProperty("os.name", "").startsWith("Windows");
   }
 
-  static String javaExe() throws IOException {
+  static String javaHome() throws IOException {
     String jvmId;
     Path millJvmVersionFile = millJvmVersionFile();
 
@@ -126,7 +126,12 @@ public class MillProcessLauncher {
 
     if (javaHome == null || javaHome.isEmpty()) javaHome = System.getProperty("java.home");
     if (javaHome == null || javaHome.isEmpty()) javaHome = System.getenv("JAVA_HOME");
-    if (javaHome == null || javaHome.isEmpty()) return "java";
+    return javaHome;
+  }
+
+  static String javaExe() throws IOException {
+    String javaHome = javaHome();
+    if (javaHome == null) return "java";
     else {
       final Path exePath = Paths.get(
           javaHome + File.separator + "bin" + File.separator + "java" + (isWin() ? ".exe" : ""));
