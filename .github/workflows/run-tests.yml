@@ -156,7 +156,7 @@ jobs:
             millargs: '"{main,scalalib,bsp}.__.test"'
 
           - java-version: 11
-            millargs: '"example.scalalib.basic.__.native.fork.test"'
+            millargs: '"example.scalalib.{basic,publishing}.__.packaged.fork.test"'
 
           - java-version: 17
             millargs: "'integration.{feature,failure}.__.packaged.fork.test'"
