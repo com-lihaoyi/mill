@@ -42,7 +42,7 @@ object Settings {
   )
   val mimaBaseVersions: Seq[String] =
     0.to(13).map("0.11." + _) ++
-    Seq("0.12.0", "0.12.1", "0.12.2", "0.12.3", "0.12.4", "0.12.5")
+      Seq("0.12.0", "0.12.1", "0.12.2", "0.12.3", "0.12.4", "0.12.5")
 
   val graalvmJvmId = "graalvm-community:23.0.1"
 }
@@ -187,7 +187,7 @@ object Deps {
   val requests = ivy"com.lihaoyi::requests:0.9.0"
   val logback = ivy"ch.qos.logback:logback-classic:1.5.16"
   val sonatypeCentralClient = ivy"com.lumidion::sonatype-central-client-requests:0.3.0"
-  val kotlinVersion = "2.0.21"
+  val kotlinVersion = "2.1.0"
   val kotlinCompiler = ivy"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
   val mavenVersion = "3.9.9"
   val mavenEmbedder = ivy"org.apache.maven:maven-embedder:$mavenVersion"
