@@ -585,7 +585,7 @@ performance. For each benchmark, it:
    in megabytes per second (`throughput` being the opposite of `overhead` we mentioned earlier).
 
 To be clear, this benchmark is _rough_. Performance will vary between runs, and on what hardware
-and software you run it (I ran it on a M1 Macbook Pro running Java 17). But the results should be
+and software you run it (I ran it on a M1 Macbook Pro running Java 23). But the results should be
 clear even if the exact numbers will differ between runs.
 
 You can run this program via:
