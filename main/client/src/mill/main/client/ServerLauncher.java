@@ -88,7 +88,9 @@ public abstract class ServerLauncher {
     int serverIndex = 0;
     while (serverIndex < serverProcessesLimit) { // Try each possible server process (-1 to -5)
       serverIndex++;
-      final Path serverDir = serverDir0.resolve(serverIndex + "");
+      final Path serverDir = serverDir0.getParent()
+          .resolve(serverDir0.getFileName() + "-" + serverIndex);
+
       Files.createDirectories(serverDir);
 
       try (Locks locks = memoryLocks != null
