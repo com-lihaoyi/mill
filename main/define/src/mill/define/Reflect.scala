@@ -59,6 +59,7 @@ private[mill] object Reflect {
 
     arr.sortInPlaceWith((m1, m2) =>
       if (m1.getDeclaringClass.equals(m2.getDeclaringClass)) {
+        !m1.getReturnType.equals(m2.getReturnType) && 
         m1.getReturnType.isAssignableFrom(m2.getReturnType)
       } else {
         m1.getDeclaringClass.isAssignableFrom(m2.getDeclaringClass)
