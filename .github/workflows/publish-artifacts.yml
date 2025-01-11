@@ -95,7 +95,7 @@ jobs:
 
     # only run one publish job for the same sha at the same time
     # e.g. when a main-branch push is also tagged
-    concurrency: publish-sonatype-native-${{ github.sha }}
+    concurrency: publish-sonatype-native-${{ matrix.os }}-${{ github.sha }}
     strategy:
       matrix:
         include:
