@@ -65,6 +65,19 @@ jobs:
 
       - run: ./mill -i docs.githubPages + docs.checkBrokenLinks
 
+  mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - run: ./mill -i example.javalib.basic.__.local.server.test
+
   linux:
     needs: build-linux
     strategy:
