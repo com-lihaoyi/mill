@@ -43,7 +43,8 @@ trait NativeImageModule extends RunModule with WithZincWorker {
 
     os.proc(command).call(cwd = dest, stdout = os.Inherit)
 
-    PathRef(dest / (if (mill.main.client.Util.isWindows) "native-executable.exe" else "native-executable"))
+    PathRef(dest / (if (mill.main.client.Util.isWindows) "native-executable.exe"
+                    else "native-executable"))
   }
 
   /**
