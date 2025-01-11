@@ -368,7 +368,7 @@ object `package` extends RootModule  with InstallModule {
 
     def jar = Task {
       val previous = nativeImage().path
-      val executable = Task.dest / (previous.baseName + ".jar")
+      val executable = Task.dest / previous.baseName
 
       Using(os.write.outputStream(executable)) { out =>
         out.write(os.read.bytes(previous))
