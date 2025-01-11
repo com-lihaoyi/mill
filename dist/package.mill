@@ -376,6 +376,9 @@ object `package` extends RootModule  with InstallModule {
         out.write(os.read.bytes(assembly().path))
       }
 
+      println("START LHY jar tf executable")
+      os.call(("jar", "tf", executable), stdout = os.Inherit)
+      println("END LHY jar tf executable")
       if (!mill.main.client.Util.isWindows) os.perms.set(executable, "rwxrwxrwx")
 
       PathRef(executable)
