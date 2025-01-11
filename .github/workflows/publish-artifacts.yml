@@ -91,7 +91,6 @@ jobs:
   publish-sonatype-native:
     # when in master repo, publish all tags and manual runs on main
     if: github.repository == 'com-lihaoyi/mill'
-    needs: build-artifacts
     runs-on: ${{ matrix.os }}
 
     # only run one publish job for the same sha at the same time
@@ -119,8 +118,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
-
-      - uses: coursier/cache-action@v6
 
       - uses: actions/setup-java@v4
         with:
