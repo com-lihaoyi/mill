@@ -8,8 +8,8 @@ on:
 
 jobs:
   debug:
-    runs-on: ubuntu-latest
-#    runs-on: windows-latest
+#    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 1 }
