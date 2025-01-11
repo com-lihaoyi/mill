@@ -369,17 +369,18 @@ object `package` extends RootModule  with InstallModule {
     def jar = Task {
       val previous = nativeImage().path
       val executable = Task.dest / previous.last
-      println("START LHY ls -lh previous")
-      os.call(("bash", "ls", "-lh", previous), stdout = os.Inherit)
-      println("END LHY ls -lh previous")
+      println("START LHY os.size(previous)")
+      println(os.size(previous))
+      println("END LHY os.size(previous)")
       Using(os.write.outputStream(executable)) { out =>
         out.write(os.read.bytes(previous))
         out.write(System.lineSeparator.getBytes)
         out.write(os.read.bytes(assembly().path))
       }
-      println("START LHY ls -lh executable")
-      os.call(("bash", "ls", "-lh", executable), stdout = os.Inherit)
-      println("END LHY ls -lh executable")
+      println("START LHY os.size(executable)")
+      println(os.size(executable))
+      println("END LHY os.size(executable)")
+      
       println("START LHY jar tf executable")
       os.call(("jar", "tf", executable), stdout = os.Inherit)
       println("END LHY jar tf executable")
