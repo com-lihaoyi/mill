@@ -366,20 +366,20 @@ object `package` extends RootModule  with InstallModule {
 
     def localBinName = "mill-native"
 
-    def jar = Task {
-      val previous = nativeImage().path
-      val executable = Task.dest / previous.last
-
-      Using(os.write.outputStream(executable)) { out =>
-        out.write(os.read.bytes(previous))
-        out.write(System.lineSeparator.getBytes)
-        out.write(os.read.bytes(assembly().path))
-      }
-
-      if (!mill.main.client.Util.isWindows) os.perms.set(executable, "rwxrwxrwx")
-
-      PathRef(executable)
-    }
+//    def jar = Task {
+//      val previous = nativeImage().path
+//      val executable = Task.dest / previous.last
+//
+//      Using(os.write.outputStream(executable)) { out =>
+//        out.write(os.read.bytes(previous))
+//        out.write(System.lineSeparator.getBytes)
+//        out.write(os.read.bytes(assembly().path))
+//      }
+//
+//      if (!mill.main.client.Util.isWindows) os.perms.set(executable, "rwxrwxrwx")
+//
+//      PathRef(executable)
+//    }
 
     def nativeImageOptions = Seq("--no-fallback", "--enable-url-protocols=https")
 
