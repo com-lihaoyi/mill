@@ -948,14 +948,15 @@ import mill._, scalalib._
 import mill.define.ModuleRef
 
 object foo extends ScalaModule with NativeImageModule {
+  def scalaVersion = &quot;2.13.11&quot;
+
+  def nativeImageOptions = Seq(&quot;--no-fallback&quot;)
 
   def zincWorker = ModuleRef(ZincWorkerGraalvm)
+}
 
-  object ZincWorkerGraalvm extends ZincWorkerModule {
-    def jvmId = &quot;graalvm-community:17.0.7&quot;
-  }
-
-  def scalaVersion = &quot;2.13.11&quot;
+object ZincWorkerGraalvm extends ZincWorkerModule {
+  def jvmId = &quot;graalvm-community:17.0.7&quot;
 }</code></pre>
 </div>
 </div>
@@ -966,13 +967,11 @@ NOTE: For build portability, it is recommended to use a custom JDK via a custom 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo.ZincWorkerGraalvm.javaHome
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo.nativeImage
+GraalVM Native Image: Generating...native-executable...
+Finished generating...native-executable...
 
-&gt; ./mill foo.nativeImage
-GraalVM Native Image: Generating...native-image...
-Finished generating...native-image...
-
-&gt; ./out/foo/nativeImage.dest/native-image
+&gt; ./out/foo/nativeImage.dest/native-executable
 Hello, World!</code></pre>
 </div>
 </div>
