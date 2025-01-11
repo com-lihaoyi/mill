@@ -371,6 +371,7 @@ object `package` extends RootModule  with InstallModule {
         if (os.exists(nativeImage().path)) nativeImage().path
         else nativeImage().path / ".." / "native-image.exe"
 
+      assert(os.exists(previous))
       val executable = Task.dest / previous.last
       println("START LHY os.size(previous)")
       println(os.size(previous))
