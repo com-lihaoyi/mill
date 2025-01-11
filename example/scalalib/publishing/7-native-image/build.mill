@@ -27,8 +27,8 @@ object ZincWorkerGraalvm extends ZincWorkerModule {
 
 > ./mill show foo.nativeImage
 GraalVM Native Image: Generating...native-image...
-Finished generating...native-image...
+Finished generating...native-executable...
 
-> ./out/foo/nativeImage.dest/native-image
+> ./out/foo/nativeImage.dest/native-executable
 Hello, World!
 */
