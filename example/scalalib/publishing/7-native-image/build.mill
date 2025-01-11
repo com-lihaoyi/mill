@@ -23,8 +23,6 @@ object ZincWorkerGraalvm extends ZincWorkerModule {
 
 /** Usage
 
-> ./mill show foo.ZincWorkerGraalvm.javaHome
-
 > ./mill show foo.nativeImage
 GraalVM Native Image: Generating...native-image...
 Finished generating...native-executable...
