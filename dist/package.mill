@@ -376,7 +376,8 @@ object `package` extends RootModule  with InstallModule {
         out.write(os.read.bytes(assembly().path))
       }
 
-      os.perms.set(executable, "rwxrwxrwx")
+      if (!mill.main.client.Util.isWindows) os.perms.set(executable, "rwxrwxrwx")
+
       PathRef(executable)
     }
 

@@ -18,9 +18,10 @@
 #          distribution: 'temurin'
 #          java-version: '17'
 #
-#      - run: ./mill 'example.javalib.publishing[7-native-image].packaged.server.test'
-##
-#
+#      - run: ./mill 'example.scalalib.publishing[7-native-image].packaged.server.test'
+#        env:
+#          COURSIER_ARCHIVE_CACHE: "C:/coursier-arc"
+
 name: Run Tests
 
 # We run full CI on push builds to main and on all pull requests
@@ -87,8 +88,8 @@ jobs:
             millargs: "contrib.__.test"
             install-android-sdk: false
 
-          - java-version: 17
-            millargs: "'example.javalib.__.local.server.test'"
+          - java-version: 17 # Run this with Mill native launcher as a smoketest
+            millargs: "'example.javalib.__.native.server.test'"
             install-android-sdk: false
 
           - java-version: 17
@@ -125,7 +126,7 @@ jobs:
             # Most of these integration tests should not depend on which mode they
             # are run in, so just run them in `local`
           - java-version: '17'
-            millargs: "'integration.{failure,feature,ide}.__.local.server.test'"
+            millargs: "'integration.{failure,feature,ide}.__.native.server.test'"
             install-android-sdk: false
             # These invalidation tests need to be exercised in both execution modes
             # to make sure they work with and without -i/--no-server being passed
@@ -135,15 +136,6 @@ jobs:
 
           - java-version: 17
             millargs: "'integration.invalidation.__.packaged.server.test'"
-            install-android-sdk: false
-
-          # Run some smoketests with Graal native image launcher
-          - java-version: 17
-            millargs: "'example.javalib.__.native.server.test'"
-            install-android-sdk: false
-
-          - java-version: '17'
-            millargs: "'integration.{failure,feature,ide}.__.native.server.test'"
             install-android-sdk: false
 
     uses: ./.github/workflows/post-build-selective.yml
@@ -162,12 +154,16 @@ jobs:
           # the whole suite can take hours on windows v.s. half an hour on linux
           - java-version: 11
             millargs: '"{main,scalalib,bsp}.__.test"'
+
           - java-version: 11
-            millargs: '"example.scalalib.basic.__.packaged.fork.test"'
+            millargs: '"example.scalalib.{basic,publishing}.__.packaged.fork.test"'
+
           - java-version: 17
             millargs: "'integration.{feature,failure}.__.packaged.fork.test'"
+
           - java-version: 11
             millargs: "'integration.invalidation.__.packaged.server.test'"
+
           - java-version: 11
             millargs: "contrib.__.test"
 
@@ -176,6 +172,9 @@ jobs:
       os: windows-latest
       java-version: ${{ matrix.java-version }}
       millargs: ${{ matrix.millargs }}
+      # Provide a shorter coursier archive folder to avoid hitting path-length bugs when
+      # running the graal native image binary on windows
+      coursierarchive: "C:/coursier-arc"
 
   itest:
     needs: build-linux

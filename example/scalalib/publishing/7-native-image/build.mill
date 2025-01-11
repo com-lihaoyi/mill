@@ -4,14 +4,15 @@ import mill._, scalalib._
 import mill.define.ModuleRef
 
 object foo extends ScalaModule with NativeImageModule {
+  def scalaVersion = "2.13.11"
+
+  def nativeImageOptions = Seq("--no-fallback")
 
   def zincWorker = ModuleRef(ZincWorkerGraalvm)
+}
 
-  object ZincWorkerGraalvm extends ZincWorkerModule {
-    def jvmId = "graalvm-community:17.0.7"
-  }
-
-  def scalaVersion = "2.13.11"
+object ZincWorkerGraalvm extends ZincWorkerModule {
+  def jvmId = "graalvm-community:17.0.7"
 }
 
 //// SNIPPET:END
@@ -22,12 +23,10 @@ object foo extends ScalaModule with NativeImageModule {
 
 /** Usage
 
-> ./mill show foo.ZincWorkerGraalvm.javaHome
+> ./mill show foo.nativeImage
+GraalVM Native Image: Generating...native-executable...
+Finished generating...native-executable...
 
-> ./mill foo.nativeImage
-GraalVM Native Image: Generating...native-image...
-Finished generating...native-image...
-
-> ./out/foo/nativeImage.dest/native-image
+> ./out/foo/nativeImage.dest/native-executable
 Hello, World!
 */
