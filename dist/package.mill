@@ -367,7 +367,10 @@ object `package` extends RootModule  with InstallModule {
     def localBinName = "mill-native"
 
     def jar = Task {
-      val previous = nativeImage().path
+      val previous =
+        if (os.exists(nativeImage().path)) nativeImage().path
+        else nativeImage().path / ".." / "native-image.exe"
+
       val executable = Task.dest / previous.last
       println("START LHY os.size(previous)")
       println(os.size(previous))
@@ -380,7 +383,7 @@ object `package` extends RootModule  with InstallModule {
       println("START LHY os.size(executable)")
       println(os.size(executable))
       println("END LHY os.size(executable)")
-      
+
       println("START LHY jar tf executable")
       os.call(("jar", "tf", executable), stdout = os.Inherit)
       println("END LHY jar tf executable")
