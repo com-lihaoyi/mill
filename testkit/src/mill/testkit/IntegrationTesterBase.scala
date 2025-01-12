@@ -60,12 +60,8 @@ trait IntegrationTesterBase {
   def removeServerIdFile(): Unit = {
     val outDir = os.Path(out, workspacePath)
     if (os.exists(outDir)) {
-      val serverIdFiles = for {
-        outPath <- os.list.stream(outDir)
-        if outPath.last.startsWith(millServer)
-      } yield outPath / serverId
+      for (serverPath <- os.list.stream(outDir / millServer)) os.remove(serverPath / serverId)
 
-      serverIdFiles.foreach(os.remove(_))
       Thread.sleep(500) // give a moment for the server to notice the file is gone and exit
     }
   }
