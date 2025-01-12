@@ -25,14 +25,14 @@ class LauncherOldVersionsTests(version: String) extends UtestIntegrationTestSuit
         cmd = (launcherScript, "version"),
         cwd = workspacePath,
         stderr = os.Pipe,
-        propagateEnv = false
+        env = Map("MILL_VERSION" -> null)
       )
 
       val res = os.call(
         cmd = (launcherScript, "version"),
         cwd = workspacePath,
         stderr = os.Pipe,
-        propagateEnv = false
+        env = Map("MILL_VERSION" -> null)
       )
 
       val outText = res.out.text().trim
@@ -41,7 +41,7 @@ class LauncherOldVersionsTests(version: String) extends UtestIntegrationTestSuit
         cmd = (launcherScript, "shutdown"),
         cwd = workspacePath,
         check = false,
-        propagateEnv = false
+        env = Map("MILL_VERSION" -> null)
       )
       os.remove.all(workspacePath / "out")
     }
