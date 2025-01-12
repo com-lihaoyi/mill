@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-
+echo "LHY RUNNING MILL BOOTSTRAP SCRIPT"
 # This is a wrapper script, that automatically download mill from GitHub release pages
 # You can give the required mill version with --mill-version parameter
 # If no version is given, it falls back to the value of DEFAULT_MILL_VERSION
