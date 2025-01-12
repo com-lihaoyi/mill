@@ -59,13 +59,32 @@ trait TypeScriptModule extends Module { outer =>
   def allSources: T[IndexedSeq[PathRef]] =
     Task {
       val fileExt: Path => Boolean = _.ext == "ts"
-      val generated = for {
-        pr <- generatedSources()
-        file <- os.walk(pr.path)
-        if fileExt(file)
-      } yield PathRef(file)
-      os.walk(sources().path).filter(fileExt).map(PathRef(_)) ++ generated
+      os.walk(sources().path).filter(fileExt).map(PathRef(_))
     }
+
+  private def compiledSources: Task[IndexedSeq[PathRef]] = Task.Anon {
+    val generated = for {
+      pr <- generatedSources()
+      file <- os.walk(pr.path)
+      if file.ext == "ts"
+    } yield file
+
+    val typescriptOut = Task.dest / "typescript"
+    val core = for {
+      file <- allSources()
+    } yield typescriptOut / file.path.relativeTo(millSourcePath)
+
+    // symlink node_modules for generated sources
+    // remove `node_module/<package>` package import format
+    generatedSources().foreach(source =>
+      os.call(
+        ("ln", "-s", npmInstall().path.toString + "/node_modules/", "node_modules"),
+        cwd = source.path
+      )
+    )
+
+    (core ++ generated).map(PathRef(_))
+  }
 
   // specify tsconfig.compilerOptions
   def compilerOptions: T[Map[String, ujson.Value]] = Task {
@@ -77,10 +96,9 @@ trait TypeScriptModule extends Module { outer =>
   }
 
   // specify tsconfig.compilerOptions.Paths
-  def compilerOptionsPaths: Task[Map[String, String]] =
-    Task.Anon { Map("*" -> npmInstall().path.toString()) }
+  def compilerOptionsPaths: Task[Map[String, String]] = Task.Anon { Map.empty[String, String] }
 
-  private def upstreams: T[(PathRef, PathRef, Seq[PathRef])] = Task {
+  def upstreams: T[(PathRef, PathRef, Seq[PathRef])] = Task {
     val comp = compile()
 
     (comp._1, comp._2, resources())
@@ -133,21 +151,30 @@ trait TypeScriptModule extends Module { outer =>
       }
   }
 
-  def compilerOptionsBuilder: Task[Map[String, ujson.Value]] = Task.Anon {
-    val declarationsOut = Task.dest / "declarations"
+  def typeRoots: Task[ujson.Value] = Task.Anon {
+    ujson.Arr(
+      "node_modules/@types",
+      (Task.dest / "declarations").toString
+    )
+  }
 
+  def declarationDir: Task[ujson.Value] = Task.Anon {
+    ujson.Str((Task.dest / "declarations").toString)
+  }
+
+  def generatedSourcesPathsBuilder: T[Seq[(String, String)]] = Task {
+    generatedSources().map(p => ("@generated/*", p.path.toString))
+  }
+
+  def compilerOptionsBuilder: Task[Map[String, ujson.Value]] = Task.Anon {
     val combinedPaths =
       upstreamPathsBuilder() ++
-        generatedSources().map(p => ("@generated/*", p.path.toString)) ++
+        generatedSourcesPathsBuilder() ++
         modulePaths() ++
         compilerOptionsPaths().toSeq
 
     val combinedCompilerOptions: Map[String, ujson.Value] = compilerOptions() ++ Map(
-      "declarationDir" -> ujson.Str(declarationsOut.toString),
-      "typeRoots" -> ujson.Arr(
-        (npmInstall().path / "node_modules/@types").toString,
-        declarationsOut.toString
-      ),
+      "declarationDir" -> declarationDir(),
       "paths" -> ujson.Obj.from(combinedPaths.map { case (k, v) =>
         val splitValues =
           v.split(":").map(s => s"$s/*") // Split by ":" and append "/*" to each part
@@ -158,17 +185,35 @@ trait TypeScriptModule extends Module { outer =>
     combinedCompilerOptions
   }
 
+  // create a symlink for node_modules in compile.dest
+  // removes need for node_modules prefix in import statements `node_modules/<some-package>`
+  // import * as somepackage from "<some-package>"
+  def symlinkNodeModules: Task[Unit] = Task.Anon {
+    os.call(
+      ("ln", "-s", npmInstall().path.toString + "/node_modules/", "node_modules"),
+      cwd = Task.dest
+    )
+    os.call(
+      ("ln", "-s", npmInstall().path.toString + "/package-lock.json", "package-lock.json"),
+      cwd = Task.dest
+    )
+    ()
+  }
+
   def compile: T[(PathRef, PathRef)] = Task {
+    symlinkNodeModules()
     os.write(
       Task.dest / "tsconfig.json",
       ujson.Obj(
-        "compilerOptions" -> ujson.Obj.from(compilerOptionsBuilder().toSeq),
-        "files" -> allSources().map(_.path.toString)
+        "compilerOptions" -> ujson.Obj.from(
+          compilerOptionsBuilder().toSeq ++ Seq("typeRoots" -> typeRoots())
+        ),
+        "files" -> compiledSources().map(_.path.toString)
       )
     )
 
     os.copy(millSourcePath, Task.dest / "typescript", mergeFolders = true)
-    os.call(npmInstall().path / "node_modules/typescript/bin/tsc")
+    os.call(npmInstall().path / "node_modules/typescript/bin/tsc", cwd = Task.dest)
 
     (PathRef(Task.dest), PathRef(Task.dest / "typescript"))
   }
@@ -177,16 +222,7 @@ trait TypeScriptModule extends Module { outer =>
 
   def mainFilePath: T[Path] = Task { compile()._2.path / "src" / mainFileName() }
 
-  def forkEnv: T[Map[String, String]] =
-    Task {
-      Map("NODE_PATH" -> Seq(
-        ".",
-        compile()._1.path,
-        compile()._2.path,
-        npmInstall().path,
-        npmInstall().path / "node_modules"
-      ).mkString(":"))
-    }
+  def forkEnv: T[Map[String, String]] = Task { Map.empty[String, String] }
 
   def computedArgs: T[Seq[String]] = Task { Seq.empty[String] }
 
@@ -232,6 +268,7 @@ trait TypeScriptModule extends Module { outer =>
   }
 
   // configure esbuild with @esbuild-plugins/tsconfig-paths
+  // include .d.ts files
   def bundleScriptBuilder: Task[String] = Task.Anon {
     val bundle = (Task.dest / "bundle.js").toString
     val rps = resources().map { p => p.path }.filter(os.exists)
@@ -251,7 +288,7 @@ trait TypeScriptModule extends Module { outer =>
          |    ${rps.map { rp =>
           s"""    copyStaticFiles({
              |      src: ${ujson.Str(rp.toString)},
-             |      dest: ${ujson.Str(Task.dest.toString + "/" + rp.last.toString)},
+             |      dest: ${ujson.Str(Task.dest.toString + "/" + rp.last)},
              |      dereference: true,
              |      preserveTimestamps: true,
              |      recursive: true,
@@ -268,9 +305,9 @@ trait TypeScriptModule extends Module { outer =>
       s""" "process.env.$envVarName": JSON.stringify(${ujson.Str("./" + resourceRoot)})"""
     }.mkString(",\n")
 
-    s"""|import * as esbuild from 'node_modules/esbuild';
-        |import TsconfigPathsPlugin from 'node_modules/@esbuild-plugins/tsconfig-paths'
-        |import copyStaticFiles from 'node_modules/esbuild-copy-static-files';
+    s"""|import * as esbuild from 'esbuild';
+        |import TsconfigPathsPlugin from '@esbuild-plugins/tsconfig-paths'
+        |import copyStaticFiles from 'esbuild-copy-static-files';
         |
         |esbuild.build({
         |  $flags

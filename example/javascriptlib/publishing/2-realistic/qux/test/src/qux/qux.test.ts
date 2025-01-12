@@ -1,5 +1,4 @@
-import {generateUser, defaultRoles} from "foo/foo";
-import {Map} from 'immutable';
+import { generateUser } from "qux/generate_user";
 
 // Define the type roles object
 type RoleKeys = "admin" | "user";
@@ -7,25 +6,23 @@ type Roles = {
     [key in RoleKeys]: string;
 };
 
-// Mock `defaultRoles` as a global variable for testing
-const mockDefaultRoles = Map<string, string>({
-    admin: "Administrator",
-    user: "User",
-});
+// Mock the defaultRoles.get method
+jest.mock("foo/bar/bar", () => ({
+    __esModule: true, // This ensures compatibility with ES module imports
+    default: {
+        get: jest.fn((role: string, defaultValue: string) => {
+            const roles: Roles = { admin: "Administrator", user: "User" };
+            return roles[role as RoleKeys] || defaultValue;
+        }),
+    },
+}));
 
 describe("generateUser function", () => {
-    beforeAll(() => {
-        process.env.NODE_ENV = "test"; // Set NODE_ENV for all tests
-    });
-
     afterEach(() => {
         jest.clearAllMocks();
     });
 
     test("should generate a user with all specified fields", () => {
-        // Override the `defaultRoles` map for testing
-        (defaultRoles as any).get = mockDefaultRoles.get.bind(mockDefaultRoles);
-
         const args = ["John", "Doe", "admin"];
         const user = generateUser(args);
 
@@ -37,8 +34,6 @@ describe("generateUser function", () => {
     });
 
     test("should default lastName and role when they are not provided", () => {
-        (defaultRoles as any).get = mockDefaultRoles.get.bind(mockDefaultRoles);
-
         const args = ["Jane"];
         const user = generateUser(args);
 
@@ -50,8 +45,6 @@ describe("generateUser function", () => {
     });
 
     test("should default all fields when args is empty", () => {
-        (defaultRoles as any).get = mockDefaultRoles.get.bind(mockDefaultRoles);
-
         const args: string[] = [];
         const user = generateUser(args);
 

@@ -150,6 +150,7 @@ object Deps {
   val commonsIo = ivy"commons-io:commons-io:2.18.0"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.24.3"
   val osLib = ivy"com.lihaoyi::os-lib:0.11.4-M4"
+  val sbtIo = ivy"org.scala-sbt::io:1.9.0"
   val pprint = ivy"com.lihaoyi::pprint:0.9.0"
   val mainargs = ivy"com.lihaoyi::mainargs:0.7.6"
   val millModuledefsVersion = "0.11.2"
