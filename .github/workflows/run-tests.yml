@@ -140,7 +140,7 @@ jobs:
             # Most of these integration tests should not depend on which mode they
             # are run in, so just run them in `local`
           - java-version: '17'
-            millargs: "'integration.{failure,feature,ide}.__.native.server.test'"
+            millargs: "'integration.{failure,feature,ide}.__.packaged.server.test'"
             install-android-sdk: false
             # These invalidation tests need to be exercised in both execution modes
             # to make sure they work with and without -i/--no-server being passed
@@ -176,7 +176,7 @@ jobs:
             millargs: "'integration.{feature,failure}.__.packaged.fork.test'"
 
           - java-version: 11 # Run this with Mill native launcher as a smoketest
-            millargs: "'integration.invalidation.__.native.server.test'"
+            millargs: "'integration.invalidation.__.packaged.server.test'"
 
           - java-version: 11
             millargs: "contrib.__.test"
