@@ -120,20 +120,13 @@ public class MillProcessLauncher {
     String javaHome = null;
     if (Files.exists(millJvmVersionFile)) {
       jvmId = Files.readString(millJvmVersionFile).trim();
-      System.err.println("LHY javaHome from millJvmVersionFile");
       javaHome = CoursierClient.resolveJavaHome(jvmId).getAbsolutePath();
     }
 
+    if (javaHome == null || javaHome.isEmpty()) javaHome = System.getenv("JAVA_HOME");
 
-    if (javaHome == null || javaHome.isEmpty()) {
-      System.err.println("LHY javaHome from System.getEnv");
-      javaHome = System.getenv("JAVA_HOME");
-    }
+    if (javaHome == null || javaHome.isEmpty()) javaHome = System.getProperty("java.home");
 
-    if (javaHome == null || javaHome.isEmpty()) {
-      System.err.println("LHY javaHome from System.getProperty");
-      javaHome = System.getProperty("java.home");
-    }
     return javaHome;
   }
 
@@ -141,14 +134,12 @@ public class MillProcessLauncher {
     String javaHome = javaHome();
     if (javaHome == null) {
         System.err.println("LHY javaHome == null");
-        throw new IOException("boom1");
-//        return "java";
+        return "java";
     } else {
       final Path exePath = Paths.get(
           javaHome + File.separator + "bin" + File.separator + "java" + (isWin() ? ".exe" : ""));
 
-      throw new IOException("boom2");
-//      return exePath.toAbsolutePath().toString();
+      return exePath.toAbsolutePath().toString();
     }
   }
 
