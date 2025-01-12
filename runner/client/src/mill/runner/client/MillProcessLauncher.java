@@ -313,18 +313,18 @@ public class MillProcessLauncher {
     Files.createDirectories(sandbox);
     boolean tputExists = checkTputExists();
 
-    writeTerminalDims(tputExists, serverDir);
-    Thread termInfoPropagatorThread = new Thread(
-        () -> {
-          try {
-            while (true) {
-              writeTerminalDims(tputExists, serverDir);
-              Thread.sleep(100);
-            }
-          } catch (Exception e) {
-          }
-        },
-        "TermInfoPropagatorThread");
-    termInfoPropagatorThread.start();
+//    writeTerminalDims(tputExists, serverDir);
+//    Thread termInfoPropagatorThread = new Thread(
+//        () -> {
+//          try {
+//            while (true) {
+//              writeTerminalDims(tputExists, serverDir);
+//              Thread.sleep(100);
+//            }
+//          } catch (Exception e) {
+//          }
+//        },
+//        "TermInfoPropagatorThread");
+//    termInfoPropagatorThread.start();
   }
 }
