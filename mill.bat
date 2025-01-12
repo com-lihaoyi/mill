@@ -72,16 +72,13 @@ rem without bat file extension, cmd doesn't seem to be able to run it
 set "MILL_NATIVE_SUFFIX=-native"
 set "FULL_MILL_VERSION=%MILL_VERSION%"
 set "MILL_EXT=.bat"
-
+set "ARTIFACT_SUFFIX="
 REM Check if MILL_VERSION contains MILL_NATIVE_SUFFIX
 echo %MILL_VERSION% | findstr /C:"%MILL_NATIVE_SUFFIX%" >nul
 if %errorlevel% equ 0 (
     set "MILL_VERSION=%MILL_VERSION:-native=%"
     set "ARTIFACT_SUFFIX=-native-windows-amd64"
     set "MILL_EXT=.exe"
-) else (
-    set "ARTIFACT_SUFFIX="
-    set "MILL_EXT="
 )
 
 set MILL=%MILL_DOWNLOAD_PATH%\!FULL_MILL_VERSION!!MILL_EXT!
