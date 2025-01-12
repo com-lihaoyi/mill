@@ -14,5 +14,4 @@ object `package` extends MillBuildRootModule {
     // TODO: document, why we have this dependency
     ivy"org.jsoup:jsoup:1.18.1"
   )
-
 }
