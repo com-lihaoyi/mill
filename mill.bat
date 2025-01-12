@@ -81,6 +81,7 @@ if %errorlevel% equ 0 (
     set "MILL_EXT=.exe"
 ) else (
     set "ARTIFACT_SUFFIX="
+    set "MILL_EXT="
 )
 
 set MILL=%MILL_DOWNLOAD_PATH%\!FULL_MILL_VERSION!!MILL_EXT!
