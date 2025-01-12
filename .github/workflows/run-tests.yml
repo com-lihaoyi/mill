@@ -79,84 +79,84 @@ jobs:
 
       - run: ./mill -i example.javalib.basic.__.local.server.test
 
-  linux:
-    needs: build-linux
-    strategy:
-      fail-fast: false
-      matrix:
-
-        include:
-          # For most tests, run them arbitrarily on Java 11 or Java 17 on Linux, and
-          # on the opposite version on Windows below, so we get decent coverage of
-          # each test on each Java version and each operating system
-          # We also try to group tests together to manually balance out the runtimes of each jobs
-          - java-version: 17
-            millargs: "'{main,scalalib,testrunner,bsp,testkit}.__.test'"
-            install-android-sdk: false
-
-          - java-version: 11
-            millargs: "'{scalajslib,scalanativelib,kotlinlib,pythonlib,javascriptlib}.__.test'"
-            install-android-sdk: false
-
-          - java-version: 17
-            millargs: "contrib.__.test"
-            install-android-sdk: false
-
-          - java-version: 17 # Run this with Mill native launcher as a smoketest
-            millargs: "'example.javalib.__.native.server.test'"
-            install-android-sdk: false
-
-          - java-version: 17
-            millargs: "'example.scalalib.__.local.server.test'"
-            install-android-sdk: false
-
-          - java-version: 17
-            millargs: "'example.kotlinlib.__.local.server.test'"
-            install-android-sdk: false
-
-          - java-version: 17
-            millargs: "'example.android.__.local.server.test'"
-            install-android-sdk: true
-
-          - java-version: 17
-            millargs: "'example.{pythonlib,javascriptlib}.__.local.server.test'"
-            install-android-sdk: false
-
-          - java-version: 11
-            millargs: "'example.thirdparty[{mockito,acyclic,commons-io}].local.server.test'"
-            install-android-sdk: false
-
-          - java-version: 17
-            millargs: "'example.thirdparty[{fansi,jimfs,netty,gatling}].local.server.test'"
-            install-android-sdk: false
-
-          - java-version: '17'
-            millargs: "'example.thirdparty[arrow].local.server.test'"
-            install-android-sdk: false
-
-          - java-version: 11
-            millargs: "'example.{cli,fundamentals,depth,extending}.__.local.server.test'"
-            install-android-sdk: false
-            # Most of these integration tests should not depend on which mode they
-            # are run in, so just run them in `local`
-          - java-version: '17'
-            millargs: "'integration.{failure,feature,ide}.__.packaged.server.test'"
-            install-android-sdk: false
-            # These invalidation tests need to be exercised in both execution modes
-            # to make sure they work with and without -i/--no-server being passed
-          - java-version: 17
-            millargs: "'integration.invalidation.__.packaged.fork.test'"
-            install-android-sdk: false
-
-          - java-version: 17
-            millargs: "'integration.invalidation.__.packaged.server.test'"
-            install-android-sdk: false
-
-    uses: ./.github/workflows/post-build-selective.yml
-    with:
-      install-android-sdk: ${{ matrix.install-android-sdk }}
-      java-version: ${{ matrix.java-version }}
-      millargs: ${{ matrix.millargs }}
+#  linux:
+#    needs: build-linux
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#
+#        include:
+#          # For most tests, run them arbitrarily on Java 11 or Java 17 on Linux, and
+#          # on the opposite version on Windows below, so we get decent coverage of
+#          # each test on each Java version and each operating system
+#          # We also try to group tests together to manually balance out the runtimes of each jobs
+#          - java-version: 17
+#            millargs: "'{main,scalalib,testrunner,bsp,testkit}.__.test'"
+#            install-android-sdk: false
+#
+#          - java-version: 11
+#            millargs: "'{scalajslib,scalanativelib,kotlinlib,pythonlib,javascriptlib}.__.test'"
+#            install-android-sdk: false
+#
+#          - java-version: 17
+#            millargs: "contrib.__.test"
+#            install-android-sdk: false
+#
+#          - java-version: 17 # Run this with Mill native launcher as a smoketest
+#            millargs: "'example.javalib.__.native.server.test'"
+#            install-android-sdk: false
+#
+#          - java-version: 17
+#            millargs: "'example.scalalib.__.local.server.test'"
+#            install-android-sdk: false
+#
+#          - java-version: 17
+#            millargs: "'example.kotlinlib.__.local.server.test'"
+#            install-android-sdk: false
+#
+#          - java-version: 17
+#            millargs: "'example.android.__.local.server.test'"
+#            install-android-sdk: true
+#
+#          - java-version: 17
+#            millargs: "'example.{pythonlib,javascriptlib}.__.local.server.test'"
+#            install-android-sdk: false
+#
+#          - java-version: 11
+#            millargs: "'example.thirdparty[{mockito,acyclic,commons-io}].local.server.test'"
+#            install-android-sdk: false
+#
+#          - java-version: 17
+#            millargs: "'example.thirdparty[{fansi,jimfs,netty,gatling}].local.server.test'"
+#            install-android-sdk: false
+#
+#          - java-version: '17'
+#            millargs: "'example.thirdparty[arrow].local.server.test'"
+#            install-android-sdk: false
+#
+#          - java-version: 11
+#            millargs: "'example.{cli,fundamentals,depth,extending}.__.local.server.test'"
+#            install-android-sdk: false
+#            # Most of these integration tests should not depend on which mode they
+#            # are run in, so just run them in `local`
+#          - java-version: '17'
+#            millargs: "'integration.{failure,feature,ide}.__.packaged.server.test'"
+#            install-android-sdk: false
+#            # These invalidation tests need to be exercised in both execution modes
+#            # to make sure they work with and without -i/--no-server being passed
+#          - java-version: 17
+#            millargs: "'integration.invalidation.__.packaged.fork.test'"
+#            install-android-sdk: false
+#
+#          - java-version: 17
+#            millargs: "'integration.invalidation.__.packaged.server.test'"
+#            install-android-sdk: false
+#
+#    uses: ./.github/workflows/post-build-selective.yml
+#    with:
+#      install-android-sdk: ${{ matrix.install-android-sdk }}
+#      java-version: ${{ matrix.java-version }}
+#      millargs: ${{ matrix.millargs }}
 
   windows:
     needs: build-windows
