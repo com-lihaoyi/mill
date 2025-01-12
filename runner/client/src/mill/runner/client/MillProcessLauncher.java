@@ -124,13 +124,15 @@ public class MillProcessLauncher {
       javaHome = CoursierClient.resolveJavaHome(jvmId).getAbsolutePath();
     }
 
+
     if (javaHome == null || javaHome.isEmpty()) {
-        System.err.println("LHY javaHome from System.getProperty");
-        javaHome = System.getProperty("java.home");
+      System.err.println("LHY javaHome from System.getEnv");
+      javaHome = System.getenv("JAVA_HOME");
     }
+
     if (javaHome == null || javaHome.isEmpty()) {
-        System.err.println("LHY javaHome from System.getEnc");
-        javaHome = System.getenv("JAVA_HOME");
+      System.err.println("LHY javaHome from System.getProperty");
+      javaHome = System.getProperty("java.home");
     }
     return javaHome;
   }
