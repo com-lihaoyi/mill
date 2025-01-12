@@ -33,10 +33,7 @@ jobs:
 
       - uses: coursier/cache-action@v6
 
-      - uses: actions/setup-java@v4
-        with:
-          java-version: '11'
-          distribution: temurin
+      - run: "echo temurin:11 > .mill-jvm-version"
 
       - run: ./mill -i __.publishArtifacts
 
@@ -81,10 +78,7 @@ jobs:
 
       - uses: coursier/cache-action@v6
 
-      - uses: actions/setup-java@v4
-        with:
-          java-version: '11'
-          distribution: temurin
+      - run: "echo temurin:11 > .mill-jvm-version"
 
       - run: ./mill -i mill.scalalib.PublishModule/
 
@@ -119,10 +113,7 @@ jobs:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
 
-      - uses: actions/setup-java@v4
-        with:
-          java-version: '11'
-          distribution: temurin
+      - run: "echo temurin:11 > .mill-jvm-version"
 
       - run: ./mill -i mill.scalalib.PublishModule/ --publishArtifacts dist.native.publishArtifacts
 
@@ -151,9 +142,6 @@ jobs:
 
       - uses: coursier/cache-action@v6
 
-      - uses: actions/setup-java@v4
-        with:
-          java-version: '11'
-          distribution: temurin
+      - run: "echo temurin:11 > .mill-jvm-version"
 
       - run: ./mill -i dist.uploadToGithub --authKey $REPO_ACCESS_TOKEN

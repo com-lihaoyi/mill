@@ -21,10 +21,7 @@ jobs:
     runs-on: ${{ inputs.os }}
     timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
-      - uses: actions/setup-java@v4
-        with:
-          java-version: ${{ inputs.java-version }}
-          distribution: temurin
+      - run: "echo temurin:${{ inputs.java-version }} > .mill-jvm-version"
 
       - uses: actions/checkout@v4
         with:
