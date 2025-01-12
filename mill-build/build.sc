@@ -15,6 +15,4 @@ object `package` extends MillBuildRootModule {
     ivy"org.jsoup:jsoup:1.18.1"
   )
 
-  def nativeImageSource = Task.Source(Task.workspace / "scalalib/src/mill/scalalib/NativeImageModule.scala")
-  def allSourceFiles = super.allSourceFiles() ++ Seq(nativeImageSource())
 }
