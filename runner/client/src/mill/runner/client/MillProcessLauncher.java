@@ -139,12 +139,14 @@ public class MillProcessLauncher {
     String javaHome = javaHome();
     if (javaHome == null) {
         System.err.println("LHY javaHome == null");
-        return "java";
+        throw new IOException("boom1");
+//        return "java";
     } else {
       final Path exePath = Paths.get(
           javaHome + File.separator + "bin" + File.separator + "java" + (isWin() ? ".exe" : ""));
 
-      return exePath.toAbsolutePath().toString();
+      throw new IOException("boom2");
+//      return exePath.toAbsolutePath().toString();
     }
   }
 
