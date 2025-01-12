@@ -120,7 +120,8 @@ class ExampleTester(
       stderr = os.Pipe,
       cwd = workspacePath,
       mergeErrIntoOut = true,
-      env = Map(MILL_TEST_SUITE -> this.getClass().toString(), "JAVA_HOME" -> sys.props("java.home")),
+      env =
+        Map(MILL_TEST_SUITE -> this.getClass().toString(), "JAVA_HOME" -> sys.props("java.home")),
       check = false
     )
 
