@@ -47,5 +47,6 @@ class LauncherOldVersionsTests(version: String) extends UtestIntegrationTestSuit
 //object LauncherVersionTests_0_7 extends LauncherOldVersionsTests("0.7.4")
 //object LauncherVersionTests_0_8 extends LauncherOldVersionsTests("0.8.0")
 //object LauncherVersionTests_0_9 extends LauncherOldVersionsTests("0.9.12")
-//object LauncherVersionTests_0_10 extends LauncherOldVersionsTests("0.10.15")
+object LauncherVersionTests_0_10 extends LauncherOldVersionsTests("0.10.15")
 object LauncherVersionTests_0_11 extends LauncherOldVersionsTests("0.11.13")
+object LauncherVersionTests_0_12 extends LauncherOldVersionsTests("0.12.5")
