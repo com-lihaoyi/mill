@@ -54,6 +54,9 @@ trait TypeScriptModule extends Module { outer =>
 
   def resources: T[Seq[PathRef]] = Task { Seq(PathRef(millSourcePath / "resources")) }
 
+  def nuts: T[Unit] =
+    Task { println(millSourcePath); println(sources()); println(compiledSources()) }
+
   def generatedSources: T[Seq[PathRef]] = Task { Seq[PathRef]() }
 
   def allSources: T[IndexedSeq[PathRef]] =
@@ -69,10 +72,26 @@ trait TypeScriptModule extends Module { outer =>
       if file.ext == "ts"
     } yield file
 
+
+
     val typescriptOut = Task.dest / "typescript"
     val core = for {
       file <- allSources()
-    } yield typescriptOut / file.path.relativeTo(millSourcePath)
+    } yield file.path match {
+      case coreS if coreS.startsWith(millSourcePath) =>
+        // core - regular sources
+        // expected to exist within boundaries of `millSourcePath`
+        typescriptOut / coreS.relativeTo(millSourcePath)
+      case otherS =>
+        // sources defined by a modified source task
+        // mv to compile source
+        val destinationDir = Task.dest / "typescript/src"
+        val fileName = otherS.last
+        val destinationFile = destinationDir / fileName
+        os.makeDir.all(destinationDir)
+        os.copy.over(otherS, destinationFile)
+        destinationFile
+    }
 
     // symlink node_modules for generated sources
     // remove `node_module/<package>` package import format

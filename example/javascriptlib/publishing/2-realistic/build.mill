@@ -51,7 +51,7 @@ class qux extends TypeScriptModule {
   object test extends TypeScriptTests with TestModule.Jest
 }
 
-object quxmod extends qux
+object quxdev extends qux
 
 object quxpub extends qux with PublishModule {
   def exports = Map(
@@ -103,11 +103,7 @@ object quxpub extends qux with PublishModule {
 //    "./foo/bar": "./dist/foo/bar/src/bar.js"
 //  },
 //  "typesVersions": {
-//    "*": {
-//      "./dist/src/qux": [
-//        "declarations/src/qux.d.ts"
-//      ], ...
-//    }
+//    "*": { ... }
 //  }
 //}
 //// SNIPPET:END
