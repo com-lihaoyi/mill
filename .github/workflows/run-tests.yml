@@ -19,8 +19,8 @@ jobs:
           COURSIER_ARCHIVE_CACHE: "C:/coursier-arc"
 
 
-name: Run Tests
-
+#name: Run Tests
+#
 # We run full CI on push builds to main and on all pull requests
 #
 # Manual builds (workflow_dispatch) to the main branch are also published
