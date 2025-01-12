@@ -109,7 +109,7 @@ object quxpub extends qux with PublishModule {
 //// SNIPPET:END
 
 /** Usage
-> mill quxmod.test
+> mill quxdev.test
 PASS .../qux.test.ts
 ...
 

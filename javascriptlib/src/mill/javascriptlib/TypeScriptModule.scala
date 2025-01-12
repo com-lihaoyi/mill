@@ -72,8 +72,6 @@ trait TypeScriptModule extends Module { outer =>
       if file.ext == "ts"
     } yield file
 
-
-
     val typescriptOut = Task.dest / "typescript"
     val core = for {
       file <- allSources()
