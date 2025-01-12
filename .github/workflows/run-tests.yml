@@ -7,9 +7,23 @@ on:
   workflow_dispatch:
 
 jobs:
-  debug:
+  debug-windows:
 #    runs-on: ubuntu-latest
     runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 1 }
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - run: ./mill 'integration.feature[launcher-old-versions].packaged.fork.test'
+        env:
+          COURSIER_ARCHIVE_CACHE: "C:/coursier-arc"
+
+  debug-ubuntu:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 1 }
