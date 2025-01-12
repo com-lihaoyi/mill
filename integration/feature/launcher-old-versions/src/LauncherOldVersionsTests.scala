@@ -21,12 +21,28 @@ class LauncherOldVersionsTests(version: String) extends UtestIntegrationTestSuit
 
       // Run Mill once beforehand just to make sure it gets initialized and
       // none of the initialization output gets into `outText`
-      os.call(cmd = (launcherScript, "version"), cwd = workspacePath, stderr = os.Pipe)
+      os.call(
+        cmd = (launcherScript, "version"),
+        cwd = workspacePath,
+        stderr = os.Pipe,
+        propagateEnv = false
+      )
 
-      val res = os.call(cmd = (launcherScript, "version"), cwd = workspacePath, stderr = os.Pipe)
+      val res = os.call(
+        cmd = (launcherScript, "version"),
+        cwd = workspacePath,
+        stderr = os.Pipe,
+        propagateEnv = false
+      )
+
       val outText = res.out.text().trim
       assert(outText == version)
-      os.call(cmd = (launcherScript, "shutdown"), cwd = workspacePath, check = false)
+      os.call(
+        cmd = (launcherScript, "shutdown"),
+        cwd = workspacePath,
+        check = false,
+        propagateEnv = false
+      )
       os.remove.all(workspacePath / "out")
     }
   }
