@@ -21,11 +21,11 @@ jobs:
     runs-on: ${{ inputs.os }}
     timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
-      - run: "echo temurin:${{ inputs.java-version }} > .mill-jvm-version"
-
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.base_ref }}
+
+      - run: "echo temurin:${{ inputs.java-version }} > .mill-jvm-version"
 
       - run: chmod -R 777 . # normalize permissions before and after upload/download-artifact
 
