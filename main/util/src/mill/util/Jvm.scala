@@ -556,7 +556,6 @@ object Jvm extends CoursierSupport {
         "",
         ":BOF",
         "setlocal",
-        "@echo off",
         cmdCommands.replaceAll("\r\n|\n", "\r\n"),
         "endlocal",
         "exit /B %errorlevel%",

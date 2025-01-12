@@ -246,14 +246,14 @@ object `package` extends RootModule  with InstallModule {
         val classpathStr = cmdClassPath.mkString(";")
         s"""setlocal EnableDelayedExpansion
            |set "JAVACMD=java.exe"
-           |echo "JAVA HOME %JAVA_HOME%"
+           |echo "JAVA_HOME %JAVA_HOME%"
            |if not "%JAVA_HOME%"=="" set "JAVACMD=%JAVA_HOME%\\bin\\java.exe"
            |if "%1" == "-i" set _I_=true
            |if "%1" == "--interactive" set _I_=true
            |if "%1" == "--repl" set _I_=true
            |if "%1" == "--no-server" set _I_=true
            |if "%1" == "--bsp" set _I_=true
-           |
+           |echo "JAVACMD %JAVACMD%"
            |"%JAVACMD%" $jvmArgsStr %JAVA_OPTS% -cp "$classpathStr" $millMainClass %*
            |
            |endlocal
