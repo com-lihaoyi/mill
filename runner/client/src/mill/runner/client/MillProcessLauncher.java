@@ -120,25 +120,19 @@ public class MillProcessLauncher {
     String javaHome = null;
     if (Files.exists(millJvmVersionFile)) {
       jvmId = Files.readString(millJvmVersionFile).trim();
+      ;
       javaHome = CoursierClient.resolveJavaHome(jvmId).getAbsolutePath();
     }
 
-    if (javaHome == null || javaHome.isEmpty()) {
-        javaHome = System.getenv("JAVA_HOME");
-        System.err.println("javaHome: " + javaHome);
-    }
-
     if (javaHome == null || javaHome.isEmpty()) javaHome = System.getProperty("java.home");
-
+    if (javaHome == null || javaHome.isEmpty()) javaHome = System.getenv("JAVA_HOME");
     return javaHome;
   }
 
   static String javaExe() throws IOException {
     String javaHome = javaHome();
-    if (javaHome == null) {
-        System.err.println("LHY javaHome == null");
-        return "java";
-    } else {
+    if (javaHome == null) return "java";
+    else {
       final Path exePath = Paths.get(
           javaHome + File.separator + "bin" + File.separator + "java" + (isWin() ? ".exe" : ""));
 
@@ -311,18 +305,18 @@ public class MillProcessLauncher {
     Files.createDirectories(sandbox);
     boolean tputExists = checkTputExists();
 
-//    writeTerminalDims(tputExists, serverDir);
-//    Thread termInfoPropagatorThread = new Thread(
-//        () -> {
-//          try {
-//            while (true) {
-//              writeTerminalDims(tputExists, serverDir);
-//              Thread.sleep(100);
-//            }
-//          } catch (Exception e) {
-//          }
-//        },
-//        "TermInfoPropagatorThread");
-//    termInfoPropagatorThread.start();
+    writeTerminalDims(tputExists, serverDir);
+    Thread termInfoPropagatorThread = new Thread(
+        () -> {
+          try {
+            while (true) {
+              writeTerminalDims(tputExists, serverDir);
+              Thread.sleep(100);
+            }
+          } catch (Exception e) {
+          }
+        },
+        "TermInfoPropagatorThread");
+    termInfoPropagatorThread.start();
   }
 }
