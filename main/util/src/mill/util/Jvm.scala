@@ -548,7 +548,7 @@ object Jvm extends CoursierSupport {
   ): String = {
     Seq(
       if (shebang) "#!/usr/bin/env sh" else "",
-      "@ 2>/dev/null # 2>nul & goto BOF\r",
+      "@ 2>/dev/null # 2>nul & echo off & goto BOF\r",
       ":",
       shellCommands.replaceAll("\r\n|\n", "\n"),
       "exit",
@@ -556,6 +556,7 @@ object Jvm extends CoursierSupport {
         "",
         ":BOF",
         "setlocal",
+        "@echo off",
         cmdCommands.replaceAll("\r\n|\n", "\r\n"),
         "endlocal",
         "exit /B %errorlevel%",
