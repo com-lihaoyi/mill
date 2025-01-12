@@ -15,6 +15,7 @@ runs:
   using: "composite"
   steps:
     - run: "echo temurin:${{ inputs.java-version }} > .mill-jvm-version"
+      shell: bash
 
     # Need to fix cached artifact file permissions because github actions screws it up
     # https://github.com/actions/upload-artifact/issues/38
