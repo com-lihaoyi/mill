@@ -1,6 +1,7 @@
 package mill.testkit
 
-import utest._
+import mill.main.client.ServerFiles
+import utest.*
 
 object IntegrationTesterTests extends TestSuite with IntegrationTestSuite {
   def clientServerMode = true
@@ -10,7 +11,8 @@ object IntegrationTesterTests extends TestSuite with IntegrationTestSuite {
   def tests: Tests = Tests {
 
     test("integration") {
-      integrationTest { tester =>
+
+      val workspacePath = integrationTest { tester =>
         val res1 = tester.eval("testTask")
         assert(res1.isSuccess)
         assert(res1.err.contains("compiling 1 Scala source")) // compiling the `build.mill`
@@ -21,7 +23,14 @@ object IntegrationTesterTests extends TestSuite with IntegrationTestSuite {
         val res2 = tester.eval("testTask")
         assert(!res2.err.contains("compiling 1 Scala source")) // no need to re-compile `build.mill`
         assert(tester.out("testTask").value[String] == "HELLO WORLD SOURCE FILE!!!")
+
+        tester.workspacePath
       }
+
+      // Make sure serverId file is correctly removed to ensure the Mill
+      // server process shuts down
+      val remainingServerIdFiles = os.walk(workspacePath / "out").filter(_.last == ServerFiles.serverId)
+      assert(remainingServerIdFiles.isEmpty)
 
     }
   }
