@@ -118,6 +118,7 @@ case "$MILL_VERSION" in
 esac
 
 
+echo ARTIFACT_SUFFIX $ARTIFACT_SUFFIX
 MILL="${MILL_DOWNLOAD_PATH}/${FULL_MILL_VERSION}"
 
 try_to_use_system_mill() {
@@ -216,6 +217,7 @@ if [ ! -s "${MILL}" ] ; then
 
     DOWNLOAD_FILE=$(mktemp mill.XXXXXX)
 
+    echo $DOWNLOAD_FROM_MAVEN $DOWNLOAD_FROM_MAVEN
     if [ "$DOWNLOAD_FROM_MAVEN" = "1" ] ; then
       DOWNLOAD_URL="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist${ARTIFACT_SUFFIX}/${MILL_VERSION}/mill-dist${ARTIFACT_SUFFIX}-${MILL_VERSION}.jar"
     else
