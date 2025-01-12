@@ -8,13 +8,13 @@ def fatalException(msg: String) = {
   assert(!scala.util.control.NonFatal.apply(ex))
   ex
 }
-def fatalTask = Task{
+def fatalTask = Task {
   throw fatalException("CUSTOM FATAL ERROR IN TASK")
   123
 }
 
 def alwaysInvalidates = Task.Input(math.random())
-def fatalCloseWorker = Task.Worker{
+def fatalCloseWorker = Task.Worker {
   alwaysInvalidates()
   new AutoCloseable {
     override def close(): Unit =

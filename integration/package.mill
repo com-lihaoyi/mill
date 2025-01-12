@@ -51,7 +51,6 @@ object `package` extends RootModule {
             "MILL_INTEGRATION_LAUNCHER" -> millIntegrationLauncher().path.toString
           )
 
-
       def millIntegrationLauncher: T[PathRef]
 
       def forkArgs = Task { super.forkArgs() ++ build.dist.forkArgs() }
@@ -77,10 +76,10 @@ object `package` extends RootModule {
     }
     trait IntegrationLauncherModule extends Module {
       def millIntegrationLauncher: T[PathRef]
-      object fork extends ModeModule{
+      object fork extends ModeModule {
         def millIntegrationLauncher = IntegrationLauncherModule.this.millIntegrationLauncher
       }
-      object server extends ModeModule{
+      object server extends ModeModule {
         def millIntegrationLauncher = IntegrationLauncherModule.this.millIntegrationLauncher
       }
     }

@@ -8,7 +8,7 @@ import $file.ci.upload
 
 import scala.util.Using
 
-trait InstallModule extends build.MillPublishJavaModule{
+trait InstallModule extends build.MillPublishJavaModule {
   // All modules that we want to aggregate as part of this `dev` assembly.
   // Excluding itself, and the `dist` module that uses it
   lazy val allPublishModules = build.millInternal.modules.collect {
@@ -18,7 +18,7 @@ trait InstallModule extends build.MillPublishJavaModule{
 
   def jar: T[PathRef]
 
-  def executable = Task{
+  def executable = Task {
     Task.traverse(allPublishModules)(m => m.publishLocalCached)()
     jar()
   }
@@ -40,7 +40,9 @@ trait InstallModule extends build.MillPublishJavaModule{
 
   def installLocalCache() = Task.Command {
     val path = installLocalTask(
-      Task.Anon((os.home / ".cache" / "mill" / "download" / (build.millVersion() + batExt)).toString())
+      Task.Anon(
+        (os.home / ".cache" / "mill" / "download" / (build.millVersion() + batExt)).toString()
+      )
     )()
     Task.log.outputStream.println(path.toString())
     PathRef(path)
@@ -51,12 +53,14 @@ trait InstallModule extends build.MillPublishJavaModule{
     if (os.exists(targetFile))
       Task.log.info(s"Overwriting existing local Mill binary at ${targetFile}")
     os.copy.over(executable().path, targetFile, createFolders = true)
-    Task.log.info(s"Published ${build.dist.allPublishModules.size} modules and installed ${targetFile}")
+    Task.log.info(
+      s"Published ${build.dist.allPublishModules.size} modules and installed ${targetFile}"
+    )
     targetFile
   }
 }
 
-object `package` extends RootModule  with InstallModule {
+object `package` extends RootModule with InstallModule {
 
   /**
    * Version of [[dist]] meant for local integration testing within the Mill
@@ -212,11 +216,11 @@ object `package` extends RootModule  with InstallModule {
     }
   }
   def launcherScript(
-                      shellJvmArgs: Seq[String],
-                      cmdJvmArgs: Seq[String],
-                      shellClassPath: Agg[String],
-                      cmdClassPath: Agg[String]
-                    ) = {
+      shellJvmArgs: Seq[String],
+      cmdJvmArgs: Seq[String],
+      shellClassPath: Agg[String],
+      cmdClassPath: Agg[String]
+  ) = {
 
     val millMainClass = "mill.runner.client.MillClientMain"
 
@@ -264,7 +268,12 @@ object `package` extends RootModule  with InstallModule {
   def millBootstrap = Task.Source(Task.workspace / "mill")
   def millBootstrapBat = Task.Source(Task.workspace / "mill.bat")
 
-  def prepareBootstrapLauncher(bootstrap: os.Path, dest: os.Path, buildVersion: String, fileName: String) = {
+  def prepareBootstrapLauncher(
+      bootstrap: os.Path,
+      dest: os.Path,
+      buildVersion: String,
+      fileName: String
+  ) = {
     val outputPath = dest / fileName
     val millBootstrapGrepPrefix = "(\n *DEFAULT_MILL_VERSION=)"
 
@@ -288,7 +297,7 @@ object `package` extends RootModule  with InstallModule {
     prepareBootstrapLauncher(millBootstrapBat().path, Task.dest, build.millVersion(), "mill.bat")
   }
 
-  def examplePathsWithArtifactName:Task[Seq[(os.Path,String)]] = Task.Anon{
+  def examplePathsWithArtifactName: Task[Seq[(os.Path, String)]] = Task.Anon {
     for {
       exampleMod <- build.example.exampleModules
       path = exampleMod.millSourcePath
@@ -299,9 +308,8 @@ object `package` extends RootModule  with InstallModule {
     }
   }
 
-
   def exampleZips: T[Seq[PathRef]] = Task {
-    examplePathsWithArtifactName().map{ case (examplePath, exampleStr) =>
+    examplePathsWithArtifactName().map { case (examplePath, exampleStr) =>
       os.copy(examplePath, Task.dest / exampleStr, createFolders = true)
       os.write(Task.dest / exampleStr / ".mill-version", build.millLastTag())
       os.copy(bootstrapLauncher().path, Task.dest / exampleStr / "mill")
@@ -350,14 +358,14 @@ object `package` extends RootModule  with InstallModule {
   }
 
   object native extends mill.scalalib.NativeImageModule with InstallModule {
-    def artifactOsSuffix = T{
+    def artifactOsSuffix = T {
       val osName = System.getProperty("os.name").toLowerCase
       if (osName.contains("mac")) "mac"
       else if (osName.contains("windows")) "windows"
       else "linux"
     }
 
-    def artifactCpuSuffix = T{ System.getProperty("os.arch") }
+    def artifactCpuSuffix = T { System.getProperty("os.arch") }
     def artifactName = s"${super.artifactName()}-${artifactOsSuffix()}-${artifactCpuSuffix()}"
 
     def mainClass = Some("mill.runner.client.MillClientMain")

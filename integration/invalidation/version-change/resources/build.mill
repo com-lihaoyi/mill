@@ -1,4 +1,4 @@
 package build
 import mill._
 
-def javaVersion = Task{ sys.props("java.version") }
+def javaVersion = Task { sys.props("java.version") }
