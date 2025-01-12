@@ -259,7 +259,7 @@ object `package` extends RootModule  with InstallModule {
            |endlocal
            |""".stripMargin
       }
-    ).replace("@echo off", "")
+    ).replace("@echo off", "").replace("echo off & ", "")
   }
 
   def millBootstrap = Task.Source(Task.workspace / "mill")
