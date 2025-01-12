@@ -19,6 +19,8 @@ class LauncherOldVersionsTests(version: String) extends UtestIntegrationTestSuit
       // Remove `rt.jar` cache to make sure each old version can download it properly
       os.remove.all(os.home / ".mill/ammonite")
 
+      pprint.log(sys.env)
+
       // Run Mill once beforehand just to make sure it gets initialized and
       // none of the initialization output gets into `outText`
       os.call(
