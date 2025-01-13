@@ -1,6 +1,5 @@
 package mill.testkit
 import mill.util.Util
-import mill.main.client.EnvVars.MILL_TEST_SUITE
 import utest._
 
 /**
