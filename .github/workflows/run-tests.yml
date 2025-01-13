@@ -70,6 +70,7 @@ jobs:
       - run: ./mill -i docs.githubPages + docs.checkBrokenLinks
 
   mac:
+    if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
