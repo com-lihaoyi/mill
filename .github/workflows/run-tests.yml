@@ -72,7 +72,7 @@ jobs:
 
       - run: "echo temurin:17 > .mill-jvm-version"
 
-      - run: ./mill -i example.javalib.basic.__.local.server.test
+      - run: ./mill -i example.scalalib.__.local.server.test
 
   linux:
     needs: build-linux
@@ -99,10 +99,6 @@ jobs:
 
           - java-version: 17 # Run this with Mill native launcher as a smoketest
             millargs: "'example.javalib.__.native.server.test'"
-            install-android-sdk: false
-
-          - java-version: 17
-            millargs: "'example.scalalib.__.local.server.test'"
             install-android-sdk: false
 
           - java-version: 17
