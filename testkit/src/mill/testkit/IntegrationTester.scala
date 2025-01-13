@@ -98,8 +98,6 @@ object IntegrationTester {
       )
     }
 
-
-
     /**
      * Helpers to read the `.json` metadata files belonging to a particular task
      * (specified by [[selector0]]) from the `out/` folder.
