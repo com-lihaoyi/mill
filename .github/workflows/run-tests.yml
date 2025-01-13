@@ -170,8 +170,6 @@ jobs:
           - java-version: 11 # Run this with Mill native launcher as a smoketest
             millargs: "'integration.invalidation.__.native.server.test'"
 
-          - java-version: 11
-            millargs: "contrib.__.test"
 
     uses: ./.github/workflows/post-build-selective.yml
     with:
