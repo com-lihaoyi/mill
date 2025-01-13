@@ -709,7 +709,7 @@ compiled and executed to perform your build. This &quot;meta-build&quot; module 
 import mill._, scalalib._
 
 object `package` extends MillBuildRootModule {
-  val scalatagsVersion = &quot;0.12.0&quot;
+  val scalatagsVersion = &quot;0.13.1&quot;
   def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags:$scalatagsVersion&quot;)
 
   def generatedSources = Task {

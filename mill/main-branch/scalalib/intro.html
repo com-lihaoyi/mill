@@ -628,7 +628,7 @@ import mill._, scalalib._
 object foo extends ScalaModule {
   def scalaVersion = &quot;2.13.11&quot;
   def ivyDeps = Agg(
-    ivy&quot;com.lihaoyi::scalatags:0.12.0&quot;,
+    ivy&quot;com.lihaoyi::scalatags:0.13.1&quot;,
     ivy&quot;com.lihaoyi::mainargs:0.6.2&quot;
   )
 
@@ -1249,7 +1249,7 @@ trait MyModule extends PublishModule {
 }
 
 trait MyScalaModule extends MyModule with CrossScalaModule {
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags:0.12.0&quot;)
+  def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags:0.13.1&quot;)
   object test extends ScalaTests {
     def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
