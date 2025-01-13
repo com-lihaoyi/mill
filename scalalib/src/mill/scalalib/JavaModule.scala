@@ -579,7 +579,6 @@ trait JavaModule
     prependShellScript0()
   }
 
-
   /**
    * Configuration for the [[assembly]] task: how files and file-conflicts are
    * managed when combining multiple jar files into one big assembly jar.
@@ -956,7 +955,7 @@ trait JavaModule
     super.forkEnv()
   }
 
-  def launcher = Task { launcher0() }
+  def launcher: T[PathRef] = Task { launcher0() }
 
   /**
    * Task that print the transitive dependency tree to STDOUT.

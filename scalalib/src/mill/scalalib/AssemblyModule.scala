@@ -40,13 +40,12 @@ trait AssemblyModule extends mill.Module {
   }
 
   def assemblyRules: Seq[Assembly.Rule] = assemblyRules0
-  
+
   private[mill] def assemblyRules0: Seq[Assembly.Rule] = Assembly.defaultRules
 
   def upstreamAssemblyClasspath: T[Agg[PathRef]]
 
   def localClasspath: T[Seq[PathRef]]
-
 
   private[mill] def upstreamAssembly2_0: T[Assembly] = Task {
     Assembly.create(
@@ -67,7 +66,6 @@ trait AssemblyModule extends mill.Module {
   def upstreamAssembly2: T[Assembly] = Task {
     upstreamAssembly2_0()
   }
-
 
   def upstreamAssembly: T[PathRef] = Task {
     T.log.error(
@@ -103,7 +101,7 @@ trait AssemblyModule extends mill.Module {
     val problematicEntryCount = 65535
     if (
       prependScript.isDefined &&
-        (upstream.addedEntries + created.addedEntries) > problematicEntryCount
+      (upstream.addedEntries + created.addedEntries) > problematicEntryCount
     ) {
       Result.Failure(
         s"""The created assembly jar contains more than ${problematicEntryCount} ZIP entries.

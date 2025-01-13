@@ -247,7 +247,7 @@ trait RunModule extends WithZincWorker {
    * code, without the Mill process. Useful for deployment & other places where
    * you do not want a build tool running
    */
-  def launcher = Task{ launcher0() }
+  def launcher = Task { launcher0() }
 }
 
 object RunModule {
