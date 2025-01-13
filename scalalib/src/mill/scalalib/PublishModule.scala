@@ -74,8 +74,13 @@ trait PublishModule extends JavaModule { outer =>
       : Task[(Map[coursier.core.Module, String], DependencyManagement.Map) => Agg[Dependency]] =
     Task.Anon {
       (rootDepVersions: Map[coursier.core.Module, String], bomDepMgmt: DependencyManagement.Map) =>
-        def process(dep: coursier.core.Dependency): coursier.core.Dependency = {
-          var dep0 = dep
+        val bindDependency0 = bindDependency()
+        val resolvePublishDependency0 = resolvePublishDependency.apply()
+
+        // Ivy doesn't support BOM, so we try to add versions and exclusions from BOMs
+        // to the dependencies themselves.
+        def process(dep: mill.scalalib.Dep) = {
+          var dep0 = bindDependency0(dep).dep
 
           if (dep0.version.isEmpty)
             for (version <- rootDepVersions.get(dep0.module))
@@ -89,33 +94,15 @@ trait PublishModule extends JavaModule { outer =>
               dep0.minimizedExclusions.join(values.minimizedExclusions)
             )
 
-          dep0
+          resolvePublishDependency0(BoundDep(dep0, force = false).toDep)
         }
 
-        val ivyPomDeps = allIvyDeps()
-          .map(bindDependency())
-          .map(_.dep)
-          .map(process)
-          .map(BoundDep(_, force = false))
-          .map(_.toDep)
-          .map(resolvePublishDependency.apply().apply(_))
+        val ivyPomDeps = allIvyDeps().map(process)
 
-        val runIvyPomDeps = runIvyDeps()
-          .map(bindDependency())
-          .map(_.dep)
-          .map(process)
-          .map(BoundDep(_, force = false))
-          .map(_.toDep)
-          .map(resolvePublishDependency.apply().apply(_))
+        val runIvyPomDeps = runIvyDeps().map(process)
           .filter(!ivyPomDeps.contains(_))
 
-        val compileIvyPomDeps = compileIvyDeps()
-          .map(bindDependency())
-          .map(_.dep)
-          .map(process)
-          .map(BoundDep(_, force = false))
-          .map(_.toDep)
-          .map(resolvePublishDependency.apply().apply(_))
+        val compileIvyPomDeps = compileIvyDeps().map(process)
           .filter(!ivyPomDeps.contains(_))
 
         val modulePomDeps = T.sequence(moduleDepsChecked.collect {

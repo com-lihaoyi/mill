@@ -450,13 +450,17 @@ trait JavaModule
     // Tells coursier that if something depends on a given scope of ours, we should also
     // pull other scopes of our own dependencies.
     //
-    // E.g. scope(runtime) contains compile, so depending on us as a runtime dependency
+    // E.g. scopes(runtime) contains compile, so depending on us as a runtime dependency
     // will not only pull our runtime dependencies, but also our compile ones.
     //
     // This is the default scope mapping used in coursier for Maven dependencies, but for
     // one scope: provided. By default in Maven, depending on a dependency as provided
     // doesn't pull anything. Here, by explicitly adding provided to the values,
     // we make coursier pull our own provided dependencies.
+    //
+    // Note that this is kind of a hack: by default, pulling a dependency in scope A
+    // pulls its scope A dependencies. But this is withheld for provided, unless it's
+    // added back explicitly like we do here.
     val scopes = Map(
       cs.Configuration.compile -> Seq.empty,
       cs.Configuration.runtime -> Seq(cs.Configuration.compile),
@@ -1274,6 +1278,8 @@ trait JavaModule
         reverse = if (whatDependsOn.isEmpty) inverse else true
       )
 
+      // Filter the output, so that the special organization and version used for Mill's own modules
+      // don't appear in the output. This only leaves the modules' name built from millModuleSegments.
       val processedTree = tree
         .replace(" mill-internal:", " ")
         .replace(":0+mill-internal ", " ")
