@@ -125,8 +125,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
 
     millProjectModule(
       workerArtifact,
-      repositoriesTask(),
-      resolveFilter = _.toString.contains(workerArtifact)
+      repositoriesTask()
     )
   }
 
@@ -156,8 +155,8 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     override def allSources: T[Seq[PathRef]] = Task { outer.allSources() }
     override def moduleDeps: Seq[JavaModule] = outer.moduleDeps
     override def compileModuleDeps: Seq[JavaModule] = outer.compileModuleDeps
-    override def sources: T[Seq[PathRef]] = Task.Sources { outer.sources() }
-    override def resources: T[Seq[PathRef]] = Task.Sources { outer.resources() }
+    override def sources: T[Seq[PathRef]] = Task { outer.sources() }
+    override def resources: T[Seq[PathRef]] = Task { outer.resources() }
     override def scalaVersion = Task { outer.scalaVersion() }
     override def repositoriesTask: Task[Seq[Repository]] = Task.Anon { outer.repositoriesTask() }
     override def compileIvyDeps: T[Agg[Dep]] = Task { outer.compileIvyDeps() }

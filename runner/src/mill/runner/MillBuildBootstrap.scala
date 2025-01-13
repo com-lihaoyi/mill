@@ -44,7 +44,8 @@ class MillBuildBootstrap(
     requestedMetaLevel: Option[Int],
     allowPositionalCommandArgs: Boolean,
     systemExit: Int => Nothing,
-    streams0: SystemStreams
+    streams0: SystemStreams,
+    selectiveExecution: Boolean
 ) {
   import MillBuildBootstrap._
 
@@ -215,7 +216,8 @@ class MillBuildBootstrap(
     evaluateWithWatches(
       rootModule,
       evaluator,
-      Seq("{runClasspath,compile,methodCodeHashSignatures}")
+      Seq("{runClasspath,compile,methodCodeHashSignatures}"),
+      selectiveExecution = false
     ) match {
       case (Left(error), evalWatches, moduleWatches) =>
         val evalState = RunnerState.Frame(
@@ -299,7 +301,7 @@ class MillBuildBootstrap(
     val (evaled, evalWatched, moduleWatches) = Evaluator.allBootstrapEvaluators.withValue(
       Evaluator.AllBootstrapEvaluators(Seq(evaluator) ++ nestedState.frames.flatMap(_.evaluator))
     ) {
-      evaluateWithWatches(rootModule, evaluator, targetsAndParams)
+      evaluateWithWatches(rootModule, evaluator, targetsAndParams, selectiveExecution)
     }
 
     val evalState = RunnerState.Frame(
@@ -351,7 +353,8 @@ class MillBuildBootstrap(
       disableCallgraph = disableCallgraph,
       allowPositionalCommandArgs = allowPositionalCommandArgs,
       systemExit = systemExit,
-      exclusiveSystemStreams = streams0
+      exclusiveSystemStreams = streams0,
+      selectiveExecution = selectiveExecution
     )
   }
 
@@ -392,15 +395,22 @@ object MillBuildBootstrap {
   def evaluateWithWatches(
       rootModule: BaseModule,
       evaluator: Evaluator,
-      targetsAndParams: Seq[String]
+      targetsAndParams: Seq[String],
+      selectiveExecution: Boolean
   ): (Either[String, Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
     rootModule.evalWatchedValues.clear()
     val previousClassloader = Thread.currentThread().getContextClassLoader
     val evalTaskResult =
       try {
         Thread.currentThread().setContextClassLoader(rootModule.getClass.getClassLoader)
-        RunScript.evaluateTasksNamed(evaluator, targetsAndParams, SelectMode.Separated)
+        RunScript.evaluateTasksNamed(
+          evaluator,
+          targetsAndParams,
+          SelectMode.Separated,
+          selectiveExecution = selectiveExecution
+        )
       } finally Thread.currentThread().setContextClassLoader(previousClassloader)
+
     val moduleWatched = rootModule.watchedValues.toVector
     val addedEvalWatched = rootModule.evalWatchedValues.toVector
 

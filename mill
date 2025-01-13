@@ -101,7 +101,23 @@ if [ -z "${MILL_VERSION}" ] ; then
   fi
 fi
 
-MILL="${MILL_DOWNLOAD_PATH}/${MILL_VERSION}"
+MILL_NATIVE_SUFFIX="-native"
+FULL_MILL_VERSION=$MILL_VERSION
+ARTIFACT_SUFFIX=""
+case "$MILL_VERSION" in
+    *"$MILL_NATIVE_SUFFIX")
+  MILL_VERSION=${MILL_VERSION%"$MILL_NATIVE_SUFFIX"}
+  if [ "$(expr substr $(uname -s) 1 5 2>/dev/null)" = "Linux" ]; then
+    ARTIFACT_SUFFIX="-native-linux-amd64"
+  elif [ "$(uname)" = "Darwin" ]; then
+    ARTIFACT_SUFFIX="-native-mac-aarch64"
+  else
+     echo "This native mill launcher supports only Linux and macOS." 1>&2
+     exit 1
+  fi
+esac
+
+MILL="${MILL_DOWNLOAD_PATH}/${FULL_MILL_VERSION}"
 
 try_to_use_system_mill() {
   if [ "$(uname)" != "Linux" ]; then
@@ -200,7 +216,7 @@ if [ ! -s "${MILL}" ] ; then
     DOWNLOAD_FILE=$(mktemp mill.XXXXXX)
 
     if [ "$DOWNLOAD_FROM_MAVEN" = "1" ] ; then
-      DOWNLOAD_URL="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/${MILL_VERSION}/mill-dist-${MILL_VERSION}.jar"
+      DOWNLOAD_URL="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist${ARTIFACT_SUFFIX}/${MILL_VERSION}/mill-dist${ARTIFACT_SUFFIX}-${MILL_VERSION}.jar"
     else
       MILL_VERSION_TAG=$(echo "$MILL_VERSION" | sed -E 's/([^-]+)(-M[0-9]+)?(-.*)?/\1\2/')
       DOWNLOAD_URL="${GITHUB_RELEASE_CDN}${MILL_REPO_URL}/releases/download/${MILL_VERSION_TAG}/${MILL_VERSION}${DOWNLOAD_SUFFIX}"

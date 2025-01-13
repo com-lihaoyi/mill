@@ -83,8 +83,8 @@ The following table contains the main ways you can test the code in
 |===
 | Config | Automated Testing | Manual Testing | Manual Testing CI
 | In-Process Tests | `main.__.test`, `scalalib.test`, `contrib.buildinfo.test`, etc. |  |
-| Sub-Process w/o packaging/publishing| `example.\\__.local`, `integration.__.local` | `dist.run` | `test-mill-dev.sh`
-| Sub-Process w/ packaging/publishing | `example.\\__.server`, `integration.__.server` | `dist.assembly` | `test-mill-release.sh`
+| Sub-Process w/o packaging/publishing| `example.\\__.local.server`, `integration.__.local.server` | `dist.run` | `test-mill-dev.sh`
+| Sub-Process w/ packaging/publishing | `example.\\__.packaged.server`, `integration.__.packaged.server` | `dist.assembly` | `test-mill-release.sh`
 | Bootstrapping: Building Mill with your current checkout of Mill |  | `dist.installLocal` | `test-mill-bootstrap.sh`
 |===
 
@@ -116,7 +116,7 @@ and do not exercise the Mill script-file bootstrapping, transformation, and comp
 
 === Sub-Process Tests *without* Packaging/Publishing
 
-`example.\\__.local` and `integration.__.local` tests run Mill end-to-end in a subprocess,
+`example.\\__.local.server` and `integration.__.local.server` tests run Mill end-to-end in a subprocess,
 but *without* the expensive/slow steps of packaging the core packages into an assembly jar
 and publishing the remaining packages to
 `~/.ivy2/local`.
@@ -151,7 +151,7 @@ You can reproduce any of the tests manually using `dist.run`, e.g.
 
 [source,bash]
 ----
-./mill "example.javalib.basic[1-simple].local"
+./mill "example.javalib.basic[1-simple].local.server"
 ----
 
 **Manual Test**
@@ -171,20 +171,38 @@ You can reproduce any of the tests manually using `dist.run`, e.g.
 === Sub-Process Tests *with* Packaging/Publishing
 
 `example.\\__.server`, `integration.__.server`, `example.\\__.fork` and
-`integration.__.fork` cover the same test cases as the `.local` tests described above, but
+`integration.__.fork` cover the same test cases as the `.local.server` tests described above, but
 they perform packaging of the Mill core modules into an assembly jar, and publish the
 remaining modules to `~/.ivy2/local`.
 This results in a more realistic test environment, but at the cost of taking tens-of-seconds
 more to run a test after making a code change.
 
-You can reproduce these tests manually using `dist.assembly`:
+You can reproduce these tests manually using `dist.installLocal`:
 
 [source,bash]
 ----
-./mill dist.assembly && (cd example/basic/1-simple && ../../../out/dist/assembly.dest/mill run --text hello)
+./mill dist.installLocal && (cd example/basic/1-simple && ../../../mill-assembly.jar run --text hello)
 ----
 
-There are two flavors of these tests:
+You can also use `dist.native.installLocal` for a Graal Native Image executable,
+which is slower to create but faster to start than the default executable assembly.
+
+There are two six of these tests, `.{local,assembly,native}.{server,fork}`.
+
+The first label specifies how the Mill code is packaged before testing
+
+1. `.local` runs using all compiled Mill code directly in the `out/` folder. This is the fastest
+   and should be used for most testing
+
+2. `.assembly` runs using the compiled Mill code either packaged into an assembly (for the Mill executable).
+   This is slower than `.local`, and normally isn't necessary unless you are debugging issues in the Mill
+   packaging logic.
+
+3. `.native` runs using the compiled Mill code packaged into an assembly with a Graal native binary launcher.
+   This is the slowest mode is only really necessary for debugging Mill's Graal native binary configuration.
+
+The second label specifies how the Mill process is managed during the test:
+
 
 1. `.server` test run the test cases with the default configuration, so consecutive commands
    run in the same long-lived background server process
@@ -192,9 +210,9 @@ There are two flavors of these tests:
 2. `.fork` test run the test cases with `--no-server`, meaning each command runs in a newly
    spawned Mill process
 
-In general you should spend most of your time working with the `.local` version of the
-`example` and `integration` tests to save time, and only run `.fork`
-or `.server` once `.local` is passing.
+In general you should spend most of your time working with the `.local.server` version of the
+`example` and `integration` tests to save time, and only run the others if you have a specific
+thing you want to test that needs those code paths to run.
 
 === Bootstrapping: Building Mill with your current checkout of Mill
 
@@ -353,6 +371,85 @@ endif::[]
 :link-milestone: {link-github}/milestone
 // find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
 
+
+[#0-12-5]
+=== 0.12.5 - 2025-01-01
+:version: 0.12.5
+:milestone-name: 0.12.5
+:milestone: 108
+:prev-version: 0.12.4
+
+* Optimize Mill startup overhead by not blocking on stdin {link-pr}/4159[#4159]
+
+* Fix system console detection on JDK >=22 {link-pr}/4178[#4178]
+
+* Fix thread leak when spawning JVM subprocesses, which caused instability and unresponsiveness
+  in long-lived Mill processes {link-pr}/4185[#4185]
+
+* Fix crash in `mill -i` on Windows ARM64 {link-pr}/4196[#4196]
+
+* Fix log rendering in terminals where `\t` does not clear existing text {link-pr}/4173[#4173]
+
+* Fix generation of unnecessary `rt.jar` files in home folder {link-pr}/4206[#4206]
+
+* Addition of several experimental language toolchains, to support using Mill to build
+  projects in other languages
+
+** https://mill-build.org/mill/main-branch/pythonlib/intro.html[Experimental Python Support]
+
+** https://mill-build.org/mill/main-branch/javascriptlib/intro.html[Experimental Javascript/Typescript Support]
+
+* Lots of doc improvements:
+
+** Overhaul of https://mill-build.org/mill/depth/execution-model.html[The Mill Execution Model]
+   {link-pr}/4156[#4156]
+
+** Fix missing text in Java Module Configuration docs {link-pr}/4172[#4172]
+
+* New posts to the https://mill-build.org/blog/index.html[Mill Engineering Blog]:
+  https://mill-build.org/blog/1-java-compile.html[How Fast does Java Compile?],
+  https://mill-build.org/blog/2-monorepo-build-tool.html[Why Use a Monorepo Build Tool?],
+  https://mill-build.org/blog/3-selective-testing.html[Faster CI with Selective Testing],
+  and https://mill-build.org/blog/4-flaky-tests.html[How to Manage Flaky Tests],
+
+[#0-12-4]
+=== 0.12.4 - 2024-12-16
+:version: 0.12.4
+:milestone-name: 0.12.4
+:milestone: 107
+:prev-version: 0.12.3
+
+* Mill now supports https://mill-build.org/mill/large/selective-execution.html[Selective Execution],
+  allowing you to run tests and other tasks only if they are downstream of a code change.
+  This can be used to greatly speed up pull-request validation and other CI workflows
+  by skipping unrelated tests that cannot possibly be broken by the code change in question
+
+* Mill now generates https://mill-build.org/mill/fundamentals/out-dir.html#_mill_dependency_tree_json[dependency-tree.json]
+  and https://mill-build.org/mill/main-branch/fundamentals/out-dir.html#_mill_invalidation_tree_json[invalidation-tree.json]
+  metadata for every run, which should help make it easier for a user to figure out why a task
+  is being selected and run.
+
+* Support for Bill-Of-Materials/Dependency-Management when downloading third-party JVM dependencies
+  (https://mill-build.org/mill/main-branch/javalib/dependencies.html#_dependency_management[Documentation])
+
+* Built-in support for `mill.bat` launcher to run Mill natively on a Windows environment
+  https://github.com/com-lihaoyi/mill/pull/4052[#4052]
+
+* Added documentation for https://mill-build.org/mill/migrating/migrating.html[Migrating to Mill],
+  to try and help people who may be trying to move their existing codebase onto Mill from other build tools
+
+* Significant speedups for task resolution logic https://github.com/com-lihaoyi/mill/pull/4132[#4132],
+  which should speed up cached-build workflows in particular
+
+* Improve precision of code signature task invalidation, reducing the amount of spurious
+  task invalidations in the presence of multi-file builds https://github.com/com-lihaoyi/mill/pull/4113[#4113]
+  https://github.com/com-lihaoyi/mill/pull/4116[#4116]
+
+* Reduced overhead of terminal prompt UI https://github.com/com-lihaoyi/mill/pull/4095[#4095]
+  https://github.com/com-lihaoyi/mill/pull/4110[#4110]
+
+* Launch of the https://mill-build.org/blog[Mill Build Engineering Blog], where we will post articles
+  discussing topics around JVM build tooling
 
 [#0-12-3]
 === 0.12.3 - 2024-11-24

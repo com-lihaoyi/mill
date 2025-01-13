@@ -2,6 +2,7 @@ package mill.runner.client;
 
 import static mill.main.client.OutFiles.*;
 
+import io.github.alexarchambault.windowsansi.WindowsAnsi;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import mill.main.client.EnvVars;
 import mill.main.client.ServerFiles;
 import mill.main.client.Util;
@@ -32,7 +34,7 @@ public class MillProcessLauncher {
     boolean interrupted = false;
 
     try {
-      MillProcessLauncher.runTermInfoThread(processDir);
+      MillProcessLauncher.prepareMillRunFolder(processDir);
       Process p = configureRunMillProcess(builder, processDir);
       return p.waitFor();
 
@@ -74,20 +76,28 @@ public class MillProcessLauncher {
     return builder.start();
   }
 
-  static File millJvmOptsFile() {
+  static Path millJvmVersionFile() {
+    String millJvmOptsPath = System.getenv(EnvVars.MILL_JVM_VERSION_PATH);
+    if (millJvmOptsPath == null || millJvmOptsPath.trim().equals("")) {
+      millJvmOptsPath = ".mill-jvm-version";
+    }
+    return Paths.get(millJvmOptsPath).toAbsolutePath();
+  }
+
+  static Path millJvmOptsFile() {
     String millJvmOptsPath = System.getenv(EnvVars.MILL_JVM_OPTS_PATH);
     if (millJvmOptsPath == null || millJvmOptsPath.trim().equals("")) {
       millJvmOptsPath = ".mill-jvm-opts";
     }
-    return new File(millJvmOptsPath).getAbsoluteFile();
+    return Paths.get(millJvmOptsPath).toAbsolutePath();
   }
 
-  static File millOptsFile() {
+  static Path millOptsFile() {
     String millJvmOptsPath = System.getenv(EnvVars.MILL_OPTS_PATH);
     if (millJvmOptsPath == null || millJvmOptsPath.trim().equals("")) {
       millJvmOptsPath = ".mill-opts";
     }
-    return new File(millJvmOptsPath).getAbsoluteFile();
+    return Paths.get(millJvmOptsPath).toAbsolutePath();
   }
 
   static boolean millJvmOptsAlreadyApplied() {
@@ -103,16 +113,31 @@ public class MillProcessLauncher {
     return System.getProperty("os.name", "").startsWith("Windows");
   }
 
-  static String javaExe() {
-    final String javaHome = System.getProperty("java.home");
-    if (javaHome != null && !javaHome.isEmpty()) {
-      final File exePath = new File(
-          javaHome + File.separator + "bin" + File.separator + "java" + (isWin() ? ".exe" : ""));
-      if (exePath.exists()) {
-        return exePath.getAbsolutePath();
-      }
+  static String javaHome() throws IOException {
+    String jvmId;
+    Path millJvmVersionFile = millJvmVersionFile();
+
+    String javaHome = null;
+    if (Files.exists(millJvmVersionFile)) {
+      jvmId = Files.readString(millJvmVersionFile).trim();
+      ;
+      javaHome = CoursierClient.resolveJavaHome(jvmId).getAbsolutePath();
     }
-    return "java";
+
+    if (javaHome == null || javaHome.isEmpty()) javaHome = System.getProperty("java.home");
+    if (javaHome == null || javaHome.isEmpty()) javaHome = System.getenv("JAVA_HOME");
+    return javaHome;
+  }
+
+  static String javaExe() throws IOException {
+    String javaHome = javaHome();
+    if (javaHome == null) return "java";
+    else {
+      final Path exePath = Paths.get(
+          javaHome + File.separator + "bin" + File.separator + "java" + (isWin() ? ".exe" : ""));
+
+      return exePath.toAbsolutePath().toString();
+    }
   }
 
   static String[] millClasspath() throws Exception {
@@ -143,6 +168,15 @@ public class MillProcessLauncher {
     if (selfJars == null || selfJars.trim().isEmpty()) {
       // We try to use the currently local classpath as MILL_CLASSPATH
       selfJars = System.getProperty("java.class.path").replace(File.pathSeparator, ",");
+    }
+
+    if (selfJars == null || selfJars.trim().isEmpty()) {
+      // Assuming native assembly run
+      selfJars = MillProcessLauncher.class
+          .getProtectionDomain()
+          .getCodeSource()
+          .getLocation()
+          .getPath();
     }
 
     if (selfJars == null || selfJars.trim().isEmpty()) {
@@ -178,18 +212,19 @@ public class MillProcessLauncher {
     if (serverTimeout != null) vmOptions.add("-D" + "mill.server_timeout" + "=" + serverTimeout);
 
     // extra opts
-    File millJvmOptsFile = millJvmOptsFile();
-    if (millJvmOptsFile.exists()) {
+    Path millJvmOptsFile = millJvmOptsFile();
+    if (Files.exists(millJvmOptsFile)) {
       vmOptions.addAll(Util.readOptsFileLines(millJvmOptsFile));
     }
 
+    vmOptions.add("-XX:+HeapDumpOnOutOfMemoryError");
     vmOptions.add("-cp");
     vmOptions.add(String.join(File.pathSeparator, millClasspath()));
 
     return vmOptions;
   }
 
-  static List<String> readMillJvmOpts() {
+  static List<String> readMillJvmOpts() throws Exception {
     return Util.readOptsFileLines(millJvmOptsFile());
   }
 
@@ -211,13 +246,21 @@ public class MillProcessLauncher {
     return Integer.parseInt(new String(proc.getInputStream().readAllBytes()).trim());
   }
 
+  private static AtomicReference<String> memoizedTerminalDims = new AtomicReference();
+
   static void writeTerminalDims(boolean tputExists, Path serverDir) throws Exception {
     String str;
 
     try {
       if (java.lang.System.console() == null) str = "0 0";
       else {
-        if (!tputExists) {
+        if (isWin()) {
+
+          WindowsAnsi.Size size = WindowsAnsi.terminalSize();
+          int width = size.getWidth();
+          int height = size.getHeight();
+          str = width + " " + height;
+        } else if (!tputExists) {
           // Hardcoded size of a quarter screen terminal on 13" windows laptop
           str = "78 24";
         } else {
@@ -227,7 +270,19 @@ public class MillProcessLauncher {
     } catch (Exception e) {
       str = "0 0";
     }
-    Files.write(serverDir.resolve(ServerFiles.terminfo), str.getBytes());
+
+    // We memoize previously seen values to avoid causing lots
+    // of upstream work if the value hasn't actually changed.
+    // The upstream work could cause significant load, see
+    //
+    //    https://github.com/com-lihaoyi/mill/discussions/4092
+    //
+    // The cause is currently unknown, but this fixes the symptoms at least.
+    //
+    String oldValue = memoizedTerminalDims.getAndSet(str);
+    if ((oldValue == null) || !oldValue.equals(str)) {
+      Files.write(serverDir.resolve(ServerFiles.terminfo), str.getBytes());
+    }
   }
 
   public static boolean checkTputExists() {
@@ -240,7 +295,13 @@ public class MillProcessLauncher {
     }
   }
 
-  public static void runTermInfoThread(Path serverDir) throws Exception {
+  public static void prepareMillRunFolder(Path serverDir) throws Exception {
+    // Clear out run-related files from the server folder to make sure we
+    // never hit issues where we are reading the files from a previous run
+    Files.deleteIfExists(serverDir.resolve(ServerFiles.exitCode));
+    Files.deleteIfExists(serverDir.resolve(ServerFiles.terminfo));
+    Files.deleteIfExists(serverDir.resolve(ServerFiles.runArgs));
+
     Path sandbox = serverDir.resolve(ServerFiles.sandbox);
     Files.createDirectories(sandbox);
     boolean tputExists = checkTputExists();

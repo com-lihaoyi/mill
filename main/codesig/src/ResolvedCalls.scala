@@ -1,6 +1,7 @@
 package mill.codesig
 import JvmModel._
 import JType.{Cls => JCls}
+import mill.util.SpanningForest.breadthFirst
 import upickle.default.{ReadWriter, macroRW}
 
 case class ResolvedCalls(
@@ -188,20 +189,4 @@ object ResolvedCalls {
     )
   }
 
-  def breadthFirst[T](start: IterableOnce[T])(edges: T => IterableOnce[T]): Seq[T] = {
-    val seen = collection.mutable.Set.empty[T]
-    val seenList = collection.mutable.Buffer.empty[T]
-    val queued = collection.mutable.Queue.from(start)
-
-    while (queued.nonEmpty) {
-      val current = queued.dequeue()
-      seen.add(current)
-      seenList.append(current)
-
-      for (next <- edges(current).iterator) {
-        if (!seen.contains(next)) queued.enqueue(next)
-      }
-    }
-    seenList.toSeq
-  }
 }

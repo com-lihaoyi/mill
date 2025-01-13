@@ -27,7 +27,8 @@ object BspModulesTests extends UtestIntegrationTestSuite {
           "HelloBsp.test",
           "proj1",
           "proj2",
-          "proj3"
+          "proj3",
+          "selective"
         ).sorted
         assert(readModules == expectedModules)
       }

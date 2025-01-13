@@ -2,23 +2,20 @@ package build
 
 import mill._, javascriptlib._
 
-object foo extends JestModule {
+object foo extends TypeScriptModule {
 
   /** Total number of lines in module source files */
   def lineCount = Task {
     allSources().map(f => os.read.lines(f.path).size).sum
   }
 
-  /** Generate resources using lineCount of sources */
+  /** Generate resource using lineCount of sources */
   def resources = Task {
     os.write(Task.dest / "line-count.txt", "" + lineCount())
-    PathRef(Task.dest)
+    super.resources() ++ Seq(PathRef(Task.dest))
   }
 
-  // define resource path for the node app
-  override def mkENV = Task {
-    super.mkENV() ++ Map("RESOURCE_PATH" -> resources().path.toString)
-  }
+  object test extends TypeScriptTests with TestModule.Jest
 
 }
 
@@ -26,26 +23,12 @@ object foo extends JestModule {
 
 /** Usage
 
-> mill foo.test
-PASS .../foo.test.ts
-...Foo.getLineCount
-...should return the content of the line-count.txt file...
-...should return null if the file cannot be read...
-...
-Test Suites:...1 passed, 1 total...
-Tests:...2 passed, 2 total...
-Snapshots:...
-Time:...
-Ran all test suites matching...
-
 > mill foo.run
-[Reading file:] .../out/foo/resources.dest/line-count.txt
-Line Count: ...
+Line Count: 21
 
 > mill show foo.bundle
 Build succeeded!
 
-> node out/foo/bundle.dest/bundle.js out/foo/resources.dest/
-[Reading file:] .../line-count.txt
-Line Count: ...
+> node out/foo/bundle.dest/bundle.js
+Line Count: 21
 */

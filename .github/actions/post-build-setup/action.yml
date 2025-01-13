@@ -1,0 +1,31 @@
+# action.yml
+inputs:
+  java-version:
+    required: true
+    type: string
+
+  timeout-minutes:
+    default: 60
+    type: number
+
+  os:
+    type: string
+
+runs:
+  using: "composite"
+  steps:
+    - run: echo temurin:${{ inputs.java-version }} > .mill-jvm-version
+      shell: bash
+
+    # Need to fix cached artifact file permissions because github actions screws it up
+    # https://github.com/actions/upload-artifact/issues/38
+    - run: "chmod -R 777 ."
+      shell: bash
+
+    - uses: coursier/cache-action@v6
+
+    - run: git config --global user.email "you@example.com"
+      shell: bash
+
+    - run: git config --global user.name "Your Name"
+      shell: bash
