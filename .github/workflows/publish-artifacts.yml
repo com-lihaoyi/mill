@@ -33,10 +33,7 @@ jobs:
 
       - uses: coursier/cache-action@v6
 
-      - uses: actions/setup-java@v4
-        with:
-          java-version: '11'
-          distribution: temurin
+      - run: "echo temurin:11 > .mill-jvm-version"
 
       - run: ./mill -i __.publishArtifacts
 
@@ -81,26 +78,25 @@ jobs:
 
       - uses: coursier/cache-action@v6
 
-      - uses: actions/setup-java@v4
-        with:
-          java-version: '11'
-          distribution: temurin
+      - run: "echo temurin:11 > .mill-jvm-version"
 
       - run: ./mill -i mill.scalalib.PublishModule/
 
   publish-sonatype-native:
     # when in master repo, publish all tags and manual runs on main
     if: github.repository == 'com-lihaoyi/mill'
-    needs: build-artifacts
     runs-on: ${{ matrix.os }}
 
     # only run one publish job for the same sha at the same time
     # e.g. when a main-branch push is also tagged
-    concurrency: publish-sonatype-native-${{ github.sha }}
+    concurrency: publish-sonatype-native-${{ matrix.os }}-${{ github.sha }}
     strategy:
       matrix:
         include:
         - os: macos-latest
+          coursierarchive: ""
+        - os: windows-latest
+          coursierarchive: C:/coursier-arc
         # Skip this because the main publishing job handles it
         # - os: ubuntu-latest 
     env:
@@ -112,17 +108,12 @@ jobs:
       LANG: "en_US.UTF-8"
       LC_MESSAGES: "en_US.UTF-8"
       LC_ALL: "en_US.UTF-8"
-
+      COURSIER_ARCHIVE_CACHE: ${{ matrix.coursierarchive }}
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
 
-      - uses: coursier/cache-action@v6
-
-      - uses: actions/setup-java@v4
-        with:
-          java-version: '11'
-          distribution: temurin
+      - run: "echo temurin:11 > .mill-jvm-version"
 
       - run: ./mill -i mill.scalalib.PublishModule/ --publishArtifacts dist.native.publishArtifacts
 
@@ -151,9 +142,6 @@ jobs:
 
       - uses: coursier/cache-action@v6
 
-      - uses: actions/setup-java@v4
-        with:
-          java-version: '11'
-          distribution: temurin
+      - run: "echo temurin:11 > .mill-jvm-version"
 
       - run: ./mill -i dist.uploadToGithub --authKey $REPO_ACCESS_TOKEN

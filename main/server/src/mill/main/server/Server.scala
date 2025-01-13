@@ -100,7 +100,7 @@ abstract class Server[T](
               exitServer()
           }
         },
-      "Server ID Checker Thread"
+      "Server ID Checker Thread: " + serverDir
     )
     serverIdThread.start()
   }
