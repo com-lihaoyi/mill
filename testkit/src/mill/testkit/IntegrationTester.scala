@@ -56,7 +56,7 @@ object IntegrationTester {
      */
     def eval(
         cmd: os.Shellable,
-        env: Map[String, String] = millTestSuiteEnv,
+        env: Map[String, String] = Map.empty,
         cwd: os.Path = workspacePath,
         stdin: os.ProcessInput = os.Pipe,
         stdout: os.ProcessOutput = os.Pipe,
@@ -75,7 +75,7 @@ object IntegrationTester {
 
       val res0 = os.call(
         cmd = shellable,
-        env = env ++ Seq("JAVA_HOME" -> sys.props("java.home")),
+        env = millTestSuiteEnv ++ env,
         cwd = cwd,
         stdin = stdin,
         stdout = stdout,
@@ -94,7 +94,10 @@ object IntegrationTester {
       )
     }
 
-    def millTestSuiteEnv: Map[String, String] = Map(MILL_TEST_SUITE -> this.getClass().toString())
+    def millTestSuiteEnv: Map[String, String] = Map(
+      MILL_TEST_SUITE -> this.getClass().toString(),
+      "JAVA_HOME" -> sys.props("java.home")
+    )
 
     /**
      * Helpers to read the `.json` metadata files belonging to a particular task
