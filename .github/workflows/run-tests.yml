@@ -69,6 +69,10 @@ jobs:
 
       - run: "echo temurin:17 > .mill-jvm-version"
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
       - run: ./mill -i example.scalalib.__.local.server.test
 
   linux:
