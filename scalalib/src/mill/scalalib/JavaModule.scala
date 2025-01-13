@@ -15,9 +15,11 @@ import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspBuildTarget, BspModule, BspUri, JvmBuildTarget}
 import mill.scalalib.publish.Artifact
 import mill.util.Jvm
+
 import os.{Path, ProcessOutput}
 
 import scala.annotation.nowarn
+import mill.define.Target
 
 /**
  * Core configuration required to compile a single Java compilation target

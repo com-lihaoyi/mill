@@ -233,13 +233,15 @@ trait RunModule extends WithZincWorker {
   }
 
   private[mill] def launcher0 = Task.Anon {
-    Result.Success(
-      Jvm.createLauncher(
-        finalMainClass(),
-        runClasspath().map(_.path),
-        forkArgs()
-      )
-    )
+    val launchClasspath =
+      if (!runUseArgsFile()) runClasspath().map(_.path)
+      else {
+        val classpathJar = Task.dest / "classpath.jar"
+        Jvm.createClasspathPassingJar(classpathJar, runClasspath().map(_.path))
+        Agg(classpathJar)
+      }
+
+    Jvm.createLauncher(finalMainClass(), launchClasspath, forkArgs())
   }
 
   /**
