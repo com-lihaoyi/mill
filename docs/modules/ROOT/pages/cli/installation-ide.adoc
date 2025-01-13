@@ -1,4 +1,4 @@
-= Installation & IDE Support
+= Installation & IDE Setup
 
 The standard method of installing Mill is to install a `./mill` <<_bootstrap_scripts,bootstrap script>>,
 similar to `./gradlew` or `./mvnw` in other build tools.
