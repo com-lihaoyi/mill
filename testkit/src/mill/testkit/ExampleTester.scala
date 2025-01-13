@@ -95,7 +95,7 @@ class ExampleTester(
       processCommand(expectedSnippets, commandHead.trim)
     }
   }
-  private val millExt =  if (Util.windowsPlatform) ".bat" else ""
+  private val millExt = if (Util.windowsPlatform) ".bat" else ""
 
   def processCommand(
       expectedSnippets: Vector[String],
