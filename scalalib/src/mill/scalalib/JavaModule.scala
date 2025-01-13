@@ -1030,16 +1030,15 @@ trait JavaModule
    * you do not want a build tool running
    */
   def launcher = Task {
-    val classpathJar = Task.dest / "classpath.jar"
-    createClasspathPassingJar(classpathJar, runClasspath().map(_.path))
+    val launchClasspath =
+      if (!runUseArgsFile()) runClasspath().map(_.path)
+      else{
+        val classpathJar = Task.dest / "classpath.jar"
+        createClasspathPassingJar(classpathJar, runClasspath().map(_.path))
+        Agg(classpathJar)
+      }
 
-    Result.Success(
-      Jvm.createLauncher(
-        finalMainClass(),
-        Agg(classpathJar),
-        forkArgs()
-      )
-    )
+    Jvm.createLauncher(finalMainClass(), launchClasspath, forkArgs())
   }
 
   /**
