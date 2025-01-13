@@ -1,7 +1,7 @@
 package mill
 package scalalib
 
-import coursier.core.Configuration
+import coursier.core.{Configuration, DependencyManagement}
 import mill.define.{Command, ExternalModule, Task}
 import mill.api.{JarManifest, PathRef, Result}
 import mill.main.Tasks
@@ -12,7 +12,6 @@ import mill.scalalib.publish.SonatypeHelpers.{
 }
 import mill.scalalib.publish.{Artifact, SonatypePublisher}
 import os.Path
-import coursier.core.DependencyManagement
 
 /**
  * Configuration necessary for publishing a Scala module to Maven Central or similar
