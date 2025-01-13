@@ -32,7 +32,8 @@ trait JavaModule
     with CoursierModule
     with OfflineSupportModule
     with BspModule
-    with SemanticDbJavaModule { outer =>
+    with SemanticDbJavaModule
+    with AssemblyModule { outer =>
 
   override def zincWorker: ModuleRef[ZincWorkerModule] = super.zincWorker
   @nowarn
@@ -836,67 +837,11 @@ trait JavaModule
     upstreamAssembly2().pathRef
   }
 
-  /**
-   * Build the assembly for upstream dependencies separate from the current
-   * classpath
-   *
-   * This should allow much faster assembly creation in the common case where
-   * upstream dependencies do not change
-   */
-  def upstreamAssembly2: T[Assembly] = Task {
-    Assembly.create(
-      destJar = T.dest / "out.jar",
-      inputPaths = upstreamAssemblyClasspath().map(_.path),
-      manifest = manifest(),
-      assemblyRules = assemblyRules
-    )
-  }
+  // Bincompat stub
+  def upstreamAssembly2: T[Assembly] = Task { upstreamAssembly2_0() }
 
-  /**
-   * An executable uber-jar/assembly containing all the resources and compiled
-   * classfiles from this module and all it's upstream modules and dependencies
-   */
-  def assembly: T[PathRef] = Task {
-    // detect potential inconsistencies due to `upstreamAssembly` deprecation after 0.11.7
-    if (
-      (upstreamAssembly.ctx.enclosing: @nowarn) != s"${classOf[JavaModule].getName}#upstreamAssembly"
-    ) {
-      T.log.error(
-        s"${upstreamAssembly.ctx.enclosing: @nowarn} is overriding a deprecated target which is no longer used." +
-          s" Please make sure to override upstreamAssembly2 instead."
-      )
-    }
-
-    val prependScript = Option(prependShellScript()).filter(_ != "")
-    val upstream = upstreamAssembly2()
-
-    val created = Assembly.create(
-      destJar = T.dest / "out.jar",
-      Agg.from(localClasspath().map(_.path)),
-      manifest(),
-      prependScript,
-      Some(upstream.pathRef.path),
-      assemblyRules
-    )
-    // See https://github.com/com-lihaoyi/mill/pull/2655#issuecomment-1672468284
-    val problematicEntryCount = 65535
-    if (
-      prependScript.isDefined &&
-      (upstream.addedEntries + created.addedEntries) > problematicEntryCount
-    ) {
-      Result.Failure(
-        s"""The created assembly jar contains more than ${problematicEntryCount} ZIP entries.
-           |JARs of that size are known to not work correctly with a prepended shell script.
-           |Either reduce the entries count of the assembly or disable the prepended shell script with:
-           |
-           |  def prependShellScript = ""
-           |""".stripMargin,
-        Some(created.pathRef)
-      )
-    } else {
-      Result.Success(created.pathRef)
-    }
-  }
+  // Bincompat stub
+  override def assembly: T[PathRef] = Task[PathRef]{ super.assembly0 }
 
   /**
    * A jar containing only this module's resources and compiled classfiles,
