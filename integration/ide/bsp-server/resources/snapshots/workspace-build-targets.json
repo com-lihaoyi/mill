@@ -26,7 +26,7 @@
       },
       "dataKind": "jvm",
       "data": {
-        "javaHome": "file:///java-home/",
+        "javaHome": " java-home",
         "javaVersion": "<java-version>"
       }
     },
@@ -52,7 +52,7 @@
       },
       "dataKind": "jvm",
       "data": {
-        "javaHome": "file:///java-home/",
+        "javaHome": "java-home",
         "javaVersion": "<java-version>"
       }
     },
@@ -78,7 +78,7 @@
       },
       "dataKind": "jvm",
       "data": {
-        "javaHome": "file:///java-home/",
+        "javaHome": "java-home",
         "javaVersion": "<java-version>"
       }
     },
@@ -105,7 +105,7 @@
       },
       "dataKind": "jvm",
       "data": {
-        "javaHome": "file:///java-home/",
+        "javaHome": "java-home",
         "javaVersion": "<java-version>"
       }
     },
@@ -145,7 +145,7 @@
           "file:///coursier-cache/https/repo1.maven.org/maven2/net/java/dev/jna/jna/<jna-version>/jna-<jna-version>.jar"
         ],
         "jvmBuildTarget": {
-          "javaHome": "file:///java-home/",
+          "javaHome": "java-home",
           "javaVersion": "<java-version>"
         }
       }
@@ -183,7 +183,7 @@
           "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar"
         ],
         "jvmBuildTarget": {
-          "javaHome": "file:///java-home/",
+          "javaHome": "java-home",
           "javaVersion": "<java-version>"
         }
       }

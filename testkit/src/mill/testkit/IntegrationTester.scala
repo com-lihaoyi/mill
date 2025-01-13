@@ -72,9 +72,10 @@ object IntegrationTester {
       val debugArgs = Option.when(debugLog)("--debug")
 
       val shellable: os.Shellable = (millExecutable, serverArgs, "--disable-ticker", debugArgs, cmd)
+
       val res0 = os.call(
         cmd = shellable,
-        env = env,
+        env = env ++ Seq("JAVA_HOME" -> sys.props("java.home")),
         cwd = cwd,
         stdin = stdin,
         stdout = stdout,
