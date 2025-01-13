@@ -115,7 +115,7 @@ object BomTests extends TestSuite {
         // Adding an exclude to an ivyDep from depManagement, while
         // the version in ivyDep is preserved
         def ivyDeps = Agg(
-          ivy"com.lihaoyi:cask_2.13:0.9.4"
+          ivy"com.lihaoyi:cask_2.13:0.9.5"
         )
         def depManagement = Agg(
           // The exclude should be automatically added to the dependency above
@@ -135,7 +135,7 @@ object BomTests extends TestSuite {
         // Adding an exclude to and overriding the version of a transitive dependency
         // from depManagement
         def ivyDeps = Agg(
-          ivy"com.lihaoyi:cask_2.13:0.9.4"
+          ivy"com.lihaoyi:cask_2.13:0.9.5"
         )
         def depManagement = Agg(
           ivy"org.java-websocket:Java-WebSocket:1.5.2"
@@ -150,7 +150,7 @@ object BomTests extends TestSuite {
 
       object onlyExclude extends JavaModule with TestPublishModule {
         def ivyDeps = Agg(
-          ivy"com.lihaoyi:cask_2.13:0.9.4"
+          ivy"com.lihaoyi:cask_2.13:0.9.5"
         )
         def depManagement = Agg(
           ivy"org.java-websocket:Java-WebSocket"
@@ -497,7 +497,7 @@ object BomTests extends TestSuite {
       test("extraExclude") - UnitTester(modules, null).scoped { implicit eval =>
         isInClassPath(
           modules.depMgmt.extraExclude,
-          "cask_2.13-0.9.4.jar",
+          "cask_2.13-0.9.5.jar",
           jarCheck = Some { jarName =>
             !jarName.startsWith("slf4j-api-")
           }
@@ -507,7 +507,7 @@ object BomTests extends TestSuite {
       test("transitiveExtraExclude") - UnitTester(modules, null).scoped { implicit eval =>
         isInClassPath(
           modules.depMgmt.extraExclude.transitive,
-          "cask_2.13-0.9.4.jar",
+          "cask_2.13-0.9.5.jar",
           Seq(modules.depMgmt.extraExclude),
           jarCheck = Some { jarName =>
             !jarName.startsWith("slf4j-api-")
