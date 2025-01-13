@@ -829,7 +829,11 @@ trait JavaModule
   def upstreamAssembly2: T[Assembly] = Task { upstreamAssembly2_0() }
 
   // Bincompat stub
-  override def assembly: T[PathRef] = Task[PathRef]{ assembly0() }
+  override def assembly: T[PathRef] = Task[PathRef]{
+    val out = Task.dest / assembly0().path.last
+    os.copy(assembly0().path, out)
+    PathRef(out)
+  }
 
   /**
    * A jar containing only this module's resources and compiled classfiles,
