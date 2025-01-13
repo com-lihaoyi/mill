@@ -829,11 +829,7 @@ trait JavaModule
   def upstreamAssembly2: T[Assembly] = Task { upstreamAssembly2_0() }
 
   // Bincompat stub
-  override def assembly: T[PathRef] = Task[PathRef]{
-    val out = Task.dest / assembly0().path.last
-    os.copy(assembly0().path, out)
-    PathRef(out)
-  }
+  override def assembly: T[PathRef] = Task[PathRef] { assembly0() }
 
   /**
    * A jar containing only this module's resources and compiled classfiles,
@@ -960,20 +956,7 @@ trait JavaModule
     super.forkEnv()
   }
 
-  /**
-   * Builds a command-line "launcher" file that can be used to run this module's
-   * code, without the Mill process. Useful for deployment & other places where
-   * you do not want a build tool running
-   */
-  def launcher = Task {
-    Result.Success(
-      Jvm.createLauncher(
-        finalMainClass(),
-        runClasspath().map(_.path),
-        forkArgs()
-      )
-    )
-  }
+  def launcher = Task { launcher0() }
 
   /**
    * Task that print the transitive dependency tree to STDOUT.

@@ -2,7 +2,7 @@ package mill.scalalib
 
 import mill.api.Loose.Agg
 import mill.api.{JarManifest, PathRef, Result}
-import mill.define.{Target as T, *}
+import mill.define.{Target => T, _}
 
 import scala.annotation.nowarn
 
@@ -77,7 +77,7 @@ trait AssemblyModule extends mill.Module {
     upstreamAssembly2().pathRef
   }
 
-  private[mill] def assembly0: T[PathRef] = Task {
+  private[mill] def assembly0: Task[PathRef] = Task.Anon {
     // detect potential inconsistencies due to `upstreamAssembly` deprecation after 0.11.7
     if (
       (upstreamAssembly.ctx.enclosing: @nowarn) != s"${classOf[AssemblyModule].getName}#upstreamAssembly"
