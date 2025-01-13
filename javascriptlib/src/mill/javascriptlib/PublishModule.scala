@@ -15,42 +15,42 @@ trait PublishModule extends TypeScriptModule {
   override def npmDevDeps: T[Seq[String]] =
     Task { Seq("glob@^10.4.5", "ts-patch@3.3.0", "typescript-transform-paths@3.5.3") }
 
-  def bundledOut: T[String] = Task { "dist" }
+  def pubBundledOut: T[String] = Task { "dist" }
 
-  private def declarationOut: T[String] = Task { "declarations" }
+  private def pubDeclarationOut: T[String] = Task { "declarations" }
 
   override def mainFileName: T[String] = Task { s"${millSourcePath.last}.js" }
 
   // main file; defined with mainFileName
-  def main: T[String] =
-    Task { bundledOut() + "/src/" + mainFileName() }
+  def pubMain: T[String] =
+    Task { pubBundledOut() + "/src/" + mainFileName() }
 
-  private def mainType: T[String] = Task {
-    main().replaceFirst(bundledOut(), declarationOut()).replaceAll("\\.js", ".d.ts")
+  private def pubMainType: T[String] = Task {
+    pubMain().replaceFirst(pubBundledOut(), pubDeclarationOut()).replaceAll("\\.js", ".d.ts")
   }
 
   // Define exports for the package
   // by default: mainFile is exported
   // use this to define other exports
-  def exports: T[Map[String, String]] = Task { Map.empty[String, String] }
+  def pubExports: T[Map[String, String]] = Task { Map.empty[String, String] }
 
-  private def mkExports: T[Map[String, PublishModule.ExportEntry]] = Task {
-    exports().map { case (key, value) =>
-      key -> PublishModule.Export("./" + bundledOut() + "/" + value)
+  private def pubBuildExports: T[Map[String, PublishModule.ExportEntry]] = Task {
+    pubExports().map { case (key, value) =>
+      key -> PublishModule.Export("./" + pubBundledOut() + "/" + value)
     }
   }
 
-  private def mkTypesVersion: T[Map[String, Seq[String]]] = Task {
+  private def pubTypesVersion: T[Map[String, Seq[String]]] = Task {
     pubAllSources().map { source =>
-      val dist = source.replaceFirst("typescript", bundledOut())
-      val declarations = source.replaceFirst("typescript", declarationOut())
+      val dist = source.replaceFirst("typescript", pubBundledOut())
+      val declarations = source.replaceFirst("typescript", pubDeclarationOut())
       ("./" + dist).replaceAll("\\.ts", "") -> Seq(declarations.replaceAll("\\.ts", ".d.ts"))
     }.toMap
   }
 
   // build package.json from publishMeta
   // mv to publishDir.dest
-  def packageJson: T[Unit] = Task { // PathRef
+  def pubbPackageJson: T[PathRef] = Task { // PathRef
     def splitDeps(input: String): (String, String) = {
       input.split("@", 3).toList match {
         case first :: second :: tail if input.startsWith("@") =>
@@ -62,17 +62,19 @@ trait PublishModule extends TypeScriptModule {
 
     val json = publishMeta()
     val updatedJson = json.copy(
-      files = json.files ++ Seq(bundledOut(), declarationOut()),
-      main = main(),
-      types = mainType(),
-      exports = Map("." -> PublishModule.Export("./" + main())) ++ mkExports(),
-      bin = json.bin.map { case (k, v) => (k, "./" + bundledOut() + "/" + v) },
-      typesVersions = mkTypesVersion(),
+      files = json.files ++ Seq(pubBundledOut(), pubDeclarationOut()),
+      main = pubMain(),
+      types = pubMainType(),
+      exports = Map("." -> PublishModule.Export("./" + pubMain())) ++ pubBuildExports(),
+      bin = json.bin.map { case (k, v) => (k, "./" + pubBundledOut() + "/" + v) },
+      typesVersions = pubTypesVersion(),
       dependencies = transitiveNpmDeps().map { deps => splitDeps(deps) }.toMap,
       devDependencies = transitiveNpmDeps().map { deps => splitDeps(deps) }.toMap
     ).toJsonClean
 
-    os.write.over(publishDir().path / "package.json", updatedJson)
+    os.write.over(Task.dest / "package.json", updatedJson)
+
+    PathRef(Task.dest)
   }
 
   // Package.Json construction
@@ -81,7 +83,7 @@ trait PublishModule extends TypeScriptModule {
   override def modulePaths: Task[Seq[(String, String)]] = Task.Anon {
     val module = millSourcePath.last
 
-    Seq((s"$module/*", "typescript/src" + ":" + s"${declarationOut()}")) ++
+    Seq((s"$module/*", "typescript/src" + ":" + s"${pubDeclarationOut()}")) ++
       resources().map { rp =>
         val resourceRoot = rp.path.last
         val result = (
@@ -96,9 +98,7 @@ trait PublishModule extends TypeScriptModule {
   }
 
   private def pubModDeps: T[Seq[String]] = Task {
-    moduleDeps.map { x =>
-      x.millSourcePath.subRelativeTo(Task.workspace).toString.split("/").head
-    }.distinct
+    moduleDeps.map { _.millSourcePath.subRelativeTo(Task.workspace).segments.head }.distinct
   }
 
   private def pubModDepsSources: T[Seq[PathRef]] = Task {
@@ -107,29 +107,28 @@ trait PublishModule extends TypeScriptModule {
     } yield modSource
   }
 
+  private def pubBaseModeGenSources: T[Seq[PathRef]] = Task {
+    for {
+      pr <- generatedSources()
+      file <- os.walk(pr.path)
+      if file.ext == "ts"
+    } yield PathRef(file)
+  }
+
   private def pubModDepsGenSources: T[Seq[PathRef]] = Task {
-    (for {
-      modSource <- Task.traverse(moduleDeps)(_.generatedSources)()
-    } yield {
+    Task.traverse(moduleDeps)(_.generatedSources)().flatMap { modSource =>
       val fileExt: Path => Boolean = _.ext == "ts"
       for {
         pr <- modSource
         file <- os.walk(pr.path)
         if fileExt(file)
       } yield PathRef(file)
-    }).flatten
+    }
   }
 
   // mv generated sources for base mod and its deps
-  private def pubMvGenSources: T[Unit] = Task {
-    val fileExt: Path => Boolean = _.ext == "ts"
-    val baseModGenS = for {
-      pr <- generatedSources()
-      file <- os.walk(pr.path)
-      if fileExt(file)
-    } yield PathRef(file)
-
-    val allGeneratedSources = baseModGenS ++ pubModDepsGenSources()
+  private def pubGenSources: T[Unit] = Task {
+    val allGeneratedSources = pubBaseModeGenSources() ++ pubModDepsGenSources()
     allGeneratedSources.foreach { target =>
       val destination = publishDir().path / "typescript" / "generatedSources" / target.path.last
       os.makeDir.all(destination / os.up)
@@ -140,10 +139,10 @@ trait PublishModule extends TypeScriptModule {
     }
   }
 
-  private def pubCpModDeps: T[Unit] = Task {
-    val cpTargets = pubModDeps()
+  private def pubCopyModDeps: T[Unit] = Task {
+    val targets = pubModDeps()
 
-    cpTargets.foreach { target =>
+    targets.foreach { target =>
       val destination = publishDir().path / "typescript" / target
       os.makeDir.all(destination / os.up)
       os.copy(
@@ -172,7 +171,10 @@ trait PublishModule extends TypeScriptModule {
         ).filter(fileExt)
     } yield source.toString
       .replaceFirst(millSourcePath.toString, "typescript")
-      .replaceFirst(project, "typescript")) ++ pubModDepsGenSources().map(pr =>
+      .replaceFirst(
+        project,
+        "typescript"
+      )) ++ (pubBaseModeGenSources() ++ pubModDepsGenSources()).map(pr =>
       "typescript/generatedSources/" + pr.path.last
     )
 
@@ -187,16 +189,17 @@ trait PublishModule extends TypeScriptModule {
     val upstreams = (for {
       (res, mod) <- Task.traverse(moduleDeps)(_.resources)().zip(moduleDeps)
     } yield {
+      val relative = mod.millSourcePath.subRelativeTo(Task.workspace)
       Seq((
         mod.millSourcePath.subRelativeTo(Task.workspace).toString + "/*",
-        s"typescript/${mod.millSourcePath.subRelativeTo(Task.workspace).toString}/src" + ":" + s"${declarationOut()}"
+        s"typescript/$relative/src:${pubDeclarationOut()}"
       )) ++
         res.map { rp =>
           val resourceRoot = rp.path.last
           val modName = mod.millSourcePath.subRelativeTo(Task.workspace).toString
           // nb: resources are be moved in bundled stage
           (
-            "@" + modName + s"/$resourceRoot/*",
+            s"@$modName/$resourceRoot/*",
             resourceRoot match {
               case s if s.contains(".dest") =>
                 rp.path.toString
@@ -231,7 +234,7 @@ trait PublishModule extends TypeScriptModule {
       "baseUrl" -> ujson.Str("."),
       "rootDir" -> ujson.Str("typescript"),
       "declaration" -> ujson.Bool(true),
-      "outDir" -> ujson.Str(bundledOut()),
+      "outDir" -> ujson.Str(pubBundledOut()),
       "plugins" -> ujson.Arr(
         ujson.Obj("transform" -> "typescript-transform-paths"),
         ujson.Obj(
@@ -246,7 +249,7 @@ trait PublishModule extends TypeScriptModule {
   }
 
   // patch typescript
-  private def tsPatchInstall: T[Unit] = Task {
+  private def pubTsPatchInstall: T[Unit] = Task {
     os.call(
       ("node", npmInstall().path / "node_modules/ts-patch/bin/ts-patch", "install"),
       cwd = npmInstall().path
@@ -254,8 +257,8 @@ trait PublishModule extends TypeScriptModule {
     ()
   }
 
-  override def symlinkNodeModules: Task[Unit] = Task {
-    tsPatchInstall() // patch typescript compiler => use custom transformers
+  private def pubSymLink: Task[Unit] = Task {
+    pubTsPatchInstall() // patch typescript compiler => use custom transformers
     os.call(
       ("ln", "-s", npmInstall().path.toString + "/node_modules/", "node_modules"),
       cwd = publishDir().path
@@ -268,7 +271,7 @@ trait PublishModule extends TypeScriptModule {
   }
 
   override def compile: T[(PathRef, PathRef)] = Task {
-    symlinkNodeModules()
+    pubSymLink()
     os.write(
       publishDir().path / "tsconfig.json",
       ujson.Obj(
@@ -279,8 +282,8 @@ trait PublishModule extends TypeScriptModule {
       )
     )
     os.copy(millSourcePath, publishDir().path / "typescript", mergeFolders = true)
-    pubCpModDeps()
-    pubMvGenSources()
+    pubCopyModDeps()
+    pubGenSources()
     // Run type check, build declarations
     os.call(
       ("node", npmInstall().path / "node_modules/typescript/bin/tsc"),
@@ -307,7 +310,7 @@ trait PublishModule extends TypeScriptModule {
           s"""    copyStaticFiles({
              |      src: ${ujson.Str(rp.toString)},
              |      dest: ${ujson.Str(
-              publishDir().path.toString + "/" + bundledOut() + "/" + rp.last
+              publishDir().path.toString + "/" + pubBundledOut() + "/" + rp.last
             )},
              |      dereference: true,
              |      preserveTimestamps: true,
@@ -332,7 +335,7 @@ trait PublishModule extends TypeScriptModule {
         |
         |esbuild.build({
         |  entryPoints: [],
-        |  outdir: ${ujson.Str("./" + bundledOut())},
+        |  outdir: ${ujson.Str("./" + pubBundledOut())},
         |  write: ${ujson.Bool(false)}, // Prevent esbuild from generating new files
         |  $copyPluginCode
         |  define: {
@@ -372,15 +375,16 @@ trait PublishModule extends TypeScriptModule {
   // publishDir; is used to process and compile files for publishing
   def publishDir: T[PathRef] = Task { PathRef(Task.dest) }
 
-  def publish(): Command[CommandResult] = Task.Command {
+  def publish(): Command[Unit] = Task.Command {
     // build package.json
-    packageJson()
+    os.move(pubbPackageJson().path / "package.json", publishDir().path / "package.json")
 
     // bundle code for publishing
     bundle()
 
     // run npm publish
-    os.call(("npm", "publish"), cwd = publishDir().path)
+    os.call(("npm", "publish"), stdout = os.Inherit, cwd = publishDir().path)
+    ()
   }
 
 }

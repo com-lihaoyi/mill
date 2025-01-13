@@ -90,7 +90,6 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
 
     def ivyDeps = Agg(
       build.Deps.osLib,
-      build.Deps.sbtIo,
       build.Deps.mainargs,
       build.Deps.upickle,
       build.Deps.pprint,
