@@ -894,7 +894,7 @@ trait AndroidAppModule extends JavaModule {
     emulator
   }
 
-  private def androidDebugKeystore: T[PathRef] = Task(persistent = true) {
+  private def androidDebugKeystore(): PathRef = {
     // TODO maybe we need a file lock here
     val debugKeystoreFile = os.home / ".android" / "mill-debug.jks"
     if (!os.exists(debugKeystoreFile)) {
