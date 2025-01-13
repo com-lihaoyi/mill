@@ -54,9 +54,6 @@ trait TypeScriptModule extends Module { outer =>
 
   def resources: T[Seq[PathRef]] = Task { Seq(PathRef(millSourcePath / "resources")) }
 
-  def nuts: T[Unit] =
-    Task { println(millSourcePath); println(sources()); println(compiledSources()) }
-
   def generatedSources: T[Seq[PathRef]] = Task { Seq[PathRef]() }
 
   def allSources: T[IndexedSeq[PathRef]] =

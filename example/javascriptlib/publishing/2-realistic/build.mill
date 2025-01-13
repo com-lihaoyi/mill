@@ -1,4 +1,4 @@
- package build
+package build
 
 import mill._, javascriptlib._
 
