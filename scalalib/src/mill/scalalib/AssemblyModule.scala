@@ -31,11 +31,7 @@ trait AssemblyModule extends mill.Module {
     }
   }
 
-  /**
-   * Configuration for the [[assembly]] task: how files and file-conflicts are
-   * managed when combining multiple jar files into one big assembly jar.
-   */
-  def assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules
+  def assemblyRules: Seq[Assembly.Rule]
 
   def upstreamAssemblyClasspath: T[Agg[PathRef]]
 
