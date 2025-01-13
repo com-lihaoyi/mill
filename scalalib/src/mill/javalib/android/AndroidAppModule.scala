@@ -895,30 +895,30 @@ trait AndroidAppModule extends JavaModule {
   }
 
   private def androidDebugKeystore: T[PathRef] = Task(persistent = true) {
-    // TODO store this key outside of the build file structure, because once build folders are deleted, new key will
-    //  be created, so app will have another signature leading to the need to remove app from the device/emulator
-    //  before installing a new build, which is annoying.
-    val debugKeystoreFile = T.dest / "debugKeyStore.jks"
-    os.call((
-      "keytool",
-      "-genkeypair",
-      "-keystore",
-      debugKeystoreFile,
-      "-alias",
-      debugKeyAlias,
-      "-dname",
-      "CN=MILL, OU=MILL, O=MILL, L=MILL, S=MILL, C=MILL",
-      "-validity",
-      "10000",
-      "-keyalg",
-      "RSA",
-      "-keysize",
-      "2048",
-      "-storepass",
-      debugKeyStorePass,
-      "-keypass",
-      debugKeyPass
-    ))
+    // TODO maybe we need a file lock here
+    val debugKeystoreFile = os.home / ".android" / "mill-debug.jks"
+    if (!os.exists(debugKeystoreFile)) {
+      os.call((
+        "keytool",
+        "-genkeypair",
+        "-keystore",
+        debugKeystoreFile,
+        "-alias",
+        debugKeyAlias,
+        "-dname",
+        "CN=MILL, OU=MILL, O=MILL, L=MILL, S=MILL, C=MILL",
+        "-validity",
+        "10000",
+        "-keyalg",
+        "RSA",
+        "-keysize",
+        "2048",
+        "-storepass",
+        debugKeyStorePass,
+        "-keypass",
+        debugKeyPass
+      ))
+    }
     PathRef(debugKeystoreFile)
   }
 
