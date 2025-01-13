@@ -15,10 +15,11 @@ import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspBuildTarget, BspModule, BspUri, JvmBuildTarget}
 import mill.scalalib.publish.Artifact
 import mill.util.Jvm
-import mill.util.Jvm.createClasspathPassingJar
+
 import os.{Path, ProcessOutput}
 
 import scala.annotation.nowarn
+import mill.define.Target
 
 /**
  * Core configuration required to compile a single Java compilation target
@@ -1025,7 +1026,7 @@ trait JavaModule
   }
 
   // bincompat stub, to be folded into `RunModule#launcher` in future
-  override def launcher = Task{
+  override def launcher: Target[PathRef] = Task {
     launcher0()
   }
 

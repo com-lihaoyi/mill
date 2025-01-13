@@ -235,7 +235,7 @@ trait RunModule extends WithZincWorker {
   private[mill] def launcher0 = Task {
     val launchClasspath =
       if (!runUseArgsFile()) runClasspath().map(_.path)
-      else{
+      else {
         val classpathJar = Task.dest / "classpath.jar"
         Jvm.createClasspathPassingJar(classpathJar, runClasspath().map(_.path))
         Agg(classpathJar)
@@ -249,7 +249,7 @@ trait RunModule extends WithZincWorker {
    * code, without the Mill process. Useful for deployment & other places where
    * you do not want a build tool running
    */
-  def launcher = Task{ launcher0() }
+  def launcher = Task { launcher0() }
 }
 
 object RunModule {
