@@ -581,7 +581,7 @@ trait JavaModule
    * added to them. This should be used when propagating the dependencies transitively
    * to other modules.
    */
-  @deprecated("Unused by Mill, use allIvyDeps instead", "Mill after 0.12.4")
+  @deprecated("Unused by Mill, use allIvyDeps instead", "Mill after 0.12.5")
   def processedIvyDeps: Task[Agg[BoundDep]] = Task {
     allIvyDeps().map(bindDependency())
   }
@@ -590,7 +590,7 @@ trait JavaModule
    * Returns a function adding BOM and dependency management details of
    * this module to a `coursier.core.Dependency`
    */
-  @deprecated("Unused by Mill", "Mill after 0.12.4")
+  @deprecated("Unused by Mill", "Mill after 0.12.5")
   def processDependency(
       overrideVersions: Boolean = false
   ): Task[coursier.core.Dependency => coursier.core.Dependency] =
@@ -604,7 +604,7 @@ trait JavaModule
    *   * `coursierDependency`, which will pull all this module's dependencies transitively
    *   * `allIvyDeps`, which contains the full list of direct (external) dependencies of this module
    */
-  @deprecated("Unused by Mill, use coursierDependency or allIvyDeps instead", "Mill after 0.12.4")
+  @deprecated("Unused by Mill, use coursierDependency or allIvyDeps instead", "Mill after 0.12.5")
   def transitiveIvyDeps: T[Agg[BoundDep]] = Task {
     allIvyDeps().map(bindDependency()) ++
       T.traverse(moduleDepsChecked)(_.transitiveIvyDeps)().flatten
@@ -621,7 +621,7 @@ trait JavaModule
    */
   @deprecated(
     "Unused by Mill, use coursierDependency().withConfiguration(Configuration.provided) or compileIvyDeps instead",
-    "Mill after 0.12.4"
+    "Mill after 0.12.5"
   )
   def transitiveCompileIvyDeps: T[Agg[BoundDep]] = Task {
     compileIvyDeps().map(bindDependency()) ++
@@ -640,7 +640,7 @@ trait JavaModule
    */
   @deprecated(
     "Unused by Mill, use coursierDependency().withConfiguration(Configuration.runtime) or runIvyDeps instead",
-    "Mill after 0.12.4"
+    "Mill after 0.12.5"
   )
   def transitiveRunIvyDeps: T[Agg[BoundDep]] = Task {
     runIvyDeps().map(bindDependency()) ++

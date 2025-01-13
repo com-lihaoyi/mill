@@ -188,7 +188,7 @@ trait PublishModule extends JavaModule { outer =>
   /**
    * Dependencies with version placeholder filled from BOMs, alongside with BOM data
    */
-  @deprecated("Unused by Mill", "Mill after 0.12.4")
+  @deprecated("Unused by Mill", "Mill after 0.12.5")
   def bomDetails: T[(Map[coursier.core.Module, String], coursier.core.DependencyManagement.Map)] =
     Task {
       val (processedDeps, depMgmt) = defaultResolver().processDeps(
