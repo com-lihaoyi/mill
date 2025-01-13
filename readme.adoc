@@ -177,12 +177,15 @@ remaining modules to `~/.ivy2/local`.
 This results in a more realistic test environment, but at the cost of taking tens-of-seconds
 more to run a test after making a code change.
 
-You can reproduce these tests manually using `dist.assembly`:
+You can reproduce these tests manually using `dist.installLocal`:
 
 [source,bash]
 ----
-./mill dist.assembly && (cd example/basic/1-simple && ../../../out/dist/assembly.dest/mill run --text hello)
+./mill dist.installLocal && (cd example/basic/1-simple && ../../../mill-assembly.jar run --text hello)
 ----
+
+You can also use `dist.native.installLocal` for a Graal Native Image executable,
+which is slower to create but faster to start than the default executable assembly.
 
 There are two six of these tests, `.{local,assembly,native}.{server,fork}`.
 

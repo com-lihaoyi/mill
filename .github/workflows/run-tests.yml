@@ -1,4 +1,6 @@
 # Uncommment this to replace the rest of the file when you want to debug stuff in CI
+
+#
 #name: Run Debug
 #
 #on:
@@ -7,30 +9,25 @@
 #  workflow_dispatch:
 #
 #jobs:
-#  debug:
+#  debug-windows:
 ##    runs-on: ubuntu-latest
 #    runs-on: windows-latest
 #    steps:
 #      - uses: actions/checkout@v4
 #        with: { fetch-depth: 1 }
-#      - uses: actions/setup-java@v4
-#        with:
-#          distribution: 'temurin'
-#          java-version: '17'
 #
-#      - run: ./mill 'example.javalib.publishing[7-native-image].packaged.server.test'
-##
-#
+#      - run: ./mill 'example.scalalib.basic[1-simple].packaged.fork.test'
+#        env:
+#          COURSIER_ARCHIVE_CACHE: "C:/coursier-arc"
+
+
 name: Run Tests
 
 # We run full CI on push builds to main and on all pull requests
 #
-# Manual builds (workflow_dispatch) to the main branch are also published
-#
-# To maximize bug-catching changes while keeping CI times reasonable, we run:
-# - All tests on Linux/Java17
-# - Fewer tests on Linux/Java11 and Windows/Java17
-# - Fewest tests on Windows/Java11
+# To maximize bug-catching changes while keeping CI times reasonable, we run
+# all tests on Linux, scattered between Java 11/17, except for one job run
+# on MacOS instead and a subset of jobs also run on windows
 
 on:
   push:
@@ -64,6 +61,20 @@ jobs:
 
       - run: ./mill -i docs.githubPages + docs.checkBrokenLinks
 
+  mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      - run: "echo temurin:17 > .mill-jvm-version"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - run: ./mill -i example.scalalib.__.local.server.test
+
   linux:
     needs: build-linux
     strategy:
@@ -87,12 +98,8 @@ jobs:
             millargs: "contrib.__.test"
             install-android-sdk: false
 
-          - java-version: 17
-            millargs: "'example.javalib.__.local.server.test'"
-            install-android-sdk: false
-
-          - java-version: 17
-            millargs: "'example.scalalib.__.local.server.test'"
+          - java-version: 17 # Run this with Mill native launcher as a smoketest
+            millargs: "'example.javalib.__.native.server.test'"
             install-android-sdk: false
 
           - java-version: 17
@@ -125,7 +132,7 @@ jobs:
             # Most of these integration tests should not depend on which mode they
             # are run in, so just run them in `local`
           - java-version: '17'
-            millargs: "'integration.{failure,feature,ide}.__.local.server.test'"
+            millargs: "'integration.{failure,feature,ide}.__.packaged.server.test'"
             install-android-sdk: false
             # These invalidation tests need to be exercised in both execution modes
             # to make sure they work with and without -i/--no-server being passed
@@ -135,15 +142,6 @@ jobs:
 
           - java-version: 17
             millargs: "'integration.invalidation.__.packaged.server.test'"
-            install-android-sdk: false
-
-          # Run some smoketests with Graal native image launcher
-          - java-version: 17
-            millargs: "'example.javalib.__.native.server.test'"
-            install-android-sdk: false
-
-          - java-version: '17'
-            millargs: "'integration.{failure,feature,ide}.__.native.server.test'"
             install-android-sdk: false
 
     uses: ./.github/workflows/post-build-selective.yml
@@ -160,22 +158,30 @@ jobs:
         include:
           # just run a subset of examples/ on Windows, because for some reason running
           # the whole suite can take hours on windows v.s. half an hour on linux
+          #
+          # * One job unit tests,
+          # * One job each for local/packaged/native tests
+          # * At least one job for each of fork/server tests, and example/integration tests
           - java-version: 11
             millargs: '"{main,scalalib,bsp}.__.test"'
+
           - java-version: 11
-            millargs: '"example.scalalib.basic.__.packaged.fork.test"'
+            millargs: '"example.scalalib.{basic,publishing}.__.local.fork.test"'
+
           - java-version: 17
             millargs: "'integration.{feature,failure}.__.packaged.fork.test'"
-          - java-version: 11
-            millargs: "'integration.invalidation.__.packaged.server.test'"
-          - java-version: 11
-            millargs: "contrib.__.test"
+
+          - java-version: 11 # Run this with Mill native launcher as a smoketest
+            millargs: "'integration.invalidation.__.native.server.test'"
 
     uses: ./.github/workflows/post-build-selective.yml
     with:
       os: windows-latest
       java-version: ${{ matrix.java-version }}
       millargs: ${{ matrix.millargs }}
+      # Provide a shorter coursier archive folder to avoid hitting path-length bugs when
+      # running the graal native image binary on windows
+      coursierarchive: "C:/coursier-arc"
 
   itest:
     needs: build-linux

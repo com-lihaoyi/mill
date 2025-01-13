@@ -2,7 +2,8 @@ package mill.main.client;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.Test;
@@ -11,7 +12,7 @@ public class MillEnvTests {
 
   @Test
   public void readOptsFileLinesWithoutFInalNewline() throws Exception {
-    File file = new File(
+    Path file = Paths.get(
         getClass().getClassLoader().getResource("file-wo-final-newline.txt").toURI());
     List<String> lines = Util.readOptsFileLines(file);
     assertEquals(

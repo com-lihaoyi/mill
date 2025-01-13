@@ -19,7 +19,9 @@ import scala.util.Properties
  * }}}
  */
 @mill.api.experimental
-trait NativeImageModule extends RunModule with WithZincWorker {
+trait NativeImageModule extends WithZincWorker {
+  def runClasspath: T[Seq[PathRef]]
+  def finalMainClass: T[String]
 
   /**
    * [[https://www.graalvm.org/latest/reference-manual/native-image/#from-a-class Builds a native executable]] for this
@@ -31,17 +33,23 @@ trait NativeImageModule extends RunModule with WithZincWorker {
    */
   def nativeImage: T[PathRef] = Task {
     val dest = T.dest
-    val executableName = "native-image"
+
+    val executeableName = "native-executable"
     val command = Seq.newBuilder[String]
       .+=(nativeImageTool().path.toString)
       .++=(nativeImageOptions())
       .+=("-cp")
       .+=(nativeImageClasspath().iterator.map(_.path).mkString(java.io.File.pathSeparator))
       .+=(finalMainClass())
-      .+=(executableName)
+      .+=((dest / executeableName).toString())
       .result()
+
     os.proc(command).call(cwd = dest, stdout = os.Inherit)
-    PathRef(dest / executableName)
+
+    val ext = if (mill.main.client.Util.isWindows) ".exe" else ""
+    val executable = dest / s"$executeableName$ext"
+    assert(os.exists(executable))
+    PathRef(executable)
   }
 
   /**

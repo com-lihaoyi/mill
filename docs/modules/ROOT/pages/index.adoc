@@ -15,7 +15,11 @@ helps keep builds clean and understandable
 * Mill is an easier alternative to https://bazel.build/[Bazel]
 for xref:large/large.adoc[large multi-language monorepos] with hundreds of modules
 
-To get started using Mill, see the language-specific introductory documentation linked below:
+To get started using Mill, see:
+
+* xref:cli/installation-ide.adoc[]
+
+Or see the language-specific introductory documentation linked below:
 
 [cols="1a,1a,1a"]
 |===

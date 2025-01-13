@@ -30,10 +30,14 @@ jobs:
         with:
           ref: ${{ github.base_ref }}
 
+      - run: echo temurin:${{ inputs.java-version }} > .mill-jvm-version
+
       - run: chmod -R 777 . # normalize permissions before and after upload/download-artifact
 
       - run: mkdir out && touch out/mill-selective-execution.json
         shell: bash
+
+      - run: cat .mill-jvm-version
 
       - run: ./mill -i -k selective.prepare ${{ inputs.prepareargs }}
         if: ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'run-all-tests') }}
