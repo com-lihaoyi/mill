@@ -3,6 +3,7 @@ package mill.runner.client;
 import static mill.runner.client.MillProcessLauncher.millOptsFile;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import mill.main.client.*;
@@ -57,9 +58,13 @@ public class MillClientMain {
                 MillProcessLauncher.prepareMillRunFolder(serverDir);
               }
             };
-        int exitCode = launcher.acquireLocksAndRun(OutFiles.out).exitCode;
+
+        final String versionAndJvmHomeEncoding =
+            Util.sha1Hash(BuildInfo.millVersion + MillProcessLauncher.javaHome());
+        Path serverDir0 = Paths.get(OutFiles.out, OutFiles.millServer, versionAndJvmHomeEncoding);
+        int exitCode = launcher.acquireLocksAndRun(serverDir0).exitCode;
         if (exitCode == Util.ExitServerCodeWhenVersionMismatch()) {
-          exitCode = launcher.acquireLocksAndRun(OutFiles.out).exitCode;
+          exitCode = launcher.acquireLocksAndRun(serverDir0).exitCode;
         }
         System.exit(exitCode);
       } catch (ServerCouldNotBeStarted e) {
