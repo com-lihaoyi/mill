@@ -608,7 +608,8 @@ you can also download it manually:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Mac/Linux
-curl -L https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5 &gt; mill &amp;&amp; chmod +x mill
+curl -L https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5 -o mill
+chmod +x mill
 echo 0.12.5 &gt; .mill-version
 
 # Windows
@@ -642,6 +643,58 @@ present to build, compile or test your code.</p>
 folder with one of the Mill example projects. There are a wide range of example projects,
 from hello-world to multi-module libraries to client-server web applications, and you can
 pick one most similar to what you are doing so you can hit the ground running working.</p>
+</div>
+<div class="sect2">
+<h3 id="_mill_native_executable"><a class="anchor" href="#_mill_native_executable"></a>Mill Native Executable</h3>
+<div class="paragraph">
+<p>The default Mill executable configured above requires a JVM (11 or above) installed globally in
+order to run, and imposes some Java startup overhead (100-200ms) when running Mill from the
+command line.You can also use Mill’s native executables by appending a <code>-native</code> suffix to the
+Mill version:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">echo 0.12.5-native &gt; .mill-version</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Using the <code>-native</code> suffix should provide a faster CLI experience than using Mill’s default
+JVM launcher. Mill native executables are supported on the following OS/CPU combinations:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>windows-amd64</code> (Intel Windows)</p>
+</li>
+<li>
+<p><code>linux-amd64</code> (Intel Linux)</p>
+</li>
+<li>
+<p><code>mac-aarch64</code> (M1-M4 Mac)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If you are on a combination not supported by Mill’s native executables, use the default
+JVM launcher instead.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_customizing_mills_jvm"><a class="anchor" href="#_customizing_mills_jvm"></a>Customizing Mill’s JVM</h3>
+<div class="paragraph">
+<p>To use Mill in environments without a JVM installed, the native launcher can download its
+own JVM as necessary. You need to specify the version you want via a  <code>.mill-jvm-version</code>
+file such as:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">echo temurin:17.0.6 &gt; .mill-jvm-version</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>.mill-jvm-version</code> can also be used with Mill’s default JVM launcher, if you want
+your Mill process to use a different JVM than what you have installed globally.</p>
+</div>
 </div>
 </div>
 </div>
