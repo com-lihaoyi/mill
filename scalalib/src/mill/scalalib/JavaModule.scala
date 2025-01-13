@@ -799,13 +799,8 @@ trait JavaModule
       localClasspath()
   }
 
-  /**
-   * Creates a manifest representation which can be modified or replaced
-   * The default implementation just adds the `Manifest-Version`, `Main-Class` and `Created-By` attributes
-   */
-  def manifest: T[JarManifest] = Task {
-    Jvm.createManifest(finalMainClassOpt().toOption)
-  }
+  // bincompat stub
+  def manifest: T[JarManifest] = Task { manifest0() }
 
   /**
    * Build the assembly for upstream dependencies separate from the current
