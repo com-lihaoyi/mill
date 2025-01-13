@@ -32,6 +32,10 @@ class IntegrationTester(
 }
 
 object IntegrationTester {
+  def millTestSuiteEnv: Map[String, String] = Map(
+    MILL_TEST_SUITE -> this.getClass().toString(),
+    "JAVA_HOME" -> sys.props("java.home")
+  )
 
   /**
    * A very simplified version of `os.CommandResult` meant for easily
@@ -56,7 +60,7 @@ object IntegrationTester {
      */
     def eval(
         cmd: os.Shellable,
-        env: Map[String, String] = millTestSuiteEnv,
+        env: Map[String, String] = Map.empty,
         cwd: os.Path = workspacePath,
         stdin: os.ProcessInput = os.Pipe,
         stdout: os.ProcessOutput = os.Pipe,
@@ -75,7 +79,7 @@ object IntegrationTester {
 
       val res0 = os.call(
         cmd = shellable,
-        env = env ++ Seq("JAVA_HOME" -> sys.props("java.home")),
+        env = millTestSuiteEnv ++ env,
         cwd = cwd,
         stdin = stdin,
         stdout = stdout,
@@ -93,8 +97,6 @@ object IntegrationTester {
         fansi.Str(res0.err.text(), errorMode = fansi.ErrorMode.Strip).plainText.trim
       )
     }
-
-    def millTestSuiteEnv: Map[String, String] = Map(MILL_TEST_SUITE -> this.getClass().toString())
 
     /**
      * Helpers to read the `.json` metadata files belonging to a particular task

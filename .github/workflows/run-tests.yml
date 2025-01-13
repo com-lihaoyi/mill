@@ -25,12 +25,9 @@ name: Run Tests
 
 # We run full CI on push builds to main and on all pull requests
 #
-# Manual builds (workflow_dispatch) to the main branch are also published
-#
-# To maximize bug-catching changes while keeping CI times reasonable, we run:
-# - All tests on Linux/Java17
-# - Fewer tests on Linux/Java11 and Windows/Java17
-# - Fewest tests on Windows/Java11
+# To maximize bug-catching changes while keeping CI times reasonable, we run
+# all tests on Linux, scattered between Java 11/17, except for one job run
+# on MacOS instead and a subset of jobs also run on windows
 
 on:
   push:
@@ -72,7 +69,11 @@ jobs:
 
       - run: "echo temurin:17 > .mill-jvm-version"
 
-      - run: ./mill -i example.javalib.basic.__.local.server.test
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - run: ./mill -i example.scalalib.__.local.server.test
 
   linux:
     needs: build-linux
@@ -99,10 +100,6 @@ jobs:
 
           - java-version: 17 # Run this with Mill native launcher as a smoketest
             millargs: "'example.javalib.__.native.server.test'"
-            install-android-sdk: false
-
-          - java-version: 17
-            millargs: "'example.scalalib.__.local.server.test'"
             install-android-sdk: false
 
           - java-version: 17
@@ -161,6 +158,10 @@ jobs:
         include:
           # just run a subset of examples/ on Windows, because for some reason running
           # the whole suite can take hours on windows v.s. half an hour on linux
+          #
+          # * One job unit tests,
+          # * One job each for local/packaged/native tests
+          # * At least one job for each of fork/server tests, and example/integration tests
           - java-version: 11
             millargs: '"{main,scalalib,bsp}.__.test"'
 
@@ -172,9 +173,6 @@ jobs:
 
           - java-version: 11 # Run this with Mill native launcher as a smoketest
             millargs: "'integration.invalidation.__.native.server.test'"
-
-          - java-version: 11
-            millargs: "contrib.__.test"
 
     uses: ./.github/workflows/post-build-selective.yml
     with:

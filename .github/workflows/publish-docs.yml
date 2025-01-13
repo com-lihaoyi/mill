@@ -12,7 +12,6 @@ on:
 # old runs since any newer run renders older ones irrelevant
 concurrency:
   group: publish-docs
-  cancel-in-progress: true
 
 jobs:
   publishDocs:

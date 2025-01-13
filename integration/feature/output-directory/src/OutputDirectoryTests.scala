@@ -18,7 +18,7 @@ object OutputDirectoryTests extends UtestIntegrationTestSuite {
       import tester._
       eval(
         "__.compile",
-        env = millTestSuiteEnv + (EnvVars.MILL_OUTPUT_DIR -> "testing/test-out")
+        env = Map(EnvVars.MILL_OUTPUT_DIR -> "testing/test-out")
       ).isSuccess ==> true
       val expectedOutDir = workspacePath / "testing/test-out"
       val defaultOutDir = workspacePath / OutFiles.defaultOut
@@ -31,7 +31,7 @@ object OutputDirectoryTests extends UtestIntegrationTestSuite {
       val outDir = os.temp.dir() / "tmp-out"
       eval(
         "__.compile",
-        env = millTestSuiteEnv + (EnvVars.MILL_OUTPUT_DIR -> outDir.toString)
+        env = Map(EnvVars.MILL_OUTPUT_DIR -> outDir.toString)
       ).isSuccess ==> true
       val defaultOutDir = workspacePath / OutFiles.defaultOut
       assert(os.isDir(outDir))
