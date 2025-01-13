@@ -13,6 +13,8 @@ object foo extends JavaModule {
       ivy"com.google.guava:guava:33.3.0-jre"
     )
   }
+
+
 }
 
 // This is a basic Mill build for a single `JavaModule`, with two

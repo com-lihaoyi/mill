@@ -15,6 +15,7 @@ import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspBuildTarget, BspModule, BspUri, JvmBuildTarget}
 import mill.scalalib.publish.Artifact
 import mill.util.Jvm
+import mill.util.Jvm.createClasspathPassingJar
 import os.{Path, ProcessOutput}
 
 import scala.annotation.nowarn
@@ -1029,10 +1030,13 @@ trait JavaModule
    * you do not want a build tool running
    */
   def launcher = Task {
+    val classpathJar = Task.dest / "classpath.jar"
+    createClasspathPassingJar(classpathJar, runClasspath().map(_.path))
+
     Result.Success(
       Jvm.createLauncher(
         finalMainClass(),
-        runClasspath().map(_.path),
+        Agg(classpathJar),
         forkArgs()
       )
     )
