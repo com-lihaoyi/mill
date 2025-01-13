@@ -171,7 +171,7 @@ jobs:
             millargs: "'integration.{feature,failure}.__.packaged.fork.test'"
 
           - java-version: 11 # Run this with Mill native launcher as a smoketest
-            millargs: "'integration.invalidation.__.packaged.server.test'"
+            millargs: "'integration.invalidation.__.native.server.test'"
 
           - java-version: 11
             millargs: "contrib.__.test"
