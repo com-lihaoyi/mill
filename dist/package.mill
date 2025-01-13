@@ -165,31 +165,15 @@ object `package` extends RootModule  with InstallModule {
     os.write(vmOptionsFile, millOptionsContent)
     val jvmArgs = otherArgs ++ List(s"-DMILL_OPTIONS_PATH=$vmOptionsFile")
     val classpath = runClasspath().map(_.path.toString)
+    val classpathJar = Task.dest / "classpath.jar"
+    Jvm.createClasspathPassingJar(classpathJar, runClasspath().map(_.path))
+
     launcherScript(
       jvmArgs,
       jvmArgs,
       classpath,
-      Agg(pathingJar().path.toString) // TODO not working yet on Windows! see #791
+      Agg(classpathJar.toString()) // TODO not working yet on Windows! see #791
     )
-  }
-
-  def pathingJar = Task {
-    // see http://todayguesswhat.blogspot.com/2011/03/jar-manifestmf-class-path-referencing.html
-    // for more detailed explanation
-    val isWin = scala.util.Properties.isWin
-    val classpath = runClasspath().map { pathRef =>
-      val path =
-        if (isWin) "/" + pathRef.path.toString.replace("\\", "/")
-        else pathRef.path.toString
-      if (path.endsWith(".jar")) path
-      else path + "/"
-    }.mkString(" ")
-    val manifestEntries = Map[String, String](
-      java.util.jar.Attributes.Name.MANIFEST_VERSION.toString -> "1.0",
-      "Created-By" -> "Scala mill",
-      "Class-Path" -> classpath
-    )
-    Jvm.createJar(Agg(), JarManifest(manifestEntries))
   }
 
   def run(args: Task[Args] = Task.Anon(Args())) = Task.Command(exclusive = true) {

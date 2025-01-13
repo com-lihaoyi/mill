@@ -15,9 +15,11 @@ import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspBuildTarget, BspModule, BspUri, JvmBuildTarget}
 import mill.scalalib.publish.Artifact
 import mill.util.Jvm
+
 import os.{Path, ProcessOutput}
 
 import scala.annotation.nowarn
+import mill.define.Target
 
 /**
  * Core configuration required to compile a single Java compilation target
@@ -1028,14 +1030,16 @@ trait JavaModule
    * code, without the Mill process. Useful for deployment & other places where
    * you do not want a build tool running
    */
-  def launcher = Task {
-    Result.Success(
-      Jvm.createLauncher(
-        finalMainClass(),
-        runClasspath().map(_.path),
-        forkArgs()
-      )
-    )
+  def launcher: Target[PathRef] = Task {
+    val launchClasspath =
+      if (!runUseArgsFile()) runClasspath().map(_.path)
+      else {
+        val classpathJar = Task.dest / "classpath.jar"
+        Jvm.createClasspathPassingJar(classpathJar, runClasspath().map(_.path))
+        Agg(classpathJar)
+      }
+
+    Jvm.createLauncher(finalMainClass(), launchClasspath, forkArgs())
   }
 
   /**

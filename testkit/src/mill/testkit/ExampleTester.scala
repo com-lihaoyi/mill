@@ -95,6 +95,7 @@ class ExampleTester(
       processCommand(expectedSnippets, commandHead.trim)
     }
   }
+  private val millExt = if (Util.windowsPlatform) ".bat" else ""
 
   def processCommand(
       expectedSnippets: Vector[String],
@@ -102,8 +103,8 @@ class ExampleTester(
       check: Boolean = true
   ): Unit = {
     val commandStr = commandStr0 match {
-      case s"mill $rest" => s"./mill --disable-ticker $rest"
-      case s"./mill $rest" => s"./mill --disable-ticker $rest"
+      case s"mill $rest" => s"./mill$millExt --disable-ticker $rest"
+      case s"./mill $rest" => s"./mill$millExt --disable-ticker $rest"
       case s"curl $rest" => s"curl --retry 7 --retry-all-errors $rest"
       case s => s
     }
@@ -191,7 +192,7 @@ class ExampleTester(
 
     try {
       initWorkspace()
-      os.copy.over(millExecutable, workspacePath / "mill")
+      os.copy.over(millExecutable, workspacePath / s"mill$millExt")
       for (commandBlock <- commandBlocks) processCommandBlock(commandBlock)
     } finally {
       if (clientServerMode) processCommand(Vector(), "./mill shutdown", check = false)
