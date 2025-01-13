@@ -73,7 +73,10 @@ object Util {
   def millProjectModule(
       artifact: String,
       repositories: Seq[Repository],
-      @deprecated("This parameter is now ignored, use exclusions instead or mark some dependencies as provided when you publish modules", "Mill after 0.12.5")
+      @deprecated(
+        "This parameter is now ignored, use exclusions instead or mark some dependencies as provided when you publish modules",
+        "Mill after 0.12.5"
+      )
       deprecatedResolveFilter: os.Path => Boolean = _ => true,
       // this should correspond to the mill runtime Scala version
       artifactSuffix: String = "_2.13"
