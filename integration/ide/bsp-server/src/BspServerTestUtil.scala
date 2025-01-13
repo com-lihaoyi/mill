@@ -58,7 +58,6 @@ object BspServerTestUtil {
       )
     }
 
-
     lazy val jsonStr = normalizeLocalValues(
       gson.toJson(
         value,

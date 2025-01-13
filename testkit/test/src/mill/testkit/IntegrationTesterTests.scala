@@ -29,7 +29,8 @@ object IntegrationTesterTests extends TestSuite with IntegrationTestSuite {
 
       // Make sure serverId file is correctly removed to ensure the Mill
       // server process shuts down
-      val remainingServerIdFiles = os.walk(workspacePath / "out").filter(_.last == ServerFiles.serverId)
+      val remainingServerIdFiles =
+        os.walk(workspacePath / "out").filter(_.last == ServerFiles.serverId)
       assert(remainingServerIdFiles.isEmpty)
 
     }
