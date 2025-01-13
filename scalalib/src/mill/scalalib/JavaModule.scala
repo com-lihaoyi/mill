@@ -1025,9 +1025,21 @@ trait JavaModule
     super.forkEnv()
   }
 
-  // bincompat stub, to be folded into `RunModule#launcher` in future
-  override def launcher: Target[PathRef] = Task {
-    launcher0()
+  /**
+   * Builds a command-line "launcher" file that can be used to run this module's
+   * code, without the Mill process. Useful for deployment & other places where
+   * you do not want a build tool running
+   */
+  def launcher: Target[PathRef] = Task {
+    val launchClasspath =
+      if (!runUseArgsFile()) runClasspath().map(_.path)
+      else {
+        val classpathJar = Task.dest / "classpath.jar"
+        Jvm.createClasspathPassingJar(classpathJar, runClasspath().map(_.path))
+        Agg(classpathJar)
+      }
+
+    Jvm.createLauncher(finalMainClass(), launchClasspath, forkArgs())
   }
 
   /**

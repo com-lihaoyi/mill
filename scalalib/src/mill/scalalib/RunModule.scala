@@ -231,25 +231,6 @@ trait RunModule extends WithZincWorker {
         Result.Failure("subprocess failed")
     }
   }
-
-  private[mill] def launcher0 = Task {
-    val launchClasspath =
-      if (!runUseArgsFile()) runClasspath().map(_.path)
-      else {
-        val classpathJar = Task.dest / "classpath.jar"
-        Jvm.createClasspathPassingJar(classpathJar, runClasspath().map(_.path))
-        Agg(classpathJar)
-      }
-
-    Jvm.createLauncher(finalMainClass(), launchClasspath, forkArgs())
-  }
-
-  /**
-   * Builds a command-line "launcher" file that can be used to run this module's
-   * code, without the Mill process. Useful for deployment & other places where
-   * you do not want a build tool running
-   */
-  def launcher = Task { launcher0() }
 }
 
 object RunModule {
