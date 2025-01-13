@@ -6,6 +6,7 @@ import mill.main.client.ServerFiles.serverId
 trait IntegrationTesterBase {
   def workspaceSourcePath: os.Path
   def clientServerMode: Boolean
+
   /**
    * The working directory of the integration test suite, which is the root of the
    * Mill build being tested. Contains the `build.mill` file, any application code, and
