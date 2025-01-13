@@ -32,6 +32,10 @@ class IntegrationTester(
 }
 
 object IntegrationTester {
+  def millTestSuiteEnv: Map[String, String] = Map(
+    MILL_TEST_SUITE -> this.getClass().toString(),
+    "JAVA_HOME" -> sys.props("java.home")
+  )
 
   /**
    * A very simplified version of `os.CommandResult` meant for easily
@@ -94,10 +98,7 @@ object IntegrationTester {
       )
     }
 
-    def millTestSuiteEnv: Map[String, String] = Map(
-      MILL_TEST_SUITE -> this.getClass().toString(),
-      "JAVA_HOME" -> sys.props("java.home")
-    )
+
 
     /**
      * Helpers to read the `.json` metadata files belonging to a particular task
