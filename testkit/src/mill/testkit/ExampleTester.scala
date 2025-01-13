@@ -69,7 +69,7 @@ object ExampleTester {
 }
 
 class ExampleTester(
-    clientServerMode: Boolean,
+    val clientServerMode: Boolean,
     val workspaceSourcePath: os.Path,
     millExecutable: os.Path,
     bashExecutable: String = ExampleTester.defaultBashExecutable(),

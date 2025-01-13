@@ -5,7 +5,7 @@ import mill.main.client.ServerFiles.serverId
 
 trait IntegrationTesterBase {
   def workspaceSourcePath: os.Path
-
+  def clientServerMode: Boolean
   /**
    * The working directory of the integration test suite, which is the root of the
    * Mill build being tested. Contains the `build.mill` file, any application code, and
@@ -59,7 +59,7 @@ trait IntegrationTesterBase {
    */
   def removeServerIdFile(): Unit = {
     val serverPath0 = os.Path(out, workspacePath) / millServer
-    if (os.exists(serverPath0)) {
+    if (clientServerMode) {
       for (serverPath <- os.list.stream(serverPath0)) os.remove(serverPath / serverId)
 
       Thread.sleep(500) // give a moment for the server to notice the file is gone and exit
