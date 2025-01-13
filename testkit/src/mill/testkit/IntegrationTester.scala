@@ -1,6 +1,9 @@
 package mill.testkit
 
+import mill.main.client.EnvVars.MILL_TEST_SUITE
+import mill.define.Segments
 import mill.eval.Evaluator
+import mill.main.client.OutFiles
 import mill.resolve.SelectMode
 import ujson.Value
 
@@ -15,7 +18,7 @@ import ujson.Value
  *                         is run with `--no-server`
  * @param workspaceSourcePath The folder in which the `build.mill` and project files being
  *                            tested comes from. These are copied into a temporary folder
- *                            and are no modified during tests
+ *                            and are not modified during tests
  * @param millExecutable What Mill executable to use.
  */
 class IntegrationTester(
@@ -29,6 +32,10 @@ class IntegrationTester(
 }
 
 object IntegrationTester {
+  def millTestSuiteEnv: Map[String, String] = Map(
+    MILL_TEST_SUITE -> this.getClass().toString(),
+    "JAVA_HOME" -> sys.props("java.home")
+  )
 
   /**
    * A very simplified version of `os.CommandResult` meant for easily
@@ -53,7 +60,7 @@ object IntegrationTester {
      */
     def eval(
         cmd: os.Shellable,
-        env: Map[String, String] = millTestSuiteEnv,
+        env: Map[String, String] = Map.empty,
         cwd: os.Path = workspacePath,
         stdin: os.ProcessInput = os.Pipe,
         stdout: os.ProcessOutput = os.Pipe,
@@ -68,10 +75,11 @@ object IntegrationTester {
 
       val debugArgs = Option.when(debugLog)("--debug")
 
-      val shellable: os.Shellable = (millExecutable, serverArgs, debugArgs, cmd)
+      val shellable: os.Shellable = (millExecutable, serverArgs, "--disable-ticker", debugArgs, cmd)
+
       val res0 = os.call(
         cmd = shellable,
-        env = env,
+        env = millTestSuiteEnv ++ env,
         cwd = cwd,
         stdin = stdin,
         stdout = stdout,
@@ -90,8 +98,6 @@ object IntegrationTester {
       )
     }
 
-    private val millTestSuiteEnv = Map("MILL_TEST_SUITE" -> this.getClass().toString())
-
     /**
      * Helpers to read the `.json` metadata files belonging to a particular task
      * (specified by [[selector0]]) from the `out/` folder.
@@ -104,11 +110,11 @@ object IntegrationTester {
        * Returns the raw text of the `.json` metadata file
        */
       def text: String = {
-        val Seq((List(selector), _)) =
+        val Seq((Seq(selector), _)) =
           mill.resolve.ParseArgs.apply(Seq(selector0), SelectMode.Separated).getOrElse(???)
 
-        val segments = selector._2.value.flatMap(_.pathSegments)
-        os.read(workspacePath / "out" / segments.init / s"${segments.last}.json")
+        val segments = selector._2.getOrElse(Segments()).value.flatMap(_.pathSegments)
+        os.read(workspacePath / OutFiles.out / segments.init / s"${segments.last}.json")
       }
 
       /**
@@ -141,7 +147,7 @@ object IntegrationTester {
       if (clientServerMode) {
         // try to stop the server
         os.call(
-          cmd = (millExecutable, "shutdown"),
+          cmd = (millExecutable, "--no-build-lock", "shutdown"),
           cwd = workspacePath,
           stdin = os.Inherit,
           stdout = os.Inherit,

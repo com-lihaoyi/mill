@@ -26,10 +26,11 @@ object Hello {
     private[this] var hdDefined: Boolean = false
 
     def hasNext: Boolean = hdDefined || {
-      do {
+      while ({
         if (!parent.hasNext) return false
         hd = parent.next()
-      } while (!pred(hd))
+        !pred(hd)
+      }) {}
       hdDefined = true
       true
     }

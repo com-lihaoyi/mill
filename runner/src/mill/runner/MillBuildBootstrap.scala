@@ -1,16 +1,16 @@
 package mill.runner
 
 import mill.util.{ColorLogger, PrefixLogger, Watchable}
-import mill.main.BuildInfo
-import mill.main.client.CodeGenConstants._
-import mill.api.{PathRef, Val, internal}
+import mill.main.{BuildInfo, RootModule, RunScript}
+import mill.main.client.CodeGenConstants.*
+import mill.api.{PathRef, SystemStreams, Val, internal}
 import mill.eval.Evaluator
-import mill.main.RunScript
 import mill.resolve.SelectMode
-import mill.define.{BaseModule, Discover, Segments}
-import mill.main.client.OutFiles._
+import mill.define.{BaseModule, Segments}
+import mill.main.client.OutFiles.{millBuild, millRunnerState}
 
 import java.net.URLClassLoader
+import scala.util.Using
 
 /**
  * Logic around bootstrapping Mill, creating a [[MillBuildRootModule.BootstrapModule]]
@@ -30,6 +30,7 @@ import java.net.URLClassLoader
 @internal
 class MillBuildBootstrap(
     projectRoot: os.Path,
+    output: os.Path,
     home: os.Path,
     keepGoing: Boolean,
     imports: Seq[String],
@@ -38,15 +39,17 @@ class MillBuildBootstrap(
     targetsAndParams: Seq[String],
     prevRunnerState: RunnerState,
     logger: ColorLogger,
-    disableCallgraphInvalidation: Boolean,
-    needBuildSc: Boolean,
+    disableCallgraph: Boolean,
+    needBuildFile: Boolean,
     requestedMetaLevel: Option[Int],
     allowPositionalCommandArgs: Boolean,
-    systemExit: Int => Nothing
+    systemExit: Int => Nothing,
+    streams0: SystemStreams,
+    selectiveExecution: Boolean
 ) {
   import MillBuildBootstrap._
 
-  val millBootClasspath: Seq[os.Path] = prepareMillBootClasspath(projectRoot / out)
+  val millBootClasspath: Seq[os.Path] = prepareMillBootClasspath(output)
   val millBootClasspathPathRefs: Seq[PathRef] = millBootClasspath.map(PathRef(_, quick = true))
 
   def evaluate(): Watching.Result[RunnerState] = CliImports.withValue(imports) {
@@ -54,7 +57,7 @@ class MillBuildBootstrap(
 
     for ((frame, depth) <- runnerState.frames.zipWithIndex) {
       os.write.over(
-        recOut(projectRoot, depth) / millRunnerState,
+        recOut(output, depth) / millRunnerState,
         upickle.default.write(frame.loggedData, indent = 4),
         createFolders = true
       )
@@ -76,9 +79,9 @@ class MillBuildBootstrap(
 
     val nestedState: RunnerState =
       if (depth == 0) {
-        // On this level we typically want assume a Mill project, which means we want to require an existing `build.mill`.
+        // On this level we typically want to assume a Mill project, which means we want to require an existing `build.mill`.
         // Unfortunately, some targets also make sense without a `build.mill`, e.g. the `init` command.
-        // Hence we only report a missing `build.mill` as an problem if the command itself does not succeed.
+        // Hence, we only report a missing `build.mill` as a problem if the command itself does not succeed.
         lazy val state = evaluateRec(depth + 1)
         if (
           rootBuildFileNames.exists(rootBuildFileName =>
@@ -87,12 +90,12 @@ class MillBuildBootstrap(
         ) state
         else {
           val msg =
-            s"${rootBuildFileNames.head} file not found in $projectRoot. Are you in a Mill project folder?"
-          if (needBuildSc) {
-            RunnerState(None, Nil, Some(msg))
+            s"No build file (${rootBuildFileNames.mkString(", ")}) found in $projectRoot. Are you in a Mill project directory?"
+          if (needBuildFile) {
+            RunnerState(None, Nil, Some(msg), None)
           } else {
             state match {
-              case RunnerState(bootstrapModuleOpt, frames, Some(error)) =>
+              case RunnerState(bootstrapModuleOpt, frames, Some(error), None) =>
                 // Add a potential clue (missing build.mill) to the underlying error message
                 RunnerState(bootstrapModuleOpt, frames, Some(msg + "\n" + error))
               case state => state
@@ -102,23 +105,22 @@ class MillBuildBootstrap(
       } else {
         val parsedScriptFiles = FileImportGraph.parseBuildFiles(
           projectRoot,
-          recRoot(projectRoot, depth) / os.up
+          recRoot(projectRoot, depth) / os.up,
+          output
         )
 
-        if (parsedScriptFiles.millImport) evaluateRec(depth + 1)
+        if (parsedScriptFiles.metaBuild) evaluateRec(depth + 1)
         else {
           val bootstrapModule =
-            new MillBuildRootModule.BootstrapModule(
-              projectRoot,
-              recRoot(projectRoot, depth),
-              millBootClasspath
-            )(
-              mill.main.RootModule.Info(
+            new MillBuildRootModule.BootstrapModule()(
+              new RootModule.Info(
+                millBootClasspath,
                 recRoot(projectRoot, depth),
-                Discover[MillBuildRootModule.BootstrapModule]
+                output,
+                projectRoot
               )
             )
-          RunnerState(Some(bootstrapModule), Nil, None)
+          RunnerState(Some(bootstrapModule), Nil, None, Some(parsedScriptFiles.buildFile))
         }
       }
 
@@ -142,7 +144,7 @@ class MillBuildBootstrap(
           None,
           Nil,
           // We don't want to evaluate anything in this depth (and above), so we just skip creating an evaluator,
-          // mainly because we didn't even constructed (compiled) it's classpath
+          // mainly because we didn't even construct (compile) its classpath
           None,
           None
         )
@@ -153,7 +155,7 @@ class MillBuildBootstrap(
           case Some(nestedFrame) => getRootModule(nestedFrame.classLoaderOpt.get)
         }
 
-        val evaluator = makeEvaluator(
+        Using.resource(makeEvaluator(
           prevFrameOpt.map(_.workerCache).getOrElse(Map.empty),
           nestedState.frames.headOption.map(_.methodCodeHashSignatures).getOrElse(Map.empty),
           rootModule,
@@ -174,32 +176,23 @@ class MillBuildBootstrap(
             .flatMap(_.classLoaderOpt)
             .map(_.hashCode())
             .getOrElse(0),
-          depth
-        )
-
-        if (depth != 0) {
-          val retState = processRunClasspath(
-            nestedState,
-            rootModule,
-            evaluator,
-            prevFrameOpt,
-            prevOuterFrameOpt
-          )
-
-          if (retState.errorOpt.isEmpty && depth == requestedDepth) {
-            // TODO: print some message and indicate actual evaluated frame
-            val evalRet = processFinalTargets(nestedState, rootModule, evaluator)
-            if (evalRet.errorOpt.isEmpty) retState
-            else evalRet
-          } else
-            retState
-
-        } else {
-          processFinalTargets(nestedState, rootModule, evaluator)
+          depth,
+          actualBuildFileName = nestedState.buildFile
+        )) { evaluator =>
+          if (depth == requestedDepth) processFinalTargets(nestedState, rootModule, evaluator)
+          else if (depth <= requestedDepth) nestedState
+          else {
+            processRunClasspath(
+              nestedState,
+              rootModule,
+              evaluator,
+              prevFrameOpt,
+              prevOuterFrameOpt
+            )
+          }
         }
-
       }
-    // println(s"-evaluateRec($depth) " + recRoot(projectRoot, depth))
+
     res
   }
 
@@ -223,7 +216,8 @@ class MillBuildBootstrap(
     evaluateWithWatches(
       rootModule,
       evaluator,
-      Seq("{runClasspath,compile,methodCodeHashSignatures}")
+      Seq("{runClasspath,compile,methodCodeHashSignatures}"),
+      selectiveExecution = false
     ) match {
       case (Left(error), evalWatches, moduleWatches) =>
         val evalState = RunnerState.Frame(
@@ -252,11 +246,11 @@ class MillBuildBootstrap(
           _.runClasspath.map(_.sig).sum == runClasspath.map(_.sig).sum
         )
 
-        // handling module watching is a bit weird; we need to know whether or
-        // not to create a new classloader immediately after the `runClasspath`
+        // handling module watching is a bit weird; we need to know whether
+        // to create a new classloader immediately after the `runClasspath`
         // is compiled, but we only know what the respective `moduleWatched`
         // contains after the evaluation on this classloader has executed, which
-        // happens one level up in the recursion. Thus to check whether
+        // happens one level up in the recursion. Thus, to check whether
         // `moduleWatched` needs us to re-create the classloader, we have to
         // look at the `moduleWatched` of one frame up (`prevOuterFrameOpt`),
         // and not the `moduleWatched` from the current frame (`prevFrameOpt`)
@@ -307,7 +301,7 @@ class MillBuildBootstrap(
     val (evaled, evalWatched, moduleWatches) = Evaluator.allBootstrapEvaluators.withValue(
       Evaluator.AllBootstrapEvaluators(Seq(evaluator) ++ nestedState.frames.flatMap(_.evaluator))
     ) {
-      evaluateWithWatches(rootModule, evaluator, targetsAndParams)
+      evaluateWithWatches(rootModule, evaluator, targetsAndParams, selectiveExecution)
     }
 
     val evalState = RunnerState.Frame(
@@ -330,20 +324,25 @@ class MillBuildBootstrap(
       rootModule: BaseModule,
       millClassloaderSigHash: Int,
       millClassloaderIdentityHash: Int,
-      depth: Int
+      depth: Int,
+      actualBuildFileName: Option[String] = None
   ): Evaluator = {
 
-    val bootLogPrefix =
-      if (depth == 0) ""
-      else "[" + (Seq.fill(depth - 1)(millBuild) ++ Seq("build.mill")).mkString("/") + "] "
+    val bootLogPrefix: Seq[String] =
+      if (depth == 0) Nil
+      else Seq(
+        (Seq.fill(depth - 1)(millBuild) ++
+          Seq(actualBuildFileName.getOrElse("<build>")))
+          .mkString("/")
+      )
 
-    mill.eval.EvaluatorImpl(
+    mill.eval.EvaluatorImpl.make(
       home,
       projectRoot,
-      recOut(projectRoot, depth),
-      recOut(projectRoot, depth),
+      recOut(output, depth),
+      recOut(output, depth),
       rootModule,
-      PrefixLogger(logger, "", tickerContext = bootLogPrefix),
+      new PrefixLogger(logger, bootLogPrefix),
       classLoaderSigHash = millClassloaderSigHash,
       classLoaderIdentityHash = millClassloaderIdentityHash,
       workerCache = workerCache.to(collection.mutable.Map),
@@ -351,9 +350,11 @@ class MillBuildBootstrap(
       failFast = !keepGoing,
       threadCount = threadCount,
       methodCodeHashSignatures = methodCodeHashSignatures,
-      disableCallgraphInvalidation = disableCallgraphInvalidation,
+      disableCallgraph = disableCallgraph,
       allowPositionalCommandArgs = allowPositionalCommandArgs,
-      systemExit = systemExit
+      systemExit = systemExit,
+      exclusiveSystemStreams = streams0,
+      selectiveExecution = selectiveExecution
     )
   }
 
@@ -394,11 +395,22 @@ object MillBuildBootstrap {
   def evaluateWithWatches(
       rootModule: BaseModule,
       evaluator: Evaluator,
-      targetsAndParams: Seq[String]
+      targetsAndParams: Seq[String],
+      selectiveExecution: Boolean
   ): (Either[String, Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
     rootModule.evalWatchedValues.clear()
+    val previousClassloader = Thread.currentThread().getContextClassLoader
     val evalTaskResult =
-      RunScript.evaluateTasksNamed(evaluator, targetsAndParams, SelectMode.Separated)
+      try {
+        Thread.currentThread().setContextClassLoader(rootModule.getClass.getClassLoader)
+        RunScript.evaluateTasksNamed(
+          evaluator,
+          targetsAndParams,
+          SelectMode.Separated,
+          selectiveExecution = selectiveExecution
+        )
+      } finally Thread.currentThread().setContextClassLoader(previousClassloader)
+
     val moduleWatched = rootModule.watchedValues.toVector
     val addedEvalWatched = rootModule.evalWatchedValues.toVector
 
@@ -422,8 +434,8 @@ object MillBuildBootstrap {
     projectRoot / Seq.fill(depth)(millBuild)
   }
 
-  def recOut(projectRoot: os.Path, depth: Int): os.Path = {
-    projectRoot / out / Seq.fill(depth)(millBuild)
+  def recOut(output: os.Path, depth: Int): os.Path = {
+    output / Seq.fill(depth)(millBuild)
   }
 
 }

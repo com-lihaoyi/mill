@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import mill.T
+import mill.Task
 
 import scala.annotation.nowarn
 
@@ -9,7 +9,7 @@ import scala.annotation.nowarn
  */
 trait SbtModule extends ScalaModule with MavenModule {
 
-  override def sources = T.sources(
+  override def sources = Task.Sources(
     millSourcePath / "src/main/scala",
     millSourcePath / "src/main/java"
   )
@@ -18,7 +18,7 @@ trait SbtModule extends ScalaModule with MavenModule {
   type SbtTests = SbtModuleTests
   @deprecated("Use SbtTests instead", since = "Mill 0.11.10")
   trait SbtModuleTests extends ScalaTests with MavenTests {
-    override def sources = T.sources(
+    override def sources = Task.Sources(
       millSourcePath / "src/test/scala",
       millSourcePath / "src/test/java"
     )

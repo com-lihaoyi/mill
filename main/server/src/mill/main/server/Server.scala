@@ -1,10 +1,8 @@
 package mill.main.server
 
 import java.io._
-import java.net.Socket
+import java.net.{InetAddress, Socket}
 import scala.jdk.CollectionConverters._
-import org.newsclub.net.unix.AFUNIXServerSocket
-import org.newsclub.net.unix.AFUNIXSocketAddress
 import mill.main.client._
 import mill.api.SystemStreams
 import mill.main.client.ProxyStream.Output
@@ -32,7 +30,7 @@ abstract class Server[T](
 
   val serverId: String = java.lang.Long.toHexString(scala.util.Random.nextLong())
   def serverLog0(s: String): Unit = {
-    if (running && (testLogEvenWhenServerIdWrong || checkServerIdFile().isEmpty)) {
+    if (os.exists(serverDir) || testLogEvenWhenServerIdWrong) {
       os.write.append(serverDir / ServerFiles.serverLog, s"$s\n", createFolders = true)
     }
   }
@@ -43,40 +41,39 @@ abstract class Server[T](
     serverLog("running server in " + serverDir)
     val initialSystemProperties = sys.props.toMap
 
-    try Server.tryLockBlock(locks.processLock) {
+    try {
+      Server.tryLockBlock(locks.processLock) {
+        serverLog("server file locked")
         watchServerIdFile()
-
+        val serverSocket = new java.net.ServerSocket(0, 0, InetAddress.getByName(null))
+        os.write.over(serverDir / ServerFiles.socketPort, serverSocket.getLocalPort.toString)
+        serverLog("listening on port " + serverSocket.getLocalPort)
         while (
           running && {
-            val serverSocket = bindSocket()
-            try
-              interruptWithTimeout(() => serverSocket.close(), () => serverSocket.accept()) match {
-                case None => false
-                case Some(sock) =>
-                  serverLog("handling run")
-                  try handleRun(sock, initialSystemProperties)
-                  catch {
-                    case e: Throwable => serverLog(e + "\n" + e.getStackTrace.mkString("\n"))
-                  } finally sock.close();
-                  true
-              }
-            finally serverSocket.close()
+            interruptWithTimeout(() => serverSocket.close(), () => serverSocket.accept()) match {
+              case None => false
+              case Some(sock) =>
+                serverLog("handling run")
+                try handleRun(sock, initialSystemProperties)
+                catch {
+                  case e: Throwable =>
+                    serverLog(e.toString + "\n" + e.getStackTrace.mkString("\n"))
+                } finally sock.close();
+                true
+            }
           }
         ) ()
-
+        serverLog("server loop ended")
       }.getOrElse(throw new Exception("Mill server process already present"))
-    finally exitServer()
-  }
-
-  def bindSocket(): AFUNIXServerSocket = {
-    val socketPath = os.Path(ServerFiles.pipe(serverDir.toString()))
-    os.remove.all(socketPath)
-
-    val relFile = socketPath.relativeTo(os.pwd).toNIO.toFile
-    serverLog("listening on socket " + relFile)
-    // Use relative path because otherwise the full path might be too long for the socket API
-    val addr = AFUNIXSocketAddress.of(relFile)
-    AFUNIXServerSocket.bindOn(addr)
+    } catch {
+      case e: Throwable =>
+        serverLog("server loop error: " + e)
+        serverLog("server loop stack trace: " + e.getStackTrace.mkString("\n"))
+        throw e
+    } finally {
+      serverLog("finally exitServer")
+      exitServer()
+    }
   }
 
   def proxyInputStreamThroughPumper(in: InputStream): PipedInputStream = {
@@ -103,7 +100,7 @@ abstract class Server[T](
               exitServer()
           }
         },
-      "Server ID Checker Thread"
+      "Server ID Checker Thread: " + serverDir
     )
     serverIdThread.start()
   }
@@ -125,7 +122,9 @@ abstract class Server[T](
     val thread = new Thread(
       () => {
         try Thread.sleep(acceptTimeoutMillis)
-        catch { case t: InterruptedException => /* Do Nothing */ }
+        catch {
+          case t: InterruptedException => /* Do Nothing */
+        }
         if (interrupt) {
           interrupted = true
           serverLog(s"Interrupting after ${acceptTimeoutMillis}ms")
@@ -145,8 +144,8 @@ abstract class Server[T](
       else res
 
     } finally {
-      thread.interrupt()
       interrupt = false
+      thread.interrupt()
     }
   }
 
@@ -205,8 +204,9 @@ abstract class Server[T](
             )
 
             stateCache = newStateCache
-            serverLog("exitCode " + ServerFiles.exitCode)
-            os.write.over(serverDir / ServerFiles.exitCode, if (result) "0" else "1")
+            val exitCode = if (result) "0" else "1"
+            serverLog("exitCode " + exitCode)
+            os.write.over(serverDir / ServerFiles.exitCode, exitCode)
           } finally {
             done = true
             idle = true
@@ -214,10 +214,11 @@ abstract class Server[T](
         "MillServerActionRunner"
       )
       t.start()
+
       // We cannot simply use Lock#await here, because the filesystem doesn't
       // realize the clientLock/serverLock are held by different threads in the
       // two processes and gives a spurious deadlock error
-      while (!done && !locks.clientLock.probe()) Thread.sleep(3)
+      while (!done && !locks.clientLock.probe()) Thread.sleep(1)
 
       if (!idle) {
         serverLog("client interrupted while server was executing command")
@@ -268,8 +269,12 @@ object Server {
     lock.tryLock() match {
       case null => None
       case l =>
-        try Some(t)
-        finally l.release()
+        if (l.isLocked) {
+          try Some(t)
+          finally l.release()
+        } else {
+          None
+        }
     }
   }
 }

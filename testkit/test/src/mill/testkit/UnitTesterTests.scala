@@ -5,11 +5,11 @@ import utest._
 
 object UnitTesterTests extends TestSuite {
 
-  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "unit-test-example-project"
+  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "unit-test-example-project"
   def tests: Tests = Tests {
     test("simple") {
       object build extends TestBaseModule {
-        def testTask = T { "test" }
+        def testTask = Task { "test" }
       }
 
       UnitTester(build, resourcePath).scoped { eval =>
@@ -20,8 +20,8 @@ object UnitTesterTests extends TestSuite {
 
     test("sources") {
       object build extends TestBaseModule {
-        def testSource = T.source(millSourcePath / "source-file.txt")
-        def testTask = T { os.read(testSource().path).toUpperCase() }
+        def testSource = Task.Source(millSourcePath / "source-file.txt")
+        def testTask = Task { os.read(testSource().path).toUpperCase() }
       }
 
       UnitTester(build, resourcePath).scoped { eval =>

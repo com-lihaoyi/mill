@@ -1,0 +1,85 @@
+{
+  "items": [
+    {
+      "target": {
+        "uri": "file:///workspace/app"
+      },
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/mysql/mysql-connector-j/9.1.0/mysql-connector-j-9.1.0.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.5.15/logback-core-1.5.15.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.16/slf4j-api-2.0.16.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/4.26.1/protobuf-java-4.26.1.jar",
+        "file:///workspace/lib/compile-resources",
+        "file:///workspace/lib/resources",
+        "file:///workspace/out/lib/compile.dest/classes",
+        "file:///workspace/app/compile-resources",
+        "file:///workspace/app/resources",
+        "file:///workspace/out/app/compile.dest/classes"
+      ],
+      "jvmOptions": [],
+      "workingDirectory": "/workspace",
+      "environmentVariables": {},
+      "mainClasses": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/lib"
+      },
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.16/slf4j-api-2.0.16.jar",
+        "file:///workspace/lib/compile-resources",
+        "file:///workspace/lib/resources",
+        "file:///workspace/out/lib/compile.dest/classes"
+      ],
+      "jvmOptions": [],
+      "workingDirectory": "/workspace",
+      "environmentVariables": {},
+      "mainClasses": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-java"
+      },
+      "classpath": [
+        "file:///workspace/hello-java/compile-resources",
+        "file:///workspace/hello-java/resources",
+        "file:///workspace/out/hello-java/compile.dest/classes"
+      ],
+      "jvmOptions": [],
+      "workingDirectory": "/workspace",
+      "environmentVariables": {},
+      "mainClasses": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-kotlin"
+      },
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/<kotlin-version>/kotlin-stdlib-<kotlin-version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/jetbrains/annotations/<annotations-version>/annotations-<annotations-version>.jar",
+        "file:///workspace/hello-kotlin/compile-resources",
+        "file:///workspace/hello-kotlin/resources",
+        "file:///workspace/out/hello-kotlin/compile.dest/classes"
+      ],
+      "jvmOptions": [],
+      "workingDirectory": "/workspace",
+      "environmentVariables": {},
+      "mainClasses": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-scala"
+      },
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
+        "file:///workspace/hello-scala/compile-resources",
+        "file:///workspace/hello-scala/resources",
+        "file:///workspace/out/hello-scala/compile.dest/classes"
+      ],
+      "jvmOptions": [],
+      "workingDirectory": "/workspace",
+      "environmentVariables": {},
+      "mainClasses": []
+    }
+  ]
+}

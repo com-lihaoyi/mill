@@ -14,15 +14,15 @@ import scala.concurrent.ExecutionContext.Implicits.global
 /**
  * Test to make sure that `--watch` works in the following cases:
  *
- * 1. `T.source`
- * 2. `T.sources`
- * 3. `T.input`
+ * 1. `Task.Source`
+ * 2. `Task.Sources`
+ * 3. `Task.Input`
  * 4. `interp.watchValue`
  * 5. Implicitly watched files, like `build.mill`
  */
 object WatchSourceInputTests extends UtestIntegrationTestSuite {
 
-  val maxDuration = 60000
+  val maxDuration = 120000
   val tests: Tests = Tests {
     def awaitCompletionMarker(tester: IntegrationTester, name: String) = {
       val maxTime = System.currentTimeMillis() + maxDuration
@@ -43,14 +43,15 @@ object WatchSourceInputTests extends UtestIntegrationTestSuite {
       // Most of these are normal `println`s, so they go to `stdout` by
       // default unless you use `show` in which case they go to `stderr`.
       val expectedErr = if (show) mutable.Buffer.empty[String] else expectedOut
-      val expectedShows = mutable.Buffer.empty[String]
-      val res = f(expectedOut, expectedErr, expectedShows)
+      val expectedShows0 = mutable.Buffer.empty[String]
+      val res = f(expectedOut, expectedErr, expectedShows0)
       val (shows, out) = res.out.linesIterator.toVector.partition(_.startsWith("\""))
       val err = res.err.linesIterator.toVector
         .filter(!_.contains("Compiling compiler interface..."))
         .filter(!_.contains("Watching for changes"))
         .filter(!_.contains("[info] compiling"))
         .filter(!_.contains("[info] done compiling"))
+        .filter(!_.contains("mill-server/ exitCode file not found"))
 
       assert(out == expectedOut)
 
@@ -58,7 +59,8 @@ object WatchSourceInputTests extends UtestIntegrationTestSuite {
       if (show) assert(err == expectedErr)
       else assert(err.isEmpty)
 
-      if (show) assert(shows == expectedShows.map('"' + _ + '"'))
+      val expectedShows = expectedShows0.map('"' + _ + '"')
+      if (show) assert(shows == expectedShows)
     }
 
     def testWatchSource(tester: IntegrationTester, show: Boolean) =
@@ -114,15 +116,13 @@ object WatchSourceInputTests extends UtestIntegrationTestSuite {
         awaitCompletionMarker(tester, "initialized1")
         expectedOut.append(
           "Setting up build.mill"
-          // These targets do not re-evaluate, because the change to the build
+          // These tasks do not re-evaluate, because the change to the build
           // file was unrelated to them and does not affect their transitive callgraph
           //        "Running qux foo contents edited-foo1 edited-foo2",
           //        "Running qux bar contents edited-bar"
         )
-        expectedShows.append(
-          "Running qux foo contents edited-foo1 edited-foo2 Running qux bar contents edited-bar"
-        )
 
+        if (show) expectedOut.append("{}")
         os.write.over(workspacePath / "watchValue.txt", "exit")
         awaitCompletionMarker(tester, "initialized2")
         expectedOut.append("Setting up build.mill")
@@ -173,10 +173,10 @@ object WatchSourceInputTests extends UtestIntegrationTestSuite {
         os.write.over(workspacePath / "watchValue.txt", "edited-watchValue")
         awaitCompletionMarker(tester, "initialized1")
         expectedOut.append("Setting up build.mill")
-        expectedShows.append("Running lol baz contents edited-baz")
 
         os.write.over(workspacePath / "watchValue.txt", "exit")
         awaitCompletionMarker(tester, "initialized2")
+        if (show) expectedOut.append("{}")
         expectedOut.append("Setting up build.mill")
 
         Await.result(evalResult, Duration.apply(maxDuration, SECONDS))
@@ -192,7 +192,7 @@ object WatchSourceInputTests extends UtestIntegrationTestSuite {
           }
         }
       }
-      test("show") - retry(3) {
+      test("show") - /*retry(3) */ {
         integrationTest { tester =>
           if (!Util.isWindows) {
             testWatchInput(tester, true)

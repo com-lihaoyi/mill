@@ -1,0 +1,39 @@
+package build
+
+import mill._
+
+// testing a simple Java module
+object `hello-java` extends scalalib.JavaModule
+
+// testing a simple Scala module
+object `hello-scala` extends scalalib.ScalaModule {
+  def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
+}
+
+// testing a simple Kotlin module
+object `hello-kotlin` extends kotlinlib.KotlinModule {
+  def kotlinVersion = Option(System.getenv("TEST_KOTLIN_VERSION")).getOrElse(???)
+}
+
+// testing a two-module setup, with one module depending on the other,
+// involving ivyDeps, but also compile-time only and runtime only dependencies
+object lib extends scalalib.JavaModule {
+  import scalalib._
+  def compileIvyDeps = Agg(
+    ivy"junit:junit:4.13.2"
+  )
+  def ivyDeps = Agg(
+    ivy"org.slf4j:slf4j-api:2.0.16"
+  )
+}
+
+object app extends scalalib.JavaModule {
+  import scalalib._
+  def moduleDeps = Seq(lib)
+  def ivyDeps = Agg(
+    ivy"ch.qos.logback:logback-core:1.5.15"
+  )
+  def runIvyDeps = Agg(
+    ivy"com.mysql:mysql-connector-j:9.1.0"
+  )
+}

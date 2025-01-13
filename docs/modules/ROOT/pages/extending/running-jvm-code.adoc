@@ -1,0 +1,51 @@
+= Running Dynamic JVM Code
+
+include::partial$gtag-config.adoc[]
+
+While xref:extending/import-ivy-plugins.adoc[import $ivy] is convenient,
+it comes with limitations as the JVM library it imports is global to your build:
+
+1. The library has to be resolved and downloaded before any part of your build starts.
+   If your codebase is large and most parts of your build don't use that library,
+   needing to download the library when working on parts that don't need it can be wasteful
+
+2. The library can only have one version across the entire build. This can be an issue if
+   you need to have multiple versions of the library used in different parts of your build.
+   e.g. different parts of a large Groovy codebase may use different versions of the Groovy
+   interpreter, and so the Groovy interpreter cannot be included via `import $ivy` because the
+   different versions would collide.
+
+3. The library cannot be built as part of your main build. While it is possible to build
+   it as part of your xref:extending/meta-build.adoc[Meta-Build], that comes with additional
+   complexity and limitations. In a large codebase, you often end up building modules that
+   are shared between production deployments as well as local tooling: in such cases
+   `import $ivy` is not a good fit
+
+
+In scenarios where these limitations cause issues, Mill provides other ways to run arbitrary
+JVM code apart from `import $ivy`.
+
+
+== Subprocesses
+
+include::partial$example/extending/jvmcode/1-subprocess.adoc[]
+
+== In-process Isolated Classloaders
+
+include::partial$example/extending/jvmcode/2-classloader.adoc[]
+
+== Classloader Worker Tasks
+
+include::partial$example/extending/jvmcode/3-worker.adoc[]
+
+== Running a ScalaModule in a Subprocess
+
+include::partial$example/extending/jvmcode/4-module-run-task.adoc[]
+
+== Running a JavaModule in a Classloader
+
+include::partial$example/extending/jvmcode/5-module-classloader.adoc[]
+
+== Caching and Re-using JVM subprocesses and classloaders
+
+include::partial$example/extending/jvmcode/6-module-cached-classloader.adoc[]

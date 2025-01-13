@@ -15,10 +15,13 @@ object SmallModulesForTests extends TestSuite {
     override def moduleKind = ModuleKind.ESModule
     override def moduleSplitStyle = ModuleSplitStyle.SmallModulesFor(List("app"))
 
-    override lazy val millDiscover = Discover[this.type]
+    override lazy val millDiscover = {
+      import mill.main.TokenReaders.given
+      Discover[this.type]
+    }
   }
 
-  val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "small-modules-for"
+  val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "small-modules-for"
 
   val evaluator = UnitTester(SmallModulesForModule, millSourcePath)
 

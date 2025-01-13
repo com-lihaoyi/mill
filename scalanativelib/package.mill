@@ -18,7 +18,7 @@ object `package` extends RootModule with build.MillStableScalaModule {
   trait WorkerModule extends build.MillPublishScalaModule with Cross.Module[String] {
     def scalaNativeWorkerVersion = crossValue
     def millSourcePath: os.Path = super.millSourcePath / scalaNativeWorkerVersion
-    def testDepPaths = T { Seq(compile().classes) }
+    def testDepPaths = Task { Seq(compile().classes) }
     def moduleDeps = Seq(`worker-api`)
     def ivyDeps = scalaNativeWorkerVersion match {
       case "0.5" =>

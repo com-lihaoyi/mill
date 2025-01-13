@@ -5,13 +5,11 @@ import coursier.maven.MavenRepository
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import com.goyeau.mill.scalafix.ScalafixModule
 import mill._
-import mill.api.JarManifest
 import mill.define.NamedTask
 import mill.main.Tasks
 import mill.scalalib._
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.publish._
-import mill.util.Jvm
 import mill.resolve.SelectMode
 import mill.T
 import mill.define.Cross
@@ -20,6 +18,7 @@ import mill.define.Cross
 import $meta._
 import $file.ci.shared
 import $file.ci.upload
+import $packages._
 
 object Settings {
   val pomOrg = "com.lihaoyi"
@@ -31,20 +30,21 @@ object Settings {
   val docUrl = "https://mill-build.org"
   // the exact branches containing a doc root
   val docBranches = Seq()
-  // the exact tags containing a doc root
+  // the exact tags containing a doc root. Publish docs for
+  // the last point version in each minor release series
   val legacyDocTags: Seq[String] = Seq(
     "0.9.12",
-    "0.10.0",
-    "0.10.12",
-    "0.10.15",
-    "0.11.0-M7"
+    "0.10.15"
   )
   val docTags: Seq[String] = Seq(
-    "0.11.10",
-    "0.11.11",
-    "0.11.12"
+    "0.11.13",
+    "0.12.5"
   )
-  val mimaBaseVersions: Seq[String] = 0.to(12).map("0.11." + _)
+  val mimaBaseVersions: Seq[String] =
+    0.to(13).map("0.11." + _) ++
+      Seq("0.12.0", "0.12.1", "0.12.2", "0.12.3", "0.12.4", "0.12.5")
+
+  val graalvmJvmId = "graalvm-community:23.0.1"
 }
 
 object Deps {
@@ -52,13 +52,12 @@ object Deps {
   // The Scala version to use
   // When updating, run "Publish Bridges" Github Actions for the new version
   // and then add to it `bridgeScalaVersions`
-  val scalaVersion = "2.13.14"
-  // Scoverage 1.x will not get releases for newer Scala versions
-  val scalaVersionForScoverageWorker1 = "2.13.8"
+  val scalaVersion = "2.13.15"
+  val scala2Version = "2.13.15"
   // The Scala 2.12.x version to use for some workers
-  val workerScalaVersion212 = "2.12.19"
+  val workerScalaVersion212 = "2.12.20"
 
-  val testScala213Version = "2.13.14"
+  val testScala213Version = "2.13.15"
   // Scala Native 4.2 will not get releases for new Scala version
   val testScala213VersionForScalaNative42 = "2.13.8"
   val testScala212Version = "2.12.6"
@@ -66,7 +65,7 @@ object Deps {
   val testScala33Version = "3.3.1"
 
   object Scalajs_1 {
-    val scalaJsVersion = "1.16.0"
+    val scalaJsVersion = "1.17.0"
     val scalajsEnvJsdomNodejs = ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0"
     val scalajsEnvExoegoJsdomNodejs = ivy"net.exoego::scalajs-env-jsdom-nodejs:2.1.0"
     val scalajsEnvNodejs = ivy"org.scala-js::scalajs-env-nodejs:1.4.0"
@@ -78,7 +77,7 @@ object Deps {
   }
 
   object Scalanative_0_5 {
-    val scalanativeVersion = "0.5.4"
+    val scalanativeVersion = "0.5.6"
     val scalanativeTools = ivy"org.scala-native::tools:${scalanativeVersion}"
     val scalanativeUtil = ivy"org.scala-native::util:${scalanativeVersion}"
     val scalanativeNir = ivy"org.scala-native::nir:${scalanativeVersion}"
@@ -106,21 +105,23 @@ object Deps {
     val playVersion = "2.8.22"
   }
   object Play_2_9 extends Play {
-    val playVersion = "2.9.5"
+    val playVersion = "2.9.6"
   }
   object Play_3_0 extends Play {
-    val playVersion = "3.0.5"
+    val playVersion = "3.0.6"
   }
   val play =
     Seq(Play_3_0, Play_2_9, Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
-  val acyclic = ivy"com.lihaoyi:::acyclic:0.3.12"
-  val ammoniteVersion = "3.0.0-M2-15-9bed9700"
-  val asmTree = ivy"org.ow2.asm:asm-tree:9.7"
+  val acyclic = ivy"com.lihaoyi:::acyclic:0.3.15"
+  val ammoniteVersion = "3.0.0-2-6342755f"
+  val asmTree = ivy"org.ow2.asm:asm-tree:9.7.1"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
 
-  val coursier = ivy"io.get-coursier::coursier:2.1.12"
-  val coursierInterface = ivy"io.get-coursier:interface:1.0.19"
+  val coursierVersion = "2.1.24"
+  val coursier = ivy"io.get-coursier::coursier:$coursierVersion"
+  val coursierInterface = ivy"io.get-coursier:interface:1.0.27"
+  val coursierJvm = ivy"io.get-coursier::coursier-jvm:$coursierVersion"
 
   val cask = ivy"com.lihaoyi::cask:0.9.4"
   val castor = ivy"com.lihaoyi::castor:0.3.0"
@@ -129,29 +130,29 @@ object Deps {
   val graphvizJava = Seq(
     ivy"guru.nidi:graphviz-java-min-deps:0.18.1",
     ivy"org.webjars.npm:viz.js-graphviz-java:2.1.3",
-    ivy"org.apache.xmlgraphics:batik-rasterizer:1.17"
+    ivy"org.apache.xmlgraphics:batik-rasterizer:1.18"
   )
-  val junixsocket = ivy"com.kohlschutter.junixsocket:junixsocket-core:2.10.0"
 
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
   val javet = Seq(
-    ivy"com.caoccao.javet:javet:3.1.6",
-    ivy"com.caoccao.javet:javet-linux-arm64:3.1.6",
-    ivy"com.caoccao.javet:javet-macos:3.1.6"
+    ivy"com.caoccao.javet:javet:4.0.0",
+    ivy"com.caoccao.javet:javet-linux-arm64:4.0.0",
+    ivy"com.caoccao.javet:javet-macos:4.0.0"
   )
 
-  val jline = ivy"org.jline:jline:3.26.3"
-  val jnaVersion = "5.14.0"
+  val jline = ivy"org.jline:jline:3.28.0"
+  val jnaVersion = "5.16.0"
+
   val jna = ivy"net.java.dev.jna:jna:${jnaVersion}"
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:${jnaVersion}"
 
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
-  val commonsIO = ivy"commons-io:commons-io:2.16.1"
-  val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.23.1"
-  val osLib = ivy"com.lihaoyi::os-lib:0.10.7"
+  val commonsIo = ivy"commons-io:commons-io:2.18.0"
+  val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.24.3"
+  val osLib = ivy"com.lihaoyi::os-lib:0.11.4-M4"
   val pprint = ivy"com.lihaoyi::pprint:0.9.0"
-  val mainargs = ivy"com.lihaoyi::mainargs:0.7.4"
-  val millModuledefsVersion = "0.11.0-M2"
+  val mainargs = ivy"com.lihaoyi::mainargs:0.7.6"
+  val millModuledefsVersion = "0.11.2"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = ivy"${millModuledefsString}"
   val millModuledefsPlugin =
@@ -160,12 +161,10 @@ object Deps {
   val testng = ivy"org.testng:testng:7.5.1"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
-  // last scalafmt release supporting Java 8 is 3.7.15
-  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.7.15" // scala-steward:off
+  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.8.3"
   def scalap(scalaVersion: String) = ivy"org.scala-lang:scalap:${scalaVersion}"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
-  val scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.11"
-  val scoverage2Version = "2.1.1"
+  val scoverage2Version = "2.2.1"
   val scalacScoverage2Plugin = ivy"org.scoverage:::scalac-scoverage-plugin:${scoverage2Version}"
   val scalacScoverage2Reporter = ivy"org.scoverage::scalac-scoverage-reporter:${scoverage2Version}"
   val scalacScoverage2Domain = ivy"org.scoverage::scalac-scoverage-domain:${scoverage2Version}"
@@ -175,45 +174,90 @@ object Deps {
   val scalatags = ivy"com.lihaoyi::scalatags:0.12.0"
   def scalaXml = ivy"org.scala-lang.modules::scala-xml:2.3.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.9.9"
-  val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.10.0"
-  val sourcecode = ivy"com.lihaoyi::sourcecode:0.3.1"
+  val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.12.3"
+  val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.10.3"
+  val sourcecode = ivy"com.lihaoyi::sourcecode:0.4.2"
   val upickle = ivy"com.lihaoyi::upickle:3.3.1"
-  val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.5"
-  val zinc = ivy"org.scala-sbt::zinc:1.10.1"
+  val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.6"
+  val zinc = ivy"org.scala-sbt::zinc:1.10.7"
   // keep in sync with doc/antora/antory.yml
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.2.0-M2"
   val fansi = ivy"com.lihaoyi::fansi:0.5.0"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.0"
   val requests = ivy"com.lihaoyi::requests:0.9.0"
-  val logback = ivy"ch.qos.logback:logback-classic:1.5.7"
+  val logback = ivy"ch.qos.logback:logback-classic:1.5.16"
   val sonatypeCentralClient = ivy"com.lumidion::sonatype-central-client-requests:0.3.0"
+  val kotlinVersion = "2.0.21"
+  val kotlinCompiler = ivy"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
+  val mavenVersion = "3.9.9"
+  val mavenEmbedder = ivy"org.apache.maven:maven-embedder:$mavenVersion"
+  val mavenResolverVersion = "1.9.22"
+  val mavenResolverConnectorBasic =
+    ivy"org.apache.maven.resolver:maven-resolver-connector-basic:$mavenResolverVersion"
+  val mavenResolverSupplier =
+    ivy"org.apache.maven.resolver:maven-resolver-supplier:$mavenResolverVersion"
+  val mavenResolverTransportFile =
+    ivy"org.apache.maven.resolver:maven-resolver-transport-file:$mavenResolverVersion"
+  val mavenResolverTransportHttp =
+    ivy"org.apache.maven.resolver:maven-resolver-transport-http:$mavenResolverVersion"
+  val mavenResolverTransportWagon =
+    ivy"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
+  val coursierJvmIndexVersion = "0.0.4-70-51469f"
 
   object RuntimeDeps {
+    val dokkaVersion = "2.0.0"
+    val koverVersion = "0.8.3"
+
+    val detektCli = ivy"io.gitlab.arturbosch.detekt:detekt-cli:1.23.7"
+    val dokkaAnalysisDescriptors =
+      ivy"org.jetbrains.dokka:analysis-kotlin-descriptors:$dokkaVersion"
+    val dokkaBase = ivy"org.jetbrains.dokka:dokka-base:$dokkaVersion"
+    val dokkaCli = ivy"org.jetbrains.dokka:dokka-cli:$dokkaVersion"
     val errorProneCore = ivy"com.google.errorprone:error_prone_core:2.31.0"
-    val jupiterInterface = ivy"com.github.sbt.junit:jupiter-interface:0.11.4"
+    val freemarker = ivy"org.freemarker:freemarker:2.3.34"
+    val jupiterInterface = ivy"com.github.sbt.junit:jupiter-interface:0.13.3"
+    val kotlinxHtmlJvm = ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"
+    val koverCli = ivy"org.jetbrains.kotlinx:kover-cli:$koverVersion"
+    val koverJvmAgent = ivy"org.jetbrains.kotlinx:kover-jvm-agent:$koverVersion"
+    val ktfmt = ivy"com.facebook:ktfmt:0.53"
+    val ktlint = ivy"com.pinterest.ktlint:ktlint-core:0.49.1"
     val sbtTestInterface = ivy"com.github.sbt:junit-interface:0.13.2"
-    def all = Seq(errorProneCore, jupiterInterface, sbtTestInterface)
+
+    def all = Seq(
+      detektCli,
+      dokkaAnalysisDescriptors,
+      dokkaBase,
+      dokkaCli,
+      errorProneCore,
+      freemarker,
+      jupiterInterface,
+      kotlinxHtmlJvm,
+      koverCli,
+      koverJvmAgent,
+      ktfmt,
+      ktlint,
+      sbtTestInterface
+    )
   }
 
   /** Used to manage transitive versions. */
-  val transitiveDeps = Seq(
-    ivy"org.apache.ant:ant:1.10.14",
-    ivy"commons-io:commons-io:2.16.1",
+  lazy val transitiveDeps = Seq(
+    ivy"org.apache.ant:ant:1.10.15",
+    Deps.commonsIo,
     ivy"com.google.code.gson:gson:2.11.0",
-    ivy"com.google.protobuf:protobuf-java:4.28.0",
-    ivy"com.google.guava:guava:33.3.0-jre",
-    ivy"org.yaml:snakeyaml:2.2",
-    ivy"org.apache.commons:commons-compress:1.26.2"
+    ivy"com.google.protobuf:protobuf-java:4.29.2",
+    ivy"com.google.guava:guava:33.4.0-jre",
+    ivy"org.yaml:snakeyaml:2.3",
+    ivy"org.apache.commons:commons-compress:1.27.1"
   )
 
   /** Used in tests. */
   object TestDeps {
     // tests framework (test)
-    val scalaCheck = ivy"org.scalacheck::scalacheck:1.18.0"
+    val scalaCheck = ivy"org.scalacheck::scalacheck:1.18.1"
     val scalaTest = ivy"org.scalatest::scalatest:3.2.19"
     val utest = ivy"com.lihaoyi::utest:0.8.4"
-    val zioTest = ivy"dev.zio::zio-test:2.0.22"
+    val zioTest = ivy"dev.zio::zio-test:2.1.14"
   }
 
   /** Used in documentation. */
@@ -222,15 +266,18 @@ object Deps {
   }
 }
 
-def millVersion: T[String] = T { VcsVersion.vcsState().format() }
+def millVersion: T[String] = Task.Input {
+  if (Task.env.contains("MILL_STABLE_VERSION")) VcsVersion.calcVcsState(Task.log).format()
+  else "SNAPSHOT"
+}
 
-def millLastTag: T[String] = T {
+def millLastTag: T[String] = Task {
   VcsVersion.vcsState().lastTag.getOrElse(
     sys.error("No (last) git tag found. Your git history seems incomplete!")
   )
 }
 
-def millBinPlatform: T[String] = T {
+def millBinPlatform: T[String] = Task {
   // val tag = millLastTag()
   // if (tag.contains("-M")) tag
   // else {
@@ -243,7 +290,7 @@ def millBinPlatform: T[String] = T {
 def baseDir = build.millSourcePath
 
 val essentialBridgeScalaVersions =
-  Seq(Deps.scalaVersion, Deps.scalaVersionForScoverageWorker1, Deps.workerScalaVersion212)
+  Seq(Deps.scalaVersion, Deps.workerScalaVersion212)
 // published compiler bridges
 val bridgeScalaVersions = Seq(
   // Our version of Zinc doesn't work with Scala 2.12.0 and 2.12.4 compiler
@@ -278,7 +325,8 @@ val bridgeScalaVersions = Seq(
   "2.13.11",
   "2.13.12",
   "2.13.13",
-  "2.13.14"
+  "2.13.14",
+  "2.13.15"
 )
 
 // We limit the number of compiler bridges to compile and publish for local
@@ -298,17 +346,17 @@ val bridgeVersion = "0.0.1"
 trait MillJavaModule extends JavaModule {
 
   // Test setup
-  def testDep = T { (s"com.lihaoyi-${artifactId()}", testDepPaths().map(_.path).mkString("\n")) }
+  def testDep = Task { (s"com.lihaoyi-${artifactId()}", testDepPaths().map(_.path).mkString("\n")) }
 
   // Workaround for Zinc/JNA bug
   // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
-  def testArgs: T[Seq[String]] = T { Seq("-Djna.nosys=true") }
-  def testDepPaths = T { upstreamAssemblyClasspath() ++ Seq(compile().classes) ++ resources() }
+  def testArgs: T[Seq[String]] = Task { Seq("-Djna.nosys=true") }
+  def testDepPaths = Task { upstreamAssemblyClasspath() ++ Seq(compile().classes) ++ resources() }
 
-  def testTransitiveDeps: T[Map[String, String]] = T {
-    val upstream = T.traverse(moduleDeps ++ compileModuleDeps) {
+  def testTransitiveDeps: T[Map[String, String]] = Task {
+    val upstream = Task.traverse(moduleDeps ++ compileModuleDeps) {
       case m: MillJavaModule => m.testTransitiveDeps.map(Some(_))
-      case _ => T.task(None)
+      case _ => Task.Anon(None)
     }().flatten.flatten
     val current = Seq(testDep())
     upstream.toMap ++ current
@@ -319,28 +367,28 @@ trait MillJavaModule extends JavaModule {
     if (this == build.main) Seq(build.main)
     else Seq(this, build.main.test)
 
-  def writeLocalTestOverrides = T.task {
+  def writeLocalTestOverrides = Task.Anon {
     for ((k, v) <- testTransitiveDeps()) {
-      os.write(T.dest / "mill" / "local-test-overrides" / k, v, createFolders = true)
+      os.write(Task.dest / "mill" / "local-test-overrides" / k, v, createFolders = true)
     }
-    Seq(PathRef(T.dest))
+    Seq(PathRef(Task.dest))
   }
 
   def runClasspath = super.runClasspath() ++ writeLocalTestOverrides()
 
-  def repositoriesTask = T.task {
+  def repositoriesTask = Task.Anon {
     super.repositoriesTask() ++
       Seq(MavenRepository("https://oss.sonatype.org/content/repositories/releases"))
   }
 
-  def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = T.task {
+  def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = Task.Anon {
     super.mapDependencies().andThen { dep =>
       forcedVersions.find(f =>
         f.dep.module.organization.value == dep.module.organization.value &&
           f.dep.module.name.value == dep.module.name.value
       ).map { forced =>
         val newDep = dep.withVersion(forced.dep.version)
-        T.log.debug(s"Forcing version of ${dep.module} from ${dep.version} to ${newDep.version}")
+        Task.log.debug(s"Forcing version of ${dep.module} from ${dep.version} to ${newDep.version}")
         newDep
       }.getOrElse(dep)
     }
@@ -348,6 +396,14 @@ trait MillJavaModule extends JavaModule {
   val forcedVersions: Seq[Dep] = Deps.transitiveDeps ++ Seq(
     Deps.jline,
     Deps.jna
+  )
+
+  def javadocOptions = super.javadocOptions() ++ Seq(
+    // Disable warnings for missing documentation comments or tags (for example,
+    // a missing comment or class, or a missing @return tag or similar tag on a method).
+    // We have many methods without JavaDoc comments, so those warnings are useless
+    // and significantly clutter the output.
+    "-Xdoclint:all,-missing"
   )
 }
 
@@ -388,7 +444,12 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
       "-P:acyclic:force",
       "-feature",
       "-Xlint:unused",
-      "-Xlint:adapted-args"
+      "-Xlint:adapted-args",
+      "-Xsource:3",
+      "-Wconf:msg=inferred type changes:silent",
+      "-Wconf:msg=case companions no longer extend FunctionN:silent",
+      "-Wconf:msg=access modifiers for:silent",
+      "-Wconf:msg=found in a package prefix of the required type:silent"
     )
 
   def scalacPluginIvyDeps =
@@ -407,11 +468,12 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
     def moduleDeps = outer.testModuleDeps
     def ivyDeps = super.ivyDeps() ++ outer.testIvyDeps()
     def forkEnv = super.forkEnv() ++ outer.forkEnv()
+    override def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
   }
 }
 
 trait MillBaseTestsModule extends TestModule {
-  def forkArgs = T {
+  def forkArgs = Task {
     Seq(
       s"-DMILL_SCALA_2_13_VERSION=${Deps.scalaVersion}",
       s"-DMILL_SCALA_2_12_VERSION=${Deps.workerScalaVersion212}",
@@ -426,7 +488,8 @@ trait MillBaseTestsModule extends TestModule {
       s"-DTEST_SCALATEST_VERSION=${Deps.TestDeps.scalaTest.dep.version}",
       s"-DTEST_TEST_INTERFACE_VERSION=${Deps.sbtTestInterface.dep.version}",
       s"-DTEST_ZIOTEST_VERSION=${Deps.TestDeps.zioTest.dep.version}",
-      s"-DTEST_ZINC_VERSION=${Deps.zinc.dep.version}"
+      s"-DTEST_ZINC_VERSION=${Deps.zinc.dep.version}",
+      s"-DTEST_KOTLIN_VERSION=${Deps.kotlinCompiler.dep.version}"
     )
   }
 
@@ -443,7 +506,9 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
     // (5x) MIMA doesn't properly ignore things which are nested inside other private things
     // so we have to put explicit ignores here (https://github.com/lightbend/mima/issues/771)
     ProblemFilter.exclude[Problem]("mill.eval.ProfileLogger*"),
+    ProblemFilter.exclude[Problem]("mill.eval.ChromeProfileLogger*"),
     ProblemFilter.exclude[Problem]("mill.eval.GroupEvaluator*"),
+    ProblemFilter.exclude[Problem]("mill.eval.EvaluatorCore*"),
     ProblemFilter.exclude[Problem]("mill.eval.Tarjans*"),
     ProblemFilter.exclude[Problem]("mill.define.Ctx#Impl*"),
     ProblemFilter.exclude[Problem]("mill.resolve.ResolveNotFoundHandler*"),
@@ -527,11 +592,16 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
     // https://github.com/com-lihaoyi/mill/pull/3503
     ProblemFilter.exclude[ReversedMissingMethodProblem](
       "mill.scalalib.ScalaModule#ScalaTests.mill$scalalib$ScalaModule$ScalaTests$$super$mandatoryScalacOptions"
-    )
+    ),
+    // Not sure why Mima is complaining when these are internal and private
+    ProblemFilter.exclude[Problem]("*.bspJvmBuildTarget"),
+    ProblemFilter.exclude[Problem]("mill.scalalib.RunModule#RunnerImpl.*"),
+    ProblemFilter.exclude[Problem]("mill.util.PromptLogger#*"),
+    ProblemFilter.exclude[Problem]("mill.util.PromptLoggerUtil.*")
   )
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
 
-  def mimaPreviousArtifacts: T[Agg[Dep]] = T {
+  def mimaPreviousArtifacts: T[Agg[Dep]] = Task {
     Agg.from(
       Settings.mimaBaseVersions
         .filter(v => !skipPreviousVersions().contains(v))
@@ -559,28 +629,29 @@ trait BridgeModule extends MillPublishJavaModule with CrossScalaModule {
     ivy"org.scala-lang:scala-compiler:${crossScalaVersion}"
   )
 
-  def resources = T.sources {
-    os.copy(generatedSources().head.path / "META-INF", T.dest / "META-INF")
-    Seq(PathRef(T.dest))
+  def resources = Task {
+    os.copy(generatedSources().head.path / "META-INF", Task.dest / "META-INF")
+    Seq(PathRef(Task.dest))
   }
 
   def compilerBridgeIvyDeps: T[Agg[Dep]] = Agg(
     ivy"org.scala-sbt::compiler-bridge:${Deps.zinc.version}".exclude("*" -> "*")
   )
 
-  def compilerBridgeSourceJars: T[Agg[PathRef]] = T {
+  def compilerBridgeSourceJars: T[Agg[PathRef]] = Task {
     resolveDeps(
-      T.task { compilerBridgeIvyDeps().map(bindDependency()) },
+      Task.Anon { compilerBridgeIvyDeps().map(bindDependency()) },
       sources = true
     )()
   }
 
-  def generatedSources = T {
+  def generatedSources = Task {
+
     compilerBridgeSourceJars().foreach { jar =>
-      mill.api.IO.unpackZip(jar.path, os.rel)
+      os.unzip(jar.path, Task.dest)
     }
 
-    Seq(PathRef(T.dest))
+    Seq(PathRef(Task.dest))
   }
 }
 
@@ -589,404 +660,10 @@ def formatDep(dep: Dep) = {
   s"${d.module.organization.value}:${d.module.name.value}:${d.version}"
 }
 
-val DefaultLocalMillReleasePath =
-  s"target/mill-release${if (scala.util.Properties.isWin) ".bat" else ""}"
-
 def listIn(path: os.Path) = interp.watchValue(os.list(path).map(_.last))
-def launcherScript(
-    shellJvmArgs: Seq[String],
-    cmdJvmArgs: Seq[String],
-    shellClassPath: Agg[String],
-    cmdClassPath: Agg[String]
-) = {
-
-  val millMainClass = "mill.runner.client.MillClientMain"
-
-  Jvm.universalScript(
-    shellCommands = {
-      val jvmArgsStr = shellJvmArgs.mkString(" ")
-      def java(mainClass: String, passMillJvmOpts: Boolean) = {
-        val millJvmOpts = if (passMillJvmOpts) "$mill_jvm_opts" else ""
-        s"""exec "$$JAVACMD" $jvmArgsStr $$JAVA_OPTS $millJvmOpts -cp "${shellClassPath.mkString(
-            ":"
-          )}" $mainClass "$$@""""
-      }
-
-      s"""if [ -z "$$JAVA_HOME" ] ; then
-         |  JAVACMD="java"
-         |else
-         |  JAVACMD="$$JAVA_HOME/bin/java"
-         |fi
-         |
-         |mill_jvm_opts=""
-         |init_mill_jvm_opts () {
-         |  if [ -z $$MILL_JVM_OPTS_PATH ] ; then
-         |    mill_jvm_opts_file=".mill-jvm-opts"
-         |  else
-         |    mill_jvm_opts_file=$$MILL_JVM_OPTS_PATH
-         |  fi
-         |
-         |  if [ -f "$$mill_jvm_opts_file" ] ; then
-         |    # We need to append a newline at the end to fix
-         |    # https://github.com/com-lihaoyi/mill/issues/2140
-         |    newline="
-         |"
-         |    mill_jvm_opts="$$(
-         |      echo "$$newline" | cat "$$mill_jvm_opts_file" - | (
-         |        while IFS= read line
-         |        do
-         |          mill_jvm_opts="$${mill_jvm_opts} $$(echo $$line | grep -v "^[[:space:]]*[#]")"
-         |        done
-         |        # we are in a sub-shell, so need to return it explicitly
-         |        echo "$${mill_jvm_opts}"
-         |      )
-         |    )"
-         |    mill_jvm_opts="$${mill_jvm_opts} -Dmill.jvm_opts_applied=true"
-         |  fi
-         |}
-         |
-         |# Client-server mode doesn't seem to work on WSL, just disable it for now
-         |# https://stackoverflow.com/a/43618657/871202
-         |if grep -qEi "(Microsoft|WSL)" /proc/version > /dev/null 2> /dev/null ; then
-         |    init_mill_jvm_opts
-         |    if [ -z $$COURSIER_CACHE ] ; then
-         |      COURSIER_CACHE=.coursier
-         |    fi
-         |    ${java(millMainClass, true)}
-         |else
-         |    if [ "$${1%"-i"*}" != "$$1" ] ; then # first arg starts with "-i"
-         |        init_mill_jvm_opts
-         |        ${java(millMainClass, true)}
-         |    else
-         |        case "$$1" in
-         |          -i | --interactive | --repl | --no-server | --bsp )
-         |            init_mill_jvm_opts
-         |            ${java(millMainClass, true)}
-         |            ;;
-         |          *)
-         |            ${java(millMainClass, false)}
-         |            ;;
-         |        esac
-         |    fi
-         |fi
-         |""".stripMargin
-    },
-    cmdCommands = {
-      val jvmArgsStr = cmdJvmArgs.mkString(" ")
-      def java(mainClass: String, passMillJvmOpts: Boolean) = {
-        val millJvmOpts = if (passMillJvmOpts) "!mill_jvm_opts!" else ""
-        s""""%JAVACMD%" $jvmArgsStr %JAVA_OPTS% $millJvmOpts -cp "${cmdClassPath.mkString(
-            ";"
-          )}" $mainClass %*"""
-      }
-
-      s"""setlocal EnableDelayedExpansion
-         |set "JAVACMD=java.exe"
-         |if not "%JAVA_HOME%"=="" set "JAVACMD=%JAVA_HOME%\\bin\\java.exe"
-         |if "%1" == "-i" set _I_=true
-         |if "%1" == "--interactive" set _I_=true
-         |if "%1" == "--repl" set _I_=true
-         |if "%1" == "--no-server" set _I_=true
-         |if "%1" == "--bsp" set _I_=true
-         |
-         |set "mill_jvm_opts="
-         |set "mill_jvm_opts_file=.mill-jvm-opts"
-         |if not "%MILL_JVM_OPTS_PATH%"=="" set "mill_jvm_opts_file=%MILL_JVM_OPTS_PATH%"
-         |
-         |if defined _I_ (
-         |  if exist %mill_jvm_opts_file% (
-         |    for /f "delims=" %%G in (%mill_jvm_opts_file%) do (
-         |      set line=%%G
-         |      if "!line:~0,2!"=="-X" set "mill_jvm_opts=!mill_jvm_opts! !line!"
-         |    )
-         |  )
-         |  ${java(millMainClass, true)}
-         |) else (
-         |  ${java(millMainClass, false)}
-         |)
-         |endlocal
-         |""".stripMargin
-    }
-  )
-}
 
 object idea extends MillPublishScalaModule {
   def moduleDeps = Seq(build.scalalib, build.runner)
-}
-
-/**
- * Version of [[dist]] meant for local integration testing within the Mill
- * repo. Looks mostly the same as [[dist]], except it does not have a reference
- * to itself in its [[testTransitiveDeps]], to avoid a circular dependency.
- */
-object dist0 extends MillPublishJavaModule {
-  // disable scalafix here because it crashes when a module has no sources
-  def fix(args: String*): Command[Unit] = T.command {}
-  def moduleDeps = Seq(build.runner, idea)
-
-  def testTransitiveDeps = build.runner.testTransitiveDeps() ++ Seq(
-    build.main.graphviz.testDep(),
-    build.runner.linenumbers.testDep(),
-    build.scalalib.backgroundwrapper.testDep(),
-    build.contrib.bloop.testDep(),
-    build.contrib.buildinfo.testDep(),
-    build.contrib.scoverage.testDep(),
-    build.contrib.scoverage.worker2.testDep(),
-    build.contrib.jmh.testDep(),
-    build.contrib.playlib.testDep(),
-    build.contrib.playlib.worker("2.8").testDep(),
-    build.contrib.errorprone.testDep(),
-    build.contrib.checkstyle.testDep(),
-    build.bsp.worker.testDep(),
-    build.testkit.testDep()
-  )
-}
-
-object dist extends MillPublishJavaModule {
-  def jar = rawAssembly()
-  def moduleDeps = Seq(build.runner, idea)
-
-  def testTransitiveDeps = dist0.testTransitiveDeps() ++ Seq(
-    (s"com.lihaoyi-${dist.artifactId()}", dist0.runClasspath().map(_.path).mkString("\n"))
-  )
-
-  def genTask(m: ScalaModule) = T.task { Seq(m.jar(), m.sourceJar()) ++ m.runClasspath() }
-
-  def forkArgs: T[Seq[String]] = T {
-    val genIdeaArgs =
-      genTask(build.main.define)() ++
-        genTask(build.main.eval)() ++
-        genTask(build.main)() ++
-        genTask(build.scalalib)() ++
-        genTask(build.scalajslib)() ++
-        genTask(build.scalanativelib)()
-
-    testArgs() ++
-      Seq(
-        "-DMILL_CLASSPATH=" + runClasspath().map(_.path.toString).mkString(","),
-        "-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","),
-        s"-DBSP4J_VERSION=${Deps.bsp4j.dep.version}"
-      )
-  }
-
-  def launcher = T {
-    val isWin = scala.util.Properties.isWin
-    val outputPath = T.dest / (if (isWin) "run.bat" else "run")
-
-    os.write(outputPath, prependShellScript())
-    if (!isWin) os.perms.set(outputPath, "rwxrwxrwx")
-
-    PathRef(outputPath)
-  }
-
-  def extraPublish: T[Seq[PublishInfo]] = T {
-    Seq(PublishInfo(file = assembly(), classifier = Some("assembly"), ivyConfig = "compile"))
-  }
-
-  def assemblyRules = super.assemblyRules ++ Seq(
-    mill.scalalib.Assembly.Rule.ExcludePattern("mill/local-test-overrides/.*")
-  )
-
-  // All modules that we want to aggregate as part of this `dev` assembly.
-  // Excluding itself, and the `dist` module that uses it
-  lazy val allPublishModules = build.millInternal.modules.collect {
-    case m: PublishModule if (m ne this) && (m ne dist) => m
-  }
-
-  def rawAssembly = T {
-    val version = millVersion()
-    val devRunClasspath = runClasspath().map(_.path)
-    val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
-    val commonArgs = Seq(
-      // Workaround for Zinc/JNA bug
-      // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
-      "-Djna.nosys=true"
-    )
-    val shellArgs = Seq("-DMILL_CLASSPATH=$0") ++ commonArgs
-    val cmdArgs = Seq(""""-DMILL_CLASSPATH=%~dpnx0"""") ++ commonArgs
-    os.move(
-      mill.scalalib.Assembly.createAssembly(
-        devRunClasspath,
-        prependShellScript = launcherScript(shellArgs, cmdArgs, Agg("$0"), Agg("%~dpnx0")),
-        assemblyRules = assemblyRules
-      ).path,
-      T.dest / filename
-    )
-    PathRef(T.dest / filename)
-  }
-  def assembly = T {
-    T.traverse(allPublishModules)(m => m.publishLocalCached)()
-    val raw = rawAssembly().path
-    os.copy(raw, T.dest / raw.last)
-    PathRef(T.dest / raw.last)
-  }
-
-  def prependShellScript = T {
-    val (millArgs, otherArgs) =
-      forkArgs().partition(arg => arg.startsWith("-DMILL") && !arg.startsWith("-DMILL_VERSION"))
-    // Pass Mill options via file, due to small max args limit in Windows
-    val vmOptionsFile = T.dest / "mill.properties"
-    val millOptionsContent =
-      millArgs.map(_.drop(2).replace("\\", "/")).mkString(
-        "\r\n"
-      ) // drop -D prefix, replace \ with /
-    os.write(vmOptionsFile, millOptionsContent)
-    val jvmArgs = otherArgs ++ List(s"-DMILL_OPTIONS_PATH=$vmOptionsFile")
-    val classpath = runClasspath().map(_.path.toString)
-    launcherScript(
-      jvmArgs,
-      jvmArgs,
-      classpath,
-      Agg(pathingJar().path.toString) // TODO not working yet on Windows! see #791
-    )
-  }
-
-  def pathingJar = T {
-    // see http://todayguesswhat.blogspot.com/2011/03/jar-manifestmf-class-path-referencing.html
-    // for more detailed explanation
-    val isWin = scala.util.Properties.isWin
-    val classpath = runClasspath().map { pathRef =>
-      val path =
-        if (isWin) "/" + pathRef.path.toString.replace("\\", "/")
-        else pathRef.path.toString
-      if (path.endsWith(".jar")) path
-      else path + "/"
-    }.mkString(" ")
-    val manifestEntries = Map[String, String](
-      java.util.jar.Attributes.Name.MANIFEST_VERSION.toString -> "1.0",
-      "Created-By" -> "Scala mill",
-      "Class-Path" -> classpath
-    )
-    Jvm.createJar(Agg(), JarManifest(manifestEntries))
-  }
-
-  def run(args: Task[Args] = T.task(Args())) = T.command {
-    args().value match {
-      case Nil => mill.api.Result.Failure("Need to pass in cwd as first argument to dev.run")
-      case wd0 +: rest =>
-        val wd = os.Path(wd0, T.workspace)
-        os.makeDir.all(wd)
-        try {
-          Jvm.runSubprocess(
-            Seq(launcher().path.toString) ++ rest,
-            forkEnv(),
-            workingDir = wd
-          )
-          mill.api.Result.Success(())
-        } catch {
-          case e: Throwable =>
-            mill.api.Result.Failure(s"dev.run failed with an exception. ${e.getMessage()}")
-        }
-    }
-  }
-}
-
-/**
- * Build and install Mill locally.
- *
- * @param binFile The location where the Mill binary should be installed
- * @param ivyRepo The local Ivy repository where Mill modules should be published to
- */
-def installLocal(binFile: String = DefaultLocalMillReleasePath, ivyRepo: String = null) =
-  T.command {
-    PathRef(installLocalTask(T.task(binFile), ivyRepo)())
-  }
-
-def installLocalCache() = T.command {
-  val path = installLocalTask(
-    T.task((os.home / ".cache" / "mill" / "download" / millVersion()).toString())
-  )()
-  T.log.outputStream.println(path.toString())
-  PathRef(path)
-}
-
-def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Path] = T.task {
-  val millBin = dist.assembly()
-  val targetFile = os.Path(binFile(), T.workspace)
-  if (os.exists(targetFile))
-    T.log.info(s"Overwriting existing local Mill binary at ${targetFile}")
-  os.copy.over(millBin.path, targetFile, createFolders = true)
-  T.log.info(s"Published ${dist.allPublishModules.size} modules and installed ${targetFile}")
-  targetFile
-}
-
-def millBootstrap = T.sources(T.workspace / "mill")
-
-def bootstrapLauncher = T {
-  val outputPath = T.dest / "mill"
-  val millBootstrapGrepPrefix = "(\n *DEFAULT_MILL_VERSION=)"
-  val millDownloadUrlPrefix = "(\n *MILL_DOWNLOAD_URL=)"
-
-  os.write(
-    outputPath,
-    os.read(millBootstrap().head.path)
-      .replaceAll(
-        millBootstrapGrepPrefix + "[^\\n]+",
-        "$1" + millVersion()
-      )
-  )
-  os.perms.set(outputPath, "rwxrwxrwx")
-  PathRef(outputPath)
-}
-
-def exampleZips: T[Seq[PathRef]] = T {
-  for {
-    exampleMod <- build.example.exampleModules
-    examplePath = exampleMod.millSourcePath
-  } yield {
-    val example = examplePath.subRelativeTo(T.workspace)
-    val exampleStr = millVersion() + "-" + example.segments.mkString("-")
-    os.copy(examplePath, T.dest / exampleStr, createFolders = true)
-    os.write(T.dest / exampleStr / ".mill-version", millLastTag())
-    os.copy(bootstrapLauncher().path, T.dest / exampleStr / "mill")
-    val zip = T.dest / s"$exampleStr.zip"
-    os.proc("zip", "-r", zip, exampleStr).call(cwd = T.dest)
-    PathRef(zip)
-  }
-}
-
-def uploadToGithub(authKey: String) = T.command {
-  val vcsState = VcsVersion.vcsState()
-  val label = vcsState.format()
-  if (label != millVersion()) sys.error("Modified mill version detected, aborting upload")
-  val releaseTag = vcsState.lastTag.getOrElse(sys.error(
-    "Incomplete git history. No tag found.\nIf on CI, make sure your git checkout job includes enough history."
-  ))
-
-  if (releaseTag == label) {
-    // TODO: check if the tag already exists (e.g. because we created it manually) and do not fail
-    scalaj.http.Http(
-      s"https://api.github.com/repos/${Settings.githubOrg}/${Settings.githubRepo}/releases"
-    )
-      .postData(
-        ujson.write(
-          ujson.Obj(
-            "tag_name" -> releaseTag,
-            "name" -> releaseTag
-          )
-        )
-      )
-      .header("Authorization", "token " + authKey)
-      .asString
-  }
-
-  val examples = exampleZips().map(z => (z.path, z.path.last))
-
-  val zips = examples ++ Seq(
-    (dist.assembly().path, label + "-assembly"),
-    (bootstrapLauncher().path, label)
-  )
-
-  for ((zip, name) <- zips) {
-    upload.apply(
-      zip,
-      releaseTag,
-      name,
-      authKey,
-      Settings.githubOrg,
-      Settings.githubRepo
-    )
-  }
 }
 
 private def resolveTasks[T](taskNames: String*): Seq[NamedTask[T]] = {
@@ -1001,8 +678,8 @@ def validate(): Command[Unit] = {
   val tasks = resolveTasks("__.compile", "__.minaReportBinaryIssues")
   val sources = resolveTasks("__.sources")
 
-  T.command {
-    T.sequence(tasks)()
+  Task.Command {
+    Task.sequence(tasks)()
     mill.scalalib.scalafmt.ScalafmtModule.checkFormatAll(Tasks(sources))()
     build.docs.localPages()
     ()
@@ -1022,7 +699,9 @@ val dummyDeps: Seq[Dep] = Seq(
 
 implicit object DepSegment extends Cross.ToSegments[Dep]({ dep =>
       val depString = formatDep(dep)
-      List(depString)
+      // these cross module names cause problems on windows, and anyway they
+      // are not necessary in order to load the project into IntelliJ anyway
+      List(depString.replace(':', '_'))
     })
 
 /**

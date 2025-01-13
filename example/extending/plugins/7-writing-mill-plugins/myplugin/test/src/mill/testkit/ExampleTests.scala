@@ -6,7 +6,7 @@ object ExampleTests extends TestSuite {
 
   def tests: Tests = Tests {
     test("example") {
-      val resourceFolder = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER"))
+      val resourceFolder = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
       ExampleTester.run(
         clientServerMode = true,
         workspaceSourcePath = resourceFolder / "example-test-project",

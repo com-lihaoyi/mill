@@ -1,0 +1,62 @@
+//// SNIPPET:BUILD
+package build
+import mill._, kotlinlib._
+
+object `package` extends RootModule with KotlinModule {
+
+  def kotlinVersion = "1.9.24"
+
+  def mainClass = Some("foo.FooKt")
+
+  def ivyDeps = Agg(ivy"com.github.ajalt.clikt:clikt-jvm:4.4.0")
+
+  def generatedSources: T[Seq[PathRef]] = Task {
+    val prettyIvyDeps = for (ivyDep <- ivyDeps()) yield {
+      val org = ivyDep.dep.module.organization.value
+      val name = ivyDep.dep.module.name.value
+      val version = ivyDep.dep.version
+      s""" "$org:$name:$version" """
+    }
+    val ivyDepsString = prettyIvyDeps.mkString(" + \"\\n\" + \n")
+    os.write(
+      T.dest / s"MyDeps.kt",
+      s"""
+         |package foo
+         |
+         |object MyDeps {
+         |  const val VALUE = $ivyDepsString;
+         |}
+      """.stripMargin
+    )
+
+    Seq(PathRef(T.dest))
+  }
+
+  def lineCount: T[Int] = Task {
+    sources()
+      .flatMap(pathRef => os.walk(pathRef.path))
+      .filter(_.ext == "kt")
+      .map(os.read.lines(_).size)
+      .sum
+  }
+
+  def forkArgs: T[Seq[String]] = Seq(s"-Dmy.line.count=${lineCount()}")
+
+  def printLineCount() = T.command { println(lineCount()) }
+}
+
+//// SNIPPET:COMMANDS
+
+/** Usage
+
+> mill run --text hello
+text: hello
+MyDeps.value: com.github.ajalt.clikt:clikt-jvm:4.4.0
+my.line.count: 17
+
+> mill show lineCount
+17
+
+> mill printLineCount
+17
+*/

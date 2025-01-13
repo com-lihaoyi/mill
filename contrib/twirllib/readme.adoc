@@ -55,7 +55,7 @@ import $ivy.`com.lihaoyi::mill-contrib-twirllib:`,  mill.twirllib._
 
 object app extends ScalaModule with TwirlModule {
   def twirlVersion = "1.5.1"
-  def generatedSources = T{ Seq(compileTwirl().classes) }
+  def generatedSources = Task { Seq(compileTwirl().classes) }
 }
 ----
 
@@ -99,7 +99,7 @@ object app extends ScalaModule with TwirlModule {
   def twirlVersion = "1.5.1"
   def twirlScalaVersion = "2.13.8"
   override def twirlImports = super.twirlImports() ++ Seq("my.additional.stuff._", "my.other.stuff._")
-  def generatedSources = T{ Seq(compileTwirl().classes) }
+  def generatedSources = Task { Seq(compileTwirl().classes) }
 }
 
 // out.template.scala
@@ -143,7 +143,7 @@ import $ivy.`com.lihaoyi::mill-contrib-twirllib:`,  mill.twirllib._
 object app extends ScalaModule with TwirlModule {
   def twirlVersion = "1.5.1"
   override def twirlFormats = super.twirlFormats() + Map("svg" -> "play.twirl.api.HtmlFormat")
-  def generatedSources = T{ Seq(compileTwirl().classes) }
+  def generatedSources = Task { Seq(compileTwirl().classes) }
 }
 ----
 

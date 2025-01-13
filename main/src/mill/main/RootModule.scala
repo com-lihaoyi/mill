@@ -1,11 +1,12 @@
 package mill.main
 
 import mill.api.internal
-import mill.define.{BaseModule, Ctx, Caller, Discover, Module, Segments}
+import mill.define.{Caller, Discover}
+import scala.annotation.compileTimeOnly
 
 /**
  * Used to mark a module in your `build.mill` as a top-level module, so it's
- * targets and commands can be run directly e.g. via `mill run` rather than
+ * tasks can be run directly e.g. via `mill run` rather than
  * prefixed by the module name `mill foo.run`.
  *
  * Only one top-level module may be defined in your `build.mill`, and it must be
@@ -17,48 +18,47 @@ abstract class RootModule()(implicit
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,
     millFile0: sourcecode.File
-) extends mill.define.BaseModule(baseModuleInfo.millSourcePath0)(
+) extends mill.define.BaseModule(baseModuleInfo.projectRoot)(
       millModuleEnclosing0,
       millModuleLine0,
       millFile0,
       Caller(null)
-    ) with mill.main.MainModule
+    ) with mill.main.MainModule {
+
+  // Dummy `millDiscover` defined but never actually used and overriden by codegen.
+  // Provided for IDEs to think that one is available and not show errors in
+  // build.mill/package.mill even though they can't see the codegen
+  def millDiscover: Discover = sys.error("RootModule#millDiscover must be overriden")
+}
 
 @internal
 object RootModule {
-  case class Info(millSourcePath0: os.Path, discover: Discover)
-  case class SubFolderInfo(value: Seq[String])
+  class Info(
+      val enclosingClasspath: Seq[os.Path],
+      val projectRoot: os.Path,
+      val output: os.Path,
+      val topLevelProjectRoot: os.Path
+  ) {
+    def this(
+        enclosingClasspath0: Seq[String],
+        projectRoot0: String,
+        output0: String,
+        topLevelProjectRoot0: String
+    ) = this(
+      enclosingClasspath0.map(os.Path(_)),
+      os.Path(projectRoot0),
+      os.Path(output0),
+      os.Path(topLevelProjectRoot0)
+    )
 
-  abstract class Subfolder()(implicit
-      baseModuleInfo: RootModule.Info,
-      millModuleLine0: sourcecode.Line,
-      millFile0: sourcecode.File,
-      subFolderInfo: SubFolderInfo
-  ) extends Module.BaseClass()(
-        Ctx.make(
-          millModuleEnclosing0 = subFolderInfo.value.mkString("."),
-          millModuleLine0 = millModuleLine0,
-          millModuleBasePath0 = Ctx.BasePath(baseModuleInfo.millSourcePath0 / os.up),
-          segments0 = Segments.labels(subFolderInfo.value.init: _*),
-          external0 = Ctx.External(false),
-          foreign0 = Ctx.Foreign(None),
-          fileName = millFile0,
-          enclosing = Caller(null)
-        )
-      ) with Module {
-    def millDiscover: Discover
+    implicit val millMiscInfo: Info = this
   }
 
-  @deprecated
-  abstract class Foreign(foreign0: Option[Segments])(implicit
-      baseModuleInfo: RootModule.Info,
-      millModuleEnclosing0: sourcecode.Enclosing,
-      millModuleLine0: sourcecode.Line,
-      millFile0: sourcecode.File
-  ) extends BaseModule(baseModuleInfo.millSourcePath0, foreign0 = foreign0)(
-        millModuleEnclosing0,
-        millModuleLine0,
-        millFile0,
-        Caller(null)
-      ) with mill.main.MainModule
+  object Info {
+    // Dummy `RootModule.Info` available in implicit scope but never actually used.
+    // as it is provided by the codegen. Defined for IDEs to think that one is available
+    // and not show errors in build.mill/package.mill even though they can't see the codegen
+    @compileTimeOnly("RootModule can only be instantiated in a build.mill or package.mill file")
+    implicit def dummyInfo: Info = sys.error("implicit RootModule.Info must be provided")
+  }
 }

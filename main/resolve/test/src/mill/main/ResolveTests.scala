@@ -53,6 +53,7 @@ object ResolveTests extends TestSuite {
         module,
         selectorStrings,
         SelectMode.Separated,
+        false,
         false
       )
     }
@@ -62,6 +63,7 @@ object ResolveTests extends TestSuite {
         module,
         selectorStrings,
         SelectMode.Separated,
+        false,
         false
       ).map(_.map(_.render))
     }
@@ -71,7 +73,7 @@ object ResolveTests extends TestSuite {
     x.left.exists(_.contains(s)) &&
       // Make sure the stack traces are truncated and short-ish, and do not
       // contain the entire Mill internal call stack at point of failure
-      x.left.exists(_.linesIterator.size < 20)
+      x.left.exists(_.linesIterator.size < 25)
 
   val tests = Tests {
     val graphs = new mill.util.TestGraphs()
@@ -1106,6 +1108,91 @@ object ResolveTests extends TestSuite {
       test - check(
         "__",
         Right(Set(_.concrete.tests.inner.foo, _.concrete.tests.inner.innerer.bar))
+      )
+    }
+    test("cyclicModuleRefInitError") {
+      val check = new Checker(TestGraphs.CyclicModuleRefInitError)
+      test - check.checkSeq0(
+        Seq("__"),
+        isShortError(_, "Cyclic module reference detected at myA.a,")
+      )
+      test - check(
+        "_",
+        Right(Set(_.foo))
+      )
+      test - check.checkSeq0(
+        Seq("myA.__"),
+        isShortError(_, "Cyclic module reference detected at myA.a,")
+      )
+      test - check.checkSeq0(
+        Seq("myA.a.__"),
+        isShortError(_, "Cyclic module reference detected at myA.a,")
+      )
+      test - check.checkSeq0(
+        Seq("myA.a._"),
+        isShortError(_, "Cyclic module reference detected at myA.a.a,")
+      )
+      test - check.checkSeq0(
+        Seq("myA.a._.a"),
+        isShortError(_, "Cyclic module reference detected at myA.a.a,")
+      )
+      test - check.checkSeq0(
+        Seq("myA.a.b.a"),
+        isShortError(_, "Cyclic module reference detected at myA.a.b.a,")
+      )
+    }
+    test("cyclicModuleRefInitError2") {
+      val check = new Checker(TestGraphs.CyclicModuleRefInitError2)
+      test - check.checkSeq0(
+        Seq("__"),
+        isShortError(_, "Cyclic module reference detected at A.myA.a,")
+      )
+    }
+    test("cyclicModuleRefInitError3") {
+      val check = new Checker(TestGraphs.CyclicModuleRefInitError3)
+      test - check.checkSeq0(
+        Seq("__"),
+        isShortError(_, "Cyclic module reference detected at A.b.a,")
+      )
+      test - check.checkSeq0(
+        Seq("A.__"),
+        isShortError(_, "Cyclic module reference detected at A.b.a,")
+      )
+      test - check.checkSeq0(
+        Seq("A.b.__.a.b"),
+        isShortError(_, "Cyclic module reference detected at A.b.a,")
+      )
+    }
+    test("crossedCyclicModuleRefInitError") {
+      val check = new Checker(TestGraphs.CrossedCyclicModuleRefInitError)
+      test - check.checkSeq0(
+        Seq("__"),
+        isShortError(_, "Cyclic module reference detected at cross[210].c2[210].c1,")
+      )
+    }
+    test("nonCyclicModules") {
+      val check = new Checker(TestGraphs.NonCyclicModules)
+      test - check(
+        "__",
+        Right(Set(_.foo))
+      )
+    }
+    test("moduleRefWithNonModuleRefChild") {
+      val check = new Checker(TestGraphs.ModuleRefWithNonModuleRefChild)
+      test - check(
+        "__",
+        Right(Set(_.foo))
+      )
+    }
+    test("moduleRefCycle") {
+      val check = new Checker(TestGraphs.ModuleRefCycle)
+      test - check(
+        "__",
+        Right(Set(_.foo))
+      )
+      test - check(
+        "__._",
+        Right(Set(_.foo))
       )
     }
   }

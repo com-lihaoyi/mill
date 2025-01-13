@@ -1,0 +1,100 @@
+// Mill uses uPickle to cache task output to disk as JSON, and to output JSON
+// for third-party tools to consume. The output of every Mill task must be JSON
+// serializable via uPickle.
+//
+// The uPickle serialized return of every Mill task is used for multiple purposes:
+//
+// - As the format for caching things on disk
+//
+// - The output format for `show`, which can be used for manual inspection piped
+//   to external tools
+//
+// - Decided whether downstream results can be read from the cache or whether they
+//   need to be recomputed
+//
+// === Primitives and Collections
+//
+// Most Scala primitive types (``String``s, ``Int``s, ``Boolean``s, etc.) and
+// collections types (``Seq``s, ``List``s, ``Tuple``s, etc.) are serializable by default.
+
+import mill._
+
+def taskInt = Task { 123 }
+def taskBoolean = Task { true }
+def taskString = Task { "hello " + taskInt() + " world " + taskBoolean() }
+
+/** Usage
+
+> ./mill show taskInt
+123
+
+> ./mill show taskBoolean
+true
+
+> ./mill show taskString
+"hello 123 world true"
+
+> ./mill show taskTuple
+[
+  123,
+  true,
+  "hello 123 world true"
+]
+*/
+
+def taskTuple = Task { (taskInt(), taskBoolean(), taskString()) }
+def taskSeq = Task { Seq(taskInt(), taskInt() * 2, taskInt() * 3) }
+def taskMap = Task { Map("int" -> taskInt().toString, "boolean" -> taskBoolean().toString) }
+
+/** Usage
+> ./mill show taskSeq
+[
+  123,
+  246,
+  369
+]
+
+> ./mill show taskMap
+{
+  "int": "123",
+  "boolean": "true"
+}
+
+*/
+
+// === Paths and PathRef
+//
+// ``os.Path``s from OS-Lib are also serializable as strings.
+
+def taskPath = Task {
+  os.write(os.pwd / "file.txt", "hello")
+  os.pwd / "file.txt"
+}
+
+/** Usage
+
+> ./mill show taskPath
+".../out/taskPath.dest/file.txt"
+
+*/
+
+// Note that returning an `os.Path` from a task will only invalidate downstream
+// tasks on changes to the path itself (e.g. from returning `file.txt` to `file2.txt`),
+// and not to changes to the contents of any file or folder at that path. If you want
+// to invalidate downstream tasks depending on the contents of a file or folder, you
+// should return a `PathRef`:
+
+def taskPathRef = Task {
+  os.write(os.pwd / "file.txt", "hello")
+  PathRef(os.pwd / "file.txt")
+}
+
+/** Usage
+
+> ./mill show taskPathRef
+"ref.../out/taskPathRef.dest/file.txt"
+
+*/
+
+// The serialized `PathRef` contains a hexadecimal hash signature of the file or
+// folder referenced on disk, computed from its contents.

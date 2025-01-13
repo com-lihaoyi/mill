@@ -2,7 +2,7 @@ package mill.define
 
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import mill.T
+import mill.{T, Task}
 import mill.api.Result.Success
 import utest._
 import utest.framework.TestPath
@@ -10,17 +10,17 @@ import utest.framework.TestPath
 object CacherTests extends TestSuite {
   object Base extends Base
   trait Base extends TestBaseModule {
-    def value = T { 1 }
-    def result = T { Success(1) }
+    def value = Task { 1 }
+    def result = Task { Success(1) }
   }
   object Middle extends Middle
   trait Middle extends Base {
-    override def value = T { super.value() + 2 }
-    def overridden = T { super.value() }
+    override def value = Task { super.value() + 2 }
+    def overridden = Task { super.value() }
   }
   object Terminal extends Terminal
   trait Terminal extends Middle {
-    override def value = T { super.value() + 4 }
+    override def value = Task { super.value() + 4 }
   }
 
   val tests = Tests {

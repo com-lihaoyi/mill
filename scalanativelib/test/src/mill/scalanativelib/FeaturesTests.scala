@@ -1,5 +1,6 @@
 package mill.scalanativelib
 
+import mill.given
 import mill.define.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
@@ -13,7 +14,7 @@ object FeaturesTests extends TestSuite {
     override lazy val millDiscover: Discover = Discover[this.type]
   }
 
-  val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "features"
+  val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "features"
 
   val tests: Tests = Tests {
     test("incremental compilation works") - UnitTester(Features, millSourcePath).scoped { eval =>

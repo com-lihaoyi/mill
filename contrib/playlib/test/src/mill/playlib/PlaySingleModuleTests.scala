@@ -1,6 +1,6 @@
 package mill.playlib
 
-import mill.T
+import mill.{T, Task}
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.{TestSuite, Tests, assert, _}
 
@@ -8,12 +8,12 @@ object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
 
   object playsingle extends TestBaseModule with PlayModule with SingleModule {
     override val millSourcePath = os.temp() // workaround problem in `SingleModule`
-    override def playVersion = T { testPlay28 }
-    override def scalaVersion = T { sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???) }
+    override def playVersion = Task { testPlay28 }
+    override def scalaVersion = Task { sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???) }
     object test extends PlayTests
   }
 
-  val resourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "playsingle"
+  val resourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "playsingle"
 
   def tests: Tests = Tests {
     test("layout") {
@@ -27,7 +27,7 @@ object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
         assert(
           conf.value.map(_.path.relativeTo(playsingle.millSourcePath).toString()) == Seq("conf"),
           app.value.map(_.path.relativeTo(playsingle.millSourcePath).toString()) == Seq("app"),
-          sources == app,
+          sources.value == app.value,
           resources.value.map(_.path.relativeTo(playsingle.millSourcePath).toString()).contains(
             "conf"
           ),

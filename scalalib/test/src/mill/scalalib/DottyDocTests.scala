@@ -25,14 +25,14 @@ object DottyDocTests extends TestSuite {
   object MultiDocsModule extends TestBaseModule {
     object multidocs extends ScalaModule {
       def scalaVersion = "0.24.0-RC1"
-      def docResources = T.sources(
+      def docResources = Task.Sources(
         millSourcePath / "docs1",
         millSourcePath / "docs2"
       )
     }
   }
 
-  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "dottydoc"
+  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "dottydoc"
 
   def tests: Tests = Tests {
     test("static") - UnitTester(StaticDocsModule, resourcePath).scoped { eval =>

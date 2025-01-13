@@ -10,10 +10,10 @@ object `package` extends RootModule with ScalaModule {
     ivy"com.lihaoyi::os-lib:0.10.7"
   )
 
-  def htmlSnippet = T{ h1("hello").toString }
-  def resources = T.sources{
-    os.write(T.dest / "snippet.txt", htmlSnippet())
-    super.resources() ++ Seq(PathRef(T.dest))
+  def htmlSnippet = Task { h1("hello").toString }
+  def resources = Task {
+    os.write(Task.dest / "snippet.txt", htmlSnippet())
+    super.resources() ++ Seq(PathRef(Task.dest))
   }
 }
 
@@ -56,7 +56,6 @@ Run-time HTML snippet: <p>world</p>
 
 */
 
-
 // This example is trivial, but in larger builds there may be much more scenarios
 // where you may want to keep the libraries used in your `build.mill` and the libraries
 // used in your application code consistent. With the `mill-build/build.mill` configuration
@@ -67,7 +66,6 @@ Run-time HTML snippet: <p>world</p>
 // present on a typical `ScalaModule`: `scalacOptions`, `generatedSources`, etc.
 // This is useful for large projects where the build itself is a non-trivial
 // module which requires its own non-trivial customization.
-
 
 // You can also run tasks on the meta-build by using the `--meta-level`
 // cli option.

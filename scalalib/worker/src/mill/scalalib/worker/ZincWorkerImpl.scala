@@ -1,15 +1,9 @@
 package mill.scalalib.worker
 
 import mill.api.Loose.Agg
-import mill.api.{
-  CompileProblemReporter,
-  DummyOutputStream,
-  KeyedLockedCache,
-  PathRef,
-  Result,
-  internal
-}
+import mill.api.{CachedFactory, CompileProblemReporter, Ctx, PathRef, Result, internal}
 import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerApi, ZincWorkerUtil}
+import os.Path
 import sbt.internal.inc.{
   Analysis,
   CompileFailed,
@@ -40,17 +34,13 @@ import xsbti.compile.{
   PreviousResult
 }
 import xsbti.{PathBasedFile, VirtualFile}
+import xsbti.compile.CompileProgress
 
-import java.io.{File, PrintWriter}
+import java.io.File
+import java.net.URLClassLoader
 import java.util.Optional
-import scala.annotation.tailrec
 import scala.collection.mutable
-import scala.ref.SoftReference
-import scala.tools.nsc.{CloseableRegistry, Settings}
-import scala.tools.nsc.classpath.{AggregateClassPath, ClassPathFactory}
-import scala.tools.scalap.{ByteArrayReader, Classfile, JavaWriter}
 import scala.util.Properties.isWin
-import scala.util.Using
 
 @internal
 class ZincWorkerImpl(
@@ -58,67 +48,157 @@ class ZincWorkerImpl(
       (ZincWorkerApi.Ctx, (String, String) => (Option[Agg[PathRef]], PathRef)),
       String => PathRef
     ],
-    libraryJarNameGrep: (Agg[PathRef], String) => PathRef,
-    compilerJarNameGrep: (Agg[PathRef], String) => PathRef,
-    compilerCache: KeyedLockedCache[Compilers],
+    jobs: Int,
     compileToJar: Boolean,
-    zincLogDebug: Boolean
+    zincLogDebug: Boolean,
+    javaHome: Option[PathRef]
 ) extends ZincWorkerApi with AutoCloseable {
-  private val zincLogLevel = if (zincLogDebug) sbt.util.Level.Debug else sbt.util.Level.Info
-  private[this] val ic = new sbt.internal.inc.IncrementalCompilerImpl()
-  private val javaOnlyCompilersCache = mutable.Map.empty[Seq[String], SoftReference[Compilers]]
+  val libraryJarNameGrep: (Agg[PathRef], String) => PathRef =
+    ZincWorkerUtil.grepJar(_, "scala-library", _, sources = false)
 
-  private val filterJavacRuntimeOptions: String => Boolean = opt => opt.startsWith("-J")
+  case class CompileCacheKey(
+      scalaVersion: String,
+      compilerClasspath: Seq[PathRef],
+      scalacPluginClasspath: Seq[PathRef],
+      scalaOrganization: String,
+      javacRuntimeOptions: Seq[String]
+  ) {
+    val combinedCompilerClasspath: Seq[PathRef] = compilerClasspath ++ scalacPluginClasspath
+    val compilersSig: Int =
+      combinedCompilerClasspath.hashCode() + scalaVersion.hashCode() +
+        scalaOrganization.hashCode() + javacRuntimeOptions.hashCode()
+  }
+  object scalaCompilerCache extends CachedFactory[CompileCacheKey, (URLClassLoader, Compilers)] {
 
-  def javaOnlyCompilers(javacOptions: Seq[String]): Compilers = {
-    // Only options relevant for the compiler runtime influence the cached instance
-    val javacRuntimeOptions = javacOptions.filter(filterJavacRuntimeOptions)
+    override def maxCacheSize = jobs
 
-    javaOnlyCompilersCache.get(javacRuntimeOptions) match {
-      case Some(SoftReference(compilers)) => compilers
-      case _ =>
-        // Keep the classpath as written by the user
-        val classpathOptions = ClasspathOptions.of(
-          /*bootLibrary*/ false,
-          /*compiler*/ false,
-          /*extra*/ false,
-          /*autoBoot*/ false,
-          /*filterLibrary*/ false
-        )
+    override def setup(key: CompileCacheKey): (URLClassLoader, Compilers) = {
+      import key._
 
-        val dummyFile = new java.io.File("")
-        // Zinc does not have an entry point for Java-only compilation, so we need
-        // to make up a dummy ScalaCompiler instance.
-        val scalac = ZincUtil.scalaCompiler(
-          new ScalaInstance(
-            version = "",
-            loader = null,
-            loaderCompilerOnly = null,
-            loaderLibraryOnly = null,
-            libraryJars = Array(dummyFile),
-            compilerJars = Array(dummyFile),
-            allJars = new Array(0),
-            explicitActual = Some("")
-          ),
-          dummyFile,
-          classpathOptions // this is used for javac too
-        )
+      val combinedCompilerJars = combinedCompilerClasspath.iterator.map(_.path.toIO).toArray
 
-        val javaTools = getLocalOrCreateJavaTools(javacRuntimeOptions)
+      val compiledCompilerBridge = compileBridgeIfNeeded(
+        scalaVersion,
+        scalaOrganization,
+        compilerClasspath
+      )
+      val loader = getCachedClassLoader(compilersSig, combinedCompilerJars)
+      val scalaInstance = new ScalaInstance(
+        version = key.scalaVersion,
+        loader = loader,
+        loaderCompilerOnly = loader,
+        loaderLibraryOnly = ClasspathUtil.rootLoader,
+        libraryJars = Array(libraryJarNameGrep(
+          compilerClasspath,
+          // we don't support too outdated dotty versions
+          // and because there will be no scala 2.14, so hardcode "2.13." here is acceptable
+          if (ZincWorkerUtil.isDottyOrScala3(key.scalaVersion)) "2.13." else key.scalaVersion
+        ).path.toIO),
+        compilerJars = combinedCompilerJars,
+        allJars = combinedCompilerJars,
+        explicitActual = None
+      )
+      val compilers = ic.compilers(
+        javaTools = getLocalOrCreateJavaTools(javacRuntimeOptions),
+        scalac = ZincUtil.scalaCompiler(scalaInstance, compiledCompilerBridge.toIO)
+      )
+      (loader, compilers)
+    }
 
-        val compilers = ic.compilers(javaTools, scalac)
-        javaOnlyCompilersCache.update(javacRuntimeOptions, SoftReference(compilers))
-        compilers
+    override def teardown(key: CompileCacheKey, value: (URLClassLoader, Compilers)): Unit = {
+      import key._
+      classloaderCache.updateWith(compilersSig) {
+        case Some((cl, 1)) =>
+          cl.close()
+          None
+        case Some((cl, n)) if n > 1 => Some((cl, n - 1))
+        // No other cases; n should never be zero or negative
+      }
     }
   }
 
+  private[this] val classloaderCache =
+    collection.mutable.LinkedHashMap.empty[Long, (URLClassLoader, Int)]
+
+  def getCachedClassLoader(
+      compilersSig: Long,
+      combinedCompilerJars: Array[java.io.File]
+  ): URLClassLoader = {
+    classloaderCache.synchronized {
+      classloaderCache.get(compilersSig) match {
+        case Some((cl, i)) =>
+          classloaderCache(compilersSig) = (cl, i + 1)
+          cl
+        case _ =>
+          // the Scala compiler must load the `xsbti.*` classes from the same loader as `ZincWorkerImpl`
+          val cl = mill.api.ClassLoader.create(
+            combinedCompilerJars.map(_.toURI.toURL).toSeq,
+            parent = null,
+            sharedLoader = getClass.getClassLoader,
+            sharedPrefixes = Seq("xsbti")
+          )(new Ctx.Home { override def home: Path = os.home })
+          classloaderCache.update(compilersSig, (cl, 1))
+          cl
+      }
+    }
+  }
+
+  object javaOnlyCompilerCache extends CachedFactory[Seq[String], Compilers] {
+
+    override def setup(key: Seq[String]): Compilers = {
+      // Only options relevant for the compiler runtime influence the cached instance
+      // Keep the classpath as written by the user
+      val classpathOptions = ClasspathOptions.of(
+        /*bootLibrary*/ false,
+        /*compiler*/ false,
+        /*extra*/ false,
+        /*autoBoot*/ false,
+        /*filterLibrary*/ false
+      )
+
+      val dummyFile = new java.io.File("")
+      // Zinc does not have an entry point for Java-only compilation, so we need
+      // to make up a dummy ScalaCompiler instance.
+      val scalac = ZincUtil.scalaCompiler(
+        new ScalaInstance(
+          version = "",
+          loader = null,
+          loaderCompilerOnly = null,
+          loaderLibraryOnly = null,
+          libraryJars = Array(dummyFile),
+          compilerJars = Array(dummyFile),
+          allJars = new Array(0),
+          explicitActual = Some("")
+        ),
+        dummyFile,
+        classpathOptions // this is used for javac too
+      )
+
+      val javaTools = getLocalOrCreateJavaTools(key)
+
+      val compilers = ic.compilers(javaTools, scalac)
+      compilers
+
+    }
+
+    override def teardown(key: Seq[String], value: Compilers): Unit = ()
+
+    override def maxCacheSize: Int = jobs
+  }
+
+  private def zincLogLevel = if (zincLogDebug) sbt.util.Level.Debug else sbt.util.Level.Info
+  private[this] val ic = new sbt.internal.inc.IncrementalCompilerImpl()
+
+  private def filterJavacRuntimeOptions(opt: String): Boolean = opt.startsWith("-J")
+
   private def getLocalOrCreateJavaTools(javacRuntimeOptions: Seq[String]): JavaTools = {
+    val javaHome = this.javaHome.map(_.path.toNIO)
     val (javaCompiler, javaDoc) =
       // Local java compilers don't accept -J flags so when we put this together if we detect
       // any javacOptions starting with -J we ensure we have a non-local Java compiler which
       // can handle them.
-      if (javacRuntimeOptions.exists(filterJavacRuntimeOptions)) {
-        (javac.JavaCompiler.fork(None), javac.Javadoc.fork(None))
+      if (javacRuntimeOptions.exists(filterJavacRuntimeOptions) || javaHome.isDefined) {
+        (javac.JavaCompiler.fork(javaHome), javac.Javadoc.fork(javaHome))
 
       } else {
         val compiler = javac.JavaCompiler.local.getOrElse(javac.JavaCompiler.fork(None))
@@ -144,7 +224,7 @@ class ZincWorkerImpl(
       compilerClasspath,
       scalacPluginClasspath,
       Seq()
-    ) { compilers: Compilers =>
+    ) { (compilers: Compilers) =>
       if (ZincWorkerUtil.isDotty(scalaVersion) || ZincWorkerUtil.isScala3Milestone(scalaVersion)) {
         // dotty 0.x and scala 3 milestones use the dotty-doc tool
         val dottydocClass =
@@ -197,18 +277,18 @@ class ZincWorkerImpl(
     os.makeDir.all(workingDir)
     os.makeDir.all(compileDest)
 
-    val sourceFolder = mill.api.IO.unpackZip(compilerBridgeSourcesJar)(workingDir)
+    val sourceFolder = os.unzip(compilerBridgeSourcesJar, workingDir / "unpacked")
     val classloader = mill.api.ClassLoader.create(
       compilerClasspath.iterator.map(_.path.toIO.toURI.toURL).toSeq,
       null
     )(ctx0)
 
     val (sources, resources) =
-      os.walk(sourceFolder.path).filter(os.isFile)
+      os.walk(sourceFolder).filter(os.isFile)
         .partition(a => a.ext == "scala" || a.ext == "java")
 
     resources.foreach { res =>
-      val dest = compileDest / res.relativeTo(sourceFolder.path)
+      val dest = compileDest / res.relativeTo(sourceFolder)
       os.move(res, dest, replaceExisting = true, createFolders = true)
     }
 
@@ -296,38 +376,12 @@ class ZincWorkerImpl(
    *
    * In contrast to [[discoverMainClasses()]], this version does not need a successful zinc compilation,
    * which makes it independent of the actual used compiler.
-   * It should also work for JVM bytecode generated by Kotlin and other langauges.
+   * It should also work for JVM bytecode generated by Kotlin and other languages.
    *
    * This implementation is only in this "zinc"-specific module, because this module is already shared between all `JavaModule`s.
    */
   override def discoverMainClasses(classpath: Seq[os.Path]): Seq[String] = {
-    val cp = classpath.map(_.toNIO.toString()).mkString(File.pathSeparator)
-
-    val settings = new Settings()
-    Using.resource(new CloseableRegistry) { registry =>
-      val path = AggregateClassPath(
-        new ClassPathFactory(settings, registry).classesInExpandedPath(cp)
-      )
-
-      val mainClasses = for {
-        foundPackage <- ZincWorkerImpl.recursive("", (p: String) => path.packages(p).map(_.name))
-        classFile <- path.classes(foundPackage)
-        cf = {
-          val bytes = os.read.bytes(os.Path(classFile.file.file))
-          val reader = new ByteArrayReader(bytes)
-          new Classfile(reader)
-        }
-        jw = new JavaWriter(cf, new PrintWriter(DummyOutputStream))
-        method <- cf.methods
-        static = jw.isStatic(method.flags)
-        methodName = jw.getName(method.name)
-        methodType = jw.getType(method.tpe)
-        if static && methodName == "main" && methodType == "(scala.Array[java.lang.String]): scala.Unit"
-        className = jw.getClassName(cf.classname)
-      } yield className
-
-      mainClasses
-    }
+    DiscoverMainClassesMain(classpath)
   }
 
   def discoverMainClasses(compilationResult: CompilationResult): Seq[String] = {
@@ -353,18 +407,20 @@ class ZincWorkerImpl(
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean
   )(implicit ctx: ZincWorkerApi.Ctx): Result[CompilationResult] = {
-    compileInternal(
-      upstreamCompileOutput = upstreamCompileOutput,
-      sources = sources,
-      compileClasspath = compileClasspath,
-      javacOptions = javacOptions,
-      scalacOptions = Nil,
-      compilers = javaOnlyCompilers(javacOptions),
-      reporter = reporter,
-      reportCachedProblems = reportCachedProblems,
-      incrementalCompilation = incrementalCompilation,
-      auxiliaryClassFileExtensions = Seq.empty[String]
-    )
+    javaOnlyCompilerCache.withValue(javacOptions.filter(filterJavacRuntimeOptions)) { compilers =>
+      compileInternal(
+        upstreamCompileOutput = upstreamCompileOutput,
+        sources = sources,
+        compileClasspath = compileClasspath,
+        javacOptions = javacOptions,
+        scalacOptions = Nil,
+        compilers = compilers,
+        reporter = reporter,
+        reportCachedProblems = reportCachedProblems,
+        incrementalCompilation = incrementalCompilation,
+        auxiliaryClassFileExtensions = Seq.empty[String]
+      )
+    }
   }
 
   override def compileMixed(
@@ -388,7 +444,7 @@ class ZincWorkerImpl(
       compilerClasspath = compilerClasspath,
       scalacPluginClasspath = scalacPluginClasspath,
       javacOptions = javacOptions
-    ) { compilers: Compilers =>
+    ) { (compilers: Compilers) =>
       compileInternal(
         upstreamCompileOutput = upstreamCompileOutput,
         sources = sources,
@@ -404,80 +460,35 @@ class ZincWorkerImpl(
     }
   }
 
-  // for now this just grows unbounded; YOLO
-  // But at least we do not prevent unloading/garbage collecting of classloaders
-  private[this] val classloaderCache =
-    collection.mutable.LinkedHashMap.empty[Long, SoftReference[ClassLoader]]
-
-  def getCachedClassLoader(compilersSig: Long, combinedCompilerJars: Array[java.io.File])(implicit
-      ctx: ZincWorkerApi.Ctx
-  ): ClassLoader = {
-    classloaderCache.synchronized {
-      classloaderCache.get(compilersSig) match {
-        case Some(SoftReference(cl)) => cl
-        case _ =>
-          // the Scala compiler must load the `xsbti.*` classes from the same loader than `ZincWorkerImpl`
-          val sharedPrefixes = Seq("xsbti")
-          val cl = mill.api.ClassLoader.create(
-            combinedCompilerJars.map(_.toURI.toURL).toSeq,
-            parent = null,
-            sharedLoader = getClass.getClassLoader,
-            sharedPrefixes
-          )
-          classloaderCache.update(compilersSig, SoftReference(cl))
-          cl
-      }
-    }
-  }
-
   private def withCompilers[T](
       scalaVersion: String,
       scalaOrganization: String,
       compilerClasspath: Agg[PathRef],
       scalacPluginClasspath: Agg[PathRef],
       javacOptions: Seq[String]
-  )(f: Compilers => T)(implicit ctx: ZincWorkerApi.Ctx) = {
-    val combinedCompilerClasspath = compilerClasspath ++ scalacPluginClasspath
+  )(f: Compilers => T) = {
+
     val javacRuntimeOptions = javacOptions.filter(filterJavacRuntimeOptions)
-    val compilersSig =
-      combinedCompilerClasspath.hashCode() + scalaVersion.hashCode() + scalaOrganization.hashCode() + javacRuntimeOptions.hashCode()
-    val combinedCompilerJars = combinedCompilerClasspath.iterator.map(_.path.toIO).toArray
 
-    val compiledCompilerBridge = compileBridgeIfNeeded(
-      scalaVersion,
-      scalaOrganization,
-      compilerClasspath
-    )
-
-    compilerCache.withCachedValue(compilersSig) {
-      val loader = getCachedClassLoader(compilersSig, combinedCompilerJars)
-      val scalaInstance = new ScalaInstance(
-        version = scalaVersion,
-        loader = loader,
-        loaderCompilerOnly = loader,
-        loaderLibraryOnly = ClasspathUtil.rootLoader,
-        libraryJars = Array(libraryJarNameGrep(
-          compilerClasspath,
-          // we don't support too outdated dotty versions
-          // and because there will be no scala 2.14, so hardcode "2.13." here is acceptable
-          if (ZincWorkerUtil.isDottyOrScala3(scalaVersion)) "2.13." else scalaVersion
-        ).path.toIO),
-        compilerJars = combinedCompilerJars,
-        allJars = combinedCompilerJars,
-        explicitActual = None
+    scalaCompilerCache.withValue(
+      CompileCacheKey(
+        scalaVersion,
+        compilerClasspath.toSeq,
+        scalacPluginClasspath.toSeq,
+        scalaOrganization,
+        javacRuntimeOptions
       )
-      ic.compilers(
-        javaTools = getLocalOrCreateJavaTools(javacRuntimeOptions),
-        scalac = ZincUtil.scalaCompiler(scalaInstance, compiledCompilerBridge.toIO)
-      )
-    }(f)
+    ) { case (loader, compilers) =>
+      f(compilers)
+    }
   }
 
   private def fileAnalysisStore(path: os.Path): AnalysisStore =
     ConsistentFileAnalysisStore.binary(
       file = path.toIO,
       mappers = ReadWriteMappers.getEmptyMappers(),
-      // No need to utilize more that 8 cores to serialize a small file
+      reproducible = true,
+      // No need to utilize more than 8 cores to serialize a small file
       parallelism = math.min(Runtime.getRuntime.availableProcessors(), 8)
     )
 
@@ -579,6 +590,20 @@ class ZincWorkerImpl(
     val incOptions = IncOptions.of().withAuxiliaryClassFiles(
       auxiliaryClassFileExtensions.map(new AuxiliaryClassFileExtension(_)).toArray
     )
+    val compileProgress = reporter.map { reporter =>
+      new CompileProgress {
+        override def advance(
+            current: Int,
+            total: Int,
+            prevPhase: String,
+            nextPhase: String
+        ): Boolean = {
+          val percentage = current * 100 / total
+          reporter.notifyProgress(percentage = percentage, total = total)
+          true
+        }
+      }
+    }
 
     val inputs = ic.inputs(
       classpath = classpath,
@@ -598,7 +623,7 @@ class ZincWorkerImpl(
         cache = new FreshCompilerCache,
         incOptions = incOptions,
         reporter = newReporter,
-        progress = None,
+        progress = compileProgress,
         earlyAnalysisStore = None,
         extra = Array()
       ),
@@ -653,58 +678,12 @@ class ZincWorkerImpl(
   }
 
   override def close(): Unit = {
-    val closeableClassloaders = classloaderCache
-      .flatMap(_._2.get)
+    val urlClassLoaders = classloaderCache
+      .map(_._2._1)
       .collect { case v: AutoCloseable => v }
 
-    val urlClassLoaders =
-      classloaderCache.flatMap(_._2.get).collect { case t: java.net.URLClassLoader => t }
-
-    // Make sure we at least pick up all the URLClassLoaders, since we know those are
-    // AutoCloseable, although there may be other AutoCloseable classloaders as well
-    assert(urlClassLoaders.toSet[AutoCloseable].subsetOf(closeableClassloaders.toSet))
-
-    closeableClassloaders.foreach(_.close())
+    urlClassLoaders.foreach(_.close())
 
     classloaderCache.clear()
-    javaOnlyCompilersCache.clear()
-  }
-}
-
-object ZincWorkerImpl {
-  // copied from ModuleUtils
-  private def recursive[T <: String](start: T, deps: T => Seq[T]): Seq[T] = {
-
-    @tailrec def rec(
-        seenModules: List[T],
-        toAnalyze: List[(List[T], List[T])]
-    ): List[T] = {
-      toAnalyze match {
-        case Nil => seenModules
-        case traces :: rest =>
-          traces match {
-            case (_, Nil) => rec(seenModules, rest)
-            case (trace, cand :: remaining) =>
-              if (trace.contains(cand)) {
-                // cycle!
-                val rendered =
-                  (cand :: (cand :: trace.takeWhile(_ != cand)).reverse).mkString(" -> ")
-                val msg = s"cycle detected: ${rendered}"
-                println(msg)
-                throw sys.error(msg)
-              }
-              rec(
-                if (seenModules.contains(cand)) seenModules
-                else { seenModules ++ Seq(cand) },
-                toAnalyze = ((cand :: trace, deps(cand).toList)) :: (trace, remaining) :: rest
-              )
-          }
-      }
-    }
-
-    rec(
-      seenModules = List(),
-      toAnalyze = List((List(start), deps(start).toList))
-    ).reverse
   }
 }

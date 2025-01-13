@@ -1,0 +1,24 @@
+= Java Build Examples
+:page-aliases: Java_Build_Examples.adoc
+
+include::partial$gtag-config.adoc[]
+
+== Example Builds for Real Projects
+
+Mill comes bundled with example builds for real-world open-source projects,
+demonstrating how Mill can be used to build code outside of tiny example codebases:
+
+=== JimFS
+
+include::partial$example/thirdparty/jimfs.adoc[]
+
+=== Apache Commons IO
+
+include::partial$example/thirdparty/commons-io.adoc[]
+
+== Real World Mill Builds
+
+=== C3P0
+
+https://github.com/swaldman/c3p0[C3P0] is a JDBC connection pooling library
+written in Java, built using the Mill build tool.

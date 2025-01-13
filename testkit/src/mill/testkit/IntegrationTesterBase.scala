@@ -1,10 +1,11 @@
 package mill.testkit
 import mill.api.Retry
-import mill.main.client.OutFiles.{millWorker, out}
+import mill.main.client.OutFiles.{millServer, out}
 import mill.main.client.ServerFiles.serverId
 
 trait IntegrationTesterBase {
   def workspaceSourcePath: os.Path
+  def clientServerMode: Boolean
 
   /**
    * The working directory of the integration test suite, which is the root of the
@@ -34,25 +35,34 @@ trait IntegrationTesterBase {
     os.makeDir.all(workspacePath)
     Retry() {
       val tmp = os.temp.dir()
-      if (os.exists(workspacePath / out)) os.move.into(workspacePath / out, tmp)
+      val outDir = os.Path(out, workspacePath)
+      if (os.exists(outDir)) os.move.into(outDir, tmp)
       os.remove.all(tmp)
     }
 
     os.list(workspacePath).foreach(os.remove.all(_))
-    os.list(workspaceSourcePath).filter(_.last != out).foreach(os.copy.into(_, workspacePath))
+    val outRelPathOpt = os.FilePath(out) match {
+      case relPath: os.RelPath if relPath.ups == 0 => Some(relPath)
+      case _ => None
+    }
+    os.list(workspaceSourcePath)
+      .filter(
+        outRelPathOpt match {
+          case None => _ => true
+          case Some(outRelPath) => !_.endsWith(outRelPath)
+        }
+      )
+      .foreach(os.copy.into(_, workspacePath))
   }
 
   /**
    * Remove any ID files to try and force them to exit
    */
   def removeServerIdFile(): Unit = {
-    if (os.exists(workspacePath / out)) {
-      val serverIdFiles = for {
-        outPath <- os.list.stream(workspacePath / out)
-        if outPath.last.startsWith(millWorker)
-      } yield outPath / serverId
+    val serverPath0 = os.Path(out, workspacePath) / millServer
+    if (clientServerMode) {
+      for (serverPath <- os.list.stream(serverPath0)) os.remove(serverPath / serverId)
 
-      serverIdFiles.foreach(os.remove(_))
       Thread.sleep(500) // give a moment for the server to notice the file is gone and exit
     }
   }

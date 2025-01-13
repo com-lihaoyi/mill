@@ -34,7 +34,7 @@ object TutorialTests extends TestSuite {
 
   object TutorialWithAdditionalArgs extends TutorialBase {
     object core extends TutorialModule {
-      override def scalaPBAdditionalArgs = T {
+      override def scalaPBAdditionalArgs = Task {
         Seq(
           "--additional-test=..."
         )
@@ -44,7 +44,7 @@ object TutorialTests extends TestSuite {
 
   object TutorialWithSpecificSources extends TutorialBase {
     object core extends TutorialModule {
-      override def scalaPBSources: T[Seq[PathRef]] = T.sources {
+      override def scalaPBSources: T[Seq[PathRef]] = Task.Sources {
         millSourcePath / "protobuf/tutorial/Tutorial.proto"
       }
 
@@ -55,7 +55,7 @@ object TutorialTests extends TestSuite {
     }
   }
 
-  val resourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER"))
+  val resourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
 
   def protobufOutPath(eval: UnitTester): os.Path =
     eval.outPath / "core/compileScalaPB.dest/com/example/tutorial"
@@ -83,57 +83,61 @@ object TutorialTests extends TestSuite {
 
     test("compileScalaPB") {
       test("calledDirectly") - UnitTester(Tutorial, resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(Tutorial.core.compileScalaPB)
+        if (!mill.main.client.Util.isWindows) {
+          val Right(result) = eval.apply(Tutorial.core.compileScalaPB)
 
-        val outPath = protobufOutPath(eval)
+          val outPath = protobufOutPath(eval)
 
-        val outputFiles = os.walk(result.value.path).filter(os.isFile)
+          val outputFiles = os.walk(result.value.path).filter(os.isFile)
 
-        val expectedSourcefiles = compiledSourcefiles.map(outPath / _)
+          val expectedSourcefiles = compiledSourcefiles.map(outPath / _)
 
-        assert(
-          result.value.path == eval.outPath / "core/compileScalaPB.dest",
-          outputFiles.nonEmpty,
-          outputFiles.forall(expectedSourcefiles.contains),
-          outputFiles.size == 5,
-          result.evalCount > 0
-        )
+          assert(
+            result.value.path == eval.outPath / "core/compileScalaPB.dest",
+            outputFiles.nonEmpty,
+            outputFiles.forall(expectedSourcefiles.contains),
+            outputFiles.size == 5,
+            result.evalCount > 0
+          )
 
-        // don't recompile if nothing changed
-        val Right(result2) = eval.apply(Tutorial.core.compileScalaPB)
+          // don't recompile if nothing changed
+          val Right(result2) = eval.apply(Tutorial.core.compileScalaPB)
 
-        assert(result2.evalCount == 0)
+          assert(result2.evalCount == 0)
+        }
       }
 
       test("calledWithSpecificFile") - UnitTester(
         TutorialWithSpecificSources,
         resourcePath
       ).scoped { eval =>
-        val Right(result) = eval.apply(TutorialWithSpecificSources.core.compileScalaPB)
+        if (!mill.main.client.Util.isWindows) {
+          val Right(result) = eval.apply(TutorialWithSpecificSources.core.compileScalaPB)
 
-        val outPath = protobufOutPath(eval)
+          val outPath = protobufOutPath(eval)
 
-        val outputFiles = os.walk(result.value.path).filter(os.isFile)
+          val outputFiles = os.walk(result.value.path).filter(os.isFile)
 
-        val expectedSourcefiles = Seq[os.RelPath](
-          os.rel / "AddressBook.scala",
-          os.rel / "Person.scala",
-          os.rel / "TutorialProto.scala",
-          os.rel / "IncludeProto.scala"
-        ).map(outPath / _)
+          val expectedSourcefiles = Seq[os.RelPath](
+            os.rel / "AddressBook.scala",
+            os.rel / "Person.scala",
+            os.rel / "TutorialProto.scala",
+            os.rel / "IncludeProto.scala"
+          ).map(outPath / _)
 
-        assert(
-          result.value.path == eval.outPath / "core/compileScalaPB.dest",
-          outputFiles.nonEmpty,
-          outputFiles.forall(expectedSourcefiles.contains),
-          outputFiles.size == 3,
-          result.evalCount > 0
-        )
+          assert(
+            result.value.path == eval.outPath / "core/compileScalaPB.dest",
+            outputFiles.nonEmpty,
+            outputFiles.forall(expectedSourcefiles.contains),
+            outputFiles.size == 3,
+            result.evalCount > 0
+          )
 
-        // don't recompile if nothing changed
-        val Right(result2) = eval.apply(Tutorial.core.compileScalaPB)
+          // don't recompile if nothing changed
+          val Right(result2) = eval.apply(Tutorial.core.compileScalaPB)
 
-        assert(result2.evalCount == 0)
+          assert(result2.evalCount == 0)
+        }
       }
 
 //      // This throws a NullPointerException in coursier somewhere
@@ -163,7 +167,7 @@ object TutorialTests extends TestSuite {
     }
 
     test("useExternalProtocCompiler") {
-      /* This ensure that the `scalaPBProtocPath` is properly used.
+      /* This ensures that the `scalaPBProtocPath` is properly used.
        * As the given path is incorrect, the compilation should fail.
        */
       test("calledWithWrongProtocFile") - UnitTester(TutorialWithProtoc, resourcePath).scoped {

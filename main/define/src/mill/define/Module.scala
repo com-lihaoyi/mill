@@ -55,7 +55,7 @@ object Module {
    * messes up the module discovery process
    */
   @internal
-  class BaseClass(implicit outerCtx0: mill.define.Ctx) extends mill.moduledefs.Cacher {
+  class BaseClass(implicit outerCtx0: mill.define.Ctx) extends mill.define.Cacher {
     def millOuterCtx = outerCtx0
   }
 
@@ -78,7 +78,8 @@ object Module {
         outer.getClass,
         implicitly[ClassTag[T]].runtimeClass,
         filter,
-        noParams = true
+        noParams = true,
+        Reflect.getMethods(_, scala.reflect.NameTransformer.decode)
       )
         .map(_.invoke(outer).asInstanceOf[T])
     }
@@ -87,8 +88,18 @@ object Module {
 
     def reflectNestedObjects[T: ClassTag](filter: String => Boolean = Function.const(true))
         : Seq[T] = {
-      Reflect.reflectNestedObjects02(outer.getClass, filter)
+      Reflect.reflectNestedObjects02(
+        outer.getClass,
+        filter,
+        Reflect.getMethods(_, scala.reflect.NameTransformer.decode)
+      )
         .map { case (name, cls, getter) => getter(outer) }
     }
   }
+}
+
+case class ModuleTask[+T](module: Module) extends NamedTask[T] {
+  override def t: Task[T] = this
+  override def ctx0: Ctx = module.millOuterCtx
+  override def isPrivate: Option[Boolean] = None
 }

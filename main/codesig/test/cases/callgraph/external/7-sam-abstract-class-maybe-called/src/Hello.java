@@ -5,29 +5,30 @@ package hello;
 // implemented, but because this is a SAM method we instead consider it called
 // at `<init>` time and not during the unknown external call.
 
-class Bar extends java.io.InputStream{
-    public synchronized int read() {
-        return called();
-    }
+class Bar extends java.io.InputStream {
+  public synchronized int read() {
+    return called();
+  }
 
-    public int called(){
-        return 1337;
-    }
+  public int called() {
+    return 1337;
+  }
 
-    public int uncalled(){
-        return 1337;
-    }
+  public int uncalled() {
+    return 1337;
+  }
 }
 
-public class Hello{
-    public static int main() throws java.io.IOException{
-        java.io.InputStream is = new Bar();
-        return bar(is);
-    }
-    public static int bar(java.io.InputStream is) throws java.io.IOException{
-        is.read(new byte[10], 0, 10);
-        return 1234;
-    }
+public class Hello {
+  public static int main() throws java.io.IOException {
+    java.io.InputStream is = new Bar();
+    return bar(is);
+  }
+
+  public static int bar(java.io.InputStream is) throws java.io.IOException {
+    is.read(new byte[10], 0, 10);
+    return 1234;
+  }
 }
 
 /* expected-direct-call-graph

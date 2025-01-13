@@ -1,0 +1,33 @@
+// In most scenarios you should rely on `ivyDeps`/`moduleDeps` and let Mill manage
+// the compilation/downloading/caching of classpath jars for you, as Mill will
+// automatically pull in transitive dependencies which are generally needed for things
+// to work, and avoids including different versions of the same classfiles or jar which
+// can cause confusion. But in the rare case you receive a jar or folder-full-of-classfiles
+// from somewhere and need to include it in your project, `unmanagedClasspath` is the
+// way to do it.
+
+//// SNIPPET:BUILD
+package build
+import mill._, scalalib._
+
+object `package` extends RootModule with ScalaModule {
+  def scalaVersion = "2.13.8"
+  def unmanagedClasspath = Task {
+    if (!os.exists(millSourcePath / "lib")) Agg()
+    else Agg.from(os.list(millSourcePath / "lib").map(PathRef(_)))
+  }
+}
+
+//// SNIPPET:END
+
+// You can override `unmanagedClasspath` to point it at any jars you place on the
+// filesystem, e.g. in the above snippet any jars that happen to live in the
+// `lib/` folder.
+
+/** Usage
+
+> ./mill run '{"name":"John","age":30}'     # mac/linux
+Key: name, Value: John
+Key: age, Value: 30
+
+*/

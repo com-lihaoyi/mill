@@ -17,7 +17,7 @@ trait CodeartifactPublishModule extends PublishModule {
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
   ): define.Command[Unit] =
-    T.command {
+    Task.Command {
       val PublishModule.PublishData(artifactInfo, artifacts) =
         publishArtifacts()
 
@@ -41,7 +41,7 @@ object CodeartifactPublishModule extends ExternalModule {
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
   ) =
-    T.command {
+    Task.Command {
       val artifacts = T.sequence(publishArtifacts.value)().map {
         case data @ PublishModule.PublishData(_, _) => data.withConcretePath
       }

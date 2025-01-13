@@ -9,7 +9,7 @@ import scala.annotation.tailrec
 
 object ParseArgs {
 
-  type TargetsWithParams = (Seq[(Option[Segments], Segments)], Seq[String])
+  type TargetsWithParams = (Seq[(Option[Segments], Option[Segments])], Seq[String])
 
   /** Separator used in multiSelect-mode to separate targets from their args. */
   val MultiArgsSeparator = "--"
@@ -86,15 +86,16 @@ object ParseArgs {
     else Right(())
   }
 
-  def extractSegments(selectorString: String): Either[String, (Option[Segments], Segments)] =
-    parse(selectorString, selector(_)) match {
+  def extractSegments(selectorString: String)
+      : Either[String, (Option[Segments], Option[Segments])] =
+    parse(selectorString, selector(using _)) match {
       case f: Parsed.Failure => Left(s"Parsing exception ${f.msg}")
       case Parsed.Success(selector, _) => Right(selector)
     }
 
-  private def selector[_p: P]: P[(Option[Segments], Segments)] = {
+  private def selector[_p: P]: P[(Option[Segments], Option[Segments])] = {
     def wildcard = P("__" | "_")
-    def label = mill.define.Reflect.ident
+    def label = P(CharsWhileIn("a-zA-Z0-9_\\-")).!
 
     def typeQualifier(simple: Boolean) = {
       val maxSegments = if (simple) 0 else Int.MaxValue
@@ -114,8 +115,8 @@ object ParseArgs {
       case (h, rest) => Segments(h +: rest)
     }
 
-    P(simpleQuery ~ ("/" ~/ simpleQuery).? ~ End).map {
-      case (q, None) => (None, q)
+    P(simpleQuery ~ ("/" ~ simpleQuery.?).? ~ End).map {
+      case (q, None) => (None, Some(q))
       case (q, Some(q2)) => (Some(q), q2)
     }
   }

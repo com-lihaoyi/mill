@@ -7,7 +7,6 @@ import de.tobiasroeser.mill.vcs.version.VcsVersion
 import com.goyeau.mill.scalafix.ScalafixModule
 import mill._
 import mill.api.JarManifest
-import mill.define.NamedTask
 import mill.main.Tasks
 import mill.scalalib._
 import mill.scalalib.api.ZincWorkerUtil
@@ -44,7 +43,7 @@ object `package` extends RootModule {
 
     // pure Java implementation
     def artifactSuffix: T[String] = ""
-    def scalaLibraryIvyDeps: T[Agg[Dep]] = T { Agg.empty[Dep] }
+    def scalaLibraryIvyDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
     def ivyDeps = Agg(build.Deps.sbtTestInterface)
     def compileIvyDeps = Agg(build.Deps.testng)
     def runIvyDeps = Agg(build.Deps.testng)
@@ -64,7 +63,7 @@ object `package` extends RootModule {
     def testTransitiveDeps =
       super.testTransitiveDeps() ++ T.traverse(build.Deps.play.keys.toSeq)(worker(_).testDep)()
 
-    def testArgs = T {
+    def testArgs = Task {
       super.testArgs() ++
         Seq(
           s"-DTEST_PLAY_VERSION_2_6=${build.Deps.Play_2_6.playVersion}",
@@ -111,15 +110,12 @@ object `package` extends RootModule {
     def compileModuleDeps = Seq(build.scalalib)
 
     def testTransitiveDeps =
-      super.testTransitiveDeps() ++ Seq(worker.testDep(), worker2.testDep())
+      super.testTransitiveDeps() ++ Seq(worker2.testDep())
 
-    def testArgs = T {
+    def testArgs = Task {
       super.testArgs() ++
         Seq(
-          s"-DMILL_SCOVERAGE_VERSION=${build.Deps.scalacScoveragePlugin.dep.version}",
           s"-DMILL_SCOVERAGE2_VERSION=${build.Deps.scalacScoverage2Plugin.dep.version}",
-          s"-DTEST_SCALA_2_13_VERSION_FOR_SCOVERAGE_1=${build.Deps.scalaVersionForScoverageWorker1}",
-          s"-DTEST_SCALA_2_12_VERSION=2.12.15" // last supported 2.12 version for Scoverage 1.x
         )
     }
 
@@ -128,25 +124,12 @@ object `package` extends RootModule {
       super.testModuleDeps ++
         Seq(build.scalalib, build.scalajslib, build.scalanativelib, build.contrib.buildinfo)
 
-    // Worker for Scoverage 1.x
-    object worker extends build.MillPublishScalaModule {
-      // scoverage is on an old Scala version which doesnt support scalafix
-      def fix(args: String*): Command[Unit] = T.command {}
-      def compileModuleDeps = Seq(build.main.api)
-      def moduleDeps = Seq(scoverage.api)
-      def testDepPaths = T { Seq(compile().classes) }
-
-      // compile-time only, need to provide the correct scoverage version at runtime
-      def compileIvyDeps = Agg(build.Deps.scalacScoveragePlugin)
-      def scalaVersion = build.Deps.scalaVersionForScoverageWorker1
-    }
-
     // Worker for Scoverage 2.0
     object worker2 extends build.MillPublishScalaModule {
       def compileModuleDeps = Seq(build.main.api)
       def moduleDeps = Seq(scoverage.api)
-      def testDepPaths = T { Seq(compile().classes) }
-      def compileIvyDeps = T {
+      def testDepPaths = Task { Seq(compile().classes) }
+      def compileIvyDeps = Task {
         Agg(
           // compile-time only, need to provide the correct scoverage version at runtime
           build.Deps.scalacScoverage2Plugin,
@@ -160,7 +143,8 @@ object `package` extends RootModule {
 
   object buildinfo extends ContribModule {
     def compileModuleDeps = Seq(build.scalalib, build.scalajslib, build.scalanativelib)
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib, build.scalajslib, build.scalanativelib)
+    def testModuleDeps =
+      super.testModuleDeps ++ Seq(build.scalalib, build.scalajslib, build.scalanativelib)
   }
 
   object proguard extends ContribModule {
@@ -224,19 +208,6 @@ object `package` extends RootModule {
   }
 
   object jmh extends ContribModule {
-    def compileModuleDeps = Seq(build.scalalib)
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib)
-  }
-
-  object errorprone extends ContribModule with BuildInfo {
-    def compileModuleDeps = Seq(build.scalalib)
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib)
-    def buildInfoPackageName = "mill.contrib.errorprone"
-    def buildInfoObjectName = "BuildInfo"
-    def buildInfoMembers = Seq(BuildInfo.Value("errorProneVersion", Deps.RuntimeDeps.errorProneCore.version))
-  }
-
-  object checkstyle extends ContribModule {
     def compileModuleDeps = Seq(build.scalalib)
     def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib)
   }

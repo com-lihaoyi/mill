@@ -2,7 +2,7 @@
 :page-aliases: TestNG_TestFramework.adoc
 
 
-Provides support for https://testng.org/doc/index.html[TestNG].
+Provides support for https://testng.org[TestNG].
 
 To use TestNG as test framework, you need to add it to the `TestModule.testFramework` property.
 

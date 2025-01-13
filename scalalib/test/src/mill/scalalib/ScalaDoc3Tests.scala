@@ -25,14 +25,14 @@ object ScalaDoc3Tests extends TestSuite {
   object MultiDocsModule extends TestBaseModule {
     object multidocs extends ScalaModule {
       def scalaVersion = "3.0.0-RC1"
-      def docResources = T.sources(
+      def docResources = Task.Sources(
         millSourcePath / "docs1",
         millSourcePath / "docs2"
       )
     }
   }
 
-  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "scaladoc3"
+  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "scaladoc3"
 
   def tests: Tests = Tests {
     test("static") - UnitTester(StaticDocsModule, resourcePath).scoped { eval =>

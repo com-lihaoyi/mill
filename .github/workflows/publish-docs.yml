@@ -7,6 +7,12 @@ on:
   push:
     branches:
       - main
+
+# Ensure only one job run is publishing docs at any point in time. We can cancel
+# old runs since any newer run renders older ones irrelevant
+concurrency:
+  group: publish-docs
+
 jobs:
   publishDocs:
     if: github.repository == 'com-lihaoyi/mill'
@@ -20,9 +26,6 @@ jobs:
 
       - uses: coursier/cache-action@v6
 
-      - uses: actions/setup-java@v4
-        with:
-          java-version: '11'
-          distribution: temurin
+      - run: "echo temurin:11 > .mill-jvm-version"
 
       - run: ci/publish-docs.sh

@@ -1,7 +1,6 @@
 package build
 import mill._, scalalib._
 
-
 object Dependencies {
   // Compile dependencies
 
@@ -198,7 +197,8 @@ object Dependencies {
 
   val benchmarkDependencies = Seq(jmh)
 
-  val recorderDependencies = Seq(gatlingSharedCli, scalaSwing, jackson, bouncyCastle, netty) ++ testDeps
+  val recorderDependencies =
+    Seq(gatlingSharedCli, scalaSwing, jackson, bouncyCastle, netty) ++ testDeps
 
   val testFrameworkDependencies = Seq(gatlingSharedCli, testInterface)
 
@@ -215,17 +215,17 @@ object Dependencies {
     )
 }
 
-trait GatlingModule extends SbtModule{
+trait GatlingModule extends SbtModule {
 
   def scalaVersion = "2.13.14"
   def testModuleDeps: Seq[JavaModule] = Nil
-  object test extends SbtTests with TestModule.ScalaTest{
+  object test extends SbtTests with TestModule.ScalaTest {
     def moduleDeps = super.moduleDeps ++ testModuleDeps
     def ivyDeps = Agg.from(Dependencies.testDeps)
   }
 }
 
-object `gatling-app` extends GatlingModule{
+object `gatling-app` extends GatlingModule {
   def moduleDeps = Seq(
     `gatling-core`,
     `gatling-core-java`,
@@ -241,20 +241,20 @@ object `gatling-app` extends GatlingModule{
   )
   def ivyDeps = Agg[Dep]()
 }
-object `gatling-benchmarks` extends GatlingModule{
+object `gatling-benchmarks` extends GatlingModule {
   def moduleDeps = Seq(`gatling-core`, `gatling-http`)
   def ivyDeps = Agg.from(Dependencies.benchmarkDependencies)
 }
-object `gatling-charts` extends GatlingModule{
+object `gatling-charts` extends GatlingModule {
   def moduleDeps = Seq(`gatling-core`)
   def testModuleDeps = Seq(`gatling-core`.test)
   def ivyDeps = Agg.from(Dependencies.chartsDependencies)
 }
-object `gatling-commons` extends GatlingModule{
+object `gatling-commons` extends GatlingModule {
   def moduleDeps = Seq()
   def ivyDeps = Agg.from(Dependencies.commonsDependencies)
 }
-object `gatling-core` extends GatlingModule{
+object `gatling-core` extends GatlingModule {
   def moduleDeps = Seq(
     `gatling-netty-util`,
     `gatling-quicklens`,
@@ -267,78 +267,78 @@ object `gatling-core` extends GatlingModule{
   )
   def ivyDeps = Agg.from(Dependencies.coreDependencies)
 }
-object `gatling-core-java` extends GatlingModule{
+object `gatling-core-java` extends GatlingModule {
   def moduleDeps = Seq(`gatling-core`)
   def testModuleDeps = Seq(`gatling-core`.test)
   def ivyDeps = Agg.from(Dependencies.coreJavaDependencies)
 }
-object `gatling-http` extends GatlingModule{
+object `gatling-http` extends GatlingModule {
   def moduleDeps = Seq(`gatling-core`, `gatling-http-client`)
   def testModuleDeps = Seq(`gatling-core`.test, `gatling-http-client`.test)
   def ivyDeps = Agg.from(Dependencies.httpDependencies)
 }
-object `gatling-http-client` extends GatlingModule{
+object `gatling-http-client` extends GatlingModule {
   def moduleDeps = Seq(`gatling-netty-util`)
   def testModuleDeps = Seq(`gatling-netty-util`.test)
   def ivyDeps = Agg.from(Dependencies.httpClientDependencies)
 }
-object `gatling-http-java` extends GatlingModule{
+object `gatling-http-java` extends GatlingModule {
   def moduleDeps = Seq(`gatling-core-java`, `gatling-http`)
   def testModuleDeps = Seq(`gatling-http`.test)
   def ivyDeps = Agg.from(Dependencies.defaultJavaDependencies)
 }
-object `gatling-jdbc` extends GatlingModule{
+object `gatling-jdbc` extends GatlingModule {
   def moduleDeps = Seq(`gatling-core`)
   def testModuleDeps = Seq(`gatling-core`.test)
   def ivyDeps = Agg.from(Dependencies.jdbcDependencies)
 }
-object `gatling-jdbc-java` extends GatlingModule{
+object `gatling-jdbc-java` extends GatlingModule {
   def moduleDeps = Seq(`gatling-core-java`, `gatling-jdbc`)
   def testModuleDeps = Seq(`gatling-jdbc`.test)
   def ivyDeps = Agg.from(Dependencies.defaultJavaDependencies)
 }
-object `gatling-jms` extends GatlingModule{
+object `gatling-jms` extends GatlingModule {
   def moduleDeps = Seq(`gatling-core`)
   def testModuleDeps = Seq(`gatling-core`.test)
   def ivyDeps = Agg.from(Dependencies.jmsDependencies)
 }
-object `gatling-jms-java` extends GatlingModule{
+object `gatling-jms-java` extends GatlingModule {
   def moduleDeps = Seq(`gatling-core-java`, `gatling-jms`)
   def testModuleDeps = Seq(`gatling-jms`.test)
   def ivyDeps = Agg.from(Dependencies.defaultJavaDependencies)
 }
-object `gatling-jsonpath` extends GatlingModule{
+object `gatling-jsonpath` extends GatlingModule {
   def moduleDeps = Seq()
   def ivyDeps = Agg.from(Dependencies.jsonpathDependencies)
 }
-object `gatling-netty-util` extends GatlingModule{
+object `gatling-netty-util` extends GatlingModule {
   def moduleDeps = Seq()
   def ivyDeps = Agg.from(Dependencies.nettyUtilDependencies)
 }
-object `gatling-quicklens` extends GatlingModule{
+object `gatling-quicklens` extends GatlingModule {
   def moduleDeps = Seq()
   def ivyDeps = Agg.from(Dependencies.quicklensDependencies(scalaVersion()))
 }
-object `gatling-recorder` extends GatlingModule{
+object `gatling-recorder` extends GatlingModule {
   def moduleDeps = Seq(`gatling-core`, `gatling-http`)
   def testModuleDeps = Seq(`gatling-core`.test)
   def ivyDeps = Agg.from(Dependencies.recorderDependencies)
 }
-object `gatling-redis` extends GatlingModule{
+object `gatling-redis` extends GatlingModule {
   def moduleDeps = Seq(`gatling-core`)
   def testModuleDeps = Seq(`gatling-core`.test)
   def ivyDeps = Agg.from(Dependencies.redisDependencies)
 }
-object `gatling-redis-java` extends GatlingModule{
+object `gatling-redis-java` extends GatlingModule {
   def moduleDeps = Seq(`gatling-core-java`, `gatling-redis`)
   def testModuleDeps = Seq(`gatling-redis`.test)
   def ivyDeps = Agg.from(Dependencies.defaultJavaDependencies)
 }
-object `gatling-samples` extends GatlingModule{
+object `gatling-samples` extends GatlingModule {
   def moduleDeps = Seq(`gatling-app`)
   def ivyDeps = Agg[Dep]()
 }
-object `gatling-test-framework` extends GatlingModule{
+object `gatling-test-framework` extends GatlingModule {
   def moduleDeps = Seq(`gatling-app`)
   def ivyDeps = Agg.from(Dependencies.testFrameworkDependencies)
 }

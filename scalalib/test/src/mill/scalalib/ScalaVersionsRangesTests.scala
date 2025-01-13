@@ -18,7 +18,7 @@ object ScalaVersionsRangesTests extends TestSuite {
     }
   }
   val resourcePath =
-    os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "scala-versions-ranges"
+    os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "scala-versions-ranges"
 
   val tests = Tests {
     test("main with Scala 2.12- and 2.13+ specific code") - UnitTester(

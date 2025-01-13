@@ -1,16 +1,29 @@
 package build.docs
+import org.jsoup._
 import mill.util.Jvm
 import mill._, scalalib._
-import build.contrib
 import de.tobiasroeser.mill.vcs.version.VcsVersion
+import scala.jdk.CollectionConverters._
+
 /** Generates the mill documentation with Antora. */
 object `package` extends RootModule {
   // This module isn't really a ScalaModule, but we use it to generate
   // consolidated documentation using the Scaladoc tool.
   object site extends UnidocModule {
+    def unidocCompileClasspath =
+      super.unidocCompileClasspath().filter { ref =>
+        // Workaround for https://github.com/scala/bug/issues/10028
+        // We exclude the JAR of coursier/dependency here, so that
+        // scaladoc doesn't create an entry for its `dependency`
+        // package object in the Mill scaladoc.
+        !ref.path.lastOpt.exists(_.startsWith("dependency_2.13-"))
+      }
     def scalaVersion = build.Deps.scalaVersion
-    def moduleDeps = build.millInternal.modules.collect { case m: build.MillStableScalaModule => m }
-    def unidocSourceUrl = T {
+    def moduleDeps = build.millInternal.modules.collect {
+      case m: build.MillStableScalaModule => m
+      case m: JavaModule if m eq build.kotlinlib => m
+    }
+    def unidocSourceUrl = Task {
       val sha = VcsVersion.vcsState().currentRevision
       Some(s"${build.Settings.projectUrl}/blob/$sha")
     }
@@ -23,12 +36,12 @@ object `package` extends RootModule {
     Jvm.runSubprocess(
       commandArgs = Seq(
         npmExe,
+        "--no-audit",
         "install",
         "@antora/cli@3.1.9",
         "@antora/site-generator-default@3.1.9",
         "gitlab:antora/xref-validator",
         "@antora/lunr-extension@v1.0.0-alpha.6",
-        "asciidoctor-kroki@0.18.1"
       ),
       envArgs = Map(),
       workingDir = npmDir
@@ -36,7 +49,7 @@ object `package` extends RootModule {
   }
 
   def runAntora(npmDir: os.Path, workDir: os.Path, args: Seq[String])(implicit
-                                                                      ctx: mill.api.Ctx.Log
+      ctx: mill.api.Ctx.Log
   ) = {
 
     prepareAntora(npmDir)
@@ -53,7 +66,7 @@ object `package` extends RootModule {
 
   def source0 = T.source(millSourcePath)
   def projectReadme = T.source(T.workspace / "readme.adoc")
-  def source = T {
+  def source = Task {
     os.copy(source0().path, T.dest, mergeFolders = true)
 
     val pagesWd = T.dest / "modules" / "ROOT" / "pages"
@@ -70,7 +83,7 @@ object `package` extends RootModule {
 
     for ((name, pref) <- renderedExamples) os.copy(
       pref.path,
-      pagesWd / "example" / os.SubPath(s"$name.adoc"),
+      partialsWd / "example" / os.SubPath(s"$name.adoc"),
       createFolders = true
     )
 
@@ -86,35 +99,96 @@ object `package` extends RootModule {
       createFolders = true
     )
 
+    expandDiagramsInDirectoryAdocFile(T.dest, mill.main.VisualizeModule.classpath().map(_.path))
+
     PathRef(T.dest)
+  }
+
+  def expandDiagramsInDirectoryAdocFile(dest: os.Path,
+                                        visualizeClassPath: Agg[os.Path])
+                                       (implicit ctx: mill.api.Ctx) = {
+
+    // Walk all files to render graphviz templates ourselves because the only Antora graphviz
+    // plugin (Kroki) relies on an online web service that is super slow and flaky
+    def walkAllFiles(inputs: Map[(os.Path, Int), String]): Map[(os.Path, Int), String] = {
+      val output = collection.mutable.Map.empty[(os.Path, Int), String]
+      for (p <- os.walk(dest) if p.ext == "adoc"){
+        val outputLines = collection.mutable.ArrayDeque.empty[String]
+        val graphvizLines = collection.mutable.ArrayDeque.empty[String]
+        var isGraphViz = false
+        var isGraphViz0 = false
+
+        for((line, i) <- os.read.lines(p).zipWithIndex){
+          line match{
+            case "[graphviz]" => isGraphViz0 = true
+            case "...." if isGraphViz0 => isGraphViz0 = false; isGraphViz = true
+            case "```graphviz" => isGraphViz = true
+            case "```" | "...." if isGraphViz =>
+              isGraphViz = false
+              if (inputs.isEmpty) output((p, i)) = graphvizLines.mkString("\n")
+              else {
+                outputLines.append("++++")
+                outputLines.append("<center>")
+                outputLines.append(inputs((p, i)))
+                outputLines.append("</center>")
+                outputLines.append("++++")
+              }
+
+              graphvizLines.clear()
+            case _ =>
+              if (isGraphViz) graphvizLines.append(line)
+              else outputLines.append(line)
+          }
+        }
+        if (inputs.nonEmpty) os.write.over(p, outputLines.mkString("\n"))
+      }
+      output.toMap
+    }
+
+    val diagrams = walkAllFiles(Map())
+    // Batch the rendering so later it can be done in one call to a single subprocess,
+    // minimizing per-subprocess overhead needed to spawn them over and over
+    val orderedDiagrams = diagrams.toSeq.map{case ((p, i), s) => (p, i, os.temp(s), os.temp.dir())}
+
+    mill.util.Jvm.runSubprocess(
+      "mill.main.graphviz.GraphvizTools",
+      visualizeClassPath,
+      mainArgs = orderedDiagrams.map{case (p, i, src, dest) => s"$src;$dest;svg"}
+    )
+
+    walkAllFiles(orderedDiagrams.map{case (p, i, src, dest) => ((p, i), os.read(dest / "out.svg"))}.toMap)
+
   }
 
   def supplementalFiles = T.source(millSourcePath / "supplemental-ui")
 
   /**
-   * The doc root ready to be build by antora for the current branch.
+   * The doc root ready to be built by antora for the current branch.
    */
-  def devAntoraSources: T[PathRef] = T {
+  def devAntoraSources: T[PathRef] = Task {
     val dest = T.dest
     os.copy(source().path, dest, mergeFolders = true)
-    sanitizeAntoraYml(dest, "master", build.millVersion(), build.millLastTag())
+    sanitizeAntoraYml(
+      dest,
+      "main-branch",
+      "main-branch",
+      build.millLastTag()
+    )
     PathRef(dest)
   }
 
   def sanitizeAntoraYml(
-                         dest: os.Path,
-                         version: String,
-                         millVersion: String,
-                         millLastTag: String
-                       ): Unit = {
-    val isPreRelease = (millVersion != millLastTag) || Seq("-M", "-RC").exists(millVersion.contains)
+      dest: os.Path,
+      version: String,
+      displayVersion: String,
+      millLastTag: String
+  ): Unit = {
+    val isPreRelease = version == "main-branch" || Seq("-M", "-RC").exists(version.contains)
+    val preReleaseSuffix = if (isPreRelease) "\nprerelease: true" else ""
     val lines = os.read(dest / "antora.yml").linesIterator.map {
       case s"version:$_" =>
-        if (isPreRelease)
-          s"version: '${version}'\ndisplay-version: '${millVersion}'\nprerelease: true"
-        else
-          s"version: '${version}'\ndisplay-version: '${millVersion}'"
-      case s"    mill-version:$_" => s"    mill-version: '$millVersion'"
+        s"version: '$version'\ndisplay-version: '$displayVersion'$preReleaseSuffix"
+      case s"    mill-version:$_" => s"    mill-version: '$millLastTag'"
       case s"    mill-last-tag:$_" => s"    mill-last-tag: '$millLastTag'"
       case l => l
     }
@@ -126,16 +200,23 @@ object `package` extends RootModule {
     os.write.over(dest / "antora.yml", (lines ++ newLines).mkString("\n"))
   }
 
+  def blogFolder0 = Task.Source(build.millSourcePath / "blog")
+  def blogFolder = Task{
+    os.copy(blogFolder0().path, Task.dest, mergeFolders = true)
+    expandDiagramsInDirectoryAdocFile(Task.dest, mill.main.VisualizeModule.classpath().map(_.path))
+    PathRef(Task.dest)
+  }
   def githubPagesPlaybookText(authorMode: Boolean) = T.task { extraSources: Seq[os.Path] =>
     val taggedSources = for (path <- extraSources) yield {
       s"""    - url: ${build.baseDir}
          |      start_path: ${path.relativeTo(build.baseDir)}
+         |      edit_url: false
          |""".stripMargin
     }
     s"""site:
-       |  title: The Mill Build Tool
+       |  title: The Mill JVM Build Tool
        |  url: ${if (authorMode) s"${T.dest}/site" else build.Settings.docUrl}
-       |  start_page: mill::Java_Intro_to_Mill.adoc
+       |  start_page: mill::index.adoc
        |  keys:
        |    google_analytics: 'G-1C582ZJR85'
        |
@@ -143,13 +224,17 @@ object `package` extends RootModule {
        |  sources:
        |    - url: ${if (authorMode) build.baseDir else build.Settings.projectUrl}
        |      branches: []
-       |      tags: ${build.Settings.legacyDocTags.map("'" + _ + "'").mkString("[", ",", "]")}
+       |      tags: ${build.Settings.legacyDocTags.filter(_ => !authorMode).map("'" + _ + "'").mkString("[", ",", "]")}
+       |      edit_url: false
        |      start_path: docs/antora
        |
        |${taggedSources.mkString("\n\n")}
        |
        |    - url: ${build.baseDir}
        |      start_path: ${devAntoraSources().path.relativeTo(build.baseDir)}
+       |
+       |    - url: ${build.baseDir}
+       |      start_path: ${blogFolder().path.relativeTo(build.baseDir)}
        |ui:
        |  bundle:
        |    url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/master/raw/build/ui-bundle.zip?job=bundle-stable
@@ -163,9 +248,6 @@ object `package` extends RootModule {
        |    utest-github-url: https://github.com/com-lihaoyi/utest
        |    upickle-github-url: https://github.com/com-lihaoyi/upickle
        |    mill-scip-version: ${build.Deps.DocDeps.millScip.dep.version}
-       |    kroki-fetch-diagram: true
-       |  extensions:
-       |  - asciidoctor-kroki
        |antora:
        |  extensions:
        |  - require: '@antora/lunr-extension'
@@ -178,36 +260,48 @@ object `package` extends RootModule {
        |""".stripMargin
   }
 
-  def oldDocSources = T {
-    for (oldVersion <- build.Settings.docTags) yield {
-      val checkout = T.dest / oldVersion
+  def oldDocSources: T[Seq[PathRef]] = Task {
+    val versionLabels =
+      build.Settings.docTags.map{v =>
+        val xVersion = v.split('.').dropRight(1).mkString(".") + ".x"
+        (v, xVersion, xVersion)
+      } ++
+      // Set the latest stable branch as the "master" docs that people default to
+      Seq((build.Settings.docTags.last, "master", s"latest-${build.Settings.docTags.last}"))
+
+    for ((millLastTag, version, displayVersion) <- versionLabels) yield {
+      val checkout = T.dest / displayVersion
       os.proc("git", "clone", T.workspace / ".git", checkout).call(stdout = os.Inherit)
-      os.proc("git", "checkout", oldVersion).call(cwd = checkout, stdout = os.Inherit)
+      os.proc("git", "checkout", millLastTag).call(cwd = checkout, stdout = os.Inherit)
       val outputFolder = checkout / "out" / "docs" / "source.dest"
       os.proc("./mill", "-i", "docs.source").call(cwd = checkout, stdout = os.Inherit)
-      sanitizeAntoraYml(outputFolder, oldVersion, oldVersion, oldVersion)
+      expandDiagramsInDirectoryAdocFile(outputFolder, mill.main.VisualizeModule.classpath().map(_.path))
+
+      sanitizeAntoraYml(outputFolder, version, displayVersion, millLastTag)
       PathRef(outputFolder)
     }
   }
 
-  def githubPages: T[PathRef] = T {
+  def githubPages: T[PathRef] = Task {
     generatePages(authorMode = false)().apply(oldDocSources().map(_.path))
   }
 
-  def localPages = T {
+  def localPages: T[PathRef] = Task {
     val pages = generatePages(authorMode = true)().apply(oldDocSources().map(_.path))
     T.log.outputStream.println(
-      s"You can browse the local pages at: ${(pages.path / "index.html").toNIO.toUri()}"
+      s"You can browse the pages at: ${(pages.path / "index.html").toNIO.toUri()}"
     )
+    pages
   }
-  def fastPages = T {
+  def fastPages: T[PathRef] = Task {
     val pages = generatePages(authorMode = true)().apply(Nil)
     T.log.outputStream.println(
-      s"You can browse the local pages at: ${(pages.path / "index.html").toNIO.toUri()}"
+      s"You can browse the pages at: ${(pages.path / "index.html").toNIO.toUri()}"
     )
+    pages
   }
 
-  def generatePages(authorMode: Boolean) = T.task { extraSources: Seq[os.Path] =>
+  def generatePages(authorMode: Boolean) = Task.Anon { extraSources: Seq[os.Path] =>
     T.log.errorStream.println("Creating Antora playbook ...")
     // dependency to sources
     source()
@@ -247,11 +341,11 @@ object `package` extends RootModule {
   }
 
   def sanitizeDevUrls(
-                       dir: os.Path,
-                       sourceDir: os.Path,
-                       newSourceDir: os.Path,
-                       baseDir: os.Path
-                     ): Unit = {
+      dir: os.Path,
+      sourceDir: os.Path,
+      newSourceDir: os.Path,
+      baseDir: os.Path
+  ): Unit = {
 
     val pathToRemove = sourceDir.relativeTo(baseDir).toString()
     val replacePath = newSourceDir.relativeTo(baseDir).toString()
@@ -285,5 +379,131 @@ object `package` extends RootModule {
         }
       }
     }
+  }
+
+  def allLinksAndAnchors: T[IndexedSeq[(os.Path, Seq[(String, String)], Seq[(String, String)], Set[String])]] = Task {
+    val base = fastPages().path
+    val validExtensions = Set("html", "scala")
+    for (path <- os.walk(base) if validExtensions(path.ext))
+    yield {
+      val parsed = Jsoup.parse(os.read(path))
+      val (remoteLinks, localLinks) = parsed
+        .select("a")
+        .asScala
+        .map(e => (e.toString, e.attr("href")))
+        .toSeq
+        .filter(!_._2.startsWith("mailto:"))
+        .partition{case (e, l) => l.startsWith("http://") || l.startsWith("https://")}
+      (
+        path,
+        remoteLinks,
+        localLinks.map{case (e, l) => (e, l.stripPrefix("file:"))},
+        parsed.select("*").asScala.map(_.attr("id")).filter(_.nonEmpty).toSet,
+      )
+    }
+  }
+
+  def brokenRemoteLinks: T[Map[os.Path, Seq[(String, String, Int)]]] = Task{
+    val allLinks = allLinksAndAnchors()
+      .flatMap { case (path, remoteLinks, localLinks, ids) => remoteLinks }
+      .map(_._2)
+      .filter{l =>
+        // ignore example links since those are expected to be unresolved until
+        // a stable version is published and artifacts are uploaded to github
+        !l.contains("/example/") &&
+          !l.contains("/releases/download/") &&
+          // Ignore internal repo links in the changelog because there are a lot
+          // of them, and they're not very interesting to check and verify.
+          !l.contains("https://github.com/com-lihaoyi/mill/pull/") &&
+          !l.contains("https://github.com/com-lihaoyi/mill/milestone/") &&
+          !l.contains("https://github.com/com-lihaoyi/mill/compare/") &&
+          // Link meant for API configuration, not for clicking
+          !l.contains("https://s01.oss.sonatype.org/service/local") &&
+          // Somehow this server doesn't respond properly to HEAD requests even though GET works
+          !l.contains("https://marketplace.visualstudio.com/items")
+      }
+      .toSet
+
+    // Try to fetch all the links serially. It isn't worth trying to parallelize it
+    // because if we go too fast the remote websites tend to rate limit us anyway
+    val linksToStatusCodes = allLinks.toSeq.zipWithIndex
+      .map{ case (link, i) =>
+        val key = s"$i/${allLinks.size}"
+        println(s"Checking link $link $key")
+        val start = System.currentTimeMillis()
+        val res = requests.head(link, check = false).statusCode
+        val duration = System.currentTimeMillis() - start
+        val remaining = 1000 - duration
+        if (remaining > 0) Thread.sleep(remaining) // try to avoid being rate limited
+        (link, res)
+      }
+      .toMap
+
+    allLinksAndAnchors()
+      .map{case (path, remoteLinks, localLinks, ids) =>
+        (
+          path,
+          remoteLinks.collect{
+            case (e, l)
+              if allLinks.contains(l)
+              && !linksToStatusCodes(l).toString.startsWith("2")  =>
+                (e, l, linksToStatusCodes(l))
+          }
+        )
+      }
+      .filter(_._2.nonEmpty)
+      .toMap
+  }
+
+
+  def checkBrokenLinks() = Task.Command{
+    if (brokenLocalLinks().nonEmpty){
+      throw new Exception("Broken Local Links: " + upickle.default.write(brokenLocalLinks(), indent = 2))
+    }
+    // This is flaky due to rate limits so ignore it for now
+
+    // if (brokenRemoteLinks().nonEmpty){
+    //   throw new Exception("Broken Remote Links: " + upickle.default.write(brokenRemoteLinks(), indent = 2))
+    // }
+  }
+
+  def brokenLocalLinks: T[Map[os.Path, Seq[(String, String)]]] = Task{
+    val allLinksAndAnchors0 = allLinksAndAnchors()
+    val pathsToIds = allLinksAndAnchors0
+      .map{case (path, remoteLinks, localLinks, ids) => (path, ids)}
+      .toMap
+
+    val brokenLinksPerPath: Seq[(os.Path, Seq[(String, String)])] =
+      for {
+        (path, remoteLinks, localLinks, ids) <- allLinksAndAnchors0
+        // Skip scaladoc files when scanning for broken links because some
+        // of those are scaladoc bugs outside of our control.
+        if !path.segments.contains("api")
+      } yield{
+        (
+          path,
+          localLinks.flatMap{case (elementString, url) =>
+            val (baseUrl, anchorOpt) = url match {
+              case s"#$anchor" => (path.toString, Some(anchor))
+              case s"$prefix#$anchor" => (prefix, Some(anchor))
+
+              case url => (url, None)
+            }
+
+            val dest0 = os.Path(baseUrl, path / "..")
+            val possibleDests = Seq(dest0, dest0 / "index.html")
+            possibleDests.find(os.exists(_)) match{
+              case None => Some((elementString, url))
+              case Some(dest) =>
+                anchorOpt.collect{case a if !pathsToIds.getOrElse(dest, Set()).contains(a) => (elementString, url)}
+            }
+          }
+        )
+      }
+
+    val nonEmptyBrokenLinksPerPath = brokenLinksPerPath
+      .filter{ case (path, items) => path.last != "404.html" && items.nonEmpty }
+
+    nonEmptyBrokenLinksPerPath.toMap
   }
 }

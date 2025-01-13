@@ -1,9 +1,10 @@
 package mill.eval
 
-import mill.api.{CompileProblemReporter, Strict, TestReporter, Val}
+import mill.api.{CompileProblemReporter, Strict, SystemStreams, TestReporter, Val}
 import mill.api.Strict.Agg
 import mill.define._
 import mill.util._
+import mill.main.client.OutFiles._
 
 import scala.collection.mutable
 import scala.reflect.ClassTag
@@ -22,15 +23,19 @@ private[mill] case class EvaluatorImpl(
     baseLogger: ColorLogger,
     classLoaderSigHash: Int,
     classLoaderIdentityHash: Int,
-    workerCache: mutable.Map[Segments, (Int, Val)] = mutable.Map.empty,
-    env: Map[String, String] = Evaluator.defaultEnv,
-    failFast: Boolean = true,
-    threadCount: Option[Int] = Some(1),
-    scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])] = Map.empty,
-    methodCodeHashSignatures: Map[String, Int],
-    override val disableCallgraphInvalidation: Boolean,
+    workerCache: mutable.Map[Segments, (Int, Val)],
+    env: Map[String, String],
+    failFast: Boolean,
+    threadCount: Option[Int],
+    scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])],
+    override val methodCodeHashSignatures: Map[String, Int],
+    override val disableCallgraph: Boolean,
     override val allowPositionalCommandArgs: Boolean,
-    val systemExit: Int => Nothing
+    val systemExit: Int => Nothing,
+    val exclusiveSystemStreams: SystemStreams,
+    protected[eval] val chromeProfileLogger: ChromeProfileLogger,
+    protected[eval] val profileLogger: ProfileLogger,
+    override val selectiveExecution: Boolean = false
 ) extends Evaluator with EvaluatorCore {
   import EvaluatorImpl._
 
@@ -55,15 +60,66 @@ private[mill] case class EvaluatorImpl(
   ): Evaluator.Results = {
     // TODO: cleanup once we break bin-compat in Mill 0.13
     // disambiguate override hierarchy
-    super.evaluate(goals, reporter, testReporter, logger, serialCommandExec)
+    logger.withPromptUnpaused {
+      super.evaluate(goals, reporter, testReporter, logger, serialCommandExec)
+    }
   }
 
   override def evalOrThrow(exceptionFactory: Evaluator.Results => Throwable)
       : Evaluator.EvalOrThrow =
     new EvalOrThrow(this, exceptionFactory)
+
+  override def close(): Unit = {
+    chromeProfileLogger.close()
+    profileLogger.close()
+  }
 }
 
 private[mill] object EvaluatorImpl {
+  def make(
+      home: os.Path,
+      workspace: os.Path,
+      outPath: os.Path,
+      externalOutPath: os.Path,
+      rootModule: mill.define.BaseModule,
+      baseLogger: ColorLogger,
+      classLoaderSigHash: Int,
+      classLoaderIdentityHash: Int,
+      workerCache: mutable.Map[Segments, (Int, Val)] = mutable.Map.empty,
+      env: Map[String, String] = Evaluator.defaultEnv,
+      failFast: Boolean = true,
+      threadCount: Option[Int] = Some(1),
+      scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])] = Map.empty,
+      methodCodeHashSignatures: Map[String, Int],
+      disableCallgraph: Boolean,
+      allowPositionalCommandArgs: Boolean,
+      systemExit: Int => Nothing,
+      exclusiveSystemStreams: SystemStreams,
+      selectiveExecution: Boolean
+  ) = new EvaluatorImpl(
+    home,
+    workspace,
+    outPath,
+    externalOutPath,
+    rootModule,
+    baseLogger,
+    classLoaderSigHash,
+    classLoaderIdentityHash,
+    workerCache,
+    env,
+    failFast,
+    threadCount,
+    scriptImportGraph,
+    methodCodeHashSignatures,
+    disableCallgraph,
+    allowPositionalCommandArgs,
+    systemExit,
+    exclusiveSystemStreams,
+    chromeProfileLogger = new ChromeProfileLogger(outPath / millChromeProfile),
+    profileLogger = new ProfileLogger(outPath / millProfile),
+    selectiveExecution = selectiveExecution
+  )
+
   class EvalOrThrow(evaluator: Evaluator, exceptionFactory: Evaluator.Results => Throwable)
       extends Evaluator.EvalOrThrow {
     def apply[T: ClassTag](task: Task[T]): T =

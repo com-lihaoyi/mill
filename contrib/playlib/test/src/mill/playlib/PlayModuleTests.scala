@@ -1,6 +1,7 @@
 package mill
 package playlib
 
+import mill.scalalib.api.ZincWorkerUtil
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.{TestSuite, Tests, assert, _}
 
@@ -13,10 +14,10 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
       override def playVersion = crossPlayVersion
       override def scalaVersion = crossScalaVersion
       object test extends PlayTests
-      override def ivyDeps = T { super.ivyDeps() ++ Agg(ws()) }
+      override def ivyDeps = Task { super.ivyDeps() ++ Agg(ws()) }
     }
   }
-  val resourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "playmulti"
+  val resourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "playmulti"
 
   def tests: Tests = Tests {
     test("layout") {
@@ -39,7 +40,7 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
               app.value.map(_.path.relativeTo(playmulti.millSourcePath).toString()) == Seq(
                 "core/app"
               ),
-              sources == app,
+              sources.value == app.value,
               resources.value.map(_.path.relativeTo(playmulti.millSourcePath).toString()).contains(
                 "core/conf"
               ),
@@ -102,7 +103,7 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
               os.RelPath("controllers/routes$javascript.class"),
               os.RelPath("controllers/javascript/ReverseHomeController.class"),
               os.RelPath("controllers/javascript/ReverseAssets.class"),
-              if (scalaVersion.startsWith("3.")) os.RelPath("router/Routes$$anon$1.class")
+              if (ZincWorkerUtil.isScala3(scalaVersion)) os.RelPath("router/Routes$$anon$1.class")
               else os.RelPath("router/Routes$$anonfun$routes$1.class"),
               os.RelPath("router/Routes.class"),
               os.RelPath("router/RoutesPrefix$.class"),

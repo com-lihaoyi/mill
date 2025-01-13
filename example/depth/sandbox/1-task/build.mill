@@ -5,17 +5,17 @@
 // the filesystem operations of other tasks that may be occurring in parallel.
 //
 //
-// === `T.dest`
-// The standard way of working with a task's `.dest/` folder is through the `T.dest`
+// === `Task.dest`
+// The standard way of working with a task's `.dest/` folder is through the `Task.dest`
 // property. This is available within any task, and gives you access to the
 // `out/<module-names>/<task-name>.dest/` folder to use. The `.dest/` folder for
-// each task is lazily initialized when `T.dest` is referenced and used:
+// each task is lazily initialized when `Task.dest` is referenced and used:
 
 package build
 import mill._
 
-object foo extends Module{
-  def tDestTask = T { println(T.dest.toString) }
+object foo extends Module {
+  def tDestTask = Task { println(Task.dest.toString) }
 }
 
 /** Usage
@@ -23,12 +23,11 @@ object foo extends Module{
 .../out/foo/tDestTask.dest
 */
 
-
 // === Task `os.pwd` redirection
 // Mill also redirects the `os.pwd` property from https://github.com/com-lihaoyi/os-lib[OS-Lib],
 // such that that also points towards a running task's own `.dest/` folder
 
-def osPwdTask = T { println(os.pwd.toString) }
+def osPwdTask = Task { println(os.pwd.toString) }
 
 /** Usage
 > ./mill osPwdTask
@@ -39,8 +38,8 @@ def osPwdTask = T { println(os.pwd.toString) }
 // as well. In the example below, we can see the `python3` subprocess we spawn prints
 // its `os.getcwd()`, which is our `osProcTask.dest/` sandbox folder:
 
-def osProcTask = T {
-  println(os.call(("python3", "-c", "import os; print(os.getcwd())"), cwd = T.dest).out.trim())
+def osProcTask = Task {
+  println(os.call(("python3", "-c", "import os; print(os.getcwd())"), cwd = Task.dest).out.trim())
 }
 
 /** Usage
@@ -52,16 +51,15 @@ def osProcTask = T {
 //
 // Lastly, there is the possibily of calling `os.pwd` outside of a task. When outside of
 // a task there is no `.dest/` folder associated, so instead Mill will redirect `os.pwd`
-// towards an empty `sandbox/` folder in `out/mill-worker.../`:
+// towards an empty `sandbox/` folder in `out/mill-server/...`:
 
 val externalPwd = os.pwd
-def externalPwdTask = T { println(externalPwd.toString) }
+def externalPwdTask = Task { println(externalPwd.toString) }
 
 /** Usage
 > ./mill externalPwdTask
-.../out/mill-worker-.../sandbox/sandbox
+.../out/mill-server/.../sandbox
 */
-
 
 // === Limitations of Mill's Sandboxing
 //

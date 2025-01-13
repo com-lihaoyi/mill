@@ -14,14 +14,23 @@ import scala.util.DynamicVariable
 /**
  * Public facing API of the Mill evaluation logic.
  */
-trait Evaluator {
+trait Evaluator extends AutoCloseable {
   def baseLogger: ColorLogger
   def rootModule: BaseModule
   def effectiveThreadCount: Int
   def outPath: os.Path
+  def selectiveExecution: Boolean = false
   def externalOutPath: os.Path
   def pathsResolver: EvaluatorPathsResolver
+  def methodCodeHashSignatures: Map[String, Int] = Map.empty
+  // TODO In 0.13.0, workerCache should have the type of mutableWorkerCache,
+  // while the latter should be removed
   def workerCache: collection.Map[Segments, (Int, Val)]
+  private[mill] final def mutableWorkerCache: collection.mutable.Map[Segments, (Int, Val)] =
+    workerCache match {
+      case mut: collection.mutable.Map[Segments, (Int, Val)] => mut
+      case _ => sys.error("Evaluator#workerCache must be a mutable map")
+    }
   def disableCallgraphInvalidation: Boolean = false
 
   @deprecated(
@@ -60,6 +69,7 @@ trait Evaluator {
     r =>
       new Exception(s"Failure during task evaluation: ${formatFailing(r)}")): Evaluator.EvalOrThrow
 
+  def close() = ()
 }
 
 object Evaluator {
@@ -69,7 +79,6 @@ object Evaluator {
     def transitive: Agg[Task[_]]
     def failing: MultiBiMap[Terminal, Result.Failing[Val]]
     def results: collection.Map[Task[_], TaskResult[Val]]
-
     def values: Seq[Val] = rawValues.collect { case Result.Success(v) => v }
   }
 

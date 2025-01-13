@@ -1,0 +1,29 @@
+package build
+import mill._
+
+object foo extends Cross[FooModule]("2.10", "2.11", "2.12")
+
+trait FooModule extends Cross.Module[String] {
+  def suffix = Task { "_" + crossValue }
+}
+
+object bar extends Cross[FooModule]("2.10", "2.11", "2.12") {
+  def defaultCrossSegments = Seq("2.12")
+}
+
+// For convenience, you can omit the selector for the default cross segment.
+// By default, this is the first cross value specified, but you can override
+// it by specifying `def defaultCrossSegments`
+
+/** Usage
+
+> mill show foo[2.10].suffix # explicit cross value given
+"_2.10"
+
+> mill show foo[].suffix # no cross value given, defaults to first cross value
+"_2.10"
+
+> mill show bar[].suffix # no cross value given, defaults to overriden `defaultCrossSegments`
+"_2.12"
+
+*/

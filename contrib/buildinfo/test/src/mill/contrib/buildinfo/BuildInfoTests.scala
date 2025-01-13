@@ -86,7 +86,7 @@ object BuildInfoTests extends TestSuite {
     )
   }
 
-  val testModuleSourcesPath: Path = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "buildinfo"
+  val testModuleSourcesPath: Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "buildinfo"
 
   def buildInfoSourcePath(eval: UnitTester) =
     eval.outPath / "buildInfoSources.dest/foo/BuildInfo.scala"
@@ -158,7 +158,7 @@ object BuildInfoTests extends TestSuite {
     test("run") - UnitTester(BuildInfoPlain, testModuleSourcesPath / "scala").scoped { eval =>
       val runResult = eval.outPath / "hello-mill"
       val Right(_) =
-        eval.apply(BuildInfoPlain.run(T.task(Args(runResult.toString))))
+        eval.apply(BuildInfoPlain.run(Task.Anon(Args(runResult.toString))))
 
       assert(
         os.exists(runResult),
@@ -178,7 +178,7 @@ object BuildInfoTests extends TestSuite {
       val runResult = eval.outPath / "hello-mill"
 
       val Right(_) =
-        eval.apply(BuildInfoStatic.run(T.task(Args(runResult.toString))))
+        eval.apply(BuildInfoStatic.run(Task.Anon(Args(runResult.toString))))
 
       assert(os.exists(buildInfoSourcePath(eval)))
       assert(!os.exists(buildInfoResourcePath(eval)))
@@ -189,7 +189,7 @@ object BuildInfoTests extends TestSuite {
     test("java") - UnitTester(BuildInfoJava, testModuleSourcesPath / "java").scoped { eval =>
       val runResult = eval.outPath / "hello-mill"
       val Right(_) =
-        eval.apply(BuildInfoJava.run(T.task(Args(runResult.toString))))
+        eval.apply(BuildInfoJava.run(Task.Anon(Args(runResult.toString))))
 
       assert(
         os.exists(runResult),
@@ -202,7 +202,7 @@ object BuildInfoTests extends TestSuite {
         val runResult = eval.outPath / "hello-mill"
         val generatedSrc = eval.outPath / "buildInfoSources.dest/foo/BuildInfo.java"
         val Right(_) =
-          eval.apply(BuildInfoJavaStatic.run(T.task(Args(runResult.toString))))
+          eval.apply(BuildInfoJavaStatic.run(Task.Anon(Args(runResult.toString))))
 
         assert(
           os.exists(runResult),

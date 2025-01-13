@@ -1,0 +1,35 @@
+package build
+import mill._, scalalib._
+import $ivy.`com.lihaoyi::mill-contrib-buildinfo:`
+import mill.contrib.buildinfo.BuildInfo
+
+object foo extends ScalaModule with BuildInfo {
+  def scalaVersion = "2.13.10"
+  def buildInfoPackageName = "foo"
+  def buildInfoMembers = Seq(
+    BuildInfo.Value("scalaVersion", scalaVersion())
+  )
+}
+
+// This example illustrates usage of Mill `contrib` plugins. These are Mill
+// plugins contributed by Mill user that are maintained within the Mill
+// repo, published under `mill-contrib-*`.
+
+/** Usage
+
+> mill foo.run
+...
+foo.BuildInfo.scalaVersion: 2.13.10
+
+*/
+
+// Contrib modules halfway between builtin Mill modules and
+// xref:extending/thirdparty-plugins.adoc[Third-party Plugins]:
+//
+// * Like builtin modules, contrib modules are tested and released as part of
+//   Mill's own CI process, ensuring there is always a version of the plugin
+//   compatible with any Mill version
+//
+// * Like third-party plugins, contrib modules are submitted by third-parties,
+//   and do now maintain the same binary compatibility guarantees of Mill's
+//   builtin comdules

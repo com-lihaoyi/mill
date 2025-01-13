@@ -1,7 +1,7 @@
 package mill.eval
 
 import utest._
-import mill.T
+import mill.{T, Task}
 import mill.define.{Module, Worker}
 import mill.testkit.UnitTester
 import mill.testkit.UnitTester.Result
@@ -13,17 +13,17 @@ trait TaskTests extends TestSuite {
 
     var superBuildInputCount = 0
 
-    def superBuildInputOverrideWithConstant = T.input {
+    def superBuildInputOverrideWithConstant = Task.Input {
       superBuildInputCount += 1
       superBuildInputCount
     }
 
-    def superBuildInputOverrideUsingSuper = T.input {
+    def superBuildInputOverrideUsingSuper = Task.Input {
       superBuildInputCount += 1
       superBuildInputCount
     }
 
-    def superBuildTargetOverrideWithInput = T {
+    def superBuildTargetOverrideWithInput = Task {
       1234
     }
   }
@@ -33,100 +33,100 @@ trait TaskTests extends TestSuite {
     var workerCloseCount = 0
     // Explicitly instantiate `Function1` objects to make sure we get
     // different instances each time
-    def staticWorker: Worker[Int => Int] = T.worker {
+    def staticWorker: Worker[Int => Int] = Task.Worker {
       new Function1[Int, Int] {
         def apply(v1: Int) = v1 + 1
       }
     }
-    def changeOnceWorker: Worker[Int => Int] = T.worker {
+    def changeOnceWorker: Worker[Int => Int] = Task.Worker {
       new Function1[Int, Int] {
         def apply(v1: Int): Int = changeOnceInput() + v1
       }
     }
-    def noisyWorker: Worker[Int => Int] = T.worker {
+    def noisyWorker: Worker[Int => Int] = Task.Worker {
       new Function1[Int, Int] {
         def apply(v1: Int) = input() + v1
       }
     }
-    def noisyClosableWorker: Worker[(Int => Int) with AutoCloseable] = T.worker {
+    def noisyClosableWorker: Worker[(Int => Int) with AutoCloseable] = Task.Worker {
       new Function1[Int, Int] with AutoCloseable {
         override def apply(v1: Int) = input() + v1
         override def close(): Unit = workerCloseCount += 1
       }
     }
-    def changeOnceInput = T.input {
+    def changeOnceInput = Task.Input {
       val ret = changeOnceCount
       if (changeOnceCount != 1) changeOnceCount = 1
       ret
     }
-    def input = T.input {
+    def input = Task.Input {
       count += 1
       count
     }
-    def task = T.task {
+    def task = Task.Anon {
       count += 1
       count
     }
-    def taskInput = T { input() }
-    def taskNoInput = T { task() }
+    def taskInput = Task { input() }
+    def taskNoInput = Task { task() }
 
-    def persistent = T.persistent {
+    def persistent = Task(persistent = true) {
       input() // force re-computation
       os.makeDir.all(T.dest)
       os.write.append(T.dest / "count", "hello\n")
       os.read.lines(T.dest / "count").length
     }
-    def nonPersistent = T {
+    def nonPersistent = Task {
       input() // force re-computation
       os.makeDir.all(T.dest)
       os.write.append(T.dest / "count", "hello\n")
       os.read.lines(T.dest / "count").length
     }
 
-    def staticWorkerDownstream = T {
+    def staticWorkerDownstream = Task {
       val w = staticWorker()
       w.apply(1)
     }
 
-    def reevalTrigger = T.input {
+    def reevalTrigger = Task.Input {
       new Object().hashCode()
     }
-    def staticWorkerDownstreamReeval = T {
+    def staticWorkerDownstreamReeval = Task {
       val w = staticWorker()
       reevalTrigger()
       w.apply(1)
     }
 
-    def noisyWorkerDownstream = T {
+    def noisyWorkerDownstream = Task {
       val w = noisyWorker()
       w.apply(1)
     }
-    def noisyClosableWorkerDownstream = T {
+    def noisyClosableWorkerDownstream = Task {
       val w = noisyClosableWorker()
       w.apply(1)
     }
-    def changeOnceWorkerDownstream = T {
+    def changeOnceWorkerDownstream = Task {
       val w = changeOnceWorker()
       w.apply(1)
     }
 
-    override def superBuildInputOverrideWithConstant = T { 123 }
-    override def superBuildInputOverrideUsingSuper = T {
+    override def superBuildInputOverrideWithConstant = Task { 123 }
+    override def superBuildInputOverrideUsingSuper = Task {
       123 + super.superBuildInputOverrideUsingSuper()
     }
 
     var superBuildTargetOverrideWithInputCount = 0
-    override def superBuildTargetOverrideWithInput = T.input {
+    override def superBuildTargetOverrideWithInput = Task.Input {
       superBuildTargetOverrideWithInputCount += 1
       superBuildTargetOverrideWithInputCount
     }
 
     // Reproduction of issue https://github.com/com-lihaoyi/mill/issues/2958
     object repro2958 extends Module {
-      val task1 = T.task { "task1" }
-      def task2 = T { task1() }
-      def task3 = T { task1() }
-      def command() = T.command {
+      val task1 = Task.Anon { "task1" }
+      def task2 = Task { task1() }
+      def task3 = Task { task1() }
+      def command() = Task.Command {
         val t2 = task2()
         val t3 = task3()
         s"${t2},${t3}"

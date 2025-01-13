@@ -1,52 +1,53 @@
 package mill.define
 
-import language.experimental.macros
 import scala.collection.mutable
+import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
 
 /**
  * Macro to walk the module tree and generate `mainargs` entrypoints for any
- * `T.command` methods that it finds.
+ * `Task.Command` methods that it finds.
  *
  * Note that unlike the rest of Mill's module-handling logic which uses Java
  * reflection, generation of entrypoints requires typeclass resolution, and so
- * needs to be done at compile time. Thus we walk the entire module tree,
+ * needs to be done at compile time. Thus, we walk the entire module tree,
  * collecting all the module `Class[_]`s we can find, and for each one generate
  * the `mainargs.MainData` containing metadata and resolved typeclasses for all
- * the `T.command` methods we find. This mapping from `Class[_]` to `MainData`
+ * the `Task.Command` methods we find. This mapping from `Class[_]` to `MainData`
  * can then be used later to look up the `MainData` for any module.
  */
 case class Discover private (
     value: Map[
       Class[_],
-      (Seq[String], Seq[mainargs.MainData[_, _]])
+      (Seq[String], Seq[mainargs.MainData[_, _]], Seq[String])
     ],
     dummy: Int = 0 /* avoid conflict with Discover.apply(value: Map) below*/
 ) {
   @deprecated("Binary compatibility shim", "Mill 0.11.4")
   private[define] def this(value: Map[Class[_], Seq[mainargs.MainData[_, _]]]) =
-    this(value.view.mapValues((Nil, _)).toMap)
+    this(value.view.mapValues((Nil, _, Nil)).toMap)
   // Explicit copy, as we also need to provide an override for bin-compat reasons
   def copy[T](
       value: Map[
         Class[_],
-        (Seq[String], Seq[mainargs.MainData[_, _]])
+        (Seq[String], Seq[mainargs.MainData[_, _]], Seq[String])
       ] = value,
       dummy: Int = dummy /* avoid conflict with Discover.apply(value: Map) below*/
   ): Discover = new Discover(value, dummy)
   @deprecated("Binary compatibility shim", "Mill 0.11.4")
   private[define] def copy(value: Map[Class[_], Seq[mainargs.MainData[_, _]]]): Discover = {
-    new Discover(value.view.mapValues((Nil, _)).toMap, dummy)
+    new Discover(value.view.mapValues((Nil, _, Nil)).toMap, dummy)
   }
 }
 
 object Discover {
-  def apply2[T](value: Map[Class[_], (Seq[String], Seq[mainargs.MainData[_, _]])]): Discover =
+  def apply2[T](value: Map[Class[_], (Seq[String], Seq[mainargs.MainData[_, _]], Seq[String])])
+      : Discover =
     new Discover(value)
 
   @deprecated("Binary compatibility shim", "Mill 0.11.4")
   def apply[T](value: Map[Class[_], Seq[mainargs.MainData[_, _]]]): Discover =
-    new Discover(value.view.mapValues((Nil, _)).toMap)
+    new Discover(value.view.mapValues((Nil, _, Nil)).toMap)
 
   def apply[T]: Discover = macro Router.applyImpl[T]
 
@@ -60,6 +61,7 @@ object Discover {
           seen.add(tpe)
           for {
             m <- tpe.members.toList.sortBy(_.name.toString)
+            if !m.isType
             memberTpe = m.typeSignature
             if memberTpe.resultType <:< typeOf[mill.define.Module] && memberTpe.paramLists.isEmpty
           } rec(memberTpe.resultType)
@@ -106,14 +108,17 @@ object Discover {
         discoveredModuleType <- seen.toSeq.sortBy(_.typeSymbol.fullName)
         curCls = discoveredModuleType
         methods = getValsOrMeths(curCls)
+        declMethods = curCls.decls.toList.collect {
+          case m: MethodSymbol if !m.isSynthetic && m.isPublic => m
+        }
         overridesRoutes = {
           assertParamListCounts(
             methods,
-            (weakTypeOf[mill.define.Command[_]], 1, "`T.command`"),
+            (weakTypeOf[mill.define.Command[_]], 1, "`Task.Command`"),
             (weakTypeOf[mill.define.Target[_]], 0, "Target")
           )
 
-          Tuple2(
+          Tuple3(
             for {
               m <- methods.toList.sortBy(_.fullName)
               if m.returnType <:< weakTypeOf[mill.define.NamedTask[_]]
@@ -128,21 +133,26 @@ object Discover {
               m.annotations.find(_.tree.tpe =:= typeOf[mainargs.main]),
               curCls,
               weakTypeOf[Any]
-            )
+            ),
+            for {
+              m <- declMethods.sortBy(_.fullName)
+              if m.returnType <:< weakTypeOf[mill.define.Task[_]]
+            } yield m.name.decodedName.toString
           )
         }
-        if overridesRoutes._1.nonEmpty || overridesRoutes._2.nonEmpty
+        if overridesRoutes._1.nonEmpty || overridesRoutes._2.nonEmpty || overridesRoutes._3.nonEmpty
       } yield {
+        val lhs = q"classOf[${discoveredModuleType.typeSymbol.asClass.toType}]"
+
         // by wrapping the `overridesRoutes` in a lambda function we kind of work around
         // the problem of generating a *huge* macro method body that finally exceeds the
         // JVM's maximum allowed method size
         val overridesLambda = q"(() => $overridesRoutes)()"
-        val lhs = q"classOf[${discoveredModuleType.typeSymbol.asClass}]"
         q"$lhs -> $overridesLambda"
       }
 
       c.Expr[Discover](
-        q"_root_.mill.define.Discover.apply2(_root_.scala.collection.immutable.Map(..$mapping))"
+        q"import mill.api.JsonFormatters._; _root_.mill.define.Discover.apply2(_root_.scala.collection.immutable.Map(..$mapping))"
       )
     }
   }

@@ -40,21 +40,24 @@ object NodeJSConfigTests extends TestSuite {
 
       override def artifactName = "hello-js-world"
       def scalaJSVersion = NodeJSConfigTests.scalaJSVersion
-      override def jsEnvConfig = T { JsEnvConfig.NodeJs(args = nodeArgs) }
+      override def jsEnvConfig = Task { JsEnvConfig.NodeJs(args = nodeArgs) }
 
       object `test-utest` extends ScalaJSTests with TestModule.Utest {
-        override def sources = T.sources { millSourcePath / "src/utest" }
+        override def sources = Task.Sources { this.millSourcePath / "src/utest" }
         override def ivyDeps = Agg(
           ivy"com.lihaoyi::utest::$utestVersion"
         )
-        override def jsEnvConfig = T { JsEnvConfig.NodeJs(args = nodeArgs) }
+        override def jsEnvConfig = Task { JsEnvConfig.NodeJs(args = nodeArgs) }
       }
     }
 
-    override lazy val millDiscover = Discover[this.type]
+    override lazy val millDiscover = {
+      import mill.main.TokenReaders.given
+      Discover[this.type]
+    }
   }
 
-  val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-js-world"
+  val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-js-world"
 
   val helloWorldEvaluator = UnitTester(HelloJSWorld, millSourcePath)
 

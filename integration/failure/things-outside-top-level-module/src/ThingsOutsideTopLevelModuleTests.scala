@@ -17,7 +17,7 @@ object ThingsOutsideTopLevelModuleTests extends UtestIntegrationTestSuite {
       )
       assert(
         res.err.contains(
-          "def invalidTarget"
+          "def invalidTask"
         )
       )
     }

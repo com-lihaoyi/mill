@@ -1,13 +1,33 @@
+# Uncommment this to replace the rest of the file when you want to debug stuff in CI
+
+#
+#name: Run Debug
+#
+#on:
+#  push:
+#  pull_request:
+#  workflow_dispatch:
+#
+#jobs:
+#  debug-windows:
+##    runs-on: ubuntu-latest
+#    runs-on: windows-latest
+#    steps:
+#      - uses: actions/checkout@v4
+#        with: { fetch-depth: 1 }
+#
+#      - run: ./mill 'example.scalalib.basic[1-simple].packaged.fork.test'
+#        env:
+#          COURSIER_ARCHIVE_CACHE: "C:/coursier-arc"
+
+
 name: Run Tests
 
 # We run full CI on push builds to main and on all pull requests
 #
-# Manual builds (workflow_dispatch) to the main branch are also published
-#
-# To maximize bug-catching changes while keeping CI times reasonable, we run:
-# - All tests on Linux/Java17
-# - Fewer tests on Linux/Java11 and Windows/Java17
-# - Fewest tests on Windows/Java11
+# To maximize bug-catching changes while keeping CI times reasonable, we run
+# all tests on Linux, scattered between Java 11/17, except for one job run
+# on MacOS instead and a subset of jobs also run on windows
 
 on:
   push:
@@ -30,20 +50,15 @@ jobs:
   # in the list should be the one that's most worth looking into
   build-linux:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
-    uses: ./.github/workflows/run-mill-action.yml
+    uses: ./.github/workflows/pre-build.yml
     with:
-      java-version: '11'
-      millargs: __.compile
-      populate_cache: true
+      os: ubuntu-latest
 
   build-windows:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
-    uses: ./.github/workflows/run-mill-action.yml
+    uses: ./.github/workflows/pre-build.yml
     with:
       os: windows-latest
-      java-version: '11'
-      millargs: __.compile
-      populate_cache: true
 
   test-docs:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
@@ -52,7 +67,21 @@ jobs:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
 
-      - run: ./mill -i docs.githubPages
+      - run: ./mill -i docs.githubPages + docs.checkBrokenLinks
+
+  mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      - run: "echo temurin:17 > .mill-jvm-version"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - run: ./mill -i example.scalalib.__.local.server.test
 
   linux:
     needs: build-linux
@@ -64,39 +93,68 @@ jobs:
           # For most tests, run them arbitrarily on Java 11 or Java 17 on Linux, and
           # on the opposite version on Windows below, so we get decent coverage of
           # each test on each Java version and each operating system
-          # We also try to group tests together to manuaully balance out the runtimes of each jobs
+          # We also try to group tests together to manually balance out the runtimes of each jobs
           - java-version: 17
-            millargs: "'{main,scalalib,testrunner,bsp,testkit}.__.testCached'"
-          - java-version: '11'
-            millargs: "'{scalajslib,scalanativelib}.__.testCached'"
-          - java-version: 17
-            millargs: "contrib.__.testCached"
+            millargs: "'{main,scalalib,testrunner,bsp,testkit}.__.test'"
+            install-android-sdk: false
+
+          - java-version: 11
+            millargs: "'{scalajslib,scalanativelib,kotlinlib,pythonlib,javascriptlib}.__.test'"
+            install-android-sdk: false
 
           - java-version: 17
-            millargs: "'example.javalib.__.local.testCached'"
-          - java-version: 17
-            millargs: "'example.scalalib.__.local.testCached'"
-          - java-version: '11'
-            millargs: "'example.thirdparty[{mockito,acyclic,commons-io}].local.testCached'"
-          - java-version: 17
-            millargs: "'example.thirdparty[{fansi,jimfs,netty,gatling}].local.testCached'"
-          - java-version: '11'
-            millargs: "'example.{depth,extending}.__.local.testCached'"
+            millargs: "contrib.__.test"
+            install-android-sdk: false
 
+          - java-version: 17 # Run this with Mill native launcher as a smoketest
+            millargs: "'example.javalib.__.native.server.test'"
+            install-android-sdk: false
+
+          - java-version: 17
+            millargs: "'example.kotlinlib.__.local.server.test'"
+            install-android-sdk: false
+
+          - java-version: 17
+            millargs: "'example.android.__.local.server.test'"
+            install-android-sdk: true
+
+          - java-version: 17
+            millargs: "'example.{pythonlib,javascriptlib}.__.local.server.test'"
+            install-android-sdk: false
+
+          - java-version: 11
+            millargs: "'example.thirdparty[{mockito,acyclic,commons-io}].local.server.test'"
+            install-android-sdk: false
+
+          - java-version: 17
+            millargs: "'example.thirdparty[{fansi,jimfs,netty,gatling}].local.server.test'"
+            install-android-sdk: false
+
+          - java-version: '17'
+            millargs: "'example.thirdparty[arrow].local.server.test'"
+            install-android-sdk: false
+
+          - java-version: 11
+            millargs: "'example.{cli,fundamentals,depth,extending}.__.local.server.test'"
+            install-android-sdk: false
             # Most of these integration tests should not depend on which mode they
             # are run in, so just run them in `local`
-          - java-version: '11'
-            millargs: "'integration.{failure,feature,ide}.__.local.testCached'"
-
+          - java-version: '17'
+            millargs: "'integration.{failure,feature,ide}.__.packaged.server.test'"
+            install-android-sdk: false
             # These invalidation tests need to be exercised in both execution modes
             # to make sure they work with and without -i/--no-server being passed
           - java-version: 17
-            millargs: "'integration.invalidation.__.fork.testCached'"
-          - java-version: 17
-            millargs: "'integration.invalidation.__.server.testCached'"
+            millargs: "'integration.invalidation.__.packaged.fork.test'"
+            install-android-sdk: false
 
-    uses: ./.github/workflows/run-mill-action.yml
+          - java-version: 17
+            millargs: "'integration.invalidation.__.packaged.server.test'"
+            install-android-sdk: false
+
+    uses: ./.github/workflows/post-build-selective.yml
     with:
+      install-android-sdk: ${{ matrix.install-android-sdk }}
       java-version: ${{ matrix.java-version }}
       millargs: ${{ matrix.millargs }}
 
@@ -108,22 +166,30 @@ jobs:
         include:
           # just run a subset of examples/ on Windows, because for some reason running
           # the whole suite can take hours on windows v.s. half an hour on linux
-          - java-version: '11'
-            millargs: '"{main,scalalib,bsp}.__.testCached"'
-          - java-version: '11'
-            millargs: '"example.scalalib.{basic,web}.__.fork.testCached"'
-          - java-version: 17
-            millargs: "'integration.{feature,failure}[_].fork.testCached'"
-          - java-version: '11'
-            millargs: "'integration.invalidation[_].server.testCached'"
-          - java-version: '11'
-            millargs: "contrib.__.testCached"
+          #
+          # * One job unit tests,
+          # * One job each for local/packaged/native tests
+          # * At least one job for each of fork/server tests, and example/integration tests
+          - java-version: 11
+            millargs: '"{main,scalalib,bsp}.__.test"'
 
-    uses: ./.github/workflows/run-mill-action.yml
+          - java-version: 11
+            millargs: '"example.scalalib.{basic,publishing}.__.local.fork.test"'
+
+          - java-version: 17
+            millargs: "'integration.{feature,failure}.__.packaged.fork.test'"
+
+          - java-version: 11 # Run this with Mill native launcher as a smoketest
+            millargs: "'integration.invalidation.__.native.server.test'"
+
+    uses: ./.github/workflows/post-build-selective.yml
     with:
       os: windows-latest
       java-version: ${{ matrix.java-version }}
       millargs: ${{ matrix.millargs }}
+      # Provide a shorter coursier archive folder to avoid hitting path-length bugs when
+      # running the graal native image binary on windows
+      coursierarchive: "C:/coursier-arc"
 
   itest:
     needs: build-linux
@@ -132,30 +198,21 @@ jobs:
       matrix:
         include:
           # bootstrap tests
-          - java-version: '11' # Have one job on oldest JVM
+          - java-version: 11 # Have one job on oldest JVM
             buildcmd: ci/test-mill-dev.sh && ci/test-mill-release.sh && ./mill -i -k __.ivyDepsTree && ./mill -i -k __.ivyDepsTree --withRuntime
           - java-version: 17 # Have one job on default JVM
             buildcmd: ci/test-mill-bootstrap.sh
 
-    uses: ./.github/workflows/run-mill-action.yml
+    uses: ./.github/workflows/post-build-raw.yml
     with:
       java-version: ${{ matrix.java-version }}
       buildcmd: ${{ matrix.buildcmd }}
 
-  # Rarely breaks so run it near the end
-  compiler-bridge:
-    needs: build-linux
-    uses: ./.github/workflows/run-mill-action.yml
-    with:
-      java-version: '11'
-      millargs: bridge.__.publishLocal
-      env-bridge-versions: 'essential'
-
   # Scalafmt, Mima, and Scalafix job runs last because it's the least important:
-  # usually just a automated or mechanical manual fix to do before merging
+  # usually just an automated or mechanical manual fix to do before merging
   lint-autofix:
     needs: build-linux
-    uses: ./.github/workflows/run-mill-action.yml
+    uses: ./.github/workflows/post-build-raw.yml
     with:
-      java-version: '11'
-      buildcmd: ./mill -i mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources + __.mimaReportBinaryIssues + __.fix --check
+      java-version: '17'
+      buildcmd: ./mill -i mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources + __.mimaReportBinaryIssues + __.fix --check + mill.javalib.palantirformat.PalantirFormatModule/ --check + mill.kotlinlib.ktlint.KtlintModule/checkFormatAll

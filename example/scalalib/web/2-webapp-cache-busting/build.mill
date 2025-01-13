@@ -10,26 +10,26 @@ object `package` extends RootModule with ScalaModule {
     ivy"com.lihaoyi::os-lib:0.10.7"
   )
 
-  def resources = T {
+  def resources = Task {
     val hashMapping = for {
       resourceRoot <- super.resources()
       path <- os.walk(resourceRoot.path)
       if os.isFile(path)
-    } yield hashFile(path, resourceRoot.path, T.dest)
+    } yield hashFile(path, resourceRoot.path, Task.dest)
 
     os.write(
-      T.dest / "hashed-resource-mapping.json",
+      Task.dest / "hashed-resource-mapping.json",
       upickle.default.write(hashMapping.toMap, indent = 4)
     )
 
-    Seq(PathRef(T.dest))
+    Seq(PathRef(Task.dest))
   }
 
   object test extends ScalaTests {
     def testFramework = "utest.runner.Framework"
     def ivyDeps = Agg(
       ivy"com.lihaoyi::utest::0.8.4",
-      ivy"com.lihaoyi::requests::0.6.9",
+      ivy"com.lihaoyi::requests::0.6.9"
     )
   }
 
@@ -43,7 +43,6 @@ object `package` extends RootModule with ScalaModule {
   }
 }
 
-
 // This example demonstrates how to implement webapp "cache busting" in Mill,
 // where we serve static files with a hash appended to the filename, and save
 // a mapping of filename to hashed filename so that the web server can serve
@@ -53,7 +52,7 @@ object `package` extends RootModule with ScalaModule {
 // deploy (since the HTML will reference new hashed paths that are not yet
 // in the cache).
 //
-// We do this in an overrride of the `resources` target, that loads
+// We do this in an overrride of the `resources` task, that loads
 // `super.resources()`, hashes the files within it using `Arrays.hashCode`, and
 // copies the files to a new hashed path saving the overall mapping to a
 // `hashed-resource-mapping.json`. The webapp then loads the mapping at runtime

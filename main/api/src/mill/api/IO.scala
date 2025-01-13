@@ -1,5 +1,7 @@
 package mill.api
 
+import java.nio.file.Files
+
 /**
  * Misc IO utilities, eventually probably should be pushed upstream into
  * ammonite-ops
@@ -9,7 +11,7 @@ object IO extends StreamSupport {
   /**
    * Unpacks the given `src` path into the context specific destination directory.
    * @param src The ZIP file
-   * @param dest The relative output folder under the context specifix destination directory.
+   * @param dest The relative output folder under the context specific destination directory.
    * @param ctx The target context
    * @return The [[PathRef]] to the unpacked folder.
    */
@@ -29,7 +31,7 @@ object IO extends StreamSupport {
           if (!entry.isDirectory) {
             val entryDest = ctx.dest / dest / os.SubPath(entry.getName)
             os.makeDir.all(entryDest / os.up)
-            val fileOut = new java.io.FileOutputStream(entryDest.toString)
+            val fileOut = Files.newOutputStream(entryDest.toNIO)
             IO.stream(zipStream, fileOut)
             fileOut.close()
           }

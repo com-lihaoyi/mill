@@ -13,9 +13,10 @@ sealed trait Result[+T] {
   def flatMap[V](f: T => Result[V]): Result[V]
   def asSuccess: Option[Result.Success[T]] = None
   def asFailing: Option[Result.Failing[T]] = None
-  def getOrThrow: T = this match {
+  def getOrThrow: T = (this: @unchecked) match {
     case Result.Success(v) => v
-    case f: Result.Failing[_] => throw f
+    case f: Result.Failing[?] => throw f
+    // no cases for Skipped or Aborted?
   }
 }
 
@@ -40,7 +41,7 @@ object Result {
   }
 
   /**
-   * A task execution was skipped because of failures in it's dependencies.
+   * A task execution was skipped because of failures in its dependencies.
    */
   case object Skipped extends Result[Nothing] {
     def map[V](f: Nothing => V): Skipped.type = this
@@ -67,12 +68,13 @@ object Result {
   }
 
   /**
-   * An intensional failure, which provides a proper error message as well as an optional result value.
+   * An intentional failure, which provides a proper error message as well as an optional result value.
    * @param msg The error message.
    * @param value The optional result value.
    * @tparam T The result type of the computed task.
    */
-  case class Failure[T](msg: String, value: Option[T] = None) extends Failing[T] {
+  case class Failure[T](msg: String, value: Option[T] = None)
+      extends java.lang.Exception(msg + value.fold("")(", " + _)) with Failing[T] {
     def map[V](f: T => V): Failure[V] = Result.Failure(msg, value.map(f(_)))
     def flatMap[V](f: T => Result[V]): Failure[V] = {
       Failure(msg, value.flatMap(f(_).asSuccess.map(_.value)))
@@ -85,7 +87,8 @@ object Result {
    * @param throwable The exception that describes or caused the failure.
    * @param outerStack The [[OuterStack]] of the failed task.
    */
-  case class Exception(throwable: Throwable, outerStack: OuterStack) extends Failing[Nothing] {
+  case class Exception(throwable: Throwable, outerStack: OuterStack)
+      extends java.lang.Exception(throwable) with Failing[Nothing] {
     def map[V](f: Nothing => V): Exception = this
     def flatMap[V](f: Nothing => Result[V]): Exception = this
 
@@ -95,10 +98,15 @@ object Result {
         current = current.head.getCause :: current
       }
       current.reverse
-        .flatMap(ex =>
-          Seq(ex.toString) ++
-            ex.getStackTrace.dropRight(outerStack.value.length).map("    " + _)
-        )
+        .flatMap { ex =>
+          val elements = ex.getStackTrace.dropRight(outerStack.value.length)
+          val formatted =
+            // for some reason .map without the explicit ArrayOps conversion doesn't work,
+            // and results in `Result[String]` instead of `Array[String]`
+            new scala.collection.ArrayOps(elements).map("    " + _)
+          Seq(ex.toString) ++ formatted
+
+        }
         .mkString("\n")
     }
   }

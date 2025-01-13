@@ -2,326 +2,206 @@ package mill.runner
 
 import mainargs.{Flag, Leftover, arg}
 
-class MillCliConfig private (
+case class MillCliConfig(
+    @deprecated("No longer used", "Mill 0.12.0")
     @arg(
+      hidden = true,
       short = 'h',
       doc =
-        """(internal) The home directory of internally used Ammonite script engine;
-           where it looks for config and caches."""
+        """(internal) The home directory where Mill looks for config and caches."""
     )
-    val home: os.Path,
+    home: os.Path = mill.api.Ctx.defaultHome,
     // We need to keep it, otherwise, a given --repl would be silently parsed as target and result in misleading error messages.
-    // Instead we fail programmatically when this flag is set.
+    // Instead, we fail programmatically when this flag is set.
     @deprecated("No longer supported.", "Mill 0.11.0-M8")
     @arg(
       hidden = true,
       doc = """This flag is no longer supported."""
     )
-    val repl: Flag,
+    repl: Flag = Flag(),
     @arg(
-      doc = """Run Mill in single-process mode.
-               In this mode, no Mill server will be started or used.
-               Must be the first argument."""
+      doc = """Run without a background server. Must be the first argument."""
     )
-    val noServer: Flag,
+    noServer: Flag = Flag(),
     @arg(doc = """Enable BSP server mode.""")
-    val bsp: Flag,
+    bsp: Flag,
     @arg(name = "version", short = 'v', doc = "Show mill version information and exit.")
-    val showVersion: Flag,
+    showVersion: Flag = Flag(),
     @arg(
       name = "bell",
       short = 'b',
       doc = """Ring the bell once if the run completes successfully, twice if it fails."""
     )
-    val ringBell: Flag,
+    ringBell: Flag = Flag(),
+    @deprecated("No longer supported, use `--ticker false`", "Mill 0.12.0")
     @arg(
+      hidden = true,
       doc =
         """Disable ticker log (e.g. short-lived prints of stages and progress bars)."""
     )
-    val disableTicker: Flag,
+    disableTicker: Flag,
     @arg(
       doc =
         """Enable ticker log (e.g. short-lived prints of stages and progress bars)."""
     )
-
-    val enableTicker: Option[Boolean],
+    ticker: Option[Boolean] = None,
+    @deprecated("No longer supported, use `--ticker false`", "Mill 0.12.0")
+    @arg(
+      hidden = true,
+      doc =
+        """Enable ticker log (e.g. short-lived prints of stages and progress bars)."""
+    )
+    enableTicker: Option[Boolean] = None,
     @arg(name = "debug", short = 'd', doc = "Show debug output on STDOUT")
-    val debugLog: Flag,
+    debugLog: Flag = Flag(),
     @arg(
       short = 'k',
       doc = """Continue build, even after build failures."""
     )
-    val keepGoing: Flag,
+    keepGoing: Flag = Flag(),
     @arg(
       name = "define",
       short = 'D',
       doc = """Define (or overwrite) a system property."""
     )
-    val extraSystemProperties: Map[String, String],
+    extraSystemProperties: Map[String, String] = Map(),
     @arg(
       name = "jobs",
       short = 'j',
       doc =
-        """Allow processing N targets in parallel.
-           Use 1 to disable parallel and 0 to use as much threads as available processors."""
+        """The number of parallel threads. It can be an integer e.g. `5`
+           meaning 5 threads, an expression e.g. `0.5C` meaning
+           half as many threads as available cores, or `C-2`
+           meaning 2 threads less than the number of cores. `1` disables
+           parallelism and `0` (the default) uses 1 thread per core."""
     )
-    val threadCountRaw: Option[Int],
+    threadCountRaw: Option[String] = None,
     @arg(
       name = "import",
       doc = """Additional ivy dependencies to load into mill, e.g. plugins."""
     )
-    val imports: Seq[String],
+    imports: Seq[String] = Nil,
     @arg(
       short = 'i',
       doc =
         """Run Mill in interactive mode, suitable for opening REPLs and taking user input.
-          This implies --no-server and no mill server will be used. Must be the first argument."""
+          This implies --no-server. Must be the first argument."""
     )
-    val interactive: Flag,
+    interactive: Flag = Flag(),
     @arg(doc = "Print this help message and exit.")
-    val help: Flag,
+    help: Flag,
     @arg(
       short = 'w',
-      doc = """Watch and re-run your scripts when they change."""
+      doc = """Watch and re-run the given tasks when when their inputs change."""
     )
-    val watch: Flag,
+    watch: Flag = Flag(),
     @arg(
       short = 's',
       doc =
-        """Make ivy logs during script import resolution go silent instead of printing;
-           though failures will still throw exception."""
+        """Make ivy logs during script import resolution go silent instead of printing"""
     )
-    val silent: Flag,
+    silent: Flag = Flag(),
     @arg(
-      name = "target",
-      doc =
-        """The name or a pattern of the target(s) you want to build,
-           followed by any parameters you wish to pass to those targets.
-           To specify multiple target names or patterns, use the `+` separator."""
+      name = "task",
+      doc = """The name or a pattern of the tasks(s) you want to build."""
     )
-    val leftoverArgs: Leftover[String],
+    leftoverArgs: Leftover[String] = Leftover(),
+    @arg(doc =
+      """Toggle colored output; by default enabled only if the console is interactive and NO_COLOR environment variable is not set"""
+    )
+    color: Option[Boolean] = None,
     @arg(
-      doc =
-        """Enable or disable colored output; by default colors are enabled
-          in both REPL and scripts mode if the console is interactive, and disabled
-          otherwise."""
+      name = "disable-callgraph",
+      doc = """
+        Disables fine-grained invalidation of tasks based on analyzing code changes. If passed, you
+        need to manually run `clean` yourself after build changes.
+      """
     )
-    val color: Option[Boolean],
-    @arg(
-      doc =
-        """Disable the fine-grained callgraph-based target invalidation in response to
-           code changes, and instead fall back to the previous coarse-grained implementation
-           relying on the script `import $file` graph"""
-    )
-    val disableCallgraphInvalidation: Flag,
+    disableCallgraph: Flag = Flag(),
     @arg(
       doc =
-        """Experimental: Select a meta-build level to run the given targets.
-           Level 0 is the normal project, level 1 the first meta-build, and so on.
-           The last level is the built-in synthetic meta-build which Mill uses to bootstrap the project."""
+        """Select a meta-level to run the given tasks. Level 0 is the main project in `build.mill`,
+           level 1 the first meta-build in `mill-build/build.mill`, etc."""
     )
-    val metaLevel: Option[Int],
+    metaLevel: Option[Int] = None,
+    @arg(doc = "Allows command args to be passed positionally without `--arg` by default")
+    allowPositional: Flag = Flag(),
     @arg(
-      doc =
-        """"""
+      doc = """
+        Disables the new multi-line status prompt used for showing thread
+        status at the command line and falls back to the legacy ticker
+      """
     )
-    val allowPositionalCommandArgs: Flag
-) {
-  override def toString: String = Seq(
-    "home" -> home,
-    "repl" -> repl,
-    "noServer" -> noServer,
-    "bsp" -> bsp,
-    "showVersion" -> showVersion,
-    "ringBell" -> ringBell,
-    "disableTicker" -> disableTicker,
-    "enableTicker" -> enableTicker,
-    "debugLog" -> debugLog,
-    "keepGoing" -> keepGoing,
-    "extraSystemProperties" -> extraSystemProperties,
-    "threadCountRaw" -> threadCountRaw,
-    "imports" -> imports,
-    "interactive" -> interactive,
-    "help" -> help,
-    "watch" -> watch,
-    "silent" -> silent,
-    "leftoverArgs" -> leftoverArgs,
-    "color" -> color,
-    "disableCallgraphInvalidation" -> disableCallgraphInvalidation,
-    "metaLevel" -> metaLevel,
-    "allowPositionalCommandArgs" -> allowPositionalCommandArgs
-  ).map(p => s"${p._1}=${p._2}").mkString(getClass().getSimpleName + "(", ",", ")")
-}
-
-object MillCliConfig {
-  /*
-   * mainargs requires us to keep this apply method in sync with the private ctr of the class.
-   * mainargs is designed to work with case classes,
-   * but case classes can't be evolved in a binary compatible fashion.
-   * mainargs parses the class ctr for its internal model,
-   * but uses the companion's apply to actually create an instance of the config class,
-   * hence we need both in sync.
-   */
-  def apply(
-      home: os.Path = mill.api.Ctx.defaultHome,
-      @deprecated("No longer supported.", "Mill 0.11.0-M8")
-      repl: Flag = Flag(),
-      noServer: Flag = Flag(),
-      bsp: Flag = Flag(),
-      showVersion: Flag = Flag(),
-      ringBell: Flag = Flag(),
-      disableTicker: Flag = Flag(),
-      enableTicker: Option[Boolean] = None,
-      debugLog: Flag = Flag(),
-      keepGoing: Flag = Flag(),
-      extraSystemProperties: Map[String, String] = Map(),
-      threadCountRaw: Option[Int] = None,
-      imports: Seq[String] = Seq(),
-      interactive: Flag = Flag(),
-      help: Flag = Flag(),
-      watch: Flag = Flag(),
-      silent: Flag = Flag(),
-      leftoverArgs: Leftover[String] = Leftover(),
-      color: Option[Boolean] = None,
-      disableCallgraphInvalidation: Flag = Flag(),
-      metaLevel: Option[Int] = None,
-      allowPositionalCommandArgs: Flag = Flag()
-  ): MillCliConfig = new MillCliConfig(
-    home = home,
-    repl = repl,
-    noServer = noServer,
-    bsp = bsp,
-    showVersion = showVersion,
-    ringBell = ringBell,
-    disableTicker = disableTicker,
-    enableTicker = enableTicker,
-    debugLog = debugLog,
-    keepGoing = keepGoing,
-    extraSystemProperties = extraSystemProperties,
-    threadCountRaw = threadCountRaw,
-    imports = imports,
-    interactive = interactive,
-    help = help,
-    watch = watch,
-    silent = silent,
-    leftoverArgs = leftoverArgs,
-    color = color,
-    disableCallgraphInvalidation,
-    metaLevel = metaLevel,
-    allowPositionalCommandArgs = allowPositionalCommandArgs
-  )
-  @deprecated("Bin-compat shim", "Mill after 0.11.12")
-  def apply(
-      home: os.Path,
-      @deprecated("No longer supported.", "Mill 0.11.0-M8")
-      repl: Flag,
-      noServer: Flag,
-      bsp: Flag,
-      showVersion: Flag,
-      ringBell: Flag,
-      disableTicker: Flag,
-      enableTicker: Option[Boolean],
-      debugLog: Flag,
-      keepGoing: Flag,
-      extraSystemProperties: Map[String, String],
-      threadCountRaw: Option[Int],
-      imports: Seq[String],
-      interactive: Flag,
-      help: Flag,
-      watch: Flag,
-      silent: Flag,
-      leftoverArgs: Leftover[String],
-      color: Option[Boolean],
-      disableCallgraphInvalidation: Flag,
-      metaLevel: Option[Int]
-  ): MillCliConfig = new MillCliConfig(
-    home = home,
-    repl = repl,
-    noServer = noServer,
-    bsp = bsp,
-    showVersion = showVersion,
-    ringBell = ringBell,
-    disableTicker = disableTicker,
-    enableTicker = enableTicker,
-    debugLog = debugLog,
-    keepGoing = keepGoing,
-    extraSystemProperties = extraSystemProperties,
-    threadCountRaw = threadCountRaw,
-    imports = imports,
-    interactive = interactive,
-    help = help,
-    watch = watch,
-    silent = silent,
-    leftoverArgs = leftoverArgs,
-    color = color,
-    disableCallgraphInvalidation,
-    metaLevel = metaLevel,
-    allowPositionalCommandArgs = Flag()
-  )
-
-  @deprecated("Bin-compat shim", "Mill after 0.11.0")
-  private[runner] def apply(
-      home: os.Path,
-      @deprecated("No longer supported.", "Mill 0.11.0-M8")
-      repl: Flag,
-      noServer: Flag,
-      bsp: Flag,
-      showVersion: Flag,
-      ringBell: Flag,
-      disableTicker: Flag,
-      enableTicker: Option[Boolean],
-      debugLog: Flag,
-      keepGoing: Flag,
-      extraSystemProperties: Map[String, String],
-      threadCountRaw: Option[Int],
-      imports: Seq[String],
-      interactive: Flag,
-      help: Flag,
-      watch: Flag,
-      silent: Flag,
-      noDefaultPredef: Flag,
-      leftoverArgs: Leftover[String],
-      color: Option[Boolean],
-      predefFile: Option[os.Path]
-  ): MillCliConfig = apply(
-    home,
-    repl,
-    noServer,
-    bsp,
-    showVersion,
-    ringBell,
-    disableTicker,
-    enableTicker,
-    debugLog,
-    keepGoing,
-    extraSystemProperties,
-    threadCountRaw,
-    imports,
-    interactive,
-    help,
-    watch,
-    silent,
-    leftoverArgs,
-    color
-  )
-}
+    disablePrompt: Flag = Flag(),
+    @arg(
+      hidden = true,
+      doc =
+        """Evaluate tasks / commands without acquiring an exclusive lock on the Mill output directory"""
+    )
+    noBuildLock: Flag = Flag(),
+    @arg(
+      hidden = true,
+      doc =
+        """Do not wait for an exclusive lock on the Mill output directory to evaluate tasks / commands."""
+    )
+    noWaitForBuildLock: Flag = Flag()
+)
 
 import mainargs.ParserForClass
 
 // We want this in a separate source file, but to avoid stale --help output due
-// to undercompilation, we have it in this file
+// to under-compilation, we have it in this file
 // see https://github.com/com-lihaoyi/mill/issues/2315
 object MillCliConfigParser {
   val customName: String = s"Mill Build Tool, version ${mill.main.BuildInfo.millVersion}"
-  val customDoc = "usage: mill [options] [[target [target-options]] [+ [target ...]]]"
+  val customDoc = """
+Usage: mill [options] task [task-options] [+ task ...]
+"""
+  val cheatSheet =
+    """
+task cheat sheet:
+  mill resolve _                 # see all top-level tasks and modules
+  mill resolve __.compile        # see all `compile` tasks in any module (recursively)
+
+  mill foo.bar.compile           # compile the module `foo.bar`
+
+  mill foo.run --arg 1           # run the main method of the module `foo` and pass in `--arg 1`
+  mill -i foo.console            # run the Scala console for the module `foo` (if it is a ScalaModule)
+
+  mill foo.__.test               # run tests in modules nested within `foo` (recursively)
+  mill foo.test arg1 arg2        # run tests in the `foo` module passing in test arguments `arg1 arg2`
+  mill foo.test + bar.test       # run tests in the `foo` module and `bar` module
+  mill '{foo,bar,qux}.test'      # run tests in the `foo` module, `bar` module, and `qux` module
+
+  mill foo.assembly              # generate an executable assembly of the module `foo`
+  mill show foo.assembly         # print the output path of the assembly of module `foo`
+  mill inspect foo.assembly      # show docs and metadata for the `assembly` task on module `foo`
+
+  mill clean foo.assembly        # delete the output of `foo.assembly` to force re-evaluation
+  mill clean                     # delete the output of the entire build to force re-evaluation
+
+  mill path foo.run foo.sources  # print the task chain showing how `foo.run` depends on `foo.sources`
+  mill visualize __.compile      # show how the `compile` tasks in each module depend on one another
+
+options:
+"""
 
   import mill.api.JsonFormatters._
 
   private[this] lazy val parser: ParserForClass[MillCliConfig] =
     mainargs.ParserForClass[MillCliConfig]
 
-  lazy val usageText: String =
-    parser.helpText(customName = customName, customDoc = customDoc)
+  lazy val shortUsageText: String =
+    "Please specify a task to evaluate\n" +
+      customDoc +
+      "\nRun `mill --help` for more details"
+
+  lazy val longUsageText: String =
+    customName +
+      customDoc +
+      cheatSheet +
+      parser.helpText(customName = "", totalWidth = 100).stripPrefix("\n") +
+      "\nPlease see the documentation at https://mill-build.org for more details"
 
   def parse(args: Array[String]): Either[String, MillCliConfig] = {
     parser.constructEither(

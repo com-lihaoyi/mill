@@ -33,7 +33,7 @@ object lib extends ScalaModule with GitlabPublishModule {
 
 `publishVersion` and `pomSettings` come from `PublishModule`. `GitlabPublishModule`
 requires you to
-set `publishRepository` for target of artifact publishing. Note that this *must* be a
+set `publishRepository` for task of artifact publishing. Note that this *must* be a
 project repository defined by project id (publishing to other type of repositories is not
 https://docs.gitlab.com/ee/user/packages/maven_repository/#use-the-gitlab-endpoint-for-maven-packages[supported]).
 
@@ -129,7 +129,7 @@ import mill.api.Result.Success
 
 override def gitlabHeaders(
     props: Map[String, String] // System properties
-  ): Task[GitlabAuthHeaders] = T.task {
+  ): Task[GitlabAuthHeaders] = Task.Anon {
   // This uses default lookup and ads custom headers
   val access = tokenLookup.resolveGitlabToken(T.env, props, T.workspace)
   val accessHeader = access.fold(_ => Seq.empty[(String, String)], _.headers)
@@ -164,7 +164,7 @@ import $ivy.`com.lihaoyi::mill-contrib-gitlab:`
 import mill.contrib.gitlab._
 
 // DON'T DO THIS
-def repositoriesTask = T.task {
+def repositoriesTask = Task.Anon {
   super.repositoriesTask() ++ Seq(
     MavenRepository("https://gitlab.local/api/v4/projects/42/packages/maven",
       Some(Authentication(Seq(("Private-Token", "<<private-token>>"))))))
@@ -186,7 +186,7 @@ object myPackageRepository extends GitlabMavenRepository {
 }
 
 object myModule extends ScalaModule {
-  def repositoriesTask = T.task {
+  def repositoriesTask = Task.Anon {
     super.repositoriesTask() ++
       Seq(
         MavenRepository("https://oss.sonatype.org/content/repositories/releases"),

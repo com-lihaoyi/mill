@@ -21,7 +21,7 @@ trait HelloWorldTests extends utest.TestSuite {
   def isScala3: Boolean = testScalaVersion.startsWith("3.")
   def isScov3: Boolean = testScoverageVersion.startsWith("2.")
 
-  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "hello-world"
+  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world"
   val sbtResourcePath = resourcePath / os.up / "hello-world-sbt"
   val unmanagedFile = resourcePath / "unmanaged.xml"
 
@@ -302,18 +302,6 @@ trait FailedWorldTests extends HelloWorldTests {
   }
 }
 
-object Scoverage1Tests_2_12 extends HelloWorldTests {
-  override def testScalaVersion: String = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
-  override def testScoverageVersion = sys.props.getOrElse("MILL_SCOVERAGE_VERSION", ???)
-}
-
-object Scoverage1Tests_2_13 extends HelloWorldTests {
-  // scaoverage 1.x was only released for Scala up to 2.13.8
-  override def testScalaVersion: String =
-    sys.props.getOrElse("TEST_SCALA_2_13_VERSION_FOR_SCOVERAGE_1", ???)
-  override def testScoverageVersion = sys.props.getOrElse("MILL_SCOVERAGE_VERSION", ???)
-}
-
 object Scoverage2Tests_2_13 extends HelloWorldTests {
   override def testScalaVersion: String = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
   override def testScoverageVersion = sys.props.getOrElse("MILL_SCOVERAGE2_VERSION", ???)
@@ -322,11 +310,4 @@ object Scoverage2Tests_2_13 extends HelloWorldTests {
 object Scoverage2Tests_3_2 extends HelloWorldTests {
   override def testScalaVersion: String = sys.props.getOrElse("TEST_SCALA_3_2_VERSION", ???)
   override def testScoverageVersion = sys.props.getOrElse("MILL_SCOVERAGE2_VERSION", ???)
-}
-
-object Scoverage1Tests_3_2 extends FailedWorldTests {
-  override def testScalaVersion: String = sys.props.getOrElse("TEST_SCALA_3_2_VERSION", ???)
-  override def testScoverageVersion = sys.props.getOrElse("MILL_SCOVERAGE_VERSION", ???)
-  override val errorMsg =
-    "Scoverage 1.x does not support Scala 3. You have to update to at least Scala 3.2 and Scoverage 2.0"
 }

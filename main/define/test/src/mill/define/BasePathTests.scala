@@ -5,6 +5,17 @@ import mill.testkit.TestBaseModule
 import utest._
 
 object BasePathTests extends TestSuite {
+
+  object overriddenBasePath extends TestBaseModule {
+    override def millSourcePath = os.pwd / "overriddenBasePathRootValue"
+    object nested extends Module {
+      override def millSourcePath = super.millSourcePath / "overriddenBasePathNested"
+      object nested extends Module {
+        override def millSourcePath = super.millSourcePath / "overriddenBasePathDoubleNested"
+      }
+    }
+  }
+
   val testGraphs = new TestGraphs
   val tests = Tests {
     def checkMillSourcePath[T <: Module](m: T)(f: T => Module, segments: String*): Unit = {
@@ -54,15 +65,6 @@ object BasePathTests extends TestSuite {
       checkMillSourcePath(TestGraphs.nestedCrosses)(_.cross("210").cross2("js"), "cross", "cross2")
     }
     test("overridden") {
-      object overriddenBasePath extends TestBaseModule {
-        override def millSourcePath = os.pwd / "overriddenBasePathRootValue"
-        object nested extends Module {
-          override def millSourcePath = super.millSourcePath / "overriddenBasePathNested"
-          object nested extends Module {
-            override def millSourcePath = super.millSourcePath / "overriddenBasePathDoubleNested"
-          }
-        }
-      }
       assert(
         overriddenBasePath.millSourcePath == os.pwd / "overriddenBasePathRootValue",
         overriddenBasePath.nested.millSourcePath == os.pwd / "overriddenBasePathRootValue/nested/overriddenBasePathNested",

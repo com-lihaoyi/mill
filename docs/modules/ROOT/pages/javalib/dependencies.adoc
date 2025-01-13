@@ -1,0 +1,33 @@
+= Java Library Dependencies
+
+include::partial$gtag-config.adoc[]
+
+This page goes into more detail about configuring third party dependencies
+for `JavaModule`.
+
+== Adding Ivy Dependencies
+
+include::partial$example/javalib/dependencies/1-ivy-deps.adoc[]
+
+== Runtime and Compile-time Dependencies
+
+include::partial$example/javalib/dependencies/2-run-compile-deps.adoc[]
+
+== Dependency Management
+
+Mill has support for dependency management, see the
+xref:fundamentals/library-deps.adoc#_dependency_management[Dependency Management section]
+in xref:fundamentals/library-deps.adoc[].
+
+== Unmanaged Jars
+
+include::partial$example/javalib/dependencies/3-unmanaged-jars.adoc[]
+
+== Downloading Unmanaged Jars
+
+include::partial$example/javalib/dependencies/4-downloading-unmanaged-jars.adoc[]
+
+== Repository Config
+
+include::partial$example/javalib/dependencies/5-repository-config.adoc[]
+

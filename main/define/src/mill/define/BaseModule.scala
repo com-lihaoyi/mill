@@ -31,8 +31,8 @@ abstract class BaseModule(
       )
     ) with Module with BaseModule0 {
 
-  // A BaseModule should provide an empty Segments list to it's children, since
-  // it is the root of the module tree, and thus must not include it's own
+  // A BaseModule should provide an empty Segments list to its children, since
+  // it is the root of the module tree, and thus must not include its own
   // sourcecode.Name as part of the list,
   override implicit def millModuleSegments: Segments = Segments()
   override def millSourcePath = millOuterCtx.millSourcePath

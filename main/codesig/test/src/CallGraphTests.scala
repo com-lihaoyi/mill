@@ -31,6 +31,7 @@ object CallGraphTests extends TestSuite {
       test("17-scala-lambda") - testExpectedCallGraph()
       test("18-scala-anon-class-lambda") - testExpectedCallGraph()
       test("19-scala-trait-constructor") - testExpectedCallGraph()
+      test("20-array-method") - testExpectedCallGraph()
     }
 
     test("complicated") {
@@ -102,7 +103,7 @@ object CallGraphTests extends TestSuite {
   }
 
   /**
-   * Make sure the direct call graph contains what we exxpect
+   * Make sure the direct call graph contains what we expect
    */
   def testDirectCallGraph(
       testCaseSourceFilesRoot: os.Path,
@@ -114,8 +115,8 @@ object CallGraphTests extends TestSuite {
 
     val foundCallGraph = simplifyCallGraph(codeSig, skipped)
 
-    val expectedCallGraphJson = write(expectedCallGraph, indent = 4)
-    val foundCallGraphJson = write(foundCallGraph, indent = 4)
+    val expectedCallGraphJson = write(expectedCallGraph, indent = 2)
+    val foundCallGraphJson = write(foundCallGraph, indent = 2)
 
     assert(expectedCallGraphJson == foundCallGraphJson)
     foundCallGraphJson
@@ -124,7 +125,7 @@ object CallGraphTests extends TestSuite {
   /**
    * Exercise the code computing the transitive call graph summary from the direct call graph
    *
-   * Computes a `SortedSet[String]` rather than a `Int` like we do for real usage because it's
+   * Computes a `SortedSet[String]` rather than an `Int` like we do for real usage because it's
    * easier to read and make sense of the summary for each node that way, but shares most of
    * the logic and so should hopefully catch most bugs in the transitive logic anyway
    */
@@ -155,8 +156,8 @@ object CallGraphTests extends TestSuite {
       .to(SortedMap)
 
     for (expectedTransitiveGraph <- expectedTransitiveGraphOpt) {
-      val expectedTransitiveGraphJson = upickle.default.write(expectedTransitiveGraph, indent = 4)
-      val transitiveGraphJson = upickle.default.write(transitiveGraph, indent = 4)
+      val expectedTransitiveGraphJson = upickle.default.write(expectedTransitiveGraph, indent = 2)
+      val transitiveGraphJson = upickle.default.write(transitiveGraph, indent = 2)
       assert(expectedTransitiveGraphJson == transitiveGraphJson)
     }
   }
@@ -183,7 +184,7 @@ object CallGraphTests extends TestSuite {
                 .takeWhile(l => l != "*/" && l != " */")
 
               Some(expectedLines.mkString("\n"))
-            case _ => sys.error(s"Only one occurence of line \"$openTagLine\" is expected in file")
+            case _ => sys.error(s"Only one occurrence of line \"$openTagLine\" is expected in file")
           }
         }
       }

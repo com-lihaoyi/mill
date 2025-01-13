@@ -1,4 +1,5 @@
 package build
+import $packages._
 import mill._
 import mill.api.{PathRef}
 import mill.scalalib._
@@ -13,13 +14,13 @@ object HelloBsp extends HelloBspModule {
   def moduleDeps: Seq[JavaModule] = Seq(build.proj1)
   // Explicitly depends on proj2
   def compileModuleDeps: Seq[JavaModule] = Seq(build.proj2)
-  // Implicitly depends on proj3 via a target
+  // Implicitly depends on proj3 via a task
   override def unmanagedClasspath: T[Agg[PathRef]] = Agg(build.proj3.jar())
 }
 
-def validate() = T.command {
+def validate() = Task.Command {
   val transitiveModules = mill.scalalib.internal.JavaModuleUtils.transitiveModules(build)
-  val file = T.dest / "transitive-modules.json"
+  val file = Task.dest / "transitive-modules.json"
   val moduleNames = transitiveModules.map(m =>
     mill.scalalib.internal.ModuleUtils.moduleDisplayName(m)
   ).mkString("\n")

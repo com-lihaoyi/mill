@@ -69,6 +69,13 @@ object MillPluginClasspathTest extends UtestIntegrationTestSuite {
         ))
       }
     }
+    test("semanticDbData") - integrationTest { tester =>
+      import tester._
+      retry(3) {
+        val res1 = eval(("--meta-level", "1", "semanticDbData"))
+        assert(res1.isSuccess)
+      }
+    }
 
   }
 }

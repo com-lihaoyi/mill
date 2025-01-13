@@ -21,8 +21,14 @@ trait JsonFormatters {
 
   /**
    * Additional [[mainargs.TokensReader]] instance to teach it how to read Ammonite paths
+   *
+   * Should be replaced by `PathTokensReader2` but kept for binary compatibility
    */
-  implicit def PathTokensReader: mainargs.TokensReader[os.Path] = JsonFormatters.PathTokensReader0
+  implicit def PathTokensReader: mainargs.TokensReader[os.Path] =
+    JsonFormatters.PathTokensReader0
+
+  def PathTokensReader2: mainargs.TokensReader.Simple[os.Path] =
+    JsonFormatters.PathTokensReader0
 
   implicit val pathReadWrite: RW[os.Path] = upickle.default.readwriter[String]
     .bimap[os.Path](
@@ -62,7 +68,7 @@ trait JsonFormatters {
         )
     )
 
-  implicit def enumFormat[T <: java.lang.Enum[_]: ClassTag]: RW[T] =
+  implicit def enumFormat[T <: java.lang.Enum[?]: ClassTag]: RW[T] =
     upickle.default.readwriter[String].bimap(
       _.name(),
       (s: String) =>

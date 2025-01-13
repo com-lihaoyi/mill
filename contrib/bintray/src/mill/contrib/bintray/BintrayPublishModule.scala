@@ -12,9 +12,9 @@ trait BintrayPublishModule extends PublishModule {
 
   def bintrayRepo: String
 
-  def bintrayPackage = T { artifactId() }
+  def bintrayPackage: T[String] = Task { artifactId() }
 
-  def bintrayPublishArtifacts: T[BintrayPublishData] = T {
+  def bintrayPublishArtifacts: T[BintrayPublishData] = Task {
     val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
     BintrayPublishData(artifactInfo, artifacts, bintrayPackage())
   }
@@ -36,7 +36,7 @@ trait BintrayPublishModule extends PublishModule {
       release: Boolean = true,
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
-  ): define.Command[Unit] = T.command {
+  ): define.Command[Unit] = Task.Command {
     new BintrayPublisher(
       bintrayOwner,
       bintrayRepo,
@@ -69,7 +69,7 @@ object BintrayPublishModule extends ExternalModule {
       publishArtifacts: mill.main.Tasks[BintrayPublishData],
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
-  ) = T.command {
+  ) = Task.Command {
     new BintrayPublisher(
       bintrayOwner,
       bintrayRepo,
@@ -83,7 +83,7 @@ object BintrayPublishModule extends ExternalModule {
     )
   }
 
-  private def checkBintrayCreds(credentials: String): Task[String] = T.task {
+  private def checkBintrayCreds(credentials: String): Task[String] = Task.Anon {
     if (credentials.isEmpty) {
       (for {
         username <- T.env.get("BINTRAY_USERNAME")

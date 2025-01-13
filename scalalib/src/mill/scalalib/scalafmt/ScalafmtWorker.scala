@@ -9,7 +9,7 @@ import scala.collection.mutable
 import mill.api.Result
 
 object ScalafmtWorkerModule extends ExternalModule {
-  def worker: Worker[ScalafmtWorker] = T.worker { new ScalafmtWorker() }
+  def worker: Worker[ScalafmtWorker] = Task.Worker { new ScalafmtWorker() }
 
   lazy val millDiscover: Discover = Discover[this.type]
 }

@@ -34,8 +34,16 @@ object `package` extends RootModule with build.MillStableScalaModule {
     def buildInfoMembers = Seq(
       BuildInfo.Value("ammonite", build.Deps.ammoniteVersion, "Version of Ammonite."),
       BuildInfo.Value("zinc", build.Deps.zinc.dep.version, "Version of Zinc"),
-      BuildInfo.Value("scalafmtVersion", build.Deps.scalafmtDynamic.dep.version, "Version of Scalafmt"),
-      BuildInfo.Value("semanticDBVersion", build.Deps.semanticDBscala.dep.version, "SemanticDB version."),
+      BuildInfo.Value(
+        "scalafmtVersion",
+        build.Deps.scalafmtDynamic.dep.version,
+        "Version of Scalafmt"
+      ),
+      BuildInfo.Value(
+        "semanticDBVersion",
+        build.Deps.semanticDBscala.dep.version,
+        "SemanticDB version."
+      ),
       BuildInfo.Value(
         "semanticDbJavaVersion",
         build.Deps.semanticDbJava.dep.version,
@@ -62,7 +70,9 @@ object `package` extends RootModule with build.MillStableScalaModule {
           s"${d.dep.module.organization.value}:${d.dep.module.name.value}:${d.version}"
         },
         "Dependency to jupiter-interface"
-      )
+      ),
+      BuildInfo.Value("errorProneVersion", build.Deps.RuntimeDeps.errorProneCore.version),
+      BuildInfo.Value("coursierJvmIndexVersion", build.Deps.coursierJvmIndexVersion)
     )
   }
 

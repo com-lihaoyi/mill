@@ -1,10 +1,10 @@
 package mill.api
 
-import mill.api.Loose.Agg
-
-import java.io.{BufferedOutputStream, FileOutputStream}
+import java.io.BufferedOutputStream
+import java.nio.file.Files
 import java.util.jar.{JarEntry, JarOutputStream, Manifest}
 import scala.collection.mutable
+import mill.api.Loose.Agg
 
 @experimental
 trait JarOps {
@@ -73,10 +73,10 @@ trait JarOps {
     os.remove.all(jar)
 
     val seen = mutable.Set.empty[os.RelPath]
-    seen.add(os.sub / "META-INF/MANIFEST.MF")
+    val _ = seen.add(os.sub / "META-INF/MANIFEST.MF")
 
     val jarStream = new JarOutputStream(
-      new BufferedOutputStream(new FileOutputStream(jar.toIO)),
+      new BufferedOutputStream(Files.newOutputStream(jar.toNIO)),
       manifest
     )
 
@@ -84,7 +84,7 @@ trait JarOps {
       assert(inputPaths.iterator.forall(os.exists(_)))
 
       if (includeDirs) {
-        seen.add(os.sub / "META-INF")
+        val _ = seen.add(os.sub / "META-INF")
         val entry = new JarEntry("META-INF/")
         entry.setTime(curTime)
         jarStream.putNextEntry(entry)
@@ -99,7 +99,7 @@ trait JarOps {
           else os.walk(p).map(sub => (sub, sub.subRelativeTo(p))).sorted
         if (includeDirs || os.isFile(file)) && !seen(mapping) && fileFilter(p, mapping)
       } {
-        seen.add(mapping)
+        val _ = seen.add(mapping)
         val name = mapping.toString() + (if (os.isDir(file)) "/" else "")
         val entry = new JarEntry(name)
         entry.setTime(mTime(file))

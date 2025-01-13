@@ -9,6 +9,8 @@ import mill.api.SystemStreams
 import scala.jdk.CollectionConverters._
 import utest._
 
+import java.nio.file.Path
+
 /**
  * Exercises the client-server logic in memory, using in-memory locks
  * and in-memory clients and servers
@@ -94,7 +96,8 @@ object ClientServerTests extends TestSuite {
         memoryLocks,
         forceFailureForTestingMillisDelay
       ) {
-        def initServer(serverDir: String, b: Boolean, locks: Locks) = {
+        def preRun(serverDir: Path) = { /*do nothing*/ }
+        def initServer(serverDir: Path, b: Boolean, locks: Locks) = {
           val serverId = "server-" + nextServerId
           nextServerId += 1
           new Thread(new EchoServer(
@@ -104,7 +107,7 @@ object ClientServerTests extends TestSuite {
             testLogEvenWhenServerIdWrong
           )).start()
         }
-      }.acquireLocksAndRun(outDir.relativeTo(os.pwd).toString)
+      }.acquireLocksAndRun((outDir / "server-0").relativeTo(os.pwd).toNIO)
 
       ClientResult(
         result.exitCode,
@@ -169,10 +172,10 @@ object ClientServerTests extends TestSuite {
         // Make sure if we delete the out dir, the server notices and exits
         Thread.sleep(500)
         os.remove.all(res3.outDir)
-        Thread.sleep(500)
+        Thread.sleep(1000)
 
         assert(res3.logsFor("serverId file missing") == Seq("server-1"))
-        assert(res3.logsFor("exiting server") == Seq("server-1"))
+        assert(res3.logsFor("exiting server") == Seq("server-1", "server-1"))
       }
     }
     test("dontLogWhenOutFolderDeleted") - retry(3) {
@@ -238,9 +241,12 @@ object ClientServerTests extends TestSuite {
       val logLines = os.read.lines(os.Path(pathStr, os.pwd) / "server.log")
 
       assert(
-        logLines.takeRight(2) ==
+        logLines.takeRight(5) ==
           Seq(
             "server-0 client interrupted while server was executing command",
+            "server-0 exiting server",
+            "server-0 server loop ended",
+            "server-0 finally exitServer",
             "server-0 exiting server"
           )
       )

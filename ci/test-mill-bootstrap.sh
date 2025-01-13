@@ -7,10 +7,10 @@ git stash -u
 git stash -a
 
 # Build Mill
-./mill -i installLocal
+./mill -i dist.installLocal
 
 # Clean up
-git stash -a -m "preserve mill-release" -- target/mill-release
+git stash -a -m "preserve mill-release" -- ./mill-assembly.jar
 git stash -u
 git stash -a
 git stash pop "$(git stash list | grep "preserve mill-release" | head -n1 | sed -E 's/([^:]+):.*/\1/')"
@@ -19,5 +19,5 @@ git stash pop "$(git stash list | grep "preserve mill-release" | head -n1 | sed 
 ci/prepare-mill-bootstrap.sh
 
 # Run tests
-target/mill-release -i "__.compile"
-target/mill-release -i "example.scalalib.basic[1-simple].server.test"
+./mill-assembly.jar -i "__.compile"
+./mill-assembly.jar -i "example.scalalib.basic[1-simple].packaged.server.test"

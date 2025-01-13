@@ -131,65 +131,65 @@ case class GenIdeaImpl(
           case (path, mod) => {
 
             // same as input of resolvedIvyDeps
-            val allIvyDeps = T.task {
+            val allIvyDeps = Task.Anon {
               mod.transitiveIvyDeps() ++ mod.transitiveCompileIvyDeps()
             }
 
             val scalaCompilerClasspath = mod match {
               case x: ScalaModule => x.scalaCompilerClasspath
               case _ =>
-                T.task {
+                Task.Anon {
                   Agg.empty[PathRef]
                 }
             }
 
-            val externalLibraryDependencies = T.task {
+            val externalLibraryDependencies = Task.Anon {
               mod.defaultResolver().resolveDeps(mod.mandatoryIvyDeps())
             }
 
-            val externalDependencies = T.task {
+            val externalDependencies = Task.Anon {
               mod.resolvedIvyDeps() ++
                 T.traverse(mod.transitiveModuleDeps)(_.unmanagedClasspath)().flatten
             }
-            val extCompileIvyDeps = T.task {
+            val extCompileIvyDeps = Task.Anon {
               mod.defaultResolver().resolveDeps(mod.compileIvyDeps())
             }
             val extRunIvyDeps = mod.resolvedRunIvyDeps
 
-            val externalSources = T.task {
+            val externalSources = Task.Anon {
               mod.resolveDeps(allIvyDeps, sources = true)()
             }
 
             val (scalacPluginsIvyDeps, allScalacOptions, scalaVersion) = mod match {
               case mod: ScalaModule => (
-                  T.task(mod.scalacPluginIvyDeps()),
-                  T.task(mod.allScalacOptions()),
-                  T.task { Some(mod.scalaVersion()) }
+                  Task.Anon(mod.scalacPluginIvyDeps()),
+                  Task.Anon(mod.allScalacOptions()),
+                  Task.Anon { Some(mod.scalaVersion()) }
                 )
               case _ => (
-                  T.task(Agg[Dep]()),
-                  T.task(Seq[String]()),
-                  T.task(None)
+                  Task.Anon(Agg[Dep]()),
+                  Task.Anon(Seq[String]()),
+                  Task.Anon(None)
                 )
             }
 
-            val scalacPluginDependencies = T.task {
+            val scalacPluginDependencies = Task.Anon {
               mod.defaultResolver().resolveDeps(scalacPluginsIvyDeps())
             }
 
-            val facets = T.task {
+            val facets = Task.Anon {
               mod.ideaJavaModuleFacets(ideaConfigVersion)()
             }
 
-            val configFileContributions = T.task {
+            val configFileContributions = Task.Anon {
               mod.ideaConfigFiles(ideaConfigVersion)()
             }
 
-            val compilerOutput = T.task {
+            val compilerOutput = Task.Anon {
               mod.ideaCompileOutput()
             }
 
-            T.task {
+            Task.Anon {
               val resolvedCp: Agg[Scoped[os.Path]] =
                 externalDependencies().map(_.path).map(Scoped(_, None)) ++
                   extCompileIvyDeps()
@@ -501,15 +501,16 @@ case class GenIdeaImpl(
           resourcesPathRefs: Seq[PathRef],
           generatedSourcePathRefs: Seq[PathRef],
           allSourcesPathRefs: Seq[PathRef]
-        ) = evaluator.evaluate(
-          Agg(
-            mod.resources,
-            mod.generatedSources,
-            mod.allSources
-          )
-        )
-          .values
-          .map(_.value)
+        ) = evaluator.evalOrThrow(
+          exceptionFactory = r =>
+            GenIdeaException(
+              s"Could not evaluate sources/resources of module `${mod}`: ${Evaluator.formatFailing(r)}"
+            )
+        )(Seq(
+          mod.resources,
+          mod.generatedSources,
+          mod.allSources
+        ))
 
         val generatedSourcePaths = generatedSourcePathRefs.map(_.path)
         val normalSourcePaths = (allSourcesPathRefs
@@ -591,12 +592,17 @@ case class GenIdeaImpl(
             val languageLevel =
               scalaVersion.map(_.split("[.]", 3).take(2).mkString("Scala_", "_", ""))
 
+            val cpFilter: os.Path => Boolean = mod match {
+              case _: ScalaJSModule => entry => !entry.last.startsWith("scala3-library_3")
+              case _ => _ => true
+            }
+
             Tuple2(
               os.sub / "libraries" / libraryNameToFileSystemPathPart(nameAndVersion, "xml"),
               scalaSdkTemplate(
                 name = nameAndVersion,
                 languageLevel = languageLevel,
-                scalaCompilerClassPath = compilerClasspath,
+                scalaCompilerClassPath = compilerClasspath.filter(cpFilter),
                 // FIXME: fill in these fields
                 compilerBridgeJar = None,
                 scaladocExtraClasspath = None
@@ -749,7 +755,7 @@ case class GenIdeaImpl(
     val relToHomeDir = Try(homeDir._2 + forward(path.relativeTo(homeDir._1)))
 
     (relToProjectDir, relToHomeDir) match {
-      // We seem to be outside of project-dir but inside home dir, so use releative path to home dir
+      // We seem to be outside of project-dir but inside home dir, so use relative path to home dir
       case (Success(p1), Success(p2)) if p1.contains("..") && !p2.contains("..") => p2
       // default to project-dir-relative
       case (Success(p), _) => p

@@ -7,7 +7,7 @@ import utest._
  * except the commands used to test the project come from a `/** Usage ... */`
  * comment inside the project's `build.mill` file. This is intended to make the
  * `build.mill` file usable as documentation, such that a reader can skim the `build.mill`
- * and see both the build configuration as well as the commands they themselves can
+ * and see both the build configuration and the commands they themselves can
  * enter at the command line to exercise it.
  *
  * Implements a bash-like test DSL for educational purposes, parsed out from a
@@ -16,7 +16,7 @@ import utest._
  * example themselves.
  *
  * Each empty-line-separated block consists of one command (prefixed with `>`)
- * and zero or more output lines we expect to get from the comman (either stdout
+ * and zero or more output lines we expect to get from the command (either stdout
  * or stderr):
  *
  * 1. If there are no expected output lines, we do not perform any assertions
@@ -68,7 +68,7 @@ object ExampleTester {
 }
 
 class ExampleTester(
-    clientServerMode: Boolean,
+    val clientServerMode: Boolean,
     val workspaceSourcePath: os.Path,
     millExecutable: os.Path,
     bashExecutable: String = ExampleTester.defaultBashExecutable(),
@@ -94,6 +94,7 @@ class ExampleTester(
       processCommand(expectedSnippets, commandHead.trim)
     }
   }
+  private val millExt = if (Util.windowsPlatform) ".bat" else ""
 
   def processCommand(
       expectedSnippets: Vector[String],
@@ -101,11 +102,17 @@ class ExampleTester(
       check: Boolean = true
   ): Unit = {
     val commandStr = commandStr0 match {
-      case s"mill $rest" => s"./mill $rest"
-      case s"curl $rest" => s"curl --retry 5 --retry-all-errors $rest"
+      case s"mill $rest" => s"./mill$millExt --disable-ticker $rest"
+      case s"./mill $rest" => s"./mill$millExt --disable-ticker $rest"
+      case s"curl $rest" => s"curl --retry 7 --retry-all-errors $rest"
       case s => s
     }
     Console.err.println(s"$workspacePath> $commandStr")
+    Console.err.println(
+      s"""--- Expected output ----------
+         |${expectedSnippets.mkString("\n")}
+         |------------------------------""".stripMargin
+    )
 
     val res = os.call(
       (bashExecutable, "-c", commandStr),
@@ -113,7 +120,7 @@ class ExampleTester(
       stderr = os.Pipe,
       cwd = workspacePath,
       mergeErrIntoOut = true,
-      env = Map("MILL_TEST_SUITE" -> this.getClass().toString()),
+      env = IntegrationTester.millTestSuiteEnv,
       check = false
     )
 
@@ -160,12 +167,6 @@ class ExampleTester(
 
     val filteredOut = plainTextLines(evalResult.out).mkString("\n")
 
-    if (expectedSnippets.nonEmpty) {
-      for (outLine <- filteredOut.linesIterator) {
-        globMatchesAny(unwrappedExpected, outLine)
-      }
-    }
-
     for (expectedLine <- unwrappedExpected.linesIterator) {
       assert(filteredOut.linesIterator.exists(globMatches(expectedLine, _)))
     }
@@ -189,7 +190,7 @@ class ExampleTester(
 
     try {
       initWorkspace()
-      os.copy.over(millExecutable, workspacePath / "mill")
+      os.copy.over(millExecutable, workspacePath / s"mill$millExt")
       for (commandBlock <- commandBlocks) processCommandBlock(commandBlock)
     } finally {
       if (clientServerMode) processCommand(Vector(), "./mill shutdown", check = false)

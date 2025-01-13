@@ -1,6 +1,6 @@
 package build.a
 import mill._
 
-def input = T {
+def input = Task {
   println("a")
 }

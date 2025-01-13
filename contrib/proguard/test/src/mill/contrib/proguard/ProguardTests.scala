@@ -15,16 +15,16 @@ object ProguardTests extends TestSuite {
   object proguard extends TestBaseModule with ScalaModule with Proguard {
     override def scalaVersion: T[String] = T(sys.props.getOrElse("MILL_SCALA_2_13_VERSION", ???))
 
-    def proguardContribClasspath = T {
+    def proguardContribClasspath = Task {
       millProjectModule("mill-contrib-proguard", repositoriesTask())
     }
 
-    override def runClasspath: Target[Seq[PathRef]] =
-      T { super.runClasspath() ++ proguardContribClasspath() }
+    override def runClasspath: T[Seq[PathRef]] =
+      Task { super.runClasspath() ++ proguardContribClasspath() }
 
   }
 
-  val testModuleSourcesPath: Path = os.Path(sys.env("MILL_TEST_RESOURCE_FOLDER")) / "proguard"
+  val testModuleSourcesPath: Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "proguard"
 
   def tests: Tests = Tests {
     test("Proguard module") {
