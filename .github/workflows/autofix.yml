@@ -7,6 +7,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: ./mill -i mill.scalalib.scalafmt.ScalafmtModule/
+      - run: git clean -xdf
 
       - run: git config --global user.email "you@example.com"
       - run: git config --global user.name "Your Name"
@@ -16,7 +17,7 @@ jobs:
       - run: echo ${{ github.event.pull_request.head.ref }}
       - run: echo "git@github.com:${{ github.event.pull_request.head.repo.full_name }}.git" > .autofix-repo
       - run: echo ${{ github.event.pull_request.head.ref }}:${{ github.event.pull_request.head.ref }} > .autofix-branch
-      - run: git clean -xdf
+
 
       - uses: actions/upload-artifact@v4.5.0
         with:
