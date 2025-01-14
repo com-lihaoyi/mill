@@ -16,8 +16,7 @@ import mill.T
 
 trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
-  // hello
-  def   scalaJSVersion: T[String]
+  def scalaJSVersion: T[String]
 
   trait ScalaJSTests extends ScalaTests with TestScalaJSModule {
     override def scalaJSVersion = outer.scalaJSVersion()
