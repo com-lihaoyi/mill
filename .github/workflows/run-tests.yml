@@ -51,7 +51,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: echo "hello world"
-        
+
   # Jobs are listed in rough order of priority: if multiple jobs fail, the first job
   # in the list should be the one that's most worth looking into
   build-linux:
