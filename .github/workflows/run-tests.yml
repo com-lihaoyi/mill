@@ -60,7 +60,8 @@ jobs:
       os: ubuntu-latest
     strategy:
       matrix:
-        dummy: 1
+        include:
+          - dummy: 1
 
   build-windows:
     needs: main-ci
@@ -69,7 +70,8 @@ jobs:
       os: windows-latest
     strategy:
       matrix:
-        dummy: 1
+        include:
+          - dummy: 1
 
   test-docs:
     needs: main-ci
@@ -81,7 +83,8 @@ jobs:
       - run: ./mill -i docs.fastPages + docs.checkBrokenLinks
     strategy:
       matrix:
-        dummy: 1
+        include:
+          - dummy: 1
 
   mac:
     needs: main-ci
@@ -99,7 +102,8 @@ jobs:
       - run: ./mill -i example.scalalib.__.local.server.test
     strategy:
       matrix:
-        dummy: 1
+        include:
+          - dummy: 1
 
   linux:
     needs: build-linux
