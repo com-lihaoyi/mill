@@ -15,7 +15,6 @@ import mill.scalalib.bsp.{ScalaBuildTarget, ScalaPlatform}
 import mill.T
 
 trait ScalaJSModule extends scalalib.ScalaModule { outer =>
-
   def scalaJSVersion: T[String]
 
   trait ScalaJSTests extends ScalaTests with TestScalaJSModule {
