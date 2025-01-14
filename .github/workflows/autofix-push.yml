@@ -18,4 +18,9 @@ jobs:
           workflow_conclusion: ""
           name: autofix-artifacts
 
-      - run: git push $(cat .autofix-repo) $(cat .autofix-branch)
+      - run: >
+          if git diff --quiet HEAD~1; then
+            echo "The latest commit is empty (no changes)."
+          else
+            git push $(cat .autofix-repo) $(cat .autofix-branch)
+          fi
