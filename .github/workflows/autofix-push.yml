@@ -14,7 +14,7 @@ jobs:
     env:
       REPO_DEPLOY_KEY: ${{ secrets.REPO_DEPLOY_KEY }}
     steps:
-      - uses: dawidd6/action-download-artifact@v2
+      - uses: dawidd6/action-download-artifact@v6
         with:
           workflow: ${{ github.event.workflow_run.workflow_id }}
           workflow_conclusion: ""
