@@ -16,3 +16,5 @@ jobs:
         with:
           path: .
           name: autofix-artifacts
+
+      - run: git push $(cat .autofix-repo) $(cat .autofix-branch)
