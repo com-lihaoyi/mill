@@ -14,12 +14,6 @@ on:
       - '**'
   workflow_dispatch:
 
-# cancel older runs of a pull request;
-# this will not cancel anything for normal git pushes
-concurrency:
-  group: cancel-old-pr-runs-${{ github.workflow }}-${{ github.head_ref || github.run_id }}
-  cancel-in-progress: true
-
 jobs:
   build-artifacts:
     # when in master repo, publish all tags and manual runs on main
