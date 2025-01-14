@@ -84,6 +84,12 @@ trait CoursierModule extends mill.Module {
    */
   def mapDependencies: Task[Dependency => Dependency] = Task.Anon { (d: Dependency) => d }
 
+  /**
+   * Mill internal repositories to be used during dependency resolution
+   *
+   * These are not meant to be modified by Mill users, unless you really know what you're
+   * doing.
+   */
   def internalRepositories: Task[Seq[Repository]] = Task.Anon(Nil)
 
   /**
