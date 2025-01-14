@@ -1,0 +1,14 @@
+name: 'autofix'
+on:
+  pull_request:
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4         # checkout the repo
+      - run: ./mill -i mill.scalalib.scalafmt.ScalafmtModule/reformatAll __.sources + __.fix + mill.javalib.palantirformat.PalantirFormatModule/ + mill.kotlinlib.ktlint.KtlintModule/reformatAll
+      - uses: actions/upload-artifact@v4.5.0
+        with:
+          path: .
+          name: autofix-artifact
+          include-hidden-files: true
