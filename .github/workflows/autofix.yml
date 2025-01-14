@@ -9,17 +9,13 @@ jobs:
 
       - run: ./mill -i mill.scalalib.scalafmt.ScalafmtModule/
       - run: git clean -xdf
-
-      - run: git config --global user.email "you@example.com"
-      - run: git config --global user.name "Your Name"
-      - run: git commit -am "autofix" --allow-empty
-
+      - run: rm -rf .git
 
       - run: echo -n "git@github.com:${{ github.event.pull_request.head.repo.full_name }}.git" > .autofix-repo
       - run: echo -n ${{ github.event.pull_request.head.ref }} > .autofix-branch
+
       - run: cat .autofix-branch
       - run: cat .autofix-repo
-
 
       - uses: actions/upload-artifact@v4.5.0
         with:
