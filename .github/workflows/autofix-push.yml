@@ -25,7 +25,7 @@ jobs:
             echo "The latest commit is empty (no changes)."
           else
             git show
-            ci/publish-docs.sh
+            bash ci/publish-docs.sh
             echo $REPO_DEPLOY_KEY | base64 --decode > deploy_key
 
             eval "$(ssh-agent -s)"
