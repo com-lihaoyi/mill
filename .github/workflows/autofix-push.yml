@@ -31,5 +31,5 @@ jobs:
             # chmod 600 deploy_key
             # ssh-add deploy_key
             # rm deploy_key
-            git push git@github.com:com-lihaoyi/mill.git test-autofix-branch
+            git push git@github.com:com-lihaoyi/mill.git HEAD:test-autofix-branch
           fi
