@@ -5,8 +5,18 @@ jobs:
   build-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4         # checkout the repo
-      - run: ./mill -i mill.scalalib.scalafmt.ScalafmtModule/reformatAll __.sources + __.fix + mill.javalib.palantirformat.PalantirFormatModule/ + mill.kotlinlib.ktlint.KtlintModule/reformatAll
+      - uses: actions/checkout@v4
+      - run: ./mill -i mill.scalalib.scalafmt.ScalafmtModule/
+
+      - run: git config --global user.email "you@example.com"
+      - run: git config --global user.name "Your Name"
+      - run: git commit -am "autofix"
+
+      - run: echo ${{ github.event.pull_request.head.repo.clone_url }}
+      - run: echo ${{ github.event.pull_request.head.ref }}
+      - run: echo ${{ github.event.pull_request.head.repo.clone_url }} > .autofix-repo
+      - run: echo ${{ github.event.pull_request.head.ref }} > .autofix-branch
+
       - uses: actions/upload-artifact@v4.5.0
         with:
           path: .
