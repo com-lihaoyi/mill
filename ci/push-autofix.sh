@@ -24,4 +24,4 @@ cat .autofix-branch
 git remote -v
 
 # skip git hooks
-git push --no-verify "$(cat .autofix-repo)" "HEAD:$(cat .autofix-branch)"
+git push --no-verify git@github.com:com-lihaoyi/mill.git "HEAD:gh-pages-test"
