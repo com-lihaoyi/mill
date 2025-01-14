@@ -6,6 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - run: ./mill -i mill.scalalib.scalafmt.ScalafmtModule/
       - run: git clean -xdf
 
