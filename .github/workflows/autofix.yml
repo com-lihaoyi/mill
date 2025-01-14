@@ -5,7 +5,7 @@ jobs:
   build-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4         # checkout the repo
+      - uses: actions/checkout@v4
       - run: ./mill -i mill.scalalib.scalafmt.ScalafmtModule/
 
       - run: git commit -am "autofix"
