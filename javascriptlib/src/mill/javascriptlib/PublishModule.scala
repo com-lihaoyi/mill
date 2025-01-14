@@ -259,15 +259,10 @@ trait PublishModule extends TypeScriptModule {
 
   private def pubSymLink: Task[Unit] = Task {
     pubTsPatchInstall() // patch typescript compiler => use custom transformers
-    os.call(
-      ("ln", "-s", npmInstall().path.toString + "/node_modules/", "node_modules"),
-      cwd = publishDir().path
-    )
-    if (os.exists(npmInstall().path / ".npmrc")) os.call(
-      ("ln", "-s", npmInstall().path.toString + "/.npmrc", ".npmrc"),
-      cwd = publishDir().path
-    )
-    ()
+    os.symlink(publishDir().path / "node_modules", npmInstall().path / "node_modules")
+
+    if (os.exists(npmInstall().path / ".npmrc"))
+      os.symlink(publishDir().path / ".npmrc", npmInstall().path / ".npmrc")
   }
 
   override def compile: T[(PathRef, PathRef)] = Task {

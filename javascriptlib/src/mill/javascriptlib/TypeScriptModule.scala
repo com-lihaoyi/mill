@@ -203,15 +203,8 @@ trait TypeScriptModule extends Module { outer =>
   // removes need for node_modules prefix in import statements `node_modules/<some-package>`
   // import * as somepackage from "<some-package>"
   private def symLink: Task[Unit] = Task.Anon {
-    os.call(
-      ("ln", "-s", npmInstall().path.toString + "/node_modules/", "node_modules"),
-      cwd = Task.dest
-    )
-    os.call(
-      ("ln", "-s", npmInstall().path.toString + "/package-lock.json", "package-lock.json"),
-      cwd = Task.dest
-    )
-    ()
+    os.symlink(Task.dest / "node_modules", npmInstall().path / "node_modules")
+    os.symlink(Task.dest / "package-lock.json", npmInstall().path / "package-lock.json")
   }
 
   def compile: T[(PathRef, PathRef)] = Task {
