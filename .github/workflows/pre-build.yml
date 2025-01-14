@@ -31,7 +31,7 @@ jobs:
           ref: ${{ github.base_ref }}
         if: ${{ !(github.event.action == 'push' && github.repository != 'com-lihaoyi/mill') }}
 
-      - run: git
+      - uses: actions/checkout@v4
         with:
           ref: main
           repository: https://github.com/com-lihaoyi/mill
