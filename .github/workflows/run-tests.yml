@@ -65,7 +65,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with: { fetch-depth: 0 }
+        with: { fetch-depth: 1 }
 
       - run: ./mill -i docs.fastPages + docs.checkBrokenLinks
 
@@ -74,7 +74,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-        with: { fetch-depth: 0 }
+        with: { fetch-depth: 1 }
 
       - run: "echo temurin:17 > .mill-jvm-version"
 
