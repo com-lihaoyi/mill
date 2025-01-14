@@ -58,16 +58,16 @@ jobs:
     uses: ./.github/workflows/pre-build.yml
     with:
       os: ubuntu-latest
-    # dummy matrix to make job not show up in UI if skipped
-    strategy: {matrix: {include: [dummy: 1]}}
+
+    strategy: {matrix: {include: [dummy: 1]}} # dummy matrix to make job not show up in UI if skipped
 
   build-windows:
     needs: main-ci
     uses: ./.github/workflows/pre-build.yml
     with:
       os: windows-latest
-    # dummy matrix to make job not show up in UI if skipped
-    strategy: { matrix: { include: [ dummy: 1 ] } }
+
+    strategy: { matrix: { include: [ dummy: 1 ] } } # dummy matrix to make job not show up in UI if skipped
 
   test-docs:
     needs: main-ci
@@ -77,8 +77,8 @@ jobs:
         with: { fetch-depth: 1 }
 
       - run: ./mill -i docs.fastPages + docs.checkBrokenLinks
-    # dummy matrix to make job not show up in UI if skipped
-    strategy: { matrix: { include: [ dummy: 1 ] } }
+
+    strategy: { matrix: { include: [ dummy: 1 ] } } # dummy matrix to make job not show up in UI if skipped
 
   mac:
     needs: main-ci
@@ -94,8 +94,8 @@ jobs:
           node-version: '22'
 
       - run: ./mill -i example.scalalib.__.local.server.test
-    # dummy matrix to make job not show up in UI if skipped
-    strategy: { matrix: { include: [ dummy: 1 ] } }
+
+    strategy: { matrix: { include: [ dummy: 1 ] } } # dummy matrix to make job not show up in UI if skipped
 
   linux:
     needs: build-linux
