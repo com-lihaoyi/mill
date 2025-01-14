@@ -894,10 +894,13 @@ trait AndroidAppModule extends JavaModule {
     emulator
   }
 
-  private def androidDebugKeystore(): PathRef = {
+  private def androidDebugKeystore: Task[PathRef] = Task(persistent = true) {
+    val debugFileName = "mill-debug.jks"
     // TODO maybe we need a file lock here
-    val debugKeystoreFile = os.home / ".android" / "mill-debug.jks"
+    val debugKeystoreFile = os.home / ".android" / debugFileName
+
     if (!os.exists(debugKeystoreFile)) {
+      // TODO test on windows and mac and/or change implementation with java APIs
       os.call((
         "keytool",
         "-genkeypair",
@@ -919,7 +922,11 @@ trait AndroidAppModule extends JavaModule {
         debugKeyPass
       ))
     }
-    PathRef(debugKeystoreFile)
+    val debugKeystoreTaskFile = T.dest / debugFileName
+
+    os.copy(debugKeystoreFile, debugKeystoreTaskFile)
+
+    PathRef(debugKeystoreTaskFile)
   }
 
   protected def androidKeystore: T[PathRef] = Task {
