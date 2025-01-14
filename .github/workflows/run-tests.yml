@@ -84,8 +84,6 @@ jobs:
 
       - run: ./mill -i example.scalalib.__.local.server.test
 
-    strategy: { matrix: { include: [ dummy: 1 ] } } # dummy matrix to make job not show up in UI if skipped
-
   linux:
     needs: build-linux
     strategy:
