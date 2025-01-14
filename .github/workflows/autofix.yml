@@ -12,10 +12,10 @@ jobs:
       - run: git config --global user.name "Your Name"
       - run: git commit -am "autofix" --allow-empty
 
-      - run: echo ${{ github.event.pull_request.head.repo.clone_url }}
+      - run: echo "git@github.com:${{ github.event.pull_request.head.repo.full_name }}.git"
       - run: echo ${{ github.event.pull_request.head.ref }}
-      - run: echo ${{ github.event.pull_request.head.repo.clone_url }} > .autofix-repo
-      - run: echo ${{ github.event.pull_request.head.ref }} > .autofix-branch
+      - run: echo "git@github.com:${{ github.event.pull_request.head.repo.full_name }}.git" > .autofix-repo
+      - run: echo ${{ github.event.pull_request.head.ref }}:${{ github.event.pull_request.head.ref }} > .autofix-branch
 
       - uses: actions/upload-artifact@v4.5.0
         with:
