@@ -46,22 +46,25 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  main-ci:
+    if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
+    runs-on: ubuntu-latest
   # Jobs are listed in rough order of priority: if multiple jobs fail, the first job
   # in the list should be the one that's most worth looking into
   build-linux:
-    if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
+
     uses: ./.github/workflows/pre-build.yml
     with:
       os: ubuntu-latest
 
   build-windows:
-    if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
+    needs: main-ci
     uses: ./.github/workflows/pre-build.yml
     with:
       os: windows-latest
 
   test-docs:
-    if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
+    needs: main-ci
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -70,7 +73,7 @@ jobs:
       - run: ./mill -i docs.fastPages + docs.checkBrokenLinks
 
   mac:
-    if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
+    needs: main-ci
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
