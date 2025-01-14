@@ -45,28 +45,26 @@ concurrency:
   group: cancel-old-pr-runs-${{ github.workflow }}-${{ github.ref_name }}
   cancel-in-progress: true
 
-jobs:
-  main-ci:
-    if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "hello world"
+env:
+  RUN_MAIN_CI: ${{ (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false) }}
 
+jobs:
   # Jobs are listed in rough order of priority: if multiple jobs fail, the first job
   # in the list should be the one that's most worth looking into
   build-linux:
+    if: env.RUN_MAIN_CI
     uses: ./.github/workflows/pre-build.yml
     with:
       os: ubuntu-latest
 
   build-windows:
-    needs: main-ci
+    if: env.RUN_MAIN_CI
     uses: ./.github/workflows/pre-build.yml
     with:
       os: windows-latest
 
   test-docs:
-    needs: main-ci
+    if: env.RUN_MAIN_CI
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -75,7 +73,7 @@ jobs:
       - run: ./mill -i docs.fastPages + docs.checkBrokenLinks
 
   mac:
-    needs: main-ci
+    if: env.RUN_MAIN_CI
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
