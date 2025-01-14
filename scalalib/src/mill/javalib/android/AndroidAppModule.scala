@@ -896,13 +896,13 @@ trait AndroidAppModule extends JavaModule {
 
   private def androidDebugKeystore: Task[PathRef] = Task(persistent = true) {
     val debugFileName = "mill-debug.jks"
-    val globalDebugFileLocation = os.home / ".android"
+    val globalDebugFileLocation = os.home / ".mill-android"
 
     if (!os.exists(globalDebugFileLocation)) {
       os.makeDir(globalDebugFileLocation)
     }
 
-    val debugKeystoreFile = os.home / ".android" / debugFileName
+    val debugKeystoreFile = globalDebugFileLocation / debugFileName
 
     if (!os.exists(debugKeystoreFile)) {
       // TODO test on windows and mac and/or change implementation with java APIs
