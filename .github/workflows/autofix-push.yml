@@ -19,6 +19,8 @@ jobs:
           name: autofix-artifacts
 
       - run: >
+          cat .autofix-repo
+          cat .autofix-branch
           if git diff --quiet HEAD~1; then
             echo "The latest commit is empty (no changes)."
           else
