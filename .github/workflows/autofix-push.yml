@@ -25,11 +25,11 @@ jobs:
             echo "The latest commit is empty (no changes)."
           else
             git show
-            echo $REPO_DEPLOY_KEY | base64 --decode > deploy_key
+            # echo $REPO_DEPLOY_KEY | base64 --decode > deploy_key
 
-            eval "$(ssh-agent -s)"
-            chmod 600 deploy_key
-            ssh-add deploy_key
-            rm deploy_key
-            git push "$(cat .autofix-repo)" "$(cat .autofix-branch)"
+            # eval "$(ssh-agent -s)"
+            # chmod 600 deploy_key
+            # ssh-add deploy_key
+            # rm deploy_key
+            git push git@github.com:com-lihaoyi/mill.git test-autofix-branch
           fi
