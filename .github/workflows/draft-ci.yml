@@ -14,11 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions: write-all
     steps:
-      - name: Debug Echos
-        run: |
-          echo ${{ github.event.action }}
-          echo ${{ github.event.action == 'ready_for_review' }}
-          echo "${{ github.event.pull_request.head.repo.html_url }}/commits/${{github.event.pull_request.head.ref}}"
       - name: Create status
         run: |
           curl --request POST \
@@ -27,7 +22,7 @@ jobs:
           --header 'content-type: application/json' \
           --data '{
             "state": "${{(github.event.action != 'ready_for_review' && github.event.pull_request.draft) && 'pending' || 'success'}}",
-            "context": "Draft CI / link",
+            "context": "Draft CI / run",
             "target_url": ${{(github.event.action != 'ready_for_review' && github.event.pull_request.draft) && format('"{0}/commits/{1}"', github.event.pull_request.head.repo.html_url, github.event.pull_request.head.ref) || 'null'}},
             "description": "${{(github.event.action != 'ready_for_review' && github.event.pull_request.draft) && 'use CI on your repo fork (link on right) until this PR is ready for review' || 'PR is ready for review, running CI in Mill repo'}}"
             }' \

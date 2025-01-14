@@ -65,16 +65,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with: { fetch-depth: 0 }
+        with: { fetch-depth: 1 }
 
-      - run: ./mill -i docs.githubPages + docs.checkBrokenLinks
+      - run: ./mill -i docs.fastPages + docs.checkBrokenLinks
 
   mac:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-        with: { fetch-depth: 0 }
+        with: { fetch-depth: 1 }
 
       - run: "echo temurin:17 > .mill-jvm-version"
 

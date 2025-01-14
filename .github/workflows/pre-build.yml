@@ -29,6 +29,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.base_ref }}
+        if: ${{ !(github.event.action == 'push' && github.repository != 'com-lihaoyi/mill') }}
+
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          repository: https://github.com/com-lihaoyi/mill
+        if: ${{ github.event.action == 'push' && github.repository != 'com-lihaoyi/mill' }}
 
       - run: echo temurin:${{ inputs.java-version }} > .mill-jvm-version
 
@@ -40,7 +47,7 @@ jobs:
       - run: cat .mill-jvm-version
 
       - run: ./mill -i -k selective.prepare ${{ inputs.prepareargs }}
-        if: ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'run-all-tests') }}
+        if: ${{ (github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'run-all-tests')) || github.repository != 'com-lihaoyi/mill' }}
 
       - uses: actions/upload-artifact@v4.6.0
         with:
