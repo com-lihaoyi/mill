@@ -12,26 +12,28 @@ jobs:
     env:
       REPO_DEPLOY_KEY: ${{ secrets.REPO_DEPLOY_KEY }}
     steps:
-      - uses: dawidd6/action-download-artifact@v7
-        with:
-          run_id: ${{ github.event.workflow_run.id }}
-          workflow_conclusion: ""
-          name: autofix-artifacts
+      # - uses: dawidd6/action-download-artifact@v7
+      #   with:
+      #     run_id: ${{ github.event.workflow_run.id }}
+      #     workflow_conclusion: ""
+      #     name: autofix-artifacts
 
-      - run: "chmod -R 777 ."
-      - run: cat .autofix-repo
-      - run: cat .autofix-branch
+      # - run: "chmod -R 777 ."
+      # - run: cat .autofix-repo
+      # - run: cat .autofix-branch
+      - uses: actions/checkout@v4
       - run: >
-          if git diff --quiet HEAD~1; then
-            echo "The latest commit is empty (no changes)."
-          else
-            git show
-            ci/publish-docs.sh
-            echo $REPO_DEPLOY_KEY | base64 --decode > deploy_key
+          ci/publish-docs.sh
+          # if git diff --quiet HEAD~1; then
+          #   echo "The latest commit is empty (no changes)."
+          # else
+          #   git show
+            
+          #   echo $REPO_DEPLOY_KEY | base64 --decode > deploy_key
 
-            eval "$(ssh-agent -s)"
-            chmod 600 deploy_key
-            ssh-add deploy_key
-            rm deploy_key
-            git push git@github.com:com-lihaoyi/mill.git HEAD:test-autofix-branch
-          fi
+          #   eval "$(ssh-agent -s)"
+          #   chmod 600 deploy_key
+          #   ssh-add deploy_key
+          #   rm deploy_key
+          #   git push git@github.com:com-lihaoyi/mill.git HEAD:test-autofix-branch
+          # fi
