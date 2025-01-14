@@ -10,7 +10,7 @@ jobs:
 
       - run: git config --global user.email "you@example.com"
       - run: git config --global user.name "Your Name"
-      - run: git commit -am "autofix"
+      - run: git commit -am "autofix" --allow-empty
 
       - run: echo ${{ github.event.pull_request.head.repo.clone_url }}
       - run: echo ${{ github.event.pull_request.head.ref }}
@@ -20,5 +20,5 @@ jobs:
       - uses: actions/upload-artifact@v4.5.0
         with:
           path: .
-          name: autofix-artifact
+          name: autofix-artifacts
           include-hidden-files: true
