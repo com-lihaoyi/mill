@@ -24,6 +24,7 @@ jobs:
           if git diff --quiet HEAD~1; then
             echo "The latest commit is empty (no changes)."
           else
+            git show
             echo $REPO_DEPLOY_KEY | base64 --decode > deploy_key
 
             eval "$(ssh-agent -s)"
