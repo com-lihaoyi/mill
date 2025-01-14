@@ -927,6 +927,7 @@ trait AndroidAppModule extends JavaModule {
         debugKeyPass
       ))
     }
+
     val debugKeystoreTaskFile = T.dest / debugFileName
 
     os.copy(debugKeystoreFile, debugKeystoreTaskFile)
