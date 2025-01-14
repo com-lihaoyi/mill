@@ -5,10 +5,14 @@ on:
     types:
       - completed
 permissions:
-  contents: write
+  contents: read
+  actions: read
+  checks: write
 jobs:
   report:
     runs-on: ubuntu-latest
+    env:
+      REPO_DEPLOY_KEY: ${{ secrets.REPO_DEPLOY_KEY }}
     steps:
       - uses: dawidd6/action-download-artifact@v2
         with:
@@ -22,5 +26,11 @@ jobs:
           if git diff --quiet HEAD~1; then
             echo "The latest commit is empty (no changes)."
           else
+            echo $REPO_DEPLOY_KEY | base64 --decode > deploy_key
+
+            eval "$(ssh-agent -s)"
+            chmod 600 deploy_key
+            ssh-add deploy_key
+            rm deploy_key
             git push "$(cat .autofix-repo)" "$(cat .autofix-branch)"
           fi
