@@ -106,7 +106,9 @@ case class MillCliConfig(
       doc = """The name or a pattern of the tasks(s) you want to build."""
     )
     leftoverArgs: Leftover[String] = Leftover(),
-    @arg(doc = """Toggle colored output; by default enabled only if the console is interactive""")
+    @arg(doc =
+      """Toggle colored output; by default enabled only if the console is interactive and NO_COLOR environment variable is not set"""
+    )
     color: Option[Boolean] = None,
     @arg(
       name = "disable-callgraph",

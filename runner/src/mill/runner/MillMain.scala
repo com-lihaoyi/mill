@@ -162,7 +162,8 @@ object MillMain {
             (false, RunnerState.empty)
 
           case Right(config) =>
-            val colored = config.color.getOrElse(mainInteractive)
+            val noColorViaEnv = env.get("NO_COLOR").exists(_.nonEmpty)
+            val colored = config.color.getOrElse(mainInteractive && !noColorViaEnv)
             val colors = if (colored) mill.util.Colors.Default else mill.util.Colors.BlackWhite
 
             if (!config.silent.value) {
@@ -401,7 +402,7 @@ object MillMain {
       case f if os.exists(f) =>
         (f, os.read.lines(f).find(l => l.trim().nonEmpty))
     }.foreach { case (file, Some(version)) =>
-      if (BuildInfo.millVersion != version) {
+      if (BuildInfo.millVersion != version.stripSuffix("-native")) {
         val msg =
           s"""Mill version ${BuildInfo.millVersion} is different than configured for this directory!
              |Configured version is ${version} (${file})""".stripMargin

@@ -1,7 +1,6 @@
 package mill.main.client;
 
 import java.io.Console;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,6 +10,7 @@ import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
@@ -152,7 +152,7 @@ public class Util {
     return String.format("%0" + (arr.length << 1) + "x", new BigInteger(1, arr));
   }
 
-  static String sha1Hash(String path) throws NoSuchAlgorithmException {
+  public static String sha1Hash(String path) throws NoSuchAlgorithmException {
     MessageDigest md = MessageDigest.getInstance("SHA1");
     md.reset();
     byte[] pathBytes = path.getBytes(StandardCharsets.UTF_8);
@@ -166,9 +166,9 @@ public class Util {
    *
    * @return The non-empty lines of the files or an empty list, if the file does not exist
    */
-  public static List<String> readOptsFileLines(final File file) {
+  public static List<String> readOptsFileLines(final Path file) throws Exception {
     final List<String> vmOptions = new LinkedList<>();
-    try (final Scanner sc = new Scanner(file)) {
+    try (final Scanner sc = new Scanner(file.toFile())) {
       final Map<String, String> env = System.getenv();
       while (sc.hasNextLine()) {
         String arg = sc.nextLine();
@@ -187,7 +187,7 @@ public class Util {
    * Interpolate variables in the form of <code>${VARIABLE}</code> based on the given Map <code>env</code>.
    * Missing vars will be replaced by the empty string.
    */
-  public static String interpolateEnvVars(String input, Map<String, String> env) {
+  public static String interpolateEnvVars(String input, Map<String, String> env) throws Exception {
     Matcher matcher = envInterpolatorPattern.matcher(input);
     // StringBuilder to store the result after replacing
     StringBuffer result = new StringBuffer();
@@ -197,7 +197,13 @@ public class Util {
       if (match.equals("$")) {
         matcher.appendReplacement(result, "\\$");
       } else {
-        String envVarValue = env.containsKey(match) ? env.get(match) : "";
+        String envVarValue =
+            // Hardcode support for PWD because the graal native launcher has it set to the
+            // working dir of the enclosing process, when we want it to be set to the working
+            // dir of the current process
+            match.equals("PWD")
+                ? new java.io.File(".").getAbsoluteFile().getCanonicalPath()
+                : env.containsKey(match) ? env.get(match) : "";
         matcher.appendReplacement(result, envVarValue);
       }
     }

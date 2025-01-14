@@ -1,11 +1,62 @@
 package build.dist
 import mill._, scalalib._, publish._
+import mill.define.ModuleRef
 import mill.util.Jvm
 import mill.api.JarManifest
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import $file.ci.upload
 
-object `package` extends RootModule with build.MillPublishJavaModule {
+import scala.util.Using
+
+trait InstallModule extends build.MillPublishJavaModule{
+  // All modules that we want to aggregate as part of this `dev` assembly.
+  // Excluding itself, and the `dist` module that uses it
+  lazy val allPublishModules = build.millInternal.modules.collect {
+    case m: PublishModule if (m ne build.dist) && (m ne build.dist.native) => m
+  }
+  def moduleDeps = Seq(build.runner, build.idea, build.main.init)
+
+  def jar: T[PathRef]
+
+  def executable = Task{
+    Task.traverse(allPublishModules)(m => m.publishLocalCached)()
+    jar()
+  }
+
+  def localBinName: String
+
+  /**
+   * Build and install Mill locally.
+   *
+   * @param binFile The location where the Mill binary should be installed
+   * @param ivyRepo The local Ivy repository where Mill modules should be published to
+   */
+  def installLocal(binFile: String = localBinName, ivyRepo: String = null) =
+    Task.Command {
+      PathRef(installLocalTask(Task.Anon(binFile), ivyRepo)())
+    }
+
+  val batExt = if (scala.util.Properties.isWin) ".bat" else ""
+
+  def installLocalCache() = Task.Command {
+    val path = installLocalTask(
+      Task.Anon((os.home / ".cache" / "mill" / "download" / (build.millVersion() + batExt)).toString())
+    )()
+    Task.log.outputStream.println(path.toString())
+    PathRef(path)
+  }
+
+  def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Path] = Task.Anon {
+    val targetFile = os.Path(binFile(), Task.workspace)
+    if (os.exists(targetFile))
+      Task.log.info(s"Overwriting existing local Mill binary at ${targetFile}")
+    os.copy.over(executable().path, targetFile, createFolders = true)
+    Task.log.info(s"Published ${build.dist.allPublishModules.size} modules and installed ${targetFile}")
+    targetFile
+  }
+}
+
+object `package` extends RootModule  with InstallModule {
 
   /**
    * Version of [[dist]] meant for local integration testing within the Mill
@@ -14,7 +65,6 @@ object `package` extends RootModule with build.MillPublishJavaModule {
    */
   object dist0 extends build.MillPublishJavaModule {
     // disable scalafix here because it crashes when a module has no sources
-    def fix(args: String*): Command[Unit] = Task.Command {}
     def moduleDeps = Seq(build.runner, build.idea)
 
     def testTransitiveDeps = build.runner.testTransitiveDeps() ++ Seq(
@@ -34,9 +84,6 @@ object `package` extends RootModule with build.MillPublishJavaModule {
       build.testkit.testDep()
     )
   }
-
-  def jar = rawAssembly()
-  def moduleDeps = Seq(build.runner, build.idea, build.main.init)
 
   def testTransitiveDeps = dist0.testTransitiveDeps() ++ Seq(
     (s"com.lihaoyi-${build.dist.artifactId()}", dist0.runClasspath().map(_.path).mkString("\n"))
@@ -64,6 +111,8 @@ object `package` extends RootModule with build.MillPublishJavaModule {
       )
   }
 
+  def localBinName = "mill-assembly.jar"
+
   def launcher = Task {
     val isWin = scala.util.Properties.isWin
     val outputPath = Task.dest / (if (isWin) "run.bat" else "run")
@@ -82,13 +131,7 @@ object `package` extends RootModule with build.MillPublishJavaModule {
     mill.scalalib.Assembly.Rule.ExcludePattern("mill/local-test-overrides/.*")
   )
 
-  // All modules that we want to aggregate as part of this `dev` assembly.
-  // Excluding itself, and the `dist` module that uses it
-  lazy val allPublishModules = build.millInternal.modules.collect {
-    case m: PublishModule if (m ne this) && (m ne build.dist) => m
-  }
-
-  def rawAssembly = Task {
+  def jar = Task {
     val version = build.millVersion()
     val devRunClasspath = runClasspath().map(_.path)
     val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
@@ -109,12 +152,6 @@ object `package` extends RootModule with build.MillPublishJavaModule {
     )
     PathRef(Task.dest / filename)
   }
-  def assembly = Task {
-    Task.traverse(allPublishModules)(m => m.publishLocalCached)()
-    val raw = rawAssembly().path
-    os.copy(raw, Task.dest / raw.last)
-    PathRef(Task.dest / raw.last)
-  }
 
   def prependShellScript = Task {
     val (millArgs, otherArgs) =
@@ -128,36 +165,20 @@ object `package` extends RootModule with build.MillPublishJavaModule {
     os.write(vmOptionsFile, millOptionsContent)
     val jvmArgs = otherArgs ++ List(s"-DMILL_OPTIONS_PATH=$vmOptionsFile")
     val classpath = runClasspath().map(_.path.toString)
+    val classpathJar = Task.dest / "classpath.jar"
+    Jvm.createClasspathPassingJar(classpathJar, runClasspath().map(_.path))
+
     launcherScript(
       jvmArgs,
       jvmArgs,
       classpath,
-      Agg(pathingJar().path.toString) // TODO not working yet on Windows! see #791
+      Agg(classpathJar.toString()) // TODO not working yet on Windows! see #791
     )
-  }
-
-  def pathingJar = Task {
-    // see http://todayguesswhat.blogspot.com/2011/03/jar-manifestmf-class-path-referencing.html
-    // for more detailed explanation
-    val isWin = scala.util.Properties.isWin
-    val classpath = runClasspath().map { pathRef =>
-      val path =
-        if (isWin) "/" + pathRef.path.toString.replace("\\", "/")
-        else pathRef.path.toString
-      if (path.endsWith(".jar")) path
-      else path + "/"
-    }.mkString(" ")
-    val manifestEntries = Map[String, String](
-      java.util.jar.Attributes.Name.MANIFEST_VERSION.toString -> "1.0",
-      "Created-By" -> "Scala mill",
-      "Class-Path" -> classpath
-    )
-    Jvm.createJar(Agg(), JarManifest(manifestEntries))
   }
 
   def run(args: Task[Args] = Task.Anon(Args())) = Task.Command(exclusive = true) {
     args().value match {
-      case Nil => mill.api.Result.Failure("Need to pass in cwd as first argument to dev.run")
+      case Nil => mill.api.Result.Failure("Need to pass in cwd as first argument to dist.run")
       case wd0 +: rest =>
         val wd = os.Path(wd0, Task.workspace)
         os.makeDir.all(wd)
@@ -170,7 +191,7 @@ object `package` extends RootModule with build.MillPublishJavaModule {
           mill.api.Result.Success(())
         } catch {
           case e: Throwable =>
-            mill.api.Result.Failure(s"dev.run failed with an exception. ${e.getMessage()}")
+            mill.api.Result.Failure(s"dist.run failed with an exception. ${e.getMessage()}")
         }
     }
   }
@@ -194,13 +215,6 @@ object `package` extends RootModule with build.MillPublishJavaModule {
            |  JAVACMD="$$JAVA_HOME/bin/java"
            |fi
            |
-           |# Client-server mode doesn't seem to work on WSL, just disable it for now
-           |# https://stackoverflow.com/a/43618657/871202
-           |if grep -qEi "(Microsoft|WSL)" /proc/version > /dev/null 2> /dev/null ; then
-           |    if [ -z $$COURSIER_CACHE ] ; then
-           |      COURSIER_CACHE=.coursier
-           |    fi
-           |fi
            |exec "$$JAVACMD" $jvmArgsStr $$JAVA_OPTS -cp "$classpathStr" $millMainClass "$$@"
            |""".stripMargin
       },
@@ -210,11 +224,6 @@ object `package` extends RootModule with build.MillPublishJavaModule {
         s"""setlocal EnableDelayedExpansion
            |set "JAVACMD=java.exe"
            |if not "%JAVA_HOME%"=="" set "JAVACMD=%JAVA_HOME%\\bin\\java.exe"
-           |if "%1" == "-i" set _I_=true
-           |if "%1" == "--interactive" set _I_=true
-           |if "%1" == "--repl" set _I_=true
-           |if "%1" == "--no-server" set _I_=true
-           |if "%1" == "--bsp" set _I_=true
            |
            |"%JAVACMD%" $jvmArgsStr %JAVA_OPTS% -cp "$classpathStr" $millMainClass %*
            |
@@ -222,39 +231,6 @@ object `package` extends RootModule with build.MillPublishJavaModule {
            |""".stripMargin
       }
     )
-  }
-
-  val batExt = if (scala.util.Properties.isWin) ".bat" else ""
-  val DefaultLocalMillReleasePath =
-    s"target/mill-release$batExt"
-
-  /**
-   * Build and install Mill locally.
-   *
-   * @param binFile The location where the Mill binary should be installed
-   * @param ivyRepo The local Ivy repository where Mill modules should be published to
-   */
-  def installLocal(binFile: String = DefaultLocalMillReleasePath, ivyRepo: String = null) =
-    Task.Command {
-      PathRef(installLocalTask(Task.Anon(binFile), ivyRepo)())
-    }
-
-  def installLocalCache() = Task.Command {
-    val path = installLocalTask(
-      Task.Anon((os.home / ".cache" / "mill" / "download" / (build.millVersion() + batExt)).toString())
-    )()
-    Task.log.outputStream.println(path.toString())
-    PathRef(path)
-  }
-
-  def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Path] = Task.Anon {
-    val millBin = build.dist.assembly()
-    val targetFile = os.Path(binFile(), Task.workspace)
-    if (os.exists(targetFile))
-      Task.log.info(s"Overwriting existing local Mill binary at ${targetFile}")
-    os.copy.over(millBin.path, targetFile, createFolders = true)
-    Task.log.info(s"Published ${build.dist.allPublishModules.size} modules and installed ${targetFile}")
-    targetFile
   }
 
   def millBootstrap = Task.Source(Task.workspace / "mill")
@@ -342,6 +318,47 @@ object `package` extends RootModule with build.MillPublishJavaModule {
         build.Settings.githubOrg,
         build.Settings.githubRepo
       )
+    }
+  }
+
+  object native extends mill.scalalib.NativeImageModule with InstallModule {
+    def artifactOsSuffix = T{
+      val osName = System.getProperty("os.name").toLowerCase
+      if (osName.contains("mac")) "mac"
+      else if (osName.contains("windows")) "windows"
+      else "linux"
+    }
+
+    def artifactCpuSuffix = T{ System.getProperty("os.arch") }
+    def artifactName = s"${super.artifactName()}-${artifactOsSuffix()}-${artifactCpuSuffix()}"
+
+    def mainClass = Some("mill.runner.client.MillClientMain")
+
+    def nativeImageClasspath = build.runner.client.runClasspath()
+
+    def localBinName = "mill-native"
+
+    def jar = Task {
+      val previous = nativeImage().path
+      val executable = Task.dest / previous.baseName
+
+      Using(os.write.outputStream(executable)) { out =>
+        out.write(os.read.bytes(previous))
+        out.write(System.lineSeparator.getBytes)
+        out.write(os.read.bytes(assembly().path))
+      }
+
+      if (!mill.main.client.Util.isWindows) os.perms.set(executable, "rwxrwxrwx")
+
+      PathRef(executable)
+    }
+
+    def nativeImageOptions = Seq("--no-fallback", "--enable-url-protocols=https")
+
+    def zincWorker = ModuleRef(ZincWorkerGraalvm)
+
+    object ZincWorkerGraalvm extends ZincWorkerModule {
+      def jvmId = build.Settings.graalvmJvmId
     }
   }
 }
