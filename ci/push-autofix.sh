@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -eu
+set -eux
 
 echo "running push-autofix.sh"
 cat .autofix-repo
