@@ -8,6 +8,8 @@ jobs:
       - uses: actions/checkout@v4
       - run: ./mill -i mill.scalalib.scalafmt.ScalafmtModule/
 
+      - run: git config --global user.email "you@example.com"
+      - run: git config --global user.name "Your Name"
       - run: git commit -am "autofix"
 
       - run: echo ${{ github.event.pull_request.head.repo.clone_url }}
