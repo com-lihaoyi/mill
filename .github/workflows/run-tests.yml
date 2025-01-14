@@ -56,16 +56,14 @@ jobs:
   # in the list should be the one that's most worth looking into
   build-linux:
     uses: ./.github/workflows/pre-build.yml
-    with:
-      os: ubuntu-latest
+    with: {os: ubuntu-latest}
 
     strategy: {matrix: {include: [dummy: 1]}} # dummy matrix to make job not show up in UI if skipped
 
   build-windows:
     needs: main-ci
     uses: ./.github/workflows/pre-build.yml
-    with:
-      os: windows-latest
+    with: {os: windows-latest}
 
     strategy: { matrix: { include: [ dummy: 1 ] } } # dummy matrix to make job not show up in UI if skipped
 
