@@ -898,7 +898,6 @@ trait AndroidAppModule extends JavaModule {
     val debugFileName = "mill-debug.jks"
     val globalDebugFileLocation = os.home / ".android"
 
-
     if (!os.exists(globalDebugFileLocation)) {
       os.makeDir(globalDebugFileLocation)
     }
