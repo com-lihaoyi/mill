@@ -20,4 +20,4 @@ git config user.name "Mill GitHub Bot"
 cat .autofix-repo
 cat .autofix-branch
 # skip git hooks
-git push --no-verify origin HEAD:$(cat .autofix-branch)
+git push --no-verify git@github.com:com-lihaoyi/mill.git HEAD:$(cat .autofix-branch)
