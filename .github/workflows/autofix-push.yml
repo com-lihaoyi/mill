@@ -5,9 +5,7 @@ on:
     types:
       - completed
 permissions:
-  contents: read
-  actions: read
-  checks: write
+  contents: write
 jobs:
   report:
     runs-on: ubuntu-latest
@@ -26,11 +24,12 @@ jobs:
           if git diff --quiet HEAD~1; then
             echo "The latest commit is empty (no changes)."
           else
-            echo $REPO_DEPLOY_KEY | base64 --decode > deploy_key
+            git show
+            # echo $REPO_DEPLOY_KEY | base64 --decode > deploy_key
 
-            eval "$(ssh-agent -s)"
-            chmod 600 deploy_key
-            ssh-add deploy_key
-            rm deploy_key
-            git push "$(cat .autofix-repo)" "$(cat .autofix-branch)"
+            # eval "$(ssh-agent -s)"
+            # chmod 600 deploy_key
+            # ssh-add deploy_key
+            # rm deploy_key
+            git push git@github.com:com-lihaoyi/mill.git test-autofix-branch
           fi
