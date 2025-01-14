@@ -2,6 +2,9 @@
 
 set -eu
 
+echo "running push-autofix.sh"
+cat .autofix-repo
+cat .autofix-branch
 # Prepare ssh-key for git actions
 echo $REPO_DEPLOY_KEY | base64 --decode > deploy_key
 
