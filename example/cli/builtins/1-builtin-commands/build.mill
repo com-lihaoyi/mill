@@ -220,8 +220,8 @@ foo.sources
 foo.allSources
 foo.allSourceFiles
 foo.compile
-foo.finalMainClassOpt
-foo.prependShellScript
+foo.localRunClasspath
+foo.localClasspath
 foo.assembly
 
 */

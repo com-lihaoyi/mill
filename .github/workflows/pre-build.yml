@@ -26,9 +26,27 @@ jobs:
           java-version: ${{ inputs.java-version }}
           distribution: temurin
 
+      # For normal PR jobs, just checkout the base_ref the PR is against
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.base_ref }}
+        if: ${{ !(github.event_name == 'push' && github.repository != 'com-lihaoyi/mill') }}
+
+      # For fork push jobs, first checkout the version being pushed, then look for the
+      # merge-base where the current version forks off from the upstream main branch
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+        if: ${{ github.event_name == 'push' && github.repository != 'com-lihaoyi/mill' }}
+
+      - run: |
+          git fetch https://github.com/com-lihaoyi/mill main
+          MERGE_BASE=$(git merge-base FETCH_HEAD HEAD)
+          # pretty-print the path between the FETCH_HEAD (main), HEAD, and the merge-base
+          git log --graph --pretty=format:"%h %d %ar %s %n" --ancestry-path $MERGE_BASE^1..HEAD --ancestry-path $MERGE_BASE^1..FETCH_HEAD
+
+          git checkout $MERGE_BASE
+        shell: bash
+        if: ${{ github.event_name == 'push' && github.repository != 'com-lihaoyi/mill' }}
 
       - run: echo temurin:${{ inputs.java-version }} > .mill-jvm-version
 
@@ -40,9 +58,9 @@ jobs:
       - run: cat .mill-jvm-version
 
       - run: ./mill -i -k selective.prepare ${{ inputs.prepareargs }}
-        if: ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'run-all-tests') }}
+        if: ${{ (github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'run-all-tests')) || github.repository != 'com-lihaoyi/mill' }}
 
-      - uses: actions/upload-artifact@v4.5.0
+      - uses: actions/upload-artifact@v4.6.0
         with:
           path: out/mill-selective-execution.json
           name: ${{ inputs.os }}-selective-execution-artifact
@@ -54,7 +72,7 @@ jobs:
 
       - run: ./mill -i -k ${{ inputs.compileargs }}
 
-      - uses: actions/upload-artifact@v4.5.0
+      - uses: actions/upload-artifact@v4.6.0
         with:
           path: .
           name: ${{ inputs.os }}-artifact

@@ -14,12 +14,6 @@ on:
       - '**'
   workflow_dispatch:
 
-# cancel older runs of a pull request;
-# this will not cancel anything for normal git pushes
-concurrency:
-  group: cancel-old-pr-runs-${{ github.workflow }}-${{ github.head_ref || github.run_id }}
-  cancel-in-progress: true
-
 jobs:
   build-artifacts:
     # when in master repo, publish all tags and manual runs on main
@@ -37,7 +31,7 @@ jobs:
 
       - run: ./mill -i __.publishArtifacts
 
-      - uses: actions/upload-artifact@v4.5.0
+      - uses: actions/upload-artifact@v4.6.0
         with:
           path: .
           include-hidden-files: true
@@ -57,8 +51,8 @@ jobs:
       MILL_STABLE_VERSION: 1
       MILL_SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
       MILL_SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-      MILL_PGP_SECRET_BASE64: ${{ secrets.SONATYPE_PGP_SECRET }}
-      MILL_PGP_PASSPHRASE: ${{ secrets.SONATYPE_PGP_PASSWORD }}
+      MILL_PGP_SECRET_BASE64: ${{ secrets.SONATYPE_PGP_PRIVATE_KEY }}
+      MILL_PGP_PASSPHRASE: ${{ secrets.SONATYPE_PGP_PRIVATE_KEY_PASSWORD }}
       LANG: "en_US.UTF-8"
       LC_MESSAGES: "en_US.UTF-8"
       LC_ALL: "en_US.UTF-8"
@@ -103,8 +97,8 @@ jobs:
       MILL_STABLE_VERSION: 1
       MILL_SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
       MILL_SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-      MILL_PGP_SECRET_BASE64: ${{ secrets.SONATYPE_PGP_SECRET }}
-      MILL_PGP_PASSPHRASE: ${{ secrets.SONATYPE_PGP_PASSWORD }}
+      MILL_PGP_SECRET_BASE64: ${{ secrets.SONATYPE_PGP_PRIVATE_KEY }}
+      MILL_PGP_PASSPHRASE: ${{ secrets.SONATYPE_PGP_PRIVATE_KEY_PASSWORD }}
       LANG: "en_US.UTF-8"
       LC_MESSAGES: "en_US.UTF-8"
       LC_ALL: "en_US.UTF-8"
