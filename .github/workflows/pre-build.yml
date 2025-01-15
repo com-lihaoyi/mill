@@ -26,6 +26,11 @@ jobs:
           java-version: ${{ inputs.java-version }}
           distribution: temurin
 
+      - run: echo ${{github.event.action}}
+      - run: echo ${{github.event.repository}}
+      - run: echo ${{github.event}}
+      - run: echo ${{github.repository}}
+      - run: echo ${{github}}
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.base_ref }}
