@@ -27,9 +27,7 @@ trait GroovyGenerateJavaModule extends JavaModule {
   def groovyScript = Task.Source(millSourcePath / "generate.groovy")
 
   def groovyGeneratedResources = Task {
-    val oldCl = Thread.currentThread().getContextClassLoader
-    Thread.currentThread().setContextClassLoader(groovyWorker())
-    try {
+    mill.api.ClassLoader.withContextClassLoader(groovyWorker()){
       groovyWorker()
         .loadClass("groovy.ui.GroovyMain")
         .getMethod("main", classOf[Array[String]])
@@ -41,7 +39,7 @@ trait GroovyGenerateJavaModule extends JavaModule {
             (Task.dest / "groovy-generated.html").toString
           )
         )
-    } finally Thread.currentThread().setContextClassLoader(oldCl)
+    }
     PathRef(Task.dest)
   }
 
