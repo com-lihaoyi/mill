@@ -57,26 +57,16 @@ private[mill] object Reflect {
     //    same `getDeclaringClass`. To handle these scenarios, also sort by
     //    return type, so we can identify the most specific override
     //
-    // 3. There can be multiple methods
     arr.sortInPlaceWith((m1, m2) =>
-      if (m1.getDeclaringClass != m2.getDeclaringClass) {
+      if (m1.getName != m2.getName) m1.getName < m2.getName
+      else if (m1.getDeclaringClass != m2.getDeclaringClass) {
         !m1.getDeclaringClass.isAssignableFrom(m2.getDeclaringClass)
       } else if (m1.getReturnType != m2.getReturnType) {
         !m1.getReturnType.isAssignableFrom(m2.getReturnType)
-      } else {
-        Ordering.Implicits.seqOrdering[Seq, Class[_]](
-          (cls1, cls2) =>
-            if (cls1 == cls2) 0
-            else if (cls1.isAssignableFrom(cls2)) 1
-            else -1
-        ).lt(m1.getParameterTypes, m2.getParameterTypes)
-      }
+      } else throw new Exception(s"methods cannot be sorted: m1=$m1, m2=$m2")
     )
 
-    val res = arr.distinctBy(_.getName).toArray
-    // Sometimes `getMethods` returns stuff in odd orders, make sure to sort for determinism
-    res.sortInPlaceBy(_.getName)
-    res
+    arr.distinctBy(_.getName)
   }
 
   // For some reason, this fails to pick up concrete `object`s nested directly within
