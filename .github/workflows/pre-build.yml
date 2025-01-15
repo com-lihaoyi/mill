@@ -26,25 +26,18 @@ jobs:
           java-version: ${{ inputs.java-version }}
           distribution: temurin
 
-      - run: echo '${{toJSON(github)}}'
+      # For normal PR jobs, just checkout the base_ref the PR is against
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.base_ref }}
-          fetch-depth: 0
+        with: { ref: ${{ github.base_ref }} }
+        if: ${{ !(github.event_name == 'push' && github.repository != 'com-lihaoyi/mill') }}
 
-      - run: git fetch https://github.com/com-lihaoyi/mill main
+      # For fork push jobs, first checkout the version being pushed, then look for the
+      # merge-base where the current version forks off from the upstrema main
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
         if: ${{ github.event_name == 'push' && github.repository != 'com-lihaoyi/mill' }}
 
-      - run: git rev-parse FETCH_HEAD
-        if: ${{ github.event_name == 'push' && github.repository != 'com-lihaoyi/mill' }}
-
-      - run: git rev-parse HEAD
-        if: ${{ github.event_name == 'push' && github.repository != 'com-lihaoyi/mill' }}
-
-      - run: git merge-base FETCH_HEAD HEAD
-        if: ${{ github.event_name == 'push' && github.repository != 'com-lihaoyi/mill' }}
-
-      - run: git checkout $(git merge-base FETCH_HEAD HEAD)
+      - run: git fetch https://github.com/com-lihaoyi/mill main && git checkout $(git merge-base FETCH_HEAD HEAD)
         if: ${{ github.event_name == 'push' && github.repository != 'com-lihaoyi/mill' }}
 
       - run: echo temurin:${{ inputs.java-version }} > .mill-jvm-version
