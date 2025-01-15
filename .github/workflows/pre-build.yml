@@ -26,21 +26,17 @@ jobs:
           java-version: ${{ inputs.java-version }}
           distribution: temurin
 
-      - run: echo ${{github.event.action}}
-      - run: echo ${{github.event.repository}}
-      - run: echo ${{github.event}}
-      - run: echo ${{github.repository}}
       - run: echo '${{toJSON(github)}}'
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.base_ref }}
-        if: ${{ !(github.event.action == 'push' && github.repository != 'com-lihaoyi/mill') }}
+        if: ${{ !(github.event_name == 'push' && github.repository != 'com-lihaoyi/mill') }}
 
       - uses: actions/checkout@v4
         with:
           ref: main
           repository: https://github.com/com-lihaoyi/mill
-        if: ${{ github.event.action == 'push' && github.repository != 'com-lihaoyi/mill' }}
+        if: ${{ github.event_name == 'push' && github.repository != 'com-lihaoyi/mill' }}
 
       - run: echo temurin:${{ inputs.java-version }} > .mill-jvm-version
 
