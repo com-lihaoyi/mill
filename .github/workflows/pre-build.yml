@@ -29,16 +29,27 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.base_ref }}
+        if: ${{ !(github.event.action == 'push' && github.repository != 'com-lihaoyi/mill') }}
+
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          repository: https://github.com/com-lihaoyi/mill
+        if: ${{ github.event.action == 'push' && github.repository != 'com-lihaoyi/mill' }}
+
+      - run: echo temurin:${{ inputs.java-version }} > .mill-jvm-version
 
       - run: chmod -R 777 . # normalize permissions before and after upload/download-artifact
 
       - run: mkdir out && touch out/mill-selective-execution.json
         shell: bash
 
-      - run: ./mill -i -k selective.prepare ${{ inputs.prepareargs }}
-        if: ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'run-all-tests') }}
+      - run: cat .mill-jvm-version
 
-      - uses: actions/upload-artifact@v4.5.0
+      - run: ./mill -i -k selective.prepare ${{ inputs.prepareargs }}
+        if: ${{ (github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'run-all-tests')) || github.repository != 'com-lihaoyi/mill' }}
+
+      - uses: actions/upload-artifact@v4.6.0
         with:
           path: out/mill-selective-execution.json
           name: ${{ inputs.os }}-selective-execution-artifact
@@ -50,7 +61,7 @@ jobs:
 
       - run: ./mill -i -k ${{ inputs.compileargs }}
 
-      - uses: actions/upload-artifact@v4.5.0
+      - uses: actions/upload-artifact@v4.6.0
         with:
           path: .
           name: ${{ inputs.os }}-artifact
