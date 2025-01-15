@@ -32,7 +32,7 @@ jobs:
           ref: ${{ github.base_ref }}
 
       - run: | 
-          git fetch https://github.com/com-lihaoyi/mill
+          git fetch https://github.com/com-lihaoyi/mill main
           echo $(git merge-base FETCH_HEAD HEAD)
           git checkout $(git merge-base FETCH_HEAD HEAD)
         if: ${{ github.event_name == 'push' && github.repository != 'com-lihaoyi/mill' }}
