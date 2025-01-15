@@ -30,7 +30,7 @@ jobs:
       - run: echo ${{github.event.repository}}
       - run: echo ${{github.event}}
       - run: echo ${{github.repository}}
-      - run: echo ${{github}}
+      - run: echo ${{toJSON(github)}}
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.base_ref }}
