@@ -43,7 +43,7 @@ jobs:
           git fetch https://github.com/com-lihaoyi/mill main
           MERGE_BASE=$(git merge-base FETCH_HEAD HEAD)
           # pretty-print the path between the FETCH_HEAD (main), HEAD, and the merge-base
-          git log --graph --pretty=format:"%h %d %ar %s %n" --ancestry-path $(git merge-base HEAD FETCH_HEAD)^1..HEAD --ancestry-path $(git merge-base HEAD FETCH_HEAD)^1..FETCH_HEAD
+          git log --graph --pretty=format:"%h %d %ar %s %n" --ancestry-path $MERGE_BASE^1..HEAD --ancestry-path $MERGE_BASE^1..FETCH_HEAD
 
           git checkout $MERGE_BASE
         shell: bash
