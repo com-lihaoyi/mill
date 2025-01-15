@@ -56,12 +56,20 @@ private[mill] object Reflect {
     //    which messes up the comparison since all forwarders will have the
     //    same `getDeclaringClass`. To handle these scenarios, also sort by
     //    return type, so we can identify the most specific override
-
+    //
+    // 3. There can be multiple methods
     arr.sortInPlaceWith((m1, m2) =>
-      if (m1.getDeclaringClass.equals(m2.getDeclaringClass)) {
+      if (m1.getDeclaringClass != m2.getDeclaringClass) {
+        !m1.getDeclaringClass.isAssignableFrom(m2.getDeclaringClass)
+      } else if (m1.getReturnType != m2.getReturnType) {
         !m1.getReturnType.isAssignableFrom(m2.getReturnType)
       } else {
-        !m1.getDeclaringClass.isAssignableFrom(m2.getDeclaringClass)
+        Ordering.Implicits.seqOrdering[Seq, Class[_]](
+          (cls1, cls2) =>
+            if (cls1 == cls2) 0
+            else if (cls1.isAssignableFrom(cls2)) 1
+            else -1
+        ).lt(m1.getParameterTypes, m2.getParameterTypes)
       }
     )
 
