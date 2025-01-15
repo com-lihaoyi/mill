@@ -235,13 +235,17 @@ class ZincWorkerImpl(
         val hasErrorsMethod = reporter.getClass().getMethod("hasErrors")
         !hasErrorsMethod.invoke(reporter).asInstanceOf[Boolean]
       } else if (ZincWorkerUtil.isScala3(scalaVersion)) {
-        val scaladocClass =
-          compilers.scalac().scalaInstance().loader().loadClass("dotty.tools.scaladoc.Main")
-        val scaladocMethod = scaladocClass.getMethod("run", classOf[Array[String]])
-        val reporter =
-          scaladocMethod.invoke(scaladocClass.getConstructor().newInstance(), args.toArray)
-        val hasErrorsMethod = reporter.getClass().getMethod("hasErrors")
-        !hasErrorsMethod.invoke(reporter).asInstanceOf[Boolean]
+        // DottyDoc makes use of `com.fasterxml.jackson.databind.Module` which
+        // requires the ContextClassLoader to be set appropriately
+        mill.api.ClassLoader.withContextClassLoader(getClass.getClassLoader) {
+          val scaladocClass =
+            compilers.scalac().scalaInstance().loader().loadClass("dotty.tools.scaladoc.Main")
+          val scaladocMethod = scaladocClass.getMethod("run", classOf[Array[String]])
+          val reporter =
+            scaladocMethod.invoke(scaladocClass.getConstructor().newInstance(), args.toArray)
+          val hasErrorsMethod = reporter.getClass().getMethod("hasErrors")
+          !hasErrorsMethod.invoke(reporter).asInstanceOf[Boolean]
+        }
       } else {
         val scaladocClass =
           compilers.scalac().scalaInstance().loader().loadClass("scala.tools.nsc.ScalaDoc")
