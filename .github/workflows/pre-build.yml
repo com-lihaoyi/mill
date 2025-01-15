@@ -34,8 +34,15 @@ jobs:
       - run: git fetch https://github.com/com-lihaoyi/mill main
         if: ${{ github.event_name == 'push' && github.repository != 'com-lihaoyi/mill' }}
 
-      - run: echo $(git merge-base FETCH_HEAD HEAD)
+      - run: git rev-parse FETCH_HEAD
         if: ${{ github.event_name == 'push' && github.repository != 'com-lihaoyi/mill' }}
+
+      - run: git rev-parse HEAD
+        if: ${{ github.event_name == 'push' && github.repository != 'com-lihaoyi/mill' }}
+
+      - run: git merge-base FETCH_HEAD HEAD
+        if: ${{ github.event_name == 'push' && github.repository != 'com-lihaoyi/mill' }}
+
       - run: git checkout $(git merge-base FETCH_HEAD HEAD)
         if: ${{ github.event_name == 'push' && github.repository != 'com-lihaoyi/mill' }}
 
