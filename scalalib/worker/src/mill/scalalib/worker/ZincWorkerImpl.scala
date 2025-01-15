@@ -51,7 +51,8 @@ class ZincWorkerImpl(
     jobs: Int,
     compileToJar: Boolean,
     zincLogDebug: Boolean,
-    javaHome: Option[PathRef]
+    javaHome: Option[PathRef],
+    close0: () => Unit
 ) extends ZincWorkerApi with AutoCloseable {
   val libraryJarNameGrep: (Agg[PathRef], String) => PathRef =
     ZincWorkerUtil.grepJar(_, "scala-library", _, sources = false)
@@ -685,5 +686,6 @@ class ZincWorkerImpl(
     urlClassLoaders.foreach(_.close())
 
     classloaderCache.clear()
+    close0()
   }
 }
