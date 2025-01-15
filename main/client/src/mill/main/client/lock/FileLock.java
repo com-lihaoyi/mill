@@ -2,6 +2,7 @@ package mill.main.client.lock;
 
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
+import java.nio.channels.OverlappingFileLockException;
 
 class FileLock extends Lock {
 
@@ -18,7 +19,14 @@ class FileLock extends Lock {
   }
 
   public TryLocked tryLock() throws Exception {
-    return new FileTryLocked(chan.tryLock());
+    java.nio.channels.FileLock lock = null;
+    try {
+      lock = chan.tryLock();
+    }
+    catch (OverlappingFileLockException ex) {
+      // file already locked by this JVM
+    }
+    return new FileTryLocked(lock);
   }
 
   public boolean probe() throws Exception {
