@@ -565,6 +565,7 @@ object Jvm extends CoursierSupport {
     ).filterNot(_.isEmpty).mkString("\n")
   }
 
+  @deprecated("Use the other override instead", "0.12.6")
   def launcherUniversalScript(
       mainClass: String,
       shellClassPath: Agg[String],
@@ -572,6 +573,7 @@ object Jvm extends CoursierSupport {
       jvmArgs: Seq[String],
       shebang: Boolean = false
   ): String = {
+    launcherUniversalScript(mainClass, shellClassPath, cmdClassPath, jvmArgs, shebang, Nil, Nil)
     universalScript(
       shellCommands =
         s"""exec java ${jvmArgs.mkString(" ")} $$JAVA_OPTS -cp "${shellClassPath.iterator.mkString(
@@ -584,6 +586,47 @@ object Jvm extends CoursierSupport {
       shebang = shebang
     )
   }
+
+  def launcherUniversalScript(
+                      mainClass: String,
+                      shellClassPath: Agg[String],
+                      cmdClassPath: Agg[String],
+                      jvmArgs: Seq[String],
+                      shebang: Boolean = false,
+                      shellJvmArgs: Seq[String] = Nil,
+                      cmdJvmArgs: Seq[String] = Nil
+                    ) = {
+
+    universalScript(
+      shellCommands = {
+        val jvmArgsStr = (jvmArgs ++ shellJvmArgs).mkString(" ")
+        val classpathStr = shellClassPath.mkString(":")
+
+        s"""if [ -z "$$JAVA_HOME" ] ; then
+           |  JAVACMD="java"
+           |else
+           |  JAVACMD="$$JAVA_HOME/bin/java"
+           |fi
+           |
+           |exec "$$JAVACMD" $jvmArgsStr $$JAVA_OPTS -cp "$classpathStr" $mainClass "$$@"
+           |""".stripMargin
+      },
+      cmdCommands = {
+        val jvmArgsStr = (jvmArgs ++ cmdJvmArgs).mkString(" ")
+        val classpathStr = cmdClassPath.mkString(";")
+        s"""setlocal EnableDelayedExpansion
+           |set "JAVACMD=java.exe"
+           |if not "%JAVA_HOME%"=="" set "JAVACMD=%JAVA_HOME%\\bin\\java.exe"
+           |
+           |"%JAVACMD%" $jvmArgsStr %JAVA_OPTS% -cp "$classpathStr" $mainClass %*
+           |
+           |endlocal
+           |""".stripMargin
+      },
+      shebang = shebang
+    )
+  }
+
   def createLauncher(mainClass: String, classPath: Agg[os.Path], jvmArgs: Seq[String])(implicit
       ctx: Ctx.Dest
   ): PathRef = {
