@@ -584,7 +584,7 @@ object Jvm extends CoursierSupport {
       shebang: Boolean = false,
       shellJvmArgs: Seq[String] = Nil,
       cmdJvmArgs: Seq[String] = Nil
-  ) = {
+  ): String = {
 
     universalScript(
       shellCommands = {
