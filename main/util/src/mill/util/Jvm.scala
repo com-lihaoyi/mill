@@ -571,35 +571,43 @@ object Jvm extends CoursierSupport {
       shellClassPath: Agg[String],
       cmdClassPath: Agg[String],
       jvmArgs: Seq[String],
-      shebang: Boolean
+      shebang: Boolean = false
   ): String = {
     launcherUniversalScript(mainClass, shellClassPath, cmdClassPath, jvmArgs, shebang, Nil, Nil)
   }
 
   def launcherUniversalScript(
-      mainClass: String,
-      shellClassPath: Agg[String],
-      cmdClassPath: Agg[String],
-      jvmArgs: Seq[String],
-      shebang: Boolean = false,
-      shellJvmArgs: Seq[String] = Nil,
-      cmdJvmArgs: Seq[String] = Nil
-  ) = {
+                      mainClass: String,
+                      shellClassPath: Agg[String],
+                      cmdClassPath: Agg[String],
+                      jvmArgs: Seq[String],
+                      shebang: Boolean = false,
+                      shellJvmArgs: Seq[String] = Nil,
+                      cmdJvmArgs: Seq[String] = Nil
+                    ) = {
 
     universalScript(
       shellCommands = {
         val jvmArgsStr = (jvmArgs ++ shellJvmArgs).mkString(" ")
         val classpathStr = shellClassPath.mkString(":")
 
-        s"""exec java $jvmArgsStr $$JAVA_OPTS -cp "$classpathStr" $mainClass "$$@"
+        s"""if [ -z "$$JAVA_HOME" ] ; then
+           |  JAVACMD="java"
+           |else
+           |  JAVACMD="$$JAVA_HOME/bin/java"
+           |fi
+           |
+           |exec "$$JAVACMD" $jvmArgsStr $$JAVA_OPTS -cp "$classpathStr" $mainClass "$$@"
            |""".stripMargin
       },
       cmdCommands = {
         val jvmArgsStr = (jvmArgs ++ cmdJvmArgs).mkString(" ")
         val classpathStr = cmdClassPath.mkString(";")
         s"""setlocal EnableDelayedExpansion
+           |set "JAVACMD=java.exe"
+           |if not "%JAVA_HOME%"=="" set "JAVACMD=%JAVA_HOME%\\bin\\java.exe"
            |
-           |java $jvmArgsStr %JAVA_OPTS% -cp "$classpathStr" $mainClass %*
+           |"%JAVACMD%" $jvmArgsStr %JAVA_OPTS% -cp "$classpathStr" $mainClass %*
            |
            |endlocal
            |""".stripMargin
