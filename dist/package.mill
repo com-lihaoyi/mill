@@ -165,31 +165,15 @@ object `package` extends RootModule  with InstallModule {
     os.write(vmOptionsFile, millOptionsContent)
     val jvmArgs = otherArgs ++ List(s"-DMILL_OPTIONS_PATH=$vmOptionsFile")
     val classpath = runClasspath().map(_.path.toString)
+    val classpathJar = Task.dest / "classpath.jar"
+    Jvm.createClasspathPassingJar(classpathJar, runClasspath().map(_.path))
+
     launcherScript(
       jvmArgs,
       jvmArgs,
       classpath,
-      Agg(pathingJar().path.toString) // TODO not working yet on Windows! see #791
+      Agg(classpathJar.toString()) // TODO not working yet on Windows! see #791
     )
-  }
-
-  def pathingJar = Task {
-    // see http://todayguesswhat.blogspot.com/2011/03/jar-manifestmf-class-path-referencing.html
-    // for more detailed explanation
-    val isWin = scala.util.Properties.isWin
-    val classpath = runClasspath().map { pathRef =>
-      val path =
-        if (isWin) "/" + pathRef.path.toString.replace("\\", "/")
-        else pathRef.path.toString
-      if (path.endsWith(".jar")) path
-      else path + "/"
-    }.mkString(" ")
-    val manifestEntries = Map[String, String](
-      java.util.jar.Attributes.Name.MANIFEST_VERSION.toString -> "1.0",
-      "Created-By" -> "Scala mill",
-      "Class-Path" -> classpath
-    )
-    Jvm.createJar(Agg(), JarManifest(manifestEntries))
   }
 
   def run(args: Task[Args] = Task.Anon(Args())) = Task.Command(exclusive = true) {
@@ -231,13 +215,6 @@ object `package` extends RootModule  with InstallModule {
            |  JAVACMD="$$JAVA_HOME/bin/java"
            |fi
            |
-           |# Client-server mode doesn't seem to work on WSL, just disable it for now
-           |# https://stackoverflow.com/a/43618657/871202
-           |if grep -qEi "(Microsoft|WSL)" /proc/version > /dev/null 2> /dev/null ; then
-           |    if [ -z $$COURSIER_CACHE ] ; then
-           |      COURSIER_CACHE=.coursier
-           |    fi
-           |fi
            |exec "$$JAVACMD" $jvmArgsStr $$JAVA_OPTS -cp "$classpathStr" $millMainClass "$$@"
            |""".stripMargin
       },
@@ -247,11 +224,6 @@ object `package` extends RootModule  with InstallModule {
         s"""setlocal EnableDelayedExpansion
            |set "JAVACMD=java.exe"
            |if not "%JAVA_HOME%"=="" set "JAVACMD=%JAVA_HOME%\\bin\\java.exe"
-           |if "%1" == "-i" set _I_=true
-           |if "%1" == "--interactive" set _I_=true
-           |if "%1" == "--repl" set _I_=true
-           |if "%1" == "--no-server" set _I_=true
-           |if "%1" == "--bsp" set _I_=true
            |
            |"%JAVACMD%" $jvmArgsStr %JAVA_OPTS% -cp "$classpathStr" $millMainClass %*
            |
@@ -368,7 +340,7 @@ object `package` extends RootModule  with InstallModule {
 
     def jar = Task {
       val previous = nativeImage().path
-      val executable = Task.dest / previous.last
+      val executable = Task.dest / previous.baseName
 
       Using(os.write.outputStream(executable)) { out =>
         out.write(os.read.bytes(previous))
@@ -376,7 +348,8 @@ object `package` extends RootModule  with InstallModule {
         out.write(os.read.bytes(assembly().path))
       }
 
-      os.perms.set(executable, "rwxrwxrwx")
+      if (!mill.main.client.Util.isWindows) os.perms.set(executable, "rwxrwxrwx")
+
       PathRef(executable)
     }
 

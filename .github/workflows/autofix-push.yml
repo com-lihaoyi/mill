@@ -1,0 +1,26 @@
+name: 'push autofix'
+on:
+  workflow_run:
+    workflows: ['autofix']
+    types:
+      - completed
+permissions:
+  contents: write
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    env:
+      REPO_DEPLOY_KEY: ${{ secrets.REPO_DEPLOY_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      - uses: dawidd6/action-download-artifact@v7
+        with:
+          run_id: ${{ github.event.workflow_run.id }}
+          workflow_conclusion: ""
+          name: autofix-artifacts
+
+      - run: "chmod -R 777 ."
+
+      - run: ci/push-autofix.sh

@@ -41,63 +41,50 @@ object ModuleInitErrorTests extends UtestIntegrationTestSuite {
       assert(res4.out.contains("foo.fooTask"))
     }
 
-    test("rootTask") - integrationTest { tester =>
+    test("tasks") - integrationTest { tester =>
       import tester._
       // If we specify a task in the root module, we are not
       // affected by the sub-modules failing to initialize
       val res = eval("rootTask")
       assert(res.isSuccess == true)
       assert(res.out.contains("""Running rootTask"""))
-    }
-    test("rootCommand") - integrationTest { tester =>
+
       import tester._
       // If we specify a task in the root module, we are not
       // affected by the sub-modules failing to initialize
-      val res = eval(("rootCommand", "-s", "hello"))
-      assert(res.isSuccess == true)
-      assert(res.out.contains("""Running rootCommand hello"""))
-    }
-    test("fooTask") - integrationTest { tester =>
-      import tester._
-      val res = eval("foo.fooTask")
-      assert(res.isSuccess == false)
-      assert(fansi.Str(res.err).plainText.contains("""java.lang.Exception: Foo Boom"""))
+      val res1 = eval(("rootCommand", "-s", "hello"))
+      assert(res1.isSuccess == true)
+      assert(res1.out.contains("""Running rootCommand hello"""))
+
+      val res2 = eval("foo.fooTask")
+      assert(res2.isSuccess == false)
+      assert(fansi.Str(res2.err).plainText.contains("""java.lang.Exception: Foo Boom"""))
       // Make sure the stack trace is "short" and does not contain all the stack
       // frames from the Mill launcher
-      assert(fansi.Str(res.err).plainText.linesIterator.size < 20)
-    }
-    test("fooCommand") - integrationTest { tester =>
-      import tester._
-      val res = eval(("foo.fooCommand", "-s", "hello"))
-      assert(res.isSuccess == false)
-      assert(fansi.Str(res.err).plainText.contains("""java.lang.Exception: Foo Boom"""))
-      assert(fansi.Str(res.err).plainText.linesIterator.size < 20)
-    }
-    test("barTask") - integrationTest { tester =>
-      import tester._
-      val res = eval("bar.barTask")
-      assert(res.isSuccess == true)
-      assert(res.out.contains("""Running barTask"""))
-    }
-    test("barCommand") - integrationTest { tester =>
-      import tester._
-      val res = eval(("bar.barCommand", "-s", "hello"))
-      assert(res.isSuccess == true)
-      assert(res.out.contains("""Running barCommand hello"""))
-    }
-    test("quxTask") - integrationTest { tester =>
-      import tester._
-      val res = eval("bar.qux.quxTask")
-      assert(res.isSuccess == false)
-      assert(fansi.Str(res.err).plainText.contains("""java.lang.Exception: Qux Boom"""))
-      assert(fansi.Str(res.err).plainText.linesIterator.size < 20)
-    }
-    test("quxCommand") - integrationTest { tester =>
-      import tester._
-      val res = eval(("bar.qux.quxCommand", "-s", "hello"))
-      assert(res.isSuccess == false)
-      assert(fansi.Str(res.err).plainText.contains("""java.lang.Exception: Qux Boom"""))
-      assert(fansi.Str(res.err).plainText.linesIterator.size < 20)
+      assert(fansi.Str(res2.err).plainText.linesIterator.size < 20)
+
+      val res3 = eval(("foo.fooCommand", "-s", "hello"))
+      assert(res3.isSuccess == false)
+      assert(fansi.Str(res3.err).plainText.contains("""java.lang.Exception: Foo Boom"""))
+      assert(fansi.Str(res3.err).plainText.linesIterator.size < 20)
+
+      val res4 = eval("bar.barTask")
+      assert(res4.isSuccess == true)
+      assert(res4.out.contains("""Running barTask"""))
+
+      val res5 = eval(("bar.barCommand", "-s", "hello"))
+      assert(res5.isSuccess == true)
+      assert(res5.out.contains("""Running barCommand hello"""))
+
+      val res6 = eval("bar.qux.quxTask")
+      assert(res6.isSuccess == false)
+      assert(fansi.Str(res6.err).plainText.contains("""java.lang.Exception: Qux Boom"""))
+      assert(fansi.Str(res6.err).plainText.linesIterator.size < 20)
+
+      val res7 = eval(("bar.qux.quxCommand", "-s", "hello"))
+      assert(res7.isSuccess == false)
+      assert(fansi.Str(res7.err).plainText.contains("""java.lang.Exception: Qux Boom"""))
+      assert(fansi.Str(res7.err).plainText.linesIterator.size < 20)
     }
   }
 }

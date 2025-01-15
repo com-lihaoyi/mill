@@ -65,7 +65,7 @@ object Deps {
   val testScala33Version = "3.3.1"
 
   object Scalajs_1 {
-    val scalaJsVersion = "1.17.0"
+    val scalaJsVersion = "1.18.1"
     val scalajsEnvJsdomNodejs = ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0"
     val scalajsEnvExoegoJsdomNodejs = ivy"net.exoego::scalajs-env-jsdom-nodejs:2.1.0"
     val scalajsEnvNodejs = ivy"org.scala-js::scalajs-env-nodejs:1.4.0"
@@ -118,7 +118,7 @@ object Deps {
   val asmTree = ivy"org.ow2.asm:asm-tree:9.7.1"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
 
-  val coursierVersion = "2.1.23"
+  val coursierVersion = "2.1.24"
   val coursier = ivy"io.get-coursier::coursier:$coursierVersion"
   val coursierInterface = ivy"io.get-coursier:interface:1.0.27"
   val coursierJvm = ivy"io.get-coursier::coursier-jvm:$coursierVersion"
@@ -171,10 +171,10 @@ object Deps {
   val scalacScoverage2Serializer =
     ivy"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
   val scalaparse = ivy"com.lihaoyi::scalaparse:${fastparse.version}"
-  val scalatags = ivy"com.lihaoyi::scalatags:0.12.0"
+  val scalatags = ivy"com.lihaoyi::scalatags:0.13.1"
   def scalaXml = ivy"org.scala-lang.modules::scala-xml:2.3.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.12.3"
+  val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.12.4"
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.10.3"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.4.2"
   val upickle = ivy"com.lihaoyi::upickle:3.3.1"
@@ -245,7 +245,7 @@ object Deps {
     ivy"org.apache.ant:ant:1.10.15",
     Deps.commonsIo,
     ivy"com.google.code.gson:gson:2.11.0",
-    ivy"com.google.protobuf:protobuf-java:4.29.2",
+    ivy"com.google.protobuf:protobuf-java:4.29.3",
     ivy"com.google.guava:guava:33.4.0-jre",
     ivy"org.yaml:snakeyaml:2.3",
     ivy"org.apache.commons:commons-compress:1.27.1"
@@ -272,9 +272,11 @@ def millVersion: T[String] = Task.Input {
 }
 
 def millLastTag: T[String] = Task {
-  VcsVersion.vcsState().lastTag.getOrElse(
-    sys.error("No (last) git tag found. Your git history seems incomplete!")
-  )
+  if (Task.env.contains("MILL_STABLE_VERSION")) {
+    VcsVersion.vcsState().lastTag.getOrElse(
+      sys.error("No (last) git tag found. Your git history seems incomplete!")
+    )
+  } else "SNAPSHOT"
 }
 
 def millBinPlatform: T[String] = Task {
