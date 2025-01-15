@@ -8,6 +8,8 @@ import androidx.test.platform.app.InstrumentationRegistry;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import com.helloworld.SampleLogic;
+
 /**
  * Instrumented test, which will execute on an Android device.
  *
@@ -20,5 +22,6 @@ public class ExampleInstrumentedTest {
     // Context of the app under test.
     Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
     assertEquals("com.helloworld.app", appContext.getPackageName());
+    assertEquals(32.0f, SampleLogic.textSize(), 0.0001f);
   }
 }
