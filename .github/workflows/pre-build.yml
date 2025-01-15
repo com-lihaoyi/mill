@@ -43,7 +43,8 @@ jobs:
           git fetch https://github.com/com-lihaoyi/mill main
           MERGE_BASE=$(git merge-base FETCH_HEAD HEAD)
           # pretty-print the path between the FETCH_HEAD (main), HEAD, and the merge-base
-          git log --graph --pretty=format:"%h %ar %s %n" --ancestry-path $(git merge-base head main)^1..head  $(git merge-base head main)^1..main
+          git log --graph --pretty=format:"%h %d %ar %s %n" --ancestry-path $(git merge-base head main)^1..head --ancestry-path $(git merge-base head main)^1..main
+
           git checkout $MERGE_BASE
         shell: bash
         if: ${{ github.event_name == 'push' && github.repository != 'com-lihaoyi/mill' }}
