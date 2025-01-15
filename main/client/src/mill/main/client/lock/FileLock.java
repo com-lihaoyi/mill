@@ -22,8 +22,7 @@ class FileLock extends Lock {
     java.nio.channels.FileLock lock = null;
     try {
       lock = chan.tryLock();
-    }
-    catch (OverlappingFileLockException ex) {
+    } catch (OverlappingFileLockException ex) {
       // file already locked by this JVM
     }
     return new FileTryLocked(lock);
