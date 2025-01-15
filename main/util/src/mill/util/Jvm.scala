@@ -571,7 +571,7 @@ object Jvm extends CoursierSupport {
       shellClassPath: Agg[String],
       cmdClassPath: Agg[String],
       jvmArgs: Seq[String],
-      shebang: Boolean = false
+      shebang: Boolean
   ): String = {
     launcherUniversalScript(mainClass, shellClassPath, cmdClassPath, jvmArgs, shebang, Nil, Nil)
   }
