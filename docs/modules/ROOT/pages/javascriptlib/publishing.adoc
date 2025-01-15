@@ -7,7 +7,7 @@ This page will discuss common topics around publishing your Typescript projects 
 
 == Simple publish
 
-include::partial$example/javascriptlib/publishing/1-publishx.adoc[]
+include::partial$example/javascriptlib/publishing/1-publish.adoc[]
 
 == Realistic publish
 
