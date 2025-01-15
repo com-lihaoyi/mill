@@ -35,7 +35,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: main
-          repository: https://github.com/com-lihaoyi/mill
+          repository: com-lihaoyi/mill
         if: ${{ github.event_name == 'push' && github.repository != 'com-lihaoyi/mill' }}
 
       - run: echo temurin:${{ inputs.java-version }} > .mill-jvm-version
