@@ -29,6 +29,11 @@ private[mill] object Reflect {
       if isLegalIdentifier(n) && (m.getModifiers & Modifier.STATIC) == 0
     } yield (m, n)
 
+  private val classSeqOrdering =
+    Ordering.Implicits.seqOrdering[Seq, Class[_]]((c1, c2) =>
+      if (c1 == c2) 0 else if (c1.isAssignableFrom(c2)) 1 else -1
+    )
+
   def reflect(
       outer: Class[_],
       inner: Class[_],
@@ -57,13 +62,17 @@ private[mill] object Reflect {
     //    same `getDeclaringClass`. To handle these scenarios, also sort by
     //    return type, so we can identify the most specific override
     //
+    // 3. A class can have multiple methods with same name/return-type if they
+    //    differ in parameter types, so sort by those as well
     arr.sortInPlaceWith((m1, m2) =>
       if (m1.getName != m2.getName) m1.getName < m2.getName
       else if (m1.getDeclaringClass != m2.getDeclaringClass) {
         !m1.getDeclaringClass.isAssignableFrom(m2.getDeclaringClass)
       } else if (m1.getReturnType != m2.getReturnType) {
         !m1.getReturnType.isAssignableFrom(m2.getReturnType)
-      } else throw new Exception(s"methods cannot be sorted: m1=$m1, m2=$m2")
+      } else {
+        classSeqOrdering.lt(m1.getParameterTypes, m2.getParameterTypes)
+      }
     )
 
     arr.distinctBy(_.getName)
