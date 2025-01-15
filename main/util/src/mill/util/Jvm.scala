@@ -577,14 +577,14 @@ object Jvm extends CoursierSupport {
   }
 
   def launcherUniversalScript(
-                      mainClass: String,
-                      shellClassPath: Agg[String],
-                      cmdClassPath: Agg[String],
-                      jvmArgs: Seq[String],
-                      shebang: Boolean = false,
-                      shellJvmArgs: Seq[String] = Nil,
-                      cmdJvmArgs: Seq[String] = Nil
-                    ) = {
+      mainClass: String,
+      shellClassPath: Agg[String],
+      cmdClassPath: Agg[String],
+      jvmArgs: Seq[String],
+      shebang: Boolean = false,
+      shellJvmArgs: Seq[String] = Nil,
+      cmdJvmArgs: Seq[String] = Nil
+  ) = {
 
     universalScript(
       shellCommands = {
