@@ -571,20 +571,9 @@ object Jvm extends CoursierSupport {
       shellClassPath: Agg[String],
       cmdClassPath: Agg[String],
       jvmArgs: Seq[String],
-      shebang: Boolean = false
+      shebang: Boolean
   ): String = {
     launcherUniversalScript(mainClass, shellClassPath, cmdClassPath, jvmArgs, shebang, Nil, Nil)
-    universalScript(
-      shellCommands =
-        s"""exec java ${jvmArgs.mkString(" ")} $$JAVA_OPTS -cp "${shellClassPath.iterator.mkString(
-            ":"
-          )}" '$mainClass' "$$@"""",
-      cmdCommands =
-        s"""java ${jvmArgs.mkString(" ")} %JAVA_OPTS% -cp "${cmdClassPath.iterator.mkString(
-            ";"
-          )}" $mainClass %*""",
-      shebang = shebang
-    )
   }
 
   def launcherUniversalScript(
@@ -602,23 +591,15 @@ object Jvm extends CoursierSupport {
         val jvmArgsStr = (jvmArgs ++ shellJvmArgs).mkString(" ")
         val classpathStr = shellClassPath.mkString(":")
 
-        s"""if [ -z "$$JAVA_HOME" ] ; then
-           |  JAVACMD="java"
-           |else
-           |  JAVACMD="$$JAVA_HOME/bin/java"
-           |fi
-           |
-           |exec "$$JAVACMD" $jvmArgsStr $$JAVA_OPTS -cp "$classpathStr" $mainClass "$$@"
+        s"""exec java $jvmArgsStr $$JAVA_OPTS -cp "$classpathStr" $mainClass "$$@"
            |""".stripMargin
       },
       cmdCommands = {
         val jvmArgsStr = (jvmArgs ++ cmdJvmArgs).mkString(" ")
         val classpathStr = cmdClassPath.mkString(";")
         s"""setlocal EnableDelayedExpansion
-           |set "JAVACMD=java.exe"
-           |if not "%JAVA_HOME%"=="" set "JAVACMD=%JAVA_HOME%\\bin\\java.exe"
            |
-           |"%JAVACMD%" $jvmArgsStr %JAVA_OPTS% -cp "$classpathStr" $mainClass %*
+           |java $jvmArgsStr %JAVA_OPTS% -cp "$classpathStr" $mainClass %*
            |
            |endlocal
            |""".stripMargin
