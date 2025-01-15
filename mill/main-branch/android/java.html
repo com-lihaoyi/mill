@@ -777,11 +777,20 @@ all necessary steps (resource generation, APK creation, and signing) are execute
 &gt; ./mill show app.adbDevices
 ...emulator-5554...device...
 
-&gt; ./mill show app.it | grep '&quot;OK (1 test)&quot;'
-...&quot;OK (1 test)&quot;,
-
-&gt; cat out/app/it/test.json | grep '&quot;OK (1 test)&quot;'
-...&quot;OK (1 test)&quot;...
+&gt; ./mill show app.it
+...
+[
+  &quot;&quot;,
+  [
+    {
+      &quot;fullyQualifiedName&quot;: &quot;com.helloworld.app.ExampleInstrumentedTest.useAppContext&quot;,
+      &quot;selector&quot;: &quot;com.helloworld.app.ExampleInstrumentedTest.useAppContext&quot;,
+      &quot;duration&quot;: ...,
+      &quot;status&quot;: &quot;Success&quot;
+    }
+  ]
+]
+...
 
 &gt; ./mill show app.stopAndroidEmulator
 
