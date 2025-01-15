@@ -237,7 +237,7 @@ class ZincWorkerImpl(
       } else if (ZincWorkerUtil.isScala3(scalaVersion)) {
         // DottyDoc makes use of `com.fasterxml.jackson.databind.Module` which
         // requires the ContextClassLoader to be set appropriately
-        mill.api.ClassLoader.withContextClassLoader(getClass.getClassLoader){
+        mill.api.ClassLoader.withContextClassLoader(getClass.getClassLoader) {
           val scaladocClass =
             compilers.scalac().scalaInstance().loader().loadClass("dotty.tools.scaladoc.Main")
           val scaladocMethod = scaladocClass.getMethod("run", classOf[Array[String]])

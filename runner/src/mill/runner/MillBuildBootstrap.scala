@@ -400,7 +400,7 @@ object MillBuildBootstrap {
   ): (Either[String, Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
     rootModule.evalWatchedValues.clear()
     val evalTaskResult =
-      mill.api.ClassLoader.withContextClassLoader(rootModule.getClass.getClassLoader){
+      mill.api.ClassLoader.withContextClassLoader(rootModule.getClass.getClassLoader) {
         RunScript.evaluateTasksNamed(
           evaluator,
           targetsAndParams,

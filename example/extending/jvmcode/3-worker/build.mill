@@ -27,7 +27,7 @@ trait GroovyGenerateJavaModule extends JavaModule {
   def groovyScript = Task.Source(millSourcePath / "generate.groovy")
 
   def groovyGeneratedResources = Task {
-    mill.api.ClassLoader.withContextClassLoader(groovyWorker()){
+    mill.api.ClassLoader.withContextClassLoader(groovyWorker()) {
       groovyWorker()
         .loadClass("groovy.ui.GroovyMain")
         .getMethod("main", classOf[Array[String]])
