@@ -44,6 +44,7 @@ jobs:
           MERGE_BASE=$(git merge-base FETCH_HEAD HEAD)
           git log --graph --pretty=oneline --ancestry-path $MERGE_BASE^1..FETCH_HEAD  $MERGE_BASE^1..HEAD
           git checkout $MERGE_BASE
+        shell: bash
         if: ${{ github.event_name == 'push' && github.repository != 'com-lihaoyi/mill' }}
 
       - run: echo temurin:${{ inputs.java-version }} > .mill-jvm-version
