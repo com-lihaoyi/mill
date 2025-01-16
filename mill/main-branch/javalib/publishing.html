@@ -660,6 +660,17 @@ Loaded application.conf from resources:...
 ...Bar Application Conf</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>Note that when running the assembly directly via <code>./out.jar</code>, you can configure
+JVM flags via the <code>JAVA_OPTS</code> environment variable, and select the JVM
+to use via <code>JAVA_HOME</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; JAVA_OPTS=-Dtest.property=1337 ./out/foo/assembly.dest/out.jar
+Loaded test.property: 1337</code></pre>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">

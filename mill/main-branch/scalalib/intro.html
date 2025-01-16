@@ -750,6 +750,12 @@ error: Missing argument: --text &lt;str&gt;
 &lt;h1&gt;hello&lt;/h1&gt;
 
 &gt; ./out/foo/assembly.dest/out.jar --text hello # mac/linux
+&lt;h1&gt;hello&lt;/h1&gt;
+
+&gt; # Note that on windows you need to rename `out.jar` to `out.bat` to run it
+&gt; cp ./out/foo/assembly.dest/out.jar out.bat # windows
+
+&gt; ./out.bat --text hello # windows
 &lt;h1&gt;hello&lt;/h1&gt;</code></pre>
 </div>
 </div>
