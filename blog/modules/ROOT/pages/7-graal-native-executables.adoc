@@ -165,6 +165,9 @@ $ out/foo/nativeImage.dest/native-executable --text "hello world"
 <h1>hello world</h1>
 ```
 
+You can download this example below:
+
+* xref:mill:ROOT:javalib/publishing.adoc#_building_native_image_with_graal_vm[]
 
 
 ## Native Image v.s. Executable Assembly
