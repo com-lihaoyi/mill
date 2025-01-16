@@ -113,7 +113,7 @@ object `package` extends RootModule  with InstallModule {
       Seq(
         "-DMILL_CLASSPATH=" + runClasspath().map(_.path.toString).mkString(","),
         "-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","),
-        s"-DBSP4J_VERSION=${build.Deps.bsp4j.dep.version}"
+
       )
     val (millArgs, otherArgs) =
       launcherForkArgs.partition(arg => arg.startsWith("-DMILL") && !arg.startsWith("-DMILL_VERSION"))
