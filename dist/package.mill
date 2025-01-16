@@ -20,7 +20,7 @@ trait InstallModule extends build.MillPublishJavaModule{
 
   def executable = Task{
     Task.traverse(allPublishModules)(m => m.publishLocalCached)()
-    jar()
+    executableRaw()
   }
 
   def localBinName: String
