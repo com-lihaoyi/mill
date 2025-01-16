@@ -242,7 +242,7 @@ object `package` extends RootModule  with InstallModule {
 
   def uploadToGithub(authKey: String) = Task.Command {
     val vcsState = VcsVersion.vcsState()
-    val label = vcsState.format()
+    val label = vcsState.copy(dirtyHash = None).format()
     if (label != build.millVersion()) sys.error("Modified mill version detected, aborting upload")
     val releaseTag = vcsState.lastTag.getOrElse(sys.error(
       "Incomplete git history. No tag found.\nIf on CI, make sure your git checkout job includes enough history."
