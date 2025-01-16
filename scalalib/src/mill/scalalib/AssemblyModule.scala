@@ -5,8 +5,6 @@ import mill.api.{JarManifest, PathRef, Result}
 import mill.define.{Target => T, _}
 import mill.util.Jvm
 
-import scala.annotation.nowarn
-
 /**
  * Core configuration required to compile a single Java compilation target
  */
@@ -16,6 +14,16 @@ trait AssemblyModule extends mill.Module {
   def finalMainClassOpt: T[Either[String, String]]
 
   def forkArgs: T[Seq[String]]
+
+  /**
+   * Similar to `forkArgs` but only applies to the `sh` launcher script
+   */
+  def forkShellArgs: T[Seq[String]] = Task { Seq.empty[String] }
+
+  /**
+   * Similar to `forkArgs` but only applies to the `bat` launcher script
+   */
+  def forkCmdArgs: T[Seq[String]] = Task { Seq.empty[String] }
 
   /**
    * Creates a manifest representation which can be modified or replaced
@@ -43,7 +51,10 @@ trait AssemblyModule extends mill.Module {
           mainClass = cls,
           shellClassPath = Agg("$0"),
           cmdClassPath = Agg("%~dpnx0"),
-          jvmArgs = forkArgs()
+          jvmArgs = forkArgs(),
+          shebang = false,
+          shellJvmArgs = forkShellArgs(),
+          cmdJvmArgs = forkCmdArgs()
         )
     }
   }
