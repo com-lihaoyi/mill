@@ -42,7 +42,6 @@ object ModuleInitErrorTests extends UtestIntegrationTestSuite {
     }
 
     test("tasks") - integrationTest { tester =>
-      import tester._
       // If we specify a task in the root module, we are not
       // affected by the sub-modules failing to initialize
       val res = eval("rootTask")
