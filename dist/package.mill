@@ -16,11 +16,11 @@ trait InstallModule extends build.MillPublishJavaModule{
   }
   def moduleDeps = Seq(build.runner, build.idea, build.main.init)
 
-  def jar: T[PathRef]
+  def executableRaw: T[PathRef]
 
   def executable = Task{
     Task.traverse(allPublishModules)(m => m.publishLocalCached)()
-    jar()
+    executableRaw()
   }
 
   def localBinName: String
@@ -91,7 +91,13 @@ object `package` extends RootModule  with InstallModule {
 
   def genTask(m: ScalaModule) = Task.Anon { Seq(m.jar(), m.sourceJar()) ++ m.runClasspath() }
 
-  def forkArgs: T[Seq[String]] = Task {
+
+  def localBinName = "mill-assembly.jar"
+
+  def launcher = Task {
+    val isWin = scala.util.Properties.isWin
+    val outputPath = Task.dest / (if (isWin) "run.bat" else "run")
+
     val genIdeaArgs =
       genTask(build.main.define)() ++
         genTask(build.main.eval)() ++
@@ -103,21 +109,36 @@ object `package` extends RootModule  with InstallModule {
         genTask(build.javascriptlib)() ++
         genTask(build.pythonlib)()
 
-    testArgs() ++
+    val launcherForkArgs = testArgs() ++
       Seq(
         "-DMILL_CLASSPATH=" + runClasspath().map(_.path.toString).mkString(","),
         "-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","),
-        s"-DBSP4J_VERSION=${build.Deps.bsp4j.dep.version}"
+
       )
-  }
+    val (millArgs, otherArgs) =
+      launcherForkArgs.partition(arg => arg.startsWith("-DMILL") && !arg.startsWith("-DMILL_VERSION"))
 
-  def localBinName = "mill-assembly.jar"
+    // Pass Mill options via file, due to small max args limit in Windows
+    val vmOptionsFile = Task.dest / "mill.properties"
+    val millOptionsContent = millArgs
+      .map(_.drop(2).replace("\\", "/"))  // drop -D prefix, replace \ with /
+      .mkString("\r\n")
 
-  def launcher = Task {
-    val isWin = scala.util.Properties.isWin
-    val outputPath = Task.dest / (if (isWin) "run.bat" else "run")
+    os.write(vmOptionsFile, millOptionsContent)
+    val jvmArgs = otherArgs ++ List(s"-DMILL_OPTIONS_PATH=$vmOptionsFile")
+    val classpath = runClasspath().map(_.path.toString)
+    val classpathJar = Task.dest / "classpath.jar"
+    Jvm.createClasspathPassingJar(classpathJar, runClasspath().map(_.path))
 
-    os.write(outputPath, prependShellScript())
+    val script = Jvm.launcherUniversalScript(
+      mainClass = "mill.runner.client.MillClientMain",
+      shellClassPath = classpath,
+      cmdClassPath = Agg(classpathJar.toString()),
+      jvmArgs = jvmArgs,
+    )
+
+    os.write(outputPath, script)
+
     if (!isWin) os.perms.set(outputPath, "rwxrwxrwx")
 
     PathRef(outputPath)
@@ -131,49 +152,21 @@ object `package` extends RootModule  with InstallModule {
     mill.scalalib.Assembly.Rule.ExcludePattern("mill/local-test-overrides/.*")
   )
 
-  def jar = Task {
-    val version = build.millVersion()
-    val devRunClasspath = runClasspath().map(_.path)
+  def forkArgs = Seq(
+    // Workaround for Zinc/JNA bug
+    // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
+    "-Djna.nosys=true"
+  )
+
+  def forkShellArgs = Seq("-DMILL_CLASSPATH=$0")
+  def forkCmdArgs = Seq(""""-DMILL_CLASSPATH=%~dpnx0"""")
+
+  def mainClass = Some("mill.runner.client.MillClientMain")
+
+  def executableRaw = Task {
     val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
-    val commonArgs = Seq(
-      // Workaround for Zinc/JNA bug
-      // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
-      "-Djna.nosys=true"
-    )
-    val shellArgs = Seq("-DMILL_CLASSPATH=$0") ++ commonArgs
-    val cmdArgs = Seq(""""-DMILL_CLASSPATH=%~dpnx0"""") ++ commonArgs
-    os.move(
-      mill.scalalib.Assembly.createAssembly(
-        devRunClasspath,
-        prependShellScript = launcherScript(shellArgs, cmdArgs, Agg("$0"), Agg("%~dpnx0")),
-        assemblyRules = assemblyRules
-      ).path,
-      Task.dest / filename
-    )
+    os.copy(assembly().path, Task.dest / filename)
     PathRef(Task.dest / filename)
-  }
-
-  def prependShellScript = Task {
-    val (millArgs, otherArgs) =
-      forkArgs().partition(arg => arg.startsWith("-DMILL") && !arg.startsWith("-DMILL_VERSION"))
-    // Pass Mill options via file, due to small max args limit in Windows
-    val vmOptionsFile = Task.dest / "mill.properties"
-    val millOptionsContent =
-      millArgs.map(_.drop(2).replace("\\", "/")).mkString(
-        "\r\n"
-      ) // drop -D prefix, replace \ with /
-    os.write(vmOptionsFile, millOptionsContent)
-    val jvmArgs = otherArgs ++ List(s"-DMILL_OPTIONS_PATH=$vmOptionsFile")
-    val classpath = runClasspath().map(_.path.toString)
-    val classpathJar = Task.dest / "classpath.jar"
-    Jvm.createClasspathPassingJar(classpathJar, runClasspath().map(_.path))
-
-    launcherScript(
-      jvmArgs,
-      jvmArgs,
-      classpath,
-      Agg(classpathJar.toString()) // TODO not working yet on Windows! see #791
-    )
   }
 
   def run(args: Task[Args] = Task.Anon(Args())) = Task.Command(exclusive = true) {
@@ -194,23 +187,6 @@ object `package` extends RootModule  with InstallModule {
             mill.api.Result.Failure(s"dist.run failed with an exception. ${e.getMessage()}")
         }
     }
-  }
-  def launcherScript(
-                      shellJvmArgs: Seq[String],
-                      cmdJvmArgs: Seq[String],
-                      shellClassPath: Agg[String],
-                      cmdClassPath: Agg[String]
-                    ) = {
-
-    Jvm.launcherUniversalScript(
-      mainClass = "mill.runner.client.MillClientMain",
-      shellClassPath = shellClassPath,
-      cmdClassPath = cmdClassPath,
-      jvmArgs = Nil,
-      shebang = false,
-      shellJvmArgs = shellJvmArgs,
-      cmdJvmArgs = cmdJvmArgs
-    )
   }
 
   def millBootstrap = Task.Source(Task.workspace / "mill")
@@ -265,40 +241,42 @@ object `package` extends RootModule  with InstallModule {
   }
 
   def uploadToGithub(authKey: String) = Task.Command {
-//    val vcsState = VcsVersion.vcsState()
-//    val label = vcsState.format()
-//    if (label != build.millVersion()) sys.error("Modified mill version detected, aborting upload")
-//    val releaseTag = vcsState.lastTag.getOrElse(sys.error(
-//      "Incomplete git history. No tag found.\nIf on CI, make sure your git checkout job includes enough history."
-//    ))
-//
-//    if (releaseTag == label) {
-//      // TODO: check if the tag already exists (e.g. because we created it manually) and do not fail
-//      requests.post(
-//        s"https://api.github.com/repos/${build.Settings.githubOrg}/${build.Settings.githubRepo}/releases",
-//        data = ujson.Obj("tag_name" -> releaseTag, "name" -> releaseTag, "prerelease" -> true),
-//        headers = Seq("Authorization" -> ("token " + authKey))
-//      )
-//    }
-//
-//    val examples = exampleZips().map(z => (z.path, z.path.last))
-//
-//    val zips = examples ++ Seq(
-//      (build.dist.assembly().path, label + "-assembly"),
-//      (bootstrapLauncher().path, label),
-//      (bootstrapLauncherBat().path, label + ".bat")
-//    )
-//
-//    for ((zip, name) <- zips) {
-//      upload.apply(
-//        zip,
-//        releaseTag,
-//        name,
-//        authKey,
-//        build.Settings.githubOrg,
-//        build.Settings.githubRepo
-//      )
-//    }
+    /*
+    val vcsState = VcsVersion.vcsState()
+    val label = vcsState.copy(dirtyHash = None).format()
+    if (label != build.millVersion()) sys.error("Modified mill version detected, aborting upload")
+    val releaseTag = vcsState.lastTag.getOrElse(sys.error(
+      "Incomplete git history. No tag found.\nIf on CI, make sure your git checkout job includes enough history."
+    ))
+
+    if (releaseTag == label) {
+      // TODO: check if the tag already exists (e.g. because we created it manually) and do not fail
+      requests.post(
+        s"https://api.github.com/repos/${build.Settings.githubOrg}/${build.Settings.githubRepo}/releases",
+        data = ujson.Obj("tag_name" -> releaseTag, "name" -> releaseTag, "prerelease" -> true),
+        headers = Seq("Authorization" -> ("token " + authKey))
+      )
+    }
+
+    val examples = exampleZips().map(z => (z.path, z.path.last))
+
+    val zips = examples ++ Seq(
+      (build.dist.assembly().path, label + "-assembly"),
+      (bootstrapLauncher().path, label),
+      (bootstrapLauncherBat().path, label + ".bat")
+    )
+
+    for ((zip, name) <- zips) {
+      upload.apply(
+        zip,
+        releaseTag,
+        name,
+        authKey,
+        build.Settings.githubOrg,
+        build.Settings.githubRepo
+      )
+    }
+    */
   }
 
   object native extends mill.scalalib.NativeImageModule with InstallModule {
@@ -318,7 +296,7 @@ object `package` extends RootModule  with InstallModule {
 
     def localBinName = "mill-native"
 
-    def jar = Task {
+    def executableRaw = Task {
       val previous = nativeImage().path
       val executable = Task.dest / previous.baseName
 
