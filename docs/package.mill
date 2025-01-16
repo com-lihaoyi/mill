@@ -65,14 +65,14 @@ object `package` extends RootModule {
   }
 
   def source0 = T.source(millSourcePath)
-  def projectReadme = T.source(T.workspace / "readme.adoc")
+  def projectChangelog = T.source(T.workspace / "changelog.adoc")
   def source = Task {
     os.copy(source0().path, T.dest, mergeFolders = true)
 
     val pagesWd = T.dest / "modules" / "ROOT" / "pages"
     val partialsWd = T.dest / "modules" / "ROOT" / "partials"
 
-    os.copy(projectReadme().path, partialsWd / "project-readme.adoc", createFolders = true)
+    os.copy(projectChangelog().path, partialsWd / "project-changelog.adoc", createFolders = true)
 
     val renderedExamples: Seq[(os.SubPath, PathRef)] =
       T.traverse(build.example.exampleModules)(m =>
