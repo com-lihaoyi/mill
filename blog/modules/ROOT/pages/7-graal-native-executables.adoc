@@ -18,6 +18,20 @@ the Mill build tool, the benefits they may bring, and the issues you may
 encounter.
 
 
-
-
 // end::header[]
+
+## Building Graal Native Images
+
+## Native Images v.s. Executable Assemblies
+
+## Limitations
+
+- Cannot cross build: must build on the same OS/CPU combination for deployment. If you want
+  multiple artifacts, need multiple OS/CPU environments to build (e.g. Github Actions)
+
+- Doesn't support Windows-Arm64 yet (https://github.com/oracle/graal/issues/9215). Doesn't
+  work on my new Surface 7 laptop
+
+- Much slower to create than executable assemblies
+
+- Need special handling for reflection and dynamic resource loading
