@@ -18,5 +18,5 @@ object foo extends JavaModule  with NativeImageModule {
 }
 
 object ZincWorkerGraalvm extends ZincWorkerModule {
-  def jvmId = "graalvm-community:23.0.1"
+  def jvmId = "graalvm-community:17.0.9"
 }
