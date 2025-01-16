@@ -1,12 +1,12 @@
 package build.runner
 // imports
 import mill._
-import mill.T
-import mill.scalalib.PublishModule
 import mill.contrib.buildinfo.BuildInfo
 
 object `package` extends RootModule with build.MillPublishScalaModule with BuildInfo {
-
+  // Disable scalafix because it seems to misbehave and cause
+  // spurious errors when there are mixed Java/Scala sources
+  def fix(args: String*): Command[Unit] = T.command {}
   object `worker-api` extends build.MillPublishScalaModule {
     // def ivyDeps = Agg(build.Deps.osLib)
   }
@@ -32,9 +32,20 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
     }
   }
 
-  object client extends build.MillPublishJavaModule {
+  object client extends build.MillPublishScalaModule with BuildInfo{
+
     def buildInfoPackageName = "mill.runner.client"
     def moduleDeps = Seq(build.main.client)
+    def ivyDeps = Agg(
+      build.Deps.windowsAnsi,
+      build.Deps.coursier,
+      build.Deps.coursierJvm,
+      build.Deps.logback
+    )
+    def buildInfoObjectName = "Versions"
+    def buildInfoMembers = Seq(
+      BuildInfo.Value("coursierJvmIndexVersion", build.Deps.coursierJvmIndexVersion)
+    )
   }
 
   def moduleDeps = Seq(
@@ -50,7 +61,6 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
     client,
     `worker-api`,
   )
-  def skipPreviousVersions: T[Seq[String]] = Seq("0.11.0-M7")
 
   def buildInfoPackageName = "mill.runner.worker"
 

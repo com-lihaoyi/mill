@@ -2,6 +2,42 @@
   "items": [
     {
       "target": {
+        "uri": "file:///workspace/app"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/app/src",
+          "kind": 2,
+          "generated": false
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/lib"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/lib/src",
+          "kind": 2,
+          "generated": false
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-java"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/hello-java/src",
+          "kind": 2,
+          "generated": false
+        }
+      ]
+    },
+    {
+      "target": {
         "uri": "file:///workspace/hello-kotlin"
       },
       "sources": [
@@ -19,18 +55,6 @@
       "sources": [
         {
           "uri": "file:///workspace/hello-scala/src",
-          "kind": 2,
-          "generated": false
-        }
-      ]
-    },
-    {
-      "target": {
-        "uri": "file:///workspace/hello-java"
-      },
-      "sources": [
-        {
-          "uri": "file:///workspace/hello-java/src",
           "kind": 2,
           "generated": false
         }

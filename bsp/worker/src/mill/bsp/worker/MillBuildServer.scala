@@ -386,6 +386,14 @@ private class MillBuildServer(
         case (m: SemanticDbJavaModule, ev) if clientWantsSemanticDb =>
           (m.compiledClassesAndSemanticDbFiles, ev)
         case (m: JavaModule, ev) => (m.compile, ev)
+        case (m: TestModule, ev) =>
+          (Task.Anon { () }, ev)
+          val task = Task.Anon {
+            Task.log.debug(
+              "Ignoring invalid compile request for test module ${m.bspBuildTarget.displayName}"
+            )
+          }
+          (task, ev)
         case (m, ev) => Task.Anon {
             Result.Failure(
               s"Don't know how to compile non-Java target ${m.bspBuildTarget.displayName}"

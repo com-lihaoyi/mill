@@ -22,7 +22,10 @@ Software build tools mostly fall into two categories:
 One question that comes up constantly is why do people use Monorepo build tools? Tools
 like Bazel are orders of magnitude more complicated and hard to use than tools
 like Poetry or Cargo, so why do people use them at all?
-https://knowyourmeme.com/memes/is-he-stupid-is-she-smart-are-they-stupid[Are they stupid?]
+
+// end::header[]
+
+
 
 It turns out that Monorepo build tools like Bazel or Mill do a lot of non-obvious things that
 other build tools don't, that become important in larger codebases (100-10,000 active developers).
@@ -32,7 +35,6 @@ features become critical. We'll explore some of the core features of "Monorepo B
 below, from the perspective of Bazel (which I am familiar with) and Mill (which this
 technical blog is about).
 
-// end::header[]
 
 ## Support for Multiple Languages
 

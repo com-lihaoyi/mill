@@ -124,16 +124,20 @@ object `package` extends RootModule {
 
     // Worker for Scoverage 2.0
     object worker2 extends build.MillPublishScalaModule {
-      def moduleDeps = Seq(scoverage.api)
       def testDepPaths = Task { Seq(compile().classes) }
+      def compileModuleDeps = Seq(
+        build.main.api,
+        scoverage.api
+      )
       def compileIvyDeps = Task {
-        Agg(
+        super.mandatoryIvyDeps() ++ Agg(
           // compile-time only, need to provide the correct scoverage version at runtime
           build.Deps.scalacScoverage2Reporter,
           build.Deps.scalacScoverage2Domain,
           build.Deps.scalacScoverage2Serializer
         ) ++ Agg.when(!ZincWorkerUtil.isScala3(scalaVersion()))(build.Deps.scalacScoverage2Plugin)
       }
+      def mandatoryIvyDeps = Agg.empty[Dep]
     }
   }
 

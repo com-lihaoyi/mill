@@ -24,6 +24,7 @@ object BomTests extends TestSuite {
   object modules extends TestBaseModule {
     object bom extends Module {
       object placeholder extends JavaModule with TestPublishModule {
+        // Empty version in ivyDeps should be filled with BOM
         def bomIvyDeps = Agg(
           ivy"com.google.cloud:libraries-bom:26.50.0"
         )
@@ -32,18 +33,21 @@ object BomTests extends TestSuite {
         )
 
         object dependee extends JavaModule with TestPublishModule {
+          // BOM details should be passed to dependees
           def moduleDeps = Seq(
             placeholder
           )
         }
 
         object subDependee extends JavaModule with TestPublishModule {
+          // BOM details should be passed to dependees
           def moduleDeps = Seq(
             dependee
           )
         }
 
         object check extends JavaModule {
+          // Empty version with no BOM - should fail
           def ivyDeps = Agg(
             ivy"com.google.protobuf:protobuf-java"
           )
@@ -51,6 +55,8 @@ object BomTests extends TestSuite {
       }
 
       object versionOverride extends JavaModule with TestPublishModule {
+        // protobuf-java is a dependency of scalapbc
+        // The BOM overrides its version
         def bomIvyDeps = Agg(
           ivy"com.google.cloud:libraries-bom:26.50.0"
         )
@@ -59,26 +65,30 @@ object BomTests extends TestSuite {
         )
 
         object dependee extends JavaModule with TestPublishModule {
+          // BOM stuff should be passed transitively to dependee modules
           def moduleDeps = Seq(
             versionOverride
           )
         }
 
         object subDependee extends JavaModule with TestPublishModule {
+          // BOM stuff should be passed transitively to dependee modules
           def moduleDeps = Seq(
             dependee
           )
         }
 
         object check extends JavaModule {
+          // No BOM - checking that the protobuf version is different than the one with the BOM
           def ivyDeps = Agg(
             ivy"com.thesamet.scalapb:scalapbc_2.13:0.9.8"
           )
         }
       }
 
-      object invalid extends TestBaseModule {
+      object invalid extends Module {
         object exclude extends JavaModule {
+          // excludes aren't accepted alongside BOM coordinates
           def bomIvyDeps = Agg(
             ivy"com.google.cloud:libraries-bom:26.50.0".exclude(("foo", "thing"))
           )
@@ -87,6 +97,8 @@ object BomTests extends TestSuite {
     }
 
     object depMgmt extends JavaModule with TestPublishModule {
+      // scalapbc depends on protobuf-java
+      // depManagement should override protobuf-java version
       def ivyDeps = Agg(
         ivy"com.thesamet.scalapb:scalapbc_2.13:0.9.8"
       )
@@ -95,12 +107,15 @@ object BomTests extends TestSuite {
       )
 
       object transitive extends JavaModule with TestPublishModule {
+        // depManagement stuff should be passed transitively to dependees
         def moduleDeps = Seq(depMgmt)
       }
 
       object extraExclude extends JavaModule with TestPublishModule {
+        // Adding an exclude to an ivyDep from depManagement, while
+        // the version in ivyDep is preserved
         def ivyDeps = Agg(
-          ivy"com.lihaoyi:cask_2.13:0.9.4"
+          ivy"com.lihaoyi:cask_2.13:0.9.5"
         )
         def depManagement = Agg(
           // The exclude should be automatically added to the dependency above
@@ -111,13 +126,16 @@ object BomTests extends TestSuite {
         )
 
         object transitive extends JavaModule with TestPublishModule {
+          // depManagement stuff should be passed transitively to dependees
           def moduleDeps = Seq(extraExclude)
         }
       }
 
       object exclude extends JavaModule with TestPublishModule {
+        // Adding an exclude to and overriding the version of a transitive dependency
+        // from depManagement
         def ivyDeps = Agg(
-          ivy"com.lihaoyi:cask_2.13:0.9.4"
+          ivy"com.lihaoyi:cask_2.13:0.9.5"
         )
         def depManagement = Agg(
           ivy"org.java-websocket:Java-WebSocket:1.5.2"
@@ -125,13 +143,14 @@ object BomTests extends TestSuite {
         )
 
         object transitive extends JavaModule with TestPublishModule {
+          // depManagement stuff should be passed transitively to dependees
           def moduleDeps = Seq(exclude)
         }
       }
 
       object onlyExclude extends JavaModule with TestPublishModule {
         def ivyDeps = Agg(
-          ivy"com.lihaoyi:cask_2.13:0.9.4"
+          ivy"com.lihaoyi:cask_2.13:0.9.5"
         )
         def depManagement = Agg(
           ivy"org.java-websocket:Java-WebSocket"
@@ -143,7 +162,7 @@ object BomTests extends TestSuite {
         }
       }
 
-      object invalid extends TestBaseModule {
+      object invalid extends Module {
         object transitive extends JavaModule {
           def depManagement = {
             val dep = ivy"org.java-websocket:Java-WebSocket:1.5.3"
@@ -478,7 +497,7 @@ object BomTests extends TestSuite {
       test("extraExclude") - UnitTester(modules, null).scoped { implicit eval =>
         isInClassPath(
           modules.depMgmt.extraExclude,
-          "cask_2.13-0.9.4.jar",
+          "cask_2.13-0.9.5.jar",
           jarCheck = Some { jarName =>
             !jarName.startsWith("slf4j-api-")
           }
@@ -488,7 +507,7 @@ object BomTests extends TestSuite {
       test("transitiveExtraExclude") - UnitTester(modules, null).scoped { implicit eval =>
         isInClassPath(
           modules.depMgmt.extraExclude.transitive,
-          "cask_2.13-0.9.4.jar",
+          "cask_2.13-0.9.5.jar",
           Seq(modules.depMgmt.extraExclude),
           jarCheck = Some { jarName =>
             !jarName.startsWith("slf4j-api-")

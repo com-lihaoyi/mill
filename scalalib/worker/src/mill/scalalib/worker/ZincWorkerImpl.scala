@@ -52,7 +52,8 @@ class ZincWorkerImpl(
     jobs: Int,
     compileToJar: Boolean,
     zincLogDebug: Boolean,
-    javaHome: Option[PathRef]
+    javaHome: Option[PathRef],
+    close0: () => Unit
 ) extends ZincWorkerApi with AutoCloseable {
   val libraryJarNameGrep: (Agg[PathRef], String) => PathRef =
     ZincWorkerUtil.grepJar(_, "scala-library", _, sources = false)
@@ -236,13 +237,17 @@ class ZincWorkerImpl(
         val hasErrorsMethod = reporter.getClass().getMethod("hasErrors")
         !hasErrorsMethod.invoke(reporter).asInstanceOf[Boolean]
       } else if (ZincWorkerUtil.isScala3(scalaVersion)) {
-        val scaladocClass =
-          compilers.scalac().scalaInstance().loader().loadClass("dotty.tools.scaladoc.Main")
-        val scaladocMethod = scaladocClass.getMethod("run", classOf[Array[String]])
-        val reporter =
-          scaladocMethod.invoke(scaladocClass.getConstructor().newInstance(), args.toArray)
-        val hasErrorsMethod = reporter.getClass().getMethod("hasErrors")
-        !hasErrorsMethod.invoke(reporter).asInstanceOf[Boolean]
+        // DottyDoc makes use of `com.fasterxml.jackson.databind.Module` which
+        // requires the ContextClassLoader to be set appropriately
+        mill.api.ClassLoader.withContextClassLoader(getClass.getClassLoader) {
+          val scaladocClass =
+            compilers.scalac().scalaInstance().loader().loadClass("dotty.tools.scaladoc.Main")
+          val scaladocMethod = scaladocClass.getMethod("run", classOf[Array[String]])
+          val reporter =
+            scaladocMethod.invoke(scaladocClass.getConstructor().newInstance(), args.toArray)
+          val hasErrorsMethod = reporter.getClass().getMethod("hasErrors")
+          !hasErrorsMethod.invoke(reporter).asInstanceOf[Boolean]
+        }
       } else {
         val scaladocClass =
           compilers.scalac().scalaInstance().loader().loadClass("scala.tools.nsc.ScalaDoc")
@@ -488,7 +493,7 @@ class ZincWorkerImpl(
     ConsistentFileAnalysisStore.binary(
       file = path.toIO,
       mappers = ReadWriteMappers.getEmptyMappers(),
-      sort = true,
+      reproducible = true,
       // No need to utilize more than 8 cores to serialize a small file
       parallelism = math.min(Runtime.getRuntime.availableProcessors(), 8)
     )
@@ -676,6 +681,7 @@ class ZincWorkerImpl(
     urlClassLoaders.foreach(_.close())
 
     classloaderCache.clear()
+    close0()
   }
 }
 

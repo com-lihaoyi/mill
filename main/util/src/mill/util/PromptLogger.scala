@@ -299,7 +299,7 @@ private[mill] object PromptLogger {
         // https://stackoverflow.com/questions/71452837/how-to-reduce-flicker-in-terminal-re-drawing
         dest.write(
           new String(buf, 0, end)
-            .replaceAll("(\r\n|\n)", AnsiNav.clearLine(0) + "$1")
+            .replaceAll("(\r\n|\n|\t)", AnsiNav.clearLine(0) + "$1")
             .getBytes
         )
       }

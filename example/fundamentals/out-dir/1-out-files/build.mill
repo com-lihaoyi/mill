@@ -243,8 +243,7 @@ out/mill-server
 
 > cat out/mill-build/methodCodeHashSignatures.dest/current/spanningInvalidationTree.json
 {
-  "call scala.runtime.BoxesRunTime.boxToInteger(int)java.lang.Integer": {},
-  "call scala.Predef$#println(java.lang.Object)void": {
+  "call scala.runtime.BoxesRunTime.boxToInteger(int)java.lang.Integer": {
     "def build_.package_$foo$#<init>(build_.package_)void": {
       "call build_.package_$foo$!<init>(build_.package_)void": {
         "def build_.package_#foo$lzyINIT1()java.lang.Object": {
@@ -254,8 +253,10 @@ out/mill-server
         }
       }
     }
-  }
+  },
+  "call scala.Predef$#println(java.lang.Object)void": {}
 }
+
 */
 
 // In the `spanningInvalidationTree.json` above, we can see how to addition of the call

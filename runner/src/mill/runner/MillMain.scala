@@ -6,11 +6,10 @@ import java.nio.file.StandardOpenOption
 import java.util.Locale
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
-import mill.java9rtexport.Export
 import mill.api.{MillException, SystemStreams, WorkspaceRoot, internal}
 import mill.bsp.{BspContext, BspServerResult}
 import mill.main.BuildInfo
-import mill.main.client.{OutFiles, ServerFiles}
+import mill.main.client.{OutFiles, ServerFiles, Util}
 import mill.main.client.lock.Lock
 import mill.runner.worker.ScalaCompilerWorker
 import mill.util.{Colors, PrintLogger, PromptLogger}
@@ -69,7 +68,7 @@ object MillMain {
         (initialSystemStreams, Seq(), None)
       }
 
-    if (Properties.isWin && System.console() != null)
+    if (Properties.isWin && Util.hasConsole())
       io.github.alexarchambault.windowsansi.WindowsAnsi.setup()
 
     val (result, _) =
@@ -165,7 +164,8 @@ object MillMain {
             (false, RunnerState.empty)
 
           case Right(config) =>
-            val colored = config.color.getOrElse(mainInteractive)
+            val noColorViaEnv = env.get("NO_COLOR").exists(_.nonEmpty)
+            val colored = config.color.getOrElse(mainInteractive && !noColorViaEnv)
             val colors = if (colored) mill.util.Colors.Default else mill.util.Colors.BlackWhite
 
             if (!config.silent.value) {
@@ -197,16 +197,6 @@ object MillMain {
 
                 val threadCount = Some(maybeThreadCount.toOption.get)
 
-                if (mill.main.client.Util.isJava9OrAbove) {
-                  val rt = config.home / Export.rtJarName
-                  if (!os.exists(rt)) {
-                    streams.err.println(
-                      s"Preparing Java ${System.getProperty("java.version")} runtime; this may take a minute or two ..."
-                    )
-                    Export.rtTo(rt.toIO, false)
-                  }
-                }
-
                 val maybeScalaCompilerWorker = ScalaCompilerWorker.bootstrapWorker(config.home)
                 if (maybeScalaCompilerWorker.isLeft) {
                   val err = maybeScalaCompilerWorker.left.get
@@ -216,6 +206,7 @@ object MillMain {
                   val scalaCompilerWorker = maybeScalaCompilerWorker.right.get
                   val bspContext =
                     if (bspMode) Some(new BspContext(streams, bspLog, config.home)) else None
+
 
                   val bspCmd = "mill.bsp.BSP/startSession"
                   val targetsAndParams =
@@ -424,7 +415,7 @@ object MillMain {
       case f if os.exists(f) =>
         (f, os.read.lines(f).find(l => l.trim().nonEmpty))
     }.foreach { case (file, Some(version)) =>
-      if (BuildInfo.millVersion != version) {
+      if (BuildInfo.millVersion != version.stripSuffix("-native")) {
         val msg =
           s"""Mill version ${BuildInfo.millVersion} is different than configured for this directory!
              |Configured version is ${version} (${file})""".stripMargin

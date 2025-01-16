@@ -155,9 +155,6 @@ object Lib {
       customizer = customizer,
       ctx = ctx,
       coursierCacheCustomizer = coursierCacheCustomizer,
-      // SCALA 3.5.0, for some reason, without resolveFilter,
-      // then coursierCacheCustomizer is not typed correctly
-      resolveFilter = _ => true,
       resolutionParams = resolutionParams
     ).map(_.map(_.withRevalidateOnce))
   }
@@ -286,7 +283,6 @@ object Lib {
     Util.millProperty(EnvVars.MILL_BUILD_LIBRARIES) match {
       case Some(found) => found.split(',').map(os.Path(_)).distinct.toList
       case None =>
-        millAssemblyEmbeddedDeps
         val Result.Success(res) = scalalib.Lib.resolveDependencies(
           repositories = repos.toList,
           deps = millAssemblyEmbeddedDeps,

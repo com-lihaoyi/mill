@@ -52,8 +52,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   def scalaNativeWorkerClasspath = Task {
     millProjectModule(
       s"mill-scalanativelib-worker-${scalaNativeWorkerVersion()}",
-      repositoriesTask(),
-      resolveFilter = _.toString.contains("mill-scalanativelib-worker")
+      repositoriesTask()
     )
   }
 

@@ -409,17 +409,15 @@ object MillBuildBootstrap {
       selectiveExecution: Boolean
   ): (Either[String, Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
     rootModule.evalWatchedValues.clear()
-    val previousClassloader = Thread.currentThread().getContextClassLoader
     val evalTaskResult =
-      try {
-        Thread.currentThread().setContextClassLoader(rootModule.getClass.getClassLoader)
+      mill.api.ClassLoader.withContextClassLoader(rootModule.getClass.getClassLoader) {
         RunScript.evaluateTasksNamed(
           evaluator,
           targetsAndParams,
           SelectMode.Separated,
           selectiveExecution = selectiveExecution
         )
-      } finally Thread.currentThread().setContextClassLoader(previousClassloader)
+      }
 
     val moduleWatched = rootModule.watchedValues.toVector
     val addedEvalWatched = rootModule.evalWatchedValues.toVector

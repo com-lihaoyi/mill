@@ -42,7 +42,7 @@ trait ReactScriptsModule extends TypeScriptModule {
     )
   }
 
-  override def compilerOptions: Task[Map[String, ujson.Value]] = Task.Anon {
+  override def compilerOptions: T[Map[String, ujson.Value]] = Task {
     Map(
       "declaration" -> ujson.Bool(false),
       "typeRoots" -> ujson.Arr(),
@@ -111,19 +111,20 @@ trait ReactScriptsModule extends TypeScriptModule {
       ("node", compiled / "node_modules" / "react-scripts" / "bin" / "react-scripts.js", "build"),
       cwd = compiled,
       stdout = os.Inherit,
-      env = mkENV()
+      env = forkEnv()
     )
 
     compile()._2
   }
 
-  override def mkENV = Task {
-    Map("NODE_PATH" -> Seq(
-      ".",
-      compile()._1.path,
-      compile()._1.path / "node_modules"
-    ).mkString(":"))
-  }
+  override def forkEnv =
+    Task {
+      Map("NODE_PATH" -> Seq(
+        ".",
+        compile()._1.path,
+        compile()._1.path / "node_modules"
+      ).mkString(":"))
+    }
 
   private def copyNodeModules: Task[Unit] = Task.Anon {
     val nodeModulesPath = npmInstall().path / "node_modules"
@@ -147,7 +148,7 @@ trait ReactScriptsModule extends TypeScriptModule {
       ),
       cwd = compiled,
       stdout = os.Inherit,
-      env = mkENV()
+      env = forkEnv()
     )
   }
 

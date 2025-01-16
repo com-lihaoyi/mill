@@ -1,0 +1,34 @@
+// You can also override `unmanagedDeps` to point it at wheels that you want to
+// download from arbitrary URLs.
+// `requests.get` comes from the https://github.com/com-lihaoyi/requests-scala[Requests-Scala]
+// library, one of Mill's xref:fundamentals/bundled-libraries.adoc[Bundled Libraries].
+//
+package build
+import mill._, javascriptlib._
+
+object foo extends TypeScriptModule {
+  def unmanagedDeps = Task {
+    val name = "lodash-4.17.21.tgz"
+    val url = "https://github.com/lodash/lodash/archive/refs/tags/4.17.21.tar.gz"
+    os.write(Task.dest / name, requests.get.stream(url))
+    Seq(PathRef(Task.dest / name))
+  }
+}
+
+/** Usage
+> mill foo.run e b k a l m o p
+Sorted with lodash: [a,b,e,k,l,m,o,p]
+*/
+
+// Tasks like `unmanagedDeps` and `npmDeps` are cached, so your package is downloaded only
+// once and re-used indefinitely after that. This is usually not a problem, because usually URLs
+// follow the rule that https://www.w3.org/Provider/Style/URI[Cool URIs don't change], and so files
+// downloaded from the same URL will always contain the same contents.
+
+// NOTE: An unmanaged depedencies downloaded via `requests.get` is still unmanaged: even though you
+// downloaded it from somewhere, `requests.get` does not know how to pull in third party
+// dependencies or de-duplicate different versions.
+
+// In case you **do** want mill to take care of managing dependencies of a package,
+// you shouldn't get that package in `unmanagedDeps` (like we did in the
+// example above). Instead, you can declare the dependency as a regular `npmDeps` and `npmDevDeps`

@@ -1,0 +1,72 @@
+package build
+
+import mill._, javascriptlib._
+import ujson._
+
+object foo extends TypeScriptModule {
+  object test extends TypeScriptTests with TestModule.Jest {
+    def otherFiles = T.source(millSourcePath / "other-files")
+
+    def forkEnv = super.forkEnv() + ("OTHER_FILES_DIR" -> otherFiles().path.toString)
+  }
+}
+
+/** Usage
+> mill foo.run
+Hello World Resource File
+
+> mill foo.test
+PASS .../foo.test.ts
+...
+Test Suites:...1 passed, 1 total...
+Tests:...3 passed, 3 total...
+...
+
+> mill foo.bundle
+Build succeeded!
+
+> mv out/foo/bundle.dest ./bundle.dest && rm -rf out/
+
+> node ./bundle.dest/bundle.js
+Hello World Resource File
+*/
+
+// This section discusses how tests can depend on resources locally on disk.
+// Mill provides two ways to do this: via ts-config paths, and via
+// the resource folder which is made available as the environment variable
+// `MILL_TEST_RESOURCE_DIR`;
+//
+// * The *ts-config paths resources* are useful when you want to fetch individual files,
+//   and are bundled with the application by the `.bundle` step when bundling code for deployment.
+//   But they do not allow you to list folders or perform other filesystem operations.
+//
+// * The *resource folder*, available via `MILL_TEST_RESOURCE_DIR`, gives you
+//   access to the folder path of the resources on disk. This is useful in allowing
+//   you to list and otherwise manipulate the filesystem, which you cannot do with
+//   *tsconfig-paths resources*. However, the `MILL_TEST_RESOURCE_DIR` only exists
+//   when running tests using Mill, and is not available when executing applications
+//   packaged for deployment via `.bundle`
+//
+// * Apart from `resources/`, you can provide additional folders to your test suite
+//   by defining a `Task.Source` (`otherFiles` above) and passing it to `forkEnv`. This
+//   provide the folder path as an environment variable that the test can make use of
+//
+// Example application code demonstrating the techniques above can be seen below:
+
+/** See Also: foo/resources/file.txt */
+/** See Also: foo/test/resources/test-file-a.txt */
+/** See Also: foo/test/resources/test-file-b.txt */
+/** See Also: foo/test/other-files/other-file.txt */
+
+// Note that tests require that you pass in any files that they depend on explicitly.
+// This is necessary so that Mill knows when a test needs to be re-run and when a
+// previous result can be cached. This also ensures that tests reading and writing
+// to the current working directory do not accidentally interfere with each others
+// files, especially when running in parallel.
+//
+// Mill runs test processes in a xref:depth/sandboxing.adoc[sandbox/ folder], not in your project root folder, to
+// prevent you from accidentally accessing files without explicitly passing them. Thus
+// you cannot just read resources off disk via `with fs.readFile("foo/resources/test-file-a.txt", {...})` as file.
+// If you have legacy tests that need to run in the project root folder to work, you
+// can configure your test suite with `def testSandboxWorkingDir = false` to disable
+// the sandbox and make the tests run in the project root.
