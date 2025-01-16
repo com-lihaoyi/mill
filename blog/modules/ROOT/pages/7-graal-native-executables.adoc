@@ -147,10 +147,13 @@ Notable changes:
 - `foo` now needs to inherit from `NativeImageModule`
 
 - We need to override `zincWorker` to point at our own custom `ZincWorkerGraalvm`,
-  pulling in the version of Graal that we want to use to build our native image
+  using the version of Graal that we want to use to build our native image.
+  This uses Mill's ability to xref:mill:ROOT:fundamentals/configuring-jvm-versions.adoc[]
+  to download the necessary Graal distribution as necessary
 
 - We need to pass in some `nativeImageOptions`: in this case `--no-fallback` and
-  `-H:IncludeResourceBundles`
+  `-H:IncludeResourceBundles`, the latter of which is necessary to support
+  the ArgParse4J library that the example project depends on
 
 Now, we can use build a native image using `foo.nativeImage`:
 
