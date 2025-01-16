@@ -413,11 +413,16 @@ any real-world application making heavy use of real-world Java frameworks and li
 
 A full discussion of how to handle reflection and dynamic classloading when building Graal
 native images is beyond the scope of this article, but depending on what framework you may be
-using there may be existing support. For example frameworks like https://micronaut.io/[Micronaut]
-or https://quarkus.io/[Quarkus] are designed from scratch to minimize reflection to allow native
-image generation, while older frameworks like
-https://docs.spring.io/spring-boot/reference/packaging/native-image/introducing-graalvm-native-images.html[Spring Boot]
-have also introduced support.
+using there may be existing support.
+
+* Frameworks like https://micronaut.io/[Micronaut]
+  or https://quarkus.io/[Quarkus] are designed from scratch to minimize reflection to allow native
+  image generation
+
+* Older frameworks like
+  https://docs.spring.io/spring-boot/reference/packaging/native-image/introducing-graalvm-native-images.html[Spring Boot]
+  have also introduced support, making it easy to configure Graal to handle the pattern
+  of reflection and classloading that the framework performs
 
 ## Conclusion
 
