@@ -5,6 +5,7 @@ import mill._
 import mill.scalalib._
 import mill.api.{Logger, PathRef}
 import mill.define.ModuleRef
+import mill.testrunner.TestResult
 import mill.util.Jvm
 import os.RelPath
 import upickle.default._
@@ -894,32 +895,45 @@ trait AndroidAppModule extends JavaModule {
     emulator
   }
 
-  private def androidDebugKeystore: T[PathRef] = Task(persistent = true) {
-    // TODO store this key outside of the build file structure, because once build folders are deleted, new key will
-    //  be created, so app will have another signature leading to the need to remove app from the device/emulator
-    //  before installing a new build, which is annoying.
-    val debugKeystoreFile = T.dest / "debugKeyStore.jks"
-    os.call((
-      "keytool",
-      "-genkeypair",
-      "-keystore",
-      debugKeystoreFile,
-      "-alias",
-      debugKeyAlias,
-      "-dname",
-      "CN=MILL, OU=MILL, O=MILL, L=MILL, S=MILL, C=MILL",
-      "-validity",
-      "10000",
-      "-keyalg",
-      "RSA",
-      "-keysize",
-      "2048",
-      "-storepass",
-      debugKeyStorePass,
-      "-keypass",
-      debugKeyPass
-    ))
-    PathRef(debugKeystoreFile)
+  private def androidDebugKeystore: Task[PathRef] = Task(persistent = true) {
+    val debugFileName = "mill-debug.jks"
+    val globalDebugFileLocation = os.home / ".mill-android"
+
+    if (!os.exists(globalDebugFileLocation)) {
+      os.makeDir(globalDebugFileLocation)
+    }
+
+    val debugKeystoreFile = globalDebugFileLocation / debugFileName
+
+    if (!os.exists(debugKeystoreFile)) {
+      // TODO test on windows and mac and/or change implementation with java APIs
+      os.call((
+        "keytool",
+        "-genkeypair",
+        "-keystore",
+        debugKeystoreFile,
+        "-alias",
+        debugKeyAlias,
+        "-dname",
+        "CN=MILL, OU=MILL, O=MILL, L=MILL, S=MILL, C=MILL",
+        "-validity",
+        "10000",
+        "-keyalg",
+        "RSA",
+        "-keysize",
+        "2048",
+        "-storepass",
+        debugKeyStorePass,
+        "-keypass",
+        debugKeyPass
+      ))
+    }
+
+    val debugKeystoreTaskFile = T.dest / debugFileName
+
+    os.copy(debugKeystoreFile, debugKeystoreTaskFile)
+
+    PathRef(debugKeystoreTaskFile)
   }
 
   protected def androidKeystore: T[PathRef] = Task {
@@ -1050,10 +1064,13 @@ trait AndroidAppModule extends JavaModule {
       emulator
     }
 
-    def test: T[Vector[String]] = Task {
+    override def testTask(
+        args: Task[Seq[String]],
+        globSelectors: Task[Seq[String]]
+    ): Task[(String, Seq[TestResult])] = Task {
       val device = androidInstall()
 
-      val instrumentOutput = os.call(
+      val instrumentOutput = os.proc(
         (
           androidSdkModule().adbPath().path,
           "-s",
@@ -1062,11 +1079,14 @@ trait AndroidAppModule extends JavaModule {
           "am",
           "instrument",
           "-w",
-          "-m",
+          "-r",
           s"$instrumentationPackage/${testFramework()}"
         )
-      )
-      instrumentOutput.out.lines()
+      ).spawn()
+
+      val outputReader = instrumentOutput.stdout.buffered
+
+      InstrumentationOutput.parseTestOutputStream(outputReader)(T.log)
     }
 
     /** Builds the apk including the integration tests (e.g. from androidTest) */

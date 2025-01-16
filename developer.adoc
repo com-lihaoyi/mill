@@ -1,0 +1,328 @@
+
+== Developer Documentation
+
+The remainder of this readme is developer-documentation targeted at people who wish to work
+on Mill's own codebase. The developer docs assume you have read through the user-facing
+documentation linked above. It's also worth spending a few minutes reading the following
+blog posts to get a sense of Mill's design & motivation:
+
+
+
+Mill is built using Mill. To begin, you just need a JVM installed, and the
+`./mill` script will be sufficient to bootstrap the project.
+
+== IntelliJ Setup
+
+If you are using IntelliJ IDEA to edit Mill's Scala code, IntelliJ's built in BSP support should
+be sufficient to load the Mill project, but you need to set up the file association from
+`*.mill` as Scala source files manually in the following settings:
+
+* `Settings` / `Editor` / `File Types` / `Scala`, add the pattern `*.mill`
+
+== Manual & Automated Testing
+
+The following table contains the main ways you can test the code in
+`com-lihaoyi/mill`, via manual testing or automated tests:
+
+|===
+| Config | Automated Testing | Manual Testing | Manual Testing CI
+| In-Process Tests | `main.__.test`, `scalalib.test`, `contrib.buildinfo.test`, etc. |  |
+| Sub-Process w/o packaging/publishing| `example.\\__.local.server`, `integration.__.local.server` | `dist.run` | `test-mill-dev.sh`
+| Sub-Process w/ packaging/publishing | `example.\\__.packaged.server`, `integration.__.packaged.server` | `dist.assembly` | `test-mill-release.sh`
+| Bootstrapping: Building Mill with your current checkout of Mill |  | `dist.installLocal` | `test-mill-bootstrap.sh`
+|===
+
+In general, `println` or `pprint.log` should work in most places and be sufficient for
+instrumenting and debugging the Mill codebase. In the occasional spot where `println`
+doesn't work you can use `mill.main.client.DebugLog.println` which writes to a file
+`~/mill-debug-log.txt` in your home folder. `DebugLog` is useful for scenarios like
+debugging Mill's terminal UI (where `println` would mess things up) or subprocesses
+(where stdout/stderr may get captured or used and cannot be used to display your own
+debug statements).
+
+=== In-Process Tests
+
+In-process tests live in the `.test` sub-modules of the various Mill modules.
+These range from tiny unit tests, to larger integration tests that instantiate a
+`mill.testkit.BaseModule` in-process and a `UnitTester` to evaluate tasks on it.
+
+Most "core" tests live in `main.__test`; these should run almost instantly, and cover
+most of Mill's functionality that is not specific to Scala/Scala.js/etc..
+Tests specific to Scala/Scala.js/Scala-Native live in
+`scalalib.test`/`scalajslib.test`/`scalanativelib.test` respectively, and take a lot longer
+to run because running them involves actually compiling Scala code.
+
+The various `contrib` modules also have tests in this style, e.g.
+`contrib.buildinfo.test`
+
+Note that the in-memory tests compile the `BaseModule` together with the test suite,
+and do not exercise the Mill script-file bootstrapping, transformation, and compilation process.
+
+=== Sub-Process Tests *without* Packaging/Publishing
+
+`example.\\__.local.server` and `integration.__.local.server` tests run Mill end-to-end in a subprocess,
+but *without* the expensive/slow steps of packaging the core packages into an assembly jar
+and publishing the remaining packages to
+`~/.ivy2/local`.
+You can reproduce these tests manually using
+`./mill dist.run <test-folder-path> <command>`.
+
+`example` tests are written in a single `build.mill` file, with the test commands written
+in a comment with a bash-like syntax together with the build code and comments that explain
+the example.
+These serve three purposes:
+
+1. Basic smoke-tests to make sure the functionality works at all, without covering every
+edge case
+
+2. User-facing documentation, with the test cases, test commands, and explanatory comments
+included in the Mill documentation site
+
+3. Example repositories, that Mill users can download to bootstrap their own projects
+
+The `integration` tests are similar to `example` tests and share most of their test
+infrastructure, but with differences:
+
+1. `integration` tests are meant to test features more thoroughly then
+`example` tests, covering more and deeper edge cases even at the expense of readability
+
+2. `integration` tests are written using a Scala test suite extending
+`IntegrationTestSuite`, giving more flexibility at the expense of readability
+
+You can reproduce any of the tests manually using `dist.run`, e.g.
+
+**Automated Test**
+
+[source,bash]
+----
+./mill "example.javalib.basic[1-simple].local.server"
+----
+
+**Manual Test**
+
+[source,bash]
+----
+./mill dist.run example/javalib/basic/1-simple foo.run --text hello
+----
+
+**Manual Test using Launcher Script**
+
+[source,bash]
+----
+./mill dist.launcher && (cd example/javalib/basic/1-simple && ../../../../out/dist/launcher.dest/run foo.run --text hello)
+----
+
+=== Sub-Process Tests *with* Packaging/Publishing
+
+`example.\\__.server`, `integration.__.server`, `example.\\__.fork` and
+`integration.__.fork` cover the same test cases as the `.local.server` tests described above, but
+they perform packaging of the Mill core modules into an assembly jar, and publish the
+remaining modules to `~/.ivy2/local`.
+This results in a more realistic test environment, but at the cost of taking tens-of-seconds
+more to run a test after making a code change.
+
+You can reproduce these tests manually using `dist.installLocal`:
+
+[source,bash]
+----
+./mill dist.installLocal && (cd example/basic/1-simple && ../../../mill-assembly.jar run --text hello)
+----
+
+You can also use `dist.native.installLocal` for a Graal Native Image executable,
+which is slower to create but faster to start than the default executable assembly.
+
+There are two six of these tests, `.{local,assembly,native}.{server,fork}`.
+
+The first label specifies how the Mill code is packaged before testing
+
+1. `.local` runs using all compiled Mill code directly in the `out/` folder. This is the fastest
+and should be used for most testing
+
+2. `.assembly` runs using the compiled Mill code either packaged into an assembly (for the Mill executable).
+This is slower than `.local`, and normally isn't necessary unless you are debugging issues in the Mill
+packaging logic.
+
+3. `.native` runs using the compiled Mill code packaged into an assembly with a Graal native binary launcher.
+This is the slowest mode is only really necessary for debugging Mill's Graal native binary configuration.
+
+The second label specifies how the Mill process is managed during the test:
+
+
+1. `.server` test run the test cases with the default configuration, so consecutive commands
+run in the same long-lived background server process
+
+2. `.fork` test run the test cases with `--no-server`, meaning each command runs in a newly
+spawned Mill process
+
+In general you should spend most of your time working with the `.local.server` version of the
+`example` and `integration` tests to save time, and only run the others if you have a specific
+thing you want to test that needs those code paths to run.
+
+=== Bootstrapping: Building Mill with your current checkout of Mill
+
+To test bootstrapping of Mill's own Mill build using a version of Mill built from your checkout, you can run
+
+[source,bash]
+----
+./mill dist.installLocal
+ci/patch-mill-bootstrap.sh
+----
+
+This creates a standalone assembly at `target/mill-release` you can use, which references jars
+published locally in your `~/.ivy2/local` cache, and applies any necessary patches to
+`build.mill` to deal with changes in Mill between the version specified in `.config/mill-version`
+that is normally used to build Mill and the `HEAD` version your assembly was created from.
+You can then use this standalone assembly to build & re-build your current Mill checkout without
+worrying about stomping over compiled code that the assembly is using.
+
+You can also use `./mill dist.installLocalCache` to provide a "stable" version of Mill that
+can be used locally in bootstrap scripts.
+
+This assembly is design to work on bash, bash-like shells and Windows Cmd.
+If you have another default shell like zsh or fish, you probably need to invoke it with
+`sh ~/mill-release` or prepend the file with a proper shebang.
+
+If you want to install into a different location or a different Ivy repository, you can set its optional parameters.
+
+.Install into `/tmp`
+[source,bash]
+----
+$ ./mill dist.installLocal --binFile /tmp/mill --ivyRepo /tmp/millRepo
+...
+Published 44 modules and installed /tmp/mill
+----
+=== Testing Documentation Changes
+
+For testing documentation changes locally, you can generate documentation for the current checkout via
+
+[source,bash]
+----
+$ ./mill docs.fastPages
+----
+
+To generate documentation for both the current checkout and earlier versions, you can use
+
+
+[source,bash]
+----
+$ ./mill docs.localPages
+----
+
+=== Troubleshooting
+
+In case of troubles with caching and/or incremental compilation, you can always restart from scratch removing the `out` directory:
+
+[source,bash]
+----
+rm -rf out/
+----
+
+=== Autofix and Autoformatting
+
+To run all autofixes and autoformatters:
+
+```bash
+./mill __.fix + mill.javalib.palantirformat.PalantirFormatModule/ + mill.scalalib.scalafmt.ScalafmtModule/ + mill.kotlinlib.ktlint.KtlintModule/
+./mill --meta-level 1 mill.scalalib.scalafmt.ScalafmtModule/
+```
+
+== Continuous Integration & Testing
+
+* Mill's pull-request validation runs with
+https://mill-build.org/mill/large/selective-execution.html[Selective Test Execution]
+enabled; this automatically selects the tests to run based on the code or build configuration
+that changed in that PR. To disable this, you can label your PR with `run-all-tests`, which
+will run all tests on a PR regardless of what code was changed
+
+* Mill tests draft PRs _on contributor forks_ of the repository, so please make sure Github
+Actions are enabled on your fork. Once you are happy with your draft, mark it `ready_for_review`
+and it will run CI on Mill's repository before merging
+
+* If you need to debug things in CI, you can comment/uncomment the two sections of
+`.github/workflows/run-tests.yml` in order to skip the main CI jobs and only run the command(s)
+you need, on the OS you want to test on. This can greatly speed up the debugging process
+compared to running the full suite every time you make a change.
+
+== Project Layout
+
+The Mill project is organized roughly as follows:
+
+=== Core modules that are included in the main assembly
+
+* `runner`, `main.*`, `scalalib`, `scalajslib`, `scalanativelib`.
+
+These are general lightweight and dependency-free: mostly configuration & wiring of a Mill
+build and without the heavy lifting.
+
+Heavy lifting is delegated to the worker modules (described below), which the core modules
+resolve from Maven Central (or from the local filesystem in dev) and load into isolated
+classloaders.
+
+=== Worker modules that are resolved from Maven Central
+
+* `scalalib.worker`, `scalajslib.worker[0.6]`, `scalajslib.worker[1.0]`
+
+These modules are where the heavy-lifting happens, and include heavy dependencies like the
+Scala compiler, Scala.js optimizer, etc.. Rather than being bundled in the main assembly &
+classpath, these are resolved separately from Maven Central (or from the local filesystem
+in dev) and kept in isolated classloaders.
+
+This allows a single Mill build to use multiple versions of e.g. the Scala.js optimizer
+without classpath conflicts.
+
+=== Contrib modules
+
+* `contrib/bloop/`, `contrib/flyway/`, `contrib/scoverage/`, etc.
+
+These are modules that help integrate Mill with the wide variety of different tools and
+utilities available in the JVM ecosystem.
+
+These modules are not as stringently reviewed as the main Mill core/worker codebase, and
+are primarily maintained by their individual contributors.
+These are maintained as part of the primary Mill Github repo for easy testing/updating as
+the core Mill APIs evolve, ensuring that they are always tested and passing against the
+corresponding version of Mill.
+
+== Compatibility & Stability
+
+Mill maintains backward binary compatibility for each major version (`major.minor.point`),
+enforced with Mima, for the following packages:
+
+- `mill.api`
+- `mill.util`
+- `mill.define`
+- `mill.eval`
+- `mill.resolve`
+- `mill.scalalib`
+- `mill.scalajslib`
+- `mill.scalanativelib`
+
+Other packages like `mill.runner`, `mill.bsp`, etc. are on the classpath but offer no
+compatibility guarantees.
+
+Currently, Mill does not offer compatibility guarantees for `mill.contrib`
+packages, although they tend to evolve slowly.
+This may change over time as these packages mature over time.
+
+== Project Maintenance
+
+=== Pull Requests
+
+* Changes to the main branch need a pull request.
+Exceptions are preparation commits for releases, which are meant to be pushed with tags in one go
+* Merged pull request (and closed issues) need to be assigned to a Milestone
+* Pull requests are typically merged via "Squash and merge", so we get a linear and useful history
+* Larger pull request, where it makes sense to keep single commits, or with multiple authors may be committed via merge commits.
+
+=== Commit Messages
+
+* The title should be meaningful and may contain the pull request number in parentheses (typically automatically generated on GitHub)
+* The description should contain additional required details, which typically reflect the content of the first PR comment
+* A full link to the pull request should be added via a line: `Pull request: <link>`
+* If the PR has multiple authors but is merged as merge commit, those authors should be included via a line for each co-author: `Co-authored-by: <author>`
+* If the message contains links to other issues or pull requests, you should use full URLs to reference them
+
+== Misc
+
+Mill is profiled using the
+https://www.ej-technologies.com/products/jprofiler/overview.html[JProfiler Java Profiler], by courtesy of EJ Technologies.

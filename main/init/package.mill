@@ -26,13 +26,16 @@ object `package` extends RootModule with build.MillPublishScalaModule {
       case None => "0.0.0"
     }
 
-    val data: Seq[(os.SubPath, String)] = build.dist.examplePathsWithArtifactName().map { case (path, str) =>
-      val downloadUrl = build.Settings.projectUrl + "/releases/download/" + lastTag + "/" + str + ".zip"
-      val subPath = path.subRelativeTo(T.workspace / "example")
-      (subPath, downloadUrl)
-    }
+    val data: Seq[(os.SubPath, String)] =
+      build.dist.examplePathsWithArtifactName().map { case (path, str) =>
+        val downloadUrl =
+          build.Settings.projectUrl + "/releases/download/" + lastTag + "/" + str + ".zip"
+        val subPath = path.subRelativeTo(T.workspace / "example")
+        (subPath, downloadUrl)
+      }
 
-    val libsSortOrder = List("scalalib", "javalib", "kotlinlib", "extending", "external", "thirdparty", "depth")
+    val libsSortOrder =
+      List("scalalib", "javalib", "kotlinlib", "extending", "external", "thirdparty", "depth")
     val categoriesSortOrder = List("basic", "builds", "web")
 
     def sortCriterium(strOpt: Option[String], sortOrderList: List[String]): Int =
@@ -49,14 +52,16 @@ object `package` extends RootModule with build.MillPublishScalaModule {
 
       val libSortCriterium = sortCriterium(libOpt, libsSortOrder)
       val categorySortCriterium = sortCriterium(categoryOpt, categoriesSortOrder)
-      val nameSortCriterium = nameOpt.flatMap(_.takeWhile(_.isDigit).toIntOption).getOrElse(Int.MinValue)
+      val nameSortCriterium =
+        nameOpt.flatMap(_.takeWhile(_.isDigit).toIntOption).getOrElse(Int.MinValue)
       (libSortCriterium, libOpt, categorySortCriterium, categoryOpt, nameSortCriterium, nameOpt)
     }
 
     val stream = os.write.outputStream(T.dest / "exampleList.txt")
     val writer = new java.io.OutputStreamWriter(stream)
     try {
-      val json = upickle.default.writeTo(sortedData.map { case (p, s) => (p.toString(), s) }, writer)
+      val json =
+        upickle.default.writeTo(sortedData.map { case (p, s) => (p.toString(), s) }, writer)
       PathRef(T.dest)
     } catch {
       case ex: Throwable => T.log.error(ex.toString); throw ex
