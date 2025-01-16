@@ -1,5 +1,5 @@
 diff --git a/build.mill b/build.mill
-index 72a2741ea9..d0e064974f 100644
+index e852cf276df..2c872f28e25 100644
 --- a/build.mill
 +++ b/build.mill
 @@ -1,9 +1,9 @@
@@ -15,7 +15,7 @@ index 72a2741ea9..d0e064974f 100644
  import mill._
  import mill.define.NamedTask
  import mill.main.Tasks
-@@ -264,14 +264,15 @@ object Deps {
+@@ -274,16 +274,16 @@ object Deps {
  }
  
  def millVersion: T[String] = Task.Input {
@@ -26,17 +26,17 @@ index 72a2741ea9..d0e064974f 100644
  }
  
  def millLastTag: T[String] = Task {
--  VcsVersion.vcsState().lastTag.getOrElse(
--    sys.error("No (last) git tag found. Your git history seems incomplete!")
--  )
-+//  VcsVersion.vcsState().lastTag.getOrElse(
-+//    sys.error("No (last) git tag found. Your git history seems incomplete!")
-+//  )
-+  "SNAPSHOT"
+-  if (Task.env.contains("MILL_STABLE_VERSION")) {
++  /*if (Task.env.contains("MILL_STABLE_VERSION")) {
+     VcsVersion.vcsState().lastTag.getOrElse(
+       sys.error("No (last) git tag found. Your git history seems incomplete!")
+     )
+-  } else "SNAPSHOT"
++  } else */"SNAPSHOT"
  }
  
  def millBinPlatform: T[String] = Task {
-@@ -423,7 +424,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
+@@ -443,7 +443,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
  /**
   * Some custom scala settings and test convenience
   */
@@ -45,7 +45,7 @@ index 72a2741ea9..d0e064974f 100644
    def scalaVersion = Deps.scalaVersion
    def scalapVersion: T[String] = Deps.scala2Version
    def scalafixScalaBinaryVersion = T {
-@@ -521,7 +522,8 @@ trait MillBaseTestsModule extends TestModule {
+@@ -541,7 +541,8 @@ trait MillBaseTestsModule extends TestModule {
  trait MillPublishScalaModule extends MillScalaModule with MillPublishJavaModule
  
  /** Publishable module which contains strictly handled API. */
@@ -55,7 +55,7 @@ index 72a2741ea9..d0e064974f 100644
    import com.github.lolgab.mill.mima._
    override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq(
      // (5x) MIMA doesn't properly ignore things which are nested inside other private things
-@@ -646,11 +648,11 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
+@@ -666,11 +667,11 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
    }
  
    def mimaExcludeAnnotations = Seq("mill.api.internal", "mill.api.experimental")
@@ -70,7 +70,7 @@ index 72a2741ea9..d0e064974f 100644
  
  object bridge extends Cross[BridgeModule](compilerBridgeScalaVersions)
 diff --git a/contrib/package.mill b/contrib/package.mill
-index 3fd6b65999..3e51d630c4 100644
+index c615b118f5b..6e2e9bf3b29 100644
 --- a/contrib/package.mill
 +++ b/contrib/package.mill
 @@ -1,10 +1,7 @@
@@ -85,19 +85,19 @@ index 3fd6b65999..3e51d630c4 100644
  import mill.api.JarManifest
  import mill.main.Tasks
 diff --git a/dist/package.mill b/dist/package.mill
-index ef5fb1145b..a35d92d699 100644
+index 58e9f2c5217..90a508456da 100644
 --- a/dist/package.mill
 +++ b/dist/package.mill
-@@ -2,7 +2,7 @@ package build.dist
- import mill._, scalalib._, publish._
+@@ -3,7 +3,7 @@ import mill._, scalalib._, publish._
+ import mill.define.ModuleRef
  import mill.util.Jvm
  import mill.api.JarManifest
 -import de.tobiasroeser.mill.vcs.version.VcsVersion
 +//import de.tobiasroeser.mill.vcs.version.VcsVersion
  import $file.ci.upload
  
- object `package` extends RootModule with build.MillPublishJavaModule {
-@@ -309,39 +309,39 @@ object `package` extends RootModule with build.MillPublishJavaModule {
+ import scala.util.Using
+@@ -285,40 +285,40 @@ object `package` extends RootModule  with InstallModule {
    }
  
    def uploadToGithub(authKey: String) = Task.Command {
@@ -170,9 +170,10 @@ index ef5fb1145b..a35d92d699 100644
 +//      )
 +//    }
    }
- }
+ 
+   object native extends mill.scalalib.NativeImageModule with InstallModule {
 diff --git a/docs/package.mill b/docs/package.mill
-index 85aa2da935..7471c6b4a5 100644
+index 0d16a0627d2..7add2712818 100644
 --- a/docs/package.mill
 +++ b/docs/package.mill
 @@ -2,7 +2,7 @@ package build.docs
@@ -193,16 +194,16 @@ index 85aa2da935..7471c6b4a5 100644
        Some(s"${build.Settings.projectUrl}/blob/$sha")
      }
    }
-@@ -208,7 +208,7 @@ object `package` extends RootModule {
+@@ -213,7 +213,7 @@ object `package` extends RootModule {
+     expandDiagramsInDirectoryAdocFile(Task.dest, mill.main.VisualizeModule.classpath().map(_.path))
+     PathRef(Task.dest)
    }
- 
-   def blogFolder = Task.Source(build.millSourcePath / "blog")
 -  def githubPagesPlaybookText(authorMode: Boolean) = T.task { extraSources: Seq[os.Path] =>
 +  def githubPagesPlaybookText(authorMode: Boolean) = T.task { (extraSources: Seq[os.Path]) =>
      val taggedSources = for (path <- extraSources) yield {
        s"""    - url: ${build.baseDir}
           |      start_path: ${path.relativeTo(build.baseDir)}
-@@ -285,25 +285,25 @@ object `package` extends RootModule {
+@@ -290,25 +290,25 @@ object `package` extends RootModule {
    }
  
    def githubPages: T[PathRef] = Task {
@@ -232,7 +233,7 @@ index 85aa2da935..7471c6b4a5 100644
      T.log.errorStream.println("Creating Antora playbook ...")
      // dependency to sources
      source()
-@@ -312,7 +312,7 @@ object `package` extends RootModule {
+@@ -317,7 +317,7 @@ object `package` extends RootModule {
      val siteDir = docSite / "site"
      os.write(
        target = playbook,
@@ -242,7 +243,7 @@ index 85aa2da935..7471c6b4a5 100644
      )
      T.log.errorStream.println("Running Antora ...")
 diff --git a/example/package.mill b/example/package.mill
-index 79d9e84f90..b4f5523932 100644
+index dcbf2d0af15..48923c544c8 100644
 --- a/example/package.mill
 +++ b/example/package.mill
 @@ -1,10 +1,7 @@
@@ -257,7 +258,7 @@ index 79d9e84f90..b4f5523932 100644
  import mill.api.JarManifest
  import mill.main.Tasks
 diff --git a/integration/package.mill b/integration/package.mill
-index 4268947e76..9ff520b24f 100644
+index 809ff066cb9..1f09e321340 100644
 --- a/integration/package.mill
 +++ b/integration/package.mill
 @@ -1,10 +1,7 @@
@@ -272,7 +273,7 @@ index 4268947e76..9ff520b24f 100644
  import mill.api.JarManifest
  import mill.main.Tasks
 diff --git a/mill-build/build.mill b/mill-build/build.mill
-index 63c18f0997..4127937bb6 100644
+index 63c18f09970..4127937bb61 100644
 --- a/mill-build/build.mill
 +++ b/mill-build/build.mill
 @@ -4,12 +4,12 @@ import mill.scalalib._
@@ -292,7 +293,7 @@ index 63c18f0997..4127937bb6 100644
      // TODO: document, why we have this dependency
      ivy"org.jsoup:jsoup:1.18.1"
 diff --git a/scalalib/package.mill b/scalalib/package.mill
-index 5f7705dd2f..0e7fa1e796 100644
+index 5f7705dd2f0..0e7fa1e796f 100644
 --- a/scalalib/package.mill
 +++ b/scalalib/package.mill
 @@ -1,9 +1,6 @@
