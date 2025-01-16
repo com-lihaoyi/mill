@@ -25,7 +25,6 @@ https://www.patreon.com/lihaoyi[image:https://img.shields.io/badge/patreon-spons
 Mill is a fast JVM build tool that supports Java and Scala. Mill aims to make your 
 project’s build process performant, maintainable, and flexible.
 
-== Documentation
 
 If you want to use Mill in your own projects, check out our documentation:
 
@@ -50,6 +49,9 @@ object bar extends ScalaModule {
 If you use Mill and like it, you will probably enjoy the following book by the Author:
 
 * https://www.handsonscala.com/[_Hands-on Scala Programming_]
+
+
+== Developer Documentation
 
 The remainder of this readme is developer-documentation targeted at people who wish to work
 on Mill's own codebase. The developer docs assume you have read through the user-facing
@@ -280,6 +282,23 @@ To run all autofixes and autoformatters:
 ```bash
 ./mill __.fix + mill.javalib.palantirformat.PalantirFormatModule/ + mill.scalalib.scalafmt.ScalafmtModule/ + mill.kotlinlib.ktlint.KtlintModule/
 ```
+
+== Continuous Integration & Testing
+
+* Mill's pull-request validation runs with
+  https://mill-build.org/mill/large/selective-execution.html[Selective Test Execution]
+  enabled; this automatically selects the tests to run based on the code or build configuration
+  that changed in that PR. To disable this, you can label your PR with `run-all-tests`, which
+  will run all tests on a PR regardless of what code was changed
+
+* Mill tests draft PRs _on contributor forks_ of the repository, so please make sure Github
+  Actions are enabled on your fork. Once you are happy with your draft, mark it `ready_for_review`
+  and it will run CI on Mill's repository before merging
+
+* If you need to debug things in CI, you can comment/uncomment the two sections of
+  `.github/workflows/run-tests.yml` in order to skip the main CI jobs and only run the command(s)
+  you need, on the OS you want to test on. This can greatly speed up the debugging process
+  compared to running the full suite every time you make a change.
 
 == Project Layout
 
