@@ -19,7 +19,6 @@ import mill.define.Cross
 
 // plugins and dependencies
 import $meta._
-import $file.ci.shared
 import $file.ci.upload
 
 object `package` extends RootModule with Module {
@@ -290,8 +289,14 @@ object `package` extends RootModule with Module {
     val (repoPath, repoHash) = repoInfo(crossValue)
     def repoSlug = repoPath.split("/").last
 
+
+    def downloadTestRepo(label: String, commit: String, dest: os.Path) = {
+      os.unzip.stream(requests.get.stream(s"https://github.com/$label/archive/$commit.zip"), dest)
+      dest
+    }
+
     def downloadedRepo = Task{
-      shared.downloadTestRepo(repoPath, repoHash, T.dest)
+      downloadTestRepo(repoPath, repoHash, T.dest)
       val wrapperFolder = T.dest / s"$repoSlug-$repoHash"
       PathRef(wrapperFolder)
     }
