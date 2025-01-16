@@ -111,7 +111,7 @@ $ out/foo/assembly.dest/out.jar --text "hello world"
 <h1>hello world</h1>
 ```
 
-## Building a Native Image Binaryt
+## Building a Native Image Binary
 
 To use Mill to build a Graal Native Image out of `Foo.java`, we need to tweak the config
 above:
