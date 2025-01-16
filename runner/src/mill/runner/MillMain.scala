@@ -207,7 +207,6 @@ object MillMain {
                   val bspContext =
                     if (bspMode) Some(new BspContext(streams, bspLog, config.home)) else None
 
-
                   val bspCmd = "mill.bsp.BSP/startSession"
                   val targetsAndParams =
                     bspContext
