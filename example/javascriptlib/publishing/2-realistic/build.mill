@@ -47,6 +47,8 @@ object qux extends PublishModule {
 // The package.json generated for this lib publish:
 
 //// SNIPPET:BUILD
+// [source,json]
+// ----
 // {
 //  "name": "mill-realistic",
 //  "version": "1.0.3",
@@ -78,6 +80,7 @@ object qux extends PublishModule {
 //    "*": { ... }
 //  }
 //}
+// ----
 //// SNIPPET:END
 
 /** Usage

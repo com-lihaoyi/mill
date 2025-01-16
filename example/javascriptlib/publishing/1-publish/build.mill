@@ -29,6 +29,8 @@ object foo extends PublishModule {
 // The package.json generated for this simple publish:
 
 //// SNIPPET:BUILD
+// [source,json]
+// ----
 //{
 //  "name": "mill-simple",
 //  "version": "1.0.0",
@@ -49,6 +51,7 @@ object foo extends PublishModule {
 //    }
 //  }
 //}
+// ----
 //// SNIPPET:END
 
 /** Usage
