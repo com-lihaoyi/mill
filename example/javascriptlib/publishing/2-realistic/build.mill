@@ -44,7 +44,7 @@ object qux extends PublishModule {
 }
 
 // In this example, we define multiple exports for our application with the `export` task
-// The package.json generated for this simple publish:
+// The package.json generated for this lib publish:
 
 //// SNIPPET:BUILD
 // {
