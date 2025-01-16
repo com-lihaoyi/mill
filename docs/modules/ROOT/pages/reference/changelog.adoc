@@ -3,8 +3,8 @@
 :page-aliases: Changelog.adoc
 
 
-include::partial$project-readme.adoc[tag=changelog,leveloffset=-1]
+include::partial$project-changelog.adoc[tag=changelog,leveloffset=-1]
 
-include::partial$project-readme.adoc[tag=changelogOld,leveloffset=-1]
+include::partial$project-changelog.adoc[tag=changelogOld,leveloffset=-1]
 
 include::partial$gtag-config.adoc[]
