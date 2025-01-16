@@ -53,6 +53,8 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
           //   Lib.resolveDependenciesMetadataSafe(
           Lib.resolveDependenciesMetadata(
             repositories = build.dist.repositoriesTask(),
+            // When re-bootstraping Mill, replace the next line with
+            //   Seq(BoundDep(build.dist.coursierDependency(), force = false)),
             build.dist.transitiveIvyDeps(),
             Some(build.dist.mapDependencies()),
             build.dist.resolutionCustomizer(),

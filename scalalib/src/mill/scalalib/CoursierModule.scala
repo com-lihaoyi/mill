@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import coursier.cache.FileCache
-import coursier.core.{BomDependency, Resolution}
+import coursier.core.{BomDependency, DependencyManagement, Resolution}
 import coursier.params.ResolutionParams
 import coursier.{Dependency, Repository, Resolve, Type}
 import mill.define.Task
@@ -85,6 +85,14 @@ trait CoursierModule extends mill.Module {
   def mapDependencies: Task[Dependency => Dependency] = Task.Anon { (d: Dependency) => d }
 
   /**
+   * Mill internal repositories to be used during dependency resolution
+   *
+   * These are not meant to be modified by Mill users, unless you really know what you're
+   * doing.
+   */
+  def internalRepositories: Task[Seq[Repository]] = Task.Anon(Nil)
+
+  /**
    * The repositories used to resolved dependencies with [[resolveDeps()]].
    */
   def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
@@ -93,7 +101,7 @@ trait CoursierModule extends mill.Module {
       resolve.finalRepositories.future()(resolve.cache.ec),
       Duration.Inf
     )
-    repos
+    internalRepositories() ++ repos
   }
 
   /**
@@ -249,9 +257,10 @@ object CoursierModule {
         deps: IterableOnce[T],
         resolutionParams: ResolutionParams = ResolutionParams(),
         boms: IterableOnce[BomDependency] = Nil
-    ): (Seq[coursier.core.Dependency], coursier.core.DependencyManagement.Map) = {
+    ): (Seq[coursier.core.Dependency], DependencyManagement.Map) = {
       val deps0 = deps
         .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
+        .iterator.toSeq
       val boms0 = boms.toSeq
       val res = Lib.resolveDependenciesMetadataSafe(
         repositories = repositories,
@@ -264,7 +273,48 @@ object CoursierModule {
         boms = boms0
       ).getOrThrow
 
-      (res.processedRootDependencies, res.bomDepMgmt)
+      (
+        res.finalDependenciesCache.getOrElse(
+          deps0.head.dep,
+          sys.error(
+            s"Should not happen - could not find root dependency ${deps0.head.dep} in Resolution#finalDependenciesCache"
+          )
+        ),
+        res.projectCache
+          .get(deps0.head.dep.moduleVersion)
+          .map(_._2.overrides.flatten.toMap)
+          .getOrElse {
+            sys.error(
+              s"Should not happen - could not find root dependency ${deps0.head.dep.moduleVersion} in Resolution#projectCache"
+            )
+          }
+      )
+    }
+
+    /**
+     * All dependencies pulled by the passed dependencies
+     *
+     * @param deps root dependencies
+     * @return full - ordered - list of dependencies pulled by `deps`
+     */
+    def allDeps[T: CoursierModule.Resolvable](
+        deps: IterableOnce[T]
+    ): Seq[coursier.core.Dependency] = {
+      val deps0 = deps
+        .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
+        .iterator.toSeq
+      val res = Lib.resolveDependenciesMetadataSafe(
+        repositories = repositories,
+        deps = deps0,
+        mapDependencies = mapDependencies,
+        customizer = customizer,
+        coursierCacheCustomizer = coursierCacheCustomizer,
+        ctx = ctx,
+        resolutionParams = ResolutionParams(),
+        boms = Nil
+      ).getOrThrow
+
+      res.orderedDependencies
     }
   }
 
@@ -276,5 +326,9 @@ object CoursierModule {
   }
   implicit case object ResolvableBoundDep extends Resolvable[BoundDep] {
     def bind(t: BoundDep, bind: Dep => BoundDep): BoundDep = t
+  }
+  implicit case object ResolvableCoursierDep extends Resolvable[coursier.core.Dependency] {
+    def bind(t: coursier.core.Dependency, bind: Dep => BoundDep): BoundDep =
+      BoundDep(t, force = false)
   }
 }

@@ -1,16 +1,18 @@
 package mill.util
 
 import coursier.cache.{CacheLogger, FileCache}
-import coursier.core.BomDependency
+import coursier.core.{ArtifactSource, BomDependency, Extension, Info, Module, Project, Publication}
 import coursier.error.FetchError.DownloadingArtifacts
 import coursier.error.ResolutionError.CantDownloadModule
 import coursier.params.ResolutionParams
 import coursier.parse.RepositoryParser
 import coursier.jvm.{JvmCache, JvmChannel, JvmIndex, JavaHome}
-import coursier.util.Task
+import coursier.util.{Artifact, EitherT, Monad, Task}
 import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Resolve, Type}
 import mill.api.Loose.Agg
 import mill.api.{Ctx, PathRef, Result}
+
+import java.util.concurrent.ConcurrentHashMap
 
 import scala.collection.mutable
 import scala.util.chaining.scalaUtilChainingOps
@@ -32,18 +34,91 @@ trait CoursierSupport {
         ctx.fold(cache)(c => cache.withLogger(new TickerResolutionLogger(c)))
       }
 
-  private def isLocalTestDep(dep: Dependency): Option[Seq[PathRef]] = {
-    val org = dep.module.organization.value
-    val name = dep.module.name.value
-    val classpathKey = s"$org-$name"
+  /**
+   * A `coursier.Repository` that exposes modules with hard-coded artifact list
+   *
+   * Used in Mill tests. This exposes internal workers for example, so that these
+   * come from the build and not from remote repositories or ~/.ivy2/local. See
+   * `MillJavaModule#{testTransitiveDeps,writeLocalTestOverrides}` in the Mill build.
+   */
+  private final class TestOverridesRepo(root: os.ResourcePath) extends Repository {
 
-    val classpathResourceText =
-      try Some(os.read(
-          os.resource(getClass.getClassLoader) / "mill/local-test-overrides" / classpathKey
-        ))
-      catch { case e: os.ResourceNotFoundException => None }
+    private val map = new ConcurrentHashMap[Module, Option[String]]
 
-    classpathResourceText.map(_.linesIterator.map(s => PathRef(os.Path(s))).toSeq)
+    private def listFor(mod: Module): Either[os.ResourceNotFoundException, String] = {
+
+      def entryPath = root / s"${mod.organization.value}-${mod.name.value}"
+
+      val inCacheOpt = Option(map.get(mod))
+
+      inCacheOpt
+        .getOrElse {
+
+          val computedOpt =
+            try Some(os.read(entryPath))
+            catch {
+              case _: os.ResourceNotFoundException =>
+                None
+            }
+          val concurrentOpt = Option(map.putIfAbsent(mod, computedOpt))
+          concurrentOpt.getOrElse(computedOpt)
+        }
+        .toRight {
+          new os.ResourceNotFoundException(entryPath)
+        }
+    }
+
+    def find[F[_]: Monad](
+        module: Module,
+        version: String,
+        fetch: Repository.Fetch[F]
+    ): EitherT[F, String, (ArtifactSource, Project)] =
+      EitherT.fromEither[F] {
+        listFor(module)
+          .left.map(e => s"No test override found at ${e.path}")
+          .map { _ =>
+            val proj = Project(
+              module,
+              version,
+              dependencies = Nil,
+              configurations = Map.empty,
+              parent = None,
+              dependencyManagement = Nil,
+              properties = Nil,
+              profiles = Nil,
+              versions = None,
+              snapshotVersioning = None,
+              packagingOpt = None,
+              relocated = false,
+              actualVersionOpt = None,
+              publications = Nil,
+              info = Info.empty
+            )
+            (this, proj)
+          }
+      }
+
+    def artifacts(
+        dependency: Dependency,
+        project: Project,
+        overrideClassifiers: Option[Seq[Classifier]]
+    ): Seq[(Publication, Artifact)] =
+      listFor(project.module)
+        .toTry.get
+        .linesIterator
+        .map(os.Path(_))
+        .filter(os.exists)
+        .map { path =>
+          val pub = Publication(
+            if (path.last.endsWith(".jar")) path.last.stripSuffix(".jar") else path.last,
+            Type.jar,
+            Extension.jar,
+            Classifier.empty
+          )
+          val art = Artifact(path.toNIO.toUri.toASCIIString)
+          (pub, art)
+        }
+        .toSeq
   }
 
   /**
@@ -74,12 +149,9 @@ trait CoursierSupport {
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams()
   ): Result[Agg[PathRef]] = {
-    val (localTestDeps, remoteDeps) =
-      deps.iterator.toSeq.partitionMap(d => isLocalTestDep(d).toLeft(d))
-
     val resolutionRes = resolveDependenciesMetadataSafe(
       repositories,
-      remoteDeps,
+      deps,
       force,
       mapDependencies,
       customizer,
@@ -118,7 +190,7 @@ trait CoursierSupport {
                 .map(os.Path(_))
                 .filter(deprecatedResolveFilter)
                 .map(PathRef(_, quick = true))
-            ) ++ localTestDeps.flatten
+            )
           )
       }
     }
@@ -275,7 +347,6 @@ trait CoursierSupport {
 
     val rootDeps = deps.iterator
       .map(d => mapDependencies.fold(d)(_.apply(d)))
-      .filter(dep => isLocalTestDep(dep).isEmpty)
       .toSeq
 
     val forceVersions = force.iterator
@@ -288,10 +359,13 @@ trait CoursierSupport {
     val resolutionParams0 = resolutionParams
       .addForceVersion(forceVersions.toSeq: _*)
 
+    val testOverridesRepo =
+      new TestOverridesRepo(os.resource(getClass.getClassLoader) / "mill/local-test-overrides")
+
     val resolve = Resolve()
       .withCache(coursierCache0)
       .withDependencies(rootDeps)
-      .withRepositories(repositories)
+      .withRepositories(testOverridesRepo +: repositories)
       .withResolutionParams(resolutionParams0)
       .withMapDependenciesOpt(mapDependencies)
       .withBoms(boms.toSeq)

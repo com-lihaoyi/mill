@@ -82,7 +82,7 @@ trait RevapiModule extends PublishModule {
     Agg(jar()) ++
       T.traverse(recursiveModuleDeps)(_.jar)() ++
       defaultResolver().resolveDeps(
-        transitiveIvyDeps(),
+        Seq(coursierDependency),
         artifactTypes = Some(revapiArtifactTypes())
       )
   }
