@@ -73,7 +73,7 @@ To build `Foo.java` using Mill, we can use the following build configuration:
 *.mill-version*
 
 ```
-0.12.5-68-e4bf78
+0.12.6
 ```
 
 *build.mill*
