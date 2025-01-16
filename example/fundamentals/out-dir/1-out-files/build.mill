@@ -256,6 +256,7 @@ out/mill-server
   },
   "call scala.Predef$#println(java.lang.Object)void": {}
 }
+
 */
 
 // In the `spanningInvalidationTree.json` above, we can see how to addition of the call

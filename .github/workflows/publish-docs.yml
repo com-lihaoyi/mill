@@ -19,6 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       REPO_DEPLOY_KEY: ${{ secrets.REPO_DEPLOY_KEY }}
+      MILL_STABLE_VERSION: 1
 
     steps:
       - uses: actions/checkout@v4

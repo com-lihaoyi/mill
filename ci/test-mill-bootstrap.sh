@@ -16,7 +16,11 @@ git stash -a
 git stash pop "$(git stash list | grep "preserve mill-release" | head -n1 | sed -E 's/([^:]+):.*/\1/')"
 
 # Prepare local build
-ci/prepare-mill-bootstrap.sh
+ci/patch-mill-bootstrap.sh
+
+# Start clean to rule out cache invalidation issues
+rm -rf out
+
 
 # Run tests
 ./mill-assembly.jar -i "__.compile"

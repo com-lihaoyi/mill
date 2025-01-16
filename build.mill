@@ -16,8 +16,7 @@ import mill.define.Cross
 
 // plugins and dependencies
 import $meta._
-import $file.ci.shared
-import $file.ci.upload
+
 import $packages._
 
 object Settings {
@@ -65,7 +64,7 @@ object Deps {
   val testScala33Version = "3.3.1"
 
   object Scalajs_1 {
-    val scalaJsVersion = "1.17.0"
+    val scalaJsVersion = "1.18.1"
     val scalajsEnvJsdomNodejs = ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0"
     val scalajsEnvExoegoJsdomNodejs = ivy"net.exoego::scalajs-env-jsdom-nodejs:2.1.0"
     val scalajsEnvNodejs = ivy"org.scala-js::scalajs-env-nodejs:1.4.0"
@@ -171,10 +170,10 @@ object Deps {
   val scalacScoverage2Serializer =
     ivy"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
   val scalaparse = ivy"com.lihaoyi::scalaparse:${fastparse.version}"
-  val scalatags = ivy"com.lihaoyi::scalatags:0.12.0"
+  val scalatags = ivy"com.lihaoyi::scalatags:0.13.1"
   def scalaXml = ivy"org.scala-lang.modules::scala-xml:2.3.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.12.3"
+  val semanticDBscala = ivy"org.scalameta:::semanticdb-scalac:4.12.4"
   val semanticDbJava = ivy"com.sourcegraph:semanticdb-java:0.10.3"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.4.2"
   val upickle = ivy"com.lihaoyi::upickle:3.3.1"
@@ -245,7 +244,7 @@ object Deps {
     ivy"org.apache.ant:ant:1.10.15",
     Deps.commonsIo,
     ivy"com.google.code.gson:gson:2.11.0",
-    ivy"com.google.protobuf:protobuf-java:4.29.2",
+    ivy"com.google.protobuf:protobuf-java:4.29.3",
     ivy"com.google.guava:guava:33.4.0-jre",
     ivy"org.yaml:snakeyaml:2.3",
     ivy"org.apache.commons:commons-compress:1.27.1"
@@ -267,14 +266,19 @@ object Deps {
 }
 
 def millVersion: T[String] = Task.Input {
-  if (Task.env.contains("MILL_STABLE_VERSION")) VcsVersion.calcVcsState(Task.log).format()
-  else "SNAPSHOT"
+  if (Task.env.contains("MILL_STABLE_VERSION")) {
+    // Ignore local changes when computing the VCS version string,
+    // since we make those in CI and can promise they are safe
+    VcsVersion.calcVcsState(Task.log).copy(dirtyHash = None).format()
+  } else "SNAPSHOT"
 }
 
 def millLastTag: T[String] = Task {
-  VcsVersion.vcsState().lastTag.getOrElse(
-    sys.error("No (last) git tag found. Your git history seems incomplete!")
-  )
+  if (Task.env.contains("MILL_STABLE_VERSION")) {
+    VcsVersion.vcsState().lastTag.getOrElse(
+      sys.error("No (last) git tag found. Your git history seems incomplete!")
+    )
+  } else "SNAPSHOT"
 }
 
 def millBinPlatform: T[String] = Task {
@@ -590,10 +594,18 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
     ),
 
     // Overrides added for new methods, ought to be safe
-    ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$internalRepositories"),
-    ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.scalanativelib.ScalaNativeModule.mill$scalanativelib$ScalaNativeModule$$super$coursierProject"),
-    ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.scalalib.JavaModule#JavaModuleTests.mill$scalalib$JavaModule$JavaModuleTests$$super$extraBomIvyDeps"),
-    ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.scalalib.JavaModule#JavaModuleTests.mill$scalalib$JavaModule$JavaModuleTests$$super$extraDepManagement"),
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$internalRepositories"
+    ),
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.scalanativelib.ScalaNativeModule.mill$scalanativelib$ScalaNativeModule$$super$coursierProject"
+    ),
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.scalalib.JavaModule#JavaModuleTests.mill$scalalib$JavaModule$JavaModuleTests$$super$extraBomIvyDeps"
+    ),
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.scalalib.JavaModule#JavaModuleTests.mill$scalalib$JavaModule$JavaModuleTests$$super$extraDepManagement"
+    ),
 
     // https://github.com/com-lihaoyi/mill/pull/3503
     ProblemFilter.exclude[ReversedMissingMethodProblem](

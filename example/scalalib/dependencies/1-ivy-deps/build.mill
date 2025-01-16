@@ -27,7 +27,6 @@ object `package` extends RootModule with ScalaModule {
 //   dependencies
 //
 // * Triple `:::` syntax (e.g. `ivy"org.scalamacros:::paradise:2.1.1"`) defines
-// * Triple `:::` syntax (e.g. `ivy"org.scalamacros:::paradise:2.1.1"`) defines
 //   dependencies cross-published against the full Scala version e.g. `2.12.4`
 //   instead of just `2.12`. These are typically Scala compiler plugins or
 //   similar.
@@ -36,7 +35,7 @@ object `package` extends RootModule with ScalaModule {
 //
 // To select the test-jars from a dependency use the following syntax:
 //
-// * `ivy"org.apache.spark::spark-sql:2.4.0;classifier=tests`.
+// * `ivy"org.apache.spark::spark-sql:2.4.0;classifier=tests`
 //
 // Please consult the xref:fundamentals/library-deps.adoc[Library Dependencies in Mill] section for more details.
 

@@ -101,7 +101,7 @@ object BspModuleTests extends TestSuite {
           }
           test("index 1 (no deps)") { runNoBsp(1, 5000) }
           test("index 10") { runNoBsp(10, 30000) }
-          test("index 15") { runNoBsp(15, 60000) }
+          test("index 15") { runNoBsp(15, 30000) }
         }
         def run(entry: Int, maxTime: Int) = retry(3) {
           UnitTester(InterDeps, null).scoped { eval =>
