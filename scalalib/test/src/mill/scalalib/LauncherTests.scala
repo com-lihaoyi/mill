@@ -10,6 +10,8 @@ object LauncherTests extends TestSuite {
     object ZincWorkerJava extends ZincWorkerModule {
       def jvmId = s"temurin:$customJavaVersion"
     }
+
+    def javacOptions = Seq("-target", "1.8", "-source", "1.8")
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "launcher"
