@@ -204,7 +204,7 @@ jobs:
         include:
           # bootstrap tests
           - java-version: 11 # Have one job on oldest JVM
-            buildcmd: ci/test-mill-dev.sh && ci/test-mill-release.sh && ./mill -i -k __.ivyDepsTree && ./mill -i -k __.ivyDepsTree --withRuntime
+            buildcmd: ci/test-dist-run.sh && ci/test-install-local.sh && ./mill -i -k __.ivyDepsTree && ./mill -i -k __.ivyDepsTree --withRuntime
           - java-version: 17 # Have one job on default JVM
             buildcmd: ci/test-mill-bootstrap.sh
 
