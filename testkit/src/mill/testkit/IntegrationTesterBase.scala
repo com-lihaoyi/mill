@@ -5,6 +5,7 @@ import mill.main.client.ServerFiles.serverId
 
 trait IntegrationTesterBase {
   def workspaceSourcePath: os.Path
+  def clientServerMode: Boolean
 
   /**
    * The working directory of the integration test suite, which is the root of the
@@ -58,14 +59,10 @@ trait IntegrationTesterBase {
    * Remove any ID files to try and force them to exit
    */
   def removeServerIdFile(): Unit = {
-    val outDir = os.Path(out, workspacePath)
-    if (os.exists(outDir)) {
-      val serverIdFiles = for {
-        outPath <- os.list.stream(outDir)
-        if outPath.last.startsWith(millServer)
-      } yield outPath / serverId
+    val serverPath0 = os.Path(out, workspacePath) / millServer
+    if (clientServerMode) {
+      for (serverPath <- os.list.stream(serverPath0)) os.remove(serverPath / serverId)
 
-      serverIdFiles.foreach(os.remove(_))
       Thread.sleep(500) // give a moment for the server to notice the file is gone and exit
     }
   }

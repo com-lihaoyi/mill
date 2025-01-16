@@ -46,7 +46,7 @@ object BspServerTestUtil {
         case (input0, (from0, to0)) =>
           val (from, to) = if (inverse) (to0, from0) else (from0, to0)
           input0.replace(from, to)
-      }
+      }.replaceAll("\"javaHome\": \"[^\"]+\"", "\"javaHome\": \"java-home\"")
 
     // This can be false only when generating test data for the first time.
     // In that case, updateSnapshots needs to be true, so that we write test data on disk.
@@ -58,52 +58,39 @@ object BspServerTestUtil {
       )
     }
 
-    if (!expectedValueOpt.contains(value)) {
-      lazy val jsonStr = gson.toJson(
+    lazy val jsonStr = normalizeLocalValues(
+      gson.toJson(
         value,
         implicitly[ClassTag[T]].runtimeClass
       )
-      lazy val expectedJsonStr = expectedValueOpt match {
-        case Some(v) => gson.toJson(v, implicitly[ClassTag[T]].runtimeClass)
-        case None => ""
-      }
-      if (updateSnapshots) {
-        System.err.println(if (exists) s"Updating $snapshotPath" else s"Writing $snapshotPath")
-        os.write.over(snapshotPath, normalizeLocalValues(jsonStr), createFolders = true)
-      } else {
-        Predef.assert(
-          false,
-          if (exists) {
-            val diff = os.call((
-              "git",
-              "diff",
-              os.temp(jsonStr, suffix = s"${snapshotPath.last}-jsonStr"),
-              os.temp(expectedJsonStr, suffix = s"${snapshotPath.last}-expectedJsonStr")
-            ))
-            s"""Error: value differs from snapshot in $snapshotPath
-               |
-               |You might want to set BspServerTestUtil.updateSnapshots to true,
-               |run this test again, and commit the updated test data files.
-               |
-               |$diff
-               |""".stripMargin
-          } else s"Error: no snapshot found at $snapshotPath"
-        )
-      }
-    } else if (updateSnapshots) {
-      // Snapshot on disk might need to be updated anyway, if normalizedLocalValues changed
-      // and new strings should be replaced
-      val obtainedJsonStr = normalizeLocalValues(
-        gson.toJson(
-          value,
-          implicitly[ClassTag[T]].runtimeClass
-        )
+    )
+
+    lazy val expectedJsonStr = expectedValueOpt match {
+      case Some(v) => normalizeLocalValues(gson.toJson(v, implicitly[ClassTag[T]].runtimeClass))
+      case None => ""
+    }
+    if (updateSnapshots) {
+      System.err.println(if (exists) s"Updating $snapshotPath" else s"Writing $snapshotPath")
+      os.write.over(snapshotPath, jsonStr, createFolders = true)
+    } else {
+      Predef.assert(
+        jsonStr == expectedJsonStr,
+        if (exists) {
+          val diff = os.call((
+            "git",
+            "diff",
+            os.temp(jsonStr, suffix = s"${snapshotPath.last}-jsonStr"),
+            os.temp(expectedJsonStr, suffix = s"${snapshotPath.last}-expectedJsonStr")
+          ))
+          s"""Error: value differs from snapshot in $snapshotPath
+             |
+             |You might want to set BspServerTestUtil.updateSnapshots to true,
+             |run this test again, and commit the updated test data files.
+             |
+             |$diff
+             |""".stripMargin
+        } else s"Error: no snapshot found at $snapshotPath"
       )
-      val expectedJsonStr = os.read(snapshotPath)
-      if (obtainedJsonStr != expectedJsonStr) {
-        System.err.println(s"Updating $snapshotPath")
-        os.write.over(snapshotPath, obtainedJsonStr)
-      }
     }
   }
 

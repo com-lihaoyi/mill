@@ -4,11 +4,10 @@ import mill.define.ModuleRef
 import mill.util.Jvm
 import mill.api.JarManifest
 import de.tobiasroeser.mill.vcs.version.VcsVersion
-import $file.ci.upload
 
 import scala.util.Using
 
-trait InstallModule extends build.MillPublishJavaModule{
+trait InstallModule extends build.MillPublishJavaModule {
   // All modules that we want to aggregate as part of this `dev` assembly.
   // Excluding itself, and the `dist` module that uses it
   lazy val allPublishModules = build.millInternal.modules.collect {
@@ -16,11 +15,11 @@ trait InstallModule extends build.MillPublishJavaModule{
   }
   def moduleDeps = Seq(build.runner, build.idea, build.main.init)
 
-  def jar: T[PathRef]
+  def executableRaw: T[PathRef]
 
-  def executable = Task{
+  def executable = Task {
     Task.traverse(allPublishModules)(m => m.publishLocalCached)()
-    jar()
+    executableRaw()
   }
 
   def localBinName: String
@@ -40,7 +39,9 @@ trait InstallModule extends build.MillPublishJavaModule{
 
   def installLocalCache() = Task.Command {
     val path = installLocalTask(
-      Task.Anon((os.home / ".cache" / "mill" / "download" / (build.millVersion() + batExt)).toString())
+      Task.Anon(
+        (os.home / ".cache" / "mill" / "download" / (build.millVersion() + batExt)).toString()
+      )
     )()
     Task.log.outputStream.println(path.toString())
     PathRef(path)
@@ -51,12 +52,14 @@ trait InstallModule extends build.MillPublishJavaModule{
     if (os.exists(targetFile))
       Task.log.info(s"Overwriting existing local Mill binary at ${targetFile}")
     os.copy.over(executable().path, targetFile, createFolders = true)
-    Task.log.info(s"Published ${build.dist.allPublishModules.size} modules and installed ${targetFile}")
+    Task.log.info(
+      s"Published ${build.dist.allPublishModules.size} modules and installed ${targetFile}"
+    )
     targetFile
   }
 }
 
-object `package` extends RootModule  with InstallModule {
+object `package` extends RootModule with InstallModule {
 
   /**
    * Version of [[dist]] meant for local integration testing within the Mill
@@ -91,7 +94,12 @@ object `package` extends RootModule  with InstallModule {
 
   def genTask(m: ScalaModule) = Task.Anon { Seq(m.jar(), m.sourceJar()) ++ m.runClasspath() }
 
-  def forkArgs: T[Seq[String]] = Task {
+  def localBinName = "mill-assembly.jar"
+
+  def launcher = Task {
+    val isWin = scala.util.Properties.isWin
+    val outputPath = Task.dest / (if (isWin) "run.bat" else "run")
+
     val genIdeaArgs =
       genTask(build.main.define)() ++
         genTask(build.main.eval)() ++
@@ -103,21 +111,37 @@ object `package` extends RootModule  with InstallModule {
         genTask(build.javascriptlib)() ++
         genTask(build.pythonlib)()
 
-    testArgs() ++
+    val launcherForkArgs = testArgs() ++
       Seq(
         "-DMILL_CLASSPATH=" + runClasspath().map(_.path.toString).mkString(","),
-        "-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","),
-        s"-DBSP4J_VERSION=${build.Deps.bsp4j.dep.version}"
+        "-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(",")
       )
-  }
+    val (millArgs, otherArgs) =
+      launcherForkArgs.partition(arg =>
+        arg.startsWith("-DMILL") && !arg.startsWith("-DMILL_VERSION")
+      )
 
-  def localBinName = "mill-assembly.jar"
+    // Pass Mill options via file, due to small max args limit in Windows
+    val vmOptionsFile = Task.dest / "mill.properties"
+    val millOptionsContent = millArgs
+      .map(_.drop(2).replace("\\", "/")) // drop -D prefix, replace \ with /
+      .mkString("\r\n")
 
-  def launcher = Task {
-    val isWin = scala.util.Properties.isWin
-    val outputPath = Task.dest / (if (isWin) "run.bat" else "run")
+    os.write(vmOptionsFile, millOptionsContent)
+    val jvmArgs = otherArgs ++ List(s"-DMILL_OPTIONS_PATH=$vmOptionsFile")
+    val classpath = runClasspath().map(_.path.toString)
+    val classpathJar = Task.dest / "classpath.jar"
+    Jvm.createClasspathPassingJar(classpathJar, runClasspath().map(_.path))
 
-    os.write(outputPath, prependShellScript())
+    val script = Jvm.launcherUniversalScript(
+      mainClass = "mill.runner.client.MillClientMain",
+      shellClassPath = classpath,
+      cmdClassPath = Agg(classpathJar.toString()),
+      jvmArgs = jvmArgs
+    )
+
+    os.write(outputPath, script)
+
     if (!isWin) os.perms.set(outputPath, "rwxrwxrwx")
 
     PathRef(outputPath)
@@ -131,65 +155,21 @@ object `package` extends RootModule  with InstallModule {
     mill.scalalib.Assembly.Rule.ExcludePattern("mill/local-test-overrides/.*")
   )
 
-  def jar = Task {
-    val version = build.millVersion()
-    val devRunClasspath = runClasspath().map(_.path)
+  def forkArgs = Seq(
+    // Workaround for Zinc/JNA bug
+    // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
+    "-Djna.nosys=true"
+  )
+
+  def forkShellArgs = Seq("-DMILL_CLASSPATH=$0")
+  def forkCmdArgs = Seq(""""-DMILL_CLASSPATH=%~dpnx0"""")
+
+  def mainClass = Some("mill.runner.client.MillClientMain")
+
+  def executableRaw = Task {
     val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
-    val commonArgs = Seq(
-      // Workaround for Zinc/JNA bug
-      // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
-      "-Djna.nosys=true"
-    )
-    val shellArgs = Seq("-DMILL_CLASSPATH=$0") ++ commonArgs
-    val cmdArgs = Seq(""""-DMILL_CLASSPATH=%~dpnx0"""") ++ commonArgs
-    os.move(
-      mill.scalalib.Assembly.createAssembly(
-        devRunClasspath,
-        prependShellScript = launcherScript(shellArgs, cmdArgs, Agg("$0"), Agg("%~dpnx0")),
-        assemblyRules = assemblyRules
-      ).path,
-      Task.dest / filename
-    )
+    os.copy(assembly().path, Task.dest / filename)
     PathRef(Task.dest / filename)
-  }
-
-  def prependShellScript = Task {
-    val (millArgs, otherArgs) =
-      forkArgs().partition(arg => arg.startsWith("-DMILL") && !arg.startsWith("-DMILL_VERSION"))
-    // Pass Mill options via file, due to small max args limit in Windows
-    val vmOptionsFile = Task.dest / "mill.properties"
-    val millOptionsContent =
-      millArgs.map(_.drop(2).replace("\\", "/")).mkString(
-        "\r\n"
-      ) // drop -D prefix, replace \ with /
-    os.write(vmOptionsFile, millOptionsContent)
-    val jvmArgs = otherArgs ++ List(s"-DMILL_OPTIONS_PATH=$vmOptionsFile")
-    val classpath = runClasspath().map(_.path.toString)
-    launcherScript(
-      jvmArgs,
-      jvmArgs,
-      classpath,
-      Agg(pathingJar().path.toString) // TODO not working yet on Windows! see #791
-    )
-  }
-
-  def pathingJar = Task {
-    // see http://todayguesswhat.blogspot.com/2011/03/jar-manifestmf-class-path-referencing.html
-    // for more detailed explanation
-    val isWin = scala.util.Properties.isWin
-    val classpath = runClasspath().map { pathRef =>
-      val path =
-        if (isWin) "/" + pathRef.path.toString.replace("\\", "/")
-        else pathRef.path.toString
-      if (path.endsWith(".jar")) path
-      else path + "/"
-    }.mkString(" ")
-    val manifestEntries = Map[String, String](
-      java.util.jar.Attributes.Name.MANIFEST_VERSION.toString -> "1.0",
-      "Created-By" -> "Scala mill",
-      "Class-Path" -> classpath
-    )
-    Jvm.createJar(Agg(), JarManifest(manifestEntries))
   }
 
   def run(args: Task[Args] = Task.Anon(Args())) = Task.Command(exclusive = true) {
@@ -211,60 +191,16 @@ object `package` extends RootModule  with InstallModule {
         }
     }
   }
-  def launcherScript(
-                      shellJvmArgs: Seq[String],
-                      cmdJvmArgs: Seq[String],
-                      shellClassPath: Agg[String],
-                      cmdClassPath: Agg[String]
-                    ) = {
-
-    val millMainClass = "mill.runner.client.MillClientMain"
-
-    Jvm.universalScript(
-      shellCommands = {
-        val jvmArgsStr = shellJvmArgs.mkString(" ")
-        val classpathStr = shellClassPath.mkString(":")
-
-        s"""if [ -z "$$JAVA_HOME" ] ; then
-           |  JAVACMD="java"
-           |else
-           |  JAVACMD="$$JAVA_HOME/bin/java"
-           |fi
-           |
-           |# Client-server mode doesn't seem to work on WSL, just disable it for now
-           |# https://stackoverflow.com/a/43618657/871202
-           |if grep -qEi "(Microsoft|WSL)" /proc/version > /dev/null 2> /dev/null ; then
-           |    if [ -z $$COURSIER_CACHE ] ; then
-           |      COURSIER_CACHE=.coursier
-           |    fi
-           |fi
-           |exec "$$JAVACMD" $jvmArgsStr $$JAVA_OPTS -cp "$classpathStr" $millMainClass "$$@"
-           |""".stripMargin
-      },
-      cmdCommands = {
-        val jvmArgsStr = cmdJvmArgs.mkString(" ")
-        val classpathStr = cmdClassPath.mkString(";")
-        s"""setlocal EnableDelayedExpansion
-           |set "JAVACMD=java.exe"
-           |if not "%JAVA_HOME%"=="" set "JAVACMD=%JAVA_HOME%\\bin\\java.exe"
-           |if "%1" == "-i" set _I_=true
-           |if "%1" == "--interactive" set _I_=true
-           |if "%1" == "--repl" set _I_=true
-           |if "%1" == "--no-server" set _I_=true
-           |if "%1" == "--bsp" set _I_=true
-           |
-           |"%JAVACMD%" $jvmArgsStr %JAVA_OPTS% -cp "$classpathStr" $millMainClass %*
-           |
-           |endlocal
-           |""".stripMargin
-      }
-    )
-  }
 
   def millBootstrap = Task.Source(Task.workspace / "mill")
   def millBootstrapBat = Task.Source(Task.workspace / "mill.bat")
 
-  def prepareBootstrapLauncher(bootstrap: os.Path, dest: os.Path, buildVersion: String, fileName: String) = {
+  def prepareBootstrapLauncher(
+      bootstrap: os.Path,
+      dest: os.Path,
+      buildVersion: String,
+      fileName: String
+  ) = {
     val outputPath = dest / fileName
     val millBootstrapGrepPrefix = "(\n *DEFAULT_MILL_VERSION=)"
 
@@ -288,7 +224,7 @@ object `package` extends RootModule  with InstallModule {
     prepareBootstrapLauncher(millBootstrapBat().path, Task.dest, build.millVersion(), "mill.bat")
   }
 
-  def examplePathsWithArtifactName:Task[Seq[(os.Path,String)]] = Task.Anon{
+  def examplePathsWithArtifactName: Task[Seq[(os.Path, String)]] = Task.Anon {
     for {
       exampleMod <- build.example.exampleModules
       path = exampleMod.millSourcePath
@@ -299,9 +235,8 @@ object `package` extends RootModule  with InstallModule {
     }
   }
 
-
   def exampleZips: T[Seq[PathRef]] = Task {
-    examplePathsWithArtifactName().map{ case (examplePath, exampleStr) =>
+    examplePathsWithArtifactName().map { case (examplePath, exampleStr) =>
       os.copy(examplePath, Task.dest / exampleStr, createFolders = true)
       os.write(Task.dest / exampleStr / ".mill-version", build.millLastTag())
       os.copy(bootstrapLauncher().path, Task.dest / exampleStr / "mill")
@@ -314,7 +249,7 @@ object `package` extends RootModule  with InstallModule {
 
   def uploadToGithub(authKey: String) = Task.Command {
     val vcsState = VcsVersion.vcsState()
-    val label = vcsState.format()
+    val label = vcsState.copy(dirtyHash = None).format()
     if (label != build.millVersion()) sys.error("Modified mill version detected, aborting upload")
     val releaseTag = vcsState.lastTag.getOrElse(sys.error(
       "Incomplete git history. No tag found.\nIf on CI, make sure your git checkout job includes enough history."
@@ -338,7 +273,7 @@ object `package` extends RootModule  with InstallModule {
     )
 
     for ((zip, name) <- zips) {
-      upload.apply(
+      upload(
         zip,
         releaseTag,
         name,
@@ -349,15 +284,59 @@ object `package` extends RootModule  with InstallModule {
     }
   }
 
+  def upload(
+      uploadedFile: os.Path,
+      tagName: String,
+      uploadName: String,
+      authKey: String,
+      githubOrg: String,
+      githubRepo: String
+  ): String = {
+
+    val response = requests.get(
+      s"https://api.github.com/repos/${githubOrg}/${githubRepo}/releases/tags/${tagName}",
+      headers = Seq(
+        "Authorization" -> s"token $authKey",
+        "Accept" -> "application/vnd.github.v3+json"
+      )
+    )
+
+    val parsed = ujson.read(response)
+
+    println("Response code: " + response.statusCode)
+    println(response.text())
+
+    val snapshotReleaseId = parsed("id").num.toInt
+
+    val uploadUrl =
+      s"https://uploads.github.com/repos/${githubOrg}/${githubRepo}/releases/" +
+        s"$snapshotReleaseId/assets?name=$uploadName"
+
+    val res = requests.post(
+      uploadUrl,
+      headers = Seq(
+        "Content-Type" -> "application/octet-stream",
+        "Authorization" -> s"token $authKey"
+      ),
+      data = os.read.stream(uploadedFile)
+    )
+
+    println(res.text())
+    val longUrl = ujson.read(res)("browser_download_url").str
+
+    println("Long Url " + longUrl)
+    longUrl
+  }
+
   object native extends mill.scalalib.NativeImageModule with InstallModule {
-    def artifactOsSuffix = T{
+    def artifactOsSuffix = T {
       val osName = System.getProperty("os.name").toLowerCase
       if (osName.contains("mac")) "mac"
       else if (osName.contains("windows")) "windows"
       else "linux"
     }
 
-    def artifactCpuSuffix = T{ System.getProperty("os.arch") }
+    def artifactCpuSuffix = T { System.getProperty("os.arch") }
     def artifactName = s"${super.artifactName()}-${artifactOsSuffix()}-${artifactCpuSuffix()}"
 
     def mainClass = Some("mill.runner.client.MillClientMain")
@@ -366,9 +345,9 @@ object `package` extends RootModule  with InstallModule {
 
     def localBinName = "mill-native"
 
-    def jar = Task {
+    def executableRaw = Task {
       val previous = nativeImage().path
-      val executable = Task.dest / previous.last
+      val executable = Task.dest / previous.baseName
 
       Using(os.write.outputStream(executable)) { out =>
         out.write(os.read.bytes(previous))
