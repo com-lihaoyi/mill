@@ -5,6 +5,7 @@ import mill._
 import mill.scalalib._
 import mill.api.{Logger, PathRef}
 import mill.define.ModuleRef
+import mill.testrunner.TestResult
 import mill.util.Jvm
 import os.RelPath
 import upickle.default._
@@ -1063,10 +1064,13 @@ trait AndroidAppModule extends JavaModule {
       emulator
     }
 
-    def test: T[Vector[String]] = Task {
+    override def testTask(
+        args: Task[Seq[String]],
+        globSelectors: Task[Seq[String]]
+    ): Task[(String, Seq[TestResult])] = Task {
       val device = androidInstall()
 
-      val instrumentOutput = os.call(
+      val instrumentOutput = os.proc(
         (
           androidSdkModule().adbPath().path,
           "-s",
@@ -1075,11 +1079,14 @@ trait AndroidAppModule extends JavaModule {
           "am",
           "instrument",
           "-w",
-          "-m",
+          "-r",
           s"$instrumentationPackage/${testFramework()}"
         )
-      )
-      instrumentOutput.out.lines()
+      ).spawn()
+
+      val outputReader = instrumentOutput.stdout.buffered
+
+      InstrumentationOutput.parseTestOutputStream(outputReader)(T.log)
     }
 
     /** Builds the apk including the integration tests (e.g. from androidTest) */

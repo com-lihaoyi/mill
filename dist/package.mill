@@ -202,34 +202,14 @@ object `package` extends RootModule  with InstallModule {
                       cmdClassPath: Agg[String]
                     ) = {
 
-    val millMainClass = "mill.runner.client.MillClientMain"
-
-    Jvm.universalScript(
-      shellCommands = {
-        val jvmArgsStr = shellJvmArgs.mkString(" ")
-        val classpathStr = shellClassPath.mkString(":")
-
-        s"""if [ -z "$$JAVA_HOME" ] ; then
-           |  JAVACMD="java"
-           |else
-           |  JAVACMD="$$JAVA_HOME/bin/java"
-           |fi
-           |
-           |exec "$$JAVACMD" $jvmArgsStr $$JAVA_OPTS -cp "$classpathStr" $millMainClass "$$@"
-           |""".stripMargin
-      },
-      cmdCommands = {
-        val jvmArgsStr = cmdJvmArgs.mkString(" ")
-        val classpathStr = cmdClassPath.mkString(";")
-        s"""setlocal EnableDelayedExpansion
-           |set "JAVACMD=java.exe"
-           |if not "%JAVA_HOME%"=="" set "JAVACMD=%JAVA_HOME%\\bin\\java.exe"
-           |
-           |"%JAVACMD%" $jvmArgsStr %JAVA_OPTS% -cp "$classpathStr" $millMainClass %*
-           |
-           |endlocal
-           |""".stripMargin
-      }
+    Jvm.launcherUniversalScript(
+      mainClass = "mill.runner.client.MillClientMain",
+      shellClassPath = shellClassPath,
+      cmdClassPath = cmdClassPath,
+      jvmArgs = Nil,
+      shebang = false,
+      shellJvmArgs = shellJvmArgs,
+      cmdJvmArgs = cmdJvmArgs
     )
   }
 

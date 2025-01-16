@@ -126,11 +126,20 @@ object app extends AndroidAppModule {
 > ./mill show app.adbDevices
 ...emulator-5554...device...
 
-> ./mill show app.it | grep '"OK (1 test)"'
-..."OK (1 test)",
-
-> cat out/app/it/test.json | grep '"OK (1 test)"'
-..."OK (1 test)"...
+> ./mill show app.it
+...
+[
+  "",
+  [
+    {
+      "fullyQualifiedName": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
+      "selector": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+]
+...
 
 > ./mill show app.stopAndroidEmulator
 
