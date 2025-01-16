@@ -1,10 +1,7 @@
 package build.contrib
 // imports
 import scala.util.chaining._
-import com.github.lolgab.mill.mima.Mima
 import coursier.maven.MavenRepository
-import de.tobiasroeser.mill.vcs.version.VcsVersion
-import com.goyeau.mill.scalafix.ScalafixModule
 import mill._
 import mill.api.JarManifest
 import mill.main.Tasks
