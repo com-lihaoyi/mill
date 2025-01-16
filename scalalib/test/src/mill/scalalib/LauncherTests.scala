@@ -23,12 +23,12 @@ object LauncherTests extends TestSuite {
       val Right(result1) = eval.apply(executableTask)
 
       val executable =
-        if (mill.util.Util.windowsPlatform && copyBat){
+        if (mill.util.Util.windowsPlatform && copyBat) {
           val prev = result1.value.path
           val next = prev / ".." / s"${prev.baseName}.bat"
           os.copy(prev, next)
           next
-        }else result1.value.path
+        } else result1.value.path
 
       val text = os.call(executable).out.text()
       assert(text.contains("test.property null"))
@@ -41,7 +41,6 @@ object LauncherTests extends TestSuite {
       assert(text2.contains("test.property 123"))
       assert(!text2.contains(customJavaVersion))
       val Right(javaHome) = eval.apply(HelloJava.ZincWorkerJava.javaHome)
-
 
       val text3 = os
         .call(executable, env = Map("JAVA_HOME" -> javaHome.value.get.path.toString))
