@@ -20,7 +20,148 @@ encounter.
 
 // end::header[]
 
-## Building Graal Native Images
+## An Example Java Program
+
+To get started with Mill and Graal, we will use the following example program:
+
+*foo/src/foo/Foo.java*
+```java
+package foo;
+
+import net.sourceforge.argparse4j.ArgumentParsers;
+import net.sourceforge.argparse4j.inf.ArgumentParser;
+import net.sourceforge.argparse4j.inf.Namespace;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+
+public class Foo {
+  public static String generateHtml(String text) {
+    Context context = new Context();
+    context.setVariable("text", text);
+    return new TemplateEngine().process("<h1 th:text=\"${text}\"></h1>", context);
+  }
+
+  public static void main(String[] args) {
+    ArgumentParser parser = ArgumentParsers.newFor("template")
+        .build()
+        .defaultHelp(true)
+        .description("Inserts text into a HTML template");
+
+    parser.addArgument("-t", "--text").required(true).help("text to insert");
+
+    Namespace ns = null;
+    try {
+      ns = parser.parseArgs(args);
+    } catch (Exception e) {
+      System.out.println(e.getMessage());
+      System.exit(1);
+    }
+
+    System.out.println(generateHtml(ns.getString("text")));
+  }
+}
+```
+
+`Foo.java` is a simple Java program with two dependencies - https://argparse4j.github.io/[ArgParse4J]
+and https://www.thymeleaf.org/[Thymeleaf] - that takes input via CLI flags and generates an
+HTML snippet it prints to stdout. While a bit contrived, this is intended to be a simple example
+Java program using common third-party dependencies.
+
+To build `Foo.java` using Mill, we can use the following build configuration:
+
+*.mill-version*
+
+```
+0.12.5-68-e4bf78
+```
+
+*build.mill*
+```scala
+package build
+import mill._, javalib._
+import mill.define.ModuleRef
+
+object foo extends JavaModule {
+  def ivyDeps = Agg(
+    ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
+    ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE",
+    ivy"org.slf4j:slf4j-nop:2.0.7"
+  )
+}
+```
+
+Now, using a `./mill` xref:mill:ROOT:cli/installation-ide.adoc#_bootstrap_scripts[bootstrap script],
+we can run this program as follows:
+
+```bash
+$ ./mill foo.run --text "hello-world"
+[55/55] foo.run
+[55] <h1>hello-world</h1>
+```
+
+Or turn it into an xref:5-executable-jars.adoc[Executable Assembly Jar] that can be run
+outside of the build tool:
+
+```bash
+$ ./mill show foo.assembly
+".../out/foo/assembly.dest/out.jar"
+
+$ out/foo/assembly.dest/out.jar --text "hello world"
+<h1>hello world</h1>
+```
+
+## Building a Native Executable
+
+To use Mill to build a Graal Native Image out of `Foo.java`, we need to tweak the config
+above:
+
+*build.mill*
+```scala
+package build
+import mill._, javalib._
+import mill.define.ModuleRef
+
+object foo extends JavaModule with NativeImageModule {
+  def ivyDeps = Agg(
+    ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
+    ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE",
+    ivy"org.slf4j:slf4j-nop:2.0.7"
+  )
+
+  def zincWorker = ModuleRef(ZincWorkerGraalvm)
+
+  def nativeImageOptions = Seq(
+    "--no-fallback",
+    "-H:IncludeResourceBundles=net.sourceforge.argparse4j.internal.ArgumentParserImpl"
+  )
+}
+
+object ZincWorkerGraalvm extends ZincWorkerModule {
+  def jvmId = "graalvm-community:23.0.1"
+}
+```
+
+Notable changes:
+
+- `foo` now needs to inherit from `NativeImageModule`
+
+- We need to override `zincWorker` to point at our own custom `ZincWorkerGraalvm`,
+  pulling in the version of Graal that we want to use to build our native image
+
+- We need to pass in some `nativeImageOptions`: in this case `--no-fallback` and
+  `-H:IncludeResourceBundles`
+
+Now, we can use build a native image using `foo.nativeImage`:
+
+```bash
+$ ./mill show foo.nativeImage
+".../out/foo/nativeImage.dest/native-executable"
+
+$ out/foo/nativeImage.dest/native-executable --text "hello world"
+<h1>hello world</h1>
+```
+
+
 
 ## Native Images v.s. Executable Assemblies
 
