@@ -4,7 +4,7 @@ import mill.define.ModuleRef
 import mill.util.Jvm
 import mill.api.JarManifest
 import de.tobiasroeser.mill.vcs.version.VcsVersion
-import $file.ci.upload
+
 
 import scala.util.Using
 

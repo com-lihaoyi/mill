@@ -19,7 +19,7 @@ import mill.define.Cross
 
 // plugins and dependencies
 import $meta._
-import $file.ci.upload
+
 
 object `package` extends RootModule with Module {
   def exampleModules: Seq[ExampleCrossModule] = millInternal

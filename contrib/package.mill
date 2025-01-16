@@ -20,8 +20,8 @@ import build.Deps
 
 // plugins and dependencies
 import $meta._
-import $file.ci.shared
-import $file.ci.upload
+
+
 
 object `package` extends RootModule {
   def contribModules: Seq[ContribModule] =

@@ -19,8 +19,8 @@ import mill.define.Cross
 
 // plugins and dependencies
 import $meta._
-import $file.ci.shared
-import $file.ci.upload
+
+
 
 object `package` extends RootModule {
   // We compile the test code once and then offer multiple modes to
