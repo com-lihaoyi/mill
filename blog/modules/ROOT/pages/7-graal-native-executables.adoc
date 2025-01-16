@@ -1,0 +1,23 @@
+// tag::header[]
+
+# Building Java Code Into Native Executables with Mill and Graal
+
+
+:author: Li Haoyi
+:revdate: ??? January 2025
+_{author}, {revdate}_
+
+include::mill:ROOT:partial$gtag-config.adoc[]
+
+One recent development in the last few years is the ability to compile Java
+applications into self-contained "Graal native image" binaries that can be run
+directly from the command line. This provides more convenient single-file
+distributions, faster startup time, and lower memory footprint. This article
+will discuss how you can get started building Java native executables using
+the Mill build tool, the benefits they may bring, and the issues you may
+encounter.
+
+
+
+
+// end::header[]

@@ -1,0 +1,18 @@
+//// SNIPPET:BUILD
+package build
+import mill._, javalib._
+
+object foo extends JavaModule  with NativeImageModule {
+  def ivyDeps = Agg(
+    ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
+    ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
+  )
+
+  def zincWorker = ModuleRef(ZincWorkerGraalvm)
+
+  def nativeImageOptions = Seq("--no-fallback")
+}
+
+object ZincWorkerGraalvm extends ZincWorkerModule {
+  def jvmId = "graalvm-community:17.0.7"
+}
