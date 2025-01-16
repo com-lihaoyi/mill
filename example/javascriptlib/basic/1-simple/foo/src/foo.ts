@@ -1,4 +1,4 @@
-import {Map} from 'node_modules/immutable';
+import {Map} from 'immutable';
 
 interface User {
     firstName: string

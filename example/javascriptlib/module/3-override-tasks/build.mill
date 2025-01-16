@@ -23,7 +23,6 @@ object foo extends TypeScriptModule {
 
   def compile = Task {
     println("Compiling...")
-    os.copy(sources().path, super.compile()._2.path, mergeFolders = true)
     super.compile()
   }
 
