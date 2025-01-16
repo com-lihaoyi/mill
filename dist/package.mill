@@ -161,6 +161,8 @@ object `package` extends RootModule  with InstallModule {
   def forkShellArgs = Seq("-DMILL_CLASSPATH=$0")
   def forkCmdArgs = Seq("""""-DMILL_CLASSPATH=%~dpnx0"""")
 
+  def mainClass = Some("mill.runner.client.MillClientMain")
+
   def executableRaw = Task {
     val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
     os.copy(assembly().path, Task.dest / filename)
