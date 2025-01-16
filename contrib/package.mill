@@ -21,8 +21,6 @@ import build.Deps
 // plugins and dependencies
 import $meta._
 
-
-
 object `package` extends RootModule {
   def contribModules: Seq[ContribModule] =
     millInternal.modules.collect { case m: ContribModule => m }
@@ -115,7 +113,7 @@ object `package` extends RootModule {
     def testArgs = Task {
       super.testArgs() ++
         Seq(
-          s"-DMILL_SCOVERAGE2_VERSION=${build.Deps.scalacScoverage2Plugin.dep.version}",
+          s"-DMILL_SCOVERAGE2_VERSION=${build.Deps.scalacScoverage2Plugin.dep.version}"
         )
     }
 

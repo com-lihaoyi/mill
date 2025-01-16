@@ -17,7 +17,6 @@ import mill.define.Cross
 // plugins and dependencies
 import $meta._
 
-
 import $packages._
 
 object Settings {
@@ -271,8 +270,7 @@ def millVersion: T[String] = Task.Input {
     // Ignore local changes when computing the VCS version string,
     // since we make those in CI and can promise they are safe
     VcsVersion.calcVcsState(Task.log).copy(dirtyHash = None).format()
-  }
-  else "SNAPSHOT"
+  } else "SNAPSHOT"
 }
 
 def millLastTag: T[String] = Task {

@@ -20,8 +20,6 @@ import mill.define.Cross
 // plugins and dependencies
 import $meta._
 
-
-
 object `package` extends RootModule {
   // We compile the test code once and then offer multiple modes to
   // test it in the `test` CrossModule. We pass `test`'s sources to `lib` to
@@ -51,7 +49,6 @@ object `package` extends RootModule {
             "MILL_INTEGRATION_LAUNCHER" -> millIntegrationLauncher().path.toString
           )
 
-
       def millIntegrationLauncher: T[PathRef]
 
       def forkArgs = Task { super.forkArgs() ++ build.dist.forkArgs() }
@@ -77,10 +74,10 @@ object `package` extends RootModule {
     }
     trait IntegrationLauncherModule extends Module {
       def millIntegrationLauncher: T[PathRef]
-      object fork extends ModeModule{
+      object fork extends ModeModule {
         def millIntegrationLauncher = IntegrationLauncherModule.this.millIntegrationLauncher
       }
-      object server extends ModeModule{
+      object server extends ModeModule {
         def millIntegrationLauncher = IntegrationLauncherModule.this.millIntegrationLauncher
       }
     }
