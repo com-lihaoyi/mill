@@ -21,11 +21,6 @@ jobs:
     runs-on: ${{ inputs.os }}
     timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
-      - uses: actions/setup-java@v4
-        with:
-          java-version: ${{ inputs.java-version }}
-          distribution: temurin
-
       # For normal PR jobs, just checkout the base_ref the PR is against
       - uses: actions/checkout@v4
         with:
