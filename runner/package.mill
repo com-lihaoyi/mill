@@ -3,7 +3,7 @@ package build.runner
 import mill._
 import mill.contrib.buildinfo.BuildInfo
 object `package` extends RootModule with build.MillPublishScalaModule {
-  object client extends build.MillPublishScalaModule with BuildInfo{
+  object client extends build.MillPublishScalaModule with BuildInfo {
     // Disable scalafix because it seems to misbehave and cause
     // spurious errors when there are mixed Java/Scala sources
     def fix(args: String*): Command[Unit] = T.command {}

@@ -220,4 +220,7 @@ jobs:
     uses: ./.github/workflows/post-build-raw.yml
     with:
       java-version: '17'
-      buildcmd: ./mill -i mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources + __.mimaReportBinaryIssues + __.fix --check + mill.javalib.palantirformat.PalantirFormatModule/ --check + mill.kotlinlib.ktlint.KtlintModule/checkFormatAll
+      buildcmd: |
+        set -eux
+        ./mill -i mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll + __.mimaReportBinaryIssues + __.fix --check + mill.javalib.palantirformat.PalantirFormatModule/ --check + mill.kotlinlib.ktlint.KtlintModule/checkFormatAll
+        ./mill -i --meta-level 1 mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll

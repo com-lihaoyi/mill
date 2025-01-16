@@ -4,11 +4,10 @@ import mill.define.ModuleRef
 import mill.util.Jvm
 import mill.api.JarManifest
 import de.tobiasroeser.mill.vcs.version.VcsVersion
-import $file.ci.upload
 
 import scala.util.Using
 
-trait InstallModule extends build.MillPublishJavaModule{
+trait InstallModule extends build.MillPublishJavaModule {
   // All modules that we want to aggregate as part of this `dev` assembly.
   // Excluding itself, and the `dist` module that uses it
   lazy val allPublishModules = build.millInternal.modules.collect {
@@ -18,7 +17,7 @@ trait InstallModule extends build.MillPublishJavaModule{
 
   def executableRaw: T[PathRef]
 
-  def executable = Task{
+  def executable = Task {
     Task.traverse(allPublishModules)(m => m.publishLocalCached)()
     executableRaw()
   }
@@ -40,7 +39,9 @@ trait InstallModule extends build.MillPublishJavaModule{
 
   def installLocalCache() = Task.Command {
     val path = installLocalTask(
-      Task.Anon((os.home / ".cache" / "mill" / "download" / (build.millVersion() + batExt)).toString())
+      Task.Anon(
+        (os.home / ".cache" / "mill" / "download" / (build.millVersion() + batExt)).toString()
+      )
     )()
     Task.log.outputStream.println(path.toString())
     PathRef(path)
@@ -51,12 +52,14 @@ trait InstallModule extends build.MillPublishJavaModule{
     if (os.exists(targetFile))
       Task.log.info(s"Overwriting existing local Mill binary at ${targetFile}")
     os.copy.over(executable().path, targetFile, createFolders = true)
-    Task.log.info(s"Published ${build.dist.allPublishModules.size} modules and installed ${targetFile}")
+    Task.log.info(
+      s"Published ${build.dist.allPublishModules.size} modules and installed ${targetFile}"
+    )
     targetFile
   }
 }
 
-object `package` extends RootModule  with InstallModule {
+object `package` extends RootModule with InstallModule {
 
   /**
    * Version of [[dist]] meant for local integration testing within the Mill
@@ -91,7 +94,6 @@ object `package` extends RootModule  with InstallModule {
 
   def genTask(m: ScalaModule) = Task.Anon { Seq(m.jar(), m.sourceJar()) ++ m.runClasspath() }
 
-
   def localBinName = "mill-assembly.jar"
 
   def launcher = Task {
@@ -112,16 +114,17 @@ object `package` extends RootModule  with InstallModule {
     val launcherForkArgs = testArgs() ++
       Seq(
         "-DMILL_CLASSPATH=" + runClasspath().map(_.path.toString).mkString(","),
-        "-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","),
-
+        "-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(",")
       )
     val (millArgs, otherArgs) =
-      launcherForkArgs.partition(arg => arg.startsWith("-DMILL") && !arg.startsWith("-DMILL_VERSION"))
+      launcherForkArgs.partition(arg =>
+        arg.startsWith("-DMILL") && !arg.startsWith("-DMILL_VERSION")
+      )
 
     // Pass Mill options via file, due to small max args limit in Windows
     val vmOptionsFile = Task.dest / "mill.properties"
     val millOptionsContent = millArgs
-      .map(_.drop(2).replace("\\", "/"))  // drop -D prefix, replace \ with /
+      .map(_.drop(2).replace("\\", "/")) // drop -D prefix, replace \ with /
       .mkString("\r\n")
 
     os.write(vmOptionsFile, millOptionsContent)
@@ -134,7 +137,7 @@ object `package` extends RootModule  with InstallModule {
       mainClass = "mill.runner.client.MillClientMain",
       shellClassPath = classpath,
       cmdClassPath = Agg(classpathJar.toString()),
-      jvmArgs = jvmArgs,
+      jvmArgs = jvmArgs
     )
 
     os.write(outputPath, script)
@@ -192,7 +195,12 @@ object `package` extends RootModule  with InstallModule {
   def millBootstrap = Task.Source(Task.workspace / "mill")
   def millBootstrapBat = Task.Source(Task.workspace / "mill.bat")
 
-  def prepareBootstrapLauncher(bootstrap: os.Path, dest: os.Path, buildVersion: String, fileName: String) = {
+  def prepareBootstrapLauncher(
+      bootstrap: os.Path,
+      dest: os.Path,
+      buildVersion: String,
+      fileName: String
+  ) = {
     val outputPath = dest / fileName
     val millBootstrapGrepPrefix = "(\n *DEFAULT_MILL_VERSION=)"
 
@@ -216,7 +224,7 @@ object `package` extends RootModule  with InstallModule {
     prepareBootstrapLauncher(millBootstrapBat().path, Task.dest, build.millVersion(), "mill.bat")
   }
 
-  def examplePathsWithArtifactName:Task[Seq[(os.Path,String)]] = Task.Anon{
+  def examplePathsWithArtifactName: Task[Seq[(os.Path, String)]] = Task.Anon {
     for {
       exampleMod <- build.example.exampleModules
       path = exampleMod.millSourcePath
@@ -227,9 +235,8 @@ object `package` extends RootModule  with InstallModule {
     }
   }
 
-
   def exampleZips: T[Seq[PathRef]] = Task {
-    examplePathsWithArtifactName().map{ case (examplePath, exampleStr) =>
+    examplePathsWithArtifactName().map { case (examplePath, exampleStr) =>
       os.copy(examplePath, Task.dest / exampleStr, createFolders = true)
       os.write(Task.dest / exampleStr / ".mill-version", build.millLastTag())
       os.copy(bootstrapLauncher().path, Task.dest / exampleStr / "mill")
@@ -266,7 +273,7 @@ object `package` extends RootModule  with InstallModule {
     )
 
     for ((zip, name) <- zips) {
-      upload.apply(
+      upload(
         zip,
         releaseTag,
         name,
@@ -277,15 +284,59 @@ object `package` extends RootModule  with InstallModule {
     }
   }
 
+  def upload(
+      uploadedFile: os.Path,
+      tagName: String,
+      uploadName: String,
+      authKey: String,
+      githubOrg: String,
+      githubRepo: String
+  ): String = {
+
+    val response = requests.get(
+      s"https://api.github.com/repos/${githubOrg}/${githubRepo}/releases/tags/${tagName}",
+      headers = Seq(
+        "Authorization" -> s"token $authKey",
+        "Accept" -> "application/vnd.github.v3+json"
+      )
+    )
+
+    val parsed = ujson.read(response)
+
+    println("Response code: " + response.statusCode)
+    println(response.text())
+
+    val snapshotReleaseId = parsed("id").num.toInt
+
+    val uploadUrl =
+      s"https://uploads.github.com/repos/${githubOrg}/${githubRepo}/releases/" +
+        s"$snapshotReleaseId/assets?name=$uploadName"
+
+    val res = requests.post(
+      uploadUrl,
+      headers = Seq(
+        "Content-Type" -> "application/octet-stream",
+        "Authorization" -> s"token $authKey"
+      ),
+      data = os.read.stream(uploadedFile)
+    )
+
+    println(res.text())
+    val longUrl = ujson.read(res)("browser_download_url").str
+
+    println("Long Url " + longUrl)
+    longUrl
+  }
+
   object native extends mill.scalalib.NativeImageModule with InstallModule {
-    def artifactOsSuffix = T{
+    def artifactOsSuffix = T {
       val osName = System.getProperty("os.name").toLowerCase
       if (osName.contains("mac")) "mac"
       else if (osName.contains("windows")) "windows"
       else "linux"
     }
 
-    def artifactCpuSuffix = T{ System.getProperty("os.arch") }
+    def artifactCpuSuffix = T { System.getProperty("os.arch") }
     def artifactName = s"${super.artifactName()}-${artifactOsSuffix()}-${artifactCpuSuffix()}"
 
     def mainClass = Some("mill.runner.client.MillClientMain")
