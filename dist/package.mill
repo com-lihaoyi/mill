@@ -159,7 +159,7 @@ object `package` extends RootModule  with InstallModule {
   )
 
   def forkShellArgs = Seq("-DMILL_CLASSPATH=$0")
-  def forkCmdArgs = Seq("""""-DMILL_CLASSPATH=%~dpnx0"""")
+  def forkCmdArgs = Seq(""""-DMILL_CLASSPATH=%~dpnx0"""")
 
   def mainClass = Some("mill.runner.client.MillClientMain")
 
