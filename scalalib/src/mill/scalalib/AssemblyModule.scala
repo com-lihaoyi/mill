@@ -5,7 +5,6 @@ import mill.api.{JarManifest, PathRef, Result}
 import mill.define.{Target => T, _}
 import mill.util.Jvm
 
-import scala.annotation.nowarn
 
 /**
  * Core configuration required to compile a single Java compilation target
