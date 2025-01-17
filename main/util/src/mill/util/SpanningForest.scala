@@ -25,7 +25,7 @@ private[mill] object SpanningForest {
 
     (vertexToIndex, edgeIndices)
   }
-  
+
   def writeJsonFile(
       path: os.Path,
       indexEdges: Array[Array[Int]],
