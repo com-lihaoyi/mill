@@ -95,5 +95,43 @@ object JsonFormatters extends JsonFormatters {
     given Root_core_coursier_DependencyManagement_Values
         : Mirrors.Root[coursier.core.DependencyManagement.Values] =
       Mirrors.autoRoot[coursier.core.DependencyManagement.Values]
+    given Root_coursier_core_Activation_Os
+        : Mirrors.Root[coursier.core.Activation.Os] =
+      Mirrors.autoRoot[coursier.core.Activation.Os]
+    given Root_coursier_core_Info_Developer
+        : Mirrors.Root[coursier.core.Info.Developer] =
+      Mirrors.autoRoot[coursier.core.Info.Developer]
+    given Root_coursier_core_Info_Scm
+        : Mirrors.Root[coursier.core.Info.Scm] =
+      Mirrors.autoRoot[coursier.core.Info.Scm]
+    given Root_coursier_core_Info_License
+        : Mirrors.Root[coursier.core.Info.License] =
+      Mirrors.autoRoot[coursier.core.Info.License]
+    given Root_coursier_core_Info
+        : Mirrors.Root[coursier.core.Info] =
+      Mirrors.autoRoot[coursier.core.Info]
+    given Root_coursier_core_SnapshotVersion
+        : Mirrors.Root[coursier.core.SnapshotVersion] =
+      Mirrors.autoRoot[coursier.core.SnapshotVersion]
+    given Root_coursier_core_VersionInterval
+        : Mirrors.Root[coursier.core.VersionInterval] =
+      Mirrors.autoRoot[coursier.core.VersionInterval]
+    given Root_coursier_core_SnapshotVersioning
+        : Mirrors.Root[coursier.core.SnapshotVersioning] =
+      Mirrors.autoRoot[coursier.core.SnapshotVersioning]
+    given Root_coursier_core_Versions
+        : Mirrors.Root[coursier.core.Versions] = ???
+    given Root_coursier_core_Versions_DateTime
+        : Mirrors.Root[coursier.core.Versions.DateTime] =
+      Mirrors.autoRoot[coursier.core.Versions.DateTime]
+    given Root_coursier_core_Activation
+        : Mirrors.Root[coursier.core.Activation] =
+      Mirrors.autoRoot[coursier.core.Activation]
+    given Root_coursier_core_Profile
+        : Mirrors.Root[coursier.core.Profile] =
+      Mirrors.autoRoot[coursier.core.Profile]
+    given Root_coursier_core_Project
+        : Mirrors.Root[coursier.core.Project] =
+      Mirrors.autoRoot[coursier.core.Project]
   }
 }
