@@ -29,20 +29,6 @@ object `package` extends RootModule with MyModule {
 
     def pomPackagingType = PackagingType.Pom
 
-    def pomSettings = PomSettings(
-      "Sample multi module Maven project with a working, deployable site.",
-      "com.example.maven-samples",
-      "http://www.example.com",
-      Seq(),
-      VersionControl(
-        Some("http://github.com/gabrielf/maven-samples"),
-        Some("scm:git:git@github.com:gabrielf/maven-samples.git"),
-        Some("scm:git:git@github.com:gabrielf/maven-samples.git"),
-        Some("HEAD")
-      ),
-      Seq()
-    )
-
     def publishProperties = super.publishProperties() ++ Map(
       ("project.build.sourceEncoding", "utf-8"),
       ("project.reporting.outputEncoding", "utf-8")
@@ -58,20 +44,6 @@ object `package` extends RootModule with MyModule {
         "multi-module-parent",
         "1.0-SNAPSHOT"
       ))
-
-      def pomSettings = PomSettings(
-        "Logic.",
-        "com.example.maven-samples",
-        "http://www.example.com/server",
-        Seq(),
-        VersionControl(
-          Some("http://github.com/gabrielf/maven-samples/server"),
-          Some("scm:git:git@github.com:gabrielf/maven-samples.git/server"),
-          Some("scm:git:git@github.com:gabrielf/maven-samples.git/server"),
-          Some("HEAD")
-        ),
-        Seq()
-      )
 
       def publishProperties = super.publishProperties() ++ Map(
         ("project.build.sourceEncoding", "utf-8"),
@@ -108,20 +80,6 @@ object `package` extends RootModule with MyModule {
         "1.0-SNAPSHOT"
       ))
 
-      def pomSettings = PomSettings(
-        "Webapp.",
-        "com.example.maven-samples",
-        "http://www.example.com/webapp",
-        Seq(),
-        VersionControl(
-          Some("http://github.com/gabrielf/maven-samples/webapp"),
-          Some("scm:git:git@github.com:gabrielf/maven-samples.git/webapp"),
-          Some("scm:git:git@github.com:gabrielf/maven-samples.git/webapp"),
-          Some("HEAD")
-        ),
-        Seq()
-      )
-
       def publishProperties = super.publishProperties() ++ Map(
         ("project.build.sourceEncoding", "utf-8"),
         ("project.reporting.outputEncoding", "utf-8")
@@ -139,20 +97,6 @@ object `package` extends RootModule with MyModule {
       Seq("-source", "1.6", "-target", "1.6")
 
     def artifactName = "single-module-project"
-
-    def pomSettings = PomSettings(
-      "Sample single module Maven project with a working, deployable site.",
-      "com.example.maven-samples",
-      "http://www.example.com",
-      Seq(),
-      VersionControl(
-        Some("http://github.com/gabrielf/maven-samples"),
-        Some("scm:git:git@github.com:gabrielf/maven-samples.git"),
-        Some("scm:git:git@github.com:gabrielf/maven-samples.git"),
-        Some("HEAD")
-      ),
-      Seq()
-    )
 
     def publishProperties = super.publishProperties() ++ Map(
       ("project.build.sourceEncoding", "utf-8"),
