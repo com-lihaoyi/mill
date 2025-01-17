@@ -41,6 +41,17 @@ trait SelectiveExecutionModule extends mill.define.Module {
       }
     }
 
+
+  def resolveTree(evaluator: Evaluator, tasks: String*): Command[ujson.Value] =
+    Task.Command(exclusive = true) {
+      SelectiveExecution.resolveTree(evaluator, tasks) match {
+        case Left(err) => Result.Failure(err)
+        case Right(success) =>
+          println(success.render(indent = 2))
+          Result.Success(success)
+      }
+    }
+
   /**
    * Run after [[prepare]], selectively executes the tasks in [[tasks]] that are
    * affected by any changes to the task inputs or task implementations since [[prepare]]
