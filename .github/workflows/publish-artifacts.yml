@@ -87,8 +87,8 @@ jobs:
     strategy:
       matrix:
         include:
-        #- os: ubuntu-24.04-arm
-        #  coursierarchive: ""
+        - os: ubuntu-24.04-arm
+          coursierarchive: ""
 
         - os: macos-latest
           coursierarchive: ""
@@ -108,6 +108,11 @@ jobs:
       LC_ALL: "en_US.UTF-8"
       COURSIER_ARCHIVE_CACHE: ${{ matrix.coursierarchive }}
     steps:
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
 
