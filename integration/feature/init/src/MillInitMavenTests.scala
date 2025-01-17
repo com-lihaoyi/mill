@@ -81,7 +81,7 @@ object MillInitMavenDotEnvTests extends BuildGenTestSuite {
     test - integrationTest(url) { tester =>
       import tester._
 
-      val init = ("init", "--base-module", "BaseModule", "--deps-object", "Deps")
+      val init = ("init", "--base-module", "BaseModule", "--deps-object", "Deps", "--merge")
       val initRes = eval(init, stdout = os.Inherit, stderr = os.Inherit)
       assert(initRes.isSuccess)
 

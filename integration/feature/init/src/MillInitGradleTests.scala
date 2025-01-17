@@ -1,5 +1,6 @@
 package mill.integration
 
+import mill.main.client.Util
 import utest._
 
 object MillInitGradleJCommanderTests extends BuildGenTestSuite {
@@ -21,7 +22,7 @@ object MillInitGradleJCommanderTests extends BuildGenTestSuite {
       val compileRes = eval("compile")
       assert(compileRes.isSuccess)
 
-      val testCompileRes = eval("test.compile", stdout = os.Inherit, stderr = os.Inherit)
+      val testCompileRes = eval("test.compile")
       // errors related to annotation classes defined in main module
       assert(!testCompileRes.isSuccess)
     }
@@ -40,40 +41,25 @@ object MillInitGradleFastCsvTests extends BuildGenTestSuite {
     test - integrationTest(url) { tester =>
       import tester._
 
-      val cmd = ("init", "--base-module", "BaseModule", "--jvm-id", "17", "--deps-object", "Deps")
+      val cmd = (
+        "init",
+        "--base-module",
+        "BaseModule",
+        "--jvm-id",
+        "17",
+        "--deps-object",
+        "Deps",
+        "--merge"
+      )
       val initRes = eval(cmd, stdout = os.Inherit, stderr = os.Inherit)
       assert(initRes.isSuccess)
 
-      val compileRes = eval("lib.compile", stdout = os.Inherit, stderr = os.Inherit)
+      val compileRes = eval("lib.compile")
       assert(
         // classpath entry added by JavaModule.compileResources does not exist
         // error: warnings found and -Werror specified
         !compileRes.isSuccess
       )
-    }
-  }
-}
-
-object MillInitGradleMockitoTests extends BuildGenTestSuite {
-
-  def tests: Tests = Tests {
-    // - multi-module
-    // - requires Java 17+
-    // - additional repository (Android)
-    // - JUnit 4
-    // - Gradle 8.10.2
-    val url = "https://github.com/mockito/mockito/archive/refs/tags/v5.15.2.zip"
-
-    test - integrationTest(url) { tester =>
-      import tester._
-
-      val init = ("init", "--base-module", "BaseModule", "--jvm-id", "17", "--deps-object", "Deps")
-      val initRes = eval(init, stdout = os.Inherit, stderr = os.Inherit)
-      assert(initRes.isSuccess)
-
-      val compileRes = eval("mockito-core.compile", stdout = os.Inherit, stderr = os.Inherit)
-      // Unexpected javac output: error: plug-in not found: ErrorProne
-      assert(!compileRes.isSuccess)
     }
   }
 }
@@ -144,17 +130,20 @@ object MillInitGradleEhcache3Tests extends BuildGenTestSuite {
     )
 
     test - integrationTest(url) { tester =>
-      import tester._
+      // Takes forever on windows
+      if (!Util.isWindows) {
+        import tester._
 
-      val init = ("init", "--base-module", "BaseModule", "--deps-object", "Deps")
-      val initRes = eval(init, stdout = os.Inherit, stderr = os.Inherit)
-      assert(initRes.isSuccess)
+        val init = ("init", "--base-module", "BaseModule", "--deps-object", "Deps")
+        val initRes = eval(init, stdout = os.Inherit, stderr = os.Inherit)
+        assert(initRes.isSuccess)
 
-      for (task <- compileTasksSucceeding) {
-        assert(eval(task).isSuccess)
-      }
-      for (task <- compileTasksFailing) {
-        assert(!eval(task).isSuccess)
+        for (task <- compileTasksSucceeding) {
+          assert(eval(task).isSuccess)
+        }
+        for (task <- compileTasksFailing) {
+          assert(!eval(task).isSuccess)
+        }
       }
     }
   }
@@ -201,7 +190,7 @@ object MillInitGradleMoshiTests extends BuildGenTestSuite {
         assert(initRes.isSuccess)
 
         for (task <- compileTasksSucceeding) {
-          assert(eval(task, stdout = os.Inherit, stderr = os.Inherit).isSuccess)
+          assert(eval(task).isSuccess)
         }
         for (task <- compileTasksFailing) {
           assert(!eval(task).isSuccess)

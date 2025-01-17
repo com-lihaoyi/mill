@@ -113,7 +113,7 @@ object BuildGen {
       buildPackages(input)(project => (project.group(), project.name(), project.version()))
     val isMonorepo = packages.size > 1
 
-    val (baseJavacOptions, baseReps, basePomSettings, basePublishVersion, baseModuleTypedef) =
+    val (baseJavacOptions, baseReps, baseNoPom, basePublishVersion, baseModuleTypedef) =
       cfg.baseModule match {
         case Some(baseModule) =>
           val project = {
@@ -162,9 +162,9 @@ object BuildGen {
                |$zincWorker
                |}""".stripMargin
 
-          (javacOptions, reps, pomSettings, publishVersion, typedef)
+          (javacOptions, reps, pomSettings.isEmpty, publishVersion, typedef)
         case None =>
-          (Seq.empty, Seq.empty, "", "", "")
+          (Seq.empty, Seq.empty, true, "", "")
       }
 
     val nestedModuleImports = cfg.baseModule.map(name => s"$$file.$name")
@@ -195,7 +195,7 @@ object BuildGen {
       val supertypes = {
         val b = Seq.newBuilder[String]
         b += "RootModule"
-        if (hasPom && basePomSettings.isEmpty) b += "PublishModule"
+        if (hasPom && baseNoPom) b += "PublishModule"
         if (isNested || hasSource) b += moduleSupertype
         b.result()
       }
@@ -223,10 +223,7 @@ object BuildGen {
           if (options == baseJavacOptions) Seq.empty else options
         }
         val reps = getRepositories(project).diff(baseReps)
-        val pomSettings = {
-          val setting = mkPomSettings(project)
-          if (setting == basePomSettings) null else setting
-        }
+        val pomSettings = if (baseNoPom) mkPomSettings(project) else null
         val publishVersion = {
           val version = getPublishVersion(project)
           if (version == basePublishVersion) null else version

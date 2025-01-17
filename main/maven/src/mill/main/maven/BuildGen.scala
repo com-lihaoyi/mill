@@ -5,7 +5,7 @@ import mill.main.buildgen.BuildGenUtil.*
 import mill.main.buildgen.BuildObject.Companions
 import mill.main.buildgen.{BuildGenUtil, BuildObject, Node, Tree}
 import mill.runner.FileImportGraph.backtickWrap
-import org.apache.maven.model.{Dependency, Model}
+import org.apache.maven.model.{Dependency, Model, Parent}
 
 import scala.collection.immutable.{SortedMap, SortedSet}
 import scala.jdk.CollectionConverters.*
@@ -72,7 +72,7 @@ object BuildGen {
 
     val (
       baseJavacOptions,
-      basePomSettings,
+      baseNoPom,
       basePublishVersion,
       basePublishProperties,
       baseModuleTypedef
@@ -108,9 +108,9 @@ object BuildGen {
              |$zincWorker
              |}""".stripMargin
 
-        (javacOptions, pomSettings, publishVersion, publishProperties, typedef)
+        (javacOptions, pomSettings.isEmpty, publishVersion, publishProperties, typedef)
       case None =>
-        (Seq.empty, "", "", Seq.empty, "")
+        (Seq.empty, true, "", Seq.empty, "")
     }
 
     val nestedModuleImports = cfg.baseModule.map(name => s"$$file.$name")
@@ -162,10 +162,7 @@ object BuildGen {
           val options = Plugins.MavenCompilerPlugin.javacOptions(model)
           if (options == baseJavacOptions) Seq.empty else options
         }
-        val pomSettings = {
-          val settings = mkPomSettings(model)
-          if (settings == basePomSettings) null else settings
-        }
+        val pomSettings = if (baseNoPom) mkPomSettings(model) else null
         val resources = model.getBuild.getResources.iterator().asScala
           .map(_.getDirectory)
           .map(os.Path(_).subRelativeTo(millSourcePath))
@@ -175,11 +172,7 @@ object BuildGen {
           if (version == basePublishVersion) null else version
         }
         val publishProperties = getPublishProperties(model, cfg).diff(basePublishProperties)
-        val pomParentArtifact = {
-          val parent = model.getParent
-          if (null == parent) null
-          else mkArtifact(parent.getGroupId, parent.getArtifactId, parent.getVersion)
-        }
+        val pomParentArtifact = mkPomParent(model.getParent)
 
         val testModuleTypedef =
           if (hasTest) {
@@ -265,6 +258,10 @@ object BuildGen {
       dep.getClassifier,
       dep.getExclusions.iterator().asScala.map(x => (x.getGroupId, x.getArtifactId))
     )
+
+  def mkPomParent(parent: Parent): String =
+    if (null == parent) null
+    else mkArtifact(parent.getGroupId, parent.getArtifactId, parent.getVersion)
 
   def mkPomSettings(model: Model): String = {
     val licenses = model.getLicenses.iterator().asScala
