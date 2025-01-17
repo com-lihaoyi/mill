@@ -1086,7 +1086,7 @@ trait AndroidAppModule extends JavaModule {
 
       val outputReader = instrumentOutput.stdout.buffered
 
-      val (doneMsg, results ) = InstrumentationOutput.parseTestOutputStream(outputReader)(T.log)
+      val (doneMsg, results) = InstrumentationOutput.parseTestOutputStream(outputReader)(T.log)
       val res = TestModule.handleResults(doneMsg, results, T.ctx(), testReportXml())
 
       res
