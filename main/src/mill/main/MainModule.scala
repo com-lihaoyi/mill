@@ -2,7 +2,7 @@ package mill.main
 
 import mill.api._
 import mill.define._
-import mill.eval.{Evaluator, EvaluatorPaths}
+import mill.eval.{Evaluator, EvaluatorPaths, Terminal}
 import mill.moduledefs.Scaladoc
 import mill.resolve.SelectMode.Separated
 import mill.resolve.{Resolve, SelectMode}
@@ -76,6 +76,23 @@ object MainModule {
         Result.Success(output)
     }
   }
+
+  def plan0(
+      evaluator: Evaluator,
+      tasks: Seq[String]
+  ): Either[String, Array[Terminal.Labelled[_]]] = {
+    Resolve.Tasks.resolve(
+      evaluator.rootModule,
+      tasks,
+      SelectMode.Multi
+    ) match {
+      case Left(err) => Left(err)
+      case Right(rs) =>
+        val (sortedGroups, _) = evaluator.plan(rs)
+        Right(sortedGroups.keys().collect { case r: Terminal.Labelled[_] => r }.toArray)
+    }
+  }
+
 }
 
 /**
@@ -121,7 +138,7 @@ trait MainModule extends BaseModule0 {
    */
   def plan(evaluator: Evaluator, targets: String*): Command[Array[String]] =
     Task.Command(exclusive = true) {
-      SelectiveExecution.plan0(evaluator, targets) match {
+      MainModule.plan0(evaluator, targets) match {
         case Left(err) => Result.Failure(err)
         case Right(success) =>
           val renderedTasks = success.map(_.segments.render)
@@ -516,7 +533,7 @@ trait MainModule extends BaseModule0 {
    */
   def visualizePlan(evaluator: Evaluator, targets: String*): Command[Seq[PathRef]] =
     Task.Command(exclusive = true) {
-      SelectiveExecution.plan0(evaluator, targets) match {
+      MainModule.plan0(evaluator, targets) match {
         case Left(err) => Result.Failure(err)
         case Right(planResults) => visualize0(
             evaluator,

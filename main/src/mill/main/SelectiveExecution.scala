@@ -41,22 +41,6 @@ private[mill] object SelectiveExecution {
     }
   }
 
-  def plan0(
-      evaluator: Evaluator,
-      tasks: Seq[String]
-  ): Either[String, Array[Terminal.Labelled[_]]] = {
-    Resolve.Tasks.resolve(
-      evaluator.rootModule,
-      tasks,
-      SelectMode.Multi
-    ) match {
-      case Left(err) => Left(err)
-      case Right(rs) =>
-        val (sortedGroups, _) = evaluator.plan(rs)
-        Right(sortedGroups.keys().collect { case r: Terminal.Labelled[_] => r }.toArray)
-    }
-  }
-
   def computeHashCodeSignatures(
       res: Array[Terminal.Labelled[_]],
       methodCodeHashSignatures: Map[String, Int]

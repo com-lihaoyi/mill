@@ -14,7 +14,10 @@ import scala.collection.mutable
  */
 private[mill] object SpanningForest {
 
-  def graphMapToIndices[T](vertices: Iterable[T], edges: Map[T, Seq[T]]): (Map[T,Int], Array[Array[Int]]) = {
+  def graphMapToIndices[T](
+      vertices: Iterable[T],
+      edges: Map[T, Seq[T]]
+  ): (Map[T, Int], Array[Array[Int]]) = {
     val vertexToIndex = vertices.zipWithIndex.toMap
     val edgeIndices = vertices
       .map(t =>
