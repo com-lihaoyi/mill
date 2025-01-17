@@ -66,5 +66,5 @@ object foo extends TypeScriptModule {
 > mill foo.run "Hello World!"
 Bar.value: 123
 text: Hello World!
-Line count: 13
+Line count: 9
 */

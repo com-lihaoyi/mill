@@ -3,10 +3,7 @@ package build.runner
 import mill._
 import mill.contrib.buildinfo.BuildInfo
 
-object `package` extends RootModule with build.MillPublishScalaModule with BuildInfo {
-  // Disable scalafix because it seems to misbehave and cause
-  // spurious errors when there are mixed Java/Scala sources
-  def fix(args: String*): Command[Unit] = T.command {}
+object `package` extends RootModule with build.MillPublishScalaModule with BuildInfo  {
   object `worker-api` extends build.MillPublishScalaModule {
     // def ivyDeps = Agg(build.Deps.osLib)
   }
@@ -32,7 +29,10 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
     }
   }
 
-  object client extends build.MillPublishScalaModule with BuildInfo{
+  object client extends build.MillPublishScalaModule with BuildInfo {
+    // Disable scalafix because it seems to misbehave and cause
+    // spurious errors when there are mixed Java/Scala sources
+    def fix(args: String*): Command[Unit] = T.command {}
 
     def buildInfoPackageName = "mill.runner.client"
     def moduleDeps = Seq(build.main.client)

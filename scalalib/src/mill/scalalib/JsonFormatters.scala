@@ -36,6 +36,28 @@ trait JsonFormatters {
     upickle.default.macroRW
   implicit lazy val depMgmtValuesFormat: RW[coursier.core.DependencyManagement.Values] =
     upickle.default.macroRW
+  implicit lazy val activationOsFormat: RW[coursier.core.Activation.Os] = upickle.default.macroRW
+  implicit lazy val infoDeveloperFormat: RW[coursier.core.Info.Developer] = upickle.default.macroRW
+  implicit lazy val infoScmFormat: RW[coursier.core.Info.Scm] = upickle.default.macroRW
+  implicit lazy val infoLicenseFormat: RW[coursier.core.Info.License] = upickle.default.macroRW
+  implicit lazy val infoFormat: RW[coursier.core.Info] = upickle.default.macroRW
+  implicit lazy val snapshotVersionFormat: RW[coursier.core.SnapshotVersion] =
+    upickle.default.macroRW
+  implicit lazy val versionInternalFormat: RW[coursier.core.VersionInterval] =
+    upickle.default.macroRW
+  implicit lazy val versionFormat: RW[coursier.core.Version] =
+    implicitly[RW[String]].bimap(
+      _.repr,
+      coursier.core.Version(_)
+    )
+  implicit lazy val snapshotVersioningFormat: RW[coursier.core.SnapshotVersioning] =
+    upickle.default.macroRW
+  implicit lazy val versionsFormat: RW[coursier.core.Versions] = upickle.default.macroRW
+  implicit lazy val versionsDateTimeFormat: RW[coursier.core.Versions.DateTime] =
+    upickle.default.macroRW
+  implicit lazy val activationFormat: RW[coursier.core.Activation] = upickle.default.macroRW
+  implicit lazy val profileFormat: RW[coursier.core.Profile] = upickle.default.macroRW
+  implicit lazy val projectFormat: RW[coursier.core.Project] = upickle.default.macroRW
 
 }
 object JsonFormatters extends JsonFormatters {

@@ -132,7 +132,10 @@ case class GenIdeaImpl(
 
             // same as input of resolvedIvyDeps
             val allIvyDeps = Task.Anon {
-              mod.transitiveIvyDeps() ++ mod.transitiveCompileIvyDeps()
+              Agg(
+                mod.coursierDependency,
+                mod.coursierDependency.withConfiguration(coursier.core.Configuration.provided)
+              ).map(BoundDep(_, force = false))
             }
 
             val scalaCompilerClasspath = mod match {

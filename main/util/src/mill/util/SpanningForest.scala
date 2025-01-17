@@ -78,7 +78,6 @@ private[mill] object SpanningForest {
 
     while (queued.nonEmpty) {
       val current = queued.dequeue()
-
       seenList.append(current)
       for (next <- edges(current)) {
         if (!seen.contains(next)) {
