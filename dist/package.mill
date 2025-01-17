@@ -84,7 +84,7 @@ object `package` extends RootModule with InstallModule {
       build.contrib.testng.testDep(),
       build.bsp.worker.testDep(),
       build.testkit.testDep(),
-      build.runner.worker.testDep(),
+      build.runner.worker.testDep()
     )
   }
 
@@ -283,7 +283,7 @@ object `package` extends RootModule with InstallModule {
         build.Settings.githubRepo
       )
     }
-    */
+     */
   }
 
   def upload(
@@ -328,6 +328,7 @@ object `package` extends RootModule with InstallModule {
 
     println("Long Url " + longUrl)
     longUrl
+
   }
 
   object native extends mill.scalalib.NativeImageModule with InstallModule {

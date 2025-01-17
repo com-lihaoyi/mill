@@ -17,13 +17,13 @@ object `package` extends RootModule with build.MillStableScalaModule {
   def moduleDeps = Seq(build.main, build.scalalib.api, build.testrunner)
   def ivyDeps = {
     Agg(build.Deps.scalafmtDynamic, build.Deps.scalaXml) ++ {
-        // despite compiling with Scala 3, we need to include scala-reflect
-        // for the scala.reflect.internal.util.ScalaClassLoader
-        // used in ScalaModule.scalacHelp,
-        // (also transitively included by com.eed3si9n.jarjarabrams:jarjar-abrams-core)
-        // perhaps the class can be copied here?
-        Agg(build.Deps.scalaReflect(scalaVersion()))
-      }
+      // despite compiling with Scala 3, we need to include scala-reflect
+      // for the scala.reflect.internal.util.ScalaClassLoader
+      // used in ScalaModule.scalacHelp,
+      // (also transitively included by com.eed3si9n.jarjarabrams:jarjar-abrams-core)
+      // perhaps the class can be copied here?
+      Agg(build.Deps.scalaReflect(scalaVersion()))
+    }
   }
   def testIvyDeps = super.testIvyDeps() ++ Agg(build.Deps.TestDeps.scalaCheck)
   def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker.testDep())

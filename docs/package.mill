@@ -31,7 +31,7 @@ object `package` extends RootModule {
       case m: JavaModule if m eq build.kotlinlib => m
     }
     def unidocSourceUrl = Task {
-      val sha = "main"//VcsVersion.vcsState().currentRevision
+      val sha = "main" // VcsVersion.vcsState().currentRevision
       Some(s"${build.Settings.projectUrl}/blob/$sha")
     }
   }
@@ -503,9 +503,11 @@ object `package` extends RootModule {
           path,
           localLinks
             .filter(_._2 != "#")
-            .filter(_._2.contains("AggWrapper$")) // Not sure why these pages are not getting generated
+            .filter(_._2.contains(
+              "AggWrapper$"
+            )) // Not sure why these pages are not getting generated
             .filter(_._2.startsWith("///"))
-            .flatMap{case (elementString, url) =>
+            .flatMap { case (elementString, url) =>
               val (baseUrl, anchorOpt) = url match {
                 case s"#$anchor" => (path.toString, Some(anchor))
                 case s"$prefix#$anchor" => (prefix, Some(anchor))
@@ -513,16 +515,16 @@ object `package` extends RootModule {
                 case url => (url, None)
               }
 
-            val dest0 = os.Path(baseUrl, path / "..")
-            val possibleDests = Seq(dest0, dest0 / "index.html")
-            possibleDests.find(os.exists(_)) match {
-              case None => Some((elementString, url))
-              case Some(dest) =>
-                anchorOpt.collect {
-                  case a if !pathsToIds.getOrElse(dest, Set()).contains(a) => (elementString, url)
-                }
+              val dest0 = os.Path(baseUrl, path / "..")
+              val possibleDests = Seq(dest0, dest0 / "index.html")
+              possibleDests.find(os.exists(_)) match {
+                case None => Some((elementString, url))
+                case Some(dest) =>
+                  anchorOpt.collect {
+                    case a if !pathsToIds.getOrElse(dest, Set()).contains(a) => (elementString, url)
+                  }
+              }
             }
-          }
         )
       }
 

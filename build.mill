@@ -65,14 +65,21 @@ object Deps {
 
   object Scalajs_1 {
     val scalaJsVersion = "1.18.1"
-    val scalajsEnvJsdomNodejs = ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0".withDottyCompat(scalaVersion)
-    val scalajsEnvExoegoJsdomNodejs = ivy"net.exoego::scalajs-env-jsdom-nodejs:2.1.0".withDottyCompat(scalaVersion)
+    val scalajsEnvJsdomNodejs =
+      ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0".withDottyCompat(scalaVersion)
+    val scalajsEnvExoegoJsdomNodejs =
+      ivy"net.exoego::scalajs-env-jsdom-nodejs:2.1.0".withDottyCompat(scalaVersion)
     val scalajsEnvNodejs = ivy"org.scala-js::scalajs-env-nodejs:1.4.0".withDottyCompat(scalaVersion)
-    val scalajsEnvPhantomjs = ivy"org.scala-js::scalajs-env-phantomjs:1.0.0".withDottyCompat(scalaVersion)
-    val scalajsEnvSelenium = ivy"org.scala-js::scalajs-env-selenium:1.1.1".withDottyCompat(scalaVersion)
-    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:${scalaJsVersion}".withDottyCompat(scalaVersion)
-    val scalajsLinker = ivy"org.scala-js::scalajs-linker:${scalaJsVersion}".withDottyCompat(scalaVersion)
-    val scalajsImportMap = ivy"com.armanbilge::scalajs-importmap:0.1.1".withDottyCompat(scalaVersion)
+    val scalajsEnvPhantomjs =
+      ivy"org.scala-js::scalajs-env-phantomjs:1.0.0".withDottyCompat(scalaVersion)
+    val scalajsEnvSelenium =
+      ivy"org.scala-js::scalajs-env-selenium:1.1.1".withDottyCompat(scalaVersion)
+    val scalajsSbtTestAdapter =
+      ivy"org.scala-js::scalajs-sbt-test-adapter:${scalaJsVersion}".withDottyCompat(scalaVersion)
+    val scalajsLinker =
+      ivy"org.scala-js::scalajs-linker:${scalaJsVersion}".withDottyCompat(scalaVersion)
+    val scalajsImportMap =
+      ivy"com.armanbilge::scalajs-importmap:0.1.1".withDottyCompat(scalaVersion)
   }
 
   object Scalanative_0_5 {
@@ -122,7 +129,8 @@ object Deps {
   val coursierVersion = "2.1.24"
   val coursier = ivy"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierInterface = ivy"io.get-coursier:interface:1.0.27"
-  val coursierJvm = ivy"io.get-coursier::coursier-jvm:$coursierVersion".withDottyCompat(scalaVersion)
+  val coursierJvm =
+    ivy"io.get-coursier::coursier-jvm:$coursierVersion".withDottyCompat(scalaVersion)
 
   val cask = ivy"com.lihaoyi::cask:0.9.4"
   val castor = ivy"com.lihaoyi::castor:0.3.0"
@@ -168,7 +176,8 @@ object Deps {
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.8.3".withDottyCompat(scalaVersion)
   def scalap(scalaVersion: String) = ivy"org.scala-lang:scalap:${scalaVersion}"
   def scalaReflect(scalaVersion: String) =
-    if (ZincWorkerUtil.isScala3(scalaVersion)) ivy"org.scala-lang:scala-reflect:${Deps.scala2Version}"
+    if (ZincWorkerUtil.isScala3(scalaVersion))
+      ivy"org.scala-lang:scala-reflect:${Deps.scala2Version}"
     else ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   val scoverage2Version = "2.2.1"
   val scalacScoverage2Plugin = ivy"org.scoverage:::scalac-scoverage-plugin:${scoverage2Version}"
@@ -189,7 +198,8 @@ object Deps {
   // keep in sync with doc/antora/antory.yml
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.2.0-M2"
   val fansi = ivy"com.lihaoyi::fansi:0.5.0"
-  val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.0".withDottyCompat(scalaVersion)
+  val jarjarabrams =
+    ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.0".withDottyCompat(scalaVersion)
   val requests = ivy"com.lihaoyi::requests:0.9.0"
   val logback = ivy"ch.qos.logback:logback-classic:1.5.16"
   val sonatypeCentralClient = ivy"com.lumidion::sonatype-central-client-requests:0.3.0"
@@ -277,7 +287,8 @@ def millVersion: T[String] = Task.Input {
     // Ignore local changes when computing the VCS version string,
     // since we make those in CI and can promise they are safe
     VcsVersion.calcVcsState(Task.log).copy(dirtyHash = None).format()
-  } else */"SNAPSHOT"
+  } else */
+  "SNAPSHOT"
 }
 
 def millLastTag: T[String] = Task {
@@ -285,7 +296,8 @@ def millLastTag: T[String] = Task {
     VcsVersion.vcsState().lastTag.getOrElse(
       sys.error("No (last) git tag found. Your git history seems incomplete!")
     )
-  } else */"SNAPSHOT"
+  } else */
+  "SNAPSHOT"
 }
 
 def millBinPlatform: T[String] = Task {
@@ -465,7 +477,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule /*with ScalafixMod
     ) ++ (
       if (ZincWorkerUtil.isScala3(scalaVersion())) Seq(
         // "-Werror",
-        "-Wunused:all",
+        "-Wunused:all"
         // "-no-indent",
         // "-Wvalue-discard",
         // "-Wshadow:all",
@@ -693,9 +705,10 @@ trait BridgeModule extends MillPublishJavaModule with CrossScalaModule {
   def crossFullScalaVersion = true
   def ivyDeps = Agg(
     ivy"org.scala-sbt:compiler-interface:${Deps.zinc.version}",
-    ivy"org.scala-sbt:util-interface:${Deps.zinc.version}",
+    ivy"org.scala-sbt:util-interface:${Deps.zinc.version}"
   ) ++ Agg(
-    if (ZincWorkerUtil.isScala3(crossScalaVersion)) ivy"org.scala-lang::scala3-compiler:${crossScalaVersion}"
+    if (ZincWorkerUtil.isScala3(crossScalaVersion))
+      ivy"org.scala-lang::scala3-compiler:${crossScalaVersion}"
     else ivy"org.scala-lang:scala-compiler:${crossScalaVersion}"
   )
 
@@ -705,8 +718,9 @@ trait BridgeModule extends MillPublishJavaModule with CrossScalaModule {
   }
 
   def compilerBridgeIvyDeps: T[Agg[Dep]] = Agg(
-    (if (ZincWorkerUtil.isScala3(crossScalaVersion)) ivy"org.scala-lang:scala3-sbt-bridge:${crossScalaVersion}"
-    else ivy"org.scala-sbt::compiler-bridge:${Deps.zinc.version}").exclude("*" -> "*")
+    (if (ZincWorkerUtil.isScala3(crossScalaVersion))
+       ivy"org.scala-lang:scala3-sbt-bridge:${crossScalaVersion}"
+     else ivy"org.scala-sbt::compiler-bridge:${Deps.zinc.version}").exclude("*" -> "*")
   )
 
   def compilerBridgeSourceJars: T[Agg[PathRef]] = Task {

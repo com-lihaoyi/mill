@@ -3,7 +3,7 @@ package build.runner
 import mill._
 import mill.contrib.buildinfo.BuildInfo
 
-object `package` extends RootModule with build.MillPublishScalaModule with BuildInfo  {
+object `package` extends RootModule with build.MillPublishScalaModule with BuildInfo {
   object `worker-api` extends build.MillPublishScalaModule {
     // def ivyDeps = Agg(build.Deps.osLib)
   }
@@ -20,7 +20,8 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
       val boundIvys = transitiveIvyDeps()
       val nameFilter = "scala(.*)-compiler(.*)".r
       Agg(moduleDep) ++ boundIvys.collect {
-        case dep if nameFilter.matches(dep.name) => s"${dep.organization}:${dep.name}:${dep.version}"
+        case dep if nameFilter.matches(dep.name) =>
+          s"${dep.organization}:${dep.name}:${dep.version}"
       }
     }
 
@@ -59,7 +60,7 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
     build.main.codesig,
     build.main.server,
     client,
-    `worker-api`,
+    `worker-api`
   )
 
   def buildInfoPackageName = "mill.runner.worker"
