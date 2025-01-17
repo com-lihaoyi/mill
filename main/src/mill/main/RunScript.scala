@@ -72,20 +72,16 @@ object RunScript {
       if (
         selectiveExecutionEnabled && os.exists(evaluator.outPath / OutFiles.millSelectiveExecution)
       ) {
-        SelectiveExecution
-          .computeChangedTasks0(evaluator, targets.map(terminals(_).render).toSeq)
-          .map { changedTasks =>
-            val selectedSet = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
-            (
-              targets.filter(t => t.isExclusiveCommand || selectedSet(terminals(t).render)),
-              changedTasks.results
-            )
-          }
-      } else Right(targets -> Map.empty)
+        val changedTasks = SelectiveExecution.computeChangedTasks00(evaluator, targets.toSeq)
+        val selectedSet = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
+        (
+          targets.filter(t => t.isExclusiveCommand || selectedSet(terminals(t).render)),
+          changedTasks.results
+        )
+      } else (targets -> Map.empty)
 
     selectedTargetsOrErr match {
-      case Left(err) => (Nil, Left(err))
-      case Right((selectedTargets, selectiveResults)) =>
+      case (selectedTargets, selectiveResults) =>
         val evaluated: Results = evaluator.evaluate(selectedTargets, serialCommandExec = true)
         val watched = (evaluated.results.iterator ++ selectiveResults)
           .collect {

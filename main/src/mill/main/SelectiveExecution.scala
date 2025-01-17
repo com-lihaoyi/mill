@@ -16,29 +16,28 @@ private[mill] object SelectiveExecution {
   object Metadata {
     def compute(
         evaluator: Evaluator,
-        tasks: Seq[String]
-    ): Either[String, (Metadata, Map[Task[_], Evaluator.TaskResult[Val]])] = {
-      for (transitive <- plan0(evaluator, tasks)) yield {
-        val inputTasksToLabels: Map[Task[_], String] = transitive
-          .collect { case Terminal.Labelled(task: InputImpl[_], segments) =>
-            task -> segments.render
-          }
-          .toMap
+        tasks: Seq[NamedTask[_]]
+    ): (Metadata, Map[Task[_], Evaluator.TaskResult[Val]]) = {
+      val (sortedGroups, transitive) = Plan.plan(tasks)
+      val inputTasksToLabels: Map[Task[_], String] = sortedGroups.keys()
+        .collect { case Terminal.Labelled(task: InputImpl[_], segments) =>
+          task -> segments.render
+        }
+        .toMap
 
-        val results = evaluator.evaluate(Strict.Agg.from(inputTasksToLabels.keys))
+      val results = evaluator.evaluate(Strict.Agg.from(inputTasksToLabels.keys))
 
-        new Metadata(
-          inputHashes = results
-            .results
-            .flatMap { case (task, taskResult) =>
-              inputTasksToLabels.get(task).map { l =>
-                l -> taskResult.result.getOrThrow.value.hashCode
-              }
+      new Metadata(
+        inputHashes = results
+          .results
+          .flatMap { case (task, taskResult) =>
+            inputTasksToLabels.get(task).map { l =>
+              l -> taskResult.result.getOrThrow.value.hashCode
             }
-            .toMap,
-          methodCodeHashSignatures = evaluator.methodCodeHashSignatures
-        ) -> results.results.toMap
-      }
+          }
+          .toMap,
+        methodCodeHashSignatures = evaluator.methodCodeHashSignatures
+      ) -> results.results.toMap
     }
   }
 
@@ -87,12 +86,12 @@ private[mill] object SelectiveExecution {
   }
 
   def computeDownstream(
-      evaluator: Evaluator,
-      tasks: Seq[String],
+      tasks: Seq[NamedTask[_]],
       oldHashes: Metadata,
       newHashes: Metadata
   ): (Array[Terminal.Labelled[_]], Set[Task[_]], Seq[Task[Any]]) = {
-    val terminals = SelectiveExecution.plan0(evaluator, tasks).getOrElse(???)
+    val (sortedGroups, transitive) = Plan.plan(tasks)
+    val terminals = sortedGroups.keys().collect { case r: Terminal.Labelled[_] => r }.toArray
     val namesToTasks = terminals.map(t => (t.render -> t.task)).toMap
 
     def diffMap[K, V](lhs: Map[K, V], rhs: Map[K, V]) = {
@@ -140,32 +139,31 @@ private[mill] object SelectiveExecution {
       evaluator: Evaluator,
       tasks: Seq[String]
   ): Either[String, ChangedTasks] = {
-    val oldMetadataTxt = os.read(evaluator.outPath / OutFiles.millSelectiveExecution)
     Resolve.Tasks.resolve(
       evaluator.rootModule,
       tasks,
       SelectMode.Separated,
       evaluator.allowPositionalCommandArgs
-    ).flatMap(t =>
-      if (oldMetadataTxt == "") Right(ChangedTasks(t, t.toSet, t, Map.empty))
-      else {
-        val oldMetadata = upickle.default.read[SelectiveExecution.Metadata](oldMetadataTxt)
-        for (x <- SelectiveExecution.Metadata.compute(evaluator, tasks)) yield {
-          val (newMetadata, results) = x
+    ).map(computeChangedTasks00(evaluator, _))
+  }
 
-          val (resolved, changedRootTasks, downstreamTasks) = SelectiveExecution
-            .computeDownstream(evaluator, tasks, oldMetadata, newMetadata)
+  def computeChangedTasks00(evaluator: Evaluator, tasks: Seq[NamedTask[_]]): ChangedTasks = {
+    val oldMetadataTxt = os.read(evaluator.outPath / OutFiles.millSelectiveExecution)
+    if (oldMetadataTxt == "") ChangedTasks(tasks, tasks.toSet, tasks, Map.empty)
+    else {
+      val oldMetadata = upickle.default.read[SelectiveExecution.Metadata](oldMetadataTxt)
+      val (newMetadata, results) = SelectiveExecution.Metadata.compute(evaluator, tasks)
 
-          ChangedTasks(
-            t,
-            changedRootTasks,
-            downstreamTasks.collect { case n: NamedTask[_] => n },
-            results
-          )
-        }
-      }
-    )
+      val (resolved, changedRootTasks, downstreamTasks) =
+        SelectiveExecution.computeDownstream(tasks, oldMetadata, newMetadata)
 
+      ChangedTasks(
+        tasks,
+        changedRootTasks,
+        downstreamTasks.collect { case n: NamedTask[_] => n },
+        results
+      )
+    }
   }
 
   def resolve0(evaluator: Evaluator, tasks: Seq[String]): Either[String, Array[String]] = {
