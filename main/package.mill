@@ -155,8 +155,20 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
     def ivyDeps = Agg(build.Deps.jgraphtCore) ++ build.Deps.graphvizJava ++ build.Deps.javet
   }
 
-  object maven extends build.MillPublishScalaModule {
+  object buildgen extends build.MillPublishScalaModule {
     def moduleDeps = Seq(build.runner)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib)
+  }
+  object gradle extends build.MillPublishScalaModule {
+    def moduleDeps = Seq(buildgen)
+    def ivyDeps = Agg(
+      build.Deps.gradleApi,
+      build.Deps.logback
+    )
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib, buildgen.test)
+  }
+  object maven extends build.MillPublishScalaModule {
+    def moduleDeps = Seq(buildgen)
     def ivyDeps = Agg(
       build.Deps.mavenEmbedder,
       build.Deps.mavenResolverConnectorBasic,
@@ -165,7 +177,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
       build.Deps.mavenResolverTransportHttp,
       build.Deps.mavenResolverTransportWagon
     )
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib, buildgen.test)
   }
 
   def testModuleDeps = super.testModuleDeps ++ Seq(build.testkit)

@@ -7,19 +7,19 @@ import mill.javalib.publish._
 
 object `package` extends RootModule with PublishModule with MavenModule {
 
-  override def artifactName = "parent"
+  def artifactName = "parent"
 
-  override def pomPackagingType = PackagingType.Pom
+  def pomPackagingType = PackagingType.Pom
 
-  override def pomSettings = PomSettings(
+  def pomSettings = PomSettings(
     "Just a pom that makes it easy to build both projects at the same time.",
     "com.example.maven-samples",
     "",
     Seq(),
-    VersionControl(),
+    VersionControl(None, None, None, None),
     Seq()
   )
 
-  override def publishVersion = "1.0-SNAPSHOT"
+  def publishVersion = "1.0-SNAPSHOT"
 
 }

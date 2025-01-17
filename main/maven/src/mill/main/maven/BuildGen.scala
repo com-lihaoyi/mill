@@ -1,7 +1,9 @@
 package mill.main.maven
 
 import mainargs.{Flag, ParserForClass, arg, main}
-import mill.main.build.{BuildObject, Node, Tree}
+import mill.main.buildgen.BuildGenUtil.*
+import mill.main.buildgen.BuildObject.Companions
+import mill.main.buildgen.{BuildGenUtil, BuildObject, Node, Tree}
 import mill.runner.FileImportGraph.backtickWrap
 import org.apache.maven.model.{Dependency, Model}
 
@@ -16,7 +18,7 @@ import scala.jdk.CollectionConverters.*
  * ===Capabilities===
  * The conversion
  *  - handles deeply nested modules
- *  - captures project metadata
+ *  - captures project settings
  *  - configures dependencies for scopes:
  *    - compile
  *    - provided
@@ -44,7 +46,6 @@ object BuildGen {
   }
 
   private type MavenNode = Node[Model]
-  private type MillNode = Node[BuildObject]
 
   private def run(cfg: BuildGenConfig): Unit = {
     val workspace = os.pwd
@@ -56,418 +57,353 @@ object BuildGen {
       (Node(dirs, model), model.getModules.iterator().asScala.map(dirs :+ _))
     }
 
-    var output = convert(input, cfg)
-    if (cfg.merge.value) {
-      println("compacting Mill build tree")
-      output = output.merge
-    }
-
-    val nodes = output.toSeq
-    println(s"generated ${nodes.length} Mill build file(s)")
-
-    println("removing existing Mill build files")
-    os.walk.stream(workspace, skip = (workspace / "out").equals)
-      .filter(_.ext == ".mill")
-      .foreach(os.remove.apply)
-
-    nodes.foreach { node =>
-      val file = node.file
-      val source = node.source
-      println(s"writing Mill build file to $file")
-      os.write(workspace / file, source)
-    }
+    val output = convert(input, cfg)
+    write(if (cfg.merge.value) compact(output) else output)
 
     println("converted Maven build to Mill")
   }
 
-  private def convert(input: Tree[MavenNode], cfg: BuildGenConfig): Tree[MillNode] = {
+  private def convert(input: Tree[MavenNode], cfg: BuildGenConfig): BuildTree = {
     val packages = // for resolving moduleDeps
-      input
-        .fold(Map.newBuilder[Id, Package])((z, build) => z += ((Id(build.module), build.pkg)))
-        .result()
+      buildPackages(input)(model => (model.getGroupId, model.getArtifactId, model.getVersion))
+    val isMonorepo = packages.size > 1
 
-    val baseModuleTypedef = cfg.baseModule.fold("") { baseModule =>
-      val metadataSettings = metadata(input.node.module, cfg)
+    val moduleSupertypes = Seq("PublishModule", "MavenModule")
 
-      s"""trait $baseModule extends PublishModule with MavenModule {
-         |
-         |$metadataSettings
-         |}""".stripMargin
+    val (
+      baseJavacOptions,
+      basePomSettings,
+      basePublishVersion,
+      basePublishProperties,
+      baseModuleTypedef
+    ) = cfg.baseModule match {
+      case Some(baseModule) =>
+        val model = input.node.module
+        val javacOptions = Plugins.MavenCompilerPlugin.javacOptions(model)
+        val pomSettings = mkPomSettings(model)
+        val publishVersion = model.getVersion
+        val publishProperties = getPublishProperties(model, cfg)
+
+        val zincWorker = cfg.jvmId.fold("") { jvmId =>
+          val name = s"${baseModule}ZincWorker"
+          val setting = setZincWorker(name)
+          val typedef = mkZincWorker(name, jvmId)
+
+          s"""$setting
+             |
+             |$typedef""".stripMargin
+        }
+
+        val typedef =
+          s"""trait $baseModule ${mkExtends(moduleSupertypes)} {
+             |
+             |${setJavacOptions(javacOptions)}
+             |
+             |${setPomSettings(pomSettings)}
+             |
+             |${setPublishVersion(publishVersion)}
+             |
+             |${setPublishProperties(publishProperties)}
+             |
+             |$zincWorker
+             |}""".stripMargin
+
+        (javacOptions, pomSettings, publishVersion, publishProperties, typedef)
+      case None =>
+        (Seq.empty, "", "", Seq.empty, "")
     }
 
+    val nestedModuleImports = cfg.baseModule.map(name => s"$$file.$name")
+
     input.map { case build @ Node(dirs, model) =>
-      val packaging = model.getPackaging
+      val artifactId = model.getArtifactId
+      println(s"converting module $artifactId")
+
       val millSourcePath = os.Path(model.getProjectDirectory)
+      val packaging = model.getPackaging
+
+      val isNested = dirs.nonEmpty
+      val hasTest = os.exists(millSourcePath / "src/test")
 
       val imports = {
         val b = SortedSet.newBuilder[String]
         b += "mill._"
         b += "mill.javalib._"
         b += "mill.javalib.publish._"
-        if (dirs.nonEmpty) cfg.baseModule.foreach(baseModule => b += s"$$file.$baseModule")
-        else if (packages.size > 1) b += "$packages._"
+        if (isNested) b ++= nestedModuleImports
+        else if (isMonorepo) b += "$packages._"
         b.result()
       }
 
       val supertypes = {
         val b = Seq.newBuilder[String]
         b += "RootModule"
-        cfg.baseModule.fold(b += "PublishModule" += "MavenModule")(b += _)
+        cfg.baseModule.fold(b ++= moduleSupertypes)(b += _)
         b.result()
       }
 
-      val (companions, compileDeps, providedDeps, runtimeDeps, testDeps, testModule) =
-        Scoped.all(model, packages, cfg)
+      val (
+        companions,
+        mainBomIvyDeps,
+        mainIvyDeps,
+        mainModuleDeps,
+        mainCompileIvyDeps,
+        mainCompileModuleDeps,
+        mainRunIvyDeps,
+        mainRunModuleDeps,
+        testModule,
+        testBomIvyDeps,
+        testIvyDeps,
+        testModuleDeps
+      ) = scopedDeps(model, packages, cfg)
 
       val inner = {
-        val javacOptions = Plugins.MavenCompilerPlugin.javacOptions(model)
-
-        val artifactNameSetting = {
-          val id = model.getArtifactId
-          val name = if (dirs.nonEmpty && dirs.last == id) null else s"\"$id\"" // skip default
-          optional("override def artifactName = ", name)
+        val javacOptions = {
+          val options = Plugins.MavenCompilerPlugin.javacOptions(model)
+          if (options == baseJavacOptions) Seq.empty else options
         }
-        val resourcesSetting =
-          resources(
-            model.getBuild.getResources.iterator().asScala
-              .map(_.getDirectory)
-              .map(os.Path(_))
-              .filterNot((millSourcePath / "src/main/resources").equals)
-              .map(_.relativeTo(millSourcePath))
-          )
-        val javacOptionsSetting =
-          optional("override def javacOptions = Seq(\"", javacOptions, "\",\"", "\")")
-        val depsSettings = compileDeps.settings("ivyDeps", "moduleDeps")
-        val compileDepsSettings = providedDeps.settings("compileIvyDeps", "compileModuleDeps")
-        val runDepsSettings = runtimeDeps.settings("runIvyDeps", "runModuleDeps")
-        val pomPackagingTypeSetting = {
-          val packagingType = packaging match {
-            case "jar" => null // skip default
-            case "pom" => "PackagingType.Pom"
-            case pkg => s"\"$pkg\""
-          }
-          optional(s"override def pomPackagingType = ", packagingType)
+        val pomSettings = {
+          val settings = mkPomSettings(model)
+          if (settings == basePomSettings) null else settings
         }
-        val pomParentProjectSetting = {
+        val resources = model.getBuild.getResources.iterator().asScala
+          .map(_.getDirectory)
+          .map(os.Path(_).subRelativeTo(millSourcePath))
+          .filterNot(_ == mavenMainResourceDir)
+        val publishVersion = {
+          val version = model.getVersion
+          if (version == basePublishVersion) null else version
+        }
+        val publishProperties = getPublishProperties(model, cfg).diff(basePublishProperties)
+        val pomParentArtifact = {
           val parent = model.getParent
-          if (null == parent) ""
-          else {
-            val group = parent.getGroupId
-            val id = parent.getArtifactId
-            val version = parent.getVersion
-            s"override def pomParentProject = Some(Artifact(\"$group\", \"$id\", \"$version\"))"
-          }
+          if (null == parent) null
+          else mkArtifact(parent.getGroupId, parent.getArtifactId, parent.getVersion)
         }
-        val metadataSettings = if (cfg.baseModule.isEmpty) metadata(model, cfg) else ""
-        val testModuleTypedef = {
-          val resources = model.getBuild.getTestResources.iterator().asScala
-            .map(_.getDirectory)
-            .map(os.Path(_))
-            .filterNot((millSourcePath / "src/test/resources").equals)
-          if (
-            "pom" != packaging && (
-              os.exists(millSourcePath / "src/test") || resources.nonEmpty || testModule.nonEmpty
-            )
-          ) {
-            val supertype = "MavenTests"
-            val testMillSourcePath = millSourcePath / "test"
-            val resourcesRel = resources.map(_.relativeTo(testMillSourcePath))
 
-            testDeps.testTypeDef(supertype, testModule, resourcesRel, cfg)
+        val testModuleTypedef =
+          if (hasTest) {
+            val name = backtickWrap(cfg.testModule)
+            val declare = testModule match {
+              case Some(supertype) => s"object $name extends MavenTests with $supertype"
+              case None => s"trait $name extends MavenTests"
+            }
+            val resources = model.getBuild.getTestResources.iterator().asScala
+              .map(_.getDirectory)
+              .map(os.Path(_).subRelativeTo(millSourcePath))
+              .filterNot(_ == mavenTestResourceDir)
+
+            s"""$declare {
+               |
+               |${setBomIvyDeps(testBomIvyDeps)}
+               |
+               |${setIvyDeps(testIvyDeps)}
+               |
+               |${setModuleDeps(testModuleDeps)}
+               |
+               |${setResources(resources)}
+               |}""".stripMargin
           } else ""
-        }
 
-        s"""$artifactNameSetting
+        s"""${setBomIvyDeps(mainBomIvyDeps)}
            |
-           |$resourcesSetting
+           |${setIvyDeps(mainIvyDeps)}
            |
-           |$javacOptionsSetting
+           |${setModuleDeps(mainModuleDeps)}
            |
-           |$depsSettings
+           |${setCompileIvyDeps(mainCompileIvyDeps)}
            |
-           |$compileDepsSettings
+           |${setCompileModuleDeps(mainCompileModuleDeps)}
            |
-           |$runDepsSettings
+           |${setRunIvyDeps(mainRunIvyDeps)}
            |
-           |$pomPackagingTypeSetting
+           |${setRunModuleDeps(mainRunModuleDeps)}
            |
-           |$pomParentProjectSetting
+           |${setJavacOptions(javacOptions)}
            |
-           |$metadataSettings
+           |${setResources(resources)}
+           |
+           |${setArtifactName(artifactId, dirs)}
+           |
+           |${setPomPackaging(packaging)}
+           |
+           |${setPomParentProject(pomParentArtifact)}
+           |
+           |${setPomSettings(pomSettings)}
+           |
+           |${setPublishVersion(publishVersion)}
+           |
+           |${setPublishProperties(publishProperties)}
            |
            |$testModuleTypedef""".stripMargin
       }
 
-      val outer = if (dirs.isEmpty) baseModuleTypedef else ""
+      val outer = if (isNested) "" else baseModuleTypedef
 
       build.copy(module = BuildObject(imports, companions, supertypes, inner, outer))
     }
   }
 
-  private type Id = (String, String, String)
-  private object Id {
+  def gav(dep: Dependency): Gav =
+    (dep.getGroupId, dep.getArtifactId, dep.getVersion)
 
-    def apply(mvn: Dependency): Id =
-      (mvn.getGroupId, mvn.getArtifactId, mvn.getVersion)
+  def getPublishProperties(model: Model, cfg: BuildGenConfig): Seq[(String, String)] =
+    if (cfg.publishProperties.value) {
+      val props = model.getProperties
+      props.stringPropertyNames().iterator().asScala
+        .map(key => (key, props.getProperty(key)))
+        .toSeq
+        .sorted
+    } else Seq.empty
 
-    def apply(mvn: Model): Id =
-      (mvn.getGroupId, mvn.getArtifactId, mvn.getVersion)
+  val interpIvy: Dependency => InterpIvy = dep =>
+    BuildGenUtil.interpIvy(
+      dep.getGroupId,
+      dep.getArtifactId,
+      dep.getVersion,
+      dep.getType,
+      dep.getClassifier,
+      dep.getExclusions.iterator().asScala.map(x => (x.getGroupId, x.getArtifactId))
+    )
+
+  def mkPomSettings(model: Model): String = {
+    val licenses = model.getLicenses.iterator().asScala
+      .map(lic =>
+        mkLicense(
+          lic.getName,
+          lic.getName,
+          lic.getUrl,
+          isOsiApproved = false,
+          isFsfLibre = false,
+          "repo"
+        )
+      )
+    val versionControl = Option(model.getScm).fold(mkVersionControl())(scm =>
+      mkVersionControl(scm.getUrl, scm.getConnection, scm.getDeveloperConnection, scm.getTag)
+    )
+    val developers = model.getDevelopers.iterator().asScala
+      .map(dev =>
+        mkDeveloper(dev.getId, dev.getName, dev.getUrl, dev.getOrganization, dev.getOrganizationUrl)
+      )
+
+    BuildGenUtil.mkPomSettings(
+      model.getDescription,
+      model.getGroupId, // Mill uses group for POM org
+      model.getUrl,
+      licenses,
+      versionControl,
+      developers
+    )
   }
 
-  private type Package = String
-  private type ModuleDeps = SortedSet[Package]
-  private type IvyInterp = String
-  private type IvyDeps = SortedSet[String] // interpolated or named
+  def scopedDeps(model: Model, packages: PartialFunction[Gav, BuildPackage], cfg: BuildGenConfig): (
+      Companions,
+      BomIvyDeps,
+      IvyDeps,
+      ModuleDeps,
+      IvyDeps,
+      ModuleDeps,
+      IvyDeps,
+      ModuleDeps,
+      Option[String],
+      BomIvyDeps,
+      IvyDeps,
+      ModuleDeps
+  ) = {
+    val mainBomIvyDeps = SortedSet.newBuilder[String]
+    val mainIvyDeps = SortedSet.newBuilder[String]
+    val mainModuleDeps = SortedSet.newBuilder[String]
+    val mainCompileIvyDeps = SortedSet.newBuilder[String]
+    val mainCompileModuleDeps = SortedSet.newBuilder[String]
+    val mainRunIvyDeps = SortedSet.newBuilder[String]
+    val mainRunModuleDeps = SortedSet.newBuilder[String]
+    var testModule = Option.empty[String]
+    val testBomIvyDeps = SortedSet.newBuilder[String]
+    val testIvyDeps = SortedSet.newBuilder[String]
+    val testModuleDeps = SortedSet.newBuilder[String]
 
-  private case class Scoped(ivyDeps: IvyDeps, moduleDeps: ModuleDeps) {
-
-    def settings(ivyDepsName: String, moduleDepsName: String): String = {
-      val ivyDepsSetting =
-        optional(s"override def $ivyDepsName = Agg", ivyDeps)
-      val moduleDepsSetting =
-        optional(s"override def $moduleDepsName = Seq", moduleDeps)
-
-      s"""$ivyDepsSetting
-         |
-         |$moduleDepsSetting""".stripMargin
+    val hasTest = os.exists(os.Path(model.getProjectDirectory) / "src/test")
+    val namedIvyDeps = Seq.newBuilder[(String, InterpIvy)]
+    val ivyDep: Dependency => String = {
+      cfg.depsObject.fold(interpIvy) { objName => dep =>
+        {
+          val depName = s"`${dep.getGroupId}:${dep.getArtifactId}`"
+          namedIvyDeps += ((depName, interpIvy(dep)))
+          s"$objName.$depName"
+        }
+      }
     }
 
-    def testTypeDef(
-        supertype: String,
-        testModule: Scoped.TestModule,
-        resourcesRel: IterableOnce[os.RelPath],
-        cfg: BuildGenConfig
-    ): String =
-      if (ivyDeps.isEmpty && moduleDeps.isEmpty) ""
-      else {
-        val name = backtickWrap(cfg.testModule)
-        val declare = testModule match {
-          case Some(module) => s"object $name extends $supertype with $module"
-          case None => s"trait $name extends $supertype"
-        }
-        val resourcesSetting = resources(resourcesRel)
-        val moduleDepsSetting =
-          optional(s"override def moduleDeps = super.moduleDeps ++ Seq", moduleDeps)
-        val ivyDepsSetting = optional(s"override def ivyDeps = super.ivyDeps() ++ Agg", ivyDeps)
+    model.getDependencies.asScala.foreach { dep =>
+      val id = gav(dep)
+      dep.getScope match {
+        case "compile" if packages.isDefinedAt(id) =>
+          mainCompileModuleDeps += packages(id)
+        case "compile" if isBom(id) =>
+          println(s"assuming compile dependency $id is a BOM")
+          mainIvyDeps += ivyDep(dep)
+        case "compile" =>
+          mainIvyDeps += ivyDep(dep)
+        case "provided" if packages.isDefinedAt(id) =>
+          mainModuleDeps += packages(id)
+        case "provided" =>
+          mainCompileIvyDeps += ivyDep(dep)
+        case "runtime" if packages.isDefinedAt(id) =>
+          mainRunModuleDeps += packages(id)
+        case "runtime" =>
+          mainRunIvyDeps += ivyDep(dep)
+        case "test" if packages.isDefinedAt(id) =>
+          testModuleDeps += packages(id)
+        case "test" if isBom(id) =>
+          println(s"assuming test dependency $id is a BOM")
+          testBomIvyDeps += ivyDep(dep)
+        case "test" =>
+          testIvyDeps += ivyDep(dep)
+        case scope =>
+          println(s"ignoring $scope dependency $id")
 
-        s"""$declare {
-           |
-           |$resourcesSetting
-           |
-           |$moduleDepsSetting
-           |
-           |$ivyDepsSetting
-           |}""".stripMargin
       }
-  }
-  private object Scoped {
-
-    private type Compile = Scoped
-    private type Provided = Scoped
-    private type Runtime = Scoped
-    private type Test = Scoped
-    private type TestModule = Option[String]
-
-    def all(
-        model: Model,
-        packages: PartialFunction[Id, Package],
-        cfg: BuildGenConfig
-    ): (BuildObject.Companions, Compile, Provided, Runtime, Test, TestModule) = {
-      val compileIvyDeps = SortedSet.newBuilder[String]
-      val providedIvyDeps = SortedSet.newBuilder[String]
-      val runtimeIvyDeps = SortedSet.newBuilder[String]
-      val testIvyDeps = SortedSet.newBuilder[String]
-      val compileModuleDeps = SortedSet.newBuilder[String]
-      val providedModuleDeps = SortedSet.newBuilder[String]
-      val runtimeModuleDeps = SortedSet.newBuilder[String]
-      val testModuleDeps = SortedSet.newBuilder[String]
-      var testModule = Option.empty[String]
-
-      val notPom = "pom" != model.getPackaging
-      val ivyInterp: Dependency => IvyInterp = {
-        val module = model.getProjectDirectory.getName
-        dep => {
-          val group = dep.getGroupId
-          val id = dep.getArtifactId
-          val version = dep.getVersion
-          val tpe = dep.getType match {
-            case null | "" | "jar" => "" // skip default
-            case tpe => s";type=$tpe"
-          }
-          val classifier = dep.getClassifier match {
-            case null | "" => ""
-            case s"$${$v}" => // drop values like ${os.detected.classifier}
-              println(s"[$module] dropping classifier $${$v} for dependency $group:$id:$version")
-              ""
-            case classifier => s";classifier=$classifier"
-          }
-          val exclusions = dep.getExclusions.iterator.asScala
-            .map(x => s";exclude=${x.getGroupId}:${x.getArtifactId}")
-            .mkString
-
-          s"ivy\"$group:$id:$version$tpe$classifier$exclusions\""
-        }
+      if (hasTest && testModule.isEmpty) {
+        testModule = testModulesByGroup.get(dep.getGroupId)
       }
-      val namedIvyDeps = Seq.newBuilder[(String, IvyInterp)]
-      val ivyDep: Dependency => String = {
-        cfg.depsObject.fold(ivyInterp) { objName => dep =>
-          {
-            val depName = backtickWrap(s"${dep.getGroupId}:${dep.getArtifactId}")
-            namedIvyDeps += ((depName, ivyInterp(dep)))
-            s"$objName.$depName"
-          }
-        }
-      }
-
-      model.getDependencies.asScala.foreach { dep =>
-        val id = Id(dep)
-        dep.getScope match {
-          case "compile" if packages.isDefinedAt(id) =>
-            compileModuleDeps += packages(id)
-          case "compile" =>
-            compileIvyDeps += ivyDep(dep)
-          case "provided" if packages.isDefinedAt(id) =>
-            providedModuleDeps += packages(id)
-          case "provided" =>
-            providedIvyDeps += ivyDep(dep)
-          case "runtime" if packages.isDefinedAt(id) =>
-            runtimeModuleDeps += packages(id)
-          case "runtime" =>
-            runtimeIvyDeps += ivyDep(dep)
-          case "test" if packages.isDefinedAt(id) =>
-            testModuleDeps += packages(id)
-          case "test" =>
-            testIvyDeps += ivyDep(dep)
-          case scope =>
-            println(s"skipping dependency $id with $scope scope")
-        }
-        // Maven module can be tests only
-        if (notPom && testModule.isEmpty) testModule = Option(dep.getGroupId match {
-          case "junit" => "TestModule.Junit4"
-          case "org.junit.jupiter" => "TestModule.Junit5"
-          case "org.testng" => "TestModule.TestNg"
-          case _ => null
-        })
-      }
-
-      val companions = cfg.depsObject.fold(SortedMap.empty[String, BuildObject.Constants])(name =>
-        SortedMap((name, SortedMap(namedIvyDeps.result() *)))
-      )
-
-      (
-        companions,
-        Scoped(compileIvyDeps.result(), compileModuleDeps.result()),
-        Scoped(providedIvyDeps.result(), providedModuleDeps.result()),
-        Scoped(runtimeIvyDeps.result(), runtimeModuleDeps.result()),
-        Scoped(testIvyDeps.result(), testModuleDeps.result()),
-        testModule
-      )
     }
-  }
 
-  private def metadata(model: Model, cfg: BuildGenConfig): String = {
-    val description = escape(model.getDescription)
-    val organization = escape(model.getGroupId)
-    val url = escape(model.getUrl)
-    val licenses = model.getLicenses.iterator().asScala.map { license =>
-      val id = escape(license.getName)
-      val name = id
-      val url = escape(license.getUrl)
-      val isOsiApproved = false
-      val isFsfLibre = false
-      val distribution = "\"repo\""
+    val companions = cfg.depsObject.fold(SortedMap.empty[String, BuildObject.Constants])(name =>
+      SortedMap((name, SortedMap(namedIvyDeps.result() *)))
+    )
 
-      s"License($id, $name, $url, $isOsiApproved, $isFsfLibre, $distribution)"
-    }.mkString("Seq(", ", ", ")")
-    val versionControl = Option(model.getScm).fold(Seq.empty[String]) { scm =>
-      val repo = escapeOption(scm.getUrl)
-      val conn = escapeOption(scm.getConnection)
-      val devConn = escapeOption(scm.getDeveloperConnection)
-      val tag = escapeOption(scm.getTag)
-
-      Seq(repo, conn, devConn, tag)
-    }.mkString("VersionControl(", ", ", ")")
-    val developers = model.getDevelopers.iterator().asScala.map { dev =>
-      val id = escape(dev.getId)
-      val name = escape(dev.getName)
-      val url = escape(dev.getUrl)
-      val org = escapeOption(dev.getOrganization)
-      val orgUrl = escapeOption(dev.getOrganizationUrl)
-
-      s"Developer($id, $name, $url, $org, $orgUrl)"
-    }.mkString("Seq(", ", ", ")")
-    val publishVersion = escape(model.getVersion)
-    val publishProperties =
-      if (cfg.publishProperties.value) {
-        val props = model.getProperties
-        props.stringPropertyNames().iterator().asScala
-          .map(key => s"(\"$key\", ${escape(props.getProperty(key))})")
-      } else Seq.empty
-
-    val pomSettings =
-      s"override def pomSettings = PomSettings($description, $organization, $url, $licenses, $versionControl, $developers)"
-    val publishVersionSetting =
-      s"override def publishVersion = $publishVersion"
-    val publishPropertiesSetting =
-      optional(
-        "override def publishProperties = super.publishProperties() ++ Map",
-        publishProperties
-      )
-
-    s"""$pomSettings
-       |
-       |$publishVersionSetting
-       |
-       |$publishPropertiesSetting""".stripMargin
-  }
-
-  private def escape(value: String): String =
-    pprint.Util.literalize(if (value == null) "" else value)
-
-  private def escapeOption(value: String): String =
-    if (null == value) "None" else s"Some(${escape(value)})"
-
-  private def optional(start: String, value: String): String =
-    if (null == value) ""
-    else s"$start$value"
-
-  private def optional(construct: String, args: IterableOnce[String]): String =
-    optional(construct + "(", args, ",", ")")
-
-  private def optional(
-      start: String,
-      vals: IterableOnce[String],
-      sep: String,
-      end: String
-  ): String = {
-    val itr = vals.iterator
-    if (itr.isEmpty) ""
-    else itr.mkString(start, sep, end)
-  }
-
-  private def resources(relPaths: IterableOnce[os.RelPath]): String = {
-    val itr = relPaths.iterator
-    if (itr.isEmpty) ""
-    else
-      itr
-        .map(rel => s"PathRef(millSourcePath / \"$rel\")")
-        .mkString(s"override def resources = Task.Sources { super.resources() ++ Seq(", ", ", ") }")
+    (
+      companions,
+      mainBomIvyDeps.result(),
+      mainIvyDeps.result(),
+      mainCompileModuleDeps.result(),
+      mainCompileIvyDeps.result(),
+      mainModuleDeps.result(),
+      mainRunIvyDeps.result(),
+      mainRunModuleDeps.result(),
+      testModule,
+      testBomIvyDeps.result(),
+      testIvyDeps.result(),
+      testModuleDeps.result()
+    )
   }
 }
 
 @main
 @mill.api.internal
 case class BuildGenConfig(
-    @arg(doc = "name of generated base module trait defining project metadata settings")
+    @arg(doc = "name of generated base module trait defining shared settings", short = 'b')
     baseModule: Option[String] = None,
-    @arg(doc = "name of generated nested test module")
+    @arg(doc = "version of custom JVM to configure in --base-module", short = 'j')
+    jvmId: Option[String] = None,
+    @arg(doc = "name of generated nested test module", short = 't')
     testModule: String = "test",
-    @arg(doc = "name of generated companion object defining constants for dependencies")
+    @arg(doc = "name of generated companion object defining dependency constants", short = 'd')
     depsObject: Option[String] = None,
-    @arg(doc = "capture properties defined in pom.xml for publishing")
-    publishProperties: Flag = Flag(),
-    @arg(doc = "merge build files generated for a multi-module build")
+    @arg(doc = "merge build files generated for a multi-module build", short = 'm')
     merge: Flag = Flag(),
+    @arg(doc = "capture properties defined in `pom.xml` for publishing", short = 'p')
+    publishProperties: Flag = Flag(),
     @arg(doc = "use cache for Maven repository system")
     cacheRepository: Flag = Flag(),
     @arg(doc = "process Maven plugin executions and configurations")

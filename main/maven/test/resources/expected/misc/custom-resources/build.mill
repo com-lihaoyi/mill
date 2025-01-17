@@ -6,17 +6,18 @@ import mill.javalib.publish._
 
 object `package` extends RootModule with PublishModule with MavenModule {
 
-  override def artifactName = "single-module-project"
-
-  override def resources = Task
-    .Sources { super.resources() ++ Seq(PathRef(millSourcePath / "resources")) }
-
-  override def javacOptions = Seq("-source", "1.6", "-target", "1.6")
-
-  override def ivyDeps =
+  def ivyDeps = super.ivyDeps() ++
     Agg(ivy"javax.servlet.jsp:jsp-api:2.2", ivy"javax.servlet:servlet-api:2.5")
 
-  override def pomSettings = PomSettings(
+  def javacOptions = super.javacOptions() ++
+    Seq("-source", "1.6", "-target", "1.6")
+
+  def resources = Task
+    .Sources { super.resources() ++ Seq(PathRef(millSourcePath / "resources")) }
+
+  def artifactName = "single-module-project"
+
+  def pomSettings = PomSettings(
     "Sample single module Maven project with a working, deployable site.",
     "com.example.maven-samples",
     "http://www.example.com",
@@ -30,22 +31,22 @@ object `package` extends RootModule with PublishModule with MavenModule {
     Seq()
   )
 
-  override def publishVersion = "1.0-SNAPSHOT"
+  def publishVersion = "1.0-SNAPSHOT"
 
   object test extends MavenTests with TestModule.Junit4 {
 
-    override def resources = Task.Sources {
-      super.resources() ++ Seq(
-        PathRef(millSourcePath / "resources"),
-        PathRef(millSourcePath / "../src/test/secrets")
-      )
-    }
-
-    override def ivyDeps = super.ivyDeps() ++ Agg(
+    def ivyDeps = super.ivyDeps() ++ Agg(
       ivy"junit:junit-dep:4.10",
       ivy"org.hamcrest:hamcrest-core:1.2.1",
       ivy"org.hamcrest:hamcrest-library:1.2.1",
       ivy"org.mockito:mockito-core:1.8.5"
     )
+
+    def resources = Task.Sources {
+      super.resources() ++ Seq(
+        PathRef(millSourcePath / "test/resources"),
+        PathRef(millSourcePath / "src/test/secrets")
+      )
+    }
   }
 }

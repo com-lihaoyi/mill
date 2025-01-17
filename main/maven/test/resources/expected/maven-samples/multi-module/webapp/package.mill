@@ -6,20 +6,21 @@ import mill.javalib.publish._
 
 object `package` extends RootModule with PublishModule with MavenModule {
 
-  override def javacOptions = Seq("-source", "1.6", "-target", "1.6")
+  def moduleDeps = super.moduleDeps ++ Seq(build.`multi-module`.server)
 
-  override def moduleDeps = Seq(build.`multi-module`.server)
-
-  override def compileIvyDeps =
+  def compileIvyDeps = super.compileIvyDeps() ++
     Agg(ivy"javax.servlet.jsp:jsp-api:2.2", ivy"javax.servlet:servlet-api:2.5")
 
-  override def pomPackagingType = "war"
+  def javacOptions = super.javacOptions() ++
+    Seq("-source", "1.6", "-target", "1.6")
 
-  override def pomParentProject = Some(
+  def pomPackagingType = "war"
+
+  def pomParentProject = Some(
     Artifact("com.example.maven-samples", "multi-module-parent", "1.0-SNAPSHOT")
   )
 
-  override def pomSettings = PomSettings(
+  def pomSettings = PomSettings(
     "Webapp.",
     "com.example.maven-samples",
     "http://www.example.com/webapp",
@@ -33,6 +34,6 @@ object `package` extends RootModule with PublishModule with MavenModule {
     Seq()
   )
 
-  override def publishVersion = "1.0-SNAPSHOT"
+  def publishVersion = "1.0-SNAPSHOT"
 
 }
