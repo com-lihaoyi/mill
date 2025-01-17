@@ -83,10 +83,22 @@ jobs:
       - run: "echo temurin:17 > .mill-jvm-version"
 
       - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
+        with: { node-version: '22' }
 
       - run: ./mill -i example.scalalib.__.local.server.test
+
+  linux-arm:
+    if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 1 }
+
+      - run: "echo temurin:17 > .mill-jvm-version"
+
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - run: ./mill -i example.kotlinlib.__.local.server.test
 
   linux:
     needs: build-linux
@@ -113,10 +125,6 @@ jobs:
 
           - java-version: 17 # Run this with Mill native launcher as a smoketest
             millargs: "'example.javalib.__.native.server.test'"
-            install-android-sdk: false
-
-          - java-version: 17
-            millargs: "'example.kotlinlib.__.local.server.test'"
             install-android-sdk: false
 
           - java-version: 17
