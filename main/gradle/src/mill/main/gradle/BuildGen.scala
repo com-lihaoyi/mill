@@ -93,8 +93,7 @@ object BuildGen {
     val classpath = escape( // for paths on Windows
       os.Path(
         classOf[ProjectTreePlugin].getProtectionDomain.getCodeSource.getLocation.toURI
-      ).toString()
-    )
+      ).toString())
     val plugin = classOf[ProjectTreePlugin].getName
     val contents =
       s"""initscript {
