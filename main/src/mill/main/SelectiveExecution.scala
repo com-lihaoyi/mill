@@ -89,7 +89,7 @@ private[mill] object SelectiveExecution {
       tasks: Seq[NamedTask[_]],
       oldHashes: Metadata,
       newHashes: Metadata
-  ): (Array[Terminal.Labelled[_]], Set[Task[_]], Seq[Task[Any]]) = {
+  ): (Set[Task[_]], Seq[Task[Any]]) = {
     val (sortedGroups, transitive) = Plan.plan(tasks)
     val terminals = sortedGroups.keys().collect { case r: Terminal.Labelled[_] => r }.toArray
     val namesToTasks = terminals.map(t => (t.render -> t.task)).toMap
@@ -115,7 +115,6 @@ private[mill] object SelectiveExecution {
     val downstreamEdgeMap = SpanningForest.reverseEdges(allNodes.map(t => (t, t.inputs)))
 
     (
-      terminals,
       changedRootTasks,
       breadthFirst(changedRootTasks)(downstreamEdgeMap.getOrElse(_, Nil))
     )
@@ -154,7 +153,7 @@ private[mill] object SelectiveExecution {
       val oldMetadata = upickle.default.read[SelectiveExecution.Metadata](oldMetadataTxt)
       val (newMetadata, results) = SelectiveExecution.Metadata.compute(evaluator, tasks)
 
-      val (resolved, changedRootTasks, downstreamTasks) =
+      val (changedRootTasks, downstreamTasks) =
         SelectiveExecution.computeDownstream(tasks, oldMetadata, newMetadata)
 
       ChangedTasks(
