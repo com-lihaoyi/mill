@@ -72,7 +72,7 @@ object RunScript {
       if (
         selectiveExecutionEnabled && os.exists(evaluator.outPath / OutFiles.millSelectiveExecution)
       ) {
-        val changedTasks = SelectiveExecution.computeChangedTasks00(evaluator, targets.toSeq)
+        val changedTasks = SelectiveExecution.computeChangedTasks0(evaluator, targets.toSeq)
         val selectedSet = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
         (
           targets.filter(t => t.isExclusiveCommand || selectedSet(terminals(t).render)),

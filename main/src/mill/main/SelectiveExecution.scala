@@ -135,7 +135,7 @@ private[mill] object SelectiveExecution {
       results: Map[Task[_], Evaluator.TaskResult[Val]]
   )
 
-  def computeChangedTasks0(
+  def computeChangedTasks(
       evaluator: Evaluator,
       tasks: Seq[String]
   ): Either[String, ChangedTasks] = {
@@ -144,10 +144,10 @@ private[mill] object SelectiveExecution {
       tasks,
       SelectMode.Separated,
       evaluator.allowPositionalCommandArgs
-    ).map(computeChangedTasks00(evaluator, _))
+    ).map(computeChangedTasks0(evaluator, _))
   }
 
-  def computeChangedTasks00(evaluator: Evaluator, tasks: Seq[NamedTask[_]]): ChangedTasks = {
+  def computeChangedTasks0(evaluator: Evaluator, tasks: Seq[NamedTask[_]]): ChangedTasks = {
     val oldMetadataTxt = os.read(evaluator.outPath / OutFiles.millSelectiveExecution)
     if (oldMetadataTxt == "") ChangedTasks(tasks, tasks.toSet, tasks, Map.empty)
     else {
@@ -169,7 +169,7 @@ private[mill] object SelectiveExecution {
   def resolve0(evaluator: Evaluator, tasks: Seq[String]): Either[String, Array[String]] = {
     for {
       resolved <- Resolve.Tasks.resolve(evaluator.rootModule, tasks, SelectMode.Separated)
-      changedTasks <- SelectiveExecution.computeChangedTasks0(evaluator, tasks)
+      changedTasks <- SelectiveExecution.computeChangedTasks(evaluator, tasks)
     } yield {
       resolved
         .map(_.ctx.segments.render)
@@ -181,7 +181,7 @@ private[mill] object SelectiveExecution {
   }
 
   def resolveTree(evaluator: Evaluator, tasks: Seq[String]): Either[String, ujson.Value] = {
-    for (changedTasks <- SelectiveExecution.computeChangedTasks0(evaluator, tasks)) yield {
+    for (changedTasks <- SelectiveExecution.computeChangedTasks(evaluator, tasks)) yield {
       val taskSet = changedTasks.downstreamTasks.toSet[Task[_]]
       val (sortedGroups, transitive) =
         Plan.plan(mill.api.Loose.Agg.from(changedTasks.downstreamTasks))
