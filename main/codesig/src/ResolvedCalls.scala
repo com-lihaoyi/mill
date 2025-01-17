@@ -1,6 +1,6 @@
 package mill.codesig
-import JvmModel.*
-import JType.Cls as JCls
+import JvmModel._
+import JType.{Cls => JCls}
 import mill.util.SpanningForest
 import mill.util.SpanningForest.breadthFirst
 import upickle.default.{ReadWriter, macroRW}
