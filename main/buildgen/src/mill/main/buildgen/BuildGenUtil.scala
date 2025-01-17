@@ -255,14 +255,15 @@ object BuildGenUtil {
   def scalafmtConfigFile: os.Path =
     os.temp(
       """version = "3.8.4"
-         |runner.dialect = scala213
-         |newlines.source=fold
-         |newlines.topLevelStatementBlankLines = [
-         |  {
-         |    blanks { before = 1 }
-         |  }
-         |]
-         |""".stripMargin)
+        |runner.dialect = scala213
+        |newlines.source=fold
+        |newlines.topLevelStatementBlankLines = [
+        |  {
+        |    blanks { before = 1 }
+        |  }
+        |]
+        |""".stripMargin
+    )
 
   def setArtifactName(name: String, dirs: Seq[String]): String =
     if (dirs.nonEmpty && dirs.last == name) "" // skip default

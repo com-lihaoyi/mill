@@ -90,8 +90,11 @@ object BuildGen {
 
   private def init: os.Path = {
     val file = os.temp.dir() / "init.gradle"
-    val classpath =
-      os.Path(classOf[ProjectTreePlugin].getProtectionDomain.getCodeSource.getLocation.toURI)
+    val classpath = escape( // for paths on Windows
+      os.Path(
+        classOf[ProjectTreePlugin].getProtectionDomain.getCodeSource.getLocation.toURI
+      ).toString()
+    )
     val plugin = classOf[ProjectTreePlugin].getName
     val contents =
       s"""initscript {
