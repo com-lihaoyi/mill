@@ -57,7 +57,7 @@ trait SelectiveExecutionModule extends mill.define.Module {
         } match {
           case Left(err) => Result.Failure(err)
           case Right((watched, Left(err))) => Result.Failure(err)
-          case Right((watched, Right(res))) => Result.Success(res)
+          case Right((watched, Right(res))) => Result.Success(())
         }
       }
     }
