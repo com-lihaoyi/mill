@@ -400,6 +400,15 @@ be run even in environments where pre-installing a JVM is inconvenient. On the o
 the fact that the native executable is OS/CPU-specific means that you need to specifically
 generate separate native executables for each platform you want to support.
 
+The Mill build tool takes advantage of this hermeticity for easier installation: it's
+xref:mill:ROOT:cli/installation-ide.adoc#_mill_native_executable[] can be run on systems without
+a JVM installed at all. Mill still needs a JVM later on, e.g. to compile and run user code, and so
+the native launcher downloads one on-demand automatically from the
+https://github.com/coursier/jvm-index[Coursier JVM Index]. But bootstrapping with a native
+launcher means there's one less thing for people to do during setup and installation,
+and one less thing to go wrong and cause the user to get stuck.
+
+
 ## Native Image Limitations
 
 Now that we've seen many iof the benefits of Graal native images binaries over
