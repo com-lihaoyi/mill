@@ -933,6 +933,49 @@ Test run bar.BarTests finished: 0 failed, 0 ignored, 1 total, ...</code></pre>
 
 </center>
 <div class="paragraph">
+<p>For a more detailed report of how the changed inputs resulted in the selected tasks
+being chosen, you can also use <code>selective.resolveTree</code> to print out the selected tasks
+as a JSON tree illustrating the relationships between the invalidated inputs (at the root
+of the tree) and the selected tasks (at the leaves of the tree)</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill selective.resolveTree __.test
+{
+  &quot;bar.sources&quot;: {
+    &quot;bar.test.sources&quot;: {
+      &quot;bar.test.allSources&quot;: {
+        &quot;bar.test.allSourceFiles&quot;: {
+          &quot;bar.test.compile&quot;: {
+            &quot;bar.test.localRunClasspath&quot;: {
+              &quot;bar.test.testClasspath&quot;: {
+                &quot;bar.test.test&quot;: {}
+              }
+            }
+          }
+        }
+      }
+    },
+    &quot;bar.allSources&quot;: {
+      &quot;bar.allSourceFiles&quot;: {
+        &quot;bar.compile&quot;: {
+          &quot;bar.localRunClasspath&quot;: {
+            &quot;bar.localClasspath&quot;: {
+              &quot;foo.test.transitiveLocalClasspath&quot;: {
+                &quot;foo.test.runClasspath&quot;: {
+                  &quot;foo.test.test&quot;: {}
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
 <p>Similarly, if we make a change <code>qux/</code>, using selective execution will only run tests
 in <code>qux.test</code>, and skip those in <code>foo.test</code> and <code>bar.test</code>.
 These examples all use <code>__.test</code> to selectively run tasks named <code>.test</code>, but you can
