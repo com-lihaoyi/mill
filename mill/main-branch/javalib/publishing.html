@@ -1306,6 +1306,62 @@ Finished generating...native-executable...
 Hello, World!</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>For another example building a slightly less trivial project into a Graal native
+image, see below:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-javalib-publishing-8-native-image-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javalib/publishing/8-native-image-config">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javalib._
+import mill.define.ModuleRef
+
+object foo extends JavaModule with NativeImageModule {
+  def ivyDeps = Agg(
+    ivy&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;,
+    ivy&quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;,
+    ivy&quot;org.slf4j:slf4j-nop:2.0.7&quot;
+  )
+
+  def zincWorker = ModuleRef(ZincWorkerGraalvm)
+
+  def nativeImageOptions = Seq(
+    &quot;--no-fallback&quot;,
+    &quot;-H:IncludeResourceBundles=net.sourceforge.argparse4j.internal.ArgumentParserImpl&quot;
+  )
+}
+
+object ZincWorkerGraalvm extends ZincWorkerModule {
+  def jvmId = &quot;graalvm-community:17.0.9&quot;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example shows how to generate native images for projects using third-party
+libraries, in this case ArgParse4J and Thymeleaf. ArgParse4J does use some dynamic
+resource loading and reflection, and so we need to pass the <code>-H:IncludeResourceBundles</code>
+flag to <code>nativeImageOptions</code> in order to be compatible.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo.nativeImage
+
+&gt; ./out/foo/nativeImage.dest/native-executable --text hello-world
+&lt;h1&gt;hello-world&lt;/h1&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also access the <code>native-image</code> compiler directly via <code>show foo.nativeImageTool</code>
+if you want to experiment it or view its <code>--help</code> text to see what you need to pass to
+<code>nativeImageOptions</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo.nativeImageTool
+&quot;.../bin/native-image&quot;</code></pre>
+</div>
+</div>
 </div>
 </div>
 <nav class="pagination">
