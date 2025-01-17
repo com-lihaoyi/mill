@@ -118,6 +118,8 @@ jobs:
 
       - run: "echo temurin:11 > .mill-jvm-version"
 
+      - run: "echo 0.12.5-144-22bb1b > .mill-version"
+
       - run: ./mill -i mill.scalalib.PublishModule/ --publishArtifacts dist.native.publishArtifacts
 
   release-github:
