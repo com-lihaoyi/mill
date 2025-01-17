@@ -179,7 +179,8 @@ private[mill] object SelectiveExecution {
   def resolveTree(evaluator: Evaluator, tasks: Seq[String]): Either[String, ujson.Value] = {
     for (changedTasks <- SelectiveExecution.computeChangedTasks(evaluator, tasks)) yield {
       val taskSet = changedTasks.downstreamTasks.toSet[Task[_]]
-      val (sortedGroups, transitive) = Plan.plan(mill.api.Loose.Agg.from(changedTasks.downstreamTasks))
+      val (sortedGroups, transitive) =
+        Plan.plan(mill.api.Loose.Agg.from(changedTasks.downstreamTasks))
       val indexToTerminal = sortedGroups.keys().toArray.filter(t => taskSet.contains(t.task))
 
       val interGroupDeps = EvaluatorCore.findInterGroupDeps(sortedGroups)

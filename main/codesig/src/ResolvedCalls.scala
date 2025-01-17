@@ -124,7 +124,6 @@ object ResolvedCalls {
 
       val allSamImplementors = mill.util.SpanningForest.reverseEdges(allSamImplementors0)
 
-
       allSamImplementors.mapValues(_.toSet).toMap
     }
 
