@@ -95,15 +95,15 @@ jobs:
 
       - uses: ./.github/actions/pre-build-setup
         with:
-          os: ${{ inputs.os }}
-          java-version: ${{ inputs.java-version }}
+          os: ${{ matrix.os }}
+          java-version: ${{ matrix.java-version }}
           shell: bash
 
       - uses: actions/checkout@v4
 
       - uses: ./.github/actions/post-build-selective
         with:
-          millargs: ${{ inputs.millargs }}
+          millargs: ${{ matrix.millargs }}
           coursierarchive: ""
           install-android-sdk: false
           shell: bash
