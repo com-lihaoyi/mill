@@ -22,8 +22,6 @@ runs:
     - run: "chmod -R 777 ."
       shell: bash
 
-    - uses: coursier/cache-action@v6
-
     - run: git config --global user.email "you@example.com"
       shell: bash
 
