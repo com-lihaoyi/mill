@@ -934,13 +934,18 @@ Test run bar.BarTests finished: 0 failed, 0 ignored, 1 total, ...</code></pre>
 </center>
 <div class="paragraph">
 <p>For a more detailed report of how the changed inputs resulted in the selected tasks
-being chosen, you can also use <code>selective.resolveTree</code> to print out the selected tasks
+being chosen, you can also use <code>selective.resolveChanged</code> to print out the upstream
+input tasks that Mill found had changed and will cause downstream tasks to be selected,
+or <code>selective.resolveTree</code> to print out the selected tasks
 as a JSON tree illustrating the relationships between the invalidated inputs (at the root
 of the tree) and the selected tasks (at the leaves of the tree)</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill selective.resolveTree __.test
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill selective.resolveChanged __.test
+bar.sources
+
+&gt; mill selective.resolveTree __.test
 {
   &quot;bar.sources&quot;: {
     &quot;bar.test.sources&quot;: {

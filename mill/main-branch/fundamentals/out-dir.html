@@ -899,8 +899,7 @@ the <code>build.mill</code> codebase.</p>
 
 &gt; cat out/mill-build/methodCodeHashSignatures.dest/current/spanningInvalidationTree.json
 {
-  &quot;call scala.runtime.BoxesRunTime.boxToInteger(int)java.lang.Integer&quot;: {},
-  &quot;call scala.Predef$#println(java.lang.Object)void&quot;: {
+...
     &quot;def build_.package_$foo$#&lt;init&gt;(build_.package_)void&quot;: {
       &quot;call build_.package_$foo$!&lt;init&gt;(build_.package_)void&quot;: {
         &quot;def build_.package_#foo$lzycompute$1()void&quot;: {
@@ -910,7 +909,7 @@ the <code>build.mill</code> codebase.</p>
         }
       }
     }
-  }
+...
 }</code></pre>
 </div>
 </div>
