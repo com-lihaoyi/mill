@@ -2,10 +2,11 @@ package mill.main
 
 import mill.api.{Strict, Val}
 import mill.define.{InputImpl, NamedTask, Task}
-import mill.eval.{CodeSigUtils, Evaluator, Plan, Terminal}
+import mill.eval.{CodeSigUtils, Evaluator, EvaluatorCore, EvaluatorLogs, Plan, Terminal}
 import mill.main.client.OutFiles
 import mill.util.SpanningForest.breadthFirst
 import mill.resolve.{Resolve, SelectMode}
+
 
 private[mill] object SelectiveExecution {
   case class Metadata(inputHashes: Map[String, Int], methodCodeHashSignatures: Map[String, Int])
@@ -129,20 +130,30 @@ private[mill] object SelectiveExecution {
       evaluator: Evaluator,
       tasks: Seq[String]
   ): Either[String, (Seq[String], Map[Task[_], Evaluator.TaskResult[Val]])] = {
+    for(res <- diffMetadata0(evaluator, tasks)) yield {
+      val (tasks, results) = res
+      (tasks.map(_.ctx.segments.render), results)
+    }
+  }
+
+  def diffMetadata0(
+      evaluator: Evaluator,
+      tasks: Seq[String]
+  ): Either[String, (Seq[NamedTask[_]], Map[Task[_], Evaluator.TaskResult[Val]])] = {
     val oldMetadataTxt = os.read(evaluator.outPath / OutFiles.millSelectiveExecution)
     if (oldMetadataTxt == "") {
-      Resolve.Segments.resolve(
+      Resolve.Tasks.resolve(
         evaluator.rootModule,
         tasks,
         SelectMode.Separated,
         evaluator.allowPositionalCommandArgs
-      ).map(_.map(_.render) -> Map.empty)
+      ).map(_ -> Map.empty)
     } else {
       val oldMetadata = upickle.default.read[SelectiveExecution.Metadata](oldMetadataTxt)
       for (x <- SelectiveExecution.Metadata.compute(evaluator, tasks)) yield {
         val (newMetadata, results) = x
         SelectiveExecution.computeDownstream(evaluator, tasks, oldMetadata, newMetadata)
-          .collect { case n: NamedTask[_] => n.ctx.segments.render } -> results
+          .collect { case n: NamedTask[_] => n } -> results
 
       }
     }
@@ -160,6 +171,26 @@ private[mill] object SelectiveExecution {
         .intersect(newTasks.toSet)
         .toArray
         .sorted
+    }
+  }
+
+  def resolveTree(evaluator: Evaluator, tasks: Seq[String]): Either[String, ujson.Value] = {
+    for (x <- SelectiveExecution.diffMetadata0(evaluator, tasks))yield {
+      val (tasks, results) = x
+      val taskSet = tasks.toSet[Task[_]]
+      val (sortedGroups, transitive) = Plan.plan(mill.api.Loose.Agg.from(tasks))
+      val jsonFile = os.temp()
+      val indexToTerminal = sortedGroups.keys().toArray.filter(t => taskSet.contains(t.task))
+
+      val terminalToIndex = indexToTerminal.zipWithIndex.toMap
+
+      EvaluatorLogs.logDependencyTree(
+        interGroupDeps = EvaluatorCore.findInterGroupDeps(sortedGroups),
+        indexToTerminal = indexToTerminal,
+        terminalToIndex = terminalToIndex,
+        outPath = jsonFile
+      )
+      ujson.read(os.read(jsonFile))
     }
   }
 }

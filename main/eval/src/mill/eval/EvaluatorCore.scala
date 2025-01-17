@@ -72,7 +72,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
     val threadNumberer = new ThreadNumberer()
     val (sortedGroups, transitive) = Plan.plan(goals)
-    val interGroupDeps = findInterGroupDeps(sortedGroups)
+    val interGroupDeps = EvaluatorCore.findInterGroupDeps(sortedGroups)
     val terminals0 = sortedGroups.keys().toVector
     val failed = new AtomicBoolean(false)
     val count = new AtomicInteger(1)
@@ -262,9 +262,11 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       results.map { case (k, v) => (k, v.map(_._1)) }
     )
   }
+}
 
-  private def findInterGroupDeps(sortedGroups: MultiBiMap[Terminal, Task[_]])
-      : Map[Terminal, Seq[Terminal]] = {
+private[mill] object EvaluatorCore {
+  def findInterGroupDeps(sortedGroups: MultiBiMap[Terminal, Task[_]])
+  : Map[Terminal, Seq[Terminal]] = {
     sortedGroups
       .items()
       .map { case (terminal, group) =>
@@ -277,10 +279,6 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       }
       .toMap
   }
-}
-
-private[mill] object EvaluatorCore {
-
   case class Results(
       rawValues: Seq[Result[Val]],
       evaluated: Agg[Task[_]],
