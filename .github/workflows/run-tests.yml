@@ -64,7 +64,7 @@ jobs:
     uses: ./.github/workflows/pre-build.yml
     with:
       os: windows-latest
-      shell: ps
+      shell: powershell
 
   test-docs:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
@@ -210,7 +210,7 @@ jobs:
       # Provide a shorter coursier archive folder to avoid hitting path-length bugs when
       # running the graal native image binary on windows
       coursierarchive: "C:/coursier-arc"
-      shell: ps
+      shell: powershell
 
   itest:
     needs: build-linux
