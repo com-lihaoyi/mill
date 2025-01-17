@@ -29,10 +29,8 @@ private[mill] object SpanningForest {
       interestingIndices: Set[Int],
       render: Int => String
   ): Unit = {
-    os.write.over(
-      path,
-      writeJson(indexEdges, interestingIndices, render).render(indent = 2)
-    )
+    val json = writeJson(indexEdges, interestingIndices, render).render(indent = 2)
+    os.write.over(path, json)
   }
 
   def writeJson(
@@ -40,10 +38,8 @@ private[mill] object SpanningForest {
       interestingIndices: Set[Int],
       render: Int => String
   ): ujson.Obj = {
-    SpanningForest.spanningTreeToJsonTree(
-      SpanningForest(indexEdges, interestingIndices, true),
-      render
-    )
+    val forest = SpanningForest(indexEdges, interestingIndices, true)
+    SpanningForest.spanningTreeToJsonTree(forest, render)
   }
 
   def spanningTreeToJsonTree(node: SpanningForest.Node, stringify: Int => String): ujson.Obj = {
@@ -51,6 +47,7 @@ private[mill] object SpanningForest {
       node.values.map { case (k, v) => stringify(k) -> spanningTreeToJsonTree(v, stringify) }
     )
   }
+
   case class Node(values: mutable.Map[Int, Node] = mutable.Map())
   def apply(
       indexGraphEdges: Array[Array[Int]],
