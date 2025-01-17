@@ -113,7 +113,7 @@ private[mill] object SelectiveExecution {
 
   case class ChangedTasks(
       resolved: Seq[NamedTask[_]],
-      changedRootTasks: Set[Task[_]],
+      changedRootTasks: Set[NamedTask[_]],
       downstreamTasks: Seq[NamedTask[_]],
       results: Map[Task[_], Evaluator.TaskResult[Val]]
   )
@@ -142,7 +142,7 @@ private[mill] object SelectiveExecution {
 
       ChangedTasks(
         tasks,
-        changedRootTasks,
+        changedRootTasks.collect { case n: NamedTask[_] => n },
         downstreamTasks.collect { case n: NamedTask[_] => n },
         results
       )
@@ -157,6 +157,12 @@ private[mill] object SelectiveExecution {
       val resolvedSet = resolved.map(_.ctx.segments.render).toSet
       val downstreamSet = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
       resolvedSet.intersect(downstreamSet).toArray.sorted
+    }
+  }
+
+  def resolveChanged(evaluator: Evaluator, tasks: Seq[String]): Either[String, Seq[String]] = {
+    for (changedTasks <- SelectiveExecution.computeChangedTasks(evaluator, tasks)) yield {
+      changedTasks.changedRootTasks.map(_.ctx.segments.render).toSeq.sorted
     }
   }
 

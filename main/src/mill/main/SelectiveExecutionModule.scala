@@ -63,6 +63,20 @@ trait SelectiveExecutionModule extends mill.define.Module {
     }
 
   /**
+   * Similar to [[resolve]], but prints the _changed upstream tasks_ rather than
+   * the _selected downstream tasks_.
+   */
+  def resolveChanged(evaluator: Evaluator, tasks: String*): Command[Seq[String]] =
+    Task.Command(exclusive = true) {
+      SelectiveExecution.resolveChanged(evaluator, tasks) match {
+        case Left(err) => Result.Failure(err)
+        case Right(success) =>
+          success.foreach(println)
+          Result.Success(success)
+      }
+    }
+
+  /**
    * Run after [[prepare]], selectively executes the tasks in [[tasks]] that are
    * affected by any changes to the task inputs or task implementations since [[prepare]]
    * was run
