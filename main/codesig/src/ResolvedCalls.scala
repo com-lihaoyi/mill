@@ -118,16 +118,14 @@ object ResolvedCalls {
 
       val allSamImplementors0 = allSamDefiners
         .toSeq
-        .flatMap { case (cls, sig) =>
-          breadthFirst(Seq(cls))(cls => directDescendents.getOrElse(cls, Nil)).map(_ -> sig)
+        .map { case (cls, sig) =>
+          sig -> breadthFirst(Seq(cls))(cls => directDescendents.getOrElse(cls, Nil))
         }
 
-      val allSamImplementors = allSamImplementors0
-        .groupMap(_._1)(_._2)
-        .view.mapValues(_.toSet)
-        .toMap
+      val allSamImplementors = mill.util.SpanningForest.reverseEdges(allSamImplementors0)
 
-      allSamImplementors
+
+      allSamImplementors.mapValues(_.toSet).toMap
     }
 
     val localCalls = {

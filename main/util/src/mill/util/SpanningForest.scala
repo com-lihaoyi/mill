@@ -99,7 +99,7 @@ private[mill] object SpanningForest {
     seenList.toSeq
   }
 
-  def reverseEdges[T](edges: Iterable[(T, Iterable[T])]) = {
+  def reverseEdges[T, V](edges: Iterable[(T, Iterable[V])]): Map[V, Vector[T]] = {
     edges
       .iterator
       .flatMap{case (k, vs) => vs.map(_ -> k )}
