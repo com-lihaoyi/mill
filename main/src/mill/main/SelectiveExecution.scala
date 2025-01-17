@@ -188,10 +188,11 @@ private[mill] object SelectiveExecution {
 
       val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
 
+      val indexEdges: Array[Array[Int]] = indexToTerminal.map(t =>
+        reverseInterGroupDeps.getOrElse(t, Nil).flatMap(terminalToIndex.get(_)).toArray
+      )
       SpanningForest.writeJson(
-        indexEdges = indexToTerminal.map(t =>
-          reverseInterGroupDeps.getOrElse(t, Nil).flatMap(terminalToIndex.get(_)).toArray
-        ),
+        indexEdges = indexEdges,
         interestingIndices = indexToTerminal.indices.toSet,
         render = indexToTerminal(_).render
       )
