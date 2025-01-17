@@ -170,12 +170,9 @@ private[mill] object SelectiveExecution {
       resolved <- Resolve.Tasks.resolve(evaluator.rootModule, tasks, SelectMode.Separated)
       changedTasks <- SelectiveExecution.computeChangedTasks(evaluator, tasks)
     } yield {
-      resolved
-        .map(_.ctx.segments.render)
-        .toSet
-        .intersect(changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet)
-        .toArray
-        .sorted
+      val resolvedSet = resolved.map(_.ctx.segments.render).toSet
+      val downstreamSet = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
+      resolvedSet.intersect(downstreamSet).toArray.sorted
     }
   }
 
