@@ -73,13 +73,12 @@ object RunScript {
         selectiveExecutionEnabled && os.exists(evaluator.outPath / OutFiles.millSelectiveExecution)
       ) {
         SelectiveExecution
-          .diffMetadata(evaluator, targets.map(terminals(_).render).toSeq)
-          .map { x =>
-            val (selected, results) = x
-            val selectedSet = selected.toSet
+          .computeChangedTasks0(evaluator, targets.map(terminals(_).render).toSeq)
+          .map { changedTasks =>
+            val selectedSet = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
             (
               targets.filter(t => t.isExclusiveCommand || selectedSet(terminals(t).render)),
-              results
+              changedTasks.results
             )
           }
       } else Right(targets -> Map.empty)

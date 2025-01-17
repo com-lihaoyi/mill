@@ -11,6 +11,7 @@ import mill.util.SpanningForest
 
 private[mill] object SelectiveExecution {
   case class Metadata(inputHashes: Map[String, Int], methodCodeHashSignatures: Map[String, Int])
+
   implicit val rw: upickle.default.ReadWriter[Metadata] = upickle.default.macroRW
 
   object Metadata {
@@ -125,20 +126,11 @@ private[mill] object SelectiveExecution {
     )
   }
 
-  def diffMetadata(
+  case class ChangedTasks(changedRootTasks: Set[Task[_]], downstreamTasks: Seq[NamedTask[_]], results: Map[Task[_], Evaluator.TaskResult[Val]])
+  def computeChangedTasks0(
       evaluator: Evaluator,
       tasks: Seq[String]
-  ): Either[String, (Seq[String], Map[Task[_], Evaluator.TaskResult[Val]])] = {
-    for(res <- diffMetadata0(evaluator, tasks)) yield {
-      val (changedRootTasks, tasks, results) = res
-      (tasks.map(_.ctx.segments.render), results)
-    }
-  }
-
-  def diffMetadata0(
-      evaluator: Evaluator,
-      tasks: Seq[String]
-  ): Either[String, (Set[Task[_]], Seq[NamedTask[_]], Map[Task[_], Evaluator.TaskResult[Val]])] = {
+  ): Either[String, ChangedTasks] = {
     val oldMetadataTxt = os.read(evaluator.outPath / OutFiles.millSelectiveExecution)
     if (oldMetadataTxt == "") {
       Resolve.Tasks.resolve(
@@ -146,7 +138,7 @@ private[mill] object SelectiveExecution {
         tasks,
         SelectMode.Separated,
         evaluator.allowPositionalCommandArgs
-      ).map(t => (t.toSet, t,  Map.empty))
+      ).map(t => ChangedTasks(t.toSet, t,  Map.empty))
     } else {
       val oldMetadata = upickle.default.read[SelectiveExecution.Metadata](oldMetadataTxt)
       for (x <- SelectiveExecution.Metadata.compute(evaluator, tasks)) yield {
@@ -154,7 +146,7 @@ private[mill] object SelectiveExecution {
 
         val (changedRootTasks, downstreamTasks) = SelectiveExecution
           .computeDownstream(evaluator, tasks, oldMetadata, newMetadata)
-        (changedRootTasks, downstreamTasks.collect { case n: NamedTask[_] => n }, results)
+        ChangedTasks(changedRootTasks, downstreamTasks.collect { case n: NamedTask[_] => n }, results)
 
       }
     }
@@ -163,23 +155,21 @@ private[mill] object SelectiveExecution {
   def resolve0(evaluator: Evaluator, tasks: Seq[String]): Either[String, Array[String]] = {
     for {
       resolved <- Resolve.Tasks.resolve(evaluator.rootModule, tasks, SelectMode.Separated)
-      x <- SelectiveExecution.diffMetadata(evaluator, tasks)
+      changedTasks <- SelectiveExecution.computeChangedTasks0(evaluator, tasks)
     } yield {
-      val (newTasks, results) = x
       resolved
         .map(_.ctx.segments.render)
         .toSet
-        .intersect(newTasks.toSet)
+        .intersect(changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet)
         .toArray
         .sorted
     }
   }
 
   def resolveTree(evaluator: Evaluator, tasks: Seq[String]): Either[String, ujson.Value] = {
-    for (x <- SelectiveExecution.diffMetadata0(evaluator, tasks))yield {
-      val (changedRootTasks, tasks, results) = x
-      val taskSet = tasks.toSet[Task[_]]
-      val (sortedGroups, transitive) = Plan.plan(mill.api.Loose.Agg.from(tasks))
+    for (diffTasks <- SelectiveExecution.computeChangedTasks0(evaluator, tasks))yield {
+      val taskSet = diffTasks.downstreamTasks.toSet[Task[_]]
+      val (sortedGroups, transitive) = Plan.plan(mill.api.Loose.Agg.from(diffTasks.downstreamTasks))
       val indexToTerminal = sortedGroups.keys().toArray.filter(t => taskSet.contains(t.task))
 
       val terminalToIndex = indexToTerminal.zipWithIndex.toMap
