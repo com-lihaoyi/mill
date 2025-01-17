@@ -1,6 +1,7 @@
 package mill.codesig
-import JvmModel._
-import JType.{Cls => JCls}
+import JvmModel.*
+import JType.Cls as JCls
+import mill.util.SpanningForest
 import mill.util.SpanningForest.breadthFirst
 import upickle.default.{ReadWriter, macroRW}
 
@@ -31,12 +32,7 @@ object ResolvedCalls {
     val allDirectAncestors =
       localSummary.mapValues(_.directAncestors) ++ externalSummary.directAncestors
 
-    val directDescendents = {
-      allDirectAncestors
-        .toVector
-        .flatMap { case (k, vs) => vs.map((_, k)) }
-        .groupMap(_._1)(_._2)
-    }
+    val directDescendents = SpanningForest.reverseEdges(allDirectAncestors)
 
     // Given an external class, what are the local classes that inherit from it,
     // and what local methods may end up being called by the external class code

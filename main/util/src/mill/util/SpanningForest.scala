@@ -21,12 +21,21 @@ private[mill] object SpanningForest {
   ): Unit = {
     os.write.over(
       path,
-      SpanningForest.spanningTreeToJsonTree(
-        SpanningForest(indexEdges, interestingIndices, true),
-        render
-      ).render(indent = 2)
+      writeJson(indexEdges, interestingIndices, render).render(indent = 2)
     )
   }
+
+  def writeJson(
+      indexEdges: Array[Array[Int]],
+      interestingIndices: Set[Int],
+      render: Int => String
+  ): ujson.Value = {
+    SpanningForest.spanningTreeToJsonTree(
+      SpanningForest(indexEdges, interestingIndices, true),
+      render
+    )
+  }
+
   def spanningTreeToJsonTree(node: SpanningForest.Node, stringify: Int => String): ujson.Obj = {
     ujson.Obj.from(
       node.values.map { case (k, v) => stringify(k) -> spanningTreeToJsonTree(v, stringify) }
@@ -90,4 +99,13 @@ private[mill] object SpanningForest {
     seenList.toSeq
   }
 
+  def reverseEdges[T](edges: Iterable[(T, Iterable[T])]) = {
+    edges
+      .iterator
+      .flatMap{case (k, vs) => vs.map(_ -> k )}
+      .toArray
+      .groupMap(_._1)(_._2)
+      .mapValues(_.toSeq)
+      .toMap
+  }
 }

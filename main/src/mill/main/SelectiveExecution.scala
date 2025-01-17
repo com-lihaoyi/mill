@@ -6,6 +6,7 @@ import mill.eval.{CodeSigUtils, Evaluator, EvaluatorCore, EvaluatorLogs, Plan, T
 import mill.main.client.OutFiles
 import mill.util.SpanningForest.breadthFirst
 import mill.resolve.{Resolve, SelectMode}
+import mill.util.SpanningForest
 
 
 private[mill] object SelectiveExecution {
@@ -90,7 +91,7 @@ private[mill] object SelectiveExecution {
       tasks: Seq[String],
       oldHashes: Metadata,
       newHashes: Metadata
-  ): Seq[Task[Any]] = {
+  ): (Set[Task[_]], Seq[Task[Any]]) = {
     val terminals = SelectiveExecution.plan0(evaluator, tasks).getOrElse(???)
     val namesToTasks = terminals.map(t => (t.render -> t.task)).toMap
 
@@ -112,11 +113,9 @@ private[mill] object SelectiveExecution {
       .flatMap(namesToTasks.get(_): Option[Task[_]])
 
     val allNodes = breadthFirst(terminals.map(_.task: Task[_]))(_.inputs)
-    val downstreamEdgeMap = allNodes
-      .flatMap(t => t.inputs.map(_ -> t))
-      .groupMap(_._1)(_._2)
+    val downstreamEdgeMap = SpanningForest.reverseEdges(allNodes.map(t => (t, t.inputs)))
 
-    breadthFirst(changedRootTasks)(downstreamEdgeMap.getOrElse(_, Nil))
+    (changedRootTasks, breadthFirst(changedRootTasks)(downstreamEdgeMap.getOrElse(_, Nil)))
   }
 
   def saveMetadata(evaluator: Evaluator, metadata: SelectiveExecution.Metadata): Unit = {
@@ -131,7 +130,7 @@ private[mill] object SelectiveExecution {
       tasks: Seq[String]
   ): Either[String, (Seq[String], Map[Task[_], Evaluator.TaskResult[Val]])] = {
     for(res <- diffMetadata0(evaluator, tasks)) yield {
-      val (tasks, results) = res
+      val (changedRootTasks, tasks, results) = res
       (tasks.map(_.ctx.segments.render), results)
     }
   }
@@ -139,7 +138,7 @@ private[mill] object SelectiveExecution {
   def diffMetadata0(
       evaluator: Evaluator,
       tasks: Seq[String]
-  ): Either[String, (Seq[NamedTask[_]], Map[Task[_], Evaluator.TaskResult[Val]])] = {
+  ): Either[String, (Set[Task[_]], Seq[NamedTask[_]], Map[Task[_], Evaluator.TaskResult[Val]])] = {
     val oldMetadataTxt = os.read(evaluator.outPath / OutFiles.millSelectiveExecution)
     if (oldMetadataTxt == "") {
       Resolve.Tasks.resolve(
@@ -147,13 +146,15 @@ private[mill] object SelectiveExecution {
         tasks,
         SelectMode.Separated,
         evaluator.allowPositionalCommandArgs
-      ).map(_ -> Map.empty)
+      ).map(t => (t.toSet, t,  Map.empty))
     } else {
       val oldMetadata = upickle.default.read[SelectiveExecution.Metadata](oldMetadataTxt)
       for (x <- SelectiveExecution.Metadata.compute(evaluator, tasks)) yield {
         val (newMetadata, results) = x
-        SelectiveExecution.computeDownstream(evaluator, tasks, oldMetadata, newMetadata)
-          .collect { case n: NamedTask[_] => n } -> results
+
+        val (changedRootTasks, downstreamTasks) = SelectiveExecution
+          .computeDownstream(evaluator, tasks, oldMetadata, newMetadata)
+        (changedRootTasks, downstreamTasks.collect { case n: NamedTask[_] => n }, results)
 
       }
     }
@@ -176,21 +177,24 @@ private[mill] object SelectiveExecution {
 
   def resolveTree(evaluator: Evaluator, tasks: Seq[String]): Either[String, ujson.Value] = {
     for (x <- SelectiveExecution.diffMetadata0(evaluator, tasks))yield {
-      val (tasks, results) = x
+      val (changedRootTasks, tasks, results) = x
       val taskSet = tasks.toSet[Task[_]]
       val (sortedGroups, transitive) = Plan.plan(mill.api.Loose.Agg.from(tasks))
-      val jsonFile = os.temp()
       val indexToTerminal = sortedGroups.keys().toArray.filter(t => taskSet.contains(t.task))
 
       val terminalToIndex = indexToTerminal.zipWithIndex.toMap
 
-      EvaluatorLogs.logDependencyTree(
-        interGroupDeps = EvaluatorCore.findInterGroupDeps(sortedGroups),
-        indexToTerminal = indexToTerminal,
-        terminalToIndex = terminalToIndex,
-        outPath = jsonFile
+      val interGroupDeps = EvaluatorCore.findInterGroupDeps(sortedGroups)
+
+      val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
+
+      SpanningForest.writeJson(
+        indexEdges = indexToTerminal.map(t =>
+          reverseInterGroupDeps.getOrElse(t, Nil).flatMap(terminalToIndex.get(_)).toArray
+        ),
+        interestingIndices = indexToTerminal.indices.toSet,
+        render = indexToTerminal(_).render
       )
-      ujson.read(os.read(jsonFile))
     }
   }
 }
