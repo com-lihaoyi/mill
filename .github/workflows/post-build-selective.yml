@@ -77,6 +77,8 @@ jobs:
 
       - run: ./mill -i -k selective.resolveTree ${{ inputs.millargs }}
 
+      - run: ./mill -i -k selective.resolveChanged ${{ inputs.millargs }}
+
       - run: ./mill -i -j1 -k selective.run ${{ inputs.millargs }}
         if: ${{ inputs.install-android-sdk }}
         env:
