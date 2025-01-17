@@ -881,11 +881,8 @@ a second time, and thus this file shows how <code>foo.sources</code> invalidated
 one path is chosen arbitrarily to be shown in the spanning tree</p>
 </div>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_methodcodehashsignatures_spanninginvalidationtree"><a class="anchor" href="#_methodcodehashsignatures_spanninginvalidationtree"></a><code>methodCodeHashSignatures spanningInvalidationTree</code></h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_methodcodehashsignatures_spanninginvalidationtree"><a class="anchor" href="#_methodcodehashsignatures_spanninginvalidationtree"></a><code>methodCodeHashSignatures spanningInvalidationTree</code></h3>
 <div class="paragraph">
 <p>Sometimes invalidation can be caused by a code change in your <code>build.mill</code>/<code>package.mill</code>
 files, rather than by a change in the project’s source files or inputs. In such cases,
@@ -929,6 +926,7 @@ that it invalidates each task when any method it calls (transitively) is changed
 sometimes invalidate <em>too many</em> tasks, but it generally does not invalidate <em>too few</em> tasks,
 except in code using Java Reflection or similar techniques which the code-change analysis
 does not understand.</p>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_mill_build"><a class="anchor" href="#_mill_build"></a><code>mill-build/</code></h3>
