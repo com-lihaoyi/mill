@@ -103,7 +103,7 @@ private[mill] object SpanningForest {
     edges
       .iterator
       .flatMap{case (k, vs) => vs.map(_ -> k )}
-      .toArray
+      .toVector
       .groupMap(_._1)(_._2)
       .mapValues(_.toSeq)
       .toMap
