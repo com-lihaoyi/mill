@@ -43,13 +43,6 @@ jobs:
           java-version: ${{ inputs.java-version }}
           os: ${{ inputs.os }}
 
-      - uses: actions/download-artifact@v4
-        with:
-          path: out/mill-selective-execution
-          name: ${{ inputs.os }}-selective-execution-artifact
-
-      - run: mv out/mill-selective-execution/mill-selective-execution.json out/mill-selective-execution.json
-
       - uses: android-actions/setup-android@v3
         if: ${{ inputs.install-android-sdk }}
         with:
@@ -71,9 +64,6 @@ jobs:
       - name: Set AVD environment variable globally
         if: ${{ inputs.install-android-sdk }}
         run: echo "ANDROID_AVD_HOME=/home/runner/.config/.android/avd" >> $GITHUB_ENV
-
-      - uses: actions/setup-node@v4
-        with: { node-version: '22' }
 
       - uses: ./.github/actions/post-build-selective
 

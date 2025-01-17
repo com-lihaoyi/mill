@@ -29,3 +29,11 @@ runs:
 
     - run: git config --global user.name "Your Name"
       shell: bash
+
+    - uses: actions/download-artifact@v4
+      with:
+        path: out/mill-selective-execution
+        name: ${{ inputs.os }}-selective-execution-artifact
+
+    - run: mv out/mill-selective-execution/mill-selective-execution.json out/mill-selective-execution.json
+      shell: bash
