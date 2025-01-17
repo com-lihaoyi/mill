@@ -5,6 +5,11 @@ on:
       millargs:
         default: ''
         type: string
+
+      shell:
+        required: true
+        type: string
+
       coursierarchive:
         default: ''
         type: string
@@ -76,3 +81,4 @@ jobs:
           millargs: ${{ inputs.millargs }}
           coursierarchive: ${{ inputs.coursierarchive }}
           install-android-sdk: ${{ inputs.install-android-sdk }}
+          shell: ${{ inputs.shell }}

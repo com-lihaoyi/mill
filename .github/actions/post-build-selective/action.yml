@@ -4,6 +4,10 @@ inputs:
     default: ''
     type: string
 
+  shell:
+    required: true
+    type: string
+
   coursierarchive:
     default: ''
     type: string
@@ -18,28 +22,28 @@ runs:
       with: { node-version: '22' }
 
     - run: ./mill -i -k selective.resolve ${{ inputs.millargs }}
-      shell: bash
+      shell: ${{ inputs.shell }}
 
     - run: cat out/mill-build/methodCodeHashSignatures.dest/current/spanningInvalidationTree.json
       shell: bash
 
     - run: ./mill -i -k selective.resolveTree ${{ inputs.millargs }}
-      shell: bash
+      shell: ${{ inputs.shell }}
 
     - run: ./mill -i -k selective.resolveChanged ${{ inputs.millargs }}
-      shell: bash
+      shell: ${{ inputs.shell }}
 
     - run: ./mill -i -j1 -k selective.run ${{ inputs.millargs }}
       if: ${{ inputs.install-android-sdk }}
       env:
         COURSIER_ARCHIVE_CACHE: ${{ inputs.coursierarchive }}
-      shell: bash
+      shell: ${{ inputs.shell }}
 
     - run: ./mill -i -k selective.run ${{ inputs.millargs }}
       if: ${{ !inputs.install-android-sdk }}
       env:
         COURSIER_ARCHIVE_CACHE: ${{ inputs.coursierarchive }}
-      shell: bash
+      shell: ${{ inputs.shell }}
 
     - name: Publish Test Report
       uses: mikepenz/action-junit-report@v5

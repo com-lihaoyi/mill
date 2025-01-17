@@ -13,6 +13,10 @@ on:
         default: 60
         type: number
 
+      shell:
+        required: true
+        type: string
+
 jobs:
   run:
     runs-on: ${{ inputs.os }}
@@ -26,6 +30,7 @@ jobs:
         with:
           os: ${{ inputs.os }}
           java-version: ${{ inputs.java-version }}
+          shell: ${{ inputs.shell }}
 
       - run: ./mill -i -k ${{ inputs.compileargs }}
 
