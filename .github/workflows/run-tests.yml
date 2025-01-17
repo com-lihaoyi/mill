@@ -57,12 +57,14 @@ jobs:
     uses: ./.github/workflows/pre-build.yml
     with:
       os: ubuntu-latest
+      shell: bash
 
   build-windows:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
     uses: ./.github/workflows/pre-build.yml
     with:
       os: windows-latest
+      shell: ps
 
   test-docs:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
