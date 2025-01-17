@@ -261,6 +261,10 @@
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="testing.html">Testing Typescript Projects</a>
   </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
 </ul>
   </li>
 </ul>
@@ -848,7 +852,7 @@ implementation.</p>
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run &quot;Hello World!&quot;
 Bar.value: 123
 text: Hello World!
-Line count: 13</code></pre>
+Line count: 9</code></pre>
 </div>
 </div>
 </div>
@@ -884,7 +888,6 @@ object foo extends TypeScriptModule {
 
   def compile = Task {
     println(&quot;Compiling...&quot;)
-    os.copy(sources().path, super.compile()._2.path, mergeFolders = true)
     super.compile()
   }
 
