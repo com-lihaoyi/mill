@@ -99,6 +99,11 @@ jobs:
           java-version: ${{ matrix.java-version }}
           shell: bash
 
+      - uses: ./.github/actions/post-build-setup
+        with:
+          java-version: ${{ matrix.java-version }}
+          os: ${{ matrix.os }}
+
       - uses: ./.github/actions/post-build-selective
         with:
           millargs: ${{ matrix.millargs }}

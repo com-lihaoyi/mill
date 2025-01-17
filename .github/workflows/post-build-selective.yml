@@ -32,7 +32,6 @@ jobs:
     continue-on-error: false
     timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
-
       - uses: actions/download-artifact@v4
         with:
           path: .
@@ -43,27 +42,8 @@ jobs:
           java-version: ${{ inputs.java-version }}
           os: ${{ inputs.os }}
 
-      - uses: android-actions/setup-android@v3
+      - uses: ./.github/actions/setup-android
         if: ${{ inputs.install-android-sdk }}
-        with:
-          log-accepted-android-sdk-licenses: false
-          cmdline-tools-version: 11076708
-          packages: tools platform-tools emulator system-images;android-35;google_apis_playstore;x86_64
-
-      - name: Enable KVM group perms
-        if: ${{ inputs.install-android-sdk }}
-        run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
-
-      - name: Cleanup any previous avd's to avoid signing key conflicts
-        if : ${{ inputs.install-android-sdk }}
-        run: rm -rf /home/runner/.config/.android/avd
-
-      - name: Set AVD environment variable globally
-        if: ${{ inputs.install-android-sdk }}
-        run: echo "ANDROID_AVD_HOME=/home/runner/.config/.android/avd" >> $GITHUB_ENV
 
       - uses: ./.github/actions/post-build-selective
 
