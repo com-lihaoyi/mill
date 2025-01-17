@@ -47,6 +47,11 @@ trait SelectiveExecutionModule extends mill.define.Module {
       }
     }
 
+  /**
+   * Similar to [[resolve]], but prints the output as a JSON tree so you can see
+   * the chain of dependencies that caused each selectively resolved task to be
+   * resolved from some upstream changed input
+   */
   def resolveTree(evaluator: Evaluator, tasks: String*): Command[ujson.Value] =
     Task.Command(exclusive = true) {
       SelectiveExecution.resolveTree(evaluator, tasks) match {
