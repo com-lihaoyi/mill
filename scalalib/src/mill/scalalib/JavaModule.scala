@@ -965,7 +965,8 @@ trait JavaModule
         )
       ),
       artifactTypes = Some(artifactTypes()),
-      resolutionParamsMapOpt = Some((_: ResolutionParams).withDefaultConfiguration(cs.Configuration.runtime))
+      resolutionParamsMapOpt =
+        Some((_: ResolutionParams).withDefaultConfiguration(cs.Configuration.runtime))
     )
   }
 

@@ -52,20 +52,23 @@ trait JsonFormatters {
     )
   implicit lazy val snapshotVersioningFormat: RW[coursier.core.SnapshotVersioning] =
     upickle.default.macroRW
-  implicit lazy val versionsFormat: RW[coursier.core.Versions] = upickle.default.readwriter[ujson.Value].bimap[coursier.core.Versions](
-    versions => ujson.Obj(
-      "latest" -> versions.latest,
-      "release" -> versions.release,
-      "available" -> versions.available,
-      "lastUpdated" -> upickle.default.writeJs(versions.lastUpdated)
-    ),
-    json => coursier.core.Versions(
-      latest = json("latest").str,
-      release = json("release").str,
-      available = upickle.default.read(json("available")),
-      lastUpdated = upickle.default.read(json("lastUpdated"))
+  implicit lazy val versionsFormat: RW[coursier.core.Versions] =
+    upickle.default.readwriter[ujson.Value].bimap[coursier.core.Versions](
+      versions =>
+        ujson.Obj(
+          "latest" -> versions.latest,
+          "release" -> versions.release,
+          "available" -> versions.available,
+          "lastUpdated" -> upickle.default.writeJs(versions.lastUpdated)
+        ),
+      json =>
+        coursier.core.Versions(
+          latest = json("latest").str,
+          release = json("release").str,
+          available = upickle.default.read(json("available")),
+          lastUpdated = upickle.default.read(json("lastUpdated"))
+        )
     )
-  )
   implicit lazy val versionsDateTimeFormat: RW[coursier.core.Versions.DateTime] =
     upickle.default.macroRW
   implicit lazy val activationFormat: RW[coursier.core.Activation] = upickle.default.macroRW
