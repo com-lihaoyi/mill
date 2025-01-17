@@ -47,10 +47,9 @@ object `package` extends RootModule {
           Map(
             "MILL_INTEGRATION_SERVER_MODE" -> (mode == "local" || mode == "server").toString,
             "MILL_LAUNCHER" -> build.dist.bootstrapLauncher().path.toString,
-            "MILL_LAUNCHER_BAT" -> build.dist.bootstrapLauncherBat().path.toString,
+            "MILL_LAUNCHER_BAT" -> build.dist.bootstrapLauncherBat().path.toString
           ) ++
           testReleaseEnv()
-
 
       def forkArgs = Task { super.forkArgs() ++ build.dist.forkArgs() }
 
