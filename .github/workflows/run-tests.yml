@@ -73,32 +73,34 @@ jobs:
 
       - run: ./mill -i docs.fastPages + docs.checkBrokenLinks
 
-  mac:
+  cross-plat:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
-    runs-on: macos-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+
+        include:
+          - os: ubuntu-24.04-arm
+            millargs: example.scalalib.__.local.server.test
+            java-version: 17
+          - os: macos-latest
+            millargs: example.kotlinlib.__.local.server.test
+            java-version: 17
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 1 }
 
-      - run: "echo temurin:17 > .mill-jvm-version"
+      - uses: ./.github/actions/pre-build-setup
+        with:
+          os: ${{ inputs.os }}
+          java-version: ${{ inputs.java-version }}
+          prepareargs: ${{ inputs.prepareargs }}
 
-      - uses: actions/setup-node@v4
-        with: { node-version: '22' }
-
-      - run: ./mill -i example.scalalib.__.local.server.test
-
-  linux-arm:
-    if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
-    runs-on: ubuntu-24.04-arm
-    steps:
-      - uses: actions/checkout@v4
-        with: { fetch-depth: 1 }
-
-      - run: "echo temurin:17 > .mill-jvm-version"
-
-      - uses: actions/setup-node@v4
-        with: { node-version: '22' }
-      - run: ./mill -i example.kotlinlib.__.local.server.test
+      - uses: ./.github/actions/post-build-selective
+        with:
+          millargs: ${{ inputs.millargs }}
+          coursierarchive: ""
+          install-android-sdk: false
 
   linux:
     needs: build-linux

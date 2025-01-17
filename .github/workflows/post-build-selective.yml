@@ -45,10 +45,6 @@ jobs:
 
       - run: mv out/mill-selective-execution/mill-selective-execution.json out/mill-selective-execution.json
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
       - uses: android-actions/setup-android@v3
         if: ${{ inputs.install-android-sdk }}
         with:
@@ -71,31 +67,11 @@ jobs:
         if: ${{ inputs.install-android-sdk }}
         run: echo "ANDROID_AVD_HOME=/home/runner/.config/.android/avd" >> $GITHUB_ENV
 
-      - run: ./mill -i -k selective.resolve ${{ inputs.millargs }}
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
 
-      - run: cat out/mill-build/methodCodeHashSignatures.dest/current/spanningInvalidationTree.json
-
-      - run: ./mill -i -k selective.resolveTree ${{ inputs.millargs }}
-
-      - run: ./mill -i -k selective.resolveChanged ${{ inputs.millargs }}
-
-      - run: ./mill -i -j1 -k selective.run ${{ inputs.millargs }}
-        if: ${{ inputs.install-android-sdk }}
-        env:
-          COURSIER_ARCHIVE_CACHE: ${{ inputs.coursierarchive }}
-
-      - run: ./mill -i -k selective.run ${{ inputs.millargs }}
-        if: ${{ !inputs.install-android-sdk }}
-        env:
-          COURSIER_ARCHIVE_CACHE: ${{ inputs.coursierarchive }}
-
-      - name: Publish Test Report
-        uses: mikepenz/action-junit-report@v5
-        if: always() # always run even if the previous step fails
+      - uses: ./.github/actions/post-build-selective
         with:
-          fail_on_failure: false
-          include_passed: false
-          detailed_summary: true
-          annotate_only: true
-          require_tests: false
-          report_paths: 'out/**/test-report.xml'
+          millargs: ${{ inputs.millargs }}
+          coursierarchive: ${{ inputs.coursierarchive }}
+          install-android-sdk: ${{ inputs.install-android-sdk }}
