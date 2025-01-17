@@ -95,7 +95,6 @@ jobs:
         with:
           os: ${{ inputs.os }}
           java-version: ${{ inputs.java-version }}
-          prepareargs: ${{ inputs.prepareargs }}
 
       - uses: ./.github/actions/post-build-selective
         with:

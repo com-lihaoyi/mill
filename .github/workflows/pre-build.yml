@@ -4,9 +4,6 @@ on:
       compileargs:
         default: '__.compile'
         type: string
-      prepareargs:
-        default: '__.test'
-        type: string
       java-version:
         default: '11'
         type: string
@@ -29,7 +26,6 @@ jobs:
         with:
           os: ${{ inputs.os }}
           java-version: ${{ inputs.java-version }}
-          prepareargs: ${{ inputs.prepareargs }}
 
       - run: ./mill -i -k ${{ inputs.compileargs }}
 
