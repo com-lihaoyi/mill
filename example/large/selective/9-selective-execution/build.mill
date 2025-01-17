@@ -133,6 +133,50 @@ Test run bar.BarTests finished: 0 failed, 0 ignored, 1 total, ...
 //   "foo.test" [color=red penwidth=2]
 // }
 // ```
+//
+// For a more detailed report of how the changed inputs resulted in the selected tasks
+// being chosen, you can also use `selective.resolveTree` to print out the selected tasks
+// as a JSON tree illustrating the relationships between the invalidated inputs (at the root
+// of the tree) and the selected tasks (at the leaves of the tree)
+//
+
+/** Usage
+
+> mill selective.resolveTree __.test
+{
+  "bar.sources": {
+    "bar.test.sources": {
+      "bar.test.allSources": {
+        "bar.test.allSourceFiles": {
+          "bar.test.compile": {
+            "bar.test.localRunClasspath": {
+              "bar.test.testClasspath": {
+                "bar.test.test": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "bar.allSources": {
+      "bar.allSourceFiles": {
+        "bar.compile": {
+          "bar.localRunClasspath": {
+            "bar.localClasspath": {
+              "foo.test.transitiveLocalClasspath": {
+                "foo.test.runClasspath": {
+                  "foo.test.test": {}
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+*/
 
 // Similarly, if we make a change `qux/`, using selective execution will only run tests
 // in `qux.test`, and skip those in `foo.test` and `bar.test`.
