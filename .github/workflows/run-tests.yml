@@ -77,6 +77,7 @@ jobs:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
 
         include:
