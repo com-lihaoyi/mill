@@ -182,22 +182,18 @@ private[mill] object SelectiveExecution {
   def resolveTree(evaluator: Evaluator, tasks: Seq[String]): Either[String, ujson.Value] = {
     for (changedTasks <- SelectiveExecution.computeChangedTasks(evaluator, tasks)) yield {
       val taskSet = changedTasks.downstreamTasks.toSet[Task[_]]
-      val (sortedGroups, transitive) =
-        Plan.plan(mill.api.Loose.Agg.from(changedTasks.downstreamTasks))
+      val (sortedGroups, transitive) = Plan.plan(mill.api.Loose.Agg.from(changedTasks.downstreamTasks))
       val indexToTerminal = sortedGroups.keys().toArray.filter(t => taskSet.contains(t.task))
-
-      val terminalToIndex = indexToTerminal.zipWithIndex.toMap
 
       val interGroupDeps = EvaluatorCore.findInterGroupDeps(sortedGroups)
 
       val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
 
-      val indexEdges: Array[Array[Int]] = indexToTerminal.map(t =>
-        reverseInterGroupDeps.getOrElse(t, Nil).flatMap(terminalToIndex.get(_)).toArray
-      )
+      val (vertexToIndex, edgeIndices) =
+        SpanningForest.graphMapToIndices(indexToTerminal, reverseInterGroupDeps)
 
       val json = SpanningForest.writeJson(
-        indexEdges = indexEdges,
+        indexEdges = edgeIndices,
         interestingIndices = indexToTerminal.indices.toSet,
         render = indexToTerminal(_).render
       )

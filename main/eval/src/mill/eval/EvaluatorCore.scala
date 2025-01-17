@@ -77,9 +77,8 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     val failed = new AtomicBoolean(false)
     val count = new AtomicInteger(1)
     val indexToTerminal = sortedGroups.keys().toArray
-    val terminalToIndex = indexToTerminal.zipWithIndex.toMap
 
-    EvaluatorLogs.logDependencyTree(interGroupDeps, indexToTerminal, terminalToIndex, outPath)
+    EvaluatorLogs.logDependencyTree(interGroupDeps, indexToTerminal, outPath)
 
     // Prepare a lookup tables up front of all the method names that each class owns,
     // and the class hierarchy, so during evaluation it is cheap to look up what class
@@ -231,7 +230,6 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     EvaluatorLogs.logInvalidationTree(
       interGroupDeps,
       indexToTerminal,
-      terminalToIndex,
       outPath,
       uncached,
       changedValueHash

@@ -10,14 +10,14 @@ private[mill] object EvaluatorLogs {
   def logDependencyTree(
       interGroupDeps: Map[Terminal, Seq[Terminal]],
       indexToTerminal: Array[Terminal],
-      terminalToIndex: Map[Terminal, Int],
       outPath: os.Path
   ): Unit = {
+    val (vertexToIndex, edgeIndices) =
+      SpanningForest.graphMapToIndices(indexToTerminal, interGroupDeps)
+
     SpanningForest.writeJsonFile(
       outPath / OutFiles.millDependencyTree,
-      indexToTerminal.map(t =>
-        interGroupDeps.getOrElse(t, Nil).flatMap(terminalToIndex.get(_)).toArray
-      ),
+      edgeIndices,
       indexToTerminal.indices.toSet,
       indexToTerminal(_).render
     )
@@ -25,21 +25,18 @@ private[mill] object EvaluatorLogs {
   def logInvalidationTree(
       interGroupDeps: Map[Terminal, Seq[Terminal]],
       indexToTerminal: Array[Terminal],
-      terminalToIndex: Map[Terminal, Int],
       outPath: os.Path,
       uncached: ConcurrentHashMap[Terminal, Unit],
       changedValueHash: ConcurrentHashMap[Terminal, Unit]
   ): Unit = {
-
     val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
 
     val changedTerminalIndices = changedValueHash.keys().asScala.toSet
-    val downstreamIndexEdges = indexToTerminal
-      .map(t =>
-        if (changedTerminalIndices(t))
-          reverseInterGroupDeps.getOrElse(t, Nil).map(terminalToIndex).toArray
-        else Array.empty[Int]
-      )
+
+    val (vertexToIndex, downstreamIndexEdges) = SpanningForest.graphMapToIndices(
+      indexToTerminal,
+      reverseInterGroupDeps.filterKeys(changedTerminalIndices).toMap
+    )
 
     val edgeSourceIndices = downstreamIndexEdges
       .zipWithIndex
@@ -51,7 +48,7 @@ private[mill] object EvaluatorLogs {
       downstreamIndexEdges,
       uncached.keys().asScala
         .flatMap { uncachedTask =>
-          val uncachedIndex = terminalToIndex(uncachedTask)
+          val uncachedIndex = vertexToIndex(uncachedTask)
           Option.when(
             // Filter out input and source tasks which do not cause downstream invalidations
             // from the invalidation tree, because most of them are un-interesting and the

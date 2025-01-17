@@ -13,6 +13,16 @@ import scala.collection.mutable
  * the roots of the forest
  */
 private[mill] object SpanningForest {
+
+  def graphMapToIndices[T](vertices: Iterable[T], edges: Map[T, Seq[T]]) = {
+    val vertexToIndex = vertices.zipWithIndex.toMap
+    val edgeIndices = vertices
+      .map(t => edges.getOrElse(t, Nil)
+      .flatMap(vertexToIndex.get(_)).toArray)
+      .toArray
+
+    (vertexToIndex, edgeIndices)
+  }
   def writeJsonFile(
       path: os.Path,
       indexEdges: Array[Array[Int]],
