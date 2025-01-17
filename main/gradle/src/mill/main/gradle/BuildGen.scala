@@ -36,10 +36,6 @@ import scala.jdk.CollectionConverters.*
  *  - custom dependency configurations
  *  - custom tasks
  *  - non-Java sources
- *
- * @note The Gradle API used by the Gradle daemon is tied to the version of Gradle used in the target project (and not the API version used in this module).
- *       Consequently, some features may not be available for projects that use a legacy Gradle version.
- *       For example, the `getSourceSets` method in [[org.gradle.api.plugins.JavaPluginExtension]] was added in Gradle `7.1`.
  */
 @mill.api.internal
 object BuildGen {
