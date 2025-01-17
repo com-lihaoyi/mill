@@ -143,7 +143,38 @@ Test run bar.BarTests finished: 0 failed, 0 ignored, 1 total, ...
 /** Usage
 
 > mill selective.resolveTree __.test
-???
+{
+  "bar.sources": {
+    "bar.test.sources": {
+      "bar.test.allSources": {
+        "bar.test.allSourceFiles": {
+          "bar.test.compile": {
+            "bar.test.localRunClasspath": {
+              "bar.test.testClasspath": {
+                "bar.test.test": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "bar.allSources": {
+      "bar.allSourceFiles": {
+        "bar.compile": {
+          "bar.localRunClasspath": {
+            "bar.localClasspath": {
+              "foo.test.transitiveLocalClasspath": {
+                "foo.test.runClasspath": {
+                  "foo.test.test": {}
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
 
 */
 

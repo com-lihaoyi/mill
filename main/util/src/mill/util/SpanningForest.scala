@@ -29,7 +29,7 @@ private[mill] object SpanningForest {
       indexEdges: Array[Array[Int]],
       interestingIndices: Set[Int],
       render: Int => String
-  ): ujson.Value = {
+  ): ujson.Obj = {
     SpanningForest.spanningTreeToJsonTree(
       SpanningForest(indexEdges, interestingIndices, true),
       render
