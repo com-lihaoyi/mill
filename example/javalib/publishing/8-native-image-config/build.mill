@@ -35,7 +35,6 @@ object ZincWorkerGraalvm extends ZincWorkerModule {
 
 */
 
-
 // You can also access the `native-image` compiler directly via `show foo.nativeImageTool`
 // if you want to experiment it or view its `--help` text to see what you need to pass to
 // `nativeImageOptions`:
