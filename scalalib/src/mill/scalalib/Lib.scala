@@ -145,18 +145,18 @@ object Lib {
       resolutionParams: ResolutionParams = ResolutionParams()
   ): Result[Agg[PathRef]] = {
     val depSeq = deps.iterator.toSeq
-    mill.util.Jvm.resolveDependencies(
+    val res = mill.util.Jvm.resolveDependencies(
       repositories = repositories,
       deps = depSeq.map(_.dep),
       force = depSeq.filter(_.force).map(_.dep),
-      sources = sources,
-      artifactTypes = artifactTypes,
-      mapDependencies = mapDependencies,
       customizer = customizer,
       ctx = ctx,
       coursierCacheCustomizer = coursierCacheCustomizer,
+      deprecatedResolveFilter = _ => true,
       resolutionParams = resolutionParams
-    ).map(_.map(_.withRevalidateOnce))
+    )
+
+    res.map(_.map(_.withRevalidateOnce))
   }
 
   // bin-compat shim

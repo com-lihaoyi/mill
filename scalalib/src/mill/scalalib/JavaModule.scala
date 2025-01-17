@@ -3,6 +3,7 @@ package scalalib
 
 import coursier.{core => cs}
 import coursier.core.{BomDependency, Configuration, DependencyManagement, Resolution}
+import coursier.params.ResolutionParams
 import coursier.parse.JavaOrScalaModule
 import coursier.parse.ModuleParser
 import coursier.util.{EitherT, ModuleMatcher, Monad}
@@ -942,7 +943,8 @@ trait JavaModule
         BoundDep(coursierDependency, force = false)
       ),
       artifactTypes = Some(artifactTypes()),
-      resolutionParamsMapOpt = Some(_.withDefaultConfiguration(coursier.core.Configuration.compile))
+      resolutionParamsMapOpt =
+        Some((_: ResolutionParams).withDefaultConfiguration(coursier.core.Configuration.compile))
     )
   }
 
@@ -1402,7 +1404,9 @@ trait JavaModule
             ),
             sources = true,
             resolutionParamsMapOpt =
-              Some(_.withDefaultConfiguration(coursier.core.Configuration.compile))
+              Some(
+                (_: ResolutionParams).withDefaultConfiguration(coursier.core.Configuration.compile)
+              )
           )
         },
         Task.Anon {
