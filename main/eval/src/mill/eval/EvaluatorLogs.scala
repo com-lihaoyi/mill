@@ -15,7 +15,9 @@ private[mill] object EvaluatorLogs {
   ): Unit = {
     SpanningForest.writeJsonFile(
       outPath / OutFiles.millDependencyTree,
-      indexToTerminal.map(t => interGroupDeps.getOrElse(t, Nil).flatMap(terminalToIndex.get(_)).toArray),
+      indexToTerminal.map(t =>
+        interGroupDeps.getOrElse(t, Nil).flatMap(terminalToIndex.get(_)).toArray
+      ),
       indexToTerminal.indices.toSet,
       indexToTerminal(_).render
     )

@@ -266,7 +266,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
 private[mill] object EvaluatorCore {
   def findInterGroupDeps(sortedGroups: MultiBiMap[Terminal, Task[_]])
-  : Map[Terminal, Seq[Terminal]] = {
+      : Map[Terminal, Seq[Terminal]] = {
     sortedGroups
       .items()
       .map { case (terminal, group) =>

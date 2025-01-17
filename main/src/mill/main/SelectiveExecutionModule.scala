@@ -41,7 +41,6 @@ trait SelectiveExecutionModule extends mill.define.Module {
       }
     }
 
-
   def resolveTree(evaluator: Evaluator, tasks: String*): Command[ujson.Value] =
     Task.Command(exclusive = true) {
       SelectiveExecution.resolveTree(evaluator, tasks) match {
