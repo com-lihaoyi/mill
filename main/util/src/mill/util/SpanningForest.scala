@@ -107,12 +107,7 @@ private[mill] object SpanningForest {
   }
 
   def reverseEdges[T, V](edges: Iterable[(T, Iterable[V])]): Map[V, Vector[T]] = {
-    edges
-      .iterator
-      .flatMap { case (k, vs) => vs.map(_ -> k) }
-      .toVector
-      .groupMap(_._1)(_._2)
-      .mapValues(_.toSeq)
-      .toMap
+    val flatEdges = edges.iterator.flatMap { case (k, vs) => vs.map(_ -> k) }.toVector
+    flatEdges.groupMap(_._1)(_._2).mapValues(_.toSeq).toMap
   }
 }
