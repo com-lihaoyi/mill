@@ -44,10 +44,12 @@ trait Static extends ScalaModule {
   }
 
   /**
-   * webjar dependencies - created from transitive ivy deps
+   * webjar dependencies - created from ivy deps
    */
   def webJarDeps = Task {
-    transitiveIvyDeps().filter(_.dep.module.organization.value == "org.webjars")
+    ivyDeps()
+      .filter(_.dep.module.organization.value == "org.webjars")
+      .map(bindDependency())
   }
 
   /**

@@ -119,6 +119,12 @@ error: Missing argument: --text <str>
 > ./out/foo/assembly.dest/out.jar --text hello # mac/linux
 <h1>hello</h1>
 
+> # Note that on windows you need to rename `out.jar` to `out.bat` to run it
+> cp ./out/foo/assembly.dest/out.jar out.bat # windows
+
+> ./out.bat --text hello # windows
+<h1>hello</h1>
+
 */
 
 //// SNIPPET:END

@@ -16,8 +16,7 @@ import mill.define.Cross
 
 // plugins and dependencies
 import $meta._
-import $file.ci.shared
-import $file.ci.upload
+
 import $packages._
 
 object Settings {
@@ -267,8 +266,11 @@ object Deps {
 }
 
 def millVersion: T[String] = Task.Input {
-  if (Task.env.contains("MILL_STABLE_VERSION")) VcsVersion.calcVcsState(Task.log).format()
-  else "SNAPSHOT"
+  if (Task.env.contains("MILL_STABLE_VERSION")) {
+    // Ignore local changes when computing the VCS version string,
+    // since we make those in CI and can promise they are safe
+    VcsVersion.calcVcsState(Task.log).copy(dirtyHash = None).format()
+  } else "SNAPSHOT"
 }
 
 def millLastTag: T[String] = Task {
@@ -589,6 +591,14 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
     ),
     ProblemFilter.exclude[InheritedNewAbstractMethodProblem](
       "mill.main.MainModule.mill$define$BaseModule0$_setter_$evalWatchedValues_="
+    ),
+
+    // Overrides added for new methods, ought to be safe
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$internalRepositories"
+    ),
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.scalanativelib.ScalaNativeModule.mill$scalanativelib$ScalaNativeModule$$super$coursierProject"
     ),
 
     // https://github.com/com-lihaoyi/mill/pull/3503

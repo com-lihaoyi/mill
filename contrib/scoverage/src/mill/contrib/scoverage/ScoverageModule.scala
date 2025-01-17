@@ -158,7 +158,9 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     override def sources: T[Seq[PathRef]] = Task { outer.sources() }
     override def resources: T[Seq[PathRef]] = Task { outer.resources() }
     override def scalaVersion = Task { outer.scalaVersion() }
-    override def repositoriesTask: Task[Seq[Repository]] = Task.Anon { outer.repositoriesTask() }
+    override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
+      internalRepositories() ++ outer.repositoriesTask()
+    }
     override def compileIvyDeps: T[Agg[Dep]] = Task { outer.compileIvyDeps() }
     override def ivyDeps: T[Agg[Dep]] =
       Task { outer.ivyDeps() ++ outer.scoverageRuntimeDeps() }
