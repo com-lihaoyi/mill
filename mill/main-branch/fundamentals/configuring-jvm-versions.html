@@ -625,12 +625,12 @@ and architecture <a href="https://github.com/coursier/jvm-index/blob/master/indi
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
 import mill.define.ModuleRef
 
-object ZincWorkerJava11 extends ZincWorkerModule {
+object ZincWorkerJava extends ZincWorkerModule {
   def jvmId = &quot;temurin:18.0.2&quot;
 }
 
 object foo extends JavaModule {
-  def zincWorker = ModuleRef(ZincWorkerJava11)
+  def zincWorker = ModuleRef(ZincWorkerJava)
 
   object test extends JavaTests with TestModule.Junit4
 }</code></pre>
@@ -670,14 +670,14 @@ index version from the Maven Central (<a href="https://repo1.maven.org/maven2/io
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import scalalib._
 
-object ZincWorkerJava11Latest extends ZincWorkerModule {
+object ZincWorkerJavaLatest extends ZincWorkerModule {
   def jvmId = &quot;temurin:23.0.1&quot;
   def jvmIndexVersion = &quot;latest.release&quot;
 }
 
 object bar extends ScalaModule {
   def scalaVersion = &quot;2.13.12&quot;
-  def zincWorker = ModuleRef(ZincWorkerJava11Latest)
+  def zincWorker = ModuleRef(ZincWorkerJavaLatest)
 
 }</code></pre>
 </div>
@@ -704,7 +704,7 @@ OS/CPU combinations</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import kotlinlib._
 
-object ZincWorkerJava11Url extends ZincWorkerModule {
+object ZincWorkerJavaUrl extends ZincWorkerModule {
   def jvmId =
     if (sys.props(&quot;os.name&quot;) == &quot;Mac OS X&quot;) {
       &quot;https://github.com/adoptium/temurin22-binaries/releases/download/jdk-22.0.2%2B9/OpenJDK22U-jdk_aarch64_mac_hotspot_22.0.2_9.tar.gz&quot;
@@ -716,7 +716,7 @@ object ZincWorkerJava11Url extends ZincWorkerModule {
 
 object qux extends KotlinModule {
   def kotlinVersion = &quot;2.0.20&quot;
-  def zincWorker = ModuleRef(ZincWorkerJava11Url)
+  def zincWorker = ModuleRef(ZincWorkerJavaUrl)
 }</code></pre>
 </div>
 </div>
