@@ -4,9 +4,7 @@ import mill.T
 import mill.scalalib.TestModule
 
 @mill.api.experimental
-trait AndroidTestModule extends TestModule {
-
-}
+trait AndroidTestModule extends TestModule {}
 
 @mill.api.experimental
 object AndroidTestModule {

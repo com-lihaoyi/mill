@@ -3,7 +3,6 @@ package com.helloworld;
 import static org.junit.Assert.*;
 
 import com.helloworld.app.R;
-
 import org.junit.Test;
 
 /**
@@ -15,7 +14,7 @@ public class ExampleUnitTest {
   @Test
   public void textSize_isCorrect() {
 
-      assertEquals(32f, SampleLogic.textSize(), 0.000001f);
-      assertEquals(0x7f010000, R.color.text_green);
+    assertEquals(32f, SampleLogic.textSize(), 0.000001f);
+    assertEquals(0x7f010000, R.color.text_green);
   }
 }

@@ -278,7 +278,7 @@ trait AndroidAppModule extends JavaModule {
   @internal
   override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
     baseDirectory = Some(millSourcePath / "src/main"),
-    tags = Seq("application"),
+    tags = Seq("application")
   )
 
   /**
@@ -446,7 +446,6 @@ trait AndroidAppModule extends JavaModule {
       .filter(_ != androidSdkModule().androidJarPath())
       .filter(_.path.ext == "jar")
       .map(_.path.toString())
-
 
     val proguardFile = T.dest / "proguard-rules.pro"
     val knownProguardRules = androidUnpackArchives()
