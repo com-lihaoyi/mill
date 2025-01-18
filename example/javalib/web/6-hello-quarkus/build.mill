@@ -1,0 +1,34 @@
+package build
+import mill._, javalib._
+
+object `package` extends RootModule with JavaModule {
+  def ivyDeps = Agg(
+    ivy"io.quarkus:quarkus-core:3.17.7",
+    ivy"io.quarkus:quarkus-resteasy:3.17.7"
+  )
+
+  object test extends JavaTests with TestModule.Junit5 {
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy"io.quarkus:quarkus-junit5:3.17.7",
+      ivy"io.rest-assured:rest-assured:5.5.0"
+    )
+  }
+}
+
+// This example demonstrates how to set up a simple Quarkus webserver,
+// able to handle a single HTTP request at `/` and reply with a single response.
+
+/** Usage
+
+> ./mill compile quarkus:dev
+
+> ./mill test
+
+> mill runBackground
+
+> curl http://localhost:8050
+...Hello, Quarkus!...
+
+> mill clean runBackground
+
+*/
