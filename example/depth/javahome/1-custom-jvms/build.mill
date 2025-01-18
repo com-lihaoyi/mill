@@ -20,12 +20,12 @@
 import mill._, javalib._
 import mill.define.ModuleRef
 
-object ZincWorkerJava11 extends ZincWorkerModule {
+object ZincWorkerJava18 extends ZincWorkerModule {
   def jvmId = "temurin:18.0.2"
 }
 
 object foo extends JavaModule {
-  def zincWorker = ModuleRef(ZincWorkerJava11)
+  def zincWorker = ModuleRef(ZincWorkerJava18)
 
   object test extends JavaTests with TestModule.Junit4
 }
@@ -61,14 +61,14 @@ Test foo.FooTest.testSimple finished...
 
 import scalalib._
 
-object ZincWorkerJava11Latest extends ZincWorkerModule {
+object ZincWorkerJava23Latest extends ZincWorkerModule {
   def jvmId = "temurin:23.0.1"
   def jvmIndexVersion = "latest.release"
 }
 
 object bar extends ScalaModule {
   def scalaVersion = "2.13.12"
-  def zincWorker = ModuleRef(ZincWorkerJava11Latest)
+  def zincWorker = ModuleRef(ZincWorkerJava23Latest)
 
 }
 
@@ -89,7 +89,7 @@ Bar running on Java 23.0.1
 
 import kotlinlib._
 
-object ZincWorkerJava11Url extends ZincWorkerModule {
+object ZincWorkerJava22Url extends ZincWorkerModule {
   def jvmId =
     if (sys.props("os.name") == "Mac OS X") {
       "https://github.com/adoptium/temurin22-binaries/releases/download/jdk-22.0.2%2B9/OpenJDK22U-jdk_aarch64_mac_hotspot_22.0.2_9.tar.gz"
@@ -101,7 +101,7 @@ object ZincWorkerJava11Url extends ZincWorkerModule {
 
 object qux extends KotlinModule {
   def kotlinVersion = "2.0.20"
-  def zincWorker = ModuleRef(ZincWorkerJava11Url)
+  def zincWorker = ModuleRef(ZincWorkerJava22Url)
 }
 
 /** Usage
