@@ -81,13 +81,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-
+          # Run these with Mill native launcher as a smoketest
         include:
           - os: ubuntu-24.04-arm
-            millargs: example.scalalib.__.local.server.test
+            millargs: example.scalalib.__.native.server.test
             java-version: 17
           - os: macos-latest
-            millargs: example.kotlinlib.__.local.server.test
+            millargs: example.kotlinlib.__.native.server.test
             java-version: 11
     steps:
       - uses: actions/checkout@v4
@@ -134,8 +134,8 @@ jobs:
             millargs: "contrib.__.test"
             install-android-sdk: false
 
-          - java-version: 17 # Run this with Mill native launcher as a smoketest
-            millargs: "'example.javalib.__.native.server.test'"
+          - java-version: 17
+            millargs: "'example.javalib.__.local.server.test'"
             install-android-sdk: false
 
           - java-version: 17
