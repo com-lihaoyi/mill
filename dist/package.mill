@@ -3,7 +3,7 @@ import mill._, scalalib._, publish._
 import mill.define.ModuleRef
 import mill.util.Jvm
 import mill.api.JarManifest
-//import de.tobiasroeser.mill.vcs.version.VcsVersion
+import de.tobiasroeser.mill.vcs.version.VcsVersion
 
 import scala.util.Using
 
@@ -249,7 +249,6 @@ object `package` extends RootModule with InstallModule {
   }
 
   def uploadToGithub(authKey: String) = Task.Command {
-    /*
     val vcsState = VcsVersion.vcsState()
     val label = vcsState.copy(dirtyHash = None).format()
     if (label != build.millVersion()) sys.error("Modified mill version detected, aborting upload")
@@ -284,7 +283,6 @@ object `package` extends RootModule with InstallModule {
         build.Settings.githubRepo
       )
     }
-     */
   }
 
   def upload(
