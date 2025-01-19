@@ -1,0 +1,111 @@
+diff --git a/build.mill b/build.mill
+index 5bd6a870615..25e1ac47c1d 100644
+--- a/build.mill
++++ b/build.mill
+@@ -1,9 +1,9 @@
+ package build
+ // imports
+-import com.github.lolgab.mill.mima.Mima
++//import com.github.lolgab.mill.mima.Mima
+ import coursier.maven.MavenRepository
+-import de.tobiasroeser.mill.vcs.version.VcsVersion
+-import com.goyeau.mill.scalafix.ScalafixModule
++//import de.tobiasroeser.mill.vcs.version.VcsVersion
++//import com.goyeau.mill.scalafix.ScalafixModule
+ import mill._
+ import mill.define.NamedTask
+ import mill.main.Tasks
+@@ -283,19 +283,21 @@ object Deps {
+ }
+
+ def millVersion: T[String] = Task.Input {
+-  if (Task.env.contains("MILL_STABLE_VERSION")) {
++  /*if (Task.env.contains("MILL_STABLE_VERSION")) {
+     // Ignore local changes when computing the VCS version string,
+     // since we make those in CI and can promise they are safe
+     VcsVersion.calcVcsState(Task.log).copy(dirtyHash = None).format()
+-  } else "SNAPSHOT"
++  } else */
++  "SNAPSHOT"
+ }
+
+ def millLastTag: T[String] = Task {
+-  if (Task.env.contains("MILL_STABLE_VERSION")) {
++  /*if (Task.env.contains("MILL_STABLE_VERSION")) {
+     VcsVersion.vcsState().lastTag.getOrElse(
+       sys.error("No (last) git tag found. Your git history seems incomplete!")
+     )
+-  } else "SNAPSHOT"
++  } else */
++  "SNAPSHOT"
+ }
+
+ def millBinPlatform: T[String] = Task {
+@@ -557,7 +559,8 @@ trait MillBaseTestsModule extends TestModule {
+ trait MillPublishScalaModule extends MillScalaModule with MillPublishJavaModule
+
+ /** Publishable module which contains strictly handled API. */
+-trait MillStableScalaModule extends MillPublishScalaModule with Mima {
++trait MillStableScalaModule extends MillPublishScalaModule /*with Mima*/ {
++  /*
+   import com.github.lolgab.mill.mima._
+   override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq(
+     // (5x) MIMA doesn't properly ignore things which are nested inside other private things
+@@ -695,7 +698,7 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
+   def skipPreviousVersions: T[Seq[String]] = T {
+     T.log.info("Skipping mima for previous versions (!!1000s of errors due to Scala 3)")
+     mimaPreviousVersions() // T(Seq.empty[String])
+-  }
++  }*/
+ }
+
+ object bridge extends Cross[BridgeModule](compilerBridgeScalaVersions)
+diff --git a/dist/package.mill b/dist/package.mill
+index 2437c403d3e..a5e37fbc5e4 100644
+--- a/dist/package.mill
++++ b/dist/package.mill
+@@ -3,7 +3,7 @@ import mill._, scalalib._, publish._
+ import mill.define.ModuleRef
+ import mill.util.Jvm
+ import mill.api.JarManifest
+-import de.tobiasroeser.mill.vcs.version.VcsVersion
++//import de.tobiasroeser.mill.vcs.version.VcsVersion
+
+ import scala.util.Using
+
+@@ -249,6 +249,7 @@ object `package` extends RootModule with InstallModule {
+   }
+
+   def uploadToGithub(authKey: String) = Task.Command {
++    /*
+     val vcsState = VcsVersion.vcsState()
+     val label = vcsState.copy(dirtyHash = None).format()
+     if (label != build.millVersion()) sys.error("Modified mill version detected, aborting upload")
+@@ -283,6 +284,7 @@ object `package` extends RootModule with InstallModule {
+         build.Settings.githubRepo
+       )
+     }
++     */
+   }
+
+   def upload(
+diff --git a/mill-build/build.mill b/mill-build/build.mill
+index 63c18f09970..4127937bb61 100644
+--- a/mill-build/build.mill
++++ b/mill-build/build.mill
+@@ -4,12 +4,12 @@ import mill.scalalib._
+
+ object `package` extends MillBuildRootModule {
+   override def ivyDeps = Agg(
+-    ivy"de.tototec::de.tobiasroeser.mill.vcs.version::0.4.1",
+-    ivy"com.github.lolgab::mill-mima::0.1.1",
++//    ivy"de.tototec::de.tobiasroeser.mill.vcs.version::0.4.1",
++//    ivy"com.github.lolgab::mill-mima::0.1.1",
+     ivy"net.sourceforge.htmlcleaner:htmlcleaner:2.29",
+     // TODO: implement empty version for ivy deps as we do in import parser
+     ivy"com.lihaoyi::mill-contrib-buildinfo:${mill.api.BuildInfo.millVersion}",
+-    ivy"com.goyeau::mill-scalafix::0.4.2",
++//    ivy"com.goyeau::mill-scalafix::0.4.2",
+     ivy"com.lihaoyi::mill-main-graphviz:${mill.api.BuildInfo.millVersion}",
+     // TODO: document, why we have this dependency
+     ivy"org.jsoup:jsoup:1.18.1"

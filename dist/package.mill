@@ -74,7 +74,6 @@ object `package` extends RootModule with InstallModule {
     def testTransitiveDeps = build.runner.testTransitiveDeps() ++ Seq(
       build.main.graphviz.testDep(),
       build.main.maven.testDep(),
-      build.runner.linenumbers.testDep(),
       build.scalalib.backgroundwrapper.testDep(),
       build.contrib.bloop.testDep(),
       build.contrib.buildinfo.testDep(),
@@ -85,7 +84,8 @@ object `package` extends RootModule with InstallModule {
       build.contrib.playlib.worker("2.8").testDep(),
       build.contrib.testng.testDep(),
       build.bsp.worker.testDep(),
-      build.testkit.testDep()
+      build.testkit.testDep(),
+      build.runner.worker.testDep()
     )
   }
 
@@ -327,6 +327,7 @@ object `package` extends RootModule with InstallModule {
 
     println("Long Url " + longUrl)
     longUrl
+
   }
 
   object native extends mill.scalalib.NativeImageModule with InstallModule {
