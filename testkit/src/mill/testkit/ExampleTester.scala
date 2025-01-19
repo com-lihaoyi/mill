@@ -174,7 +174,10 @@ class ExampleTester(
     val filteredOut = plainTextLines(evalResult.out).mkString("\n")
 
     for (expectedLine <- unwrappedExpected.linesIterator) {
-      assert(filteredOut.linesIterator.exists(globMatches(expectedLine, _)))
+      Predef.assert(
+        filteredOut.linesIterator.exists(globMatches(expectedLine, _)),
+        s"==== filteredOut:\n$filteredOut\n==== Missing expectedLine: \n$expectedLine"
+      )
     }
   }
 

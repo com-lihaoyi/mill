@@ -57,12 +57,14 @@ jobs:
     uses: ./.github/workflows/pre-build.yml
     with:
       os: ubuntu-latest
+      shell: bash
 
   build-windows:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
     uses: ./.github/workflows/pre-build.yml
     with:
       os: windows-latest
+      shell: powershell
 
   test-docs:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
@@ -73,20 +75,41 @@ jobs:
 
       - run: ./mill -i docs.fastPages + docs.checkBrokenLinks
 
-  mac:
+  cross-plat:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
-    runs-on: macos-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+          # Run these with Mill native launcher as a smoketest
+        include:
+          - os: ubuntu-24.04-arm
+            millargs: example.kotlinlib.__.native.server.test
+            java-version: 17
+          - os: macos-latest
+            millargs: example.scalalib.__.native.server.test
+            java-version: 11
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 1 }
 
-      - run: "echo temurin:17 > .mill-jvm-version"
-
-      - uses: actions/setup-node@v4
+      - uses: ./.github/actions/pre-build-setup
         with:
-          node-version: '22'
+          os: ${{ matrix.os }}
+          java-version: ${{ matrix.java-version }}
+          shell: bash
 
-      - run: ./mill -i example.scalalib.__.local.server.test
+      - uses: ./.github/actions/post-build-setup
+        with:
+          java-version: ${{ matrix.java-version }}
+          os: ${{ matrix.os }}
+
+      - uses: ./.github/actions/post-build-selective
+        with:
+          millargs: ${{ matrix.millargs }}
+          coursierarchive: ""
+          install-android-sdk: false
+          shell: bash
 
   linux:
     needs: build-linux
@@ -111,12 +134,8 @@ jobs:
             millargs: "contrib.__.test"
             install-android-sdk: false
 
-          - java-version: 17 # Run this with Mill native launcher as a smoketest
-            millargs: "'example.javalib.__.native.server.test'"
-            install-android-sdk: false
-
           - java-version: 17
-            millargs: "'example.kotlinlib.__.local.server.test'"
+            millargs: "'example.javalib.__.local.server.test'"
             install-android-sdk: false
 
           - java-version: 17
@@ -162,6 +181,7 @@ jobs:
       install-android-sdk: ${{ matrix.install-android-sdk }}
       java-version: ${{ matrix.java-version }}
       millargs: ${{ matrix.millargs }}
+      shell: bash
 
   windows:
     needs: build-windows
@@ -195,6 +215,7 @@ jobs:
       # Provide a shorter coursier archive folder to avoid hitting path-length bugs when
       # running the graal native image binary on windows
       coursierarchive: "C:/coursier-arc"
+      shell: powershell
 
   itest:
     needs: build-linux

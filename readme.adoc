@@ -25,7 +25,6 @@ https://www.patreon.com/lihaoyi[image:https://img.shields.io/badge/patreon-spons
 Mill is a fast JVM build tool that supports Java and Scala. Mill aims to make your 
 project’s build process performant, maintainable, and flexible.
 
-
 If you want to use Mill in your own projects, check out our documentation:
 
 * {link-current-doc-site}[Documentation]

@@ -208,7 +208,8 @@ object `package` extends RootModule with Module {
 
   trait ExampleCrossModule extends build.integration.IntegrationTestModule {
     // disable scalafix because these example modules don't have sources causing it to misbehave
-    def testRepoRoot: T[PathRef] = Task.Source(millSourcePath)
+    def testRepoSourceRoot: T[PathRef] = Task.Source(millSourcePath)
+    def testRepoRoot: T[PathRef] = Task { testRepoSourceRoot() }
 
     def sources0 = Task.Sources(millSourcePath)
     def sources = Task {

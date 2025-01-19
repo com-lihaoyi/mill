@@ -457,7 +457,11 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
 /**
  * Some custom scala settings and test convenience
  */
-trait MillScalaModule extends ScalaModule with MillJavaModule /*with ScalafixModule*/ { outer =>
+trait MillScalaModule extends ScalaModule with MillJavaModule with /*with ScalafixModule*/ { outer =>
+  def fix(args: String*) = Task.Command[Unit] {
+    /*https://github.com/com-lihaoyi/mill/issues/4353*/
+  }
+
   def scalaVersion = Deps.scalaVersion
   def scalapVersion: T[String] = Deps.scala2Version
   def scalafixScalaBinaryVersion = T {
@@ -661,7 +665,8 @@ trait MillStableScalaModule extends MillPublishScalaModule /*with Mima*/ {
     ProblemFilter.exclude[Problem]("*.bspJvmBuildTarget"),
     ProblemFilter.exclude[Problem]("mill.scalalib.RunModule#RunnerImpl.*"),
     ProblemFilter.exclude[Problem]("mill.util.PromptLogger#*"),
-    ProblemFilter.exclude[Problem]("mill.util.PromptLoggerUtil.*")
+    ProblemFilter.exclude[Problem]("mill.util.PromptLoggerUtil.*"),
+    ProblemFilter.exclude[Problem]("mill.main.SelectiveExecution*")
   )
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
 

@@ -15,6 +15,7 @@ trait InstallModule extends build.MillPublishJavaModule {
   }
   def moduleDeps = Seq(build.runner, build.idea, build.main.init)
 
+  def jar = executableRaw()
   def executableRaw: T[PathRef]
 
   def executable = Task {
