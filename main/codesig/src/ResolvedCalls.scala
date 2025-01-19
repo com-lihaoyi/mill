@@ -110,7 +110,7 @@ object ResolvedCalls {
       val externalSamDefiners = externalSummary
         .directMethods
         .map { case (k, v) => (k, v.collect { case (sig, true) => sig }) }
-        .collect { case (k, Seq[MethodSig](v)) =>
+        .collect { case (k, Seq(v)) =>
           (k, v)
         } // Scala 3.5.0-RC6 - can not infer MethodSig here
 
