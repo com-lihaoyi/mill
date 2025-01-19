@@ -2,6 +2,7 @@ package mill.javascriptlib
 
 import mill.*
 import os.*
+import mill.scalalib.publish.licenseFormat
 
 trait PublishModule extends TypeScriptModule {
 
@@ -213,14 +214,14 @@ trait PublishModule extends TypeScriptModule {
     upstreams
   }
 
-  override def typeRoots: T[ujson.Value] = Task.Anon {
+  override def typeRoots: T[ujson.Value] = Task {
     ujson.Arr(
       "node_modules/@types",
       "declarations"
     )
   }
 
-  override def declarationDir: T[ujson.Value] = Task.Anon {
+  override def declarationDir: T[ujson.Value] = Task {
     ujson.Str("declarations")
   }
 

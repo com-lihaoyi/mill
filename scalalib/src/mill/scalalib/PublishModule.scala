@@ -210,7 +210,7 @@ trait PublishModule extends JavaModule { outer =>
     )
     val publishXmlDeps0 = {
       val rootDepVersions = results.map(_.moduleVersion).toMap
-      publishIvyDeps().apply(rootDepVersions, bomDepMgmt)
+      publishIvyDeps.apply().apply(rootDepVersions, bomDepMgmt)
     }
     val overrides = {
       val bomDepMgmt0 = {
