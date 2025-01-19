@@ -1,5 +1,6 @@
 package mill.idea
 
+import mill.given
 import mill.Task
 import mill.api.Result
 import mill.define.{Command, Discover, ExternalModule}
