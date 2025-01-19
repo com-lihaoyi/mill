@@ -100,7 +100,9 @@ private[mill] object SelectiveExecution {
 
     (
       changedRootTasks,
-      breadthFirst(changedRootTasks)(downstreamEdgeMap.getOrElse(_, Nil))
+      breadthFirst(changedRootTasks) { t =>
+        downstreamEdgeMap.getOrElse(t.asInstanceOf[Task[Nothing]], Nil)
+      }
     )
   }
 
