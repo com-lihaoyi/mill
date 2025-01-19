@@ -351,7 +351,7 @@ object BuildGen {
       }
 
       val companions = cfg.depsObject.fold(SortedMap.empty[String, BuildObject.Constants])(name =>
-        SortedMap((name, SortedMap(namedIvyDeps.result()*)))
+        SortedMap((name, SortedMap(namedIvyDeps.result() *)))
       )
 
       (
