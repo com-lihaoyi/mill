@@ -18,15 +18,6 @@ case class Assembly(pathRef: PathRef, addedEntries: Int)
 
 object Assembly {
 
-  private object Streamable {
-    def bytes(is: InputStream): Array[Byte] = {
-      val out = new java.io.ByteArrayOutputStream
-      IO.stream(is, out)
-      out.close()
-      out.toByteArray
-    }
-  }
-
   implicit val assemblyJsonRW: upickle.default.ReadWriter[Assembly] = upickle.default.macroRW
 
   val defaultRules: Seq[Rule] = Seq(
@@ -147,7 +138,7 @@ object Assembly {
         val shader = Shader.bytecodeShader(shadeRules, verbose = false, skipManifest = true)
         (name: String, inputStream: UnopenedInputStream) => {
           val is = inputStream()
-          shader(Streamable.bytes(is), name).map {
+          shader(is.readAllBytes(), name).map {
             case (bytes, name) =>
               name -> (() =>
                 new ByteArrayInputStream(bytes) {

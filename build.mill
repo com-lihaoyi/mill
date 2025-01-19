@@ -457,7 +457,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
 /**
  * Some custom scala settings and test convenience
  */
-trait MillScalaModule extends ScalaModule with MillJavaModule with /*with ScalafixModule*/ { outer =>
+trait MillScalaModule extends ScalaModule with MillJavaModule /*with ScalafixModule*/ { outer =>
   def fix(args: String*) = Task.Command[Unit] {
     /*https://github.com/com-lihaoyi/mill/issues/4353*/
   }
