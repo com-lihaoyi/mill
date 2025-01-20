@@ -64,6 +64,8 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
     override final def androidSdkModule = outer.androidSdkModule
 
     override def sources: T[Seq[PathRef]] =
-      super[AndroidAppInstrumentedTests].sources() :+ PathRef(outer.millSourcePath / "src/androidTest/kotlin")
+      super[AndroidAppInstrumentedTests].sources() :+ PathRef(
+        outer.millSourcePath / "src/androidTest/kotlin"
+      )
   }
 }

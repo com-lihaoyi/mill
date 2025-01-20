@@ -422,7 +422,7 @@ trait AndroidAppModule extends JavaModule {
    * the Android resource generation step.
    */
   override def generatedSources: T[Seq[PathRef]] = Task {
-    androidLibsRClasses()
+    Seq(PathRef(androidResources()._1.path / rClassDirName)) ++ androidLibsRClasses()
   }
 
   /**
