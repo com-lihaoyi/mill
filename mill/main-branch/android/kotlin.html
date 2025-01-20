@@ -794,6 +794,19 @@ all necessary steps (resource generation, APK creation, and signing) are execute
 ]
 ...
 
+&gt; cat out/app/it/testTask.dest/test-report.xml
+...
+&lt;?xml version='1.0' encoding='UTF-8'?&gt;
+&lt;testsuites tests=&quot;1&quot; failures=&quot;0&quot; errors=&quot;0&quot; skipped=&quot;0&quot; time=&quot;...&quot;&gt;
+        &lt;testsuite name=&quot;com.helloworld.app.ExampleInstrumentedTest.useAppContext&quot; tests=&quot;1&quot; failures=&quot;0&quot; errors=&quot;0&quot; skipped=&quot;0&quot; time=&quot;0.0&quot; timestamp=&quot;...&quot;&gt;
+        &lt;properties&gt;
+      &lt;/properties&gt;
+        &lt;testcase classname=&quot;com.helloworld.app.ExampleInstrumentedTest.useAppContext&quot; name=&quot;com.helloworld.app.ExampleInstrumentedTest.useAppContext&quot; time=&quot;...&quot;&gt;
+        &lt;/testcase&gt;
+      &lt;/testsuite&gt;
+      &lt;/testsuites&gt;
+...
+
 &gt; ./mill show app.stopAndroidEmulator
 
 &gt; ./mill show app.deleteAndroidVirtualDevice</code></pre>
