@@ -831,7 +831,6 @@ trait JavaModule
    * Keep in sync with [[bspCompileClassesPath]]
    */
   def compile: T[mill.scalalib.api.CompilationResult] = Task(persistent = true) {
-    println(s"Compile with all source files being ${allSourceFiles()}")
     zincWorker()
       .worker()
       .compileJava(
