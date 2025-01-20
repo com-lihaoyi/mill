@@ -8,18 +8,5 @@ jobs:
       - uses: actions/checkout@v4
 
       - run: ./mill -i mill.scalalib.scalafmt.ScalafmtModule/
-      - run: git clean -xdf
 
-      - run: git config --global user.email "you@example.com"
-      - run: git config --global user.name "Your Name"
-      - run: git commit -am "autofix" --allow-empty
-
-      - run: echo "git@github.com:${{ github.event.pull_request.head.repo.full_name }}.git"
-      - run: echo -n ${{ github.event.pull_request.head.ref }} > .autofix-branch
-
-
-      - uses: actions/upload-artifact@v4.5.0
-        with:
-          path: .
-          name: autofix-artifacts
-          include-hidden-files: true
+      uses: autofix-ci/action@ff86a557419858bb967097bfc916833f5647fa8c
