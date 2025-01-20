@@ -226,7 +226,7 @@ out/mill-server
 // Again, if there are multiple paths through which one task was invalidated by another,
 // one path is chosen arbitrarily to be shown in the spanning tree
 //
-// == `methodCodeHashSignatures spanningInvalidationTree`
+// === `methodCodeHashSignatures spanningInvalidationTree`
 //
 // Sometimes invalidation can be caused by a code change in your `build.mill`/`package.mill`
 // files, rather than by a change in the project's source files or inputs. In such cases,
@@ -243,8 +243,7 @@ out/mill-server
 
 > cat out/mill-build/methodCodeHashSignatures.dest/current/spanningInvalidationTree.json
 {
-  "call scala.runtime.BoxesRunTime.boxToInteger(int)java.lang.Integer": {},
-  "call scala.Predef$#println(java.lang.Object)void": {
+...
     "def build_.package_$foo$#<init>(build_.package_)void": {
       "call build_.package_$foo$!<init>(build_.package_)void": {
         "def build_.package_#foo$lzycompute$1()void": {
@@ -254,7 +253,7 @@ out/mill-server
         }
       }
     }
-  }
+...
 }
 
 */

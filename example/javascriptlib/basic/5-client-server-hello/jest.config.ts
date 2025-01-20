@@ -1,5 +1,4 @@
-// @ts-nocheck
-import {pathsToModuleNameMapper} from 'node_modules/ts-jest';
+import {pathsToModuleNameMapper} from 'ts-jest';
 import {compilerOptions} from './tsconfig.json'; // this is a generated file.
 
 // Remove unwanted keys

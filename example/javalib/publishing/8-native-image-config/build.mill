@@ -34,3 +34,14 @@ object ZincWorkerGraalvm extends ZincWorkerModule {
 <h1>hello-world</h1>
 
 */
+
+// You can also access the `native-image` compiler directly via `show foo.nativeImageTool`
+// if you want to experiment it or view its `--help` text to see what you need to pass to
+// `nativeImageOptions`:
+
+/** Usage
+
+> ./mill show foo.nativeImageTool
+".../bin/native-image"
+
+*/

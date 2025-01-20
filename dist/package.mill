@@ -15,6 +15,7 @@ trait InstallModule extends build.MillPublishJavaModule {
   }
   def moduleDeps = Seq(build.runner, build.idea, build.main.init)
 
+  def jar = executableRaw()
   def executableRaw: T[PathRef]
 
   def executable = Task {
@@ -326,6 +327,15 @@ object `package` extends RootModule with InstallModule {
 
     println("Long Url " + longUrl)
     longUrl
+  }
+
+  def publishArtifacts = Task {
+    super.publishArtifacts()
+      .copy(payload =
+        super.publishArtifacts().payload ++
+          exampleZips().map(z => (z, z.path.last)) ++
+          Seq((bootstrapLauncher(), "mill"), (bootstrapLauncherBat(), "mill.bat"))
+      )
   }
 
   object native extends mill.scalalib.NativeImageModule with InstallModule {

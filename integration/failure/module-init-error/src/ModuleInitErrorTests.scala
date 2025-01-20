@@ -42,14 +42,13 @@ object ModuleInitErrorTests extends UtestIntegrationTestSuite {
     }
 
     test("tasks") - integrationTest { tester =>
-      import tester._
       // If we specify a task in the root module, we are not
       // affected by the sub-modules failing to initialize
+      import tester._
       val res = eval("rootTask")
       assert(res.isSuccess == true)
       assert(res.out.contains("""Running rootTask"""))
 
-      import tester._
       // If we specify a task in the root module, we are not
       // affected by the sub-modules failing to initialize
       val res1 = eval(("rootCommand", "-s", "hello"))
