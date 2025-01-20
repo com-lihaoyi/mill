@@ -27,7 +27,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     override def scalaJSOptimizer: T[Boolean] = outer.scalaJSOptimizer()
   }
 
-      @deprecated("use ScalaJSTests", "0.11.0")
+  @deprecated("use ScalaJSTests", "0.11.0")
   type ScalaJSModuleTests = ScalaJSTests
   @deprecated("use ScalaJSTests", "0.11.0")
   trait Tests extends ScalaJSTests
