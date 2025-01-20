@@ -597,12 +597,6 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
     ),
 
     ProblemFilter.exclude[ReversedMissingMethodProblem](
-      "mill.scalalib.JavaModule#JavaModuleTests.mill$scalalib$JavaModule$JavaModuleTests$$super$extraBomIvyDeps"
-    ),
-    ProblemFilter.exclude[ReversedMissingMethodProblem](
-      "mill.scalalib.JavaModule#JavaModuleTests.mill$scalalib$JavaModule$JavaModuleTests$$super$extraDepManagement"
-    ),
-    ProblemFilter.exclude[ReversedMissingMethodProblem](
       "mill.scalalib.PublishModule.mill$scalalib$PublishModule$$super$bomModuleDeps"
     ),
 

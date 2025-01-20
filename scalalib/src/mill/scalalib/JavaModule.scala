@@ -64,10 +64,14 @@ trait JavaModule
     }
 
     override def extraBomIvyDeps = Task.Anon[Agg[Dep]] {
-      super.extraBomIvyDeps() ++ outer.bomIvyDeps()
+      // FIXME Add that back when we can break bin-compat
+      // super.extraBomIvyDeps() ++
+      outer.bomIvyDeps()
     }
     override def extraDepManagement = Task.Anon[Agg[Dep]] {
-      super.extraDepManagement() ++ outer.depManagement()
+      // FIXME Add that back when we can break bin-compat
+      // super.extraDepManagement() ++
+      outer.depManagement()
     }
 
     /**
