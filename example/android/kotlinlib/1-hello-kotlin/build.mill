@@ -139,6 +139,19 @@ object app extends AndroidAppKotlinModule {
 ]
 ...
 
+> cat out/app/it/testTask.dest/test-report.xml
+...
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites tests="1" failures="0" errors="0" skipped="0" time="...">
+        <testsuite name="com.helloworld.app.ExampleInstrumentedTest.useAppContext" tests="1" failures="0" errors="0" skipped="0" time="0.0" timestamp="...">
+        <properties>
+      </properties>
+        <testcase classname="com.helloworld.app.ExampleInstrumentedTest.useAppContext" name="com.helloworld.app.ExampleInstrumentedTest.useAppContext" time="...">
+        </testcase>
+      </testsuite>
+      </testsuites>
+...
+
 > ./mill show app.stopAndroidEmulator
 
 > ./mill show app.deleteAndroidVirtualDevice
