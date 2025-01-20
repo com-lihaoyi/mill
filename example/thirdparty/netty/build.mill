@@ -539,8 +539,7 @@ object `transport-native-epoll` extends NettyJniModule {
   )
 
   // Stub this out on OS-X
-  def clang = if (!isOSX) T { super.clang() }
-  else T { PathRef(os.temp()) }
+  def clang = if (!isOSX) T { super.clang() } else T { PathRef(os.temp()) }
 }
 
 object `transport-native-kqueue` extends NettyJniModule {
@@ -550,8 +549,7 @@ object `transport-native-kqueue` extends NettyJniModule {
   def testModuleDeps = Seq(testsuite, `transport-native-unix-common-tests`)
 
   // Stub this out on linux
-  def clang = if (isOSX) T { super.clang() }
-  else T { PathRef(os.temp()) }
+  def clang = if (isOSX) T { super.clang() } else T { PathRef(os.temp()) }
 }
 
 object `transport-native-unix-common` extends NettyModule {
