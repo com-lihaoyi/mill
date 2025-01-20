@@ -336,7 +336,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
         .toSet
     )
 
-    val proj = super.coursierProject()
+    val proj = coursierProject0()
 
     proj.withDependencies(
       proj.dependencies.map {
