@@ -347,7 +347,7 @@ object `package` extends RootModule with InstallModule {
     }
 
     def artifactCpuSuffix = T {
-      System.getProperty("os.arch") match{
+      System.getProperty("os.arch") match {
         case "x86_64" => "amd64"
         case s => s
       }
