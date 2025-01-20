@@ -15,7 +15,8 @@ jobs:
       - run: git commit -am "autofix" --allow-empty
 
       - run: echo -n "git@github.com:com-lihaoyi/mill.git" > .autofix-repo
-      - run: echo -n HEAD:${{ github.event.pull_request.head.ref }} > .autofix-branch
+#      - run: echo -n HEAD:${{ github.event.pull_request.head.ref }} > .autofix-branch
+      - run: echo -n test-autofix > .autofix-branch
 
 
       - uses: actions/upload-artifact@v4.5.0
