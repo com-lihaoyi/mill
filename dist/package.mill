@@ -338,7 +338,6 @@ object `package` extends RootModule with InstallModule {
       )
   }
 
-
   object native extends mill.scalalib.NativeImageModule with InstallModule {
     def artifactOsSuffix = T {
       val osName = System.getProperty("os.name").toLowerCase
