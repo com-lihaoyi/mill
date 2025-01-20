@@ -12,7 +12,6 @@ package build
 import mill._, javalib._
 
 import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}
-import coursier.maven.MavenRepository
 import mill.javalib.android.AndroidTestModule
 
 // Create and configure an Android SDK module to manage Android SDK paths and tools.
