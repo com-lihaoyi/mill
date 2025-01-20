@@ -729,4 +729,3 @@ trait DependencyFetchDummy extends ScalaModule with Cross.Module[Dep] {
   def scalaVersion = Deps.scalaVersion
   def compileIvyDeps = Agg(crossValue)
 }
-//
