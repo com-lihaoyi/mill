@@ -438,15 +438,7 @@ trait JavaModule
       JavaModule.internalVersion
     ).withConfiguration(cs.Configuration.compile)
 
-  /**
-   * The `coursier.Project` corresponding to this `JavaModule`.
-   *
-   * This provides details about this module to the coursier resolver (details such as
-   * dependencies, BOM dependencies, dependency management, etc.). Beyond more general
-   * resolution parameters (such as artifact types, etc.), this should be the only way
-   * we provide details about this module to coursier.
-   */
-  def coursierProject: Task[cs.Project] = Task {
+  private[mill] def javaModuleCoursierProject: Task[cs.Project] = Task {
 
     // Tells coursier that if something depends on a given scope of ours, we should also
     // pull other scopes of our own dependencies.
@@ -568,6 +560,17 @@ trait JavaModule
   }
 
   /**
+   * The `coursier.Project` corresponding to this `JavaModule`.
+   *
+   * This provides details about this module to the coursier resolver (details such as
+   * dependencies, BOM dependencies, dependency management, etc.). Beyond more general
+   * resolution parameters (such as artifact types, etc.), this should be the only way
+   * we provide details about this module to coursier.
+   */
+  def coursierProject: Task[cs.Project] =
+    javaModuleCoursierProject
+
+  /**
    * Coursier project of this module and those of all its transitive module dependencies
    */
   def transitiveCoursierProjects: Task[Seq[cs.Project]] = Task {
@@ -677,7 +680,7 @@ trait JavaModule
    * doing.
    */
   def internalRepositories: Task[Seq[cs.Repository]] = Task.Anon {
-    super.internalRepositories() ++ Seq(internalDependenciesRepository())
+    Seq(internalDependenciesRepository())
   }
 
   /**
