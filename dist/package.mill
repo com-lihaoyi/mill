@@ -329,6 +329,15 @@ object `package` extends RootModule with InstallModule {
     longUrl
   }
 
+  def publishArtifacts = Task {
+    super.publishArtifacts()
+      .copy(payload =
+        super.publishArtifacts().payload ++
+          exampleZips().map(z => (z, z.path.last)) ++
+          Seq((bootstrapLauncher(), "mill"), (bootstrapLauncherBat(), "mill.bat"))
+      )
+  }
+
   object native extends mill.scalalib.NativeImageModule with InstallModule {
     def artifactOsSuffix = T {
       val osName = System.getProperty("os.name").toLowerCase
