@@ -23,7 +23,7 @@ import mill.javalib.android.AndroidAppModule
 trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer =>
 
   override def sources: T[Seq[PathRef]] =
-    super.sources() :+ PathRef(millSourcePath / "src/main/kotlin")
+    super[AndroidAppModule].sources() :+ PathRef(millSourcePath / "src/main/kotlin")
 
   override def kotlincOptions = super.kotlincOptions() ++ {
     if (androidEnableCompose()) {
@@ -54,7 +54,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
 
   trait AndroidAppKotlinTests extends AndroidAppTests with KotlinTests {
     override def sources: T[Seq[PathRef]] =
-      super.sources() :+ PathRef(outer.millSourcePath / "src/test/kotlin")
+      super[AndroidAppTests].sources() ++ Seq(PathRef(outer.millSourcePath / "src/test/kotlin"))
   }
 
   trait AndroidAppKotlinInstrumentedTests extends AndroidAppKotlinModule
@@ -64,6 +64,6 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
     override final def androidSdkModule = outer.androidSdkModule
 
     override def sources: T[Seq[PathRef]] =
-      super.sources() :+ PathRef(outer.millSourcePath / "src/androidTest/kotlin")
+      super[AndroidAppInstrumentedTests].sources() :+ PathRef(outer.millSourcePath / "src/androidTest/kotlin")
   }
 }
