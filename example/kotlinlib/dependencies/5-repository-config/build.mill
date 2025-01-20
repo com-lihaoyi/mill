@@ -1,0 +1,40 @@
+//// SNIPPET:BUILD1
+package build
+import mill._, kotlinlib._
+import mill.javalib.{ZincWorkerModule, CoursierModule}
+import mill.define.ModuleRef
+import coursier.maven.MavenRepository
+
+val sonatypeReleases = Seq(
+  MavenRepository("https://oss.sonatype.org/content/repositories/releases")
+)
+
+object foo extends KotlinModule {
+
+  def mainClass = Some("foo.FooKt")
+
+  def kotlinVersion = "1.9.24"
+
+  def ivyDeps = Agg(
+    ivy"com.github.ajalt.clikt:clikt-jvm:4.4.0",
+    ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"
+  )
+
+  def repositoriesTask = T.task { super.repositoriesTask() ++ sonatypeReleases }
+}
+
+//// SNIPPET:BUILD2
+
+object CustomZincWorkerModule extends ZincWorkerModule with CoursierModule {
+  def repositoriesTask = T.task { super.repositoriesTask() ++ sonatypeReleases }
+}
+
+object bar extends KotlinModule {
+
+  def kotlinVersion = "1.9.24"
+
+  def zincWorker = ModuleRef(CustomZincWorkerModule)
+  // ... rest of your build definitions
+
+  def repositoriesTask = T.task { super.repositoriesTask() ++ sonatypeReleases }
+}

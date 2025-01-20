@@ -1,6 +1,9 @@
 package mill.scalalib
 
+import org.scalatest.Tag
 import org.scalatest.freespec.AnyFreeSpec
+
+object TaggedTest extends Tag("tagged")
 
 class ScalaTestSpec extends AnyFreeSpec {
 
@@ -14,6 +17,10 @@ class ScalaTestSpec extends AnyFreeSpec {
         assertThrows[NoSuchElementException] {
           Set.empty.head
         }
+      }
+
+      "should be tagged" taggedAs(TaggedTest) in {
+        assert(true)
       }
     }
   }

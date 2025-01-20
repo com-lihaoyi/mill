@@ -1,0 +1,25 @@
+= Linting Kotlin Projects
+:page-aliases: Linting_Kotlin_Projects.adoc
+
+include::partial$gtag-config.adoc[]
+
+This page will discuss common topics around enforcing the code quality of Kotlin
+codebases using the Mill build tool
+
+
+== Linting with Detekt
+
+include::partial$example/kotlinlib/linting/1-detekt.adoc[]
+
+== Linting with KtLint
+
+include::partial$example/kotlinlib/linting/2-ktlint.adoc[]
+
+== Autoformatting with KtFmt
+
+include::partial$example/kotlinlib/linting/3-ktfmt.adoc[]
+
+== Code Coverage with Kover
+
+include::partial$example/kotlinlib/linting/4-kover.adoc[]
+

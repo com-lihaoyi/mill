@@ -12,10 +12,11 @@ import java.util.concurrent.{ConcurrentHashMap, Semaphore}
  *
  * @param perKeySize Cache Size per unique key
  */
+@deprecated("Use mill.api.CachedFactory instead", "Mill since 0.12.3")
 class FixSizedCache[T](perKeySize: Int) extends KeyedLockedCache[T] {
 
   // Cache Key -> (Semaphore, Array of cached elements)
-  private[this] val keyToCache: ConcurrentHashMap[Long, (Semaphore, Array[(Boolean, Option[T])])] =
+  private val keyToCache: ConcurrentHashMap[Long, (Semaphore, Array[(Boolean, Option[T])])] =
     new ConcurrentHashMap
 
   override def withCachedValue[V](key: Long)(f: => T)(f2: T => V): V = {

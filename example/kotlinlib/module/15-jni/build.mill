@@ -1,0 +1,81 @@
+package build
+import mill._, kotlinlib._, util.Jvm
+
+object `package` extends RootModule with KotlinModule {
+
+  def mainClass = Some("foo.HelloWorldKt")
+
+  def kotlinVersion = "1.9.24"
+
+  // Additional source folder to put C sources
+  def nativeSources = T.sources(millSourcePath / "native-src")
+
+  // Compile C
+  def nativeCompiled = Task {
+    val cSourceFiles = nativeSources().map(_.path).flatMap(os.walk(_)).filter(_.ext == "c")
+    val output = "libhelloworld.so"
+    os.proc(
+      "clang",
+      "-shared",
+      "-fPIC",
+      "-I" + sys.props("java.home") + "/include/", // global JVM header files
+      "-I" + sys.props("java.home") + "/include/darwin",
+      "-I" + sys.props("java.home") + "/include/linux",
+      "-o",
+      T.dest / output,
+      cSourceFiles
+    )
+      .call(stdout = os.Inherit)
+
+    PathRef(T.dest / output)
+  }
+
+  def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.toString)
+
+  object test extends KotlinTests with TestModule.Junit5 {
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
+    )
+    def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.toString)
+  }
+}
+
+// This is an example of how use Mill to compile C code together with your Kotlin
+// code using JNI. There are three two steps: defining the C source folder,
+// and then compiling the C code using `clang`. After that we have the
+// `libhelloworld.so` on disk ready to use, and in this example we use an
+// environment variable to pass the path of that file to the application
+// code to load it using `System.load`.
+//
+// The above builds expect the following project layout:
+//
+// ----
+// build.mill
+// src/
+//     foo/
+//         HelloWorld.kt
+//
+// native-src/
+//     HelloWorld.c
+//
+// test/
+//     src/
+//         foo/
+//             HelloWorldTest.kt
+// ----
+//
+// This example is pretty minimal, but it demonstrates the core principles, and
+// can be extended if necessary to more elaborate use cases. The `native*` tasks
+// can also be extracted out into a `trait` for re-use if you have multiple
+// `KotlinModule`s that need native C components.
+
+/** Usage
+
+> ./mill run
+Hello, World!
+
+> ./mill test
+Test foo.HelloWorldTest simple started
+Test foo.HelloWorldTest simple finished...
+...
+*/

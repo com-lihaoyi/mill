@@ -1,0 +1,54 @@
+package build
+import mill._, scalalib._, scalanativelib._
+
+object `package` extends RootModule with ScalaNativeModule {
+  def scalaVersion = "3.3.4"
+  def scalaNativeVersion = "0.5.5"
+
+  object test extends ScalaNativeTests {
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.8.4")
+    def testFramework = "utest.runner.Framework"
+  }
+
+}
+
+// This is an example of how to use Mill to compile C code together with your Scala Native
+// code.
+//
+// The above build expect the following project layout:
+//
+// ----
+// build.mill
+// src/
+//	foo/
+//	    HelloWorld.scala
+//
+// resources/
+//     scala-native/
+//         HelloWorld.c
+//
+// test/
+//     src/
+//         foo/
+//             HelloWorldTests.scala
+// ----
+//
+// *Note:* C/C++ source files need to be in `resources/scala-native` directory so
+// It can be linked and compiled successfully. More info from Scala Native doc
+// https://scala-native.org/en/stable/user/native.html#using-libraries-with-native-code[here]
+// and also Scala user forum https://users.scala-lang.org/t/how-to-test-scala-native-code-interop-with-c/10314/3?u=c0d33ngr[here]
+//
+// This example is pretty minimal, but it demonstrates the core principles, and
+// can be extended if necessary to more elaborate use cases.
+
+/** Usage
+
+> ./mill run
+Running HelloWorld function
+Done...
+Reversed: !dlroW ,olleH
+
+> ./mill test
+Tests: 1, Passed: 1, Failed: 0
+
+*/

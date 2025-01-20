@@ -5,7 +5,7 @@ import mill.api.SystemStreams
 
 class PrintLogger(
     override val colored: Boolean,
-    val enableTicker: Boolean,
+    override val enableTicker: Boolean,
     override val infoColor: fansi.Attrs,
     override val errorColor: fansi.Attrs,
     val systemStreams: SystemStreams,
@@ -13,7 +13,7 @@ class PrintLogger(
     val context: String,
     printLoggerState: PrintLogger.State
 ) extends ColorLogger {
-
+  override def toString: String = s"PrintLogger($colored, $enableTicker)"
   def info(s: String): Unit = synchronized {
     printLoggerState.value = PrintLogger.State.Newline
     systemStreams.err.println(infoColor(context + s))
@@ -24,6 +24,7 @@ class PrintLogger(
     systemStreams.err.println((infoColor(context) ++ errorColor(s)).render)
   }
 
+  override def setPromptDetail(key: Seq[String], s: String): Unit = synchronized { ticker(s) }
   def ticker(s: String): Unit = synchronized {
     if (enableTicker) {
       printLoggerState.value match {

@@ -1,9 +1,10 @@
 package mill.eval
 
-import mill.util.TestUtil.{Test, test}
+import mill.util.TestUtil.Test
 import mill.define.{TargetImpl, Task}
 import mill.T
-import mill.util.{TestEvaluator, TestGraphs, TestUtil}
+import mill.util.{TestGraphs, TestUtil}
+import mill.testkit.{UnitTester, TestBaseModule}
 import mill.api.Strict.Agg
 import os.SubPath
 import utest._
@@ -15,14 +16,10 @@ object EvaluationTestsThreadsNative extends EvaluationTests(threadCount = None)
 
 class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
 
-  class Checker[T <: TestUtil.BaseModule](module: T)(implicit tp: TestPath) {
+  class Checker[T <: mill.testkit.TestBaseModule](module: T) {
     // Make sure data is persisted even if we re-create the evaluator each time
 
-    def evaluator = new TestEvaluator(module, threads = threadCount)(
-      implicitly[sourcecode.FullName],
-      TestPath(tp.value ++ Seq(s"threads-${threadCount.getOrElse("native")}"))
-    )
-      .evaluator
+    val evaluator = UnitTester(module, null, threads = threadCount).evaluator
 
     def apply(
         target: Task[_],
@@ -51,10 +48,10 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
       // Second time the value is already cached, so no evaluation needed
       if (secondRunNoOp) {
         val evaled2 = evaluator.evaluate(Agg(target))
-        val expecteSecondRunEvaluated = Agg()
+        val expectedSecondRunEvaluated = Agg()
         assert(
           evaled2.values.map(_.value) == evaled.values.map(_.value),
-          evaled2.evaluated == expecteSecondRunEvaluated
+          evaled2.evaluated == expectedSecondRunEvaluated
         )
       }
     }
@@ -64,9 +61,10 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
     object graphs extends TestGraphs()
     import graphs._
     import TestGraphs._
-    "evaluateSingle" - {
+    import utest._
+    test("evaluateSingle") {
 
-      "singleton" - {
+      test("singleton") {
         import singleton._
         val check = new Checker(singleton)
         // First time the target is evaluated
@@ -76,7 +74,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         // After incrementing the counter, it forces re-evaluation
         check(single, expValue = 1, expEvaled = Agg(single))
       }
-      "backtickIdentifiers" - {
+      test("backtickIdentifiers") {
         import graphs.bactickIdentifiers._
         val check = new Checker(bactickIdentifiers)
 
@@ -88,7 +86,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         `up-target`.counter += 1
         check(`a-down-target`, expValue = 2, expEvaled = Agg(`up-target`, `a-down-target`))
       }
-      "pair" - {
+      test("pair") {
         import pair._
         val check = new Checker(pair)
         check(down, expValue = 0, expEvaled = Agg(up, down))
@@ -99,7 +97,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         up.counter += 1
         check(down, expValue = 2, expEvaled = Agg(up, down))
       }
-      "anonTriple" - {
+      test("anonTriple") {
         import anonTriple._
         val check = new Checker(anonTriple)
         val middle = down.inputs(0)
@@ -115,7 +113,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
 
         check(down, expValue = 3, expEvaled = Agg(middle, down))
       }
-      "diamond" - {
+      test("diamond") {
         import diamond._
         val check = new Checker(diamond)
         check(down, expValue = 0, expEvaled = Agg(up, left, right, down))
@@ -133,7 +131,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         right.counter += 1
         check(down, expValue = 5, expEvaled = Agg(right, down))
       }
-      "anonDiamond" - {
+      test("anonDiamond") {
         import anonDiamond._
         val check = new Checker(anonDiamond)
         val left = down.inputs(0).asInstanceOf[TestUtil.Test]
@@ -154,7 +152,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         check(down, expValue = 5, expEvaled = Agg(left, right, down))
       }
 
-      "bigSingleTerminal" - {
+      test("bigSingleTerminal") {
         import bigSingleTerminal._
         val check = new Checker(bigSingleTerminal)
 
@@ -173,8 +171,8 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
       }
     }
 
-    "evaluateMixed" - {
-      "separateGroups" - {
+    test("evaluateMixed") {
+      test("separateGroups") {
         // Make sure that `left` and `right` are able to recompute separately,
         // even though one depends on the other
 
@@ -192,7 +190,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         assert(filtered3 == Agg(change, right))
 
       }
-      "triangleTask" - {
+      test("triangleTask") {
 
         import triangleTask._
         val checker = new Checker(triangleTask)
@@ -200,7 +198,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         checker(left, 1, Agg(), extraEvaled = -1)
 
       }
-      "multiTerminalGroup" - {
+      test("multiTerminalGroup") {
         import multiTerminalGroup._
 
         val checker = new Checker(multiTerminalGroup)
@@ -208,7 +206,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         checker(left, 1, Agg(left), extraEvaled = -1)
       }
 
-      "multiTerminalBoundary" - {
+      test("multiTerminalBoundary") {
 
         import multiTerminalBoundary._
 
@@ -217,7 +215,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         checker(task2, 4, Agg(), extraEvaled = -1, secondRunNoOp = false)
       }
 
-      "overrideSuperTask" - {
+      test("overrideSuperTask") {
         // Make sure you can override targets, call their supers, and have the
         // overridden target be allocated a spot within the overridden/ folder of
         // the main publicly-available target
@@ -228,7 +226,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
 
         val public = os.read(checker.evaluator.outPath / "foo.json")
         val overridden = os.read(
-          checker.evaluator.outPath / "foo.super" / "mill" / "util" / "TestGraphs" / "BaseModule" / "foo.json"
+          checker.evaluator.outPath / "foo.super/BaseModule.json"
         )
         assert(
           public.contains("base"),
@@ -237,7 +235,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
           !overridden.contains("object")
         )
       }
-      "overrideSuperCommand" - {
+      test("overrideSuperCommand") {
         // Make sure you can override commands, call their supers, and have the
         // overridden command be allocated a spot within the super/ folder of
         // the main publicly-available command
@@ -255,7 +253,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
 
         val public = os.read(checker.evaluator.outPath / "cmd.json")
         val overridden = os.read(
-          checker.evaluator.outPath / "cmd.super" / "mill" / "util" / "TestGraphs" / "BaseModule" / "cmd.json"
+          checker.evaluator.outPath / "cmd.super/BaseModule.json"
         )
         assert(
           public.contains("base1"),
@@ -264,7 +262,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
           !overridden.contains("object1")
         )
       }
-      "nullTasks" - {
+      test("nullTasks") {
         import nullTasks._
         val checker = new Checker(nullTasks)
         checker(nullTarget1, null, Agg(nullTarget1), extraEvaled = -1)
@@ -291,7 +289,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         checker(nc4, null, Agg(nc4), extraEvaled = -1, secondRunNoOp = false)
       }
 
-      "tasksAreUncached" - {
+      test("tasksAreUncached") {
         // Make sure the tasks `left` and `middle` re-compute every time, while
         // the target `right` does not
         //
@@ -300,15 +298,15 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         // up    middle -- down
         //                /
         //           right
-        object build extends TestUtil.BaseModule {
+        object build extends TestBaseModule {
           var leftCount = 0
           var rightCount = 0
           var middleCount = 0
-          def up = T { test.anon() }
-          def left = T.task { leftCount += 1; up() + 1 }
-          def middle = T.task { middleCount += 1; 100 }
-          def right = T { rightCount += 1; 10000 }
-          def down = T { left() + middle() + right() }
+          def up = Task { TestUtil.test.anon() }
+          def left = Task.Anon { leftCount += 1; up() + 1 }
+          def middle = Task.Anon { middleCount += 1; 100 }
+          def right = Task { rightCount += 1; 10000 }
+          def down = Task { left() + middle() + right() }
         }
 
         import build._
@@ -355,7 +353,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         assert(leftCount == 4, middleCount == 4, rightCount == 1)
       }
     }
-    "stackableOverrides" - {
+    test("stackableOverrides") {
       // Make sure you can override commands, call their supers, and have the
       // overridden command be allocated a spot within the super/ folder of
       // the main publicly-available command
@@ -369,20 +367,61 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         extraEvaled = -1
       )
 
-      def overridePath(task: String): SubPath =
-        os.sub / s"${task}.super" / "mill" / "util" / "TestGraphs" / "StackableOverrides"
-
       assert(
-        os.read(checker.evaluator.outPath / "m" / overridePath("f") / "X" / "f.json")
+        os.read(checker.evaluator.outPath / "m/f.super/X.json")
           .contains(" 1,")
       )
       assert(
-        os.read(checker.evaluator.outPath / "m" / overridePath("f") / "A" / "f.json")
+        os.read(checker.evaluator.outPath / "m/f.super/A.json")
           .contains(" 3,")
       )
-      assert(os.read(checker.evaluator.outPath / "m" / "f.json").contains(" 6,"))
+      assert(os.read(checker.evaluator.outPath / "m/f.json").contains(" 6,"))
     }
-    "privateTasksInMixedTraits" - {
+    test("stackableOverrides2") {
+      // When the supers have the same name, qualify them until they are distinct
+      import StackableOverrides2._
+
+      val checker = new Checker(StackableOverrides2)
+      checker(
+        m.f,
+        6,
+        Agg(m.f),
+        extraEvaled = -1
+      )
+
+      assert(
+        os.read(checker.evaluator.outPath / "m/f.super/A/X.json")
+          .contains(" 1,")
+      )
+      assert(
+        os.read(checker.evaluator.outPath / "m/f.super/B/X.json")
+          .contains(" 3,")
+      )
+      assert(os.read(checker.evaluator.outPath / "m/f.json").contains(" 6,"))
+    }
+    test("stackableOverrides3") {
+      // When the supers have the same name, qualify them until they are distinct
+      import StackableOverrides3._
+
+      val checker = new Checker(StackableOverrides3)
+      checker(
+        m.f,
+        6,
+        Agg(m.f),
+        extraEvaled = -1
+      )
+
+      assert(
+        os.read(checker.evaluator.outPath / "m/f.super/A/X.json")
+          .contains(" 1,")
+      )
+      assert(
+        os.read(checker.evaluator.outPath / "m/f.super/X.json")
+          .contains(" 3,")
+      )
+      assert(os.read(checker.evaluator.outPath / "m/f.json").contains(" 6,"))
+    }
+    test("privateTasksInMixedTraits") {
       // Make sure we can have private cached targets in different trait with the same name,
       // and caching still works when these traits are mixed together
       import PrivateTasksInMixedTraits._

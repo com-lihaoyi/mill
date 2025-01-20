@@ -9,8 +9,13 @@ import mill.resolve.SimpleTaskTokenReader
 case class Tasks[T](value: Seq[mill.define.NamedTask[T]])
 
 object Tasks {
-  private[main] class TokenReader[T]() extends mainargs.TokensReader.Simple[Tasks[T]] {
-    def shortName = "<tasks>"
+  def resolveMainDefault[T](tokens: String*): Tasks[T] = {
+    new Tasks.TokenReader[T]()
+      .read(tokens)
+      .getOrElse(sys.error("Unable to resolve: " + tokens.mkString(" ")))
+  }
+  private[mill] class TokenReader[T]() extends mainargs.TokensReader.Simple[Tasks[T]] {
+    def shortName = "tasks"
     def read(s: Seq[String]): Either[String, Tasks[T]] = {
       Resolve.Tasks.resolve(
         Evaluator.currentEvaluator.value.rootModule,
@@ -39,7 +44,8 @@ private class LeftoverTaskTokenReader[T](tokensReaderOfT: TokensReader.Leftover[
   def shortName = tokensReaderOfT.shortName
 }
 
-object TokenReaders {
+object TokenReaders extends TokenReaders0
+trait TokenReaders0 {
   implicit def millEvaluatorTokenReader[T]: mainargs.TokensReader[Evaluator] =
     new mill.main.EvaluatorTokenReader[T]()
 
@@ -63,4 +69,5 @@ object TokenReaders {
     case t: TokensReader.Leftover[_, _] => new LeftoverTaskTokenReader[T](t)
   }
 
+  def `given` = () // dummy for scala 2/3 compat
 }

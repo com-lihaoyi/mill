@@ -1,8 +1,9 @@
 package mill.util
 
+import mill.api.WorkspaceRoot
+
 import java.io.File
 import java.net.URL
-
 import scala.collection.mutable
 import scala.util.matching.Regex
 
@@ -53,7 +54,7 @@ object Classpath {
     } else {
       if (seenClassLoaders.contains(ClassLoader.getSystemClassLoader)) {
         for (p <- System.getProperty("java.class.path").split(File.pathSeparatorChar)) {
-          val f = os.Path(p, os.pwd)
+          val f = os.Path(p, WorkspaceRoot.workspaceRoot)
           if (os.exists(f)) files.append(f)
         }
       }

@@ -1,0 +1,12 @@
+<component name="libraryTable">
+    <library name="scala-SDK-2.13.15" type="Scala">
+        <properties>
+            <language-level>Scala_2_13</language-level>
+            <compiler-classpath>
+                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.15/scala-compiler-2.13.15.jar"/>
+                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.15/scala-library-2.13.15.jar"/>
+                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.15/scala-reflect-2.13.15.jar"/>
+            </compiler-classpath>
+        </properties>
+    </library>
+</component>

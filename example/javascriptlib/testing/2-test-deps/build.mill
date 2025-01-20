@@ -1,0 +1,37 @@
+package build
+
+import mill._, javascriptlib._
+
+object bar extends TypeScriptModule {
+  def npmDeps = Seq("immutable@4.3.7")
+  object test extends TypeScriptTests with TestModule.Jest
+}
+
+object foo extends TypeScriptModule {
+  def moduleDeps = Seq(bar)
+  object test extends TypeScriptTests with TestModule.Jest
+}
+
+// Documentation for mill.example.javascriptlib
+// In this example, `foo` depend on `bar`, but we also make
+// `foo.test` depend on `bar.test`.
+
+// That lets `foo.test` make use of the default function exported from
+// `bar/test/utils/bar.tests.utils.ts`, allowing us to re-use this
+// test helper throughout multiple modules' test suites.
+
+/** Usage
+> mill foo.test
+PASS .../foo.test.ts
+...
+Test Suites:...1 passed, 1 total...
+Tests:...3 passed, 3 total...
+...
+
+> mill bar.test
+PASS .../bar.test.ts
+...
+Test Suites:...1 passed, 1 total...
+Tests:...1 passed, 1 total...
+...
+*/

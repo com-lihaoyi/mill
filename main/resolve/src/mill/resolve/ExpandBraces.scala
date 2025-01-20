@@ -30,7 +30,7 @@ private object ExpandBraces {
   }
 
   def expandBraces(selectorString: String): Either[String, Seq[String]] = {
-    parse(selectorString, parser(_)) match {
+    parse(selectorString, parser(using _)) match {
       case f: Parsed.Failure => Left(s"Parsing exception ${f.msg}")
       case Parsed.Success(fragmentLists, _) =>
         Right(expandRec(fragmentLists.toList).map(_.mkString))

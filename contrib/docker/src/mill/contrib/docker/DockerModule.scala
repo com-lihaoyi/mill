@@ -108,7 +108,7 @@ trait DockerModule { outer: JavaModule =>
      */
     def executable: T[String] = "docker"
 
-    def dockerfile: T[String] = T {
+    def dockerfile: T[String] = Task {
       val jarName = assembly().path.last
       val labelRhs = labels()
         .map { case (k, v) =>
@@ -135,7 +135,7 @@ trait DockerModule { outer: JavaModule =>
         else volumes().map(v => s"\"$v\"").mkString("VOLUME [", ", ", "]"),
         run().map(c => s"RUN $c").mkString("\n"),
         if (user().isEmpty) "" else s"USER ${user()}"
-      ).filter(_.nonEmpty).mkString(sys.props("line.separator"))
+      ).filter(_.nonEmpty).mkString(sys.props.getOrElse("line.separator", ???))
 
       val quotedEntryPointArgs = (Seq("java") ++ jvmOptions() ++ Seq("-jar", s"/$jarName"))
         .map(arg => s"\"$arg\"").mkString(", ")
@@ -147,7 +147,7 @@ trait DockerModule { outer: JavaModule =>
          |ENTRYPOINT [$quotedEntryPointArgs]""".stripMargin
     }
 
-    private def pullAndHash = T.input {
+    private def pullAndHash = Task.Input {
       val env = dockerEnv()
       def imageHash() =
         os.proc(executable(), "images", "--no-trunc", "--quiet", baseImage())
@@ -160,7 +160,7 @@ trait DockerModule { outer: JavaModule =>
       (pullBaseImage(), imageHash())
     }
 
-    final def build = T {
+    final def build = Task {
       val dest = T.dest
       val env = dockerEnv()
 
@@ -199,7 +199,7 @@ trait DockerModule { outer: JavaModule =>
       tags()
     }
 
-    final def push() = T.command {
+    final def push() = Task.Command {
       val tags = build()
       val env = dockerEnv()
       tags.foreach(t =>

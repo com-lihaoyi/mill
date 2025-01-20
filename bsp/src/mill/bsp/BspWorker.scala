@@ -8,6 +8,7 @@ import java.net.URL
 
 private trait BspWorker {
   def startBspServer(
+      topLevelBuildRoot: os.Path,
       streams: SystemStreams,
       logStream: PrintStream,
       logDir: os.Path,
@@ -33,8 +34,8 @@ private object BspWorker {
           urls
         }.getOrElse {
           // load extra classpath entries from file
-          val cpFile =
-            workspace / Constants.bspDir / s"${Constants.serverName}-${mill.main.BuildInfo.millVersion}.resources"
+          val resources = s"${Constants.serverName}-${mill.main.BuildInfo.millVersion}.resources"
+          val cpFile = workspace / Constants.bspDir / resources
           if (!os.exists(cpFile)) return Left(
             "You need to run `mill mill.bsp.BSP/install` before you can use the BSP server"
           )

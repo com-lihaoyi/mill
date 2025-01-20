@@ -1,0 +1,9 @@
+package build
+import mill._
+import mill.scalalib._
+import $file.bar
+object foo extends ScalaModule {
+  def scalaVersion = bar.myScalaVersion
+}
+
+foo.noSuchMethod

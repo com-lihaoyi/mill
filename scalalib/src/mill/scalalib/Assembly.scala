@@ -6,14 +6,12 @@ import mill.api.{Ctx, IO, PathRef}
 import os.Generator
 
 import java.io.{ByteArrayInputStream, InputStream, SequenceInputStream}
-import java.net.URI
 import java.nio.file.attribute.PosixFilePermission
-import java.nio.file.{FileSystems, Files, StandardOpenOption}
+import java.nio.file.StandardOpenOption
 import java.util.Collections
 import java.util.jar.JarFile
 import java.util.regex.Pattern
 import scala.jdk.CollectionConverters._
-import scala.tools.nsc.io.Streamable
 import scala.util.Using
 
 case class Assembly(pathRef: PathRef, addedEntries: Int)
@@ -140,7 +138,7 @@ object Assembly {
         val shader = Shader.bytecodeShader(shadeRules, verbose = false, skipManifest = true)
         (name: String, inputStream: UnopenedInputStream) => {
           val is = inputStream()
-          shader(Streamable.bytes(is), name).map {
+          shader(is.readAllBytes(), name).map {
             case (bytes, name) =>
               name -> (() =>
                 new ByteArrayInputStream(bytes) {
@@ -222,44 +220,46 @@ object Assembly {
     os.remove(rawJar)
 
     // use the `base` (the upstream assembly) as a start
-    val baseUri = "jar:" + rawJar.toIO.getCanonicalFile.toURI.toASCIIString
-    val hm = base.fold(Map("create" -> "true")) { b =>
-      os.copy(b, rawJar)
-      Map.empty
-    }
+    base.foreach(os.copy.over(_, rawJar))
 
     var addedEntryCount = 0
 
     // Add more files by copying files to a JAR file system
-    Using.resource(FileSystems.newFileSystem(URI.create(baseUri), hm.asJava)) { zipFs =>
-      val manifestPath = zipFs.getPath(JarFile.MANIFEST_NAME)
-      Files.createDirectories(manifestPath.getParent)
-      val manifestOut = Files.newOutputStream(
+    Using.resource(os.zip.open(rawJar)) { zipRoot =>
+      val manifestPath = zipRoot / os.SubPath(JarFile.MANIFEST_NAME)
+      os.makeDir.all(manifestPath / os.up)
+      Using.resource(os.write.outputStream(
         manifestPath,
-        StandardOpenOption.TRUNCATE_EXISTING,
-        StandardOpenOption.CREATE
-      )
-      manifest.build.write(manifestOut)
-      manifestOut.close()
+        openOptions = Seq(
+          StandardOpenOption.TRUNCATE_EXISTING,
+          StandardOpenOption.CREATE
+        )
+      )) { manifestOut =>
+        manifest.build.write(manifestOut)
+      }
 
       val (mappings, resourceCleaner) = Assembly.loadShadedClasspath(inputPaths, assemblyRules)
       try {
         Assembly.groupAssemblyEntries(mappings, assemblyRules).foreach {
           case (mapping, entry) =>
-            val path = zipFs.getPath(mapping).toAbsolutePath
+            val path = zipRoot / os.SubPath(mapping)
             entry match {
               case entry: AppendEntry =>
                 val separated = entry.inputStreams
                   .flatMap(inputStream =>
                     Seq(new ByteArrayInputStream(entry.separator.getBytes), inputStream())
                   )
-                val cleaned = if (Files.exists(path)) separated else separated.drop(1)
-                val concatenated = new SequenceInputStream(Collections.enumeration(cleaned.asJava))
-                addedEntryCount += 1
-                writeEntry(path, concatenated, append = true)
+                val cleaned = if (os.exists(path)) separated else separated.drop(1)
+                Using.resource(new SequenceInputStream(Collections.enumeration(cleaned.asJava))) {
+                  concatenated =>
+                    addedEntryCount += 1
+                    writeEntry(path, concatenated, append = true)
+                }
               case entry: WriteOnceEntry =>
                 addedEntryCount += 1
-                writeEntry(path, entry.inputStream(), append = false)
+                Using.resource(entry.inputStream()) { stream =>
+                  writeEntry(path, stream, append = false)
+                }
             }
         }
       } finally {
@@ -297,15 +297,14 @@ object Assembly {
     Assembly(PathRef(destJar), addedEntryCount)
   }
 
-  private def writeEntry(p: java.nio.file.Path, inputStream: InputStream, append: Boolean): Unit = {
-    if (p.getParent != null) Files.createDirectories(p.getParent)
+  private def writeEntry(p: os.Path, inputStream: InputStream, append: Boolean): Unit = {
+    if (p.segmentCount != 0) os.makeDir.all(p / os.up)
     val options =
       if (append) Seq(StandardOpenOption.APPEND, StandardOpenOption.CREATE)
       else Seq(StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)
 
-    val outputStream = java.nio.file.Files.newOutputStream(p, options: _*)
-    IO.stream(inputStream, outputStream)
-    outputStream.close()
-    inputStream.close()
+    Using.resource(os.write.outputStream(p, openOptions = options)) { outputStream =>
+      IO.stream(inputStream, outputStream)
+    }
   }
 }

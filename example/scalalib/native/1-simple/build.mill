@@ -1,0 +1,34 @@
+package build
+import mill._, scalalib._, scalanativelib._
+
+object `package` extends RootModule with ScalaNativeModule {
+  def scalaVersion = "3.3.4"
+  def scalaNativeVersion = "0.5.5"
+
+  // You can have arbitrary numbers of third-party dependencies
+  def ivyDeps = Agg(
+    ivy"com.lihaoyi::mainargs::0.7.6"
+  )
+
+  object test extends ScalaNativeTests with TestModule.Utest {
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.8.4")
+    def testFramework = "utest.runner.Framework"
+  }
+}
+
+// This example demonstrates a simple Scala program that generates HTML content
+// from user-provided text and prints it to the standard output, utilizing Scala
+// Native for native integration and `mainargs` for command-line argument parsing.
+
+/** Usage
+
+> ./mill run --text hello
+<h1>hello</h1>
+
+> ./mill show nativeLink  # Build and link native binary
+".../out/nativeLink.dest/out"
+
+> ./out/nativeLink.dest/out --text hello  # Run the executable
+<h1>hello</h1>
+
+*/

@@ -1,6 +1,10 @@
 package mill.main.client.lock;
 
-public interface Locked {
+public interface Locked extends AutoCloseable {
 
-    void release() throws Exception;
+  void release() throws Exception;
+
+  default void close() throws Exception {
+    release();
+  }
 }

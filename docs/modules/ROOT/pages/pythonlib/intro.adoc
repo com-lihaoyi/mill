@@ -1,0 +1,22 @@
+
+= Building Python with Mill
+
+include::partial$gtag-config.adoc[]
+
+
+:language: python
+:language-small: python
+
+include::partial$Intro_Header.adoc[]
+
+== Simple Python Module
+
+include::partial$example/pythonlib/basic/1-simple.adoc[]
+
+== Custom Build Logic
+
+include::partial$example/pythonlib/basic/2-custom-build-logic.adoc[]
+
+== Multi-Module Project
+
+include::partial$example/pythonlib/basic/3-multi-module.adoc[]

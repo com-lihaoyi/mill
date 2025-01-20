@@ -1,31 +1,30 @@
 package mill.main.client.lock;
 
-public class Locks implements AutoCloseable {
+import mill.main.client.ServerFiles;
 
-    public Lock processLock;
-    public Lock serverLock;
-    public Lock clientLock;
+public final class Locks implements AutoCloseable {
 
-    public static Locks files(String lockBase) throws Exception {
-        return new Locks(){{
-            processLock = new FileLock(lockBase + "/pid");
-            serverLock = new FileLock(lockBase + "/serverLock");
-            clientLock = new FileLock(lockBase + "/clientLock");
-        }};
-    }
+  public final Lock clientLock;
+  public final Lock processLock;
 
-    public static Locks memory() {
-        return new Locks(){{
-            this.processLock = new MemoryLock();
-            this.serverLock = new MemoryLock();
-            this.clientLock = new MemoryLock();
-        }};
-    }
+  public Locks(Lock clientLock, Lock processLock) {
+    this.clientLock = clientLock;
+    this.processLock = processLock;
+  }
 
-    @Override
-    public void close() throws Exception {
-        processLock.close();
-        serverLock.close();
-        clientLock.close();
-    }
+  public static Locks files(String serverDir) throws Exception {
+    return new Locks(
+        new FileLock(serverDir + "/" + ServerFiles.clientLock),
+        new FileLock(serverDir + "/" + ServerFiles.processLock));
+  }
+
+  public static Locks memory() {
+    return new Locks(new MemoryLock(), new MemoryLock());
+  }
+
+  @Override
+  public void close() throws Exception {
+    clientLock.delete();
+    processLock.delete();
+  }
 }

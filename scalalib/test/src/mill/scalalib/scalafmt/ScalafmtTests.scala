@@ -3,7 +3,8 @@ package mill.scalalib.scalafmt
 import mill._
 import mill.main.Tasks
 import mill.scalalib.ScalaModule
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import utest._
 import utest.framework.TestPath
 
@@ -11,52 +12,33 @@ object ScalafmtTests extends TestSuite {
 
   val scalafmtTestVersion = mill.scalalib.api.Versions.scalafmtVersion
 
-  trait TestBase extends TestUtil.BaseModule {
-    override def millSourcePath: os.Path =
-      TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
-  }
-
   trait BuildSrcModule {
     def buildSources: T[Seq[PathRef]]
   }
 
-  object ScalafmtTestModule extends TestBase {
+  object ScalafmtTestModule extends TestBaseModule {
     object core extends ScalaModule with ScalafmtModule with BuildSrcModule {
       def scalaVersion: T[String] = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
 
-      def buildSources: T[Seq[PathRef]] = T.sources {
+      def buildSources: T[Seq[PathRef]] = Task.Sources {
         millSourcePath / "util.sc"
       }
 
     }
   }
 
-  val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "scalafmt"
-
-  def workspaceTest[T](
-      m: TestUtil.BaseModule,
-      resourcePath: os.Path = resourcePath
-  )(t: TestEvaluator => T)(
-      implicit tp: TestPath
-  ): T = {
-    val eval = new TestEvaluator(m)
-    os.remove.all(m.millSourcePath)
-    os.remove.all(eval.outPath)
-    os.makeDir.all(m.millSourcePath / os.up)
-    os.copy(resourcePath, m.millSourcePath)
-    os.write(
-      m.millSourcePath / ".scalafmt.conf",
-      s"""version = $scalafmtTestVersion
-         |runner.dialect = scala213
-         |""".stripMargin
-    )
-    t(eval)
-  }
+  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "scalafmt"
 
   def tests: Tests = Tests {
-    "scalafmt" - {
+    test("scalafmt") {
       def checkReformat(reformatCommand: mill.define.Command[Unit], buildSrcIncluded: Boolean) =
-        workspaceTest(ScalafmtTestModule) { eval =>
+        UnitTester(ScalafmtTestModule, resourcePath).scoped { eval =>
+          os.write(
+            ScalafmtTestModule.millSourcePath / ".scalafmt.conf",
+            s"""version = $scalafmtTestVersion
+               |runner.dialect = scala213
+               |""".stripMargin
+          )
           val before = getProjectFiles(ScalafmtTestModule.core, eval)
 
           // first reformat
@@ -117,8 +99,8 @@ object ScalafmtTests extends TestSuite {
           )
         }
 
-      "reformat" - checkReformat(ScalafmtTestModule.core.reformat(), false)
-      "reformatAll" - checkReformat(
+      test("reformat") - checkReformat(ScalafmtTestModule.core.reformat(), false)
+      test("reformatAll") - checkReformat(
         ScalafmtModule.reformatAll(
           Tasks(Seq(ScalafmtTestModule.core.sources, ScalafmtTestModule.core.buildSources))
         ),
@@ -129,14 +111,14 @@ object ScalafmtTests extends TestSuite {
 
   case class FileInfo(content: String, modifyTime: Long, path: os.Path)
 
-  def getProjectFiles(m: ScalaModule with BuildSrcModule, eval: TestEvaluator) = {
-    val Right((sources, _)) = eval.apply(m.sources)
-    val Right((resources, _)) = eval.apply(m.resources)
-    val Right((buildSources, _)) = eval.apply(m.buildSources)
+  def getProjectFiles(m: ScalaModule with BuildSrcModule, eval: UnitTester) = {
+    val Right(sourcesRes) = eval.apply(m.sources)
+    val Right(resourcesRes) = eval.apply(m.resources)
+    val Right(buildSourcesRes) = eval.apply(m.buildSources)
 
-    val sourcesFiles = sources.flatMap(p => os.walk(p.path))
-    val resourcesFiles = resources.flatMap(p => os.walk(p.path))
-    val buildFiles = buildSources.map(_.path)
+    val sourcesFiles = sourcesRes.value.flatMap(p => os.walk(p.path))
+    val resourcesFiles = resourcesRes.value.flatMap(p => os.walk(p.path))
+    val buildFiles = buildSourcesRes.value.map(_.path)
     (sourcesFiles ++ resourcesFiles ++ buildFiles).map { p =>
       p.last -> FileInfo(os.read(p), os.mtime(p), p)
     }.toMap

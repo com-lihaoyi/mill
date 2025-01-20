@@ -5,13 +5,15 @@ package mill.api
  * body function to be called with the value. [[KeyedLockedCache]] ensures that
  * the body function is called with the computed/cached value sequentially.
  */
+@deprecated("Use mill.api.CachedFactory instead", "Mill since 0.12.3")
 trait KeyedLockedCache[T] {
   def withCachedValue[V](key: Long)(f: => T)(f2: T => V): V
 }
 
+@deprecated("Use mill.api.CachedFactory instead", "Mill since 0.12.3")
 object KeyedLockedCache {
   class RandomBoundedCache[T](hotParallelism: Int, coldCacheSize: Int) extends KeyedLockedCache[T] {
-    private[this] val random = new scala.util.Random(313373)
+    private val random = new scala.util.Random(313373)
     val available = new java.util.concurrent.Semaphore(hotParallelism)
 
     // Awful asymptotic complexity, but our caches are tiny n < 10 so it doesn't matter

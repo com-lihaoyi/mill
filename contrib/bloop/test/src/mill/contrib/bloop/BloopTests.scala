@@ -5,7 +5,8 @@ import mill._
 import mill.scalajslib.api.ModuleKind
 import mill.scalalib._
 import mill.scalanativelib.api.ReleaseMode
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import os.Path
 import upickle.default._
 import utest._
@@ -15,14 +16,11 @@ import scala.util.Properties.isWin
 object BloopTests extends TestSuite {
   import BloopFormats._
 
-  val workdir = os.pwd / "target" / "workspace" / "bloop"
-  val testEvaluator = TestEvaluator.static(build)
-  val testBloop = new BloopImpl(() => Seq(testEvaluator.evaluator), workdir)
+  val unitTester = UnitTester(build, null)
+  val workdir = unitTester.evaluator.rootModule.millSourcePath
+  val testBloop = new BloopImpl(() => Seq(unitTester.evaluator), workdir)
 
-  object build extends TestUtil.BaseModule {
-
-    override def millSourcePath = BloopTests.workdir
-
+  object build extends TestBaseModule {
     object scalaModule extends scalalib.ScalaModule with testBloop.Module {
       def scalaVersion = "2.12.8"
       val bloopVersion = mill.contrib.bloop.Versions.bloop
@@ -72,7 +70,7 @@ object BloopTests extends TestSuite {
       val sv = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
       override def skipBloop: Boolean = isWin
       override def scalaVersion = sv
-      override def scalaNativeVersion = sys.props.getOrElse("TEST_SCALANATIVE_0_4_VERSION", ???)
+      override def scalaNativeVersion = sys.props.getOrElse("TEST_SCALANATIVE_0_5_VERSION", ???)
       override def releaseMode = T(ReleaseMode.Debug)
     }
 
@@ -80,7 +78,6 @@ object BloopTests extends TestSuite {
       def scalaVersion = "2.12.8"
       override def skipBloop: Boolean = true
     }
-
   }
 
   def readBloopConf(jsonFile: String) =
@@ -89,9 +86,9 @@ object BloopTests extends TestSuite {
       .get
 
   def tests: Tests = Tests {
-    "genBloopTests" - {
+    test("genBloopTests") {
 
-      testEvaluator(testBloop.install())
+      unitTester(testBloop.install())
       val scalaModuleConfig = readBloopConf("scalaModule.json")
       val scalaModule2Config = readBloopConf("scalaModule2.json")
       val scalaModule3Config = readBloopConf("scalaModule3.json")
@@ -102,18 +99,17 @@ object BloopTests extends TestSuite {
       val scalanativeModuleConfig =
         if (scala.util.Properties.isWin) None else Some(readBloopConf("scalanativeModule.json"))
 
-      "no-compilation" - {
-        val workspaceOut =
-          os.pwd / "target" / "workspace" / "mill" / "contrib" / "bloop" / "BloopTests" / "testEvaluator"
+      test("no-compilation") {
+        val workspaceOut = unitTester.outPath
 
         // Ensuring that bloop config generation didn't trigger compilation
         assert(os.exists(workspaceOut / "scalaModule"))
-        assert(!os.exists(workspaceOut / "scalaModule" / "compile"))
+        assert(!os.exists(workspaceOut / "scalaModule/compile"))
         assert(os.exists(workspaceOut / "scalaModule2"))
-        assert(!os.exists(workspaceOut / "scalaModule2" / "compile"))
+        assert(!os.exists(workspaceOut / "scalaModule2/compile"))
       }
 
-      "scalaModule" - {
+      test("scalaModule") {
         val p = scalaModuleConfig.project
         val name = p.name
         val workspaceDir = p.workspaceDir
@@ -121,7 +117,7 @@ object BloopTests extends TestSuite {
         val options = p.scala.get.options
         val version = p.scala.get.version
         val compileClasspath = p.classpath.map(_.toString)
-        val compileResources = p.resources.get.map(_.toString)
+        val compileResources = p.resources.get.map(_.toString.replace('\\', '/'))
         val platform = p.platform.get.asInstanceOf[Jvm]
         val jvmOptions = platform.config.options
         val runtimeClasspath = platform.classpath.get.map(_.toString)
@@ -130,7 +126,7 @@ object BloopTests extends TestSuite {
 
         assert(name == "scalaModule")
         assert(workspaceDir == Some(workdir.wrapped))
-        assert(sources == List(workdir / "scalaModule" / "src"))
+        assert(sources == List(workdir / "scalaModule/src"))
         assert(options.contains("-language:higherKinds"))
         assert(version == "2.12.8")
         assert(
@@ -155,13 +151,17 @@ object BloopTests extends TestSuite {
         assert(artifacts.map(_.name).distinct == List("bloop-config_2.12"))
         assert(artifacts.flatMap(_.classifier).contains("sources"))
 
-        assert(compileResources.exists(_.contains("scalaModule/compile-resources")))
-        assert(!compileResources.exists(_.contains("scalaModule/resources")))
+        assert(
+          compileResources.exists(_.replace('\\', '/').contains("scalaModule/compile-resources"))
+        )
+        assert(!compileResources.exists(_.replace('\\', '/').contains("scalaModule/resources")))
 
-        assert(runtimeResources.exists(_.contains("scalaModule/compile-resources")))
-        assert(runtimeResources.exists(_.contains("scalaModule/resources")))
+        assert(
+          runtimeResources.exists(_.replace('\\', '/').contains("scalaModule/compile-resources"))
+        )
+        assert(runtimeResources.exists(_.replace('\\', '/').contains("scalaModule/resources")))
       }
-      "scalaModuleTest" - {
+      test("scalaModuleTest") {
         val p = testModuleConfig.project
         val name = p.name
         val workspaceDir = p.workspaceDir
@@ -171,7 +171,7 @@ object BloopTests extends TestSuite {
         val mainModuleClasspath = scalaModuleConfig.project.classpath
         assert(name == "scalaModule.test")
         assert(workspaceDir == Some(workdir.wrapped))
-        assert(sources == List(workdir / "scalaModule" / "test" / "src"))
+        assert(sources == List(workdir / "scalaModule/test/src"))
         assert(framework == "utest.runner.Framework")
         assert(dep == "scalaModule")
         assert(
@@ -181,40 +181,44 @@ object BloopTests extends TestSuite {
         )
         assert(p.platform.get.asInstanceOf[Jvm].classpath == None)
       }
-      "configAccessTest" - {
-        val (accessedConfig, _) =
-          testEvaluator(build.scalaModule.bloop.config).asSuccess.get.value.toOption.get
-        assert(accessedConfig == scalaModuleConfig)
+      test("configAccessTest") {
+        val accessedConfig =
+          unitTester(build.scalaModule.bloop.config).asSuccess.get.value.toOption.get
+        assert(accessedConfig.value == scalaModuleConfig)
       }
-      "noDepTest" - {
+      test("noDepTest") {
         val cp = scalaModule2Config.project.classpath.map(_.toString)
         assert(cp.exists(_.contains("scala-library-2.12.8")))
       }
-      "classpath" - {
-        val cp = scalaModule3Config.project.classpath.map(_.toString)
+      test("classpath") {
+        val cp = scalaModule3Config.project.classpath.map(_.toString.replace('\\', '/'))
         assert(!cp.exists(_.contains(".bloop/out/scalaModule3/classes")))
         assert(cp.exists(_.contains(".bloop/out/scalaModule2/classes")))
         assert(cp.exists(_.contains(".bloop/out/scalaModule/classes")))
       }
-      "platform-classpath" - {
-        val cp = scalaModule3Config.project.platform.get.asInstanceOf[Jvm].classpath.map(_.toString)
+      test("platform-classpath") {
+        val cp = scalaModule3Config.project.platform.get.asInstanceOf[Jvm].classpath.map(
+          _.toString.replace('\\', '/')
+        )
         assert(cp.exists(_.contains(".bloop/out/scalaModule3/classes")))
         assert(cp.exists(_.contains(".bloop/out/scalaModule2/classes")))
         assert(cp.exists(_.contains(".bloop/out/scalaModule/classes")))
       }
-      "classpath-compile-module-deps" - {
-        val cp = scalaModule4Config.project.classpath.map(_.toString)
+      test("classpath-compile-module-deps") {
+        val cp = scalaModule4Config.project.classpath.map(_.toString.replace('\\', '/'))
         assert(cp.exists(_.contains(".bloop/out/scalaModule3/classes")))
         assert(cp.exists(_.contains(".bloop/out/scalaModule2/classes")))
         assert(cp.exists(_.contains(".bloop/out/scalaModule/classes")))
       }
-      "platform-classpath-compile-module-deps" - {
-        val cp = scalaModule4Config.project.platform.get.asInstanceOf[Jvm].classpath.map(_.toString)
+      test("platform-classpath-compile-module-deps") {
+        val cp = scalaModule4Config.project.platform.get.asInstanceOf[Jvm].classpath.map(
+          _.toString.replace('\\', '/')
+        )
         assert(!cp.exists(_.contains(".bloop/out/scalaModule3/classes")))
         assert(!cp.exists(_.contains(".bloop/out/scalaModule2/classes")))
         assert(!cp.exists(_.contains(".bloop/out/scalaModule/classes")))
       }
-      "scalajsModule" - {
+      test("scalajsModule") {
         val p = scalajsModuleConfig.project
         val name = p.name
         val workspaceDir = p.workspaceDir
@@ -224,16 +228,16 @@ object BloopTests extends TestSuite {
 
         assert(name == "scalajsModule")
         assert(workspaceDir == Some(workdir.wrapped))
-        assert(sources == List(workdir / "scalajsModule" / "src"))
+        assert(sources == List(workdir / "scalajsModule/src"))
         assert(version == build.scalajsModule.sv)
         assert(platform.config.emitSourceMaps)
         assert(platform.config.kind == BloopConfig.ModuleKindJS.CommonJSModule)
         assert(platform.config.mode == BloopConfig.LinkerMode.Release)
       }
-      "scalanativeModule" - {
+      test("scalanativeModule") {
         scalanativeModuleConfig match {
           case None =>
-            val exists = os.exists(workdir / ".bloop" / "scalanativeModule.json")
+            val exists = os.exists(workdir / ".bloop/scalanativeModule.json")
             assert(exists == false)
           case Some(scalanativeModuleConfig) =>
             val p = scalanativeModuleConfig.project
@@ -243,30 +247,30 @@ object BloopTests extends TestSuite {
             val version = p.scala.get.version
             val platform = p.platform.get.asInstanceOf[BloopConfig.Platform.Native]
 
-            val (clang, _) =
-              testEvaluator(build.scalanativeModule.nativeClang).asSuccess.get.value.toOption.get
+            val clang =
+              unitTester(build.scalanativeModule.nativeClang).asSuccess.get.value.toOption.get
 
             assert(name == "scalanativeModule")
             assert(workspaceDir == Some(workdir.wrapped))
-            assert(sources == List(workdir / "scalanativeModule" / "src"))
+            assert(sources == List(workdir / "scalanativeModule/src"))
             assert(version == build.scalanativeModule.sv)
             assert(platform.config.mode == BloopConfig.LinkerMode.Debug)
-            assert(platform.config.clang == clang.toNIO)
+            assert(platform.config.clang == clang.value.toNIO)
         }
       }
-      "skipped" - {
-        val exists = os.exists(workdir / ".bloop" / "skippedModule.json")
+      test("skipped") {
+        val exists = os.exists(workdir / ".bloop/skippedModule.json")
         assert(exists == false)
       }
     }
-    "regenerateAfterBloopDirRemoval" - {
-      testEvaluator(testBloop.install())
+    test("regenerateAfterBloopDirRemoval") {
+      unitTester(testBloop.install())
       val bloopDir = workdir / ".bloop"
       val files = os.list(bloopDir)
       val size = (if (isWin) 6 else 7)
       assert(files.size == size)
       os.remove.all(bloopDir)
-      testEvaluator(testBloop.install())
+      unitTester(testBloop.install())
       val files2 = os.list(bloopDir)
       assert(files2.size == size)
       assert(files2 == files)

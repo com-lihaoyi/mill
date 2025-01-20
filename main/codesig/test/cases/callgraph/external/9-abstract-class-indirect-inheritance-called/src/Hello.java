@@ -5,26 +5,29 @@ package hello;
 //
 // Make sure we can resolve that and still record in the call graph that the
 // method is called
-class Foo extends java.io.ByteArrayInputStream{
-    public Foo() throws java.io.IOException{
-        super(new byte[]{});
-    }
+class Foo extends java.io.ByteArrayInputStream {
+  public Foo() throws java.io.IOException {
+    super(new byte[] {});
+  }
 
-    public int read(){
-        return readSpecial();
-    }
-    public int readSpecial(){
-        return 1337;
-    }
+  public int read() {
+    return readSpecial();
+  }
+
+  public int readSpecial() {
+    return 1337;
+  }
 }
-public class Hello{
-    public static int main() throws java.io.IOException{
-        java.io.InputStream is = new Foo();
-        return bar(is);
-    }
-    public static int bar(java.io.InputStream is) throws java.io.IOException{
-        return is.read();
-    }
+
+public class Hello {
+  public static int main() throws java.io.IOException {
+    java.io.InputStream is = new Foo();
+    return bar(is);
+  }
+
+  public static int bar(java.io.InputStream is) throws java.io.IOException {
+    return is.read();
+  }
 }
 
 /* expected-direct-call-graph
