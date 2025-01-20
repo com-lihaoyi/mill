@@ -196,8 +196,9 @@ object `package` extends RootModule {
       case s"    mill-last-tag:$_" => s"    mill-last-tag: '$millLastTag'"
       case l => l
     }
+
     val newLines = Seq(
-      s"    mill-download-url: ${build.Settings.projectUrl}/releases/download/$millLastTag",
+      s"    mill-download-url: https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/$millLastTag",
       s"    mill-example-url: ${build.Settings.projectUrl}/blob/$millLastTag/"
     )
 
