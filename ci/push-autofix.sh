@@ -2,6 +2,9 @@
 
 set -eu
 
+# Build the pages
+./mill -i docs.githubPages
+
 # Prepare ssh-key for git actions
 echo $REPO_DEPLOY_KEY | base64 --decode > deploy_key
 
