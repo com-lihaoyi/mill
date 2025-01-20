@@ -20,12 +20,12 @@ you can also download it manually:
 [source,bash,subs="verbatim,attributes"]
 ----
 # Mac/Linux
-curl -L {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag} -o mill
+curl -L {mill-download-url}/{mill-last-tag}/mill -o mill
 chmod +x mill
 echo {mill-last-tag} > .mill-version
 
 # Windows
-curl -L {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag}.bat -o mill.bat
+curl -L {mill-download-url}/{mill-last-tag}/mill.bat -o mill.bat
 echo {mill-last-tag} > .mill-version
 ----
 
