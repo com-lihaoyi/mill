@@ -107,15 +107,16 @@ ARTIFACT_SUFFIX=""
 case "$MILL_VERSION" in
     *"$MILL_NATIVE_SUFFIX")
   MILL_VERSION=${MILL_VERSION%"$MILL_NATIVE_SUFFIX"}
-  if [ "$(expr substr $(uname -s) 1 5 2>/dev/null)" = "Linux" ]; then
+  if [ "$(uname -m)" = "aarch64" ]; then
+    CPU_SUFFIX="aarch64"
+  else
+    CPU_SUFFIX="amd64"
+  fi
 
-    if [ "$(uname -m)" = "aarch64" ]; then
-      ARTIFACT_SUFFIX="-native-linux-aarch64"
-    else
-      ARTIFACT_SUFFIX="-native-linux-amd64"
-    fi
+  if [ "$(expr substr $(uname -s) 1 5 2>/dev/null)" = "Linux" ]; then
+    ARTIFACT_SUFFIX="-native-linux-$CPU_SUFFIX"
   elif [ "$(uname)" = "Darwin" ]; then
-    ARTIFACT_SUFFIX="-native-mac-aarch64"
+    ARTIFACT_SUFFIX="-native-mac-$CPU_SUFFIX"
   else
      echo "This native mill launcher supports only Linux and macOS." 1>&2
      exit 1

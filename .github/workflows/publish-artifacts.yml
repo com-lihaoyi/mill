@@ -90,6 +90,9 @@ jobs:
         - os: ubuntu-24.04-arm
           coursierarchive: ""
 
+        - os: macos-13
+          coursierarchive: ""
+
         - os: macos-latest
           coursierarchive: ""
 
@@ -118,7 +121,7 @@ jobs:
 
       - run: "echo temurin:11 > .mill-jvm-version"
 
-      - run: "echo 0.12.5-144-22bb1b > .mill-version"
+      - run: "echo 0.12.5-150-31d41c > .mill-version"
 
       - run: ./mill -i mill.scalalib.PublishModule/ --publishArtifacts dist.native.publishArtifacts
 
