@@ -2,6 +2,8 @@ package mill
 package contrib.docker
 
 import mill.scalalib.JavaModule
+import mill.api.Result
+import mill.util.TestUtil
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import os.Path
@@ -40,6 +42,10 @@ object DockerModuleTest extends TestSuite {
     object dockerJvmOptions extends DockerConfig {
       override def executable = testExecutable
       override def jvmOptions = Seq("-Xmx1024M")
+    }
+
+    object dockerEnv extends DockerConfig {
+      override def dockerEnv = Map("DOCKER_HOST" -> "wrong_host")
     }
   }
 
@@ -85,6 +91,15 @@ object DockerModuleTest extends TestSuite {
       test("all options") - workspaceTest(Docker) { eval =>
         val Right(result) = eval(Docker.dockerAll.build)
         assert(result.value == List(testArtifactName))
+      }
+
+      "dockerEnv" - workspaceTest(Docker) { eval =>
+        // since stdout and stderr are inherited we can only test
+        // that docker fails with wrong DOCKER_HOST
+        val Left(Result.Exception(error: os.SubprocessException, _)) =
+          eval(Docker.dockerEnv.build)
+        val message = error.getMessage
+        assert(message == "Result of docker…: 1\n")
       }
     }
 
