@@ -71,6 +71,7 @@ JVM launcher. Mill native executables are supported on the following OS/CPU comb
 
 - `windows-amd64` (Intel Windows)
 - `linux-amd64` (Intel Linux)
+- `linux-aarch64` (Intel Linux)
 - `mac-aarch64` (M1-M4 Mac)
 
 If you are on a combination not supported by Mill's native executables, use the default
