@@ -3,6 +3,7 @@ package scalalib
 
 import coursier.{core => cs}
 import coursier.core.{BomDependency, Configuration, DependencyManagement, Resolution}
+import coursier.params.ResolutionParams
 import coursier.parse.JavaOrScalaModule
 import coursier.parse.ModuleParser
 import coursier.util.{EitherT, ModuleMatcher, Monad}
@@ -469,7 +470,11 @@ trait JavaModule
    * resolution parameters (such as artifact types, etc.), this should be the only way
    * we provide details about this module to coursier.
    */
-  def coursierProject: Task[cs.Project] = Task {
+  def coursierProject: Task[cs.Project] = Task.Anon {
+    coursierProject0()
+  }
+
+  private[mill] def coursierProject0: Task[cs.Project] = Task.Anon {
 
     // Tells coursier that if something depends on a given scope of ours, we should also
     // pull other scopes of our own dependencies.
@@ -701,7 +706,7 @@ trait JavaModule
    * doing.
    */
   def internalRepositories: Task[Seq[cs.Repository]] = Task.Anon {
-    super.internalRepositories() ++ Seq(internalDependenciesRepository())
+    Seq(internalDependenciesRepository())
   }
 
   /**
@@ -967,7 +972,8 @@ trait JavaModule
         BoundDep(coursierDependency, force = false)
       ),
       artifactTypes = Some(artifactTypes()),
-      resolutionParamsMapOpt = Some(_.withDefaultConfiguration(coursier.core.Configuration.compile))
+      resolutionParamsMapOpt =
+        Some((_: ResolutionParams).withDefaultConfiguration(coursier.core.Configuration.compile))
     )
   }
 
@@ -988,7 +994,8 @@ trait JavaModule
         )
       ),
       artifactTypes = Some(artifactTypes()),
-      resolutionParamsMapOpt = Some(_.withDefaultConfiguration(cs.Configuration.runtime))
+      resolutionParamsMapOpt =
+        Some((_: ResolutionParams).withDefaultConfiguration(cs.Configuration.runtime))
     )
   }
 
@@ -1427,7 +1434,9 @@ trait JavaModule
             ),
             sources = true,
             resolutionParamsMapOpt =
-              Some(_.withDefaultConfiguration(coursier.core.Configuration.compile))
+              Some(
+                (_: ResolutionParams).withDefaultConfiguration(coursier.core.Configuration.compile)
+              )
           )
         },
         Task.Anon {

@@ -1,0 +1,14 @@
+= Typescript Packaging & Publishing
+:page-aliases: Publishing_Typescript_Projects.adoc
+
+include::partial$gtag-config.adoc[]
+
+This page will discuss common topics around publishing your Typescript projects for others to use.
+
+== Simple publish
+
+include::partial$example/javascriptlib/publishing/1-publish.adoc[]
+
+== Realistic publish
+
+include::partial$example/javascriptlib/publishing/2-realistic.adoc[]

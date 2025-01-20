@@ -160,7 +160,7 @@ object Deps {
   val testng = ivy"org.testng:testng:7.5.1"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
-  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.8.3"
+  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.8.5"
   def scalap(scalaVersion: String) = ivy"org.scala-lang:scalap:${scalaVersion}"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   val scoverage2Version = "2.2.1"
@@ -439,6 +439,9 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
  * Some custom scala settings and test convenience
  */
 trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModule { outer =>
+  def fix(args: String*) = Task.Command[Unit] {
+    /*https://github.com/com-lihaoyi/mill/issues/4353*/
+  }
   def scalaVersion = Deps.scalaVersion
   def scalafixScalaBinaryVersion = ZincWorkerUtil.scalaBinaryVersion(scalaVersion())
   def semanticDbVersion = Deps.semanticDBscala.version
@@ -593,13 +596,6 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
       "mill.main.MainModule.mill$define$BaseModule0$_setter_$evalWatchedValues_="
     ),
 
-    // Overrides added for new methods, ought to be safe
-    ProblemFilter.exclude[ReversedMissingMethodProblem](
-      "mill.scalalib.JavaModule.mill$scalalib$JavaModule$$super$internalRepositories"
-    ),
-    ProblemFilter.exclude[ReversedMissingMethodProblem](
-      "mill.scalanativelib.ScalaNativeModule.mill$scalanativelib$ScalaNativeModule$$super$coursierProject"
-    ),
     ProblemFilter.exclude[ReversedMissingMethodProblem](
       "mill.scalalib.JavaModule#JavaModuleTests.mill$scalalib$JavaModule$JavaModuleTests$$super$extraBomIvyDeps"
     ),
@@ -615,7 +611,8 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
     ProblemFilter.exclude[Problem]("*.bspJvmBuildTarget"),
     ProblemFilter.exclude[Problem]("mill.scalalib.RunModule#RunnerImpl.*"),
     ProblemFilter.exclude[Problem]("mill.util.PromptLogger#*"),
-    ProblemFilter.exclude[Problem]("mill.util.PromptLoggerUtil.*")
+    ProblemFilter.exclude[Problem]("mill.util.PromptLoggerUtil.*"),
+    ProblemFilter.exclude[Problem]("mill.main.SelectiveExecution*")
   )
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
 

@@ -1,4 +1,4 @@
-import { test, expect } from 'node_modules/@playwright/test';
+import { test, expect } from '@playwright/test';
 
 test.describe('React App', () => {
     test('displays the heading', async ({ page }) => {

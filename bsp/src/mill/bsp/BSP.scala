@@ -1,7 +1,7 @@
 package mill.bsp
 
 import mill.api.{Ctx, PathRef}
-import mill.{Agg, T, Task}
+import mill.{Agg, T, Task, given}
 import mill.define.{Command, Discover, ExternalModule}
 import mill.main.BuildInfo
 import mill.eval.Evaluator
