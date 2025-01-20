@@ -596,10 +596,6 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
       "mill.main.MainModule.mill$define$BaseModule0$_setter_$evalWatchedValues_="
     ),
 
-    ProblemFilter.exclude[ReversedMissingMethodProblem](
-      "mill.scalalib.PublishModule.mill$scalalib$PublishModule$$super$bomModuleDeps"
-    ),
-
     // https://github.com/com-lihaoyi/mill/pull/3503
     ProblemFilter.exclude[ReversedMissingMethodProblem](
       "mill.scalalib.ScalaModule#ScalaTests.mill$scalalib$ScalaModule$ScalaTests$$super$mandatoryScalacOptions"

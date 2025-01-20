@@ -27,13 +27,14 @@ trait PublishModule extends JavaModule { outer =>
       )
   }
 
-  override def bomModuleDeps: Seq[BomModule with PublishModule] = super.bomModuleDeps.map {
-    case m: BomModule with PublishModule => m
-    case other =>
-      throw new Exception(
-        s"PublishModule bomModuleDeps need to be also PublishModules. $other is not a PublishModule"
-      )
-  }
+  // TODO Add this when we can break bin-compat
+  // override def bomModuleDeps: Seq[BomModule with PublishModule] = super.bomModuleDeps.map {
+  //   case m: BomModule with PublishModule => m
+  //   case other =>
+  //     throw new Exception(
+  //       s"PublishModule bomModuleDeps need to be also PublishModules. $other is not a PublishModule"
+  //     )
+  // }
 
   /**
    * The packaging type. See [[PackagingType]] for specially handled values.
@@ -170,7 +171,17 @@ trait PublishModule extends JavaModule { outer =>
    */
   def publishXmlBomDeps: Task[Agg[Dependency]] = Task.Anon {
     val fromBomMods = T.traverse(
-      bomModuleDepsChecked.collect { case p: PublishModule => p }
+      bomModuleDepsChecked
+        // TODO When we can break bin-compat, add the bomModuleDeps override above,
+        // and change the .map to this .collect:
+        // .collect { case p: PublishModule => p }
+        .map {
+          case p: PublishModule => p
+          case other =>
+            throw new Exception(
+              s"PublishModule bomModuleDeps need to be also PublishModules. $other is not a PublishModule"
+            )
+        }
     )(_.artifactMetadata)().map { a =>
       Dependency(a, Scope.Import)
     }
