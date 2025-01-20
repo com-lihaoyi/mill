@@ -45,7 +45,7 @@ object bar extends ScalaModule {
 }
 ----
 
-* developer.adoc[Developer Documentation]
-* changelog.adoc[Changelog]
+* https://github.com/com-lihaoyi/mill/blob/main/developer.adoc[Developer Documentation]
+* https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc[Changelog]
 
 
