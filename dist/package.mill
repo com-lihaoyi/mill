@@ -346,7 +346,13 @@ object `package` extends RootModule with InstallModule {
       else "linux"
     }
 
-    def artifactCpuSuffix = T { System.getProperty("os.arch") }
+    def artifactCpuSuffix = T {
+      System.getProperty("os.arch") match {
+        case "x86_64" => "amd64"
+        case s => s
+      }
+    }
+
     def artifactName = s"${super.artifactName()}-${artifactOsSuffix()}-${artifactCpuSuffix()}"
 
     def mainClass = Some("mill.runner.client.MillClientMain")
