@@ -14,7 +14,8 @@ jobs:
       - run: git config --global user.name "Your Name"
       - run: git commit -am "autofix" --allow-empty
 
-      - run: echo -n "git@github.com:com-lihaoyi/mill.git" > .autofix-repo
+#      - run: echo -n "git@github.com:com-lihaoyi/mill.git" > .autofix-repo
+      - run: echo -n "git@github.com:lihaoyi/mill-1.git" > .autofix-repo
 #      - run: echo -n HEAD:${{ github.event.pull_request.head.ref }} > .autofix-branch
       - run: echo -n test-autofix > .autofix-branch
 
