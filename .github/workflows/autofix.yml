@@ -7,7 +7,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - run: ./mill -i mill.scalalib.scalafmt.ScalafmtModule/
+      - run: echo -n // >> build.mill
       - run: git clean -xdf
 
       - run: git config --global user.email "you@example.com"
