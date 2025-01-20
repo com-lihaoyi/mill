@@ -17,4 +17,4 @@ git config user.name "Mill GitHub Bot"
 cat .autofix-repo
 cat .autofix-branch
 # skip git hooks
-git push --no-verify $(cat .autofix-repo) HEAD:$(cat .autofix-branch)
+git push --no-verify $(cat .autofix-repo) HEAD:test
