@@ -324,23 +324,27 @@ trait PublishModule extends JavaModule { outer =>
   /**
    * Publish artifacts to a local Maven repository.
    * @param m2RepoPath The path to the local repository  as string (default: `$HOME/.m2repository`).
+   *                   If not set, falls back to `maven.repo.local` system property or `~/.m2/repository`
    * @return [[PathRef]]s to published files.
    */
-  def publishM2Local(m2RepoPath: String = (os.home / ".m2/repository").toString())
-      : Command[Seq[PathRef]] = Task.Command {
-    publishM2LocalTask(Task.Anon {
-      os.Path(m2RepoPath, T.workspace)
-    })()
-  }
+  def publishM2Local(m2RepoPath: String = getM2LocalRepoPath.toString()): Command[Seq[PathRef]] =
+    Task.Command {
+      publishM2LocalTask(Task.Anon {
+        os.Path(m2RepoPath, T.workspace)
+      })()
+    }
 
   /**
    * Publish artifacts to the local Maven repository.
    * @return [[PathRef]]s to published files.
    */
   def publishM2LocalCached: T[Seq[PathRef]] = Task {
-    publishM2LocalTask(Task.Anon {
-      os.Path(os.home / ".m2/repository", T.workspace)
-    })()
+    publishM2LocalTask(getM2LocalRepoPath)()
+  }
+
+  def getM2LocalRepoPath: Task[os.Path] = Task.Input {
+    sys.props.get("maven.repo.local").map(os.Path(_))
+      .getOrElse(os.Path(os.home / ".m2", T.workspace)) / "repository"
   }
 
   private def publishM2LocalTask(m2RepoPath: Task[os.Path]): Task[Seq[PathRef]] = Task.Anon {
