@@ -84,15 +84,15 @@ jobs:
           # Run these with Mill native launcher as a smoketest
         include:
           - os: ubuntu-24.04-arm
-            millargs: "'example.thirdparty[fansi].local.server.test'"
+            millargs: "'example.thirdparty[fansi].native.server.test'"
             java-version: 17
 
           - os: macos-latest
-            millargs: "'example.thirdparty[acyclic].local.server.test'"
+            millargs: "'example.thirdparty[acyclic].native.server.test'"
             java-version: 11
 
           - os: macos-13
-            millargs: "'example.thirdparty[jimfs].local.server.test'"
+            millargs: "'example.thirdparty[jimfs].native.server.test'"
             java-version: 11
     steps:
       - uses: actions/checkout@v4
