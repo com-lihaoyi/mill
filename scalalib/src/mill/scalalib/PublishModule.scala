@@ -327,10 +327,10 @@ trait PublishModule extends JavaModule { outer =>
    *                   If not set, falls back to `maven.repo.local` system property or `~/.m2/repository`
    * @return [[PathRef]]s to published files.
    */
-  def publishM2Local(m2RepoPath: String = getM2LocalRepoPath.toString()): Command[Seq[PathRef]] =
+  def publishM2Local(m2RepoPath: String = null): Command[Seq[PathRef]] =
     Task.Command {
       publishM2LocalTask(Task.Anon {
-        os.Path(m2RepoPath, T.workspace)
+        os.Path(Option(m2RepoPath).getOrElse(getM2LocalRepoPath().toString()), T.workspace)
       })()
     }
 
