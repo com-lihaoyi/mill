@@ -328,7 +328,7 @@ trait PublishModule extends JavaModule { outer =>
    * @return [[PathRef]]s to published files.
    */
   def publishM2Local(m2RepoPath: String = null): Command[Seq[PathRef]] = m2RepoPath match {
-    case null => Task.Command { publishM2LocalTask(Task.Anon { getM2LocalRepoPath() })() }
+    case null => Task.Command { publishM2LocalTask(Task.Anon { publishM2LocalRepoPath() })() }
     case p => Task.Command { publishM2LocalTask(Task.Anon { p })() }
   }
 
@@ -337,10 +337,10 @@ trait PublishModule extends JavaModule { outer =>
    * @return [[PathRef]]s to published files.
    */
   def publishM2LocalCached: T[Seq[PathRef]] = Task {
-    publishM2LocalTask(getM2LocalRepoPath)()
+    publishM2LocalTask(publishM2LocalRepoPath)()
   }
 
-  def getM2LocalRepoPath: Task[os.Path] = Task.Input {
+  def publishM2LocalRepoPath: Task[os.Path] = Task.Input {
     sys.props.get("maven.repo.local").map(os.Path(_))
       .getOrElse(os.Path(os.home / ".m2", T.workspace)) / "repository"
   }
