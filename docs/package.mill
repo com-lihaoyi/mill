@@ -289,9 +289,10 @@ object `package` extends RootModule {
         mill.main.VisualizeModule.classpath().map(_.path)
       )
 
-
       val millDownloadUrl =
-        if (Ordering.Implicits.seqOrdering[Seq, String].lt(version.split('.'), Seq("0", "12", "6"))) {
+        if (
+          Ordering.Implicits.seqOrdering[Seq, String].lt(version.split('.'), Seq("0", "12", "6"))
+        ) {
           s"${build.Settings.projectUrl}/releases/download/$millLastTag"
         } else {
           build.millDownloadUrl()

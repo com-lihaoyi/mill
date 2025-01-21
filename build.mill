@@ -281,11 +281,10 @@ def millLastTag: T[String] = Task {
   } else "SNAPSHOT"
 }
 
-
-def millDownloadPrefix = Task{
+def millDownloadPrefix = Task {
   s"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/"
 }
-def millDownloadUrl = Task{
+def millDownloadUrl = Task {
   s"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/${millLastTag()}"
 }
 
