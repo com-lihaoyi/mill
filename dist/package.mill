@@ -257,6 +257,27 @@ object `package` extends RootModule with InstallModule {
       )
   }
 
+  def uploadToGithub(authKey: String) = Task.Command {
+    val vcsState = VcsVersion.vcsState()
+    val label = vcsState.copy(dirtyHash = None).format()
+    if (label != build.millVersion()) sys.error("Modified mill version detected, aborting upload")
+    val releaseTag = vcsState.lastTag.getOrElse(sys.error(
+      "Incomplete git history. No tag found.\nIf on CI, make sure your git checkout job includes enough history."
+    ))
+
+    // Only create releases for tag pushes, not for unstable commit releases
+    if (releaseTag == label) {
+      // TODO: check if the tag already exists (e.g. because we created it manually) and do not fail
+      requests.post(
+        s"https://api.github.com/repos/${build.Settings.githubOrg}/${build.Settings.githubRepo}/releases",
+        data = ujson.Obj("tag_name" -> releaseTag, "name" -> releaseTag, "prerelease" -> true),
+        headers = Seq("Authorization" -> ("token " + authKey))
+      )
+    }
+
+    ()
+  }
+
   object native extends mill.scalalib.NativeImageModule with InstallModule {
     def artifactOsSuffix = T {
       val osName = System.getProperty("os.name").toLowerCase
