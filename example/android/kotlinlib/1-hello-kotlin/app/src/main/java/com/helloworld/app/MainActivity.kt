@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.Gravity
 import android.view.ViewGroup.LayoutParams
 import android.widget.TextView
+import com.helloworld.SampleLogic
 
 class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -17,7 +18,7 @@ class MainActivity : Activity() {
         textView.text = getString(R.string.hello_world)
 
         // Set text size
-        textView.textSize = 32f
+        textView.textSize = SampleLogic.textSize()
 
         // Center the text within the view
         textView.gravity = Gravity.CENTER

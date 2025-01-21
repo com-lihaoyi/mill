@@ -11,7 +11,6 @@ package build
 
 import mill._
 import kotlinlib._
-import coursier.{Repository, MavenRepository}
 import coursier.core.{MinimizedExclusions, ModuleName, Organization}
 import coursier.params.ResolutionParams
 import mill.kotlinlib.android.AndroidAppKotlinModule
