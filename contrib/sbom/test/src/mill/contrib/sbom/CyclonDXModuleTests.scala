@@ -6,16 +6,16 @@ import mill.javalib.*
 import mill.testkit.{TestBaseModule, UnitTester}
 import os.Path
 import utest.{TestSuite, Tests, test}
-object CyclonDXModuleTests extends TestSuite{
+object CyclonDXModuleTests extends TestSuite {
   object TestModule extends TestBaseModule {
-    case object withDeps extends JavaModule with CycloneDXModule{
+    case object withDeps extends JavaModule with CycloneDXModule {
       def ivyDeps = Agg(
         ivy"ch.qos.logback:logback-classic:1.2.3"
       )
     }
   }
 
-  override def tests = Tests{
+  override def tests = Tests {
     test("demo") - UnitTester(TestModule, null).scoped { eval =>
       val Right(result) = eval.apply(TestModule.withDeps.sbom)
       println(result.value.components.size)
