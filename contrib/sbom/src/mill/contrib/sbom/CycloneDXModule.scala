@@ -73,7 +73,7 @@ trait CycloneDXModule extends JavaModule {
       val dep = dependency.dependency
       Component(
         "library",
-        s"pkg:maven/{}/jackson-annotations@2.9.10?type=jar",
+        s"pkg:maven/${dep.module.organization.value}/${dep.module.name.value}@${dep.version}?type=jar",
         dep.module.organization.value,
         dep.module.name.value,
         dep.version,
