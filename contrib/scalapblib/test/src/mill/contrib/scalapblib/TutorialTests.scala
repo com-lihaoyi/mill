@@ -183,9 +183,10 @@ object TutorialTests extends TestSuite {
       }
     }
 
-    test("calledWithScala3Sources") - UnitTester(TutorialWithScala3Soures, resourcePath).scoped { eval =>
-      val result = eval.apply(Tutorial.core.compileScalaPB)
-      assert(result.isRight)
+    test("calledWithScala3Sources") - UnitTester(TutorialWithScala3Soures, resourcePath).scoped {
+      eval =>
+        val result = eval.apply(Tutorial.core.compileScalaPB)
+        assert(result.isRight)
     }
 
     test("compilationArgs") {
