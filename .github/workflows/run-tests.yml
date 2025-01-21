@@ -90,7 +90,7 @@ jobs:
             millargs: example.scalalib.__.native.server.test
             java-version: 11
           - os: macos-13
-            millargs: "'example.thirdparty[{mockito,acyclic,commons-io}].local.server.test'"
+            millargs: "'integration.{failure,feature,ide}.__.packaged.server.test'"
             java-version: 11
     steps:
       - uses: actions/checkout@v4
@@ -149,6 +149,10 @@ jobs:
             millargs: "'example.{pythonlib,javascriptlib}.__.local.server.test'"
             install-android-sdk: false
 
+          - java-version: 11
+            millargs: "'example.thirdparty[{mockito,acyclic,commons-io}].local.server.test'"
+            install-android-sdk: false
+
           - java-version: 17
             millargs: "'example.thirdparty[{fansi,jimfs,netty,gatling}].local.server.test'"
             install-android-sdk: false
@@ -160,11 +164,7 @@ jobs:
           - java-version: 11
             millargs: "'example.{cli,fundamentals,depth,extending}.__.local.server.test'"
             install-android-sdk: false
-            # Most of these integration tests should not depend on which mode they
-            # are run in, so just run them in `local`
-          - java-version: '17'
-            millargs: "'integration.{failure,feature,ide}.__.packaged.server.test'"
-            install-android-sdk: false
+
             # These invalidation tests need to be exercised in both execution modes
             # to make sure they work with and without -i/--no-server being passed
           - java-version: 17
