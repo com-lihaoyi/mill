@@ -84,13 +84,15 @@ jobs:
           # Run these with Mill native launcher as a smoketest
         include:
           - os: ubuntu-24.04-arm
-            millargs: example.javalib.__.local.server.test
+            millargs: "'example.thirdparty[fansi].local.server.test'"
             java-version: 17
+
           - os: macos-latest
-            millargs: example.scalalib.__.native.server.test
+            millargs: "'example.thirdparty[acyclic].local.server.test'"
             java-version: 11
+
           - os: macos-13
-            millargs: "'integration.{failure,feature,ide}.__.packaged.server.test'"
+            millargs: "'example.thirdparty[jimfs].local.server.test'"
             java-version: 11
     steps:
       - uses: actions/checkout@v4
@@ -138,7 +140,15 @@ jobs:
             install-android-sdk: false
 
           - java-version: 17
+            millargs: "example.javalib.__.local.server.test"
+            install-android-sdk: false
+
+          - java-version: 17
             millargs: "example.kotlinlib.__.native.server.test"
+            install-android-sdk: false
+
+          - java-version: 17
+            millargs: "example.scalalib.__.native.server.test"
             install-android-sdk: false
 
           - java-version: 17
@@ -150,11 +160,11 @@ jobs:
             install-android-sdk: false
 
           - java-version: 11
-            millargs: "'example.thirdparty[{mockito,acyclic,commons-io}].local.server.test'"
+            millargs: "'example.thirdparty[{mockito,commons-io}].local.server.test'"
             install-android-sdk: false
 
           - java-version: 17
-            millargs: "'example.thirdparty[{fansi,jimfs,netty,gatling}].local.server.test'"
+            millargs: "'example.thirdparty[{netty,gatling}].local.server.test'"
             install-android-sdk: false
 
           - java-version: '17'
@@ -163,6 +173,10 @@ jobs:
 
           - java-version: 11
             millargs: "'example.{cli,fundamentals,depth,extending}.__.local.server.test'"
+            install-android-sdk: false
+
+          - java-version: 11
+            millargs: "'integration.{failure,feature,ide}.__.packaged.server.test'"
             install-android-sdk: false
 
             # These invalidation tests need to be exercised in both execution modes
