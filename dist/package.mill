@@ -231,7 +231,7 @@ object `package` extends RootModule with InstallModule {
       path = exampleMod.millSourcePath
     } yield {
       val example = path.subRelativeTo(Task.workspace)
-      val artifactName = build.millVersion() + "-" + example.segments.mkString("-")
+      val artifactName = example.segments.mkString("-")
       (path, artifactName)
     }
   }
@@ -246,87 +246,6 @@ object `package` extends RootModule with InstallModule {
       os.proc("zip", "-r", zip, exampleStr).call(cwd = Task.dest)
       PathRef(zip)
     }
-  }
-
-  def uploadToGithub(authKey: String) = Task.Command {
-    val vcsState = VcsVersion.vcsState()
-    val label = vcsState.copy(dirtyHash = None).format()
-    if (label != build.millVersion()) sys.error("Modified mill version detected, aborting upload")
-    val releaseTag = vcsState.lastTag.getOrElse(sys.error(
-      "Incomplete git history. No tag found.\nIf on CI, make sure your git checkout job includes enough history."
-    ))
-
-    if (releaseTag == label) {
-      // TODO: check if the tag already exists (e.g. because we created it manually) and do not fail
-      requests.post(
-        s"https://api.github.com/repos/${build.Settings.githubOrg}/${build.Settings.githubRepo}/releases",
-        data = ujson.Obj("tag_name" -> releaseTag, "name" -> releaseTag, "prerelease" -> true),
-        headers = Seq("Authorization" -> ("token " + authKey))
-      )
-    }
-
-    val examples = exampleZips().map(z => (z.path, z.path.last))
-
-    val zips = examples ++ Seq(
-      (build.dist.assembly().path, label + "-assembly"),
-      (bootstrapLauncher().path, label),
-      (bootstrapLauncherBat().path, label + ".bat")
-    )
-
-    for ((zip, name) <- zips) {
-      upload(
-        zip,
-        releaseTag,
-        name,
-        authKey,
-        build.Settings.githubOrg,
-        build.Settings.githubRepo
-      )
-    }
-  }
-
-  def upload(
-      uploadedFile: os.Path,
-      tagName: String,
-      uploadName: String,
-      authKey: String,
-      githubOrg: String,
-      githubRepo: String
-  ): String = {
-
-    val response = requests.get(
-      s"https://api.github.com/repos/${githubOrg}/${githubRepo}/releases/tags/${tagName}",
-      headers = Seq(
-        "Authorization" -> s"token $authKey",
-        "Accept" -> "application/vnd.github.v3+json"
-      )
-    )
-
-    val parsed = ujson.read(response)
-
-    println("Response code: " + response.statusCode)
-    println(response.text())
-
-    val snapshotReleaseId = parsed("id").num.toInt
-
-    val uploadUrl =
-      s"https://uploads.github.com/repos/${githubOrg}/${githubRepo}/releases/" +
-        s"$snapshotReleaseId/assets?name=$uploadName"
-
-    val res = requests.post(
-      uploadUrl,
-      headers = Seq(
-        "Content-Type" -> "application/octet-stream",
-        "Authorization" -> s"token $authKey"
-      ),
-      data = os.read.stream(uploadedFile)
-    )
-
-    println(res.text())
-    val longUrl = ujson.read(res)("browser_download_url").str
-
-    println("Long Url " + longUrl)
-    longUrl
   }
 
   def publishArtifacts = Task {

@@ -12,37 +12,32 @@ object `package` extends RootModule with build.MillPublishScalaModule {
   }
 
   def exampleList: T[PathRef] = Task {
-
-    val versionPattern: Regex = "\\d+\\.\\d+\\.\\d+".r
-    val rcPattern: Regex = "-RC\\d+".r
-    val milestonePattern: Regex = "-M\\d+".r
-
-    val millVer: String = build.millVersion()
-    val lastTag = versionPattern.findFirstMatchIn(millVer) match {
-      case Some(verMatch) =>
-        val maybeRC = rcPattern.findFirstIn(verMatch.after)
-        def maybeMilestone = milestonePattern.findFirstIn(verMatch.after)
-        verMatch.matched + maybeRC.orElse(maybeMilestone).getOrElse("")
-      case None => "0.0.0"
-    }
-
     val data: Seq[(os.SubPath, String)] =
       build.dist.examplePathsWithArtifactName().map { case (path, str) =>
-        val downloadUrl =
-          build.Settings.projectUrl + "/releases/download/" + lastTag + "/" + str + ".zip"
+        val downloadUrl = s"${build.millDownloadUrl()}/$str.zip"
         val subPath = path.subRelativeTo(T.workspace / "example")
         (subPath, downloadUrl)
       }
 
-    val libsSortOrder =
-      List("scalalib", "javalib", "kotlinlib", "extending", "external", "thirdparty", "depth")
+    val libsSortOrder = List(
+      "scalalib",
+      "javalib",
+      "kotlinlib",
+      "extending",
+      "external",
+      "thirdparty",
+      "depth"
+    )
+
     val categoriesSortOrder = List("basic", "builds", "web")
 
     def sortCriterium(strOpt: Option[String], sortOrderList: List[String]): Int =
-      strOpt.flatMap { str =>
-        val idx = sortOrderList.indexOf(str)
-        Option.when(idx >= 0)(idx)
-      }.getOrElse(Int.MaxValue)
+      strOpt
+        .flatMap { str =>
+          val idx = sortOrderList.indexOf(str)
+          Option.when(idx >= 0)(idx)
+        }
+        .getOrElse(Int.MaxValue)
 
     val sortedData = data.sortBy { case (p1, _) =>
       val segmentsReversed = p1.segments.reverse.lift
@@ -52,24 +47,18 @@ object `package` extends RootModule with build.MillPublishScalaModule {
 
       val libSortCriterium = sortCriterium(libOpt, libsSortOrder)
       val categorySortCriterium = sortCriterium(categoryOpt, categoriesSortOrder)
-      val nameSortCriterium =
-        nameOpt.flatMap(_.takeWhile(_.isDigit).toIntOption).getOrElse(Int.MinValue)
+      val nameSortCriterium = nameOpt
+        .flatMap(_.takeWhile(_.isDigit).toIntOption)
+        .getOrElse(Int.MinValue)
+
       (libSortCriterium, libOpt, categorySortCriterium, categoryOpt, nameSortCriterium, nameOpt)
     }
 
-    val stream = os.write.outputStream(T.dest / "exampleList.txt")
-    val writer = new java.io.OutputStreamWriter(stream)
-    try {
-      val json =
-        upickle.default.writeTo(sortedData.map { case (p, s) => (p.toString(), s) }, writer)
-      PathRef(T.dest)
-    } catch {
-      case ex: Throwable => T.log.error(ex.toString); throw ex
-    } finally {
-      writer.close()
-      stream.close()
-    }
+    os.write(
+      T.dest / "exampleList.txt",
+      upickle.default.write(sortedData.map { case (p, s) => (p.toString(), s) })
+    )
 
+    PathRef(T.dest)
   }
-
 }
