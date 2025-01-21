@@ -177,7 +177,7 @@ object `package` extends RootModule {
       "main-branch",
       "main-branch",
       build.millLastTag(),
-      build.millDownloadUrl()
+      s"${build.millDownloadPrefix()}/${build.millLastTag()}"
     )
     PathRef(dest)
   }
@@ -289,7 +289,14 @@ object `package` extends RootModule {
         mill.main.VisualizeModule.classpath().map(_.path)
       )
 
-      sanitizeAntoraYml(outputFolder, version, displayVersion, millLastTag)
+
+      val millDownloadUrl =
+        if (Ordering.Implicits.seqOrdering[Seq, String].lt(version.split('.'), Seq("0", "12", "6"))) {
+          s"${build.Settings.projectUrl}/releases/download/$millLastTag"
+        } else {
+          build.millDownloadUrl()
+        }
+      sanitizeAntoraYml(outputFolder, version, displayVersion, millLastTag, millDownloadUrl)
       PathRef(outputFolder)
     }
   }

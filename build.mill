@@ -282,8 +282,11 @@ def millLastTag: T[String] = Task {
 }
 
 
+def millDownloadPrefix = Task{
+  s"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/"
+}
 def millDownloadUrl = Task{
-  s"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/${build.millLastTag()}"
+  s"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/${millLastTag()}"
 }
 
 def millBinPlatform: T[String] = Task {
