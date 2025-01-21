@@ -183,7 +183,7 @@ object TutorialTests extends TestSuite {
       }
     }
 
-    test("calledWithScala3Sources") - workspaceTest(TutorialWithScala3Soures) { eval =>
+    test("calledWithScala3Sources") - UnitTester(TutorialWithScala3Soures).scoped { eval =>
       val result = eval.apply(Tutorial.core.compileScalaPB)
       assert(result.isRight)
     }
