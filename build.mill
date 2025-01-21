@@ -16,8 +16,7 @@ import mill.define.Cross
 
 // plugins and dependencies
 import $meta._
-import $file.ci.shared
-import $file.ci.upload
+
 import $packages._
 
 object Settings {
@@ -161,7 +160,7 @@ object Deps {
   val testng = ivy"org.testng:testng:7.5.1"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
-  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.8.3"
+  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.8.5"
   def scalap(scalaVersion: String) = ivy"org.scala-lang:scalap:${scalaVersion}"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   val scoverage2Version = "2.2.1"
@@ -267,8 +266,11 @@ object Deps {
 }
 
 def millVersion: T[String] = Task.Input {
-  if (Task.env.contains("MILL_STABLE_VERSION")) VcsVersion.calcVcsState(Task.log).format()
-  else "SNAPSHOT"
+  if (Task.env.contains("MILL_STABLE_VERSION")) {
+    // Ignore local changes when computing the VCS version string,
+    // since we make those in CI and can promise they are safe
+    VcsVersion.calcVcsState(Task.log).copy(dirtyHash = None).format()
+  } else "SNAPSHOT"
 }
 
 def millLastTag: T[String] = Task {
@@ -277,6 +279,13 @@ def millLastTag: T[String] = Task {
       sys.error("No (last) git tag found. Your git history seems incomplete!")
     )
   } else "SNAPSHOT"
+}
+
+def millDownloadPrefix = Task {
+  s"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/"
+}
+def millDownloadUrl = Task {
+  s"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/${millLastTag()}"
 }
 
 def millBinPlatform: T[String] = Task {
@@ -437,6 +446,9 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
  * Some custom scala settings and test convenience
  */
 trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModule { outer =>
+  def fix(args: String*) = Task.Command[Unit] {
+    /*https://github.com/com-lihaoyi/mill/issues/4353*/
+  }
   def scalaVersion = Deps.scalaVersion
   def scalafixScalaBinaryVersion = ZincWorkerUtil.scalaBinaryVersion(scalaVersion())
   def semanticDbVersion = Deps.semanticDBscala.version
@@ -599,7 +611,8 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
     ProblemFilter.exclude[Problem]("*.bspJvmBuildTarget"),
     ProblemFilter.exclude[Problem]("mill.scalalib.RunModule#RunnerImpl.*"),
     ProblemFilter.exclude[Problem]("mill.util.PromptLogger#*"),
-    ProblemFilter.exclude[Problem]("mill.util.PromptLoggerUtil.*")
+    ProblemFilter.exclude[Problem]("mill.util.PromptLoggerUtil.*"),
+    ProblemFilter.exclude[Problem]("mill.main.SelectiveExecution*")
   )
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
 

@@ -16,6 +16,7 @@ import mill.runner.MillBuildRootModule
 import mill.scalalib.bsp.{BspModule, JvmBuildTarget, ScalaBuildTarget}
 import mill.scalalib.{JavaModule, SemanticDbJavaModule, TestModule}
 import mill.util.ColorLogger
+import mill.given
 
 import java.io.PrintStream
 import java.util.concurrent.CompletableFuture
@@ -296,7 +297,10 @@ private class MillBuildServer(
           Task.Anon {
             (
               m.defaultResolver().resolveDeps(
-                m.transitiveCompileIvyDeps() ++ m.transitiveIvyDeps(),
+                Seq(
+                  m.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
+                  m.coursierDependency
+                ),
                 sources = true
               ),
               m.unmanagedClasspath(),
@@ -332,7 +336,18 @@ private class MillBuildServer(
       hint = "buildTargetDependencyModules",
       targetIds = _ => params.getTargets.asScala.toSeq,
       tasks = { case m: JavaModule =>
-        Task.Anon { (m.transitiveCompileIvyDeps(), m.transitiveIvyDeps(), m.unmanagedClasspath()) }
+        Task.Anon {
+          (
+            // full list of dependencies, including transitive ones
+            m.defaultResolver().allDeps(
+              Seq(
+                m.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
+                m.coursierDependency
+              )
+            ),
+            m.unmanagedClasspath()
+          )
+        }
       }
     ) {
       case (
@@ -340,14 +355,14 @@ private class MillBuildServer(
             state,
             id,
             m: JavaModule,
-            (transitiveCompileIvyDeps, transitiveIvyDeps, unmanagedClasspath)
+            (ivyDeps, unmanagedClasspath)
           ) =>
-        val ivy = transitiveCompileIvyDeps ++ transitiveIvyDeps
-        val deps = ivy.map { dep =>
-          // TODO: add data with "maven" data kind using a ...
+        val deps = ivyDeps.collect {
+          case dep if dep.module.organization != JavaModule.internalOrg =>
+            // TODO: add data with "maven" data kind using a ...
 //          MavenDependencyModule
 
-          new DependencyModule(dep.dep.module.repr, dep.dep.version)
+            new DependencyModule(dep.module.repr, dep.version)
         }
         val unmanaged = unmanagedClasspath.map { dep =>
           new DependencyModule(s"unmanaged-${dep.path.last}", "")

@@ -132,7 +132,10 @@ case class GenIdeaImpl(
 
             // same as input of resolvedIvyDeps
             val allIvyDeps = Task.Anon {
-              mod.transitiveIvyDeps() ++ mod.transitiveCompileIvyDeps()
+              Agg(
+                mod.coursierDependency,
+                mod.coursierDependency.withConfiguration(coursier.core.Configuration.provided)
+              ).map(BoundDep(_, force = false))
             }
 
             val scalaCompilerClasspath = mod match {
@@ -778,7 +781,13 @@ case class GenIdeaImpl(
       <library name={name} type="Scala">
         <properties>
             {
-      if (languageLevel.isDefined) <language-level>{languageLevel.get}</language-level>
+      if (languageLevel.isDefined)
+        <language-level>{languageLevel.get}</language-level>
+      else {
+        // Scala 3: I assume there is some missing implicit conversion from `()` to NodeSeq,
+        // so use an explicit seq.
+        NodeSeq.Empty
+      }
     }
             <compiler-classpath>
               {
@@ -788,9 +797,15 @@ case class GenIdeaImpl(
     }
             </compiler-classpath>
           {
-      if (compilerBridgeJar.isDefined) <compiler-bridge-binary-jar>{
-        relativeFileUrl(compilerBridgeJar.get)
-      }</compiler-bridge-binary-jar>
+      if (compilerBridgeJar.isDefined)
+        <compiler-bridge-binary-jar>{
+          relativeFileUrl(compilerBridgeJar.get)
+        }</compiler-bridge-binary-jar>
+      else {
+        // Scala 3: I assume there is some missing implicit conversion from `()` to NodeSeq,
+        // so use an explicit seq.
+        NodeSeq.Empty
+      }
     }
         </properties>
       </library>
@@ -810,8 +825,12 @@ case class GenIdeaImpl(
         {
       if (sources.isDefined) {
         <SOURCES>
-            <root url={relativeJarUrl(sources.get)}/>
-          </SOURCES>
+              <root url={relativeJarUrl(sources.get)}/>
+            </SOURCES>
+      } else {
+        // Scala 3: I assume there is some missing implicit conversion from `()` to NodeSeq,
+        // so use an explicit seq.
+        NodeSeq.Empty
       }
     }
       </library>

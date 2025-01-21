@@ -62,10 +62,6 @@ object TestModule {
     def testConfigSource: T[PathRef] =
       Task.Source(Task.workspace / "jest.config.ts")
 
-    override def allSources: T[IndexedSeq[PathRef]] = Task {
-      super.allSources() ++ IndexedSeq(testConfigSource())
-    }
-
     override def compilerOptions: T[Map[String, ujson.Value]] =
       Task { super.compilerOptions() + ("resolveJsonModule" -> ujson.Bool(true)) }
 
@@ -121,9 +117,9 @@ object TestModule {
       val testRunner = compiled / "test-runner.js"
 
       val content =
-        """|require('node_modules/ts-node/register');
+        """|require('ts-node/register');
            |require('tsconfig-paths/register');
-           |require('node_modules/mocha/bin/_mocha');
+           |require('mocha/bin/_mocha');
            |""".stripMargin
 
       os.write(testRunner, content)

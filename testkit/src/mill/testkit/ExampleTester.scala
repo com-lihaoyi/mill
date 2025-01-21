@@ -114,13 +114,19 @@ class ExampleTester(
          |------------------------------""".stripMargin
     )
 
+    val windowsPathEnv =
+      if (!Util.windowsPlatform) Map()
+      else Map(
+        "BASH_ENV" -> os.temp("export PATH=\"/c/Program Files/Git/usr/bin:$PATH\"").toString()
+      )
+
     val res = os.call(
       (bashExecutable, "-c", commandStr),
       stdout = os.Pipe,
-      stderr = os.Pipe,
+      stderr = os.Inherit,
       cwd = workspacePath,
       mergeErrIntoOut = true,
-      env = IntegrationTester.millTestSuiteEnv,
+      env = IntegrationTester.millTestSuiteEnv ++ windowsPathEnv,
       check = false
     )
 
@@ -168,7 +174,10 @@ class ExampleTester(
     val filteredOut = plainTextLines(evalResult.out).mkString("\n")
 
     for (expectedLine <- unwrappedExpected.linesIterator) {
-      assert(filteredOut.linesIterator.exists(globMatches(expectedLine, _)))
+      Predef.assert(
+        filteredOut.linesIterator.exists(globMatches(expectedLine, _)),
+        s"==== filteredOut:\n$filteredOut\n==== Missing expectedLine: \n$expectedLine"
+      )
     }
   }
 

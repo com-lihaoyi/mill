@@ -392,8 +392,10 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
     val bloopResolution: Task[BloopConfig.Resolution] = Task.Anon {
       val repos = module.repositoriesTask()
       // same as input of resolvedIvyDeps
-      val allIvyDeps = module.transitiveIvyDeps() ++ module.transitiveCompileIvyDeps()
-      val coursierDeps = allIvyDeps.map(_.dep).toList
+      val coursierDeps = Seq(
+        module.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
+        module.coursierDependency
+      )
       BloopConfig.Resolution(artifacts(repos, coursierDeps))
     }
 

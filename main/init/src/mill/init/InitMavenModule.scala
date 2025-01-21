@@ -50,7 +50,7 @@ trait InitMavenModule extends TaskModule {
       T.log.info(s"creating Scalafmt configuration file $config")
       os.write(
         config,
-        s"""version = "3.8.4-RC1"
+        s"""version = "3.8.5"
            |runner.dialect = scala213
            |newlines.source=fold
            |newlines.topLevelStatementBlankLines = [

@@ -47,3 +47,14 @@ Loaded application.conf from resources:...
 ...Bar Application Conf
 
 */
+
+// Note that when running the assembly directly via `./out.jar`, you can configure
+// JVM flags via the `JAVA_OPTS` environment variable, and select the JVM
+// to use via `JAVA_HOME`.
+
+/** Usage
+
+> JAVA_OPTS=-Dtest.property=1337 ./out/foo/assembly.dest/out.jar
+Loaded test.property: 1337
+
+*/

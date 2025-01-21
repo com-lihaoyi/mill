@@ -12,7 +12,6 @@ package build
 import mill._, javalib._
 
 import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}
-import coursier.maven.MavenRepository
 import mill.javalib.android.AndroidTestModule
 
 // Create and configure an Android SDK module to manage Android SDK paths and tools.
@@ -107,7 +106,7 @@ object app extends AndroidAppModule {
 /** Usage
 
 > ./mill show app.test
-...compiling 3 Java sources...
+...compiling 1 Java source...
 
 > cat out/app/test/test.dest/out.json
 ["",[{"fullyQualifiedName":"com.helloworld.ExampleUnitTest.textSize_isCorrect","selector":"com.helloworld.ExampleUnitTest.textSize_isCorrect","duration":...,"status":"Success"}]]
@@ -126,11 +125,33 @@ object app extends AndroidAppModule {
 > ./mill show app.adbDevices
 ...emulator-5554...device...
 
-> ./mill show app.it | grep '"OK (1 test)"'
-..."OK (1 test)",
+> ./mill show app.it
+...
+[
+  "",
+  [
+    {
+      "fullyQualifiedName": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
+      "selector": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+]
+...
 
-> cat out/app/it/test.json | grep '"OK (1 test)"'
-..."OK (1 test)"...
+> cat out/app/it/testTask.dest/test-report.xml
+...
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites tests="1" failures="0" errors="0" skipped="0" time="...">
+        <testsuite name="com.helloworld.app.ExampleInstrumentedTest.useAppContext" tests="1" failures="0" errors="0" skipped="0" time="0.0" timestamp="...">
+        <properties>
+      </properties>
+        <testcase classname="com.helloworld.app.ExampleInstrumentedTest.useAppContext" name="com.helloworld.app.ExampleInstrumentedTest.useAppContext" time="...">
+        </testcase>
+      </testsuite>
+      </testsuites>
+...
 
 > ./mill show app.stopAndroidEmulator
 

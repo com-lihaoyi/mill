@@ -1,5 +1,5 @@
 import {defineConfig} from '@playwright/test';
-import * as glob from 'node_modules/glob';
+import * as glob from 'glob';
 import * as path from 'path';
 
 const testFiles = glob.sync('**/playwright/*.test.ts', {absolute: true});

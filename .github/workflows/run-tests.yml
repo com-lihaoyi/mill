@@ -1,5 +1,5 @@
 # Uncommment this to replace the rest of the file when you want to debug stuff in CI
-
+#
 #
 #name: Run Debug
 #
@@ -16,18 +16,19 @@
 #      - uses: actions/checkout@v4
 #        with: { fetch-depth: 1 }
 #
-#      - run: ./mill 'example.scalalib.basic[1-simple].packaged.fork.test'
+#      - run: ./mill scalalib.test mill.scalalib.LauncherTests.launcher
 #        env:
 #          COURSIER_ARCHIVE_CACHE: "C:/coursier-arc"
-
-
-name: Run Tests
+#
 
 # We run full CI on push builds to main and on all pull requests
 #
 # To maximize bug-catching changes while keeping CI times reasonable, we run
 # all tests on Linux, scattered between Java 11/17, except for one job run
 # on MacOS instead and a subset of jobs also run on windows
+
+
+name: Run Tests
 
 on:
   push:
@@ -56,12 +57,14 @@ jobs:
     uses: ./.github/workflows/pre-build.yml
     with:
       os: ubuntu-latest
+      shell: bash
 
   build-windows:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
     uses: ./.github/workflows/pre-build.yml
     with:
       os: windows-latest
+      shell: powershell
 
   test-docs:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
@@ -72,20 +75,46 @@ jobs:
 
       - run: ./mill -i docs.fastPages + docs.checkBrokenLinks
 
-  mac:
+  cross-plat:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
-    runs-on: macos-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+          # Run these with Mill native launcher as a smoketest
+        include:
+          - os: ubuntu-24.04-arm
+            millargs: "'example.thirdparty[fansi].native.server.test'"
+            java-version: 17
+
+          - os: macos-latest
+            millargs: "'example.thirdparty[acyclic].native.server.test'"
+            java-version: 11
+
+          - os: macos-13
+            millargs: "'example.thirdparty[jimfs].native.server.test'"
+            java-version: 11
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 1 }
 
-      - run: "echo temurin:17 > .mill-jvm-version"
-
-      - uses: actions/setup-node@v4
+      - uses: ./.github/actions/pre-build-setup
         with:
-          node-version: '22'
+          os: ${{ matrix.os }}
+          java-version: ${{ matrix.java-version }}
+          shell: bash
 
-      - run: ./mill -i example.scalalib.__.local.server.test
+      - uses: ./.github/actions/post-build-setup
+        with:
+          java-version: ${{ matrix.java-version }}
+          os: ${{ matrix.os }}
+
+      - uses: ./.github/actions/post-build-selective
+        with:
+          millargs: ${{ matrix.millargs }}
+          coursierarchive: ""
+          install-android-sdk: false
+          shell: bash
 
   linux:
     needs: build-linux
@@ -110,12 +139,16 @@ jobs:
             millargs: "contrib.__.test"
             install-android-sdk: false
 
-          - java-version: 17 # Run this with Mill native launcher as a smoketest
-            millargs: "'example.javalib.__.native.server.test'"
+          - java-version: 17
+            millargs: "example.javalib.__.local.server.test"
             install-android-sdk: false
 
           - java-version: 17
-            millargs: "'example.kotlinlib.__.local.server.test'"
+            millargs: "example.kotlinlib.__.native.server.test"
+            install-android-sdk: false
+
+          - java-version: 17
+            millargs: "example.scalalib.__.native.server.test"
             install-android-sdk: false
 
           - java-version: 17
@@ -127,11 +160,11 @@ jobs:
             install-android-sdk: false
 
           - java-version: 11
-            millargs: "'example.thirdparty[{mockito,acyclic,commons-io}].local.server.test'"
+            millargs: "'example.thirdparty[{mockito,commons-io}].local.server.test'"
             install-android-sdk: false
 
           - java-version: 17
-            millargs: "'example.thirdparty[{fansi,jimfs,netty,gatling}].local.server.test'"
+            millargs: "'example.thirdparty[{netty,gatling}].local.server.test'"
             install-android-sdk: false
 
           - java-version: '17'
@@ -141,11 +174,11 @@ jobs:
           - java-version: 11
             millargs: "'example.{cli,fundamentals,depth,extending}.__.local.server.test'"
             install-android-sdk: false
-            # Most of these integration tests should not depend on which mode they
-            # are run in, so just run them in `local`
-          - java-version: '17'
+
+          - java-version: 11
             millargs: "'integration.{failure,feature,ide}.__.packaged.server.test'"
             install-android-sdk: false
+
             # These invalidation tests need to be exercised in both execution modes
             # to make sure they work with and without -i/--no-server being passed
           - java-version: 17
@@ -161,6 +194,7 @@ jobs:
       install-android-sdk: ${{ matrix.install-android-sdk }}
       java-version: ${{ matrix.java-version }}
       millargs: ${{ matrix.millargs }}
+      shell: bash
 
   windows:
     needs: build-windows
@@ -194,6 +228,7 @@ jobs:
       # Provide a shorter coursier archive folder to avoid hitting path-length bugs when
       # running the graal native image binary on windows
       coursierarchive: "C:/coursier-arc"
+      shell: powershell
 
   itest:
     needs: build-linux
@@ -203,7 +238,7 @@ jobs:
         include:
           # bootstrap tests
           - java-version: 11 # Have one job on oldest JVM
-            buildcmd: ci/test-mill-dev.sh && ci/test-mill-release.sh && ./mill -i -k __.ivyDepsTree && ./mill -i -k __.ivyDepsTree --withRuntime
+            buildcmd: ci/test-dist-run.sh && ci/test-install-local.sh && ./mill -i -k __.ivyDepsTree && ./mill -i -k __.ivyDepsTree --withRuntime
           - java-version: 17 # Have one job on default JVM
             buildcmd: ci/test-mill-bootstrap.sh
 
@@ -219,4 +254,7 @@ jobs:
     uses: ./.github/workflows/post-build-raw.yml
     with:
       java-version: '17'
-      buildcmd: ./mill -i mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources + __.mimaReportBinaryIssues + __.fix --check + mill.javalib.palantirformat.PalantirFormatModule/ --check + mill.kotlinlib.ktlint.KtlintModule/checkFormatAll
+      buildcmd: |
+        set -eux
+        ./mill -i mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll + __.mimaReportBinaryIssues + __.fix --check + mill.javalib.palantirformat.PalantirFormatModule/ --check + mill.kotlinlib.ktlint.KtlintModule/checkFormatAll
+        ./mill -i --meta-level 1 mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll

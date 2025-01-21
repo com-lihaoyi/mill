@@ -1,0 +1,47 @@
+package build
+import mill._, javalib._
+import mill.define.ModuleRef
+
+object foo extends JavaModule with NativeImageModule {
+  def ivyDeps = Agg(
+    ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
+    ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE",
+    ivy"org.slf4j:slf4j-nop:2.0.7"
+  )
+
+  def zincWorker = ModuleRef(ZincWorkerGraalvm)
+
+  def nativeImageOptions = Seq(
+    "--no-fallback",
+    "-H:IncludeResourceBundles=net.sourceforge.argparse4j.internal.ArgumentParserImpl"
+  )
+}
+
+object ZincWorkerGraalvm extends ZincWorkerModule {
+  def jvmId = "graalvm-community:17.0.9"
+}
+
+// This example shows how to generate native images for projects using third-party
+// libraries, in this case ArgParse4J and Thymeleaf. ArgParse4J does use some dynamic
+// resource loading and reflection, and so we need to pass the `-H:IncludeResourceBundles`
+// flag to `nativeImageOptions` in order to be compatible.
+
+/** Usage
+
+> ./mill show foo.nativeImage
+
+> ./out/foo/nativeImage.dest/native-executable --text hello-world
+<h1>hello-world</h1>
+
+*/
+
+// You can also access the `native-image` compiler directly via `show foo.nativeImageTool`
+// if you want to experiment it or view its `--help` text to see what you need to pass to
+// `nativeImageOptions`:
+
+/** Usage
+
+> ./mill show foo.nativeImageTool
+".../bin/native-image"
+
+*/

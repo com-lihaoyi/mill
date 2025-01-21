@@ -118,7 +118,7 @@ trait ReactScriptsModule extends TypeScriptModule {
   }
 
   override def forkEnv =
-    Task.Anon {
+    Task {
       Map("NODE_PATH" -> Seq(
         ".",
         compile()._1.path,
