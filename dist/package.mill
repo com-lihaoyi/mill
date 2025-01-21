@@ -129,7 +129,11 @@ object `package` extends RootModule with InstallModule {
       .mkString("\r\n")
 
     os.write(vmOptionsFile, millOptionsContent)
-    val jvmArgs = otherArgs ++ List(s"-DMILL_OPTIONS_PATH=$vmOptionsFile")
+    val jvmArgs = otherArgs ++ List(
+      // Avoid reserving a lot of memory for the client, as the client only forward information
+      "-Xmx32m",
+      s"-DMILL_OPTIONS_PATH=$vmOptionsFile"
+    )
     val classpath = runClasspath().map(_.path.toString)
     val classpathJar = Task.dest / "classpath.jar"
     Jvm.createClasspathPassingJar(classpathJar, runClasspath().map(_.path))
