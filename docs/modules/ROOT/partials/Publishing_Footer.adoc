@@ -57,7 +57,7 @@ You can also specify individual modules you want to publish via a selector:
 
 [source,bash]
 ----
-mill mill.scalalib.PublishModule/ foo.publishArtifacts
+mill mill.scalalib.PublishModule/ --publishArtifacts foo.publishArtifacts
 ----
 
 The default URL for publishing to sonatype's Maven Central is `oss.sonatype.org`.
@@ -134,8 +134,8 @@ maven path under `sonatypeUri` instead of staging path.
 [source,bash]
 ----
 mill mill.scalalib.PublishModule/ \
-        foo.publishArtifacts \
-        lihaoyi:$SONATYPE_PASSWORD \
+        --publishArtifacts foo.publishArtifacts \
+        --sonatypeCreds lihaoyi:$SONATYPE_PASSWORD \
         --sonatypeUri http://example.company.com/release \
         --stagingRelease false
 ----
