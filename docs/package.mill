@@ -177,7 +177,7 @@ object `package` extends RootModule {
       "main-branch",
       "main-branch",
       build.millLastTag(),
-      s"${build.millDownloadPrefix()}/${build.millLastTag()}"
+      build.millDownloadUrl()
     )
     PathRef(dest)
   }
