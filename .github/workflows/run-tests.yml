@@ -84,13 +84,15 @@ jobs:
           # Run these with Mill native launcher as a smoketest
         include:
           - os: ubuntu-24.04-arm
-            millargs: example.javalib.__.local.server.test
+            millargs: "'example.thirdparty[fansi].native.server.test'"
             java-version: 17
+
           - os: macos-latest
-            millargs: example.scalalib.__.native.server.test
+            millargs: "'example.thirdparty[acyclic].native.server.test'"
             java-version: 11
+
           - os: macos-13
-            millargs: example.kotlinlib.__.native.server.test
+            millargs: "'example.thirdparty[jimfs].native.server.test'"
             java-version: 11
     steps:
       - uses: actions/checkout@v4
@@ -138,6 +140,18 @@ jobs:
             install-android-sdk: false
 
           - java-version: 17
+            millargs: "example.javalib.__.local.server.test"
+            install-android-sdk: false
+
+          - java-version: 17
+            millargs: "example.kotlinlib.__.native.server.test"
+            install-android-sdk: false
+
+          - java-version: 17
+            millargs: "example.scalalib.__.native.server.test"
+            install-android-sdk: false
+
+          - java-version: 17
             millargs: "'example.android.__.local.server.test'"
             install-android-sdk: true
 
@@ -146,11 +160,11 @@ jobs:
             install-android-sdk: false
 
           - java-version: 11
-            millargs: "'example.thirdparty[{mockito,acyclic,commons-io}].local.server.test'"
+            millargs: "'example.thirdparty[{mockito,commons-io}].local.server.test'"
             install-android-sdk: false
 
           - java-version: 17
-            millargs: "'example.thirdparty[{fansi,jimfs,netty,gatling}].local.server.test'"
+            millargs: "'example.thirdparty[{netty,gatling}].local.server.test'"
             install-android-sdk: false
 
           - java-version: '17'
@@ -160,11 +174,11 @@ jobs:
           - java-version: 11
             millargs: "'example.{cli,fundamentals,depth,extending}.__.local.server.test'"
             install-android-sdk: false
-            # Most of these integration tests should not depend on which mode they
-            # are run in, so just run them in `local`
-          - java-version: '17'
+
+          - java-version: 11
             millargs: "'integration.{failure,feature,ide}.__.packaged.server.test'"
             install-android-sdk: false
+
             # These invalidation tests need to be exercised in both execution modes
             # to make sure they work with and without -i/--no-server being passed
           - java-version: 17
