@@ -63,14 +63,14 @@ trait JavaModule
       }
     }
 
-    override def extraBomIvyDeps = Task.Anon[Agg[Dep]] {
+    override def bomIvyDeps = Task.Anon[Agg[Dep]] {
       // FIXME Add that back when we can break bin-compat
-      // super.extraBomIvyDeps() ++
+      // super.bomIvyDeps() ++
       outer.bomIvyDeps()
     }
-    override def extraDepManagement = Task.Anon[Agg[Dep]] {
+    override def depManagement = Task.Anon[Agg[Dep]] {
       // FIXME Add that back when we can break bin-compat
-      // super.extraDepManagement() ++
+      // super.depManagement() ++
       outer.depManagement()
     }
 
@@ -184,7 +184,7 @@ trait JavaModule
 
   def allBomDeps: Task[Agg[BomDependency]] = Task.Anon {
     val modVerOrMalformed =
-      (bomIvyDeps() ++ extraBomIvyDeps()).map(bindDependency()).map { bomDep =>
+      bomIvyDeps().map(bindDependency()).map { bomDep =>
         val fromModVer = coursier.core.Dependency(bomDep.dep.module, bomDep.dep.version)
         if (fromModVer == bomDep.dep)
           Right(bomDep.dep.asBomDependency)
@@ -207,23 +207,6 @@ trait JavaModule
           "Only organization, name, and version are accepted."
       )
   }
-
-  /**
-   * BOM dependencies that are not meant to be overridden or changed by users.
-   *
-   * This is mainly used to add BOM dependencies of the main module to its test
-   * modules, while ensuring test dependencies of the BOM are taken into account too
-   * in the test module.
-   */
-  def extraBomIvyDeps: Task[Agg[Dep]] = Task.Anon { Agg.empty[Dep] }
-
-  /**
-   * Dependency management entries that are not meant to be overridden or changed by users.
-   *
-   * This is mainly used to add dependency management entries of the main module to its test
-   * modules.
-   */
-  def extraDepManagement: Task[Agg[Dep]] = Task.Anon { Agg.empty[Dep] }
 
   /**
    * Dependency management data
@@ -609,8 +592,7 @@ trait JavaModule
 
     val depMgmt =
       processedDependencyManagement(
-        (depManagement() ++ extraDepManagement())
-          .iterator.toSeq.map(bindDependency()).map(_.dep)
+        depManagement().iterator.toSeq.map(bindDependency()).map(_.dep)
       ).map {
         case (key, values) =>
           val config0 =
