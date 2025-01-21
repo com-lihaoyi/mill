@@ -340,6 +340,11 @@ trait PublishModule extends JavaModule { outer =>
     publishM2LocalTask(publishM2LocalRepoPath)()
   }
 
+  /**
+   * The default path that [[publishM2Local]] should publish its artifacts to.
+   * Defaults to `~/.m2/repository`, but can be configured by setting the
+   * `maven.repo.local` JVM property
+   */
   def publishM2LocalRepoPath: Task[os.Path] = Task.Input {
     sys.props.get("maven.repo.local").map(os.Path(_))
       .getOrElse(os.Path(os.home / ".m2", T.workspace)) / "repository"
