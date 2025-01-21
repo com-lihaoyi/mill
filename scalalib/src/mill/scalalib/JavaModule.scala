@@ -63,6 +63,17 @@ trait JavaModule
       }
     }
 
+    override def bomIvyDeps = Task.Anon[Agg[Dep]] {
+      // FIXME Add that back when we can break bin-compat
+      // super.bomIvyDeps() ++
+      outer.bomIvyDeps()
+    }
+    override def depManagement = Task.Anon[Agg[Dep]] {
+      // FIXME Add that back when we can break bin-compat
+      // super.depManagement() ++
+      outer.depManagement()
+    }
+
     /**
      * JavaModule and its derivatives define inner test modules.
      * To avoid unexpected misbehavior due to the use of the wrong inner test trait
