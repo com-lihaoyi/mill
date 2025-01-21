@@ -160,15 +160,15 @@ jobs:
             install-android-sdk: false
 
           - java-version: 23
-            millargs: "'example.thirdparty[{mockito,commons-io}].local.server.test'"
+            millargs: "'example.thirdparty[arrow].local.server.test'"
             install-android-sdk: false
 
           - java-version: 11
-            millargs: "'example.thirdparty[{netty,gatling}].local.server.test'"
+            millargs: "'example.thirdparty[{mockito,commons-io}].local.server.test'"
             install-android-sdk: false
 
           - java-version: 17
-            millargs: "'example.thirdparty[arrow].local.server.test'"
+            millargs: "'example.thirdparty[{netty,gatling}].local.server.test'"
             install-android-sdk: false
 
           - java-version: 23
