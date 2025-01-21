@@ -90,7 +90,7 @@ jobs:
             millargs: example.scalalib.__.native.server.test
             java-version: 11
           - os: macos-13
-            millargs: example.kotlinlib.__.native.server.test
+            millargs: "'example.thirdparty[{mockito,acyclic,commons-io}].local.server.test'"
             java-version: 11
     steps:
       - uses: actions/checkout@v4
@@ -138,15 +138,15 @@ jobs:
             install-android-sdk: false
 
           - java-version: 17
+            millargs: "example.kotlinlib.__.native.server.test"
+            install-android-sdk: false
+
+          - java-version: 17
             millargs: "'example.android.__.local.server.test'"
             install-android-sdk: true
 
           - java-version: 17
             millargs: "'example.{pythonlib,javascriptlib}.__.local.server.test'"
-            install-android-sdk: false
-
-          - java-version: 11
-            millargs: "'example.thirdparty[{mockito,acyclic,commons-io}].local.server.test'"
             install-android-sdk: false
 
           - java-version: 17
