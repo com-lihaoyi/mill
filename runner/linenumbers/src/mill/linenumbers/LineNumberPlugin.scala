@@ -1,5 +1,6 @@
 package mill.linenumbers
 
+import mill.main.client.CodeGenConstants.buildFileExtensions
 import scala.tools.nsc._
 import scala.tools.nsc.plugins.{Plugin, PluginComponent}
 
@@ -29,67 +30,15 @@ class LineNumberPlugin(val global: Global) extends Plugin {
 
 object LineNumberPlugin {
   def apply(g: Global)(unit: g.CompilationUnit): Unit = {
-
-    object LineNumberCorrector extends g.Transformer {
-      import scala.reflect.internal.util._
+    if (buildFileExtensions.exists(ex => g.currentSource.file.name.endsWith(s".$ex"))) {
 
       val str = new String(g.currentSource.content)
-      val userCodeStartMarker = "//MILL_USER_CODE_START_MARKER"
       val lines = str.linesWithSeparators.toVector
-
       val adjustedFile = lines
         .collectFirst { case s"//MILL_ORIGINAL_FILE_PATH=$rest" => rest.trim }
-        .get
+        .getOrElse(sys.error(g.currentSource.path))
 
-      val markerLine = lines.indexWhere(_.startsWith(userCodeStartMarker))
-
-      val topWrapperLen = lines.take(markerLine + 1).map(_.length).sum
-
-      val trimmedSource = new BatchSourceFile(
-        new scala.reflect.io.PlainFile(adjustedFile),
-        g.currentSource.content.drop(topWrapperLen)
-      )
-
-      override def transform(tree: g.Tree) = {
-        val transformedTree = super.transform(tree)
-        // The `start` and `end` values in transparent/range positions are left
-        // untouched, because of some aggressive validation in scalac that checks
-        // that trees are not overlapping, and shifting these values here
-        // violates the invariant (which breaks Ammonite, potentially because
-        // of multi-stage).
-        // Moreover, we rely only on the "point" value (for error reporting).
-        // The ticket https://github.com/scala/scala-dev/issues/390 tracks down
-        // relaxing the aggressive validation.
-        val newPos = tree.pos match {
-          case s: TransparentPosition if s.start > topWrapperLen =>
-            new TransparentPosition(
-              trimmedSource,
-              s.start - topWrapperLen,
-              s.point - topWrapperLen,
-              s.end - topWrapperLen
-            )
-          case s: RangePosition if s.start > topWrapperLen =>
-            new RangePosition(
-              trimmedSource,
-              s.start - topWrapperLen,
-              s.point - topWrapperLen,
-              s.end - topWrapperLen
-            )
-          case s: OffsetPosition if s.start > topWrapperLen =>
-            new OffsetPosition(trimmedSource, s.point - topWrapperLen)
-          case s => s
-
-        }
-        transformedTree.pos = newPos
-
-        transformedTree
-      }
-
-      def apply(unit: g.CompilationUnit) = transform(unit.body)
-    }
-
-    if (g.currentSource.file.hasExtension("sc")) {
-      unit.body = LineNumberCorrector(unit)
+      unit.body = LineNumberCorrector(g, lines, adjustedFile)(unit)
     }
   }
 }

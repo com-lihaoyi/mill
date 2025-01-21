@@ -9,22 +9,22 @@ package hello;
 // analyze the call-graph of external code so we have to assume every method
 // that is present on the type of the parameter we pass to the
 // `java.io.OutputStreamWriter` constructor may get called
-class Bar extends java.io.ByteArrayOutputStream{
-    public synchronized void write(byte b[], int off, int len) {
-        // do nothing
-    }
+class Bar extends java.io.ByteArrayOutputStream {
+  public synchronized void write(byte b[], int off, int len) {
+    // do nothing
+  }
 
-    public int uncalled(){
-        return 1337;
-    }
+  public int uncalled() {
+    return 1337;
+  }
 }
 
-public class Hello{
-    public static int main() throws java.io.IOException{
-        java.io.OutputStreamWriter os = new java.io.OutputStreamWriter(new Bar());
+public class Hello {
+  public static int main() throws java.io.IOException {
+    java.io.OutputStreamWriter os = new java.io.OutputStreamWriter(new Bar());
 
-        return 1234;
-    }
+    return 1234;
+  }
 }
 
 /* expected-direct-call-graph

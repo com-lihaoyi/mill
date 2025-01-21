@@ -1,9 +1,10 @@
 package mill.eval
 
-import mill.util.Jvm
+import mill.util.{Jvm, TestUtil}
 import mill.api.Ctx.Dest
-import mill.T
-import mill.util.{TestEvaluator, TestUtil}
+import mill.{T, Task}
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import mill.api.Strict.Agg
 import mill.api.{JarManifest, Loose}
 import utest._
@@ -17,18 +18,16 @@ object JavaCompileJarTests extends TestSuite {
     mill.api.PathRef(ctx.dest)
   }
 
+  val resourceFolder = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
+  val javacSrcPath = resourceFolder / "examples/javac"
+
   val tests = Tests {
-    "javac" - {
-      val javacSrcPath = os.pwd / "main" / "test" / "resources" / "examples" / "javac"
-      val javacDestPath = TestUtil.getOutPath() / "src"
 
-      os.makeDir.all(javacDestPath / os.up)
-      os.copy(javacSrcPath, javacDestPath)
-
-      object Build extends TestUtil.BaseModule {
-        def sourceRootPath = javacDestPath / "src"
-        def readmePath = javacDestPath / "readme.md"
-        def resourceRootPath = javacDestPath / "resources"
+    test("javac") {
+      object Build extends TestBaseModule {
+        def sourceRootPath = millSourcePath / "src"
+        def readmePath = millSourcePath / "readme.md"
+        def resourceRootPath = millSourcePath / "resources"
 
         // sourceRoot -> allSources -> classFiles
         //                                |
@@ -36,16 +35,17 @@ object JavaCompileJarTests extends TestSuite {
         //           resourceRoot ---->  jar
         //                                ^
         //           readmePath---------- |
-        def readme = T.source { readmePath }
-        def sourceRoot = T.sources { sourceRootPath }
-        def resourceRoot = T.sources { resourceRootPath }
-        def allSources = T { sourceRoot().flatMap(p => os.walk(p.path)).map(mill.api.PathRef(_)) }
-        def classFiles = T { compileAll(allSources()) }
-        def jar = T {
+        def readme = Task.Source { readmePath }
+        def sourceRoot = Task.Sources { sourceRootPath }
+        def resourceRoot = Task.Sources { resourceRootPath }
+        def allSources =
+          Task { sourceRoot().flatMap(p => os.walk(p.path)).map(mill.api.PathRef(_)) }
+        def classFiles = Task { compileAll(allSources()) }
+        def jar = Task {
           Jvm.createJar(Loose.Agg(classFiles().path, readme().path) ++ resourceRoot().map(_.path))
         }
         // Test createJar() with optional file filter.
-        def filterJar(fileFilter: (os.Path, os.RelPath) => Boolean) = T {
+        def filterJar(fileFilter: (os.Path, os.RelPath) => Boolean) = Task {
           Jvm.createJar(
             Loose.Agg(classFiles().path, readme().path) ++ resourceRoot().map(_.path),
             JarManifest.MillDefault,
@@ -53,7 +53,7 @@ object JavaCompileJarTests extends TestSuite {
           )
         }
 
-        def run(mainClsName: String) = T.command {
+        def run(mainClsName: String) = Task.Command {
           os.proc("java", "-Duser.language=en", "-cp", classFiles().path, mainClsName)
             .call(stderr = os.Pipe)
         }
@@ -61,13 +61,12 @@ object JavaCompileJarTests extends TestSuite {
 
       import Build._
 
-      var evaluator = new TestEvaluator(Build)
-      def eval[T](t: Task[T]) = {
-        evaluator.apply(t)
-      }
-      def check(targets: Agg[Task[_]], expected: Agg[Task[_]]) = {
-        evaluator.check(targets, expected)
-      }
+      var evaluator = UnitTester(
+        Build,
+        sourceRoot = javacSrcPath
+      )
+      def eval[T](t: Task[T]) = evaluator.apply(t)
+      def check(targets: Agg[Task[_]], expected: Agg[Task[_]]) = evaluator.check(targets, expected)
 
       def append(path: os.Path, txt: String) = os.write.append(path, txt)
 
@@ -82,7 +81,7 @@ object JavaCompileJarTests extends TestSuite {
       append(sourceRootPath / "Foo.java", "")
       check(targets = Agg(jar), expected = Agg())
 
-      // Appending whitespace forces a recompile, but the classfilesend up
+      // Appending whitespace forces a recompile, but the classfiles end up
       // exactly the same so no re-jarring.
       append(sourceRootPath / "Foo.java", " ")
       // Note that `sourceRoot` and `resourceRoot` never turn up in the `expected`
@@ -99,12 +98,16 @@ object JavaCompileJarTests extends TestSuite {
       append(resourceRootPath / "hello.txt", " ")
       check(targets = Agg(jar), expected = Agg(jar))
 
-      // Touching the readme.md, defined as `T.source`, forces a jar rebuid
+      // Touching the readme.md, defined as `Task.Source`, forces a jar rebuild
       append(readmePath, " ")
       check(targets = Agg(jar), expected = Agg(jar))
 
       // You can swap evaluators halfway without any ill effects
-      evaluator = new TestEvaluator(Build)
+      evaluator = UnitTester(
+        Build,
+        sourceRoot = javacSrcPath,
+        resetSourcePath = false
+      )
 
       // Asking for an intermediate target forces things to be build up to that
       // target only; these are re-used for any downstream targets requested
@@ -120,7 +123,7 @@ object JavaCompileJarTests extends TestSuite {
       check(targets = Agg(allSources), expected = Agg(allSources))
       check(targets = Agg(jar), expected = Agg(classFiles, jar))
 
-      val jarContents = os.proc("jar", "-tf", evaluator.outPath / "jar.dest" / "out.jar").call(
+      val jarContents = os.proc("jar", "-tf", evaluator.outPath / "jar.dest/out.jar").call(
         evaluator.outPath
       ).out.text()
       val expectedJarContents =
@@ -145,7 +148,7 @@ object JavaCompileJarTests extends TestSuite {
       val filteredJarContents = os.proc(
         "jar",
         "-tf",
-        evaluator.outPath / "filterJar.dest" / "out.jar"
+        evaluator.outPath / "filterJar.dest/out.jar"
       ).call(evaluator.outPath).out.text()
       assert(filteredJarContents.linesIterator.toSeq == expectedJarContents.linesIterator.filter(
         noFoos(_)
@@ -154,18 +157,18 @@ object JavaCompileJarTests extends TestSuite {
       val executed = os.proc(
         "java",
         "-cp",
-        evaluator.outPath / "jar.dest" / "out.jar",
+        evaluator.outPath / "jar.dest/out.jar",
         "test.Foo"
       ).call(evaluator.outPath).out.text()
       assert(executed == s"${31337 + 271828}${System.lineSeparator}")
 
       for (i <- 0 until 3) {
-        // Build.run is not cached, so every time we eval it it has to
+        // Build.run is not cached, so every time we eval it, it has to
         // re-evaluate
-        val Right((runOutput, evalCount)) = eval(Build.run("test.Foo"))
+        val Right(result) = eval(Build.run("test.Foo"))
         assert(
-          runOutput.out.text() == s"${31337 + 271828}${System.lineSeparator}",
-          evalCount == 1
+          result.value.out.text() == s"${31337 + 271828}${System.lineSeparator}",
+          result.evalCount == 1
         )
       }
 
@@ -183,15 +186,15 @@ object JavaCompileJarTests extends TestSuite {
         }
         """
       )
-      val Right((runOutput2, evalCount2)) = eval(Build.run("test.BarFour"))
+      val Right(result2) = eval(Build.run("test.BarFour"))
       assert(
-        runOutput2.out.text() == "New Cls!" + System.lineSeparator,
-        evalCount2 == 3
+        result2.value.out.text() == "New Cls!" + System.lineSeparator,
+        result2.evalCount == 3
       )
-      val Right((runOutput3, evalCount3)) = eval(Build.run("test.BarFour"))
+      val Right(result3) = eval(Build.run("test.BarFour"))
       assert(
-        runOutput3.out.text() == "New Cls!" + System.lineSeparator,
-        evalCount3 == 1
+        result3.value.out.text() == "New Cls!" + System.lineSeparator,
+        result3.evalCount == 1
       )
     }
   }

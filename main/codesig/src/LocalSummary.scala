@@ -156,7 +156,7 @@ object LocalSummary {
         storeCallEdge(
           st.MethodCall(descCls, InvokeType.Static, "<clinit>", st.Desc.read("()V"))
         )
-      case _ => // donothing
+      case _ => // do nothing
     }
 
     def storeCallEdge(x: MethodCall): Unit = outboundCalls.add(x)
@@ -165,18 +165,36 @@ object LocalSummary {
 
     def discardPreviousInsn(): Unit = insnSigs(insnSigs.size - 1) = 0
 
+    /**
+     * Hack to skip the bitmap loading and comparison of Scala `lazy val`s. These
+     * snippets of code have constants that differ based on the ordering of the
+     * `lazy val` definitions, but this is invisible to the outside world, so we
+     * hack [[MyMethodVisitor]] to try and identify and skip those snippets of bytecode
+     */
+    var inLazyValCheck = false
+
     override def visitFieldInsn(
         opcode: Int,
         owner: String,
         name: String,
         descriptor: String
     ): Unit = {
-      hash(opcode)
-      hash(owner.hashCode)
-      hash(name.hashCode)
-      hash(descriptor.hashCode)
-      completeHash()
-      clinitCall(owner)
+      val isBitmap = name match {
+        case s"bitmap$$$n" => n.forall(_.isDigit)
+        case _ => false
+      }
+      if (isBitmap && (opcode == Opcodes.GETSTATIC || opcode == Opcodes.GETFIELD)) {
+        inLazyValCheck = true
+      } else if (isBitmap && (opcode == Opcodes.PUTSTATIC || opcode == Opcodes.PUTFIELD)) {
+        inLazyValCheck = false
+      } else {
+        hash(opcode)
+        hash(owner.hashCode)
+        hash(name.hashCode)
+        hash(descriptor.hashCode)
+        completeHash()
+        clinitCall(owner)
+      }
     }
 
     override def visitIincInsn(varIndex: Int, increment: Int): Unit = {
@@ -186,14 +204,18 @@ object LocalSummary {
     }
 
     override def visitInsn(opcode: Int): Unit = {
-      hash(opcode)
-      completeHash()
+      if (!inLazyValCheck) {
+        hash(opcode)
+        completeHash()
+      }
     }
 
     override def visitIntInsn(opcode: Int, operand: Int): Unit = {
-      hash(opcode)
-      hash(operand)
-      completeHash()
+      if (!inLazyValCheck) {
+        hash(opcode)
+        hash(operand)
+        completeHash()
+      }
     }
 
     override def visitInvokeDynamicInsn(
@@ -228,6 +250,7 @@ object LocalSummary {
     }
 
     override def visitJumpInsn(opcode: Int, label: Label): Unit = {
+      if (inLazyValCheck) inLazyValCheck = false
       hashlabel(label)
       hash(opcode)
       completeHash()
@@ -271,38 +294,42 @@ object LocalSummary {
         descriptor: String,
         isInterface: Boolean
     ): Unit = {
-      val call = st.MethodCall(
-        JCls.fromSlashed(owner),
-        opcode match {
-          case Opcodes.INVOKESTATIC => InvokeType.Static
-          case Opcodes.INVOKESPECIAL => InvokeType.Special
-          case Opcodes.INVOKEVIRTUAL => InvokeType.Virtual
-          case Opcodes.INVOKEINTERFACE => InvokeType.Virtual
-        },
-        name,
-        st.Desc.read(descriptor)
-      )
+      // Skip analyzing array methods like `.clone()` or `.hashCode()`, since they always
+      // provided by the standard library and do not contribute to the program's call graph
+      if (owner(0) != '[') {
+        val call = st.MethodCall(
+          JCls.fromSlashed(owner),
+          opcode match {
+            case Opcodes.INVOKESTATIC => InvokeType.Static
+            case Opcodes.INVOKESPECIAL => InvokeType.Special
+            case Opcodes.INVOKEVIRTUAL => InvokeType.Virtual
+            case Opcodes.INVOKEINTERFACE => InvokeType.Virtual
+          },
+          name,
+          st.Desc.read(descriptor)
+        )
 
-      // HACK: we skip any constants that get passed to `sourcecode.Line()`,
-      // because we use that extensively in definig Mill targets but it is
-      // generally not something we want to affect the output of a build
-      val sourcecodeLineCall = st.MethodCall(
-        JCls.fromSlashed("sourcecode/Line"),
-        InvokeType.Special,
-        "<init>",
-        st.Desc.read("(I)V")
-      )
-      if (call == sourcecodeLineCall) discardPreviousInsn()
+        // HACK: we skip any constants that get passed to `sourcecode.Line()`,
+        // because we use that extensively in defining Mill targets, but it is
+        // generally not something we want to affect the output of a build
+        val sourcecodeLineCall = st.MethodCall(
+          JCls.fromSlashed("sourcecode/Line"),
+          InvokeType.Special,
+          "<init>",
+          st.Desc.read("(I)V")
+        )
+        if (call == sourcecodeLineCall) discardPreviousInsn()
 
-      hash(opcode)
-      hash(name.hashCode)
-      hash(owner.hashCode)
-      hash(descriptor.hashCode)
-      hash(isInterface.hashCode)
+        hash(opcode)
+        hash(name.hashCode)
+        hash(owner.hashCode)
+        hash(descriptor.hashCode)
+        hash(isInterface.hashCode)
 
-      storeCallEdge(call)
-      clinitCall(owner)
-      completeHash()
+        storeCallEdge(call)
+        clinitCall(owner)
+        completeHash()
+      }
     }
 
     override def visitMultiANewArrayInsn(descriptor: String, numDimensions: Int): Unit = {
@@ -333,6 +360,7 @@ object LocalSummary {
     }
 
     override def visitEnd(): Unit = {
+      assert(!inLazyValCheck)
       clsVisitor.classCallGraph.addOne((methodSig, outboundCalls.toSet))
       clsVisitor.classMethodHashes.addOne((
         methodSig,

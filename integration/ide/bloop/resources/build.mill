@@ -1,0 +1,9 @@
+package build
+// mill plugins
+import $ivy.`com.lihaoyi::mill-contrib-bloop:`
+
+// imports
+import mill._
+import mill.scalalib._
+
+object `package` extends RootModule with JavaModule

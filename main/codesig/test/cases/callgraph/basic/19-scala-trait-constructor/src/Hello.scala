@@ -1,17 +1,15 @@
 /**
- * Make sure wehandle the case
+ * Make sure we handle the case.
  */
 
 package hello
 
-trait MyTrait{
+trait MyTrait {
   Hello.used()
   def used() = 1
 }
-object MyObject extends MyTrait{
-
-}
-object Hello{
+object MyObject extends MyTrait {}
+object Hello {
   def main(): Int = MyObject.used()
   def used(): Int = 2
   def unused(): Int = 1
@@ -50,7 +48,7 @@ object Hello{
         "hello.MyTrait#used()int"
     ]
 }
-*/
+ */
 
 /* expected-transitive-call-graph
 {
@@ -95,4 +93,4 @@ object Hello{
         "hello.MyTrait#used()int"
     ]
 }
-*/
+ */

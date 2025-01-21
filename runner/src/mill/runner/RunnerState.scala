@@ -4,19 +4,18 @@ import mill.api.{PathRef, Val, internal}
 import mill.define.Segments
 import mill.util.Watchable
 import upickle.default.{ReadWriter, macroRW}
-import mill.api.JsonFormatters._
 import mill.eval.Evaluator
 import mill.main.RootModule
 
 /**
  * This contains a list of frames each representing cached data from a single
- * level of `build.sc` evaluation:
+ * level of `build.mill` evaluation:
  *
  * - `frame(0)` contains the output of evaluating the user-given targets
- * - `frame(1)` contains the output of `build.sc` file compilation
+ * - `frame(1)` contains the output of `build.mill` file compilation
  * - `frame(2)` contains the output of the in-memory [[MillBuildRootModule.BootstrapModule]]
- * - If there are meta-builds present (e.g. `mill-build/build.sc`), then `frame(2)`
- *   would contains the output of the meta-build compilation, and the in-memory
+ * - If there are meta-builds present (e.g. `mill-build/build.mill`), then `frame(2)`
+ *   would contain the output of the meta-build compilation, and the in-memory
  *   bootstrap module would be pushed to a higher frame
  *
  * If a level `n` fails to evaluate, then [[errorOpt]] is set to the error message
@@ -31,7 +30,8 @@ import mill.main.RootModule
 case class RunnerState(
     bootstrapModuleOpt: Option[RootModule],
     frames: Seq[RunnerState.Frame],
-    errorOpt: Option[String]
+    errorOpt: Option[String],
+    buildFile: Option[String] = None
 ) {
   def add(
       frame: RunnerState.Frame = RunnerState.Frame.empty,
@@ -58,10 +58,10 @@ object RunnerState {
       workerCache: Map[Segments, (Int, Val)],
       evalWatched: Seq[Watchable],
       moduleWatched: Seq[Watchable],
-      scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])],
       methodCodeHashSignatures: Map[String, Int],
       classLoaderOpt: Option[RunnerState.URLClassLoader],
       runClasspath: Seq[PathRef],
+      compileOutput: Option[PathRef],
       evaluator: Option[Evaluator]
   ) {
 
@@ -72,7 +72,6 @@ object RunnerState {
         },
         evalWatched.collect { case Watchable.Path(p) => p },
         moduleWatched.collect { case Watchable.Path(p) => p },
-        scriptImportGraph,
         classLoaderOpt.map(_.identity),
         runClasspath,
         runClasspath.hashCode()
@@ -95,14 +94,13 @@ object RunnerState {
         workerCache: Map[String, WorkerInfo],
         evalWatched: Seq[PathRef],
         moduleWatched: Seq[PathRef],
-        scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])],
         classLoaderIdentity: Option[Int],
         runClasspath: Seq[PathRef],
         runClasspathHash: Int
     )
     implicit val loggedRw: ReadWriter[Logged] = macroRW
 
-    def empty: Frame = Frame(Map.empty, Nil, Nil, Map.empty, Map.empty, None, Nil, null)
+    def empty: Frame = Frame(Map.empty, Nil, Nil, Map.empty, None, Nil, None, null)
   }
 
 }

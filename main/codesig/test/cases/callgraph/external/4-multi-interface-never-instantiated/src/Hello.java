@@ -1,13 +1,15 @@
 package hello;
 
-import java.util.function.IntSupplier;
-import java.util.function.DoubleSupplier;
-
 // Simple case: we instantiate this and call its method, so we record that in
 // the call graph.
-class Foo implements java.util.Enumeration<Integer>{
-    public boolean hasMoreElements() { return false; }
-    public Integer nextElement() { return null; }
+class Foo implements java.util.Enumeration<Integer> {
+  public boolean hasMoreElements() {
+    return false;
+  }
+
+  public Integer nextElement() {
+    return null;
+  }
 }
 
 // We do not instantiate this, but it's a type we do call the method
@@ -17,16 +19,20 @@ class Foo implements java.util.Enumeration<Integer>{
 // a possible dispatch target for `IntSupplier#getAsInt` and also record it in
 // the call graph
 class Bar extends Foo {
-    public boolean hasMoreElements() { return true; }
-    public Integer nextElement() { return 1; }
+  public boolean hasMoreElements() {
+    return true;
+  }
+
+  public Integer nextElement() {
+    return 1;
+  }
 }
 
-
-public class Hello{
-    public static int main(){
-        java.util.Enumeration<Integer> is = new Foo();
-        return is.nextElement();
-    }
+public class Hello {
+  public static int main() {
+    java.util.Enumeration<Integer> is = new Foo();
+    return is.nextElement();
+  }
 }
 
 /* expected-direct-call-graph

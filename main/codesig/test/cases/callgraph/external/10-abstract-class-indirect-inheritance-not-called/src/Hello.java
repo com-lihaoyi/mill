@@ -9,28 +9,30 @@ package hello;
 // defined on `Object`. That means we can be confident that `toString` does not
 // call our own implementation `Foo#read`
 //
-class Foo extends java.io.ByteArrayInputStream{
-    public Foo() throws java.io.IOException{
-        super(new byte[]{});
-    }
+class Foo extends java.io.ByteArrayInputStream {
+  public Foo() throws java.io.IOException {
+    super(new byte[] {});
+  }
 
-    public int read(){
-        return readSpecial();
-    }
-    public int readSpecial(){
-        return 1337;
-    }
-}
-public class Hello{
-    public static int main() throws java.io.IOException{
-        java.io.InputStream is = new Foo();
-        return bar(is);
-    }
-    public static int bar(java.io.InputStream is){
-        return is.toString().length();
-    }
+  public int read() {
+    return readSpecial();
+  }
+
+  public int readSpecial() {
+    return 1337;
+  }
 }
 
+public class Hello {
+  public static int main() throws java.io.IOException {
+    java.io.InputStream is = new Foo();
+    return bar(is);
+  }
+
+  public static int bar(java.io.InputStream is) {
+    return is.toString().length();
+  }
+}
 
 /* expected-direct-call-graph
 {

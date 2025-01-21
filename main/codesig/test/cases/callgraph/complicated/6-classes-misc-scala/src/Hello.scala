@@ -2,7 +2,6 @@ package hello
 
 // Taken from https://github.com/lihaoyi/Metascala/blob/76dfbfa18484b9ee39bd09453328ea1081fcab6b/src/test/java/metascala/features/classes/Inheritance.java
 
-
 class Cow {
   def moo: String = {
     return "moooo"
@@ -22,10 +21,10 @@ class Matrix(aa: Float, ab: Float, ba: Float, bb: Float) {
 }
 
 class DoubleMatrix(aa: Float, ab: Float, ba: Float, bb: Float)
-  extends Matrix(aa*2, ab*2, ba*2, bb*2)
+    extends Matrix(aa * 2, ab * 2, ba * 2, bb * 2)
 
 class DoubleDetMatrix(aa: Float, ab: Float, ba: Float, bb: Float)
-  extends Matrix(aa*2, ab*2, ba*2, bb*2){
+    extends Matrix(aa * 2, ab * 2, ba * 2, bb * 2) {
 
   override def determinant: Float = {
     return super.determinant * 2
@@ -33,7 +32,7 @@ class DoubleDetMatrix(aa: Float, ab: Float, ba: Float, bb: Float)
 }
 
 class LinkedList {
-  def push(i: Int) {
+  def push(i: Int): Unit = {
     val n = new Inner(i, head)
     head = n
   }
@@ -81,4 +80,4 @@ class LinkedList {
         "hello.LinkedList$Inner#value()int"
     ]
 }
-*/
+ */

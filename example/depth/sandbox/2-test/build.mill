@@ -1,0 +1,71 @@
+// Mill also creates sandbox folders for test suites to run in. Consider the
+// following build with two modules `foo` and `bar`, and their test suites
+// `foo.test` and `bar.test`:
+
+package build
+import mill._, javalib._
+
+trait MyModule extends JavaModule {
+  object test extends JavaTests with TestModule.Junit4
+}
+
+object foo extends MyModule {
+  def moduleDeps = Seq(bar)
+}
+
+object bar extends MyModule
+
+// For the sake of the example, both test modules contain tests that exercise the
+// logic in their corresponding non-test module, but also do some basic filesystem
+// operations at the same time, writing out a `generated.html` file and then reading it:
+
+/** See Also: foo/src/foo/Foo.java */
+/** See Also: foo/test/src/foo/FooTests.java */
+/** See Also: bar/src/bar/Bar.java */
+/** See Also: bar/test/src/bar/BarTests.java */
+
+// Both test suites can be run via
+
+/** Usage
+> ./mill __.test
+*/
+
+// Without sandboxing, due to the tests running in parallel, there is a race condition:
+// it's possible that `FooTests` may write the file, `BarTests` write over it, before
+// `FooTests` reads the output from `BarTests`. That would cause non-deterministic
+// flaky failures in your test suite that can be very difficult to debug and resolve.
+//
+// With Mill's test sandboxing, each test runs in a separate folder: the `.dest` folder
+// of the respective task and module. For example:
+//
+// - `foo.test` runs in `out/foo/test/test.dest/`
+// - `bar.test` runs in `out/bar/test/test.dest/`
+//
+// As a result, each test's `generated.html` file is written to its own dedicated
+// working directory, without colliding with each other on disk:
+
+/** Usage
+
+> find . | grep generated.html
+.../out/foo/test/test.dest/sandbox/generated.html
+.../out/bar/test/test.dest/sandbox/generated.html
+
+> cat out/foo/test/test.dest/sandbox/generated.html
+<h1>hello</h1>
+
+> cat out/bar/test/test.dest/sandbox/generated.html
+<p>world</p>
+
+*/
+
+// As each test suite runs in a different working directory by default, naive usage
+// reading and writing to the filesystem does not cause tests to interefere with
+// one another, which helps keep tests stable and deterministic even when run in
+// parallel
+//
+// Like Mill's Task sandboxing, Mill's Test sandboxing does not guard against
+// intentional misbehavior: tests can still walk the filesystem from the
+// sandbox folder via `..` or from the root folder `/` or home folder `~/`.
+// Nevertheless, it should add some simple guardrails to prevent many common
+// causes of inter-test interference, letting your test suite run in parallel both
+// quickly and reliably

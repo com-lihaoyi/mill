@@ -1,0 +1,33 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+       xmlns:th="http://www.thymeleaf.org"
+       lang="en">
+<!--/*@thymesVar id="item" type="example.micronaut.TodoItem"*/-->
+<li th:fragment="todoItem(item)" th:classappend="${item.completed?'completed':''}" th:id="|list-item-${item.id}|">
+    <div class="view">
+        <input th:id="|toggle-checkbox-${item.id}|" class="toggle" type="checkbox"
+               th:attrappend="checked=${item.completed?'true':null}"
+               th:hx-put="@{/{id}/toggle(id=${item.id})}"
+               th:hx-target="|#list-item-${item.id}|"
+               hx-trigger="click"
+               hx-swap="outerHTML"
+        >
+        <label th:text="${item.title}">Taste JavaScript</label>
+        <button class="destroy"
+                  th:hx-delete="@{/{id}(id=${item.id})}"
+                  th:hx-target="|#list-item-${item.id}|"
+                  hx-trigger="click"
+                  hx-swap="outerHTML"></button>
+    </div>
+</li>
+<span th:fragment="active-items-count"
+      th:hx-get="@{/active-items-count}"
+      hx-swap="outerHTML"
+      hx-trigger="itemAdded from:body, itemCompletionToggled from:body, itemDeleted from:body">
+    <th:block th:unless="${numberOfActiveItems == 1}">
+            <span class="todo-count"><strong th:text="${numberOfActiveItems}">0</strong> items left</span>
+        </th:block>
+        <th:block th:if="${numberOfActiveItems == 1}">
+            <span class="todo-count"><strong>1</strong> item left</span>
+        </th:block>
+</span>
+</html>

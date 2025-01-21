@@ -1,87 +1,33 @@
 package mill.bsp.worker
 
-import ch.epfl.scala.bsp4j.{
-  BuildClient,
-  BuildServer,
-  BuildServerCapabilities,
-  BuildTarget,
-  BuildTargetCapabilities,
-  BuildTargetIdentifier,
-  CleanCacheParams,
-  CleanCacheResult,
-  CompileParams,
-  CompileProvider,
-  CompileResult,
-  DebugProvider,
-  DebugSessionAddress,
-  DebugSessionParams,
-  DependencyModule,
-  DependencyModulesItem,
-  DependencyModulesParams,
-  DependencyModulesResult,
-  DependencySourcesItem,
-  DependencySourcesParams,
-  DependencySourcesResult,
-  InitializeBuildParams,
-  InitializeBuildResult,
-  InverseSourcesParams,
-  InverseSourcesResult,
-  LogMessageParams,
-  MessageType,
-  OutputPathItem,
-  OutputPathItemKind,
-  OutputPathsItem,
-  OutputPathsParams,
-  OutputPathsResult,
-  ReadParams,
-  ResourcesItem,
-  ResourcesParams,
-  ResourcesResult,
-  RunParams,
-  RunProvider,
-  RunResult,
-  SourceItem,
-  SourceItemKind,
-  SourcesItem,
-  SourcesParams,
-  SourcesResult,
-  StatusCode,
-  TaskFinishDataKind,
-  TaskFinishParams,
-  TaskId,
-  TaskStartDataKind,
-  TaskStartParams,
-  TestParams,
-  TestProvider,
-  TestResult,
-  TestTask,
-  WorkspaceBuildTargetsResult
-}
 import ch.epfl.scala.bsp4j
+import ch.epfl.scala.bsp4j._
 import com.google.gson.JsonObject
-import mill.T
-import mill.api.{DummyTestReporter, Result, Strict}
+import mill.api.Loose.Agg
+import mill.api.{CompileProblemReporter, DummyTestReporter, Result, Strict, TestReporter}
+import mill.bsp.{BspServerResult, Constants}
+import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
 import mill.define.Segment.Label
-import mill.define.{Args, Discover, ExternalModule, Task}
+import mill.define.{Args, Discover, ExternalModule, NamedTask, Task}
 import mill.eval.Evaluator
+import mill.eval.Evaluator.TaskResult
 import mill.main.MainModule
-import mill.scalalib.{JavaModule, SemanticDbJavaModule, TestModule}
-import mill.scalalib.bsp.{BspModule, JvmBuildTarget, ScalaBuildTarget}
 import mill.runner.MillBuildRootModule
+import mill.scalalib.bsp.{BspModule, JvmBuildTarget, ScalaBuildTarget}
+import mill.scalalib.{JavaModule, SemanticDbJavaModule, TestModule}
+import mill.util.ColorLogger
+import mill.given
 
 import java.io.PrintStream
 import java.util.concurrent.CompletableFuture
 import scala.concurrent.Promise
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
-import scala.util.{Failure, Success, Try}
-import Utils.sanitizeUri
-import mill.bsp.BspServerResult
-import mill.eval.Evaluator.TaskResult
-
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.control.NonFatal
+import scala.util.{Failure, Success, Try}
 private class MillBuildServer(
+    topLevelProjectRoot: os.Path,
     bspVersion: String,
     serverVersion: String,
     serverName: String,
@@ -90,7 +36,9 @@ private class MillBuildServer(
 ) extends ExternalModule
     with BuildServer {
 
-  lazy val millDiscover: Discover[this.type] = Discover[this.type]
+  import MillBuildServer._
+
+  lazy val millDiscover: Discover = Discover[this.type]
 
   private[worker] var cancellator: Boolean => Unit = shutdownBefore => ()
   private[worker] var onSessionEnd: Option[BspServerResult => Unit] = None
@@ -100,7 +48,7 @@ private class MillBuildServer(
   protected var clientWantsSemanticDb = false
   protected var clientIsIntelliJ = false
 
-  /** `true` when client and server support the `JvmCompileClasspathProvider`` request. */
+  /** `true` when client and server support the `JvmCompileClasspathProvider` request. */
   protected var enableJvmCompileClasspathProvider = false
 
   private[this] var statePromise: Promise[State] = Promise[State]()
@@ -110,7 +58,7 @@ private class MillBuildServer(
     if (statePromise.isCompleted) statePromise = Promise[State]() // replace the promise
     evaluatorsOpt.foreach { evaluators =>
       statePromise.success(
-        new State(evaluators, debug)
+        new State(topLevelProjectRoot, evaluators, debug)
       )
     }
   }
@@ -128,7 +76,7 @@ private class MillBuildServer(
 
       // TODO: scan BspModules and infer their capabilities
 
-      val supportedLangs = Seq("java", "scala").asJava
+      val supportedLangs = Constants.languages.asJava
       val capabilities = new BuildServerCapabilities
 
       capabilities.setBuildTargetChangedProvider(false)
@@ -209,9 +157,9 @@ private class MillBuildServer(
   }
 
   override def workspaceBuildTargets(): CompletableFuture[WorkspaceBuildTargetsResult] =
-    completableTasks(
+    completableTasksWithState(
       "workspaceBuildTargets",
-      targetIds = _.bspModulesById.keySet.toSeq,
+      targetIds = _.bspModulesIdList.map(_._1),
       tasks = { case m: BspModule => m.bspBuildTargetData }
     ) { (ev, state, id, m: BspModule, bspBuildTargetData) =>
       val depsIds = m match {
@@ -230,14 +178,12 @@ private class MillBuildServer(
             bsp4j.ScalaPlatform.forValue(d.platform.number),
             d.jars.asJava
           )
+          for (jvmBuildTarget <- d.jvmBuildTarget)
+            target.setJvmBuildTarget(MillBuildServer.jvmBuildTarget(jvmBuildTarget))
           Some((dataKind, target))
 
         case Some((dataKind, d: JvmBuildTarget)) =>
-          val target = new bsp4j.JvmBuildTarget().tap { it =>
-            d.javaHome.foreach(jh => it.setJavaHome(jh.uri))
-            d.javaVersion.foreach(jv => it.setJavaVersion(jv))
-          }
-          Some((dataKind, target))
+          Some((dataKind, jvmBuildTarget(d)))
 
         case Some((dataKind, d)) =>
           debug(s"Unsupported dataKind=${dataKind} with value=${d}")
@@ -246,30 +192,13 @@ private class MillBuildServer(
       }
 
       val bt = m.bspBuildTarget
-      val buildTarget = new BuildTarget(
-        id,
-        bt.tags.asJava,
-        bt.languageIds.asJava,
-        depsIds.asJava,
-        new BuildTargetCapabilities().tap { it =>
-          it.setCanCompile(bt.canCompile)
-          it.setCanTest(bt.canTest)
-          it.setCanRun(bt.canRun)
-          it.setCanDebug(bt.canDebug)
-        }
+      makeBuildTarget(id, depsIds, bt, data)
+
+    } { (targets, state) =>
+      new WorkspaceBuildTargetsResult(
+        (targets.asScala ++ state.syntheticRootBspBuildTarget.map(_.target)).asJava
       )
-
-      bt.displayName.foreach(buildTarget.setDisplayName)
-      bt.baseDirectory.foreach(p => buildTarget.setBaseDirectory(sanitizeUri(p)))
-
-      for ((dataKind, data) <- data) {
-        buildTarget.setDataKind(dataKind)
-        buildTarget.setData(data)
-      }
-
-      buildTarget
-
-    }(new WorkspaceBuildTargetsResult(_))
+    }
 
   override def workspaceReload(): CompletableFuture[Object] =
     completableNoState("workspaceReload", false) {
@@ -298,26 +227,27 @@ private class MillBuildServer(
       generated
     )
 
-    completableTasks(
+    completableTasksWithState(
       hint = s"buildTargetSources ${sourcesParams}",
       targetIds = _ => sourcesParams.getTargets.asScala.toSeq,
       tasks = {
         case module: MillBuildRootModule =>
-          T.task {
-            module.scriptSources().map(p => sourceItem(p.path, false)) ++
-              module.sources().map(p => sourceItem(p.path, false)) ++
+          Task.Anon {
+            module.sources().map(p => sourceItem(p.path, false)) ++
               module.generatedSources().map(p => sourceItem(p.path, true))
           }
         case module: JavaModule =>
-          T.task {
+          Task.Anon {
             module.sources().map(p => sourceItem(p.path, false)) ++
               module.generatedSources().map(p => sourceItem(p.path, true))
           }
       }
     ) {
       case (ev, state, id, module, items) => new SourcesItem(id, items.asJava)
-    } {
-      new SourcesResult(_)
+    } { (sourceItems, state) =>
+      new SourcesResult(
+        (sourceItems.asScala.toSeq ++ state.syntheticRootBspBuildTarget.map(_.synthSources)).asJava
+      )
     }
 
   }
@@ -325,9 +255,9 @@ private class MillBuildServer(
   override def buildTargetInverseSources(p: InverseSourcesParams)
       : CompletableFuture[InverseSourcesResult] = {
     completable(s"buildtargetInverseSources ${p}") { state =>
-      val tasksEvaluators = state.bspModulesById.iterator.collect {
+      val tasksEvaluators = state.bspModulesIdList.iterator.collect {
         case (id, (m: JavaModule, ev)) =>
-          T.task {
+          Task.Anon {
             val src = m.allSourceFiles()
             val found = src.map(sanitizeUri).contains(
               p.getTextDocument.getUri
@@ -336,11 +266,9 @@ private class MillBuildServer(
           } -> ev
       }.toSeq
 
-      val ids = tasksEvaluators
-        .groupMap(_._2)(_._1)
+      val ids = groupList(tasksEvaluators)(_._2)(_._1)
         .flatMap { case (ev, ts) => ev.evalOrThrow()(ts) }
         .flatten
-        .toSeq
 
       new InverseSourcesResult(ids.asJava)
     }
@@ -366,12 +294,15 @@ private class MillBuildServer(
       targetIds = _ => p.getTargets.asScala.toSeq,
       tasks = {
         case m: JavaModule =>
-          T.task {
+          Task.Anon {
             (
-              m.resolveDeps(
-                T.task(m.transitiveCompileIvyDeps() ++ m.transitiveIvyDeps()),
+              m.defaultResolver().resolveDeps(
+                Seq(
+                  m.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
+                  m.coursierDependency
+                ),
                 sources = true
-              )(),
+              ),
               m.unmanagedClasspath(),
               m.repositoriesTask()
             )
@@ -405,7 +336,18 @@ private class MillBuildServer(
       hint = "buildTargetDependencyModules",
       targetIds = _ => params.getTargets.asScala.toSeq,
       tasks = { case m: JavaModule =>
-        T.task { (m.transitiveCompileIvyDeps(), m.transitiveIvyDeps(), m.unmanagedClasspath()) }
+        Task.Anon {
+          (
+            // full list of dependencies, including transitive ones
+            m.defaultResolver().allDeps(
+              Seq(
+                m.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
+                m.coursierDependency
+              )
+            ),
+            m.unmanagedClasspath()
+          )
+        }
       }
     ) {
       case (
@@ -413,19 +355,19 @@ private class MillBuildServer(
             state,
             id,
             m: JavaModule,
-            (transitiveCompileIvyDeps, transitiveIvyDeps, unmanagedClasspath)
+            (ivyDeps, unmanagedClasspath)
           ) =>
-        val ivy = transitiveCompileIvyDeps ++ transitiveIvyDeps
-        val deps = ivy.map { dep =>
-          // TODO: add data with "maven" data kind using a ...
+        val deps = ivyDeps.collect {
+          case dep if dep.module.organization != JavaModule.internalOrg =>
+            // TODO: add data with "maven" data kind using a ...
 //          MavenDependencyModule
 
-          new DependencyModule(dep.dep.module.repr, dep.dep.version)
+            new DependencyModule(dep.module.repr, dep.version)
         }
-        val unmanged = unmanagedClasspath.map { dep =>
+        val unmanaged = unmanagedClasspath.map { dep =>
           new DependencyModule(s"unmanaged-${dep.path.last}", "")
         }
-        new DependencyModulesItem(id, (deps ++ unmanged).iterator.toSeq.asJava)
+        new DependencyModulesItem(id, (deps ++ unmanaged).iterator.toSeq.asJava)
     } {
       new DependencyModulesResult(_)
     }
@@ -435,8 +377,8 @@ private class MillBuildServer(
       s"buildTargetResources ${p}",
       targetIds = _ => p.getTargets.asScala.toSeq,
       tasks = {
-        case m: JavaModule => T.task { m.resources() }
-        case _ => T.task { Nil }
+        case m: JavaModule => Task.Anon { m.resources() }
+        case _ => Task.Anon { Nil }
       }
     ) {
       case (ev, state, id, m, resources) =>
@@ -451,13 +393,22 @@ private class MillBuildServer(
   // already has some from the build file, what to do?
   override def buildTargetCompile(p: CompileParams): CompletableFuture[CompileResult] =
     completable(s"buildTargetCompile ${p}") { state =>
+      p.setTargets(state.filterNonSynthetic(p.getTargets))
       val params = TaskParameters.fromCompileParams(p)
       val taskId = params.hashCode()
       val compileTasksEvs = params.getTargets.distinct.map(state.bspModulesById).map {
         case (m: SemanticDbJavaModule, ev) if clientWantsSemanticDb =>
           (m.compiledClassesAndSemanticDbFiles, ev)
         case (m: JavaModule, ev) => (m.compile, ev)
-        case (m, ev) => T.task {
+        case (m: TestModule, ev) =>
+          (Task.Anon { () }, ev)
+          val task = Task.Anon {
+            Task.log.debug(
+              "Ignoring invalid compile request for test module ${m.bspBuildTarget.displayName}"
+            )
+          }
+          (task, ev)
+        case (m, ev) => Task.Anon {
             Result.Failure(
               s"Don't know how to compile non-Java target ${m.bspBuildTarget.displayName}"
             )
@@ -467,7 +418,8 @@ private class MillBuildServer(
       val result = compileTasksEvs
         .groupMap(_._2)(_._1)
         .map { case (ev, ts) =>
-          ev.evaluate(
+          evaluate(
+            ev,
             ts,
             Utils.getBspLoggedReporterPool(p.getOriginId, state.bspIdByModule, client),
             DummyTestReporter,
@@ -483,29 +435,29 @@ private class MillBuildServer(
   override def buildTargetOutputPaths(params: OutputPathsParams)
       : CompletableFuture[OutputPathsResult] =
     completable(s"buildTargetOutputPaths ${params}") { state =>
+      val synthOutpaths = for {
+        synthTarget <- state.syntheticRootBspBuildTarget
+        if params.getTargets.contains(synthTarget.id)
+        baseDir <- synthTarget.bt.baseDirectory
+      } yield new OutputPathsItem(synthTarget.id, outputPaths(baseDir, topLevelProjectRoot).asJava)
+
       val items = for {
         target <- params.getTargets.asScala
         (module, ev) <- state.bspModulesById.get(target)
       } yield {
         val items =
-          if (module.millOuterCtx.external) List(
-            new OutputPathItem(
-              // Spec says, a directory must end with a forward slash
-              sanitizeUri(ev.externalOutPath) + "/",
-              OutputPathItemKind.DIRECTORY
+          if (module.millOuterCtx.external)
+            outputPaths(
+              module.bspBuildTarget.baseDirectory.get,
+              topLevelProjectRoot
             )
-          )
-          else List(
-            new OutputPathItem(
-              // Spec says, a directory must end with a forward slash
-              sanitizeUri(ev.outPath) + "/",
-              OutputPathItemKind.DIRECTORY
-            )
-          )
+          else
+            outputPaths(module.bspBuildTarget.baseDirectory.get, topLevelProjectRoot)
+
         new OutputPathsItem(target, items.asJava)
       }
 
-      new OutputPathsResult(items.asJava)
+      new OutputPathsResult((items ++ synthOutpaths).asJava)
     }
 
   override def buildTargetRun(runParams: RunParams): CompletableFuture[RunResult] =
@@ -516,8 +468,9 @@ private class MillBuildServer(
       }.get
 
       val args = params.getArguments.getOrElse(Seq.empty[String])
-      val runTask = module.run(T.task(Args(args)))
-      val runResult = ev.evaluate(
+      val runTask = module.run(Task.Anon(Args(args)))
+      val runResult = evaluate(
+        ev,
         Strict.Agg(runTask),
         Utils.getBspLoggedReporterPool(runParams.getOriginId, state.bspIdByModule, client),
         logger = new MillBspLogger(client, runTask.hashCode(), ev.baseLogger)
@@ -536,6 +489,7 @@ private class MillBuildServer(
 
   override def buildTargetTest(testParams: TestParams): CompletableFuture[TestResult] =
     completable(s"buildTargetTest ${testParams}") { state =>
+      testParams.setTargets(state.filterNonSynthetic(testParams.getTargets))
       val millBuildTargetIds = state
         .rootModules
         .map { case m: BspModule => state.bspIdByModule(m) }
@@ -581,7 +535,8 @@ private class MillBuildServer(
                   Seq.empty[String]
                 )
 
-              val results = ev.evaluate(
+              val results = evaluate(
+                ev,
                 Strict.Agg(testTask),
                 Utils.getBspLoggedReporterPool(
                   testParams.getOriginId,
@@ -627,6 +582,7 @@ private class MillBuildServer(
   override def buildTargetCleanCache(cleanCacheParams: CleanCacheParams)
       : CompletableFuture[CleanCacheResult] =
     completable(s"buildTargetCleanCache ${cleanCacheParams}") { state =>
+      cleanCacheParams.setTargets(state.filterNonSynthetic(cleanCacheParams.getTargets))
       val (msg, cleaned) =
         cleanCacheParams.getTargets.asScala.foldLeft((
           "",
@@ -635,12 +591,13 @@ private class MillBuildServer(
           case ((msg, cleaned), targetId) =>
             val (module, ev) = state.bspModulesById(targetId)
             val mainModule = new MainModule {
-              override implicit def millDiscover: Discover[_] = Discover[this.type]
+              override implicit def millDiscover: Discover = Discover[this.type]
             }
             val compileTargetName = (module.millModuleSegments ++ Label("compile")).render
             debug(s"about to clean: ${compileTargetName}")
             val cleanTask = mainModule.clean(ev, Seq(compileTargetName): _*)
-            val cleanResult = ev.evaluate(
+            val cleanResult = evaluate(
+              ev,
               Strict.Agg(cleanTask),
               logger = new MillBspLogger(client, cleanTask.hashCode, ev.baseLogger)
             )
@@ -675,6 +632,7 @@ private class MillBuildServer(
   override def debugSessionStart(debugParams: DebugSessionParams)
       : CompletableFuture[DebugSessionAddress] =
     completable(s"debugSessionStart ${debugParams}") { state =>
+      debugParams.setTargets(state.filterNonSynthetic(debugParams.getTargets))
       throw new NotImplementedError("debugSessionStart endpoint is not implemented")
     }
 
@@ -687,20 +645,33 @@ private class MillBuildServer(
       targetIds: State => Seq[BuildTargetIdentifier],
       tasks: PartialFunction[BspModule, Task[W]]
   )(f: (Evaluator, State, BuildTargetIdentifier, BspModule, W) => T)(agg: java.util.List[T] => V)
-      : CompletableFuture[V] = {
+      : CompletableFuture[V] =
+    completableTasksWithState[T, V, W](hint, targetIds, tasks)(f)((l, _) => agg(l))
+
+  /**
+   * @params tasks A partial function
+   * @param f The function must accept the same modules as the partial function given by `tasks`.
+   */
+  def completableTasksWithState[T, V, W: ClassTag](
+      hint: String,
+      targetIds: State => Seq[BuildTargetIdentifier],
+      tasks: PartialFunction[BspModule, Task[W]]
+  )(f: (Evaluator, State, BuildTargetIdentifier, BspModule, W) => T)(agg: (
+      java.util.List[T],
+      State
+  ) => V): CompletableFuture[V] = {
     val prefix = hint.split(" ").head
-    completable(hint) { state: State =>
-      val ids = targetIds(state)
+    completable(hint) { (state: State) =>
+      val ids = state.filterNonSynthetic(targetIds(state).asJava).asScala
       val tasksSeq = ids.flatMap { id =>
         val (m, ev) = state.bspModulesById(id)
         tasks.lift.apply(m).map(ts => (ts, (ev, id)))
       }
 
-      val evaluated = tasksSeq
-        // group by evaluator (different root module)
-        .groupMap(_._2)(_._1)
+      // group by evaluator (different root module)
+      val evaluated = groupList(tasksSeq.toSeq)(_._2)(_._1)
         .map { case ((ev, id), ts) =>
-          val results = ev.evaluate(ts)
+          val results = evaluate(ev, ts)
           val failures = results.results.collect {
             case (_, TaskResult(res: Result.Failing[_], _)) => res
           }
@@ -729,7 +700,7 @@ private class MillBuildServer(
             }
         }
 
-      agg(evaluated.flatten.toSeq.asJava)
+      agg(evaluated.flatten.asJava, state)
     }
   }
 
@@ -826,4 +797,52 @@ private class MillBuildServer(
   override def onRunReadStdin(params: ReadParams): Unit = {
     debug("onRunReadStdin is current unsupported")
   }
+
+  private def evaluate(
+      evaluator: Evaluator,
+      goals: Agg[Task[_]],
+      reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
+      testReporter: TestReporter = DummyTestReporter,
+      logger: ColorLogger = null
+  ): Evaluator.Results = {
+    val logger0 = Option(logger).getOrElse(evaluator.baseLogger)
+    mill.runner.MillMain.withOutLock(
+      noBuildLock = false,
+      noWaitForBuildLock = false,
+      out = evaluator.outPath,
+      targetsAndParams = goals.toSeq.map {
+        case n: NamedTask[_] => n.label
+        case t => t.toString
+      },
+      streams = logger0.systemStreams
+    ) {
+      evaluator.evaluate(
+        goals,
+        reporter,
+        testReporter,
+        logger0,
+        serialCommandExec = false
+      )
+    }
+  }
+}
+
+private object MillBuildServer {
+
+  /**
+   * Same as Iterable.groupMap, but returns a sequence instead of a map, and preserves
+   * the order of appearance of the keys from the input sequence
+   */
+  private def groupList[A, K, B](seq: Seq[A])(key: A => K)(f: A => B): Seq[(K, Seq[B])] = {
+    val keyIndices = seq.map(key).distinct.zipWithIndex.toMap
+    seq.groupMap(key)(f)
+      .toSeq
+      .sortBy { case (k, _) => keyIndices(k) }
+  }
+
+  def jvmBuildTarget(d: JvmBuildTarget): bsp4j.JvmBuildTarget =
+    new bsp4j.JvmBuildTarget().tap { it =>
+      d.javaHome.foreach(jh => it.setJavaHome(jh.uri))
+      d.javaVersion.foreach(jv => it.setJavaVersion(jv))
+    }
 }

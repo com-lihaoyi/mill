@@ -1,9 +1,9 @@
 package hello
 
-object Hello{
+object Hello {
   def main(): Int = {
 
-    val foo = new Function0[Int]{def apply() = used() }
+    val foo = new Function0[Int] { def apply() = used() }
     foo()
   }
   def used(): Int = 2
@@ -69,7 +69,7 @@ object Hello{
        "hello.Hello$#used()int"
    ]
 }
-*/
+ */
 
 /* expected-transitive-call-graph
 {
@@ -311,4 +311,4 @@ object Hello{
         "hello.Hello$$anon$1#toString()java.lang.String"
     ]
 }
-*/
+ */

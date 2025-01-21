@@ -1,0 +1,406 @@
+// Mill comes with a number of useful commands out of the box. These are listed
+// in the API Docs:
+//
+// * {mill-doc-url}/api/latest/mill/main/MainModule.html[mill.main.MainModule]
+//
+// Mill's built-in commands are typically not directly related to building your
+// application code, but instead are utilities that help you understand and work
+// with your Mill build.
+//
+// The following examples will be assuming the `build.mill` file given below:
+
+package build
+import mill._, javalib._
+
+trait MyModule extends JavaModule {
+  object test extends JavaTests with TestModule.Junit4
+}
+
+object foo extends MyModule {
+  def moduleDeps = Seq(bar)
+  def ivyDeps = Agg(
+    ivy"net.sourceforge.argparse4j:argparse4j:0.9.0"
+  )
+}
+
+object bar extends MyModule {
+  def ivyDeps = Agg(
+    ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
+    ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
+  )
+}
+// == resolve
+
+// `resolve` lists the tasks that match a particular query, without running them.
+// This is useful for "dry running" an `mill` command to see what would be run
+// before you run them, or to explore what modules or tasks are available
+// from the command line using `+resolve _+`, `+resolve foo._+`, etc.
+
+/** Usage
+
+> mill resolve _
+foo
+bar
+clean
+inspect
+path
+plan
+resolve
+show
+shutdown
+version
+visualize
+visualizePlan
+
+> mill resolve _.compile
+foo.compile
+bar.compile
+
+> mill resolve foo._
+foo.allSourceFiles
+foo.allSources
+foo.artifactId
+foo.artifactName
+...
+
+*/
+
+// You can also use the wildcards `+_+` as a placeholder for a single segment
+// and `+__+` as a placeholder for many segments.
+// Lists within curly braces (`{`, `}`) are also supported.
+
+/** Usage
+
+> mill resolve foo.{compile,run}
+> mill resolve "foo.{compile,run}"
+> mill resolve foo.compile foo.run
+> mill resolve _.compile  # list the compile tasks for every top-level module
+> mill resolve __.compile # list the compile tasks for every module
+> mill resolve _          # list every top level module and task
+> mill resolve foo._      # list every task directly within the foo module
+> mill resolve __         # list every module and task recursively
+
+*/
+
+// See the documentation for xref:cli/query-syntax.adoc[Task Query Syntax] for more details what you
+// can pass to `resolve`
+
+// == inspect
+
+// `inspect` is a more verbose version of <<_resolve>>. In addition to printing
+// out the name of one-or-more tasks, it also displays its source location and a
+// list of input tasks. This is very useful for debugging and interactively
+// exploring the structure of your build from the command line.
+
+/** Usage
+
+> mill inspect foo.run
+foo.run(RunModule...)
+    Runs this module's code in a subprocess and waits for it to finish
+    args <str>...
+Inputs:
+    foo.finalMainClass
+    foo.finalMainClassOpt
+    foo.runClasspath
+    foo.forkArgs
+    foo.forkEnv
+    foo.forkWorkingDir
+    foo.runUseArgsFile
+
+*/
+
+// While `inspect` also works with the same `+_+`/`+__+` wildcard/query syntax
+// that <<_resolve>> do, the most common use case is to inspect one task at a
+// time.
+
+// == show
+
+// By default, Mill does not print out the metadata from evaluating a task.
+// Most people would not be interested in e.g. viewing the metadata related to
+// incremental compilation: they just want to compile their code! However, if you
+// want to inspect the build to debug problems, you can make Mill show you the
+// metadata output for a task using the `show` command. e.g. if it seems source
+// files are not getting picked up, you can `show foo.sources` to see where Mill
+// is looking for the `foo` module's source files:
+
+/** Usage
+
+> mill show foo.sources
+[
+  ".../foo/src"
+]
+
+> mill show foo.allSourceFiles
+[
+  ".../foo/src.../Foo..."
+]
+
+*/
+
+// `show` is not just for showing configuration values. All tasks return values
+// that can be shown with `show`.
+// E.g. `compile` returns the paths to the `classes` folder and `analysisFile`
+// file produced by the compilation:
+
+/** Usage
+
+> mill show foo.compile
+{
+  "analysisFile": ".../out/foo/compile.dest/...",
+  "classes": ".../out/foo/compile.dest/classes"
+}
+*/
+
+// `show` is also useful for interacting with Mill from external tools, since the
+// JSON it outputs is structured and easily parsed and manipulated. You can easily
+// pipe the `show` output into a python script or `jq` to manipulate it further.
+//
+// When `show` is used with multiple task, its output will slightly change to a
+// JSON dictionary, with the keys being the task names and the values being the
+// JSON results of the given task.
+
+/** Usage
+
+> mill show 'foo.{sources,compileClasspath}'
+{
+  "foo.sources": [
+    ".../foo/src"
+  ],
+  "foo.compileClasspath": [
+    ...
+    ".../foo/compile-resources"
+  ]
+}
+
+*/
+
+// == showNamed
+
+// Same as `show`, but the output will always be structured in a JSON
+// dictionary, whether there is one or more task in the selection
+
+/** Usage
+
+> mill showNamed 'foo.sources'
+{
+  "foo.sources": [
+    ".../foo/src"
+  ]
+}
+
+> mill showNamed 'foo.{sources,compileClasspath}'
+{
+  "foo.sources": [
+    ".../foo/src"
+  ],
+  "foo.compileClasspath": [
+    ...
+    ".../foo/compile-resources"
+  ]
+}
+
+*/
+
+// This can make it easier to programmatically work with the output of running
+// one-or-more tasks via Mill wildcard queries, since the `{"<task-name>": <output>}`
+// structure remains the same regardless of how many values the query returns.
+
+// == path
+
+// `mill path` prints out a dependency chain between the first task and the
+// second. It is very useful for exploring the build graph and trying to figure
+// out how data gets from one task to another, or trying to figure out why
+// running `mill foo` ends up running another task `bar` that you didn't
+// expect it to.
+
+/** Usage
+
+> mill path foo.assembly foo.sources
+foo.sources
+foo.allSources
+foo.allSourceFiles
+foo.compile
+foo.localRunClasspath
+foo.localClasspath
+foo.assembly
+
+*/
+
+// If there are multiple possible dependency chains, one of them is picked
+// arbitrarily.
+
+// == plan
+
+// `mill plan foo` shows which tasks would be evaluated if you ran `mill foo`,
+// and in what order, but without actually running them. This is a useful tool for
+// debugging your build: e.g. if you suspect a task `foo` is running things that
+// it shouldn't be running, a quick `mill plan` will list out all the upstream
+// tasks that `foo` needs to run, and you can then follow up with `mill path` on
+// any individual upstream task to see exactly how `foo` depends on it.
+
+/** Usage
+
+> mill plan foo.compileClasspath
+foo.transitiveCompileClasspath
+foo.compileResources
+foo.unmanagedClasspath
+...
+foo.compileIvyDeps
+...
+foo.ivyDeps
+foo.compileClasspath
+
+*/
+
+// NOTE: due to parallelism, the given order is only one possible toplogical
+// order that the tasks will be started. Tasks may be started in different orders
+// depending on scheduling considerations, and may finish in a different order
+// due to differences in time taken to run
+
+// == clean
+
+// `clean` deletes all the cached outputs of previously executed tasks.
+
+/** Usage
+
+> mill clean
+
+*/
+
+// `clean` without arguments cleans the entire project.
+// It also accepts arguments to clean specific modules, or specific tasks.
+
+/** Usage
+
+> mill clean             # clean all outputs
+> mill clean foo         # clean all outputs for module 'foo' (including nested modules)
+> mill clean foo.compile # only clean outputs for task 'compile' in module 'foo'
+> mill clean foo.{compile,run}
+> mill clean "foo.{compile,run}"
+> mill clean foo.compile foo.run
+> mill clean _.compile
+> mill clean __.compile
+
+*/
+
+// == visualize
+//
+/** Usage
+> mill visualize foo._
+[
+  ".../out/visualize.dest/out.dot",
+  ".../out/visualize.dest/out.json",
+  ".../out/visualize.dest/out.png",
+  ".../out/visualize.dest/out.svg",
+  ".../out/visualize.dest/out.txt"
+]
+*/
+//
+// `mill visualize` takes a subset of the Mill build graph (e.g. `+core._+`
+// is every task directly under the `core` module) and draws out their
+// relationships in `.svg` and `.png` form for you to inspect. It also generates
+// `.txt`, `.dot` and `.json` for easy processing by downstream tools.
+//
+// `visualize` can be very handy for trying to understand the dependency graph of
+// tasks within your Mill build: who depends on what? Who do I need to override to affect
+// a particular task? Which tasks depend on another and need to run sequentially, and which
+// do not and can be run in parallel?
+//
+// The above command visualizes all the tasks within the `foo` module, and
+// generates the following diagram to show you how they are related to one another
+// (right-click open in new tab to see full sized):
+//
+// image::basic/VisualizeJava.svg[VisualizeJava.svg]
+//
+// The above example shows the outcome of using `visualize` on multiple tasks within a single
+// module, but you can also use `visualize` on a single task in multiple modules to see how they are related:
+//
+/** Usage
+> mill visualize __.compile
+
+> cat out/visualize.dest/out.dot
+digraph "example1" {
+graph ["rankdir"="LR"]
+"bar.compile" ["style"="solid","shape"="box"]
+"bar.test.compile" ["style"="solid","shape"="box"]
+"foo.compile" ["style"="solid","shape"="box"]
+"foo.test.compile" ["style"="solid","shape"="box"]
+"bar.compile" -> "foo.compile"
+"bar.compile" -> "bar.test.compile"
+"foo.compile" -> "foo.test.compile"
+}
+*/
+
+// image::basic/VisualizeCompiles.svg[VisualizeCompiles.svg]
+//
+// NOTE: `visualize` does a https://en.wikipedia.org/wiki/Transitive_reduction[Transitive Reduction]
+// of the graph when rendering it. This removes redundant edges and simplifies the graph
+// so it's easier to visualize while preserving the overall structure of the graph, but
+// it does mean that there will be some duplicate edges that are not shown.
+//
+// == visualizePlan
+//
+/** Usage
+> mill visualizePlan foo.run
+[
+  ".../out/visualizePlan.dest/out.dot",
+  ".../out/visualizePlan.dest/out.json",
+  ".../out/visualizePlan.dest/out.png",
+  ".../out/visualizePlan.dest/out.svg",
+  ".../out/visualizePlan.dest/out.txt"
+]
+*/
+//
+// `mill visualizePlan` is similar to `mill visualize` except that it
+// shows a graph of the entire build plan, including tasks not directly resolved
+// by the query. Tasks directly resolved are shown with a solid border, and
+// dependencies are shown with a dotted border.
+//
+// The above command generates the following diagram (right-click open in new tab to see full sized):
+//
+// image::basic/VisualizePlanJava.svg[VisualizePlanJava.svg]
+//
+//
+// == init
+
+/** Usage
+> mill init
+Run `mill init <example-id>` with one of these examples as an argument to download and extract example.
+Run `mill init --show-all` to see full list of examples.
+Run `mill init <Giter8 template>` to generate project from Giter8 template.
+...
+scalalib/basic/1-simple
+...
+scalalib/web/1-todo-webapp
+scalalib/web/2-webapp-cache-busting
+scalalib/web/3-scalajs-module
+scalalib/web/4-webapp-scalajs
+scalalib/web/5-webapp-scalajs-shared
+...
+javalib/basic/1-simple
+...
+javalib/basic/6-realistic
+...
+javalib/web/1-hello-jetty
+javalib/web/2-hello-spring-boot
+javalib/web/3-todo-spring-boot
+javalib/web/4-hello-micronaut
+javalib/web/5-todo-micronaut
+kotlinlib/basic/1-simple
+...
+kotlinlib/basic/6-realistic
+...
+kotlinlib/web/1-hello-ktor
+*/
+
+// The `init` command generates a project based on a Mill example project or
+// a Giter8 template. You can use it to quickly generate a starter project.
+// There are lots of templates out there for many frameworks and tools!
+//
+// The typical usage of `init` is to download a
+// xref:cli/installation-ide.adoc#_bootstrap_scripts[bootstrap script]
+// into an empty folder and run `./mill init` to download and unpack one of the example
+// projects closest to what you want into the empty folder. Even though the example
+// project isn't going to be everything that you need, at least it'll get most of the
+// tedious boilerplate set up, so you can hit the group running working on the things
+// that are unique to your particular project..

@@ -1,79 +1,88 @@
 package mill.main.graphviz
 
-import guru.nidi.graphviz.attribute.Rank.RankDir
-import guru.nidi.graphviz.attribute.{Rank, Shape, Style}
-import mill.api.PathRef
-import mill.define.NamedTask
-import mill.eval.Graph
-import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}
+import com.caoccao.javet.annotations.V8Function
+import com.caoccao.javet.interception.logging.JavetStandardConsoleInterceptor
+import com.caoccao.javet.interop.{V8Host, V8Runtime}
+import guru.nidi.graphviz.engine.{AbstractJavascriptEngine, AbstractJsGraphvizEngine, ResultHandler}
+import org.slf4j.LoggerFactory
+import org.slf4j.Logger
+
+import java.util.concurrent.Executors
+import guru.nidi.graphviz.engine.{Format, Graphviz}
+import scala.concurrent.{Await, ExecutionContext, Future, duration}
 
 object GraphvizTools {
 
-  def apply(targets: Seq[NamedTask[Any]], rs: Seq[NamedTask[Any]], dest: os.Path): Seq[PathRef] = {
-    val transitive = Graph.transitiveTargets(rs.distinct)
-    val topoSorted = Graph.topoSorted(transitive)
-    val goalSet = rs.toSet
-    val sortedGroups = Graph.groupAroundImportantTargets(topoSorted) {
-      case x: NamedTask[Any] if goalSet.contains(x) => x
-    }
-    import guru.nidi.graphviz.engine.{Format, Graphviz}
-    import guru.nidi.graphviz.model.Factory._
+  def main(args: Array[String]): Unit = {
+    val executor = Executors.newFixedThreadPool(Runtime.getRuntime.availableProcessors())
 
-    val edgesIterator =
-      for ((k, vs) <- sortedGroups.items())
-        yield (
-          k,
-          for {
-            v <- vs.items
-            dest <- v.inputs.collect { case v: NamedTask[Any] => v }
-            if goalSet.contains(dest)
-          } yield dest
-        )
-
-    val edges = edgesIterator.map { case (k, v) => (k, v.toArray.distinct) }.toArray
-
-    val indexToTask = edges.flatMap { case (k, vs) => Iterator(k) ++ vs }.distinct
-    val taskToIndex = indexToTask.zipWithIndex.toMap
-
-    val jgraph = new SimpleDirectedGraph[Int, DefaultEdge](classOf[DefaultEdge])
-
-    for (i <- indexToTask.indices) jgraph.addVertex(i)
-    for ((src, dests) <- edges; dest <- dests) {
-      jgraph.addEdge(taskToIndex(src), taskToIndex(dest))
-    }
-
-    org.jgrapht.alg.TransitiveReduction.INSTANCE.reduce(jgraph)
-    val nodes = indexToTask.map(t =>
-      node(t.ctx.segments.render).`with` {
-        if (targets.contains(t)) Style.SOLID
-        else Style.DASHED
-      }.`with`(Shape.BOX)
+    val threadLocalJsEngines =
+      new java.util.concurrent.ConcurrentHashMap[Thread, V8JavascriptEngine]()
+    Graphviz.useEngine(
+      new AbstractJsGraphvizEngine(
+        true,
+        () => {
+          threadLocalJsEngines.putIfAbsent(Thread.currentThread(), new V8JavascriptEngine())
+          threadLocalJsEngines.get(Thread.currentThread())
+        }
+      ) {}
     )
+    try {
+      implicit val ec: ExecutionContext = ExecutionContext.fromExecutor(executor)
+      val futures =
+        for (arg <- args.toSeq) yield Future {
+          val Array(src, dest0, commaSepExtensions) = arg.split(";")
+          val extensions = commaSepExtensions.split(',')
+          val dest = os.Path(dest0)
 
-    var g = graph("example1").directed
-    for (i <- indexToTask.indices) {
-      for {
-        e <- edges(i)._2
-        j = taskToIndex(e)
-        if jgraph.containsEdge(i, j)
-      } {
-        g = g.`with`(nodes(j).link(nodes(i)))
-      }
-    }
+          val gv = Graphviz.fromFile(new java.io.File(src)).totalMemory(128 * 1024 * 1024)
 
-    g = g.graphAttr().`with`(Rank.dir(RankDir.LEFT_TO_RIGHT))
+          val outputs = extensions
+            .map(ext => Format.values().find(_.fileExtension == ext).head -> s"out.$ext")
 
-    val gv = Graphviz.fromGraph(g).totalMemory(100 * 1000 * 1000)
-    val outputs = Seq(
-      Format.PLAIN -> "out.txt",
-      Format.XDOT -> "out.dot",
-      Format.JSON -> "out.json",
-      Format.PNG -> "out.png",
-      Format.SVG -> "out.svg"
-    )
-    for ((fmt, name) <- outputs) {
-      gv.render(fmt).toFile((dest / name).toIO)
-    }
-    outputs.map(x => mill.PathRef(dest / x._2))
+          for ((fmt, name) <- outputs) gv.render(fmt).toFile((dest / name).toIO)
+        }
+
+      Await.result(Future.sequence(futures), duration.Duration.Inf)
+    } finally executor.shutdown()
   }
+}
+
+class V8JavascriptEngine() extends AbstractJavascriptEngine {
+  val LOG: Logger = LoggerFactory.getLogger(classOf[V8JavascriptEngine])
+  val v8Runtime: V8Runtime = V8Host.getV8Instance().createV8Runtime()
+  LOG.info("Starting V8 runtime...")
+  LOG.info("Started V8 runtime. Initializing javascript...")
+  val resultHandler = new ResultHandler
+  val javetStandardConsoleInterceptor = new JavetStandardConsoleInterceptor(v8Runtime)
+  javetStandardConsoleInterceptor.register(v8Runtime.getGlobalObject)
+
+  class ResultHandlerInterceptor(resultHandler: ResultHandler) {
+    @V8Function
+    def result(s: String): Unit = resultHandler.setResult(s)
+
+    @V8Function
+    def error(s: String): Unit = resultHandler.setError(s)
+
+    @V8Function
+    def log(s: String): Unit = resultHandler.log(s)
+  }
+  val v8ValueObject = v8Runtime.createV8ValueObject
+  v8Runtime.getGlobalObject.set("resultHandlerInterceptor", v8ValueObject)
+  v8ValueObject.bind(new ResultHandlerInterceptor(resultHandler))
+
+  v8Runtime.getExecutor(
+    "var result = resultHandlerInterceptor.result; " +
+      "var error = resultHandlerInterceptor.error; " +
+      "var log = resultHandlerInterceptor.log; "
+  ).execute()
+
+  LOG.info("Initialized javascript.")
+
+  override protected def execute(js: String): String = {
+    v8Runtime.getExecutor(js).execute()
+    resultHandler.waitFor
+  }
+
+  override def close(): Unit = v8Runtime.close()
 }

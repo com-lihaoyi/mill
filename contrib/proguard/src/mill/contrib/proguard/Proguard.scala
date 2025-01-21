@@ -1,7 +1,7 @@
 package mill.contrib.proguard
 
 import mill.java9rtexport.Export
-import mill.T
+import mill.{T, Task}
 import mill.Agg
 import mill.api.{Loose, PathRef}
 import mill.util.Jvm
@@ -11,10 +11,10 @@ import os.{Path, Shellable}
 /**
  * Adds proguard capabilities when mixed-in to a module
  *
- * The target name is `proguard`. This runs proguard on the output jar of `asssembly`
+ * The target name is `proguard`. This runs proguard on the output jar of `assembly`
  * and outputs a shrunk/obfuscated/optimized jar under `out.jar` in the `dest/` folder.
  *
- * Sensible defaults are provided, so no members require overriding..
+ * Sensible defaults are provided, so no members require overriding.
  */
 trait Proguard extends ScalaModule {
 
@@ -22,7 +22,7 @@ trait Proguard extends ScalaModule {
    * The version of proguard to download from Maven.
    * https://mvnrepository.com/artifact/com.guardsquare/proguard-base
    */
-  def proguardVersion: T[String] = T {
+  def proguardVersion: T[String] = Task {
     T.log.error(
       "Using default proguard version is deprecated. Please override target proguardVersion to specify the version."
     )
@@ -30,63 +30,53 @@ trait Proguard extends ScalaModule {
   }
 
   /** Run the "shrink" step in the proguard pipeline. Defaults to true. */
-  def shrink: T[Boolean] = T { true }
+  def shrink: T[Boolean] = Task { true }
 
   /** Run the "optimize" step in the proguard pipeline. Defaults to true. */
-  def optimize: T[Boolean] = T { true }
+  def optimize: T[Boolean] = Task { true }
 
   /** Run the "obfuscate" step in the proguard pipeline. Defaults to true. */
-  def obfuscate: T[Boolean] = T { true }
+  def obfuscate: T[Boolean] = Task { true }
 
   /**
    * Run the "optimize" step in the proguard pipeline. Defaults to true.
    *
    * Note that this is required for Java 7 and above.
    */
-  def preverify: T[Boolean] = T { true }
+  def preverify: T[Boolean] = Task { true }
 
   /**
    * The path to JAVA_HOME.
    *
    * This is used for both the `java` command binary,
-   * as well as the standard library jars.
+   * and the standard library jars.
    * Defaults to the `java.home` system property.
    * Keep in sync with [[java9RtJar]]-
    */
-  def javaHome: T[PathRef] = T.input {
+  def javaHome: T[PathRef] = Task.Input {
     PathRef(Path(sys.props("java.home")))
   }
 
   /** Specifies the input jar to proguard. Defaults to the output of the `assembly` task. */
-  def inJar: T[PathRef] = T { assembly() }
+  def inJar: T[PathRef] = Task { assembly() }
 
   /**
    * This needs to return the Java RT JAR if on Java 9 or above.
    * Keep in sync with [[javaHome]].
    */
-  def java9RtJar: T[Seq[PathRef]] = T {
-    if (mill.main.client.Util.isJava9OrAbove) {
-      val rt = T.dest / Export.rtJarName
-      if (!os.exists(rt)) {
-        T.log.outputStream.println(
-          s"Preparing Java runtime JAR; this may take a minute or two ..."
-        )
-        Export.rtTo(rt.toIO, false)
-      }
-      Seq(PathRef(rt))
-    } else {
-      Seq()
-    }
+  def java9RtJar: T[Seq[PathRef]] = Task {
+    if (mill.main.client.Util.isJava9OrAbove) Seq(PathRef(T.home / Export.rtJarName))
+    else Seq()
   }
 
   /**
    * The library jars proguard requires
    * Defaults the jars under `javaHome`.
    */
-  def libraryJars: T[Seq[PathRef]] = T {
+  def libraryJars: T[Seq[PathRef]] = Task {
     val javaJars =
       os.list(javaHome().path / "lib", sort = false).filter(_.ext == "jar").toSeq.map(PathRef(_))
-    javaJars ++ java9RtJar()
+    javaJars
   }
 
   /**
@@ -96,7 +86,7 @@ trait Proguard extends ScalaModule {
    *  The stdout and stderr of the command are written to the `dest/` folder.
    *  The output jar is written to `dest/our.jar`.
    */
-  def proguard: T[PathRef] = T {
+  def proguard: T[PathRef] = Task {
     val outJar = T.dest / "out.jar"
 
     val args = Seq[Shellable](
@@ -106,7 +96,10 @@ trait Proguard extends ScalaModule {
       "-outjars",
       outJar,
       "-libraryjars",
-      libraryJars().map(_.path).mkString(java.io.File.pathSeparator),
+      (
+        libraryJars().map(_.path) ++
+          Seq("<java.home>/jmods/java.base.jmod(!**.jar;!module-info.class)")
+      ).mkString(java.io.File.pathSeparator),
       entryPoint(),
       additionalOptions()
     ).flatMap(_.value)
@@ -134,13 +127,13 @@ trait Proguard extends ScalaModule {
    * The location of the proguard jar files.
    * These are downloaded from JCenter and fed to `java -cp`
    */
-  def proguardClasspath: T[Loose.Agg[PathRef]] = T {
-    resolveDeps(T.task {
-      Agg(ivy"com.guardsquare:proguard-base:${proguardVersion()}").map(bindDependency())
-    })()
+  def proguardClasspath: T[Loose.Agg[PathRef]] = Task {
+    defaultResolver().resolveDeps(
+      Agg(ivy"com.guardsquare:proguard-base:${proguardVersion()}")
+    )
   }
 
-  private def steps: T[Seq[String]] = T {
+  private def steps: T[Seq[String]] = Task {
     (if (optimize()) Seq() else Seq("-dontoptimize")) ++
       (if (obfuscate()) Seq() else Seq("-dontobfuscate")) ++
       (if (shrink()) Seq() else Seq("-dontshrink")) ++
@@ -154,7 +147,7 @@ trait Proguard extends ScalaModule {
    * Can be overridden to specify a different entrypoint,
    * or additional entrypoints can be specified with `additionalOptions`.
    */
-  def entryPoint: T[String] = T {
+  def entryPoint: T[String] = Task {
     s"""|-keep public class ${finalMainClass()} {
         |    public static void main(java.lang.String[]);
         |}
@@ -166,7 +159,7 @@ trait Proguard extends ScalaModule {
    *
    * These are fed as-is to the proguard command.
    */
-  def additionalOptions: T[Seq[String]] = T {
+  def additionalOptions: T[Seq[String]] = Task {
     T.log.error(
       "Proguard is set to not warn about message: can't find referenced method 'void invoke()' in library class java.lang.invoke.MethodHandle"
     )

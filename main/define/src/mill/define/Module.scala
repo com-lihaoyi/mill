@@ -8,7 +8,7 @@ import scala.reflect.ClassTag
  * Represents a namespace within the Mill build hierarchy, containing nested
  * modules or tasks.
  *
- * `Module` is a class meant to be extended by `trait`s *only*, in order to
+ * `Module` is a class meant to be extended by ``trait``s *only*, in order to
  * propagate the implicit parameters forward to the final concrete
  * instantiation site so they can capture the enclosing/line information of
  * the concrete instance.
@@ -55,7 +55,7 @@ object Module {
    * messes up the module discovery process
    */
   @internal
-  class BaseClass(implicit outerCtx0: mill.define.Ctx) extends mill.moduledefs.Cacher {
+  class BaseClass(implicit outerCtx0: mill.define.Ctx) extends mill.define.Cacher {
     def millOuterCtx = outerCtx0
   }
 
@@ -78,7 +78,8 @@ object Module {
         outer.getClass,
         implicitly[ClassTag[T]].runtimeClass,
         filter,
-        noParams = true
+        noParams = true,
+        Reflect.getMethods(_, scala.reflect.NameTransformer.decode)
       )
         .map(_.invoke(outer).asInstanceOf[T])
     }
@@ -87,10 +88,18 @@ object Module {
 
     def reflectNestedObjects[T: ClassTag](filter: String => Boolean = Function.const(true))
         : Seq[T] = {
-      Reflect.reflectNestedObjects0(outer.getClass, filter).map {
-        case (name, m: java.lang.reflect.Method) => m.invoke(outer).asInstanceOf[T]
-        case (name, m: java.lang.reflect.Field) => m.get(outer).asInstanceOf[T]
-      }
+      Reflect.reflectNestedObjects02(
+        outer.getClass,
+        filter,
+        Reflect.getMethods(_, scala.reflect.NameTransformer.decode)
+      )
+        .map { case (name, cls, getter) => getter(outer) }
     }
   }
+}
+
+case class ModuleTask[+T](module: Module) extends NamedTask[T] {
+  override def t: Task[T] = this
+  override def ctx0: Ctx = module.millOuterCtx
+  override def isPrivate: Option[Boolean] = None
 }

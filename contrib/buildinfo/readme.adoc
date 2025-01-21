@@ -8,13 +8,14 @@ To declare a module that uses BuildInfo you must extend the `mill.contrib.buildi
 
 Quickstart:
 
-.`build.sc`
+.`build.mill`
 [source,scala]
 ----
+package build
 import $ivy.`com.lihaoyi::mill-contrib-buildinfo:`
 import mill.contrib.buildinfo.BuildInfo
 
-object project extends BuildInfo {
+object project extends BuildInfo with ScalaModule {
   val name = "project-name"
   val buildInfoPackageName = "com.organization"
   def buildInfoMembers = Seq(
@@ -35,6 +36,8 @@ def main = {
   println(BuildInfo.scalaVersion)
 }
 ----
+
+The above example uses `ScalaModule` but `BuildInfo` can also be used with `JavaModule`s
 
 == Configuration options
 

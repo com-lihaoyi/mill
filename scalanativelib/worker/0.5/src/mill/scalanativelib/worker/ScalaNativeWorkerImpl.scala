@@ -58,6 +58,7 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWo
       nativeEmbedResources: Boolean,
       nativeIncrementalCompilation: Boolean,
       nativeDump: Boolean,
+      nativeMultithreading: Option[Boolean],
       logLevel: NativeLogLevel,
       buildTarget: BuildTarget
   ): Either[String, Config] = {
@@ -81,6 +82,7 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWo
         })
         .withEmbedResources(nativeEmbedResources)
         .withIncrementalCompilation(nativeIncrementalCompilation)
+        .withMultithreading(nativeMultithreading)
         .withBaseName("out")
 
     val config = Config.empty

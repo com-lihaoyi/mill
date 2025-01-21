@@ -32,13 +32,13 @@ import mill.util.PrintLogger
         frameworkInstances = Framework.framework(testArgs.framework),
         testClassfilePath = Agg.from(testArgs.testCp),
         args = testArgs.arguments,
-        classFilter = filter,
+        classFilter = cls => filter(cls.getName),
         cl = classLoader,
         testReporter = DummyTestReporter
       )(ctx)
 
       // Clear interrupted state in case some badly-behaved test suite
-      // dirtied the thread-interrupted flag and forgot to clean up. Otherwise
+      // dirtied the thread-interrupted flag and forgot to clean up. Otherwise,
       // that flag causes writing the results to disk to fail
       Thread.interrupted()
       os.write(testArgs.outputPath, upickle.default.stream(result))

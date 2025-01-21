@@ -1,0 +1,73 @@
+// In order to help manage your build, Mill performs some rudimentary filesystem
+// sandboxing to keep different tasks and modules from interfering with each other.
+// This tries to ensure your tasks only read and write from their designated `.dest/`
+// folders, which are unique to each task and thus guaranteed not to collide with
+// the filesystem operations of other tasks that may be occurring in parallel.
+//
+//
+// === `Task.dest`
+// The standard way of working with a task's `.dest/` folder is through the `Task.dest`
+// property. This is available within any task, and gives you access to the
+// `out/<module-names>/<task-name>.dest/` folder to use. The `.dest/` folder for
+// each task is lazily initialized when `Task.dest` is referenced and used:
+
+package build
+import mill._
+
+object foo extends Module {
+  def tDestTask = Task { println(Task.dest.toString) }
+}
+
+/** Usage
+> ./mill foo.tDestTask
+.../out/foo/tDestTask.dest
+*/
+
+// === Task `os.pwd` redirection
+// Mill also redirects the `os.pwd` property from https://github.com/com-lihaoyi/os-lib[OS-Lib],
+// such that that also points towards a running task's own `.dest/` folder
+
+def osPwdTask = Task { println(os.pwd.toString) }
+
+/** Usage
+> ./mill osPwdTask
+.../out/osPwdTask.dest
+*/
+
+// The redirection of `os.pwd` applies to `os.proc`, `os.call`, and `os.spawn` methods
+// as well. In the example below, we can see the `python3` subprocess we spawn prints
+// its `os.getcwd()`, which is our `osProcTask.dest/` sandbox folder:
+
+def osProcTask = Task {
+  println(os.call(("python3", "-c", "import os; print(os.getcwd())"), cwd = Task.dest).out.trim())
+}
+
+/** Usage
+> ./mill osProcTask
+.../out/osProcTask.dest
+*/
+
+// === Non-task `os.pwd` redirection
+//
+// Lastly, there is the possibily of calling `os.pwd` outside of a task. When outside of
+// a task there is no `.dest/` folder associated, so instead Mill will redirect `os.pwd`
+// towards an empty `sandbox/` folder in `out/mill-server/...`:
+
+val externalPwd = os.pwd
+def externalPwdTask = Task { println(externalPwd.toString) }
+
+/** Usage
+> ./mill externalPwdTask
+.../out/mill-server/.../sandbox
+*/
+
+// === Limitations of Mill's Sandboxing
+//
+// Mill's approach to filesystem sandboxing is designed to avoid accidental interference
+// between different Mill tasks. It is not designed to block intentional misbehavior, and
+// tasks are always able to traverse the filesystem and do whatever they want. Furthermore,
+// Mill's redirection of `os.pwd` does not apply to `java.io` or `java.nio` APIs, which are
+// outside of Mill's control.
+//
+// However, by setting `os.pwd` to safe sandbox folders, we hope to minimize the cases where
+// someone accidentally causes issues with their build by doing the wrong thing.

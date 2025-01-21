@@ -1,0 +1,59 @@
+= Tasks
+:page-aliases: Tasks.adoc
+
+include::partial$gtag-config.adoc[]
+
+One of Mill's core abstractions is its _Task Graph_: this is how Mill defines,
+orders and caches work it needs to do, and exists independently of any support
+for building Java, Kotlin, or Scala.
+
+Mill task graphs are primarily built using methods and macros defined on
+`mill.define.Task`, aliased as `T` for conciseness:
+
+- {mill-doc-url}/api/latest/mill/define/Task$.html[mill.define.Task]
+
+== Task Cheat Sheet
+
+The following table might help you make sense of the small collection of
+different Task types:
+
+[cols="<,<,<,<,<,<,<"]
+|===
+| |Target |Command |Source/Input |Anonymous Task |Persistent Task |Worker
+
+|Cached to Disk |X | | | |X |
+|JSON Writable |X |X |X| |X |
+|JSON Readable |X | | | |X |
+|CLI Runnable |X |X | | |X |
+|Takes Arguments | |X | |X | |
+|Cached In-Memory | | | | | |X
+|===
+
+include::partial$example/fundamentals/tasks/1-task-graph.adoc[]
+
+[#primitive-tasks]
+== Primary Tasks
+
+include::partial$example/fundamentals/tasks/2-primary-tasks.adoc[]
+
+== Other Tasks
+
+=== Anonymous Tasks
+
+include::partial$example/fundamentals/tasks/3-anonymous-tasks.adoc[]
+
+=== Inputs
+
+include::partial$example/fundamentals/tasks/4-inputs.adoc[]
+
+=== Persistent Tasks
+
+include::partial$example/fundamentals/tasks/5-persistent-tasks.adoc[]
+
+=== Workers
+
+include::partial$example/fundamentals/tasks/6-workers.adoc[]
+
+== (Experimental) Forking Concurrent Futures within Tasks
+
+include::partial$example/fundamentals/tasks/7-forking-futures.adoc[]

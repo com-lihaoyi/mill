@@ -1,0 +1,45 @@
+= Linting Scala Projects
+:page-aliases: Linting_Scala_Projects.adoc
+
+include::partial$gtag-config.adoc[]
+
+This page will discuss common topics around maintaining the code quality of Scala
+codebases using the Mill build tool
+
+
+== Linting and Autofixing with Scalafix
+
+Scalafix is a tool that analyzes your Scala source code, performing intelligent analyses and
+code quality checks, and is often able to automatically fix the issues that it discovers.
+It can also perform automated refactoring.
+
+Mill supports Scalafix through the Mill-Scalafix third party module. See the module documentation
+for more details:
+
+* https://github.com/joan38/mill-scalafix
+
+== Linting with Acyclic Files Enforcement
+
+include::partial$example/scalalib/linting/3-acyclic.adoc[]
+
+== Autoformatting with ScalaFmt
+
+include::partial$example/scalalib/linting/1-scalafmt.adoc[]
+
+== Code Coverage with Scoverage
+
+include::partial$example/scalalib/linting/2-contrib-scoverage.adoc[]
+
+Mill supports Scala code coverage analysis via the Scoverage contrib plugin. See the
+contrib plugin documentation for more details:
+
+* xref:contrib/scoverage.adoc[]
+
+== Binary Compatibility Enforcement
+
+If you want to lint against binary compatibility breakages, e.g. when developing
+an upstream library that downstream libraries may compile against, you can use
+the Lightbend Migration Manager (MiMa) tool via the mill-mima plugin. See
+the mill-mima documentation for more details:
+
+* https://github.com/lolgab/mill-mima

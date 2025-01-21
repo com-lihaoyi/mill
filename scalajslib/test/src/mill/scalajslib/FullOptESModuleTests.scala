@@ -2,14 +2,13 @@ package mill.scalajslib
 
 import mill.define.Discover
 import mill.scalajslib.api._
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import utest._
 
 object FullOptESModuleTests extends TestSuite {
-  val workspacePath = TestUtil.getOutPathStatic() / "hello-js-world"
 
-  object FullOptESModuleModule extends TestUtil.BaseModule {
-    override def millSourcePath = workspacePath
+  object FullOptESModuleModule extends TestBaseModule {
 
     object fullOptESModuleModule extends ScalaJSModule {
       override def scalaVersion = "2.13.4"
@@ -17,27 +16,21 @@ object FullOptESModuleTests extends TestSuite {
       override def moduleKind = ModuleKind.ESModule
     }
 
-    override lazy val millDiscover = Discover[this.type]
-  }
-
-  val millSourcePath = os.pwd / "scalajslib" / "test" / "resources" / "hello-js-world"
-
-  val fullOptESModuleModuleEvaluator = TestEvaluator.static(FullOptESModuleModule)
-
-  val tests: Tests = Tests {
-    prepareWorkspace()
-
-    test("fullOpt with ESModule moduleKind") {
-      val result =
-        fullOptESModuleModuleEvaluator(FullOptESModuleModule.fullOptESModuleModule.fullOpt)
-      assert(result.isRight)
+    override lazy val millDiscover = {
+      import mill.main.TokenReaders.given
+      Discover[this.type]
     }
   }
 
-  def prepareWorkspace(): Unit = {
-    os.remove.all(workspacePath)
-    os.makeDir.all(workspacePath / os.up)
-    os.copy(millSourcePath, workspacePath)
-  }
+  val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-js-world"
 
+  val tests: Tests = Tests {
+    test("fullOpt with ESModule moduleKind") - UnitTester(
+      FullOptESModuleModule,
+      millSourcePath
+    ).scoped { eval =>
+      val result = eval(FullOptESModuleModule.fullOptESModuleModule.fullOpt)
+      assert(result.isRight)
+    }
+  }
 }

@@ -1,0 +1,24 @@
+//// SNIPPET:BUILD
+package build
+import mill._, kotlinlib._
+
+object `package` extends RootModule with KotlinModule {
+
+  def kotlinVersion = "1.9.24"
+
+  def mainClass = Some("foo.FooKt")
+
+  def ivyDeps = Agg(
+    ivy"com.fasterxml.jackson.core:jackson-databind:2.13.4"
+  )
+}
+
+//// SNIPPET:SCALAIVY
+
+//// SNIPPET:USAGE
+/** Usage
+
+> ./mill run i am cow
+JSONified using Jackson: ["i","am","cow"]
+
+*/

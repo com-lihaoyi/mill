@@ -6,14 +6,14 @@ import mill.scalalib.internal.JavaModuleUtils
 import mill.define.Module
 import mill.eval.Evaluator
 
-private class State(evaluators: Seq[Evaluator], debug: String => Unit) {
-  lazy val bspModulesById: Map[BuildTargetIdentifier, (BspModule, Evaluator)] = {
+private class State(workspaceDir: os.Path, evaluators: Seq[Evaluator], debug: String => Unit) {
+  lazy val bspModulesIdList: Seq[(BuildTargetIdentifier, (BspModule, Evaluator))] = {
     val modules: Seq[(Module, Seq[Module], Evaluator)] = evaluators
       .map(ev => (ev.rootModule, JavaModuleUtils.transitiveModules(ev.rootModule), ev))
 
-    val map = modules
-      .flatMap { case (rootModule, otherModules, eval) =>
-        (Seq(rootModule) ++ otherModules).collect {
+    modules
+      .flatMap { case (rootModule, modules, eval) =>
+        modules.collect {
           case m: BspModule =>
             val uri = Utils.sanitizeUri(
               rootModule.millSourcePath /
@@ -24,9 +24,10 @@ private class State(evaluators: Seq[Evaluator], debug: String => Unit) {
             (new BuildTargetIdentifier(uri), (m, eval))
         }
       }
-      .toMap
+  }
+  lazy val bspModulesById: Map[BuildTargetIdentifier, (BspModule, Evaluator)] = {
+    val map = bspModulesIdList.toMap
     debug(s"BspModules: ${map.view.mapValues(_._1.bspDisplayName).toMap}")
-
     map
   }
 
@@ -34,4 +35,12 @@ private class State(evaluators: Seq[Evaluator], debug: String => Unit) {
 
   lazy val bspIdByModule: Map[BspModule, BuildTargetIdentifier] =
     bspModulesById.view.mapValues(_._1).map(_.swap).toMap
+  lazy val syntheticRootBspBuildTarget: Option[SyntheticRootBspBuildTargetData] =
+    SyntheticRootBspBuildTargetData.makeIfNeeded(bspModulesById.values.map(_._1), workspaceDir)
+
+  def filterNonSynthetic(input: java.util.List[BuildTargetIdentifier])
+      : java.util.List[BuildTargetIdentifier] = {
+    import collection.JavaConverters._
+    input.asScala.filterNot(syntheticRootBspBuildTarget.map(_.id).contains).toList.asJava
+  }
 }

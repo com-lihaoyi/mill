@@ -1,0 +1,129 @@
+package build
+import mill._, pythonlib._
+
+trait MyModule extends PythonModule {
+  def resources = super.resources() ++ Seq(PathRef(millSourcePath / "res"))
+  object test extends PythonTests with TestModule.Unittest
+}
+
+object foo extends MyModule {
+  def moduleDeps = Seq(bar)
+  def mainScript = Task.Source { millSourcePath / "src" / "foo.py" }
+}
+
+object bar extends MyModule {
+  def mainScript = Task.Source { millSourcePath / "src" / "bar.py" }
+  def pythonDeps = Seq("Jinja2==3.1.4")
+}
+
+// This example contains a simple Mill build with two modules, `foo` and `bar`, which you can run
+// tasks on such as `foo.run` or `bar.run`. You can define multiple modules the same way you define
+// a single module, using `def moduleDeps` to define the relationship between them. Modules can also
+// be nested within each other, as `foo.test` and `bar.test` are nested within `foo` and `bar` respectively
+
+// Note that we split out the `test` submodule configuration common to both modules into a
+// separate `trait MyModule`. This https://mill-build.org/mill/main-branch/fundamentals/modules.html[Trait Module]
+// lets us avoid the need to copy-paste common settings, while still letting us define any per-module
+// configuration such as `pythonDeps` specific to a particular module. This is a common pattern within Mill builds.
+//
+// The above builds expect the following project layout:
+// ----
+// build.mill
+// foo/
+//     src/
+//         foo.py
+//     test/
+//          src/
+//              test.py
+// bar/
+//     src/
+//         bar.py
+//     test/
+//          src/
+//              test.py
+// out/
+//     foo/
+//         run.json
+//         run.dest/
+//         ...
+//     bar/
+//         run.json
+//         run.dest/
+//         ...
+//         test/
+//              run.json
+//              run.dest/
+//              ...
+// ----
+//
+// Typically, both source code and output files in Mill follow the module hierarchy,
+// so e.g. input to the foo module lives in `foo/src/` and compiled output files live in
+// `out/foo/run.dest`. You can use `mill resolve` to list out what tasks you can run,
+// e.g. `mill resolve __.run` below which lists out all the `run` tasks:
+//
+
+/** Usage
+
+> ./mill resolve __.run
+bar.run
+...
+foo.run
+
+> ./mill foo.run --foo-text hello --bar-text world
+...
+Foo.value: hello
+Bar.value: <h1>world</h1>
+...
+
+> ./mill bar.run world
+Bar.value: <h1>world</h1>
+
+> ./mill bar.test
+...
+test_escaping (test.TestScript...) ... ok
+test_simple (test.TestScript...) ... ok
+...Ran 2 tests...
+OK
+...
+
+*/
+
+// Mill’s evaluator will ensure that the modules are compiled in the right order, and recompiled
+// as necessary when source code in each module changes. The unique path on disk that Mill
+// automatically assigns each task also ensures you do not need to worry about choosing a path on
+// disk to cache outputs, or filesystem collisions if multiple tasks write to the same path.
+
+// You can use wildcards and brace-expansion to select
+// multiple tasks at once or to shorten the path to deeply nested tasks. If
+// you provide optional task arguments and your wildcard or brace-expansion is
+// resolved to multiple tasks, the arguments will be applied to each of the
+// tasks.
+//
+// .Wildcards and brace-expansion
+// |==========================================================
+// | Wildcard | Function
+// | `_`      | matches a single segment of the task path
+// | `__`     | matches arbitrary segments of the task path
+// | `{a,b}`  | is equal to specifying two tasks `a` and `b`
+// |==========================================================
+//
+//
+// You can use the + symbol to add another task with optional arguments.
+// If you need to feed a + as argument to your task, you can mask it by
+// preceding it with a backslash (`\`).
+//
+
+/** Usage
+
+> mill foo._.typeCheck # Runs `typeCheck` for all direct sub-modules of `foo`
+
+> mill foo.__.test # Runs `test` for all transitive sub-modules of `foo`
+
+> mill {foo,bar}.__.testCached # Runs `testCached` for all sub-modules of `foo` and `bar`
+
+> mill __.typeCheck + foo.__.test # Runs all `typeCheck` tasks and all tests under `foo`.
+
+*/
+
+// For more details on the query syntax, check out the
+// xref:cli/query-syntax.adoc[query syntax documentation]
