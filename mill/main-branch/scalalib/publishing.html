@@ -795,7 +795,7 @@ the <a href="../fundamentals/modules.html#_default_tasks" class="xref page">defa
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill mill.scalalib.PublishModule/ foo.publishArtifacts</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill mill.scalalib.PublishModule/ --publishArtifacts foo.publishArtifacts</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -898,8 +898,8 @@ maven path under <code>sonatypeUri</code> instead of staging path.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill mill.scalalib.PublishModule/ \
-        foo.publishArtifacts \
-        lihaoyi:$SONATYPE_PASSWORD \
+        --publishArtifacts foo.publishArtifacts \
+        --sonatypeCreds lihaoyi:$SONATYPE_PASSWORD \
         --sonatypeUri http://example.company.com/release \
         --stagingRelease false</code></pre>
 </div>
