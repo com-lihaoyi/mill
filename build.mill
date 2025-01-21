@@ -281,6 +281,11 @@ def millLastTag: T[String] = Task {
   } else "SNAPSHOT"
 }
 
+
+def millDownloadUrl = Task{
+  s"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/${build.millLastTag()}"
+}
+
 def millBinPlatform: T[String] = Task {
   // val tag = millLastTag()
   // if (tag.contains("-M")) tag
