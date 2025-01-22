@@ -275,7 +275,13 @@ object BuildGen {
     )
     val developers = model.getDevelopers.iterator().asScala
       .map(dev =>
-        renderDeveloper(dev.getId, dev.getName, dev.getUrl, dev.getOrganization, dev.getOrganizationUrl)
+        renderDeveloper(
+          dev.getId,
+          dev.getName,
+          dev.getUrl,
+          dev.getOrganization,
+          dev.getOrganizationUrl
+        )
       )
 
     BuildGenUtil.renderPomSettings(
@@ -288,7 +294,11 @@ object BuildGen {
     )
   }
 
-  def scopedDeps(model: Model, packages: PartialFunction[(String, String, String), String], cfg: BuildGenConfig): (
+  def scopedDeps(
+      model: Model,
+      packages: PartialFunction[(String, String, String), String],
+      cfg: BuildGenConfig
+  ): (
       Companions,
       IterableOnce[String],
       IterableOnce[String],
@@ -360,9 +370,10 @@ object BuildGen {
       }
     }
 
-    val companions = cfg.shared.depsObject.fold(SortedMap.empty[String, BuildObject.Constants])(name =>
-      SortedMap((name, SortedMap(namedIvyDeps.result() *)))
-    )
+    val companions =
+      cfg.shared.depsObject.fold(SortedMap.empty[String, BuildObject.Constants])(name =>
+        SortedMap((name, SortedMap(namedIvyDeps.result() *)))
+      )
 
     (
       companions,
@@ -384,10 +395,7 @@ object BuildGen {
 @main
 @mill.api.internal
 case class BuildGenConfig(
-                           shared: BuildGenUtil.Config,
-
-
-
+    shared: BuildGenUtil.Config,
     @arg(doc = "merge build files generated for a multi-module build", short = 'm')
     merge: Flag = Flag(),
     @arg(doc = "capture properties defined in `pom.xml` for publishing", short = 'p')

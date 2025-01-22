@@ -62,7 +62,6 @@ object `package` extends RootModule with build.MillPublishScalaModule {
     PathRef(T.dest)
   }
 
-
   object buildgen extends build.MillPublishScalaModule {
     def moduleDeps = Seq(build.runner)
     def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib)

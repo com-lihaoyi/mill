@@ -101,7 +101,10 @@ object BuildGen {
     file
   }
 
-  private def convert(input: Tree[Node[ProjectModel]], cfg: BuildGenConfig): Tree[Node[BuildObject]] = {
+  private def convert(
+      input: Tree[Node[ProjectModel]],
+      cfg: BuildGenConfig
+  ): Tree[Node[BuildObject]] = {
     val packages = // for resolving moduleDeps
       buildPackages(input)(project => (project.group(), project.name(), project.version()))
 
@@ -357,11 +360,12 @@ object BuildGen {
     val hasTest = os.exists(os.Path(project.directory()) / "src/test")
     val _java = project._java()
     if (null != _java) {
-      val ivyDep: JavaModel.Dep => String = cfg.shared.depsObject.fold(interpIvy) { objName => dep =>
-        val depName = s"`${dep.group()}:${dep.name()}`"
-        namedIvyDeps += ((depName, interpIvy(dep)))
-        s"$objName.$depName"
-      }
+      val ivyDep: JavaModel.Dep => String =
+        cfg.shared.depsObject.fold(interpIvy) { objName => dep =>
+          val depName = s"`${dep.group()}:${dep.name()}`"
+          namedIvyDeps += ((depName, interpIvy(dep)))
+          s"$objName.$depName"
+        }
       _java.configs().forEach { config =>
         import JavaPlugin.*
 
@@ -416,9 +420,10 @@ object BuildGen {
         }
       }
     }
-    val companions = cfg.shared.depsObject.fold(SortedMap.empty[String, BuildObject.Constants])(name =>
-      SortedMap((name, SortedMap(namedIvyDeps.result() *)))
-    )
+    val companions =
+      cfg.shared.depsObject.fold(SortedMap.empty[String, BuildObject.Constants])(name =>
+        SortedMap((name, SortedMap(namedIvyDeps.result() *)))
+      )
     (
       companions,
       mainBomIvyDeps.result(),
@@ -441,8 +446,7 @@ object BuildGen {
 @main
 @mill.api.internal
 case class BuildGenConfig(
-     shared: BuildGenUtil.Config,
-
+    shared: BuildGenUtil.Config,
     @arg(doc = "name of Gradle project to extract settings for --base-module", short = 'g')
     baseProject: Option[String] = None,
     @arg(doc = "merge build files generated for a multi-module build", short = 'm')
