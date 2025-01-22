@@ -179,7 +179,7 @@ object BuildGen {
           Option.when(hasPom && baseNoPom) { "PublishModule" } ++
           Option.when(isNested || hasSource) { moduleSupertype }
 
-      val scopedDeps = new ScopedDeps(project, packages, cfg)
+      val scopedDeps = extractScopedDeps(project, packages, cfg)
 
       val inner = {
         val javacOptions = {
@@ -267,67 +267,86 @@ object BuildGen {
     }
   }
 
-  class ScopedDeps(
+  def extractScopedDeps(
       project: ProjectModel,
       packages: PartialFunction[(String, String, String), String],
       cfg: BuildGenConfig
-  ) extends IrScopedDeps {
-
+  ) = {
+    var sd = IrScopedDeps()
     val hasTest = os.exists(os.Path(project.directory()) / "src/test")
     val _java = project._java()
     if (null != _java) {
       val ivyDep: JavaModel.Dep => String =
         cfg.shared.depsObject.fold(interpIvy(_)) { objName => dep =>
           val depName = s"`${dep.group()}:${dep.name()}`"
-          namedIvyDeps += ((depName, interpIvy(dep)))
+          sd = sd.copy(namedIvyDeps = sd.namedIvyDeps :+ ((depName, interpIvy(dep))))
           s"$objName.$depName"
         }
+      def appendIvyDepPackage(
+          deps: IterableOnce[JavaModel.Dep],
+          onPackage: String => IrScopedDeps,
+          onIvy: (String, (String, String, String)) => IrScopedDeps
+      ) = {
+        for (dep <- deps) {
+          val id = groupArtifactVersion(dep)
+          if (packages.isDefinedAt(id)) sd = onPackage(packages(id))
+          else {
+            val ivy = ivyDep(dep)
+            sd = onIvy(ivy, id)
+          }
+        }
+      }
       _java.configs().forEach { config =>
         import JavaPlugin.*
 
         val conf = config.name()
         conf match {
           case IMPLEMENTATION_CONFIGURATION_NAME | API_CONFIGURATION_NAME =>
-            config.deps.forEach { dep =>
-              val id = groupArtifactVersion(dep)
-              if (packages.isDefinedAt(id)) mainModuleDeps += packages(id)
-              else if (isBom(id)) {
-                println(s"assuming $conf dependency $id is a BOM")
-                mainBomIvyDeps += ivyDep(dep)
-              } else mainIvyDeps += ivyDep(dep)
-            }
+            appendIvyDepPackage(
+              config.deps.asScala,
+              onPackage = v => sd.copy(mainModuleDeps = sd.mainModuleDeps + v),
+              onIvy = (v, id) =>
+                if (isBom(id)) sd.copy(mainBomIvyDeps = sd.mainBomIvyDeps + v)
+                else sd.copy(mainIvyDeps = sd.mainIvyDeps + v)
+            )
+
           case COMPILE_ONLY_CONFIGURATION_NAME | COMPILE_ONLY_API_CONFIGURATION_NAME =>
-            config.deps.forEach { dep =>
-              val id = groupArtifactVersion(dep)
-              if (packages.isDefinedAt(id)) mainCompileModuleDeps += packages(id)
-              else mainCompileIvyDeps += ivyDep(dep)
-            }
+
+            appendIvyDepPackage(
+              config.deps.asScala,
+              onPackage = v => sd.copy(mainCompileModuleDeps = sd.mainCompileModuleDeps + v),
+              onIvy = (v, id) => sd.copy(mainCompileIvyDeps = sd.mainCompileIvyDeps + v)
+            )
+
           case RUNTIME_ONLY_CONFIGURATION_NAME =>
-            config.deps.forEach { dep =>
-              val id = groupArtifactVersion(dep)
-              if (packages.isDefinedAt(id)) mainRunModuleDeps += packages(id)
-              else mainRunIvyDeps += ivyDep(dep)
-            }
+            appendIvyDepPackage(
+              config.deps.asScala,
+              onPackage = v => sd.copy(mainRunModuleDeps = sd.mainRunModuleDeps + v),
+              onIvy = (v, id) => sd.copy(mainRunIvyDeps = sd.mainRunIvyDeps + v)
+            )
+
           case TEST_IMPLEMENTATION_CONFIGURATION_NAME =>
+
+            appendIvyDepPackage(
+              config.deps.asScala,
+              onPackage = v => sd.copy(testModuleDeps = sd.testModuleDeps + v),
+              onIvy = (v, id) =>
+                if (isBom(id)) sd.copy(testBomIvyDeps = sd.testBomIvyDeps + v)
+                else sd.copy(testIvyDeps = sd.testIvyDeps + v)
+            )
             config.deps.forEach { dep =>
-              val id = groupArtifactVersion(dep)
-              if (packages.isDefinedAt(id)) testModuleDeps += packages(id)
-              else
-                (if (isBom(id)) testBomIvyDeps
-                 else {
-                   println(s"assuming $conf dependency $id is a BOM")
-                   testIvyDeps
-                 }) += ivyDep(dep)
-              if (hasTest && testModule.isEmpty) {
-                testModule = testModulesByGroup.get(dep.group())
+              if (hasTest && sd.testModule.isEmpty) {
+                sd = sd.copy(testModule = testModulesByGroup.get(dep.group()))
               }
             }
+
           case TEST_COMPILE_ONLY_CONFIGURATION_NAME =>
-            config.deps.forEach { dep =>
-              val id = groupArtifactVersion(dep)
-              if (packages.isDefinedAt(id)) testCompileModuleDeps += packages(id)
-              else testCompileIvyDeps += ivyDep(dep)
-            }
+            appendIvyDepPackage(
+              config.deps.asScala,
+              onPackage = v => sd.copy(testCompileModuleDeps = sd.testCompileModuleDeps + v),
+              onIvy = (v, id) => sd.copy(testCompileIvyDeps = sd.testCompileIvyDeps + v)
+            )
+
           case name =>
             config.deps.forEach { dep =>
               val id = groupArtifactVersion(dep)
@@ -336,10 +355,11 @@ object BuildGen {
         }
       }
     }
-    val companions =
+    sd.copy(companions =
       cfg.shared.depsObject.fold(SortedMap.empty[String, BuildObject.Constants])(name =>
-        SortedMap((name, SortedMap(namedIvyDeps.toSeq *)))
+        SortedMap((name, SortedMap(sd.namedIvyDeps.toSeq *)))
       )
+    )
   }
 }
 

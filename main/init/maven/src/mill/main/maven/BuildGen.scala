@@ -123,7 +123,7 @@ object BuildGen {
             case Some(v) => Seq(v)
           })
 
-      val scopedDeps = new ScopedDeps(model, packages, cfg)
+      val scopedDeps = extractScopedDeps(model, packages, cfg)
 
       val inner = {
         val options = Plugins.MavenCompilerPlugin.javacOptions(model)
@@ -235,18 +235,19 @@ object BuildGen {
     )
   }
 
-  class ScopedDeps(
+  def extractScopedDeps(
       model: Model,
       packages: PartialFunction[(String, String, String), String],
       cfg: BuildGenConfig
-  ) extends IrScopedDeps {
+  ): IrScopedDeps = {
+    var sd = IrScopedDeps()
 
     val hasTest = os.exists(os.Path(model.getProjectDirectory) / "src/test")
     val ivyDep: Dependency => String = {
       cfg.shared.depsObject.fold(interpIvy(_)) { objName => dep =>
         {
           val depName = s"`${dep.getGroupId}:${dep.getArtifactId}`"
-          namedIvyDeps += ((depName, interpIvy(dep)))
+          sd = sd.copy(namedIvyDeps = sd.namedIvyDeps :+ ((depName, interpIvy(dep))))
           s"$objName.$depName"
         }
       }
@@ -255,41 +256,56 @@ object BuildGen {
     model.getDependencies.forEach { dep =>
       val id = gav(dep)
       dep.getScope match {
-        case "compile" if packages.isDefinedAt(id) =>
-          mainCompileModuleDeps += packages(id)
-        case "compile" if isBom(id) =>
-          println(s"assuming compile dependency $id is a BOM")
-          mainIvyDeps += ivyDep(dep)
+
         case "compile" =>
-          mainIvyDeps += ivyDep(dep)
-        case "provided" if packages.isDefinedAt(id) =>
-          mainModuleDeps += packages(id)
+          if (packages.isDefinedAt(id))
+            sd = sd.copy(mainCompileModuleDeps = sd.mainCompileModuleDeps + packages(id))
+          else {
+            if (isBom(id)) println(s"assuming compile dependency $id is a BOM")
+            val ivy = ivyDep(dep)
+            sd = sd.copy(mainIvyDeps = sd.mainIvyDeps + ivy)
+          }
         case "provided" =>
-          mainCompileIvyDeps += ivyDep(dep)
-        case "runtime" if packages.isDefinedAt(id) =>
-          mainRunModuleDeps += packages(id)
+          if (packages.isDefinedAt(id))
+            sd = sd.copy(mainModuleDeps = sd.mainModuleDeps + packages(id))
+          else {
+            val ivy = ivyDep(dep)
+            sd = sd.copy(mainCompileIvyDeps = sd.mainCompileIvyDeps + ivy)
+          }
         case "runtime" =>
-          mainRunIvyDeps += ivyDep(dep)
-        case "test" if packages.isDefinedAt(id) =>
-          testModuleDeps += packages(id)
-        case "test" if isBom(id) =>
-          println(s"assuming test dependency $id is a BOM")
-          testBomIvyDeps += ivyDep(dep)
+          if (packages.isDefinedAt(id))
+            sd = sd.copy(mainRunModuleDeps = sd.mainRunModuleDeps + packages(id))
+          else {
+            val ivy = ivyDep(dep)
+            sd = sd.copy(mainRunIvyDeps = sd.mainRunIvyDeps + ivy)
+          }
+
         case "test" =>
-          testIvyDeps += ivyDep(dep)
+          if (packages.isDefinedAt(id))
+            sd = sd.copy(testModuleDeps = sd.testModuleDeps + packages(id))
+          else {
+            val ivy = ivyDep(dep)
+            if (isBom(id)) {
+              sd = sd.copy(testBomIvyDeps = sd.testBomIvyDeps + ivy)
+            } else {
+              sd = sd.copy(testIvyDeps = sd.testIvyDeps + ivy)
+            }
+          }
+
         case scope =>
           println(s"ignoring $scope dependency $id")
 
       }
-      if (hasTest && testModule.isEmpty) {
-        testModule = testModulesByGroup.get(dep.getGroupId)
+      if (hasTest && sd.testModule.isEmpty) {
+        sd = sd.copy(testModule = testModulesByGroup.get(dep.getGroupId))
       }
     }
 
-    val companions =
+    sd.copy(companions =
       cfg.shared.depsObject.fold(SortedMap.empty[String, BuildObject.Constants])(name =>
-        SortedMap((name, SortedMap(namedIvyDeps.toSeq *)))
+        SortedMap((name, SortedMap(sd.namedIvyDeps.toSeq *)))
       )
+    )
   }
 }
 

@@ -70,19 +70,20 @@ case class IrBuild(
     pomParentArtifact: String
 )
 
-trait IrScopedDeps {
-  val namedIvyDeps = mutable.Buffer.empty[(String, String)]
-  val mainBomIvyDeps = mutable.SortedSet.empty[String]
-  val mainIvyDeps = mutable.SortedSet.empty[String]
-  val mainModuleDeps = mutable.SortedSet.empty[String]
-  val mainCompileIvyDeps = mutable.SortedSet.empty[String]
-  val mainCompileModuleDeps = mutable.SortedSet.empty[String]
-  val mainRunIvyDeps = mutable.SortedSet.empty[String]
-  val mainRunModuleDeps = mutable.SortedSet.empty[String]
-  var testModule = Option.empty[String]
-  val testBomIvyDeps = mutable.SortedSet.empty[String]
-  val testIvyDeps = mutable.SortedSet.empty[String]
-  val testModuleDeps = mutable.SortedSet.empty[String]
-  val testCompileIvyDeps = mutable.SortedSet.empty[String]
-  val testCompileModuleDeps = mutable.SortedSet.empty[String]
-}
+case class IrScopedDeps(
+    namedIvyDeps: Seq[(String, String)] = Nil,
+    mainBomIvyDeps: SortedSet[String] = SortedSet(),
+    mainIvyDeps: SortedSet[String] = SortedSet(),
+    mainModuleDeps: SortedSet[String] = SortedSet(),
+    mainCompileIvyDeps: SortedSet[String] = SortedSet(),
+    mainCompileModuleDeps: SortedSet[String] = SortedSet(),
+    mainRunIvyDeps: SortedSet[String] = SortedSet(),
+    mainRunModuleDeps: SortedSet[String] = SortedSet(),
+    testModule: Option[String] = None,
+    testBomIvyDeps: SortedSet[String] = SortedSet(),
+    testIvyDeps: SortedSet[String] = SortedSet(),
+    testModuleDeps: SortedSet[String] = SortedSet(),
+    testCompileIvyDeps: SortedSet[String] = SortedSet(),
+    testCompileModuleDeps: SortedSet[String] = SortedSet(),
+    companions: SortedMap[String, BuildObject.Constants] = SortedMap()
+)
