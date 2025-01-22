@@ -29,15 +29,11 @@ object TreeTests extends TestSuite {
       )
 
     test("BreadthFirst") {
-      implicit val traversal: Tree.Traversal = Tree.Traversal.BreadthFirst
-
-      assert(tree.nodes.toSeq == Seq(50, 25, 10, 5, 2, 5, 5, 2))
+      assert(tree.nodes(Tree.Traversal.BreadthFirst).toSeq == Seq(50, 25, 10, 5, 2, 5, 5, 2))
     }
 
     test("DepthFirst") {
-      implicit val traversal: Tree.Traversal = Tree.Traversal.DepthFirst
-
-      assert(tree.nodes.toSeq == Seq(5, 25, 5, 2, 10, 5, 2, 50))
+      assert(tree.nodes(Tree.Traversal.DepthFirst).toSeq == Seq(5, 25, 5, 2, 10, 5, 2, 50))
     }
   }
 }

@@ -27,7 +27,7 @@ object BuildGenUtil {
 
   def buildPackages[Module, Key](input: Tree[Node[Module]])(key: Module => Key)
       : Map[Key, String] =
-    input.nodes
+    input.nodes()
       .map(node => (key(node.module), buildPackage(node.dirs)))
       .toSeq
       .toMap
@@ -336,7 +336,7 @@ object BuildGenUtil {
   )
 
   def write(tree: Tree[Node[BuildObject]]): Unit = {
-    val nodes = tree.nodes.toSeq
+    val nodes = tree.nodes().toSeq
     println(s"generated ${nodes.length} Mill build file(s)")
 
     println("removing existing Mill build files")

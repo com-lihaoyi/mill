@@ -212,7 +212,8 @@ object BuildGen {
 
         val testModuleTypedef = {
           if (hasTest) {
-            val declare = BuildGenUtil.renderTestModuleDecl(cfg.shared.testModule, scopedDeps.testModule)
+            val declare =
+              BuildGenUtil.renderTestModuleDecl(cfg.shared.testModule, scopedDeps.testModule)
 
             s"""$declare {
                |
@@ -258,7 +259,9 @@ object BuildGen {
 
       val outer = if (isNested) "" else baseModuleTypedef
 
-      build.copy(module = BuildObject(imports.to(SortedSet), scopedDeps.companions, supertypes, inner, outer))
+      build.copy(module =
+        BuildObject(imports.to(SortedSet), scopedDeps.companions, supertypes, inner, outer)
+      )
     }
   }
 
@@ -312,7 +315,7 @@ object BuildGen {
       project: ProjectModel,
       packages: PartialFunction[(String, String, String), String],
       cfg: BuildGenConfig
-  ){
+  ) {
     val namedIvyDeps = mutable.Buffer.empty[(String, String)]
     val mainBomIvyDeps = mutable.SortedSet.empty[String]
     val mainIvyDeps = mutable.SortedSet.empty[String]
