@@ -6,9 +6,11 @@ import mill.main.buildgen.{
   BuildGenUtil,
   BuildObject,
   IrBuild,
+  IrDeveloper,
   IrPom,
   IrScopedDeps,
   IrTrait,
+  IrVersionControl,
   Node,
   Tree
 }
@@ -161,7 +163,7 @@ object BuildGen {
     }
   }
 
-  def gav(dep: Dependency): (String, String, String) =
+  def groupArtifactVersion(dep: Dependency): (String, String, String) =
     (dep.getGroupId, dep.getArtifactId, dep.getVersion)
 
   def getPublishProperties(model: Model, cfg: BuildGenConfig): Seq[(String, String)] =
@@ -199,12 +201,14 @@ object BuildGen {
           "repo"
         )
       )
-    val versionControl = Option(model.getScm).fold(renderVersionControl())(scm =>
-      renderVersionControl(scm.getUrl, scm.getConnection, scm.getDeveloperConnection, scm.getTag)
+
+    val versionControl = Option(model.getScm).fold(IrVersionControl(null, null, null, null))(scm =>
+      IrVersionControl(scm.getUrl, scm.getConnection, scm.getDeveloperConnection, scm.getTag)
     )
-    val developers = model.getDevelopers.iterator().asScala
+
+    val developers = model.getDevelopers.iterator().asScala.toSeq
       .map(dev =>
-        renderDeveloper(
+        IrDeveloper(
           dev.getId,
           dev.getName,
           dev.getUrl,
@@ -242,7 +246,7 @@ object BuildGen {
     }
 
     model.getDependencies.forEach { dep =>
-      val id = gav(dep)
+      val id = groupArtifactVersion(dep)
       dep.getScope match {
 
         case "compile" =>

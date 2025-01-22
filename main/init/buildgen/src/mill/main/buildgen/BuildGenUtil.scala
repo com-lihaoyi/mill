@@ -46,8 +46,8 @@ object BuildGenUtil {
   def renderIrPom(value: IrPom): String = {
     import value._
     val mkLicenses = licenses.iterator.mkString("Seq(", ", ", ")")
-    val mkDevelopers = developers.iterator.mkString("Seq(", ", ", ")")
-    s"PomSettings(${escape(description)}, ${escape(organization)}, ${escape(url)}, $mkLicenses, $versionControl, $mkDevelopers)"
+    val mkDevelopers = developers.iterator.map(renderDeveloper).mkString("Seq(", ", ", ")")
+    s"PomSettings(${escape(description)}, ${escape(organization)}, ${escape(url)}, $mkLicenses, ${renderVersionControl(versionControl)}, $mkDevelopers)"
   }
 
   def renderIrBuild(value: IrBuild): String = {
@@ -293,8 +293,9 @@ object BuildGenUtil {
   def renderArtifact(group: String, id: String, version: String): String =
     s"Artifact(${escape(group)}, ${escape(id)}, ${escape(version)})"
 
-  def renderDeveloper(id: String, name: String, url: String, org: String, orgUrl: String): String =
-    s"Developer(${escape(id)}, ${escape(name)}, ${escape(url)}, ${escapeOption(org)}, ${escapeOption(orgUrl)})"
+  def renderDeveloper(dev: IrDeveloper): String = {
+    s"Developer(${escape(dev.id)}, ${escape(dev.name)}, ${escape(dev.url)}, ${escapeOption(dev.organization)}, ${escapeOption(dev.organizationUrl)})"
+  }
 
   def renderExtends(supertypes: Seq[String]): String = supertypes match {
     case Seq() => ""
@@ -312,13 +313,8 @@ object BuildGenUtil {
   ): String =
     s"License(${escape(id)}, ${escape(name)}, ${escape(url)}, $isOsiApproved, $isFsfLibre, ${escape(distribution)})"
 
-  def renderVersionControl(
-      repo: String = null,
-      connection: String = null,
-      devConnection: String = null,
-      tag: String = null
-  ): String =
-    s"VersionControl(${escapeOption(repo)}, ${escapeOption(connection)}, ${escapeOption(devConnection)}, ${escapeOption(tag)})"
+  def renderVersionControl(vc: IrVersionControl): String =
+    s"VersionControl(${escapeOption(vc.url)}, ${escapeOption(vc.connection)}, ${escapeOption(vc.devConnection)}, ${escapeOption(vc.tag)})"
 
   def renderZincWorker(moduleName: String, jvmId: String): String =
     s"""object $moduleName extends ZincWorkerModule {

@@ -6,9 +6,11 @@ import mill.main.buildgen.{
   BuildGenUtil,
   BuildObject,
   IrBuild,
+  IrDeveloper,
   IrPom,
   IrScopedDeps,
   IrTrait,
+  IrVersionControl,
   Node,
   Tree
 }
@@ -247,11 +249,12 @@ object BuildGen {
     else {
       val licenses = pom.licenses().iterator().asScala
         .map(lic => mrenderLicense(lic.name(), lic.name(), lic.url()))
-      val versionControl = Option(pom.scm()).fold(renderVersionControl())(scm =>
-        renderVersionControl(scm.url(), scm.connection(), scm.devConnection(), scm.tag())
+      val versionControl = Option(pom.scm()).fold(IrVersionControl(null, null, null, null))(scm =>
+        IrVersionControl(scm.url(), scm.connection(), scm.devConnection(), scm.tag())
       )
       val developers = pom.devs().iterator().asScala
-        .map(dev => renderDeveloper(dev.id(), dev.name(), dev.url(), dev.org(), dev.orgUrl()))
+        .map(dev => IrDeveloper(dev.id(), dev.name(), dev.url(), dev.org(), dev.orgUrl()))
+        .toSeq
 
       IrPom(
         pom.description(),

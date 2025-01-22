@@ -52,8 +52,17 @@ case class IrPom(
     organization: String,
     url: String,
     licenses: IterableOnce[String],
-    versionControl: String,
-    developers: IterableOnce[String]
+    versionControl: IrVersionControl,
+    developers: Seq[IrDeveloper]
+)
+
+case class IrVersionControl(url: String, connection: String, devConnection: String, tag: String)
+case class IrDeveloper(
+    id: String,
+    name: String,
+    url: String,
+    organization: String,
+    organizationUrl: String
 )
 
 case class IrBuild(
