@@ -9,11 +9,10 @@ object `package` extends RootModule with PublishModule with MavenModule {
   def javacOptions = super.javacOptions() ++
     Seq("-source", "1.6", "-target", "1.6")
 
+  def moduleDeps = super.moduleDeps ++ Seq(build.`multi-module`.server)
+
   def compileIvyDeps = super.compileIvyDeps() ++
     Agg(ivy"javax.servlet.jsp:jsp-api:2.2", ivy"javax.servlet:servlet-api:2.5")
-
-  def compileModuleDeps = super.compileModuleDeps ++
-    Seq(build.`multi-module`.server)
 
   def pomSettings = PomSettings(
     "Webapp.",

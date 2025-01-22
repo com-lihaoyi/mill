@@ -67,11 +67,10 @@ object `package` extends RootModule with MyModule {
       def javacOptions = super.javacOptions() ++
         Seq("-source", "1.6", "-target", "1.6")
 
+      def moduleDeps = super.moduleDeps ++ Seq(build.`multi-module`.server)
+
       def compileIvyDeps = super.compileIvyDeps() ++
         Agg(Deps.`javax.servlet.jsp:jsp-api`, Deps.`javax.servlet:servlet-api`)
-
-      def compileModuleDeps = super.compileModuleDeps ++
-        Seq(build.`multi-module`.server)
 
       def pomPackagingType = "war"
 
