@@ -180,7 +180,7 @@ trait JavaModule
   def runIvyDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
   /**
-   * Any BOM dependencies you want to add to this Module, in the format
+   * Any Bill of Material (BOM) dependencies you want to add to this Module, in the format
    * ivy"org:name:version"
    */
   def bomIvyDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
@@ -205,7 +205,7 @@ trait JavaModule
       }
     else
       throw new Exception(
-        "Found BOM dependencies with invalid parameters:" + System.lineSeparator() +
+        "Found Bill of Material (BOM) dependencies with invalid parameters:" + System.lineSeparator() +
           malformed.map("- " + _.dep + System.lineSeparator()).mkString +
           "Only organization, name, and version are accepted."
       )
@@ -315,7 +315,7 @@ trait JavaModule
   def runModuleDeps: Seq[JavaModule] = Seq.empty
 
   /**
-   *  BOM dependencies of this module.
+   *  Bill of Material (BOM) dependencies of this module.
    *  This is meant to be overridden to add BOM dependencies.
    *  To read the value, you should use [[bomModuleDepsChecked]] instead,
    *  which uses a cached result which is also checked to be free of cycles.
@@ -635,7 +635,7 @@ trait JavaModule
   }
 
   /**
-   * The Ivy dependencies of this module, with BOM and dependency management details
+   * The Ivy dependencies of this module, with Bill of Material (BOM) and dependency management details
    * added to them. This should be used when propagating the dependencies transitively
    * to other modules.
    */

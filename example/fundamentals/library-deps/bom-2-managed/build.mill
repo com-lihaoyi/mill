@@ -53,7 +53,7 @@ object baz extends JavaModule {
 // Here, given that grpc-protobuf is fetched during dependency resolution,
 // `com.google.protobuf:protobuf-java` is excluded from it because of the dependency management.
 
-// One can manage and publish BOM modules from Mill, by using `BomModule`:
+// One can manage and publish Bill of Material (BOM) modules from Mill, by using `BomModule`:
 
 object myBom extends BomModule {
   // Importing external BOMs from our BOM module with bomIvyDeps
