@@ -250,7 +250,7 @@ object BuildGen {
     } else Seq.empty
 
   val interpIvy: Dependency => String = dep =>
-    BuildGenUtil.interpIvy(
+    BuildGenUtil.ivyString(
       dep.getGroupId,
       dep.getArtifactId,
       dep.getVersion,

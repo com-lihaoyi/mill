@@ -117,7 +117,7 @@ object BuildGen {
             cfg.baseProject
               .flatMap(name => projects.collectFirst { case m if name == m.name => m })
               .orElse(projects.collectFirst { case m if null != m.maven().pom() => m })
-              .orElse(projects.collectFirst { case m if !m.maven().reps().isEmpty => m })
+              .orElse(projects.collectFirst { case m if !m.maven().repositories().isEmpty => m })
               .getOrElse(input.node.module)
           }
           if (isMonorepo) {
@@ -291,7 +291,7 @@ object BuildGen {
   }
 
   def getRepositories(project: ProjectModel): Seq[String] =
-    project.maven().reps().asScala.toSeq.sorted.map(uri =>
+    project.maven().repositories().asScala.toSeq.sorted.map(uri =>
       s"coursier.maven.MavenRepository(${escape(uri.toString)})"
     )
 
@@ -302,7 +302,7 @@ object BuildGen {
     }
 
   val interpIvy: JavaModel.Dep => String = dep =>
-    BuildGenUtil.interpIvy(dep.group(), dep.name(), dep.version())
+    BuildGenUtil.ivyString(dep.group(), dep.name(), dep.version())
 
   def mkPomSettings(project: ProjectModel): String = {
     val pom = project.maven.pom()

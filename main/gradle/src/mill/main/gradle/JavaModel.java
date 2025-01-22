@@ -40,7 +40,7 @@ public interface JavaModel extends Serializable {
       List<String> javacOptions = project
           .getTasks()
           .withType(JavaCompile.class)
-          .named(JavaPlugin.COMPILE_JAVA_TASK_NAME)
+          .named(JavaPlugin.COMPILE_JAVA_TASK_NAME, JavaCompile.class)
           .map(task -> task.getOptions().getAllCompilerArgs())
           .getOrElse(Collections.emptyList());
       List<Config> configs =

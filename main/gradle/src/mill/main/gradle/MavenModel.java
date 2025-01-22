@@ -20,7 +20,7 @@ public interface MavenModel extends Serializable {
 
   Pom pom();
 
-  Set<URI> reps();
+  Set<URI> repositories();
 
   class Impl implements MavenModel {
 
@@ -36,7 +36,7 @@ public interface MavenModel extends Serializable {
       return pom;
     }
 
-    public Set<URI> reps() {
+    public Set<URI> repositories() {
       return reps;
     }
   }
@@ -48,7 +48,7 @@ public interface MavenModel extends Serializable {
             ? Stream.of(Pom.from((DefaultMavenPom) p))
             : Stream.empty())
         .findFirst()
-        .orElseGet(() -> null);
+        .orElse(null);
     RepositoryHandler rep = project.getRepositories();
     List<URI> skipReps = new LinkedList<>();
     skipReps.add(rep.mavenCentral().getUrl());

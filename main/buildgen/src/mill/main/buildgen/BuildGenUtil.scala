@@ -129,7 +129,7 @@ object BuildGenUtil {
   def escapeOption(value: String): String =
     if (null == value) "None" else s"Some(\"$value\")"
 
-  def interpIvy(
+  def ivyString(
       group: String,
       artifact: String,
       version: String = null,
@@ -168,11 +168,11 @@ object BuildGenUtil {
   def isNullOrEmpty(value: String): Boolean =
     null == value || value.isEmpty
 
-  def linebreak: String =
+  val linebreak: String =
     """
       |""".stripMargin
 
-  def linebreak2: String =
+  val linebreak2: String =
     """
       |
       |""".stripMargin
@@ -343,9 +343,9 @@ object BuildGenUtil {
 
     nodes.foreach { node =>
       val file = buildFile(node.dirs)
-      val src = buildSource(node)
+      val source = buildSource(node)
       println(s"writing Mill build file to $file")
-      os.write(workspace / file, src)
+      os.write(workspace / file, source)
     }
   }
 }

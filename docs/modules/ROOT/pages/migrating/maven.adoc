@@ -54,10 +54,12 @@ The conversion and its output (the generated Mill build files) can be customized
 ./mill init --base-module MyModule
 ----
 
-* `--jvm-id` (`-j`): version of xref:fundamentals/configuring-jvm-versions.adoc[custom JVM] to configure in `--base-module`
+* `--jvm-id` (`-j`): disttribution and version of xref:fundamentals/configuring-jvm-versions.adoc[custom JVM] to configure in `--base-module`
 [source,sh]
 ----
 ./mill init --base-module MyModule --jvm-id 17
+./mill init --base-module MyModule --jvm-id temurin:17
+./mill init --base-module MyModule --jvm-id temurin:17.0.1
 ----
 
 * `--test-module` (`-t`): name of generated nested test module (defaults to `test`)

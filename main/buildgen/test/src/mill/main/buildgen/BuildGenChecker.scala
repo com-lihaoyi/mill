@@ -19,26 +19,26 @@ class BuildGenChecker(sourceRoot: os.Path, scalafmtConfigFile: os.Path) {
       tp: TestPath
   ): Boolean = {
     // prep
-    val actualRoot = os.pwd / tp.value
-    os.copy.over(sourceRoot / sourceRel, actualRoot, createFolders = true, replaceExisting = true)
+    val testRoot = os.pwd / tp.value
+    os.copy.over(sourceRoot / sourceRel, testRoot, createFolders = true, replaceExisting = true)
 
     // gen
-    os.dynamicPwd.withValue(actualRoot)(generate)
+    os.dynamicPwd.withValue(testRoot)(generate)
 
     // fmt
-    val files = BuildGenUtil.buildFiles(actualRoot).map(PathRef(_)).toSeq
+    val files = BuildGenUtil.buildFiles(testRoot).map(PathRef(_)).toSeq
     object module extends TestBaseModule with ScalafmtModule {
       override def filesToFormat(sources: Seq[PathRef]): Seq[PathRef] = files
       override def scalafmtConfig: T[Seq[PathRef]] = Seq(PathRef(scalafmtConfigFile))
     }
-    val eval = UnitTester(module, actualRoot)
+    val eval = UnitTester(module, testRoot)
     eval(module.reformat())
 
     // check
     val expectedRoot = sourceRoot / expectedRel
     // Non *.mill files, that are not in test data, that we don't want
     // to see in the diff
-    val toCleanUp = os.walk(actualRoot, skip = (actualRoot / OutFiles.out).equals)
+    val toCleanUp = os.walk(testRoot, skip = (testRoot / OutFiles.out).equals)
       .filter(os.isFile)
       .filterNot(file => CodeGenConstants.buildFileExtensions.contains(file.ext))
     toCleanUp.foreach(os.remove)
@@ -49,12 +49,12 @@ class BuildGenChecker(sourceRoot: os.Path, scalafmtConfigFile: os.Path) {
       for {
         testFile <- os.walk(expectedRoot)
         if os.isFile(testFile)
-        targetFile = actualRoot / testFile.relativeTo(expectedRoot).asSubPath
+        targetFile = testRoot / testFile.relativeTo(expectedRoot).asSubPath
         if os.isFile(targetFile)
       }
         os.perms.set(targetFile, os.perms(testFile))
 
-    val diffExitCode = os.proc("git", "diff", "--no-index", expectedRoot, actualRoot)
+    val diffExitCode = os.proc("git", "diff", "--no-index", expectedRoot, testRoot)
       .call(stdin = os.Inherit, stdout = os.Inherit, check = !updateSnapshots)
       .exitCode
 
@@ -64,7 +64,7 @@ class BuildGenChecker(sourceRoot: os.Path, scalafmtConfigFile: os.Path) {
       )
 
       os.remove.all(expectedRoot)
-      os.copy(actualRoot, expectedRoot)
+      os.copy(testRoot, expectedRoot)
     }
 
     diffExitCode == 0 || updateSnapshots

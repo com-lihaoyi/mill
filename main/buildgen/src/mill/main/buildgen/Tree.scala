@@ -59,8 +59,8 @@ object Tree {
             last = handleItem(level(index))
             index += 1
           }
-          val level1 = level.flatMap(_.children)
-          if (last == Generator.Continue && level1.nonEmpty) recurse(level1) else last
+          val nextLevel = level.flatMap(_.children)
+          if (last == Generator.Continue && nextLevel.nonEmpty) recurse(nextLevel) else last
         }
 
         recurse(Seq(root))
