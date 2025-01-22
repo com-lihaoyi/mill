@@ -734,7 +734,7 @@ object BomTests extends TestSuite {
           val res = eval(modules.bom.invalid.exclude.compileClasspath)
           assert(
             res.left.exists(_.toString.contains(
-              "Found BOM dependencies with invalid parameters:"
+              "Found Bill of Material (BOM) dependencies with invalid parameters:"
             ))
           )
         }
