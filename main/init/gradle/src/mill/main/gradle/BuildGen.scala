@@ -105,7 +105,14 @@ object BuildGen {
     val packages = // for resolving moduleDeps
       buildPackages(input)(project => (project.group(), project.name(), project.version()))
 
-    val (baseJavacOptions, baseReps, baseNoPom, basePublishVersion, baseModuleTypedef) =
+    val (
+      baseJavacOptions,
+      baseRepos,
+      baseNoPom,
+      basePublishVersion,
+      basePublishProperties,
+      baseModuleTypedef
+    ) =
       cfg.shared.baseModule match {
         case Some(baseModule) =>
           val project = {
@@ -121,40 +128,26 @@ object BuildGen {
           }
           val supertypes =
             Seq("MavenModule") ++
-            Option.when(null != project.maven().pom()){ "PublishModule" }
+              Option.when(null != project.maven().pom()) { "PublishModule" }
 
           val javacOptions = getJavacOptions(project)
-          val reps = getRepositories(project)
-          val pomSettings = mkPomSettings(project)
+          val repos = getRepositories(project)
+          val pomSettings = renderPomSettings(project)
           val publishVersion = getPublishVersion(project)
 
-          val zincWorker = cfg.shared.jvmId.fold("") { jvmId =>
-            val name = s"${baseModule}ZincWorker"
-            val setting = renderZincWorker(name)
-            val typedef = renderZincWorker(name, jvmId)
+          val typedef = renderTrait(
+            cfg.shared.jvmId,
+            baseModule,
+            supertypes,
+            javacOptions,
+            pomSettings,
+            publishVersion,
+            Nil
+          )
 
-            s"""$setting
-               |
-               |$typedef""".stripMargin
-          }
-
-          val typedef =
-            s"""trait $baseModule ${renderExtends(supertypes)} {
-               |
-               |${renderJavacOptions(javacOptions)}
-               |
-               |${renderRepositories(reps.iterator)}
-               |
-               |${renderPomSettings(pomSettings)}
-               |
-               |${renderPublishVersion(publishVersion)}
-               |
-               |$zincWorker
-               |}""".stripMargin
-
-          (javacOptions, reps, pomSettings.isEmpty, publishVersion, typedef)
+          (javacOptions, repos, pomSettings.isEmpty, publishVersion, Seq.empty, typedef)
         case None =>
-          (Seq.empty, Seq.empty, true, "", "")
+          (Seq.empty, Seq.empty, true, "", Seq.empty, "")
       }
 
     val moduleSupertype = cfg.shared.baseModule.getOrElse("MavenModule")
@@ -175,9 +168,8 @@ object BuildGen {
 
       val supertypes =
         Seq("RootModule") ++
-        Option.when (hasPom && baseNoPom) {"PublishModule"} ++
-        Option.when (isNested || hasSource){ moduleSupertype }
-
+          Option.when(hasPom && baseNoPom) { "PublishModule" } ++
+          Option.when(isNested || hasSource) { moduleSupertype }
 
       val scopedDeps = new ScopedDeps(project, packages, cfg)
 
@@ -186,13 +178,25 @@ object BuildGen {
           val options = getJavacOptions(project).diff(baseJavacOptions)
           if (options == baseJavacOptions) Seq.empty else options
         }
-        val repos = getRepositories(project).diff(baseReps)
-        val pomSettings = if (baseNoPom) mkPomSettings(project) else null
+        val repos = getRepositories(project).diff(baseRepos)
+        val pomSettings = if (baseNoPom) renderPomSettings(project) else null
         val publishVersion = {
           val version = getPublishVersion(project)
           if (version == basePublishVersion) null else version
         }
-        BuildGenUtil.renderModule(scopedDeps, cfg.shared.testModule, hasTest, dirs, repos, javacOptions, project.name(), pomSettings, publishVersion, null, null)
+        BuildGenUtil.renderModule(
+          scopedDeps,
+          cfg.shared.testModule,
+          hasTest,
+          dirs,
+          repos,
+          javacOptions,
+          project.name(),
+          pomSettings,
+          publishVersion,
+          null,
+          null
+        )
       }
 
       val outer = if (isNested) "" else baseModuleTypedef
@@ -226,7 +230,7 @@ object BuildGen {
   val interpIvy: JavaModel.Dep => String = dep =>
     BuildGenUtil.renderIvyString(dep.group(), dep.name(), dep.version())
 
-  def mkPomSettings(project: ProjectModel): String = {
+  def renderPomSettings(project: ProjectModel): String = {
     val pom = project.maven.pom()
     if (null == pom) ""
     else {

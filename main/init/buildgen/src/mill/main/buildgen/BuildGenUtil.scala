@@ -2,7 +2,12 @@ package mill.main.buildgen
 
 import mainargs.arg
 import mill.main.buildgen.BuildObject.Companions
-import mill.main.client.CodeGenConstants.{buildFileExtensions, nestedBuildFileNames, rootBuildFileNames, rootModuleAlias}
+import mill.main.client.CodeGenConstants.{
+  buildFileExtensions,
+  nestedBuildFileNames,
+  rootBuildFileNames,
+  rootModuleAlias
+}
 import mill.main.client.OutFiles
 import mill.runner.FileImportGraph.backtickWrap
 
@@ -27,17 +32,51 @@ object BuildGenUtil {
     val testCompileModuleDeps = mutable.SortedSet.empty[String]
   }
 
-  def renderModule(scopedDeps: ScopedDeps,
-                   testModule: String,
-                   hasTest: Boolean,
-                   dirs: Seq[String],
-                   repos: Seq[String],
-                   javacOptions: Seq[String],
-                   projectName: String,
-                   pomSettings: String,
-                   publishVersion: String,
-                   packaging: String,
-                   pomParentArtifact: String) = {
+  def renderTrait(
+      jvmId: Option[String],
+      baseModule: String,
+      moduleSupertypes: Seq[String],
+      javacOptions: Seq[String],
+      pomSettings: String,
+      publishVersion: String,
+      publishProperties: Seq[(String, String)]
+  ) = {
+    val zincWorker = jvmId.fold("") { jvmId =>
+      val name = s"${baseModule}ZincWorker"
+      val setting = renderZincWorker(name)
+      val typedef = renderZincWorker(name, jvmId)
+
+      s"""$setting
+         |
+         |$typedef""".stripMargin
+    }
+
+    s"""trait $baseModule ${renderExtends(moduleSupertypes)} {
+       |
+       |${renderJavacOptions(javacOptions)}
+       |
+       |${renderPomSettings(pomSettings)}
+       |
+       |${renderPublishVersion(publishVersion)}
+       |
+       |${renderPublishProperties(publishProperties)}
+       |
+       |$zincWorker
+       |}""".stripMargin
+  }
+  def renderModule(
+      scopedDeps: ScopedDeps,
+      testModule: String,
+      hasTest: Boolean,
+      dirs: Seq[String],
+      repos: Seq[String],
+      javacOptions: Seq[String],
+      projectName: String,
+      pomSettings: String,
+      publishVersion: String,
+      packaging: String,
+      pomParentArtifact: String
+  ) = {
     val testModuleTypedef =
       if (!hasTest) ""
       else {
@@ -101,8 +140,8 @@ object BuildGenUtil {
   def renderImports(baseModule: Option[String], isNested: Boolean, packagesSize: Int) = {
     scala.collection.immutable.SortedSet("mill._", "mill.javalib._", "mill.javalib.publish._") ++
       (if (isNested) baseModule.map(name => s"$$file.$name")
-      else if (packagesSize > 1) Seq("$packages._")
-      else None)
+       else if (packagesSize > 1) Seq("$packages._")
+       else None)
   }
 
   def buildFiles(workspace: os.Path): geny.Generator[os.Path] =

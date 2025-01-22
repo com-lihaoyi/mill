@@ -69,6 +69,7 @@ object BuildGen {
 
     val (
       baseJavacOptions,
+      baseRepos,
       baseNoPom,
       basePublishVersion,
       basePublishProperties,
@@ -77,39 +78,24 @@ object BuildGen {
       case Some(baseModule) =>
         val model = input.node.module
         val javacOptions = Plugins.MavenCompilerPlugin.javacOptions(model)
-        val pomSettings = mkPomSettings(model)
+        val pomSettings = renderPomSettings(model)
         val publishVersion = model.getVersion
         val publishProperties = getPublishProperties(model, cfg)
 
-        val zincWorker = cfg.shared.jvmId.fold("") { jvmId =>
-          val name = s"${baseModule}ZincWorker"
-          val setting = renderZincWorker(name)
-          val typedef = renderZincWorker(name, jvmId)
+        val typedef = renderTrait(
+          cfg.shared.jvmId,
+          baseModule,
+          moduleSupertypes,
+          javacOptions,
+          pomSettings,
+          publishVersion,
+          publishProperties
+        )
 
-          s"""$setting
-             |
-             |$typedef""".stripMargin
-        }
-
-        val typedef =
-          s"""trait $baseModule ${renderExtends(moduleSupertypes)} {
-             |
-             |${renderJavacOptions(javacOptions)}
-             |
-             |${renderPomSettings(pomSettings)}
-             |
-             |${renderPublishVersion(publishVersion)}
-             |
-             |${renderPublishProperties(publishProperties)}
-             |
-             |$zincWorker
-             |}""".stripMargin
-
-        (javacOptions, pomSettings.isEmpty, publishVersion, publishProperties, typedef)
+        (javacOptions, Seq.empty, pomSettings.isEmpty, publishVersion, publishProperties, typedef)
       case None =>
-        (Seq.empty, true, "", Seq.empty, "")
+        (Seq.empty, Seq.empty, true, "", Seq.empty, "")
     }
-
 
     input.map { case build @ Node(dirs, model) =>
       val artifactId = model.getArtifactId
@@ -125,10 +111,10 @@ object BuildGen {
 
       val supertypes =
         Seq("RootModule") ++
-        (cfg.shared.baseModule match{
-          case None => moduleSupertypes
-          case Some(v) => Seq(v)
-        })
+          (cfg.shared.baseModule match {
+            case None => moduleSupertypes
+            case Some(v) => Seq(v)
+          })
 
       val scopedDeps = new ScopedDeps(model, packages, cfg)
 
@@ -137,7 +123,7 @@ object BuildGen {
           val options = Plugins.MavenCompilerPlugin.javacOptions(model)
           if (options == baseJavacOptions) Seq.empty else options
         }
-        val pomSettings = if (baseNoPom) mkPomSettings(model) else null
+        val pomSettings = if (baseNoPom) renderPomSettings(model) else null
         val resources = model.getBuild.getResources.iterator().asScala
           .map(_.getDirectory)
           .map(os.Path(_).subRelativeTo(millSourcePath))
@@ -154,7 +140,19 @@ object BuildGen {
           .map(os.Path(_).subRelativeTo(millSourcePath))
           .filterNot(_ == mavenTestResourceDir)
 
-        BuildGenUtil.renderModule(scopedDeps, cfg.shared.testModule, hasTest, dirs, Nil, javacOptions, artifactId, pomSettings, publishVersion, packaging, pomParentArtifact)
+        BuildGenUtil.renderModule(
+          scopedDeps,
+          cfg.shared.testModule,
+          hasTest,
+          dirs,
+          Nil,
+          javacOptions,
+          artifactId,
+          pomSettings,
+          publishVersion,
+          packaging,
+          pomParentArtifact
+        )
       }
 
       val outer = if (isNested) "" else baseModuleTypedef
@@ -189,7 +187,7 @@ object BuildGen {
     if (null == parent) null
     else renderArtifact(parent.getGroupId, parent.getArtifactId, parent.getVersion)
 
-  def mkPomSettings(model: Model): String = {
+  def renderPomSettings(model: Model): String = {
     val licenses = model.getLicenses.iterator().asScala
       .map(lic =>
         mrenderLicense(
@@ -229,7 +227,7 @@ object BuildGen {
       model: Model,
       packages: PartialFunction[(String, String, String), String],
       cfg: BuildGenConfig
-  )  extends BuildGenUtil.ScopedDeps {
+  ) extends BuildGenUtil.ScopedDeps {
 
     val hasTest = os.exists(os.Path(model.getProjectDirectory) / "src/test")
     val ivyDep: Dependency => String = {
