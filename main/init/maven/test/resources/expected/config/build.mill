@@ -1,4 +1,4 @@
-package build
+package expected.config
 
 import mill._
 import mill.javalib._

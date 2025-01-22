@@ -9,7 +9,7 @@ object InitGradleModule extends ExternalModule with BuildGenModule {
 
   lazy val millDiscover: Discover = Discover[this.type]
 
-  def buildGenClasspath: T[Loose.Agg[PathRef]] = BuildGenModule.millModule("mill-main-gradle")
+  def buildGenClasspath: T[Loose.Agg[PathRef]] = BuildGenModule.millModule("mill-main-init-gradle")
 
   def buildGenMainClass: T[String] = "mill.main.gradle.BuildGen"
 }

@@ -9,7 +9,7 @@ object InitMavenModule extends ExternalModule with BuildGenModule {
 
   lazy val millDiscover: Discover = Discover[this.type]
 
-  def buildGenClasspath: T[Loose.Agg[PathRef]] = BuildGenModule.millModule("mill-main-maven")
+  def buildGenClasspath: T[Loose.Agg[PathRef]] = BuildGenModule.millModule("mill-main-init-maven")
 
   def buildGenMainClass: T[String] = "mill.main.maven.BuildGen"
 }
