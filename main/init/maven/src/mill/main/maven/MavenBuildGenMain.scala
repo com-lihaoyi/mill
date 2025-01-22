@@ -91,7 +91,8 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
       javacOptions,
       pomSettings,
       publishVersion,
-      publishProperties
+      publishProperties,
+      repos = Nil
     )
 
     IrBaseInfo(javacOptions, Seq.empty, false, publishVersion, publishProperties, typedef)

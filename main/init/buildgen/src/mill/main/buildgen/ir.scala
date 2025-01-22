@@ -43,7 +43,8 @@ case class IrTrait(
     javacOptions: Seq[String],
     pomSettings: IrPom,
     publishVersion: String,
-    publishProperties: Seq[(String, String)]
+    publishProperties: Seq[(String, String)],
+    repos: Seq[String]
 )
 
 case class IrPom(

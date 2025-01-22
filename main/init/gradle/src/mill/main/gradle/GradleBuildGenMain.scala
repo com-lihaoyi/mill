@@ -144,7 +144,8 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
       javacOptions,
       pomSettings,
       publishVersion,
-      Nil
+      Nil,
+      repos
     )
 
     IrBaseInfo(javacOptions, repos, pomSettings == null, publishVersion, Seq.empty, typedef)

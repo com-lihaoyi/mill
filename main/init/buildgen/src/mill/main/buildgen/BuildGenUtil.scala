@@ -36,6 +36,8 @@ object BuildGenUtil {
        |
        |${renderPublishProperties(publishProperties)}
        |
+       |${renderRepositories(repos)}
+       |
        |$zincWorker
        |}""".stripMargin
 
