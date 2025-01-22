@@ -1,0 +1,85 @@
+package build.microbench
+
+import $file.BaseModule
+import mill._
+import mill.javalib._
+import mill.javalib.publish._
+
+object Deps {
+
+  val `ch.qos.logback:logback-classic` =
+    ivy"ch.qos.logback:logback-classic:1.2.13"
+  val `io.netty:netty-build-common` = ivy"io.netty:netty-build-common:31"
+
+  val `io.netty:netty-tcnative-boringssl-static` =
+    ivy"io.netty:netty-tcnative-boringssl-static:2.0.66.Final"
+  val `org.agrona:Agrona` = ivy"org.agrona:Agrona:0.5.1"
+  val `org.assertj:assertj-core` = ivy"org.assertj:assertj-core:3.18.0"
+  val `org.hamcrest:hamcrest-library` = ivy"org.hamcrest:hamcrest-library:1.3"
+  val `org.jctools:jctools-core` = ivy"org.jctools:jctools-core:4.0.5"
+
+  val `org.junit.jupiter:junit-jupiter-api` =
+    ivy"org.junit.jupiter:junit-jupiter-api:5.9.0"
+
+  val `org.junit.jupiter:junit-jupiter-engine` =
+    ivy"org.junit.jupiter:junit-jupiter-engine:5.9.0"
+
+  val `org.junit.jupiter:junit-jupiter-params` =
+    ivy"org.junit.jupiter:junit-jupiter-params:5.9.0"
+  val `org.openjdk.jmh:jmh-core` = ivy"org.openjdk.jmh:jmh-core:1.36"
+
+  val `org.openjdk.jmh:jmh-generator-annprocess` =
+    ivy"org.openjdk.jmh:jmh-generator-annprocess:1.36"
+}
+
+object `package` extends RootModule with BaseModule {
+
+  def ivyDeps = super.ivyDeps() ++ Agg(
+    Deps.`org.agrona:Agrona`,
+    Deps.`org.jctools:jctools-core`,
+    Deps.`org.junit.jupiter:junit-jupiter-api`,
+    Deps.`org.junit.jupiter:junit-jupiter-engine`,
+    Deps.`org.openjdk.jmh:jmh-core`
+  )
+
+  def moduleDeps = super.moduleDeps ++ Seq(
+    build.`codec-http2`,
+    build.`codec-http`,
+    build.`codec-mqtt`,
+    build.`codec-redis`,
+    build.`codec-stomp`,
+    build.`transport-native-epoll`,
+    build.`transport-native-kqueue`,
+    build.handler
+  )
+
+  def compileIvyDeps = super.compileIvyDeps() ++
+    Agg(Deps.`org.openjdk.jmh:jmh-generator-annprocess`)
+
+  def runIvyDeps = super.runIvyDeps() ++
+    Agg(Deps.`io.netty:netty-tcnative-boringssl-static`)
+
+  def artifactName = "netty-microbench"
+
+  def pomParentProject =
+    Some(Artifact("io.netty", "netty-parent", "4.1.114.Final"))
+
+  def publishProperties = super.publishProperties() ++ Map(
+    ("epoll.classifier", ""),
+    ("japicmp.skip", "true"),
+    ("javaModuleName", "io.netty.microbench"),
+    ("jmh.version", "1.36"),
+    ("kqueue.classifier", "${os.detected.name}-${os.detected.arch}"),
+    (
+      "logging.config",
+      "/Users/lihaoyi/Github/mill/out/integration/feature/init/local/server/test.dest/sandbox/run-1/microbench/../common/src/test/resources/logback-test.xml"
+    ),
+    (
+      "netty.dev.tools.directory",
+      "/Users/lihaoyi/Github/mill/out/integration/feature/init/local/server/test.dest/sandbox/run-1/microbench/target/dev-tools"
+    ),
+    ("revapi.skip", "true"),
+    ("skipTests", "true")
+  )
+
+}

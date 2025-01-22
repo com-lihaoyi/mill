@@ -1,0 +1,14 @@
+package build.`dev-tools`
+
+import $file.BaseModule
+import mill._
+import mill.javalib._
+import mill.javalib.publish._
+
+object `package` extends RootModule with BaseModule {
+
+  def artifactName = "netty-dev-tools"
+
+  def pomParentProject = Some(Artifact("org.sonatype.oss", "oss-parent", "7"))
+
+}

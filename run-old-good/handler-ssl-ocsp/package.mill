@@ -1,0 +1,67 @@
+package build.`handler-ssl-ocsp`
+
+import $file.BaseModule
+import mill._
+import mill.javalib._
+import mill.javalib.publish._
+
+object Deps {
+
+  val `ch.qos.logback:logback-classic` =
+    ivy"ch.qos.logback:logback-classic:1.2.13"
+  val `io.netty:netty-build-common` = ivy"io.netty:netty-build-common:31"
+  val `org.assertj:assertj-core` = ivy"org.assertj:assertj-core:3.18.0"
+
+  val `org.bouncycastle:bcpkix-jdk15on` =
+    ivy"org.bouncycastle:bcpkix-jdk15on:1.69"
+  val `org.hamcrest:hamcrest-library` = ivy"org.hamcrest:hamcrest-library:1.3"
+
+  val `org.junit.jupiter:junit-jupiter-api` =
+    ivy"org.junit.jupiter:junit-jupiter-api:5.9.0"
+
+  val `org.junit.jupiter:junit-jupiter-engine` =
+    ivy"org.junit.jupiter:junit-jupiter-engine:5.9.0"
+
+  val `org.junit.jupiter:junit-jupiter-params` =
+    ivy"org.junit.jupiter:junit-jupiter-params:5.9.0"
+}
+
+object `package` extends RootModule with BaseModule {
+
+  def moduleDeps = super.moduleDeps ++
+    Seq(build.`codec-http`, build.`resolver-dns`, build.transport)
+
+  def compileIvyDeps = super.compileIvyDeps() ++
+    Agg(Deps.`org.bouncycastle:bcpkix-jdk15on`)
+
+  def artifactName = "netty-handler-ssl-ocsp"
+
+  def pomParentProject =
+    Some(Artifact("io.netty", "netty-parent", "4.1.114.Final"))
+
+  def publishProperties = super.publishProperties() ++ Map(
+    ("javaModuleName", "io.netty.handler.ssl.ocsp"),
+    (
+      "logging.config",
+      "/Users/lihaoyi/Github/mill/out/integration/feature/init/local/server/test.dest/sandbox/run-1/handler-ssl-ocsp/../common/src/test/resources/logback-test.xml"
+    ),
+    (
+      "netty.dev.tools.directory",
+      "/Users/lihaoyi/Github/mill/out/integration/feature/init/local/server/test.dest/sandbox/run-1/handler-ssl-ocsp/target/dev-tools"
+    )
+  )
+
+  object test extends MavenTests with TestModule.Junit5 {
+
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      Deps.`ch.qos.logback:logback-classic`,
+      Deps.`io.netty:netty-build-common`,
+      Deps.`org.assertj:assertj-core`,
+      Deps.`org.hamcrest:hamcrest-library`,
+      Deps.`org.junit.jupiter:junit-jupiter-api`,
+      Deps.`org.junit.jupiter:junit-jupiter-engine`,
+      Deps.`org.junit.jupiter:junit-jupiter-params`
+    )
+
+  }
+}

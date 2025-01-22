@@ -1,0 +1,52 @@
+package build.`transport-classes-kqueue`
+
+import $file.BaseModule
+import mill._
+import mill.javalib._
+import mill.javalib.publish._
+
+object Deps {
+
+  val `ch.qos.logback:logback-classic` =
+    ivy"ch.qos.logback:logback-classic:1.2.13"
+  val `io.netty:netty-build-common` = ivy"io.netty:netty-build-common:31"
+  val `org.assertj:assertj-core` = ivy"org.assertj:assertj-core:3.18.0"
+  val `org.hamcrest:hamcrest-library` = ivy"org.hamcrest:hamcrest-library:1.3"
+
+  val `org.junit.jupiter:junit-jupiter-api` =
+    ivy"org.junit.jupiter:junit-jupiter-api:5.9.0"
+
+  val `org.junit.jupiter:junit-jupiter-engine` =
+    ivy"org.junit.jupiter:junit-jupiter-engine:5.9.0"
+
+  val `org.junit.jupiter:junit-jupiter-params` =
+    ivy"org.junit.jupiter:junit-jupiter-params:5.9.0"
+}
+
+object `package` extends RootModule with BaseModule {
+
+  def moduleDeps = super.moduleDeps ++ Seq(
+    build.`transport-native-unix-common`,
+    build.buffer,
+    build.common,
+    build.transport
+  )
+
+  def artifactName = "netty-transport-classes-kqueue"
+
+  def pomParentProject =
+    Some(Artifact("io.netty", "netty-parent", "4.1.114.Final"))
+
+  def publishProperties = super.publishProperties() ++ Map(
+    ("javaModuleName", "io.netty.transport.classes.kqueue"),
+    (
+      "logging.config",
+      "/Users/lihaoyi/Github/mill/out/integration/feature/init/local/server/test.dest/sandbox/run-1/transport-classes-kqueue/../common/src/test/resources/logback-test.xml"
+    ),
+    (
+      "netty.dev.tools.directory",
+      "/Users/lihaoyi/Github/mill/out/integration/feature/init/local/server/test.dest/sandbox/run-1/transport-classes-kqueue/target/dev-tools"
+    )
+  )
+
+}

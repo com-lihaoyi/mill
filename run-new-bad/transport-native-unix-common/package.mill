@@ -1,0 +1,100 @@
+package build.`transport-native-unix-common`
+
+import $file.BaseModule
+import mill._
+import mill.javalib._
+import mill.javalib.publish._
+
+object Deps {
+
+  val `ch.qos.logback:logback-classic` =
+    ivy"ch.qos.logback:logback-classic:1.2.13"
+  val `io.netty:netty-build-common` = ivy"io.netty:netty-build-common:31"
+
+  val `io.netty:netty-jni-util` =
+    ivy"io.netty:netty-jni-util:0.0.9.Final;classifier=sources"
+  val `org.assertj:assertj-core` = ivy"org.assertj:assertj-core:3.18.0"
+  val `org.hamcrest:hamcrest-library` = ivy"org.hamcrest:hamcrest-library:1.3"
+
+  val `org.junit.jupiter:junit-jupiter-api` =
+    ivy"org.junit.jupiter:junit-jupiter-api:5.9.0"
+
+  val `org.junit.jupiter:junit-jupiter-engine` =
+    ivy"org.junit.jupiter:junit-jupiter-engine:5.9.0"
+
+  val `org.junit.jupiter:junit-jupiter-params` =
+    ivy"org.junit.jupiter:junit-jupiter-params:5.9.0"
+}
+
+object `package` extends RootModule with BaseModule {
+
+  def artifactName = "netty-transport-native-unix-common"
+
+  def ivyDeps = super.ivyDeps() ++ Agg(Deps.`io.netty:netty-jni-util`)
+
+  def compileModuleDeps = super.compileModuleDeps ++
+    Seq(build.buffer, build.common, build.transport)
+
+  def pomParentProject =
+    Some(Artifact("io.netty", "netty-parent", "4.1.114.Final"))
+
+  def publishProperties = super.publishProperties() ++ Map(
+    ("argLine.jni", "-Xcheck:jni"),
+    (
+      "defaultJarFile",
+      "/Users/lihaoyi/Github/mill/out/integration/feature/init/local/server/test.dest/sandbox/run-1/transport-native-unix-common/target/netty-transport-native-unix-common-4.1.114.Final.jar"
+    ),
+    ("exe.archiver", "ar"),
+    ("exe.compiler", "clang"),
+    ("exe.make", "make"),
+    ("javaModuleName", "io.netty.transport.unix.common"),
+    ("jni.platform", "darwin"),
+    (
+      "jniUtilIncludeDir",
+      "/Users/lihaoyi/Github/mill/out/integration/feature/init/local/server/test.dest/sandbox/run-1/transport-native-unix-common/target/netty-jni-util/"
+    ),
+    (
+      "logging.config",
+      "/Users/lihaoyi/Github/mill/out/integration/feature/init/local/server/test.dest/sandbox/run-1/transport-native-unix-common/../common/src/test/resources/logback-test.xml"
+    ),
+    (
+      "nativeIncludeDir",
+      "/Users/lihaoyi/Github/mill/out/integration/feature/init/local/server/test.dest/sandbox/run-1/transport-native-unix-common/src/main/c"
+    ),
+    (
+      "nativeJarFile",
+      "/Users/lihaoyi/Github/mill/out/integration/feature/init/local/server/test.dest/sandbox/run-1/transport-native-unix-common/target/netty-transport-native-unix-common-4.1.114.Final-${os.detected.name}-${os.detected.arch}.jar"
+    ),
+    (
+      "nativeJarWorkdir",
+      "/Users/lihaoyi/Github/mill/out/integration/feature/init/local/server/test.dest/sandbox/run-1/transport-native-unix-common/target/native-jar-work"
+    ),
+    ("nativeLibName", "libnetty-unix-common"),
+    (
+      "nativeLibOnlyDir",
+      "/Users/lihaoyi/Github/mill/out/integration/feature/init/local/server/test.dest/sandbox/run-1/transport-native-unix-common/target/native-lib-only"
+    ),
+    (
+      "nativeObjsOnlyDir",
+      "/Users/lihaoyi/Github/mill/out/integration/feature/init/local/server/test.dest/sandbox/run-1/transport-native-unix-common/target/native-objs-only"
+    ),
+    (
+      "netty.dev.tools.directory",
+      "/Users/lihaoyi/Github/mill/out/integration/feature/init/local/server/test.dest/sandbox/run-1/transport-native-unix-common/target/dev-tools"
+    )
+  )
+
+  object test extends MavenTests with TestModule.Junit5 {
+
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      Deps.`ch.qos.logback:logback-classic`,
+      Deps.`io.netty:netty-build-common`,
+      Deps.`org.assertj:assertj-core`,
+      Deps.`org.hamcrest:hamcrest-library`,
+      Deps.`org.junit.jupiter:junit-jupiter-api`,
+      Deps.`org.junit.jupiter:junit-jupiter-engine`,
+      Deps.`org.junit.jupiter:junit-jupiter-params`
+    )
+
+  }
+}

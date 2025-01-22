@@ -235,7 +235,7 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
 
         case "compile" =>
           if (packages.isDefinedAt(id))
-            sd = sd.copy(mainCompileModuleDeps = sd.mainCompileModuleDeps + packages(id))
+            sd = sd.copy(mainModuleDeps = sd.mainModuleDeps + packages(id))
           else {
             if (isBom(id)) println(s"assuming compile dependency $id is a BOM")
             val ivy = ivyDep(dep)
@@ -243,7 +243,7 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
           }
         case "provided" =>
           if (packages.isDefinedAt(id))
-            sd = sd.copy(mainModuleDeps = sd.mainModuleDeps + packages(id))
+            sd = sd.copy(mainCompileModuleDeps = sd.mainCompileModuleDeps + packages(id))
           else {
             val ivy = ivyDep(dep)
             sd = sd.copy(mainCompileIvyDeps = sd.mainCompileIvyDeps + ivy)

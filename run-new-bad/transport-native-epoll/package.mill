@@ -1,0 +1,126 @@
+package build.`transport-native-epoll`
+
+import $file.BaseModule
+import mill._
+import mill.javalib._
+import mill.javalib.publish._
+
+object Deps {
+
+  val `ch.qos.logback:logback-classic` =
+    ivy"ch.qos.logback:logback-classic:1.2.13"
+
+  val `io.github.artsok:rerunner-jupiter` =
+    ivy"io.github.artsok:rerunner-jupiter:2.1.6"
+  val `io.netty:netty-build-common` = ivy"io.netty:netty-build-common:31"
+
+  val `io.netty:netty-tcnative-boringssl-static` =
+    ivy"io.netty:netty-tcnative-boringssl-static:2.0.66.Final"
+  val `org.assertj:assertj-core` = ivy"org.assertj:assertj-core:3.18.0"
+
+  val `org.bouncycastle:bcpkix-jdk15on` =
+    ivy"org.bouncycastle:bcpkix-jdk15on:1.69"
+  val `org.hamcrest:hamcrest-library` = ivy"org.hamcrest:hamcrest-library:1.3"
+
+  val `org.junit.jupiter:junit-jupiter-api` =
+    ivy"org.junit.jupiter:junit-jupiter-api:5.9.0"
+
+  val `org.junit.jupiter:junit-jupiter-engine` =
+    ivy"org.junit.jupiter:junit-jupiter-engine:5.9.0"
+
+  val `org.junit.jupiter:junit-jupiter-params` =
+    ivy"org.junit.jupiter:junit-jupiter-params:5.9.0"
+}
+
+object `package` extends RootModule with BaseModule {
+
+  def artifactName = "netty-transport-native-epoll"
+
+  def ivyDeps = super.ivyDeps() ++ Agg(Deps.`org.bouncycastle:bcpkix-jdk15on`)
+
+  def compileModuleDeps = super.compileModuleDeps ++ Seq(
+    build.`transport-classes-epoll`,
+    build.`transport-native-unix-common`,
+    build.buffer,
+    build.common,
+    build.transport
+  )
+
+  def pomParentProject =
+    Some(Artifact("io.netty", "netty-parent", "4.1.114.Final"))
+
+  def publishProperties = super.publishProperties() ++ Map(
+    (
+      "argLine.java9",
+      "--illegal-access=deny --add-exports java.base/sun.security.x509=ALL-UNNAMED"
+    ),
+    (
+      "argLine.java9.extras",
+      "--add-exports java.base/sun.security.x509=ALL-UNNAMED"
+    ),
+    ("argLine.jni", "-Xcheck:jni"),
+    ("japicmp.skip", "true"),
+    (
+      "javaModuleName",
+      "io.netty.transport.epoll.${os.detected.name}.${os.detected.arch}"
+    ),
+    ("javaModuleNameClassifier", "${os.detected.name}.${os.detected.arch}"),
+    (
+      "jni.compiler.args.cflags",
+      "CFLAGS=-O2 -pipe -Werror -fno-omit-frame-pointer -Wunused-variable -fvisibility=hidden -D_FORTIFY_SOURCE=2 -ffunction-sections -fdata-sections -I/Users/lihaoyi/Github/mill/out/integration/feature/init/local/server/test.dest/sandbox/run-1/transport-native-epoll/target/unix-common-lib/META-INF/native/include"
+    ),
+    (
+      "jni.compiler.args.ldflags",
+      "LDFLAGS=-Wl,-z,relro -Wl,-z,now -Wl,--as-needed -Wl,--gc-sections -L/Users/lihaoyi/Github/mill/out/integration/feature/init/local/server/test.dest/sandbox/run-1/transport-native-epoll/target/unix-common-lib/META-INF/native/lib"
+    ),
+    (
+      "jni.compiler.args.libs",
+      "LIBS=-Wl,--whole-archive -lnetty-unix-common -Wl,--no-whole-archive -ldl"
+    ),
+    (
+      "logging.config",
+      "/Users/lihaoyi/Github/mill/out/integration/feature/init/local/server/test.dest/sandbox/run-1/transport-native-epoll/../common/src/test/resources/logback-test.xml"
+    ),
+    (
+      "nativeSourceDirectory",
+      "/Users/lihaoyi/Github/mill/out/integration/feature/init/local/server/test.dest/sandbox/run-1/transport-native-epoll/src/main/c"
+    ),
+    (
+      "netty.dev.tools.directory",
+      "/Users/lihaoyi/Github/mill/out/integration/feature/init/local/server/test.dest/sandbox/run-1/transport-native-epoll/target/dev-tools"
+    ),
+    ("skipTests", "true"),
+    (
+      "unix.common.include.unpacked.dir",
+      "/Users/lihaoyi/Github/mill/out/integration/feature/init/local/server/test.dest/sandbox/run-1/transport-native-epoll/target/unix-common-lib/META-INF/native/include"
+    ),
+    (
+      "unix.common.lib.dir",
+      "/Users/lihaoyi/Github/mill/out/integration/feature/init/local/server/test.dest/sandbox/run-1/transport-native-epoll/target/unix-common-lib"
+    ),
+    ("unix.common.lib.name", "netty-unix-common"),
+    (
+      "unix.common.lib.unpacked.dir",
+      "/Users/lihaoyi/Github/mill/out/integration/feature/init/local/server/test.dest/sandbox/run-1/transport-native-epoll/target/unix-common-lib/META-INF/native/lib"
+    )
+  )
+
+  object test extends MavenTests with TestModule.Junit5 {
+
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      Deps.`ch.qos.logback:logback-classic`,
+      Deps.`io.github.artsok:rerunner-jupiter`,
+      Deps.`io.netty:netty-build-common`,
+      Deps.`io.netty:netty-tcnative-boringssl-static`,
+      Deps.`org.assertj:assertj-core`,
+      Deps.`org.hamcrest:hamcrest-library`,
+      Deps.`org.junit.jupiter:junit-jupiter-api`,
+      Deps.`org.junit.jupiter:junit-jupiter-engine`,
+      Deps.`org.junit.jupiter:junit-jupiter-params`
+    )
+
+    def moduleDeps = super.moduleDeps ++
+      Seq(build.`transport-native-unix-common-tests`, build.testsuite)
+
+  }
+}

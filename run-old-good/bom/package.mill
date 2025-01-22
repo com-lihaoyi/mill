@@ -1,0 +1,16 @@
+package build.bom
+
+import $file.BaseModule
+import mill._
+import mill.javalib._
+import mill.javalib.publish._
+
+object `package` extends RootModule with BaseModule {
+
+  def artifactName = "netty-bom"
+
+  def pomPackagingType = PackagingType.Pom
+
+  def pomParentProject = Some(Artifact("org.sonatype.oss", "oss-parent", "7"))
+
+}

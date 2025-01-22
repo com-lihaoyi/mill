@@ -1,0 +1,17 @@
+{
+  "sensitive_headers": true,
+  "header_blocks":
+  [
+    {
+      "headers": [
+        { "password": "secret" }
+      ],
+      "encoded": [
+        "1086 ac68 4783 d927 8441 4961 53"
+      ],
+      "dynamic_table": [
+      ],
+      "table_size": 0
+    }
+  ]
+}

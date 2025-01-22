@@ -1,0 +1,18 @@
+{
+  "header_blocks":
+  [
+    {
+      "headers": [
+        { "custom-key": "custom-header" }
+      ],
+      "encoded": [
+        "4088 25a8 49e9 5ba9 7d7f 8925 a849 e95a",
+        "728e 42d9"
+      ],
+      "dynamic_table": [
+        { "custom-key": "custom-header" }
+      ],
+      "table_size": 55
+    }
+  ]
+}

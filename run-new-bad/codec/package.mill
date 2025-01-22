@@ -1,0 +1,134 @@
+package build.codec
+
+import $file.BaseModule
+import mill._
+import mill.javalib._
+import mill.javalib.publish._
+
+object Deps {
+
+  val `ch.qos.logback:logback-classic` =
+    ivy"ch.qos.logback:logback-classic:1.2.13"
+
+  val `com.aayushatharva.brotli4j:brotli4j` =
+    ivy"com.aayushatharva.brotli4j:brotli4j:1.16.0"
+
+  val `com.aayushatharva.brotli4j:native-linux-aarch64` =
+    ivy"com.aayushatharva.brotli4j:native-linux-aarch64:1.16.0"
+
+  val `com.aayushatharva.brotli4j:native-linux-riscv64` =
+    ivy"com.aayushatharva.brotli4j:native-linux-riscv64:1.16.0"
+
+  val `com.aayushatharva.brotli4j:native-linux-x86_64` =
+    ivy"com.aayushatharva.brotli4j:native-linux-x86_64:1.16.0"
+
+  val `com.aayushatharva.brotli4j:native-osx-aarch64` =
+    ivy"com.aayushatharva.brotli4j:native-osx-aarch64:1.16.0"
+
+  val `com.aayushatharva.brotli4j:native-osx-x86_64` =
+    ivy"com.aayushatharva.brotli4j:native-osx-x86_64:1.16.0"
+
+  val `com.aayushatharva.brotli4j:native-windows-x86_64` =
+    ivy"com.aayushatharva.brotli4j:native-windows-x86_64:1.16.0"
+  val `com.github.jponge:lzma-java` = ivy"com.github.jponge:lzma-java:1.3"
+  val `com.github.luben:zstd-jni` = ivy"com.github.luben:zstd-jni:1.5.5-11"
+  val `com.google.code.gson:gson` = ivy"com.google.code.gson:gson:2.8.9"
+
+  val `com.google.protobuf.nano:protobuf-javanano` =
+    ivy"com.google.protobuf.nano:protobuf-javanano:3.0.0-alpha-5"
+
+  val `com.google.protobuf:protobuf-java` =
+    ivy"com.google.protobuf:protobuf-java:2.6.1"
+  val `com.jcraft:jzlib` = ivy"com.jcraft:jzlib:1.1.3"
+  val `com.ning:compress-lzf` = ivy"com.ning:compress-lzf:1.0.3"
+  val `io.netty:netty-build-common` = ivy"io.netty:netty-build-common:31"
+  val `net.jpountz.lz4:lz4` = ivy"net.jpountz.lz4:lz4:1.3.0"
+
+  val `org.apache.commons:commons-compress` =
+    ivy"org.apache.commons:commons-compress:1.26.0"
+  val `org.assertj:assertj-core` = ivy"org.assertj:assertj-core:3.18.0"
+  val `org.hamcrest:hamcrest-library` = ivy"org.hamcrest:hamcrest-library:1.3"
+
+  val `org.jboss.marshalling:jboss-marshalling-river` =
+    ivy"org.jboss.marshalling:jboss-marshalling-river:2.0.5.Final"
+
+  val `org.jboss.marshalling:jboss-marshalling-serial` =
+    ivy"org.jboss.marshalling:jboss-marshalling-serial:2.0.5.Final"
+
+  val `org.jboss.marshalling:jboss-marshalling` =
+    ivy"org.jboss.marshalling:jboss-marshalling:2.0.5.Final"
+
+  val `org.junit.jupiter:junit-jupiter-api` =
+    ivy"org.junit.jupiter:junit-jupiter-api:5.9.0"
+
+  val `org.junit.jupiter:junit-jupiter-engine` =
+    ivy"org.junit.jupiter:junit-jupiter-engine:5.9.0"
+
+  val `org.junit.jupiter:junit-jupiter-params` =
+    ivy"org.junit.jupiter:junit-jupiter-params:5.9.0"
+  val `org.mockito:mockito-core` = ivy"org.mockito:mockito-core:2.18.3"
+  val `org.reflections:reflections` = ivy"org.reflections:reflections:0.10.2"
+}
+
+object `package` extends RootModule with BaseModule {
+
+  def artifactName = "netty-codec"
+
+  def ivyDeps = super.ivyDeps() ++ Agg(
+    Deps.`com.aayushatharva.brotli4j:brotli4j`,
+    Deps.`com.aayushatharva.brotli4j:native-linux-aarch64`,
+    Deps.`com.aayushatharva.brotli4j:native-linux-riscv64`,
+    Deps.`com.aayushatharva.brotli4j:native-linux-x86_64`,
+    Deps.`com.aayushatharva.brotli4j:native-osx-aarch64`,
+    Deps.`com.aayushatharva.brotli4j:native-osx-x86_64`,
+    Deps.`com.aayushatharva.brotli4j:native-windows-x86_64`,
+    Deps.`com.github.jponge:lzma-java`,
+    Deps.`com.github.luben:zstd-jni`,
+    Deps.`com.google.protobuf.nano:protobuf-javanano`,
+    Deps.`com.google.protobuf:protobuf-java`,
+    Deps.`com.jcraft:jzlib`,
+    Deps.`com.ning:compress-lzf`,
+    Deps.`net.jpountz.lz4:lz4`,
+    Deps.`org.jboss.marshalling:jboss-marshalling`
+  )
+
+  def compileModuleDeps = super.compileModuleDeps ++
+    Seq(build.buffer, build.common, build.transport)
+
+  def pomParentProject =
+    Some(Artifact("io.netty", "netty-parent", "4.1.114.Final"))
+
+  def publishProperties = super.publishProperties() ++ Map(
+    ("javaModuleName", "io.netty.codec"),
+    (
+      "logging.config",
+      "/Users/lihaoyi/Github/mill/out/integration/feature/init/local/server/test.dest/sandbox/run-1/codec/../common/src/test/resources/logback-test.xml"
+    ),
+    (
+      "netty.dev.tools.directory",
+      "/Users/lihaoyi/Github/mill/out/integration/feature/init/local/server/test.dest/sandbox/run-1/codec/target/dev-tools"
+    )
+  )
+
+  object test extends MavenTests with TestModule.Junit5 {
+
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      Deps.`ch.qos.logback:logback-classic`,
+      Deps.`com.google.code.gson:gson`,
+      Deps.`io.netty:netty-build-common`,
+      Deps.`org.apache.commons:commons-compress`,
+      Deps.`org.assertj:assertj-core`,
+      Deps.`org.hamcrest:hamcrest-library`,
+      Deps.`org.jboss.marshalling:jboss-marshalling-river`,
+      Deps.`org.jboss.marshalling:jboss-marshalling-serial`,
+      Deps.`org.junit.jupiter:junit-jupiter-api`,
+      Deps.`org.junit.jupiter:junit-jupiter-engine`,
+      Deps.`org.junit.jupiter:junit-jupiter-params`,
+      Deps.`org.mockito:mockito-core`,
+      Deps.`org.reflections:reflections`
+    )
+
+    def moduleDeps = super.moduleDeps ++ Seq(build.transport)
+
+  }
+}

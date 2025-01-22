@@ -1,0 +1,17 @@
+{
+  "header_blocks":
+  [
+    {
+      "headers": [
+        { ":path": "/sample/path" }
+      ],
+      "encoded": [
+        "4489 6103 a6ba 0ac5 634c ff"
+      ],
+      "dynamic_table": [
+        { ":path": "/sample/path" }
+      ],
+      "table_size": 49
+    }
+  ]
+}
