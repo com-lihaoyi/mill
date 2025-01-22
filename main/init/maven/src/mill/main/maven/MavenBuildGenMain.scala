@@ -82,6 +82,7 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
       repos = Nil
     )
 
+    // Model.getRepositories is always empty
     IrBaseInfo(javacOptions, Seq.empty, noPom = false, publishVersion, publishProperties, typedef)
   }
 
