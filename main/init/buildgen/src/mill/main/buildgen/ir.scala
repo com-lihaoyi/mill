@@ -105,6 +105,5 @@ case class IrScopedDeps(
     testIvyDeps: SortedSet[String] = SortedSet(),
     testModuleDeps: SortedSet[String] = SortedSet(),
     testCompileIvyDeps: SortedSet[String] = SortedSet(),
-    testCompileModuleDeps: SortedSet[String] = SortedSet(),
-    companions: SortedMap[String, BuildObject.Constants] = SortedMap()
+    testCompileModuleDeps: SortedSet[String] = SortedSet()
 )

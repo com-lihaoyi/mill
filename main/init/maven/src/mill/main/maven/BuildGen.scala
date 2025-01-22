@@ -261,12 +261,7 @@ object BuildGen extends BuildGenBase[Model, Dependency, BuildGenConfig] {
         sd = sd.copy(testModule = testModulesByGroup.get(dep.getGroupId))
       }
     }
-
-    sd.copy(companions =
-      cfg.shared.depsObject.fold(SortedMap.empty[String, BuildObject.Constants])(name =>
-        SortedMap((name, SortedMap(sd.namedIvyDeps.toSeq *)))
-      )
-    )
+    sd
   }
 }
 

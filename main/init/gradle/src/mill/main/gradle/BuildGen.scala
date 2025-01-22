@@ -311,11 +311,7 @@ object BuildGen extends BuildGenBase[ProjectModel, JavaModel.Dep, BuildGenConfig
         }
       }
     }
-    sd.copy(companions =
-      cfg.shared.depsObject.fold(SortedMap.empty[String, BuildObject.Constants])(name =>
-        SortedMap((name, SortedMap(sd.namedIvyDeps.toSeq *)))
-      )
-    )
+    sd
   }
 }
 

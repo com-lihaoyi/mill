@@ -2,6 +2,8 @@ package mill.main.buildgen
 
 import mill.main.buildgen.BuildGenUtil.{BaseInfo, buildPackages}
 
+import scala.collection.immutable.SortedMap
+
 trait BuildGenBase[M, D, C] {
   def convert(
       input: Tree[Node[M]],
@@ -21,10 +23,8 @@ trait BuildGenBase[M, D, C] {
       val name = getArtifactId(build.value)
       println(s"converting module $name")
 
-      val supertypes = getSuperTypes(cfg, baseInfo, build)
-
       val scopedDeps = extractScopedDeps(build.value, packages, cfg)
-      val options = getJavacOptions(build.value).diff(baseInfo.javacOptions)
+
       val version = getPublishVersion(build.value)
 
       val inner = IrBuild(
@@ -33,7 +33,7 @@ trait BuildGenBase[M, D, C] {
         hasTest = os.exists(getMillSourcePath(build.value) / "src/test"),
         dirs = build.dirs,
         repos = getRepositories(build.value).diff(baseInfo.repos),
-        javacOptions = if (options == baseInfo.javacOptions) Seq.empty else options,
+        javacOptions = getJavacOptions(build.value).diff(baseInfo.javacOptions),
         projectName = name,
         pomSettings = if (baseInfo.noPom) extractPomSettings(build.value) else null,
         publishVersion = if (version == baseInfo.publishVersion) null else version,
@@ -47,12 +47,16 @@ trait BuildGenBase[M, D, C] {
       val isNested = build.dirs.nonEmpty
       build.copy(value =
         BuildObject(
-          BuildGenUtil.renderImports(shared.baseModule, isNested, packages.size),
-          inner.scopedDeps.companions,
-          supertypes,
-          BuildGenUtil.renderIrBuild(inner),
-          if (isNested || baseInfo.moduleTypedef == null) ""
-          else BuildGenUtil.renderIrTrait(baseInfo.moduleTypedef)
+          imports = BuildGenUtil.renderImports(shared.baseModule, isNested, packages.size),
+          companions =
+            shared.depsObject.fold(SortedMap.empty[String, BuildObject.Constants])(name =>
+              SortedMap((name, SortedMap(scopedDeps.namedIvyDeps.toSeq *)))
+            ),
+          supertypes = getSuperTypes(cfg, baseInfo, build),
+          inner = BuildGenUtil.renderIrBuild(inner),
+          outer =
+            if (isNested || baseInfo.moduleTypedef == null) ""
+            else BuildGenUtil.renderIrTrait(baseInfo.moduleTypedef)
         )
       )
     }
