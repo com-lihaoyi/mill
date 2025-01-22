@@ -3,10 +3,13 @@ package mill.main.gradle
 import mainargs.{Flag, ParserForClass, arg, main}
 import mill.main.buildgen.BuildGenUtil.*
 import mill.main.buildgen.{
+  BuildGenBase,
   BuildGenUtil,
   BuildObject,
+  IrArtifact,
   IrBuild,
   IrDeveloper,
+  IrLicense,
   IrPom,
   IrScopedDeps,
   IrTrait,
@@ -47,7 +50,7 @@ import scala.jdk.CollectionConverters.*
  *  - non-Java sources
  */
 @mill.api.internal
-object BuildGen {
+object BuildGen extends BuildGenBase[ProjectModel, JavaModel.Dep, BuildGenConfig] {
 
   def main(args: Array[String]): Unit = {
     val cfg = ParserForClass[BuildGenConfig].constructOrExit(args.toSeq)
@@ -82,7 +85,7 @@ object BuildGen {
           (Node(dirs, project), children)
         }
 
-        val output = convert(input, cfg)
+        val output = convert(input, cfg, cfg.shared)
         writeBuildObject(if (cfg.merge.value) compactBuildTree(output) else output)
 
         println("converted Gradle build to Mill")
@@ -110,107 +113,72 @@ object BuildGen {
     file
   }
 
-  private def convert(
+  def getBaseInfo(
       input: Tree[Node[ProjectModel]],
-      cfg: BuildGenConfig
-  ): Tree[Node[BuildObject]] = {
-    // for resolving moduleDeps
-    val packages = buildPackages(input)(project =>
-      (project.group(), project.name(), project.version())
+      cfg: BuildGenConfig,
+      baseModule: String,
+      moduleSupertypes: Seq[String],
+      packagesSize: Int
+  ): BaseInfo = {
+    val project = {
+      val projects = input.nodes(Tree.Traversal.BreadthFirst).map(_.value).toSeq
+      cfg.baseProject
+        .flatMap(name => projects.collectFirst { case m if name == m.name => m })
+        .orElse(projects.collectFirst { case m if null != m.maven().pom() => m })
+        .orElse(projects.collectFirst { case m if !m.maven().repositories().isEmpty => m })
+        .getOrElse(input.node.value)
+    }
+    if (packagesSize > 1) {
+      println(s"settings from ${project.name()} will be shared in base module")
+    }
+    val supertypes =
+      Seq("MavenModule") ++
+        Option.when(null != project.maven().pom()) { "PublishModule" }
+
+    val javacOptions = getJavacOptions(project)
+    val repos = getRepositories(project)
+    val pomSettings = extractPomSettings(project)
+    val publishVersion = getPublishVersion(project)
+
+    val typedef = IrTrait(
+      cfg.shared.jvmId,
+      baseModule,
+      supertypes,
+      javacOptions,
+      pomSettings,
+      publishVersion,
+      Nil
     )
 
-    val baseInfo = cfg.shared.baseModule match {
-      case None => BaseInfo()
-      case Some(baseModule) =>
-        val project = {
-          val projects = input.nodes(Tree.Traversal.BreadthFirst).map(_.value).toSeq
-          cfg.baseProject
-            .flatMap(name => projects.collectFirst { case m if name == m.name => m })
-            .orElse(projects.collectFirst { case m if null != m.maven().pom() => m })
-            .orElse(projects.collectFirst { case m if !m.maven().repositories().isEmpty => m })
-            .getOrElse(input.node.value)
-        }
-        if (packages.size > 1) {
-          println(s"settings from ${project.name()} will be shared in base module")
-        }
-        val supertypes =
-          Seq("MavenModule") ++
-            Option.when(null != project.maven().pom()) { "PublishModule" }
+    BaseInfo(javacOptions, repos, pomSettings == null, publishVersion, Seq.empty, typedef)
 
-        val javacOptions = getJavacOptions(project)
-        val repos = getRepositories(project)
-        val pomSettings = extractPomSettings(project)
-        val publishVersion = getPublishVersion(project)
-
-        val typedef = IrTrait(
-          cfg.shared.jvmId,
-          baseModule,
-          supertypes,
-          javacOptions,
-          pomSettings,
-          publishVersion,
-          Nil
-        )
-
-        BaseInfo(javacOptions, repos, pomSettings == null, publishVersion, Seq.empty, typedef)
-
-    }
-
-    val moduleSupertype = cfg.shared.baseModule.getOrElse("MavenModule")
-
-    input.map { build =>
-      val name = build.value.name()
-      println(s"converting module $name")
-
-      val millSourcePath = os.Path(build.value.directory())
-      val pom = build.value.maven().pom()
-
-      val hasPom = null != pom
-      val hasSource = os.exists(millSourcePath / "src")
-      val hasTest = os.exists(millSourcePath / "src/test")
-      val isNested = build.dirs.nonEmpty
-
-      val supertypes =
-        Seq("RootModule") ++
-          Option.when(hasPom && baseInfo.noPom) { "PublishModule" } ++
-          Option.when(isNested || hasSource) { moduleSupertype }
-
-      val scopedDeps = extractScopedDeps(build.value, packages, cfg)
-
-      val inner = IrBuild(
-        scopedDeps,
-        cfg.shared.testModule,
-        hasTest,
-        build.dirs,
-        repos = getRepositories(build.value).diff(baseInfo.repos),
-        javacOptions = {
-          val options = getJavacOptions(build.value).diff(baseInfo.javacOptions)
-          if (options == baseInfo.javacOptions) Seq.empty else options
-        },
-        build.value.name(),
-        pomSettings = if (baseInfo.noPom) extractPomSettings(build.value) else null,
-        publishVersion = {
-          val version = getPublishVersion(build.value)
-          if (version == baseInfo.publishVersion) null else version
-        },
-        packaging = null,
-        pomParentArtifact = null,
-        resources = Nil,
-        testResources = Nil,
-        publishProperties = Nil
-      )
-
-      convertToBuildObject(
-        build,
-        supertypes,
-        inner,
-        cfg.shared.baseModule,
-        packages.size,
-        baseInfo
-      )
-    }
   }
 
+  def getModuleSupertypes(cfg: BuildGenConfig) = Seq(cfg.shared.baseModule.getOrElse("MavenModule"))
+
+  def getPackage(project: ProjectModel): (String, String, String) = {
+    (project.group(), project.name(), project.version())
+  }
+
+  def getArtifactId(model: ProjectModel): String = model.name()
+  def getMillSourcePath(model: ProjectModel) = os.Path(model.directory())
+  def getSuperTypes(cfg: BuildGenConfig, baseInfo: BaseInfo, build: Node[ProjectModel]) = {
+    Seq("RootModule") ++
+      Option.when(null != build.value.maven().pom() && baseInfo.noPom) { "PublishModule" } ++
+      Option.when(build.dirs.nonEmpty || os.exists(getMillSourcePath(build.value) / "src")) {
+        getModuleSupertypes(cfg)
+      }.toSeq.flatten
+  }
+
+  def getPackaging(project: ProjectModel): String = null
+  def getPomParentArtifact(project: ProjectModel): IrArtifact = null
+  def getResources(m: ProjectModel): Seq[os.SubPath] = Nil
+  def getTestResources(m: ProjectModel): Seq[os.SubPath] = Nil
+  def getPublishProperties(
+      m: ProjectModel,
+      c: BuildGenConfig,
+      baseInfo: BaseInfo
+  ): Seq[(String, String)] = Nil
   def groupArtifactVersion(dep: JavaModel.Dep): (String, String, String) =
     (dep.group(), dep.name(), dep.version())
 
@@ -239,22 +207,18 @@ object BuildGen {
     val pom = project.maven.pom()
     if (null == pom) null
     else {
-      val licenses = pom.licenses().iterator().asScala
-        .map(lic => mrenderLicense(lic.name(), lic.name(), lic.url()))
-      val versionControl = Option(pom.scm()).fold(IrVersionControl(null, null, null, null))(scm =>
-        IrVersionControl(scm.url(), scm.connection(), scm.devConnection(), scm.tag())
-      )
-      val developers = pom.devs().iterator().asScala
-        .map(dev => IrDeveloper(dev.id(), dev.name(), dev.url(), dev.org(), dev.orgUrl()))
-        .toSeq
-
       IrPom(
         pom.description(),
         project.group(), // Mill uses group for POM org
         pom.url(),
-        licenses,
-        versionControl,
-        developers
+        licenses = pom.licenses().asScala
+          .map(lic => IrLicense(lic.name(), lic.name(), lic.url())),
+        versionControl = Option(pom.scm()).fold(IrVersionControl(null, null, null, null))(scm =>
+          IrVersionControl(scm.url(), scm.connection(), scm.devConnection(), scm.tag())
+        ),
+        developers = pom.devs().asScala
+          .map(dev => IrDeveloper(dev.id(), dev.name(), dev.url(), dev.org(), dev.orgUrl()))
+          .toSeq
       )
     }
   }

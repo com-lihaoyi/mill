@@ -1,7 +1,6 @@
 package mill.main.buildgen
 
 import scala.collection.immutable.{SortedMap, SortedSet}
-import scala.collection.mutable
 
 /**
  * A Mill build module defined as a Scala object.
@@ -51,7 +50,7 @@ case class IrPom(
     description: String,
     organization: String,
     url: String,
-    licenses: IterableOnce[String],
+    licenses: IterableOnce[IrLicense],
     versionControl: IrVersionControl,
     developers: Seq[IrDeveloper]
 )
@@ -66,6 +65,14 @@ case class IrDeveloper(
 )
 
 case class IrArtifact(group: String, id: String, version: String)
+case class IrLicense(
+    id: String,
+    name: String,
+    url: String,
+    isOsiApproved: Boolean = false,
+    isFsfLibre: Boolean = false,
+    distribution: String = "repo"
+)
 
 case class IrBuild(
     scopedDeps: IrScopedDeps,

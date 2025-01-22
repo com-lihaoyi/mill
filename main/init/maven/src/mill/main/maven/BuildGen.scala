@@ -3,11 +3,13 @@ package mill.main.maven
 import mainargs.{Flag, ParserForClass, arg, main}
 import mill.main.buildgen.BuildGenUtil.*
 import mill.main.buildgen.{
+  BuildGenBase,
   BuildGenUtil,
   BuildObject,
   IrArtifact,
   IrBuild,
   IrDeveloper,
+  IrLicense,
   IrPom,
   IrScopedDeps,
   IrTrait,
@@ -48,7 +50,7 @@ import scala.jdk.CollectionConverters.*
  *  - build profiles
  */
 @mill.api.internal
-object BuildGen {
+object BuildGen extends BuildGenBase[Model, Dependency, BuildGenConfig] {
 
   def main(args: Array[String]): Unit = {
     val cfg = ParserForClass[BuildGenConfig].constructOrExit(args.toSeq)
@@ -65,94 +67,76 @@ object BuildGen {
       (Node(dirs, model), model.getModules.iterator().asScala.map(dirs :+ _))
     }
 
-    val output = convert(input, cfg)
+    val output = convert(input, cfg, cfg.shared)
     writeBuildObject(if (cfg.merge.value) compactBuildTree(output) else output)
 
     println("converted Maven build to Mill")
   }
 
-  private def convert(input: Tree[Node[Model]], cfg: BuildGenConfig): Tree[Node[BuildObject]] = {
-    // for resolving moduleDeps
-    val packages = buildPackages(input)(model =>
-      (model.getGroupId, model.getArtifactId, model.getVersion)
+  def getBaseInfo(
+      input: Tree[Node[Model]],
+      cfg: BuildGenConfig,
+      baseModule: String,
+      moduleSupertypes: Seq[String],
+      packagesSize: Int
+  ): BaseInfo = {
+    val model = input.node.value
+    val javacOptions = Plugins.MavenCompilerPlugin.javacOptions(model)
+    val pomSettings = extractPomSettings(model)
+    val publishVersion = model.getVersion
+    val publishProperties = getPublishProperties(model, cfg)
+
+    val typedef = IrTrait(
+      cfg.shared.jvmId,
+      baseModule,
+      moduleSupertypes,
+      javacOptions,
+      pomSettings,
+      publishVersion,
+      publishProperties
     )
 
-    val moduleSupertypes = Seq("PublishModule", "MavenModule")
-
-    val baseInfo = cfg.shared.baseModule match {
-      case None => BaseInfo()
-      case Some(baseModule) =>
-        val model = input.node.value
-        val javacOptions = Plugins.MavenCompilerPlugin.javacOptions(model)
-        val pomSettings = extractPomSettings(model)
-        val publishVersion = model.getVersion
-        val publishProperties = getPublishProperties(model, cfg)
-
-        val typedef = IrTrait(
-          cfg.shared.jvmId,
-          baseModule,
-          moduleSupertypes,
-          javacOptions,
-          pomSettings,
-          publishVersion,
-          publishProperties
-        )
-
-        BaseInfo(javacOptions, Seq.empty, false, publishVersion, publishProperties, typedef)
-    }
-
-    input.map { build =>
-      val artifactId = build.value.getArtifactId
-      println(s"converting module $artifactId")
-
-      val millSourcePath = os.Path(build.value.getProjectDirectory)
-      val packaging = build.value.getPackaging
-
-      val hasTest = os.exists(millSourcePath / "src/test")
-
-      val supertypes =
-        Seq("RootModule") ++
-          cfg.shared.baseModule.fold(moduleSupertypes)(Seq(_))
-
-      val scopedDeps = extractScopedDeps(build.value, packages, cfg)
-
-      val options = Plugins.MavenCompilerPlugin.javacOptions(build.value)
-
-      def processResources(input: java.util.List[org.apache.maven.model.Resource]) = input
-        .asScala
-        .map(_.getDirectory)
-        .map(os.Path(_).subRelativeTo(millSourcePath))
-        .filterNot(_ == mavenTestResourceDir)
-        .toSeq
-
-      val inner = IrBuild(
-        scopedDeps,
-        cfg.shared.testModule,
-        hasTest,
-        build.dirs,
-        repos = Nil,
-        javacOptions = if (options == baseInfo.javacOptions) Seq.empty else options,
-        artifactId,
-        pomSettings = if (baseInfo.noPom) extractPomSettings(build.value) else null,
-        publishVersion =
-          if (build.value.getVersion == baseInfo.publishVersion) null else build.value.getVersion,
-        packaging,
-        pomParentArtifact = mkPomParent(build.value.getParent),
-        resources = processResources(build.value.getBuild.getResources),
-        testResources = processResources(build.value.getBuild.getTestResources),
-        publishProperties = getPublishProperties(build.value, cfg).diff(baseInfo.publishProperties)
-      )
-
-      convertToBuildObject(
-        build,
-        supertypes,
-        inner,
-        cfg.shared.baseModule,
-        packages.size,
-        baseInfo
-      )
-    }
+    BaseInfo(javacOptions, Seq.empty, false, publishVersion, publishProperties, typedef)
   }
+
+  def getModuleSupertypes(cfg: BuildGenConfig): Seq[String] = Seq("PublishModule", "MavenModule")
+
+  def getPackage(model: Model): (String, String, String) = {
+    (model.getGroupId, model.getArtifactId, model.getVersion)
+  }
+
+  def getArtifactId(model: Model): String = model.getArtifactId
+  def getMillSourcePath(model: Model) = os.Path(model.getProjectDirectory)
+
+  def getSuperTypes(cfg: BuildGenConfig, baseInfo: BaseInfo, build: Node[Model]): Seq[String] = {
+    Seq("RootModule") ++
+      cfg.shared.baseModule.fold(getModuleSupertypes(cfg))(Seq(_))
+  }
+  def getPackaging(project: Model): String = project.getPackaging
+
+  def getPomParentArtifact(project: Model): IrArtifact = mkPomParent(project.getParent)
+  def processResources(
+      input: java.util.List[org.apache.maven.model.Resource],
+      millSourcePath: os.Path
+  ) = input
+    .asScala
+    .map(_.getDirectory)
+    .map(os.Path(_).subRelativeTo(millSourcePath))
+    .filterNot(_ == mavenTestResourceDir)
+    .toSeq
+
+  def getResources(m: Model): Seq[os.SubPath] =
+    processResources(m.getBuild.getResources, getMillSourcePath(m))
+  def getTestResources(m: Model): Seq[os.SubPath] =
+    processResources(m.getBuild.getTestResources, getMillSourcePath(m))
+  def getPublishProperties(m: Model, c: BuildGenConfig, baseInfo: BaseInfo): Seq[(String, String)] =
+    getPublishProperties(m, c).diff(baseInfo.publishProperties)
+  def getJavacOptions(project: Model): Seq[String] = {
+    Plugins.MavenCompilerPlugin.javacOptions(project)
+  }
+
+  def getPublishVersion(project: Model): String = project.getVersion
+  def getRepositories(project: Model): Seq[String] = Nil
 
   def groupArtifactVersion(dep: Dependency): (String, String, String) =
     (dep.getGroupId, dep.getArtifactId, dep.getVersion)
@@ -181,40 +165,34 @@ object BuildGen {
     else IrArtifact(parent.getGroupId, parent.getArtifactId, parent.getVersion)
 
   def extractPomSettings(model: Model): IrPom = {
-    val licenses = model.getLicenses.iterator().asScala
-      .map(lic =>
-        mrenderLicense(
-          lic.getName,
-          lic.getName,
-          lic.getUrl,
-          isOsiApproved = false,
-          isFsfLibre = false,
-          "repo"
-        )
-      )
-
-    val versionControl = Option(model.getScm).fold(IrVersionControl(null, null, null, null))(scm =>
-      IrVersionControl(scm.getUrl, scm.getConnection, scm.getDeveloperConnection, scm.getTag)
-    )
-
-    val developers = model.getDevelopers.iterator().asScala.toSeq
-      .map(dev =>
-        IrDeveloper(
-          dev.getId,
-          dev.getName,
-          dev.getUrl,
-          dev.getOrganization,
-          dev.getOrganizationUrl
-        )
-      )
-
     IrPom(
       model.getDescription,
       model.getGroupId, // Mill uses group for POM org
       model.getUrl,
-      licenses,
-      versionControl,
-      developers
+      licenses = model.getLicenses.asScala.toSeq
+        .map(lic =>
+          IrLicense(
+            lic.getName,
+            lic.getName,
+            lic.getUrl,
+            isOsiApproved = false,
+            isFsfLibre = false,
+            "repo"
+          )
+        ),
+      versionControl = Option(model.getScm).fold(IrVersionControl(null, null, null, null))(scm =>
+        IrVersionControl(scm.getUrl, scm.getConnection, scm.getDeveloperConnection, scm.getTag)
+      ),
+      developers = model.getDevelopers.iterator().asScala.toSeq
+        .map(dev =>
+          IrDeveloper(
+            dev.getId,
+            dev.getName,
+            dev.getUrl,
+            dev.getOrganization,
+            dev.getOrganizationUrl
+          )
+        )
     )
   }
 

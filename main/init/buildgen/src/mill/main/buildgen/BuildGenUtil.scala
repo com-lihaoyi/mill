@@ -25,26 +25,6 @@ object BuildGenUtil {
       moduleTypedef: IrTrait = null
   )
 
-  def convertToBuildObject(
-      build: Node[_],
-      supertypes: Seq[String],
-      inner: IrBuild,
-      baseModule: Option[String],
-      packagesSize: Int,
-      baseInfo: BaseInfo
-  ): Node[BuildObject] = {
-    val isNested = build.dirs.nonEmpty
-    build.copy(value =
-      BuildObject(
-        renderImports(baseModule, isNested, packagesSize),
-        inner.scopedDeps.companions,
-        supertypes,
-        BuildGenUtil.renderIrBuild(inner),
-        if (isNested || baseInfo.moduleTypedef == null) ""
-        else BuildGenUtil.renderIrTrait(baseInfo.moduleTypedef)
-      )
-    )
-  }
   def renderIrTrait(value: IrTrait): String = {
     import value._
     val zincWorker = jvmId.fold("") { jvmId =>
@@ -74,7 +54,7 @@ object BuildGenUtil {
 
   def renderIrPom(value: IrPom): String = {
     import value._
-    val mkLicenses = licenses.iterator.mkString("Seq(", ", ", ")")
+    val mkLicenses = licenses.iterator.map(renderLicense(_)).mkString("Seq(", ", ", ")")
     val mkDevelopers = developers.iterator.map(renderDeveloper).mkString("Seq(", ", ", ")")
     s"PomSettings(${escape(description)}, ${escape(organization)}, ${escape(url)}, $mkLicenses, ${renderVersionControl(versionControl)}, $mkDevelopers)"
   }
@@ -333,15 +313,10 @@ object BuildGenUtil {
     case head +: tail => tail.mkString(s"extends $head with ", " with ", "")
   }
 
-  def mrenderLicense(
-      id: String,
-      name: String,
-      url: String,
-      isOsiApproved: Boolean = false,
-      isFsfLibre: Boolean = false,
-      distribution: String = "repo"
+  def renderLicense(
+      license: IrLicense
   ): String =
-    s"License(${escape(id)}, ${escape(name)}, ${escape(url)}, $isOsiApproved, $isFsfLibre, ${escape(distribution)})"
+    s"License(${escape(license.id)}, ${escape(license.name)}, ${escape(license.url)}, ${license.isOsiApproved}, ${license.isFsfLibre}, ${escape(license.distribution)})"
 
   def renderVersionControl(vc: IrVersionControl): String =
     s"VersionControl(${escapeOption(vc.url)}, ${escapeOption(vc.connection)}, ${escapeOption(vc.devConnection)}, ${escapeOption(vc.tag)})"
