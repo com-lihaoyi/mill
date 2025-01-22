@@ -6,7 +6,7 @@ import scala.collection.immutable.SortedMap
 
 trait BuildGenBase[M, D] {
   type C
-  def convertWriteOut(cfg: C, shared: BuildGenUtil.Config, input: Tree[Node[M]]) = {
+  def convertWriteOut(cfg: C, shared: BuildGenUtil.Config, input: Tree[Node[M]]): Unit = {
     val output = convert(input, cfg, shared)
     writeBuildObject(if (shared.merge.value) compactBuildTree(output) else output)
   }

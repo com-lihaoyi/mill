@@ -20,6 +20,7 @@ import mill.main.buildgen.{
 import org.apache.maven.model.{Dependency, Model, Parent}
 
 import scala.jdk.CollectionConverters.*
+import os.{Path, SubPath}
 
 /**
  * Converts a Maven build to Mill by generating Mill build file(s) from POM file(s).
@@ -136,7 +137,7 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
   }
 
   def getArtifactId(model: Model): String = model.getArtifactId
-  def getMillSourcePath(model: Model) = os.Path(model.getProjectDirectory)
+  def getMillSourcePath(model: Model): Path = os.Path(model.getProjectDirectory)
 
   def getSuperTypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[Model]): Seq[String] = {
     Seq("RootModule") ++
@@ -146,7 +147,7 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
   def processResources(
       input: java.util.List[org.apache.maven.model.Resource],
       millSourcePath: os.Path
-  ) = {
+  ): Seq[SubPath] = {
     input
       .asScala
       .map(_.getDirectory)

@@ -1,6 +1,6 @@
 package mill.main.gradle
 
-import mainargs.{Flag, ParserForClass, arg, main}
+import mainargs.{ParserForClass, arg, main}
 import mill.main.buildgen.BuildGenUtil.*
 import mill.main.buildgen.{
   IrBaseInfo,
@@ -21,6 +21,7 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.tooling.GradleConnector
 
 import scala.jdk.CollectionConverters.*
+import os.Path
 
 /**
  * Converts a Gradle build to Mill by generating Mill build file(s).
@@ -177,15 +178,16 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
     )
   }
 
-  def getModuleSupertypes(cfg: Config) = Seq(cfg.shared.baseModule.getOrElse("MavenModule"))
+  def getModuleSupertypes(cfg: Config): Seq[String] =
+    Seq(cfg.shared.baseModule.getOrElse("MavenModule"))
 
   def getPackage(project: ProjectModel): (String, String, String) = {
     (project.group(), project.name(), project.version())
   }
 
   def getArtifactId(model: ProjectModel): String = model.name()
-  def getMillSourcePath(model: ProjectModel) = os.Path(model.directory())
-  def getSuperTypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[ProjectModel]) = {
+  def getMillSourcePath(model: ProjectModel): Path = os.Path(model.directory())
+  def getSuperTypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[ProjectModel]): Seq[String] = {
     Seq("RootModule") ++
       Option.when(null != build.value.maven().pom() && baseInfo.noPom) { "PublishModule" } ++
       Option.when(build.dirs.nonEmpty || os.exists(getMillSourcePath(build.value) / "src")) {
@@ -242,7 +244,7 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
       project: ProjectModel,
       packages: PartialFunction[(String, String, String), String],
       cfg: Config
-  ) = {
+  ): IrScopedDeps = {
     var sd = IrScopedDeps()
     val hasTest = os.exists(os.Path(project.directory()) / "src/test")
     val _java = project._java()

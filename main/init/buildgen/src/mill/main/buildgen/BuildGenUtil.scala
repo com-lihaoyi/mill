@@ -10,6 +10,7 @@ import mill.main.client.CodeGenConstants.{
 }
 import mill.main.client.OutFiles
 import mill.runner.FileImportGraph.backtickWrap
+import scala.collection.immutable.SortedSet
 
 @mill.api.internal
 object BuildGenUtil {
@@ -120,7 +121,11 @@ object BuildGenUtil {
     os.sub / dirs / name
   }
 
-  def renderImports(baseModule: Option[String], isNested: Boolean, packagesSize: Int) = {
+  def renderImports(
+      baseModule: Option[String],
+      isNested: Boolean,
+      packagesSize: Int
+  ): SortedSet[String] = {
     scala.collection.immutable.SortedSet("mill._", "mill.javalib._", "mill.javalib.publish._") ++
       (if (isNested) baseModule.map(name => s"$$file.$name")
        else if (packagesSize > 1) Seq("$packages._")
@@ -438,7 +443,7 @@ object BuildGenUtil {
     }
   }
 
-  def renderTestModuleDecl(testModule: String, testModuleType: Option[String]) = {
+  def renderTestModuleDecl(testModule: String, testModuleType: Option[String]): String = {
     val name = backtickWrap(testModule)
     testModuleType match {
       case Some(supertype) => s"object $name extends MavenTests with $supertype"
