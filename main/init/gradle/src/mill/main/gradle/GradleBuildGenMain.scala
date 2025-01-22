@@ -148,17 +148,18 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
       build: Node[ProjectModel],
       packages: Map[(String, String, String), String]
   ): IrBuild = {
-    val scopedDeps = extractScopedDeps(build.value, packages, cfg)
-    val version = getPublishVersion(build.value)
+    val project = build.value
+    val scopedDeps = extractScopedDeps(project, packages, cfg)
+    val version = getPublishVersion(project)
     IrBuild(
       scopedDeps = scopedDeps,
       testModule = cfg.shared.testModule,
-      hasTest = os.exists(getMillSourcePath(build.value) / "src/test"),
+      hasTest = os.exists(getMillSourcePath(project) / "src/test"),
       dirs = build.dirs,
-      repos = getRepositories(build.value).diff(baseInfo.repos),
-      javacOptions = getJavacOptions(build.value).diff(baseInfo.javacOptions),
-      projectName = getArtifactId(build.value),
-      pomSettings = if (baseInfo.noPom) extractPomSettings(build.value) else null,
+      repos = getRepositories(project).diff(baseInfo.repos),
+      javacOptions = getJavacOptions(project).diff(baseInfo.javacOptions),
+      projectName = getArtifactId(project),
+      pomSettings = if (baseInfo.noPom) extractPomSettings(project) else null,
       publishVersion = if (version == baseInfo.publishVersion) null else version,
       packaging = null,
       pomParentArtifact = null,
@@ -176,7 +177,9 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
   }
 
   def getArtifactId(model: ProjectModel): String = model.name()
+
   def getMillSourcePath(model: ProjectModel): Path = os.Path(model.directory())
+
   def getSuperTypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[ProjectModel]): Seq[String] = {
     Seq("RootModule") ++
       Option.when(null != build.value.maven().pom() && baseInfo.noPom) { "PublishModule" } ++

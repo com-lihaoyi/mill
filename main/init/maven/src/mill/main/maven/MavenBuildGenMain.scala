@@ -1,8 +1,8 @@
 package mill.main.maven
 
 import mainargs.{Flag, ParserForClass, arg, main}
-import mill.main.buildgen.BuildGenUtil.*
 import mill.main.buildgen.*
+import mill.main.buildgen.BuildGenUtil.*
 import org.apache.maven.model.{Dependency, Model, Parent}
 import os.{Path, SubPath}
 
@@ -91,28 +91,28 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
       build: Node[Model],
       packages: Map[(String, String, String), String]
   ): IrBuild = {
-    val scopedDeps = extractScopedDeps(build.value, packages, cfg)
-    val version = getPublishVersion(build.value)
+    val project = build.value
+    val scopedDeps = extractScopedDeps(project, packages, cfg)
+    val version = project.getVersion
     IrBuild(
       scopedDeps = scopedDeps,
       testModule = cfg.shared.testModule,
-      hasTest = os.exists(getMillSourcePath(build.value) / "src/test"),
+      hasTest = os.exists(getMillSourcePath(project) / "src/test"),
       dirs = build.dirs,
       repos = Nil,
-      javacOptions =
-        Plugins.MavenCompilerPlugin.javacOptions(build.value).diff(baseInfo.javacOptions),
-      projectName = getArtifactId(build.value),
-      pomSettings = if (baseInfo.noPom) extractPomSettings(build.value) else null,
+      javacOptions = Plugins.MavenCompilerPlugin.javacOptions(project).diff(baseInfo.javacOptions),
+      projectName = getArtifactId(project),
+      pomSettings = if (baseInfo.noPom) extractPomSettings(project) else null,
       publishVersion = if (version == baseInfo.publishVersion) null else version,
-      packaging = build.value.getPackaging,
-      pomParentArtifact = mkPomParent(build.value.getParent),
+      packaging = project.getPackaging,
+      pomParentArtifact = mkPomParent(project.getParent),
       resources =
-        processResources(build.value.getBuild.getResources, getMillSourcePath(build.value))
+        processResources(project.getBuild.getResources, getMillSourcePath(project))
           .filterNot(_ == mavenMainResourceDir),
       testResources =
-        processResources(build.value.getBuild.getTestResources, getMillSourcePath(build.value))
+        processResources(project.getBuild.getTestResources, getMillSourcePath(project))
           .filterNot(_ == mavenTestResourceDir),
-      publishProperties = getPublishProperties(build.value, cfg).diff(baseInfo.publishProperties)
+      publishProperties = getPublishProperties(project, cfg).diff(baseInfo.publishProperties)
     )
   }
 
@@ -123,6 +123,7 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
   }
 
   def getArtifactId(model: Model): String = model.getArtifactId
+
   def getMillSourcePath(model: Model): Path = os.Path(model.getProjectDirectory)
 
   def getSuperTypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[Model]): Seq[String] = {
@@ -140,8 +141,6 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
       .map(os.Path(_).subRelativeTo(millSourcePath))
       .toSeq
   }
-
-  def getPublishVersion(project: Model): String = project.getVersion
 
   def getPublishProperties(model: Model, cfg: Config): Seq[(String, String)] =
     if (cfg.publishProperties.value) {
