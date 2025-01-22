@@ -104,7 +104,7 @@ object BuildGen {
     file
   }
 
-  private def convert(input: Tree[GradleNode], cfg: BuildGenConfig): BuildTree = {
+  private def convert(input: Tree[GradleNode], cfg: BuildGenConfig): Tree[Node[BuildObject]] = {
     val packages = // for resolving moduleDeps
       buildPackages(input)(project => (project.group(), project.name(), project.version()))
     val isMonorepo = packages.size > 1
@@ -281,7 +281,7 @@ object BuildGen {
     }
   }
 
-  def gav(dep: JavaModel.Dep): Gav =
+  def gav(dep: JavaModel.Dep): (String, String, String) =
     (dep.group(), dep.name(), dep.version())
 
   def getJavacOptions(project: ProjectModel): Seq[String] = {
@@ -301,7 +301,7 @@ object BuildGen {
       case version => version
     }
 
-  val interpIvy: JavaModel.Dep => InterpIvy = dep =>
+  val interpIvy: JavaModel.Dep => String = dep =>
     BuildGenUtil.interpIvy(dep.group(), dep.name(), dep.version())
 
   def mkPomSettings(project: ProjectModel): String = {
@@ -329,23 +329,23 @@ object BuildGen {
 
   def scopedDeps(
       project: ProjectModel,
-      packages: PartialFunction[Gav, BuildPackage],
+      packages: PartialFunction[(String, String, String), String],
       cfg: BuildGenConfig
   ): (
       Companions,
-      BomIvyDeps,
-      IvyDeps,
-      ModuleDeps,
-      IvyDeps,
-      ModuleDeps,
-      IvyDeps,
-      ModuleDeps,
+      IterableOnce[String],
+      IterableOnce[String],
+      IterableOnce[String],
+      IterableOnce[String],
+      IterableOnce[String],
+      IterableOnce[String],
+      IterableOnce[String],
       Option[String],
-      BomIvyDeps,
-      IvyDeps,
-      ModuleDeps,
-      IvyDeps,
-      ModuleDeps
+      IterableOnce[String],
+      IterableOnce[String],
+      IterableOnce[String],
+      IterableOnce[String],
+      IterableOnce[String]
   ) = {
     val namedIvyDeps = Seq.newBuilder[(String, String)]
     val mainBomIvyDeps = SortedSet.newBuilder[String]
@@ -365,7 +365,7 @@ object BuildGen {
     val hasTest = os.exists(os.Path(project.directory()) / "src/test")
     val _java = project._java()
     if (null != _java) {
-      val ivyDep: JavaModel.Dep => InterpIvy = cfg.depsObject.fold(interpIvy) { objName => dep =>
+      val ivyDep: JavaModel.Dep => String = cfg.depsObject.fold(interpIvy) { objName => dep =>
         val depName = s"`${dep.group()}:${dep.name()}`"
         namedIvyDeps += ((depName, interpIvy(dep)))
         s"$objName.$depName"

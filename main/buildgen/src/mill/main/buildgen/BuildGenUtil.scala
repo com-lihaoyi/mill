@@ -12,18 +12,6 @@ import mill.runner.FileImportGraph.backtickWrap
 
 @mill.api.internal
 object BuildGenUtil {
-
-  type BuildNode = Node[BuildObject]
-  type BuildPackage = String
-  type BuildTree = Tree[BuildNode]
-
-  type Gav = (String, String, String)
-  type InterpIvy = String
-
-  type BomIvyDeps = IterableOnce[String] // interpolated or named
-  type IvyDeps = IterableOnce[String] // inmergeterpolated or named
-  type ModuleDeps = IterableOnce[BuildPackage]
-
   def buildFile(dirs: Seq[String]): os.SubPath = {
     val name = if (dirs.isEmpty) rootBuildFileNames.head else nestedBuildFileNames.head
     os.sub / dirs / name
@@ -33,16 +21,16 @@ object BuildGenUtil {
     os.walk.stream(workspace, skip = (workspace / OutFiles.out).equals)
       .filter(file => buildFileExtensions.contains(file.ext))
 
-  def buildPackage(dirs: Seq[String]): BuildPackage =
+  def buildPackage(dirs: Seq[String]): String =
     (rootModuleAlias +: dirs).iterator.map(backtickWrap).mkString(".")
 
   def buildPackages[Module, Key](input: Tree[Node[Module]])(key: Module => Key)
-      : Map[Key, BuildPackage] =
-    input.nodes.fold(Map.newBuilder[Key, BuildPackage])((z, node) =>
+      : Map[Key, String] =
+    input.nodes.fold(Map.newBuilder[Key, String])((z, node) =>
       z += ((key(node.module), buildPackage(node.dirs)))
     ).result()
 
-  def buildSource(node: BuildNode): os.Source = {
+  def buildSource(node: Node[BuildObject]): os.Source = {
     val pkg = buildPackage(node.dirs)
     val BuildObject(imports, companions, supertypes, inner, outer) = node.module
     val importStatements = imports.iterator.map("import " + _).mkString(linebreak)
@@ -73,7 +61,7 @@ object BuildGenUtil {
        |""".stripMargin
   }
 
-  def compact(tree: BuildTree): BuildTree = {
+  def compact(tree: Tree[Node[BuildObject]]): Tree[Node[BuildObject]] = {
     println("compacting Mill build tree")
 
     def merge(parentCompanions: Companions, childCompanions: Companions): Companions = {
@@ -148,7 +136,7 @@ object BuildGenUtil {
       tpe: String = null,
       classifier: String = null,
       excludes: IterableOnce[(String, String)] = Seq.empty
-  ): InterpIvy = {
+  ): String = {
     val sepVersion =
       if (null == version) {
         println(
@@ -174,7 +162,7 @@ object BuildGenUtil {
     s"ivy\"$group:$artifact$sepVersion$sepTpe$sepClassifier$sepExcludes\""
   }
 
-  def isBom(gav: Gav): Boolean =
+  def isBom(gav: (String, String, String)): Boolean =
     gav._2.endsWith("-bom")
 
   def isNullOrEmpty(value: String): Boolean =
@@ -269,25 +257,25 @@ object BuildGenUtil {
     if (dirs.nonEmpty && dirs.last == name) "" // skip default
     else s"def artifactName = ${escape(name)}"
 
-  def setBomIvyDeps(args: BomIvyDeps): String =
+  def setBomIvyDeps(args: IterableOnce[String]): String =
     optional("def bomIvyDeps = super.bomIvyDeps() ++ Agg", args)
 
-  def setIvyDeps(args: IvyDeps): String =
+  def setIvyDeps(args: IterableOnce[String]): String =
     optional("def ivyDeps = super.ivyDeps() ++ Agg", args)
 
-  def setModuleDeps(args: ModuleDeps): String =
+  def setModuleDeps(args: IterableOnce[String]): String =
     optional("def moduleDeps = super.moduleDeps ++ Seq", args)
 
-  def setCompileIvyDeps(args: IvyDeps): String =
+  def setCompileIvyDeps(args: IterableOnce[String]): String =
     optional("def compileIvyDeps = super.compileIvyDeps() ++ Agg", args)
 
-  def setCompileModuleDeps(args: ModuleDeps): String =
+  def setCompileModuleDeps(args: IterableOnce[String]): String =
     optional("def compileModuleDeps = super.compileModuleDeps ++ Seq", args)
 
-  def setRunIvyDeps(args: IvyDeps): String =
+  def setRunIvyDeps(args: IterableOnce[String]): String =
     optional("def runIvyDeps = super.runIvyDeps() ++ Agg", args)
 
-  def setRunModuleDeps(args: ModuleDeps): String =
+  def setRunModuleDeps(args: IterableOnce[String]): String =
     optional("def runModuleDeps = super.runModuleDeps ++ Seq", args)
 
   def setJavacOptions(args: IterableOnce[String]): String =
@@ -345,7 +333,7 @@ object BuildGenUtil {
     "org.testng" -> "TestModule.TestNg"
   )
 
-  def write(tree: BuildTree): Unit = {
+  def write(tree: Tree[Node[BuildObject]]): Unit = {
     val nodes = tree.nodes.toSeq
     println(s"generated ${nodes.length} Mill build file(s)")
 

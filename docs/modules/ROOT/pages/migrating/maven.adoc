@@ -46,7 +46,7 @@ The conversion
 
 === Command line arguments
 
-The conversion and it's output (the generated Mill build files) can be customized using
+The conversion and its output (the generated Mill build files) can be customized using
 
 * `--base-module` (`-b`): name of generated base module trait defining shared settings
 [source,sh]

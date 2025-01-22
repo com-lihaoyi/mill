@@ -63,7 +63,7 @@ object BuildGen {
     println("converted Maven build to Mill")
   }
 
-  private def convert(input: Tree[MavenNode], cfg: BuildGenConfig): BuildTree = {
+  private def convert(input: Tree[MavenNode], cfg: BuildGenConfig): Tree[Node[BuildObject]] = {
     val packages = // for resolving moduleDeps
       buildPackages(input)(model => (model.getGroupId, model.getArtifactId, model.getVersion))
     val isMonorepo = packages.size > 1
@@ -237,7 +237,7 @@ object BuildGen {
     }
   }
 
-  def gav(dep: Dependency): Gav =
+  def gav(dep: Dependency): (String, String, String) =
     (dep.getGroupId, dep.getArtifactId, dep.getVersion)
 
   def getPublishProperties(model: Model, cfg: BuildGenConfig): Seq[(String, String)] =
@@ -249,7 +249,7 @@ object BuildGen {
         .sorted
     } else Seq.empty
 
-  val interpIvy: Dependency => InterpIvy = dep =>
+  val interpIvy: Dependency => String = dep =>
     BuildGenUtil.interpIvy(
       dep.getGroupId,
       dep.getArtifactId,
@@ -293,19 +293,19 @@ object BuildGen {
     )
   }
 
-  def scopedDeps(model: Model, packages: PartialFunction[Gav, BuildPackage], cfg: BuildGenConfig): (
+  def scopedDeps(model: Model, packages: PartialFunction[(String, String, String), String], cfg: BuildGenConfig): (
       Companions,
-      BomIvyDeps,
-      IvyDeps,
-      ModuleDeps,
-      IvyDeps,
-      ModuleDeps,
-      IvyDeps,
-      ModuleDeps,
+      IterableOnce[String],
+      IterableOnce[String],
+      IterableOnce[String],
+      IterableOnce[String],
+      IterableOnce[String],
+      IterableOnce[String],
+      IterableOnce[String],
       Option[String],
-      BomIvyDeps,
-      IvyDeps,
-      ModuleDeps
+      IterableOnce[String],
+      IterableOnce[String],
+      IterableOnce[String]
   ) = {
     val mainBomIvyDeps = SortedSet.newBuilder[String]
     val mainIvyDeps = SortedSet.newBuilder[String]
@@ -320,7 +320,7 @@ object BuildGen {
     val testModuleDeps = SortedSet.newBuilder[String]
 
     val hasTest = os.exists(os.Path(model.getProjectDirectory) / "src/test")
-    val namedIvyDeps = Seq.newBuilder[(String, InterpIvy)]
+    val namedIvyDeps = Seq.newBuilder[(String, String)]
     val ivyDep: Dependency => String = {
       cfg.depsObject.fold(interpIvy) { objName => dep =>
         {
