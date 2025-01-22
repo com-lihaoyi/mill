@@ -10,6 +10,9 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.tasks.compile.JavaCompile;
 
+/**
+ * A model containing the <a href="https://docs.gradle.org/current/userguide/java_plugin.html">Gradle Java Plugin<a/> settings for a project.
+ */
 public interface JavaModel extends Serializable {
 
   List<String> javacOptions();

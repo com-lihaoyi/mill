@@ -12,6 +12,9 @@ import scala.jdk.CollectionConverters.*
 
 /**
  * Converts a Gradle build to Mill by generating Mill build file(s).
+ * The implementation uses the Gradle
+ * [[https://docs.gradle.org/current/userguide/third_party_integration.html#embedding Tooling API]]
+ * to extract the settings for a project using a custom model.
  *
  * The generated output should be considered scaffolding and will likely require edits to complete conversion.
  *

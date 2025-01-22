@@ -6,6 +6,9 @@ import java.util.List;
 import org.gradle.api.Project;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
+/**
+ * A Gradle project tree.
+ */
 public interface ProjectTree extends Serializable {
 
   ProjectModel project();

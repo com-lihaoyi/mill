@@ -16,6 +16,9 @@ import org.gradle.api.publish.maven.MavenPomScm;
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPom;
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom;
 
+/**
+ * A model containing the <a href="https://docs.gradle.org/current/userguide/publishing_maven.html">Gradle Maven Plugin<a/> settings for a project.
+ */
 public interface MavenModel extends Serializable {
 
   Pom pom();
