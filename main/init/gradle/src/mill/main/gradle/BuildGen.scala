@@ -2,7 +2,16 @@ package mill.main.gradle
 
 import mainargs.{Flag, ParserForClass, arg, main}
 import mill.main.buildgen.BuildGenUtil.*
-import mill.main.buildgen.{BuildGenUtil, BuildObject, Node, Tree}
+import mill.main.buildgen.{
+  BuildGenUtil,
+  BuildObject,
+  IrBuild,
+  IrPom,
+  IrScopedDeps,
+  IrTrait,
+  Node,
+  Tree
+}
 import mill.util.Jvm
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.tooling.GradleConnector
@@ -63,6 +72,7 @@ object BuildGen {
         val root = connection.model(classOf[ProjectTree])
           .withArguments(args.asJava)
           .get
+
         val input = Tree.from(root) { tree =>
           val project = tree.project()
           val dirs = os.Path(project.directory()).subRelativeTo(workspace).segments
@@ -71,7 +81,7 @@ object BuildGen {
         }
 
         val output = convert(input, cfg)
-        write(if (cfg.merge.value) compactBuildTree(output) else output)
+        writeBuildObject(if (cfg.merge.value) compactBuildTree(output) else output)
 
         println("converted Gradle build to Mill")
       } finally connection.close()
@@ -116,12 +126,12 @@ object BuildGen {
       cfg.shared.baseModule match {
         case Some(baseModule) =>
           val project = {
-            val projects = input.nodes(Tree.Traversal.BreadthFirst).map(_.module).toSeq
+            val projects = input.nodes(Tree.Traversal.BreadthFirst).map(_.value).toSeq
             cfg.baseProject
               .flatMap(name => projects.collectFirst { case m if name == m.name => m })
               .orElse(projects.collectFirst { case m if null != m.maven().pom() => m })
               .orElse(projects.collectFirst { case m if !m.maven().repositories().isEmpty => m })
-              .getOrElse(input.node.module)
+              .getOrElse(input.node.value)
           }
           if (packages.size > 1) {
             println(s"settings from ${project.name()} will be shared in base module")
@@ -132,10 +142,10 @@ object BuildGen {
 
           val javacOptions = getJavacOptions(project)
           val repos = getRepositories(project)
-          val pomSettings = renderPomSettings(project)
+          val pomSettings = extractPomSettings(project)
           val publishVersion = getPublishVersion(project)
 
-          val typedef = renderTrait(
+          val typedef = IrTrait(
             cfg.shared.jvmId,
             baseModule,
             supertypes,
@@ -145,9 +155,9 @@ object BuildGen {
             Nil
           )
 
-          (javacOptions, repos, pomSettings.isEmpty, publishVersion, Seq.empty, typedef)
+          (javacOptions, repos, pomSettings == null, publishVersion, Seq.empty, typedef)
         case None =>
-          (Seq.empty, Seq.empty, true, "", Seq.empty, "")
+          (Seq.empty, Seq.empty, true, "", Seq.empty, null)
       }
 
     val moduleSupertype = cfg.shared.baseModule.getOrElse("MavenModule")
@@ -164,8 +174,6 @@ object BuildGen {
       val hasTest = os.exists(millSourcePath / "src/test")
       val isNested = dirs.nonEmpty
 
-      val imports = renderImports(cfg.shared.baseModule, isNested, packages.size)
-
       val supertypes =
         Seq("RootModule") ++
           Option.when(hasPom && baseNoPom) { "PublishModule" } ++
@@ -179,12 +187,12 @@ object BuildGen {
           if (options == baseJavacOptions) Seq.empty else options
         }
         val repos = getRepositories(project).diff(baseRepos)
-        val pomSettings = if (baseNoPom) renderPomSettings(project) else null
+        val pomSettings = if (baseNoPom) extractPomSettings(project) else null
         val publishVersion = {
           val version = getPublishVersion(project)
           if (version == basePublishVersion) null else version
         }
-        BuildGenUtil.renderModule(
+        IrBuild(
           scopedDeps,
           cfg.shared.testModule,
           hasTest,
@@ -194,15 +202,20 @@ object BuildGen {
           project.name(),
           pomSettings,
           publishVersion,
-          null,
-          null
+          packaging = null,
+          pomParentArtifact = null
         )
       }
 
-      val outer = if (isNested) "" else baseModuleTypedef
-
-      build.copy(module =
-        BuildObject(imports.to(SortedSet), scopedDeps.companions, supertypes, inner, outer)
+      build.copy(value =
+        BuildObject(
+          renderImports(cfg.shared.baseModule, isNested, packages.size).to(SortedSet),
+          scopedDeps.companions,
+          supertypes,
+          BuildGenUtil.renderIrBuild(inner),
+          if (isNested || baseModuleTypedef == null) ""
+          else BuildGenUtil.renderIrTrait(baseModuleTypedef)
+        )
       )
     }
   }
@@ -227,12 +240,13 @@ object BuildGen {
       case version => version
     }
 
-  val interpIvy: JavaModel.Dep => String = dep =>
+  def interpIvy(dep: JavaModel.Dep): String = {
     BuildGenUtil.renderIvyString(dep.group(), dep.name(), dep.version())
+  }
 
-  def renderPomSettings(project: ProjectModel): String = {
+  def extractPomSettings(project: ProjectModel): IrPom = {
     val pom = project.maven.pom()
-    if (null == pom) ""
+    if (null == pom) null
     else {
       val licenses = pom.licenses().iterator().asScala
         .map(lic => mrenderLicense(lic.name(), lic.name(), lic.url()))
@@ -242,7 +256,7 @@ object BuildGen {
       val developers = pom.devs().iterator().asScala
         .map(dev => renderDeveloper(dev.id(), dev.name(), dev.url(), dev.org(), dev.orgUrl()))
 
-      BuildGenUtil.renderPomSettings(
+      IrPom(
         pom.description(),
         project.group(), // Mill uses group for POM org
         pom.url(),
@@ -257,13 +271,13 @@ object BuildGen {
       project: ProjectModel,
       packages: PartialFunction[(String, String, String), String],
       cfg: BuildGenConfig
-  ) extends BuildGenUtil.ScopedDeps {
+  ) extends IrScopedDeps {
 
     val hasTest = os.exists(os.Path(project.directory()) / "src/test")
     val _java = project._java()
     if (null != _java) {
       val ivyDep: JavaModel.Dep => String =
-        cfg.shared.depsObject.fold(interpIvy) { objName => dep =>
+        cfg.shared.depsObject.fold(interpIvy(_)) { objName => dep =>
           val depName = s"`${dep.group()}:${dep.name()}`"
           namedIvyDeps += ((depName, interpIvy(dep)))
           s"$objName.$depName"

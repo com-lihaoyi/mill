@@ -15,32 +15,9 @@ import scala.collection.mutable
 
 @mill.api.internal
 object BuildGenUtil {
-  trait ScopedDeps {
-    val namedIvyDeps = mutable.Buffer.empty[(String, String)]
-    val mainBomIvyDeps = mutable.SortedSet.empty[String]
-    val mainIvyDeps = mutable.SortedSet.empty[String]
-    val mainModuleDeps = mutable.SortedSet.empty[String]
-    val mainCompileIvyDeps = mutable.SortedSet.empty[String]
-    val mainCompileModuleDeps = mutable.SortedSet.empty[String]
-    val mainRunIvyDeps = mutable.SortedSet.empty[String]
-    val mainRunModuleDeps = mutable.SortedSet.empty[String]
-    var testModule = Option.empty[String]
-    val testBomIvyDeps = mutable.SortedSet.empty[String]
-    val testIvyDeps = mutable.SortedSet.empty[String]
-    val testModuleDeps = mutable.SortedSet.empty[String]
-    val testCompileIvyDeps = mutable.SortedSet.empty[String]
-    val testCompileModuleDeps = mutable.SortedSet.empty[String]
-  }
 
-  def renderTrait(
-      jvmId: Option[String],
-      baseModule: String,
-      moduleSupertypes: Seq[String],
-      javacOptions: Seq[String],
-      pomSettings: String,
-      publishVersion: String,
-      publishProperties: Seq[(String, String)]
-  ) = {
+  def renderIrTrait(value: IrTrait): String = {
+    import value._
     val zincWorker = jvmId.fold("") { jvmId =>
       val name = s"${baseModule}ZincWorker"
       val setting = renderZincWorker(name)
@@ -55,7 +32,7 @@ object BuildGenUtil {
        |
        |${renderJavacOptions(javacOptions)}
        |
-       |${renderPomSettings(pomSettings)}
+       |${renderPomSettings(renderIrPom(pomSettings))}
        |
        |${renderPublishVersion(publishVersion)}
        |
@@ -63,20 +40,18 @@ object BuildGenUtil {
        |
        |$zincWorker
        |}""".stripMargin
+
   }
-  def renderModule(
-      scopedDeps: ScopedDeps,
-      testModule: String,
-      hasTest: Boolean,
-      dirs: Seq[String],
-      repos: Seq[String],
-      javacOptions: Seq[String],
-      projectName: String,
-      pomSettings: String,
-      publishVersion: String,
-      packaging: String,
-      pomParentArtifact: String
-  ) = {
+
+  def renderIrPom(value: IrPom): String = {
+    import value._
+    val mkLicenses = licenses.iterator.mkString("Seq(", ", ", ")")
+    val mkDevelopers = developers.iterator.mkString("Seq(", ", ", ")")
+    s"PomSettings(${escape(description)}, ${escape(organization)}, ${escape(url)}, $mkLicenses, $versionControl, $mkDevelopers)"
+  }
+
+  def renderIrBuild(value: IrBuild): String = {
+    import value._
     val testModuleTypedef =
       if (!hasTest) ""
       else {
@@ -119,7 +94,7 @@ object BuildGenUtil {
        |
        |${renderRunModuleDeps(scopedDeps.mainRunModuleDeps)}
        |
-       |${renderPomSettings(pomSettings)}
+       |${if (pomSettings == null) "" else renderPomSettings(renderIrPom(pomSettings))}
        |
        |${renderPublishVersion(publishVersion)}
        |
@@ -154,13 +129,13 @@ object BuildGenUtil {
   def buildPackages[Module, Key](input: Tree[Node[Module]])(key: Module => Key)
       : Map[Key, String] =
     input.nodes()
-      .map(node => (key(node.module), buildPackage(node.dirs)))
+      .map(node => (key(node.value), buildPackage(node.dirs)))
       .toSeq
       .toMap
 
   def renderBuildSource(node: Node[BuildObject]): os.Source = {
     val pkg = buildPackage(node.dirs)
-    val BuildObject(imports, companions, supertypes, inner, outer) = node.module
+    val BuildObject(imports, companions, supertypes, inner, outer) = node.value
     val importStatements = imports.iterator.map("import " + _).mkString(linebreak)
     val companionTypedefs = companions.iterator.map {
       case (_, vals) if vals.isEmpty => ""
@@ -209,7 +184,7 @@ object BuildGenUtil {
     }
 
     tree.transform[Node[BuildObject]] { (node, children) =>
-      var module = node.module
+      var module = node.value
       val unmerged = Seq.newBuilder[Tree[Node[BuildObject]]]
 
       children.iterator.foreach {
@@ -247,7 +222,7 @@ object BuildGenUtil {
         }
       }
 
-      Tree(node.copy(module = module), unmergedChildren)
+      Tree(node.copy(value = module), unmergedChildren)
     }
   }
 
@@ -332,19 +307,6 @@ object BuildGenUtil {
       distribution: String = "repo"
   ): String =
     s"License(${escape(id)}, ${escape(name)}, ${escape(url)}, $isOsiApproved, $isFsfLibre, ${escape(distribution)})"
-
-  def renderPomSettings(
-      description: String,
-      organization: String,
-      url: String,
-      licenses: IterableOnce[String],
-      versionControl: String,
-      developers: IterableOnce[String]
-  ): String = {
-    val mkLicenses = licenses.iterator.mkString("Seq(", ", ", ")")
-    val mkDevelopers = developers.iterator.mkString("Seq(", ", ", ")")
-    s"PomSettings(${escape(description)}, ${escape(organization)}, ${escape(url)}, $mkLicenses, $versionControl, $mkDevelopers)"
-  }
 
   def renderVersionControl(
       repo: String = null,
@@ -461,7 +423,7 @@ object BuildGenUtil {
     "org.testng" -> "TestModule.TestNg"
   )
 
-  def write(tree: Tree[Node[BuildObject]]): Unit = {
+  def writeBuildObject(tree: Tree[Node[BuildObject]]): Unit = {
     val nodes = tree.nodes().toSeq
     println(s"generated ${nodes.length} Mill build file(s)")
 
