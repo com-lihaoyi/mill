@@ -225,7 +225,8 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
         project.group(), // Mill uses group for POM org
         pom.url(),
         licenses = pom.licenses().asScala
-          .map(lic => IrLicense(lic.name(), lic.name(), lic.url())),
+          .map(lic => IrLicense(lic.name(), lic.name(), lic.url()))
+          .toSeq,
         versionControl = Option(pom.scm()).fold(IrVersionControl(null, null, null, null))(scm =>
           IrVersionControl(scm.url(), scm.connection(), scm.devConnection(), scm.tag())
         ),

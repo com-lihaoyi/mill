@@ -42,10 +42,13 @@ object BuildGenUtil {
   }
 
   def renderIrPom(value: IrPom): String = {
-    import value._
-    val mkLicenses = licenses.iterator.map(renderLicense(_)).mkString("Seq(", ", ", ")")
-    val mkDevelopers = developers.iterator.map(renderDeveloper).mkString("Seq(", ", ", ")")
-    s"PomSettings(${escape(description)}, ${escape(organization)}, ${escape(url)}, $mkLicenses, ${renderVersionControl(versionControl)}, $mkDevelopers)"
+    if (value == null) ""
+    else {
+      import value._
+      val mkLicenses = licenses.iterator.map(renderLicense(_)).mkString("Seq(", ", ", ")")
+      val mkDevelopers = developers.iterator.map(renderDeveloper).mkString("Seq(", ", ", ")")
+      s"PomSettings(${escape(description)}, ${escape(organization)}, ${escape(url)}, $mkLicenses, ${renderVersionControl(versionControl)}, $mkDevelopers)"
+    }
   }
 
   def renderIrBuild(value: IrBuild): String = {

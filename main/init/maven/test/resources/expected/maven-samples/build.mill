@@ -9,8 +9,6 @@ object `package` extends RootModule with PublishModule with MavenModule {
 
   def artifactName = "parent"
 
-  def pomPackagingType = PackagingType.Pom
-
   def pomSettings = PomSettings(
     "Just a pom that makes it easy to build both projects at the same time.",
     "com.example.maven-samples",
@@ -21,5 +19,7 @@ object `package` extends RootModule with PublishModule with MavenModule {
   )
 
   def publishVersion = "1.0-SNAPSHOT"
+
+  def pomPackagingType = PackagingType.Pom
 
 }

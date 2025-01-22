@@ -6,12 +6,10 @@ import mill.javalib.publish._
 
 object `package` extends RootModule with PublishModule with MavenModule {
 
-  def javacOptions = super.javacOptions() ++
-    Seq("-source", "1.6", "-target", "1.6")
-
   def artifactName = "multi-module-parent"
 
-  def pomPackagingType = PackagingType.Pom
+  def javacOptions = super.javacOptions() ++
+    Seq("-source", "1.6", "-target", "1.6")
 
   def pomSettings = PomSettings(
     "Sample multi module Maven project with a working, deployable site.",
@@ -28,5 +26,7 @@ object `package` extends RootModule with PublishModule with MavenModule {
   )
 
   def publishVersion = "1.0-SNAPSHOT"
+
+  def pomPackagingType = PackagingType.Pom
 
 }

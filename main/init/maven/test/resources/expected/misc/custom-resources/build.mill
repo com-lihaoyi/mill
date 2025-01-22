@@ -6,16 +6,13 @@ import mill.javalib.publish._
 
 object `package` extends RootModule with PublishModule with MavenModule {
 
-  def ivyDeps = super.ivyDeps() ++
-    Agg(ivy"javax.servlet.jsp:jsp-api:2.2", ivy"javax.servlet:servlet-api:2.5")
+  def artifactName = "single-module-project"
 
   def javacOptions = super.javacOptions() ++
     Seq("-source", "1.6", "-target", "1.6")
 
-  def resources = Task
-    .Sources { super.resources() ++ Seq(PathRef(millSourcePath / "resources")) }
-
-  def artifactName = "single-module-project"
+  def ivyDeps = super.ivyDeps() ++
+    Agg(ivy"javax.servlet.jsp:jsp-api:2.2", ivy"javax.servlet:servlet-api:2.5")
 
   def pomSettings = PomSettings(
     "Sample single module Maven project with a working, deployable site.",
@@ -32,6 +29,9 @@ object `package` extends RootModule with PublishModule with MavenModule {
   )
 
   def publishVersion = "1.0-SNAPSHOT"
+
+  def resources = Task
+    .Sources { super.resources() ++ Seq(PathRef(millSourcePath / "resources")) }
 
   object test extends MavenTests with TestModule.Junit4 {
 

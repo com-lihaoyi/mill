@@ -119,9 +119,11 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
       packaging = build.value.getPackaging,
       pomParentArtifact = mkPomParent(build.value.getParent),
       resources =
-        processResources(build.value.getBuild.getResources, getMillSourcePath(build.value)),
+        processResources(build.value.getBuild.getResources, getMillSourcePath(build.value))
+          .filterNot(_ == mavenMainResourceDir),
       testResources =
-        processResources(build.value.getBuild.getTestResources, getMillSourcePath(build.value)),
+        processResources(build.value.getBuild.getTestResources, getMillSourcePath(build.value))
+          .filterNot(_ == mavenTestResourceDir),
       publishProperties = getPublishProperties(build.value, cfg).diff(baseInfo.publishProperties)
     )
   }
@@ -143,12 +145,13 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
   def processResources(
       input: java.util.List[org.apache.maven.model.Resource],
       millSourcePath: os.Path
-  ) = input
-    .asScala
-    .map(_.getDirectory)
-    .map(os.Path(_).subRelativeTo(millSourcePath))
-    .filterNot(_ == mavenTestResourceDir)
-    .toSeq
+  ) = {
+    input
+      .asScala
+      .map(_.getDirectory)
+      .map(os.Path(_).subRelativeTo(millSourcePath))
+      .toSeq
+  }
 
   def getPublishVersion(project: Model): String = project.getVersion
 

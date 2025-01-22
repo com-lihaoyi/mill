@@ -6,19 +6,14 @@ import mill.javalib.publish._
 
 object `package` extends RootModule with PublishModule with MavenModule {
 
-  def moduleDeps = super.moduleDeps ++ Seq(build.`multi-module`.server)
+  def javacOptions = super.javacOptions() ++
+    Seq("-source", "1.6", "-target", "1.6")
 
   def compileIvyDeps = super.compileIvyDeps() ++
     Agg(ivy"javax.servlet.jsp:jsp-api:2.2", ivy"javax.servlet:servlet-api:2.5")
 
-  def javacOptions = super.javacOptions() ++
-    Seq("-source", "1.6", "-target", "1.6")
-
-  def pomPackagingType = "war"
-
-  def pomParentProject = Some(
-    Artifact("com.example.maven-samples", "multi-module-parent", "1.0-SNAPSHOT")
-  )
+  def compileModuleDeps = super.compileModuleDeps ++
+    Seq(build.`multi-module`.server)
 
   def pomSettings = PomSettings(
     "Webapp.",
@@ -35,5 +30,11 @@ object `package` extends RootModule with PublishModule with MavenModule {
   )
 
   def publishVersion = "1.0-SNAPSHOT"
+
+  def pomPackagingType = "war"
+
+  def pomParentProject = Some(
+    Artifact("com.example.maven-samples", "multi-module-parent", "1.0-SNAPSHOT")
+  )
 
 }

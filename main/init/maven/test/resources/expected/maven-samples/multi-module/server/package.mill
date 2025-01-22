@@ -9,10 +9,6 @@ object `package` extends RootModule with PublishModule with MavenModule {
   def javacOptions = super.javacOptions() ++
     Seq("-source", "1.6", "-target", "1.6")
 
-  def pomParentProject = Some(
-    Artifact("com.example.maven-samples", "multi-module-parent", "1.0-SNAPSHOT")
-  )
-
   def pomSettings = PomSettings(
     "Logic.",
     "com.example.maven-samples",
@@ -28,6 +24,10 @@ object `package` extends RootModule with PublishModule with MavenModule {
   )
 
   def publishVersion = "1.0-SNAPSHOT"
+
+  def pomParentProject = Some(
+    Artifact("com.example.maven-samples", "multi-module-parent", "1.0-SNAPSHOT")
+  )
 
   object test extends MavenTests with TestModule.Junit4 {
 

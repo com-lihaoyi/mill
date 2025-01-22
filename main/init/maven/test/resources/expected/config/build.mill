@@ -1,4 +1,4 @@
-package expected.config
+package build
 
 import mill._
 import mill.javalib._
@@ -22,10 +22,10 @@ object `package` extends RootModule with MyModule {
 
   object `multi-module` extends MyModule {
 
+    def artifactName = "multi-module-parent"
+
     def javacOptions = super.javacOptions() ++
       Seq("-source", "1.6", "-target", "1.6")
-
-    def artifactName = "multi-module-parent"
 
     def pomPackagingType = PackagingType.Pom
 
@@ -64,13 +64,14 @@ object `package` extends RootModule with MyModule {
 
     object webapp extends MyModule {
 
-      def moduleDeps = super.moduleDeps ++ Seq(build.`multi-module`.server)
+      def javacOptions = super.javacOptions() ++
+        Seq("-source", "1.6", "-target", "1.6")
 
       def compileIvyDeps = super.compileIvyDeps() ++
         Agg(Deps.`javax.servlet.jsp:jsp-api`, Deps.`javax.servlet:servlet-api`)
 
-      def javacOptions = super.javacOptions() ++
-        Seq("-source", "1.6", "-target", "1.6")
+      def compileModuleDeps = super.compileModuleDeps ++
+        Seq(build.`multi-module`.server)
 
       def pomPackagingType = "war"
 
@@ -90,13 +91,13 @@ object `package` extends RootModule with MyModule {
 
   object `single-module` extends MyModule {
 
-    def ivyDeps = super.ivyDeps() ++
-      Agg(Deps.`javax.servlet.jsp:jsp-api`, Deps.`javax.servlet:servlet-api`)
+    def artifactName = "single-module-project"
 
     def javacOptions = super.javacOptions() ++
       Seq("-source", "1.6", "-target", "1.6")
 
-    def artifactName = "single-module-project"
+    def ivyDeps = super.ivyDeps() ++
+      Agg(Deps.`javax.servlet.jsp:jsp-api`, Deps.`javax.servlet:servlet-api`)
 
     def publishProperties = super.publishProperties() ++ Map(
       ("project.build.sourceEncoding", "utf-8"),

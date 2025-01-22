@@ -50,7 +50,7 @@ case class IrPom(
     description: String,
     organization: String,
     url: String,
-    licenses: IterableOnce[IrLicense],
+    licenses: Seq[IrLicense],
     versionControl: IrVersionControl,
     developers: Seq[IrDeveloper]
 )
