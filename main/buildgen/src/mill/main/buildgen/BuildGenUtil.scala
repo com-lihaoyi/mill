@@ -1,12 +1,7 @@
 package mill.main.buildgen
 
 import mill.main.buildgen.BuildObject.Companions
-import mill.main.client.CodeGenConstants.{
-  buildFileExtensions,
-  nestedBuildFileNames,
-  rootBuildFileNames,
-  rootModuleAlias
-}
+import mill.main.client.CodeGenConstants.{buildFileExtensions, nestedBuildFileNames, rootBuildFileNames, rootModuleAlias}
 import mill.main.client.OutFiles
 import mill.runner.FileImportGraph.backtickWrap
 
@@ -26,11 +21,12 @@ object BuildGenUtil {
 
   def buildPackages[Module, Key](input: Tree[Node[Module]])(key: Module => Key)
       : Map[Key, String] =
-    input.nodes.fold(Map.newBuilder[Key, String])((z, node) =>
-      z += ((key(node.module), buildPackage(node.dirs)))
-    ).result()
+    input.nodes
+      .map(node => (key(node.module), buildPackage(node.dirs)))
+      .toSeq
+      .toMap
 
-  def buildSource(node: Node[BuildObject]): os.Source = {
+  def renderBuildSource(node: Node[BuildObject]): os.Source = {
     val pkg = buildPackage(node.dirs)
     val BuildObject(imports, companions, supertypes, inner, outer) = node.module
     val importStatements = imports.iterator.map("import " + _).mkString(linebreak)
@@ -52,7 +48,7 @@ object BuildGenUtil {
        |
        |$companionTypedefs
        |
-       |object `package` ${mkExtends(supertypes)} {
+       |object `package` ${renderExtends(supertypes)} {
        |
        |$inner
        |}
@@ -61,7 +57,7 @@ object BuildGenUtil {
        |""".stripMargin
   }
 
-  def compact(tree: Tree[Node[BuildObject]]): Tree[Node[BuildObject]] = {
+  def compactBuildTree(tree: Tree[Node[BuildObject]]): Tree[Node[BuildObject]] = {
     println("compacting Mill build tree")
 
     def merge(parentCompanions: Companions, childCompanions: Companions): Companions = {
@@ -96,7 +92,7 @@ object BuildGenUtil {
 
               s"""${module.inner}
                  |
-                 |object $name ${mkExtends(supertypes)}  {
+                 |object $name ${renderExtends(supertypes)}  {
                  |
                  |${nested.inner}
                  |}""".stripMargin
@@ -129,7 +125,7 @@ object BuildGenUtil {
   def escapeOption(value: String): String =
     if (null == value) "None" else s"Some(\"$value\")"
 
-  def ivyString(
+  def renderIvyString(
       group: String,
       artifact: String,
       version: String = null,
@@ -162,8 +158,8 @@ object BuildGenUtil {
     s"ivy\"$group:$artifact$sepVersion$sepTpe$sepClassifier$sepExcludes\""
   }
 
-  def isBom(gav: (String, String, String)): Boolean =
-    gav._2.endsWith("-bom")
+  def isBom(groupArtifactVersion: (String, String, String)): Boolean =
+    groupArtifactVersion._2.endsWith("-bom")
 
   def isNullOrEmpty(value: String): Boolean =
     null == value || value.isEmpty
@@ -183,19 +179,19 @@ object BuildGenUtil {
   val mavenTestResourceDir: os.SubPath =
     os.sub / "src/test/resources"
 
-  def mkArtifact(group: String, id: String, version: String): String =
+  def renderArtifact(group: String, id: String, version: String): String =
     s"Artifact(${escape(group)}, ${escape(id)}, ${escape(version)})"
 
-  def mkDeveloper(id: String, name: String, url: String, org: String, orgUrl: String): String =
+  def renderDeveloper(id: String, name: String, url: String, org: String, orgUrl: String): String =
     s"Developer(${escape(id)}, ${escape(name)}, ${escape(url)}, ${escapeOption(org)}, ${escapeOption(orgUrl)})"
 
-  def mkExtends(supertypes: Seq[String]): String = supertypes match {
+  def renderExtends(supertypes: Seq[String]): String = supertypes match {
     case Seq() => ""
     case Seq(head) => s"extends $head"
     case head +: tail => tail.mkString(s"extends $head with ", " with ", "")
   }
 
-  def mkLicense(
+  def mrenderLicense(
       id: String,
       name: String,
       url: String,
@@ -205,7 +201,7 @@ object BuildGenUtil {
   ): String =
     s"License(${escape(id)}, ${escape(name)}, ${escape(url)}, $isOsiApproved, $isFsfLibre, ${escape(distribution)})"
 
-  def mkPomSettings(
+  def renderPomSettings(
       description: String,
       organization: String,
       url: String,
@@ -218,7 +214,7 @@ object BuildGenUtil {
     s"PomSettings(${escape(description)}, ${escape(organization)}, ${escape(url)}, $mkLicenses, $versionControl, $mkDevelopers)"
   }
 
-  def mkVersionControl(
+  def renderVersionControl(
       repo: String = null,
       connection: String = null,
       devConnection: String = null,
@@ -226,7 +222,7 @@ object BuildGenUtil {
   ): String =
     s"VersionControl(${escapeOption(repo)}, ${escapeOption(connection)}, ${escapeOption(devConnection)}, ${escapeOption(tag)})"
 
-  def mkZincWorker(moduleName: String, jvmId: String): String =
+  def renderZincWorker(moduleName: String, jvmId: String): String =
     s"""object $moduleName extends ZincWorkerModule {
        |  def jvmId = "$jvmId"
        |}""".stripMargin
@@ -253,38 +249,38 @@ object BuildGenUtil {
         |""".stripMargin
     )
 
-  def setArtifactName(name: String, dirs: Seq[String]): String =
+  def renderArtifactName(name: String, dirs: Seq[String]): String =
     if (dirs.nonEmpty && dirs.last == name) "" // skip default
     else s"def artifactName = ${escape(name)}"
 
-  def setBomIvyDeps(args: IterableOnce[String]): String =
+  def renderBomIvyDeps(args: IterableOnce[String]): String =
     optional("def bomIvyDeps = super.bomIvyDeps() ++ Agg", args)
 
-  def setIvyDeps(args: IterableOnce[String]): String =
+  def renderIvyDeps(args: IterableOnce[String]): String =
     optional("def ivyDeps = super.ivyDeps() ++ Agg", args)
 
-  def setModuleDeps(args: IterableOnce[String]): String =
+  def renderModuleDeps(args: IterableOnce[String]): String =
     optional("def moduleDeps = super.moduleDeps ++ Seq", args)
 
-  def setCompileIvyDeps(args: IterableOnce[String]): String =
+  def renderCompileIvyDeps(args: IterableOnce[String]): String =
     optional("def compileIvyDeps = super.compileIvyDeps() ++ Agg", args)
 
-  def setCompileModuleDeps(args: IterableOnce[String]): String =
+  def renderCompileModuleDeps(args: IterableOnce[String]): String =
     optional("def compileModuleDeps = super.compileModuleDeps ++ Seq", args)
 
-  def setRunIvyDeps(args: IterableOnce[String]): String =
+  def renderRunIvyDeps(args: IterableOnce[String]): String =
     optional("def runIvyDeps = super.runIvyDeps() ++ Agg", args)
 
-  def setRunModuleDeps(args: IterableOnce[String]): String =
+  def renderRunModuleDeps(args: IterableOnce[String]): String =
     optional("def runModuleDeps = super.runModuleDeps ++ Seq", args)
 
-  def setJavacOptions(args: IterableOnce[String]): String =
+  def renderJavacOptions(args: IterableOnce[String]): String =
     optional(
       "def javacOptions = super.javacOptions() ++ Seq",
       args.iterator.map(escape)
     )
 
-  def setRepositories(args: IterableOnce[String]): String =
+  def renderRepositories(args: IterableOnce[String]): String =
     optional(
       "def repositoriesTask = Task.Anon { super.repositoriesTask() ++ Seq(",
       args,
@@ -292,7 +288,7 @@ object BuildGenUtil {
       ") }"
     )
 
-  def setResources(args: IterableOnce[os.SubPath]): String =
+  def renderResources(args: IterableOnce[os.SubPath]): String =
     optional(
       "def resources = Task.Sources { super.resources() ++ Seq(",
       args.iterator.map(sub => s"PathRef(millSourcePath / ${escape(sub.toString())})"),
@@ -300,31 +296,31 @@ object BuildGenUtil {
       ") }"
     )
 
-  def setPomPackaging(packaging: String): String =
+  def renderPomPackaging(packaging: String): String =
     if (isNullOrEmpty(packaging) || "jar" == packaging) "" // skip default
     else {
       val pkg = if ("pom" == packaging) "PackagingType.Pom" else escape(packaging)
       s"def pomPackagingType = $pkg"
     }
 
-  def setPomParentProject(artifact: String): String =
+  def renderPomParentProject(artifact: String): String =
     if (isNullOrEmpty(artifact)) ""
     else s"def pomParentProject = Some($artifact)"
 
-  def setPomSettings(arg: String): String =
+  def renderPomSettings(arg: String): String =
     if (isNullOrEmpty(arg)) ""
     else s"def pomSettings = $arg"
 
-  def setPublishVersion(arg: String): String =
+  def renderPublishVersion(arg: String): String =
     if (isNullOrEmpty(arg)) ""
     else s"def publishVersion = ${escape(arg)}"
 
-  def setPublishProperties(args: IterableOnce[(String, String)]): String = {
+  def renderPublishProperties(args: IterableOnce[(String, String)]): String = {
     val tuples = args.iterator.map { case (k, v) => s"(${escape(k)}, ${escape(v)})" }
     optional("def publishProperties = super.publishProperties() ++ Map", tuples)
   }
 
-  def setZincWorker(moduleName: String): String =
+  def renderZincWorker(moduleName: String): String =
     s"def zincWorker = mill.define.ModuleRef($moduleName)"
 
   val testModulesByGroup: Map[String, String] = Map(
@@ -343,9 +339,17 @@ object BuildGenUtil {
 
     nodes.foreach { node =>
       val file = buildFile(node.dirs)
-      val source = buildSource(node)
+      val source = renderBuildSource(node)
       println(s"writing Mill build file to $file")
       os.write(workspace / file, source)
+    }
+  }
+
+  def renderTestModuleDecl(testModule: String, testModuleType: Option[String]) = {
+    val name = backtickWrap(testModule)
+    testModuleType match {
+      case Some(supertype) => s"object $name extends MavenTests with $supertype"
+      case None => s"trait $name extends MavenTests"
     }
   }
 }

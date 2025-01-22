@@ -58,7 +58,7 @@ object BuildGen {
     }
 
     val output = convert(input, cfg)
-    write(if (cfg.merge.value) compact(output) else output)
+    write(if (cfg.merge.value) compactBuildTree(output) else output)
 
     println("converted Maven build to Mill")
   }
@@ -66,7 +66,6 @@ object BuildGen {
   private def convert(input: Tree[MavenNode], cfg: BuildGenConfig): Tree[Node[BuildObject]] = {
     val packages = // for resolving moduleDeps
       buildPackages(input)(model => (model.getGroupId, model.getArtifactId, model.getVersion))
-    val isMonorepo = packages.size > 1
 
     val moduleSupertypes = Seq("PublishModule", "MavenModule")
 
@@ -86,8 +85,8 @@ object BuildGen {
 
         val zincWorker = cfg.jvmId.fold("") { jvmId =>
           val name = s"${baseModule}ZincWorker"
-          val setting = setZincWorker(name)
-          val typedef = mkZincWorker(name, jvmId)
+          val setting = renderZincWorker(name)
+          val typedef = renderZincWorker(name, jvmId)
 
           s"""$setting
              |
@@ -95,15 +94,15 @@ object BuildGen {
         }
 
         val typedef =
-          s"""trait $baseModule ${mkExtends(moduleSupertypes)} {
+          s"""trait $baseModule ${renderExtends(moduleSupertypes)} {
              |
-             |${setJavacOptions(javacOptions)}
+             |${renderJavacOptions(javacOptions)}
              |
-             |${setPomSettings(pomSettings)}
+             |${renderPomSettings(pomSettings)}
              |
-             |${setPublishVersion(publishVersion)}
+             |${renderPublishVersion(publishVersion)}
              |
-             |${setPublishProperties(publishProperties)}
+             |${renderPublishProperties(publishProperties)}
              |
              |$zincWorker
              |}""".stripMargin
@@ -131,7 +130,7 @@ object BuildGen {
         b += "mill.javalib._"
         b += "mill.javalib.publish._"
         if (isNested) b ++= nestedModuleImports
-        else if (isMonorepo) b += "$packages._"
+        else if (packages.size > 1) b += "$packages._"
         b.result()
       }
 
@@ -176,11 +175,7 @@ object BuildGen {
 
         val testModuleTypedef =
           if (hasTest) {
-            val name = backtickWrap(cfg.testModule)
-            val declare = testModule match {
-              case Some(supertype) => s"object $name extends MavenTests with $supertype"
-              case None => s"trait $name extends MavenTests"
-            }
+            val declare = BuildGenUtil.renderTestModuleDecl(cfg.testModule, testModule)
             val resources = model.getBuild.getTestResources.iterator().asScala
               .map(_.getDirectory)
               .map(os.Path(_).subRelativeTo(millSourcePath))
@@ -188,45 +183,45 @@ object BuildGen {
 
             s"""$declare {
                |
-               |${setBomIvyDeps(testBomIvyDeps)}
+               |${renderBomIvyDeps(testBomIvyDeps)}
                |
-               |${setIvyDeps(testIvyDeps)}
+               |${renderIvyDeps(testIvyDeps)}
                |
-               |${setModuleDeps(testModuleDeps)}
+               |${renderModuleDeps(testModuleDeps)}
                |
-               |${setResources(resources)}
+               |${renderResources(resources)}
                |}""".stripMargin
           } else ""
 
-        s"""${setBomIvyDeps(mainBomIvyDeps)}
+        s"""${renderBomIvyDeps(mainBomIvyDeps)}
            |
-           |${setIvyDeps(mainIvyDeps)}
+           |${renderIvyDeps(mainIvyDeps)}
            |
-           |${setModuleDeps(mainModuleDeps)}
+           |${renderModuleDeps(mainModuleDeps)}
            |
-           |${setCompileIvyDeps(mainCompileIvyDeps)}
+           |${renderCompileIvyDeps(mainCompileIvyDeps)}
            |
-           |${setCompileModuleDeps(mainCompileModuleDeps)}
+           |${renderCompileModuleDeps(mainCompileModuleDeps)}
            |
-           |${setRunIvyDeps(mainRunIvyDeps)}
+           |${renderRunIvyDeps(mainRunIvyDeps)}
            |
-           |${setRunModuleDeps(mainRunModuleDeps)}
+           |${renderRunModuleDeps(mainRunModuleDeps)}
            |
-           |${setJavacOptions(javacOptions)}
+           |${renderJavacOptions(javacOptions)}
            |
-           |${setResources(resources)}
+           |${renderResources(resources)}
            |
-           |${setArtifactName(artifactId, dirs)}
+           |${renderArtifactName(artifactId, dirs)}
            |
-           |${setPomPackaging(packaging)}
+           |${renderPomPackaging(packaging)}
            |
-           |${setPomParentProject(pomParentArtifact)}
+           |${renderPomParentProject(pomParentArtifact)}
            |
-           |${setPomSettings(pomSettings)}
+           |${renderPomSettings(pomSettings)}
            |
-           |${setPublishVersion(publishVersion)}
+           |${renderPublishVersion(publishVersion)}
            |
-           |${setPublishProperties(publishProperties)}
+           |${renderPublishProperties(publishProperties)}
            |
            |$testModuleTypedef""".stripMargin
       }
@@ -250,7 +245,7 @@ object BuildGen {
     } else Seq.empty
 
   val interpIvy: Dependency => String = dep =>
-    BuildGenUtil.ivyString(
+    BuildGenUtil.renderIvyString(
       dep.getGroupId,
       dep.getArtifactId,
       dep.getVersion,
@@ -261,12 +256,12 @@ object BuildGen {
 
   def mkPomParent(parent: Parent): String =
     if (null == parent) null
-    else mkArtifact(parent.getGroupId, parent.getArtifactId, parent.getVersion)
+    else renderArtifact(parent.getGroupId, parent.getArtifactId, parent.getVersion)
 
   def mkPomSettings(model: Model): String = {
     val licenses = model.getLicenses.iterator().asScala
       .map(lic =>
-        mkLicense(
+        mrenderLicense(
           lic.getName,
           lic.getName,
           lic.getUrl,
@@ -275,15 +270,15 @@ object BuildGen {
           "repo"
         )
       )
-    val versionControl = Option(model.getScm).fold(mkVersionControl())(scm =>
-      mkVersionControl(scm.getUrl, scm.getConnection, scm.getDeveloperConnection, scm.getTag)
+    val versionControl = Option(model.getScm).fold(renderVersionControl())(scm =>
+      renderVersionControl(scm.getUrl, scm.getConnection, scm.getDeveloperConnection, scm.getTag)
     )
     val developers = model.getDevelopers.iterator().asScala
       .map(dev =>
-        mkDeveloper(dev.getId, dev.getName, dev.getUrl, dev.getOrganization, dev.getOrganizationUrl)
+        renderDeveloper(dev.getId, dev.getName, dev.getUrl, dev.getOrganization, dev.getOrganizationUrl)
       )
 
-    BuildGenUtil.mkPomSettings(
+    BuildGenUtil.renderPomSettings(
       model.getDescription,
       model.getGroupId, // Mill uses group for POM org
       model.getUrl,
@@ -391,7 +386,7 @@ object BuildGen {
 case class BuildGenConfig(
     @arg(doc = "name of generated base module trait defining shared settings", short = 'b')
     baseModule: Option[String] = None,
-    @arg(doc = "version of custom JVM to configure in --base-module", short = 'j')
+    @arg(doc = "distribution and version of custom JVM to configure in --base-module", short = 'j')
     jvmId: Option[String] = None,
     @arg(doc = "name of generated nested test module", short = 't')
     testModule: String = "test",

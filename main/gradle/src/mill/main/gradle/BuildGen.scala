@@ -77,7 +77,7 @@ object BuildGen {
         }
 
         val output = convert(input, cfg)
-        write(if (cfg.merge.value) compact(output) else output)
+        write(if (cfg.merge.value) compactBuildTree(output) else output)
 
         println("converted Gradle build to Mill")
       } finally connection.close()
@@ -107,7 +107,6 @@ object BuildGen {
   private def convert(input: Tree[GradleNode], cfg: BuildGenConfig): Tree[Node[BuildObject]] = {
     val packages = // for resolving moduleDeps
       buildPackages(input)(project => (project.group(), project.name(), project.version()))
-    val isMonorepo = packages.size > 1
 
     val (baseJavacOptions, baseReps, baseNoPom, basePublishVersion, baseModuleTypedef) =
       cfg.baseModule match {
@@ -120,7 +119,7 @@ object BuildGen {
               .orElse(projects.collectFirst { case m if !m.maven().repositories().isEmpty => m })
               .getOrElse(input.node.module)
           }
-          if (isMonorepo) {
+          if (packages.size > 1) {
             println(s"settings from ${project.name()} will be shared in base module")
           }
           val supertypes = {
@@ -136,8 +135,8 @@ object BuildGen {
 
           val zincWorker = cfg.jvmId.fold("") { jvmId =>
             val name = s"${baseModule}ZincWorker"
-            val setting = setZincWorker(name)
-            val typedef = mkZincWorker(name, jvmId)
+            val setting = renderZincWorker(name)
+            val typedef = renderZincWorker(name, jvmId)
 
             s"""$setting
                |
@@ -145,15 +144,15 @@ object BuildGen {
           }
 
           val typedef =
-            s"""trait $baseModule ${mkExtends(supertypes)} {
+            s"""trait $baseModule ${renderExtends(supertypes)} {
                |
-               |${setJavacOptions(javacOptions)}
+               |${renderJavacOptions(javacOptions)}
                |
-               |${setRepositories(reps.iterator)}
+               |${renderRepositories(reps.iterator)}
                |
-               |${setPomSettings(pomSettings)}
+               |${renderPomSettings(pomSettings)}
                |
-               |${setPublishVersion(publishVersion)}
+               |${renderPublishVersion(publishVersion)}
                |
                |$zincWorker
                |}""".stripMargin
@@ -184,7 +183,7 @@ object BuildGen {
         b += "mill.javalib._"
         b += "mill.javalib.publish._"
         if (isNested) b ++= nestedModuleImports
-        else if (isMonorepo) b += "$packages._"
+        else if (packages.size > 1) b += "$packages._"
         b.result()
       }
 
@@ -227,50 +226,46 @@ object BuildGen {
 
         val testModuleTypedef = {
           if (hasTest) {
-            val name = backtickWrap(cfg.testModule)
-            val declare = testModule match {
-              case Some(supertype) => s"object $name extends MavenTests with $supertype"
-              case None => s"trait $name extends MavenTests"
-            }
+            val declare = BuildGenUtil.renderTestModuleDecl(cfg.testModule, testModule)
 
             s"""$declare {
                |
-               |${setBomIvyDeps(testBomIvyDeps)}
+               |${renderBomIvyDeps(testBomIvyDeps)}
                |
-               |${setIvyDeps(testIvyDeps)}
+               |${renderIvyDeps(testIvyDeps)}
                |
-               |${setModuleDeps(testModuleDeps)}
+               |${renderModuleDeps(testModuleDeps)}
                |
-               |${setCompileIvyDeps(testCompileIvyDeps)}
+               |${renderCompileIvyDeps(testCompileIvyDeps)}
                |
-               |${setCompileModuleDeps(testCompileModuleDeps)}
+               |${renderCompileModuleDeps(testCompileModuleDeps)}
                |}""".stripMargin
           } else ""
         }
 
-        s"""${setArtifactName(project.name(), dirs)}
+        s"""${renderArtifactName(project.name(), dirs)}
            |
-           |${setJavacOptions(javacOptions)}
+           |${renderJavacOptions(javacOptions)}
            |
-           |${setRepositories(reps)}
+           |${renderRepositories(reps)}
            |
-           |${setBomIvyDeps(mainBomIvyDeps)}
+           |${renderBomIvyDeps(mainBomIvyDeps)}
            |
-           |${setIvyDeps(mainIvyDeps)}
+           |${renderIvyDeps(mainIvyDeps)}
            |
-           |${setModuleDeps(mainModuleDeps)}
+           |${renderModuleDeps(mainModuleDeps)}
            |
-           |${setCompileIvyDeps(mainCompileIvyDeps)}
+           |${renderCompileIvyDeps(mainCompileIvyDeps)}
            |
-           |${setCompileModuleDeps(mainCompileModuleDeps)}
+           |${renderCompileModuleDeps(mainCompileModuleDeps)}
            |
-           |${setRunIvyDeps(mainRunIvyDeps)}
+           |${renderRunIvyDeps(mainRunIvyDeps)}
            |
-           |${setRunModuleDeps(mainRunModuleDeps)}
+           |${renderRunModuleDeps(mainRunModuleDeps)}
            |
-           |${setPomSettings(pomSettings)}
+           |${renderPomSettings(pomSettings)}
            |
-           |${setPublishVersion(publishVersion)}
+           |${renderPublishVersion(publishVersion)}
            |
            |$testModuleTypedef""".stripMargin
       }
@@ -281,7 +276,7 @@ object BuildGen {
     }
   }
 
-  def gav(dep: JavaModel.Dep): (String, String, String) =
+  def groupArtifactVersion(dep: JavaModel.Dep): (String, String, String) =
     (dep.group(), dep.name(), dep.version())
 
   def getJavacOptions(project: ProjectModel): Seq[String] = {
@@ -302,21 +297,21 @@ object BuildGen {
     }
 
   val interpIvy: JavaModel.Dep => String = dep =>
-    BuildGenUtil.ivyString(dep.group(), dep.name(), dep.version())
+    BuildGenUtil.renderIvyString(dep.group(), dep.name(), dep.version())
 
   def mkPomSettings(project: ProjectModel): String = {
     val pom = project.maven.pom()
     if (null == pom) ""
     else {
       val licenses = pom.licenses().iterator().asScala
-        .map(lic => mkLicense(lic.name(), lic.name(), lic.url()))
-      val versionControl = Option(pom.scm()).fold(mkVersionControl())(scm =>
-        mkVersionControl(scm.url(), scm.connection(), scm.devConnection(), scm.tag())
+        .map(lic => mrenderLicense(lic.name(), lic.name(), lic.url()))
+      val versionControl = Option(pom.scm()).fold(renderVersionControl())(scm =>
+        renderVersionControl(scm.url(), scm.connection(), scm.devConnection(), scm.tag())
       )
       val developers = pom.devs().iterator().asScala
-        .map(dev => mkDeveloper(dev.id(), dev.name(), dev.url(), dev.org(), dev.orgUrl()))
+        .map(dev => renderDeveloper(dev.id(), dev.name(), dev.url(), dev.org(), dev.orgUrl()))
 
-      BuildGenUtil.mkPomSettings(
+      BuildGenUtil.renderPomSettings(
         pom.description(),
         project.group(), // Mill uses group for POM org
         pom.url(),
@@ -378,7 +373,7 @@ object BuildGen {
           case IMPLEMENTATION_CONFIGURATION_NAME | API_CONFIGURATION_NAME =>
             config.deps.iterator().asScala
               .foreach { dep =>
-                val id = gav(dep)
+                val id = groupArtifactVersion(dep)
                 if (packages.isDefinedAt(id)) mainModuleDeps += packages(id)
                 else if (isBom(id)) {
                   println(s"assuming $conf dependency $id is a BOM")
@@ -388,21 +383,21 @@ object BuildGen {
           case COMPILE_ONLY_CONFIGURATION_NAME | COMPILE_ONLY_API_CONFIGURATION_NAME =>
             config.deps.iterator().asScala
               .foreach { dep =>
-                val id = gav(dep)
+                val id = groupArtifactVersion(dep)
                 if (packages.isDefinedAt(id)) mainCompileModuleDeps += packages(id)
                 else mainCompileIvyDeps += ivyDep(dep)
               }
           case RUNTIME_ONLY_CONFIGURATION_NAME =>
             config.deps.iterator().asScala
               .foreach { dep =>
-                val id = gav(dep)
+                val id = groupArtifactVersion(dep)
                 if (packages.isDefinedAt(id)) mainRunModuleDeps += packages(id)
                 else mainRunIvyDeps += ivyDep(dep)
               }
           case TEST_IMPLEMENTATION_CONFIGURATION_NAME =>
             config.deps.iterator().asScala
               .foreach { dep =>
-                val id = gav(dep)
+                val id = groupArtifactVersion(dep)
                 if (packages.isDefinedAt(id)) testModuleDeps += packages(id)
                 else
                   (if (isBom(id)) testBomIvyDeps
@@ -417,14 +412,14 @@ object BuildGen {
           case TEST_COMPILE_ONLY_CONFIGURATION_NAME =>
             config.deps.iterator().asScala
               .foreach { dep =>
-                val id = gav(dep)
+                val id = groupArtifactVersion(dep)
                 if (packages.isDefinedAt(id)) testCompileModuleDeps += packages(id)
                 else testCompileIvyDeps += ivyDep(dep)
               }
           case name =>
             config.deps.iterator().asScala
               .foreach { dep =>
-                val id = gav(dep)
+                val id = groupArtifactVersion(dep)
                 println(s"ignoring $name dependency $id")
               }
         }
@@ -459,7 +454,7 @@ case class BuildGenConfig(
     baseModule: Option[String] = None,
     @arg(doc = "name of Gradle project to extract settings for --base-module", short = 'g')
     baseProject: Option[String] = None,
-    @arg(doc = "version of custom JVM to configure in --base-module", short = 'j')
+    @arg(doc = "distribution and version of custom JVM to configure in --base-module", short = 'j')
     jvmId: Option[String] = None,
     @arg(doc = "name of generated nested test module", short = 't')
     testModule: String = "test",
