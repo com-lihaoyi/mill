@@ -2,26 +2,13 @@ package mill.main.gradle
 
 import mainargs.{ParserForClass, arg, main}
 import mill.main.buildgen.BuildGenUtil.*
-import mill.main.buildgen.{
-  IrBaseInfo,
-  BuildGenBase,
-  BuildGenUtil,
-  IrBuild,
-  IrDeveloper,
-  IrLicense,
-  IrPom,
-  IrScopedDeps,
-  IrTrait,
-  IrVersionControl,
-  Node,
-  Tree
-}
+import mill.main.buildgen.*
 import mill.util.Jvm
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.tooling.GradleConnector
+import os.Path
 
 import scala.jdk.CollectionConverters.*
-import os.Path
 
 /**
  * Converts a Gradle build to Mill by generating Mill build file(s).
@@ -255,11 +242,12 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
           sd = sd.copy(namedIvyDeps = sd.namedIvyDeps :+ ((depName, interpIvy(dep))))
           s"$objName.$depName"
         }
+
       def appendIvyDepPackage(
           deps: IterableOnce[JavaModel.Dep],
           onPackage: String => IrScopedDeps,
           onIvy: (String, (String, String, String)) => IrScopedDeps
-      ) = {
+      ): Unit = {
         for (dep <- deps) {
           val id = groupArtifactVersion(dep)
           if (packages.isDefinedAt(id)) sd = onPackage(packages(id))

@@ -16,7 +16,7 @@ import scala.collection.immutable.SortedSet
 object BuildGenUtil {
 
   def renderIrTrait(value: IrTrait): String = {
-    import value._
+    import value.*
     val zincWorker = jvmId.fold("") { jvmId =>
       val name = s"${baseModule}ZincWorker"
       val setting = renderZincWorker(name)
@@ -47,15 +47,15 @@ object BuildGenUtil {
   def renderIrPom(value: IrPom): String = {
     if (value == null) ""
     else {
-      import value._
-      val mkLicenses = licenses.iterator.map(renderLicense(_)).mkString("Seq(", ", ", ")")
+      import value.*
+      val mkLicenses = licenses.iterator.map(renderLicense).mkString("Seq(", ", ", ")")
       val mkDevelopers = developers.iterator.map(renderDeveloper).mkString("Seq(", ", ", ")")
       s"PomSettings(${escape(description)}, ${escape(organization)}, ${escape(url)}, $mkLicenses, ${renderVersionControl(versionControl)}, $mkDevelopers)"
     }
   }
 
   def renderIrBuild(value: IrBuild): String = {
-    import value._
+    import value.*
     val testModuleTypedef =
       if (!hasTest) ""
       else {

@@ -2,25 +2,11 @@ package mill.main.maven
 
 import mainargs.{Flag, ParserForClass, arg, main}
 import mill.main.buildgen.BuildGenUtil.*
-import mill.main.buildgen.{
-  IrBaseInfo,
-  BuildGenBase,
-  BuildGenUtil,
-  IrArtifact,
-  IrBuild,
-  IrDeveloper,
-  IrLicense,
-  IrPom,
-  IrScopedDeps,
-  IrTrait,
-  IrVersionControl,
-  Node,
-  Tree
-}
+import mill.main.buildgen.*
 import org.apache.maven.model.{Dependency, Model, Parent}
+import os.{Path, SubPath}
 
 import scala.jdk.CollectionConverters.*
-import os.{Path, SubPath}
 
 /**
  * Converts a Maven build to Mill by generating Mill build file(s) from POM file(s).
@@ -96,7 +82,7 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
       repos = Nil
     )
 
-    IrBaseInfo(javacOptions, Seq.empty, false, publishVersion, publishProperties, typedef)
+    IrBaseInfo(javacOptions, Seq.empty, noPom = false, publishVersion, publishProperties, typedef)
   }
 
   override def extractIrBuild(
@@ -186,15 +172,7 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
       model.getGroupId, // Mill uses group for POM org
       model.getUrl,
       licenses = model.getLicenses.asScala.toSeq
-        .map(lic =>
-          IrLicense(
-            lic.getName,
-            lic.getName,
-            lic.getUrl,
-            isOsiApproved = false,
-            isFsfLibre = false,
-            "repo"
-          )
+        .map(lic => IrLicense(lic.getName, lic.getName, lic.getUrl)
         ),
       versionControl = Option(model.getScm).fold(IrVersionControl(null, null, null, null))(scm =>
         IrVersionControl(scm.getUrl, scm.getConnection, scm.getDeveloperConnection, scm.getTag)
