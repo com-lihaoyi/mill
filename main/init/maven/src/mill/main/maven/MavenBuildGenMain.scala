@@ -172,8 +172,7 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
       model.getGroupId, // Mill uses group for POM org
       model.getUrl,
       licenses = model.getLicenses.asScala.toSeq
-        .map(lic => IrLicense(lic.getName, lic.getName, lic.getUrl)
-        ),
+        .map(lic => IrLicense(lic.getName, lic.getName, lic.getUrl)),
       versionControl = Option(model.getScm).fold(IrVersionControl(null, null, null, null))(scm =>
         IrVersionControl(scm.getUrl, scm.getConnection, scm.getDeveloperConnection, scm.getTag)
       ),
