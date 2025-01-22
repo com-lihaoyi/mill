@@ -326,7 +326,7 @@ object BuildGen {
       }
     }
 
-    model.getDependencies.asScala.foreach { dep =>
+    model.getDependencies.forEach { dep =>
       val id = gav(dep)
       dep.getScope match {
         case "compile" if packages.isDefinedAt(id) =>

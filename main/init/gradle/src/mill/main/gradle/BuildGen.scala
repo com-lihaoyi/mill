@@ -4,7 +4,6 @@ import mainargs.{Flag, ParserForClass, arg, main}
 import mill.main.buildgen.BuildGenUtil.*
 import mill.main.buildgen.BuildObject.Companions
 import mill.main.buildgen.{BuildGenUtil, BuildObject, Node, Tree}
-import mill.runner.FileImportGraph.backtickWrap
 import mill.util.Jvm
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.tooling.GradleConnector
@@ -45,8 +44,6 @@ object BuildGen {
     run(cfg)
   }
 
-  private type GradleNode = Node[ProjectModel]
-
   private def run(cfg: BuildGenConfig): Unit = {
     val workspace = os.pwd
 
@@ -59,7 +56,7 @@ object BuildGen {
         val home = Jvm.resolveJavaHome(id).getOrThrow
         s"-Dorg.gradle.java.home=$home"
       })
-      .+=("--init-script").+=(init.toString())
+      .+=("--init-script").+=(writeGradleInitScript.toString())
       .result()
 
     try {
@@ -84,7 +81,7 @@ object BuildGen {
     } finally connector.disconnect()
   }
 
-  private def init: os.Path = {
+  private def writeGradleInitScript: os.Path = {
     val file = os.temp.dir() / "init.gradle"
     val classpath =
       os.Path(classOf[ProjectTreePlugin].getProtectionDomain.getCodeSource.getLocation.toURI)
@@ -104,7 +101,7 @@ object BuildGen {
     file
   }
 
-  private def convert(input: Tree[GradleNode], cfg: BuildGenConfig): Tree[Node[BuildObject]] = {
+  private def convert(input: Tree[Node[ProjectModel]], cfg: BuildGenConfig): Tree[Node[BuildObject]] = {
     val packages = // for resolving moduleDeps
       buildPackages(input)(project => (project.group(), project.name(), project.version()))
 
@@ -365,63 +362,57 @@ object BuildGen {
         namedIvyDeps += ((depName, interpIvy(dep)))
         s"$objName.$depName"
       }
-      _java.configs().iterator().asScala.foreach { config =>
+      _java.configs().forEach { config =>
         import JavaPlugin.*
 
         val conf = config.name()
         conf match {
           case IMPLEMENTATION_CONFIGURATION_NAME | API_CONFIGURATION_NAME =>
-            config.deps.iterator().asScala
-              .foreach { dep =>
-                val id = groupArtifactVersion(dep)
-                if (packages.isDefinedAt(id)) mainModuleDeps += packages(id)
-                else if (isBom(id)) {
-                  println(s"assuming $conf dependency $id is a BOM")
-                  mainBomIvyDeps += ivyDep(dep)
-                } else mainIvyDeps += ivyDep(dep)
-              }
+            config.deps.forEach { dep =>
+              val id = groupArtifactVersion(dep)
+              if (packages.isDefinedAt(id)) mainModuleDeps += packages(id)
+              else if (isBom(id)) {
+                println(s"assuming $conf dependency $id is a BOM")
+                mainBomIvyDeps += ivyDep(dep)
+              } else mainIvyDeps += ivyDep(dep)
+            }
           case COMPILE_ONLY_CONFIGURATION_NAME | COMPILE_ONLY_API_CONFIGURATION_NAME =>
-            config.deps.iterator().asScala
-              .foreach { dep =>
-                val id = groupArtifactVersion(dep)
-                if (packages.isDefinedAt(id)) mainCompileModuleDeps += packages(id)
-                else mainCompileIvyDeps += ivyDep(dep)
-              }
+            config.deps.forEach { dep =>
+              val id = groupArtifactVersion(dep)
+              if (packages.isDefinedAt(id)) mainCompileModuleDeps += packages(id)
+              else mainCompileIvyDeps += ivyDep(dep)
+            }
           case RUNTIME_ONLY_CONFIGURATION_NAME =>
-            config.deps.iterator().asScala
-              .foreach { dep =>
-                val id = groupArtifactVersion(dep)
-                if (packages.isDefinedAt(id)) mainRunModuleDeps += packages(id)
-                else mainRunIvyDeps += ivyDep(dep)
-              }
+            config.deps.forEach { dep =>
+              val id = groupArtifactVersion(dep)
+              if (packages.isDefinedAt(id)) mainRunModuleDeps += packages(id)
+              else mainRunIvyDeps += ivyDep(dep)
+            }
           case TEST_IMPLEMENTATION_CONFIGURATION_NAME =>
-            config.deps.iterator().asScala
-              .foreach { dep =>
-                val id = groupArtifactVersion(dep)
-                if (packages.isDefinedAt(id)) testModuleDeps += packages(id)
-                else
-                  (if (isBom(id)) testBomIvyDeps
-                   else {
-                     println(s"assuming $conf dependency $id is a BOM")
-                     testIvyDeps
-                   }) += ivyDep(dep)
-                if (hasTest && testModule.isEmpty) {
-                  testModule = testModulesByGroup.get(dep.group())
-                }
+            config.deps.forEach { dep =>
+              val id = groupArtifactVersion(dep)
+              if (packages.isDefinedAt(id)) testModuleDeps += packages(id)
+              else
+                (if (isBom(id)) testBomIvyDeps
+                 else {
+                   println(s"assuming $conf dependency $id is a BOM")
+                   testIvyDeps
+                 }) += ivyDep(dep)
+              if (hasTest && testModule.isEmpty) {
+                testModule = testModulesByGroup.get(dep.group())
               }
+            }
           case TEST_COMPILE_ONLY_CONFIGURATION_NAME =>
-            config.deps.iterator().asScala
-              .foreach { dep =>
-                val id = groupArtifactVersion(dep)
-                if (packages.isDefinedAt(id)) testCompileModuleDeps += packages(id)
-                else testCompileIvyDeps += ivyDep(dep)
-              }
+            config.deps.forEach { dep =>
+              val id = groupArtifactVersion(dep)
+              if (packages.isDefinedAt(id)) testCompileModuleDeps += packages(id)
+              else testCompileIvyDeps += ivyDep(dep)
+            }
           case name =>
-            config.deps.iterator().asScala
-              .foreach { dep =>
-                val id = groupArtifactVersion(dep)
-                println(s"ignoring $name dependency $id")
-              }
+            config.deps.forEach { dep =>
+              val id = groupArtifactVersion(dep)
+              println(s"ignoring $name dependency $id")
+            }
         }
       }
     }
