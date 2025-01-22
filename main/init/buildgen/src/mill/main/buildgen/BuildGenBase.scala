@@ -1,6 +1,6 @@
 package mill.main.buildgen
 
-import mill.main.buildgen.BuildGenUtil.{BaseInfo, buildPackages, convertToBuildObject}
+import mill.main.buildgen.BuildGenUtil.{BaseInfo, buildPackages}
 
 trait BuildGenBase[M, D, C] {
   def convert(
@@ -24,6 +24,8 @@ trait BuildGenBase[M, D, C] {
       val supertypes = getSuperTypes(cfg, baseInfo, build)
 
       val scopedDeps = extractScopedDeps(build.value, packages, cfg)
+      val options = getJavacOptions(build.value).diff(baseInfo.javacOptions)
+      val version = getPublishVersion(build.value)
 
       val inner = IrBuild(
         scopedDeps = scopedDeps,
@@ -31,16 +33,10 @@ trait BuildGenBase[M, D, C] {
         hasTest = os.exists(getMillSourcePath(build.value) / "src/test"),
         dirs = build.dirs,
         repos = getRepositories(build.value).diff(baseInfo.repos),
-        javacOptions = {
-          val options = getJavacOptions(build.value).diff(baseInfo.javacOptions)
-          if (options == baseInfo.javacOptions) Seq.empty else options
-        },
+        javacOptions = if (options == baseInfo.javacOptions) Seq.empty else options,
         projectName = name,
         pomSettings = if (baseInfo.noPom) extractPomSettings(build.value) else null,
-        publishVersion = {
-          val version = getPublishVersion(build.value)
-          if (version == baseInfo.publishVersion) null else version
-        },
+        publishVersion = if (version == baseInfo.publishVersion) null else version,
         packaging = getPackaging(build.value),
         pomParentArtifact = getPomParentArtifact(build.value),
         resources = getResources(build.value),
