@@ -16,6 +16,19 @@ class LocalIvyPublisher(localIvyRepo: os.Path) {
   )(implicit ctx: Ctx.Log): Unit =
     publishLocal(Some(jar), Some(sourcesJar), Some(docJar), pom, Right(ivy), artifact, extras)
 
+  /**
+   * Publishes a module locally
+   *
+   * @param jar The JAR of this module, if it has one
+   * @param sourcesJar The source JAR of this module, if it has one
+   * @param docJar The javadoc JAR of this module, if it has one
+   * @param pom The POM of this module
+   * @param ivy If right, the path to the ivy.xml file of this module; if left, its content as a String
+   * @param artifact Coordinates of this module
+   * @param extras Extra files to publish in this module
+   * @param ctx
+   * @return The files created or written to when publishing locally this module
+   */
   def publishLocal(
       jar: Option[os.Path],
       sourcesJar: Option[os.Path],

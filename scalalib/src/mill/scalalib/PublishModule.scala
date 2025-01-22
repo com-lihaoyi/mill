@@ -27,7 +27,7 @@ trait PublishModule extends JavaModule { outer =>
       )
   }
 
-  // TODO Add this when we can break bin-compat
+  // TODO Add this when we can break bin-compat. See also below in publishXmlBomDeps.
   // override def bomModuleDeps: Seq[BomModule with PublishModule] = super.bomModuleDeps.map {
   //   case m: BomModule with PublishModule => m
   //   case other =>
@@ -227,6 +227,9 @@ trait PublishModule extends JavaModule { outer =>
       (processedDeps.map(_.moduleVersion).toMap, depMgmt)
     }
 
+  /**
+   * Path to the ivy.xml file for this module
+   */
   def ivy: T[PathRef] = Task {
     val content = ivy(hasJar = pomPackagingType != PackagingType.Pom)()
     val ivyPath = T.dest / "ivy.xml"
@@ -234,6 +237,12 @@ trait PublishModule extends JavaModule { outer =>
     PathRef(ivyPath)
   }
 
+  /**
+   * ivy.xml content for this module
+   *
+   * @param hasJar Whether this module has a JAR or not
+   * @return
+   */
   def ivy(hasJar: Boolean): Task[String] = Task.Anon {
     val (results, bomDepMgmt) = defaultResolver().processDeps(
       Seq(

@@ -1048,11 +1048,15 @@ object BomTests extends TestSuite {
 
       test("chainedBoms") {
         test("simple") - UnitTester(modules, null).scoped { implicit eval =>
+          // dep management of simpleOverrides has precedence over those of chainedBoms
           isInClassPath(
             modules.bomModule.chainedBoms.simpleOverrides.bomUser,
             "jackson-core-2.18.2.jar",
             Seq(modules.bomModule.chainedBoms, modules.bomModule.chainedBoms.simpleOverrides)
           )
+          // More contrived test - simpleOverrides pulls an external BOM for protobuf-java:4.28.2,
+          // and an internal one that requires protobuf-java:4.28.1 via an external BOM. For now,
+          // the internal one takes precedence over the external one.
           isInClassPath(
             modules.bomModule.chainedBoms.simpleOverrides.bomUser,
             "protobuf-java-4.28.1.jar",
@@ -1061,11 +1065,16 @@ object BomTests extends TestSuite {
         }
 
         test("crossed") - UnitTester(modules, null).scoped { implicit eval =>
+          // Contrived test like above - crossedOverrides pulls an internal BOM that requires
+          // jackson-core:2.18.1 via its depManagement, and an external BOM that wants jackson-core:2.18.2.
+          // The internal BOM takes precedence over the external one.
           isInClassPath(
             modules.bomModule.chainedBoms.crossedOverrides.bomUser,
             "jackson-core-2.18.1.jar",
             Seq(modules.bomModule.chainedBoms, modules.bomModule.chainedBoms.crossedOverrides)
           )
+          // crossedOverrides wants protobuf-java:4.28.2 via its depManagement. This takes
+          // precedence over protobuf-java:4.28.1, wanted via an internal BOM.
           isInClassPath(
             modules.bomModule.chainedBoms.crossedOverrides.bomUser,
             "protobuf-java-4.28.2.jar",

@@ -10,6 +10,16 @@ object Ivy {
 
   case class Override(organization: String, name: String, version: String)
 
+  /**
+   * Generates the content of an ivy.xml file
+   *
+   * @param artifact Coordinates of the module
+   * @param dependencies Dependencies of the module
+   * @param extras Extra artifacts published alongside the module
+   * @param overrides Version overrides
+   * @param hasJar Whether the module has a JAR
+   * @return ivy.xml content
+   */
   def apply(
       artifact: Artifact,
       dependencies: Agg[Dependency],

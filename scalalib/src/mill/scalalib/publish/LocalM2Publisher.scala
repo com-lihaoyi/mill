@@ -4,6 +4,18 @@ import mill.api.Ctx
 
 class LocalM2Publisher(m2Repo: os.Path) {
 
+  /**
+   * Publishes a module in the local Maven repository
+   *
+   * @param jar The JAR of this module, if it has one
+   * @param sourcesJar The source JAR of this module, if it has one
+   * @param docJar The javadoc JAR of this module, if it has one
+   * @param pom The POM of this module
+   * @param artifact Coordinates of this module
+   * @param extras Extra files to publish in this module
+   * @param ctx
+   * @return
+   */
   def publish(
       jar: Option[os.Path],
       sourcesJar: Option[os.Path],

@@ -44,6 +44,8 @@ object Scope {
   case object Provided extends Scope
   case object Runtime extends Scope
   case object Test extends Scope
+
+  /** Maven "import" scope, to refer to BOM modules */
   case object Import extends Scope
 }
 

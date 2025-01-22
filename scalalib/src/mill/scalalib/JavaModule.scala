@@ -1568,24 +1568,24 @@ trait BomModule extends JavaModule {
   def compile: T[CompilationResult] = Task {
     val sources = allSourceFiles()
     if (sources.nonEmpty)
-      throw new Exception(s"A BomModule cannot have sources")
+      throw new Exception("A BomModule cannot have sources")
     CompilationResult(T.dest / "zinc", PathRef(T.dest / "classes"))
   }
 
   def resources: T[Seq[PathRef]] = Task {
     val value = super.resources()
     if (value.nonEmpty)
-      throw new Exception(s"A BomModule cannot have ressources")
+      throw new Exception("A BomModule cannot have resources")
     Seq.empty[PathRef]
   }
 
   def jar: T[PathRef] = Task {
-    (throw new Exception(s"A BomModule doesn't have a JAR")): PathRef
+    (throw new Exception("A BomModule doesn't have a JAR")): PathRef
   }
   def docJar: T[PathRef] = Task {
-    (throw new Exception(s"A BomModule doesn't have a doc JAR")): PathRef
+    (throw new Exception("A BomModule doesn't have a doc JAR")): PathRef
   }
   def sourceJar: T[PathRef] = Task {
-    (throw new Exception(s"A BomModule doesn't have a source JAR")): PathRef
+    (throw new Exception("A BomModule doesn't have a source JAR")): PathRef
   }
 }
