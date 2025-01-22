@@ -2,20 +2,24 @@ package mill.main.buildgen
 
 import mainargs.arg
 import mill.main.buildgen.BuildObject.Companions
-import mill.main.client.CodeGenConstants.{
-  buildFileExtensions,
-  nestedBuildFileNames,
-  rootBuildFileNames,
-  rootModuleAlias
-}
+import mill.main.client.CodeGenConstants.{buildFileExtensions, nestedBuildFileNames, rootBuildFileNames, rootModuleAlias}
 import mill.main.client.OutFiles
 import mill.runner.FileImportGraph.backtickWrap
+
+import scala.collection.mutable
 
 @mill.api.internal
 object BuildGenUtil {
   def buildFile(dirs: Seq[String]): os.SubPath = {
     val name = if (dirs.isEmpty) rootBuildFileNames.head else nestedBuildFileNames.head
     os.sub / dirs / name
+  }
+
+  def renderImports(baseModule: Option[String], isNested: Boolean, packagesSize: Int) = {
+    scala.collection.immutable.SortedSet("mill._", "mill.javalib._", "mill.javalib.publish._") ++
+      (if (isNested) baseModule.map(name => s"$$file.$name")
+      else if (packagesSize > 1) Seq("$packages._")
+      else None)
   }
 
   def buildFiles(workspace: os.Path): geny.Generator[os.Path] =

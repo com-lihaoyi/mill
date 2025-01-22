@@ -8,6 +8,7 @@ import mill.runner.FileImportGraph.backtickWrap
 import org.apache.maven.model.{Dependency, Model, Parent}
 
 import scala.collection.immutable.{SortedMap, SortedSet}
+import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
 
 /**
@@ -112,7 +113,6 @@ object BuildGen {
         (Seq.empty, true, "", Seq.empty, "")
     }
 
-    val nestedModuleImports = cfg.shared.baseModule.map(name => s"$$file.$name")
 
     input.map { case build @ Node(dirs, model) =>
       val artifactId = model.getArtifactId
@@ -124,37 +124,16 @@ object BuildGen {
       val isNested = dirs.nonEmpty
       val hasTest = os.exists(millSourcePath / "src/test")
 
-      val imports = {
-        val b = SortedSet.newBuilder[String]
-        b += "mill._"
-        b += "mill.javalib._"
-        b += "mill.javalib.publish._"
-        if (isNested) b ++= nestedModuleImports
-        else if (packages.size > 1) b += "$packages._"
-        b.result()
-      }
+      val imports = renderImports(cfg.shared.baseModule, isNested, packages.size)
 
-      val supertypes = {
-        val b = Seq.newBuilder[String]
-        b += "RootModule"
-        cfg.shared.baseModule.fold(b ++= moduleSupertypes)(b += _)
-        b.result()
-      }
+      val supertypes =
+        Seq("RootModule") ++
+        (cfg.shared.baseModule match{
+          case None => moduleSupertypes
+          case Some(v) => Seq(v)
+        })
 
-      val (
-        companions,
-        mainBomIvyDeps,
-        mainIvyDeps,
-        mainModuleDeps,
-        mainCompileIvyDeps,
-        mainCompileModuleDeps,
-        mainRunIvyDeps,
-        mainRunModuleDeps,
-        testModule,
-        testBomIvyDeps,
-        testIvyDeps,
-        testModuleDeps
-      ) = scopedDeps(model, packages, cfg)
+      val scopedDeps = new ScopedDeps(model, packages, cfg)
 
       val inner = {
         val javacOptions = {
@@ -175,7 +154,7 @@ object BuildGen {
 
         val testModuleTypedef =
           if (hasTest) {
-            val declare = BuildGenUtil.renderTestModuleDecl(cfg.shared.testModule, testModule)
+            val declare = BuildGenUtil.renderTestModuleDecl(cfg.shared.testModule, scopedDeps.testModule)
             val resources = model.getBuild.getTestResources.iterator().asScala
               .map(_.getDirectory)
               .map(os.Path(_).subRelativeTo(millSourcePath))
@@ -183,29 +162,29 @@ object BuildGen {
 
             s"""$declare {
                |
-               |${renderBomIvyDeps(testBomIvyDeps)}
+               |${renderBomIvyDeps(scopedDeps.testBomIvyDeps)}
                |
-               |${renderIvyDeps(testIvyDeps)}
+               |${renderIvyDeps(scopedDeps.testIvyDeps)}
                |
-               |${renderModuleDeps(testModuleDeps)}
+               |${renderModuleDeps(scopedDeps.testModuleDeps)}
                |
                |${renderResources(resources)}
                |}""".stripMargin
           } else ""
 
-        s"""${renderBomIvyDeps(mainBomIvyDeps)}
+        s"""${renderBomIvyDeps(scopedDeps.mainBomIvyDeps)}
            |
-           |${renderIvyDeps(mainIvyDeps)}
+           |${renderIvyDeps(scopedDeps.mainIvyDeps)}
            |
-           |${renderModuleDeps(mainModuleDeps)}
+           |${renderModuleDeps(scopedDeps.mainModuleDeps)}
            |
-           |${renderCompileIvyDeps(mainCompileIvyDeps)}
+           |${renderCompileIvyDeps(scopedDeps.mainCompileIvyDeps)}
            |
-           |${renderCompileModuleDeps(mainCompileModuleDeps)}
+           |${renderCompileModuleDeps(scopedDeps.mainCompileModuleDeps)}
            |
-           |${renderRunIvyDeps(mainRunIvyDeps)}
+           |${renderRunIvyDeps(scopedDeps.mainRunIvyDeps)}
            |
-           |${renderRunModuleDeps(mainRunModuleDeps)}
+           |${renderRunModuleDeps(scopedDeps.mainRunModuleDeps)}
            |
            |${renderJavacOptions(javacOptions)}
            |
@@ -228,7 +207,7 @@ object BuildGen {
 
       val outer = if (isNested) "" else baseModuleTypedef
 
-      build.copy(module = BuildObject(imports, companions, supertypes, inner, outer))
+      build.copy(module = BuildObject(imports, scopedDeps.companions, supertypes, inner, outer))
     }
   }
 
@@ -294,35 +273,22 @@ object BuildGen {
     )
   }
 
-  def scopedDeps(
+  class ScopedDeps(
       model: Model,
       packages: PartialFunction[(String, String, String), String],
       cfg: BuildGenConfig
-  ): (
-      Companions,
-      IterableOnce[String],
-      IterableOnce[String],
-      IterableOnce[String],
-      IterableOnce[String],
-      IterableOnce[String],
-      IterableOnce[String],
-      IterableOnce[String],
-      Option[String],
-      IterableOnce[String],
-      IterableOnce[String],
-      IterableOnce[String]
-  ) = {
-    val mainBomIvyDeps = SortedSet.newBuilder[String]
-    val mainIvyDeps = SortedSet.newBuilder[String]
-    val mainModuleDeps = SortedSet.newBuilder[String]
-    val mainCompileIvyDeps = SortedSet.newBuilder[String]
-    val mainCompileModuleDeps = SortedSet.newBuilder[String]
-    val mainRunIvyDeps = SortedSet.newBuilder[String]
-    val mainRunModuleDeps = SortedSet.newBuilder[String]
+  ) {
+    val mainBomIvyDeps = mutable.SortedSet.empty[String]
+    val mainIvyDeps = mutable.SortedSet.empty[String]
+    val mainModuleDeps = mutable.SortedSet.empty[String]
+    val mainCompileIvyDeps = mutable.SortedSet.empty[String]
+    val mainCompileModuleDeps = mutable.SortedSet.empty[String]
+    val mainRunIvyDeps = mutable.SortedSet.empty[String]
+    val mainRunModuleDeps = mutable.SortedSet.empty[String]
     var testModule = Option.empty[String]
-    val testBomIvyDeps = SortedSet.newBuilder[String]
-    val testIvyDeps = SortedSet.newBuilder[String]
-    val testModuleDeps = SortedSet.newBuilder[String]
+    val testBomIvyDeps = mutable.SortedSet.empty[String]
+    val testIvyDeps = mutable.SortedSet.empty[String]
+    val testModuleDeps = mutable.SortedSet.empty[String]
 
     val hasTest = os.exists(os.Path(model.getProjectDirectory) / "src/test")
     val namedIvyDeps = Seq.newBuilder[(String, String)]
@@ -374,21 +340,6 @@ object BuildGen {
       cfg.shared.depsObject.fold(SortedMap.empty[String, BuildObject.Constants])(name =>
         SortedMap((name, SortedMap(namedIvyDeps.result() *)))
       )
-
-    (
-      companions,
-      mainBomIvyDeps.result(),
-      mainIvyDeps.result(),
-      mainCompileModuleDeps.result(),
-      mainCompileIvyDeps.result(),
-      mainModuleDeps.result(),
-      mainRunIvyDeps.result(),
-      mainRunModuleDeps.result(),
-      testModule,
-      testBomIvyDeps.result(),
-      testIvyDeps.result(),
-      testModuleDeps.result()
-    )
   }
 }
 

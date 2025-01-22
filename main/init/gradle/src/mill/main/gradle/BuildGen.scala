@@ -51,14 +51,12 @@ object BuildGen {
     println("converting Gradle build")
     val connector = GradleConnector.newConnector()
 
-    val args = Seq.newBuilder[String]
-      .++=(cfg.shared.jvmId.map { id =>
+    val args =
+      cfg.shared.jvmId.map { id =>
         println(s"resolving Java home for jvmId $id")
         val home = Jvm.resolveJavaHome(id).getOrThrow
         s"-Dorg.gradle.java.home=$home"
-      })
-      .+=("--init-script").+=(writeGradleInitScript.toString())
-      .result()
+      } ++ Seq("--init-script", writeGradleInitScript.toString())
 
     try {
       println("connecting to Gradle daemon")
@@ -123,12 +121,10 @@ object BuildGen {
           if (packages.size > 1) {
             println(s"settings from ${project.name()} will be shared in base module")
           }
-          val supertypes = {
-            val b = Seq.newBuilder[String]
-            b += "MavenModule"
-            if (null != project.maven().pom()) b += "PublishModule"
-            b.result()
-          }
+          val supertypes =
+            Seq("MavenModule") ++
+            Option.when(null != project.maven().pom()){ "PublishModule" }
+
           val javacOptions = getJavacOptions(project)
           val reps = getRepositories(project)
           val pomSettings = mkPomSettings(project)
@@ -163,7 +159,6 @@ object BuildGen {
           (Seq.empty, Seq.empty, true, "", "")
       }
 
-    val nestedModuleImports = cfg.shared.baseModule.map(name => s"$$file.$name")
     val moduleSupertype = cfg.shared.baseModule.getOrElse("MavenModule")
 
     input.map { case build @ Node(dirs, project) =>
@@ -178,23 +173,13 @@ object BuildGen {
       val hasTest = os.exists(millSourcePath / "src/test")
       val isNested = dirs.nonEmpty
 
-      val imports = {
-        val b = mutable.SortedSet.empty[String]
-        b += "mill._"
-        b += "mill.javalib._"
-        b += "mill.javalib.publish._"
-        if (isNested) b ++= nestedModuleImports
-        else if (packages.size > 1) b += "$packages._"
-        b.result()
-      }
+      val imports = renderImports(cfg.shared.baseModule, isNested, packages.size)
 
-      val supertypes = {
-        val b = Seq.newBuilder[String]
-        b += "RootModule"
-        if (hasPom && baseNoPom) b += "PublishModule"
-        if (isNested || hasSource) b += moduleSupertype
-        b.result()
-      }
+      val supertypes =
+        Seq("RootModule") ++
+        Option.when (hasPom && baseNoPom) {"PublishModule"} ++
+        Option.when (isNested || hasSource){ moduleSupertype }
+
 
       val scopedDeps = new ScopedDeps(project, packages, cfg)
 
