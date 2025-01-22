@@ -118,47 +118,35 @@ object BuildGen {
 
       val supertypes =
         Seq("RootModule") ++
-          (cfg.shared.baseModule match {
-            case None => moduleSupertypes
-            case Some(v) => Seq(v)
-          })
+          cfg.shared.baseModule.fold(moduleSupertypes)(Seq(_))
 
       val scopedDeps = extractScopedDeps(model, packages, cfg)
 
-      val inner = {
-        val options = Plugins.MavenCompilerPlugin.javacOptions(model)
-        val javacOptions = if (options == baseJavacOptions) Seq.empty else options
+      val options = Plugins.MavenCompilerPlugin.javacOptions(model)
 
-        val pomSettings = if (baseNoPom) extractPomSettings(model) else null
-        val resources = model.getBuild.getResources.iterator().asScala
-          .map(_.getDirectory)
-          .map(os.Path(_).subRelativeTo(millSourcePath))
-          .filterNot(_ == mavenMainResourceDir)
-        val version = model.getVersion
-        val publishVersion = if (version == basePublishVersion) null else version
+      def processResources(input: java.util.List[org.apache.maven.model.Resource]) = input
+        .asScala
+        .map(_.getDirectory)
+        .map(os.Path(_).subRelativeTo(millSourcePath))
+        .filterNot(_ == mavenTestResourceDir)
+        .toSeq
 
-        val publishProperties = getPublishProperties(model, cfg).diff(basePublishProperties)
-        val pomParentArtifact = mkPomParent(model.getParent)
-
-        val testResources = model.getBuild.getTestResources.iterator().asScala
-          .map(_.getDirectory)
-          .map(os.Path(_).subRelativeTo(millSourcePath))
-          .filterNot(_ == mavenTestResourceDir)
-
-        IrBuild(
-          scopedDeps,
-          cfg.shared.testModule,
-          hasTest,
-          dirs,
-          repos = Nil,
-          javacOptions,
-          artifactId,
-          pomSettings,
-          publishVersion,
-          packaging,
-          pomParentArtifact
-        )
-      }
+      val inner = IrBuild(
+        scopedDeps,
+        cfg.shared.testModule,
+        hasTest,
+        dirs,
+        repos = Nil,
+        javacOptions = if (options == baseJavacOptions) Seq.empty else options,
+        artifactId,
+        pomSettings = if (baseNoPom) extractPomSettings(model) else null,
+        publishVersion = if (model.getVersion == basePublishVersion) null else model.getVersion,
+        packaging,
+        pomParentArtifact = mkPomParent(model.getParent),
+        resources = processResources(model.getBuild.getResources),
+        testResources = processResources(model.getBuild.getTestResources),
+        publishProperties = getPublishProperties(model, cfg).diff(basePublishProperties)
+      )
 
       build.copy(value =
         BuildObject(

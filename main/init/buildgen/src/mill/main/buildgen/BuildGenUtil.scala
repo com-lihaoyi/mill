@@ -70,7 +70,7 @@ object BuildGenUtil {
            |
            |${renderCompileModuleDeps(scopedDeps.testCompileModuleDeps)}
            |
-           |${renderResources(Nil)}
+           |${renderResources(testResources)}
            |}""".stripMargin
       }
 
@@ -103,6 +103,10 @@ object BuildGenUtil {
        |${renderPomParentProject(pomParentArtifact)}
        |
        |${renderPublishProperties(Nil)}
+       |
+       |${renderResources(resources)}
+       |
+       |${renderPublishProperties(publishProperties)}
        |
        |$testModuleTypedef""".stripMargin
 

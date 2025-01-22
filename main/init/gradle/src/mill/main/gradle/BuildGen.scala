@@ -181,31 +181,28 @@ object BuildGen {
 
       val scopedDeps = extractScopedDeps(project, packages, cfg)
 
-      val inner = {
-        val javacOptions = {
+      val inner = IrBuild(
+        scopedDeps,
+        cfg.shared.testModule,
+        hasTest,
+        dirs,
+        repos = getRepositories(project).diff(baseRepos),
+        javacOptions = {
           val options = getJavacOptions(project).diff(baseJavacOptions)
           if (options == baseJavacOptions) Seq.empty else options
-        }
-        val repos = getRepositories(project).diff(baseRepos)
-        val pomSettings = if (baseNoPom) extractPomSettings(project) else null
-        val publishVersion = {
+        },
+        project.name(),
+        pomSettings = if (baseNoPom) extractPomSettings(project) else null,
+        publishVersion = {
           val version = getPublishVersion(project)
           if (version == basePublishVersion) null else version
-        }
-        IrBuild(
-          scopedDeps,
-          cfg.shared.testModule,
-          hasTest,
-          dirs,
-          repos,
-          javacOptions,
-          project.name(),
-          pomSettings,
-          publishVersion,
-          packaging = null,
-          pomParentArtifact = null
-        )
-      }
+        },
+        packaging = null,
+        pomParentArtifact = null,
+        resources = Nil,
+        testResources = Nil,
+        publishProperties = Nil
+      )
 
       build.copy(value =
         BuildObject(

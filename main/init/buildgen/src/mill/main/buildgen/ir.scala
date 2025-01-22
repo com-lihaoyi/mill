@@ -67,7 +67,10 @@ case class IrBuild(
     pomSettings: IrPom,
     publishVersion: String,
     packaging: String,
-    pomParentArtifact: String
+    pomParentArtifact: String,
+    resources: Seq[os.SubPath],
+    testResources: Seq[os.SubPath],
+    publishProperties: Seq[(String, String)]
 )
 
 case class IrScopedDeps(
