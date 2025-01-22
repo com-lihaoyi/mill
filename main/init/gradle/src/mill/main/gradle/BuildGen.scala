@@ -54,7 +54,7 @@ object BuildGen {
     val connector = GradleConnector.newConnector()
 
     val args = Seq.newBuilder[String]
-      .++=(cfg.jvmId.map { id =>
+      .++=(cfg.shared.jvmId.map { id =>
         println(s"resolving Java home for jvmId $id")
         val home = Jvm.resolveJavaHome(id).getOrThrow
         s"-Dorg.gradle.java.home=$home"
@@ -109,7 +109,7 @@ object BuildGen {
       buildPackages(input)(project => (project.group(), project.name(), project.version()))
 
     val (baseJavacOptions, baseReps, baseNoPom, basePublishVersion, baseModuleTypedef) =
-      cfg.baseModule match {
+      cfg.shared.baseModule match {
         case Some(baseModule) =>
           val project = {
             val projects = input.nodes(Tree.Traversal.BreadthFirst).map(_.module).toSeq
@@ -133,7 +133,7 @@ object BuildGen {
           val pomSettings = mkPomSettings(project)
           val publishVersion = getPublishVersion(project)
 
-          val zincWorker = cfg.jvmId.fold("") { jvmId =>
+          val zincWorker = cfg.shared.jvmId.fold("") { jvmId =>
             val name = s"${baseModule}ZincWorker"
             val setting = renderZincWorker(name)
             val typedef = renderZincWorker(name, jvmId)
@@ -162,8 +162,8 @@ object BuildGen {
           (Seq.empty, Seq.empty, true, "", "")
       }
 
-    val nestedModuleImports = cfg.baseModule.map(name => s"$$file.$name")
-    val moduleSupertype = cfg.baseModule.getOrElse("MavenModule")
+    val nestedModuleImports = cfg.shared.baseModule.map(name => s"$$file.$name")
+    val moduleSupertype = cfg.shared.baseModule.getOrElse("MavenModule")
 
     input.map { case build @ Node(dirs, project) =>
       val name = project.name()
@@ -226,7 +226,7 @@ object BuildGen {
 
         val testModuleTypedef = {
           if (hasTest) {
-            val declare = BuildGenUtil.renderTestModuleDecl(cfg.testModule, testModule)
+            val declare = BuildGenUtil.renderTestModuleDecl(cfg.shared.testModule, testModule)
 
             s"""$declare {
                |
@@ -360,7 +360,7 @@ object BuildGen {
     val hasTest = os.exists(os.Path(project.directory()) / "src/test")
     val _java = project._java()
     if (null != _java) {
-      val ivyDep: JavaModel.Dep => String = cfg.depsObject.fold(interpIvy) { objName => dep =>
+      val ivyDep: JavaModel.Dep => String = cfg.shared.depsObject.fold(interpIvy) { objName => dep =>
         val depName = s"`${dep.group()}:${dep.name()}`"
         namedIvyDeps += ((depName, interpIvy(dep)))
         s"$objName.$depName"
@@ -425,7 +425,7 @@ object BuildGen {
         }
       }
     }
-    val companions = cfg.depsObject.fold(SortedMap.empty[String, BuildObject.Constants])(name =>
+    val companions = cfg.shared.depsObject.fold(SortedMap.empty[String, BuildObject.Constants])(name =>
       SortedMap((name, SortedMap(namedIvyDeps.result() *)))
     )
     (
@@ -450,16 +450,10 @@ object BuildGen {
 @main
 @mill.api.internal
 case class BuildGenConfig(
-    @arg(doc = "name of generated base module trait defining shared settings", short = 'b')
-    baseModule: Option[String] = None,
+     shared: BuildGenUtil.Config,
+
     @arg(doc = "name of Gradle project to extract settings for --base-module", short = 'g')
     baseProject: Option[String] = None,
-    @arg(doc = "distribution and version of custom JVM to configure in --base-module", short = 'j')
-    jvmId: Option[String] = None,
-    @arg(doc = "name of generated nested test module", short = 't')
-    testModule: String = "test",
-    @arg(doc = "name of generated companion object defining dependency constants", short = 'd')
-    depsObject: Option[String] = None,
     @arg(doc = "merge build files generated for a multi-module build", short = 'm')
     merge: Flag = Flag()
 )

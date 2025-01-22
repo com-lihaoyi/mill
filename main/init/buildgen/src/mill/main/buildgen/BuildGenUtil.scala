@@ -1,5 +1,6 @@
 package mill.main.buildgen
 
+import mainargs.arg
 import mill.main.buildgen.BuildObject.Companions
 import mill.main.client.CodeGenConstants.{buildFileExtensions, nestedBuildFileNames, rootBuildFileNames, rootModuleAlias}
 import mill.main.client.OutFiles
@@ -351,5 +352,21 @@ object BuildGenUtil {
       case Some(supertype) => s"object $name extends MavenTests with $supertype"
       case None => s"trait $name extends MavenTests"
     }
+  }
+
+  @mainargs.main
+  case class Config(
+                     @arg(doc = "name of generated base module trait defining shared settings", short = 'b')
+                     baseModule: Option[String] = None,
+                     @arg(doc = "distribution and version of custom JVM to configure in --base-module", short = 'j')
+                     jvmId: Option[String] = None,
+                     @arg(doc = "name of generated nested test module", short = 't')
+                     testModule: String = "test",
+                     @arg(doc = "name of generated companion object defining dependency constants", short = 'd')
+                     depsObject: Option[String] = None,
+                   )
+  object Config {
+    implicit def configParser: mainargs.ParserForClass[Config] = mainargs.ParserForClass[Config]
+
   }
 }

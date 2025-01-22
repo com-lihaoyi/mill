@@ -75,7 +75,7 @@ object BuildGen {
       basePublishVersion,
       basePublishProperties,
       baseModuleTypedef
-    ) = cfg.baseModule match {
+    ) = cfg.shared.baseModule match {
       case Some(baseModule) =>
         val model = input.node.module
         val javacOptions = Plugins.MavenCompilerPlugin.javacOptions(model)
@@ -83,7 +83,7 @@ object BuildGen {
         val publishVersion = model.getVersion
         val publishProperties = getPublishProperties(model, cfg)
 
-        val zincWorker = cfg.jvmId.fold("") { jvmId =>
+        val zincWorker = cfg.shared.jvmId.fold("") { jvmId =>
           val name = s"${baseModule}ZincWorker"
           val setting = renderZincWorker(name)
           val typedef = renderZincWorker(name, jvmId)
@@ -112,7 +112,7 @@ object BuildGen {
         (Seq.empty, true, "", Seq.empty, "")
     }
 
-    val nestedModuleImports = cfg.baseModule.map(name => s"$$file.$name")
+    val nestedModuleImports = cfg.shared.baseModule.map(name => s"$$file.$name")
 
     input.map { case build @ Node(dirs, model) =>
       val artifactId = model.getArtifactId
@@ -137,7 +137,7 @@ object BuildGen {
       val supertypes = {
         val b = Seq.newBuilder[String]
         b += "RootModule"
-        cfg.baseModule.fold(b ++= moduleSupertypes)(b += _)
+        cfg.shared.baseModule.fold(b ++= moduleSupertypes)(b += _)
         b.result()
       }
 
@@ -175,7 +175,7 @@ object BuildGen {
 
         val testModuleTypedef =
           if (hasTest) {
-            val declare = BuildGenUtil.renderTestModuleDecl(cfg.testModule, testModule)
+            val declare = BuildGenUtil.renderTestModuleDecl(cfg.shared.testModule, testModule)
             val resources = model.getBuild.getTestResources.iterator().asScala
               .map(_.getDirectory)
               .map(os.Path(_).subRelativeTo(millSourcePath))
@@ -317,7 +317,7 @@ object BuildGen {
     val hasTest = os.exists(os.Path(model.getProjectDirectory) / "src/test")
     val namedIvyDeps = Seq.newBuilder[(String, String)]
     val ivyDep: Dependency => String = {
-      cfg.depsObject.fold(interpIvy) { objName => dep =>
+      cfg.shared.depsObject.fold(interpIvy) { objName => dep =>
         {
           val depName = s"`${dep.getGroupId}:${dep.getArtifactId}`"
           namedIvyDeps += ((depName, interpIvy(dep)))
@@ -360,7 +360,7 @@ object BuildGen {
       }
     }
 
-    val companions = cfg.depsObject.fold(SortedMap.empty[String, BuildObject.Constants])(name =>
+    val companions = cfg.shared.depsObject.fold(SortedMap.empty[String, BuildObject.Constants])(name =>
       SortedMap((name, SortedMap(namedIvyDeps.result() *)))
     )
 
@@ -384,14 +384,10 @@ object BuildGen {
 @main
 @mill.api.internal
 case class BuildGenConfig(
-    @arg(doc = "name of generated base module trait defining shared settings", short = 'b')
-    baseModule: Option[String] = None,
-    @arg(doc = "distribution and version of custom JVM to configure in --base-module", short = 'j')
-    jvmId: Option[String] = None,
-    @arg(doc = "name of generated nested test module", short = 't')
-    testModule: String = "test",
-    @arg(doc = "name of generated companion object defining dependency constants", short = 'd')
-    depsObject: Option[String] = None,
+                           shared: BuildGenUtil.Config,
+
+
+
     @arg(doc = "merge build files generated for a multi-module build", short = 'm')
     merge: Flag = Flag(),
     @arg(doc = "capture properties defined in `pom.xml` for publishing", short = 'p')
