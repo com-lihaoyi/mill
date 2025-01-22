@@ -2,13 +2,10 @@ package mill.main.maven
 
 import mainargs.{Flag, ParserForClass, arg, main}
 import mill.main.buildgen.BuildGenUtil.*
-import mill.main.buildgen.BuildObject.Companions
 import mill.main.buildgen.{BuildGenUtil, BuildObject, Node, Tree}
-import mill.runner.FileImportGraph.backtickWrap
 import org.apache.maven.model.{Dependency, Model, Parent}
 
-import scala.collection.immutable.{SortedMap, SortedSet}
-import scala.collection.mutable
+import scala.collection.immutable.SortedMap
 import scala.jdk.CollectionConverters.*
 
 /**
@@ -152,57 +149,12 @@ object BuildGen {
         val publishProperties = getPublishProperties(model, cfg).diff(basePublishProperties)
         val pomParentArtifact = mkPomParent(model.getParent)
 
-        val testModuleTypedef =
-          if (hasTest) {
-            val declare = BuildGenUtil.renderTestModuleDecl(cfg.shared.testModule, scopedDeps.testModule)
-            val resources = model.getBuild.getTestResources.iterator().asScala
-              .map(_.getDirectory)
-              .map(os.Path(_).subRelativeTo(millSourcePath))
-              .filterNot(_ == mavenTestResourceDir)
+        val testResources = model.getBuild.getTestResources.iterator().asScala
+          .map(_.getDirectory)
+          .map(os.Path(_).subRelativeTo(millSourcePath))
+          .filterNot(_ == mavenTestResourceDir)
 
-            s"""$declare {
-               |
-               |${renderBomIvyDeps(scopedDeps.testBomIvyDeps)}
-               |
-               |${renderIvyDeps(scopedDeps.testIvyDeps)}
-               |
-               |${renderModuleDeps(scopedDeps.testModuleDeps)}
-               |
-               |${renderResources(resources)}
-               |}""".stripMargin
-          } else ""
-
-        s"""${renderBomIvyDeps(scopedDeps.mainBomIvyDeps)}
-           |
-           |${renderIvyDeps(scopedDeps.mainIvyDeps)}
-           |
-           |${renderModuleDeps(scopedDeps.mainModuleDeps)}
-           |
-           |${renderCompileIvyDeps(scopedDeps.mainCompileIvyDeps)}
-           |
-           |${renderCompileModuleDeps(scopedDeps.mainCompileModuleDeps)}
-           |
-           |${renderRunIvyDeps(scopedDeps.mainRunIvyDeps)}
-           |
-           |${renderRunModuleDeps(scopedDeps.mainRunModuleDeps)}
-           |
-           |${renderJavacOptions(javacOptions)}
-           |
-           |${renderResources(resources)}
-           |
-           |${renderArtifactName(artifactId, dirs)}
-           |
-           |${renderPomPackaging(packaging)}
-           |
-           |${renderPomParentProject(pomParentArtifact)}
-           |
-           |${renderPomSettings(pomSettings)}
-           |
-           |${renderPublishVersion(publishVersion)}
-           |
-           |${renderPublishProperties(publishProperties)}
-           |
-           |$testModuleTypedef""".stripMargin
+        BuildGenUtil.renderModule(scopedDeps, cfg.shared.testModule, hasTest, dirs, Nil, javacOptions, artifactId, pomSettings, publishVersion, packaging, pomParentArtifact)
       }
 
       val outer = if (isNested) "" else baseModuleTypedef
@@ -277,21 +229,9 @@ object BuildGen {
       model: Model,
       packages: PartialFunction[(String, String, String), String],
       cfg: BuildGenConfig
-  ) {
-    val mainBomIvyDeps = mutable.SortedSet.empty[String]
-    val mainIvyDeps = mutable.SortedSet.empty[String]
-    val mainModuleDeps = mutable.SortedSet.empty[String]
-    val mainCompileIvyDeps = mutable.SortedSet.empty[String]
-    val mainCompileModuleDeps = mutable.SortedSet.empty[String]
-    val mainRunIvyDeps = mutable.SortedSet.empty[String]
-    val mainRunModuleDeps = mutable.SortedSet.empty[String]
-    var testModule = Option.empty[String]
-    val testBomIvyDeps = mutable.SortedSet.empty[String]
-    val testIvyDeps = mutable.SortedSet.empty[String]
-    val testModuleDeps = mutable.SortedSet.empty[String]
+  )  extends BuildGenUtil.ScopedDeps {
 
     val hasTest = os.exists(os.Path(model.getProjectDirectory) / "src/test")
-    val namedIvyDeps = Seq.newBuilder[(String, String)]
     val ivyDep: Dependency => String = {
       cfg.shared.depsObject.fold(interpIvy) { objName => dep =>
         {
@@ -338,7 +278,7 @@ object BuildGen {
 
     val companions =
       cfg.shared.depsObject.fold(SortedMap.empty[String, BuildObject.Constants])(name =>
-        SortedMap((name, SortedMap(namedIvyDeps.result() *)))
+        SortedMap((name, SortedMap(namedIvyDeps.toSeq *)))
       )
   }
 }

@@ -2,14 +2,12 @@ package mill.main.gradle
 
 import mainargs.{Flag, ParserForClass, arg, main}
 import mill.main.buildgen.BuildGenUtil.*
-import mill.main.buildgen.BuildObject.Companions
 import mill.main.buildgen.{BuildGenUtil, BuildObject, Node, Tree}
 import mill.util.Jvm
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.tooling.GradleConnector
 
 import scala.collection.immutable.{SortedMap, SortedSet}
-import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
 
 /**
@@ -188,58 +186,13 @@ object BuildGen {
           val options = getJavacOptions(project).diff(baseJavacOptions)
           if (options == baseJavacOptions) Seq.empty else options
         }
-        val reps = getRepositories(project).diff(baseReps)
+        val repos = getRepositories(project).diff(baseReps)
         val pomSettings = if (baseNoPom) mkPomSettings(project) else null
         val publishVersion = {
           val version = getPublishVersion(project)
           if (version == basePublishVersion) null else version
         }
-
-        val testModuleTypedef = {
-          if (hasTest) {
-            val declare =
-              BuildGenUtil.renderTestModuleDecl(cfg.shared.testModule, scopedDeps.testModule)
-
-            s"""$declare {
-               |
-               |${renderBomIvyDeps(scopedDeps.testBomIvyDeps)}
-               |
-               |${renderIvyDeps(scopedDeps.testIvyDeps)}
-               |
-               |${renderModuleDeps(scopedDeps.testModuleDeps)}
-               |
-               |${renderCompileIvyDeps(scopedDeps.testCompileIvyDeps)}
-               |
-               |${renderCompileModuleDeps(scopedDeps.testCompileModuleDeps)}
-               |}""".stripMargin
-          } else ""
-        }
-
-        s"""${renderArtifactName(project.name(), dirs)}
-           |
-           |${renderJavacOptions(javacOptions)}
-           |
-           |${renderRepositories(reps)}
-           |
-           |${renderBomIvyDeps(scopedDeps.mainBomIvyDeps)}
-           |
-           |${renderIvyDeps(scopedDeps.mainIvyDeps)}
-           |
-           |${renderModuleDeps(scopedDeps.mainModuleDeps)}
-           |
-           |${renderCompileIvyDeps(scopedDeps.mainCompileIvyDeps)}
-           |
-           |${renderCompileModuleDeps(scopedDeps.mainCompileModuleDeps)}
-           |
-           |${renderRunIvyDeps(scopedDeps.mainRunIvyDeps)}
-           |
-           |${renderRunModuleDeps(scopedDeps.mainRunModuleDeps)}
-           |
-           |${renderPomSettings(pomSettings)}
-           |
-           |${renderPublishVersion(publishVersion)}
-           |
-           |$testModuleTypedef""".stripMargin
+        BuildGenUtil.renderModule(scopedDeps, cfg.shared.testModule, hasTest, dirs, repos, javacOptions, project.name(), pomSettings, publishVersion, null, null)
       }
 
       val outer = if (isNested) "" else baseModuleTypedef
@@ -300,21 +253,7 @@ object BuildGen {
       project: ProjectModel,
       packages: PartialFunction[(String, String, String), String],
       cfg: BuildGenConfig
-  ) {
-    val namedIvyDeps = mutable.Buffer.empty[(String, String)]
-    val mainBomIvyDeps = mutable.SortedSet.empty[String]
-    val mainIvyDeps = mutable.SortedSet.empty[String]
-    val mainModuleDeps = mutable.SortedSet.empty[String]
-    val mainCompileIvyDeps = mutable.SortedSet.empty[String]
-    val mainCompileModuleDeps = mutable.SortedSet.empty[String]
-    val mainRunIvyDeps = mutable.SortedSet.empty[String]
-    val mainRunModuleDeps = mutable.SortedSet.empty[String]
-    var testModule = Option.empty[String]
-    val testBomIvyDeps = mutable.SortedSet.empty[String]
-    val testIvyDeps = mutable.SortedSet.empty[String]
-    val testModuleDeps = mutable.SortedSet.empty[String]
-    val testCompileIvyDeps = mutable.SortedSet.empty[String]
-    val testCompileModuleDeps = mutable.SortedSet.empty[String]
+  ) extends BuildGenUtil.ScopedDeps {
 
     val hasTest = os.exists(os.Path(project.directory()) / "src/test")
     val _java = project._java()

@@ -10,6 +10,89 @@ import scala.collection.mutable
 
 @mill.api.internal
 object BuildGenUtil {
+  trait ScopedDeps {
+    val namedIvyDeps = mutable.Buffer.empty[(String, String)]
+    val mainBomIvyDeps = mutable.SortedSet.empty[String]
+    val mainIvyDeps = mutable.SortedSet.empty[String]
+    val mainModuleDeps = mutable.SortedSet.empty[String]
+    val mainCompileIvyDeps = mutable.SortedSet.empty[String]
+    val mainCompileModuleDeps = mutable.SortedSet.empty[String]
+    val mainRunIvyDeps = mutable.SortedSet.empty[String]
+    val mainRunModuleDeps = mutable.SortedSet.empty[String]
+    var testModule = Option.empty[String]
+    val testBomIvyDeps = mutable.SortedSet.empty[String]
+    val testIvyDeps = mutable.SortedSet.empty[String]
+    val testModuleDeps = mutable.SortedSet.empty[String]
+    val testCompileIvyDeps = mutable.SortedSet.empty[String]
+    val testCompileModuleDeps = mutable.SortedSet.empty[String]
+  }
+
+  def renderModule(scopedDeps: ScopedDeps,
+                   testModule: String,
+                   hasTest: Boolean,
+                   dirs: Seq[String],
+                   repos: Seq[String],
+                   javacOptions: Seq[String],
+                   projectName: String,
+                   pomSettings: String,
+                   publishVersion: String,
+                   packaging: String,
+                   pomParentArtifact: String) = {
+    val testModuleTypedef =
+      if (!hasTest) ""
+      else {
+        val declare =
+          BuildGenUtil.renderTestModuleDecl(testModule, scopedDeps.testModule)
+
+        s"""$declare {
+           |
+           |${renderBomIvyDeps(scopedDeps.testBomIvyDeps)}
+           |
+           |${renderIvyDeps(scopedDeps.testIvyDeps)}
+           |
+           |${renderModuleDeps(scopedDeps.testModuleDeps)}
+           |
+           |${renderCompileIvyDeps(scopedDeps.testCompileIvyDeps)}
+           |
+           |${renderCompileModuleDeps(scopedDeps.testCompileModuleDeps)}
+           |
+           |${renderResources(Nil)}
+           |}""".stripMargin
+      }
+
+    s"""${renderArtifactName(projectName, dirs)}
+       |
+       |${renderJavacOptions(javacOptions)}
+       |
+       |${renderRepositories(repos)}
+       |
+       |${renderBomIvyDeps(scopedDeps.mainBomIvyDeps)}
+       |
+       |${renderIvyDeps(scopedDeps.mainIvyDeps)}
+       |
+       |${renderModuleDeps(scopedDeps.mainModuleDeps)}
+       |
+       |${renderCompileIvyDeps(scopedDeps.mainCompileIvyDeps)}
+       |
+       |${renderCompileModuleDeps(scopedDeps.mainCompileModuleDeps)}
+       |
+       |${renderRunIvyDeps(scopedDeps.mainRunIvyDeps)}
+       |
+       |${renderRunModuleDeps(scopedDeps.mainRunModuleDeps)}
+       |
+       |${renderPomSettings(pomSettings)}
+       |
+       |${renderPublishVersion(publishVersion)}
+       |
+       |${renderPomPackaging(packaging)}
+       |
+       |${renderPomParentProject(pomParentArtifact)}
+       |
+       |${renderPublishProperties(Nil)}
+       |
+       |$testModuleTypedef""".stripMargin
+
+  }
   def buildFile(dirs: Seq[String]): os.SubPath = {
     val name = if (dirs.isEmpty) rootBuildFileNames.head else nestedBuildFileNames.head
     os.sub / dirs / name
