@@ -11,5 +11,5 @@ object InitMavenModule extends ExternalModule with BuildGenModule {
 
   def buildGenClasspath: T[Loose.Agg[PathRef]] = BuildGenModule.millModule("mill-main-init-maven")
 
-  def buildGenMainClass: T[String] = "mill.main.maven.BuildGen"
+  def buildGenMainClass: T[String] = "mill.main.maven.MavenBuildGenMain"
 }

@@ -13,7 +13,7 @@ object BuildGenTests extends TestSuite {
       val sourceRoot = os.sub / "maven-samples"
       val expectedRoot = os.sub / "expected/maven-samples"
       assert(
-        checker.check(BuildGen.main(Array.empty), sourceRoot, expectedRoot)
+        checker.check(MavenBuildGenMain.main(Array.empty), sourceRoot, expectedRoot)
       )
     }
 
@@ -35,7 +35,7 @@ object BuildGenTests extends TestSuite {
         "--process-plugins"
       )
       assert(
-        checker.check(BuildGen.main(args), sourceRoot, expectedRoot)
+        checker.check(MavenBuildGenMain.main(args), sourceRoot, expectedRoot)
       )
     }
 
@@ -44,7 +44,7 @@ object BuildGenTests extends TestSuite {
         val sourceRoot = os.sub / "misc/custom-resources"
         val expectedRoot = os.sub / "expected/misc/custom-resources"
         assert(
-          checker.check(BuildGen.main(Array.empty), sourceRoot, expectedRoot)
+          checker.check(MavenBuildGenMain.main(Array.empty), sourceRoot, expectedRoot)
         )
       }
     }

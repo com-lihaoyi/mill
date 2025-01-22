@@ -107,3 +107,12 @@ case class IrScopedDeps(
     testCompileIvyDeps: SortedSet[String] = SortedSet(),
     testCompileModuleDeps: SortedSet[String] = SortedSet()
 )
+
+case class IrBaseInfo(
+    javacOptions: Seq[String] = Nil,
+    repos: Seq[String] = Nil,
+    noPom: Boolean = true,
+    publishVersion: String = "",
+    publishProperties: Seq[(String, String)] = Nil,
+    moduleTypedef: IrTrait = null
+)

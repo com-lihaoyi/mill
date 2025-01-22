@@ -11,5 +11,5 @@ object InitGradleModule extends ExternalModule with BuildGenModule {
 
   def buildGenClasspath: T[Loose.Agg[PathRef]] = BuildGenModule.millModule("mill-main-init-gradle")
 
-  def buildGenMainClass: T[String] = "mill.main.gradle.BuildGen"
+  def buildGenMainClass: T[String] = "mill.main.gradle.GradleBuildGenMain"
 }

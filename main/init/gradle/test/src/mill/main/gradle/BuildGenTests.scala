@@ -12,7 +12,7 @@ object BuildGenTests extends TestSuite {
       val sourceRoot = os.sub / "library"
       val expectedRoot = os.sub / "expected/library"
       assert(
-        checker.check(BuildGen.main(Array.empty), sourceRoot, expectedRoot)
+        checker.check(GradleBuildGenMain.main(Array.empty), sourceRoot, expectedRoot)
       )
     }
 
@@ -20,7 +20,7 @@ object BuildGenTests extends TestSuite {
       val sourceRoot = os.sub / "application-library"
       val expectedRoot = os.sub / "expected/application-library"
       assert(
-        checker.check(BuildGen.main(Array.empty), sourceRoot, expectedRoot)
+        checker.check(GradleBuildGenMain.main(Array.empty), sourceRoot, expectedRoot)
       )
     }
 
@@ -41,7 +41,7 @@ object BuildGenTests extends TestSuite {
         "--merge"
       )
       assert(
-        checker.check(BuildGen.main(args), sourceRoot, expectedRoot)
+        checker.check(GradleBuildGenMain.main(args), sourceRoot, expectedRoot)
       )
     }
   }

@@ -3,10 +3,9 @@ package mill.main.gradle
 import mainargs.{Flag, ParserForClass, arg, main}
 import mill.main.buildgen.BuildGenUtil.*
 import mill.main.buildgen.{
+  IrBaseInfo,
   BuildGenBase,
   BuildGenUtil,
-  BuildObject,
-  IrArtifact,
   IrBuild,
   IrDeveloper,
   IrLicense,
@@ -21,7 +20,6 @@ import mill.util.Jvm
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.tooling.GradleConnector
 
-import scala.collection.immutable.{SortedMap, SortedSet}
 import scala.jdk.CollectionConverters.*
 
 /**
@@ -50,14 +48,15 @@ import scala.jdk.CollectionConverters.*
  *  - non-Java sources
  */
 @mill.api.internal
-object BuildGen extends BuildGenBase[ProjectModel, JavaModel.Dep, BuildGenConfig] {
+object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
+  type C = GradleBuildGenMain.Config
 
   def main(args: Array[String]): Unit = {
-    val cfg = ParserForClass[BuildGenConfig].constructOrExit(args.toSeq)
+    val cfg = ParserForClass[Config].constructOrExit(args.toSeq)
     run(cfg)
   }
 
-  private def run(cfg: BuildGenConfig): Unit = {
+  private def run(cfg: Config): Unit = {
     val workspace = os.pwd
 
     println("converting Gradle build")
@@ -85,8 +84,7 @@ object BuildGen extends BuildGenBase[ProjectModel, JavaModel.Dep, BuildGenConfig
           (Node(dirs, project), children)
         }
 
-        val output = convert(input, cfg, cfg.shared)
-        writeBuildObject(if (cfg.merge.value) compactBuildTree(output) else output)
+        convertWriteOut(cfg, cfg.shared, input)
 
         println("converted Gradle build to Mill")
       } finally connection.close()
@@ -115,11 +113,10 @@ object BuildGen extends BuildGenBase[ProjectModel, JavaModel.Dep, BuildGenConfig
 
   def getBaseInfo(
       input: Tree[Node[ProjectModel]],
-      cfg: BuildGenConfig,
+      cfg: Config,
       baseModule: String,
-      moduleSupertypes: Seq[String],
       packagesSize: Int
-  ): BaseInfo = {
+  ): IrBaseInfo = {
     val project = {
       val projects = input.nodes(Tree.Traversal.BreadthFirst).map(_.value).toSeq
       cfg.baseProject
@@ -150,11 +147,36 @@ object BuildGen extends BuildGenBase[ProjectModel, JavaModel.Dep, BuildGenConfig
       Nil
     )
 
-    BaseInfo(javacOptions, repos, pomSettings == null, publishVersion, Seq.empty, typedef)
-
+    IrBaseInfo(javacOptions, repos, pomSettings == null, publishVersion, Seq.empty, typedef)
   }
 
-  def getModuleSupertypes(cfg: BuildGenConfig) = Seq(cfg.shared.baseModule.getOrElse("MavenModule"))
+  override def extractIrBuild(
+      cfg: Config,
+      baseInfo: IrBaseInfo,
+      build: Node[ProjectModel],
+      packages: Map[(String, String, String), String]
+  ): IrBuild = {
+    val scopedDeps = extractScopedDeps(build.value, packages, cfg)
+    val version = getPublishVersion(build.value)
+    IrBuild(
+      scopedDeps = scopedDeps,
+      testModule = cfg.shared.testModule,
+      hasTest = os.exists(getMillSourcePath(build.value) / "src/test"),
+      dirs = build.dirs,
+      repos = getRepositories(build.value).diff(baseInfo.repos),
+      javacOptions = getJavacOptions(build.value).diff(baseInfo.javacOptions),
+      projectName = getArtifactId(build.value),
+      pomSettings = if (baseInfo.noPom) extractPomSettings(build.value) else null,
+      publishVersion = if (version == baseInfo.publishVersion) null else version,
+      packaging = null,
+      pomParentArtifact = null,
+      resources = Nil,
+      testResources = Nil,
+      publishProperties = Nil
+    )
+  }
+
+  def getModuleSupertypes(cfg: Config) = Seq(cfg.shared.baseModule.getOrElse("MavenModule"))
 
   def getPackage(project: ProjectModel): (String, String, String) = {
     (project.group(), project.name(), project.version())
@@ -162,7 +184,7 @@ object BuildGen extends BuildGenBase[ProjectModel, JavaModel.Dep, BuildGenConfig
 
   def getArtifactId(model: ProjectModel): String = model.name()
   def getMillSourcePath(model: ProjectModel) = os.Path(model.directory())
-  def getSuperTypes(cfg: BuildGenConfig, baseInfo: BaseInfo, build: Node[ProjectModel]) = {
+  def getSuperTypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[ProjectModel]) = {
     Seq("RootModule") ++
       Option.when(null != build.value.maven().pom() && baseInfo.noPom) { "PublishModule" } ++
       Option.when(build.dirs.nonEmpty || os.exists(getMillSourcePath(build.value) / "src")) {
@@ -170,15 +192,6 @@ object BuildGen extends BuildGenBase[ProjectModel, JavaModel.Dep, BuildGenConfig
       }.toSeq.flatten
   }
 
-  def getPackaging(project: ProjectModel): String = null
-  def getPomParentArtifact(project: ProjectModel): IrArtifact = null
-  def getResources(m: ProjectModel): Seq[os.SubPath] = Nil
-  def getTestResources(m: ProjectModel): Seq[os.SubPath] = Nil
-  def getPublishProperties(
-      m: ProjectModel,
-      c: BuildGenConfig,
-      baseInfo: BaseInfo
-  ): Seq[(String, String)] = Nil
   def groupArtifactVersion(dep: JavaModel.Dep): (String, String, String) =
     (dep.group(), dep.name(), dep.version())
 
@@ -226,7 +239,7 @@ object BuildGen extends BuildGenBase[ProjectModel, JavaModel.Dep, BuildGenConfig
   def extractScopedDeps(
       project: ProjectModel,
       packages: PartialFunction[(String, String, String), String],
-      cfg: BuildGenConfig
+      cfg: Config
   ) = {
     var sd = IrScopedDeps()
     val hasTest = os.exists(os.Path(project.directory()) / "src/test")
@@ -313,14 +326,13 @@ object BuildGen extends BuildGenBase[ProjectModel, JavaModel.Dep, BuildGenConfig
     }
     sd
   }
-}
 
-@main
-@mill.api.internal
-case class BuildGenConfig(
-    shared: BuildGenUtil.Config,
-    @arg(doc = "name of Gradle project to extract settings for --base-module", short = 'g')
-    baseProject: Option[String] = None,
-    @arg(doc = "merge build files generated for a multi-module build", short = 'm')
-    merge: Flag = Flag()
-)
+  @main
+  @mill.api.internal
+  case class Config(
+      shared: BuildGenUtil.Config,
+      @arg(doc = "name of Gradle project to extract settings for --base-module", short = 'g')
+      baseProject: Option[String] = None
+  )
+
+}

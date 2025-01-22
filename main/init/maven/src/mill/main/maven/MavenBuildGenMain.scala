@@ -3,9 +3,9 @@ package mill.main.maven
 import mainargs.{Flag, ParserForClass, arg, main}
 import mill.main.buildgen.BuildGenUtil.*
 import mill.main.buildgen.{
+  IrBaseInfo,
   BuildGenBase,
   BuildGenUtil,
-  BuildObject,
   IrArtifact,
   IrBuild,
   IrDeveloper,
@@ -19,7 +19,6 @@ import mill.main.buildgen.{
 }
 import org.apache.maven.model.{Dependency, Model, Parent}
 
-import scala.collection.immutable.SortedMap
 import scala.jdk.CollectionConverters.*
 
 /**
@@ -50,14 +49,15 @@ import scala.jdk.CollectionConverters.*
  *  - build profiles
  */
 @mill.api.internal
-object BuildGen extends BuildGenBase[Model, Dependency, BuildGenConfig] {
+object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
+  type C = MavenBuildGenMain.Config
 
   def main(args: Array[String]): Unit = {
-    val cfg = ParserForClass[BuildGenConfig].constructOrExit(args.toSeq)
+    val cfg = ParserForClass[Config].constructOrExit(args.toSeq)
     run(cfg)
   }
 
-  private def run(cfg: BuildGenConfig): Unit = {
+  private def run(cfg: Config): Unit = {
     val workspace = os.pwd
 
     println("converting Maven build")
@@ -67,19 +67,17 @@ object BuildGen extends BuildGenBase[Model, Dependency, BuildGenConfig] {
       (Node(dirs, model), model.getModules.iterator().asScala.map(dirs :+ _))
     }
 
-    val output = convert(input, cfg, cfg.shared)
-    writeBuildObject(if (cfg.merge.value) compactBuildTree(output) else output)
+    convertWriteOut(cfg, cfg.shared, input)
 
     println("converted Maven build to Mill")
   }
 
   def getBaseInfo(
       input: Tree[Node[Model]],
-      cfg: BuildGenConfig,
+      cfg: Config,
       baseModule: String,
-      moduleSupertypes: Seq[String],
       packagesSize: Int
-  ): BaseInfo = {
+  ): IrBaseInfo = {
     val model = input.node.value
     val javacOptions = Plugins.MavenCompilerPlugin.javacOptions(model)
     val pomSettings = extractPomSettings(model)
@@ -89,17 +87,46 @@ object BuildGen extends BuildGenBase[Model, Dependency, BuildGenConfig] {
     val typedef = IrTrait(
       cfg.shared.jvmId,
       baseModule,
-      moduleSupertypes,
+      getModuleSupertypes(cfg),
       javacOptions,
       pomSettings,
       publishVersion,
       publishProperties
     )
 
-    BaseInfo(javacOptions, Seq.empty, false, publishVersion, publishProperties, typedef)
+    IrBaseInfo(javacOptions, Seq.empty, false, publishVersion, publishProperties, typedef)
   }
 
-  def getModuleSupertypes(cfg: BuildGenConfig): Seq[String] = Seq("PublishModule", "MavenModule")
+  override def extractIrBuild(
+      cfg: Config,
+      baseInfo: IrBaseInfo,
+      build: Node[Model],
+      packages: Map[(String, String, String), String]
+  ): IrBuild = {
+    val scopedDeps = extractScopedDeps(build.value, packages, cfg)
+    val version = getPublishVersion(build.value)
+    IrBuild(
+      scopedDeps = scopedDeps,
+      testModule = cfg.shared.testModule,
+      hasTest = os.exists(getMillSourcePath(build.value) / "src/test"),
+      dirs = build.dirs,
+      repos = Nil,
+      javacOptions =
+        Plugins.MavenCompilerPlugin.javacOptions(build.value).diff(baseInfo.javacOptions),
+      projectName = getArtifactId(build.value),
+      pomSettings = if (baseInfo.noPom) extractPomSettings(build.value) else null,
+      publishVersion = if (version == baseInfo.publishVersion) null else version,
+      packaging = build.value.getPackaging,
+      pomParentArtifact = mkPomParent(build.value.getParent),
+      resources =
+        processResources(build.value.getBuild.getResources, getMillSourcePath(build.value)),
+      testResources =
+        processResources(build.value.getBuild.getTestResources, getMillSourcePath(build.value)),
+      publishProperties = getPublishProperties(build.value, cfg).diff(baseInfo.publishProperties)
+    )
+  }
+
+  def getModuleSupertypes(cfg: Config): Seq[String] = Seq("PublishModule", "MavenModule")
 
   def getPackage(model: Model): (String, String, String) = {
     (model.getGroupId, model.getArtifactId, model.getVersion)
@@ -108,13 +135,11 @@ object BuildGen extends BuildGenBase[Model, Dependency, BuildGenConfig] {
   def getArtifactId(model: Model): String = model.getArtifactId
   def getMillSourcePath(model: Model) = os.Path(model.getProjectDirectory)
 
-  def getSuperTypes(cfg: BuildGenConfig, baseInfo: BaseInfo, build: Node[Model]): Seq[String] = {
+  def getSuperTypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[Model]): Seq[String] = {
     Seq("RootModule") ++
       cfg.shared.baseModule.fold(getModuleSupertypes(cfg))(Seq(_))
   }
-  def getPackaging(project: Model): String = project.getPackaging
 
-  def getPomParentArtifact(project: Model): IrArtifact = mkPomParent(project.getParent)
   def processResources(
       input: java.util.List[org.apache.maven.model.Resource],
       millSourcePath: os.Path
@@ -125,23 +150,9 @@ object BuildGen extends BuildGenBase[Model, Dependency, BuildGenConfig] {
     .filterNot(_ == mavenTestResourceDir)
     .toSeq
 
-  def getResources(m: Model): Seq[os.SubPath] =
-    processResources(m.getBuild.getResources, getMillSourcePath(m))
-  def getTestResources(m: Model): Seq[os.SubPath] =
-    processResources(m.getBuild.getTestResources, getMillSourcePath(m))
-  def getPublishProperties(m: Model, c: BuildGenConfig, baseInfo: BaseInfo): Seq[(String, String)] =
-    getPublishProperties(m, c).diff(baseInfo.publishProperties)
-  def getJavacOptions(project: Model): Seq[String] = {
-    Plugins.MavenCompilerPlugin.javacOptions(project)
-  }
-
   def getPublishVersion(project: Model): String = project.getVersion
-  def getRepositories(project: Model): Seq[String] = Nil
 
-  def groupArtifactVersion(dep: Dependency): (String, String, String) =
-    (dep.getGroupId, dep.getArtifactId, dep.getVersion)
-
-  def getPublishProperties(model: Model, cfg: BuildGenConfig): Seq[(String, String)] =
+  def getPublishProperties(model: Model, cfg: Config): Seq[(String, String)] =
     if (cfg.publishProperties.value) {
       val props = model.getProperties
       props.stringPropertyNames().iterator().asScala
@@ -199,7 +210,7 @@ object BuildGen extends BuildGenBase[Model, Dependency, BuildGenConfig] {
   def extractScopedDeps(
       model: Model,
       packages: PartialFunction[(String, String, String), String],
-      cfg: BuildGenConfig
+      cfg: Config
   ): IrScopedDeps = {
     var sd = IrScopedDeps()
 
@@ -215,7 +226,7 @@ object BuildGen extends BuildGenBase[Model, Dependency, BuildGenConfig] {
     }
 
     model.getDependencies.forEach { dep =>
-      val id = groupArtifactVersion(dep)
+      val id = (dep.getGroupId, dep.getArtifactId, dep.getVersion)
       dep.getScope match {
 
         case "compile" =>
@@ -263,18 +274,17 @@ object BuildGen extends BuildGenBase[Model, Dependency, BuildGenConfig] {
     }
     sd
   }
-}
 
-@main
-@mill.api.internal
-case class BuildGenConfig(
-    shared: BuildGenUtil.Config,
-    @arg(doc = "merge build files generated for a multi-module build", short = 'm')
-    merge: Flag = Flag(),
-    @arg(doc = "capture properties defined in `pom.xml` for publishing", short = 'p')
-    publishProperties: Flag = Flag(),
-    @arg(doc = "use cache for Maven repository system")
-    cacheRepository: Flag = Flag(),
-    @arg(doc = "process Maven plugin executions and configurations")
-    processPlugins: Flag = Flag()
-) extends ModelerConfig
+  @main
+  @mill.api.internal
+  case class Config(
+      shared: BuildGenUtil.Config,
+      @arg(doc = "capture properties defined in `pom.xml` for publishing", short = 'p')
+      publishProperties: Flag = Flag(),
+      @arg(doc = "use cache for Maven repository system")
+      cacheRepository: Flag = Flag(),
+      @arg(doc = "process Maven plugin executions and configurations")
+      processPlugins: Flag = Flag()
+  ) extends ModelerConfig
+
+}

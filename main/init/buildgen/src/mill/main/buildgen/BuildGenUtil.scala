@@ -1,6 +1,6 @@
 package mill.main.buildgen
 
-import mainargs.arg
+import mainargs.{Flag, arg}
 import mill.main.buildgen.BuildObject.Companions
 import mill.main.client.CodeGenConstants.{
   buildFileExtensions,
@@ -11,19 +11,8 @@ import mill.main.client.CodeGenConstants.{
 import mill.main.client.OutFiles
 import mill.runner.FileImportGraph.backtickWrap
 
-import scala.collection.mutable
-
 @mill.api.internal
 object BuildGenUtil {
-
-  case class BaseInfo(
-      javacOptions: Seq[String] = Nil,
-      repos: Seq[String] = Nil,
-      noPom: Boolean = true,
-      publishVersion: String = "",
-      publishProperties: Seq[(String, String)] = Nil,
-      moduleTypedef: IrTrait = null
-  )
 
   def renderIrTrait(value: IrTrait): String = {
     import value._
@@ -464,10 +453,12 @@ object BuildGenUtil {
       @arg(doc = "name of generated nested test module", short = 't')
       testModule: String = "test",
       @arg(doc = "name of generated companion object defining dependency constants", short = 'd')
-      depsObject: Option[String] = None
+      depsObject: Option[String] = None,
+      @arg(doc = "merge build files generated for a multi-module build", short = 'm')
+      merge: Flag = Flag()
   )
+
   object Config {
     implicit def configParser: mainargs.ParserForClass[Config] = mainargs.ParserForClass[Config]
-
   }
 }
