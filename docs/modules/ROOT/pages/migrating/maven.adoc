@@ -49,12 +49,14 @@ The conversion
 The conversion and its output (the generated Mill build files) can be customized using
 
 * `--base-module` (`-b`): name of generated base module trait defining shared settings
++
 [source,sh]
 ----
 ./mill init --base-module MyModule
 ----
 
 * `--jvm-id` (`-j`): disttribution and version of xref:fundamentals/configuring-jvm-versions.adoc[custom JVM] to configure in `--base-module`
++
 [source,sh]
 ----
 ./mill init --base-module MyModule --jvm-id 17
@@ -63,36 +65,42 @@ The conversion and its output (the generated Mill build files) can be customized
 ----
 
 * `--test-module` (`-t`): name of generated nested test module (defaults to `test`)
++
 [source,sh]
 ----
 ./mill init --test-module test
 ----
 
 * `--deps-object` (`-d`): name of generated companion object defining dependency constants
++
 [source,sh]
 ----
 ./mill init --deps-object Deps
 ----
 
 * `--merge` (`-m`): merge build files generated for a multi-module build
++
 [source,sh]
 ----
 ./mill init --merge
 ----
 
 * `--publish-properties` (`-p`): capture properties defined in `pom.xml` for publishing
++
 [source,sh]
 ----
 ./mill init --publish-properties
 ----
 
 * `--cache-repository`: use cache for Maven repository system
++
 [source,sh]
 ----
 ./mill init --cache-repository
 ----
 
 * `--process-plugins`: process Maven plugin executions and configurations
++
 [source,sh]
 ----
 ./mill init --process-plugins

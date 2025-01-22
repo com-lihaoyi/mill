@@ -42,7 +42,6 @@ public interface JavaModel extends Serializable {
     if (project.getPluginManager().hasPlugin("java")) {
       List<String> javacOptions = project
           .getTasks()
-          .withType(JavaCompile.class)
           .named(JavaPlugin.COMPILE_JAVA_TASK_NAME, JavaCompile.class)
           .map(task -> task.getOptions().getAllCompilerArgs())
           .getOrElse(Collections.emptyList());

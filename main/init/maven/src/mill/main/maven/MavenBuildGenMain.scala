@@ -100,7 +100,7 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
       testModule = cfg.shared.testModule,
       hasTest = os.exists(getMillSourcePath(project) / "src/test"),
       dirs = build.dirs,
-      repos = Nil,
+      repositories = Nil,
       javacOptions = Plugins.MavenCompilerPlugin.javacOptions(project).diff(baseInfo.javacOptions),
       projectName = getArtifactId(project),
       pomSettings = if (baseInfo.noPom) extractPomSettings(project) else null,

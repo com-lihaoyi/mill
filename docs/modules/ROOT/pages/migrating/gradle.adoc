@@ -44,12 +44,14 @@ The conversion
 The conversion and its output (the generated Mill build files) can be customized using
 
 * `--base-module` (`-b`): name of generated base module trait defining shared settings
++
 [source,sh]
 ----
 ./mill init --base-module MyModule
 ----
 
 * `--base-project` (`-g`): name of Gradle project to extract settings for `--base-module`
++
 [source,sh]
 ----
 ./mill init --base-module MyModule --base-project lib
@@ -57,6 +59,7 @@ The conversion and its output (the generated Mill build files) can be customized
 NOTE: If not specified, a project will be selected arbitrarily.
 
 * `--jvm-id` (`-j`): distribution and version of xref:fundamentals/configuring-jvm-versions.adoc[custom JVM] to configure in `--base-module`
++
 [source,sh]
 ----
 ./mill init --base-module MyModule --jvm-id 17
@@ -65,18 +68,21 @@ NOTE: If not specified, a project will be selected arbitrarily.
 ----
 
 * `--test-module` (`-t`): name of generated nested test module (defaults to `test`)
++
 [source,sh]
 ----
 ./mill init --test-module test
 ----
 
 * `--deps-object` (`-d`): name of generated companion object defining dependency constants
++
 [source,sh]
 ----
 ./mill init --deps-object Deps
 ----
 
 * `--merge` (`-m`): merge build files generated for a multi-module build
++
 [source,sh]
 ----
 ./mill init --merge

@@ -82,7 +82,7 @@ object BuildGenUtil {
        |
        |${renderJavacOptions(javacOptions)}
        |
-       |${renderRepositories(repos)}
+       |${renderRepositories(repositories)}
        |
        |${renderBomIvyDeps(scopedDeps.mainBomIvyDeps)}
        |

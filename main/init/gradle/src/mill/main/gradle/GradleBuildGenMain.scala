@@ -156,7 +156,7 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
       testModule = cfg.shared.testModule,
       hasTest = os.exists(getMillSourcePath(project) / "src/test"),
       dirs = build.dirs,
-      repos = getRepositories(project).diff(baseInfo.repos),
+      repositories = getRepositories(project).diff(baseInfo.repositories),
       javacOptions = getJavacOptions(project).diff(baseInfo.javacOptions),
       projectName = getArtifactId(project),
       pomSettings = if (baseInfo.noPom) extractPomSettings(project) else null,

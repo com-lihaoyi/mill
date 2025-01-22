@@ -80,7 +80,7 @@ case class IrBuild(
     testModule: String,
     hasTest: Boolean,
     dirs: Seq[String],
-    repos: Seq[String],
+    repositories: Seq[String],
     javacOptions: Seq[String],
     projectName: String,
     pomSettings: IrPom,
@@ -111,7 +111,7 @@ case class IrScopedDeps(
 
 case class IrBaseInfo(
     javacOptions: Seq[String] = Nil,
-    repos: Seq[String] = Nil,
+    repositories: Seq[String] = Nil,
     noPom: Boolean = true,
     publishVersion: String = "",
     publishProperties: Seq[(String, String)] = Nil,
