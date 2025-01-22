@@ -16,6 +16,35 @@ import scala.collection.mutable
 @mill.api.internal
 object BuildGenUtil {
 
+  case class BaseInfo(
+      javacOptions: Seq[String] = Nil,
+      repos: Seq[String] = Nil,
+      noPom: Boolean = true,
+      publishVersion: String = "",
+      publishProperties: Seq[(String, String)] = Nil,
+      moduleTypedef: IrTrait = null
+  )
+
+  def convertToBuildObject(
+      build: Node[_],
+      supertypes: Seq[String],
+      inner: IrBuild,
+      baseModule: Option[String],
+      packagesSize: Int,
+      baseInfo: BaseInfo
+  ): Node[BuildObject] = {
+    val isNested = build.dirs.nonEmpty
+    build.copy(value =
+      BuildObject(
+        renderImports(baseModule, isNested, packagesSize),
+        inner.scopedDeps.companions,
+        supertypes,
+        BuildGenUtil.renderIrBuild(inner),
+        if (isNested || baseInfo.moduleTypedef == null) ""
+        else BuildGenUtil.renderIrTrait(baseInfo.moduleTypedef)
+      )
+    )
+  }
   def renderIrTrait(value: IrTrait): String = {
     import value._
     val zincWorker = jvmId.fold("") { jvmId =>
@@ -100,7 +129,8 @@ object BuildGenUtil {
        |
        |${renderPomPackaging(packaging)}
        |
-       |${renderPomParentProject(pomParentArtifact)}
+       |${if (pomParentArtifact == null) ""
+      else renderPomParentProject(renderArtifact(pomParentArtifact))}
        |
        |${renderPublishProperties(Nil)}
        |
@@ -290,8 +320,8 @@ object BuildGenUtil {
   val mavenTestResourceDir: os.SubPath =
     os.sub / "src/test/resources"
 
-  def renderArtifact(group: String, id: String, version: String): String =
-    s"Artifact(${escape(group)}, ${escape(id)}, ${escape(version)})"
+  def renderArtifact(artifact: IrArtifact): String =
+    s"Artifact(${escape(artifact.group)}, ${escape(artifact.id)}, ${escape(artifact.version)})"
 
   def renderDeveloper(dev: IrDeveloper): String = {
     s"Developer(${escape(dev.id)}, ${escape(dev.name)}, ${escape(dev.url)}, ${escapeOption(dev.organization)}, ${escapeOption(dev.organizationUrl)})"

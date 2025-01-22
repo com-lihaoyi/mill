@@ -5,6 +5,7 @@ import mill.main.buildgen.BuildGenUtil.*
 import mill.main.buildgen.{
   BuildGenUtil,
   BuildObject,
+  IrArtifact,
   IrBuild,
   IrDeveloper,
   IrPom,
@@ -54,8 +55,6 @@ object BuildGen {
     run(cfg)
   }
 
-  private type MavenNode = Node[Model]
-
   private def run(cfg: BuildGenConfig): Unit = {
     val workspace = os.pwd
 
@@ -72,20 +71,16 @@ object BuildGen {
     println("converted Maven build to Mill")
   }
 
-  private def convert(input: Tree[MavenNode], cfg: BuildGenConfig): Tree[Node[BuildObject]] = {
-    val packages = // for resolving moduleDeps
-      buildPackages(input)(model => (model.getGroupId, model.getArtifactId, model.getVersion))
+  private def convert(input: Tree[Node[Model]], cfg: BuildGenConfig): Tree[Node[BuildObject]] = {
+    // for resolving moduleDeps
+    val packages = buildPackages(input)(model =>
+      (model.getGroupId, model.getArtifactId, model.getVersion)
+    )
 
     val moduleSupertypes = Seq("PublishModule", "MavenModule")
 
-    val (
-      baseJavacOptions,
-      baseRepos,
-      baseNoPom,
-      basePublishVersion,
-      basePublishProperties,
-      baseModuleTypedef
-    ) = cfg.shared.baseModule match {
+    val baseInfo = cfg.shared.baseModule match {
+      case None => BaseInfo()
       case Some(baseModule) =>
         val model = input.node.value
         val javacOptions = Plugins.MavenCompilerPlugin.javacOptions(model)
@@ -103,28 +98,25 @@ object BuildGen {
           publishProperties
         )
 
-        (javacOptions, Seq.empty, false, publishVersion, publishProperties, typedef)
-      case None =>
-        (Seq.empty, Seq.empty, true, "", Seq.empty, null)
+        BaseInfo(javacOptions, Seq.empty, false, publishVersion, publishProperties, typedef)
     }
 
-    input.map { case build @ Node(dirs, model) =>
-      val artifactId = model.getArtifactId
+    input.map { build =>
+      val artifactId = build.value.getArtifactId
       println(s"converting module $artifactId")
 
-      val millSourcePath = os.Path(model.getProjectDirectory)
-      val packaging = model.getPackaging
+      val millSourcePath = os.Path(build.value.getProjectDirectory)
+      val packaging = build.value.getPackaging
 
-      val isNested = dirs.nonEmpty
       val hasTest = os.exists(millSourcePath / "src/test")
 
       val supertypes =
         Seq("RootModule") ++
           cfg.shared.baseModule.fold(moduleSupertypes)(Seq(_))
 
-      val scopedDeps = extractScopedDeps(model, packages, cfg)
+      val scopedDeps = extractScopedDeps(build.value, packages, cfg)
 
-      val options = Plugins.MavenCompilerPlugin.javacOptions(model)
+      val options = Plugins.MavenCompilerPlugin.javacOptions(build.value)
 
       def processResources(input: java.util.List[org.apache.maven.model.Resource]) = input
         .asScala
@@ -137,28 +129,27 @@ object BuildGen {
         scopedDeps,
         cfg.shared.testModule,
         hasTest,
-        dirs,
+        build.dirs,
         repos = Nil,
-        javacOptions = if (options == baseJavacOptions) Seq.empty else options,
+        javacOptions = if (options == baseInfo.javacOptions) Seq.empty else options,
         artifactId,
-        pomSettings = if (baseNoPom) extractPomSettings(model) else null,
-        publishVersion = if (model.getVersion == basePublishVersion) null else model.getVersion,
+        pomSettings = if (baseInfo.noPom) extractPomSettings(build.value) else null,
+        publishVersion =
+          if (build.value.getVersion == baseInfo.publishVersion) null else build.value.getVersion,
         packaging,
-        pomParentArtifact = mkPomParent(model.getParent),
-        resources = processResources(model.getBuild.getResources),
-        testResources = processResources(model.getBuild.getTestResources),
-        publishProperties = getPublishProperties(model, cfg).diff(basePublishProperties)
+        pomParentArtifact = mkPomParent(build.value.getParent),
+        resources = processResources(build.value.getBuild.getResources),
+        testResources = processResources(build.value.getBuild.getTestResources),
+        publishProperties = getPublishProperties(build.value, cfg).diff(baseInfo.publishProperties)
       )
 
-      build.copy(value =
-        BuildObject(
-          renderImports(cfg.shared.baseModule, isNested, packages.size),
-          scopedDeps.companions,
-          supertypes,
-          BuildGenUtil.renderIrBuild(inner),
-          if (isNested || baseModuleTypedef == null) ""
-          else BuildGenUtil.renderIrTrait(baseModuleTypedef)
-        )
+      convertToBuildObject(
+        build,
+        supertypes,
+        inner,
+        cfg.shared.baseModule,
+        packages.size,
+        baseInfo
       )
     }
   }
@@ -185,9 +176,9 @@ object BuildGen {
       dep.getExclusions.iterator().asScala.map(x => (x.getGroupId, x.getArtifactId))
     )
 
-  def mkPomParent(parent: Parent): String =
+  def mkPomParent(parent: Parent): IrArtifact =
     if (null == parent) null
-    else renderArtifact(parent.getGroupId, parent.getArtifactId, parent.getVersion)
+    else IrArtifact(parent.getGroupId, parent.getArtifactId, parent.getVersion)
 
   def extractPomSettings(model: Model): IrPom = {
     val licenses = model.getLicenses.iterator().asScala

@@ -65,6 +65,8 @@ case class IrDeveloper(
     organizationUrl: String
 )
 
+case class IrArtifact(group: String, id: String, version: String)
+
 case class IrBuild(
     scopedDeps: IrScopedDeps,
     testModule: String,
@@ -76,7 +78,7 @@ case class IrBuild(
     pomSettings: IrPom,
     publishVersion: String,
     packaging: String,
-    pomParentArtifact: String,
+    pomParentArtifact: IrArtifact,
     resources: Seq[os.SubPath],
     testResources: Seq[os.SubPath],
     publishProperties: Seq[(String, String)]

@@ -114,90 +114,84 @@ object BuildGen {
       input: Tree[Node[ProjectModel]],
       cfg: BuildGenConfig
   ): Tree[Node[BuildObject]] = {
-    val packages = // for resolving moduleDeps
-      buildPackages(input)(project => (project.group(), project.name(), project.version()))
+    // for resolving moduleDeps
+    val packages = buildPackages(input)(project =>
+      (project.group(), project.name(), project.version())
+    )
 
-    val (
-      baseJavacOptions,
-      baseRepos,
-      baseNoPom,
-      basePublishVersion,
-      basePublishProperties,
-      baseModuleTypedef
-    ) =
-      cfg.shared.baseModule match {
-        case Some(baseModule) =>
-          val project = {
-            val projects = input.nodes(Tree.Traversal.BreadthFirst).map(_.value).toSeq
-            cfg.baseProject
-              .flatMap(name => projects.collectFirst { case m if name == m.name => m })
-              .orElse(projects.collectFirst { case m if null != m.maven().pom() => m })
-              .orElse(projects.collectFirst { case m if !m.maven().repositories().isEmpty => m })
-              .getOrElse(input.node.value)
-          }
-          if (packages.size > 1) {
-            println(s"settings from ${project.name()} will be shared in base module")
-          }
-          val supertypes =
-            Seq("MavenModule") ++
-              Option.when(null != project.maven().pom()) { "PublishModule" }
+    val baseInfo = cfg.shared.baseModule match {
+      case None => BaseInfo()
+      case Some(baseModule) =>
+        val project = {
+          val projects = input.nodes(Tree.Traversal.BreadthFirst).map(_.value).toSeq
+          cfg.baseProject
+            .flatMap(name => projects.collectFirst { case m if name == m.name => m })
+            .orElse(projects.collectFirst { case m if null != m.maven().pom() => m })
+            .orElse(projects.collectFirst { case m if !m.maven().repositories().isEmpty => m })
+            .getOrElse(input.node.value)
+        }
+        if (packages.size > 1) {
+          println(s"settings from ${project.name()} will be shared in base module")
+        }
+        val supertypes =
+          Seq("MavenModule") ++
+            Option.when(null != project.maven().pom()) { "PublishModule" }
 
-          val javacOptions = getJavacOptions(project)
-          val repos = getRepositories(project)
-          val pomSettings = extractPomSettings(project)
-          val publishVersion = getPublishVersion(project)
+        val javacOptions = getJavacOptions(project)
+        val repos = getRepositories(project)
+        val pomSettings = extractPomSettings(project)
+        val publishVersion = getPublishVersion(project)
 
-          val typedef = IrTrait(
-            cfg.shared.jvmId,
-            baseModule,
-            supertypes,
-            javacOptions,
-            pomSettings,
-            publishVersion,
-            Nil
-          )
+        val typedef = IrTrait(
+          cfg.shared.jvmId,
+          baseModule,
+          supertypes,
+          javacOptions,
+          pomSettings,
+          publishVersion,
+          Nil
+        )
 
-          (javacOptions, repos, pomSettings == null, publishVersion, Seq.empty, typedef)
-        case None =>
-          (Seq.empty, Seq.empty, true, "", Seq.empty, null)
-      }
+        BaseInfo(javacOptions, repos, pomSettings == null, publishVersion, Seq.empty, typedef)
+
+    }
 
     val moduleSupertype = cfg.shared.baseModule.getOrElse("MavenModule")
 
-    input.map { case build @ Node(dirs, project) =>
-      val name = project.name()
+    input.map { build =>
+      val name = build.value.name()
       println(s"converting module $name")
 
-      val millSourcePath = os.Path(project.directory())
-      val pom = project.maven().pom()
+      val millSourcePath = os.Path(build.value.directory())
+      val pom = build.value.maven().pom()
 
       val hasPom = null != pom
       val hasSource = os.exists(millSourcePath / "src")
       val hasTest = os.exists(millSourcePath / "src/test")
-      val isNested = dirs.nonEmpty
+      val isNested = build.dirs.nonEmpty
 
       val supertypes =
         Seq("RootModule") ++
-          Option.when(hasPom && baseNoPom) { "PublishModule" } ++
+          Option.when(hasPom && baseInfo.noPom) { "PublishModule" } ++
           Option.when(isNested || hasSource) { moduleSupertype }
 
-      val scopedDeps = extractScopedDeps(project, packages, cfg)
+      val scopedDeps = extractScopedDeps(build.value, packages, cfg)
 
       val inner = IrBuild(
         scopedDeps,
         cfg.shared.testModule,
         hasTest,
-        dirs,
-        repos = getRepositories(project).diff(baseRepos),
+        build.dirs,
+        repos = getRepositories(build.value).diff(baseInfo.repos),
         javacOptions = {
-          val options = getJavacOptions(project).diff(baseJavacOptions)
-          if (options == baseJavacOptions) Seq.empty else options
+          val options = getJavacOptions(build.value).diff(baseInfo.javacOptions)
+          if (options == baseInfo.javacOptions) Seq.empty else options
         },
-        project.name(),
-        pomSettings = if (baseNoPom) extractPomSettings(project) else null,
+        build.value.name(),
+        pomSettings = if (baseInfo.noPom) extractPomSettings(build.value) else null,
         publishVersion = {
-          val version = getPublishVersion(project)
-          if (version == basePublishVersion) null else version
+          val version = getPublishVersion(build.value)
+          if (version == baseInfo.publishVersion) null else version
         },
         packaging = null,
         pomParentArtifact = null,
@@ -206,15 +200,13 @@ object BuildGen {
         publishProperties = Nil
       )
 
-      build.copy(value =
-        BuildObject(
-          renderImports(cfg.shared.baseModule, isNested, packages.size).to(SortedSet),
-          scopedDeps.companions,
-          supertypes,
-          BuildGenUtil.renderIrBuild(inner),
-          if (isNested || baseModuleTypedef == null) ""
-          else BuildGenUtil.renderIrTrait(baseModuleTypedef)
-        )
+      convertToBuildObject(
+        build,
+        supertypes,
+        inner,
+        cfg.shared.baseModule,
+        packages.size,
+        baseInfo
       )
     }
   }
