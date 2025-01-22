@@ -315,7 +315,7 @@ trait JavaModule
    *  BOM dependencies of this module.
    *  This is meant to be overridden to add BOM dependencies.
    *  To read the value, you should use [[bomModuleDepsChecked]] instead,
-   *  which uses a cached result which is also checked to be free of cycle.
+   *  which uses a cached result which is also checked to be free of cycles.
    *  @see [[bomModuleDepsChecked]]
    */
   def bomModuleDeps: Seq[BomModule] = Seq.empty
