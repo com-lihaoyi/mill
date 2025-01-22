@@ -1,6 +1,6 @@
 package mill.scalalib.publish
 
-import mill.api.Ctx
+import mill.api.{Ctx, PathRef}
 
 class LocalIvyPublisher(localIvyRepo: os.Path) {
 
@@ -13,26 +13,26 @@ class LocalIvyPublisher(localIvyRepo: os.Path) {
       ivy: os.Path,
       artifact: Artifact,
       extras: Seq[PublishInfo]
-  )(implicit ctx: Ctx.Log): Unit =
-    publishLocal(Some(jar), Some(sourcesJar), Some(docJar), pom, Right(ivy), artifact, extras)
+  )(implicit ctx: Ctx.Log): Unit = {
+    val mainArtifacts = Seq(
+      LocalIvyPublisher.jarPublishInfo(jar),
+      LocalIvyPublisher.sourcesJarPublishInfo(sourcesJar),
+      LocalIvyPublisher.docJarPublishInfo(docJar)
+    )
+    publishLocal(pom, Right(ivy), artifact, mainArtifacts ++ extras)
+  }
 
   /**
    * Publishes a module locally
    *
-   * @param jar The JAR of this module, if it has one
-   * @param sourcesJar The source JAR of this module, if it has one
-   * @param docJar The javadoc JAR of this module, if it has one
    * @param pom The POM of this module
    * @param ivy If right, the path to the ivy.xml file of this module; if left, its content as a String
    * @param artifact Coordinates of this module
-   * @param extras Extra files to publish in this module
+   * @param extras Files to publish in this module
    * @param ctx
    * @return The files created or written to when publishing locally this module
    */
   def publishLocal(
-      jar: Option[os.Path],
-      sourcesJar: Option[os.Path],
-      docJar: Option[os.Path],
       pom: os.Path,
       ivy: Either[String, os.Path],
       artifact: Artifact,
@@ -43,13 +43,10 @@ class LocalIvyPublisher(localIvyRepo: os.Path) {
     val releaseDir = localIvyRepo / artifact.group / artifact.id / artifact.version
 
     val toCopy: Seq[(Either[String, os.Path], os.Path)] =
-      jar.map(Right(_) -> releaseDir / "jars" / s"${artifact.id}.jar").toSeq ++
-        sourcesJar.map(Right(_) -> releaseDir / "srcs" / s"${artifact.id}-sources.jar").toSeq ++
-        docJar.map(Right(_) -> releaseDir / "docs" / s"${artifact.id}-javadoc.jar").toSeq ++
-        Seq(
-          Right(pom) -> releaseDir / "poms" / s"${artifact.id}.pom",
-          ivy -> releaseDir / "ivys/ivy.xml"
-        ) ++
+      Seq(
+        Right(pom) -> releaseDir / "poms" / s"${artifact.id}.pom",
+        ivy -> releaseDir / "ivys/ivy.xml"
+      ) ++
         extras.map { entry =>
           (
             Right(entry.file.path),
@@ -76,16 +73,14 @@ class LocalIvyPublisher(localIvyRepo: os.Path) {
       ivy: os.Path,
       artifact: Artifact,
       extras: Seq[PublishInfo]
-  )(implicit ctx: Ctx.Log): Seq[os.Path] =
-    publishLocal(
-      Some(jar),
-      Some(sourcesJar),
-      Some(docJar),
-      pom,
-      Right(ivy),
-      artifact,
-      extras
+  )(implicit ctx: Ctx.Log): Seq[os.Path] = {
+    val mainArtifacts = Seq(
+      LocalIvyPublisher.jarPublishInfo(jar),
+      LocalIvyPublisher.sourcesJarPublishInfo(sourcesJar),
+      LocalIvyPublisher.docJarPublishInfo(docJar)
     )
+    publishLocal(pom, Right(ivy), artifact, mainArtifacts ++ extras)
+  }
 }
 
 object LocalIvyPublisher
@@ -93,4 +88,24 @@ object LocalIvyPublisher
       sys.props.get("ivy.home")
         .map(os.Path(_))
         .getOrElse(os.home / ".ivy2") / "local"
+    ) {
+
+  private[mill] def jarPublishInfo(jar: os.Path): PublishInfo =
+    PublishInfo(PathRef(jar), ivyType = "jar", ext = "jar", ivyConfig = "compile")
+  private[mill] def sourcesJarPublishInfo(sourcesJar: os.Path): PublishInfo =
+    PublishInfo(
+      PathRef(sourcesJar),
+      ivyType = "src",
+      classifier = Some("sources"),
+      ext = "jar",
+      ivyConfig = "compile"
     )
+  private[mill] def docJarPublishInfo(docJar: os.Path): PublishInfo =
+    PublishInfo(
+      PathRef(docJar),
+      ivyType = "doc",
+      classifier = Some("javadoc"),
+      ext = "jar",
+      ivyConfig = "compile"
+    )
+}

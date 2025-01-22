@@ -243,7 +243,7 @@ trait PublishModule extends JavaModule { outer =>
    * @param hasJar Whether this module has a JAR or not
    * @return
    */
-  def ivy(hasJar: Boolean): Task[String] = Task.Anon {
+  private def ivy(hasJar: Boolean): Task[String] = Task.Anon {
     val (results, bomDepMgmt) = defaultResolver().processDeps(
       Seq(
         BoundDep(
@@ -365,14 +365,22 @@ trait PublishModule extends JavaModule { outer =>
         case None => LocalIvyPublisher
         case Some(path) => new LocalIvyPublisher(path)
       }
+      val extras =
+        jarTask().toSeq.map { jar0 =>
+          LocalIvyPublisher.jarPublishInfo(jar0)
+        } ++
+          sourcesJarTask().toSeq.map { sourcesJar0 =>
+            LocalIvyPublisher.sourcesJarPublishInfo(sourcesJar0)
+          } ++
+          docJarTask().toSeq.map { docJar0 =>
+            LocalIvyPublisher.docJarPublishInfo(docJar0)
+          } ++
+          extraPublish()
       publisher.publishLocal(
-        jar = jarTask(),
-        sourcesJar = sourcesJarTask(),
-        docJar = docJarTask(),
         pom = pom().path,
         ivy = Right(ivy().path),
         artifact = artifactMetadata(),
-        extras = extraPublish()
+        extras = extras
       )
     }
   }

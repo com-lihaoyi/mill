@@ -20,7 +20,10 @@ import mill.util.Jvm
 
 import os.{Path, ProcessOutput}
 
+import java.util.zip.ZipOutputStream
+
 import scala.annotation.nowarn
+import scala.util.Using
 
 /**
  * Core configuration required to compile a single Java compilation target
@@ -1580,12 +1583,18 @@ trait BomModule extends JavaModule {
   }
 
   def jar: T[PathRef] = Task {
-    (throw new Exception("A BomModule doesn't have a JAR")): PathRef
+    val path = T.dest / "empty.jar"
+    Using.resource(os.write.outputStream(path, createFolders = true)) { os =>
+      val zos = new ZipOutputStream(os)
+      zos.finish()
+      zos.close()
+    }
+    PathRef(path)
   }
   def docJar: T[PathRef] = Task {
-    (throw new Exception("A BomModule doesn't have a doc JAR")): PathRef
+    jar()
   }
   def sourceJar: T[PathRef] = Task {
-    (throw new Exception("A BomModule doesn't have a source JAR")): PathRef
+    jar()
   }
 }
