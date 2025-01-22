@@ -57,12 +57,14 @@ jobs:
     uses: ./.github/workflows/pre-build.yml
     with:
       os: ubuntu-latest
+      shell: bash
 
   build-windows:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
     uses: ./.github/workflows/pre-build.yml
     with:
       os: windows-latest
+      shell: powershell
 
   test-docs:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
@@ -73,32 +75,46 @@ jobs:
 
       - run: ./mill -i docs.fastPages + docs.checkBrokenLinks
 
-  mac:
+  cross-plat:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
-    runs-on: macos-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+          # Run these with Mill native launcher as a smoketest
+        include:
+          - os: ubuntu-24.04-arm
+            millargs: "'example.thirdparty[fansi].native.server.test'"
+            java-version: 17
+
+          - os: macos-latest
+            millargs: "'example.thirdparty[acyclic].native.server.test'"
+            java-version: 11
+
+          - os: macos-13
+            millargs: "'example.thirdparty[jimfs].native.server.test'"
+            java-version: 11
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 1 }
 
-      - run: "echo temurin:17 > .mill-jvm-version"
+      - uses: ./.github/actions/pre-build-setup
+        with:
+          os: ${{ matrix.os }}
+          java-version: ${{ matrix.java-version }}
+          shell: bash
 
-      - uses: actions/setup-node@v4
-        with: { node-version: '22' }
+      - uses: ./.github/actions/post-build-setup
+        with:
+          java-version: ${{ matrix.java-version }}
+          os: ${{ matrix.os }}
 
-      - run: ./mill -i example.scalalib.__.local.server.test
-
-  linux-arm:
-    if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
-    runs-on: ubuntu-24.04-arm
-    steps:
-      - uses: actions/checkout@v4
-        with: { fetch-depth: 1 }
-
-      - run: "echo temurin:17 > .mill-jvm-version"
-
-      - uses: actions/setup-node@v4
-        with: { node-version: '22' }
-      - run: ./mill -i example.kotlinlib.__.local.server.test
+      - uses: ./.github/actions/post-build-selective
+        with:
+          millargs: ${{ matrix.millargs }}
+          coursierarchive: ""
+          install-android-sdk: false
+          shell: bash
 
   linux:
     needs: build-linux
@@ -123,8 +139,16 @@ jobs:
             millargs: "contrib.__.test"
             install-android-sdk: false
 
-          - java-version: 17 # Run this with Mill native launcher as a smoketest
-            millargs: "'example.javalib.__.native.server.test'"
+          - java-version: 17
+            millargs: "example.javalib.__.local.server.test"
+            install-android-sdk: false
+
+          - java-version: 17
+            millargs: "example.kotlinlib.__.native.server.test"
+            install-android-sdk: false
+
+          - java-version: 17
+            millargs: "example.scalalib.__.native.server.test"
             install-android-sdk: false
 
           - java-version: 17
@@ -136,11 +160,11 @@ jobs:
             install-android-sdk: false
 
           - java-version: 11
-            millargs: "'example.thirdparty[{mockito,acyclic,commons-io}].local.server.test'"
+            millargs: "'example.thirdparty[{mockito,commons-io}].local.server.test'"
             install-android-sdk: false
 
           - java-version: 17
-            millargs: "'example.thirdparty[{fansi,jimfs,netty,gatling}].local.server.test'"
+            millargs: "'example.thirdparty[{netty,gatling}].local.server.test'"
             install-android-sdk: false
 
           - java-version: '17'
@@ -150,11 +174,11 @@ jobs:
           - java-version: 11
             millargs: "'example.{cli,fundamentals,depth,extending}.__.local.server.test'"
             install-android-sdk: false
-            # Most of these integration tests should not depend on which mode they
-            # are run in, so just run them in `local`
-          - java-version: '17'
+
+          - java-version: 11
             millargs: "'integration.{failure,feature,ide}.__.packaged.server.test'"
             install-android-sdk: false
+
             # These invalidation tests need to be exercised in both execution modes
             # to make sure they work with and without -i/--no-server being passed
           - java-version: 17
@@ -170,6 +194,7 @@ jobs:
       install-android-sdk: ${{ matrix.install-android-sdk }}
       java-version: ${{ matrix.java-version }}
       millargs: ${{ matrix.millargs }}
+      shell: bash
 
   windows:
     needs: build-windows
@@ -203,6 +228,7 @@ jobs:
       # Provide a shorter coursier archive folder to avoid hitting path-length bugs when
       # running the graal native image binary on windows
       coursierarchive: "C:/coursier-arc"
+      shell: powershell
 
   itest:
     needs: build-linux

@@ -226,6 +226,9 @@ To run all autofixes and autoformatters:
 ./mill --meta-level 1 mill.scalalib.scalafmt.ScalafmtModule/
 ```
 
+These are run automatically on pull requests, so feel free to `pull` down the changes if you want
+to continue developing after your PR has been autofixed for you.
+
 == Continuous Integration & Testing
 
 * Mill's pull-request validation runs with

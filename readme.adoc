@@ -33,19 +33,42 @@ Here is some quick example, so that you can imagine how it looks:
 
 [source,scala,subs="verbatim,attributes"]
 ----
-import mill._, scalalib._
+package build
+import mill._, javalib._
 
-object foo extends ScalaModule {
-  def scalaVersion = "{example-scala-version}"
-}
+object foo extends JavaModule {
+  def ivyDeps = Agg(
+    ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
+    ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
+  )
 
-object bar extends ScalaModule {
-  def moduleDeps = Seq(foo)
-  def scalaVersion = "{example-scala-version}"
+  object test extends JavaTests with TestModule.Junit4 {
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy"com.google.guava:guava:33.3.0-jre"
+    )
+  }
 }
 ----
 
-* developer.adoc[Developer Documentation]
-* changelog.adoc[Changelog]
+[source,bash]
+----
+
+> ./mill foo.compile # compile sources into classfiles
+...
+compiling 1 Java source to...
+
+> ./mill foo.run --text hello
+<h1>hello</h1>
+
+> ./mill foo.test
+...
+Test foo.FooTest.testEscaping finished, ...
+Test foo.FooTest.testSimple finished, ...
+Test run foo.FooTest finished: 0 failed, 0 ignored, 2 total, ...
+
+----
+
+* https://github.com/com-lihaoyi/mill/blob/main/developer.adoc[Developer Documentation]
+* https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc[Changelog]
 
 

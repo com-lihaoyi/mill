@@ -210,7 +210,7 @@ trait PublishModule extends JavaModule { outer =>
     )
     val publishXmlDeps0 = {
       val rootDepVersions = results.map(_.moduleVersion).toMap
-      publishIvyDeps().apply(rootDepVersions, bomDepMgmt)
+      publishIvyDeps.apply().apply(rootDepVersions, bomDepMgmt)
     }
     val overrides = {
       val bomDepMgmt0 = {
@@ -324,13 +324,12 @@ trait PublishModule extends JavaModule { outer =>
   /**
    * Publish artifacts to a local Maven repository.
    * @param m2RepoPath The path to the local repository  as string (default: `$HOME/.m2repository`).
+   *                   If not set, falls back to `maven.repo.local` system property or `~/.m2/repository`
    * @return [[PathRef]]s to published files.
    */
-  def publishM2Local(m2RepoPath: String = (os.home / ".m2/repository").toString())
-      : Command[Seq[PathRef]] = Task.Command {
-    publishM2LocalTask(Task.Anon {
-      os.Path(m2RepoPath, T.workspace)
-    })()
+  def publishM2Local(m2RepoPath: String = null): Command[Seq[PathRef]] = m2RepoPath match {
+    case null => Task.Command { publishM2LocalTask(Task.Anon { publishM2LocalRepoPath() })() }
+    case p => Task.Command { publishM2LocalTask(Task.Anon { os.Path(p, T.workspace) })() }
   }
 
   /**
@@ -338,9 +337,17 @@ trait PublishModule extends JavaModule { outer =>
    * @return [[PathRef]]s to published files.
    */
   def publishM2LocalCached: T[Seq[PathRef]] = Task {
-    publishM2LocalTask(Task.Anon {
-      os.Path(os.home / ".m2/repository", T.workspace)
-    })()
+    publishM2LocalTask(publishM2LocalRepoPath)()
+  }
+
+  /**
+   * The default path that [[publishM2Local]] should publish its artifacts to.
+   * Defaults to `~/.m2/repository`, but can be configured by setting the
+   * `maven.repo.local` JVM property
+   */
+  def publishM2LocalRepoPath: Task[os.Path] = Task.Input {
+    sys.props.get("maven.repo.local").map(os.Path(_))
+      .getOrElse(os.Path(os.home / ".m2", T.workspace)) / "repository"
   }
 
   private def publishM2LocalTask(m2RepoPath: Task[os.Path]): Task[Seq[PathRef]] = Task.Anon {
