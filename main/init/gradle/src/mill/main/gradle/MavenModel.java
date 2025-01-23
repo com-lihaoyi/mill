@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.net.URI;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -161,8 +162,6 @@ public interface MavenModel extends Serializable {
 
     String description();
 
-    String organization();
-
     String url();
 
     List<License> licenses();
@@ -173,39 +172,37 @@ public interface MavenModel extends Serializable {
 
     String packaging();
 
+    List<Prop> properties();
+
     class Impl implements Pom {
 
       private final String description;
-      private final String organization;
       private final String url;
       private final List<License> licenses;
       private final Scm scm;
       private final List<Dev> devs;
       private final String packaging;
+      private final List<Prop> properties;
 
       public Impl(
           String description,
-          String organization,
           String url,
           List<License> licenses,
           Scm scm,
           List<Dev> devs,
-          String packaging) {
+          String packaging,
+          List<Prop> properties) {
         this.description = description;
-        this.organization = organization;
         this.url = url;
         this.licenses = licenses;
         this.scm = scm;
         this.devs = devs;
         this.packaging = packaging;
+        this.properties = properties;
       }
 
       public String description() {
         return description;
-      }
-
-      public String organization() {
-        return organization;
       }
 
       public String url() {
@@ -227,17 +224,54 @@ public interface MavenModel extends Serializable {
       public String packaging() {
         return packaging;
       }
+
+      public List<Prop> properties() {
+        return properties;
+      }
     }
 
     static Pom from(DefaultMavenPom pom) {
+      List<Prop> properties = Stream.ofNullable(pom.getProperties().getOrNull())
+          .flatMap(map -> map.entrySet().stream())
+          .map(Prop::from)
+          .collect(Collectors.toList());
       return new Impl(
           pom.getDescription().getOrNull(),
-          pom.getOrganization() == null ? null : pom.getOrganization().getName().getOrNull(),
           pom.getUrl().getOrNull(),
           pom.getLicenses().stream().map(License::from).collect(Collectors.toList()),
           Scm.from(pom.getScm()),
           pom.getDevelopers().stream().map(Dev::from).collect(Collectors.toList()),
-          pom.getPackaging());
+          pom.getPackaging(),
+          properties);
+    }
+  }
+
+  interface Prop extends Serializable {
+
+    String key();
+
+    String value();
+
+    class Impl implements Prop {
+      private final String key;
+      private final String value;
+
+      public Impl(String key, String value) {
+        this.key = key;
+        this.value = value;
+      }
+
+      public String key() {
+        return key;
+      }
+
+      public String value() {
+        return value;
+      }
+    }
+
+    static Prop from(Map.Entry<String, String> entry) {
+      return new Impl(entry.getKey(), entry.getValue());
     }
   }
 

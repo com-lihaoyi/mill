@@ -70,7 +70,7 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
     val repositores = getRepositories(model)
     val pomSettings = extractPomSettings(model)
     val publishVersion = model.getVersion
-    val publishProperties = getPublishProperties(model, cfg)
+    val publishProperties = getPublishProperties(model, cfg.shared)
 
     val typedef = IrTrait(
       cfg.shared.jvmId,
@@ -113,7 +113,7 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
       testResources =
         processResources(model.getBuild.getTestResources, getMillSourcePath(model))
           .filterNot(_ == mavenTestResourceDir),
-      publishProperties = getPublishProperties(model, cfg).diff(baseInfo.publishProperties)
+      publishProperties = getPublishProperties(model, cfg.shared).diff(baseInfo.publishProperties)
     )
   }
 
@@ -150,7 +150,7 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
       .toSeq
       .sorted
 
-  def getPublishProperties(model: Model, cfg: Config): Seq[(String, String)] =
+  def getPublishProperties(model: Model, cfg: BuildGenUtil.Config): Seq[(String, String)] =
     if (cfg.publishProperties.value) {
       val props = model.getProperties
       props.stringPropertyNames().iterator().asScala
@@ -268,8 +268,6 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
   @mill.api.internal
   case class Config(
       shared: BuildGenUtil.Config,
-      @arg(doc = "capture properties defined in `pom.xml` for publishing", short = 'p')
-      publishProperties: Flag = Flag(),
       @arg(doc = "use cache for Maven repository system")
       cacheRepository: Flag = Flag(),
       @arg(doc = "process Maven plugin executions and configurations")

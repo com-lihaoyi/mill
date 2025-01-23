@@ -88,6 +88,13 @@ NOTE: If not specified, a project will be selected arbitrarily.
 ./mill init --merge
 ----
 
+* `--publish-properties` (`-p`): capture Maven publish properties
++
+[source,sh]
+----
+./mill init --publish-properties
+----
+
 TIP: You can run `mill init` multiple times. It is recommended to run it first without any options.
 
 [#limitations]

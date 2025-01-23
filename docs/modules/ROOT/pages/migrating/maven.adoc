@@ -85,7 +85,7 @@ The conversion and its output (the generated Mill build files) can be customized
 ./mill init --merge
 ----
 
-* `--publish-properties` (`-p`): capture properties defined in `pom.xml` for publishing
+* `--publish-properties` (`-p`): capture Maven publish properties
 +
 [source,sh]
 ----

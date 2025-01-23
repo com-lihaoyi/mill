@@ -466,7 +466,9 @@ object BuildGenUtil {
       @arg(doc = "name of generated companion object defining dependency constants", short = 'd')
       depsObject: Option[String] = None,
       @arg(doc = "merge build files generated for a multi-module build", short = 'm')
-      merge: Flag = Flag()
+      merge: Flag = Flag(),
+      @arg(doc = "capture Maven publish properties", short = 'p')
+      publishProperties: Flag = Flag()
   )
 
   object Config {

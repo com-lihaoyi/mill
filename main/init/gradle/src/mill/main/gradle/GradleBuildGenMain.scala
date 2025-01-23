@@ -1,8 +1,8 @@
 package mill.main.gradle
 
 import mainargs.{ParserForClass, arg, main}
-import mill.main.buildgen.BuildGenUtil.*
 import mill.main.buildgen.*
+import mill.main.buildgen.BuildGenUtil.*
 import mill.util.Jvm
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.tooling.GradleConnector
@@ -127,6 +127,7 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
     val repos = getRepositories(project)
     val pomSettings = extractPomSettings(project)
     val publishVersion = getPublishVersion(project)
+    val publishProperties = getPublishProperties(project, cfg.shared)
 
     val typedef = IrTrait(
       cfg.shared.jvmId,
@@ -135,7 +136,7 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
       javacOptions,
       pomSettings,
       publishVersion,
-      Nil,
+      publishProperties,
       repos
     )
 
@@ -161,11 +162,13 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
       projectName = getArtifactId(project),
       pomSettings = if (baseInfo.noPom) extractPomSettings(project) else null,
       publishVersion = if (version == baseInfo.publishVersion) null else version,
-      packaging = null,
+      packaging = getPomPackaging(project),
+      // not available
       pomParentArtifact = null,
+      // skipped, requires relatively new API (JavaPluginExtension.getSourceSets)
       resources = Nil,
       testResources = Nil,
-      publishProperties = Nil
+      publishProperties = getPublishProperties(project, cfg.shared)
     )
   }
 
@@ -201,6 +204,20 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
     project.maven().repositories().asScala.toSeq.sorted.map(uri =>
       s"coursier.maven.MavenRepository(${escape(uri.toString)})"
     )
+
+  def getPomPackaging(project: ProjectModel): String = {
+    val pom = project.maven().pom()
+    if (null == pom) null else pom.packaging()
+  }
+
+  def getPublishProperties(project: ProjectModel, cfg: BuildGenUtil.Config): Seq[(String, String)] =
+    if (cfg.publishProperties.value) {
+      val pom = project.maven().pom()
+      if (null == pom) Seq.empty
+      else pom.properties().iterator().asScala
+        .map(prop => (prop.key(), prop.value()))
+        .toSeq
+    } else Seq.empty
 
   def getPublishVersion(project: ProjectModel): String =
     project.version() match {
@@ -254,7 +271,7 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
           onPackage: String => IrScopedDeps,
           onIvy: (String, (String, String, String)) => IrScopedDeps
       ): Unit = {
-        for (dep <- deps) {
+        for (dep <- deps.iterator) {
           val id = groupArtifactVersion(dep)
           if (packages.isDefinedAt(id)) sd = onPackage(packages(id))
           else {
