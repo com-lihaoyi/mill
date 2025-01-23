@@ -1582,19 +1582,16 @@ trait BomModule extends JavaModule {
     Seq.empty[PathRef]
   }
 
+  private def emptyJar: T[PathRef] = Task {
+    Jvm.createJar(Agg.empty[os.Path])
+  }
   def jar: T[PathRef] = Task {
-    val path = T.dest / "empty.jar"
-    Using.resource(os.write.outputStream(path, createFolders = true)) { os =>
-      val zos = new ZipOutputStream(os)
-      zos.finish()
-      zos.close()
-    }
-    PathRef(path)
+    emptyJar()
   }
   def docJar: T[PathRef] = Task {
-    jar()
+    emptyJar()
   }
   def sourceJar: T[PathRef] = Task {
-    jar()
+    emptyJar()
   }
 }
