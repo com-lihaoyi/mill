@@ -295,6 +295,7 @@ object `package` extends RootModule with MockitoModule {
 
 > ./mill -j5 __.compile
 
+> ./mill __.test org.mockitousage.stubbing.StubbingUsingDoReturnTest.should_stubbing_be_treated_as_interaction
 > ./mill __.test
 Test org.mockitoinline.StaticMockTest.testStaticMockSimple...
 Test org.mockito.internal.creation.MockSettingsImplTest.validates_invocation_listeners finished...

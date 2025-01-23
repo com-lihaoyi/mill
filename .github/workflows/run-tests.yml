@@ -67,7 +67,7 @@ jobs:
 
         include:
           - java-version: 11
-            millargs: "'example.thirdparty[{mockito,commons-io}].local.server.test'"
+            millargs: "'example.thirdparty[{mockito}].local.server.test'"
             install-android-sdk: false
 
     uses: ./.github/workflows/post-build-selective.yml
