@@ -291,6 +291,120 @@ object BomTests extends TestSuite {
       }
     }
 
+    object bomScope extends Module {
+      object provided extends JavaModule with TestPublishModule {
+        // This BOM has a versions for protobuf-java-util marked as provided,
+        // and one for scala-parallel-collections_2.13 in the default scope.
+        // Both should be taken into account here.
+        def bomIvyDeps = Agg(
+          ivy"org.apache.spark:spark-parent_2.13:3.5.3"
+        )
+        def compileIvyDeps = Agg(
+          ivy"com.google.protobuf:protobuf-java-util",
+          ivy"org.scala-lang.modules:scala-parallel-collections_2.13"
+        )
+
+        object leak extends JavaModule with TestPublishModule {
+          // Same as above, except the dependencies are in the
+          // default scope for us here, so the protobuf-java-util version
+          // shouldn't be read, as it's in provided scope in the BOM.
+          def bomIvyDeps = Agg(
+            ivy"org.apache.spark:spark-parent_2.13:3.5.3"
+          )
+          def ivyDeps = Agg(
+            ivy"com.google.protobuf:protobuf-java-util",
+            ivy"org.scala-lang.modules:scala-parallel-collections_2.13"
+          )
+        }
+      }
+
+      object runtimeScope extends JavaModule with TestPublishModule {
+        // BOM has a version for org.mvnpm.at.hpcc-js:wasm marked as runtime.
+        // This version should be taken into account in runtime deps here.
+        def bomIvyDeps = Agg(
+          ivy"io.quarkus:quarkus-bom:3.15.1"
+        )
+        def runIvyDeps = Agg(
+          ivy"org.mvnpm.at.hpcc-js:wasm"
+        )
+      }
+
+      object runtimeScopeLeak extends JavaModule with TestPublishModule {
+        // BOM has a version for org.mvnpm.at.hpcc-js:wasm marked as runtime.
+        // This version shouldn't be taken into account in main deps here.
+        def bomIvyDeps = Agg(
+          ivy"io.quarkus:quarkus-bom:3.15.1"
+        )
+        def ivyDeps = Agg(
+          ivy"org.mvnpm.at.hpcc-js:wasm"
+        )
+      }
+
+      object testScope extends JavaModule with TestPublishModule {
+        // BOM has a version for scalatest_2.13 marked as test scope.
+        // This version should be taken into account in test modules here.
+        def bomIvyDeps = Agg(
+          ivy"org.apache.spark:spark-parent_2.13:3.5.3"
+        )
+        object test extends JavaTests {
+          def testFramework = "com.novocode.junit.JUnitFramework"
+          def ivyDeps = Agg(
+            ivy"com.novocode:junit-interface:0.11",
+            ivy"org.scalatest:scalatest_2.13"
+          )
+        }
+      }
+
+      object testScopeLeak extends JavaModule with TestPublishModule {
+        // BOM has a version for scalatest_2.13 marked as test scope.
+        // This version shouldn't be taken into account in main module here.
+        def bomIvyDeps = Agg(
+          ivy"org.apache.spark:spark-parent_2.13:3.5.3"
+        )
+        def ivyDeps = Agg(
+          ivy"org.scalatest:scalatest_2.13"
+        )
+      }
+    }
+
+    object depMgmtScope extends Module {
+      object provided extends JavaModule with TestPublishModule {
+        // Version in depManagement should be used in compileIvyDeps
+        def depManagement = Agg(
+          ivy"org.scala-lang.modules:scala-parallel-collections_2.13:1.0.4"
+        )
+        def compileIvyDeps = Agg(
+          ivy"org.scala-lang.modules:scala-parallel-collections_2.13"
+        )
+      }
+
+      object runtimeScope extends JavaModule with TestPublishModule {
+        // Dep mgmt has a version for org.mvnpm.at.hpcc-js:wasm
+        // This version should be taken into account in runtime deps here.
+        def depManagement = Agg(
+          ivy"org.mvnpm.at.hpcc-js:wasm:2.15.3"
+        )
+        def runIvyDeps = Agg(
+          ivy"org.mvnpm.at.hpcc-js:wasm"
+        )
+      }
+
+      object testScope extends JavaModule with TestPublishModule {
+        // Dep mgmt in main module has a version for scalatest_2.13.
+        // This version should be taken into account in test modules here.
+        def depManagement = Agg(
+          ivy"org.scalatest:scalatest_2.13:3.2.16"
+        )
+        object test extends JavaTests {
+          def testFramework = "com.novocode.junit.JUnitFramework"
+          def ivyDeps = Agg(
+            ivy"com.novocode:junit-interface:0.11",
+            ivy"org.scalatest:scalatest_2.13"
+          )
+        }
+      }
+    }
+
     object bomOnModuleDependency extends JavaModule with TestPublishModule {
       def ivyDeps = Agg(
         ivy"com.google.protobuf:protobuf-java:3.23.4"
@@ -320,7 +434,7 @@ object BomTests extends TestSuite {
   def compileClasspathContains(
       module: JavaModule,
       fileName: String,
-      jarCheck: Option[String => Boolean]
+      jarCheck: Option[String => Boolean] = None
   )(implicit
       eval: UnitTester
   ) = {
@@ -330,10 +444,30 @@ object BomTests extends TestSuite {
       assert(check(fileName))
   }
 
+  def runtimeClasspathFileNames(module: JavaModule)(implicit
+      eval: UnitTester
+  ): Seq[String] =
+    eval(module.runClasspath).toTry.get.value
+      .toSeq.map(_.path.last)
+
+  def runtimeClasspathContains(
+      module: JavaModule,
+      fileName: String,
+      jarCheck: Option[String => Boolean] = None
+  )(implicit
+      eval: UnitTester
+  ) = {
+    val fileNames = runtimeClasspathFileNames(module)
+    assert(fileNames.contains(fileName))
+    for (check <- jarCheck; fileName <- fileNames)
+      assert(check(fileName))
+  }
+
   def publishLocalAndResolve(
       module: PublishModule,
       dependencyModules: Seq[PublishModule],
-      scalaSuffix: String
+      scalaSuffix: String,
+      fetchRuntime: Boolean
   )(implicit eval: UnitTester): Seq[os.Path] = {
     val localIvyRepo = eval.evaluator.workspace / "ivy2Local"
     eval(module.publishLocal(localIvyRepo.toString)).toTry.get
@@ -353,6 +487,13 @@ object BomTests extends TestSuite {
       .addRepositories(
         coursierapi.IvyRepository.of(localIvyRepo.toNIO.toUri.toASCIIString + "[defaultPattern]")
       )
+      .withResolutionParams {
+        val defaultParams = coursierapi.ResolutionParams.create()
+        defaultParams.withDefaultConfiguration(
+          if (fetchRuntime) "runtime"
+          else defaultParams.getDefaultConfiguration
+        )
+      }
       .fetch()
       .asScala
       .map(os.Path(_))
@@ -394,12 +535,17 @@ object BomTests extends TestSuite {
       dependencyModules: Seq[PublishModule] = Nil,
       jarCheck: Option[String => Boolean] = None,
       ivy2LocalCheck: Boolean = true,
-      scalaSuffix: String = ""
+      scalaSuffix: String = "",
+      runtimeOnly: Boolean = false
   )(implicit eval: UnitTester): Unit = {
-    compileClasspathContains(module, jarName, jarCheck)
+    if (runtimeOnly)
+      runtimeClasspathContains(module, jarName, jarCheck)
+    else
+      compileClasspathContains(module, jarName, jarCheck)
 
     if (ivy2LocalCheck) {
-      val resolvedCp = publishLocalAndResolve(module, dependencyModules, scalaSuffix)
+      val resolvedCp =
+        publishLocalAndResolve(module, dependencyModules, scalaSuffix, fetchRuntime = runtimeOnly)
       assert(resolvedCp.map(_.last).contains(jarName))
       for (check <- jarCheck; fileName <- resolvedCp.map(_.last))
         assert(check(fileName))
@@ -661,6 +807,50 @@ object BomTests extends TestSuite {
       }
     }
 
+    test("bomScope") {
+      test("provided") - UnitTester(modules, null).scoped { implicit eval =>
+        // test about provided scope, nothing to see in published stuff
+        compileClasspathContains(
+          modules.bomScope.provided,
+          "protobuf-java-3.23.4.jar"
+        )
+      }
+      test("providedFromBomRuntimeScope") - UnitTester(modules, null).scoped { implicit eval =>
+        // test about provided scope, nothing to see in published stuff
+        compileClasspathContains(
+          modules.bomScope.provided,
+          "scala-parallel-collections_2.13-1.0.4.jar"
+        )
+      }
+      test("leakProvidedInCompile") - UnitTester(modules, null).scoped { implicit eval =>
+        isInClassPath(
+          modules.bomScope.provided.leak,
+          "scala-parallel-collections_2.13-1.0.4.jar"
+        )
+      }
+
+      test("test") - UnitTester(modules, null).scoped { implicit eval =>
+        compileClasspathContains(
+          modules.bomScope.testScope.test,
+          "scalatest_2.13-3.2.16.jar"
+        )
+      }
+      test("testCheck") - UnitTester(modules, null).scoped { implicit eval =>
+        compileClasspathContains(
+          modules.bomScope.testScopeLeak,
+          "scalatest_2.13-3.2.16.jar"
+        )
+      }
+
+      test("runtime") - UnitTester(modules, null).scoped { implicit eval =>
+        isInClassPath(
+          modules.bomScope.runtimeScope,
+          "wasm-2.15.3.jar",
+          runtimeOnly = true
+        )
+      }
+    }
+
     test("bomOnModuleDependency") {
       test("check") - UnitTester(modules, null).scoped { implicit eval =>
         isInClassPath(
@@ -673,6 +863,31 @@ object BomTests extends TestSuite {
           modules.bomOnModuleDependency.dependee,
           expectedProtobufJarName,
           Seq(modules.bomOnModuleDependency)
+        )
+      }
+    }
+
+    test("depMgmtScope") {
+      test("depManagementInProvided") - UnitTester(modules, null).scoped { implicit eval =>
+        // test about provided scope, nothing to see in published stuff
+        compileClasspathContains(
+          modules.depMgmtScope.provided,
+          "scala-parallel-collections_2.13-1.0.4.jar"
+        )
+      }
+
+      test("test") - UnitTester(modules, null).scoped { implicit eval =>
+        compileClasspathContains(
+          modules.depMgmtScope.testScope.test,
+          "scalatest_2.13-3.2.16.jar"
+        )
+      }
+
+      test("runtime") - UnitTester(modules, null).scoped { implicit eval =>
+        isInClassPath(
+          modules.depMgmtScope.runtimeScope,
+          "wasm-2.15.3.jar",
+          runtimeOnly = true
         )
       }
     }

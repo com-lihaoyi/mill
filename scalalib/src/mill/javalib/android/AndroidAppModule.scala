@@ -3,8 +3,9 @@ package mill.javalib.android
 import coursier.Repository
 import mill._
 import mill.scalalib._
-import mill.api.{Logger, PathRef}
-import mill.define.ModuleRef
+import mill.api.{Logger, PathRef, internal}
+import mill.define.{ModuleRef, Task}
+import mill.scalalib.bsp.BspBuildTarget
 import mill.testrunner.TestResult
 import mill.util.Jvm
 import os.RelPath
@@ -266,8 +267,19 @@ trait AndroidAppModule extends JavaModule {
    */
   override def resources: T[Seq[PathRef]] = Task {
     val libResFolders = androidUnpackArchives().flatMap(_.resources)
-    super.resources() ++ libResFolders :+ PathRef(millSourcePath / "src/main/res")
+    libResFolders :+ PathRef(millSourcePath / "src/main/res")
   }
+
+  @internal
+  override def bspCompileClasspath: T[Agg[UnresolvedPath]] = Task {
+    compileClasspath().map(_.path).map(UnresolvedPath.ResolvedPath(_))
+  }
+
+  @internal
+  override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
+    baseDirectory = Some(millSourcePath / "src/main"),
+    tags = Seq("application")
+  )
 
   /**
    * Replaces AAR files in classpath with their extracted JARs.
@@ -278,7 +290,7 @@ trait AndroidAppModule extends JavaModule {
       super.resolvedRunIvyDeps().filter(_.path.ext == "jar")
     // TODO process metadata shipped with Android libs. It can have some rules with Target SDK, for example.
     // TODO support baseline profiles shipped with Android libs.
-    super.compileClasspath().filter(_.path.ext == "jar") ++ jarFiles
+    super.compileClasspath().filter(_.path.ext != "aar") ++ jarFiles
   }
 
   /**
@@ -286,21 +298,34 @@ trait AndroidAppModule extends JavaModule {
    */
   def androidAaptOptions: T[Seq[String]] = Task { Seq("--auto-add-overlay") }
 
+  def androidTransitiveResources: Target[Seq[PathRef]] = Task {
+    T.traverse(transitiveModuleCompileModuleDeps) { m =>
+      Task.Anon(m.resources())
+    }().flatten
+  }
+
   /**
    * Compiles Android resources and generates `R.java` and `res.apk`.
    *
-   * @return [[PathRef]] to the directory with application's `R.java` and `res.apk`.
+   * @return [[(PathRef, Seq[PathRef]]] to the directory with application's `R.java` and `res.apk` and a list
+   *         of the zip files containing the resource compiled files
    *
    * For more details on the aapt2 tool, refer to:
    * [[https://developer.android.com/tools/aapt2 aapt Documentation]]
    */
-  def androidResources: T[PathRef] = Task {
+  def androidResources: T[(PathRef, Seq[PathRef])] = Task {
     val rClassDir = T.dest / rClassDirName
     val compiledResDir = T.dest / compiledResourcesDirName
     os.makeDir(compiledResDir)
     val compiledResources = collection.mutable.Buffer[os.Path]()
 
-    for (resDir <- resources().map(_.path).filter(os.exists)) {
+    val transitiveResources = androidTransitiveResources().map(_.path).filter(os.exists)
+
+    val localResources = resources().map(_.path).filter(os.exists)
+
+    val allResources = localResources ++ transitiveResources
+
+    for (resDir <- allResources) {
       val segmentsSeq = resDir.segments.toSeq
       val libraryName = segmentsSeq.dropRight(1).last
       // if not directory, but file, it should have one of the possible extensions: .flata, .zip, .jar, .jack,
@@ -382,7 +407,7 @@ trait AndroidAppModule extends JavaModule {
 
     os.call(appLinkArgs)
 
-    PathRef(T.dest)
+    (PathRef(T.dest), compiledResources.toSeq.map(PathRef(_)))
   }
 
   /**
@@ -397,7 +422,7 @@ trait AndroidAppModule extends JavaModule {
    * the Android resource generation step.
    */
   override def generatedSources: T[Seq[PathRef]] = Task {
-    super.generatedSources() ++ Seq(androidResources()) ++ Seq(androidLibsRClasses())
+    Seq(PathRef(androidResources()._1.path / rClassDirName)) ++ androidLibsRClasses()
   }
 
   /**
@@ -406,12 +431,20 @@ trait AndroidAppModule extends JavaModule {
    * @return os.Path to the Generated DEX File Directory
    */
   def androidDex: T[PathRef] = Task {
+
+    val inheritedClassFiles = compileClasspath().map(_.path).filter(os.isDir)
+      .flatMap(os.walk(_))
+      .filter(os.isFile)
+      .filter(_.ext == "class")
+      .map(_.toString())
+
     val appCompiledFiles = os.walk(compile().classes.path)
       .filter(_.ext == "class")
-      .map(_.toString)
+      .map(_.toString) ++ inheritedClassFiles
 
     val libsJarFiles = compileClasspath()
       .filter(_ != androidSdkModule().androidJarPath())
+      .filter(_.path.ext == "jar")
       .map(_.path.toString())
 
     val proguardFile = T.dest / "proguard-rules.pro"
@@ -421,13 +454,14 @@ trait AndroidAppModule extends JavaModule {
       .flatMap(_.proguardRules)
       .map(p => os.read(p.path))
       .appendedAll(mainDexPlatformRules)
-      .appended(os.read(androidResources().path / "main-dex-rules.pro"))
+      .appended(os.read(androidResources()._1.path / "main-dex-rules.pro"))
       .mkString("\n")
     os.write(proguardFile, knownProguardRules)
 
     val d8ArgsBuilder = Seq.newBuilder[String]
 
     d8ArgsBuilder += androidSdkModule().d8Path().path.toString
+
     if (androidIsDebug()) {
       d8ArgsBuilder += "--debug"
     } else {
@@ -462,7 +496,7 @@ trait AndroidAppModule extends JavaModule {
   def androidUnsignedApk: T[PathRef] = Task {
     val unsignedApk = Task.dest / "app.unsigned.apk"
 
-    os.copy(androidResources().path / "res.apk", unsignedApk)
+    os.copy(androidResources()._1.path / "res.apk", unsignedApk)
     val dexFiles = os.walk(androidDex().path)
       .filter(_.ext == "dex")
       .map(os.zip.ZipSource.fromPath)
@@ -650,29 +684,33 @@ trait AndroidAppModule extends JavaModule {
     PathRef(signedApk)
   }
 
-  def androidLibsRClasses: T[PathRef] = Task {
+  def androidLibsRClasses: T[Seq[PathRef]] = Task {
     // TODO do this better
     // So we have application R.java class generated by aapt2 link, which includes IDs of app resources + libs resources.
     // But we also need to have R.java classes for libraries. The process below is quite hacky and inefficient, because:
     // * it will generate R.java for the library even library has no resources declared
     // * R.java will have not only resource ID from this library, but from other libraries as well. They should be stripped.
-    val mainRClassPath = os.walk(androidResources().path / rClassDirName)
+    val rClassDir = androidResources()._1.path / rClassDirName
+    val mainRClassPath = os.walk(rClassDir)
       .find(_.last == "R.java")
       .get
+
     val mainRClass = os.read(mainRClassPath)
     val libsPackages = androidUnpackArchives()
       .flatMap(_.manifest)
       .map(f => ((XML.loadFile(f.path.toIO) \\ "manifest").head \ "@package").head.toString())
 
-    for (libPackage <- libsPackages) {
-      val libRClassPath = T.dest / libPackage.split('.') / "R.java"
-      os.write(
+    val libClasses: Seq[PathRef] = for {
+      libPackage <- libsPackages
+      libRClassPath = T.dest / libPackage.split('.') / "R.java"
+      _ = os.write(
         libRClassPath,
         mainRClass.replaceAll("package .+;", s"package $libPackage;"),
         createFolders = true
       )
-    }
-    PathRef(T.dest)
+    } yield PathRef(libRClassPath)
+
+    libClasses :+ PathRef(mainRClassPath)
   }
 
   /**
@@ -1007,14 +1045,22 @@ trait AndroidAppModule extends JavaModule {
   trait AndroidAppTests extends JavaTests {
     private def testPath = parent.millSourcePath / "src/test"
 
-    override def sources: T[Seq[PathRef]] = parent.sources() :+ PathRef(testPath / "java")
+    override def sources: T[Seq[PathRef]] = Seq(PathRef(testPath / "java"))
 
-    override def resources: T[Seq[PathRef]] = parent.resources() :+ PathRef(testPath / "res")
+    override def resources: T[Seq[PathRef]] = Task.Sources(Seq(PathRef(testPath / "res")))
+
+    override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
+      baseDirectory = Some(testPath),
+      canTest = true
+    )
+
   }
 
   trait AndroidAppInstrumentedTests extends AndroidAppModule with AndroidTestModule {
     private def androidMainSourcePath = parent.millSourcePath
     private def androidTestPath = androidMainSourcePath / "src/androidTest"
+
+    override def moduleDeps: Seq[JavaModule] = Seq(parent)
 
     override def androidCompileSdk: T[Int] = parent.androidCompileSdk
     override def androidMinSdk: T[Int] = parent.androidMinSdk
@@ -1030,11 +1076,15 @@ trait AndroidAppModule extends JavaModule {
 
     override def androidEmulatorPort: String = parent.androidEmulatorPort
 
-    override def sources: T[Seq[PathRef]] = parent.sources() :+ PathRef(androidTestPath / "java")
+    override def sources: T[Seq[PathRef]] = Seq(PathRef(androidTestPath / "java"))
 
     /** The resources in res directories of both main source and androidTest sources */
-    override def resources: T[Seq[PathRef]] =
-      super.resources() ++ parent.resources() :+ PathRef(androidTestPath / "res")
+    override def resources: T[Seq[PathRef]] = Task.Sources {
+      val libResFolders = androidUnpackArchives().flatMap(_.resources)
+      libResFolders ++ Seq(PathRef(androidTestPath / "res"))
+    }
+
+    override def generatedSources: T[Seq[PathRef]] = Task.Sources(Seq.empty[PathRef])
 
     /* TODO on debug work, an AndroidManifest.xml with debug and instrumentation settings
      * will need to be created. Then this needs to point to the location of that debug
@@ -1086,11 +1136,22 @@ trait AndroidAppModule extends JavaModule {
 
       val outputReader = instrumentOutput.stdout.buffered
 
-      InstrumentationOutput.parseTestOutputStream(outputReader)(T.log)
+      val (doneMsg, results) = InstrumentationOutput.parseTestOutputStream(outputReader)(T.log)
+      val res = TestModule.handleResults(doneMsg, results, T.ctx(), testReportXml())
+
+      res
+
     }
 
     /** Builds the apk including the integration tests (e.g. from androidTest) */
     def androidInstantApk: T[PathRef] = androidApk
+
+    @internal
+    override def bspBuildTarget: BspBuildTarget = super[AndroidTestModule].bspBuildTarget.copy(
+      baseDirectory = Some(androidTestPath),
+      canRun = false
+    )
+
   }
 
 }
