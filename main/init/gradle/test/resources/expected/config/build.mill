@@ -1,0 +1,57 @@
+package build
+
+import mill._
+import mill.javalib._
+import mill.javalib.publish._
+
+object Deps {
+
+  val `org.apache.commons:commons-text` = ivy"org.apache.commons:commons-text"
+
+  val `org.junit.jupiter:junit-jupiter` =
+    ivy"org.junit.jupiter:junit-jupiter:5.10.3"
+}
+
+object `package` extends RootModule {
+
+  def artifactName = "application-library"
+
+  object app extends BaseModule {
+
+    def ivyDeps = super.ivyDeps() ++ Agg(Deps.`org.apache.commons:commons-text`)
+
+    def moduleDeps = super.moduleDeps ++ Seq(build.utilities)
+
+    object tests extends MavenTests with TestModule.Junit5 {
+
+      def ivyDeps = super.ivyDeps() ++
+        Agg(Deps.`org.junit.jupiter:junit-jupiter`)
+
+    }
+  }
+
+  object list extends BaseModule {
+
+    object tests extends MavenTests with TestModule.Junit5 {
+
+      def ivyDeps = super.ivyDeps() ++
+        Agg(Deps.`org.junit.jupiter:junit-jupiter`)
+
+    }
+  }
+
+  object utilities extends BaseModule {
+
+    def moduleDeps = super.moduleDeps ++ Seq(build.list)
+
+  }
+}
+
+trait BaseModule extends MavenModule {
+
+  def zincWorker = mill.define.ModuleRef(BaseModuleZincWorker)
+
+  object BaseModuleZincWorker extends ZincWorkerModule {
+    def jvmId = "11"
+  }
+}

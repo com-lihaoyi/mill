@@ -34,6 +34,8 @@ trait ScalaPBModule extends ScalaModule {
   /** ScalaPB enables lenses by default, this option allows you to disable it. */
   def scalaPBLenses: T[Boolean] = Task { true }
 
+  def scalaPBScala3Sources: T[Boolean] = T { false }
+
   def scalaPBSearchDeps: Boolean = false
 
   /**
@@ -68,7 +70,8 @@ trait ScalaPBModule extends ScalaModule {
             else
               Seq("single_line_to_string")
           }
-        )
+        ) ++
+        (if (scalaPBScala3Sources()) Seq("scala3_sources") else Seq.empty)
     ).mkString(",")
   }
 
