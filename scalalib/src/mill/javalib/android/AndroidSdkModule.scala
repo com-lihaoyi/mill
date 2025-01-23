@@ -116,6 +116,10 @@ trait AndroidSdkModule extends Module {
     PathRef(buildToolsPath().path / "zipalign")
   }
 
+  def fontsPath: T[PathRef] = Task {
+    PathRef(sdkPath().path / "fonts")
+  }
+
   /**
    * Provides the path to the APK signer tool, used to digitally sign APKs.
    *

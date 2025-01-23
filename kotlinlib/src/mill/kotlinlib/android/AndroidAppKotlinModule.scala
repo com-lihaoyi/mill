@@ -1,9 +1,16 @@
 package mill.kotlinlib.android
 
-import mill.{Agg, T, Task}
+import coursier.Dependency
+import coursier.core.Reconciliation
+import coursier.params.ResolutionParams
+import coursier.util.ModuleMatchers
+import mill.{Agg, Command, T, Task}
 import mill.api.PathRef
-import mill.kotlinlib.{DepSyntax, KotlinModule}
-import mill.javalib.android.AndroidAppModule
+import mill.define.ModuleRef
+import mill.kotlinlib.{Dep, DepSyntax, KotlinModule}
+import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}
+import mill.scalalib.{JavaModule, TestModule}
+import mill.scalalib.TestModule.Junit5
 
 /**
  * Trait for building Android applications using the Mill build tool.
@@ -67,5 +74,170 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
       super[AndroidAppInstrumentedTests].sources() :+ PathRef(
         outer.millSourcePath / "src/androidTest/kotlin"
       )
+  }
+
+  trait AndroidAppKotlinScreenshotTests extends AndroidAppKotlinModule with TestModule
+      with Junit5 {
+
+    override def mapDependencies: Task[Dependency => Dependency] = outer.mapDependencies
+
+    override def androidCompileSdk: T[Int] = outer.androidCompileSdk
+
+    override def androidMergedManifest: T[PathRef] = outer.androidMergedManifest
+
+    override def androidSdkModule: ModuleRef[AndroidSdkModule] = outer.androidSdkModule
+
+    def layoutLibVersion: String = "14.0.9"
+    def composePreviewRendererVersion: String = "0.0.1-alpha08"
+
+    def namespace: String
+
+    override def moduleDeps: Seq[JavaModule] = Seq(outer)
+
+    override final def kotlinVersion = outer.kotlinVersion
+
+    override def kotlincOptions = super.kotlincOptions() ++ Seq(
+      s"-Xplugin=${composeProcessor().path}"
+    )
+
+    override def sources: T[Seq[PathRef]] = Task.Sources(
+      Seq(
+        PathRef(outer.millSourcePath / "src/screenshotTest/kotlin"),
+        PathRef(outer.millSourcePath / "src/screenshotTest/java")
+      )
+    )
+
+    def composePreviewRenderer: T[Agg[PathRef]] = Task {
+      defaultResolver().resolveDeps(
+        Agg(
+          ivy"com.android.tools.compose:compose-preview-renderer:$composePreviewRendererVersion"
+        )
+      )
+    }
+
+    def layoutLibRenderer: T[Agg[PathRef]] = Task {
+      defaultResolver().resolveDeps(
+        Agg(
+          ivy"com.android.tools.layoutlib:layoutlib:$layoutLibVersion"
+        )
+      )
+    }
+
+    def layoutLibRuntime: T[Agg[PathRef]] = Task {
+      defaultResolver().resolveDeps(
+        Agg(
+          ivy"com.android.tools.layoutlib:layoutlib-runtime:$layoutLibVersion"
+        )
+      )
+    }
+
+    def layoutLibFrameworkRes: T[Agg[PathRef]] = Task {
+      defaultResolver().resolveDeps(
+        Agg(
+          ivy"com.android.tools.layoutlib:layoutlib-resources:$layoutLibVersion"
+        )
+      )
+    }
+
+    def layoutLibRuntimePath: T[PathRef] = Task {
+      val extractDestination = T.dest / "layoutLib"
+      val layoutLibJar = layoutLibRuntime().head
+      os.unzip(layoutLibJar.path, extractDestination)
+      val frameworkResPath = extractDestination / "data" / "framework_res.jar"
+      os.copy(from = layoutLibFrameworkRes().head.path, to = frameworkResPath)
+      PathRef(extractDestination)
+    }
+
+    def uiToolingVersion: String = "1.7.6"
+
+    override def resolutionParams: Task[ResolutionParams] = Task.Anon {
+      val params = super.resolutionParams()
+      relaxedDependencyReconciliation(params)
+    }
+
+    private val relaxedDependencyReconciliation: ResolutionParams => ResolutionParams =
+      _.withReconciliation(Seq(ModuleMatchers.all -> Reconciliation.Relaxed))
+
+    override def generatedSources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
+
+    def resourceApkPath: T[PathRef] = Task {
+      PathRef(outer.androidResources()._1.path / "res.apk")
+    }
+
+    override def mandatoryIvyDeps: T[Agg[Dep]] = super.mandatoryIvyDeps() ++
+      Agg(
+        ivy"androidx.compose.ui:ui:$uiToolingVersion",
+        ivy"androidx.compose.ui:ui-tooling:$uiToolingVersion",
+        ivy"androidx.compose.ui:ui-test-manifest:$uiToolingVersion",
+        ivy"androidx.compose.ui:ui-tooling-preview-android:$uiToolingVersion"
+      )
+
+    def androidScreenshotTestResults: T[PathRef] =
+      Task { PathRef(Task.dest / "results.json") }
+
+    private def screenshotResults: Task[PathRef] = Task {
+      val dir = T.dest / "generated-screenshots"
+      os.makeDir(dir)
+      PathRef(dir)
+    }
+
+    def composePreviewArgs: T[PathRef] = Task {
+      val output = screenshotResults().path
+      val metadataFolder = T.dest / "meta-data"
+      val cliArgsFile = T.dest / "cli_arguments.json"
+      val resultsFilePath = androidScreenshotTestResults().path
+
+      val cliArgs = ComposeRenderer.Args(
+        fontsPath = androidSdkModule().fontsPath().toString,
+        layoutlibPath = layoutLibRuntimePath().path.toString(),
+        outputFolder = output.toString(),
+        metaDataFolder = metadataFolder.toString(),
+        classPath = compileClasspath().map(_.path.toString()).toSeq,
+        projectClassPath = Seq(compile().classes.path.toString()),
+        screenshots = androidConfigurationByScreenshotTest,
+        namespace = namespace,
+        resourceApkPath = resourceApkPath().path.toString(),
+        resultsFilePath = resultsFilePath.toString()
+      )
+      os.write(cliArgsFile, upickle.default.write(cliArgs))
+
+      PathRef(cliArgsFile)
+
+    }
+
+    def generatePreviews(): Command[Agg[PathRef]] = Task.Command {
+      mill.util.Jvm.runSubprocess(
+        mainClass = "com.android.tools.render.compose.MainKt",
+        classPath = composePreviewRenderer().map(_.path) ++ layoutLibRenderer().map(_.path),
+        jvmArgs = Seq(
+          "-Dlayoutlib.thread.profile.timeoutms=10000",
+          "-Djava.security.manager=allow"
+        ),
+        mainArgs = Seq(composePreviewArgs().path.toString())
+      )
+
+      Agg.from(os.walk(screenshotResults().path).filter(_.ext == "png").map(PathRef(_)))
+    }
+
+    def androidScreenshotDeviceConfigurations: Seq[ComposeRenderer.PreviewParams] = Seq(
+      ComposeRenderer.PreviewParams(
+        device = "spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420",
+        name = "Phone",
+        showSystemUi = "true"
+      )
+    )
+
+    /* TODO we can do method discovery with reflection or junit tools */
+    def androidScreenshotTestMethods: Seq[(String, Seq[String])]
+
+    def androidConfigurationByScreenshotTest: Seq[ComposeRenderer.Screenshot] = for {
+      (methodFQN, methodParams) <- androidScreenshotTestMethods
+      previewParams <- androidScreenshotDeviceConfigurations
+    } yield ComposeRenderer.Screenshot(
+      methodFQN = methodFQN,
+      methodParams = methodParams,
+      previewParams = previewParams,
+      previewId = s"${methodFQN}_${previewParams.device}"
+    )
   }
 }

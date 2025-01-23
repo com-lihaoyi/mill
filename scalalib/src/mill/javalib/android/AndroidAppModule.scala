@@ -1,15 +1,15 @@
 package mill.javalib.android
 
 import coursier.Repository
-import mill._
-import mill.scalalib._
+import mill.*
+import mill.scalalib.*
 import mill.api.{Logger, PathRef, internal}
 import mill.define.{ModuleRef, Task}
 import mill.scalalib.bsp.BspBuildTarget
 import mill.testrunner.TestResult
 import mill.util.Jvm
-import os.RelPath
-import upickle.default._
+import os.{Path, RelPath}
+import upickle.default.*
 
 import scala.jdk.OptionConverters.RichOptional
 import scala.xml.XML
@@ -223,15 +223,18 @@ trait AndroidAppModule extends JavaModule {
     val aarFiles = (super.compileClasspath() ++ super.resolvedRunIvyDeps())
       .map(_.path)
       .filter(_.ext == "aar")
-    var result: Seq[UnpackedDep] = Seq()
 
     // TODO do it in some shared location, otherwise each module is doing the same, having its own copy for nothing
-    for (aarFile <- aarFiles) {
-      val extractDir = Task.dest / aarFile.baseName
+    extractAarFiles(aarFiles.toSeq, Task.dest)
+  }
+
+  final def extractAarFiles(aarFiles: Seq[Path], taskDest: os.Path): Seq[UnpackedDep] = {
+    aarFiles.map(aarFile => {
+      val extractDir = taskDest / aarFile.baseName
       os.unzip(aarFile, extractDir)
       val name = aarFile.baseName
 
-      def pathOption(p: os.Path): Option[PathRef] = if (os.exists(p)) {
+      def pathOption(p: Path): Option[PathRef] = if (os.exists(p)) {
         Some(PathRef(p))
       } else None
 
@@ -245,7 +248,7 @@ trait AndroidAppModule extends JavaModule {
       val baselineProfile = pathOption(extractDir / "baseline-prof.txt")
       val stableIdsRFile = pathOption(extractDir / "R.txt")
       val publicResFile = pathOption(extractDir / "public.txt")
-      result +:= UnpackedDep(
+      UnpackedDep(
         name,
         classesJar,
         proguardRules,
@@ -258,8 +261,7 @@ trait AndroidAppModule extends JavaModule {
         stableIdsRFile,
         publicResFile
       )
-    }
-    result
+    })
   }
 
   /**
@@ -540,7 +542,7 @@ trait AndroidAppModule extends JavaModule {
    * See [[https://developer.android.com/build/manage-manifests]] for more details.
    */
   def androidMergedManifest: T[PathRef] = Task {
-    val libManifests = androidUnpackArchives().map(_.manifest.get)
+    val libManifests = androidUnpackArchives().flatMap(_.manifest)
     val mergedManifestPath = T.dest / "AndroidManifest.xml"
     // TODO put it to the dedicated worker if cost of classloading is too high
     Jvm.runSubprocess(

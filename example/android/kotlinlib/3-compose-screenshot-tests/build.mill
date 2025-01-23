@@ -1,0 +1,80 @@
+// This section sets up a basic Jetpack Compose project using Mill.
+// We utilize `AndroidAppKotlinModule` and `AndroidSdkModule` to streamline the process of
+// building an Android application with minimal configuration.
+//
+// By extending `AndroidAppKotlinModule`, we inherit all Android-related tasks such as
+// resource generation, APK building, DEX conversion, and APK signing.
+// Additionally, `AndroidSdkModule` is embedded, making SDK management seamless.
+
+//// SNIPPET:BUILD
+package build
+
+import mill._
+import kotlinlib._
+import coursier.core.{MinimizedExclusions, ModuleName, Organization}
+import coursier.params.ResolutionParams
+import mill.kotlinlib.android.AndroidAppKotlinModule
+import mill.javalib.android.AndroidSdkModule
+
+// Create and configure an Android SDK module to manage Android SDK paths and tools.
+object androidSdkModule0 extends AndroidSdkModule {
+  def buildToolsVersion = "35.0.0"
+}
+
+// Actual android application
+object app extends AndroidAppKotlinModule {
+
+  def kotlinVersion = "2.0.21"
+  def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+  def androidCompileSdk = 35
+  def androidMinSdk = 26
+  def androidEnableCompose = true
+  def androidIsDebug = true
+
+  def ivyDeps: T[Agg[Dep]] = Agg(
+    ivy"androidx.core:core-ktx:1.15.0",
+    ivy"androidx.activity:activity-compose:1.9.3",
+    ivy"androidx.compose.ui:ui:1.7.5",
+    ivy"androidx.compose.material3:material3:1.3.1"
+  )
+
+  // This is a temporary fix
+  def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = Task.Anon {
+    super.mapDependencies().andThen { (d: coursier.Dependency) =>
+      // otherwise there are some resolution problems (version conflicts), because Coursier is using pom files only,
+      // but Gradle is working with .module files if available
+      if (d.module.organization.value == "androidx.collection") {
+        d.withVersion("1.4.4")
+      } else if (d.module.organization.value == "androidx.lifecycle") {
+        d.withVersion("2.8.3")
+      } else if (d.module.organization.value == "androidx.compose.runtime") {
+        d.withVersion("1.7.5")
+      } else {
+        d
+      }
+    }
+  }
+
+  object screenshotTest extends AndroidAppKotlinScreenshotTests {
+    override def namespace = "com.example.screenshottest"
+
+    // TODO this exists until auto discovery of methods is implemented
+    override def androidScreenshotTestMethods: Seq[(String, Seq[String])] = Seq(
+      "com.example.screenshottest.ExampleMessageCardScreenshots.oMessageCardScreenshot" -> Seq.empty
+    )
+  }
+}
+
+////SNIPPET:END
+
+/** Usage
+
+> ./mill show app.screenshotTest.generatePreviews
+...
+[
+  "ref:...com/example/screenshottest/ExampleMessageCardScreenshots/oMessageCardScreenshot_spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420_0.png"
+]
+...
+*/
+
+// This command generates previews using the Compose Preview features.
