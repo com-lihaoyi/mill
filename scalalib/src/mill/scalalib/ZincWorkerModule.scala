@@ -151,7 +151,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
       sources = useSources,
       mapDependencies = Some(overrideScalaLibrary(scalaVersion, scalaOrganization))
     ).map(deps =>
-      ZincWorkerUtil.grepJar(deps, bridgeName, bridgeVersion, useSources)
+      ZincWorkerUtil.grepJar(deps.map(_.path), bridgeName, bridgeVersion, useSources)
     )
 
     if (useSources) {
@@ -175,7 +175,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
       // Since Zinc 1.4.0, the compiler-interface depends on the Scala library
       // We need to override it with the scalaVersion and scalaOrganization of the module
       mapDependencies = Some(overrideScalaLibrary(scalaVersion, scalaOrganization))
-    )
+    ).map(_.map(_.path))
   }
 
   def overrideScalaLibrary(

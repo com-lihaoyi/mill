@@ -101,7 +101,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       (commonDeps.iterator ++ envDeps ++ scalajsImportMapDeps)
         .map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, "")),
       ctx = Some(T.log)
-    )
+    ).map(_.map(_.path))
   }
 
   def scalaJSToolsClasspath = Task { scalaJSWorkerClasspath() ++ scalaJSLinkerClasspath() }

@@ -95,7 +95,7 @@ object Util {
       ),
       force = Nil,
       deprecatedResolveFilter = deprecatedResolveFilter
-    ).map(_.map(_.withRevalidateOnce))
+    ).map(_.map(_.path.withRevalidateOnce))
   }
 
   def millProperty(key: String): Option[String] =

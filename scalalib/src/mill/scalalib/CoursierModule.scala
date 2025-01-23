@@ -11,6 +11,7 @@ import scala.annotation.nowarn
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import mill.Agg
+import mill.util.CoursierSupport.ResolvedDependency
 
 /**
  * This module provides the capability to resolve (transitive) dependencies from (remote) repositories.
@@ -212,6 +213,16 @@ object CoursierModule {
         artifactTypes: Option[Set[coursier.Type]] = None,
         resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams] = None
     ): Agg[PathRef] = {
+      resolveDependenciesFiles(deps, sources, artifactTypes, resolutionParamsMapOpt)
+        .map(_.path)
+    }
+
+    def resolveDependenciesFiles[T: CoursierModule.Resolvable](
+        deps: IterableOnce[T],
+        sources: Boolean = false,
+        artifactTypes: Option[Set[coursier.Type]] = None,
+        resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams] = None
+    ): Agg[ResolvedDependency] = {
       Lib.resolveDependencies(
         repositories = repositories,
         deps = deps.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind)),

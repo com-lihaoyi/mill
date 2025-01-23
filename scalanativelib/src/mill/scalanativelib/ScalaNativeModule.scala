@@ -100,7 +100,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       repositoriesTask(),
       toolsIvyDeps().map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, "")),
       ctx = Some(T.log)
-    ).map(t => (scalaNativeWorkerClasspath() ++ t))
+    ).map(t => (scalaNativeWorkerClasspath() ++ t.map(_.path)))
   }
 
   override def scalacPluginIvyDeps: T[Agg[Dep]] = Task {

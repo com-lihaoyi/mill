@@ -148,7 +148,7 @@ trait CoursierSupport {
       deprecatedResolveFilter: os.Path => Boolean = _ => true,
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams()
-  ): Result[Agg[PathRef]] = {
+  ): Result[Agg[ResolvedDependency]] = {
     val resolutionRes = resolveDependenciesMetadataSafe(
       repositories,
       deps,
@@ -186,10 +186,10 @@ trait CoursierSupport {
         case Right(res) =>
           Result.Success(
             Agg.from(
-              res.files
-                .map(os.Path(_))
-                .filter(deprecatedResolveFilter)
-                .map(PathRef(_, quick = true))
+              res.fullDetailedArtifacts
+                .map { case (dep, _, _, Some(path)) => dep -> os.Path(path) }
+                .filter { case (_, path) => deprecatedResolveFilter(path) }
+                .map { case (dep, path) => ResolvedDependency(PathRef(path, quick = true), dep) }
             )
           )
       }
@@ -225,7 +225,7 @@ trait CoursierSupport {
       deprecatedResolveFilter,
       artifactTypes,
       ResolutionParams()
-    )
+    ).map(_.map(_.path))
 
   @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
   def resolveDependencies(
@@ -453,6 +453,14 @@ trait CoursierSupport {
 }
 
 object CoursierSupport {
+
+  // TODO: Should we expose the Coursier dependency here? The API is large and confusing.
+  // On the otherhand: We already expose it via Deps and other APIs. And wrapping is just boiler plate
+  case class ResolvedDependency(path: PathRef, dependency: Dependency) {
+    // TODO: For review: Inclear to me if that even needs to be an option, or if we can always return a 'revalidate once' path??
+    def withRevalidateOnce: ResolvedDependency = copy(path = path.withRevalidateOnce)
+  }
+  object ResolvedDependency {}
 
   /**
    * A Coursier Cache.Logger implementation that updates the ticker with the count and

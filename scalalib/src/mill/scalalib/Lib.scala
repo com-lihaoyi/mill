@@ -10,6 +10,7 @@ import mill.main.BuildInfo
 import mill.main.client.EnvVars
 import mill.util.Util
 import mill.scalalib.api.ZincWorkerUtil
+import mill.util.CoursierSupport.ResolvedDependency
 
 object Lib {
   def depToDependencyJava(dep: Dep, platformSuffix: String = ""): Dependency = {
@@ -143,7 +144,7 @@ object Lib {
       ] = None,
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams()
-  ): Result[Agg[PathRef]] = {
+  ): Result[Agg[ResolvedDependency]] = {
     val depSeq = deps.iterator.toSeq
     val res = mill.util.Jvm.resolveDependencies(
       repositories = repositories,
@@ -185,7 +186,7 @@ object Lib {
       coursierCacheCustomizer,
       artifactTypes,
       ResolutionParams()
-    )
+    ).map(_.map(_.path))
 
   @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
   def resolveDependencies(
@@ -209,7 +210,7 @@ object Lib {
       coursierCacheCustomizer,
       None,
       ResolutionParams()
-    )
+    ).map(_.map(_.path))
 
   def scalaCompilerIvyDeps(scalaOrganization: String, scalaVersion: String): Loose.Agg[Dep] =
     if (ZincWorkerUtil.isDotty(scalaVersion))
