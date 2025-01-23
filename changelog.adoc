@@ -17,15 +17,22 @@ endif::[]
 :milestone: 109
 :prev-version: 0.12.5
 
-* Mill now provides native executables on windows-amd64, linux-amd64, and
-macos-aarch64. These can be enabled by adding the `-native` suffix to your `.mill-version`
+* Mill now provides native executables on windows-amd64, linux-{amd64,aarch64}, and
+macos-{amd64,aarch64}. These can be enabled by adding the `-native` suffix to your `.mill-version`
 file (e.g. `0.12.6-native`), and allows you to run Mill on clean machines without needing
 a pre-installed JVM (Mill will instead download one as necessary)
 
 ** Using Mill native binaries requires the latest `./mill` or `./mill.bat` files,
 available for download in the Mill repo
 
+** windows-aarch64 is not supported due to limitations in the upstream Graal native
+image builder https://github.com/oracle/graal/issues/9215[]
+
 * Mill also provides support for users to build native images via `NativeImageModule`
+
+* Reduce Java Heap for Mill Client to reduce memory footprint {link-pr}/4163[#4163]
+
+* Support for semi-automated migration from Gradle to Mill {link-pr}/4363[#4363]
 
 * Catch fatal exceptions in futures to prevent hangs {link-pr}/4223[#4223]
 
@@ -62,6 +69,13 @@ to Coursier rather than implementing it in Mill
 
 * Add `selective.resolveChanged` {link-pr}/4358[#4358] and `selective.resolveTree`
 {link-pr}/4349[#4349] tasks to help debug selective execution issues
+
+* Add `dockerEnv` target to customize environment passed to `docker` command {link-pr}/3257[#3257]
+
+* Mill bootstrap scripts and example zips have been moved from Github Releases
+to Maven Central for improved security and reliability {link-pr}/4372[#4372]
+
+* ScalaPB plugin now supports `scala3_sources` {link-pr}/3258[#3258]
 
 
 [#0-12-5]
