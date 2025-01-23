@@ -10,6 +10,7 @@ import mill.main.client.CodeGenConstants.{
 }
 import mill.main.client.OutFiles
 import mill.runner.FileImportGraph.backtickWrap
+
 import scala.collection.immutable.SortedSet
 
 @mill.api.internal
@@ -37,7 +38,7 @@ object BuildGenUtil {
        |
        |${renderPublishProperties(publishProperties)}
        |
-       |${renderRepositories(repos)}
+       |${renderRepositories(repositories)}
        |
        |$zincWorker
        |}""".stripMargin

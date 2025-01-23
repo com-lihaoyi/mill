@@ -67,6 +67,7 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
   ): IrBaseInfo = {
     val model = input.node.value
     val javacOptions = Plugins.MavenCompilerPlugin.javacOptions(model)
+    val repositores = getRepositories(model)
     val pomSettings = extractPomSettings(model)
     val publishVersion = model.getVersion
     val publishProperties = getPublishProperties(model, cfg)
@@ -79,11 +80,10 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
       pomSettings,
       publishVersion,
       publishProperties,
-      repos = Nil
+      getRepositories(model)
     )
 
-    // Model.getRepositories is always empty
-    IrBaseInfo(javacOptions, Seq.empty, noPom = false, publishVersion, publishProperties, typedef)
+    IrBaseInfo(javacOptions, repositores, noPom = false, publishVersion, publishProperties, typedef)
   }
 
   override def extractIrBuild(
@@ -92,28 +92,28 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
       build: Node[Model],
       packages: Map[(String, String, String), String]
   ): IrBuild = {
-    val project = build.value
-    val scopedDeps = extractScopedDeps(project, packages, cfg)
-    val version = project.getVersion
+    val model = build.value
+    val scopedDeps = extractScopedDeps(model, packages, cfg)
+    val version = model.getVersion
     IrBuild(
       scopedDeps = scopedDeps,
       testModule = cfg.shared.testModule,
-      hasTest = os.exists(getMillSourcePath(project) / "src/test"),
+      hasTest = os.exists(getMillSourcePath(model) / "src/test"),
       dirs = build.dirs,
-      repositories = Nil,
-      javacOptions = Plugins.MavenCompilerPlugin.javacOptions(project).diff(baseInfo.javacOptions),
-      projectName = getArtifactId(project),
-      pomSettings = if (baseInfo.noPom) extractPomSettings(project) else null,
+      repositories = getRepositories(model),
+      javacOptions = Plugins.MavenCompilerPlugin.javacOptions(model).diff(baseInfo.javacOptions),
+      projectName = getArtifactId(model),
+      pomSettings = if (baseInfo.noPom) extractPomSettings(model) else null,
       publishVersion = if (version == baseInfo.publishVersion) null else version,
-      packaging = project.getPackaging,
-      pomParentArtifact = mkPomParent(project.getParent),
+      packaging = model.getPackaging,
+      pomParentArtifact = mkPomParent(model.getParent),
       resources =
-        processResources(project.getBuild.getResources, getMillSourcePath(project))
+        processResources(model.getBuild.getResources, getMillSourcePath(model))
           .filterNot(_ == mavenMainResourceDir),
       testResources =
-        processResources(project.getBuild.getTestResources, getMillSourcePath(project))
+        processResources(model.getBuild.getTestResources, getMillSourcePath(model))
           .filterNot(_ == mavenTestResourceDir),
-      publishProperties = getPublishProperties(project, cfg).diff(baseInfo.publishProperties)
+      publishProperties = getPublishProperties(model, cfg).diff(baseInfo.publishProperties)
     )
   }
 
@@ -142,6 +142,13 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
       .map(os.Path(_).subRelativeTo(millSourcePath))
       .toSeq
   }
+
+  def getRepositories(model: Model): Seq[String] =
+    model.getRepositories.iterator().asScala
+      .filterNot(_.getId == "central")
+      .map(repo => s"coursier.maven.MavenRepository(${escape(repo.getUrl)})")
+      .toSeq
+      .sorted
 
   def getPublishProperties(model: Model, cfg: Config): Seq[(String, String)] =
     if (cfg.publishProperties.value) {

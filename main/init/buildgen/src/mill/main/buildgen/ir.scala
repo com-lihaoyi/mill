@@ -44,7 +44,7 @@ case class IrTrait(
     pomSettings: IrPom,
     publishVersion: String,
     publishProperties: Seq[(String, String)],
-    repos: Seq[String]
+    repositories: Seq[String]
 )
 
 case class IrPom(

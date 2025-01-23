@@ -11,6 +11,16 @@ object `package` extends RootModule with PublishModule with MavenModule {
   def javacOptions = super.javacOptions() ++
     Seq("-source", "1.6", "-target", "1.6")
 
+  def repositoriesTask = Task.Anon {
+    super.repositoriesTask() ++ Seq(
+      coursier.maven.MavenRepository(
+        "http://repository.jboss.org/nexus/content/groups/public/"
+      ),
+      coursier.maven
+        .MavenRepository("https://maven.java.net/content/repositories/public/")
+    )
+  }
+
   def ivyDeps = super.ivyDeps() ++
     Agg(ivy"javax.servlet.jsp:jsp-api:2.2", ivy"javax.servlet:servlet-api:2.5")
 

@@ -39,14 +39,14 @@ object BuildGenTests extends TestSuite {
       )
     }
 
+    // custom resources
+    // custom repositories
     test("misc") {
-      test("custom-resources") {
-        val sourceRoot = os.sub / "misc/custom-resources"
-        val expectedRoot = os.sub / "expected/misc/custom-resources"
-        assert(
-          checker.check(MavenBuildGenMain.main(Array.empty), sourceRoot, expectedRoot)
-        )
-      }
+      val sourceRoot = os.sub / "misc"
+      val expectedRoot = os.sub / "expected/misc"
+      assert(
+        checker.check(MavenBuildGenMain.main(Array.empty), sourceRoot, expectedRoot)
+      )
     }
   }
 }

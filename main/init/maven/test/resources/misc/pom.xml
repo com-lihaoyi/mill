@@ -184,4 +184,14 @@
     <maven>3.0.3</maven>
   </prerequisites>
 
+  <repositories>
+    <repository>
+      <id>java-net-repo</id>
+      <url>https://maven.java.net/content/repositories/public/</url>
+    </repository>
+    <repository>
+      <id>jboss-repo</id>
+      <url>http://repository.jboss.org/nexus/content/groups/public/</url>
+    </repository>
+  </repositories>
 </project>
