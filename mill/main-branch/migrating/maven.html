@@ -6,7 +6,7 @@
     <title>Migrating From Maven to Mill :: The Mill JVM Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/migrating/maven.html" />
     <link rel="prev" href="migrating.html" />
-    <link rel="next" href="../fundamentals/tasks.html" />
+    <link rel="next" href="gradle.html" />
     <meta name="generator" content="Antora 3.1.9" />
     <link rel="stylesheet" href="../../../_/css/site.css" />
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -324,6 +324,10 @@
   <li class="nav-item is-current-page" data-depth="2">
     <a class="nav-link" href="maven.html">Migrating From Maven to Mill</a>
   </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="gradle.html">Migrating From Gradle to Mill</a>
+  </li>
 </ul>
   </li>
 
@@ -615,21 +619,11 @@ scaffolding of a Mill build for you to further refine and update manually.</p>
 </div>
 <div class="paragraph">
 <p>Each Maven module with a <code>pom.xml</code> is converted to a Mill <code>build.mill</code>/<code>package.mill</code>
-file containing a top-level <code>MavenModule</code>. A nested <code>test</code> module is defined if both:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>src/test</code> exists</p>
-</li>
-<li>
-<p>a supported <a href="../javalib/testing.html" class="xref page">test framework</a> is detected (for a <em>tests only</em>
-module with test sources in <code>src/main/java</code>)</p>
-</li>
-</ul>
+file containing a top-level <code>MavenModule</code>.
+A nested <code>test</code> module is defined, if <code>src/test</code> exists, and is configured with a supported <a href="../javalib/testing.html" class="xref page">test framework</a>, if found.</p>
 </div>
 <div class="paragraph">
-<p>Again, note that <code>mill init</code> importing Maven builds is best effort.
+<p>Again, note that <code>mill init</code> importing Maven builds is best-effort.
 This means that while small projects can be expected to complete without issue:</p>
 </div>
 <div class="listingblock">
@@ -707,10 +701,10 @@ to get a working Mill build for any existing Maven project.</p>
 <p>handles deeply nested modules</p>
 </li>
 <li>
-<p>captures project metadata</p>
+<p>captures publish settings</p>
 </li>
 <li>
-<p>configures dependencies for scopes:</p>
+<p>configures dependencies for scopes</p>
 <div class="ulist">
 <ul>
 <li>
@@ -729,7 +723,7 @@ to get a working Mill build for any existing Maven project.</p>
 </div>
 </li>
 <li>
-<p>configures testing frameworks:</p>
+<p>configures testing frameworks</p>
 <div class="ulist">
 <ul>
 <li>
@@ -751,47 +745,90 @@ to get a working Mill build for any existing Maven project.</p>
 </div>
 <div class="sect2">
 <h3 id="_command_line_arguments"><a class="anchor" href="#_command_line_arguments"></a>Command line arguments</h3>
+<div class="paragraph">
+<p>The conversion and its output (the generated Mill build files) can be customized using</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>--base-module</code> (<code>-b</code>): name of generated base module trait defining shared settings</p>
 <div class="listingblock">
-<div class="title">name of generated base module trait defining project metadata settings</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">./mill init --base-module MyModule</code></pre>
 </div>
 </div>
+</li>
+<li>
+<p><code>--jvm-id</code> (<code>-j</code>): disttribution and version of <a href="../fundamentals/configuring-jvm-versions.html" class="xref page">custom JVM</a> to configure in <code>--base-module</code></p>
 <div class="listingblock">
-<div class="title">name of generated nested test module (defaults to <code>test</code>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">./mill init --base-module MyModule --jvm-id 17
+./mill init --base-module MyModule --jvm-id temurin:17
+./mill init --base-module MyModule --jvm-id temurin:17.0.1</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>--test-module</code> (<code>-t</code>): name of generated nested test module (defaults to <code>test</code>)</p>
+<div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">./mill init --test-module test</code></pre>
 </div>
 </div>
+</li>
+<li>
+<p><code>--deps-object</code> (<code>-d</code>): name of generated companion object defining dependency constants</p>
 <div class="listingblock">
-<div class="title">name of generated companion object defining constants for dependencies</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">./mill init --deps-object Deps</code></pre>
 </div>
 </div>
+</li>
+<li>
+<p><code>--merge</code> (<code>-m</code>): merge build files generated for a multi-module build</p>
 <div class="listingblock">
-<div class="title">capture properties defined in <code>pom.xml</code> for publishing</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">./mill init --publish-properties</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">merge build files generated for a multi-module build</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">./mill init --merge</code></pre>
 </div>
 </div>
+</li>
+<li>
+<p><code>--publish-properties</code> (<code>-p</code>): capture Maven publish properties</p>
 <div class="listingblock">
-<div class="title">use cache for Maven repository system</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">./mill init --publish-properties</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><code>--cache-repository</code>: use cache for Maven repository system</p>
+<div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">./mill init --cache-repository</code></pre>
 </div>
 </div>
+</li>
+<li>
+<p><code>--process-plugins</code>: process Maven plugin executions and configurations</p>
 <div class="listingblock">
-<div class="title">process Maven plugin executions and configurations</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">./mill init --process-plugins</code></pre>
 </div>
+</div>
+</li>
+</ul>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+You can run <code>mill init</code> multiple times. It is recommended to run it first without any options.
+</td>
+</tr>
+</tbody></table>
 </div>
 </div>
 <div class="sect2">
@@ -857,7 +894,7 @@ to get a working Mill build for any existing Maven project.</p>
 <p>build profiles</p>
 </li>
 <li>
-<p>non-Java (native) sources</p>
+<p>non-Java sources</p>
 </li>
 </ul>
 </div>
@@ -908,24 +945,30 @@ or <a href="../extending/thirdparty-plugins.html" class="xref page">third party<
 <h2 id="_faq"><a class="anchor" href="#_faq"></a>FAQ</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<div class="title">How to fix compilation errors in generated build files?</div>
+<p>How to fix compilation errors in generated build files?</p>
+</div>
+<div class="paragraph">
 <p>This could happen if a module and task name collision occurs. Either rename the module or enclose the name in backticks.</p>
 </div>
 <div class="paragraph">
-<div class="title">How to fix JPMS <code>module not found</code> compilation errors?</div>
-<p>Set <a href="https://github.com/tfesenko/Java-Modules-JPMS-CheatSheet#how-to-export-or-open-a-package">additional command line options</a>
-for dependencies.</p>
+<p>How to fix JPMS <code>module not found</code> compilation errors?</p>
+</div>
+<div class="paragraph">
+<p>Add <a href="https://github.com/tfesenko/Java-Modules-JPMS-CheatSheet#how-to-export-or-open-a-package">options</a>
+for Java modules to <code>javacOptions</code>.</p>
+</div>
+<div class="paragraph">
+<p>How to fix test compilation errors?</p>
 </div>
 <div class="ulist">
-<div class="title">How to fix test compilation errors?</div>
 <ul>
 <li>
 <p>The test framework configured may be for an unsupported version; try upgrading the
 corresponding dependencies.</p>
 </li>
 <li>
-<p>Mill does not add <code>provided</code> dependencies to the transitive dependencies of the nested
-test module; specify the dependencies again, in one of <code>ivyDeps</code>, <code>compileIvyDeps</code>, <code>runIvyDeps</code>, in the test module.</p>
+<p>Mill does not add <code>compileIvyDeps</code> dependencies to the transitive dependencies of the nested
+test module; specify the dependencies again, in <code>ivyDeps</code> or <code>runIvyDeps</code>.</p>
 </li>
 </ul>
 </div>
@@ -933,7 +976,7 @@ test module; specify the dependencies again, in one of <code>ivyDeps</code>, <co
 </div>
 <nav class="pagination">
   <span class="prev"><a href="migrating.html">Migrating to Mill</a></span>
-  <span class="next"><a href="../fundamentals/tasks.html">Tasks</a></span>
+  <span class="next"><a href="gradle.html">Migrating From Gradle to Mill</a></span>
 </nav>
 </article>
   </div>

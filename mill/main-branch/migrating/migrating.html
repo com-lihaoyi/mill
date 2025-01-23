@@ -324,6 +324,10 @@
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="maven.html">Migrating From Maven to Mill</a>
   </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="gradle.html">Migrating From Gradle to Mill</a>
+  </li>
 </ul>
   </li>
 
@@ -608,10 +612,34 @@ const links = document.querySelectorAll('a');
 </script>
 <div class="paragraph">
 <p>This page documents a playbook for migrating existing projects
-from Maven, Gradle, or SBT to Mill. Some build tools also have additional semi-automated
-tooling (e.g. see <a href="maven.html" class="xref page">Migrating From Maven to Mill</a>), other automation is work-in-process
-(e.g. migrating from <a href="https://github.com/com-lihaoyi/mill/issues/3962">Gradle</a> or
-<a href="https://github.com/com-lihaoyi/mill/issues/3450">SBT</a>) but while automation helps with
+from Maven, Gradle, or SBT to Mill.</p>
+</div>
+<div class="paragraph">
+<p>Some build tools also have additional semi-automated
+tooling.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="maven.html" class="xref page">Migrating From Maven to Mill</a></p>
+</li>
+<li>
+<p><a href="gradle.html" class="xref page">Migrating From Gradle to Mill</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Other automation is work-in-process.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/com-lihaoyi/mill/issues/3450">SBT</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>While automation helps with
 some of the scaffolding the general principles laid out on this page still apply.</p>
 </div>
 </div>

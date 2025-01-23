@@ -1,26 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Why Use Mill? :: The Mill JVM Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/comparisons/why-mill.html">
-    <link rel="prev" href="../javascriptlib/testing.html">
-    <link rel="next" href="maven.html">
-    <meta name="generator" content="Antora 3.1.9">
-    <link rel="stylesheet" href="../../../_/css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/comparisons/why-mill.html" />
+    <link rel="prev" href="../javascriptlib/testing.html" />
+    <link rel="next" href="maven.html" />
+    <meta name="generator" content="Antora 3.1.9" />
+    <link rel="stylesheet" href="../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
-  </head>
-  <body class="article">
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
+  
+  </head><body class="article">
+  
 <header class="header">
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill JVM Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill JVM Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs">
+        <input id="search-input" type="text" placeholder="Search the docs" />
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -596,8 +597,8 @@ import mill._, javalib._
 
 object foo extends JavaModule {
   def ivyDeps = Agg(
-    ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
-    ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
+    ivy&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;,
+    ivy&quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;
   )
 
   object test extends JavaTests with TestModule.Junit4
@@ -656,10 +657,10 @@ both parallel and sequential, and for many modules or for a single module:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
+<col style="width: 25%;" />
+<col style="width: 25%;" />
+<col style="width: 25%;" />
+<col style="width: 25%;" />
 </colgroup>
 <tbody>
 <tr>
@@ -701,7 +702,7 @@ both parallel and sequential, and for many modules or for a single module:</p>
 </tbody>
 </table>
 <div class="paragraph">
-<p>First, let&#8217;s look at <strong>Parallel Clean Compile All</strong>.
+<p>First, let’s look at <strong>Parallel Clean Compile All</strong>.
 This benchmark involves running <code>clean</code> to delete all generated files and re-compiling
 everything in parallel. Mill sees a significant ~6x speedup over Maven for this benchmark.
 You can click on the link above to see a more detailed discussion of how this benchmark was
@@ -711,7 +712,7 @@ run.</p>
 <p>The second benchmark worth noting is <strong>Incremental Compile Single Module</strong>.
 This benchmark involves making a single edit to a single already-compiled file in <code>common</code> -
 adding a single newline to the end of the file - and re-compiling <code>common</code> and <code>common.test</code>.
-Mill sees a huge ~12x speedup for this benchmark, because Mill&#8217;s incremental compiler
+Mill sees a huge ~12x speedup for this benchmark, because Mill’s incremental compiler
 (<a href="https://github.com/sbt/zinc">Zinc</a>) is able to detect that only one file in one module
 has changed, and that the change is small enough
 to not require other files to re-compile. In contrast, Maven re-compiles all files in both
@@ -726,10 +727,10 @@ across the various workflows:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
+<col style="width: 25%;" />
+<col style="width: 25%;" />
+<col style="width: 25%;" />
+<col style="width: 25%;" />
 </colgroup>
 <tbody>
 <tr>
@@ -771,13 +772,13 @@ across the various workflows:</p>
 </tbody>
 </table>
 <div class="paragraph">
-<p>Mill&#8217;s various "clean compile" workflows 3-4x faster than Gradle&#8217;s, while it&#8217;s incremental
+<p>Mill’s various &quot;clean compile&quot; workflows 3-4x faster than Gradle’s, while it’s incremental
 and no-op compile workflows are 2x faster. Both Gradle and Mill appear to do a good job
 limiting the compilation to only the changed file, but Mill has less fixed overhead than
 Gradle does, finishing in about ~0.5s rather than ~1.5 seconds.</p>
 </div>
 <div class="paragraph">
-<p>In general, these benchmarks don&#8217;t show Mill doing anything that Maven or Gradle do not:
+<p>In general, these benchmarks don’t show Mill doing anything that Maven or Gradle do not:
 these are equivalent builds for the same projects (<a href="https://github.com/netty/netty">Netty</a> and
 <a href="https://github.com/mockito/mockito">Mockito</a> respectively), compiling the same number of files
 using the same Java compiler, in the same module structure and passing the same suite of tests.
@@ -796,20 +797,20 @@ really shine through.</p>
 of use.This is not just in superficial things like the build file or command-line syntax,
 but also in how Mill exposes how your build works and what your build is doing so you can
 understand it and confidently make changes. We will consider three cases: the Mill Chrome
-Profile, Mill Visualize, and Mill&#8217;s IDE support</p>
+Profile, Mill Visualize, and Mill’s IDE support</p>
 </div>
 <div class="sect2">
 <h3 id="_chrome_profiles"><a class="anchor" href="#_chrome_profiles"></a>Chrome Profiles</h3>
 <div class="paragraph">
 <p>All Mill runs generate some debugging metadata files in <code>out/mill-*</code>. One of these
 is <code>out/mill-chrome-profile.json</code>, which is a file following the Chrome Profiling format.
-It can be loaded into any Chrome browser&#8217;s built in <code>chrome://tracing</code> UI, to let you
+It can be loaded into any Chrome browser’s built in <code>chrome://tracing</code> UI, to let you
 interactively explore what Mill was doing during its last run. e.g. when performing a
 clean compile on the Netty codebase, the profile ends up looking like this:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/NettyCompileProfile.png" alt="NettyCompileProfile">
+<img src="../_images/comparisons/NettyCompileProfile.png" alt="NettyCompileProfile" />
 </div>
 </div>
 <div class="paragraph">
@@ -818,7 +819,7 @@ The Chrome profiling UI is interactive, so you can zoom in and out, or click on 
 tasks to show the exact duration and other metadata.</p>
 </div>
 <div class="paragraph">
-<p>But the real benefit of the Chrome profile isn&#8217;t the low-level data it provides, but the
+<p>But the real benefit of the Chrome profile isn’t the low-level data it provides, but the
 high-level view:</p>
 </div>
 <div class="ulist">
@@ -840,7 +841,7 @@ the other tasks depending on them get held up. For example, when <code>codec.com
 above, we can see a number of downstream tasks immediately start running.</p>
 </div>
 <div class="paragraph">
-<p>This understanding of your build&#8217;s performance profile is not just an academic exercise, but
+<p>This understanding of your build’s performance profile is not just an academic exercise, but
 provides actionable information:</p>
 </div>
 <div class="ulist">
@@ -873,7 +874,7 @@ show the dependency graph between the modules of the Netty build below:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/NettyCompileGraph.svg" alt="NettyCompileGraph">
+<img src="../_images/comparisons/NettyCompileGraph.svg" alt="NettyCompileGraph" />
 </div>
 </div>
 <div class="paragraph">
@@ -905,7 +906,7 @@ that <code>compileArgs</code> exists and has the type <code>List&lt;String&gt;</
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijMockitoGradleCompileOptions.png" alt="IntellijMockitoGradleCompileOptions">
+<img src="../_images/comparisons/IntellijMockitoGradleCompileOptions.png" alt="IntellijMockitoGradleCompileOptions" />
 </div>
 </div>
 <div class="paragraph">
@@ -913,11 +914,11 @@ that <code>compileArgs</code> exists and has the type <code>List&lt;String&gt;</
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijMockitoGradleCompileOptions2.png" alt="IntellijMockitoGradleCompileOptions2">
+<img src="../_images/comparisons/IntellijMockitoGradleCompileOptions2.png" alt="IntellijMockitoGradleCompileOptions2" />
 </div>
 </div>
 <div class="paragraph">
-<p>Often working with build configurations feels like hitting dead ends: if you don&#8217;t have
+<p>Often working with build configurations feels like hitting dead ends: if you don’t have
 <code>options.compilerArgs</code> memorized in your head, there is literally nothing you can do in your editor to
 make progress to figure out what it is or what it is used for. That leaves you googling
 for answers, which can be a frustrating experience that distracts you from the task at hand.</p>
@@ -931,13 +932,13 @@ the Gradle build in an IDE, the IDE can only explore the configuration logic (th
 <code>getCompilerArgs</code> <em>actually gets used in Gradle</em>)</p>
 </div>
 <div class="paragraph">
-<p>In comparison, Mill&#8217;s <code>.mill</code> files are all statically typed, and as a result IntelliJ is easily able to
-pull up the documentation for <code>def javacOptions</code>, even though it doesn&#8217;t have any special support
+<p>In comparison, Mill’s <code>.mill</code> files are all statically typed, and as a result IntelliJ is easily able to
+pull up the documentation for <code>def javacOptions</code>, even though it doesn’t have any special support
 for Mill built into the IDE:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijMockitoMillJavacOptionsDocs.png" alt="IntellijMockitoMillJavacOptionsDocs">
+<img src="../_images/comparisons/IntellijMockitoMillJavacOptionsDocs.png" alt="IntellijMockitoMillJavacOptionsDocs" />
 </div>
 </div>
 <div class="paragraph">
@@ -949,7 +950,7 @@ find the original definitions that were overridden, and show you where they are 
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijMockitoMillJavacOptionsParents.png" alt="IntellijMockitoMillJavacOptionsParents">
+<img src="../_images/comparisons/IntellijMockitoMillJavacOptionsParents.png" alt="IntellijMockitoMillJavacOptionsParents" />
 </div>
 </div>
 <div class="paragraph">
@@ -957,7 +958,7 @@ find the original definitions that were overridden, and show you where they are 
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijMockitoMillJavacOptionsDef.png" alt="IntellijMockitoMillJavacOptionsDef">
+<img src="../_images/comparisons/IntellijMockitoMillJavacOptionsDef.png" alt="IntellijMockitoMillJavacOptionsDef" />
 </div>
 </div>
 <div class="paragraph">
@@ -967,11 +968,11 @@ call in the <code>def compile</code> task, which uses <code>javacOptions()</code
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijMockitoMillCompile.png" alt="IntellijMockitoMillCompile">
+<img src="../_images/comparisons/IntellijMockitoMillCompile.png" alt="IntellijMockitoMillCompile" />
 </div>
 </div>
 <div class="paragraph">
-<p>From there, if you are curious about any of the other tasks used alongside <code>javacOptions</code>, it&#8217;s
+<p>From there, if you are curious about any of the other tasks used alongside <code>javacOptions</code>, it’s
 easy for you to pull up <em>their</em> documentation, jump to <em>their</em>
 definition, or find <em>their</em> usages. For example we can pull up the docs of
 <code>compileClasspath()</code> below, jump to <em>its</em> implementation, and continue
@@ -979,13 +980,13 @@ interactively exploring your build logic from there:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijMockitoMillCompileClasspath.png" alt="IntellijMockitoMillCompileClasspath">
+<img src="../_images/comparisons/IntellijMockitoMillCompileClasspath.png" alt="IntellijMockitoMillCompileClasspath" />
 </div>
 </div>
 <div class="paragraph">
 <p>Unlike most other build tools, Mill builds can be explored interactively in your
-IDE. If you do not know what something does, it&#8217;s documentation, definition, or usages is always
-one click away in IntelliJ or VSCode. This isn&#8217;t a new experience for Java developers, as it
+IDE. If you do not know what something does, it’s documentation, definition, or usages is always
+one click away in IntelliJ or VSCode. This isn’t a new experience for Java developers, as it
 is what you would be used to day-to-day in your application code! But Mill brings that same
 polished experience to your build system - traditionally something that has been opaque
 and hard to understand - and does so in a way that no other build tool does.</p>
@@ -1013,8 +1014,8 @@ write plugins yourself, doing so is usually non-trivial.</p>
 <p>Mill is different. Although it does have plugins for more advanced integrations, for most
 simple things you can directly write code to achieve what you want, using the bundled
 filesystem, subprocess, and dependency-management libraries. And even if you need third-party
-libraries from Maven Central to do Foo, you can directly import the "Foo" library and use it
-directly, without having to find a "Foo build plugin" wrapper.</p>
+libraries from Maven Central to do Foo, you can directly import the &quot;Foo&quot; library and use it
+directly, without having to find a &quot;Foo build plugin&quot; wrapper.</p>
 </div>
 <div class="sect2">
 <h3 id="_simple_custom_tasks"><a class="anchor" href="#_simple_custom_tasks"></a>Simple Custom Tasks</h3>
@@ -1040,7 +1041,7 @@ Compiling 1 Java source...</code></pre>
 </div>
 <div class="paragraph">
 <p>If you want to add a custom task, this is as simple as defining a method e.g.
-<code>def lineCount = Task { &#8230;&#8203; }</code>. The body of <code>Task</code> performs the action we want, and
+<code>def lineCount = Task { …​ }</code>. The body of <code>Task</code> performs the action we want, and
 can depend on other tasks such as <code>allSourceFiles()</code> below:</p>
 </div>
 <div class="listingblock">
@@ -1097,7 +1098,7 @@ object foo extends JavaModule {
 
   /** Generate resources using lineCount of sources */
   override def resources = Task {
-    os.write(Task.dest / "line-count.txt", "" + lineCount())
+    os.write(Task.dest / &quot;line-count.txt&quot;, &quot;&quot; + lineCount())
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 }</code></pre>
@@ -1117,7 +1118,7 @@ Line Count: 18</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Next, we&#8217;ll look at a more realistic example,
+<p>Next, we’ll look at a more realistic example,
 which includes usage of third-party libraries in the build.</p>
 </div>
 </div>
@@ -1147,14 +1148,14 @@ import org.thymeleaf.context.Context
 object foo extends JavaModule {
   def htmlSnippet = Task {
     val context = new Context()
-    context.setVariable("heading", "hello")
+    context.setVariable(&quot;heading&quot;, &quot;hello&quot;)
     new TemplateEngine().process(
-        "&lt;h1 th:text=\"${heading}\"&gt;&lt;/h1&gt;",
+        &quot;&lt;h1 th:text=\&quot;${heading}\&quot;&gt;&lt;/h1&gt;&quot;,
         context
     )
   }
   def resources = Task.Sources{
-    os.write(Task.dest / "snippet.txt", htmlSnippet())
+    os.write(Task.dest / &quot;snippet.txt&quot;, htmlSnippet())
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 }</code></pre>
@@ -1171,7 +1172,7 @@ is inspectable from the Mill command line via <code>show</code>, and we wire it 
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo.htmlSnippet
-"&lt;h1&gt;hello&lt;/h1&gt;"
+&quot;&lt;h1&gt;hello&lt;/h1&gt;&quot;
 
 &gt; mill foo.compile
 compiling 1 Java source...
@@ -1206,7 +1207,7 @@ implement the functionality we need.</p>
 like we would use it in any Java application, with IDE support, typechecking,
 and automatic parallelism and caching.</p>
 </div>
-<hr>
+<hr />
 <div class="paragraph">
 <p>Most real projects require some kind of ad-hoc build tasks: you may be pre-processing static
 assets for web deployment, embedding build metadata for runtime debugging, or pre-rendering
@@ -1263,9 +1264,9 @@ works. Please try it out and let us know in the
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async src="../../../_/js/vendor/highlight.js"></script>
+<script async="async" src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async src="../../../search-index.js"></script>
-  </body>
-</html>
+<script async="async" src="../../../search-index.js"></script>
+  
+</body></html>
