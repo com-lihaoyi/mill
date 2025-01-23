@@ -20,10 +20,7 @@ import mill.util.Jvm
 
 import os.{Path, ProcessOutput}
 
-import java.util.zip.ZipOutputStream
-
 import scala.annotation.nowarn
-import scala.util.Using
 
 /**
  * Core configuration required to compile a single Java compilation target
