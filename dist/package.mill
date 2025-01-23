@@ -73,7 +73,8 @@ object `package` extends RootModule with InstallModule {
 
     def testTransitiveDeps = build.runner.testTransitiveDeps() ++ Seq(
       build.main.graphviz.testDep(),
-      build.main.maven.testDep(),
+      build.main.init.maven.testDep(),
+      build.main.init.gradle.testDep(),
       build.runner.linenumbers.testDep(),
       build.scalalib.backgroundwrapper.testDep(),
       build.contrib.bloop.testDep(),
