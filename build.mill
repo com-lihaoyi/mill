@@ -202,6 +202,7 @@ object Deps {
   val mavenResolverTransportWagon =
     ivy"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
   val coursierJvmIndexVersion = "0.0.4-70-51469f"
+  val gradleApi = ivy"dev.gradleplugins:gradle-api:8.11.1"
 
   object RuntimeDeps {
     val dokkaVersion = "2.0.0"
