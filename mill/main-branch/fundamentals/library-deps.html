@@ -758,7 +758,7 @@ transitive ones.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>via external Maven BOMs, like <a href="https://repo1.maven.org/maven2/com/google/cloud/libraries-bom/26.50.0/libraries-bom-26.50.0.pom">this one</a>,
+<p>via external Maven Bill of Material (BOM), like <a href="https://repo1.maven.org/maven2/com/google/cloud/libraries-bom/26.50.0/libraries-bom-26.50.0.pom">this one</a>,
 whose Maven coordinates are <code>com.google.cloud:libraries-bom:26.50.0</code></p>
 </li>
 <li>
@@ -767,7 +767,7 @@ whose Maven coordinates are <code>com.google.cloud:libraries-bom:26.50.0</code><
 </ul>
 </div>
 <div class="sect2">
-<h3 id="_external_boms"><a class="anchor" href="#_external_boms"></a>External BOMs</h3>
+<h3 id="_external_bill_of_material_bom"><a class="anchor" href="#_external_bill_of_material_bom"></a>External Bill of Material (BOM)</h3>
 <div class="paragraph">
 <p>Pass an external BOM to a <code>JavaModule</code> / <code>ScalaModule</code> / <code>KotlinModule</code> with <code>bomIvyDeps</code>, like</p>
 </div>
@@ -803,12 +803,12 @@ for a dependency, all exclusions are added to that dependency.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_dependency_management_task"><a class="anchor" href="#_dependency_management_task"></a>Dependency management task</h3>
+<h3 id="_managed_bill_of_material_bom"><a class="anchor" href="#_managed_bill_of_material_bom"></a>Managed Bill of Material (BOM)</h3>
 <div class="paragraph">
 <p>Pass dependencies to <code>depManagement</code> in a <code>JavaModule</code> / <code>ScalaModule</code> / <code>KotlinModule</code>, like</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.5/example-fundamentals-library-deps-bom-2-dependency-management.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/fundamentals/library-deps/bom-2-dependency-management">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.5/example-fundamentals-library-deps-bom-2-managed.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/fundamentals/library-deps/bom-2-managed">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -874,6 +874,82 @@ like</p>
 <div class="paragraph">
 <p>Here, given that grpc-protobuf is fetched during dependency resolution,
 <code>com.google.protobuf:protobuf-java</code> is excluded from it because of the dependency management.</p>
+</div>
+<div class="paragraph">
+<p>One can manage and publish Bill of Material (BOM) modules from Mill, by using <code>BomModule</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object myBom extends BomModule {
+  // Importing external BOMs from our BOM module with bomIvyDeps
+  def bomIvyDeps = Agg(
+    ivy&quot;com.google.protobuf:protobuf-bom:4.28.1&quot;
+  )
+  // Managing versions directly from our BOM module with depManagement
+  def depManagement = Agg(
+    ivy&quot;io.grpc:grpc-protobuf:1.67.1&quot;
+  )
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Use the BOM you defined with bomModuleDeps:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bomUser extends JavaModule {
+  def bomModuleDeps = Seq(
+    myBom
+  )
+  def ivyDeps = Agg(
+    ivy&quot;io.grpc:grpc-protobuf&quot;
+  )
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>These BOM modules can published, resulting in a Maven module with
+packaging type <code>pom</code>, usable as a BOM from other build tools:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object myPublishedBom extends BomModule with MyPublishModule {
+  def bomIvyDeps = Agg(
+    ivy&quot;com.google.protobuf:protobuf-bom:4.28.1&quot;
+  )
+  def depManagement = Agg(
+    ivy&quot;io.grpc:grpc-protobuf:1.67.1&quot;
+  )
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Once published, the BOM can be used in other projects,
+but we can still use it right from our build with bomModuleDeps:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object publishedBomUser extends JavaModule with MyPublishModule {
+  def bomModuleDeps = Seq(
+    myPublishedBom
+  )
+  def ivyDeps = Agg(
+    ivy&quot;io.grpc:grpc-protobuf&quot;
+  )
+}
+
+trait MyPublishModule extends PublishModule {
+  def pomSettings = PomSettings(
+    description = &quot;My Project&quot;,
+    organization = &quot;com.lihaoyi.mill-examples&quot;,
+    url = &quot;https://github.com/com-lihaoyi/mill&quot;,
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github(&quot;com-lihaoyi&quot;, &quot;mill&quot;),
+    developers = Seq(Developer(&quot;me&quot;, &quot;Me&quot;, &quot;https://github.com/me&quot;))
+  )
+  def publishVersion = &quot;0.1.0&quot;
+}</code></pre>
+</div>
 </div>
 </div>
 </div>
