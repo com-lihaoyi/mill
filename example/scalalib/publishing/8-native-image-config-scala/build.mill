@@ -37,7 +37,10 @@ object ZincWorkerGraalvm extends ZincWorkerModule {
 
 /** Usage
 
-> ./mill show foo.nativeImageTool
+> ./mill show foo.nativeImageTool # mac/linux
 ".../bin/native-image"
+
+> ./mill show foo.nativeImageTool # windows
+".../bin/native-image.cmd"
 
 */
