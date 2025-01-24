@@ -22,5 +22,4 @@ trait CoverageModule extends PythonModule {
 
   }
 
-
 }

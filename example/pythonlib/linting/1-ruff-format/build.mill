@@ -60,7 +60,6 @@ print(IntWrapper(2).plus(IntWrapper(3)).x)
 // To reformat all your source files *across all projects*, simply use Mill's task wildcard selector
 // `mill __.ruffFormat`
 
-
 // You can create a `ruff.toml` file in your project root to adjust the
 // formatting options as desired. For example,
 
