@@ -66,7 +66,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
   def mainScript: T[PathRef] = Task.Source { millSourcePath / "src" / "main.py" }
 
   override def pythonToolDeps: T[Seq[String]] = Task {
-    super.pythonToolDeps() ++ Seq("mypy==1.13.0", "pex==2.24.1", "ruff>=0.8.1")
+    super.pythonToolDeps() ++ Seq("mypy==1.13.0", "pex==2.24.1")
   }
 
   /**

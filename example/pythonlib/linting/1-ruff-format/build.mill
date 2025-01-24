@@ -1,3 +1,5 @@
+// First, make your module extend `pythonlib.RuffModule`.
+
 package build
 import mill._, pythonlib._
 
@@ -6,6 +8,7 @@ object `package` extends RootModule with PythonModule with RuffModule
 // You can reformat your project's code by running the `ruffFormat` task.
 
 /** Usage
+
 > cat src/main.py # initial poorly formatted source code
 from typing import Self
 class IntWrapper:
@@ -16,54 +19,68 @@ class IntWrapper:
 print(IntWrapper(2).plus(IntWrapper(3)).x)
 ...
 
+> mill ruffFormat --diff # you can also pass in extra arguments understood by `ruff format`
+error: ...
+error: @@ -1,7 +1,12 @@
+error:  from typing import Self
+error: +
+error: +
+error:  class IntWrapper:
+error: -   def __init__(self, x:int):
+error: -     self.x    =x
+error: -   def plus(self, w:Self) ->   Self:
+error: -      return     IntWrapper(self.x + w.x)
+error: +    def __init__(self, x: int):
+error: +        self.x = x
+error: +
+error: +    def plus(self, w: Self) -> Self:
+error: +        return IntWrapper(self.x + w.x)
+error: +
+error: +
+error:  print(IntWrapper(2).plus(IntWrapper(3)).x)
+error: ...
+error: 1 file would be reformatted
+
 > mill ruffFormat
 ...1 file reformatted
 
 > cat src/main.py # the file is now correctly formatted
 from typing import Self
-
-
+...
 class IntWrapper:
     def __init__(self, x: int):
         self.x = x
-
+...
     def plus(self, w: Self) -> Self:
         return IntWrapper(self.x + w.x)
-
-
+...
 print(IntWrapper(2).plus(IntWrapper(3)).x)
 */
 
 // To reformat all your source files *across all projects*, simply use Mill's task wildcard selector
 // `mill __.ruffFormat`
-//
-// You can also pass in additional arguments that are understood by ruff. For example, if you only
-// want to check and see the diff of unformatted files (but not actually fix them), you can pass in
-// the `--diff` option:
+
+
+// You can create a `ruff.toml` file in your project root to adjust the
+// formatting options as desired. For example,
 
 /** Usage
-> mill ruffFormat --diff
+
+> echo indent-width=2 > ruff.toml
+
+> mill ruffFormat
+...1 file reformatted
+
+> cat src/main.py # the file is now correctly formatted with 2 spaces indentation
+from typing import Self
 ...
-@@ -1,7 +1,12 @@
- from typing import Self
-+
-+
- class IntWrapper:
--   def __init__(self, x:int):
--     self.x    =x
--   def plus(self, w:Self) ->   Self:
--      return     IntWrapper(self.x + w.x)
-+    def __init__(self, x: int):
-+        self.x = x
-+
-+    def plus(self, w: Self) -> Self:
-+        return IntWrapper(self.x + w.x)
-+
-+
- print(IntWrapper(2).plus(IntWrapper(3)).x)
+class IntWrapper:
+  def __init__(self, x: int):
+    self.x = x
+...
+  def plus(self, w: Self) -> Self:
+    return IntWrapper(self.x + w.x)
+...
+print(IntWrapper(2).plus(IntWrapper(3)).x)
 
-1 file would be reformatted
 */
-
-// You can create or modify a `ruff.toml` file in your project root to adjust the formatting options
-// as desired:
