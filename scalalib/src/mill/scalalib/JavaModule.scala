@@ -430,28 +430,41 @@ trait JavaModule
     (runModuleDepsChecked ++ moduleDepsChecked).flatMap(_.transitiveRunModuleDeps).distinct
   }
 
-  /**
-   * Show the module dependencies.
-   * @param recursive If `true` include all recursive module dependencies, else only show direct dependencies.
-   */
-  def showModuleDeps(recursive: Boolean = false): Command[Unit] = Task.Command {
+  private def formatModuleDeps(recursive: Boolean): Task[String] = Task.Anon {
     val normalDeps = if (recursive) recursiveModuleDeps else moduleDepsChecked
     val compileDeps =
       if (recursive) compileModuleDepsChecked.flatMap(_.transitiveModuleDeps).distinct
       else compileModuleDepsChecked
     val deps = (normalDeps ++ compileDeps).distinct
-    val asString =
-      s"${
-          if (recursive) "Recursive module"
-          else "Module"
-        } dependencies of ${millModuleSegments.render}:\n\t${deps
-          .map { dep =>
-            dep.millModuleSegments.render ++
-              (if (compileModuleDepsChecked.contains(dep) || !normalDeps.contains(dep)) " (compile)"
-               else "")
-          }
-          .mkString("\n\t")}"
-    T.log.outputStream.println(asString)
+    s"${
+        if (recursive) "Recursive module"
+        else "Module"
+      } dependencies of ${millModuleSegments.render}:\n\t${deps
+        .map { dep =>
+          dep.millModuleSegments.render ++
+            (if (compileModuleDepsChecked.contains(dep) || !normalDeps.contains(dep)) " (compile)"
+             else "")
+        }
+        .mkString("\n\t")}"
+  }
+  private def formattedModuleDeps = Task {
+    formatModuleDeps(false)
+  }
+  private def formattedRecursiveModuleDeps = Task {
+    formatModuleDeps(true)
+  }
+
+  /**
+   * Show the module dependencies.
+   * @param recursive If `true` include all recursive module dependencies, else only show direct dependencies.
+   */
+  def showModuleDeps(recursive: Boolean = false): Command[Unit] = {
+    val formatted = if(recursive) formattedRecursiveModuleDeps else formattedModuleDeps
+    // This is exclusive to avoid scrambled output
+    Task.Command(exclusive = true) {
+      val asString = formatted()
+      T.log.outputStream.println(asString)
+    }
   }
 
   /**
