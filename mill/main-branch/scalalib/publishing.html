@@ -994,6 +994,61 @@ Finished generating...native-executable...
 Hello, World!</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>For another example building a slightly less trivial project into a Graal native
+image, see below:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.5/example-scalalib-publishing-8-native-image-config-scala.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/scalalib/publishing/8-native-image-config-scala">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, scalalib._
+import mill.define.ModuleRef
+
+object foo extends ScalaModule with NativeImageModule {
+  def scalaVersion = &quot;2.13.11&quot;
+
+  def nativeImageOptions = Seq(&quot;--no-fallback&quot;)
+
+  def ivyDeps = Agg(
+    ivy&quot;com.lihaoyi::scalatags:0.13.1&quot;,
+    ivy&quot;com.lihaoyi::mainargs:0.6.2&quot;
+  )
+
+  def zincWorker = ModuleRef(ZincWorkerGraalvm)
+}
+
+object ZincWorkerGraalvm extends ZincWorkerModule {
+  def jvmId = &quot;graalvm-community:17.0.7&quot;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example shows how to generate native images for projects using third-party
+libraries, in this case Scalatags and Mainargs.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo.nativeImage
+
+&gt; ./out/foo/nativeImage.dest/native-executable --text hello-world
+&lt;h1&gt;hello-world&lt;/h1&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also access the <code>native-image</code> compiler directly via <code>show foo.nativeImageTool</code>
+if you want to experiment it or view its <code>--help</code> text to see what you need to pass to
+<code>nativeImageOptions</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo.nativeImageTool # mac/linux
+&quot;.../bin/native-image&quot;
+
+&gt; ./mill show foo.nativeImageTool # windows
+&quot;.../bin/native-image.cmd&quot;</code></pre>
+</div>
+</div>
 </div>
 </div>
 <nav class="pagination">
