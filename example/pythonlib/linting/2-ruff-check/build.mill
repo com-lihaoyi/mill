@@ -1,0 +1,49 @@
+package build
+import mill._, pythonlib._
+
+object `package` extends RootModule with PythonModule with RuffModule {
+}
+
+/** See Also: src/main.py */
+
+// Ruff can be used as a linter, to catch some common code smells. Run `ruffCheck` on your module:
+
+/** Usage
+
+> mill ruffCheck
+error: ...
+error: ...F401 [*] `os` imported but unused
+error:   |
+error: 1 | import os
+error:   |        ^^ F401
+error: 2 |
+error: 3 | def doit(x: int):
+error:   |
+error:   = help: Remove unused import: `os`
+error: ...
+error: ...F541 [*] f-string without any placeholders
+error:   |
+error: 3 | def doit(x: int):
+error: 4 |     print(f"")
+error:   |           ^^^ F541
+error:   |
+error:   = help: Remove extraneous `f` prefix
+error: ...
+error: Found 2 errors.
+error: [*] 2 fixable with the `--fix` option.
+
+*/
+
+// Ruff can fix most errors automatically with `ruffCheck --fix`
+
+/** Usage
+
+> mill ruffCheck --fix
+Found 2 errors (2 fixed, 0 remaining).
+
+> cat src/main.py
+...
+def doit(x: int):
+    print("")
+
+*/
