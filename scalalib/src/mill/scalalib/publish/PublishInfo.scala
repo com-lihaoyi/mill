@@ -23,4 +23,21 @@ case class PublishInfo(
 
 object PublishInfo {
   implicit def jsonify: upickle.default.ReadWriter[PublishInfo] = upickle.default.macroRW
+
+  private[mill] def jar(jar: PathRef): PublishInfo =
+    PublishInfo(jar, ivyConfig = "compile")
+  private[mill] def sourcesJar(sourcesJar: PathRef): PublishInfo =
+    PublishInfo(
+      sourcesJar,
+      ivyType = "src",
+      classifier = Some("sources"),
+      ivyConfig = "compile"
+    )
+  private[mill] def docJar(docJar: PathRef): PublishInfo =
+    PublishInfo(
+      docJar,
+      ivyType = "doc",
+      classifier = Some("javadoc"),
+      ivyConfig = "compile"
+    )
 }

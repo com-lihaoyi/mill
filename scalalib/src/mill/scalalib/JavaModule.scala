@@ -177,7 +177,7 @@ trait JavaModule
   def runIvyDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
   /**
-   * Any BOM dependencies you want to add to this Module, in the format
+   * Any Bill of Material (BOM) dependencies you want to add to this Module, in the format
    * ivy"org:name:version"
    */
   def bomIvyDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
@@ -202,7 +202,7 @@ trait JavaModule
       }
     else
       throw new Exception(
-        "Found BOM dependencies with invalid parameters:" + System.lineSeparator() +
+        "Found Bill of Material (BOM) dependencies with invalid parameters:" + System.lineSeparator() +
           malformed.map("- " + _.dep + System.lineSeparator()).mkString +
           "Only organization, name, and version are accepted."
       )
@@ -312,6 +312,15 @@ trait JavaModule
   def runModuleDeps: Seq[JavaModule] = Seq.empty
 
   /**
+   *  Bill of Material (BOM) dependencies of this module.
+   *  This is meant to be overridden to add BOM dependencies.
+   *  To read the value, you should use [[bomModuleDepsChecked]] instead,
+   *  which uses a cached result which is also checked to be free of cycles.
+   *  @see [[bomModuleDepsChecked]]
+   */
+  def bomModuleDeps: Seq[BomModule] = Seq.empty
+
+  /**
    * Same as [[moduleDeps]] but checked to not contain cycles.
    * Prefer this over using [[moduleDeps]] directly.
    */
@@ -338,6 +347,16 @@ trait JavaModule
     runModuleDeps
   }
 
+  /**
+   * Same as [[bomModuleDeps]] but checked to not contain cycles.
+   * Prefer this over using [[bomModuleDeps]] directly.
+   */
+  final def bomModuleDepsChecked: Seq[BomModule] = {
+    // trigger initialization to check for cycles
+    recBomModuleDeps
+    bomModuleDeps
+  }
+
   /** Should only be called from [[moduleDepsChecked]] */
   private lazy val recModuleDeps: Seq[JavaModule] =
     ModuleUtils.recursive[JavaModule](
@@ -360,6 +379,14 @@ trait JavaModule
       (millModuleSegments ++ Seq(Segment.Label("runModuleDeps"))).render,
       this,
       m => m.runModuleDeps ++ m.moduleDeps
+    )
+
+  /** Should only be called from [[bomModuleDepsChecked]] */
+  private lazy val recBomModuleDeps: Seq[BomModule] =
+    ModuleUtils.recursive[BomModule](
+      (millModuleSegments ++ Seq(Segment.Label("bomModuleDeps"))).render,
+      null,
+      mod => if (mod == null) bomModuleDeps else mod.bomModuleDeps
     )
 
   /** The direct and indirect dependencies of this module */
@@ -488,21 +515,32 @@ trait JavaModule
     )
 
     val internalDependencies =
-      moduleDepsChecked.flatMap { modDep =>
-        // Standard dependencies
-        // We pull their compile scope when our compile scope is asked,
-        // and pull their runtime scope when our runtime scope is asked.
-        Seq(
-          (
-            cs.Configuration.compile,
-            modDep.coursierDependency.withConfiguration(cs.Configuration.compile)
+      bomModuleDepsChecked.map { modDep =>
+        val dep = coursier.core.Dependency(
+          coursier.core.Module(
+            coursier.core.Organization("mill-internal"),
+            coursier.core.ModuleName(modDep.millModuleSegments.parts.mkString("-")),
+            Map.empty
           ),
-          (
-            cs.Configuration.runtime,
-            modDep.coursierDependency.withConfiguration(cs.Configuration.runtime)
-          )
+          "0+mill-internal"
         )
+        (coursier.core.Configuration.`import`, dep)
       } ++
+        moduleDepsChecked.flatMap { modDep =>
+          // Standard dependencies
+          // We pull their compile scope when our compile scope is asked,
+          // and pull their runtime scope when our runtime scope is asked.
+          Seq(
+            (
+              cs.Configuration.compile,
+              modDep.coursierDependency.withConfiguration(cs.Configuration.compile)
+            ),
+            (
+              cs.Configuration.runtime,
+              modDep.coursierDependency.withConfiguration(cs.Configuration.runtime)
+            )
+          )
+        } ++
         compileModuleDepsChecked.map { modDep =>
           // Compile-only (aka provided) dependencies
           // We pull their compile scope when our provided scope is asked (see scopes above)
@@ -589,11 +627,12 @@ trait JavaModule
     Seq(coursierProject()) ++
       T.traverse(compileModuleDepsChecked)(_.transitiveCoursierProjects)().flatten ++
       T.traverse(moduleDepsChecked)(_.transitiveCoursierProjects)().flatten ++
-      T.traverse(runModuleDepsChecked)(_.transitiveCoursierProjects)().flatten
+      T.traverse(runModuleDepsChecked)(_.transitiveCoursierProjects)().flatten ++
+      T.traverse(bomModuleDepsChecked)(_.transitiveCoursierProjects)().flatten
   }
 
   /**
-   * The Ivy dependencies of this module, with BOM and dependency management details
+   * The Ivy dependencies of this module, with Bill of Material (BOM) and dependency management details
    * added to them. This should be used when propagating the dependencies transitively
    * to other modules.
    */
@@ -1518,4 +1557,38 @@ object JavaModule {
 
   private[mill] def internalOrg = coursier.core.Organization("mill-internal")
   private[mill] def internalVersion = "0+mill-internal"
+}
+
+/**
+ * A module that consists solely of dependency management
+ *
+ * To be used by other modules via `JavaModule#bomModuleDeps`
+ */
+trait BomModule extends JavaModule {
+  def compile: T[CompilationResult] = Task {
+    val sources = allSourceFiles()
+    if (sources.nonEmpty)
+      throw new Exception("A BomModule cannot have sources")
+    CompilationResult(T.dest / "zinc", PathRef(T.dest / "classes"))
+  }
+
+  def resources: T[Seq[PathRef]] = Task {
+    val value = super.resources()
+    if (value.nonEmpty)
+      throw new Exception("A BomModule cannot have resources")
+    Seq.empty[PathRef]
+  }
+
+  private def emptyJar: T[PathRef] = Task {
+    Jvm.createJar(Agg.empty[os.Path])
+  }
+  def jar: T[PathRef] = Task {
+    emptyJar()
+  }
+  def docJar: T[PathRef] = Task {
+    emptyJar()
+  }
+  def sourceJar: T[PathRef] = Task {
+    emptyJar()
+  }
 }
