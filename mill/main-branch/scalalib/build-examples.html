@@ -645,7 +645,7 @@ when preparing the resources for test suite execution</p>
 object Deps {
   def acyclic = ivy&quot;com.lihaoyi:::acyclic:0.3.6&quot;
   def scalaCompiler(scalaVersion: String) = ivy&quot;org.scala-lang:scala-compiler:$scalaVersion&quot;
-  val utest = ivy&quot;com.lihaoyi::utest:0.8.4&quot;
+  val utest = ivy&quot;com.lihaoyi::utest:0.8.5&quot;
 }
 
 val crosses =
@@ -746,7 +746,7 @@ trait FansiModule extends PublishModule with CrossScalaModule with PlatformScala
   def ivyDeps = Agg(ivy&quot;com.lihaoyi::sourcecode::0.3.0&quot;)
 
   trait FansiTests extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest::0.8.4&quot;)
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest::0.8.5&quot;)
   }
 }
 

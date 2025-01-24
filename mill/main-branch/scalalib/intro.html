@@ -641,7 +641,7 @@ object foo extends ScalaModule {
   )
 
   object test extends ScalaTests {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
   }
 }</code></pre>
@@ -987,7 +987,7 @@ import mill._, scalalib._
 trait MyModule extends ScalaModule {
   def scalaVersion = &quot;2.13.11&quot;
   object test extends ScalaTests {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
   }
 }
@@ -1153,7 +1153,7 @@ import mill._, scalalib._
 object foo extends SbtModule {
   def scalaVersion = &quot;2.13.8&quot;
   object test extends SbtTests {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
   }
 }
@@ -1161,7 +1161,7 @@ object foo extends SbtModule {
 object bar extends Cross[BarModule](&quot;2.12.17&quot;, &quot;2.13.8&quot;)
 trait BarModule extends CrossSbtModule {
   object test extends CrossSbtTests {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
   }
 }</code></pre>
@@ -1265,7 +1265,7 @@ trait MyModule extends PublishModule {
 trait MyScalaModule extends MyModule with CrossScalaModule {
   def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags:0.13.1&quot;)
   object test extends ScalaTests {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
   }
 }

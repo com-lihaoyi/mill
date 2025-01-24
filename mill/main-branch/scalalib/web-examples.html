@@ -639,7 +639,7 @@ object `package` extends RootModule with ScalaModule {
     def testFramework = &quot;utest.runner.Framework&quot;
 
     def ivyDeps = Agg(
-      ivy&quot;com.lihaoyi::utest::0.8.4&quot;,
+      ivy&quot;com.lihaoyi::utest::0.8.5&quot;,
       ivy&quot;com.lihaoyi::requests::0.6.9&quot;
     )
   }
@@ -703,7 +703,7 @@ object `package` extends RootModule with ScalaModule {
   object test extends ScalaTests {
     def testFramework = &quot;utest.runner.Framework&quot;
     def ivyDeps = Agg(
-      ivy&quot;com.lihaoyi::utest::0.8.4&quot;,
+      ivy&quot;com.lihaoyi::utest::0.8.5&quot;,
       ivy&quot;com.lihaoyi::requests::0.6.9&quot;
     )
   }
@@ -770,7 +770,7 @@ object foo extends ScalaJSModule {
   def scalaJSVersion = &quot;1.16.0&quot;
   def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags::0.13.1&quot;)
   object test extends ScalaJSTests {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest::0.8.4&quot;)
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest::0.8.5&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
   }
 }</code></pre>
@@ -855,7 +855,7 @@ object `package` extends RootModule with ScalaModule {
     def testFramework = &quot;utest.runner.Framework&quot;
 
     def ivyDeps = Agg(
-      ivy&quot;com.lihaoyi::utest::0.8.4&quot;,
+      ivy&quot;com.lihaoyi::utest::0.8.5&quot;,
       ivy&quot;com.lihaoyi::requests::0.6.9&quot;
     )
   }
@@ -933,7 +933,7 @@ object `package` extends RootModule with AppScalaModule {
   object test extends ScalaTests with TestModule.Utest {
 
     def ivyDeps = Agg(
-      ivy&quot;com.lihaoyi::utest::0.8.4&quot;,
+      ivy&quot;com.lihaoyi::utest::0.8.5&quot;,
       ivy&quot;com.lihaoyi::requests::0.6.9&quot;
     )
   }
@@ -1025,7 +1025,7 @@ trait FooModule extends Cross.Module[String] {
   }
 
   trait FooTestModule extends TestModule {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest::0.8.4&quot;)
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest::0.8.5&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
   }
 
@@ -1142,7 +1142,7 @@ trait Shared extends CrossScalaModule with PlatformScalaModule with PublishModul
 }
 
 trait SharedTestModule extends TestModule {
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest::0.8.4&quot;)
+  def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest::0.8.5&quot;)
   def testFramework = &quot;utest.runner.Framework&quot;
 }
 
