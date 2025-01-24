@@ -111,18 +111,18 @@ transitive ones.
 
 Dependency management can be passed to Mill in two ways:
 
-* via external Maven BOMs, like https://repo1.maven.org/maven2/com/google/cloud/libraries-bom/26.50.0/libraries-bom-26.50.0.pom[this one],
+* via external Maven Bill of Material (BOM), like https://repo1.maven.org/maven2/com/google/cloud/libraries-bom/26.50.0/libraries-bom-26.50.0.pom[this one],
 whose Maven coordinates are `com.google.cloud:libraries-bom:26.50.0`
 
 * via the `depManagement` task, that allows to directly list dependencies whose versions we want to enforce
 
-=== External BOMs
+=== External Bill of Material (BOM)
 
 include::partial$example/fundamentals/library-deps/bom-1-external-bom.adoc[]
 
-=== Dependency management task
+=== Managed Bill of Material (BOM)
 
-include::partial$example/fundamentals/library-deps/bom-2-dependency-management.adoc[]
+include::partial$example/fundamentals/library-deps/bom-2-managed.adoc[]
 
 == Searching For Dependency Updates
 

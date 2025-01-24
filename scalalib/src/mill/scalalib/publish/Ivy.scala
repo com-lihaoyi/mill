@@ -10,14 +10,38 @@ object Ivy {
 
   case class Override(organization: String, name: String, version: String)
 
+  /**
+   * Generates the content of an ivy.xml file
+   *
+   * @param artifact Coordinates of the module
+   * @param dependencies Dependencies of the module
+   * @param extras Extra artifacts published alongside the module
+   * @param overrides Version overrides
+   * @param hasJar Whether the module has a JAR
+   * @return ivy.xml content
+   */
   def apply(
       artifact: Artifact,
       dependencies: Agg[Dependency],
       extras: Seq[PublishInfo] = Seq.empty,
-      overrides: Seq[Override] = Nil
+      overrides: Seq[Override] = Nil,
+      hasJar: Boolean = true
   ): String = {
 
-    def renderExtra(e: PublishInfo): Elem = {
+    val mainPublishInfo = {
+      val pomInfo = PublishInfo(null, ivyType = "pom", ext = "pom", ivyConfig = "pom")
+      if (hasJar)
+        Seq(
+          pomInfo,
+          PublishInfo.jar(null),
+          PublishInfo.sourcesJar(null),
+          PublishInfo.docJar(null)
+        )
+      else
+        Seq(pomInfo)
+    }
+
+    def renderArtifact(e: PublishInfo): Elem = {
       e.classifier match {
         case None =>
           <artifact name={artifact.id} type={e.ivyType} ext={e.ext} conf={e.ivyConfig} />
@@ -46,11 +70,7 @@ object Ivy {
         </configurations>
 
         <publications>
-          <artifact name={artifact.id} type="pom" ext="pom" conf="pom"/>
-          <artifact name={artifact.id} type="jar" ext="jar" conf="compile"/>
-          <artifact name={artifact.id} type="src" ext="jar" conf="compile" e:classifier="sources"/>
-          <artifact name={artifact.id} type="doc" ext="jar" conf="compile" e:classifier="javadoc"/>
-          {extras.map(renderExtra)}
+          {(mainPublishInfo ++ extras).map(renderArtifact)}
         </publications>
         <dependencies>
           {dependencies.map(renderDependency).toSeq}
@@ -61,6 +81,21 @@ object Ivy {
     val pp = new PrettyPrinter(120, 4)
     head + pp.format(xml).replaceAll("&gt;", ">")
   }
+
+  // bin-compat shim
+  def apply(
+      artifact: Artifact,
+      dependencies: Agg[Dependency],
+      extras: Seq[PublishInfo],
+      overrides: Seq[Override]
+  ): String =
+    apply(
+      artifact,
+      dependencies,
+      extras,
+      overrides,
+      hasJar = true
+    )
 
   // bin-compat shim
   def apply(
