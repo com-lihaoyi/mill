@@ -133,7 +133,7 @@ object TestModule {
              ujson.Obj("tsconfig" -> "tsconfig.json")
            )))},
             |moduleFileExtensions: ${ujson.Arr.from(Seq("ts", "tsx", "js", "jsx", "json", "node"))},
-            |moduleNameMapper: pathsToModuleNameMapper(moduleDeps)
+            |moduleNameMapper: pathsToModuleNameMapper(sortedModuleDeps)
             |}
             |""".stripMargin
 
