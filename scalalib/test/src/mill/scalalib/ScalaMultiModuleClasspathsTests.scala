@@ -13,7 +13,7 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
 
       def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.2")
       def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.4.2")
-      def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
+      def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.8.5")
       def unmanagedClasspath = Task { Agg(PathRef(millSourcePath / "unmanaged")) }
     }
     trait BarModule extends ScalaModule {
@@ -21,7 +21,7 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
 
       def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.1")
       def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.4.1")
-      def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
+      def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.8.5")
       def unmanagedClasspath = Task { Agg(PathRef(millSourcePath / "unmanaged")) }
     }
     trait QuxModule extends ScalaModule {
@@ -29,7 +29,7 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
 
       def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.2.0")
       def compileIvyDeps = Agg(ivy"com.lihaoyi::geny:0.4.0")
-      def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
+      def runIvyDeps = Agg(ivy"com.lihaoyi::utest:0.8.5")
       def unmanagedClasspath = Task { Agg(PathRef(millSourcePath / "unmanaged")) }
     }
     object ModMod extends Module {
@@ -137,7 +137,7 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
           "com/lihaoyi/sourcecode_2.13/0.2.2/sourcecode_2.13-0.2.2.jar",
           // We pick up the oldest version of utest 0.7.0 from the current module, because
           // utest is a `runIvyDeps` and not picked up transitively
-          "com/lihaoyi/utest_2.13/0.8.4/utest_2.13-0.8.4.jar",
+          "com/lihaoyi/utest_2.13/0.8.5/utest_2.13-0.8.5.jar",
           "org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
           "org/portable-scala/portable-scala-reflect_2.13/1.1.3/portable-scala-reflect_2.13-1.1.3.jar",
           "org/scala-lang/scala-reflect/2.13.12/scala-reflect-2.13.12.jar",
@@ -200,7 +200,7 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
           // dependencies for `qux`'s `runClasspath`
           "com/lihaoyi/sourcecode_2.13/0.2.0/sourcecode_2.13-0.2.0.jar",
           // `utest` is a `runIvyDeps` and not picked up transitively
-          "com/lihaoyi/utest_2.13/0.8.4/utest_2.13-0.8.4.jar",
+          "com/lihaoyi/utest_2.13/0.8.5/utest_2.13-0.8.5.jar",
           //
           "org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
           "org/portable-scala/portable-scala-reflect_2.13/1.1.3/portable-scala-reflect_2.13-1.1.3.jar",
@@ -255,7 +255,7 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
           // from `foo` because it's a `compileIvyDeps` from `bar` to `foo` and
           // `compileIvyDeps` are not transitive
           "com/lihaoyi/sourcecode_2.13/0.2.1/sourcecode_2.13-0.2.1.jar",
-          "com/lihaoyi/utest_2.13/0.8.4/utest_2.13-0.8.4.jar",
+          "com/lihaoyi/utest_2.13/0.8.5/utest_2.13-0.8.5.jar",
           //
           "org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
           "org/portable-scala/portable-scala-reflect_2.13/1.1.3/portable-scala-reflect_2.13-1.1.3.jar",
@@ -300,7 +300,7 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
         expectedRunClasspath = List(
           "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
           "com/lihaoyi/sourcecode_2.13/0.2.2/sourcecode_2.13-0.2.2.jar",
-          "com/lihaoyi/utest_2.13/0.8.4/utest_2.13-0.8.4.jar",
+          "com/lihaoyi/utest_2.13/0.8.5/utest_2.13-0.8.5.jar",
           "org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
           "org/portable-scala/portable-scala-reflect_2.13/1.1.3/portable-scala-reflect_2.13-1.1.3.jar",
           "org/scala-lang/scala-reflect/2.13.12/scala-reflect-2.13.12.jar",
@@ -343,7 +343,7 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
         expectedRunClasspath = List(
           "org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar",
           "com/lihaoyi/sourcecode_2.13/0.2.2/sourcecode_2.13-0.2.2.jar",
-          "com/lihaoyi/utest_2.13/0.8.4/utest_2.13-0.8.4.jar",
+          "com/lihaoyi/utest_2.13/0.8.5/utest_2.13-0.8.5.jar",
           "org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
           "org/portable-scala/portable-scala-reflect_2.13/1.1.3/portable-scala-reflect_2.13-1.1.3.jar",
           "org/scala-lang/scala-reflect/2.13.12/scala-reflect-2.13.12.jar",

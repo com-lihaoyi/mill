@@ -20,7 +20,7 @@ trait FooModule extends Cross.Module[String] {
   }
 
   trait FooTestModule extends TestModule {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.8.4")
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.8.5")
     def testFramework = "utest.runner.Framework"
   }
 

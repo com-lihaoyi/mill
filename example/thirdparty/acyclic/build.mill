@@ -13,7 +13,7 @@ os.copy.over(
 object Deps {
   def acyclic = ivy"com.lihaoyi:::acyclic:0.3.6"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:$scalaVersion"
-  val utest = ivy"com.lihaoyi::utest:0.8.4"
+  val utest = ivy"com.lihaoyi::utest:0.8.5"
 }
 
 val crosses =
