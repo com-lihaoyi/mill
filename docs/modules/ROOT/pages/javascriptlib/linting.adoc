@@ -1,0 +1,23 @@
+= Linting Typescript Projects
+:page-aliases: Linting_Typescript_Projects.adoc
+
+include::partial$gtag-config.adoc[]
+
+This page will discuss common topics around maintaining the code quality of Typescript
+codebases using the Mill build tool
+
+== Linting and AutoFormatting with Eslint and Prettier
+
+Eslint and Prettier are tools that analyzes your Scala source code, performing intelligent analyses and
+code quality checks, and is often able to automatically fix the issues that it discovers.
+It can also perform automated refactoring.
+
+include::partial$example/javascriptlib/linting/1-linting.adoc[]
+
+include::partial$example/javascriptlib/linting/2-autoformatting.adoc[]
+
+== Code Coverage with Jest, Mocha, Vitest and Jasmine
+
+Mill supports code coverage analysis with multiple Typescript testing frameworks.
+
+include::partial$example/javascriptlib/linting/3-code-coverage.adoc[]

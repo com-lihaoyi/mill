@@ -5,7 +5,7 @@ import os.*
 
 import scala.util.Try
 
-trait TypeScriptModule extends Module { outer =>
+trait TypeScriptModule extends TsLintModule { outer =>
   def moduleDeps: Seq[TypeScriptModule] = Nil
 
   def npmDeps: T[Seq[String]] = Task { Seq.empty[String] }
@@ -34,11 +34,11 @@ trait TypeScriptModule extends Module { outer =>
       "--userconfig",
       ".npmrc",
       "--save-dev",
-      "@types/node@22.10.2",
+      "@types/node@22.10.9",
       "@types/esbuild-copy-static-files@0.1.4",
-      "typescript@5.7.2",
+      "typescript@5.7.3",
       "ts-node@^10.9.2",
-      "esbuild@0.24.0",
+      "esbuild@0.24.2",
       "esbuild-plugin-copy@2.1.1",
       "@esbuild-plugins/tsconfig-paths@0.1.2",
       "esbuild-copy-static-files@0.1.0",
