@@ -24,8 +24,10 @@ runs:
     - run: ./mill -i -k selective.resolve ${{ inputs.millargs }}
       shell: ${{ inputs.shell }}
 
-    - run: cat out/mill-build/methodCodeHashSignatures.dest/current/spanningInvalidationTree.json
-      shell: bash
+    # This generates a lot of logs and slows down the github actions UI like crazy, 
+    # so only uncomment it when really necessary
+    #- run: cat out/mill-build/methodCodeHashSignatures.dest/current/spanningInvalidationTree.json
+    #  shell: bash
 
     - run: ./mill -i -k selective.resolveTree ${{ inputs.millargs }}
       shell: ${{ inputs.shell }}

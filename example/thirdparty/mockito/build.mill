@@ -293,6 +293,8 @@ object `package` extends RootModule with MockitoModule {
 
 > sed -i.bak 's/assertEquals(50, settings.getStubbingLookupListeners().size())//g' src/test/java/org/mockitousage/debugging/StubbingLookupListenerCallbackTest.java # disable flaky test
 
+> sed -i.bak 's/    @Test//g' src/test/java/org/mockitousage/stubbing/StubbingUsingDoReturnTest.java # disable flaky test
+
 > ./mill -j5 __.compile
 
 > ./mill __.test

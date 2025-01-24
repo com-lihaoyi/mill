@@ -47,6 +47,8 @@ example/
 
 * scalaPBSearchDeps - A `Boolean` option which determines whether to search for `.proto` files in dependencies and add them to `scalaPBIncludePath`. Defaults to `false`.
 
+* scalaPBScala3Sources - Generate the sources with scala 3 syntax (i. e. use `?` instead of `_` in types)
+
 * scalaPBIncludePath - Additional paths to include `.proto` files when compiling.
 
 If you'd like to configure the https://scalapb.github.io/docs/scalapbc#passing-generator-parameters[options] that are passed to the ScalaPB compiler directly, you can override the `scalaPBOptions` task, for example:

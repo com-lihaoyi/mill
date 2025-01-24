@@ -15,91 +15,44 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-artifacts:
-    # when in master repo, publish all tags and manual runs on main
-    if: github.repository == 'com-lihaoyi/mill'
-    runs-on: ubuntu-latest
-    env:
-      MILL_STABLE_VERSION: 1
-    steps:
-      - uses: actions/checkout@v4
-        with: {fetch-depth: 0}
-
-      - uses: coursier/cache-action@v6
-
-      - run: "echo temurin:11 > .mill-jvm-version"
-
-      - run: ./mill -i __.publishArtifacts
-
-      - uses: actions/upload-artifact@v4.6.0
-        with:
-          path: .
-          include-hidden-files: true
-          name: publish-artifacts
-
   publish-sonatype:
-    # when in master repo, publish all tags and manual runs on main
-    if: github.repository == 'com-lihaoyi/mill'
-    needs: build-artifacts
-    runs-on: ubuntu-latest
-
-    # only run one publish job for the same sha at the same time
-    # e.g. when a main-branch push is also tagged
-    concurrency: publish-sonatype-${{ github.sha }}
-
-    env:
-      MILL_STABLE_VERSION: 1
-      MILL_SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-      MILL_SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-      MILL_PGP_SECRET_BASE64: ${{ secrets.SONATYPE_PGP_PRIVATE_KEY }}
-      MILL_PGP_PASSPHRASE: ${{ secrets.SONATYPE_PGP_PRIVATE_KEY_PASSWORD }}
-      LANG: "en_US.UTF-8"
-      LC_MESSAGES: "en_US.UTF-8"
-      LC_ALL: "en_US.UTF-8"
-
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          path: .
-          name: publish-artifacts
-
-      - run: ls -la .
-
-      # Need to fix cached artifact file permissions because github actions screws it up
-      # https://github.com/actions/upload-artifact/issues/38
-      # Best is, we restore any file to avoid any changes
-      - run: git reset --hard
-
-      - uses: coursier/cache-action@v6
-
-      - run: "echo temurin:11 > .mill-jvm-version"
-
-      - run: ./mill -i mill.scalalib.PublishModule/
-
-  publish-sonatype-native:
     # when in master repo, publish all tags and manual runs on main
     if: github.repository == 'com-lihaoyi/mill'
     runs-on: ${{ matrix.os }}
 
     # only run one publish job for the same sha at the same time
     # e.g. when a main-branch push is also tagged
-    concurrency: publish-sonatype-native-${{ matrix.os }}-${{ github.sha }}
+    concurrency: publish-sonatype-${{ matrix.os }}-${{ github.sha }}
     strategy:
       matrix:
         include:
+        - os: ubuntu-latest
+          coursierarchive: ""
+          publishartifacts: __.publishArtifacts
+          uploadgithub: true
+
         - os: ubuntu-24.04-arm
           coursierarchive: ""
+          publishartifacts: dist.native.publishArtifacts
+          uploadgithub: false
 
         - os: macos-13
           coursierarchive: ""
+          publishartifacts: dist.native.publishArtifacts
+          uploadgithub: false
 
         - os: macos-latest
           coursierarchive: ""
+          publishartifacts: dist.native.publishArtifacts
+          uploadgithub: false
 
         - os: windows-latest
           coursierarchive: C:/coursier-arc
-        # Skip this because the main publishing job handles it
-        # - os: ubuntu-latest 
+          publishartifacts: dist.native.publishArtifacts
+          uploadgithub: false
+
+        # No windows-arm support becaues Graal native image doesn't support it
+        # https://github.com/oracle/graal/issues/9215
     env:
       MILL_STABLE_VERSION: 1
       MILL_SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
@@ -110,6 +63,7 @@ jobs:
       LC_MESSAGES: "en_US.UTF-8"
       LC_ALL: "en_US.UTF-8"
       COURSIER_ARCHIVE_CACHE: ${{ matrix.coursierarchive }}
+      REPO_ACCESS_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
     steps:
       - uses: actions/setup-java@v4
         with:
@@ -121,33 +75,7 @@ jobs:
 
       - run: "echo temurin:11 > .mill-jvm-version"
 
-      - run: ./mill -i mill.scalalib.PublishModule/ --publishArtifacts dist.native.publishArtifacts
-
-  release-github:
-    # when in master repo, publish all tags and manual runs on main
-    if: github.repository == 'com-lihaoyi/mill'
-    needs: publish-sonatype
-    runs-on: ubuntu-latest
-
-    env:
-      MILL_STABLE_VERSION: 1
-      REPO_ACCESS_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
-
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          path: .
-          name: publish-artifacts
-
-      - run: ls -la .
-
-      # Need to fix cached artifact file permissions because github actions screws it up
-      # https://github.com/actions/upload-artifact/issues/38
-      # Best is, we restore any file to avoid any changes
-      - run: git reset --hard
-
-      - uses: coursier/cache-action@v6
-
-      - run: "echo temurin:11 > .mill-jvm-version"
+      - run: ./mill -i mill.scalalib.PublishModule/ --publishArtifacts ${{ matrix.publishartifacts }}
 
       - run: ./mill -i dist.uploadToGithub --authKey $REPO_ACCESS_TOKEN
+        if: ${{ matrix.uploadgithub }}

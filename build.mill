@@ -202,6 +202,7 @@ object Deps {
   val mavenResolverTransportWagon =
     ivy"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
   val coursierJvmIndexVersion = "0.0.4-70-51469f"
+  val gradleApi = ivy"dev.gradleplugins:gradle-api:8.11.1"
 
   object RuntimeDeps {
     val dokkaVersion = "2.0.0"
@@ -255,7 +256,7 @@ object Deps {
     // tests framework (test)
     val scalaCheck = ivy"org.scalacheck::scalacheck:1.18.1"
     val scalaTest = ivy"org.scalatest::scalatest:3.2.19"
-    val utest = ivy"com.lihaoyi::utest:0.8.4"
+    val utest = ivy"com.lihaoyi::utest:0.8.5"
     val zioTest = ivy"dev.zio::zio-test:2.1.14"
   }
 
@@ -273,12 +274,19 @@ def millVersion: T[String] = Task.Input {
   } else "SNAPSHOT"
 }
 
-def millLastTag: T[String] = Task {
+def millLastTag: T[String] = Task.Input {
   if (Task.env.contains("MILL_STABLE_VERSION")) {
-    VcsVersion.vcsState().lastTag.getOrElse(
+    VcsVersion.calcVcsState(Task.log).lastTag.getOrElse(
       sys.error("No (last) git tag found. Your git history seems incomplete!")
     )
   } else "SNAPSHOT"
+}
+
+def millDownloadPrefix = Task {
+  s"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/"
+}
+def millDownloadUrl = Task {
+  s"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/${millLastTag()}"
 }
 
 def millBinPlatform: T[String] = Task {
@@ -439,9 +447,6 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
  * Some custom scala settings and test convenience
  */
 trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModule { outer =>
-  def fix(args: String*) = Task.Command[Unit] {
-    /*https://github.com/com-lihaoyi/mill/issues/4353*/
-  }
   def scalaVersion = Deps.scalaVersion
   def scalafixScalaBinaryVersion = ZincWorkerUtil.scalaBinaryVersion(scalaVersion())
   def semanticDbVersion = Deps.semanticDBscala.version

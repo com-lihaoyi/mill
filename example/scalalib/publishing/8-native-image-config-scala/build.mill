@@ -1,0 +1,45 @@
+package build
+import mill._, scalalib._
+import mill.define.ModuleRef
+
+object foo extends ScalaModule with NativeImageModule {
+  def scalaVersion = "2.13.11"
+
+  def nativeImageOptions = Seq("--no-fallback")
+
+  def ivyDeps = Agg(
+    ivy"com.lihaoyi::scalatags:0.13.1",
+    ivy"com.lihaoyi::mainargs:0.6.2"
+  )
+
+  def zincWorker = ModuleRef(ZincWorkerGraalvm)
+}
+
+object ZincWorkerGraalvm extends ZincWorkerModule {
+  def jvmId = "graalvm-community:17.0.7"
+}
+
+// This example shows how to generate native images for projects using third-party
+// libraries, in this case Scalatags and Mainargs.
+/** Usage
+
+> ./mill show foo.nativeImage
+
+> ./out/foo/nativeImage.dest/native-executable --text hello-world
+<h1>hello-world</h1>
+
+*/
+
+// You can also access the `native-image` compiler directly via `show foo.nativeImageTool`
+// if you want to experiment it or view its `--help` text to see what you need to pass to
+// `nativeImageOptions`:
+
+/** Usage
+
+> ./mill show foo.nativeImageTool # mac/linux
+".../bin/native-image"
+
+> ./mill show foo.nativeImageTool # windows
+".../bin/native-image.cmd"
+
+*/

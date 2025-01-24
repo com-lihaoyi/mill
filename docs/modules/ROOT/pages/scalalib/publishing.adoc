@@ -30,3 +30,8 @@ For more details, see:
 == Building Native Image with Graal VM
 
 include::partial$example/scalalib/publishing/7-native-image.adoc[]
+
+For another example building a slightly less trivial project into a Graal native
+image, see below:
+
+include::partial$example/scalalib/publishing/8-native-image-config-scala.adoc[]
