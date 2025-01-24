@@ -5,7 +5,7 @@ import coursier.core.{Configuration, DependencyManagement}
 import mill.define.{Command, ExternalModule, Task}
 import mill.api.{JarManifest, PathRef, Result}
 import mill.main.Tasks
-import mill.scalalib.PublishModule.checkSonatypeCreds
+import mill.scalalib.PublishModule.{checkSonatypeCreds, defaultGpgArgsForPassphrase}
 import mill.scalalib.publish.SonatypeHelpers.{
   PASSWORD_ENV_VARIABLE_NAME,
   USERNAME_ENV_VARIABLE_NAME
@@ -314,6 +314,22 @@ trait PublishModule extends JavaModule { outer =>
     Artifact(pomSettings().organization, artifactId(), publishVersion())
   }
 
+  private def defaultPublishInfos: T[Seq[PublishInfo]] = {
+    def defaultPublishJars: Task[Seq[(PathRef, PathRef => PublishInfo)]] = {
+      pomPackagingType match {
+        case PackagingType.Pom => Task.Anon(Seq())
+        case _ => Task.Anon(Seq(
+            (jar(), PublishInfo.jar _),
+            (sourceJar(), PublishInfo.sourcesJar _),
+            (docJar(), PublishInfo.docJar _)
+          ))
+      }
+    }
+    Task {
+      defaultPublishJars().map { case (jar, info) => info(jar) }
+    }
+  }
+
   /**
    * Extra artifacts to publish.
    */
@@ -347,35 +363,18 @@ trait PublishModule extends JavaModule { outer =>
     publishLocalTask(Task.Anon(None))().map(p => PathRef(p).withRevalidateOnce)
   }
 
-  private def publishLocalTask(localIvyRepo: Task[Option[os.Path]]): Task[Seq[Path]] = {
-    val jarTask = pomPackagingType match {
-      case PackagingType.Pom => Task.Anon(None)
-      case _ => Task.Anon(Some(jar()))
+  private def publishLocalTask(localIvyRepo: Task[Option[os.Path]]): Task[Seq[Path]] = Task.Anon {
+    val publisher = localIvyRepo() match {
+      case None => LocalIvyPublisher
+      case Some(path) => new LocalIvyPublisher(path)
     }
-    val sourcesJarTask = pomPackagingType match {
-      case PackagingType.Pom => Task.Anon(None)
-      case _ => Task.Anon(Some(sourceJar()))
-    }
-    val docJarTask = pomPackagingType match {
-      case PackagingType.Pom => Task.Anon(None)
-      case _ => Task.Anon(Some(docJar()))
-    }
-    Task.Anon {
-      val publisher = localIvyRepo() match {
-        case None => LocalIvyPublisher
-        case Some(path) => new LocalIvyPublisher(path)
-      }
-      val publishInfos = jarTask().toSeq.map(PublishInfo.jar) ++
-        sourcesJarTask().toSeq.map(PublishInfo.sourcesJar) ++
-        docJarTask().toSeq.map(PublishInfo.docJar) ++
-        extraPublish()
-      publisher.publishLocal(
-        pom = pom().path,
-        ivy = Right(ivy().path),
-        artifact = artifactMetadata(),
-        publishInfos = publishInfos
-      )
-    }
+    val publishInfos = defaultPublishInfos() ++ extraPublish()
+    publisher.publishLocal(
+      pom = pom().path,
+      ivy = Right(ivy().path),
+      artifact = artifactMetadata(),
+      publishInfos = publishInfos
+    )
   }
 
   /**
@@ -407,31 +406,13 @@ trait PublishModule extends JavaModule { outer =>
       .getOrElse(os.Path(os.home / ".m2", T.workspace)) / "repository"
   }
 
-  private def publishM2LocalTask(m2RepoPath: Task[os.Path]): Task[Seq[PathRef]] = {
-    val jarTask = pomPackagingType match {
-      case PackagingType.Pom => Task.Anon(None)
-      case _ => Task.Anon(Some(jar()))
-    }
-    val sourcesJarTask = pomPackagingType match {
-      case PackagingType.Pom => Task.Anon(None)
-      case _ => Task.Anon(Some(sourceJar()))
-    }
-    val docJarTask = pomPackagingType match {
-      case PackagingType.Pom => Task.Anon(None)
-      case _ => Task.Anon(Some(docJar()))
-    }
-    Task.Anon {
-      val path = m2RepoPath()
+  private def publishM2LocalTask(m2RepoPath: Task[os.Path]): Task[Seq[PathRef]] = Task.Anon {
+    val path = m2RepoPath()
+    val publishInfos = defaultPublishInfos() ++ extraPublish()
 
-      val publishInfos = jarTask().map(PublishInfo.jar).toSeq ++
-        sourcesJarTask().map(PublishInfo.sourcesJar).toSeq ++
-        docJarTask().map(PublishInfo.docJar).toSeq ++
-        extraPublish()
-
-      new LocalM2Publisher(path)
-        .publish(pom().path, artifactMetadata(), publishInfos)
-        .map(PathRef(_).withRevalidateOnce)
-    }
+    new LocalM2Publisher(path)
+      .publish(pom().path, artifactMetadata(), publishInfos)
+      .map(PathRef(_).withRevalidateOnce)
   }
 
   def sonatypeUri: String = "https://oss.sonatype.org/service/local"
