@@ -23,16 +23,18 @@ object LocalM2PublisherTests extends TestSuite {
       val publisher = new LocalM2Publisher(repo)
       val artifact = Artifact("group.org", "id", "version")
       val res = publisher.publish(
-        Some(repo / "jar"),
-        Some(repo / "src"),
-        Some(repo / "doc"),
         repo / "pom",
         artifact,
-        Seq(PublishInfo(
-          file = PathRef(repo / "extra"),
-          classifier = Some("extra"),
-          ivyConfig = "compile"
-        ))
+        Seq(
+          PublishInfo.jar(PathRef(repo / "jar")),
+          PublishInfo.sourcesJar(PathRef(repo / "src")),
+          PublishInfo.docJar(PathRef(repo / "doc")),
+          PublishInfo(
+            file = PathRef(repo / "extra"),
+            classifier = Some("extra"),
+            ivyConfig = "compile"
+          )
+        )
       )
       val expected = Set(
         subrepo / "id-version.jar",

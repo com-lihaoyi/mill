@@ -33,21 +33,9 @@ object Ivy {
       if (hasJar)
         Seq(
           pomInfo,
-          PublishInfo(null, ivyType = "jar", ext = "jar", ivyConfig = "compile"),
-          PublishInfo(
-            null,
-            ivyType = "src",
-            ext = "jar",
-            ivyConfig = "compile",
-            classifier = Some("sources")
-          ),
-          PublishInfo(
-            null,
-            ivyType = "doc",
-            ext = "jar",
-            ivyConfig = "compile",
-            classifier = Some("javadoc")
-          )
+          PublishInfo.jar(null),
+          PublishInfo.sourcesJar(null),
+          PublishInfo.docJar(null)
         )
       else
         Seq(pomInfo)

@@ -1,39 +1,30 @@
 package mill.scalalib.publish
 
-import mill.api.Ctx
+import mill.api.{Ctx, PathRef}
 
 class LocalM2Publisher(m2Repo: os.Path) {
 
   /**
    * Publishes a module in the local Maven repository
    *
-   * @param jar The JAR of this module, if it has one
-   * @param sourcesJar The source JAR of this module, if it has one
-   * @param docJar The javadoc JAR of this module, if it has one
    * @param pom The POM of this module
    * @param artifact Coordinates of this module
-   * @param extras Extra files to publish in this module
+   * @param publishInfos Files to publish in this module
    * @param ctx
    * @return
    */
   def publish(
-      jar: Option[os.Path],
-      sourcesJar: Option[os.Path],
-      docJar: Option[os.Path],
       pom: os.Path,
       artifact: Artifact,
-      extras: Seq[PublishInfo]
+      publishInfos: Seq[PublishInfo]
   )(implicit ctx: Ctx.Log): Seq[os.Path] = {
 
     val releaseDir = m2Repo / artifact.group.split("[.]") / artifact.id / artifact.version
     ctx.log.info(s"Publish ${artifact.id}-${artifact.version} to ${releaseDir}")
 
     val toCopy: Seq[(os.Path, os.Path)] =
-      jar.map(_ -> releaseDir / s"${artifact.id}-${artifact.version}.jar").toSeq ++
-        sourcesJar.map(_ -> releaseDir / s"${artifact.id}-${artifact.version}-sources.jar").toSeq ++
-        docJar.map(_ -> releaseDir / s"${artifact.id}-${artifact.version}-javadoc.jar").toSeq ++
-        Seq(pom -> releaseDir / s"${artifact.id}-${artifact.version}.pom") ++
-        extras.map { e =>
+      Seq(pom -> releaseDir / s"${artifact.id}-${artifact.version}.pom") ++
+        publishInfos.map { e =>
           e.file.path -> releaseDir / s"${artifact.id}-${artifact.version}${e.classifierPart}.${e.ext}"
         }
     toCopy.map {
@@ -51,13 +42,12 @@ class LocalM2Publisher(m2Repo: os.Path) {
       pom: os.Path,
       artifact: Artifact,
       extras: Seq[PublishInfo]
-  )(implicit ctx: Ctx.Log): Seq[os.Path] =
-    publish(
-      Some(jar),
-      Some(sourcesJar),
-      Some(docJar),
-      pom,
-      artifact,
-      extras
+  )(implicit ctx: Ctx.Log): Seq[os.Path] = {
+    val mainArtifacts = Seq(
+      PublishInfo.jar(PathRef(jar)),
+      PublishInfo.sourcesJar(PathRef(sourcesJar)),
+      PublishInfo.docJar(PathRef(docJar))
     )
+    publish(pom, artifact, mainArtifacts ++ extras)
+  }
 }

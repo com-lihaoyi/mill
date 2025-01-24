@@ -350,37 +350,30 @@ trait PublishModule extends JavaModule { outer =>
   private def publishLocalTask(localIvyRepo: Task[Option[os.Path]]): Task[Seq[Path]] = {
     val jarTask = pomPackagingType match {
       case PackagingType.Pom => Task.Anon(None)
-      case _ => Task.Anon(Some(jar().path))
+      case _ => Task.Anon(Some(jar()))
     }
     val sourcesJarTask = pomPackagingType match {
       case PackagingType.Pom => Task.Anon(None)
-      case _ => Task.Anon(Some(sourceJar().path))
+      case _ => Task.Anon(Some(sourceJar()))
     }
     val docJarTask = pomPackagingType match {
       case PackagingType.Pom => Task.Anon(None)
-      case _ => Task.Anon(Some(docJar().path))
+      case _ => Task.Anon(Some(docJar()))
     }
     Task.Anon {
       val publisher = localIvyRepo() match {
         case None => LocalIvyPublisher
         case Some(path) => new LocalIvyPublisher(path)
       }
-      val extras =
-        jarTask().toSeq.map { jar0 =>
-          LocalIvyPublisher.jarPublishInfo(jar0)
-        } ++
-          sourcesJarTask().toSeq.map { sourcesJar0 =>
-            LocalIvyPublisher.sourcesJarPublishInfo(sourcesJar0)
-          } ++
-          docJarTask().toSeq.map { docJar0 =>
-            LocalIvyPublisher.docJarPublishInfo(docJar0)
-          } ++
-          extraPublish()
+      val publishInfos = jarTask().toSeq.map(PublishInfo.jar) ++
+        sourcesJarTask().toSeq.map(PublishInfo.sourcesJar) ++
+        docJarTask().toSeq.map(PublishInfo.docJar) ++
+        extraPublish()
       publisher.publishLocal(
         pom = pom().path,
         ivy = Right(ivy().path),
         artifact = artifactMetadata(),
-        extras = extras
+        publishInfos = publishInfos
       )
     }
   }
@@ -417,27 +410,27 @@ trait PublishModule extends JavaModule { outer =>
   private def publishM2LocalTask(m2RepoPath: Task[os.Path]): Task[Seq[PathRef]] = {
     val jarTask = pomPackagingType match {
       case PackagingType.Pom => Task.Anon(None)
-      case _ => Task.Anon(Some(jar().path))
+      case _ => Task.Anon(Some(jar()))
     }
     val sourcesJarTask = pomPackagingType match {
       case PackagingType.Pom => Task.Anon(None)
-      case _ => Task.Anon(Some(sourceJar().path))
+      case _ => Task.Anon(Some(sourceJar()))
     }
     val docJarTask = pomPackagingType match {
       case PackagingType.Pom => Task.Anon(None)
-      case _ => Task.Anon(Some(docJar().path))
+      case _ => Task.Anon(Some(docJar()))
     }
     Task.Anon {
       val path = m2RepoPath()
+
+      val publishInfos = jarTask().map(PublishInfo.jar).toSeq ++
+        sourcesJarTask().map(PublishInfo.sourcesJar).toSeq ++
+        docJarTask().map(PublishInfo.docJar).toSeq ++
+        extraPublish()
+
       new LocalM2Publisher(path)
-        .publish(
-          jar = jarTask(),
-          sourcesJar = sourcesJarTask(),
-          docJar = docJarTask(),
-          pom = pom().path,
-          artifact = artifactMetadata(),
-          extras = extraPublish()
-        ).map(PathRef(_).withRevalidateOnce)
+        .publish(pom().path, artifactMetadata(), publishInfos)
+        .map(PathRef(_).withRevalidateOnce)
     }
   }
 
