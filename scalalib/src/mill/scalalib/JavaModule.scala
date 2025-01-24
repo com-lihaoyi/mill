@@ -430,39 +430,40 @@ trait JavaModule
     (runModuleDepsChecked ++ moduleDepsChecked).flatMap(_.transitiveRunModuleDeps).distinct
   }
 
-  private def formatModuleDeps(recursive: Boolean): Task[String] = Task.Anon {
-    val normalDeps = if (recursive) recursiveModuleDeps else moduleDepsChecked
-    val compileDeps =
-      if (recursive) compileModuleDepsChecked.flatMap(_.transitiveModuleDeps).distinct
-      else compileModuleDepsChecked
-    val deps = (normalDeps ++ compileDeps).distinct
-    s"${
-        if (recursive) "Recursive module"
-        else "Module"
-      } dependencies of ${millModuleSegments.render}:\n\t${deps
-        .map { dep =>
-          dep.millModuleSegments.render ++
-            (if (compileModuleDepsChecked.contains(dep) || !normalDeps.contains(dep)) " (compile)"
-             else "")
-        }
-        .mkString("\n\t")}"
-  }
-  private def formattedModuleDeps = Task {
-    formatModuleDeps(false)
-  }
-  private def formattedRecursiveModuleDeps = Task {
-    formatModuleDeps(true)
-  }
+  private def formatModuleDeps(recursive: Boolean, includeHeader: Boolean): Task[String] =
+    Task.Anon {
+      val normalDeps = if (recursive) recursiveModuleDeps else moduleDepsChecked
+      val compileDeps =
+        if (recursive) compileModuleDepsChecked.flatMap(_.transitiveModuleDeps).distinct
+        else compileModuleDepsChecked
+      val runtimeDeps =
+        if (recursive) runModuleDepsChecked.flatMap(_.transitiveRunModuleDeps).distinct
+        else runModuleDepsChecked
+      val deps = (normalDeps ++ compileDeps ++ runModuleDeps).distinct
+
+      val header = Option.when(includeHeader)(
+        s"${if (recursive) "Recursive module" else "Module"} dependencies of ${millModuleSegments.render}:"
+      ).toSeq
+      val lines = deps.map { dep =>
+        val isNormal = normalDeps.contains(dep)
+        val markers = Seq(
+          Option.when(!isNormal && compileDeps.contains(dep))("compile"),
+          Option.when(!isNormal && runtimeDeps.contains(dep))("runtime")
+        ).flatten
+        val suffix = if (markers.isEmpty) "" else markers.mkString(" (", ",", ")")
+        "  " + dep.millModuleSegments.render + suffix
+      }
+      (header ++ lines).mkString("\n")
+    }
 
   /**
    * Show the module dependencies.
    * @param recursive If `true` include all recursive module dependencies, else only show direct dependencies.
    */
   def showModuleDeps(recursive: Boolean = false): Command[Unit] = {
-    val formatted = if(recursive) formattedRecursiveModuleDeps else formattedModuleDeps
     // This is exclusive to avoid scrambled output
     Task.Command(exclusive = true) {
-      val asString = formatted()
+      val asString = formatModuleDeps(recursive, true)()
       T.log.outputStream.println(asString)
     }
   }
