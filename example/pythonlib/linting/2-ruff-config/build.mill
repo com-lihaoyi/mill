@@ -9,7 +9,7 @@ object `package` extends RootModule with PythonModule with RuffModule {
 
 }
 
-/** See Also: .scalafmt.conf */
+/** See Also: ruff.toml */
 
 // Mill supports code formatting via https://scalameta.org/scalafmt/[scalafmt] out of the box.
 // You can reformat your project's code globally with `mill mill.scalalib.scalafmt.ScalafmtModule/` command,
