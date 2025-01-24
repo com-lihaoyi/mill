@@ -3,61 +3,67 @@ import mill._, pythonlib._
 
 object `package` extends RootModule with PythonModule with RuffModule
 
-/** See Also: .scalafmt.conf */
-
-// Mill supports code formatting via ruff[https://docs.astral.sh/ruff/] out of the box.
-// You can reformat your project's code globally with `mill mill.scalalib.scalafmt.ScalafmtModule/` command,
-// specific modules via `mill mill.scalalib.scalafmt.ScalafmtModule/ '{foo,bar}.sources`
-// or only check the code's format with `+mill mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll`.
-// By default, ScalaFmt checks for a `.scalafmt.conf` file at the root of repository.
+// You can reformat your project's code by running the `ruffFormat` task.
 
 /** Usage
+> cat src/main.py # initial poorly formatted source code
+from typing import Self
+class IntWrapper:
+   def __init__(self, x:int):
+     self.x    =x
+   def plus(self, w:Self) ->   Self:
+      return     IntWrapper(self.x + w.x)
+print(IntWrapper(2).plus(IntWrapper(3)).x)
+...
 
-> cat src/Foo.scala # initial poorly formatted source code
-package foo
-object Foo{
-def main(args:
-Array[String
-]
-):Unit=
-{println("hello world")
-}
-}
+> mill ruffFormat
+...1 file reformatted
+
+> cat src/main.py # the file is now correctly formatted
+from typing import Self
 
 
-> mill mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll
-error: ...Found 1 misformatted files
+class IntWrapper:
+    def __init__(self, x: int):
+        self.x = x
 
-> mill mill.scalalib.scalafmt.ScalafmtModule/
+    def plus(self, w: Self) -> Self:
+        return IntWrapper(self.x + w.x)
 
-> cat src/Foo.scala
-package foo
-object Foo {
-  def main(args: Array[String]): Unit = { println("hello world") }
-}
 
-> mill mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll
-Everything is formatted already
-
+print(IntWrapper(2).plus(IntWrapper(3)).x)
 */
 
-// You can modify `.scalafmt.conf` to adjust the formatting as desired:
+// To reformat all your source files *across all projects*, simply use Mill's task wildcard selector
+// `mill __.ruffFormat`
+//
+// You can also pass in additional arguments that are understood by ruff. For example, if you only
+// want to check and see the diff of unformatted files (but not actually fix them), you can pass in
+// the `--diff` option:
 
 /** Usage
-> echo "maxColumn: 50" >> .scalafmt.conf
+> mill ruffFormat --diff
+...
+@@ -1,7 +1,12 @@
+ from typing import Self
++
++
+ class IntWrapper:
+-   def __init__(self, x:int):
+-     self.x    =x
+-   def plus(self, w:Self) ->   Self:
+-      return     IntWrapper(self.x + w.x)
++    def __init__(self, x: int):
++        self.x = x
++
++    def plus(self, w: Self) -> Self:
++        return IntWrapper(self.x + w.x)
++
++
+ print(IntWrapper(2).plus(IntWrapper(3)).x)
 
-> mill mill.scalalib.scalafmt.ScalafmtModule/
-
-> cat src/Foo.scala
-package foo
-object Foo {
-  def main(args: Array[String]): Unit = {
-    println("hello world")
-  }
-}
+1 file would be reformatted
 */
 
-// If entering the long fully-qualified module name `mill.scalalib.scalafmt.ScalafmtModule/`
-// is tedious, you can add
-// an xref:fundamentals/modules.adoc#_aliasing_external_modules[External Module Alias]
-// to give it a shorter name that's easier to type
+// You can create or modify a `ruff.toml` file in your project root to adjust the formatting options
+// as desired:
