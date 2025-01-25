@@ -1,3 +1,4 @@
+//// SNIPPET:BUILD
 package build
 import mill._, scalalib._
 import mill.define.ModuleRef
@@ -21,6 +22,8 @@ object ZincWorkerGraalvm extends ZincWorkerModule {
 
 // This example shows how to generate native images for projects using third-party
 // libraries, in this case Scalatags and Mainargs.
+
+//// SNIPPET:END
 /** Usage
 
 > ./mill show foo.nativeImage
