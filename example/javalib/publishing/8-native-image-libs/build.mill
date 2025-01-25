@@ -28,4 +28,3 @@ object ZincWorkerGraalvm extends ZincWorkerModule {
 // flag to `nativeImageOptions` in order to be compatible.
 
 //// SNIPPET:END
-
