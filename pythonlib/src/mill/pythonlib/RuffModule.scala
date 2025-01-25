@@ -23,11 +23,9 @@ trait RuffModule extends PythonModule {
    */
   def ruffOptions: T[Seq[String]] = Task { Seq.empty[String] }
 
-  // this is an anonymous task, since we want to return a PathRef as
-  // os.Shellable, instead of only the path
-  private def configArgs: Task[Seq[os.Shellable]]  = Task.Anon {
+  private def configArgs: Task[Seq[String]]  = Task.Anon {
     val cfg = ruffConfigFile()
-    if (os.exists(cfg.path)) Seq[os.Shellable]("--config", cfg) else Seq.empty[os.Shellable]
+    if (os.exists(cfg.path)) Seq("--config", cfg.toString) else Seq.empty[String]
   }
 
   /**
