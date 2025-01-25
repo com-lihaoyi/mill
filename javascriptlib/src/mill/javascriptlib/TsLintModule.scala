@@ -115,22 +115,8 @@ trait TsLintModule extends Module {
             )
           }
 
-        val replacements = Seq(
-          s"$cwd/" -> "",
-          "potentially fixable with the `--fix` option" ->
-            s"potentially fixable with running ${millSourcePath.last}.reformatAll"
-        )
-
         os.remove(cwd / "node_modules")
         result match {
-          case Failure(e: os.SubprocessException) if e.result.exitCode == 1 =>
-            val lines = os.read.lines(logPath)
-            val logMssg = lines.map(line =>
-              replacements.foldLeft(line) { case (currentLine, (target, replacement)) =>
-                currentLine.replace(target, replacement)
-              }
-            )
-            println(logMssg.mkString("\n"))
           case Failure(e: os.SubprocessException) =>
             println(s"Eslint exited with code: ${e.result.exitCode}")
             println(os.read.lines(logPath).mkString("\n"))
@@ -206,9 +192,6 @@ trait TsLintModule extends Module {
 
         if (!userPrettierIgnore) os.remove(cwd / ".prettierignore")
         result match {
-          case Failure(e: os.SubprocessException)
-              if e.result.exitCode == 1 || e.result.exitCode == 2 =>
-            println(os.read.lines(logPath).mkString("\n"))
           case Failure(e: os.SubprocessException) =>
             println(s"Prettier exited with code: ${e.result.exitCode}")
             println(os.read.lines(logPath).mkString("\n"))
