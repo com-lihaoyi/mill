@@ -10,7 +10,7 @@ This page will discuss common topics around packaging and publishing your Kotlin
 
 include::partial$example/kotlinlib/publishing/1-assembly-config.adoc[]
 
-== Building Native Image with Graal VM
+== Building Native Image Binaries with Graal VM
 
 include::partial$example/kotlinlib/publishing/7-native-image.adoc[]
 
