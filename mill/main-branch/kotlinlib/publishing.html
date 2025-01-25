@@ -617,7 +617,7 @@ const links = document.querySelectorAll('a');
 </div>
 </div>
 <div class="sect1">
-<h2 id="_customizing_the_assembly"><a class="anchor" href="#_customizing_the_assembly"></a>Customizing the Assembly</h2>
+<h2 id="_customizing_the_executable_assembly"><a class="anchor" href="#_customizing_the_executable_assembly"></a>Customizing the Executable Assembly</h2>
 <div class="sectionbody">
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.5/example-kotlinlib-publishing-1-assembly-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/kotlinlib/publishing/1-assembly-config">browse</a>)</div>
@@ -684,6 +684,100 @@ to use via <code>JAVA_HOME</code>.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; JAVA_OPTS=-Dtest.property=1337 ./out/foo/assembly.dest/out.jar
 Loaded test.property: 1337</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_building_native_image_binaries_with_graal_vm"><a class="anchor" href="#_building_native_image_binaries_with_graal_vm"></a>Building Native Image Binaries with Graal VM</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.5/example-kotlinlib-publishing-7-native-image.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/kotlinlib/publishing/7-native-image">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, kotlinlib._
+import mill.define.ModuleRef
+
+object foo extends KotlinModule with NativeImageModule {
+
+  def kotlinVersion = &quot;1.9.24&quot;
+
+  def zincWorker = ModuleRef(ZincWorkerGraalvm)
+}
+
+object ZincWorkerGraalvm extends ZincWorkerModule {
+  def jvmId = &quot;graalvm-community:17.0.7&quot;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example uses <code>NativeImageModule</code> to generate a native executable using <a href="https://www.graalvm.org/">Graal VM</a>.
+NOTE: For build portability, it is recommended to use a custom JDK via a custom <code>ZincWorkerModule</code> overriding
+<code>def jvmId</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo.nativeImage
+GraalVM Native Image: Generating...native-executable...
+Finished generating...native-executable...
+
+&gt; ./out/foo/nativeImage.dest/native-executable
+Hello, World!</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For another example building a slightly less trivial project into a Graal native
+image, see below:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.5/example-kotlinlib-publishing-8-native-image-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/kotlinlib/publishing/8-native-image-libs">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, kotlinlib._
+import mill.define.ModuleRef
+
+object foo extends KotlinModule with NativeImageModule {
+  def kotlinVersion = &quot;1.9.24&quot;
+
+  def mainClass = Some(&quot;foo.FooKt&quot;)
+
+  def ivyDeps = Agg(
+    ivy&quot;com.github.ajalt.clikt:clikt-jvm:4.4.0&quot;,
+    ivy&quot;org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0&quot;
+  )
+
+  def zincWorker = ModuleRef(ZincWorkerGraalvm)
+}
+
+object ZincWorkerGraalvm extends ZincWorkerModule {
+  def jvmId = &quot;graalvm-community:17.0.7&quot;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example shows how to generate native images for projects using third-party
+libraries, in this case Clikt and KotlinX-HTML.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo.nativeImage
+
+&gt; ./out/foo/nativeImage.dest/native-executable --text hello-world
+&lt;h1&gt;hello-world&lt;/h1&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also access the <code>native-image</code> compiler directly via <code>show foo.nativeImageTool</code>
+if you want to experiment it or view its <code>--help</code> text to see what you need to pass to
+<code>nativeImageOptions</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo.nativeImageTool # mac/linux
+&quot;.../bin/native-image&quot;
+
+&gt; ./mill show foo.nativeImageTool # windows
+&quot;.../bin/native-image.cmd&quot;</code></pre>
 </div>
 </div>
 </div>
@@ -958,45 +1052,6 @@ For more details, see:</p>
 <p><a href="../javalib/publishing.html#_java_installers_using_jpackage" class="xref page">Java Installers using JPackage</a></p>
 </li>
 </ul>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_building_native_image_with_graal_vm"><a class="anchor" href="#_building_native_image_with_graal_vm"></a>Building Native Image with Graal VM</h2>
-<div class="sectionbody">
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.5/example-kotlinlib-publishing-7-native-image.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/kotlinlib/publishing/7-native-image">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, kotlinlib._
-import mill.define.ModuleRef
-
-object foo extends KotlinModule with NativeImageModule {
-
-  def kotlinVersion = &quot;1.9.24&quot;
-
-  def zincWorker = ModuleRef(ZincWorkerGraalvm)
-}
-
-object ZincWorkerGraalvm extends ZincWorkerModule {
-  def jvmId = &quot;graalvm-community:17.0.7&quot;
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This example uses <code>NativeImageModule</code> to generate a native executable using <a href="https://www.graalvm.org/">Graal VM</a>.
-NOTE: For build portability, it is recommended to use a custom JDK via a custom <code>ZincWorkerModule</code> overriding
-<code>def jvmId</code>.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo.nativeImage
-GraalVM Native Image: Generating...native-executable...
-Finished generating...native-executable...
-
-&gt; ./out/foo/nativeImage.dest/native-executable
-Hello, World!</code></pre>
-</div>
 </div>
 </div>
 </div>
