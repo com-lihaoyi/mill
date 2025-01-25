@@ -1,0 +1,26 @@
+//// SNIPPET:BUILD
+package build
+import mill._, kotlinlib._
+import mill.define.ModuleRef
+
+object foo extends KotlinModule with NativeImageModule {
+  def kotlinVersion = "1.9.24"
+
+  def mainClass = Some("foo.FooKt")
+
+  def ivyDeps = Agg(
+    ivy"com.github.ajalt.clikt:clikt-jvm:4.4.0",
+    ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"
+  )
+
+  def zincWorker = ModuleRef(ZincWorkerGraalvm)
+}
+
+object ZincWorkerGraalvm extends ZincWorkerModule {
+  def jvmId = "graalvm-community:17.0.7"
+}
+
+// This example shows how to generate native images for projects using third-party
+// libraries, in this case Clikt and KotlinX-HTML.
+
+//// SNIPPET:END

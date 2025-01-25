@@ -1,3 +1,4 @@
+//// SNIPPET:BUILD
 package build
 import mill._, javalib._
 import mill.define.ModuleRef
@@ -26,22 +27,5 @@ object ZincWorkerGraalvm extends ZincWorkerModule {
 // resource loading and reflection, and so we need to pass the `-H:IncludeResourceBundles`
 // flag to `nativeImageOptions` in order to be compatible.
 
-/** Usage
+//// SNIPPET:END
 
-> ./mill show foo.nativeImage
-
-> ./out/foo/nativeImage.dest/native-executable --text hello-world
-<h1>hello-world</h1>
-
-*/
-
-// You can also access the `native-image` compiler directly via `show foo.nativeImageTool`
-// if you want to experiment it or view its `--help` text to see what you need to pass to
-// `nativeImageOptions`:
-
-/** Usage
-
-> ./mill show foo.nativeImageTool
-".../bin/native-image"
-
-*/
