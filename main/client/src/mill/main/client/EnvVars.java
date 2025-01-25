@@ -9,7 +9,10 @@ public class EnvVars {
   /**
    * Available in test modules for users to find the test resource folder on disk
    * in a convenient fashion. If multiple resource folders are provided on the classpath,
-   * they are provided as a comma-separated list
+   * they are provided as a comma-separated list.
+   * <p>
+   * NOTE: only exists when running tests using Mill, and is not available when executing applications packaged
+   * for deployment via .assembly
    */
   public static final String MILL_TEST_RESOURCE_DIR = "MILL_TEST_RESOURCE_DIR";
 
