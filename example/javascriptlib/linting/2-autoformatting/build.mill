@@ -26,7 +26,7 @@ args: string[
 }
 }
 
-> mill foo.checkFormatAll # run linter - since both eslint and prettier configurations are found, mill will opt to use eslint.
+> mill foo.checkFormatAll # run linter - since both eslint and prettier configurations are present, mill will opt to use eslint.
 ...
 foo/src/foo.ts
   2:1   error  Expected indentation of 2 spaces but found 0                                   indent
@@ -56,7 +56,7 @@ export class Foo{
   }
 }
 
-> rm -rf eslint.config.mjs # since there is no an eslint config file `eslint.config.(js|mjs|cjs)` present, mill will use the prettier configuration available.
+> rm -rf eslint.config.mjs # since there is no eslint config file `eslint.config.(js|mjs|cjs)`, mill will use the prettier configuration available.
 
 > mill foo.checkFormatAll # run lint with prettier configuration.
 Checking formatting...

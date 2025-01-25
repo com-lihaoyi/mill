@@ -30,7 +30,7 @@ object TestModule {
       super.npmDevDeps() ++ Seq("serve@14.2.4")
     }
 
-    protected def runCoverage: T[TestResult]
+    private[TestModule] def runCoverage: T[TestResult]
 
     protected def coverageTask(args: Task[Seq[String]]): Task[TestResult] = Task { runCoverage() }
 
@@ -39,13 +39,9 @@ object TestModule {
         coverageTask(Task.Anon { args })()
       }
 
-    def coverageDirs: T[Seq[String]] = Task.traverse(moduleDeps)(_.compile)().map { p =>
-      (p._2.path.subRelativeTo(Task.workspace / "out") / "src").toString + "/**/*.ts"
-    }
-
     // <rootDir> = '/out'; allow coverage resolve distributed source files.
     // & define coverage files relative to <rootDir>.
-    def link: Task[Unit] = Task.Anon {
+    private[TestModule] def link: Task[Unit] = Task.Anon {
       os.symlink(Task.workspace / "out/node_modules", npmInstall().path / "node_modules")
       os.symlink(Task.workspace / "out/tsconfig.json", compile()._1.path / "tsconfig.json")
       if (os.exists(compile()._1.path / ".nycrc"))
@@ -62,7 +58,7 @@ object TestModule {
             |  "extends": "@istanbuljs/nyc-config-typescript",
             |  "all": true,
             |  "include": ${ujson.Arr.from(coverageDirs())},
-            |  "exclude": ["node_modules"],
+            |  "exclude": ["node_modules", "*/**/*.test.ts"],
             |  "reporter": ["text", "html"],
             |  "require": ["ts-node/register", "tsconfig-paths/register"]
             |}
@@ -196,7 +192,7 @@ object TestModule {
     }
 
     // with coverage
-    private def coverageConf: Task[Path] = Task.Anon {
+    def coverageConf: Task[Path] = Task.Anon {
       val compiled = compile()._1.path
       val config = compiled / "jest.config.ts"
 
@@ -230,6 +226,7 @@ object TestModule {
             |
             |collectCoverage: true,
             |collectCoverageFrom: ${ujson.Arr.from(coverageDirs())},
+            |coveragePathIgnorePatterns: [${ujson.Str(".*\\.test\\.ts$")}],
             |coverageDirectory: '${moduleDeps.head}_coverage',
             |coverageReporters: ['text', 'html'],
             |}
@@ -240,7 +237,7 @@ object TestModule {
       config
     }
 
-    protected def runCoverage: T[TestResult] = Task {
+    def runCoverage: T[TestResult] = Task {
       link()
       os.call(
         (
@@ -315,7 +312,7 @@ object TestModule {
     }
 
     // with coverage
-    protected def runCoverage: T[TestResult] = Task {
+    def runCoverage: T[TestResult] = Task {
       nycrcBuilder()
       link()
       os.call(
@@ -431,6 +428,7 @@ object TestModule {
             |            include: ${ujson.Arr.from(
              coverageDirs()
            )}, // Specify files to include for coverage
+            |            exclude: ['*/**/*.test.ts'], // Specify files to exclude from coverage
             |        },
             |    },
             |});
@@ -441,7 +439,7 @@ object TestModule {
       config
     }
 
-    protected def runCoverage: T[TestResult] = Task {
+    def runCoverage: T[TestResult] = Task {
       link()
       os.call(
         (
@@ -546,7 +544,7 @@ object TestModule {
       path
     }
 
-    protected def runCoverage: T[TestResult] = Task {
+    def runCoverage: T[TestResult] = Task {
       nycrcBuilder()
       link()
       val jasmine = "node_modules/jasmine/bin/jasmine.js"

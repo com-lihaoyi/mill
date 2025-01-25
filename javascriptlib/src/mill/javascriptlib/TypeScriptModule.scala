@@ -62,7 +62,20 @@ trait TypeScriptModule extends TsLintModule { outer =>
       os.walk(sources().path).filter(fileExt).map(PathRef(_))
     }
 
-  private def compiledSources: Task[IndexedSeq[PathRef]] = Task.Anon {
+  // Generate coverage directories for TestModule
+  private[javascriptlib] def coverageDirs: T[Seq[String]] = Task {
+    Task.traverse(moduleDeps)(mod => {
+      Task.Anon {
+        val comp = mod.compile()
+        val generated = mod.generatedSources()
+        val combined = Seq(comp._2) ++ generated
+
+        combined.map(_.path.subRelativeTo(Task.workspace / "out").toString + "/**/**/*.ts")
+      }
+    })().flatten
+  }
+
+  private[javascriptlib] def compiledSources: Task[IndexedSeq[PathRef]] = Task.Anon {
     val generated = for {
       pr <- generatedSources()
       file <- os.walk(pr.path)
