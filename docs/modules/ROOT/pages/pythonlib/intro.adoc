@@ -15,7 +15,8 @@ common tasks like xref:pythonlib/dependencies.adoc[downloading dependencies from
 xref:pythonlib/testing.adoc[running tests],
 xref:pythonlib/publishing.adoc[publishing libraries] or
 xref:pythonlib/web-examples.adoc[running web apps], while providing build-tool benefits
-like automatic build-time parallelism, caching, and xref:large/selective-execution.adoc[Selective Test Execution].
+like automatic build-time parallelism, caching, and xref:large/selective-execution.adoc[Selective Test Execution]
+that especially benefit large multi-module codebases and monorepos.
 Please try it out and let us know on Github if you hit any issues!
 
 == Simple Python Module
