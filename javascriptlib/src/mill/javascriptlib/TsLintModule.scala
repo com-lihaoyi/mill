@@ -13,7 +13,7 @@ trait TsLintModule extends Module {
   def npmLintDeps: T[Seq[String]] = Task { Seq.empty[String] }
 
   private def npmInstallLint: T[PathRef] = Task {
-    Try(os.copy.over(Task.workspace / ".npmrc", Task.dest / ".npmrc")).getOrElse(())
+    Try(os.copy.over(T.workspace / ".npmrc", Task.dest / ".npmrc")).getOrElse(())
     os.call((
       "npm",
       "install",
@@ -37,7 +37,7 @@ trait TsLintModule extends Module {
     T.workspace / ".prettierrc"
   )
 
-  private[TsLintModule] def resolvedFmtConfig: Task[Lint] = Task.Anon {
+  private def resolvedFmtConfig: Task[Lint] = Task.Anon {
     val locs = fmtConfig()
 
     val lintT: Path => Lint = _.last match {
@@ -56,7 +56,7 @@ trait TsLintModule extends Module {
   def checkFormatEslint(args: mill.define.Args): Command[Unit] = Task.Command {
     resolvedFmtConfig() match {
       case Eslint =>
-        val cwd = Task.workspace
+        val cwd = T.workspace
         os.symlink(cwd / "node_modules", npmInstallLint().path / "node_modules")
         val eslint = npmInstallLint().path / "node_modules/.bin/eslint"
         val logPath = npmInstallLint().path / "eslint.log"
@@ -100,7 +100,7 @@ trait TsLintModule extends Module {
   def reformatEslint(args: mill.define.Args): Command[Unit] = Task.Command {
     resolvedFmtConfig() match {
       case Eslint =>
-        val cwd = Task.workspace
+        val cwd = T.workspace
         os.symlink(cwd / "node_modules", npmInstallLint().path / "node_modules")
         val eslint = npmInstallLint().path / "node_modules/.bin/eslint"
         val logPath = npmInstallLint().path / "eslint.log"
@@ -146,10 +146,12 @@ trait TsLintModule extends Module {
   def checkFormatPrettier(args: mill.define.Args): Command[Unit] = Task.Command {
     resolvedFmtConfig() match {
       case Prettier =>
-        val cwd = Task.workspace
+        val cwd = T.workspace
         val prettier = npmInstallLint().path / "node_modules/.bin/prettier"
         val logPath = npmInstallLint().path / "prettier.log"
         val defaultArgs = if (args.value.isEmpty) Seq("*/**/*.ts") else args.value
+        val userPrettierIgnore = os.exists(cwd / ".prettierignore")
+        if (!userPrettierIgnore) os.symlink(cwd / ".prettierignore", prettierIgnore().path)
         val result =
           Try {
             os.call(
@@ -160,6 +162,7 @@ trait TsLintModule extends Module {
             )
           }
 
+        if (!userPrettierIgnore) os.remove(cwd / ".prettierignore")
         result match {
           case Failure(e: os.SubprocessException) if e.result.exitCode == 1 =>
             val lines = os.read.lines(logPath)
@@ -185,10 +188,12 @@ trait TsLintModule extends Module {
   def reformatPrettier(args: mill.define.Args): Command[Unit] = Task.Command {
     resolvedFmtConfig() match {
       case Prettier =>
-        val cwd = Task.workspace
+        val cwd = T.workspace
         val prettier = npmInstallLint().path / "node_modules/.bin/prettier"
         val logPath = npmInstallLint().path / "prettier.log"
         val defaultArgs = if (args.value.isEmpty) Seq("*/**/*.ts") else args.value
+        val userPrettierIgnore = os.exists(cwd / ".prettierignore")
+        if (!userPrettierIgnore) os.symlink(cwd / ".prettierignore", prettierIgnore().path)
         val result =
           Try {
             os.call(
@@ -199,6 +204,7 @@ trait TsLintModule extends Module {
             )
           }
 
+        if (!userPrettierIgnore) os.remove(cwd / ".prettierignore")
         result match {
           case Failure(e: os.SubprocessException)
               if e.result.exitCode == 1 || e.result.exitCode == 2 =>
@@ -212,6 +218,17 @@ trait TsLintModule extends Module {
         }
       case _ =>
     }
+  }
+
+  private def prettierIgnore: T[PathRef] = Task {
+    val config = T.dest / ".prettierignore"
+    val content =
+      s"""|node_modules
+          |.git
+          |""".stripMargin
+    os.write.over(config, content)
+
+    PathRef(config)
   }
 
   def checkFormatAll(args: mill.define.Args): Command[Unit] = Task.Command {
