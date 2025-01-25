@@ -8,7 +8,8 @@ object foo extends TypeScriptModule
 // and `prettier` https://prettier.io/docs/en out of the box.
 // You can lint your projects code by providing a configuration for your preferred linter and running `mill _.checkFormatAll`.
 
-// If both configurations files are present, the command `mill _.checkFormatAll` will default to eslint.
+// If both configuration files are present, the command `mill _.checkFormatAll` will default to eslint.
+// If neither files are present, the command will exit with an error, you must include at least one configuration file.
 // You can lint via a specificied linter via the commands `mill _.checkFormatEslint` to lint with eslint and
 // `mill _.checkFormatPrettier` to lint with prettier.
 
@@ -52,10 +53,4 @@ foo/src/foo.ts
 Checking formatting...
 [warn] foo/src/foo.ts
 [warn] Code style issues found. Run foo.reformatAll to fix.
-
-> rm -rf .prettierrc # if no configuration files are available the operation will fail.
-
-> mill foo.checkFormatAll # attempt to run lint will fail.
-...
-...Lint couldn't find an eslint.config.(js|mjs|cjs) or a `.pretiierrc` file.
- */
+*/

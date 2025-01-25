@@ -47,7 +47,7 @@ trait TsLintModule extends Module {
 
     locs.find(p => os.exists(p.path)) match {
       case None =>
-        Result.Failure(s"Lint couldn't find an eslint.config.(js|mjs|cjs) or a `.pretiierrc` file.")
+        Result.Failure(s"Lint couldn't find an eslint.config.(js|mjs|cjs) or a `.pretiierrc` file")
       case Some(c) => Result.Success(lintT(c.path))
     }
   }
