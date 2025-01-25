@@ -26,12 +26,18 @@ object TestModule {
   type TestResult = Unit
 
   trait Coverage extends TypeScriptModule with TestModule {
+    override def npmDevDeps: T[Seq[String]] = Task {
+      super.npmDevDeps() ++ Seq("serve@14.2.4")
+    }
+
+    protected def runCoverage: T[TestResult]
+
+    protected def coverageTask(args: Task[Seq[String]]): Task[TestResult] = Task { runCoverage() }
+
     def coverage(args: String*): Command[TestResult] =
       Task.Command {
         coverageTask(Task.Anon { args })()
       }
-
-    protected def coverageTask(args: Task[Seq[String]]): Task[TestResult]
 
     def coverageDirs: T[Seq[String]] = Task.traverse(moduleDeps)(_.compile)().map { p =>
       (p._2.path.subRelativeTo(Task.workspace / "out") / "src").toString + "/**/*.ts"
@@ -52,6 +58,7 @@ object TestModule {
 
       val content =
         s"""|{
+            |  "report-dir": ${ujson.Str(s"${moduleDeps.head}_coverage")},
             |  "extends": "@istanbuljs/nyc-config-typescript",
             |  "all": true,
             |  "include": ${ujson.Arr.from(coverageDirs())},
@@ -64,6 +71,32 @@ object TestModule {
       os.write.over(runner, content)
 
       runner
+    }
+
+    // web browser - serve coverage report
+    def htmlReport: T[Unit] = Task {
+      runCoverage()
+      val server = npmInstall().path / "node_modules/.bin/serve"
+      val env = forkEnv()
+      os.call(
+        (
+          server,
+          "-s",
+          coverageFiles().path.toString,
+          "-l",
+          env.get("COVERAGE_REPORT_PORT").orElse(Option("4332"))
+        ),
+        stdout = os.Inherit,
+        env = env
+      )
+      ()
+    }
+
+    // coverage files - returnn coverage files directory
+    def coverageFiles: T[PathRef] = Task {
+      val dir = Task.workspace / "out" / s"${moduleDeps.head}_coverage"
+      println(s"coverage files: $dir")
+      PathRef(dir)
     }
   }
 
@@ -91,7 +124,7 @@ object TestModule {
 
   trait Jest extends Coverage with Shared {
     override def npmDevDeps: T[Seq[String]] = Task {
-      Seq(
+      super.npmDevDeps() ++ Seq(
         "@types/jest@^29.5.14",
         "@babel/core@^7.26.0",
         "@babel/preset-env@^7.26.0",
@@ -197,7 +230,7 @@ object TestModule {
             |
             |collectCoverage: true,
             |collectCoverageFrom: ${ujson.Arr.from(coverageDirs())},
-            |coverageDirectory: 'coverage',
+            |coverageDirectory: '${moduleDeps.head}_coverage',
             |coverageReporters: ['text', 'html'],
             |}
             |""".stripMargin
@@ -207,7 +240,7 @@ object TestModule {
       config
     }
 
-    private def runCoverage: T[TestResult] = Task {
+    protected def runCoverage: T[TestResult] = Task {
       link()
       os.call(
         (
@@ -229,15 +262,11 @@ object TestModule {
       ()
     }
 
-    protected def coverageTask(args: Task[Seq[String]]): Task[TestResult] = Task.Anon {
-      runCoverage()
-    }
-
   }
 
   trait Mocha extends Coverage with Shared {
     override def npmDevDeps: T[Seq[String]] = Task {
-      Seq(
+      super.npmDevDeps() ++ Seq(
         "@types/chai@4.3.1",
         "@types/mocha@9.1.1",
         "chai@4.3.6",
@@ -286,7 +315,7 @@ object TestModule {
     }
 
     // with coverage
-    private def runCoverage: T[TestResult] = Task {
+    protected def runCoverage: T[TestResult] = Task {
       nycrcBuilder()
       link()
       os.call(
@@ -307,16 +336,12 @@ object TestModule {
       os.remove(Task.workspace / "out/.nycrc")
       ()
     }
-
-    protected def coverageTask(args: Task[Seq[String]]): Task[TestResult] = Task.Anon {
-      runCoverage()
-    }
   }
 
   trait Vitest extends Coverage with Shared {
     override def npmDevDeps: T[Seq[String]] =
       Task {
-        Seq(
+        super.npmDevDeps() ++ Seq(
           "@vitest/runner@3.0.3",
           "vite@6.0.11",
           "vitest@3.0.3",
@@ -402,7 +427,7 @@ object TestModule {
             |        coverage: {
             |            provider: 'v8',
             |            reporter: ['text', 'json', 'html'],
-            |            reportsDirectory: 'coverage',
+            |            reportsDirectory: '${moduleDeps.head}_coverage',
             |            include: ${ujson.Arr.from(
              coverageDirs()
            )}, // Specify files to include for coverage
@@ -416,7 +441,7 @@ object TestModule {
       config
     }
 
-    private def runCoverage: T[TestResult] = Task {
+    protected def runCoverage: T[TestResult] = Task {
       link()
       os.call(
         (
@@ -438,14 +463,12 @@ object TestModule {
       ()
     }
 
-    protected def coverageTask(args: Task[Seq[String]]): Task[TestResult] = Task { runCoverage() }
-
   }
 
   trait Jasmine extends Coverage with Shared {
     override def npmDevDeps: T[Seq[String]] =
       Task {
-        Seq(
+        super.npmDevDeps() ++ Seq(
           "@types/jasmine@5.1.2",
           "jasmine@5.1.0",
           "@istanbuljs/nyc-config-typescript@1.0.2",
@@ -523,7 +546,7 @@ object TestModule {
       path
     }
 
-    private def runCoverage: T[TestResult] = Task {
+    protected def runCoverage: T[TestResult] = Task {
       nycrcBuilder()
       link()
       val jasmine = "node_modules/jasmine/bin/jasmine.js"
@@ -549,10 +572,6 @@ object TestModule {
       os.remove(Task.workspace / "out/tsconfig.json")
       os.remove(Task.workspace / "out/.nycrc")
       ()
-    }
-
-    protected def coverageTask(args: Task[Seq[String]]): Task[TestResult] = Task.Anon {
-      runCoverage()
     }
 
   }

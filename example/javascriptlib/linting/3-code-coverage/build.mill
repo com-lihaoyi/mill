@@ -22,7 +22,7 @@ object qux extends TypeScriptModule {
 // To run a test with coverage, run the command `_.test.coverage`.
 
 // The path to generated coverage data can be retrieved with `_.test.coverageFiles`,
-// and coverage data can also be displayed in a web brower via the task `_.test.htmlReport`.
+// coverage data can also be displayed in a web brower via the task `_.test.htmlReport`.
 
 /** Usage
 
