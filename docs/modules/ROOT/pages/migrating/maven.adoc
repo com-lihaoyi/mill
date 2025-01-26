@@ -18,7 +18,7 @@ This means that while small projects can be expected to complete without issue:
 
 include::partial$example/javalib/migrating/1-maven-complete.adoc[]
 
-More larger projects often require some manual tweaking in order to work:
+Larger projects often require some manual tweaking in order to work:
 
 include::partial$example/javalib/migrating/2-maven-incomplete.adoc[]
 
