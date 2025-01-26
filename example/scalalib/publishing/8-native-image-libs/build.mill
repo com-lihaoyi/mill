@@ -6,7 +6,7 @@ import mill.define.ModuleRef
 object foo extends ScalaModule with NativeImageModule {
   def scalaVersion = "2.13.11"
 
-  def nativeImageOptions = Seq("--no-fallback")
+  def nativeImageOptions = Seq("--no-fallback", "-Os")
 
   def ivyDeps = Agg(
     ivy"com.lihaoyi::scalatags:0.13.1",
@@ -21,7 +21,8 @@ object ZincWorkerGraalvm extends ZincWorkerModule {
 }
 
 // This example shows how to generate native images for projects using third-party
-// libraries, in this case Scalatags and Mainargs.
+// libraries, in this case Scalatags and Mainargs. We also demonstrate setting
+//// `nativeImageOptions`, in this case using `-Os` to optimize for the smallest binary size.
 
 //// SNIPPET:END
 /** Usage

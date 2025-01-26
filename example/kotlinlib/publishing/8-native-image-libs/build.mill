@@ -8,6 +8,8 @@ object foo extends KotlinModule with NativeImageModule {
 
   def mainClass = Some("foo.FooKt")
 
+  def nativeImageOptions = Seq("--no-fallback", "-Os")
+
   def ivyDeps = Agg(
     ivy"com.github.ajalt.clikt:clikt-jvm:4.4.0",
     ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"
@@ -21,6 +23,7 @@ object ZincWorkerGraalvm extends ZincWorkerModule {
 }
 
 // This example shows how to generate native images for projects using third-party
-// libraries, in this case Clikt and KotlinX-HTML.
+// libraries, in this case Clikt and KotlinX-HTML. We also demonstrate setting
+// `nativeImageOptions`, in this case using `-Os` to optimize for the smallest binary size.
 
 //// SNIPPET:END
