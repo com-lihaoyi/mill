@@ -19,10 +19,10 @@ object qux extends TypeScriptModule {
 }
 
 // Mill supports code coverage with `Jest`, `Mocha`, `Vitest` and `Jasmine` out of the box.
-// To run a test with coverage, run the command `_.test.coverage`.
+// To run a test with coverage, run the command `mill _.test.coverage`.
 
-// The path to generated coverage data can be retrieved with `_.test.coverageFiles`,
-// coverage data can also be displayed in a web brower via the task `_.test.htmlReport`.
+// The path to generated coverage data can be retrieved with `mill _.test.coverageFiles`,
+// coverage data can also be displayed in a web brower via the task `mill _.test.htmlReport`.
 
 /** Usage
 
