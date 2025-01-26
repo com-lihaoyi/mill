@@ -17,7 +17,7 @@ object foo extends ScalaModule with NativeImageModule {
 }
 
 object ZincWorkerGraalvm extends ZincWorkerModule {
-  def jvmId = "graalvm-community:17.0.7"
+  def jvmId = "graalvm-community:23.0.1"
 }
 
 // This example shows how to generate native images for projects using third-party
