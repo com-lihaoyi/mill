@@ -7,7 +7,7 @@ package mill.kotlinlib.worker.impl
 
 import mill.api.{Ctx, Result}
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
-import org.jetbrains.kotlin.cli.js.K2JsIrCompiler
+import org.jetbrains.kotlin.cli.js.K2JSCompiler
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 
 class KotlinWorkerImpl extends KotlinWorker {
@@ -17,7 +17,7 @@ class KotlinWorkerImpl extends KotlinWorker {
 
     val compiler = target match {
       case KotlinWorkerTarget.Jvm => new K2JVMCompiler()
-      case KotlinWorkerTarget.Js => new K2JsIrCompiler()
+      case KotlinWorkerTarget.Js => new K2JSCompiler()
     }
     val exitCode = compiler.exec(ctx.log.errorStream, args: _*)
     if (exitCode.getCode != 0) {
