@@ -1,6 +1,8 @@
 package mill.pythonlib
 
 import mill._
+import mill.define.{Args, ExternalModule, Discover}
+import mill.main.Tasks
 
 /**
  * Linting and formatting functionality provided by [ruff](https://docs.astral.sh/ruff/).
@@ -23,7 +25,7 @@ trait RuffModule extends PythonModule {
    */
   def ruffOptions: T[Seq[String]] = Task { Seq.empty[String] }
 
-  private def configArgs: Task[Seq[String]]  = Task.Anon {
+  protected def configArgs: Task[Seq[String]]  = Task.Anon {
     val cfg = ruffConfigFile()
     if (os.exists(cfg.path)) Seq("--config", cfg.toString) else Seq.empty[String]
   }
@@ -74,5 +76,52 @@ trait RuffModule extends PythonModule {
       workingDir = Task.dest
     )
   }
+
+}
+
+object RuffModule extends ExternalModule with RuffModule with TaskModule {
+
+  override def defaultCommandName(): String = "formatAll"
+
+  def formatAll(
+    sources: Tasks[Seq[PathRef]] = Tasks.resolveMainDefault("__.sources"),
+    @mainargs.arg(positional = true) ruffArgs: Args
+  ): Command[Unit] = Task.Command {
+    runner().run(
+      // format: off
+      (
+        "-m", "ruff",
+        "format",
+        configArgs(),
+        ruffOptions(),
+        ruffArgs.value,
+        T.sequence(sources.value)().flatten.map(_.path)
+      ),
+      // format: on
+      workingDir = Task.dest
+    )
+  }
+
+  def checkAll(
+    sources: Tasks[Seq[PathRef]] = Tasks.resolveMainDefault("__.sources"),
+    @mainargs.arg(positional = true) ruffArgs: Args
+  ): Command[Unit] = Task.Command {
+    runner().run(
+      // format: off
+      (
+        "-m", "ruff",
+        "check",
+        "--cache-dir", T.dest / "cache",
+        configArgs(),
+        ruffOptions(),
+        ruffArgs.value,
+        T.sequence(sources.value)().flatten.map(_.path)
+      ),
+      // format: on
+      workingDir = Task.dest
+    )
+  }
+
+  lazy val millDiscover: Discover = Discover[this.type]
 
 }
