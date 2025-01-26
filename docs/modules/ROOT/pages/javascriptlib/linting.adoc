@@ -8,9 +8,7 @@ codebases using the Mill build tool
 
 == Linting and AutoFormatting with Eslint and Prettier
 
-Eslint and Prettier are tools that analyzes your Scala source code, performing intelligent analyses and
-code quality checks, and is often able to automatically fix the issues that it discovers.
-It can also perform automated refactoring.
+Eslint and Prettier are tools that analyzes your Typescript source code, performing intelligent analyses and code quality checks, and is often able to automatically fix the issues that it discovers. It can also perform automated refactoring.
 
 include::partial$example/javascriptlib/linting/1-linting.adoc[]
 
