@@ -21,11 +21,12 @@ To get started using Mill, see:
 
 Or see the language-specific introductory documentation linked below:
 
-[cols="1a,1a,1a"]
+[cols="1a,1a,1a,1a"]
 |===
 | xref:javalib/intro.adoc[image:index/iconscout-java.svg[java,32] Java with Mill]
 | xref:scalalib/intro.adoc[image:index/iconscout-scala.svg[scala,20] Scala with Mill]
-| xref:kotlinlib/intro.adoc[image:index/iconscout-kotlin.svg[kotlin,32] Kotlin with Mill]
+| xref:kotlinlib/intro.adoc[image:index/iconscout-kotlin.svg[kotlin,28] Kotlin with Mill]
+| xref:pythonlib/intro.adoc[image:index/iconscout-python.svg[python,28] Python with Mill]
 |===
 
 If you want to use Mill on an existing codebase, see xref:migrating/migrating.adoc[]

@@ -52,3 +52,61 @@ object baz extends JavaModule {
 
 // Here, given that grpc-protobuf is fetched during dependency resolution,
 // `com.google.protobuf:protobuf-java` is excluded from it because of the dependency management.
+
+// One can manage and publish Bill of Material (BOM) modules from Mill, by using `BomModule`:
+
+object myBom extends BomModule {
+  // Importing external BOMs from our BOM module with bomIvyDeps
+  def bomIvyDeps = Agg(
+    ivy"com.google.protobuf:protobuf-bom:4.28.1"
+  )
+  // Managing versions directly from our BOM module with depManagement
+  def depManagement = Agg(
+    ivy"io.grpc:grpc-protobuf:1.67.1"
+  )
+}
+
+// Use the BOM you defined with bomModuleDeps:
+object bomUser extends JavaModule {
+  def bomModuleDeps = Seq(
+    myBom
+  )
+  def ivyDeps = Agg(
+    ivy"io.grpc:grpc-protobuf"
+  )
+}
+
+// These BOM modules can published, resulting in a Maven module with
+// packaging type `pom`, usable as a BOM from other build tools:
+
+object myPublishedBom extends BomModule with MyPublishModule {
+  def bomIvyDeps = Agg(
+    ivy"com.google.protobuf:protobuf-bom:4.28.1"
+  )
+  def depManagement = Agg(
+    ivy"io.grpc:grpc-protobuf:1.67.1"
+  )
+}
+
+// Once published, the BOM can be used in other projects,
+// but we can still use it right from our build with bomModuleDeps:
+object publishedBomUser extends JavaModule with MyPublishModule {
+  def bomModuleDeps = Seq(
+    myPublishedBom
+  )
+  def ivyDeps = Agg(
+    ivy"io.grpc:grpc-protobuf"
+  )
+}
+
+trait MyPublishModule extends PublishModule {
+  def pomSettings = PomSettings(
+    description = "My Project",
+    organization = "com.lihaoyi.mill-examples",
+    url = "https://github.com/com-lihaoyi/mill",
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github("com-lihaoyi", "mill"),
+    developers = Seq(Developer("me", "Me", "https://github.com/me"))
+  )
+  def publishVersion = "0.1.0"
+}
