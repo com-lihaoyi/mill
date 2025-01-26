@@ -27,7 +27,7 @@ trait RuffModule extends PythonModule {
 
   protected def configArgs: Task[Seq[String]]  = Task.Anon {
     val cfg = ruffConfigFile()
-    if (os.exists(cfg.path)) Seq("--config", cfg.toString) else Seq.empty[String]
+    if (os.exists(cfg.path)) Seq("--config", cfg.path.toString) else Seq.empty[String]
   }
 
   /**

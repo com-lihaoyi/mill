@@ -57,10 +57,6 @@ class IntWrapper:
 print(IntWrapper(2).plus(IntWrapper(3)).x)
 */
 
-// To reformat all your source files *across all projects*, simply use Mill's task wildcard selector
-// `mill __.ruffFormat`
-
-
 // You can create a `ruff.toml` file in your project root to adjust the
 // formatting options as desired. For example,
 
@@ -83,4 +79,21 @@ class IntWrapper:
 ...
 print(IntWrapper(2).plus(IntWrapper(3)).x)
 
+*/
+
+// Mill also has built-in global tasks, which allow you to run ruff across all projects in your
+// build, without ever needing to extend `RuffModule`.
+//
+// - format all Python files globally: `mill mill.pythonlib.RuffModule/formatAll`
+// - lint all Python files globally: `mill mill.pythonlib.RuffModule/checkAll`
+//
+// You can also pass-in extra arguments to ruff, for example to find unformatted files and show the
+// diff: `mill mill.pythonlib.RuffModule/formatAll --diff`
+//
+// If entering `mill.pythonlib.RuffModule/formatAll` is too long, you can add an
+// xref:fundamentals/modules.adoc#_aliasing_external_modules[External Module Alias] to give it a
+// shorter name that's easier to type.
+
+/** Usage
+> mill mill.pythonlib.RuffModule/formatAll
 */
