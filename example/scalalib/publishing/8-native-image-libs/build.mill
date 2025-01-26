@@ -25,6 +25,11 @@ object ZincWorkerGraalvm extends ZincWorkerModule {
 //// `nativeImageOptions`, in this case using `-Os` to optimize for the smallest binary size.
 
 //// SNIPPET:END
+
+// You can see the Graal documentation to see what flags are available:
+//
+// * https://www.graalvm.org/21.3/reference-manual/native-image/Options/
+
 /** Usage
 
 > ./mill show foo.nativeImage
