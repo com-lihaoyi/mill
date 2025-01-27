@@ -62,7 +62,7 @@ jobs:
       - run: git diff ${{ github.base_ref }}
       - run: mv out/mill-selective-execution/mill-selective-execution.json out/mill-selective-execution.json
 
-      - run: echo temurin:${{ inputs.java-version }} > .mill-jvm-version
+#      - run: echo temurin:${{ inputs.java-version }} > .mill-jvm-version
       - run: chmod -R 777 . # normalize permissions before and after upload/download-artifact
       - run: ./mill -i --debug -k selective.resolve 'example.javalib.basic[1-simple]._.server.test'
       - run: ./mill -i --debug -k selective.resolveTree 'example.javalib.basic[1-simple]._.server.test'
