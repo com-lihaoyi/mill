@@ -8,7 +8,7 @@ import mill.define.{ModuleRef, Task}
 import mill.scalalib.bsp.BspBuildTarget
 import mill.testrunner.TestResult
 import mill.util.Jvm
-import os.{Path, RelPath}
+import os.RelPath
 import upickle.default._
 
 import scala.jdk.OptionConverters.RichOptional
@@ -228,13 +228,13 @@ trait AndroidAppModule extends JavaModule {
     extractAarFiles(aarFiles.toSeq, Task.dest)
   }
 
-  final def extractAarFiles(aarFiles: Seq[Path], taskDest: os.Path): Seq[UnpackedDep] = {
+  final def extractAarFiles(aarFiles: Seq[os.Path], taskDest: os.Path): Seq[UnpackedDep] = {
     aarFiles.map(aarFile => {
       val extractDir = taskDest / aarFile.baseName
       os.unzip(aarFile, extractDir)
       val name = aarFile.baseName
 
-      def pathOption(p: Path): Option[PathRef] = if (os.exists(p)) {
+      def pathOption(p: os.Path): Option[PathRef] = if (os.exists(p)) {
         Some(PathRef(p))
       } else None
 
