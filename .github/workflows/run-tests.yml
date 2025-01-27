@@ -144,11 +144,11 @@ jobs:
             install-android-sdk: false
 
           - java-version: 17
-            millargs: "example.kotlinlib.__.native.server.test"
+            millargs: "example.kotlinlib.__.local.server.test"
             install-android-sdk: false
 
           - java-version: 17
-            millargs: "example.scalalib.__.native.server.test"
+            millargs: "example.scalalib.__.local.server.test"
             install-android-sdk: false
 
           - java-version: 17
