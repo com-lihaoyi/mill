@@ -739,12 +739,13 @@ object foo extends JavaModule with NativeImageModule {
 
   def nativeImageOptions = Seq(
     &quot;--no-fallback&quot;,
-    &quot;-H:IncludeResourceBundles=net.sourceforge.argparse4j.internal.ArgumentParserImpl&quot;
+    &quot;-H:IncludeResourceBundles=net.sourceforge.argparse4j.internal.ArgumentParserImpl&quot;,
+    &quot;-Os&quot;
   )
 }
 
 object ZincWorkerGraalvm extends ZincWorkerModule {
-  def jvmId = &quot;graalvm-community:17.0.9&quot;
+  def jvmId = &quot;graalvm-community:23.0.1&quot;
 }</code></pre>
 </div>
 </div>
@@ -752,7 +753,18 @@ object ZincWorkerGraalvm extends ZincWorkerModule {
 <p>This example shows how to generate native images for projects using third-party
 libraries, in this case ArgParse4J and Thymeleaf. ArgParse4J does use some dynamic
 resource loading and reflection, and so we need to pass the <code>-H:IncludeResourceBundles</code>
-flag to <code>nativeImageOptions</code> in order to be compatible.</p>
+flag to <code>nativeImageOptions</code> in order to be compatible. We also demonstrate setting
+<code>nativeImageOptions</code>, in this case using <code>-Os</code> to optimize for the smallest binary size.</p>
+</div>
+<div class="paragraph">
+<p>You can see the Graal documentation to see what flags are available:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://www.graalvm.org/21.3/reference-manual/native-image/Options/" class="bare">https://www.graalvm.org/21.3/reference-manual/native-image/Options/</a></p>
+</li>
+</ul>
 </div>
 <div class="listingblock">
 <div class="content">

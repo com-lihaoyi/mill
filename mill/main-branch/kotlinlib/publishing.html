@@ -741,6 +741,12 @@ object foo extends KotlinModule with NativeImageModule {
 
   def mainClass = Some(&quot;foo.FooKt&quot;)
 
+  def nativeImageOptions = Seq(
+    &quot;--no-fallback&quot;,
+    &quot;-Os&quot;,
+    &quot;--initialize-at-build-time=com.github.ajalt.mordant.internal.nativeimage.NativeImagePosixMppImpls&quot;
+  )
+
   def ivyDeps = Agg(
     ivy&quot;com.github.ajalt.clikt:clikt-jvm:4.4.0&quot;,
     ivy&quot;org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0&quot;
@@ -750,13 +756,26 @@ object foo extends KotlinModule with NativeImageModule {
 }
 
 object ZincWorkerGraalvm extends ZincWorkerModule {
-  def jvmId = &quot;graalvm-community:17.0.7&quot;
+  def jvmId = &quot;graalvm-community:23.0.2&quot;
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>This example shows how to generate native images for projects using third-party
-libraries, in this case Clikt and KotlinX-HTML.</p>
+libraries, in this case Clikt and KotlinX-HTML. We also demonstrate setting
+<code>nativeImageOptions</code>, in this case using <code>-Os</code> to optimize for the smallest binary size,
+and the <code>--initialize-at-build-time</code> flag seems to be necessary for this particular set
+of libraries and flags.</p>
+</div>
+<div class="paragraph">
+<p>You can see the Graal documentation to see what flags are available:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://www.graalvm.org/21.3/reference-manual/native-image/Options/" class="bare">https://www.graalvm.org/21.3/reference-manual/native-image/Options/</a></p>
+</li>
+</ul>
 </div>
 <div class="listingblock">
 <div class="content">
