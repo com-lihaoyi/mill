@@ -61,7 +61,7 @@ jobs:
 
       - run: ./mill -i --debug -k selective.prepare ${{ inputs.prepareargs }}
         if: ${{ (github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'run-all-tests')) || github.repository != 'com-lihaoyi/mill' }}
-        shell: ${{ inputs.shell }}
+        shell: bash
 
 
       - run: cat out/mill-build/methodCodeHashSignatures.dest/current/4-methodCodeHashes.json | jq '.["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
