@@ -69,9 +69,12 @@ jobs:
           java-version: 17
           os: ubuntu-24.04-arm
 
-      - run: ./mill -i -k selective.resolve 'example.javalib.basic[1-simple].native.server.test'
-      - run: ./mill -i -k selective.resolveTree 'example.javalib.basic[1-simple].native.server.test'
-      - run: ./mill -i -k selective.resolveChanged 'example.javalib.basic[1-simple].native.server.test'
+      - run: cat out/mill-selective-execution.json
+      - run: ./mill -i -k selective.prepare 'example.javalib.basic[1-simple].native.server.test'
+      - run: cat out/mill-selective-execution.json
+#      - run: ./mill -i -k selective.resolve 'example.javalib.basic[1-simple].native.server.test'
+#      - run: ./mill -i -k selective.resolveTree 'example.javalib.basic[1-simple].native.server.test'
+#      - run: ./mill -i -k selective.resolveChanged 'example.javalib.basic[1-simple].native.server.test'
 
   # Jobs are listed in rough order of priority: if multiple jobs fail, the first job
   # in the list should be the one that's most worth looking into
@@ -98,7 +101,10 @@ jobs:
           java-version: 17
           os: ubuntu-latest
 
-      - run: ./mill -i -k selective.resolve 'example.javalib.basic[1-simple].native.server.test'
-      - run: ./mill -i -k selective.resolveTree 'example.javalib.basic[1-simple].native.server.test'
-      - run: ./mill -i -k selective.resolveChanged 'example.javalib.basic[1-simple].native.server.test'
+      - run: cat out/mill-selective-execution.json
+      - run: ./mill -i -k selective.prepare 'example.javalib.basic[1-simple].native.server.test'
+      - run: cat out/mill-selective-execution.json
+#      - run: ./mill -i -k selective.resolve 'example.javalib.basic[1-simple].native.server.test'
+#      - run: ./mill -i -k selective.resolveTree 'example.javalib.basic[1-simple].native.server.test'
+#      - run: ./mill -i -k selective.resolveChanged 'example.javalib.basic[1-simple].native.server.test'
 
