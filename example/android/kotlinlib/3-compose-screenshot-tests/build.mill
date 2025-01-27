@@ -75,6 +75,40 @@ object app extends AndroidAppKotlinModule {
   "ref:...com/example/screenshottest/ExampleMessageCardScreenshots/oMessageCardScreenshot_spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420_0.png"
 ]
 ...
+
+
 */
 
-// This command generates previews using the Compose Preview features.
+// This command generates previews using the Compose Preview features. Then, tests can be run
+// using the generated previews as a base
+
+/** Usage
+
+> ./mill show app.screenshotTest.test
+...
+[
+  "",
+  [
+    {
+      "fullyQualifiedName": "com.example.screenshottest.ExampleMessageCardScreenshots",
+      "selector": "oMessageCardScreenshot()",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+]
+...
+
+> cat out/app/screenshotTest/test.dest/test-report.xml
+...
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites tests="1" failures="0" errors="0" skipped="0" time="...">
+        <testsuite name="com.example.screenshottest.ExampleMessageCardScreenshots" tests="1" failures="0" errors="0" skipped="0" time="..." timestamp="...">
+        <properties>
+      </properties>
+        <testcase classname="com.example.screenshottest.ExampleMessageCardScreenshots" name="oMessageCardScreenshot()" time="...">
+        </testcase>
+      </testsuite>
+      </testsuites>
+...
+*/

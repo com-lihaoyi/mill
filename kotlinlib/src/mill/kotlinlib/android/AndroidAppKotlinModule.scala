@@ -109,7 +109,8 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
       )
     )
 
-    /** The compose-preview-renderer jar executable that generates the screenshots.
+    /**
+     * The compose-preview-renderer jar executable that generates the screenshots.
      * For more information see [[https://developer.android.com/studio/preview/compose-screenshot-testing]]
      */
     def composePreviewRenderer: T[Agg[PathRef]] = Task {
@@ -186,9 +187,10 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
         PathRef(T.dest / "results.json")
       }
 
-    /** The location that the renderer results summary is, in the test engine's expected format
+    /**
+     * The location that the renderer results summary is, in the test engine's expected format
      * i.e. by renaming the screenshotResults key to screenshots
-    */
+     */
     def androidScreenshotResults: T[PathRef] = Task {
       PathRef(T.dest / "results.json")
     }
@@ -288,11 +290,13 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
         previewParams = previewParams,
         previewId = s"${methodFQN}_${previewParams.device}"
       )
-      os.write(androidDiscoveredPreviewsPath, upickle.default.write(Map("screenshots" -> screenshotConfigurations)))
+      os.write(
+        androidDiscoveredPreviewsPath,
+        upickle.default.write(Map("screenshots" -> screenshotConfigurations))
+      )
 
       PathRef(androidDiscoveredPreviewsPath) -> screenshotConfigurations
     }
-
 
     private def diffImageDirPath: Task[PathRef] = Task {
       val diffImageDir = T.dest / "diff-images"
@@ -306,29 +310,30 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
     def androidPreviewScreenshotTestEngineClasspath: T[Agg[PathRef]] = Task {
       defaultResolver().resolveDeps(
         Seq(
-          ivy"com.android.tools.screenshot:screenshot-validation-junit-engine:0.0.1-alpha08",
+          ivy"com.android.tools.screenshot:screenshot-validation-junit-engine:0.0.1-alpha08"
         )
       )
     }
 
+    def androidScreenshotTestResultDir: T[PathRef] = Task {
+      PathRef(T.dest)
+    }
+
     /** Threshold of how strict the image diff should be */
-    def diffImageThreshold = 0.001
+    def androidScreenshotTestDiffThreshold = 0.001
     /*
     As defined in
     [[https://android.googlesource.com/platform/tools/base/+/61923408e5f7dc20f0840844597f9dde17453a0f/preview/screenshot/screenshot-test-gradle-plugin/src/main/java/com/android/compose/screenshot/tasks/PreviewScreenshotValidationTask.kt?#84]]
      */
     private def testJvmArgs: T[Seq[String]] = Task {
-      val testResults = T.dest / "results"
-      if (os.exists(testResults))
-        os.makeDir(testResults)
       val params = Map(
         "previews-discovered" -> androidDiscoveredPreviews()._1.path.toString(),
         "referenceImageDirPath" -> screenshotResults().path.toString(),
         "diffImageDirPath" -> diffImageDirPath().path.toString,
         "renderResultsFilePath" -> androidScreenshotGeneratedResults().path.toString,
         "renderTaskOutputDir" -> screenshotResults().path.toString(),
-        "resultsDirPath" -> (T.dest / "results").toString(),
-        "threshold" -> diffImageThreshold.toString
+        "resultsDirPath" -> androidScreenshotTestResultDir().path.toString(),
+        "threshold" -> androidScreenshotTestDiffThreshold.toString
       )
 
       params.map { case (k, v) => s"$JvmTestArg$k=$v" }.toSeq
@@ -337,10 +342,5 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
     private val JvmTestArg = "-Dcom.android.tools.preview.screenshot.junit.engine."
 
   }
-
-
-
-
-
 
 }
