@@ -119,4 +119,4 @@
 // *somewhere*.
 * Reference
 ** {mill-doc-url}/api/latest/mill/index.html[Mill Scaladoc]
-** xref:reference/changelog.adoc[]
+** {mill-github-url}/blob/main/changelog.adoc[Changelog]
