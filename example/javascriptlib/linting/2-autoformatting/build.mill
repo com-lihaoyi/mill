@@ -4,8 +4,7 @@ import mill._, javascriptlib._
 
 object foo extends TypeScriptModule
 
-// Mill supports code formatting via `eslint` https://eslint.org, `typescript-eslint` https://typescript-eslint.io/getting-started
-// and `prettier` https://prettier.io/docs/en out of the box.
+// Mill supports code formatting via `eslint` and `prettier`.
 // You can reformat your projects code by providing a configuration for your preferred linter and running `mill _.reformatAll`.
 
 // If both configurations files are present, the command `mill _.reformatAll` will default to eslint.
@@ -14,7 +13,6 @@ object foo extends TypeScriptModule
 
 // When using prettier you can specify the path to reformat via command line argument, `mill _.reformatAll "*/**/*.ts"`
 // just as you would when running `prettier --write` if no path is provided mill will default to using "*/**/*.ts".
-// Also if a `.prettierignore` is not provided, mill will generate one ignoring "node_modules" and ".git".
 
 /** Usage
 > cat foo/src/foo.ts # initial poorly formatted source code
@@ -25,23 +23,6 @@ args: string[
 {console.log("Hello World!")
 }
 }
-
-> mill foo.checkFormatAll # run linter - since both eslint and prettier configurations are present, mill will opt to use eslint.
-...
-foo/src/foo.ts
-  2:1   error  Expected indentation of 2 spaces but found 0                                   indent
-  3:1   error  Expected indentation of 4 spaces but found 0                                   indent
-  5:1   error  Opening curly brace does not appear on the same line as controlling statement  brace-style
-  5:1   error  Statement inside of curly braces should be on next line                        brace-style
-  5:1   error  Requires a space after '{'                                                     block-spacing
-  5:1   error  Expected indentation of 2 spaces but found 0                                   indent
-  5:14  error  Strings must use singlequote                                                   quotes
-  5:29  error  Missing semicolon                                                              semi
-  6:1   error  Expected indentation of 2 spaces but found 0                                   indent
-  7:2   error  Newline required at end of file but not found                                  eol-last
-...
-...10 problems (10 errors, 0 warnings)
-...10 errors and 0 warnings potentially fixable with running foo.reformatAll.
 
 > mill foo.reformatAll
 ...
@@ -57,11 +38,6 @@ export class Foo{
 }
 
 > rm -rf eslint.config.mjs # since there is no eslint config file `eslint.config.(js|mjs|cjs)`, mill will use the prettier configuration available.
-
-> mill foo.checkFormatAll # run lint with prettier configuration.
-Checking formatting...
-[warn] foo/src/foo.ts
-[warn] Code style issues found. Run foo.reformatAll to fix.
 
 > mill foo.reformatAll
 ...

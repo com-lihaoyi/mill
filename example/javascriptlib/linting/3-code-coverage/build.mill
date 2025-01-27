@@ -24,6 +24,38 @@ object qux extends TypeScriptModule {
 // The path to generated coverage data can be retrieved with `mill _.test.coverageFiles`,
 // coverage data can also be displayed in a web brower via the task `mill _.test.htmlReport`.
 
+// To use custom configuations for test suites, you can simply include matching test suite config file in your project root.
+
+// For custom configurations:
+
+// Jest suite expects a `jest.config.ts` file.
+
+// Jasmine suite expects a `jasmine.json` file.
+
+// Mocha suite expects a `test-runner.js` file.
+
+// Vitest suite expects a `vitest.config.ts` file.
+
+// Mocha & Jasmine both rely on `nyc` https://www.npmjs.com/package/nyc and `@istanbuljs/nyc-config-typescript` https://www.npmjs.com/package/@istanbuljs/nyc-config-typescript
+// for coverage, when using either, to use custom coverage configurations you must include a `.nycrc` file in your project root.
+
+// Example `.nycrc` configuration
+
+//// SNIPPET:BUILD
+// [source,json]
+// ----
+// {
+//  "extends": "@istanbuljs/nyc-config-typescript",
+//  "require": ["ts-node/register", "tsconfig-paths/register"],
+//  "exclude": ["node_modules", "*/**/*.test.ts"],
+//  "reporter": ["text", "html"],
+//  ...
+//}
+// ----
+//// SNIPPET:END
+
+// As always for most use cases you will never need to define a custom test configurtion file.
+
 /** Usage
 
 > mill foo.test.coverage

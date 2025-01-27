@@ -6,6 +6,8 @@ import os.*
 trait TestModule extends TaskModule {
   import TestModule.TestResult
 
+  def conf: Task[Path]
+
   def test(args: String*): Command[TestResult] =
     Task.Command {
       testTask(Task.Anon { args })()
@@ -50,7 +52,9 @@ object TestModule {
 
     def nycrcBuilder: Task[Path] = Task.Anon {
       val compiled = compile()._1.path
-      val runner = compiled / ".nycrc"
+      val fileName = ".nycrc"
+      val config = compiled / fileName
+      val customConfig = Task.workspace / fileName
 
       val content =
         s"""|{
@@ -64,9 +68,12 @@ object TestModule {
             |}
             |""".stripMargin
 
-      os.write.over(runner, content)
+      if (!os.exists(customConfig)) os.write.over(config, content)
+      else os.copy.over(customConfig, config)
 
-      runner
+      os.write.over(config, content)
+
+      config
     }
 
     // web browser - serve coverage report
@@ -137,7 +144,9 @@ object TestModule {
 
     def conf: Task[Path] = Task.Anon {
       val compiled = compile()._1.path
-      val config = compiled / "jest.config.ts"
+      val fileName = "jest.config.ts"
+      val config = compiled / fileName
+      val customConfig = Task.workspace / fileName
 
       val content =
         s"""|import {pathsToModuleNameMapper} from 'ts-jest';
@@ -166,7 +175,8 @@ object TestModule {
             |}
             |""".stripMargin
 
-      os.write.over(config, content)
+      if (!os.exists(customConfig)) os.write.over(config, content)
+      else os.copy.over(customConfig, config)
 
       config
     }
@@ -194,7 +204,9 @@ object TestModule {
     // with coverage
     def coverageConf: Task[Path] = Task.Anon {
       val compiled = compile()._1.path
-      val config = compiled / "jest.config.ts"
+      val fileName = "jest.config.ts"
+      val config = compiled / fileName
+      val customConfig = Task.workspace / fileName
 
       val content =
         s"""|import {pathsToModuleNameMapper} from 'ts-jest';
@@ -232,7 +244,8 @@ object TestModule {
             |}
             |""".stripMargin
 
-      os.write.over(config, content)
+      if (!os.exists(customConfig)) os.write.over(config, content)
+      else os.copy.over(customConfig, config)
 
       config
     }
@@ -362,7 +375,9 @@ object TestModule {
 
     def conf: Task[Path] = Task.Anon {
       val compiled = compile()._1.path
-      val config = compiled / "vite.config.ts"
+      val fileName = "vitest.config.ts"
+      val config = compiled / fileName
+      val customConfig = Task.workspace / fileName
 
       val content =
         """|import { defineConfig } from 'vite';
@@ -378,7 +393,8 @@ object TestModule {
            |});
            |""".stripMargin
 
-      os.write.over(config, content)
+      if (!os.exists(customConfig)) os.write.over(config, content)
+      else os.copy.over(customConfig, config)
 
       config
     }
@@ -407,7 +423,9 @@ object TestModule {
     // coverage
     def coverageConf: Task[Path] = Task.Anon {
       val compiled = compile()._1.path
-      val config = compiled / "vite.config.ts"
+      val fileName = "vitest.config.ts"
+      val config = compiled / fileName
+      val customConfig = Task.workspace / fileName
 
       val content =
         s"""|import { defineConfig } from 'vite';
@@ -434,7 +452,8 @@ object TestModule {
             |});
             |""".stripMargin
 
-      os.write.over(config, content)
+      if (!os.exists(customConfig)) os.write.over(config, content)
+      else os.copy.over(customConfig, config)
 
       config
     }
@@ -485,7 +504,7 @@ object TestModule {
         )
       }
 
-    def conf: T[Path] = Task {
+    def conf: Task[Path] = Task.Anon {
       val path = compile()._1.path / "jasmine.json"
       os.write.over(
         path,
