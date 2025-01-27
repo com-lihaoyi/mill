@@ -106,12 +106,14 @@ jobs:
 
       - run: cat out/mill-build/methodCodeHashSignatures.dest/current/4-methodCodeHashes.json | jq '.["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
       - run: cat out/mill-build/methodCodeHashSignatures.dest/current/7-transitiveCallGraphHashes.json  | jq '.["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
+      - run: cat out/mill-build/methodCodeHashSignatures.json  | jq '.["value"]["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
       - run: cat out/mill-selective-execution.json  | jq '.["methodCodeHashSignatures"]["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
 
       - run: cat out/mill-selective-execution.json
       - run: ./mill -i --debug -k selective.prepare 'example.javalib.basic[1-simple].native.server.test'
       - run: cat out/mill-build/methodCodeHashSignatures.dest/current/4-methodCodeHashes.json | jq '.["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
       - run: cat out/mill-build/methodCodeHashSignatures.dest/current/7-transitiveCallGraphHashes.json  | jq '.["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
+      - run: cat out/mill-build/methodCodeHashSignatures.json  | jq '.["value"]["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
       - run: cat out/mill-selective-execution.json  | jq '.["methodCodeHashSignatures"]["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
       - run: cat out/mill-build/methodCodeHashSignatures.dest/current/5-prettyCallGraph.json | jq '.["def build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
 
