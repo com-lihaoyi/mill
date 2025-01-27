@@ -20,7 +20,7 @@ endif::[]
 
 {link-github}/actions/workflows/run-tests.yml[image:{link-github}/actions/workflows/run-tests.yml/badge.svg[Build and Release]]
 https://index.scala-lang.org/com-lihaoyi/mill/mill-main[image:https://index.scala-lang.org/com-lihaoyi/mill/mill-main/latest.svg[Mill]]
-https://search.maven.org/search?q=a:mill-dist[image:https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=latest-unstable-version[Maven Central Version]]
+https://central.sonatype.com/artifact/com.lihaoyi/mill-dist[image:https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=latest-unstable-version[Maven Central Version]]
 https://www.patreon.com/lihaoyi[image:https://img.shields.io/badge/patreon-sponsor-ff69b4.svg[Patreon]]
 
 Mill is a fast JVM build tool that supports Java and Scala. Mill aims to make your 
