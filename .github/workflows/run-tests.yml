@@ -50,6 +50,29 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+
+  cross-plat:
+    if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 1 }
+
+      - uses: ./.github/actions/pre-build-setup
+        with:
+          os: ubuntu-24.04-arm
+          java-version: 17
+          shell: bash
+
+      - uses: ./.github/actions/post-build-setup
+        with:
+          java-version: 17
+          os: ubuntu-24.04-arm
+
+      - run: ./mill -i -k selective.resolve 'example.javalib.basic[1-simple].native.server.test'
+      - run: ./mill -i -k selective.resolveTree 'example.javalib.basic[1-simple].native.server.test'
+      - run: ./mill -i -k selective.resolveChanged 'example.javalib.basic[1-simple].native.server.test'
+
   # Jobs are listed in rough order of priority: if multiple jobs fail, the first job
   # in the list should be the one that's most worth looking into
   build-linux:
@@ -59,55 +82,23 @@ jobs:
       os: ubuntu-latest
       shell: bash
 
-  cross-plat:
-    if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-          # Run these with Mill native launcher as a smoketest
-        include:
-          - os: ubuntu-24.04-arm
-            millargs: "'example.javalib.basic[1-simple].native.server.test'"
-            java-version: 17
-
+  linux:
+    needs: build-linux
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with: { fetch-depth: 1 }
+      - uses: coursier/cache-action@v6
 
-      - uses: ./.github/actions/pre-build-setup
+      - uses: actions/download-artifact@v4
         with:
-          os: ${{ matrix.os }}
-          java-version: ${{ matrix.java-version }}
-          shell: bash
+          path: .
+          name: $ubuntu-latest-artifact
 
       - uses: ./.github/actions/post-build-setup
         with:
-          java-version: ${{ matrix.java-version }}
-          os: ${{ matrix.os }}
+          java-version: 17
+          os: ubuntu-latest
 
-      - uses: ./.github/actions/post-build-selective
-        with:
-          millargs: ${{ matrix.millargs }}
-          coursierarchive: ""
-          install-android-sdk: false
-          shell: bash
-
-  linux:
-    needs: build-linux
-    strategy:
-      fail-fast: false
-      matrix:
-
-        include:
-          - java-version: 17
-            millargs: "'example.javalib.basic[1-simple].native.server.test'"
-            install-android-sdk: false
-
-    uses: ./.github/workflows/post-build-selective.yml
-    with:
-      install-android-sdk: ${{ matrix.install-android-sdk }}
-      java-version: ${{ matrix.java-version }}
-      millargs: ${{ matrix.millargs }}
-      shell: bash
+      - run: ./mill -i -k selective.resolve 'example.javalib.basic[1-simple].native.server.test'
+      - run: ./mill -i -k selective.resolveTree 'example.javalib.basic[1-simple].native.server.test'
+      - run: ./mill -i -k selective.resolveChanged 'example.javalib.basic[1-simple].native.server.test'
 
