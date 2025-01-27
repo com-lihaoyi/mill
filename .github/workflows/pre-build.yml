@@ -24,18 +24,46 @@ jobs:
     steps:
       # For normal PR jobs, just checkout the base_ref the PR is against
       - uses: actions/checkout@v4
-        with: { fetch-depth: 1 }
-
-      - uses: ./.github/actions/pre-build-setup
         with:
-          os: ${{ inputs.os }}
-          java-version: ${{ inputs.java-version }}
-          shell: ${{ inputs.shell }}
+          ref: ${{ github.base_ref }}
 
-      - run: ./mill -i -k ${{ inputs.compileargs }}
+      - run: echo temurin:${{ inputs.java-version }} > .mill-jvm-version
+
+      - run: chmod -R 777 . # normalize permissions before and after upload/download-artifact
+
+      - run: ./mill -i --debug -k selective.prepare
+
+
+      - run: cat out/mill-build/methodCodeHashSignatures.dest/current/4-methodCodeHashes.json | jq '.["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
+      - run: cat out/mill-build/methodCodeHashSignatures.dest/current/7-transitiveCallGraphHashes.json  | jq '.["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
+      - run: cat out/mill-build/methodCodeHashSignatures.json  | jq '.["value"]["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
+      - run: cat out/mill-selective-execution.json  | jq '.["methodCodeHashSignatures"]["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
 
       - uses: actions/upload-artifact@v4.6.0
         with:
-          path: .
-          name: ${{ inputs.os }}-artifact
+          path: out/mill-selective-execution.json
+          name: ${{ inputs.os }}-selective-execution-artifact
           include-hidden-files: true
+
+      - uses: actions/checkout@v4
+      - run: ./mill -i --debug -k version
+
+
+      - run: cat out/mill-build/methodCodeHashSignatures.dest/current/4-methodCodeHashes.json | jq '.["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
+      - run: cat out/mill-build/methodCodeHashSignatures.dest/current/7-transitiveCallGraphHashes.json  | jq '.["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
+      - run: cat out/mill-build/methodCodeHashSignatures.json  | jq '.["value"]["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
+      - run: cat out/mill-selective-execution.json  | jq '.["methodCodeHashSignatures"]["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: out/mill-selective-execution
+          name: ${{ inputs.os }}-selective-execution-artifact
+
+      - run: git diff ${{ github.base_ref }}
+      - run: mv out/mill-selective-execution/mill-selective-execution.json out/mill-selective-execution.json
+
+#      - run: echo temurin:${{ inputs.java-version }} > .mill-jvm-version
+      - run: chmod -R 777 . # normalize permissions before and after upload/download-artifact
+      - run: ./mill -i --debug -k selective.resolve 'example.javalib.basic[1-simple]._.server.test'
+      - run: ./mill -i --debug -k selective.resolveTree 'example.javalib.basic[1-simple]._.server.test'
+      - run: ./mill -i --debug -k selective.resolveChanged 'example.javalib.basic[1-simple]._.server.test'
