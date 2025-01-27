@@ -32,7 +32,7 @@ jobs:
           java-version: ${{ inputs.java-version }}
           shell: ${{ inputs.shell }}
 
-      - run: ./mill -i --debug -k ${{ inputs.compileargs }}
+      - run: ./mill -i --debug -k version
 
 
       - run: cat out/mill-build/methodCodeHashSignatures.dest/current/4-methodCodeHashes.json | jq '.["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
