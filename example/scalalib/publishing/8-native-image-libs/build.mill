@@ -6,7 +6,7 @@ import mill.define.ModuleRef
 object foo extends ScalaModule with NativeImageModule {
   def scalaVersion = "2.13.11"
 
-  def nativeImageOptions = Seq("--no-fallback")
+  def nativeImageOptions = Seq("--no-fallback", "-Os")
 
   def ivyDeps = Agg(
     ivy"com.lihaoyi::scalatags:0.13.1",
@@ -17,13 +17,19 @@ object foo extends ScalaModule with NativeImageModule {
 }
 
 object ZincWorkerGraalvm extends ZincWorkerModule {
-  def jvmId = "graalvm-community:17.0.7"
+  def jvmId = "graalvm-community:23.0.1"
 }
 
 // This example shows how to generate native images for projects using third-party
-// libraries, in this case Scalatags and Mainargs.
+// libraries, in this case Scalatags and Mainargs. We also demonstrate setting
+//// `nativeImageOptions`, in this case using `-Os` to optimize for the smallest binary size.
 
 //// SNIPPET:END
+
+// You can see the Graal documentation to see what flags are available:
+//
+// * https://www.graalvm.org/21.3/reference-manual/native-image/Options/
+
 /** Usage
 
 > ./mill show foo.nativeImage
