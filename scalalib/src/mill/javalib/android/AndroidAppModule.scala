@@ -1,15 +1,15 @@
 package mill.javalib.android
 
 import coursier.Repository
-import mill.*
-import mill.scalalib.*
+import mill._
+import mill.scalalib._
 import mill.api.{Logger, PathRef, internal}
 import mill.define.{ModuleRef, Task}
 import mill.scalalib.bsp.BspBuildTarget
 import mill.testrunner.TestResult
 import mill.util.Jvm
 import os.{Path, RelPath}
-import upickle.default.*
+import upickle.default._
 
 import scala.jdk.OptionConverters.RichOptional
 import scala.xml.XML

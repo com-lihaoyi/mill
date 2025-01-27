@@ -181,6 +181,12 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
       PathRef(dir)
     }
 
+    /**
+     * Generates the json with the cli arguments for
+     * compose-preview-renderer as in
+     * [[https://android.googlesource.com/platform/tools/base/+/61923408e5f7dc20f0840844597f9dde17453a0f/preview/screenshot/screenshot-test-gradle-plugin/src/main/java/com/android/compose/screenshot/tasks/PreviewScreenshotRenderTask.kt#157]]
+     * @return
+     */
     def composePreviewArgs: T[PathRef] = Task {
       val output = screenshotResults().path
       val metadataFolder = T.dest / "meta-data"
@@ -205,6 +211,11 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
 
     }
 
+    /**
+     * Invokes the preview renderer similar to
+     * [[https://android.googlesource.com/platform/tools/base/+/61923408e5f7dc20f0840844597f9dde17453a0f/preview/screenshot/screenshot-test-gradle-plugin/src/main/java/com/android/compose/screenshot/tasks/PreviewRenderWorkAction.kt]]
+     * @return
+     */
     def generatePreviews(): Command[Agg[PathRef]] = Task.Command {
       mill.util.Jvm.runSubprocess(
         mainClass = "com.android.tools.render.compose.MainKt",
