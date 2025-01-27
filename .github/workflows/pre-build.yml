@@ -33,7 +33,7 @@ jobs:
       - run: chmod -R 777 . # normalize permissions before and after upload/download-artifact
         shell: bash
 
-      - run: ./mill -i --debug -k selective.prepare ${{ inputs.prepareargs }}
+      - run: ./mill -i --debug -k selective.prepare
 
 
       - run: cat out/mill-build/methodCodeHashSignatures.dest/current/4-methodCodeHashes.json | jq '.["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
