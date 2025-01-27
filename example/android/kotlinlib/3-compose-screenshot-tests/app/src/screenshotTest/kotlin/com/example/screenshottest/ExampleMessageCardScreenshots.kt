@@ -16,5 +16,5 @@ class ExampleMessageCardScreenshots {
 @Preview
 @Composable
 internal fun previewMessageCard() {
-    ExamplePreviewsScreenshots().messageCard("Android!")
+    ExamplePreviewsScreenshots().messageCard("Android!!!")
 }

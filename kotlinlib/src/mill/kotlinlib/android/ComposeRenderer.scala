@@ -41,4 +41,17 @@ private[android] object ComposeRenderer {
   object PreviewParams {
     implicit def resultRW: upickle.default.ReadWriter[PreviewParams] = upickle.default.macroRW
   }
+
+  object Tests {
+    case class PreviewParams(
+        device: String,
+        uiMode: String
+    )
+    case class ComposeScreenshot(
+        methodFQN: String,
+        methodParams: Seq[Map[String, String]],
+        previewParams: Seq[PreviewParams],
+        previewId: String
+    )
+  }
 }

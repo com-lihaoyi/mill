@@ -4,7 +4,7 @@ import coursier.Dependency
 import coursier.core.Reconciliation
 import coursier.params.ResolutionParams
 import coursier.util.ModuleMatchers
-import mill.{Agg, Command, T, Task}
+import mill.{Agg, T, Task}
 import mill.api.PathRef
 import mill.define.ModuleRef
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule}
@@ -76,8 +76,10 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
       )
   }
 
-  trait AndroidAppKotlinScreenshotTests extends AndroidAppKotlinModule with TestModule
-      with Junit5 {
+  trait AndroidAppKotlinScreenshotTests extends AndroidAppKotlinModule with TestModule with Junit5 {
+
+    /* There are no testclasses for screenshot tests, just the engine running a diff over the images */
+    override def discoveredTestClasses: T[Seq[String]] = Task { Seq.empty[String] }
 
     override def mapDependencies: Task[Dependency => Dependency] = outer.mapDependencies
 
@@ -107,6 +109,9 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
       )
     )
 
+    /** The compose-preview-renderer jar executable that generates the screenshots.
+     * For more information see [[https://developer.android.com/studio/preview/compose-screenshot-testing]]
+     */
     def composePreviewRenderer: T[Agg[PathRef]] = Task {
       defaultResolver().resolveDeps(
         Agg(
@@ -115,7 +120,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
       )
     }
 
-    def layoutLibRenderer: T[Agg[PathRef]] = Task {
+    final def layoutLibRenderer: T[Agg[PathRef]] = Task {
       defaultResolver().resolveDeps(
         Agg(
           ivy"com.android.tools.layoutlib:layoutlib:$layoutLibVersion"
@@ -123,7 +128,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
       )
     }
 
-    def layoutLibRuntime: T[Agg[PathRef]] = Task {
+    final def layoutLibRuntime: T[Agg[PathRef]] = Task {
       defaultResolver().resolveDeps(
         Agg(
           ivy"com.android.tools.layoutlib:layoutlib-runtime:$layoutLibVersion"
@@ -131,7 +136,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
       )
     }
 
-    def layoutLibFrameworkRes: T[Agg[PathRef]] = Task {
+    final def layoutLibFrameworkRes: T[Agg[PathRef]] = Task {
       defaultResolver().resolveDeps(
         Agg(
           ivy"com.android.tools.layoutlib:layoutlib-resources:$layoutLibVersion"
@@ -139,17 +144,24 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
       )
     }
 
-    def layoutLibRuntimePath: T[PathRef] = Task {
+    final def layoutLibRuntimePath: T[PathRef] = Task {
       val extractDestination = T.dest / "layoutLib"
       val layoutLibJar = layoutLibRuntime().head
       os.unzip(layoutLibJar.path, extractDestination)
-      val frameworkResPath = extractDestination / "data" / "framework_res.jar"
+      val frameworkResPath = extractDestination / "data/framework_res.jar"
       os.copy(from = layoutLibFrameworkRes().head.path, to = frameworkResPath)
       PathRef(extractDestination)
     }
 
     def uiToolingVersion: String = "1.7.6"
 
+    /*
+     * A relaxed resolution policy, as this module runs the tests
+     * on the host machine, outside of Android, but it still needs
+     * the android ui dependencies to work, so production wise this is
+     * low risk.
+     * @return
+     */
     override def resolutionParams: Task[ResolutionParams] = Task.Anon {
       val params = super.resolutionParams()
       relaxedDependencyReconciliation(params)
@@ -160,10 +172,6 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
 
     override def generatedSources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
 
-    def resourceApkPath: T[PathRef] = Task {
-      PathRef(outer.androidResources()._1.path / "res.apk")
-    }
-
     override def mandatoryIvyDeps: T[Agg[Dep]] = super.mandatoryIvyDeps() ++
       Agg(
         ivy"androidx.compose.ui:ui:$uiToolingVersion",
@@ -172,8 +180,18 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
         ivy"androidx.compose.ui:ui-tooling-preview-android:$uiToolingVersion"
       )
 
-    def androidScreenshotTestResults: T[PathRef] =
-      Task { PathRef(Task.dest / "results.json") }
+    /** The location to store the generated preview summary */
+    def androidScreenshotGeneratedResults: T[PathRef] =
+      Task {
+        PathRef(T.dest / "results.json")
+      }
+
+    /** The location that the renderer results summary is, in the test engine's expected format
+     * i.e. by renaming the screenshotResults key to screenshots
+    */
+    def androidScreenshotResults: T[PathRef] = Task {
+      PathRef(T.dest / "results.json")
+    }
 
     private def screenshotResults: Task[PathRef] = Task {
       val dir = T.dest / "generated-screenshots"
@@ -191,7 +209,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
       val output = screenshotResults().path
       val metadataFolder = T.dest / "meta-data"
       val cliArgsFile = T.dest / "cli_arguments.json"
-      val resultsFilePath = androidScreenshotTestResults().path
+      val resultsFilePath = androidScreenshotGeneratedResults().path
 
       val cliArgs = ComposeRenderer.Args(
         fontsPath = androidSdkModule().fontsPath().toString,
@@ -200,7 +218,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
         metaDataFolder = metadataFolder.toString(),
         classPath = compileClasspath().map(_.path.toString()).toSeq,
         projectClassPath = Seq(compile().classes.path.toString()),
-        screenshots = androidConfigurationByScreenshotTest,
+        screenshots = androidDiscoveredPreviews()._2,
         namespace = namespace,
         resourceApkPath = resourceApkPath().path.toString(),
         resultsFilePath = resultsFilePath.toString()
@@ -211,13 +229,19 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
 
     }
 
+    private def resourceApkPath: Task[PathRef] = Task {
+      PathRef(outer.androidResources()._1.path / "res.apk")
+    }
+
+    // TODO previews must be source controlled to be used as a base
+    // for subsequent runs
     /**
      * Invokes the preview renderer similar to
      * [[https://android.googlesource.com/platform/tools/base/+/61923408e5f7dc20f0840844597f9dde17453a0f/preview/screenshot/screenshot-test-gradle-plugin/src/main/java/com/android/compose/screenshot/tasks/PreviewRenderWorkAction.kt]]
      * @return
      */
-    def generatePreviews(): Command[Agg[PathRef]] = Task.Command {
-      mill.util.Jvm.runSubprocess(
+    def generatePreviews: T[Agg[PathRef]] = Task {
+      val previewGenOut = mill.util.Jvm.callSubprocess(
         mainClass = "com.android.tools.render.compose.MainKt",
         classPath = composePreviewRenderer().map(_.path) ++ layoutLibRenderer().map(_.path),
         jvmArgs = Seq(
@@ -225,11 +249,20 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
           "-Djava.security.manager=allow"
         ),
         mainArgs = Seq(composePreviewArgs().path.toString())
-      )
+      ).out.lines()
+
+      T.log.info(previewGenOut.mkString("\n"))
 
       Agg.from(os.walk(screenshotResults().path).filter(_.ext == "png").map(PathRef(_)))
     }
 
+    // TODO add more devices for default, i.e. the same as in AGP
+    /**
+     * Defines a list of specifications to create previews against.
+     *
+     * For more information see [[https://developer.android.com/studio/preview/compose-screenshot-testing]]
+     * @return
+     */
     def androidScreenshotDeviceConfigurations: Seq[ComposeRenderer.PreviewParams] = Seq(
       ComposeRenderer.PreviewParams(
         device = "spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420",
@@ -241,14 +274,73 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
     /* TODO we can do method discovery with reflection or junit tools */
     def androidScreenshotTestMethods: Seq[(String, Seq[String])]
 
-    def androidConfigurationByScreenshotTest: Seq[ComposeRenderer.Screenshot] = for {
-      (methodFQN, methodParams) <- androidScreenshotTestMethods
-      previewParams <- androidScreenshotDeviceConfigurations
-    } yield ComposeRenderer.Screenshot(
-      methodFQN = methodFQN,
-      methodParams = methodParams,
-      previewParams = previewParams,
-      previewId = s"${methodFQN}_${previewParams.device}"
-    )
+    /* TODO enhance with hash (sha-1) and auto-detection/generation of methodFQN */
+    def androidDiscoveredPreviews: T[(PathRef, Seq[ComposeRenderer.Screenshot])] = Task {
+
+      val androidDiscoveredPreviewsPath = T.dest / "previews_discovered.json"
+
+      val screenshotConfigurations = for {
+        (methodFQN, methodParams) <- androidScreenshotTestMethods
+        previewParams <- androidScreenshotDeviceConfigurations
+      } yield ComposeRenderer.Screenshot(
+        methodFQN = methodFQN,
+        methodParams = methodParams,
+        previewParams = previewParams,
+        previewId = s"${methodFQN}_${previewParams.device}"
+      )
+      os.write(androidDiscoveredPreviewsPath, upickle.default.write(Map("screenshots" -> screenshotConfigurations)))
+
+      PathRef(androidDiscoveredPreviewsPath) -> screenshotConfigurations
+    }
+
+
+    private def diffImageDirPath: Task[PathRef] = Task {
+      val diffImageDir = T.dest / "diff-images"
+      PathRef(diffImageDir)
+    }
+
+    override def forkArgs: T[Seq[String]] = super.forkArgs() ++ testJvmArgs()
+    override def runClasspath: T[Seq[PathRef]] =
+      super.runClasspath() ++ androidPreviewScreenshotTestEngineClasspath() ++ compileClasspath()
+
+    def androidPreviewScreenshotTestEngineClasspath: T[Agg[PathRef]] = Task {
+      defaultResolver().resolveDeps(
+        Seq(
+          ivy"com.android.tools.screenshot:screenshot-validation-junit-engine:0.0.1-alpha08",
+        )
+      )
+    }
+
+    /** Threshold of how strict the image diff should be */
+    def diffImageThreshold = 0.001
+    /*
+    As defined in
+    [[https://android.googlesource.com/platform/tools/base/+/61923408e5f7dc20f0840844597f9dde17453a0f/preview/screenshot/screenshot-test-gradle-plugin/src/main/java/com/android/compose/screenshot/tasks/PreviewScreenshotValidationTask.kt?#84]]
+     */
+    private def testJvmArgs: T[Seq[String]] = Task {
+      val testResults = T.dest / "results"
+      if (os.exists(testResults))
+        os.makeDir(testResults)
+      val params = Map(
+        "previews-discovered" -> androidDiscoveredPreviews()._1.path.toString(),
+        "referenceImageDirPath" -> screenshotResults().path.toString(),
+        "diffImageDirPath" -> diffImageDirPath().path.toString,
+        "renderResultsFilePath" -> androidScreenshotGeneratedResults().path.toString,
+        "renderTaskOutputDir" -> screenshotResults().path.toString(),
+        "resultsDirPath" -> (T.dest / "results").toString(),
+        "threshold" -> diffImageThreshold.toString
+      )
+
+      params.map { case (k, v) => s"$JvmTestArg$k=$v" }.toSeq
+    }
+
+    private val JvmTestArg = "-Dcom.android.tools.preview.screenshot.junit.engine."
+
   }
+
+
+
+
+
+
 }
