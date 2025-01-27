@@ -9,6 +9,8 @@ endif::[]
 :link-milestone: {link-github}/milestone
 // find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
 
+_The changelog below is for tagged, stable releases. For unstable releases,
+see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 [#0-12-5]
 === 0.12.5 - 2025-01-01
