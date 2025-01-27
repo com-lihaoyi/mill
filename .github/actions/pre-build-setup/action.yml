@@ -52,9 +52,19 @@ runs:
     - run: cat .mill-jvm-version
       shell: bash
 
-    - run: ./mill -i -k selective.prepare ${{ inputs.prepareargs }}
+    - run: ./mill -i --debug -k selective.prepare ${{ inputs.prepareargs }}
       if: ${{ (github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'run-all-tests')) || github.repository != 'com-lihaoyi/mill' }}
       shell: ${{ inputs.shell }}
+
+
+    - run: cat out/mill-build/methodCodeHashSignatures.dest/current/4-methodCodeHashes.json | jq '.["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
+      shell: bash
+    - run: cat out/mill-build/methodCodeHashSignatures.dest/current/7-transitiveCallGraphHashes.json  | jq '.["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
+      shell: bash
+    - run: cat out/mill-build/methodCodeHashSignatures.json  | jq '.["value"]["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
+      shell: bash
+    - run: cat out/mill-selective-execution.json  | jq '.["methodCodeHashSignatures"]["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
+      shell: bash
 
     - uses: actions/upload-artifact@v4.6.0
       with:
