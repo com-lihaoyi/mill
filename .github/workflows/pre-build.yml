@@ -54,6 +54,7 @@ jobs:
           name: ${{ inputs.os }}-artifact
           include-hidden-files: true
 
+      - run: chmod -R 777 . # normalize permissions before and after upload/download-artifact
       - run: ./mill -i --debug -k selective.resolve 'example.javalib.basic[1-simple].native.server.test'
       - run: ./mill -i --debug -k selective.resolveTree 'example.javalib.basic[1-simple].native.server.test'
       - run: ./mill -i --debug -k selective.resolveChanged 'example.javalib.basic[1-simple].native.server.test'
