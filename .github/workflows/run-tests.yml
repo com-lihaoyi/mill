@@ -91,7 +91,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: .
-          name: $ubuntu-latest-artifact
+          name: ubuntu-latest-artifact
 
       - uses: ./.github/actions/post-build-setup
         with:
