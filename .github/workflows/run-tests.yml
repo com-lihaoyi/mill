@@ -68,7 +68,7 @@ jobs:
           # Run these with Mill native launcher as a smoketest
         include:
           - os: ubuntu-24.04-arm
-            millargs: "'example.javalib.basic[1-hello].native.server.test'"
+            millargs: "'example.javalib.basic[1-simple].native.server.test'"
             java-version: 17
 
     steps:
@@ -101,7 +101,7 @@ jobs:
 
         include:
           - java-version: 17
-            millargs: "'example.javalib.basic[1-hello].native.server.test'"
+            millargs: "'example.javalib.basic[1-simple].native.server.test'"
             install-android-sdk: false
 
     uses: ./.github/workflows/post-build-selective.yml
