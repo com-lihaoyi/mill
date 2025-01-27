@@ -120,6 +120,6 @@ jobs:
 
 #      - run: cat out/mill-selective-execution.json
 #      - run: ./mill -i -k selective.resolve 'example.javalib.basic[1-simple].native.server.test'
-#      - run: ./mill -i -k selective.resolveTree 'example.javalib.basic[1-simple].native.server.test'
+      - run: ./mill -i -k selective.resolveTree 'example.javalib.basic[1-simple].native.server.test'
 #      - run: ./mill -i -k selective.resolveChanged 'example.javalib.basic[1-simple].native.server.test'
 
