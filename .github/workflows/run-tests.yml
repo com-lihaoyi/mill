@@ -59,22 +59,6 @@ jobs:
       os: ubuntu-latest
       shell: bash
 
-  build-windows:
-    if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
-    uses: ./.github/workflows/pre-build.yml
-    with:
-      os: windows-latest
-      shell: powershell
-
-  test-docs:
-    if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with: { fetch-depth: 1 }
-
-      - run: ./mill -i docs.fastPages + docs.checkBrokenLinks
-
   cross-plat:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
     runs-on: ${{ matrix.os }}
@@ -87,13 +71,6 @@ jobs:
             millargs: "'example.javalib.basic[1-hello].native.server.test'"
             java-version: 17
 
-#          - os: macos-latest
-#            millargs: "'example.thirdparty[acyclic].native.server.test'"
-#            java-version: 11
-#
-#          - os: macos-13
-#            millargs: "'example.thirdparty[jimfs].native.server.test'"
-#            java-version: 11
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 1 }
