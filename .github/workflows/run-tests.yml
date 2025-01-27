@@ -81,34 +81,3 @@ jobs:
     with:
       os: ubuntu-latest
       shell: bash
-
-  linux:
-    needs: build-linux
-    runs-on: ubuntu-latest
-    steps:
-      - uses: coursier/cache-action@v6
-
-      - uses: actions/download-artifact@v4
-        with:
-          path: .
-          name: ubuntu-latest-artifact
-
-      - uses: ./.github/actions/post-build-setup
-        with:
-          java-version: 17
-          os: ubuntu-latest
-
-      - run: cat out/mill-build/methodCodeHashSignatures.dest/current/4-methodCodeHashes.json | jq '.["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
-      - run: cat out/mill-build/methodCodeHashSignatures.dest/current/7-transitiveCallGraphHashes.json  | jq '.["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
-      - run: cat out/mill-build/methodCodeHashSignatures.json  | jq '.["value"]["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
-      - run: cat out/mill-selective-execution.json  | jq '.["methodCodeHashSignatures"]["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
-
-      - run: ./mill -i --debug -k selective.resolve 'example.javalib.basic[1-simple].native.server.test'
-      - run: ./mill -i --debug -k selective.resolveTree 'example.javalib.basic[1-simple].native.server.test'
-      - run: ./mill -i --debug -k selective.resolveChanged 'example.javalib.basic[1-simple].native.server.test'
-
-      - run: cat out/mill-build/methodCodeHashSignatures.dest/current/4-methodCodeHashes.json | jq '.["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
-      - run: cat out/mill-build/methodCodeHashSignatures.dest/current/7-transitiveCallGraphHashes.json  | jq '.["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
-      - run: cat out/mill-build/methodCodeHashSignatures.json  | jq '.["value"]["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
-      - run: cat out/mill-selective-execution.json  | jq '.["methodCodeHashSignatures"]["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
-
