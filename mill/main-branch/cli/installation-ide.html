@@ -984,14 +984,32 @@ and keep them up-to-date.
 <div class="paragraph">
 <p>In case you want to try out the latest features and improvements that are
 currently in the main branch, unstable versions of Mill
-are
-<a href="https://github.com/com-lihaoyi/mill/releases">available</a> as binaries named
-<code>#.#.#-n-hash</code> linked to the latest tag.</p>
+are available as versions named:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>{stable-version}-{commits-since-stable-version}-{commit-hash}</code></p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
-<p>The easiest way to use a development release is to use one of the
-<a href="#_bootstrap_scripts">Bootstrap Scripts</a>, which support overriding Mill versions via an
-<code>MILL_VERSION</code> environment variable or a <code>.mill-version</code> or <code>.config/mill-version</code> file.</p>
+<p>For example, <code>0.12.5-193-b4d975</code> is an unstable release after <code>0.12.5</code>, with <code>193</code>
+additional commits, on commit hash <code>b4d975</code>.</p>
+</div>
+<div class="paragraph">
+<p>The list of unstable releases can be seen on Maven Central:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist" class="bare">https://repo1.maven.org/maven2/com/lihaoyi/mill-dist</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You can update your <code>.mill-version</code> to to the unstable version and the bootstrap script
+will download it for you to try it out in your project.</p>
 </div>
 </div>
 </div>
