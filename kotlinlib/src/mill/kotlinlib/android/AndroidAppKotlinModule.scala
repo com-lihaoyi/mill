@@ -1,9 +1,9 @@
 package mill.kotlinlib.android
 
-import mill.T
+import mill.{Agg, T, Task}
 import mill.api.PathRef
+import mill.kotlinlib.{DepSyntax, KotlinModule}
 import mill.javalib.android.AndroidAppModule
-import mill.kotlinlib.KotlinModule
 
 /**
  * Trait for building Android applications using the Mill build tool.
@@ -20,29 +20,52 @@ import mill.kotlinlib.KotlinModule
  * [[https://developer.android.com/studio Android Studio Documentation]]
  */
 @mill.api.experimental
-trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule {
-
-  private def ktVersion = kotlinVersion
-  private def sdkModule = androidSdkModule
+trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer =>
 
   override def sources: T[Seq[PathRef]] =
-    super.sources() :+ PathRef(millSourcePath / "src/main/kotlin")
+    super[AndroidAppModule].sources() :+ PathRef(millSourcePath / "src/main/kotlin")
 
-  private val parent = this
+  override def kotlincOptions = super.kotlincOptions() ++ {
+    if (androidEnableCompose()) {
+      Seq(
+        // TODO expose Compose configuration options
+        // https://kotlinlang.org/docs/compose-compiler-options.html possible options
+        s"-Xplugin=${composeProcessor().path}"
+      )
+    } else Seq.empty
+  }
+
+  /**
+   * Enable Jetpack Compose support in the module. Default is `false`.
+   */
+  def androidEnableCompose: T[Boolean] = false
+
+  private def composeProcessor = Task {
+    // cut-off usages for Kotlin 1.x, because of the need to maintain the table of
+    // Compose compiler version -> Kotlin version
+    if (kotlinVersion().startsWith("1"))
+      throw new IllegalStateException("Compose can be used only with Kotlin version 2 or newer.")
+    defaultResolver().resolveDeps(
+      Agg(
+        ivy"org.jetbrains.kotlin:kotlin-compose-compiler-plugin:${kotlinVersion()}"
+      )
+    ).head
+  }
 
   trait AndroidAppKotlinTests extends AndroidAppTests with KotlinTests {
     override def sources: T[Seq[PathRef]] =
-      super.sources() :+ PathRef(parent.millSourcePath / "src/test/kotlin")
+      super[AndroidAppTests].sources() ++ Seq(PathRef(outer.millSourcePath / "src/test/kotlin"))
   }
 
-  trait AndroidAppKotlinIntegrationTests extends AndroidAppKotlinModule
-      with AndroidAppIntegrationTests {
+  trait AndroidAppKotlinInstrumentedTests extends AndroidAppKotlinModule
+      with AndroidAppInstrumentedTests {
 
-    override final def kotlinVersion = ktVersion
-    override final def androidSdkModule = sdkModule
+    override final def kotlinVersion = outer.kotlinVersion
+    override final def androidSdkModule = outer.androidSdkModule
 
     override def sources: T[Seq[PathRef]] =
-      super.sources() :+ PathRef(parent.millSourcePath / "src/androidTest/kotlin")
-
+      super[AndroidAppInstrumentedTests].sources() :+ PathRef(
+        outer.millSourcePath / "src/androidTest/kotlin"
+      )
   }
 }

@@ -1,5 +1,6 @@
 package mill.javalib.android
 
+import coursier.MavenRepository
 import mill._
 
 import java.math.BigInteger
@@ -29,7 +30,12 @@ trait AndroidSdkModule extends Module {
   /**
    * Specifies the version of the Android Bundle tool to be used.
    */
-  def bundleToolVersion: T[String]
+  def bundleToolVersion: T[String] = "1.17.2"
+
+  /**
+   * Specifies the version of the Manifest Merger.
+   */
+  def manifestMergerVersion: T[String] = "31.7.3"
 
   /**
    * Specifies the version of the Android build tools to be used.
@@ -289,3 +295,11 @@ trait AndroidSdkModule extends Module {
 }
 
 private object AndroidSdkLock
+
+object AndroidSdkModule {
+
+  /**
+   * Declaration of the Maven Google Repository.
+   */
+  val mavenGoogle: MavenRepository = MavenRepository("https://maven.google.com/")
+}

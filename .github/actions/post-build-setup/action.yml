@@ -14,20 +14,24 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - uses: actions/setup-java@v4
-      with:
-        java-version: ${{ inputs.java-version }}
-        distribution: temurin
+    - run: echo temurin:${{ inputs.java-version }} > .mill-jvm-version
+      shell: bash
 
     # Need to fix cached artifact file permissions because github actions screws it up
     # https://github.com/actions/upload-artifact/issues/38
     - run: "chmod -R 777 ."
       shell: bash
 
-    - uses: coursier/cache-action@v6
-
     - run: git config --global user.email "you@example.com"
       shell: bash
 
     - run: git config --global user.name "Your Name"
+      shell: bash
+
+    - uses: actions/download-artifact@v4
+      with:
+        path: out/mill-selective-execution
+        name: ${{ inputs.os }}-selective-execution-artifact
+
+    - run: mv out/mill-selective-execution/mill-selective-execution.json out/mill-selective-execution.json
       shell: bash

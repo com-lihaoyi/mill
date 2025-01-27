@@ -1,16 +1,17 @@
 //// SNIPPET:BUILD
+
 package build
 import mill._, scalalib._
 
 object foo extends ScalaModule {
   def scalaVersion = "2.13.11"
   def ivyDeps = Agg(
-    ivy"com.lihaoyi::scalatags:0.12.0",
+    ivy"com.lihaoyi::scalatags:0.13.1",
     ivy"com.lihaoyi::mainargs:0.6.2"
   )
 
   object test extends ScalaTests {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.5")
     def testFramework = "utest.runner.Framework"
   }
 }
@@ -117,6 +118,12 @@ error: Missing argument: --text <str>
 <h1>hello</h1>
 
 > ./out/foo/assembly.dest/out.jar --text hello # mac/linux
+<h1>hello</h1>
+
+> # Note that on windows you need to rename `out.jar` to `out.bat` to run it
+> cp ./out/foo/assembly.dest/out.jar out.bat # windows
+
+> ./out.bat --text hello # windows
 <h1>hello</h1>
 
 */

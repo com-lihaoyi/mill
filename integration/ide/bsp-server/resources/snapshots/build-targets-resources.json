@@ -2,6 +2,24 @@
   "items": [
     {
       "target": {
+        "uri": "file:///workspace/app"
+      },
+      "resources": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/lib"
+      },
+      "resources": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-java"
+      },
+      "resources": []
+    },
+    {
+      "target": {
         "uri": "file:///workspace/hello-kotlin"
       },
       "resources": []
@@ -9,12 +27,6 @@
     {
       "target": {
         "uri": "file:///workspace/hello-scala"
-      },
-      "resources": []
-    },
-    {
-      "target": {
-        "uri": "file:///workspace/hello-java"
       },
       "resources": []
     },

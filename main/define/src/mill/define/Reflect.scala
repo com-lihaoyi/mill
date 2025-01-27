@@ -29,6 +29,11 @@ private[mill] object Reflect {
       if isLegalIdentifier(n) && (m.getModifiers & Modifier.STATIC) == 0
     } yield (m, n)
 
+  private val classSeqOrdering =
+    Ordering.Implicits.seqOrdering[Seq, Class[_]]((c1, c2) =>
+      if (c1 == c2) 0 else if (c1.isAssignableFrom(c2)) 1 else -1
+    )
+
   def reflect(
       outer: Class[_],
       inner: Class[_],
@@ -56,16 +61,21 @@ private[mill] object Reflect {
     //    which messes up the comparison since all forwarders will have the
     //    same `getDeclaringClass`. To handle these scenarios, also sort by
     //    return type, so we can identify the most specific override
-
+    //
+    // 3. A class can have multiple methods with same name/return-type if they
+    //    differ in parameter types, so sort by those as well
     arr.sortInPlaceWith((m1, m2) =>
-      if (m1.getDeclaringClass.equals(m2.getDeclaringClass)) {
-        m1.getReturnType.isAssignableFrom(m2.getReturnType)
+      if (m1.getName != m2.getName) m1.getName < m2.getName
+      else if (m1.getDeclaringClass != m2.getDeclaringClass) {
+        !m1.getDeclaringClass.isAssignableFrom(m2.getDeclaringClass)
+      } else if (m1.getReturnType != m2.getReturnType) {
+        !m1.getReturnType.isAssignableFrom(m2.getReturnType)
       } else {
-        m1.getDeclaringClass.isAssignableFrom(m2.getDeclaringClass)
+        classSeqOrdering.lt(m1.getParameterTypes, m2.getParameterTypes)
       }
     )
 
-    arr.reverseIterator.distinctBy(_.getName).toArray
+    arr.distinctBy(_.getName)
   }
 
   // For some reason, this fails to pick up concrete `object`s nested directly within
@@ -99,6 +109,9 @@ private[mill] object Reflect {
 
         }
         .distinct
+
+    // Sometimes `getClasses` returns stuff in odd orders, make sure to sort for determinism
+    second.sortInPlaceBy(_._1)
 
     first ++ second
   }

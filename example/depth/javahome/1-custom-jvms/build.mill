@@ -20,12 +20,12 @@
 import mill._, javalib._
 import mill.define.ModuleRef
 
-object ZincWorkerJava11 extends ZincWorkerModule {
+object ZincWorkerJava extends ZincWorkerModule {
   def jvmId = "temurin:18.0.2"
 }
 
 object foo extends JavaModule {
-  def zincWorker = ModuleRef(ZincWorkerJava11)
+  def zincWorker = ModuleRef(ZincWorkerJava)
 
   object test extends JavaTests with TestModule.Junit4
 }
@@ -56,19 +56,21 @@ Test foo.FooTest.testSimple finished...
 // each version of Mill is released. This ensures that the JVM versions you pick are stable,
 // but means that the latest JVM versions may not be available. You can pass in the JVM
 // index version explicitly via `def jvmIndexVersion` below, choosing a published
-// index version from the Maven Central (https://repo1.maven.org/maven2/io/get-coursier/jvm/indices/index-linux-arm64/[link])
+// index version from the Maven Central:
+//
+// * https://repo1.maven.org/maven2/io/get-coursier/jvm/indices/[JVM Indices on Maven Central])
 //
 
 import scalalib._
 
-object ZincWorkerJava11Latest extends ZincWorkerModule {
+object ZincWorkerJavaLatest extends ZincWorkerModule {
   def jvmId = "temurin:23.0.1"
   def jvmIndexVersion = "latest.release"
 }
 
 object bar extends ScalaModule {
   def scalaVersion = "2.13.12"
-  def zincWorker = ModuleRef(ZincWorkerJava11Latest)
+  def zincWorker = ModuleRef(ZincWorkerJavaLatest)
 
 }
 
@@ -89,7 +91,7 @@ Bar running on Java 23.0.1
 
 import kotlinlib._
 
-object ZincWorkerJava11Url extends ZincWorkerModule {
+object ZincWorkerJavaUrl extends ZincWorkerModule {
   def jvmId =
     if (sys.props("os.name") == "Mac OS X") {
       "https://github.com/adoptium/temurin22-binaries/releases/download/jdk-22.0.2%2B9/OpenJDK22U-jdk_aarch64_mac_hotspot_22.0.2_9.tar.gz"
@@ -101,7 +103,7 @@ object ZincWorkerJava11Url extends ZincWorkerModule {
 
 object qux extends KotlinModule {
   def kotlinVersion = "2.0.20"
-  def zincWorker = ModuleRef(ZincWorkerJava11Url)
+  def zincWorker = ModuleRef(ZincWorkerJavaUrl)
 }
 
 /** Usage

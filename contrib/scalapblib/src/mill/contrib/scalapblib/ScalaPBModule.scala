@@ -34,6 +34,8 @@ trait ScalaPBModule extends ScalaModule {
   /** ScalaPB enables lenses by default, this option allows you to disable it. */
   def scalaPBLenses: T[Boolean] = Task { true }
 
+  def scalaPBScala3Sources: T[Boolean] = T { false }
+
   def scalaPBSearchDeps: Boolean = false
 
   /**
@@ -68,7 +70,8 @@ trait ScalaPBModule extends ScalaModule {
             else
               Seq("single_line_to_string")
           }
-        )
+        ) ++
+        (if (scalaPBScala3Sources()) Seq("scala3_sources") else Seq.empty)
     ).mkString(",")
   }
 
@@ -86,7 +89,12 @@ trait ScalaPBModule extends ScalaModule {
   else Task { Seq.empty[PathRef] }
 
   def scalaPBProtoClasspath: T[Agg[PathRef]] = Task {
-    defaultResolver().resolveDeps(transitiveCompileIvyDeps() ++ transitiveIvyDeps())
+    defaultResolver().resolveDeps(
+      Seq(
+        coursierDependency.withConfiguration(coursier.core.Configuration.provided),
+        coursierDependency
+      )
+    )
   }
 
   def scalaPBUnpackProto: T[PathRef] = Task {

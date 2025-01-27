@@ -1,0 +1,27 @@
+# action.yml
+
+runs:
+  using: "composite"
+  steps:
+    - uses: android-actions/setup-android@v3
+      with:
+        log-accepted-android-sdk-licenses: false
+        cmdline-tools-version: 11076708
+        packages: tools platform-tools emulator system-images;android-35;google_apis_playstore;x86_64
+
+    - name: Enable KVM group perms
+      run: |
+        echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+        sudo udevadm control --reload-rules
+        sudo udevadm trigger --name-match=kvm
+      shell: bash
+
+    - name: Cleanup any previous avd's to avoid signing key conflicts
+      run: rm -rf /home/runner/.config/.android/avd
+      shell: bash
+
+
+    - name: Set AVD environment variable globally
+      run: echo "ANDROID_AVD_HOME=/home/runner/.config/.android/avd" >> $GITHUB_ENV
+      shell: bash
+

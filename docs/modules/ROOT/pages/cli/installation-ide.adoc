@@ -1,4 +1,4 @@
-= Installation & IDE Support
+= Installation & IDE Setup
 
 The standard method of installing Mill is to install a `./mill` <<_bootstrap_scripts,bootstrap script>>,
 similar to `./gradlew` or `./mvnw` in other build tools.
@@ -20,11 +20,12 @@ you can also download it manually:
 [source,bash,subs="verbatim,attributes"]
 ----
 # Mac/Linux
-curl -L {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag} > mill && chmod +x mill
+curl -L {mill-download-url}/mill -o mill
+chmod +x mill
 echo {mill-last-tag} > .mill-version
 
 # Windows
-curl -L {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag}.bat -o mill.bat
+curl -L {mill-download-url}/mill.bat -o mill.bat
 echo {mill-last-tag} > .mill-version
 ----
 
@@ -52,6 +53,42 @@ xref:cli/builtin-commands.adoc#_init[mill init] to initialize the project
 folder with one of the Mill example projects. There are a wide range of example projects,
 from hello-world to multi-module libraries to client-server web applications, and you can
 pick one most similar to what you are doing so you can hit the ground running working.
+
+=== Mill Native Executable
+
+The default Mill executable configured above requires a JVM (11 or above) installed globally in
+order to run, and imposes some Java startup overhead (100-200ms) when running Mill from the
+command line.You can also use Mill's native executables by appending a `-native` suffix to the
+Mill version:
+
+[source,bash,subs="verbatim,attributes"]
+----
+echo {mill-last-tag}-native > .mill-version
+----
+
+Using the `-native` suffix should provide a faster CLI experience than using Mill's default
+JVM launcher. Mill native executables are supported on the following OS/CPU combinations:
+
+- `windows-amd64` (Intel Windows)
+- `linux-amd64` (Intel Linux)
+- `mac-aarch64` (M1-M4 Mac)
+
+If you are on a combination not supported by Mill's native executables, use the default
+JVM launcher instead.
+
+=== Customizing Mill's JVM
+
+To use Mill in environments without a JVM installed, the native launcher can download its
+own JVM as necessary. You need to specify the version you want via a  `.mill-jvm-version`
+file such as:
+
+```bash
+echo temurin:17.0.6 > .mill-jvm-version
+```
+
+`.mill-jvm-version` can also be used with Mill's default JVM launcher, if you want
+your Mill process to use a different JVM than what you have installed globally.
+
 
 == IDE Support
 
@@ -245,13 +282,23 @@ and keep them up-to-date.
 
 In case you want to try out the latest features and improvements that are
 currently in the main branch, unstable versions of Mill
-are
-https://github.com/com-lihaoyi/mill/releases[available] as binaries named
-`+#.#.#-n-hash+` linked to the latest tag.
+are available as versions named:
 
-The easiest way to use a development release is to use one of the
-<<_bootstrap_scripts>>, which support overriding Mill versions via an
-`MILL_VERSION` environment variable or a `.mill-version` or `.config/mill-version` file.
+* `+{stable-version}-{commits-since-stable-version}-{commit-hash}+`
+
+For example, `0.12.5-193-b4d975` is an unstable release after `0.12.5`, with `193`
+additional commits, on commit hash `b4d975`.
+
+The list of unstable releases can be seen on Maven Central:
+
+* https://repo1.maven.org/maven2/com/lihaoyi/mill-dist
+
+Or find the latest unstable version here:
+
+* https://central.sonatype.com/artifact/com.lihaoyi/mill-dist
+
+You can update your `.mill-version` to to the unstable version and the bootstrap script
+will download it for you to try it out in your project.
 
 
 

@@ -4,7 +4,7 @@ import mill.api.Result
 import mill.define.{Command, Task}
 import mill.eval.Evaluator
 import mill.main.client.OutFiles
-import mill.resolve.SelectMode
+import mill.resolve.{Resolve, SelectMode}
 
 trait SelectiveExecutionModule extends mill.define.Module {
 
@@ -15,9 +15,15 @@ trait SelectiveExecutionModule extends mill.define.Module {
    */
   def prepare(evaluator: Evaluator, tasks: String*): Command[Unit] =
     Task.Command(exclusive = true) {
-      val res: Either[String, Unit] = SelectiveExecution.Metadata
-        .compute(evaluator, if (tasks.isEmpty) Seq("__") else tasks)
-        .map(x => SelectiveExecution.saveMetadata(evaluator, x._1))
+      val res: Either[String, Unit] = Resolve.Tasks.resolve(
+        evaluator.rootModule,
+        if (tasks.isEmpty) Seq("__") else tasks,
+        SelectMode.Multi
+      ).map { resolvedTasks =>
+        SelectiveExecution.Metadata
+          .compute(evaluator, resolvedTasks)
+          .map(x => SelectiveExecution.saveMetadata(evaluator, x._1))
+      }
 
       res match {
         case Left(err) => Result.Failure(err)
@@ -42,6 +48,35 @@ trait SelectiveExecutionModule extends mill.define.Module {
     }
 
   /**
+   * Similar to [[resolve]], but prints the output as a JSON tree so you can see
+   * the chain of dependencies that caused each selectively resolved task to be
+   * resolved from some upstream changed input
+   */
+  def resolveTree(evaluator: Evaluator, tasks: String*): Command[ujson.Value] =
+    Task.Command(exclusive = true) {
+      SelectiveExecution.resolveTree(evaluator, tasks) match {
+        case Left(err) => Result.Failure(err)
+        case Right(success) =>
+          println(success.render(indent = 2))
+          Result.Success(success)
+      }
+    }
+
+  /**
+   * Similar to [[resolve]], but prints the _changed upstream tasks_ rather than
+   * the _selected downstream tasks_.
+   */
+  def resolveChanged(evaluator: Evaluator, tasks: String*): Command[Seq[String]] =
+    Task.Command(exclusive = true) {
+      SelectiveExecution.resolveChanged(evaluator, tasks) match {
+        case Left(err) => Result.Failure(err)
+        case Right(success) =>
+          success.foreach(println)
+          Result.Success(success)
+      }
+    }
+
+  /**
    * Run after [[prepare]], selectively executes the tasks in [[tasks]] that are
    * affected by any changes to the task inputs or task implementations since [[prepare]]
    * was run
@@ -57,7 +92,7 @@ trait SelectiveExecutionModule extends mill.define.Module {
         } match {
           case Left(err) => Result.Failure(err)
           case Right((watched, Left(err))) => Result.Failure(err)
-          case Right((watched, Right(res))) => Result.Success(res)
+          case Right((watched, Right(res))) => Result.Success(())
         }
       }
     }
