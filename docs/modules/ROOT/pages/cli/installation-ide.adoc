@@ -282,13 +282,19 @@ and keep them up-to-date.
 
 In case you want to try out the latest features and improvements that are
 currently in the main branch, unstable versions of Mill
-are
-https://github.com/com-lihaoyi/mill/releases[available] as binaries named
-`+#.#.#-n-hash+` linked to the latest tag.
+are available as versions named:
 
-The easiest way to use a development release is to use one of the
-<<_bootstrap_scripts>>, which support overriding Mill versions via an
-`MILL_VERSION` environment variable or a `.mill-version` or `.config/mill-version` file.
+* `+{stable-version}-{commits-since-stable-version}-{commit-hash}+`
+
+For example, `0.12.5-193-b4d975` is an unstable release after `0.12.5`, with `193`
+additional commits, on commit hash `b4d975`.
+
+The list of unstable releases can be seen on Maven Central:
+
+* https://repo1.maven.org/maven2/com/lihaoyi/mill-dist
+
+You can update your `.mill-version` to to the unstable version and the bootstrap script
+will download it for you to try it out in your project.
 
 
 
