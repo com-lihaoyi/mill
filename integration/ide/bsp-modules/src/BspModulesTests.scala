@@ -5,7 +5,7 @@ import mill.bsp.Constants
 import utest._
 
 object BspModulesTests extends UtestIntegrationTestSuite {
-  val bsp4jVersion: String = sys.props.getOrElse("BSP4J_VERSION", ???)
+  val bsp4jVersion: String = sys.props.getOrElse("BSP4J_VERSION", Constants.bspProtocolVersion)
 
   def tests: Tests = Tests {
     test("BSP module with foreign modules") {

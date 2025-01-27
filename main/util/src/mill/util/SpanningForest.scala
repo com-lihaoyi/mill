@@ -13,25 +13,44 @@ import scala.collection.mutable
  * the roots of the forest
  */
 private[mill] object SpanningForest {
+
+  def graphMapToIndices[T](
+      vertices: Iterable[T],
+      edges: Map[T, Seq[T]]
+  ): (Map[T, Int], Array[Array[Int]]) = {
+    val vertexToIndex = vertices.zipWithIndex.toMap
+    val edgeIndices = vertices
+      .map(t => edges.getOrElse(t, Nil).flatMap(vertexToIndex.get(_)).toArray)
+      .toArray
+
+    (vertexToIndex, edgeIndices)
+  }
+
   def writeJsonFile(
       path: os.Path,
       indexEdges: Array[Array[Int]],
       interestingIndices: Set[Int],
       render: Int => String
   ): Unit = {
-    os.write.over(
-      path,
-      SpanningForest.spanningTreeToJsonTree(
-        SpanningForest(indexEdges, interestingIndices, true),
-        render
-      ).render(indent = 2)
-    )
+    val json = writeJson(indexEdges, interestingIndices, render).render(indent = 2)
+    os.write.over(path, json)
   }
+
+  def writeJson(
+      indexEdges: Array[Array[Int]],
+      interestingIndices: Set[Int],
+      render: Int => String
+  ): ujson.Obj = {
+    val forest = SpanningForest(indexEdges, interestingIndices, true)
+    SpanningForest.spanningTreeToJsonTree(forest, render)
+  }
+
   def spanningTreeToJsonTree(node: SpanningForest.Node, stringify: Int => String): ujson.Obj = {
     ujson.Obj.from(
       node.values.map { case (k, v) => stringify(k) -> spanningTreeToJsonTree(v, stringify) }
     )
   }
+
   case class Node(values: mutable.Map[Int, Node] = mutable.Map())
   def apply(
       indexGraphEdges: Array[Array[Int]],
@@ -78,14 +97,20 @@ private[mill] object SpanningForest {
 
     while (queued.nonEmpty) {
       val current = queued.dequeue()
-      seen.add(current)
       seenList.append(current)
 
-      for (next <- edges(current).iterator) {
-        if (!seen.contains(next)) queued.enqueue(next)
+      for (next <- edges(current)) {
+        if (!seen.contains(next)) {
+          seen.add(next)
+          queued.enqueue(next)
+        }
       }
     }
     seenList.toSeq
   }
 
+  def reverseEdges[T, V](edges: Iterable[(T, Iterable[V])]): Map[V, Vector[T]] = {
+    val flatEdges = edges.iterator.flatMap { case (k, vs) => vs.map(_ -> k) }.toVector
+    flatEdges.groupMap(_._1)(_._2).mapValues(_.toSeq).toMap
+  }
 }

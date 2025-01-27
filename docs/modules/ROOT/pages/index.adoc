@@ -15,13 +15,18 @@ helps keep builds clean and understandable
 * Mill is an easier alternative to https://bazel.build/[Bazel]
 for xref:large/large.adoc[large multi-language monorepos] with hundreds of modules
 
-To get started using Mill, see the language-specific introductory documentation linked below:
+To get started using Mill, see:
 
-[cols="1a,1a,1a"]
+* xref:cli/installation-ide.adoc[]
+
+Or see the language-specific introductory documentation linked below:
+
+[cols="1a,1a,1a,1a"]
 |===
 | xref:javalib/intro.adoc[image:index/iconscout-java.svg[java,32] Java with Mill]
 | xref:scalalib/intro.adoc[image:index/iconscout-scala.svg[scala,20] Scala with Mill]
-| xref:kotlinlib/intro.adoc[image:index/iconscout-kotlin.svg[kotlin,32] Kotlin with Mill]
+| xref:kotlinlib/intro.adoc[image:index/iconscout-kotlin.svg[kotlin,28] Kotlin with Mill]
+| xref:pythonlib/intro.adoc[image:index/iconscout-python.svg[python,28] Python with Mill]
 |===
 
 If you want to use Mill on an existing codebase, see xref:migrating/migrating.adoc[]
@@ -66,8 +71,8 @@ Or if you prefer a video introduction:
 
 * https://www.youtube.com/watch?v=Dry6wMRN6MI[Video: Better Java Builds with the Mill Build Tool],
   Japan Java User Group Fall Conference Oct 2024
-* https://www.youtube.com/watch?v=xbGG7MDWR-M[Video: Better Scala Builds with the Mill Build Tool],
-  Scala.IO Paris Conference Nov 2024
+* https://www.youtube.com/watch?v=igarEERjUuQ[Video: Better Scala Builds with the Mill Build Tool],
+  Functional Scala Conference Dec 2024
 
 Mill is used to build many real-world projects, such as the
 https://github.com/swaldman/c3p0[C3P0 JDBC Connection Pool],

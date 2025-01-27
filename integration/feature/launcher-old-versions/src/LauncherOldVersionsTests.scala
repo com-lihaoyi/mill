@@ -24,8 +24,11 @@ class LauncherOldVersionsTests(version: String) extends UtestIntegrationTestSuit
       os.call(cmd = (launcherScript, "version"), cwd = workspacePath, stderr = os.Pipe)
 
       val res = os.call(cmd = (launcherScript, "version"), cwd = workspacePath, stderr = os.Pipe)
+
       val outText = res.out.text().trim
       assert(outText == version)
+      os.call(cmd = (launcherScript, "shutdown"), cwd = workspacePath, check = false)
+      os.remove.all(workspacePath / "out")
     }
   }
 }
@@ -44,3 +47,4 @@ class LauncherOldVersionsTests(version: String) extends UtestIntegrationTestSuit
 //object LauncherVersionTests_0_9 extends LauncherOldVersionsTests("0.9.12")
 //object LauncherVersionTests_0_10 extends LauncherOldVersionsTests("0.10.15")
 object LauncherVersionTests_0_11 extends LauncherOldVersionsTests("0.11.13")
+//object LauncherVersionTests_0_12 extends LauncherOldVersionsTests("0.12.5")

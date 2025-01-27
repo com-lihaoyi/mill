@@ -6,7 +6,7 @@ object `package` extends RootModule with ScalaModule {
   def scalaVersion = "2.13.14"
   def ivyDeps = Agg(
     ivy"com.lihaoyi::cask:0.9.1",
-    ivy"com.lihaoyi::scalatags:0.12.0"
+    ivy"com.lihaoyi::scalatags:0.13.1"
   )
 
   def resources = Task {
@@ -23,7 +23,7 @@ object `package` extends RootModule with ScalaModule {
     def testFramework = "utest.runner.Framework"
 
     def ivyDeps = Agg(
-      ivy"com.lihaoyi::utest::0.8.4",
+      ivy"com.lihaoyi::utest::0.8.5",
       ivy"com.lihaoyi::requests::0.6.9"
     )
   }

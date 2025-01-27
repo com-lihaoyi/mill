@@ -145,7 +145,7 @@ object Lib {
       resolutionParams: ResolutionParams = ResolutionParams()
   ): Result[Agg[PathRef]] = {
     val depSeq = deps.iterator.toSeq
-    mill.util.Jvm.resolveDependencies(
+    val res = mill.util.Jvm.resolveDependencies(
       repositories = repositories,
       deps = depSeq.map(_.dep),
       force = depSeq.filter(_.force).map(_.dep),
@@ -155,8 +155,11 @@ object Lib {
       customizer = customizer,
       ctx = ctx,
       coursierCacheCustomizer = coursierCacheCustomizer,
+      deprecatedResolveFilter = _ => true,
       resolutionParams = resolutionParams
-    ).map(_.map(_.withRevalidateOnce))
+    )
+
+    res.map(_.map(_.withRevalidateOnce))
   }
 
   // bin-compat shim
@@ -283,7 +286,6 @@ object Lib {
     Util.millProperty(EnvVars.MILL_BUILD_LIBRARIES) match {
       case Some(found) => found.split(',').map(os.Path(_)).distinct.toList
       case None =>
-        millAssemblyEmbeddedDeps
         val Result.Success(res) = scalalib.Lib.resolveDependencies(
           repositories = repos.toList,
           deps = millAssemblyEmbeddedDeps,

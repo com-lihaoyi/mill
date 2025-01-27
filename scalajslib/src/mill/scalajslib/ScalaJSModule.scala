@@ -26,6 +26,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     override def jsEnvConfig: T[JsEnvConfig] = outer.jsEnvConfig()
     override def scalaJSOptimizer: T[Boolean] = outer.scalaJSOptimizer()
   }
+
   @deprecated("use ScalaJSTests", "0.11.0")
   type ScalaJSModuleTests = ScalaJSTests
   @deprecated("use ScalaJSTests", "0.11.0")
@@ -52,8 +53,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   def scalaJSWorkerClasspath = Task {
     mill.util.Util.millProjectModule(
       artifact = s"mill-scalajslib-worker-${scalaJSWorkerVersion()}",
-      repositories = repositoriesTask(),
-      resolveFilter = _.toString.contains("mill-scalajslib-worker")
+      repositories = repositoriesTask()
     )
   }
 
