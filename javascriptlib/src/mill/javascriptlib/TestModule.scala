@@ -6,8 +6,6 @@ import os.*
 trait TestModule extends TaskModule {
   import TestModule.TestResult
 
-  def conf: Task[Path]
-
   def test(args: String*): Command[TestResult] =
     Task.Command {
       testTask(Task.Anon { args })()
