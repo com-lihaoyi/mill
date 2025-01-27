@@ -104,10 +104,12 @@ jobs:
           os: ubuntu-latest
 
 
-      - run: cat out/mill-build/methodCodeHashSignatures.dest/current/spanningInvalidationTree.json
-#      - run: cat out/mill-selective-execution.json
-      - run: ./mill -i -k selective.prepare 'example.javalib.basic[1-simple].native.server.test'
-      - run: cat out/mill-build/methodCodeHashSignatures.dest/current/spanningInvalidationTree.json
+      - run:  cat out/mill-build/methodCodeHashSignatures.dest/current/4-methodCodeHashes.json | jq '.["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
+
+      #      - run: cat out/mill-selective-execution.json
+      - run: ./mill -i --debug -k selective.prepare 'example.javalib.basic[1-simple].native.server.test'
+      - run:  cat out/mill-build/methodCodeHashSignatures.dest/current/4-methodCodeHashes.json | jq '.["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
+
 #      - run: cat out/mill-selective-execution.json
 #      - run: ./mill -i -k selective.resolve 'example.javalib.basic[1-simple].native.server.test'
 #      - run: ./mill -i -k selective.resolveTree 'example.javalib.basic[1-simple].native.server.test'
