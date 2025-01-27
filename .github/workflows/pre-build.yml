@@ -32,6 +32,10 @@ jobs:
           java-version: ${{ inputs.java-version }}
           shell: ${{ inputs.shell }}
 
+      - run: cat out/mill-build/methodCodeHashSignatures.dest/current/4-methodCodeHashes.json | jq '.["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
+      - run: cat out/mill-build/methodCodeHashSignatures.dest/current/7-transitiveCallGraphHashes.json  | jq '.["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
+      - run: cat out/mill-build/methodCodeHashSignatures.json  | jq '.["value"]["build_.dist.package_$native$.$anonfun$executableRaw$8(os.Path,scala.collection.immutable.Seq,java.io.OutputStream)void"]'
+        
       - run: ./mill -i --debug -k ${{ inputs.compileargs }}
 
       - uses: actions/upload-artifact@v4.6.0
