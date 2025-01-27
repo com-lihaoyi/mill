@@ -293,6 +293,10 @@ The list of unstable releases can be seen on Maven Central:
 
 * https://repo1.maven.org/maven2/com/lihaoyi/mill-dist
 
+Or find the latest unstable version here:
+
+* https://central.sonatype.com/artifact/com.lihaoyi/mill-dist
+
 You can update your `.mill-version` to to the unstable version and the bootstrap script
 will download it for you to try it out in your project.
 
