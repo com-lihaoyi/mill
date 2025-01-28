@@ -30,9 +30,18 @@ image builder https://github.com/oracle/graal/issues/9215[]
 
 * Mill also provides support for users to build native images via `NativeImageModule`
 
-* Reduce Java Heap for Mill Client to reduce memory footprint {link-pr}/4163[#4163]
+* Mill's https://mill-build.org/mill/python/java.html[Python support] {link-pr}/4166[#4166]
+  is no longer experimental and is ready for people to use. It is still
+  in development, so please try it out and let us know if you hit issues!
 
 * Support for semi-automated migration from Gradle to Mill {link-pr}/4363[#4363]
+
+* Overhaul of the JVM module dependency resolution logic, delegating it mostly upstream
+to Coursier rather than implementing it in Mill {link-pr}/4145[#4145]
+
+* Allow users to define and publish their own BOM in Mill {link-pr}/4155[#4155]
+
+* Reduce Java Heap for Mill Client to reduce memory footprint {link-pr}/4163[#4163]
 
 * Catch fatal exceptions in futures to prevent hangs {link-pr}/4223[#4223]
 
@@ -52,9 +61,6 @@ restart unnecessarily {link-pr}/4254[#4254]
 * Improvements to Mill's https://mill-build.org/mill/javascriptlib/intro.html[experimental
   Javascript/Typescript support] {link-pr}/4253[#4253] {link-pr}/4293[#4293]
 
-* Improvements to Mill's https://mill-build.org/mill/android/java.html[experimental
-  Python support] {link-pr}/4166[#4166]
-
 * Detect terminal size on windows using `io.github.alexarchambault.windowsansi`
 {link-pr}/4056[#4056]
 
@@ -63,9 +69,6 @@ restart unnecessarily {link-pr}/4254[#4254]
 
 * Fix using `clean` to terminate `runBackground` subprocesses on windows
 {link-pr}/4265[#4265]
-
-* Overhaul of the JVM module dependency resolution logic, delegating it mostly upstream
-to Coursier rather than implementing it in Mill
 
 * Add `selective.resolveChanged` {link-pr}/4358[#4358] and `selective.resolveTree`
 {link-pr}/4349[#4349] tasks to help debug selective execution issues
@@ -76,6 +79,8 @@ to Coursier rather than implementing it in Mill
 to Maven Central for improved security and reliability {link-pr}/4372[#4372]
 
 * ScalaPB plugin now supports `scala3_sources` {link-pr}/3258[#3258]
+
+* Kotlin 2.1.0 is now supported {link-pr}/4406[#4406]
 
 
 [#0-12-5]
