@@ -27,7 +27,7 @@ error: ...palantirformat aborted due to format error(s) (or invalid plugin setti
 > ./mill palantirformat --check    # check should succeed now
 ...checking format in java sources ...
 */
-// You can also use Palantir Java Format globally on all `JavaModule`s in your build by running
+// You can also use Palantir Java Format globally on all ``JavaModule``s in your build by running
 // `mill.javalib.palantirformat.PalantirFormatModule/`.
 
 /** Usage

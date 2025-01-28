@@ -39,7 +39,7 @@ object foo extends ScalaModule {
 // central.to=http://example.com:8080/nexus/content/groups/public
 // ----
 //
-// Note theses default config file locatations:
+// The default location of this config file on each OS is as follows:
 //
 // * Linux: `~/.config/coursier/mirror.properties`
 // * MacOS: `~/Library/Preferences/Coursier/mirror.properties`
