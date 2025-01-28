@@ -34,11 +34,11 @@ trait TypeScriptModule extends Module { outer =>
       "--userconfig",
       ".npmrc",
       "--save-dev",
-      "@types/node@22.10.2",
+      "@types/node@22.10.9",
       "@types/esbuild-copy-static-files@0.1.4",
-      "typescript@5.7.2",
+      "typescript@5.7.3",
       "ts-node@^10.9.2",
-      "esbuild@0.24.0",
+      "esbuild@0.24.2",
       "esbuild-plugin-copy@2.1.1",
       "@esbuild-plugins/tsconfig-paths@0.1.2",
       "esbuild-copy-static-files@0.1.0",
@@ -62,7 +62,20 @@ trait TypeScriptModule extends Module { outer =>
       os.walk(sources().path).filter(fileExt).map(PathRef(_))
     }
 
-  private def compiledSources: Task[IndexedSeq[PathRef]] = Task.Anon {
+  // Generate coverage directories for TestModule
+  private[javascriptlib] def coverageDirs: T[Seq[String]] = Task {
+    Task.traverse(moduleDeps)(mod => {
+      Task.Anon {
+        val comp = mod.compile()
+        val generated = mod.generatedSources()
+        val combined = Seq(comp._2) ++ generated
+
+        combined.map(_.path.subRelativeTo(Task.workspace / "out").toString + "/**/**/*.ts")
+      }
+    })().flatten
+  }
+
+  private[javascriptlib] def compiledSources: Task[IndexedSeq[PathRef]] = Task.Anon {
     val generated = for {
       pr <- generatedSources()
       file <- os.walk(pr.path)
