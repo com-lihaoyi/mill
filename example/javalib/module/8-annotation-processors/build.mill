@@ -23,15 +23,15 @@ Test foo.HelloWorldTest.testSimple finished...
 */
 
 // The Java compiler automatically discovers annotation processors based on the
-// classes available during compilation, e.g. on `compileIvyDeps` or `ivyDeps`,
+// classes available during compilation, e.g. in `compileIvyDeps` or `ivyDeps`,
 // which is what takes place in the example above.
 //
 // In some cases, you may need
 // to pass in the annotation processors manually, e.g. if you need annotation
 // processors that are not on the compilation classpath, or you need finer control
 // over exactly which annotation processors are active. To do this, you can define
-// a module to contain the exact annotation processors you want, and pass
-// in `-processorpath` to `javacOptions` explicitly:
+// a task to resolve the exact annotation processors you want, and pass
+// those to `-processorpath` to `javacOptions` explicitly:
 
 object bar extends JavaModule {
   def compileIvyDeps = Agg(ivy"org.projectlombok:lombok:1.18.34")
@@ -56,3 +56,6 @@ Test bar.HelloWorldTest.testSimple finished...
 ...
 
 */
+
+// Many Java frameworks and libraries such as xref:javalib/web-examples#_micronaut_hello_world_app[Micronaut]
+// or ErrorProne use annotation processors, and can be set up in this way.

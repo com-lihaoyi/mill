@@ -43,8 +43,8 @@ private[mill] object Plan {
   }
 
   /**
-   * If a task has been overriden, give it a name by looking at all the
-   * other overriden tasks of the same name, and finding the shortest
+   * If a task has been overridden, give it a name by looking at all the
+   * other overridden tasks of the same name, and finding the shortest
    * suffix that uniquely distinguishes them.
    */
   private def assignOverridenTaskSegments(overriddenEnclosings: Seq[String], t: NamedTask[Any]) = {
@@ -58,7 +58,7 @@ private[mill] object Plan {
     val superSegmentStrings = overriddenEnclosings.map(splitEnclosing)
 
     // Find out how many segments of the enclosing strings are identical
-    // among all overriden tasks, so we can drop them
+    // among all overridden tasks, so we can drop them
     val shortestSuperLength = superSegmentStrings.map(_.length).min
     val dropLeft = Range(0, shortestSuperLength)
       .find(i => superSegmentStrings.distinctBy(_(i)).size != 1)
@@ -66,7 +66,7 @@ private[mill] object Plan {
 
     val splitted = splitEnclosing(t.ctx.enclosing)
     // `dropRight(1)` to always drop the task name, which has to be
-    // the same for all overriden tasks with the same segments
+    // the same for all overridden tasks with the same segments
     val superSuffix0 = splitted.drop(dropLeft).dropRight(1)
 
     // If there are no different segments between the enclosing strings,
