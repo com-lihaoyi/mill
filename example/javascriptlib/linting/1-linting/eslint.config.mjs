@@ -12,7 +12,6 @@ export default tseslint.config({
     rules: {
         // styling rules
         'semi': ['error', 'always'],
-        'quotes': ['error', 'single'],
         'comma-dangle': ['error', 'always-multiline'],
         'max-len': ['error', {code: 80, ignoreUrls: true}],
         'indent': ['error', 2, {SwitchCase: 1}],
