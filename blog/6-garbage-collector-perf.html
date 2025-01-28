@@ -222,6 +222,7 @@ idealized example.</p>
 <em>heap</em>. The memory of a program can be modelled as a linear sequence of storage locations, e.g.
 below where we have 16 slots in memory:</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="373px" height="95px" viewBox="0.00 0.00 372.55 94.60" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 90.6)">
@@ -281,6 +282,7 @@ below where we have 16 slots in memory:</p>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>These storage locations can contain objects (below named <code>foo</code>, <code>bar</code>, <code>qux</code>, <code>baz</code>) that take
 up memory and may reference other objects (solid arrows). Furthermore, the values may be referenced from outside
@@ -288,6 +290,7 @@ the heap (dashed lines), e.g. from the &quot;stack&quot; which represents
 local variables in methods that are currently being run (shown below) or from static global
 variables (not shown). We keep a <code>free-memory</code> pointer to the first empty slot on the right.</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="436px" height="156px" viewBox="0.00 0.00 435.51 156.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 152.4)">
@@ -397,10 +400,12 @@ variables (not shown). We keep a <code>free-memory</code> pointer to the first e
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>If we want to allocate a new object <code>new1</code>, we can simply put it at the location of
 the <code>free-memory</code> pointer (green below), and bump the pointer 1 slot to the right</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="462px" height="156px" viewBox="0.00 0.00 462.33 156.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 152.4)">
@@ -515,12 +520,14 @@ the <code>free-memory</code> pointer (green below), and bump the pointer 1 slot 
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>Similarly, objects may stop being referenced, e.g. <code>bar</code> below no longer has a reference
 pointing at it from the stack. This may happen because a local variable on the stack is
 set to <code>null</code>, or because a method call returned and the local variables associated with
 it are no longer necessary</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="462px" height="156px" viewBox="0.00 0.00 462.33 156.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 152.4)">
@@ -630,6 +637,7 @@ it are no longer necessary</p>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>For the purposes of this example, we show all objects on the heap taking up 1 slot, but
 in real programs the size of each object may vary depending on the fields it has
@@ -643,6 +651,7 @@ or if it’s a variable-length array.</p>
 two 8-slot halves. If we want to allocate 4 more objects (<code>new2</code>, to <code>new5</code>), but
 there are only 3 slots left in that half of the heap, we will need to do a collection:</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="546px" height="156px" viewBox="0.00 0.00 546.44 156.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 152.4)">
@@ -758,11 +767,13 @@ there are only 3 slots left in that half of the heap, we will need to do a colle
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>To do a collection, the GC first starts from all non-heap
 references (e.g. the <code>STACK</code> references above) often called &quot;GC roots&quot;. It then traces
 the graph of references, highlighted red below:</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="546px" height="156px" viewBox="0.00 0.00 546.44 156.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 152.4)">
@@ -878,6 +889,7 @@ the graph of references, highlighted red below:</p>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>Here, we can see that <code>foo</code> is not referenced (&quot;garbage&quot;), <code>qux</code> and <code>new1</code> are referenced directly from the
 <code>STACK</code>, and <code>baz</code> is referenced indirectly from <code>qux</code>. <code>bar</code> is referenced by <code>foo</code>, but
@@ -887,6 +899,7 @@ because <code>foo</code> is itself garbage we can count <code>bar</code> as garb
 <p>We then copy all objects we traced (often called the <em>live-set</em>) from <code>HALF1</code> to <code>HALF2</code>, adjust all the references
 appropriately. Now <code>HALF2</code> is the half of the heap in use, and <code>HALF1</code> can be reset to empty.</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="518px" height="156px" viewBox="0.00 0.00 517.67 156.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 152.4)">
@@ -990,10 +1003,12 @@ appropriately. Now <code>HALF2</code> is the half of the heap in use, and <code>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>This collection has freed up 5 slots, so we now have space to allocate the
 4 <code>new2</code> to <code>new5</code> objects we wanted (green) starting from our <code>free-memory</code> pointer:</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="659px" height="156px" viewBox="0.00 0.00 658.73 156.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 152.4)">
@@ -1119,6 +1134,7 @@ appropriately. Now <code>HALF2</code> is the half of the heap in use, and <code>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>You may notice that the objects <code>foo</code> and <code>bar</code> disappeared. This is because <code>foo</code> and <code>bar</code>
 were not referenced directly or indirectly by any GC roots: they were unreachable, and thus
@@ -1131,6 +1147,7 @@ during collection, and thus were wiped out when <code>HALF1</code> was cleared.<
 (both from stack to heap and between entries on your heap) may change. For example, we may
 stop referencing <code>qux</code>, which also means that <code>baz</code> is now unreachable:</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="659px" height="156px" viewBox="0.00 0.00 658.73 156.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 152.4)">
@@ -1251,6 +1268,7 @@ stop referencing <code>qux</code>, which also means that <code>baz</code> is now
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>Although <code>qux</code> and <code>baz</code> are now &quot;garbage&quot;, they still take up space in the heap. Thus, if we want
 to allocate two new objects (e.g. <code>new6</code> and <code>new7</code>), and there is only one slot left on the heap (above),
@@ -1260,6 +1278,7 @@ from <code>HALF2</code> to <code>HALF1</code>,
 adjusting any references to now use <code>HALF1</code> as the new heap, and clearing anything that was left
 behind in <code>HALF2</code>. This then gives us enough space to allocate <code>new6</code> and <code>new7</code> (below in green):</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="644px" height="156px" viewBox="0.00 0.00 644.42 156.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 152.4)">
@@ -1385,6 +1404,7 @@ behind in <code>HALF2</code>. This then gives us enough space to allocate <code>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>This process can repeat as many times as necessary: as long as there are <em>some</em> objects
 that are unreachable, you can run a collection and copy the &quot;live&quot; objects to the other
@@ -1452,6 +1472,7 @@ We can see this in the heap diagrams: the tracing garbage collector heaps above 
 single block of empty space to the right, and had the <code>new</code> objects allocated in ascending order
 from left-to-right:</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="507px" height="156px" viewBox="0.00 0.00 506.65 156.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 152.4)">
@@ -1560,11 +1581,13 @@ from left-to-right:</p>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>In contrast,
 reference counted heaps (e.g. below) tend to get fragmented, with free space scattered about,
 and the allocated objects jumbled up in no particular order</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="507px" height="126px" viewBox="0.00 0.00 506.65 125.60" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 121.6)">
@@ -1661,6 +1684,7 @@ and the allocated objects jumbled up in no particular order</p>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>There are two main ways this affect performance:</p>
 </div>
@@ -1694,6 +1718,7 @@ out of memory even though much of the heap could be cleaned up by a tracing garb
 <p>For example, consider the following heap, identical to the one we started with, but with an
 additional edge from <code>bar</code> to <code>foo</code> (green), and with the edge from the stack to <code>bar</code> removed:</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="436px" height="126px" viewBox="0.00 0.00 435.51 125.60" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 121.6)">
@@ -1792,6 +1817,7 @@ additional edge from <code>bar</code> to <code>foo</code> (green), and with the 
 </svg>
 
 </center>
+</div>
 <div class="ulist">
 <ul>
 <li>

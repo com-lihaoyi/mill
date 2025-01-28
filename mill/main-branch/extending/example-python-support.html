@@ -685,6 +685,7 @@ def pythonExe: T[PathRef] = Task {
 <div class="paragraph">
 <p>At this point, we have a minimal working build, with a build graph that looks like this:</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="197px" height="76px" viewBox="0.00 0.00 196.53 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
@@ -724,6 +725,7 @@ def pythonExe: T[PathRef] = Task {
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>Here is the <code>main.py</code> file</p>
 </div>
@@ -762,6 +764,7 @@ def run(args: mill.define.Args) = Task.Command {
 <p>Note that we use <code>stdout = os.Inherit</code> since we want to display any output to the user,
 rather than capturing it for use in our command.</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="219px" height="119px" viewBox="0.00 0.00 219.07 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
@@ -831,6 +834,7 @@ rather than capturing it for use in our command.</p>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>Note that like many optionally-typed languages, The <code>run</code> and <code>typeCheck</code> tasks are
 independent: you can run a Python program without needing to typecheck it first. This is
@@ -947,6 +951,7 @@ Hello, Mill Qux!</code></pre>
 <div class="paragraph">
 <p>After this step, we have a build graph that looks like this:</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="313px" height="496px" viewBox="0.00 0.00 312.95 496.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 492.0)">
@@ -1151,6 +1156,7 @@ Hello, Mill Qux!</code></pre>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>Right now, the three <code>PythonModule</code>s are independent. Next we will look into
 how to allow them to depend on each other using <code>moduleDeps</code>.</p>
@@ -1284,6 +1290,7 @@ Add: 10 + 20 = 30 | Multiply: 10 * 20 = 200 | Divide: 10 / 20 = 0.5</code></pre>
 <div class="paragraph">
 <p>Task dependency graph, showing <code>foo</code> and <code>bar</code> tasks feeding into <code>qux</code>:</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="465px" height="498px" viewBox="0.00 0.00 465.04 498.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 494.0)">
@@ -1512,6 +1519,7 @@ Add: 10 + 20 = 30 | Multiply: 10 * 20 = 200 | Divide: 10 / 20 = 0.5</code></pre>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>Next, we will add support for depending on external Python libraries from
 <a href="https://pypi.org/">PyPI</a>, and bundling via <a href="https://pypi.org/project/pex/">PEX</a></p>
@@ -1667,16 +1675,12 @@ to bundle.pex and then run using <code>./bundle.pex</code> command.</p>
 <p>The final module tree and task graph is now as follows, with the additional dependencies
 tasks with upstream and the bundle tasks downstream:</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="607px" height="617px" viewBox="0.00 0.00 606.86 617.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 613.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-613 602.86,-613 602.86,4 -4,4"></polygon>
-<g id="clust1" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="164.03,-8 164.03,-159 590.86,-159 590.86,-8 164.03,-8"></polygon>
-<text text-anchor="middle" x="377.44" y="-142.4" font-family="Times,serif" font-size="14.00">qux</text>
-</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-288 8,-601 449.26,-601 449.26,-288 8,-288"></polygon>
@@ -1686,6 +1690,11 @@ tasks with upstream and the bundle tasks downstream:</p>
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="16,-417 16,-568 441.26,-568 441.26,-417 16,-417"></polygon>
 <text text-anchor="middle" x="228.63" y="-551.4" font-family="Times,serif" font-size="14.00">bar</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="164.03,-8 164.03,-159 590.86,-159 590.86,-8 164.03,-8"></polygon>
+<text text-anchor="middle" x="377.44" y="-142.4" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
 <!-- qux.pythonDeps -->
 <g id="node1" class="node">
@@ -1991,6 +2000,7 @@ tasks with upstream and the bundle tasks downstream:</p>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>As mentioned, The <code>PythonModule</code> examples here demonstrate
 how to add support for a new language toolchain in Mill.

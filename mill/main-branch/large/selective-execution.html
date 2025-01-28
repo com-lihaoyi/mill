@@ -676,6 +676,7 @@ object bar extends MyModule
 object qux extends MyModule</code></pre>
 </div>
 </div>
+<div class="paragraph">
 <center>
 <svg width="235px" height="129px" viewBox="0.00 0.00 234.54 128.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 124.8)">
@@ -745,11 +746,13 @@ object qux extends MyModule</code></pre>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>In this example, <code>qux.test</code> starts off failing with an error, while <code>foo.test</code> and
 <code>bar.test</code> pass successfully. Normally, running <code>__.test</code> will run all three test
 suites and show both successes and the one failure:</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="235px" height="129px" viewBox="0.00 0.00 234.54 128.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 124.8)">
@@ -819,6 +822,7 @@ suites and show both successes and the one failure:</p>
 </svg>
 
 </center>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill __.test
@@ -867,6 +871,7 @@ Test run bar.BarTests finished: 0 failed, 0 ignored, 1 total, ...</code></pre>
 <div class="paragraph">
 <p>As we only touched <code>bar</code>'s source files, we only need to run tests for</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="235px" height="129px" viewBox="0.00 0.00 234.54 128.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 124.8)">
@@ -936,6 +941,7 @@ Test run bar.BarTests finished: 0 failed, 0 ignored, 1 total, ...</code></pre>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>For a more detailed report of how the changed inputs resulted in the selected tasks
 being chosen, you can also use <code>selective.resolveChanged</code> to print out the upstream

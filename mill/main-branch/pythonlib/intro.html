@@ -612,15 +612,17 @@ const links = document.querySelectorAll('a');
 </script>
 <div class="paragraph">
 <p>This page contains a quick introduction to getting start with using Mill to build
-a simple python program. We will walk through a series of Mill builds of increasing
+a simple python program. It walks through a series of Mill builds of increasing
 complexity to show you the key features and usage of the Mill build tool.</p>
 </div>
 <div class="paragraph">
-<p>The other pages of this section on python go into more depth into individual features,
+<p>The other pages of this section of the documentation go into more depth into individual features,
 with more examples of how to use Mill for python and more details of how the Mill
 build tool works. They aren’t intended to be read comprehensively top-to-bottom, but
-rather looked up when you have a particular interest e.g. in testing, linting,
-publishing, and so on.</p>
+rather looked up when you have a particular interest e.g. in
+<a href="testing.html" class="xref page">testing</a>,
+<a href="publishing.html" class="xref page">publishing</a>,
+<a href="web-examples.html" class="xref page">web dev</a>, and so on.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -821,6 +823,7 @@ object foo extends PythonModule {
 provided by <code>PythonModule</code> (labelled <code>resources.super</code> below), replacing it with the
 <code>destination</code> folder of the new <code>resources</code> task, which is wired up to <code>lineCount</code>:</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="481px" height="76px" viewBox="0.00 0.00 480.78 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
@@ -896,6 +899,7 @@ provided by <code>PythonModule</code> (labelled <code>resources.super</code> bel
 </svg>
 
 </center>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.run

@@ -745,6 +745,7 @@ files generated in the <a href="#_compilation">Compilation</a> step above, insta
 and <a href="../fundamentals/tasks.html" class="xref page">Tasks</a> as necessary, and returns a list of the final tasks that
 were selected by selector:</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="206px" height="154px" viewBox="0.00 0.00 205.87 154.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 150.4)">
@@ -807,6 +808,7 @@ were selected by selector:</p>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>Mill starts from the <code>RootModule</code> instantiated after <a href="#_compilation">Compilation</a>, and uses
 Java reflection to walk the tree of modules and tasks to find the tasks that match
@@ -827,6 +829,7 @@ build graph that includes all transitive upstream dependencies. This is done by
 traversing the graph of task dependencies, and generates a (simplified) task graph
 as shown below:</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="620px" height="248px" viewBox="0.00 0.00 619.73 248.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 244.0)">
@@ -983,6 +986,7 @@ as shown below:</p>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>In this graph, we can see that even though <a href="#_resolution">Resolution</a> only selected <code>foo.assembly</code>
 and <code>bar.assembly</code>, their upstream task graph requires tasks such as <code>foo.compile</code>,
@@ -1002,19 +1006,20 @@ changes may have their value loaded from cache (if already evaluated earlier) or
 <p>For example, a change to <code>foo/src/*.java</code> would affect the <code>foo.sources</code> task, which
 would invalidate and cause evaluation of the tasks highlighted in red below:</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="620px" height="248px" viewBox="0.00 0.00 619.73 248.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 244.0)">
 <title>G</title>
-<g id="clust1" class="cluster">
-<title>cluster_0</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-232 478.26,-232 478.26,-124 8,-124"></polygon>
-<text text-anchor="middle" x="243.13" y="-215.4" font-family="Times,serif" font-size="14.00">foo</text>
-</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="126.09,-8 126.09,-116 603.73,-116 603.73,-8 126.09,-8"></polygon>
 <text text-anchor="middle" x="364.91" y="-99.4" font-family="Times,serif" font-size="14.00">bar</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_0</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-232 478.26,-232 478.26,-124 8,-124"></polygon>
+<text text-anchor="middle" x="243.13" y="-215.4" font-family="Times,serif" font-size="14.00">foo</text>
 </g>
 <!-- foo.sources -->
 <g id="node1" class="node">
@@ -1158,10 +1163,12 @@ would invalidate and cause evaluation of the tasks highlighted in red below:</p>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>On the other hand a change to <code>bar/src/*.java</code> would affect the <code>bar.sources</code> task, which
 would invalidate and cause evaluation of the tasks highlighted in red below:</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="620px" height="248px" viewBox="0.00 0.00 619.73 248.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 244.0)">
@@ -1318,6 +1325,7 @@ would invalidate and cause evaluation of the tasks highlighted in red below:</p>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>In the example changing <code>bar/src/*.java</code>, Mill may also take the opportunity to parallelize
 things:</p>

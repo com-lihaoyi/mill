@@ -715,6 +715,7 @@ Again we return a <code>PathRef</code> to the <code>Task.dest</code> folder we o
 <div class="paragraph">
 <p>At this point, we have a minimal working build, with a build graph that looks like this:</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="275px" height="76px" viewBox="0.00 0.00 274.96 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
@@ -766,6 +767,7 @@ Again we return a <code>PathRef</code> to the <code>Task.dest</code> folder we o
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>Given an input file below, we can run
 <code>mill compile</code> and demonstrate it is installing typescript locally and using it to compile
@@ -831,6 +833,7 @@ def run(args: mill.define.Args) = Task.Command {
 <p>Note that we use <code>stdout = os.Inherit</code> since we want to display any output to
 the user, rather than capturing it for use in our command.</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="384px" height="97px" viewBox="0.00 0.00 383.72 96.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 92.8)">
@@ -906,6 +909,7 @@ the user, rather than capturing it for use in our command.</p>
 </svg>
 
 </center>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill run James Bond
@@ -1024,11 +1028,17 @@ Hello James Qux</code></pre>
 <p>At this point, we have multiple <code>TypeScriptModule</code>s, with <code>bar</code> nested inside <code>foo</code>,
 but they are each independent and do not depend on one another.</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="527px" height="367px" viewBox="0.00 0.00 526.60 367.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 363.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-363 522.6,-363 522.6,4 -4,4"></polygon>
+<g id="clust1" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="14.44,-8 14.44,-116 504.16,-116 504.16,-8 14.44,-8"></polygon>
+<text text-anchor="middle" x="259.3" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
+</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-351 510.6,-351 510.6,-124 8,-124"></polygon>
@@ -1038,11 +1048,6 @@ but they are each independent and do not depend on one another.</p>
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="16,-210 16,-318 502.6,-318 502.6,-210 16,-210"></polygon>
 <text text-anchor="middle" x="259.3" y="-301.4" font-family="Times,serif" font-size="14.00">bar</text>
-</g>
-<g id="clust1" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="14.44,-8 14.44,-116 504.16,-116 504.16,-8 14.44,-8"></polygon>
-<text text-anchor="middle" x="259.3" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
 <!-- qux.npmInstall -->
 <g id="node1" class="node">
@@ -1246,6 +1251,7 @@ but they are each independent and do not depend on one another.</p>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>Next, we will look at how to wire them up using
 <code>moduleDeps</code>.</p>
@@ -1408,6 +1414,7 @@ Hello James Bond Professor</code></pre>
 <code>foo.compile</code> and <code>bar.compile</code> now being fed into <code>qux.compile</code> (and
 ultimately <code>qux.run</code>):</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="674px" height="367px" viewBox="0.00 0.00 674.01 367.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 363.0)">
@@ -1644,6 +1651,7 @@ ultimately <code>qux.run</code>):</p>
 </center>
 </div>
 </div>
+</div>
 <div class="sect1">
 <h2 id="_npm_dependencies_and_bundling"><a class="anchor" href="#_npm_dependencies_and_bundling"></a>NPM dependencies and bundling</h2>
 <div class="sectionbody">
@@ -1788,16 +1796,12 @@ Hello James Bond Professor</code></pre>
 <p>The final module tree and task graph is now as follows, with the
 additional <code>npmDeps</code> tasks upstream and the <code>bundle</code> tasks downstream:</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="705px" height="367px" viewBox="0.00 0.00 705.13 367.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 363.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-363 701.13,-363 701.13,4 -4,4"></polygon>
-<g id="clust1" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="145.37,-8 145.37,-116 689.13,-116 689.13,-8 145.37,-8"></polygon>
-<text text-anchor="middle" x="417.25" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
-</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-351 558.42,-351 558.42,-124 8,-124"></polygon>
@@ -1807,6 +1811,11 @@ additional <code>npmDeps</code> tasks upstream and the <code>bundle</code> tasks
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="16,-210 16,-318 550.42,-318 550.42,-210 16,-210"></polygon>
 <text text-anchor="middle" x="283.21" y="-301.4" font-family="Times,serif" font-size="14.00">bar</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="145.37,-8 145.37,-116 689.13,-116 689.13,-8 145.37,-8"></polygon>
+<text text-anchor="middle" x="417.25" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
 <!-- qux.npmInstall -->
 <g id="node1" class="node">
@@ -2124,6 +2133,7 @@ additional <code>npmDeps</code> tasks upstream and the <code>bundle</code> tasks
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>As mentioned earlier, the <code>TypeScriptModule</code> examples on this page are meant for
 demo purposes: to show what it looks like to add support in Mill for a new

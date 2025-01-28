@@ -655,6 +655,7 @@ object foo extends Module {
 }</code></pre>
 </div>
 </div>
+<div class="paragraph">
 <center>
 <svg width="153px" height="215px" viewBox="0.00 0.00 153.06 215.20" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 211.2)">
@@ -718,6 +719,7 @@ object foo extends Module {
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>You would be able to run the two tasks via <code>mill foo.bar</code> or <code>mill
 foo.qux.baz</code>. You can use <code>mill show foo.bar</code> or <code>mill show foo.baz.qux</code> to
@@ -764,7 +766,7 @@ with additional <code>def</code>s, etc.</p>
 
 object foo1 extends FooModule {
   def bar = &quot;hello&quot;
-  def qux = super.qux().toUpperCase // refer to overriden value via super
+  def qux = super.qux().toUpperCase // refer to overridden value via super
 }
 object foo2 extends FooModule {
   def bar = &quot;hi&quot;
@@ -777,6 +779,7 @@ object foo2 extends FooModule {
 arrows representing the module tree, and the solid boxes and arrows representing
 the task graph</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="522px" height="154px" viewBox="0.00 0.00 521.81 154.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 150.4)">
@@ -911,6 +914,7 @@ the task graph</p>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>Note that the <code>override</code> keyword is optional in mill, as is <code>T{…​}</code> wrapper.</p>
 </div>
@@ -963,6 +967,7 @@ object outer extends MyModule {
 }</code></pre>
 </div>
 </div>
+<div class="paragraph">
 <center>
 <svg width="361px" height="215px" viewBox="0.00 0.00 360.66 215.20" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 211.2)">
@@ -1062,6 +1067,7 @@ object outer extends MyModule {
 </svg>
 
 </center>
+</div>
 <div class="ulist">
 <ul>
 <li>
@@ -1286,6 +1292,7 @@ trait DiyJavaModule extends Module {
 edges (dashed) are not connected; that is because <code>DiyJavaModule</code> is abstract, and
 needs to be inherited by a concrete <code>object</code> before it can be used.</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="410px" height="132px" viewBox="0.00 0.00 409.51 132.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 128.0)">
@@ -1370,6 +1377,7 @@ needs to be inherited by a concrete <code>object</code> before it can be used.</
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>Some notable things to call out:</p>
 </div>
@@ -1418,6 +1426,7 @@ object qux extends DiyJavaModule {
 duplicated three times - once per module - with the tasks wired up between the modules
 according to our overrides for <code>moduleDeps</code></p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="847px" height="321px" viewBox="0.00 0.00 847.08 321.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 317.0)">
@@ -1427,15 +1436,15 @@ according to our overrides for <code>moduleDeps</code></p>
 <polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="157.76,-124 157.76,-232 698.19,-232 698.19,-124 157.76,-124"></polygon>
 <text text-anchor="middle" x="427.98" y="-215.4" font-family="Times,serif" font-size="14.00">foo</text>
 </g>
-<g id="clust3" class="cluster">
-<title>cluster_2</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="303.84,-8 303.84,-116 831.08,-116 831.08,-8 303.84,-8"></polygon>
-<text text-anchor="middle" x="567.46" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
-</g>
 <g id="clust1" class="cluster">
 <title>cluster_0</title>
 <polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-240 8,-305 567.65,-305 567.65,-240 8,-240"></polygon>
 <text text-anchor="middle" x="287.82" y="-288.4" font-family="Times,serif" font-size="14.00">foo.bar</text>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_2</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="303.84,-8 303.84,-116 831.08,-116 831.08,-8 303.84,-8"></polygon>
+<text text-anchor="middle" x="567.46" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
 <!-- foo.bar.sources -->
 <g id="node1" class="node">
@@ -1629,6 +1638,7 @@ according to our overrides for <code>moduleDeps</code></p>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>This simple set of <code>DiyJavaModule</code> can be used as follows:</p>
 </div>

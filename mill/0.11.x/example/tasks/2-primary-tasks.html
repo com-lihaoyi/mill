@@ -407,6 +407,7 @@ def lineCount: T[Int] = T {
 }</code></pre>
 </div>
 </div>
+<div class="paragraph">
 <center>
 <svg width="284px" height="33px" viewBox="0.00 0.00 283.51 32.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 28.8)">
@@ -446,6 +447,7 @@ def lineCount: T[Int] = T {
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p><code>Target</code>s are defined using the <code>def foo = T {…​}</code> syntax, and dependencies
 on other targets are defined using <code>foo()</code> to extract the value from them.
@@ -505,6 +507,7 @@ def jar = T {
 }</code></pre>
 </div>
 </div>
+<div class="paragraph">
 <center>
 <svg width="256px" height="76px" viewBox="0.00 0.00 255.51 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
@@ -556,6 +559,7 @@ def jar = T {
 </svg>
 
 </center>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill jar
@@ -595,6 +599,7 @@ def hugeFileName = T{
 }</code></pre>
 </div>
 </div>
+<div class="paragraph">
 <center>
 <svg width="318px" height="33px" viewBox="0.00 0.00 318.49 32.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 28.8)">
@@ -634,6 +639,7 @@ def hugeFileName = T{
 </svg>
 
 </center>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show lineCount
@@ -668,6 +674,7 @@ def summarizeClassFileStats = T{
 }</code></pre>
 </div>
 </div>
+<div class="paragraph">
 <center>
 <svg width="278px" height="33px" viewBox="0.00 0.00 278.19 32.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 28.8)">
@@ -695,6 +702,7 @@ def summarizeClassFileStats = T{
 </svg>
 
 </center>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show summarizeClassFileStats
@@ -720,6 +728,7 @@ def summarizeClassFileStats = T{
 }</code></pre>
 </div>
 </div>
+<div class="paragraph">
 <center>
 <svg width="149px" height="76px" viewBox="0.00 0.00 149.09 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
@@ -759,6 +768,7 @@ def summarizeClassFileStats = T{
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>Defined using <code>T.command {…​}</code> syntax, <code>Command</code>s can run arbitrary code, with
 dependencies declared using the same <code>foo()</code> syntax (e.g. <code>classFiles()</code> above).
@@ -809,6 +819,7 @@ trait Bar extends Foo {
 object bar extends Bar</code></pre>
 </div>
 </div>
+<div class="paragraph">
 <center>
 <svg width="451px" height="76px" viewBox="0.00 0.00 450.67 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
@@ -860,6 +871,7 @@ object bar extends Bar</code></pre>
 </svg>
 
 </center>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show bar.sourceContents # includes both source folders

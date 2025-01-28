@@ -751,6 +751,7 @@ def assembly = Task {
 <p>This code defines the following task graph, with the boxes being the tasks
 and the arrows representing the <em>data-flow</em> between them:</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="280px" height="119px" viewBox="0.00 0.00 280.41 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
@@ -814,6 +815,7 @@ and the arrows representing the <em>data-flow</em> between them:</p>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>This example does not use any of Mill’s builtin support for building Java or
 Scala projects, and instead builds a pipeline &quot;from scratch&quot; using Mill
@@ -850,6 +852,7 @@ necessary, depending on what input sources changed:</p>
 </li>
 </ul>
 </div>
+<div class="paragraph">
 <center>
 <svg width="280px" height="119px" viewBox="0.00 0.00 280.41 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
@@ -913,6 +916,7 @@ necessary, depending on what input sources changed:</p>
 </svg>
 
 </center>
+</div>
 <div class="ulist">
 <ul>
 <li>
@@ -921,6 +925,7 @@ and use the cached output of <code>compile</code> (green)</p>
 </li>
 </ul>
 </div>
+<div class="paragraph">
 <center>
 <svg width="280px" height="119px" viewBox="0.00 0.00 280.41 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
@@ -986,6 +991,7 @@ and use the cached output of <code>compile</code> (green)</p>
 </center>
 </div>
 </div>
+</div>
 <div class="sect1">
 <h2 id="primitive-tasks"><a class="anchor" href="#primitive-tasks"></a>Primary Tasks</h2>
 <div class="sectionbody">
@@ -1049,6 +1055,7 @@ def lineCount: T[Int] = Task {
 }</code></pre>
 </div>
 </div>
+<div class="paragraph">
 <center>
 <svg width="284px" height="33px" viewBox="0.00 0.00 283.51 32.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 28.8)">
@@ -1088,6 +1095,7 @@ def lineCount: T[Int] = Task {
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p><code>Cached Tasks</code>s are defined using the <code>def foo = Task {…​}</code> syntax, and dependencies
 on other tasks are defined using <code>foo()</code> to extract the value from them.
@@ -1206,6 +1214,7 @@ def jar = Task {
 }</code></pre>
 </div>
 </div>
+<div class="paragraph">
 <center>
 <svg width="256px" height="76px" viewBox="0.00 0.00 255.51 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
@@ -1257,6 +1266,7 @@ def jar = Task {
 </svg>
 
 </center>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill jar
@@ -1307,6 +1317,7 @@ def hugeFileName = Task {
 }</code></pre>
 </div>
 </div>
+<div class="paragraph">
 <center>
 <svg width="318px" height="33px" viewBox="0.00 0.00 318.49 32.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 28.8)">
@@ -1346,6 +1357,7 @@ def hugeFileName = Task {
 </svg>
 
 </center>
+</div>
 <div class="admonitionblock caution">
 <table>
 <tbody><tr>
@@ -1404,6 +1416,7 @@ def summarizeClassFileStats = Task {
 }</code></pre>
 </div>
 </div>
+<div class="paragraph">
 <center>
 <svg width="278px" height="33px" viewBox="0.00 0.00 278.19 32.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 28.8)">
@@ -1431,6 +1444,7 @@ def summarizeClassFileStats = Task {
 </svg>
 
 </center>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show summarizeClassFileStats
@@ -1462,6 +1476,7 @@ def summarizeClassFileStats = Task {
 }</code></pre>
 </div>
 </div>
+<div class="paragraph">
 <center>
 <svg width="149px" height="76px" viewBox="0.00 0.00 149.09 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
@@ -1501,6 +1516,7 @@ def summarizeClassFileStats = Task {
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>Defined using <code>Task.Command {…​}</code> syntax, <code>Command</code>s can run arbitrary code, with
 dependencies declared using the same <code>foo()</code> syntax (e.g. <code>classFiles()</code> above).
@@ -1574,7 +1590,7 @@ path for consumption by external tools.</p>
 <div class="sect2">
 <h3 id="_overrides"><a class="anchor" href="#_overrides"></a>Overrides</h3>
 <div class="paragraph">
-<p>Tasks can be overriden, with the overriden task callable via <code>super</code>.
+<p>Tasks can be overridden, with the overridden task callable via <code>super</code>.
 You can also override a task with a different type of task, e.g. below
 we override <code>sourceRoots</code> which is a <code>Task.Sources</code> with a cached <code>Task{}</code>
 that depends on the original via <code>super</code>:</p>
@@ -1600,6 +1616,7 @@ trait Bar extends Foo {
 object bar extends Bar</code></pre>
 </div>
 </div>
+<div class="paragraph">
 <center>
 <svg width="451px" height="76px" viewBox="0.00 0.00 450.67 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
@@ -1651,6 +1668,7 @@ object bar extends Bar</code></pre>
 </svg>
 
 </center>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show bar.sourceContents # includes both source folders

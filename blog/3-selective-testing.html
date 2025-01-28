@@ -238,6 +238,7 @@ used in three sets of <code>end_to_end_test</code>s, one for each deployment</p>
 with the various <code>backend_service</code> and <code>frontend_web</code> codebases
 grouped into <code>deployments</code>, and the <code>_utils</code> files shared between them:</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="768px" height="205px" viewBox="0.00 0.00 767.75 204.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 200.8)">
@@ -427,6 +428,7 @@ grouped into <code>deployments</code>, and the <code>_utils</code> files shared 
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>These various modules would typically each have their own test suite, which
 for simplicity I left out of the diagrams.</p>
@@ -614,6 +616,7 @@ sure that for every code change, we run both the tests for that module as well a
 test. For example, if we make a change to <code>backend_service_1</code>, we need to run the unit tests for
 <code>backend_service_1</code> as well as the integration tests for <code>deployment_1</code>:</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="440px" height="205px" viewBox="0.00 0.00 439.78 204.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 200.8)">
@@ -743,11 +746,13 @@ test. For example, if we make a change to <code>backend_service_1</code>, we nee
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>On the other hand, if we make a change to <code>frontend_web_utils</code>, we need to run the unit tests
 for <code>frontend_web_1</code> and <code>frontend_web_2</code>, as well as the integration tests for <code>deployment_1</code>
 and <code>deployment_2</code>, but <em>not</em> <code>deployment_3</code> since (in this example) it doesn’t depend on any frontend codebase:</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="440px" height="205px" viewBox="0.00 0.00 439.78 204.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 200.8)">
@@ -877,6 +882,7 @@ and <code>deployment_2</code>, but <em>not</em> <code>deployment_3</code> since 
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>This kind of dependency-based selective test execution is generally straightforward:</p>
 </div>
@@ -996,6 +1002,7 @@ you touch any line of code is extremely expensive and wasteful.</p>
 <div class="paragraph">
 <p>For example, touching <code>backend_service_1</code> is enough to trigger all the <code>end_to_end</code> tests:</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="768px" height="205px" viewBox="0.00 0.00 767.75 204.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 200.8)">
@@ -1185,9 +1192,11 @@ you touch any line of code is extremely expensive and wasteful.</p>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>Touching <code>frontend_web_2</code> is also enough to trigger all the <code>end_to_end</code> tests:</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="768px" height="205px" viewBox="0.00 0.00 767.75 204.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 200.8)">
@@ -1377,6 +1386,7 @@ you touch any line of code is extremely expensive and wasteful.</p>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>The two examples above demonstrate both failure modes:</p>
 </div>
@@ -1437,6 +1447,7 @@ module’s test suite. e.g. if we set <code>N = 1</code>, then a change to <code
 will only run tests for <code>backend_service_1</code> and <code>deployment_1</code>, but not the <code>end_to_end_test</code>s
 downstream of the <code>staging_environment</code>:</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="768px" height="205px" viewBox="0.00 0.00 767.75 204.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 200.8)">
@@ -1626,6 +1637,7 @@ downstream of the <code>staging_environment</code>:</p>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>At my last job, we picked <code>N = 8</code> somewhat arbitrarily, but as a heuristic there is
 no &quot;right&quot; answer, and the exact choice can be chosen to tradeoff between thoroughness
@@ -1643,6 +1655,7 @@ tests for the <code>deployment_1</code> module. We represent this by rendering <
 in dashed lines below, and adding additional arrows representing the hard-coded dependency
 from <code>deployment_1</code> to <code>end_to_end_test_1</code>:</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="768px" height="205px" viewBox="0.00 0.00 767.75 204.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 200.8)">
@@ -1844,6 +1857,7 @@ from <code>deployment_1</code> to <code>end_to_end_test_1</code>:</p>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>This approach does work, as developers usually have <em>some</em> idea of what tests
 should be run to exercise their application code. But maintaining these hard-coded

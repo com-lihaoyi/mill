@@ -715,7 +715,7 @@ various filesystem operations:</p>
 <p><code>millSourcePath</code> refers to the base path of the module. For the root
 module, this is the root of the repo, and for inner modules it would be
 the module path e.g. for module <code>foo.bar.qux</code> the <code>millSourcePath</code> would
-be <code>foo/bar/qux</code>. This can also be overriden if necessary</p>
+be <code>foo/bar/qux</code>. This can also be overridden if necessary</p>
 </li>
 <li>
 <p><code>Task.dest</code> refers to the destination folder for a task in the <code>out/</code>
@@ -803,7 +803,7 @@ via <code>forkArgs</code> or environment-variables via <code>forkEnv</code>.</p>
 </div>
 <div class="paragraph">
 <p>Which runs it in-process within an isolated classloader. This may be faster
-since you avoid the JVM startup, but does not support <code>forkArgs</code> or <code>forkEnv</code>.</p>
+since you avoid the JVM startup overhead, but does not support <code>forkArgs</code> or <code>forkEnv</code>.</p>
 </div>
 <div class="paragraph">
 <p>If you want to pass main-method arguments to <code>run</code> or <code>runLocal</code>, simply pass
@@ -848,7 +848,7 @@ object foo extends JavaModule {
 <p>This section discusses how tests can depend on resources locally on disk.
 Mill provides two ways to do this: via the JVM classpath resources, and via
 the resource folder which is made available as the environment variable
-<code>MILL_TEST_RESOURCE_DIR</code>;</p>
+<code>MILL_TEST_RESOURCE_DIR</code> available in test suites:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -862,8 +862,8 @@ or perform other filesystem operations.</p>
 <p>The <strong>resource folder</strong>, available via <code>MILL_TEST_RESOURCE_DIR</code>, gives you
 access to the folder path of the resources on disk. This is useful in allowing
 you to list and otherwise manipulate the filesystem, which you cannot do with
-<strong>classpath resources</strong>. However, the <code>MILL_TEST_RESOURCE_DIR</code> only exists
-when running tests using Mill, and is not available when executing applications
+<strong>classpath resources</strong>. However, the <code>MILL_TEST_RESOURCE_DIR</code> <em>only</em> exists
+when running tests using Mill, and is <em>not</em> available when executing applications
 packaged for deployment via <code>.assembly</code></p>
 </li>
 <li>
@@ -975,16 +975,18 @@ public class FooTests {
 </div>
 </div>
 <div class="paragraph">
-<p>Note that tests require that you pass in any files that they depend on explicitly.
-This is necessary so that Mill knows when a test needs to be re-run and when a
-previous result can be cached. This also ensures that tests reading and writing
-to the current working directory do not accidentally interfere with each others
-files, especially when running in parallel.</p>
+<p>Tests by default only have access to their <strong>classpath resources</strong> and
+<strong>resource folder</strong> as mentioned above. They cannot read random project files on disk,
+and require that you pass in any other
+files or folders that they require explicitly (e.g. <code>def otherFiles</code> above).
+This is necessary so that Mill can ensure the necessary files are in place
+before the test begins running, and so <code>-w</code>/<code>--watch</code> knows it needs to re-run
+the tests if those files changed. Thus your tests cannot just read project files
+direct off disk via <code>new FileInputStream(&quot;foo/resources/test-file-a.txt&quot;)</code>.</p>
 </div>
 <div class="paragraph">
-<p>Mill runs test processes in a <a href="../depth/sandboxing.html" class="xref page">sandbox/ folder</a>, not in your project root folder, to
-prevent you from accidentally accessing files without explicitly passing them. Thus
-you cannot just read resources off disk via <code>new FileInputStream(&quot;foo/resources/test-file-a.txt&quot;)</code>.
+<p>Mill runs test processes in a <a href="../depth/sandboxing.html" class="xref page">sandbox/ folder</a>, rather
+than in your project root folder, to enforce this.
 If you have legacy tests that need to run in the project root folder to work, you
 can configure your test suite with <code>def testSandboxWorkingDir = false</code> to disable
 the sandbox and make the tests run in the project root.</p>
@@ -1024,7 +1026,7 @@ Test foo.HelloWorldTest.testSimple finished...
 </div>
 <div class="paragraph">
 <p>The Java compiler automatically discovers annotation processors based on the
-classes available during compilation, e.g. on <code>compileIvyDeps</code> or <code>ivyDeps</code>,
+classes available during compilation, e.g. in <code>compileIvyDeps</code> or <code>ivyDeps</code>,
 which is what takes place in the example above.</p>
 </div>
 <div class="paragraph">
@@ -1032,8 +1034,8 @@ which is what takes place in the example above.</p>
 to pass in the annotation processors manually, e.g. if you need annotation
 processors that are not on the compilation classpath, or you need finer control
 over exactly which annotation processors are active. To do this, you can define
-a module to contain the exact annotation processors you want, and pass
-in <code>-processorpath</code> to <code>javacOptions</code> explicitly:</p>
+a task to resolve the exact annotation processors you want, and pass
+those to <code>-processorpath</code> to <code>javacOptions</code> explicitly:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1061,15 +1063,18 @@ Test bar.HelloWorldTest.testSimple finished...
 ...</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>Many Java frameworks and libraries such as <a href="web-examples.html#_micronaut_hello_world_app" class="xref page">Micronaut</a>
+or ErrorProne use annotation processors, and can be set up in this way.</p>
+</div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_javadoc_config"><a class="anchor" href="#_javadoc_config"></a>Javadoc Config</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>To generate API documenation you can use the <code>docJar</code> task on the module you’d
-like to create the documentation for, configured via <code>scalaDocOptions</code> or
-<code>javadocOptions</code>:</p>
+<p>To generate API documentation you can use the <code>docJar</code> task on the module you’d
+like to create the docs for, configured via <code>javaDocOptions</code>:</p>
 </div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.5/example-javalib-module-9-docjar.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javalib/module/9-docjar">browse</a>)</div>
@@ -1110,14 +1115,17 @@ object `package` extends RootModule with JavaModule {
 <div class="paragraph">
 <p>Mill’s <code>foo.run</code> by default will discover which main class to run from your
 compilation output, but if there is more than one or the main class comes from
-some library you can explicitly specify which one to use. This also adds the
-main class to your <code>foo.jar</code> and <code>foo.assembly</code> jars.</p>
+some library you can explicitly specify which one to use.</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
 Hello Qux</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p><code>def mainClass</code> also adds the
+main class to your <code>foo.jar</code> and <code>foo.assembly</code> jars.</p>
 </div>
 </div>
 </div>
@@ -1188,9 +1196,10 @@ public class MyDeps {
 </div>
 <div class="paragraph">
 <p>The above build defines the customizations to the Mill task graph shown below,
-with the boxes representing tasks defined or overriden above and the un-boxed
+with the boxes representing tasks defined or overridden above and the un-boxed
 labels representing existing Mill tasks:</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="493px" height="119px" viewBox="0.00 0.00 492.87 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
@@ -1302,6 +1311,7 @@ labels representing existing Mill tasks:</p>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>Mill lets you define new cached Tasks using the <code>Task {…​}</code> syntax,
 depending on existing Tasks e.g. <code>foo.sources</code> via the <code>foo.sources()</code>
