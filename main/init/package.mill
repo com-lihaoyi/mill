@@ -15,7 +15,7 @@ object `package` extends RootModule with build.MillPublishScalaModule {
     val data: Seq[(os.SubPath, String)] =
       build.dist.examplePathsWithArtifactName().map { case (path, str) =>
         val downloadUrl = s"${build.millDownloadUrl()}/$str.zip"
-        val subPath = path.subRelativeTo(T.workspace / "example")
+        val subPath = path.subRelativeTo(Task.workspace / "example")
         (subPath, downloadUrl)
       }
 
@@ -55,11 +55,11 @@ object `package` extends RootModule with build.MillPublishScalaModule {
     }
 
     os.write(
-      T.dest / "exampleList.txt",
+      Task.dest / "exampleList.txt",
       upickle.default.write(sortedData.map { case (p, s) => (p.toString(), s) })
     )
 
-    PathRef(T.dest)
+    PathRef(Task.dest)
   }
 
   object buildgen extends build.MillPublishScalaModule {

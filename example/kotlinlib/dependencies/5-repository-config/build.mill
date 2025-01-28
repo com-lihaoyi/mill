@@ -20,13 +20,13 @@ object foo extends KotlinModule {
     ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"
   )
 
-  def repositoriesTask = T.task { super.repositoriesTask() ++ sonatypeReleases }
+  def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
 }
 
 //// SNIPPET:BUILD2
 
 object CustomZincWorkerModule extends ZincWorkerModule with CoursierModule {
-  def repositoriesTask = T.task { super.repositoriesTask() ++ sonatypeReleases }
+  def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
 }
 
 object bar extends KotlinModule {
@@ -36,5 +36,5 @@ object bar extends KotlinModule {
   def zincWorker = ModuleRef(CustomZincWorkerModule)
   // ... rest of your build definitions
 
-  def repositoriesTask = T.task { super.repositoriesTask() ++ sonatypeReleases }
+  def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
 }

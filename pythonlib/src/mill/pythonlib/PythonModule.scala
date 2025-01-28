@@ -34,7 +34,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
    * def hostPythonCommand = T{ "/usr/bin/python3" }
    * ```
    */
-  def hostPythonCommand: T[String] = T { "python3" }
+  def hostPythonCommand: T[String] = Task { "python3" }
 
   /**
    * An executable python interpreter. This interpreter is set up to run in a
@@ -173,7 +173,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
    * @see [[mainScript]]
    */
   def runBackground(args: mill.define.Args) = Task.Command {
-    val (procUuidPath, procLockfile, procUuid) = mill.scalalib.RunModule.backgroundSetup(T.dest)
+    val (procUuidPath, procLockfile, procUuid) = mill.scalalib.RunModule.backgroundSetup(Task.dest)
 
     Jvm.runSubprocess(
       mainClass = "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
@@ -189,7 +189,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
         pythonExe().path.toString,
         mainScript().path.toString
       ) ++ args.value,
-      workingDir = T.workspace,
+      workingDir = Task.workspace,
       background = true,
       useCpPassingJar = false,
       runBackgroundLogToConsole = true,

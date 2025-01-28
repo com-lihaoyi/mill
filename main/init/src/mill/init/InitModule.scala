@@ -2,7 +2,7 @@ package mill.init
 
 import mainargs.{Flag, arg}
 import mill.define.{Discover, ExternalModule}
-import mill.{Command, Module, T}
+import mill.{Command, Module, Task}
 
 import scala.util.{Failure, Success, Try, Using}
 
@@ -30,7 +30,7 @@ trait InitModule extends Module {
       @mainargs.arg(positional = true, short = 'e') exampleId: Option[ExampleId],
       @arg(name = "show-all") showAll: Flag = Flag()
   ): Command[Seq[String]] =
-    T.command {
+    Task.Command {
       usingExamples { examples =>
         exampleId match {
           case None =>
@@ -53,12 +53,12 @@ trait InitModule extends Module {
             val extractedDirName = zipName.stripSuffix(".zip")
             val downloaded = os.temp(requests.get(url))
             println(s"Unpacking example...")
-            val unpackPath = os.unzip(downloaded, T.dest)
-            val extractedPath = T.dest / extractedDirName
+            val unpackPath = os.unzip(downloaded, Task.dest)
+            val extractedPath = Task.dest / extractedDirName
             val conflicting = for {
               p <- os.walk(extractedPath)
               rel = p.relativeTo(extractedPath)
-              if os.exists(T.workspace / rel)
+              if os.exists(Task.workspace / rel)
             } yield rel
 
             if (conflicting.nonEmpty) {
@@ -73,24 +73,24 @@ trait InitModule extends Module {
             }
 
             // Remove any existing bootstrap script since the example will come with one
-            os.remove(T.workspace / "mill")
-            os.copy.apply(extractedPath, T.workspace, mergeFolders = true)
+            os.remove(Task.workspace / "mill")
+            os.copy.apply(extractedPath, Task.workspace, mergeFolders = true)
 
             // Make sure the `./mill` launcher is executable
-            os.perms.set(T.workspace / "mill", "rwxrwxrwx")
+            os.perms.set(Task.workspace / "mill", "rwxrwxrwx")
 
             (
               Seq(unpackPath.toString()),
-              s"Example download and unpacked to [${T.workspace}]; " +
+              s"Example download and unpacked to [${Task.workspace}]; " +
                 "See `build.mill` for an explanation of this example and instructions on how to use it"
             )
         }
       } match {
         case Success((ret, msg)) =>
-          T.log.outputStream.println(msg)
+          Task.log.outputStream.println(msg)
           ret
         case Failure(exception) =>
-          T.log.error(exception.getMessage)
+          Task.log.error(exception.getMessage)
           throw exception
       }
     }

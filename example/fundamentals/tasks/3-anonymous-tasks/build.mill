@@ -1,3 +1,7 @@
+// You can define anonymous tasks using the `Task.Anon {...}` syntax. These are
+// not runnable from the command-line, but can be used to share common code you
+// find yourself repeating in ``Task``s and ``Command``s.
+
 package build
 import mill._, define.Task
 
@@ -12,13 +16,10 @@ def printFileData(fileName: String) = Task.Command {
   println(anonTask(fileName)())
 }
 
-// You can define anonymous tasks using the `Task.Anon {...}` syntax. These are
-// not runnable from the command-line, but can be used to share common code you
-// find yourself repeating in ``Task``s and ``Command``s.
 //
 // Anonymous task's output does not need to be JSON-serializable, their output is
 // not cached, and they can be defined with or without arguments.
-// Unlike <<_cached_tasks>> or <<_commands>>, anonymous tasks can be defined
+// Unlike <<_tasks>> or <<_commands>>, anonymous tasks can be defined
 // anywhere and passed around any way you want, until you finally make use of them
 // within a downstream task or command.
 //
