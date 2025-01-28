@@ -1,7 +1,6 @@
 package mill.javascriptlib
 
 import mill.*
-import os.*
 
 trait TestModule extends TaskModule {
   import TestModule.TestResult
