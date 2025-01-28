@@ -229,7 +229,7 @@ find the original definitions that were overridden, and show you where they are 
 
 image::comparisons/IntellijMockitoMillJavacOptionsParents.png[]
 
-You can jump to any of the overriden `def`s quickly and precisely:
+You can jump to any of the overridden `def`s quickly and precisely:
 
 image::comparisons/IntellijMockitoMillJavacOptionsDef.png[]
 

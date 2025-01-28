@@ -32,7 +32,7 @@ hello WORLD
 // ----
 //
 // Which runs it in-process within an isolated classloader. This may be faster
-// since you avoid the JVM startup, but does not support `forkArgs` or `forkEnv`.
+// since you avoid the JVM startup overhead, but does not support `forkArgs` or `forkEnv`.
 //
 // If you want to pass main-method arguments to `run` or `runLocal`, simply pass
 // them after the `foo.run`/`foo.runLocal`:

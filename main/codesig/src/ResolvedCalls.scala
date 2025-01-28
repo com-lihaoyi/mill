@@ -48,7 +48,7 @@ object ResolvedCalls {
         }
         .groupMapReduce(_._1)(_._2)(_ ++ _)
         .map { case (externalCls, localClasses) =>
-          // <init> methods are final and cannot be overriden
+          // <init> methods are final and cannot be overridden
           val methods = externalSummary
             .directMethods
             .getOrElse(externalCls, Map())

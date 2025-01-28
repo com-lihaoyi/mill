@@ -54,7 +54,7 @@ object `package` extends RootModule with ScalaModule {
 //// SNIPPET:END
 
 // The above build defines the customizations to the Mill task graph shown below,
-// with the boxes representing tasks defined or overriden above and the un-boxed
+// with the boxes representing tasks defined or overridden above and the un-boxed
 // labels representing existing Mill tasks:
 //
 // ```graphviz

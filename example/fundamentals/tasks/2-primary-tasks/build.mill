@@ -349,7 +349,7 @@ foo.txt resource: My Example Text
 
 // === Overrides
 
-// Tasks can be overriden, with the overriden task callable via `super`.
+// Tasks can be overridden, with the overridden task callable via `super`.
 // You can also override a task with a different type of task, e.g. below
 // we override `sourceRoots` which is a `Task.Sources` with a cached `Task{}`
 // that depends on the original via `super`:

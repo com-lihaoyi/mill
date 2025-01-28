@@ -65,7 +65,7 @@ trait FooModule extends Module {
 
 object foo1 extends FooModule {
   def bar = "hello"
-  def qux = super.qux().toUpperCase // refer to overriden value via super
+  def qux = super.qux().toUpperCase // refer to overridden value via super
 }
 object foo2 extends FooModule {
   def bar = "hi"
