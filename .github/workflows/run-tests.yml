@@ -139,16 +139,19 @@ jobs:
             millargs: "contrib.__.test"
             install-android-sdk: false
 
-          - java-version: 17
-            millargs: "example.javalib.__.local.server.test"
+          # Run this one using `.native` as a smoketest. Also make sure the java-version
+          # is the same as that used in the `build-linux` job to avoid diverging code
+          # hashes (https://github.com/com-lihaoyi/mill/pull/4410)
+          - java-version: 11
+            millargs: "example.javalib.__.native.server.test"
             install-android-sdk: false
 
           - java-version: 17
-            millargs: "example.kotlinlib.__.native.server.test"
+            millargs: "example.kotlinlib.__.local.server.test"
             install-android-sdk: false
 
           - java-version: 17
-            millargs: "example.scalalib.__.native.server.test"
+            millargs: "example.scalalib.__.local.server.test"
             install-android-sdk: false
 
           - java-version: 17

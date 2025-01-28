@@ -857,7 +857,7 @@ object ResolveTests extends TestSuite {
       }
     }
 
-    test("overridenModule") {
+    test("overriddenModule") {
       val check = new Checker(overrideModule)
       test - check(
         "sub.inner.subTarget",

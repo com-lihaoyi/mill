@@ -52,7 +52,7 @@ trait CheckstyleXsltModule extends CheckstyleModule {
 
   /**
    * Folder containing the XSLT transformations. Defaults to `checkstyle-xslt`
-   * in  the workspace root, but can be overriden on a per-module basis
+   * in  the workspace root, but can be overridden on a per-module basis
    */
   def checkstyleXsltfFolder = Task.Source(T.workspace / "checkstyle-xslt")
 

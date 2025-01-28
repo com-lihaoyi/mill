@@ -96,7 +96,7 @@ trait TestModule
   /**
    * How the test classes in this module will be split into multiple JVM processes
    * and run in parallel during testing. Defaults to all of them running in one process
-   * sequentially, but can be overriden to split them into separate groups that run
+   * sequentially, but can be overridden to split them into separate groups that run
    * in parallel.
    */
   def testForkGrouping: T[Seq[Seq[String]]] = Task {
