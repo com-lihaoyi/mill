@@ -1,7 +1,7 @@
 package mill.scalanativelib.worker
 
 import java.io.File
-import java.lang.System.{err, out}
+import java.lang.System.err
 
 import mill.scalanativelib.worker.api._
 import scala.scalanative.util.Scope
