@@ -69,7 +69,7 @@ trait AssemblyModule extends mill.Module {
 
   private[mill] def upstreamAssembly2_0: T[Assembly] = Task {
     Assembly.create(
-      destJar = T.dest / "out.jar",
+      destJar = Task.dest / "out.jar",
       inputPaths = upstreamAssemblyClasspath().map(_.path),
       manifest = manifest(),
       assemblyRules = assemblyRules
@@ -88,7 +88,7 @@ trait AssemblyModule extends mill.Module {
   }
 
   def upstreamAssembly: T[PathRef] = Task {
-    T.log.error(
+    Task.log.error(
       s"upstreamAssembly target is deprecated and should no longer used." +
         s" Please make sure to use upstreamAssembly2 instead."
     )
@@ -101,7 +101,7 @@ trait AssemblyModule extends mill.Module {
     val upstream = upstreamAssembly2()
 
     val created = Assembly.create(
-      destJar = T.dest / "out.jar",
+      destJar = Task.dest / "out.jar",
       Agg.from(localClasspath().map(_.path)),
       manifest(),
       prependScript,
@@ -132,7 +132,7 @@ trait AssemblyModule extends mill.Module {
    * An executable uber-jar/assembly containing all the resources and compiled
    * classfiles from this module and all it's upstream modules and dependencies
    */
-  def assembly: T[PathRef] = T {
+  def assembly: T[PathRef] = Task {
     assembly0()
   }
 }

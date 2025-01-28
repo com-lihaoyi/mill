@@ -182,12 +182,12 @@ object FailureTests extends TestSuite {
 
     test("multipleUsesOfDest") {
       object build extends TestBaseModule {
-        // Using `T.ctx(  ).dest` twice in a single task is ok
-        def left = Task { +T.dest.toString.length + T.dest.toString.length }
+        // Using `Task.ctx(  ).dest` twice in a single task is ok
+        def left = Task { +Task.dest.toString.length + Task.dest.toString.length }
 
-        // Using `T.ctx(  ).dest` once in two different tasks is ok
-        val task = Task.Anon { T.dest.toString.length }
-        def right = Task { task() + left() + T.dest.toString().length }
+        // Using `Task.ctx(  ).dest` once in two different tasks is ok
+        val task = Task.Anon { Task.dest.toString.length }
+        def right = Task { task() + left() + Task.dest.toString().length }
       }
 
       val check = UnitTester(build, null)

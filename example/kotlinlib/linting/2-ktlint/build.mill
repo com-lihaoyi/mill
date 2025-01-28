@@ -9,7 +9,7 @@ import kotlinlib.ktlint.KtlintModule
 object `package` extends RootModule with KotlinModule with KtlintModule {
   def kotlinVersion = "1.9.24"
 
-  def ktlintConfig = Some(PathRef(T.workspace / ".editorconfig"))
+  def ktlintConfig = Some(PathRef(Task.workspace / ".editorconfig"))
 }
 
 // This example shows how to use the https://github.com/pinterest/ktlint[KtLint]

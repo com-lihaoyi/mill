@@ -34,7 +34,7 @@ trait PythonModule extends Module {
     os.call(
       (pythonExe().path, "-m", "mypy", "--strict", sources().path),
       stdout = os.Inherit,
-      cwd = T.workspace
+      cwd = Task.workspace
     )
   }
 

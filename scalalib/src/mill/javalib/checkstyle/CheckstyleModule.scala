@@ -32,8 +32,8 @@ trait CheckstyleModule extends JavaModule {
       (if (stdout) Seq.empty else Seq("-o", output.toString())) ++
       (if (leftover.value.nonEmpty) leftover.value else sources().map(_.path.toString()))
 
-    T.log.info("running checkstyle ...")
-    T.log.debug(s"with $args")
+    Task.log.info("running checkstyle ...")
+    Task.log.debug(s"with $args")
 
     val exitCode = Jvm.callSubprocess(
       mainClass = "com.puppycrawl.tools.checkstyle.Main",
@@ -56,19 +56,19 @@ trait CheckstyleModule extends JavaModule {
 
     val reported = os.exists(output)
     if (reported) {
-      T.log.info(s"checkstyle output report at $output")
+      Task.log.info(s"checkstyle output report at $output")
     }
 
     if (exitCode == 0) {} // do nothing
     else if (exitCode < 0 || !(reported || stdout)) {
-      T.log.error(
+      Task.log.error(
         s"checkstyle exit($exitCode); please check command arguments, plugin settings or try with another version"
       )
       throw new UnsupportedOperationException(s"checkstyle exit($exitCode)")
     } else if (check) {
       throw new RuntimeException(s"checkstyle found $exitCode violation(s)")
     } else {
-      T.log.error(s"checkstyle found $exitCode violation(s)")
+      Task.log.error(s"checkstyle found $exitCode violation(s)")
     }
 
     exitCode
@@ -87,7 +87,7 @@ trait CheckstyleModule extends JavaModule {
    * Checkstyle configuration file. Defaults to `checkstyle-config.xml`.
    */
   def checkstyleConfig: T[PathRef] = Task {
-    PathRef(T.workspace / "checkstyle-config.xml")
+    PathRef(Task.workspace / "checkstyle-config.xml")
   }
 
   /**
@@ -108,7 +108,7 @@ trait CheckstyleModule extends JavaModule {
    * Checkstyle output report.
    */
   def checkstyleOutput: T[PathRef] = Task {
-    PathRef(T.dest / s"checkstyle-output.${checkstyleFormat()}")
+    PathRef(Task.dest / s"checkstyle-output.${checkstyleFormat()}")
   }
 
   /**

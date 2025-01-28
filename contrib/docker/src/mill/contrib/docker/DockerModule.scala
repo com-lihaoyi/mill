@@ -73,7 +73,7 @@ trait DockerModule { outer: JavaModule =>
      * [[https://docs.docker.com/engine/reference/commandline/cli/#environment-variables Environment variables]]
      * for more information.
      */
-    def dockerEnv: T[Map[String, String]] = T.env
+    def dockerEnv: T[Map[String, String]] = Task.env
 
     /**
      * Commands to add as RUN instructions.
@@ -161,7 +161,7 @@ trait DockerModule { outer: JavaModule =>
     }
 
     final def build = Task {
-      val dest = T.dest
+      val dest = Task.dest
       val env = dockerEnv()
 
       val asmPath = outer.assembly().path
@@ -169,7 +169,7 @@ trait DockerModule { outer: JavaModule =>
 
       os.write(dest / "Dockerfile", dockerfile())
 
-      val log = T.log
+      val log = Task.log
 
       val tagArgs = tags().flatMap(t => List("-t", t))
 

@@ -3,7 +3,7 @@ package mill.playlib
 import mill.api.{Ctx, PathRef, Result}
 import mill.playlib.api.{RouteCompilerType, RouteCompilerWorkerApi}
 import mill.scalalib.api.CompilationResult
-import mill.{Agg, T}
+import mill.{Agg, Task}
 
 private[playlib] class RouteCompilerWorker extends AutoCloseable {
 
@@ -58,7 +58,7 @@ private[playlib] class RouteCompilerWorker extends AutoCloseable {
         dest.toIO
       ) match {
       case null =>
-        Result.Success(CompilationResult(T.dest / "zinc", PathRef(T.dest)))
+        Result.Success(CompilationResult(Task.dest / "zinc", PathRef(Task.dest)))
       case err => Result.Failure(err)
     }
   }

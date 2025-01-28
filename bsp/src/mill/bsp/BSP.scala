@@ -34,7 +34,7 @@ object BSP extends ExternalModule with CoursierModule {
     // we create a file containing the additional jars to load
     val libUrls = bspWorkerLibs().map(_.path.toNIO.toUri.toURL).iterator.toSeq
     val cpFile =
-      T.workspace / Constants.bspDir / s"${Constants.serverName}-${BuildInfo.millVersion}.resources"
+      Task.workspace / Constants.bspDir / s"${Constants.serverName}-${BuildInfo.millVersion}.resources"
     os.write.over(
       cpFile,
       libUrls.mkString("\n"),
@@ -51,9 +51,9 @@ object BSP extends ExternalModule with CoursierModule {
    */
   def startSession(allBootstrapEvaluators: Evaluator.AllBootstrapEvaluators)
       : Command[BspServerResult] = Task.Command {
-    T.log.errorStream.println("BSP/startSession: Starting BSP session")
+    Task.log.errorStream.println("BSP/startSession: Starting BSP session")
     val res = BspContext.bspServerHandle.runSession(allBootstrapEvaluators.value)
-    T.log.errorStream.println(s"BSP/startSession: Finished BSP session, result: ${res}")
+    Task.log.errorStream.println(s"BSP/startSession: Finished BSP session, result: ${res}")
     res
   }
 

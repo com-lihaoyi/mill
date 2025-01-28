@@ -28,7 +28,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
    * under pwd/.bloop.
    */
   def install() = Task.Command {
-    val res = T.traverse(computeModules)(_.bloop.writeConfigFile())()
+    val res = Task.traverse(computeModules)(_.bloop.writeConfigFile())()
     val written = res.map(_._2).map(_.path)
     // Make bloopDir if it doesn't exists
     if (!os.exists(bloopDir)) {
@@ -91,7 +91,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
         os.makeDir.all(bloopDir)
         val path = bloopConfigPath(jm)
         _root_.bloop.config.write(config(), path.toNIO)
-        T.log.info(s"Wrote $path")
+        Task.log.info(s"Wrote $path")
         name(jm) -> PathRef(path)
       }
 
@@ -139,7 +139,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
    * from module#sources in bloopInstall
    */
   def moduleSourceMap = Task.Input {
-    val sources = T.traverse(computeModules) { m =>
+    val sources = Task.traverse(computeModules) { m =>
       m.allSources.map { paths =>
         name(m) -> paths.map(_.path)
       }
@@ -203,7 +203,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
     // //////////////////////////////////////////////////////////////////////////
 
     val classpath = Task.Anon {
-      val transitiveCompileClasspath = T.traverse(module.transitiveModuleCompileModuleDeps)(m =>
+      val transitiveCompileClasspath = Task.traverse(module.transitiveModuleCompileModuleDeps)(m =>
         Task.Anon { m.localCompileClasspath().map(_.path) ++ Agg(classes(m)) }
       )().flatten
 
@@ -273,7 +273,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
         Task.Anon {
           BloopConfig.Platform.Jvm(
             BloopConfig.JvmConfig(
-              home = T.env.get("JAVA_HOME").map(s => os.Path(s).toNIO),
+              home = Task.env.get("JAVA_HOME").map(s => os.Path(s).toNIO),
               options = {
                 // See https://github.com/scalacenter/bloop/issues/1167
                 val forkArgs = module.forkArgs().toList

@@ -108,13 +108,13 @@ trait ScoverageReport extends Module {
     }
 
     Task.Anon {
-      val sourcePaths: Seq[Path] = T.sequence(sourcesTasks)().flatten.map(_.path)
-      val dataPaths: Seq[Path] = T.sequence(dataTasks)().map(_.path)
+      val sourcePaths: Seq[Path] = Task.sequence(sourcesTasks)().flatten.map(_.path)
+      val dataPaths: Seq[Path] = Task.sequence(dataTasks)().map(_.path)
       scoverageReportWorkerModule
         .scoverageReportWorker()
         .bridge(workerModule.scoverageToolsClasspath())
-        .report(reportType, sourcePaths, dataPaths, T.workspace)
-      PathRef(T.dest)
+        .report(reportType, sourcePaths, dataPaths, Task.workspace)
+      PathRef(Task.dest)
     }
   }
 }

@@ -9,7 +9,7 @@ import mill._
 
 object foo extends Module {
   def printDest = Task {
-    println(T.dest)
+    println(Task.dest)
   }
 }
 

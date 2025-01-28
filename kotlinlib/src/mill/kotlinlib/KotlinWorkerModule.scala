@@ -5,12 +5,12 @@
  */
 package mill.kotlinlib
 
-import mill.{T, Task}
+import mill.Task
 import mill.define.{Discover, ExternalModule, Module, Worker}
 
 trait KotlinWorkerModule extends Module {
   def kotlinWorkerManager: Worker[KotlinWorkerManager] = Task.Worker {
-    new KotlinWorkerManagerImpl(T.ctx())
+    new KotlinWorkerManagerImpl(Task.ctx())
   }
 }
 

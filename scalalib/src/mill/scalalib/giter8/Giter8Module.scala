@@ -1,6 +1,6 @@
 package mill.scalalib.giter8
 
-import mill.{T, Task}
+import mill.Task
 import mill.define.{Command, Discover, ExternalModule}
 import mill.util.Jvm
 import mill.scalalib.api.ZincWorkerUtil
@@ -15,7 +15,7 @@ object Giter8Module extends ExternalModule with Giter8Module {
 trait Giter8Module extends CoursierModule {
 
   def init(args: String*): Command[Unit] = Task.Command {
-    T.log.info("Creating a new project...")
+    Task.log.info("Creating a new project...")
 
     val giter8Dependencies =
       try {
@@ -29,7 +29,7 @@ trait Giter8Module extends CoursierModule {
         }
       } catch {
         case e: Exception =>
-          T.log.error("Failed to resolve giter8 dependencies\n" + e.getMessage)
+          Task.log.error("Failed to resolve giter8 dependencies\n" + e.getMessage)
           throw e
       }
 
@@ -37,7 +37,7 @@ trait Giter8Module extends CoursierModule {
       "giter8.Giter8",
       giter8Dependencies.map(_.path),
       mainArgs = args,
-      workingDir = T.workspace
+      workingDir = Task.workspace
     )
   }
 }

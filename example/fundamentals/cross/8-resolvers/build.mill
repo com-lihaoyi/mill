@@ -36,17 +36,6 @@ trait BarModule extends MyModule {
 
 */
 
-// [NOTE]
-// --
-// Please be aware that some shells like `zsh` interpret square brackets differently, so quoting or masking might be needed.
-//
-// [source,zsh]
-// ----
-// mill show foo\[2.10\].suffix
-// mill show 'foo[2.10].suffix'
-// mill show "foo[2.10].suffix"
-// ----
-// --
 //
 // The `suffix` tasks will have the corresponding output paths for their
 // metadata and files:

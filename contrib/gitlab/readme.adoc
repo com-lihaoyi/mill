@@ -55,7 +55,7 @@ personal access token, then deploy token and lastly ci job token. Default search
 . Workspace file `.gitlab/deploy-token`
 . Environment variable `CI_JOB_TOKEN`
 
-Items 1-4 are *personal access tokens*, 5-8 *deploy tokens* and 9 is *job token*. Workspace in items 4 and 8 refers to directory where `build.mill` is (`T.workspace` in mill terms).
+Items 1-4 are *personal access tokens*, 5-8 *deploy tokens* and 9 is *job token*. Workspace in items 4 and 8 refers to directory where `build.mill` is (`Task.workspace` in mill terms).
 
 Because contents of `$CI_JOB_TOKEN` is checked publishing should just work when run in Gitlab CI/CD pipeline. If you want something else than default lookup configuration can be overridden. There are different ways of configuring token resolving.
 
@@ -131,7 +131,7 @@ override def gitlabHeaders(
     props: Map[String, String] // System properties
   ): Task[GitlabAuthHeaders] = Task.Anon {
   // This uses default lookup and ads custom headers
-  val access = tokenLookup.resolveGitlabToken(T.env, props, T.workspace)
+  val access = tokenLookup.resolveGitlabToken(Task.env, props, Task.workspace)
   val accessHeader = access.fold(_ => Seq.empty[(String, String)], _.headers)
   Success(
     GitlabAuthHeaders(

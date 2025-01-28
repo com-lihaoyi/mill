@@ -138,7 +138,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
       ScoverageReportWorker
         .scoverageReportWorker()
         .bridge(scoverageToolsClasspath())
-        .report(reportType, allSources().map(_.path), Seq(data().path), T.workspace)
+        .report(reportType, allSources().map(_.path), Seq(data().path), Task.workspace)
     }
 
     /**
@@ -147,7 +147,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
      */
     def data: T[PathRef] = Task(persistent = true) {
       // via the persistent target, we ensure, the dest dir doesn't get cleared
-      PathRef(T.dest)
+      PathRef(Task.dest)
     }
 
     override def compileResources: T[Seq[PathRef]] = outer.compileResources
@@ -177,12 +177,12 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
           if (isScala3()) {
             Seq(
               s"-coverage-out:${data().path.toIO.getPath()}",
-              s"-sourceroot:${T.workspace}"
+              s"-sourceroot:${Task.workspace}"
             )
           } else {
             Seq(
               s"-P:scoverage:dataDir:${data().path.toIO.getPath()}",
-              s"-P:scoverage:sourceRoot:${T.workspace}"
+              s"-P:scoverage:sourceRoot:${Task.workspace}"
             )
           }
 

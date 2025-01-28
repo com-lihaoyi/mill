@@ -44,7 +44,7 @@ trait ScalaMetalsSupport extends ScalaModule {
       if (ZincWorkerUtil.isScala3(scalaVersion())) {
         Seq("-Xsemanticdb")
       } else {
-        Seq("-Yrangepos", s"-P:semanticdb:sourceroot:${T.workspace}")
+        Seq("-Yrangepos", s"-P:semanticdb:sourceroot:${Task.workspace}")
       }
     }
   }
