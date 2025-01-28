@@ -265,10 +265,10 @@ object bar extends Bar
 // ```
 /** Usage
 
- > ./mill show bar.sourceContents # includes both source folders
- [
- "File Data From src/",
- "File Data From src2/"
- ]
+> ./mill show bar.sourceContents # includes both source folders
+[
+  "File Data From src/",
+  "File Data From src2/"
+]
 
- */
+*/
