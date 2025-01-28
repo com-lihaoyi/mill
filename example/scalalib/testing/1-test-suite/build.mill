@@ -91,29 +91,29 @@ object bar extends ScalaModule {
 /** Usage
 > mill foo.test
 */
-// * `foo.test`: runs tests in a subprocess in an empty `sandbox/` folder. This is short
-//   for `foo.test.test`, as `test` is the default task for ``TestModule``s.
+// `foo.test`: runs tests in a subprocess in an empty `sandbox/` folder. This is short
+// for `foo.test.test`, as `test` is the default task for ``TestModule``s.
 
 /** Usage
 > mill foo.test.testCached
 */
-// * `foo.test.testCached`: runs the tests in an empty `sandbox/` folder and caches the results
-//   if successful. This can be handy if you are you working on some upstream modules and only
-//   want to run downstream tests which are affected: using `testCached`, downstream tests which
-//   are not affected will be cached after the first run and not re-run unless you change some
-//   file upstream of them.
+// `foo.test.testCached`: runs the tests in an empty `sandbox/` folder and caches the results
+// if successful. This can be handy if you are you working on some upstream modules and only
+// want to run downstream tests which are affected: using `testCached`, downstream tests which
+// are not affected will be cached after the first run and not re-run unless you change some
+// file upstream of them.
 //
 
 /** Usage
 > mill foo.test.testLocal
 
 */
-// * `foo.test.testLocal`: runs tests in an isolated classloader as part of the main Mill process.
-//   This can be faster than `.test`, but is less flexible (e.g. you cannot pass `forkEnv`)
-//   and more prone to interference (`testLocal` runs do not run in xref:depth/sandboxing.adoc[sandbox folders])
+// `foo.test.testLocal`: runs tests in an isolated classloader as part of the main Mill process.
+// This can be faster than `.test`, but is less flexible (e.g. you cannot pass `forkEnv`)
+// and more prone to interference (`testLocal` runs do not run in xref:depth/sandboxing.adoc[sandbox folders])
 //
 // It is common to run tests with xref:cli/flags.adoc#_watch_w[-w/--watch]
-// enabled, so that once you save a file to disk the selected tests get re-run.
+// enabled, so that once you edit a file on disk the selected tests get re-run.
 //
 // NOTE: Mill runs tests with the working directory set to an empty
 // xref:depth/sandboxing.adoc[sandbox/ folder] by default.
