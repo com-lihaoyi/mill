@@ -2,6 +2,6 @@ export class Foo{
   static main(
     args: string[
 ]) {
-    console.log('Hello World!');
+    console.log('Hello World');
   }
 }
