@@ -50,7 +50,7 @@ object bar extends JavaModule {
 
 /** Usage
 
- > ./mill bar.test
+> ./mill bar.test
 Test bar.HelloWorldTest.testSimple started
 Test bar.HelloWorldTest.testSimple finished...
 ...

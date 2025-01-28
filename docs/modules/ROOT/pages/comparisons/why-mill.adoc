@@ -215,13 +215,12 @@ the Gradle build in an IDE, the IDE can only explore the configuration logic (th
 `getCompilerArgs` method above) and is unable to explore the actual build logic (how
 `getCompilerArgs` _actually gets used in Gradle_)
 
-In comparison, Mill's `.mill` files are all statically typed, and as a result IntelliJ is easily able to
-pull up the documentation for `def javacOptions`, even though it doesn't have any special support
-for Mill built into the IDE:
+In comparison, not only are Mill's `.mill` files statically typed, allowing IDEs like IntelliJ
+to pull up the documentation for `def javacOptions`:
 
 image::comparisons/IntellijMockitoMillJavacOptionsDocs.png[]
 
-Apart from static typing, the way Mill builds are structured also helps the IDE: Mill
+The way Mill builds are structured also helps the IDE: Mill
 code _actually performs your build_, rather than configuring some opaque build engine.
 While that sounds academic, one concrete consequence is that IntelliJ is able to take
 your `def javacOptions` override and
@@ -364,7 +363,7 @@ Line Count: 18
 Next, we'll look at a more realistic example,
 which includes usage of third-party libraries in the build.
 
-### Using Libraries from Maven Central in Tasks
+### Using Third-Party JVM Libraries in Tasks
 
 Earlier on we discussed possibly pre-rendering HTML pages in the build so they can be
 served at runtime. The use case for this are obvious: if a page never changes, rendering
@@ -386,9 +385,14 @@ import $ivy.`org.thymeleaf:thymeleaf:3.1.1.RELEASE`
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.context.Context
 object foo extends JavaModule {
+  /** Total number of lines in module source files */
+  def lineCount = Task {
+    allSourceFiles().map(f => os.read.lines(f.path).size).sum
+  }
+
   def htmlSnippet = Task {
     val context = new Context()
-    context.setVariable("heading", "hello")
+    context.setVariable("heading", "Line Count is: " + lineCount())
     new TemplateEngine().process(
         "<h1 th:text=\"${heading}\"></h1>",
         context
@@ -411,14 +415,14 @@ is inspectable from the Mill command line via `show`, and we wire it up into
 
 ```bash
 > mill show foo.htmlSnippet
-"<h1>hello</h1>"
+"<h1>Line count is: 17</h1>"
 
 > mill foo.compile
 compiling 1 Java source...
 ...
 
 > mill foo.run
-generated snippet.txt resource: <h1>hello</h1>
+generated snippet.txt resource: <h1>Line count is: 17</h1>
 ```
 
 Rendering HTML using the Thymeleaf templating engine is not rocket science, but what is
@@ -434,9 +438,9 @@ interesting here is what we did _not_ need to do:
   implement the functionality we need.
 
 
-Instead, we could simply import Thymeleaf directly from Maven Central and use it just
-like we would use it in any Java application, with IDE support, typechecking,
-and automatic parallelism and caching.
+Instead, we could simply import Thymeleaf as a Java library directly from Maven Central
+and use it just like we would use it in any Java application, with IDE support,
+typechecking, and automatic parallelism and caching.
 
 '''
 
