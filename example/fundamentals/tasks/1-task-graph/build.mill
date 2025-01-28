@@ -1,6 +1,6 @@
 // The following is a simple self-contained example using Mill to compile Java,
-// making use of the `Task.Source` and `Task` types to define a simple build graph
-// with some input source files and intermediate build steps:
+// making use of the most common `Task.Source`, `Task`, and `Task.Command` types
+// to define a simple build graph with some input source files and intermediate build steps:
 package build
 import mill._
 
@@ -11,7 +11,7 @@ def resources = Task.Source(millSourcePath / "resources")
 
 def compile = Task {
   val allSources = os.walk(sources().path)
-  os.proc("javac", allSources, "-d", Task.dest).call()
+  os.call(("javac", allSources, "-d", Task.dest))
   PathRef(Task.dest)
 }
 
@@ -19,10 +19,16 @@ def assembly = Task {
   for (p <- Seq(compile(), resources())) os.copy(p.path, Task.dest, mergeFolders = true)
 
   val mainFlags = mainClass().toSeq.flatMap(Seq("-e", _))
-  os.proc("jar", "-c", mainFlags, "-f", Task.dest / "assembly.jar", ".")
-    .call(cwd = Task.dest)
+  os.call(
+    ("jar", "-c", mainFlags, "-f", Task.dest / "assembly.jar", "."),
+    cwd = Task.dest
+  )
 
   PathRef(Task.dest / "assembly.jar")
+}
+
+def run(args: String*) = Task.Command {
+  os.call(("java", "-jar", assembly().path, args), stdout = os.Inherit)
 }
 
 // This code defines the following task graph, with the boxes being the tasks
@@ -35,13 +41,18 @@ def assembly = Task {
 //   sources -> compile -> assembly
 //   resources -> assembly
 //   mainClass -> assembly
+//   assembly -> run
 // }
 // ```
 //
 // This example does not use any of Mill's builtin support for building Java or
 // Scala projects, and instead builds a pipeline "from scratch" using Mill
-// tasks and `javac`/`jar`/`java` subprocesses. We define `Task.Source` folders,
-// plain `T{...}` tasks that depend on them, and a `Task.Command`.
+// tasks and `javac`/`jar`/`java` subprocesses. It makes use of the three most
+// common kind of tasks:
+//
+// - `sources` and `resources` are <<Sources>>
+// - `mainClass`, `compile`, and `assembly` are cached <<Tasks>>
+// - `run` is a xref:#_commands[Command]
 
 /** Usage
 
@@ -74,6 +85,7 @@ My Example Text
 //   sources -> compile -> assembly
 //   resources -> assembly
 //   mainClass -> assembly
+//   assembly -> run
 //   assembly [fillcolor=lightpink]
 //   sources [fillcolor=lightpink]
 //   compile [fillcolor=lightpink]
@@ -92,6 +104,7 @@ My Example Text
 //   sources -> compile -> assembly
 //   resources -> assembly
 //   mainClass -> assembly
+//   assembly -> run
 //   assembly [fillcolor=lightpink]
 //   resources [fillcolor=lightpink]
 //   compile [fillcolor=lightgreen]
@@ -100,3 +113,26 @@ My Example Text
 // }
 // ```
 //
+// `run` behaves differently from `assembly`: as a `Task.Command` it is executed
+// every time you run it, even if none of it's upstream ``Task``s or ``Source``s changed.
+//
+// ```graphviz
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   sources -> compile -> assembly
+//   resources -> assembly
+//   mainClass -> assembly
+//   assembly -> run
+//   run [fillcolor=lightpink]
+//   assembly [fillcolor=lightgreen]
+//   resources [fillcolor=lightgreen]
+//   compile [fillcolor=lightgreen]
+//   sources [fillcolor=lightgreen]
+//   mainClass [fillcolor=lightgreen]
+// }
+// ```
+//
+// `Command` outputs are never cached, and thus can never be
+// re-used. The only times ``Command``s may be
+// skipped is due to xref:large/selective-execution.adoc[]

@@ -71,3 +71,22 @@ trait FooModule extends Cross.Module[String] {
 ]
 
 */
+
+
+// [NOTE]
+// --
+// Please be aware that some shells like `zsh` interpret square brackets differently, so quoting or masking might be needed.
+//
+// [source,zsh]
+// ----
+// mill show foo\[2.10\].suffix
+// mill show 'foo[2.10].suffix'
+// mill show "foo[2.10].suffix"
+// ----
+// --
+
+// The Cross module's axes can take any type `T` with `Cross.ToSegments[T]`
+// defined. There are default implementations for strings, chars, numbers,
+// booleans, and lists; the example above demonstrates cross axes of type
+// `String`, `Int`, and `Boolean`. You can define additional `ToPathSegments`
+// for your own user-defined types that you wish to use in a Cross module
