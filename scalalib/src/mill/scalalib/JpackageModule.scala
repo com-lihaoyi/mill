@@ -34,7 +34,7 @@ trait JpackageModule extends JavaModule {
    * The classpath used for the `jpackage` tool. The first entry needs to be the main jar.
    * In difference to [[runClasspath]], it contains the built jars of all dependent modules.
    */
-  def jpackageRunClasspath: T[Seq[PathRef]] = T {
+  def jpackageRunClasspath: T[Seq[PathRef]] = Task {
     val recLocalClasspath = (localClasspath() ++ transitiveLocalClasspath()).map(_.path)
 
     val runCp = runClasspath().filterNot(pr => recLocalClasspath.contains(pr.path))
@@ -46,7 +46,7 @@ trait JpackageModule extends JavaModule {
   }
 
   /** Builds a native package of the main application. */
-  def jpackageAppImage: T[PathRef] = T {
+  def jpackageAppImage: T[PathRef] = Task {
     // materialize all jars into a "lib" dir
     val libs = Task.dest / "lib"
     val cp = jpackageRunClasspath().map(_.path)

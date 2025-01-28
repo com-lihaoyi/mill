@@ -281,7 +281,7 @@ object TestModule {
      * `sbt-jupiter-interface` dependency from `ivyDeps`, make sure to also
      * override this method.
      */
-    override def discoveredTestClasses: T[Seq[String]] = T {
+    override def discoveredTestClasses: T[Seq[String]] = Task {
       Jvm.inprocess(
         runClasspath().map(_.path),
         classLoaderOverrideSbtTesting = true,

@@ -38,7 +38,7 @@ trait JlinkModule extends JavaModule {
   /**
    * Creates a Java module file (.jmod) from compiled classes
    */
-  def jmodPackage: T[PathRef] = T {
+  def jmodPackage: T[PathRef] = Task {
 
     val mainClass: String = finalMainClass()
     val outputPath = Task.dest / "jlink.jmod"
@@ -77,7 +77,7 @@ trait JlinkModule extends JavaModule {
   }
 
   /** Builds a custom runtime image using jlink */
-  def jlinkAppImage: T[PathRef] = T {
+  def jlinkAppImage: T[PathRef] = Task {
     val modulePath = jmodPackage().path.toString
     val outputPath = Task.dest / "jlink-runtime"
 

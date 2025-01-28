@@ -132,7 +132,7 @@ trait AssemblyModule extends mill.Module {
    * An executable uber-jar/assembly containing all the resources and compiled
    * classfiles from this module and all it's upstream modules and dependencies
    */
-  def assembly: T[PathRef] = T {
+  def assembly: T[PathRef] = Task {
     assembly0()
   }
 }

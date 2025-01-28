@@ -20,7 +20,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
     ivy"guru.nidi:graphviz-java-min-deps:0.18.1"
   )
 
-  def compileIvyDeps = T {
+  def compileIvyDeps = Task {
     if (ZincWorkerUtil.isScala3(scalaVersion())) Agg.empty
     else Agg(build.Deps.scalaReflect(scalaVersion()))
   }
@@ -112,7 +112,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
 
   object define extends build.MillStableScalaModule {
     def moduleDeps = Seq(api, util)
-    def compileIvyDeps = T {
+    def compileIvyDeps = Task {
       if (ZincWorkerUtil.isScala3(scalaVersion())) Agg(build.Deps.scalaCompiler(scalaVersion()))
       else Agg(build.Deps.scalaReflect(scalaVersion()))
     }
