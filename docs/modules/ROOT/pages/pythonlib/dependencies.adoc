@@ -4,7 +4,7 @@ include::partial$gtag-config.adoc[]
 
 
 This page goes into more detail about configuring third party dependencies
-for `PythonModule`s.
+for ``PythonModule``s.
 
 == Adding Dependencies
 
