@@ -262,7 +262,7 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
       val ivyDep: JavaModel.Dep => String =
         cfg.shared.depsObject.fold(interpIvy(_)) { objName => dep =>
           val depName = s"`${dep.group()}:${dep.name()}`"
-          sd = sd.copy(namedIvyDeps = sd.namedIvyDeps :+ ((depName, interpIvy(dep))))
+          sd = sd.copy(namedIvyDeps = sd.namedIvyDeps :+ (depName, interpIvy(dep)))
           s"$objName.$depName"
         }
 

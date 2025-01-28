@@ -28,7 +28,7 @@ Hello, world!
 // downloaded from the same URL will always contain the same contents.
 //
 // NOTE: An unmanaged wheel downloaded via `requests.get` is still unmanaged: even though you
-// downloaded it from somewhere, `requests.get` does not know how to pull in third party
+// downloaded it from somewhere, `requests.get` does not know how to pull in transitive
 // dependencies or de-duplicate different versions on the classpath. All the same caveats you need
 // to worry about when dealing with xref:#_unmanaged_wheels[unmanaged wheels] apply here as well. In
 // case you **do** want mill to take care of managing dependencies of a package which is not

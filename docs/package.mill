@@ -128,9 +128,11 @@ object `package` extends RootModule {
               if (inputs.isEmpty) output((p, i)) = graphvizLines.mkString("\n")
               else {
                 outputLines.append("++++")
+                outputLines.append("<div class=\"paragraph\">")
                 outputLines.append("<center>")
                 outputLines.append(inputs((p, i)))
                 outputLines.append("</center>")
+                outputLines.append("</div>")
                 outputLines.append("++++")
               }
 

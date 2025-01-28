@@ -18,7 +18,7 @@ object foo extends PythonModule {
 // or browse the full sources via the **browse** link.
 // Ensure you have a JVM installed; the `./mill` script manages all other dependencies.
 // All examples, from simple hello-world projects on this page to advanced
-// link:[web build examples(Coming Soon...)] and link:[real-world projects(Coming Soon...)],
+// xref:pythonlib/web-examples.adoc[web build examples]
 // are fully executable and tested in Mill’s CI workflows.
 //
 // The source code for this module lives in the `src/` folder.

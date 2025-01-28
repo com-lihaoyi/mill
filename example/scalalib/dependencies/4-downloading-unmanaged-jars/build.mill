@@ -39,6 +39,6 @@ I weigh twice as much as you
 //
 // NOTE: An unmanaged jar downloaded via `requests.get` is still unmanaged: even
 // though you downloaded it from somewhere, it `requests.get` does not know how to
-// pull in third party dependencies or de-duplicate different versions on the classpath
+// pull in transitive dependencies or de-duplicate different versions on the classpath
 // All the same caveats you need to worry about when dealing with xref:#_unmanaged_jars[unmanaged jars]
 // apply here as well.

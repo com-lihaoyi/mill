@@ -76,7 +76,7 @@ object `package` extends RootModule with ScalaModule {
 // 1. `millSourcePath` refers to the base path of the module. For the root
 //    module, this is the root of the repo, and for inner modules it would be
 //    the module path e.g. for module `foo.bar.qux` the `millSourcePath` would
-//    be `foo/bar/qux`. This can also be overriden if necessary
+//    be `foo/bar/qux`. This can also be overridden if necessary
 //
 // 2. `Task.dest` refers to the destination folder for a task in the `out/`
 //    folder. This is unique to each task, and can act as both a scratch space

@@ -106,7 +106,6 @@ object qux extends DiyJavaModule {
 //     label = "foo";
 //
 //     "foo.bar.classPath" -> "foo.compile"   [constraint=false];
-//     "foo.bar.classPath" -> "foo.classPath"
 //     "foo.sources" -> "foo.compile" -> "foo.classPath" -> "foo.assembly"
 //     "foo.mainClass" -> "foo.assembly"
 //   }
@@ -116,6 +115,7 @@ object qux extends DiyJavaModule {
 //     label = "qux";
 //
 //     "qux.mainClass" -> "qux.assembly"
+//     "foo.bar.classPath" -> "foo.classPath"
 //     "foo.classPath" -> "qux.compile" [constraint=false];
 //     "foo.classPath" -> "qux.classPath"
 //     "qux.sources" -> "qux.compile" -> "qux.classPath" -> "qux.assembly"

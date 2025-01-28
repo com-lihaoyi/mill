@@ -31,8 +31,8 @@ object SystemStreams {
 
   /**
    * Used to check whether the system streams are all "original", i,e. they
-   * have not been overriden. Used for code paths that need to work differently
-   * if they have been overriden (e.g. handling subprocess stdout/stderr)
+   * have not been overridden. Used for code paths that need to work differently
+   * if they have been overridden (e.g. handling subprocess stdout/stderr)
    *
    * Assumes that the application only uses [[withStreams]] to override
    * stdout/stderr/stdin.

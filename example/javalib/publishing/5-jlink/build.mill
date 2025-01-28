@@ -1,7 +1,6 @@
 // This example illustrates how to use Mill to generate a runtime image using the `jlink` tool.
 // Starting with JDK 9, `jlink` bundles Java app code with a stripped-down version of the JVM.
 
-//// SNIPPET:BUILD
 package build
 import mill._, javalib._
 import mill.javalib.Assembly._
@@ -12,22 +11,21 @@ object foo extends JavaModule with JlinkModule {
   def jlinkModuleVersion: T[Option[String]] = T { Option("1.0") }
   def jlinkCompressLevel: T[String] = T { "2" }
 }
-//// SNIPPET:END
-
+//
 // Most of the work is done by the `trait JlinkModule` in two steps:
-
-// 1.0. it uses the `jmod` tool to create a `jlink.jmod` file for the main Java module.
+//
+// * It uses the `jmod` tool to create a `jlink.jmod` file for the main Java module.
 // The main Java module is typically the module containing the `mainClass`.
-
+//
 // If your build file doesn't explicitly specify a `mainClass`, `JlinkModule` will infer it from `JavaModule`, which is its parent trait.
 // See xref:javalib/module-config.adoc#specifying-main-class[Specifying the Main Class] to learn more on how to influence the inference process.
 // You can explicitly specify a `mainClass` like so in your build file:
+//
+// ```scala
+// def mainClass: T[Option[String]] = { Some("com.foo.app.Main") }
+// ```
 
-//// SNIPPET:BUILD
-// def mainClass: T[Option[String]] = { Option("com.foo.app.Main") }
-//// SNIPPET:END
-
-// 2.0. it then uses the `jlink` tool, to link the previously created `jlink.jmod` with a runtime image.
+// * It then uses the `jlink` tool, to link the previously created `jlink.jmod` with a runtime image.
 
 // With respect to the `jlinkCompressLevel` option, on recent builds of OpenJDK and its descendants,
 // `jlink` will accept [`0`, `1`, `2`] but it will issue a deprecation warning.
@@ -37,11 +35,14 @@ object foo extends JavaModule with JlinkModule {
 // as valid values for compression, with `0` being "no compression"
 // and 2 being "ZIP compression".
 
-/** Usage
-
 // To use a specific JDK, first set your `JAVA_HOME` environment variable prior to running the build.
 
+// ```
 // export JAVA_HOME=/Users/mac/.sdkman/candidates/java/17.0.9-oracle/
+// ```
+
+/** Usage
+
 
 > mill foo.jlinkAppImage
 
