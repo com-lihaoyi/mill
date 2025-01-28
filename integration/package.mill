@@ -58,7 +58,9 @@ object `package` extends RootModule {
       def localRunClasspath = IntegrationTestModule.this.localRunClasspath()
 
       def compile: T[mill.scalalib.api.CompilationResult] =
-        Task {mill.scalalib.api.CompilationResult(null, null) } // binary compatibility stub, not used
+        Task {
+          mill.scalalib.api.CompilationResult(null, null)
+        } // binary compatibility stub, not used
 
       def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
     }
@@ -105,6 +107,8 @@ object `package` extends RootModule {
   /** Deploy freshly build mill for use in tests */
   def testMill: T[PathRef] = {
     val name = if (scala.util.Properties.isWin) "mill.bat" else "mill"
-    Task {PathRef(build.dist.installLocalTask(binFile = Task.Anon((Task.dest / name).toString()))()) }
+    Task {
+      PathRef(build.dist.installLocalTask(binFile = Task.Anon((Task.dest / name).toString()))())
+    }
   }
 }

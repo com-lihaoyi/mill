@@ -157,7 +157,7 @@ object `package` extends RootModule with Module {
     }
 
     def resources = upstreamOpt match {
-      case None => Task {Seq(super.testRepoRoot()) }
+      case None => Task { Seq(super.testRepoRoot()) }
       case Some(upstream) => Task {
           os.copy.over(super.testRepoRoot().path, Task.dest)
           val upstreamRoot = upstream.testRepoRoot().path
@@ -169,7 +169,7 @@ object `package` extends RootModule with Module {
         }
     }
     def buildScLines = upstreamOpt match {
-      case None => Task {None }
+      case None => Task { None }
       case Some(upstream) => Task {
           Some {
             val upstreamRoot = upstream.testRepoRoot().path
