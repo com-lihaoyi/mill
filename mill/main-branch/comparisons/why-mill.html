@@ -945,9 +945,8 @@ the Gradle build in an IDE, the IDE can only explore the configuration logic (th
 <code>getCompilerArgs</code> <em>actually gets used in Gradle</em>)</p>
 </div>
 <div class="paragraph">
-<p>In comparison, Mill’s <code>.mill</code> files are all statically typed, and as a result IntelliJ is easily able to
-pull up the documentation for <code>def javacOptions</code>, even though it doesn’t have any special support
-for Mill built into the IDE:</p>
+<p>In comparison, not only are Mill’s <code>.mill</code> files statically typed, allowing IDEs like IntelliJ
+to pull up the documentation for <code>def javacOptions</code>:</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -955,7 +954,7 @@ for Mill built into the IDE:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Apart from static typing, the way Mill builds are structured also helps the IDE: Mill
+<p>The way Mill builds are structured also helps the IDE: Mill
 code <em>actually performs your build</em>, rather than configuring some opaque build engine.
 While that sounds academic, one concrete consequence is that IntelliJ is able to take
 your <code>def javacOptions</code> override and
@@ -1136,7 +1135,7 @@ which includes usage of third-party libraries in the build.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_using_libraries_from_maven_central_in_tasks"><a class="anchor" href="#_using_libraries_from_maven_central_in_tasks"></a>Using Libraries from Maven Central in Tasks</h3>
+<h3 id="_using_third_party_jvm_libraries_in_tasks"><a class="anchor" href="#_using_third_party_jvm_libraries_in_tasks"></a>Using Third-Party JVM Libraries in Tasks</h3>
 <div class="paragraph">
 <p>Earlier on we discussed possibly pre-rendering HTML pages in the build so they can be
 served at runtime. The use case for this are obvious: if a page never changes, rendering
@@ -1159,9 +1158,14 @@ import $ivy.`org.thymeleaf:thymeleaf:3.1.1.RELEASE`
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.context.Context
 object foo extends JavaModule {
+  /** Total number of lines in module source files */
+  def lineCount = Task {
+    allSourceFiles().map(f =&gt; os.read.lines(f.path).size).sum
+  }
+
   def htmlSnippet = Task {
     val context = new Context()
-    context.setVariable(&quot;heading&quot;, &quot;hello&quot;)
+    context.setVariable(&quot;heading&quot;, &quot;Line Count is: &quot; + lineCount())
     new TemplateEngine().process(
         &quot;&lt;h1 th:text=\&quot;${heading}\&quot;&gt;&lt;/h1&gt;&quot;,
         context
@@ -1185,14 +1189,14 @@ is inspectable from the Mill command line via <code>show</code>, and we wire it 
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo.htmlSnippet
-&quot;&lt;h1&gt;hello&lt;/h1&gt;&quot;
+&quot;&lt;h1&gt;Line count is: 17&lt;/h1&gt;&quot;
 
 &gt; mill foo.compile
 compiling 1 Java source...
 ...
 
 &gt; mill foo.run
-generated snippet.txt resource: &lt;h1&gt;hello&lt;/h1&gt;</code></pre>
+generated snippet.txt resource: &lt;h1&gt;Line count is: 17&lt;/h1&gt;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1216,9 +1220,9 @@ implement the functionality we need.</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>Instead, we could simply import Thymeleaf directly from Maven Central and use it just
-like we would use it in any Java application, with IDE support, typechecking,
-and automatic parallelism and caching.</p>
+<p>Instead, we could simply import Thymeleaf as a Java library directly from Maven Central
+and use it just like we would use it in any Java application, with IDE support,
+typechecking, and automatic parallelism and caching.</p>
 </div>
 <hr />
 <div class="paragraph">

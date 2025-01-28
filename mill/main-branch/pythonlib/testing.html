@@ -632,9 +632,50 @@ object foo extends PythonModule {
 }</code></pre>
 </div>
 </div>
+<div class="listingblock">
+<div class="title">foo/src/foo.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/pythonlib/testing/1-test-suite/foo/src/foo.py">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">class Foo:
+    def main(self):
+        return &quot;Hello World&quot;
+
+
+if __name__ == &quot;__main__&quot;:
+    print(Foo().main())</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">foo/test/src/test_foo.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/pythonlib/testing/1-test-suite/foo/test/src/test_foo.py">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import unittest
+from unittest.mock import MagicMock
+from foo import Foo  # type: ignore
+
+
+class TestScript(unittest.TestCase):
+    def test_hello(self) -&gt; None:
+        result = Foo().main()
+        self.assertTrue(result.startswith(&quot;Hello&quot;))
+
+    def test_world(self) -&gt; None:
+        result = Foo().main()
+        self.assertTrue(result.endswith(&quot;World&quot;))
+
+    def test_mock(self):
+        mock_foo = MagicMock(spec=Foo)
+        mock_foo.main.return_value = &quot;Hello Mockito World&quot;
+        result = mock_foo.main()
+        self.assertEqual(
+            result,
+            &quot;Hello Mockito World&quot;,
+            &quot;Mocked hello() did not return expected value&quot;,
+        )
+        mock_foo.main.assert_called_once()</code></pre>
+</div>
+</div>
 <div class="paragraph">
 <p>This build defines a single module with a test suite, configured to use
-&quot;Unittest&quot; as the testing framework. Test suites are themselves <code>PythonModule</code>s,
+<code>Unittest</code> as the testing framework. Test suites are themselves <code>PythonModule</code>s,
 nested within the enclosing module, and have all the normal tasks
 available to run, but with an additional <code>.test</code> task
 that runs the tests. You can also run the test suite directly, in which case

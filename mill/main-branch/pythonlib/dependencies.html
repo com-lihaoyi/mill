@@ -613,7 +613,7 @@ const links = document.querySelectorAll('a');
 </script>
 <div class="paragraph">
 <p>This page goes into more detail about configuring third party dependencies
-for `PythonModule`s.</p>
+for <code>PythonModule</code>s.</p>
 </div>
 </div>
 </div>
@@ -756,7 +756,7 @@ downloaded from the same URL will always contain the same contents.</p>
 </td>
 <td class="content">
 An unmanaged wheel downloaded via <code>requests.get</code> is still unmanaged: even though you
-downloaded it from somewhere, <code>requests.get</code> does not know how to pull in third party
+downloaded it from somewhere, <code>requests.get</code> does not know how to pull in transitive
 dependencies or de-duplicate different versions on the classpath. All the same caveats you need
 to worry about when dealing with <a href="#_unmanaged_wheels">unmanaged wheels</a> apply here as well. In
 case you <strong>do</strong> want mill to take care of managing dependencies of a package which is not

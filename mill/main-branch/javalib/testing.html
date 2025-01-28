@@ -636,6 +636,60 @@ object foo extends JavaModule {
 }</code></pre>
 </div>
 </div>
+<div class="listingblock">
+<div class="title">foo/src/foo/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javalib/testing/1-test-suite/foo/src/foo/Foo.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
+
+public class Foo {
+  public static void main(String[] args) {
+    System.out.println(new Foo().hello());
+  }
+
+  public String hello() {
+    return &quot;Hello World&quot;;
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">foo/test/src/foo/FooTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javalib/testing/1-test-suite/foo/test/src/foo/FooTests.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
+
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.*;
+
+import org.junit.Test;
+
+public class FooTests {
+
+  @Test
+  public void hello() {
+    String result = new Foo().hello();
+    assertTrue(result.startsWith(&quot;Hello&quot;));
+  }
+
+  @Test
+  public void world() {
+    String result = new Foo().hello();
+    assertTrue(result.endsWith(&quot;World&quot;));
+  }
+
+  @Test
+  public void testMockito() {
+    Foo mockFoo = mock(Foo.class);
+
+    when(mockFoo.hello()).thenReturn(&quot;Hello Mockito World&quot;);
+
+    String result = mockFoo.hello();
+
+    assertTrue(result.equals(&quot;Hello Mockito World&quot;));
+    verify(mockFoo).hello();
+  }
+}</code></pre>
+</div>
+</div>
 <div class="paragraph">
 <p>This build defines a single module with a test suite, configured to use
 &quot;JUnit&quot; as the testing framework, along with Mockito. Test suites are themselves
@@ -742,47 +796,35 @@ details on how to use each one from the command line.</p>
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.test</code></pre>
 </div>
 </div>
-<div class="ulist">
-<ul>
-<li>
+<div class="paragraph">
 <p><code>foo.test</code>: runs tests in a subprocess in an empty <code>sandbox/</code> folder. This is short
 for <code>foo.test.test</code>, as <code>test</code> is the default task for <code>TestModule</code>s.</p>
-</li>
-</ul>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.test.testCached</code></pre>
 </div>
 </div>
-<div class="ulist">
-<ul>
-<li>
+<div class="paragraph">
 <p><code>foo.test.testCached</code>: runs the tests in an empty <code>sandbox/</code> folder and caches the results
 if successful. This can be handy if you are you working on some upstream modules and only
 want to run downstream tests which are affected: using <code>testCached</code>, downstream tests which
 are not affected will be cached after the first run and not re-run unless you change some
 file upstream of them.</p>
-</li>
-</ul>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.test.testLocal</code></pre>
 </div>
 </div>
-<div class="ulist">
-<ul>
-<li>
+<div class="paragraph">
 <p><code>foo.test.testLocal</code>: runs tests in an isolated classloader as part of the main Mill process.
 This can be faster than <code>.test</code>, but is less flexible (e.g. you cannot pass <code>forkEnv</code>)
 and more prone to interference (<code>testLocal</code> runs do not run in <a href="../depth/sandboxing.html" class="xref page">sandbox folders</a>)</p>
-</li>
-</ul>
 </div>
 <div class="paragraph">
 <p>It is common to run tests with <a href="../cli/flags.html#_watch_w" class="xref page">-w/--watch</a>
-enabled, so that once you save a file to disk the selected tests get re-run.</p>
+enabled, so that once you edit a file on disk the selected tests get re-run.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -837,7 +879,7 @@ lets you pass in a selector to decide which test to run, which in Mill would be:
 </div>
 <div class="paragraph">
 <p>You might be used to test-scoped dependencies from other build tools like
-Maven, Gradle or sbt. As test modules in Mill are just regular modules,
+Maven, Gradle or SBT. As test modules in Mill are just regular modules,
 there is no special need for a dedicated test-scope. You can use <code>ivyDeps</code>
 and <code>runIvyDeps</code> to declare dependencies in test modules, and test modules
 can use their <code>moduleDeps</code> to also depend on each other</p>

@@ -644,7 +644,7 @@ object bar extends JavaModule {}</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>When you make a runnable jar of your project with <code>assembly</code> command,
+<p>When you make a runnable jar of your project with the <code>.assembly</code> task,
 you may want to exclude some files from a final jar (like signature files,
 and manifest files from library jars), and merge duplicated files (for
 instance <code>reference.conf</code> files from library dependencies).</p>
@@ -704,8 +704,8 @@ object ZincWorkerGraalvm extends ZincWorkerModule {
 </div>
 <div class="paragraph">
 <p>This example uses <code>NativeImageModule</code> to generate a native executable using <a href="https://www.graalvm.org/">Graal VM</a>.
-NOTE: For build portability, it is recommended to use a custom JDK via a custom <code>ZincWorkerModule</code> overriding
-<code>def jvmId</code>.</p>
+We recommend you <a href="../fundamentals/configuring-jvm-versions.html" class="xref page">configure a specific JDK version</a>
+via a custom <code>ZincWorkerModule</code> overriding <code>def jvmId</code> (shown above), as not every JVM can build Graal native images.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -754,7 +754,16 @@ object ZincWorkerGraalvm extends ZincWorkerModule {
 libraries, in this case ArgParse4J and Thymeleaf. ArgParse4J does use some dynamic
 resource loading and reflection, and so we need to pass the <code>-H:IncludeResourceBundles</code>
 flag to <code>nativeImageOptions</code> in order to be compatible. We also demonstrate setting
-<code>nativeImageOptions</code>, in this case using <code>-Os</code> to optimize for the smallest binary size.</p>
+using <code>-Os</code> to optimize for the smallest binary size,
+which is available in the <code>graalvm-community:23</code> JDK selected above.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo.nativeImage
+
+&gt; ./out/foo/nativeImage.dest/native-executable --text hello-world
+&lt;h1&gt;hello-world&lt;/h1&gt;</code></pre>
+</div>
 </div>
 <div class="paragraph">
 <p>You can see the Graal documentation to see what flags are available:</p>
@@ -766,16 +775,8 @@ flag to <code>nativeImageOptions</code> in order to be compatible. We also demon
 </li>
 </ul>
 </div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo.nativeImage
-
-&gt; ./out/foo/nativeImage.dest/native-executable --text hello-world
-&lt;h1&gt;hello-world&lt;/h1&gt;</code></pre>
-</div>
-</div>
 <div class="paragraph">
-<p>You can also access the <code>native-image</code> compiler directly via <code>show foo.nativeImageTool</code>
+<p>Or access the <code>native-image</code> compiler directly via <code>show foo.nativeImageTool</code>
 if you want to experiment it or view its <code>--help</code> text to see what you need to pass to
 <code>nativeImageOptions</code>:</p>
 </div>
@@ -815,20 +816,30 @@ object foo extends JavaModule with JlinkModule {
 <div class="paragraph">
 <p>Most of the work is done by the <code>trait JlinkModule</code> in two steps:</p>
 </div>
-<div class="paragraph">
-<p>1.0. it uses the <code>jmod</code> tool to create a <code>jlink.jmod</code> file for the main Java module.
+<div class="ulist">
+<ul>
+<li>
+<p>It uses the <code>jmod</code> tool to create a <code>jlink.jmod</code> file for the main Java module.
 The main Java module is typically the module containing the <code>mainClass</code>.</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
 <p>If your build file doesn’t explicitly specify a <code>mainClass</code>, <code>JlinkModule</code> will infer it from <code>JavaModule</code>, which is its parent trait.
 See <a href="module-config.html#specifying-main-class" class="xref page">Specifying the Main Class</a> to learn more on how to influence the inference process.
 You can explicitly specify a <code>mainClass</code> like so in your build file:</p>
 </div>
-<div class="paragraph">
-<p>def mainClass: T[Option[String]] = { Option(&quot;com.foo.app.Main&quot;) }</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def mainClass: T[Option[String]] = { Some(&quot;com.foo.app.Main&quot;) }</code></pre>
 </div>
-<div class="paragraph">
-<p>2.0. it then uses the <code>jlink</code> tool, to link the previously created <code>jlink.jmod</code> with a runtime image.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>It then uses the <code>jlink</code> tool, to link the previously created <code>jlink.jmod</code> with a runtime image.</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
 <p>With respect to the <code>jlinkCompressLevel</code> option, on recent builds of OpenJDK and its descendants,
@@ -852,12 +863,14 @@ and 2 being &quot;ZIP compression&quot;.
 <div class="paragraph">
 <p>To use a specific JDK, first set your <code>JAVA_HOME</code> environment variable prior to running the build.</p>
 </div>
-<div class="paragraph">
-<p>export JAVA_HOME=/Users/mac/.sdkman/candidates/java/17.0.9-oracle/</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">export JAVA_HOME=/Users/mac/.sdkman/candidates/java/17.0.9-oracle/</code></pre>
+</div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">&gt; mill foo.jlinkAppImage
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.jlinkAppImage
 
 &gt; mill show foo.jlinkAppImage
 &quot;.../out/foo/jlinkAppImage.dest/jlink-runtime&quot;
@@ -925,8 +938,13 @@ foo/
     module-info.java</pre>
 </div>
 </div>
-<div class="paragraph">
-<p>The build defines a <code>foo</code> module that uses the <code>trait JpackageModule</code>.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.jpackageAppImage
+
+&gt; mill show foo.jpackageAppImage
+&quot;.../out/foo/jpackageAppImage.dest/image&quot;</code></pre>
+</div>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -935,7 +953,7 @@ foo/
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-The term <code>Module</code> is also used in Mill to refer to <a href="../fundamentals/modules.html" class="xref page">traits</a>.
+The term <code>Module</code> is also used in Mill to refer to <a href="../fundamentals/modules.html" class="xref page">Mill Modules</a>.
 This is not to be confused with Java app code structured as modules according to the JPMS format.
 </td>
 </tr>
@@ -945,8 +963,10 @@ This is not to be confused with Java app code structured as modules according to
 <p>The <code>JpackageModule</code> trait will infer most of the options needed to assemble a native
 package/installer, but you can still customize its output. In our example, we specified:</p>
 </div>
-<div class="paragraph">
-<p>def jpackageType = &quot;pkg&quot;</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def jpackageType = &quot;pkg&quot;</code></pre>
+</div>
 </div>
 <div class="paragraph">
 <p>This tells <code>jpackage</code> to generate a <code>.pkg</code>, which is the native installer format on macOS.
@@ -959,35 +979,22 @@ Valid values on macOS are: <code>dmg</code>, <code>pkg</code> and <code>app-imag
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-<code>jpackage</code> doesn’t not support cross-targeting. Cross-targeting in this
-context means the <code>jpackage</code> binary shipped with a macOS JDK
+<code>jpackage</code> doesn’t support cross-build to a different OS/CPU combination than
+the one you the build is running on. For example, the <code>jpackage</code> binary shipped with a macOS JDK
 cannot be used to produce a native installer for another OS like Windows or Linux.
 </td>
 </tr>
 </tbody></table>
 </div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.assembly
-
-&gt; mill show foo.assembly
-&quot;.../out/foo/assembly.dest/out.jar&quot;
-
-&gt; java -jar ./out/foo/assembly.dest/out.jar
-INFO: Loaded application.conf from resources: Foo Application Conf
-INFO: Hello World application started successfully
-
-&gt; mill foo.jpackageAppImage
-
-&gt; mill show foo.jpackageAppImage
-&quot;.../out/foo/jpackageAppImage.dest/image&quot;</code></pre>
-</div>
-</div>
 <div class="paragraph">
 <p>On macOS, <code>jpackageType</code> accepts 3 values: &quot;dmg&quot; or &quot;pkg&quot; or &quot;app-image&quot; (default).</p>
 </div>
-<div class="paragraph">
+<div class="ulist">
+<ul>
+<li>
 <p>Setting <code>def jpackageType = &quot;dmg&quot;</code> will produce:</p>
+</li>
+</ul>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -995,8 +1002,12 @@ INFO: Hello World application started successfully
 ... foo-1.0.dmg</pre>
 </div>
 </div>
-<div class="paragraph">
+<div class="ulist">
+<ul>
+<li>
 <p>Setting <code>def jpackageType = &quot;pkg&quot;</code> will produce:</p>
+</li>
+</ul>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1004,8 +1015,12 @@ INFO: Hello World application started successfully
 ... foo-1.0.pkg</pre>
 </div>
 </div>
-<div class="paragraph">
+<div class="ulist">
+<ul>
+<li>
 <p>Setting <code>def jpackageType = &quot;app-image&quot;</code> will produce:</p>
+</li>
+</ul>
 </div>
 <div class="listingblock">
 <div class="content">

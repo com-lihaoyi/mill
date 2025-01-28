@@ -648,7 +648,7 @@ object bar extends ScalaModule {
 </div>
 </div>
 <div class="paragraph">
-<p>When you make a runnable jar of your project with <code>assembly</code> command,
+<p>When you make a runnable jar of your project with the <code>.assembly</code> task,
 you may want to exclude some files from a final jar (like signature files,
 and manifest files from library jars), and merge duplicated files (for
 instance <code>reference.conf</code> files from library dependencies).</p>
@@ -710,8 +710,8 @@ object ZincWorkerGraalvm extends ZincWorkerModule {
 </div>
 <div class="paragraph">
 <p>This example uses <code>NativeImageModule</code> to generate a native executable using <a href="https://www.graalvm.org/">Graal VM</a>.
-NOTE: For build portability, it is recommended to use a custom JDK via a custom <code>ZincWorkerModule</code> overriding
-<code>def jvmId</code>.</p>
+We recommend you <a href="../fundamentals/configuring-jvm-versions.html" class="xref page">configure a specific JDK version</a>
+via a custom <code>ZincWorkerModule</code> overriding <code>def jvmId</code> (shown above), as not every JVM can build Graal native images.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -754,7 +754,17 @@ object ZincWorkerGraalvm extends ZincWorkerModule {
 </div>
 <div class="paragraph">
 <p>This example shows how to generate native images for projects using third-party
-libraries, in this case Scalatags and Mainargs. We also demonstrate setting</p>
+libraries, in this case Scalatags and Mainargs. We also demonstrate setting
+using <code>-Os</code> to optimize for the smallest binary size
+which is available in the <code>graalvm-community:23</code> JDK selected above</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo.nativeImage
+
+&gt; ./out/foo/nativeImage.dest/native-executable --text hello-world
+&lt;h1&gt;hello-world&lt;/h1&gt;</code></pre>
+</div>
 </div>
 <div class="paragraph">
 <p>You can see the Graal documentation to see what flags are available:</p>
@@ -766,16 +776,8 @@ libraries, in this case Scalatags and Mainargs. We also demonstrate setting</p>
 </li>
 </ul>
 </div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo.nativeImage
-
-&gt; ./out/foo/nativeImage.dest/native-executable --text hello-world
-&lt;h1&gt;hello-world&lt;/h1&gt;</code></pre>
-</div>
-</div>
 <div class="paragraph">
-<p>You can also access the <code>native-image</code> compiler directly via <code>show foo.nativeImageTool</code>
+<p>Or access the <code>native-image</code> compiler directly via <code>show foo.nativeImageTool</code>
 if you want to experiment it or view its <code>--help</code> text to see what you need to pass to
 <code>nativeImageOptions</code>:</p>
 </div>

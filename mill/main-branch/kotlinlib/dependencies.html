@@ -664,7 +664,7 @@ dependencies</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>To select the test-jars from a dependency use the following syntax:</p>
+<p>To select the test-jars from a dependency use the <code>;classifier=tests</code> syntax, e.g.:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -879,7 +879,7 @@ downloaded from the same URL will always contain the same contents.</p>
 <td class="content">
 An unmanaged jar downloaded via <code>requests.get</code> is still unmanaged: even
 though you downloaded it from somewhere, it <code>requests.get</code> does not know how to
-pull in third party dependencies or de-duplicate different versions on the classpath
+pull in transitive dependencies or de-duplicate different versions on the classpath
 All the same caveats you need to worry about when dealing with <a href="#_unmanaged_jars">unmanaged jars</a>
 apply here as well.
 </td>
@@ -939,7 +939,7 @@ central.to=http://example.com:8080/nexus/content/groups/public</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Note theses default config file locatations:</p>
+<p>The default location of this config file on each OS is as follows:</p>
 </div>
 <div class="ulist">
 <ul>

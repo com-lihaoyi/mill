@@ -610,8 +610,8 @@ globally.</p>
 <h2 id="_bootstrap_scripts"><a class="anchor" href="#_bootstrap_scripts"></a>Bootstrap Scripts</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Although the Mill example projects come with their own <code>./mill</code> and <code>./mill.bat</code> bootstrap script,
-you can also download it manually:</p>
+<p>The Mill example projects in this documentation come with <code>./mill</code> and <code>./mill.bat</code>
+bootstrap script, included. You can also download the boostrap script manually:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -657,7 +657,7 @@ pick one most similar to what you are doing so you can hit the ground running wo
 <div class="paragraph">
 <p>The default Mill executable configured above requires a JVM (11 or above) installed globally in
 order to run, and imposes some Java startup overhead (100-200ms) when running Mill from the
-command line.You can also use Mill’s native executables by appending a <code>-native</code> suffix to the
+command line. You can also use Mill’s native executables by appending a <code>-native</code> suffix to the
 Mill version:</p>
 </div>
 <div class="listingblock">
@@ -667,32 +667,51 @@ Mill version:</p>
 </div>
 <div class="paragraph">
 <p>Using the <code>-native</code> suffix should provide a faster CLI experience than using Mill’s default
-JVM launcher. Mill native executables are supported on the following OS/CPU combinations:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>windows-amd64</code> (Intel Windows)</p>
-</li>
-<li>
-<p><code>linux-amd64</code> (Intel Linux)</p>
-</li>
-<li>
-<p><code>mac-aarch64</code> (M1-M4 Mac)</p>
-</li>
-</ul>
+JVM launcher, and makes it easier to install Mill in environments without a JVM pre-installed.</p>
 </div>
 <div class="paragraph">
-<p>If you are on a combination not supported by Mill’s native executables, use the default
+<p>Mill native executables are supported on the following OS/CPU combinations:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;" />
+<col style="width: 25%;" />
+<col style="width: 25%;" />
+<col style="width: 25%;" />
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Windows</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mac</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Linux</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Intel</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Y</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Y</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Y</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ARM</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Y</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Y</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Notably, Mill native executables <em>do not</em> support Windows-ARM, due to limitations in the
+upstream Graal Native Image tooling (see <a href="https://github.com/oracle/graal/issues/9215">oracle/graal#9215</a>).
+If you are on a platform not supported by Mill’s native executables, use the default
 JVM launcher instead.</p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_customizing_mills_jvm"><a class="anchor" href="#_customizing_mills_jvm"></a>Customizing Mill’s JVM</h3>
 <div class="paragraph">
-<p>To use Mill in environments without a JVM installed, the native launcher can download its
-own JVM as necessary. You need to specify the version you want via a  <code>.mill-jvm-version</code>
-file such as:</p>
+<p>Mill allows you to specify the exact JVM version you want to use to run the build tool
+via a  <code>.mill-jvm-version</code> file such as:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -700,8 +719,22 @@ file such as:</p>
 </div>
 </div>
 <div class="paragraph">
-<p><code>.mill-jvm-version</code> can also be used with Mill’s default JVM launcher, if you want
-your Mill process to use a different JVM than what you have installed globally.</p>
+<p>This has two benefits</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>.mill-jvm-version</code> can also be used with Mill’s default JVM launcher if you want
+your Mill process to use a different JVM than what you have installed globally. This
+can help ensure your project uses a consistent JVM version and behaves identically regardless
+of what the developer may have installed on their laptop or dev environment</p>
+</li>
+<li>
+<p><code>.mill-jvm-version</code> can be used together with <a href="#_mill_native_executable">Mill Native Executable</a>s to build your
+project without needing a JVM pre-installed at all. This simplifies project setup and
+onboarding of new developers.</p>
+</li>
+</ul>
 </div>
 </div>
 </div>
@@ -714,14 +747,6 @@ your Mill process to use a different JVM than what you have installed globally.<
 <a href="https://build-server-protocol.github.io/">Build Server Protocol (BSP)</a>.</p>
 </div>
 <div class="paragraph">
-<p>To prepare your project for IDEs, and in general any BSP client, you can run this command to generate the BSP configuration files:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">./mill mill.bsp.BSP/install</code></pre>
-</div>
-</div>
-<div class="paragraph">
 <p>Your IDEs may already auto-detect the Mill project and run this command on behalf of you, when opening/importing the project.</p>
 </div>
 <div class="sect2">
@@ -730,7 +755,7 @@ your Mill process to use a different JVM than what you have installed globally.<
 <p>To use Mill with IntelliJ, first ensure you have the free
 <a href="https://plugins.jetbrains.com/plugin/1347-scala">IntelliJ Scala Plugin</a>
 installed. This is necessary as Mill build files are written in Scala,
-even if you are using it to build a Java or Kotlin project.</p>
+even if you are using it to build a Java or Kotlin or Python project.</p>
 </div>
 <div class="paragraph">
 <p>Once you have the plugin installed, you can use IntelliJ to open any project
@@ -773,6 +798,15 @@ those updates by opening the &quot;BSP&quot; tab and clicking the &quot;Refresh&
 <div class="imageblock">
 <div class="content">
 <img src="../_images/basic/IntellijRefresh.png" alt="IntellijRefresh" />
+</div>
+</div>
+<div class="paragraph">
+<p>To prepare your project for IDEs, and in general any BSP client, you can also
+run this command to generate the BSP configuration files:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">./mill mill.bsp.BSP/install</code></pre>
 </div>
 </div>
 <div class="sect3">
@@ -915,7 +949,7 @@ specified in <code>./mill</code>, <code>.config/mill-version</code> or <code>.mi
 </div>
 </div>
 <div class="sect1">
-<h2 id="_working_without_access_to_maven_central"><a class="anchor" href="#_working_without_access_to_maven_central"></a>Working without access to Maven Central</h2>
+<h2 id="_using_mill_without_access_to_maven_central"><a class="anchor" href="#_using_mill_without_access_to_maven_central"></a>Using Mill without access to Maven Central</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Under some circumstances (e.g. corporate firewalls), you may not have access maven central.
@@ -934,22 +968,24 @@ Resolution failed for 1 modules:
 </div>
 <div class="paragraph">
 <p>It is expected that basic commands (e.g. clean) will not work, as Mill saying it is
-unable to resolve it’s own, fundamental, dependencies. Under such circumstances, you
+unable to resolve it’s own, fundamental, dependencies from the default Maven Central
+JVM package repository. Under such circumstances, you
 will normally have access to some proxy, or other corporate repository which resolves
 maven artifacts. The strategy is simply to tell mill to use that instead.</p>
 </div>
 <div class="paragraph">
-<p>The idea is to set an environment variable COURSIER_REPOSITORIES (see coursier docs).
+<p>To resolve this, you can set an environment variable COURSIER_REPOSITORIES (see coursier docs)
+to point at your own server that mirrors the Maven Central artifacts.
 The below command should pass the environment variable to the <code>mill</code> command.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre> COURSIER_REPOSITORIES=https://packages.corp.com/artifactory/maven/ mill resolve _</pre>
+<pre>COURSIER_REPOSITORIES=https://packages.corp.com/artifactory/maven/ mill resolve _</pre>
 </div>
 </div>
 <div class="paragraph">
 <p>If you are using bootstrap script, a more permanent solution could be to set the environment variable
-at the top of the bootstrap script, or as a user environment variable etc.</p>
+at the top of the bootstrap script, or as a user environment variable.</p>
 </div>
 </div>
 </div>

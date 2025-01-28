@@ -1107,6 +1107,54 @@ project isn’t going to be everything that you need, at least it’ll get most 
 tedious boilerplate set up, so you can hit the group running working on the things
 that are unique to your particular project..</p>
 </div>
+<div class="paragraph">
+<p><code>init</code> can also be used to initialize a Mill build configuration based on
+an existing Maven or Gradle build. See the linked page for more details:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="../migrating/maven.html" class="xref page">Migrating From Maven to Mill</a></p>
+</li>
+<li>
+<p><a href="../migrating/gradle.html" class="xref page">Migrating From Gradle to Mill</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_selective"><a class="anchor" href="#_selective"></a>selective.*</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill comes with builtin <code>selective.*</code> commands to work with Selective Test Execution.
+See the linked page for more details:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="../large/selective-execution.html" class="xref page">Selective Test Execution</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_shutdown"><a class="anchor" href="#_shutdown"></a>shutdown</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>./mill shutdown</code> is used to shut down the background daemon that Mill uses to keep
+the build code performant. Without calling <code>shutdown</code>, the background daemon will
+automatically shut itself down after 30 minutes of inactivity.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_version"><a class="anchor" href="#_version"></a>version</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>./mill version</code> prints the current Mill version</p>
+</div>
 </div>
 </div>
 <nav class="pagination">
