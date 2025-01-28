@@ -27,7 +27,16 @@ foo/src/foo.ts
 ...
 ...1 problem (1 error, 0 warnings)
 
-> sed -i '' "s|console.log('Hello World!')|console.log(\`Hello World! \${args.join(' ')}\`)|" foo/src/foo.ts # fix lint error.
+> sed -i '' "s/'Hello World!'/\`Hello World! \${args.join(' ')}\`/g" foo/src/foo.ts # fix lint error.
+
+> cat foo/src/foo.ts # initial code with lint errors.
+export class Foo{
+  static main(
+    args: string[
+]) {
+    console.log(`Hello World! ${args.join(' ')}`);
+  }
+}
 
 > mill foo.checkFormatAll # run eslint
 All matched files use Eslint code style!
