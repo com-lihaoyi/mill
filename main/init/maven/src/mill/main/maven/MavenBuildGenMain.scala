@@ -208,7 +208,7 @@ object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
       cfg.shared.depsObject.fold(interpIvy(_)) { objName => dep =>
         {
           val depName = s"`${dep.getGroupId}:${dep.getArtifactId}`"
-          sd = sd.copy(namedIvyDeps = sd.namedIvyDeps :+ ((depName, interpIvy(dep))))
+          sd = sd.copy(namedIvyDeps = sd.namedIvyDeps :+ (depName, interpIvy(dep)))
           s"$objName.$depName"
         }
       }
