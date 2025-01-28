@@ -4,7 +4,7 @@
 // --
 //
 // You might be used to test-scoped dependencies from other build tools like
-// Maven, Gradle or sbt. As test modules in Mill are just regular modules,
+// Maven, Gradle or SBT. As test modules in Mill are just regular modules,
 // there is no special need for a dedicated test-scope. You can use `ivyDeps`
 // and `runIvyDeps` to declare dependencies in test modules, and test modules
 // can use their `moduleDeps` to also depend on each other

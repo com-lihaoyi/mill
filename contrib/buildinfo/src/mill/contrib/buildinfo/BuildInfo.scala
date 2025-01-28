@@ -45,7 +45,7 @@ trait BuildInfo extends JavaModule {
 
     val subPath = os.SubPath(buildInfoPackageName.replace('.', '/'))
     val stream = os.write.outputStream(
-      T.dest / subPath / s"$buildInfoObjectName.buildinfo.properties",
+      Task.dest / subPath / s"$buildInfoObjectName.buildinfo.properties",
       createFolders = true
     )
 
@@ -54,7 +54,7 @@ trait BuildInfo extends JavaModule {
       s"mill.contrib.buildinfo.BuildInfo for ${buildInfoPackageName}.${buildInfoObjectName}"
     )
     stream.close()
-    PathRef(T.dest)
+    PathRef(Task.dest)
   }
 
   private def isScala = this.isInstanceOf[ScalaModule]
@@ -82,11 +82,11 @@ trait BuildInfo extends JavaModule {
       val ext = if (isScala) "scala" else "java"
 
       os.write(
-        T.dest / buildInfoPackageName.split('.') / s"${buildInfoObjectName}.$ext",
+        Task.dest / buildInfoPackageName.split('.') / s"${buildInfoObjectName}.$ext",
         code,
         createFolders = true
       )
-      Seq(PathRef(T.dest))
+      Seq(PathRef(Task.dest))
     }
   }
 }

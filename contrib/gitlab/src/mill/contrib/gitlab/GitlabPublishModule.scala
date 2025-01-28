@@ -17,7 +17,7 @@ trait GitlabPublishModule extends PublishModule { outer =>
   def gitlabHeaders(
       systemProps: Map[String, String] = sys.props.toMap
   ): Task[GitlabAuthHeaders] = Task.Anon {
-    val auth = tokenLookup.resolveGitlabToken(T.env, systemProps, T.workspace)
+    val auth = tokenLookup.resolveGitlabToken(Task.env, systemProps, Task.workspace)
     auth match {
       case Left(msg) =>
         Failure(
@@ -36,13 +36,13 @@ trait GitlabPublishModule extends PublishModule { outer =>
 
     val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
     if (skipPublish) {
-      T.log.info(s"SkipPublish = true, skipping publishing of $artifactInfo")
+      Task.log.info(s"SkipPublish = true, skipping publishing of $artifactInfo")
     } else {
       val uploader = new GitlabUploader(gitlabHeaders()(), readTimeout, connectTimeout)
       new GitlabPublisher(
         uploader.upload,
         gitlabRepo,
-        T.log
+        Task.log
       ).publish(artifacts.map { case (a, b) => (a.path, b) }, artifactInfo)
     }
 
@@ -62,7 +62,7 @@ object GitlabPublishModule extends ExternalModule {
     val repo = ProjectRepository(gitlabRoot, projectId)
     val auth = GitlabAuthHeaders.privateToken(personalToken)
 
-    val artifacts = T.sequence(publishArtifacts.value)().map {
+    val artifacts = Task.sequence(publishArtifacts.value)().map {
       case data @ PublishModule.PublishData(_, _) => data.withConcretePath
     }
     val uploader = new GitlabUploader(auth, readTimeout, connectTimeout)
@@ -70,7 +70,7 @@ object GitlabPublishModule extends ExternalModule {
     new GitlabPublisher(
       uploader.upload,
       repo,
-      T.log
+      Task.log
     ).publishAll(
       artifacts: _*
     )

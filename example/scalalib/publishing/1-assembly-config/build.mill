@@ -24,7 +24,7 @@ object bar extends ScalaModule {
 }
 //// SNIPPET:END
 
-// When you make a runnable jar of your project with `assembly` command,
+// When you make a runnable jar of your project with the `.assembly` task,
 // you may want to exclude some files from a final jar (like signature files,
 // and manifest files from library jars), and merge duplicated files (for
 // instance `reference.conf` files from library dependencies).

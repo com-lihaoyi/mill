@@ -32,13 +32,13 @@ trait CheckstyleXsltModule extends CheckstyleModule {
             val outputResult =
               new StreamResult(os.write.outputStream(output.path, createFolders = true))
 
-            T.log.info(s"transforming checkstyle output report with $xslt")
+            Task.log.info(s"transforming checkstyle output report with $xslt")
 
             TransformerFactory.newInstance()
               .newTransformer(xsltSource)
               .transform(checkSource, outputResult)
 
-            T.log.info(s"transformed output report at $output")
+            Task.log.info(s"transformed output report at $output")
         }
       }
 
@@ -54,7 +54,7 @@ trait CheckstyleXsltModule extends CheckstyleModule {
    * Folder containing the XSLT transformations. Defaults to `checkstyle-xslt`
    * in  the workspace root, but can be overridden on a per-module basis
    */
-  def checkstyleXsltfFolder = Task.Source(T.workspace / "checkstyle-xslt")
+  def checkstyleXsltfFolder = Task.Source(Task.workspace / "checkstyle-xslt")
 
   /**
    * Set of [[CheckstyleXsltReport]]s.
@@ -81,7 +81,7 @@ trait CheckstyleXsltModule extends CheckstyleModule {
     val dir = checkstyleXsltfFolder().path
 
     if (os.exists(dir)) {
-      val dest = T.dest
+      val dest = Task.dest
       os.list(dir)
         .iterator
         .filter(os.isDir)
@@ -99,7 +99,7 @@ trait CheckstyleXsltModule extends CheckstyleModule {
         )
         .toSet
     } else {
-      T.log.info(s"expected XSLT files under $dir")
+      Task.log.info(s"expected XSLT files under $dir")
       Set.empty[CheckstyleXsltReport]
     }
   }
