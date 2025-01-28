@@ -8,8 +8,11 @@ object foo extends PythonModule {
   }
 }
 
+/** See Also: foo/src/foo.py */
+/** See Also: foo/test/src/test_foo.py */
+
 // This build defines a single module with a test suite, configured to use
-// "Unittest" as the testing framework. Test suites are themselves ``PythonModule``s,
+// `Unittest` as the testing framework. Test suites are themselves ``PythonModule``s,
 // nested within the enclosing module, and have all the normal tasks
 // available to run, but with an additional `.test` task
 // that runs the tests. You can also run the test suite directly, in which case

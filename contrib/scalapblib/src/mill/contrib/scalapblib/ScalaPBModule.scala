@@ -34,7 +34,7 @@ trait ScalaPBModule extends ScalaModule {
   /** ScalaPB enables lenses by default, this option allows you to disable it. */
   def scalaPBLenses: T[Boolean] = Task { true }
 
-  def scalaPBScala3Sources: T[Boolean] = T { false }
+  def scalaPBScala3Sources: T[Boolean] = Task { false }
 
   def scalaPBSearchDeps: Boolean = false
 
@@ -101,7 +101,7 @@ trait ScalaPBModule extends ScalaModule {
 
   def scalaPBUnpackProto: T[PathRef] = Task {
     val cp = scalaPBProtoClasspath()
-    val dest = T.dest
+    val dest = Task.dest
     cp.iterator.foreach { ref =>
       Using(new ZipInputStream(ref.path.getInputStream)) { zip =>
         while ({
@@ -111,7 +111,7 @@ trait ScalaPBModule extends ScalaModule {
               if (entry.getName.endsWith(".proto")) {
                 val protoDest = dest / os.SubPath(entry.getName)
                 if (os.exists(protoDest))
-                  T.log.error(s"Warning: Overwriting ${dest} / ${os.SubPath(entry.getName)} ...")
+                  Task.log.error(s"Warning: Overwriting ${dest} / ${os.SubPath(entry.getName)} ...")
                 Using.resource(os.write.over.outputStream(protoDest, createFolders = true)) { os =>
                   IO.stream(zip, os)
                 }
@@ -142,7 +142,7 @@ trait ScalaPBModule extends ScalaModule {
         scalaPBClasspath(),
         scalaPBSources().map(_.path),
         scalaPBOptions(),
-        T.dest,
+        Task.dest,
         scalaPBCompileOptions()
       )
   }

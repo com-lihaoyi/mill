@@ -2,7 +2,6 @@ package mill.contrib.gitlab
 
 import coursier.core.Authentication
 import coursier.maven.MavenRepository
-import mill.T
 import mill.api.Result
 import mill.api.Result.{Failure, Success}
 import mill.define.Task
@@ -14,7 +13,7 @@ trait GitlabMavenRepository {
 
   def mavenRepository: Task[MavenRepository] = Task.Anon {
 
-    val gitlabAuth = tokenLookup.resolveGitlabToken(T.env, sys.props.toMap, T.workspace)
+    val gitlabAuth = tokenLookup.resolveGitlabToken(Task.env, sys.props.toMap, Task.workspace)
       .map(auth => Authentication(auth.headers))
       .map(auth => MavenRepository(gitlabRepository.url(), Some(auth)))
 
