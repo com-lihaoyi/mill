@@ -4,7 +4,7 @@ import mill.api.{Ctx, PathRef, Result}
 import mill.main.client.EnvVars
 import mill.testrunner.{TestArgs, TestResult, TestRunnerUtils}
 import mill.util.Jvm
-import mill.{Agg, T}
+import mill.{Agg, Task}
 import sbt.testing.Status
 
 import java.time.format.DateTimeFormatter
@@ -40,7 +40,7 @@ private[scalalib] object TestModuleUtil {
 
     val resourceEnv = Map(
       EnvVars.MILL_TEST_RESOURCE_DIR -> resources.map(_.path).mkString(";"),
-      EnvVars.MILL_WORKSPACE_ROOT -> T.workspace.toString
+      EnvVars.MILL_WORKSPACE_ROOT -> Task.workspace.toString
     )
 
     def runTestRunnerSubprocess(selectors2: Seq[String], base: os.Path) = {
@@ -51,9 +51,9 @@ private[scalalib] object TestModuleUtil {
         arguments = args,
         sysProps = props,
         outputPath = outputPath,
-        colored = T.log.colored,
+        colored = Task.log.colored,
         testCp = testClasspath.map(_.path),
-        home = T.home,
+        home = Task.home,
         globSelectors = selectors2
       )
 
@@ -133,8 +133,8 @@ private[scalalib] object TestModuleUtil {
     val subprocessResult: Either[String, (String, Seq[TestResult])] = filteredClassLists match {
       // When no tests at all are discovered, run at least one test JVM
       // process to go through the test framework setup/teardown logic
-      case Nil => runTestRunnerSubprocess(Nil, T.dest)
-      case Seq(singleTestClassList) => runTestRunnerSubprocess(singleTestClassList, T.dest)
+      case Nil => runTestRunnerSubprocess(Nil, Task.dest)
+      case Seq(singleTestClassList) => runTestRunnerSubprocess(singleTestClassList, Task.dest)
       case multipleTestClassLists =>
         val maxLength = multipleTestClassLists.length.toString.length
         val futures = multipleTestClassLists.zipWithIndex.map { case (testClassList, i) =>
@@ -151,12 +151,12 @@ private[scalalib] object TestModuleUtil {
               s"group-$paddedIndex-${multiple.head}"
           }
 
-          T.fork.async(T.dest / folderName, paddedIndex, groupPromptMessage) {
-            (folderName, runTestRunnerSubprocess(testClassList, T.dest / folderName))
+          Task.fork.async(Task.dest / folderName, paddedIndex, groupPromptMessage) {
+            (folderName, runTestRunnerSubprocess(testClassList, Task.dest / folderName))
           }
         }
 
-        val outputs = T.fork.awaitAll(futures)
+        val outputs = Task.fork.awaitAll(futures)
 
         val (lefts, rights) = outputs.partitionMap {
           case (name, Left(v)) => Left(name + " " + v)
@@ -171,7 +171,7 @@ private[scalalib] object TestModuleUtil {
       case Left(errMsg) => Result.Failure(errMsg)
       case Right((doneMsg, results)) =>
         if (results.isEmpty && selectors.nonEmpty) throw doesNotMatchError
-        try handleResults(doneMsg, results, T.ctx(), testReportXml)
+        try handleResults(doneMsg, results, Task.ctx(), testReportXml)
         catch {
           case e: Throwable => Result.Failure("Test reporting failed: " + e)
         }

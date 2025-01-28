@@ -32,7 +32,7 @@ trait NativeImageModule extends WithZincWorker {
    *             - passing target specific options
    */
   def nativeImage: T[PathRef] = Task {
-    val dest = T.dest
+    val dest = Task.dest
 
     val executeableName = "native-executable"
     val command = Seq.newBuilder[String]

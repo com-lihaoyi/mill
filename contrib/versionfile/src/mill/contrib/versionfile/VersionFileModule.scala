@@ -33,7 +33,7 @@ trait VersionFileModule extends Module {
   }
 
   protected def setVersionTask(version: Task[Version]) = Task.Anon {
-    T.log.info(generateCommitMessage(version()))
+    Task.log.info(generateCommitMessage(version()))
     writeVersionToFile(versionFile(), version())
   }
 
@@ -85,7 +85,7 @@ object VersionFileModule extends define.ExternalModule {
   /** Executes the given processes. */
   def exec(procs: mill.main.Tasks[Seq[os.proc]]) = Task.Command {
     for {
-      procs <- T.sequence(procs.value)()
+      procs <- Task.sequence(procs.value)()
       proc <- procs
     } yield proc.call()
   }

@@ -5,6 +5,7 @@ import mill.api.Result
 import scalalib._
 import mill.contrib.bintray.BintrayPublishModule.checkBintrayCreds
 import mill.define.{ExternalModule, Task}
+import mill.define.Command
 
 trait BintrayPublishModule extends PublishModule {
 
@@ -44,7 +45,7 @@ trait BintrayPublishModule extends PublishModule {
       release,
       readTimeout,
       connectTimeout,
-      T.log
+      Task.log
     ).publish(bintrayPublishArtifacts())
   }
 }
@@ -69,7 +70,7 @@ object BintrayPublishModule extends ExternalModule {
       publishArtifacts: mill.main.Tasks[BintrayPublishData],
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
-  ) = Task.Command {
+  ): Command[Unit] = Task.Command {
     new BintrayPublisher(
       bintrayOwner,
       bintrayRepo,
@@ -77,17 +78,17 @@ object BintrayPublishModule extends ExternalModule {
       release,
       readTimeout,
       connectTimeout,
-      T.log
+      Task.log
     ).publishAll(
-      T.sequence(publishArtifacts.value)(): _*
+      Task.sequence(publishArtifacts.value)(): _*
     )
   }
 
   private def checkBintrayCreds(credentials: String): Task[String] = Task.Anon {
     if (credentials.isEmpty) {
       (for {
-        username <- T.env.get("BINTRAY_USERNAME")
-        password <- T.env.get("BINTRAY_PASSWORD")
+        username <- Task.env.get("BINTRAY_USERNAME")
+        password <- Task.env.get("BINTRAY_PASSWORD")
       } yield {
         Result.Success(s"$username:$password")
       }).getOrElse(

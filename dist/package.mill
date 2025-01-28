@@ -284,14 +284,14 @@ object `package` extends RootModule with InstallModule {
   }
 
   object native extends mill.scalalib.NativeImageModule with InstallModule {
-    def artifactOsSuffix = T {
+    def artifactOsSuffix = Task {
       val osName = System.getProperty("os.name").toLowerCase
       if (osName.contains("mac")) "mac"
       else if (osName.contains("windows")) "windows"
       else "linux"
     }
 
-    def artifactCpuSuffix = T {
+    def artifactCpuSuffix = Task {
       System.getProperty("os.arch") match {
         case "x86_64" => "amd64"
         case s => s

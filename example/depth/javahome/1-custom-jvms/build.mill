@@ -3,7 +3,7 @@
 // `ZincWorkerModule` and override the `zincWorker` method in your
 // `JavaModule` or `ScalaModule` by pointing it to that custom object:
 
-// == Downloading Jvm By Version
+// == Setting the JVM version of a JavaModule
 //
 // The `ZincWorkerModule.ForJvm` class takes a Jvm dependency string as its
 // contructor argument and configures the module to fetch and cache the Jvm

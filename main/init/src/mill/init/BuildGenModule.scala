@@ -37,10 +37,10 @@ trait BuildGenModule extends TaskModule {
     if (exit == 0) {
       val files = BuildGenUtil.buildFiles(root).map(PathRef(_)).toSeq
       val config = buildGenScalafmtConfig()
-      T.log.info("formatting Mill build files")
+      Task.log.info("formatting Mill build files")
       ScalafmtWorkerModule.worker().reformat(files, config)
 
-      T.log.info("init completed, run \"mill resolve _\" to list available tasks")
+      Task.log.info("init completed, run \"mill resolve _\" to list available tasks")
     } else {
       throw BuildGenException(s"$mainClass exit($exit)")
     }

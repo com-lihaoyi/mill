@@ -15,7 +15,7 @@ import mill.scalajslib.ScalaJSModule
 import mill.scalalib.GenIdeaModule.{IdeaConfigFile, JavaFacet}
 import mill.scalalib.internal.JavaModuleUtils
 import mill.util.Classpath
-import mill.{T, scalalib}
+import mill.scalalib
 import mill.scalalib.{GenIdeaImpl => _, _}
 import mill.scalanativelib.ScalaNativeModule
 
@@ -152,7 +152,7 @@ case class GenIdeaImpl(
 
             val externalDependencies = Task.Anon {
               mod.resolvedIvyDeps() ++
-                T.traverse(mod.transitiveModuleDeps)(_.unmanagedClasspath)().flatten
+                Task.traverse(mod.transitiveModuleDeps)(_.unmanagedClasspath)().flatten
             }
             val extCompileIvyDeps = Task.Anon {
               mod.defaultResolver().resolveDeps(mod.compileIvyDeps())

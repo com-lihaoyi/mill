@@ -13,19 +13,19 @@ trait DetektModule extends KotlinModule {
   /**
    * Runs [[https://detekt.dev/docs/gettingstarted/cli Detekt]]
    */
-  def detekt(@mainargs.arg detektArgs: DetektArgs): Command[Unit] = T.command {
+  def detekt(@mainargs.arg detektArgs: DetektArgs): Command[Unit] = Task.Command {
     val exitCode = detekt0()()
 
     detektHandleErrors(detektArgs.check, exitCode)
   }
 
-  private def detekt0() = T.task {
+  private def detekt0() = Task.Anon {
 
-    val args = detektOptions() ++ Seq("-i", T.workspace.toString()) ++
+    val args = detektOptions() ++ Seq("-i", Task.workspace.toString()) ++
       Seq("-c", detektConfig().path.toString())
 
-    T.log.info("running detekt ...")
-    T.log.debug(s"with $args")
+    Task.log.info("running detekt ...")
+    Task.log.debug(s"with $args")
 
     Jvm.callSubprocess(
       mainClass = "io.gitlab.arturbosch.detekt.cli.Main",
@@ -46,7 +46,7 @@ trait DetektModule extends KotlinModule {
       if (check) {
         throw new RuntimeException("detekt: Max issues was reached")
       } else {
-        T.log.error("detekt: Max issues was reached")
+        Task.log.error("detekt: Max issues was reached")
       }
     } else if (exitCode == 3) {
       throw new RuntimeException("detekt: Invalid configuration file detected")
@@ -68,7 +68,7 @@ trait DetektModule extends KotlinModule {
    * Detekt configuration file. Defaults to `detekt-config.yml`.
    */
   def detektConfig: T[PathRef] = Task {
-    PathRef(T.workspace / "detekt-config.yml")
+    PathRef(Task.workspace / "detekt-config.yml")
   }
 
   /**

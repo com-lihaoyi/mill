@@ -13,10 +13,10 @@ object `package` extends RootModule with build.MillPublishScalaModule {
         .collect { case Seq(a, b, c) => s"$a-$b-$c" }
     )
 
-    def testLogFolder = Task { T.dest }
+    def testLogFolder = Task { Task.dest }
 
     def caseEnvs[V](f1: CaseModule => Task[V])(s: String, f2: V => String) = {
-      T.traverse(caseKeys) { i => f1(cases(i)).map(v => s"MILL_TEST_${s}_$i" -> f2(v)) }
+      Task.traverse(caseKeys) { i => f1(cases(i)).map(v => s"MILL_TEST_${s}_$i" -> f2(v)) }
     }
     def forkEnv = Task {
       Map("MILL_TEST_LOGS" -> testLogFolder().toString) ++

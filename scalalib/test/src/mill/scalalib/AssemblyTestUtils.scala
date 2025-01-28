@@ -10,7 +10,7 @@ trait AssemblyTestUtils {
     trait Setup extends ScalaModule {
       def scalaVersion = "2.13.11"
 
-      def sources = Task.Sources(T.workspace / "src")
+      def sources = Task.Sources(Task.workspace / "src")
 
       def ivyDeps = super.ivyDeps() ++ Agg(
         ivy"com.lihaoyi::scalatags:0.8.2",

@@ -101,7 +101,7 @@ object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule
         Tasks.resolveMainDefault("__.sources")
   ): Command[Unit] = Task.Command {
 
-    val _sources = T.sequence(sources.value)().iterator.flatten
+    val _sources = Task.sequence(sources.value)().iterator.flatten
 
     palantirAction(
       _sources,
@@ -194,9 +194,9 @@ object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule
   }
 
   /**
-   * Path to options file for Palantir Java Format CLI at `T.workspace` `/` `palantirformat.options`.
+   * Path to options file for Palantir Java Format CLI at `Task.workspace` `/` `palantirformat.options`.
    */
   override def palantirformatOptions: T[PathRef] = Task.Source(
-    T.workspace / "palantirformat.options"
+    Task.workspace / "palantirformat.options"
   )
 }

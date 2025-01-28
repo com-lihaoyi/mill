@@ -69,7 +69,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
   }
 
   override def transitiveCompileClasspath: T[Agg[PathRef]] = Task {
-    T.traverse(transitiveModuleCompileModuleDeps)(m =>
+    Task.traverse(transitiveModuleCompileModuleDeps)(m =>
       Task.Anon {
         val transitiveModuleArtifactPath =
           if (m.isInstanceOf[KotlinJsModule] && m != friendModule.orNull) {
@@ -97,7 +97,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       splitPerModule = splitPerModule(),
       esTarget = kotlinJsESTarget(),
       kotlinVersion = kotlinVersion(),
-      destinationRoot = T.dest,
+      destinationRoot = Task.dest,
       artifactId = artifactId(),
       explicitApi = kotlinExplicitApi(),
       extraKotlinArgs = kotlincOptions(),
@@ -116,8 +116,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
       binaryDir = linkBinary().classes.path,
       runTarget = kotlinJsRunTarget(),
       artifactId = artifactId(),
-      envArgs = T.env,
-      workingDir = T.dest
+      envArgs = Task.env,
+      workingDir = Task.dest
     ).map(_ => ()).getOrThrow
   }
 
@@ -153,7 +153,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       moduleKind == ModuleKind.NoModule &&
       binaryDir.toIO.listFiles().count(_.getName.endsWith(".js")) > 1
     ) {
-      T.log.info("No module type is selected for the executable, but multiple .js files found in the output folder." +
+      Task.log.info("No module type is selected for the executable, but multiple .js files found in the output folder." +
         " This will probably lead to the dependency resolution failure.")
     }
 
@@ -194,7 +194,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       splitPerModule = splitPerModule(),
       esTarget = kotlinJsESTarget(),
       kotlinVersion = kotlinVersion(),
-      destinationRoot = T.dest,
+      destinationRoot = Task.dest,
       artifactId = artifactId(),
       explicitApi = kotlinExplicitApi(),
       extraKotlinArgs = kotlincOptions() ++ extraKotlinArgs,
@@ -221,7 +221,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       splitPerModule = splitPerModule(),
       esTarget = kotlinJsESTarget(),
       kotlinVersion = kotlinVersion(),
-      destinationRoot = T.dest,
+      destinationRoot = Task.dest,
       artifactId = artifactId(),
       explicitApi = kotlinExplicitApi(),
       extraKotlinArgs = kotlincOptions(),
@@ -234,7 +234,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
    * without those from upstream modules and dependencies
    */
   def klib: T[PathRef] = Task {
-    val outputPath = T.dest / s"${artifactId()}.klib"
+    val outputPath = Task.dest / s"${artifactId()}.klib"
     Jvm.createJar(
       outputPath,
       Agg(compile().classes.path),
@@ -382,15 +382,15 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     val compileDestination = os.Path(outputArgs.last)
     if (irClasspath.isEmpty) {
-      T.log.info(
+      Task.log.info(
         s"Compiling ${allKotlinSourceFiles.size} Kotlin sources to $compileDestination ..."
       )
     } else {
-      T.log.info(s"Linking IR to $compileDestination")
+      Task.log.info(s"Linking IR to $compileDestination")
     }
     val workerResult = worker.compile(KotlinWorkerTarget.Js, compilerArgs)
 
-    val analysisFile = T.dest / "kotlin.analysis.dummy"
+    val analysisFile = Task.dest / "kotlin.analysis.dummy"
     if (!os.exists(analysisFile)) {
       os.write(target = analysisFile, data = "", createFolders = true)
     }
@@ -434,11 +434,11 @@ trait KotlinJsModule extends KotlinModule { outer =>
           .anyMatch(entry => entry.getName.endsWith(".meta.js") || entry.getName.endsWith(".kjsm"))
       } catch {
         case e: Throwable =>
-          T.log.error(s"Couldn't open ${path.toIO.getAbsolutePath} as archive.\n${e.toString}")
+          Task.log.error(s"Couldn't open ${path.toIO.getAbsolutePath} as archive.\n${e.toString}")
           false
       }
     } else {
-      T.log.debug(s"${path.toIO.getAbsolutePath} is not a Kotlin/JS library, ignoring it.")
+      Task.log.debug(s"${path.toIO.getAbsolutePath} is not a Kotlin/JS library, ignoring it.")
       false
     }
   }
@@ -476,10 +476,10 @@ trait KotlinJsModule extends KotlinModule { outer =>
     private def nodeModulesDir = Task(persistent = true) {
       Jvm.runSubprocess(
         commandArgs = Seq("npm", "install", "mocha@10.2.0", "source-map-support@0.5.21"),
-        envArgs = T.env,
-        workingDir = T.dest
+        envArgs = Task.env,
+        workingDir = Task.dest
       )
-      PathRef(T.dest)
+      PathRef(Task.dest)
     }
 
     // NB: for the packages below it is important to use specific version
@@ -551,14 +551,14 @@ trait KotlinJsModule extends KotlinModule { outer =>
         binaryDir = linkBinary().classes.path,
         runTarget = runTarget,
         artifactId = artifactId(),
-        envArgs = T.env,
-        workingDir = T.dest
+        envArgs = Task.env,
+        workingDir = Task.dest
       )
 
       // we don't care about the result returned above (because node will return exit code = 1 when tests fail), what
       // matters is if test results file exists
       val xmlReportName = testReportXml().getOrElse(defaultXmlReportName)
-      val xmlReportPath = T.dest / xmlReportName
+      val xmlReportPath = Task.dest / xmlReportName
       val testResults = parseTestResults(xmlReportPath)
       val totalCount = testResults.length
       val passedCount = testResults.count(_.status == Status.Success.name())

@@ -7,7 +7,7 @@ object foo extends KotlinModule {
   def kotlinVersion = "1.9.24"
 
   object test extends KotlinTests with TestModule.Junit5 {
-    def otherFiles = T.source(millSourcePath / "other-files")
+    def otherFiles = Task.Source(millSourcePath / "other-files")
 
     def forkEnv = super.forkEnv() ++ Map(
       "OTHER_FILES_DIR" -> otherFiles().path.toString

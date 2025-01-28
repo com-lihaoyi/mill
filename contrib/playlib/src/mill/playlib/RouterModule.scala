@@ -61,7 +61,7 @@ trait RouterModule extends ScalaModule with Version {
   protected val routeCompilerWorker: RouteCompilerWorkerModule = RouteCompilerWorkerModule
 
   def compileRouter: T[CompilationResult] = Task(persistent = true) {
-    T.log.debug(s"compiling play routes with ${playVersion()} worker")
+    Task.log.debug(s"compiling play routes with ${playVersion()} worker")
     routeCompilerWorker.routeCompilerWorker().compile(
       routerClasspath = playRouterToolsClasspath(),
       files = routeFiles().map(_.path),
@@ -70,7 +70,7 @@ trait RouterModule extends ScalaModule with Version {
       reverseRouter = generateReverseRouter,
       namespaceReverseRouter = namespaceReverseRouter,
       generatorType = generatorType,
-      dest = T.dest
+      dest = Task.dest
     )
   }
 
