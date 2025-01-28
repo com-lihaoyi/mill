@@ -139,7 +139,7 @@ jobs:
             millargs: "contrib.__.test"
             install-android-sdk: false
 
-          - java-version: 11
+          - java-version: 17
             millargs: "example.javalib.__.local.server.test"
             install-android-sdk: false
 
