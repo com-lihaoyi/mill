@@ -831,7 +831,7 @@ object `package` extends RootModule with ScalaNativeModule {
   def nativeLinkingOptions = Seq(&quot;-L&quot; + millSourcePath.toString + &quot;/target&quot;)
 
   // Set nativeWorkdir directory to `newDir`
-  def nativeWorkdir = T.dest / &quot;newDir&quot;
+  def nativeWorkdir = Task.dest / &quot;newDir&quot;
 }</code></pre>
 </div>
 </div>

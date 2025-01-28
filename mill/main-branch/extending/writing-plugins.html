@@ -672,7 +672,7 @@ object myplugin extends ScalaModule with PublishModule {
 <p>Mill plugins are fundamentally just JVM libraries that depend on Mill. Any vanilla JVM
 library (whether written in Java or Scala) can be used in a Mill <code>build.mill</code> file via
 <code>import $ivy</code>, but Mill plugins tend to integrate with Mill by defining a
-<a href="../fundamentals/modules.html#_trait_modules" class="xref page">trait for modules in your <code>build.mill</code> to inherit from</a>.</p>
+<a href="../fundamentals/modules.html#_module_traits" class="xref page">trait for modules in your <code>build.mill</code> to inherit from</a>.</p>
 </div>
 <div class="paragraph">
 <p>The above <code>build.mill</code> file sets up a <code>object myplugin extends ScalaModule</code> not just to

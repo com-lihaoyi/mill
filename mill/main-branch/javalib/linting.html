@@ -831,7 +831,7 @@ object foo extends Module {
   trait MyModule extends JavaModule with CheckstyleModule {
 
     override def checkstyleConfig = Task {
-      api.PathRef(T.workspace / &quot;checkstyle-config.xml&quot;)
+      api.PathRef(Task.workspace / &quot;checkstyle-config.xml&quot;)
     }
   }
 }</code></pre>
@@ -899,7 +899,7 @@ object foo extends JavaModule with CheckstyleXsltModule {
       Set(
         CheckstyleXsltReport(
           PathRef(millSourcePath / &quot;checkstyle-no-frames.xml&quot;),
-          PathRef(T.dest / &quot;checkstyle-no-frames.html&quot;),
+          PathRef(Task.dest / &quot;checkstyle-no-frames.html&quot;),
         )
       )
   }

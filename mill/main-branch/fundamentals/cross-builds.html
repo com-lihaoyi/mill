@@ -646,11 +646,6 @@ trait FooModule extends Cross.Module[String] {
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 360.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-360 310.83,-360 310.83,4 -4,4"></polygon>
-<g id="clust3" class="cluster">
-<title>cluster_0</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-240 8,-348 298.83,-348 298.83,-240 8,-240"></polygon>
-<text text-anchor="middle" x="153.41" y="-331.4" font-family="Times,serif" font-size="14.00">foo[2.10]</text>
-</g>
 <g id="clust1" class="cluster">
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-116 298.83,-116 298.83,-8 8,-8"></polygon>
@@ -660,6 +655,11 @@ trait FooModule extends Cross.Module[String] {
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-232 298.83,-232 298.83,-124 8,-124"></polygon>
 <text text-anchor="middle" x="153.41" y="-215.4" font-family="Times,serif" font-size="14.00">foo[2.11]</text>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_0</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-240 8,-348 298.83,-348 298.83,-240 8,-240"></polygon>
+<text text-anchor="middle" x="153.41" y="-331.4" font-family="Times,serif" font-size="14.00">foo[2.10]</text>
 </g>
 <!-- foo[2.12].suffix -->
 <g id="node1" class="node">
@@ -777,11 +777,36 @@ be overridden.</p>
 ]</code></pre>
 </div>
 </div>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Please be aware that some shells like <code>zsh</code> interpret square brackets differently, so quoting or masking might be needed.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-zsh hljs" data-lang="zsh">mill show foo\[2.10\].suffix
+mill show 'foo[2.10].suffix'
+mill show &quot;foo[2.10].suffix&quot;</code></pre>
 </div>
 </div>
-<div class="sect1">
-<h2 id="_cross_modules_defaults"><a class="anchor" href="#_cross_modules_defaults"></a>Cross Modules Defaults</h2>
-<div class="sectionbody">
+</td>
+</tr>
+</tbody></table>
+</div>
+<div class="paragraph">
+<p>The Cross module’s axes can take any type <code>T</code> with <code>Cross.ToSegments[T]</code>
+defined. There are default implementations for strings, chars, numbers,
+booleans, and lists; the example above demonstrates cross axes of type
+<code>String</code>, <code>Int</code>, and <code>Boolean</code>. You can define additional <code>ToPathSegments</code>
+for your own user-defined types that you wish to use in a Cross module</p>
+</div>
+<div class="sect2">
+<h3 id="_cross_modules_defaults"><a class="anchor" href="#_cross_modules_defaults"></a>Cross Modules Defaults</h3>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.5/example-fundamentals-cross-11-default-cross-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/fundamentals/cross/11-default-cross-module">browse</a>)</div>
 <div class="content">
@@ -817,10 +842,8 @@ it by specifying <code>def defaultCrossSegments</code></p>
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_cross_modules_source_paths"><a class="anchor" href="#_cross_modules_source_paths"></a>Cross Modules Source Paths</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_cross_modules_source_paths"><a class="anchor" href="#_cross_modules_source_paths"></a>Cross Modules Source Paths</h3>
 <div class="paragraph">
 <p>If you want to have dedicated <code>millSourcePath</code>s, you can add the cross
 parameters to it as follows:</p>
@@ -883,10 +906,8 @@ can do so by overriding <code>millSourcePath</code> as shown above.</p>
 </tbody></table>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_using_cross_modules_from_outside_tasks"><a class="anchor" href="#_using_cross_modules_from_outside_tasks"></a>Using Cross Modules from Outside Tasks</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_using_cross_modules_from_outside_tasks"><a class="anchor" href="#_using_cross_modules_from_outside_tasks"></a>Using Cross Modules from Outside Tasks</h3>
 <div class="paragraph">
 <p>You can refer to tasks defined in cross-modules using the <code>foo(&quot;2.10&quot;)</code> syntax,
 as given below:</p>
@@ -918,15 +939,15 @@ def qux = Task { s&quot;hello ${foo(&quot;2.10&quot;).suffix()} world ${foo(&quo
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 128.64,-219 128.64,-154 8,-154"></polygon>
 <text text-anchor="middle" x="68.32" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.12]</text>
 </g>
-<g id="clust3" class="cluster">
-<title>cluster_0</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 128.64,-73 128.64,-8 8,-8"></polygon>
-<text text-anchor="middle" x="68.32" y="-56.4" font-family="Times,serif" font-size="14.00">foo[2.10]</text>
-</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-81 8,-146 128.64,-146 128.64,-81 8,-81"></polygon>
 <text text-anchor="middle" x="68.32" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.11]</text>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_0</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 128.64,-73 128.64,-8 8,-8"></polygon>
+<text text-anchor="middle" x="68.32" y="-56.4" font-family="Times,serif" font-size="14.00">foo[2.10]</text>
 </g>
 <!-- foo[2.12].suffix -->
 <g id="node1" class="node">
@@ -1001,10 +1022,8 @@ in <code>def qux</code>.</p>
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_using_cross_modules_from_other_cross_modules"><a class="anchor" href="#_using_cross_modules_from_other_cross_modules"></a>Using Cross Modules from other Cross Modules</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_using_cross_modules_from_other_cross_modules"><a class="anchor" href="#_using_cross_modules_from_other_cross_modules"></a>Using Cross Modules from other Cross Modules</h3>
 <div class="paragraph">
 <p>Tasks in cross-modules can use one another the same way they are used from
 external tasks:</p>
@@ -1032,35 +1051,35 @@ trait BarModule extends Cross.Module[String] {
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 231.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-231 300.72,-231 300.72,4 -4,4"></polygon>
-<g id="clust6" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="148.64,-154 148.64,-219 288.72,-219 288.72,-154 148.64,-154"></polygon>
-<text text-anchor="middle" x="218.68" y="-202.4" font-family="Times,serif" font-size="14.00">bar[2.10]</text>
+<g id="clust2" class="cluster">
+<title>cluster_1</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-81 8,-146 128.64,-146 128.64,-81 8,-81"></polygon>
+<text text-anchor="middle" x="68.32" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.11]</text>
 </g>
 <g id="clust1" class="cluster">
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 128.64,-73 128.64,-8 8,-8"></polygon>
 <text text-anchor="middle" x="68.32" y="-56.4" font-family="Times,serif" font-size="14.00">foo[2.12]</text>
 </g>
-<g id="clust2" class="cluster">
-<title>cluster_1</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-81 8,-146 128.64,-146 128.64,-81 8,-81"></polygon>
-<text text-anchor="middle" x="68.32" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.11]</text>
+<g id="clust6" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="148.64,-154 148.64,-219 288.72,-219 288.72,-154 148.64,-154"></polygon>
+<text text-anchor="middle" x="218.68" y="-202.4" font-family="Times,serif" font-size="14.00">bar[2.10]</text>
 </g>
 <g id="clust4" class="cluster">
 <title>cluster_4</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="148.64,-81 148.64,-146 288.72,-146 288.72,-81 148.64,-81"></polygon>
 <text text-anchor="middle" x="218.68" y="-129.4" font-family="Times,serif" font-size="14.00">bar[2.11]</text>
 </g>
-<g id="clust3" class="cluster">
-<title>cluster_0</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 128.64,-219 128.64,-154 8,-154"></polygon>
-<text text-anchor="middle" x="68.32" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.10]</text>
-</g>
 <g id="clust5" class="cluster">
 <title>cluster_5</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="148.64,-8 148.64,-73 288.72,-73 288.72,-8 148.64,-8"></polygon>
 <text text-anchor="middle" x="218.68" y="-56.4" font-family="Times,serif" font-size="14.00">bar[2.12]</text>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_0</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 128.64,-219 128.64,-154 8,-154"></polygon>
+<text text-anchor="middle" x="68.32" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.10]</text>
 </g>
 <!-- foo[2.12].suffix -->
 <g id="node1" class="node">
@@ -1147,6 +1166,7 @@ of <code>foo</code>: <code>bar(&quot;2.10&quot;)</code> depends on <code>foo(&qu
 </div>
 </div>
 </div>
+</div>
 <div class="sect1">
 <h2 id="_multiple_cross_axes"><a class="anchor" href="#_multiple_cross_axes"></a>Multiple Cross Axes</h2>
 <div class="sectionbody">
@@ -1181,10 +1201,20 @@ def bar = Task { s&quot;hello ${foo(&quot;2.10&quot;, &quot;jvm&quot;).suffix()}
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 231.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-231 564.06,-231 564.06,4 -4,4"></polygon>
-<g id="clust2" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="358.49,-81 358.49,-146 491.96,-146 491.96,-81 358.49,-81"></polygon>
-<text text-anchor="middle" x="425.23" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.10,js]</text>
+<g id="clust1" class="cluster">
+<title>cluster_6</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 166.35,-73 166.35,-8 8,-8"></polygon>
+<text text-anchor="middle" x="87.17" y="-56.4" font-family="Times,serif" font-size="14.00">foo[2.12,native]</text>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_4</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="192.57,-81 192.57,-146 491.96,-146 491.96,-81 192.57,-81"></polygon>
+<text text-anchor="middle" x="342.27" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.11,js]</text>
+</g>
+<g id="clust4" class="cluster">
+<title>cluster_5</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="20.44,-81 20.44,-146 153.91,-146 153.91,-81 20.44,-81"></polygon>
+<text text-anchor="middle" x="87.17" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.12,js]</text>
 </g>
 <g id="clust6" class="cluster">
 <title>cluster_1</title>
@@ -1195,21 +1225,6 @@ def bar = Task { s&quot;hello ${foo(&quot;2.10&quot;, &quot;jvm&quot;).suffix()}
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="14.21,-154 14.21,-219 160.13,-219 160.13,-154 14.21,-154"></polygon>
 <text text-anchor="middle" x="87.17" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.12,jvm]</text>
-</g>
-<g id="clust1" class="cluster">
-<title>cluster_6</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 166.35,-73 166.35,-8 8,-8"></polygon>
-<text text-anchor="middle" x="87.17" y="-56.4" font-family="Times,serif" font-size="14.00">foo[2.12,native]</text>
-</g>
-<g id="clust3" class="cluster">
-<title>cluster_4</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="192.57,-81 192.57,-146 326.04,-146 326.04,-81 192.57,-81"></polygon>
-<text text-anchor="middle" x="259.31" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.11,js]</text>
-</g>
-<g id="clust4" class="cluster">
-<title>cluster_5</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="20.44,-81 20.44,-146 153.91,-146 153.91,-81 20.44,-81"></polygon>
-<text text-anchor="middle" x="87.17" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.12,js]</text>
 </g>
 <!-- foo[2.12,native].suffix -->
 <g id="node1" class="node">
@@ -1302,11 +1317,8 @@ above.</p>
 }</code></pre>
 </div>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_extending_cross_modules"><a class="anchor" href="#_extending_cross_modules"></a>Extending Cross Modules</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_extending_cross_modules"><a class="anchor" href="#_extending_cross_modules"></a>Extending Cross Modules</h3>
 <div class="paragraph">
 <p>You can also take an existing cross module and extend it with additional cross
 axes as shown:</p>
@@ -1344,13 +1356,6 @@ tuple beyond the first is bound to the <code>crossValueN</code> property defined
 corresponding <code>Cross.ArgN</code> trait. Providing tuples of the wrong arity to the
 <code>Cross[]</code> constructor is a compile error.</p>
 </div>
-<div class="paragraph">
-<p>The Cross module’s axes can take any type <code>T</code> with <code>Cross.ToSegments[T]</code>
-defined. There are default implementations for strings, chars, numbers,
-booleans, and lists; the example above demonstrates cross axes of type
-<code>String</code>, <code>Int</code>, and <code>Boolean</code>. You can define additional <code>ToPathSegments</code>
-for your own user-defined types that you wish to use in a Cross module</p>
-</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo[a].param1
@@ -1376,6 +1381,7 @@ for your own user-defined types that you wish to use in a Cross module</p>
 error: ...object foo3 extends Cross[FooModule3]((&quot;a&quot;, 1), (&quot;b&quot;, 2))
 error: ...                                      ^
 error: ...value _3 is not a member of (String, Int)</code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -1620,27 +1626,6 @@ with the current cross-module.</p>
 ...
 &quot;[[[_2.10]]]&quot;</code></pre>
 </div>
-</div>
-<div class="admonitionblock note">
-<table>
-<tbody><tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>Please be aware that some shells like <code>zsh</code> interpret square brackets differently, so quoting or masking might be needed.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-zsh hljs" data-lang="zsh">mill show foo\[2.10\].suffix
-mill show 'foo[2.10].suffix'
-mill show &quot;foo[2.10].suffix&quot;</code></pre>
-</div>
-</div>
-</td>
-</tr>
-</tbody></table>
 </div>
 <div class="paragraph">
 <p>The <code>suffix</code> tasks will have the corresponding output paths for their

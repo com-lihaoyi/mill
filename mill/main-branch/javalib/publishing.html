@@ -807,9 +807,9 @@ import mill.javalib.Assembly._
 import mill.scalalib.JlinkModule
 
 object foo extends JavaModule with JlinkModule {
-  def jlinkModuleName: T[String] = T { &quot;foo&quot; }
-  def jlinkModuleVersion: T[Option[String]] = T { Option(&quot;1.0&quot;) }
-  def jlinkCompressLevel: T[String] = T { &quot;2&quot; }
+  def jlinkModuleName: T[String] = Task { &quot;foo&quot; }
+  def jlinkModuleVersion: T[Option[String]] = Task { Option(&quot;1.0&quot;) }
+  def jlinkCompressLevel: T[String] = Task { &quot;2&quot; }
 }</code></pre>
 </div>
 </div>
@@ -1108,7 +1108,7 @@ object bar extends JavaModule with RevapiModule {
     // add Revapi config JSON file(s)
     Task.Sources(millSourcePath / &quot;conf/revapi.json&quot;)
 
-  override def revapiClasspath: T[Agg[PathRef]] = T {
+  override def revapiClasspath: T[Agg[PathRef]] = Task {
     // add folder containing logback.xml
     super.revapiClasspath() ++ Seq(PathRef(millSourcePath / &quot;conf&quot;))
   }

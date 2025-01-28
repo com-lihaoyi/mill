@@ -845,12 +845,12 @@ object `package` extends RootModule with KotlinModule {
 
   def unmanagedClasspath = Task {
     os.write(
-      T.dest / &quot;fastjavaio.jar&quot;,
+      Task.dest / &quot;fastjavaio.jar&quot;,
       requests.get.stream(
         &quot;https://github.com/williamfiset/FastJavaIO/releases/download/1.1/fastjavaio.jar&quot;
       )
     )
-    Agg(PathRef(T.dest / &quot;fastjavaio.jar&quot;))
+    Agg(PathRef(Task.dest / &quot;fastjavaio.jar&quot;))
   }
 }</code></pre>
 </div>
@@ -920,7 +920,7 @@ object foo extends KotlinModule {
     ivy&quot;org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0&quot;
   )
 
-  def repositoriesTask = T.task { super.repositoriesTask() ++ sonatypeReleases }
+  def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
 }</code></pre>
 </div>
 </div>
@@ -966,7 +966,7 @@ used to compile the <code>build.mill</code> files) and override the <code>zincWo
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object CustomZincWorkerModule extends ZincWorkerModule with CoursierModule {
-  def repositoriesTask = T.task { super.repositoriesTask() ++ sonatypeReleases }
+  def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
 }
 
 object bar extends KotlinModule {
@@ -976,7 +976,7 @@ object bar extends KotlinModule {
   def zincWorker = ModuleRef(CustomZincWorkerModule)
   // ... rest of your build definitions
 
-  def repositoriesTask = T.task { super.repositoriesTask() ++ sonatypeReleases }
+  def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
 }</code></pre>
 </div>
 </div>

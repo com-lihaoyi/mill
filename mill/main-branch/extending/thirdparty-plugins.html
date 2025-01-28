@@ -1949,7 +1949,7 @@ import ba.sake.squery.generator._
 import ba.sake.squery.generator.mill.SqueryGeneratorModule
 
 object app extends ScalaModule with SqueryGeneratorModule {
-  // use T.input(T.ctx.env(&quot;MY_ENV_VAR&quot;)) to set sensitive variables like password etc
+  // use Task.Input(Task.ctx.env(&quot;MY_ENV_VAR&quot;)) to set sensitive variables like password etc
   def squeryJdbcUrl = &quot;jdbc:...&quot;
   def squeryUsername = &quot;..&quot;
   def squeryPassword = &quot;..&quot;

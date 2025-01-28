@@ -1112,15 +1112,15 @@ object common extends NettyModule{
 
     context.put(&quot;collection.template.dir&quot;, &quot;common/src/main/templates&quot;)
     context.put(&quot;collection.template.test.dir&quot;, &quot;common/src/test/templates&quot;)
-    context.put(&quot;collection.src.dir&quot;, (T.dest / &quot;src&quot;).toString)
-    context.put(&quot;collection.testsrc.dir&quot;, (T.dest / &quot;testsrc&quot;).toString)
+    context.put(&quot;collection.src.dir&quot;, (Task.dest / &quot;src&quot;).toString)
+    context.put(&quot;collection.testsrc.dir&quot;, (Task.dest / &quot;testsrc&quot;).toString)
 
     shell.setProperty(&quot;properties&quot;, context)
     shell.setProperty(&quot;ant&quot;, new groovy.ant.AntBuilder())
 
     shell.evaluate((script().path / &quot;codegen.groovy&quot;).toIO)
 
-    (PathRef(T.dest / &quot;src&quot;), PathRef(T.dest / &quot;testsrc&quot;))
+    (PathRef(Task.dest / &quot;src&quot;), PathRef(Task.dest / &quot;testsrc&quot;))
   }
 
   def generatedSources = Task { Seq(generatedSources0()._1)}
@@ -1250,24 +1250,24 @@ with the <code>make</code> command essentially being a bash script wrapped in la
 def cSources = Task.Source(millSourcePath / &quot;src&quot; / &quot;main&quot; / &quot;c&quot;)
 def cHeaders = Task {
   for(p &lt;- os.walk(cSources().path) if p.ext == &quot;h&quot;){
-    os.copy(p, T.dest / p.relativeTo(cSources().path), createFolders = true)
+    os.copy(p, Task.dest / p.relativeTo(cSources().path), createFolders = true)
   }
-  PathRef(T.dest)
+  PathRef(Task.dest)
 }
 
 def make = Task {
-  os.copy(makefile().path, T.dest / &quot;Makefile&quot;)
-  os.copy(cSources().path, T.dest / &quot;src&quot; / &quot;main&quot; / &quot;c&quot;, createFolders = true)
+  os.copy(makefile().path, Task.dest / &quot;Makefile&quot;)
+  os.copy(cSources().path, Task.dest / &quot;src&quot; / &quot;main&quot; / &quot;c&quot;, createFolders = true)
 
   val Seq(sourceJar) = resolveDeps(
     deps = Task.Anon(Agg(ivy&quot;io.netty:netty-jni-util:0.0.9.Final&quot;).map(bindDependency())),
     sources = true
   )().toSeq
 
-  os.proc(&quot;jar&quot;, &quot;xf&quot;, sourceJar.path).call(cwd = T.dest  / &quot;src&quot; / &quot;main&quot; / &quot;c&quot;)
+  os.proc(&quot;jar&quot;, &quot;xf&quot;, sourceJar.path).call(cwd = Task.dest  / &quot;src&quot; / &quot;main&quot; / &quot;c&quot;)
 
   os.proc(&quot;make&quot;).call(
-    cwd = T.dest,
+    cwd = Task.dest,
     env = Map(
       &quot;CC&quot; -&gt; &quot;clang&quot;,
       &quot;AR&quot; -&gt; &quot;ar&quot;,
@@ -1287,7 +1287,7 @@ def make = Task {
     )
   )
 
-  (PathRef(T.dest / &quot;lib-out&quot;), PathRef(T.dest / &quot;obj-out&quot;))
+  (PathRef(Task.dest / &quot;lib-out&quot;), PathRef(Task.dest / &quot;obj-out&quot;))
 }</code></pre>
 </div>
 </div>

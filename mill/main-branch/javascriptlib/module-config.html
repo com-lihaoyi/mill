@@ -992,7 +992,7 @@ import ujson._
 
 object foo extends TypeScriptModule {
   object test extends TypeScriptTests with TestModule.Jest {
-    def otherFiles = T.source(millSourcePath / &quot;other-files&quot;)
+    def otherFiles = Task.Source(millSourcePath / &quot;other-files&quot;)
 
     def forkEnv = super.forkEnv() + (&quot;OTHER_FILES_DIR&quot; -&gt; otherFiles().path.toString)
   }

@@ -638,7 +638,7 @@ object foo extends JavaModule {}</code></pre>
 
 &gt; echo &quot;&quot; &gt;&gt; foo/src/foo/Foo.java
 
-&gt; ./mill foo.compile # compile against after editing a file
+&gt; ./mill foo.compile # compile again after editing a file
 
 &gt; find out
 out/foo/compile.dest/...
@@ -661,10 +661,10 @@ out/mill-server/...</code></pre>
 <h2 id="_task_metadata_and_cached_files"><a class="anchor" href="#_task_metadata_and_cached_files"></a>Task Metadata and Cached Files</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Each named task (<code>Target</code> or <code>Command</code>) that is run has a representation in
+<p>Each named task (<code>Task</code> or <code>Command</code>) that is run has a representation in
 the <code>out/</code> directory structure. The <em>module</em> structure is reflected in the directories,
 so that each module of your project has a uniquely associated subdirectory under the
-<code>out/</code> directory.For example, the <code>foo.compile</code> task we ran above places
+<code>out/</code> directory. For example, the <code>foo.compile</code> task we ran above places
 its files in the <code>out/foo/compile.*</code> paths:</p>
 </div>
 <div class="listingblock">
@@ -696,7 +696,9 @@ conflicting with another <code>Task</code>, but can name files within <code>foo.
 <div class="sect2">
 <h3 id="_task_log"><a class="anchor" href="#_task_log"></a><code>&lt;task&gt;.log</code></h3>
 <div class="paragraph">
-<p>The <code>stdout</code>/<code>stderr</code> of the <code>Task</code>, if any. This is also streamed to the console during evaluation.</p>
+<p>The <code>stdout</code>/<code>stderr</code> of the <code>Task</code>, if any. This is also streamed to the console during
+evaluation, but the terminal can get messy with many tasks running and printing logs in
+parallel, so if you want the logs for a single task you can find them on disk.</p>
 </div>
 </div>
 <div class="sect2">
@@ -966,7 +968,7 @@ import mill._
 
 object foo extends Module {
   def printDest = Task {
-    println(T.dest)
+    println(Task.dest)
   }
 }</code></pre>
 </div>

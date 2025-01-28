@@ -1001,6 +1001,135 @@ object bar extends ScalaModule {
 </div>
 </div>
 </div>
+<div class="sect1">
+<h2 id="_scala_dependencies_in_detail"><a class="anchor" href="#_scala_dependencies_in_detail"></a>Scala Dependencies In Detail</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Scala major releases up until version <code>2.13</code> are binary incompatible.
+That means, mixing dependencies of different binary platforms will result in non-working runtimes and obscure and hard to debug issues.</p>
+</div>
+<div class="paragraph">
+<p>To easily pick only a compatible version, a convention was established to append the scala major version as a suffix to the package name.<sup class="footnote">[<a id="_footnoteref_1" class="footnote" href="#_footnotedef_1" title="View footnote.">1</a>]</sup>
+E.g. to select the Scala 2.13 version of a library <code>foo</code>, the final <code>artifactId</code> will contain the additional suffix <code>_2.13</code>, such that the final <code>artifactId</code> is <code>foo_2.13</code>.</p>
+</div>
+<div class="paragraph">
+<p>To always pick the right version and support cross compiling,
+you can omit the scala version and instead use a double colon (<code>::</code>) between the <code>organization</code> and the <code>name</code>, e.g. <code>ivy&quot;com.typesafe.akka:akka-actor_2.12:2.5.25&quot;</code>.
+Your module needs to <code>extends ScalaModule</code> though.</p>
+</div>
+<div class="paragraph">
+<p>If you want to use dependencies that are cross-published against the full Scala version, e.g. <code>2.12.12</code>,
+you can use three colons (<code>:::</code>) between <code>organization</code> and <code>name</code>, e.g.: <code>ivy&quot;org.scalamacros:::paradise:2.1.1&quot;</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def ivyDeps = Agg(
+  // explicit scala version suffix, NOT RECOMMENDED!
+  ivy&quot;com.typesafe.akka:akka-actor_2.12:2.5.25&quot;,
+  ivy&quot;com.typesafe.akka::akka-actor:2.5.25&quot;,
+  ivy&quot;org.scalamacros:::paradise:2.1.1&quot;
+)</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_scala_3_interoperability"><a class="anchor" href="#_scala_3_interoperability"></a>Scala 3 interoperability</h3>
+<div class="paragraph">
+<p>Since the release of Scala 3, the binary compatibility story for Scala has changed.
+That means, Scala 3 dependencies can be mixed with Scala 2.13 dependencies.
+In fact, the Scala 3 standard library is the same as for Scala 2.13.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>As Scala 3 and Scala 2.13 have different binary platforms, but their artifacts are in general compatible, this introduces new challenges.</p>
+</div>
+<div class="paragraph">
+<p>There is currently no mechanism to bring the same dependency twice into the classpath (one for Scala 2.13 and one for Scala 3).</p>
+</div>
+</td>
+</tr>
+</tbody></table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_using_scala_2_13_from_scala_3"><a class="anchor" href="#_using_scala_2_13_from_scala_3"></a>Using Scala 2.13 from Scala 3</h3>
+<div class="paragraph">
+<p>If your Scala version is a Scala 3.x, but you want to use the Scala 2.13 version of a specific library, you can use the <code>.withDottyCompat</code> method on that dependency.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example:</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def scalaVersion = &quot;3.2.1&quot;
+def ivyDeps = Agg(
+  ivy&quot;com.lihaoyi::upickle:2.0.0&quot;.withDottyCompat(scalaVersion()) //1
+)</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tbody><tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>This will result in a Scala 2.13 dependency <code>com.lihaoyi::upicke_2.13:2.0.0</code></td>
+</tr>
+</tbody></table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Do you wonder where the name &quot;dotty&quot; comes from?</p>
+</div>
+<div class="paragraph">
+<p>In the early development of Scala 3, the Scala 3 compiler was called &quot;Dotty&quot;. Later, the name was changed to Scala 3, but the compiler project itself is still named &quot;dotty&quot;.</p>
+</div>
+<div class="paragraph">
+<p>The dotty compiler itself is an implementation of the <a href="http://lampwww.epfl.ch/~amin/dot/fool.pdf">Dependent Object Types (DOT) calculus</a>, which is the new basis of Scala 3. It also enhances the type system to a next level and allows features like union-types and intersection-types.</p>
+</div>
+</td>
+</tr>
+</tbody></table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_scalajs_dependencies"><a class="anchor" href="#_scalajs_dependencies"></a>ScalaJS dependencies</h3>
+<div class="paragraph">
+<p>Scala.js introduces an additional binary platform axis.
+To the already required Scala version, there comes the Scala.js version.</p>
+</div>
+<div class="paragraph">
+<p>You can use two colons (<code>::</code>) between <code>name</code> and <code>version</code> to define a Scala.js dependency.
+Your module needs to <code>extends ScalaJSModule</code> to accept Scala.js dependencies.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_scala_native_dependencies"><a class="anchor" href="#_scala_native_dependencies"></a>Scala Native dependencies</h3>
+<div class="paragraph">
+<p>Scala Native introduces an additional binary platform axis.
+To the already required Scala version, there comes the Scala Native version.</p>
+</div>
+<div class="paragraph">
+<p>You can use two colons (<code>::</code>) between <code>name</code> and <code>version</code> to define a Scala Native dependency.
+Your module needs to <code>extends ScalaNativeModule</code> to accept Scala Native dependencies.</p>
+</div>
+</div>
+</div>
+</div>
+<div id="footnotes">
+<hr />
+<div class="footnote" id="_footnotedef_1">
+<a href="#_footnoteref_1">1</a>. Scala 2 versions have the unusual version format: <code>{epoch}.{major}.{minor}</code>.
+</div>
+</div>
 <nav class="pagination">
   <span class="prev"><a href="module-config.html">Scala Module Configuration</a></span>
   <span class="next"><a href="testing.html">Testing Scala Projects</a></span>

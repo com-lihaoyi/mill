@@ -656,19 +656,19 @@ object `package` extends RootModule with KotlinModule {
   def mainClass = Some(&quot;foo.Foo2Kt&quot;)
 
   // Add (or replace) source folders for the module to use
-  def sources = T.sources {
+  def sources = Task.Sources {
     super.sources() ++ Seq(PathRef(millSourcePath / &quot;custom-src&quot;))
   }
 
   // Add (or replace) resource folders for the module to use
-  def resources = T.sources {
+  def resources = Task.Sources {
     super.resources() ++ Seq(PathRef(millSourcePath / &quot;custom-resources&quot;))
   }
 
   // Generate sources at build time
   def generatedSources: T[Seq[PathRef]] = Task {
     for (name &lt;- Seq(&quot;A&quot;, &quot;B&quot;, &quot;C&quot;)) os.write(
-      T.dest / s&quot;Foo$name.kt&quot;,
+      Task.dest / s&quot;Foo$name.kt&quot;,
       s&quot;&quot;&quot;
 package foo
 
@@ -678,7 +678,7 @@ object Foo$name {
       &quot;&quot;&quot;.stripMargin
     )
 
-    Seq(PathRef(T.dest))
+    Seq(PathRef(Task.dest))
   }
 
   // Pass additional JVM flags when `.run` is called or in the executable
@@ -842,7 +842,7 @@ object foo extends KotlinModule {
   def kotlinVersion = &quot;1.9.24&quot;
 
   object test extends KotlinTests with TestModule.Junit5 {
-    def otherFiles = T.source(millSourcePath / &quot;other-files&quot;)
+    def otherFiles = Task.Source(millSourcePath / &quot;other-files&quot;)
 
     def forkEnv = super.forkEnv() ++ Map(
       &quot;OTHER_FILES_DIR&quot; -&gt; otherFiles().path.toString
@@ -1172,7 +1172,7 @@ object `package` extends RootModule with KotlinModule {
     }
     val ivyDepsString = prettyIvyDeps.mkString(&quot; + \&quot;\\n\&quot; + \n&quot;)
     os.write(
-      T.dest / s&quot;MyDeps.kt&quot;,
+      Task.dest / s&quot;MyDeps.kt&quot;,
       s&quot;&quot;&quot;
 package foo
 
@@ -1182,7 +1182,7 @@ object MyDeps {
       &quot;&quot;&quot;.stripMargin
     )
 
-    Seq(PathRef(T.dest))
+    Seq(PathRef(Task.dest))
   }
 
   def lineCount: T[Int] = Task {
@@ -1195,7 +1195,7 @@ object MyDeps {
 
   def forkArgs: T[Seq[String]] = Seq(s&quot;-Dmy.line.count=${lineCount()}&quot;)
 
-  def printLineCount() = T.command { println(lineCount()) }
+  def printLineCount() = Task.Command { println(lineCount()) }
 }</code></pre>
 </div>
 </div>
@@ -1407,13 +1407,13 @@ object foo extends KotlinModule {
 
   def sources = Task {
     os.write(
-      T.dest / &quot;Foo.kt&quot;,
+      Task.dest / &quot;Foo.kt&quot;,
       &quot;&quot;&quot;package foo
 
 fun main() = println(&quot;Hello World&quot;)
       &quot;&quot;&quot;.stripMargin
     )
-    Seq(PathRef(T.dest))
+    Seq(PathRef(Task.dest))
   }
 
   def compile = Task {
@@ -1421,7 +1421,7 @@ fun main() = println(&quot;Hello World&quot;)
     super.compile()
   }
 
-  def run(args: Task[Args] = T.task(Args())) = T.command {
+  def run(args: Task[Args] = Task.Anon(Args())) = Task.Command {
     println(&quot;Running...&quot; + args().value.mkString(&quot; &quot;))
     super.run(args)()
   }
@@ -1457,8 +1457,8 @@ override <code>sources</code> and use <code>super</code> to include the original
   def kotlinVersion = &quot;1.9.24&quot;
 
   def generatedSources = Task {
-    os.write(T.dest / &quot;Foo.kt&quot;, &quot;&quot;&quot;...&quot;&quot;&quot;)
-    Seq(PathRef(T.dest))
+    os.write(Task.dest / &quot;Foo.kt&quot;, &quot;&quot;&quot;...&quot;&quot;&quot;)
+    Seq(PathRef(Task.dest))
   }
 }
 
@@ -1467,8 +1467,8 @@ object foo3 extends KotlinModule {
   def kotlinVersion = &quot;1.9.24&quot;
 
   def sources = Task {
-    os.write(T.dest / &quot;Foo.kt&quot;, &quot;&quot;&quot;...&quot;&quot;&quot;)
-    super.sources() ++ Seq(PathRef(T.dest))
+    os.write(Task.dest / &quot;Foo.kt&quot;, &quot;&quot;&quot;...&quot;&quot;&quot;)
+    super.sources() ++ Seq(PathRef(Task.dest))
   }
 }</code></pre>
 </div>
@@ -1502,7 +1502,7 @@ object `package` extends RootModule with KotlinModule {
   def kotlinVersion = &quot;1.9.24&quot;
 
   // Additional source folder to put C sources
-  def nativeSources = T.sources(millSourcePath / &quot;native-src&quot;)
+  def nativeSources = Task.Sources(millSourcePath / &quot;native-src&quot;)
 
   // Compile C
   def nativeCompiled = Task {
@@ -1516,12 +1516,12 @@ object `package` extends RootModule with KotlinModule {
       &quot;-I&quot; + sys.props(&quot;java.home&quot;) + &quot;/include/darwin&quot;,
       &quot;-I&quot; + sys.props(&quot;java.home&quot;) + &quot;/include/linux&quot;,
       &quot;-o&quot;,
-      T.dest / output,
+      Task.dest / output,
       cSourceFiles
     )
       .call(stdout = os.Inherit)
 
-    PathRef(T.dest / output)
+    PathRef(Task.dest / output)
   }
 
   def forkEnv = Map(&quot;HELLO_WORLD_BINARY&quot; -&gt; nativeCompiled().path.toString)

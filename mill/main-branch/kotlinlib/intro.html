@@ -1309,7 +1309,7 @@ object foo extends MyModule {
 
   def generatedSources = Task {
     os.write(
-      T.dest / &quot;Version.kt&quot;,
+      Task.dest / &quot;Version.kt&quot;,
       s&quot;&quot;&quot;
 package foo
 
@@ -1318,7 +1318,7 @@ object Version {
 }
       &quot;&quot;&quot;.stripMargin
     )
-    Seq(PathRef(T.dest))
+    Seq(PathRef(Task.dest))
   }
 }
 

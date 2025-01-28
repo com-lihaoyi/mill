@@ -641,7 +641,7 @@ mill foo.flywayMigrate</code></pre>
 <td class="content">
 You should never hard-code credentials or check them into a version control system.
 You should write some code to populate the settings for flyway instead.
-For example <code>def flywayPassword = Task.Input(T.ctx.env(&quot;FLYWAY_PASSWORD&quot;))</code>
+For example <code>def flywayPassword = Task.Input(Task.ctx.env(&quot;FLYWAY_PASSWORD&quot;))</code>
 </td>
 </tr>
 </tbody></table>
