@@ -10,7 +10,6 @@ export default tseslint.config({
         ...tseslint.configs.recommended,
     ],
     rules: {
-        '@typescript-eslint/no-unused-vars': 'off',
         // styling rules
         'semi': ['error', 'always'],
         'quotes': ['error', 'single'],

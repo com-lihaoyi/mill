@@ -16,15 +16,4 @@ describe('Calculator', () => {
         });
     });
 
-    describe('Division', () => {
-        it('should return the quotient of two numbers', () => {
-            const result = calculator.divide(6, 3);
-            expect(result).to.equal(2);
-        });
-
-        it('should throw an error when dividing by zero', () => {
-            expect(() => calculator.divide(6, 0)).to.throw("Division by zero is not allowed");
-        });
-    });
-
 });

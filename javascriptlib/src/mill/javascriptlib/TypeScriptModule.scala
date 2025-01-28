@@ -5,7 +5,7 @@ import os.*
 
 import scala.util.Try
 
-trait TypeScriptModule extends TsLintModule { outer =>
+trait TypeScriptModule extends Module { outer =>
   def moduleDeps: Seq[TypeScriptModule] = Nil
 
   def npmDeps: T[Seq[String]] = Task { Seq.empty[String] }

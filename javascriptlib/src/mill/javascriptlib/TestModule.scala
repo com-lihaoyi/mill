@@ -41,14 +41,14 @@ object TestModule {
 
     // <rootDir> = '/out'; allow coverage resolve distributed source files.
     // & define coverage files relative to <rootDir>.
-    private[TestModule] def link: Task[Unit] = Task.Anon {
+    private[TestModule] def coverageSetupSymlinks: Task[Unit] = Task.Anon {
       os.symlink(Task.workspace / "out/node_modules", npmInstall().path / "node_modules")
       os.symlink(Task.workspace / "out/tsconfig.json", compile()._1.path / "tsconfig.json")
       if (os.exists(compile()._1.path / ".nycrc"))
         os.symlink(Task.workspace / "out/.nycrc", compile()._1.path / ".nycrc")
     }
 
-    def nycrcBuilder: Task[Path] = Task.Anon {
+    def istanbulNycrcConfigBuilder: Task[PathRef] = Task.Anon {
       val compiled = compile()._1.path
       val fileName = ".nycrc"
       val config = compiled / fileName
@@ -71,26 +71,15 @@ object TestModule {
 
       os.write.over(config, content)
 
-      config
+      PathRef(config)
     }
 
     // web browser - serve coverage report
-    def htmlReport: T[Unit] = Task {
+    def htmlReport: T[PathRef] = Task {
       runCoverage()
-      val server = npmInstall().path / "node_modules/.bin/serve"
-      val env = forkEnv()
-      os.call(
-        (
-          server,
-          "-s",
-          coverageFiles().path.toString,
-          "-l",
-          env.get("COVERAGE_REPORT_PORT").orElse(Option("4332"))
-        ),
-        stdout = os.Inherit,
-        env = env
-      )
-      ()
+      val htmlPath = coverageFiles().path / "index.html"
+      println(s"HTML Report: $htmlPath")
+      PathRef(htmlPath)
     }
 
     // coverage files - returnn coverage files directory
@@ -140,7 +129,7 @@ object TestModule {
         super.compilerOptions() + ("resolveJsonModule" -> ujson.Bool(true))
       }
 
-    def conf: Task[Path] = Task.Anon {
+    def conf: Task[PathRef] = Task.Anon {
       val compiled = compile()._1.path
       val fileName = "jest.config.ts"
       val config = compiled / fileName
@@ -176,7 +165,7 @@ object TestModule {
       if (!os.exists(customConfig)) os.write.over(config, content)
       else os.copy.over(customConfig, config)
 
-      config
+      PathRef(config)
     }
 
     private def runTest: T[TestResult] = Task {
@@ -185,7 +174,7 @@ object TestModule {
           "node",
           npmInstall().path / "node_modules/jest/bin/jest.js",
           "--config",
-          conf(),
+          conf().path,
           getPathToTest()
         ),
         stdout = os.Inherit,
@@ -200,7 +189,7 @@ object TestModule {
     }
 
     // with coverage
-    def coverageConf: Task[Path] = Task.Anon {
+    def coverageConf: Task[PathRef] = Task.Anon {
       val compiled = compile()._1.path
       val fileName = "jest.config.ts"
       val config = compiled / fileName
@@ -245,17 +234,17 @@ object TestModule {
       if (!os.exists(customConfig)) os.write.over(config, content)
       else os.copy.over(customConfig, config)
 
-      config
+      PathRef(config)
     }
 
     def runCoverage: T[TestResult] = Task {
-      link()
+      coverageSetupSymlinks()
       os.call(
         (
           "node",
           "node_modules/jest/bin/jest.js",
           "--config",
-          coverageConf(),
+          coverageConf().path,
           "--coverage",
           getPathToTest()
         ),
@@ -289,7 +278,7 @@ object TestModule {
       Task { super.getPathToTest() + "/**/**/*.test.ts" }
 
     // test-runner.js: run tests on ts files
-    def conf: Task[Path] = Task.Anon {
+    def conf: Task[PathRef] = Task.Anon {
       val compiled = compile()._1.path
       val runner = compiled / "test-runner.js"
 
@@ -301,14 +290,14 @@ object TestModule {
 
       os.write.over(runner, content)
 
-      runner
+      PathRef(runner)
     }
 
     private def runTest: T[Unit] = Task {
       os.call(
         (
           "node",
-          conf(),
+          conf().path,
           getPathToTest()
         ),
         stdout = os.Inherit,
@@ -324,13 +313,13 @@ object TestModule {
 
     // with coverage
     def runCoverage: T[TestResult] = Task {
-      nycrcBuilder()
-      link()
+      istanbulNycrcConfigBuilder()
+      coverageSetupSymlinks()
       os.call(
         (
           "./node_modules/.bin/nyc",
           "node",
-          conf(),
+          conf().path,
           getPathToTest()
         ),
         stdout = os.Inherit,
@@ -371,7 +360,7 @@ object TestModule {
         )
       }
 
-    def conf: Task[Path] = Task.Anon {
+    def conf: Task[PathRef] = Task.Anon {
       val compiled = compile()._1.path
       val fileName = "vitest.config.ts"
       val config = compiled / fileName
@@ -394,7 +383,7 @@ object TestModule {
       if (!os.exists(customConfig)) os.write.over(config, content)
       else os.copy.over(customConfig, config)
 
-      config
+      PathRef(config)
     }
 
     private def runTest: T[TestResult] = Task {
@@ -404,7 +393,7 @@ object TestModule {
           npmInstall().path / "node_modules/.bin/vitest",
           "--run",
           "--config",
-          conf(),
+          conf().path,
           getPathToTest()
         ),
         stdout = os.Inherit,
@@ -419,7 +408,7 @@ object TestModule {
     }
 
     // coverage
-    def coverageConf: Task[Path] = Task.Anon {
+    def coverageConf: Task[PathRef] = Task.Anon {
       val compiled = compile()._1.path
       val fileName = "vitest.config.ts"
       val config = compiled / fileName
@@ -453,18 +442,18 @@ object TestModule {
       if (!os.exists(customConfig)) os.write.over(config, content)
       else os.copy.over(customConfig, config)
 
-      config
+      PathRef(config)
     }
 
     def runCoverage: T[TestResult] = Task {
-      link()
+      coverageSetupSymlinks()
       os.call(
         (
           npmInstall().path / "node_modules/.bin/ts-node",
           npmInstall().path / "node_modules/.bin/vitest",
           "--run",
           "--config",
-          coverageConf(),
+          coverageConf().path,
           "--coverage",
           getPathToTest()
         ),
@@ -502,7 +491,7 @@ object TestModule {
         )
       }
 
-    def conf: Task[Path] = Task.Anon {
+    def conf: Task[PathRef] = Task.Anon {
       val path = compile()._1.path / "jasmine.json"
       os.write.over(
         path,
@@ -516,7 +505,7 @@ object TestModule {
         )
       )
 
-      path
+      PathRef(path)
     }
 
     private def runTest: T[Unit] = Task {
@@ -544,7 +533,7 @@ object TestModule {
     }
 
     // with coverage
-    def coverageConf: T[Path] = Task {
+    def coverageConf: T[PathRef] = Task {
       val path = compile()._1.path / "jasmine.json"
       val specDir = compile()._2.path.subRelativeTo(Task.workspace / "out") / "src"
       os.write.over(
@@ -558,16 +547,16 @@ object TestModule {
           )
         )
       )
-      path
+      PathRef(path)
     }
 
     def runCoverage: T[TestResult] = Task {
-      nycrcBuilder()
-      link()
+      istanbulNycrcConfigBuilder()
+      coverageSetupSymlinks()
       val jasmine = "node_modules/jasmine/bin/jasmine.js"
       val tsnode = "node_modules/ts-node/register/transpile-only.js"
       val tsconfigPath = "node_modules/tsconfig-paths/register.js"
-      val relConfigPath = coverageConf().subRelativeTo(Task.workspace / "out")
+      val relConfigPath = coverageConf().path.subRelativeTo(Task.workspace / "out")
       os.call(
         (
           "./node_modules/.bin/nyc",
