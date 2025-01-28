@@ -159,7 +159,7 @@ Bar.value: 271828
 // automatically done by Mill based on the structure of the build graph.
 //
 // Note that this is a minimal example is meant for educational purposes: the
-// `mill.scalalib.JavaModule` and `ScalaModule` that Mill provides is more
+// `JavaModule` and `ScalaModule` that Mill provides is more
 // complicated to provide additional flexibility and performance. Nevertheless,
 // this example should give you a good idea of how Mill ``module``s can be
 // developed, so you can define your own custom modules when the need arises.

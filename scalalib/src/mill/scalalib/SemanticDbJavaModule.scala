@@ -25,7 +25,7 @@ trait SemanticDbJavaModule extends CoursierModule {
 
   def semanticDbVersion: T[String] = Task.Input {
     val builtin = SemanticDbJavaModule.buildTimeSemanticDbVersion
-    val requested = T.env.getOrElse[String](
+    val requested = Task.env.getOrElse[String](
       "SEMANTICDB_VERSION",
       SemanticDbJavaModule.contextSemanticDbVersion.get().getOrElse(builtin)
     )
@@ -34,7 +34,7 @@ trait SemanticDbJavaModule extends CoursierModule {
 
   def semanticDbJavaVersion: T[String] = Task.Input {
     val builtin = SemanticDbJavaModule.buildTimeJavaSemanticDbVersion
-    val requested = T.env.getOrElse[String](
+    val requested = Task.env.getOrElse[String](
       "JAVASEMANTICDB_VERSION",
       SemanticDbJavaModule.contextJavaSemanticDbVersion.get().getOrElse(builtin)
     )
@@ -105,9 +105,9 @@ trait SemanticDbJavaModule extends CoursierModule {
     )
 
     // we currently assume, we don't do incremental java compilation
-    os.remove.all(T.dest / "classes")
+    os.remove.all(Task.dest / "classes")
 
-    T.log.debug(s"effective javac options: ${javacOpts}")
+    Task.log.debug(s"effective javac options: ${javacOpts}")
 
     zincWorker().worker()
       .compileJava(
@@ -120,13 +120,13 @@ trait SemanticDbJavaModule extends CoursierModule {
         reportCachedProblems = zincReportCachedProblems(),
         incrementalCompilation = zincIncrementalCompilation()
       ).map(r =>
-        SemanticDbJavaModule.copySemanticdbFiles(r.classes.path, T.workspace, T.dest / "data")
+        SemanticDbJavaModule.copySemanticdbFiles(r.classes.path, Task.workspace, Task.dest / "data")
       )
   }
 
   // keep in sync with bspCompiledClassesAndSemanticDbFiles
   def compiledClassesAndSemanticDbFiles: T[PathRef] = Task {
-    val dest = T.dest
+    val dest = Task.dest
     val classes = compile().classes.path
     val sems = semanticDbData().path
     if (os.exists(sems)) os.copy(sems, dest, mergeFolders = true)
@@ -140,7 +140,7 @@ trait SemanticDbJavaModule extends CoursierModule {
       compiledClassesAndSemanticDbFiles.ctx.enclosing == s"${classOf[SemanticDbJavaModule].getName}#compiledClassesAndSemanticDbFiles"
     ) {
       Task {
-        T.log.debug(
+        Task.log.debug(
           s"compiledClassesAndSemanticDbFiles target was not overridden, assuming hard-coded classes directory for target ${compiledClassesAndSemanticDbFiles}"
         )
         UnresolvedPath.DestPath(
@@ -151,7 +151,7 @@ trait SemanticDbJavaModule extends CoursierModule {
       }
     } else {
       Task {
-        T.log.debug(
+        Task.log.debug(
           s"compiledClassesAndSemanticDbFiles target was overridden, need to actually execute compilation to get the compiled classes directory for target ${compiledClassesAndSemanticDbFiles}"
         )
         UnresolvedPath.ResolvedPath(compiledClassesAndSemanticDbFiles().path)

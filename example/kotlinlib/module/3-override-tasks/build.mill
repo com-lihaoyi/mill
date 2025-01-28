@@ -10,13 +10,13 @@ object foo extends KotlinModule {
 
   def sources = Task {
     os.write(
-      T.dest / "Foo.kt",
+      Task.dest / "Foo.kt",
       """package foo
         |
         |fun main() = println("Hello World")
       """.stripMargin
     )
-    Seq(PathRef(T.dest))
+    Seq(PathRef(Task.dest))
   }
 
   def compile = Task {
@@ -24,7 +24,7 @@ object foo extends KotlinModule {
     super.compile()
   }
 
-  def run(args: Task[Args] = T.task(Args())) = T.command {
+  def run(args: Task[Args] = Task.Anon(Args())) = Task.Command {
     println("Running..." + args().value.mkString(" "))
     super.run(args)()
   }
@@ -36,8 +36,8 @@ object foo2 extends KotlinModule {
   def kotlinVersion = "1.9.24"
 
   def generatedSources = Task {
-    os.write(T.dest / "Foo.kt", """...""")
-    Seq(PathRef(T.dest))
+    os.write(Task.dest / "Foo.kt", """...""")
+    Seq(PathRef(Task.dest))
   }
 }
 
@@ -46,7 +46,7 @@ object foo3 extends KotlinModule {
   def kotlinVersion = "1.9.24"
 
   def sources = Task {
-    os.write(T.dest / "Foo.kt", """...""")
-    super.sources() ++ Seq(PathRef(T.dest))
+    os.write(Task.dest / "Foo.kt", """...""")
+    super.sources() ++ Seq(PathRef(Task.dest))
   }
 }
