@@ -72,7 +72,6 @@ trait FooModule extends Cross.Module[String] {
 
 */
 
-
 // [NOTE]
 // --
 // Please be aware that some shells like `zsh` interpret square brackets differently, so quoting or masking might be needed.
