@@ -19,7 +19,7 @@ trait RevapiModule extends PublishModule {
    * @return CLI working directory
    */
   def revapi(args: String*): Command[PathRef] = Task.Command {
-    val workingDir = T.dest
+    val workingDir = Task.dest
 
     val oldFiles = revapiOldFiles()
     val oldFile = oldFiles.head
@@ -46,7 +46,7 @@ trait RevapiModule extends PublishModule {
         .++=(args)
         .result()
 
-    T.log.info("running revapi cli")
+    Task.log.info("running revapi cli")
     Jvm.runSubprocess(
       mainClass = mainClass,
       classPath = revapiClasspath().map(_.path),
@@ -80,7 +80,7 @@ trait RevapiModule extends PublishModule {
   /** API archive and supplement files (dependencies) to compare */
   def revapiNewFiles: T[Agg[PathRef]] = T {
     Agg(jar()) ++
-      T.traverse(recursiveModuleDeps)(_.jar)() ++
+      Task.traverse(recursiveModuleDeps)(_.jar)() ++
       defaultResolver().resolveDeps(
         Seq(coursierDependency),
         artifactTypes = Some(revapiArtifactTypes())
@@ -91,7 +91,7 @@ trait RevapiModule extends PublishModule {
   def revapiConfigFiles: T[Seq[PathRef]] = Seq.empty[PathRef]
 
   /** Location of local cache of extensions to use to locate artifacts */
-  def revapiCacheDir: T[PathRef] = T { PathRef(T.dest) }
+  def revapiCacheDir: T[PathRef] = Task { PathRef(Task.dest) }
 
   /** URLs of remote Maven repositories to use for artifact resolution */
   def revapiRemoteRepositories: T[Seq[String]] = T {

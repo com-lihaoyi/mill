@@ -8,7 +8,7 @@ orders and caches work it needs to do, and exists independently of any support
 for building Java, Kotlin, or Scala.
 
 Mill task graphs are primarily built using methods and macros defined on
-`mill.define.Task`, aliased as `T` for conciseness:
+`mill.define.Task`:
 
 - {mill-doc-url}/api/latest/mill/define/Task$.html[mill.define.Task]
 

@@ -12,10 +12,10 @@ import mill.util.Jvm
 trait JpackageModule extends JavaModule {
 
   /** The application name */
-  def jpackageName: T[String] = T { artifactName() }
+  def jpackageName: T[String] = Task { artifactName() }
 
   /** The main class to use as the entry point to the native package / installer. */
-  def jpackageMainClass: T[String] = T { finalMainClass() }
+  def jpackageMainClass: T[String] = Task { finalMainClass() }
 
   /**
    * The type of native package / installer to be created.
@@ -28,7 +28,7 @@ trait JpackageModule extends JavaModule {
    *
    * If unspecified, defaults to "app-image" which will build a package native to the host platform.
    */
-  def jpackageType: T[String] = T { "app-image" }
+  def jpackageType: T[String] = Task { "app-image" }
 
   /**
    * The classpath used for the `jpackage` tool. The first entry needs to be the main jar.
@@ -48,7 +48,7 @@ trait JpackageModule extends JavaModule {
   /** Builds a native package of the main application. */
   def jpackageAppImage: T[PathRef] = T {
     // materialize all jars into a "lib" dir
-    val libs = T.dest / "lib"
+    val libs = Task.dest / "lib"
     val cp = jpackageRunClasspath().map(_.path)
     val jars = cp.filter(os.exists).zipWithIndex.map { case (p, idx) =>
       val dest = libs / s"${idx + 1}-${p.last}"
@@ -76,7 +76,7 @@ trait JpackageModule extends JavaModule {
     )
 
     // run jpackage tool
-    val outDest = T.dest / "image"
+    val outDest = Task.dest / "image"
     os.makeDir.all(outDest)
     os.proc(args).call(cwd = outDest)
     PathRef(outDest)

@@ -138,7 +138,7 @@ This is roughly equivalent to the following:
 
 [source,scala]
 ----
-def test() = Task.Command { T.zipMap(runDepClasspath, compile, compile) {
+def test() = Task.Command { Task.zipMap(runDepClasspath, compile, compile) {
   (runDepClasspath1, compile2, compile3) =>
   TestRunner.apply(
     "mill.UTestFramework",

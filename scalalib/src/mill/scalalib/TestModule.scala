@@ -143,7 +143,7 @@ trait TestModule
       : Task[(String, String, String, Seq[String])] =
     Task.Anon {
       val mainClass = "mill.testrunner.entrypoint.TestRunnerMain"
-      val outputPath = T.dest / "out.json"
+      val outputPath = Task.dest / "out.json"
       val selectors = Seq.empty
 
       val testArgs = TestArgs(
@@ -152,13 +152,13 @@ trait TestModule
         arguments = args(),
         sysProps = Map.empty,
         outputPath = outputPath,
-        colored = T.log.colored,
+        colored = Task.log.colored,
         testCp = testClasspath().map(_.path),
-        home = T.home,
+        home = Task.home,
         globSelectors = selectors
       )
 
-      val argsFile = T.dest / "testargs"
+      val argsFile = Task.dest / "testargs"
       os.write(argsFile, upickle.default.write(testArgs))
 
       val testRunnerClasspathArg =
@@ -218,9 +218,9 @@ trait TestModule
       runClasspath().map(_.path),
       Agg.from(testClasspath().map(_.path)),
       args,
-      T.testReporter
+      Task.testReporter
     )
-    TestModule.handleResults(doneMsg, results, T.ctx(), testReportXml())
+    TestModule.handleResults(doneMsg, results, Task.ctx(), testReportXml())
   }
 
   override def bspBuildTarget: BspBuildTarget = {

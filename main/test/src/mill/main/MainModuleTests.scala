@@ -61,8 +61,8 @@ object MainModuleTests extends TestSuite {
 
     trait Cleanable extends Module {
       def target = Task {
-        os.write(T.dest / "dummy.txt", "dummy text")
-        Seq(PathRef(T.dest))
+        os.write(Task.dest / "dummy.txt", "dummy text")
+        Seq(PathRef(Task.dest))
       }
     }
 
@@ -71,8 +71,8 @@ object MainModuleTests extends TestSuite {
     }
     object bar extends Cleanable {
       override def target = Task {
-        os.write(T.dest / "dummy.txt", "dummy text")
-        super.target() ++ Seq(PathRef(T.dest))
+        os.write(Task.dest / "dummy.txt", "dummy text")
+        super.target() ++ Seq(PathRef(Task.dest))
       }
     }
     object bazz extends Cross[Bazz]("1", "2", "3")

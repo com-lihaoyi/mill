@@ -44,7 +44,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
     BuildInfo.Value(
       "millEmbeddedDeps",
       (
-        T.traverse(
+        Task.traverse(
           build.dist.recursiveModuleDeps.collect { case m: PublishModule => m }
         )(
           _.publishSelfDependency
@@ -59,14 +59,14 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
             build.dist.transitiveIvyDeps(),
             Some(build.dist.mapDependencies()),
             build.dist.resolutionCustomizer(),
-            Some(T.ctx()),
+            Some(Task.ctx()),
             build.dist.coursierCacheCustomizer()
           )._2.minDependencies.toSeq
             // change to this when bumping Mill
             //   ).getOrThrow.minDependencies.toSeq
             .map(d => s"${d.module.organization.value}:${d.module.name.value}:${d.version}")
       )
-        //      T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
+        //      Task.traverse(dev.moduleDeps)(_.publishSelfDependency)()
         //        .map(artifact => s"${artifact.group}:${artifact.id}:${artifact.version}")
         .mkString(","),
       "Dependency artifacts embedded in mill assembly by default."
