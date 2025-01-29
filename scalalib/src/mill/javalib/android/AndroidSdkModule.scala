@@ -218,8 +218,8 @@ trait AndroidSdkModule extends Module {
   }
 
   private def sdkPath: T[PathRef] = Task {
-    T.env.get("ANDROID_HOME")
-      .orElse(T.env.get("ANDROID_SDK_ROOT")) match {
+    Task.env.get("ANDROID_HOME")
+      .orElse(Task.env.get("ANDROID_SDK_ROOT")) match {
       case Some(x) => PathRef(os.Path(x))
       case _ => throw new IllegalStateException("Android SDK location not found. Define a valid" +
           " SDK location with an ANDROID_HOME environment variable.")
@@ -262,9 +262,9 @@ trait AndroidSdkModule extends Module {
   private def remoteReposInfo: Command[PathRef] = Task.Command {
     // shouldn't be persistent, allow it to be re-downloaded again.
     // it will be called only if some packages are not installed.
-    val path = T.dest / "repository.xml"
+    val path = Task.dest / "repository.xml"
     os.write(
-      T.dest / "repository.xml",
+      Task.dest / "repository.xml",
       requests.get(remotePackagesUrl).bytes
     )
     PathRef(path)

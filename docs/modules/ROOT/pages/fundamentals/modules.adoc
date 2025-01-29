@@ -25,6 +25,10 @@ include::partial$example/fundamentals/modules/7-root-module.adoc[]
 
 include::partial$example/fundamentals/modules/8-diy-java-modules.adoc[]
 
+== Default Tasks
+
+include::partial$example/fundamentals/modules/12-default-tasks.adoc[]
+
 == Backticked Names
 
 include::partial$example/fundamentals/modules/9-backticked-names.adoc[]
@@ -65,14 +69,10 @@ service & cache that is shared between all ``ScalaModule``s, and
 `mill.scalalib.GenIdea/idea` lets you generate IntelliJ projects without
 needing to define your own `Task.Command` in your `build.mill` file
 
-== Aliasing External Modules
+=== Aliasing External Modules
 
 include::partial$example/fundamentals/modules/10-external-module-aliases.adoc[]
 
 == Abstract Modules References
 
 include::partial$example/fundamentals/modules/11-abstract-module-ref.adoc[]
-
-== Default Tasks
-
-include::partial$example/fundamentals/modules/12-default-tasks.adoc[]

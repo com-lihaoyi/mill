@@ -63,3 +63,6 @@ runs:
         include-hidden-files: true
 
     - uses: actions/checkout@v4
+
+    - run: echo temurin:${{ inputs.java-version }} > .mill-jvm-version
+      shell: bash

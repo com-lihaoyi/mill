@@ -18,7 +18,7 @@ trait KoverReportBaseModule extends CoursierModule {
    * Reads the Kover version from system environment variable `KOVER_VERSION` or defaults to a hardcoded version.
    */
   def koverVersion: T[String] = Task.Input {
-    Success[String](T.env.getOrElse("KOVER_VERSION", Versions.koverVersion))
+    Success[String](Task.env.getOrElse("KOVER_VERSION", Versions.koverVersion))
   }
 
   def koverCliDep: Target[Agg[Dep]] = Task {

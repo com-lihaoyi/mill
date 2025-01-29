@@ -12,16 +12,16 @@ import mill.util.Jvm
 trait JlinkModule extends JavaModule {
 
   /** The base name for the runtime image */
-  def jlinkImageName: T[String] = T { "jlink" }
+  def jlinkImageName: T[String] = Task { "jlink" }
 
   /** Name of the main module to be included in the runtime image */
-  def jlinkModuleName: T[String] = T { "" }
+  def jlinkModuleName: T[String] = Task { "" }
 
   /** The main module's version number. */
-  def jlinkModuleVersion: T[Option[String]] = T { None }
+  def jlinkModuleVersion: T[Option[String]] = Task { None }
 
   /** The main class to use as the runtime entry point. */
-  def jlinkMainClass: T[String] = T { finalMainClass() }
+  def jlinkMainClass: T[String] = Task { finalMainClass() }
 
   /**
    * Compress level for the runtime image.
@@ -33,17 +33,17 @@ trait JlinkModule extends JavaModule {
    *
    * Assumes you are on a recent OpenJDK version thus defaults to "zip-6".
    */
-  def jlinkCompressLevel: T[String] = T { "zip-6" }
+  def jlinkCompressLevel: T[String] = Task { "zip-6" }
 
   /**
    * Creates a Java module file (.jmod) from compiled classes
    */
-  def jmodPackage: T[PathRef] = T {
+  def jmodPackage: T[PathRef] = Task {
 
     val mainClass: String = finalMainClass()
-    val outputPath = T.dest / "jlink.jmod"
+    val outputPath = Task.dest / "jlink.jmod"
 
-    val libs = T.dest / "libs"
+    val libs = Task.dest / "libs"
     val cp = runClasspath().map(_.path)
     val jars = cp.filter(os.exists).zipWithIndex.map { case (p, idx) =>
       val dest = libs / s"${p.last}"
@@ -77,9 +77,9 @@ trait JlinkModule extends JavaModule {
   }
 
   /** Builds a custom runtime image using jlink */
-  def jlinkAppImage: T[PathRef] = T {
+  def jlinkAppImage: T[PathRef] = Task {
     val modulePath = jmodPackage().path.toString
-    val outputPath = T.dest / "jlink-runtime"
+    val outputPath = Task.dest / "jlink-runtime"
 
     val args = Seq(
       Jvm.jdkTool("jlink", this.zincWorker().javaHome().map(_.path)),

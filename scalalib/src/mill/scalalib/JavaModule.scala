@@ -464,7 +464,7 @@ trait JavaModule
     // This is exclusive to avoid scrambled output
     Task.Command(exclusive = true) {
       val asString = formatModuleDeps(recursive, true)()
-      T.log.outputStream.println(asString)
+      Task.log.outputStream.println(asString)
     }
   }
 
@@ -639,10 +639,10 @@ trait JavaModule
    */
   def transitiveCoursierProjects: Task[Seq[cs.Project]] = Task {
     Seq(coursierProject()) ++
-      T.traverse(compileModuleDepsChecked)(_.transitiveCoursierProjects)().flatten ++
-      T.traverse(moduleDepsChecked)(_.transitiveCoursierProjects)().flatten ++
-      T.traverse(runModuleDepsChecked)(_.transitiveCoursierProjects)().flatten ++
-      T.traverse(bomModuleDepsChecked)(_.transitiveCoursierProjects)().flatten
+      Task.traverse(compileModuleDepsChecked)(_.transitiveCoursierProjects)().flatten ++
+      Task.traverse(moduleDepsChecked)(_.transitiveCoursierProjects)().flatten ++
+      Task.traverse(runModuleDepsChecked)(_.transitiveCoursierProjects)().flatten ++
+      Task.traverse(bomModuleDepsChecked)(_.transitiveCoursierProjects)().flatten
   }
 
   /**
@@ -676,7 +676,7 @@ trait JavaModule
   @deprecated("Unused by Mill, use coursierDependency or allIvyDeps instead", "Mill after 0.12.5")
   def transitiveIvyDeps: T[Agg[BoundDep]] = Task {
     allIvyDeps().map(bindDependency()) ++
-      T.traverse(moduleDepsChecked)(_.transitiveIvyDeps)().flatten
+      Task.traverse(moduleDepsChecked)(_.transitiveIvyDeps)().flatten
   }
 
   /**
@@ -694,7 +694,7 @@ trait JavaModule
   )
   def transitiveCompileIvyDeps: T[Agg[BoundDep]] = Task {
     compileIvyDeps().map(bindDependency()) ++
-      T.traverse(moduleDepsChecked)(_.transitiveCompileIvyDeps)().flatten
+      Task.traverse(moduleDepsChecked)(_.transitiveCompileIvyDeps)().flatten
   }
 
   /**
@@ -713,7 +713,7 @@ trait JavaModule
   )
   def transitiveRunIvyDeps: T[Agg[BoundDep]] = Task {
     runIvyDeps().map(bindDependency()) ++
-      T.traverse(moduleDepsChecked)(_.transitiveRunIvyDeps)().flatten
+      Task.traverse(moduleDepsChecked)(_.transitiveRunIvyDeps)().flatten
   }
 
   /**
@@ -752,21 +752,21 @@ trait JavaModule
    * The upstream compilation output of all this module's upstream modules
    */
   def upstreamCompileOutput: T[Seq[CompilationResult]] = Task {
-    T.traverse(transitiveModuleCompileModuleDeps)(_.compile)
+    Task.traverse(transitiveModuleCompileModuleDeps)(_.compile)
   }
 
   /**
    * The transitive version of `localClasspath`
    */
   def transitiveLocalClasspath: T[Agg[PathRef]] = Task {
-    T.traverse(transitiveModuleRunModuleDeps)(_.localClasspath)().flatten
+    Task.traverse(transitiveModuleRunModuleDeps)(_.localClasspath)().flatten
   }
 
   /**
    * Almost the same as [[transitiveLocalClasspath]], but using the [[jar]]s instead of [[localClasspath]].
    */
   def transitiveJars: T[Seq[PathRef]] = Task {
-    T.traverse(transitiveModuleCompileModuleDeps)(_.jar)()
+    Task.traverse(transitiveModuleCompileModuleDeps)(_.jar)()
   }
 
   /**
@@ -777,14 +777,14 @@ trait JavaModule
    */
   @internal
   def bspTransitiveLocalClasspath: T[Agg[UnresolvedPath]] = Task {
-    T.traverse(transitiveModuleCompileModuleDeps)(_.bspLocalClasspath)().flatten
+    Task.traverse(transitiveModuleCompileModuleDeps)(_.bspLocalClasspath)().flatten
   }
 
   /**
    * The transitive version of `compileClasspath`
    */
   def transitiveCompileClasspath: T[Agg[PathRef]] = Task {
-    T.traverse(transitiveModuleCompileModuleDeps)(m =>
+    Task.traverse(transitiveModuleCompileModuleDeps)(m =>
       Task.Anon { m.localCompileClasspath() ++ Agg(m.compile().classes) }
     )().flatten
   }
@@ -797,7 +797,7 @@ trait JavaModule
    */
   @internal
   def bspTransitiveCompileClasspath: T[Agg[UnresolvedPath]] = Task {
-    T.traverse(transitiveModuleCompileModuleDeps)(m =>
+    Task.traverse(transitiveModuleCompileModuleDeps)(m =>
       Task.Anon {
         m.localCompileClasspath().map(p => UnresolvedPath.ResolvedPath(p.path)) ++
           Agg(m.bspCompileClassesPath())
@@ -891,7 +891,7 @@ trait JavaModule
         sources = allSourceFiles().map(_.path),
         compileClasspath = compileClasspath().map(_.path),
         javacOptions = javacOptions() ++ mandatoryJavacOptions(),
-        reporter = T.reporter.apply(hashCode),
+        reporter = Task.reporter.apply(hashCode),
         reportCachedProblems = zincReportCachedProblems(),
         incrementalCompilation = zincIncrementalCompilation()
       )
@@ -908,14 +908,14 @@ trait JavaModule
   def bspCompileClassesPath: T[UnresolvedPath] =
     if (compile.ctx.enclosing == s"${classOf[JavaModule].getName}#compile") {
       Task {
-        T.log.debug(
+        Task.log.debug(
           s"compile target was not overridden, assuming hard-coded classes directory for target ${compile}"
         )
         UnresolvedPath.DestPath(os.sub / "classes", compile.ctx.segments, compile.ctx.foreign)
       }
     } else {
       Task {
-        T.log.debug(
+        Task.log.debug(
           s"compile target was overridden, need to actually execute compilation to get the compiled classes directory for target ${compile}"
         )
         UnresolvedPath.ResolvedPath(compile().classes.path)
@@ -1064,7 +1064,7 @@ trait JavaModule
    */
   @deprecated("Use upstreamAssembly2 instead, which has a richer return value", "Mill 0.11.8")
   def upstreamAssembly: T[PathRef] = Task {
-    T.log.error(
+    Task.log.error(
       s"upstreamAssembly target is deprecated and should no longer used." +
         s" Please make sure to use upstreamAssembly2 instead."
     )
@@ -1121,7 +1121,7 @@ trait JavaModule
    * publishing to Maven Central
    */
   def docJar: T[PathRef] = T[PathRef] {
-    val outDir = T.dest
+    val outDir = Task.dest
 
     val javadocDir = outDir / "javadoc"
     os.makeDir.all(javadocDir)
@@ -1154,7 +1154,7 @@ trait JavaModule
             deleteOnExit = false,
             dir = outDir
           )
-          T.log.debug(
+          Task.log.debug(
             s"Creating javadoc options file @${argsFile} ..."
           )
           Seq(s"@${argsFile}")
@@ -1162,12 +1162,12 @@ trait JavaModule
           options
         }
 
-      T.log.info("options: " + cmdArgs)
+      Task.log.info("options: " + cmdArgs)
 
       Jvm.runSubprocess(
         commandArgs = Seq(Jvm.jdkTool("javadoc")) ++ cmdArgs,
         envArgs = Map(),
-        workingDir = T.dest
+        workingDir = Task.dest
       )
     }
 
@@ -1492,7 +1492,7 @@ trait JavaModule
       resolvedIvyDeps()
       zincWorker().prepareOffline(all)()
       resolvedRunIvyDeps()
-      T.sequence(tasks)()
+      Task.sequence(tasks)()
       ()
     }
   }
@@ -1583,7 +1583,7 @@ trait BomModule extends JavaModule {
     val sources = allSourceFiles()
     if (sources.nonEmpty)
       throw new Exception("A BomModule cannot have sources")
-    CompilationResult(T.dest / "zinc", PathRef(T.dest / "classes"))
+    CompilationResult(Task.dest / "zinc", PathRef(Task.dest / "classes"))
   }
 
   def resources: T[Seq[PathRef]] = Task {

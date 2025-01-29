@@ -154,7 +154,7 @@ object `package` extends RootModule {
 
         override def compile: T[CompilationResult] =
           if (modulesWithTestingEnabled(multiplatformRoot)) super.compile
-          else Task { CompilationResult(T.dest, PathRef(T.dest)) }
+          else Task { CompilationResult(Task.dest, PathRef(Task.dest)) }
 
         override def test(args: String*): Command[(String, Seq[TestResult])] =
           if (modulesWithTestingEnabled(multiplatformRoot)) super.test(args: _*)
@@ -201,7 +201,7 @@ object `package` extends RootModule {
     trait ArrowJvmTests extends KotlinMavenTests with KoverTests with TestModule.Junit5 {
       override def compile: T[CompilationResult] =
         if (modulesWithTestingEnabled(jvmRoot)) super.compile
-        else Task { CompilationResult(T.dest, PathRef(T.dest)) }
+        else Task { CompilationResult(Task.dest, PathRef(Task.dest)) }
 
       override def test(args: String*): Command[(String, Seq[TestResult])] =
         if (modulesWithTestingEnabled(jvmRoot)) super.test(args: _*)

@@ -62,7 +62,7 @@ or xref:extending/writing-plugins.adoc[write plugins yourself] and
 publish them to Maven Central for others to use.
 
 
-For a quick introduction of why you may care about Mill, see the following page:
+For a quick introduction of why you may care about Mill, see:
 
 * xref:comparisons/why-mill.adoc[]
 * xref:comparisons/unique.adoc[]

@@ -18,8 +18,8 @@ object ZincWorkerGraalvm extends ZincWorkerModule {
 //// SNIPPET:END
 //
 // This example uses `NativeImageModule` to generate a native executable using https://www.graalvm.org/[Graal VM].
-// NOTE: For build portability, it is recommended to use a custom JDK via a custom `ZincWorkerModule` overriding
-// `def jvmId`.
+// We recommend you xref:fundamentals/configuring-jvm-versions.adoc[configure a specific JDK version]
+// via a custom `ZincWorkerModule` overriding `def jvmId` (shown above), as not every JVM can build Graal native images.
 
 /** Usage
 
