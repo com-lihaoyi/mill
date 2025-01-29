@@ -4,6 +4,11 @@ import mill.api.internal
 
 private[android] object ComposeRenderer {
 
+
+  /*
+  * Model as in
+  * [[https://android.googlesource.com/platform/tools/base/+/61923408e5f7dc20f0840844597f9dde17453a0f/preview/screenshot/screenshot-test-gradle-plugin/src/main/java/com/android/compose/screenshot/PreviewFinder.kt#58]]
+  */
   @internal case class Args(
       fontsPath: String,
       layoutlibPath: String,
@@ -47,6 +52,11 @@ private[android] object ComposeRenderer {
         device: String,
         uiMode: String
     )
+
+    /*
+    * Model as in
+    * [[https://android.googlesource.com/platform/tools/base/+/61923408e5f7dc20f0840844597f9dde17453a0f/preview/screenshot/screenshot-test-gradle-plugin/src/main/java/com/android/compose/screenshot/PreviewFinder.kt#92]]
+     */
     case class ComposeScreenshot(
         methodFQN: String,
         methodParams: Seq[Map[String, String]],

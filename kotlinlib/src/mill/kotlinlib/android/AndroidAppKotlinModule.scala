@@ -146,7 +146,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
     }
 
     final def layoutLibRuntimePath: T[PathRef] = Task {
-      val extractDestination = T.dest / "layoutLib"
+      val extractDestination = Task.dest / "layoutLib"
       val layoutLibJar = layoutLibRuntime().head
       os.unzip(layoutLibJar.path, extractDestination)
       val frameworkResPath = extractDestination / "data/framework_res.jar"
@@ -184,7 +184,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
     /** The location to store the generated preview summary */
     def androidScreenshotGeneratedResults: T[PathRef] =
       Task {
-        PathRef(T.dest / "results.json")
+        PathRef(Task.dest / "results.json")
       }
 
     /**
@@ -192,11 +192,11 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
      * i.e. by renaming the screenshotResults key to screenshots
      */
     def androidScreenshotResults: T[PathRef] = Task {
-      PathRef(T.dest / "results.json")
+      PathRef(Task.dest / "results.json")
     }
 
     private def screenshotResults: Task[PathRef] = Task {
-      val dir = T.dest / "generated-screenshots"
+      val dir = Task.dest / "generated-screenshots"
       os.makeDir(dir)
       PathRef(dir)
     }
@@ -209,8 +209,8 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
      */
     def composePreviewArgs: T[PathRef] = Task {
       val output = screenshotResults().path
-      val metadataFolder = T.dest / "meta-data"
-      val cliArgsFile = T.dest / "cli_arguments.json"
+      val metadataFolder = Task.dest / "meta-data"
+      val cliArgsFile = Task.dest / "cli_arguments.json"
       val resultsFilePath = androidScreenshotGeneratedResults().path
 
       val cliArgs = ComposeRenderer.Args(
@@ -253,7 +253,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
         mainArgs = Seq(composePreviewArgs().path.toString())
       ).out.lines()
 
-      T.log.info(previewGenOut.mkString("\n"))
+      Task.log.info(previewGenOut.mkString("\n"))
 
       Agg.from(os.walk(screenshotResults().path).filter(_.ext == "png").map(PathRef(_)))
     }
@@ -279,7 +279,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
     /* TODO enhance with hash (sha-1) and auto-detection/generation of methodFQN */
     def androidDiscoveredPreviews: T[(PathRef, Seq[ComposeRenderer.Screenshot])] = Task {
 
-      val androidDiscoveredPreviewsPath = T.dest / "previews_discovered.json"
+      val androidDiscoveredPreviewsPath = Task.dest / "previews_discovered.json"
 
       val screenshotConfigurations = for {
         (methodFQN, methodParams) <- androidScreenshotTestMethods
@@ -299,7 +299,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
     }
 
     private def diffImageDirPath: Task[PathRef] = Task {
-      val diffImageDir = T.dest / "diff-images"
+      val diffImageDir = Task.dest / "diff-images"
       PathRef(diffImageDir)
     }
 
@@ -316,7 +316,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
     }
 
     def androidScreenshotTestResultDir: T[PathRef] = Task {
-      PathRef(T.dest)
+      PathRef(Task.dest)
     }
 
     /** Threshold of how strict the image diff should be */
