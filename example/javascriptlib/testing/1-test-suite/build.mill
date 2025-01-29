@@ -18,9 +18,28 @@ object qux extends TypeScriptModule {
   object test extends TypeScriptTests with TestModule.Jasmine
 }
 
-// Documentation for mill.example.javascriptlib
 // This build defines 4 modules bar, baz, foo & qux with test suites configured to use
-// Jest, Vitest, Mocaha & Jasmine respectively
+// Jest, Vitest, Mocha & Jasmine respectively.
+
+// Mill will auto-magically generate test configurations for each respective test suite.
+// Custom test configurations can be used by simply including a matching test suite config file in your project root,
+// same directory as your `build.mill` file.
+//
+// You can view the generated config file by looking in the `compile` destination for your modules test.
+// For example, the module `bar` will have its `jest.config.ts` file live in `out/bar/test/compile.dest/`.
+//
+// It is important to note, that for most use cases you will never need
+// to define a custom test configurtion file.
+
+// For custom configurations:
+
+// Jest suite expects a `jest.config.ts` file.
+
+// Jasmine suite expects a `jasmine.json` file.
+
+// Mocha suite expects a `test-runner.js` file.
+
+// Vitest suite expects a `vitest.config.ts` file.
 
 /** Usage
 

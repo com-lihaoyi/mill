@@ -44,6 +44,7 @@
 *** xref:javascriptlib/module-config.adoc[]
 *** xref:javascriptlib/testing.adoc[]
 *** xref:javascriptlib/publishing.adoc[]
+*** xref:javascriptlib/linting.adoc[]
 * xref:comparisons/why-mill.adoc[]
 ** xref:comparisons/maven.adoc[]
 ** xref:comparisons/gradle.adoc[]
