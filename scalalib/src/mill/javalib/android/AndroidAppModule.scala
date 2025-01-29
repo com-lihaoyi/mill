@@ -223,11 +223,14 @@ trait AndroidAppModule extends JavaModule {
     val aarFiles = (super.compileClasspath() ++ super.resolvedRunIvyDeps())
       .map(_.path)
       .filter(_.ext == "aar")
-    var result: Seq[UnpackedDep] = Seq()
 
     // TODO do it in some shared location, otherwise each module is doing the same, having its own copy for nothing
-    for (aarFile <- aarFiles) {
-      val extractDir = Task.dest / aarFile.baseName
+    extractAarFiles(aarFiles.toSeq, Task.dest)
+  }
+
+  final def extractAarFiles(aarFiles: Seq[os.Path], taskDest: os.Path): Seq[UnpackedDep] = {
+    aarFiles.map(aarFile => {
+      val extractDir = taskDest / aarFile.baseName
       os.unzip(aarFile, extractDir)
       val name = aarFile.baseName
 
@@ -245,7 +248,7 @@ trait AndroidAppModule extends JavaModule {
       val baselineProfile = pathOption(extractDir / "baseline-prof.txt")
       val stableIdsRFile = pathOption(extractDir / "R.txt")
       val publicResFile = pathOption(extractDir / "public.txt")
-      result +:= UnpackedDep(
+      UnpackedDep(
         name,
         classesJar,
         proguardRules,
@@ -258,8 +261,7 @@ trait AndroidAppModule extends JavaModule {
         stableIdsRFile,
         publicResFile
       )
-    }
-    result
+    })
   }
 
   /**
@@ -540,7 +542,7 @@ trait AndroidAppModule extends JavaModule {
    * See [[https://developer.android.com/build/manage-manifests]] for more details.
    */
   def androidMergedManifest: T[PathRef] = Task {
-    val libManifests = androidUnpackArchives().map(_.manifest.get)
+    val libManifests = androidUnpackArchives().flatMap(_.manifest)
     val mergedManifestPath = Task.dest / "AndroidManifest.xml"
     // TODO put it to the dedicated worker if cost of classloading is too high
     Jvm.runSubprocess(
