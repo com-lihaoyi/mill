@@ -265,6 +265,10 @@
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="publishing.html">Typescript Packaging &amp; Publishing</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="linting.html">Linting Typescript Projects</a>
+  </li>
 </ul>
   </li>
 </ul>
@@ -645,9 +649,36 @@ object qux extends TypeScriptModule {
 </div>
 </div>
 <div class="paragraph">
-<p>Documentation for mill.example.javascriptlib
-This build defines 4 modules bar, baz, foo &amp; qux with test suites configured to use
-Jest, Vitest, Mocaha &amp; Jasmine respectively</p>
+<p>This build defines 4 modules bar, baz, foo &amp; qux with test suites configured to use
+Jest, Vitest, Mocha &amp; Jasmine respectively.</p>
+</div>
+<div class="paragraph">
+<p>Mill will auto-magically generate test configurations for each respective test suite.
+Custom test configurations can be used by simply including a matching test suite config file in your project root,
+same directory as your <code>build.mill</code> file.</p>
+</div>
+<div class="paragraph">
+<p>You can view the generated config file by looking in the <code>compile</code> destination for your modules test.
+For example, the module <code>bar</code> will have its <code>jest.config.ts</code> file live in <code>out/bar/test/compile.dest/</code>.</p>
+</div>
+<div class="paragraph">
+<p>It is important to note, that for most use cases you will never need
+to define a custom test configurtion file.</p>
+</div>
+<div class="paragraph">
+<p>For custom configurations:</p>
+</div>
+<div class="paragraph">
+<p>Jest suite expects a <code>jest.config.ts</code> file.</p>
+</div>
+<div class="paragraph">
+<p>Jasmine suite expects a <code>jasmine.json</code> file.</p>
+</div>
+<div class="paragraph">
+<p>Mocha suite expects a <code>test-runner.js</code> file.</p>
+</div>
+<div class="paragraph">
+<p>Vitest suite expects a <code>vitest.config.ts</code> file.</p>
 </div>
 <div class="listingblock">
 <div class="content">
