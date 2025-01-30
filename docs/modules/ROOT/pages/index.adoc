@@ -53,8 +53,8 @@ xref:javalib/linting.adoc#_linting_with_checkstyle[linting],
 xref:javalib/publishing.adoc#_publishing_to_sonatype_maven_central[publishing to Maven Central],
 xref:javalib/publishing.adoc#_building_native_image_binaries_with_graal_vm[building native binaries]
 or xref:javalib/publishing.adoc#_java_installers_using_jpackage[installers],
-etc. This lets you hit the ground running, spend more time on your
-actual project, and less time fiddling with your build tool.
+etc. This lets you spend more time on your actual project and less time 
+fiddling with your build tool and third-party plugins.
 
 * *Maintainability*: Mill's config and xref:javalib/intro.adoc#_custom_build_logic[custom logic]
 is written in xref:depth/why-scala.adoc[concise type-checked Scala code],
