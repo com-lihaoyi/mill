@@ -4,16 +4,19 @@ include::partial$gtag-config.adoc[]
 
 
 Mill is a fast, scalable, multi-language build tool that supports Java, Scala,
-and Kotlin:
+Kotlin, and Python:
 
 * Mill can build the same Java codebase xref:comparisons/maven.adoc[4-10x faster than Maven],
 or xref:comparisons/gradle.adoc[2-4x faster than Gradle]
 
+* Mill's rich builtin featureset lets you
+build and xref:javalib/publishing.adoc[publish] your project easily without third-party plugins.
+
 * Mill's typed config language and immutable xref:depth/design-principles.adoc[task graph]
 helps keep builds clean and understandable
 
-* Mill is an easier alternative to https://bazel.build/[Bazel]
-for xref:large/large.adoc[large multi-language monorepos] with hundreds of modules
+* Mill scales well from small projects to
+xref:large/large.adoc[large multi-language monorepos] with hundreds of modules
 
 To get started using Mill, see:
 
@@ -44,6 +47,14 @@ and xref:cli/flags.adoc#_jobs_j[parallelizes] build tasks to keep local developm
 and avoids the long configuration times seen in other tools like Gradle or SBT.
 xref:large/selective-execution.adoc[Selective execution] keeps
 CI validation times short by only running the tests necessary to validate a code change.
+
+* *Builtin Features*: Mill has builtin support for most common workflows: xref:javalib/linting.adoc#_autoformatting_with_palantir_java_format[autoformatting],
+xref:javalib/linting.adoc#_linting_with_checkstyle[linting],
+xref:javalib/publishing.adoc#_publishing_to_sonatype_maven_central[publishing to Maven Central],
+xref:javalib/publishing.adoc#_building_native_image_binaries_with_graal_vm[building native binaries]
+or xref:javalib/publishing.adoc#_java_installers_using_jpackage[installers],
+etc. This lets you hit the ground running, spend more time on your
+actual project, and less time fiddling with your build tool.
 
 * *Maintainability*: Mill's config and xref:javalib/intro.adoc#_custom_build_logic[custom logic]
 is written in xref:depth/why-scala.adoc[concise type-checked Scala code],
