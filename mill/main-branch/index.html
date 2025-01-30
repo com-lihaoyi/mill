@@ -615,7 +615,7 @@ const links = document.querySelectorAll('a');
 </script>
 <div class="paragraph">
 <p>Mill is a fast, scalable, multi-language build tool that supports Java, Scala,
-and Kotlin:</p>
+Kotlin, and Python:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -624,12 +624,16 @@ and Kotlin:</p>
 or <a href="comparisons/gradle.html" class="xref page">2-4x faster than Gradle</a></p>
 </li>
 <li>
+<p>Mill’s rich builtin featureset lets you
+build and <a href="javalib/publishing.html" class="xref page">publish</a> your project easily without third-party plugins.</p>
+</li>
+<li>
 <p>Mill’s typed config language and immutable <a href="depth/design-principles.html" class="xref page">task graph</a>
 helps keep builds clean and understandable</p>
 </li>
 <li>
-<p>Mill is an easier alternative to <a href="https://bazel.build/">Bazel</a>
-for <a href="large/large.html" class="xref page">large multi-language monorepos</a> with hundreds of modules</p>
+<p>Mill scales well from small projects to
+<a href="large/large.html" class="xref page">large multi-language monorepos</a> with hundreds of modules</p>
 </li>
 </ul>
 </div>
@@ -692,6 +696,15 @@ and <a href="cli/flags.html#_jobs_j" class="xref page">parallelizes</a> build ta
 and avoids the long configuration times seen in other tools like Gradle or SBT.
 <a href="large/selective-execution.html" class="xref page">Selective execution</a> keeps
 CI validation times short by only running the tests necessary to validate a code change.</p>
+</li>
+<li>
+<p><strong>Builtin Features</strong>: Mill has builtin support for most common workflows: <a href="javalib/linting.html#_autoformatting_with_palantir_java_format" class="xref page">autoformatting</a>,
+<a href="javalib/linting.html#_linting_with_checkstyle" class="xref page">linting</a>,
+<a href="javalib/publishing.html#_publishing_to_sonatype_maven_central" class="xref page">publishing to Maven Central</a>,
+<a href="javalib/publishing.html#_building_native_image_binaries_with_graal_vm" class="xref page">building native binaries</a>
+or <a href="javalib/publishing.html#_java_installers_using_jpackage" class="xref page">installers</a>,
+etc. This lets you hit the ground running, spend more time on your
+actual project, and less time fiddling with your build tool.</p>
 </li>
 <li>
 <p><strong>Maintainability</strong>: Mill’s config and <a href="javalib/intro.html#_custom_build_logic" class="xref page">custom logic</a>
