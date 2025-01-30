@@ -291,6 +291,120 @@ object BomTests extends TestSuite {
       }
     }
 
+    object bomScope extends Module {
+      object provided extends JavaModule with TestPublishModule {
+        // This BOM has a versions for protobuf-java-util marked as provided,
+        // and one for scala-parallel-collections_2.13 in the default scope.
+        // Both should be taken into account here.
+        def bomIvyDeps = Agg(
+          ivy"org.apache.spark:spark-parent_2.13:3.5.3"
+        )
+        def compileIvyDeps = Agg(
+          ivy"com.google.protobuf:protobuf-java-util",
+          ivy"org.scala-lang.modules:scala-parallel-collections_2.13"
+        )
+
+        object leak extends JavaModule with TestPublishModule {
+          // Same as above, except the dependencies are in the
+          // default scope for us here, so the protobuf-java-util version
+          // shouldn't be read, as it's in provided scope in the BOM.
+          def bomIvyDeps = Agg(
+            ivy"org.apache.spark:spark-parent_2.13:3.5.3"
+          )
+          def ivyDeps = Agg(
+            ivy"com.google.protobuf:protobuf-java-util",
+            ivy"org.scala-lang.modules:scala-parallel-collections_2.13"
+          )
+        }
+      }
+
+      object runtimeScope extends JavaModule with TestPublishModule {
+        // BOM has a version for org.mvnpm.at.hpcc-js:wasm marked as runtime.
+        // This version should be taken into account in runtime deps here.
+        def bomIvyDeps = Agg(
+          ivy"io.quarkus:quarkus-bom:3.15.1"
+        )
+        def runIvyDeps = Agg(
+          ivy"org.mvnpm.at.hpcc-js:wasm"
+        )
+      }
+
+      object runtimeScopeLeak extends JavaModule with TestPublishModule {
+        // BOM has a version for org.mvnpm.at.hpcc-js:wasm marked as runtime.
+        // This version shouldn't be taken into account in main deps here.
+        def bomIvyDeps = Agg(
+          ivy"io.quarkus:quarkus-bom:3.15.1"
+        )
+        def ivyDeps = Agg(
+          ivy"org.mvnpm.at.hpcc-js:wasm"
+        )
+      }
+
+      object testScope extends JavaModule with TestPublishModule {
+        // BOM has a version for scalatest_2.13 marked as test scope.
+        // This version should be taken into account in test modules here.
+        def bomIvyDeps = Agg(
+          ivy"org.apache.spark:spark-parent_2.13:3.5.3"
+        )
+        object test extends JavaTests {
+          def testFramework = "com.novocode.junit.JUnitFramework"
+          def ivyDeps = Agg(
+            ivy"com.novocode:junit-interface:0.11",
+            ivy"org.scalatest:scalatest_2.13"
+          )
+        }
+      }
+
+      object testScopeLeak extends JavaModule with TestPublishModule {
+        // BOM has a version for scalatest_2.13 marked as test scope.
+        // This version shouldn't be taken into account in main module here.
+        def bomIvyDeps = Agg(
+          ivy"org.apache.spark:spark-parent_2.13:3.5.3"
+        )
+        def ivyDeps = Agg(
+          ivy"org.scalatest:scalatest_2.13"
+        )
+      }
+    }
+
+    object depMgmtScope extends Module {
+      object provided extends JavaModule with TestPublishModule {
+        // Version in depManagement should be used in compileIvyDeps
+        def depManagement = Agg(
+          ivy"org.scala-lang.modules:scala-parallel-collections_2.13:1.0.4"
+        )
+        def compileIvyDeps = Agg(
+          ivy"org.scala-lang.modules:scala-parallel-collections_2.13"
+        )
+      }
+
+      object runtimeScope extends JavaModule with TestPublishModule {
+        // Dep mgmt has a version for org.mvnpm.at.hpcc-js:wasm
+        // This version should be taken into account in runtime deps here.
+        def depManagement = Agg(
+          ivy"org.mvnpm.at.hpcc-js:wasm:2.15.3"
+        )
+        def runIvyDeps = Agg(
+          ivy"org.mvnpm.at.hpcc-js:wasm"
+        )
+      }
+
+      object testScope extends JavaModule with TestPublishModule {
+        // Dep mgmt in main module has a version for scalatest_2.13.
+        // This version should be taken into account in test modules here.
+        def depManagement = Agg(
+          ivy"org.scalatest:scalatest_2.13:3.2.16"
+        )
+        object test extends JavaTests {
+          def testFramework = "com.novocode.junit.JUnitFramework"
+          def ivyDeps = Agg(
+            ivy"com.novocode:junit-interface:0.11",
+            ivy"org.scalatest:scalatest_2.13"
+          )
+        }
+      }
+    }
+
     object bomOnModuleDependency extends JavaModule with TestPublishModule {
       def ivyDeps = Agg(
         ivy"com.google.protobuf:protobuf-java:3.23.4"
@@ -301,6 +415,116 @@ object BomTests extends TestSuite {
           ivy"com.google.cloud:libraries-bom:26.50.0"
         )
         def moduleDeps = Seq(bomOnModuleDependency)
+      }
+    }
+
+    object bomModule extends Module {
+      object depMgmtBomMod extends BomModule with TestPublishModule {
+        def depManagement = Agg(
+          ivy"com.lihaoyi:os-lib_2.13:0.11.3"
+        )
+
+        object bomUser extends JavaModule with TestPublishModule {
+          def bomModuleDeps = Seq(depMgmtBomMod)
+          def ivyDeps = Agg(
+            ivy"com.lihaoyi:os-lib_2.13"
+          )
+        }
+      }
+
+      object scalaDepMgmtBomMod extends ScalaModule with BomModule with TestPublishModule {
+        def scalaVersion = "2.13.15"
+        def depManagement = Agg(
+          ivy"com.lihaoyi::os-lib:0.11.3"
+        )
+
+        object bomUser extends ScalaModule with TestPublishModule {
+          def scalaVersion = "2.13.15"
+          def bomModuleDeps = Seq(scalaDepMgmtBomMod)
+          def ivyDeps = Agg(
+            ivy"com.lihaoyi::os-lib"
+          )
+        }
+      }
+
+      object bomWithBom extends BomModule with TestPublishModule {
+        def bomIvyDeps = Agg(
+          ivy"com.google.protobuf:protobuf-bom:4.28.1"
+        )
+        def depManagement = Agg(
+          ivy"com.lihaoyi:os-lib_2.13:0.11.3"
+        )
+
+        object bomUser extends JavaModule with TestPublishModule {
+          def bomModuleDeps = Seq(bomWithBom)
+          def ivyDeps = Agg(
+            ivy"com.lihaoyi:os-lib_2.13",
+            ivy"com.google.protobuf:protobuf-java"
+          )
+        }
+      }
+
+      object bomWithBomOverride extends BomModule with TestPublishModule {
+        def bomIvyDeps = Agg(
+          ivy"com.google.protobuf:protobuf-bom:4.28.1"
+        )
+        def depManagement = Agg(
+          ivy"com.lihaoyi:os-lib_2.13:0.11.3",
+          ivy"com.google.protobuf:protobuf-java:4.28.0"
+        )
+
+        object bomUser extends JavaModule with TestPublishModule {
+          def bomModuleDeps = Seq(bomWithBomOverride)
+          def ivyDeps = Agg(
+            ivy"com.lihaoyi:os-lib_2.13",
+            ivy"com.google.protobuf:protobuf-java"
+          )
+        }
+      }
+
+      object chainedBoms extends BomModule with TestPublishModule {
+        def bomIvyDeps = Agg(
+          ivy"com.google.protobuf:protobuf-bom:4.28.1"
+        )
+        def depManagement = Agg(
+          ivy"com.fasterxml.jackson.core:jackson-core:2.18.1"
+        )
+
+        object simpleOverrides extends BomModule with TestPublishModule {
+          def bomModuleDeps = Seq(chainedBoms)
+          def bomIvyDeps = Agg(
+            ivy"com.google.protobuf:protobuf-bom:4.28.2"
+          )
+          def depManagement = Agg(
+            ivy"com.fasterxml.jackson.core:jackson-core:2.18.2"
+          )
+
+          object bomUser extends JavaModule with TestPublishModule {
+            def bomModuleDeps = Seq(simpleOverrides)
+            def ivyDeps = Agg(
+              ivy"com.fasterxml.jackson.core:jackson-core",
+              ivy"com.google.protobuf:protobuf-java"
+            )
+          }
+        }
+
+        object crossedOverrides extends BomModule with TestPublishModule {
+          def bomModuleDeps = Seq(chainedBoms)
+          def bomIvyDeps = Agg(
+            ivy"com.fasterxml.jackson:jackson-bom:2.18.2"
+          )
+          def depManagement = Agg(
+            ivy"com.google.protobuf:protobuf-java:4.28.2"
+          )
+
+          object bomUser extends JavaModule with TestPublishModule {
+            def bomModuleDeps = Seq(crossedOverrides)
+            def ivyDeps = Agg(
+              ivy"com.fasterxml.jackson.core:jackson-core",
+              ivy"com.google.protobuf:protobuf-java"
+            )
+          }
+        }
       }
     }
   }
@@ -320,7 +544,7 @@ object BomTests extends TestSuite {
   def compileClasspathContains(
       module: JavaModule,
       fileName: String,
-      jarCheck: Option[String => Boolean]
+      jarCheck: Option[String => Boolean] = None
   )(implicit
       eval: UnitTester
   ) = {
@@ -330,10 +554,30 @@ object BomTests extends TestSuite {
       assert(check(fileName))
   }
 
+  def runtimeClasspathFileNames(module: JavaModule)(implicit
+      eval: UnitTester
+  ): Seq[String] =
+    eval(module.runClasspath).toTry.get.value
+      .toSeq.map(_.path.last)
+
+  def runtimeClasspathContains(
+      module: JavaModule,
+      fileName: String,
+      jarCheck: Option[String => Boolean] = None
+  )(implicit
+      eval: UnitTester
+  ) = {
+    val fileNames = runtimeClasspathFileNames(module)
+    assert(fileNames.contains(fileName))
+    for (check <- jarCheck; fileName <- fileNames)
+      assert(check(fileName))
+  }
+
   def publishLocalAndResolve(
       module: PublishModule,
       dependencyModules: Seq[PublishModule],
-      scalaSuffix: String
+      scalaSuffix: String,
+      fetchRuntime: Boolean
   )(implicit eval: UnitTester): Seq[os.Path] = {
     val localIvyRepo = eval.evaluator.workspace / "ivy2Local"
     eval(module.publishLocal(localIvyRepo.toString)).toTry.get
@@ -353,6 +597,13 @@ object BomTests extends TestSuite {
       .addRepositories(
         coursierapi.IvyRepository.of(localIvyRepo.toNIO.toUri.toASCIIString + "[defaultPattern]")
       )
+      .withResolutionParams {
+        val defaultParams = coursierapi.ResolutionParams.create()
+        defaultParams.withDefaultConfiguration(
+          if (fetchRuntime) "runtime"
+          else defaultParams.getDefaultConfiguration
+        )
+      }
       .fetch()
       .asScala
       .map(os.Path(_))
@@ -394,12 +645,17 @@ object BomTests extends TestSuite {
       dependencyModules: Seq[PublishModule] = Nil,
       jarCheck: Option[String => Boolean] = None,
       ivy2LocalCheck: Boolean = true,
-      scalaSuffix: String = ""
+      scalaSuffix: String = "",
+      runtimeOnly: Boolean = false
   )(implicit eval: UnitTester): Unit = {
-    compileClasspathContains(module, jarName, jarCheck)
+    if (runtimeOnly)
+      runtimeClasspathContains(module, jarName, jarCheck)
+    else
+      compileClasspathContains(module, jarName, jarCheck)
 
     if (ivy2LocalCheck) {
-      val resolvedCp = publishLocalAndResolve(module, dependencyModules, scalaSuffix)
+      val resolvedCp =
+        publishLocalAndResolve(module, dependencyModules, scalaSuffix, fetchRuntime = runtimeOnly)
       assert(resolvedCp.map(_.last).contains(jarName))
       for (check <- jarCheck; fileName <- resolvedCp.map(_.last))
         assert(check(fileName))
@@ -478,7 +734,7 @@ object BomTests extends TestSuite {
           val res = eval(modules.bom.invalid.exclude.compileClasspath)
           assert(
             res.left.exists(_.toString.contains(
-              "Found BOM dependencies with invalid parameters:"
+              "Found Bill of Material (BOM) dependencies with invalid parameters:"
             ))
           )
         }
@@ -661,6 +917,50 @@ object BomTests extends TestSuite {
       }
     }
 
+    test("bomScope") {
+      test("provided") - UnitTester(modules, null).scoped { implicit eval =>
+        // test about provided scope, nothing to see in published stuff
+        compileClasspathContains(
+          modules.bomScope.provided,
+          "protobuf-java-3.23.4.jar"
+        )
+      }
+      test("providedFromBomRuntimeScope") - UnitTester(modules, null).scoped { implicit eval =>
+        // test about provided scope, nothing to see in published stuff
+        compileClasspathContains(
+          modules.bomScope.provided,
+          "scala-parallel-collections_2.13-1.0.4.jar"
+        )
+      }
+      test("leakProvidedInCompile") - UnitTester(modules, null).scoped { implicit eval =>
+        isInClassPath(
+          modules.bomScope.provided.leak,
+          "scala-parallel-collections_2.13-1.0.4.jar"
+        )
+      }
+
+      test("test") - UnitTester(modules, null).scoped { implicit eval =>
+        compileClasspathContains(
+          modules.bomScope.testScope.test,
+          "scalatest_2.13-3.2.16.jar"
+        )
+      }
+      test("testCheck") - UnitTester(modules, null).scoped { implicit eval =>
+        compileClasspathContains(
+          modules.bomScope.testScopeLeak,
+          "scalatest_2.13-3.2.16.jar"
+        )
+      }
+
+      test("runtime") - UnitTester(modules, null).scoped { implicit eval =>
+        isInClassPath(
+          modules.bomScope.runtimeScope,
+          "wasm-2.15.3.jar",
+          runtimeOnly = true
+        )
+      }
+    }
+
     test("bomOnModuleDependency") {
       test("check") - UnitTester(modules, null).scoped { implicit eval =>
         isInClassPath(
@@ -674,6 +974,113 @@ object BomTests extends TestSuite {
           expectedProtobufJarName,
           Seq(modules.bomOnModuleDependency)
         )
+      }
+    }
+
+    test("depMgmtScope") {
+      test("depManagementInProvided") - UnitTester(modules, null).scoped { implicit eval =>
+        // test about provided scope, nothing to see in published stuff
+        compileClasspathContains(
+          modules.depMgmtScope.provided,
+          "scala-parallel-collections_2.13-1.0.4.jar"
+        )
+      }
+
+      test("test") - UnitTester(modules, null).scoped { implicit eval =>
+        compileClasspathContains(
+          modules.depMgmtScope.testScope.test,
+          "scalatest_2.13-3.2.16.jar"
+        )
+      }
+
+      test("runtime") - UnitTester(modules, null).scoped { implicit eval =>
+        isInClassPath(
+          modules.depMgmtScope.runtimeScope,
+          "wasm-2.15.3.jar",
+          runtimeOnly = true
+        )
+      }
+    }
+
+    test("bomModule") {
+      test("depMgmt") - UnitTester(modules, null).scoped { implicit eval =>
+        isInClassPath(
+          modules.bomModule.depMgmtBomMod.bomUser,
+          "os-lib_2.13-0.11.3.jar",
+          Seq(modules.bomModule.depMgmtBomMod)
+        )
+      }
+
+      test("scalaDepMgmt") - UnitTester(modules, null).scoped { implicit eval =>
+        isInClassPath(
+          modules.bomModule.scalaDepMgmtBomMod.bomUser,
+          "os-lib_2.13-0.11.3.jar",
+          Seq(modules.bomModule.scalaDepMgmtBomMod),
+          scalaSuffix = "_2.13"
+        )
+      }
+
+      test("externalBom") - UnitTester(modules, null).scoped { implicit eval =>
+        isInClassPath(
+          modules.bomModule.bomWithBom.bomUser,
+          "os-lib_2.13-0.11.3.jar",
+          Seq(modules.bomModule.bomWithBom)
+        )
+        isInClassPath(
+          modules.bomModule.bomWithBom.bomUser,
+          "protobuf-java-4.28.1.jar",
+          Seq(modules.bomModule.bomWithBom)
+        )
+      }
+
+      test("overrideBom") - UnitTester(modules, null).scoped { implicit eval =>
+        isInClassPath(
+          modules.bomModule.bomWithBomOverride.bomUser,
+          "os-lib_2.13-0.11.3.jar",
+          Seq(modules.bomModule.bomWithBomOverride)
+        )
+        isInClassPath(
+          modules.bomModule.bomWithBomOverride.bomUser,
+          "protobuf-java-4.28.0.jar",
+          Seq(modules.bomModule.bomWithBomOverride)
+        )
+      }
+
+      test("chainedBoms") {
+        test("simple") - UnitTester(modules, null).scoped { implicit eval =>
+          // dep management of simpleOverrides has precedence over those of chainedBoms
+          isInClassPath(
+            modules.bomModule.chainedBoms.simpleOverrides.bomUser,
+            "jackson-core-2.18.2.jar",
+            Seq(modules.bomModule.chainedBoms, modules.bomModule.chainedBoms.simpleOverrides)
+          )
+          // More contrived test - simpleOverrides pulls an external BOM for protobuf-java:4.28.2,
+          // and an internal one that requires protobuf-java:4.28.1 via an external BOM. For now,
+          // the internal one takes precedence over the external one.
+          isInClassPath(
+            modules.bomModule.chainedBoms.simpleOverrides.bomUser,
+            "protobuf-java-4.28.1.jar",
+            Seq(modules.bomModule.chainedBoms, modules.bomModule.chainedBoms.simpleOverrides)
+          )
+        }
+
+        test("crossed") - UnitTester(modules, null).scoped { implicit eval =>
+          // Contrived test like above - crossedOverrides pulls an internal BOM that requires
+          // jackson-core:2.18.1 via its depManagement, and an external BOM that wants jackson-core:2.18.2.
+          // The internal BOM takes precedence over the external one.
+          isInClassPath(
+            modules.bomModule.chainedBoms.crossedOverrides.bomUser,
+            "jackson-core-2.18.1.jar",
+            Seq(modules.bomModule.chainedBoms, modules.bomModule.chainedBoms.crossedOverrides)
+          )
+          // crossedOverrides wants protobuf-java:4.28.2 via its depManagement. This takes
+          // precedence over protobuf-java:4.28.1, wanted via an internal BOM.
+          isInClassPath(
+            modules.bomModule.chainedBoms.crossedOverrides.bomUser,
+            "protobuf-java-4.28.2.jar",
+            Seq(modules.bomModule.chainedBoms, modules.bomModule.chainedBoms.crossedOverrides)
+          )
+        }
       }
     }
   }

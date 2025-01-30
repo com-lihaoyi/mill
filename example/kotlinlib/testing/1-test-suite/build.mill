@@ -20,6 +20,10 @@ object foo extends KotlinModule {
     def kotlincOptions = super.kotlincOptions() ++ Seq("-jvm-target", "11")
   }
 }
+
+/** See Also: foo/src/foo/Foo.kt */
+/** See Also: foo/test/src/foo/FooTests.kt */
+
 // This build defines a single module with a test suite, configured to use
 // "JUnit" + "Kotest" as the testing framework, along with Mockito. Test suites are themselves
 // ``KotlinModule``s, nested within the enclosing module,

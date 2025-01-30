@@ -95,7 +95,7 @@ trait TwirlModule extends mill.Module { twirlModule =>
       .compile(
         twirlClasspath(),
         twirlSources().map(_.path),
-        T.dest,
+        Task.dest,
         twirlImports(),
         twirlFormats(),
         twirlConstructorAnnotations,

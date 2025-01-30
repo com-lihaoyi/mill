@@ -26,7 +26,6 @@ ivy"{organization}:{name}:{version}[;{attribute}={value}]*"
 ----
 
 When working in other Java and Scala projects, you will find some synonyms, which typically all mean the same.
-
 For example in the Maven ecosystem, the `organization` is called the `group` and the `name` is called the `artifact`.
 The whole triplet is often called `GAV`.
 
@@ -42,7 +41,7 @@ def ivyDeps = Agg(
 ----
 
 
-== Test dependencies (there is no `test` scope)
+=== Test dependencies (there is no `test` scope)
 
 One difference between Mill and other build tools like sbt or Maven is the fact, that tests are ordinary submodules on their own.
 For convenience, most modules already come with a pre-configured trait for a test submodule,
@@ -65,7 +64,7 @@ object main extends JavaModule {
 }
 ----
 
-== Compile-only dependencies (`provided` scope)
+=== Compile-only dependencies (`provided` scope)
 
 If you want to use a dependency only at compile time, you can declare it with the `compileIvyDeps` task.
 
@@ -82,7 +81,7 @@ When Mill generated file to interact with package manager like `pom.xml` for Mav
 Please note, that dependencies with `provided` scope will never be resolved transitively. Hence, the name "provided", as the task runtime needs to "provide" them, if they are needed.
 
 
-== Runtime dependencies
+=== Runtime dependencies
 
 If you want to declare dependencies to be used at runtime (but not at compile time), you can use the `runIvyDeps` tasks.
 
@@ -96,105 +95,7 @@ def runIvyDeps = Agg(
 
 It is also possible to use a higher version of the same library dependencies already defined in `ivyDeps`, to ensure you compile against a minimal API version, but actually run with the latest available version.
 
-== Dependency management
-
-Dependency management consists in listing dependencies whose versions we want to force. Having
-a dependency in dependency management doesn't mean that this dependency will be fetched, only
-that
-
-* if it ends up being fetched transitively, its version will be forced to the one in dependency management
-
-* if its version is empty in an `ivyDeps` section in Mill, the version from dependency management will be used
-
-Dependency management also allows to add exclusions to dependencies, both explicit dependencies and
-transitive ones.
-
-Dependency management can be passed to Mill in two ways:
-
-* via external Maven BOMs, like https://repo1.maven.org/maven2/com/google/cloud/libraries-bom/26.50.0/libraries-bom-26.50.0.pom[this one],
-whose Maven coordinates are `com.google.cloud:libraries-bom:26.50.0`
-
-* via the `depManagement` task, that allows to directly list dependencies whose versions we want to enforce
-
-=== External BOMs
-
-include::partial$example/fundamentals/library-deps/bom-1-external-bom.adoc[]
-
-=== Dependency management task
-
-include::partial$example/fundamentals/library-deps/bom-2-dependency-management.adoc[]
-
-== Searching For Dependency Updates
-
-include::partial$example/fundamentals/dependencies/1-search-updates.adoc[]
-
-== Scala dependencies
-
-Scala major releases up until version `2.13` are binary incompatible.
-That means, mixing dependencies of different binary platforms will result in non-working runtimes and obscure and hard to debug issues.
-
-To easily pick only a compatible version, a convention was established to append the scala major version as a suffix to the package name.footnote:[
-Scala 2 versions have the unusual version format: `{epoch}.{major}.{minor}`.]
-E.g. to select the Scala 2.13 version of a library `foo`, the final `artifactId` will contain the additional suffix `_2.13`, such that the final `artifactId` is `foo_2.13`.
-
-To always pick the right version and support cross compiling,
-you can omit the scala version and instead use a double colon (`::`) between the `organization` and the `name`, e.g. `ivy"com.typesafe.akka:akka-actor_2.12:2.5.25"`.
-Your module needs to `extends ScalaModule` though.
-
-If you want to use dependencies that are cross-published against the full Scala version, e.g. `2.12.12`,
-you can use three colons (`:::`) between `organization` and `name`, e.g.: `ivy"org.scalamacros:::paradise:2.1.1"`.
-
-.Example
-[source,scala]
-----
-def ivyDeps = Agg(
-  // explicit scala version suffix, NOT RECOMMENDED!
-  ivy"com.typesafe.akka:akka-actor_2.12:2.5.25",
-  ivy"com.typesafe.akka::akka-actor:2.5.25",
-  ivy"org.scalamacros:::paradise:2.1.1"
-)
-----
-
-== Scala 3 interoperability
-
-Since the release of Scala 3, the binary compatibility story for Scala has changed.
-That means, Scala 3 dependencies can be mixed with Scala 2.13 dependencies.
-In fact, the Scala 3 standard library is the same as for Scala 2.13.
-
-
-[CAUTION]
---
-As Scala 3 and Scala 2.13 have different binary platforms, but their artifacts are in general compatible, this introduces new challenges.
-
-There is currently no mechanism, that impedes to bring the same dependency twice into the classpath (one for Scala 2.13 and one for Scala 3).
---
-
-
-=== Using Scala 2.13 from Scala 3
-
-If your Scala version is a Scala 3.x, but you want to use the Scala 2.13 version of a specific library, you can use the `.withDottyCompat` method on that dependency.
-
-.Example:
-[source,scala]
-----
-def scalaVersion = "3.2.1"
-def ivyDeps = Agg(
-  ivy"com.lihaoyi::upickle:2.0.0".withDottyCompat(scalaVersion()) //1
-)
-----
-<1> This will result in a Scala 2.13 dependency `com.lihaoyi::upicke_2.13:2.0.0`
-
-
-[NOTE]
---
-Do you wonder where the name "dotty" comes from?
-
-In the early development of Scala 3, the Scala 3 compiler was called "Dotty". Later, the name was changed to Scala 3, but the compiler project itself is still named "dotty".
-
-The dotty compiler itself is an implementation of the http://lampwww.epfl.ch/~amin/dot/fool.pdf[Dependent Object Types (DOT) calculus], which is the new basis of Scala 3. It also enhances the type system to a next level and allows features like union-types and intersection-types.
---
-
-== Detecting transitive dependencies
+== Transitive dependencies
 
 To render a tree of dependencies (transitive included) you can run `mill myModule.ivyDepsTree`. Here is how the start of `./mill __.ivyDepsTree` looks like in the `mill` project itself:
 
@@ -252,7 +153,7 @@ Also note that when using `--whatDependsOn` on usage of `--inverse` is forced
 in order to make the tree appear in an inverted manner to more easily show you
 where the dependency is coming from.
 
-== Excluding transitive dependencies
+=== Excluding transitive dependencies
 
 You can use the `.exclude` method on a dependency. It accepts  `organization` and `name` tuples, to be excluded.
 Use the special name `*` to match all ``organization``s or ``name``s.
@@ -295,9 +196,7 @@ val deps = Agg(
 )
 ----
 
-== Forcing versions
-
-CAUTION: Please treat forceVersion as experimental; it has some bugs and isn't production-ready (forced versions https://github.com/com-lihaoyi/mill/issues/1975[aren't propagated to published artifacts]).
+=== Forcing versions
 
 You can use the `forceVersion` method to ensure the used version of a dependency is what you have declared.
 
@@ -308,19 +207,36 @@ You can use the `forceVersion` method to ensure the used version of a dependency
 * If you want to force to the older version (to prevent it being evicted, and replaced by 0.4.0) then you can use `val deps = Agg(ivy"com.lihaoyi::fansi:0.2.14".forceVersion())`
 * `mill show myModule.resolvedIvyDeps | grep "fansi"` should show fansi 0.2.14
 
-== ScalaJS dependencies
+== Dependency management
 
-Scala.js introduces an additional binary platform axis.
-To the already required Scala version, there comes the Scala.js version.
+Dependency management consists in listing dependencies whose versions we want to force. Having
+a dependency in dependency management doesn't mean that this dependency will be fetched, only
+that
 
-You can use two colons (`::`) between `name` and `version` to define a Scala.js dependency.
-Your module needs to `extends ScalaJSModule` to accept Scala.js dependencies.
+* if it ends up being fetched transitively, its version will be forced to the one in dependency management
 
-== Scala Native dependencies
+* if its version is empty in an `ivyDeps` section in Mill, the version from dependency management will be used
 
-Scala Native introduces an additional binary platform axis.
-To the already required Scala version, there comes the Scala Native version.
+Dependency management also allows to add exclusions to dependencies, both explicit dependencies and
+transitive ones.
 
-You can use two colons (`::`) between `name` and `version` to define a Scala Native dependency.
-Your module needs to `extends ScalaNativeModule` to accept Scala Native dependencies.
+Dependency management can be passed to Mill in two ways:
 
+* via external Maven Bill of Material (BOM), like https://repo1.maven.org/maven2/com/google/cloud/libraries-bom/26.50.0/libraries-bom-26.50.0.pom[this one],
+whose Maven coordinates are `com.google.cloud:libraries-bom:26.50.0`
+
+* via the `depManagement` task, that allows to directly list dependencies whose versions we want to enforce
+
+=== External Bill of Material (BOM)
+
+include::partial$example/fundamentals/dependencies/1-external-bom.adoc[]
+
+=== Managed Bill of Material (BOM)
+
+include::partial$example/fundamentals/dependencies/2-managed.adoc[]
+
+
+
+== Searching For Dependency Updates
+
+include::partial$example/fundamentals/dependencies/3-search-updates.adoc[]

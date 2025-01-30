@@ -23,7 +23,7 @@ object `package` extends RootModule {
     millInternal.modules.collect { case m: ContribModule => m }
 
   trait ContribModule extends build.MillPublishScalaModule {
-    def readme = T.source(millSourcePath / "readme.adoc")
+    def readme = Task.Source(millSourcePath / "readme.adoc")
   }
 
   object testng extends JavaModule with ContribModule {
@@ -56,7 +56,7 @@ object `package` extends RootModule {
     def compileModuleDeps = Seq(build.scalalib)
 
     def testTransitiveDeps =
-      super.testTransitiveDeps() ++ T.traverse(build.Deps.play.keys.toSeq)(worker(_).testDep)()
+      super.testTransitiveDeps() ++ Task.traverse(build.Deps.play.keys.toSeq)(worker(_).testDep)()
 
     def testArgs = Task {
       super.testArgs() ++
@@ -78,7 +78,7 @@ object `package` extends RootModule {
       def playBinary = crossValue
       def millSourcePath: os.Path = super.millSourcePath / playBinary
 
-      def sources = T.sources {
+      def sources = Task.Sources {
         // We want to avoid duplicating code as long as the Play APIs allow.
         // But if newer Play versions introduce incompatibilities,
         // just remove the shared source dir for that worker and implement directly.

@@ -3,7 +3,7 @@
 // `ZincWorkerModule` and override the `zincWorker` method in your
 // `JavaModule` or `ScalaModule` by pointing it to that custom object:
 
-// == Downloading Jvm By Version
+// == Setting the JVM version of a JavaModule
 //
 // The `ZincWorkerModule.ForJvm` class takes a Jvm dependency string as its
 // contructor argument and configures the module to fetch and cache the Jvm
@@ -56,7 +56,9 @@ Test foo.FooTest.testSimple finished...
 // each version of Mill is released. This ensures that the JVM versions you pick are stable,
 // but means that the latest JVM versions may not be available. You can pass in the JVM
 // index version explicitly via `def jvmIndexVersion` below, choosing a published
-// index version from the Maven Central (https://repo1.maven.org/maven2/io/get-coursier/jvm/indices/index-linux-arm64/[link])
+// index version from the Maven Central:
+//
+// * https://repo1.maven.org/maven2/io/get-coursier/jvm/indices/[JVM Indices on Maven Central])
 //
 
 import scalalib._

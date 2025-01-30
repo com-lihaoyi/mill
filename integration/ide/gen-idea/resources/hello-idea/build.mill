@@ -40,7 +40,7 @@ object HelloIdeaJs extends ScalaJSModule {
   override def scalaJSVersion = "1.16.0"
   object test extends ScalaJSTests with TestModule.Utest {
     override def ivyDeps: T[Agg[Dep]] = Agg(
-      ivy"com.lihaoyi::utest::0.8.4"
+      ivy"com.lihaoyi::utest::0.8.5"
     )
   }
 }

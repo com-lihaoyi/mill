@@ -129,7 +129,7 @@ trait PublishModule extends PythonModule {
 
     // we use setup tools by default, which can only work with a single source directory, hence we
     // flatten all source directories into a single hierarchy
-    val flattenedSrc = T.dest / "src"
+    val flattenedSrc = Task.dest / "src"
     for (dir <- (sources() ++ resources()); if os.exists(dir.path)) {
       for (path <- os.list(dir.path)) {
         os.copy.into(path, flattenedSrc, mergeFolders = true, createFolders = true)
@@ -137,14 +137,14 @@ trait PublishModule extends PythonModule {
     }
 
     // copy over other, non-source files
-    os.write(T.dest / "pyproject.toml", pyproject())
+    os.write(Task.dest / "pyproject.toml", pyproject())
     for ((dest, src) <- buildFiles()) {
-      os.copy(src.path, T.dest / os.SubPath(dest), createFolders = true, replaceExisting = true)
+      os.copy(src.path, Task.dest / os.SubPath(dest), createFolders = true, replaceExisting = true)
     }
 
     // we already do the isolation with mill
-    runner().run(("-m", "build", "--no-isolation", "--sdist"), workingDir = T.dest)
-    PathRef(os.list(T.dest / "dist").head)
+    runner().run(("-m", "build", "--no-isolation", "--sdist"), workingDir = Task.dest)
+    PathRef(os.list(Task.dest / "dist").head)
   }
 
   /**
@@ -153,12 +153,12 @@ trait PublishModule extends PythonModule {
    * @see [[pyproject]]
    */
   def wheel: T[PathRef] = Task {
-    val buildDir = T.dest / "extracted"
+    val buildDir = Task.dest / "extracted"
 
     os.makeDir(buildDir)
     os.call(
       ("tar", "xf", sdist().path, "-C", buildDir),
-      cwd = T.dest
+      cwd = Task.dest
     )
     runner().run(
       (
@@ -166,12 +166,12 @@ trait PublishModule extends PythonModule {
         "-m", "build",
         "--no-isolation", // we already do the isolation with mill
         "--wheel",
-        "--outdir", T.dest / "dist"
+        "--outdir", Task.dest / "dist"
         // format: on
       ),
       workingDir = os.list(buildDir).head // sdist archive contains a directory
     )
-    PathRef(os.list(T.dest / "dist").head)
+    PathRef(os.list(Task.dest / "dist").head)
   }
 
   /** The repository (index) URL to publish packages to. */

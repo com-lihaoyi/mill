@@ -96,7 +96,7 @@ Audit done.
 //   trait MyModule extends JavaModule with CheckstyleModule {
 //
 //     override def checkstyleConfig = Task {
-//       api.PathRef(T.workspace / "checkstyle-config.xml")
+//       api.PathRef(Task.workspace / "checkstyle-config.xml")
 //     }
 //   }
 // }
@@ -150,7 +150,7 @@ Audit done.
 //       Set(
 //         CheckstyleXsltReport(
 //           PathRef(millSourcePath / "checkstyle-no-frames.xml"),
-//           PathRef(T.dest / "checkstyle-no-frames.html"),
+//           PathRef(Task.dest / "checkstyle-no-frames.html"),
 //         )
 //       )
 //   }

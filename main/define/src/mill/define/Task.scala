@@ -35,7 +35,7 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] {
   def sideHash: Int = 0
 
   /**
-   * Whether or not this [[Task]] deletes the `T.dest` folder between runs
+   * Whether or not this [[Task]] deletes the `Task.dest` folder between runs
    */
   def flushDest: Boolean = true
 
@@ -191,14 +191,14 @@ object Task extends TaskBase {
   /**
    * Persistent tasks are defined using
    * the `Task(persistent = true){...}` syntax. The main difference is that while
-   * [[TargetImpl]] deletes the `T.dest` folder in between runs,
+   * [[TargetImpl]] deletes the `Task.dest` folder in between runs,
    * [[PersistentImpl]] preserves it. This lets the user make use of files on
    * disk that persistent between runs of the task, e.g. to implement their own
    * fine-grained caching beyond what Mill provides by default.
    *
    * Note that the user defining a `Task(persistent = true)` task is taking on the
    * responsibility of ensuring that their implementation is idempotent, i.e.
-   * that it computes the same result whether or not there is data in `T.dest`.
+   * that it computes the same result whether or not there is data in `Task.dest`.
    * Violating that invariant can result in confusing mis-behaviors
    */
   def apply(
@@ -255,7 +255,7 @@ object Task extends TaskBase {
 /**
  * Represents a task that can be referenced by its path segments. `Task{...}`
  * targets, `Task.Input`, `Task.Worker`, etc. but not including anonymous
- * `Task.Anon` or `T.traverse` etc. instances
+ * `Task.Anon` or `Task.traverse` etc. instances
  */
 trait NamedTask[+T] extends Task[T] {
 
@@ -780,15 +780,15 @@ object Target extends TaskBase {
 /**
  * The [[mill.define.Target]] companion object, usually aliased as [[T]],
  * provides most of the helper methods and macros used to build task graphs.
- * methods like `T.`[[apply]], `T.`[[sources]], `T.`[[command]] allow you to
- * define the tasks, while methods like `T.`[[dest]], `T.`[[log]] or
- * `T.`[[env]] provide the core APIs that are provided to a task implementation
+ * methods like `Task.`[[apply]], `Task.`[[sources]], `Task.`[[command]] allow you to
+ * define the tasks, while methods like `Task.`[[dest]], `Task.`[[log]] or
+ * `Task.`[[env]] provide the core APIs that are provided to a task implementation
  */
 class TaskBase extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx]
     with TaskBase.TraverseCtxHolder {
 
   /**
-   * `T.dest` is a unique `os.Path` (e.g. `out/classFiles.dest/` or `out/run.dest/`)
+   * `Task.dest` is a unique `os.Path` (e.g. `out/classFiles.dest/` or `out/run.dest/`)
    * that is assigned to every Target or Command. It is cleared before your
    * task runs, and you can use it as a scratch space for temporary files or
    * a place to put returned artifacts. This is guaranteed to be unique for
@@ -798,7 +798,7 @@ class TaskBase extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx]
   def dest(implicit ctx: mill.api.Ctx.Dest): os.Path = ctx.dest
 
   /**
-   * `T.log` is the default logger provided for every task. While your task is running,
+   * `Task.log` is the default logger provided for every task. While your task is running,
    * `System.out` and `System.in` are also redirected to this logger. The logs for a
    * task are streamed to standard out/error as you would expect, but each task's
    * specific output is also streamed to a log file on disk, e.g. `out/run.log` or
@@ -815,7 +815,7 @@ class TaskBase extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx]
   def home(implicit ctx: mill.api.Ctx.Home): os.Path = ctx.home
 
   /**
-   * `T.env` is the environment variable map passed to the Mill command when
+   * `Task.env` is the environment variable map passed to the Mill command when
    * it is run; typically used inside a `Task.Input` to ensure any changes in
    * the env vars are properly detected.
    *

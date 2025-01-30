@@ -65,7 +65,7 @@ object TestModule {
   /** TestModule that uses pytest to run tests. */
   trait Pytest extends PythonModule with TestModule {
 
-    override def pythonDeps: T[Seq[String]] = T {
+    override def pythonDeps: T[Seq[String]] = Task {
       super.pythonDeps() ++ Seq("pytest==8.3.3")
     }
 

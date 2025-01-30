@@ -3,10 +3,19 @@
 include::partial$gtag-config.adoc[]
 
 This page documents a playbook for migrating existing projects
-from Maven, Gradle, or SBT to Mill. Some build tools also have additional semi-automated
-tooling (e.g. see xref:migrating/maven.adoc[]), other automation is work-in-process
-(e.g. migrating from https://github.com/com-lihaoyi/mill/issues/3962[Gradle] or
-https://github.com/com-lihaoyi/mill/issues/3450[SBT]) but while automation helps with
+from Maven, Gradle, or SBT to Mill.
+
+Some build tools also have additional semi-automated
+tooling.
+
+* xref:migrating/maven.adoc[]
+* xref:migrating/gradle.adoc[]
+
+Other automation is work-in-process.
+
+* https://github.com/com-lihaoyi/mill/issues/3450[SBT]
+
+While automation helps with
 some of the scaffolding the general principles laid out on this page still apply.
 
 == How Long Does Migration Take?
@@ -281,7 +290,7 @@ and understandability of your build system, and while you may not want to apply 
 front during the migration, once you have everything working you can go back and revisit
 to see which ones may help:
 
-* xref:fundamentals/modules.adoc#_trait_modules[Trait Modules] to centralize common config
+* xref:fundamentals/modules.adoc#_module_traits[Trait Modules] to centralize common config
 
 * xref:large/multi-file-builds.adoc[Multi-File Builds] to let you co-locate
   build logic and the code being built

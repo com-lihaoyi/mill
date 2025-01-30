@@ -99,7 +99,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     Lib.resolveDependencies(
       repositoriesTask(),
       toolsIvyDeps().map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, "")),
-      ctx = Some(T.log)
+      ctx = Some(Task.log)
     ).map(t => (scalaNativeWorkerClasspath() ++ t))
   }
 
@@ -131,14 +131,14 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   protected def releaseModeInput: T[Option[ReleaseMode]] = Task.Input {
-    readEnvVariable[ReleaseMode](T.env, "SCALANATIVE_MODE", ReleaseMode.values, _.value)
+    readEnvVariable[ReleaseMode](Task.env, "SCALANATIVE_MODE", ReleaseMode.values, _.value)
   }
 
   def releaseMode: T[ReleaseMode] = Task {
     releaseModeInput().getOrElse(ReleaseMode.Debug)
   }
 
-  def nativeWorkdir = Task { T.dest }
+  def nativeWorkdir = Task { Task.dest }
 
   class ScalaNativeBridge(
       scalaNativeWorkerValue: ScalaNativeWorker,
@@ -168,7 +168,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   // GC choice, either "none", "boehm", "immix" or "commix"
   protected def nativeGCInput: T[Option[String]] = Task.Input {
-    T.env.get("SCALANATIVE_GC")
+    Task.env.get("SCALANATIVE_GC")
   }
 
   def nativeGC = Task {
@@ -206,14 +206,14 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   // The LTO mode to use used during a release build
   protected def nativeLTOInput: T[Option[LTO]] = Task.Input {
-    readEnvVariable[LTO](T.env, "SCALANATIVE_LTO", LTO.values, _.value)
+    readEnvVariable[LTO](Task.env, "SCALANATIVE_LTO", LTO.values, _.value)
   }
 
   def nativeLTO: T[LTO] = Task { nativeLTOInput().getOrElse(LTO.None) }
 
   // Shall we optimize the resulting NIR code?
   protected def nativeOptimizeInput: T[Option[Boolean]] = Task.Input {
-    readEnvVariable[Boolean](T.env, "SCALANATIVE_OPTIMIZE", Seq(true, false), _.toString)
+    readEnvVariable[Boolean](Task.env, "SCALANATIVE_OPTIMIZE", Seq(true, false), _.toString)
   }
 
   def nativeOptimize: T[Boolean] = Task { nativeOptimizeInput().getOrElse(true) }
@@ -276,7 +276,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   def nativeLink = Task {
     os.Path(withScalaNativeBridge.apply().apply(_.nativeLink(
       nativeConfig().config,
-      T.dest.toIO
+      Task.dest.toIO
     )))
   }
 
@@ -336,7 +336,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
         .toSet
     )
 
-    val proj = super.coursierProject()
+    val proj = coursierProject0()
 
     proj.withDependencies(
       proj.dependencies.map {
@@ -357,7 +357,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       else Seq()
     Task.Command {
       super.prepareOffline(all)()
-      T.sequence(tasks)()
+      Task.sequence(tasks)()
       ()
     }
   }
@@ -381,7 +381,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
       forkEnv() ++
         Map(
           EnvVars.MILL_TEST_RESOURCE_DIR -> resources().map(_.path).mkString(";"),
-          EnvVars.MILL_WORKSPACE_ROOT -> T.workspace.toString
+          EnvVars.MILL_WORKSPACE_ROOT -> Task.workspace.toString
         ),
       toWorkerApi(logLevel()),
       testFramework()
@@ -392,10 +392,10 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
       runClasspath().map(_.path),
       Agg(compile().classes.path),
       args(),
-      T.testReporter,
+      Task.testReporter,
       cls => TestRunnerUtils.globFilter(globSelectors())(cls.getName)
     )
-    val res = TestModule.handleResults(doneMsg, results, T.ctx(), testReportXml())
+    val res = TestModule.handleResults(doneMsg, results, Task.ctx(), testReportXml())
     // Hack to try and let the Scala Native subprocess finish streaming its stdout
     // to the JVM. Without this, the stdout can still be streaming when `close()`
     // is called, and some of the output is dropped onto the floor.
