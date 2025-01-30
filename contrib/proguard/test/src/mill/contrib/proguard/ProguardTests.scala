@@ -41,7 +41,7 @@ object ProguardTests extends TestSuite {
         eval =>
           val Right(result) = eval.apply(proguard.proguard)
         // Not sure why this is broken in Scala 3
-//          assert(os.exists(result.value.path))
+        //          assert(os.exists(result.value.path))
       }
     }
   }
