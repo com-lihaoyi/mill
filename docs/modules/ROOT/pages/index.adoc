@@ -48,13 +48,13 @@ and avoids the long configuration times seen in other tools like Gradle or SBT.
 xref:large/selective-execution.adoc[Selective execution] keeps
 CI validation times short by only running the tests necessary to validate a code change.
 
-* *Builtin Features*: Mill has builtin support for most common workflows: xref:javalib/linting.adoc#_autoformatting_with_palantir_java_format[autoformatting],
+* *Builtins*: Mill has builtin support for most common workflows: not just compile/run/test, but also xref:javalib/linting.adoc#_autoformatting_with_palantir_java_format[autoformatting],
 xref:javalib/linting.adoc#_linting_with_checkstyle[linting],
 xref:javalib/publishing.adoc#_publishing_to_sonatype_maven_central[publishing to Maven Central],
 xref:javalib/publishing.adoc#_building_native_image_binaries_with_graal_vm[building native binaries]
 or xref:javalib/publishing.adoc#_java_installers_using_jpackage[installers],
-etc. This lets you spend more time on your actual project and less time 
-fiddling with your build tool and third-party plugins.
+etc. This lets you focus on your actual project and spend less time
+fiddling with tooling and plugins.
 
 * *Maintainability*: Mill's config and xref:javalib/intro.adoc#_custom_build_logic[custom logic]
 is written in xref:depth/why-scala.adoc[concise type-checked Scala code],
