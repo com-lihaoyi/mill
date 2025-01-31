@@ -2,6 +2,9 @@
 
 include::partial$gtag-config.adoc[]
 
+https://index.scala-lang.org/com-lihaoyi/mill/mill-main[image:https://index.scala-lang.org/com-lihaoyi/mill/mill-main/latest.svg[Mill]]
+https://central.sonatype.com/artifact/com.lihaoyi/mill-dist[image:https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=latest-unstable-version[Maven Central Version]]
+https://www.patreon.com/lihaoyi[image:https://img.shields.io/badge/patreon-sponsor-ff69b4.svg[Patreon]]
 
 Mill is a fast, scalable, multi-language build tool that supports Java, Scala,
 Kotlin, and Python:
@@ -9,8 +12,8 @@ Kotlin, and Python:
 * Mill can build the same Java codebase xref:comparisons/maven.adoc[4-10x faster than Maven],
 or xref:comparisons/gradle.adoc[2-4x faster than Gradle]
 
-* Mill's rich builtin featureset lets you
-build and xref:javalib/publishing.adoc[publish] your project easily without third-party plugins.
+* Mill bundles all the tools needed to develop and publish your project builtin
+without needing plugins
 
 * Mill's typed config language and immutable xref:depth/design-principles.adoc[task graph]
 helps keep builds clean and understandable
@@ -50,14 +53,15 @@ CI validation times short by only running the tests necessary to validate a code
 
 * *Builtins*: Mill has builtin support for most common workflows: not just compile/run/test, but also xref:javalib/linting.adoc#_autoformatting_with_palantir_java_format[autoformatting],
 xref:javalib/linting.adoc#_linting_with_checkstyle[linting],
-xref:javalib/publishing.adoc#_publishing_to_sonatype_maven_central[publishing to Maven Central],
-xref:javalib/publishing.adoc#_building_native_image_binaries_with_graal_vm[building native binaries]
+xref:javalib/publishing.adoc#_publishing_to_sonatype_maven_central[publishing],
+building xref:javalib/publishing.adoc#_building_executable_assemblies[executable assemblies],
+xref:javalib/publishing.adoc#_building_native_image_binaries_with_graal_vm[native binaries]
 or xref:javalib/publishing.adoc#_java_installers_using_jpackage[installers],
 etc. This lets you focus on your actual project and spend less time
 fiddling with tooling and plugins.
 
 * *Maintainability*: Mill's config and xref:javalib/intro.adoc#_custom_build_logic[custom logic]
-is written in xref:depth/why-scala.adoc[concise type-checked Scala code],
+is written in xref:depth/why-scala.adoc[concise type-checked JVM code],
 with an immutable xref:depth/design-principles.adoc[module tree and task graph]. This
 catches config issues early, and helps both humans and IDEs
 (xref:cli/installation-ide.adoc#_intellij[IntelliJ] or
