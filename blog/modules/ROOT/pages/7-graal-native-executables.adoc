@@ -210,7 +210,8 @@ and the Graal native image we built above can be summarized below:
 | OS/CPU-Specific executable | No | Yes
 |===
 
-The remainder of this section will dive into the details of how each number was measured.
+The remainder of this section will dive into the details of how each number was measured,
+and a discussion of what these changes really mean.
 
 
 ### Creation Time
@@ -477,7 +478,7 @@ using there may be existing support.
   have also introduced support, making it easy to configure Graal to handle the pattern
   of reflection and classloading that the framework performs
 
-## How to Cross-Publish Graal Native Artifacts on Github Actions
+## Cross-Publishing Graal Native Binaries on Github Actions
 
 Although Graal doesn't let you cross-build from a single platform, you can still easily
 publish artifacts for all supported versions by taking advantage of CI systems like
@@ -564,13 +565,20 @@ def artifactName = s"${super.artifactName()}-${artifactOsSuffix()}-${artifactCpu
 
 This results in the following artifacts being published:
 
-```
+```bash
+# JVM platform-agnostic artifact
+com.lihaoyi:mill-dist:0.12.6
+# native platform-specific artifacts
 com.lihaoyi:mill-dist-native-mac-amd64:0.12.6
 com.lihaoyi:mill-dist-native-mac-aarch64:0.12.6
 com.lihaoyi:mill-dist-native-linux-amd64:0.12.6
 com.lihaoyi:mill-dist-native-linux-aarch64:0.12.6
 com.lihaoyi:mill-dist-native-windows-amd64:0.12.6
 ```
+
+These artifacts can be seen online:
+
+- https://central.sonatype.com/search?q=mill-dist[Central Sonatype Search]
 
 Any application using these binaries can similarly look at the OS/CPU they are running
 on and resolve the appropriate executable for them to use.
