@@ -120,6 +120,14 @@ object CodeSigScalaModuleTests extends UtestIntegrationTestSuite {
       )
     }
 
+  }
+}
+
+object CodeSigScalaModuleMultipleTests extends UtestIntegrationTestSuite {
+  val tests: Tests = Tests {
+    def filterLines(out: String) = {
+      out.linesIterator.filter(!_.contains("[info]")).toSet
+    }
     test("multiple") - integrationTest { tester =>
       import tester._
       // Tests for fine-grained method-based invalidation between multiple ScalaModules,

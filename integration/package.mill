@@ -16,6 +16,7 @@ import mill.resolve.SelectMode
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.define.Cross
+import mill.testrunner.TestResult
 
 // plugins and dependencies
 import $meta._
@@ -34,7 +35,11 @@ object `package` extends RootModule {
     def runClasspath: T[Seq[PathRef]]
     def localRunClasspath: T[Seq[PathRef]]
     def forkEnv: T[Map[String, String]]
+    def testExclusive = false
     trait ModeModule extends build.MillBaseTestsModule {
+      override def test(args: String*) = Task.Command(exclusive = testExclusive) {
+        testTask(Task.Anon { args }, Task.Anon { Seq.empty[String] })()
+      }
 
       def mode: String = millModuleSegments.parts.last
       def scalaVersion = build.Deps.scalaVersion
