@@ -34,7 +34,8 @@ trait TsLintModule extends Module {
     T.workspace / "eslint.config.mjs",
     T.workspace / "eslint.config.cjs",
     T.workspace / "eslint.config.js",
-    T.workspace / ".prettierrc"
+    T.workspace / ".prettierrc",
+    T.workspace / ".prettierrc.json"
   )
 
   private def resolvedFmtConfig: Task[Lint] = Task.Anon {
