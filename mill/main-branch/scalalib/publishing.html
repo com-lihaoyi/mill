@@ -621,8 +621,12 @@ const links = document.querySelectorAll('a');
 </div>
 </div>
 <div class="sect1">
-<h2 id="_customizing_the_executable_assembly"><a class="anchor" href="#_customizing_the_executable_assembly"></a>Customizing the Executable Assembly</h2>
+<h2 id="_building_executable_assemblies"><a class="anchor" href="#_building_executable_assemblies"></a>Building Executable Assemblies</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>Mill’s built in <code>.assembly</code> task makes it easy to generate an executable assembly
+jar from any JVM module. You can also customize the assembly jar as shown below:</p>
+</div>
 <div class="listingblock">
 <div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.5/example-scalalib-publishing-1-assembly-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/scalalib/publishing/1-assembly-config">browse</a>)</div>
 <div class="content">
@@ -644,6 +648,9 @@ object foo extends ScalaModule {
     // the `shapeless` package will be relocated under the `shade` package
     Rule.Relocate(&quot;shapeless.**&quot;, &quot;shade.shapless.@1&quot;)
   )
+
+  // def manifest: T[JarManifest]
+  // def prependShellScript: T[String]
 }
 
 object bar extends ScalaModule {
@@ -652,10 +659,11 @@ object bar extends ScalaModule {
 </div>
 </div>
 <div class="paragraph">
-<p>When you make a runnable jar of your project with the <code>.assembly</code> task,
-you may want to exclude some files from a final jar (like signature files,
-and manifest files from library jars), and merge duplicated files (for
-instance <code>reference.conf</code> files from library dependencies).</p>
+<p>The most common way of configuring an assembly is
+excluding some files from a final jar (like signature files,
+and manifest files from library jars), and merging duplicated files (for
+instance <code>reference.conf</code> files from library dependencies). This is
+done by overriding <code>def assemblyRules</code> as shown above</p>
 </div>
 <div class="paragraph">
 <p>By default mill excludes all <code>*.sf</code>, <code>*.dsa</code>, <code>*.rsa</code>, and

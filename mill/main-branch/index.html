@@ -614,6 +614,11 @@ const links = document.querySelectorAll('a');
 });
 </script>
 <div class="paragraph">
+<p><a href="https://index.scala-lang.org/com-lihaoyi/mill/mill-main"><span class="image"><img src="https://index.scala-lang.org/com-lihaoyi/mill/mill-main/latest.svg" alt="Mill" /></span></a>
+<a href="https://central.sonatype.com/artifact/com.lihaoyi/mill-dist"><span class="image"><img src="https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=latest-unstable-version" alt="Maven Central Version" /></span></a>
+<a href="https://www.patreon.com/lihaoyi"><span class="image"><img src="https://img.shields.io/badge/patreon-sponsor-ff69b4.svg" alt="Patreon" /></span></a></p>
+</div>
+<div class="paragraph">
 <p>Mill is a fast, scalable, multi-language build tool that supports Java, Scala,
 Kotlin, and Python:</p>
 </div>
@@ -624,8 +629,8 @@ Kotlin, and Python:</p>
 or <a href="comparisons/gradle.html" class="xref page">2-4x faster than Gradle</a></p>
 </li>
 <li>
-<p>Mill’s rich builtin featureset lets you
-build and <a href="javalib/publishing.html" class="xref page">publish</a> your project easily without third-party plugins.</p>
+<p>Mill bundles all the tools needed to develop and publish your project builtin
+without needing plugins</p>
 </li>
 <li>
 <p>Mill’s typed config language and immutable <a href="depth/design-principles.html" class="xref page">task graph</a>
@@ -700,15 +705,16 @@ CI validation times short by only running the tests necessary to validate a code
 <li>
 <p><strong>Builtins</strong>: Mill has builtin support for most common workflows: not just compile/run/test, but also <a href="javalib/linting.html#_autoformatting_with_palantir_java_format" class="xref page">autoformatting</a>,
 <a href="javalib/linting.html#_linting_with_checkstyle" class="xref page">linting</a>,
-<a href="javalib/publishing.html#_publishing_to_sonatype_maven_central" class="xref page">publishing to Maven Central</a>,
-<a href="javalib/publishing.html#_building_native_image_binaries_with_graal_vm" class="xref page">building native binaries</a>
+<a href="javalib/publishing.html#_publishing_to_sonatype_maven_central" class="xref page">publishing</a>,
+building <a href="javalib/publishing.html#_building_executable_assemblies" class="xref page">executable assemblies</a>,
+<a href="javalib/publishing.html#_building_native_image_binaries_with_graal_vm" class="xref page">native binaries</a>
 or <a href="javalib/publishing.html#_java_installers_using_jpackage" class="xref page">installers</a>,
 etc. This lets you focus on your actual project and spend less time
 fiddling with tooling and plugins.</p>
 </li>
 <li>
 <p><strong>Maintainability</strong>: Mill’s config and <a href="javalib/intro.html#_custom_build_logic" class="xref page">custom logic</a>
-is written in <a href="depth/why-scala.html" class="xref page">concise type-checked Scala code</a>,
+is written in <a href="depth/why-scala.html" class="xref page">concise type-checked JVM code</a>,
 with an immutable <a href="depth/design-principles.html" class="xref page">module tree and task graph</a>. This
 catches config issues early, and helps both humans and IDEs
 (<a href="cli/installation-ide.html#_intellij" class="xref page">IntelliJ</a> or
