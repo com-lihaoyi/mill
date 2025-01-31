@@ -19,4 +19,3 @@ include::partial$example/pythonlib/linting/1-ruff-format.adoc[]
 
 include::partial$example/pythonlib/linting/2-ruff-check.adoc[]
 
-== Code coverage
