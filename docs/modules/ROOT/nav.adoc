@@ -121,3 +121,4 @@
 * Reference
 ** {mill-doc-url}/api/latest/mill/index.html[Mill Scaladoc]
 ** {mill-github-url}/blob/main/changelog.adoc[Changelog]
+** xref:reference/talks-blog-posts.adoc[]]

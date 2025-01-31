@@ -9,6 +9,10 @@ Mill:
 * https://www.youtube.com/watch?v=UsXgCeU-ovI[Video: A Deep Dive into the Mill Build Tool]
 * https://www.youtube.com/watch?v=MEPtepNWHs8[Video: Mill a JVM Build Tool based on Pure Functional Programming]
 
+There are also more talks and blog posts available to read on the following page:
+
+- xref:reference/talks-blog-posts.adoc[]
+
 == Principles
 
 === Dependency graph first
