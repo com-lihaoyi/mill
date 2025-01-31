@@ -1,7 +1,7 @@
 = Python Module Configuration
 :page-aliases: Python_Module_Config.adoc
 
-include::partial$gtag-config.adoc[]
+
 
 :language: Python
 :language-small: python

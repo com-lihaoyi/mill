@@ -1,7 +1,7 @@
 = Android Kotlin Projects
 :page-aliases: android_app_kotlin_examples.adoc
 
-include::partial$gtag-config.adoc[]
+
 
 This page provides an example of using Mill as a build tool for Android applications.
 This workflow is still pretty rough and nowhere near production ready, but can serve as

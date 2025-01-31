@@ -7,8 +7,6 @@
 :revdate: 29 November 2024
 _{author}, {revdate}_
 
-include::mill:ROOT:partial$gtag-config.adoc[]
-
 Java compiles have the reputation for being slow, but that reputation does
 not match today's reality. Nowadays the Java compiler can compile "typical" Java code at over
 100,000 lines a second on a single core. That means that even a million line project

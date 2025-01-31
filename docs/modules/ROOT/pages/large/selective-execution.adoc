@@ -1,6 +1,6 @@
 = Selective Test Execution
 
-include::partial$gtag-config.adoc[]
+
 
 
 include::partial$example/large/selective/9-selective-execution.adoc[]

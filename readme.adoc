@@ -29,7 +29,7 @@ Kotlin, and Python:
 * Mill can build the same Java codebase 4-10x faster than Maven,
 or 2-4x faster than Gradle
 
-* Mill bundles all the tools needed to develop and publish your project builtin
+* Mill includes all the tools needed to develop and publish your project builtin
 without needing plugins
 
 * Mill's typed config language and immutable task graph

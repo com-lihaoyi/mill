@@ -7,7 +7,7 @@
 :revdate: 10 January 2025
 _{author}, {revdate}_
 
-include::mill:ROOT:partial$gtag-config.adoc[]
+
 
 Garbage collectors are a core part of many programming languages. While they generally work
 well, on occasion when they go wrong they can fail in very unintuitive ways.

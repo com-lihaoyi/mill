@@ -1,7 +1,7 @@
 = Multi-File Builds
 :page-aliases: Structuring_Large_Builds.adoc
 
-include::partial$gtag-config.adoc[]
+
 
 include::partial$example/large/multi/10-multi-file-builds.adoc[]
 

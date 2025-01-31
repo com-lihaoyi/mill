@@ -1,6 +1,6 @@
 = Typescript Library Dependencies
 
-include::partial$gtag-config.adoc[]
+
 
 This page goes into more detail about configuring third party dependencies
 for `TypescriptModule`s.

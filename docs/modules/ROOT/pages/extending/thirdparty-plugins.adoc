@@ -1,7 +1,7 @@
 = Third-Party Plugins
 :page-aliases: Thirdparty_Modules.adoc, Thirdparty_Plugins.adoc
 
-include::partial$gtag-config.adoc[]
+
 
 The Plugins in this section are developed/maintained outside the mill git tree.
 This list is most likely not complete.

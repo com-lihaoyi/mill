@@ -1,7 +1,7 @@
 = Linting Java Projects
 :page-aliases: Linting_Java_Projects.adoc
 
-include::partial$gtag-config.adoc[]
+
 
 This page will discuss common topics around enforcing the code quality of Java
 codebases using the Mill build tool

@@ -2,7 +2,7 @@
 = Building Scala with Mill
 :page-aliases: Intro_to_Mill_for_Scala.adoc, Scala_Intro_to_Mill.adoc
 
-include::partial$gtag-config.adoc[]
+
 
 :language: Scala
 :language-small: scala

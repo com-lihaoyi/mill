@@ -1,6 +1,6 @@
 = Typescript Module Configuration
 
-include::partial$gtag-config.adoc[]
+
 
 :language: Typescript
 :language-small: typescript

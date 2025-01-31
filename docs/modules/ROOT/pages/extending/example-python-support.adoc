@@ -1,6 +1,6 @@
 = Example: Python Support
 
-include::partial$gtag-config.adoc[]
+
 
 This section demonstrates how to integrate `Python` support into `Mill`.
 We will define a simple `PythonModule` trait that can resolve dependencies,

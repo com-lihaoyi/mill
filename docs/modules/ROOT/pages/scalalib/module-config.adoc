@@ -1,7 +1,7 @@
 = Scala Module Configuration
 :page-aliases: Configuring_Mill.adoc, Scala_Module_Config.adoc
 
-include::partial$gtag-config.adoc[]
+
 
 :language: Scala
 :language-small: scala

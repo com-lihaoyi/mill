@@ -1,5 +1,5 @@
 = (TODO) Kotlin Build Examples
 :page-aliases: Kotlin_Build_Examples.adoc
 
-include::partial$gtag-config.adoc[]
+
 

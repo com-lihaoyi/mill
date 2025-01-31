@@ -1,7 +1,7 @@
 = Case Study: Mill vs Maven
 :page-aliases: Case_Study_Mill_vs_Maven.adoc
 
-include::partial$gtag-config.adoc[]
+
 
 Compared to Maven:
 

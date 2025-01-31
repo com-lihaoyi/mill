@@ -7,7 +7,7 @@
 :revdate: 17 December 2024
 _{author}, {revdate}_
 
-include::mill:ROOT:partial$gtag-config.adoc[]
+
 
 
 Software build tools mostly fall into two categories:

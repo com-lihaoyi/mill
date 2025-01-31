@@ -1,7 +1,7 @@
 = Java Packaging & Publishing
 :page-aliases: Publishing_Java_Projects.adoc
 
-include::partial$gtag-config.adoc[]
+
 
 This page will discuss common topics around packaging and publishing your Java projects for others to use
 

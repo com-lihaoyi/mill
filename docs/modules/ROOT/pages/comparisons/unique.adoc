@@ -1,6 +1,6 @@
 # What Makes Mill Unique
 
-include::partial$gtag-config.adoc[]
+
 
 https://mill-build.org/[Mill] is a JVM build tool that targets Java/Scala/Kotlin and has
 potential to serve the large-monorepo codebases that Bazel currently serves. Mill has good

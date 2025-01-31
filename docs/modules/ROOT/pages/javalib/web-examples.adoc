@@ -1,7 +1,7 @@
 = Java Web Project Examples
 :page-aliases: Java_Web_Examples.adoc
 
-include::partial$gtag-config.adoc[]
+
 
 This page contains examples of using Mill as a build tool for web-applications.
 It covers setting up a basic backend server with a variety of server frameworks

@@ -1,6 +1,6 @@
 = Kotlin Library Dependencies
 
-include::partial$gtag-config.adoc[]
+
 
 This page goes into more detail about the various configuration options
 for `KotlinModule`.

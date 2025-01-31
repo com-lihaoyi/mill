@@ -1,6 +1,6 @@
 = Mill: A Fast JVM Build Tool
 
-include::partial$gtag-config.adoc[]
+
 
 https://index.scala-lang.org/com-lihaoyi/mill/mill-main[image:https://index.scala-lang.org/com-lihaoyi/mill/mill-main/latest.svg[Mill]]
 https://central.sonatype.com/artifact/com.lihaoyi/mill-dist[image:https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=latest-unstable-version[Maven Central Version]]
@@ -12,7 +12,7 @@ Kotlin, and Python:
 * Mill can build the same Java codebase xref:comparisons/maven.adoc[4-10x faster than Maven],
 or xref:comparisons/gradle.adoc[2-4x faster than Gradle]
 
-* Mill bundles all the tools needed to develop and publish your project builtin
+* Mill includes all the tools needed to develop and publish your project builtin
 without needing plugins
 
 * Mill's typed config language and immutable xref:depth/design-principles.adoc[task graph]
