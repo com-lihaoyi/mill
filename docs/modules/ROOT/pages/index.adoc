@@ -1,4 +1,4 @@
-= Mill: A Fast JVM Build Tool
+= Mill: A Fast, Scalable JVM Build Tool
 
 
 
