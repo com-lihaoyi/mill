@@ -7,8 +7,6 @@
 :revdate: ??? January 2025
 _{author}, {revdate}_
 
-include::mill:ROOT:partial$gtag-config.adoc[]
-
 One recent development is the ability to compile Java programs into self-contained
 native binaries. This provides more convenient
 single-file distributions, faster startup time, and lower memory footprint, at a cost of
@@ -167,7 +165,7 @@ $ out/foo/nativeImage.dest/native-executable --text "hello world"
 
 You can download this example below:
 
-* xref:mill:ROOT:javalib/publishing.adoc#_building_native_image_with_graal_vm[]
+* xref:mill:ROOT:javalib/publishing.adoc#_building_native_image_binaries_with_graal_vm[Building Native Image Binaries with Graal VM]
 
 You can also access the `native-image` tool directly from the Mill download folder,
 if you want to use it directly or view its `--help` documentation:
@@ -197,6 +195,23 @@ where options include:
 ```
 
 ## Native Image v.s. Executable Assembly
+
+At a glance, the difference between the traditional executable assembly
+and the Graal native image we built above can be summarized below:
+
+|===
+| | Executable Assembly | Native Image
+| Creation Time | 0.8s | 24.7s
+| Executable Size | 2.5mb | 17mb
+| Startup Time | 235ms | 62ms
+| Steady State Performance | 190 iter/s | 180 iter/s
+| Memory Footprint | 373mb | 20mb
+| JVM required to run | Yes | No
+| OS/CPU-Specific executable | No | Yes
+|===
+
+The remainder of this section will dive into the details of how each number was measured.
+
 
 ### Creation Time
 
@@ -251,14 +266,16 @@ _Executable Assembly_
 ```bash
 $ time ./out/foo/assembly.dest/out.jar --text hello-world
 <h1>hello-world</h1>
-./out/foo/assembly.dest/out.jar --text hello-world  0.35s user 0.04s system 165% cpu 0.235 total
+./out/foo/assembly.dest/out.jar --text hello-world
+0.35s user 0.04s system 165% cpu 0.235 total
 ```
 
 _Native Image_
 ```bash
 $ time ./out/foo/nativeImage.dest/native-executable --text hello-world
 <h1>hello-world</h1>
-./out/foo/nativeImage.dest/native-executable --text hello-world  0.04s user 0.01s system 87% cpu 0.062 total
+./out/foo/nativeImage.dest/native-executable --text hello-world
+0.04s user 0.01s system 87% cpu 0.062 total
 ```
 
 The `~175ms` speedup shown is for a tiny example program, and can be expected to grow
@@ -423,9 +440,103 @@ or deployment. This is not a blocker, but can definitely be inconvenient v.s. so
 which allow you to build native binaries for all targets on a single machine.
 
 For xref:mill:ROOT:index.adoc[Mill], which is distributed as native binaries, we maintain a
-https://github.com/com-lihaoyi/mill/blob/b16c589a93e2e6d4e5361246d842409fd8e71158/.github/workflows/publish-artifacts.yml#L79-L95[matrix of Github actions jobs]
+https://github.com/com-lihaoyi/mill/blob/a383b9c851f4cee55abb3d454c3ecd06853a40b0/.github/workflows/publish-artifacts.yml#L27-L53[matrix of Github actions jobs]
 running on Mac, Windows, and Linux to create these binaries and upload them to Maven Central
 for users.
+
+```yaml
+    strategy:
+      matrix:
+        include:
+        - os: ubuntu-latest
+          coursierarchive: ""
+          publishartifacts: __.publishArtifacts
+          uploadgithub: true
+
+        - os: ubuntu-24.04-arm
+          coursierarchive: ""
+          publishartifacts: dist.native.publishArtifacts
+          uploadgithub: false
+
+        - os: macos-13
+          coursierarchive: ""
+          publishartifacts: dist.native.publishArtifacts
+          uploadgithub: false
+
+        - os: macos-latest
+          coursierarchive: ""
+          publishartifacts: dist.native.publishArtifacts
+          uploadgithub: false
+
+        - os: windows-latest
+          coursierarchive: C:/coursier-arc
+          publishartifacts: dist.native.publishArtifacts
+          uploadgithub: false
+
+        # No windows-arm support becaues Graal native image doesn't support it
+        # https://github.com/oracle/graal/issues/9215
+    env:
+      MILL_STABLE_VERSION: 1
+      MILL_SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+      MILL_SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+      MILL_PGP_SECRET_BASE64: ${{ secrets.SONATYPE_PGP_PRIVATE_KEY }}
+      MILL_PGP_PASSPHRASE: ${{ secrets.SONATYPE_PGP_PRIVATE_KEY_PASSWORD }}
+      LANG: "en_US.UTF-8"
+      LC_MESSAGES: "en_US.UTF-8"
+      LC_ALL: "en_US.UTF-8"
+      COURSIER_ARCHIVE_CACHE: ${{ matrix.coursierarchive }}
+      REPO_ACCESS_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
+    steps:
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      - run: "echo temurin:11 > .mill-jvm-version"
+
+      - run: ./mill -i mill.scalalib.PublishModule/ --publishArtifacts ${{ matrix.publishartifacts }}
+
+      - run: ./mill -i dist.uploadToGithub --authKey $REPO_ACCESS_TOKEN
+        if: ${{ matrix.uploadgithub }}
+```
+
+Each job overrides `artifactName` based on `os.name` and `os.arch` such that it publishes to a
+different artifact on Maven Central:
+
+```scala
+def artifactOsSuffix = Task {
+  val osName = System.getProperty("os.name").toLowerCase
+  if (osName.contains("mac")) "mac"
+  else if (osName.contains("windows")) "windows"
+  else "linux"
+}
+
+def artifactCpuSuffix = Task {
+  System.getProperty("os.arch") match {
+    case "x86_64" => "amd64"
+    case s => s
+  }
+}
+
+def artifactName = s"${super.artifactName()}-${artifactOsSuffix()}-${artifactCpuSuffix()}"
+```
+
+This results in the following artifacts being published:
+
+```
+com.lihaoyi:mill-dist-native-mac-amd64:0.12.6
+com.lihaoyi:mill-dist-native-mac-aarch64:0.12.6
+com.lihaoyi:mill-dist-native-linux-amd64:0.12.6
+com.lihaoyi:mill-dist-native-linux-aarch64:0.12.6
+com.lihaoyi:mill-dist-native-windows-amd64:0.12.6
+```
+
+Any application using these binaries can similarly look at the OS/CPU they are running
+on and resolve the appropriate executable for them to use.
+
 
 ### No Windows-ARM support
 
