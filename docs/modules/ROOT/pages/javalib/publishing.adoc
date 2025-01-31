@@ -59,3 +59,4 @@ The `revapi` task returns the path to a directory that can be used to resolve th
 ====
 
 include::partial$Publishing_Footer.adoc[]
+

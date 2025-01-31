@@ -1,4 +1,5 @@
 
+* xref:7-graal-native-executables.adoc[]
 * xref:6-garbage-collector-perf.adoc[]
 * xref:5-executable-jars.adoc[]
 * xref:4-flaky-tests.adoc[]
