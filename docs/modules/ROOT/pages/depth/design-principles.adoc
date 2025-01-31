@@ -7,10 +7,7 @@ The following external resources give more of a flavor of the architecture behin
 Mill:
 
 * https://www.youtube.com/watch?v=UsXgCeU-ovI[Video: A Deep Dive into the Mill Build Tool]
-* https://www.lihaoyi.com/post/SoWhatsSoSpecialAboutTheMillScalaBuildTool.html[Blog Post: What's So Special About The Mill Scala Build Tool?]
-* https://www.youtube.com/watch?v=j6uThGxx-18[Video: Mill a Build Tool based on Pure Functional Programming]
-* http://www.lihaoyi.com/post/BuildToolsasPureFunctionalPrograms.html[Blog Post: Build Tools as Pure Functional Programs]
-* http://www.lihaoyi.com/post/SowhatswrongwithSBT.html[Blog Post: So, what's wrong with SBT?]
+* https://www.youtube.com/watch?v=MEPtepNWHs8[Video: Mill a JVM Build Tool based on Pure Functional Programming]
 
 == Principles
 
