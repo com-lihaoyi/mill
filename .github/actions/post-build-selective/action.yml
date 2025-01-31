@@ -38,6 +38,9 @@ runs:
     - run: ./mill -i -k selective.resolveChanged ${{ inputs.millargs }}
       shell: ${{ inputs.shell }}
 
+    - run: echo ${{ inputs.install-android-sdk }}
+      shell: ${{ inputs.shell }}
+
     - run: ./mill -i -j1 -k selective.run ${{ inputs.millargs }}
       if: ${{ inputs.install-android-sdk }}
       env:
