@@ -439,6 +439,50 @@ machines in order to build the 6 binaries and somehow aggregate them together fo
 or deployment. This is not a blocker, but can definitely be inconvenient v.s. some other toolchains
 which allow you to build native binaries for all targets on a single machine.
 
+### No Windows-ARM support
+
+Graal does not support Windows-Arm64 yet (https://github.com/oracle/graal/issues/9215). While
+that traditionally would not have been a problem, Windows-ARM is getting more popular over time,
+with new laptops like my new flagship https://www.microsoft.com/en-sg/surface/devices/surface-laptop-7th-edition[Surface Laptop 7]
+running on an ARM processor. You simply cannot build Java code into Graal native image binaries
+that work on Windows-Arm64 at this time, and thus have to fall back to traditional executable assemblies
+
+### Creation Performance
+
+Graal native image binaries are much slower to create than executable assemblies, as we saw above:
+the example program took ~1s to compile into an executable assembly, but ~25s to compile into
+a native image! That means you probably do not want to do day-to-day iterative development on
+native images: instead you may want to iterate using traditional JVM assemblies, and only build
+native images for integration testing and deployment.
+
+### Reflection and Dynamic Classloading
+
+Graal native image binaries do not work with Java reflection and dynamic classloading by default, unless
+specifically configured. Almost every Java program, library, and framework uses _some_ degree of
+reflection and dynamic classloading, and so you do have to spend the effort to configure Graal
+appropriately. We saw a glimpse of that above in the `-H:IncludeResourceBundles` flag we needed to
+pass to make ArgParse4j work in our toy example, and this will need to be done dozens more times for
+any real-world application making heavy use of real-world Java frameworks and libraries.
+
+A full discussion of how to handle reflection and dynamic classloading when building Graal
+native images is beyond the scope of this article, but depending on what framework you may be
+using there may be existing support.
+
+* Frameworks like https://micronaut.io/[Micronaut]
+  or https://quarkus.io/[Quarkus] are designed from scratch to minimize reflection to allow native
+  image generation
+
+* Older frameworks like
+  https://docs.spring.io/spring-boot/reference/packaging/native-image/introducing-graalvm-native-images.html[Spring Boot]
+  have also introduced support, making it easy to configure Graal to handle the pattern
+  of reflection and classloading that the framework performs
+
+## How to Cross-Publish Graal Native Artifacts on Github Actions
+
+Although Graal doesn't let you cross-build from a single platform, you can still easily
+publish artifacts for all supported versions by taking advantage of CI systems like
+Github Actions that provide worker machines on different platforms.
+
 For xref:mill:ROOT:index.adoc[Mill], which is distributed as native binaries, we maintain a
 https://github.com/com-lihaoyi/mill/blob/a383b9c851f4cee55abb3d454c3ecd06853a40b0/.github/workflows/publish-artifacts.yml#L27-L53[matrix of Github actions jobs]
 running on Mac, Windows, and Linux to create these binaries and upload them to Maven Central
@@ -451,27 +495,22 @@ for users.
         - os: ubuntu-latest
           coursierarchive: ""
           publishartifacts: __.publishArtifacts
-          uploadgithub: true
 
         - os: ubuntu-24.04-arm
           coursierarchive: ""
           publishartifacts: dist.native.publishArtifacts
-          uploadgithub: false
 
         - os: macos-13
           coursierarchive: ""
           publishartifacts: dist.native.publishArtifacts
-          uploadgithub: false
 
         - os: macos-latest
           coursierarchive: ""
           publishartifacts: dist.native.publishArtifacts
-          uploadgithub: false
 
         - os: windows-latest
           coursierarchive: C:/coursier-arc
           publishartifacts: dist.native.publishArtifacts
-          uploadgithub: false
 
         # No windows-arm support becaues Graal native image doesn't support it
         # https://github.com/oracle/graal/issues/9215
@@ -537,43 +576,6 @@ Any application using these binaries can similarly look at the OS/CPU they are r
 on and resolve the appropriate executable for them to use.
 
 
-### No Windows-ARM support
-
-Graal does not support Windows-Arm64 yet (https://github.com/oracle/graal/issues/9215). While
-that traditionally would not have been a problem, Windows-ARM is getting more popular over time,
-with new laptops like my new flagship https://www.microsoft.com/en-sg/surface/devices/surface-laptop-7th-edition[Surface Laptop 7]
-running on an ARM processor. You simply cannot build Java code into Graal native image binaries
-that work on Windows-Arm64 at this time, and thus have to fall back to traditional executable assemblies
-
-### Creation Performance
-
-Graal native image binaries are much slower to create than executable assemblies, as we saw above:
-the example program took ~1s to compile into an executable assembly, but ~25s to compile into
-a native image! That means you probably do not want to do day-to-day iterative development on
-native images: instead you may want to iterate using traditional JVM assemblies, and only build
-native images for integration testing and deployment.
-
-### Reflection and Dynamic Classloading
-
-Graal native image binaries do not work with Java reflection and dynamic classloading by default, unless
-specifically configured. Almost every Java program, library, and framework uses _some_ degree of
-reflection and dynamic classloading, and so you do have to spend the effort to configure Graal
-appropriately. We saw a glimpse of that above in the `-H:IncludeResourceBundles` flag we needed to
-pass to make ArgParse4j work in our toy example, and this will need to be done dozens more times for
-any real-world application making heavy use of real-world Java frameworks and libraries.
-
-A full discussion of how to handle reflection and dynamic classloading when building Graal
-native images is beyond the scope of this article, but depending on what framework you may be
-using there may be existing support.
-
-* Frameworks like https://micronaut.io/[Micronaut]
-  or https://quarkus.io/[Quarkus] are designed from scratch to minimize reflection to allow native
-  image generation
-
-* Older frameworks like
-  https://docs.spring.io/spring-boot/reference/packaging/native-image/introducing-graalvm-native-images.html[Spring Boot]
-  have also introduced support, making it easy to configure Graal to handle the pattern
-  of reflection and classloading that the framework performs
 
 ## Conclusion
 
