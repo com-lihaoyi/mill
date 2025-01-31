@@ -25,7 +25,7 @@ trait RuffModule extends PythonModule {
    */
   def ruffOptions: T[Seq[String]] = Task { Seq.empty[String] }
 
-  protected def configArgs: Task[Seq[String]]  = Task.Anon {
+  protected def configArgs: Task[Seq[String]] = Task.Anon {
     val cfg = ruffConfigFile()
     if (os.exists(cfg.path)) Seq("--config", cfg.path.toString) else Seq.empty[String]
   }
@@ -84,8 +84,8 @@ object RuffModule extends ExternalModule with RuffModule with TaskModule {
   override def defaultCommandName(): String = "formatAll"
 
   def formatAll(
-    sources: Tasks[Seq[PathRef]] = Tasks.resolveMainDefault("__.sources"),
-    @mainargs.arg(positional = true) ruffArgs: Args
+      sources: Tasks[Seq[PathRef]] = Tasks.resolveMainDefault("__.sources"),
+      @mainargs.arg(positional = true) ruffArgs: Args
   ): Command[Unit] = Task.Command {
     runner().run(
       // format: off
@@ -103,8 +103,8 @@ object RuffModule extends ExternalModule with RuffModule with TaskModule {
   }
 
   def checkAll(
-    sources: Tasks[Seq[PathRef]] = Tasks.resolveMainDefault("__.sources"),
-    @mainargs.arg(positional = true) ruffArgs: Args
+      sources: Tasks[Seq[PathRef]] = Tasks.resolveMainDefault("__.sources"),
+      @mainargs.arg(positional = true) ruffArgs: Args
   ): Command[Unit] = Task.Command {
     runner().run(
       // format: off
