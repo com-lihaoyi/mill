@@ -134,6 +134,10 @@ object `package` extends RootModule with Module {
     }
   }
 
+
+  trait ExampleCrossModuleAndroid extends ExampleCrossModule {
+    def testExclusive = true
+  }
   trait ExampleCrossModuleJava extends ExampleCrossModule {
 
     def upstreamCross(s: String) = s match {
