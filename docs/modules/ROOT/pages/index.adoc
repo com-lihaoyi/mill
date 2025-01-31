@@ -11,8 +11,8 @@ Kotlin, and Python:
 * Mill can build the same Java codebase xref:comparisons/maven.adoc[4-10x faster than Maven],
 or xref:comparisons/gradle.adoc[2-4x faster than Gradle]
 
-* Mill includes all the tools needed to develop and publish your project builtin
-without needing plugins
+* Mill comes builtin with all the tools needed to develop and publish your project without
+needing plugins
 
 * Mill's typed config language and immutable xref:depth/design-principles.adoc[task graph]
 helps keep builds clean and understandable
