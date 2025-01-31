@@ -69,11 +69,6 @@ echo {mill-last-tag}-native > .mill-version
 Using the `-native` suffix should provide a faster CLI experience than using Mill's default
 JVM launcher, and makes it easier to install Mill in environments without a JVM pre-installed.
 
-- `windows-amd64` (Intel Windows)
-- `linux-amd64` (Intel Linux)
-- `linux-aarch64` (Intel Linux)
-- `mac-aarch64` (M1-M4 Mac)
-
 Mill native executables are supported on the following OS/CPU combinations:
 
 |===
