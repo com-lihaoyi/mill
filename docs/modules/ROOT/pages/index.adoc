@@ -54,7 +54,7 @@ CI validation times short by only running the tests necessary to validate a code
 * *Builtins*: Mill has builtin support for most common workflows: not just compile/run/test, but also xref:javalib/linting.adoc#_autoformatting_with_palantir_java_format[autoformatting],
 xref:javalib/linting.adoc#_linting_with_checkstyle[linting],
 xref:javalib/publishing.adoc#_publishing_to_sonatype_maven_central[publishing to Maven Central],
-building xref:javalib/publishing.adoc#_customizing_the_executable_assembly[executable assemblies] or
+building xref:javalib/publishing.adoc#_building_executable_assemblies[executable assemblies] or
 xref:javalib/publishing.adoc#_building_native_image_binaries_with_graal_vm[native binaries]
 or xref:javalib/publishing.adoc#_java_installers_using_jpackage[installers],
 etc. This lets you focus on your actual project and spend less time
