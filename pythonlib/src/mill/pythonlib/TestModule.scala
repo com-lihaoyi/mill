@@ -56,7 +56,8 @@ object TestModule {
         args()
       }
       runner().run(
-        ("-m", "unittest", testArgs, "-v")
+        ("-m", "unittest", testArgs, "-v"),
+        workingDir = Task.workspace
       )
       Seq()
     }
@@ -78,7 +79,8 @@ object TestModule {
           sources().map(_.path),
           args()
           // format: in
-        )
+        ),
+        workingDir = Task.workspace
       )
       Seq()
     }
