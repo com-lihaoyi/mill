@@ -3,10 +3,9 @@
 <html lang="en"><head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Multi-File Builds :: The Mill JVM Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/large/multi-file-builds.html" />
-    <link rel="prev" href="selective-execution.html" />
-    <link rel="next" href="../depth/sandboxing.html" />
+    <title>Linting Python Projects :: The Mill JVM Build Tool</title>
+    <link rel="prev" href="dependencies.html" />
+    <link rel="next" href="testing.html" />
     <meta name="generator" content="Antora 3.1.9" />
     <link rel="stylesheet" href="../../../_/css/site.css" />
     <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -238,31 +237,31 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+    <a class="nav-link" href="intro.html">Building Python with Mill</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+    <a class="nav-link" href="module-config.html">Python Module Configuration</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+    <a class="nav-link" href="dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-current-page" data-depth="2">
+    <a class="nav-link" href="linting.html">Linting Python Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+    <a class="nav-link" href="testing.html">Testing Python Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+    <a class="nav-link" href="publishing.html">Python Packaging &amp; Publishing</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+    <a class="nav-link" href="web-examples.html">Python Web Project Examples</a>
   </li>
 </ul>
   </li>
@@ -528,15 +527,15 @@
 
   <li class="nav-item is-active" data-depth="1">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="large.html">Large Builds and Monorepos</a>
+    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="selective-execution.html">Selective Test Execution</a>
+    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
   </li>
 
-  <li class="nav-item is-current-page" data-depth="2">
-    <a class="nav-link" href="multi-file-builds.html">Multi-File Builds</a>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
   </li>
 </ul>
   </li>
@@ -634,276 +633,218 @@
 <button class="nav-toggle"></button>
 </div>
 <div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
-<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/large/multi-file-builds.adoc">Edit this Page</a></div>
+<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/pythonlib/linting.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">Multi-File Builds</h1>
+<h1 class="page">Linting Python Projects</h1>
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill allows you to break up your <code>build.mill</code> file into smaller files by defining the
-build-related logic for any particular subfolder as a <code>package.mill</code> file in that subfolder.
-This can be very useful to keep large Mill builds maintainable, as each folder’s build logic
-gets co-located with the files that need to be built, and speeds up compilation of the
-build logic since each <code>build.mill</code> or <code>package.mill</code> file can be compiled independently when
-it is modified without re-compiling all the others.</p>
-</div>
-<div class="paragraph">
-<p>Usage of sub-folder <code>package.mill</code> files is enabled by the magic import <code>import $packages._</code></p>
-</div>
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.5/example-large-multi-10-multi-file-builds.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/large/multi/10-multi-file-builds">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import $packages._
-
-import mill._, scalalib._
-
-trait MyModule extends ScalaModule {
-  def scalaVersion = &quot;2.13.11&quot;
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">foo/package.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/large/multi/10-multi-file-builds/foo/package.mill">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.foo
-import mill._, scalalib._
-
-object `package` extends RootModule with build.MyModule {
-  def moduleDeps = Seq(build.bar.qux.mymodule)
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::mainargs:0.4.0&quot;)
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">bar/qux/package.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/large/multi/10-multi-file-builds/bar/qux/package.mill">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.bar.qux
-import mill._, scalalib._
-
-object mymodule extends build.MyModule {
-  def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags:0.8.2&quot;)
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>In this example, the root <code>build.mill</code> only contains the <code>trait MyModule</code>, but it is
-<code>foo/package.mill</code> and <code>bar/qux/package.mill</code> that define modules using it. The modules
-defined in <code>foo/package.mill</code> and <code>bar/qux/package.mill</code> are automatically nested within
-<code>foo</code> and <code>bar.qux</code> respectively, and can be referenced from the command line as below:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill resolve __
-bar
-...
-bar.qux.mymodule
-...
-bar.qux.mymodule.compile
-...
-foo
-...
-foo.compile
-
-&gt; ./mill bar.qux.mymodule.compile
-
-&gt; ./mill foo.compile
-
-&gt; ./mill foo.run --foo-text hello --bar-qux-text world
-Foo.value: hello
-BarQux.value: &lt;p&gt;world&lt;/p&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Note that in this example, <code>foo/package.mill</code> defines <code>object module extends RootModule</code>,
-and so the name <code>.module</code> does not need to be provided at the command line. In contrast,
-<code>bar/qux/package.mill</code> defines <code>object mymodule</code> that does not extend <code>RootModule</code>, and so
-we need to explicitly reference it with a <code>.mymodule</code> suffix.</p>
-</div>
-<div class="paragraph">
-<p><code>package.mill</code> files are only discovered in direct subfolders of the root <code>build.mill</code> or
-subfolders of another folder containing a <code>package.mill</code>; Hence in this example, we need
-an <code>bar/package.mill</code> to be present for <code>bar/qux/package.mill</code> to be discovered, even
-though <code>bar/package.mill</code> is empty</p>
+<p>This page will discuss common topics around maintaining the code quality of Python codebases using
+the Mill build tool</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_helper_files"><a class="anchor" href="#_helper_files"></a>Helper Files</h2>
+<h2 id="_formatting_and_linting_with_ruff"><a class="anchor" href="#_formatting_and_linting_with_ruff"></a>Formatting and Linting with Ruff</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Apart from having <code>package</code> files in subfolders to define modules, Mill
-also allows you to have helper code in any <code>*.mill</code> file in the same folder
-as your <code>build.mill</code> or a <code>package.mill</code>.</p>
+<p><a href="https://docs.astral.sh/ruff/">Ruff</a> is a Python linter and code formatter. Mill has built-in support
+for invoking Ruff on your Python projects, to help you catch common sources of errors and keep your
+code nice and tidy.</p>
+</div>
+<div class="sect2">
+<h3 id="_formatting"><a class="anchor" href="#_formatting"></a>Formatting</h3>
+<div class="paragraph">
+<p>First, make your module extend <code>pythonlib.RuffModule</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.5/example-large-multi-11-helper-files.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/large/multi/11-helper-files">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.5/example-pythonlib-linting-1-ruff-format.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/pythonlib/linting/1-ruff-format">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import $packages._
-import mill._, scalalib._
-import $file.foo.versions
-import $file.util.MyModule
+import mill._, pythonlib._
 
-object `package` extends RootModule with MyModule {
-  def forkEnv = Map(
-    &quot;MY_SCALA_VERSION&quot; -&gt; build.scalaVersion(),
-    &quot;MY_PROJECT_VERSION&quot; -&gt; versions.myProjectVersion
-  )
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">util.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/large/multi/11-helper-files/util.mill">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, scalalib._
-
-def myScalaVersion = &quot;2.13.14&quot;
-
-trait MyModule extends ScalaModule {
-  def scalaVersion = myScalaVersion
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">foo/package.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/large/multi/11-helper-files/foo/package.mill">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.foo
-import mill._, scalalib._
-import $file.util
-import $file.foo.versions.myProjectVersion
-object `package` extends RootModule with build_.util.MyModule {
-  def forkEnv = Map(
-    &quot;MY_SCALA_VERSION&quot; -&gt; util.myScalaVersion,
-    &quot;MY_PROJECT_VERSION&quot; -&gt; myProjectVersion
-  )
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">foo/versions.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/large/multi/11-helper-files/foo/versions.mill">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.foo
-
-def myProjectVersion = &quot;0.0.1&quot;</code></pre>
+object `package` extends RootModule with PythonModule with RuffModule</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Different helper scripts and <code>build.mill</code>/<code>package</code> files can all refer to
-each other using the <code>build</code> object, which marks the root object of your build.
-In this example:</p>
+<p>You can reformat your project’s code by running the <code>ruffFormat</code> task.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; cat src/main.py # initial poorly formatted source code
+from typing import Self
+class IntWrapper:
+   def __init__(self, x:int):
+     self.x    =x
+   def plus(self, w:Self) -&gt;   Self:
+      return     IntWrapper(self.x + w.x)
+print(IntWrapper(2).plus(IntWrapper(3)).x)
+...
+
+&gt; mill ruffFormat --diff # you can also pass in extra arguments understood by `ruff format`
+error: ...
+error: @@ -1,7 +1,12 @@
+error:  from typing import Self
+error: +
+error: +
+error:  class IntWrapper:
+error: -   def __init__(self, x:int):
+error: -     self.x    =x
+error: -   def plus(self, w:Self) -&gt;   Self:
+error: -      return     IntWrapper(self.x + w.x)
+error: +    def __init__(self, x: int):
+error: +        self.x = x
+error: +
+error: +    def plus(self, w: Self) -&gt; Self:
+error: +        return IntWrapper(self.x + w.x)
+error: +
+error: +
+error:  print(IntWrapper(2).plus(IntWrapper(3)).x)
+error: ...
+error: 1 file would be reformatted
+
+&gt; mill ruffFormat
+...1 file reformatted
+
+&gt; cat src/main.py # the file is now correctly formatted
+from typing import Self
+...
+class IntWrapper:
+    def __init__(self, x: int):
+        self.x = x
+...
+    def plus(self, w: Self) -&gt; Self:
+        return IntWrapper(self.x + w.x)
+...
+print(IntWrapper(2).plus(IntWrapper(3)).x)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can create a <code>ruff.toml</code> file in your project root to adjust the
+formatting options as desired. For example,</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; echo indent-width=2 &gt; ruff.toml
+
+&gt; mill ruffFormat
+...1 file reformatted
+
+&gt; cat src/main.py # the file is now correctly formatted with 2 spaces indentation
+from typing import Self
+...
+class IntWrapper:
+  def __init__(self, x: int):
+    self.x = x
+...
+  def plus(self, w: Self) -&gt; Self:
+    return IntWrapper(self.x + w.x)
+...
+print(IntWrapper(2).plus(IntWrapper(3)).x)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Mill also has built-in global tasks, which allow you to run ruff across all projects in your
+build, without ever needing to extend <code>RuffModule</code>.</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><code>build.mill</code> can be referred to as simple <code>build</code></p>
+<p>format all Python files globally: <code>mill mill.pythonlib.RuffModule/formatAll</code></p>
 </li>
 <li>
-<p><code>util.mill</code> can be referred to as simple <code>$file.util</code></p>
-</li>
-<li>
-<p><code>foo/package</code> can be referred to as simple <code>build.foo</code></p>
-</li>
-<li>
-<p><code>foo/versions.mill</code> can be referred to as simple <code>$file.foo.versions</code></p>
+<p>lint all Python files globally: <code>mill mill.pythonlib.RuffModule/checkAll</code></p>
 </li>
 </ul>
 </div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
-Main Env build.util.myScalaVersion: 2.13.14
-Main Env build.foo.versions.myProjectVersion: 0.0.1
-
-&gt; ./mill foo.run
-Foo Env build.util.myScalaVersion: 2.13.14
-Foo Env build.foo.versions.myProjectVersion: 0.0.1</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_legacy_sc_extension"><a class="anchor" href="#_legacy_sc_extension"></a>Legacy <code>.sc</code> extension</h2>
-<div class="sectionbody">
 <div class="paragraph">
-<p>To ease the migration from Mill 0.11.x, the older <code>.sc</code> file extension is also supported
-for Mill build files, and the <code>package</code> declaration is optional in such files. Note that
-this means that IDE support using <code>.sc</code> files will not be as good as IDE support using the
-current <code>.mill</code> extension with <code>package</code> declaration, so you should use <code>.mill</code> whenever
-possible</p>
+<p>You can also pass-in extra arguments to ruff, for example to find unformatted files and show the
+diff: <code>mill mill.pythonlib.RuffModule/formatAll --diff</code></p>
+</div>
+<div class="paragraph">
+<p>If entering <code>mill.pythonlib.RuffModule/formatAll</code> is too long, you can add an
+<a href="../fundamentals/modules.html#_aliasing_external_modules" class="xref page">External Module Alias</a> to give it a
+shorter name that’s easier to type.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.5/example-large-multi-12-helper-files-sc.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/large/multi/12-helper-files-sc">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
-import $packages._
-import $file.foo.versions
-import $file.util, util.MyModule
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill mill.pythonlib.RuffModule/formatAll</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_linting"><a class="anchor" href="#_linting"></a>Linting</h3>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.5/example-pythonlib-linting-2-ruff-check.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/pythonlib/linting/2-ruff-check">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, pythonlib._
 
-object `package` extends RootModule with MyModule {
-  def forkEnv = T {
-    Map(
-      &quot;MY_SCALA_VERSION&quot; -&gt; build.scalaVersion(),
-      &quot;MY_PROJECT_VERSION&quot; -&gt; versions.myProjectVersion
-    )
-  }
-}</code></pre>
+object `package` extends RootModule with PythonModule with RuffModule {}</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">util.sc (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/large/multi/12-helper-files-sc/util.sc">browse</a>)</div>
+<div class="title">src/main.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/pythonlib/linting/2-ruff-check/src/main.py">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import os
 
-def myScalaVersion = &quot;2.13.14&quot;
+def doit(x: int):
+    print(f&quot;&quot;)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Ruff can be used as a linter, to catch some common code smells. Run <code>ruffCheck</code> on your module:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill ruffCheck
+error: ...
+error: ...F401 [*] `os` imported but unused
+error:   |
+error: 1 | import os
+error:   |        ^^ F401
+error: 2 |
+error: 3 | def doit(x: int):
+error:   |
+error:   = help: Remove unused import: `os`
+error: ...
+error: ...F541 [*] f-string without any placeholders
+error:   |
+error: 3 | def doit(x: int):
+error: 4 |     print(f&quot;&quot;)
+error:   |           ^^^ F541
+error:   |
+error:   = help: Remove extraneous `f` prefix
+error: ...
+error: Found 2 errors.
+error: [*] 2 fixable with the `--fix` option.</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Ruff can fix most errors automatically with <code>ruffCheck --fix</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill ruffCheck --fix
+Found 2 errors (2 fixed, 0 remaining).
 
-trait MyModule extends ScalaModule {
-  def scalaVersion = myScalaVersion
-}</code></pre>
+&gt; cat src/main.py
+...
+def doit(x: int):
+    print(&quot;&quot;)</code></pre>
 </div>
-</div>
-<div class="listingblock">
-<div class="title">foo/package.sc (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/large/multi/12-helper-files-sc/foo/package.sc">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
-import $file.^.util
-import $file.versions, versions.myProjectVersion
-object `package` extends RootModule with build_.util.MyModule {
-  def forkEnv = Map(
-    &quot;MY_SCALA_VERSION&quot; -&gt; util.myScalaVersion,
-    &quot;MY_PROJECT_VERSION&quot; -&gt; myProjectVersion
-  )
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">foo/versions.sc (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/large/multi/12-helper-files-sc/foo/versions.sc">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def myProjectVersion = &quot;0.0.1&quot;</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
-Main Env build.util.myScalaVersion: 2.13.14
-Main Env build.foo.versions.myProjectVersion: 0.0.1
-
-&gt; ./mill foo.run
-Foo Env build.util.myScalaVersion: 2.13.14
-Foo Env build.foo.versions.myProjectVersion: 0.0.1</code></pre>
 </div>
 </div>
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="selective-execution.html">Selective Test Execution</a></span>
-  <span class="next"><a href="../depth/sandboxing.html">Mill Sandboxing</a></span>
+  <span class="prev"><a href="dependencies.html">Python Library Dependencies</a></span>
+  <span class="next"><a href="testing.html">Testing Python Projects</a></span>
 </nav>
 </article>
   </div>
