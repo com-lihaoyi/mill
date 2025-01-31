@@ -188,7 +188,11 @@ object CodeSigNestedTests extends UtestIntegrationTestSuite {
       val addedNewlinesInsideCurlies = eval("outer.inner.qux")
       assert(addedNewlinesInsideCurlies.out == "")
     }
+  }
+}
 
+object CodeSigNestedTraitTests extends UtestIntegrationTestSuite {
+  val tests: Tests = Tests {
     test("trait") - integrationTest { tester =>
       import tester._
       val initial = eval("traitOuter.traitInner.inner")
