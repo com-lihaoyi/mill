@@ -43,11 +43,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style><style>
-*{
-  hyphens: manual !important;
-}
-</style></head><body class="article">
+  </style></head><body class="article">
   
 <header class="header">
   
@@ -242,6 +238,37 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
     <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
@@ -266,29 +293,6 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
 <ul class="nav-list">
 
@@ -302,6 +306,14 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
   </li>
 </ul>
   </li>
@@ -337,7 +349,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Support</a>
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -361,6 +373,10 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
   </li>
 </ul>
   </li>
@@ -562,7 +578,11 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../reference/changelog.html">Changelog</a>
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
   </li>
 </ul>
   </li>
@@ -584,7 +604,7 @@
           <a href="../../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-latest">
-          <a href="../../index.html">latest-0.12.5</a>
+          <a href="../../index.html">latest-0.12.6</a>
         </li>
         <li class="version is-current">
           <a href="../index.html">0.12.x</a>
@@ -623,22 +643,6 @@
 <h1 class="page">Cross Builds</h1>
 <div id="preamble">
 <div class="sectionbody">
-
-<script>
-gtag('config', 'AW-16649289906');
-
-document.addEventListener('DOMContentLoaded', function() {
-const links = document.querySelectorAll('a');
-  links.forEach(link => {
-    if (link.textContent.trim().toLowerCase() === 'download') {
-      link.addEventListener('click', function(event) {
-        console.log("download link clicked")
-        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
-      });
-    }
-  });
-});
-</script>
 <div class="paragraph">
 <p>Cross-building refers to taking the same sources and configuration and building
 it multiple times with minor changes. This could mean taking the same Scala
@@ -655,7 +659,7 @@ config and building it across a variety of source folders.</p>
 <p>Mill handles cross-building of all sorts via the <code>Cross[T]</code> module.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-fundamentals-cross-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/fundamentals/cross/1-simple">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-fundamentals-cross-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/fundamentals/cross/1-simple">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -668,11 +672,17 @@ trait FooModule extends Cross.Module[String] {
 }</code></pre>
 </div>
 </div>
+<div class="paragraph">
 <center>
 <svg width="315px" height="364px" viewBox="0.00 0.00 314.83 364.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 360.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-360 310.83,-360 310.83,4 -4,4"></polygon>
+<g id="clust2" class="cluster">
+<title>cluster_1</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-232 298.83,-232 298.83,-124 8,-124"></polygon>
+<text text-anchor="middle" x="153.41" y="-215.4" font-family="Times,serif" font-size="14.00">foo[2.11]</text>
+</g>
 <g id="clust3" class="cluster">
 <title>cluster_0</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-240 8,-348 298.83,-348 298.83,-240 8,-240"></polygon>
@@ -682,11 +692,6 @@ trait FooModule extends Cross.Module[String] {
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-116 298.83,-116 298.83,-8 8,-8"></polygon>
 <text text-anchor="middle" x="153.41" y="-99.4" font-family="Times,serif" font-size="14.00">foo[2.12]</text>
-</g>
-<g id="clust2" class="cluster">
-<title>cluster_1</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-232 298.83,-232 298.83,-124 8,-124"></polygon>
-<text text-anchor="middle" x="153.41" y="-215.4" font-family="Times,serif" font-size="14.00">foo[2.11]</text>
 </g>
 <!-- foo[2.12].suffix -->
 <g id="node1" class="node">
@@ -764,6 +769,7 @@ trait FooModule extends Cross.Module[String] {
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>Cross modules defined using the <code>Cross[T]</code> class allow you to define
 multiple copies of the same module, differing only in some input key. This
@@ -803,13 +809,38 @@ be overridden.</p>
 ]</code></pre>
 </div>
 </div>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Please be aware that some shells like <code>zsh</code> interpret square brackets differently, so quoting or masking might be needed.</p>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_cross_modules_defaults"><a class="anchor" href="#_cross_modules_defaults"></a>Cross Modules Defaults</h2>
-<div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-fundamentals-cross-11-default-cross-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/fundamentals/cross/11-default-cross-module">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-zsh hljs" data-lang="zsh">mill show foo\[2.10\].suffix
+mill show 'foo[2.10].suffix'
+mill show &quot;foo[2.10].suffix&quot;</code></pre>
+</div>
+</div>
+</td>
+</tr>
+</tbody></table>
+</div>
+<div class="paragraph">
+<p>The Cross module’s axes can take any type <code>T</code> with <code>Cross.ToSegments[T]</code>
+defined. There are default implementations for strings, chars, numbers,
+booleans, and lists; the example above demonstrates cross axes of type
+<code>String</code>, <code>Int</code>, and <code>Boolean</code>. You can define additional <code>ToPathSegments</code>
+for your own user-defined types that you wish to use in a Cross module</p>
+</div>
+<div class="sect2">
+<h3 id="_cross_modules_defaults"><a class="anchor" href="#_cross_modules_defaults"></a>Cross Modules Defaults</h3>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-fundamentals-cross-11-default-cross-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/fundamentals/cross/11-default-cross-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -838,21 +869,19 @@ it by specifying <code>def defaultCrossSegments</code></p>
 &gt; mill show foo[].suffix # no cross value given, defaults to first cross value
 &quot;_2.10&quot;
 
-&gt; mill show bar[].suffix # no cross value given, defaults to overriden `defaultCrossSegments`
+&gt; mill show bar[].suffix # no cross value given, defaults to overridden `defaultCrossSegments`
 &quot;_2.12&quot;</code></pre>
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_cross_modules_source_paths"><a class="anchor" href="#_cross_modules_source_paths"></a>Cross Modules Source Paths</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_cross_modules_source_paths"><a class="anchor" href="#_cross_modules_source_paths"></a>Cross Modules Source Paths</h3>
 <div class="paragraph">
 <p>If you want to have dedicated <code>millSourcePath</code>s, you can add the cross
 parameters to it as follows:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-fundamentals-cross-2-cross-source-path.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/fundamentals/cross/2-cross-source-path">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-fundamentals-cross-2-cross-source-path.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/fundamentals/cross/2-cross-source-path">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -909,16 +938,14 @@ can do so by overriding <code>millSourcePath</code> as shown above.</p>
 </tbody></table>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_using_cross_modules_from_outside_tasks"><a class="anchor" href="#_using_cross_modules_from_outside_tasks"></a>Using Cross Modules from Outside Tasks</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_using_cross_modules_from_outside_tasks"><a class="anchor" href="#_using_cross_modules_from_outside_tasks"></a>Using Cross Modules from Outside Tasks</h3>
 <div class="paragraph">
 <p>You can refer to tasks defined in cross-modules using the <code>foo(&quot;2.10&quot;)</code> syntax,
 as given below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-fundamentals-cross-3-outside-dependency.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/fundamentals/cross/3-outside-dependency">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-fundamentals-cross-3-outside-dependency.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/fundamentals/cross/3-outside-dependency">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -933,6 +960,7 @@ def bar = Task { s&quot;hello ${foo(&quot;2.10&quot;).suffix()}&quot; }
 def qux = Task { s&quot;hello ${foo(&quot;2.10&quot;).suffix()} world ${foo(&quot;2.12&quot;).suffix()}&quot; }</code></pre>
 </div>
 </div>
+<div class="paragraph">
 <center>
 <svg width="202px" height="235px" viewBox="0.00 0.00 201.64 235.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 231.0)">
@@ -1006,6 +1034,7 @@ def qux = Task { s&quot;hello ${foo(&quot;2.10&quot;).suffix()} world ${foo(&quo
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>Here, <code>def bar</code> uses <code>foo(&quot;2.10&quot;)</code> to reference the <code>&quot;2.10&quot;</code> instance of
 <code>FooModule</code>. You can refer to whatever versions of the cross-module you want,
@@ -1025,16 +1054,14 @@ in <code>def qux</code>.</p>
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_using_cross_modules_from_other_cross_modules"><a class="anchor" href="#_using_cross_modules_from_other_cross_modules"></a>Using Cross Modules from other Cross Modules</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_using_cross_modules_from_other_cross_modules"><a class="anchor" href="#_using_cross_modules_from_other_cross_modules"></a>Using Cross Modules from other Cross Modules</h3>
 <div class="paragraph">
 <p>Tasks in cross-modules can use one another the same way they are used from
 external tasks:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-fundamentals-cross-4-cross-dependencies.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/fundamentals/cross/4-cross-dependencies">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-fundamentals-cross-4-cross-dependencies.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/fundamentals/cross/4-cross-dependencies">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -1050,11 +1077,17 @@ trait BarModule extends Cross.Module[String] {
 }</code></pre>
 </div>
 </div>
+<div class="paragraph">
 <center>
 <svg width="305px" height="235px" viewBox="0.00 0.00 304.72 235.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 231.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-231 300.72,-231 300.72,4 -4,4"></polygon>
+<g id="clust1" class="cluster">
+<title>cluster_2</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 128.64,-73 128.64,-8 8,-8"></polygon>
+<text text-anchor="middle" x="68.32" y="-56.4" font-family="Times,serif" font-size="14.00">foo[2.12]</text>
+</g>
 <g id="clust6" class="cluster">
 <title>cluster_3</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="148.64,-154 148.64,-219 288.72,-219 288.72,-154 148.64,-154"></polygon>
@@ -1079,11 +1112,6 @@ trait BarModule extends Cross.Module[String] {
 <title>cluster_5</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="148.64,-8 148.64,-73 288.72,-73 288.72,-8 148.64,-8"></polygon>
 <text text-anchor="middle" x="218.68" y="-56.4" font-family="Times,serif" font-size="14.00">bar[2.12]</text>
-</g>
-<g id="clust1" class="cluster">
-<title>cluster_2</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 128.64,-73 128.64,-8 8,-8"></polygon>
-<text text-anchor="middle" x="68.32" y="-56.4" font-family="Times,serif" font-size="14.00">foo[2.12]</text>
 </g>
 <!-- foo[2.12].suffix -->
 <g id="node1" class="node">
@@ -1143,6 +1171,7 @@ trait BarModule extends Cross.Module[String] {
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>Rather than passing in a literal <code>&quot;2.10&quot;</code> to the <code>foo</code> cross module, we pass
 in the <code>crossValue</code> property that is available within every <code>Cross.Module</code>.
@@ -1169,6 +1198,7 @@ of <code>foo</code>: <code>bar(&quot;2.10&quot;)</code> depends on <code>foo(&qu
 </div>
 </div>
 </div>
+</div>
 <div class="sect1">
 <h2 id="_multiple_cross_axes"><a class="anchor" href="#_multiple_cross_axes"></a>Multiple Cross Axes</h2>
 <div class="sectionbody">
@@ -1177,7 +1207,7 @@ of <code>foo</code>: <code>bar(&quot;2.10&quot;)</code> depends on <code>foo(&qu
 trait:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-fundamentals-cross-5-multiple-cross-axes.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/fundamentals/cross/5-multiple-cross-axes">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-fundamentals-cross-5-multiple-cross-axes.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/fundamentals/cross/5-multiple-cross-axes">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -1197,35 +1227,41 @@ trait FooModule extends Cross.Module2[String, String] {
 def bar = Task { s&quot;hello ${foo(&quot;2.10&quot;, &quot;jvm&quot;).suffix()}&quot; }</code></pre>
 </div>
 </div>
+<div class="paragraph">
 <center>
 <svg width="568px" height="235px" viewBox="0.00 0.00 568.06 235.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 231.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-231 564.06,-231 564.06,4 -4,4"></polygon>
-<g id="clust7" class="cluster">
-<title>cluster_2</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="14.21,-154 14.21,-219 332.27,-219 332.27,-154 14.21,-154"></polygon>
-<text text-anchor="middle" x="173.24" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.12,jvm]</text>
-</g>
-<g id="clust6" class="cluster">
-<title>cluster_1</title>
+<g id="clust5" class="cluster">
+<title>cluster_0</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="352.27,-154 352.27,-219 498.19,-219 498.19,-154 352.27,-154"></polygon>
-<text text-anchor="middle" x="425.23" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.11,jvm]</text>
+<text text-anchor="middle" x="425.23" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.10,jvm]</text>
 </g>
 <g id="clust4" class="cluster">
 <title>cluster_5</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="20.44,-81 20.44,-146 326.04,-146 326.04,-81 20.44,-81"></polygon>
 <text text-anchor="middle" x="173.24" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.12,js]</text>
 </g>
-<g id="clust2" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="358.49,-81 358.49,-146 491.96,-146 491.96,-81 358.49,-81"></polygon>
-<text text-anchor="middle" x="425.23" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.10,js]</text>
-</g>
 <g id="clust1" class="cluster">
 <title>cluster_6</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 166.35,-73 166.35,-8 8,-8"></polygon>
 <text text-anchor="middle" x="87.17" y="-56.4" font-family="Times,serif" font-size="14.00">foo[2.12,native]</text>
+</g>
+<g id="clust6" class="cluster">
+<title>cluster_1</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="186.35,-154 186.35,-219 332.27,-219 332.27,-154 186.35,-154"></polygon>
+<text text-anchor="middle" x="259.31" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.11,jvm]</text>
+</g>
+<g id="clust7" class="cluster">
+<title>cluster_2</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="14.21,-154 14.21,-219 160.13,-219 160.13,-154 14.21,-154"></polygon>
+<text text-anchor="middle" x="87.17" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.12,jvm]</text>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_4</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="358.49,-81 358.49,-146 491.96,-146 491.96,-81 358.49,-81"></polygon>
+<text text-anchor="middle" x="425.23" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.11,js]</text>
 </g>
 <!-- foo[2.12,native].suffix -->
 <g id="node1" class="node">
@@ -1289,6 +1325,7 @@ def bar = Task { s&quot;hello ${foo(&quot;2.10&quot;, &quot;jvm&quot;).suffix()}
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>This example shows off using a for-loop to generate a list of
 cross-key-tuples, as a <code>Seq[(String, String)]</code> that we then pass it into the
@@ -1317,17 +1354,14 @@ above.</p>
 }</code></pre>
 </div>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_extending_cross_modules"><a class="anchor" href="#_extending_cross_modules"></a>Extending Cross Modules</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_extending_cross_modules"><a class="anchor" href="#_extending_cross_modules"></a>Extending Cross Modules</h3>
 <div class="paragraph">
 <p>You can also take an existing cross module and extend it with additional cross
 axes as shown:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-fundamentals-cross-6-axes-extension.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/fundamentals/cross/6-axes-extension">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-fundamentals-cross-6-axes-extension.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/fundamentals/cross/6-axes-extension">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -1359,13 +1393,6 @@ tuple beyond the first is bound to the <code>crossValueN</code> property defined
 corresponding <code>Cross.ArgN</code> trait. Providing tuples of the wrong arity to the
 <code>Cross[]</code> constructor is a compile error.</p>
 </div>
-<div class="paragraph">
-<p>The Cross module’s axes can take any type <code>T</code> with <code>Cross.ToSegments[T]</code>
-defined. There are default implementations for strings, chars, numbers,
-booleans, and lists; the example above demonstrates cross axes of type
-<code>String</code>, <code>Int</code>, and <code>Boolean</code>. You can define additional <code>ToPathSegments</code>
-for your own user-defined types that you wish to use in a Cross module</p>
-</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo[a].param1
@@ -1395,11 +1422,12 @@ error: ...value _3 is not a member of (String, Int)</code></pre>
 </div>
 </div>
 </div>
+</div>
 <div class="sect1">
 <h2 id="_inner_cross_modules"><a class="anchor" href="#_inner_cross_modules"></a>Inner Cross Modules</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-fundamentals-cross-7-inner-cross-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/fundamentals/cross/7-inner-cross-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-fundamentals-cross-7-inner-cross-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/fundamentals/cross/7-inner-cross-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -1423,6 +1451,7 @@ trait FooModule extends Cross.Module[String] {
 def baz = Task { s&quot;hello ${foo(&quot;a&quot;).bar.param()}&quot; }</code></pre>
 </div>
 </div>
+<div class="paragraph">
 <center>
 <svg width="450px" height="276px" viewBox="0.00 0.00 450.44 276.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 272.0)">
@@ -1561,6 +1590,7 @@ def baz = Task { s&quot;hello ${foo(&quot;a&quot;).bar.param()}&quot; }</code></
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>You can use the <code>CrossValue</code> trait within any <code>Cross.Module</code> to
 propagate the <code>crossValue</code> defined by an enclosing <code>Cross.Module</code> to some
@@ -1592,7 +1622,7 @@ get automatically duplicated once for each <code>crossValue = &quot;a&quot;</cod
 <h2 id="_cross_resolvers"><a class="anchor" href="#_cross_resolvers"></a>Cross Resolvers</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-fundamentals-cross-8-resolvers.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/fundamentals/cross/8-resolvers">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-fundamentals-cross-8-resolvers.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/fundamentals/cross/8-resolvers">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -1634,27 +1664,6 @@ with the current cross-module.</p>
 &quot;[[[_2.10]]]&quot;</code></pre>
 </div>
 </div>
-<div class="admonitionblock note">
-<table>
-<tbody><tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>Please be aware that some shells like <code>zsh</code> interpret square brackets differently, so quoting or masking might be needed.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-zsh hljs" data-lang="zsh">mill show foo\[2.10\].suffix
-mill show 'foo[2.10].suffix'
-mill show &quot;foo[2.10].suffix&quot;</code></pre>
-</div>
-</div>
-</td>
-</tr>
-</tbody></table>
-</div>
 <div class="paragraph">
 <p>The <code>suffix</code> tasks will have the corresponding output paths for their
 metadata and files:</p>
@@ -1680,7 +1689,7 @@ metadata and files:</p>
 <h2 id="_dynamic_cross_modules"><a class="anchor" href="#_dynamic_cross_modules"></a>Dynamic Cross Modules</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-fundamentals-cross-9-dynamic-cross-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/fundamentals/cross/9-dynamic-cross-modules">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-fundamentals-cross-9-dynamic-cross-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/fundamentals/cross/9-dynamic-cross-modules">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -1751,10 +1760,10 @@ two third-party libraries - Commonmark and Scalatags - to deal with Markdown par
 HTML generation respectively:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-fundamentals-cross-10-static-blog.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/fundamentals/cross/10-static-blog">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-fundamentals-cross-10-static-blog.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/fundamentals/cross/10-static-blog">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import $ivy.`com.lihaoyi::scalatags:0.12.0`, scalatags.Text.all._
+import $ivy.`com.lihaoyi::scalatags:0.13.1`, scalatags.Text.all._
 import $ivy.`com.atlassian.commonmark:commonmark:0.13.1`
 import org.commonmark.parser.Parser
 import org.commonmark.renderer.html.HtmlRenderer</code></pre>
@@ -1892,6 +1901,7 @@ enough posts that the build is becoming noticeably slow.</p>
 <p>All caching, incremental re-computation, and parallelism is done using the
 Mill task graph. For this simple example, the graph is as follows</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="309px" height="171px" viewBox="0.00 0.00 309.47 171.20" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 167.2)">
@@ -1994,6 +2004,7 @@ Mill task graph. For this simple example, the graph is as follows</p>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>This example use case is taken from the following blog post, which contains
 some extensions and fun exercises to further familiarize yourself with Mill</p>

@@ -43,11 +43,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style><style>
-*{
-  hyphens: manual !important;
-}
-</style></head><body class="article">
+  </style></head><body class="article">
   
 <header class="header">
   
@@ -242,6 +238,37 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
     <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
@@ -266,29 +293,6 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
 <ul class="nav-list">
 
@@ -302,6 +306,14 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
   </li>
 </ul>
   </li>
@@ -337,7 +349,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Support</a>
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -361,6 +373,10 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
   </li>
 </ul>
   </li>
@@ -562,7 +578,11 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../reference/changelog.html">Changelog</a>
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
   </li>
 </ul>
   </li>
@@ -584,7 +604,7 @@
           <a href="../../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-latest">
-          <a href="../../index.html">latest-0.12.5</a>
+          <a href="../../index.html">latest-0.12.6</a>
         </li>
         <li class="version is-current">
           <a href="../index.html">0.12.x</a>
@@ -623,22 +643,6 @@
 <h1 class="page">Scala Module Configuration</h1>
 <div id="preamble">
 <div class="sectionbody">
-
-<script>
-gtag('config', 'AW-16649289906');
-
-document.addEventListener('DOMContentLoaded', function() {
-const links = document.querySelectorAll('a');
-  links.forEach(link => {
-    if (link.textContent.trim().toLowerCase() === 'download') {
-      link.addEventListener('click', function(event) {
-        console.log("download link clicked")
-        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
-      });
-    }
-  });
-});
-</script>
 <div class="paragraph">
 <p>This page goes into more detail about the various configuration options
 for <code>ScalaModule</code>.</p>
@@ -667,7 +671,7 @@ so its sources will live in the top-level <code>src/</code> folder and its tasks
 called directly via <code>compile</code> or <code>run</code> without needing a <code>foo.</code> module prefix.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-scalalib-module-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/scalalib/module/1-common-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-scalalib-module-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/scalalib/module/1-common-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -749,7 +753,7 @@ various filesystem operations:</p>
 <p><code>millSourcePath</code> refers to the base path of the module. For the root
 module, this is the root of the repo, and for inner modules it would be
 the module path e.g. for module <code>foo.bar.qux</code> the <code>millSourcePath</code> would
-be <code>foo/bar/qux</code>. This can also be overriden if necessary</p>
+be <code>foo/bar/qux</code>. This can also be overridden if necessary</p>
 </li>
 <li>
 <p><code>Task.dest</code> refers to the destination folder for a task in the <code>out/</code>
@@ -808,7 +812,7 @@ error: ...Implicit injection of + is deprecated. Convert to String to call +...<
 <h2 id="_compilation_execution_flags"><a class="anchor" href="#_compilation_execution_flags"></a>Compilation &amp; Execution Flags</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-scalalib-module-4-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/scalalib/module/4-compilation-execution-flags">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-scalalib-module-4-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/scalalib/module/4-compilation-execution-flags">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -845,7 +849,7 @@ via <code>forkArgs</code> or environment-variables via <code>forkEnv</code>.</p>
 </div>
 <div class="paragraph">
 <p>Which runs it in-process within an isolated classloader. This may be faster
-since you avoid the JVM startup, but does not support <code>forkArgs</code> or <code>forkEnv</code>.</p>
+since you avoid the JVM startup overhead, but does not support <code>forkArgs</code> or <code>forkEnv</code>.</p>
 </div>
 <div class="paragraph">
 <p>If you want to pass main-method arguments to <code>run</code> or <code>runLocal</code>, simply pass
@@ -863,7 +867,7 @@ mill foo.runLocal arg1 arg2 arg3</code></pre>
 <h2 id="_classpath_and_filesystem_resources"><a class="anchor" href="#_classpath_and_filesystem_resources"></a>Classpath and Filesystem Resources</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-scalalib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/scalalib/module/7-resources">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-scalalib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/scalalib/module/7-resources">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -875,7 +879,7 @@ object foo extends ScalaModule {
   )
 
   object test extends ScalaTests {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
 
     def otherFiles = Task.Source(millSourcePath / &quot;other-files&quot;)
@@ -898,7 +902,7 @@ object foo extends ScalaModule {
 <p>This section discusses how tests can depend on resources locally on disk.
 Mill provides two ways to do this: via the JVM classpath resources, and via
 the resource folder which is made available as the environment variable
-<code>MILL_TEST_RESOURCE_DIR</code>;</p>
+<code>MILL_TEST_RESOURCE_DIR</code> available in test suites:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -912,8 +916,8 @@ or perform other filesystem operations.</p>
 <p>The <strong>resource folder</strong>, available via <code>MILL_TEST_RESOURCE_DIR</code>, gives you
 access to the folder path of the resources on disk. This is useful in allowing
 you to list and otherwise manipulate the filesystem, which you cannot do with
-<strong>classpath resources</strong>. However, the <code>MILL_TEST_RESOURCE_DIR</code> only exists
-when running tests using Mill, and is not available when executing applications
+<strong>classpath resources</strong>. However, the <code>MILL_TEST_RESOURCE_DIR</code> <em>only</em> exists
+when running tests using Mill, and is <em>not</em> available when executing applications
 packaged for deployment via <code>.assembly</code></p>
 </li>
 <li>
@@ -927,31 +931,31 @@ provide the folder path as an environment variable that the test can make use of
 <p>Example application code demonstrating the techniques above can be seen below:</p>
 </div>
 <div class="listingblock">
-<div class="title">foo/resources/file.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/scalalib/module/7-resources/foo/resources/file.txt">browse</a>)</div>
+<div class="title">foo/resources/file.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/scalalib/module/7-resources/foo/resources/file.txt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Hello World Resource File</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/resources/test-file-a.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/scalalib/module/7-resources/foo/test/resources/test-file-a.txt">browse</a>)</div>
+<div class="title">foo/test/resources/test-file-a.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/scalalib/module/7-resources/foo/test/resources/test-file-a.txt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Test Hello World Resource File A</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/resources/test-file-b.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/scalalib/module/7-resources/foo/test/resources/test-file-b.txt">browse</a>)</div>
+<div class="title">foo/test/resources/test-file-b.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/scalalib/module/7-resources/foo/test/resources/test-file-b.txt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Test Hello World Resource File B</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/other-files/other-file.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/scalalib/module/7-resources/foo/test/other-files/other-file.txt">browse</a>)</div>
+<div class="title">foo/test/other-files/other-file.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/scalalib/module/7-resources/foo/test/other-files/other-file.txt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Other Hello World File</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/src/Foo.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/scalalib/module/7-resources/foo/src/Foo.scala">browse</a>)</div>
+<div class="title">foo/src/Foo.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/scalalib/module/7-resources/foo/src/Foo.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 
@@ -962,7 +966,7 @@ object Foo {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/FooTests.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/scalalib/module/7-resources/foo/test/src/FooTests.scala">browse</a>)</div>
+<div class="title">foo/test/src/FooTests.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/scalalib/module/7-resources/foo/test/src/FooTests.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 import utest._
@@ -998,16 +1002,18 @@ object FooTests extends TestSuite {
 </div>
 </div>
 <div class="paragraph">
-<p>Note that tests require that you pass in any files that they depend on explicitly.
-This is necessary so that Mill knows when a test needs to be re-run and when a
-previous result can be cached. This also ensures that tests reading and writing
-to the current working directory do not accidentally interfere with each others
-files, especially when running in parallel.</p>
+<p>Tests by default only have access to their <strong>classpath resources</strong> and
+<strong>resource folder</strong> as mentioned above. They cannot read random project files on disk,
+and require that you pass in any other
+files or folders that they require explicitly (e.g. <code>def otherFiles</code> above).
+This is necessary so that Mill can ensure the necessary files are in place
+before the test begins running, and so <code>-w</code>/<code>--watch</code> knows it needs to re-run
+the tests if those files changed. Thus your tests cannot just read project files
+direct off disk via <code>new FileInputStream(&quot;foo/resources/test-file-a.txt&quot;)</code>.</p>
 </div>
 <div class="paragraph">
-<p>Mill runs test processes in a <a href="../depth/sandboxing.html" class="xref page">sandbox/ folder</a>, not in your project root folder, to
-prevent you from accidentally accessing files without explicitly passing them. Thus
-you cannot just read resources off disk via <code>new FileInputStream(&quot;foo/resources/test-file-a.txt&quot;)</code>.
+<p>Mill runs test processes in a <a href="../depth/sandboxing.html" class="xref page">sandbox/ folder</a>, rather
+than in your project root folder, to enforce this.
 If you have legacy tests that need to run in the project root folder to work, you
 can configure your test suite with <code>def testSandboxWorkingDir = false</code> to disable
 the sandbox and make the tests run in the project root.</p>
@@ -1018,7 +1024,7 @@ the sandbox and make the tests run in the project root.</p>
 <h2 id="_scala_compiler_plugins"><a class="anchor" href="#_scala_compiler_plugins"></a>Scala Compiler Plugins</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-scalalib-module-8-scala-compiler-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/scalalib/module/8-scala-compiler-plugins">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-scalalib-module-8-scala-compiler-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/scalalib/module/8-scala-compiler-plugins">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -1068,12 +1074,11 @@ error:   def x = Foo.y</code></pre>
 <h2 id="_scaladoc_config"><a class="anchor" href="#_scaladoc_config"></a>Scaladoc Config</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>To generate API documenation you can use the <code>docJar</code> task on the module you’d
-like to create the documentation for, configured via <code>scalaDocOptions</code> or
-<code>javadocOptions</code>:</p>
+<p>To generate API documentation you can use the <code>docJar</code> task on the module you’d
+like to create the docs for, configured via <code>scalaDocOptions</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-scalalib-module-9-docjar.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/scalalib/module/9-docjar">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-scalalib-module-9-docjar.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/scalalib/module/9-docjar">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -1159,7 +1164,7 @@ documentation.</p>
 <h2 id="_specifying_the_main_class"><a class="anchor" href="#_specifying_the_main_class"></a>Specifying the Main Class</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-scalalib-module-11-main-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/scalalib/module/11-main-class">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-scalalib-module-11-main-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/scalalib/module/11-main-class">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -1173,8 +1178,7 @@ object `package` extends RootModule with ScalaModule {
 <div class="paragraph">
 <p>Mill’s <code>foo.run</code> by default will discover which main class to run from your
 compilation output, but if there is more than one or the main class comes from
-some library you can explicitly specify which one to use. This also adds the
-main class to your <code>foo.jar</code> and <code>foo.assembly</code> jars.</p>
+some library you can explicitly specify which one to use.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1182,13 +1186,17 @@ main class to your <code>foo.jar</code> and <code>foo.assembly</code> jars.</p>
 Hello Qux</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p><code>def mainClass</code> also adds the
+main class to your <code>foo.jar</code> and <code>foo.assembly</code> jars.</p>
+</div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_cross_scala_version_modules"><a class="anchor" href="#_cross_scala_version_modules"></a>Cross-Scala-Version Modules</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-scalalib-module-14-cross-scala-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/scalalib/module/14-cross-scala-version">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-scalalib-module-14-cross-scala-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/scalalib/module/14-cross-scala-version">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -1263,7 +1271,7 @@ trait Bar2Module extends CrossScalaModule</code></pre>
 <h2 id="_unidoc"><a class="anchor" href="#_unidoc"></a>Unidoc</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-scalalib-module-15-unidoc.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/scalalib/module/15-unidoc">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-scalalib-module-15-unidoc.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/scalalib/module/15-unidoc">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -1348,7 +1356,7 @@ count at runtime using <code>sys.props</code> and print it when the program runs
 </ol>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-scalalib-module-2-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/scalalib/module/2-custom-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-scalalib-module-2-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/scalalib/module/2-custom-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -1395,9 +1403,10 @@ object MyDeps {
 </div>
 <div class="paragraph">
 <p>The above build defines the customizations to the Mill task graph shown below,
-with the boxes representing tasks defined or overriden above and the un-boxed
+with the boxes representing tasks defined or overridden above and the un-boxed
 labels representing existing Mill tasks:</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="493px" height="119px" viewBox="0.00 0.00 492.87 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
@@ -1509,6 +1518,7 @@ labels representing existing Mill tasks:</p>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>Mill lets you define new cached Tasks using the <code>Task {…​}</code> syntax,
 depending on existing Tasks e.g. <code>foo.sources</code> via the <code>foo.sources()</code>
@@ -1586,7 +1596,7 @@ change.</p>
 <h2 id="_overriding_tasks"><a class="anchor" href="#_overriding_tasks"></a>Overriding Tasks</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-scalalib-module-3-override-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/scalalib/module/3-override-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-scalalib-module-3-override-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/scalalib/module/3-override-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._

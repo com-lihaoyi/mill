@@ -3,7 +3,7 @@
 <html lang="en"><head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Installation &amp; IDE Support :: The Mill Build Tool</title>
+    <title>Installation &amp; IDE Setup :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/cli/installation-ide.html" />
     <link rel="prev" href="../comparisons/unique.html" />
     <link rel="next" href="flags.html" />
@@ -238,6 +238,37 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
     <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
@@ -262,29 +293,6 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
 <ul class="nav-list">
 
@@ -298,6 +306,14 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
   </li>
 </ul>
   </li>
@@ -333,7 +349,7 @@
 <ul class="nav-list">
 
   <li class="nav-item is-current-page" data-depth="2">
-    <a class="nav-link" href="installation-ide.html">Installation &amp; IDE Support</a>
+    <a class="nav-link" href="installation-ide.html">Installation &amp; IDE Setup</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -357,6 +373,10 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
   </li>
 </ul>
   </li>
@@ -558,7 +578,11 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../reference/changelog.html">Changelog</a>
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
   </li>
 </ul>
   </li>
@@ -580,7 +604,7 @@
           <a href="../../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-latest">
-          <a href="../../index.html">latest-0.12.5</a>
+          <a href="../../index.html">latest-0.12.6</a>
         </li>
         <li class="version is-current">
           <a href="../index.html">0.12.x</a>
@@ -616,7 +640,7 @@
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">Installation &amp; IDE Support</h1>
+<h1 class="page">Installation &amp; IDE Setup</h1>
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
@@ -638,18 +662,19 @@ globally.</p>
 <h2 id="_bootstrap_scripts"><a class="anchor" href="#_bootstrap_scripts"></a>Bootstrap Scripts</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Although the Mill example projects come with their own <code>./mill</code> and <code>./mill.bat</code> bootstrap script,
-you can also download it manually:</p>
+<p>The Mill example projects in this documentation come with <code>./mill</code> and <code>./mill.bat</code>
+bootstrap script, included. You can also download the boostrap script manually:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Mac/Linux
-curl -L https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5 &gt; mill &amp;&amp; chmod +x mill
-echo 0.12.5 &gt; .mill-version
+curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/mill -o mill
+chmod +x mill
+echo 0.12.6 &gt; .mill-version
 
 # Windows
-curl -L https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5.bat -o mill.bat
-echo 0.12.5 &gt; .mill-version</code></pre>
+curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/mill.bat -o mill.bat
+echo 0.12.6 &gt; .mill-version</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -679,6 +704,91 @@ folder with one of the Mill example projects. There are a wide range of example 
 from hello-world to multi-module libraries to client-server web applications, and you can
 pick one most similar to what you are doing so you can hit the ground running working.</p>
 </div>
+<div class="sect2">
+<h3 id="_mill_native_executable"><a class="anchor" href="#_mill_native_executable"></a>Mill Native Executable</h3>
+<div class="paragraph">
+<p>The default Mill executable configured above requires a JVM (11 or above) installed globally in
+order to run, and imposes some Java startup overhead (100-200ms) when running Mill from the
+command line. You can also use Mill’s native executables by appending a <code>-native</code> suffix to the
+Mill version:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">echo 0.12.6-native &gt; .mill-version</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Using the <code>-native</code> suffix should provide a faster CLI experience than using Mill’s default
+JVM launcher, and makes it easier to install Mill in environments without a JVM pre-installed.</p>
+</div>
+<div class="paragraph">
+<p>Mill native executables are supported on the following OS/CPU combinations:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;" />
+<col style="width: 25%;" />
+<col style="width: 25%;" />
+<col style="width: 25%;" />
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Windows</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mac</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Linux</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Intel</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Y</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Y</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Y</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ARM</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Y</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Y</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Notably, Mill native executables <em>do not</em> support Windows-ARM, due to limitations in the
+upstream Graal Native Image tooling (see <a href="https://github.com/oracle/graal/issues/9215">oracle/graal#9215</a>).
+If you are on a platform not supported by Mill’s native executables, use the default
+JVM launcher instead.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_customizing_mills_jvm"><a class="anchor" href="#_customizing_mills_jvm"></a>Customizing Mill’s JVM</h3>
+<div class="paragraph">
+<p>Mill allows you to specify the exact JVM version you want to use to run the build tool
+via a  <code>.mill-jvm-version</code> file such as:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">echo temurin:17.0.6 &gt; .mill-jvm-version</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This has two benefits</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>.mill-jvm-version</code> can also be used with Mill’s default JVM launcher if you want
+your Mill process to use a different JVM than what you have installed globally. This
+can help ensure your project uses a consistent JVM version and behaves identically regardless
+of what the developer may have installed on their laptop or dev environment</p>
+</li>
+<li>
+<p><code>.mill-jvm-version</code> can be used together with <a href="#_mill_native_executable">Mill Native Executable</a>s to build your
+project without needing a JVM pre-installed at all. This simplifies project setup and
+onboarding of new developers.</p>
+</li>
+</ul>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -689,14 +799,6 @@ pick one most similar to what you are doing so you can hit the ground running wo
 <a href="https://build-server-protocol.github.io/">Build Server Protocol (BSP)</a>.</p>
 </div>
 <div class="paragraph">
-<p>To prepare your project for IDEs, and in general any BSP client, you can run this command to generate the BSP configuration files:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">./mill mill.bsp.BSP/install</code></pre>
-</div>
-</div>
-<div class="paragraph">
 <p>Your IDEs may already auto-detect the Mill project and run this command on behalf of you, when opening/importing the project.</p>
 </div>
 <div class="sect2">
@@ -705,7 +807,7 @@ pick one most similar to what you are doing so you can hit the ground running wo
 <p>To use Mill with IntelliJ, first ensure you have the free
 <a href="https://plugins.jetbrains.com/plugin/1347-scala">IntelliJ Scala Plugin</a>
 installed. This is necessary as Mill build files are written in Scala,
-even if you are using it to build a Java or Kotlin project.</p>
+even if you are using it to build a Java or Kotlin or Python project.</p>
 </div>
 <div class="paragraph">
 <p>Once you have the plugin installed, you can use IntelliJ to open any project
@@ -748,6 +850,15 @@ those updates by opening the &quot;BSP&quot; tab and clicking the &quot;Refresh&
 <div class="imageblock">
 <div class="content">
 <img src="../_images/basic/IntellijRefresh.png" alt="IntellijRefresh" />
+</div>
+</div>
+<div class="paragraph">
+<p>To prepare your project for IDEs, and in general any BSP client, you can also
+run this command to generate the BSP configuration files:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">./mill mill.bsp.BSP/install</code></pre>
 </div>
 </div>
 <div class="sect3">
@@ -890,7 +1001,7 @@ specified in <code>./mill</code>, <code>.config/mill-version</code> or <code>.mi
 </div>
 </div>
 <div class="sect1">
-<h2 id="_working_without_access_to_maven_central"><a class="anchor" href="#_working_without_access_to_maven_central"></a>Working without access to Maven Central</h2>
+<h2 id="_using_mill_without_access_to_maven_central"><a class="anchor" href="#_using_mill_without_access_to_maven_central"></a>Using Mill without access to Maven Central</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Under some circumstances (e.g. corporate firewalls), you may not have access maven central.
@@ -909,22 +1020,24 @@ Resolution failed for 1 modules:
 </div>
 <div class="paragraph">
 <p>It is expected that basic commands (e.g. clean) will not work, as Mill saying it is
-unable to resolve it’s own, fundamental, dependencies. Under such circumstances, you
+unable to resolve it’s own, fundamental, dependencies from the default Maven Central
+JVM package repository. Under such circumstances, you
 will normally have access to some proxy, or other corporate repository which resolves
 maven artifacts. The strategy is simply to tell mill to use that instead.</p>
 </div>
 <div class="paragraph">
-<p>The idea is to set an environment variable COURSIER_REPOSITORIES (see coursier docs).
+<p>To resolve this, you can set an environment variable COURSIER_REPOSITORIES (see coursier docs)
+to point at your own server that mirrors the Maven Central artifacts.
 The below command should pass the environment variable to the <code>mill</code> command.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre> COURSIER_REPOSITORIES=https://packages.corp.com/artifactory/maven/ mill resolve _</pre>
+<pre>COURSIER_REPOSITORIES=https://packages.corp.com/artifactory/maven/ mill resolve _</pre>
 </div>
 </div>
 <div class="paragraph">
 <p>If you are using bootstrap script, a more permanent solution could be to set the environment variable
-at the top of the bootstrap script, or as a user environment variable etc.</p>
+at the top of the bootstrap script, or as a user environment variable.</p>
 </div>
 </div>
 </div>
@@ -954,19 +1067,47 @@ and keep them up-to-date.
 </div>
 </div>
 <div class="sect1">
-<h2 id="_development_releases"><a class="anchor" href="#_development_releases"></a>Development Releases</h2>
+<h2 id="_unstable_development_releases"><a class="anchor" href="#_unstable_development_releases"></a>Unstable Development Releases</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>In case you want to try out the latest features and improvements that are
 currently in the main branch, unstable versions of Mill
-are
-<a href="https://github.com/com-lihaoyi/mill/releases">available</a> as binaries named
-<code>#.#.#-n-hash</code> linked to the latest tag.</p>
+are available as versions named:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>{stable-version}-{commits-since-stable-version}-{commit-hash}</code></p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
-<p>The easiest way to use a development release is to use one of the
-<a href="#_bootstrap_scripts">Bootstrap Scripts</a>, which support overriding Mill versions via an
-<code>MILL_VERSION</code> environment variable or a <code>.mill-version</code> or <code>.config/mill-version</code> file.</p>
+<p>For example, <code>0.12.5-193-b4d975</code> is an unstable release after <code>0.12.5</code>, with <code>193</code>
+additional commits, on commit hash <code>b4d975</code>.</p>
+</div>
+<div class="paragraph">
+<p>The list of unstable releases can be seen on Maven Central:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist" class="bare">https://repo1.maven.org/maven2/com/lihaoyi/mill-dist</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Or find the latest unstable version here:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://central.sonatype.com/artifact/com.lihaoyi/mill-dist" class="bare">https://central.sonatype.com/artifact/com.lihaoyi/mill-dist</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You can update your <code>.mill-version</code> to to the unstable version and the bootstrap script
+will download it for you to try it out in your project.</p>
 </div>
 </div>
 </div>
@@ -1049,7 +1190,7 @@ a <a href="#_bootstrap_scripts">bootstrap script</a> instead.
 <h3 id="_windows"><a class="anchor" href="#_windows"></a>Windows</h3>
 <div class="paragraph">
 <p>To get started, download Mill from
-<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-assembly">Github releases</a>, and save it as <code>mill.bat</code>.</p>
+<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.6/0.12.6-assembly">Github releases</a>, and save it as <code>mill.bat</code>.</p>
 </div>
 <div class="paragraph">
 <p>If you’re using <a href="https://scoop.sh">Scoop</a> you can install Mill via</p>
@@ -1107,7 +1248,7 @@ docker run -it nightscape/scala-mill</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">sh -c &quot;curl -L https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5 &gt; ~/.local/bin/mill &amp;&amp; chmod +x ~/.local/bin/mill&quot;</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">sh -c &quot;curl -L https://github.com/com-lihaoyi/mill/releases/download/0.12.6/0.12.6 &gt; ~/.local/bin/mill &amp;&amp; chmod +x ~/.local/bin/mill&quot;</code></pre>
 </div>
 </div>
 </div>

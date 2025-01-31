@@ -237,6 +237,37 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
     <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
@@ -261,29 +292,6 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
 <ul class="nav-list">
 
@@ -297,6 +305,14 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
   </li>
 </ul>
   </li>
@@ -332,7 +348,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="installation-ide.html">Installation &amp; IDE Support</a>
+    <a class="nav-link" href="installation-ide.html">Installation &amp; IDE Setup</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -356,6 +372,10 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
   </li>
 </ul>
   </li>
@@ -557,7 +577,11 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../reference/changelog.html">Changelog</a>
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
   </li>
 </ul>
   </li>
@@ -569,7 +593,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">latest-0.12.5</span>
+    <span class="version">latest-0.12.6</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -579,7 +603,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">latest-0.12.5</a>
+          <a href="../index.html">latest-0.12.6</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.x</a>
@@ -618,26 +642,6 @@
 <h1 class="page">Task Query Syntax</h1>
 <div id="preamble">
 <div class="sectionbody">
-<style>
-*{
-  hyphens: manual !important;
-}
-</style>
-<script>
-gtag('config', 'AW-16649289906');
-
-document.addEventListener('DOMContentLoaded', function() {
-const links = document.querySelectorAll('a');
-  links.forEach(link => {
-    if (link.textContent.trim().toLowerCase() === 'download') {
-      link.addEventListener('click', function(event) {
-        console.log("download link clicked")
-        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
-      });
-    }
-  });
-});
-</script>
 <div class="paragraph">
 <p>When interacting with Mill from the CLI, you often need to select tasks or modules.
 In most places, where Mill accepts a task, it really accepts a task selector query, which is the name of a task in its simplest form, but it can also contain wildcards, type pattern and other special syntax, making it a powerful tool to select specific tasks.</p>

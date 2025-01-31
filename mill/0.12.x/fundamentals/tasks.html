@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Tasks :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/fundamentals/tasks.html" />
-    <link rel="prev" href="../migrating/maven.html" />
+    <link rel="prev" href="../migrating/gradle.html" />
     <link rel="next" href="modules.html" />
     <meta name="generator" content="Antora 3.1.9" />
     <link rel="stylesheet" href="../../../_/css/site.css" />
@@ -43,11 +43,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style><style>
-*{
-  hyphens: manual !important;
-}
-</style></head><body class="article">
+  </style></head><body class="article">
   
 <header class="header">
   
@@ -242,6 +238,37 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
     <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
@@ -266,29 +293,6 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
 <ul class="nav-list">
 
@@ -302,6 +306,14 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
   </li>
 </ul>
   </li>
@@ -337,7 +349,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Support</a>
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -361,6 +373,10 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
   </li>
 </ul>
   </li>
@@ -562,7 +578,11 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../reference/changelog.html">Changelog</a>
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
   </li>
 </ul>
   </li>
@@ -584,7 +604,7 @@
           <a href="../../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-latest">
-          <a href="../../index.html">latest-0.12.5</a>
+          <a href="../../index.html">latest-0.12.6</a>
         </li>
         <li class="version is-current">
           <a href="../index.html">0.12.x</a>
@@ -623,22 +643,6 @@
 <h1 class="page">Tasks</h1>
 <div id="preamble">
 <div class="sectionbody">
-
-<script>
-gtag('config', 'AW-16649289906');
-
-document.addEventListener('DOMContentLoaded', function() {
-const links = document.querySelectorAll('a');
-  links.forEach(link => {
-    if (link.textContent.trim().toLowerCase() === 'download') {
-      link.addEventListener('click', function(event) {
-        console.log("download link clicked")
-        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
-      });
-    }
-  });
-});
-</script>
 <div class="paragraph">
 <p>One of Mill’s core abstractions is its <em>Task Graph</em>: this is how Mill defines,
 orders and caches work it needs to do, and exists independently of any support
@@ -646,7 +650,7 @@ for building Java, Kotlin, or Scala.</p>
 </div>
 <div class="paragraph">
 <p>Mill task graphs are primarily built using methods and macros defined on
-<code>mill.define.Task</code>, aliased as <code>T</code> for conciseness:</p>
+<code>mill.define.Task</code>, whose type is often aliased as <code>T[_]</code> for conciseness:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -680,9 +684,9 @@ different Task types:</p>
 <th class="tableblock halign-left valign-top">Target</th>
 <th class="tableblock halign-left valign-top">Command</th>
 <th class="tableblock halign-left valign-top">Source/Input</th>
-<th class="tableblock halign-left valign-top">Anonymous Task</th>
 <th class="tableblock halign-left valign-top">Persistent Task</th>
 <th class="tableblock halign-left valign-top">Worker</th>
+<th class="tableblock halign-left valign-top">Anonymous Task</th>
 </tr>
 </thead>
 <tbody>
@@ -691,8 +695,8 @@ different Task types:</p>
 <td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
+<td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
@@ -700,8 +704,8 @@ different Task types:</p>
 <td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
-<td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
+<td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
@@ -709,8 +713,8 @@ different Task types:</p>
 <td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
+<td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
@@ -718,8 +722,8 @@ different Task types:</p>
 <td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
 <td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
+<td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
@@ -727,9 +731,9 @@ different Task types:</p>
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
 <td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Cached In-Memory</p></td>
@@ -737,18 +741,18 @@ different Task types:</p>
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
+<td class="tableblock halign-left valign-top"></td>
 </tr>
 </tbody>
 </table>
 <div class="paragraph">
 <p>The following is a simple self-contained example using Mill to compile Java,
-making use of the <code>Task.Source</code> and <code>Task</code> types to define a simple build graph
-with some input source files and intermediate build steps:</p>
+making use of the most common <code>Task.Source</code>, <code>Task</code>, and <code>Task.Command</code> types
+to define a simple build graph with some input source files and intermediate build steps:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-fundamentals-tasks-1-task-graph.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/fundamentals/tasks/1-task-graph">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-fundamentals-tasks-1-task-graph.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/fundamentals/tasks/1-task-graph">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -760,7 +764,7 @@ def resources = Task.Source(millSourcePath / &quot;resources&quot;)
 
 def compile = Task {
   val allSources = os.walk(sources().path)
-  os.proc(&quot;javac&quot;, allSources, &quot;-d&quot;, Task.dest).call()
+  os.call((&quot;javac&quot;, allSources, &quot;-d&quot;, Task.dest))
   PathRef(Task.dest)
 }
 
@@ -768,10 +772,16 @@ def assembly = Task {
   for (p &lt;- Seq(compile(), resources())) os.copy(p.path, Task.dest, mergeFolders = true)
 
   val mainFlags = mainClass().toSeq.flatMap(Seq(&quot;-e&quot;, _))
-  os.proc(&quot;jar&quot;, &quot;-c&quot;, mainFlags, &quot;-f&quot;, Task.dest / &quot;assembly.jar&quot;, &quot;.&quot;)
-    .call(cwd = Task.dest)
+  os.call(
+    (&quot;jar&quot;, &quot;-c&quot;, mainFlags, &quot;-f&quot;, Task.dest / &quot;assembly.jar&quot;, &quot;.&quot;),
+    cwd = Task.dest
+  )
 
   PathRef(Task.dest / &quot;assembly.jar&quot;)
+}
+
+def run(args: String*) = Task.Command {
+  os.call((&quot;java&quot;, &quot;-jar&quot;, assembly().path, args), stdout = os.Inherit)
 }</code></pre>
 </div>
 </div>
@@ -779,11 +789,12 @@ def assembly = Task {
 <p>This code defines the following task graph, with the boxes being the tasks
 and the arrows representing the <em>data-flow</em> between them:</p>
 </div>
+<div class="paragraph">
 <center>
-<svg width="280px" height="119px" viewBox="0.00 0.00 280.41 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="351px" height="119px" viewBox="0.00 0.00 351.07 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 276.41,-114.8 276.41,4 -4,4"></polygon>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 347.07,-114.8 347.07,4 -4,4"></polygon>
 <!-- sources -->
 <g id="node1" class="node">
 <title>sources</title>
@@ -814,6 +825,18 @@ and the arrows representing the <em>data-flow</em> between them:</p>
 <path fill="none" stroke="black" d="M161.73,-86.31C172.86,-81.76 185.69,-76.51 197.6,-71.65"></path>
 <polygon fill="black" stroke="black" points="198.96,-74.87 206.89,-67.85 196.31,-68.39 198.96,-74.87"></polygon>
 </g>
+<!-- run -->
+<g id="node6" class="node">
+<title>run</title>
+<polygon fill="white" stroke="black" points="342.9,-67.7 308.57,-67.7 308.57,-43.1 342.9,-43.1 342.9,-67.7"></polygon>
+<text text-anchor="middle" x="325.74" y="-51.2" font-family="Times,serif" font-size="14.00">run</text>
+</g>
+<!-- assembly&#45;&gt;run -->
+<g id="edge5" class="edge">
+<title>assembly-&gt;run</title>
+<path fill="none" stroke="black" d="M272.61,-55.4C280.98,-55.4 289.86,-55.4 297.87,-55.4"></path>
+<polygon fill="black" stroke="black" points="298.13,-58.9 308.13,-55.4 298.13,-51.9 298.13,-58.9"></polygon>
+</g>
 <!-- resources -->
 <g id="node4" class="node">
 <title>resources</title>
@@ -842,11 +865,25 @@ and the arrows representing the <em>data-flow</em> between them:</p>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>This example does not use any of Mill’s builtin support for building Java or
 Scala projects, and instead builds a pipeline &quot;from scratch&quot; using Mill
-tasks and <code>javac</code>/<code>jar</code>/<code>java</code> subprocesses. We define <code>Task.Source</code> folders,
-plain <code>T{…​}</code> tasks that depend on them, and a <code>Task.Command</code>.</p>
+tasks and <code>javac</code>/<code>jar</code>/<code>java</code> subprocesses. It makes use of the three most
+common kind of tasks:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>sources</code> and <code>resources</code> are <a href="#_sources">Sources</a></p>
+</li>
+<li>
+<p><code>mainClass</code>, <code>compile</code>, and <code>assembly</code> are cached <a href="#_tasks">Tasks</a></p>
+</li>
+<li>
+<p><code>run</code> is a <a href="#_commands">Command</a></p>
+</li>
+</ul>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -878,11 +915,12 @@ necessary, depending on what input sources changed:</p>
 </li>
 </ul>
 </div>
+<div class="paragraph">
 <center>
-<svg width="280px" height="119px" viewBox="0.00 0.00 280.41 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="351px" height="119px" viewBox="0.00 0.00 351.07 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 276.41,-114.8 276.41,4 -4,4"></polygon>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 347.07,-114.8 347.07,4 -4,4"></polygon>
 <!-- sources -->
 <g id="node1" class="node">
 <title>sources</title>
@@ -913,6 +951,18 @@ necessary, depending on what input sources changed:</p>
 <path fill="none" stroke="black" d="M161.73,-86.31C172.86,-81.76 185.69,-76.51 197.6,-71.65"></path>
 <polygon fill="black" stroke="black" points="198.96,-74.87 206.89,-67.85 196.31,-68.39 198.96,-74.87"></polygon>
 </g>
+<!-- run -->
+<g id="node6" class="node">
+<title>run</title>
+<polygon fill="white" stroke="black" points="342.9,-67.7 308.57,-67.7 308.57,-43.1 342.9,-43.1 342.9,-67.7"></polygon>
+<text text-anchor="middle" x="325.74" y="-51.2" font-family="Times,serif" font-size="14.00">run</text>
+</g>
+<!-- assembly&#45;&gt;run -->
+<g id="edge5" class="edge">
+<title>assembly-&gt;run</title>
+<path fill="none" stroke="black" d="M272.61,-55.4C280.98,-55.4 289.86,-55.4 297.87,-55.4"></path>
+<polygon fill="black" stroke="black" points="298.13,-58.9 308.13,-55.4 298.13,-51.9 298.13,-58.9"></polygon>
+</g>
 <!-- resources -->
 <g id="node4" class="node">
 <title>resources</title>
@@ -941,6 +991,7 @@ necessary, depending on what input sources changed:</p>
 </svg>
 
 </center>
+</div>
 <div class="ulist">
 <ul>
 <li>
@@ -949,11 +1000,12 @@ and use the cached output of <code>compile</code> (green)</p>
 </li>
 </ul>
 </div>
+<div class="paragraph">
 <center>
-<svg width="280px" height="119px" viewBox="0.00 0.00 280.41 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="351px" height="119px" viewBox="0.00 0.00 351.07 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 276.41,-114.8 276.41,4 -4,4"></polygon>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 347.07,-114.8 347.07,4 -4,4"></polygon>
 <!-- sources -->
 <g id="node1" class="node">
 <title>sources</title>
@@ -984,6 +1036,18 @@ and use the cached output of <code>compile</code> (green)</p>
 <path fill="none" stroke="black" d="M161.73,-86.31C172.86,-81.76 185.69,-76.51 197.6,-71.65"></path>
 <polygon fill="black" stroke="black" points="198.96,-74.87 206.89,-67.85 196.31,-68.39 198.96,-74.87"></polygon>
 </g>
+<!-- run -->
+<g id="node6" class="node">
+<title>run</title>
+<polygon fill="white" stroke="black" points="342.9,-67.7 308.57,-67.7 308.57,-43.1 342.9,-43.1 342.9,-67.7"></polygon>
+<text text-anchor="middle" x="325.74" y="-51.2" font-family="Times,serif" font-size="14.00">run</text>
+</g>
+<!-- assembly&#45;&gt;run -->
+<g id="edge5" class="edge">
+<title>assembly-&gt;run</title>
+<path fill="none" stroke="black" d="M272.61,-55.4C280.98,-55.4 289.86,-55.4 297.87,-55.4"></path>
+<polygon fill="black" stroke="black" points="298.13,-58.9 308.13,-55.4 298.13,-51.9 298.13,-58.9"></polygon>
+</g>
 <!-- resources -->
 <g id="node4" class="node">
 <title>resources</title>
@@ -1013,6 +1077,93 @@ and use the cached output of <code>compile</code> (green)</p>
 
 </center>
 </div>
+<div class="paragraph">
+<p><code>run</code> behaves differently from <code>assembly</code>: as a <code>Task.Command</code> it is executed
+every time you run it, even if none of it’s upstream <code>Task</code>s or <code>Source</code>s changed.</p>
+</div>
+<div class="paragraph">
+<center>
+<svg width="351px" height="119px" viewBox="0.00 0.00 351.07 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 347.07,-114.8 347.07,4 -4,4"></polygon>
+<!-- sources -->
+<g id="node1" class="node">
+<title>sources</title>
+<polygon fill="lightgreen" stroke="black" points="57.97,-110.7 0.01,-110.7 0.01,-86.1 57.97,-86.1 57.97,-110.7"></polygon>
+<text text-anchor="middle" x="28.99" y="-94.2" font-family="Times,serif" font-size="14.00">sources</text>
+</g>
+<!-- compile -->
+<g id="node2" class="node">
+<title>compile</title>
+<polygon fill="lightgreen" stroke="black" points="161.74,-110.7 100.54,-110.7 100.54,-86.1 161.74,-86.1 161.74,-110.7"></polygon>
+<text text-anchor="middle" x="131.14" y="-94.2" font-family="Times,serif" font-size="14.00">compile</text>
+</g>
+<!-- sources&#45;&gt;compile -->
+<g id="edge1" class="edge">
+<title>sources-&gt;compile</title>
+<path fill="none" stroke="black" d="M58.15,-98.4C68.15,-98.4 79.6,-98.4 90.38,-98.4"></path>
+<polygon fill="black" stroke="black" points="90.44,-101.9 100.44,-98.4 90.44,-94.9 90.44,-101.9"></polygon>
+</g>
+<!-- assembly -->
+<g id="node3" class="node">
+<title>assembly</title>
+<polygon fill="lightgreen" stroke="black" points="272.46,-67.7 204.26,-67.7 204.26,-43.1 272.46,-43.1 272.46,-67.7"></polygon>
+<text text-anchor="middle" x="238.36" y="-51.2" font-family="Times,serif" font-size="14.00">assembly</text>
+</g>
+<!-- compile&#45;&gt;assembly -->
+<g id="edge2" class="edge">
+<title>compile-&gt;assembly</title>
+<path fill="none" stroke="black" d="M161.73,-86.31C172.86,-81.76 185.69,-76.51 197.6,-71.65"></path>
+<polygon fill="black" stroke="black" points="198.96,-74.87 206.89,-67.85 196.31,-68.39 198.96,-74.87"></polygon>
+</g>
+<!-- run -->
+<g id="node6" class="node">
+<title>run</title>
+<polygon fill="lightpink" stroke="black" points="342.9,-67.7 308.57,-67.7 308.57,-43.1 342.9,-43.1 342.9,-67.7"></polygon>
+<text text-anchor="middle" x="325.74" y="-51.2" font-family="Times,serif" font-size="14.00">run</text>
+</g>
+<!-- assembly&#45;&gt;run -->
+<g id="edge5" class="edge">
+<title>assembly-&gt;run</title>
+<path fill="none" stroke="black" d="M272.61,-55.4C280.98,-55.4 289.86,-55.4 297.87,-55.4"></path>
+<polygon fill="black" stroke="black" points="298.13,-58.9 308.13,-55.4 298.13,-51.9 298.13,-58.9"></polygon>
+</g>
+<!-- resources -->
+<g id="node4" class="node">
+<title>resources</title>
+<polygon fill="lightgreen" stroke="black" points="165.5,-67.7 96.79,-67.7 96.79,-43.1 165.5,-43.1 165.5,-67.7"></polygon>
+<text text-anchor="middle" x="131.14" y="-51.2" font-family="Times,serif" font-size="14.00">resources</text>
+</g>
+<!-- resources&#45;&gt;assembly -->
+<g id="edge3" class="edge">
+<title>resources-&gt;assembly</title>
+<path fill="none" stroke="black" d="M165.72,-55.4C174.73,-55.4 184.6,-55.4 194.06,-55.4"></path>
+<polygon fill="black" stroke="black" points="194.09,-58.9 204.09,-55.4 194.09,-51.9 194.09,-58.9"></polygon>
+</g>
+<!-- mainClass -->
+<g id="node5" class="node">
+<title>mainClass</title>
+<polygon fill="lightgreen" stroke="black" points="168.47,-24.7 93.81,-24.7 93.81,-0.1 168.47,-0.1 168.47,-24.7"></polygon>
+<text text-anchor="middle" x="131.14" y="-8.2" font-family="Times,serif" font-size="14.00">mainClass</text>
+</g>
+<!-- mainClass&#45;&gt;assembly -->
+<g id="edge4" class="edge">
+<title>mainClass-&gt;assembly</title>
+<path fill="none" stroke="black" d="M162.29,-24.72C173.3,-29.22 185.92,-34.38 197.63,-39.17"></path>
+<polygon fill="black" stroke="black" points="196.62,-42.53 207.2,-43.08 199.27,-36.05 196.62,-42.53"></polygon>
+</g>
+</g>
+</svg>
+
+</center>
+</div>
+<div class="paragraph">
+<p><code>Command</code> outputs are never cached, and thus can never be
+re-used. The only times <code>Command</code>s may be
+skipped is due to <a href="../large/selective-execution.html" class="xref page">Selective Test Execution</a></p>
+</div>
+</div>
 </div>
 <div class="sect1">
 <h2 id="primitive-tasks"><a class="anchor" href="#primitive-tasks"></a>Primary Tasks</h2>
@@ -1026,7 +1177,7 @@ and use the cached output of <code>compile</code> (green)</p>
 <p><a href="#_sources">Sources</a>, defined using <code>Task.Sources {…​}</code></p>
 </li>
 <li>
-<p><a href="#_cached_tasks">Cached Tasks</a>, defined using <code>Task {…​}</code></p>
+<p><a href="#_tasks">Tasks</a>, defined using <code>Task {…​}</code></p>
 </li>
 <li>
 <p><a href="#_commands">Commands</a>, defined using <code>Task.Command {…​}</code></p>
@@ -1036,7 +1187,7 @@ and use the cached output of <code>compile</code> (green)</p>
 <div class="sect2">
 <h3 id="_sources"><a class="anchor" href="#_sources"></a>Sources</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-fundamentals-tasks-2-primary-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/fundamentals/tasks/2-primary-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-fundamentals-tasks-2-primary-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/fundamentals/tasks/2-primary-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1050,17 +1201,18 @@ def resources = Task.Source { millSourcePath / &quot;resources&quot; }</code></p
 <p><code>Source</code>s are defined using <code>Task.Source{…​}</code> taking one <code>os.Path</code>, or <code>Task.Sources{…​}</code>,
 taking multiple <code>os.Path</code>s as arguments. A <code>Source</code>'s:
 its build signature/<code>hashCode</code> depends not just on the path
-it refers to (e.g. <code>foo/bar/baz</code>) but also the MD5 hash of the filesystem
-tree under that path.</p>
+it refers to (e.g. <code>foo/bar/baz</code>) but also the MD5 hash of the file contents or
+folder tree at that path.</p>
 </div>
 <div class="paragraph">
-<p><code>Task.Source</code> and <code>Task.Sources</code> are most common inputs in any Mill build:
+<p><code>Task.Source</code> and <code>Task.Sources</code> are common inputs in any Mill build:
 they watch source files and folders and cause downstream tasks to
-re-compute if a change is detected.</p>
+re-compute if a change is detected. Non-file inputs to the build can
+also be captured via the more general <a href="#_inputs">Input</a> tasks</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_cached_tasks"><a class="anchor" href="#_cached_tasks"></a>Cached Tasks</h3>
+<h3 id="_tasks"><a class="anchor" href="#_tasks"></a>Tasks</h3>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def allSources = Task {
@@ -1077,6 +1229,7 @@ def lineCount: T[Int] = Task {
 }</code></pre>
 </div>
 </div>
+<div class="paragraph">
 <center>
 <svg width="284px" height="33px" viewBox="0.00 0.00 283.51 32.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 28.8)">
@@ -1116,8 +1269,9 @@ def lineCount: T[Int] = Task {
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
-<p><code>Cached Tasks</code>s are defined using the <code>def foo = Task {…​}</code> syntax, and dependencies
+<p><code>Tasks</code>s are defined using the <code>def foo = Task {…​}</code> syntax, and dependencies
 on other tasks are defined using <code>foo()</code> to extract the value from them.
 Apart from the <code>foo()</code> calls, the <code>Task {…​}</code> block contains arbitrary code that
 does some work and returns a result. Note that tasks cannot have circular dependencies
@@ -1136,12 +1290,6 @@ documentation for more details:</p>
 </li>
 </ul>
 </div>
-<div class="paragraph">
-<p>If a cached task’s inputs change but its output does not, e.g. someone changes a
-comment within the source files that doesn’t affect the classfiles, then
-downstream tasks do not re-evaluate. This is determined using the
-<code>.hashCode</code> of the cached task’s return value.</p>
-</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show lineCount
@@ -1151,6 +1299,12 @@ Computing line count
 &gt; ./mill show lineCount # line count already cached, doesn't need to be computed
 18</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>If a cached task’s inputs change but its output does not, then
+downstream tasks do not re-evaluate. e.g. Someone may change a
+comment within an input source file that doesn’t affect the output classfiles.
+This is determined using the <code>.hashCode</code> of the cached task’s return value.</p>
 </div>
 <div class="paragraph">
 <p>Furthermore, when code changes occur, cached tasks only invalidate if the code change
@@ -1183,8 +1337,8 @@ next time it is invoked:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>For more information on how the bytecode analysis necessary for invalidating cached tasks
-based on code-changes work, see <a href="https://github.com/com-lihaoyi/mill/pull/2417">PR#2417</a>
+<p>For more information on how invalidating tasks
+based on code-changes works, see <a href="https://github.com/com-lihaoyi/mill/pull/2417">PR#2417</a>
 that implemented it.</p>
 </div>
 <div class="paragraph">
@@ -1200,8 +1354,9 @@ external tools. See the uPickle library documentation for more details:</p>
 </li>
 </ul>
 </div>
-<div class="sect3">
-<h4 id="_task_dest"><a class="anchor" href="#_task_dest"></a>Task.dest</h4>
+</div>
+<div class="sect2">
+<h3 id="_task_dest"><a class="anchor" href="#_task_dest"></a>Task.dest</h3>
 <div class="paragraph">
 <p>Each task is assigned a unique <a href="https://mill-build.org/api/latest/mill/api/Ctx.html#dest:os.Path">Task.dest</a>
 folder on disk (e.g. <code>classFiles</code> is given <code>out/classFiles.dest/</code>). <code>Task.dest</code> is
@@ -1234,6 +1389,7 @@ def jar = Task {
 }</code></pre>
 </div>
 </div>
+<div class="paragraph">
 <center>
 <svg width="256px" height="76px" viewBox="0.00 0.00 255.51 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
@@ -1285,6 +1441,7 @@ def jar = Task {
 </svg>
 
 </center>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill jar
@@ -1302,20 +1459,18 @@ Generating jar
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-<strong><code>os.pwd</code> of the Mill process is set to an empty <code>sandbox/</code> folder by default.</strong>
+<strong><code>os.pwd</code> within a <code>Task</code> is set to the <code>Task.dest</code> folder by default.</strong>
 This is to stop you from accidentally reading and writing files to the base repository root,
 which would cause problems with Mill’s caches not invalidating properly or files from different
-tasks colliding and causing issues.
-You should never use <code>os.pwd</code> or rely on the process working directory, and always explicitly
-use <code>Task.dest</code> or the <code>.path</code> of upstream <code>PathRef</code>s when accessing files. In the rare case where
+tasks colliding and causing issues. In the rare case where
 you truly need the Mill project root folder, you can access it via <code>Task.workspace</code>
 </td>
 </tr>
 </tbody></table>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_dependent_tasks"><a class="anchor" href="#_dependent_tasks"></a>Dependent Tasks</h4>
+<div class="sect2">
+<h3 id="_dependent_tasks"><a class="anchor" href="#_dependent_tasks"></a>Dependent Tasks</h3>
 <div class="paragraph">
 <p>Tasks can depend on other tasks via the <code>foo()</code> syntax.</p>
 </div>
@@ -1335,6 +1490,7 @@ def hugeFileName = Task {
 }</code></pre>
 </div>
 </div>
+<div class="paragraph">
 <center>
 <svg width="318px" height="33px" viewBox="0.00 0.00 318.49 32.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 28.8)">
@@ -1374,6 +1530,7 @@ def hugeFileName = Task {
 </svg>
 
 </center>
+</div>
 <div class="admonitionblock caution">
 <table>
 <tbody><tr>
@@ -1405,11 +1562,12 @@ Finding Largest File
 &quot;&lt;no-huge-file&gt;&quot;</code></pre>
 </div>
 </div>
-</div>
 <div class="sect3">
-<h4 id="_custom_types"><a class="anchor" href="#_custom_types"></a>Custom Types</h4>
+<h4 id="_custom_return_types"><a class="anchor" href="#_custom_return_types"></a>Custom Return Types</h4>
 <div class="paragraph">
-<p>uPickle comes with built-in support for most Scala primitive types and
+<p>All Task return types must be JSON serializable via
+<a href="https://github.com/com-lihaoyi/upickle">uPickle</a>, and
+uPickle comes with built-in support for most Scala primitive types and
 builtin data structures: tuples, collections, <code>PathRef</code>s, etc. can be
 returned and automatically serialized/de-serialized as necessary. One
 notable exception is <code>case class</code>es: if you want return your own
@@ -1432,6 +1590,7 @@ def summarizeClassFileStats = Task {
 }</code></pre>
 </div>
 </div>
+<div class="paragraph">
 <center>
 <svg width="278px" height="33px" viewBox="0.00 0.00 278.19 32.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 28.8)">
@@ -1459,6 +1618,7 @@ def summarizeClassFileStats = Task {
 </svg>
 
 </center>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show summarizeClassFileStats
@@ -1490,6 +1650,7 @@ def summarizeClassFileStats = Task {
 }</code></pre>
 </div>
 </div>
+<div class="paragraph">
 <center>
 <svg width="149px" height="76px" viewBox="0.00 0.00 149.09 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
@@ -1529,12 +1690,16 @@ def summarizeClassFileStats = Task {
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>Defined using <code>Task.Command {…​}</code> syntax, <code>Command</code>s can run arbitrary code, with
 dependencies declared using the same <code>foo()</code> syntax (e.g. <code>classFiles()</code> above).
 Commands can be parametrized, but their output is not cached, so they will
-re-evaluate every time even if none of their inputs have changed.
-A command with no parameter is defined as <code>def myCommand() = Task.Command {…​}</code>.
+re-evaluate every time even if none of their inputs have changed. The only times
+<code>Command</code>s may be skipped is due to <a href="../large/selective-execution.html" class="xref page">Selective Test Execution</a>.</p>
+</div>
+<div class="paragraph">
+<p>A command with no parameter is defined as <code>def myCommand() = Task.Command {…​}</code>.
 It is a compile error if <code>()</code> is missing.</p>
 </div>
 <div class="paragraph">
@@ -1586,107 +1751,14 @@ foo.txt resource: My Example Text</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Like <a href="#_cached_tasks">Cached Tasks</a>, a command only evaluates after all its upstream
+<p>Like <a href="#_tasks">Tasks</a>, a command only evaluates after all its upstream
 dependencies have completed, and will not begin to run if any upstream
 dependency has failed.</p>
 </div>
 <div class="paragraph">
 <p>Commands are assigned the same scratch/output folder <code>out/run.dest/</code> as
-Tasks are, and its returned metadata stored at the same <code>out/run.json</code>
+Tasks are, and their returned metadata stored at the same <code>out/run.json</code>
 path for consumption by external tools.</p>
-</div>
-<div class="paragraph">
-<p>Commands can only be defined directly within a <code>Module</code> body.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_overrides"><a class="anchor" href="#_overrides"></a>Overrides</h3>
-<div class="paragraph">
-<p>Tasks can be overriden, with the overriden task callable via <code>super</code>.
-You can also override a task with a different type of task, e.g. below
-we override <code>sourceRoots</code> which is a <code>Task.Sources</code> with a cached <code>Task{}</code>
-that depends on the original via <code>super</code>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">trait Foo extends Module {
-  def sourceRoots = Task.Sources(millSourcePath / &quot;src&quot;)
-  def sourceContents = Task {
-    sourceRoots()
-      .flatMap(pref =&gt; os.walk(pref.path))
-      .filter(_.ext == &quot;txt&quot;)
-      .sorted
-      .map(os.read(_))
-  }
-}
-
-trait Bar extends Foo {
-  def additionalSources = Task.Sources(millSourcePath / &quot;src2&quot;)
-  def sourceRoots = Task { super.sourceRoots() ++ additionalSources() }
-}
-
-object bar extends Bar</code></pre>
-</div>
-</div>
-<center>
-<svg width="451px" height="76px" viewBox="0.00 0.00 450.67 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
-<title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 446.67,-71.8 446.67,4 -4,4"></polygon>
-<!-- bar.sourceRoots.super -->
-<g id="node1" class="node">
-<title>bar.sourceRoots.super</title>
-<polygon fill="white" stroke="black" points="140.6,-67.7 -0.2,-67.7 -0.2,-43.1 140.6,-43.1 140.6,-67.7"></polygon>
-<text text-anchor="middle" x="70.2" y="-51.2" font-family="Times,serif" font-size="14.00">bar.sourceRoots.super</text>
-</g>
-<!-- bar.sourceRoots -->
-<g id="node2" class="node">
-<title>bar.sourceRoots</title>
-<polygon fill="white" stroke="black" points="282.77,-45.7 176.61,-45.7 176.61,-21.1 282.77,-21.1 282.77,-45.7"></polygon>
-<text text-anchor="middle" x="229.69" y="-29.2" font-family="Times,serif" font-size="14.00">bar.sourceRoots</text>
-</g>
-<!-- bar.sourceRoots.super&#45;&gt;bar.sourceRoots -->
-<g id="edge1" class="edge">
-<title>bar.sourceRoots.super-&gt;bar.sourceRoots</title>
-<path fill="none" stroke="black" d="M140.74,-45.69C149.29,-44.49 157.99,-43.28 166.43,-42.1"></path>
-<polygon fill="black" stroke="black" points="167.14,-45.53 176.56,-40.68 166.17,-38.6 167.14,-45.53"></polygon>
-</g>
-<!-- bar.sourceContents -->
-<g id="node3" class="node">
-<title>bar.sourceContents</title>
-<polygon fill="white" stroke="black" points="442.51,-45.7 319.14,-45.7 319.14,-21.1 442.51,-21.1 442.51,-45.7"></polygon>
-<text text-anchor="middle" x="380.83" y="-29.2" font-family="Times,serif" font-size="14.00">bar.sourceContents</text>
-</g>
-<!-- bar.sourceRoots&#45;&gt;bar.sourceContents -->
-<g id="edge2" class="edge">
-<title>bar.sourceRoots-&gt;bar.sourceContents</title>
-<path fill="none" stroke="black" d="M282.85,-33.4C291.24,-33.4 300.05,-33.4 308.8,-33.4"></path>
-<polygon fill="black" stroke="black" points="309,-36.9 319,-33.4 309,-29.9 309,-36.9"></polygon>
-</g>
-<!-- bar.additionalSources -->
-<g id="node4" class="node">
-<title>bar.additionalSources</title>
-<polygon fill="white" stroke="black" points="138.88,-24.7 1.52,-24.7 1.52,-0.1 138.88,-0.1 138.88,-24.7"></polygon>
-<text text-anchor="middle" x="70.2" y="-8.2" font-family="Times,serif" font-size="14.00">bar.additionalSources</text>
-</g>
-<!-- bar.additionalSources&#45;&gt;bar.sourceRoots -->
-<g id="edge3" class="edge">
-<title>bar.additionalSources-&gt;bar.sourceRoots</title>
-<path fill="none" stroke="black" d="M138.91,-21.43C147.99,-22.64 157.28,-23.88 166.27,-25.08"></path>
-<polygon fill="black" stroke="black" points="165.89,-28.56 176.26,-26.41 166.81,-21.62 165.89,-28.56"></polygon>
-</g>
-</g>
-</svg>
-
-</center>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show bar.sourceContents # includes both source folders
-[
-  &quot;File Data From src/&quot;,
-  &quot;File Data From src2/&quot;
-]</code></pre>
-</div>
 </div>
 </div>
 </div>
@@ -1695,60 +1767,9 @@ object bar extends Bar</code></pre>
 <h2 id="_other_tasks"><a class="anchor" href="#_other_tasks"></a>Other Tasks</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_anonymous_tasks"><a class="anchor" href="#_anonymous_tasks"></a>Anonymous Tasks</h3>
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-fundamentals-tasks-3-anonymous-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/fundamentals/tasks/3-anonymous-tasks">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, define.Task
-
-def data = Task.Source(millSourcePath / &quot;data&quot;)
-
-def anonTask(fileName: String): Task[String] = Task.Anon {
-  os.read(data().path / fileName)
-}
-
-def helloFileData = Task { anonTask(&quot;hello.txt&quot;)() }
-def printFileData(fileName: String) = Task.Command {
-  println(anonTask(fileName)())
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>You can define anonymous tasks using the <code>Task.Anon {…​}</code> syntax. These are
-not runnable from the command-line, but can be used to share common code you
-find yourself repeating in <code>Task</code>s and <code>Command</code>s.</p>
-</div>
-<div class="paragraph">
-<p>Anonymous task’s output does not need to be JSON-serializable, their output is
-not cached, and they can be defined with or without arguments.
-Unlike <a href="#_cached_tasks">Cached Tasks</a> or <a href="#_commands">Commands</a>, anonymous tasks can be defined
-anywhere and passed around any way you want, until you finally make use of them
-within a downstream task or command.</p>
-</div>
-<div class="paragraph">
-<p>While an anonymous task <code>foo</code>'s own output is not cached, if it is used in a
-downstream task <code>baz</code> and the upstream task <code>bar</code> hasn’t changed,
-<code>baz</code>'s cached output will be used and <code>foo</code>'s evaluation will be skipped
-altogether.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show helloFileData
-&quot;Hello&quot;
-
-&gt; ./mill printFileData --file-name hello.txt
-Hello
-
-&gt; ./mill printFileData --file-name world.txt
-World!</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
 <h3 id="_inputs"><a class="anchor" href="#_inputs"></a>Inputs</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-fundamentals-tasks-4-inputs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/fundamentals/tasks/4-inputs">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-fundamentals-tasks-4-inputs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/fundamentals/tasks/4-inputs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -1768,7 +1789,7 @@ arbitrary block of code.</p>
 </div>
 <div class="paragraph">
 <p>Inputs can be used to force re-evaluation of some external property that may
-affect your build. For example, if I have a <a href="#_cached_tasks">cached task</a> <code>bar</code> that
+affect your build. For example, if I have cached a <a href="#_tasks">Task</a> <code>bar</code> that
 calls out to <code>git</code> to compute the latest commit hash and message directly,
 that target does not have any <code>Task</code> inputs and so will never re-compute
 even if the external <code>git</code> status changes:</p>
@@ -1817,6 +1838,7 @@ not know to re-evaluate when your <code>git log</code> <em>does</em> change. Thi
     .text()
     .trim()
 }
+
 def gitStatusTask2 = Task { &quot;version-&quot; + gitStatusInput() }</code></pre>
 </div>
 </div>
@@ -1843,23 +1865,23 @@ code you put in <code>Task.Input</code> runs quickly. Ideally it should just be 
 &quot;did anything change?&quot; and any heavy-lifting should be delegated to downstream
 tasks where it can be cached if possible.</p>
 </div>
-</div>
-<div class="sect2">
-<h3 id="_system_properties_inputs"><a class="anchor" href="#_system_properties_inputs"></a>System Properties Inputs</h3>
+<div class="sect3">
+<h4 id="_system_properties_inputs"><a class="anchor" href="#_system_properties_inputs"></a>System Properties Inputs</h4>
 <div class="paragraph">
 <p>One major use case of <code>Input</code> tasks is to make your build configurable via
 JVM system properties of environment variables. If you directly access
-<code>sys.props</code> or <code>sys.env</code> inside a <a href="#_cached_tasks">cached Task{}</a>, the
+<code>sys.props</code> or <code>sys.env</code> inside a cached <a href="#_tasks">Task</a>, the
 cached value will be used even if the property or environment variable changes
 in subsequent runs, when you really want it to be re-evaluated. Thus, accessing
 system properties should be done in a <code>Task.Input</code>, and usage of the property
-should be done downstream in a <a href="#_cached_tasks">cached task</a>:</p>
+should be done downstream in a cached <a href="#_tasks">task</a>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def myPropertyInput = Task.Input {
   sys.props(&quot;my-property&quot;)
 }
+
 def myPropertyTask = Task {
   &quot;Hello Prop &quot; + myPropertyInput()
 }</code></pre>
@@ -1880,12 +1902,12 @@ def myPropertyTask = Task {
 <div class="paragraph">
 <p>Again, <code>Task.Input</code> runs every time, and thus you should only do the bare minimum
 in your <code>Task.Input</code> that is necessary to detect changes. Any further processing
-should be done in downstreak <a href="#_cached_tasks">cached tasks</a> to allow for proper
+should be done in downstreak <a href="#_tasks">cached tasks</a> to allow for proper
 caching and re-use</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_environment_variable_inputs"><a class="anchor" href="#_environment_variable_inputs"></a>Environment Variable Inputs</h3>
+<div class="sect3">
+<h4 id="_environment_variable_inputs"><a class="anchor" href="#_environment_variable_inputs"></a>Environment Variable Inputs</h4>
 <div class="paragraph">
 <p>Like system properties, environment variables should be referenced in <code>Task.Input</code>s. Unlike
 system properties, you need to use the special API <code>Task.env</code> to access the environment,
@@ -1915,6 +1937,7 @@ def myEnvTask = Task {
 </div>
 </div>
 </div>
+</div>
 <div class="sect2">
 <h3 id="_persistent_tasks"><a class="anchor" href="#_persistent_tasks"></a>Persistent Tasks</h3>
 <div class="paragraph">
@@ -1928,11 +1951,12 @@ files wiped out every time (which is the default behavior for normal Tasks).</p>
 </div>
 <div class="paragraph">
 <p>Below is a semi-realistic example of using <code>Task(persistent = true)</code> to compress
-files in an input folder, and re-use previously-compressed files if a file in the
+files in an input folder, cache the previously-compressed files in <code>Task.dest / &quot;cache&quot;</code>,
+and re-use previously-compressed files if a file in the
 input folder did not change:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-fundamentals-tasks-5-persistent-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/fundamentals/tasks/5-persistent-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-fundamentals-tasks-5-persistent-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/fundamentals/tasks/5-persistent-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -2027,6 +2051,21 @@ flexibility: you are no longer limited to caching only serializable data
 and paying the cost of serializing it to disk every evaluation.</p>
 </div>
 <div class="paragraph">
+<p>Common things to put in workers include:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>References to third-party daemon processes, e.g. Webpack or wkhtmltopdf,
+which perform their own in-memory caching</p>
+</li>
+<li>
+<p>Classloaders containing plugin code, to avoid classpath conflicts while
+also avoiding classloading cost every time the code is executed</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
 <p>This example uses a Worker to provide simple two-level cache: in-memory caching
 for compressed files, in addition to caching them on disk. This means that if the
 Mill process is persistent (e.g. with <code>--watch</code>/<code>-w</code>) the cache lookups are instant,
@@ -2034,7 +2073,7 @@ but even if the Mill process is restarted it can load the cache values from disk
 without having to recompute them:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-fundamentals-tasks-6-workers.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/fundamentals/tasks/6-workers">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-fundamentals-tasks-6-workers.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/fundamentals/tasks/6-workers">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -2092,21 +2131,6 @@ def compressBytes(input: Array[Byte]) = {
 }</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>Common things to put in workers include:</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>References to third-party daemon processes, e.g. Webpack or wkhtmltopdf,
-which perform their own in-memory caching</p>
-</li>
-<li>
-<p>Classloaders containing plugin code, to avoid classpath conflicts while
-also avoiding classloading cost every time the code is executed</p>
-</li>
-</ol>
-</div>
 <div class="admonitionblock note">
 <table>
 <tbody><tr>
@@ -2114,9 +2138,9 @@ also avoiding classloading cost every time the code is executed</p>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-The <em>initialization</em> of a <code>Task.Worker’s value is single threaded,
+The <em>initialization</em> of a <code>Task.Worker</code>'s value is single threaded,
 but <em>usage</em> of the worker’s value may be done concurrently. The user of
-`Task.Worker</code> is responsible for ensuring it’s value is safe to use in a
+<code>Task.Worker</code> is responsible for ensuring it’s value is safe to use in a
 multi-threaded environment via techniques like locks, atomics, or concurrent data
 structures. The example above uses <code>synchronized{}</code> around all access to the
 shared <code>cache</code> state to allow the slow <code>compressBytes</code> operation to run in
@@ -2178,8 +2202,11 @@ has bugs that cause the worker disk or in-memory data structures to get into a b
 <div class="sect2">
 <h3 id="_autoclosable_workers"><a class="anchor" href="#_autoclosable_workers"></a><code>Autoclosable</code> Workers</h3>
 <div class="paragraph">
-<p>As <a href="#_workers">Workers</a> may also hold limited resources, it may be necessary to free up these resources once a worker is no longer needed.
-This is especially the case, when your worker tasks depends on other tasks and these tasks change, as Mill will then also create a new worker instance.</p>
+<p>As <a href="#_workers">Workers</a> may also hold limited resources, it may be necessary to free up these
+resources once a worker is no longer needed. For example, <code>java.net.URLClassLoader</code>s
+need the <code>.close()</code> method to be called, third-party subprocesses spawned by <code>os.spawn</code>
+need to <code>.destroy()</code> to be called, otherwise these externally-managed resources may leak
+causes your build or system to run out of memory.</p>
 </div>
 <div class="paragraph">
 <p>To implement resource cleanup, your worker can implement <code>java.lang.AutoCloseable</code>.
@@ -2278,21 +2305,26 @@ def compressBytes2(bos: ByteArrayOutputStream, input: Array[Byte]) = {
 <ul>
 <li>
 <p><code>CachedFactory</code> takes two type parameters, a <code>K</code> key type and a <code>V</code> value type.
-In this case <code>K</code> is <code>Unit</code> since all <code>ByteArrayOutputStream`s are the same, but if you
+In this case <code>K</code> is <code>Unit</code> since all <code>ByteArrayOutputStream</code>s are the same, but if you
 are caching things which take some kind of configuration (e.g. compilers with compiler
-flags) you can set `K</code> to be the config class so that values with different input
+flags) you can set <code>K</code> to be the config class so that values with different input
 configuration are cached separately.</p>
 </li>
 <li>
-<p><code>setup</code> creates the <code>ByteArrayOutputStream</code>, <code>maxCacheSize</code> configures the maximum
-number of cached entries to keep around while they are not in use, and when the count
-of cached entries exceeds that number <code>teardown</code> cleans them up</p>
+<p><code>def setup</code> creates the <code>ByteArrayOutputStream</code> when a new one is necessary</p>
+</li>
+<li>
+<p><code>def maxCacheSize</code> configures the maximum number of cached entries to keep around while they are not in use,</p>
+</li>
+<li>
+<p><code>def teardown</code> cleans up the <code>ByteArrayOutputStream</code>s and when the count
+of cached entries exceeds that <code>maxCacheSize`</code></p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
 <p>Although this example is synthetic (you don’t actually need to reset, reuse, and teardown
-`ByteArrayOutputStream`s) the same techniques would apply to any long-lived mutable state
+<code>ByteArrayOutputStream</code>s) the same techniques would apply to any long-lived mutable state
 or components you need to manage. This is especially important when
 <a href="../extending/running-jvm-code.html" class="xref page">running JVM code in classloaders or subprocesses</a>,
 as those are both expensive to initialize and need to be properly closed or terminated
@@ -2341,33 +2373,84 @@ teardown ByteArrayOutputStream</code></pre>
 </div>
 </div>
 </div>
+<div class="sect2">
+<h3 id="_anonymous_tasks"><a class="anchor" href="#_anonymous_tasks"></a>Anonymous Tasks</h3>
+<div class="paragraph">
+<p>You can define anonymous tasks using the <code>Task.Anon {…​}</code> syntax. These are
+not runnable from the command-line, but can be used to share common code you
+find yourself repeating in <code>Task</code>s and <code>Command</code>s.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-fundamentals-tasks-3-anonymous-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/fundamentals/tasks/3-anonymous-tasks">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, define.Task
+
+def data = Task.Source(millSourcePath / &quot;data&quot;)
+
+def anonTask(fileName: String): Task[String] = Task.Anon {
+  os.read(data().path / fileName)
+}
+
+def helloFileData = Task { anonTask(&quot;hello.txt&quot;)() }
+def printFileData(fileName: String) = Task.Command {
+  println(anonTask(fileName)())
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Anonymous task’s output does not need to be JSON-serializable, their output is
+not cached, and they can be defined with or without arguments.
+Unlike <a href="#_tasks">Tasks</a> or <a href="#_commands">Commands</a>, anonymous tasks can be defined
+anywhere and passed around any way you want, until you finally make use of them
+within a downstream task or command.</p>
+</div>
+<div class="paragraph">
+<p>While an anonymous task <code>foo</code>'s own output is not cached, if it is used in a
+downstream task <code>baz</code> and the upstream task <code>bar</code> hasn’t changed,
+<code>baz</code>'s cached output will be used and <code>foo</code>'s evaluation will be skipped
+altogether.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show helloFileData
+&quot;Hello&quot;
+
+&gt; ./mill printFileData --file-name hello.txt
+Hello
+
+&gt; ./mill printFileData --file-name world.txt
+World!</code></pre>
+</div>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_experimental_forking_concurrent_futures_within_tasks"><a class="anchor" href="#_experimental_forking_concurrent_futures_within_tasks"></a>(Experimental) Forking Concurrent Futures within Tasks</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill provides the <code>T.fork.async</code> and <code>T.fork.await</code> APIs for spawning async
+<p>Mill provides the <code>Task.fork.async</code> and <code>Task.fork.await</code> APIs for spawning async
 futures within a task and aggregating their results later. This API is used by Mill
 to support <a href="../javalib/testing.html#_test_grouping" class="xref page">parallelizing test classes</a>,
 but can be used in your own tasks as well:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-fundamentals-tasks-7-forking-futures.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/fundamentals/tasks/7-forking-futures">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-fundamentals-tasks-7-forking-futures.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/fundamentals/tasks/7-forking-futures">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
 import mill._
 
 def taskSpawningFutures = Task {
-  val f1 = T.fork.async(dest = T.dest / &quot;future-1&quot;, key = &quot;1&quot;, message = &quot;First Future&quot;) {
+  val f1 = Task.fork.async(dest = Task.dest / &quot;future-1&quot;, key = &quot;1&quot;, message = &quot;First Future&quot;) {
     println(&quot;Running First Future inside &quot; + os.pwd)
     Thread.sleep(3000)
     val res = 1
     println(&quot;Finished First Future&quot;)
     res
   }
-  val f2 = T.fork.async(dest = T.dest / &quot;future-2&quot;, key = &quot;2&quot;, message = &quot;Second Future&quot;) {
+  val f2 = Task.fork.async(dest = Task.dest / &quot;future-2&quot;, key = &quot;2&quot;, message = &quot;Second Future&quot;) {
     println(&quot;Running Second Future inside &quot; + os.pwd)
     Thread.sleep(3000)
     val res = 2
@@ -2375,7 +2458,7 @@ def taskSpawningFutures = Task {
     res
   }
 
-  T.fork.await(f1) + T.fork.await(f2)
+  Task.fork.await(f1) + Task.fork.await(f2)
 }</code></pre>
 </div>
 </div>
@@ -2390,7 +2473,7 @@ def taskSpawningFutures = Task {
 </div>
 </div>
 <div class="paragraph">
-<p><code>T.fork.async</code> takes several parameters in addition to the code block to be run:</p>
+<p><code>Task.fork.async</code> takes several parameters in addition to the code block to be run:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -2408,22 +2491,22 @@ log lines and distinguish them from logs of other futures and tasks running conc
 </ul>
 </div>
 <div class="paragraph">
-<p>Futures spawned by <code>T.fork.async</code> count towards Mill’s <code>-j</code>/<code>--jobs</code> concurrency limit
-(which defaults to one-per-core), so you can freely use <code>T.fork.async</code> without worrying
-about spawning too many concurrent threads and causing CPU or memory contention. <code>T.fork</code>
+<p>Futures spawned by <code>Task.fork.async</code> count towards Mill’s <code>-j</code>/<code>--jobs</code> concurrency limit
+(which defaults to one-per-core), so you can freely use <code>Task.fork.async</code> without worrying
+about spawning too many concurrent threads and causing CPU or memory contention. <code>Task.fork</code>
 uses Java’s built in <code>ForkJoinPool</code> and <code>ManagedBlocker</code> infrastructure under the hood
 to effectively manage the number of running threads.</p>
 </div>
 <div class="paragraph">
 <p>While <code>scala.concurrent</code> and <code>java.util.concurrent</code> can also be used to spawn thread
-pools and run async futures, <code>T.fork</code> provides a way to do so that integrates with Mill’s
+pools and run async futures, <code>Task.fork</code> provides a way to do so that integrates with Mill’s
 existing concurrency, sandboxing and logging systems. Thus you should always prefer to
-run async futures on <code>T.fork</code> whenever possible.</p>
+run async futures on <code>Task.fork</code> whenever possible.</p>
 </div>
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="../migrating/maven.html">Migrating From Maven to Mill</a></span>
+  <span class="prev"><a href="../migrating/gradle.html">Migrating From Gradle to Mill</a></span>
   <span class="next"><a href="modules.html">Modules</a></span>
 </nav>
 </article>

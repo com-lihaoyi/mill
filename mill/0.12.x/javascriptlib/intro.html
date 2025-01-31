@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Building Javascript with Mill :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/javascriptlib/intro.html" />
-    <link rel="prev" href="../pythonlib/web-examples.html" />
+    <link rel="prev" href="../android/android-linting.html" />
     <link rel="next" href="dependencies.html" />
     <meta name="generator" content="Antora 3.1.9" />
     <link rel="stylesheet" href="../../../_/css/site.css" />
@@ -43,11 +43,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style><style>
-*{
-  hyphens: manual !important;
-}
-</style></head><body class="article">
+  </style></head><body class="article">
   
 <header class="header">
   
@@ -242,6 +238,37 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
     <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
@@ -264,29 +291,6 @@
 </ul>
   </li>
 
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
-  </li>
-</ul>
-  </li>
-
   <li class="nav-item is-current-page" data-depth="2">
     <button class="nav-item-toggle"></button>
     <a class="nav-link" href="intro.html">Building Javascript with Mill</a>
@@ -302,6 +306,14 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="linting.html">Linting Typescript Projects</a>
   </li>
 </ul>
   </li>
@@ -337,7 +349,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Support</a>
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -361,6 +373,10 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
   </li>
 </ul>
   </li>
@@ -562,7 +578,11 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../reference/changelog.html">Changelog</a>
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
   </li>
 </ul>
   </li>
@@ -584,7 +604,7 @@
           <a href="../../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-latest">
-          <a href="../../index.html">latest-0.12.5</a>
+          <a href="../../index.html">latest-0.12.6</a>
         </li>
         <li class="version is-current">
           <a href="../index.html">0.12.x</a>
@@ -621,31 +641,11 @@
 </aside>
 <article class="doc">
 <h1 class="page">Building Javascript with Mill</h1>
-<div id="preamble">
-<div class="sectionbody">
-
-<script>
-gtag('config', 'AW-16649289906');
-
-document.addEventListener('DOMContentLoaded', function() {
-const links = document.querySelectorAll('a');
-  links.forEach(link => {
-    if (link.textContent.trim().toLowerCase() === 'download') {
-      link.addEventListener('click', function(event) {
-        console.log("download link clicked")
-        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
-      });
-    }
-  });
-});
-</script>
-</div>
-</div>
 <div class="sect1">
 <h2 id="_simple_typescript_module"><a class="anchor" href="#_simple_typescript_module"></a>Simple Typescript Module</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-javascriptlib-basic-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javascriptlib/basic/1-simple">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-javascriptlib-basic-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/javascriptlib/basic/1-simple">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -685,7 +685,7 @@ Hello James Bond Professor</code></pre>
 <h2 id="_react_module"><a class="anchor" href="#_react_module"></a>React Module</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-javascriptlib-basic-2-react.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javascriptlib/basic/2-react">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-javascriptlib-basic-2-react.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/javascriptlib/basic/2-react">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -721,7 +721,7 @@ Ran all test suites...
 <h2 id="_custom_build_logic"><a class="anchor" href="#_custom_build_logic"></a>Custom Build Logic</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-javascriptlib-basic-3-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javascriptlib/basic/3-custom-build-logic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-javascriptlib-basic-3-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/javascriptlib/basic/3-custom-build-logic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -766,7 +766,7 @@ Line Count: 21</code></pre>
 <h2 id="_multi_module_project"><a class="anchor" href="#_multi_module_project"></a>Multi Module Project</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-javascriptlib-basic-4-multi-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javascriptlib/basic/4-multi-modules">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-javascriptlib-basic-4-multi-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/javascriptlib/basic/4-multi-modules">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -811,7 +811,7 @@ PASS .../qux.test.ts
 <h2 id="_simple_client_server"><a class="anchor" href="#_simple_client_server"></a>Simple Client-Server</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-javascriptlib-basic-5-client-server-hello.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javascriptlib/basic/5-client-server-hello">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-javascriptlib-basic-5-client-server-hello.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/javascriptlib/basic/5-client-server-hello">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javascriptlib._
@@ -858,7 +858,7 @@ Build succeeded!</code></pre>
 <h2 id="_realistic_client_server_example_project"><a class="anchor" href="#_realistic_client_server_example_project"></a>Realistic Client-Server Example Project</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-javascriptlib-basic-6-client-server-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javascriptlib/basic/6-client-server-realistic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-javascriptlib-basic-6-client-server-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/javascriptlib/basic/6-client-server-realistic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javascriptlib._
@@ -919,7 +919,7 @@ Build succeeded!</code></pre>
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="../pythonlib/web-examples.html">Python Web Project Examples</a></span>
+  <span class="prev"><a href="../android/android-linting.html">Linting Android Projects</a></span>
   <span class="next"><a href="dependencies.html">Typescript Library Dependencies</a></span>
 </nav>
 </article>

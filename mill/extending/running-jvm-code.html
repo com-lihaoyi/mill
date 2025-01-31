@@ -43,11 +43,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style><style>
-*{
-  hyphens: manual !important;
-}
-</style></head><body class="article">
+  </style></head><body class="article">
   
 <header class="header">
   
@@ -242,6 +238,37 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
     <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
@@ -266,29 +293,6 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
 <ul class="nav-list">
 
@@ -302,6 +306,14 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
   </li>
 </ul>
   </li>
@@ -337,7 +349,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Support</a>
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -361,6 +373,10 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
   </li>
 </ul>
   </li>
@@ -562,7 +578,11 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../reference/changelog.html">Changelog</a>
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
   </li>
 </ul>
   </li>
@@ -574,7 +594,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">latest-0.12.5</span>
+    <span class="version">latest-0.12.6</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -584,7 +604,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">latest-0.12.5</a>
+          <a href="../index.html">latest-0.12.6</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.x</a>
@@ -623,22 +643,6 @@
 <h1 class="page">Running Dynamic JVM Code</h1>
 <div id="preamble">
 <div class="sectionbody">
-
-<script>
-gtag('config', 'AW-16649289906');
-
-document.addEventListener('DOMContentLoaded', function() {
-const links = document.querySelectorAll('a');
-  links.forEach(link => {
-    if (link.textContent.trim().toLowerCase() === 'download') {
-      link.addEventListener('click', function(event) {
-        console.log("download link clicked")
-        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
-      });
-    }
-  });
-});
-</script>
 <div class="paragraph">
 <p>While <a href="import-ivy-plugins.html" class="xref page">import $ivy</a> is convenient,
 it comes with limitations as the JVM library it imports is global to your build:</p>
@@ -699,7 +703,7 @@ can be used to create any processes, JVM subprocesses are common enough have eno
 idiosyncracies (e.g. classpaths) that Mill provides helper methods specifically for them.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-extending-jvmcode-1-subprocess.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/extending/jvmcode/1-subprocess">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-extending-jvmcode-1-subprocess.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/extending/jvmcode/1-subprocess">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -776,7 +780,7 @@ load the Groovy interpreter classpath files into an in-memory in-process classlo
 </ul>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-extending-jvmcode-2-classloader.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/extending/jvmcode/2-classloader">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-extending-jvmcode-2-classloader.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/extending/jvmcode/2-classloader">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -849,7 +853,7 @@ a subprocess, but instead of using <code>Jvm.runSubprocess</code> we use <code>C
 load the Groovy interpreter classpath files:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-extending-jvmcode-3-worker.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/extending/jvmcode/3-worker">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-extending-jvmcode-3-worker.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/extending/jvmcode/3-worker">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -869,9 +873,7 @@ trait GroovyGenerateJavaModule extends JavaModule {
   def groovyScript = Task.Source(millSourcePath / &quot;generate.groovy&quot;)
 
   def groovyGeneratedResources = Task {
-    val oldCl = Thread.currentThread().getContextClassLoader
-    Thread.currentThread().setContextClassLoader(groovyWorker())
-    try {
+    mill.api.ClassLoader.withContextClassLoader(groovyWorker()) {
       groovyWorker()
         .loadClass(&quot;groovy.ui.GroovyMain&quot;)
         .getMethod(&quot;main&quot;, classOf[Array[String]])
@@ -883,7 +885,7 @@ trait GroovyGenerateJavaModule extends JavaModule {
             (Task.dest / &quot;groovy-generated.html&quot;).toString
           )
         )
-    } finally Thread.currentThread().setContextClassLoader(oldCl)
+    }
     PathRef(Task.dest)
   }
 
@@ -949,7 +951,7 @@ than pulling the code we need off of Maven Central, we instead build the code
 within the <code>bar</code> module as <code>bar/src/Bar.scala</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-extending-jvmcode-4-module-run-task.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/extending/jvmcode/4-module-run-task">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-extending-jvmcode-4-module-run-task.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/extending/jvmcode/4-module-run-task">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -1027,7 +1029,7 @@ purpose, with a source code generator written in Java. We also run the
 we saw earlier:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-extending-jvmcode-5-module-classloader.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/extending/jvmcode/5-module-classloader">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-extending-jvmcode-5-module-classloader.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/extending/jvmcode/5-module-classloader">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -1087,7 +1089,7 @@ which ensures that the classloaders are created when necessary,
 cached/re-used where possible, and torn down properly when no longer necessary.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-extending-jvmcode-6-module-cached-classloader.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/extending/jvmcode/6-module-cached-classloader">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-extending-jvmcode-6-module-cached-classloader.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/extending/jvmcode/6-module-cached-classloader">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._

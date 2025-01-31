@@ -43,11 +43,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style><style>
-*{
-  hyphens: manual !important;
-}
-</style></head><body class="article">
+  </style></head><body class="article">
   
 <header class="header">
   
@@ -242,6 +238,37 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
     <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
@@ -266,29 +293,6 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
 <ul class="nav-list">
 
@@ -302,6 +306,14 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
   </li>
 </ul>
   </li>
@@ -337,7 +349,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Support</a>
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -361,6 +373,10 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
   </li>
 </ul>
   </li>
@@ -562,7 +578,11 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../reference/changelog.html">Changelog</a>
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
   </li>
 </ul>
   </li>
@@ -584,7 +604,7 @@
           <a href="../../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-latest">
-          <a href="../../index.html">latest-0.12.5</a>
+          <a href="../../index.html">latest-0.12.6</a>
         </li>
         <li class="version is-current">
           <a href="../index.html">0.12.x</a>
@@ -623,22 +643,6 @@
 <h1 class="page">Scala Library Dependencies</h1>
 <div id="preamble">
 <div class="sectionbody">
-
-<script>
-gtag('config', 'AW-16649289906');
-
-document.addEventListener('DOMContentLoaded', function() {
-const links = document.querySelectorAll('a');
-  links.forEach(link => {
-    if (link.textContent.trim().toLowerCase() === 'download') {
-      link.addEventListener('click', function(event) {
-        console.log("download link clicked")
-        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
-      });
-    }
-  });
-});
-</script>
 <div class="paragraph">
 <p>This page goes into more detail about configuring third party dependencies
 for <code>ScalaModule</code>.</p>
@@ -649,7 +653,7 @@ for <code>ScalaModule</code>.</p>
 <h2 id="_adding_ivy_dependencies"><a class="anchor" href="#_adding_ivy_dependencies"></a>Adding Ivy Dependencies</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-scalalib-dependencies-1-ivy-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/scalalib/dependencies/1-ivy-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-scalalib-dependencies-1-ivy-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/scalalib/dependencies/1-ivy-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -686,9 +690,6 @@ dependencies</p>
 dependencies</p>
 </li>
 <li>
-<p>Triple <code>:::</code> syntax (e.g. <code>ivy&quot;org.scalamacros:::paradise:2.1.1&quot;</code>) defines</p>
-</li>
-<li>
 <p>Triple <code>:::</code> syntax (e.g. <code>ivy&quot;org.scalamacros:::paradise:2.1.1&quot;</code>) defines
 dependencies cross-published against the full Scala version e.g. <code>2.12.4</code>
 instead of just <code>2.12</code>. These are typically Scala compiler plugins or
@@ -697,12 +698,12 @@ similar.</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>To select the test-jars from a dependency use the following syntax:</p>
+<p>To select the test-jars from a dependency use the <code>;classifier=tests</code> syntax, e.g.:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><code>ivy&quot;org.apache.spark::spark-sql:2.4.0;classifier=tests</code>.</p>
+<p><code>ivy&quot;org.apache.spark::spark-sql:2.4.0;classifier=tests</code></p>
 </li>
 </ul>
 </div>
@@ -727,7 +728,7 @@ dependencies and their versions at runtime, you can do so with
 <code>runIvyDeps</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-scalalib-dependencies-2-run-compile-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/scalalib/dependencies/2-run-compile-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-scalalib-dependencies-2-run-compile-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/scalalib/dependencies/2-run-compile-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -845,7 +846,7 @@ from somewhere and need to include it in your project, <code>unmanagedClasspath<
 way to do it.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-scalalib-dependencies-3-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/scalalib/dependencies/3-unmanaged-jars">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-scalalib-dependencies-3-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/scalalib/dependencies/3-unmanaged-jars">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -883,7 +884,7 @@ download from arbitrary URLs.
 library, one of Mill’s <a href="../fundamentals/bundled-libraries.html" class="xref page">Bundled Libraries</a>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-scalalib-dependencies-4-downloading-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/scalalib/dependencies/4-downloading-unmanaged-jars">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-scalalib-dependencies-4-downloading-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/scalalib/dependencies/4-downloading-unmanaged-jars">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -926,7 +927,7 @@ downloaded from the same URL will always contain the same contents.</p>
 <td class="content">
 An unmanaged jar downloaded via <code>requests.get</code> is still unmanaged: even
 though you downloaded it from somewhere, it <code>requests.get</code> does not know how to
-pull in third party dependencies or de-duplicate different versions on the classpath
+pull in transitive dependencies or de-duplicate different versions on the classpath
 All the same caveats you need to worry about when dealing with <a href="#_unmanaged_jars">unmanaged jars</a>
 apply here as well.
 </td>
@@ -944,7 +945,7 @@ the standard package repository for JVM languages like Java, Kotlin, or Scala. Y
 can also add your own resolvers by overriding the <code>repositoriesTask</code> task in the module:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-scalalib-dependencies-5-repository-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/scalalib/dependencies/5-repository-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-scalalib-dependencies-5-repository-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/scalalib/dependencies/5-repository-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -959,7 +960,7 @@ object foo extends ScalaModule {
   def scalaVersion = &quot;2.13.8&quot;
 
   def ivyDeps = Agg(
-    ivy&quot;com.lihaoyi::scalatags:0.12.0&quot;,
+    ivy&quot;com.lihaoyi::scalatags:0.13.1&quot;,
     ivy&quot;com.lihaoyi::mainargs:0.6.2&quot;
   )
 
@@ -984,7 +985,7 @@ central.to=http://example.com:8080/nexus/content/groups/public</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Note theses default config file locatations:</p>
+<p>The default location of this config file on each OS is as follows:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -1030,6 +1031,135 @@ object bar extends ScalaModule {
 &gt; ./mill bar.compile</code></pre>
 </div>
 </div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_scala_dependencies_in_detail"><a class="anchor" href="#_scala_dependencies_in_detail"></a>Scala Dependencies In Detail</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Scala major releases up until version <code>2.13</code> are binary incompatible.
+That means, mixing dependencies of different binary platforms will result in non-working runtimes and obscure and hard to debug issues.</p>
+</div>
+<div class="paragraph">
+<p>To easily pick only a compatible version, a convention was established to append the scala major version as a suffix to the package name.<sup class="footnote">[<a id="_footnoteref_1" class="footnote" href="#_footnotedef_1" title="View footnote.">1</a>]</sup>
+E.g. to select the Scala 2.13 version of a library <code>foo</code>, the final <code>artifactId</code> will contain the additional suffix <code>_2.13</code>, such that the final <code>artifactId</code> is <code>foo_2.13</code>.</p>
+</div>
+<div class="paragraph">
+<p>To always pick the right version and support cross compiling,
+you can omit the scala version and instead use a double colon (<code>::</code>) between the <code>organization</code> and the <code>name</code>, e.g. <code>ivy&quot;com.typesafe.akka:akka-actor_2.12:2.5.25&quot;</code>.
+Your module needs to <code>extends ScalaModule</code> though.</p>
+</div>
+<div class="paragraph">
+<p>If you want to use dependencies that are cross-published against the full Scala version, e.g. <code>2.12.12</code>,
+you can use three colons (<code>:::</code>) between <code>organization</code> and <code>name</code>, e.g.: <code>ivy&quot;org.scalamacros:::paradise:2.1.1&quot;</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def ivyDeps = Agg(
+  // explicit scala version suffix, NOT RECOMMENDED!
+  ivy&quot;com.typesafe.akka:akka-actor_2.12:2.5.25&quot;,
+  ivy&quot;com.typesafe.akka::akka-actor:2.5.25&quot;,
+  ivy&quot;org.scalamacros:::paradise:2.1.1&quot;
+)</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_scala_3_interoperability"><a class="anchor" href="#_scala_3_interoperability"></a>Scala 3 interoperability</h3>
+<div class="paragraph">
+<p>Since the release of Scala 3, the binary compatibility story for Scala has changed.
+That means, Scala 3 dependencies can be mixed with Scala 2.13 dependencies.
+In fact, the Scala 3 standard library is the same as for Scala 2.13.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>As Scala 3 and Scala 2.13 have different binary platforms, but their artifacts are in general compatible, this introduces new challenges.</p>
+</div>
+<div class="paragraph">
+<p>There is currently no mechanism to bring the same dependency twice into the classpath (one for Scala 2.13 and one for Scala 3).</p>
+</div>
+</td>
+</tr>
+</tbody></table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_using_scala_2_13_from_scala_3"><a class="anchor" href="#_using_scala_2_13_from_scala_3"></a>Using Scala 2.13 from Scala 3</h3>
+<div class="paragraph">
+<p>If your Scala version is a Scala 3.x, but you want to use the Scala 2.13 version of a specific library, you can use the <code>.withDottyCompat</code> method on that dependency.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example:</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def scalaVersion = &quot;3.2.1&quot;
+def ivyDeps = Agg(
+  ivy&quot;com.lihaoyi::upickle:2.0.0&quot;.withDottyCompat(scalaVersion()) //1
+)</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tbody><tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>This will result in a Scala 2.13 dependency <code>com.lihaoyi::upicke_2.13:2.0.0</code></td>
+</tr>
+</tbody></table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Do you wonder where the name &quot;dotty&quot; comes from?</p>
+</div>
+<div class="paragraph">
+<p>In the early development of Scala 3, the Scala 3 compiler was called &quot;Dotty&quot;. Later, the name was changed to Scala 3, but the compiler project itself is still named &quot;dotty&quot;.</p>
+</div>
+<div class="paragraph">
+<p>The dotty compiler itself is an implementation of the <a href="http://lampwww.epfl.ch/~amin/dot/fool.pdf">Dependent Object Types (DOT) calculus</a>, which is the new basis of Scala 3. It also enhances the type system to a next level and allows features like union-types and intersection-types.</p>
+</div>
+</td>
+</tr>
+</tbody></table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_scalajs_dependencies"><a class="anchor" href="#_scalajs_dependencies"></a>ScalaJS dependencies</h3>
+<div class="paragraph">
+<p>Scala.js introduces an additional binary platform axis.
+To the already required Scala version, there comes the Scala.js version.</p>
+</div>
+<div class="paragraph">
+<p>You can use two colons (<code>::</code>) between <code>name</code> and <code>version</code> to define a Scala.js dependency.
+Your module needs to <code>extends ScalaJSModule</code> to accept Scala.js dependencies.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_scala_native_dependencies"><a class="anchor" href="#_scala_native_dependencies"></a>Scala Native dependencies</h3>
+<div class="paragraph">
+<p>Scala Native introduces an additional binary platform axis.
+To the already required Scala version, there comes the Scala Native version.</p>
+</div>
+<div class="paragraph">
+<p>You can use two colons (<code>::</code>) between <code>name</code> and <code>version</code> to define a Scala Native dependency.
+Your module needs to <code>extends ScalaNativeModule</code> to accept Scala Native dependencies.</p>
+</div>
+</div>
+</div>
+</div>
+<div id="footnotes">
+<hr />
+<div class="footnote" id="_footnotedef_1">
+<a href="#_footnoteref_1">1</a>. Scala 2 versions have the unusual version format: <code>{epoch}.{major}.{minor}</code>.
 </div>
 </div>
 <nav class="pagination">

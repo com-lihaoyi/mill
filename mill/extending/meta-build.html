@@ -43,11 +43,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style><style>
-*{
-  hyphens: manual !important;
-}
-</style></head><body class="article">
+  </style></head><body class="article">
   
 <header class="header">
   
@@ -242,6 +238,37 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
     <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
@@ -266,29 +293,6 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
 <ul class="nav-list">
 
@@ -302,6 +306,14 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
   </li>
 </ul>
   </li>
@@ -337,7 +349,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Support</a>
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -361,6 +373,10 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
   </li>
 </ul>
   </li>
@@ -562,7 +578,11 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../reference/changelog.html">Changelog</a>
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
   </li>
 </ul>
   </li>
@@ -574,7 +594,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">latest-0.12.5</span>
+    <span class="version">latest-0.12.6</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -584,7 +604,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">latest-0.12.5</a>
+          <a href="../index.html">latest-0.12.6</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.x</a>
@@ -623,22 +643,6 @@
 <h1 class="page">The Mill Meta-Build</h1>
 <div id="preamble">
 <div class="sectionbody">
-
-<script>
-gtag('config', 'AW-16649289906');
-
-document.addEventListener('DOMContentLoaded', function() {
-const links = document.querySelectorAll('a');
-  links.forEach(link => {
-    if (link.textContent.trim().toLowerCase() === 'download') {
-      link.addEventListener('click', function(event) {
-        console.log("download link clicked")
-        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
-      });
-    }
-  });
-});
-</script>
 <div class="paragraph">
 <p>The meta-build manages the compilation of the <code>build.mill</code>.
 Customizing the meta-build gives you greater control over how exactly your
@@ -709,7 +713,7 @@ de.tototec:de.tobiasroeser.mill.vcs.version_mill0.11_2.13 : 0.3.1-&gt; 0.4.0</pr
 <h2 id="_sharing_libraries_between_build_mill_and_application_code"><a class="anchor" href="#_sharing_libraries_between_build_mill_and_application_code"></a>Sharing Libraries between <code>build.mill</code> and Application Code</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-extending-metabuild-4-meta-build.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/extending/metabuild/4-meta-build">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-extending-metabuild-4-meta-build.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/extending/metabuild/4-meta-build">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import $meta._
@@ -739,13 +743,13 @@ compiled and executed to perform your build. This &quot;meta-build&quot; module 
 <code>mill-build/</code>, and can be enabled via the <code>import $meta._</code> statement above.</p>
 </div>
 <div class="listingblock">
-<div class="title">mill-build/build.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/extending/metabuild/4-meta-build/mill-build/build.mill">browse</a>)</div>
+<div class="title">mill-build/build.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/extending/metabuild/4-meta-build/mill-build/build.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
 
 object `package` extends MillBuildRootModule {
-  val scalatagsVersion = &quot;0.12.0&quot;
+  val scalatagsVersion = &quot;0.13.1&quot;
   def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags:$scalatagsVersion&quot;)
 
   def generatedSources = Task {
@@ -764,7 +768,7 @@ object DepVersions{
 </div>
 </div>
 <div class="listingblock">
-<div class="title">src/Foo.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/extending/metabuild/4-meta-build/src/Foo.scala">browse</a>)</div>
+<div class="title">src/Foo.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/extending/metabuild/4-meta-build/src/Foo.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 import scalatags.Text.all._
@@ -842,7 +846,7 @@ cli option.</p>
 <h2 id="_sharing_source_code_between_build_mill_and_application_code"><a class="anchor" href="#_sharing_source_code_between_build_mill_and_application_code"></a>Sharing Source Code between <code>build.mill</code> and Application Code</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-extending-metabuild-5-meta-shared-sources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/extending/metabuild/5-meta-shared-sources">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-extending-metabuild-5-meta-shared-sources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/extending/metabuild/5-meta-shared-sources">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import $meta._
@@ -857,7 +861,7 @@ object `package` extends RootModule with ScalaModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">mill-build/build.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/extending/metabuild/5-meta-shared-sources/mill-build/build.mill">browse</a>)</div>
+<div class="title">mill-build/build.mill (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/extending/metabuild/5-meta-shared-sources/mill-build/build.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -866,7 +870,7 @@ object `package` extends MillBuildRootModule</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">mill-build/src/ScalaVersion.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/extending/metabuild/5-meta-shared-sources/mill-build/src/ScalaVersion.scala">browse</a>)</div>
+<div class="title">mill-build/src/ScalaVersion.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/extending/metabuild/5-meta-shared-sources/mill-build/src/ScalaVersion.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package millbuild
 object ScalaVersion {
@@ -875,7 +879,7 @@ object ScalaVersion {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">src/Foo.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/extending/metabuild/5-meta-shared-sources/src/Foo.scala">browse</a>)</div>
+<div class="title">src/Foo.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/extending/metabuild/5-meta-shared-sources/src/Foo.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 

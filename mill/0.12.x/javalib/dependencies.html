@@ -43,11 +43,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style><style>
-*{
-  hyphens: manual !important;
-}
-</style></head><body class="article">
+  </style></head><body class="article">
   
 <header class="header">
   
@@ -242,6 +238,37 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
     <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
@@ -266,29 +293,6 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
 <ul class="nav-list">
 
@@ -302,6 +306,14 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
   </li>
 </ul>
   </li>
@@ -337,7 +349,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Support</a>
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -361,6 +373,10 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
   </li>
 </ul>
   </li>
@@ -562,7 +578,11 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../reference/changelog.html">Changelog</a>
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
   </li>
 </ul>
   </li>
@@ -584,7 +604,7 @@
           <a href="../../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-latest">
-          <a href="../../index.html">latest-0.12.5</a>
+          <a href="../../index.html">latest-0.12.6</a>
         </li>
         <li class="version is-current">
           <a href="../index.html">0.12.x</a>
@@ -623,22 +643,6 @@
 <h1 class="page">Java Library Dependencies</h1>
 <div id="preamble">
 <div class="sectionbody">
-
-<script>
-gtag('config', 'AW-16649289906');
-
-document.addEventListener('DOMContentLoaded', function() {
-const links = document.querySelectorAll('a');
-  links.forEach(link => {
-    if (link.textContent.trim().toLowerCase() === 'download') {
-      link.addEventListener('click', function(event) {
-        console.log("download link clicked")
-        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
-      });
-    }
-  });
-});
-</script>
 <div class="paragraph">
 <p>This page goes into more detail about configuring third party dependencies
 for <code>JavaModule</code>.</p>
@@ -649,7 +653,7 @@ for <code>JavaModule</code>.</p>
 <h2 id="_adding_ivy_dependencies"><a class="anchor" href="#_adding_ivy_dependencies"></a>Adding Ivy Dependencies</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-javalib-dependencies-1-ivy-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javalib/dependencies/1-ivy-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-javalib-dependencies-1-ivy-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/javalib/dependencies/1-ivy-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -677,12 +681,12 @@ dependencies</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>To select the test-jars from a dependency use the following syntax:</p>
+<p>To select the test-jars from a dependency use the <code>;classifier=tests</code> syntax, e.g.:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><code>ivy&quot;org.apache.spark::spark-sql:2.4.0;classifier=tests</code>.</p>
+<p><code>ivy&quot;org.apache.spark::spark-sql:2.4.0;classifier=tests</code></p>
 </li>
 </ul>
 </div>
@@ -706,7 +710,7 @@ dependencies and their versions at runtime, you can do so with
 <code>runIvyDeps</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-javalib-dependencies-2-run-compile-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javalib/dependencies/2-run-compile-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-javalib-dependencies-2-run-compile-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/javalib/dependencies/2-run-compile-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -797,7 +801,7 @@ from somewhere and need to include it in your project, <code>unmanagedClasspath<
 way to do it.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-javalib-dependencies-3-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javalib/dependencies/3-unmanaged-jars">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-javalib-dependencies-3-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/javalib/dependencies/3-unmanaged-jars">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -834,7 +838,7 @@ download from arbitrary URLs.
 library, one of Mill’s <a href="../fundamentals/bundled-libraries.html" class="xref page">Bundled Libraries</a>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-javalib-dependencies-4-downloading-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javalib/dependencies/4-downloading-unmanaged-jars">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-javalib-dependencies-4-downloading-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/javalib/dependencies/4-downloading-unmanaged-jars">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -876,7 +880,7 @@ downloaded from the same URL will always contain the same contents.</p>
 <td class="content">
 An unmanaged jar downloaded via <code>requests.get</code> is still unmanaged: even
 though you downloaded it from somewhere, it <code>requests.get</code> does not know how to
-pull in third party dependencies or de-duplicate different versions on the classpath
+pull in transitive dependencies or de-duplicate different versions on the classpath
 All the same caveats you need to worry about when dealing with <a href="#_unmanaged_jars">unmanaged jars</a>
 apply here as well.
 </td>
@@ -894,7 +898,7 @@ the standard package repository for JVM languages like Java, Kotlin, or Scala. Y
 can also add your own resolvers by overriding the <code>repositoriesTask</code> task in the module:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-javalib-dependencies-5-repository-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javalib/dependencies/5-repository-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-javalib-dependencies-5-repository-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/javalib/dependencies/5-repository-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -931,7 +935,7 @@ central.to=http://example.com:8080/nexus/content/groups/public</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Note theses default config file locatations:</p>
+<p>The default location of this config file on each OS is as follows:</p>
 </div>
 <div class="ulist">
 <ul>

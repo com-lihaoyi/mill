@@ -237,6 +237,37 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
     <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
@@ -261,29 +292,6 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
 <ul class="nav-list">
 
@@ -297,6 +305,14 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
   </li>
 </ul>
   </li>
@@ -332,7 +348,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Support</a>
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -356,6 +372,10 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
   </li>
 </ul>
   </li>
@@ -557,7 +577,11 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../reference/changelog.html">Changelog</a>
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
   </li>
 </ul>
   </li>
@@ -569,7 +593,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">latest-0.12.5</span>
+    <span class="version">latest-0.12.6</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -579,7 +603,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">latest-0.12.5</a>
+          <a href="../index.html">latest-0.12.6</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.x</a>
@@ -618,26 +642,6 @@
 <h1 class="page">Case Study: Mill vs Maven</h1>
 <div id="preamble">
 <div class="sectionbody">
-<style>
-*{
-  hyphens: manual !important;
-}
-</style>
-<script>
-gtag('config', 'AW-16649289906');
-
-document.addEventListener('DOMContentLoaded', function() {
-const links = document.querySelectorAll('a');
-  links.forEach(link => {
-    if (link.textContent.trim().toLowerCase() === 'download') {
-      link.addEventListener('click', function(event) {
-        console.log("download link clicked")
-        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
-      });
-    }
-  });
-});
-</script>
 <div class="paragraph">
 <p>Compared to Maven:</p>
 </div>
@@ -1139,15 +1143,15 @@ object common extends NettyModule{
 
     context.put("collection.template.dir", "common/src/main/templates")
     context.put("collection.template.test.dir", "common/src/test/templates")
-    context.put("collection.src.dir", (T.dest / "src").toString)
-    context.put("collection.testsrc.dir", (T.dest / "testsrc").toString)
+    context.put("collection.src.dir", (Task.dest / "src").toString)
+    context.put("collection.testsrc.dir", (Task.dest / "testsrc").toString)
 
     shell.setProperty("properties", context)
     shell.setProperty("ant", new groovy.ant.AntBuilder())
 
     shell.evaluate((script().path / "codegen.groovy").toIO)
 
-    (PathRef(T.dest / "src"), PathRef(T.dest / "testsrc"))
+    (PathRef(Task.dest / "src"), PathRef(Task.dest / "testsrc"))
   }
 
   def generatedSources = Task { Seq(generatedSources0()._1)}
@@ -1277,24 +1281,24 @@ with the <code>make</code> command essentially being a bash script wrapped in la
 def cSources = Task.Source(millSourcePath / "src" / "main" / "c")
 def cHeaders = Task {
   for(p &lt;- os.walk(cSources().path) if p.ext == "h"){
-    os.copy(p, T.dest / p.relativeTo(cSources().path), createFolders = true)
+    os.copy(p, Task.dest / p.relativeTo(cSources().path), createFolders = true)
   }
-  PathRef(T.dest)
+  PathRef(Task.dest)
 }
 
 def make = Task {
-  os.copy(makefile().path, T.dest / "Makefile")
-  os.copy(cSources().path, T.dest / "src" / "main" / "c", createFolders = true)
+  os.copy(makefile().path, Task.dest / "Makefile")
+  os.copy(cSources().path, Task.dest / "src" / "main" / "c", createFolders = true)
 
   val Seq(sourceJar) = resolveDeps(
     deps = Task.Anon(Agg(ivy"io.netty:netty-jni-util:0.0.9.Final").map(bindDependency())),
     sources = true
   )().toSeq
 
-  os.proc("jar", "xf", sourceJar.path).call(cwd = T.dest  / "src" / "main" / "c")
+  os.proc("jar", "xf", sourceJar.path).call(cwd = Task.dest  / "src" / "main" / "c")
 
   os.proc("make").call(
-    cwd = T.dest,
+    cwd = Task.dest,
     env = Map(
       "CC" -&gt; "clang",
       "AR" -&gt; "ar",
@@ -1314,10 +1318,11 @@ def make = Task {
     )
   )
 
-  (PathRef(T.dest / "lib-out"), PathRef(T.dest / "obj-out"))
+  (PathRef(Task.dest / "lib-out"), PathRef(Task.dest / "obj-out"))
 }</code></pre>
 </div>
 </div>
+<div class="paragraph">
 <center>
 <svg width="179px" height="76px"
  viewBox="0.00 0.00 178.60 75.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -1370,6 +1375,7 @@ def make = Task {
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>In Mill, we define the <code>makefile</code>, <code>cSources</code>, <code>cHeaders</code>, and <code>make</code> tasks. The bulk
 of the logic is in <code>def make</code>, which prepares the <code>makefile</code> and C sources,

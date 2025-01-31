@@ -43,11 +43,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style><style>
-*{
-  hyphens: manual !important;
-}
-</style></head><body class="article">
+  </style></head><body class="article">
   
 <header class="header">
   
@@ -242,6 +238,37 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
     <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
@@ -266,29 +293,6 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
 <ul class="nav-list">
 
@@ -302,6 +306,14 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
   </li>
 </ul>
   </li>
@@ -337,7 +349,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Support</a>
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -361,6 +373,10 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
   </li>
 </ul>
   </li>
@@ -562,7 +578,11 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../reference/changelog.html">Changelog</a>
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
   </li>
 </ul>
   </li>
@@ -584,7 +604,7 @@
           <a href="../../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-latest">
-          <a href="../../index.html">latest-0.12.5</a>
+          <a href="../../index.html">latest-0.12.6</a>
         </li>
         <li class="version is-current">
           <a href="../index.html">0.12.x</a>
@@ -623,22 +643,6 @@
 <h1 class="page">Linting Scala Projects</h1>
 <div id="preamble">
 <div class="sectionbody">
-
-<script>
-gtag('config', 'AW-16649289906');
-
-document.addEventListener('DOMContentLoaded', function() {
-const links = document.querySelectorAll('a');
-  links.forEach(link => {
-    if (link.textContent.trim().toLowerCase() === 'download') {
-      link.addEventListener('click', function(event) {
-        console.log("download link clicked")
-        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
-      });
-    }
-  });
-});
-</script>
 <div class="paragraph">
 <p>This page will discuss common topics around maintaining the code quality of Scala
 codebases using the Mill build tool</p>
@@ -694,7 +698,7 @@ adding its <code>compileIvyDeps,</code> <code>scalacPluginIvyDeps</code>, and <c
 shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-scalalib-linting-3-acyclic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/scalalib/linting/3-acyclic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-scalalib-linting-3-acyclic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/scalalib/linting/3-acyclic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -708,7 +712,7 @@ object `package` extends RootModule with ScalaModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">src/Foo.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/scalalib/linting/3-acyclic/src/Foo.scala">browse</a>)</div>
+<div class="title">src/Foo.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/scalalib/linting/3-acyclic/src/Foo.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 object Foo {
@@ -720,7 +724,7 @@ object Foo {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">src/Bar.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/scalalib/linting/3-acyclic/src/Bar.scala">browse</a>)</div>
+<div class="title">src/Bar.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/scalalib/linting/3-acyclic/src/Bar.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 object Bar {
@@ -765,7 +769,7 @@ done compiling</code></pre>
 <h2 id="_autoformatting_with_scalafmt"><a class="anchor" href="#_autoformatting_with_scalafmt"></a>Autoformatting with ScalaFmt</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-scalalib-linting-1-scalafmt.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/scalalib/linting/1-scalafmt">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-scalalib-linting-1-scalafmt.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/scalalib/linting/1-scalafmt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -776,7 +780,7 @@ object `package` extends RootModule with ScalaModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">.scalafmt.conf (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/scalalib/linting/1-scalafmt/.scalafmt.conf">browse</a>)</div>
+<div class="title">.scalafmt.conf (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/scalalib/linting/1-scalafmt/.scalafmt.conf">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala"># Newer versions won't work with Java 8!
 version = &quot;3.7.15&quot;
@@ -849,7 +853,7 @@ to give it a shorter name that’s easier to type</p>
 <h2 id="_code_coverage_with_scoverage"><a class="anchor" href="#_code_coverage_with_scoverage"></a>Code Coverage with Scoverage</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-scalalib-linting-2-contrib-scoverage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/scalalib/linting/2-contrib-scoverage">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-scalalib-linting-2-contrib-scoverage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/scalalib/linting/2-contrib-scoverage">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -861,12 +865,12 @@ object `package` extends RootModule with ScoverageModule {
   def scoverageVersion = &quot;2.1.0&quot;
   def scalaVersion = &quot;2.13.11&quot;
   def ivyDeps = Agg(
-    ivy&quot;com.lihaoyi::scalatags:0.12.0&quot;,
+    ivy&quot;com.lihaoyi::scalatags:0.13.1&quot;,
     ivy&quot;com.lihaoyi::mainargs:0.6.2&quot;
   )
 
   object test extends ScoverageTests /*with TestModule.Utest */ {
-    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.4&quot;)
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.8.5&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
   }
 }</code></pre>

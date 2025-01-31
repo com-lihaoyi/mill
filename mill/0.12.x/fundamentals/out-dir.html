@@ -43,11 +43,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style><style>
-*{
-  hyphens: manual !important;
-}
-</style></head><body class="article">
+  </style></head><body class="article">
   
 <header class="header">
   
@@ -242,6 +238,37 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
     <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
@@ -266,29 +293,6 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
 <ul class="nav-list">
 
@@ -302,6 +306,14 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
   </li>
 </ul>
   </li>
@@ -337,7 +349,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Support</a>
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -361,6 +373,10 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
   </li>
 </ul>
   </li>
@@ -562,7 +578,11 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../reference/changelog.html">Changelog</a>
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
   </li>
 </ul>
   </li>
@@ -584,7 +604,7 @@
           <a href="../../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-latest">
-          <a href="../../index.html">latest-0.12.5</a>
+          <a href="../../index.html">latest-0.12.6</a>
         </li>
         <li class="version is-current">
           <a href="../index.html">0.12.x</a>
@@ -623,22 +643,6 @@
 <h1 class="page">The Output Directory</h1>
 <div id="preamble">
 <div class="sectionbody">
-
-<script>
-gtag('config', 'AW-16649289906');
-
-document.addEventListener('DOMContentLoaded', function() {
-const links = document.querySelectorAll('a');
-  links.forEach(link => {
-    if (link.textContent.trim().toLowerCase() === 'download') {
-      link.addEventListener('click', function(event) {
-        console.log("download link clicked")
-        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
-      });
-    }
-  });
-});
-</script>
 <div class="paragraph">
 <p>Mill puts all its output in the top-level <code>out/</code> folder.</p>
 </div>
@@ -652,7 +656,7 @@ project’s module structure.</p>
 <p>For the purposes of this page, we will be using the following minimal Mill build</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-fundamentals-out-dir-1-out-files.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/fundamentals/out-dir/1-out-files">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-fundamentals-out-dir-1-out-files.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/fundamentals/out-dir/1-out-files">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -666,7 +670,7 @@ object foo extends JavaModule {}</code></pre>
 
 &gt; echo &quot;&quot; &gt;&gt; foo/src/foo/Foo.java
 
-&gt; ./mill foo.compile # compile against after editing a file
+&gt; ./mill foo.compile # compile again after editing a file
 
 &gt; find out
 out/foo/compile.dest/...
@@ -689,10 +693,10 @@ out/mill-server/...</code></pre>
 <h2 id="_task_metadata_and_cached_files"><a class="anchor" href="#_task_metadata_and_cached_files"></a>Task Metadata and Cached Files</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Each named task (<code>Target</code> or <code>Command</code>) that is run has a representation in
+<p>Each named task (<code>Task</code> or <code>Command</code>) that is run has a representation in
 the <code>out/</code> directory structure. The <em>module</em> structure is reflected in the directories,
 so that each module of your project has a uniquely associated subdirectory under the
-<code>out/</code> directory.For example, the <code>foo.compile</code> task we ran above places
+<code>out/</code> directory. For example, the <code>foo.compile</code> task we ran above places
 its files in the <code>out/foo/compile.*</code> paths:</p>
 </div>
 <div class="listingblock">
@@ -724,7 +728,9 @@ conflicting with another <code>Task</code>, but can name files within <code>foo.
 <div class="sect2">
 <h3 id="_task_log"><a class="anchor" href="#_task_log"></a><code>&lt;task&gt;.log</code></h3>
 <div class="paragraph">
-<p>The <code>stdout</code>/<code>stderr</code> of the <code>Task</code>, if any. This is also streamed to the console during evaluation.</p>
+<p>The <code>stdout</code>/<code>stderr</code> of the <code>Task</code>, if any. This is also streamed to the console during
+evaluation, but the terminal can get messy with many tasks running and printing logs in
+parallel, so if you want the logs for a single task you can find them on disk.</p>
 </div>
 </div>
 <div class="sect2">
@@ -913,11 +919,8 @@ a second time, and thus this file shows how <code>foo.sources</code> invalidated
 one path is chosen arbitrarily to be shown in the spanning tree</p>
 </div>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_methodcodehashsignatures_spanninginvalidationtree"><a class="anchor" href="#_methodcodehashsignatures_spanninginvalidationtree"></a><code>methodCodeHashSignatures spanningInvalidationTree</code></h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_methodcodehashsignatures_spanninginvalidationtree"><a class="anchor" href="#_methodcodehashsignatures_spanninginvalidationtree"></a><code>methodCodeHashSignatures spanningInvalidationTree</code></h3>
 <div class="paragraph">
 <p>Sometimes invalidation can be caused by a code change in your <code>build.mill</code>/<code>package.mill</code>
 files, rather than by a change in the project’s source files or inputs. In such cases,
@@ -934,8 +937,7 @@ the <code>build.mill</code> codebase.</p>
 
 &gt; cat out/mill-build/methodCodeHashSignatures.dest/current/spanningInvalidationTree.json
 {
-  &quot;call scala.runtime.BoxesRunTime.boxToInteger(int)java.lang.Integer&quot;: {},
-  &quot;call scala.Predef$#println(java.lang.Object)void&quot;: {
+...
     &quot;def build_.package_$foo$#&lt;init&gt;(build_.package_)void&quot;: {
       &quot;call build_.package_$foo$!&lt;init&gt;(build_.package_)void&quot;: {
         &quot;def build_.package_#foo$lzycompute$1()void&quot;: {
@@ -945,7 +947,7 @@ the <code>build.mill</code> codebase.</p>
         }
       }
     }
-  }
+...
 }</code></pre>
 </div>
 </div>
@@ -961,6 +963,7 @@ that it invalidates each task when any method it calls (transitively) is changed
 sometimes invalidate <em>too many</em> tasks, but it generally does not invalidate <em>too few</em> tasks,
 except in code using Java Reflection or similar techniques which the code-change analysis
 does not understand.</p>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_mill_build"><a class="anchor" href="#_mill_build"></a><code>mill-build/</code></h3>
@@ -989,7 +992,7 @@ in a faster or a writable filesystem for example, you can change the output dire
 via the <code>MILL_OUTPUT_DIR</code> environment variable.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-fundamentals-out-dir-2-custom-out.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/fundamentals/out-dir/2-custom-out">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-fundamentals-out-dir-2-custom-out.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/fundamentals/out-dir/2-custom-out">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -997,7 +1000,7 @@ import mill._
 
 object foo extends Module {
   def printDest = Task {
-    println(T.dest)
+    println(Task.dest)
   }
 }</code></pre>
 </div>

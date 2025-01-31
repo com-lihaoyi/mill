@@ -43,11 +43,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style><style>
-*{
-  hyphens: manual !important;
-}
-</style></head><body class="article">
+  </style></head><body class="article">
   
 <header class="header">
   
@@ -242,6 +238,37 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
     <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
@@ -266,29 +293,6 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="intro.html">Building Javascript with Mill</a>
 <ul class="nav-list">
 
@@ -302,6 +306,14 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="linting.html">Linting Typescript Projects</a>
   </li>
 </ul>
   </li>
@@ -337,7 +349,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Support</a>
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -361,6 +373,10 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
   </li>
 </ul>
   </li>
@@ -562,7 +578,11 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../reference/changelog.html">Changelog</a>
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
   </li>
 </ul>
   </li>
@@ -584,7 +604,7 @@
           <a href="../../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-latest">
-          <a href="../../index.html">latest-0.12.5</a>
+          <a href="../../index.html">latest-0.12.6</a>
         </li>
         <li class="version is-current">
           <a href="../index.html">0.12.x</a>
@@ -621,31 +641,11 @@
 </aside>
 <article class="doc">
 <h1 class="page">Typescript Module Configuration</h1>
-<div id="preamble">
-<div class="sectionbody">
-
-<script>
-gtag('config', 'AW-16649289906');
-
-document.addEventListener('DOMContentLoaded', function() {
-const links = document.querySelectorAll('a');
-  links.forEach(link => {
-    if (link.textContent.trim().toLowerCase() === 'download') {
-      link.addEventListener('click', function(event) {
-        console.log("download link clicked")
-        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
-      });
-    }
-  });
-});
-</script>
-</div>
-</div>
 <div class="sect1">
 <h2 id="_common_configuration_overrides"><a class="anchor" href="#_common_configuration_overrides"></a>Common Configuration Overrides</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-javascriptlib-module-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javascriptlib/module/1-common-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-javascriptlib-module-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/javascriptlib/module/1-common-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -738,7 +738,7 @@ MyOtherResource: My Other Resource Contents</code></pre>
 <h2 id="_custom_tasks"><a class="anchor" href="#_custom_tasks"></a>Custom Tasks</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-javascriptlib-module-2-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javascriptlib/module/2-custom-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-javascriptlib-module-2-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/javascriptlib/module/2-custom-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -772,9 +772,10 @@ object foo extends TypeScriptModule {
 </div>
 <div class="paragraph">
 <p>The above build defines the customizations to the Mill task graph shown below,
-with the boxes representing tasks defined or overriden above and the un-boxed
+with the boxes representing tasks defined or overridden above and the un-boxed
 labels representing existing Mill tasks:</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="457px" height="119px" viewBox="0.00 0.00 457.09 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
@@ -862,6 +863,7 @@ labels representing existing Mill tasks:</p>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>Mill lets you define new cached Tasks using the <code>Task {…​}</code> syntax,
 depending on existing Tasks e.g. <code>foo.sources</code> via the <code>foo.sources()</code>
@@ -883,7 +885,7 @@ implementation.</p>
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run &quot;Hello World!&quot;
 Bar.value: 123
 text: Hello World!
-Line count: 13</code></pre>
+Line count: 9</code></pre>
 </div>
 </div>
 </div>
@@ -892,7 +894,7 @@ Line count: 13</code></pre>
 <h2 id="_overriding_tasks"><a class="anchor" href="#_overriding_tasks"></a>Overriding Tasks</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-javascriptlib-module-3-override-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javascriptlib/module/3-override-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-javascriptlib-module-3-override-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/javascriptlib/module/3-override-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -919,7 +921,6 @@ object foo extends TypeScriptModule {
 
   def compile = Task {
     println(&quot;Compiling...&quot;)
-    os.copy(sources().path, super.compile()._2.path, mergeFolders = true)
     super.compile()
   }
 
@@ -967,7 +968,7 @@ Running... added tags</code></pre>
 <h2 id="_compilation_execution_flags"><a class="anchor" href="#_compilation_execution_flags"></a>Compilation &amp; Execution Flags</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-javascriptlib-module-4-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javascriptlib/module/4-compilation-execution-flags">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-javascriptlib-module-4-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/javascriptlib/module/4-compilation-execution-flags">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1009,7 +1010,7 @@ Hello World!</code></pre>
 <h2 id="_filesystem_resources"><a class="anchor" href="#_filesystem_resources"></a>Filesystem Resources</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-javascriptlib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javascriptlib/module/5-resources">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-javascriptlib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/javascriptlib/module/5-resources">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1018,7 +1019,7 @@ import ujson._
 
 object foo extends TypeScriptModule {
   object test extends TypeScriptTests with TestModule.Jest {
-    def otherFiles = T.source(millSourcePath / &quot;other-files&quot;)
+    def otherFiles = Task.Source(millSourcePath / &quot;other-files&quot;)
 
     def forkEnv = super.forkEnv() + (&quot;OTHER_FILES_DIR&quot; -&gt; otherFiles().path.toString)
   }
@@ -1078,25 +1079,25 @@ provide the folder path as an environment variable that the test can make use of
 <p>Example application code demonstrating the techniques above can be seen below:</p>
 </div>
 <div class="listingblock">
-<div class="title">foo/resources/file.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javascriptlib/module/5-resources/foo/resources/file.txt">browse</a>)</div>
+<div class="title">foo/resources/file.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/javascriptlib/module/5-resources/foo/resources/file.txt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Hello World Resource File</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/resources/test-file-a.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javascriptlib/module/5-resources/foo/test/resources/test-file-a.txt">browse</a>)</div>
+<div class="title">foo/test/resources/test-file-a.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/javascriptlib/module/5-resources/foo/test/resources/test-file-a.txt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Test Hello World Resource File A</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/resources/test-file-b.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javascriptlib/module/5-resources/foo/test/resources/test-file-b.txt">browse</a>)</div>
+<div class="title">foo/test/resources/test-file-b.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/javascriptlib/module/5-resources/foo/test/resources/test-file-b.txt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Test Hello World Resource File B</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/other-files/other-file.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javascriptlib/module/5-resources/foo/test/other-files/other-file.txt">browse</a>)</div>
+<div class="title">foo/test/other-files/other-file.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/javascriptlib/module/5-resources/foo/test/other-files/other-file.txt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Other Hello World File</code></pre>
 </div>
@@ -1122,7 +1123,7 @@ the sandbox and make the tests run in the project root.</p>
 <h2 id="_bundling_configuration"><a class="anchor" href="#_bundling_configuration"></a>Bundling Configuration</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-javascriptlib-module-6-executable-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/javascriptlib/module/6-executable-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-javascriptlib-module-6-executable-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/javascriptlib/module/6-executable-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 

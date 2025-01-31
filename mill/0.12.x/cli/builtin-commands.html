@@ -43,11 +43,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style><style>
-*{
-  hyphens: manual !important;
-}
-</style></head><body class="article">
+  </style></head><body class="article">
   
 <header class="header">
   
@@ -242,6 +238,37 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
     <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
@@ -266,29 +293,6 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
 <ul class="nav-list">
 
@@ -302,6 +306,14 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
   </li>
 </ul>
   </li>
@@ -337,7 +349,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="installation-ide.html">Installation &amp; IDE Support</a>
+    <a class="nav-link" href="installation-ide.html">Installation &amp; IDE Setup</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -361,6 +373,10 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
   </li>
 </ul>
   </li>
@@ -562,7 +578,11 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../reference/changelog.html">Changelog</a>
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
   </li>
 </ul>
   </li>
@@ -584,7 +604,7 @@
           <a href="../../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-latest">
-          <a href="../../index.html">latest-0.12.5</a>
+          <a href="../../index.html">latest-0.12.6</a>
         </li>
         <li class="version is-current">
           <a href="../index.html">0.12.x</a>
@@ -623,22 +643,6 @@
 <h1 class="page">Built-in Commands</h1>
 <div id="preamble">
 <div class="sectionbody">
-
-<script>
-gtag('config', 'AW-16649289906');
-
-document.addEventListener('DOMContentLoaded', function() {
-const links = document.querySelectorAll('a');
-  links.forEach(link => {
-    if (link.textContent.trim().toLowerCase() === 'download') {
-      link.addEventListener('click', function(event) {
-        console.log("download link clicked")
-        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
-      });
-    }
-  });
-});
-</script>
 <div class="paragraph">
 <p>Mill comes with a number of useful commands out of the box. These are listed
 in the API Docs:</p>
@@ -659,7 +663,7 @@ with your Mill build.</p>
 <p>The following examples will be assuming the <code>build.mill</code> file given below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-cli-builtins-1-builtin-commands.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/cli/builtins/1-builtin-commands">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-cli-builtins-1-builtin-commands.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/cli/builtins/1-builtin-commands">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -895,8 +899,8 @@ foo.sources
 foo.allSources
 foo.allSourceFiles
 foo.compile
-foo.finalMainClassOpt
-foo.prependShellScript
+foo.localRunClasspath
+foo.localClasspath
 foo.assembly</code></pre>
 </div>
 </div>
@@ -927,7 +931,6 @@ foo.unmanagedClasspath
 foo.compileIvyDeps
 ...
 foo.ivyDeps
-foo.transitiveIvyDeps
 foo.compileClasspath</code></pre>
 </div>
 </div>
@@ -1135,6 +1138,54 @@ projects closest to what you want into the empty folder. Even though the example
 project isn’t going to be everything that you need, at least it’ll get most of the
 tedious boilerplate set up, so you can hit the group running working on the things
 that are unique to your particular project..</p>
+</div>
+<div class="paragraph">
+<p><code>init</code> can also be used to initialize a Mill build configuration based on
+an existing Maven or Gradle build. See the linked page for more details:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="../migrating/maven.html" class="xref page">Migrating From Maven to Mill</a></p>
+</li>
+<li>
+<p><a href="../migrating/gradle.html" class="xref page">Migrating From Gradle to Mill</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_selective"><a class="anchor" href="#_selective"></a>selective.*</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill comes with builtin <code>selective.*</code> commands to work with Selective Test Execution.
+See the linked page for more details:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="../large/selective-execution.html" class="xref page">Selective Test Execution</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_shutdown"><a class="anchor" href="#_shutdown"></a>shutdown</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>./mill shutdown</code> is used to shut down the background daemon that Mill uses to keep
+the build code performant. Without calling <code>shutdown</code>, the background daemon will
+automatically shut itself down after 30 minutes of inactivity.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_version"><a class="anchor" href="#_version"></a>version</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>./mill version</code> prints the current Mill version</p>
 </div>
 </div>
 </div>

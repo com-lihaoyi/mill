@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Why Use Mill? :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/comparisons/why-mill.html">
-    <link rel="prev" href="../javascriptlib/testing.html">
+    <link rel="prev" href="../javascriptlib/linting.html">
     <link rel="next" href="maven.html">
     <meta name="generator" content="Antora 3.1.9">
     <link rel="stylesheet" href="../../_/css/site.css">
@@ -237,6 +237,37 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
     <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
@@ -261,29 +292,6 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
 <ul class="nav-list">
 
@@ -297,6 +305,14 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
   </li>
 </ul>
   </li>
@@ -332,7 +348,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Support</a>
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -356,6 +372,10 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
   </li>
 </ul>
   </li>
@@ -557,7 +577,11 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../reference/changelog.html">Changelog</a>
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
   </li>
 </ul>
   </li>
@@ -569,7 +593,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">latest-0.12.5</span>
+    <span class="version">latest-0.12.6</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -579,7 +603,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">latest-0.12.5</a>
+          <a href="../index.html">latest-0.12.6</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.x</a>
@@ -973,9 +997,8 @@ the Gradle build in an IDE, the IDE can only explore the configuration logic (th
 <code>getCompilerArgs</code> <em>actually gets used in Gradle</em>)</p>
 </div>
 <div class="paragraph">
-<p>In comparison, Mill&#8217;s <code>.mill</code> files are all statically typed, and as a result IntelliJ is easily able to
-pull up the documentation for <code>def javacOptions</code>, even though it doesn&#8217;t have any special support
-for Mill built into the IDE:</p>
+<p>In comparison, not only are Mill&#8217;s <code>.mill</code> files statically typed, allowing IDEs like IntelliJ
+to pull up the documentation for <code>def javacOptions</code>:</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -983,7 +1006,7 @@ for Mill built into the IDE:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Apart from static typing, the way Mill builds are structured also helps the IDE: Mill
+<p>The way Mill builds are structured also helps the IDE: Mill
 code <em>actually performs your build</em>, rather than configuring some opaque build engine.
 While that sounds academic, one concrete consequence is that IntelliJ is able to take
 your <code>def javacOptions</code> override and
@@ -995,7 +1018,7 @@ find the original definitions that were overridden, and show you where they are 
 </div>
 </div>
 <div class="paragraph">
-<p>You can jump to any of the overriden `def`s quickly and precisely:</p>
+<p>You can jump to any of the overridden `def`s quickly and precisely:</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -1164,7 +1187,7 @@ which includes usage of third-party libraries in the build.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_using_libraries_from_maven_central_in_tasks"><a class="anchor" href="#_using_libraries_from_maven_central_in_tasks"></a>Using Libraries from Maven Central in Tasks</h3>
+<h3 id="_using_third_party_jvm_libraries_in_tasks"><a class="anchor" href="#_using_third_party_jvm_libraries_in_tasks"></a>Using Third-Party JVM Libraries in Tasks</h3>
 <div class="paragraph">
 <p>Earlier on we discussed possibly pre-rendering HTML pages in the build so they can be
 served at runtime. The use case for this are obvious: if a page never changes, rendering
@@ -1187,9 +1210,14 @@ import $ivy.`org.thymeleaf:thymeleaf:3.1.1.RELEASE`
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.context.Context
 object foo extends JavaModule {
+  /** Total number of lines in module source files */
+  def lineCount = Task {
+    allSourceFiles().map(f =&gt; os.read.lines(f.path).size).sum
+  }
+
   def htmlSnippet = Task {
     val context = new Context()
-    context.setVariable("heading", "hello")
+    context.setVariable("heading", "Line Count is: " + lineCount())
     new TemplateEngine().process(
         "&lt;h1 th:text=\"${heading}\"&gt;&lt;/h1&gt;",
         context
@@ -1213,14 +1241,14 @@ is inspectable from the Mill command line via <code>show</code>, and we wire it 
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill show foo.htmlSnippet
-"&lt;h1&gt;hello&lt;/h1&gt;"
+"&lt;h1&gt;Line count is: 17&lt;/h1&gt;"
 
 &gt; mill foo.compile
 compiling 1 Java source...
 ...
 
 &gt; mill foo.run
-generated snippet.txt resource: &lt;h1&gt;hello&lt;/h1&gt;</code></pre>
+generated snippet.txt resource: &lt;h1&gt;Line count is: 17&lt;/h1&gt;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1244,9 +1272,9 @@ implement the functionality we need.</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>Instead, we could simply import Thymeleaf directly from Maven Central and use it just
-like we would use it in any Java application, with IDE support, typechecking,
-and automatic parallelism and caching.</p>
+<p>Instead, we could simply import Thymeleaf as a Java library directly from Maven Central
+and use it just like we would use it in any Java application, with IDE support,
+typechecking, and automatic parallelism and caching.</p>
 </div>
 <hr>
 <div class="paragraph">
@@ -1297,7 +1325,7 @@ works. Please try it out and let us know in the
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="../javascriptlib/testing.html">Testing Typescript Projects</a></span>
+  <span class="prev"><a href="../javascriptlib/linting.html">Linting Typescript Projects</a></span>
   <span class="next"><a href="maven.html">Case Study: Mill vs Maven</a></span>
 </nav>
 </article>

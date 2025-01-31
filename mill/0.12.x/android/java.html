@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Android Java Projects :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/android/java.html" />
-    <link rel="prev" href="../kotlinlib/web-examples.html" />
+    <link rel="prev" href="../pythonlib/web-examples.html" />
     <link rel="next" href="kotlin.html" />
     <meta name="generator" content="Antora 3.1.9" />
     <link rel="stylesheet" href="../../../_/css/site.css" />
@@ -43,11 +43,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style><style>
-*{
-  hyphens: manual !important;
-}
-</style></head><body class="article">
+  </style></head><body class="article">
   
 <header class="header">
   
@@ -242,6 +238,37 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
     <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
@@ -266,29 +293,6 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
 <ul class="nav-list">
 
@@ -302,6 +306,14 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
   </li>
 </ul>
   </li>
@@ -337,7 +349,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Support</a>
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -361,6 +373,10 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
   </li>
 </ul>
   </li>
@@ -562,7 +578,11 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../reference/changelog.html">Changelog</a>
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
   </li>
 </ul>
   </li>
@@ -584,7 +604,7 @@
           <a href="../../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-latest">
-          <a href="../../index.html">latest-0.12.5</a>
+          <a href="../../index.html">latest-0.12.6</a>
         </li>
         <li class="version is-current">
           <a href="../index.html">0.12.x</a>
@@ -623,22 +643,6 @@
 <h1 class="page">Android Java Projects</h1>
 <div id="preamble">
 <div class="sectionbody">
-
-<script>
-gtag('config', 'AW-16649289906');
-
-document.addEventListener('DOMContentLoaded', function() {
-const links = document.querySelectorAll('a');
-  links.forEach(link => {
-    if (link.textContent.trim().toLowerCase() === 'download') {
-      link.addEventListener('click', function(event) {
-        console.log("download link clicked")
-        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
-      });
-    }
-  });
-});
-</script>
 <div class="paragraph">
 <p>This page provides an example of using Mill as a build tool for Android applications.
 This workflow is still pretty rough and nowhere near production ready, but can serve as
@@ -679,14 +683,13 @@ resource generation, APK building, DEX conversion, and APK signing.
 Additionally, <code>AndroidSdkModule</code> is embedded, making SDK management seamless.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-android-javalib-1-hello-world.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/android/javalib/1-hello-world">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-android-javalib-1-hello-world.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/android/javalib/1-hello-world">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
 import mill._, javalib._
 
 import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}
-import coursier.maven.MavenRepository
 import mill.javalib.android.AndroidTestModule</code></pre>
 </div>
 </div>
@@ -697,7 +700,6 @@ import mill.javalib.android.AndroidTestModule</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object androidSdkModule0 extends AndroidSdkModule {
   def buildToolsVersion = &quot;35.0.0&quot;
-  def bundleToolVersion = &quot;1.17.2&quot;
 }</code></pre>
 </div>
 </div>
@@ -708,18 +710,16 @@ import mill.javalib.android.AndroidTestModule</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object app extends AndroidAppModule {
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+  def androidMinSdk = 19
+  def androidCompileSdk = 35
 
   // Configuration for ReleaseKey
-  override def releaseKeyPath = super.millSourcePath
-
-  def androidReleaseKeyName: T[String] = Task { &quot;releaseKey.jks&quot; }
-  def androidReleaseKeyAlias: T[String] = Task { &quot;releaseKey&quot; }
-  def androidReleaseKeyPass: T[String] = Task { &quot;MillBuildTool&quot; }
-  def androidReleaseKeyStorePass: T[String] = Task { &quot;MillBuildTool&quot; }
+  def androidReleaseKeyName: T[Option[String]] = Task { Some(&quot;releaseKey.jks&quot;) }
+  def androidReleaseKeyAlias: T[Option[String]] = Task { Some(&quot;releaseKey&quot;) }
+  def androidReleaseKeyPass: T[Option[String]] = Task { Some(&quot;MillBuildTool&quot;) }
+  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some(&quot;MillBuildTool&quot;) }
 
   override def androidVirtualDeviceIdentifier: String = &quot;java-test&quot;
-
-  private def mainRoot = millSourcePath
 
   object test extends AndroidAppTests with TestModule.Junit4 {
     def testFramework = &quot;com.novocode.junit.JUnitFramework&quot;
@@ -728,34 +728,11 @@ import mill.javalib.android.AndroidTestModule</code></pre>
     )
   }
 
-  object it extends AndroidAppIntegrationTests with AndroidTestModule.AndroidJUnit {
-    def repositoriesTask = Task.Anon {
-      super.repositoriesTask() ++
-        Seq(MavenRepository(&quot;https://maven.google.com&quot;))
-    }
+  object it extends AndroidAppInstrumentedTests with AndroidTestModule.AndroidJUnit {
 
     def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
 
     override def instrumentationPackage = &quot;com.helloworld.app&quot;
-
-    /* TODO this needs to change to the location of the debug keystore once integration test */
-    override def releaseKeyPath = mainRoot
-
-    def androidReleaseKeyName: T[String] = Task {
-      &quot;releaseKey.jks&quot;
-    }
-
-    def androidReleaseKeyAlias: T[String] = Task {
-      &quot;releaseKey&quot;
-    }
-
-    def androidReleaseKeyPass: T[String] = Task {
-      &quot;MillBuildTool&quot;
-    }
-
-    def androidReleaseKeyStorePass: T[String] = Task {
-      &quot;MillBuildTool&quot;
-    }
 
     /* TODO currently the dependency resolution ignores the platform type and kotlinx-coroutines-core has
      * conflicting classes with kotlinx-coroutines-core-jvm . Remove the exclusions once the dependency
@@ -819,7 +796,7 @@ all necessary steps (resource generation, APK creation, and signing) are execute
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show app.test
-...compiling 3 Java sources...
+...compiling 1 Java source...
 
 &gt; cat out/app/test/test.dest/out.json
 [&quot;&quot;,[{&quot;fullyQualifiedName&quot;:&quot;com.helloworld.ExampleUnitTest.textSize_isCorrect&quot;,&quot;selector&quot;:&quot;com.helloworld.ExampleUnitTest.textSize_isCorrect&quot;,&quot;duration&quot;:...,&quot;status&quot;:&quot;Success&quot;}]]</code></pre>
@@ -835,14 +812,36 @@ all necessary steps (resource generation, APK creation, and signing) are execute
 
 &gt; ./mill show app.startAndroidEmulator
 
-&gt; ./mill show app.waitForDevice
-...emulator-5554...
+&gt; ./mill show app.adbDevices
+...emulator-5554...device...
 
-&gt; ./mill show app.it | grep '&quot;OK (1 test)&quot;'
-...&quot;OK (1 test)&quot;,
+&gt; ./mill show app.it
+...
+[
+  &quot;&quot;,
+  [
+    {
+      &quot;fullyQualifiedName&quot;: &quot;com.helloworld.app.ExampleInstrumentedTest.useAppContext&quot;,
+      &quot;selector&quot;: &quot;com.helloworld.app.ExampleInstrumentedTest.useAppContext&quot;,
+      &quot;duration&quot;: ...,
+      &quot;status&quot;: &quot;Success&quot;
+    }
+  ]
+]
+...
 
-&gt; cat out/app/it/test.json | grep '&quot;OK (1 test)&quot;'
-...&quot;OK (1 test)&quot;...
+&gt; cat out/app/it/testTask.dest/test-report.xml
+...
+&lt;?xml version='1.0' encoding='UTF-8'?&gt;
+&lt;testsuites tests=&quot;1&quot; failures=&quot;0&quot; errors=&quot;0&quot; skipped=&quot;0&quot; time=&quot;...&quot;&gt;
+        &lt;testsuite name=&quot;com.helloworld.app.ExampleInstrumentedTest.useAppContext&quot; tests=&quot;1&quot; failures=&quot;0&quot; errors=&quot;0&quot; skipped=&quot;0&quot; time=&quot;0.0&quot; timestamp=&quot;...&quot;&gt;
+        &lt;properties&gt;
+      &lt;/properties&gt;
+        &lt;testcase classname=&quot;com.helloworld.app.ExampleInstrumentedTest.useAppContext&quot; name=&quot;com.helloworld.app.ExampleInstrumentedTest.useAppContext&quot; time=&quot;...&quot;&gt;
+        &lt;/testcase&gt;
+      &lt;/testsuite&gt;
+      &lt;/testsuites&gt;
+...
 
 &gt; ./mill show app.stopAndroidEmulator
 
@@ -929,7 +928,7 @@ Android Bundle zip generation, Bundle Creation and Bundle signing.
 Additionally, <code>AndroidSdkModule</code> is embedded, making SDK management seamless.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-android-javalib-2-app-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/android/javalib/2-app-bundle">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-android-javalib-2-app-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/android/javalib/2-app-bundle">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -938,18 +937,16 @@ import mill.javalib.android.{AndroidSdkModule, AndroidAppBundle}
 
 object androidSdkModule0 extends AndroidSdkModule {
   def buildToolsVersion = &quot;35.0.0&quot;
-  def bundleToolVersion = &quot;1.17.2&quot;
 }
 
 object bundle extends AndroidAppBundle {
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+  def androidCompileSdk = 35
 
-  override def releaseKeyPath = millSourcePath
-
-  def androidReleaseKeyName: T[String] = Task { &quot;releaseKey.jks&quot; }
-  def androidReleaseKeyAlias: T[String] = Task { &quot;releaseKey&quot; }
-  def androidReleaseKeyPass: T[String] = Task { &quot;MillBuildTool&quot; }
-  def androidReleaseKeyStorePass: T[String] = Task { &quot;MillBuildTool&quot; }
+  def androidReleaseKeyName: T[Option[String]] = Task { Some(&quot;releaseKey.jks&quot;) }
+  def androidReleaseKeyAlias: T[Option[String]] = Task { Some(&quot;releaseKey&quot;) }
+  def androidReleaseKeyPass: T[Option[String]] = Task { Some(&quot;MillBuildTool&quot;) }
+  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some(&quot;MillBuildTool&quot;) }
 }</code></pre>
 </div>
 </div>
@@ -1026,7 +1023,7 @@ This zip follows the Android App Bundle format, as outlined in the official docu
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a></span>
+  <span class="prev"><a href="../pythonlib/web-examples.html">Python Web Project Examples</a></span>
   <span class="next"><a href="kotlin.html">Android Kotlin Projects</a></span>
 </nav>
 </article>

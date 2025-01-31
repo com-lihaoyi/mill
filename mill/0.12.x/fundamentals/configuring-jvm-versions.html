@@ -238,6 +238,37 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
     <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
@@ -262,29 +293,6 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
 <ul class="nav-list">
 
@@ -298,6 +306,14 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
   </li>
 </ul>
   </li>
@@ -333,7 +349,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Support</a>
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -357,6 +373,10 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
   </li>
 </ul>
   </li>
@@ -558,7 +578,11 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../reference/changelog.html">Changelog</a>
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
   </li>
 </ul>
   </li>
@@ -580,7 +604,7 @@
           <a href="../../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-latest">
-          <a href="../../index.html">latest-0.12.5</a>
+          <a href="../../index.html">latest-0.12.6</a>
         </li>
         <li class="version is-current">
           <a href="../index.html">0.12.x</a>
@@ -632,7 +656,7 @@ and using a custom Java home on a per-module basis.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_downloading_jvm_by_version"><a class="anchor" href="#_downloading_jvm_by_version"></a>Downloading Jvm By Version</h2>
+<h2 id="_setting_the_jvm_version_of_a_javamodule"><a class="anchor" href="#_setting_the_jvm_version_of_a_javamodule"></a>Setting the JVM version of a JavaModule</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>The <code>ZincWorkerModule.ForJvm</code> class takes a Jvm dependency string as its
@@ -652,17 +676,17 @@ using coursier and use it for the compile, run, and test tasks.</p>
 and architecture <a href="https://github.com/coursier/jvm-index/blob/master/indices/linux-arm64.json">here</a>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-depth-javahome-1-custom-jvms.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/depth/javahome/1-custom-jvms">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-depth-javahome-1-custom-jvms.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/depth/javahome/1-custom-jvms">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
 import mill.define.ModuleRef
 
-object ZincWorkerJava11 extends ZincWorkerModule {
+object ZincWorkerJava extends ZincWorkerModule {
   def jvmId = &quot;temurin:18.0.2&quot;
 }
 
 object foo extends JavaModule {
-  def zincWorker = ModuleRef(ZincWorkerJava11)
+  def zincWorker = ModuleRef(ZincWorkerJava)
 
   object test extends JavaTests with TestModule.Junit4
 }</code></pre>
@@ -696,20 +720,27 @@ Java and Scala sources.</p>
 each version of Mill is released. This ensures that the JVM versions you pick are stable,
 but means that the latest JVM versions may not be available. You can pass in the JVM
 index version explicitly via <code>def jvmIndexVersion</code> below, choosing a published
-index version from the Maven Central (<a href="https://repo1.maven.org/maven2/io/get-coursier/jvm/indices/index-linux-arm64/">link</a>)</p>
+index version from the Maven Central:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://repo1.maven.org/maven2/io/get-coursier/jvm/indices/">JVM Indices on Maven Central</a>)</p>
+</li>
+</ul>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import scalalib._
 
-object ZincWorkerJava11Latest extends ZincWorkerModule {
+object ZincWorkerJavaLatest extends ZincWorkerModule {
   def jvmId = &quot;temurin:23.0.1&quot;
   def jvmIndexVersion = &quot;latest.release&quot;
 }
 
 object bar extends ScalaModule {
   def scalaVersion = &quot;2.13.12&quot;
-  def zincWorker = ModuleRef(ZincWorkerJava11Latest)
+  def zincWorker = ModuleRef(ZincWorkerJavaLatest)
 
 }</code></pre>
 </div>
@@ -736,7 +767,7 @@ OS/CPU combinations</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import kotlinlib._
 
-object ZincWorkerJava11Url extends ZincWorkerModule {
+object ZincWorkerJavaUrl extends ZincWorkerModule {
   def jvmId =
     if (sys.props(&quot;os.name&quot;) == &quot;Mac OS X&quot;) {
       &quot;https://github.com/adoptium/temurin22-binaries/releases/download/jdk-22.0.2%2B9/OpenJDK22U-jdk_aarch64_mac_hotspot_22.0.2_9.tar.gz&quot;
@@ -748,7 +779,7 @@ object ZincWorkerJava11Url extends ZincWorkerModule {
 
 object qux extends KotlinModule {
   def kotlinVersion = &quot;2.0.20&quot;
-  def zincWorker = ModuleRef(ZincWorkerJava11Url)
+  def zincWorker = ModuleRef(ZincWorkerJavaUrl)
 }</code></pre>
 </div>
 </div>

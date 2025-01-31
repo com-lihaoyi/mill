@@ -43,11 +43,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style><style>
-*{
-  hyphens: manual !important;
-}
-</style></head><body class="article">
+  </style></head><body class="article">
   
 <header class="header">
   
@@ -242,6 +238,37 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
     <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
@@ -266,29 +293,6 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
 <ul class="nav-list">
 
@@ -302,6 +306,14 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
   </li>
 </ul>
   </li>
@@ -337,7 +349,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Support</a>
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -361,6 +373,10 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
   </li>
 </ul>
   </li>
@@ -562,7 +578,11 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../reference/changelog.html">Changelog</a>
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
   </li>
 </ul>
   </li>
@@ -574,7 +594,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">latest-0.12.5</span>
+    <span class="version">latest-0.12.6</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -584,7 +604,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">latest-0.12.5</a>
+          <a href="../index.html">latest-0.12.6</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.x</a>
@@ -623,22 +643,6 @@
 <h1 class="page">Modules</h1>
 <div id="preamble">
 <div class="sectionbody">
-
-<script>
-gtag('config', 'AW-16649289906');
-
-document.addEventListener('DOMContentLoaded', function() {
-const links = document.querySelectorAll('a');
-  links.forEach(link => {
-    if (link.textContent.trim().toLowerCase() === 'download') {
-      link.addEventListener('click', function(event) {
-        console.log("download link clicked")
-        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
-      });
-    }
-  });
-});
-</script>
 <div class="paragraph">
 <p><code>mill.Module</code> serves two main purposes:</p>
 </div>
@@ -670,7 +674,7 @@ path you would use to run tasks within that module from the command line. e.g.
 for the following <code>build.mill</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-fundamentals-modules-6-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/fundamentals/modules/6-modules">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-fundamentals-modules-6-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/fundamentals/modules/6-modules">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -683,6 +687,7 @@ object foo extends Module {
 }</code></pre>
 </div>
 </div>
+<div class="paragraph">
 <center>
 <svg width="153px" height="215px" viewBox="0.00 0.00 153.06 215.20" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 211.2)">
@@ -746,13 +751,23 @@ object foo extends Module {
 </svg>
 
 </center>
-<div class="paragraph">
-<p>You would be able to run the two tasks via <code>mill foo.bar</code> or <code>mill
-foo.qux.baz</code>. You can use <code>mill show foo.bar</code> or <code>mill show foo.baz.qux</code> to
-make Mill echo out the string value being returned by each Task. The two
-tasks will store their output metadata and files at
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>You can run the two tasks via <code>mill foo.bar</code> or <code>mill
+foo.qux.baz</code>.</p>
+</li>
+<li>
+<p>You can use <code>mill show foo.bar</code> or <code>mill show foo.baz.qux</code> to
+make Mill echo out the string value being returned by each Task.</p>
+</li>
+<li>
+<p>The two tasks will store their output metadata and files at
 <code>./out/foo/bar.{json,dest}</code> and <code>./out/foo/baz/qux.{json,dest}</code>
 respectively.</p>
+</li>
+</ul>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -775,13 +790,14 @@ respectively.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_trait_modules"><a class="anchor" href="#_trait_modules"></a>Trait Modules</h2>
+<h2 id="_module_traits"><a class="anchor" href="#_module_traits"></a>Module Traits</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Modules also provide a way to define and re-use common collections of tasks,
-via Scala <code>trait</code>s. Module <code>trait</code>s support everything normal Scala
-<code>trait</code>s do: abstract <code>def</code>s, overrides, <code>super</code>, extension
-with additional <code>def</code>s, etc.</p>
+via <code>trait</code>s. <code>trait</code>s are basically Java or Python <code>class</code>es with some additional
+flexibility, and Module <code>trait</code>s support everything normal
+<code>class</code>es do: inheritence via <code>extends</code>, abstract <code>def</code>s, <code>override</code>s, <code>super</code>,
+adding additional <code>def</code>s, etc.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -792,7 +808,7 @@ with additional <code>def</code>s, etc.</p>
 
 object foo1 extends FooModule {
   def bar = &quot;hello&quot;
-  def qux = super.qux().toUpperCase // refer to overriden value via super
+  def qux = super.qux().toUpperCase // refer to overridden value via super
 }
 object foo2 extends FooModule {
   def bar = &quot;hi&quot;
@@ -805,6 +821,7 @@ object foo2 extends FooModule {
 arrows representing the module tree, and the solid boxes and arrows representing
 the task graph</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="522px" height="154px" viewBox="0.00 0.00 521.81 154.40" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 150.4)">
@@ -851,15 +868,15 @@ the task graph</p>
 <path fill="none" stroke="black" stroke-dasharray="5,2" d="M161.84,-64.15C138.33,-54.99 99.42,-39.84 70.23,-28.48"></path>
 <polygon fill="black" stroke="black" points="71.33,-25.15 60.74,-24.78 68.79,-31.67 71.33,-25.15"></polygon>
 </g>
-<!-- foo1.qux.super -->
+<!-- foo1.super.qux -->
 <g id="node5" class="node">
-<title>foo1.qux.super</title>
+<title>foo1.super.qux</title>
 <polygon fill="white" stroke="black" points="181.5,-24.7 81.54,-24.7 81.54,-0.1 181.5,-0.1 181.5,-24.7"></polygon>
-<text text-anchor="middle" x="131.52" y="-8.2" font-family="Times,serif" font-size="14.00">foo1.qux.super</text>
+<text text-anchor="middle" x="131.52" y="-8.2" font-family="Times,serif" font-size="14.00">foo1.super.qux</text>
 </g>
-<!-- foo1&#45;&gt;foo1.qux.super -->
+<!-- foo1&#45;&gt;foo1.super.qux -->
 <g id="edge3" class="edge">
-<title>foo1-&gt;foo1.qux.super</title>
+<title>foo1-&gt;foo1.super.qux</title>
 <path fill="none" stroke="black" stroke-dasharray="5,2" d="M172.68,-60.86C165.7,-52.81 156.15,-41.8 148.01,-32.42"></path>
 <polygon fill="black" stroke="black" points="150.52,-29.96 141.32,-24.7 145.23,-34.55 150.52,-29.96"></polygon>
 </g>
@@ -911,15 +928,15 @@ the task graph</p>
 <path fill="none" stroke="black" stroke-dasharray="5,2" d="M377.44,-62.36C396.66,-53.32 425.47,-39.76 447.91,-29.21"></path>
 <polygon fill="black" stroke="black" points="449.54,-32.31 457.09,-24.89 446.56,-25.98 449.54,-32.31"></polygon>
 </g>
-<!-- foo1.bar&#45;&gt;foo1.qux.super -->
+<!-- foo1.bar&#45;&gt;foo1.super.qux -->
 <g id="edge9" class="edge">
-<title>foo1.bar-&gt;foo1.qux.super</title>
+<title>foo1.bar-&gt;foo1.super.qux</title>
 <path fill="none" stroke="black" d="M63.16,-12.4C65.81,-12.4 68.45,-12.4 71.1,-12.4"></path>
 <polygon fill="black" stroke="black" points="71.32,-15.9 81.32,-12.4 71.32,-8.9 71.32,-15.9"></polygon>
 </g>
-<!-- foo1.qux.super&#45;&gt;foo1.qux -->
+<!-- foo1.super.qux&#45;&gt;foo1.qux -->
 <g id="edge10" class="edge">
-<title>foo1.qux.super-&gt;foo1.qux</title>
+<title>foo1.super.qux-&gt;foo1.qux</title>
 <path fill="none" stroke="black" d="M181.62,-12.4C184.08,-12.4 186.54,-12.4 189,-12.4"></path>
 <polygon fill="black" stroke="black" points="189.12,-15.9 199.12,-12.4 189.12,-8.9 189.12,-15.9"></polygon>
 </g>
@@ -939,6 +956,7 @@ the task graph</p>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>Note that the <code>override</code> keyword is optional in mill, as is <code>T{…​}</code> wrapper.</p>
 </div>
@@ -991,6 +1009,7 @@ object outer extends MyModule {
 }</code></pre>
 </div>
 </div>
+<div class="paragraph">
 <center>
 <svg width="361px" height="215px" viewBox="0.00 0.00 360.66 215.20" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 211.2)">
@@ -1090,6 +1109,7 @@ object outer extends MyModule {
 </svg>
 
 </center>
+</div>
 <div class="ulist">
 <ul>
 <li>
@@ -1184,6 +1204,101 @@ g`mill.api.WorkspaceRoot.workspaceRoot`.
 </div>
 </div>
 <div class="sect1">
+<h2 id="_module_overrides"><a class="anchor" href="#_module_overrides"></a>Module Overrides</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Tasks within <a href="#_module_traits">Module Traits</a> can be overridden via the <code>override</code> keyword,
+with the overridden task callable via <code>super</code>.
+You can also override a task with a different type of task, e.g. below
+we override <code>sourceRoots</code> which is a <code>Task.Sources</code> with a cached <code>Task{}</code>
+that depends on the original via <code>super</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">trait Foo extends Module {
+  def sourceRoots = Task.Sources(millSourcePath / &quot;src&quot;)
+  def sourceContents = Task {
+    sourceRoots()
+      .flatMap(pref =&gt; os.walk(pref.path))
+      .filter(_.ext == &quot;txt&quot;)
+      .sorted
+      .map(os.read(_))
+  }
+}
+
+trait Bar extends Foo {
+  def additionalSources = Task.Sources(millSourcePath / &quot;src2&quot;)
+  def sourceRoots = Task { super.sourceRoots() ++ additionalSources() }
+}
+
+object bar extends Bar</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<center>
+<svg width="451px" height="76px" viewBox="0.00 0.00 450.67 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 446.67,-71.8 446.67,4 -4,4"></polygon>
+<!-- bar.sourceRoots.super -->
+<g id="node1" class="node">
+<title>bar.sourceRoots.super</title>
+<polygon fill="white" stroke="black" points="140.6,-67.7 -0.2,-67.7 -0.2,-43.1 140.6,-43.1 140.6,-67.7"></polygon>
+<text text-anchor="middle" x="70.2" y="-51.2" font-family="Times,serif" font-size="14.00">bar.sourceRoots.super</text>
+</g>
+<!-- bar.sourceRoots -->
+<g id="node2" class="node">
+<title>bar.sourceRoots</title>
+<polygon fill="white" stroke="black" points="282.77,-45.7 176.61,-45.7 176.61,-21.1 282.77,-21.1 282.77,-45.7"></polygon>
+<text text-anchor="middle" x="229.69" y="-29.2" font-family="Times,serif" font-size="14.00">bar.sourceRoots</text>
+</g>
+<!-- bar.sourceRoots.super&#45;&gt;bar.sourceRoots -->
+<g id="edge1" class="edge">
+<title>bar.sourceRoots.super-&gt;bar.sourceRoots</title>
+<path fill="none" stroke="black" d="M140.74,-45.69C149.29,-44.49 157.99,-43.28 166.43,-42.1"></path>
+<polygon fill="black" stroke="black" points="167.14,-45.53 176.56,-40.68 166.17,-38.6 167.14,-45.53"></polygon>
+</g>
+<!-- bar.sourceContents -->
+<g id="node3" class="node">
+<title>bar.sourceContents</title>
+<polygon fill="white" stroke="black" points="442.51,-45.7 319.14,-45.7 319.14,-21.1 442.51,-21.1 442.51,-45.7"></polygon>
+<text text-anchor="middle" x="380.83" y="-29.2" font-family="Times,serif" font-size="14.00">bar.sourceContents</text>
+</g>
+<!-- bar.sourceRoots&#45;&gt;bar.sourceContents -->
+<g id="edge2" class="edge">
+<title>bar.sourceRoots-&gt;bar.sourceContents</title>
+<path fill="none" stroke="black" d="M282.85,-33.4C291.24,-33.4 300.05,-33.4 308.8,-33.4"></path>
+<polygon fill="black" stroke="black" points="309,-36.9 319,-33.4 309,-29.9 309,-36.9"></polygon>
+</g>
+<!-- bar.additionalSources -->
+<g id="node4" class="node">
+<title>bar.additionalSources</title>
+<polygon fill="white" stroke="black" points="138.88,-24.7 1.52,-24.7 1.52,-0.1 138.88,-0.1 138.88,-24.7"></polygon>
+<text text-anchor="middle" x="70.2" y="-8.2" font-family="Times,serif" font-size="14.00">bar.additionalSources</text>
+</g>
+<!-- bar.additionalSources&#45;&gt;bar.sourceRoots -->
+<g id="edge3" class="edge">
+<title>bar.additionalSources-&gt;bar.sourceRoots</title>
+<path fill="none" stroke="black" d="M138.91,-21.43C147.99,-22.64 157.28,-23.88 166.27,-25.08"></path>
+<polygon fill="black" stroke="black" points="165.89,-28.56 176.26,-26.41 166.81,-21.62 165.89,-28.56"></polygon>
+</g>
+</g>
+</svg>
+
+</center>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show bar.sourceContents # includes both source folders
+[
+  &quot;File Data From src/&quot;,
+  &quot;File Data From src2/&quot;
+]</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_rootmodule"><a class="anchor" href="#_rootmodule"></a>RootModule</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -1191,7 +1306,7 @@ g`mill.api.WorkspaceRoot.workspaceRoot`.
 as the root module of the file:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-fundamentals-modules-7-root-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/fundamentals/modules/7-root-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-fundamentals-modules-7-root-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/fundamentals/modules/7-root-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -1276,7 +1391,7 @@ so far into a worked example: implementing our own minimal version of
 <code>mill.scalalib.JavaModule</code> from first principles.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-fundamentals-modules-8-diy-java-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/fundamentals/modules/8-diy-java-modules">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-fundamentals-modules-8-diy-java-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/fundamentals/modules/8-diy-java-modules">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -1314,6 +1429,7 @@ trait DiyJavaModule extends Module {
 edges (dashed) are not connected; that is because <code>DiyJavaModule</code> is abstract, and
 needs to be inherited by a concrete <code>object</code> before it can be used.</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="410px" height="132px" viewBox="0.00 0.00 409.51 132.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 128.0)">
@@ -1398,6 +1514,7 @@ needs to be inherited by a concrete <code>object</code> before it can be used.</
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>Some notable things to call out:</p>
 </div>
@@ -1446,19 +1563,20 @@ object qux extends DiyJavaModule {
 duplicated three times - once per module - with the tasks wired up between the modules
 according to our overrides for <code>moduleDeps</code></p>
 </div>
+<div class="paragraph">
 <center>
-<svg width="847px" height="321px" viewBox="0.00 0.00 847.08 321.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 317.0)">
+<svg width="847px" height="278px" viewBox="0.00 0.00 847.08 278.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 274.0)">
 <title>G</title>
-<g id="clust1" class="cluster">
-<title>cluster_0</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-197 8,-305 567.65,-305 567.65,-197 8,-197"></polygon>
-<text text-anchor="middle" x="287.82" y="-288.4" font-family="Times,serif" font-size="14.00">foo.bar</text>
-</g>
 <g id="clust3" class="cluster">
 <title>cluster_2</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="303.84,-81 303.84,-189 831.08,-189 831.08,-81 303.84,-81"></polygon>
-<text text-anchor="middle" x="567.46" y="-172.4" font-family="Times,serif" font-size="14.00">qux</text>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="289.27,-81 289.27,-189 831.08,-189 831.08,-81 289.27,-81"></polygon>
+<text text-anchor="middle" x="560.17" y="-172.4" font-family="Times,serif" font-size="14.00">qux</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_0</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-197 8,-262 567.65,-262 567.65,-197 8,-197"></polygon>
+<text text-anchor="middle" x="287.82" y="-245.4" font-family="Times,serif" font-size="14.00">foo.bar</text>
 </g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
@@ -1486,26 +1604,26 @@ according to our overrides for <code>moduleDeps</code></p>
 <!-- foo.bar.classPath -->
 <g id="node3" class="node">
 <title>foo.bar.classPath</title>
-<polygon fill="white" stroke="black" points="408.72,-229.3 297.45,-229.3 297.45,-204.7 408.72,-204.7 408.72,-229.3"></polygon>
-<text text-anchor="middle" x="353.08" y="-212.8" font-family="Times,serif" font-size="14.00">foo.bar.classPath</text>
+<polygon fill="white" stroke="black" points="408.72,-156.3 297.45,-156.3 297.45,-131.7 408.72,-131.7 408.72,-156.3"></polygon>
+<text text-anchor="middle" x="353.08" y="-139.8" font-family="Times,serif" font-size="14.00">foo.bar.classPath</text>
 </g>
 <!-- foo.bar.compile&#45;&gt;foo.bar.classPath -->
 <g id="edge2" class="edge">
 <title>foo.bar.compile-&gt;foo.bar.classPath</title>
-<path fill="none" stroke="black" d="M258.04,-217C267.5,-217 277.49,-217 287.28,-217"></path>
-<polygon fill="black" stroke="black" points="287.39,-220.5 297.39,-217 287.39,-213.5 287.39,-220.5"></polygon>
+<path fill="none" stroke="black" d="M231.47,-204.62C255.37,-192.61 291.8,-174.3 318.37,-160.94"></path>
+<polygon fill="black" stroke="black" points="319.96,-164.06 327.32,-156.44 316.82,-157.81 319.96,-164.06"></polygon>
 </g>
 <!-- foo.bar.assembly -->
 <g id="node4" class="node">
 <title>foo.bar.assembly</title>
-<polygon fill="white" stroke="black" points="559.47,-250.3 448.2,-250.3 448.2,-225.7 559.47,-225.7 559.47,-250.3"></polygon>
-<text text-anchor="middle" x="503.83" y="-233.8" font-family="Times,serif" font-size="14.00">foo.bar.assembly</text>
+<polygon fill="white" stroke="black" points="559.47,-229.3 448.2,-229.3 448.2,-204.7 559.47,-204.7 559.47,-229.3"></polygon>
+<text text-anchor="middle" x="503.83" y="-212.8" font-family="Times,serif" font-size="14.00">foo.bar.assembly</text>
 </g>
 <!-- foo.bar.classPath&#45;&gt;foo.bar.assembly -->
 <g id="edge3" class="edge">
 <title>foo.bar.classPath-&gt;foo.bar.assembly</title>
-<path fill="none" stroke="black" d="M409.05,-224.76C418.51,-226.1 428.42,-227.49 438.11,-228.86"></path>
-<polygon fill="black" stroke="black" points="437.7,-232.34 448.09,-230.27 438.68,-225.41 437.7,-232.34"></polygon>
+<path fill="none" stroke="black" d="M376.64,-156.32C395.53,-166.5 423.3,-181.16 448.01,-193 453.3,-195.53 458.91,-198.11 464.45,-200.59"></path>
+<polygon fill="black" stroke="black" points="463.08,-203.82 473.65,-204.66 465.92,-197.41 463.08,-203.82"></polygon>
 </g>
 <!-- foo.compile -->
 <g id="node6" class="node">
@@ -1516,38 +1634,52 @@ according to our overrides for <code>moduleDeps</code></p>
 <!-- foo.bar.classPath&#45;&gt;foo.compile -->
 <g id="edge5" class="edge">
 <title>foo.bar.classPath-&gt;foo.compile</title>
-<path fill="none" stroke="black" d="M300.29,-204.55C290.62,-199.77 281.81,-193.15 276.15,-184 253.25,-146.95 256.72,-124.98 276.15,-86 284.76,-68.73 301.23,-55.25 316.73,-45.65"></path>
-<polygon fill="black" stroke="black" points="318.79,-48.49 325.68,-40.44 315.28,-42.44 318.79,-48.49"></polygon>
+<path fill="none" stroke="black" d="M297.1,-133.43C285.48,-128.4 274.85,-120.97 268.52,-110 253.22,-83.47 284.77,-59.91 313.59,-44.93"></path>
+<polygon fill="black" stroke="black" points="315.38,-47.95 322.79,-40.38 312.27,-41.68 315.38,-47.95"></polygon>
+<path fill="none" stroke="black" d="M297.19,-132.87C289.71,-128.85 283.16,-123.39 278.89,-116 271.57,-103.3 272.3,-96.1 278.89,-83 286.9,-67.11 301.9,-54.66 316.33,-45.65"></path>
+<polygon fill="black" stroke="black" points="318.31,-48.56 325.18,-40.49 314.78,-42.51 318.31,-48.56"></polygon>
 </g>
 <!-- foo.classPath -->
-<g id="node7" class="node">
+<g id="node8" class="node">
 <title>foo.classPath</title>
 <polygon fill="white" stroke="black" points="549.09,-113.3 458.57,-113.3 458.57,-88.7 549.09,-88.7 549.09,-113.3"></polygon>
 <text text-anchor="middle" x="503.83" y="-96.8" font-family="Times,serif" font-size="14.00">foo.classPath</text>
 </g>
 <!-- foo.bar.classPath&#45;&gt;foo.classPath -->
-<g id="edge6" class="edge">
+<g id="edge11" class="edge">
 <title>foo.bar.classPath-&gt;foo.classPath</title>
-<path fill="none" stroke="black" d="M394.61,-204.57C400.9,-201.46 406.97,-197.65 412.01,-193 437.75,-169.3 422.15,-146.56 448.01,-123 449.71,-121.46 451.52,-120.02 453.43,-118.67"></path>
-<polygon fill="black" stroke="black" points="455.47,-121.53 462.23,-113.37 451.86,-115.53 455.47,-121.53"></polygon>
+<path fill="none" stroke="black" d="M396.71,-131.68C413.36,-126.86 432.62,-121.3 450.13,-116.24"></path>
+<polygon fill="black" stroke="black" points="451.57,-119.46 460.2,-113.32 449.62,-112.74 451.57,-119.46"></polygon>
 </g>
 <!-- foo.bar.mainClass -->
 <g id="node5" class="node">
 <title>foo.bar.mainClass</title>
-<polygon fill="white" stroke="black" points="411.95,-272.3 294.22,-272.3 294.22,-247.7 411.95,-247.7 411.95,-272.3"></polygon>
-<text text-anchor="middle" x="353.08" y="-255.8" font-family="Times,serif" font-size="14.00">foo.bar.mainClass</text>
+<polygon fill="white" stroke="black" points="411.95,-229.3 294.22,-229.3 294.22,-204.7 411.95,-204.7 411.95,-229.3"></polygon>
+<text text-anchor="middle" x="353.08" y="-212.8" font-family="Times,serif" font-size="14.00">foo.bar.mainClass</text>
 </g>
 <!-- foo.bar.mainClass&#45;&gt;foo.bar.assembly -->
 <g id="edge4" class="edge">
 <title>foo.bar.mainClass-&gt;foo.bar.assembly</title>
-<path fill="none" stroke="black" d="M412.02,-251.43C420.46,-250.18 429.2,-248.89 437.78,-247.62"></path>
-<polygon fill="black" stroke="black" points="438.35,-251.07 447.73,-246.15 437.33,-244.15 438.35,-251.07"></polygon>
+<path fill="none" stroke="black" d="M412.02,-217C420.37,-217 429.01,-217 437.5,-217"></path>
+<polygon fill="black" stroke="black" points="437.73,-220.5 447.73,-217 437.73,-213.5 437.73,-220.5"></polygon>
 </g>
 <!-- foo.compile&#45;&gt;foo.classPath -->
-<g id="edge8" class="edge">
+<g id="edge7" class="edge">
 <title>foo.compile-&gt;foo.classPath</title>
 <path fill="none" stroke="black" d="M376.64,-40.32C395.53,-50.5 423.3,-65.16 448.01,-77 453.3,-79.53 458.91,-82.11 464.45,-84.59"></path>
 <polygon fill="black" stroke="black" points="463.08,-87.82 473.65,-88.66 465.92,-81.41 463.08,-87.82"></polygon>
+</g>
+<!-- foo.sources -->
+<g id="node7" class="node">
+<title>foo.sources</title>
+<polygon fill="white" stroke="black" points="245.97,-40.3 165.69,-40.3 165.69,-15.7 245.97,-15.7 245.97,-40.3"></polygon>
+<text text-anchor="middle" x="205.83" y="-23.8" font-family="Times,serif" font-size="14.00">foo.sources</text>
+</g>
+<!-- foo.sources&#45;&gt;foo.compile -->
+<g id="edge6" class="edge">
+<title>foo.sources-&gt;foo.compile</title>
+<path fill="none" stroke="black" d="M246.14,-28C263.07,-28 283.09,-28 301.15,-28"></path>
+<polygon fill="black" stroke="black" points="301.22,-31.5 311.22,-28 301.22,-24.5 301.22,-31.5"></polygon>
 </g>
 <!-- foo.assembly -->
 <g id="node9" class="node">
@@ -1556,7 +1688,7 @@ according to our overrides for <code>moduleDeps</code></p>
 <text text-anchor="middle" x="645.06" y="-23.8" font-family="Times,serif" font-size="14.00">foo.assembly</text>
 </g>
 <!-- foo.classPath&#45;&gt;foo.assembly -->
-<g id="edge9" class="edge">
+<g id="edge8" class="edge">
 <title>foo.classPath-&gt;foo.assembly</title>
 <path fill="none" stroke="black" d="M540.93,-88.66C549.82,-85.23 559.21,-81.26 567.65,-77 585.36,-68.06 604.13,-56.06 618.63,-46.18"></path>
 <polygon fill="black" stroke="black" points="620.83,-48.91 627.06,-40.34 616.85,-43.16 620.83,-48.91"></polygon>
@@ -1585,18 +1717,6 @@ according to our overrides for <code>moduleDeps</code></p>
 <path fill="none" stroke="black" d="M549.27,-101C561.7,-101 575.37,-101 588.37,-101"></path>
 <polygon fill="black" stroke="black" points="588.61,-104.5 598.61,-101 588.61,-97.5 588.61,-104.5"></polygon>
 </g>
-<!-- foo.sources -->
-<g id="node8" class="node">
-<title>foo.sources</title>
-<polygon fill="white" stroke="black" points="245.97,-40.3 165.69,-40.3 165.69,-15.7 245.97,-15.7 245.97,-40.3"></polygon>
-<text text-anchor="middle" x="205.83" y="-23.8" font-family="Times,serif" font-size="14.00">foo.sources</text>
-</g>
-<!-- foo.sources&#45;&gt;foo.compile -->
-<g id="edge7" class="edge">
-<title>foo.sources-&gt;foo.compile</title>
-<path fill="none" stroke="black" d="M246.14,-28C263.07,-28 283.09,-28 301.15,-28"></path>
-<polygon fill="black" stroke="black" points="301.22,-31.5 311.22,-28 301.22,-24.5 301.22,-31.5"></polygon>
-</g>
 <!-- foo.mainClass -->
 <g id="node10" class="node">
 <title>foo.mainClass</title>
@@ -1604,7 +1724,7 @@ according to our overrides for <code>moduleDeps</code></p>
 <text text-anchor="middle" x="503.83" y="-23.8" font-family="Times,serif" font-size="14.00">foo.mainClass</text>
 </g>
 <!-- foo.mainClass&#45;&gt;foo.assembly -->
-<g id="edge10" class="edge">
+<g id="edge9" class="edge">
 <title>foo.mainClass-&gt;foo.assembly</title>
 <path fill="none" stroke="black" d="M552.36,-28C564.3,-28 577.2,-28 589.46,-28"></path>
 <polygon fill="black" stroke="black" points="589.57,-31.5 599.57,-28 589.57,-24.5 589.57,-31.5"></polygon>
@@ -1622,7 +1742,7 @@ according to our overrides for <code>moduleDeps</code></p>
 <text text-anchor="middle" x="776.78" y="-117.8" font-family="Times,serif" font-size="14.00">qux.assembly</text>
 </g>
 <!-- qux.mainClass&#45;&gt;qux.assembly -->
-<g id="edge11" class="edge">
+<g id="edge10" class="edge">
 <title>qux.mainClass-&gt;qux.assembly</title>
 <path fill="none" stroke="black" d="M694.73,-135.75C703.1,-134.33 711.86,-132.84 720.39,-131.39"></path>
 <polygon fill="black" stroke="black" points="720.99,-134.84 730.27,-129.72 719.82,-127.94 720.99,-134.84"></polygon>
@@ -1642,19 +1762,20 @@ according to our overrides for <code>moduleDeps</code></p>
 <!-- qux.sources -->
 <g id="node15" class="node">
 <title>qux.sources</title>
-<polygon fill="white" stroke="black" points="394.56,-156.3 311.6,-156.3 311.6,-131.7 394.56,-131.7 394.56,-156.3"></polygon>
-<text text-anchor="middle" x="353.08" y="-139.8" font-family="Times,serif" font-size="14.00">qux.sources</text>
+<polygon fill="white" stroke="black" points="394.56,-113.3 311.6,-113.3 311.6,-88.7 394.56,-88.7 394.56,-113.3"></polygon>
+<text text-anchor="middle" x="353.08" y="-96.8" font-family="Times,serif" font-size="14.00">qux.sources</text>
 </g>
 <!-- qux.sources&#45;&gt;qux.compile -->
 <g id="edge14" class="edge">
 <title>qux.sources-&gt;qux.compile</title>
-<path fill="none" stroke="black" d="M394.34,-144C411.76,-144 432.37,-144 450.93,-144"></path>
-<polygon fill="black" stroke="black" points="450.99,-147.5 460.99,-144 450.99,-140.5 450.99,-147.5"></polygon>
+<path fill="none" stroke="black" d="M394.34,-112.64C411.84,-117.7 432.56,-123.69 451.18,-129.07"></path>
+<polygon fill="black" stroke="black" points="450.41,-132.49 460.99,-131.9 452.35,-125.76 450.41,-132.49"></polygon>
 </g>
 </g>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>This simple set of <code>DiyJavaModule</code> can be used as follows:</p>
 </div>
@@ -1693,7 +1814,7 @@ automatically done by Mill based on the structure of the build graph.</p>
 </div>
 <div class="paragraph">
 <p>Note that this is a minimal example is meant for educational purposes: the
-<code>mill.scalalib.JavaModule</code> and <code>ScalaModule</code> that Mill provides is more
+<code>JavaModule</code> and <code>ScalaModule</code> that Mill provides is more
 complicated to provide additional flexibility and performance. Nevertheless,
 this example should give you a good idea of how Mill <code>module</code>s can be
 developed, so you can define your own custom modules when the need arises.</p>
@@ -1701,10 +1822,55 @@ developed, so you can define your own custom modules when the need arises.</p>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_default_tasks"><a class="anchor" href="#_default_tasks"></a>Default Tasks</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill modules can extend <code>TaskModule</code> and specify a <code>defaultCommandName</code>, which
+allows them to be run directly without needing the task name provided explicitly:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-fundamentals-modules-12-default-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/fundamentals/modules/12-default-tasks">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javalib._
+import mill.define.TaskModule
+
+object foo extends TaskModule {
+  override def defaultCommandName() = &quot;bar&quot;
+  def bar() = Task.Command { println(&quot;Hello Bar&quot;) }
+  def qux() = Task.Command { println(&quot;Hello Qux&quot;) }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example, the <code>foo</code> module has a <code>defaultCommandName</code> of <code>bar</code>
+That means that we can run <code>foo</code> and it will run <code>foo.bar</code> automatically.
+running <code>foo.bar</code> explicitly is still allowed, as is running other tasks
+e.g. <code>foo.qux</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo # same as running foo.bar
+Hello Bar
+
+&gt; mill foo.bar
+Hello Bar
+
+&gt; mill foo.qux
+Hello Qux</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Default tasks are a convenience that is often used when a module has one &quot;obvious&quot;
+task to run, e.g. Mill <code>TestModule`s have `test</code> as the default command name.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_backticked_names"><a class="anchor" href="#_backticked_names"></a>Backticked Names</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-fundamentals-modules-9-backticked-names.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/fundamentals/modules/9-backticked-names">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-fundamentals-modules-9-backticked-names.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/fundamentals/modules/9-backticked-names">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -1796,18 +1962,15 @@ service &amp; cache that is shared between all <code>ScalaModule</code>s, and
 <code>mill.scalalib.GenIdea/idea</code> lets you generate IntelliJ projects without
 needing to define your own <code>Task.Command</code> in your <code>build.mill</code> file</p>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_aliasing_external_modules"><a class="anchor" href="#_aliasing_external_modules"></a>Aliasing External Modules</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_aliasing_external_modules"><a class="anchor" href="#_aliasing_external_modules"></a>Aliasing External Modules</h3>
 <div class="paragraph">
 <p>Mill allows you to alias external modules via <code>def</code>. You can use this to add
 shorthand aliases for external modules that have long names, such as
 <code>mill.javalib.palantirformat.PalantirFormatModule</code> below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-fundamentals-modules-10-external-module-aliases.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/fundamentals/modules/10-external-module-aliases">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-fundamentals-modules-10-external-module-aliases.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/fundamentals/modules/10-external-module-aliases">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -1835,6 +1998,7 @@ public class Foo {
 </div>
 </div>
 </div>
+</div>
 <div class="sect1">
 <h2 id="_abstract_modules_references"><a class="anchor" href="#_abstract_modules_references"></a>Abstract Modules References</h2>
 <div class="sectionbody">
@@ -1847,7 +2011,7 @@ a <code>ModuleRef(…​)</code> to wrap the abstract module, such that the abst
 not participate in task query resolution:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-fundamentals-modules-11-abstract-module-ref.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/fundamentals/modules/11-abstract-module-ref">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-fundamentals-modules-11-abstract-module-ref.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/fundamentals/modules/11-abstract-module-ref">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -1880,51 +2044,6 @@ Test bar.BarTests.simple finished, ...
 &gt; mill resolve foo.upstreamModule._ # This fails since it's a `ModuleRef`, not just a `Module`
 error: resolve Cannot resolve foo.upstreamModule...</code></pre>
 </div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_default_tasks"><a class="anchor" href="#_default_tasks"></a>Default Tasks</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Mill modules can extend <code>TaskModule</code> and specify a <code>defaultCommandName</code>, which
-allows them to be run directly without needing the task name provided explicitly:</p>
-</div>
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-fundamentals-modules-12-default-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/fundamentals/modules/12-default-tasks">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, javalib._
-import mill.define.TaskModule
-
-object foo extends TaskModule {
-  override def defaultCommandName() = &quot;bar&quot;
-  def bar() = Task.Command { println(&quot;Hello Bar&quot;) }
-  def qux() = Task.Command { println(&quot;Hello Qux&quot;) }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>In this example, the <code>foo</code> module has a <code>defaultCommandName</code> of <code>bar</code>
-That means that we can run <code>foo</code> and it will run <code>foo.bar</code> automatically.
-running <code>foo.bar</code> explicitly is still allowed, as is running other tasks
-e.g. <code>foo.qux</code></p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo # same as running foo.bar
-Hello Bar
-
-&gt; mill foo.bar
-Hello Bar
-
-&gt; mill foo.qux
-Hello Qux</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Default tasks are a convenience that is often used when a module has one &quot;obvious&quot;
-task to run, e.g. Mill <code>TestModule`s have `test</code> as the default command name.</p>
 </div>
 </div>
 </div>

@@ -43,11 +43,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style><style>
-*{
-  hyphens: manual !important;
-}
-</style></head><body class="article">
+  </style></head><body class="article">
   
 <header class="header">
   
@@ -242,6 +238,37 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
     <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
@@ -266,29 +293,6 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
 <ul class="nav-list">
 
@@ -302,6 +306,14 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
   </li>
 </ul>
   </li>
@@ -337,7 +349,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Support</a>
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -361,6 +373,10 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
   </li>
 </ul>
   </li>
@@ -562,7 +578,11 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../reference/changelog.html">Changelog</a>
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
   </li>
 </ul>
   </li>
@@ -574,7 +594,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">latest-0.12.5</span>
+    <span class="version">latest-0.12.6</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -584,7 +604,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">latest-0.12.5</a>
+          <a href="../index.html">latest-0.12.6</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.x</a>
@@ -623,22 +643,6 @@
 <h1 class="page">Example: Python Support</h1>
 <div id="preamble">
 <div class="sectionbody">
-
-<script>
-gtag('config', 'AW-16649289906');
-
-document.addEventListener('DOMContentLoaded', function() {
-const links = document.querySelectorAll('a');
-  links.forEach(link => {
-    if (link.textContent.trim().toLowerCase() === 'download') {
-      link.addEventListener('click', function(event) {
-        console.log("download link clicked")
-        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
-      });
-    }
-  });
-});
-</script>
 <div class="paragraph">
 <p>This section demonstrates how to integrate <code>Python</code> support into <code>Mill</code>.
 We will define a simple <code>PythonModule</code> trait that can resolve dependencies,
@@ -669,7 +673,7 @@ used in building language toolchains, and is not intended for production use.
 type hints, helping to catch errors in development.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-extending-python-1-hello-python.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/extending/python/1-hello-python">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-extending-python-1-hello-python.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/extending/python/1-hello-python">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -713,6 +717,7 @@ def pythonExe: T[PathRef] = Task {
 <div class="paragraph">
 <p>At this point, we have a minimal working build, with a build graph that looks like this:</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="197px" height="76px" viewBox="0.00 0.00 196.53 75.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
@@ -752,11 +757,12 @@ def pythonExe: T[PathRef] = Task {
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>Here is the <code>main.py</code> file</p>
 </div>
 <div class="listingblock">
-<div class="title">src/main.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/extending/python/1-hello-python/src/main.py">browse</a>)</div>
+<div class="title">src/main.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/extending/python/1-hello-python/src/main.py">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import sys
 def add(a: int, b: int) -&gt; int: return a + b
@@ -790,6 +796,7 @@ def run(args: mill.define.Args) = Task.Command {
 <p>Note that we use <code>stdout = os.Inherit</code> since we want to display any output to the user,
 rather than capturing it for use in our command.</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="219px" height="119px" viewBox="0.00 0.00 219.07 118.80" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
@@ -859,6 +866,7 @@ rather than capturing it for use in our command.</p>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>Note that like many optionally-typed languages, The <code>run</code> and <code>typeCheck</code> tasks are
 independent: you can run a Python program without needing to typecheck it first. This is
@@ -900,7 +908,7 @@ earlier with <code>sources</code>, <code>pythonExe</code>, <code>typeCheck</code
 that can be re-used.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-extending-python-2-python-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/extending/python/2-python-modules">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-extending-python-2-python-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/extending/python/2-python-modules">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -975,6 +983,7 @@ Hello, Mill Qux!</code></pre>
 <div class="paragraph">
 <p>After this step, we have a build graph that looks like this:</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="313px" height="496px" viewBox="0.00 0.00 312.95 496.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 492.0)">
@@ -1179,6 +1188,7 @@ Hello, Mill Qux!</code></pre>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>Right now, the three <code>PythonModule</code>s are independent. Next we will look into
 how to allow them to depend on each other using <code>moduleDeps</code>.</p>
@@ -1198,7 +1208,7 @@ We then use <code>Task.traverse</code> to aggregate the <code>sources</code> of 
 make them available during <code>typeCheck</code> and <code>run</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-extending-python-3-python-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/extending/python/3-python-module-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-extending-python-3-python-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/extending/python/3-python-module-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -1275,21 +1285,21 @@ object qux extends PythonModule {
 depend on one another:</p>
 </div>
 <div class="listingblock">
-<div class="title">foo/src/foo.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/extending/python/3-python-module-deps/foo/src/foo.py">browse</a>)</div>
+<div class="title">foo/src/foo.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/extending/python/3-python-module-deps/foo/src/foo.py">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import sys
 def multiply(a: int, b: int) -&gt; int: return a * b</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/bar/src/bar.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/extending/python/3-python-module-deps/foo/bar/src/bar.py">browse</a>)</div>
+<div class="title">foo/bar/src/bar.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/extending/python/3-python-module-deps/foo/bar/src/bar.py">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import sys
 def add(a: int, b: int) -&gt; int: return a + b</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">qux/src/qux.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/extending/python/3-python-module-deps/qux/src/qux.py">browse</a>)</div>
+<div class="title">qux/src/qux.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/extending/python/3-python-module-deps/qux/src/qux.py">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">from foo.bar.src.bar import add # type: ignore
 from foo.src.foo import multiply # type: ignore
@@ -1312,16 +1322,12 @@ Add: 10 + 20 = 30 | Multiply: 10 * 20 = 200 | Divide: 10 / 20 = 0.5</code></pre>
 <div class="paragraph">
 <p>Task dependency graph, showing <code>foo</code> and <code>bar</code> tasks feeding into <code>qux</code>:</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="465px" height="498px" viewBox="0.00 0.00 465.04 498.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 494.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-494 461.04,-494 461.04,4 -4,4"></polygon>
-<g id="clust3" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="172.97,-8 172.97,-159 449.04,-159 449.04,-8 172.97,-8"></polygon>
-<text text-anchor="middle" x="311" y="-142.4" font-family="Times,serif" font-size="14.00">qux</text>
-</g>
 <g id="clust1" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-169 8,-482 307.44,-482 307.44,-169 8,-169"></polygon>
@@ -1331,6 +1337,11 @@ Add: 10 + 20 = 30 | Multiply: 10 * 20 = 200 | Divide: 10 / 20 = 0.5</code></pre>
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="16,-298 16,-449 299.44,-449 299.44,-298 16,-298"></polygon>
 <text text-anchor="middle" x="157.72" y="-432.4" font-family="Times,serif" font-size="14.00">bar</text>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="172.97,-8 172.97,-159 449.04,-159 449.04,-8 172.97,-8"></polygon>
+<text text-anchor="middle" x="311" y="-142.4" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
 <!-- bar.pythonExe -->
 <g id="node1" class="node">
@@ -1540,6 +1551,7 @@ Add: 10 + 20 = 30 | Multiply: 10 * 20 = 200 | Divide: 10 / 20 = 0.5</code></pre>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>Next, we will add support for depending on external Python libraries from
 <a href="https://pypi.org/">PyPI</a>, and bundling via <a href="https://pypi.org/project/pex/">PEX</a></p>
@@ -1565,7 +1577,7 @@ making deployment easier.</p>
 </ul>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-extending-python-4-python-libs-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/extending/python/4-python-libs-bundle">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-extending-python-4-python-libs-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/extending/python/4-python-libs-bundle">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -1596,7 +1608,7 @@ trait PythonModule extends Module {
     os.call(
       (pythonExe().path, &quot;-m&quot;, &quot;mypy&quot;, &quot;--strict&quot;, sources().path),
       stdout = os.Inherit,
-      cwd = T.workspace
+      cwd = Task.workspace
     )
   }
 
@@ -1695,6 +1707,7 @@ to bundle.pex and then run using <code>./bundle.pex</code> command.</p>
 <p>The final module tree and task graph is now as follows, with the additional dependencies
 tasks with upstream and the bundle tasks downstream:</p>
 </div>
+<div class="paragraph">
 <center>
 <svg width="607px" height="617px" viewBox="0.00 0.00 606.86 617.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 613.0)">
@@ -2019,6 +2032,7 @@ tasks with upstream and the bundle tasks downstream:</p>
 </svg>
 
 </center>
+</div>
 <div class="paragraph">
 <p>As mentioned, The <code>PythonModule</code> examples here demonstrate
 how to add support for a new language toolchain in Mill.

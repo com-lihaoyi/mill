@@ -43,11 +43,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style><style>
-*{
-  hyphens: manual !important;
-}
-</style></head><body class="article">
+  </style></head><body class="article">
   
 <header class="header">
   
@@ -242,6 +238,37 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
     <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
@@ -266,29 +293,6 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
 <ul class="nav-list">
 
@@ -302,6 +306,14 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
   </li>
 </ul>
   </li>
@@ -337,7 +349,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Support</a>
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -361,6 +373,10 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
   </li>
 </ul>
   </li>
@@ -562,7 +578,11 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../reference/changelog.html">Changelog</a>
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
   </li>
 </ul>
   </li>
@@ -584,7 +604,7 @@
           <a href="../../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-latest">
-          <a href="../../index.html">latest-0.12.5</a>
+          <a href="../../index.html">latest-0.12.6</a>
         </li>
         <li class="version is-current">
           <a href="../index.html">0.12.x</a>
@@ -623,32 +643,20 @@
 <h1 class="page">Kotlin Packaging &amp; Publishing</h1>
 <div id="preamble">
 <div class="sectionbody">
-
-<script>
-gtag('config', 'AW-16649289906');
-
-document.addEventListener('DOMContentLoaded', function() {
-const links = document.querySelectorAll('a');
-  links.forEach(link => {
-    if (link.textContent.trim().toLowerCase() === 'download') {
-      link.addEventListener('click', function(event) {
-        console.log("download link clicked")
-        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
-      });
-    }
-  });
-});
-</script>
 <div class="paragraph">
 <p>This page will discuss common topics around packaging and publishing your Kotlin projects for others to use</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_customizing_the_assembly"><a class="anchor" href="#_customizing_the_assembly"></a>Customizing the Assembly</h2>
+<h2 id="_building_executable_assemblies"><a class="anchor" href="#_building_executable_assemblies"></a>Building Executable Assemblies</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>Mill’s built in <code>.assembly</code> task makes it easy to generate an executable assembly
+jar from any JVM module. You can also customize the assembly jar as shown below:</p>
+</div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-kotlinlib-publishing-1-assembly-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/kotlinlib/publishing/1-assembly-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-kotlinlib-publishing-1-assembly-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/kotlinlib/publishing/1-assembly-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
@@ -679,10 +687,11 @@ object bar extends KotlinModule {
 </div>
 </div>
 <div class="paragraph">
-<p>When you make a runnable jar of your project with <code>assembly</code> command,
-you may want to exclude some files from a final jar (like signature files,
-and manifest files from library jars), and merge duplicated files (for
-instance <code>reference.conf</code> files from library dependencies).</p>
+<p>The most common way of configuring an assembly is
+excluding some files from a final jar (like signature files,
+and manifest files from library jars), and merging duplicated files (for
+instance <code>reference.conf</code> files from library dependencies). This is
+done by overriding <code>def assemblyRules</code> as shown above</p>
 </div>
 <div class="paragraph">
 <p>By default mill excludes all <code>*.sf</code>, <code>*.dsa</code>, <code>*.rsa</code>, and
@@ -703,13 +712,138 @@ Loaded application.conf from resources:...
 ...Bar Application Conf</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>Note that when running the assembly directly via <code>./out.jar</code>, you can configure
+JVM flags via the <code>JAVA_OPTS</code> environment variable, and select the JVM
+to use via <code>JAVA_HOME</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; JAVA_OPTS=-Dtest.property=1337 ./out/foo/assembly.dest/out.jar
+Loaded test.property: 1337</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_building_native_image_binaries_with_graal_vm"><a class="anchor" href="#_building_native_image_binaries_with_graal_vm"></a>Building Native Image Binaries with Graal VM</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-kotlinlib-publishing-7-native-image.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/kotlinlib/publishing/7-native-image">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, kotlinlib._
+import mill.define.ModuleRef
+
+object foo extends KotlinModule with NativeImageModule {
+
+  def kotlinVersion = &quot;1.9.24&quot;
+
+  def zincWorker = ModuleRef(ZincWorkerGraalvm)
+}
+
+object ZincWorkerGraalvm extends ZincWorkerModule {
+  def jvmId = &quot;graalvm-community:17.0.7&quot;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example uses <code>NativeImageModule</code> to generate a native executable using <a href="https://www.graalvm.org/">Graal VM</a>.
+We recommend you <a href="../fundamentals/configuring-jvm-versions.html" class="xref page">configure a specific JDK version</a>
+via a custom <code>ZincWorkerModule</code> overriding <code>def jvmId</code> (shown above), as not every JVM can build Graal native images.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo.nativeImage
+GraalVM Native Image: Generating...native-executable...
+Finished generating...native-executable...
+
+&gt; ./out/foo/nativeImage.dest/native-executable
+Hello, World!</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For another example building a slightly less trivial project into a Graal native
+image, see below:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-kotlinlib-publishing-8-native-image-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/kotlinlib/publishing/8-native-image-libs">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, kotlinlib._
+import mill.define.ModuleRef
+
+object foo extends KotlinModule with NativeImageModule {
+  def kotlinVersion = &quot;1.9.24&quot;
+
+  def mainClass = Some(&quot;foo.FooKt&quot;)
+
+  def nativeImageOptions = Seq(
+    &quot;--no-fallback&quot;,
+    &quot;-Os&quot;,
+    &quot;--initialize-at-build-time=com.github.ajalt.mordant.internal.nativeimage.NativeImagePosixMppImpls&quot;
+  )
+
+  def ivyDeps = Agg(
+    ivy&quot;com.github.ajalt.clikt:clikt-jvm:4.4.0&quot;,
+    ivy&quot;org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0&quot;
+  )
+
+  def zincWorker = ModuleRef(ZincWorkerGraalvm)
+}
+
+object ZincWorkerGraalvm extends ZincWorkerModule {
+  def jvmId = &quot;graalvm-community:23.0.2&quot;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example shows how to generate native images for projects using third-party
+libraries, in this case Clikt and KotlinX-HTML. We also demonstrate setting
+<code>nativeImageOptions</code>, in this case using <code>-Os</code> to optimize for the smallest binary size,
+which is available in the <code>graalvm-community:23</code> JDK selected above. The
+<code>--initialize-at-build-time</code> flag is also necessary for this particular set
+of libraries and flags.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo.nativeImage
+
+&gt; ./out/foo/nativeImage.dest/native-executable --text hello-world
+&lt;h1&gt;hello-world&lt;/h1&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can see the Graal documentation to see what flags are available:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://www.graalvm.org/21.3/reference-manual/native-image/Options/" class="bare">https://www.graalvm.org/21.3/reference-manual/native-image/Options/</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Or access the <code>native-image</code> compiler directly via <code>show foo.nativeImageTool</code>
+if you want to experiment it or view its <code>--help</code> text to see what you need to pass to
+<code>nativeImageOptions</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo.nativeImageTool # mac/linux
+&quot;.../bin/native-image&quot;
+
+&gt; ./mill show foo.nativeImageTool # windows
+&quot;.../bin/native-image.cmd&quot;</code></pre>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_publishing_locally"><a class="anchor" href="#_publishing_locally"></a>Publishing Locally</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.5/0.12.5-example-kotlinlib-publishing-2-publish-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.5//example/kotlinlib/publishing/2-publish-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-kotlinlib-publishing-2-publish-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/kotlinlib/publishing/2-publish-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._, publish._
@@ -821,7 +955,7 @@ the <a href="../fundamentals/modules.html#_default_tasks" class="xref page">defa
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill mill.scalalib.PublishModule/ foo.publishArtifacts</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill mill.scalalib.PublishModule/ --publishArtifacts foo.publishArtifacts</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -924,8 +1058,8 @@ maven path under <code>sonatypeUri</code> instead of staging path.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill mill.scalalib.PublishModule/ \
-        foo.publishArtifacts \
-        lihaoyi:$SONATYPE_PASSWORD \
+        --publishArtifacts foo.publishArtifacts \
+        --sonatypeCreds lihaoyi:$SONATYPE_PASSWORD \
         --sonatypeUri http://example.company.com/release \
         --stagingRelease false</code></pre>
 </div>

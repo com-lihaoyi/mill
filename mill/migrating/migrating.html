@@ -237,6 +237,37 @@
 
   <li class="nav-item" data-depth="1">
     <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
     <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
@@ -261,29 +292,6 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
 <ul class="nav-list">
 
@@ -297,6 +305,14 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
   </li>
 </ul>
   </li>
@@ -332,7 +348,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Support</a>
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -356,6 +372,10 @@
 
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="maven.html">Migrating From Maven to Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="gradle.html">Migrating From Gradle to Mill</a>
   </li>
 </ul>
   </li>
@@ -557,7 +577,11 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../reference/changelog.html">Changelog</a>
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
   </li>
 </ul>
   </li>
@@ -569,7 +593,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">latest-0.12.5</span>
+    <span class="version">latest-0.12.6</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -579,7 +603,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">latest-0.12.5</a>
+          <a href="../index.html">latest-0.12.6</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.x</a>
@@ -618,32 +642,36 @@
 <h1 class="page">Migrating to Mill</h1>
 <div id="preamble">
 <div class="sectionbody">
-<style>
-*{
-  hyphens: manual !important;
-}
-</style>
-<script>
-gtag('config', 'AW-16649289906');
-
-document.addEventListener('DOMContentLoaded', function() {
-const links = document.querySelectorAll('a');
-  links.forEach(link => {
-    if (link.textContent.trim().toLowerCase() === 'download') {
-      link.addEventListener('click', function(event) {
-        console.log("download link clicked")
-        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
-      });
-    }
-  });
-});
-</script>
 <div class="paragraph">
 <p>This page documents a playbook for migrating existing projects
-from Maven, Gradle, or SBT to Mill. Some build tools also have additional semi-automated
-tooling (e.g. see <a href="maven.html" class="xref page">Migrating From Maven to Mill</a>), other automation is work-in-process
-(e.g. migrating from <a href="https://github.com/com-lihaoyi/mill/issues/3962">Gradle</a> or
-<a href="https://github.com/com-lihaoyi/mill/issues/3450">SBT</a>) but while automation helps with
+from Maven, Gradle, or SBT to Mill.</p>
+</div>
+<div class="paragraph">
+<p>Some build tools also have additional semi-automated
+tooling.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="maven.html" class="xref page">Migrating From Maven to Mill</a></p>
+</li>
+<li>
+<p><a href="gradle.html" class="xref page">Migrating From Gradle to Mill</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Other automation is work-in-process.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/com-lihaoyi/mill/issues/3450">SBT</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>While automation helps with
 some of the scaffolding the general principles laid out on this page still apply.</p>
 </div>
 </div>
@@ -797,7 +825,7 @@ below</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Download a <code>mill</code> bootstrap file as discussed in <a href="../cli/installation-ide.html" class="xref page">Installation &amp; IDE Support</a> and
+<p>Download a <code>mill</code> bootstrap file as discussed in <a href="../cli/installation-ide.html" class="xref page">Installation &amp; IDE Setup</a> and
 create a <code>build.mill</code> file as described in <a href="../javalib/intro.html" class="xref page">Building Java with Mill</a></p>
 </li>
 <li>
@@ -1137,7 +1165,7 @@ to see which ones may help:</p>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="../fundamentals/modules.html#_trait_modules" class="xref page">Trait Modules</a> to centralize common config</p>
+<p><a href="../fundamentals/modules.html#_module_traits" class="xref page">Trait Modules</a> to centralize common config</p>
 </li>
 <li>
 <p><a href="../large/multi-file-builds.html" class="xref page">Multi-File Builds</a> to let you co-locate
