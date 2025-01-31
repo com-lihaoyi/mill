@@ -5,7 +5,7 @@ include::partial$gtag-config.adoc[]
 
 This page will discuss common topics around packaging and publishing your Scala projects for others to use
 
-== Customizing the Executable Assembly
+== Building Executable Assemblies
 
 include::partial$example/scalalib/publishing/1-assembly-config.adoc[]
 
