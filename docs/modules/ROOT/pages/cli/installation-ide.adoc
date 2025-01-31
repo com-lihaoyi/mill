@@ -297,7 +297,7 @@ TIP: Scala Steward can also
 xref:scalalib/dependencies.adoc#_keeping_up_to_date_with_scala_steward[scan your project dependencies]
 and keep them up-to-date.
 
-== Development Releases
+== Unstable Development Releases
 
 In case you want to try out the latest features and improvements that are
 currently in the main branch, unstable versions of Mill
