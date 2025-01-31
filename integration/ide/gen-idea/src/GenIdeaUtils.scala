@@ -17,21 +17,15 @@ object GenIdeaUtils {
     val expectedResourcePath = workspacePath / "idea" / resource
     val actualResourcePath = workspacePath / ".idea" / resource
 
-    val check = Try {
-      val expectedResourceString = os.read.lines(expectedResourcePath).mkString("\n")
-      val actualResourceString = normaliseLibraryPaths(os.read(actualResourcePath), workspacePath)
+    println(s"Checking ${expectedResourcePath.relativeTo(workspacePath)} ...")
+    val expectedResourceString = os.read.lines(expectedResourcePath).mkString("\n")
+    val actualResourceString = normaliseLibraryPaths(os.read(actualResourcePath), workspacePath)
 
-      assertPartialContentMatches(
-        found = actualResourceString,
-        expected = expectedResourceString,
-        resource.toString()
-      )
-    }
-    println(
-      s"Checking ${expectedResourcePath.relativeTo(workspacePath)} ... ${if (check.isSuccess) "OK"
-        else "FAILED"}"
+    assertPartialContentMatches(
+      found = actualResourceString,
+      expected = expectedResourceString,
+      resource.toString()
     )
-    check.get
   }
 
   def assertPartialContentMatches(found: String, expected: String, context: String = ""): Unit = {

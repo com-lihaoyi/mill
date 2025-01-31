@@ -1,7 +1,7 @@
 = Python Packaging & Publishing
 :page-aliases: Publishing_Python_Projects.adoc
 
-include::partial$gtag-config.adoc[]
+
 
 This page will discuss common topics around publishing your Python projects for others to use.
 

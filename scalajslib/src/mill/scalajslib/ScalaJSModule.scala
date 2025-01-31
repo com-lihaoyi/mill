@@ -26,6 +26,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     override def jsEnvConfig: T[JsEnvConfig] = outer.jsEnvConfig()
     override def scalaJSOptimizer: T[Boolean] = outer.scalaJSOptimizer()
   }
+
   @deprecated("use ScalaJSTests", "0.11.0")
   type ScalaJSModuleTests = ScalaJSTests
   @deprecated("use ScalaJSTests", "0.11.0")
@@ -99,7 +100,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       repositoriesTask(),
       (commonDeps.iterator ++ envDeps ++ scalajsImportMapDeps)
         .map(Lib.depToBoundDep(_, mill.main.BuildInfo.scalaVersion, "")),
-      ctx = Some(T.log)
+      ctx = Some(Task.log)
     )
   }
 
@@ -149,7 +150,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   override def run(args: Task[Args] = Task.Anon(Args())): Command[Unit] = Task.Command {
     if (args().value.nonEmpty) {
-      T.log.error("Passing command line arguments to run is not supported by Scala.js.")
+      Task.log.error("Passing command line arguments to run is not supported by Scala.js.")
     }
     finalMainClassOpt() match {
       case Left(err) => Result.Failure(err)
@@ -334,7 +335,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       else Seq()
     Task.Command {
       super.prepareOffline(all)()
-      T.sequence(tasks)()
+      Task.sequence(tasks)()
       ()
     }
   }
@@ -412,10 +413,10 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       runClasspath().map(_.path),
       Agg(compile().classes.path),
       args(),
-      T.testReporter,
+      Task.testReporter,
       cls => TestRunnerUtils.globFilter(globSelectors())(cls.getName)
     )
-    val res = TestModule.handleResults(doneMsg, results, T.ctx(), testReportXml())
+    val res = TestModule.handleResults(doneMsg, results, Task.ctx(), testReportXml())
     // Hack to try and let the Node.js subprocess finish streaming its stdout
     // to the JVM. Without this, the stdout can still be streaming when `close()`
     // is called, and some of the output is dropped onto the floor.

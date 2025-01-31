@@ -34,6 +34,6 @@ private[scalanativelib] class ScalaNativeWorker(jobs: Int)
 
 private[scalanativelib] object ScalaNativeWorkerExternalModule extends mill.define.ExternalModule {
   def scalaNativeWorker: Worker[ScalaNativeWorker] =
-    Task.Worker { new ScalaNativeWorker(Task.ctx.asInstanceOf[mill.api.Ctx.Jobs].jobs) }
+    Task.Worker { new ScalaNativeWorker(Task.ctx().asInstanceOf[mill.api.Ctx.Jobs].jobs) }
   lazy val millDiscover: Discover = Discover[this.type]
 }

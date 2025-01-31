@@ -73,11 +73,13 @@ object `package` extends RootModule with Module {
     object dependencies
         extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "dependencies"))
     object publishing extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "publishing"))
+    object linting extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "linting"))
   }
   object pythonlib extends Module {
     object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))
     object dependencies
         extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "dependencies"))
+    object linting extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "linting"))
     object publishing extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "publishing"))
     object module extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "module"))
     object web extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "web"))
@@ -97,8 +99,6 @@ object `package` extends RootModule with Module {
     object cross extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "cross"))
     object `out-dir` extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "out-dir"))
     object libraries extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "libraries"))
-    object `library-deps`
-        extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "library-deps"))
   }
 
   object depth extends Module {
@@ -149,30 +149,30 @@ object `package` extends RootModule with Module {
       .flatMap(_.valuesToModules.get(List(crossValue)))
 
     def testRepoRoot = Task {
-      os.copy(super.testRepoRoot().path, T.dest, mergeFolders = true)
+      os.copy(super.testRepoRoot().path, Task.dest, mergeFolders = true)
       for (suffix <- Seq("build.sc", "build.mill", "build.mill.scala")) {
-        for (lines <- buildScLines() if os.exists(T.dest / suffix)) {
-          os.write.over(T.dest / suffix, lines.mkString("\n"))
+        for (lines <- buildScLines() if os.exists(Task.dest / suffix)) {
+          os.write.over(Task.dest / suffix, lines.mkString("\n"))
         }
       }
-      PathRef(T.dest)
+      PathRef(Task.dest)
     }
 
     def resources = upstreamOpt match {
-      case None => T { Seq(super.testRepoRoot()) }
-      case Some(upstream) => T {
-          os.copy.over(super.testRepoRoot().path, T.dest)
+      case None => Task { Seq(super.testRepoRoot()) }
+      case Some(upstream) => Task {
+          os.copy.over(super.testRepoRoot().path, Task.dest)
           val upstreamRoot = upstream.testRepoRoot().path
           val suffix = Seq("build.sc", "build.mill").find(s => os.exists(upstreamRoot / s)).head
           for (lines <- buildScLines()) {
-            os.write.over(T.dest / suffix, lines.mkString("\n"))
+            os.write.over(Task.dest / suffix, lines.mkString("\n"))
           }
-          Seq(PathRef(T.dest))
+          Seq(PathRef(Task.dest))
         }
     }
     def buildScLines = upstreamOpt match {
-      case None => T { None }
-      case Some(upstream) => T {
+      case None => Task { None }
+      case Some(upstream) => Task {
           Some {
             val upstreamRoot = upstream.testRepoRoot().path
             val suffix = Seq("build.sc", "build.mill").find(s => os.exists(upstreamRoot / s)).head
@@ -211,7 +211,8 @@ object `package` extends RootModule with Module {
 
   trait ExampleCrossModule extends build.integration.IntegrationTestModule {
     // disable scalafix because these example modules don't have sources causing it to misbehave
-    def testRepoRoot: T[PathRef] = Task.Source(millSourcePath)
+    def testRepoSourceRoot: T[PathRef] = Task.Source(millSourcePath)
+    def testRepoRoot: T[PathRef] = Task { testRepoSourceRoot() }
 
     def sources0 = Task.Sources(millSourcePath)
     def sources = Task {
@@ -242,9 +243,9 @@ object `package` extends RootModule with Module {
 
     def rendered = Task {
       var seenCode = false
-      val examplePath = millSourcePath.subRelativeTo(T.workspace)
+      val examplePath = millSourcePath.subRelativeTo(Task.workspace)
       os.write(
-        T.dest / "example.adoc",
+        Task.dest / "example.adoc",
         parsed()
           .filter(_._2.nonEmpty)
           .map {
@@ -259,9 +260,8 @@ object `package` extends RootModule with Module {
               val title =
                 if (seenCode) ""
                 else {
-                  val label = build.millLastTag()
                   val exampleDashed = examplePath.segments.mkString("-")
-                  val download = s"{mill-download-url}/$label-$exampleDashed.zip[download]"
+                  val download = s"{mill-download-url}/$exampleDashed.zip[download]"
                   val browse = s"{mill-example-url}/$examplePath[browse]"
                   s".build.mill ($download, $browse)"
                 }
@@ -284,7 +284,7 @@ object `package` extends RootModule with Module {
           }
           .mkString("\n")
       )
-      PathRef(T.dest / "example.adoc")
+      PathRef(Task.dest / "example.adoc")
     }
   }
 
@@ -309,24 +309,24 @@ object `package` extends RootModule with Module {
     }
 
     def downloadedRepo = Task {
-      downloadTestRepo(repoPath, repoHash, T.dest)
-      val wrapperFolder = T.dest / s"$repoSlug-$repoHash"
+      downloadTestRepo(repoPath, repoHash, Task.dest)
+      val wrapperFolder = Task.dest / s"$repoSlug-$repoHash"
       PathRef(wrapperFolder)
     }
 
     def testRepoRoot = Task {
       val wrapperFolder = downloadedRepo().path
-      os.copy(wrapperFolder, T.dest, mergeFolders = true)
+      os.copy(wrapperFolder, Task.dest, mergeFolders = true)
       os.copy(
         super.testRepoRoot().path,
-        T.dest,
+        Task.dest,
         mergeFolders = true,
         replaceExisting = true
       )
-      os.remove.all(T.dest / ".mill-version")
+      os.remove.all(Task.dest / ".mill-version")
 
-      os.remove.all(T.dest / "build.sc")
-      PathRef(T.dest)
+      os.remove.all(Task.dest / "build.sc")
+      PathRef(Task.dest)
     }
   }
 }

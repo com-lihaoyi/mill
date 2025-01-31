@@ -132,7 +132,7 @@ object CallGraphAnalysis {
       .groupMap(_._1)(_._2)
 
     val reverseGraphEdges =
-      indexGraphEdges.indices.map(reverseGraphMap.getOrElse(_, Array())).toArray
+      indexGraphEdges.indices.map(reverseGraphMap.getOrElse(_, Array[Int]())).toArray
 
     SpanningForest.spanningTreeToJsonTree(
       SpanningForest.apply(reverseGraphEdges, nodesWithChangedHashes, false),

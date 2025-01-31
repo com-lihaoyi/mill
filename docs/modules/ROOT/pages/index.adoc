@@ -1,19 +1,24 @@
-= Mill: A Fast JVM Build Tool
+= Mill: A Fast, Scalable JVM Build Tool
 
-include::partial$gtag-config.adoc[]
 
+
+https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc[image:https://index.scala-lang.org/com-lihaoyi/mill/mill-main/latest.svg[Mill]]
+https://central.sonatype.com/artifact/com.lihaoyi/mill-dist[image:https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=latest-unstable[Maven Central Version]]
 
 Mill is a fast, scalable, multi-language build tool that supports Java, Scala,
-and Kotlin:
+Kotlin, and Python:
 
 * Mill can build the same Java codebase xref:comparisons/maven.adoc[4-10x faster than Maven],
 or xref:comparisons/gradle.adoc[2-4x faster than Gradle]
 
+* Mill comes builtin with all the tools needed to develop and publish your project without
+needing plugins
+
 * Mill's typed config language and immutable xref:depth/design-principles.adoc[task graph]
 helps keep builds clean and understandable
 
-* Mill is an easier alternative to https://bazel.build/[Bazel]
-for xref:large/large.adoc[large multi-language monorepos] with hundreds of modules
+* Mill scales well from small projects to
+xref:large/large.adoc[large multi-language monorepos] with hundreds of modules
 
 To get started using Mill, see:
 
@@ -21,11 +26,12 @@ To get started using Mill, see:
 
 Or see the language-specific introductory documentation linked below:
 
-[cols="1a,1a,1a"]
+[cols="1a,1a,1a,1a"]
 |===
 | xref:javalib/intro.adoc[image:index/iconscout-java.svg[java,32] Java with Mill]
 | xref:scalalib/intro.adoc[image:index/iconscout-scala.svg[scala,20] Scala with Mill]
-| xref:kotlinlib/intro.adoc[image:index/iconscout-kotlin.svg[kotlin,32] Kotlin with Mill]
+| xref:kotlinlib/intro.adoc[image:index/iconscout-kotlin.svg[kotlin,28] Kotlin with Mill]
+| xref:pythonlib/intro.adoc[image:index/iconscout-python.svg[python,28] Python with Mill]
 |===
 
 If you want to use Mill on an existing codebase, see xref:migrating/migrating.adoc[]
@@ -44,8 +50,17 @@ and avoids the long configuration times seen in other tools like Gradle or SBT.
 xref:large/selective-execution.adoc[Selective execution] keeps
 CI validation times short by only running the tests necessary to validate a code change.
 
+* *Builtins*: Mill has builtin support for most common workflows: not just compile/run/test, but also xref:javalib/linting.adoc#_autoformatting_with_palantir_java_format[autoformatting],
+xref:javalib/linting.adoc#_linting_with_checkstyle[linting],
+xref:javalib/publishing.adoc#_publishing_to_sonatype_maven_central[publishing],
+building xref:javalib/publishing.adoc#_building_executable_assemblies[executable assemblies],
+xref:javalib/publishing.adoc#_building_native_image_binaries_with_graal_vm[native binaries]
+or xref:javalib/publishing.adoc#_java_installers_using_jpackage[installers],
+etc. This lets you focus on your actual project and spend less time
+fiddling with tooling and plugins.
+
 * *Maintainability*: Mill's config and xref:javalib/intro.adoc#_custom_build_logic[custom logic]
-is written in xref:depth/why-scala.adoc[concise type-checked Scala code],
+is written in xref:depth/why-scala.adoc[concise type-checked JVM code],
 with an immutable xref:depth/design-principles.adoc[module tree and task graph]. This
 catches config issues early, and helps both humans and IDEs
 (xref:cli/installation-ide.adoc#_intellij[IntelliJ] or
@@ -61,7 +76,7 @@ or xref:extending/writing-plugins.adoc[write plugins yourself] and
 publish them to Maven Central for others to use.
 
 
-For a quick introduction of why you may care about Mill, see the following page:
+For a quick introduction of why you may care about Mill, see:
 
 * xref:comparisons/why-mill.adoc[]
 * xref:comparisons/unique.adoc[]
@@ -70,8 +85,8 @@ Or if you prefer a video introduction:
 
 * https://www.youtube.com/watch?v=Dry6wMRN6MI[Video: Better Java Builds with the Mill Build Tool],
   Japan Java User Group Fall Conference Oct 2024
-* https://www.youtube.com/watch?v=xbGG7MDWR-M[Video: Better Scala Builds with the Mill Build Tool],
-  Scala.IO Paris Conference Nov 2024
+* https://www.youtube.com/watch?v=igarEERjUuQ[Video: Better Scala Builds with the Mill Build Tool],
+  Functional Scala Conference Dec 2024
 
 Mill is used to build many real-world projects, such as the
 https://github.com/swaldman/c3p0[C3P0 JDBC Connection Pool],

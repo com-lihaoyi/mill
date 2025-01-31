@@ -23,7 +23,7 @@ object bar extends Cross[FooModule]("2.10", "2.11", "2.12") {
 > mill show foo[].suffix # no cross value given, defaults to first cross value
 "_2.10"
 
-> mill show bar[].suffix # no cross value given, defaults to overriden `defaultCrossSegments`
+> mill show bar[].suffix # no cross value given, defaults to overridden `defaultCrossSegments`
 "_2.12"
 
 */

@@ -1,14 +1,23 @@
 = Scala Packaging & Publishing
 :page-aliases: Publishing_Scala_Projects.adoc
 
-include::partial$gtag-config.adoc[]
+
 
 This page will discuss common topics around packaging and publishing your Scala projects for others to use
 
-
-== Customizing the Assembly
+== Building Executable Assemblies
 
 include::partial$example/scalalib/publishing/1-assembly-config.adoc[]
+
+
+== Building Native Image Binaries with Graal VM
+
+include::partial$example/scalalib/publishing/7-native-image.adoc[]
+
+For another example building a slightly less trivial project into a Graal native
+image, see below:
+
+include::partial$example/scalalib/publishing/8-native-image-libs.adoc[]
 
 
 == Publishing Locally
@@ -26,7 +35,3 @@ For more details, see:
 * xref:javalib/publishing.adoc#_java_app_and_bundles_using_jlink[Java App and Bundles using JLink]
 * xref:javalib/publishing.adoc#_java_installers_using_jpackage[Java Installers using JPackage]
 
-
-== Building Native Image with Graal VM
-
-include::partial$example/scalalib/publishing/7-native-image.adoc[]

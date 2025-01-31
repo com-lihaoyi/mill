@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import mill.Task
+import mill.{Task, given}
 import mill.define.{Command, Discover, ExternalModule}
 import mill.eval.Evaluator
 import mill.scalalib.dependency.{DependencyUpdatesImpl, Format}

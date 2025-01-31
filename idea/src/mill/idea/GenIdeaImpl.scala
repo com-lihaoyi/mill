@@ -15,7 +15,7 @@ import mill.scalajslib.ScalaJSModule
 import mill.scalalib.GenIdeaModule.{IdeaConfigFile, JavaFacet}
 import mill.scalalib.internal.JavaModuleUtils
 import mill.util.Classpath
-import mill.{T, scalalib}
+import mill.scalalib
 import mill.scalalib.{GenIdeaImpl => _, _}
 import mill.scalanativelib.ScalaNativeModule
 
@@ -152,7 +152,7 @@ case class GenIdeaImpl(
 
             val externalDependencies = Task.Anon {
               mod.resolvedIvyDeps() ++
-                T.traverse(mod.transitiveModuleDeps)(_.unmanagedClasspath)().flatten
+                Task.traverse(mod.transitiveModuleDeps)(_.unmanagedClasspath)().flatten
             }
             val extCompileIvyDeps = Task.Anon {
               mod.defaultResolver().resolveDeps(mod.compileIvyDeps())
@@ -781,7 +781,13 @@ case class GenIdeaImpl(
       <library name={name} type="Scala">
         <properties>
             {
-      if (languageLevel.isDefined) <language-level>{languageLevel.get}</language-level>
+      if (languageLevel.isDefined)
+        <language-level>{languageLevel.get}</language-level>
+      else {
+        // Scala 3: I assume there is some missing implicit conversion from `()` to NodeSeq,
+        // so use an explicit seq.
+        NodeSeq.Empty
+      }
     }
             <compiler-classpath>
               {
@@ -791,9 +797,15 @@ case class GenIdeaImpl(
     }
             </compiler-classpath>
           {
-      if (compilerBridgeJar.isDefined) <compiler-bridge-binary-jar>{
-        relativeFileUrl(compilerBridgeJar.get)
-      }</compiler-bridge-binary-jar>
+      if (compilerBridgeJar.isDefined)
+        <compiler-bridge-binary-jar>{
+          relativeFileUrl(compilerBridgeJar.get)
+        }</compiler-bridge-binary-jar>
+      else {
+        // Scala 3: I assume there is some missing implicit conversion from `()` to NodeSeq,
+        // so use an explicit seq.
+        NodeSeq.Empty
+      }
     }
         </properties>
       </library>
@@ -813,8 +825,12 @@ case class GenIdeaImpl(
         {
       if (sources.isDefined) {
         <SOURCES>
-            <root url={relativeJarUrl(sources.get)}/>
-          </SOURCES>
+              <root url={relativeJarUrl(sources.get)}/>
+            </SOURCES>
+      } else {
+        // Scala 3: I assume there is some missing implicit conversion from `()` to NodeSeq,
+        // so use an explicit seq.
+        NodeSeq.Empty
       }
     }
       </library>

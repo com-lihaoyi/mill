@@ -72,14 +72,13 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
     val threadNumberer = new ThreadNumberer()
     val (sortedGroups, transitive) = Plan.plan(goals)
-    val interGroupDeps = findInterGroupDeps(sortedGroups)
+    val interGroupDeps = EvaluatorCore.findInterGroupDeps(sortedGroups)
     val terminals0 = sortedGroups.keys().toVector
     val failed = new AtomicBoolean(false)
     val count = new AtomicInteger(1)
     val indexToTerminal = sortedGroups.keys().toArray
-    val terminalToIndex = indexToTerminal.zipWithIndex.toMap
 
-    EvaluatorLogs.logDependencyTree(interGroupDeps, indexToTerminal, terminalToIndex, outPath)
+    EvaluatorLogs.logDependencyTree(interGroupDeps, indexToTerminal, outPath)
 
     // Prepare a lookup tables up front of all the method names that each class owns,
     // and the class hierarchy, so during evaluation it is cheap to look up what class
@@ -231,7 +230,6 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     EvaluatorLogs.logInvalidationTree(
       interGroupDeps,
       indexToTerminal,
-      terminalToIndex,
       outPath,
       uncached,
       changedValueHash
@@ -262,8 +260,10 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       results.map { case (k, v) => (k, v.map(_._1)) }
     )
   }
+}
 
-  private def findInterGroupDeps(sortedGroups: MultiBiMap[Terminal, Task[_]])
+private[mill] object EvaluatorCore {
+  def findInterGroupDeps(sortedGroups: MultiBiMap[Terminal, Task[_]])
       : Map[Terminal, Seq[Terminal]] = {
     sortedGroups
       .items()
@@ -277,10 +277,6 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       }
       .toMap
   }
-}
-
-private[mill] object EvaluatorCore {
-
   case class Results(
       rawValues: Seq[Result[Val]],
       evaluated: Agg[Task[_]],

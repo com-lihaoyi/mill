@@ -1,6 +1,7 @@
 package mill.codesig
 import JvmModel._
 import JType.{Cls => JCls}
+import mill.util.SpanningForest
 import mill.util.SpanningForest.breadthFirst
 import upickle.default.{ReadWriter, macroRW}
 
@@ -31,12 +32,7 @@ object ResolvedCalls {
     val allDirectAncestors =
       localSummary.mapValues(_.directAncestors) ++ externalSummary.directAncestors
 
-    val directDescendents = {
-      allDirectAncestors
-        .toVector
-        .flatMap { case (k, vs) => vs.map((_, k)) }
-        .groupMap(_._1)(_._2)
-    }
+    val directDescendents = SpanningForest.reverseEdges(allDirectAncestors)
 
     // Given an external class, what are the local classes that inherit from it,
     // and what local methods may end up being called by the external class code
@@ -52,7 +48,7 @@ object ResolvedCalls {
         }
         .groupMapReduce(_._1)(_._2)(_ ++ _)
         .map { case (externalCls, localClasses) =>
-          // <init> methods are final and cannot be overriden
+          // <init> methods are final and cannot be overridden
           val methods = externalSummary
             .directMethods
             .getOrElse(externalCls, Map())
@@ -122,16 +118,13 @@ object ResolvedCalls {
 
       val allSamImplementors0 = allSamDefiners
         .toSeq
-        .flatMap { case (cls, sig) =>
-          breadthFirst(Seq(cls))(cls => directDescendents.getOrElse(cls, Nil)).map(_ -> sig)
+        .map { case (cls, sig) =>
+          sig -> breadthFirst(Seq(cls))(cls => directDescendents.getOrElse(cls, Nil))
         }
 
-      val allSamImplementors = allSamImplementors0
-        .groupMap(_._1)(_._2)
-        .view.mapValues(_.toSet)
-        .toMap
+      val allSamImplementors = mill.util.SpanningForest.reverseEdges(allSamImplementors0)
 
-      allSamImplementors
+      allSamImplementors.mapValues(_.toSet).toMap
     }
 
     val localCalls = {

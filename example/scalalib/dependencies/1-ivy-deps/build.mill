@@ -33,7 +33,7 @@ object `package` extends RootModule with ScalaModule {
 //
 //// SNIPPET:END
 //
-// To select the test-jars from a dependency use the following syntax:
+// To select the test-jars from a dependency use the `;classifier=tests` syntax, e.g.:
 //
 // * `ivy"org.apache.spark::spark-sql:2.4.0;classifier=tests`
 //

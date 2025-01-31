@@ -18,7 +18,7 @@ object foo extends JavaModule {}
 
 > echo "" >> foo/src/foo/Foo.java
 
-> ./mill foo.compile # compile against after editing a file
+> ./mill foo.compile # compile again after editing a file
 
 > find out
 out/foo/compile.dest/...
@@ -38,10 +38,10 @@ out/mill-server/...
 
 // == Task Metadata and Cached Files
 //
-// Each named task (``Target`` or ``Command``) that is run has a representation in
+// Each named task (``Task`` or ``Command``) that is run has a representation in
 // the `out/` directory structure. The _module_ structure is reflected in the directories,
 // so that each module of your project has a uniquely associated subdirectory under the
-//`out/` directory.For example, the `foo.compile` task we ran above places
+//`out/` directory. For example, the `foo.compile` task we ran above places
 // its files in the `out/foo/compile.*` paths:
 
 /** Usage
@@ -69,7 +69,9 @@ out/foo/compile.dest
 // conflicting with another `Task`, but can name files within `foo.dest/`  arbitrarily.
 //
 // === `<task>.log`
-// The `stdout`/`stderr` of the `Task`, if any. This is also streamed to the console during evaluation.
+// The `stdout`/`stderr` of the `Task`, if any. This is also streamed to the console during
+// evaluation, but the terminal can get messy with many tasks running and printing logs in
+// parallel, so if you want the logs for a single task you can find them on disk.
 //
 // === `<task>.super/`
 // Holds task metadata for overridden tasks, if any. Whenever you use a `super.foo()` in your `foo` task, you
@@ -226,7 +228,7 @@ out/mill-server
 // Again, if there are multiple paths through which one task was invalidated by another,
 // one path is chosen arbitrarily to be shown in the spanning tree
 //
-// == `methodCodeHashSignatures spanningInvalidationTree`
+// === `methodCodeHashSignatures spanningInvalidationTree`
 //
 // Sometimes invalidation can be caused by a code change in your `build.mill`/`package.mill`
 // files, rather than by a change in the project's source files or inputs. In such cases,
@@ -243,8 +245,7 @@ out/mill-server
 
 > cat out/mill-build/methodCodeHashSignatures.dest/current/spanningInvalidationTree.json
 {
-  "call scala.runtime.BoxesRunTime.boxToInteger(int)java.lang.Integer": {},
-  "call scala.Predef$#println(java.lang.Object)void": {
+...
     "def build_.package_$foo$#<init>(build_.package_)void": {
       "call build_.package_$foo$!<init>(build_.package_)void": {
         "def build_.package_#foo$lzycompute$1()void": {
@@ -254,7 +255,7 @@ out/mill-server
         }
       }
     }
-  }
+...
 }
 
 */

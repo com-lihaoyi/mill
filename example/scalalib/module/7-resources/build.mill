@@ -9,7 +9,7 @@ object foo extends ScalaModule {
   )
 
   object test extends ScalaTests {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.4")
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.5")
     def testFramework = "utest.runner.Framework"
 
     def otherFiles = Task.Source(millSourcePath / "other-files")
@@ -33,7 +33,7 @@ object foo extends ScalaModule {
 // This section discusses how tests can depend on resources locally on disk.
 // Mill provides two ways to do this: via the JVM classpath resources, and via
 // the resource folder which is made available as the environment variable
-// `MILL_TEST_RESOURCE_DIR`;
+// `MILL_TEST_RESOURCE_DIR` available in test suites:
 //
 // * The *classpath resources* are useful when you want to fetch individual files,
 //   and are bundled with the application by the `.assembly` step when constructing
@@ -43,8 +43,8 @@ object foo extends ScalaModule {
 // * The *resource folder*, available via `MILL_TEST_RESOURCE_DIR`, gives you
 //   access to the folder path of the resources on disk. This is useful in allowing
 //   you to list and otherwise manipulate the filesystem, which you cannot do with
-//   *classpath resources*. However, the `MILL_TEST_RESOURCE_DIR` only exists
-//   when running tests using Mill, and is not available when executing applications
+//   *classpath resources*. However, the `MILL_TEST_RESOURCE_DIR` _only_ exists
+//   when running tests using Mill, and is _not_ available when executing applications
 //   packaged for deployment via `.assembly`
 //
 // * Apart from `resources/`, you can provide additional folders to your test suite
@@ -67,15 +67,17 @@ object foo extends ScalaModule {
 
 //
 //
-// Note that tests require that you pass in any files that they depend on explicitly.
-// This is necessary so that Mill knows when a test needs to be re-run and when a
-// previous result can be cached. This also ensures that tests reading and writing
-// to the current working directory do not accidentally interfere with each others
-// files, especially when running in parallel.
+// Tests by default only have access to their *classpath resources* and
+// *resource folder* as mentioned above. They cannot read random project files on disk,
+// and require that you pass in any other
+// files or folders that they require explicitly (e.g. `def otherFiles` above).
+// This is necessary so that Mill can ensure the necessary files are in place
+// before the test begins running, and so `-w`/`--watch` knows it needs to re-run
+// the tests if those files changed. Thus your tests cannot just read project files
+// direct off disk via `new FileInputStream("foo/resources/test-file-a.txt")`.
 //
-// Mill runs test processes in a xref:depth/sandboxing.adoc[sandbox/ folder], not in your project root folder, to
-// prevent you from accidentally accessing files without explicitly passing them. Thus
-// you cannot just read resources off disk via `new FileInputStream("foo/resources/test-file-a.txt")`.
+// Mill runs test processes in a xref:depth/sandboxing.adoc[sandbox/ folder], rather
+// than in your project root folder, to enforce this.
 // If you have legacy tests that need to run in the project root folder to work, you
 // can configure your test suite with `def testSandboxWorkingDir = false` to disable
 // the sandbox and make the tests run in the project root.

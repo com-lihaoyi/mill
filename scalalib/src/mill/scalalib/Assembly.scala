@@ -12,7 +12,6 @@ import java.util.Collections
 import java.util.jar.JarFile
 import java.util.regex.Pattern
 import scala.jdk.CollectionConverters._
-import scala.tools.nsc.io.Streamable
 import scala.util.Using
 
 case class Assembly(pathRef: PathRef, addedEntries: Int)
@@ -139,7 +138,7 @@ object Assembly {
         val shader = Shader.bytecodeShader(shadeRules, verbose = false, skipManifest = true)
         (name: String, inputStream: UnopenedInputStream) => {
           val is = inputStream()
-          shader(Streamable.bytes(is), name).map {
+          shader(is.readAllBytes(), name).map {
             case (bytes, name) =>
               name -> (() =>
                 new ByteArrayInputStream(bytes) {

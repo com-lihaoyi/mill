@@ -60,7 +60,7 @@ abstract class MillBuildRootModule()(implicit
     val importedRepos = Task.Anon {
       val repos = parseBuildFiles().repos.map { case (repo, srcFile) =>
         val relFile = Try {
-          srcFile.relativeTo(T.workspace)
+          srcFile.relativeTo(Task.workspace)
         }.recover { case _ => srcFile }.get
         CoursierSupport.repoFromString(
           repo,
@@ -83,7 +83,7 @@ abstract class MillBuildRootModule()(implicit
   def cliImports: T[Seq[String]] = Task.Input {
     val imports = CliImports.value
     if (imports.nonEmpty) {
-      T.log.debug(s"Using cli-provided runtime imports: ${imports.mkString(", ")}")
+      Task.log.debug(s"Using cli-provided runtime imports: ${imports.mkString(", ")}")
     }
     imports
   }
@@ -119,19 +119,20 @@ abstract class MillBuildRootModule()(implicit
         rootModuleInfo.projectRoot / os.up,
         scriptSources(),
         parsed.seenScripts,
-        T.dest,
+        Task.dest,
         rootModuleInfo.enclosingClasspath,
         rootModuleInfo.topLevelProjectRoot,
         rootModuleInfo.output
       )
-      Result.Success(Seq(PathRef(T.dest)))
+      Result.Success(Seq(PathRef(Task.dest)))
     }
   }
 
   def methodCodeHashSignatures: T[Map[String, Int]] = Task(persistent = true) {
-    os.remove.all(T.dest / "previous")
-    if (os.exists(T.dest / "current")) os.move.over(T.dest / "current", T.dest / "previous")
-    val debugEnabled = T.log.debugEnabled
+    os.remove.all(Task.dest / "previous")
+    if (os.exists(Task.dest / "current"))
+      os.move.over(Task.dest / "current", Task.dest / "previous")
+    val debugEnabled = Task.log.debugEnabled
     val codesig = mill.codesig.CodeSig
       .compute(
         classFiles = os.walk(compile().classes.path).filter(_.ext == "class"),
@@ -178,13 +179,13 @@ abstract class MillBuildRootModule()(implicit
           (isSimpleTarget && !isForwarderCallsite) || isCommand || isMillDiscover
         },
         logger = new mill.codesig.Logger(
-          T.dest / "current",
-          Option.when(debugEnabled)(T.dest / "current")
+          Task.dest / "current",
+          Option.when(debugEnabled)(Task.dest / "current")
         ),
         prevTransitiveCallGraphHashesOpt = () =>
-          Option.when(os.exists(T.dest / "previous/transitiveCallGraphHashes0.json"))(
+          Option.when(os.exists(Task.dest / "previous/transitiveCallGraphHashes0.json"))(
             upickle.default.read[Map[String, Int]](
-              os.read.stream(T.dest / "previous/transitiveCallGraphHashes0.json")
+              os.read.stream(Task.dest / "previous/transitiveCallGraphHashes0.json")
             )
           )
       )
@@ -262,14 +263,14 @@ abstract class MillBuildRootModule()(implicit
   }
 
   /** Used in BSP IntelliJ, which can only work with directories */
-  def dummySources: Sources = Task.Sources(T.dest)
+  def dummySources: Sources = Task.Sources(Task.dest)
 
-  def millVersion = T.input { BuildInfo.millVersion }
+  def millVersion: Target[String] = Task.Input { BuildInfo.millVersion }
 
   override def compile: T[CompilationResult] = Task(persistent = true) {
     val mv = millVersion()
 
-    val prevMillVersionFile = T.dest / s"mill-version"
+    val prevMillVersionFile = Task.dest / s"mill-version"
     val prevMillVersion = Option(prevMillVersionFile)
       .filter(os.exists)
       .map(os.read(_).trim)
@@ -278,11 +279,11 @@ abstract class MillBuildRootModule()(implicit
     if (prevMillVersion != mv) {
       // Mill version changed, drop all previous incremental state
       // see https://github.com/com-lihaoyi/mill/issues/3874
-      T.log.debug(
+      Task.log.debug(
         s"Detected Mill version change ${prevMillVersion} -> ${mv}. Dropping previous incremental compilation state"
       )
-      os.remove.all(T.dest)
-      os.makeDir(T.dest)
+      os.remove.all(Task.dest)
+      os.makeDir(Task.dest)
       os.write(prevMillVersionFile, mv)
     }
 
@@ -299,7 +300,7 @@ abstract class MillBuildRootModule()(implicit
         scalacOptions = allScalacOptions(),
         compilerClasspath = scalaCompilerClasspath(),
         scalacPluginClasspath = scalacPluginClasspath(),
-        reporter = T.reporter.apply(hashCode),
+        reporter = Task.reporter.apply(hashCode),
         reportCachedProblems = zincReportCachedProblems(),
         incrementalCompilation = zincIncrementalCompilation(),
         auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()

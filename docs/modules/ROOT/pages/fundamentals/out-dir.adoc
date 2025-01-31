@@ -1,7 +1,7 @@
 = The Output Directory
 :page-aliases: Out_Dir.adoc
 
-include::partial$gtag-config.adoc[]
+
 
 
 include::partial$example/fundamentals/out-dir/1-out-files.adoc[]

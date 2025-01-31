@@ -1,7 +1,7 @@
 = Cross Builds
 :page-aliases: Cross_Builds.adoc
 
-include::partial$gtag-config.adoc[]
+
 
 Cross-building refers to taking the same sources and configuration and building
 it multiple times with minor changes. This could mean taking the same Scala
@@ -13,19 +13,19 @@ config and building it across a variety of source folders.
 
 include::partial$example/fundamentals/cross/1-simple.adoc[]
 
-== Cross Modules Defaults
+=== Cross Modules Defaults
 
 include::partial$example/fundamentals/cross/11-default-cross-module.adoc[]
 
-== Cross Modules Source Paths
+=== Cross Modules Source Paths
 
 include::partial$example/fundamentals/cross/2-cross-source-path.adoc[]
 
-== Using Cross Modules from Outside Tasks
+=== Using Cross Modules from Outside Tasks
 
 include::partial$example/fundamentals/cross/3-outside-dependency.adoc[]
 
-== Using Cross Modules from other Cross Modules
+=== Using Cross Modules from other Cross Modules
 
 include::partial$example/fundamentals/cross/4-cross-dependencies.adoc[]
 
@@ -33,7 +33,7 @@ include::partial$example/fundamentals/cross/4-cross-dependencies.adoc[]
 
 include::partial$example/fundamentals/cross/5-multiple-cross-axes.adoc[]
 
-== Extending Cross Modules
+=== Extending Cross Modules
 
 include::partial$example/fundamentals/cross/6-axes-extension.adoc[]
 

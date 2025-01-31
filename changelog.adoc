@@ -9,6 +9,81 @@ endif::[]
 :link-milestone: {link-github}/milestone
 // find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
 
+_The changelog below is for tagged, stable releases. For unstable releases,
+see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
+
+[#0-12-6]
+=== 0.12.6 - 2025-01-31
+:version: 0.12.6
+:milestone-name: 0.12.6
+:milestone: 109
+:prev-version: 0.12.5
+
+* https://mill-build.org/mill/cli/installation-ide.html#_mill_native_executable[Mill now provides native executables] on windows-amd64, linux-{amd64,aarch64}, and
+macos-{amd64,aarch64}. These can be enabled by adding the `-native` suffix to your `.mill-version`
+file (e.g. `0.12.6-native`), and allows you to run Mill on clean machines without needing
+a pre-installed JVM (Mill will instead download one as necessary)
+
+** Using Mill native binaries requires the latest `./mill` or `./mill.bat` files,
+available for download in the Mill repo (https://mill-build.org/mill/cli/installation-ide.html#_bootstrap_scripts[Docs])
+
+** windows-aarch64 is not supported due to limitations in the upstream Graal native
+image builder https://github.com/oracle/graal/issues/9215[]
+
+* Mill also provides support for users to build native images via `NativeImageModule` (https://mill-build.org/mill/javalib/publishing.html#_building_native_image_binaries_with_graal_vm[Docs])
+
+* Mill's https://mill-build.org/mill/pythonlib/intro.html[Python support] {link-pr}/4166[#4166]
+  is no longer experimental and is ready for people to use. It is still
+  in development, so please try it out and let us know if you hit issues!
+
+* Support for semi-automated migration from Gradle to Mill via `mill init` (https://mill-build.org/mill/migrating/gradle.html[Docs]) {link-pr}/4363[#4363]
+
+* Overhaul of the JVM module dependency resolution logic, delegating it mostly upstream
+to Coursier rather than implementing it in Mill {link-pr}/4145[#4145]
+
+* Allow users to define and publish their own BOM in Mill (https://mill-build.org/mill/fundamentals/library-deps.html#_dependency_management[Docs]) {link-pr}/4155[#4155]
+
+* Reduce Java Heap for Mill Client to reduce memory footprint {link-pr}/4163[#4163]
+
+* Catch fatal exceptions in futures to prevent hangs {link-pr}/4223[#4223]
+
+* Use `check=true` for ktlint checkFormatAll run {link-pr}/4247[#4247]
+
+* Don't fail `semanticDbData` if classes dir does not exist, allowing mill-scalafix's
+`.fix` on modules without suorces {link-pr}/4249[#4249]
+
+* Honor the `NO_COLOR` env variable {link-pr}/4246[#4246]
+
+* Fix race condition that occasionally caused Mill's background server to exit and
+restart unnecessarily {link-pr}/4254[#4254]
+
+* Improvements to Mill's https://mill-build.org/mill/android/java.html[experimental
+  Android support] {link-pr}/4188[#4188] {link-pr}/4261[#4261] {link-pr}/4277[#4277]
+
+* Improvements to Mill's https://mill-build.org/mill/javascriptlib/intro.html[experimental
+  Javascript/Typescript support] {link-pr}/4253[#4253] {link-pr}/4293[#4293]
+
+* Detect terminal size on windows using `io.github.alexarchambault.windowsansi`
+{link-pr}/4056[#4056]
+
+* Make `runBackground` work with `-i`/`--no-server`, rather than exiting immediately
+{link-pr}/4259[#4259]
+
+* Fix using `clean` to terminate `runBackground` subprocesses on windows
+{link-pr}/4265[#4265]
+
+* Add `selective.resolveChanged` {link-pr}/4358[#4358] and `selective.resolveTree`
+{link-pr}/4349[#4349] tasks to help debug selective execution issues
+
+* Add `dockerEnv` target to customize environment passed to `docker` command {link-pr}/3257[#3257]
+
+* Mill bootstrap scripts and example zips have been moved from Github Releases
+to Maven Central for improved security and reliability {link-pr}/4372[#4372]
+
+* ScalaPB plugin now supports `scala3_sources` {link-pr}/3258[#3258]
+
+* Kotlin 2.1.0 is now supported {link-pr}/4406[#4406]
+
 
 [#0-12-5]
 === 0.12.5 - 2025-01-01

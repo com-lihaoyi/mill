@@ -1,7 +1,7 @@
 = The Mill Execution Model
 :page-aliases: The_Mill_Evaluation_Model.adoc, depth/evaluation-model.adoc
 
-include::partial$gtag-config.adoc[]
+
 
 This page does a deep dive on how Mill evaluates your build tasks, so you can better understand
 what Mill is doing behind the scenes when building your project.
@@ -386,7 +386,7 @@ the overall workflow remains fast even for large projects:
 
     * ``Task``s are evaluated in dependency order
 
-    * xref:fundamentals/tasks.adoc#_cached_tasks[Cached Task]s only re-evaluate if their input ``Task``s
+    * xref:fundamentals/tasks.adoc#_tasks[Cached Task]s only re-evaluate if their input ``Task``s
      change.
 
     * xref:fundamentals/tasks.adoc#_persistent_tasks[Persistent Tasks]s preserve the `Task.dest`

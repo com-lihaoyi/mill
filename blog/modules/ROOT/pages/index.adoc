@@ -1,6 +1,6 @@
 # The Mill Build Engineering Blog
 
-include::mill:ROOT:partial$gtag-config.adoc[]
+
 
 
 Welcome to the Mill build engineering blog! This is the home for articles on
