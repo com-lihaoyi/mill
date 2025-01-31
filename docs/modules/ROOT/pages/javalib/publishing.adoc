@@ -1,14 +1,32 @@
 = Java Packaging & Publishing
 :page-aliases: Publishing_Java_Projects.adoc
 
-include::partial$gtag-config.adoc[]
+
 
 This page will discuss common topics around packaging and publishing your Java projects for others to use
 
-== Customizing the Assembly
+== Building Executable Assemblies
 
 include::partial$example/javalib/publishing/1-assembly-config.adoc[]
 
+== Building Native Image Binaries with Graal VM
+
+include::partial$example/javalib/publishing/7-native-image.adoc[]
+
+
+For another example building a slightly less trivial project into a Graal native
+image, see below:
+
+include::partial$example/javalib/publishing/8-native-image-libs.adoc[]
+
+
+== Java App and Bundles using `jlink`
+
+include::partial$example/javalib/publishing/5-jlink.adoc[]
+
+== Java Installers using `jpackage`
+
+include::partial$example/javalib/publishing/6-jpackage.adoc[]
 
 
 == Publishing Locally
@@ -41,23 +59,3 @@ The `revapi` task returns the path to a directory that can be used to resolve th
 ====
 
 include::partial$Publishing_Footer.adoc[]
-
-== Java App and Bundles using `jlink`
-
-include::partial$example/javalib/publishing/5-jlink.adoc[]
-
-== Java Installers using `jpackage`
-
-include::partial$example/javalib/publishing/6-jpackage.adoc[]
-
-
-== Building Native Image with Graal VM
-
-include::partial$example/javalib/publishing/7-native-image.adoc[]
-
-
-For another example building a slightly less trivial project into a Graal native
-image, see below:
-
-include::partial$example/javalib/publishing/8-native-image-config.adoc[]
-

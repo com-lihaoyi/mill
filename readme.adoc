@@ -18,12 +18,24 @@ ifdef::env-github[]
 :warning-caption: :warning:
 endif::[]
 
-{link-github}/actions/workflows/run-tests.yml[image:{link-github}/actions/workflows/run-tests.yml/badge.svg[Build and Release]]
-https://index.scala-lang.org/com-lihaoyi/mill/mill-main[image:https://index.scala-lang.org/com-lihaoyi/mill/mill-main/latest.svg[Mill]]
-https://www.patreon.com/lihaoyi[image:https://img.shields.io/badge/patreon-sponsor-ff69b4.svg[Patreon]]
+https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc[image:https://index.scala-lang.org/com-lihaoyi/mill/mill-main/latest.svg[Mill]]
+https://central.sonatype.com/artifact/com.lihaoyi/mill-dist[image:https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=latest-unstable[Maven Central Version]]
 
-Mill is a fast JVM build tool that supports Java and Scala. Mill aims to make your 
-project’s build process performant, maintainable, and flexible.
+
+Mill is a fast, scalable, multi-language build tool that supports Java, Scala,
+Kotlin, and Python:
+
+* Mill can build the same Java codebase 4-10x faster than Maven,
+or 2-4x faster than Gradle
+
+* Mill comes builtin with all the tools needed to develop and publish your project without
+needing plugins
+
+* Mill's typed config language and immutable task graph
+helps keep builds clean and understandable
+
+* Mill scales well from small projects to
+large multi-language monorepos with hundreds of modules
 
 If you want to use Mill in your own projects, check out our documentation:
 

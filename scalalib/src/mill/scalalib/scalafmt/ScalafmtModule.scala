@@ -29,7 +29,7 @@ trait ScalafmtModule extends JavaModule {
   }
 
   def scalafmtConfig: T[Seq[PathRef]] = Task.Sources(
-    T.workspace / ".scalafmt.conf",
+    Task.workspace / ".scalafmt.conf",
     os.pwd / ".scalafmt.conf"
   )
 
@@ -77,7 +77,7 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule with TaskModule
   def reformatAll(@arg(positional = true) sources: Tasks[Seq[PathRef]] =
     Tasks.resolveMainDefault("__.sources")) =
     Task.Command {
-      val files = T.sequence(sources.value)().flatMap(filesToFormat)
+      val files = Task.sequence(sources.value)().flatMap(filesToFormat)
       ScalafmtWorkerModule
         .worker()
         .reformat(
@@ -89,7 +89,7 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule with TaskModule
   def checkFormatAll(@arg(positional = true) sources: Tasks[Seq[PathRef]] =
     Tasks.resolveMainDefault("__.sources")): Command[Unit] =
     Task.Command {
-      val files = T.sequence(sources.value)().flatMap(filesToFormat)
+      val files = Task.sequence(sources.value)().flatMap(filesToFormat)
       ScalafmtWorkerModule
         .worker()
         .checkFormat(

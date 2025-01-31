@@ -1,6 +1,6 @@
 = Example: Typescript Support
 
-include::partial$gtag-config.adoc[]
+
 
 This section walks through the process of adding support for a new programming
 language to Mill. We will be adding a small `trait TypeScriptModule` with the

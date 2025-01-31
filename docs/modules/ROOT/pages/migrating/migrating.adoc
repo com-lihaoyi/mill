@@ -1,6 +1,6 @@
 = Migrating to Mill
 
-include::partial$gtag-config.adoc[]
+
 
 This page documents a playbook for migrating existing projects
 from Maven, Gradle, or SBT to Mill.
@@ -290,7 +290,7 @@ and understandability of your build system, and while you may not want to apply 
 front during the migration, once you have everything working you can go back and revisit
 to see which ones may help:
 
-* xref:fundamentals/modules.adoc#_trait_modules[Trait Modules] to centralize common config
+* xref:fundamentals/modules.adoc#_module_traits[Trait Modules] to centralize common config
 
 * xref:large/multi-file-builds.adoc[Multi-File Builds] to let you co-locate
   build logic and the code being built

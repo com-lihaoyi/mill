@@ -1,7 +1,7 @@
 = Third-Party Plugins
 :page-aliases: Thirdparty_Modules.adoc, Thirdparty_Plugins.adoc
 
-include::partial$gtag-config.adoc[]
+
 
 The Plugins in this section are developed/maintained outside the mill git tree.
 This list is most likely not complete.
@@ -1069,7 +1069,7 @@ import ba.sake.squery.generator._
 import ba.sake.squery.generator.mill.SqueryGeneratorModule
 
 object app extends ScalaModule with SqueryGeneratorModule {
-  // use T.input(T.ctx.env("MY_ENV_VAR")) to set sensitive variables like password etc
+  // use Task.Input(Task.ctx.env("MY_ENV_VAR")) to set sensitive variables like password etc
   def squeryJdbcUrl = "jdbc:..."
   def squeryUsername = ".."
   def squeryPassword = ".."

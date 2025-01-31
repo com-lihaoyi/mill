@@ -1,7 +1,7 @@
 = Testing Python Projects
 :page-aliases: Testing_Python_Projects.adoc
 
-include::partial$gtag-config.adoc[]
+
 
 This page will discuss topics around defining and running Python tests using the Mill build tool
 

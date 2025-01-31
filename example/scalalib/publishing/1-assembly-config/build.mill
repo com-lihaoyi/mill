@@ -1,3 +1,6 @@
+// Mill's built in `.assembly` task makes it easy to generate an executable assembly
+// jar from any JVM module. You can also customize the assembly jar as shown below:
+
 //// SNIPPET:BUILD
 package build
 import mill._, scalalib._
@@ -17,6 +20,9 @@ object foo extends ScalaModule {
     // the `shapeless` package will be relocated under the `shade` package
     Rule.Relocate("shapeless.**", "shade.shapless.@1")
   )
+
+  // def manifest: T[JarManifest]
+  // def prependShellScript: T[String]
 }
 
 object bar extends ScalaModule {
@@ -24,10 +30,11 @@ object bar extends ScalaModule {
 }
 //// SNIPPET:END
 
-// When you make a runnable jar of your project with `assembly` command,
-// you may want to exclude some files from a final jar (like signature files,
-// and manifest files from library jars), and merge duplicated files (for
-// instance `reference.conf` files from library dependencies).
+// The most common way of configuring an assembly is
+// excluding some files from a final jar (like signature files,
+// and manifest files from library jars), and merging duplicated files (for
+// instance `reference.conf` files from library dependencies). This is
+// done by overriding `def assemblyRules` as shown above
 //
 // By default mill excludes all `+*.sf+`, `+*.dsa+`, `+*.rsa+`, and
 // `META-INF/MANIFEST.MF` files from assembly, and concatenates all

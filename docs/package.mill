@@ -31,7 +31,7 @@ object `package` extends RootModule {
 
   private val npmExe = if (scala.util.Properties.isWin) "npm.cmd" else "npm"
   private val antoraExe = if (scala.util.Properties.isWin) "antora.cmd" else "antora"
-  def npmBase: T[os.Path] = T.persistent { T.dest }
+  def npmBase: T[os.Path] = Task(persistent = true) { Task.dest }
   def prepareAntora(npmDir: os.Path) = {
     Jvm.runSubprocess(
       commandArgs = Seq(
@@ -64,19 +64,19 @@ object `package` extends RootModule {
     PathRef(workDir / "build" / "site")
   }
 
-  def source0 = T.source(millSourcePath)
-  def projectChangelog = T.source(T.workspace / "changelog.adoc")
+  def source0 = Task.Source(millSourcePath)
+  def projectChangelog = Task.Source(Task.workspace / "changelog.adoc")
   def source = Task {
-    os.copy(source0().path, T.dest, mergeFolders = true)
+    os.copy(source0().path, Task.dest, mergeFolders = true)
 
-    val pagesWd = T.dest / "modules" / "ROOT" / "pages"
-    val partialsWd = T.dest / "modules" / "ROOT" / "partials"
+    val pagesWd = Task.dest / "modules" / "ROOT" / "pages"
+    val partialsWd = Task.dest / "modules" / "ROOT" / "partials"
 
     os.copy(projectChangelog().path, partialsWd / "project-changelog.adoc", createFolders = true)
 
     val renderedExamples: Seq[(os.SubPath, PathRef)] =
-      T.traverse(build.example.exampleModules)(m =>
-        T.task {
+      Task.traverse(build.example.exampleModules)(m =>
+        Task.Anon {
           (m.millSourcePath.subRelativeTo(build.example.millSourcePath), m.rendered())
         }
       )()
@@ -87,8 +87,8 @@ object `package` extends RootModule {
       createFolders = true
     )
 
-    val contribReadmes = T.traverse(build.contrib.contribModules)(m =>
-      T.task {
+    val contribReadmes = Task.traverse(build.contrib.contribModules)(m =>
+      Task.Anon {
         m.millModuleSegments.parts.last -> m.readme()
       }
     )()
@@ -99,9 +99,9 @@ object `package` extends RootModule {
       createFolders = true
     )
 
-    expandDiagramsInDirectoryAdocFile(T.dest, mill.main.VisualizeModule.classpath().map(_.path))
+    expandDiagramsInDirectoryAdocFile(Task.dest, mill.main.VisualizeModule.classpath().map(_.path))
 
-    PathRef(T.dest)
+    PathRef(Task.dest)
   }
 
   def expandDiagramsInDirectoryAdocFile(dest: os.Path, visualizeClassPath: Agg[os.Path])(implicit
@@ -128,9 +128,11 @@ object `package` extends RootModule {
               if (inputs.isEmpty) output((p, i)) = graphvizLines.mkString("\n")
               else {
                 outputLines.append("++++")
+                outputLines.append("<div class=\"paragraph\">")
                 outputLines.append("<center>")
                 outputLines.append(inputs((p, i)))
                 outputLines.append("</center>")
+                outputLines.append("</div>")
                 outputLines.append("++++")
               }
 
@@ -164,13 +166,13 @@ object `package` extends RootModule {
 
   }
 
-  def supplementalFiles = T.source(millSourcePath / "supplemental-ui")
+  def supplementalFiles = Task.Source(millSourcePath / "supplemental-ui")
 
   /**
    * The doc root ready to be built by antora for the current branch.
    */
   def devAntoraSources: T[PathRef] = Task {
-    val dest = T.dest
+    val dest = Task.dest
     os.copy(source().path, dest, mergeFolders = true)
     sanitizeAntoraYml(
       dest,
@@ -213,7 +215,7 @@ object `package` extends RootModule {
     expandDiagramsInDirectoryAdocFile(Task.dest, mill.main.VisualizeModule.classpath().map(_.path))
     PathRef(Task.dest)
   }
-  def githubPagesPlaybookText(authorMode: Boolean) = T.task { extraSources: Seq[os.Path] =>
+  def githubPagesPlaybookText(authorMode: Boolean) = Task.Anon { extraSources: Seq[os.Path] =>
     val taggedSources = for (path <- extraSources) yield {
       s"""    - url: ${build.baseDir}
          |      start_path: ${path.relativeTo(build.baseDir)}
@@ -221,8 +223,8 @@ object `package` extends RootModule {
          |""".stripMargin
     }
     s"""site:
-       |  title: The Mill JVM Build Tool
-       |  url: ${if (authorMode) s"${T.dest}/site" else build.Settings.docUrl}
+       |  title: The Mill Build Tool
+       |  url: ${if (authorMode) s"${Task.dest}/site" else build.Settings.docUrl}
        |  start_page: mill::index.adoc
        |  keys:
        |    google_analytics: 'G-1C582ZJR85'
@@ -253,7 +255,7 @@ object `package` extends RootModule {
        |asciidoc:
        |  attributes:
        |    mill-github-url: ${build.Settings.projectUrl}
-       |    mill-doc-url: ${if (authorMode) s"file://${T.dest}/site" else build.Settings.docUrl}
+       |    mill-doc-url: ${if (authorMode) s"file://${Task.dest}/site" else build.Settings.docUrl}
        |    utest-github-url: https://github.com/com-lihaoyi/utest
        |    upickle-github-url: https://github.com/com-lihaoyi/upickle
        |    mill-scip-version: ${build.Deps.DocDeps.millScip.dep.version}
@@ -279,8 +281,8 @@ object `package` extends RootModule {
         Seq((build.Settings.docTags.last, "master", s"latest-${build.Settings.docTags.last}"))
 
     for ((millLastTag, version, displayVersion) <- versionLabels) yield {
-      val checkout = T.dest / displayVersion
-      os.proc("git", "clone", T.workspace / ".git", checkout).call(stdout = os.Inherit)
+      val checkout = Task.dest / displayVersion
+      os.proc("git", "clone", Task.workspace / ".git", checkout).call(stdout = os.Inherit)
       os.proc("git", "checkout", millLastTag).call(cwd = checkout, stdout = os.Inherit)
       val outputFolder = checkout / "out" / "docs" / "source.dest"
       os.proc("./mill", "-i", "docs.source").call(cwd = checkout, stdout = os.Inherit)
@@ -291,7 +293,10 @@ object `package` extends RootModule {
 
       val millDownloadUrl =
         if (
-          Ordering.Implicits.seqOrdering[Seq, String].lt(version.split('.'), Seq("0", "12", "6"))
+          Ordering.Implicits.seqOrdering[Seq, String].lt(
+            millLastTag.split('.'),
+            Seq("0", "12", "6")
+          )
         ) {
           s"${build.Settings.projectUrl}/releases/download/$millLastTag"
         } else {
@@ -308,24 +313,24 @@ object `package` extends RootModule {
 
   def localPages: T[PathRef] = Task {
     val pages = generatePages(authorMode = true)().apply(oldDocSources().map(_.path))
-    T.log.outputStream.println(
+    Task.log.outputStream.println(
       s"You can browse the pages at: ${(pages.path / "index.html").toNIO.toUri()}"
     )
     pages
   }
   def fastPages: T[PathRef] = Task {
     val pages = generatePages(authorMode = true)().apply(Nil)
-    T.log.outputStream.println(
+    Task.log.outputStream.println(
       s"You can browse the pages at: ${(pages.path / "index.html").toNIO.toUri()}"
     )
     pages
   }
 
   def generatePages(authorMode: Boolean) = Task.Anon { extraSources: Seq[os.Path] =>
-    T.log.errorStream.println("Creating Antora playbook ...")
+    Task.log.errorStream.println("Creating Antora playbook ...")
     // dependency to sources
     source()
-    val docSite = T.dest
+    val docSite = Task.dest
     val playbook = docSite / "antora-playbook.yml"
     val siteDir = docSite / "site"
     os.write(
@@ -333,7 +338,7 @@ object `package` extends RootModule {
       data = githubPagesPlaybookText(authorMode)().apply(extraSources),
       createFolders = true
     )
-    T.log.errorStream.println("Running Antora ...")
+    Task.log.errorStream.println("Running Antora ...")
     runAntora(
       npmDir = npmBase(),
       workDir = docSite,
@@ -349,12 +354,12 @@ object `package` extends RootModule {
     os.write(siteDir / ".nojekyll", "")
 
     // sanitize devAntora source URLs
-    T.log.errorStream.println("Sanitizing links ...")
+    Task.log.errorStream.println("Sanitizing links ...")
     sanitizeDevUrls(siteDir, devAntoraSources().path, build.baseDir / "docs", build.baseDir)
 
     // only copy the "api" sub-dir; api docs contains a top-level index.html with we don't want
     val unidocSrc = if (authorMode) site.unidocLocal().path else site.unidocSite().path
-    T.log.errorStream.println(s"Copying API docs from ${unidocSrc} ...")
+    Task.log.errorStream.println(s"Copying API docs from ${unidocSrc} ...")
     os.copy(unidocSrc, siteDir / "api" / "latest", createFolders = true)
 
     PathRef(siteDir)

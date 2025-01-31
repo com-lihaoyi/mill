@@ -1,6 +1,6 @@
 = The Mill Process Architecture
 
-include::partial$gtag-config.adoc[]
+
 
 This page goes into detail of how the Mill process and application is structured.
 At a high-level, a simplified version of the main components and data-flows within

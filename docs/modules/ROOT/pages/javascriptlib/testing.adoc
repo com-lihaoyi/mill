@@ -1,6 +1,6 @@
 = Testing Typescript Projects
 
-include::partial$gtag-config.adoc[]
+
 
 This page will discuss common topics around working with test suites using the Mill build tool
 

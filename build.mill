@@ -113,7 +113,7 @@ object Deps {
     Seq(Play_3_0, Play_2_9, Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
   val acyclic = ivy"com.lihaoyi:::acyclic:0.3.15"
-  val ammoniteVersion = "3.0.0-2-6342755f"
+  val ammoniteVersion = "3.0.1"
   val asmTree = ivy"org.ow2.asm:asm-tree:9.7.1"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
 
@@ -201,7 +201,7 @@ object Deps {
     ivy"org.apache.maven.resolver:maven-resolver-transport-http:$mavenResolverVersion"
   val mavenResolverTransportWagon =
     ivy"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
-  val coursierJvmIndexVersion = "0.0.4-70-51469f"
+  val coursierJvmIndexVersion = "0.0.4-84-f852c6"
   val gradleApi = ivy"dev.gradleplugins:gradle-api:8.11.1"
 
   object RuntimeDeps {
@@ -256,7 +256,7 @@ object Deps {
     // tests framework (test)
     val scalaCheck = ivy"org.scalacheck::scalacheck:1.18.1"
     val scalaTest = ivy"org.scalatest::scalatest:3.2.19"
-    val utest = ivy"com.lihaoyi::utest:0.8.4"
+    val utest = ivy"com.lihaoyi::utest:0.8.5"
     val zioTest = ivy"dev.zio::zio-test:2.1.14"
   }
 
@@ -274,9 +274,9 @@ def millVersion: T[String] = Task.Input {
   } else "SNAPSHOT"
 }
 
-def millLastTag: T[String] = Task {
+def millLastTag: T[String] = Task.Input {
   if (Task.env.contains("MILL_STABLE_VERSION")) {
-    VcsVersion.vcsState().lastTag.getOrElse(
+    VcsVersion.calcVcsState(Task.log).lastTag.getOrElse(
       sys.error("No (last) git tag found. Your git history seems incomplete!")
     )
   } else "SNAPSHOT"

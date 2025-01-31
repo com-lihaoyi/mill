@@ -1,14 +1,14 @@
 = Tasks
 :page-aliases: Tasks.adoc
 
-include::partial$gtag-config.adoc[]
+
 
 One of Mill's core abstractions is its _Task Graph_: this is how Mill defines,
 orders and caches work it needs to do, and exists independently of any support
 for building Java, Kotlin, or Scala.
 
 Mill task graphs are primarily built using methods and macros defined on
-`mill.define.Task`, aliased as `T` for conciseness:
+`mill.define.Task`, whose type is often aliased as `T[_]` for conciseness:
 
 - {mill-doc-url}/api/latest/mill/define/Task$.html[mill.define.Task]
 
@@ -19,14 +19,14 @@ different Task types:
 
 [cols="<,<,<,<,<,<,<"]
 |===
-| |Target |Command |Source/Input |Anonymous Task |Persistent Task |Worker
+| |Target |Command |Source/Input |Persistent Task |Worker|Anonymous Task
 
-|Cached to Disk |X | | | |X |
-|JSON Writable |X |X |X| |X |
-|JSON Readable |X | | | |X |
-|CLI Runnable |X |X | | |X |
-|Takes Arguments | |X | |X | |
-|Cached In-Memory | | | | | |X
+|Cached to Disk |X | | |X | |
+|JSON Writable |X |X |X|X | |
+|JSON Readable |X | | |X | |
+|CLI Runnable |X |X | |X | |
+|Takes Arguments | |X | | | | X
+|Cached In-Memory | | | | |X |
 |===
 
 include::partial$example/fundamentals/tasks/1-task-graph.adoc[]
@@ -37,10 +37,6 @@ include::partial$example/fundamentals/tasks/1-task-graph.adoc[]
 include::partial$example/fundamentals/tasks/2-primary-tasks.adoc[]
 
 == Other Tasks
-
-=== Anonymous Tasks
-
-include::partial$example/fundamentals/tasks/3-anonymous-tasks.adoc[]
 
 === Inputs
 
@@ -53,6 +49,10 @@ include::partial$example/fundamentals/tasks/5-persistent-tasks.adoc[]
 === Workers
 
 include::partial$example/fundamentals/tasks/6-workers.adoc[]
+
+=== Anonymous Tasks
+
+include::partial$example/fundamentals/tasks/3-anonymous-tasks.adoc[]
 
 == (Experimental) Forking Concurrent Futures within Tasks
 

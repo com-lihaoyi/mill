@@ -223,11 +223,14 @@ trait AndroidAppModule extends JavaModule {
     val aarFiles = (super.compileClasspath() ++ super.resolvedRunIvyDeps())
       .map(_.path)
       .filter(_.ext == "aar")
-    var result: Seq[UnpackedDep] = Seq()
 
     // TODO do it in some shared location, otherwise each module is doing the same, having its own copy for nothing
-    for (aarFile <- aarFiles) {
-      val extractDir = Task.dest / aarFile.baseName
+    extractAarFiles(aarFiles.toSeq, Task.dest)
+  }
+
+  final def extractAarFiles(aarFiles: Seq[os.Path], taskDest: os.Path): Seq[UnpackedDep] = {
+    aarFiles.map(aarFile => {
+      val extractDir = taskDest / aarFile.baseName
       os.unzip(aarFile, extractDir)
       val name = aarFile.baseName
 
@@ -245,7 +248,7 @@ trait AndroidAppModule extends JavaModule {
       val baselineProfile = pathOption(extractDir / "baseline-prof.txt")
       val stableIdsRFile = pathOption(extractDir / "R.txt")
       val publicResFile = pathOption(extractDir / "public.txt")
-      result +:= UnpackedDep(
+      UnpackedDep(
         name,
         classesJar,
         proguardRules,
@@ -258,8 +261,7 @@ trait AndroidAppModule extends JavaModule {
         stableIdsRFile,
         publicResFile
       )
-    }
-    result
+    })
   }
 
   /**
@@ -299,7 +301,7 @@ trait AndroidAppModule extends JavaModule {
   def androidAaptOptions: T[Seq[String]] = Task { Seq("--auto-add-overlay") }
 
   def androidTransitiveResources: Target[Seq[PathRef]] = Task {
-    T.traverse(transitiveModuleCompileModuleDeps) { m =>
+    Task.traverse(transitiveModuleCompileModuleDeps) { m =>
       Task.Anon(m.resources())
     }().flatten
   }
@@ -314,8 +316,8 @@ trait AndroidAppModule extends JavaModule {
    * [[https://developer.android.com/tools/aapt2 aapt Documentation]]
    */
   def androidResources: T[(PathRef, Seq[PathRef])] = Task {
-    val rClassDir = T.dest / rClassDirName
-    val compiledResDir = T.dest / compiledResourcesDirName
+    val rClassDir = Task.dest / rClassDirName
+    val compiledResDir = Task.dest / compiledResourcesDirName
     os.makeDir(compiledResDir)
     val compiledResources = collection.mutable.Buffer[os.Path]()
 
@@ -336,7 +338,7 @@ trait AndroidAppModule extends JavaModule {
 
       val libCompileArgsBuilder = Seq.newBuilder[String]
       libCompileArgsBuilder ++= Seq(androidSdkModule().aapt2Path().path.toString(), "compile")
-      if (T.log.debugEnabled) {
+      if (Task.log.debugEnabled) {
         libCompileArgsBuilder += "-v"
       }
       libCompileArgsBuilder ++= Seq(
@@ -355,7 +357,7 @@ trait AndroidAppModule extends JavaModule {
       }
 
       val libCompileArgs = libCompileArgsBuilder.result()
-      T.log.info(
+      Task.log.info(
         s"Compiling resources of $libraryName with the following command: ${libCompileArgs.mkString(" ")}"
       )
       os.call(libCompileArgs)
@@ -365,7 +367,7 @@ trait AndroidAppModule extends JavaModule {
     // TODO support stable IDs
     val appLinkArgsBuilder = Seq.newBuilder[String]
     appLinkArgsBuilder ++= Seq(androidSdkModule().aapt2Path().path.toString, "link")
-    if (T.log.debugEnabled) {
+    if (Task.log.debugEnabled) {
       appLinkArgsBuilder += "-v"
     }
     appLinkArgsBuilder ++= Seq(
@@ -384,10 +386,10 @@ trait AndroidAppModule extends JavaModule {
       "--version-name",
       androidVersionName(),
       "--proguard-main-dex",
-      (T.dest / "main-dex-rules.pro").toString,
+      (Task.dest / "main-dex-rules.pro").toString,
       "--proguard-conditional-keep-rules",
       "-o",
-      (T.dest / "res.apk").toString
+      (Task.dest / "res.apk").toString
     )
 
     if (!androidIsDebug()) {
@@ -401,13 +403,13 @@ trait AndroidAppModule extends JavaModule {
 
     val appLinkArgs = appLinkArgsBuilder.result()
 
-    T.log.info(
+    Task.log.info(
       s"Linking application resources with the command: ${appLinkArgs.mkString(" ")}"
     )
 
     os.call(appLinkArgs)
 
-    (PathRef(T.dest), compiledResources.toSeq.map(PathRef(_)))
+    (PathRef(Task.dest), compiledResources.toSeq.map(PathRef(_)))
   }
 
   /**
@@ -447,7 +449,7 @@ trait AndroidAppModule extends JavaModule {
       .filter(_.path.ext == "jar")
       .map(_.path.toString())
 
-    val proguardFile = T.dest / "proguard-rules.pro"
+    val proguardFile = Task.dest / "proguard-rules.pro"
     val knownProguardRules = androidUnpackArchives()
       // TODO need also collect rules from other modules,
       // but Android lib module doesn't yet exist
@@ -481,7 +483,7 @@ trait AndroidAppModule extends JavaModule {
 
     val d8Args = d8ArgsBuilder.result()
 
-    T.log.info(s"Running d8 with the command: ${d8Args.mkString(" ")}")
+    Task.log.info(s"Running d8 with the command: ${d8Args.mkString(" ")}")
 
     os.call(d8Args)
 
@@ -540,8 +542,8 @@ trait AndroidAppModule extends JavaModule {
    * See [[https://developer.android.com/build/manage-manifests]] for more details.
    */
   def androidMergedManifest: T[PathRef] = Task {
-    val libManifests = androidUnpackArchives().map(_.manifest.get)
-    val mergedManifestPath = T.dest / "AndroidManifest.xml"
+    val libManifests = androidUnpackArchives().flatMap(_.manifest)
+    val mergedManifestPath = Task.dest / "AndroidManifest.xml"
     // TODO put it to the dedicated worker if cost of classloading is too high
     Jvm.runSubprocess(
       mainClass = "com.android.manifmerger.Merger",
@@ -588,7 +590,7 @@ trait AndroidAppModule extends JavaModule {
           ref != androidSdkModule().androidJarPath()
       )
       .flatMap(ref => {
-        val dest = T.dest / ref.path.baseName
+        val dest = Task.dest / ref.path.baseName
         os.unzip(ref.path, dest)
         val lookupPath = dest / "META-INF"
         if (os.exists(lookupPath)) {
@@ -677,7 +679,7 @@ trait AndroidAppModule extends JavaModule {
       signedApk.toString
     ) ++ androidSignKeyDetails()
 
-    T.log.info(s"Calling apksigner with arguments: ${signArgs.mkString(" ")}")
+    Task.log.info(s"Calling apksigner with arguments: ${signArgs.mkString(" ")}")
 
     os.call(signArgs)
 
@@ -702,7 +704,7 @@ trait AndroidAppModule extends JavaModule {
 
     val libClasses: Seq[PathRef] = for {
       libPackage <- libsPackages
-      libRClassPath = T.dest / libPackage.split('.') / "R.java"
+      libRClassPath = Task.dest / libPackage.split('.') / "R.java"
       _ = os.write(
         libRClassPath,
         mainRClass.replaceAll("package .+;", s"package $libPackage;"),
@@ -792,7 +794,7 @@ trait AndroidAppModule extends JavaModule {
   def sdkInstallSystemImage(): Command[String] = Task.Command {
     val image =
       s"system-images;${androidSdkModule().platformsVersion()};google_apis_playstore;$androidEmulatorArchitecture"
-    T.log.info(s"Downloading $image")
+    Task.log.info(s"Downloading $image")
     val installCall = os.call((
       androidSdkModule().sdkManagerPath().path,
       "--install",
@@ -800,7 +802,7 @@ trait AndroidAppModule extends JavaModule {
     ))
 
     if (installCall.exitCode != 0) {
-      T.log.error(
+      Task.log.error(
         s"Error trying to install android emulator system image ${installCall.err.text()}"
       )
       throw new Exception(s"Failed to install system image $image: ${installCall.exitCode}")
@@ -825,7 +827,7 @@ trait AndroidAppModule extends JavaModule {
       "--force"
     ))
     if (command.exitCode != 0) {
-      T.log.error(s"Failed to create android virtual device: ${command.err.text()}")
+      Task.log.error(s"Failed to create android virtual device: ${command.err.text()}")
       throw new Exception(s"Failed to create android virtual device: ${command.exitCode}")
     }
     s"DeviceName: $androidVirtualDeviceIdentifier, DeviceId: $androidDeviceId"
@@ -870,14 +872,14 @@ trait AndroidAppModule extends JavaModule {
       androidEmulatorPort
     ) ++ settings ++ Seq("-avd", androidVirtualDeviceIdentifier)
 
-    T.log.debug(s"Starting emulator with command ${command.mkString(" ")}")
+    Task.log.debug(s"Starting emulator with command ${command.mkString(" ")}")
 
     val startEmuCmd = os.spawn(
       command
     )
 
     val bootMessage: Option[String] = startEmuCmd.stdout.buffered.lines().filter(l => {
-      T.log.debug(l.trim())
+      Task.log.debug(l.trim())
       l.contains("Boot completed in")
     }).findFirst().toScala
 
@@ -885,9 +887,9 @@ trait AndroidAppModule extends JavaModule {
       throw new Exception(s"Emulator failed to start: ${startEmuCmd.exitCode()}")
     }
 
-    val emulator: String = waitForDevice(androidSdkModule().adbPath(), runningEmulator(), T.log)
+    val emulator: String = waitForDevice(androidSdkModule().adbPath(), runningEmulator(), Task.log)
 
-    T.log.info(s"Emulator ${emulator} started with message $bootMessage")
+    Task.log.info(s"Emulator ${emulator} started with message $bootMessage")
 
     bootMessage.get
   }
@@ -967,7 +969,7 @@ trait AndroidAppModule extends JavaModule {
       ))
     }
 
-    val debugKeystoreTaskFile = T.dest / debugFileName
+    val debugKeystoreTaskFile = Task.dest / debugFileName
 
     os.copy(debugKeystoreFile, debugKeystoreTaskFile)
 
@@ -1136,8 +1138,8 @@ trait AndroidAppModule extends JavaModule {
 
       val outputReader = instrumentOutput.stdout.buffered
 
-      val (doneMsg, results) = InstrumentationOutput.parseTestOutputStream(outputReader)(T.log)
-      val res = TestModule.handleResults(doneMsg, results, T.ctx(), testReportXml())
+      val (doneMsg, results) = InstrumentationOutput.parseTestOutputStream(outputReader)(Task.log)
+      val res = TestModule.handleResults(doneMsg, results, Task.ctx(), testReportXml())
 
       res
 

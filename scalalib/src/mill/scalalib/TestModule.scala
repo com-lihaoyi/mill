@@ -96,7 +96,7 @@ trait TestModule
   /**
    * How the test classes in this module will be split into multiple JVM processes
    * and run in parallel during testing. Defaults to all of them running in one process
-   * sequentially, but can be overriden to split them into separate groups that run
+   * sequentially, but can be overridden to split them into separate groups that run
    * in parallel.
    */
   def testForkGrouping: T[Seq[Seq[String]]] = Task {
@@ -143,7 +143,7 @@ trait TestModule
       : Task[(String, String, String, Seq[String])] =
     Task.Anon {
       val mainClass = "mill.testrunner.entrypoint.TestRunnerMain"
-      val outputPath = T.dest / "out.json"
+      val outputPath = Task.dest / "out.json"
       val selectors = Seq.empty
 
       val testArgs = TestArgs(
@@ -152,13 +152,13 @@ trait TestModule
         arguments = args(),
         sysProps = Map.empty,
         outputPath = outputPath,
-        colored = T.log.colored,
+        colored = Task.log.colored,
         testCp = testClasspath().map(_.path),
-        home = T.home,
+        home = Task.home,
         globSelectors = selectors
       )
 
-      val argsFile = T.dest / "testargs"
+      val argsFile = Task.dest / "testargs"
       os.write(argsFile, upickle.default.write(testArgs))
 
       val testRunnerClasspathArg =
@@ -218,9 +218,9 @@ trait TestModule
       runClasspath().map(_.path),
       Agg.from(testClasspath().map(_.path)),
       args,
-      T.testReporter
+      Task.testReporter
     )
-    TestModule.handleResults(doneMsg, results, T.ctx(), testReportXml())
+    TestModule.handleResults(doneMsg, results, Task.ctx(), testReportXml())
   }
 
   override def bspBuildTarget: BspBuildTarget = {
@@ -281,7 +281,7 @@ object TestModule {
      * `sbt-jupiter-interface` dependency from `ivyDeps`, make sure to also
      * override this method.
      */
-    override def discoveredTestClasses: T[Seq[String]] = T {
+    override def discoveredTestClasses: T[Seq[String]] = Task {
       Jvm.inprocess(
         runClasspath().map(_.path),
         classLoaderOverrideSbtTesting = true,
