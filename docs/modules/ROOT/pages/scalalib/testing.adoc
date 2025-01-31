@@ -1,7 +1,7 @@
 = Testing Scala Projects
 :page-aliases: Testing_Scala_Projects.adoc
 
-include::partial$gtag-config.adoc[]
+
 
 This page will discuss common topics around working with test suites using the Mill build tool
 

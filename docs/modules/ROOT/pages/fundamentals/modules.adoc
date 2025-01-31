@@ -1,8 +1,6 @@
 = Modules
 :page-aliases: Modules.adoc
 
-include::partial$gtag-config.adoc[]
-
 `mill.Module` serves two main purposes:
 
 1. As ``object``s, they serve as namespaces that let you group related ``Task``s

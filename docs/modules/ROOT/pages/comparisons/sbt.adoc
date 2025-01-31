@@ -1,7 +1,7 @@
 = Case Study: Mill vs SBT
 :page-aliases: Case_Study_Mill_vs_SBT.adoc
 
-include::partial$gtag-config.adoc[]
+
 
 Compared to SBT,
 

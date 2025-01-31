@@ -7,7 +7,7 @@
 :revdate: 24 December 2024
 _{author}, {revdate}_
 
-include::mill:ROOT:partial$gtag-config.adoc[]
+
 
 Selective testing is a key technique necessary for working with any large codebase
 or monorepo: picking which tests to run to validate a change or pull-request, because

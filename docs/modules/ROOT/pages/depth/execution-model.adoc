@@ -1,7 +1,7 @@
 = The Mill Execution Model
 :page-aliases: The_Mill_Evaluation_Model.adoc, depth/evaluation-model.adoc
 
-include::partial$gtag-config.adoc[]
+
 
 This page does a deep dive on how Mill evaluates your build tasks, so you can better understand
 what Mill is doing behind the scenes when building your project.
