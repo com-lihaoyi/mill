@@ -11,9 +11,35 @@
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
 <link rel="icon" href="../../../../_/favicon.png" type="image/x-icon" />
   
-  </head><body class="article">
+  <style>
+  *{
+    hyphens: manual !important;
+  }
+  .doc {
+   font-size: 16px !important;
+  }
+  .doc pre {
+   font-size: 14px !important;
+  }
+  </style></head><body class="article">
   
 <header class="header">
+  
+  <script>
+  gtag('config', 'AW-16649289906');
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.textContent.trim().toLowerCase() === 'download') {
+        link.addEventListener('click', function(event) {
+          console.log("download link clicked")
+          gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+        });
+      }
+    });
+  });
+  </script>
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
@@ -373,15 +399,15 @@ def qux = T { s&quot;hello ${foo(&quot;2.10&quot;).suffix()} world ${foo(&quot;2
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 231.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-231 197.64,-231 197.64,4 -4,4"></polygon>
-<g id="clust1" class="cluster">
-<title>cluster_2</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 128.64,-219 128.64,-154 8,-154"></polygon>
-<text text-anchor="middle" x="68.32" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.12]</text>
-</g>
 <g id="clust3" class="cluster">
 <title>cluster_0</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 128.64,-73 128.64,-8 8,-8"></polygon>
 <text text-anchor="middle" x="68.32" y="-56.4" font-family="Times,serif" font-size="14.00">foo[2.10]</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_2</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 128.64,-219 128.64,-154 8,-154"></polygon>
+<text text-anchor="middle" x="68.32" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.12]</text>
 </g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>

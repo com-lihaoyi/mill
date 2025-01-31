@@ -13,36 +13,34 @@
 <link rel="icon" href="../_/favicon.png" type="image/x-icon" />
   
   <style>
-*{
-  hyphens: manual !important;
-}
-</style><style>
-*{
-  hyphens: manual !important;
-}
-</style><style>
-*{
-  hyphens: manual !important;
-}
-</style><style>
-*{
-  hyphens: manual !important;
-}
-</style><style>
-*{
-  hyphens: manual !important;
-}
-</style><style>
-*{
-  hyphens: manual !important;
-}
-</style><style>
-*{
-  hyphens: manual !important;
-}
-</style></head><body class="article">
+  *{
+    hyphens: manual !important;
+  }
+  .doc {
+   font-size: 16px !important;
+  }
+  .doc pre {
+   font-size: 14px !important;
+  }
+  </style></head><body class="article">
   
 <header class="header">
+  
+  <script>
+  gtag('config', 'AW-16649289906');
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.textContent.trim().toLowerCase() === 'download') {
+        link.addEventListener('click', function(event) {
+          console.log("download link clicked")
+          gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+        });
+      }
+    });
+  });
+  </script>
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
@@ -196,22 +194,6 @@
 <h1 class="page">The Mill Build Engineering Blog</h1>
 <div id="preamble">
 <div class="sectionbody">
-
-<script>
-gtag('config', 'AW-16649289906');
-
-document.addEventListener('DOMContentLoaded', function() {
-const links = document.querySelectorAll('a');
-  links.forEach(link => {
-    if (link.textContent.trim().toLowerCase() === 'download') {
-      link.addEventListener('click', function(event) {
-        console.log("download link clicked")
-        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
-      });
-    }
-  });
-});
-</script>
 <div class="paragraph">
 <p>Welcome to the Mill build engineering blog! This is the home for articles on
 technical topics related to JVM platform tooling and language-agnostic build tooling,
@@ -226,22 +208,6 @@ build tooling for large codebases in JVM and non-JVM languages.</p>
 <div class="paragraph">
 <p><em>Li Haoyi, 10 January 2025</em></p>
 </div>
-
-<script>
-gtag('config', 'AW-16649289906');
-
-document.addEventListener('DOMContentLoaded', function() {
-const links = document.querySelectorAll('a');
-  links.forEach(link => {
-    if (link.textContent.trim().toLowerCase() === 'download') {
-      link.addEventListener('click', function(event) {
-        console.log("download link clicked")
-        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
-      });
-    }
-  });
-});
-</script>
 <div class="paragraph">
 <p>Garbage collectors are a core part of many programming languages. While they generally work
 well, on occasion when they go wrong they can fail in very unintuitive ways.
@@ -261,22 +227,6 @@ concrete ways you can work to improve its performance in your own real-world pro
 <div class="paragraph">
 <p><em>Li Haoyi, 2 January 2025</em></p>
 </div>
-
-<script>
-gtag('config', 'AW-16649289906');
-
-document.addEventListener('DOMContentLoaded', function() {
-const links = document.querySelectorAll('a');
-  links.forEach(link => {
-    if (link.textContent.trim().toLowerCase() === 'download') {
-      link.addEventListener('click', function(event) {
-        console.log("download link clicked")
-        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
-      });
-    }
-  });
-});
-</script>
 <div class="paragraph">
 <p>One feature of the <a href="https://mill-build.org">Mill JVM build tool</a> is that the
 assembly jars it creates are directly executable:</p>
@@ -315,22 +265,6 @@ other build tools and toolchains will be able to provide the same convenience</p
 <div class="paragraph">
 <p><em>Li Haoyi, 1 January 2025</em></p>
 </div>
-
-<script>
-gtag('config', 'AW-16649289906');
-
-document.addEventListener('DOMContentLoaded', function() {
-const links = document.querySelectorAll('a');
-  links.forEach(link => {
-    if (link.textContent.trim().toLowerCase() === 'download') {
-      link.addEventListener('click', function(event) {
-        console.log("download link clicked")
-        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
-      });
-    }
-  });
-});
-</script>
 <div class="paragraph">
 <p>Many projects suffer from the problem of flaky tests: tests that pass or fail
 non-deterministically. These cause confusion, slow development cycles, and endless
@@ -356,22 +290,6 @@ is all about.</p>
 <div class="paragraph">
 <p><em>Li Haoyi, 24 December 2024</em></p>
 </div>
-
-<script>
-gtag('config', 'AW-16649289906');
-
-document.addEventListener('DOMContentLoaded', function() {
-const links = document.querySelectorAll('a');
-  links.forEach(link => {
-    if (link.textContent.trim().toLowerCase() === 'download') {
-      link.addEventListener('click', function(event) {
-        console.log("download link clicked")
-        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
-      });
-    }
-  });
-});
-</script>
 <div class="paragraph">
 <p>Selective testing is a key technique necessary for working with any large codebase
 or monorepo: picking which tests to run to validate a change or pull-request, because
@@ -392,22 +310,6 @@ Dropbox and Databricks. Lastly, we will discuss
 <div class="paragraph">
 <p><em>Li Haoyi, 17 December 2024</em></p>
 </div>
-
-<script>
-gtag('config', 'AW-16649289906');
-
-document.addEventListener('DOMContentLoaded', function() {
-const links = document.querySelectorAll('a');
-  links.forEach(link => {
-    if (link.textContent.trim().toLowerCase() === 'download') {
-      link.addEventListener('click', function(event) {
-        console.log("download link clicked")
-        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
-      });
-    }
-  });
-});
-</script>
 <div class="paragraph">
 <p>Software build tools mostly fall into two categories:</p>
 </div>
@@ -440,22 +342,6 @@ like Poetry or Cargo, so why do people use them at all?</p>
 <div class="paragraph">
 <p><em>Li Haoyi, 29 November 2024</em></p>
 </div>
-
-<script>
-gtag('config', 'AW-16649289906');
-
-document.addEventListener('DOMContentLoaded', function() {
-const links = document.querySelectorAll('a');
-  links.forEach(link => {
-    if (link.textContent.trim().toLowerCase() === 'download') {
-      link.addEventListener('click', function(event) {
-        console.log("download link clicked")
-        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
-      });
-    }
-  });
-});
-</script>
 <div class="paragraph">
 <p>Java compiles have the reputation for being slow, but that reputation does
 not match today’s reality. Nowadays the Java compiler can compile &quot;typical&quot; Java code at over

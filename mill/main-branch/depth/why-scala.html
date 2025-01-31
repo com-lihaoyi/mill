@@ -13,12 +13,34 @@
 <link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
   
   <style>
-*{
-  hyphens: manual !important;
-}
-</style></head><body class="article">
+  *{
+    hyphens: manual !important;
+  }
+  .doc {
+   font-size: 16px !important;
+  }
+  .doc pre {
+   font-size: 14px !important;
+  }
+  </style></head><body class="article">
   
 <header class="header">
+  
+  <script>
+  gtag('config', 'AW-16649289906');
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.textContent.trim().toLowerCase() === 'download') {
+        link.addEventListener('click', function(event) {
+          console.log("download link clicked")
+          gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+        });
+      }
+    });
+  });
+  </script>
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
@@ -598,22 +620,6 @@
 <h1 class="page">Why does Mill use Scala?</h1>
 <div id="preamble">
 <div class="sectionbody">
-
-<script>
-gtag('config', 'AW-16649289906');
-
-document.addEventListener('DOMContentLoaded', function() {
-const links = document.querySelectorAll('a');
-  links.forEach(link => {
-    if (link.textContent.trim().toLowerCase() === 'download') {
-      link.addEventListener('click', function(event) {
-        console.log("download link clicked")
-        gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
-      });
-    }
-  });
-});
-</script>
 <div class="paragraph">
 <p>One question that comes up a lot among Mill users is why use Scala as the language
 to configure your build? Why not YAML, XML, TOML, Bash, Groovy, Python, Java, or any of the

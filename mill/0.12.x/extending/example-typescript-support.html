@@ -14,12 +14,38 @@
 <link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
   
   <style>
+  *{
+    hyphens: manual !important;
+  }
+  .doc {
+   font-size: 16px !important;
+  }
+  .doc pre {
+   font-size: 14px !important;
+  }
+  </style><style>
 *{
   hyphens: manual !important;
 }
 </style></head><body class="article">
   
 <header class="header">
+  
+  <script>
+  gtag('config', 'AW-16649289906');
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.textContent.trim().toLowerCase() === 'download') {
+        link.addEventListener('click', function(event) {
+          console.log("download link clicked")
+          gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+        });
+      }
+    });
+  });
+  </script>
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
@@ -1400,6 +1426,11 @@ ultimately <code>qux.run</code>):</p>
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 363.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-363 670.01,-363 670.01,4 -4,4"></polygon>
+<g id="clust1" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="139.53,-8 139.53,-116 658.01,-116 658.01,-8 139.53,-8"></polygon>
+<text text-anchor="middle" x="398.77" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
+</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-351 537.02,-351 537.02,-124 8,-124"></polygon>
@@ -1409,11 +1440,6 @@ ultimately <code>qux.run</code>):</p>
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="16,-210 16,-318 529.02,-318 529.02,-210 16,-210"></polygon>
 <text text-anchor="middle" x="272.51" y="-301.4" font-family="Times,serif" font-size="14.00">bar</text>
-</g>
-<g id="clust1" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="139.53,-8 139.53,-116 658.01,-116 658.01,-8 139.53,-8"></polygon>
-<text text-anchor="middle" x="398.77" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
 <!-- qux.npmInstall -->
 <g id="node1" class="node">
