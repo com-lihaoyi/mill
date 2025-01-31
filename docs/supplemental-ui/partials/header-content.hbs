@@ -1,13 +1,32 @@
 <header class="header">
   <style>
+  /* auto-hyphenation is super ugly */
   *{
     hyphens: manual !important;
   }
+
+  /* Reduce font size from 17px to something reasonable */
   .doc {
    font-size: 16px !important;
   }
   .doc pre {
    font-size: 14px !important;
+  }
+  /* Shrink unreasonably large top bar */
+  nav.navbar{
+    height: 2.5rem
+  }
+  body.article{
+    padding-top: 2.5rem
+  }
+  div.nav-container{
+    top: 2.5rem
+  }
+  div.toolbar{
+    top: 2.5rem
+  }
+  aside.nav{
+    top: 2.5rem
   }
   </style>
   <script>
