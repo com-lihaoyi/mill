@@ -1,7 +1,5 @@
 = Linting Python Projects
 
-include::partial$gtag-config.adoc[]
-
 This page will discuss common topics around maintaining the code quality of Python codebases using
 the Mill build tool
 
