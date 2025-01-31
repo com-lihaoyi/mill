@@ -476,7 +476,6 @@ for users.
         # No windows-arm support becaues Graal native image doesn't support it
         # https://github.com/oracle/graal/issues/9215
     env:
-      MILL_STABLE_VERSION: 1
       MILL_SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
       MILL_SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
       MILL_PGP_SECRET_BASE64: ${{ secrets.SONATYPE_PGP_PRIVATE_KEY }}
@@ -485,7 +484,6 @@ for users.
       LC_MESSAGES: "en_US.UTF-8"
       LC_ALL: "en_US.UTF-8"
       COURSIER_ARCHIVE_CACHE: ${{ matrix.coursierarchive }}
-      REPO_ACCESS_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
     steps:
       - uses: actions/setup-java@v4
         with:
@@ -495,13 +493,14 @@ for users.
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
 
-      - run: "echo temurin:11 > .mill-jvm-version"
-
       - run: ./mill -i mill.scalalib.PublishModule/ --publishArtifacts ${{ matrix.publishartifacts }}
-
-      - run: ./mill -i dist.uploadToGithub --authKey $REPO_ACCESS_TOKEN
-        if: ${{ matrix.uploadgithub }}
 ```
+
+Note that the default `ubuntu-latest` job publishes `__.publishArtifacts` (all artifacts),
+while the other platform-specific jobs publish only `dist.native.publishArtifacts` (the native
+artifacts in the `dist.native` folder). This ensures that the non-native jars which are
+portable get published only once across all platforms, while the native CPU-specific binary
+gets published once per platform
 
 Each job overrides `artifactName` based on `os.name` and `os.arch` such that it publishes to a
 different artifact on Maven Central:
