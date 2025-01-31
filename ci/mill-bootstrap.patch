@@ -1,5 +1,5 @@
 diff --git a/build.mill b/build.mill
-index 79b28e24a28..99b575d94c9 100644
+index 79b28e24a28..c1469d8794f 100644
 --- a/build.mill
 +++ b/build.mill
 @@ -1,9 +1,9 @@
@@ -39,6 +39,15 @@ index 79b28e24a28..99b575d94c9 100644
  }
 
  def millDownloadPrefix = Task {
+@@ -463,7 +463,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
+ /**
+  * Some custom scala settings and test convenience
+  */
+-trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModule { outer =>
++trait MillScalaModule extends ScalaModule with MillJavaModule /*with ScalafixModule */{ outer =>
+   def scalaVersion = Deps.scalaVersion
+   def scalapVersion: T[String] = Deps.scala2Version
+   def scalafixScalaBinaryVersion = T {
 @@ -561,7 +561,8 @@ trait MillBaseTestsModule extends TestModule {
  trait MillPublishScalaModule extends MillScalaModule with MillPublishJavaModule
 
