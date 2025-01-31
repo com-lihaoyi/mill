@@ -31,7 +31,7 @@
 * xref:pythonlib/intro.adoc[]
 ** xref:pythonlib/module-config.adoc[]
 ** xref:pythonlib/dependencies.adoc[]
-** xref:pythonlib/dependencies.adoc[]
+** xref:pythonlib/linting.adoc[]
 ** xref:pythonlib/testing.adoc[]
 ** xref:pythonlib/publishing.adoc[]
 ** xref:pythonlib/web-examples.adoc[]
