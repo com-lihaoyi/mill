@@ -14,14 +14,34 @@
 <link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
   
   <style>
+  /* auto-hyphenation is super ugly */
   *{
     hyphens: manual !important;
   }
+
+  /* Reduce font size from 17px to something reasonable */
   .doc {
    font-size: 16px !important;
   }
   .doc pre {
    font-size: 14px !important;
+  }
+  /* Shrink unreasonably large top bar */
+  nav.navbar{
+    height: 2.5rem;
+  }
+  body.article{
+    padding-top: 2.5rem;
+  }
+  div.nav-container{
+    top: 2.5rem;
+  }
+  div.toolbar{
+    top: 2.5rem;
+  }
+  aside.nav{
+    top: 2.5rem;
+    height: calc(100vh - 2.5rem);
   }
   </style></head><body class="article">
   
@@ -601,16 +621,11 @@
   </aside>
 </div>
 <main class="article">
-<div class="toolbar" role="navigation">
+
+<div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
-  <a href="../../index.html" class="home-link"></a>
-<nav class="breadcrumbs" aria-label="breadcrumbs">
-  <ul>
-    <li><a href="../index.html">Mill Documentation</a></li>
-    <li>Mill In Depth</li>
-    <li><a href="execution-model.html">The Mill Execution Model</a></li>
-  </ul>
-</nav>
+</div>
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/depth/execution-model.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
@@ -1183,15 +1198,15 @@ would invalidate and cause evaluation of the tasks highlighted in red below:</p>
 <svg width="620px" height="248px" viewBox="0.00 0.00 619.73 248.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 244.0)">
 <title>G</title>
-<g id="clust2" class="cluster">
-<title>cluster_1</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="126.09,-8 126.09,-116 603.73,-116 603.73,-8 126.09,-8"></polygon>
-<text text-anchor="middle" x="364.91" y="-99.4" font-family="Times,serif" font-size="14.00">bar</text>
-</g>
 <g id="clust1" class="cluster">
 <title>cluster_0</title>
 <polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-232 478.26,-232 478.26,-124 8,-124"></polygon>
 <text text-anchor="middle" x="243.13" y="-215.4" font-family="Times,serif" font-size="14.00">foo</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_1</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="126.09,-8 126.09,-116 603.73,-116 603.73,-8 126.09,-8"></polygon>
+<text text-anchor="middle" x="364.91" y="-99.4" font-family="Times,serif" font-size="14.00">bar</text>
 </g>
 <!-- foo.sources -->
 <g id="node1" class="node">

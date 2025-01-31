@@ -13,14 +13,34 @@
 <link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
   
   <style>
+  /* auto-hyphenation is super ugly */
   *{
     hyphens: manual !important;
   }
+
+  /* Reduce font size from 17px to something reasonable */
   .doc {
    font-size: 16px !important;
   }
   .doc pre {
    font-size: 14px !important;
+  }
+  /* Shrink unreasonably large top bar */
+  nav.navbar{
+    height: 2.5rem;
+  }
+  body.article{
+    padding-top: 2.5rem;
+  }
+  div.nav-container{
+    top: 2.5rem;
+  }
+  div.toolbar{
+    top: 2.5rem;
+  }
+  aside.nav{
+    top: 2.5rem;
+    height: calc(100vh - 2.5rem);
   }
   </style></head><body class="article">
   
@@ -600,15 +620,11 @@
   </aside>
 </div>
 <main class="article">
-<div class="toolbar" role="navigation">
+
+<div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
-  <a href="../index.html" class="home-link"></a>
-<nav class="breadcrumbs" aria-label="breadcrumbs">
-  <ul>
-    <li><a href="index.html">Mill Documentation</a></li>
-    <li><a href="index.html">Mill: A Fast JVM Build Tool</a></li>
-  </ul>
-</nav>
+</div>
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/index.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
@@ -620,9 +636,8 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p><a href="https://index.scala-lang.org/com-lihaoyi/mill/mill-main"><span class="image"><img src="https://index.scala-lang.org/com-lihaoyi/mill/mill-main/latest.svg" alt="Mill" /></span></a>
-<a href="https://central.sonatype.com/artifact/com.lihaoyi/mill-dist"><span class="image"><img src="https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=latest-unstable-version" alt="Maven Central Version" /></span></a>
-<a href="https://www.patreon.com/lihaoyi"><span class="image"><img src="https://img.shields.io/badge/patreon-sponsor-ff69b4.svg" alt="Patreon" /></span></a></p>
+<p><a href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc"><span class="image"><img src="https://index.scala-lang.org/com-lihaoyi/mill/mill-main/latest.svg" alt="Mill" /></span></a>
+<a href="https://central.sonatype.com/artifact/com.lihaoyi/mill-dist"><span class="image"><img src="https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=latest-unstable-version" alt="Maven Central Version" /></span></a></p>
 </div>
 <div class="paragraph">
 <p>Mill is a fast, scalable, multi-language build tool that supports Java, Scala,

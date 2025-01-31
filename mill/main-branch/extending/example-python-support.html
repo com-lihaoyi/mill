@@ -14,14 +14,34 @@
 <link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
   
   <style>
+  /* auto-hyphenation is super ugly */
   *{
     hyphens: manual !important;
   }
+
+  /* Reduce font size from 17px to something reasonable */
   .doc {
    font-size: 16px !important;
   }
   .doc pre {
    font-size: 14px !important;
+  }
+  /* Shrink unreasonably large top bar */
+  nav.navbar{
+    height: 2.5rem;
+  }
+  body.article{
+    padding-top: 2.5rem;
+  }
+  div.nav-container{
+    top: 2.5rem;
+  }
+  div.toolbar{
+    top: 2.5rem;
+  }
+  aside.nav{
+    top: 2.5rem;
+    height: calc(100vh - 2.5rem);
   }
   </style></head><body class="article">
   
@@ -601,16 +621,11 @@
   </aside>
 </div>
 <main class="article">
-<div class="toolbar" role="navigation">
+
+<div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
-  <a href="../../index.html" class="home-link"></a>
-<nav class="breadcrumbs" aria-label="breadcrumbs">
-  <ul>
-    <li><a href="../index.html">Mill Documentation</a></li>
-    <li>Extending Mill</li>
-    <li><a href="example-python-support.html">Example: Python Support</a></li>
-  </ul>
-</nav>
+</div>
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/extending/example-python-support.adoc">Edit this Page</a></div>
 </div>
   <div class="content">
@@ -967,6 +982,11 @@ Hello, Mill Qux!</code></pre>
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 492.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-492 308.95,-492 308.95,4 -4,4"></polygon>
+<g id="clust1" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="14.44,-8 14.44,-159 290.51,-159 290.51,-8 14.44,-8"></polygon>
+<text text-anchor="middle" x="152.47" y="-142.4" font-family="Times,serif" font-size="14.00">qux</text>
+</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-167 8,-480 296.95,-480 296.95,-167 8,-167"></polygon>
@@ -976,11 +996,6 @@ Hello, Mill Qux!</code></pre>
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="16,-296 16,-447 288.95,-447 288.95,-296 16,-296"></polygon>
 <text text-anchor="middle" x="152.47" y="-430.4" font-family="Times,serif" font-size="14.00">bar</text>
-</g>
-<g id="clust1" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="14.44,-8 14.44,-159 290.51,-159 290.51,-8 14.44,-8"></polygon>
-<text text-anchor="middle" x="152.47" y="-142.4" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
 <!-- qux.pythonExe -->
 <g id="node1" class="node">
@@ -1306,6 +1321,11 @@ Add: 10 + 20 = 30 | Multiply: 10 * 20 = 200 | Divide: 10 / 20 = 0.5</code></pre>
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 494.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-494 461.04,-494 461.04,4 -4,4"></polygon>
+<g id="clust3" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="172.97,-8 172.97,-159 449.04,-159 449.04,-8 172.97,-8"></polygon>
+<text text-anchor="middle" x="311" y="-142.4" font-family="Times,serif" font-size="14.00">qux</text>
+</g>
 <g id="clust1" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-169 8,-482 307.44,-482 307.44,-169 8,-169"></polygon>
@@ -1315,11 +1335,6 @@ Add: 10 + 20 = 30 | Multiply: 10 * 20 = 200 | Divide: 10 / 20 = 0.5</code></pre>
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="16,-298 16,-449 299.44,-449 299.44,-298 16,-298"></polygon>
 <text text-anchor="middle" x="157.72" y="-432.4" font-family="Times,serif" font-size="14.00">bar</text>
-</g>
-<g id="clust3" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="172.97,-8 172.97,-159 449.04,-159 449.04,-8 172.97,-8"></polygon>
-<text text-anchor="middle" x="311" y="-142.4" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
 <!-- bar.pythonExe -->
 <g id="node1" class="node">
@@ -1691,6 +1706,11 @@ tasks with upstream and the bundle tasks downstream:</p>
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 613.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-613 602.86,-613 602.86,4 -4,4"></polygon>
+<g id="clust1" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="164.03,-8 164.03,-159 590.86,-159 590.86,-8 164.03,-8"></polygon>
+<text text-anchor="middle" x="377.44" y="-142.4" font-family="Times,serif" font-size="14.00">qux</text>
+</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-288 8,-601 449.26,-601 449.26,-288 8,-288"></polygon>
@@ -1700,11 +1720,6 @@ tasks with upstream and the bundle tasks downstream:</p>
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="16,-417 16,-568 441.26,-568 441.26,-417 16,-417"></polygon>
 <text text-anchor="middle" x="228.63" y="-551.4" font-family="Times,serif" font-size="14.00">bar</text>
-</g>
-<g id="clust1" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="164.03,-8 164.03,-159 590.86,-159 590.86,-8 164.03,-8"></polygon>
-<text text-anchor="middle" x="377.44" y="-142.4" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
 <!-- qux.pythonDeps -->
 <g id="node1" class="node">

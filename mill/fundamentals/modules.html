@@ -14,14 +14,34 @@
 <link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
   
   <style>
+  /* auto-hyphenation is super ugly */
   *{
     hyphens: manual !important;
   }
+
+  /* Reduce font size from 17px to something reasonable */
   .doc {
    font-size: 16px !important;
   }
   .doc pre {
    font-size: 14px !important;
+  }
+  /* Shrink unreasonably large top bar */
+  nav.navbar{
+    height: 2.5rem;
+  }
+  body.article{
+    padding-top: 2.5rem;
+  }
+  div.nav-container{
+    top: 2.5rem;
+  }
+  div.toolbar{
+    top: 2.5rem;
+  }
+  aside.nav{
+    top: 2.5rem;
+    height: calc(100vh - 2.5rem);
   }
   </style><style>
 *{
@@ -589,16 +609,11 @@
   </aside>
 </div>
 <main class="article">
-<div class="toolbar" role="navigation">
+
+<div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
-  <a href="../index.html" class="home-link"></a>
-<nav class="breadcrumbs" aria-label="breadcrumbs">
-  <ul>
-    <li><a href="../index.html">Mill Documentation</a></li>
-    <li>Mill Fundamentals</li>
-    <li><a href="modules.html">Modules</a></li>
-  </ul>
-</nav>
+</div>
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -1435,15 +1450,15 @@ according to our overrides for <code>moduleDeps</code></p>
 <svg width="847px" height="321px" viewBox="0.00 0.00 847.08 321.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 317.0)">
 <title>G</title>
-<g id="clust1" class="cluster">
-<title>cluster_0</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-197 8,-305 567.65,-305 567.65,-197 8,-197"></polygon>
-<text text-anchor="middle" x="287.82" y="-288.4" font-family="Times,serif" font-size="14.00">foo.bar</text>
-</g>
 <g id="clust3" class="cluster">
 <title>cluster_2</title>
 <polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="303.84,-81 303.84,-189 831.08,-189 831.08,-81 303.84,-81"></polygon>
 <text text-anchor="middle" x="567.46" y="-172.4" font-family="Times,serif" font-size="14.00">qux</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_0</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-197 8,-305 567.65,-305 567.65,-197 8,-197"></polygon>
+<text text-anchor="middle" x="287.82" y="-288.4" font-family="Times,serif" font-size="14.00">foo.bar</text>
 </g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
