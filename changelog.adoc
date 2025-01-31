@@ -19,29 +19,29 @@ see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 :milestone: 109
 :prev-version: 0.12.5
 
-* Mill now provides native executables on windows-amd64, linux-{amd64,aarch64}, and
+* https://mill-build.org/mill/cli/installation-ide.html#_mill_native_executable[Mill now provides native executables] on windows-amd64, linux-{amd64,aarch64}, and
 macos-{amd64,aarch64}. These can be enabled by adding the `-native` suffix to your `.mill-version`
 file (e.g. `0.12.6-native`), and allows you to run Mill on clean machines without needing
 a pre-installed JVM (Mill will instead download one as necessary)
 
 ** Using Mill native binaries requires the latest `./mill` or `./mill.bat` files,
-available for download in the Mill repo
+available for download in the Mill repo (https://mill-build.org/mill/cli/installation-ide.html#_bootstrap_scripts[Docs])
 
 ** windows-aarch64 is not supported due to limitations in the upstream Graal native
 image builder https://github.com/oracle/graal/issues/9215[]
 
-* Mill also provides support for users to build native images via `NativeImageModule`
+* Mill also provides support for users to build native images via `NativeImageModule` (https://mill-build.org/mill/javalib/publishing.html#_building_native_image_binaries_with_graal_vm[Docs])
 
-* Mill's https://mill-build.org/mill/python/java.html[Python support] {link-pr}/4166[#4166]
+* Mill's https://mill-build.org/mill/pythonlib/intro.html[Python support] {link-pr}/4166[#4166]
   is no longer experimental and is ready for people to use. It is still
   in development, so please try it out and let us know if you hit issues!
 
-* Support for semi-automated migration from Gradle to Mill {link-pr}/4363[#4363]
+* Support for semi-automated migration from Gradle to Mill via `mill init` (https://mill-build.org/mill/migrating/gradle.html[Docs]) {link-pr}/4363[#4363]
 
 * Overhaul of the JVM module dependency resolution logic, delegating it mostly upstream
 to Coursier rather than implementing it in Mill {link-pr}/4145[#4145]
 
-* Allow users to define and publish their own BOM in Mill {link-pr}/4155[#4155]
+* Allow users to define and publish their own BOM in Mill (https://mill-build.org/mill/fundamentals/library-deps.html#_dependency_management[Docs]) {link-pr}/4155[#4155]
 
 * Reduce Java Heap for Mill Client to reduce memory footprint {link-pr}/4163[#4163]
 
