@@ -663,7 +663,7 @@ code nice and tidy.</p>
 <p>First, make your module extend <code>pythonlib.RuffModule</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6-RC1/example-pythonlib-linting-1-ruff-format.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6-RC1//example/pythonlib/linting/1-ruff-format">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-pythonlib-linting-1-ruff-format.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/pythonlib/linting/1-ruff-format">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, pythonlib._
@@ -780,7 +780,7 @@ shorter name that’s easier to type.</p>
 <div class="sect2">
 <h3 id="_linting"><a class="anchor" href="#_linting"></a>Linting</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6-RC1/example-pythonlib-linting-2-ruff-check.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6-RC1//example/pythonlib/linting/2-ruff-check">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-pythonlib-linting-2-ruff-check.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/pythonlib/linting/2-ruff-check">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, pythonlib._
@@ -789,7 +789,7 @@ object `package` extends RootModule with PythonModule with RuffModule {}</code><
 </div>
 </div>
 <div class="listingblock">
-<div class="title">src/main.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.6-RC1//example/pythonlib/linting/2-ruff-check/src/main.py">browse</a>)</div>
+<div class="title">src/main.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/pythonlib/linting/2-ruff-check/src/main.py">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import os
 
@@ -839,6 +839,96 @@ def doit(x: int):
     print(&quot;&quot;)</code></pre>
 </div>
 </div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_code_coverage"><a class="anchor" href="#_code_coverage"></a>Code Coverage</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill’s support for code coverage analysis is implemented by
+<a href="https://coverage.readthedocs.io/">the coverage.py package</a>.</p>
+</div>
+<div class="paragraph">
+<p>You can use it by extending <code>CoverageTests</code> in your test module.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/example-pythonlib-linting-3-coverage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/pythonlib/linting/3-coverage">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, pythonlib._
+
+object `package` extends RootModule with PythonModule {
+
+  object test extends PythonTests with TestModule.Pytest with CoverageTests
+
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">src/main.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/pythonlib/linting/3-coverage/src/main.py">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def f1():
+    pass
+
+def f2():
+    pass</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">test/src/test_main.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/pythonlib/linting/3-coverage/test/src/test_main.py">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import main
+
+def test_f1():
+    main.f1()
+
+def test_other():
+    assert True</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can generate a coverage report with the <code>coverageReport</code> task.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill test.coverageReport
+Name ...                        Stmts   Miss  Cover
+...------------------------------------------------
+.../src/main.py                 4      1    75%
+.../test/src/test_main.py       5      0   100%
+...------------------------------------------------
+TOTAL ...                       9      1    89%</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The task also supports any arguments understood by the <code>coverage.py</code> module.
+For example, you can use it to fail if a coverage threshold is not met:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill test.coverageReport --fail-under 90
+error: ...
+error: Coverage failure: total of 89 is less than fail-under=90</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Other forms of reports can be generated:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>coverageHtml</code></p>
+</li>
+<li>
+<p><code>coverageJson</code></p>
+</li>
+<li>
+<p><code>coverageXml</code></p>
+</li>
+<li>
+<p><code>coverageLcov</code></p>
+</li>
+</ul>
 </div>
 </div>
 </div>
