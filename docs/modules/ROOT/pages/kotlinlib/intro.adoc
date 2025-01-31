@@ -2,7 +2,7 @@
 = Building Kotlin with Mill
 :page-aliases: Kotlin_Intro_to_Mill.adoc
 
-include::partial$gtag-config.adoc[]
+
 
 :language: Kotlin
 :language-small: kotlin

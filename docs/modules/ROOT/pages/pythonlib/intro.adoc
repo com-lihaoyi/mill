@@ -1,7 +1,7 @@
 
 = Building Python with Mill
 
-include::partial$gtag-config.adoc[]
+
 
 
 :language: python

@@ -2,7 +2,7 @@
 :page-aliases: Migrating_A_Maven_Build_to_Mill.adoc
 :icons: font
 
-include::partial$gtag-config.adoc[]
+
 
 The Mill `init` command can be used to convert a Maven build to Mill. This has
 xref:#limitations[limitations] and is not intended to reliably migrate 100% of

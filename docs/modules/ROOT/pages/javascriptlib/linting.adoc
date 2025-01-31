@@ -1,7 +1,7 @@
 = Linting Typescript Projects
 :page-aliases: Linting_Typescript_Projects.adoc
 
-include::partial$gtag-config.adoc[]
+
 
 This page will discuss common topics around maintaining the code quality of Typescript
 codebases using the Mill build tool

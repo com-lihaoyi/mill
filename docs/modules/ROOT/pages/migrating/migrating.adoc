@@ -1,6 +1,6 @@
 = Migrating to Mill
 
-include::partial$gtag-config.adoc[]
+
 
 This page documents a playbook for migrating existing projects
 from Maven, Gradle, or SBT to Mill.

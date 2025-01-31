@@ -1,7 +1,7 @@
 = Python Web Project Examples
 :page-aliases: Python_Web_Examples.adoc
 
-include::partial$gtag-config.adoc[]
+
  
 This page provides examples of using Mill as a build tool for Python web applications.
 It includes setting up a basic "Hello, World!" application and developing a fully
