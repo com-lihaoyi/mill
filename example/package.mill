@@ -79,6 +79,7 @@ object `package` extends RootModule with Module {
     object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))
     object dependencies
         extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "dependencies"))
+    object linting extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "linting"))
     object publishing extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "publishing"))
     object module extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "module"))
     object web extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "web"))

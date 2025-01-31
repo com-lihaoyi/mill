@@ -1,0 +1,19 @@
+= Linting Python Projects
+
+This page will discuss common topics around maintaining the code quality of Python codebases using
+the Mill build tool
+
+== Formatting and Linting with Ruff
+
+https://docs.astral.sh/ruff/[Ruff] is a Python linter and code formatter. Mill has built-in support
+for invoking Ruff on your Python projects, to help you catch common sources of errors and keep your
+code nice and tidy.
+
+=== Formatting
+
+include::partial$example/pythonlib/linting/1-ruff-format.adoc[]
+
+=== Linting
+
+include::partial$example/pythonlib/linting/2-ruff-check.adoc[]
+
