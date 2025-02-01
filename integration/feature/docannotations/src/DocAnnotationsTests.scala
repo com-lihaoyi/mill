@@ -27,7 +27,7 @@ object DocAnnotationsTests extends UtestIntegrationTestSuite {
 
       val inheritedIvyDeps = out("inspect").json.str
       assertGlobMatches(
-        """core.test.ivyDeps(build.mill:...)
+        """core.test.ivyDeps(build.mill:11)
           |    Overridden ivyDeps Docs!!!
           |
           |    Any ivy dependencies you want to add to this Module, in the format
@@ -42,7 +42,7 @@ object DocAnnotationsTests extends UtestIntegrationTestSuite {
       assert(eval(("inspect", "core.task")).isSuccess)
       val task = out("inspect").json.str
       assertGlobMatches(
-        """core.task(build.mill:...)
+        """core.task(build.mill:48)
           |    Core Task Docz!
           |
           |Inputs:
@@ -116,7 +116,7 @@ object DocAnnotationsTests extends UtestIntegrationTestSuite {
       val theWorkerInspect = out("inspect").json.str
 
       assertGlobMatches(
-        """core.test.theWorker(build.mill:...)
+        """core.test.theWorker(build.mill:38)
           |    -> The worker <-
           |
           |    *The worker*
@@ -134,7 +134,7 @@ object DocAnnotationsTests extends UtestIntegrationTestSuite {
       assert(eval(("inspect", "basic")).isSuccess)
       val basicInspect = out("inspect").json.str
       assertGlobMatches(
-        """basic(build.mill:...)
+        """basic(build.mill:26)
           |
           |Inherited Modules:""",
         basicInspect
@@ -142,40 +142,44 @@ object DocAnnotationsTests extends UtestIntegrationTestSuite {
 
       assert(eval(("inspect", "core")).isSuccess)
       val coreInspect = out("inspect").json.str
-      assertGlobMatches(
-        """core(build.mill:...)
-          |    The Core Module Docz!
-          |
-          |Inherited Modules:
-          |    mill.scalalib.JavaModule
-          |
-          |Default Task: core.run
-          |
-          |Tasks (re-/defined):
-          |    core.task
-          |""",
-        coreInspect
+      assert(
+        globMatches(
+          """core(build.mill:31)
+            |    The Core Module Docz!
+            |
+            |Inherited Modules:
+            |...JavaModule...
+            |
+            |Default Task: core.run
+            |
+            |Tasks (re-/defined):
+            |    core.task
+            |""",
+          coreInspect
+        )
       )
 
       assert(eval(("inspect", "MyJavaTaskModule")).isSuccess)
       val jtmInspect = out("inspect").json.str
-      assertGlobMatches(
-        """MyJavaTaskModule(build.mill:...)
-          |
-          |Inherited Modules:
-          |    mill.scalalib.JavaModule
-          |
-          |Module Dependencies:
-          |    core
-          |    core2
-          |
-          |Default Task: MyJavaTaskModule.run
-          |
-          |Tasks (re-/defined):
-          |    MyJavaTaskModule.lineCount
-          |    MyJavaTaskModule.task
-          |""",
-        jtmInspect
+      assert(
+        globMatches(
+          """MyJavaTaskModule(build.mill:53)
+            |
+            |Inherited Modules:
+            |...JavaModule...
+            |
+            |Module Dependencies:
+            |    core
+            |    core2
+            |
+            |Default Task: MyJavaTaskModule.run
+            |
+            |Tasks (re-/defined):
+            |    MyJavaTaskModule.lineCount
+            |    MyJavaTaskModule.task
+            |""",
+          jtmInspect
+        )
       )
 
       val core3Res = eval(("inspect", "core3"))
@@ -183,7 +187,7 @@ object DocAnnotationsTests extends UtestIntegrationTestSuite {
       assert(core3Res.isSuccess)
       val core3Inspect = out("inspect").json.str
       assertGlobMatches(
-        """core3(core3/package.mill:...)
+        """core3(core3/package.mill:5)
           |
           |Inherited Modules:
           |    build_.core3.package_

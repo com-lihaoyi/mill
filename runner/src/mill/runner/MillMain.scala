@@ -11,6 +11,7 @@ import mill.bsp.{BspContext, BspServerResult}
 import mill.main.BuildInfo
 import mill.main.client.{OutFiles, ServerFiles, Util}
 import mill.main.client.lock.Lock
+import mill.runner.worker.ScalaCompilerWorker
 import mill.util.{Colors, PrintLogger, PromptLogger}
 
 import java.lang.reflect.InvocationTargetException
@@ -120,6 +121,7 @@ object MillMain {
 
           case Right(config) if config.showVersion.value =>
             def prop(k: String) = System.getProperty(k, s"<unknown $k>")
+
             val javaVersion = prop("java.version")
             val javaVendor = prop("java.vendor")
             val javaHome = prop("java.home")
@@ -195,113 +197,121 @@ object MillMain {
 
                 val threadCount = Some(maybeThreadCount.toOption.get)
 
-                val bspContext =
-                  if (bspMode) Some(new BspContext(streams, bspLog, config.home)) else None
+                val maybeScalaCompilerWorker = ScalaCompilerWorker.bootstrapWorker(config.home)
+                if (maybeScalaCompilerWorker.isLeft) {
+                  val err = maybeScalaCompilerWorker.left.get
+                  streams.err.println(err)
+                  (false, stateCache)
+                } else {
+                  val scalaCompilerWorker = maybeScalaCompilerWorker.right.get
+                  val bspContext =
+                    if (bspMode) Some(new BspContext(streams, bspLog, config.home)) else None
 
-                val bspCmd = "mill.bsp.BSP/startSession"
-                val targetsAndParams =
-                  bspContext
-                    .map(_ => Seq(bspCmd))
-                    .getOrElse(config.leftoverArgs.value.toList)
+                  val bspCmd = "mill.bsp.BSP/startSession"
+                  val targetsAndParams =
+                    bspContext
+                      .map(_ => Seq(bspCmd))
+                      .getOrElse(config.leftoverArgs.value.toList)
 
-                val out = os.Path(OutFiles.out, WorkspaceRoot.workspaceRoot)
+                  val out = os.Path(OutFiles.out, WorkspaceRoot.workspaceRoot)
 
-                var repeatForBsp = true
-                var loopRes: (Boolean, RunnerState) = (false, RunnerState.empty)
-                while (repeatForBsp) {
-                  repeatForBsp = false
+                  var repeatForBsp = true
+                  var loopRes: (Boolean, RunnerState) = (false, RunnerState.empty)
+                  while (repeatForBsp) {
+                    repeatForBsp = false
 
-                  Using.resource(new TailManager(serverDir)) { tailManager =>
-                    if (config.watch.value) {
-                      // When starting a --watch, clear the `mill-selective-execution.json`
-                      // file, so that the first run always selects everything and only
-                      // subsequent re-runs are selective depending on what changed.
-                      os.remove(out / OutFiles.millSelectiveExecution)
-                    }
-                    val (isSuccess, evalStateOpt) = Watching.watchLoop(
-                      ringBell = config.ringBell.value,
-                      watch = config.watch.value,
-                      streams = streams,
-                      setIdle = setIdle,
-                      evaluate = (enterKeyPressed: Boolean, prevState: Option[RunnerState]) => {
-                        adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
+                    Using.resource(new TailManager(serverDir)) { tailManager =>
+                      if (config.watch.value) {
+                        // When starting a --watch, clear the `mill-selective-execution.json`
+                        // file, so that the first run always selects everything and only
+                        // subsequent re-runs are selective depending on what changed.
+                        os.remove(out / OutFiles.millSelectiveExecution)
+                      }
+                      val (isSuccess, evalStateOpt) = Watching.watchLoop(
+                        ringBell = config.ringBell.value,
+                        watch = config.watch.value,
+                        streams = streams,
+                        setIdle = setIdle,
+                        evaluate = (enterKeyPressed: Boolean, prevState: Option[RunnerState]) => {
+                          adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
 
-                        withOutLock(
-                          config.noBuildLock.value || bspContext.isDefined,
-                          config.noWaitForBuildLock.value,
-                          out,
-                          targetsAndParams,
-                          streams
-                        ) {
-                          Using.resource(getLogger(
-                            streams,
-                            config,
-                            mainInteractive,
-                            enableTicker =
-                              config.ticker
-                                .orElse(config.enableTicker)
-                                .orElse(Option.when(config.disableTicker.value)(false)),
-                            printLoggerState,
-                            serverDir,
-                            colored = colored,
-                            colors = colors
-                          )) { logger =>
-                            // Enter key pressed, removing mill-selective-execution.json to
-                            // ensure all tasks re-run even though no inputs may have changed
-                            if (enterKeyPressed) os.remove(out / OutFiles.millSelectiveExecution)
-                            SystemStreams.withStreams(logger.systemStreams) {
-                              tailManager.withOutErr(logger.outputStream, logger.errorStream) {
-                                new MillBuildBootstrap(
-                                  projectRoot = WorkspaceRoot.workspaceRoot,
-                                  output = out,
-                                  home = config.home,
-                                  keepGoing = config.keepGoing.value,
-                                  imports = config.imports,
-                                  env = env,
-                                  threadCount = threadCount,
-                                  targetsAndParams = targetsAndParams,
-                                  prevRunnerState = prevState.getOrElse(stateCache),
-                                  logger = logger,
-                                  disableCallgraph = config.disableCallgraph.value,
-                                  needBuildFile = needBuildFile(config),
-                                  requestedMetaLevel = config.metaLevel,
-                                  config.allowPositional.value,
-                                  systemExit = systemExit,
-                                  streams0 = streams0,
-                                  selectiveExecution = config.watch.value
-                                ).evaluate()
+                          withOutLock(
+                            config.noBuildLock.value || bspContext.isDefined,
+                            config.noWaitForBuildLock.value,
+                            out,
+                            targetsAndParams,
+                            streams
+                          ) {
+                            Using.resource(getLogger(
+                              streams,
+                              config,
+                              mainInteractive,
+                              enableTicker =
+                                config.ticker
+                                  .orElse(config.enableTicker)
+                                  .orElse(Option.when(config.disableTicker.value)(false)),
+                              printLoggerState,
+                              serverDir,
+                              colored = colored,
+                              colors = colors
+                            )) { logger =>
+                              // Enter key pressed, removing mill-selective-execution.json to
+                              // ensure all tasks re-run even though no inputs may have changed
+                              if (enterKeyPressed) os.remove(out / OutFiles.millSelectiveExecution)
+                              SystemStreams.withStreams(logger.systemStreams) {
+                                tailManager.withOutErr(logger.outputStream, logger.errorStream) {
+                                  new MillBuildBootstrap(
+                                    projectRoot = WorkspaceRoot.workspaceRoot,
+                                    output = out,
+                                    home = config.home,
+                                    keepGoing = config.keepGoing.value,
+                                    imports = config.imports,
+                                    env = env,
+                                    threadCount = threadCount,
+                                    targetsAndParams = targetsAndParams,
+                                    prevRunnerState = prevState.getOrElse(stateCache),
+                                    logger = logger,
+                                    disableCallgraph = config.disableCallgraph.value,
+                                    needBuildFile = needBuildFile(config),
+                                    requestedMetaLevel = config.metaLevel,
+                                    config.allowPositional.value,
+                                    systemExit = systemExit,
+                                    streams0 = streams0,
+                                    selectiveExecution = config.watch.value,
+                                    scalaCompilerWorker = scalaCompilerWorker
+                                  ).evaluate()
+                                }
                               }
                             }
                           }
-                        }
-                      },
-                      colors = colors
-                    )
-                    bspContext.foreach { ctx =>
-                      repeatForBsp =
-                        BspContext.bspServerHandle.lastResult == Some(
-                          BspServerResult.ReloadWorkspace
-                        )
-                      streams.err.println(
-                        s"`$bspCmd` returned with ${BspContext.bspServerHandle.lastResult}"
+                        },
+                        colors = colors
                       )
+                      bspContext.foreach { ctx =>
+                        repeatForBsp =
+                          BspContext.bspServerHandle.lastResult == Some(
+                            BspServerResult.ReloadWorkspace
+                          )
+                        streams.err.println(
+                          s"`$bspCmd` returned with ${BspContext.bspServerHandle.lastResult}"
+                        )
+                      }
+
+                      loopRes = (isSuccess, evalStateOpt)
+                    } // while repeatForBsp
+                    bspContext.foreach { ctx =>
+                      streams.err.println(
+                        s"Exiting BSP runner loop. Stopping BSP server. Last result: ${BspContext.bspServerHandle.lastResult}"
+                      )
+                      BspContext.bspServerHandle.stop()
                     }
-
-                    loopRes = (isSuccess, evalStateOpt)
                   }
-                } // while repeatForBsp
-                bspContext.foreach { ctx =>
-                  streams.err.println(
-                    s"Exiting BSP runner loop. Stopping BSP server. Last result: ${BspContext.bspServerHandle.lastResult}"
-                  )
-                  BspContext.bspServerHandle.stop()
-                }
 
-                // return with evaluation result
-                loopRes
+                  // return with evaluation result
+                  loopRes
+                }
               }
             }
-
             if (config.ringBell.value) {
               if (success) println("\u0007")
               else {
@@ -311,6 +321,7 @@ object MillMain {
               }
             }
             (success, nextStateCache)
+
         }
       }
     }
@@ -322,6 +333,7 @@ object MillMain {
   ): Either[String, Int] = {
     def err(detail: String) =
       s"Invalid value \"${threadCountRaw.getOrElse("")}\" for flag -j/--jobs: $detail"
+
     (threadCountRaw match {
       case None => Right(availableCores)
       case Some("0") => Right(availableCores)
@@ -444,6 +456,7 @@ object MillMain {
         }
 
       def activeTaskPrefix = s"Another Mill process is running '$activeTaskString',"
+
       Using.resource {
         val tryLocked = outLock.tryLock()
         if (tryLocked.isLocked()) tryLocked

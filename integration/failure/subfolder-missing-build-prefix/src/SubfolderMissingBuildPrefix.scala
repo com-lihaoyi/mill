@@ -9,8 +9,8 @@ object SubfolderMissingBuildPrefix extends UtestIntegrationTestSuite {
     test("success") - integrationTest { tester =>
       import tester._
       val res = eval(("resolve", "_"))
-      assert(res.isSuccess == false)
-      assert(res.err.contains("object y is not a member of package build_.sub"))
+      assert(!res.isSuccess)
+      assert(res.err.contains("value y is not a member of build_.sub"))
     }
   }
 }

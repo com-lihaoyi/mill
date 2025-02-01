@@ -65,7 +65,7 @@ object RunScript {
   ): (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]]) = {
 
     val (sortedGroups, transitive) = Plan.plan(targets)
-    val terminals = sortedGroups.keys.map(t => (t.task, t)).toMap
+    val terminals = sortedGroups.keys().map(t => (t.task, t)).toMap
     val selectiveExecutionEnabled = selectiveExecution && !targets.exists(_.isExclusiveCommand)
 
     val selectedTargetsOrErr =

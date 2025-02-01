@@ -5,6 +5,7 @@ output/
 .idea_modules
 .idea
 .vscode/
+.zed/
 out/
 /.bloop/
 /.metals/

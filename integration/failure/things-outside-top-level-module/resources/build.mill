@@ -1,6 +1,0 @@
-package build
-import mill._
-
-def invalidTask = 123
-
-object `package` extends RootModule

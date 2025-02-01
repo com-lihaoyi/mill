@@ -168,9 +168,9 @@ object HelloWorldTests1_5 extends HelloWorldTests {
 }
 object HelloWorldTests1_6 extends HelloWorldTests {
   override val testTwirlVersion = "1.6.2"
-  override val wildcard = "_"
+  override val wildcard = "*"
 }
 object HelloWorldTests2_0 extends HelloWorldTests {
   override val testTwirlVersion = "2.0.1"
-  override val wildcard = "_"
+  override val wildcard = "*"
 }
