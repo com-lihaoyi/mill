@@ -561,7 +561,7 @@ portable get published only once across all platforms, while the native CPU-spec
 gets published once per platform
 
 Each job overrides `artifactName` based on `os.name` and `os.arch` such that it publishes to a
-different artifact on Maven Central, and we override the default `publishArtifacts` to replace
+different artifact on Maven Central, and we override `def jar` to replace
 the default `.jar` artifact with our native image:
 
 ```scala
@@ -581,9 +581,7 @@ def artifactCpuSuffix = Task {
 
 override def artifactName = s"${super.artifactName()}-${artifactOsSuffix()}-${artifactCpuSuffix()}"
 
-override def publishArtifacts = Task {
-  super.publishArtifacts().copy(payload = Seq(nativeImage() -> artifactName()))
-}
+override def jar = nativeImage()
 ```
 
 This results in the following artifacts being published:
@@ -606,7 +604,7 @@ These artifacts can be seen online:
 And downloaded via
 
 ```bash
-curl https://repo1.maven.org/maven2/com/lihaoyi/mill-dist-native-mac-aarch64/0.12.6/mill-dist-native-mac-aarch64 -o mill-dist-native
+curl https://repo1.maven.org/maven2/com/lihaoyi/mill-dist-native-mac-aarch64/0.12.6/mill-dist-native-mac-aarch64-0.12.6.jar -o mill-dist-native
 chmod +x mill-dist-native
 ./mill-dist-native version
 0.12.6
