@@ -1,0 +1,1011 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>How to Compile Java into Native Binaries with Mill and Graal :: The Mill Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/blog/7-graal-native-executables.html" />
+    <link rel="prev" href="index.html" />
+    <link rel="next" href="6-garbage-collector-perf.html" />
+    <meta name="generator" content="Antora 3.1.9" />
+    <link rel="stylesheet" href="../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../_/favicon.png" type="image/x-icon" />
+  
+  <style>
+  /* auto-hyphenation is super ugly */
+  *{
+    hyphens: manual !important;
+  }
+
+  /* Reduce font size from 17px to something reasonable */
+  .doc {
+   font-size: 16px !important;
+  }
+  .doc pre {
+   font-size: 14px !important;
+  }
+  /* Shrink unreasonably large top bar */
+  nav.navbar{
+    height: 2.5rem;
+  }
+  body.article{
+    padding-top: 2.5rem;
+  }
+  div.nav-container{
+    top: 2.5rem;
+  }
+  div.toolbar{
+    top: 2.5rem;
+  }
+  aside.nav{
+    top: 2.5rem;
+    height: calc(100vh - 2.5rem);
+  }
+  </style></head><body class="article">
+  
+<header class="header">
+  
+  <script>
+  gtag('config', 'AW-16649289906');
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.textContent.trim().toLowerCase() === 'download') {
+        link.addEventListener('click', function(event) {
+          console.log("download link clicked")
+          gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+        });
+      }
+    });
+  });
+  </script>
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs" />
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
+        <a class="navbar-item" href="https://mill-build.org/blog">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="blog" data-version="">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="7-graal-native-executables.html">How to Compile Java into Native Binaries with Mill and Graal</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="6-garbage-collector-perf.html">Understanding JVM Garbage Collector Performance</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="5-executable-jars.html">How JVM Executable Assembly Jars Work</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="4-flaky-tests.html">How To Manage Flaky Tests in your CI Workflows</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="3-selective-testing.html">Faster CI with Selective Testing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="2-monorepo-build-tool.html">Why Use a Monorepo Build Tool?</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="1-java-compile.html">How Fast Does Java Compile?</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">The Mill Build Engineering Blog</span>
+    <span class="version"></span>
+  </div>
+  <ul class="components">
+    <li class="component">
+      <div class="title"><a href="../mill/index.html">Mill Documentation</a></div>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mill/main-branch/index.html">main-branch</a>
+        </li>
+        <li class="version is-latest">
+          <a href="../mill/index.html">latest-0.12.6</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.12.x/index.html">0.12.x</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.11.x/index.html">0.11.x</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.10.15/index.html">0.10.15</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component is-current">
+      <div class="title"><a href="index.html">The Mill Build Engineering Blog</a></div>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+
+<div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
+<button class="nav-toggle"></button>
+</div>
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/docs/blogFolder.dest/modules/ROOT/pages/7-graal-native-executables.adoc">Edit this Page</a></div>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">How to Compile Java into Native Binaries with Mill and Graal</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p><em>Li Haoyi, ??? January 2025</em></p>
+</div>
+<div class="paragraph">
+<p>One recent development is the ability to compile Java programs into self-contained
+native binaries. This provides more convenient
+single-file distributions, faster startup time, and lower memory footprint, at a cost of
+slower creation time and limitations around reflection and dynamic classloading. This
+article explores how you can get started building your Java program into a native binary,
+using the <a href="../mill/index.html" class="xref page">Mill build tool</a> and the
+<a href="https://www.graalvm.org/latest/reference-manual/native-image/">Graal <em>native-image</em> compiler</a>,
+and how to think about the benefits and challenges of doing so.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_an_example_java_program"><a class="anchor" href="#_an_example_java_program"></a>An Example Java Program</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To get started building a Java native binary, we will use the following example program:</p>
+</div>
+<div class="paragraph">
+<p><strong>foo/src/foo/Foo.java</strong></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package foo;
+
+import net.sourceforge.argparse4j.ArgumentParsers;
+import net.sourceforge.argparse4j.inf.ArgumentParser;
+import net.sourceforge.argparse4j.inf.Namespace;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+
+public class Foo {
+  public static String generateHtml(String text) {
+    Context context = new Context();
+    context.setVariable(&quot;text&quot;, text);
+    return new TemplateEngine().process(&quot;&lt;h1 th:text=\&quot;${text}\&quot;&gt;&lt;/h1&gt;&quot;, context);
+  }
+
+  public static void main(String[] args) {
+    ArgumentParser parser = ArgumentParsers.newFor(&quot;template&quot;)
+        .build()
+        .defaultHelp(true)
+        .description(&quot;Inserts text into a HTML template&quot;);
+
+    parser.addArgument(&quot;-t&quot;, &quot;--text&quot;).required(true).help(&quot;text to insert&quot;);
+
+    Namespace ns = null;
+    try {
+      ns = parser.parseArgs(args);
+    } catch (Exception e) {
+      System.out.println(e.getMessage());
+      System.exit(1);
+    }
+
+    System.out.println(generateHtml(ns.getString(&quot;text&quot;)));
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>Foo.java</code> is a simple Java program with two dependencies - <a href="https://argparse4j.github.io/">ArgParse4J</a>
+and <a href="https://www.thymeleaf.org/">Thymeleaf</a> - that takes input via CLI flags and generates an
+HTML snippet it prints to stdout. While a bit contrived, this is intended to be a simple
+program using common third-party dependencies.</p>
+</div>
+<div class="paragraph">
+<p>To build <code>Foo.java</code> using Mill, we can use the following build configuration:</p>
+</div>
+<div class="paragraph">
+<p><strong>.mill-version</strong></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">0.12.6</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>build.mill</strong></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javalib._
+import mill.define.ModuleRef
+
+object foo extends JavaModule {
+  def ivyDeps = Agg(
+    ivy&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;,
+    ivy&quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;,
+    ivy&quot;org.slf4j:slf4j-nop:2.0.7&quot;
+  )
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now, using a <code>./mill</code> <a href="../mill/cli/installation-ide.html#_bootstrap_scripts" class="xref page">bootstrap script</a>,
+we can run this program as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./mill foo.run --text &quot;hello-world&quot;
+[55/55] foo.run
+[55] &lt;h1&gt;hello-world&lt;/h1&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Or turn it into an <a href="5-executable-jars.html" class="xref page">Executable Assembly Jar</a> that can be run
+outside of the build tool:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./mill show foo.assembly
+&quot;.../out/foo/assembly.dest/out.jar&quot;
+
+$ out/foo/assembly.dest/out.jar --text &quot;hello world&quot;
+&lt;h1&gt;hello world&lt;/h1&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_building_a_native_image_binary"><a class="anchor" href="#_building_a_native_image_binary"></a>Building a Native Image Binary</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To use Mill to build a Graal Native Image out of <code>Foo.java</code>, we need to tweak the config
+above:</p>
+</div>
+<div class="paragraph">
+<p><strong>build.mill</strong></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javalib._
+import mill.define.ModuleRef
+
+object foo extends JavaModule with NativeImageModule {
+  def ivyDeps = Agg(
+    ivy&quot;net.sourceforge.argparse4j:argparse4j:0.9.0&quot;,
+    ivy&quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;,
+    ivy&quot;org.slf4j:slf4j-nop:2.0.7&quot;
+  )
+
+  def zincWorker = ModuleRef(ZincWorkerGraalvm)
+
+  def nativeImageOptions = Seq(
+    &quot;--no-fallback&quot;,
+    &quot;-H:IncludeResourceBundles=net.sourceforge.argparse4j.internal.ArgumentParserImpl&quot;
+  )
+}
+
+object ZincWorkerGraalvm extends ZincWorkerModule {
+  def jvmId = &quot;graalvm-community:23.0.1&quot;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Notable changes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>foo</code> now needs to inherit from <code>NativeImageModule</code></p>
+</li>
+<li>
+<p>We need to override <code>zincWorker</code> to point at our own custom <code>ZincWorkerGraalvm</code>,
+using the version of Graal that we want to use to build our native image.
+This uses Mill’s ability to <a href="../mill/fundamentals/configuring-jvm-versions.html" class="xref page">Configuring JVM Versions</a>
+to download the necessary Graal distribution as necessary</p>
+</li>
+<li>
+<p>We need to pass in some <code>nativeImageOptions</code>: in this case <code>--no-fallback</code> and
+<code>-H:IncludeResourceBundles</code>, the latter of which is necessary to support
+the ArgParse4J library that the example project depends on</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Now, we can use build a native image using <code>foo.nativeImage</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./mill show foo.nativeImage
+&quot;.../out/foo/nativeImage.dest/native-executable&quot;
+
+$ out/foo/nativeImage.dest/native-executable --text &quot;hello world&quot;
+&lt;h1&gt;hello world&lt;/h1&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can download this example below:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="../mill/javalib/publishing.html#_building_native_image_binaries_with_graal_vm" class="xref page">Building Native Image Binaries with Graal VM</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You can also access the <code>native-image</code> tool directly from the Mill download folder,
+if you want to use it directly or view its <code>--help</code> documentation:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ~/Github/mill/mill show foo.nativeImageTool
+&quot;.../graalvm-community-openjdk-17.0.9+9.1/Contents/Home/bin/native-image&quot;
+
+$ .../graalvm-community-openjdk-17.0.9+9.1/Contents/Home/bin/native-image --help
+GraalVM Native Image (https://www.graalvm.org/native-image/)
+
+This tool can ahead-of-time compile Java code to native executables.
+
+Usage: native-image [options] class [imagename] [options]
+           (to build an image for a class)
+   or  native-image [options] -jar jarfile [imagename] [options]
+           (to build an image for a jar file)
+   or  native-image [options] -m &lt;module&gt;[/&lt;mainclass&gt;] [options]
+       native-image [options] --module &lt;module&gt;[/&lt;mainclass&gt;] [options]
+           (to build an image for a module)
+
+where options include:
+
+    @argument files       one or more argument files containing options
+    -cp &lt;class search path of directories and zip/jar files&gt;\
+...</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_native_image_v_s_executable_assembly"><a class="anchor" href="#_native_image_v_s_executable_assembly"></a>Native Image v.s. Executable Assembly</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>At a glance, the difference between the traditional executable assembly
+and the Graal native image we built above can be summarized below:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;" />
+<col style="width: 33.3333%;" />
+<col style="width: 33.3334%;" />
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Executable Assembly</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Native Image</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Creation Time</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.8s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">24.7s</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Executable Size</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2.5mb</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">17mb</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Startup Time</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">235ms</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">62ms</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Steady State Performance</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">190 iter/s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">180 iter/s</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Memory Footprint</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">373mb</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">20mb</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JVM required to run</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">OS/CPU-Specific executable</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The remainder of this section will dive into the details of how each number was measured,
+and a discussion of what these changes really mean.</p>
+</div>
+<div class="sect2">
+<h3 id="_creation_time"><a class="anchor" href="#_creation_time"></a>Creation Time</h3>
+<div class="paragraph">
+<p>JVM Executable assemblies are generally very cheap to create, whereas Graal native
+image executables can take very long. For this tiny example project, we can see below
+that the executable assembly takes about ~1s to create, while the native image takes ~25s:</p>
+</div>
+<div class="paragraph">
+<p><em>Executable Assembly</em></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ time ./mill show foo.assembly
+[1-41] [info] compiling 1 Java source...
+&quot;.../out/foo/assembly.dest/out.jar&quot;
+./mill show foo.assembly  0.12s user 0.06s system 21% cpu 0.818 total</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><em>Native Image</em></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ time ./mill show foo.nativeImage
+[1-50] GraalVM Native Image: Generating 'native-executable' (executable)...
+...
+[1-50] [2/8] Performing analysis...  [****]                                                                     (7.9s @ 0.77GB)
+...
+[1-50] Finished generating 'native-executable' in 26.0s.
+&quot;.../out/foo/nativeImage.dest/native-executable&quot;
+./mill show foo.nativeImage  0.70s user 1.11s system 7% cpu 24.762 total</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_executable_size"><a class="anchor" href="#_executable_size"></a>Executable Size</h3>
+<div class="paragraph">
+<p>Graal native image binaries are typically larger than the equivalent executable assembly:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ls -lh out/foo/assembly.dest/out.jar
+-rwxr-xr-x  1 lihaoyi  staff   2.5M Jan 16 15:33 out/foo/assembly.dest/out.jar</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ls -lh out/foo/nativeImage.dest/native-executable
+-rwxr-xr-x  1 lihaoyi  staff    17M Jan 16 15:34 out/foo/nativeImage.dest/native-executable</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Here, the assembly <code>out.jar</code> is ~2.5mb, while the native <code>native-executable</code> is ~17mb,
+even for a tiny hello-world application using some trivial libraries. In general native
+image binaries can be pretty large, which can have consequences in download sizes or deployment
+times as you try to distribute these binaries to servers or users.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_startup_time"><a class="anchor" href="#_startup_time"></a>Startup Time</h3>
+<div class="paragraph">
+<p>Executable assembly jars typically take longer than Graal native executables to run. For this
+small example project, we can see the Executable assembly takes about ~235ms to run, while
+the native image takes ~60ms</p>
+</div>
+<div class="paragraph">
+<p><em>Executable Assembly</em></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ time ./out/foo/assembly.dest/out.jar --text hello-world
+&lt;h1&gt;hello-world&lt;/h1&gt;
+./out/foo/assembly.dest/out.jar --text hello-world
+0.35s user 0.04s system 165% cpu 0.235 total</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><em>Native Image</em></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ time ./out/foo/nativeImage.dest/native-executable --text hello-world
+&lt;h1&gt;hello-world&lt;/h1&gt;
+./out/foo/nativeImage.dest/native-executable --text hello-world
+0.04s user 0.01s system 87% cpu 0.062 total</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>~175ms</code> speedup shown is for a tiny example program, and can be expected to grow
+for larger Java applications which normally can take multiple seconds to start up.
+Nevertheless, whether this speedup is significant depends on the use case: for long-lived
+webservers saving a few seconds on startup may not matter, but for short-lived command
+line tools this startup overhead may dominate the actual work the program is trying to do,
+and saving 100s to 1000s of milliseconds with a native binary can be worthwhile.
+The <a href="../mill/index.html" class="xref page">Mill build tool</a> itself is distributed as native binaries:
+this saves Mill ~100-200ms every time it is run from the command line, which goes a long
+way to ensuring it feels snappy and responsive to users.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_steady_state_performance"><a class="anchor" href="#_steady_state_performance"></a>Steady-State Performance</h3>
+<div class="paragraph">
+<p>To do a rough benchmark of the steady-state performance of the executable assembly and
+native executable, we can adjust our Java program to run the same logic in a loop, and
+every ~1s print out how many iterations of the loop have occurred:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-diff hljs" data-lang="diff">   public static void main(String[] args) {
++    long count = 0;
++    long prevTime = System.currentTimeMillis();
++    String global = null;
++    while(count &gt;= 0){
+       ArgumentParser parser = ArgumentParsers.newFor(&quot;template&quot;)
+           .build()
+           .defaultHelp(true)
+@@ -28,7 +32,15 @@ public class Foo {
+         System.out.println(e.getMessage());
+         System.exit(1);
+       }
++      global = generateHtml(ns.getString(&quot;text&quot;));
++      if (System.currentTimeMillis() - prevTime &gt; 1000){
++        prevTime = System.currentTimeMillis();
++        System.out.println(count);
++        count = 0;
++      }
++      count++;
++    }
+
+-    System.out.println(generateHtml(ns.getString(&quot;text&quot;)));
++    System.out.println(global);
+   }
+ }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now, if we re-build our assembly and native image and run it, we can see the number
+of iterations per second they are able to achieve below:</p>
+</div>
+<div class="paragraph">
+<p><em>Executable Assembly</em></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./out/foo/assembly.dest/out.jar --text hello-world
+135
+170
+178
+188
+191
+192
+192
+189
+190
+188
+195
+185
+182</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><em>Native Image</em></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ time ./out/foo/nativeImage.dest/native-executable --text hello-world
+171
+163
+180
+173
+182
+182
+181
+184
+181
+181
+182
+183
+181</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As you can see, the executable assembly and native image both have comparable performance,
+although the executable assembly starts off lower (135 vs 171) for the first iteration due
+to JVM warmup time, but eventually reaches a higher steady state than the native image
+(~190 vs ~180).</p>
+</div>
+<div class="paragraph">
+<p>While again this is for a toy program, for larger applications the same pattern applies: Graal
+native binaries avoid the slow startup that JVM applications often exhibit, but in exchange
+may not quite reach the same peak steady-state performance that a long-lived JVM application
+would typically achieve.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_memory_usage"><a class="anchor" href="#_memory_usage"></a>Memory Usage</h3>
+<div class="paragraph">
+<p>While our programs are looping, we can also see how much memory they take via <code>top</code>:</p>
+</div>
+<div class="paragraph">
+<p><em>Executable Assembly</em></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ jps
+58547 MillMain
+86276 MillServerMain
+24895 Jps
+9263 Foo
+1071 Main
+
+$ top | grep 9263
+9263   java             0.0  00:20.41 32/1   1   134    373M  0B    0B    9263  42892 running  *0[1]       0.00000 0.00000    501 93089     9569   5005      2470      387381     104652     75938      9       0        0.0   0      0      lihaoyi            N/A    N/A   N/A   N/A   N/A   N/A</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><em>Native Image</em></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ps aux | grep native-executable
+lihaoyi          43880  46.1  0.1 408681792  30176 s000  S+    3:40PM   0:05.84 ./out/foo/nativeImage.dest/native-executable --text hello-world
+lihaoyi          86276   0.0  2.1 420349904 720416 s000  S     3:14PM   1:00.88 /Library/Java/JavaVirtualMachines/amazon-corretto-17.jdk/Contents/Home/bin/java -cp /Users/lihaoyi/.cache/mill/download/0.12.5-68-e4bf78 mill.runner.MillServerMain /Users/lihaoyi/Github/mill/blog/modules/ROOT/attachments/7-graal-native-executables/out/mill-server/aa508f0984fd2811f6c6d8fae1362f1774e4f5f7-1
+lihaoyi          48496   0.0  0.0 408626896   1376 s002  S+    3:40PM   0:00.00 grep native-executable
+
+$ top | grep 43880
+43880  native-executabl 0.0  00:10.19 3/1    0   26     20M   0B    0B    43880 42892 running  *0[1]       0.00000 0.00000    501 695907    44380  8100      4045      153233     8177       24637      313     0        0.0   0      0      lihaoyi            N/A    N/A   N/A   N/A   N/A   N/A</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The column <code>373M</code> and <code>20M</code> are the respective memory footprints of the executable assembly
+and native image binary. In this small program, the native image uses almost 20x less memory
+than the JVM executable assembly! That is a very significant reduction in resource footprint</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_portability_and_hermeticity"><a class="anchor" href="#_portability_and_hermeticity"></a>Portability and Hermeticity</h3>
+<div class="paragraph">
+<p>Executable assembly jars require a JVM installed globally in order to run. In a way they are
+not hermetic, since the globally-installed JVM can differ resulting in the assembly behaving
+differently at runtime. However, it does mean that the executable assembly is typically portable
+across different operating systems and CPU architectures: as long as there is a JVM installed,
+the executable assembly can be run.</p>
+</div>
+<div class="paragraph">
+<p>Native images are the opposite: they do not depend on a globally installed JVM, and thus can
+be run even in environments where pre-installing a JVM is inconvenient. On the other hand,
+the fact that the native executable is OS/CPU-specific means that you need to specifically
+generate separate native executables for each platform you want to support.</p>
+</div>
+<div class="paragraph">
+<p>The Mill build tool takes advantage of this hermeticity for easier installation: it’s
+<a href="../mill/cli/installation-ide.html#_mill_native_executable" class="xref page">mill:ROOT:cli/installation-ide.adoc#_mill_native_executable</a> can be run on systems without
+a JVM installed at all. Mill still needs a JVM later on, e.g. to compile and run user code, and so
+the native launcher downloads one on-demand automatically from the
+<a href="https://github.com/coursier/jvm-index">Coursier JVM Index</a>. But bootstrapping with a native
+launcher means there’s one less thing for people to do during setup and installation,
+and one less thing to go wrong and cause the user to get stuck.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_native_image_limitations"><a class="anchor" href="#_native_image_limitations"></a>Native Image Limitations</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Now that we’ve seen many iof the benefits of Graal native images binaries over
+traditional executable assemblies, it’s worth discussing the limitations:</p>
+</div>
+<div class="sect2">
+<h3 id="_no_cross_building"><a class="anchor" href="#_no_cross_building"></a>No Cross Building</h3>
+<div class="paragraph">
+<p>Graal can only create native binaries targeting the system on which it is running. That means
+that if you want to create binaries for {Linux,Windows,Mac}x{Intel,ARM}, you need 6 different
+machines in order to build the 6 binaries and somehow aggregate them together for publication
+or deployment. This is not a blocker, but can definitely be inconvenient v.s. some other toolchains
+which allow you to build native binaries for all targets on a single machine.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_no_windows_arm_support"><a class="anchor" href="#_no_windows_arm_support"></a>No Windows-ARM support</h3>
+<div class="paragraph">
+<p>Graal does not support Windows-Arm64 yet (<a href="https://github.com/oracle/graal/issues/9215" class="bare">https://github.com/oracle/graal/issues/9215</a>). While
+that traditionally would not have been a problem, Windows-ARM is getting more popular over time,
+with new laptops like my new flagship <a href="https://www.microsoft.com/en-sg/surface/devices/surface-laptop-7th-edition">Surface Laptop 7</a>
+running on an ARM processor. You simply cannot build Java code into Graal native image binaries
+that work on Windows-Arm64 at this time, and thus have to fall back to traditional executable assemblies</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_creation_performance"><a class="anchor" href="#_creation_performance"></a>Creation Performance</h3>
+<div class="paragraph">
+<p>Graal native image binaries are much slower to create than executable assemblies, as we saw above:
+the example program took ~1s to compile into an executable assembly, but ~25s to compile into
+a native image! That means you probably do not want to do day-to-day iterative development on
+native images: instead you may want to iterate using traditional JVM assemblies, and only build
+native images for integration testing and deployment.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_reflection_and_dynamic_classloading"><a class="anchor" href="#_reflection_and_dynamic_classloading"></a>Reflection and Dynamic Classloading</h3>
+<div class="paragraph">
+<p>Graal native image binaries do not work with Java reflection and dynamic classloading by default, unless
+specifically configured. Almost every Java program, library, and framework uses <em>some</em> degree of
+reflection and dynamic classloading, and so you do have to spend the effort to configure Graal
+appropriately. We saw a glimpse of that above in the <code>-H:IncludeResourceBundles</code> flag we needed to
+pass to make ArgParse4j work in our toy example, and this will need to be done dozens more times for
+any real-world application making heavy use of real-world Java frameworks and libraries.</p>
+</div>
+<div class="paragraph">
+<p>A full discussion of how to handle reflection and dynamic classloading when building Graal
+native images is beyond the scope of this article, but depending on what framework you may be
+using there may be existing support.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Frameworks like <a href="https://micronaut.io/">Micronaut</a>
+or <a href="https://quarkus.io/">Quarkus</a> are designed from scratch to minimize reflection to allow native
+image generation</p>
+</li>
+<li>
+<p>Older frameworks like
+<a href="https://docs.spring.io/spring-boot/reference/packaging/native-image/introducing-graalvm-native-images.html">Spring Boot</a>
+have also introduced support, making it easy to configure Graal to handle the pattern
+of reflection and classloading that the framework performs</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_cross_publishing_graal_native_binaries_on_github_actions"><a class="anchor" href="#_cross_publishing_graal_native_binaries_on_github_actions"></a>Cross-Publishing Graal Native Binaries on Github Actions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Although Graal doesn’t let you cross-build from a single platform, you can still easily
+publish artifacts for all supported versions by taking advantage of CI systems like
+Github Actions that provide worker machines on different platforms.</p>
+</div>
+<div class="paragraph">
+<p>For <a href="../mill/index.html" class="xref page">Mill</a>, which is distributed as native binaries, we maintain a
+<a href="https://github.com/com-lihaoyi/mill/blob/a383b9c851f4cee55abb3d454c3ecd06853a40b0/.github/workflows/publish-artifacts.yml#L27-L53">matrix of Github actions jobs</a>
+running on Mac, Windows, and Linux to create these binaries and upload them to Maven Central
+for users.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">on:
+  push:
+    tags:
+      - '**'
+  workflow_dispatch:
+
+jobs:
+  publish-sonatype:
+    # when in master repo, publish all tags and manual runs on main
+    if: github.repository == 'com-lihaoyi/mill'
+    runs-on: ${{ matrix.os }}
+
+    # only run one publish job for the same sha at the same time
+    # e.g. when a main-branch push is also tagged
+    concurrency: publish-sonatype-${{ matrix.os }}-${{ github.sha }}
+    strategy:
+      matrix:
+        include:
+        - os: ubuntu-latest
+          coursierarchive: &quot;&quot;
+          publishartifacts: __.publishArtifacts
+
+        - os: ubuntu-24.04-arm
+          coursierarchive: &quot;&quot;
+          publishartifacts: dist.native.publishArtifacts
+
+        - os: macos-13
+          coursierarchive: &quot;&quot;
+          publishartifacts: dist.native.publishArtifacts
+
+        - os: macos-latest
+          coursierarchive: &quot;&quot;
+          publishartifacts: dist.native.publishArtifacts
+
+        - os: windows-latest
+          coursierarchive: C:/coursier-arc
+          publishartifacts: dist.native.publishArtifacts
+
+        # No windows-arm support becaues Graal native image doesn't support it
+        # https://github.com/oracle/graal/issues/9215
+    env:
+      MILL_STABLE_VERSION: 1
+      MILL_SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+      MILL_SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+      MILL_PGP_SECRET_BASE64: ${{ secrets.SONATYPE_PGP_PRIVATE_KEY }}
+      MILL_PGP_PASSPHRASE: ${{ secrets.SONATYPE_PGP_PRIVATE_KEY_PASSWORD }}
+      LANG: &quot;en_US.UTF-8&quot;
+      LC_MESSAGES: &quot;en_US.UTF-8&quot;
+      LC_ALL: &quot;en_US.UTF-8&quot;
+      COURSIER_ARCHIVE_CACHE: ${{ matrix.coursierarchive }}
+      REPO_ACCESS_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
+    steps:
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      - run: ./mill -i mill.scalalib.PublishModule/ --publishArtifacts ${{ matrix.publishartifacts }}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that the default <code>ubuntu-latest</code> job publishes <code>__.publishArtifacts</code> (all artifacts),
+while the other platform-specific jobs publish only <code>dist.native.publishArtifacts</code> (the native
+artifacts in the <code>dist.native</code> folder). This ensures that the non-native jars which are
+portable get published only once across all platforms, while the native CPU-specific binary
+gets published once per platform</p>
+</div>
+<div class="paragraph">
+<p>Each job overrides <code>artifactName</code> based on <code>os.name</code> and <code>os.arch</code> such that it publishes to a
+different artifact on Maven Central:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def artifactOsSuffix = Task {
+  val osName = System.getProperty(&quot;os.name&quot;).toLowerCase
+  if (osName.contains(&quot;mac&quot;)) &quot;mac&quot;
+  else if (osName.contains(&quot;windows&quot;)) &quot;windows&quot;
+  else &quot;linux&quot;
+}
+
+def artifactCpuSuffix = Task {
+  System.getProperty(&quot;os.arch&quot;) match {
+    case &quot;x86_64&quot; =&gt; &quot;amd64&quot;
+    case s =&gt; s
+  }
+}
+
+def artifactName = s&quot;${super.artifactName()}-${artifactOsSuffix()}-${artifactCpuSuffix()}&quot;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This results in the following artifacts being published:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># JVM platform-agnostic artifact
+com.lihaoyi:mill-dist:0.12.6
+# native platform-specific artifacts
+com.lihaoyi:mill-dist-native-mac-amd64:0.12.6
+com.lihaoyi:mill-dist-native-mac-aarch64:0.12.6
+com.lihaoyi:mill-dist-native-linux-amd64:0.12.6
+com.lihaoyi:mill-dist-native-linux-aarch64:0.12.6
+com.lihaoyi:mill-dist-native-windows-amd64:0.12.6</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>These artifacts can be seen online:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://central.sonatype.com/search?q=mill-dist">Central Sonatype Search</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Any application using these binaries can similarly look at the OS/CPU they are running
+on and resolve the appropriate executable for them to use.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_conclusion"><a class="anchor" href="#_conclusion"></a>Conclusion</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Graal native images are a pretty cool technology that give Java developers a new superpower: the
+ability to package your Java program into a native binary that can be run without needing a JVM
+installed, starts much more quickly, and uses much less memory. There are some caveats around
+creation times, binary sizes, and runtime reflection, so they may not be suitable for all
+scenarios. But they are a useful tool in the toolbox that helps bridge the gap between the
+&quot;Java&quot; world and the world of native command-line tools on Linux, Mac, or Windows.</p>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="index.html">The Mill Build Engineering Blog</a></span>
+  <span class="next"><a href="6-garbage-collector-perf.html">Understanding JVM Garbage Collector Performance</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
+<script async="async" src="../_/js/vendor/highlight.js"></script>
+<script src="../_/js/vendor/lunr.js"></script>
+<script src="../_/js/search-ui.js" id="search-ui-script" data-site-root-path=".." data-snippet-length="100" data-stylesheet="../_/css/search.css"></script>
+<script async="async" src="../search-index.js"></script>
+  
+</body></html>
