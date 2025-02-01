@@ -561,7 +561,8 @@ portable get published only once across all platforms, while the native CPU-spec
 gets published once per platform
 
 Each job overrides `artifactName` based on `os.name` and `os.arch` such that it publishes to a
-different artifact on Maven Central:
+different artifact on Maven Central, and we override the default `publishArtifacts` to replace
+the default `.jar` artifact with our native image:
 
 ```scala
 def artifactOsSuffix = Task {
@@ -578,7 +579,11 @@ def artifactCpuSuffix = Task {
   }
 }
 
-def artifactName = s"${super.artifactName()}-${artifactOsSuffix()}-${artifactCpuSuffix()}"
+override def artifactName = s"${super.artifactName()}-${artifactOsSuffix()}-${artifactCpuSuffix()}"
+
+override def publishArtifacts = Task {
+  super.publishArtifacts().copy(payload = Seq(nativeImage() -> artifactName()))
+}
 ```
 
 This results in the following artifacts being published:
@@ -597,6 +602,12 @@ com.lihaoyi:mill-dist-native-windows-amd64:0.12.6
 These artifacts can be seen online:
 
 - https://central.sonatype.com/search?q=mill-dist[Central Sonatype Search]
+
+And downloaded via
+
+```bash
+curl https://repo1.maven.org/maven2/com/lihaoyi/mill-dist-native-mac-aarch64/0.12.6/mill-dist-native-mac-aarch64-0.12.6.jar -o mill-dist-native.jar
+```
 
 Any application using these binaries can similarly look at the OS/CPU they are running
 on and resolve the appropriate executable for them to use.
