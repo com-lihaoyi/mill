@@ -37,11 +37,11 @@ object Settings {
   )
   val docTags: Seq[String] = Seq(
     "0.11.13",
-    "0.12.6"
+    "0.12.7"
   )
   val mimaBaseVersions: Seq[String] =
     0.to(13).map("0.11." + _) ++
-      Seq("0.12.0", "0.12.1", "0.12.2", "0.12.3", "0.12.4", "0.12.5", "0.12.6")
+      Seq("0.12.0", "0.12.1", "0.12.2", "0.12.3", "0.12.4", "0.12.5", "0.12.6", "0.12.7")
 
   val graalvmJvmId = "graalvm-community:23.0.1"
 }
