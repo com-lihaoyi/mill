@@ -2,10 +2,17 @@
 = Building Python with Mill
 
 
-
-
 :language: python
 :language-small: python
+
+Mill can be used to build Python projects, whether large pure-Python codebases
+or Python modules mixed in with other languages like Java or Kotlin. While Python
+is traditionally a scripting language, larger Python projects often include tools like
+xref:pythonlib/linting.adoc#_formatting[autoformatting], xref:pythonlib/linting.adoc#_linting[linting],
+typechecking with Mypy, packaging PEX files, xref:pythonlib/publishing.adoc[publishing to PyPI],
+and so on. These workflows can benefit from a build tool like Mill to provide parallelization,
+caching, xref:large/selective-execution.adoc[Selective Test Execution], and other
+features that speed up development and CI.
 
 include::partial$Intro_Header.adoc[]
 
