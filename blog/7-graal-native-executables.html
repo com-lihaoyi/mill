@@ -929,7 +929,8 @@ gets published once per platform</p>
 </div>
 <div class="paragraph">
 <p>Each job overrides <code>artifactName</code> based on <code>os.name</code> and <code>os.arch</code> such that it publishes to a
-different artifact on Maven Central:</p>
+different artifact on Maven Central, and we override the default <code>publishArtifacts</code> to replace
+the default <code>.jar</code> artifact with our native image:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -947,7 +948,11 @@ def artifactCpuSuffix = Task {
   }
 }
 
-def artifactName = s&quot;${super.artifactName()}-${artifactOsSuffix()}-${artifactCpuSuffix()}&quot;</code></pre>
+override def artifactName = s&quot;${super.artifactName()}-${artifactOsSuffix()}-${artifactCpuSuffix()}&quot;
+
+override def publishArtifacts = Task {
+  super.publishArtifacts().copy(payload = Seq(nativeImage() -&gt; artifactName()))
+}</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -974,6 +979,14 @@ com.lihaoyi:mill-dist-native-windows-amd64:0.12.6</code></pre>
 <p><a href="https://central.sonatype.com/search?q=mill-dist">Central Sonatype Search</a></p>
 </li>
 </ul>
+</div>
+<div class="paragraph">
+<p>And downloaded via</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl https://repo1.maven.org/maven2/com/lihaoyi/mill-dist-native-mac-aarch64/0.12.6/mill-dist-native-mac-aarch64-0.12.6.jar -o mill-dist-native.jar</code></pre>
+</div>
 </div>
 <div class="paragraph">
 <p>Any application using these binaries can similarly look at the OS/CPU they are running
