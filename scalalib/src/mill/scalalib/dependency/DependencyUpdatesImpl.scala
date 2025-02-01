@@ -16,7 +16,7 @@ object DependencyUpdatesImpl {
       evaluator: Evaluator,
       ctx: Log with Home,
       rootModule: BaseModule,
-      discover: Discover[_],
+      discover: Discover,
       allowPreRelease: Boolean
   ): Seq[ModuleDependenciesUpdates] = {
 
@@ -58,7 +58,7 @@ object DependencyUpdatesImpl {
           }
         }
       case Format.PerDependency =>
-        val acutalUpdates = theUpdates
+        val actualUpdates = theUpdates
           .view
           .flatMap(depUpdates =>
             depUpdates.dependencies
@@ -73,10 +73,10 @@ object DependencyUpdatesImpl {
           }
           .toSeq
 
-        if (acutalUpdates.isEmpty) {
+        if (actualUpdates.isEmpty) {
           println("No dependency updates found")
         } else {
-          acutalUpdates.sorted.foreach(println(_))
+          actualUpdates.sorted.foreach(println(_))
         }
 
     }

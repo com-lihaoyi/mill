@@ -1,8 +1,5 @@
 package mill.playlib
 
-import mill.util.{TestEvaluator, TestUtil}
-import utest.framework.TestPath
-
 trait PlayTestSuite {
 
   val testScala212 = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
@@ -33,16 +30,4 @@ trait PlayTestSuite {
   }
 
   def resourcePath: os.Path
-
-  def workspaceTest[T, M <: TestUtil.BaseModule](
-      m: M,
-      resourcePath: os.Path = resourcePath
-  )(t: TestEvaluator => T)(implicit tp: TestPath): T = {
-    val eval = new TestEvaluator(m)
-    os.remove.all(m.millSourcePath)
-    os.remove.all(eval.outPath)
-    os.makeDir.all(m.millSourcePath / os.up)
-    os.copy(resourcePath, m.millSourcePath)
-    t(eval)
-  }
 }

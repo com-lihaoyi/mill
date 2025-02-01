@@ -13,7 +13,7 @@ import scala.collection.immutable.ArraySeq
 object JvmModel {
 
   /**
-   * Manages a interning cache for common [[JvmModel]] data types. This ensures that
+   * Manages an interning cache for common [[JvmModel]] data types. This ensures that
    * once a data type is constructed, the same instance is re-used going forward for
    * any constructions with identical arguments. This reduces total memory usage and
    * lets us replace structural hashing/equality with instance-identity hashing/equality,
@@ -139,7 +139,7 @@ object JvmModel {
 
     sealed class Prim(val pretty: String) extends JType
 
-    object Prim extends {
+    object Prim {
       def read(s: String): Prim = all(s(0))
 
       val all: Map[Char, Prim] = Map(

@@ -2,17 +2,15 @@ package mill.contrib.scalapblib
 
 import mill._
 import mill.api.PathRef
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import utest.framework.TestPath
 import utest.{TestSuite, Tests, assert, _}
 
 object TutorialTests extends TestSuite {
   val testScalaPbVersion = "0.11.7"
 
-  trait TutorialBase extends TestUtil.BaseModule {
-    override def millSourcePath: os.Path =
-      TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
-  }
+  trait TutorialBase extends TestBaseModule
 
   trait TutorialModule extends ScalaPBModule {
     def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
@@ -36,7 +34,7 @@ object TutorialTests extends TestSuite {
 
   object TutorialWithAdditionalArgs extends TutorialBase {
     object core extends TutorialModule {
-      override def scalaPBAdditionalArgs = T {
+      override def scalaPBAdditionalArgs = Task {
         Seq(
           "--additional-test=..."
         )
@@ -46,32 +44,27 @@ object TutorialTests extends TestSuite {
 
   object TutorialWithSpecificSources extends TutorialBase {
     object core extends TutorialModule {
-      override def scalaPBSources: T[Seq[PathRef]] = T.sources {
-        millSourcePath / "protobuf" / "tutorial" / "Tutorial.proto"
+      override def scalaPBSources: T[Seq[PathRef]] = Task.Sources {
+        millSourcePath / "protobuf/tutorial/Tutorial.proto"
       }
 
       override def scalaPBSearchDeps = true
       override def scalaPBIncludePath = Seq(
-        PathRef(millSourcePath / "protobuf" / "tutorial")
+        PathRef(millSourcePath / "protobuf/tutorial")
       )
     }
   }
 
-  val resourcePath: os.Path = os.pwd / "contrib" / "scalapblib" / "test" / "protobuf" / "tutorial"
-
-  def protobufOutPath(eval: TestEvaluator): os.Path =
-    eval.outPath / "core" / "compileScalaPB.dest" / "com" / "example" / "tutorial"
-
-  def workspaceTest[T](m: TestUtil.BaseModule)(t: TestEvaluator => T)(implicit tp: TestPath): T = {
-    val eval = new TestEvaluator(m)
-    os.remove.all(m.millSourcePath)
-    println(m.millSourcePath)
-    os.remove.all(eval.outPath)
-    println(eval.outPath)
-    os.makeDir.all(m.millSourcePath / "core" / "protobuf")
-    os.copy(resourcePath, m.millSourcePath / "core" / "protobuf" / "tutorial")
-    t(eval)
+  object TutorialWithScala3Soures extends TutorialBase {
+    object core extends TutorialModule {
+      override def scalaPBScala3Sources = { true }
+    }
   }
+
+  val resourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
+
+  def protobufOutPath(eval: UnitTester): os.Path =
+    eval.outPath / "core/compileScalaPB.dest/com/example/tutorial"
 
   def compiledSourcefiles: Seq[os.RelPath] = Seq[os.RelPath](
     os.rel / "AddressBook.scala",
@@ -82,73 +75,80 @@ object TutorialTests extends TestSuite {
   )
 
   def tests: Tests = Tests {
-    "scalapbVersion" - {
+    test("scalapbVersion") {
 
-      "fromBuild" - workspaceTest(Tutorial) { eval =>
-        val Right((result, evalCount)) = eval.apply(Tutorial.core.scalaPBVersion)
+      test("fromBuild") - UnitTester(Tutorial, resourcePath).scoped { eval =>
+        val Right(result) = eval.apply(Tutorial.core.scalaPBVersion)
 
         assert(
-          result == testScalaPbVersion,
-          evalCount > 0
+          result.value == testScalaPbVersion,
+          result.evalCount > 0
         )
       }
     }
 
-    "compileScalaPB" - {
-      "calledDirectly" - workspaceTest(Tutorial) { eval =>
-        val Right((result, evalCount)) = eval.apply(Tutorial.core.compileScalaPB)
+    test("compileScalaPB") {
+      test("calledDirectly") - UnitTester(Tutorial, resourcePath).scoped { eval =>
+        if (!mill.main.client.Util.isWindows) {
+          val Right(result) = eval.apply(Tutorial.core.compileScalaPB)
 
-        val outPath = protobufOutPath(eval)
+          val outPath = protobufOutPath(eval)
 
-        val outputFiles = os.walk(result.path).filter(os.isFile)
+          val outputFiles = os.walk(result.value.path).filter(os.isFile)
 
-        val expectedSourcefiles = compiledSourcefiles.map(outPath / _)
+          val expectedSourcefiles = compiledSourcefiles.map(outPath / _)
 
-        assert(
-          result.path == eval.outPath / "core" / "compileScalaPB.dest",
-          outputFiles.nonEmpty,
-          outputFiles.forall(expectedSourcefiles.contains),
-          outputFiles.size == 5,
-          evalCount > 0
-        )
+          assert(
+            result.value.path == eval.outPath / "core/compileScalaPB.dest",
+            outputFiles.nonEmpty,
+            outputFiles.forall(expectedSourcefiles.contains),
+            outputFiles.size == 5,
+            result.evalCount > 0
+          )
 
-        // don't recompile if nothing changed
-        val Right((_, unchangedEvalCount)) = eval.apply(Tutorial.core.compileScalaPB)
+          // don't recompile if nothing changed
+          val Right(result2) = eval.apply(Tutorial.core.compileScalaPB)
 
-        assert(unchangedEvalCount == 0)
+          assert(result2.evalCount == 0)
+        }
       }
 
-      "calledWithSpecificFile" - workspaceTest(TutorialWithSpecificSources) { eval =>
-        val Right((result, evalCount)) = eval.apply(TutorialWithSpecificSources.core.compileScalaPB)
+      test("calledWithSpecificFile") - UnitTester(
+        TutorialWithSpecificSources,
+        resourcePath
+      ).scoped { eval =>
+        if (!mill.main.client.Util.isWindows) {
+          val Right(result) = eval.apply(TutorialWithSpecificSources.core.compileScalaPB)
 
-        val outPath = protobufOutPath(eval)
+          val outPath = protobufOutPath(eval)
 
-        val outputFiles = os.walk(result.path).filter(os.isFile)
+          val outputFiles = os.walk(result.value.path).filter(os.isFile)
 
-        val expectedSourcefiles = Seq[os.RelPath](
-          os.rel / "AddressBook.scala",
-          os.rel / "Person.scala",
-          os.rel / "TutorialProto.scala",
-          os.rel / "IncludeProto.scala"
-        ).map(outPath / _)
+          val expectedSourcefiles = Seq[os.RelPath](
+            os.rel / "AddressBook.scala",
+            os.rel / "Person.scala",
+            os.rel / "TutorialProto.scala",
+            os.rel / "IncludeProto.scala"
+          ).map(outPath / _)
 
-        assert(
-          result.path == eval.outPath / "core" / "compileScalaPB.dest",
-          outputFiles.nonEmpty,
-          outputFiles.forall(expectedSourcefiles.contains),
-          outputFiles.size == 3,
-          evalCount > 0
-        )
+          assert(
+            result.value.path == eval.outPath / "core/compileScalaPB.dest",
+            outputFiles.nonEmpty,
+            outputFiles.forall(expectedSourcefiles.contains),
+            outputFiles.size == 3,
+            result.evalCount > 0
+          )
 
-        // don't recompile if nothing changed
-        val Right((_, unchangedEvalCount)) = eval.apply(Tutorial.core.compileScalaPB)
+          // don't recompile if nothing changed
+          val Right(result2) = eval.apply(Tutorial.core.compileScalaPB)
 
-        assert(unchangedEvalCount == 0)
+          assert(result2.evalCount == 0)
+        }
       }
 
 //      // This throws a NullPointerException in coursier somewhere
 //      //
-//      // "triggeredByScalaCompile" - workspaceTest(Tutorial) { eval =>
+//      // test("triggeredByScalaCompile") -workspaceTest(Tutorial) { eval =>
 //      //   val Right((_, evalCount)) = eval.apply(Tutorial.core.compile)
 //
 //      //   val outPath = protobufOutPath(eval)
@@ -172,26 +172,35 @@ object TutorialTests extends TestSuite {
 //     }
     }
 
-    "useExternalProtocCompiler" - {
-      /* This ensure that the `scalaPBProtocPath` is properly used.
+    test("useExternalProtocCompiler") {
+      /* This ensures that the `scalaPBProtocPath` is properly used.
        * As the given path is incorrect, the compilation should fail.
        */
-      "calledWithWrongProtocFile" - workspaceTest(TutorialWithProtoc) { eval =>
-        val result = eval.apply(TutorialWithProtoc.core.compileScalaPB)
-        assert(result.isLeft)
+      test("calledWithWrongProtocFile") - UnitTester(TutorialWithProtoc, resourcePath).scoped {
+        eval =>
+          val result = eval.apply(TutorialWithProtoc.core.compileScalaPB)
+          assert(result.isLeft)
       }
     }
 
-    "compilationArgs" - {
-      "calledWithAdditionalArgs" - workspaceTest(TutorialWithAdditionalArgs) {
-        eval =>
-          val result =
-            eval.apply(TutorialWithAdditionalArgs.core.scalaPBCompileOptions)
-          result match {
-            case Right((args, _)) =>
-              assert(args.exists(_.contains("--additional-test=...")))
-            case _ => assert(false)
-          }
+    test("calledWithScala3Sources") - UnitTester(TutorialWithScala3Soures, resourcePath).scoped {
+      eval =>
+        val result = eval.apply(Tutorial.core.compileScalaPB)
+        assert(result.isRight)
+    }
+
+    test("compilationArgs") {
+      test("calledWithAdditionalArgs") - UnitTester(
+        TutorialWithAdditionalArgs,
+        resourcePath
+      ).scoped { eval =>
+        val result =
+          eval.apply(TutorialWithAdditionalArgs.core.scalaPBCompileOptions)
+        result match {
+          case Right(result) =>
+            assert(result.value.exists(_.contains("--additional-test=...")))
+          case _ => assert(false)
+        }
       }
     }
   }

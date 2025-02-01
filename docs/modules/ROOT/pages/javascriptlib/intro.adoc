@@ -1,0 +1,31 @@
+= Building Javascript with Mill
+
+
+
+:language: Typescript
+:language-small: typescript
+
+== Simple Typescript Module
+
+include::partial$example/javascriptlib/basic/1-simple.adoc[]
+
+== React Module
+
+include::partial$example/javascriptlib/basic/2-react.adoc[]
+
+== Custom Build Logic
+
+include::partial$example/javascriptlib/basic/3-custom-build-logic.adoc[]
+
+== Multi Module Project
+
+include::partial$example/javascriptlib/basic/4-multi-modules.adoc[]
+
+== Simple Client-Server
+
+include::partial$example/javascriptlib/basic/5-client-server-hello.adoc[]
+
+== Realistic Client-Server Example Project
+
+include::partial$example/javascriptlib/basic/6-client-server-realistic.adoc[]
+

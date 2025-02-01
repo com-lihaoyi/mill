@@ -2,8 +2,8 @@ package hello
 // Taken from https://github.com/handsonscala/handsonscala/blob/ebc0367144513fc181281a024f8071a6153be424/examples/16.8%20-%20LoggingRearrangedPipeline2/LoggingPipeline.sc
 import scalatags.Text.all._
 import scala.concurrent._, duration.Duration.Inf
-class DiskActor(logPath: os.Path, rotateSize: Int = 50)
-               (implicit cc: castor.Context) extends castor.SimpleActor[String]{
+class DiskActor(logPath: os.Path, rotateSize: Int = 50)(implicit cc: castor.Context)
+    extends castor.SimpleActor[String] {
   val oldPath = logPath / os.up / (logPath.last + "-old")
   def run(s: String) = {
     val newLogSize = logSize + s.length + 1
@@ -17,28 +17,27 @@ class DiskActor(logPath: os.Path, rotateSize: Int = 50)
   private var logSize = 0
 }
 
-class Base64Actor(dest: castor.Actor[String])
-                 (implicit cc: castor.Context) extends castor.SimpleActor[String]{
+class Base64Actor(dest: castor.Actor[String])(implicit cc: castor.Context)
+    extends castor.SimpleActor[String] {
   def run(msg: String) = {
     dest.send(java.util.Base64.getEncoder.encodeToString(msg.getBytes))
   }
 }
 
-class UploadActor(url: String)
-                 (implicit cc: castor.Context) extends castor.SimpleActor[String]{
+class UploadActor(url: String)(implicit cc: castor.Context) extends castor.SimpleActor[String] {
   def run(msg: String) = {
     val res = requests.post(url, data = msg)
     println(s"response ${res.statusCode} " + ujson.read(res)("data"))
   }
 }
-class SanitizeActor(dest: castor.Actor[String])
-                   (implicit cc: castor.Context) extends castor.SimpleActor[String]{
+class SanitizeActor(dest: castor.Actor[String])(implicit cc: castor.Context)
+    extends castor.SimpleActor[String] {
   def run(msg: String) = {
     dest.send(msg.replaceAll("([0-9]{4})[0-9]{8}([0-9]{4})", "<redacted>"))
   }
 }
 
-object Hello{
+object Hello {
   def main() = {
     implicit val cc = new castor.Context.Test()
 
@@ -67,8 +66,6 @@ object Hello{
         "hello.DiskActor#run(java.lang.String)void"
     ],
     "hello.DiskActor#run(java.lang.String)void": [
-        "hello.DiskActor#logSize()int",
-        "hello.DiskActor#logSize_$eq(int)void",
         "hello.DiskActor#oldPath()os.Path"
     ],
     "hello.DiskActor.$lessinit$greater$default$2()int": [
@@ -100,4 +97,4 @@ object Hello{
         "hello.UploadActor#run(java.lang.String)void"
     ]
 }
-*/
+ */

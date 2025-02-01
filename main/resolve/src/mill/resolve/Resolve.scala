@@ -5,8 +5,8 @@ import mill.define.{
   BaseModule,
   Command,
   Discover,
-  ExternalModule,
   Module,
+  ModuleTask,
   NamedTask,
   Reflect,
   Segments,
@@ -23,7 +23,10 @@ object Resolve {
         resolved: Seq[Resolved],
         args: Seq[String],
         selector: Segments,
-        nullCommandDefaults: Boolean
+        nullCommandDefaults: Boolean,
+        allowPositionalCommandArgs: Boolean,
+        resolveToModuleTasks: Boolean,
+        cache: ResolveCore.Cache
     ) = {
       Right(resolved.map(_.segments))
     }
@@ -37,38 +40,58 @@ object Resolve {
         resolved: Seq[Resolved],
         args: Seq[String],
         selector: Segments,
-        nullCommandDefaults: Boolean
+        nullCommandDefaults: Boolean,
+        allowPositionalCommandArgs: Boolean,
+        resolveToModuleTasks: Boolean,
+        cache: ResolveCore.Cache
     ) = {
-      val taskList = resolved.map {
-        case r: Resolved.Target =>
-          val instantiated = ResolveCore
-            .instantiateModule(rootModule, r.segments.init)
-            .flatMap(instantiateTarget(r, _))
 
+      val taskList = resolved.map {
+        case r: Resolved.NamedTask =>
+          val instantiated = ResolveCore
+            .instantiateModule(rootModule, r.segments.init, cache)
+            .flatMap(instantiateNamedTask(r, _, cache))
           instantiated.map(Some(_))
 
         case r: Resolved.Command =>
           val instantiated = ResolveCore
-            .instantiateModule(rootModule, r.segments.init)
-            .flatMap(instantiateCommand(rootModule, r, _, args, nullCommandDefaults))
-
+            .instantiateModule(rootModule, r.segments.init, cache)
+            .flatMap { mod =>
+              instantiateCommand(
+                rootModule,
+                r,
+                mod,
+                args,
+                nullCommandDefaults,
+                allowPositionalCommandArgs
+              )
+            }
           instantiated.map(Some(_))
 
         case r: Resolved.Module =>
-          ResolveCore.instantiateModule(rootModule, r.segments).flatMap {
-            case value: TaskModule =>
+          ResolveCore.instantiateModule(rootModule, r.segments, cache).flatMap {
+            case value if resolveToModuleTasks => Right(Some(ModuleTask(value)))
+            case value: TaskModule if !resolveToModuleTasks =>
               val directChildrenOrErr = ResolveCore.resolveDirectChildren(
                 rootModule,
                 value.getClass,
                 Some(value.defaultCommandName()),
-                value.millModuleSegments
+                value.millModuleSegments,
+                cache = cache
               )
 
               directChildrenOrErr.flatMap(directChildren =>
                 directChildren.head match {
-                  case r: Resolved.Target => instantiateTarget(r, value).map(Some(_))
+                  case r: Resolved.NamedTask => instantiateNamedTask(r, value, cache).map(Some(_))
                   case r: Resolved.Command =>
-                    instantiateCommand(rootModule, r, value, args, nullCommandDefaults).map(Some(_))
+                    instantiateCommand(
+                      rootModule,
+                      r,
+                      value,
+                      args,
+                      nullCommandDefaults,
+                      allowPositionalCommandArgs
+                    ).map(Some(_))
                 }
               )
             case _ => Right(None)
@@ -87,13 +110,23 @@ object Resolve {
       items.distinctBy(_.ctx.segments)
   }
 
-  private def instantiateTarget(r: Resolved.Target, p: Module): Either[String, Target[_]] = {
+  private def instantiateNamedTask(
+      r: Resolved.NamedTask,
+      p: Module,
+      cache: ResolveCore.Cache
+  ): Either[String, NamedTask[_]] = {
     val definition = Reflect
-      .reflect(p.getClass, classOf[Target[_]], _ == r.segments.parts.last, true)
+      .reflect(
+        p.getClass,
+        classOf[NamedTask[_]],
+        _ == r.segments.last.value,
+        true,
+        getMethods = cache.getMethods
+      )
       .head
 
     ResolveCore.catchWrapException(
-      definition.invoke(p).asInstanceOf[Target[_]]
+      definition.invoke(p).asInstanceOf[NamedTask[_]]
     )
   }
 
@@ -102,27 +135,32 @@ object Resolve {
       r: Resolved.Command,
       p: Module,
       args: Seq[String],
-      nullCommandDefaults: Boolean
+      nullCommandDefaults: Boolean,
+      allowPositionalCommandArgs: Boolean
   ) = {
-    ResolveCore.catchWrapException(
-      invokeCommand0(
+    ResolveCore.catchWrapException {
+      val invoked = invokeCommand0(
         p,
-        r.segments.parts.last,
-        rootModule.millDiscover.asInstanceOf[Discover[mill.define.Module]],
+        r.segments.last.value,
+        rootModule.millDiscover.asInstanceOf[Discover],
         args,
-        nullCommandDefaults
-      ).head
-    ).flatten
+        nullCommandDefaults,
+        allowPositionalCommandArgs
+      )
+
+      invoked.head
+    }.flatten
   }
 
   private def invokeCommand0(
       target: mill.define.Module,
       name: String,
-      discover: Discover[mill.define.Module],
+      discover: Discover,
       rest: Seq[String],
-      nullCommandDefaults: Boolean
+      nullCommandDefaults: Boolean,
+      allowPositionalCommandArgs: Boolean
   ): Iterable[Either[String, Command[_]]] = for {
-    (cls, (names, entryPoints)) <- discover.value
+    (cls, (names, entryPoints, _)) <- discover.value
     if cls.isAssignableFrom(target.getClass)
     ep <- entryPoints
     if ep.name == name
@@ -144,7 +182,7 @@ object Resolve {
     mainargs.TokenGrouping.groupArgs(
       rest,
       flattenedArgSigsWithDefaults,
-      allowPositional = true,
+      allowPositional = allowPositionalCommandArgs,
       allowRepeats = false,
       allowLeftover = ep.argSigs0.exists(_.reader.isLeftover),
       nameMapper = mainargs.Util.kebabCaseNameMapper
@@ -185,28 +223,50 @@ trait Resolve[T] {
       resolved: Seq[Resolved],
       args: Seq[String],
       segments: Segments,
-      nullCommandDefaults: Boolean
+      nullCommandDefaults: Boolean,
+      allowPositionalCommandArgs: Boolean,
+      resolveToModuleTasks: Boolean,
+      cache: ResolveCore.Cache
   ): Either[String, Seq[T]]
+
+  def resolve(
+      rootModule: BaseModule,
+      scriptArgs: Seq[String],
+      selectMode: SelectMode,
+      allowPositionalCommandArgs: Boolean = false,
+      resolveToModuleTasks: Boolean = false
+  ): Either[String, List[T]] = {
+    resolve0(rootModule, scriptArgs, selectMode, allowPositionalCommandArgs, resolveToModuleTasks)
+  }
 
   def resolve(
       rootModule: BaseModule,
       scriptArgs: Seq[String],
       selectMode: SelectMode
   ): Either[String, List[T]] = {
-    resolve0(rootModule, scriptArgs, selectMode)
+    resolve0(rootModule, scriptArgs, selectMode, false, false)
   }
 
   private[mill] def resolve0(
-      baseModule: BaseModule,
+      rootModule: BaseModule,
       scriptArgs: Seq[String],
-      selectMode: SelectMode
+      selectMode: SelectMode,
+      allowPositionalCommandArgs: Boolean,
+      resolveToModuleTasks: Boolean
   ): Either[String, List[T]] = {
     val nullCommandDefaults = selectMode == SelectMode.Multi
     val resolvedGroups = ParseArgs(scriptArgs, selectMode).flatMap { groups =>
       val resolved = groups.map { case (selectors, args) =>
         val selected = selectors.map { case (scopedSel, sel) =>
-          resolveRootModule(baseModule, scopedSel).map { rootModule =>
-            resolveNonEmptyAndHandle(args, sel, rootModule, nullCommandDefaults)
+          resolveRootModule(rootModule, scopedSel).map { rootModuleSels =>
+            resolveNonEmptyAndHandle(
+              args,
+              rootModuleSels,
+              sel.getOrElse(Segments()),
+              nullCommandDefaults,
+              allowPositionalCommandArgs,
+              resolveToModuleTasks
+            )
           }
         }
 
@@ -224,17 +284,22 @@ trait Resolve[T] {
 
   private[mill] def resolveNonEmptyAndHandle(
       args: Seq[String],
-      sel: Segments,
       rootModule: BaseModule,
-      nullCommandDefaults: Boolean
+      sel: Segments,
+      nullCommandDefaults: Boolean,
+      allowPositionalCommandArgs: Boolean,
+      resolveToModuleTasks: Boolean
   ): Either[String, Seq[T]] = {
     val rootResolved = ResolveCore.Resolved.Module(Segments(), rootModule.getClass)
+    val cache = new ResolveCore.Cache()
     val resolved =
       ResolveCore.resolve(
         rootModule = rootModule,
         remainingQuery = sel.value.toList,
         current = rootResolved,
-        querySoFar = Segments()
+        querySoFar = Segments(),
+        seenModules = Set.empty,
+        cache = cache
       ) match {
         case ResolveCore.Success(value) => Right(value)
         case ResolveCore.NotFound(segments, found, next, possibleNexts) =>
@@ -251,8 +316,18 @@ trait Resolve[T] {
       }
 
     resolved
-      .map(_.toSeq.sortBy(_.segments.render))
-      .flatMap(handleResolved(rootModule, _, args, sel, nullCommandDefaults))
+      .flatMap(r =>
+        handleResolved(
+          rootModule,
+          r.sortBy(_.segments),
+          args,
+          sel,
+          nullCommandDefaults,
+          allowPositionalCommandArgs,
+          resolveToModuleTasks,
+          cache = cache
+        )
+      )
   }
 
   private[mill] def deduplicate(items: List[T]): List[T] = items
@@ -263,6 +338,7 @@ trait Resolve[T] {
   ): Either[String, BaseModule] = {
     scopedSel match {
       case None => Right(rootModule)
+
       case Some(scoping) =>
         for {
           moduleCls <-
@@ -272,8 +348,8 @@ trait Resolve[T] {
                 Left("Cannot resolve external module " + scoping.render)
             }
           rootModule <- moduleCls.getField("MODULE$").get(moduleCls) match {
-            case rootModule: ExternalModule => Right(rootModule)
-            case _ => Left("Class " + scoping.render + " is not an external module")
+            case rootModule: BaseModule => Right(rootModule)
+            case _ => Left("Class " + scoping.render + " is not an BaseModule")
           }
         } yield rootModule
     }

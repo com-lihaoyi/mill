@@ -1,12 +1,14 @@
 package mill.util
 
+import java.nio.file.Files
+import java.nio.file.Paths
 import coursier.Repository
 import mill.api.Loose.Agg
 import mill.api.{BuildInfo, Ctx, IO, PathRef, Result}
 
 object Util {
 
-  def isInteractive(): Boolean = System.console() != null
+  def isInteractive(): Boolean = mill.main.client.Util.hasConsole()
 
   val newLine: String = System.lineSeparator()
 
@@ -19,7 +21,7 @@ object Util {
   {
     val millOptionsPath = sys.props("MILL_OPTIONS_PATH")
     if (millOptionsPath != null)
-      LongMillProps.load(new java.io.FileInputStream(millOptionsPath))
+      LongMillProps.load(Files.newInputStream(Paths.get(millOptionsPath)))
   }
 
   def cleanupScaladoc(v: String): Array[String] = {
@@ -45,19 +47,13 @@ object Util {
       ctx: Ctx.Dest
   ): PathRef = {
     val out = ctx.dest / dest
-
     val website = new java.net.URI(url).toURL
-    val rbc = java.nio.channels.Channels.newChannel(website.openStream)
+    val websiteInputStream = website.openStream
     try {
-      val fos = new java.io.FileOutputStream(out.toIO)
-      try {
-        fos.getChannel.transferFrom(rbc, 0, java.lang.Long.MAX_VALUE)
-        PathRef(out)
-      } finally {
-        fos.close()
-      }
+      Files.copy(websiteInputStream, out.toNIO)
+      PathRef(out)
     } finally {
-      rbc.close()
+      websiteInputStream.close()
     }
   }
 
@@ -72,14 +68,18 @@ object Util {
 
   /**
    * Deprecated helper method, intended to allow runtime resolution and in-development-tree testings of mill plugins possible.
-   * This design has issues and will probably replaced.
+   * This design has issues and will probably be replaced.
    */
   def millProjectModule(
       artifact: String,
       repositories: Seq[Repository],
-      resolveFilter: os.Path => Boolean = _ => true,
+      @deprecated(
+        "This parameter is now ignored, use exclusions instead or mark some dependencies as provided when you publish modules",
+        "Mill after 0.12.5"
+      )
+      deprecatedResolveFilter: os.Path => Boolean = _ => true,
       // this should correspond to the mill runtime Scala version
-      artifactSuffix: String = "_2.13"
+      artifactSuffix: String = "_3"
   ): Result[Agg[PathRef]] = {
 
     mill.util.Jvm.resolveDependencies(
@@ -94,11 +94,15 @@ object Util {
         )
       ),
       force = Nil,
-      resolveFilter = resolveFilter
+      deprecatedResolveFilter = deprecatedResolveFilter
     ).map(_.map(_.withRevalidateOnce))
   }
 
   def millProperty(key: String): Option[String] =
     Option(sys.props(key)) // System property has priority
       .orElse(Option(LongMillProps.getProperty(key)))
+
+  def leftPad(s: String, targetLength: Int, char: Char): String = {
+    char.toString * (targetLength - s.length) + s
+  }
 }

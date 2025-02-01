@@ -1,7 +1,7 @@
 package mill.bsp
 
 import mill.api.{Ctx, PathRef}
-import mill.{Agg, T}
+import mill.{Agg, T, Task, given}
 import mill.define.{Command, Discover, ExternalModule}
 import mill.main.BuildInfo
 import mill.eval.Evaluator
@@ -10,9 +10,9 @@ import mill.scalalib.CoursierModule
 
 object BSP extends ExternalModule with CoursierModule {
 
-  lazy val millDiscover: Discover[this.type] = Discover[this.type]
+  lazy val millDiscover: Discover = Discover[this.type]
 
-  private def bspWorkerLibs: T[Agg[PathRef]] = T {
+  private def bspWorkerLibs: T[Agg[PathRef]] = Task {
     millProjectModule("mill-bsp-worker", repositoriesTask())
   }
 
@@ -30,11 +30,11 @@ object BSP extends ExternalModule with CoursierModule {
    * reason, the message and stacktrace of the exception will be
    * printed to stdout.
    */
-  def install(jobs: Int = 1): Command[(PathRef, ujson.Value)] = T.command {
+  def install(jobs: Int = 1): Command[(PathRef, ujson.Value)] = Task.Command {
     // we create a file containing the additional jars to load
     val libUrls = bspWorkerLibs().map(_.path.toNIO.toUri.toURL).iterator.toSeq
     val cpFile =
-      T.workspace / Constants.bspDir / s"${Constants.serverName}-${BuildInfo.millVersion}.resources"
+      Task.workspace / Constants.bspDir / s"${Constants.serverName}-${BuildInfo.millVersion}.resources"
     os.write.over(
       cpFile,
       libUrls.mkString("\n"),
@@ -46,14 +46,14 @@ object BSP extends ExternalModule with CoursierModule {
   /**
    * This command only starts a BSP session, which means it injects the current evaluator into an already running BSP server.
    * This command requires Mill to start with `--bsp` option.
-   * @param ev The Evaluator
+   * @param allBootstrapEvaluators The Evaluator
    * @return The server result, indicating if mill should re-run this command or just exit.
    */
   def startSession(allBootstrapEvaluators: Evaluator.AllBootstrapEvaluators)
-      : Command[BspServerResult] = T.command {
-    T.log.errorStream.println("BSP/startSession: Starting BSP session")
+      : Command[BspServerResult] = Task.Command {
+    Task.log.errorStream.println("BSP/startSession: Starting BSP session")
     val res = BspContext.bspServerHandle.runSession(allBootstrapEvaluators.value)
-    T.log.errorStream.println(s"BSP/startSession: Finished BSP session, result: ${res}")
+    Task.log.errorStream.println(s"BSP/startSession: Finished BSP session, result: ${res}")
     res
   }
 
@@ -75,11 +75,10 @@ object BSP extends ExternalModule with CoursierModule {
   }
 
   private def bspConnectionJson(jobs: Int, debug: Boolean): String = {
-    val props = sys.props
-    val millPath = props
-      .get("mill.main.cli")
+    val millPath = sys.env.get("MILL_MAIN_CLI")
+      .orElse(sys.props.get("mill.main.cli"))
       // we assume, the classpath is an executable jar here
-      .orElse(props.get("java.class.path"))
+      .orElse(sys.props.get("java.class.path"))
       .getOrElse(throw new IllegalStateException("System property 'java.class.path' not set"))
 
     upickle.default.write(

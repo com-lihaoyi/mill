@@ -1,5 +1,6 @@
 package mill.scalalib
 
+import mainargs.arg
 import mill.api.JsonFormatters.pathReadWrite
 import mill.api.{Ctx, PathRef, Result}
 import mill.define.{Command, Task}
@@ -14,26 +15,26 @@ trait RunModule extends WithZincWorker {
   /**
    * Any command-line parameters you want to pass to the forked JVM.
    */
-  def forkArgs: T[Seq[String]] = T { Seq.empty[String] }
+  def forkArgs: T[Seq[String]] = Task { Seq.empty[String] }
 
   /**
    * Any environment variables you want to pass to the forked JVM.
    */
-  def forkEnv: T[Map[String, String]] = T.input { T.env }
+  def forkEnv: T[Map[String, String]] = Task { Map.empty[String, String] }
 
-  def forkWorkingDir: T[os.Path] = T { T.workspace }
+  def forkWorkingDir: T[os.Path] = Task { Task.workspace }
 
   /**
    * All classfiles and resources including upstream modules and dependencies
    * necessary to run this module's code.
    */
-  def runClasspath: T[Seq[PathRef]] = T { Seq.empty[PathRef] }
+  def runClasspath: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
 
   /**
    * The elements of the run classpath which are local to this module.
    * This is typically the output of a compilation step and bundles runtime resources.
    */
-  def localRunClasspath: T[Seq[PathRef]] = T { Seq.empty[PathRef] }
+  def localRunClasspath: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
 
   /**
    * Allows you to specify an explicit main class to use for the `run` command.
@@ -42,11 +43,26 @@ trait RunModule extends WithZincWorker {
    */
   def mainClass: T[Option[String]] = None
 
-  def allLocalMainClasses: T[Seq[String]] = T {
-    zincWorker().worker().discoverMainClasses(localRunClasspath().map(_.path))
+  def allLocalMainClasses: T[Seq[String]] = Task {
+    val classpath = localRunClasspath().map(_.path)
+    if (zincWorker().javaHome().isDefined) {
+      Jvm
+        .callSubprocess(
+          mainClass = "mill.scalalib.worker.DiscoverMainClassesMain",
+          classPath = zincWorker().classpath().map(_.path),
+          mainArgs = Seq(classpath.mkString(",")),
+          javaHome = zincWorker().javaHome().map(_.path),
+          streamOut = false
+        )
+        .out
+        .lines()
+
+    } else {
+      zincWorker().worker().discoverMainClasses(classpath)
+    }
   }
 
-  def finalMainClassOpt: T[Either[String, String]] = T {
+  def finalMainClassOpt: T[Either[String, String]] = Task {
     mainClass() match {
       case Some(m) => Right(m)
       case None =>
@@ -62,7 +78,7 @@ trait RunModule extends WithZincWorker {
     }
   }
 
-  def finalMainClass: T[String] = T {
+  def finalMainClass: T[String] = Task {
     finalMainClassOpt() match {
       case Right(main) => Result.Success(main)
       case Left(msg) => Result.Failure(msg)
@@ -72,13 +88,13 @@ trait RunModule extends WithZincWorker {
   /**
    * Control whether `run*`-targets should use an args file to pass command line args, if possible.
    */
-  def runUseArgsFile: T[Boolean] = T { scala.util.Properties.isWin }
+  def runUseArgsFile: T[Boolean] = Task { scala.util.Properties.isWin }
 
   /**
    * Runs this module's code in a subprocess and waits for it to finish
    */
-  def run(args: Task[Args] = T.task(Args())): Command[Unit] = T.command {
-    runForkedTask(finalMainClass, args)
+  def run(args: Task[Args] = Task.Anon(Args())): Command[Unit] = Task.Command {
+    runForkedTask(finalMainClass, args)()
   }
 
   /**
@@ -87,57 +103,60 @@ trait RunModule extends WithZincWorker {
    * since the code can dirty the parent Mill process and potentially leave it
    * in a bad state.
    */
-  def runLocal(args: Task[Args] = T.task(Args())): Command[Unit] = T.command {
-    runLocalTask(finalMainClass, args)
+  def runLocal(args: Task[Args] = Task.Anon(Args())): Command[Unit] = Task.Command {
+    runLocalTask(finalMainClass, args)()
   }
 
   /**
    * Same as `run`, but lets you specify a main class to run
    */
-  def runMain(mainClass: String, args: String*): Command[Unit] = {
-    val task = runForkedTask(T.task { mainClass }, T.task { Args(args) })
-    T.command { task }
+  def runMain(@arg(positional = true) mainClass: String, args: String*): Command[Unit] = {
+    val task = runForkedTask(Task.Anon { mainClass }, Task.Anon { Args(args) })
+    Task.Command { task() }
   }
 
   /**
    * Same as `runBackground`, but lets you specify a main class to run
    */
-  def runMainBackground(mainClass: String, args: String*): Command[Unit] = {
-    val task = runBackgroundTask(T.task { mainClass }, T.task { Args(args) })
-    T.command { task }
+  def runMainBackground(@arg(positional = true) mainClass: String, args: String*): Command[Unit] = {
+    val task = runBackgroundTask(Task.Anon { mainClass }, Task.Anon { Args(args) })
+    Task.Command { task() }
   }
 
   /**
    * Same as `runLocal`, but lets you specify a main class to run
    */
-  def runMainLocal(mainClass: String, args: String*): Command[Unit] = {
-    val task = runLocalTask(T.task { mainClass }, T.task { Args(args) })
-    T.command { task }
+  def runMainLocal(@arg(positional = true) mainClass: String, args: String*): Command[Unit] = {
+    val task = runLocalTask(Task.Anon { mainClass }, Task.Anon { Args(args) })
+    Task.Command { task() }
   }
 
   /**
    * Runs this module's code in a subprocess and waits for it to finish
    */
-  def runForkedTask(mainClass: Task[String], args: Task[Args] = T.task(Args())): Task[Unit] =
-    T.task {
+  def runForkedTask(mainClass: Task[String], args: Task[Args] = Task.Anon(Args())): Task[Unit] =
+    Task.Anon {
       try Result.Success(
-          Jvm.runSubprocess(
-            mainClass(),
-            runClasspath().map(_.path),
-            forkArgs(),
-            forkEnv(),
-            args().value,
-            workingDir = forkWorkingDir(),
-            useCpPassingJar = runUseArgsFile()
-          )
+          runner().run(args = args().value, mainClass = mainClass(), workingDir = forkWorkingDir())
         )
       catch {
         case NonFatal(_) => Result.Failure("Subprocess failed")
       }
     }
 
-  def runLocalTask(mainClass: Task[String], args: Task[Args] = T.task(Args())): Task[Unit] =
-    T.task {
+  def runner: Task[RunModule.Runner] = Task.Anon {
+    new RunModule.RunnerImpl(
+      finalMainClassOpt(),
+      runClasspath().map(_.path),
+      forkArgs(),
+      forkEnv(),
+      runUseArgsFile(),
+      zincWorker().javaHome().map(_.path)
+    )
+  }
+
+  def runLocalTask(mainClass: Task[String], args: Task[Args] = Task.Anon(Args())): Task[Unit] =
+    Task.Anon {
       Jvm.runLocal(
         mainClass(),
         runClasspath().map(_.path),
@@ -145,24 +164,28 @@ trait RunModule extends WithZincWorker {
       )
     }
 
-  def runBackgroundTask(mainClass: Task[String], args: Task[Args] = T.task(Args())): Task[Unit] =
-    T.task {
-      doRunBackground(
-        taskDest = T.dest,
-        runClasspath = runClasspath(),
-        zwBackgroundWrapperClasspath = zincWorker().backgroundWrapperClasspath(),
-        forkArgs = forkArgs(),
-        forkEnv = forkEnv(),
-        finalMainClass = mainClass(),
-        forkWorkingDir = forkWorkingDir(),
-        runUseArgsFile = runUseArgsFile(),
-        backgroundOutputs = backgroundOutputs(T.dest)
-      )(args().value: _*)(T.ctx())
+  def runBackgroundTask(mainClass: Task[String], args: Task[Args] = Task.Anon(Args())): Task[Unit] =
+    Task.Anon {
+      val (procUuidPath, procLockfile, procUuid) = RunModule.backgroundSetup(Task.dest)
+      runner().run(
+        args = Seq(
+          procUuidPath.toString,
+          procLockfile.toString,
+          procUuid,
+          runBackgroundRestartDelayMillis().toString,
+          mainClass()
+        ) ++ args().value,
+        mainClass = "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
+        workingDir = forkWorkingDir(),
+        extraRunClasspath = zincWorker().backgroundWrapperClasspath().map(_.path).toSeq,
+        background = true,
+        runBackgroundLogToConsole = runBackgroundLogToConsole
+      )
     }
 
   /**
    * If true, stdout and stderr of the process executed by `runBackground`
-   * or `runMainBackground` is sent to mill's stdout/stderr (which usualy
+   * or `runMainBackground` is sent to mill's stdout/stderr (which usually
    * flow to the console).
    *
    * If false, output will be directed to files `stdout.log` and `stderr.log`
@@ -170,12 +193,9 @@ trait RunModule extends WithZincWorker {
    */
   // TODO: make this a task, to be more dynamic
   def runBackgroundLogToConsole: Boolean = true
+  def runBackgroundRestartDelayMillis: T[Int] = 500
 
-  private def backgroundOutputs(dest: os.Path): Option[(ProcessOutput, ProcessOutput)] = {
-    if (runBackgroundLogToConsole) Some((os.Inherit, os.Inherit))
-    else Jvm.defaultBackgroundOutputs(dest)
-  }
-
+  @deprecated("Binary compat shim, use `.runner().run(..., background=true)`", "Mill 0.12.0")
   protected def doRunBackground(
       taskDest: Path,
       runClasspath: Seq[PathRef],
@@ -187,14 +207,20 @@ trait RunModule extends WithZincWorker {
       runUseArgsFile: Boolean,
       backgroundOutputs: Option[Tuple2[ProcessOutput, ProcessOutput]]
   )(args: String*): Ctx => Result[Unit] = ctx => {
-    val (procId, procTombstone, token) = backgroundSetup(taskDest)
+    val (procUuidPath, procLockfile, procUuid) = RunModule.backgroundSetup(taskDest)
     try Result.Success(
         Jvm.runSubprocessWithBackgroundOutputs(
-          "mill.scalalib.backgroundwrapper.BackgroundWrapper",
+          "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
           (runClasspath ++ zwBackgroundWrapperClasspath).map(_.path),
           forkArgs,
           forkEnv,
-          Seq(procId.toString, procTombstone.toString, token, finalMainClass) ++ args,
+          Seq(
+            procUuidPath.toString,
+            procLockfile.toString,
+            procUuid,
+            500.toString,
+            finalMainClass
+          ) ++ args,
           workingDir = forkWorkingDir,
           backgroundOutputs,
           useCpPassingJar = runUseArgsFile
@@ -206,37 +232,82 @@ trait RunModule extends WithZincWorker {
     }
   }
 
-  private[this] def backgroundSetup(dest: os.Path): (Path, Path, String) = {
-    val token = java.util.UUID.randomUUID().toString
-    val procId = dest / ".mill-background-process-id"
-    val procTombstone = dest / ".mill-background-process-tombstone"
-    // The background subprocesses poll the procId file, and kill themselves
-    // when the procId file is deleted. This deletion happens immediately before
-    // the body of these commands run, but we cannot be sure the subprocess has
-    // had time to notice.
-    //
-    // To make sure we wait for the previous subprocess to
-    // die, we make the subprocess write a tombstone file out when it kills
-    // itself due to procId being deleted, and we wait a short time on task-start
-    // to see if such a tombstone appears. If a tombstone appears, we can be sure
-    // the subprocess has killed itself, and can continue. If a tombstone doesn't
-    // appear in a short amount of time, we assume the subprocess exited or was
-    // killed via some other means, and continue anyway.
-    val start = System.currentTimeMillis()
-    while ({
-      if (os.exists(procTombstone)) {
-        Thread.sleep(10)
-        os.remove.all(procTombstone)
-        true
-      } else {
-        Thread.sleep(10)
-        System.currentTimeMillis() - start < 100
+  private[mill] def launcher0 = Task.Anon {
+    val launchClasspath =
+      if (!runUseArgsFile()) runClasspath().map(_.path)
+      else {
+        val classpathJar = Task.dest / "classpath.jar"
+        Jvm.createClasspathPassingJar(classpathJar, runClasspath().map(_.path))
+        Agg(classpathJar)
       }
-    }) ()
 
-    os.write(procId, token)
-    os.write(procTombstone, token)
-    (procId, procTombstone, token)
+    Jvm.createLauncher(finalMainClass(), launchClasspath, forkArgs())
   }
 
+  /**
+   * Builds a command-line "launcher" file that can be used to run this module's
+   * code, without the Mill process. Useful for deployment & other places where
+   * you do not want a build tool running
+   */
+  def launcher = Task { launcher0() }
+}
+
+object RunModule {
+
+  private[mill] def backgroundSetup(dest: os.Path): (Path, Path, String) = {
+    val procUuid = java.util.UUID.randomUUID().toString
+    val procUuidPath = dest / ".mill-background-process-uuid"
+    val procLockfile = dest / ".mill-background-process-lock"
+    (procUuidPath, procLockfile, procUuid)
+  }
+  trait Runner {
+    def run(
+        args: os.Shellable,
+        mainClass: String = null,
+        forkArgs: Seq[String] = null,
+        forkEnv: Map[String, String] = null,
+        workingDir: os.Path = null,
+        useCpPassingJar: java.lang.Boolean = null,
+        extraRunClasspath: Seq[os.Path] = Nil,
+        background: Boolean = false,
+        runBackgroundLogToConsole: Boolean = false
+    )(implicit ctx: Ctx): Unit
+  }
+  private class RunnerImpl(
+      mainClass0: Either[String, String],
+      runClasspath: Seq[os.Path],
+      forkArgs0: Seq[String],
+      forkEnv0: Map[String, String],
+      useCpPassingJar0: Boolean,
+      javaHome: Option[os.Path]
+  ) extends Runner {
+
+    def run(
+        args: os.Shellable,
+        mainClass: String = null,
+        forkArgs: Seq[String] = null,
+        forkEnv: Map[String, String] = null,
+        workingDir: os.Path = null,
+        useCpPassingJar: java.lang.Boolean = null,
+        extraRunClasspath: Seq[os.Path] = Nil,
+        background: Boolean = false,
+        runBackgroundLogToConsole: Boolean = false
+    )(implicit ctx: Ctx): Unit = {
+      Jvm.runSubprocess(
+        Option(mainClass).getOrElse(mainClass0.fold(sys.error, identity)),
+        runClasspath ++ extraRunClasspath,
+        Option(forkArgs).getOrElse(forkArgs0),
+        Option(forkEnv).getOrElse(forkEnv0),
+        args.value,
+        Option(workingDir).getOrElse(ctx.dest),
+        background = background,
+        Option(useCpPassingJar) match {
+          case Some(b) => b
+          case None => useCpPassingJar0
+        },
+        runBackgroundLogToConsole = runBackgroundLogToConsole,
+        javaHome = javaHome
+      )
+    }
+  }
 }

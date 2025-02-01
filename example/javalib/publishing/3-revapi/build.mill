@@ -1,0 +1,53 @@
+//// SNIPPET:BUILD
+package build
+import mill._, javalib._, publish._, revapi._
+
+object bar extends JavaModule with RevapiModule {
+  def publishVersion = "0.0.1"
+
+  def pomSettings = PomSettings(
+    description = "Hello",
+    organization = "com.lihaoyi",
+    url = "https://github.com/lihaoyi/example",
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github("lihaoyi", "example"),
+    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
+  )
+
+  override def revapiConfigFiles: T[Seq[PathRef]] =
+    // add Revapi config JSON file(s)
+    Task.Sources(millSourcePath / "conf/revapi.json")
+
+  override def revapiClasspath: T[Agg[PathRef]] = Task {
+    // add folder containing logback.xml
+    super.revapiClasspath() ++ Seq(PathRef(millSourcePath / "conf"))
+  }
+}
+
+// This example uses the `revapi` task, provided by the `RevapiModule`, to run an
+// analysis on old and new archives of a module to identify incompatibilities.
+//
+// NOTE: For demonstration purposes, an archive, to compare against, is published locally.
+// In real usage, the old version would be downloaded from the publish repository.
+
+/** Usage
+
+> mill bar.publishLocal
+Publishing Artifact(com.lihaoyi,bar,0.0.1) to ivy repo...
+
+> cp dev/src/Visibility.java bar/src/Visibility.java
+
+> mill bar.revapi
+Starting analysis
+Analysis results
+----------------
+old: field Visibility.SuperClass.f @ Visibility.SubClass
+new: <none>
+java.field.removed: Field removed from class.
+... BREAKING
+old: field Visibility.f
+new: field Visibility.f
+java.field.visibilityReduced: Visibility was reduced from 'public' to 'protected'.
+... BREAKING
+Analysis took ...ms.
+*/

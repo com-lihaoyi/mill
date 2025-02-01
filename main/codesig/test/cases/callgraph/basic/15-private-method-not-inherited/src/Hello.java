@@ -1,20 +1,33 @@
 package hello;
 
-// Private methods cannot be inherited or overriden, and so when we calll
+// Private methods cannot be inherited or overridden, and so when we call
 // `Hello#bar` -> `Parent#foo`, we can be confident we are calling `Parent#foo`
 // specifically and not calling `Hello#foo` or `Grandparent#foo`
 
-class Grandparent{
-    private int foo(){ return 2; }
+class Grandparent {
+  private int foo() {
+    return 2;
+  }
 }
-class Parent extends Grandparent{
-    private int foo(){ return 2; }
-    int bar(){ return foo(); }
-}
-public class Hello extends Parent{
-    public static int main(){ return new Hello().bar(); }
 
-    private int foo(){ return 3; }
+class Parent extends Grandparent {
+  private int foo() {
+    return 2;
+  }
+
+  int bar() {
+    return foo();
+  }
+}
+
+public class Hello extends Parent {
+  public static int main() {
+    return new Hello().bar();
+  }
+
+  private int foo() {
+    return 3;
+  }
 }
 /* expected-direct-call-graph
 {

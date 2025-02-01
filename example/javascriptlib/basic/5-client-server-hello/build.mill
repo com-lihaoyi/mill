@@ -1,0 +1,36 @@
+package build
+import mill._, javascriptlib._
+
+object client extends ReactScriptsModule
+
+object server extends TypeScriptModule {
+
+  /** Bundle client as resource */
+  def resources = Task {
+    os.copy(client.bundle().path, Task.dest / "build")
+    super.resources() ++ Seq(PathRef(Task.dest))
+  }
+
+  override def forkEnv = super.forkEnv() + ("PORT" -> "3000")
+
+  object test extends TypeScriptTests with TestModule.Jest
+}
+
+// Documentation for mill.example.javascriptlib
+// This example demonstrated a js client module and js server module,
+// wired up and interacting
+// Runninng `mill server.run` serves bundled static HTML files through the server.
+
+/** Usage
+
+> mill client.test
+PASS .../App.test.tsx
+...
+
+> mill client.bundle   # bundle the react app;
+...
+
+> mill show server.bundle # bundle the node server
+...
+Build succeeded!
+*/

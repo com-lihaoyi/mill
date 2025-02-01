@@ -1,0 +1,175 @@
+// This example expands `TypeScriptModule` in two ways:
+//
+// 1. Previously, `def npmInstall` was hardcoded to
+//    install `typescript` and `@types/node`, because that was what was needed
+//    to compile Typescript against the builtin Node.js APIs. In this example,
+//    we add a `def npmDeps` task, that is aggregated using `Task.traverse` into
+//   `def transitiveNpmDeps`, that are then included in the body of `def npmInstall`.
+//    The `npmInstall` destination folder in then used both in `def compile` to
+//    provide the `tsc` compiler and supporting installed type definitions, as well
+//    as in `def run` in order to provide the necessary files to the `node` runtime.
+//
+// 2. We include `esbuild@0.24.0` as part of our `npm install`, for use in a `def bundle`
+//    task that uses it to call `esbuild` to bundle our 3 ``TypeScriptModule``s into a single
+//    `bundle.js` file. The logic shared between `def run` and `def bundle` has been extracted
+//    into a `def prepareRun` task.
+
+package build
+import mill._
+
+trait TypeScriptModule extends Module {
+  def moduleDeps: Seq[TypeScriptModule] = Nil
+
+  def npmDeps: T[Seq[String]] = Task { Seq.empty[String] }
+
+  def transitiveNpmDeps: T[Seq[String]] = Task {
+    Task.traverse(moduleDeps)(_.npmDeps)().flatten ++ npmDeps()
+  }
+
+  def npmInstall = Task {
+    os.call((
+      "npm",
+      "install",
+      "--save-dev",
+      "typescript@5.6.3",
+      "@types/node@22.7.8",
+      "esbuild@0.24.0",
+      transitiveNpmDeps()
+    ))
+    PathRef(Task.dest)
+  }
+
+  def sources = Task.Source(millSourcePath / "src")
+  def allSources = Task { os.walk(sources().path).filter(_.ext == "ts").map(PathRef(_)) }
+
+  def compile: T[(PathRef, PathRef)] = Task {
+    val nodeTypes = npmInstall().path / "node_modules/@types"
+    val javascriptOut = Task.dest / "javascript"
+    val declarationsOut = Task.dest / "declarations"
+
+    val upstreamPaths =
+      for (((jsDir, dTsDir), mod) <- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps))
+        yield (mod.millSourcePath.subRelativeTo(build.millSourcePath).toString + "/*", dTsDir.path)
+
+    val allPaths = upstreamPaths ++ Seq("*" -> sources().path, "*" -> npmInstall().path)
+
+    os.write(
+      Task.dest / "tsconfig.json",
+      ujson.Obj(
+        "compilerOptions" -> ujson.Obj(
+          "outDir" -> javascriptOut.toString,
+          "declaration" -> true,
+          "declarationDir" -> declarationsOut.toString,
+          "typeRoots" -> ujson.Arr(nodeTypes.toString),
+          "paths" -> ujson.Obj.from(allPaths.map { case (k, v) => (k, ujson.Arr(s"$v/*")) })
+        ),
+        "files" -> allSources().map(_.path.toString)
+      )
+    )
+
+    os.call((npmInstall().path / "node_modules/typescript/bin/tsc"))
+
+    (PathRef(javascriptOut), PathRef(declarationsOut))
+  }
+
+  def mainFileName = Task { s"${millSourcePath.last}.js" }
+
+  def prepareRun = Task.Anon {
+    val upstream = Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
+    for (((jsDir, tTsDir), mod) <- upstream) {
+      os.copy(jsDir.path, Task.dest / mod.millSourcePath.subRelativeTo(build.millSourcePath))
+    }
+    val mainFile = compile()._1.path / mainFileName()
+    val env = Map("NODE_PATH" -> Seq(".", compile()._1.path, npmInstall().path).mkString(":"))
+    (mainFile, env)
+  }
+
+  def run(args: mill.define.Args) = Task.Command {
+    val (mainFile, env) = prepareRun()
+    os.call(("node", mainFile, args.value), stdout = os.Inherit, env = env)
+  }
+
+  def bundle = Task {
+    val (mainFile, env) = prepareRun()
+    val esbuild = npmInstall().path / "node_modules/esbuild/bin/esbuild"
+    val bundle = Task.dest / "bundle.js"
+    os.call((esbuild, mainFile, "--bundle", s"--outfile=$bundle"), env = env)
+    PathRef(bundle)
+  }
+}
+
+object foo extends TypeScriptModule {
+  object bar extends TypeScriptModule {
+    def npmDeps = Seq("immutable@4.3.7")
+  }
+}
+object qux extends TypeScriptModule {
+  def moduleDeps = Seq(foo, foo.bar)
+}
+
+// We can now not only invoke the `qux.run` to run the `TypeScriptModule` immediately
+// using `node`, we can also use `qux.bundle` to generate a `bundle.js` file we can run
+// standalone using `node`:
+
+/** Usage
+
+> mill qux.run James Bond prof
+Hello James Bond Professor
+
+> mill show qux.bundle
+".../out/qux/bundle.dest/bundle.js"
+
+> node out/qux/bundle.dest/bundle.js James Bond prof
+Hello James Bond Professor
+
+*/
+
+// The final module tree and task graph is now as follows, with the
+// additional `npmDeps` tasks upstream and the `bundle` tasks downstream:
+
+// ```graphviz
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   subgraph cluster_3 {
+//     style=dashed
+//     label=qux
+//     "qux.npmInstall" -> "qux.compile"
+//     "qux.sources" -> "qux.allSources" -> "qux.compile" -> "qux.run"
+//     "qux.mainFileName" -> "qux.run"
+//     "qux.mainFileName" -> "qux.bundle" [color=green, penwidth=3]
+//     "qux.compile" -> "qux.bundle" [color=green, penwidth=3]
+//     "qux.npmDeps" -> "qux.npmInstall" [color=green, penwidth=3]
+//     "qux.npmDeps" [color=green, penwidth=3]
+//     "qux.bundle" [color=green, penwidth=3]
+//   }
+//   subgraph cluster_1 {
+//     subgraph cluster_2 {
+//       style=dashed
+//       label=bar
+//       "bar.npmInstall" -> "bar.compile"
+//       "bar.sources" -> "bar.allSources" -> "bar.compile" -> "bar.run"
+//       "bar.mainFileName" -> "bar.run"
+//       "bar.mainFileName" -> "bar.bundle" [color=green, penwidth=3]
+//       "bar.compile" -> "bar.bundle" [color=green, penwidth=3]
+//       "bar.npmDeps" -> "bar.npmInstall" [color=green, penwidth=3]
+//       "bar.npmDeps" [color=green, penwidth=3]
+//       "bar.bundle" [color=green, penwidth=3]
+//     }
+//     style=dashed
+//     label=foo
+//     "foo.npmInstall" -> "foo.compile"
+//     "foo.sources" -> "foo.allSources" -> "foo.compile" -> "foo.run"
+//     "foo.mainFileName" -> "foo.run"
+//     "foo.mainFileName" -> "foo.bundle" [color=green, penwidth=3]
+//     "foo.compile" -> "foo.bundle" [color=green, penwidth=3]
+//     "foo.npmDeps" -> "foo.npmInstall" [color=green, penwidth=3]
+//     "foo.npmDeps" [color=green, penwidth=3]
+//     "foo.bundle" [color=green, penwidth=3]
+//   }
+//   "bar.compile" -> "qux.compile"
+//   "foo.compile" -> "qux.compile"
+//   "foo.npmDeps" -> "qux.npmDeps" [color=green, penwidth=3]
+//   "bar.npmDeps" -> "qux.npmDeps" [color=green, penwidth=3]
+// }
+// ```

@@ -114,7 +114,7 @@ class SonatypePublisher(
     val profileUri = api.getStagingProfileUri(stagingProfile)
     val stagingRepoId =
       api.createStagingRepo(profileUri, stagingProfile)
-    val baseUri = s"$uri/staging/deployByRepositoryId/$stagingRepoId/"
+    val baseUri = s"$uri/staging/deployByRepositoryId/$stagingRepoId"
 
     publishToUri(payloads, artifacts, baseUri)
 

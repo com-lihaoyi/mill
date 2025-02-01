@@ -2,11 +2,11 @@ package hello
 
 import scala.collection.AbstractIterator
 
-object Hello{
-  class TestArraySeq[T](inner: Array[T]){
+object Hello {
+  class TestArraySeq[T](inner: Array[T]) {
     def foreach[void](f: T => void) = {
       var i = 0
-      while (i < inner.length){
+      while (i < inner.length) {
         f(inner(i))
         i += 1
       }
@@ -33,4 +33,4 @@ object Hello{
         "hello.Hello$#simpleArraySeqForeach()int[]"
     ]
 }
-*/
+ */

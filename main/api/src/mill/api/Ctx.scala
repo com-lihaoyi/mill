@@ -4,10 +4,12 @@ import scala.annotation.{StaticAnnotation, compileTimeOnly}
 import scala.language.implicitConversions
 
 /**
- * Provides access to various resources in the context of a currently execution Target.
+ * Provides access to various resources in the context of a current execution Target.
  */
 object Ctx {
-  @compileTimeOnly("Target.ctx() / T.ctx() / T.* APIs can only be used with a T{...} block")
+  @compileTimeOnly(
+    "Target.ctx() / Task.ctx() / Task.* APIs can only be used with a Task{...} block"
+  )
   @ImplicitStub
   implicit def taskCtx: Ctx = ???
 
@@ -17,7 +19,7 @@ object Ctx {
   trait Dest {
 
     /**
-     * `T.dest` is a unique `os.Path` (e.g. `out/classFiles.dest/` or `out/run.dest/`)
+     * `Task.dest` is a unique `os.Path` (e.g. `out/classFiles.dest/` or `out/run.dest/`)
      * that is assigned to every Target or Command. It is cleared before your
      * task runs, and you can use it as a scratch space for temporary files or
      * a place to put returned artifacts. This is guaranteed to be unique for
@@ -34,7 +36,7 @@ object Ctx {
   trait Log {
 
     /**
-     * `T.log` is the default logger provided for every task. While your task is running,
+     * `Task.log` is the default logger provided for every task. While your task is running,
      * `System.out` and `System.in` are also redirected to this logger. The logs for a
      * task are streamed to standard out/error as you would expect, but each task's
      * specific output is also streamed to a log file on disk, e.g. `out/run.log` or
@@ -62,8 +64,8 @@ object Ctx {
   trait Env {
 
     /**
-     * `T.env` is the environment variable map passed to the Mill command when
-     * it is run; typically used inside a `T.input` to ensure any changes in
+     * `Task.env` is the environment variable map passed to the Mill command when
+     * it is run; typically used inside a `Task.Input` to ensure any changes in
      * the env vars are properly detected.
      *
      * Note that you should not use `sys.env`, as Mill's long-lived server
@@ -73,7 +75,7 @@ object Ctx {
   }
 
   trait Args {
-    def args: IndexedSeq[_]
+    def args: IndexedSeq[?]
   }
 
   /**
@@ -90,19 +92,76 @@ object Ctx {
      * This is the `os.Path` pointing to the project root directory.
      *
      * This is the preferred access to the project directory, and should
-     * always be prefered over `os.pwd`* (which might also point to the
+     * always be preferred over `os.pwd`* (which might also point to the
      * project directory in classic cli scenarios, but might not in other
      * use cases like BSP or LSP server usage).
      */
     def workspace: os.Path
   }
 
-  def defaultHome: os.Path = os.home / ".mill" / "ammonite"
+  def defaultHome: os.Path = os.home / ".mill/ammonite"
 
   /**
    * Marker annotation.
    */
   class ImplicitStub extends StaticAnnotation
+
+  trait Fork {
+
+    /**
+     * Provides APIs for Mill tasks to spawn `async` "future" computations that
+     * can be `await`ed upon to yield their result. Unlike other thread pools or
+     * `Executor`s, `fork.async` spawns futures that follow Mill's `-j`/`--jobs` config,
+     * sandbox their `os.pwd` in separate folders, and integrate with Mill's terminal
+     * logging prefixes and prompt so a user can easily see what futures are running
+     * and what logs belong to each future.
+     */
+    def fork: Fork.Impl
+  }
+
+  @experimental
+  object Fork {
+    import scala.concurrent.Future
+    import scala.concurrent.ExecutionContext
+    trait Api {
+
+      /**
+       * Awaits for the result for the given async future and returns the resultant value
+       */
+      def await[T](t: Future[T]): T
+
+      /**
+       * Awaits for the result for multiple async futures and returns the resultant values
+       */
+      def awaitAll[T](t: Seq[Future[T]]): Seq[T]
+
+      /**
+       * Spawns an async workflow. Mill async futures require additional metadata
+       * to sandbox, store logs, and integrate them into Mills terminal prompt logger
+       *
+       * @param dest The "sandbox" folder that will contain the `os.pwd` and the `pwd` for
+       *             any subprocesses spawned within the async future. Also provides the
+       *             path for the log file (dest + ".log") for any stdout/stderr `println`s
+       *             that occur within that future
+       * @param key The short prefix, typically a number ("1", "2", "3", etc.) that will be
+       *            used to prefix all log lines emitted within this async future in the
+       *            terminal to allow them to be distinguished from other logs
+       * @param message A one-line summary of what this async future is doing, used in the
+       *                terminal prompt to display what this future is currently computing.
+       * @param t The body of the async future
+       */
+      def async[T](dest: os.Path, key: String, message: String)(t: => T)(implicit
+          ctx: mill.api.Ctx
+      ): Future[T]
+    }
+
+    trait Impl extends Api with ExecutionContext with AutoCloseable {
+      def awaitAll[T](t: Seq[Future[T]]): Seq[T] = {
+        implicit val ec = this
+        await(Future.sequence(t))
+      }
+    }
+  }
 }
 
 /**
@@ -110,14 +169,16 @@ object Ctx {
  * implementation of a `Task`.
  */
 class Ctx(
-    val args: IndexedSeq[_],
+    val args: IndexedSeq[?],
     dest0: () => os.Path,
     val log: Logger,
     val home: os.Path,
     val env: Map[String, String],
     val reporter: Int => Option[CompileProblemReporter],
     val testReporter: TestReporter,
-    val workspace: os.Path
+    val workspace: os.Path,
+    val systemExit: Int => Nothing,
+    @experimental val fork: Ctx.Fork.Api
 ) extends Ctx.Dest
     with Ctx.Log
     with Ctx.Args
@@ -125,6 +186,18 @@ class Ctx(
     with Ctx.Env
     with Ctx.Workspace {
 
+  def this(
+      args: IndexedSeq[?],
+      dest0: () => os.Path,
+      log: Logger,
+      home: os.Path,
+      env: Map[String, String],
+      reporter: Int => Option[CompileProblemReporter],
+      testReporter: TestReporter,
+      workspace: os.Path
+  ) = {
+    this(args, dest0, log, home, env, reporter, testReporter, workspace, _ => ???, null)
+  }
   def dest: os.Path = dest0()
   def arg[T](index: Int): T = {
     if (index >= 0 && index < args.length) args(index).asInstanceOf[T]

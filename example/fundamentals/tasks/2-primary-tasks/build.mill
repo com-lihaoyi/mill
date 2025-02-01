@@ -1,0 +1,351 @@
+// There are three primary kinds of _Tasks_ that you should care about:
+//
+// * <<_sources>>, defined using `Task.Sources {...}`
+// * <<_tasks>>, defined using `Task {...}`
+// * <<_commands>>, defined using `Task.Command {...}`
+
+// === Sources
+package build
+
+import mill.{Module, T, _}
+
+def sources = Task.Source { millSourcePath / "src" }
+def resources = Task.Source { millSourcePath / "resources" }
+
+// ``Source``s are defined using `Task.Source{...}` taking one `os.Path`, or `Task.Sources{...}`,
+// taking multiple ``os.Path``s as arguments. A ``Source``'s:
+// its build signature/`hashCode` depends not just on the path
+// it refers to (e.g. `foo/bar/baz`) but also the MD5 hash of the file contents or
+// folder tree at that path.
+//
+// `Task.Source` and `Task.Sources` are common inputs in any Mill build:
+// they watch source files and folders and cause downstream tasks to
+// re-compute if a change is detected. Non-file inputs to the build can
+// also be captured via the more general xref:#_inputs[Input] tasks
+
+// === Tasks
+
+def allSources = Task {
+  os.walk(sources().path)
+    .filter(_.ext == "java")
+    .map(PathRef(_))
+}
+
+def lineCount: T[Int] = Task {
+  println("Computing line count")
+  allSources()
+    .map(p => os.read.lines(p.path).size)
+    .sum
+}
+
+// ```graphviz
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   sources -> allSources -> lineCount
+//   sources [color=white]
+// }
+// ```
+//
+// ``Tasks``s are defined using the `def foo = Task {...}` syntax, and dependencies
+// on other tasks are defined using `foo()` to extract the value from them.
+// Apart from the `foo()` calls, the `Task {...}` block contains arbitrary code that
+// does some work and returns a result. Note that tasks cannot have circular dependencies
+// between each other.
+//
+// The `os.walk` and `os.read.lines` statements above are from the
+// https://github.com/com-lihaoyi/os-lib[OS-Lib] library, which provides all common
+// filesystem and subprocess operations for Mill builds. You can see the OS-Lib library
+// documentation for more details:
+//
+// * https://github.com/com-lihaoyi/os-lib[OS-Lib Library Documentation]
+
+/** Usage
+
+> ./mill show lineCount
+Computing line count
+18
+
+> ./mill show lineCount # line count already cached, doesn't need to be computed
+18
+
+*/
+
+// If a cached task's inputs change but its output does not, then
+// downstream tasks do not re-evaluate. e.g. Someone may change a
+// comment within an input source file that doesn't affect the output classfiles.
+// This is determined using the `.hashCode` of the cached task's return value.
+//
+// Furthermore, when code changes occur, cached tasks only invalidate if the code change
+// may directly or indirectly affect it. e.g. adding a comment to `lineCount` will
+// not cause it to recompute:
+
+// ```diff
+//  def lineCount: T[Int] = Task {
+//   println("Computing line count")
+//+  // Hello World
+//   allSources()
+//     .map(p => os.read.lines(p.path).size)
+//     .sum
+// ```
+//
+// But changing the code of the cached task or any upstream helper method will cause the
+// old value to be invalidated and a new value re-computed (with a new `println`)
+// next time it is invoked:
+//
+// ```diff
+//   def lineCount: T[Int] = Task {
+//-  println("Computing line count")
+//+  println("Computing line count!!!")
+//   allSources()
+//     .map(p => os.read.lines(p.path).size)
+//     .sum
+// ```
+//
+// For more information on how invalidating tasks
+// based on code-changes works, see https://github.com/com-lihaoyi/mill/pull/2417[PR#2417]
+// that implemented it.
+//
+// The return-value of cached tasks has to be JSON-serializable via
+// {upickle-github-url}[uPickle]. You can run cached tasks directly from the command
+// line, or use `show` if you want to see the JSON content or pipe it to
+// external tools. See the uPickle library documentation for more details:
+//
+// * {upickle-github-url}[uPickle Library Documentation]
+
+// === Task.dest
+//
+// Each task is assigned a unique {mill-doc-url}/api/latest/mill/api/Ctx.html#dest:os.Path[Task.dest]
+// folder on disk (e.g. `classFiles` is given `out/classFiles.dest/`). `Task.dest` is
+// reset every time a task is recomputed, and can be used as scratch space or to store the task's
+// output files. Any metadata returned from the task is automatically JSON-serialized
+// and stored at `out/classFiles.json` adjacent to it's `.dest` folder. If you want to return a file
+// or a set of files as the result of a `Task`, write them to disk within your `Task.dest`
+// folder and return a `PathRef()` that referencing the files or folders
+// you want to return:
+
+def classFiles = Task {
+  println("Generating classfiles")
+
+  os.proc("javac", allSources().map(_.path), "-d", Task.dest)
+    .call(cwd = Task.dest)
+
+  PathRef(Task.dest)
+}
+
+def jar = Task {
+  println("Generating jar")
+  os.copy(classFiles().path, Task.dest, mergeFolders = true)
+  os.copy(resources().path, Task.dest, mergeFolders = true)
+
+  os.proc("jar", "-cfe", Task.dest / "foo.jar", "foo.Foo", ".").call(cwd = Task.dest)
+
+  PathRef(Task.dest / "foo.jar")
+}
+
+// ```graphviz
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   allSources -> classFiles -> jar
+//   resources -> jar
+//   allSources [color=white]
+//   resources [color=white]
+// }
+// ```
+
+/** Usage
+
+> ./mill jar
+Generating classfiles
+Generating jar
+
+> ./mill show jar
+".../out/jar.dest/foo.jar"
+
+*/
+
+// NOTE: *`os.pwd` within a `Task` is set to the `Task.dest` folder by default.*
+// This is to stop you from accidentally reading and writing files to the base repository root,
+// which would cause problems with Mill's caches not invalidating properly or files from different
+// tasks colliding and causing issues. In the rare case where
+// you truly need the Mill project root folder, you can access it via `Task.workspace`
+//
+// === Dependent Tasks
+//
+// Tasks can depend on other tasks via the `foo()` syntax.
+
+def largeFile = Task {
+  println("Finding Largest File")
+  allSources()
+    .map(_.path)
+    .filter(_.ext == "java")
+    .maxBy(os.read.lines(_).size)
+}
+
+def hugeFileName = Task {
+  if (lineCount() > 999) largeFile().last
+  else "<no-huge-file>"
+}
+
+// ```graphviz
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   allSources -> largeFile-> hugeFileName
+//   allSources [color=white]
+// }
+// ```
+
+// CAUTION: The graph of inter-dependent tasks is evaluated in topological order; that
+// means that the body of a task will not even begin to evaluate if one of its
+// upstream dependencies has failed. Similar, even if the upstream tasks is
+// not used in one branch of an `if` condition, it will get computed regardless
+// before the `if` condition is even considered.
+//
+// The output below demonstrates this behavior, with the `println` defined
+// in `def largeFile` above running even though the `largeFile()` branch of the
+// `if` conditional does not get used:
+
+/** Usage
+
+> ./mill show lineCount
+18
+
+> ./mill show hugeFileName # This still runs `largestFile` even though `lineCount() < 999`
+Finding Largest File
+"<no-huge-file>"
+
+*/
+
+// ==== Custom Return Types
+//
+// All Task return types must be JSON serializable via
+// https://github.com/com-lihaoyi/upickle[uPickle], and
+// uPickle comes with built-in support for most Scala primitive types and
+// builtin data structures: tuples, collections, ``PathRef``s, etc. can be
+// returned and automatically serialized/de-serialized as necessary. One
+// notable exception is ``case class``es: if you want return your own
+// `case class`, you must mark it JSON-serializable by adding the following
+// `implicit` to its companion object:
+
+case class ClassFileData(totalFileSize: Long, largestFile: String)
+object ClassFileData {
+  implicit val rw: upickle.default.ReadWriter[ClassFileData] = upickle.default.macroRW
+}
+
+def summarizeClassFileStats = Task {
+  val files = os.walk(classFiles().path)
+  ClassFileData(
+    totalFileSize = files.map(os.size(_)).sum,
+    largestFile = files.maxBy(os.size(_)).last
+  )
+}
+
+// ```graphviz
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   classFiles -> summarizedClassFileStats
+//   classFiles [color=white]
+// }
+// ```
+
+/** Usage
+
+> ./mill show summarizeClassFileStats
+{
+  "totalFileSize": ...,
+  "largestFile": "..."
+}
+
+*/
+
+// For more details on how to use uPickle, check out the
+// https://github.com/com-lihaoyi/upickle[uPickle library documentation]
+//
+// === Commands
+
+def run(mainClass: String, args: String*) = Task.Command {
+  os.proc(
+    "java",
+    "-cp",
+    s"${classFiles().path}:${resources().path}",
+    mainClass,
+    args
+  )
+    .call(stdout = os.Inherit)
+}
+
+// ```graphviz
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   classFiles -> run
+//   resources -> run
+//   classFiles [color=white]
+//   resources [color=white]
+// }
+// ```
+
+// Defined using `Task.Command {...}` syntax, ``Command``s can run arbitrary code, with
+// dependencies declared using the same `foo()` syntax (e.g. `classFiles()` above).
+// Commands can be parametrized, but their output is not cached, so they will
+// re-evaluate every time even if none of their inputs have changed. The only times
+// ``Command``s may be skipped is due to xref:large/selective-execution.adoc[].
+//
+//
+// A command with no parameter is defined as `def myCommand() = Task.Command {...}`.
+// It is a compile error if `()` is missing.
+//
+// Tasks can take command line params, parsed by the https://github.com/com-lihaoyi/mainargs[MainArgs]
+// library. Thus the signature `def run(mainClass: String, args: String*)` takes
+// params of the form `--main-class <str> <arg1> <arg2> ... <argn>`:
+
+/** Usage
+
+> ./mill run --main-class foo.Foo hello world
+Foo.value: 31337
+args: hello world
+foo.txt resource: My Example Text
+
+*/
+
+// Command line arguments can take most primitive types: `String`, `Int`, `Boolean`, etc.,
+// along with `Option[T]` representing optional values and `Seq[T]` representing repeatable values,
+// and `mainargs.Flag` representing flags and `mainargs.Leftover[T]` representing any command line
+// arguments not parsed earlier. Default values for command line arguments are also supported.
+// See the mainargs documentation for more details:
+//
+// * https://github.com/com-lihaoyi/mainargs[MainArgs Library Documentation]
+//
+// By default, all command parameters need to be named, except for variadic parameters
+// of type `T*` or `mainargs.Leftover[T]`, or those marked as `@arg(positional = true)`.
+// You can use also the flag `--allow-positional-command-args` to globally allow
+// arguments to be passed positionally, as shown below:
+
+/** Usage
+
+> ./mill run foo.Foo hello world # this raises an error because `--main-class` is not given
+error: Missing argument: --mainClass <str>
+Expected Signature: run
+  --mainClass <str>
+  args <str>...
+...
+
+> ./mill --allow-positional run foo.Foo hello world # this succeeds due to --allow-positional
+Foo.value: 31337
+args: hello world
+foo.txt resource: My Example Text
+
+*/
+
+//
+// Like <<_tasks>>, a command only evaluates after all its upstream
+// dependencies have completed, and will not begin to run if any upstream
+// dependency has failed.
+//
+// Commands are assigned the same scratch/output folder `out/run.dest/` as
+// Tasks are, and their returned metadata stored at the same `out/run.json`
+// path for consumption by external tools.
+//

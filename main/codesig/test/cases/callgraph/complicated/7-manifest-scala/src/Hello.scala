@@ -2,7 +2,7 @@ package hello
 
 import scala.collection.AbstractIterator
 
-object Hello{
+object Hello {
 
   object TestManifestFactory {
     val Nothing = new PhantomManifest()
@@ -30,4 +30,4 @@ object Hello{
         "hello.Hello$#testManifestFactory()java.lang.String"
     ]
 }
-*/
+ */

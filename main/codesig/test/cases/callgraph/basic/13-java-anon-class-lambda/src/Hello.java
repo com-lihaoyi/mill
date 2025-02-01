@@ -1,14 +1,22 @@
 package hello;
 
-public class Hello{
-    public static int main(){
-        java.util.function.IntSupplier foo = new java.util.function.IntSupplier(){
-            public int getAsInt(){ return used(); }
-        };
-        return foo.getAsInt();
-    }
-    public static int used(){ return 2; }
-    public static int unused(){ return 1; }
+public class Hello {
+  public static int main() {
+    java.util.function.IntSupplier foo = new java.util.function.IntSupplier() {
+      public int getAsInt() {
+        return used();
+      }
+    };
+    return foo.getAsInt();
+  }
+
+  public static int used() {
+    return 2;
+  }
+
+  public static int unused() {
+    return 1;
+  }
 }
 
 // We treat single-abstract-method classes similarly to InvokeDynamic lambdas:

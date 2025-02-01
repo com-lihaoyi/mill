@@ -2,17 +2,20 @@ package mill.api
 
 import java.net.{URL, URLClassLoader}
 
-import java.nio.file.FileAlreadyExistsException
-
-import mill.java9rtexport.Export
-import scala.util.Try
-
 /**
  * Utilities for creating classloaders for running compiled Java/Scala code in
  * isolated classpaths.
  */
 object ClassLoader {
 
+  def withContextClassLoader[T](cl: java.lang.ClassLoader)(t: => T): T = {
+    val thread = Thread.currentThread()
+    val oldCl = thread.getContextClassLoader()
+    try {
+      thread.setContextClassLoader(cl)
+      t
+    } finally thread.setContextClassLoader(oldCl)
+  }
   def java9OrAbove: Boolean = !System.getProperty("java.specification.version").startsWith("1.")
 
   def create(
@@ -22,11 +25,8 @@ object ClassLoader {
       sharedPrefixes: Seq[String] = Seq(),
       logger: Option[mill.api.Logger] = None
   )(implicit ctx: Ctx.Home): URLClassLoader = {
-    new URLClassLoader(
-      makeUrls(urls).toArray,
-      refinePlatformParent(parent)
-    ) {
-      override def findClass(name: String): Class[_] = {
+    new URLClassLoader(urls.toArray, refinePlatformParent(parent)) {
+      override def findClass(name: String): Class[?] = {
         if (sharedPrefixes.exists(name.startsWith)) {
           logger.foreach(
             _.debug(s"About to load class [${name}] from shared classloader [${sharedLoader}]")
@@ -71,30 +71,6 @@ object ClassLoader {
       val getClassLoaderMethod = launcher.getClass().getMethod("getClassLoader")
       val appClassLoader = getClassLoaderMethod.invoke(launcher).asInstanceOf[ClassLoader]
       appClassLoader.getParent()
-    }
-  }
-
-  private def makeUrls(urls: Seq[URL])(implicit ctx: Ctx.Home): Seq[URL] = {
-    if (java9OrAbove) {
-      val java90rtJar = ctx.home / Export.rtJarName
-      if (!os.exists(java90rtJar)) {
-        Try {
-          os.copy(os.Path(Export.rt()), java90rtJar, createFolders = true)
-        }.recoverWith { case e: FileAlreadyExistsException =>
-          // some race?
-          if (os.exists(java90rtJar) && PathRef(java90rtJar) == PathRef(os.Path(Export.rt()))) Try {
-            // all good
-            ()
-          }
-          else Try {
-            // retry
-            os.copy(os.Path(Export.rt()), java90rtJar, replaceExisting = true, createFolders = true)
-          }
-        }.get
-      }
-      urls :+ java90rtJar.toIO.toURI().toURL()
-    } else {
-      urls
     }
   }
 }

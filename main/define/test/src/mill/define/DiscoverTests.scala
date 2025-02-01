@@ -11,26 +11,26 @@ object DiscoverTests extends TestSuite {
       val expected = targets.map(_(m)).toSet
       assert(discovered == expected)
     }
-    "singleton" - {
+    test("singleton") {
       check(testGraphs.singleton)(_.single)
     }
-    "backtickIdentifiers" - {
+    test("backtickIdentifiers") {
       check(testGraphs.bactickIdentifiers)(
         _.`up-target`,
         _.`a-down-target`,
         _.`nested-module`.`nested-target`
       )
     }
-    "separateGroups" - {
+    test("separateGroups") {
       check(TestGraphs.triangleTask)(_.left, _.right)
     }
-    "TraitWithModuleObject" - {
+    test("TraitWithModuleObject") {
       check(TestGraphs.TraitWithModuleObject)(_.TraitModule.testFrameworks)
     }
-    "nestedModule" - {
+    test("nestedModule") {
       check(TestGraphs.nestedModule)(_.single, _.nested.single, _.classInstance.single)
     }
-    "singleCross" - {
+    test("singleCross") {
       check(TestGraphs.singleCross)(
         _.cross("210").suffix,
         _.cross("211").suffix,
@@ -40,7 +40,7 @@ object DiscoverTests extends TestSuite {
         _.cross2("212").suffix
       )
     }
-    "doubleCross" - {
+    test("doubleCross") {
       check(TestGraphs.doubleCross)(
         _.cross("210", "jvm").suffix,
         _.cross("210", "js").suffix,
@@ -51,7 +51,7 @@ object DiscoverTests extends TestSuite {
         _.cross("212", "native").suffix
       )
     }
-    "nestedCrosses" - {
+    test("nestedCrosses") {
       check(TestGraphs.nestedCrosses)(
         _.cross("210").cross2("jvm").suffix,
         _.cross("210").cross2("js").suffix,

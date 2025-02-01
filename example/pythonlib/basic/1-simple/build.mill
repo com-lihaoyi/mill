@@ -1,0 +1,114 @@
+package build
+import mill._, pythonlib._
+
+object foo extends PythonModule {
+
+  def mainScript = Task.Source { millSourcePath / "src" / "foo.py" }
+
+  def pythonDeps = Seq("Jinja2==3.1.4")
+
+  object test extends PythonTests with TestModule.Unittest
+
+}
+
+// This is a basic Mill build for a single `PythonModule`, with one
+// dependency and a test suite using the `Unittest` Library.
+//
+// You can download the example project using the **download** link above,
+// or browse the full sources via the **browse** link.
+// Ensure you have a JVM installed; the `./mill` script manages all other dependencies.
+// All examples, from simple hello-world projects on this page to advanced
+// xref:pythonlib/web-examples.adoc[web build examples]
+// are fully executable and tested in Mill’s CI workflows.
+//
+// The source code for this module lives in the `src/` folder.
+// Output for this module (typeChecked files, resolved dependency lists, …​) lives in `out/`.
+//
+// ----
+// build.mill
+// foo/
+//     src/
+//         foo/foo.py
+//     resources/
+//         ...
+//     test/
+//         src/
+//             foo/test.py
+// out/foo/
+//     run.json
+//     run.dest/
+//     ...
+//     test/
+//         run.json
+//         run.dest/
+//         ...
+// ----
+//
+// This example project uses one dependency - https://pypi.org/project/Jinja2/[Jinja2]
+// for HTML rendering and uses it to wrap a given input string in HTML templates with proper escaping.
+//
+// Typical usage of a `PythonModule` is shown below:
+
+/** Usage
+
+> ./mill resolve foo._ # List what tasks are available to run
+foo.bundle
+...
+foo.console
+...
+foo.run
+...
+foo.test
+...
+foo.typeCheck
+
+> ./mill inspect foo.typeCheck  # Show documentation and inputs of a task
+...
+foo.typeCheck(PythonModule...)
+    Run a typechecker on this module.
+Inputs:
+    foo.pythonExe
+    foo.transitivePythonPath
+    foo.sources
+...
+
+> ./mill foo.typeCheck  # TypeCheck the Python Files and notify errors
+Success: no issues found in 1 source file
+
+> ./mill foo.run --text "Hello Mill"  # run the main method with arguments
+<h1>Hello Mill</h1>
+
+> ./mill foo.test
+...
+test_escaping (test.TestScript...) ... ok
+test_simple (test.TestScript...) ... ok
+...Ran 2 tests...
+OK
+...
+
+> ./mill show foo.bundle # Creates Bundle for the python file
+".../out/foo/bundle.dest/bundle.pex"
+
+> out/foo/bundle.dest/bundle.pex --text "Hello Mill" # running the PEX binary outside of Mill
+<h1>Hello Mill</h1>
+
+> sed -i.bak 's/print(main())/print(maaain())/g' foo/src/foo.py
+
+> ./mill foo.typeCheck # if we make a typo in a method name, mypy flags it
+error: ...Name "maaain" is not defined...
+
+*/
+
+// The output of every Mill task is stored in the `out/` folder under a name corresponding to
+// the task that created it. e.g. The `typeCheck` task puts its metadata output in `out/typeCheck.json`,
+// and its output files in `out/typeCheck.dest`.
+// You can also use `show` to make Mill print out the metadata output for a particular task.
+//
+// You can run mill `resolve __` to see a full list of the different tasks that are available,
+// `mill resolve _` to see the tasks within foo, `mill inspect typeCheck` to inspect a task’s doc-comment
+// documentation or what it depends on, or `mill show foo.typeCheck` to show the output of any task.
+//
+// The most common **tasks** that Mill can run are cached tasks, such as `typeCheck`, `test`, `bundle` and
+// `run`. Cached tasks do not re-evaluate unless one of their inputs changes, whereas commands re-run every time.
+// See the documentation for https://mill-build.org/mill/main-branch/fundamentals/tasks.html[Tasks]
+// for details on the different task types.

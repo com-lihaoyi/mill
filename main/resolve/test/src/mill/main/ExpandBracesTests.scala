@@ -5,22 +5,22 @@ import utest._
 object ExpandBracesTests extends TestSuite {
 
   val tests = Tests {
-    "expandBraces" - {
+    test("expandBraces") {
       def check(input: String, expectedExpansion: List[String]) = {
         val Right(expanded) = ExpandBraces.expandBraces(input)
 
         assert(expanded == expectedExpansion)
       }
 
-      "expandLeft" - check(
+      test("expandLeft") - check(
         "{application,core}.compile",
         List("application.compile", "core.compile")
       )
-      "expandRight" - check(
+      test("expandRight") - check(
         "application.{jar,docJar,sourcesJar}",
         List("application.jar", "application.docJar", "application.sourcesJar")
       )
-      "expandBoth" - check(
+      test("expandBoth") - check(
         "{core,application}.{jar,docJar}",
         List(
           "core.jar",
@@ -29,7 +29,7 @@ object ExpandBracesTests extends TestSuite {
           "application.docJar"
         )
       )
-      "expandNested" - {
+      test("expandNested") {
         check("{hello,world.{cow,moo}}", List("hello", "world.cow", "world.moo"))
         check("{a,b{c,d}}", List("a", "bc", "bd"))
         check("{a,b,{c,d}}", List("a", "b", "c", "d"))
@@ -39,14 +39,14 @@ object ExpandBracesTests extends TestSuite {
         check("{a{b,c},d{e,f}}", List("ab", "ac", "de", "df"))
         check("{a,b{c,d},e{f,g}}", List("a", "bc", "bd", "ef", "eg"))
       }
-      "expandMixed" - {
+      test("expandMixed") {
         test - check(
           "{a,b}.{c}.{}.e",
           List("a.{c}.{}.e", "b.{c}.{}.e")
         )
         test - check("{{b,c}}d", List("{b}d", "{c}d"))
       }
-      "malformed" - {
+      test("malformed") {
         val malformed = Seq("core.{compile", "core.{compile,test]")
 
         malformed.foreach { m =>
@@ -54,13 +54,13 @@ object ExpandBracesTests extends TestSuite {
           assert(error.contains("Parsing exception"))
         }
       }
-      "dontExpand" - {
+      test("dontExpand") {
         test - check("core.compile", List("core.compile"))
         test - check("{}.compile", List("{}.compile"))
         test - check("{core}.compile", List("{core}.compile"))
 
       }
-      "keepUnknownSymbols" - {
+      test("keepUnknownSymbols") {
         check("{a,b}.e<>", List("a.e<>", "b.e<>"))
         check("a[99]&&", List("a[99]&&"))
         check(

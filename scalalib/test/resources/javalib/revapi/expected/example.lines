@@ -1,0 +1,27 @@
+Analysis results
+----------------
+
+Old API: example.jar
+New API: out.jar
+old: <none>
+new: class Abstract.PubliclyUsedPrivateSuperClass
+java.class.nonPublicPartOfAPI: Class 'Abstract.PubliclyUsedPrivateSuperClass' is indirectly included in the API (by the means of method return type for example) but the class is not accessible (neither public nor protected).
+
+old: class TypeParams.Base<T>
+new: class TypeParams.Base<T extends java.lang.Number, E>
+java.generics.formalTypeParameterAdded: A new formal type parameter added to element: 'E'.
+java.generics.formalTypeParameterChanged: The formal type parameter changed from 'T' to 'T extends java.lang.Number'.
+
+old: class TypeParams.Class<A, B extends java.lang.String, T>
+new: class TypeParams.Class<New, B extends java.lang.Cloneable>
+java.generics.formalTypeParameterRemoved: The formal type parameter 'T' was removed from the element.
+java.generics.formalTypeParameterChanged: The formal type parameter changed from 'B extends java.lang.String' to 'B extends java.lang.Cloneable'.
+java.class.superTypeTypeParametersChanged: Super type's type parameters changed from 'TypeParams.Base<T>' to 'TypeParams.Base<java.lang.Double, New>'.
+
+old: field Visibility.SuperClass.f @ Visibility.SubClass
+new: <none>
+java.field.removed: Field removed from class.
+
+old: field Visibility.f
+new: field Visibility.f
+java.field.visibilityReduced: Visibility was reduced from 'public' to 'protected'.

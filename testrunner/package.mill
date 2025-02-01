@@ -1,0 +1,11 @@
+package build.testrunner
+// imports
+import mill._
+
+object `package` extends RootModule with build.MillPublishScalaModule {
+  def moduleDeps = Seq(build.scalalib.api, build.main.util, entrypoint)
+
+  object entrypoint extends build.MillPublishJavaModule {
+    override def ivyDeps = Agg(build.Deps.sbtTestInterface)
+  }
+}

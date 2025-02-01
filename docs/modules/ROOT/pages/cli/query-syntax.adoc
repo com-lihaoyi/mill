@@ -1,0 +1,151 @@
+= Task Query Syntax
+:page-aliases: Task_Query_Syntax.adoc
+
+
+
+When interacting with Mill from the CLI, you often need to select tasks or modules.
+In most places, where Mill accepts a task, it really accepts a task selector query, which is the name of a task in its simplest form, but it can also contain wildcards, type pattern and other special syntax, making it a powerful tool to select specific tasks.
+
+== Selecting dedicated tasks
+
+When invoking Mill, the simplest way to run a task is to give it with a fully qualified names.
+
+Examples:
+
+----
+> mill for.compile
+> mill for.run hello world
+> mill foo.testCached
+----
+
+.Understanding task paths and path segments
+****
+
+Each Mill module and task has a unique path.
+Each part of the path is called _segment_.
+Segments are separated with a dot (`.`).
+They look like regular Scala class name qualifiers.
+
+There are two kind of segments: _label segments_ and _cross segments_.
+
+_Label segments_ are the components of a task path and have the same restriction as Scala identifiers.
+They must start with a letter and may contain letters, numbers and a limited set of special characters `-` (dash), `_` (underscore).
+They are used to denote Mill modules, tasks, but in the case of xref:fundamentals/modules.adoc#_external_modules[external modules] their Scala package names.
+
+_Cross segments_ start with a label segment but contain additional square brackets (`[`, `]`]) and are used to denote cross module and their parameters.
+
+NOTE: Segments can be surrounded by parentheses (`(`, `)`)).
+When combined with <<type-filters,qualified type filter>> which contain dots (`.`), the parentheses need to be used, to avoid the dots to being interpreted as path separators.
+
+****
+
+[#select-multiple-tasks]
+== Selecting multiple tasks
+
+If you want to select more than one task, you have multiple options:
+
+* <<enumerations,Use task enumerations>>
+* <<wildcards,Use wildcard selections>>
+* <<type-filters,Specify type filters on wildcard selections>>
+* <<add-task-selector,Use `+` to use more than one task selector>>
+
+You can also combine these techniques to properly select your tasks
+
+[#enumerations]
+== Enumerations
+
+Enumeration are denoted by curly braces (`{`, `}`).
+Inside the curly braces you can place two or more selector paths, separated with a comma (`,`).
+
+Examples:
+
+* `{foo,bar}` simple enumerates two tasks, `foo` and `bar`
+* `foo.{compile,run}` expands to `foo.compile` and `foo.run`
+* `+{_,foo.bar}.baz+` expands to `+_.baz+` and `foo.bar.baz`
+
+[TIP]
+====
+Some Shells like `bash` support curly braces expansion.
+Make sure to properly mask the selector path, e.g. by putting it in quotes.
+
+[bash]
+----
+mill "foo.{compile.run}"
+----
+====
+
+[#wildcards]
+== Wildcard selections
+
+There are two wildcards, you can use as path segment.
+
+* `+_+` The single underscore acts as a placeholder for a single segment.
+
+* `+__+` The double underscore acts as a placeholder for many segments.
+In particular, it can represent an empty segment.
+
+With wildcards, you can get explicit control over the position of a task in the build tree.
+
+E.g. the filter `+_._._.jar+` will match all jar tasks, that are on the third-level of the build tree.
+
+[#type-filters]
+== Type filters for wildcard selections
+
+Type filters are always combined with wildcard.
+They are used to limit the scope of the wildcard to only match path segments of the specified types.
+For module paths this means, the represented module needs to be an instance of the specified type.
+
+A type filter always starts with a wildcard (`+_+`, `+__+`) followed by a colon (`:`) and finally  the _type qualifier_.
+
+The type is matched by its name and optionally by its enclosing types and packages, separated by a `.` sign.
+Since this is also used to separate task path segments, a type selector segment containing a `.` needs to be enclosed in parentheses.
+A fully qualified type can be denoted with the `+_root_+` package.
+
+[sh]
+----
+> mill resolve __:TestModule.jar
+> mill resolve "(__:scalalib.TestModule).jar"
+> mill resolve "(__:mill.scalalib.TestModule).jar"
+> mill resolve "(__:_root_.mill.scalalib.TestModule).jar"
+----
+
+If the type qualifier starts with a `^` or `!`, it's only matching types which are _not_ instances of the specified type.
+
+[sh]
+----
+> mill resolve __:^TestModule.jar
+----
+
+You can also add more than one type filters to a wildcard.
+
+[sh]
+----
+> mill resolve "__:JavaModule:^ScalaModule:^TestModule.jar"
+----
+
+NOTE: Type filter are currently only supported for module selections, but not for task selections.
+That means, you can't filter based on the result type of a task.
+
+[#add-task-selector]
+== Start a new task selector with `+`
+
+On the Mill CLI you can also start a complete new task selector with the `+` sign.
+
+There is a subtle difference between the expansion of <<enumerations,enumerations>>, <<wildcards,wildcards>> and <<type-filters,wildcards with type filters>> in contrast to the  <<add-task-selector,start of a new selector with `+`>>.
+
+For all the former versions, Mill parses them into a complex but single task selector path and subsequent parameters are used for all resolved tasks.
+
+Whereas the `+` start a completely new selector path to which you can also provide a different parameter list. This is important when using xref:fundamentals/tasks.adoc#_commands[command tasks] which can accept their own parameters. The `JavaModule.run` command is an example.
+
+----
+> mill foo.run hello                         # <1>
+> mill {foo,bar}.run hello                   # <2>
+> mill __:JavaModule:^TestModule.run hello   # <3>
+> mill foo.run hello + bar.run world         # <4>
+----
+
+<1> Runs `foo.run` with the parameter `hello`
+<2> Expands to `foo.run` and `bar.run` and runs both with the parameter `hello`.
+<3> Selects the `run` command of all Java modules, but not test modules, and runs them with the parameter `hello`.
+<4> Runs `fun.run` with the parameter `hello` and `bar.run` with the parameter `world`.
+

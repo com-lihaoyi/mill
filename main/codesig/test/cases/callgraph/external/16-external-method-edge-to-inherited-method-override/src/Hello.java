@@ -2,27 +2,40 @@ package hello;
 
 // Make sure that when we call external methods, we only generate conservative
 // call graph edges to local methods that are defined on the external class
-// that we called the external methd on.
+// that we called the external method on.
 
-class Foo implements Parent{
-    public void doParentThing() { System.out.println("Running doThing"); }
-    public void doGrandThing() { System.out.println("Running doGrandThing"); }
-    public void otherNonSamMethod() { System.out.println("Running otherNonSamMethod"); }
-    public void notDoneThing() { System.out.println("Running notDoneThing"); }
+class Foo implements Parent {
+  public void doParentThing() {
+    System.out.println("Running doThing");
+  }
+
+  public void doGrandThing() {
+    System.out.println("Running doGrandThing");
+  }
+
+  public void otherNonSamMethod() {
+    System.out.println("Running otherNonSamMethod");
+  }
+
+  public void notDoneThing() {
+    System.out.println("Running notDoneThing");
+  }
 }
 
-public class Hello{
-    public static void main(){
-        Foo foo = new Foo();
-        bar(foo);
-        qux(foo);
-    }
-    public static void bar(Foo foo) {
-        foo.doGrandThingConcrete();
-    }
-    public static void qux(Foo foo) {
-        foo.doParentThingConcrete();
-    }
+public class Hello {
+  public static void main() {
+    Foo foo = new Foo();
+    bar(foo);
+    qux(foo);
+  }
+
+  public static void bar(Foo foo) {
+    foo.doGrandThingConcrete();
+  }
+
+  public static void qux(Foo foo) {
+    foo.doParentThingConcrete();
+  }
 }
 
 // In this case, `bar` calls `doGrandThingConcrete` which is defined externally

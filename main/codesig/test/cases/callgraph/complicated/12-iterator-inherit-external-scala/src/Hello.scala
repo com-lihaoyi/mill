@@ -2,7 +2,7 @@ package hello
 
 import scala.collection.AbstractIterator
 
-object Hello{
+object Hello {
 
   class Elements[T](arr: Array[T]) extends AbstractIterator[T] {
     val end = arr.length
@@ -77,4 +77,4 @@ object Hello{
         "hello.Hello$#manualIterator2(int)int"
     ]
 }
-*/
+ */

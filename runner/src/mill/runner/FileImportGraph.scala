@@ -1,6 +1,10 @@
 package mill.runner
 
 import mill.api.internal
+import mill.main.client.CodeGenConstants._
+import mill.main.client.OutFiles._
+import mill.runner.worker.api.{MillScalaParser, ImportTree}
+
 import scala.reflect.NameTransformer.encode
 import scala.collection.mutable
 
@@ -10,16 +14,16 @@ import scala.collection.mutable
  * @param ivyDeps
  * @param importGraphEdges
  * @param errors
- * @param millImport If `true`, a meta-build is enabled
+ * @param metaBuild If `true`, a meta-build is enabled
  */
 @internal
 case class FileImportGraph(
     seenScripts: Map[os.Path, String],
     repos: Seq[(String, os.Path)],
     ivyDeps: Set[String],
-    importGraphEdges: Map[os.Path, Seq[os.Path]],
     errors: Seq[String],
-    millImport: Boolean
+    metaBuild: Boolean,
+    buildFile: String
 )
 
 /**
@@ -28,54 +32,136 @@ case class FileImportGraph(
  */
 @internal
 object FileImportGraph {
-  def backtickWrap(s: String): String = if (encode(s) == s) s else "`" + s + "`"
+
+  val alphaKeywords: Set[String] = Set(
+    "abstract",
+    "case",
+    "catch",
+    "class",
+    "def",
+    "do",
+    "else",
+    "enum",
+    "export",
+    "extends",
+    "false",
+    "final",
+    "finally",
+    "forSome",
+    "for",
+    "given",
+    "if",
+    "implicit",
+    "import",
+    "lazy",
+    "match",
+    "new",
+    "null",
+    "object",
+    "override",
+    "package",
+    "private",
+    "protected",
+    "return",
+    "sealed",
+    "super",
+    "then",
+    "this",
+    "throw",
+    "trait",
+    "try",
+    "true",
+    "type",
+    "val",
+    "var",
+    "while",
+    "with",
+    "yield",
+    "_",
+    "macro"
+  )
+
+  def backtickWrap(s: String): String = s match {
+    case s"`$v`" => s
+    case _ => if (encode(s) == s && !alphaKeywords.contains(s)) s
+      else "`" + s + "`"
+  }
 
   import mill.api.JsonFormatters.pathReadWrite
   implicit val readWriter: upickle.default.ReadWriter[FileImportGraph] = upickle.default.macroRW
 
   /**
    * We perform a depth-first traversal of the import graph of `.sc` files,
-   * starting from `build.sc`, collecting the information necessary to
+   * starting from `build.mill`, collecting the information necessary to
    * instantiate the [[MillRootModule]]
    */
-  def parseBuildFiles(topLevelProjectRoot: os.Path, projectRoot: os.Path): FileImportGraph = {
+  def parseBuildFiles(
+      parser: MillScalaParser,
+      topLevelProjectRoot: os.Path,
+      projectRoot: os.Path,
+      output: os.Path
+  ): FileImportGraph = {
     val seenScripts = mutable.Map.empty[os.Path, String]
     val seenIvy = mutable.Set.empty[String]
     val seenRepo = mutable.ListBuffer.empty[(String, os.Path)]
-    val importGraphEdges = mutable.Map.empty[os.Path, Seq[os.Path]]
     val errors = mutable.Buffer.empty[String]
     var millImport = false
+    var packagesImport = false
 
-    def walkScripts(s: os.Path, useDummy: Boolean = false): Unit = {
-      importGraphEdges(s) = Nil
+    def processScript(s: os.Path, useDummy: Boolean = false): Unit = {
+      val readFileEither = scala.util.Try {
+        val content = if (useDummy) "" else os.read(s)
+        val fileName = s.relativeTo(topLevelProjectRoot).toString
+        for (splitted <- parser.splitScript(content, fileName))
+          yield {
+            val (pkgs, stmts) = splitted
+            val importSegments = pkgs.mkString(".")
 
-      if (!seenScripts.contains(s)) {
-        val readFileEither = scala.util.Try {
-          val content = if (useDummy) "" else os.read(s)
-          Parsers.splitScript(content, s.relativeTo(topLevelProjectRoot).toString)
-        } match {
-          case scala.util.Failure(ex) => Left(ex.getClass.getName + " " + ex.getMessage)
-          case scala.util.Success(value) => value
-        }
-        readFileEither match {
-          case Left(err) =>
-            // Make sure we mark even scripts that failed to parse as seen, so
-            // they can be watched and the build can be re-triggered if the user
-            // fixes the parse error
-            seenScripts(s) = ""
-            errors.append(err)
+            val expectedImportSegments0 =
+              Seq(rootModuleAlias) ++
+                (s / os.up).relativeTo(projectRoot).segments
 
-          case Right(stmts) =>
-            val fileImports = mutable.Set.empty[os.Path]
-            // we don't expect any new imports when using an empty dummy
-            if (useDummy) assert(fileImports.isEmpty)
-            val transformedStmts = mutable.Buffer.empty[String]
-            for ((stmt0, importTrees) <- Parsers.parseImportHooksWithIndices(stmts)) {
-              walkStmt(s, stmt0, importTrees, fileImports, transformedStmts)
+            val expectedImportSegments = expectedImportSegments0.map(backtickWrap).mkString(".")
+            if (
+              // Legacy `.sc` files have their package build be optional
+              (s.last.endsWith(".mill") || s.last.endsWith(".mill.scala")) &&
+              expectedImportSegments != importSegments &&
+              // Root build.mill file has its `package build` be optional
+              !(importSegments == "" && rootBuildFileNames.contains(s.last))
+            ) {
+              val expectedImport =
+                if (expectedImportSegments.isEmpty) "<none>"
+                else s"\"package $expectedImportSegments\""
+              errors.append(
+                s"Package declaration \"package $importSegments\" in " +
+                  s"${s.relativeTo(topLevelProjectRoot)} does not match " +
+                  s"folder structure. Expected: $expectedImport"
+              )
             }
-            seenScripts(s) = transformedStmts.mkString
-            fileImports.foreach(walkScripts(_))
-        }
+            stmts
+          }
+
+      } match {
+        case scala.util.Failure(ex) => Left(ex.getClass.getName + " " + ex.getMessage)
+        case scala.util.Success(value) => value
+      }
+      readFileEither match {
+        case Left(err) =>
+          // Make sure we mark even scripts that failed to parse as seen, so
+          // they can be watched and the build can be re-triggered if the user
+          // fixes the parse error
+          seenScripts(s) = ""
+          errors.append(err)
+
+        case Right(stmts) =>
+          val fileImports = mutable.Set.empty[os.Path]
+          // we don't expect any new imports when using an empty dummy
+          val transformedStmts = mutable.Buffer.empty[String]
+          for ((stmt0, importTrees) <- parser.parseImportHooksWithIndices(stmts)) {
+            walkStmt(s, stmt0, importTrees, fileImports, transformedStmts)
+          }
+          seenScripts(s) = transformedStmts.mkString
+          fileImports.foreach(processScript(_))
       }
     }
 
@@ -96,46 +182,94 @@ object FileImportGraph {
               if seenRepo.find(_._1 == repo).isEmpty
             } seenRepo.addOne((repo, s))
             (start, "_root_._", end)
+
           case ImportTree(Seq(("$ivy", _), rest @ _*), mapping, start, end) =>
             seenIvy.addAll(mapping.map(_._1))
             (start, "_root_._", end)
+
           case ImportTree(Seq(("$meta", _), rest @ _*), mapping, start, end) =>
             millImport = true
             (start, "_root_._", end)
-          case ImportTree(Seq(("$file", _), rest @ _*), mapping, start, end) =>
-            val nextPaths = mapping.map { case (lhs, rhs) => nextPathFor(s, rest.map(_._1) :+ lhs) }
 
-            fileImports.addAll(nextPaths)
-            importGraphEdges(s) ++= nextPaths
+          case ImportTree(Seq(("$packages", _), rest @ _*), mapping, start, end) =>
+            packagesImport = true
+            (start, "_root_._", end)
 
-            if (rest.isEmpty) (start, "_root_._", end)
-            else {
-              val end = rest.last._2
-              (
-                start,
-                fileImportToSegments(projectRoot, nextPaths(0) / os.up, false)
+          case ImportTree(Seq(("$file", end0), rest @ _*), mapping, start, end) =>
+            // Only recursively explore imports from legacy `.sc` files, as new `.mill` files
+            // do file discovery via scanning folders containing `package.mill` files
+            if (s.last.endsWith(".sc") && !s.last.endsWith(".mill.scala")) {
+              val nextPaths = mapping.map { case (lhs, rhs) =>
+                nextPathFor(s, rest.map(_._1) :+ lhs)
+              }
+              val patchString =
+                (fileImportToSegments(projectRoot, nextPaths(0) / os.up) ++ Seq())
                   .map(backtickWrap)
-                  .mkString("."),
-                end
-              )
+                  .mkString(".")
+              fileImports.addAll(nextPaths)
+              (start, patchString, rest.lastOption.fold(end0)(_._2))
+
+            } else {
+              (start, "", start)
             }
         }
+
         val numNewLines = stmt.substring(start, end).count(_ == '\n')
+
         stmt = stmt.patch(start, patchString + mill.util.Util.newLine * numNewLines, end - start)
       }
 
       transformedStmts.append(stmt)
     }
 
-    val useDummy = !os.exists(projectRoot / "build.sc")
-    walkScripts(projectRoot / "build.sc", useDummy)
+    val rootBuildFiles = rootBuildFileNames
+      .filter(rootBuildFileName => os.exists(projectRoot / rootBuildFileName))
+
+    val (useDummy, foundRootBuildFileName) = rootBuildFiles.toSeq match {
+      case Nil => (true, rootBuildFileNames.head)
+      case Seq(single) => (false, single)
+      case multiple =>
+        System.err.println(
+          "Multiple root build files found: " + multiple.mkString(",") +
+            ", picking " + multiple.head
+        )
+        (false, multiple.head)
+    }
+
+    val buildFileExtension =
+      buildFileExtensions.find(ex => foundRootBuildFileName.endsWith(s".$ex")).get
+
+    val nestedBuildFileName = s"package.$buildFileExtension"
+
+    processScript(projectRoot / foundRootBuildFileName, useDummy)
+    val buildFiles =
+      if (!packagesImport) Nil
+      else {
+        os
+          .walk(
+            projectRoot,
+            followLinks = true,
+            skip = p =>
+              p == output ||
+                p == projectRoot / millBuild ||
+                (os.isDir(p) && !os.exists(p / nestedBuildFileName))
+          )
+          .filter(_.last == nestedBuildFileName)
+      }
+
+    val adjacentScripts = (projectRoot +: buildFiles.map(_ / os.up))
+      .flatMap(os.list(_))
+      .filter(_.last.endsWith(s".$buildFileExtension"))
+
+    (buildFiles ++ adjacentScripts).foreach(processScript(_))
+
     new FileImportGraph(
       seenScripts.toMap,
       seenRepo.toSeq,
       seenIvy.toSet,
-      importGraphEdges.toMap,
       errors.toSeq,
-      millImport
+      millImport,
+      foundRootBuildFileName
     )
   }
 
@@ -152,8 +286,8 @@ object FileImportGraph {
     s / os.up / restSegments / os.up / s"${rest.last}.sc"
   }
 
-  def fileImportToSegments(base: os.Path, s: os.Path, stripExt: Boolean): Seq[String] = {
-    val rel = (s / os.up / (if (stripExt) s.baseName else s.last)).relativeTo(base)
-    Seq("millbuild") ++ Seq.fill(rel.ups)("^") ++ rel.segments
+  def fileImportToSegments(base: os.Path, s: os.Path): Seq[String] = {
+    val rel = s.relativeTo(base)
+    Seq(globalPackagePrefix) ++ Seq.fill(rel.ups)("^") ++ rel.segments
   }
 }

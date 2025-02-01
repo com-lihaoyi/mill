@@ -1,0 +1,44 @@
+= Example: Typescript Support
+
+
+
+This section walks through the process of adding support for a new programming
+language to Mill. We will be adding a small `trait TypeScriptModule` with the
+ability to resolve dependencies, typecheck local code, and optimize a final
+bundle.
+
+The TypeScript integration here is not intended for production usage, but is
+instead meant for illustration purposes of the techniques typically used in
+implementing language toolchains.
+
+== Basic TypeScript Build Pipeline
+
+include::partial$example/extending/typescript/1-hello-typescript.adoc[]
+
+== Re-usable TypeScriptModule
+
+include::partial$example/extending/typescript/2-typescript-modules.adoc[]
+
+== TypeScriptModule `moduleDeps`
+
+include::partial$example/extending/typescript/3-module-deps.adoc[]
+
+== NPM dependencies and bundling
+
+include::partial$example/extending/typescript/4-npm-deps-bundle.adoc[]
+
+
+
+
+As mentioned earlier, the `TypeScriptModule` examples on this page are meant for
+demo purposes: to show what it looks like to add support in Mill for a new
+programming language toolchain. It would take significantly more work to flesh out
+the featureset and performance of `TypeScriptModule` to be usable in a real world
+build. But this should be enough to get you started working with Mill to add support
+to any language you need: whether it's TypeScript or some other language, most programming
+language toolchains have similar concepts of `compile`, `run`, `bundle`, etc.
+
+
+As mentioned, The `PythonModule` examples here demonstrate
+how to add support for a new language toolchain in Mill.
+A production-ready version would require more work to enhance features and performance.

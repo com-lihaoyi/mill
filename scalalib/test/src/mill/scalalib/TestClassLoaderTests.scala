@@ -1,19 +1,18 @@
 package mill.scalalib
 
-import mill.{Agg, T}
+import mill.{Agg, T, Task}
 
-import mill.util.{TestEvaluator, TestUtil}
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import utest._
 import utest.framework.TestPath
 
 object TestClassLoaderTests extends TestSuite {
-  object testclassloader extends TestUtil.BaseModule with ScalaModule {
-    override def millSourcePath = TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
-
+  object testclassloader extends TestBaseModule with ScalaModule {
     def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
     object test extends ScalaTests with TestModule.Utest {
-      override def ivyDeps = T {
+      override def ivyDeps = Task {
         super.ivyDeps() ++ Agg(
           ivy"com.lihaoyi::utest:${sys.props.getOrElse("TEST_UTEST_VERSION", ???)}"
         )
@@ -21,27 +20,14 @@ object TestClassLoaderTests extends TestSuite {
     }
   }
 
-  val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "classloader-test"
-
-  def workspaceTest[T](
-      m: TestUtil.BaseModule,
-      resourcePath: os.Path = resourcePath
-  )(t: TestEvaluator => T)(
-      implicit tp: TestPath
-  ): T = {
-    val eval = new TestEvaluator(m)
-    os.remove.all(m.millSourcePath)
-    os.remove.all(eval.outPath)
-    os.makeDir.all(m.millSourcePath / os.up)
-    os.copy(resourcePath, m.millSourcePath)
-    t(eval)
-  }
+  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "classloader-test"
 
   override def tests: Tests = Tests {
-    test("com.sun classes exist in tests classpath (Java 8 only)") {
-      workspaceTest(testclassloader) { eval =>
-        assert(eval.apply(testclassloader.test.test()).isRight)
-      }
+    test("com.sun classes exist in tests classpath (Java 8 only)") - UnitTester(
+      testclassloader,
+      resourcePath
+    ).scoped { eval =>
+      assert(eval.apply(testclassloader.test.test()).isRight)
     }
   }
 }

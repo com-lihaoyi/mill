@@ -2,7 +2,6 @@ package mill.scalalib.api
 
 import mill.api.Loose.Agg
 import mill.api.PathRef
-import mill.scalalib.api.Versions
 import scala.util.matching.Regex
 
 trait ZincWorkerUtil {

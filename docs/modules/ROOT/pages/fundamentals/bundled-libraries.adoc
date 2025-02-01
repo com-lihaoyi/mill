@@ -1,0 +1,44 @@
+= Bundled Libraries
+:page-aliases: External_References.adoc, Bundled_Libraries.adoc
+
+
+
+Mill comes bundled with a set of external Open Source libraries and projects.
+
+== OS-lib
+
+Project page:: https://github.com/com-lihaoyi/os-lib
+ScalaDoc:: https://javadoc.io/doc/com.lihaoyi/os-lib_2.13/latest/index.html
+
+include::partial$example/fundamentals/libraries/1-oslib.adoc[]
+
+== uPickle
+
+Project page:: https://github.com/com-lihaoyi/upickle
+ScalaDoc:: https://javadoc.io/doc/com.lihaoyi/upickle_2.13/latest/index.html
+
+include::partial$example/fundamentals/libraries/2-upickle.adoc[]
+
+== Requests-Scala
+
+Project page:: https://github.com/com-lihaoyi/requests-scala
+ScalaDoc:: https://javadoc.io/doc/com.lihaoyi/requests_2.13/latest/index.html
+
+include::partial$example/fundamentals/libraries/3-requests.adoc[]
+
+== MainArgs
+
+
+Project page:: https://github.com/com-lihaoyi/mainargs
+Scaladoc:: https://javadoc.io/doc/com.lihaoyi/mainargs_2.13/latest/index.html
+
+include::partial$example/fundamentals/libraries/4-mainargs.adoc[]
+
+== Coursier
+
+Coursier is the Scala application and artifact manager. Mill uses Coursier for
+all third-party artifact resolution and management in JVM languages (Scala,
+Java, etc.)
+
+Project page:: https://github.com/coursier/coursier
+Documentation:: https://get-coursier.io/docs/overview

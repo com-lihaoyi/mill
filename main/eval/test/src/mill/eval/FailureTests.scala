@@ -1,7 +1,8 @@
 package mill.eval
 
-import mill.T
-import mill.util.{TestEvaluator, TestUtil}
+import mill.{T, Task}
+import mill.testkit.UnitTester
+import mill.testkit.TestBaseModule
 import mill.api.Result.OuterStack
 import utest._
 
@@ -11,8 +12,8 @@ object FailureTests extends TestSuite {
     val graphs = new mill.util.TestGraphs()
     import graphs._
 
-    "evaluateSingle" - {
-      val check = new TestEvaluator(singleton)
+    test("evaluateSingle") {
+      val check = UnitTester(singleton, null)
       check.fail(
         target = singleton.single,
         expectedFailCount = 0,
@@ -44,8 +45,8 @@ object FailureTests extends TestSuite {
         expectedRawValues = Seq(mill.api.Result.Exception(ex, new OuterStack(Nil)))
       )
     }
-    "evaluatePair" - {
-      val check = new TestEvaluator(pair)
+    test("evaluatePair") {
+      val check = UnitTester(pair, null)
       check.fail(
         pair.down,
         expectedFailCount = 0,
@@ -78,8 +79,8 @@ object FailureTests extends TestSuite {
       )
     }
 
-    "evaluatePair (failFast=true)" - {
-      val check = new TestEvaluator(pair, failFast = true)
+    test("evaluatePair (failFast=true)") {
+      val check = UnitTester(pair, null, failFast = true)
       check.fail(
         pair.down,
         expectedFailCount = 0,
@@ -111,8 +112,8 @@ object FailureTests extends TestSuite {
       )
     }
 
-    "evaluateBacktickIdentifiers" - {
-      val check = new TestEvaluator(bactickIdentifiers)
+    test("evaluateBacktickIdentifiers") {
+      val check = UnitTester(bactickIdentifiers, null)
       import bactickIdentifiers._
       check.fail(
         `a-down-target`,
@@ -145,8 +146,8 @@ object FailureTests extends TestSuite {
       )
     }
 
-    "evaluateBacktickIdentifiers (failFast=true)" - {
-      val check = new TestEvaluator(bactickIdentifiers, failFast = true)
+    test("evaluateBacktickIdentifiers (failFast=true)") {
+      val check = UnitTester(bactickIdentifiers, null, failFast = true)
       import bactickIdentifiers._
       check.fail(
         `a-down-target`,
@@ -179,17 +180,17 @@ object FailureTests extends TestSuite {
       )
     }
 
-    "multipleUsesOfDest" - {
-      object build extends TestUtil.BaseModule {
-        // Using `T.ctx(  ).dest` twice in a single task is ok
-        def left = T { +T.dest.toString.length + T.dest.toString.length }
+    test("multipleUsesOfDest") {
+      object build extends TestBaseModule {
+        // Using `Task.ctx(  ).dest` twice in a single task is ok
+        def left = Task { +Task.dest.toString.length + Task.dest.toString.length }
 
-        // Using `T.ctx(  ).dest` once in two different tasks is ok
-        val task = T.task { T.dest.toString.length }
-        def right = T { task() + left() + T.dest.toString().length }
+        // Using `Task.ctx(  ).dest` once in two different tasks is ok
+        val task = Task.Anon { Task.dest.toString.length }
+        def right = Task { task() + left() + Task.dest.toString().length }
       }
 
-      val check = new TestEvaluator(build)
+      val check = UnitTester(build, null)
       assert(check(build.left).isRight)
       assert(check(build.right).isRight)
       // assert(e.getMessage.contains("`dest` can only be used in one place"))

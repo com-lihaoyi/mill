@@ -1,0 +1,17 @@
+<module type="JAVA_MODULE" version="4">
+    <component name="NewModuleRootManager">
+        <output url="file://$MODULE_DIR$/../../out/mill-build/ideaCompileOutput.dest/classes"/>
+        <exclude-output/>
+        <content url="file://$MODULE_DIR$/../..">
+            <sourceFolder url="file://$MODULE_DIR$/../../out/mill-build/generateScriptSources.dest" isTestSource="false" generated="true"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../build.mill" isTestSource="false"/>
+        </content>
+        <orderEntry type="inheritedJdk"/>
+        <orderEntry type="sourceFolder" forTests="false"/>
+        <orderEntry type="library" name="scala-SDK-3.6.2" level="project"/>
+        <orderEntry type="library" name="SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-moduledefs_3-0.11.3-M3.jar" level="project"/>
+        <orderEntry type="library" name="scala-library-2.13.15.jar" level="project"/>
+        <orderEntry type="library" name="scala3-library_3-3.6.2.jar" level="project"/>
+    </component>
+</module>

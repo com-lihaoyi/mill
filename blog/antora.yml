@@ -1,0 +1,8 @@
+name: blog
+title: The Mill Build Engineering Blog
+version: ~
+nav:
+  - modules/ROOT/nav.adoc
+asciidoc:
+  attributes:
+    mill-version: dummy-mill-version

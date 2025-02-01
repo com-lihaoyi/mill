@@ -1,8 +1,9 @@
 package mill.scalalib.publish
 
 import mill.scalalib.Dep
+import upickle.default.ReadWriter as RW
 
-case class Artifact(group: String, id: String, version: String) {
+case class Artifact(group: String, id: String, version: String) derives RW {
   require(
     !group.contains("/") &&
       !id.contains("/") &&
@@ -38,12 +39,15 @@ object Artifact {
   }
 }
 
-sealed trait Scope
+sealed trait Scope derives RW
 object Scope {
   case object Compile extends Scope
   case object Provided extends Scope
   case object Runtime extends Scope
   case object Test extends Scope
+
+  /** Maven "import" scope, to refer to BOM modules */
+  case object Import extends Scope
 }
 
 case class Dependency(
@@ -52,7 +56,7 @@ case class Dependency(
     optional: Boolean = false,
     configuration: Option[String] = None,
     exclusions: Seq[(String, String)] = Nil
-)
+) derives RW
 
 case class Developer(
     id: String,
@@ -60,7 +64,7 @@ case class Developer(
     url: String,
     organization: Option[String] = None,
     organizationUrl: Option[String] = None
-)
+) derives RW
 
 case class PomSettings(
     description: String,
@@ -69,9 +73,9 @@ case class PomSettings(
     licenses: Seq[License],
     versionControl: VersionControl,
     developers: Seq[Developer],
-    @deprecated("Value will be ignored. Use PublishModule.pomPackageingType instead", "Mill 0.11.8")
+    @deprecated("Value will be ignored. Use PublishModule.pomPackagingType instead", "Mill 0.11.8")
     packaging: String = PackagingType.Jar
-)
+) derives RW
 
 object PackagingType {
   val Pom = "pom"

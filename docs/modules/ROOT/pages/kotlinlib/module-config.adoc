@@ -1,0 +1,56 @@
+= Kotlin Module Configuration
+:page-aliases: Kotlin_Module_Config.adoc
+
+
+
+:language: Kotlin
+:language-small: kotlin
+
+This page goes into more detail about the various configuration options
+for `KotlinModule`.
+
+Many of the APIs covered here are listed in the API documentation:
+
+* {mill-doc-url}/api/latest/mill/kotlinlib/KotlinModule.html[mill.kotlinlib.KotlinModule]
+
+
+
+== Common Configuration Overrides
+
+include::partial$example/kotlinlib/module/1-common-config.adoc[]
+
+
+== Compilation & Execution Flags
+
+include::partial$example/kotlinlib/module/4-compilation-execution-flags.adoc[]
+
+== Classpath and Filesystem Resources
+
+include::partial$example/kotlinlib/module/7-resources.adoc[]
+
+== Kotlin Compiler Plugins
+
+include::partial$example/kotlinlib/module/8-kotlin-compiler-plugins.adoc[]
+
+== Doc-Jar Generation
+
+include::partial$example/kotlinlib/module/9-docjar.adoc[]
+
+== Specifying the Main Class
+
+include::partial$example/kotlinlib/module/11-main-class.adoc[]
+
+
+
+== Custom Tasks
+
+include::partial$example/kotlinlib/module/2-custom-tasks.adoc[]
+
+== Overriding Tasks
+
+include::partial$example/kotlinlib/module/3-override-tasks.adoc[]
+
+
+== Native C Code with JNI
+
+include::partial$example/kotlinlib/module/15-jni.adoc[]

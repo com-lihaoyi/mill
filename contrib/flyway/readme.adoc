@@ -6,9 +6,10 @@ The flyway module currently supports the most common flyway use cases with file 
 
 Configure flyway by overriding settings in your module. For example
 
-.`build.sc`
+.`build.mill`
 [source,scala]
 ----
+package build
 import mill._, scalalib._
 
 import $ivy.`com.lihaoyi::mill-contrib-flyway:`
@@ -40,4 +41,4 @@ mill foo.flywayMigrate
 
 CAUTION: You should never hard-code credentials or check them into a version control system.
 You should write some code to populate the settings for flyway instead.
-For example `def flywayPassword = T.input(T.ctx.env("FLYWAY_PASSWORD"))`
+For example `def flywayPassword = Task.Input(Task.ctx.env("FLYWAY_PASSWORD"))`
