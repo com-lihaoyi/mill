@@ -645,6 +645,16 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
+<p>Mill can be used to build Python projects, whether large pure-Python codebases
+or Python modules mixed in with other languages like Java or Kotlin. While Python
+is traditionally a scripting language, larger Python projects often include tools like
+<a href="linting.html#_formatting" class="xref page">autoformatting</a>, <a href="linting.html#_linting" class="xref page">linting</a>,
+typechecking with Mypy, packaging PEX files, <a href="publishing.html" class="xref page">publishing to PyPI</a>,
+and so on. These workflows can benefit from a build tool like Mill to provide parallelization,
+caching, <a href="../large/selective-execution.html" class="xref page">Selective Test Execution</a>, and other
+features that speed up development and CI.</p>
+</div>
+<div class="paragraph">
 <p>This page contains a quick introduction to getting start with using Mill to build
 a simple python program. It walks through a series of Mill builds of increasing
 complexity to show you the key features and usage of the Mill build tool.</p>
