@@ -26,7 +26,8 @@ object `package` extends RootModule with Module {
     .collect { case m: ExampleCrossModule => m }
 
   object android extends Module {
-    object javalib extends Cross[ExampleCrossModuleAndroid](build.listIn(millSourcePath / "javalib"))
+    object javalib
+        extends Cross[ExampleCrossModuleAndroid](build.listIn(millSourcePath / "javalib"))
     object kotlinlib
         extends Cross[ExampleCrossModuleAndroid](build.listIn(millSourcePath / "kotlinlib"))
   }
