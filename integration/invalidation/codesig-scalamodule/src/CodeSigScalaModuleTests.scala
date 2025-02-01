@@ -101,14 +101,18 @@ object CodeSigScalaModuleTests extends UtestIntegrationTestSuite {
       )
 
       // Adding newlines in various places doesn't invalidate anything
+      // (preserving the indentation to avoid warnings in Scala 3).
       modifyFile(
         workspacePath / "build.mill",
         s =>
           "\n\n\n" +
-            s.replace("def scalaVersion", "\ndef scalaVersion\n")
-              .replace("def sources", "\ndef sources\n")
-              .replace("def compile", "\ndef compile\n")
-              .replace("def run", "\ndef run\n")
+            s.replace("\n  def scalaVersion", "\n\n  def scalaVersion")
+              .replace("\n  def sources = T{\n", "\n\n  def sources = T{\n\n")
+              .replace("\n  def compile = T {\n", "\n\n  def compile = T {\n\n")
+              .replace(
+                "\n  def run(args: Task[Args] = T.task(Args())) = T.command {\n",
+                "\n\n  def run(args: Task[Args] = T.task(Args())) = T.command {\n\n"
+              )
       )
       val mangledFoo6 = eval("foo.run")
       assert(

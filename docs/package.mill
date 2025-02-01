@@ -2,7 +2,7 @@ package build.docs
 import org.jsoup._
 import mill.util.Jvm
 import mill._, scalalib._
-import de.tobiasroeser.mill.vcs.version.VcsVersion
+//import de.tobiasroeser.mill.vcs.version.VcsVersion
 import scala.jdk.CollectionConverters._
 
 /** Generates the mill documentation with Antora. */
@@ -10,6 +10,13 @@ object `package` extends RootModule {
   // This module isn't really a ScalaModule, but we use it to generate
   // consolidated documentation using the Scaladoc tool.
   object site extends UnidocModule {
+    def unidocSourceFiles = Task {
+      (Seq(compile().classes) ++ T.traverse(moduleDeps)(_.compile)().map(_.classes))
+        .filter(pr => os.exists(pr.path))
+        .flatMap(pr => os.walk(pr.path))
+        .filter(_.ext == "tasty")
+        .map(PathRef(_))
+    }
     def unidocCompileClasspath =
       super.unidocCompileClasspath().filter { ref =>
         // Workaround for https://github.com/scala/bug/issues/10028
@@ -24,7 +31,7 @@ object `package` extends RootModule {
       case m: JavaModule if m eq build.kotlinlib => m
     }
     def unidocSourceUrl = Task {
-      val sha = VcsVersion.vcsState().currentRevision
+      val sha = "main" // VcsVersion.vcsState().currentRevision
       Some(s"${build.Settings.projectUrl}/blob/$sha")
     }
   }
@@ -215,7 +222,7 @@ object `package` extends RootModule {
     expandDiagramsInDirectoryAdocFile(Task.dest, mill.main.VisualizeModule.classpath().map(_.path))
     PathRef(Task.dest)
   }
-  def githubPagesPlaybookText(authorMode: Boolean) = Task.Anon { extraSources: Seq[os.Path] =>
+  def githubPagesPlaybookText(authorMode: Boolean) = Task.Anon { (extraSources: Seq[os.Path]) =>
     val taggedSources = for (path <- extraSources) yield {
       s"""    - url: ${build.baseDir}
          |      start_path: ${path.relativeTo(build.baseDir)}
@@ -308,25 +315,25 @@ object `package` extends RootModule {
   }
 
   def githubPages: T[PathRef] = Task {
-    generatePages(authorMode = false)().apply(oldDocSources().map(_.path))
+    generatePages(authorMode = false).apply().apply(oldDocSources().map(_.path))
   }
 
   def localPages: T[PathRef] = Task {
-    val pages = generatePages(authorMode = true)().apply(oldDocSources().map(_.path))
+    val pages = generatePages(authorMode = true).apply().apply(oldDocSources().map(_.path))
     Task.log.outputStream.println(
       s"You can browse the pages at: ${(pages.path / "index.html").toNIO.toUri()}"
     )
     pages
   }
   def fastPages: T[PathRef] = Task {
-    val pages = generatePages(authorMode = true)().apply(Nil)
+    val pages = generatePages(authorMode = true).apply().apply(Nil)
     Task.log.outputStream.println(
       s"You can browse the pages at: ${(pages.path / "index.html").toNIO.toUri()}"
     )
     pages
   }
 
-  def generatePages(authorMode: Boolean) = Task.Anon { extraSources: Seq[os.Path] =>
+  def generatePages(authorMode: Boolean) = Task.Anon { (extraSources: Seq[os.Path]) =>
     Task.log.errorStream.println("Creating Antora playbook ...")
     // dependency to sources
     source()
@@ -335,7 +342,7 @@ object `package` extends RootModule {
     val siteDir = docSite / "site"
     os.write(
       target = playbook,
-      data = githubPagesPlaybookText(authorMode)().apply(extraSources),
+      data = githubPagesPlaybookText(authorMode).apply().apply(extraSources),
       createFolders = true
     )
     Task.log.errorStream.println("Running Antora ...")
@@ -510,24 +517,30 @@ object `package` extends RootModule {
       } yield {
         (
           path,
-          localLinks.flatMap { case (elementString, url) =>
-            val (baseUrl, anchorOpt) = url match {
-              case s"#$anchor" => (path.toString, Some(anchor))
-              case s"$prefix#$anchor" => (prefix, Some(anchor))
+          localLinks
+            .filter(_._2 != "#")
+            .filter(_._2.contains(
+              "AggWrapper$"
+            )) // Not sure why these pages are not getting generated
+            .filter(_._2.startsWith("///"))
+            .flatMap { case (elementString, url) =>
+              val (baseUrl, anchorOpt) = url match {
+                case s"#$anchor" => (path.toString, Some(anchor))
+                case s"$prefix#$anchor" => (prefix, Some(anchor))
 
-              case url => (url, None)
-            }
+                case url => (url, None)
+              }
 
-            val dest0 = os.Path(baseUrl, path / "..")
-            val possibleDests = Seq(dest0, dest0 / "index.html")
-            possibleDests.find(os.exists(_)) match {
-              case None => Some((elementString, url))
-              case Some(dest) =>
-                anchorOpt.collect {
-                  case a if !pathsToIds.getOrElse(dest, Set()).contains(a) => (elementString, url)
-                }
+              val dest0 = os.Path(baseUrl, path / "..")
+              val possibleDests = Seq(dest0, dest0 / "index.html")
+              possibleDests.find(os.exists(_)) match {
+                case None => Some((elementString, url))
+                case Some(dest) =>
+                  anchorOpt.collect {
+                    case a if !pathsToIds.getOrElse(dest, Set()).contains(a) => (elementString, url)
+                  }
+              }
             }
-          }
         )
       }
 

@@ -26,6 +26,9 @@ object HelloIdea extends HelloIdeaModule {
   object scala3 extends HelloIdeaModule {
     override def scalaVersion = "3.3.1"
   }
+  object scala2_13 extends HelloIdeaModule {
+    override def scalaVersion = "2.13.14"
+  }
 }
 
 object HiddenIdea extends HelloIdeaModule {

@@ -63,12 +63,12 @@ trait JavaModule
       }
     }
 
-    override def bomIvyDeps = Task.Anon[Agg[Dep]] {
+    override def bomIvyDeps = Task[Agg[Dep]] {
       // FIXME Add that back when we can break bin-compat
       // super.bomIvyDeps() ++
       outer.bomIvyDeps()
     }
-    override def depManagement = Task.Anon[Agg[Dep]] {
+    override def depManagement = Task[Agg[Dep]] {
       // FIXME Add that back when we can break bin-compat
       // super.depManagement() ++
       outer.depManagement()
@@ -1579,14 +1579,14 @@ object JavaModule {
  * To be used by other modules via `JavaModule#bomModuleDeps`
  */
 trait BomModule extends JavaModule {
-  def compile: T[CompilationResult] = Task {
+  abstract override def compile: T[CompilationResult] = Task {
     val sources = allSourceFiles()
     if (sources.nonEmpty)
       throw new Exception("A BomModule cannot have sources")
     CompilationResult(Task.dest / "zinc", PathRef(Task.dest / "classes"))
   }
 
-  def resources: T[Seq[PathRef]] = Task {
+  abstract override def resources: T[Seq[PathRef]] = Task {
     val value = super.resources()
     if (value.nonEmpty)
       throw new Exception("A BomModule cannot have resources")
@@ -1596,13 +1596,13 @@ trait BomModule extends JavaModule {
   private def emptyJar: T[PathRef] = Task {
     Jvm.createJar(Agg.empty[os.Path])
   }
-  def jar: T[PathRef] = Task {
+  abstract override def jar: T[PathRef] = Task {
     emptyJar()
   }
-  def docJar: T[PathRef] = Task {
+  abstract override def docJar: T[PathRef] = Task {
     emptyJar()
   }
-  def sourceJar: T[PathRef] = Task {
+  abstract override def sourceJar: T[PathRef] = Task {
     emptyJar()
   }
 }
