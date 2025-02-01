@@ -40,3 +40,7 @@ include::partial$example/scalalib/web/7-cross-platform-version-publishing.adoc[]
 == Scala.js WebAssembly Example
 
 include::partial$example/scalalib/web/8-wasm.adoc[]
+
+== TodoMVC http4s Web App
+
+include::partial$example/scalalib/web/9-todo-http4s.adoc[]
