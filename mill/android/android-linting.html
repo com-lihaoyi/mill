@@ -594,7 +594,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">latest-0.12.6</span>
+    <span class="version">latest-0.12.7</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -604,7 +604,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">latest-0.12.6</a>
+          <a href="../index.html">latest-0.12.7</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.x</a>
@@ -664,7 +664,7 @@ security, and usability warnings. This helps maintain the health and quality of 
 <p>In this example, we set a custom config to generate the report in both txt and HTML formats.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.7/example-android-javalib-3-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/android/javalib/3-linting">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.7/example-android-javalib-3-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.7//example/android/javalib/3-linting">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -707,7 +707,7 @@ import mill.javalib.android.{AndroidSdkModule, AndroidAppModule, AndroidLintRepo
 </div>
 </div>
 <div class="listingblock">
-<div class="title">app/src/main/AndroidManifest.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/android/javalib/3-linting/app/src/main/AndroidManifest.xml">browse</a>)</div>
+<div class="title">app/src/main/AndroidManifest.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.7//example/android/javalib/3-linting/app/src/main/AndroidManifest.xml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">&lt;manifest xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot; package=&quot;com.helloworld.app&quot; android:versionCode=&quot;1&quot; android:versionName=&quot;1.0&quot;&gt;
     &lt;uses-sdk android:minSdkVersion=&quot;9&quot; android:targetSdkVersion=&quot;35&quot;/&gt;
@@ -727,7 +727,7 @@ import mill.javalib.android.{AndroidSdkModule, AndroidAppModule, AndroidLintRepo
 <p>The <code>AndroidManifest.xml</code> file shown above is flawed with hardcoded string linting problem so it can be spoted by running the <code>androidLintRun</code> task.</p>
 </div>
 <div class="listingblock">
-<div class="title">app/src/main/res/values/colors.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/android/javalib/3-linting/app/src/main/res/values/colors.xml">browse</a>)</div>
+<div class="title">app/src/main/res/values/colors.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.7//example/android/javalib/3-linting/app/src/main/res/values/colors.xml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">&lt;resources&gt;
     &lt;color name=&quot;white&quot;&gt;#FFFFFF&lt;/color&gt;
@@ -736,7 +736,7 @@ import mill.javalib.android.{AndroidSdkModule, AndroidAppModule, AndroidLintRepo
 </div>
 </div>
 <div class="listingblock">
-<div class="title">app/src/main/res/values/strings.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/android/javalib/3-linting/app/src/main/res/values/strings.xml">browse</a>)</div>
+<div class="title">app/src/main/res/values/strings.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.7//example/android/javalib/3-linting/app/src/main/res/values/strings.xml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">&lt;resources&gt;
     &lt;string name=&quot;app_name&quot;&gt;HelloWorldApp&lt;/string&gt;
@@ -745,7 +745,7 @@ import mill.javalib.android.{AndroidSdkModule, AndroidAppModule, AndroidLintRepo
 </div>
 </div>
 <div class="listingblock">
-<div class="title">app/src/main/java/com/helloworld/app/MainActivity.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/android/javalib/3-linting/app/src/main/java/com/helloworld/app/MainActivity.java">browse</a>)</div>
+<div class="title">app/src/main/java/com/helloworld/app/MainActivity.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.7//example/android/javalib/3-linting/app/src/main/java/com/helloworld/app/MainActivity.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package com.helloworld.app;
 
@@ -789,7 +789,7 @@ public class MainActivity extends Activity {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">app/lint.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.6//example/android/javalib/3-linting/app/lint.xml">browse</a>)</div>
+<div class="title">app/lint.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.7//example/android/javalib/3-linting/app/lint.xml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
 &lt;lint&gt;
