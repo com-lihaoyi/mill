@@ -12,6 +12,16 @@ endif::[]
 _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
+[#0-12-7]
+=== 0.12.7 - 2025-02-01
+:version: 0.12.7
+:milestone-name: 0.12.7
+:milestone: 110
+:prev-version: 0.12.6
+
+* Upgrade OS-Lib to fix usage of `os.zip` on folders {link-pr}/4444[#4444]
+* Add example of using Mill to build a Http4S Web Application {link-pr}/4446[#4446]
+
 [#0-12-6]
 === 0.12.6 - 2025-01-31
 :version: 0.12.6
