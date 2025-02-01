@@ -662,7 +662,7 @@ import mill._, scalalib._, publish._
 import mill.main.BuildInfo.millVersion
 
 object myplugin extends ScalaModule with PublishModule {
-  def scalaVersion = &quot;2.13.8&quot;
+  def scalaVersion = &quot;3.6.2&quot;
 
   // Set the `platformSuffix` so the name indicates what Mill version it is compiled for
   def platformSuffix = &quot;_mill&quot; + mill.main.BuildInfo.millBinPlatform
@@ -1152,7 +1152,7 @@ what output they should expect.</p>
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; sed -i.bak 's/0.0.1/0.0.2/g' build.mill
 
 &gt; ./mill myplugin.publishLocal
-Publishing Artifact(com.lihaoyi,myplugin_mill0.11_2.13,0.0.2) to ivy repo...</code></pre>
+Publishing Artifact(com.lihaoyi,myplugin_mill0.11_3,0.0.2) to ivy repo...</code></pre>
 </div>
 </div>
 <div class="paragraph">
