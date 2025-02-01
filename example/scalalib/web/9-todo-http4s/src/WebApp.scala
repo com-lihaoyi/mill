@@ -4,8 +4,8 @@ import scalatags.Text.all._
 import scalatags.Text.tags2
 import cats.effect._
 import cats.syntax.all._
+import com.comcast.ip4s._
 import org.http4s._
-import org.http4s.circe.CirceEntityCodec._
 import org.http4s.dsl.io._
 import org.http4s.ember.server._
 import org.http4s.scalatags._
@@ -16,13 +16,8 @@ import io.circe.generic.semiauto._
 object WebApp extends IOApp.Simple {
   case class Todo(checked: Boolean, text: String)
 
-  object Todo {
-    implicit def decoder: Decoder[Todo] = deriveDecoder
-    implicit def encoder: Encoder[Todo] = deriveEncoder
-  }
-
   def run = mkService.toResource.flatMap { service =>
-    EmberServerBuilder.default[IO].withHttpApp(service).build
+    EmberServerBuilder.default[IO].withHttpApp(service).withPort(port"8084").build
   }.useForever
 
   def mkService =
@@ -32,11 +27,11 @@ object WebApp extends IOApp.Simple {
           Ok(renderBody(state))
 
         case request @ POST -> Root / "add" / state =>
-          for {
+          (for {
             text <- request.as[String]
             _ <- todosRef.update(Seq(Todo(false, text)) ++ _)
             response <- Ok(renderBody(state))
-          } yield response
+          } yield response).debug()
 
         case POST -> Root / "delete" / state / IntVar(index) =>
           todosRef.update(_.patch(index, Nil, 1)) *> Ok(renderBody(state))
