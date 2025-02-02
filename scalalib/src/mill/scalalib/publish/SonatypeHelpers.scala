@@ -1,6 +1,5 @@
 package mill.scalalib.publish
 
-
 import java.math.BigInteger
 import java.security.MessageDigest
 
