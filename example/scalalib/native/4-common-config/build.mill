@@ -35,7 +35,7 @@ object `package` extends RootModule with ScalaNativeModule {
 Value: <h1>hello</h1>
 
 > ./mill show releaseMode
-"mill.scalanativelib.api.ReleaseMode.ReleaseFast"
+"ReleaseFast"
 
 > ./mill show nativeIncrementalCompilation
 true
