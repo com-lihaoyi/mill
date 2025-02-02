@@ -1,5 +1,6 @@
 package mill.scalalib
 
+import java.lang.reflect.Modifier
 import mainargs.arg
 import mill.api.JsonFormatters.pathReadWrite
 import mill.api.{Ctx, PathRef, Result}
@@ -161,7 +162,7 @@ trait RunModule extends WithZincWorker {
       Jvm.callClassLoader(
         classPath = runClasspath().map(_.path).toVector
       ) { classloader =>
-        Jvm.getMainMethod(mainClass(), classloader).invoke(null, args().value.toArray)
+        RunModule.getMainMethod(mainClass(), classloader).invoke(null, args().value.toArray)
       }
     }
 
@@ -262,6 +263,21 @@ object RunModule {
     val procLockfile = dest / ".mill-background-process-lock"
     (procUuidPath, procLockfile, procUuid)
   }
+
+  private[mill] def getMainMethod(mainClassName: String, cl: ClassLoader) = {
+    val mainClass = cl.loadClass(mainClassName)
+    val method = mainClass.getMethod("main", classOf[Array[String]])
+    // jvm allows the actual main class to be non-public and to run a method in the non-public class,
+    //  we need to make it accessible
+    method.setAccessible(true)
+    val modifiers = method.getModifiers
+    if (!Modifier.isPublic(modifiers))
+      throw new NoSuchMethodException(mainClassName + ".main is not public")
+    if (!Modifier.isStatic(modifiers))
+      throw new NoSuchMethodException(mainClassName + ".main is not static")
+    method
+  }
+  
   trait Runner {
     def run(
         args: os.Shellable,

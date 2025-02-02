@@ -587,7 +587,7 @@ object Jvm extends CoursierSupport {
     )
   }
 
-  def getMainMethod(mainClassName: String, cl: ClassLoader) = {
+  private def getMainMethod(mainClassName: String, cl: ClassLoader) = {
     val mainClass = cl.loadClass(mainClassName)
     val method = mainClass.getMethod("main", classOf[Array[String]])
     // jvm allows the actual main class to be non-public and to run a method in the non-public class,

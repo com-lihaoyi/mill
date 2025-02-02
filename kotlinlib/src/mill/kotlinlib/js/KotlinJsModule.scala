@@ -161,13 +161,11 @@ trait KotlinJsModule extends KotlinModule { outer =>
       case Some(RunTarget.Node) =>
         val binaryPath = (binaryDir / s"$artifactId.${moduleKind.extension}")
           .toIO.getAbsolutePath
-        Jvm.runSubprocessWithResult(
-          commandArgs = Seq(
-            "node"
-          ) ++ args.value ++ Seq(binaryPath),
-          envArgs = envArgs,
-          workingDir = workingDir
-        )
+        os.call(
+          cmd = Seq(            "node"          ) ++ args.value ++ Seq(binaryPath),
+          env = envArgs,
+          cwd = workingDir
+        ).exitCode
       case Some(x) =>
         Result.Failure(s"Run target $x is not supported")
       case None =>
