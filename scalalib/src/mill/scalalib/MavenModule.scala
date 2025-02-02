@@ -2,7 +2,6 @@ package mill.scalalib
 
 import mill.Task
 
-
 /**
  * A [[JavaModule]] with a Maven compatible directory layout.
  *

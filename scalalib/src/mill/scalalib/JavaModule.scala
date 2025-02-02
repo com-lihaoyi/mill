@@ -20,7 +20,6 @@ import mill.util.Jvm
 
 import os.Path
 
-
 /**
  * Core configuration required to compile a single Java compilation target
  */
