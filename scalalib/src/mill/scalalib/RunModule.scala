@@ -277,7 +277,7 @@ object RunModule {
       throw new NoSuchMethodException(mainClassName + ".main is not static")
     method
   }
-  
+
   trait Runner {
     def run(
         args: os.Shellable,
