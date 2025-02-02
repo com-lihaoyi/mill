@@ -638,11 +638,10 @@ trait JavaModule
    * Coursier project of this module and those of all its transitive module dependencies
    */
   def transitiveCoursierProjects: Task[Seq[cs.Project]] = Task {
-    Seq(coursierProject()) ++
-      Task.traverse(compileModuleDepsChecked)(_.transitiveCoursierProjects)().flatten ++
-      Task.traverse(moduleDepsChecked)(_.transitiveCoursierProjects)().flatten ++
-      Task.traverse(runModuleDepsChecked)(_.transitiveCoursierProjects)().flatten ++
-      Task.traverse(bomModuleDepsChecked)(_.transitiveCoursierProjects)().flatten
+    (Seq(coursierProject()) ++
+      Task.traverse(
+        (compileModuleDepsChecked ++ moduleDepsChecked ++ runModuleDepsChecked ++ bomModuleDepsChecked).distinct
+      )(_.transitiveCoursierProjects)().flatten).distinctBy(_.module)
   }
 
   /**
