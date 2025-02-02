@@ -45,7 +45,7 @@ case class MillCliConfig(
         """Enable ticker log (e.g. short-lived prints of stages and progress bars)."""
     )
     ticker: Option[Boolean] = None,
-    @deprecated("No longer supported, use `--ticker false`", "Mill 0.12.0")
+    @deprecated("No longer supported, use `--ticker true`", "Mill 0.12.0")
     @arg(
       hidden = true,
       doc =
