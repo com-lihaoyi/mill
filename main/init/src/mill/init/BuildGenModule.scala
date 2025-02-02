@@ -27,7 +27,7 @@ trait BuildGenModule extends TaskModule {
 
     val mainClass = buildGenMainClass()
     val classPath = buildGenClasspath().map(_.path)
-    val exit = Jvm.callSubprocess(
+    val exit = Jvm.call(
       mainClass = mainClass,
       classPath = classPath,
       mainArgs = args,

@@ -47,12 +47,12 @@ trait RunModule extends WithZincWorker {
     val classpath = localRunClasspath().map(_.path)
     if (zincWorker().javaHome().isDefined) {
       Jvm
-        .callSubprocess(
+        .call(
           mainClass = "mill.scalalib.worker.DiscoverMainClassesMain",
           classPath = zincWorker().classpath().map(_.path),
           mainArgs = Seq(classpath.mkString(",")),
           javaHome = zincWorker().javaHome().map(_.path),
-          streamOut = false
+          stdout = os.Pipe
         )
         .out
         .lines()

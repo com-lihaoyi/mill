@@ -102,7 +102,7 @@ private[scalalib] object TestModuleUtil {
         // tests to run and shut down
 
         val discoveredTests = if (javaHome.isDefined) {
-          Jvm.callSubprocess(
+          Jvm.call(
             mainClass = "mill.testrunner.GetTestTasksMain",
             classPath = scalalibClasspath.map(_.path),
             mainArgs =
@@ -114,7 +114,7 @@ private[scalalib] object TestModuleUtil {
                 selectors.flatMap(s => Seq("--selectors", s)) ++
                 args.flatMap(s => Seq("--args", s)),
             javaHome = javaHome,
-            streamOut = false
+            stdout = os.Pipe
           ).out.lines().toSet
         } else {
           mill.testrunner.GetTestTasksMain.main0(

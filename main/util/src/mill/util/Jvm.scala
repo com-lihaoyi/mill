@@ -18,6 +18,63 @@ object Jvm extends CoursierSupport {
    * Runs a JVM subprocess with the given configuration and returns a
    * [[os.CommandResult]] with it's aggregated output and error streams
    */
+  def call(
+            mainClass: String,
+            classPath: Agg[os.Path],
+            javaHome: Option[os.Path] = None,
+                      jvmArgs: Seq[String] = Seq.empty,
+                      useCpPassingJar: Boolean = false,
+                      mainArgs: Seq[String] = Seq.empty,
+                      env: Map[String, String] = Map.empty,
+                      propagateEnv: Boolean = true,
+                      cwd: os.Path = null,
+                      stdin: os.ProcessInput = os.Pipe,
+                      stdout: ProcessOutput = os.Pipe,
+                      stderr: ProcessOutput = os.Inherit,
+                      mergeErrIntoOut: Boolean = false,
+                      check: Boolean = true
+                    )(implicit ctx: Ctx): CommandResult = {
+    val cp =
+      if (useCpPassingJar && classPath.iterator.nonEmpty) {
+        val passingJar = os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)
+        ctx.log.debug(
+          s"Creating classpath passing jar '${passingJar}' with Class-Path: ${classPath.iterator.map(
+            _.toNIO.toUri.toURL.toExternalForm
+          ).mkString(" ")}"
+        )
+        createClasspathPassingJar(passingJar, classPath)
+        Agg(passingJar)
+      } else {
+        classPath
+      }
+
+    val commandArgs =
+      Vector(javaExe(javaHome)) ++
+        jvmArgs ++
+        Vector("-cp", cp.iterator.mkString(java.io.File.pathSeparator), mainClass) ++
+        mainArgs
+
+    val workingDir1 = Option(cwd).getOrElse(ctx.dest)
+    os.makeDir.all(workingDir1)
+
+    os.proc(commandArgs)
+      .call(
+        cwd = workingDir1,
+        env = env,
+        check = check,
+        stdin = stdin,
+        stdout = stdout,
+        stderr = stderr,
+        mergeErrIntoOut = mergeErrIntoOut,
+        propagateEnv = propagateEnv
+      )
+  }
+
+  /**
+   * Runs a JVM subprocess with the given configuration and returns a
+   * [[os.CommandResult]] with it's aggregated output and error streams
+   */
+  @deprecated("Use call", "Mill 0.12.7")
   def callSubprocess(
       mainClass: String,
       classPath: Agg[os.Path],
@@ -52,6 +109,7 @@ object Jvm extends CoursierSupport {
    * Runs a JVM subprocess with the given configuration and returns a
    * [[os.CommandResult]] with it's aggregated output and error streams
    */
+  @deprecated("Use call", "Mill 0.12.7")
   def callSubprocess(
       mainClass: String,
       classPath: Agg[os.Path],
@@ -79,6 +137,7 @@ object Jvm extends CoursierSupport {
    * Runs a JVM subprocess with the given configuration and returns a
    * [[os.CommandResult]] with it's aggregated output and error streams
    */
+  @deprecated("Use call", "Mill 0.12.7")
   def callSubprocess(
       mainClass: String,
       classPath: Agg[os.Path],
