@@ -27,7 +27,7 @@ object foo extends JavaModule {
   def groovyGeneratedResources = Task {
     Jvm.runSubprocess(
       mainClass = "groovy.ui.GroovyMain",
-      classPath = groovyClasspath().map(_.path).toVector,
+      classPath = groovyClasspath().map(_.path),
       mainArgs = Seq(
         groovyScript().path.toString,
         "Groovy!",

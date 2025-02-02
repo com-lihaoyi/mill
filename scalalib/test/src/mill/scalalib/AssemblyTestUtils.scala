@@ -50,17 +50,20 @@ trait AssemblyTestUtils {
   val sources = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "assembly"
   def runAssembly(file: os.Path, wd: os.Path, checkExe: Boolean = false): Unit = {
     println(s"File size: ${os.stat(file).size}")
-    os.call(
+    val processResult = os.call(
       cmd = Seq(Jvm.javaExe, "-jar", file.toString(), "--text", "tutu"),
       env = Map.empty[String, String],
       cwd = wd
     )
+    mill.util.ProcessUtil.toResult(processResult).getOrThrow
+    
     if (checkExe) {
-      os.call(
+      val processResult = os.call(
         cmd = Seq(file.toString(), "--text", "tutu"),
         env = Map.empty[String, String],
         cwd = wd
       )
+      mill.util.ProcessUtil.toResult(processResult).getOrThrow
     }
   }
 }

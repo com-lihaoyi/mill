@@ -27,12 +27,14 @@ trait BuildGenModule extends TaskModule {
 
     val mainClass = buildGenMainClass()
     val classPath = buildGenClasspath().map(_.path)
-    val exit = Jvm.call(
+    val processResult = Jvm.call(
       mainClass = mainClass,
       classPath = classPath.toVector,
       mainArgs = args,
       cwd = root
-    ).exitCode
+    )
+    mill.util.ProcessUtil.toResult(processResult).getOrThrow
+    val exit = processResult.exitCode
 
     if (exit == 0) {
       val files = BuildGenUtil.buildFiles(root).map(PathRef(_)).toSeq

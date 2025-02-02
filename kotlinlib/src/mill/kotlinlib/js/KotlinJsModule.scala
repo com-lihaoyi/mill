@@ -161,11 +161,12 @@ trait KotlinJsModule extends KotlinModule { outer =>
       case Some(RunTarget.Node) =>
         val binaryPath = (binaryDir / s"$artifactId.${moduleKind.extension}")
           .toIO.getAbsolutePath
-        os.call(
+        val processResult = os.call(
           cmd = Seq("node") ++ args.value ++ Seq(binaryPath),
           env = envArgs,
           cwd = workingDir
-        ).exitCode
+        )
+        mill.util.ProcessUtil.toResult(processResult)
       case Some(x) =>
         Result.Failure(s"Run target $x is not supported")
       case None =>
@@ -472,11 +473,12 @@ trait KotlinJsModule extends KotlinModule { outer =>
     // TODO may be optimized if there is a single folder for all modules
     // but may be problematic if modules use different NPM packages versions
     private def nodeModulesDir = Task(persistent = true) {
-      os.call(
+      val processResult = os.call(
         cmd = Seq("npm", "install", "mocha@10.2.0", "source-map-support@0.5.21"),
         env = Task.env,
         cwd = Task.dest
       )
+      mill.util.ProcessUtil.toResult(processResult).getOrThrow
       PathRef(Task.dest)
     }
 

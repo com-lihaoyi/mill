@@ -122,14 +122,16 @@ object KtlintModule extends ExternalModule with KtlintModule with TaskModule {
       .filter(f => os.exists(f) && (f.ext == "kt" || f.ext == "kts"))
       .map(_.toString())
 
-    val exitCode = Jvm.call(
+    val processResult = Jvm.call(
       mainClass = "com.pinterest.ktlint.Main",
       classPath = classPath.map(_.path).toVector,
       mainArgs = args.result(),
       cwd = millSourcePath,
       stdout = os.Inherit,
       check = false
-    ).exitCode
+    )
+    mill.util.ProcessUtil.toResult(processResult).getOrThrow
+    val exitCode = processResult.exitCode
 
     if (exitCode == 0) {} // do nothing
     else {

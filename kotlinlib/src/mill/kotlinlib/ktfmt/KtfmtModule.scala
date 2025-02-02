@@ -120,14 +120,16 @@ object KtfmtModule extends ExternalModule with KtfmtBaseModule with TaskModule {
     if (!format) args += "--set-exit-if-changed"
     args ++= sources.iterator.map(_.path.toString())
 
-    val exitCode = Jvm.call(
+    val processResult = Jvm.call(
       mainClass = "com.facebook.ktfmt.cli.Main",
       classPath = classPath.map(_.path).toVector,
       mainArgs = args.result(),
       cwd = millSourcePath, // allow passing relative paths for sources like src/a/b
       stdout = os.Inherit,
       check = false
-    ).exitCode
+    )
+    mill.util.ProcessUtil.toResult(processResult).getOrThrow
+    val exitCode = processResult .exitCode
 
     if (exitCode == 0) {} // do nothing
     else {

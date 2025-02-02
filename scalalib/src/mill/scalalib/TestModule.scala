@@ -42,7 +42,7 @@ trait TestModule
 
   def discoveredTestClasses: T[Seq[String]] = Task {
     val classes = if (zincWorker().javaHome().isDefined) {
-      Jvm.call(
+      val processResult = Jvm.call(
         mainClass = "mill.testrunner.DiscoverTestsMain",
         classPath = zincWorker().scalalibClasspath().map(_.path).toVector,
         mainArgs =
@@ -51,7 +51,12 @@ trait TestModule
             Seq("--framework", testFramework()),
         javaHome = zincWorker().javaHome().map(_.path),
         stdout = os.Pipe
-      ).out.lines()
+      )
+      T.log.info(
+        s"PROCESS RES = ${processResult}"
+      )
+      mill.util.ProcessUtil.toResult(processResult).getOrThrow
+      processResult.out        .lines()
     } else {
       mill.testrunner.DiscoverTestsMain.main0(
         runClasspath().map(_.path),

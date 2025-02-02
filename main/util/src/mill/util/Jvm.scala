@@ -172,6 +172,7 @@ object Jvm extends CoursierSupport {
     process
   }
 
+  // OK
   /**
    * Runs a JVM subprocess with the given configuration and returns a
    * [[os.CommandResult]] with it's aggregated output and error streams
@@ -207,6 +208,7 @@ object Jvm extends CoursierSupport {
       )
   }
 
+  // OK
   /**
    * Runs a JVM subprocess with the given configuration and returns a
    * [[os.CommandResult]] with it's aggregated output and error streams
@@ -235,6 +237,7 @@ object Jvm extends CoursierSupport {
     )
   }
 
+  // OK
   /**
    * Runs a JVM subprocess with the given configuration and returns a
    * [[os.CommandResult]] with it's aggregated output and error streams
@@ -277,6 +280,7 @@ object Jvm extends CoursierSupport {
   def defaultBackgroundOutputs(outputDir: os.Path): Option[(ProcessOutput, ProcessOutput)] =
     Some((outputDir / "stdout.log", outputDir / "stderr.log"))
 
+  // OK
   /**
    * Runs a JVM subprocess with the given configuration and streams
    * it's stdout and stderr to the console.
@@ -293,7 +297,7 @@ object Jvm extends CoursierSupport {
    *                        This might help with long classpaths on OS'es (like Windows)
    *                        which only supports limited command-line length
    */
-  @deprecated("Use spawn", "Mill 0.12.7")
+  @deprecated("Use spawn or call+ProcessUtil.toResult", "Mill 0.12.7")
   def runSubprocess(
       mainClass: String,
       classPath: Agg[os.Path],
@@ -332,7 +336,7 @@ object Jvm extends CoursierSupport {
   }
 
   // bincompat shim
-  @deprecated("Use spawn", "Mill 0.12.7")
+  @deprecated("Use call+ProcessUtil.toResult", "Mill 0.12.7")
   def runSubprocess(
       mainClass: String,
       classPath: Agg[os.Path],
@@ -357,7 +361,7 @@ object Jvm extends CoursierSupport {
       None
     )
   // bincompat shim
-  @deprecated("Use spawn", "Mill 0.12.7")
+  @deprecated("Use call+ProcessUtil.toResult", "Mill 0.12.7")
   def runSubprocess(
       mainClass: String,
       classPath: Agg[os.Path],
@@ -380,6 +384,7 @@ object Jvm extends CoursierSupport {
       false
     )
 
+  // OK
   /**
    * Runs a JVM subprocess with the given configuration and streams
    * it's stdout and stderr to the console.
@@ -396,7 +401,7 @@ object Jvm extends CoursierSupport {
    *                        This might help with long classpaths on OS'es (like Windows)
    *                        which only supports limited command-line length
    */
-  @deprecated("Use spawn", "Mill 0.12.7")
+  @deprecated("Use spawn or call+ProcessUtil.toResult", "Mill 0.12.7")
   def runSubprocessWithBackgroundOutputs(
       mainClass: String,
       classPath: Agg[os.Path],
@@ -444,8 +449,9 @@ object Jvm extends CoursierSupport {
       runSubprocess(args, envArgs, workingDir)
   }
 
+  // OK
   // bincompat shim
-  @deprecated("Use spawn", "Mill 0.12.7")
+  @deprecated("Use spawn or call+ProcessUtil.toResult", "Mill 0.12.7")
   def runSubprocessWithBackgroundOutputs(
       mainClass: String,
       classPath: Agg[os.Path],
@@ -472,7 +478,7 @@ object Jvm extends CoursierSupport {
    * Runs a generic subprocess and waits for it to terminate. If process exited with non-zero code, exception
    * will be thrown. If you want to manually handle exit code, check [[runSubprocessWithResult]]
    */
-  @deprecated("Use os.call", "Mill 0.12.7")
+  @deprecated("Use os.call+ProcessUtil.toResult", "Mill 0.12.7")
   def runSubprocess(
       commandArgs: Seq[String],
       envArgs: Map[String, String],
@@ -482,12 +488,13 @@ object Jvm extends CoursierSupport {
     ()
   }
 
+  // OK
   /**
    * Runs a generic subprocess and waits for it to terminate.
    *
    * @return Result with exit code.
    */
-  @deprecated("Use os.call", "Mill 0.12.7")
+  @deprecated("Use os.call+ProcessUtil.toResult", "Mill 0.12.7")
   def runSubprocessWithResult(
       commandArgs: Seq[String],
       envArgs: Map[String, String],
@@ -530,7 +537,7 @@ object Jvm extends CoursierSupport {
    * that the subprocess's stdout and stderr streams go to the substituted
    * streams.
    */
-  @deprecated("Use os.call", "Mill 0.12.7")
+  @deprecated("Use os.spawn", "Mill 0.12.7")
   def spawnSubprocess(
       commandArgs: Seq[String],
       envArgs: Map[String, String],
@@ -553,7 +560,7 @@ object Jvm extends CoursierSupport {
    * respectively must be defined in the backgroundOutputs tuple. Non-background process should set
    * backgroundOutputs to [[None]].
    */
-  @deprecated("Use os.call", "Mill 0.12.7")
+  @deprecated("Use os.spawn", "Mill 0.12.7")
   def spawnSubprocessWithBackgroundOutputs(
       commandArgs: Seq[String],
       envArgs: Map[String, String],
