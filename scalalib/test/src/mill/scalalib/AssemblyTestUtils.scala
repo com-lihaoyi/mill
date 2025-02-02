@@ -56,7 +56,7 @@ trait AssemblyTestUtils {
       cwd = wd
     )
     mill.util.ProcessUtil.toResult(processResult).getOrThrow
-    
+
     if (checkExe) {
       val processResult = os.call(
         cmd = Seq(file.toString(), "--text", "tutu"),

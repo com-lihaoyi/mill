@@ -56,7 +56,7 @@ trait TestModule
         s"PROCESS RES = ${processResult}"
       )
       mill.util.ProcessUtil.toResult(processResult).getOrThrow
-      processResult.out        .lines()
+      processResult.out.lines()
     } else {
       mill.testrunner.DiscoverTestsMain.main0(
         runClasspath().map(_.path),

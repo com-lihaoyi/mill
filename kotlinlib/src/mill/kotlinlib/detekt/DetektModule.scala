@@ -27,7 +27,7 @@ trait DetektModule extends KotlinModule {
     Task.log.info("running detekt ...")
     Task.log.debug(s"with $args")
 
-    val processResult =Jvm.call(
+    val processResult = Jvm.call(
       mainClass = "io.gitlab.arturbosch.detekt.cli.Main",
       classPath = detektClasspath().map(_.path).toVector,
       mainArgs = args,
@@ -36,7 +36,7 @@ trait DetektModule extends KotlinModule {
       check = false
     )
     mill.util.ProcessUtil.toResult(processResult).getOrThrow
-    processResult .exitCode
+    processResult.exitCode
   }
 
   private def detektHandleErrors(check: Boolean, exitCode: Int)(implicit ctx: mill.api.Ctx) = {
