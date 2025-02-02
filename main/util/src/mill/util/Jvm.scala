@@ -630,11 +630,11 @@ object Jvm extends CoursierSupport {
   def spawnClassLoader(
       classPath: Iterable[os.Path],
       sharedPrefixes: Seq[String],
-      isolated: Boolean = true
+      parent: Option[ClassLoader] = None
   )(implicit ctx: mill.api.Ctx.Home): java.net.URLClassLoader = {
     mill.api.ClassLoader.create(
       classPath.iterator.map(_.toNIO.toUri.toURL).toVector,
-      parent = if (isolated) null else getClass.getClassLoader,
+      parent = parent.getOrElse(getClass.getClassLoader),
       sharedPrefixes = sharedPrefixes
     )
   }
@@ -642,11 +642,10 @@ object Jvm extends CoursierSupport {
   def callClassLoader[T](
       classPath: Iterable[os.Path],
       sharedPrefixes: Seq[String] = Seq.empty,
-      isolated: Boolean = true,
-      closeClassLoaderWhenDone: Boolean = true
+      parent: Option[ClassLoader] = None
   )(f: ClassLoader => T)(implicit ctx: mill.api.Ctx.Home): T = {
     val oldClassloader = Thread.currentThread().getContextClassLoader
-    val newClassloader = spawnClassLoader(classPath, sharedPrefixes, isolated)
+    val newClassloader = spawnClassLoader(classPath, sharedPrefixes, parent)
     Thread.currentThread().setContextClassLoader(newClassloader)
     try {
       f(newClassloader)

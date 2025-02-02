@@ -121,8 +121,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
         val (frameworkName, classFingerprint): (String, Agg[(Class[_], Fingerprint)]) =
           Jvm.callClassLoader(
             classPath = classpath.map(_.path).toVector,
-            sharedPrefixes = Seq("sbt.testing."),
-            closeClassLoaderWhenDone = false
+            sharedPrefixes = Seq("sbt.testing.")
           ) { classLoader =>
             val framework = Framework.framework(testFramework)(classLoader)
             val discoveredTests = TestRunnerUtils.discoverTests(

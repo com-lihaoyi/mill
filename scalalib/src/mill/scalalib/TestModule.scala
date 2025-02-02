@@ -284,8 +284,7 @@ object TestModule {
     override def discoveredTestClasses: T[Seq[String]] = Task {
       Jvm.callClassLoader(
         classPath = runClasspath().map(_.path).toVector,
-        sharedPrefixes = Seq("sbt.testing."),
-        closeClassLoaderWhenDone = true
+        sharedPrefixes = Seq("sbt.testing.")
       ) { classLoader =>
         val builderClass: Class[_] =
           classLoader.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Builder")

@@ -17,8 +17,7 @@ import mill.util.Jvm
     // Leave the context class loader set and open so that shutdown hooks can access it
     Jvm.callClassLoader(
       classPath = entireClasspath.toVector,
-      sharedPrefixes = Seq("sbt.testing."),
-      closeClassLoaderWhenDone = false
+      sharedPrefixes = Seq("sbt.testing.")
     ) { classLoader =>
       TestRunnerUtils.runTestFramework0(
         frameworkInstances,

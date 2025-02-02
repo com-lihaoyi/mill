@@ -28,8 +28,7 @@ import os.Path
     val globFilter = TestRunnerUtils.globFilter(selectors)
     mill.util.Jvm.callClassLoader(
       classPath = runCp,
-      sharedPrefixes = Seq("sbt.testing."),
-      closeClassLoaderWhenDone = false
+      sharedPrefixes = Seq("sbt.testing.")
     ) { classLoader =>
       TestRunnerUtils
         .getTestTasks0(

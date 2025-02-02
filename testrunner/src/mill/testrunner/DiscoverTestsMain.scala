@@ -14,8 +14,7 @@ import os.Path
   def main0(runCp: Seq[os.Path], testCp: Seq[os.Path], framework: String): Seq[String] = {
     mill.util.Jvm.callClassLoader(
       classPath = runCp,
-      sharedPrefixes = Seq("sbt.testing."),
-      closeClassLoaderWhenDone = false
+      sharedPrefixes = Seq("sbt.testing.")
     ) { classLoader =>
       TestRunnerUtils
         .discoverTests(classLoader, Framework.framework(framework)(classLoader), testCp)
