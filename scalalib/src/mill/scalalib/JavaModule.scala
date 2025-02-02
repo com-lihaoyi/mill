@@ -1164,10 +1164,10 @@ trait JavaModule
 
       Task.log.info("options: " + cmdArgs)
 
-      Jvm.runSubprocess(
-        commandArgs = Seq(Jvm.jdkTool("javadoc")) ++ cmdArgs,
-        envArgs = Map(),
-        workingDir = Task.dest
+      os.call(
+        cmd = Seq(Jvm.jdkTool("javadoc")) ++ cmdArgs,
+        env = Map(),
+        cwd = Task.dest
       )
     }
 

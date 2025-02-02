@@ -474,10 +474,10 @@ trait KotlinJsModule extends KotlinModule { outer =>
     // TODO may be optimized if there is a single folder for all modules
     // but may be problematic if modules use different NPM packages versions
     private def nodeModulesDir = Task(persistent = true) {
-      Jvm.runSubprocess(
-        commandArgs = Seq("npm", "install", "mocha@10.2.0", "source-map-support@0.5.21"),
-        envArgs = Task.env,
-        workingDir = Task.dest
+      os.call(
+        cmd = Seq("npm", "install", "mocha@10.2.0", "source-map-support@0.5.21"),
+        env = Task.env,
+        cwd = Task.dest
       )
       PathRef(Task.dest)
     }

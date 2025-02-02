@@ -31,7 +31,7 @@ trait BuildGenModule extends TaskModule {
       mainClass = mainClass,
       classPath = classPath,
       mainArgs = args,
-      workingDir = root
+      cwd = root
     ).exitCode
 
     if (exit == 0) {

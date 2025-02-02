@@ -47,12 +47,12 @@ trait RevapiModule extends PublishModule {
         .result()
 
     Task.log.info("running revapi cli")
-    Jvm.runSubprocess(
+    Jvm.spawn(
       mainClass = mainClass,
       classPath = revapiClasspath().map(_.path),
       jvmArgs = revapiJvmArgs(),
       mainArgs = mainArgs,
-      workingDir = workingDir
+      cwd = workingDir
     )
 
     PathRef(workingDir)

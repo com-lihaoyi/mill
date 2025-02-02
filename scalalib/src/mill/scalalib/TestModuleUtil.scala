@@ -63,16 +63,16 @@ private[scalalib] object TestModuleUtil {
 
       os.makeDir.all(sandbox)
 
-      Jvm.runSubprocess(
+      Jvm.spawn(
         mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
         classPath =
           (runClasspath ++ testrunnerEntrypointClasspath).map(
             _.path
           ),
         jvmArgs = jvmArgs,
-        envArgs = forkEnv ++ resourceEnv,
+        env = forkEnv ++ resourceEnv,
         mainArgs = Seq(testRunnerClasspathArg, argsFile.toString),
-        workingDir = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
+        cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
         useCpPassingJar = useArgsFile,
         javaHome = javaHome
       )

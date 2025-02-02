@@ -54,7 +54,7 @@ object SonatypeHelpers {
     val fileName = file.toString
     val command = "gpg" +: args :+ fileName
 
-    Jvm.runSubprocess(command, env, workspace)
+    os.call(command, env, workspace)
     os.Path(fileName + ".asc")
   }
 

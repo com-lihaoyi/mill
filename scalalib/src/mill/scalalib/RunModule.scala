@@ -6,6 +6,7 @@ import mill.api.{Ctx, PathRef, Result}
 import mill.define.{Command, Task}
 import mill.util.Jvm
 import mill.{Agg, Args, T}
+import mill.main.client.ServerFiles
 import os.{Path, ProcessOutput}
 
 import scala.util.control.NonFatal
@@ -293,19 +294,30 @@ object RunModule {
         background: Boolean = false,
         runBackgroundLogToConsole: Boolean = false
     )(implicit ctx: Ctx): Unit = {
-      Jvm.runSubprocess(
-        Option(mainClass).getOrElse(mainClass0.fold(sys.error, identity)),
-        runClasspath ++ extraRunClasspath,
-        Option(forkArgs).getOrElse(forkArgs0),
-        Option(forkEnv).getOrElse(forkEnv0),
-        args.value,
-        Option(workingDir).getOrElse(ctx.dest),
-        background = background,
-        Option(useCpPassingJar) match {
+      val (stdout, stderr) =
+        if (!background) (os.Inherit, os.Inherit)
+        else if (runBackgroundLogToConsole) {
+          val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
+          // Hack to forward the background subprocess output to the Mill server process
+          // stdout/stderr files, so the output will get properly slurped up by the Mill server
+          // and shown to any connected Mill client even if the current command has completed
+          (os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stdout),
+            os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stderr))
+        } else Jvm.defaultBackgroundOutputs(ctx.dest).getOrElse((os.Inherit, os.Inherit))
+
+      Jvm.spawn(
+        mainClass = Option(mainClass).getOrElse(mainClass0.fold(sys.error, identity)),
+        classPath = runClasspath ++ extraRunClasspath,
+        jvmArgs = Option(forkArgs).getOrElse(forkArgs0),
+        env = Option(forkEnv).getOrElse(forkEnv0),
+        mainArgs = args.value,
+        cwd = Option(workingDir).getOrElse(ctx.dest),
+        stdout = stdout,
+        stderr = stderr,
+        useCpPassingJar = Option(useCpPassingJar) match {
           case Some(b) => b
           case None => useCpPassingJar0
         },
-        runBackgroundLogToConsole = runBackgroundLogToConsole,
         javaHome = javaHome
       )
     }
