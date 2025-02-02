@@ -570,6 +570,7 @@ object Jvm extends CoursierSupport {
     )
   }
 
+  @deprecated("Use runClassLoader", "Mill 0.12.7")
   def runLocal(
       mainClass: String,
       classPath: Agg[os.Path],
@@ -600,7 +601,7 @@ object Jvm extends CoursierSupport {
     method
   }
 
-  @deprecated("Use runClassLoader", "Mill 0.12.7")
+  @deprecated("Use callClassLoader", "Mill 0.12.7")
   def runClassloader[T](classPath: Agg[os.Path])(body: ClassLoader => T)(implicit
       ctx: mill.api.Ctx.Home
   ): T = {
@@ -655,6 +656,7 @@ object Jvm extends CoursierSupport {
     }
   }
 
+  @deprecated("Use callClassLoader", "Mill 0.12.7")
   def inprocess[T](
       classPath: Agg[os.Path],
       classLoaderOverrideSbtTesting: Boolean,

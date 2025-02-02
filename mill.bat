@@ -158,14 +158,7 @@ if not exist "%MILL%" (
     rem curl is bundled with recent Windows 10
     rem but I don't think we can expect all the users to have it in 2019
     where /Q curl
-    if %ERRORLEVEL% EQU 0 (
-        curl -f -L "!DOWNLOAD_URL!" -o "!DOWNLOAD_FILE!"
-    ) else (
-        rem bitsadmin seems to be available on Windows 7
-        rem without /dynamic, github returns 403
-        rem bitsadmin is sometimes needlessly slow but it looks better with /priority foreground
-        bitsadmin /transfer millDownloadJob /dynamic /priority foreground "!DOWNLOAD_URL!" "!DOWNLOAD_FILE!"
-    )
+    curl -f -L "!DOWNLOAD_URL!" -o "!DOWNLOAD_FILE!"
     if not exist "!DOWNLOAD_FILE!" (
         echo Could not download mill %MILL_VERSION% 1>&2
         exit /b 1
