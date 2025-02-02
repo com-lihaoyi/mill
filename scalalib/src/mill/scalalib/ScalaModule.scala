@@ -511,7 +511,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
       Task.log.debug(s"Using ammonite main class: ${mainClass}")
       Jvm.spawn(
         mainClass = mainClass,
-        classPath = ammoniteReplClasspath().map(_.path),
+        classPath = ammoniteReplClasspath().map(_.path).toVector,
         jvmArgs = forkArgs(),
         env = forkEnv(),
         mainArgs = replOptions,

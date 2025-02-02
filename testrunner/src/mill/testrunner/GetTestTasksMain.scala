@@ -26,23 +26,20 @@ import os.Path
       args: Seq[String]
   ): Seq[String] = {
     val globFilter = TestRunnerUtils.globFilter(selectors)
-    mill.util.Jvm.inprocess(
-      runCp,
-      classLoaderOverrideSbtTesting = true,
-      isolated = true,
-      closeContextClassLoaderWhenDone = false,
-      classLoader =>
-        TestRunnerUtils
-          .getTestTasks0(
-            Framework.framework(framework),
-            Agg.from(testCp),
-            args,
-            cls => globFilter(cls.getName),
-            classLoader
-          )
-    )(new Ctx.Home {
-      def home: Path = os.home
-    })
+    mill.util.Jvm.callClassLoader(
+      classPath = runCp,
+      sharedPrefixes = Seq("sbt.testing."),
+      closeClassLoaderWhenDone = false,
+    ) { classLoader =>
+      TestRunnerUtils
+        .getTestTasks0(
+          Framework.framework(framework),
+          Agg.from(testCp),
+          args,
+          cls => globFilter(cls.getName),
+          classLoader
+        )
+    }(new Ctx.Home { def home: Path = os.home })
   }
 
   def main(args: Array[String]): Unit = mainargs.ParserForMethods(this).runOrExit(args)

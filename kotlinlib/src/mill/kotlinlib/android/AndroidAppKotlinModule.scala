@@ -245,7 +245,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
     def generatePreviews: T[Agg[PathRef]] = Task {
       val previewGenOut = mill.util.Jvm.call(
         mainClass = "com.android.tools.render.compose.MainKt",
-        classPath = composePreviewRenderer().map(_.path) ++ layoutLibRenderer().map(_.path),
+        classPath = composePreviewRenderer().map(_.path).toVector ++ layoutLibRenderer().map(_.path).toVector,
         jvmArgs = Seq(
           "-Dlayoutlib.thread.profile.timeoutms=10000",
           "-Djava.security.manager=allow"

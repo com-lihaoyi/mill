@@ -35,7 +35,7 @@ trait Giter8Module extends CoursierModule {
 
     Jvm.spawn(
       mainClass = "giter8.Giter8",
-      classPath = giter8Dependencies.map(_.path),
+      classPath = giter8Dependencies.map(_.path).toVector,
       mainArgs = args,
       cwd = Task.workspace
     )

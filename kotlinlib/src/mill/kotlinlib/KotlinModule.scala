@@ -181,7 +181,7 @@ trait KotlinModule extends JavaModule { outer =>
 
       Jvm.spawn(
         mainClass = "",
-        classPath = Agg.empty,
+        classPath = Seq.empty,
         jvmArgs = Seq("-jar", dokkaCliClasspath().head.path.toString()),
         mainArgs = options
       )

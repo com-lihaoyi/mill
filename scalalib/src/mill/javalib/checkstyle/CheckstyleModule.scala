@@ -37,7 +37,7 @@ trait CheckstyleModule extends JavaModule {
 
     val exitCode = Jvm.call(
       mainClass = "com.puppycrawl.tools.checkstyle.Main",
-      classPath = checkstyleClasspath().map(_.path),
+      classPath = checkstyleClasspath().map(_.path).toVector,
       mainArgs = args,
       cwd = millSourcePath, // allow passing relative paths for sources like src/a/b
       stdout = os.Inherit,

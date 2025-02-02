@@ -49,7 +49,7 @@ trait RevapiModule extends PublishModule {
     Task.log.info("running revapi cli")
     Jvm.spawn(
       mainClass = mainClass,
-      classPath = revapiClasspath().map(_.path),
+      classPath = revapiClasspath().map(_.path).toVector,
       jvmArgs = revapiJvmArgs(),
       mainArgs = mainArgs,
       cwd = workingDir

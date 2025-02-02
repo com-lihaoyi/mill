@@ -104,7 +104,7 @@ trait VisualizeModule extends mill.define.TaskModule {
 
           mill.util.Jvm.spawn(
             "mill.main.graphviz.GraphvizTools",
-            classpath().map(_.path),
+            classpath().map(_.path).toVector,
             mainArgs = Seq(s"${os.temp(g.toString)};$dest;txt,dot,json,png,svg")
           )
 

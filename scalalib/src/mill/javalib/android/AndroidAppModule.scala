@@ -562,7 +562,7 @@ trait AndroidAppModule extends JavaModule {
         "--out",
         mergedManifestPath.toString()
       ) ++ libManifests.flatMap(m => Seq("--libs", m.path.toString())),
-      classPath = manifestMergerClasspath().map(_.path)
+      classPath = manifestMergerClasspath().map(_.path).toVector
     )
     PathRef(mergedManifestPath)
   }

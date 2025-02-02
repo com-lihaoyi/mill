@@ -138,7 +138,7 @@ object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule
 
         val exitCode = Jvm.call(
           mainClass = "com.palantir.javaformat.java.Main",
-          classPath = classPath.map(_.path),
+          classPath = classPath.map(_.path).toVector,
           jvmArgs = jvmArgs,
           mainArgs = mainArgs,
           cwd = ctx.dest,

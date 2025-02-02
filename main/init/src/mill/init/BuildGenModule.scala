@@ -29,7 +29,7 @@ trait BuildGenModule extends TaskModule {
     val classPath = buildGenClasspath().map(_.path)
     val exit = Jvm.call(
       mainClass = mainClass,
-      classPath = classPath,
+      classPath = classPath.toVector,
       mainArgs = args,
       cwd = root
     ).exitCode

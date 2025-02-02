@@ -119,21 +119,19 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
     ) {
       case (ev, state, id, m: TestModule, Some((classpath, testFramework, testClasspath))) =>
         val (frameworkName, classFingerprint): (String, Agg[(Class[_], Fingerprint)]) =
-          Jvm.inprocess(
-            classpath.map(_.path),
-            classLoaderOverrideSbtTesting = true,
-            isolated = true,
-            closeContextClassLoaderWhenDone = false,
-            cl => {
-              val framework = Framework.framework(testFramework)(cl)
+          Jvm.callClassLoader(
+            classPath = classpath.map(_.path).toVector,
+            sharedPrefixes = Seq("sbt.testing."),
+            closeClassLoaderWhenDone = false,
+          ) { classLoader =>
+              val framework = Framework.framework(testFramework)(classLoader)
               val discoveredTests = TestRunnerUtils.discoverTests(
-                cl,
+                classLoader,
                 framework,
                 Agg.from(testClasspath.map(_.path))
               )
               (framework.name(), discoveredTests)
-            }
-          )(new mill.api.Ctx.Home { def home = os.home })
+          } (new mill.api.Ctx.Home { def home = os.home })
         val classes = Seq.from(classFingerprint.map(classF => classF._1.getName.stripSuffix("$")))
         new ScalaTestClassesItem(id, classes.asJava).tap { it =>
           it.setFramework(frameworkName)

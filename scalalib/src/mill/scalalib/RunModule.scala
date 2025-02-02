@@ -50,7 +50,7 @@ trait RunModule extends WithZincWorker {
       Jvm
         .call(
           mainClass = "mill.scalalib.worker.DiscoverMainClassesMain",
-          classPath = zincWorker().classpath().map(_.path),
+          classPath = zincWorker().classpath().map(_.path).toVector,
           mainArgs = Seq(classpath.mkString(",")),
           javaHome = zincWorker().javaHome().map(_.path),
           stdout = os.Pipe
@@ -158,11 +158,11 @@ trait RunModule extends WithZincWorker {
 
   def runLocalTask(mainClass: Task[String], args: Task[Args] = Task.Anon(Args())): Task[Unit] =
     Task.Anon {
-      Jvm.runLocal(
-        mainClass(),
-        runClasspath().map(_.path),
-        args().value
-      )
+      Jvm.callClassLoader(
+        classPath = runClasspath().map(_.path).toVector
+      ) { classloader =>
+        Jvm.getMainMethod(mainClass(), classloader).invoke(null, args().value.toArray)
+      }
     }
 
   def runBackgroundTask(mainClass: Task[String], args: Task[Args] = Task.Anon(Args())): Task[Unit] =
@@ -250,7 +250,8 @@ trait RunModule extends WithZincWorker {
    * code, without the Mill process. Useful for deployment & other places where
    * you do not want a build tool running
    */
-  def launcher = Task { launcher0() }
+  def launcher: T[PathRef] = Task { launcher0() }
+
 }
 
 object RunModule {

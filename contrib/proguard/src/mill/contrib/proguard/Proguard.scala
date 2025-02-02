@@ -113,7 +113,7 @@ trait Proguard extends ScalaModule {
 
     Jvm.spawn(
       mainClass = "proguard.ProGuard",
-      classPath = proguardClasspath().map(_.path),
+      classPath = proguardClasspath().map(_.path).toVector,
       mainArgs = args,
       cwd = Task.dest
     )

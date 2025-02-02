@@ -40,7 +40,7 @@ object Jvm extends CoursierSupport {
    */
   def call(
       mainClass: String,
-      classPath: Agg[os.Path],
+      classPath: Iterable[os.Path],
       javaHome: Option[os.Path] = None,
       jvmArgs: Seq[String] = Seq.empty,
       useCpPassingJar: Boolean = false,
@@ -55,10 +55,10 @@ object Jvm extends CoursierSupport {
       check: Boolean = true
   )(implicit ctx: Ctx): CommandResult = {
     val cp =
-      if (useCpPassingJar && classPath.iterator.nonEmpty) {
+      if (useCpPassingJar && classPath.nonEmpty) {
         val passingJar = os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)
         ctx.log.debug(
-          s"Creating classpath passing jar '${passingJar}' with Class-Path: ${classPath.iterator.map(
+          s"Creating classpath passing jar '${passingJar}' with Class-Path: ${classPath.map(
             _.toNIO.toUri.toURL.toExternalForm
           ).mkString(" ")}"
         )
@@ -71,7 +71,7 @@ object Jvm extends CoursierSupport {
     val commandArgs =
       Vector(javaExe(javaHome)) ++
         jvmArgs ++
-        Vector("-cp", cp.iterator.mkString(java.io.File.pathSeparator), mainClass) ++
+        Vector("-cp", cp.mkString(java.io.File.pathSeparator), mainClass) ++
         mainArgs
 
     val workingDir1 = Option(cwd).getOrElse(ctx.dest)
@@ -115,7 +115,7 @@ object Jvm extends CoursierSupport {
    */
   def spawn(
       mainClass: String,
-      classPath: Agg[os.Path],
+      classPath: Iterable[os.Path],
       javaHome: Option[os.Path] = None,
       jvmArgs: Seq[String] = Seq.empty,
       useCpPassingJar: Boolean = false,
@@ -130,10 +130,10 @@ object Jvm extends CoursierSupport {
   )(implicit ctx: Ctx): os.SubProcess = {
 
     val cp =
-      if (useCpPassingJar && classPath.iterator.nonEmpty) {
+      if (useCpPassingJar && classPath.nonEmpty) {
         val passingJar = os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)
         ctx.log.debug(
-          s"Creating classpath passing jar '${passingJar}' with Class-Path: ${classPath.iterator.map(
+          s"Creating classpath passing jar '${passingJar}' with Class-Path: ${classPath.map(
             _.toNIO.toUri.toURL.toExternalForm
           ).mkString(" ")}"
         )
@@ -144,7 +144,7 @@ object Jvm extends CoursierSupport {
       }
 
     val cpArgument = if (cp.nonEmpty) {
-      Vector("-cp", cp.iterator.mkString(java.io.File.pathSeparator))
+      Vector("-cp", cp.mkString(java.io.File.pathSeparator))
     } else Seq.empty
     val mainClassArgument = if (mainClass.nonEmpty) {
       Seq(mainClass)
@@ -586,7 +586,7 @@ object Jvm extends CoursierSupport {
     )
   }
 
-  private def getMainMethod(mainClassName: String, cl: ClassLoader) = {
+  def getMainMethod(mainClassName: String, cl: ClassLoader) = {
     val mainClass = cl.loadClass(mainClassName)
     val method = mainClass.getMethod("main", classOf[Array[String]])
     // jvm allows the actual main class to be non-public and to run a method in the non-public class,
@@ -600,6 +600,7 @@ object Jvm extends CoursierSupport {
     method
   }
 
+  @deprecated("Use runClassLoader", "Mill 0.12.7")
   def runClassloader[T](classPath: Agg[os.Path])(body: ClassLoader => T)(implicit
       ctx: mill.api.Ctx.Home
   ): T = {
@@ -612,6 +613,7 @@ object Jvm extends CoursierSupport {
     )
   }
 
+  @deprecated("Use spawnClassLoader", "Mill 0.12.7")
   def spawnClassloader(
       classPath: Iterable[os.Path],
       sharedPrefixes: Seq[String] = Nil,
@@ -622,6 +624,35 @@ object Jvm extends CoursierSupport {
       parent,
       sharedPrefixes = sharedPrefixes
     )(new Ctx.Home { override def home = os.home })
+  }
+
+  def spawnClassLoader(
+      classPath: Iterable[os.Path],
+      sharedPrefixes: Seq[String],
+      isolated: Boolean = true
+  )(implicit ctx: mill.api.Ctx.Home): java.net.URLClassLoader = {
+    mill.api.ClassLoader.create(
+      classPath.iterator.map(_.toNIO.toUri.toURL).toVector,
+      parent = if (isolated) null else getClass.getClassLoader,
+      sharedPrefixes = sharedPrefixes
+    )
+  }
+
+  def callClassLoader[T](
+      classPath: Iterable[os.Path],
+      sharedPrefixes: Seq[String] = Seq.empty,
+      isolated: Boolean = true,
+      closeClassLoaderWhenDone: Boolean = true
+  )(f: ClassLoader => T)(implicit ctx: mill.api.Ctx.Home): T = {
+    val oldClassloader = Thread.currentThread().getContextClassLoader
+    val newClassloader = spawnClassLoader(classPath, sharedPrefixes, isolated)
+    Thread.currentThread().setContextClassLoader(newClassloader)
+    try {
+      f(newClassloader)
+    } finally {
+      Thread.currentThread().setContextClassLoader(oldClassloader)
+      if (closeClassLoaderWhenDone) newClassloader.close()
+    }
   }
 
   def inprocess[T](

@@ -104,7 +104,7 @@ private[scalalib] object TestModuleUtil {
         val discoveredTests = if (javaHome.isDefined) {
           Jvm.call(
             mainClass = "mill.testrunner.GetTestTasksMain",
-            classPath = scalalibClasspath.map(_.path),
+            classPath = scalalibClasspath.map(_.path).toVector,
             mainArgs =
               (runClasspath ++ testrunnerEntrypointClasspath).flatMap(p =>
                 Seq("--runCp", p.path.toString)

@@ -214,7 +214,7 @@ object Kover extends ExternalModule with KoverReportBaseModule {
     args ++= Seq(s"--${reportType.toString.toLowerCase(Locale.US)}", output)
     Jvm.spawn(
       mainClass = "kotlinx.kover.cli.MainKt",
-      classPath = classpath,
+      classPath = classpath.toVector,
       jvmArgs = Seq.empty[String],
       mainArgs = args.result(),
       cwd = workingDir
