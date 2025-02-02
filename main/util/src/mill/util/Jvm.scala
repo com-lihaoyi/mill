@@ -652,7 +652,7 @@ object Jvm extends CoursierSupport {
       f(newClassloader)
     } finally {
       Thread.currentThread().setContextClassLoader(oldClassloader)
-      if (closeClassLoaderWhenDone) newClassloader.close()
+      newClassloader.close()
     }
   }
 
