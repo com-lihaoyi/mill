@@ -280,6 +280,7 @@ trait NamedTask[+T] extends Task[T] {
 trait Target[+T] extends NamedTask[T]
 
 object Target extends TaskBase {
+
   /**
    * A target is the most common [[Task]] a user would encounter, commonly
    * defined using the `def foo = Task {...}` syntax. [[TargetImpl]]s require that their

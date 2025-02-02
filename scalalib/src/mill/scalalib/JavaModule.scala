@@ -18,9 +18,8 @@ import mill.scalalib.bsp.{BspBuildTarget, BspModule, BspUri, JvmBuildTarget}
 import mill.scalalib.publish.Artifact
 import mill.util.Jvm
 
-import os.{Path, ProcessOutput}
+import os.Path
 
-import scala.annotation.nowarn
 
 /**
  * Core configuration required to compile a single Java compilation target

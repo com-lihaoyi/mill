@@ -2,7 +2,6 @@ package mill.scalalib
 
 import mill.Task
 
-import scala.annotation.nowarn
 
 /**
  * A [[ScalaModule]] with sbt compatible directory layout.

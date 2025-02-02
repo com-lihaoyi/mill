@@ -6,7 +6,7 @@ import mill.api.{Ctx, PathRef, Result}
 import mill.define.{Command, Task}
 import mill.util.Jvm
 import mill.{Agg, Args, T}
-import os.{Path, ProcessOutput}
+import os.Path
 
 import scala.util.control.NonFatal
 

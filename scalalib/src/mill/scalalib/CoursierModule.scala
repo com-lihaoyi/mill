@@ -7,7 +7,6 @@ import coursier.{Dependency, Repository, Resolve, Type}
 import mill.define.Task
 import mill.api.PathRef
 
-import scala.annotation.nowarn
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import mill.Agg

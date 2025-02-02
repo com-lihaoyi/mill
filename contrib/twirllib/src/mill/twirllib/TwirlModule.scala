@@ -1,7 +1,7 @@
 package mill
 package twirllib
 
-import coursier.{Dependency, Repository}
+import coursier.Repository
 import mill.api.PathRef
 import mill.scalalib._
 import mill.api.Loose

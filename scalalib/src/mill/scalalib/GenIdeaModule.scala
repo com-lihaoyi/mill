@@ -65,7 +65,6 @@ object GenIdeaModule {
    * @param subPath The sub-path of the config file, relative to the Idea config directory (`.idea`)
    * @param component The Idea component
    * @param config The actual (XML) configuration, encoded as [[Element]]s
-   *
    */
   final case class IdeaConfigFile(
       subPath: SubPath,
