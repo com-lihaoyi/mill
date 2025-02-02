@@ -162,7 +162,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
         val binaryPath = (binaryDir / s"$artifactId.${moduleKind.extension}")
           .toIO.getAbsolutePath
         os.call(
-          cmd = Seq(            "node"          ) ++ args.value ++ Seq(binaryPath),
+          cmd = Seq("node") ++ args.value ++ Seq(binaryPath),
           env = envArgs,
           cwd = workingDir
         ).exitCode
