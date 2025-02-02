@@ -570,7 +570,7 @@ object Jvm extends CoursierSupport {
     )
   }
 
-  @deprecated("Use runClassLoader", "Mill 0.12.7")
+  @deprecated("Use callClassLoader", "Mill 0.12.7")
   def runLocal(
       mainClass: String,
       classPath: Agg[os.Path],
