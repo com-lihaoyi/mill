@@ -102,8 +102,8 @@ trait VisualizeModule extends mill.define.TaskModule {
           g = g.graphAttr().`with`(Rank.dir(RankDir.LEFT_TO_RIGHT))
 
           mill.util.Jvm.runSubprocess(
-            mainClass = "mill.main.graphviz.GraphvizTools",
-            classPath = classpath().map(_.path),
+            "mill.main.graphviz.GraphvizTools",
+            classpath().map(_.path),
             mainArgs = Seq(s"${os.temp(g.toString)};$dest;txt,dot,json,png,svg")
           )
 
