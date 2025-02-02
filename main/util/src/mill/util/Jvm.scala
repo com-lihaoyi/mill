@@ -17,7 +17,7 @@ object Jvm extends CoursierSupport {
   /**
    * Runs a JVM subprocess with the given configuration and returns a
    * [[os.CommandResult]] with it's aggregated output and error streams
-   * 
+   *
    * @param mainClass The main class to run
    * @param classPath The classpath
    * @param javaHome Optional Java Home override
@@ -59,8 +59,8 @@ object Jvm extends CoursierSupport {
         val passingJar = os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)
         ctx.log.debug(
           s"Creating classpath passing jar '${passingJar}' with Class-Path: ${classPath.map(
-            _.toNIO.toUri.toURL.toExternalForm
-          ).mkString(" ")}"
+              _.toNIO.toUri.toURL.toExternalForm
+            ).mkString(" ")}"
         )
         createClasspathPassingJar(passingJar, classPath)
         Agg(passingJar)
@@ -134,8 +134,8 @@ object Jvm extends CoursierSupport {
         val passingJar = os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)
         ctx.log.debug(
           s"Creating classpath passing jar '${passingJar}' with Class-Path: ${classPath.map(
-            _.toNIO.toUri.toURL.toExternalForm
-          ).mkString(" ")}"
+              _.toNIO.toUri.toURL.toExternalForm
+            ).mkString(" ")}"
         )
         createClasspathPassingJar(passingJar, classPath)
         Agg(passingJar)
@@ -171,7 +171,7 @@ object Jvm extends CoursierSupport {
     process.waitFor()
     process
   }
-  
+
   /**
    * Runs a JVM subprocess with the given configuration and returns a
    * [[os.CommandResult]] with it's aggregated output and error streams

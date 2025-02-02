@@ -18,7 +18,7 @@ import mill.util.Jvm
     Jvm.callClassLoader(
       classPath = entireClasspath.toVector,
       sharedPrefixes = Seq("sbt.testing."),
-      closeClassLoaderWhenDone = false,
+      closeClassLoaderWhenDone = false
     ) { classLoader =>
       TestRunnerUtils.runTestFramework0(
         frameworkInstances,

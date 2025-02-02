@@ -302,8 +302,10 @@ object RunModule {
           // Hack to forward the background subprocess output to the Mill server process
           // stdout/stderr files, so the output will get properly slurped up by the Mill server
           // and shown to any connected Mill client even if the current command has completed
-          (os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stdout),
-            os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stderr))
+          (
+            os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stdout),
+            os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stderr)
+          )
         } else Jvm.defaultBackgroundOutputs(ctx.dest).getOrElse((os.Inherit, os.Inherit))
 
       Jvm.spawn(

@@ -287,38 +287,39 @@ object TestModule {
         sharedPrefixes = Seq("sbt.testing."),
         closeClassLoaderWhenDone = true
       ) { classLoader =>
-          val builderClass: Class[_] =
-            classLoader.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Builder")
-          val builder = builderClass.getConstructor().newInstance()
+        val builderClass: Class[_] =
+          classLoader.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Builder")
+        val builder = builderClass.getConstructor().newInstance()
 
-          builderClass.getMethod("withClassDirectory", classOf[java.io.File]).invoke(
-            builder,
-            compile().classes.path.wrapped.toFile
-          )
-          builderClass.getMethod("withRuntimeClassPath", classOf[Array[java.net.URL]]).invoke(
-            builder,
-            testClasspath().map(_.path.wrapped.toUri().toURL()).toArray
-          )
-          builderClass.getMethod("withClassLoader", classOf[ClassLoader]).invoke(builder, classLoader)
+        builderClass.getMethod("withClassDirectory", classOf[java.io.File]).invoke(
+          builder,
+          compile().classes.path.wrapped.toFile
+        )
+        builderClass.getMethod("withRuntimeClassPath", classOf[Array[java.net.URL]]).invoke(
+          builder,
+          testClasspath().map(_.path.wrapped.toUri().toURL()).toArray
+        )
+        builderClass.getMethod("withClassLoader", classOf[ClassLoader]).invoke(builder, classLoader)
 
-          val testCollector = builderClass.getMethod("build").invoke(builder)
-          val testCollectorClass =
-            classLoader.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector")
+        val testCollector = builderClass.getMethod("build").invoke(builder)
+        val testCollectorClass =
+          classLoader.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector")
 
-          val result = testCollectorClass.getMethod("collectTests").invoke(testCollector)
-          val resultClass =
-            classLoader.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Result")
+        val result = testCollectorClass.getMethod("collectTests").invoke(testCollector)
+        val resultClass =
+          classLoader.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Result")
 
-          val items = resultClass.getMethod(
-            "getDiscoveredTests"
-          ).invoke(result).asInstanceOf[java.util.List[_]]
-          val itemClass = classLoader.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Item")
+        val items = resultClass.getMethod(
+          "getDiscoveredTests"
+        ).invoke(result).asInstanceOf[java.util.List[_]]
+        val itemClass =
+          classLoader.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Item")
 
-          import scala.jdk.CollectionConverters._
-          items.asScala.map { item =>
-            itemClass.getMethod("getFullyQualifiedClassName").invoke(item).asInstanceOf[String]
-          }.toSeq
-        }
+        import scala.jdk.CollectionConverters._
+        items.asScala.map { item =>
+          itemClass.getMethod("getFullyQualifiedClassName").invoke(item).asInstanceOf[String]
+        }.toSeq
+      }
     }
   }
 

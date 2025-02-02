@@ -5,7 +5,6 @@ import mainargs.Flag
 import mill.api.Loose.Agg
 import mill.api.{Result, internal}
 import mill.define.{Command, Task}
-import mill.util.Jvm
 import mill.util.Util.millProjectModule
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.bsp.{ScalaBuildTarget, ScalaPlatform}

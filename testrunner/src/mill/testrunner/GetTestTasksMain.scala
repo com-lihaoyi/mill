@@ -29,7 +29,7 @@ import os.Path
     mill.util.Jvm.callClassLoader(
       classPath = runCp,
       sharedPrefixes = Seq("sbt.testing."),
-      closeClassLoaderWhenDone = false,
+      closeClassLoaderWhenDone = false
     ) { classLoader =>
       TestRunnerUtils
         .getTestTasks0(
