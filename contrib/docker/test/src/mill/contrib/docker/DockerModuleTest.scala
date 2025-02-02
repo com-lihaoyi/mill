@@ -3,7 +3,6 @@ package contrib.docker
 
 import mill.scalalib.JavaModule
 import mill.api.Result
-import mill.util.TestUtil
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import os.Path

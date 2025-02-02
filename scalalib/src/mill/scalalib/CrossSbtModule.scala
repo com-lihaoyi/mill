@@ -13,10 +13,7 @@ trait CrossSbtModule extends SbtModule with CrossModuleBase { outer =>
     )
   }
 
-  @nowarn
-  type CrossSbtTests = CrossSbtModuleTests
-  @deprecated("Use CrossSbtTests instead", since = "Mill 0.11.10")
-  trait CrossSbtModuleTests extends SbtTests {
+  trait CrossSbtTests extends SbtTests {
     override def millSourcePath = outer.millSourcePath
     override def sources = Task.Sources {
       super.sources() ++ scalaVersionDirectoryNames.map(s =>
@@ -24,6 +21,4 @@ trait CrossSbtModule extends SbtModule with CrossModuleBase { outer =>
       )
     }
   }
-  @deprecated("Use CrossTests instead", since = "Mill after 0.12.0-RC1")
-  trait Tests extends CrossSbtModuleTests
 }

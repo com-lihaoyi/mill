@@ -27,11 +27,6 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     override def scalaJSOptimizer: T[Boolean] = outer.scalaJSOptimizer()
   }
 
-  @deprecated("use ScalaJSTests", "0.11.0")
-  type ScalaJSModuleTests = ScalaJSTests
-  @deprecated("use ScalaJSTests", "0.11.0")
-  trait Tests extends ScalaJSTests
-
   def scalaJSBinaryVersion = Task { ZincWorkerUtil.scalaJSBinaryVersion(scalaJSVersion()) }
 
   def scalaJSWorkerVersion = Task { ZincWorkerUtil.scalaJSWorkerVersion(scalaJSVersion()) }
@@ -112,16 +107,6 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def fullLinkJS: T[Report] = Task(persistent = true) {
     linkTask(isFullLinkJS = true, forceOutJs = false)()
-  }
-
-  @deprecated("Use fastLinkJS instead", "Mill 0.10.12")
-  def fastOpt: T[PathRef] = Task {
-    getReportMainFilePathRef(linkTask(isFullLinkJS = false, forceOutJs = true)())
-  }
-
-  @deprecated("Use fullLinkJS instead", "Mill 0.10.12")
-  def fullOpt: T[PathRef] = Task {
-    getReportMainFilePathRef(linkTask(isFullLinkJS = true, forceOutJs = true)())
   }
 
   private def linkTask(isFullLinkJS: Boolean, forceOutJs: Boolean): Task[Report] = Task.Anon {

@@ -39,10 +39,8 @@ trait JavaModule
     with AssemblyModule { outer =>
 
   override def zincWorker: ModuleRef[ZincWorkerModule] = super.zincWorker
-  @nowarn
-  type JavaTests = JavaModuleTests
-  @deprecated("Use JavaTests instead", since = "Mill 0.11.10")
-  trait JavaModuleTests extends JavaModule with TestModule {
+
+  trait JavaTests extends JavaModule with TestModule {
     // Run some consistence checks
     hierarchyChecks()
 
@@ -645,77 +643,6 @@ trait JavaModule
   }
 
   /**
-   * The Ivy dependencies of this module, with Bill of Material (BOM) and dependency management details
-   * added to them. This should be used when propagating the dependencies transitively
-   * to other modules.
-   */
-  @deprecated("Unused by Mill, use allIvyDeps instead", "Mill after 0.12.5")
-  def processedIvyDeps: Task[Agg[BoundDep]] = Task {
-    allIvyDeps().map(bindDependency())
-  }
-
-  /**
-   * Returns a function adding BOM and dependency management details of
-   * this module to a `coursier.core.Dependency`
-   */
-  @deprecated("Unused by Mill", "Mill after 0.12.5")
-  def processDependency(
-      overrideVersions: Boolean = false
-  ): Task[coursier.core.Dependency => coursier.core.Dependency] =
-    Task.Anon((x: coursier.core.Dependency) => x)
-
-  /**
-   * The transitive ivy dependencies of this module and all it's upstream modules.
-   * This is calculated from [[ivyDeps]], [[mandatoryIvyDeps]] and recursively from [[moduleDeps]].
-   *
-   * This isn't used by Mill anymore. Instead of this, consider using either:
-   *   * `coursierDependency`, which will pull all this module's dependencies transitively
-   *   * `allIvyDeps`, which contains the full list of direct (external) dependencies of this module
-   */
-  @deprecated("Unused by Mill, use coursierDependency or allIvyDeps instead", "Mill after 0.12.5")
-  def transitiveIvyDeps: T[Agg[BoundDep]] = Task {
-    allIvyDeps().map(bindDependency()) ++
-      Task.traverse(moduleDepsChecked)(_.transitiveIvyDeps)().flatten
-  }
-
-  /**
-   * The compile-only transitive ivy dependencies of this module and all its upstream compile-only modules.
-   *
-   * This isn't used by Mill anymore. Instead of this, consider using either:
-   *   * `coursierDependency().withConfiguration(Configuration.provided`), which will pull all
-   *      this module's compile-only dependencies transitively
-   *   * `compileIvyDeps`, which contains the full list of direct (external) compile-only
-   *      dependencies of this module
-   */
-  @deprecated(
-    "Unused by Mill, use coursierDependency().withConfiguration(Configuration.provided) or compileIvyDeps instead",
-    "Mill after 0.12.5"
-  )
-  def transitiveCompileIvyDeps: T[Agg[BoundDep]] = Task {
-    compileIvyDeps().map(bindDependency()) ++
-      Task.traverse(moduleDepsChecked)(_.transitiveCompileIvyDeps)().flatten
-  }
-
-  /**
-   * The transitive run ivy dependencies of this module and all it's upstream modules.
-   * This is calculated from [[runIvyDeps]], [[mandatoryIvyDeps]] and recursively from [[moduleDeps]].
-   *
-   * This isn't used by Mill anymore. Instead of this, consider using either:
-   *   * `coursierDependency().withConfiguration(Configuration.runtime`), which will pull all
-   *      this module's runtime dependencies transitively
-   *   * `runIvyDeps`, which contains the full list of direct (external) runtime
-   *      dependencies of this module
-   */
-  @deprecated(
-    "Unused by Mill, use coursierDependency().withConfiguration(Configuration.runtime) or runIvyDeps instead",
-    "Mill after 0.12.5"
-  )
-  def transitiveRunIvyDeps: T[Agg[BoundDep]] = Task {
-    runIvyDeps().map(bindDependency()) ++
-      Task.traverse(moduleDepsChecked)(_.transitiveRunIvyDeps)().flatten
-  }
-
-  /**
    * The repository that knows about this project itself and its module dependencies
    */
   def internalDependenciesRepository: Task[cs.Repository] = Task.Anon {
@@ -750,9 +677,8 @@ trait JavaModule
   /**
    * The upstream compilation output of all this module's upstream modules
    */
-  def upstreamCompileOutput: T[Seq[CompilationResult]] = Task {
+  def upstreamCompileOutput: T[Seq[CompilationResult]] =
     Task.traverse(transitiveModuleCompileModuleDeps)(_.compile)
-  }
 
   /**
    * The transitive version of `localClasspath`
@@ -1051,25 +977,6 @@ trait JavaModule
   // bincompat stub
   def manifest: T[JarManifest] = Task { manifest0() }
 
-  /**
-   * Build the assembly for upstream dependencies separate from the current
-   * classpath
-   *
-   * This should allow much faster assembly creation in the common case where
-   * upstream dependencies do not change
-   *
-   * This implementation is deprecated because of it's return value.
-   * Please use [[upstreamAssembly2]] instead.
-   */
-  @deprecated("Use upstreamAssembly2 instead, which has a richer return value", "Mill 0.11.8")
-  def upstreamAssembly: T[PathRef] = Task {
-    Task.log.error(
-      s"upstreamAssembly target is deprecated and should no longer used." +
-        s" Please make sure to use upstreamAssembly2 instead."
-    )
-    upstreamAssembly2().pathRef
-  }
-
   // Bincompat stub
   def upstreamAssembly2: T[Assembly] = Task { upstreamAssembly2_0() }
 
@@ -1348,32 +1255,6 @@ trait JavaModule
     super.run(args)
   }
 
-  @deprecated("Binary compat shim, use `.runner().run(..., background=true)`", "Mill 0.12.0")
-  override protected def doRunBackground(
-      taskDest: Path,
-      runClasspath: Seq[PathRef],
-      zwBackgroundWrapperClasspath: Agg[PathRef],
-      forkArgs: Seq[String],
-      forkEnv: Map[String, String],
-      finalMainClass: String,
-      forkWorkingDir: Path,
-      runUseArgsFile: Boolean,
-      backgroundOutputs: Option[Tuple2[ProcessOutput, ProcessOutput]]
-  )(args: String*): Ctx => Result[Unit] = {
-    // overridden here for binary compatibility (0.11.x)
-    super.doRunBackground(
-      taskDest,
-      runClasspath,
-      zwBackgroundWrapperClasspath,
-      forkArgs,
-      forkEnv,
-      finalMainClass,
-      forkWorkingDir,
-      runUseArgsFile,
-      backgroundOutputs
-    )(args: _*)
-  }
-
   override def runBackgroundLogToConsole: Boolean = {
     // overridden here for binary compatibility (0.11.x)
     super.runBackgroundLogToConsole
@@ -1502,14 +1383,6 @@ trait JavaModule
     canCompile = true,
     canRun = true
   )
-
-  @internal
-  @deprecated("Use bspJvmBuildTargetTask instead", "0.12.3")
-  def bspJvmBuildTarget: JvmBuildTarget =
-    JvmBuildTarget(
-      javaHome = Option(System.getProperty("java.home")).map(p => BspUri(os.Path(p))),
-      javaVersion = Option(System.getProperty("java.version"))
-    )
 
   @internal
   def bspJvmBuildTargetTask: Task[JvmBuildTarget] = Task.Anon {

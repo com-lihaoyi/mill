@@ -27,7 +27,4 @@ object Terminal {
       case None => labelledTask.segments
     }
   }
-
-  @deprecated("User Terminal#render instead")
-  def printTerm(term: Terminal): String = term.render
 }

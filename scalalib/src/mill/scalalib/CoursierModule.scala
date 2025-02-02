@@ -25,12 +25,7 @@ trait CoursierModule extends mill.Module {
    * @return The [[BoundDep]]
    */
   def bindDependency: Task[Dep => BoundDep] = Task.Anon { (dep: Dep) =>
-    BoundDep((resolveCoursierDependency.apply(): @nowarn).apply(dep), dep.force)
-  }
-
-  @deprecated("To be replaced by bindDependency", "Mill after 0.11.0-M0")
-  def resolveCoursierDependency: Task[Dep => coursier.Dependency] = Task.Anon {
-    Lib.depToDependencyJava(_: Dep)
+    BoundDep(Lib.depToDependencyJava(dep), dep.force)
   }
 
   def defaultResolver: Task[CoursierModule.Resolver] = Task.Anon {

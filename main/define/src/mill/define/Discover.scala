@@ -20,24 +20,12 @@ case class Discover private (
       (Seq[String], Seq[mainargs.MainData[_, _]], Seq[String])
     ],
     dummy: Int = 0 /* avoid conflict with Discover.apply(value: Map) below*/
-) {
-  @deprecated("Binary compatibility shim", "Mill 0.11.4")
-  private[define] def this(value: Map[Class[_], Seq[mainargs.MainData[_, _]]]) =
-    this(value.view.mapValues((Nil, _, Nil)).toMap)
-  @deprecated("Binary compatibility shim", "Mill 0.11.4")
-  private[define] def copy(value: Map[Class[_], Seq[mainargs.MainData[_, _]]]): Discover = {
-    new Discover(value.view.mapValues((Nil, _, Nil)).toMap, dummy)
-  }
-}
+)
 
 object Discover {
   def apply2[T](value: Map[Class[_], (Seq[String], Seq[mainargs.MainData[_, _]], Seq[String])])
       : Discover =
     new Discover(value)
-
-  @deprecated("Binary compatibility shim", "Mill 0.11.4")
-  def apply[T](value: Map[Class[_], Seq[mainargs.MainData[_, _]]]): Discover =
-    new Discover(value.view.mapValues((Nil, _, Nil)).toMap)
 
   inline def apply[T]: Discover = ${ Router.applyImpl[T] }
 

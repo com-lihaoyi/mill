@@ -353,7 +353,8 @@ trait KotlinModule extends JavaModule { outer =>
       compileClasspath = compileCp,
       javacOptions = javacOptions,
       reporter = compileProblemReporter,
-      reportCachedProblems = reportOldProblems
+      reportCachedProblems = reportOldProblems,
+      incrementalCompilation = true // TODO: Should incrementalCompilation be added to kotlin api? 
     )
   }
 

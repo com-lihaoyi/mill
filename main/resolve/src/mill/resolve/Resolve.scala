@@ -10,7 +10,7 @@ import mill.define.{
   NamedTask,
   Reflect,
   Segments,
-  Target,
+  Task,
   TaskModule
 }
 import mill.resolve.ResolveCore.{Resolved, makeResultException}
@@ -169,7 +169,7 @@ object Resolve {
       if (a.default.nonEmpty) a
       else if (nullCommandDefaults) {
         a.copy(default =
-          if (a.reader.isInstanceOf[SimpleTaskTokenReader[_]]) Some(_ => Target.task(null))
+          if (a.reader.isInstanceOf[SimpleTaskTokenReader[_]]) Some(_ => Task.Anon(null))
           else Some(_ => null)
         )
       } else a

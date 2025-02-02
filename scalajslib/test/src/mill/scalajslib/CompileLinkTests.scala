@@ -79,20 +79,14 @@ object CompileLinkTests extends TestSuite {
   def testRun(
       scalaVersion: String,
       scalaJSVersion: String,
-      optimize: Boolean,
-      legacy: Boolean
+      optimize: Boolean
   ): Unit = UnitTester(HelloJSWorld, millSourcePath).scoped { eval =>
     val module = HelloJSWorld.build(scalaVersion, scalaJSVersion)
-    val jsFile =
-      if (legacy) {
-        val task = if (optimize) module.fullOpt else module.fastOpt
-        val Right(result) = eval(task)
-        result.value.path
-      } else {
-        val task = if (optimize) module.fullLinkJS else module.fastLinkJS
-        val Right(result) = eval(task)
-        result.value.dest.path / result.value.publicModules.head.jsFileName
-      }
+    val jsFile = {
+      val task = if (optimize) module.fullLinkJS else module.fastLinkJS
+      val Right(result) = eval(task)
+      result.value.dest.path / result.value.publicModules.head.jsFileName
+    }
     val output = ScalaJsUtils.runJS(jsFile)
     assert(output == "Hello Scala.js\n")
     val sourceMap = jsFile / os.up / (jsFile.last + ".map")
@@ -130,12 +124,12 @@ object CompileLinkTests extends TestSuite {
 
     test("fastLinkJS") {
       testAllMatrix((scala, scalaJS) =>
-        testRun(scala, scalaJS, optimize = true, legacy = false)
+        testRun(scala, scalaJS, optimize = false)
       )
     }
     test("fullLinkJS") {
       testAllMatrix((scala, scalaJS) =>
-        testRun(scala, scalaJS, optimize = true, legacy = false)
+        testRun(scala, scalaJS, optimize = true)
       )
     }
   }

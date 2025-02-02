@@ -166,16 +166,6 @@ object Task extends TaskBase {
   inline def Anon[T](inline t: Result[T]): Task[T] =
     ${ Target.Internal.anonTaskImpl[T]('t)('this) }
 
-  @deprecated(
-    "Creating a target from a task is deprecated. You most likely forgot a parenthesis pair `()`",
-    "Mill after 0.12.0-RC1"
-  )
-  inline def apply[T](inline t: Task[T])(implicit
-      inline rw: RW[T],
-      inline ctx: mill.define.Ctx
-  ): Target[T] =
-    ${ Target.Internal.targetTaskImpl[T]('t)('rw, 'ctx) }
-
   inline def apply[T](inline t: T)(implicit
       inline rw: RW[T],
       inline ctx: mill.define.Ctx
@@ -290,86 +280,6 @@ trait NamedTask[+T] extends Task[T] {
 trait Target[+T] extends NamedTask[T]
 
 object Target extends TaskBase {
-  @deprecated("Use Task(persistent = true){...} instead", "Mill after 0.12.0-RC1")
-  inline def persistent[T](inline t: Result[T])(implicit
-      inline rw: RW[T],
-      inline ctx: mill.define.Ctx
-  ): Target[T] =
-    ${ Internal.persistentImpl[T]('t)('rw, 'ctx, 'this) }
-
-  @deprecated("Use Task.Sources instead", "Mill after 0.12.0-RC1")
-  inline def sources(inline values: Result[os.Path]*)(implicit
-      inline ctx: mill.define.Ctx
-  ): Target[Seq[PathRef]] = ${ Internal.sourcesImpl1('values)('ctx, 'this) }
-
-  @deprecated("Use Task.Sources instead", "Mill after 0.12.0-RC1")
-  inline def sources(inline values: Result[Seq[PathRef]])(implicit
-      inline ctx: mill.define.Ctx
-  ): Target[Seq[PathRef]] =
-    ${ Internal.sourcesImpl2('values)('ctx, 'this) }
-
-  @deprecated("Use Task.Source instead", "Mill after 0.12.0-RC1")
-  inline def source(inline value: Result[os.Path])(implicit
-      inline ctx: mill.define.Ctx
-  ): Target[PathRef] =
-    ${ Internal.sourceImpl1('value)('ctx, 'this) }
-
-  @deprecated("Use Task.Source instead", "Mill after 0.12.0-RC1")
-  @annotation.targetName("sourceRef")
-  inline def source(inline value: Result[PathRef])(implicit
-      inline ctx: mill.define.Ctx
-  ): Target[PathRef] =
-    ${ Internal.sourceImpl2('value)('ctx, 'this) }
-
-  @deprecated("Use Task.Input instead", "Mill after 0.12.0-RC1")
-  inline def input[T](inline value: Result[T])(implicit
-      inline w: upickle.default.Writer[T],
-      inline ctx: mill.define.Ctx
-  ): Target[T] =
-    ${ Internal.inputImpl[T]('value)('w, 'ctx, 'this) }
-
-  @deprecated(
-    "Creating a command from a task is deprecated. You most likely forgot a parenthesis pair `()`",
-    "Mill after 0.12.0-RC1"
-  )
-  inline def command[T](inline t: Task[T])(implicit
-      inline ctx: mill.define.Ctx,
-      inline w: W[T],
-      inline cls: EnclosingClass
-  ): Command[T] = ${ Internal.commandFromTask[T]('t)('ctx, 'w, 'cls) }
-
-  @deprecated("Use Task.Command instead", "Mill after 0.12.0-RC1")
-  inline def command[T](inline t: Result[T])(implicit
-      inline w: W[T],
-      inline ctx: mill.define.Ctx,
-      inline cls: EnclosingClass
-  ): Command[T] = ${ Internal.commandImpl[T]('t)('w, 'ctx, 'cls, 'this) }
-
-  @deprecated(
-    "Creating a worker from a task is deprecated. You most likely forgot a parenthesis pair `()`",
-    "Mill after 0.12.0-RC1"
-  )
-  inline def worker[T](inline t: Task[T])(implicit inline ctx: mill.define.Ctx): Worker[T] =
-    ${ Internal.workerImpl1[T]('t)('ctx) }
-
-  @deprecated("Use Task.Worker instead", "Mill after 0.12.0-RC1")
-  inline def worker[T](inline t: Result[T])(implicit inline ctx: mill.define.Ctx): Worker[T] =
-    ${ Internal.workerImpl2[T]('t)('ctx, 'this) }
-
-  @deprecated("Use Task.Anon instead", "Mill after 0.12.0-RC2")
-  inline def task[T](inline t: Result[T]): Task[T] =
-    ${ Target.Internal.anonTaskImpl[T]('t)('this) }
-
-  @deprecated(
-    "Creating a target from a task is deprecated. You most likely forgot a parenthesis pair `()`",
-    "Mill after 0.12.0-RC1"
-  )
-  inline def apply[T](inline t: Task[T])(implicit
-      inline rw: RW[T],
-      inline ctx: mill.define.Ctx
-  ): Target[T] =
-    ${ Internal.targetTaskImpl[T]('t)('rw, 'ctx) }
-
   /**
    * A target is the most common [[Task]] a user would encounter, commonly
    * defined using the `def foo = Task {...}` syntax. [[TargetImpl]]s require that their
@@ -889,8 +799,7 @@ class TargetImpl[+T](
     val isPrivate: Option[Boolean]
 ) extends Target[T] {
   override def asTarget: Option[Target[T]] = Some(this)
-  // FIXME: deprecated return type: Change to Option
-  override def readWriterOpt: Some[RW[_]] = Some(readWriter)
+  override def readWriterOpt: Option[RW[_]] = Some(readWriter)
 }
 
 class PersistentImpl[+T](
@@ -918,8 +827,7 @@ class Command[+T](
       isPrivate: Option[Boolean]
   ) = this(t, ctx0, writer, cls, isPrivate, false)
   override def asCommand: Some[Command[T]] = Some(this)
-  // FIXME: deprecated return type: Change to Option
-  override def writerOpt: Some[W[_]] = Some(writer)
+  override def writerOpt: Option[W[_]] = Some(writer)
 }
 
 class Worker[+T](val t: Task[T], val ctx0: mill.define.Ctx, val isPrivate: Option[Boolean])
@@ -935,8 +843,7 @@ class InputImpl[T](
     val isPrivate: Option[Boolean]
 ) extends Target[T] {
   override def sideHash: Int = util.Random.nextInt()
-  // FIXME: deprecated return type: Change to Option
-  override def writerOpt: Some[W[_]] = Some(writer)
+  override def writerOpt: Option[W[_]] = Some(writer)
 }
 
 class SourcesImpl(t: Task[Seq[PathRef]], ctx0: mill.define.Ctx, isPrivate: Option[Boolean])

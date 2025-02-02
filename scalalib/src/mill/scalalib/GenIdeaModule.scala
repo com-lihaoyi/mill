@@ -66,14 +66,13 @@ object GenIdeaModule {
    * @param component The Idea component
    * @param config The actual (XML) configuration, encoded as [[Element]]s
    *
-   * Note: the `name` fields is deprecated in favour of `subPath`, but kept for backward compatibility.
    */
   final case class IdeaConfigFile(
       subPath: SubPath,
       component: Option[String],
       config: Seq[Element]
   ) {
-    // An empty component name meas we contribute a whole file
+    // An empty component name means we contribute a whole file
     // If we have a fill file, we only accept a single root xml node.
     require(
       component.forall(_.nonEmpty) && (component.nonEmpty || config.size == 1),
