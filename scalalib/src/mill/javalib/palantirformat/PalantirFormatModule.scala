@@ -141,8 +141,7 @@ object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule
           classPath = classPath.map(_.path).toVector,
           jvmArgs = jvmArgs,
           mainArgs = mainArgs,
-          cwd = ctx.dest,
-          check = false
+          cwd = ctx.dest
         )
         mill.util.ProcessUtil.toResult(processResult).getOrThrow
         val exitCode = processResult.exitCode

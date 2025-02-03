@@ -48,11 +48,11 @@ object Jvm extends CoursierSupport {
       env: Map[String, String] = Map.empty,
       propagateEnv: Boolean = true,
       cwd: os.Path = null,
-      stdin: os.ProcessInput = os.Pipe,
-      stdout: ProcessOutput = os.Pipe,
+      stdin: os.ProcessInput = os.Inherit,
+      stdout: ProcessOutput = os.Inherit,
       stderr: ProcessOutput = os.Inherit,
       mergeErrIntoOut: Boolean = false,
-      check: Boolean = true
+      check: Boolean = false
   )(implicit ctx: Ctx): CommandResult = {
     val cp =
       if (useCpPassingJar && classPath.nonEmpty) {
@@ -123,8 +123,8 @@ object Jvm extends CoursierSupport {
       env: Map[String, String] = Map.empty,
       propagateEnv: Boolean = true,
       cwd: os.Path = null,
-      stdin: os.ProcessInput = os.Pipe,
-      stdout: ProcessOutput = os.Pipe,
+      stdin: os.ProcessInput = os.Inherit,
+      stdout: ProcessOutput = os.Inherit,
       stderr: ProcessOutput = os.Inherit,
       mergeErrIntoOut: Boolean = false
   )(implicit ctx: Ctx): os.SubProcess = {
@@ -172,7 +172,7 @@ object Jvm extends CoursierSupport {
     process
   }
 
-  // OK
+
   /**
    * Runs a JVM subprocess with the given configuration and returns a
    * [[os.CommandResult]] with it's aggregated output and error streams
@@ -208,7 +208,7 @@ object Jvm extends CoursierSupport {
       )
   }
 
-  // OK
+
   /**
    * Runs a JVM subprocess with the given configuration and returns a
    * [[os.CommandResult]] with it's aggregated output and error streams
@@ -237,7 +237,7 @@ object Jvm extends CoursierSupport {
     )
   }
 
-  // OK
+
   /**
    * Runs a JVM subprocess with the given configuration and returns a
    * [[os.CommandResult]] with it's aggregated output and error streams
@@ -280,7 +280,7 @@ object Jvm extends CoursierSupport {
   def defaultBackgroundOutputs(outputDir: os.Path): Option[(ProcessOutput, ProcessOutput)] =
     Some((outputDir / "stdout.log", outputDir / "stderr.log"))
 
-  // OK
+
   /**
    * Runs a JVM subprocess with the given configuration and streams
    * it's stdout and stderr to the console.
@@ -384,7 +384,7 @@ object Jvm extends CoursierSupport {
       false
     )
 
-  // OK
+
   /**
    * Runs a JVM subprocess with the given configuration and streams
    * it's stdout and stderr to the console.
@@ -449,7 +449,7 @@ object Jvm extends CoursierSupport {
       runSubprocess(args, envArgs, workingDir)
   }
 
-  // OK
+
   // bincompat shim
   @deprecated("Use spawn or call+ProcessUtil.toResult", "Mill 0.12.7")
   def runSubprocessWithBackgroundOutputs(
@@ -488,7 +488,7 @@ object Jvm extends CoursierSupport {
     ()
   }
 
-  // OK
+
   /**
    * Runs a generic subprocess and waits for it to terminate.
    *

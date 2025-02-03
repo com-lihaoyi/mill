@@ -38,7 +38,7 @@ trait JmhModule extends JavaModule {
   def runJmh(args: String*) =
     Task.Command {
       val (_, resources) = generateBenchmarkSources()
-      Jvm.spawn(
+      val processResult = Jvm.call(
         "org.openjdk.jmh.Main",
         classPath = (runClasspath() ++ generatorDeps()).map(_.path) ++
           Seq(compileGeneratedSources().path, resources),
@@ -46,6 +46,7 @@ trait JmhModule extends JavaModule {
         cwd = Task.ctx().dest,
         javaHome = zincWorker().javaHome().map(_.path)
       )
+      mill.util.ProcessUtil.toResult(processResult).getOrThrow
       ()
     }
 
@@ -57,7 +58,7 @@ trait JmhModule extends JavaModule {
       val (sourcesDir, _) = generateBenchmarkSources()
       val sources = os.walk(sourcesDir).filter(os.isFile)
 
-      os.proc(
+      val processResult = os.proc(
         Jvm.jdkTool("javac"),
         sources.map(_.toString),
         "-cp",
@@ -67,6 +68,7 @@ trait JmhModule extends JavaModule {
         "-d",
         dest
       ).call(dest)
+      mill.util.ProcessUtil.toResult(processResult).getOrThrow
       PathRef(dest)
     }
 
@@ -83,7 +85,7 @@ trait JmhModule extends JavaModule {
       os.remove.all(resourcesDir)
       os.makeDir.all(resourcesDir)
 
-      Jvm.spawn(
+      val processResult = Jvm.call(
         "org.openjdk.jmh.generators.bytecode.JmhBytecodeGenerator",
         (runClasspath() ++ generatorDeps()).map(_.path),
         mainArgs = Seq(
@@ -95,6 +97,7 @@ trait JmhModule extends JavaModule {
         javaHome = zincWorker().javaHome().map(_.path),
         jvmArgs = forkedArgs
       )
+      mill.util.ProcessUtil.toResult(processResult).getOrThrow
 
       (sourcesDir, resourcesDir)
     }

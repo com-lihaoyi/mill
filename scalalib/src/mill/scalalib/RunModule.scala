@@ -322,7 +322,7 @@ object RunModule {
           )
         } else Jvm.defaultBackgroundOutputs(ctx.dest).getOrElse((os.Inherit, os.Inherit))
 
-      Jvm.spawn(
+      val processResult = Jvm.call(
         mainClass = Option(mainClass).getOrElse(mainClass0.fold(sys.error, identity)),
         classPath = runClasspath ++ extraRunClasspath,
         jvmArgs = Option(forkArgs).getOrElse(forkArgs0),
@@ -337,6 +337,7 @@ object RunModule {
         },
         javaHome = javaHome
       )
+      mill.util.ProcessUtil.toResult(processResult).getOrThrow
     }
   }
 }

@@ -50,10 +50,8 @@ trait TestModule
             testClasspath().flatMap(p => Seq("--testCp", p.path.toString())) ++
             Seq("--framework", testFramework()),
         javaHome = zincWorker().javaHome().map(_.path),
-        stdout = os.Pipe
-      )
-      T.log.info(
-        s"PROCESS RES = ${processResult}"
+        stdout = os.Pipe,
+        stderr = Task.dest / "stderr.log"
       )
       mill.util.ProcessUtil.toResult(processResult).getOrThrow
       processResult.out        .lines()

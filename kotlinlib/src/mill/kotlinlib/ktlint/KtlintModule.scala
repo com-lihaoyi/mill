@@ -128,7 +128,7 @@ object KtlintModule extends ExternalModule with KtlintModule with TaskModule {
       mainArgs = args.result(),
       cwd = millSourcePath,
       stdout = os.Inherit,
-      check = false
+      stderr = ctx.dest / "stderr.log"
     )
     mill.util.ProcessUtil.toResult(processResult).getOrThrow
     val exitCode = processResult.exitCode

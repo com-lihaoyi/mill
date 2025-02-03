@@ -102,11 +102,13 @@ trait VisualizeModule extends mill.define.TaskModule {
 
           g = g.graphAttr().`with`(Rank.dir(RankDir.LEFT_TO_RIGHT))
 
-          mill.util.Jvm.spawn(
+          val ctx = implicitly[mill.api.Ctx]
+          val processResult = mill.util.Jvm.call(
             "mill.main.graphviz.GraphvizTools",
             classpath().map(_.path).toVector,
             mainArgs = Seq(s"${os.temp(g.toString)};$dest;txt,dot,json,png,svg")
           )
+          mill.util.ProcessUtil.toResult(processResult).getOrThrow
 
           os.list(dest).sorted.map(PathRef(_))
         }

@@ -63,12 +63,9 @@ private[scalalib] object TestModuleUtil {
 
       os.makeDir.all(sandbox)
 
-      Jvm.spawn(
+      val processResult = Jvm.call(
         mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
-        classPath =
-          (runClasspath ++ testrunnerEntrypointClasspath).map(
-            _.path
-          ),
+        classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
         jvmArgs = jvmArgs,
         env = forkEnv ++ resourceEnv,
         mainArgs = Seq(testRunnerClasspathArg, argsFile.toString),
@@ -76,6 +73,21 @@ private[scalalib] object TestModuleUtil {
         useCpPassingJar = useArgsFile,
         javaHome = javaHome
       )
+      mill.util.ProcessUtil.toResult(processResult).getOrThrow
+
+      /*Jvm.runSubprocess(
+        mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
+        classPath =
+          (runClasspath ++ testrunnerEntrypointClasspath).map(
+            _.path
+          ),
+        jvmArgs = jvmArgs,
+        envArgs = forkEnv ++ resourceEnv,
+        mainArgs = Seq(testRunnerClasspathArg, argsFile.toString),
+        workingDir = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
+        useCpPassingJar = useArgsFile,
+        javaHome = javaHome
+      )*/
 
       if (!os.exists(outputPath)) Left(s"Test reporting Failed: ${outputPath} does not exist")
       else Right(upickle.default.read[(String, Seq[TestResult])](ujson.read(outputPath.toIO)))
@@ -114,7 +126,8 @@ private[scalalib] object TestModuleUtil {
                 selectors.flatMap(s => Seq("--selectors", s)) ++
                 args.flatMap(s => Seq("--args", s)),
             javaHome = javaHome,
-            stdout = os.Pipe
+            stdout = os.Pipe,
+            stderr = ctx.dest / "stderr.log"
           )
           mill.util.ProcessUtil.toResult(processResult).getOrThrow
           processResult.out        .lines().toSet

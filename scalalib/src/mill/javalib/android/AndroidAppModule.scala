@@ -545,7 +545,7 @@ trait AndroidAppModule extends JavaModule {
     val libManifests = androidUnpackArchives().flatMap(_.manifest)
     val mergedManifestPath = Task.dest / "AndroidManifest.xml"
     // TODO put it to the dedicated worker if cost of classloading is too high
-    Jvm.spawn(
+    val processResult = Jvm.call(
       mainClass = "com.android.manifmerger.Merger",
       mainArgs = Seq(
         "--main",
@@ -564,6 +564,7 @@ trait AndroidAppModule extends JavaModule {
       ) ++ libManifests.flatMap(m => Seq("--libs", m.path.toString())),
       classPath = manifestMergerClasspath().map(_.path).toVector
     )
+    mill.util.ProcessUtil.toResult(processResult).getOrThrow
     PathRef(mergedManifestPath)
   }
 
