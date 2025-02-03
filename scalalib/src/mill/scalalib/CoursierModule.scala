@@ -33,6 +33,34 @@ trait CoursierModule extends mill.Module {
     Lib.depToDependencyJava(_: Dep)
   }
 
+  /**
+   * A `CoursierModule.Resolver` to resolve dependencies.
+   *
+   * Unlike `defaultResolver`, this resolver can resolve Mill internal modules
+   * (obtained via `JavaModule#coursierDependency`).
+   *
+   * @return `CoursierModule.Resolver` instance
+   */
+  def internalResolver: Task[CoursierModule.Resolver] = Task.Anon {
+    new CoursierModule.Resolver(
+      repositories = allRepositoriesTask(),
+      bind = bindDependency(),
+      mapDependencies = Some(mapDependencies()),
+      customizer = resolutionCustomizer(),
+      coursierCacheCustomizer = coursierCacheCustomizer(),
+      ctx = Some(implicitly[mill.api.Ctx.Log]),
+      resolutionParams = resolutionParams()
+    )
+  }
+
+  /**
+   * A `CoursierModule.Resolver` to resolve dependencies.
+   *
+   * Can be used to resolve external dependencies, if you need to download an external
+   * tool from Maven or Ivy repositories, by calling `CoursierModule.Resolver#resolveDeps`.
+   *
+   * @return `CoursierModule.Resolver` instance
+   */
   def defaultResolver: Task[CoursierModule.Resolver] = Task.Anon {
     new CoursierModule.Resolver(
       repositories = repositoriesTask(),
@@ -56,11 +84,15 @@ trait CoursierModule extends mill.Module {
   def resolveDeps(
       deps: Task[Agg[BoundDep]],
       sources: Boolean = false,
-      artifactTypes: Option[Set[Type]] = None
-  ): Task[Agg[PathRef]] =
+      artifactTypes: Option[Set[Type]] = None,
+      enableMillInternalDependencies: Boolean = false
+  ): Task[Agg[PathRef]] = {
+    val repositoriesTask0 =
+      if (enableMillInternalDependencies) allRepositoriesTask
+      else repositoriesTask
     Task.Anon {
       Lib.resolveDependencies(
-        repositories = repositoriesTask(),
+        repositories = repositoriesTask0(),
         deps = deps(),
         sources = sources,
         artifactTypes = artifactTypes,
@@ -70,6 +102,20 @@ trait CoursierModule extends mill.Module {
         ctx = Some(implicitly[mill.api.Ctx.Log])
       )
     }
+  }
+
+  // bin-compat shim
+  def resolveDeps(
+      deps: Task[Agg[BoundDep]],
+      sources: Boolean,
+      artifactTypes: Option[Set[Type]]
+  ): Task[Agg[PathRef]] =
+    resolveDeps(
+      deps,
+      sources,
+      artifactTypes,
+      enableMillInternalDependencies = false
+    )
 
   @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
   def resolveDeps(
@@ -94,6 +140,8 @@ trait CoursierModule extends mill.Module {
 
   /**
    * The repositories used to resolved dependencies with [[resolveDeps()]].
+   *
+   * See [[allRepositoriesTask]] if you need to resolve Mill internal modules.
    */
   def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
     val resolve = Resolve()
@@ -101,7 +149,23 @@ trait CoursierModule extends mill.Module {
       resolve.finalRepositories.future()(resolve.cache.ec),
       Duration.Inf
     )
-    internalRepositories() ++ repos
+    repos
+  }
+
+  /**
+   * The repositories used to resolved dependencies
+   *
+   * Unlike [[repositoriesTask]], this includes the Mill internal repositories,
+   * which allow to resolve Mill internal modules (usually brought in via
+   * `JavaModule#coursierDependency`).
+   *
+   * Beware that this needs to evaluate `JavaModule#coursierProject` of all
+   * module dependencies of the current module, which itself evaluates `JavaModule#ivyDeps`
+   * and related tasks. You shouldn't depend on this task from implementations of `ivyDeps`,
+   * which would introduce cycles between Mill tasks.
+   */
+  def allRepositoriesTask: Task[Seq[Repository]] = Task.Anon {
+    internalRepositories() ++ repositoriesTask()
   }
 
   /**
