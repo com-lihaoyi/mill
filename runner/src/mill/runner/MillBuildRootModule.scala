@@ -123,7 +123,6 @@ abstract class MillBuildRootModule()(implicit
     val parsed = parseBuildFiles()
     if (parsed.errors.nonEmpty) Result.Failure(parsed.errors.mkString("\n"))
     else {
-      val isScala3 = scalaVersion().startsWith("3.")
       CodeGen.generateWrappedSources(
         rootModuleInfo.projectRoot / os.up,
         scriptSources(),
@@ -133,7 +132,6 @@ abstract class MillBuildRootModule()(implicit
         rootModuleInfo.compilerWorkerClasspath,
         rootModuleInfo.topLevelProjectRoot,
         rootModuleInfo.output,
-        isScala3,
         compilerWorker()
       )
       Result.Success(Seq(PathRef(Task.dest)))

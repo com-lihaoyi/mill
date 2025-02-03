@@ -1,6 +1,0 @@
-package build.sub
-
-import mill._
-object `package` extends RootModule {
-  def y = 1
-}
