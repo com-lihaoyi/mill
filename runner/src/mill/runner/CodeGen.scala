@@ -280,7 +280,7 @@ object CodeGen {
        |  ${childAliases.linesWithSeparators.mkString("  ")}
        |  ${if (segments.nonEmpty) "" else millDiscover()}
        |}
-       |abstract class $wrapperObjectName $extendsClause {
+       |abstract class $wrapperObjectName $extendsClause { this: $wrapperObjectName.type =>"
        |""".stripMargin
 
   }
