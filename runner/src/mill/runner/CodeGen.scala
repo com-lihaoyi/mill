@@ -19,7 +19,6 @@ object CodeGen {
       compilerWorkerClasspath: Seq[os.Path],
       millTopLevelProjectRoot: os.Path,
       output: os.Path,
-      isScala3: Boolean,
       parser: MillScalaParser
   ): Unit = {
     for (scriptSource <- scriptSources) breakable {
@@ -108,8 +107,6 @@ object CodeGen {
             aliasImports,
             scriptCode,
             markerComment,
-            isScala3,
-            childSels,
             parser
           )
         }
@@ -135,21 +132,13 @@ object CodeGen {
       aliasImports: String,
       scriptCode: String,
       markerComment: String,
-      isScala3: Boolean,
-      childSels: Seq[String],
       parser: MillScalaParser
   ) = {
     val segments = scriptFolderPath.relativeTo(projectRoot).segments
 
     val prelude = {
-      val scala3imports = if isScala3 then {
-        // (Scala 3) package is not part of implicit scope
-        s"""import _root_.mill.main.TokenReaders.given, _root_.mill.api.JsonFormatters.given"""
-      } else {
-        ""
-      }
       s"""import MillMiscInfo._
-         |$scala3imports
+         |import _root_.mill.main.TokenReaders.given, _root_.mill.api.JsonFormatters.given
          |""".stripMargin
     }
 
