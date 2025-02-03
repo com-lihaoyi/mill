@@ -82,83 +82,18 @@ object `package` extends RootModule with KotlinSpotlessModule {
 
 > ./mill spotless --check  # check should fail initially
  The following files had format violations:
- .../src/java/Main.java
-@@ -1,20 +1,16 @@
-   -import·java.math.BigDecimal;
-   -import·java.math.RoundingMode;
-   -import·java.util.ArrayList;
-   -import·javax.swing.JFrame;
-   -import·java.io.File;
-   -import·java.time.LocalDateTime;
-   -import·java.util.List;
-   -import·javax.swing.JPanel;
-   -import·java.io.IOException;
-   -import·java.time.format.DateTimeFormatter;
-   -public·class·Main
-   -{
-   -····public·static·void·main(String[]args){
-   -····System.out.println("Hello,·world!");
-   -····BigDecimal·price·=·new·BigDecimal("19.99");
-   -····BigDecimal·quantity·=·new·BigDecimal("3");
-   -····BigDecimal·subtotal·=·price.multiply(quantity);System.out.println("Subtotal:·$"·+·subtotal);
-   -····int·x=·10;int·y=20;System.out.println("Sum:·"+(x+y));}
-   -}
-   -
-   +/*·(C)·2025.·Licensed·under·Apache-2.0.·*/
-   +import·java.math.BigDecimal;
-   +
-   +public·class·Main·{
-   +··public·static·void·main(String[]·args)·{
-   +····System.out.println("Hello,·world!");
-   +····BigDecimal·price·=·new·BigDecimal("19.99");
-   +····BigDecimal·quantity·=·new·BigDecimal("3");
-   +····BigDecimal·subtotal·=·price.multiply(quantity);
-   +····System.out.println("Subtotal:·$"·+·subtotal);
-   +····int·x·=·10;
-   +····int·y·=·20;
-   +····System.out.println("Sum:·"·+·(x·+·y));
-   +··}
-   +}
-   +
-   .../src/java/Person.java
-@@ -1,10 +1,17 @@
-   -
-   -public·class·Person
-   -{private·String·name;
-   -public·Person(String·name){this.name=name;}
-   -public·String·getName()
-   -{return·name;·}
-   -public·void·setName(String·name){
-   -this.name=name;
-   -}}
-   -
-   +/*·(C)·2025.·Licensed·under·Apache-2.0.·*/
-   +public·class·Person·{
-   +··private·String·name;
-   +
-   +··public·Person(String·name)·{
-   +····this.name·=·name;
-   +··}
-   +
-   +··public·String·getName()·{
-   +····return·name;
-   +··}
-   +
-   +··public·void·setName(String·name)·{
-   +····this.name·=·name;
-   +··}
-   +}
-   +
-   Run 'mill spotless ...' to fix these violations.
+.../src/java/Main.java
+.../src/java/Person.java
+...Run 'mill spotless ...' to fix these violations.
 
 
 > ./mill spotless  # format all Java source files
-   Formatted: .../src/java2/Person.java
-   Formatted: .../src/java2/Main.java
-   Formatting completed successfully!
+...Formatted: .../src/java2/Person.java
+...Formatted: .../src/java2/Main.java
+...Formatting completed successfully!
 
 > ./mill spotless --check  # check should succeed now
-   Verification completed. No format violations found!
+...Verification completed. No format violations found!
 */
 
 // You can also use Spotless globally on all `JavaModule`s in your build by running
