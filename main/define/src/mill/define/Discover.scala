@@ -138,13 +138,8 @@ object Discover {
                   ).asExprOf[mainargs.MainData[?, ?]]
                 catch {
                   case NonFatal(e) =>
-                    val (before, Array(after, _*)) = e.getStackTrace().span(e =>
-                      !(e.getClassName() == "mill.define.Discover$Router$" && e.getMethodName() == "applyImpl")
-                    ): @unchecked
-                    val trace =
-                      (before :+ after).map(_.toString).mkString("trace:\n", "\n", "\n...")
                     report.errorAndAbort(
-                      s"Error generating maindata for ${m.fullName}: ${e}\n$trace",
+                      s"Error generating maindata for ${m.fullName}: ${e}\n${e.getStackTrace().mkString("\n")}",
                       m.pos.getOrElse(Position.ofMacroExpansion)
                     )
                 }
