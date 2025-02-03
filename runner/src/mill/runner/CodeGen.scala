@@ -51,10 +51,10 @@ object CodeGen {
         }
         .distinct
 
-      val pkg = packageSegments.drop(1).dropRight(1)
+      val pkgSegments = packageSegments.drop(1).dropRight(1)
 
       def pkgSelector0(pre: Option[String], s: Option[String]) =
-        (pre ++ pkg ++ s).map(backtickWrap).mkString(".")
+        (pre ++ pkgSegments ++ s).map(backtickWrap).mkString(".")
       def pkgSelector2(s: Option[String]) = s"_root_.${pkgSelector0(Some(globalPackagePrefix), s)}"
       val (childSels, childAliases0) = childNames
         .map { c =>
@@ -67,7 +67,7 @@ object CodeGen {
         }.unzip
       val childAliases = childAliases0.mkString("\n")
 
-      val pkgLine = s"package ${pkgSelector0(Some(globalPackagePrefix), None)}"
+      val pkg = pkgSelector0(Some(globalPackagePrefix), None)
 
       val aliasImports = Seq(
         // `$file` as an alias for `build_` to make usage of `import $file` when importing
@@ -87,13 +87,14 @@ object CodeGen {
 
       val parts =
         if (!isBuildScript) {
-          s"""$pkgLine
+          s"""package $pkg
              |$aliasImports
              |object ${backtickWrap(scriptPath.last.split('.').head)} {
              |$markerComment
              |$scriptCode
              |}""".stripMargin
         } else {
+          pprint.log(pkg)
           generateBuildScript(
             projectRoot,
             enclosingClasspath,
@@ -103,11 +104,16 @@ object CodeGen {
             scriptPath,
             scriptFolderPath,
             childAliases,
-            pkgLine,
+            pkg,
             aliasImports,
             scriptCode,
             markerComment,
-            parser
+            parser,
+            scriptSources
+              .map(_.path)
+              .filter(_ != scriptPath)
+              .filter(p => (p / os.up) == (scriptPath / os.up))
+              .map(_.last.split('.').head)
           )
         }
 
@@ -124,19 +130,21 @@ object CodeGen {
       scriptPath: os.Path,
       scriptFolderPath: os.Path,
       childAliases: String,
-      pkgLine: String,
+      pkg: String,
       aliasImports: String,
       scriptCode: String,
       markerComment: String,
-      parser: MillScalaParser
+      parser: MillScalaParser,
+      siblingScripts: Seq[String]
   ) = {
     val segments = scriptFolderPath.relativeTo(projectRoot).segments
 
-    val prelude = {
+    val exportSiblingScripts = siblingScripts.map(s => s"export $pkg.$s.*").mkString("\n")
+    val importSiblingScripts = siblingScripts.map(s => s"import $pkg.$s.*").mkString("\n")
+    val prelude =
       s"""import MillMiscInfo._
          |import _root_.mill.main.TokenReaders.given, _root_.mill.api.JsonFormatters.given
          |""".stripMargin
-    }
 
     val miscInfo =
       if (segments.nonEmpty) subfolderMiscInfo(scriptFolderPath, segments)
@@ -196,23 +204,26 @@ object CodeGen {
         newScriptCode = objectData.name.applyTo(newScriptCode, wrapperObjectName)
         newScriptCode = objectData.obj.applyTo(newScriptCode, "abstract class")
 
-        s"""$pkgLine
+        s"""package $pkg
            |$miscInfo
            |$aliasImports
+           |$importSiblingScripts
            |$prelude
            |$markerComment
            |$newScriptCode
            |object $wrapperObjectName extends $wrapperObjectName {
            |  ${childAliases.linesWithSeparators.mkString("  ")}
            |  ${if (segments.nonEmpty) "" else millDiscover()}
+           |  $exportSiblingScripts
            |}""".stripMargin
 
       case None =>
-        s"""$pkgLine
+        s"""package $pkg
            |$miscInfo
            |$aliasImports
+           |$importSiblingScripts
            |$prelude
-           |${topBuildHeader(segments, scriptFolderPath, millTopLevelProjectRoot, childAliases)}
+           |${topBuildHeader(segments, scriptFolderPath, millTopLevelProjectRoot, childAliases, exportSiblingScripts)}
            |$markerComment
            |$scriptCode
            |}""".stripMargin
@@ -259,7 +270,8 @@ object CodeGen {
       segments: Seq[String],
       scriptFolderPath: os.Path,
       millTopLevelProjectRoot: os.Path,
-      childAliases: String
+      childAliases: String,
+      exportSiblingScripts: String
   ): String = {
     val extendsClause =
       if (segments.nonEmpty) s"extends _root_.mill.main.SubfolderModule "
@@ -273,9 +285,10 @@ object CodeGen {
     // path dependent types no longer match, e.g. for TokenReaders of custom types.
     // perhaps we can patch mainargs to substitute prefixes when summoning TokenReaders?
     // or, add an optional parameter to Discover.apply to substitute the outer class?
-    s"""object ${wrapperObjectName} extends $wrapperObjectName {
+    s"""object ${wrapperObjectName} extends $wrapperObjectName  {
        |  ${childAliases.linesWithSeparators.mkString("  ")}
        |  ${if (segments.nonEmpty) "" else millDiscover()}
+       |  $exportSiblingScripts
        |}
        |abstract class $wrapperObjectName $extendsClause { this: $wrapperObjectName.type =>
        |""".stripMargin
