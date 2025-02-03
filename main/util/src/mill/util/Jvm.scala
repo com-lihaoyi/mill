@@ -17,8 +17,8 @@ object Jvm extends CoursierSupport {
   /**
    * Runs a JVM subprocess with the given configuration and returns a
    * [[os.CommandResult]] with it's aggregated output and error streams.
-   * 
-   * Exit code is not checked. 
+   *
+   * Exit code is not checked.
    * Use [[ProcessUtil.toResult]] to do a proper check
    *
    * @param mainClass The main class to run
