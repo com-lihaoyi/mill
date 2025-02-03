@@ -14,7 +14,7 @@ import scala.collection.mutable
  * the `Task.Command` methods we find. This mapping from `Class[_]` to `MainData`
  * can then be used later to look up the `MainData` for any module.
  */
-class Discover(val classInfo: Map[Class[_], Discover.Node], val allNames: Seq[String])
+class Discover(val classInfo: Map[Class[_], Discover.Node])
 
 object Discover {
   class Node(
@@ -37,14 +37,19 @@ object Discover {
       def rec(tpe: TypeRepr): Unit = {
         if (seen.add(tpe)) {
           val typeSym = tpe.typeSymbol
-          for {
+          val memberTypes: Seq[TypeRepr] = for {
             m <- typeSym.fieldMembers ++ typeSym.methodMembers
             if m != Symbol.noSymbol
-            memberTpe = m.termRef
-            if memberTpe.baseClasses.contains(moduleSym)
+          } yield m.termRef
+
+          val parentTypes: Seq[TypeRepr] = tpe.baseClasses.map(_.typeRef)
+
+          for {
+            tpe <- memberTypes ++ parentTypes
+            if tpe.baseClasses.contains(moduleSym)
           } {
-            rec(memberTpe)
-            memberTpe.asType match {
+            rec(tpe)
+            tpe.asType match {
               case '[mill.define.Cross[m]] => rec(TypeRepr.of[m])
               case _ => () // no cross argument to extract
             }
@@ -100,24 +105,22 @@ object Discover {
       // otherwise the compiler likes to give us stuff in random orders, which
       // causes the code to be generated in random order resulting in code hashes
       // changing unnecessarily
-      val mapping: Seq[(Expr[(Class[_], Node)], Seq[String])] = for {
-        discoveredModuleType <- seen.toSeq.sortBy(_.typeSymbol.fullName)
-        curCls = discoveredModuleType
-        methods = filterDefs(curCls.typeSymbol.methodMembers)
-        declMethods = filterDefs(curCls.typeSymbol.declaredMethods)
-        _ = {
-          assertParamListCounts(
-            curCls,
-            methods,
-            (TypeRepr.of[mill.define.Command[?]], 1, "`Task.Command`"),
-            (TypeRepr.of[mill.define.Target[?]], 0, "Target")
-          )
-        }
+      val mapping: Seq[(TypeRepr, (Seq[scala.quoted.Expr[mainargs.MainData[?, ?]]], Seq[String]))] = for {
+        curCls <- seen.toSeq.sortBy(_.typeSymbol.fullName)
+      } yield {
+        val methods = filterDefs(curCls.typeSymbol.methodMembers)
+        val declMethods = filterDefs(curCls.typeSymbol.declaredMethods)
+        assertParamListCounts(
+          curCls,
+          methods,
+          (TypeRepr.of[mill.define.Command[?]], 1, "`Task.Command`"),
+          (TypeRepr.of[mill.define.Target[?]], 0, "Target")
+        )
 
-        names =
-          sortedMethods(curCls, sub = TypeRepr.of[mill.define.NamedTask[?]], methods).map(_.name)
-        entryPoints = for {
-          m <- sortedMethods(curCls, sub = TypeRepr.of[mill.define.Command[?]], methods)
+        val names =
+          sortedMethods(curCls, sub = TypeRepr.of[mill.define.NamedTask[?]], declMethods).map(_.name)
+        val entryPoints = for {
+          m <- sortedMethods(curCls, sub = TypeRepr.of[mill.define.Command[?]], declMethods)
         } yield curCls.asType match {
           case '[t] =>
             val expr =
@@ -143,39 +146,24 @@ object Discover {
               }
             expr
         }
-        declaredNames =
-          sortedMethods(
-            curCls,
-            sub = TypeRepr.of[mill.define.NamedTask[?]],
-            declMethods
-          ).map(_.name)
-        if names.nonEmpty || entryPoints.nonEmpty
-      } yield {
-        // by wrapping the `overridesRoutes` in a lambda function we kind of work around
-        // the problem of generating a *huge* macro method body that finally exceeds the
-        // JVM's maximum allowed method size
-        val overridesLambda = '{
-          def triple() =
-            new Node(${ Expr.ofList(entryPoints) }, ${ Expr(declaredNames) })
-          triple()
-        }
-        val lhs =
-          Ref(defn.Predef_classOf).appliedToType(discoveredModuleType.widen).asExprOf[Class[?]]
-        ('{ $lhs -> $overridesLambda }, names)
+
+        (curCls.widen, (entryPoints, names))
       }
 
-      val expr: Expr[Discover] =
-        '{
-          // TODO: we can not import this here, so we have to import at the use site now, or redesign?
-          // import mill.main.TokenReaders.*
-          // import mill.api.JsonFormatters.*
-          new Discover(
-            Map[Class[_], Node](${ Varargs(mapping.map(_._1)) }*),
-            ${ Expr(mapping.iterator.flatMap(_._2).distinct.toList.sorted) }
-          )
-        }
+      val mappingExpr = mapping.collect {
+        case (cls, (entryPoints, names)) if entryPoints.nonEmpty || names.nonEmpty=>
+          // by wrapping the `overridesRoutes` in a lambda function we kind of work around
+          // the problem of generating a *huge* macro method body that finally exceeds the
+          // JVM's maximum allowed method size
+          '{
+            def func() = new Node(${ Expr.ofList(entryPoints.toList) }, ${ Expr(names) } )
+
+            (${Ref(defn.Predef_classOf).appliedToType(cls).asExprOf[Class[?]]}, func())
+          }
+      }
+
+      val expr = '{ new Discover(Map[Class[_], Node](${ Varargs(mappingExpr) }*)) }
       // TODO: if needed for debugging, we can re-enable this
-      // report.warning(s"generated discovery for ${TypeRepr.of[T].show}:\n${expr.asTerm.show}", TypeRepr.of[T].typeSymbol.pos.getOrElse(Position.ofMacroExpansion))
       expr
     }
   }

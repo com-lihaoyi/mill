@@ -303,7 +303,7 @@ trait Resolve[T] {
       ) match {
         case ResolveCore.Success(value) => Right(value)
         case ResolveCore.NotFound(segments, found, next, possibleNexts) =>
-          val allPossibleNames = rootModule.millDiscover.allNames.toSet
+          val allPossibleNames = rootModule.millDiscover.classInfo.values.flatMap(_.declaredNames).toSet
           Left(ResolveNotFoundHandler(
             selector = sel,
             segments = segments,
