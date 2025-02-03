@@ -208,7 +208,7 @@ object CodeGen {
              |$newScriptCode
              |object $wrapperObjectName extends $wrapperObjectName {
              |  ${childAliases.linesWithSeparators.mkString("  ")}
-             |  ${millDiscover()}
+             |  ${if (segments.nonEmpty) "" else millDiscover()}
              |}""".stripMargin
         )
       case None =>
@@ -281,11 +281,10 @@ object CodeGen {
     // or, add an optional parameter to Discover.apply to substitute the outer class?
     s"""object ${wrapperObjectName} extends $wrapperObjectName {
        |  ${childAliases.linesWithSeparators.mkString("  ")}
-       |  ${millDiscover()}
+       |  ${if (segments.nonEmpty) "" else millDiscover()}
        |}
        |abstract class $wrapperObjectName $extendsClause {
        |""".stripMargin
 
   }
-
 }
