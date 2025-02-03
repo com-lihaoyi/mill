@@ -129,7 +129,7 @@ object KtfmtModule extends ExternalModule with KtfmtBaseModule with TaskModule {
       stderr = ctx.dest / "stderr.log"
     )
     mill.util.ProcessUtil.toResult(processResult).getOrThrow
-    val exitCode = processResult .exitCode
+    val exitCode = processResult.exitCode
 
     if (exitCode == 0) {} // do nothing
     else {

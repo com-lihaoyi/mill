@@ -130,7 +130,7 @@ private[scalalib] object TestModuleUtil {
             stderr = ctx.dest / "stderr.log"
           )
           mill.util.ProcessUtil.toResult(processResult).getOrThrow
-          processResult.out        .lines().toSet
+          processResult.out.lines().toSet
         } else {
           mill.testrunner.GetTestTasksMain.main0(
             (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),

@@ -54,7 +54,7 @@ trait TestModule
         stderr = Task.dest / "stderr.log"
       )
       mill.util.ProcessUtil.toResult(processResult).getOrThrow
-      processResult.out        .lines()
+      processResult.out.lines()
     } else {
       mill.testrunner.DiscoverTestsMain.main0(
         runClasspath().map(_.path),

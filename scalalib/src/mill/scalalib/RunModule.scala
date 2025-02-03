@@ -48,15 +48,15 @@ trait RunModule extends WithZincWorker {
   def allLocalMainClasses: T[Seq[String]] = Task {
     val classpath = localRunClasspath().map(_.path)
     if (zincWorker().javaHome().isDefined) {
-      val processResult= Jvm        .call(
-          mainClass = "mill.scalalib.worker.DiscoverMainClassesMain",
-          classPath = zincWorker().classpath().map(_.path).toVector,
-          mainArgs = Seq(classpath.mkString(",")),
-          javaHome = zincWorker().javaHome().map(_.path),
-          stdout = os.Pipe
-        )
+      val processResult = Jvm.call(
+        mainClass = "mill.scalalib.worker.DiscoverMainClassesMain",
+        classPath = zincWorker().classpath().map(_.path).toVector,
+        mainArgs = Seq(classpath.mkString(",")),
+        javaHome = zincWorker().javaHome().map(_.path),
+        stdout = os.Pipe
+      )
       mill.util.ProcessUtil.toResult(processResult).getOrThrow
-      processResult.out        .lines()
+      processResult.out.lines()
     } else {
       zincWorker().worker().discoverMainClasses(classpath)
     }

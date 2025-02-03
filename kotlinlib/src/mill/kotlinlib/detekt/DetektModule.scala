@@ -36,7 +36,7 @@ trait DetektModule extends KotlinModule {
       stderr = Task.dest / "stderr.log"
     )
     mill.util.ProcessUtil.toResult(processResult).getOrThrow
-    processResult .exitCode
+    processResult.exitCode
   }
 
   private def detektHandleErrors(check: Boolean, exitCode: Int)(implicit ctx: mill.api.Ctx) = {
