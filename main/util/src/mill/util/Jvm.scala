@@ -16,7 +16,10 @@ object Jvm extends CoursierSupport {
 
   /**
    * Runs a JVM subprocess with the given configuration and returns a
-   * [[os.CommandResult]] with it's aggregated output and error streams
+   * [[os.CommandResult]] with it's aggregated output and error streams.
+   * 
+   * Exit code is not checked. 
+   * Use [[ProcessUtil.toResult]] to do a proper check
    *
    * @param mainClass The main class to run
    * @param classPath The classpath
@@ -36,7 +39,6 @@ object Jvm extends CoursierSupport {
    * @param stdout Standard output override
    * @param stderr Standard error override
    * @param mergeErrIntoOut If `true` then the error output is merged into standard output
-   * @param check If `true` then exception is thrown when subprocess fails with a non-zero exit code
    */
   def call(
       mainClass: String,
@@ -51,8 +53,7 @@ object Jvm extends CoursierSupport {
       stdin: os.ProcessInput = os.Inherit,
       stdout: ProcessOutput = os.Inherit,
       stderr: ProcessOutput = os.Inherit,
-      mergeErrIntoOut: Boolean = false,
-      check: Boolean = false
+      mergeErrIntoOut: Boolean = false
   )(implicit ctx: Ctx): CommandResult = {
     val cp =
       if (useCpPassingJar && classPath.nonEmpty) {
@@ -81,7 +82,7 @@ object Jvm extends CoursierSupport {
       .call(
         cwd = workingDir1,
         env = env,
-        check = check,
+        check = false,
         stdin = stdin,
         stdout = stdout,
         stderr = stderr,
@@ -614,7 +615,6 @@ object Jvm extends CoursierSupport {
     )
   }
 
-  @deprecated("Use spawnClassLoader", "Mill 0.12.7")
   def spawnClassloader(
       classPath: Iterable[os.Path],
       sharedPrefixes: Seq[String] = Nil,
@@ -627,25 +627,13 @@ object Jvm extends CoursierSupport {
     )(new Ctx.Home { override def home = os.home })
   }
 
-  def spawnClassLoader(
-      classPath: Iterable[os.Path],
-      sharedPrefixes: Seq[String],
-      parent: Option[ClassLoader] = None
-  )(implicit ctx: mill.api.Ctx.Home): java.net.URLClassLoader = {
-    mill.api.ClassLoader.create(
-      classPath.iterator.map(_.toNIO.toUri.toURL).toVector,
-      parent = parent.getOrElse(getClass.getClassLoader),
-      sharedPrefixes = sharedPrefixes
-    )
-  }
-
   def callClassLoader[T](
       classPath: Iterable[os.Path],
       sharedPrefixes: Seq[String] = Seq.empty,
-      parent: Option[ClassLoader] = None
+      parent: ClassLoader = null
   )(f: ClassLoader => T)(implicit ctx: mill.api.Ctx.Home): T = {
     val oldClassloader = Thread.currentThread().getContextClassLoader
-    val newClassloader = spawnClassLoader(classPath, sharedPrefixes, parent)
+    val newClassloader = spawnClassloader(classPath, sharedPrefixes, parent)
     Thread.currentThread().setContextClassLoader(newClassloader)
     try {
       f(newClassloader)

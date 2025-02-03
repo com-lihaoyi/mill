@@ -309,7 +309,7 @@ object RunModule {
         background: Boolean = false,
         runBackgroundLogToConsole: Boolean = false
     )(implicit ctx: Ctx): Unit = {
-      val (stdout, stderr) =
+      val (stdout: os.ProcessOutput, stderr: os.ProcessOutput) =
         if (!background) (os.Inherit, os.Inherit)
         else if (runBackgroundLogToConsole) {
           val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
@@ -320,7 +320,7 @@ object RunModule {
             os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stdout),
             os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stderr)
           )
-        } else Jvm.defaultBackgroundOutputs(ctx.dest).getOrElse((os.Inherit, os.Inherit))
+        } else (ctx.dest / "stdout.log", ctx.dest / "stderr.log")
 
       val processResult = Jvm.call(
         mainClass = Option(mainClass).getOrElse(mainClass0.fold(sys.error, identity)),

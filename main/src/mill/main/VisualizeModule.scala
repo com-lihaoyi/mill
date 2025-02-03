@@ -102,7 +102,6 @@ trait VisualizeModule extends mill.define.TaskModule {
 
           g = g.graphAttr().`with`(Rank.dir(RankDir.LEFT_TO_RIGHT))
 
-          val ctx = implicitly[mill.api.Ctx]
           val processResult = mill.util.Jvm.call(
             "mill.main.graphviz.GraphvizTools",
             classpath().map(_.path).toVector,
