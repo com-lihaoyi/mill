@@ -75,20 +75,6 @@ private[scalalib] object TestModuleUtil {
       )
       mill.util.ProcessUtil.toResult(processResult).getOrThrow
 
-      /*Jvm.runSubprocess(
-        mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
-        classPath =
-          (runClasspath ++ testrunnerEntrypointClasspath).map(
-            _.path
-          ),
-        jvmArgs = jvmArgs,
-        envArgs = forkEnv ++ resourceEnv,
-        mainArgs = Seq(testRunnerClasspathArg, argsFile.toString),
-        workingDir = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
-        useCpPassingJar = useArgsFile,
-        javaHome = javaHome
-      )*/
-
       if (!os.exists(outputPath)) Left(s"Test reporting Failed: ${outputPath} does not exist")
       else Right(upickle.default.read[(String, Seq[TestResult])](ujson.read(outputPath.toIO)))
     }
