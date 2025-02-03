@@ -210,27 +210,29 @@ object CodeGen {
         newScriptCode = objectData.name.applyTo(newScriptCode, wrapperObjectName)
         newScriptCode = objectData.obj.applyTo(newScriptCode, "abstract class")
 
-        Some(pkgLine + "\n" + miscInfo) -> s"""$pkgLine
-                                              |$aliasImports
-                                              |$prelude
-                                              |$markerComment
-                                              |$newScriptCode
-                                              |object $wrapperObjectName extends $wrapperObjectName {
-                                              |  ${childAliases.linesWithSeparators.mkString("  ")}
-                                              |}""".stripMargin
+        (
+          Some(pkgLine + "\n" + miscInfo),
+          s"""$pkgLine
+             |$aliasImports
+             |$prelude
+             |$markerComment
+             |$newScriptCode
+             |object $wrapperObjectName extends $wrapperObjectName {
+             |  ${childAliases.linesWithSeparators.mkString("  ")}
+             |  ${millDiscover()}
+             |}""".stripMargin
+        )
       case None =>
-        Some(pkgLine + "\n" + miscInfo) -> s"""$pkgLine
-                                              |$aliasImports
-                                              |$prelude
-                                              |${topBuildHeader(
-                                               segments,
-                                               scriptFolderPath,
-                                               millTopLevelProjectRoot,
-                                               childAliases
-                                             )}
-                                              |$markerComment
-                                              |$scriptCode
-                                              |}""".stripMargin
+        (
+          Some(pkgLine + "\n" + miscInfo),
+          s"""$pkgLine
+             |$aliasImports
+             |$prelude
+             |${topBuildHeader(segments, scriptFolderPath, millTopLevelProjectRoot, childAliases)}
+             |$markerComment
+             |$scriptCode
+             |}""".stripMargin
+        )
 
     }
   }
