@@ -149,6 +149,41 @@ trait CoursierSupport {
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams()
   ): Result[Agg[PathRef]] = {
+    resolveDependenciesExtendInfo(
+      repositories,
+      deps,
+      force,
+      sources,
+      mapDependencies,
+      customizer,
+      ctx,
+      coursierCacheCustomizer,
+      deprecatedResolveFilter,
+      artifactTypes,
+      resolutionParams
+    ).map(_.map(_.path))
+  }
+
+  /**
+   * Same as [[resolveDependencies]], but also returns the meta information abou the dependency
+   */
+  def resolveDependenciesExtendInfo(
+      repositories: Seq[Repository],
+      deps: IterableOnce[Dependency],
+      force: IterableOnce[Dependency],
+      sources: Boolean = false,
+      mapDependencies: Option[Dependency => Dependency] = None,
+      customizer: Option[Resolution => Resolution] = None,
+      ctx: Option[mill.api.Ctx.Log] = None,
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
+      @deprecated(
+        "This parameter is now ignored, use exclusions instead or mark some dependencies as provided when you publish modules",
+        "Mill after 0.12.5"
+      )
+      deprecatedResolveFilter: os.Path => Boolean = _ => true,
+      artifactTypes: Option[Set[Type]] = None,
+      resolutionParams: ResolutionParams = ResolutionParams()
+  ): Result[Agg[ResolvedDependency]] = {
     val resolutionRes = resolveDependenciesMetadataSafe(
       repositories,
       deps,
@@ -184,12 +219,13 @@ trait CoursierSupport {
         case Left(error) =>
           Result.Exception(error, new Result.OuterStack((new Exception).getStackTrace))
         case Right(res) =>
+          val distinctDeps = res.fullDetailedArtifacts
+            .flatMap { case (dep, _, _, path) => path.map(p => dep -> os.Path(p)) }
+            .distinct
           Result.Success(
             Agg.from(
-              res.files
-                .map(os.Path(_))
-                .filter(deprecatedResolveFilter)
-                .map(PathRef(_, quick = true))
+              distinctDeps.filter { case (_, path) => deprecatedResolveFilter(path) }
+                .map { case (dep, path) => ResolvedDependency(PathRef(path, quick = true), dep) }
             )
           )
       }
@@ -453,6 +489,14 @@ trait CoursierSupport {
 }
 
 object CoursierSupport {
+
+  // TODO: Should we expose the Coursier dependency here? The API is large and confusing.
+  // On the other hand: We already expose it via Deps and other APIs. And wrapping is just boiler plate
+  case class ResolvedDependency(path: PathRef, dependency: Dependency) {
+    // TODO: For review: Unclear to me if that even needs to be an option, or if we can always return a 'revalidate once' path??
+    def withRevalidateOnce: ResolvedDependency = copy(path = path.withRevalidateOnce)
+  }
+  object ResolvedDependency {}
 
   /**
    * A Coursier Cache.Logger implementation that updates the ticker with the count and
