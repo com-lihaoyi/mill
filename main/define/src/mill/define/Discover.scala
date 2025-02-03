@@ -14,12 +14,14 @@ import scala.collection.mutable
  * the `Task.Command` methods we find. This mapping from `Class[_]` to `MainData`
  * can then be used later to look up the `MainData` for any module.
  */
-case class Discover (value: Map[Class[_], Discover.Node])
+case class Discover(value: Map[Class[_], Discover.Node])
 
 object Discover {
-  class Node(val names: Seq[String],
-             val entryPoints: Seq[mainargs.MainData[_, _]],
-             val tasks: Seq[String])
+  class Node(
+      val names: Seq[String],
+      val entryPoints: Seq[mainargs.MainData[_, _]],
+      val tasks: Seq[String]
+  )
 
   inline def apply[T]: Discover = ${ Router.applyImpl[T] }
 
@@ -158,7 +160,8 @@ object Discover {
         // the problem of generating a *huge* macro method body that finally exceeds the
         // JVM's maximum allowed method size
         val overridesLambda = '{
-          def triple() = new Node(${ Expr(names) }, ${ Expr.ofList(mainDataExprs) }, ${ Expr(taskNames) })
+          def triple() =
+            new Node(${ Expr(names) }, ${ Expr.ofList(mainDataExprs) }, ${ Expr(taskNames) })
           triple()
         }
         val lhs =

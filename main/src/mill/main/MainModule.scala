@@ -355,7 +355,7 @@ trait MainModule extends BaseModule0 {
         val methodMap = evaluator.rootModule.millDiscover.value
         val tasks = methodMap
           .get(cls)
-          .map { node => node.tasks.map(task => s"${t.module}.$task")}
+          .map { node => node.tasks.map(task => s"${t.module}.$task") }
           .toSeq.flatten
         pprint.Tree.Lazy { ctx =>
           Iterator(

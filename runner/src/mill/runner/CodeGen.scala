@@ -5,7 +5,6 @@ import mill.api.{PathRef, Result}
 import mill.runner.FileImportGraph.backtickWrap
 import pprint.Util.literalize
 
-import scala.collection.mutable
 import mill.runner.worker.api.MillScalaParser
 import scala.util.control.Breaks._
 
@@ -90,11 +89,11 @@ object CodeGen {
       val (miscInfoOpt, parts) =
         if (!isBuildScript) {
           None -> s"""$pkgLine
-             |$aliasImports
-             |object ${backtickWrap(scriptPath.last.split('.').head)} {
-             |$markerComment
-             |$scriptCode
-             |}""".stripMargin
+                     |$aliasImports
+                     |object ${backtickWrap(scriptPath.last.split('.').head)} {
+                     |$markerComment
+                     |$scriptCode
+                     |}""".stripMargin
         } else {
           generateBuildScript(
             projectRoot,
@@ -115,7 +114,7 @@ object CodeGen {
           )
         }
 
-      for(miscInfo <- miscInfoOpt){
+      for (miscInfo <- miscInfoOpt) {
 
         os.write.over(dest / "../MillMiscInfo.scala", miscInfo, createFolders = true)
       }
@@ -161,9 +160,8 @@ object CodeGen {
         enclosingClasspath,
         compilerWorkerClasspath,
         millTopLevelProjectRoot,
-        output,
+        output
       )
-
 
     val objectData = parser.parseObjectData(scriptCode)
 
@@ -196,8 +194,7 @@ object CodeGen {
         objectData.finalStat match {
           case Some((leading, finalStat)) =>
             val fenced = Seq(
-              "",
-              {
+              "", {
                 val statLines = finalStat.text.linesWithSeparators.toSeq
                 if statLines.sizeIs > 1 then
                   statLines.tail.mkString
@@ -214,33 +211,33 @@ object CodeGen {
         newScriptCode = objectData.obj.applyTo(newScriptCode, "abstract class")
 
         Some(pkgLine + "\n" + miscInfo) -> s"""$pkgLine
-           |$aliasImports
-           |$prelude
-           |$markerComment
-           |$newScriptCode
-           |object $wrapperObjectName extends $wrapperObjectName {
-           |  ${childAliases.linesWithSeparators.mkString("  ")}
-           |}""".stripMargin
+                                              |$aliasImports
+                                              |$prelude
+                                              |$markerComment
+                                              |$newScriptCode
+                                              |object $wrapperObjectName extends $wrapperObjectName {
+                                              |  ${childAliases.linesWithSeparators.mkString("  ")}
+                                              |}""".stripMargin
       case None =>
         Some(pkgLine + "\n" + miscInfo) -> s"""$pkgLine
-           |$aliasImports
-           |$prelude
-           |${topBuildHeader(
-            segments,
-            scriptFolderPath,
-            millTopLevelProjectRoot,
-            childAliases,
-          )}
-           |$markerComment
-           |$scriptCode
-           |}""".stripMargin
+                                              |$aliasImports
+                                              |$prelude
+                                              |${topBuildHeader(
+                                               segments,
+                                               scriptFolderPath,
+                                               millTopLevelProjectRoot,
+                                               childAliases
+                                             )}
+                                              |$markerComment
+                                              |$scriptCode
+                                              |}""".stripMargin
 
     }
   }
 
   def subfolderMiscInfo(
       scriptFolderPath: os.Path,
-      segments: Seq[String],
+      segments: Seq[String]
   ): String = {
     s"""object MillMiscInfo
        |extends mill.main.SubfolderModule.Info(
@@ -251,7 +248,7 @@ object CodeGen {
   }
 
   def millDiscover(): String = {
-      """override lazy val millDiscover: _root_.mill.define.Discover = _root_.mill.define.Discover[this.type]""".stripMargin
+    """override lazy val millDiscover: _root_.mill.define.Discover = _root_.mill.define.Discover[this.type]""".stripMargin
   }
 
   def rootMiscInfo(
@@ -259,7 +256,7 @@ object CodeGen {
       enclosingClasspath: Seq[os.Path],
       compilerWorkerClasspath: Seq[os.Path],
       millTopLevelProjectRoot: os.Path,
-      output: os.Path,
+      output: os.Path
   ): String = {
     s"""import _root_.mill.runner.MillBuildRootModule
        |@_root_.scala.annotation.nowarn
@@ -277,7 +274,7 @@ object CodeGen {
       segments: Seq[String],
       scriptFolderPath: os.Path,
       millTopLevelProjectRoot: os.Path,
-      childAliases: String,
+      childAliases: String
   ): String = {
     val extendsClause =
       if (segments.nonEmpty) s"extends _root_.mill.main.SubfolderModule "
@@ -299,6 +296,5 @@ object CodeGen {
        |""".stripMargin
 
   }
-
 
 }

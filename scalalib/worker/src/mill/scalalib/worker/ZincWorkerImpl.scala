@@ -709,7 +709,6 @@ object ZincWorkerImpl {
 
     private val userCodeStartMarker = "//SOURCECODE_ORIGINAL_CODE_START_MARKER"
 
-
     /** Transforms positions of problems if coming from a build file. */
     private def lookup(buildSources: Map[String, xsbti.Position => xsbti.Position])(
         oldPos: xsbti.Position
