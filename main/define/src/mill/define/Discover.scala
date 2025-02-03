@@ -167,9 +167,7 @@ object Discover {
           }
       }
 
-      val expr = '{ new Discover(Map[Class[_], ClassInfo](${ Varargs(mappingExpr) }*)) }
-      // TODO: if needed for debugging, we can re-enable this
-      expr
+      '{ new Discover(Map[Class[_], ClassInfo](${ Varargs(mappingExpr) }*)) }
     }
   }
 }
