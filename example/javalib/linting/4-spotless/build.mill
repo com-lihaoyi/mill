@@ -1,0 +1,173 @@
+// Mill supports auto-formatting Java, Kotlin and Scala code via the
+// https://github.com/diffplug/spotless[Spotless] project.
+
+package build
+
+import mill._
+import mill.javalib.JavaModule
+import mill.javalib.spotless.{SpotlessModule}
+import mill.javalib.spotless.{JavaSpotlessModule, JavaConfig, GoogleJavaFormat, PalantirJavaFormat}
+import mill.javalib.spotless.{KotlinSpotlessModule, KotlinConfig}
+import mill.javalib.spotless.{ScalaSpotlessModule, ScalaConfig}
+
+
+// See https://github.com/diffplug/spotless/tree/main/plugin-gradle#java
+object `package` extends RootModule with JavaModule with JavaSpotlessModule {
+  val googleFormatter = GoogleJavaFormat()
+    .withVersion("1.25.2")
+    .withAosp()
+    .withReflowLongStrings()
+    .withFormatJavadoc(false)
+    .withReorderImports(false)
+    .withGroupArtifact("com.google.googlejavaformat:google-java-format")
+
+  val palantirFormatter = PalantirJavaFormat()
+    .withVersion("2.50.0")
+    .withStyle("GOOGLE")
+    .withFormatJavadoc(true)
+
+  def jvmLangConfig = new JavaConfig()
+    .withDefaultImportOrder()
+    .withJavaFormat(googleFormatter)
+    .withJavaFormat(palantirFormatter) // this replaces `googleFormatter` as only 1 JavaFormatter can be active
+    .withLicenseHeader("/* (C) 2025. Licensed under Apache-2.0. */\n")
+}
+
+/*
+// See https://github.com/diffplug/spotless/tree/main/plugin-gradle#scalafmt
+object `package` extends RootModule with ScalaSpotlessModule {
+
+
+  // In Mill, ScalaConfig defaults to these values: scalafmt('3.8.1').configFile('scalafmt.conf').scalaMajorVersion('2.13')
+  override def jvmLangConfig = ScalaConfig(
+    licenseHeader = Some("/* © 2025. */\n"),
+    scalafmtConfigFile = Some("scalafmt.conf")
+  )
+}
+*/
+
+/*
+// See https://github.com/diffplug/spotless/tree/main/plugin-gradle#kotlin
+object `package` extends RootModule with KotlinSpotlessModule {
+  val ktfmtOptions: Map[String, Any] = Map(
+    "maxWidth" -> Some(80), // Expects an Option[Int]
+    "blockIndent" -> Some(4), // Expects an Option[Int]
+    "continuationIndent" -> Some(4), // Expects an Option[Int]
+    "removeUnusedImports" -> Some(false), // Expects an Option[Boolean]
+    "manageTrailingCommas" -> Some(false) // Expects an Option[Boolean]
+  )
+
+  override def jvmLangConfig = KotlinConfig(
+    ktfmtVersion = "0.53",
+    klintVersion = "1.5.0").withKtfmtOptions(ktfmtOptions)
+}
+*/
+
+
+// To use this plugin in a Java/Kotlin/Scala module,
+//
+// 1. Extend `mill.javalib.spotless.SpotlessModule` or use any of `mill.javalib.spotless.{Java|Kotlin|Scala}SpotlessModule`
+// 2. Define your configuration settings like in three examples above.
+// 3. Run the `spotless` command.
+
+
+
+/** See Also: src/java/Main.java */
+
+// Spotless can  be used on a per-module basis by inheriting from
+// `SpotlessModule` and running the `spotless` command on that module.
+
+// You can also use `--check` if you want errors to be raised if code is not properly formatted.
+// This is especially useful in CI environments to ensure code is formatted before merging.
+
+/** Usage
+
+> ./mill spotless --check  # check should fail initially
+ The following files had format violations:
+ .../src/java/Main.java
+@@ -1,20 +1,16 @@
+   -import·java.math.BigDecimal;
+   -import·java.math.RoundingMode;
+   -import·java.util.ArrayList;
+   -import·javax.swing.JFrame;
+   -import·java.io.File;
+   -import·java.time.LocalDateTime;
+   -import·java.util.List;
+   -import·javax.swing.JPanel;
+   -import·java.io.IOException;
+   -import·java.time.format.DateTimeFormatter;
+   -public·class·Main
+   -{
+   -····public·static·void·main(String[]args){
+   -····System.out.println("Hello,·world!");
+   -····BigDecimal·price·=·new·BigDecimal("19.99");
+   -····BigDecimal·quantity·=·new·BigDecimal("3");
+   -····BigDecimal·subtotal·=·price.multiply(quantity);System.out.println("Subtotal:·$"·+·subtotal);
+   -····int·x=·10;int·y=20;System.out.println("Sum:·"+(x+y));}
+   -}
+   -
+   +/*·(C)·2025.·Licensed·under·Apache-2.0.·*/
+   +import·java.math.BigDecimal;
+   +
+   +public·class·Main·{
+   +··public·static·void·main(String[]·args)·{
+   +····System.out.println("Hello,·world!");
+   +····BigDecimal·price·=·new·BigDecimal("19.99");
+   +····BigDecimal·quantity·=·new·BigDecimal("3");
+   +····BigDecimal·subtotal·=·price.multiply(quantity);
+   +····System.out.println("Subtotal:·$"·+·subtotal);
+   +····int·x·=·10;
+   +····int·y·=·20;
+   +····System.out.println("Sum:·"·+·(x·+·y));
+   +··}
+   +}
+   +
+   .../src/java/Person.java
+@@ -1,10 +1,17 @@
+   -
+   -public·class·Person
+   -{private·String·name;
+   -public·Person(String·name){this.name=name;}
+   -public·String·getName()
+   -{return·name;·}
+   -public·void·setName(String·name){
+   -this.name=name;
+   -}}
+   -
+   +/*·(C)·2025.·Licensed·under·Apache-2.0.·*/
+   +public·class·Person·{
+   +··private·String·name;
+   +
+   +··public·Person(String·name)·{
+   +····this.name·=·name;
+   +··}
+   +
+   +··public·String·getName()·{
+   +····return·name;
+   +··}
+   +
+   +··public·void·setName(String·name)·{
+   +····this.name·=·name;
+   +··}
+   +}
+   +
+   Run 'mill spotless ...' to fix these violations.
+
+
+> ./mill spotless  # format all Java source files
+   Formatted: .../src/java2/Person.java
+   Formatted: .../src/java2/Main.java
+   Formatting completed successfully!
+
+> ./mill spotless --check  # check should succeed now
+   Verification completed. No format violations found!
+*/
+
+
+// You can also use Spotless globally on all `JavaModule`s in your build by running
+// `mill.javalib.spotless.JavaSpotlessModule/`.
+
+/** Usage
+> ./mill mill.javalib.spotless.JavaSpotlessModule/ # alternatively, use external module to check/format
+...formatting java sources ...
+*/
