@@ -87,9 +87,9 @@ object CodeGen {
         s"""//SOURCECODE_ORIGINAL_FILE_PATH=$scriptPath
            |//SOURCECODE_ORIGINAL_CODE_START_MARKER""".stripMargin
 
-      val parts =
+      val (miscInfoOpt, parts) =
         if (!isBuildScript) {
-          s"""$pkgLine
+          None -> s"""$pkgLine
              |$aliasImports
              |object ${backtickWrap(scriptPath.last.split('.').head)} {
              |$markerComment
@@ -115,6 +115,10 @@ object CodeGen {
           )
         }
 
+      for(miscInfo <- miscInfoOpt){
+
+        os.write.over(dest / "../MillMiscInfo.scala", miscInfo, createFolders = true)
+      }
       os.write.over(dest, parts, createFolders = true)
     }
   }
@@ -145,16 +149,21 @@ object CodeGen {
       } else {
         ""
       }
-      if (segments.nonEmpty) subfolderBuildPrelude(scriptFolderPath, segments, scala3imports)
-      else topBuildPrelude(
+      s"""import MillMiscInfo._
+         |$scala3imports
+         |""".stripMargin
+    }
+
+    val miscInfo =
+      if (segments.nonEmpty) subfolderMiscInfo(scriptFolderPath, segments)
+      else rootMiscInfo(
         scriptFolderPath,
         enclosingClasspath,
         compilerWorkerClasspath,
         millTopLevelProjectRoot,
         output,
-        scala3imports
       )
-    }
+
 
     val objectData = parser.parseObjectData(scriptCode)
 
@@ -204,7 +213,7 @@ object CodeGen {
         newScriptCode = objectData.name.applyTo(newScriptCode, wrapperObjectName)
         newScriptCode = objectData.obj.applyTo(newScriptCode, "abstract class")
 
-        s"""$pkgLine
+        Some(pkgLine + "\n" + miscInfo) -> s"""$pkgLine
            |$aliasImports
            |$prelude
            |$markerComment
@@ -213,7 +222,7 @@ object CodeGen {
            |  ${childAliases.linesWithSeparators.mkString("  ")}
            |}""".stripMargin
       case None =>
-        s"""$pkgLine
+        Some(pkgLine + "\n" + miscInfo) -> s"""$pkgLine
            |$aliasImports
            |$prelude
            |${topBuildHeader(
@@ -229,18 +238,15 @@ object CodeGen {
     }
   }
 
-  def subfolderBuildPrelude(
+  def subfolderMiscInfo(
       scriptFolderPath: os.Path,
       segments: Seq[String],
-      scala3imports: String
   ): String = {
-    s"""object MillMiscSubFolderInfo
+    s"""object MillMiscInfo
        |extends mill.main.SubfolderModule.Info(
        |  os.Path(${literalize(scriptFolderPath.toString)}),
        |  _root_.scala.Seq(${segments.map(pprint.Util.literalize(_)).mkString(", ")})
        |)
-       |import MillMiscSubFolderInfo._
-       |$scala3imports
        |""".stripMargin
   }
 
@@ -248,13 +254,12 @@ object CodeGen {
       """override lazy val millDiscover: _root_.mill.define.Discover = _root_.mill.define.Discover[this.type]""".stripMargin
   }
 
-  def topBuildPrelude(
+  def rootMiscInfo(
       scriptFolderPath: os.Path,
       enclosingClasspath: Seq[os.Path],
       compilerWorkerClasspath: Seq[os.Path],
       millTopLevelProjectRoot: os.Path,
       output: os.Path,
-      scala3imports: String
   ): String = {
     s"""import _root_.mill.runner.MillBuildRootModule
        |@_root_.scala.annotation.nowarn
@@ -265,8 +270,6 @@ object CodeGen {
        |  ${literalize(output.toString)},
        |  ${literalize(millTopLevelProjectRoot.toString)}
        |)
-       |import MillMiscInfo._
-       |$scala3imports
        |""".stripMargin
   }
 
@@ -293,7 +296,7 @@ object CodeGen {
        |  ${millDiscover()}
        |}
        |abstract class $wrapperObjectName $extendsClause {
-       |protected def __innerMillDiscover: _root_.mill.define.Discover = _root_.mill.define.Discover[this.type]""".stripMargin
+       |""".stripMargin
 
   }
 
