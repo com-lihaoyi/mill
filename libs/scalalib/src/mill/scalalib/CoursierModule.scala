@@ -254,7 +254,7 @@ object CoursierModule {
     def artifacts[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean = false
-    )(implicit ctx: mill.define.TaskCtx): coursier.Artifacts.Result = {
+    )(implicit ctx: mill.define.TaskCtx): (coursier.Resolution, coursier.Artifacts.Result) = {
       val deps0 = deps
         .iterator
         .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
