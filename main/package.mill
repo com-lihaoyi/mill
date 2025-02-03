@@ -52,7 +52,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
           .map(artifact => s"${artifact.group}:${artifact.id}:${artifact.version}") ++
           Lib.resolveDependenciesMetadataSafe(
             repositories = build.dist.repositoriesTask(),
-            Seq(BoundDep(build.dist.coursierDependency(), force = false)),
+            Seq(BoundDep(build.dist.coursierDependency, force = false)),
             build.dist.transitiveIvyDeps(),
             Some(build.dist.mapDependencies()),
             build.dist.resolutionCustomizer(),
