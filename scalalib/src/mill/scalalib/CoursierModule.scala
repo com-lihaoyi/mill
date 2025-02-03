@@ -65,13 +65,6 @@ trait CoursierModule extends mill.Module {
       )
     }
 
-  @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
-  def resolveDeps(
-      deps: Task[Agg[BoundDep]],
-      sources: Boolean
-  ): Task[Agg[PathRef]] =
-    resolveDeps(deps, sources, None)
-
   /**
    * Map dependencies before resolving them.
    * Override this to customize the set of dependencies.
@@ -177,29 +170,6 @@ object CoursierModule {
       resolutionParams: ResolutionParams = ResolutionParams()
   ) {
 
-    // bin-compat shim
-    def this(
-        repositories: Seq[Repository],
-        bind: Dep => BoundDep,
-        mapDependencies: Option[Dependency => Dependency],
-        customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
-        ctx: Option[mill.api.Ctx.Log],
-        coursierCacheCustomizer: Option[
-          coursier.cache.FileCache[coursier.util.Task] => coursier.cache.FileCache[
-            coursier.util.Task
-          ]
-        ]
-    ) =
-      this(
-        repositories,
-        bind,
-        mapDependencies,
-        customizer,
-        ctx,
-        coursierCacheCustomizer,
-        ResolutionParams()
-      )
-
     def resolveDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean = false,
@@ -218,21 +188,6 @@ object CoursierModule {
         resolutionParams = resolutionParamsMapOpt.fold(resolutionParams)(_(resolutionParams))
       ).getOrThrow
     }
-
-    // bin-compat shim
-    def resolveDeps[T: CoursierModule.Resolvable](
-        deps: IterableOnce[T],
-        sources: Boolean,
-        artifactTypes: Option[Set[coursier.Type]]
-    ): Agg[PathRef] =
-      resolveDeps(deps, sources, artifactTypes, None)
-
-    @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
-    def resolveDeps[T: CoursierModule.Resolvable](
-        deps: IterableOnce[T],
-        sources: Boolean
-    ): Agg[PathRef] =
-      resolveDeps(deps, sources, None)
 
     /**
      * Processes dependencies and BOMs with coursier
