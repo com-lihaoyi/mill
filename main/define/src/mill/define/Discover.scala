@@ -14,30 +14,12 @@ import scala.collection.mutable
  * the `Task.Command` methods we find. This mapping from `Class[_]` to `MainData`
  * can then be used later to look up the `MainData` for any module.
  */
-case class Discover private (
-    value: Map[
-      Class[_],
-      (Seq[String], Seq[mainargs.MainData[_, _]], Seq[String])
-    ],
-    dummy: Int = 0 /* avoid conflict with Discover.apply(value: Map) below*/
-) {
-  @deprecated("Binary compatibility shim", "Mill 0.11.4")
-  private[define] def this(value: Map[Class[_], Seq[mainargs.MainData[_, _]]]) =
-    this(value.view.mapValues((Nil, _, Nil)).toMap)
-  @deprecated("Binary compatibility shim", "Mill 0.11.4")
-  private[define] def copy(value: Map[Class[_], Seq[mainargs.MainData[_, _]]]): Discover = {
-    new Discover(value.view.mapValues((Nil, _, Nil)).toMap, dummy)
-  }
-}
+case class Discover (value: Map[Class[_], Discover.Node])
 
 object Discover {
-  def apply2[T](value: Map[Class[_], (Seq[String], Seq[mainargs.MainData[_, _]], Seq[String])])
-      : Discover =
-    new Discover(value)
-
-  @deprecated("Binary compatibility shim", "Mill 0.11.4")
-  def apply[T](value: Map[Class[_], Seq[mainargs.MainData[_, _]]]): Discover =
-    new Discover(value.view.mapValues((Nil, _, Nil)).toMap)
+  class Node(val names: Seq[String],
+             val entryPoints: Seq[mainargs.MainData[_, _]],
+             val tasks: Seq[String])
 
   inline def apply[T]: Discover = ${ Router.applyImpl[T] }
 
@@ -111,7 +93,7 @@ object Discover {
       // otherwise the compiler likes to give us stuff in random orders, which
       // causes the code to be generated in random order resulting in code hashes
       // changing unnecessarily
-      val mapping = for {
+      val mapping: Seq[Expr[(Class[_], Node)]] = for {
         discoveredModuleType <- seen.toSeq.sortBy(_.typeSymbol.fullName)
         curCls = discoveredModuleType
         methods = filterDefs(curCls.typeSymbol.methodMembers)
@@ -176,7 +158,7 @@ object Discover {
         // the problem of generating a *huge* macro method body that finally exceeds the
         // JVM's maximum allowed method size
         val overridesLambda = '{
-          def triple() = (${ Expr(names) }, ${ Expr.ofList(mainDataExprs) }, ${ Expr(taskNames) })
+          def triple() = new Node(${ Expr(names) }, ${ Expr.ofList(mainDataExprs) }, ${ Expr(taskNames) })
           triple()
         }
         val lhs =
@@ -189,7 +171,7 @@ object Discover {
           // TODO: we can not import this here, so we have to import at the use site now, or redesign?
           // import mill.main.TokenReaders.*
           // import mill.api.JsonFormatters.*
-          Discover.apply2(Map(${ Varargs(mapping) }*))
+          new Discover(Map[Class[_], Node](${ Varargs(mapping) }*))
         }
       // TODO: if needed for debugging, we can re-enable this
       // report.warning(s"generated discovery for ${TypeRepr.of[T].show}:\n${expr.asTerm.show}", TypeRepr.of[T].typeSymbol.pos.getOrElse(Position.ofMacroExpansion))

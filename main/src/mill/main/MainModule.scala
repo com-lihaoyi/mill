@@ -267,7 +267,7 @@ trait MainModule extends BaseModule0 {
                 .millDiscover
                 .value
                 .get(t.ctx.enclosingCls)
-                .flatMap(_._2.find(_.name == t.ctx.segments.last.value))
+                .flatMap(_.entryPoints.find(_.name == t.ctx.segments.last.value))
                 .headOption
 
               mainDataOpt match {
@@ -353,9 +353,10 @@ trait MainModule extends BaseModule0 {
         }
 
         val methodMap = evaluator.rootModule.millDiscover.value
-        val tasks = methodMap.get(cls).map {
-          case (_, _, tasks) => tasks.map(task => s"${t.module}.$task")
-        }.toSeq.flatten
+        val tasks = methodMap
+          .get(cls)
+          .map { node => node.tasks.map(task => s"${t.module}.$task")}
+          .toSeq.flatten
         pprint.Tree.Lazy { ctx =>
           Iterator(
             // module name(module/file:line)
