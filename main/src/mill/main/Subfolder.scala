@@ -23,6 +23,4 @@ abstract class SubfolderModule()(implicit
         fileName = millFile0,
         enclosing = Caller(null)
       )
-    ) with Module {
-
-}
+    ) with Module {}
