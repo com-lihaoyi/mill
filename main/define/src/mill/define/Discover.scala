@@ -14,10 +14,10 @@ import scala.collection.mutable
  * the `Task.Command` methods we find. This mapping from `Class[_]` to `MainData`
  * can then be used later to look up the `MainData` for any module.
  */
-class Discover(val classInfo: Map[Class[_], Discover.Node])
+class Discover(val classInfo: Map[Class[_], Discover.ClassInfo])
 
 object Discover {
-  class Node(
+  class ClassInfo(
       val entryPoints: Seq[mainargs.MainData[_, _]],
       val declaredNames: Seq[String]
   )
@@ -156,13 +156,13 @@ object Discover {
           // the problem of generating a *huge* macro method body that finally exceeds the
           // JVM's maximum allowed method size
           '{
-            def func() = new Node(${ Expr.ofList(entryPoints.toList) }, ${ Expr(names) } )
+            def func() = new ClassInfo(${ Expr.ofList(entryPoints.toList) }, ${ Expr(names) } )
 
             (${Ref(defn.Predef_classOf).appliedToType(cls).asExprOf[Class[?]]}, func())
           }
       }
 
-      val expr = '{ new Discover(Map[Class[_], Node](${ Varargs(mappingExpr) }*)) }
+      val expr = '{ new Discover(Map[Class[_], ClassInfo](${ Varargs(mappingExpr) }*)) }
       // TODO: if needed for debugging, we can re-enable this
       expr
     }
