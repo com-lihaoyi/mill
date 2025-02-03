@@ -60,7 +60,7 @@ trait TwirlModule extends mill.Module { twirlModule =>
    */
   trait TwirlResolver extends CoursierModule {
     override def bindDependency: Task[Dep => BoundDep] = Task.Anon { (dep: Dep) =>
-      BoundDep(Lib.depToDependencyJava(dep, twirlScalaVersion()), dep.force)
+      BoundDep(Lib.depToDependency(dep, twirlScalaVersion()), dep.force)
     }
 
     override def repositoriesTask: Task[Seq[Repository]] = twirlModule match {
