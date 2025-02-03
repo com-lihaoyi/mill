@@ -192,6 +192,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
         mainScript().path.toString
       ) ++ args.value,
       cwd = Task.workspace,
+      stdin = "",
       // Hack to forward the background subprocess output to the Mill server process
       // stdout/stderr files, so the output will get properly slurped up by the Mill server
       // and shown to any connected Mill client even if the current command has completed

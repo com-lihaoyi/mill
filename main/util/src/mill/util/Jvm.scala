@@ -53,7 +53,8 @@ object Jvm extends CoursierSupport {
       stdin: os.ProcessInput = os.Inherit,
       stdout: ProcessOutput = os.Inherit,
       stderr: ProcessOutput = os.Inherit,
-      mergeErrIntoOut: Boolean = false
+      mergeErrIntoOut: Boolean = false,
+      destroyOnExit: Boolean = true
   )(implicit ctx: Ctx): CommandResult = {
     val cp =
       if (useCpPassingJar && classPath.nonEmpty) {
@@ -78,6 +79,8 @@ object Jvm extends CoursierSupport {
     val workingDir1 = Option(cwd).getOrElse(ctx.dest)
     os.makeDir.all(workingDir1)
 
+    ctx.log.debug(s"Run subprocess with args: ${commandArgs.map(a => s"'${a}'").mkString(" ")}")
+
     os.proc(commandArgs)
       .call(
         cwd = workingDir1,
@@ -87,7 +90,8 @@ object Jvm extends CoursierSupport {
         stdout = stdout,
         stderr = stderr,
         mergeErrIntoOut = mergeErrIntoOut,
-        propagateEnv = propagateEnv
+        propagateEnv = propagateEnv,
+        destroyOnExit = destroyOnExit
       )
   }
 
@@ -127,9 +131,9 @@ object Jvm extends CoursierSupport {
       stdin: os.ProcessInput = os.Inherit,
       stdout: ProcessOutput = os.Inherit,
       stderr: ProcessOutput = os.Inherit,
-      mergeErrIntoOut: Boolean = false
+      mergeErrIntoOut: Boolean = false,
+      destroyOnExit: Boolean = true
   )(implicit ctx: Ctx): os.SubProcess = {
-
     val cp =
       if (useCpPassingJar && classPath.nonEmpty) {
         val passingJar = os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)
@@ -165,11 +169,10 @@ object Jvm extends CoursierSupport {
       stdin = stdin,
       stdout = stdout,
       stderr = stderr,
-      destroyOnExit = true,
       mergeErrIntoOut = mergeErrIntoOut,
-      propagateEnv = propagateEnv
+      propagateEnv = propagateEnv,
+      destroyOnExit = destroyOnExit
     )
-    process.waitFor()
     process
   }
 
@@ -554,7 +557,7 @@ object Jvm extends CoursierSupport {
    * respectively must be defined in the backgroundOutputs tuple. Non-background process should set
    * backgroundOutputs to [[None]].
    */
-  @deprecated("Use os.spawn", "Mill 0.12.7")
+  @deprecated("Use spawn", "Mill 0.12.7")
   def spawnSubprocessWithBackgroundOutputs(
       commandArgs: Seq[String],
       envArgs: Map[String, String],

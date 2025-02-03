@@ -8,7 +8,7 @@ import mill.define.{Command, Task}
 import mill.util.Jvm
 import mill.{Agg, Args, T}
 import mill.main.client.ServerFiles
-import os.{Path, ProcessOutput}
+import os.{Path, ProcessInput, ProcessOutput}
 
 import scala.util.control.NonFatal
 
@@ -309,35 +309,60 @@ object RunModule {
         background: Boolean = false,
         runBackgroundLogToConsole: Boolean = false
     )(implicit ctx: Ctx): Unit = {
-      val (stdout: os.ProcessOutput, stderr: os.ProcessOutput) =
-        if (!background) (os.Inherit, os.Inherit)
-        else if (runBackgroundLogToConsole) {
-          val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
-          // Hack to forward the background subprocess output to the Mill server process
-          // stdout/stderr files, so the output will get properly slurped up by the Mill server
-          // and shown to any connected Mill client even if the current command has completed
-          (
-            os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stdout),
-            os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stderr)
+      val dest = ctx.dest
+      val cwd = Option(workingDir).getOrElse(dest)
+      val mainClass1 = Option(mainClass).getOrElse(mainClass0.fold(sys.error, identity))
+      val mainArgs = args.value
+      val classPath = runClasspath ++ extraRunClasspath
+      val jvmArgs = Option(forkArgs).getOrElse(forkArgs0)
+      val useClasspathPassingJar = Option(useCpPassingJar) match {
+        case Some(b) => b: Boolean
+        case None => useCpPassingJar0
+      }
+      val env = Option(forkEnv).getOrElse(forkEnv0)
+      if (background) {
+        val (stdout, stderr) = if (runBackgroundLogToConsole) {
+            // Hack to forward the background subprocess output to the Mill server process
+            // stdout/stderr files, so the output will get properly slurped up by the Mill server
+            // and shown to any connected Mill client even if the current command has completed
+            val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
+            (
+              os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stdout),
+              os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stderr)
+            )
+          } else {
+            (dest / "stdout.log": os.ProcessOutput, dest / "stderr.log": os.ProcessOutput)
+          }
+        Jvm.spawn(
+            mainClass = mainClass1,
+            classPath = classPath,
+            jvmArgs = jvmArgs,
+            env = env,
+            mainArgs = mainArgs,
+            cwd = cwd,
+            stdin = ProcessInput.makeSourceInput(""): os.ProcessInput,
+            stdout = stdout,
+            stderr = stderr,
+            useCpPassingJar = useClasspathPassingJar,
+            javaHome = javaHome,
+            destroyOnExit = false
           )
-        } else (ctx.dest / "stdout.log", ctx.dest / "stderr.log")
-
-      val processResult = Jvm.call(
-        mainClass = Option(mainClass).getOrElse(mainClass0.fold(sys.error, identity)),
-        classPath = runClasspath ++ extraRunClasspath,
-        jvmArgs = Option(forkArgs).getOrElse(forkArgs0),
-        env = Option(forkEnv).getOrElse(forkEnv0),
-        mainArgs = args.value,
-        cwd = Option(workingDir).getOrElse(ctx.dest),
-        stdout = stdout,
-        stderr = stderr,
-        useCpPassingJar = Option(useCpPassingJar) match {
-          case Some(b) => b
-          case None => useCpPassingJar0
-        },
-        javaHome = javaHome
-      )
-      mill.util.ProcessUtil.toResult(processResult).getOrThrow
+      } else {
+        val processResult = Jvm.call(
+          mainClass = mainClass1,
+          classPath = classPath,
+          jvmArgs = jvmArgs,
+          env = env,
+          mainArgs = mainArgs,
+          cwd = cwd,
+          stdin = os.Inherit,
+          stdout = os.Inherit,
+          stderr = os.Inherit,
+          useCpPassingJar = useClasspathPassingJar,
+          javaHome = javaHome
+        )
+        mill.util.ProcessUtil.toResult(processResult).getOrThrow
+      }
     }
   }
 }
