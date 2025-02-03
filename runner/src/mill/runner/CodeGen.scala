@@ -85,14 +85,14 @@ object CodeGen {
         s"""//SOURCECODE_ORIGINAL_FILE_PATH=$scriptPath
            |//SOURCECODE_ORIGINAL_CODE_START_MARKER""".stripMargin
 
-      val (miscInfoOpt, parts) =
+      val parts =
         if (!isBuildScript) {
-          None -> s"""$pkgLine
-                     |$aliasImports
-                     |object ${backtickWrap(scriptPath.last.split('.').head)} {
-                     |$markerComment
-                     |$scriptCode
-                     |}""".stripMargin
+          s"""$pkgLine
+             |$aliasImports
+             |object ${backtickWrap(scriptPath.last.split('.').head)} {
+             |$markerComment
+             |$scriptCode
+             |}""".stripMargin
         } else {
           generateBuildScript(
             projectRoot,
@@ -111,10 +111,6 @@ object CodeGen {
           )
         }
 
-      for (miscInfo <- miscInfoOpt) {
-
-        os.write.over(dest / "../MillMiscInfo.scala", miscInfo, createFolders = true)
-      }
       os.write.over(dest, parts, createFolders = true)
     }
   }
@@ -199,29 +195,26 @@ object CodeGen {
         newScriptCode = objectData.name.applyTo(newScriptCode, wrapperObjectName)
         newScriptCode = objectData.obj.applyTo(newScriptCode, "abstract class")
 
-        (
-          Some(pkgLine + "\n" + miscInfo),
-          s"""$pkgLine
-             |$aliasImports
-             |$prelude
-             |$markerComment
-             |$newScriptCode
-             |object $wrapperObjectName extends $wrapperObjectName {
-             |  ${childAliases.linesWithSeparators.mkString("  ")}
-             |  ${if (segments.nonEmpty) "" else millDiscover()}
-             |}""".stripMargin
-        )
+        s"""$pkgLine
+           |$miscInfo
+           |$aliasImports
+           |$prelude
+           |$markerComment
+           |$newScriptCode
+           |object $wrapperObjectName extends $wrapperObjectName {
+           |  ${childAliases.linesWithSeparators.mkString("  ")}
+           |  ${if (segments.nonEmpty) "" else millDiscover()}
+           |}""".stripMargin
+
       case None =>
-        (
-          Some(pkgLine + "\n" + miscInfo),
-          s"""$pkgLine
-             |$aliasImports
-             |$prelude
-             |${topBuildHeader(segments, scriptFolderPath, millTopLevelProjectRoot, childAliases)}
-             |$markerComment
-             |$scriptCode
-             |}""".stripMargin
-        )
+        s"""$pkgLine
+           |$miscInfo
+           |$aliasImports
+           |$prelude
+           |${topBuildHeader(segments, scriptFolderPath, millTopLevelProjectRoot, childAliases)}
+           |$markerComment
+           |$scriptCode
+           |}""".stripMargin
 
     }
   }
