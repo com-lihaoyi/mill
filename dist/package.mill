@@ -86,6 +86,7 @@ object `package` extends RootModule with InstallModule {
       build.contrib.playlib.testDep(),
       build.contrib.playlib.worker("2.8").testDep(),
       build.contrib.testng.testDep(),
+      build.contrib.sbom.testDep(),
       build.bsp.worker.testDep(),
       build.testkit.testDep(),
       build.runner.worker.testDep()
