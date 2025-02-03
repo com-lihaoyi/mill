@@ -14,7 +14,18 @@ import scala.collection.mutable
  * the `Task.Command` methods we find. This mapping from `Class[_]` to `MainData`
  * can then be used later to look up the `MainData` for any module.
  */
-class Discover(val classInfo: Map[Class[_], Discover.ClassInfo])
+class Discover(val classInfo: Map[Class[_], Discover.ClassInfo]) {
+  def resolveEntrypoint(cls: Class[_], name: String) = {
+    val res = for {
+      (cls, node) <- classInfo
+      if cls.isAssignableFrom(cls)
+      ep <- node.entryPoints
+      if ep.name == name
+    } yield ep
+
+    res.headOption
+  }
+}
 
 object Discover {
   class ClassInfo(

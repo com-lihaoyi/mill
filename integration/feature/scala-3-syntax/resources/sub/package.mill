@@ -8,7 +8,7 @@ import mill.*
 assert(1 + 1 == 2)
 
 // modifiers also allowed at top-level
-private def subCommand(): Command[Unit] = Task.Command:
+def subCommand(): Command[Unit] = Task.Command:
   println("Hello, sub-world!")
 
 // top-level object with no extends clause

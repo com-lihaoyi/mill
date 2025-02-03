@@ -142,7 +142,7 @@ object Resolve {
       val invoked = invokeCommand0(
         p,
         r.segments.last.value,
-        rootModule.millDiscover.asInstanceOf[Discover],
+        rootModule.millDiscover,
         args,
         nullCommandDefaults,
         allowPositionalCommandArgs
@@ -159,11 +159,8 @@ object Resolve {
       rest: Seq[String],
       nullCommandDefaults: Boolean,
       allowPositionalCommandArgs: Boolean
-  ): Iterable[Either[String, Command[_]]] = for {
-    (cls, node) <- discover.classInfo
-    if cls.isAssignableFrom(target.getClass)
-    ep <- node.entryPoints
-    if ep.name == name
+  ): Option[Either[String, Command[_]]] = for {
+    ep <- discover.resolveEntrypoint(target.getClass, name)
   } yield {
     def withNullDefault(a: mainargs.ArgSig): mainargs.ArgSig = {
       if (a.default.nonEmpty) a
