@@ -109,11 +109,10 @@ object Discover {
         for {
           curCls <- seen.toSeq.sortBy(_.typeSymbol.fullName)
         } yield {
-          val methods = filterDefs(curCls.typeSymbol.methodMembers)
           val declMethods = filterDefs(curCls.typeSymbol.declaredMethods)
           assertParamListCounts(
             curCls,
-            methods,
+            declMethods,
             (TypeRepr.of[mill.define.Command[?]], 1, "`Task.Command`"),
             (TypeRepr.of[mill.define.Target[?]], 0, "Target")
           )
