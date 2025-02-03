@@ -160,9 +160,9 @@ object Resolve {
       nullCommandDefaults: Boolean,
       allowPositionalCommandArgs: Boolean
   ): Iterable[Either[String, Command[_]]] = for {
-    (cls, (names, entryPoints, _)) <- discover.value
+    (cls, node) <- discover.classInfo
     if cls.isAssignableFrom(target.getClass)
-    ep <- entryPoints
+    ep <- node.entryPoints
     if ep.name == name
   } yield {
     def withNullDefault(a: mainargs.ArgSig): mainargs.ArgSig = {
@@ -303,7 +303,7 @@ trait Resolve[T] {
       ) match {
         case ResolveCore.Success(value) => Right(value)
         case ResolveCore.NotFound(segments, found, next, possibleNexts) =>
-          val allPossibleNames = rootModule.millDiscover.value.values.flatMap(_._1).toSet
+          val allPossibleNames = rootModule.millDiscover.allNames.toSet
           Left(ResolveNotFoundHandler(
             selector = sel,
             segments = segments,
