@@ -74,10 +74,33 @@ trait KotlinModule extends JavaModule { outer =>
    */
   def kotlinApiVersion: T[String] = Task { "" }
 
+  def symbolProcessingVersion: T[String] = Task { "1.0.29" }
+
   /**
    * Flag to use explicit API check in the compiler. Default is `false`.
    */
   def kotlinExplicitApi: T[Boolean] = Task { false }
+
+  /** Flag to use KSP */
+  def kotlinSymbolProcessing: T[Boolean] = Task { false }
+
+  /**
+   * Mandatory plugins that are needed for KSP to work.
+   * For more info go to [[https://kotlinlang.org/docs/ksp-command-line.html]]
+   * @return
+   */
+  final def kspPlugins: T[Agg[Dep]] = Task {
+    if (kotlinSymbolProcessing()) {
+      Agg(
+        ivy"com.google.devtools.ksp:symbol-processing-api:${kotlinVersion()}-${symbolProcessingVersion()}",
+        ivy"com.google.devtools.ksp:symbol-processing-cmdline:${kotlinVersion()}-${symbolProcessingVersion()}"
+      )
+    } else Agg.empty[Dep]
+  }
+
+  final def kspPluginsResolved: T[Agg[PathRef]] = Task {
+    defaultResolver().resolveDeps(kspPlugins())
+  }
 
   type CompileProblemReporter = mill.api.CompileProblemReporter
 
@@ -101,6 +124,29 @@ trait KotlinModule extends JavaModule { outer =>
       Task.Anon { kotlinCompilerIvyDeps().map(bindDependency()) }
     )().toSeq ++ kotlinWorkerClasspath()
   }
+
+  def kotlinCompilerPlugins: T[Agg[Dep]] = Task { kspPlugins() }
+
+  def kotlinCompilerPluginsResolved: T[Agg[PathRef]] = Task {
+    defaultResolver().resolveDeps(kotlinCompilerPlugins())
+  }
+
+  /**
+   * The symbol processors to be used by the Kotlin compiler.
+   * Default is empty.
+   */
+  def kotlinSymbolProcessors: T[Agg[Dep]] = Task { Agg.empty[Dep] }
+
+  def kotlinSymbolProcessorsResolved: T[Agg[PathRef]] = Task {
+    defaultResolver().resolveDeps(
+      kotlinSymbolProcessors()
+    )
+  }
+
+  /**
+   * The symbol processing plugin id
+   */
+  def kotlinSymbolProcessorId: T[String] = Task { "com.google.devtools.ksp.symbol-processing" }
 
   /**
    * Flag to use the embeddable kotlin compiler.
@@ -287,6 +333,38 @@ trait KotlinModule extends JavaModule { outer =>
       val compileCp = compileClasspath().map(_.path).filter(os.exists)
       val updateCompileOutput = upstreamCompileOutput()
 
+      val kspCompilerArgs = if (kotlinSymbolProcessing()) {
+        val pluginArgs: String = kspPluginsResolved().map(_.path)
+          .mkString(",")
+
+        val xPluginArg = s"-Xplugin=$pluginArgs"
+
+        val pluginOpt = s"plugin:${kotlinSymbolProcessorId()}"
+
+        val apClasspath = kotlinSymbolProcessorsResolved().map(_.path).mkString(File.pathSeparator)
+
+        val out = dest / "out"
+        os.makeDir.all(out)
+        val pluginConfigs = Seq(
+          s"$pluginOpt:apclasspath=$apClasspath",
+          s"$pluginOpt:projectBaseDir=${millSourcePath}",
+          s"$pluginOpt:classOutputDir=${out}",
+          s"$pluginOpt:javaOutputDir=${out}",
+          s"$pluginOpt:kotlinOutputDir=${out}",
+          s"$pluginOpt:resourceOutputDir=${out}",
+          s"$pluginOpt:kspOutputDir=${out}",
+          s"$pluginOpt:cachesDir=${out}",
+          s"$pluginOpt:incremental=true",
+          s"$pluginOpt:allWarningsAsErrors=false",
+          s"$pluginOpt:returnOkOnError=true",
+          s"$pluginOpt:mapAnnotationArgumentsInJava=false"
+        ).mkString(",")
+
+        Seq(xPluginArg) ++ Seq("-P", pluginConfigs)
+
+      } else
+        Seq()
+
       def compileJava: Result[CompilationResult] = {
         ctx.log.info(
           s"Compiling ${javaSourceFiles.size} Java sources to ${classes} ..."
@@ -312,7 +390,8 @@ trait KotlinModule extends JavaModule { outer =>
           Seq("-d", classes.toString()),
           // apply multi-platform support (expect/actual)
           // TODO if there is penalty for activating it in the compiler, put it behind configuration flag
-          Seq("-Xmulti-platform"),
+//          Seq("-Xmulti-platform"),
+          Seq("-Xallow-no-source-files"),
           // classpath
           when(compileCp.iterator.nonEmpty)(
             "-classpath",
@@ -322,6 +401,7 @@ trait KotlinModule extends JavaModule { outer =>
             "-Xexplicit-api=strict"
           ),
           kotlincOptions(),
+          kspCompilerArgs,
           extraKotlinArgs,
           // parameters
           (kotlinSourceFiles ++ javaSourceFiles).map(_.toString())
