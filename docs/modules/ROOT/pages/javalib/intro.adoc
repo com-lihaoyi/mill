@@ -2,7 +2,7 @@
 = Building Java with Mill
 :page-aliases: Intro_to_Mill.adoc, Intro_to_Mill_for_Java.adoc, Java_Intro_to_Mill.adoc
 
-include::partial$gtag-config.adoc[]
+
 
 
 :language: Java

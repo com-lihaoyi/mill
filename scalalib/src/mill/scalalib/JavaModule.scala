@@ -63,6 +63,17 @@ trait JavaModule
       }
     }
 
+    override def bomIvyDeps = Task[Agg[Dep]] {
+      // FIXME Add that back when we can break bin-compat
+      // super.bomIvyDeps() ++
+      outer.bomIvyDeps()
+    }
+    override def depManagement = Task[Agg[Dep]] {
+      // FIXME Add that back when we can break bin-compat
+      // super.depManagement() ++
+      outer.depManagement()
+    }
+
     /**
      * JavaModule and its derivatives define inner test modules.
      * To avoid unexpected misbehavior due to the use of the wrong inner test trait
@@ -166,7 +177,7 @@ trait JavaModule
   def runIvyDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
 
   /**
-   * Any BOM dependencies you want to add to this Module, in the format
+   * Any Bill of Material (BOM) dependencies you want to add to this Module, in the format
    * ivy"org:name:version"
    */
   def bomIvyDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
@@ -191,7 +202,7 @@ trait JavaModule
       }
     else
       throw new Exception(
-        "Found BOM dependencies with invalid parameters:" + System.lineSeparator() +
+        "Found Bill of Material (BOM) dependencies with invalid parameters:" + System.lineSeparator() +
           malformed.map("- " + _.dep + System.lineSeparator()).mkString +
           "Only organization, name, and version are accepted."
       )
@@ -301,6 +312,15 @@ trait JavaModule
   def runModuleDeps: Seq[JavaModule] = Seq.empty
 
   /**
+   *  Bill of Material (BOM) dependencies of this module.
+   *  This is meant to be overridden to add BOM dependencies.
+   *  To read the value, you should use [[bomModuleDepsChecked]] instead,
+   *  which uses a cached result which is also checked to be free of cycles.
+   *  @see [[bomModuleDepsChecked]]
+   */
+  def bomModuleDeps: Seq[BomModule] = Seq.empty
+
+  /**
    * Same as [[moduleDeps]] but checked to not contain cycles.
    * Prefer this over using [[moduleDeps]] directly.
    */
@@ -327,6 +347,16 @@ trait JavaModule
     runModuleDeps
   }
 
+  /**
+   * Same as [[bomModuleDeps]] but checked to not contain cycles.
+   * Prefer this over using [[bomModuleDeps]] directly.
+   */
+  final def bomModuleDepsChecked: Seq[BomModule] = {
+    // trigger initialization to check for cycles
+    recBomModuleDeps
+    bomModuleDeps
+  }
+
   /** Should only be called from [[moduleDepsChecked]] */
   private lazy val recModuleDeps: Seq[JavaModule] =
     ModuleUtils.recursive[JavaModule](
@@ -349,6 +379,14 @@ trait JavaModule
       (millModuleSegments ++ Seq(Segment.Label("runModuleDeps"))).render,
       this,
       m => m.runModuleDeps ++ m.moduleDeps
+    )
+
+  /** Should only be called from [[bomModuleDepsChecked]] */
+  private lazy val recBomModuleDeps: Seq[BomModule] =
+    ModuleUtils.recursive[BomModule](
+      (millModuleSegments ++ Seq(Segment.Label("bomModuleDeps"))).render,
+      null,
+      mod => if (mod == null) bomModuleDeps else mod.bomModuleDeps
     )
 
   /** The direct and indirect dependencies of this module */
@@ -392,28 +430,42 @@ trait JavaModule
     (runModuleDepsChecked ++ moduleDepsChecked).flatMap(_.transitiveRunModuleDeps).distinct
   }
 
+  private def formatModuleDeps(recursive: Boolean, includeHeader: Boolean): Task[String] =
+    Task.Anon {
+      val normalDeps = if (recursive) recursiveModuleDeps else moduleDepsChecked
+      val compileDeps =
+        if (recursive) compileModuleDepsChecked.flatMap(_.transitiveModuleDeps).distinct
+        else compileModuleDepsChecked
+      val runtimeDeps =
+        if (recursive) runModuleDepsChecked.flatMap(_.transitiveRunModuleDeps).distinct
+        else runModuleDepsChecked
+      val deps = (normalDeps ++ compileDeps ++ runModuleDeps).distinct
+
+      val header = Option.when(includeHeader)(
+        s"${if (recursive) "Recursive module" else "Module"} dependencies of ${millModuleSegments.render}:"
+      ).toSeq
+      val lines = deps.map { dep =>
+        val isNormal = normalDeps.contains(dep)
+        val markers = Seq(
+          Option.when(!isNormal && compileDeps.contains(dep))("compile"),
+          Option.when(!isNormal && runtimeDeps.contains(dep))("runtime")
+        ).flatten
+        val suffix = if (markers.isEmpty) "" else markers.mkString(" (", ",", ")")
+        "  " + dep.millModuleSegments.render + suffix
+      }
+      (header ++ lines).mkString("\n")
+    }
+
   /**
    * Show the module dependencies.
    * @param recursive If `true` include all recursive module dependencies, else only show direct dependencies.
    */
-  def showModuleDeps(recursive: Boolean = false): Command[Unit] = Task.Command {
-    val normalDeps = if (recursive) recursiveModuleDeps else moduleDepsChecked
-    val compileDeps =
-      if (recursive) compileModuleDepsChecked.flatMap(_.transitiveModuleDeps).distinct
-      else compileModuleDepsChecked
-    val deps = (normalDeps ++ compileDeps).distinct
-    val asString =
-      s"${
-          if (recursive) "Recursive module"
-          else "Module"
-        } dependencies of ${millModuleSegments.render}:\n\t${deps
-          .map { dep =>
-            dep.millModuleSegments.render ++
-              (if (compileModuleDepsChecked.contains(dep) || !normalDeps.contains(dep)) " (compile)"
-               else "")
-          }
-          .mkString("\n\t")}"
-    T.log.outputStream.println(asString)
+  def showModuleDeps(recursive: Boolean = false): Command[Unit] = {
+    // This is exclusive to avoid scrambled output
+    Task.Command(exclusive = true) {
+      val asString = formatModuleDeps(recursive, true)()
+      Task.log.outputStream.println(asString)
+    }
   }
 
   /**
@@ -446,7 +498,11 @@ trait JavaModule
    * resolution parameters (such as artifact types, etc.), this should be the only way
    * we provide details about this module to coursier.
    */
-  def coursierProject: Task[cs.Project] = Task {
+  def coursierProject: Task[cs.Project] = Task.Anon {
+    coursierProject0()
+  }
+
+  private[mill] def coursierProject0: Task[cs.Project] = Task.Anon {
 
     // Tells coursier that if something depends on a given scope of ours, we should also
     // pull other scopes of our own dependencies.
@@ -473,21 +529,32 @@ trait JavaModule
     )
 
     val internalDependencies =
-      moduleDepsChecked.flatMap { modDep =>
-        // Standard dependencies
-        // We pull their compile scope when our compile scope is asked,
-        // and pull their runtime scope when our runtime scope is asked.
-        Seq(
-          (
-            cs.Configuration.compile,
-            modDep.coursierDependency.withConfiguration(cs.Configuration.compile)
+      bomModuleDepsChecked.map { modDep =>
+        val dep = coursier.core.Dependency(
+          coursier.core.Module(
+            coursier.core.Organization("mill-internal"),
+            coursier.core.ModuleName(modDep.millModuleSegments.parts.mkString("-")),
+            Map.empty
           ),
-          (
-            cs.Configuration.runtime,
-            modDep.coursierDependency.withConfiguration(cs.Configuration.runtime)
-          )
+          "0+mill-internal"
         )
+        (coursier.core.Configuration.`import`, dep)
       } ++
+        moduleDepsChecked.flatMap { modDep =>
+          // Standard dependencies
+          // We pull their compile scope when our compile scope is asked,
+          // and pull their runtime scope when our runtime scope is asked.
+          Seq(
+            (
+              cs.Configuration.compile,
+              modDep.coursierDependency.withConfiguration(cs.Configuration.compile)
+            ),
+            (
+              cs.Configuration.runtime,
+              modDep.coursierDependency.withConfiguration(cs.Configuration.runtime)
+            )
+          )
+        } ++
         compileModuleDepsChecked.map { modDep =>
           // Compile-only (aka provided) dependencies
           // We pull their compile scope when our provided scope is asked (see scopes above)
@@ -571,14 +638,14 @@ trait JavaModule
    * Coursier project of this module and those of all its transitive module dependencies
    */
   def transitiveCoursierProjects: Task[Seq[cs.Project]] = Task {
-    Seq(coursierProject()) ++
-      T.traverse(compileModuleDepsChecked)(_.transitiveCoursierProjects)().flatten ++
-      T.traverse(moduleDepsChecked)(_.transitiveCoursierProjects)().flatten ++
-      T.traverse(runModuleDepsChecked)(_.transitiveCoursierProjects)().flatten
+    (Seq(coursierProject()) ++
+      Task.traverse(
+        (compileModuleDepsChecked ++ moduleDepsChecked ++ runModuleDepsChecked ++ bomModuleDepsChecked).distinct
+      )(_.transitiveCoursierProjects)().flatten).distinctBy(_.module)
   }
 
   /**
-   * The Ivy dependencies of this module, with BOM and dependency management details
+   * The Ivy dependencies of this module, with Bill of Material (BOM) and dependency management details
    * added to them. This should be used when propagating the dependencies transitively
    * to other modules.
    */
@@ -608,7 +675,7 @@ trait JavaModule
   @deprecated("Unused by Mill, use coursierDependency or allIvyDeps instead", "Mill after 0.12.5")
   def transitiveIvyDeps: T[Agg[BoundDep]] = Task {
     allIvyDeps().map(bindDependency()) ++
-      T.traverse(moduleDepsChecked)(_.transitiveIvyDeps)().flatten
+      Task.traverse(moduleDepsChecked)(_.transitiveIvyDeps)().flatten
   }
 
   /**
@@ -626,7 +693,7 @@ trait JavaModule
   )
   def transitiveCompileIvyDeps: T[Agg[BoundDep]] = Task {
     compileIvyDeps().map(bindDependency()) ++
-      T.traverse(moduleDepsChecked)(_.transitiveCompileIvyDeps)().flatten
+      Task.traverse(moduleDepsChecked)(_.transitiveCompileIvyDeps)().flatten
   }
 
   /**
@@ -645,7 +712,7 @@ trait JavaModule
   )
   def transitiveRunIvyDeps: T[Agg[BoundDep]] = Task {
     runIvyDeps().map(bindDependency()) ++
-      T.traverse(moduleDepsChecked)(_.transitiveRunIvyDeps)().flatten
+      Task.traverse(moduleDepsChecked)(_.transitiveRunIvyDeps)().flatten
   }
 
   /**
@@ -677,28 +744,28 @@ trait JavaModule
    * doing.
    */
   def internalRepositories: Task[Seq[cs.Repository]] = Task.Anon {
-    super.internalRepositories() ++ Seq(internalDependenciesRepository())
+    Seq(internalDependenciesRepository())
   }
 
   /**
    * The upstream compilation output of all this module's upstream modules
    */
   def upstreamCompileOutput: T[Seq[CompilationResult]] = Task {
-    T.traverse(transitiveModuleCompileModuleDeps)(_.compile)
+    Task.traverse(transitiveModuleCompileModuleDeps)(_.compile)
   }
 
   /**
    * The transitive version of `localClasspath`
    */
   def transitiveLocalClasspath: T[Agg[PathRef]] = Task {
-    T.traverse(transitiveModuleRunModuleDeps)(_.localClasspath)().flatten
+    Task.traverse(transitiveModuleRunModuleDeps)(_.localClasspath)().flatten
   }
 
   /**
    * Almost the same as [[transitiveLocalClasspath]], but using the [[jar]]s instead of [[localClasspath]].
    */
   def transitiveJars: T[Seq[PathRef]] = Task {
-    T.traverse(transitiveModuleCompileModuleDeps)(_.jar)()
+    Task.traverse(transitiveModuleCompileModuleDeps)(_.jar)()
   }
 
   /**
@@ -709,14 +776,14 @@ trait JavaModule
    */
   @internal
   def bspTransitiveLocalClasspath: T[Agg[UnresolvedPath]] = Task {
-    T.traverse(transitiveModuleCompileModuleDeps)(_.bspLocalClasspath)().flatten
+    Task.traverse(transitiveModuleCompileModuleDeps)(_.bspLocalClasspath)().flatten
   }
 
   /**
    * The transitive version of `compileClasspath`
    */
   def transitiveCompileClasspath: T[Agg[PathRef]] = Task {
-    T.traverse(transitiveModuleCompileModuleDeps)(m =>
+    Task.traverse(transitiveModuleCompileModuleDeps)(m =>
       Task.Anon { m.localCompileClasspath() ++ Agg(m.compile().classes) }
     )().flatten
   }
@@ -729,7 +796,7 @@ trait JavaModule
    */
   @internal
   def bspTransitiveCompileClasspath: T[Agg[UnresolvedPath]] = Task {
-    T.traverse(transitiveModuleCompileModuleDeps)(m =>
+    Task.traverse(transitiveModuleCompileModuleDeps)(m =>
       Task.Anon {
         m.localCompileClasspath().map(p => UnresolvedPath.ResolvedPath(p.path)) ++
           Agg(m.bspCompileClassesPath())
@@ -823,7 +890,7 @@ trait JavaModule
         sources = allSourceFiles().map(_.path),
         compileClasspath = compileClasspath().map(_.path),
         javacOptions = javacOptions() ++ mandatoryJavacOptions(),
-        reporter = T.reporter.apply(hashCode),
+        reporter = Task.reporter.apply(hashCode),
         reportCachedProblems = zincReportCachedProblems(),
         incrementalCompilation = zincIncrementalCompilation()
       )
@@ -840,14 +907,14 @@ trait JavaModule
   def bspCompileClassesPath: T[UnresolvedPath] =
     if (compile.ctx.enclosing == s"${classOf[JavaModule].getName}#compile") {
       Task {
-        T.log.debug(
+        Task.log.debug(
           s"compile target was not overridden, assuming hard-coded classes directory for target ${compile}"
         )
         UnresolvedPath.DestPath(os.sub / "classes", compile.ctx.segments, compile.ctx.foreign)
       }
     } else {
       Task {
-        T.log.debug(
+        Task.log.debug(
           s"compile target was overridden, need to actually execute compilation to get the compiled classes directory for target ${compile}"
         )
         UnresolvedPath.ResolvedPath(compile().classes.path)
@@ -996,7 +1063,7 @@ trait JavaModule
    */
   @deprecated("Use upstreamAssembly2 instead, which has a richer return value", "Mill 0.11.8")
   def upstreamAssembly: T[PathRef] = Task {
-    T.log.error(
+    Task.log.error(
       s"upstreamAssembly target is deprecated and should no longer used." +
         s" Please make sure to use upstreamAssembly2 instead."
     )
@@ -1053,7 +1120,7 @@ trait JavaModule
    * publishing to Maven Central
    */
   def docJar: T[PathRef] = T[PathRef] {
-    val outDir = T.dest
+    val outDir = Task.dest
 
     val javadocDir = outDir / "javadoc"
     os.makeDir.all(javadocDir)
@@ -1086,7 +1153,7 @@ trait JavaModule
             deleteOnExit = false,
             dir = outDir
           )
-          T.log.debug(
+          Task.log.debug(
             s"Creating javadoc options file @${argsFile} ..."
           )
           Seq(s"@${argsFile}")
@@ -1094,12 +1161,12 @@ trait JavaModule
           options
         }
 
-      T.log.info("options: " + cmdArgs)
+      Task.log.info("options: " + cmdArgs)
 
       Jvm.runSubprocess(
         commandArgs = Seq(Jvm.jdkTool("javadoc")) ++ cmdArgs,
         envArgs = Map(),
-        workingDir = T.dest
+        workingDir = Task.dest
       )
     }
 
@@ -1424,7 +1491,7 @@ trait JavaModule
       resolvedIvyDeps()
       zincWorker().prepareOffline(all)()
       resolvedRunIvyDeps()
-      T.sequence(tasks)()
+      Task.sequence(tasks)()
       ()
     }
   }
@@ -1503,4 +1570,38 @@ object JavaModule {
 
   private[mill] def internalOrg = coursier.core.Organization("mill-internal")
   private[mill] def internalVersion = "0+mill-internal"
+}
+
+/**
+ * A module that consists solely of dependency management
+ *
+ * To be used by other modules via `JavaModule#bomModuleDeps`
+ */
+trait BomModule extends JavaModule {
+  abstract override def compile: T[CompilationResult] = Task {
+    val sources = allSourceFiles()
+    if (sources.nonEmpty)
+      throw new Exception("A BomModule cannot have sources")
+    CompilationResult(Task.dest / "zinc", PathRef(Task.dest / "classes"))
+  }
+
+  abstract override def resources: T[Seq[PathRef]] = Task {
+    val value = super.resources()
+    if (value.nonEmpty)
+      throw new Exception("A BomModule cannot have resources")
+    Seq.empty[PathRef]
+  }
+
+  private def emptyJar: T[PathRef] = Task {
+    Jvm.createJar(Agg.empty[os.Path])
+  }
+  abstract override def jar: T[PathRef] = Task {
+    emptyJar()
+  }
+  abstract override def docJar: T[PathRef] = Task {
+    emptyJar()
+  }
+  abstract override def sourceJar: T[PathRef] = Task {
+    emptyJar()
+  }
 }

@@ -1,7 +1,7 @@
 = Case Study: Mill vs Maven
 :page-aliases: Case_Study_Mill_vs_Maven.adoc
 
-include::partial$gtag-config.adoc[]
+
 
 Compared to Maven:
 
@@ -398,15 +398,15 @@ object common extends NettyModule{
 
     context.put("collection.template.dir", "common/src/main/templates")
     context.put("collection.template.test.dir", "common/src/test/templates")
-    context.put("collection.src.dir", (T.dest / "src").toString)
-    context.put("collection.testsrc.dir", (T.dest / "testsrc").toString)
+    context.put("collection.src.dir", (Task.dest / "src").toString)
+    context.put("collection.testsrc.dir", (Task.dest / "testsrc").toString)
 
     shell.setProperty("properties", context)
     shell.setProperty("ant", new groovy.ant.AntBuilder())
 
     shell.evaluate((script().path / "codegen.groovy").toIO)
 
-    (PathRef(T.dest / "src"), PathRef(T.dest / "testsrc"))
+    (PathRef(Task.dest / "src"), PathRef(Task.dest / "testsrc"))
   }
 
   def generatedSources = Task { Seq(generatedSources0()._1)}
@@ -524,24 +524,24 @@ def makefile = Task.Source(millSourcePath / "Makefile")
 def cSources = Task.Source(millSourcePath / "src" / "main" / "c")
 def cHeaders = Task {
   for(p <- os.walk(cSources().path) if p.ext == "h"){
-    os.copy(p, T.dest / p.relativeTo(cSources().path), createFolders = true)
+    os.copy(p, Task.dest / p.relativeTo(cSources().path), createFolders = true)
   }
-  PathRef(T.dest)
+  PathRef(Task.dest)
 }
 
 def make = Task {
-  os.copy(makefile().path, T.dest / "Makefile")
-  os.copy(cSources().path, T.dest / "src" / "main" / "c", createFolders = true)
+  os.copy(makefile().path, Task.dest / "Makefile")
+  os.copy(cSources().path, Task.dest / "src" / "main" / "c", createFolders = true)
 
   val Seq(sourceJar) = resolveDeps(
     deps = Task.Anon(Agg(ivy"io.netty:netty-jni-util:0.0.9.Final").map(bindDependency())),
     sources = true
   )().toSeq
 
-  os.proc("jar", "xf", sourceJar.path).call(cwd = T.dest  / "src" / "main" / "c")
+  os.proc("jar", "xf", sourceJar.path).call(cwd = Task.dest  / "src" / "main" / "c")
 
   os.proc("make").call(
-    cwd = T.dest,
+    cwd = Task.dest,
     env = Map(
       "CC" -> "clang",
       "AR" -> "ar",
@@ -561,7 +561,7 @@ def make = Task {
     )
   )
 
-  (PathRef(T.dest / "lib-out"), PathRef(T.dest / "obj-out"))
+  (PathRef(Task.dest / "lib-out"), PathRef(Task.dest / "obj-out"))
 }
 ```
 

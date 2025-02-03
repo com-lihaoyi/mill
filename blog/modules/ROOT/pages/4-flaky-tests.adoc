@@ -1,13 +1,13 @@
 // tag::header[]
 
-# How To Manage Flaky Tests
+# How To Manage Flaky Tests in your CI Workflows
 
 
 :author: Li Haoyi
 :revdate: 1 January 2025
 _{author}, {revdate}_
 
-include::mill:ROOT:partial$gtag-config.adoc[]
+
 
 Many projects suffer from the problem of flaky tests: tests that pass or fail
 non-deterministically. These cause confusion, slow development cycles, and endless

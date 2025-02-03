@@ -1,7 +1,7 @@
 = Scala Web Project Examples
 :page-aliases: Web_Build_Examples.adoc, Scala_Web_Examples.adoc
 
-include::partial$gtag-config.adoc[]
+
 
 
 This page contains examples of using Mill as a build tool for web-applications.
@@ -17,26 +17,32 @@ include::partial$example/scalalib/web/1-todo-webapp.adoc[]
 
 include::partial$example/scalalib/web/2-webapp-cache-busting.adoc[]
 
+== TodoMVC http4s Web App
+
+include::partial$example/scalalib/web/3-todo-http4s.adoc[]
+
 == Scala.js Modules
 
-include::partial$example/scalalib/web/3-scalajs-module.adoc[]
+include::partial$example/scalalib/web/4-scalajs-module.adoc[]
 
 == Scala.js Webserver Integration
 
-include::partial$example/scalalib/web/4-webapp-scalajs.adoc[]
+include::partial$example/scalalib/web/5-webapp-scalajs.adoc[]
 
 == Scala.js/Scala-JVM Code Sharing
 
-include::partial$example/scalalib/web/5-webapp-scalajs-shared.adoc[]
+include::partial$example/scalalib/web/6-webapp-scalajs-shared.adoc[]
 
 == Publishing Cross-Platform Scala Modules
 
-include::partial$example/scalalib/web/6-cross-version-platform-publishing.adoc[]
+include::partial$example/scalalib/web/7-cross-version-platform-publishing.adoc[]
 
 == Publishing Cross-Platform Scala Modules Alternative
 
-include::partial$example/scalalib/web/7-cross-platform-version-publishing.adoc[]
+include::partial$example/scalalib/web/8-cross-platform-version-publishing.adoc[]
 
 == Scala.js WebAssembly Example
 
-include::partial$example/scalalib/web/8-wasm.adoc[]
+include::partial$example/scalalib/web/9-wasm.adoc[]
+
+

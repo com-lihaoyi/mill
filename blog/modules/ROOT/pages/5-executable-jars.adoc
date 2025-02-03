@@ -7,7 +7,7 @@
 :revdate: 2 January 2025
 _{author}, {revdate}_
 
-include::mill:ROOT:partial$gtag-config.adoc[]
+
 
 One feature of the https://mill-build.org[Mill JVM build tool] is that the
 assembly jars it creates are directly executable:

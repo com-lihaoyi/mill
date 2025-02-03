@@ -1,4 +1,4 @@
-// To generate API documenation you can use the `docJar` task on the module you'd
+// overriddention you can use the `docJar` task on the module you'd
 // like to create the documentation for, configured via `dokkaOptions`:
 
 //// SNIPPET:BUILD

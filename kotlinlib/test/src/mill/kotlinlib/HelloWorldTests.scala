@@ -8,11 +8,7 @@ import utest._
 
 object HelloWorldTests extends TestSuite {
 
-  val kotlinVersions = if (scala.util.Properties.isJavaAtLeast(9)) {
-    Seq("1.9.24", "2.0.20")
-  } else {
-    Seq("1.0.0", "1.9.24", "2.0.20")
-  }
+  val kotlinVersions = Seq("1.9.24", "2.0.20", "2.1.0")
 
   object HelloWorldKotlin extends TestBaseModule {
     trait MainCross extends KotlinModule with Cross.Module[String] {

@@ -12,35 +12,32 @@ inputs:
     default: ''
     type: string
 
-  install-android-sdk:
-    default: false
-    type: boolean
 runs:
   using: "composite"
   steps:
     - uses: actions/setup-node@v4
       with: { node-version: '22' }
 
+    - run: cat .mill-jvm-version
+      shell: ${{ inputs.shell }}
+
     - run: ./mill -i -k selective.resolve ${{ inputs.millargs }}
       shell: ${{ inputs.shell }}
 
-    - run: cat out/mill-build/methodCodeHashSignatures.dest/current/spanningInvalidationTree.json
-      shell: bash
+    # This generates a lot of logs and slows down the github actions UI like crazy, 
+    # so only uncomment it when really necessary
+    #- run: cat out/mill-build/methodCodeHashSignatures.dest/current/spanningInvalidationTree.json
+    #  shell: bash
 
     - run: ./mill -i -k selective.resolveTree ${{ inputs.millargs }}
       shell: ${{ inputs.shell }}
 
-    - run: ./mill -i -k selective.resolveChanged ${{ inputs.millargs }}
-      shell: ${{ inputs.shell }}
-
-    - run: ./mill -i -j1 -k selective.run ${{ inputs.millargs }}
-      if: ${{ inputs.install-android-sdk }}
-      env:
-        COURSIER_ARCHIVE_CACHE: ${{ inputs.coursierarchive }}
-      shell: ${{ inputs.shell }}
+    # Comment this out because it can be very verbose when broad codesig
+    # invalidation results in all tasks being counted as changed inputs
+    #- run: ./mill -i -k selective.resolveChanged ${{ inputs.millargs }}
+    #  shell: ${{ inputs.shell }}
 
     - run: ./mill -i -k selective.run ${{ inputs.millargs }}
-      if: ${{ !inputs.install-android-sdk }}
       env:
         COURSIER_ARCHIVE_CACHE: ${{ inputs.coursierarchive }}
       shell: ${{ inputs.shell }}

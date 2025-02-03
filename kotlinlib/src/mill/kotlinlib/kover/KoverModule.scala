@@ -56,21 +56,21 @@ trait KoverModule extends KotlinModule { outer =>
    * Reads the Kover version from system environment variable `KOVER_VERSION` or defaults to a hardcoded version.
    */
   def koverVersion: T[String] = Task.Input {
-    Success[String](T.env.getOrElse("KOVER_VERSION", Versions.koverVersion))
+    Success[String](Task.env.getOrElse("KOVER_VERSION", Versions.koverVersion))
   }
 
   def koverBinaryReport: T[PathRef] = Task(persistent = true) {
     PathRef(koverDataDir().path / "kover-report.ic")
   }
 
-  def koverDataDir: T[PathRef] = Task(persistent = true) { PathRef(T.dest) }
+  def koverDataDir: T[PathRef] = Task(persistent = true) { PathRef(Task.dest) }
 
   object kover extends Module with KoverReportBaseModule {
 
     private def doReport(
         reportType: ReportType
     ): Task[PathRef] = Task.Anon {
-      val reportPath = PathRef(T.dest).path / reportName
+      val reportPath = PathRef(Task.dest).path / reportName
       Kover.runKoverCli(
         sourcePaths = outer.allSources().map(_.path),
         compiledPaths = Seq(outer.compile().classes.path),
@@ -78,7 +78,7 @@ trait KoverModule extends KotlinModule { outer =>
         reportPath = reportPath,
         reportType = reportType,
         koverCliClasspath().map(_.path),
-        T.dest
+        Task.dest
       )
     }
 
@@ -159,26 +159,26 @@ object Kover extends ExternalModule with KoverReportBaseModule {
     Task.Anon {
 
       val sourcePaths: Seq[Path] =
-        T.sequence(sourcesTasks)().flatten.map(_.path).filter(
+        Task.sequence(sourcesTasks)().flatten.map(_.path).filter(
           os.exists
         )
       val compiledPaths: Seq[Path] =
-        T.sequence(compiledTasks)().map(_.classes.path).filter(
+        Task.sequence(compiledTasks)().map(_.classes.path).filter(
           os.exists
         )
       val binaryReportsPaths: Seq[Path] =
-        T.sequence(binaryReportTasks)().map(_.path)
+        Task.sequence(binaryReportTasks)().map(_.path)
           .filter(path => {
             val exists = os.exists(path)
             if (!exists) {
-              T.log.error(
+              Task.log.error(
                 s"Kover binary report $path doesn't exist. Did you run tests for the module?."
               )
             }
             exists
           })
 
-      val reportDir = PathRef(T.dest).path / reportName
+      val reportDir = PathRef(Task.dest).path / reportName
 
       runKoverCli(
         sourcePaths,
@@ -187,7 +187,7 @@ object Kover extends ExternalModule with KoverReportBaseModule {
         reportDir,
         reportType,
         koverCliClasspath().map(_.path),
-        T.dest
+        Task.dest
       )
     }
   }

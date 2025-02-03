@@ -1,8 +1,6 @@
 package mill.define
 
 import scala.collection.mutable
-import scala.language.experimental.macros
-import scala.reflect.macros.blackbox
 
 /**
  * Macro to walk the module tree and generate `mainargs` entrypoints for any
@@ -16,144 +14,169 @@ import scala.reflect.macros.blackbox
  * the `Task.Command` methods we find. This mapping from `Class[_]` to `MainData`
  * can then be used later to look up the `MainData` for any module.
  */
-case class Discover private (
-    value: Map[
-      Class[_],
-      (Seq[String], Seq[mainargs.MainData[_, _]], Seq[String])
-    ],
-    dummy: Int = 0 /* avoid conflict with Discover.apply(value: Map) below*/
-) {
-  @deprecated("Binary compatibility shim", "Mill 0.11.4")
-  private[define] def this(value: Map[Class[_], Seq[mainargs.MainData[_, _]]]) =
-    this(value.view.mapValues((Nil, _, Nil)).toMap)
-  // Explicit copy, as we also need to provide an override for bin-compat reasons
-  def copy[T](
-      value: Map[
-        Class[_],
-        (Seq[String], Seq[mainargs.MainData[_, _]], Seq[String])
-      ] = value,
-      dummy: Int = dummy /* avoid conflict with Discover.apply(value: Map) below*/
-  ): Discover = new Discover(value, dummy)
-  @deprecated("Binary compatibility shim", "Mill 0.11.4")
-  private[define] def copy(value: Map[Class[_], Seq[mainargs.MainData[_, _]]]): Discover = {
-    new Discover(value.view.mapValues((Nil, _, Nil)).toMap, dummy)
-  }
-}
+class Discover(val classInfo: Map[Class[_], Discover.Node], val allNames: Seq[String])
 
 object Discover {
-  def apply2[T](value: Map[Class[_], (Seq[String], Seq[mainargs.MainData[_, _]], Seq[String])])
-      : Discover =
-    new Discover(value)
+  class Node(
+      val entryPoints: Seq[mainargs.MainData[_, _]],
+      val declaredNames: Seq[String]
+  )
 
-  @deprecated("Binary compatibility shim", "Mill 0.11.4")
-  def apply[T](value: Map[Class[_], Seq[mainargs.MainData[_, _]]]): Discover =
-    new Discover(value.view.mapValues((Nil, _, Nil)).toMap)
+  inline def apply[T]: Discover = ${ Router.applyImpl[T] }
 
-  def apply[T]: Discover = macro Router.applyImpl[T]
+  private object Router {
+    import quoted.*
+    import mainargs.Macros.*
+    import scala.util.control.NonFatal
 
-  private class Router(val ctx: blackbox.Context) extends mainargs.Macros(ctx) {
-    import c.universe._
-
-    def applyImpl[T: WeakTypeTag]: Expr[Discover] = {
-      val seen = mutable.Set.empty[Type]
-      def rec(tpe: Type): Unit = {
-        if (!seen(tpe)) {
-          seen.add(tpe)
+    def applyImpl[T: Type](using quotes: Quotes): Expr[Discover] = {
+      import quotes.reflect.*
+      val seen = mutable.Set.empty[TypeRepr]
+      val moduleSym = Symbol.requiredClass("mill.define.Module")
+      val deprecatedSym = Symbol.requiredClass("scala.deprecated")
+      def rec(tpe: TypeRepr): Unit = {
+        if (seen.add(tpe)) {
+          val typeSym = tpe.typeSymbol
           for {
-            m <- tpe.members.toList.sortBy(_.name.toString)
-            if !m.isType
-            memberTpe = m.typeSignature
-            if memberTpe.resultType <:< typeOf[mill.define.Module] && memberTpe.paramLists.isEmpty
-          } rec(memberTpe.resultType)
-
-          if (tpe <:< typeOf[mill.define.Cross[_]]) {
-            val inner = typeOf[Cross[_]]
-              .typeSymbol
-              .asClass
-              .typeParams
-              .head
-              .asType
-              .toType
-              .asSeenFrom(tpe, typeOf[Cross[_]].typeSymbol)
-
-            rec(inner)
+            m <- typeSym.fieldMembers ++ typeSym.methodMembers
+            if m != Symbol.noSymbol
+            memberTpe = m.termRef
+            if memberTpe.baseClasses.contains(moduleSym)
+          } {
+            rec(memberTpe)
+            memberTpe.asType match {
+              case '[mill.define.Cross[m]] => rec(TypeRepr.of[m])
+              case _ => () // no cross argument to extract
+            }
           }
         }
       }
-      rec(weakTypeOf[T])
+      rec(TypeRepr.of[T])
+
+      def methodReturn(tpe: TypeRepr): TypeRepr = tpe match
+        case MethodType(_, _, res) => res
+        case ByNameType(tpe) => tpe
+        case _ => tpe
 
       def assertParamListCounts(
-          methods: Iterable[MethodSymbol],
-          cases: (Type, Int, String)*
+          curCls: TypeRepr,
+          methods: Iterable[Symbol],
+          cases: (TypeRepr, Int, String)*
       ): Unit = {
         for (m <- methods.toList) {
           cases
             .find { case (tt, n, label) =>
-              m.returnType <:< tt && !(m.returnType <:< weakTypeOf[Nothing])
+              val mType = curCls.memberType(m)
+              val returnType = methodReturn(mType)
+              returnType <:< tt && !(returnType <:< TypeRepr.of[Nothing])
             }
             .foreach { case (tt, n, label) =>
-              if (m.paramLists.length != n) c.abort(
-                m.pos,
-                s"$label definitions must have $n parameter list" + (if (n == 1) "" else "s")
+              if (m.paramSymss.length != n) report.errorAndAbort(
+                s"$label definitions must have $n parameter list" + (if (n == 1) "" else "s"),
+                m.pos.getOrElse(Position.ofMacroExpansion)
               )
             }
         }
       }
 
+      def filterDefs(methods: List[Symbol]): List[Symbol] =
+        methods.filterNot(m =>
+          m.isSuperAccessor
+            || m.hasAnnotation(deprecatedSym)
+            || m.flags.is(
+              Flags.Synthetic | Flags.Invisible | Flags.Private | Flags.Protected
+            )
+        )
+
+      def sortedMethods(curCls: TypeRepr, sub: TypeRepr, methods: Seq[Symbol]): Seq[Symbol] =
+        for {
+          m <- methods.toList.sortBy(_.fullName)
+          mType = curCls.memberType(m)
+          returnType = methodReturn(mType)
+          if returnType <:< sub
+        } yield m
+
       // Make sure we sort the types and methods to keep the output deterministic;
       // otherwise the compiler likes to give us stuff in random orders, which
       // causes the code to be generated in random order resulting in code hashes
       // changing unnecessarily
-      val mapping = for {
+      val mapping: Seq[(Expr[(Class[_], Node)], Seq[String])] = for {
         discoveredModuleType <- seen.toSeq.sortBy(_.typeSymbol.fullName)
         curCls = discoveredModuleType
-        methods = getValsOrMeths(curCls)
-        declMethods = curCls.decls.toList.collect {
-          case m: MethodSymbol if !m.isSynthetic && m.isPublic => m
-        }
-        overridesRoutes = {
+        methods = filterDefs(curCls.typeSymbol.methodMembers)
+        declMethods = filterDefs(curCls.typeSymbol.declaredMethods)
+        _ = {
           assertParamListCounts(
+            curCls,
             methods,
-            (weakTypeOf[mill.define.Command[_]], 1, "`Task.Command`"),
-            (weakTypeOf[mill.define.Target[_]], 0, "Target")
-          )
-
-          Tuple3(
-            for {
-              m <- methods.toList.sortBy(_.fullName)
-              if m.returnType <:< weakTypeOf[mill.define.NamedTask[_]]
-            } yield m.name.decoded,
-            for {
-              m <- methods.toList.sortBy(_.fullName)
-              if m.returnType <:< weakTypeOf[mill.define.Command[_]]
-            } yield extractMethod(
-              m.name,
-              m.paramLists.flatten,
-              m.pos,
-              m.annotations.find(_.tree.tpe =:= typeOf[mainargs.main]),
-              curCls,
-              weakTypeOf[Any]
-            ),
-            for {
-              m <- declMethods.sortBy(_.fullName)
-              if m.returnType <:< weakTypeOf[mill.define.Task[_]]
-            } yield m.name.decodedName.toString
+            (TypeRepr.of[mill.define.Command[?]], 1, "`Task.Command`"),
+            (TypeRepr.of[mill.define.Target[?]], 0, "Target")
           )
         }
-        if overridesRoutes._1.nonEmpty || overridesRoutes._2.nonEmpty || overridesRoutes._3.nonEmpty
-      } yield {
-        val lhs = q"classOf[${discoveredModuleType.typeSymbol.asClass.toType}]"
 
+        names =
+          sortedMethods(curCls, sub = TypeRepr.of[mill.define.NamedTask[?]], methods).map(_.name)
+        entryPoints = for {
+          m <- sortedMethods(curCls, sub = TypeRepr.of[mill.define.Command[?]], methods)
+        } yield curCls.asType match {
+          case '[t] =>
+            val expr =
+              try
+                createMainData[Any, t](
+                  m,
+                  m.annotations.find(_.tpe =:= TypeRepr.of[mainargs.main]).getOrElse('{
+                    new mainargs.main()
+                  }.asTerm),
+                  m.paramSymss
+                ).asExprOf[mainargs.MainData[?, ?]]
+              catch {
+                case NonFatal(e) =>
+                  val (before, Array(after, _*)) = e.getStackTrace().span(e =>
+                    !(e.getClassName() == "mill.define.Discover$Router$" && e.getMethodName() == "applyImpl")
+                  ): @unchecked
+                  val trace =
+                    (before :+ after).map(_.toString).mkString("trace:\n", "\n", "\n...")
+                  report.errorAndAbort(
+                    s"Error generating maindata for ${m.fullName}: ${e}\n$trace",
+                    m.pos.getOrElse(Position.ofMacroExpansion)
+                  )
+              }
+            expr
+        }
+        declaredNames =
+          sortedMethods(
+            curCls,
+            sub = TypeRepr.of[mill.define.NamedTask[?]],
+            declMethods
+          ).map(_.name)
+        if names.nonEmpty || entryPoints.nonEmpty
+      } yield {
         // by wrapping the `overridesRoutes` in a lambda function we kind of work around
         // the problem of generating a *huge* macro method body that finally exceeds the
         // JVM's maximum allowed method size
-        val overridesLambda = q"(() => $overridesRoutes)()"
-        q"$lhs -> $overridesLambda"
+        val overridesLambda = '{
+          def triple() =
+            new Node(${ Expr.ofList(entryPoints) }, ${ Expr(declaredNames) })
+          triple()
+        }
+        val lhs =
+          Ref(defn.Predef_classOf).appliedToType(discoveredModuleType.widen).asExprOf[Class[?]]
+        ('{ $lhs -> $overridesLambda }, names)
       }
 
-      c.Expr[Discover](
-        q"import mill.api.JsonFormatters._; _root_.mill.define.Discover.apply2(_root_.scala.collection.immutable.Map(..$mapping))"
-      )
+      val expr: Expr[Discover] =
+        '{
+          // TODO: we can not import this here, so we have to import at the use site now, or redesign?
+          // import mill.main.TokenReaders.*
+          // import mill.api.JsonFormatters.*
+          new Discover(
+            Map[Class[_], Node](${ Varargs(mapping.map(_._1)) }*),
+            ${ Expr(mapping.iterator.flatMap(_._2).distinct.toList.sorted) }
+          )
+        }
+      // TODO: if needed for debugging, we can re-enable this
+      // report.warning(s"generated discovery for ${TypeRepr.of[T].show}:\n${expr.asTerm.show}", TypeRepr.of[T].typeSymbol.pos.getOrElse(Position.ofMacroExpansion))
+      expr
     }
   }
 }

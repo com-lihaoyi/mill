@@ -48,7 +48,7 @@ object ResolvedCalls {
         }
         .groupMapReduce(_._1)(_._2)(_ ++ _)
         .map { case (externalCls, localClasses) =>
-          // <init> methods are final and cannot be overriden
+          // <init> methods are final and cannot be overridden
           val methods = externalSummary
             .directMethods
             .getOrElse(externalCls, Map())
@@ -110,7 +110,7 @@ object ResolvedCalls {
       val externalSamDefiners = externalSummary
         .directMethods
         .map { case (k, v) => (k, v.collect { case (sig, true) => sig }) }
-        .collect { case (k, Seq(v)) =>
+        .collect { case (k, Seq[MethodSig](v)) =>
           (k, v)
         } // Scala 3.5.0-RC6 - can not infer MethodSig here
 

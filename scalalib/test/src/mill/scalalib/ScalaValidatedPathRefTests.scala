@@ -8,9 +8,9 @@ import utest._
 object ScalaValidatedPathRefTests extends TestSuite {
 
   object ValidatedTarget extends TestBaseModule {
-    private def mkDirWithFile = T.task {
-      os.write(T.dest / "dummy", "dummy", createFolders = true)
-      PathRef(T.dest)
+    private def mkDirWithFile = Task.Anon {
+      os.write(Task.dest / "dummy", "dummy", createFolders = true)
+      PathRef(Task.dest)
     }
     def uncheckedPathRef: T[PathRef] = Task { mkDirWithFile() }
     def uncheckedSeqPathRef: T[Seq[PathRef]] = Task { Seq(mkDirWithFile()) }

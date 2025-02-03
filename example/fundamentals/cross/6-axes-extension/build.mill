@@ -27,11 +27,6 @@ trait FooModule3 extends FooModule2 with Cross.Module3[String, Int, Boolean] {
 // corresponding `Cross.ArgN` trait. Providing tuples of the wrong arity to the
 // `Cross[]` constructor is a compile error.
 //
-// The Cross module's axes can take any type `T` with `Cross.ToSegments[T]`
-// defined. There are default implementations for strings, chars, numbers,
-// booleans, and lists; the example above demonstrates cross axes of type
-// `String`, `Int`, and `Boolean`. You can define additional `ToPathSegments`
-// for your own user-defined types that you wish to use in a Cross module
 
 /** Usage
 
@@ -56,6 +51,9 @@ trait FooModule3 extends FooModule2 with Cross.Module3[String, Int, Boolean] {
 
 > mill show foo3[b,2,false].param3
 error: ...object foo3 extends Cross[FooModule3](("a", 1), ("b", 2))
-error: ...                                      ^
-error: ...value _3 is not a member of (String, Int)
+error: ...                                      ^^^^^^^^
+error: ...expected at least 3 elements, got 2...
+error: ...object foo3 extends Cross[FooModule3](("a", 1), ("b", 2))
+error: ...                                                ^^^^^^^^
+error: ...expected at least 3 elements, got 2...
 */

@@ -1,23 +1,24 @@
 = Mill Design Principles
 :page-aliases: Mill_Internals.adoc, Mill_Design_Principles.adoc
 
-include::partial$gtag-config.adoc[]
+
 
 The following external resources give more of a flavor of the architecture behind
 Mill:
 
 * https://www.youtube.com/watch?v=UsXgCeU-ovI[Video: A Deep Dive into the Mill Build Tool]
-* https://www.lihaoyi.com/post/SoWhatsSoSpecialAboutTheMillScalaBuildTool.html[Blog Post: What's So Special About The Mill Scala Build Tool?]
-* https://www.youtube.com/watch?v=j6uThGxx-18[Video: Mill a Build Tool based on Pure Functional Programming]
-* http://www.lihaoyi.com/post/BuildToolsasPureFunctionalPrograms.html[Blog Post: Build Tools as Pure Functional Programs]
-* http://www.lihaoyi.com/post/SowhatswrongwithSBT.html[Blog Post: So, what's wrong with SBT?]
+* https://www.youtube.com/watch?v=MEPtepNWHs8[Video: Mill a JVM Build Tool based on Pure Functional Programming]
+
+There are also more talks and blog posts available to read on the following page:
+
+- xref:reference/talks-blog-posts.adoc[]
 
 == Principles
 
 === Dependency graph first
 
 Mill's most important abstraction is the dependency graph of ``Task``s.
-Constructed using the `T {...}` `Task.Anon {...}` `Task.Command {...}` syntax, these
+Constructed using the `Task {...}` `Task.Anon {...}` `Task.Command {...}` syntax, these
 track the dependencies between steps of a build, so those steps can be executed
 in the correct order, queried, or parallelized.
 
@@ -118,7 +119,7 @@ sorts of useful operations on the graph before running it:
  with an exception
 
 In order to avoid making people using `.map` and `.zip` all over the place when
-defining their ``Task``s, we use the `T {...}`/`Task.Anon {...}`/`Task.Command {...}`
+defining their ``Task``s, we use the `Task {...}`/`Task.Anon {...}`/`Task.Command {...}`
 macros which allow you to use `Task#apply()` within the block to "extract" a
 value.
 
@@ -138,7 +139,7 @@ This is roughly equivalent to the following:
 
 [source,scala]
 ----
-def test() = Task.Command { T.zipMap(runDepClasspath, compile, compile) {
+def test() = Task.Command { Task.zipMap(runDepClasspath, compile, compile) {
   (runDepClasspath1, compile2, compile3) =>
   TestRunner.apply(
     "mill.UTestFramework",
@@ -150,7 +151,7 @@ def test() = Task.Command { T.zipMap(runDepClasspath, compile, compile) {
 ----
 
 This is similar to SBT's `:=`/`.value` macros, or ``scala-async``'s
-`async`/`await`. Like those, the `T {...}` macro should let users program most of
+`async`/`await`. Like those, the `Task {...}` macro should let users program most of
 their code in a "direct" style and have it "automatically" lifted into a graph
 of ``Task``s.
 
@@ -277,7 +278,7 @@ digraph G {
 ```
 
 The Scala call graph of "which task references which other task" is core to
-how Mill operates. This graph is reified via the `T {...}` macro to make it
+how Mill operates. This graph is reified via the `Task {...}` macro to make it
 available to the Mill execution engine at runtime. The call graph tells you:
 
 * Which ``Task``s depend on which other ``Task``s
@@ -294,7 +295,7 @@ available to the Mill execution engine at runtime. The call graph tells you:
  its return value)
 
 * Defining your own task that depends on others is as simple as `def foo =
-  T {...}`
+Task {...}`
 
 The call graph within your Scala code is essentially a data-flow graph: by
 defining a snippet of code:
@@ -312,7 +313,7 @@ you are telling everyone that the value `a` depends on the values of `b` `c` and
 knowing what `Task` depends on what other ``Task``s, and what processing it
 does on its inputs!
 
-With Mill, you can take the Scala call graph, wrap everything in the `T {...}`
+With Mill, you can take the Scala call graph, wrap everything in the `Task {...}`
 macro, and get a `Task`-dependency graph that matches exactly the call-graph
 you already had:
 

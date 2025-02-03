@@ -22,7 +22,7 @@ trait RunModule extends WithZincWorker {
    */
   def forkEnv: T[Map[String, String]] = Task { Map.empty[String, String] }
 
-  def forkWorkingDir: T[os.Path] = Task { T.workspace }
+  def forkWorkingDir: T[os.Path] = Task { Task.workspace }
 
   /**
    * All classfiles and resources including upstream modules and dependencies
@@ -166,7 +166,7 @@ trait RunModule extends WithZincWorker {
 
   def runBackgroundTask(mainClass: Task[String], args: Task[Args] = Task.Anon(Args())): Task[Unit] =
     Task.Anon {
-      val (procUuidPath, procLockfile, procUuid) = RunModule.backgroundSetup(T.dest)
+      val (procUuidPath, procLockfile, procUuid) = RunModule.backgroundSetup(Task.dest)
       runner().run(
         args = Seq(
           procUuidPath.toString,

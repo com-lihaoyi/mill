@@ -73,8 +73,8 @@ object `package` extends RootModule with InstallModule {
 
     def testTransitiveDeps = build.runner.testTransitiveDeps() ++ Seq(
       build.main.graphviz.testDep(),
-      build.main.maven.testDep(),
-      build.runner.linenumbers.testDep(),
+      build.main.init.maven.testDep(),
+      build.main.init.gradle.testDep(),
       build.scalalib.backgroundwrapper.testDep(),
       build.contrib.bloop.testDep(),
       build.contrib.buildinfo.testDep(),
@@ -85,7 +85,8 @@ object `package` extends RootModule with InstallModule {
       build.contrib.playlib.worker("2.8").testDep(),
       build.contrib.testng.testDep(),
       build.bsp.worker.testDep(),
-      build.testkit.testDep()
+      build.testkit.testDep(),
+      build.runner.worker.testDep()
     )
   }
 
@@ -129,7 +130,11 @@ object `package` extends RootModule with InstallModule {
       .mkString("\r\n")
 
     os.write(vmOptionsFile, millOptionsContent)
-    val jvmArgs = otherArgs ++ List(s"-DMILL_OPTIONS_PATH=$vmOptionsFile")
+    val jvmArgs = otherArgs ++ List(
+      // Avoid reserving a lot of memory for the client, as the client only forward information
+      "-Xmx32m",
+      s"-DMILL_OPTIONS_PATH=$vmOptionsFile"
+    )
     val classpath = runClasspath().map(_.path.toString)
     val classpathJar = Task.dest / "classpath.jar"
     Jvm.createClasspathPassingJar(classpathJar, runClasspath().map(_.path))
@@ -231,7 +236,7 @@ object `package` extends RootModule with InstallModule {
       path = exampleMod.millSourcePath
     } yield {
       val example = path.subRelativeTo(Task.workspace)
-      val artifactName = build.millVersion() + "-" + example.segments.mkString("-")
+      val artifactName = example.segments.mkString("-")
       (path, artifactName)
     }
   }
@@ -248,6 +253,15 @@ object `package` extends RootModule with InstallModule {
     }
   }
 
+  def publishArtifacts = Task {
+    super.publishArtifacts()
+      .copy(payload =
+        super.publishArtifacts().payload ++
+          exampleZips().map(z => (z, z.path.last)) ++
+          Seq((bootstrapLauncher(), "mill"), (bootstrapLauncherBat(), "mill.bat"))
+      )
+  }
+
   def uploadToGithub(authKey: String) = Task.Command {
     val vcsState = VcsVersion.vcsState()
     val label = vcsState.copy(dirtyHash = None).format()
@@ -256,6 +270,7 @@ object `package` extends RootModule with InstallModule {
       "Incomplete git history. No tag found.\nIf on CI, make sure your git checkout job includes enough history."
     ))
 
+    // Only create releases for tag pushes, not for unstable commit releases
     if (releaseTag == label) {
       // TODO: check if the tag already exists (e.g. because we created it manually) and do not fail
       requests.post(
@@ -265,79 +280,24 @@ object `package` extends RootModule with InstallModule {
       )
     }
 
-    val examples = exampleZips().map(z => (z.path, z.path.last))
-
-    val zips = examples ++ Seq(
-      (build.dist.assembly().path, label + "-assembly"),
-      (bootstrapLauncher().path, label),
-      (bootstrapLauncherBat().path, label + ".bat")
-    )
-
-    for ((zip, name) <- zips) {
-      upload(
-        zip,
-        releaseTag,
-        name,
-        authKey,
-        build.Settings.githubOrg,
-        build.Settings.githubRepo
-      )
-    }
-  }
-
-  def upload(
-      uploadedFile: os.Path,
-      tagName: String,
-      uploadName: String,
-      authKey: String,
-      githubOrg: String,
-      githubRepo: String
-  ): String = {
-
-    val response = requests.get(
-      s"https://api.github.com/repos/${githubOrg}/${githubRepo}/releases/tags/${tagName}",
-      headers = Seq(
-        "Authorization" -> s"token $authKey",
-        "Accept" -> "application/vnd.github.v3+json"
-      )
-    )
-
-    val parsed = ujson.read(response)
-
-    println("Response code: " + response.statusCode)
-    println(response.text())
-
-    val snapshotReleaseId = parsed("id").num.toInt
-
-    val uploadUrl =
-      s"https://uploads.github.com/repos/${githubOrg}/${githubRepo}/releases/" +
-        s"$snapshotReleaseId/assets?name=$uploadName"
-
-    val res = requests.post(
-      uploadUrl,
-      headers = Seq(
-        "Content-Type" -> "application/octet-stream",
-        "Authorization" -> s"token $authKey"
-      ),
-      data = os.read.stream(uploadedFile)
-    )
-
-    println(res.text())
-    val longUrl = ujson.read(res)("browser_download_url").str
-
-    println("Long Url " + longUrl)
-    longUrl
+    ()
   }
 
   object native extends mill.scalalib.NativeImageModule with InstallModule {
-    def artifactOsSuffix = T {
+    def artifactOsSuffix = Task {
       val osName = System.getProperty("os.name").toLowerCase
       if (osName.contains("mac")) "mac"
       else if (osName.contains("windows")) "windows"
       else "linux"
     }
 
-    def artifactCpuSuffix = T { System.getProperty("os.arch") }
+    def artifactCpuSuffix = Task {
+      System.getProperty("os.arch") match {
+        case "x86_64" => "amd64"
+        case s => s
+      }
+    }
+
     def artifactName = s"${super.artifactName()}-${artifactOsSuffix()}-${artifactCpuSuffix()}"
 
     def mainClass = Some("mill.runner.client.MillClientMain")

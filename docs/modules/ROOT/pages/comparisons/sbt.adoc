@@ -1,7 +1,7 @@
 = Case Study: Mill vs SBT
 :page-aliases: Case_Study_Mill_vs_SBT.adoc
 
-include::partial$gtag-config.adoc[]
+
 
 Compared to SBT,
 
@@ -231,7 +231,7 @@ It is able to pull up any overridden implementations of task, directly in the ed
 
 image::comparisons/IntellijGatlingMillTask2.png[]
 
-And you can easily navigate to the overriden implementations to see where they are defined and
+And you can easily navigate to the overridden implementations to see where they are defined and
 what you are overriding:
 
 image::comparisons/IntellijGatlingMillTask3.png[]

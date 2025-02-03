@@ -11,7 +11,7 @@ import mill.scalalib._
 
 object Deps {
   val millVersion = "0.11.0"
-  val millMain = ivy"com.lihaoyi::mill-main:${millVersion}"
+  val millMain = ivy"com.lihaoyi:mill-main_2.13:${millVersion}"
   val scalaTest = ivy"org.scalatest::scalatest:3.2.16"
 }
 

@@ -11,6 +11,58 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
   implicit val retryMax: RetryMax = RetryMax(120.seconds)
   implicit val retryInterval: RetryInterval = RetryInterval(1.seconds)
   val tests: Tests = Tests {
+    test("default-command") - integrationTest { tester =>
+      import tester._
+
+      eval(("selective.prepare", "bar"), check = true)
+
+      val resolve = eval(("selective.resolve", "bar"), check = true)
+      assert(resolve.out == "")
+
+      modifyFile(workspacePath / "bar/bar.txt", _ + "!")
+      val resolve2 = eval(("selective.resolve", "bar"), check = true)
+      assert(resolve2.out != "")
+
+      val cached = eval(("selective.run", "bar"), check = true, stderr = os.Inherit)
+
+      assert(!cached.out.contains("Computing fooCommand"))
+      assert(cached.out.contains("Computing barCommand"))
+    }
+
+    test("failures") {
+      test("missing-prepare") - integrationTest { tester =>
+        import tester._
+
+        val cached = eval(
+          ("selective.run", "{foo.fooCommand,bar.barCommand}"),
+          check = false,
+          stderr = os.Pipe
+        )
+
+        assert(cached.err.contains("`selective.run` can only be run after `selective.prepare`"))
+      }
+    }
+    test("renamed-tasks") - integrationTest { tester =>
+      import tester._
+      eval(("selective.prepare", "{foo,bar}._"), check = true)
+
+      modifyFile(workspacePath / "build.mill", _.replace("fooTask", "fooTaskRenamed"))
+      modifyFile(workspacePath / "build.mill", _.replace("barCommand", "barCommandRenamed"))
+
+      val cached = eval(("selective.resolve", "{foo,bar}._"), stderr = os.Pipe)
+
+      assert(
+        cached.out.linesIterator.toList ==
+          Seq("bar.barCommandRenamed", "foo.fooCommand", "foo.fooTaskRenamed")
+      )
+    }
+  }
+}
+
+object SelectiveExecutionChangedInputsTests extends UtestIntegrationTestSuite {
+  implicit val retryMax: RetryMax = RetryMax(120.seconds)
+  implicit val retryInterval: RetryInterval = RetryInterval(1.seconds)
+  val tests: Tests = Tests {
     test("changed-inputs") - integrationTest { tester =>
       import tester._
 
@@ -80,23 +132,13 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
       assert(!cached.out.contains("Computing fooCommand"))
       assert(cached.out.contains("Computing barCommand"))
     }
-    test("default-command") - integrationTest { tester =>
-      import tester._
+  }
+}
 
-      eval(("selective.prepare", "bar"), check = true)
-
-      val resolve = eval(("selective.resolve", "bar"), check = true)
-      assert(resolve.out == "")
-
-      modifyFile(workspacePath / "bar/bar.txt", _ + "!")
-      val resolve2 = eval(("selective.resolve", "bar"), check = true)
-      assert(resolve2.out != "")
-
-      val cached = eval(("selective.run", "bar"), check = true, stderr = os.Inherit)
-
-      assert(!cached.out.contains("Computing fooCommand"))
-      assert(cached.out.contains("Computing barCommand"))
-    }
+object SelectiveExecutionChangedCodeTests extends UtestIntegrationTestSuite {
+  implicit val retryMax: RetryMax = RetryMax(120.seconds)
+  implicit val retryInterval: RetryInterval = RetryInterval(1.seconds)
+  val tests: Tests = Tests {
     test("changed-code") - integrationTest { tester =>
       import tester._
 
@@ -137,6 +179,14 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
       assert(cached2.out.contains("Computing fooCommand"))
       assert(!cached2.out.contains("Computing barCommand"))
     }
+
+  }
+}
+
+object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
+  implicit val retryMax: RetryMax = RetryMax(120.seconds)
+  implicit val retryInterval: RetryInterval = RetryInterval(1.seconds)
+  val tests: Tests = Tests {
 
     test("watch") {
       test("changed-inputs") - integrationTest { tester =>
@@ -238,33 +288,6 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
           output.contains("Computing fooCommand") && !output.contains("Computing barCommand")
         }
       }
-    }
-    test("failures") {
-      test("missing-prepare") - integrationTest { tester =>
-        import tester._
-
-        val cached = eval(
-          ("selective.run", "{foo.fooCommand,bar.barCommand}"),
-          check = false,
-          stderr = os.Pipe
-        )
-
-        assert(cached.err.contains("`selective.run` can only be run after `selective.prepare`"))
-      }
-    }
-    test("renamed-tasks") - integrationTest { tester =>
-      import tester._
-      eval(("selective.prepare", "{foo,bar}._"), check = true)
-
-      modifyFile(workspacePath / "build.mill", _.replace("fooTask", "fooTaskRenamed"))
-      modifyFile(workspacePath / "build.mill", _.replace("barCommand", "barCommandRenamed"))
-
-      val cached = eval(("selective.resolve", "{foo,bar}._"), stderr = os.Pipe)
-
-      assert(
-        cached.out.linesIterator.toList ==
-          Seq("bar.barCommandRenamed", "foo.fooCommand", "foo.fooTaskRenamed")
-      )
     }
   }
 }

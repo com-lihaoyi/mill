@@ -8,7 +8,7 @@ object RunBackgroundTests extends TestSuite {
 
   object HelloWorldPython extends TestBaseModule {
     object foo extends PythonModule {
-      override def mainScript = T.source(millSourcePath / "src" / "foo.py")
+      override def mainScript = Task.Source(millSourcePath / "src" / "foo.py")
     }
   }
 

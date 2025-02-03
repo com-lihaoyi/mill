@@ -72,15 +72,15 @@ trait TaskTests extends TestSuite {
 
     def persistent = Task(persistent = true) {
       input() // force re-computation
-      os.makeDir.all(T.dest)
-      os.write.append(T.dest / "count", "hello\n")
-      os.read.lines(T.dest / "count").length
+      os.makeDir.all(Task.dest)
+      os.write.append(Task.dest / "count", "hello\n")
+      os.read.lines(Task.dest / "count").length
     }
     def nonPersistent = Task {
       input() // force re-computation
-      os.makeDir.all(T.dest)
-      os.write.append(T.dest / "count", "hello\n")
-      os.read.lines(T.dest / "count").length
+      os.makeDir.all(Task.dest)
+      os.write.append(Task.dest / "count", "hello\n")
+      os.read.lines(Task.dest / "count").length
     }
 
     def staticWorkerDownstream = Task {

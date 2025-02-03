@@ -8,7 +8,8 @@
 //
 //
 // Below is a semi-realistic example of using `Task(persistent = true)` to compress
-// files in an input folder, and re-use previously-compressed files if a file in the
+// files in an input folder, cache the previously-compressed files in `Task.dest / "cache"`,
+// and re-use previously-compressed files if a file in the
 // input folder did not change:
 package build
 import mill._, scalalib._

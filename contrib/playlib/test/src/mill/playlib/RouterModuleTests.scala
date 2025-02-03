@@ -71,7 +71,7 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
             val eitherResult = eval.apply(project.compileRouter)
             val Left(Failure(message, x)) = eitherResult
             val playExpectedMessage =
-              if (playVersion.startsWith("2.6.")) {
+              if !playVersion.startsWith("2.7.") && !playVersion.startsWith("2.8.") then {
                 "HTTP Verb (GET, POST, ...), include (->), comment (#), or modifier line (+) expected"
               } else {
                 "end of input expected"
@@ -98,7 +98,7 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
             val eitherResult = eval.apply(HelloWorld.core(scalaVersion, playVersion).compileRouter)
             val Left(Failure(message, x)) = eitherResult
             val playExpectedMessage =
-              if (playVersion.startsWith("2.6.")) {
+              if !playVersion.startsWith("2.7.") && !playVersion.startsWith("2.8.") then {
                 "HTTP Verb (GET, POST, ...), include (->), comment (#), or modifier line (+) expected"
               } else {
                 "end of input expected"

@@ -1,27 +1,14 @@
-name: 'autofix'
+name: 'autofix.ci'
 on:
   pull_request:
 jobs:
-  build-test:
+  autofix:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - run: ./mill -i mill.scalalib.scalafmt.ScalafmtModule/
-      - run: git clean -xdf
+      - run: |
+          ./mill __.fix + mill.javalib.palantirformat.PalantirFormatModule/ + mill.scalalib.scalafmt.ScalafmtModule/ + mill.kotlinlib.ktlint.KtlintModule/
+          ./mill --meta-level 1 mill.scalalib.scalafmt.ScalafmtModule/
 
-      - run: git config --global user.email "you@example.com"
-      - run: git config --global user.name "Your Name"
-      - run: git commit -am "autofix" --allow-empty
-
-      - run: echo "git@github.com:${{ github.event.pull_request.head.repo.full_name }}.git"
-      - run: echo ${{ github.event.pull_request.head.ref }}
-      - run: echo -n "git@github.com:${{ github.event.pull_request.head.repo.full_name }}.git" > .autofix-repo
-      - run: echo -n HEAD:${{ github.event.pull_request.head.ref }} > .autofix-branch
-
-
-      - uses: actions/upload-artifact@v4.5.0
-        with:
-          path: .
-          name: autofix-artifacts
-          include-hidden-files: true
+      - uses: autofix-ci/action@551dded8c6cc8a1054039c8bc0b8b48c51dfc6ef

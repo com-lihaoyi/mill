@@ -373,9 +373,10 @@ scalalib/basic/1-simple
 ...
 scalalib/web/1-todo-webapp
 scalalib/web/2-webapp-cache-busting
-scalalib/web/3-scalajs-module
-scalalib/web/4-webapp-scalajs
-scalalib/web/5-webapp-scalajs-shared
+scalalib/web/3-todo-http4s
+scalalib/web/4-scalajs-module
+scalalib/web/5-webapp-scalajs
+scalalib/web/6-webapp-scalajs-shared
 ...
 javalib/basic/1-simple
 ...
@@ -404,3 +405,26 @@ kotlinlib/web/1-hello-ktor
 // project isn't going to be everything that you need, at least it'll get most of the
 // tedious boilerplate set up, so you can hit the group running working on the things
 // that are unique to your particular project..
+//
+// `init` can also be used to initialize a Mill build configuration based on
+// an existing Maven or Gradle build. See the linked page for more details:
+//
+// * xref:migrating/maven.adoc[]
+// * xref:migrating/gradle.adoc[]
+//
+// == selective.*
+//
+// Mill comes with builtin `selective.*` commands to work with Selective Test Execution.
+// See the linked page for more details:
+//
+// * xref:large/selective-execution.adoc[]
+//
+// == shutdown
+//
+// `./mill shutdown` is used to shut down the background daemon that Mill uses to keep
+// the build code performant. Without calling `shutdown`, the background daemon will
+// automatically shut itself down after 30 minutes of inactivity.
+
+// == version
+//
+// `./mill version` prints the current Mill version

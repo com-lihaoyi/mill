@@ -1,6 +1,6 @@
 = Building Javascript with Mill
 
-include::partial$gtag-config.adoc[]
+
 
 :language: Typescript
 :language-small: typescript

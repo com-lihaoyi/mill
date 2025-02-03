@@ -20,7 +20,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
     ivy"guru.nidi:graphviz-java-min-deps:0.18.1"
   )
 
-  def compileIvyDeps = T {
+  def compileIvyDeps = Task {
     if (ZincWorkerUtil.isScala3(scalaVersion())) Agg.empty
     else Agg(build.Deps.scalaReflect(scalaVersion()))
   }
@@ -44,7 +44,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
     BuildInfo.Value(
       "millEmbeddedDeps",
       (
-        T.traverse(
+        Task.traverse(
           build.dist.recursiveModuleDeps.collect { case m: PublishModule => m }
         )(
           _.publishSelfDependency
@@ -59,14 +59,14 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
             build.dist.transitiveIvyDeps(),
             Some(build.dist.mapDependencies()),
             build.dist.resolutionCustomizer(),
-            Some(T.ctx()),
+            Some(Task.ctx()),
             build.dist.coursierCacheCustomizer()
           )._2.minDependencies.toSeq
             // change to this when bumping Mill
             //   ).getOrThrow.minDependencies.toSeq
             .map(d => s"${d.module.organization.value}:${d.module.name.value}:${d.version}")
       )
-        //      T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
+        //      Task.traverse(dev.moduleDeps)(_.publishSelfDependency)()
         //        .map(artifact => s"${artifact.group}:${artifact.id}:${artifact.version}")
         .mkString(","),
       "Dependency artifacts embedded in mill assembly by default."
@@ -112,7 +112,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
 
   object define extends build.MillStableScalaModule {
     def moduleDeps = Seq(api, util)
-    def compileIvyDeps = T {
+    def compileIvyDeps = Task {
       if (ZincWorkerUtil.isScala3(scalaVersion())) Agg(build.Deps.scalaCompiler(scalaVersion()))
       else Agg(build.Deps.scalaReflect(scalaVersion()))
     }
@@ -153,19 +153,6 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
   object graphviz extends build.MillPublishScalaModule {
     def moduleDeps = Seq(build.main, build.scalalib)
     def ivyDeps = Agg(build.Deps.jgraphtCore) ++ build.Deps.graphvizJava ++ build.Deps.javet
-  }
-
-  object maven extends build.MillPublishScalaModule {
-    def moduleDeps = Seq(build.runner)
-    def ivyDeps = Agg(
-      build.Deps.mavenEmbedder,
-      build.Deps.mavenResolverConnectorBasic,
-      build.Deps.mavenResolverSupplier,
-      build.Deps.mavenResolverTransportFile,
-      build.Deps.mavenResolverTransportHttp,
-      build.Deps.mavenResolverTransportWagon
-    )
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib)
   }
 
   def testModuleDeps = super.testModuleDeps ++ Seq(build.testkit)
