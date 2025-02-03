@@ -339,7 +339,7 @@ private class MillBuildServer(
         Task.Anon {
           (
             // full list of dependencies, including transitive ones
-            m.defaultResolver().allDeps(
+            m.internalResolver().allDeps(
               Seq(
                 m.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
                 m.coursierDependency
