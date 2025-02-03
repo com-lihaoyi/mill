@@ -296,7 +296,7 @@ private class MillBuildServer(
         case m: JavaModule =>
           Task.Anon {
             (
-              m.defaultResolver().resolveDeps(
+              m.internalResolver().resolveDeps(
                 Seq(
                   m.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
                   m.coursierDependency
@@ -304,7 +304,7 @@ private class MillBuildServer(
                 sources = true
               ),
               m.unmanagedClasspath(),
-              m.repositoriesTask()
+              m.allRepositoriesTask()
             )
           }
       }
