@@ -189,8 +189,7 @@ object CodeGen {
             val fenced = Seq(
               "",
               "//MILL_SPLICED_CODE_START_MARKER",
-              leading + "@_root_.scala.annotation.nowarn",
-              leading + "protected def __innerMillDiscover: _root_.mill.define.Discover = _root_.mill.define.Discover[this.type]",
+
               "//MILL_SPLICED_CODE_END_MARKER", {
                 val statLines = finalStat.text.linesWithSeparators.toSeq
                 if statLines.sizeIs > 1 then
@@ -214,7 +213,6 @@ object CodeGen {
            |$newScriptCode
            |object $wrapperObjectName extends $wrapperObjectName {
            |  ${childAliases.linesWithSeparators.mkString("  ")}
-           |  ${millDiscover(childSels, spliced = objectData.finalStat.nonEmpty)}
            |}""".stripMargin
       case None =>
         s"""$pkgLine
@@ -225,7 +223,6 @@ object CodeGen {
             scriptFolderPath,
             millTopLevelProjectRoot,
             childAliases,
-            childSels
           )}
            |$markerComment
            |$scriptCode
@@ -249,34 +246,7 @@ object CodeGen {
        |""".stripMargin
   }
 
-  def millDiscover(childSels: Seq[String], spliced: Boolean = false): String = {
-    def addChildren(initial: String) =
-      if childSels.nonEmpty then
-        s"""{
-           |      val childDiscovers: Seq[_root_.mill.define.Discover] = Seq(
-           |        ${childSels.map(child => s"$child.millDiscover").mkString(",\n      ")}
-           |      )
-           |      childDiscovers.foldLeft($initial.value)(_ ++ _.value)
-           |    }""".stripMargin
-      else
-        s"""$initial.value""".stripMargin
-
-    if spliced then
-      s"""override lazy val millDiscover: _root_.mill.define.Discover = {
-         |    val base = this.__innerMillDiscover
-         |    val initial = ${addChildren("base")}
-         |    val subbed = {
-         |      initial.get(classOf[$wrapperObjectName]) match {
-         |        case Some(inner) => initial.updated(classOf[$wrapperObjectName.type], inner)
-         |        case None => initial
-         |      }
-         |    }
-         |    if subbed ne base.value then
-         |      _root_.mill.define.Discover.apply2(value = subbed)
-         |    else
-         |      base
-         |  }""".stripMargin
-    else
+  def millDiscover(): String = {
       """override lazy val millDiscover: _root_.mill.define.Discover = _root_.mill.define.Discover[this.type]""".stripMargin
   }
 
@@ -307,7 +277,6 @@ object CodeGen {
       scriptFolderPath: os.Path,
       millTopLevelProjectRoot: os.Path,
       childAliases: String,
-      childSels: Seq[String]
   ): String = {
     val extendsClause =
       if (segments.nonEmpty) s"extends _root_.mill.main.SubfolderModule "
@@ -323,75 +292,12 @@ object CodeGen {
     // or, add an optional parameter to Discover.apply to substitute the outer class?
     s"""object ${wrapperObjectName} extends $wrapperObjectName {
        |  ${childAliases.linesWithSeparators.mkString("  ")}
-       |  ${millDiscover(childSels, spliced = true)}
+       |  ${millDiscover()}
        |}
        |abstract class $wrapperObjectName $extendsClause {
        |protected def __innerMillDiscover: _root_.mill.define.Discover = _root_.mill.define.Discover[this.type]""".stripMargin
 
   }
 
-  private case class Snippet(var text: String = null, var start: Int = -1, var end: Int = -1) {
-    def applyTo(s: String, replacement: String): String =
-      s.patch(start, replacement.padTo(end - start, ' '), end - start)
-  }
-
-  private case class ObjectData(obj: Snippet, name: Snippet, parent: Snippet)
-
-  // Use Fastparse's Instrument API to identify top-level `object`s during a parse
-  // and fish out the start/end indices and text for parts of the code that we need
-  // to mangle and replace
-  private class ObjectDataInstrument(scriptCode: String) extends fastparse.internal.Instrument {
-    val objectData: mutable.Buffer[ObjectData] = mutable.Buffer.empty[ObjectData]
-    val current: mutable.ArrayDeque[(String, Int)] = collection.mutable.ArrayDeque[(String, Int)]()
-    def matches(stack: String*)(t: => Unit): Unit = if (current.map(_._1) == stack) { t }
-    def beforeParse(parser: String, index: Int): Unit = {
-      current.append((parser, index))
-      matches("CompilationUnit", "StatementBlock", "TmplStat", "BlockDef", "ObjDef") {
-        objectData.append(ObjectData(Snippet(), Snippet(), Snippet()))
-      }
-    }
-    def afterParse(parser: String, index: Int, success: Boolean): Unit = {
-      if (success) {
-        def saveSnippet(s: Snippet) = {
-          s.text = scriptCode.slice(current.last._2, index)
-          s.start = current.last._2
-          s.end = index
-        }
-        matches("CompilationUnit", "StatementBlock", "TmplStat", "BlockDef", "ObjDef", "`object`") {
-          saveSnippet(objectData.last.obj)
-        }
-        matches("CompilationUnit", "StatementBlock", "TmplStat", "BlockDef", "ObjDef", "Id") {
-          saveSnippet(objectData.last.name)
-        }
-        matches(
-          "CompilationUnit",
-          "StatementBlock",
-          "TmplStat",
-          "BlockDef",
-          "ObjDef",
-          "DefTmpl",
-          "AnonTmpl",
-          "NamedTmpl",
-          "Constrs",
-          "Constr",
-          "AnnotType",
-          "SimpleType",
-          "BasicType",
-          "TypeId",
-          "StableId",
-          "IdPath",
-          "Id"
-        ) {
-          if (objectData.last.parent.text == null) saveSnippet(objectData.last.parent)
-        }
-      } else {
-        matches("CompilationUnit", "StatementBlock", "TmplStat", "BlockDef", "ObjDef") {
-          objectData.remove(objectData.length - 1)
-        }
-      }
-
-      current.removeLast()
-    }
-  }
 
 }
