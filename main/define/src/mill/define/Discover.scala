@@ -105,60 +105,65 @@ object Discover {
       // otherwise the compiler likes to give us stuff in random orders, which
       // causes the code to be generated in random order resulting in code hashes
       // changing unnecessarily
-      val mapping: Seq[(TypeRepr, (Seq[scala.quoted.Expr[mainargs.MainData[?, ?]]], Seq[String]))] = for {
-        curCls <- seen.toSeq.sortBy(_.typeSymbol.fullName)
-      } yield {
-        val methods = filterDefs(curCls.typeSymbol.methodMembers)
-        val declMethods = filterDefs(curCls.typeSymbol.declaredMethods)
-        assertParamListCounts(
-          curCls,
-          methods,
-          (TypeRepr.of[mill.define.Command[?]], 1, "`Task.Command`"),
-          (TypeRepr.of[mill.define.Target[?]], 0, "Target")
-        )
+      val mapping: Seq[(TypeRepr, (Seq[scala.quoted.Expr[mainargs.MainData[?, ?]]], Seq[String]))] =
+        for {
+          curCls <- seen.toSeq.sortBy(_.typeSymbol.fullName)
+        } yield {
+          val methods = filterDefs(curCls.typeSymbol.methodMembers)
+          val declMethods = filterDefs(curCls.typeSymbol.declaredMethods)
+          assertParamListCounts(
+            curCls,
+            methods,
+            (TypeRepr.of[mill.define.Command[?]], 1, "`Task.Command`"),
+            (TypeRepr.of[mill.define.Target[?]], 0, "Target")
+          )
 
-        val names =
-          sortedMethods(curCls, sub = TypeRepr.of[mill.define.NamedTask[?]], declMethods).map(_.name)
-        val entryPoints = for {
-          m <- sortedMethods(curCls, sub = TypeRepr.of[mill.define.Command[?]], declMethods)
-        } yield curCls.asType match {
-          case '[t] =>
-            val expr =
-              try
-                createMainData[Any, t](
-                  m,
-                  m.annotations.find(_.tpe =:= TypeRepr.of[mainargs.main]).getOrElse('{
-                    new mainargs.main()
-                  }.asTerm),
-                  m.paramSymss
-                ).asExprOf[mainargs.MainData[?, ?]]
-              catch {
-                case NonFatal(e) =>
-                  val (before, Array(after, _*)) = e.getStackTrace().span(e =>
-                    !(e.getClassName() == "mill.define.Discover$Router$" && e.getMethodName() == "applyImpl")
-                  ): @unchecked
-                  val trace =
-                    (before :+ after).map(_.toString).mkString("trace:\n", "\n", "\n...")
-                  report.errorAndAbort(
-                    s"Error generating maindata for ${m.fullName}: ${e}\n$trace",
-                    m.pos.getOrElse(Position.ofMacroExpansion)
-                  )
-              }
-            expr
+          val names =
+            sortedMethods(
+              curCls,
+              sub = TypeRepr.of[mill.define.NamedTask[?]],
+              declMethods
+            ).map(_.name)
+          val entryPoints = for {
+            m <- sortedMethods(curCls, sub = TypeRepr.of[mill.define.Command[?]], declMethods)
+          } yield curCls.asType match {
+            case '[t] =>
+              val expr =
+                try
+                  createMainData[Any, t](
+                    m,
+                    m.annotations
+                      .find(_.tpe =:= TypeRepr.of[mainargs.main])
+                      .getOrElse('{ new mainargs.main() }.asTerm),
+                    m.paramSymss
+                  ).asExprOf[mainargs.MainData[?, ?]]
+                catch {
+                  case NonFatal(e) =>
+                    val (before, Array(after, _*)) = e.getStackTrace().span(e =>
+                      !(e.getClassName() == "mill.define.Discover$Router$" && e.getMethodName() == "applyImpl")
+                    ): @unchecked
+                    val trace =
+                      (before :+ after).map(_.toString).mkString("trace:\n", "\n", "\n...")
+                    report.errorAndAbort(
+                      s"Error generating maindata for ${m.fullName}: ${e}\n$trace",
+                      m.pos.getOrElse(Position.ofMacroExpansion)
+                    )
+                }
+              expr
+          }
+
+          (curCls.widen, (entryPoints, names))
         }
 
-        (curCls.widen, (entryPoints, names))
-      }
-
       val mappingExpr = mapping.collect {
-        case (cls, (entryPoints, names)) if entryPoints.nonEmpty || names.nonEmpty=>
+        case (cls, (entryPoints, names)) if entryPoints.nonEmpty || names.nonEmpty =>
           // by wrapping the `overridesRoutes` in a lambda function we kind of work around
           // the problem of generating a *huge* macro method body that finally exceeds the
           // JVM's maximum allowed method size
           '{
-            def func() = new ClassInfo(${ Expr.ofList(entryPoints.toList) }, ${ Expr(names) } )
+            def func() = new ClassInfo(${ Expr.ofList(entryPoints.toList) }, ${ Expr(names) })
 
-            (${Ref(defn.Predef_classOf).appliedToType(cls).asExprOf[Class[?]]}, func())
+            (${ Ref(defn.Predef_classOf).appliedToType(cls).asExprOf[Class[?]] }, func())
           }
       }
 
