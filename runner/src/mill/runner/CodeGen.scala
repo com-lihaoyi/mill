@@ -194,7 +194,7 @@ object CodeGen {
         newScriptCode = objectData.parent.applyTo(newScriptCode, newParent)
         newScriptCode = objectData.name.applyTo(newScriptCode, wrapperObjectName)
         newScriptCode = objectData.obj.applyTo(newScriptCode, "abstract class")
-        newScriptCode = newScriptCode.replace("extends RootModule:", s"extends RootModule:\n  this: ${wrapperObjectName}.type =>")
+        newScriptCode = newScriptCode.replace("extends RootModule:", s"extends RootModule:\n  this: $wrapperObjectName.type =>")
 
         s"""$pkgLine
            |$miscInfo
