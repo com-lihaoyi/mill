@@ -708,8 +708,7 @@ object ZincWorkerImpl {
     import sbt.util.InterfaceUtil
 
     private val userCodeStartMarker = "//SOURCECODE_ORIGINAL_CODE_START_MARKER"
-    private val splicedCodeStartMarker = "//MILL_SPLICED_CODE_START_MARKER"
-    private val splicedCodeEndMarker = "//MILL_SPLICED_CODE_END_MARKER"
+
 
     /** Transforms positions of problems if coming from a build file. */
     private def lookup(buildSources: Map[String, xsbti.Position => xsbti.Position])(
@@ -754,29 +753,14 @@ object ZincWorkerImpl {
         adjustedFile: String
     ): xsbti.Position => xsbti.Position = {
       val markerLine = lines.indexWhere(_.startsWith(userCodeStartMarker))
-      val splicedMarkerStartLine = lines.indexWhere(_.startsWith(splicedCodeStartMarker))
-      val splicedMarkerLine = lines.indexWhere(_.startsWith(splicedCodeEndMarker))
-      val existsSplicedMarker = splicedMarkerStartLine >= 0 && splicedMarkerLine >= 0
-      val splicedMarkerLineDiff = markerLine + (splicedMarkerLine - splicedMarkerStartLine + 1)
 
       val topWrapperLen = lines.take(markerLine + 1).map(_.length).sum
-      val (splicedMarkerStartLen, splicedMarkerLen) =
-        if existsSplicedMarker then
-          lines.take(splicedMarkerStartLine + 1).map(_.length).sum
-            -> lines.take(splicedMarkerLine + 1).map(_.length).sum
-        else (-1, -1)
-      val splicedMarkerDiff =
-        if existsSplicedMarker then topWrapperLen + (splicedMarkerStartLen - splicedMarkerLen + 1)
-        else -1
 
       val originPath = Some(adjustedFile)
       val originFile = Some(java.nio.file.Paths.get(adjustedFile).toFile)
 
       def userCode(offset: java.util.Optional[Integer]): Boolean =
         intValue(offset, -1) > topWrapperLen
-
-      def postSplice(offset: Int): Boolean =
-        existsSplicedMarker && offset > splicedMarkerLen
 
       def inner(pos0: xsbti.Position): xsbti.Position = {
         if userCode(pos0.startOffset()) || userCode(pos0.offset()) then {
@@ -791,11 +775,7 @@ object ZincWorkerImpl {
             )
               .map(intValue(_, 1) - 1)
 
-          val (baseLine, baseOffset) =
-            if postSplice(startOffset) || postSplice(offset) then
-              (splicedMarkerLineDiff, splicedMarkerDiff)
-            else
-              (markerLine, topWrapperLen)
+          val (baseLine, baseOffset) = (markerLine, topWrapperLen)
 
           InterfaceUtil.position(
             line0 = Some(line - baseLine),

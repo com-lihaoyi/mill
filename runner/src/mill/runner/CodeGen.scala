@@ -188,9 +188,7 @@ object CodeGen {
           case Some((leading, finalStat)) =>
             val fenced = Seq(
               "",
-              "//MILL_SPLICED_CODE_START_MARKER",
-
-              "//MILL_SPLICED_CODE_END_MARKER", {
+              {
                 val statLines = finalStat.text.linesWithSeparators.toSeq
                 if statLines.sizeIs > 1 then
                   statLines.tail.mkString
