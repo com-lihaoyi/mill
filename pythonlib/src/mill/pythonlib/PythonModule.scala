@@ -197,7 +197,6 @@ trait PythonModule extends PipModule with TaskModule { outer =>
       // and shown to any connected Mill client even if the current command has completed
       stdout = os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stdout),
       stderr = os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stderr),
-      useCpPassingJar = false,
       javaHome = mill.scalalib.ZincWorkerModule.javaHome().map(_.path)
     )
     ()
