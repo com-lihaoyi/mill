@@ -172,7 +172,6 @@ object Jvm extends CoursierSupport {
     process
   }
 
-
   /**
    * Runs a JVM subprocess with the given configuration and returns a
    * [[os.CommandResult]] with it's aggregated output and error streams
@@ -208,7 +207,6 @@ object Jvm extends CoursierSupport {
       )
   }
 
-
   /**
    * Runs a JVM subprocess with the given configuration and returns a
    * [[os.CommandResult]] with it's aggregated output and error streams
@@ -236,7 +234,6 @@ object Jvm extends CoursierSupport {
       None
     )
   }
-
 
   /**
    * Runs a JVM subprocess with the given configuration and returns a
@@ -279,7 +276,6 @@ object Jvm extends CoursierSupport {
 
   def defaultBackgroundOutputs(outputDir: os.Path): Option[(ProcessOutput, ProcessOutput)] =
     Some((outputDir / "stdout.log", outputDir / "stderr.log"))
-
 
   /**
    * Runs a JVM subprocess with the given configuration and streams
@@ -384,7 +380,6 @@ object Jvm extends CoursierSupport {
       false
     )
 
-
   /**
    * Runs a JVM subprocess with the given configuration and streams
    * it's stdout and stderr to the console.
@@ -449,7 +444,6 @@ object Jvm extends CoursierSupport {
       runSubprocess(args, envArgs, workingDir)
   }
 
-
   // bincompat shim
   @deprecated("Use spawn or call+ProcessUtil.toResult", "Mill 0.12.7")
   def runSubprocessWithBackgroundOutputs(
@@ -487,7 +481,6 @@ object Jvm extends CoursierSupport {
     runSubprocessWithResult(commandArgs, envArgs, workingDir).getOrThrow
     ()
   }
-
 
   /**
    * Runs a generic subprocess and waits for it to terminate.
