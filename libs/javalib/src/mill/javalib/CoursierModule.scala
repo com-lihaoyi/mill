@@ -4,7 +4,7 @@ import coursier.cache.FileCache
 import coursier.core.Resolution
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
-import coursier.{Dependency, Repository, Resolve}
+import coursier.{Dependency, Fetch, Repository, Resolve}
 import mill.api.Task
 import mill.api.PathRef
 import mill.api.Result
@@ -292,29 +292,44 @@ object CoursierModule {
     }
 
     /**
+     * Raw artifact & project information results for the passed dependencies
+     */
+    def fetch[T: CoursierModule.Resolvable](
+        deps: IterableOnce[T],
+        sources: Boolean = false
+    )(implicit ctx: mill.api.TaskCtx): Fetch.Result = {
+      val deps0 = deps
+        .iterator
+        .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
+        .toSeq
+      Jvm.fetchArtifacts(
+        repositories,
+        deps0.map(_.dep),
+        checkGradleModules = checkGradleModules,
+        sources = sources,
+        ctx = Some(ctx)
+      ).get
+    }
+
+    /**
      * Raw artifact results for the passed dependencies
      */
     def artifacts[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean = false
     )(implicit ctx: mill.api.TaskCtx): coursier.Artifacts.Result = {
-      val deps0 = deps
-        .iterator
-        .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
-        .toSeq
-      Jvm.getArtifacts(
-        repositories,
-        deps0.map(_.dep),
-        sources = sources,
-        ctx = Some(ctx),
-        checkGradleModules = checkGradleModules
-      ).get
+      val fetched = fetch(deps, sources)
+      val artifacts = fetched.detailedArtifacts0.map { case (dep, pub, artifact, file) =>
+        (dep, pub, artifact, Some(file))
+      }
+      coursier.Artifacts.Result(artifacts, fetched.fullExtraArtifacts)
     }
   }
 
   sealed trait Resolvable[T] {
     def bind(t: T, bind: Dep => BoundDep): BoundDep
   }
+
   implicit case object ResolvableDep extends Resolvable[Dep] {
     def bind(t: Dep, bind: Dep => BoundDep): BoundDep = bind(t)
   }
