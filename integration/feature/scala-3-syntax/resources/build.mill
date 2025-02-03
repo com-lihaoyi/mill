@@ -5,24 +5,27 @@ import $packages._
 import $file.foo.Box
 import $file.foo.{given Box[Int]}
 
+
+given Cross.ToSegments[DayValue](d => List(d.toString))
+
+given mainargs.TokensReader.Simple[DayValue] with
+  def shortName = "day"
+
+  def read(strs: Seq[String]) =
+    try
+      Right(DayValue.valueOf(strs.head))
+    catch
+      case _: Exception => Left("not a day")
+
+enum DayValue:
+  case Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday
+
 object `package` extends RootModule:
 
   def someTopLevelCommand(): Command[Unit] = Task.Command:
     println(s"Hello, world! ${summon[Box[Int]]} ${build.sub.subTask()}")
   end someTopLevelCommand
 
-  given Cross.ToSegments[DayValue](d => List(d.toString))
-
-  given mainargs.TokensReader.Simple[DayValue] with
-    def shortName = "day"
-    def read(strs: Seq[String]) =
-      try
-        Right(DayValue.valueOf(strs.head))
-      catch
-        case _: Exception => Left("not a day")
-
-  enum DayValue:
-    case Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday
 
   object day extends Cross[DayModule](DayValue.values.toSeq)
 

@@ -185,8 +185,8 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
         override val in = in0
       }
       val _ = parser.defAnnotsMods(Tokens.modifierTokens)
-      assert(in0.token == Tokens.OBJECT, s"Expected `object`, got ${in0.token}")
-      in0.offset
+      if (in0.token == Tokens.OBJECT) in0.offset
+      else -1
     }
 
     /** read the statements of a template body */
@@ -227,10 +227,13 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
       val untpd.ModuleDef(name, impl) = mdef
       val obj0 = {
         val start0 = MillParsers.skipModsObjectOffset(mdef.sourcePos.start)
-        val end0 = start0 + "object".length()
-        val text = slice(start0, end0)
-        assert(text == "object", s"expected `object`, actually was `$text`")
-        Snippet(text, start0, end0)
+        if (start0 == -1) None
+        else {
+          val end0 = start0 + "object".length()
+          val text = slice(start0, end0)
+          assert(text == "object", s"expected `object`, actually was `$text`")
+          Some(Snippet(text, start0, end0))
+        }
       }
       val (name0, expanded) = {
         val start0 = mdef.sourcePos.point
@@ -296,8 +299,8 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
           stat <- stat0
         } yield (leading, stat)
       }
-      val obj = ObjectDataImpl(obj0, name0, parent0, endMarker0, finalStat0)
-      Some(obj)
+
+      obj0.map(ObjectDataImpl(_, name0, parent0, endMarker0, finalStat0))
     }
 
     def topLevel(trees: List[untpd.Tree]): Unit = trees match {
