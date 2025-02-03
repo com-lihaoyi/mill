@@ -52,15 +52,17 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
           .map(artifact => s"${artifact.group}:${artifact.id}:${artifact.version}") ++
           Lib.resolveDependenciesMetadataSafe(
             repositories = build.dist.repositoriesTask(),
-            Seq(BoundDep(build.dist.coursierDependency, force = false)),
-            build.dist.transitiveIvyDeps(),
+            Seq(
+              BoundDep(
+                build.dist.coursierDependency,
+                force = false
+              )
+            ) ++ build.dist.transitiveIvyDeps(),
             Some(build.dist.mapDependencies()),
             build.dist.resolutionCustomizer(),
             Some(Task.ctx()),
             build.dist.coursierCacheCustomizer()
-          )._2.minDependencies.toSeq
-            // change to this when bumping Mill
-            //   ).getOrThrow.minDependencies.toSeq
+          ).getOrThrow.minDependencies.toSeq
             .map(d => s"${d.module.organization.value}:${d.module.name.value}:${d.version}")
       )
         //      Task.traverse(dev.moduleDeps)(_.publishSelfDependency)()

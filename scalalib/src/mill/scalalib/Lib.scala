@@ -53,51 +53,6 @@ object Lib {
     )
   }
 
-  // bin-compat shim
-  def resolveDependenciesMetadataSafe(
-      repositories: Seq[Repository],
-      deps: IterableOnce[BoundDep],
-      mapDependencies: Option[Dependency => Dependency],
-      customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
-      ctx: Option[Ctx.Log],
-      coursierCacheCustomizer: Option[
-        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
-      ],
-      resolutionParams: ResolutionParams
-  ): Result[Resolution] =
-    resolveDependenciesMetadataSafe(
-      repositories,
-      deps,
-      mapDependencies,
-      customizer,
-      ctx,
-      coursierCacheCustomizer,
-      resolutionParams,
-      Nil
-    )
-
-  // bin-compat shim
-  def resolveDependenciesMetadataSafe(
-      repositories: Seq[Repository],
-      deps: IterableOnce[BoundDep],
-      mapDependencies: Option[Dependency => Dependency],
-      customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
-      ctx: Option[Ctx.Log],
-      coursierCacheCustomizer: Option[
-        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
-      ]
-  ): Result[Resolution] =
-    resolveDependenciesMetadataSafe(
-      repositories,
-      deps,
-      mapDependencies,
-      customizer,
-      ctx,
-      coursierCacheCustomizer,
-      ResolutionParams(),
-      Nil
-    )
-
   /**
    * Resolve dependencies using Coursier.
    *
