@@ -6,7 +6,14 @@ import com.diffplug.spotless.FormatterStep
 import com.diffplug.spotless.kotlin.{KtfmtStep, KtLintStep}
 import com.diffplug.spotless.kotlin.KtfmtStep.KtfmtFormattingOptions
 import com.diffplug.spotless.scala.ScalaFmtStep
-import com.diffplug.spotless.java.{GoogleJavaFormatStep, PalantirJavaFormatStep, ImportOrderStep, RemoveUnusedImportsStep, CleanthatJavaStep, FormatAnnotationsStep}
+import com.diffplug.spotless.java.{
+  GoogleJavaFormatStep,
+  PalantirJavaFormatStep,
+  ImportOrderStep,
+  RemoveUnusedImportsStep,
+  CleanthatJavaStep,
+  FormatAnnotationsStep
+}
 import com.diffplug.spotless.generic.LicenseHeaderStep
 import com.diffplug.spotless.Provisioner
 import os.Path
@@ -28,17 +35,16 @@ trait JVMLangConfig {
   }
 }
 
-
 sealed trait JavaFormatter
 
 case class GoogleJavaFormat private (
-                                      version: String = "1.25.2",
-                                      aosp: Boolean = false,
-                                      reflowLongStrings: Boolean = false,
-                                      formatJavadoc: Boolean = true,
-                                      reorderImports: Boolean = true,
-                                      groupArtifact: String = "com.google.googlejavaformat:google-java-format"
-                                    ) extends JavaFormatter {
+    version: String = "1.25.2",
+    aosp: Boolean = false,
+    reflowLongStrings: Boolean = false,
+    formatJavadoc: Boolean = true,
+    reorderImports: Boolean = true,
+    groupArtifact: String = "com.google.googlejavaformat:google-java-format"
+) extends JavaFormatter {
   def withVersion(version: String): GoogleJavaFormat =
     copy(version = version)
 
@@ -62,10 +68,10 @@ object GoogleJavaFormat {
 }
 
 case class PalantirJavaFormat private (
-                                        version: String = "2.50.0",
-                                        style: String = "PALANTIR",
-                                        formatJavadoc: Boolean = false,
-                                        ) extends JavaFormatter {
+    version: String = "2.50.0",
+    style: String = "PALANTIR",
+    formatJavadoc: Boolean = false
+) extends JavaFormatter {
   def withVersion(version: String): PalantirJavaFormat =
     copy(version = version)
 
@@ -79,17 +85,17 @@ object PalantirJavaFormat {
   def apply(): PalantirJavaFormat = new PalantirJavaFormat()
 }
 
-
-case class JavaConfig (target: String = ".java",
-                       licenseHeader: Option[String] = None,
-                       licenseHeaderFile: Option[String] = None,
-                       importOrder: Option[Seq[String]] = None,
-                      importOrderFile: Option[String] = None,
-                      removeUnusedImports: Boolean = false,
-                      cleanthat: Boolean = false,
-                      formatter: Option[JavaFormatter] = None,
-                      formatAnnotations: Boolean = false
-                    ) extends JVMLangConfig {
+case class JavaConfig(
+    target: String = ".java",
+    licenseHeader: Option[String] = None,
+    licenseHeaderFile: Option[String] = None,
+    importOrder: Option[Seq[String]] = None,
+    importOrderFile: Option[String] = None,
+    removeUnusedImports: Boolean = false,
+    cleanthat: Boolean = false,
+    formatter: Option[JavaFormatter] = None,
+    formatAnnotations: Boolean = false
+) extends JVMLangConfig {
   require(
     !(importOrder.isDefined && importOrderFile.isDefined),
     "Please specify only importOrder or importOrderFile but not both"
@@ -124,7 +130,6 @@ case class JavaConfig (target: String = ".java",
   def withJavaFormat(formatter: JavaFormatter): JavaConfig =
     copy(formatter = Some(formatter))
 
-
   def getSteps(path: os.Path, provisioner: Provisioner): List[FormatterStep] = {
     val steps: List[FormatterStep] = new ArrayList[FormatterStep]()
 
@@ -140,7 +145,10 @@ case class JavaConfig (target: String = ".java",
     }
 
     if (removeUnusedImports) {
-      steps.add(RemoveUnusedImportsStep.create(RemoveUnusedImportsStep.defaultFormatter(), provisioner))
+      steps.add(RemoveUnusedImportsStep.create(
+        RemoveUnusedImportsStep.defaultFormatter(),
+        provisioner
+      ))
     }
 
     if (cleanthat) {
@@ -176,12 +184,13 @@ case class JavaConfig (target: String = ".java",
 }
 
 case class ScalaConfig(
-                        target: String = ".scala",
-                        licenseHeader: Option[String] = None,
-                        licenseHeaderFile: Option[String] = None,
-                        scalafmtLibVersion: String = "3.8.1",
-                        scalafmtConfigFile: Option[String] = None,
-                        scalafmtScalaMajorVersion: String = "2.13") extends JVMLangConfig {
+    target: String = ".scala",
+    licenseHeader: Option[String] = None,
+    licenseHeaderFile: Option[String] = None,
+    scalafmtLibVersion: String = "3.8.1",
+    scalafmtConfigFile: Option[String] = None,
+    scalafmtScalaMajorVersion: String = "2.13"
+) extends JVMLangConfig {
   require(
     !(licenseHeader.isDefined && licenseHeaderFile.isDefined),
     "Please specify only licenseHeader or licenseHeaderFile but not both"
@@ -191,7 +200,12 @@ case class ScalaConfig(
     val steps = new ArrayList[FormatterStep]()
 
     scalafmtConfigFile.map(file => {
-      val scalafmtStep = ScalaFmtStep.create(scalafmtLibVersion, scalafmtScalaMajorVersion, provisioner, new File(path.toIO, file))
+      val scalafmtStep = ScalaFmtStep.create(
+        scalafmtLibVersion,
+        scalafmtScalaMajorVersion,
+        provisioner,
+        new File(path.toIO, file)
+      )
       steps.add(scalafmtStep)
     })
 
@@ -201,15 +215,15 @@ case class ScalaConfig(
   }
 }
 
-
 case class KotlinConfig(
-                         target: String = ".kt",
-                         licenseHeader: Option[String] = None,
-                         licenseHeaderFile: Option[String] = None,
-                         override val licenseHeaderDelimiter: String = "(package |@file|import )",
-                         ktfmtVersion: String = "0.53",
-                         ktfmtOptions: Option[Map[String, Any]] = None,
-                         klintVersion: String = "1.5.0") extends JVMLangConfig {
+    target: String = ".kt",
+    licenseHeader: Option[String] = None,
+    licenseHeaderFile: Option[String] = None,
+    override val licenseHeaderDelimiter: String = "(package |@file|import )",
+    ktfmtVersion: String = "0.53",
+    ktfmtOptions: Option[Map[String, Any]] = None,
+    klintVersion: String = "1.5.0"
+) extends JVMLangConfig {
   require(
     !(licenseHeader.isDefined && licenseHeaderFile.isDefined),
     "Please specify only licenseHeader or licenseHeaderFile but not both"
@@ -224,7 +238,6 @@ case class KotlinConfig(
   def withKtlintVersion(version: String): KotlinConfig =
     copy(klintVersion = version)
 
-
   def getSteps(path: os.Path, provisioner: Provisioner): List[FormatterStep] = {
     val steps = new ArrayList[FormatterStep]()
 
@@ -233,8 +246,12 @@ case class KotlinConfig(
         ktfmtOptions.get("maxWidth") match { case Some(v: Int) => v; case _ => null },
         ktfmtOptions.get("blockIndent") match { case Some(v: Int) => v; case _ => null },
         ktfmtOptions.get("continuationIndent") match { case Some(v: Int) => v; case _ => null },
-        ktfmtOptions.get("removeUnusedImports") match { case Some(v: Boolean) => v; case _ => null },
-        ktfmtOptions.get("manageTrailingCommas") match { case Some(v: Boolean) => v; case _ => null }
+        ktfmtOptions.get("removeUnusedImports") match {
+          case Some(v: Boolean) => v; case _ => null
+        },
+        ktfmtOptions.get("manageTrailingCommas") match {
+          case Some(v: Boolean) => v; case _ => null
+        }
       )
       val step = KtfmtStep.create(ktfmtVersion, provisioner, null, options)
       steps.add(step)

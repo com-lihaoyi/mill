@@ -42,9 +42,9 @@ trait SpotlessModule extends CoursierModule {
    *                - when empty, all [[sources]] are processed
    */
   def spotless(
-                      check: mainargs.Flag = mainargs.Flag(value = false),
-                      sources: mainargs.Leftover[String]
-                    ): Command[Unit] = Task.Command {
+      check: mainargs.Flag = mainargs.Flag(value = false),
+      sources: mainargs.Leftover[String]
+  ): Command[Unit] = Task.Command {
 
     val settings = jvmLangConfig
 
@@ -52,12 +52,13 @@ trait SpotlessModule extends CoursierModule {
       PathRef(millSourcePath).path,
       new Provisioner {
         def provisionWithTransitives(
-                                withTransitives: Boolean,
-                                mavenCoordinates: java.util.Collection[String]
-                              ): java.util.Set[java.io.File] = {
+            withTransitives: Boolean,
+            mavenCoordinates: java.util.Collection[String]
+        ): java.util.Set[java.io.File] = {
           SpotlessModule.provisionWithTransitives(withTransitives, jvmLangLibClasspath())
         }
-      })
+      }
+    )
 
     val _sources =
       if (sources.value.isEmpty) Seq(PathRef(millSourcePath))
@@ -77,7 +78,12 @@ trait SpotlessModule extends CoursierModule {
 
   case class FormatViolation(path: Path, diff: String)
 
-  def process(isCheckMode: Boolean, formatter: Formatter, sourceDir: File, extension: String): Unit = {
+  def process(
+      isCheckMode: Boolean,
+      formatter: Formatter,
+      sourceDir: File,
+      extension: String
+  ): Unit = {
     val paths: Set[java.nio.file.Path] = getSourceFiles(sourceDir, extension)
 
     if (isCheckMode) {
@@ -112,7 +118,11 @@ trait SpotlessModule extends CoursierModule {
       .collect(Collectors.toSet())
   }
 
-  private def checkFile(formatter: Formatter, path: Path, violations: mutable.ListBuffer[FormatViolation]): Unit = {
+  private def checkFile(
+      formatter: Formatter,
+      path: Path,
+      violations: mutable.ListBuffer[FormatViolation]
+  ): Unit = {
     try {
       val file = path.toFile()
       val content = new String(Files.readAllBytes(path))
@@ -168,6 +178,7 @@ trait SpotlessModule extends CoursierModule {
 }
 
 object SpotlessModule {
+
   /**
    * Resolves classpath requests for all 3rd-party dependencies used by the Spotless library.
    */
@@ -179,6 +190,7 @@ object SpotlessModule {
 }
 
 trait JavaSpotlessModule extends SpotlessModule {
+
   /**
    * Classpath for running
    * - Google Java Format
@@ -192,12 +204,14 @@ trait JavaSpotlessModule extends SpotlessModule {
       )
     )
   }
+
   /**
    * Google Java Format version. Defaults to `1.25.2`.
    */
   def googleJavaFormatVersion: T[String] = Task {
     "1.25.2"
   }
+
   /**
    * Google Java Format version. Defaults to `2.50.0`.
    */
@@ -207,6 +221,7 @@ trait JavaSpotlessModule extends SpotlessModule {
 }
 
 trait KotlinSpotlessModule extends SpotlessModule {
+
   /**
    * Classpath for running
    * - Ktfmt
@@ -220,12 +235,14 @@ trait KotlinSpotlessModule extends SpotlessModule {
       )
     )
   }
+
   /**
    * Defaults to `0.53`.
    */
   def ktfmtVersion: T[String] = Task {
     "0.53"
   }
+
   /**
    * Defaults to `1.5.0`.
    */
@@ -235,6 +252,7 @@ trait KotlinSpotlessModule extends SpotlessModule {
 }
 
 trait ScalaSpotlessModule extends SpotlessModule {
+
   /**
    * Classpath for running Scala Format.
    */
@@ -243,6 +261,7 @@ trait ScalaSpotlessModule extends SpotlessModule {
       Agg(ivy"org.scalameta:scalafmt-core_2.13:${scalafmtVersion()}")
     )
   }
+
   /**
    * Scala Format version. Defaults to `3.8.1`.
    */

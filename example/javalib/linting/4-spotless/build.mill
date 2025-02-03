@@ -10,7 +10,6 @@ import mill.javalib.spotless.{JavaSpotlessModule, JavaConfig, GoogleJavaFormat, 
 import mill.javalib.spotless.{KotlinSpotlessModule, KotlinConfig}
 import mill.javalib.spotless.{ScalaSpotlessModule, ScalaConfig}
 
-
 // See https://github.com/diffplug/spotless/tree/main/plugin-gradle#java
 object `package` extends RootModule with JavaModule with JavaSpotlessModule {
   val googleFormatter = GoogleJavaFormat()
@@ -29,7 +28,9 @@ object `package` extends RootModule with JavaModule with JavaSpotlessModule {
   def jvmLangConfig = new JavaConfig()
     .withDefaultImportOrder()
     .withJavaFormat(googleFormatter)
-    .withJavaFormat(palantirFormatter) // this replaces `googleFormatter` as only 1 JavaFormatter can be active
+    .withJavaFormat(
+      palantirFormatter
+    ) // this replaces `googleFormatter` as only 1 JavaFormatter can be active
     .withLicenseHeader("/* (C) 2025. Licensed under Apache-2.0. */\n")
 }
 
@@ -44,7 +45,7 @@ object `package` extends RootModule with ScalaSpotlessModule {
     scalafmtConfigFile = Some("scalafmt.conf")
   )
 }
-*/
+ */
 
 /*
 // See https://github.com/diffplug/spotless/tree/main/plugin-gradle#kotlin
@@ -61,16 +62,13 @@ object `package` extends RootModule with KotlinSpotlessModule {
     ktfmtVersion = "0.53",
     klintVersion = "1.5.0").withKtfmtOptions(ktfmtOptions)
 }
-*/
-
+ */
 
 // To use this plugin in a Java/Kotlin/Scala module,
 //
 // 1. Extend `mill.javalib.spotless.SpotlessModule` or use any of `mill.javalib.spotless.{Java|Kotlin|Scala}SpotlessModule`
 // 2. Define your configuration settings like in three examples above.
 // 3. Run the `spotless` command.
-
-
 
 /** See Also: src/java/Main.java */
 
@@ -162,7 +160,6 @@ object `package` extends RootModule with KotlinSpotlessModule {
 > ./mill spotless --check  # check should succeed now
    Verification completed. No format violations found!
 */
-
 
 // You can also use Spotless globally on all `JavaModule`s in your build by running
 // `mill.javalib.spotless.JavaSpotlessModule/`.
