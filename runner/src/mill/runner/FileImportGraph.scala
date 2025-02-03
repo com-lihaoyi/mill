@@ -274,11 +274,10 @@ object FileImportGraph {
   }
 
   def nextPathFor(s: os.Path, rest: Seq[String]): os.Path = {
-    val restSegments = rest
-      .map {
-        case "^" => os.up
-        case s => os.rel / s
-      }
+    val restSegments = rest.map {
+      case "^" => os.up
+      case s => os.rel / s
+    }
 
     s / os.up / restSegments / os.up / s"${rest.last}.sc"
   }
