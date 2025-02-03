@@ -270,7 +270,10 @@ object PythonModule {
       val processResult = os.call(
         cmd = Seq(Option(command).getOrElse(command0)) ++ options ++ args.value,
         env = Option(env).getOrElse(env0),
-        cwd = Option(workingDir).getOrElse(workingDir0)
+        cwd = Option(workingDir).getOrElse(workingDir0),
+        stdin = os.Inherit,
+        stdout = os.Inherit,
+        stderr = os.Inherit
       )
       mill.util.ProcessUtil.toResult(processResult).getOrThrow
     }

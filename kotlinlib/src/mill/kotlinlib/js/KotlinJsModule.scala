@@ -164,7 +164,10 @@ trait KotlinJsModule extends KotlinModule { outer =>
         val processResult = os.call(
           cmd = Seq("node") ++ args.value ++ Seq(binaryPath),
           env = envArgs,
-          cwd = workingDir
+          cwd = workingDir,
+          stdin = os.Inherit,
+          stdout = os.Inherit,
+          stderr = os.Inherit
         )
         mill.util.ProcessUtil.toResult(processResult)
       case Some(x) =>
@@ -476,7 +479,10 @@ trait KotlinJsModule extends KotlinModule { outer =>
       val processResult = os.call(
         cmd = Seq("npm", "install", "mocha@10.2.0", "source-map-support@0.5.21"),
         env = Task.env,
-        cwd = Task.dest
+        cwd = Task.dest,
+        stdin = os.Inherit,
+        stdout = os.Inherit,
+        stderr = os.Inherit
       )
       mill.util.ProcessUtil.toResult(processResult).getOrThrow
       PathRef(Task.dest)

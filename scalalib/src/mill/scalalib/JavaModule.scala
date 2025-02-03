@@ -1166,7 +1166,10 @@ trait JavaModule
       val processResult = os.call(
         cmd = Seq(Jvm.jdkTool("javadoc")) ++ cmdArgs,
         env = Map(),
-        cwd = Task.dest
+        cwd = Task.dest,
+        stdin = os.Inherit,
+        stdout = os.Inherit,
+        stderr = os.Inherit
       )
       mill.util.ProcessUtil.toResult(processResult).getOrThrow
     }

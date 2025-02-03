@@ -58,7 +58,7 @@ trait JmhModule extends JavaModule {
       val (sourcesDir, _) = generateBenchmarkSources()
       val sources = os.walk(sourcesDir).filter(os.isFile)
 
-      val processResult = os.proc(
+      os.proc(
         Jvm.jdkTool("javac"),
         sources.map(_.toString),
         "-cp",
@@ -68,7 +68,6 @@ trait JmhModule extends JavaModule {
         "-d",
         dest
       ).call(dest)
-      mill.util.ProcessUtil.toResult(processResult).getOrThrow
       PathRef(dest)
     }
 

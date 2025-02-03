@@ -53,7 +53,10 @@ trait AssemblyTestUtils {
     val processResult = os.call(
       cmd = Seq(Jvm.javaExe, "-jar", file.toString(), "--text", "tutu"),
       env = Map.empty[String, String],
-      cwd = wd
+      cwd = wd,
+      stdin = os.Inherit,
+      stdout = os.Inherit,
+      stderr = os.Inherit
     )
     mill.util.ProcessUtil.toResult(processResult).getOrThrow
 
@@ -61,7 +64,10 @@ trait AssemblyTestUtils {
       val processResult = os.call(
         cmd = Seq(file.toString(), "--text", "tutu"),
         env = Map.empty[String, String],
-        cwd = wd
+        cwd = wd,
+        stdin = os.Inherit,
+        stdout = os.Inherit,
+        stderr = os.Inherit
       )
       mill.util.ProcessUtil.toResult(processResult).getOrThrow
     }

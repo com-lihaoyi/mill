@@ -284,7 +284,10 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     val processResult = os.call(
       cmd = Vector(nativeLink().toString) ++ args().value,
       env = forkEnv(),
-      cwd = forkWorkingDir()
+      cwd = forkWorkingDir(),
+      stdin = os.Inherit,
+      stdout = os.Inherit,
+      stderr = os.Inherit
     )
     mill.util.ProcessUtil.toResult(processResult).getOrThrow
   }
