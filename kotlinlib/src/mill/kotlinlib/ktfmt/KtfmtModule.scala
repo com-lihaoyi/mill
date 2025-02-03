@@ -124,11 +124,8 @@ object KtfmtModule extends ExternalModule with KtfmtBaseModule with TaskModule {
       mainClass = "com.facebook.ktfmt.cli.Main",
       classPath = classPath.map(_.path).toVector,
       mainArgs = args.result(),
-      cwd = millSourcePath, // allow passing relative paths for sources like src/a/b
-      stdout = os.Inherit,
-      stderr = ctx.dest / "stderr.log"
+      cwd = millSourcePath // allow passing relative paths for sources like src/a/b
     )
-    mill.util.ProcessUtil.toResult(processResult).getOrThrow
     val exitCode = processResult.exitCode
 
     if (exitCode == 0) {} // do nothing

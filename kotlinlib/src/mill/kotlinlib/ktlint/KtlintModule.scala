@@ -126,9 +126,7 @@ object KtlintModule extends ExternalModule with KtlintModule with TaskModule {
       mainClass = "com.pinterest.ktlint.Main",
       classPath = classPath.map(_.path).toVector,
       mainArgs = args.result(),
-      cwd = millSourcePath,
-      stdout = os.Inherit,
-      stderr = ctx.dest / "stderr.log"
+      cwd = millSourcePath
     )
     mill.util.ProcessUtil.toResult(processResult).getOrThrow
     val exitCode = processResult.exitCode

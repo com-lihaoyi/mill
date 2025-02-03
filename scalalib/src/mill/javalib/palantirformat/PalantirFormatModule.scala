@@ -143,7 +143,6 @@ object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule
           mainArgs = mainArgs,
           cwd = ctx.dest
         )
-        mill.util.ProcessUtil.toResult(processResult).getOrThrow
         val exitCode = processResult.exitCode
 
         if (check && exitCode != 0) {

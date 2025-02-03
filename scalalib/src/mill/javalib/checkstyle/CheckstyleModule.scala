@@ -41,7 +41,6 @@ trait CheckstyleModule extends JavaModule {
       mainArgs = args,
       cwd = millSourcePath // allow passing relative paths for sources like src/a/b
     )
-    mill.util.ProcessUtil.toResult(processResult).getOrThrow
     val exitCode = processResult.exitCode
 
     (output, exitCode)

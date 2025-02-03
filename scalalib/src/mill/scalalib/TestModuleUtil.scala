@@ -112,8 +112,7 @@ private[scalalib] object TestModuleUtil {
                 selectors.flatMap(s => Seq("--selectors", s)) ++
                 args.flatMap(s => Seq("--args", s)),
             javaHome = javaHome,
-            stdout = os.Pipe,
-            stderr = ctx.dest / "stderr.log"
+            stdout = os.Pipe
           )
           mill.util.ProcessUtil.toResult(processResult).getOrThrow
           processResult.out.lines().toSet
