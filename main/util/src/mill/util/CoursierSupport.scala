@@ -133,23 +133,35 @@ trait CoursierSupport {
    * or as a last resort, manually filter the file sequence returned by this function.
    */
   def resolveDependencies(
-                            repositories: Seq[Repository],
-                                 deps: IterableOnce[Dependency],
-                                 force: IterableOnce[Dependency],
-                                 sources: Boolean = false,
-                                 mapDependencies: Option[Dependency => Dependency] = None,
-                                 customizer: Option[Resolution => Resolution] = None,
-                                 ctx: Option[mill.api.Ctx.Log] = None,
-                                 coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
-                                 @deprecated(
-                                   "This parameter is now ignored, use exclusions instead or mark some dependencies as provided when you publish modules",
-                                   "Mill after 0.12.5"
-                                 )
-                                 deprecatedResolveFilter: os.Path => Boolean = _ => true,
-                                 artifactTypes: Option[Set[Type]] = None,
-                                 resolutionParams: ResolutionParams = ResolutionParams()): Result[Agg[PathRef]] ={
-    resolveDependenciesExtendInfo(repositories, deps, force, sources, mapDependencies, customizer, ctx, coursierCacheCustomizer,
-      deprecatedResolveFilter, artifactTypes, resolutionParams).map(_.map(_.path))
+      repositories: Seq[Repository],
+      deps: IterableOnce[Dependency],
+      force: IterableOnce[Dependency],
+      sources: Boolean = false,
+      mapDependencies: Option[Dependency => Dependency] = None,
+      customizer: Option[Resolution => Resolution] = None,
+      ctx: Option[mill.api.Ctx.Log] = None,
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
+      @deprecated(
+        "This parameter is now ignored, use exclusions instead or mark some dependencies as provided when you publish modules",
+        "Mill after 0.12.5"
+      )
+      deprecatedResolveFilter: os.Path => Boolean = _ => true,
+      artifactTypes: Option[Set[Type]] = None,
+      resolutionParams: ResolutionParams = ResolutionParams()
+  ): Result[Agg[PathRef]] = {
+    resolveDependenciesExtendInfo(
+      repositories,
+      deps,
+      force,
+      sources,
+      mapDependencies,
+      customizer,
+      ctx,
+      coursierCacheCustomizer,
+      deprecatedResolveFilter,
+      artifactTypes,
+      resolutionParams
+    ).map(_.map(_.path))
   }
 
   /**

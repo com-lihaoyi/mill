@@ -66,7 +66,7 @@ object CycloneDXModule {
 trait CycloneDXModule extends JavaModule {
   import CycloneDXModule.*
 
-  def sbomComponents: Task[Agg[Component]] = Task{
+  def sbomComponents: Task[Agg[Component]] = Task {
     resolvedRunIvyDepsDetails()().map(Component.fromDeps)
   }
 
@@ -117,7 +117,6 @@ trait CycloneDXModule extends JavaModule {
   }
 
   def uploadSBom(): Command[Unit] = Task.Command {
-    import requests.RequestBlob.*
 
     val bomString = upickle.default.write(sbom())
     println(bomString)
