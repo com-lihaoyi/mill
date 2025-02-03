@@ -171,7 +171,7 @@ object Discover {
           // import mill.api.JsonFormatters.*
           new Discover(
             Map[Class[_], Node](${ Varargs(mapping.map(_._1)) }*),
-            ${ Expr(mapping.iterator.flatMap(_._2).toList) }
+            ${ Expr(mapping.iterator.flatMap(_._2).distinct.toList.sorted) }
           )
         }
       // TODO: if needed for debugging, we can re-enable this
