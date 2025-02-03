@@ -142,7 +142,6 @@ object Discover {
               }
             expr
         }
-
         if names.nonEmpty || entryPoints.nonEmpty
       } yield {
         // by wrapping the `overridesRoutes` in a lambda function we kind of work around
