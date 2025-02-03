@@ -14,12 +14,12 @@ import scala.collection.mutable
  * the `Task.Command` methods we find. This mapping from `Class[_]` to `MainData`
  * can then be used later to look up the `MainData` for any module.
  */
-case class Discover(value: Map[Class[_], Discover.Node])
+class Discover(val classInfo: Map[Class[_], Discover.Node], val allNames: Seq[String])
 
 object Discover {
   class Node(
-      val names: Seq[String],
-      val entryPoints: Seq[mainargs.MainData[_, _]]
+      val entryPoints: Seq[mainargs.MainData[_, _]],
+      val declaredNames: Seq[String]
   )
 
   inline def apply[T]: Discover = ${ Router.applyImpl[T] }
@@ -100,10 +100,11 @@ object Discover {
       // otherwise the compiler likes to give us stuff in random orders, which
       // causes the code to be generated in random order resulting in code hashes
       // changing unnecessarily
-      val mapping: Seq[Expr[(Class[_], Node)]] = for {
+      val mapping: Seq[(Expr[(Class[_], Node)], Seq[String])] = for {
         discoveredModuleType <- seen.toSeq.sortBy(_.typeSymbol.fullName)
         curCls = discoveredModuleType
         methods = filterDefs(curCls.typeSymbol.methodMembers)
+        declMethods = filterDefs(curCls.typeSymbol.declaredMethods)
         _ = {
           assertParamListCounts(
             curCls,
@@ -142,6 +143,12 @@ object Discover {
               }
             expr
         }
+        declaredNames =
+          sortedMethods(
+            curCls,
+            sub = TypeRepr.of[mill.define.NamedTask[?]],
+            declMethods
+          ).map(_.name)
         if names.nonEmpty || entryPoints.nonEmpty
       } yield {
         // by wrapping the `overridesRoutes` in a lambda function we kind of work around
@@ -149,12 +156,12 @@ object Discover {
         // JVM's maximum allowed method size
         val overridesLambda = '{
           def triple() =
-            new Node(${ Expr(names) }, ${ Expr.ofList(entryPoints) })
+            new Node(${ Expr.ofList(entryPoints) }, ${ Expr(declaredNames) })
           triple()
         }
         val lhs =
           Ref(defn.Predef_classOf).appliedToType(discoveredModuleType.widen).asExprOf[Class[?]]
-        '{ $lhs -> $overridesLambda }
+        ('{ $lhs -> $overridesLambda }, names)
       }
 
       val expr: Expr[Discover] =
@@ -162,7 +169,10 @@ object Discover {
           // TODO: we can not import this here, so we have to import at the use site now, or redesign?
           // import mill.main.TokenReaders.*
           // import mill.api.JsonFormatters.*
-          new Discover(Map[Class[_], Node](${ Varargs(mapping) }*))
+          new Discover(
+            Map[Class[_], Node](${ Varargs(mapping.map(_._1)) }*),
+            ${ Expr(mapping.iterator.flatMap(_._2).toList) }
+          )
         }
       // TODO: if needed for debugging, we can re-enable this
       // report.warning(s"generated discovery for ${TypeRepr.of[T].show}:\n${expr.asTerm.show}", TypeRepr.of[T].typeSymbol.pos.getOrElse(Position.ofMacroExpansion))
