@@ -94,7 +94,6 @@ object CodeGen {
              |$scriptCode
              |}""".stripMargin
         } else {
-          pprint.log(pkg)
           generateBuildScript(
             projectRoot,
             enclosingClasspath,
@@ -139,8 +138,12 @@ object CodeGen {
   ) = {
     val segments = scriptFolderPath.relativeTo(projectRoot).segments
 
-    val exportSiblingScripts = siblingScripts.map(s => s"export $pkg.$s.*").mkString("\n")
-    val importSiblingScripts = siblingScripts.map(s => s"import $pkg.$s.*").mkString("\n")
+    val exportSiblingScripts =
+      siblingScripts.map(s => s"export $pkg.${backtickWrap(s)}.*").mkString("\n")
+
+    val importSiblingScripts = siblingScripts
+      .map(s => s"import $pkg.${backtickWrap(s)}.*").mkString("\n")
+
     val prelude =
       s"""import MillMiscInfo._
          |import _root_.mill.main.TokenReaders.given, _root_.mill.api.JsonFormatters.given
