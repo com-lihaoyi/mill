@@ -16,9 +16,7 @@ private class State(workspaceDir: os.Path, evaluators: Seq[Evaluator], debug: St
         modules.collect {
           case m: BspModule =>
             val uri = Utils.sanitizeUri(
-              rootModule.millSourcePath /
-                m.millOuterCtx.foreign.fold(List.empty[String])(_.parts) /
-                m.millModuleSegments.parts
+              rootModule.millSourcePath / m.millModuleSegments.parts
             )
 
             (new BuildTargetIdentifier(uri), (m, eval))

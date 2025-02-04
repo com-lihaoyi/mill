@@ -8,7 +8,7 @@ import mill._
 trait BspModule extends Module {
   import BspModule._
 
-  def bspDisplayName0: String = ModuleUtils.moduleDisplayName(this)
+  def bspDisplayName0: String = this.millModuleSegments.render
 
   def bspDisplayName: String = bspDisplayName0 match {
     case "" => "root-module"

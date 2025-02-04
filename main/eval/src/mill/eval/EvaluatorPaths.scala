@@ -30,10 +30,8 @@ object EvaluatorPaths {
   def resolveDestPaths(
       workspacePath: os.Path,
       segments: Segments,
-      foreignSegments: Option[Segments] = None
   ): EvaluatorPaths = {
-    val refinedSegments = foreignSegments.map(_ ++ segments).getOrElse(segments)
-    val segmentStrings = makeSegmentStrings(refinedSegments)
+    val segmentStrings = makeSegmentStrings(segments)
     val targetPath = workspacePath / segmentStrings.map(sanitizePathSegment)
     EvaluatorPaths(
       targetPath / os.up / s"${targetPath.last}.dest",
@@ -44,7 +42,7 @@ object EvaluatorPaths {
   def resolveDestPaths(
       workspacePath: os.Path,
       task: NamedTask[_]
-  ): EvaluatorPaths = resolveDestPaths(workspacePath, task.ctx.segments, task.ctx.foreign)
+  ): EvaluatorPaths = resolveDestPaths(workspacePath, task.ctx.segments)
 
   // case-insensitive match on reserved names
   private val ReservedWinNames =

@@ -9,13 +9,6 @@ import scala.annotation.tailrec
 object ModuleUtils {
 
   /**
-   * Computes a display name for a module which is also disambiguates foreign modules.
-   */
-  def moduleDisplayName(module: Module): String = {
-    (module.millModuleShared.value.getOrElse(Segments()) ++ module.millModuleSegments).render
-  }
-
-  /**
    * Find all dependencies.
    * The result contains `start` and all its transitive dependencies provided by `deps`,
    * but does not contain duplicates.

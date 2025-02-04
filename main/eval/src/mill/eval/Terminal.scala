@@ -21,13 +21,6 @@ object Terminal {
     def render = task.toString
   }
 
-  def destSegments(labelledTask: Terminal.Labelled[_]): Segments = {
-    labelledTask.task.ctx.foreign match {
-      case Some(foreignSegments) => foreignSegments ++ labelledTask.segments
-      case None => labelledTask.segments
-    }
-  }
-
   @deprecated("User Terminal#render instead")
   def printTerm(term: Terminal): String = term.render
 }

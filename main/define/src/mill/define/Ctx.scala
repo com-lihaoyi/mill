@@ -26,7 +26,6 @@ trait Ctx {
   def millSourcePath: os.Path
   def segments: Segments
   def external: Boolean
-  def foreign: Option[Segments]
   def fileName: String
   def enclosingCls: Class[_]
   def enclosingModule: Any = null
@@ -49,7 +48,6 @@ object Ctx extends LowPriCtx {
       millSourcePath: os.Path,
       segments: Segments,
       external: Boolean,
-      foreign: Option[Segments],
       fileName: String,
       override val enclosingModule: Any,
       crossValues: Seq[Any],
@@ -75,18 +73,12 @@ object Ctx extends LowPriCtx {
    */
   final case class External(value: Boolean)
 
-  /**
-   * Marker for the foreign module segments of a module to be used implicitly by [[Ctx]].
-   */
-  final case class Foreign(value: Option[Segments])
-
   implicit def make(implicit
       millModuleEnclosing0: sourcecode.Enclosing,
       millModuleLine0: sourcecode.Line,
       millModuleBasePath0: BasePath,
       segments0: Segments,
       external0: External,
-      foreign0: Foreign,
       fileName: sourcecode.File,
       enclosing: Caller[OverrideMapping.Wrapper],
       enclosingClass: EnclosingClass,
@@ -110,7 +102,6 @@ object Ctx extends LowPriCtx {
           enclosingClass.value
         ),
       external0.value,
-      foreign0.value,
       fileName.value,
       enclosing.value,
       Seq(),

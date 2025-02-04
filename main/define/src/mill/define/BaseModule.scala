@@ -20,7 +20,6 @@ abstract class BaseModule(
         Ctx.BasePath(millSourcePath0),
         Segments(),
         Ctx.External(external0),
-        Ctx.Foreign(None),
         millFile0,
         caller,
         EnclosingClass(null),
