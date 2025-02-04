@@ -4,6 +4,7 @@ package playlib
 import mill.scalalib.api.ZincWorkerUtil
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.{TestSuite, Tests, assert, _}
+import mill.define.Discover
 
 object PlayModuleTests extends TestSuite with PlayTestSuite {
 

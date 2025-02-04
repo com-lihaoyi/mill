@@ -1,7 +1,7 @@
 package mill.playlib
 
 import mill.api.Result.Failure
-import mill.define.Cross
+import mill.define.{Cross, Discover}
 import mill.scalalib.ScalaModule
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.{TestSuite, Tests, assert, _}

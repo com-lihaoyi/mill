@@ -5,6 +5,7 @@ import mill.scalalib.ScalaModule
 import mill.scalajslib.ScalaJSModule
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
+import mill.define.Discover
 import os.Path
 import utest._
 

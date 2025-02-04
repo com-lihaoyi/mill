@@ -1,10 +1,238 @@
 package mill.resolve
 
-import mill.define.NamedTask
+import mill.define.{Discover, NamedTask, TaskModule, ModuleRef}
 import mill.util.TestGraphs
 import mill.util.TestGraphs._
+import mill.testkit.TestBaseModule
+import mill.{Task, Module, Cross}
 import utest._
 object ResolveTests extends TestSuite {
+
+  object doubleNestedModule extends TestBaseModule {
+    def single = Task { 5 }
+    object nested extends Module {
+      def single = Task { 7 }
+
+      object inner extends Module {
+        def single = Task { 9 }
+      }
+    }
+    def millDiscover = Discover[this.type]
+  }
+
+  object duplicates extends TestBaseModule {
+    object wrapper extends Module {
+      object test1 extends Module {
+        def test1 = Task {}
+      }
+
+      object test2 extends TaskModule {
+        override def defaultCommandName() = "test2"
+
+        def test2() = Task.Command {}
+      }
+    }
+
+    object test3 extends Module {
+      def test3 = Task {}
+    }
+
+    object test4 extends TaskModule {
+      override def defaultCommandName() = "test4"
+
+      def test4() = Task.Command {}
+    }
+
+    def millDiscover = Discover[this.type]
+  }
+
+  // The module names repeat, but it's not actually cyclic and is meant to confuse the cycle detection.
+  object NonCyclicModules extends TestBaseModule {
+    def foo = Task { "foo" }
+
+    object A extends Module {
+      def b = B
+    }
+    object B extends Module {
+      object A extends Module {
+        def b = B
+      }
+      def a = A
+
+      object B extends Module {
+        object B extends Module {}
+        object A extends Module {
+          def b = B
+        }
+        def a = A
+      }
+    }
+
+    def millDiscover = Discover[this.type]
+  }
+  object TypedModules extends TestBaseModule {
+    trait TypeA extends Module {
+      def foo = Task { "foo" }
+    }
+    trait TypeB extends Module {
+      def bar = Task { "bar" }
+    }
+    trait TypeC extends Module {
+      def baz = Task { "baz" }
+    }
+    trait TypeAB extends TypeA with TypeB
+
+    object typeA extends TypeA
+    object typeB extends TypeB
+    object typeC extends TypeC {
+      object typeA extends TypeA
+    }
+    object typeAB extends TypeAB
+    def millDiscover = Discover[this.type]
+  }
+
+  object TypedCrossModules extends TestBaseModule {
+    trait TypeA extends Cross.Module[String] {
+      def foo = Task { crossValue }
+    }
+
+    trait TypeB extends Module {
+      def bar = Task { "bar" }
+    }
+
+    trait TypeAB extends TypeA with TypeB
+
+    object typeA extends Cross[TypeA]("a", "b")
+    object typeAB extends Cross[TypeAB]("a", "b")
+
+    object inner extends Module {
+      object typeA extends Cross[TypeA]("a", "b")
+      object typeAB extends Cross[TypeAB]("a", "b")
+    }
+
+    trait NestedAB extends TypeAB {
+      object typeAB extends Cross[TypeAB]("a", "b")
+    }
+    object nestedAB extends Cross[NestedAB]("a", "b")
+    def millDiscover = Discover[this.type]
+  }
+
+  object TypedInnerModules extends TestBaseModule {
+    trait TypeA extends Module {
+      def foo = Task { "foo" }
+    }
+    object typeA extends TypeA
+    object typeB extends Module {
+      def foo = Task { "foo" }
+    }
+    object inner extends Module {
+      trait TypeA extends Module {
+        def foo = Task { "foo" }
+      }
+      object typeA extends TypeA
+    }
+    def millDiscover = Discover[this.type]
+  }
+
+  object AbstractModule extends TestBaseModule {
+    trait Abstract extends Module {
+      lazy val tests: Tests = new Tests {}
+      trait Tests extends Module {}
+    }
+
+    object concrete extends Abstract {
+      override lazy val tests: ConcreteTests = new ConcreteTests {}
+      trait ConcreteTests extends Tests {
+        object inner extends Module {
+          def foo = Task { "foo" }
+          object innerer extends Module {
+            def bar = Task { "bar" }
+          }
+        }
+      }
+    }
+    def millDiscover = Discover[this.type]
+  }
+
+  object CyclicModuleRefInitError extends TestBaseModule {
+    import mill.Agg
+    def foo = Task { "foo" }
+
+    // See issue: https://github.com/com-lihaoyi/mill/issues/3715
+    trait CommonModule extends Module {
+      def foo = Task { "foo" }
+      def moduleDeps: Seq[CommonModule] = Seq.empty
+      def a = myA
+      def b = myB
+    }
+
+    object myA extends A
+    trait A extends CommonModule
+    object myB extends B
+    trait B extends CommonModule {
+      override def moduleDeps = super.moduleDeps ++ Agg(a)
+    }
+    def millDiscover = Discover[this.type]
+  }
+
+  object CyclicModuleRefInitError2 extends TestBaseModule {
+    // The cycle is in the child
+    def A = CyclicModuleRefInitError
+    def millDiscover = Discover[this.type]
+  }
+
+  object CyclicModuleRefInitError3 extends TestBaseModule {
+    // The cycle is in directly here
+    object A extends Module {
+      def b = B
+    }
+    object B extends Module {
+      def a = A
+    }
+    def millDiscover = Discover[this.type]
+  }
+
+  object CrossedCyclicModuleRefInitError extends TestBaseModule {
+    object cross extends mill.Cross[Cross]("210", "211", "212")
+    trait Cross extends Cross.Module[String] {
+      def suffix = Task { crossValue }
+      def c2 = cross2
+    }
+
+    object cross2 extends mill.Cross[Cross2]("210", "211", "212")
+    trait Cross2 extends Cross.Module[String] {
+      override def millSourcePath = super.millSourcePath / crossValue
+      def suffix = Task { crossValue }
+      def c1 = cross
+    }
+    def millDiscover = Discover[this.type]
+  }
+
+  // This edge case shouldn't be an error
+  object ModuleRefWithNonModuleRefChild extends TestBaseModule {
+    def foo = Task { "foo" }
+
+    def aRef = A
+    def a = ModuleRef(A)
+
+    object A extends Module {}
+
+    def millDiscover = Discover[this.type]
+  }
+
+  object ModuleRefCycle extends TestBaseModule {
+    def foo = Task { "foo" }
+
+    // The cycle is in directly here
+    object A extends Module {
+      def b = ModuleRef(B)
+    }
+    object B extends Module {
+      def a = ModuleRef(A)
+    }
+
+    def millDiscover = Discover[this.type]
+  }
 
   class Checker[T <: mill.define.BaseModule](module: T) {
 
@@ -910,7 +1138,7 @@ object ResolveTests extends TestSuite {
       )
     }
     test("typeSelector") {
-      val check = new Checker(TestGraphs.TypedModules)
+      val check = new Checker(TypedModules)
       test - check(
         "__",
         Right(Set(
@@ -1005,7 +1233,7 @@ object ResolveTests extends TestSuite {
       )
     }
     test("crossTypeSelector") {
-      val check = new Checker(TestGraphs.TypedCrossModules)
+      val check = new Checker(TypedCrossModules)
       test - check(
         "__",
         Right(Set(
@@ -1080,7 +1308,7 @@ object ResolveTests extends TestSuite {
         ))
       )
       test("innerTypeSelector") {
-        val check = new Checker(TestGraphs.TypedInnerModules)
+        val check = new Checker(TypedInnerModules)
         test - check(
           "__:TypeA._",
           Right(Set(
@@ -1104,14 +1332,14 @@ object ResolveTests extends TestSuite {
       }
     }
     test("abstractModule") {
-      val check = new Checker(TestGraphs.AbstractModule)
+      val check = new Checker(AbstractModule)
       test - check(
         "__",
         Right(Set(_.concrete.tests.inner.foo, _.concrete.tests.inner.innerer.bar))
       )
     }
     test("cyclicModuleRefInitError") {
-      val check = new Checker(TestGraphs.CyclicModuleRefInitError)
+      val check = new Checker(CyclicModuleRefInitError)
       test - check.checkSeq0(
         Seq("__"),
         isShortError(_, "Cyclic module reference detected at myA.a,")
@@ -1142,14 +1370,14 @@ object ResolveTests extends TestSuite {
       )
     }
     test("cyclicModuleRefInitError2") {
-      val check = new Checker(TestGraphs.CyclicModuleRefInitError2)
+      val check = new Checker(CyclicModuleRefInitError2)
       test - check.checkSeq0(
         Seq("__"),
         isShortError(_, "Cyclic module reference detected at A.myA.a,")
       )
     }
     test("cyclicModuleRefInitError3") {
-      val check = new Checker(TestGraphs.CyclicModuleRefInitError3)
+      val check = new Checker(CyclicModuleRefInitError3)
       test - check.checkSeq0(
         Seq("__"),
         isShortError(_, "Cyclic module reference detected at A.b.a,")
@@ -1164,28 +1392,28 @@ object ResolveTests extends TestSuite {
       )
     }
     test("crossedCyclicModuleRefInitError") {
-      val check = new Checker(TestGraphs.CrossedCyclicModuleRefInitError)
+      val check = new Checker(CrossedCyclicModuleRefInitError)
       test - check.checkSeq0(
         Seq("__"),
         isShortError(_, "Cyclic module reference detected at cross[210].c2[210].c1,")
       )
     }
     test("nonCyclicModules") {
-      val check = new Checker(TestGraphs.NonCyclicModules)
+      val check = new Checker(NonCyclicModules)
       test - check(
         "__",
         Right(Set(_.foo))
       )
     }
     test("moduleRefWithNonModuleRefChild") {
-      val check = new Checker(TestGraphs.ModuleRefWithNonModuleRefChild)
+      val check = new Checker(ModuleRefWithNonModuleRefChild)
       test - check(
         "__",
         Right(Set(_.foo))
       )
     }
     test("moduleRefCycle") {
-      val check = new Checker(TestGraphs.ModuleRefCycle)
+      val check = new Checker(ModuleRefCycle)
       test - check(
         "__",
         Right(Set(_.foo))

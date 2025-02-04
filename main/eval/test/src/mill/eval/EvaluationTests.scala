@@ -2,7 +2,7 @@ package mill.eval
 
 import mill.util.TestUtil.Test
 import mill.define.{Discover, TargetImpl, Task}
-import mill.T
+import mill.{T, Module}
 import mill.util.{TestGraphs, TestUtil}
 import mill.testkit.{TestBaseModule, UnitTester}
 import mill.api.Strict.Agg
@@ -13,6 +13,101 @@ import utest.framework.TestPath
 object EvaluationTestsThreads1 extends EvaluationTests(threadCount = Some(1))
 object EvaluationTestsThreads4 extends EvaluationTests(threadCount = Some(3))
 object EvaluationTestsThreadsNative extends EvaluationTests(threadCount = None)
+
+object EvaluationTests {
+  trait BaseModule extends Module {
+    def foo = Task { Seq("base") }
+    def cmd(i: Int) = Task.Command { Seq("base" + i) }
+  }
+
+  object canOverrideSuper extends TestBaseModule with BaseModule {
+    override def foo = Task { super.foo() ++ Seq("object") }
+    override def cmd(i: Int) = Task.Command { super.cmd(i)() ++ Seq("object" + i) }
+    def millDiscover = Discover[this.type]
+  }
+
+  object nullTasks extends TestBaseModule {
+    val nullString: String = null
+    def nullTask1 = Task.Anon { nullString }
+    def nullTask2 = Task.Anon { nullTask1() }
+
+    def nullTarget1 = Task { nullString }
+    def nullTarget2 = Task { nullTarget1() }
+    def nullTarget3 = Task { nullTask1() }
+    def nullTarget4 = Task { nullTask2() }
+
+    def nullCommand1() = Task.Command { nullString }
+    def nullCommand2() = Task.Command { nullTarget1() }
+    def nullCommand3() = Task.Command { nullTask1() }
+    def nullCommand4() = Task.Command { nullTask2() }
+
+    def millDiscover = Discover[this.type]
+  }
+  object StackableOverrides extends TestBaseModule {
+    trait X extends Module {
+      def f = Task { 1 }
+    }
+    trait A extends X {
+      override def f = Task { super.f() + 2 }
+    }
+
+    trait B extends X {
+      override def f = Task { super.f() + 3 }
+    }
+    object m extends A with B {}
+    def millDiscover = Discover[this.type]
+  }
+
+  object StackableOverrides2 extends TestBaseModule {
+    object A extends Module {
+      trait X extends Module {
+        def f = Task { 1 }
+      }
+    }
+    object B extends Module {
+      trait X extends A.X {
+        override def f = Task { super.f() + 2 }
+      }
+    }
+
+    object m extends B.X {
+      override def f = Task { super.f() + 3 }
+    }
+    def millDiscover = Discover[this.type]
+  }
+
+  object StackableOverrides3 extends TestBaseModule {
+    object A extends Module {
+      trait X extends Module {
+        def f = Task { 1 }
+      }
+    }
+    trait X extends A.X {
+      override def f = Task { super.f() + 2 }
+    }
+
+    object m extends X {
+      override def f = Task { super.f() + 3 }
+    }
+    def millDiscover = Discover[this.type]
+  }
+
+  object PrivateTasksInMixedTraits extends TestBaseModule {
+    trait M1 extends Module {
+      private def foo = Task { "foo-m1" }
+      def bar = Task { foo() }
+    }
+    trait M2 extends Module {
+      private def foo = Task { "foo-m2" }
+      def baz = Task { foo() }
+    }
+    object mod extends M1 with M2
+    def millDiscover = Discover[this.type]
+  }
+
+}
+
+import EvaluationTests._
 
 class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
 
