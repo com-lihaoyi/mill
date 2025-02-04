@@ -5,14 +5,9 @@ import mill.util.Watchable
 
 import scala.collection.mutable
 
-object BaseModule {
-  case class Implicit(value: BaseModule)
-}
-
 abstract class BaseModule(
     millSourcePath0: os.Path,
     external0: Boolean = false,
-    foreign0: Option[Segments] = None
 )(implicit
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,
@@ -25,7 +20,7 @@ abstract class BaseModule(
         Ctx.BasePath(millSourcePath0),
         Segments(),
         Ctx.External(external0),
-        Ctx.Foreign(foreign0),
+        Ctx.Foreign(None),
         millFile0,
         caller,
         EnclosingClass(null),
@@ -37,13 +32,15 @@ abstract class BaseModule(
   // it is the root of the module tree, and thus must not include its own
   // sourcecode.Name as part of the list,
   override implicit def millModuleSegments: Segments = Segments()
+
   override def millSourcePath = millOuterCtx.millSourcePath
-  override implicit def millModuleBasePath: Ctx.BasePath = Ctx.BasePath(millSourcePath)
-  implicit def millImplicitBaseModule: BaseModule.Implicit = BaseModule.Implicit(this)
+
+  // `Discover` needs to be defined by every concrete `Module` object
   protected def millDiscover: Discover
+  // We need to propagate the `Discover` object implicitly throughout the module tree
+  // so it can be used for override detection
   override implicit lazy val implicitMillDiscover: Discover = millDiscover
   def millOuterCtx = super.millOuterCtx.withDiscover(millDiscover)
-
 }
 
 trait BaseModule0 extends Module {
@@ -83,7 +80,7 @@ trait BaseModule0 extends Module {
 abstract class ExternalModule(implicit
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line
-) extends BaseModule(WorkspaceRoot.workspaceRoot, external0 = true, foreign0 = None)(
+) extends BaseModule(WorkspaceRoot.workspaceRoot, external0 = true)(
       implicitly,
       implicitly,
       implicitly,
