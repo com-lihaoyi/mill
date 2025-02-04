@@ -87,7 +87,8 @@ object BSP extends ExternalModule with CoursierModule {
         argv = Seq(
           millPath,
           "--bsp",
-          "--disable-ticker",
+          "--ticker",
+          "false",
           "--color",
           "false",
           "--jobs",

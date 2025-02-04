@@ -103,9 +103,7 @@ trait PublishModule extends TypeScriptModule {
   }
 
   private def pubModDepsSources: T[Seq[PathRef]] = Task {
-    for {
-      modSource <- Task.traverse(moduleDeps)(_.sources)
-    } yield modSource
+    Task.traverse(moduleDeps)(_.sources)()
   }
 
   private def pubBaseModeGenSources: T[Seq[PathRef]] = Task {

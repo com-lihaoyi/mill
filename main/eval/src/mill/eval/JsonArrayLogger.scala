@@ -86,7 +86,7 @@ private[eval] class ChromeProfileLogger(outPath: os.Path)
   ): Unit = {
 
     val event = ChromeProfileLogger.TraceEvent(
-      name = Terminal.printTerm(terminal),
+      name = terminal.render,
       cat = cat,
       ph = "X",
       ts = startTime,

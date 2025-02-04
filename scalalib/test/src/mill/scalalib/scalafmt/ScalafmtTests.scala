@@ -6,7 +6,6 @@ import mill.scalalib.ScalaModule
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest._
-import utest.framework.TestPath
 
 object ScalafmtTests extends TestSuite {
 

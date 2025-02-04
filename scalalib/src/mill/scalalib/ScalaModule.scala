@@ -21,9 +21,6 @@ import scala.util.Using
  * Core configuration required to compile a single Scala compilation target
  */
 trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
-  @deprecated("use ScalaTests", "0.11.0")
-  type ScalaModuleTests = ScalaTests
-
   trait ScalaTests extends JavaTests with ScalaModule {
     override def scalaOrganization: T[String] = outer.scalaOrganization()
     override def scalaVersion: T[String] = outer.scalaVersion()
@@ -78,10 +75,9 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     }
   }
 
-  override def resolveCoursierDependency: Task[Dep => coursier.Dependency] =
-    Task.Anon {
-      Lib.depToDependency(_: Dep, scalaVersion(), platformSuffix())
-    }
+  override def bindDependency: Task[Dep => BoundDep] = Task.Anon { (dep: Dep) =>
+    BoundDep(Lib.depToDependency(dep, scalaVersion(), platformSuffix()), dep.force)
+  }
 
   override def resolvePublishDependency: Task[Dep => publish.Dependency] =
     Task.Anon {
@@ -136,13 +132,13 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
       if (sv.startsWith("2.")) {
         // Scala 2.x
         val mainClass = cl.loadClass("scala.tools.nsc.Main")
-        val mainMethod = mainClass.getMethod("process", Seq(classOf[Array[String]]): _*)
+        val mainMethod = mainClass.getMethod("process", Seq(classOf[Array[String]])*)
         val exitVal = mainMethod.invoke(null, options.toArray)
         handleResult(true)(exitVal)
       } else {
         // Scala 3.x
         val mainClass = cl.loadClass("dotty.tools.dotc.Main")
-        val mainMethod = mainClass.getMethod("process", Seq(classOf[Array[String]]): _*)
+        val mainMethod = mainClass.getMethod("process", Seq(classOf[Array[String]])*)
         val resultClass = cl.loadClass("dotty.tools.dotc.reporting.Reporter")
         val hasErrorsMethod = resultClass.getMethod("hasErrors")
         val exitVal = mainMethod.invoke(null, options.toArray)

@@ -6,11 +6,11 @@ import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest._
 
-object FullOptESModuleTests extends TestSuite {
+object FullLinkJSESModuleTests extends TestSuite {
 
-  object FullOptESModuleModule extends TestBaseModule {
+  object FullLinkJSESModuleModule extends TestBaseModule {
 
-    object fullOptESModuleModule extends ScalaJSModule {
+    object fullLinkJSESModuleModule extends ScalaJSModule {
       override def scalaVersion = "2.13.4"
       override def scalaJSVersion = "1.7.0"
       override def moduleKind = ModuleKind.ESModule
@@ -25,11 +25,11 @@ object FullOptESModuleTests extends TestSuite {
   val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-js-world"
 
   val tests: Tests = Tests {
-    test("fullOpt with ESModule moduleKind") - UnitTester(
-      FullOptESModuleModule,
+    test("fullLinkJS with ESModule moduleKind") - UnitTester(
+      FullLinkJSESModuleModule,
       millSourcePath
     ).scoped { eval =>
-      val result = eval(FullOptESModuleModule.fullOptESModuleModule.fullOpt)
+      val result = eval(FullLinkJSESModuleModule.fullLinkJSESModuleModule.fullLinkJS)
       assert(result.isRight)
     }
   }

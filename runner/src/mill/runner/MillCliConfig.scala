@@ -33,25 +33,11 @@ case class MillCliConfig(
       doc = """Ring the bell once if the run completes successfully, twice if it fails."""
     )
     ringBell: Flag = Flag(),
-    @deprecated("No longer supported, use `--ticker false`", "Mill 0.12.0")
-    @arg(
-      hidden = true,
-      doc =
-        """Disable ticker log (e.g. short-lived prints of stages and progress bars)."""
-    )
-    disableTicker: Flag,
     @arg(
       doc =
         """Enable ticker log (e.g. short-lived prints of stages and progress bars)."""
     )
     ticker: Option[Boolean] = None,
-    @deprecated("No longer supported, use `--ticker false`", "Mill 0.12.0")
-    @arg(
-      hidden = true,
-      doc =
-        """Enable ticker log (e.g. short-lived prints of stages and progress bars)."""
-    )
-    enableTicker: Option[Boolean] = None,
     @arg(name = "debug", short = 'd', doc = "Show debug output on STDOUT")
     debugLog: Flag = Flag(),
     @arg(

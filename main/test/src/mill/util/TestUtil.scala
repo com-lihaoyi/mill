@@ -63,8 +63,6 @@ object TestUtil {
       }
     }
   }
-  @deprecated("Use other overload which support a reason parameter instead", "mill after 0.10.3")
-  def disableInJava9OrAbove(f: => Any): Any = disableInJava9OrAbove(reason = "???")(f)
 
   def disableInJava9OrAbove(reason: String)(f: => Any): Any = {
     if (System.getProperty("java.specification.version").startsWith("1.")) {

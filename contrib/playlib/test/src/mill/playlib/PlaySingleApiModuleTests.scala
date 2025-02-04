@@ -6,8 +6,8 @@ import utest.{TestSuite, Tests, assert, _}
 
 object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
 
-  object playsingleapi extends TestBaseModule with PlayApiModule with SingleModule {
-    override val millSourcePath = os.temp() // workaround problem in `SingleModule`
+  object playsingleapi extends TestBaseModule with PlayApiModule {
+    override val millSourcePath = os.temp()
     override def playVersion = Task { testPlay28 }
     override def scalaVersion = Task { "2.13.12" }
     object test extends PlayTests

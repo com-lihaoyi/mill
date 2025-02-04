@@ -178,11 +178,7 @@ object MillMain {
               parseThreadCount(config.threadCountRaw, Runtime.getRuntime.availableProcessors())
 
             val (success, nextStateCache) = {
-              if (config.repl.value) {
-                streams.err.println("The --repl mode is no longer supported.")
-                (false, stateCache)
-
-              } else if (!bspMode && config.leftoverArgs.value.isEmpty) {
+              if (!bspMode && config.leftoverArgs.value.isEmpty) {
                 println(MillCliConfigParser.shortUsageText)
 
                 (true, stateCache)
@@ -246,10 +242,7 @@ object MillMain {
                               streams,
                               config,
                               mainInteractive,
-                              enableTicker =
-                                config.ticker
-                                  .orElse(config.enableTicker)
-                                  .orElse(Option.when(config.disableTicker.value)(false)),
+                              enableTicker = config.ticker,
                               printLoggerState,
                               serverDir,
                               colored = colored,

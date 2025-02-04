@@ -87,14 +87,6 @@ trait AssemblyModule extends mill.Module {
     upstreamAssembly2_0()
   }
 
-  def upstreamAssembly: T[PathRef] = Task {
-    Task.log.error(
-      s"upstreamAssembly target is deprecated and should no longer used." +
-        s" Please make sure to use upstreamAssembly2 instead."
-    )
-    upstreamAssembly2().pathRef
-  }
-
   private[mill] def assembly0: Task[PathRef] = Task.Anon {
 
     val prependScript = Option(prependShellScript()).filter(_ != "")

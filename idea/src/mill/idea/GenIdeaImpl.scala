@@ -15,8 +15,7 @@ import mill.scalajslib.ScalaJSModule
 import mill.scalalib.GenIdeaModule.{IdeaConfigFile, JavaFacet}
 import mill.scalalib.internal.JavaModuleUtils
 import mill.util.Classpath
-import mill.scalalib
-import mill.scalalib.{GenIdeaImpl => _, _}
+import mill.scalalib._
 import mill.scalanativelib.ScalaNativeModule
 
 case class GenIdeaImpl(
@@ -89,7 +88,7 @@ case class GenIdeaImpl(
       }
 
     val modules: Seq[(Segments, JavaModule, Evaluator)] = foundModules
-      .collect { case (s, x: scalalib.JavaModule, ev) => (s, x, ev) }
+      .collect { case (s, x: JavaModule, ev) => (s, x, ev) }
       .filterNot(_._2.skipIdea)
       .distinct
 
@@ -98,7 +97,7 @@ case class GenIdeaImpl(
 
 //    val modules: Seq[(Segments, JavaModule)] =
 //      rootModule.millInternal.segmentsToModules.values
-//        .collect { case x: scalalib.JavaModule => x }
+//        .collect { case x: JavaModule => x }
 //        .flatMap(_.transitiveModuleDeps)
 //        .filterNot(_.skipIdea)
 //        .map(x => (x.millModuleSegments, x))
