@@ -71,7 +71,20 @@ button:disabled {
 .result-container {
   margin-top: 20px;
   padding: 15px;
-  background: #e7f3ff;
   border-radius: 8px;
-  color: #333;
+  color: #fff;
+  font-weight: bold;
+}
+
+/* Sentiment-based styles */
+.result-container.positive {
+  background-color: #28a745;  /* Green */
+}
+
+.result-container.negative {
+  background-color: #dc3545;  /* Red */
+}
+
+.result-container.neutral {
+  background-color: #e7f3ff;  /* Default blue */
 }

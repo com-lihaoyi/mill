@@ -5,11 +5,13 @@ const App = () => {
     const [inputText, setInputText] = useState('');
     const [result, setResult] = useState('');
     const [loading, setLoading] = useState(false);
+    const [sentiment, setSentiment] = useState('neutral');  // New state for sentiment style
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setResult('');
+        setSentiment('neutral');
 
         try {
             const response = await fetch('http://localhost:8086/api/analysis', {
@@ -23,6 +25,13 @@ const App = () => {
             if (response.ok) {
                 const responseData = await response.text();
                 setResult(responseData);
+
+                // Determine sentiment from the response
+                const polarityMatch = responseData.match(/polarity: ([+-]?[0-9]*\.?[0-9]+)/);
+                if (polarityMatch) {
+                    const polarity = parseFloat(polarityMatch[1]);
+                    setSentiment(polarity > 0 ? 'positive' : 'negative');
+                }
             } else {
                 setResult('Error occurred during analysis.');
             }
@@ -48,7 +57,7 @@ const App = () => {
                 </button>
             </form>
             {result && (
-                <div className="result-container">
+                <div className={`result-container ${sentiment}`}>
                     <h2>Analysis Result:</h2>
                     <p>{result}</p>
                 </div>
@@ -58,30 +67,3 @@ const App = () => {
 };
 
 export default App;
-
-// import React from 'react';
-// import logo from 'src/logo.svg';
-// import 'src/App.css';
-//
-// function App() {
-//   return (
-//     <div className="App">
-//       <header className="App-header">
-//         <img src={logo} className="App-logo" alt="logo" />
-//         <p>
-//           Edit <code>src/App.tsx</code> and save to reload.
-//         </p>
-//         <a
-//           className="App-link"
-//           href="https://reactjs.org"
-//           target="_blank"
-//           rel="noopener noreferrer"
-//         >
-//           Learn React
-//         </a>
-//       </header>
-//     </div>
-//   );
-// }
-//
-// export default App;
