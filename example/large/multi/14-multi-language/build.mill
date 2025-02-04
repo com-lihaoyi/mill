@@ -41,7 +41,10 @@ object server extends JavaModule {
 ...com.example.ServerTest#shouldReturnPositiveAnalysis() finished...
 ...com.example.ServerTest#shouldReturnNegativeAnalysis() finished...
 
->
-
 > mill server.runBackground
+
+> curl http://localhost:8086
+...<title>Sentiment Analysis Tool</title>...
+
+> mill clean runBackground
 */
