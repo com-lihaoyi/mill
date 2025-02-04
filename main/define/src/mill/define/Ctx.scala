@@ -31,6 +31,7 @@ trait Ctx {
   def enclosingCls: Class[_]
   def enclosingModule: Any = null
   def crossValues: Seq[Any]
+  def discover: Discover
 
   private[mill] def withCrossValues(crossValues: Seq[Any]): Ctx
   private[mill] def withMillSourcePath(millSourcePath: os.Path): Ctx
@@ -50,7 +51,8 @@ object Ctx extends LowPriCtx {
       foreign: Option[Segments],
       fileName: String,
       override val enclosingModule: Any,
-      crossValues: Seq[Any]
+      crossValues: Seq[Any],
+      discover: Discover
   ) extends Ctx {
     def enclosingCls = enclosingModule.getClass
     def withCrossValues(crossValues: Seq[Any]): Ctx = copy(crossValues = crossValues)
@@ -86,7 +88,8 @@ object Ctx extends LowPriCtx {
       foreign0: Foreign,
       fileName: sourcecode.File,
       enclosing: Caller,
-      enclosingClass: EnclosingClass
+      enclosingClass: EnclosingClass,
+      discover: Discover
   ): Ctx = {
     // Manually break apart `sourcecode.Enclosing` instead of using
     // `sourcecode.Name` to work around bug with anonymous classes
@@ -100,9 +103,17 @@ object Ctx extends LowPriCtx {
       segments0 ++ {
         Option(enclosing.value) match {
           case Some(value) =>
-            val mapping = value.asInstanceOf[mill.define.OverrideMapping.Wrapper].overrideMapping
-            val key = (enclosingClass.value, lastSegmentStr)
-            mapping.value.getOrElse(key, Segments())
+            val linearized = value.asInstanceOf[OverrideMapping.Wrapper].linearized
+            val declaring = linearized.filter(cls => discover.classInfo.get(cls).exists(_.declaredTasks.exists(_.name == lastSegmentStr)))
+
+            if (declaring.isEmpty || declaring.lastOption.contains(enclosingClass.value)) {
+              Segments()
+            }
+            else OverrideMapping.assignOverridenTaskSegments(
+              declaring.map(_.getName),
+              lastSegmentStr,
+              enclosingClass.value.getName
+            )
 
           case None => Segments()
         }
@@ -111,7 +122,8 @@ object Ctx extends LowPriCtx {
       foreign0.value,
       fileName.value,
       enclosing.value,
-      Seq()
+      Seq(),
+      discover
     )
   }
 }

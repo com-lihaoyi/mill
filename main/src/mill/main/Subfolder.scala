@@ -22,6 +22,7 @@ abstract class SubfolderModule()(implicit
         foreign0 = Ctx.Foreign(None),
         fileName = millFile0,
         enclosing = Caller(null),
-        enclosingClass = EnclosingClass(null)
+        enclosingClass = EnclosingClass(null),
+        discover = null
       )
     ) with Module {}

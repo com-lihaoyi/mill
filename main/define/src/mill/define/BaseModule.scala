@@ -28,7 +28,8 @@ abstract class BaseModule(
         Ctx.Foreign(foreign0),
         millFile0,
         caller,
-        EnclosingClass(null)
+        EnclosingClass(null),
+        discover = null
       )
     ) with Module with BaseModule0 {
 
@@ -40,6 +41,7 @@ abstract class BaseModule(
   override implicit def millModuleBasePath: Ctx.BasePath = Ctx.BasePath(millSourcePath)
   implicit def millImplicitBaseModule: BaseModule.Implicit = BaseModule.Implicit(this)
   def millDiscover: Discover
+  implicit def implicitMillDiscover: Discover = millDiscover
 
 }
 
