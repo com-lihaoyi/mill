@@ -61,7 +61,7 @@ trait KtlintModule extends JavaModule {
 object KtlintModule extends ExternalModule with KtlintModule with TaskModule {
   override def defaultCommandName(): String = "reformatAll"
 
-  lazy val millDiscover: Discover = Discover[this.type]
+  lazy val millDiscover = Discover[this.type]
 
   /**
    * Reformats Kotlin source files.

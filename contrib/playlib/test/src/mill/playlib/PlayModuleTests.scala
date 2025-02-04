@@ -4,6 +4,7 @@ package playlib
 import mill.scalalib.api.ZincWorkerUtil
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.{TestSuite, Tests, assert, _}
+import mill.define.Discover
 
 object PlayModuleTests extends TestSuite with PlayTestSuite {
 
@@ -16,6 +17,8 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
       object test extends PlayTests
       override def ivyDeps = Task { super.ivyDeps() ++ Agg(ws()) }
     }
+
+    lazy val millDiscover = Discover[this.type]
   }
   val resourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "playmulti"
 

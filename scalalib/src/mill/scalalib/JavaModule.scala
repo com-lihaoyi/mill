@@ -51,8 +51,10 @@ trait JavaModule
     override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
       internalRepositories() ++ outer.repositoriesTask()
     }
+
     override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
       outer.resolutionCustomizer
+
     override def javacOptions: T[Seq[String]] = Task { outer.javacOptions() }
     override def zincWorker: ModuleRef[ZincWorkerModule] = outer.zincWorker
     override def skipIdea: Boolean = outer.skipIdea
@@ -910,7 +912,7 @@ trait JavaModule
         Task.log.debug(
           s"compile target was not overridden, assuming hard-coded classes directory for target ${compile}"
         )
-        UnresolvedPath.DestPath(os.sub / "classes", compile.ctx.segments, compile.ctx.foreign)
+        UnresolvedPath.DestPath(os.sub / "classes", compile.ctx.segments)
       }
     } else {
       Task {
@@ -1336,21 +1338,6 @@ trait JavaModule
         Result.Failure[Unit](msg)
       }
     }
-  }
-
-  override def runUseArgsFile: T[Boolean] = Task {
-    // overridden here for binary compatibility (0.11.x)
-    super.runUseArgsFile()
-  }
-
-  override def runLocal(args: Task[Args] = Task.Anon(Args())): Command[Unit] = {
-    // overridden here for binary compatibility (0.11.x)
-    super.runLocal(args)
-  }
-
-  override def run(args: Task[Args] = Task.Anon(Args())): Command[Unit] = {
-    // overridden here for binary compatibility (0.11.x)
-    super.run(args)
   }
 
   @deprecated("Binary compat shim, use `.runner().run(..., background=true)`", "Mill 0.12.0")

@@ -2,10 +2,12 @@ package mill.scalalib
 
 import mill.api.Result
 import mill.testkit.{TestBaseModule, UnitTester}
-import utest._
+import utest.*
 
 import java.io.{ByteArrayOutputStream, PrintStream}
-import HelloWorldTests._
+import HelloWorldTests.*
+import mill.define.Discover
+import mill.main.TokenReaders._
 object ScalaColorOutputTests extends TestSuite {
 
   object HelloWorldColorOutput extends TestBaseModule {
@@ -16,6 +18,7 @@ object ScalaColorOutputTests extends TestSuite {
         "-Vimplicits"
       )
     }
+    lazy val millDiscover = Discover[this.type]
   }
 
   def tests: Tests = Tests {

@@ -450,6 +450,16 @@ jobs:
 ----
 
 
+== Header
+
+`header` is a plugin that allows you to automate adding headers to the top
+of the files in your projects. It also has an ability to check that all files
+have a certain header in place. The plugin was inspired by and is similar to
+sbt-header.
+
+Project home: https://github.com/lewisjkl/header
+
+
 == Hepek
 
 `mill-hepek` is a plugin for writing Scala `object`s to files.  

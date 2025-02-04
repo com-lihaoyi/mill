@@ -1,25 +1,31 @@
 package mill.scalalib
 
-import mill._
+import mill.*
 import mill.api.Result
 import mill.testkit.{TestBaseModule, UnitTester}
-import utest._
-
-import HelloWorldTests._
+import utest.*
+import HelloWorldTests.*
+import mill.define.Discover
 object ScalaRunTests extends TestSuite {
 
   object HelloWorldDefaultMain extends TestBaseModule {
     object core extends HelloWorldTests.HelloWorldModule
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   object HelloWorldWithoutMain extends TestBaseModule {
     object core extends HelloWorldTests.HelloWorldModule {
       override def mainClass = None
     }
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   object HelloWorldWithMain extends TestBaseModule {
     object core extends HelloWorldTests.HelloWorldModuleWithMain
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   def tests: Tests = Tests {

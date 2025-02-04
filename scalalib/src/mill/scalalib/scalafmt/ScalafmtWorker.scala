@@ -11,7 +11,7 @@ import mill.api.Result
 object ScalafmtWorkerModule extends ExternalModule {
   def worker: Worker[ScalafmtWorker] = Task.Worker { new ScalafmtWorker() }
 
-  lazy val millDiscover: Discover = Discover[this.type]
+  lazy val millDiscover = Discover[this.type]
 }
 
 private[scalafmt] class ScalafmtWorker extends AutoCloseable {

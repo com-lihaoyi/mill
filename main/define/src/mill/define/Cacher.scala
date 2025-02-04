@@ -12,7 +12,7 @@ trait Cacher extends mill.moduledefs.Cacher {
 }
 
 object Cacher {
-  private def withMacroOwner[T](using Quotes)(op: quotes.reflect.Symbol => T): T = {
+  private[mill] def withMacroOwner[T](using Quotes)(op: quotes.reflect.Symbol => T): T = {
     import quotes.reflect.*
 
     // In Scala 3, the top level splice of a macro is owned by a symbol called "macro" with the macro flag set,

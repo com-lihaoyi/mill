@@ -1,6 +1,6 @@
 package mill.main;
-import mill._
-import mill.define.{Caller, Ctx, Segments, Discover}
+import mill.*
+import mill.define.{Caller, Ctx, Discover, EnclosingClass, Segments}
 
 object SubfolderModule {
   class Info(val millSourcePath0: os.Path, val segments: Seq[String]) {
@@ -19,17 +19,12 @@ abstract class SubfolderModule()(implicit
         millModuleBasePath0 = Ctx.BasePath(subFolderInfo.millSourcePath0 / os.up),
         segments0 = Segments.labels(subFolderInfo.segments.init: _*),
         external0 = Ctx.External(false),
-        foreign0 = Ctx.Foreign(None),
         fileName = millFile0,
-        enclosing = Caller(null)
+        enclosingModule = Caller(null),
+        enclosingClass = EnclosingClass(null),
+        discover = null
       )
     ) with Module {
-  // SCALA 3: REINTRODUCED millDiscover because we need to splice the millDiscover from
-  // child modules into the parent module - this isnt wasteful because the parent module
-  // doesnt scan the children - hence why it is being spliced in in the Scala 3 version.
-
-  // Dummy `millDiscover` defined but never actually used and overriden by codegen.
-  // Provided for IDEs to think that one is available and not show errors in
-  // build.mill/package.mill even though they can't see the codegen
-  def millDiscover: Discover = sys.error("RootModule#millDiscover must be overriden")
+  def millDiscover: Discover = sys.error("RootModule#millDiscover must be overridden")
+  override implicit lazy val implicitMillDiscover: Discover = millDiscover
 }

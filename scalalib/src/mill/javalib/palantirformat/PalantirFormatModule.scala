@@ -112,7 +112,7 @@ object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule
     )
   }
 
-  lazy val millDiscover: Discover = Discover[this.type]
+  lazy val millDiscover = Discover[this.type]
 
   private[palantirformat] def palantirAction(
       sources: IterableOnce[PathRef],

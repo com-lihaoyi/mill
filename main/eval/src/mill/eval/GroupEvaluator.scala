@@ -111,7 +111,7 @@ private[mill] trait GroupEvaluator {
 
         case labelled: Terminal.Labelled[_] =>
           val out = if (!labelled.task.ctx.external) outPath else externalOutPath
-          val paths = EvaluatorPaths.resolveDestPaths(out, Terminal.destSegments(labelled))
+          val paths = EvaluatorPaths.resolveDestPaths(out, labelled.segments)
           val cached = loadCachedJson(logger, inputsHash, labelled, paths)
 
           // `cached.isEmpty` means worker metadata file removed by user so recompute the worker

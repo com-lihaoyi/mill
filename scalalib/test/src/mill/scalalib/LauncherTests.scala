@@ -1,7 +1,9 @@
 package mill.scalalib
 
+import mill.define.Discover
 import mill.testkit.{TestBaseModule, UnitTester}
-import utest._
+import utest.*
+import mill.main.TokenReaders._
 
 object LauncherTests extends TestSuite {
 
@@ -12,6 +14,8 @@ object LauncherTests extends TestSuite {
     }
 
     def javacOptions = Seq("-target", "1.8", "-source", "1.8")
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "launcher"

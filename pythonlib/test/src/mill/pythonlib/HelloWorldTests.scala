@@ -1,6 +1,7 @@
 package mill
 package pythonlib
 
+import mill.define.Discover
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.*
 
@@ -19,6 +20,8 @@ object HelloWorldTests extends TestSuite {
       override def mainScript = Task.Source(millSourcePath / "src" / "qux.py")
       object test extends PythonTests with TestModule.Unittest
     }
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-python"

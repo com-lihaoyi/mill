@@ -3,7 +3,8 @@ package mill.playlib
 import mill.{T, Task}
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.{TestSuite, Tests, assert, _}
-
+import mill.define.Discover
+import mill.main.TokenReaders._
 object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
 
   object playsingleapi extends TestBaseModule with PlayApiModule with SingleModule {
@@ -11,6 +12,8 @@ object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
     override def playVersion = Task { testPlay28 }
     override def scalaVersion = Task { "2.13.12" }
     object test extends PlayTests
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   val resourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "playsingleapi"

@@ -5,7 +5,6 @@ import mill.api.{PathRef, Result}
 import mill.runner.FileImportGraph.backtickWrap
 import pprint.Util.literalize
 
-import scala.collection.mutable
 import mill.runner.worker.api.MillScalaParser
 import scala.util.control.Breaks._
 
@@ -20,7 +19,6 @@ object CodeGen {
       compilerWorkerClasspath: Seq[os.Path],
       millTopLevelProjectRoot: os.Path,
       output: os.Path,
-      isScala3: Boolean,
       parser: MillScalaParser
   ): Unit = {
     for (scriptSource <- scriptSources) breakable {
@@ -53,10 +51,10 @@ object CodeGen {
         }
         .distinct
 
-      val pkg = packageSegments.drop(1).dropRight(1)
+      val pkgSegments = packageSegments.drop(1).dropRight(1)
 
       def pkgSelector0(pre: Option[String], s: Option[String]) =
-        (pre ++ pkg ++ s).map(backtickWrap).mkString(".")
+        (pre ++ pkgSegments ++ s).map(backtickWrap).mkString(".")
       def pkgSelector2(s: Option[String]) = s"_root_.${pkgSelector0(Some(globalPackagePrefix), s)}"
       val (childSels, childAliases0) = childNames
         .map { c =>
@@ -69,7 +67,7 @@ object CodeGen {
         }.unzip
       val childAliases = childAliases0.mkString("\n")
 
-      val pkgLine = s"package ${pkgSelector0(Some(globalPackagePrefix), None)}"
+      val pkg = pkgSelector0(Some(globalPackagePrefix), None)
 
       val aliasImports = Seq(
         // `$file` as an alias for `build_` to make usage of `import $file` when importing
@@ -89,7 +87,7 @@ object CodeGen {
 
       val parts =
         if (!isBuildScript) {
-          s"""$pkgLine
+          s"""package $pkg
              |$aliasImports
              |object ${backtickWrap(scriptPath.last.split('.').head)} {
              |$markerComment
@@ -105,13 +103,16 @@ object CodeGen {
             scriptPath,
             scriptFolderPath,
             childAliases,
-            pkgLine,
+            pkg,
             aliasImports,
             scriptCode,
             markerComment,
-            isScala3,
-            childSels,
-            parser
+            parser,
+            scriptSources
+              .map(_.path)
+              .filter(_ != scriptPath)
+              .filter(p => (p / os.up) == (scriptPath / os.up))
+              .map(_.last.split('.').head)
           )
         }
 
@@ -128,33 +129,35 @@ object CodeGen {
       scriptPath: os.Path,
       scriptFolderPath: os.Path,
       childAliases: String,
-      pkgLine: String,
+      pkg: String,
       aliasImports: String,
       scriptCode: String,
       markerComment: String,
-      isScala3: Boolean,
-      childSels: Seq[String],
-      parser: MillScalaParser
+      parser: MillScalaParser,
+      siblingScripts: Seq[String]
   ) = {
     val segments = scriptFolderPath.relativeTo(projectRoot).segments
 
-    val prelude = {
-      val scala3imports = if isScala3 then {
-        // (Scala 3) package is not part of implicit scope
-        s"""import _root_.mill.main.TokenReaders.given, _root_.mill.api.JsonFormatters.given"""
-      } else {
-        ""
-      }
-      if (segments.nonEmpty) subfolderBuildPrelude(scriptFolderPath, segments, scala3imports)
-      else topBuildPrelude(
+    val exportSiblingScripts =
+      siblingScripts.map(s => s"export $pkg.${backtickWrap(s)}.*").mkString("\n")
+
+    val importSiblingScripts = siblingScripts
+      .map(s => s"import $pkg.${backtickWrap(s)}.*").mkString("\n")
+
+    val prelude =
+      s"""import MillMiscInfo._
+         |import _root_.mill.main.TokenReaders.given, _root_.mill.api.JsonFormatters.given
+         |""".stripMargin
+
+    val miscInfo =
+      if (segments.nonEmpty) subfolderMiscInfo(scriptFolderPath, segments)
+      else rootMiscInfo(
         scriptFolderPath,
         enclosingClasspath,
         compilerWorkerClasspath,
         millTopLevelProjectRoot,
-        output,
-        scala3imports
+        output
       )
-    }
 
     val objectData = parser.parseObjectData(scriptCode)
 
@@ -187,11 +190,7 @@ object CodeGen {
         objectData.finalStat match {
           case Some((leading, finalStat)) =>
             val fenced = Seq(
-              "",
-              "//MILL_SPLICED_CODE_START_MARKER",
-              leading + "@_root_.scala.annotation.nowarn",
-              leading + "protected def __innerMillDiscover: _root_.mill.define.Discover = _root_.mill.define.Discover[this.type]",
-              "//MILL_SPLICED_CODE_END_MARKER", {
+              "", {
                 val statLines = finalStat.text.linesWithSeparators.toSeq
                 if statLines.sizeIs > 1 then
                   statLines.tail.mkString
@@ -203,29 +202,36 @@ object CodeGen {
           case None =>
             ()
         }
+
         newScriptCode = objectData.parent.applyTo(newScriptCode, newParent)
         newScriptCode = objectData.name.applyTo(newScriptCode, wrapperObjectName)
         newScriptCode = objectData.obj.applyTo(newScriptCode, "abstract class")
 
-        s"""$pkgLine
+        s"""package $pkg
+           |$miscInfo
            |$aliasImports
+           |$importSiblingScripts
            |$prelude
            |$markerComment
            |$newScriptCode
            |object $wrapperObjectName extends $wrapperObjectName {
            |  ${childAliases.linesWithSeparators.mkString("  ")}
-           |  ${millDiscover(childSels, spliced = objectData.finalStat.nonEmpty)}
+           |  $exportSiblingScripts
+           |  ${millDiscover(segments.nonEmpty)}
            |}""".stripMargin
+
       case None =>
-        s"""$pkgLine
+        s"""package $pkg
+           |$miscInfo
            |$aliasImports
+           |$importSiblingScripts
            |$prelude
            |${topBuildHeader(
             segments,
             scriptFolderPath,
             millTopLevelProjectRoot,
             childAliases,
-            childSels
+            exportSiblingScripts
           )}
            |$markerComment
            |$scriptCode
@@ -234,59 +240,32 @@ object CodeGen {
     }
   }
 
-  def subfolderBuildPrelude(
+  def subfolderMiscInfo(
       scriptFolderPath: os.Path,
-      segments: Seq[String],
-      scala3imports: String
+      segments: Seq[String]
   ): String = {
-    s"""object MillMiscSubFolderInfo
+    s"""object MillMiscInfo
        |extends mill.main.SubfolderModule.Info(
        |  os.Path(${literalize(scriptFolderPath.toString)}),
        |  _root_.scala.Seq(${segments.map(pprint.Util.literalize(_)).mkString(", ")})
        |)
-       |import MillMiscSubFolderInfo._
-       |$scala3imports
        |""".stripMargin
   }
 
-  def millDiscover(childSels: Seq[String], spliced: Boolean = false): String = {
-    def addChildren(initial: String) =
-      if childSels.nonEmpty then
-        s"""{
-           |      val childDiscovers: Seq[_root_.mill.define.Discover] = Seq(
-           |        ${childSels.map(child => s"$child.millDiscover").mkString(",\n      ")}
-           |      )
-           |      childDiscovers.foldLeft($initial.value)(_ ++ _.value)
-           |    }""".stripMargin
-      else
-        s"""$initial.value""".stripMargin
+  def millDiscover(segmentsNonEmpty: Boolean): String = {
+    val rhs =
+      if (segmentsNonEmpty) "build_.package_.implicitMillDiscover"
+      else "_root_.mill.define.Discover[this.type]"
 
-    if spliced then
-      s"""override lazy val millDiscover: _root_.mill.define.Discover = {
-         |    val base = this.__innerMillDiscover
-         |    val initial = ${addChildren("base")}
-         |    val subbed = {
-         |      initial.get(classOf[$wrapperObjectName]) match {
-         |        case Some(inner) => initial.updated(classOf[$wrapperObjectName.type], inner)
-         |        case None => initial
-         |      }
-         |    }
-         |    if subbed ne base.value then
-         |      _root_.mill.define.Discover.apply2(value = subbed)
-         |    else
-         |      base
-         |  }""".stripMargin
-    else
-      """override lazy val millDiscover: _root_.mill.define.Discover = _root_.mill.define.Discover[this.type]""".stripMargin
+    s"override lazy val millDiscover: _root_.mill.define.Discover = $rhs"
   }
 
-  def topBuildPrelude(
+  def rootMiscInfo(
       scriptFolderPath: os.Path,
       enclosingClasspath: Seq[os.Path],
       compilerWorkerClasspath: Seq[os.Path],
       millTopLevelProjectRoot: os.Path,
-      output: os.Path,
-      scala3imports: String
+      output: os.Path
   ): String = {
     s"""import _root_.mill.runner.MillBuildRootModule
        |@_root_.scala.annotation.nowarn
@@ -297,8 +276,6 @@ object CodeGen {
        |  ${literalize(output.toString)},
        |  ${literalize(millTopLevelProjectRoot.toString)}
        |)
-       |import MillMiscInfo._
-       |$scala3imports
        |""".stripMargin
   }
 
@@ -307,7 +284,7 @@ object CodeGen {
       scriptFolderPath: os.Path,
       millTopLevelProjectRoot: os.Path,
       childAliases: String,
-      childSels: Seq[String]
+      exportSiblingScripts: String
   ): String = {
     val extendsClause =
       if (segments.nonEmpty) s"extends _root_.mill.main.SubfolderModule "
@@ -321,77 +298,13 @@ object CodeGen {
     // path dependent types no longer match, e.g. for TokenReaders of custom types.
     // perhaps we can patch mainargs to substitute prefixes when summoning TokenReaders?
     // or, add an optional parameter to Discover.apply to substitute the outer class?
-    s"""object ${wrapperObjectName} extends $wrapperObjectName {
+    s"""object ${wrapperObjectName} extends $wrapperObjectName  {
        |  ${childAliases.linesWithSeparators.mkString("  ")}
-       |  ${millDiscover(childSels, spliced = true)}
+       |  $exportSiblingScripts
+       |  ${millDiscover(segments.nonEmpty)}
        |}
-       |abstract class $wrapperObjectName $extendsClause {
-       |protected def __innerMillDiscover: _root_.mill.define.Discover = _root_.mill.define.Discover[this.type]""".stripMargin
+       |abstract class $wrapperObjectName $extendsClause { this: $wrapperObjectName.type =>
+       |""".stripMargin
 
   }
-
-  private case class Snippet(var text: String = null, var start: Int = -1, var end: Int = -1) {
-    def applyTo(s: String, replacement: String): String =
-      s.patch(start, replacement.padTo(end - start, ' '), end - start)
-  }
-
-  private case class ObjectData(obj: Snippet, name: Snippet, parent: Snippet)
-
-  // Use Fastparse's Instrument API to identify top-level `object`s during a parse
-  // and fish out the start/end indices and text for parts of the code that we need
-  // to mangle and replace
-  private class ObjectDataInstrument(scriptCode: String) extends fastparse.internal.Instrument {
-    val objectData: mutable.Buffer[ObjectData] = mutable.Buffer.empty[ObjectData]
-    val current: mutable.ArrayDeque[(String, Int)] = collection.mutable.ArrayDeque[(String, Int)]()
-    def matches(stack: String*)(t: => Unit): Unit = if (current.map(_._1) == stack) { t }
-    def beforeParse(parser: String, index: Int): Unit = {
-      current.append((parser, index))
-      matches("CompilationUnit", "StatementBlock", "TmplStat", "BlockDef", "ObjDef") {
-        objectData.append(ObjectData(Snippet(), Snippet(), Snippet()))
-      }
-    }
-    def afterParse(parser: String, index: Int, success: Boolean): Unit = {
-      if (success) {
-        def saveSnippet(s: Snippet) = {
-          s.text = scriptCode.slice(current.last._2, index)
-          s.start = current.last._2
-          s.end = index
-        }
-        matches("CompilationUnit", "StatementBlock", "TmplStat", "BlockDef", "ObjDef", "`object`") {
-          saveSnippet(objectData.last.obj)
-        }
-        matches("CompilationUnit", "StatementBlock", "TmplStat", "BlockDef", "ObjDef", "Id") {
-          saveSnippet(objectData.last.name)
-        }
-        matches(
-          "CompilationUnit",
-          "StatementBlock",
-          "TmplStat",
-          "BlockDef",
-          "ObjDef",
-          "DefTmpl",
-          "AnonTmpl",
-          "NamedTmpl",
-          "Constrs",
-          "Constr",
-          "AnnotType",
-          "SimpleType",
-          "BasicType",
-          "TypeId",
-          "StableId",
-          "IdPath",
-          "Id"
-        ) {
-          if (objectData.last.parent.text == null) saveSnippet(objectData.last.parent)
-        }
-      } else {
-        matches("CompilationUnit", "StatementBlock", "TmplStat", "BlockDef", "ObjDef") {
-          objectData.remove(objectData.length - 1)
-        }
-      }
-
-      current.removeLast()
-    }
-  }
-
 }

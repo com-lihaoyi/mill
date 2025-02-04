@@ -3,7 +3,7 @@ package mill.integration
 import mill.testkit.UtestIntegrationTestSuite
 import utest._
 
-object DocAnnotationsTests extends UtestIntegrationTestSuite {
+object InspectTests extends UtestIntegrationTestSuite {
   def globMatches(glob: String, input: String): Boolean = {
     StringContext
       .glob(
@@ -63,7 +63,8 @@ object DocAnnotationsTests extends UtestIntegrationTestSuite {
         doc
       )
 
-      assert(eval(("inspect", "core.run")).isSuccess)
+      val res2 = eval(("inspect", "core.run"))
+      assert(res2.isSuccess)
       val run = out("inspect").json.str
 
       assertGlobMatches(
