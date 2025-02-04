@@ -167,7 +167,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
           cwd = workingDir,
           stdin = os.Inherit,
           stdout = os.Inherit,
-          stderr = os.Inherit
+          stderr = os.Inherit,
+          check = false
         )
         mill.util.ProcessUtil.toResult(processResult)
       case Some(x) =>
@@ -482,7 +483,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
         cwd = Task.dest,
         stdin = os.Inherit,
         stdout = os.Inherit,
-        stderr = os.Inherit
+        stderr = os.Inherit,
+        check = false
       )
       mill.util.ProcessUtil.toResult(processResult).getOrThrow
       PathRef(Task.dest)

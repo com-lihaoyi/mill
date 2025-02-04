@@ -1169,7 +1169,8 @@ trait JavaModule
         cwd = Task.dest,
         stdin = os.Inherit,
         stdout = os.Inherit,
-        stderr = os.Inherit
+        stderr = os.Inherit,
+        check = false
       )
       mill.util.ProcessUtil.toResult(processResult).getOrThrow
     }

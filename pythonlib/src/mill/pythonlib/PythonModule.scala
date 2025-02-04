@@ -273,7 +273,8 @@ object PythonModule {
         cwd = Option(workingDir).getOrElse(workingDir0),
         stdin = os.Inherit,
         stdout = os.Inherit,
-        stderr = os.Inherit
+        stderr = os.Inherit,
+        check = false
       )
       mill.util.ProcessUtil.toResult(processResult).getOrThrow
     }
