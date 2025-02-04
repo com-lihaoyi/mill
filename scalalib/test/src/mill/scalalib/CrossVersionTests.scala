@@ -124,7 +124,7 @@ object CrossVersionTests extends TestSuite {
           |""".stripMargin
     }
 
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   def init() = UnitTester(TestCases, null)

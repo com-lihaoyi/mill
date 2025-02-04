@@ -40,7 +40,7 @@ object KotlinJsKotlinVersionsTests extends TestSuite {
     object bar extends Cross[KotlinJsCrossModule](kotlinVersions)
     object qux extends Cross[KotlinJsQuxCrossModule](kotlinVersions)
 
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   private def testEval() = UnitTester(module, resourcePath)

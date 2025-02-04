@@ -23,7 +23,7 @@ object ScalaValidatedPathRefTests extends TestSuite {
     def checkedTuplePathRef: T[Tuple1[PathRef]] =
       Task { Tuple1(mkDirWithFile().withRevalidateOnce) }
 
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   def tests: Tests = Tests {

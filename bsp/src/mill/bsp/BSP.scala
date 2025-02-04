@@ -10,7 +10,7 @@ import mill.scalalib.CoursierModule
 
 object BSP extends ExternalModule with CoursierModule {
 
-  lazy val millDiscover: Discover = Discover[this.type]
+  def millDiscover = Discover[this.type]
 
   private def bspWorkerLibs: T[Agg[PathRef]] = Task {
     millProjectModule("mill-bsp-worker", repositoriesTask())

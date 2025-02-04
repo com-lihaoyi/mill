@@ -22,7 +22,7 @@ object ProguardTests extends TestSuite {
     override def runClasspath: T[Seq[PathRef]] =
       Task { super.runClasspath() ++ proguardContribClasspath() }
 
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   val testModuleSourcesPath: Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "proguard"

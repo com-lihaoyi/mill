@@ -75,7 +75,7 @@ object CompileRunTests extends TestSuite {
       object test extends ScalaNativeTests with TestModule.Utest
     }
 
-    override lazy val millDiscover: Discover = Discover[this.type]
+    override def millDiscover = Discover[this.type]
   }
 
   val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-native-world"

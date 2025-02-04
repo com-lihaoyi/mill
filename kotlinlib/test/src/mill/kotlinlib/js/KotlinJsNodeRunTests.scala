@@ -44,7 +44,7 @@ object KotlinJsNodeRunTests extends TestSuite {
 
     object foo extends Cross[KotlinJsModuleKindCross](matrix)
 
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   private def testEval() = UnitTester(module, resourcePath)

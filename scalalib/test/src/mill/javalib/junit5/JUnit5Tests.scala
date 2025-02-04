@@ -11,7 +11,7 @@ object JUnit5Tests extends TestSuite {
 
   object module extends TestBaseModule with JavaModule {
     object test extends JavaTests with TestModule.Junit5
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   val testModuleSourcesPath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "junit5"

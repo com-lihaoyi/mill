@@ -23,7 +23,7 @@ object KotlinJsCompileTests extends TestSuite {
       override def moduleDeps = Seq(module.bar)
     }
 
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   private def testEval() = UnitTester(module, resourcePath)

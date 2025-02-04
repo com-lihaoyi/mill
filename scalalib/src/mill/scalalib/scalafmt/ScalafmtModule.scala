@@ -98,5 +98,5 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule with TaskModule
         )
     }
 
-  lazy val millDiscover: Discover = Discover[this.type]
+  def millDiscover = Discover[this.type]
 }

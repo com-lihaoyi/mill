@@ -20,7 +20,7 @@ object TestClassLoaderTests extends TestSuite {
       }
     }
 
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "classloader-test"

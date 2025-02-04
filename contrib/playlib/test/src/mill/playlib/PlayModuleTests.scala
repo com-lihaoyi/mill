@@ -17,7 +17,7 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
       override def ivyDeps = Task { super.ivyDeps() ++ Agg(ws()) }
     }
 
-    lazy val millDiscover = mill.define.Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
   val resourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "playmulti"
 

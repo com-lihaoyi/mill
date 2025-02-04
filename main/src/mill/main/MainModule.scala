@@ -264,7 +264,7 @@ trait MainModule extends BaseModule0 {
             else {
               val mainDataOpt = evaluator
                 .rootModule
-                .millDiscover
+                .implicitMillDiscover
                 .resolveEntrypoint(t.ctx.enclosingCls, t.ctx.segments.last.value)
 
               mainDataOpt match {
@@ -349,7 +349,7 @@ trait MainModule extends BaseModule0 {
           case _ => None
         }
 
-        val methodMap = evaluator.rootModule.millDiscover.classInfo
+        val methodMap = evaluator.rootModule.implicitMillDiscover.classInfo
         val tasks = methodMap
           .get(cls)
           .map { node => node.declaredTasks.map(task => s"${t.module}.${task.name}") }

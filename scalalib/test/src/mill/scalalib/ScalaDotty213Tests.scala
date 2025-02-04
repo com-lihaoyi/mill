@@ -13,7 +13,7 @@ object ScalaDotty213Tests extends TestSuite {
         Agg(ivy"org.scala-lang.modules::scala-xml:1.2.0".withDottyCompat(scalaVersion()))
     }
 
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   def tests: Tests = Tests {

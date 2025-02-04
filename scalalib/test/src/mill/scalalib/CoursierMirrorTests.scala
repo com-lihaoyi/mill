@@ -17,7 +17,7 @@ object CoursierMirrorTests extends TestSuite {
       def scalaVersion = "2.13.12"
     }
 
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   def tests: Tests = Tests {

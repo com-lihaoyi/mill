@@ -22,7 +22,7 @@ trait HelloWorldTests extends TestSuite {
       override def twirlConstructorAnnotations: Seq[String] = testConstructorAnnotations
     }
 
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   object HelloWorldWithInclusiveDot extends TestBaseModule {
@@ -32,7 +32,7 @@ trait HelloWorldTests extends TestSuite {
       override def twirlFormats = super.twirlFormats() ++ Map("svg" -> "play.twirl.api.HtmlFormat")
     }
 
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   def resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))

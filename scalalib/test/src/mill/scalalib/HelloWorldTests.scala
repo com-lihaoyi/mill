@@ -39,13 +39,13 @@ object HelloWorldTests extends TestSuite {
 
   object HelloWorld extends TestBaseModule {
     object core extends HelloWorldModule
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
   object HelloWorldNonPrecompiledBridge extends TestBaseModule {
     object core extends HelloWorldModule {
       override def scalaVersion = "2.12.1"
     }
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
 
   }
   object CrossHelloWorld extends TestBaseModule {
@@ -55,38 +55,38 @@ object HelloWorldTests extends TestSuite {
           scala213Version
         )
     trait HelloWorldCross extends CrossScalaModule
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   object HelloWorldDefaultMain extends TestBaseModule {
     object core extends HelloWorldModule
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   object HelloWorldWithoutMain extends TestBaseModule {
     object core extends HelloWorldModule {
       override def mainClass = None
     }
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   object HelloWorldWithMain extends TestBaseModule {
     object core extends HelloWorldModuleWithMain
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   object HelloWorldFatalWarnings extends TestBaseModule {
     object core extends HelloWorldModule {
       override def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
     }
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   object HelloWorldScalaOverride extends TestBaseModule {
     object core extends HelloWorldModule {
       override def scalaVersion: T[String] = scala213Version
     }
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world"

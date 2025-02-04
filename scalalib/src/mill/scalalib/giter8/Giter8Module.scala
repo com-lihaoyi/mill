@@ -9,7 +9,7 @@ import mill.main.BuildInfo
 import mill.api.Loose
 
 object Giter8Module extends ExternalModule with Giter8Module {
-  lazy val millDiscover: Discover = Discover[this.type]
+  def millDiscover = Discover[this.type]
 }
 
 trait Giter8Module extends CoursierModule {

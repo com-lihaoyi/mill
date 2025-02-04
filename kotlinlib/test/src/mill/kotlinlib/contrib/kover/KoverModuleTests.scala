@@ -45,7 +45,7 @@ object KoverModuleTests extends TestSuite {
       object test extends KotlinTests with module.KotestTestModule
     }
 
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   def tests: Tests = Tests {

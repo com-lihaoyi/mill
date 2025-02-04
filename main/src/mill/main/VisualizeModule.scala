@@ -20,7 +20,7 @@ object VisualizeModule extends ExternalModule with VisualizeModule {
     MavenRepository("https://oss.sonatype.org/content/repositories/releases")
   )
 
-  lazy val millDiscover: Discover = Discover[this.type]
+  def millDiscover = Discover[this.type]
 }
 trait VisualizeModule extends mill.define.TaskModule {
   def repositories: Seq[Repository]

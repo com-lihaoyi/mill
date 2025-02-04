@@ -7,7 +7,7 @@ import mill.{Command, Module, Task}
 import scala.util.{Failure, Success, Try, Using}
 
 object InitModule extends ExternalModule with InitModule {
-  lazy val millDiscover: Discover = Discover[this.type]
+  def millDiscover = Discover[this.type]
 }
 
 trait InitModule extends Module {

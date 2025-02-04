@@ -7,7 +7,7 @@ import mill.define.{Discover, ExternalModule}
 @mill.api.experimental
 object InitMavenModule extends ExternalModule with BuildGenModule {
 
-  lazy val millDiscover: Discover = Discover[this.type]
+  def millDiscover = Discover[this.type]
 
   def buildGenClasspath: T[Loose.Agg[PathRef]] = BuildGenModule.millModule("mill-main-init-maven")
 

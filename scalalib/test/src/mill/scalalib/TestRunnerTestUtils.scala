@@ -17,13 +17,13 @@ object TestRunnerTestUtils {
   object testrunner extends TestRunnerTestModule {
     def computeTestForkGrouping(x: Seq[String]) = Seq(x)
 
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   object testrunnerGrouping extends TestRunnerTestModule {
     def computeTestForkGrouping(x: Seq[String]) = x.sorted.grouped(2).toSeq
 
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   trait TestRunnerTestModule extends TestBaseModule with ScalaModule {

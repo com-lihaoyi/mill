@@ -28,7 +28,7 @@ object KotlinJsLinkTests extends TestSuite {
 
     object foo extends Cross[KotlinJsCrossModule](Seq(true, false))
 
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   private def testEval() = UnitTester(module, resourcePath)

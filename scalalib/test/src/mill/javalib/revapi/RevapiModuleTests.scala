@@ -68,7 +68,7 @@ object RevapiModuleTests extends TestSuite {
       override def publishVersion: T[String] = root1.last
     }
     object module1 extends module {
-      lazy val millDiscover: Discover = Discover[this.type]
+      def millDiscover = Discover[this.type]
     }
     object module2 extends module with RevapiModule {
       override def revapiConfigFiles: T[Seq[PathRef]] =
@@ -77,7 +77,7 @@ object RevapiModuleTests extends TestSuite {
         super.revapiClasspath() ++ Seq(PathRef(conf))
       }
 
-      lazy val millDiscover: Discover = Discover[this.type]
+      def millDiscover = Discover[this.type]
     }
 
     var eval = UnitTester(module1, root1)
@@ -114,7 +114,7 @@ object RevapiModuleTests extends TestSuite {
         super.revapiClasspath() ++ Seq(PathRef(conf))
       }
 
-      lazy val millDiscover: Discover = Discover[this.type]
+      def millDiscover = Discover[this.type]
     }
 
     val eval = UnitTester(module, os.temp.dir())

@@ -12,7 +12,7 @@ object ScalaSemanticDbTests extends TestSuite {
   object SemanticWorld extends TestBaseModule {
     object core extends SemanticModule
 
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   def tests: Tests = Tests {

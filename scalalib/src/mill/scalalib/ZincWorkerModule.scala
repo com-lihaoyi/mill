@@ -14,7 +14,7 @@ import mill.util.Util.millProjectModule
  * A default implementation of [[ZincWorkerModule]]
  */
 object ZincWorkerModule extends ExternalModule with ZincWorkerModule with CoursierModule {
-  lazy val millDiscover = Discover[this.type]
+  def millDiscover = Discover[this.type]
 }
 
 /**

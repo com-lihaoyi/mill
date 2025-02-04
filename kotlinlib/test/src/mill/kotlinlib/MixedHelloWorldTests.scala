@@ -28,7 +28,7 @@ object MixedHelloWorldTests extends TestSuite {
     }
     object main extends Cross[MainCross](kotlinVersions)
 
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   val resourcePath =

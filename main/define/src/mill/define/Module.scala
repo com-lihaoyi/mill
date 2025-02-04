@@ -14,7 +14,7 @@ import scala.reflect.ClassTag
  * the concrete instance.
  */
 trait Module extends Module.BaseClass with OverrideMapping.Wrapper {
-  implicit def implicitMillDiscover: Discover = millOuterCtx.discover
+  implicit lazy val implicitMillDiscover: Discover = millOuterCtx.discover
 
   /**
    * Miscellaneous machinery around traversing & querying the build hierarchy,

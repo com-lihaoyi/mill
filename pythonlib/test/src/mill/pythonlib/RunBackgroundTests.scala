@@ -11,7 +11,7 @@ object RunBackgroundTests extends TestSuite {
     object foo extends PythonModule {
       override def mainScript = Task.Source(millSourcePath / "src" / "foo.py")
     }
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "run-background"

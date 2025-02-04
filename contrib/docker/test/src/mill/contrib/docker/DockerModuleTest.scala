@@ -49,7 +49,7 @@ object DockerModuleTest extends TestSuite {
       override def dockerEnv = Map("DOCKER_HOST" -> "wrong_host")
     }
 
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   val testArtifactName = "mill-docker-contrib-test"

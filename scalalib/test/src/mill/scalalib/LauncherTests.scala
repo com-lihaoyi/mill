@@ -15,7 +15,7 @@ object LauncherTests extends TestSuite {
 
     def javacOptions = Seq("-target", "1.8", "-source", "1.8")
 
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "launcher"

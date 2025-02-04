@@ -14,7 +14,7 @@ object KtfmtModuleTests extends TestSuite {
   object module extends TestBaseModule with KotlinModule with KtfmtModule {
     override def kotlinVersion: T[String] = KtfmtModuleTests.kotlinVersion
 
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   def tests: Tests = Tests {
@@ -128,7 +128,7 @@ object KtfmtModuleTests extends TestSuite {
 
     object module extends TestBaseModule with KotlinModule {
       override def kotlinVersion: T[String] = KtfmtModuleTests.kotlinVersion
-      lazy val millDiscover: Discover = Discover[this.type]
+      def millDiscover = Discover[this.type]
     }
 
     val eval = UnitTester(module, modulesRoot)

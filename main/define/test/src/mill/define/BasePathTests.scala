@@ -15,7 +15,7 @@ object BasePathTests extends TestSuite {
       }
     }
 
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   val testGraphs = new TestGraphs

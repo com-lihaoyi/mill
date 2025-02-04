@@ -16,7 +16,7 @@ object ScalaAmmoniteTests extends TestSuite {
       override def scalaVersion = T("2.13.5")
       override def ammoniteVersion = T("2.5.0")
     }
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   def tests: Tests = Tests {

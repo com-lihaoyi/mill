@@ -122,6 +122,6 @@ object RuffModule extends ExternalModule with RuffModule with TaskModule {
     )
   }
 
-  lazy val millDiscover: Discover = Discover[this.type]
+  def millDiscover = Discover[this.type]
 
 }

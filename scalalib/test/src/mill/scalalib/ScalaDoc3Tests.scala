@@ -13,7 +13,7 @@ object ScalaDoc3Tests extends TestSuite {
     object static extends ScalaModule {
       def scalaVersion = "3.0.0-RC1"
     }
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   // a project without static docs (i.e. only api docs, no markdown files)
@@ -21,7 +21,7 @@ object ScalaDoc3Tests extends TestSuite {
     object empty extends ScalaModule {
       def scalaVersion = "3.0.0-RC1"
     }
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
 
   }
 
@@ -34,7 +34,7 @@ object ScalaDoc3Tests extends TestSuite {
         millSourcePath / "docs2"
       )
     }
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "scaladoc3"

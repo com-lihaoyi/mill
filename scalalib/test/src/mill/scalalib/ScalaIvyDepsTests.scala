@@ -16,7 +16,7 @@ object ScalaIvyDepsTests extends TestSuite {
       override def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.1.4")
     }
 
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   object TransitiveRunIvyDeps extends TestBaseModule {
@@ -30,7 +30,7 @@ object ScalaIvyDepsTests extends TestSuite {
       def moduleDeps = Seq(upstream)
     }
 
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   object TransitiveRunIvyDeps2 extends TestBaseModule {
@@ -44,7 +44,7 @@ object ScalaIvyDepsTests extends TestSuite {
       def runModuleDeps = Seq(upstream)
     }
 
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   def tests: Tests = Tests {

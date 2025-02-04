@@ -338,7 +338,7 @@ object MillBuildRootModule {
       rootModuleInfo: RootModule.Info,
       scalaCompilerResolver: ScalaCompilerWorker.Resolver
   ) extends MillBuildRootModule() {
-    override lazy val millDiscover: Discover = Discover[this.type]
+    override def millDiscover = Discover[this.type]
   }
 
   case class Info(

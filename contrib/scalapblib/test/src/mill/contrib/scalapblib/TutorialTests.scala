@@ -26,7 +26,7 @@ object TutorialTests extends TestSuite {
       override def scalaPBVersion = testScalaPbVersion
     }
 
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   object TutorialWithProtoc extends TutorialBase {
@@ -34,7 +34,7 @@ object TutorialTests extends TestSuite {
       override def scalaPBProtocPath = Some("/dev/null")
     }
 
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
 
   }
 
@@ -46,7 +46,7 @@ object TutorialTests extends TestSuite {
         )
       }
     }
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   object TutorialWithSpecificSources extends TutorialBase {
@@ -60,14 +60,14 @@ object TutorialTests extends TestSuite {
         PathRef(millSourcePath / "protobuf/tutorial")
       )
     }
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   object TutorialWithScala3Soures extends TutorialBase {
     object core extends TutorialModule {
       override def scalaPBScala3Sources = { true }
     }
-    lazy val millDiscover: Discover = Discover[this.type]
+    def millDiscover = Discover[this.type]
   }
 
   val resourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))

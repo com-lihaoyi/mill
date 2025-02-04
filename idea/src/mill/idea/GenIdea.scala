@@ -22,5 +22,5 @@ object GenIdea extends ExternalModule with mill.define.TaskModule {
     }
   }
 
-  override lazy val millDiscover: Discover = Discover[this.type]
+  override def millDiscover = Discover[this.type]
 }
