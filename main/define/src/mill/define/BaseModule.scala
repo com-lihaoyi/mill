@@ -35,7 +35,8 @@ abstract class BaseModule(
 
   override def millSourcePath = millOuterCtx.millSourcePath
 
-  // `Discover` needs to be defined by every concrete `Module` object
+  // `Discover` needs to be defined by every concrete `Module` object, to gather
+  // compile-time metadata about the tasks and commands at for use at runtime
   protected def millDiscover: Discover
   // We need to propagate the `Discover` object implicitly throughout the module tree
   // so it can be used for override detection
