@@ -37,7 +37,8 @@ trait Ctx {
   private[mill] def withMillSourcePath(millSourcePath: os.Path): Ctx
   private[mill] def withSegment(segment: Segment): Ctx
   private[mill] def withSegments(segments: Segments): Ctx
-  private[mill] def withEnclosingModule(enclosingModule: Any): Ctx = this
+  private[mill] def withEnclosingModule(enclosingModule: Any): Ctx
+  private[mill] def withDiscover(discover: Discover): Ctx
 }
 
 object Ctx extends LowPriCtx {
@@ -59,8 +60,8 @@ object Ctx extends LowPriCtx {
     def withMillSourcePath(millSourcePath: os.Path): Ctx = copy(millSourcePath = millSourcePath)
     def withSegment(segment: Segment): Ctx = copy(segment = segment)
     def withSegments(segments: Segments): Ctx = copy(segments = segments)
-    override def withEnclosingModule(enclosingModule: Any): Ctx =
-      copy(enclosingModule = enclosingModule)
+    def withEnclosingModule(enclosingModule: Any): Ctx = copy(enclosingModule = enclosingModule)
+    def withDiscover(discover: Discover): Ctx = copy(discover = discover)
   }
 
   /**

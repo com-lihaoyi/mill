@@ -42,6 +42,7 @@ abstract class BaseModule(
   implicit def millImplicitBaseModule: BaseModule.Implicit = BaseModule.Implicit(this)
   protected def millDiscover: Discover
   override implicit lazy val implicitMillDiscover: Discover = millDiscover
+  def millOuterCtx = super.millOuterCtx.withDiscover(millDiscover)
 
 }
 
@@ -89,7 +90,6 @@ abstract class ExternalModule(implicit
       Caller(null)
     ) {
 
-  implicit def millDiscoverImplicit: Discover = millDiscover
   assert(
     !" #".exists(millModuleEnclosing0.value.contains(_)),
     "External modules must be at a top-level static path, not " + millModuleEnclosing0.value
