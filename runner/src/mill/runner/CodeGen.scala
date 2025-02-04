@@ -237,7 +237,7 @@ object CodeGen {
       if (segmentsNonEmpty) "build_.package_.implicitMillDiscover"
       else "_root_.mill.define.Discover[this.type]"
 
-    s"override def millDiscover: _root_.mill.define.Discover = $rhs"
+    s"override lazy val millDiscover: _root_.mill.define.Discover = $rhs"
   }
 
   def rootMiscInfo(
