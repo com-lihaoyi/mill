@@ -265,15 +265,12 @@ trait MainModule extends BaseModule0 {
               val mainDataOpt = evaluator
                 .rootModule
                 .millDiscover
-                .classInfo
-                .get(t.ctx.enclosingCls)
-                .flatMap(_.entryPoints.find(_.name == t.ctx.segments.last.value))
-                .headOption
+                .resolveEntrypoint(t.ctx.enclosingCls, t.ctx.segments.last.value)
 
               mainDataOpt match {
                 case Some(mainData) if mainData.renderedArgSigs.nonEmpty =>
                   val rendered = mainargs.Renderer.formatMainMethodSignature(
-                    mainDataOpt.get,
+                    mainData,
                     leftIndent = 2,
                     totalWidth = 100,
                     leftColWidth = mainargs.Renderer.getLeftColWidth(mainData.renderedArgSigs),
