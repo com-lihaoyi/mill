@@ -104,6 +104,19 @@ trait CoursierModule extends mill.Module {
     }
   }
 
+  // bin-compat shim
+  def resolveDeps(
+      deps: Task[Agg[BoundDep]],
+      sources: Boolean,
+      artifactTypes: Option[Set[Type]]
+  ): Task[Agg[PathRef]] =
+    resolveDeps(
+      deps,
+      sources,
+      artifactTypes,
+      enableMillInternalDependencies = false
+    )
+
   @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
   def resolveDeps(
       deps: Task[Agg[BoundDep]],
