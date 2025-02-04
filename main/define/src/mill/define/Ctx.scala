@@ -3,33 +3,58 @@ package mill.define
 import scala.annotation.{compileTimeOnly, implicitNotFound}
 
 /**
- * The contextual information provided by a [[mill.define.Module]].
- *
- * @param enclosing
- * @param lineNum the line number that this module is defined at. Useful for
- *                error reporting purposes
- * @param segment
- * @param millSourcePath
- * @param segments
- * @param external
- * @param foreign
- * @param fileName the file name that this module is defined in. Useful for
- *                 error reporting purposes
- * @param enclosingCls
- * @param crossValues
+ * The contextual information provided to a [[mill.define.Module]] or [[mill.define.Task]]
  */
 @implicitNotFound("Modules and Tasks can only be defined within a mill Module")
 trait Ctx {
   def enclosing: String
+
+  /**
+   * the line number that this module is defined at. Useful for
+   * error reporting purposes
+   */
   def lineNum: Int
+
+  /**
+   * The name of this task or module
+   */
   def segment: Segment
+
+  /**
+   * The enclosing module's default source root
+   */
   def millSourcePath: os.Path
+
+  /**
+   * The full path of this task or module, from the [[BaseModule]]
+   */
   def segments: Segments
+
+  /**
+   * whether this is in an [[ExternalModule]]
+   */
   def external: Boolean
+
+  /**
+   * the file name that this module is defined in. Useful for
+   * error reporting purposes
+   */
   def fileName: String
+
+  /**
+   * The `class` or `trait` that lexically surrounds this definition
+   */
   def enclosingCls: Class[_]
-  def enclosingModule: Any = null
+
+  /**
+   * The runtime [[Module]] object that contains this definition
+   */
+  def enclosingModule: Any
   def crossValues: Seq[Any]
+
+  /**
+   * The [[Discover]] instance associate with this [[BaseModule]] hierarchy
+   */
   def discover: Discover
 
   private[mill] def withCrossValues(crossValues: Seq[Any]): Ctx
@@ -49,7 +74,7 @@ object Ctx extends LowPriCtx {
       segments: Segments,
       external: Boolean,
       fileName: String,
-      override val enclosingModule: Any,
+      enclosingModule: Any,
       crossValues: Seq[Any],
       discover: Discover
   ) extends Ctx {
@@ -80,7 +105,7 @@ object Ctx extends LowPriCtx {
       segments0: Segments,
       external0: External,
       fileName: sourcecode.File,
-      enclosing: Caller[OverrideMapping.Wrapper],
+      enclosingModule: Caller[OverrideMapping.Wrapper],
       enclosingClass: EnclosingClass,
       discover: Discover
   ): Ctx = {
@@ -96,14 +121,14 @@ object Ctx extends LowPriCtx {
       millModuleBasePath0.value,
       segments0 ++
         OverrideMapping.computeSegments(
-          enclosing.value,
+          enclosingModule.value,
           discover,
           lastSegmentStr,
           enclosingClass.value
         ),
       external0.value,
       fileName.value,
-      enclosing.value,
+      enclosingModule.value,
       Seq(),
       discover
     )

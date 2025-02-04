@@ -20,7 +20,7 @@ abstract class SubfolderModule()(implicit
         segments0 = Segments.labels(subFolderInfo.segments.init: _*),
         external0 = Ctx.External(false),
         fileName = millFile0,
-        enclosing = Caller(null),
+        enclosingModule = Caller(null),
         enclosingClass = EnclosingClass(null),
         discover = null
       )
