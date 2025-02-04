@@ -300,15 +300,21 @@ trait Resolve[T] {
       ) match {
         case ResolveCore.Success(value) => Right(value)
         case ResolveCore.NotFound(segments, found, next, possibleNexts) =>
-          val allPossibleNames =
-            rootModule.implicitMillDiscover.classInfo.values.flatMap(_.declaredTasks).toSet
+          val allPossibleNames = rootModule
+            .implicitMillDiscover
+            .classInfo
+            .values
+            .flatMap(_.declaredTasks)
+            .map(_.name)
+            .toSet
+
           Left(ResolveNotFoundHandler(
             selector = sel,
             segments = segments,
             found = found,
             next = next,
             possibleNexts = possibleNexts,
-            allPossibleNames = allPossibleNames.map(_.name)
+            allPossibleNames = allPossibleNames
           ))
         case ResolveCore.Error(value) => Left(value)
       }

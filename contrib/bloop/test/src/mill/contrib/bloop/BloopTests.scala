@@ -4,6 +4,7 @@ import bloop.config.{Config => BloopConfig}
 import mill._
 import mill.scalajslib.api.ModuleKind
 import mill.scalalib._
+import mill.define.Discover
 import mill.scalanativelib.api.ReleaseMode
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
