@@ -1206,6 +1206,8 @@ trait JavaModule
     super.forkEnv()
   }
 
+  def launcher: T[PathRef] = Task { launcher0() }
+
   /**
    * Task that print the transitive dependency tree to STDOUT.
    * NOTE: that when `whatDependsOn` is used with `inverse` it will just

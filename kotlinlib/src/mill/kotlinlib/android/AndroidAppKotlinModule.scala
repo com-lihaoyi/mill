@@ -251,7 +251,8 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
           "-Dlayoutlib.thread.profile.timeoutms=10000",
           "-Djava.security.manager=allow"
         ),
-        mainArgs = Seq(composePreviewArgs().path.toString())
+        mainArgs = Seq(composePreviewArgs().path.toString()),
+        cwd = Task.dest
       )
       mill.util.ProcessUtil.toResult(processResult).getOrThrow
       val previewGenOut = processResult.out.lines()

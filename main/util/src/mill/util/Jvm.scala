@@ -35,9 +35,9 @@ object Jvm extends CoursierSupport {
    * @param env Environment variables used when starting the forked JVM
    * @param propagateEnv If `true` then the current process' environment variables are propagated to subprocess
    * @param cwd The working directory to be used by the forked JVM
-   * @param stdin Standard input override
-   * @param stdout Standard output override
-   * @param stderr Standard error override
+   * @param stdin Standard input
+   * @param stdout Standard output
+   * @param stderr Standard error
    * @param mergeErrIntoOut If `true` then the error output is merged into standard output
    */
   def call(
@@ -70,20 +70,20 @@ object Jvm extends CoursierSupport {
         classPath
       }
 
-    val commandArgs =
-      Vector(javaExe(javaHome)) ++
+    val commandArgs = (Vector(javaExe(javaHome)) ++
         jvmArgs ++
-        Vector("-cp", cp.mkString(java.io.File.pathSeparator), mainClass) ++
+        Option.when(cp.nonEmpty)(Vector("-cp", cp.mkString(java.io.File.pathSeparator))).getOrElse(Vector.empty) ++
+        Vector(mainClass) ++
         mainArgs
+        ).filterNot(_.isBlank)
 
-    val workingDir1 = Option(cwd).getOrElse(ctx.dest)
-    os.makeDir.all(workingDir1)
+    if (cwd != null) os.makeDir.all(cwd)
 
-    ctx.log.debug(s"Run subprocess with args: ${commandArgs.map(a => s"'${a}'").mkString(" ")}")
+    ctx.log.debug(s"Call subprocess with args: ${commandArgs.map(a => s"'${a}'").mkString(" ")}")
 
     os.proc(commandArgs)
       .call(
-        cwd = workingDir1,
+        cwd = cwd,
         env = env,
         check = false,
         stdin = stdin,
@@ -148,22 +148,18 @@ object Jvm extends CoursierSupport {
         classPath
       }
 
-    val cpArgument = if (cp.nonEmpty) {
-      Vector("-cp", cp.mkString(java.io.File.pathSeparator))
-    } else Seq.empty
-    val mainClassArgument = if (mainClass.nonEmpty) {
-      Seq(mainClass)
-    } else Seq.empty
-    val args =
-      Vector(javaExe(javaHome)) ++
-        jvmArgs ++
-        cpArgument ++
-        mainClassArgument ++
-        mainArgs
+    val commandArgs =    (Vector(javaExe(javaHome)) ++
+      jvmArgs ++
+      Option.when(cp.nonEmpty)(Vector("-cp", cp.mkString(java.io.File.pathSeparator))).getOrElse(Vector.empty) ++
+      Vector(mainClass) ++
+      mainArgs
+      ).filterNot(_.isBlank)
 
-    ctx.log.debug(s"Run subprocess with args: ${args.map(a => s"'${a}'").mkString(" ")}")
+    if (cwd != null) os.makeDir.all(cwd)
 
-    val process = os.proc(args).spawn(
+    ctx.log.debug(s"Spawn subprocess with args: ${commandArgs.map(a => s"'${a}'").mkString(" ")}")
+
+    val process = os.proc(commandArgs).spawn(
       cwd = cwd,
       env = env,
       stdin = stdin,

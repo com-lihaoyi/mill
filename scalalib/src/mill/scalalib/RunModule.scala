@@ -53,7 +53,8 @@ trait RunModule extends WithZincWorker {
         classPath = zincWorker().classpath().map(_.path).toVector,
         mainArgs = Seq(classpath.mkString(",")),
         javaHome = zincWorker().javaHome().map(_.path),
-        stdout = os.Pipe
+        stdout = os.Pipe,
+        cwd = Task.dest
       )
       mill.util.ProcessUtil.toResult(processResult).getOrThrow
       processResult.out.lines()
@@ -340,7 +341,7 @@ object RunModule {
           env = env,
           mainArgs = mainArgs,
           cwd = cwd,
-          stdin = ProcessInput.makeSourceInput(""): os.ProcessInput,
+          stdin = "",
           stdout = stdout,
           stderr = stderr,
           useCpPassingJar = useClasspathPassingJar,

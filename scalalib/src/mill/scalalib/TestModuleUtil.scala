@@ -112,7 +112,8 @@ private[scalalib] object TestModuleUtil {
                 selectors.flatMap(s => Seq("--selectors", s)) ++
                 args.flatMap(s => Seq("--args", s)),
             javaHome = javaHome,
-            stdout = os.Pipe
+            stdout = os.Pipe,
+            cwd = Task.dest
           )
           mill.util.ProcessUtil.toResult(processResult).getOrThrow
           processResult.out.lines().toSet
