@@ -1,0 +1,9 @@
+package build
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.13.11"
+  def ivyDeps = Agg(
+    ivy"org.apache.spark::spark-sql:3.5.4"
+  )
+}

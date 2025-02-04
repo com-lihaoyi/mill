@@ -1,0 +1,14 @@
+package build
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.13.11"
+  def ivyDeps = Agg(
+    ivy"org.apache.spark::spark-sql:3.5.4"
+  )
+
+  object test extends ScalaTests {
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.5")
+    def testFramework = "utest.runner.Framework"
+  }
+}
