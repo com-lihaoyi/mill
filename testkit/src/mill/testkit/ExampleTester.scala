@@ -1,6 +1,5 @@
 package mill.testkit
 import mill.util.Util
-import mill.main.client.EnvVars.MILL_TEST_SUITE
 import utest._
 
 /**
@@ -69,7 +68,7 @@ object ExampleTester {
 }
 
 class ExampleTester(
-    clientServerMode: Boolean,
+    val clientServerMode: Boolean,
     val workspaceSourcePath: os.Path,
     millExecutable: os.Path,
     bashExecutable: String = ExampleTester.defaultBashExecutable(),
@@ -95,6 +94,7 @@ class ExampleTester(
       processCommand(expectedSnippets, commandHead.trim)
     }
   }
+  private val millExt = if (Util.windowsPlatform) ".bat" else ""
 
   def processCommand(
       expectedSnippets: Vector[String],
@@ -102,9 +102,9 @@ class ExampleTester(
       check: Boolean = true
   ): Unit = {
     val commandStr = commandStr0 match {
-      case s"mill $rest" => s"./mill --disable-ticker $rest"
-      case s"./mill $rest" => s"./mill --disable-ticker $rest"
-      case s"curl $rest" => s"curl --retry 5 --retry-all-errors $rest"
+      case s"mill $rest" => s"./mill$millExt --disable-ticker $rest"
+      case s"./mill $rest" => s"./mill$millExt --disable-ticker $rest"
+      case s"curl $rest" => s"curl --retry 7 --retry-all-errors $rest"
       case s => s
     }
     Console.err.println(s"$workspacePath> $commandStr")
@@ -114,13 +114,19 @@ class ExampleTester(
          |------------------------------""".stripMargin
     )
 
+    val windowsPathEnv =
+      if (!Util.windowsPlatform) Map()
+      else Map(
+        "BASH_ENV" -> os.temp("export PATH=\"/c/Program Files/Git/usr/bin:$PATH\"").toString()
+      )
+
     val res = os.call(
       (bashExecutable, "-c", commandStr),
       stdout = os.Pipe,
-      stderr = os.Pipe,
+      stderr = os.Inherit,
       cwd = workspacePath,
       mergeErrIntoOut = true,
-      env = Map(MILL_TEST_SUITE -> this.getClass().toString()),
+      env = IntegrationTester.millTestSuiteEnv ++ windowsPathEnv,
       check = false
     )
 
@@ -168,7 +174,10 @@ class ExampleTester(
     val filteredOut = plainTextLines(evalResult.out).mkString("\n")
 
     for (expectedLine <- unwrappedExpected.linesIterator) {
-      assert(filteredOut.linesIterator.exists(globMatches(expectedLine, _)))
+      Predef.assert(
+        filteredOut.linesIterator.exists(globMatches(expectedLine, _)),
+        s"==== filteredOut:\n$filteredOut\n==== Missing expectedLine: \n$expectedLine"
+      )
     }
   }
 
@@ -190,7 +199,7 @@ class ExampleTester(
 
     try {
       initWorkspace()
-      os.copy.over(millExecutable, workspacePath / "mill")
+      os.copy.over(millExecutable, workspacePath / s"mill$millExt")
       for (commandBlock <- commandBlocks) processCommandBlock(commandBlock)
     } finally {
       if (clientServerMode) processCommand(Vector(), "./mill shutdown", check = false)

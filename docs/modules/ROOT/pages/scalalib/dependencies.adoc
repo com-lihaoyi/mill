@@ -1,6 +1,6 @@
 = Scala Library Dependencies
 
-include::partial$gtag-config.adoc[]
+
 
 
 This page goes into more detail about configuring third party dependencies
@@ -35,3 +35,87 @@ include::partial$example/scalalib/dependencies/4-downloading-unmanaged-jars.adoc
 == Repository Config
 
 include::partial$example/scalalib/dependencies/5-repository-config.adoc[]
+
+
+== Scala Dependencies In Detail
+
+Scala major releases up until version `2.13` are binary incompatible.
+That means, mixing dependencies of different binary platforms will result in non-working runtimes and obscure and hard to debug issues.
+
+To easily pick only a compatible version, a convention was established to append the scala major version as a suffix to the package name.footnote:[
+Scala 2 versions have the unusual version format: `{epoch}.{major}.{minor}`.]
+E.g. to select the Scala 2.13 version of a library `foo`, the final `artifactId` will contain the additional suffix `_2.13`, such that the final `artifactId` is `foo_2.13`.
+
+To always pick the right version and support cross compiling,
+you can omit the scala version and instead use a double colon (`::`) between the `organization` and the `name`, e.g. `ivy"com.typesafe.akka:akka-actor_2.12:2.5.25"`.
+Your module needs to `extends ScalaModule` though.
+
+If you want to use dependencies that are cross-published against the full Scala version, e.g. `2.12.12`,
+you can use three colons (`:::`) between `organization` and `name`, e.g.: `ivy"org.scalamacros:::paradise:2.1.1"`.
+
+.Example
+[source,scala]
+----
+def ivyDeps = Agg(
+  // explicit scala version suffix, NOT RECOMMENDED!
+  ivy"com.typesafe.akka:akka-actor_2.12:2.5.25",
+  ivy"com.typesafe.akka::akka-actor:2.5.25",
+  ivy"org.scalamacros:::paradise:2.1.1"
+)
+----
+
+=== Scala 3 interoperability
+
+Since the release of Scala 3, the binary compatibility story for Scala has changed.
+That means, Scala 3 dependencies can be mixed with Scala 2.13 dependencies.
+In fact, the Scala 3 standard library is the same as for Scala 2.13.
+
+
+[CAUTION]
+--
+As Scala 3 and Scala 2.13 have different binary platforms, but their artifacts are in general compatible, this introduces new challenges.
+
+There is currently no mechanism to bring the same dependency twice into the classpath (one for Scala 2.13 and one for Scala 3).
+--
+
+
+=== Using Scala 2.13 from Scala 3
+
+If your Scala version is a Scala 3.x, but you want to use the Scala 2.13 version of a specific library, you can use the `.withDottyCompat` method on that dependency.
+
+.Example:
+[source,scala]
+----
+def scalaVersion = "3.2.1"
+def ivyDeps = Agg(
+  ivy"com.lihaoyi::upickle:2.0.0".withDottyCompat(scalaVersion()) //1
+)
+----
+<1> This will result in a Scala 2.13 dependency `com.lihaoyi::upicke_2.13:2.0.0`
+
+
+[NOTE]
+--
+Do you wonder where the name "dotty" comes from?
+
+In the early development of Scala 3, the Scala 3 compiler was called "Dotty". Later, the name was changed to Scala 3, but the compiler project itself is still named "dotty".
+
+The dotty compiler itself is an implementation of the http://lampwww.epfl.ch/~amin/dot/fool.pdf[Dependent Object Types (DOT) calculus], which is the new basis of Scala 3. It also enhances the type system to a next level and allows features like union-types and intersection-types.
+--
+
+=== ScalaJS dependencies
+
+Scala.js introduces an additional binary platform axis.
+To the already required Scala version, there comes the Scala.js version.
+
+You can use two colons (`::`) between `name` and `version` to define a Scala.js dependency.
+Your module needs to `extends ScalaJSModule` to accept Scala.js dependencies.
+
+=== Scala Native dependencies
+
+Scala Native introduces an additional binary platform axis.
+To the already required Scala version, there comes the Scala Native version.
+
+You can use two colons (`::`) between `name` and `version` to define a Scala Native dependency.
+Your module needs to `extends ScalaNativeModule` to accept Scala Native dependencies.
+

@@ -66,6 +66,16 @@ trait DockerModule { outer: JavaModule =>
     def envVars: T[Map[String, String]] = Map.empty[String, String]
 
     /**
+     * Environment to pass to the docker commands.
+     * Example: DOCKER_DEFAULT_PLATFORM=linux/amd64
+     *
+     * See also the Docker docs on
+     * [[https://docs.docker.com/engine/reference/commandline/cli/#environment-variables Environment variables]]
+     * for more information.
+     */
+    def dockerEnv: T[Map[String, String]] = Task.env
+
+    /**
      * Commands to add as RUN instructions.
      *
      * See also the Docker docs on
@@ -138,26 +148,28 @@ trait DockerModule { outer: JavaModule =>
     }
 
     private def pullAndHash = Task.Input {
+      val env = dockerEnv()
       def imageHash() =
         os.proc(executable(), "images", "--no-trunc", "--quiet", baseImage())
-          .call(stderr = os.Inherit).out.text().trim
+          .call(stderr = os.Inherit, env = env).out.text().trim
 
       if (pullBaseImage() || imageHash().isEmpty)
         os.proc(executable(), "image", "pull", baseImage())
-          .call(stdout = os.Inherit, stderr = os.Inherit)
+          .call(stdout = os.Inherit, stderr = os.Inherit, env = env)
 
       (pullBaseImage(), imageHash())
     }
 
     final def build = Task {
-      val dest = T.dest
+      val dest = Task.dest
+      val env = dockerEnv()
 
       val asmPath = outer.assembly().path
       os.copy(asmPath, dest / asmPath.last)
 
       os.write(dest / "Dockerfile", dockerfile())
 
-      val log = T.log
+      val log = Task.log
 
       val tagArgs = tags().flatMap(t => List("-t", t))
 
@@ -168,7 +180,7 @@ trait DockerModule { outer: JavaModule =>
         if (platform().nonEmpty)
           log.info("Platform parameter is ignored when using non-docker executable")
         os.proc(executable(), "build", tagArgs, pullLatestBase, dest)
-          .call(stdout = os.Inherit, stderr = os.Inherit)
+          .call(stdout = os.Inherit, stderr = os.Inherit, env = env)
       } else {
         os.proc(
           executable(),
@@ -180,17 +192,20 @@ trait DockerModule { outer: JavaModule =>
           platform(),
           dest
         )
-          .call(stdout = os.Inherit, stderr = os.Inherit)
+          .call(stdout = os.Inherit, stderr = os.Inherit, env = env)
       }
-      log.info(s"Docker build completed ${if (result.exitCode == 0) "successfully"
-        else "unsuccessfully"} with ${result.exitCode}")
+      log.info(s"Docker build completed ${
+          if (result.exitCode == 0) "successfully"
+          else "unsuccessfully"
+        } with ${result.exitCode}")
       tags()
     }
 
     final def push() = Task.Command {
       val tags = build()
+      val env = dockerEnv()
       tags.foreach(t =>
-        os.proc(executable(), "push", t).call(stdout = os.Inherit, stderr = os.Inherit)
+        os.proc(executable(), "push", t).call(stdout = os.Inherit, stderr = os.Inherit, env = env)
       )
     }
   }

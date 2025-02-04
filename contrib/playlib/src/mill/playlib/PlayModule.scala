@@ -26,6 +26,18 @@ trait PlayApiModule extends Dependencies with Router with Server {
 
 }
 trait PlayModule extends PlayApiModule with Static with Twirl {
+  override def twirlScalaVersion: T[String] = Task {
+    if scalaVersion().startsWith("2.13.") then
+      // TODO: This determines which version of `twirl-compiler` library
+      // will be used to source-generate scala files from twirl sources,
+      // which will then be further compiled by the Scala compiler corresponding to `scalaVersion`.
+      // The Scala 3 version of `twirl-compiler` generates code that
+      // is not source compatible with scala 2 - so we should downgrade it to 2.13 version.
+      mill.main.BuildInfo.workerScalaVersion213
+    else
+      super.twirlScalaVersion()
+  }
+
   override def twirlVersion: T[String] = Task {
     playMinorVersion() match {
       case "2.6" => "1.3.16"

@@ -19,7 +19,7 @@ object `package` extends RootModule with KotlinModule {
     }
     val ivyDepsString = prettyIvyDeps.mkString(" + \"\\n\" + \n")
     os.write(
-      T.dest / s"MyDeps.kt",
+      Task.dest / s"MyDeps.kt",
       s"""
          |package foo
          |
@@ -29,7 +29,7 @@ object `package` extends RootModule with KotlinModule {
       """.stripMargin
     )
 
-    Seq(PathRef(T.dest))
+    Seq(PathRef(Task.dest))
   }
 
   def lineCount: T[Int] = Task {
@@ -42,7 +42,7 @@ object `package` extends RootModule with KotlinModule {
 
   def forkArgs: T[Seq[String]] = Seq(s"-Dmy.line.count=${lineCount()}")
 
-  def printLineCount() = T.command { println(lineCount()) }
+  def printLineCount() = Task.Command { println(lineCount()) }
 }
 
 //// SNIPPET:COMMANDS

@@ -9,24 +9,60 @@
 //// SNIPPET:BUILD
 package build
 
-import mill._
+import mill._, javalib._
+
 import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}
+import mill.javalib.android.AndroidTestModule
 
 // Create and configure an Android SDK module to manage Android SDK paths and tools.
 object androidSdkModule0 extends AndroidSdkModule {
   def buildToolsVersion = "35.0.0"
-  def bundleToolVersion = "1.17.2"
 }
 
 // Actual android application
 object app extends AndroidAppModule {
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+  def androidMinSdk = 19
+  def androidCompileSdk = 35
 
   // Configuration for ReleaseKey
-  def androidReleaseKeyName: T[String] = Task { "releaseKey.jks" }
-  def androidReleaseKeyAlias: T[String] = Task { "releaseKey" }
-  def androidReleaseKeyPass: T[String] = Task { "MillBuildTool" }
-  def androidReleaseKeyStorePass: T[String] = Task { "MillBuildTool" }
+  def androidReleaseKeyName: T[Option[String]] = Task { Some("releaseKey.jks") }
+  def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
+  def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
+  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
+
+  override def androidVirtualDeviceIdentifier: String = "java-test"
+
+  object test extends AndroidAppTests with TestModule.Junit4 {
+    def testFramework = "com.novocode.junit.JUnitFramework"
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy"junit:junit:4.13.2"
+    )
+  }
+
+  object it extends AndroidAppInstrumentedTests with AndroidTestModule.AndroidJUnit {
+
+    def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+
+    override def instrumentationPackage = "com.helloworld.app"
+
+    /* TODO currently the dependency resolution ignores the platform type and kotlinx-coroutines-core has
+     * conflicting classes with kotlinx-coroutines-core-jvm . Remove the exclusions once the dependency
+     * resolution resolves conflicts between androidJvm and jvm platform types
+     */
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy"androidx.test.ext:junit:1.2.1".exclude((
+        "org.jetbrains.kotlinx",
+        "kotlinx-coroutines-core-jvm"
+      )),
+      ivy"androidx.test:runner:1.6.2",
+      ivy"androidx.test.espresso:espresso-core:3.5.1".exclude((
+        "org.jetbrains.kotlinx",
+        "kotlinx-coroutines-core-jvm"
+      )),
+      ivy"junit:junit:4.13.2"
+    )
+  }
 
 }
 
@@ -52,14 +88,81 @@ object app extends AndroidAppModule {
 //
 // ----
 // .
-// ├── app
-// │   ├── AndroidManifest.xml
-// │   ├── releaseKey.jks
-// │   ├── resources
-// │   │   └── values
-// │   │       ├── colors.xml
-// │   │       └── strings.xml
-// │   └── src/main/java/com/helloworld/app/MainActivity.java
-// └── build.mill
+//├── app
+//│     └── src
+//│         ├── androidTest/java/com/helloworld/app/ExampleInstrumentedTest.java
+//│         ├── main
+//│         │     ├── AndroidManifest.xml
+//│         │     ├── java/com/helloworld/app/MainActivity.java
+//│         │     └── res
+//│         │         └── values
+//│         │             ├── colors.xml
+//│         │             └── strings.xml
+//│         └── test/java/com/helloworld/app/ExampleUnitTest.java
+//└── build.mill
 // ----
 //
+
+/** Usage
+
+> ./mill show app.test
+...compiling 1 Java source...
+
+> cat out/app/test/test.dest/out.json
+["",[{"fullyQualifiedName":"com.helloworld.ExampleUnitTest.textSize_isCorrect","selector":"com.helloworld.ExampleUnitTest.textSize_isCorrect","duration":...,"status":"Success"}]]
+
+*/
+
+// This command runs unit tests on your local environment.
+
+/** Usage
+
+> ./mill show app.createAndroidVirtualDevice
+...Name: java-test, DeviceId: medium_phone...
+
+> ./mill show app.startAndroidEmulator
+
+> ./mill show app.adbDevices
+...emulator-5554...device...
+
+> ./mill show app.it
+...
+[
+  "",
+  [
+    {
+      "fullyQualifiedName": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
+      "selector": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+]
+...
+
+> cat out/app/it/testTask.dest/test-report.xml
+...
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites tests="1" failures="0" errors="0" skipped="0" time="...">
+        <testsuite name="com.helloworld.app.ExampleInstrumentedTest.useAppContext" tests="1" failures="0" errors="0" skipped="0" time="0.0" timestamp="...">
+        <properties>
+      </properties>
+        <testcase classname="com.helloworld.app.ExampleInstrumentedTest.useAppContext" name="com.helloworld.app.ExampleInstrumentedTest.useAppContext" time="...">
+        </testcase>
+      </testsuite>
+      </testsuites>
+...
+
+> ./mill show app.stopAndroidEmulator
+
+> ./mill show app.deleteAndroidVirtualDevice
+
+*/
+
+// The android tests (existing typically in androidTest directory, aka instrumented tests)
+// typically run on an android device.
+// The createAndroidVirtualDevice command creates an AVD (Android Virtual Device)
+// and the startAndroidEmulator command starts the AVD. The it task runs the android tests
+// against the available AVD. The stopAndroidEmulator command stops the AVD and the
+// destroyAndroidVirtualDevice command destroys the AVD.
+// The provided commands can be used in a CI/CD pipeline assuming the right setup is in place.

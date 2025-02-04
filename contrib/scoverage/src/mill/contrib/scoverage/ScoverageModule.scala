@@ -125,8 +125,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
 
     millProjectModule(
       workerArtifact,
-      repositoriesTask(),
-      resolveFilter = _.toString.contains(workerArtifact)
+      repositoriesTask()
     )
   }
 
@@ -139,7 +138,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
       ScoverageReportWorker
         .scoverageReportWorker()
         .bridge(scoverageToolsClasspath())
-        .report(reportType, allSources().map(_.path), Seq(data().path), T.workspace)
+        .report(reportType, allSources().map(_.path), Seq(data().path), Task.workspace)
     }
 
     /**
@@ -148,7 +147,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
      */
     def data: T[PathRef] = Task(persistent = true) {
       // via the persistent target, we ensure, the dest dir doesn't get cleared
-      PathRef(T.dest)
+      PathRef(Task.dest)
     }
 
     override def compileResources: T[Seq[PathRef]] = outer.compileResources
@@ -159,7 +158,9 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     override def sources: T[Seq[PathRef]] = Task { outer.sources() }
     override def resources: T[Seq[PathRef]] = Task { outer.resources() }
     override def scalaVersion = Task { outer.scalaVersion() }
-    override def repositoriesTask: Task[Seq[Repository]] = Task.Anon { outer.repositoriesTask() }
+    override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
+      internalRepositories() ++ outer.repositoriesTask()
+    }
     override def compileIvyDeps: T[Agg[Dep]] = Task { outer.compileIvyDeps() }
     override def ivyDeps: T[Agg[Dep]] =
       Task { outer.ivyDeps() ++ outer.scoverageRuntimeDeps() }
@@ -176,12 +177,12 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
           if (isScala3()) {
             Seq(
               s"-coverage-out:${data().path.toIO.getPath()}",
-              s"-sourceroot:${T.workspace}"
+              s"-sourceroot:${Task.workspace}"
             )
           } else {
             Seq(
               s"-P:scoverage:dataDir:${data().path.toIO.getPath()}",
-              s"-P:scoverage:sourceRoot:${T.workspace}"
+              s"-P:scoverage:sourceRoot:${Task.workspace}"
             )
           }
 

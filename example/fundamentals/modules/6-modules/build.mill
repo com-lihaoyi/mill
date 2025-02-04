@@ -25,10 +25,13 @@ object foo extends Module {
 // }
 // ```
 //
-// You would be able to run the two tasks via `mill foo.bar` or `mill
-// foo.qux.baz`. You can use `mill show foo.bar` or `mill show foo.baz.qux` to
-// make Mill echo out the string value being returned by each Task. The two
-// tasks will store their output metadata and files at
+// * You can run the two tasks via `mill foo.bar` or `mill
+// foo.qux.baz`.
+//
+// * You can use `mill show foo.bar` or `mill show foo.baz.qux` to
+// make Mill echo out the string value being returned by each Task.
+//
+// * The two tasks will store their output metadata and files at
 // `./out/foo/bar.{json,dest}` and `./out/foo/baz/qux.{json,dest}`
 // respectively.
 
@@ -51,12 +54,13 @@ object foo extends Module {
 
 */
 
-// == Trait Modules
+// == Module Traits
 //
 // Modules also provide a way to define and re-use common collections of tasks,
-// via Scala ``trait``s. Module ``trait``s support everything normal Scala
-// ``trait``s do: abstract ``def``s, overrides, `super`, extension
-// with additional ``def``s, etc.
+// via ``trait``s. ``trait``s are basically Java or Python ``class``es with some additional
+// flexibility, and Module ``trait``s support everything normal
+// ``class``es do: inheritence via `extends`, abstract ``def``s, ``override``s, `super`,
+// adding additional ``def``s, etc.
 
 trait FooModule extends Module {
   def bar: T[String] // required override
@@ -65,7 +69,7 @@ trait FooModule extends Module {
 
 object foo1 extends FooModule {
   def bar = "hello"
-  def qux = super.qux().toUpperCase // refer to overriden value via super
+  def qux = super.qux().toUpperCase // refer to overridden value via super
 }
 object foo2 extends FooModule {
   def bar = "hi"
@@ -84,12 +88,12 @@ object foo2 extends FooModule {
 //   foo1 [style=dashed]
 //   foo2 [style=dashed]
 //   "root-module" -> foo1 -> "foo1.bar"  [style=dashed]
-//   foo1 -> "foo1.qux.super"  [style=dashed]
+//   foo1 -> "foo1.super.qux"  [style=dashed]
 //   foo1 -> "foo1.qux"  [style=dashed]
 //   "root-module" -> foo2 -> "foo2.bar"  [style=dashed]
 //   foo2 -> "foo2.qux"  [style=dashed]
 //   foo2 -> "foo2.baz"  [style=dashed]
-//   "foo1.bar" -> "foo1.qux.super" -> "foo1.qux" [constraint=false]
+//   "foo1.bar" -> "foo1.super.qux" -> "foo1.qux" [constraint=false]
 //   "foo2.bar" -> "foo2.qux" -> "foo2.baz" [constraint=false]
 // }
 // ```
@@ -223,3 +227,48 @@ object outer2 extends MyModule {
 // to work even if moved into a different subfolder. In the rare case where you need the
 // Mill project root path, and you truly know what you are doing, you can call
 // g`mill.api.WorkspaceRoot.workspaceRoot`.
+
+// == Module Overrides
+
+// Tasks within <<Module Traits>> can be overridden via the `override` keyword,
+// with the overridden task callable via `super`.
+// You can also override a task with a different type of task, e.g. below
+// we override `sourceRoots` which is a `Task.Sources` with a cached `Task{}`
+// that depends on the original via `super`:
+//
+
+trait Foo extends Module {
+  def sourceRoots = Task.Sources(millSourcePath / "src")
+  def sourceContents = Task {
+    sourceRoots()
+      .flatMap(pref => os.walk(pref.path))
+      .filter(_.ext == "txt")
+      .sorted
+      .map(os.read(_))
+  }
+}
+
+trait Bar extends Foo {
+  def additionalSources = Task.Sources(millSourcePath / "src2")
+  def sourceRoots = Task { super.sourceRoots() ++ additionalSources() }
+}
+
+object bar extends Bar
+
+// ```graphviz
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   "bar.sourceRoots.super" -> "bar.sourceRoots" -> "bar.sourceContents"
+//   "bar.additionalSources" -> "bar.sourceRoots"
+// }
+// ```
+/** Usage
+
+> ./mill show bar.sourceContents # includes both source folders
+[
+  "File Data From src/",
+  "File Data From src2/"
+]
+
+*/

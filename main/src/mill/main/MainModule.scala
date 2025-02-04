@@ -2,7 +2,7 @@ package mill.main
 
 import mill.api._
 import mill.define._
-import mill.eval.{Evaluator, EvaluatorPaths}
+import mill.eval.{Evaluator, EvaluatorPaths, Terminal}
 import mill.moduledefs.Scaladoc
 import mill.resolve.SelectMode.Separated
 import mill.resolve.{Resolve, SelectMode}
@@ -76,6 +76,23 @@ object MainModule {
         Result.Success(output)
     }
   }
+
+  def plan0(
+      evaluator: Evaluator,
+      tasks: Seq[String]
+  ): Either[String, Array[Terminal.Labelled[_]]] = {
+    Resolve.Tasks.resolve(
+      evaluator.rootModule,
+      tasks,
+      SelectMode.Multi
+    ) match {
+      case Left(err) => Left(err)
+      case Right(rs) =>
+        val (sortedGroups, _) = evaluator.plan(rs)
+        Right(sortedGroups.keys().collect { case r: Terminal.Labelled[_] => r }.toArray)
+    }
+  }
+
 }
 
 /**
@@ -121,7 +138,7 @@ trait MainModule extends BaseModule0 {
    */
   def plan(evaluator: Evaluator, targets: String*): Command[Array[String]] =
     Task.Command(exclusive = true) {
-      SelectiveExecution.plan0(evaluator, targets) match {
+      MainModule.plan0(evaluator, targets) match {
         case Left(err) => Result.Failure(err)
         case Right(success) =>
           val renderedTasks = success.map(_.segments.render)
@@ -248,15 +265,12 @@ trait MainModule extends BaseModule0 {
               val mainDataOpt = evaluator
                 .rootModule
                 .millDiscover
-                .value
-                .get(t.ctx.enclosingCls)
-                .flatMap(_._2.find(_.name == t.ctx.segments.last.value))
-                .headOption
+                .resolveEntrypoint(t.ctx.enclosingCls, t.ctx.segments.last.value)
 
               mainDataOpt match {
                 case Some(mainData) if mainData.renderedArgSigs.nonEmpty =>
                   val rendered = mainargs.Renderer.formatMainMethodSignature(
-                    mainDataOpt.get,
+                    mainData,
                     leftIndent = 2,
                     totalWidth = 100,
                     leftColWidth = mainargs.Renderer.getLeftColWidth(mainData.renderedArgSigs),
@@ -335,10 +349,11 @@ trait MainModule extends BaseModule0 {
           case _ => None
         }
 
-        val methodMap = evaluator.rootModule.millDiscover.value
-        val tasks = methodMap.get(cls).map {
-          case (_, _, tasks) => tasks.map(task => s"${t.module}.$task")
-        }.toSeq.flatten
+        val methodMap = evaluator.rootModule.millDiscover.classInfo
+        val tasks = methodMap
+          .get(cls)
+          .map { node => node.declaredNames.map(task => s"${t.module}.$task") }
+          .toSeq.flatten
         pprint.Tree.Lazy { ctx =>
           Iterator(
             // module name(module/file:line)
@@ -498,7 +513,7 @@ trait MainModule extends BaseModule0 {
 
           val existing = paths.filter(p => os.exists(p))
           Target.log.debug(s"Cleaning ${existing.size} paths ...")
-          existing.foreach(os.remove.all)
+          existing.foreach(os.remove.all(_, ignoreErrors = true))
           Result.Success(existing.map(PathRef(_)))
       }
     }
@@ -516,7 +531,7 @@ trait MainModule extends BaseModule0 {
    */
   def visualizePlan(evaluator: Evaluator, targets: String*): Command[Seq[PathRef]] =
     Task.Command(exclusive = true) {
-      SelectiveExecution.plan0(evaluator, targets) match {
+      MainModule.plan0(evaluator, targets) match {
         case Left(err) => Result.Failure(err)
         case Right(planResults) => visualize0(
             evaluator,
@@ -555,6 +570,17 @@ trait MainModule extends BaseModule0 {
           RunScript.evaluateTasksNamed(
             evaluator,
             Seq("mill.init.InitMavenModule/init") ++ args,
+            SelectMode.Separated
+          )
+        else if (
+          os.exists(os.pwd / "build.gradle") ||
+          os.exists(os.pwd / "build.gradle.kts") ||
+          os.exists(os.pwd / "settings.gradle") ||
+          os.exists(os.pwd / "settings.gradle.kts")
+        )
+          RunScript.evaluateTasksNamed(
+            evaluator,
+            Seq("mill.init.InitGradleModule/init") ++ args,
             SelectMode.Separated
           )
         else if (args.headOption.exists(_.toLowerCase.endsWith(".g8")))

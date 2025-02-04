@@ -8,7 +8,7 @@ import mill._, scalalib._, publish._
 import mill.main.BuildInfo.millVersion
 
 object myplugin extends ScalaModule with PublishModule {
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "3.6.2"
 
   // Set the `platformSuffix` so the name indicates what Mill version it is compiled for
   def platformSuffix = "_mill" + mill.main.BuildInfo.millBinPlatform
@@ -49,7 +49,7 @@ object myplugin extends ScalaModule with PublishModule {
 // Mill plugins are fundamentally just JVM libraries that depend on Mill. Any vanilla JVM
 // library (whether written in Java or Scala) can be used in a Mill `build.mill` file via
 // `import $ivy`, but Mill plugins tend to integrate with Mill by defining a
-// xref:fundamentals/modules.adoc#_trait_modules[trait for modules in your `build.mill` to inherit from].
+// xref:fundamentals/modules.adoc#_module_traits[trait for modules in your `build.mill` to inherit from].
 //
 // The above `build.mill` file sets up a `object myplugin extends ScalaModule` not just to
 // compile your Mill plugin project, but also to run automated tests using `mill-testkit`,
@@ -194,7 +194,7 @@ compiling 1 Scala source...
 > sed -i.bak 's/0.0.1/0.0.2/g' build.mill
 
 > ./mill myplugin.publishLocal
-Publishing Artifact(com.lihaoyi,myplugin_mill0.11_2.13,0.0.2) to ivy repo...
+Publishing Artifact(com.lihaoyi,myplugin_mill0.11_3,0.0.2) to ivy repo...
 
 */
 // Mill plugins are JVM libraries like any other library written in Java or Scala. Thus they

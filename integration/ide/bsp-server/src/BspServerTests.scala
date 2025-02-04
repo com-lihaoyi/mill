@@ -4,7 +4,7 @@ import ch.epfl.scala.{bsp4j => b}
 import mill.api.BuildInfo
 import mill.bsp.Constants
 import mill.integration.BspServerTestUtil._
-import mill.testkit.UtestIntegrationTestSuite
+import mill.testkit.{UtestIntegrationTestSuite, IntegrationTester}
 import utest._
 
 import scala.jdk.CollectionConverters._
@@ -48,14 +48,23 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
       withBspServer(
         workspacePath,
-        millTestSuiteEnv
+        IntegrationTester.millTestSuiteEnv
       ) { (buildServer, initRes) =>
-        val scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
-        val scalaTransitiveSubstitutions = transitiveDependenciesSubstitutions(
+        val scala2Version = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
+        val scala3Version = sys.props.getOrElse("MILL_SCALA_3_NEXT_VERSION", ???)
+        val scala2TransitiveSubstitutions = transitiveDependenciesSubstitutions(
           coursierapi.Dependency.of(
             "org.scala-lang",
             "scala-compiler",
-            scalaVersion
+            scala2Version
+          ),
+          _.getModule.getOrganization != "org.scala-lang"
+        )
+        val scala3TransitiveSubstitutions = transitiveDependenciesSubstitutions(
+          coursierapi.Dependency.of(
+            "org.scala-lang",
+            "scala3-compiler_3",
+            scala3Version
           ),
           _.getModule.getOrganization != "org.scala-lang"
         )
@@ -71,10 +80,12 @@ object BspServerTests extends UtestIntegrationTestSuite {
         )
 
         val normalizedLocalValues = normalizeLocalValuesForTesting(workspacePath) ++
-          scalaTransitiveSubstitutions ++
+          scala2TransitiveSubstitutions ++
+          scala3TransitiveSubstitutions ++
           kotlinTransitiveSubstitutions ++
           Seq(
-            scalaVersion -> "<scala-version>",
+            scala2Version -> "<scala-version>",
+            scala3Version -> "<scala3-version>",
             kotlinVersion -> "<kotlin-version>"
           )
 

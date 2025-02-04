@@ -46,7 +46,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
     )
   }
 
-  def zincLogDebug: T[Boolean] = Task.Input(T.ctx().log.debugEnabled)
+  def zincLogDebug: T[Boolean] = Task.Input(Task.ctx().log.debugEnabled)
 
   /**
    * Optional custom Java Home for the ZincWorker to use
@@ -67,7 +67,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
   }
 
   def worker: Worker[ZincWorkerApi] = Task.Worker {
-    val jobs = T.ctx() match {
+    val jobs = Task.ctx() match {
       case j: Ctx.Jobs => j.jobs
       case _ => 1
     }
@@ -87,11 +87,12 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
       classOf[Int], // jobs
       classOf[Boolean], // compileToJar
       classOf[Boolean], // zincLogDebug
-      classOf[Option[PathRef]] // javaHome
+      classOf[Option[PathRef]], // javaHome
+      classOf[() => Unit]
     )
       .newInstance(
         Left((
-          T.ctx(),
+          Task.ctx(),
           (x: String, y: String) =>
             scalaCompilerBridgeJar(x, y, repositoriesTask())
               .asSuccess
@@ -103,7 +104,8 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
         jobs,
         java.lang.Boolean.FALSE,
         java.lang.Boolean.valueOf(zincLogDebug()),
-        javaHome()
+        javaHome(),
+        () => cl.close()
       )
     instance.asInstanceOf[ZincWorkerApi]
   }

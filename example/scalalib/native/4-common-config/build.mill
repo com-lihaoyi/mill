@@ -21,7 +21,7 @@ object `package` extends RootModule with ScalaNativeModule {
   def nativeLinkingOptions = Seq("-L" + millSourcePath.toString + "/target")
 
   // Set nativeWorkdir directory to `newDir`
-  def nativeWorkdir = T.dest / "newDir"
+  def nativeWorkdir = Task.dest / "newDir"
 }
 
 // This example shows some of the common tasks you may want to override on a
@@ -35,7 +35,7 @@ object `package` extends RootModule with ScalaNativeModule {
 Value: <h1>hello</h1>
 
 > ./mill show releaseMode
-"mill.scalanativelib.api.ReleaseMode.ReleaseFast"
+"ReleaseFast"
 
 > ./mill show nativeIncrementalCompilation
 true

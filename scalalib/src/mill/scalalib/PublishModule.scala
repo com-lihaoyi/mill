@@ -1,7 +1,7 @@
 package mill
 package scalalib
 
-import coursier.core.Configuration
+import coursier.core.{Configuration, DependencyManagement}
 import mill.define.{Command, ExternalModule, Task}
 import mill.api.{JarManifest, PathRef, Result}
 import mill.main.Tasks
@@ -27,10 +27,23 @@ trait PublishModule extends JavaModule { outer =>
       )
   }
 
+  // TODO Add this when we can break bin-compat. See also below in publishXmlBomDeps.
+  // override def bomModuleDeps: Seq[BomModule with PublishModule] = super.bomModuleDeps.map {
+  //   case m: BomModule with PublishModule => m
+  //   case other =>
+  //     throw new Exception(
+  //       s"PublishModule bomModuleDeps need to be also PublishModules. $other is not a PublishModule"
+  //     )
+  // }
+
   /**
    * The packaging type. See [[PackagingType]] for specially handled values.
    */
-  def pomPackagingType: String = PackagingType.Jar
+  def pomPackagingType: String =
+    this match {
+      case _: BomModule => PackagingType.Pom
+      case _ => PackagingType.Jar
+    }
 
   /**
    * POM parent project.
@@ -69,9 +82,62 @@ trait PublishModule extends JavaModule { outer =>
     Artifact(pomSettings().organization, artifactId(), publishVersion())
   }
 
+  def publishIvyDeps
+      : Task[(Map[coursier.core.Module, String], DependencyManagement.Map) => Agg[Dependency]] =
+    Task.Anon {
+      (rootDepVersions: Map[coursier.core.Module, String], bomDepMgmt: DependencyManagement.Map) =>
+        val bindDependency0 = bindDependency()
+        val resolvePublishDependency0 = resolvePublishDependency.apply()
+
+        // Ivy doesn't support BOM, so we try to add versions and exclusions from BOMs
+        // to the dependencies themselves.
+        def process(dep: mill.scalalib.Dep) = {
+          var dep0 = bindDependency0(dep).dep
+
+          if (dep0.version.isEmpty)
+            for (version <- rootDepVersions.get(dep0.module))
+              dep0 = dep0.withVersion(version)
+
+          for (
+            values <- bomDepMgmt.get(DependencyManagement.Key.from(dep0))
+            if values.minimizedExclusions.nonEmpty
+          )
+            dep0 = dep0.withMinimizedExclusions(
+              dep0.minimizedExclusions.join(values.minimizedExclusions)
+            )
+
+          resolvePublishDependency0(BoundDep(dep0, force = false).toDep)
+        }
+
+        val ivyPomDeps = allIvyDeps().map(process)
+
+        val runIvyPomDeps = runIvyDeps().map(process)
+          .filter(!ivyPomDeps.contains(_))
+
+        val compileIvyPomDeps = compileIvyDeps().map(process)
+          .filter(!ivyPomDeps.contains(_))
+
+        val modulePomDeps = Task.sequence(moduleDepsChecked.collect {
+          case m: PublishModule => m.publishSelfDependency
+        })()
+        val compileModulePomDeps = Task.sequence(compileModuleDepsChecked.collect {
+          case m: PublishModule => m.publishSelfDependency
+        })()
+        val runModulePomDeps = Task.sequence(runModuleDepsChecked.collect {
+          case m: PublishModule => m.publishSelfDependency
+        })()
+
+        ivyPomDeps ++
+          compileIvyPomDeps.map(_.copy(scope = Scope.Provided)) ++
+          runIvyPomDeps.map(_.copy(scope = Scope.Runtime)) ++
+          modulePomDeps.map(Dependency(_, Scope.Compile)) ++
+          compileModulePomDeps.map(Dependency(_, Scope.Provided)) ++
+          runModulePomDeps.map(Dependency(_, Scope.Runtime))
+    }
+
   def publishXmlDeps: Task[Agg[Dependency]] = Task.Anon {
     val ivyPomDeps =
-      processedIvyDeps().map(_.toDep)
+      allIvyDeps()
         .map(resolvePublishDependency.apply().apply(_))
 
     val runIvyPomDeps = runIvyDeps()
@@ -82,13 +148,13 @@ trait PublishModule extends JavaModule { outer =>
       .map(resolvePublishDependency.apply().apply(_))
       .filter(!ivyPomDeps.contains(_))
 
-    val modulePomDeps = T.sequence(moduleDepsChecked.collect {
+    val modulePomDeps = Task.sequence(moduleDepsChecked.collect {
       case m: PublishModule => m.publishSelfDependency
     })()
-    val compileModulePomDeps = T.sequence(compileModuleDepsChecked.collect {
+    val compileModulePomDeps = Task.sequence(compileModuleDepsChecked.collect {
       case m: PublishModule => m.publishSelfDependency
     })()
-    val runModulePomDeps = T.sequence(runModuleDepsChecked.collect {
+    val runModulePomDeps = Task.sequence(runModuleDepsChecked.collect {
       case m: PublishModule => m.publishSelfDependency
     })()
 
@@ -104,7 +170,23 @@ trait PublishModule extends JavaModule { outer =>
    * BOM dependency to specify in the POM
    */
   def publishXmlBomDeps: Task[Agg[Dependency]] = Task.Anon {
-    bomIvyDeps().map(resolvePublishDependency.apply().apply(_))
+    val fromBomMods = Task.traverse(
+      bomModuleDepsChecked
+        // TODO When we can break bin-compat, add the bomModuleDeps override above,
+        // and change the .map to this .collect:
+        // .collect { case p: PublishModule => p }
+        .map {
+          case p: PublishModule => p
+          case other =>
+            throw new Exception(
+              s"PublishModule bomModuleDeps need to be also PublishModules. $other is not a PublishModule"
+            )
+        }
+    )(_.artifactMetadata)().map { a =>
+      Dependency(a, Scope.Import)
+    }
+    Agg(fromBomMods: _*) ++
+      bomIvyDeps().map(resolvePublishDependency.apply().apply(_))
   }
 
   /**
@@ -126,7 +208,7 @@ trait PublishModule extends JavaModule { outer =>
       bomDependencies = publishXmlBomDeps(),
       dependencyManagement = publishXmlDepMgmt()
     )
-    val pomPath = T.dest / s"${artifactId()}-${publishVersion()}.pom"
+    val pomPath = Task.dest / s"${artifactId()}-${publishVersion()}.pom"
     os.write.over(pomPath, pom)
     PathRef(pomPath)
   }
@@ -134,6 +216,7 @@ trait PublishModule extends JavaModule { outer =>
   /**
    * Dependencies with version placeholder filled from BOMs, alongside with BOM data
    */
+  @deprecated("Unused by Mill", "Mill after 0.12.5")
   def bomDetails: T[(Map[coursier.core.Module, String], coursier.core.DependencyManagement.Map)] =
     Task {
       val (processedDeps, depMgmt) = defaultResolver().processDeps(
@@ -144,35 +227,74 @@ trait PublishModule extends JavaModule { outer =>
       (processedDeps.map(_.moduleVersion).toMap, depMgmt)
     }
 
+  /**
+   * Path to the ivy.xml file for this module
+   */
   def ivy: T[PathRef] = Task {
-    val (rootDepVersions, bomDepMgmt) = bomDetails()
-    val publishXmlDeps0 = publishXmlDeps().map { dep =>
-      if (dep.artifact.version.isEmpty)
-        dep.copy(
-          artifact = dep.artifact.copy(
-            version = rootDepVersions.getOrElse(
-              coursier.core.Module(
-                coursier.core.Organization(dep.artifact.group),
-                coursier.core.ModuleName(dep.artifact.id),
-                Map.empty
-              ),
-              "" /* throw instead? */
-            )
-          )
+    val content = ivy(hasJar = pomPackagingType != PackagingType.Pom)()
+    val ivyPath = Task.dest / "ivy.xml"
+    os.write.over(ivyPath, content)
+    PathRef(ivyPath)
+  }
+
+  /**
+   * ivy.xml content for this module
+   *
+   * @param hasJar Whether this module has a JAR or not
+   * @return
+   */
+  private def ivy(hasJar: Boolean): Task[String] = Task.Anon {
+    val (results, bomDepMgmt) = defaultResolver().processDeps(
+      Seq(
+        BoundDep(
+          coursierDependency.withConfiguration(Configuration.runtime),
+          force = false
         )
-      else
-        dep
+      ),
+      resolutionParams = resolutionParams()
+    )
+    val publishXmlDeps0 = {
+      val rootDepVersions = results.map(_.moduleVersion).toMap
+      publishIvyDeps.apply().apply(rootDepVersions, bomDepMgmt)
     }
     val overrides = {
+      val bomDepMgmt0 = {
+        // Ensure we don't override versions of root dependencies with overrides from the BOM
+        val rootDepsAdjustment = publishXmlDeps0.iterator.flatMap { dep =>
+          val key = coursier.core.DependencyManagement.Key(
+            coursier.core.Organization(dep.artifact.group),
+            coursier.core.ModuleName(dep.artifact.id),
+            coursier.core.Type.jar,
+            coursier.core.Classifier.empty
+          )
+          bomDepMgmt.get(key).flatMap { values =>
+            if (values.version.nonEmpty && values.version != dep.artifact.version)
+              Some(key -> values.withVersion(""))
+            else
+              None
+          }
+        }
+        bomDepMgmt ++ rootDepsAdjustment
+      }
+      lazy val moduleSet = publishXmlDeps0.map(dep => (dep.artifact.group, dep.artifact.id)).toSet
       val depMgmtEntries = processedDependencyManagement(
         depManagement().toSeq
           .map(bindDependency())
           .map(_.dep)
           .filter(_.version.nonEmpty)
+          .filter { depMgmt =>
+            // Ensure we don't override versions of root dependencies with overrides from the BOM
+            !moduleSet.contains((depMgmt.module.organization.value, depMgmt.module.name.value))
+          }
       )
       val entries = coursier.core.DependencyManagement.add(
         Map.empty,
-        depMgmtEntries ++ bomDepMgmt
+        depMgmtEntries ++ bomDepMgmt0
+          .filter {
+            case (key, _) =>
+              // Ensure we don't override versions of root dependencies with overrides from the BOM
+              !moduleSet.contains((key.organization.value, key.name.value))
+          }
       )
       entries.toVector
         .map {
@@ -185,14 +307,27 @@ trait PublishModule extends JavaModule { outer =>
         }
         .sortBy(value => (value.organization, value.name, value.version))
     }
-    val ivy = Ivy(artifactMetadata(), publishXmlDeps0, extraPublish(), overrides)
-    val ivyPath = T.dest / "ivy.xml"
-    os.write.over(ivyPath, ivy)
-    PathRef(ivyPath)
+    Ivy(artifactMetadata(), publishXmlDeps0, extraPublish(), overrides, hasJar = hasJar)
   }
 
   def artifactMetadata: T[Artifact] = Task {
     Artifact(pomSettings().organization, artifactId(), publishVersion())
+  }
+
+  private def defaultPublishInfos: T[Seq[PublishInfo]] = {
+    def defaultPublishJars: Task[Seq[(PathRef, PathRef => PublishInfo)]] = {
+      pomPackagingType match {
+        case PackagingType.Pom => Task.Anon(Seq())
+        case _ => Task.Anon(Seq(
+            (jar(), PublishInfo.jar _),
+            (sourceJar(), PublishInfo.sourcesJar _),
+            (docJar(), PublishInfo.docJar _)
+          ))
+      }
+    }
+    Task {
+      defaultPublishJars().map { case (jar, info) => info(jar) }
+    }
   }
 
   /**
@@ -216,7 +351,7 @@ trait PublishModule extends JavaModule { outer =>
    */
   def publishLocal(localIvyRepo: String = null): define.Command[Unit] = Task.Command {
     publishLocalTask(Task.Anon {
-      Option(localIvyRepo).map(os.Path(_, T.workspace))
+      Option(localIvyRepo).map(os.Path(_, Task.workspace))
     })()
     Result.Success(())
   }
@@ -233,27 +368,24 @@ trait PublishModule extends JavaModule { outer =>
       case None => LocalIvyPublisher
       case Some(path) => new LocalIvyPublisher(path)
     }
+    val publishInfos = defaultPublishInfos() ++ extraPublish()
     publisher.publishLocal(
-      jar = jar().path,
-      sourcesJar = sourceJar().path,
-      docJar = docJar().path,
       pom = pom().path,
-      ivy = ivy().path,
+      ivy = Right(ivy().path),
       artifact = artifactMetadata(),
-      extras = extraPublish()
+      publishInfos = publishInfos
     )
   }
 
   /**
    * Publish artifacts to a local Maven repository.
    * @param m2RepoPath The path to the local repository  as string (default: `$HOME/.m2repository`).
+   *                   If not set, falls back to `maven.repo.local` system property or `~/.m2/repository`
    * @return [[PathRef]]s to published files.
    */
-  def publishM2Local(m2RepoPath: String = (os.home / ".m2/repository").toString())
-      : Command[Seq[PathRef]] = Task.Command {
-    publishM2LocalTask(Task.Anon {
-      os.Path(m2RepoPath, T.workspace)
-    })()
+  def publishM2Local(m2RepoPath: String = null): Command[Seq[PathRef]] = m2RepoPath match {
+    case null => Task.Command { publishM2LocalTask(Task.Anon { publishM2LocalRepoPath() })() }
+    case p => Task.Command { publishM2LocalTask(Task.Anon { os.Path(p, Task.workspace) })() }
   }
 
   /**
@@ -261,22 +393,26 @@ trait PublishModule extends JavaModule { outer =>
    * @return [[PathRef]]s to published files.
    */
   def publishM2LocalCached: T[Seq[PathRef]] = Task {
-    publishM2LocalTask(Task.Anon {
-      os.Path(os.home / ".m2/repository", T.workspace)
-    })()
+    publishM2LocalTask(publishM2LocalRepoPath)()
+  }
+
+  /**
+   * The default path that [[publishM2Local]] should publish its artifacts to.
+   * Defaults to `~/.m2/repository`, but can be configured by setting the
+   * `maven.repo.local` JVM property
+   */
+  def publishM2LocalRepoPath: Task[os.Path] = Task.Input {
+    sys.props.get("maven.repo.local").map(os.Path(_))
+      .getOrElse(os.Path(os.home / ".m2", Task.workspace)) / "repository"
   }
 
   private def publishM2LocalTask(m2RepoPath: Task[os.Path]): Task[Seq[PathRef]] = Task.Anon {
     val path = m2RepoPath()
+    val publishInfos = defaultPublishInfos() ++ extraPublish()
+
     new LocalM2Publisher(path)
-      .publish(
-        jar = jar().path,
-        sourcesJar = sourceJar().path,
-        docJar = docJar().path,
-        pom = pom().path,
-        artifact = artifactMetadata(),
-        extras = extraPublish()
-      ).map(PathRef(_).withRevalidateOnce)
+      .publish(pom().path, artifactMetadata(), publishInfos)
+      .map(PathRef(_).withRevalidateOnce)
   }
 
   def sonatypeUri: String = "https://oss.sonatype.org/service/local"
@@ -286,7 +422,12 @@ trait PublishModule extends JavaModule { outer =>
   def publishArtifacts: T[PublishModule.PublishData] = {
     val baseNameTask: Task[String] = Task.Anon { s"${artifactId()}-${publishVersion()}" }
     val defaultPayloadTask: Task[Seq[(PathRef, String)]] = pomPackagingType match {
-      case PackagingType.Pom => Task.Anon { Seq.empty[(PathRef, String)] }
+      case PackagingType.Pom => Task.Anon {
+          val baseName = baseNameTask()
+          Seq(
+            pom() -> s"$baseName.pom"
+          )
+        }
       case PackagingType.Jar | _ => Task.Anon {
           val baseName = baseNameTask()
           Seq(
@@ -337,19 +478,19 @@ trait PublishModule extends JavaModule { outer =>
       stagingRelease: Boolean = true
   ): define.Command[Unit] = Task.Command {
     val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
-    PublishModule.pgpImportSecretIfProvided(T.env)
+    PublishModule.pgpImportSecretIfProvided(Task.env)
     new SonatypePublisher(
       sonatypeUri,
       sonatypeSnapshotUri,
       checkSonatypeCreds(sonatypeCreds)(),
       signed,
-      if (gpgArgs.isEmpty) PublishModule.defaultGpgArgsForPassphrase(T.env.get("PGP_PASSPHRASE"))
+      if (gpgArgs.isEmpty) PublishModule.defaultGpgArgsForPassphrase(Task.env.get("PGP_PASSPHRASE"))
       else gpgArgs,
       readTimeout,
       connectTimeout,
-      T.log,
-      T.workspace,
-      T.env,
+      Task.log,
+      Task.workspace,
+      Task.env,
       awaitTimeout,
       stagingRelease
     ).publish(artifacts.map { case (a, b) => (a.path, b) }, artifactInfo, release)
@@ -447,24 +588,24 @@ object PublishModule extends ExternalModule with TaskModule {
       awaitTimeout: Int = 30 * 60 * 1000,
       stagingRelease: Boolean = true
   ): Command[Unit] = Task.Command {
-    val x: Seq[(Seq[(os.Path, String)], Artifact)] = T.sequence(publishArtifacts.value)().map {
+    val x: Seq[(Seq[(os.Path, String)], Artifact)] = Task.sequence(publishArtifacts.value)().map {
       case PublishModule.PublishData(a, s) => (s.map { case (p, f) => (p.path, f) }, a)
     }
 
-    pgpImportSecretIfProvided(T.env)
+    pgpImportSecretIfProvided(Task.env)
 
     new SonatypePublisher(
       sonatypeUri,
       sonatypeSnapshotUri,
       checkSonatypeCreds(sonatypeCreds)(),
       signed,
-      if (gpgArgs.isEmpty) defaultGpgArgsForPassphrase(T.env.get("MILL_PGP_PASSPHRASE"))
+      if (gpgArgs.isEmpty) defaultGpgArgsForPassphrase(Task.env.get("MILL_PGP_PASSPHRASE"))
       else gpgArgs.split(','),
       readTimeout,
       connectTimeout,
-      T.log,
-      T.workspace,
-      T.env,
+      Task.log,
+      Task.workspace,
+      Task.env,
       awaitTimeout,
       stagingRelease
     ).publishAll(
@@ -476,8 +617,8 @@ object PublishModule extends ExternalModule with TaskModule {
   private def getSonatypeCredsFromEnv: Task[(String, String)] = Task.Anon {
     (for {
       // Allow legacy environment variables as well
-      username <- T.env.get(USERNAME_ENV_VARIABLE_NAME).orElse(T.env.get("SONATYPE_USERNAME"))
-      password <- T.env.get(PASSWORD_ENV_VARIABLE_NAME).orElse(T.env.get("SONATYPE_PASSWORD"))
+      username <- Task.env.get(USERNAME_ENV_VARIABLE_NAME).orElse(Task.env.get("SONATYPE_USERNAME"))
+      password <- Task.env.get(PASSWORD_ENV_VARIABLE_NAME).orElse(Task.env.get("SONATYPE_PASSWORD"))
     } yield {
       Result.Success((username, password))
     }).getOrElse(

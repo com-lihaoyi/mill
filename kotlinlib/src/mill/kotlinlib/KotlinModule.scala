@@ -88,8 +88,7 @@ trait KotlinModule extends JavaModule { outer =>
   private[kotlinlib] def kotlinWorkerClasspath = Task {
     millProjectModule(
       "mill-kotlinlib-worker-impl",
-      repositoriesTask(),
-      resolveFilter = _.toString.contains("mill-kotlinlib-worker-impl")
+      repositoriesTask()
     )
   }
 
@@ -146,7 +145,7 @@ trait KotlinModule extends JavaModule { outer =>
    * and option by using [[dokkaOptions]].
    */
   override def docJar: T[PathRef] = T[PathRef] {
-    val outDir = T.dest
+    val outDir = Task.dest
 
     val dokkaDir = outDir / "dokka"
     os.makeDir.all(dokkaDir)
@@ -178,7 +177,7 @@ trait KotlinModule extends JavaModule { outer =>
           ).mkString(" ")
         )
 
-      T.log.info("dokka options: " + options)
+      Task.log.info("dokka options: " + options)
 
       Jvm.runSubprocess(
         mainClass = "",
@@ -237,7 +236,7 @@ trait KotlinModule extends JavaModule { outer =>
    */
   protected def kotlinCompileTask(extraKotlinArgs: Seq[String] = Seq()): Task[CompilationResult] =
     Task.Anon {
-      val ctx = T.ctx()
+      val ctx = Task.ctx()
       val dest = ctx.dest
       val classes = dest / "classes"
       os.makeDir.all(classes)

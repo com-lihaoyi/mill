@@ -1,6 +1,6 @@
 package mill.runner
 
-import mill.Task
+import mill.{Task, given}
 import mill.define.{Command, Discover, ExternalModule, Module}
 import mill.eval.Evaluator.AllBootstrapEvaluators
 

@@ -65,28 +65,23 @@ object RunScript {
   ): (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]]) = {
 
     val (sortedGroups, transitive) = Plan.plan(targets)
-    val terminals = sortedGroups.keys.map(t => (t.task, t)).toMap
+    val terminals = sortedGroups.keys().map(t => (t.task, t)).toMap
     val selectiveExecutionEnabled = selectiveExecution && !targets.exists(_.isExclusiveCommand)
 
     val selectedTargetsOrErr =
       if (
         selectiveExecutionEnabled && os.exists(evaluator.outPath / OutFiles.millSelectiveExecution)
       ) {
-        SelectiveExecution
-          .diffMetadata(evaluator, targets.map(terminals(_).render).toSeq)
-          .map { x =>
-            val (selected, results) = x
-            val selectedSet = selected.toSet
-            (
-              targets.filter(t => t.isExclusiveCommand || selectedSet(terminals(t).render)),
-              results
-            )
-          }
-      } else Right(targets -> Map.empty)
+        val changedTasks = SelectiveExecution.computeChangedTasks0(evaluator, targets.toSeq)
+        val selectedSet = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
+        (
+          targets.filter(t => t.isExclusiveCommand || selectedSet(terminals(t).render)),
+          changedTasks.results
+        )
+      } else (targets -> Map.empty)
 
     selectedTargetsOrErr match {
-      case Left(err) => (Nil, Left(err))
-      case Right((selectedTargets, selectiveResults)) =>
+      case (selectedTargets, selectiveResults) =>
         val evaluated: Results = evaluator.evaluate(selectedTargets, serialCommandExec = true)
         val watched = (evaluated.results.iterator ++ selectiveResults)
           .collect {

@@ -1,9 +1,9 @@
 //// SNIPPET:BUILD
+
 package build
 import mill._, kotlinlib._
 
 object foo extends KotlinModule {
-
   def kotlinVersion = "1.9.24"
 
   def mainClass = Some("foo.FooKt")
@@ -113,4 +113,8 @@ Test run finished: 0 failed, 0 ignored, 2 total, ...
 > ./out/foo/assembly.dest/out.jar --text hello # mac/linux
 <h1>hello</h1>
 
+> cp ./out/foo/assembly.dest/out.jar out.bat # windows
+
+> ./out.bat --text hello # windows
+<h1>hello</h1>
 */

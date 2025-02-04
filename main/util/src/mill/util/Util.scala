@@ -8,7 +8,7 @@ import mill.api.{BuildInfo, Ctx, IO, PathRef, Result}
 
 object Util {
 
-  def isInteractive(): Boolean = System.console() != null
+  def isInteractive(): Boolean = mill.main.client.Util.hasConsole()
 
   val newLine: String = System.lineSeparator()
 
@@ -73,9 +73,13 @@ object Util {
   def millProjectModule(
       artifact: String,
       repositories: Seq[Repository],
-      resolveFilter: os.Path => Boolean = _ => true,
+      @deprecated(
+        "This parameter is now ignored, use exclusions instead or mark some dependencies as provided when you publish modules",
+        "Mill after 0.12.5"
+      )
+      deprecatedResolveFilter: os.Path => Boolean = _ => true,
       // this should correspond to the mill runtime Scala version
-      artifactSuffix: String = "_2.13"
+      artifactSuffix: String = "_3"
   ): Result[Agg[PathRef]] = {
 
     mill.util.Jvm.resolveDependencies(
@@ -90,7 +94,7 @@ object Util {
         )
       ),
       force = Nil,
-      resolveFilter = resolveFilter
+      deprecatedResolveFilter = deprecatedResolveFilter
     ).map(_.map(_.withRevalidateOnce))
   }
 

@@ -1,10 +1,7 @@
 package build.contrib
 // imports
 import scala.util.chaining._
-import com.github.lolgab.mill.mima.Mima
 import coursier.maven.MavenRepository
-import de.tobiasroeser.mill.vcs.version.VcsVersion
-import com.goyeau.mill.scalafix.ScalafixModule
 import mill._
 import mill.api.JarManifest
 import mill.main.Tasks
@@ -20,15 +17,13 @@ import build.Deps
 
 // plugins and dependencies
 import $meta._
-import $file.ci.shared
-import $file.ci.upload
 
 object `package` extends RootModule {
   def contribModules: Seq[ContribModule] =
     millInternal.modules.collect { case m: ContribModule => m }
 
   trait ContribModule extends build.MillPublishScalaModule {
-    def readme = T.source(millSourcePath / "readme.adoc")
+    def readme = Task.Source(millSourcePath / "readme.adoc")
   }
 
   object testng extends JavaModule with ContribModule {
@@ -61,7 +56,7 @@ object `package` extends RootModule {
     def compileModuleDeps = Seq(build.scalalib)
 
     def testTransitiveDeps =
-      super.testTransitiveDeps() ++ T.traverse(build.Deps.play.keys.toSeq)(worker(_).testDep)()
+      super.testTransitiveDeps() ++ Task.traverse(build.Deps.play.keys.toSeq)(worker(_).testDep)()
 
     def testArgs = Task {
       super.testArgs() ++
@@ -83,7 +78,7 @@ object `package` extends RootModule {
       def playBinary = crossValue
       def millSourcePath: os.Path = super.millSourcePath / playBinary
 
-      def sources = T.sources {
+      def sources = Task.Sources {
         // We want to avoid duplicating code as long as the Play APIs allow.
         // But if newer Play versions introduce incompatibilities,
         // just remove the shared source dir for that worker and implement directly.
@@ -102,9 +97,7 @@ object `package` extends RootModule {
   }
 
   object scoverage extends ContribModule {
-    object api extends build.MillPublishScalaModule {
-      def compileModuleDeps = Seq(build.main.api)
-    }
+    object api extends build.MillPublishJavaModule
 
     def moduleDeps = Seq(scoverage.api)
     def compileModuleDeps = Seq(build.scalalib)
@@ -115,7 +108,7 @@ object `package` extends RootModule {
     def testArgs = Task {
       super.testArgs() ++
         Seq(
-          s"-DMILL_SCOVERAGE2_VERSION=${build.Deps.scalacScoverage2Plugin.dep.version}",
+          s"-DMILL_SCOVERAGE2_VERSION=${build.Deps.scalacScoverage2Plugin.dep.version}"
         )
     }
 
@@ -126,18 +119,20 @@ object `package` extends RootModule {
 
     // Worker for Scoverage 2.0
     object worker2 extends build.MillPublishScalaModule {
-      def compileModuleDeps = Seq(build.main.api)
-      def moduleDeps = Seq(scoverage.api)
       def testDepPaths = Task { Seq(compile().classes) }
+      def compileModuleDeps = Seq(
+        build.main.api,
+        scoverage.api
+      )
       def compileIvyDeps = Task {
-        Agg(
+        super.mandatoryIvyDeps() ++ Agg(
           // compile-time only, need to provide the correct scoverage version at runtime
-          build.Deps.scalacScoverage2Plugin,
           build.Deps.scalacScoverage2Reporter,
           build.Deps.scalacScoverage2Domain,
           build.Deps.scalacScoverage2Serializer
-        )
+        ) ++ Agg.when(!ZincWorkerUtil.isScala3(scalaVersion()))(build.Deps.scalacScoverage2Plugin)
       }
+      def mandatoryIvyDeps = Agg.empty[Dep]
     }
   }
 

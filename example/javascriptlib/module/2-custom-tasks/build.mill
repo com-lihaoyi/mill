@@ -1,0 +1,70 @@
+package build
+
+import mill._, javascriptlib._
+
+object foo extends TypeScriptModule {
+
+  /** Total number of lines in module source files */
+  def lineCount = Task {
+    allSources().map(f => os.read.lines(f.path).size).sum
+  }
+
+  def generatedSources = Task {
+    os.write(
+      Task.dest / "bar.ts",
+      s"""export default class Bar {
+         |  static value: number = 123
+         |}
+      """.stripMargin
+    )
+
+    Seq(PathRef(Task.dest))
+  }
+
+  def forkEnv = super.forkEnv() + ("LINE_COUNT" -> lineCount().toString)
+
+  def printLineCount() = Task.Command { println(lineCount()) }
+
+}
+
+// The above build defines the customizations to the Mill task graph shown below,
+// with the boxes representing tasks defined or overridden above and the un-boxed
+// labels representing existing Mill tasks:
+//
+// ```graphviz
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0]
+//   generatedSources -> "..."
+//
+//   sources -> lineCount -> forkEnv -> "..." -> run
+//   lineCount -> printLineCount
+//
+//   sources [color=white]
+//   run [color=white]
+//
+//   "..." [color=white]
+// }
+// ```
+//
+// Mill lets you define new cached Tasks using the `Task {...}` syntax,
+// depending on existing Tasks e.g. `foo.sources` via the `foo.sources()`
+// syntax to extract their current value, as shown in `lineCount` above. The
+// return-type of a Task has to be JSON-serializable (using
+// https://github.com/lihaoyi/upickle[uPickle], one of Mill's xref:fundamentals/bundled-libraries.adoc[Bundled Libraries])
+// and the Task is cached when first run until its inputs change (in this case, if
+// someone edits the `foo.sources` files which live in `foo/src`). Cached Tasks
+// cannot take parameters.
+//
+// Note that depending on a task requires use of parentheses after the task
+// name, e.g. `pythonDeps()`, `sources()` and `lineCount()`. This converts the
+// task of type `T[V]` into a value of type `V` you can make use in your task
+// implementation.
+
+/** Usage
+
+> mill foo.run "Hello World!"
+Bar.value: 123
+text: Hello World!
+Line count: 9
+*/

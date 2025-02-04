@@ -11,6 +11,10 @@ object foo extends JavaModule {
     )
   }
 }
+
+/** See Also: foo/src/foo/Foo.java */
+/** See Also: foo/test/src/foo/FooTests.java */
+
 // This build defines a single module with a test suite, configured to use
 // "JUnit" as the testing framework, along with Mockito. Test suites are themselves
 // ``JavaModule``s, nested within the enclosing module,

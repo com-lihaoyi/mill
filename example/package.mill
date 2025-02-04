@@ -1,10 +1,7 @@
 package build.example
 // imports
 import scala.util.chaining._
-import com.github.lolgab.mill.mima.Mima
 import coursier.maven.MavenRepository
-import de.tobiasroeser.mill.vcs.version.VcsVersion
-import com.goyeau.mill.scalafix.ScalafixModule
 import mill._
 import mill.api.JarManifest
 import mill.main.Tasks
@@ -19,8 +16,6 @@ import mill.define.Cross
 
 // plugins and dependencies
 import $meta._
-import $file.ci.shared
-import $file.ci.upload
 
 object `package` extends RootModule with Module {
   def exampleModules: Seq[ExampleCrossModule] = millInternal
@@ -28,33 +23,41 @@ object `package` extends RootModule with Module {
     .collect { case m: ExampleCrossModule => m }
 
   object android extends Module {
-    object javalib extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "javalib"))
-    object kotlinlib extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "kotlinlib"))
+    object javalib
+        extends Cross[ExampleCrossModuleAndroid](build.listIn(millSourcePath / "javalib"))
+    object kotlinlib
+        extends Cross[ExampleCrossModuleAndroid](build.listIn(millSourcePath / "kotlinlib"))
   }
   object javalib extends Module {
 
     object basic extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "basic"))
     object module extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "module"))
-    object dependencies extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "dependencies"))
+    object dependencies
+        extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "dependencies"))
     object testing extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "testing"))
     object linting extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "linting"))
-    object migrating extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "migrating"))
-    object publishing extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "publishing"))
+    object migrating
+        extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "migrating"))
+    object publishing
+        extends Cross[ExampleCrossModuleJava](build.listIn(millSourcePath / "publishing"))
     object web extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "web"))
   }
   object kotlinlib extends Module {
     object basic extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "basic"))
     object module extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "module"))
-    object dependencies extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "dependencies"))
+    object dependencies
+        extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "dependencies"))
     object testing extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "testing"))
     object linting extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "linting"))
-    object publishing extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "publishing"))
+    object publishing
+        extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "publishing"))
     object web extends Cross[ExampleCrossModuleKotlin](build.listIn(millSourcePath / "web"))
   }
   object scalalib extends Module {
     object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))
     object module extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "module"))
-    object dependencies extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "dependencies"))
+    object dependencies
+        extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "dependencies"))
     object testing extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "testing"))
     object linting extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "linting"))
     object publishing extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "publishing"))
@@ -64,28 +67,36 @@ object `package` extends RootModule with Module {
   object javascriptlib extends Module {
     object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))
     object testing extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "testing"))
+    object module extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "module"))
+    object dependencies
+        extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "dependencies"))
+    object publishing extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "publishing"))
+    object linting extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "linting"))
   }
   object pythonlib extends Module {
     object basic extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "basic"))
-    object dependencies extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "dependencies"))
+    object dependencies
+        extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "dependencies"))
+    object linting extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "linting"))
     object publishing extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "publishing"))
     object module extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "module"))
     object web extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "web"))
+    object testing extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "testing"))
   }
 
-  object cli extends Module{
+  object cli extends Module {
     object builtins extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "builtins"))
   }
 
   object fundamentals extends Module {
 
-    object dependencies extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "dependencies"))
+    object dependencies
+        extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "dependencies"))
     object tasks extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "tasks"))
     object modules extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "modules"))
     object cross extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "cross"))
     object `out-dir` extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "out-dir"))
     object libraries extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "libraries"))
-    object `library-deps` extends Cross[ExampleCrossModule](build.listIn(millSourcePath / "library-deps"))
   }
 
   object depth extends Module {
@@ -112,12 +123,18 @@ object `package` extends RootModule with Module {
 
     override def lineTransform(line: String) = this.millModuleSegments.parts.last match {
       case "1-test-suite" => line
-        .replace("mill bar.test bar.BarTests.hello", "kotest_filter_tests='hello' kotest_filter_specs='bar.BarTests' ./mill bar.test")
-        .replace("compiling 1 ... source...", "Compiling 1 ... source...")
+          .replace(
+            "mill bar.test bar.BarTests.hello",
+            "kotest_filter_tests='hello' kotest_filter_specs='bar.BarTests' ./mill bar.test"
+          )
+          .replace("compiling 1 ... source...", "Compiling 1 ... source...")
       case _ => line
     }
   }
 
+  trait ExampleCrossModuleAndroid extends ExampleCrossModule {
+    def testExclusive = true
+  }
   trait ExampleCrossModuleJava extends ExampleCrossModule {
 
     def upstreamCross(s: String) = s match {
@@ -133,61 +150,61 @@ object `package` extends RootModule with Module {
       .flatMap(_.valuesToModules.get(List(crossValue)))
 
     def testRepoRoot = Task {
-      os.copy(super.testRepoRoot().path, T.dest, mergeFolders = true)
-      for(suffix <- Seq("build.sc", "build.mill", "build.mill.scala")){
-        for (lines <- buildScLines() if os.exists(T.dest / suffix)) {
-          os.write.over(T.dest / suffix, lines.mkString("\n"))
+      os.copy(super.testRepoRoot().path, Task.dest, mergeFolders = true)
+      for (suffix <- Seq("build.sc", "build.mill", "build.mill.scala")) {
+        for (lines <- buildScLines() if os.exists(Task.dest / suffix)) {
+          os.write.over(Task.dest / suffix, lines.mkString("\n"))
         }
       }
-      PathRef(T.dest)
+      PathRef(Task.dest)
     }
 
     def resources = upstreamOpt match {
-      case None => T{ Seq(super.testRepoRoot()) }
-      case Some(upstream) => T{
-        os.copy.over(super.testRepoRoot().path, T.dest)
-        val upstreamRoot = upstream.testRepoRoot().path
-        val suffix = Seq("build.sc", "build.mill").find(s => os.exists(upstreamRoot / s)).head
-        for(lines <- buildScLines()) {
-          os.write.over(T.dest / suffix, lines.mkString("\n"))
-        }
-        Seq(PathRef(T.dest))
-      }
-    }
-    def buildScLines = upstreamOpt match {
-      case None => T { None }
-      case Some(upstream) => T {
-        Some {
+      case None => Task { Seq(super.testRepoRoot()) }
+      case Some(upstream) => Task {
+          os.copy.over(super.testRepoRoot().path, Task.dest)
           val upstreamRoot = upstream.testRepoRoot().path
           val suffix = Seq("build.sc", "build.mill").find(s => os.exists(upstreamRoot / s)).head
-          val upstreamLines = os.read.lines(upstream.testRepoRoot().path / suffix)
-          val lines = os.read.lines(super.testRepoRoot().path / suffix)
-
-          import collection.mutable
-          val groupedLines = mutable.Map.empty[String, mutable.Buffer[String]]
-          var current = Option.empty[String]
-          lines.foreach {
-            case s"//// SNIPPET:$name" =>
-              current = Some(name)
-              groupedLines(name) = mutable.Buffer()
-            case s => current.foreach(groupedLines(_).append(lineTransform(s)))
+          for (lines <- buildScLines()) {
+            os.write.over(Task.dest / suffix, lines.mkString("\n"))
           }
+          Seq(PathRef(Task.dest))
+        }
+    }
+    def buildScLines = upstreamOpt match {
+      case None => Task { None }
+      case Some(upstream) => Task {
+          Some {
+            val upstreamRoot = upstream.testRepoRoot().path
+            val suffix = Seq("build.sc", "build.mill").find(s => os.exists(upstreamRoot / s)).head
+            val upstreamLines = os.read.lines(upstream.testRepoRoot().path / suffix)
+            val lines = os.read.lines(super.testRepoRoot().path / suffix)
 
-          current = None
-          upstreamLines.flatMap {
-            case s"//// SNIPPET:$name" =>
-              if (name != "END") {
+            import collection.mutable
+            val groupedLines = mutable.Map.empty[String, mutable.Buffer[String]]
+            var current = Option.empty[String]
+            lines.foreach {
+              case s"//// SNIPPET:$name" =>
                 current = Some(name)
-                groupedLines(name)
-              } else {
-                current = None
-                Nil
-              }
+                groupedLines(name) = mutable.Buffer()
+              case s => current.foreach(groupedLines(_).append(lineTransform(s)))
+            }
 
-            case s => if (current.nonEmpty) None else Some(lineTransform(s))
+            current = None
+            upstreamLines.flatMap {
+              case s"//// SNIPPET:$name" =>
+                if (name != "END") {
+                  current = Some(name)
+                  groupedLines(name)
+                } else {
+                  current = None
+                  Nil
+                }
+
+              case s => if (current.nonEmpty) None else Some(lineTransform(s))
+            }
           }
         }
-      }
     }
 
     def lineTransform(line: String) = line
@@ -195,11 +212,11 @@ object `package` extends RootModule with Module {
 
   trait ExampleCrossModule extends build.integration.IntegrationTestModule {
     // disable scalafix because these example modules don't have sources causing it to misbehave
-    def fix(args: String*): Command[Unit] = T.command {}
-    def testRepoRoot: T[PathRef] = Task.Source(millSourcePath)
+    def testRepoSourceRoot: T[PathRef] = Task.Source(millSourcePath)
+    def testRepoRoot: T[PathRef] = Task { testRepoSourceRoot() }
 
     def sources0 = Task.Sources(millSourcePath)
-    def sources = Task{
+    def sources = Task {
       sources0()
         .flatMap(pathRef => os.walk(pathRef.path))
         .filter(os.isFile)
@@ -227,9 +244,9 @@ object `package` extends RootModule with Module {
 
     def rendered = Task {
       var seenCode = false
-      val examplePath = millSourcePath.subRelativeTo(T.workspace)
+      val examplePath = millSourcePath.subRelativeTo(Task.workspace)
       os.write(
-        T.dest / "example.adoc",
+        Task.dest / "example.adoc",
         parsed()
           .filter(_._2.nonEmpty)
           .map {
@@ -244,9 +261,8 @@ object `package` extends RootModule with Module {
               val title =
                 if (seenCode) ""
                 else {
-                  val label = build.millLastTag()
                   val exampleDashed = examplePath.segments.mkString("-")
-                  val download = s"{mill-download-url}/$label-$exampleDashed.zip[download]"
+                  val download = s"{mill-download-url}/$exampleDashed.zip[download]"
                   val browse = s"{mill-example-url}/$examplePath[browse]"
                   s".build.mill ($download, $browse)"
                 }
@@ -269,7 +285,7 @@ object `package` extends RootModule with Module {
           }
           .mkString("\n")
       )
-      PathRef(T.dest / "example.adoc")
+      PathRef(Task.dest / "example.adoc")
     }
   }
 
@@ -288,25 +304,30 @@ object `package` extends RootModule with Module {
     val (repoPath, repoHash) = repoInfo(crossValue)
     def repoSlug = repoPath.split("/").last
 
-    def downloadedRepo = Task{
-      shared.downloadTestRepo(repoPath, repoHash, T.dest)
-      val wrapperFolder = T.dest / s"$repoSlug-$repoHash"
+    def downloadTestRepo(label: String, commit: String, dest: os.Path) = {
+      os.unzip.stream(requests.get.stream(s"https://github.com/$label/archive/$commit.zip"), dest)
+      dest
+    }
+
+    def downloadedRepo = Task {
+      downloadTestRepo(repoPath, repoHash, Task.dest)
+      val wrapperFolder = Task.dest / s"$repoSlug-$repoHash"
       PathRef(wrapperFolder)
     }
 
     def testRepoRoot = Task {
       val wrapperFolder = downloadedRepo().path
-      os.copy(wrapperFolder, T.dest, mergeFolders = true)
+      os.copy(wrapperFolder, Task.dest, mergeFolders = true)
       os.copy(
         super.testRepoRoot().path,
-        T.dest,
+        Task.dest,
         mergeFolders = true,
         replaceExisting = true
       )
-      os.remove.all(T.dest / ".mill-version")
+      os.remove.all(Task.dest / ".mill-version")
 
-      os.remove.all(T.dest / "build.sc")
-      PathRef(T.dest)
+      os.remove.all(Task.dest / "build.sc")
+      PathRef(Task.dest)
     }
   }
 }

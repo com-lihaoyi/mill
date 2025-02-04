@@ -34,6 +34,8 @@ trait ScalaPBModule extends ScalaModule {
   /** ScalaPB enables lenses by default, this option allows you to disable it. */
   def scalaPBLenses: T[Boolean] = Task { true }
 
+  def scalaPBScala3Sources: T[Boolean] = Task { false }
+
   def scalaPBSearchDeps: Boolean = false
 
   /**
@@ -68,7 +70,8 @@ trait ScalaPBModule extends ScalaModule {
             else
               Seq("single_line_to_string")
           }
-        )
+        ) ++
+        (if (scalaPBScala3Sources()) Seq("scala3_sources") else Seq.empty)
     ).mkString(",")
   }
 
@@ -82,16 +85,23 @@ trait ScalaPBModule extends ScalaModule {
 
   def scalaPBIncludePath: T[Seq[PathRef]] = Task.Sources { Seq.empty[PathRef] }
 
-  private def scalaDepsPBIncludePath = if (scalaPBSearchDeps) Task { Seq(scalaPBUnpackProto()) }
-  else Task { Seq.empty[PathRef] }
+  private def scalaDepsPBIncludePath: Task[Seq[PathRef]] = scalaPBSearchDeps match {
+    case true => Task.Anon { Seq(scalaPBUnpackProto()) }
+    case false => Task.Anon { Seq.empty[PathRef] }
+  }
 
   def scalaPBProtoClasspath: T[Agg[PathRef]] = Task {
-    defaultResolver().resolveDeps(transitiveCompileIvyDeps() ++ transitiveIvyDeps())
+    defaultResolver().resolveDeps(
+      Seq(
+        coursierDependency.withConfiguration(coursier.core.Configuration.provided),
+        coursierDependency
+      )
+    )
   }
 
   def scalaPBUnpackProto: T[PathRef] = Task {
     val cp = scalaPBProtoClasspath()
-    val dest = T.dest
+    val dest = Task.dest
     cp.iterator.foreach { ref =>
       Using(new ZipInputStream(ref.path.getInputStream)) { zip =>
         while ({
@@ -101,7 +111,7 @@ trait ScalaPBModule extends ScalaModule {
               if (entry.getName.endsWith(".proto")) {
                 val protoDest = dest / os.SubPath(entry.getName)
                 if (os.exists(protoDest))
-                  T.log.error(s"Warning: Overwriting ${dest} / ${os.SubPath(entry.getName)} ...")
+                  Task.log.error(s"Warning: Overwriting ${dest} / ${os.SubPath(entry.getName)} ...")
                 Using.resource(os.write.over.outputStream(protoDest, createFolders = true)) { os =>
                   IO.stream(zip, os)
                 }
@@ -132,7 +142,7 @@ trait ScalaPBModule extends ScalaModule {
         scalaPBClasspath(),
         scalaPBSources().map(_.path),
         scalaPBOptions(),
-        T.dest,
+        Task.dest,
         scalaPBCompileOptions()
       )
   }

@@ -1,6 +1,6 @@
 = Why does Mill use Scala?
 
-include::partial$gtag-config.adoc[]
+
 
 One question that comes up a lot among Mill users is why use Scala as the language
 to configure your build? Why not YAML, XML, TOML, Bash, Groovy, Python, Java, or any of the

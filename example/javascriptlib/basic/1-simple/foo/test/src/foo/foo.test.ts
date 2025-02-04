@@ -1,5 +1,5 @@
 import {generateUser, defaultRoles} from "foo/foo";
-import {Map} from 'node_modules/immutable';
+import {Map} from 'immutable';
 
 // Define the type roles object
 type RoleKeys = "admin" | "user";

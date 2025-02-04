@@ -7,15 +7,15 @@
 :revdate: 24 December 2024
 _{author}, {revdate}_
 
-include::mill:ROOT:partial$gtag-config.adoc[]
+
 
 Selective testing is a key technique necessary for working with any large codebase
 or monorepo: picking which tests to run to validate a change or pull-request, because
 running every test every time is costly and slow. This blog post will explore what
 selective testing is all about, the different approaches you can take with selective
 testing, based on my experience working on developer tooling and CI for the last decade at
-Dropbox and Databricks. Lastly, we will discuss how selective testing is supported by
-the Mill build tool.
+Dropbox and Databricks. Lastly, we will discuss
+xref:mill::large/selective-execution.adoc[how the Mill build tool supports selective testing].
 
 // end::header[]
 

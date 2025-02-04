@@ -5,6 +5,7 @@ output/
 .idea_modules
 .idea
 .vscode/
+.zed/
 out/
 /.bloop/
 /.metals/
@@ -17,3 +18,5 @@ node_modules/
 dist/
 build/
 *.bak
+mill-assembly.jar
+mill-native

@@ -22,7 +22,7 @@ trait RunModule extends WithZincWorker {
    */
   def forkEnv: T[Map[String, String]] = Task { Map.empty[String, String] }
 
-  def forkWorkingDir: T[os.Path] = Task { T.workspace }
+  def forkWorkingDir: T[os.Path] = Task { Task.workspace }
 
   /**
    * All classfiles and resources including upstream modules and dependencies
@@ -166,7 +166,7 @@ trait RunModule extends WithZincWorker {
 
   def runBackgroundTask(mainClass: Task[String], args: Task[Args] = Task.Anon(Args())): Task[Unit] =
     Task.Anon {
-      val (procUuidPath, procLockfile, procUuid) = RunModule.backgroundSetup(T.dest)
+      val (procUuidPath, procLockfile, procUuid) = RunModule.backgroundSetup(Task.dest)
       runner().run(
         args = Seq(
           procUuidPath.toString,
@@ -231,6 +231,25 @@ trait RunModule extends WithZincWorker {
         Result.Failure("subprocess failed")
     }
   }
+
+  private[mill] def launcher0 = Task.Anon {
+    val launchClasspath =
+      if (!runUseArgsFile()) runClasspath().map(_.path)
+      else {
+        val classpathJar = Task.dest / "classpath.jar"
+        Jvm.createClasspathPassingJar(classpathJar, runClasspath().map(_.path))
+        Agg(classpathJar)
+      }
+
+    Jvm.createLauncher(finalMainClass(), launchClasspath, forkArgs())
+  }
+
+  /**
+   * Builds a command-line "launcher" file that can be used to run this module's
+   * code, without the Mill process. Useful for deployment & other places where
+   * you do not want a build tool running
+   */
+  def launcher = Task { launcher0() }
 }
 
 object RunModule {

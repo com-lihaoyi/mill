@@ -1,4 +1,5 @@
 //// SNIPPET:BUILD
+
 package build
 import mill._, javalib._
 
@@ -97,6 +98,11 @@ Test run foo.FooTest finished: 0 failed, 0 ignored, 2 total, ...
 <h1>hello</h1>
 
 > ./out/foo/assembly.dest/out.jar --text hello # mac/linux
+<h1>hello</h1>
+
+> cp ./out/foo/assembly.dest/out.jar out.bat # windows
+
+> ./out.bat --text hello # windows
 <h1>hello</h1>
 
 */

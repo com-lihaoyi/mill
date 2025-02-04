@@ -9,13 +9,26 @@ object CompileErrorTests extends UtestIntegrationTestSuite {
     test - integrationTest { tester =>
       val res = tester.eval("foo.scalaVersion")
 
-      assert(res.isSuccess == false)
-      assert(res.err.contains("""bar.mill:15:9: not found: value doesntExist"""))
-      assert(res.err.contains("""println(doesntExist)"""))
-      assert(res.err.contains("""qux.mill:4:34: type mismatch;"""))
-      assert(res.err.contains(
-        """build.mill:9:5: value noSuchMethod is not a member"""
-      ))
+      assert(!res.isSuccess)
+
+      locally {
+        assert(res.err.contains("""bar.mill:15:9"""))
+        assert(res.err.contains("""println(doesntExist)"""))
+        assert(res.err.contains("""Not found: doesntExist"""))
+      }
+
+      locally {
+        assert(res.err.contains("""qux.mill:4:34"""))
+        assert(res.err.contains("""myMsg.substring("0")"""))
+        assert(res.err.contains("""Found:    ("0" : String)"""))
+        assert(res.err.contains("""Required: Int"""))
+      }
+
+      locally {
+        assert(res.err.contains("""build.mill:9:5"""))
+        assert(res.err.contains("""foo.noSuchMethod"""))
+        assert(res.err.contains("""value noSuchMethod is not a member"""))
+      }
     }
   }
 }

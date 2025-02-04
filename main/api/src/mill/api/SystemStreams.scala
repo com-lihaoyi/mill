@@ -31,8 +31,8 @@ object SystemStreams {
 
   /**
    * Used to check whether the system streams are all "original", i,e. they
-   * have not been overriden. Used for code paths that need to work differently
-   * if they have been overriden (e.g. handling subprocess stdout/stderr)
+   * have not been overridden. Used for code paths that need to work differently
+   * if they have been overridden (e.g. handling subprocess stdout/stderr)
    *
    * Assumes that the application only uses [[withStreams]] to override
    * stdout/stderr/stdin.
@@ -78,9 +78,13 @@ object SystemStreams {
     // ensures that interactive applications involving console IO work, as the
     // presence of a `PumpedProcess` would cause most interactive CLIs (e.g.
     // scala console, REPL, etc.) to misbehave
-    val inheritIn =
+    //
+    // Use `DummyInputStream` for the `stdin` if we are not inheriting the raw streams,
+    // because otherwise sharing the same `stdin` stream between multiple concurrent
+    // tasks doesn't make sense (even though sharing the same `stdout` is generally fine)
+    val inheritIn: os.ProcessInput =
       if (systemStreams.in eq original.in) os.InheritRaw
-      else new PumpedProcessInput
+      else DummyInputStream
 
     val inheritOut =
       if (systemStreams.out eq original.out) os.InheritRaw

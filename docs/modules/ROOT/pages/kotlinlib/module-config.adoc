@@ -1,7 +1,7 @@
 = Kotlin Module Configuration
 :page-aliases: Kotlin_Module_Config.adoc
 
-include::partial$gtag-config.adoc[]
+
 
 :language: Kotlin
 :language-small: kotlin

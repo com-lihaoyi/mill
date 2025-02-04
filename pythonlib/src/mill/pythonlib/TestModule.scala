@@ -56,7 +56,8 @@ object TestModule {
         args()
       }
       runner().run(
-        ("-m", "unittest", testArgs, "-v")
+        ("-m", "unittest", testArgs, "-v"),
+        workingDir = Task.workspace
       )
       Seq()
     }
@@ -65,7 +66,7 @@ object TestModule {
   /** TestModule that uses pytest to run tests. */
   trait Pytest extends PythonModule with TestModule {
 
-    override def pythonDeps: T[Seq[String]] = T {
+    override def pythonDeps: T[Seq[String]] = Task {
       super.pythonDeps() ++ Seq("pytest==8.3.3")
     }
 
@@ -74,11 +75,12 @@ object TestModule {
         (
           // format: off
           "-m", "pytest",
-          "-o", s"cache_dir=${Task.dest / "cache"}",
+          "-o", s"cache_dir=${Task.dest / "cache"}", "-v",
           sources().map(_.path),
           args()
           // format: in
-        )
+        ),
+        workingDir = Task.workspace
       )
       Seq()
     }

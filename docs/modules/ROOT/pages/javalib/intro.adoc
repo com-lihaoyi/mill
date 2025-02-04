@@ -2,7 +2,7 @@
 = Building Java with Mill
 :page-aliases: Intro_to_Mill.adoc, Intro_to_Mill_for_Java.adoc, Java_Intro_to_Mill.adoc
 
-include::partial$gtag-config.adoc[]
+
 
 
 :language: Java
@@ -30,5 +30,3 @@ include::partial$example/javalib/basic/4-compat-modules.adoc[]
 == Realistic Java Example Project
 
 include::partial$example/javalib/basic/6-realistic.adoc[]
-
-

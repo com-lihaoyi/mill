@@ -1,0 +1,30 @@
+= Typescript Module Configuration
+
+
+
+:language: Typescript
+:language-small: typescript
+
+== Common Configuration Overrides
+
+include::partial$example/javascriptlib/module/1-common-config.adoc[]
+
+== Custom Tasks
+
+include::partial$example/javascriptlib/module/2-custom-tasks.adoc[]
+
+== Overriding Tasks
+
+include::partial$example/javascriptlib/module/3-override-tasks.adoc[]
+
+== Compilation & Execution Flags
+
+include::partial$example/javascriptlib/module/4-compilation-execution-flags.adoc[]
+
+== Filesystem Resources
+
+include::partial$example/javascriptlib/module/5-resources.adoc[]
+
+== Bundling Configuration
+
+include::partial$example/javascriptlib/module/6-executable-config.adoc[]

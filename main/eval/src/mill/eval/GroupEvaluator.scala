@@ -80,7 +80,9 @@ private[mill] trait GroupEvaluator {
             .flatten
         )
 
-      val inputsHash = externalInputsHash + sideHashes + classLoaderSigHash + scriptsHash
+      val javaHomeHash = sys.props("java.home").hashCode
+      val inputsHash =
+        externalInputsHash + sideHashes + classLoaderSigHash + scriptsHash + javaHomeHash
 
       terminal match {
         case Terminal.Task(task) =>
