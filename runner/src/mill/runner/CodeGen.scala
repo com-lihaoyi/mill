@@ -226,7 +226,13 @@ object CodeGen {
            |$aliasImports
            |$importSiblingScripts
            |$prelude
-           |${topBuildHeader(segments, scriptFolderPath, millTopLevelProjectRoot, childAliases, exportSiblingScripts)}
+           |${topBuildHeader(
+            segments,
+            scriptFolderPath,
+            millTopLevelProjectRoot,
+            childAliases,
+            exportSiblingScripts
+          )}
            |$markerComment
            |$scriptCode
            |}""".stripMargin
