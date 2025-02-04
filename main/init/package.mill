@@ -1,7 +1,6 @@
 package build.main.init
 
 import mill._
-import scala.util.matching.Regex
 
 object `package` extends RootModule with build.MillPublishScalaModule {
 
@@ -84,6 +83,17 @@ object `package` extends RootModule with build.MillPublishScalaModule {
       build.Deps.mavenResolverTransportHttp,
       build.Deps.mavenResolverTransportWagon
     )
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib, buildgen.test)
+  }
+
+  object sbt extends build.MillPublishScalaModule {
+    // An SBT plugin is built with Scala 2.12. See https://www.scala-sbt.org/1.x/docs/Plugins.html#Creating+an+auto+plugin.
+    def scalaVersion = build.Deps.sbtScalaVersion212
+
+    def moduleDeps = Seq(buildgen)
+
+    def ivyDeps = Agg(build.Deps.sbt, build.Deps.upickle)
+
     def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib, buildgen.test)
   }
 }

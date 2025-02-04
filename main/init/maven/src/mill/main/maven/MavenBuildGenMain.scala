@@ -37,7 +37,7 @@ import scala.jdk.CollectionConverters.*
  */
 @mill.api.internal
 object MavenBuildGenMain extends BuildGenBase[Model, Dependency] {
-  type C = MavenBuildGenMain.Config
+  type C = Config
 
   def main(args: Array[String]): Unit = {
     val cfg = ParserForClass[Config].constructOrExit(args.toSeq)

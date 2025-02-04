@@ -1,20 +1,13 @@
-package mill.main.gradle
+package mill.main.sbt
 
-import mainargs.{ParserForClass, arg, main}
+import mainargs.{ParserForClass, main}
 import mill.main.buildgen.*
-import mill.main.buildgen.BuildGenUtil.*
-import mill.util.Jvm
-import org.gradle.api.plugins.JavaPlugin
-import org.gradle.tooling.GradleConnector
-import os.Path
-
-import scala.jdk.CollectionConverters.*
 
 /**
- * Converts a Gradle build to Mill by generating Mill build file(s).
- * The implementation uses the Gradle
- * [[https://docs.gradle.org/current/userguide/third_party_integration.html#embedding Tooling API]]
- * to extract the settings for a project using a custom model.
+ * Converts an SBT build to Mill by generating Mill build file(s).
+ * The implementation uses the SBT
+ * [[https://www.scala-sbt.org/1.x/docs/Combined+Pages.html#addPluginSbtFile+command addPluginSbtFile command]]
+ * to add a plugin and a task to extract the settings for a project using a custom model.
  *
  * The generated output should be considered scaffolding and will likely require edits to complete conversion.
  *
@@ -22,24 +15,24 @@ import scala.jdk.CollectionConverters.*
  * The conversion
  *  - handles deeply nested modules
  *  - configures dependencies for configurations:
- *    - implementation / api
- *    - compileOnly / compileOnlyApi
- *    - runtimeOnly
- *    - testImplementation
- *    - testCompileOnly
+ *    - Compile
+ *    - Runtime
+ *    - Test
  *  - configures testing frameworks:
  *    - JUnit 4
  *    - JUnit 5
  *    - TestNG
- *
+ *    - ScalaTest
+ *    - Specs2
+ *    - ScalaCheck
  * ===Limitations===
  * The conversion does not support
- *  - custom dependency configurations
+ *  - custom configurations
  *  - custom tasks
- *  - non-Java sources
+ *  - sources other than Scala on JVM and Java
  */
 @mill.api.internal
-object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
+object SbtBuildGenMain extends BuildGenBase[IrBuild, String] {
   type C = Config
 
   def main(args: Array[String]): Unit = {
@@ -50,7 +43,27 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
   private def run(cfg: Config): Unit = {
     val workspace = os.pwd
 
-    println("converting Gradle build")
+    println("converting SBT build")
+
+
+    import scala.sys.process.*
+
+    // resolve the sbt executable
+    // https://raw.githubusercontent.com/paulp/sbt-extras/master/sbt
+    val sbtExecutable = if (os.exists(workspace / "sbt"))
+      "./sbt"
+    else if (os.exists(workspace / "sbtx"))
+      "./sbtx"
+    else if ("sbt --help".! == 0)
+      "sbt"
+    else
+      throw new RuntimeException(
+        "No sbt executable (`./sbt`, `./sbtx`, or system-wide `sbt`) found"
+      )
+
+    sbtExecutable.!
+
+    /*
     val connector = GradleConnector.newConnector()
 
     val args =
@@ -80,8 +93,10 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
         println("converted Gradle build to Mill")
       } finally connection.close()
     } finally connector.disconnect()
+     */
   }
 
+  /*
   private def writeGradleInitScript: os.Path = {
     val file = os.temp.dir() / "init.gradle"
     val classpath =
@@ -101,7 +116,30 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
     os.write(file, contents)
     file
   }
+   */
 
+  override def getSuperTypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[IrBuild]): Seq[String] =
+    ???
+
+  override def getBaseInfo(
+      input: Tree[Node[IrBuild]],
+      cfg: Config,
+      baseModule: String,
+      packagesSize: Int
+  ): IrBaseInfo = ???
+
+  override def getPackage(model: IrBuild): (String, String, String) = ???
+
+  override def getArtifactId(model: IrBuild): String = ???
+
+  override def extractIrBuild(
+      cfg: Config,
+      baseInfo: IrBaseInfo,
+      build: Node[IrBuild],
+      packages: Map[(String, String, String), String]
+  ): IrBuild = ???
+
+  /*
   def getBaseInfo(
       input: Tree[Node[ProjectModel]],
       cfg: Config,
@@ -341,13 +379,11 @@ object GradleBuildGenMain extends BuildGenBase[ProjectModel, JavaModel.Dep] {
     }
     sd
   }
+   */
 
   @main
   @mill.api.internal
   case class Config(
-      shared: BuildGenUtil.Config,
-      @arg(doc = "name of Gradle project to extract settings for --base-module", short = 'g')
-      baseProject: Option[String] = None
+      shared: BuildGenUtil.Config
   )
-
 }

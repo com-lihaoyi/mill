@@ -53,8 +53,11 @@ object Deps {
   // and then add to it `bridgeScalaVersions`
   val scalaVersion = "2.13.15"
   val scala2Version = "2.13.15"
+  // The Scala 2.12.x version
+  val scalaVersion212 = "2.12.20"
   // The Scala 2.12.x version to use for some workers
-  val workerScalaVersion212 = "2.12.20"
+  val workerScalaVersion212 = scalaVersion212
+  val sbtScalaVersion212 = scalaVersion212
 
   val testScala213Version = "2.13.15"
   // Scala Native 4.2 will not get releases for new Scala version
@@ -203,6 +206,7 @@ object Deps {
     ivy"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
   val coursierJvmIndexVersion = "0.0.4-84-f852c6"
   val gradleApi = ivy"dev.gradleplugins:gradle-api:8.11.1"
+  val sbt = ivy"org.scala-sbt:sbt:1.10.7"
 
   object RuntimeDeps {
     val dokkaVersion = "2.0.0"
