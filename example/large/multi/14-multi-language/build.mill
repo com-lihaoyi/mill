@@ -15,16 +15,14 @@ object server extends JavaModule {
     ivy"org.springframework.boot:spring-boot-starter-actuator:2.5.6"
   )
 
-  /** Bundle client as resource */
+  /** Bundle client & sentiment-analysis as resource */
   def resources = Task.Sources {
     os.copy(client.bundle().path, Task.dest / "static")
+    os.makeDir.all(Task.dest / "analysis")
     os.copy(`sentiment-analysis`.bundle().path, Task.dest / "analysis" / "analysis.pex")
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 }
-
-// This example demonstrates how to set up a simple Spring Boot webserver,
-// able to handle a single HTTP request at `/` and reply with a single response.
 
 /** Usage
 
