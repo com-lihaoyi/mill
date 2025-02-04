@@ -204,7 +204,7 @@ object CodeGen {
            |$newScriptCode
            |object $wrapperObjectName extends $wrapperObjectName {
            |  ${childAliases.linesWithSeparators.mkString("  ")}
-           |  ${if (segments.nonEmpty) "" else millDiscover()}
+           |  ${millDiscover(segments.nonEmpty)}
            |}""".stripMargin
 
       case None =>
@@ -232,8 +232,10 @@ object CodeGen {
        |""".stripMargin
   }
 
-  def millDiscover(): String = {
-    """override lazy val millDiscover: _root_.mill.define.Discover = _root_.mill.define.Discover[this.type]""".stripMargin
+  def millDiscover(segmentsNonEmpty: Boolean): String = {
+    if (segmentsNonEmpty) "override def millDiscover: _root_.mill.define.Discover  = build_.package_.implicitMillDiscover"
+    else """override def millDiscover: _root_.mill.define.Discover = _root_.mill.define.Discover[this.type]""".stripMargin
+
   }
 
   def rootMiscInfo(
@@ -275,7 +277,7 @@ object CodeGen {
     // or, add an optional parameter to Discover.apply to substitute the outer class?
     s"""object ${wrapperObjectName} extends $wrapperObjectName {
        |  ${childAliases.linesWithSeparators.mkString("  ")}
-       |  ${if (segments.nonEmpty) "" else millDiscover()}
+       |  ${millDiscover(segments.nonEmpty)}
        |}
        |abstract class $wrapperObjectName $extendsClause { this: $wrapperObjectName.type =>
        |""".stripMargin
