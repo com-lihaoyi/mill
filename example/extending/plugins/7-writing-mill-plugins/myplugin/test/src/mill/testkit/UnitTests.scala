@@ -1,6 +1,8 @@
 package myplugin
 
 import mill.testkit.{TestBaseModule, UnitTester}
+import mill.define.Discover
+import mill.main.TokenReaders._
 import utest._
 
 object UnitTests extends TestSuite {
@@ -8,6 +10,8 @@ object UnitTests extends TestSuite {
     test("unit") {
       object build extends TestBaseModule with LineCountJavaModule {
         def lineCountResourceFileName = "line-count.txt"
+
+        def millDiscover = Discover[this.type]
       }
 
       val resourceFolder = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
