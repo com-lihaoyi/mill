@@ -1,0 +1,9 @@
+Todo:
+    [x] Python sentiment analysis
+    [] Java server
+          - resources are reachable
+          - serve client
+          - api path for python binary call
+    [] React client:
+        - Modify to take in sentiment
+        - and return its polarity rating :(
