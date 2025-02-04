@@ -99,7 +99,7 @@ object MainModule {
  * [[mill.define.Module]] containing all the default tasks that Mill provides: [[resolve]],
  * [[show]], [[inspect]], [[plan]], etc.
  */
-trait MainModule extends BaseModule0 {
+trait MainModule extends BaseModule {
 
   object interp extends Interp
 

@@ -12,7 +12,7 @@ abstract class BaseModule(
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,
     millFile0: sourcecode.File,
-    caller: Caller
+    caller: Caller[OverrideMapping.Wrapper]
 ) extends Module.BaseClass()(
       mill.define.Ctx.make(
         implicitly,
@@ -26,7 +26,7 @@ abstract class BaseModule(
         EnclosingClass(null),
         discover = null
       )
-    ) with Module with BaseModule0 {
+    ) with Module {
 
   // A BaseModule should provide an empty Segments list to its children, since
   // it is the root of the module tree, and thus must not include its own
@@ -42,10 +42,7 @@ abstract class BaseModule(
   // so it can be used for override detection
   override implicit lazy val implicitMillDiscover: Discover = millDiscover
   def millOuterCtx = super.millOuterCtx.withDiscover(millDiscover)
-}
 
-trait BaseModule0 extends Module {
-  protected def millDiscover: Discover
   protected[mill] val watchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty[Watchable]
   protected[mill] val evalWatchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty[Watchable]
 

@@ -88,7 +88,7 @@ object Ctx extends LowPriCtx {
       external0: External,
       foreign0: Foreign,
       fileName: sourcecode.File,
-      enclosing: Caller,
+      enclosing: Caller[OverrideMapping.Wrapper],
       enclosingClass: EnclosingClass,
       discover: Discover
   ): Ctx = {
@@ -102,18 +102,13 @@ object Ctx extends LowPriCtx {
       millModuleLine0.value,
       Segment.Label(lastSegmentStr),
       millModuleBasePath0.value,
-      segments0 ++ {
-        Option(enclosing.value) match {
-          case None => Segments()
-          case Some(value) =>
-            OverrideMapping.computeSegments(
-              value.asInstanceOf[OverrideMapping.Wrapper],
-              discover,
-              lastSegmentStr,
-              enclosingClass.value
-            )
-        }
-      },
+      segments0 ++ 
+      OverrideMapping.computeSegments(
+        enclosing.value,
+        discover,
+        lastSegmentStr,
+        enclosingClass.value
+      ),
       external0.value,
       foreign0.value,
       fileName.value,

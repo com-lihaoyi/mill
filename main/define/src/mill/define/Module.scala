@@ -41,7 +41,7 @@ trait Module extends Module.BaseClass with OverrideMapping.Wrapper {
   implicit def millModuleShared: Ctx.Foreign = Ctx.Foreign(millOuterCtx.foreign)
   implicit def millModuleBasePath: Ctx.BasePath = Ctx.BasePath(millSourcePath)
   implicit def millModuleSegments: Segments = millOuterCtx.segments ++ Seq(millOuterCtx.segment)
-  final given millModuleCaller: Caller = Caller(this)
+  final given millModuleCaller: Caller[OverrideMapping.Wrapper] = Caller(this)
 
   override def toString = millModuleSegments.render
 
