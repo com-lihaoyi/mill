@@ -102,13 +102,13 @@ object Ctx extends LowPriCtx {
       millModuleLine0.value,
       Segment.Label(lastSegmentStr),
       millModuleBasePath0.value,
-      segments0 ++ 
-      OverrideMapping.computeSegments(
-        enclosing.value,
-        discover,
-        lastSegmentStr,
-        enclosingClass.value
-      ),
+      segments0 ++
+        OverrideMapping.computeSegments(
+          enclosing.value,
+          discover,
+          lastSegmentStr,
+          enclosingClass.value
+        ),
       external0.value,
       foreign0.value,
       fileName.value,

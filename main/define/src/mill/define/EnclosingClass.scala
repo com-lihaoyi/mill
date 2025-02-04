@@ -6,7 +6,7 @@ case class EnclosingClass(value: Class[_])
 object EnclosingClass {
   def apply()(implicit c: EnclosingClass) = c.value
   inline given generate: EnclosingClass = ${ impl }
-  
+
   def impl(using quotes: Quotes): Expr[EnclosingClass] = Cacher.withMacroOwner { owner =>
     import quotes.reflect.*
 

@@ -7,7 +7,7 @@ import scala.collection.mutable
 
 abstract class BaseModule(
     millSourcePath0: os.Path,
-    external0: Boolean = false,
+    external0: Boolean = false
 )(implicit
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,
