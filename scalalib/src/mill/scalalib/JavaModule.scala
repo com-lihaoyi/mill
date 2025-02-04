@@ -1165,11 +1165,16 @@ trait JavaModule
 
       Task.log.info("options: " + cmdArgs)
 
-      Jvm.runSubprocess(
-        commandArgs = Seq(Jvm.jdkTool("javadoc")) ++ cmdArgs,
-        envArgs = Map(),
-        workingDir = Task.dest
+      val processResult = os.call(
+        cmd = Seq(Jvm.jdkTool("javadoc")) ++ cmdArgs,
+        env = Map(),
+        cwd = Task.dest,
+        stdin = os.Inherit,
+        stdout = os.Inherit,
+        stderr = os.Inherit,
+        check = false
       )
+      mill.util.ProcessUtil.toResult(processResult).getOrThrow
     }
 
     Jvm.createJar(Agg(javadocDir))(outDir)

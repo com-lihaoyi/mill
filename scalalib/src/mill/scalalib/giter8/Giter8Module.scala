@@ -33,11 +33,12 @@ trait Giter8Module extends CoursierModule {
           throw e
       }
 
-    Jvm.runSubprocess(
-      "giter8.Giter8",
-      giter8Dependencies.map(_.path),
+    val processResult = Jvm.call(
+      mainClass = "giter8.Giter8",
+      classPath = giter8Dependencies.map(_.path).toVector,
       mainArgs = args,
-      workingDir = Task.workspace
+      cwd = Task.workspace
     )
+    mill.util.ProcessUtil.toResult(processResult).getOrThrow
   }
 }

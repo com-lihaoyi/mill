@@ -161,13 +161,16 @@ trait KotlinJsModule extends KotlinModule { outer =>
       case Some(RunTarget.Node) =>
         val binaryPath = (binaryDir / s"$artifactId.${moduleKind.extension}")
           .toIO.getAbsolutePath
-        Jvm.runSubprocessWithResult(
-          commandArgs = Seq(
-            "node"
-          ) ++ args.value ++ Seq(binaryPath),
-          envArgs = envArgs,
-          workingDir = workingDir
+        val processResult = os.call(
+          cmd = Seq("node") ++ args.value ++ Seq(binaryPath),
+          env = envArgs,
+          cwd = workingDir,
+          stdin = os.Inherit,
+          stdout = os.Inherit,
+          stderr = os.Inherit,
+          check = false
         )
+        mill.util.ProcessUtil.toResult(processResult)
       case Some(x) =>
         Result.Failure(s"Run target $x is not supported")
       case None =>
@@ -474,11 +477,16 @@ trait KotlinJsModule extends KotlinModule { outer =>
     // TODO may be optimized if there is a single folder for all modules
     // but may be problematic if modules use different NPM packages versions
     private def nodeModulesDir = Task(persistent = true) {
-      Jvm.runSubprocess(
-        commandArgs = Seq("npm", "install", "mocha@10.2.0", "source-map-support@0.5.21"),
-        envArgs = Task.env,
-        workingDir = Task.dest
+      val processResult = os.call(
+        cmd = Seq("npm", "install", "mocha@10.2.0", "source-map-support@0.5.21"),
+        env = Task.env,
+        cwd = Task.dest,
+        stdin = os.Inherit,
+        stdout = os.Inherit,
+        stderr = os.Inherit,
+        check = false
       )
+      mill.util.ProcessUtil.toResult(processResult).getOrThrow
       PathRef(Task.dest)
     }
 

@@ -38,14 +38,16 @@ trait JmhModule extends JavaModule {
   def runJmh(args: String*) =
     Task.Command {
       val (_, resources) = generateBenchmarkSources()
-      Jvm.runSubprocess(
+      val processResult = Jvm.call(
         "org.openjdk.jmh.Main",
         classPath = (runClasspath() ++ generatorDeps()).map(_.path) ++
           Seq(compileGeneratedSources().path, resources),
         mainArgs = args,
-        workingDir = Task.ctx().dest,
+        cwd = Task.ctx().dest,
         javaHome = zincWorker().javaHome().map(_.path)
       )
+      mill.util.ProcessUtil.toResult(processResult).getOrThrow
+      ()
     }
 
   def listJmhBenchmarks(args: String*) = runJmh(("-l" +: args): _*)
@@ -82,7 +84,7 @@ trait JmhModule extends JavaModule {
       os.remove.all(resourcesDir)
       os.makeDir.all(resourcesDir)
 
-      Jvm.runSubprocess(
+      val processResult = Jvm.call(
         "org.openjdk.jmh.generators.bytecode.JmhBytecodeGenerator",
         (runClasspath() ++ generatorDeps()).map(_.path),
         mainArgs = Seq(
@@ -94,6 +96,7 @@ trait JmhModule extends JavaModule {
         javaHome = zincWorker().javaHome().map(_.path),
         jvmArgs = forkedArgs
       )
+      mill.util.ProcessUtil.toResult(processResult).getOrThrow
 
       (sourcesDir, resourcesDir)
     }

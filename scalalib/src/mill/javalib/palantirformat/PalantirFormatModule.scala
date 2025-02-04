@@ -136,14 +136,14 @@ object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule
 
         ctx.log.debug(s"running palantirformat with $mainArgs")
 
-        val exitCode = Jvm.callSubprocess(
+        val processResult = Jvm.call(
           mainClass = "com.palantir.javaformat.java.Main",
-          classPath = classPath.map(_.path),
+          classPath = classPath.map(_.path).toVector,
           jvmArgs = jvmArgs,
           mainArgs = mainArgs,
-          workingDir = ctx.dest,
-          check = false
-        ).exitCode
+          cwd = ctx.dest
+        )
+        val exitCode = processResult.exitCode
 
         if (check && exitCode != 0) {
           ctx.log.error(

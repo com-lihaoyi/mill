@@ -63,19 +63,17 @@ private[scalalib] object TestModuleUtil {
 
       os.makeDir.all(sandbox)
 
-      Jvm.runSubprocess(
+      val processResult = Jvm.call(
         mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
-        classPath =
-          (runClasspath ++ testrunnerEntrypointClasspath).map(
-            _.path
-          ),
+        classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
         jvmArgs = jvmArgs,
-        envArgs = forkEnv ++ resourceEnv,
+        env = forkEnv ++ resourceEnv,
         mainArgs = Seq(testRunnerClasspathArg, argsFile.toString),
-        workingDir = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
+        cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
         useCpPassingJar = useArgsFile,
         javaHome = javaHome
       )
+      mill.util.ProcessUtil.toResult(processResult).getOrThrow
 
       if (!os.exists(outputPath)) Left(s"Test reporting Failed: ${outputPath} does not exist")
       else Right(upickle.default.read[(String, Seq[TestResult])](ujson.read(outputPath.toIO)))
@@ -102,9 +100,9 @@ private[scalalib] object TestModuleUtil {
         // tests to run and shut down
 
         val discoveredTests = if (javaHome.isDefined) {
-          Jvm.callSubprocess(
+          val processResult = Jvm.call(
             mainClass = "mill.testrunner.GetTestTasksMain",
-            classPath = scalalibClasspath.map(_.path),
+            classPath = scalalibClasspath.map(_.path).toVector,
             mainArgs =
               (runClasspath ++ testrunnerEntrypointClasspath).flatMap(p =>
                 Seq("--runCp", p.path.toString)
@@ -114,8 +112,11 @@ private[scalalib] object TestModuleUtil {
                 selectors.flatMap(s => Seq("--selectors", s)) ++
                 args.flatMap(s => Seq("--args", s)),
             javaHome = javaHome,
-            streamOut = false
-          ).out.lines().toSet
+            stdout = os.Pipe,
+            cwd = Task.dest
+          )
+          mill.util.ProcessUtil.toResult(processResult).getOrThrow
+          processResult.out.lines().toSet
         } else {
           mill.testrunner.GetTestTasksMain.main0(
             (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),

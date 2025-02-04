@@ -16,8 +16,171 @@ object Jvm extends CoursierSupport {
 
   /**
    * Runs a JVM subprocess with the given configuration and returns a
+   * [[os.CommandResult]] with it's aggregated output and error streams.
+   *
+   * Exit code is not checked.
+   * Use [[ProcessUtil.toResult]] to do a proper check
+   *
+   * @param mainClass The main class to run
+   * @param classPath The classpath
+   * @param javaHome Optional Java Home override
+   * @param jvmArgs Arguments given to the forked JVM
+   * @param useCpPassingJar When `false`, the `-cp` parameter is used to pass the classpath
+   *                        to the forked JVM.
+   *                        When `true`, a temporary empty JAR is created
+   *                        which contains a `Class-Path` manifest entry containing the actual classpath.
+   *                        This might help with long classpaths on OS'es (like Windows)
+   *                        which only supports limited command-line length
+   * @param mainArgs Args passed to the `mainClass` main method
+   * @param env Environment variables used when starting the forked JVM
+   * @param propagateEnv If `true` then the current process' environment variables are propagated to subprocess
+   * @param cwd The working directory to be used by the forked JVM
+   * @param stdin Standard input
+   * @param stdout Standard output
+   * @param stderr Standard error
+   * @param mergeErrIntoOut If `true` then the error output is merged into standard output
+   */
+  def call(
+      mainClass: String,
+      classPath: Iterable[os.Path],
+      javaHome: Option[os.Path] = None,
+      jvmArgs: Seq[String] = Seq.empty,
+      useCpPassingJar: Boolean = false,
+      mainArgs: Seq[String] = Seq.empty,
+      env: Map[String, String] = Map.empty,
+      propagateEnv: Boolean = true,
+      cwd: os.Path = null,
+      stdin: os.ProcessInput = os.Inherit,
+      stdout: ProcessOutput = os.Inherit,
+      stderr: ProcessOutput = os.Inherit,
+      mergeErrIntoOut: Boolean = false,
+      destroyOnExit: Boolean = true
+  )(implicit ctx: Ctx): CommandResult = {
+    val cp =
+      if (useCpPassingJar && classPath.nonEmpty) {
+        val passingJar = os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)
+        ctx.log.debug(
+          s"Creating classpath passing jar '${passingJar}' with Class-Path: ${classPath.map(
+              _.toNIO.toUri.toURL.toExternalForm
+            ).mkString(" ")}"
+        )
+        createClasspathPassingJar(passingJar, classPath)
+        Agg(passingJar)
+      } else {
+        classPath
+      }
+
+    val commandArgs = (Vector(javaExe(javaHome)) ++
+      jvmArgs ++
+      Option.when(cp.nonEmpty)(Vector(
+        "-cp",
+        cp.mkString(java.io.File.pathSeparator)
+      )).getOrElse(Vector.empty) ++
+      Vector(mainClass) ++
+      mainArgs).filterNot(_.isBlank)
+
+    if (cwd != null) os.makeDir.all(cwd)
+
+    ctx.log.debug(s"Call subprocess with args: ${commandArgs.map(a => s"'${a}'").mkString(" ")}")
+
+    os.proc(commandArgs)
+      .call(
+        cwd = cwd,
+        env = env,
+        check = false,
+        stdin = stdin,
+        stdout = stdout,
+        stderr = stderr,
+        mergeErrIntoOut = mergeErrIntoOut,
+        propagateEnv = propagateEnv,
+        destroyOnExit = destroyOnExit
+      )
+  }
+
+  /**
+   * Runs a JVM subprocess with the given configuration and streams
+   * it's stdout and stderr to the console.
+   *
+   * @param mainClass The main class to run
+   * @param classPath The classpath
+   * @param javaHome Optional Java Home override
+   * @param jvmArgs Arguments given to the forked JVM
+   * @param useCpPassingJar When `false`, the `-cp` parameter is used to pass the classpath
+   *                        to the forked JVM.
+   *                        When `true`, a temporary empty JAR is created
+   *                        which contains a `Class-Path` manifest entry containing the actual classpath.
+   *                        This might help with long classpaths on OS'es (like Windows)
+   *                        which only supports limited command-line length
+   * @param mainArgs Args passed to the `mainClass` main method
+   * @param env Environment variables used when starting the forked JVM
+   * @param propagateEnv If `true` then the current process' environment variables are propagated to subprocess
+   * @param cwd The working directory to be used by the forked JVM
+   * @param stdin Standard input override
+   * @param stdout Standard output override
+   * @param stderr Standard error override
+   * @param mergeErrIntoOut If `true` then the error output is merged into standard output
+   */
+  def spawn(
+      mainClass: String,
+      classPath: Iterable[os.Path],
+      javaHome: Option[os.Path] = None,
+      jvmArgs: Seq[String] = Seq.empty,
+      useCpPassingJar: Boolean = false,
+      mainArgs: Seq[String] = Seq.empty,
+      env: Map[String, String] = Map.empty,
+      propagateEnv: Boolean = true,
+      cwd: os.Path = null,
+      stdin: os.ProcessInput = os.Inherit,
+      stdout: ProcessOutput = os.Inherit,
+      stderr: ProcessOutput = os.Inherit,
+      mergeErrIntoOut: Boolean = false,
+      destroyOnExit: Boolean = true
+  )(implicit ctx: Ctx): os.SubProcess = {
+    val cp =
+      if (useCpPassingJar && classPath.nonEmpty) {
+        val passingJar = os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)
+        ctx.log.debug(
+          s"Creating classpath passing jar '${passingJar}' with Class-Path: ${classPath.map(
+              _.toNIO.toUri.toURL.toExternalForm
+            ).mkString(" ")}"
+        )
+        createClasspathPassingJar(passingJar, classPath)
+        Agg(passingJar)
+      } else {
+        classPath
+      }
+
+    val commandArgs = (Vector(javaExe(javaHome)) ++
+      jvmArgs ++
+      Option.when(cp.nonEmpty)(Vector(
+        "-cp",
+        cp.mkString(java.io.File.pathSeparator)
+      )).getOrElse(Vector.empty) ++
+      Vector(mainClass) ++
+      mainArgs).filterNot(_.isBlank)
+
+    if (cwd != null) os.makeDir.all(cwd)
+
+    ctx.log.debug(s"Spawn subprocess with args: ${commandArgs.map(a => s"'${a}'").mkString(" ")}")
+
+    val process = os.proc(commandArgs).spawn(
+      cwd = cwd,
+      env = env,
+      stdin = stdin,
+      stdout = stdout,
+      stderr = stderr,
+      mergeErrIntoOut = mergeErrIntoOut,
+      propagateEnv = propagateEnv,
+      destroyOnExit = destroyOnExit
+    )
+    process
+  }
+
+  /**
+   * Runs a JVM subprocess with the given configuration and returns a
    * [[os.CommandResult]] with it's aggregated output and error streams
    */
+  @deprecated("Use call", "Mill 0.12.7")
   def callSubprocess(
       mainClass: String,
       classPath: Agg[os.Path],
@@ -52,6 +215,7 @@ object Jvm extends CoursierSupport {
    * Runs a JVM subprocess with the given configuration and returns a
    * [[os.CommandResult]] with it's aggregated output and error streams
    */
+  @deprecated("Use call", "Mill 0.12.7")
   def callSubprocess(
       mainClass: String,
       classPath: Agg[os.Path],
@@ -79,6 +243,7 @@ object Jvm extends CoursierSupport {
    * Runs a JVM subprocess with the given configuration and returns a
    * [[os.CommandResult]] with it's aggregated output and error streams
    */
+  @deprecated("Use call", "Mill 0.12.7")
   def callSubprocess(
       mainClass: String,
       classPath: Agg[os.Path],
@@ -132,6 +297,7 @@ object Jvm extends CoursierSupport {
    *                        This might help with long classpaths on OS'es (like Windows)
    *                        which only supports limited command-line length
    */
+  @deprecated("Use spawn or call+ProcessUtil.toResult", "Mill 0.12.7")
   def runSubprocess(
       mainClass: String,
       classPath: Agg[os.Path],
@@ -170,6 +336,7 @@ object Jvm extends CoursierSupport {
   }
 
   // bincompat shim
+  @deprecated("Use call+ProcessUtil.toResult", "Mill 0.12.7")
   def runSubprocess(
       mainClass: String,
       classPath: Agg[os.Path],
@@ -194,6 +361,7 @@ object Jvm extends CoursierSupport {
       None
     )
   // bincompat shim
+  @deprecated("Use call+ProcessUtil.toResult", "Mill 0.12.7")
   def runSubprocess(
       mainClass: String,
       classPath: Agg[os.Path],
@@ -232,6 +400,7 @@ object Jvm extends CoursierSupport {
    *                        This might help with long classpaths on OS'es (like Windows)
    *                        which only supports limited command-line length
    */
+  @deprecated("Use spawn or call+ProcessUtil.toResult", "Mill 0.12.7")
   def runSubprocessWithBackgroundOutputs(
       mainClass: String,
       classPath: Agg[os.Path],
@@ -280,6 +449,7 @@ object Jvm extends CoursierSupport {
   }
 
   // bincompat shim
+  @deprecated("Use spawn or call+ProcessUtil.toResult", "Mill 0.12.7")
   def runSubprocessWithBackgroundOutputs(
       mainClass: String,
       classPath: Agg[os.Path],
@@ -306,6 +476,7 @@ object Jvm extends CoursierSupport {
    * Runs a generic subprocess and waits for it to terminate. If process exited with non-zero code, exception
    * will be thrown. If you want to manually handle exit code, check [[runSubprocessWithResult]]
    */
+  @deprecated("Use os.call+ProcessUtil.toResult", "Mill 0.12.7")
   def runSubprocess(
       commandArgs: Seq[String],
       envArgs: Map[String, String],
@@ -320,6 +491,7 @@ object Jvm extends CoursierSupport {
    *
    * @return Result with exit code.
    */
+  @deprecated("Use os.call+ProcessUtil.toResult", "Mill 0.12.7")
   def runSubprocessWithResult(
       commandArgs: Seq[String],
       envArgs: Map[String, String],
@@ -362,6 +534,7 @@ object Jvm extends CoursierSupport {
    * that the subprocess's stdout and stderr streams go to the substituted
    * streams.
    */
+  @deprecated("Use os.spawn", "Mill 0.12.7")
   def spawnSubprocess(
       commandArgs: Seq[String],
       envArgs: Map[String, String],
@@ -384,6 +557,7 @@ object Jvm extends CoursierSupport {
    * respectively must be defined in the backgroundOutputs tuple. Non-background process should set
    * backgroundOutputs to [[None]].
    */
+  @deprecated("Use spawn", "Mill 0.12.7")
   def spawnSubprocessWithBackgroundOutputs(
       commandArgs: Seq[String],
       envArgs: Map[String, String],
@@ -400,6 +574,7 @@ object Jvm extends CoursierSupport {
     )
   }
 
+  @deprecated("Use callClassLoader", "Mill 0.12.7")
   def runLocal(
       mainClass: String,
       classPath: Agg[os.Path],
@@ -430,6 +605,7 @@ object Jvm extends CoursierSupport {
     method
   }
 
+  @deprecated("Use callClassLoader", "Mill 0.12.7")
   def runClassloader[T](classPath: Agg[os.Path])(body: ClassLoader => T)(implicit
       ctx: mill.api.Ctx.Home
   ): T = {
@@ -454,6 +630,23 @@ object Jvm extends CoursierSupport {
     )(new Ctx.Home { override def home = os.home })
   }
 
+  def callClassLoader[T](
+      classPath: Iterable[os.Path],
+      sharedPrefixes: Seq[String] = Seq.empty,
+      parent: ClassLoader = null
+  )(f: ClassLoader => T)(implicit ctx: mill.api.Ctx.Home): T = {
+    val oldClassloader = Thread.currentThread().getContextClassLoader
+    val newClassloader = spawnClassloader(classPath, sharedPrefixes, parent)
+    Thread.currentThread().setContextClassLoader(newClassloader)
+    try {
+      f(newClassloader)
+    } finally {
+      Thread.currentThread().setContextClassLoader(oldClassloader)
+      newClassloader.close()
+    }
+  }
+
+  @deprecated("Use callClassLoader", "Mill 0.12.7")
   def inprocess[T](
       classPath: Agg[os.Path],
       classLoaderOverrideSbtTesting: Boolean,

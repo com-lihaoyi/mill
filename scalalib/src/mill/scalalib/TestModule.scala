@@ -42,16 +42,19 @@ trait TestModule
 
   def discoveredTestClasses: T[Seq[String]] = Task {
     val classes = if (zincWorker().javaHome().isDefined) {
-      Jvm.callSubprocess(
+      val processResult = Jvm.call(
         mainClass = "mill.testrunner.DiscoverTestsMain",
-        classPath = zincWorker().scalalibClasspath().map(_.path),
+        classPath = zincWorker().scalalibClasspath().map(_.path).toVector,
         mainArgs =
           runClasspath().flatMap(p => Seq("--runCp", p.path.toString())) ++
             testClasspath().flatMap(p => Seq("--testCp", p.path.toString())) ++
             Seq("--framework", testFramework()),
         javaHome = zincWorker().javaHome().map(_.path),
-        streamOut = false
-      ).out.lines()
+        stdout = os.Pipe,
+        cwd = Task.dest
+      )
+      mill.util.ProcessUtil.toResult(processResult).getOrThrow
+      processResult.out.lines()
     } else {
       mill.testrunner.DiscoverTestsMain.main0(
         runClasspath().map(_.path),
@@ -148,7 +151,7 @@ trait TestModule
 
       val testArgs = TestArgs(
         framework = testFramework(),
-        classpath = runClasspath().map(_.path),
+        classpath = runClasspath().map(_.path).toVector,
         arguments = args(),
         sysProps = Map.empty,
         outputPath = outputPath,
@@ -282,45 +285,43 @@ object TestModule {
      * override this method.
      */
     override def discoveredTestClasses: T[Seq[String]] = Task {
-      Jvm.inprocess(
-        runClasspath().map(_.path),
-        classLoaderOverrideSbtTesting = true,
-        isolated = true,
-        closeContextClassLoaderWhenDone = true,
-        cl => {
-          val builderClass: Class[_] =
-            cl.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Builder")
-          val builder = builderClass.getConstructor().newInstance()
+      Jvm.callClassLoader(
+        classPath = runClasspath().map(_.path).toVector,
+        sharedPrefixes = Seq("sbt.testing.")
+      ) { classLoader =>
+        val builderClass: Class[_] =
+          classLoader.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Builder")
+        val builder = builderClass.getConstructor().newInstance()
 
-          builderClass.getMethod("withClassDirectory", classOf[java.io.File]).invoke(
-            builder,
-            compile().classes.path.wrapped.toFile
-          )
-          builderClass.getMethod("withRuntimeClassPath", classOf[Array[java.net.URL]]).invoke(
-            builder,
-            testClasspath().map(_.path.wrapped.toUri().toURL()).toArray
-          )
-          builderClass.getMethod("withClassLoader", classOf[ClassLoader]).invoke(builder, cl)
+        builderClass.getMethod("withClassDirectory", classOf[java.io.File]).invoke(
+          builder,
+          compile().classes.path.wrapped.toFile
+        )
+        builderClass.getMethod("withRuntimeClassPath", classOf[Array[java.net.URL]]).invoke(
+          builder,
+          testClasspath().map(_.path.wrapped.toUri().toURL()).toArray
+        )
+        builderClass.getMethod("withClassLoader", classOf[ClassLoader]).invoke(builder, classLoader)
 
-          val testCollector = builderClass.getMethod("build").invoke(builder)
-          val testCollectorClass =
-            cl.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector")
+        val testCollector = builderClass.getMethod("build").invoke(builder)
+        val testCollectorClass =
+          classLoader.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector")
 
-          val result = testCollectorClass.getMethod("collectTests").invoke(testCollector)
-          val resultClass =
-            cl.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Result")
+        val result = testCollectorClass.getMethod("collectTests").invoke(testCollector)
+        val resultClass =
+          classLoader.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Result")
 
-          val items = resultClass.getMethod(
-            "getDiscoveredTests"
-          ).invoke(result).asInstanceOf[java.util.List[_]]
-          val itemClass = cl.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Item")
+        val items = resultClass.getMethod(
+          "getDiscoveredTests"
+        ).invoke(result).asInstanceOf[java.util.List[_]]
+        val itemClass =
+          classLoader.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Item")
 
-          import scala.jdk.CollectionConverters._
-          items.asScala.map { item =>
-            itemClass.getMethod("getFullyQualifiedClassName").invoke(item).asInstanceOf[String]
-          }.toSeq
-        }
-      )
+        import scala.jdk.CollectionConverters._
+        items.asScala.map { item =>
+          itemClass.getMethod("getFullyQualifiedClassName").invoke(item).asInstanceOf[String]
+        }.toSeq
+      }
     }
   }
 
