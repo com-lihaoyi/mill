@@ -1,10 +1,10 @@
 package mill.scalalib
 
-import mill._
-import mill.define.NamedTask
+import mill.*
+import mill.define.{Discover, NamedTask}
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import utest._
+import utest.*
 object ScalaValidatedPathRefTests extends TestSuite {
 
   object ValidatedTarget extends TestBaseModule {
@@ -22,6 +22,8 @@ object ScalaValidatedPathRefTests extends TestSuite {
     def checkedAggPathRef: T[Agg[PathRef]] = Task { Agg(mkDirWithFile()).map(_.withRevalidateOnce) }
     def checkedTuplePathRef: T[Tuple1[PathRef]] =
       Task { Tuple1(mkDirWithFile().withRevalidateOnce) }
+
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   def tests: Tests = Tests {

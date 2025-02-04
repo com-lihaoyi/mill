@@ -1,13 +1,13 @@
 package mill.eval
 
 import mill.util.TestUtil.Test
-import mill.define.{TargetImpl, Task}
+import mill.define.{Discover, TargetImpl, Task}
 import mill.T
 import mill.util.{TestGraphs, TestUtil}
-import mill.testkit.{UnitTester, TestBaseModule}
+import mill.testkit.{TestBaseModule, UnitTester}
 import mill.api.Strict.Agg
 import os.SubPath
-import utest._
+import utest.*
 import utest.framework.TestPath
 
 object EvaluationTestsThreads1 extends EvaluationTests(threadCount = Some(1))
@@ -307,6 +307,8 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
           def middle = Task.Anon { middleCount += 1; 100 }
           def right = Task { rightCount += 1; 10000 }
           def down = Task { left() + middle() + right() }
+
+          lazy val millDiscover: Discover = Discover[this.type]
         }
 
         import build._

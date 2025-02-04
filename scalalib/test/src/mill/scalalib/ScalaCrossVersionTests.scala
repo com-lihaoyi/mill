@@ -1,10 +1,10 @@
 package mill.scalalib
 
-import mill._
+import mill.*
 import mill.testkit.TestBaseModule
-import utest._
-
-import HelloWorldTests._
+import utest.*
+import HelloWorldTests.*
+import mill.define.Discover
 
 object ScalaCrossVersionTests extends TestSuite {
 
@@ -16,6 +16,8 @@ object ScalaCrossVersionTests extends TestSuite {
     trait CuttingEdge extends CrossScalaModule {
       def moduleDeps = Seq(stable())
     }
+
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   def tests: Tests = Tests {

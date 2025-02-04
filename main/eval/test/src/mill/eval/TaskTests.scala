@@ -1,8 +1,8 @@
 package mill.eval
 
-import utest._
+import utest.*
 import mill.{T, Task}
-import mill.define.{Module, Worker}
+import mill.define.{Discover, Module, Worker}
 import mill.testkit.UnitTester
 import mill.testkit.UnitTester.Result
 import mill.testkit.TestBaseModule
@@ -264,14 +264,18 @@ trait TaskTests extends TestSuite {
 
 object SeqTaskTests extends TaskTests {
   def withEnv(f: (Build, UnitTester) => Unit)(implicit tp: TestPath) = {
-    object build extends Build
+    object build extends Build{
+      lazy val millDiscover: Discover = Discover[this.type]
+    }
     val check = UnitTester(build, null, threads = Some(1))
     f(build, check)
   }
 }
 object ParTaskTests extends TaskTests {
   def withEnv(f: (Build, UnitTester) => Unit)(implicit tp: TestPath) = {
-    object build extends Build
+    object build extends Build{
+      lazy val millDiscover: Discover = Discover[this.type]
+    }
     val check = UnitTester(build, null, threads = Some(16))
     f(build, check)
   }

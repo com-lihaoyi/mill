@@ -1,12 +1,13 @@
 package mill.scalalib
 
-import mill._
+import mill.*
 import mill.testkit.{TestBaseModule, UnitTester}
-import utest._
-
+import utest.*
+import mill.main.TokenReaders._
 import java.util.jar.JarFile
 import scala.util.Using
-import HelloWorldTests._
+import HelloWorldTests.*
+import mill.define.Discover
 trait ScalaAssemblyTestUtils {
 
   val akkaHttpDeps = Agg(ivy"com.typesafe.akka::akka-http:10.0.13")
@@ -16,6 +17,8 @@ trait ScalaAssemblyTestUtils {
       override def ivyDeps = akkaHttpDeps
       override def assemblyRules = Seq(Assembly.Rule.Append("reference.conf"))
     }
+
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   object HelloWorldAkkaHttpExclude extends TestBaseModule {
@@ -23,6 +26,9 @@ trait ScalaAssemblyTestUtils {
       override def ivyDeps = akkaHttpDeps
       override def assemblyRules = Seq(Assembly.Rule.Exclude("reference.conf"))
     }
+
+    lazy val millDiscover: Discover = Discover[this.type]
+
   }
 
   object HelloWorldAkkaHttpAppendPattern extends TestBaseModule {
@@ -30,6 +36,9 @@ trait ScalaAssemblyTestUtils {
       override def ivyDeps = akkaHttpDeps
       override def assemblyRules = Seq(Assembly.Rule.AppendPattern(".*.conf"))
     }
+
+    lazy val millDiscover: Discover = Discover[this.type]
+
   }
 
   object HelloWorldAkkaHttpExcludePattern extends TestBaseModule {
@@ -37,6 +46,8 @@ trait ScalaAssemblyTestUtils {
       override def ivyDeps = akkaHttpDeps
       override def assemblyRules = Seq(Assembly.Rule.ExcludePattern(".*.conf"))
     }
+
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   object HelloWorldAkkaHttpRelocate extends TestBaseModule {
@@ -44,6 +55,8 @@ trait ScalaAssemblyTestUtils {
       override def ivyDeps = akkaHttpDeps
       override def assemblyRules = Seq(Assembly.Rule.Relocate("akka.**", "shaded.akka.@1"))
     }
+
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   object HelloWorldAkkaHttpNoRules extends TestBaseModule {
@@ -51,6 +64,8 @@ trait ScalaAssemblyTestUtils {
       override def ivyDeps = akkaHttpDeps
       override def assemblyRules = Seq.empty
     }
+
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   object HelloWorldMultiAppend extends TestBaseModule {
@@ -59,6 +74,8 @@ trait ScalaAssemblyTestUtils {
       override def assemblyRules = Seq(Assembly.Rule.Append("reference.conf"))
     }
     object model extends HelloWorldModule
+
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   object HelloWorldMultiExclude extends TestBaseModule {
@@ -67,6 +84,8 @@ trait ScalaAssemblyTestUtils {
       override def assemblyRules = Seq(Assembly.Rule.Exclude("reference.conf"))
     }
     object model extends HelloWorldModule
+
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   object HelloWorldMultiAppendPattern extends TestBaseModule {
@@ -75,6 +94,8 @@ trait ScalaAssemblyTestUtils {
       override def assemblyRules = Seq(Assembly.Rule.AppendPattern(".*.conf"))
     }
     object model extends HelloWorldModule
+
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   object HelloWorldMultiAppendByPatternWithSeparator extends TestBaseModule {
@@ -83,6 +104,8 @@ trait ScalaAssemblyTestUtils {
       override def assemblyRules = Seq(Assembly.Rule.AppendPattern(".*.conf", "\n"))
     }
     object model extends HelloWorldModule
+
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   object HelloWorldMultiExcludePattern extends TestBaseModule {
@@ -91,6 +114,8 @@ trait ScalaAssemblyTestUtils {
       override def assemblyRules = Seq(Assembly.Rule.ExcludePattern(".*.conf"))
     }
     object model extends HelloWorldModule
+
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   object HelloWorldMultiNoRules extends TestBaseModule {
@@ -99,6 +124,8 @@ trait ScalaAssemblyTestUtils {
       override def assemblyRules = Seq.empty
     }
     object model extends HelloWorldModule
+
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   val helloWorldMultiResourcePath =

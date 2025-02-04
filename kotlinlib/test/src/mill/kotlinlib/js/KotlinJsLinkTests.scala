@@ -1,9 +1,10 @@
 package mill.kotlinlib.js
 
+import mill.define.Discover
 import mill.testkit.{TestBaseModule, UnitTester}
 import mill.{Cross, T}
 import utest.{TestSuite, Tests, assert, test}
-
+import mill.main.TokenReaders._
 object KotlinJsLinkTests extends TestSuite {
 
   private val kotlinVersion = "1.9.25"
@@ -26,6 +27,8 @@ object KotlinJsLinkTests extends TestSuite {
     }
 
     object foo extends Cross[KotlinJsCrossModule](Seq(true, false))
+
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   private def testEval() = UnitTester(module, resourcePath)

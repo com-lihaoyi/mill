@@ -1,9 +1,11 @@
 package mill.scalalib
 
 import mill.Agg
+import mill.define.Discover
+import mill.main.TokenReaders._
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import utest._
+import utest.*
 import utest.framework.TestPath
 
 object CrossVersionTests extends TestSuite {
@@ -122,6 +124,7 @@ object CrossVersionTests extends TestSuite {
           |""".stripMargin
     }
 
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   def init() = UnitTester(TestCases, null)

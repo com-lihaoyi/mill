@@ -78,6 +78,8 @@ object BloopTests extends TestSuite {
       def scalaVersion = "2.12.8"
       override def skipBloop: Boolean = true
     }
+
+    lazy val millDiscover = mill.define.Discover[this.type]
   }
 
   def readBloopConf(jsonFile: String) =

@@ -1,12 +1,12 @@
 package mill
 package testng
 
-import mill.define.Target
+import mill.define.{Discover, Target}
 import mill.util.Util.millProjectModule
-import mill.scalalib._
+import mill.scalalib.*
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import utest.{TestSuite, Tests, assert, _}
+import utest.{TestSuite, Tests, assert, *}
 
 object TestNGTests extends TestSuite {
 
@@ -47,6 +47,8 @@ object TestNGTests extends TestSuite {
       )
       def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
     }
+
+    lazy val millDiscover: Discover = Discover[this.type]
   }
   val resourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "demo"
 

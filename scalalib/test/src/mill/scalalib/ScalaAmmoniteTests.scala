@@ -1,8 +1,9 @@
 package mill.scalalib
 
-import mill._
+import mill.*
+import mill.define.Discover
 import mill.testkit.{TestBaseModule, UnitTester}
-import utest._
+import utest.*
 
 object ScalaAmmoniteTests extends TestSuite {
 
@@ -15,6 +16,7 @@ object ScalaAmmoniteTests extends TestSuite {
       override def scalaVersion = T("2.13.5")
       override def ammoniteVersion = T("2.5.0")
     }
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   def tests: Tests = Tests {

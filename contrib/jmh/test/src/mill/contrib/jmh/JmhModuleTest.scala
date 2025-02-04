@@ -1,12 +1,13 @@
 package mill
 package contrib.jmh
 
+import mill.define.Discover
 import mill.eval.EvaluatorPaths
 import mill.scalalib.ScalaModule
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import os.Path
-import utest._
+import utest.*
 import utest.framework.TestPath
 
 object JmhModuleTest extends TestSuite {
@@ -15,6 +16,8 @@ object JmhModuleTest extends TestSuite {
 
     override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
     override def jmhCoreVersion = "1.35"
+
+    lazy val millDiscover: Discover = Discover[this.type]
   }
   val testModuleSourcesPath: Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "jmh"
 

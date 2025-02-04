@@ -1,6 +1,7 @@
 package mill.javascriptlib
 
-import mill._
+import mill.*
+import mill.define.Discover
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.*
 
@@ -19,6 +20,8 @@ object HelloWorldTests extends TestSuite {
     object qux extends TypeScriptModule {
       override def moduleDeps: Seq[TypeScriptModule] = Seq(foo, foo.bar)
     }
+
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-typescript"

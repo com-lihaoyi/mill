@@ -2,10 +2,11 @@ package mill.scalalib
 
 import coursier.util.StringInterpolators.SafeModule
 import mill.Agg
-import mill.define.Task
+import mill.define.{Discover, Task}
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import utest._
+import mill.main.TokenReaders._
+import utest.*
 
 object CoursierParametersTests extends TestSuite {
 
@@ -28,6 +29,7 @@ object CoursierParametersTests extends TestSuite {
           ))
       }
     }
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   def tests: Tests = Tests {

@@ -3,7 +3,8 @@ package mill.scalalib
 import mill._
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest._
-
+import mill.define.Discover
+import mill.main.TokenReaders._
 import HelloWorldTests._
 object ScalaMultiModuleClasspathsTests extends TestSuite {
 
@@ -79,6 +80,7 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
       }
     }
 
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   def tests: Tests = Tests {

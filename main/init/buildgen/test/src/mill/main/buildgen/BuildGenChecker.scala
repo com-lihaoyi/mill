@@ -5,7 +5,7 @@ import mill.scalalib.scalafmt.ScalafmtModule
 import mill.testkit.{TestBaseModule, UnitTester}
 import mill.{PathRef, T}
 import utest.framework.TestPath
-
+import mill.main.TokenReaders._
 import java.nio.file.FileSystems
 
 class BuildGenChecker(sourceRoot: os.Path, scalafmtConfigFile: os.Path) {
@@ -30,6 +30,8 @@ class BuildGenChecker(sourceRoot: os.Path, scalafmtConfigFile: os.Path) {
     object module extends TestBaseModule with ScalafmtModule {
       override def filesToFormat(sources: Seq[PathRef]): Seq[PathRef] = files
       override def scalafmtConfig: T[Seq[PathRef]] = Seq(PathRef(scalafmtConfigFile))
+
+      lazy val millDiscover = mill.define.Discover[this.type]
     }
     val eval = UnitTester(module, testRoot)
     eval(module.reformat())

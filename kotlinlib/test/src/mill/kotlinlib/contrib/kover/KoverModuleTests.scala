@@ -1,5 +1,7 @@
 package mill.kotlinlib.kover
 
+import mill.define.Discover
+import mill.main.TokenReaders._
 import mill.kotlinlib.{DepSyntax, KotlinModule}
 import mill.kotlinlib.TestModule
 import mill.kotlinlib.kover.{Kover, KoverModule}
@@ -42,6 +44,8 @@ object KoverModuleTests extends TestSuite {
       def kotlinVersion = KoverModuleTests.kotlinVersion
       object test extends KotlinTests with module.KotestTestModule
     }
+
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   def tests: Tests = Tests {

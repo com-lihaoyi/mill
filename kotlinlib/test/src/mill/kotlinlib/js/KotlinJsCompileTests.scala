@@ -2,6 +2,7 @@ package mill
 package kotlinlib
 package js
 
+import mill.define.Discover
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.{TestSuite, Tests, assert, test}
 
@@ -21,6 +22,8 @@ object KotlinJsCompileTests extends TestSuite {
       override def kotlinVersion = KotlinJsCompileTests.kotlinVersion
       override def moduleDeps = Seq(module.bar)
     }
+
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   private def testEval() = UnitTester(module, resourcePath)

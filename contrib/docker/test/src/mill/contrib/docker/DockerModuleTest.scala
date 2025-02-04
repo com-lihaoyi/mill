@@ -3,11 +3,12 @@ package contrib.docker
 
 import mill.scalalib.JavaModule
 import mill.api.Result
+import mill.define.Discover
 import mill.util.TestUtil
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import os.Path
-import utest._
+import utest.*
 import utest.framework.TestPath
 
 object DockerModuleTest extends TestSuite {
@@ -47,6 +48,8 @@ object DockerModuleTest extends TestSuite {
     object dockerEnv extends DockerConfig {
       override def dockerEnv = Map("DOCKER_HOST" -> "wrong_host")
     }
+
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   val testArtifactName = "mill-docker-contrib-test"

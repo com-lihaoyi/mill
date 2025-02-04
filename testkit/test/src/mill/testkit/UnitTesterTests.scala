@@ -1,7 +1,8 @@
 package mill.testkit
 
-import mill._
-import utest._
+import mill.*
+import mill.define.Discover
+import utest.*
 
 object UnitTesterTests extends TestSuite {
 
@@ -10,6 +11,8 @@ object UnitTesterTests extends TestSuite {
     test("simple") {
       object build extends TestBaseModule {
         def testTask = Task { "test" }
+
+        lazy val millDiscover: Discover = Discover[this.type]
       }
 
       UnitTester(build, resourcePath).scoped { eval =>
@@ -22,6 +25,8 @@ object UnitTesterTests extends TestSuite {
       object build extends TestBaseModule {
         def testSource = Task.Source(millSourcePath / "source-file.txt")
         def testTask = Task { os.read(testSource().path).toUpperCase() }
+
+        lazy val millDiscover: Discover = Discover[this.type]
       }
 
       UnitTester(build, resourcePath).scoped { eval =>

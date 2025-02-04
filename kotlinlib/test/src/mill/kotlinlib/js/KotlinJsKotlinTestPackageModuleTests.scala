@@ -3,6 +3,7 @@ package kotlinlib
 package js
 
 import mill.api.Result
+import mill.define.Discover
 import mill.eval.EvaluatorPaths
 import mill.testkit.{TestBaseModule, UnitTester}
 import sbt.testing.Status
@@ -30,6 +31,8 @@ object KotlinJsKotlinTestPackageModuleTests extends TestSuite {
           .filter(!_.path.toString().endsWith("HelloKotestTests.kt"))
       }
     }
+
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   private def testEval() = UnitTester(module, resourcePath)

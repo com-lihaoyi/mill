@@ -1,11 +1,12 @@
 package mill
 package scalalib
 
-import mill.scalalib.publish._
+import mill.define.Discover
+import mill.scalalib.publish.*
 import mill.testkit.{TestBaseModule, UnitTester}
-import utest._
+import utest.*
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 object BomTests extends TestSuite {
 
@@ -527,6 +528,7 @@ object BomTests extends TestSuite {
         }
       }
     }
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   def expectedProtobufJavaVersion = "4.28.3"

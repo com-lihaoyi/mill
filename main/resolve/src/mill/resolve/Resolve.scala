@@ -301,14 +301,14 @@ trait Resolve[T] {
         case ResolveCore.Success(value) => Right(value)
         case ResolveCore.NotFound(segments, found, next, possibleNexts) =>
           val allPossibleNames =
-            rootModule.millDiscover.classInfo.values.flatMap(_.declaredNames).toSet
+            rootModule.millDiscover.classInfo.values.flatMap(_.declaredTasks).toSet
           Left(ResolveNotFoundHandler(
             selector = sel,
             segments = segments,
             found = found,
             next = next,
             possibleNexts = possibleNexts,
-            allPossibleNames = allPossibleNames
+            allPossibleNames = allPossibleNames.map(_.name)
           ))
         case ResolveCore.Error(value) => Left(value)
       }

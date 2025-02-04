@@ -30,8 +30,9 @@ class Discover(val classInfo: Map[Class[_], Discover.ClassInfo]) {
 object Discover {
   class ClassInfo(
       val entryPoints: Seq[mainargs.MainData[_, _]],
-      val declaredNames: Seq[String]
+      val declaredTasks: Seq[TaskInfo]
   )
+  class TaskInfo(val name: String)
 
   inline def apply[T]: Discover = ${ Router.applyImpl[T] }
 
@@ -117,9 +118,7 @@ object Discover {
       // causes the code to be generated in random order resulting in code hashes
       // changing unnecessarily
       val mapping: Seq[(TypeRepr, (Seq[scala.quoted.Expr[mainargs.MainData[?, ?]]], Seq[String]))] =
-        for {
-          curCls <- seen.toSeq.sortBy(_.typeSymbol.fullName)
-        } yield {
+        for (curCls <- seen.toSeq.sortBy(_.typeSymbol.fullName)) yield {
           val declMethods = filterDefs(curCls.typeSymbol.declaredMethods)
           assertParamListCounts(
             curCls,
@@ -160,15 +159,19 @@ object Discover {
           (curCls.widen, (entryPoints, names))
         }
 
+      def classOf(cls: TypeRepr) = Ref(defn.Predef_classOf).appliedToType(cls).asExprOf[Class[?]]
       val mappingExpr = mapping.collect {
         case (cls, (entryPoints, names)) if entryPoints.nonEmpty || names.nonEmpty =>
           // by wrapping the `overridesRoutes` in a lambda function we kind of work around
           // the problem of generating a *huge* macro method body that finally exceeds the
           // JVM's maximum allowed method size
           '{
-            def func() = new ClassInfo(${ Expr.ofList(entryPoints.toList) }, ${ Expr(names) })
+            def func() = new ClassInfo(
+              ${ Expr.ofList(entryPoints.toList) },
+              ${ Expr.ofList(names.map(s => '{ new TaskInfo(${Expr(s)}) })) }
+            )
 
-            (${ Ref(defn.Predef_classOf).appliedToType(cls).asExprOf[Class[?]] }, func())
+            (${ classOf(cls) }, func())
           }
       }
 

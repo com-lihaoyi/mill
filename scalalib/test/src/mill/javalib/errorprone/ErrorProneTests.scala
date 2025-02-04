@@ -1,19 +1,25 @@
 package mill.javalib.errorprone
 
 import mill.T
+import mill.define.Discover
 import mill.scalalib.JavaModule
 import mill.testkit.{TestBaseModule, UnitTester}
 import os.Path
-import utest._
-
+import utest.*
+import mill.main.TokenReaders._
 object ErrorProneTests extends TestSuite {
 
-  object noErrorProne extends TestBaseModule with JavaModule {}
-  object errorProne extends TestBaseModule with JavaModule with ErrorProneModule {}
+  object noErrorProne extends TestBaseModule with JavaModule {
+    lazy val millDiscover: Discover = Discover[this.type]
+  }
+  object errorProne extends TestBaseModule with JavaModule with ErrorProneModule {
+    lazy val millDiscover: Discover = Discover[this.type]
+  }
   object errorProneCustom extends TestBaseModule with JavaModule with ErrorProneModule {
     override def errorProneOptions: T[Seq[String]] = T(Seq(
       "-XepAllErrorsAsWarnings"
     ))
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   val testModuleSourcesPath: Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "errorprone"

@@ -5,7 +5,7 @@ import mill.define.{Caller, Discover}
 /**
  * A wrapper of [[mill.define.BaseModule]] meant for easy instantiation in test suites.
  */
-class TestBaseModule(implicit
+abstract class TestBaseModule(implicit
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,
     millModuleFile0: sourcecode.File
@@ -20,5 +20,4 @@ class TestBaseModule(implicit
       millModuleFile0,
       Caller(null)
     ) {
-  lazy val millDiscover: Discover = Discover[this.type]
 }

@@ -1,10 +1,11 @@
 package mill.scalalib
 
-import mill._
+import mill.*
 import mill.api.Result
 import mill.testkit.{TestBaseModule, UnitTester}
-import utest._
-import HelloWorldTests._
+import utest.*
+import HelloWorldTests.*
+import mill.define.Discover
 object ScalaScaladocTests extends TestSuite {
 
   object HelloWorldWithDocVersion extends TestBaseModule {
@@ -12,6 +13,8 @@ object ScalaScaladocTests extends TestSuite {
       override def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
       override def scalaDocOptions = super.scalaDocOptions() ++ Seq("-doc-version", "1.2.3")
     }
+
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   object HelloWorldOnlyDocVersion extends TestBaseModule {
@@ -19,12 +22,17 @@ object ScalaScaladocTests extends TestSuite {
       override def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
       override def scalaDocOptions = T(Seq("-doc-version", "1.2.3"))
     }
+
+    lazy val millDiscover: Discover = Discover[this.type]
+    
   }
 
   object HelloWorldDocTitle extends TestBaseModule {
     object core extends HelloWorldModule {
       override def scalaDocOptions = T(Seq("-doc-title", "Hello World"))
     }
+
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   def tests: Tests = Tests {

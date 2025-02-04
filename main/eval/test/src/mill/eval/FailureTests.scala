@@ -4,7 +4,8 @@ import mill.{T, Task}
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import mill.api.Result.OuterStack
-import utest._
+import mill.define.Discover
+import utest.*
 
 object FailureTests extends TestSuite {
 
@@ -188,6 +189,8 @@ object FailureTests extends TestSuite {
         // Using `Task.ctx(  ).dest` once in two different tasks is ok
         val task = Task.Anon { Task.dest.toString.length }
         def right = Task { task() + left() + Task.dest.toString().length }
+
+        lazy val millDiscover: Discover = Discover[this.type]
       }
 
       val check = UnitTester(build, null)

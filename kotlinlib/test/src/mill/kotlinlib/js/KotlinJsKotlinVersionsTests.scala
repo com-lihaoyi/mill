@@ -4,6 +4,7 @@ package js
 
 import mill.testkit.{TestBaseModule, UnitTester}
 import mill.Cross
+import mill.define.Discover
 import utest.{TestSuite, Tests, test}
 
 object KotlinJsKotlinVersionsTests extends TestSuite {
@@ -38,6 +39,8 @@ object KotlinJsKotlinVersionsTests extends TestSuite {
     object foo extends Cross[KotlinJsFooCrossModule](kotlinVersions)
     object bar extends Cross[KotlinJsCrossModule](kotlinVersions)
     object qux extends Cross[KotlinJsQuxCrossModule](kotlinVersions)
+
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   private def testEval() = UnitTester(module, resourcePath)

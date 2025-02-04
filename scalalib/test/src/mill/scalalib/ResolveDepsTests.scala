@@ -4,10 +4,10 @@ import coursier.maven.MavenRepository
 import mill.api.Result.{Failure, Success}
 import mill.api.{PathRef, Result}
 import mill.api.Loose.Agg
-import mill.define.Task
-import mill.testkit.{UnitTester, TestBaseModule}
-import utest._
-
+import mill.define.{Discover, Task}
+import mill.testkit.{TestBaseModule, UnitTester}
+import utest.*
+import mill.main.TokenReaders._
 object ResolveDepsTests extends TestSuite {
   val scala212Version = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
   val repos =
@@ -54,6 +54,8 @@ object ResolveDepsTests extends TestSuite {
       }
       def artifactTypes = super.artifactTypes() + coursier.core.Type("aar")
     }
+
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   val tests = Tests {

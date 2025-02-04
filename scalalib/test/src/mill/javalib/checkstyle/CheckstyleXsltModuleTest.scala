@@ -1,10 +1,11 @@
 package mill.javalib.checkstyle
 
-import mill._
+import mill.*
 import mainargs.Leftover
+import mill.define.Discover
 import mill.scalalib.{JavaModule, ScalaModule}
 import mill.testkit.{TestBaseModule, UnitTester}
-import utest._
+import utest.*
 
 object CheckstyleXsltModuleTest extends TestSuite {
 
@@ -30,7 +31,9 @@ object CheckstyleXsltModuleTest extends TestSuite {
 
   def testJava(modulePath: os.Path): Boolean = {
 
-    object module extends TestBaseModule with JavaModule with CheckstyleXsltModule
+    object module extends TestBaseModule with JavaModule with CheckstyleXsltModule{
+      lazy val millDiscover: Discover = Discover[this.type]
+    }
 
     testModule(module, modulePath)
   }
@@ -39,6 +42,7 @@ object CheckstyleXsltModuleTest extends TestSuite {
 
     object module extends TestBaseModule with ScalaModule with CheckstyleXsltModule {
       override def scalaVersion: T[String] = sys.props("MILL_SCALA_2_13_VERSION")
+      lazy val millDiscover: Discover = Discover[this.type]
     }
 
     testModule(module, modulePath)

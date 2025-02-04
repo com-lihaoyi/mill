@@ -2,6 +2,7 @@ package mill.javalib.checkstyle
 
 import mill._
 import mainargs.Leftover
+import mill.define.Discover
 import mill.scalalib.{JavaModule, ScalaModule}
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest._
@@ -139,6 +140,7 @@ object CheckstyleModuleTest extends TestSuite {
       override def checkstyleFormat: T[String] = format
       override def checkstyleOptions: T[Seq[String]] = options
       override def checkstyleVersion: T[String] = version
+      lazy val millDiscover: Discover = Discover[this.type]
     }
 
     testModule(
@@ -165,6 +167,7 @@ object CheckstyleModuleTest extends TestSuite {
       override def checkstyleOptions: T[Seq[String]] = options
       override def checkstyleVersion: T[String] = version
       override def scalaVersion: T[String] = sys.props("MILL_SCALA_2_13_VERSION")
+      lazy val millDiscover: Discover = Discover[this.type]
     }
 
     testModule(

@@ -85,6 +85,7 @@ object MainModuleTests extends TestSuite {
       bazz("2").target()
       bazz("3").target()
     }
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   class TestWorker(val name: String, workers: mutable.HashSet[TestWorker]) extends AutoCloseable {
@@ -134,6 +135,7 @@ object MainModuleTests extends TestSuite {
 
       ()
     }
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   override def tests: Tests = Tests {

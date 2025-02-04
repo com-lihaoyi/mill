@@ -1,17 +1,20 @@
 package mill.kotlinlib.ktfmt
 
+import mill.define.Discover
 import mill.{PathRef, T, api}
 import mill.kotlinlib.KotlinModule
 import mill.main.Tasks
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.{TestSuite, Tests, assert, test}
-
+import mill.main.TokenReaders._
 object KtfmtModuleTests extends TestSuite {
 
   val kotlinVersion = "1.9.24"
 
   object module extends TestBaseModule with KotlinModule with KtfmtModule {
     override def kotlinVersion: T[String] = KtfmtModuleTests.kotlinVersion
+
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   def tests: Tests = Tests {
@@ -125,6 +128,7 @@ object KtfmtModuleTests extends TestSuite {
 
     object module extends TestBaseModule with KotlinModule {
       override def kotlinVersion: T[String] = KtfmtModuleTests.kotlinVersion
+      lazy val millDiscover: Discover = Discover[this.type]
     }
 
     val eval = UnitTester(module, modulesRoot)

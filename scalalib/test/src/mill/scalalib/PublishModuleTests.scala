@@ -2,23 +2,16 @@ package mill.scalalib
 
 import mill.{Agg, T, Task}
 import mill.api.{PathRef, Result}
+import mill.define.Discover
 import mill.eval.Evaluator
-import mill.scalalib.publish.{
-  Developer,
-  License,
-  PackagingType,
-  PomSettings,
-  VersionControl,
-  VersionScheme
-}
+import mill.scalalib.publish.{Developer, License, PackagingType, PomSettings, VersionControl, VersionScheme}
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import utest._
+import utest.*
 import utest.framework.TestPath
-
+import mill.main.TokenReaders._
 import java.io.PrintStream
-
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.xml.NodeSeq
 
 object PublishModuleTests extends TestSuite {
@@ -52,6 +45,8 @@ object PublishModuleTests extends TestSuite {
         PublishModule.checkSonatypeCreds(sonatypeCreds)()
       }
     }
+
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   object PomOnly extends TestBaseModule {
@@ -77,6 +72,8 @@ object PublishModuleTests extends TestSuite {
       override def docJar: T[PathRef] = Task { ???.asInstanceOf[PathRef] }
       override def sourceJar: T[PathRef] = Task { ???.asInstanceOf[PathRef] }
     }
+
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   trait TestPublishModule extends PublishModule {
@@ -107,6 +104,8 @@ object PublishModuleTests extends TestSuite {
     object runtimeTransitive extends JavaModule with TestPublishModule {
       def runModuleDeps = Seq(main)
     }
+
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "publish"

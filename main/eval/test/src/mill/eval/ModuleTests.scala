@@ -19,6 +19,7 @@ object TestExternalModule extends mill.define.ExternalModule with mill.define.Ta
 object ModuleTests extends TestSuite {
   object Build extends TestBaseModule {
     def z = Task { TestExternalModule.x() + TestExternalModule.inner.y() }
+    lazy val millDiscover: Discover = Discover[this.type]
   }
   val tests = Tests {
     test("externalModuleCalls") {

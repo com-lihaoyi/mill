@@ -2,13 +2,17 @@ package mill.scalalib
 
 import mill.scalalib.HelloWorldTests.SemanticModule
 import mill.testkit.{TestBaseModule, UnitTester}
-import utest._
+import utest.*
+import HelloWorldTests.*
+import mill.define.Discover
+import mill.main.TokenReaders._
 
-import HelloWorldTests._
 object ScalaSemanticDbTests extends TestSuite {
 
   object SemanticWorld extends TestBaseModule {
     object core extends SemanticModule
+
+    lazy val millDiscover: Discover = Discover[this.type]
   }
 
   def tests: Tests = Tests {
