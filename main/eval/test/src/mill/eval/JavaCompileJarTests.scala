@@ -23,6 +23,7 @@ object JavaCompileJarTests extends TestSuite {
   val resourceFolder = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
   val javacSrcPath = resourceFolder / "examples/javac"
 
+  def noFoos(s: String) = !s.contains("Foo")
   val tests = Tests {
 
     test("javac") {
@@ -48,7 +49,7 @@ object JavaCompileJarTests extends TestSuite {
         }
         // Test createJar() with optional file filter.
         def filterJar = Task{
-          def noFoos(s: String) = !s.contains("Foo")
+
           Jvm.createJar(
             Loose.Agg(classFiles().path, readme().path) ++ resourceRoot().map(_.path),
             JarManifest.MillDefault,
