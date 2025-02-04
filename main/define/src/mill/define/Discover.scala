@@ -17,8 +17,8 @@ import scala.collection.mutable
 class Discover(val classInfo: Map[Class[_], Discover.ClassInfo]) {
   def resolveEntrypoint(cls: Class[_], name: String) = {
     val res = for {
-      (cls, node) <- classInfo
-      if cls.isAssignableFrom(cls)
+      (cls2, node) <- classInfo
+      if cls2.isAssignableFrom(cls)
       ep <- node.entryPoints
       if ep.name == name
     } yield ep
