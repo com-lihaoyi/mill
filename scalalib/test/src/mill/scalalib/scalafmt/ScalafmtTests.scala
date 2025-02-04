@@ -1,11 +1,12 @@
 package mill.scalalib.scalafmt
 
-import mill._
+import mill.*
+import mill.define.Discover
 import mill.main.Tasks
 import mill.scalalib.ScalaModule
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import utest._
+import utest.*
 import utest.framework.TestPath
 
 object ScalafmtTests extends TestSuite {
@@ -25,6 +26,8 @@ object ScalafmtTests extends TestSuite {
       }
 
     }
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "scalafmt"

@@ -2,8 +2,9 @@ package mill.scalalib.giter8
 
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import utest._
+import utest.*
 import mill.api.Loose.Agg
+import mill.define.Discover
 import os.Path
 
 object Giter8Tests extends TestSuite {
@@ -17,7 +18,9 @@ object Giter8Tests extends TestSuite {
             template.replace("file:", "file://")
           } else template
 
-        object g8Module extends TestBaseModule with Giter8Module
+        object g8Module extends TestBaseModule with Giter8Module {
+          lazy val millDiscover = Discover[this.type]
+        }
 
         val evaluator = UnitTester(g8Module, null)
 

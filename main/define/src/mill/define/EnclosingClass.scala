@@ -8,7 +8,7 @@ object EnclosingClass {
   inline given generate: EnclosingClass = ${ impl }
 
   // TODO: copied from Task.scala
-  private def withMacroOwner[T](using Quotes)(op: quotes.reflect.Symbol => T): T = {
+  private def withMacroOwner[T](using quotes: Quotes)(op: quotes.reflect.Symbol => T): T = {
     import quotes.reflect.*
 
     // In Scala 3, the top level splice of a macro is owned by a symbol called "macro" with the macro flag set,
@@ -30,7 +30,7 @@ object EnclosingClass {
     loop(Symbol.spliceOwner)
   }
 
-  def impl(using Quotes): Expr[EnclosingClass] = withMacroOwner { owner =>
+  def impl(using quotes: Quotes): Expr[EnclosingClass] = withMacroOwner { owner =>
     import quotes.reflect.*
 
     def enclosingClass(sym: Symbol): Symbol =
@@ -42,14 +42,9 @@ object EnclosingClass {
       else if sym.isClassDef then sym
       else enclosingClass(sym.owner)
 
-    if owner.flags.is(Flags.Method) then
-      val cls = enclosingClass(owner)
-      val ref = This(cls).asExprOf[Any]
-      '{ new EnclosingClass($ref.getClass) }
-    else
-      report.errorAndAbort(
-        "EnclosingClass.generate can only be used within a method",
-        Position.ofMacroExpansion
-      )
+    val cls = enclosingClass(owner).typeRef
+    val res =
+      '{ new EnclosingClass(${ Ref(defn.Predef_classOf).appliedToType(cls).asExprOf[Class[?]] }) }
+    res
   }
 }

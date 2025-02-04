@@ -7,8 +7,10 @@ import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import mill.api.Strict.Agg
 import mill.api.{JarManifest, Loose}
-import utest._
-import mill._
+import utest.*
+import mill.*
+import mill.define.Discover
+import mill.main.TokenReaders._
 
 object JavaCompileJarTests extends TestSuite {
   def compileAll(sources: mill.api.Loose.Agg[mill.api.PathRef])(implicit ctx: Dest) = {
@@ -21,6 +23,7 @@ object JavaCompileJarTests extends TestSuite {
   val resourceFolder = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
   val javacSrcPath = resourceFolder / "examples/javac"
 
+  def noFoos(s: String) = !s.contains("Foo")
   val tests = Tests {
 
     test("javac") {
@@ -45,11 +48,12 @@ object JavaCompileJarTests extends TestSuite {
           Jvm.createJar(Loose.Agg(classFiles().path, readme().path) ++ resourceRoot().map(_.path))
         }
         // Test createJar() with optional file filter.
-        def filterJar(fileFilter: (os.Path, os.RelPath) => Boolean) = Task {
+        def filterJar = Task {
+
           Jvm.createJar(
             Loose.Agg(classFiles().path, readme().path) ++ resourceRoot().map(_.path),
             JarManifest.MillDefault,
-            fileFilter
+            (p: os.Path, r: os.RelPath) => noFoos(r.last)
           )
         }
 
@@ -57,6 +61,8 @@ object JavaCompileJarTests extends TestSuite {
           os.proc("java", "-Duser.language=en", "-cp", classFiles().path, mainClsName)
             .call(stderr = os.Pipe)
         }
+
+        lazy val millDiscover = Discover[this.type]
       }
 
       import Build._
@@ -142,9 +148,7 @@ object JavaCompileJarTests extends TestSuite {
       assert(jarContents.linesIterator.toSeq == expectedJarContents.linesIterator.toSeq)
 
       // Create the Jar again, but this time, filter out the Foo files.
-      def noFoos(s: String) = !s.contains("Foo")
-      val filterFunc = (p: os.Path, r: os.RelPath) => noFoos(r.last)
-      eval(filterJar(filterFunc))
+      eval(filterJar)
       val filteredJarContents = os.proc(
         "jar",
         "-tf",

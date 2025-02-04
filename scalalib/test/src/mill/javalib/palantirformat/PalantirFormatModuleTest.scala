@@ -1,10 +1,11 @@
 package mill
 package javalib.palantirformat
 
+import mill.define.Discover
 import mill.main.Tasks
 import mill.scalalib.ScalaModule
 import mill.testkit.{TestBaseModule, UnitTester}
-import utest._
+import utest.*
 
 object PalantirFormatModuleTest extends TestSuite {
 
@@ -100,6 +101,7 @@ object PalantirFormatModuleTest extends TestSuite {
     object module extends TestBaseModule with ScalaModule with PalantirFormatModule {
       override def palantirformatVersion: T[String] = version
       override def scalaVersion: T[String] = sys.props("MILL_SCALA_2_13_VERSION")
+      lazy val millDiscover = Discover[this.type]
     }
 
     val eval = UnitTester(module, moduleRoot)
@@ -121,6 +123,7 @@ object PalantirFormatModuleTest extends TestSuite {
 
     object module extends TestBaseModule with ScalaModule {
       override def scalaVersion: T[String] = sys.props("MILL_SCALA_2_13_VERSION")
+      lazy val millDiscover = Discover[this.type]
     }
 
     val eval = UnitTester(module, modulesRoot)

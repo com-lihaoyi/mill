@@ -4,8 +4,8 @@ package scalalib
 import mill.api.Result
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import utest._
-import mill.define.ModuleRef
+import utest.*
+import mill.define.{Discover, ModuleRef}
 
 object HelloJavaTests extends TestSuite {
 
@@ -24,6 +24,7 @@ object HelloJavaTests extends TestSuite {
         }
       }
     }
+    lazy val millDiscover = Discover[this.type]
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-java"

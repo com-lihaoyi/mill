@@ -31,12 +31,14 @@ trait Ctx {
   def enclosingCls: Class[_]
   def enclosingModule: Any = null
   def crossValues: Seq[Any]
+  def discover: Discover
 
   private[mill] def withCrossValues(crossValues: Seq[Any]): Ctx
   private[mill] def withMillSourcePath(millSourcePath: os.Path): Ctx
   private[mill] def withSegment(segment: Segment): Ctx
   private[mill] def withSegments(segments: Segments): Ctx
-  private[mill] def withEnclosingModule(enclosingModule: Any): Ctx = this
+  private[mill] def withEnclosingModule(enclosingModule: Any): Ctx
+  private[mill] def withDiscover(discover: Discover): Ctx
 }
 
 object Ctx extends LowPriCtx {
@@ -50,15 +52,16 @@ object Ctx extends LowPriCtx {
       foreign: Option[Segments],
       fileName: String,
       override val enclosingModule: Any,
-      crossValues: Seq[Any]
+      crossValues: Seq[Any],
+      discover: Discover
   ) extends Ctx {
     def enclosingCls = enclosingModule.getClass
     def withCrossValues(crossValues: Seq[Any]): Ctx = copy(crossValues = crossValues)
     def withMillSourcePath(millSourcePath: os.Path): Ctx = copy(millSourcePath = millSourcePath)
     def withSegment(segment: Segment): Ctx = copy(segment = segment)
     def withSegments(segments: Segments): Ctx = copy(segments = segments)
-    override def withEnclosingModule(enclosingModule: Any): Ctx =
-      copy(enclosingModule = enclosingModule)
+    def withEnclosingModule(enclosingModule: Any): Ctx = copy(enclosingModule = enclosingModule)
+    def withDiscover(discover: Discover): Ctx = copy(discover = discover)
   }
 
   /**
@@ -85,24 +88,38 @@ object Ctx extends LowPriCtx {
       external0: External,
       foreign0: Foreign,
       fileName: sourcecode.File,
-      enclosing: Caller
+      enclosing: Caller,
+      enclosingClass: EnclosingClass,
+      discover: Discover
   ): Ctx = {
+    // Manually break apart `sourcecode.Enclosing` instead of using
+    // `sourcecode.Name` to work around bug with anonymous classes
+    // returning `$anon` names
+    val lastSegmentStr =
+      millModuleEnclosing0.value.split("\\.|#| ").filter(!_.startsWith("$anon")).last
     Impl(
       millModuleEnclosing0.value,
       millModuleLine0.value,
-      Segment.Label(
-        // Manually break apart `sourcecode.Enclosing` instead of using
-        // `sourcecode.Name` to work around bug with anonymous classes
-        // returning `$anon` names
-        millModuleEnclosing0.value.split("\\.|#| ").filter(!_.startsWith("$anon")).last
-      ),
+      Segment.Label(lastSegmentStr),
       millModuleBasePath0.value,
-      segments0,
+      segments0 ++ {
+        Option(enclosing.value) match {
+          case None => Segments()
+          case Some(value) =>
+            OverrideMapping.computeSegments(
+              value.asInstanceOf[OverrideMapping.Wrapper],
+              discover,
+              lastSegmentStr,
+              enclosingClass.value
+            )
+        }
+      },
       external0.value,
       foreign0.value,
       fileName.value,
       enclosing.value,
-      Seq()
+      Seq(),
+      discover
     )
   }
 }

@@ -1,12 +1,13 @@
 package mill.contrib.scoverage
 
-import mill._
+import mill.*
 import mill.api.Result
 import mill.contrib.buildinfo.BuildInfo
+import mill.define.Discover
 import mill.scalalib.{DepSyntax, SbtModule, ScalaModule, TestModule}
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import utest._
+import utest.*
 import utest.framework.TestPath
 
 trait HelloWorldTests extends utest.TestSuite {
@@ -48,6 +49,8 @@ trait HelloWorldTests extends utest.TestSuite {
         override def ivyDeps = Agg(ivy"org.scalatest::scalatest:${testScalatestVersion}")
       }
     }
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   object HelloWorldSbt extends TestBaseModule {
@@ -59,6 +62,8 @@ trait HelloWorldTests extends utest.TestSuite {
         override def ivyDeps = Agg(ivy"org.scalatest::scalatest:${testScalatestVersion}")
       }
     }
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   def tests: utest.Tests = utest.Tests {
