@@ -391,29 +391,8 @@ object Target extends TaskBase {
     ${ Internal.targetResultImpl[T]('t)('rw, 'ctx, 'this) }
 
   object Internal {
-    private def withMacroOwner[T](using Quotes)(op: quotes.reflect.Symbol => T): T = {
-      import quotes.reflect.*
 
-      // In Scala 3, the top level splice of a macro is owned by a symbol called "macro" with the macro flag set,
-      // but not the method flag.
-      def isMacroOwner(sym: Symbol)(using Quotes): Boolean =
-        sym.name == "macro" && sym.flags.is(Flags.Macro | Flags.Synthetic) && !sym.flags.is(
-          Flags.Method
-        )
-
-      def loop(owner: Symbol): T =
-        if owner.isPackageDef || owner == Symbol.noSymbol then
-          report.errorAndAbort(
-            "Cannot find the owner of the macro expansion",
-            Position.ofMacroExpansion
-          )
-        else if isMacroOwner(owner) then op(owner.owner) // Skip the "macro" owner
-        else loop(owner.owner)
-
-      loop(Symbol.spliceOwner)
-    }
-
-    private def isPrivateTargetOption()(using Quotes): Expr[Option[Boolean]] = withMacroOwner {
+    private def isPrivateTargetOption()(using Quotes): Expr[Option[Boolean]] = Cacher.withMacroOwner {
       owner =>
         import quotes.reflect.*
         if owner.flags.is(Flags.Private) then Expr(Some(true))
