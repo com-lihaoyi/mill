@@ -19,9 +19,8 @@ abstract class SubfolderModule()(implicit
         millModuleBasePath0 = Ctx.BasePath(subFolderInfo.millSourcePath0 / os.up),
         segments0 = Segments.labels(subFolderInfo.segments.init: _*),
         external0 = Ctx.External(false),
-        foreign0 = Ctx.Foreign(None),
         fileName = millFile0,
-        enclosing = Caller(null),
+        enclosingModule = Caller(null),
         enclosingClass = EnclosingClass(null),
         discover = null
       )

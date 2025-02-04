@@ -3,31 +3,49 @@ package mill.define
 import java.util.StringTokenizer
 import scala.collection.JavaConverters.*
 
+/**
+ * Logic around mapping overridden tasks to `Segments` suffixes.
+ *
+ * If a task is overridden, only the final override is assigned the `foo`
+ * segment, while the overridden tasks are assigned `foo.super/Bar` `foo.super/Qux`
+ * etc.. The suffix is as short as possible for conciseness while still being distinct.
+ *
+ * To detect groups of overrides, we use the task names captured in the `Discover` macro.
+ * This allows us to properly identify which `def` is the "final" one, which is difficult
+ * to do by other means (e.g. JVM bytecode has synthetic forwarders that confuse things)
+ */
 object OverrideMapping {
   trait Wrapper {
     private[mill] def linearized: Seq[Class[_]]
   }
 
   def computeSegments(
-      value: OverrideMapping.Wrapper,
+      enclosingValue: OverrideMapping.Wrapper,
       discover: Discover,
       lastSegmentStr: String,
       enclosingClassValue: Class[_]
   ) = {
-    val linearized = value.linearized
-    val declaring = linearized.filter(cls =>
-      discover.classInfo.get(cls).exists(_.declaredTaskNameSet.contains(lastSegmentStr))
-    )
+    Option(enclosingValue) match {
+      case Some(value) =>
+        val linearized = value.linearized
+        val declaring = linearized.filter(cls =>
+          discover.classInfo.get(cls).exists(_.declaredTaskNameSet.contains(lastSegmentStr))
+        )
 
-    if (declaring.isEmpty || declaring.lastOption.contains(enclosingClassValue)) Segments()
-    else OverrideMapping.assignOverridenTaskSegments(
-      declaring.map(_.getName),
-      lastSegmentStr,
-      enclosingClassValue.getName
-    )
+        if (declaring.isEmpty || declaring.lastOption.contains(enclosingClassValue)) Segments()
+        else assignOverridenTaskSegments(
+          declaring.map(_.getName),
+          lastSegmentStr,
+          enclosingClassValue.getName
+        )
+      case _ => Segments()
+    }
   }
 
   def computeLinearization(cls: Class[_]): Seq[Class[_]] = {
+    // Manually reproduce the linearization order described in
+    //
+    // https://stackoverflow.com/questions/34242536/linearization-order-in-scala
     val seen = collection.mutable.Set[Class[_]]()
 
     def rec(cls: Class[_]): Seq[Class[_]] = {

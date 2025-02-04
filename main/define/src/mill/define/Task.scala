@@ -116,9 +116,8 @@ object Task extends TaskBase {
    */
   inline def Command[T](inline t: Result[T])(implicit
       inline w: W[T],
-      inline ctx: mill.define.Ctx,
-      inline cls: EnclosingClass
-  ): Command[T] = ${ Target.Internal.commandImpl[T]('t)('w, 'ctx, 'cls, 'this) }
+      inline ctx: mill.define.Ctx
+  ): Command[T] = ${ Target.Internal.commandImpl[T]('t)('w, 'ctx, 'this) }
 
   /**
    * @param exclusive Exclusive commands run serially at the end of an evaluation,
@@ -135,9 +134,8 @@ object Task extends TaskBase {
   class CommandFactory private[mill] (val exclusive: Boolean) extends TaskBase.TraverseCtxHolder {
     inline def apply[T](inline t: Result[T])(implicit
         inline w: W[T],
-        inline ctx: mill.define.Ctx,
-        inline cls: EnclosingClass
-    ): Command[T] = ${ Target.Internal.serialCommandImpl[T]('t)('w, 'ctx, 'cls, 'this) }
+        inline ctx: mill.define.Ctx
+    ): Command[T] = ${ Target.Internal.serialCommandImpl[T]('t)('w, 'ctx, 'this) }
   }
 
   /**
@@ -336,16 +334,14 @@ object Target extends TaskBase {
   )
   inline def command[T](inline t: Task[T])(implicit
       inline ctx: mill.define.Ctx,
-      inline w: W[T],
-      inline cls: EnclosingClass
-  ): Command[T] = ${ Internal.commandFromTask[T]('t)('ctx, 'w, 'cls) }
+      inline w: W[T]
+  ): Command[T] = ${ Internal.commandFromTask[T]('t)('ctx, 'w) }
 
   @deprecated("Use Task.Command instead", "Mill after 0.12.0-RC1")
   inline def command[T](inline t: Result[T])(implicit
       inline w: W[T],
-      inline ctx: mill.define.Ctx,
-      inline cls: EnclosingClass
-  ): Command[T] = ${ Internal.commandImpl[T]('t)('w, 'ctx, 'cls, 'this) }
+      inline ctx: mill.define.Ctx
+  ): Command[T] = ${ Internal.commandImpl[T]('t)('w, 'ctx, 'this) }
 
   @deprecated(
     "Creating a worker from a task is deprecated. You most likely forgot a parenthesis pair `()`",
@@ -391,34 +387,14 @@ object Target extends TaskBase {
     ${ Internal.targetResultImpl[T]('t)('rw, 'ctx, 'this) }
 
   object Internal {
-    private def withMacroOwner[T](using Quotes)(op: quotes.reflect.Symbol => T): T = {
-      import quotes.reflect.*
 
-      // In Scala 3, the top level splice of a macro is owned by a symbol called "macro" with the macro flag set,
-      // but not the method flag.
-      def isMacroOwner(sym: Symbol)(using Quotes): Boolean =
-        sym.name == "macro" && sym.flags.is(Flags.Macro | Flags.Synthetic) && !sym.flags.is(
-          Flags.Method
-        )
-
-      def loop(owner: Symbol): T =
-        if owner.isPackageDef || owner == Symbol.noSymbol then
-          report.errorAndAbort(
-            "Cannot find the owner of the macro expansion",
-            Position.ofMacroExpansion
-          )
-        else if isMacroOwner(owner) then op(owner.owner) // Skip the "macro" owner
-        else loop(owner.owner)
-
-      loop(Symbol.spliceOwner)
-    }
-
-    private def isPrivateTargetOption()(using Quotes): Expr[Option[Boolean]] = withMacroOwner {
-      owner =>
-        import quotes.reflect.*
-        if owner.flags.is(Flags.Private) then Expr(Some(true))
-        else Expr(Some(false))
-    }
+    private def isPrivateTargetOption()(using Quotes): Expr[Option[Boolean]] =
+      Cacher.withMacroOwner {
+        owner =>
+          import quotes.reflect.*
+          if owner.flags.is(Flags.Private) then Expr(Some(true))
+          else Expr(Some(false))
+      }
 
     private def traverseCtxExpr[R: Type](caller: Expr[TraverseCtxHolder])(
         args: Expr[Seq[Task[Any]]],
@@ -658,8 +634,7 @@ object Target extends TaskBase {
         Quotes
     )(t: Expr[Task[T]])(
         ctx: Expr[mill.define.Ctx],
-        w: Expr[W[T]],
-        cls: Expr[EnclosingClass]
+        w: Expr[W[T]]
     ): Expr[Command[T]] = {
       val taskIsPrivate = isPrivateTargetOption()
 
@@ -668,7 +643,6 @@ object Target extends TaskBase {
           $t,
           $ctx,
           $w,
-          $cls.value,
           $taskIsPrivate
         )
       }
@@ -679,7 +653,6 @@ object Target extends TaskBase {
     )(t: Expr[Result[T]])(
         w: Expr[W[T]],
         ctx: Expr[mill.define.Ctx],
-        cls: Expr[EnclosingClass],
         caller: Expr[TraverseCtxHolder]
     ): Expr[Command[T]] = {
       val taskIsPrivate = isPrivateTargetOption()
@@ -690,7 +663,6 @@ object Target extends TaskBase {
           $lhs,
           $ctx,
           $w,
-          $cls.value,
           $taskIsPrivate,
           exclusive = false
         )
@@ -702,7 +674,6 @@ object Target extends TaskBase {
     )(t: Expr[Result[T]])(
         w: Expr[W[T]],
         ctx: Expr[mill.define.Ctx],
-        cls: Expr[EnclosingClass],
         caller: Expr[Task.CommandFactory]
     ): Expr[Command[T]] = {
       val taskIsPrivate = isPrivateTargetOption()
@@ -713,7 +684,6 @@ object Target extends TaskBase {
           $lhs,
           $ctx,
           $w,
-          $cls.value,
           $taskIsPrivate,
           exclusive = $caller.exclusive
         )
@@ -908,7 +878,6 @@ class Command[+T](
     val t: Task[T],
     val ctx0: mill.define.Ctx,
     val writer: W[_],
-    val cls: Class[_],
     val isPrivate: Option[Boolean],
     val exclusive: Boolean
 ) extends NamedTask[T] {
@@ -916,9 +885,8 @@ class Command[+T](
       t: Task[T],
       ctx0: mill.define.Ctx,
       writer: W[_],
-      cls: Class[_],
       isPrivate: Option[Boolean]
-  ) = this(t, ctx0, writer, cls, isPrivate, false)
+  ) = this(t, ctx0, writer, isPrivate, false)
   override def asCommand: Some[Command[T]] = Some(this)
   // FIXME: deprecated return type: Change to Option
   override def writerOpt: Some[W[_]] = Some(writer)
