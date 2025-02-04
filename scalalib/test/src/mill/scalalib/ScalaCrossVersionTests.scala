@@ -17,7 +17,7 @@ object ScalaCrossVersionTests extends TestSuite {
       def moduleDeps = Seq(stable())
     }
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   def tests: Tests = Tests {

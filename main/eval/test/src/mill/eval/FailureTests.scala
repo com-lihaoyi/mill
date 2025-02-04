@@ -190,7 +190,7 @@ object FailureTests extends TestSuite {
         val task = Task.Anon { Task.dest.toString.length }
         def right = Task { task() + left() + Task.dest.toString().length }
 
-        def millDiscover = Discover[this.type]
+        lazy val millDiscover = Discover[this.type]
       }
 
       val check = UnitTester(build, null)

@@ -14,7 +14,7 @@ object ScalaScaladocTests extends TestSuite {
       override def scalaDocOptions = super.scalaDocOptions() ++ Seq("-doc-version", "1.2.3")
     }
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object HelloWorldOnlyDocVersion extends TestBaseModule {
@@ -23,7 +23,7 @@ object ScalaScaladocTests extends TestSuite {
       override def scalaDocOptions = T(Seq("-doc-version", "1.2.3"))
     }
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
 
   }
 
@@ -32,7 +32,7 @@ object ScalaScaladocTests extends TestSuite {
       override def scalaDocOptions = T(Seq("-doc-title", "Hello World"))
     }
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   def tests: Tests = Tests {

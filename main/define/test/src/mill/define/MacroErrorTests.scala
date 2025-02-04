@@ -21,7 +21,7 @@ object MacroErrorTests extends TestSuite {
         val e = compileError("""
           object foo extends TestBaseModule{
             def w = Task.Command{1}
-            def millDiscover = Discover[this.type]
+            lazy val millDiscover = Discover[this.type]
           }
           mill.define.Discover[foo.type]
         """)
@@ -35,7 +35,7 @@ object MacroErrorTests extends TestSuite {
         val e = compileError("""
           object foo extends TestBaseModule{
             def x() = Task {1}
-            def millDiscover = Discover[this.type]
+            lazy val millDiscover = Discover[this.type]
           }
           mill.define.Discover[foo.type]
         """)
@@ -48,7 +48,7 @@ object MacroErrorTests extends TestSuite {
         val e = compileError("""
           object foo extends TestBaseModule{
             def y() = Task.Input{1}
-            def millDiscover = Discover[this.type]
+            lazy val millDiscover = Discover[this.type]
           }
           mill.define.Discover[foo.type]
         """)
@@ -61,7 +61,7 @@ object MacroErrorTests extends TestSuite {
         val e = compileError("""
           object foo extends TestBaseModule{
             def z() = Task.Sources{os.pwd}
-            def millDiscover = Discover[this.type]
+            lazy val millDiscover = Discover[this.type]
           }
           mill.define.Discover[foo.type]
         """)
@@ -74,7 +74,7 @@ object MacroErrorTests extends TestSuite {
         val e = compileError("""
           object foo extends TestBaseModule{
             def a() = Task(persistent = true){1}
-            def millDiscover = Discover[this.type]
+            lazy val millDiscover = Discover[this.type]
           }
           mill.define.Discover[foo.type]
         """)
@@ -99,7 +99,7 @@ object MacroErrorTests extends TestSuite {
               arr(c)()
             }
           }
-          def millDiscover = Discover[this.type]
+          lazy val millDiscover = Discover[this.type]
         }
       }
       test("neg1") {
@@ -129,7 +129,7 @@ object MacroErrorTests extends TestSuite {
                 arr(n)()
               }
             }
-            def millDiscover = Discover[this.type]
+            lazy val millDiscover = Discover[this.type]
           }
         """)
         assert(err.msg == expectedMsg)
@@ -147,7 +147,7 @@ object MacroErrorTests extends TestSuite {
                 arr.map{x => x()}
               }
             }
-            def millDiscover = Discover[this.type]
+            lazy val millDiscover = Discover[this.type]
           }
         """)
         assert(err.msg == expectedMsg)
@@ -173,7 +173,7 @@ object MacroErrorTests extends TestSuite {
         object foo extends TestBaseModule{
           object cross extends Cross[MyCrossModule](Seq(1, 2, 3))
           trait MyCrossModule extends Cross.Module[String]
-          def millDiscover = Discover[this.type]
+          lazy val millDiscover = Discover[this.type]
         }
       """
       )
@@ -188,7 +188,7 @@ object MacroErrorTests extends TestSuite {
         object foo extends TestBaseModule{
           object cross extends Cross[MyCrossModule](Seq((1, 2), (2, 2), (3, 3)))
           trait MyCrossModule extends Cross.Module2[String, Boolean]
-          def millDiscover = Discover[this.type]
+          lazy val millDiscover = Discover[this.type]
         }
       """
       )
@@ -209,7 +209,7 @@ object MacroErrorTests extends TestSuite {
         object foo extends TestBaseModule{
           object cross extends Cross[MyCrossModule](null.asInstanceOf[sun.misc.Unsafe])
           trait MyCrossModule extends Cross.Module[sun.misc.Unsafe]
-          def millDiscover = Discover[this.type]
+          lazy val millDiscover = Discover[this.type]
         }
       """
       )

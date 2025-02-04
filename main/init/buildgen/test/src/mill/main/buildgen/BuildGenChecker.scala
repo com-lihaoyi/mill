@@ -32,7 +32,7 @@ class BuildGenChecker(sourceRoot: os.Path, scalafmtConfigFile: os.Path) {
       override def filesToFormat(sources: Seq[PathRef]): Seq[PathRef] = files
       override def scalafmtConfig: T[Seq[PathRef]] = Seq(PathRef(scalafmtConfigFile))
 
-      def millDiscover = Discover[this.type]
+      lazy val millDiscover = Discover[this.type]
     }
     val eval = UnitTester(module, testRoot)
     eval(module.reformat())

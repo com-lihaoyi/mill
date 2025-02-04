@@ -32,7 +32,7 @@ object CheckstyleXsltModuleTest extends TestSuite {
   def testJava(modulePath: os.Path): Boolean = {
 
     object module extends TestBaseModule with JavaModule with CheckstyleXsltModule {
-      def millDiscover = Discover[this.type]
+      lazy val millDiscover = Discover[this.type]
     }
 
     testModule(module, modulePath)
@@ -42,7 +42,7 @@ object CheckstyleXsltModuleTest extends TestSuite {
 
     object module extends TestBaseModule with ScalaModule with CheckstyleXsltModule {
       override def scalaVersion: T[String] = sys.props("MILL_SCALA_2_13_VERSION")
-      def millDiscover = Discover[this.type]
+      lazy val millDiscover = Discover[this.type]
     }
 
     testModule(module, modulePath)

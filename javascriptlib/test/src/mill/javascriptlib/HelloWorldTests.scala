@@ -21,7 +21,7 @@ object HelloWorldTests extends TestSuite {
       override def moduleDeps: Seq[TypeScriptModule] = Seq(foo, foo.bar)
     }
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-typescript"

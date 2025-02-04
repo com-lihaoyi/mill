@@ -32,7 +32,7 @@ object CycleTests extends TestSuite {
       override def compileModuleDeps = Seq(f)
     }
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   override def tests: Tests = Tests {

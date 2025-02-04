@@ -18,7 +18,7 @@ object ErrorTests extends TestSuite {
         def single = Task { 9 }
       }
     }
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   // The module names repeat, but it's not actually cyclic and is meant to confuse the cycle detection.
@@ -43,7 +43,7 @@ object ErrorTests extends TestSuite {
       }
     }
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object CyclicModuleRefInitError extends TestBaseModule {
@@ -64,13 +64,13 @@ object ErrorTests extends TestSuite {
     trait B extends CommonModule {
       override def moduleDeps = super.moduleDeps ++ Agg(a)
     }
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object CyclicModuleRefInitError2 extends TestBaseModule {
     // The cycle is in the child
     def A = CyclicModuleRefInitError
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object CyclicModuleRefInitError3 extends TestBaseModule {
@@ -81,7 +81,7 @@ object ErrorTests extends TestSuite {
     object B extends Module {
       def a = A
     }
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object CrossedCyclicModuleRefInitError extends TestBaseModule {
@@ -97,7 +97,7 @@ object ErrorTests extends TestSuite {
       def suffix = Task { crossValue }
       def c1 = cross
     }
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   // This edge case shouldn't be an error
@@ -109,7 +109,7 @@ object ErrorTests extends TestSuite {
 
     object A extends Module {}
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object ModuleRefCycle extends TestBaseModule {
@@ -123,7 +123,7 @@ object ErrorTests extends TestSuite {
       def a = ModuleRef(A)
     }
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   def isShortError(x: Either[String, _], s: String) =

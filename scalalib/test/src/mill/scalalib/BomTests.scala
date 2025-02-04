@@ -528,7 +528,7 @@ object BomTests extends TestSuite {
         }
       }
     }
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   def expectedProtobufJavaVersion = "4.28.3"

@@ -21,7 +21,7 @@ object JavaHomeTests extends TestSuite {
       object test extends JavaTests with TestModule.Junit4
     }
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object HelloJavaJavaHome17Override extends TestBaseModule {
@@ -34,7 +34,7 @@ object JavaHomeTests extends TestSuite {
       override def docJarUseArgsFile = false
       object test extends JavaTests with TestModule.Junit4
     }
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object JavaJdk11DoesntCompile extends TestBaseModule {
@@ -49,7 +49,7 @@ object JavaHomeTests extends TestSuite {
       override def zincWorker = ModuleRef(ZincWorkerJava)
       def scalaVersion = "2.13.14"
     }
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object JavaJdk17Compiles extends TestBaseModule {
@@ -65,7 +65,7 @@ object JavaHomeTests extends TestSuite {
 
       def scalaVersion = "2.13.14"
     }
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-java"

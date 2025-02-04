@@ -67,7 +67,7 @@ trait KtfmtModule extends KtfmtBaseModule {
 
 object KtfmtModule extends ExternalModule with KtfmtBaseModule with TaskModule {
 
-  def millDiscover = Discover[this.type]
+  lazy val millDiscover = Discover[this.type]
 
   override def defaultCommandName(): String = "formatAll"
 

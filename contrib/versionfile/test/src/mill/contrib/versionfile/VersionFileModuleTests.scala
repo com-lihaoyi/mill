@@ -10,7 +10,7 @@ object VersionFileModuleTests extends TestSuite {
 
   object TestModule extends TestBaseModule {
     case object versionFile extends VersionFileModule
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   def evaluator[T, M <: mill.testkit.TestBaseModule](

@@ -53,7 +53,7 @@ object PublishModuleTests extends TestSuite {
       }
     }
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object PomOnly extends TestBaseModule {
@@ -80,7 +80,7 @@ object PublishModuleTests extends TestSuite {
       override def sourceJar: T[PathRef] = Task { ???.asInstanceOf[PathRef] }
     }
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   trait TestPublishModule extends PublishModule {
@@ -112,7 +112,7 @@ object PublishModuleTests extends TestSuite {
       def runModuleDeps = Seq(main)
     }
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "publish"

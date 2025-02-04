@@ -46,7 +46,7 @@ trait AssemblyTestUtils {
       object large extends Setup with ExtraDeps
     }
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   val sources = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "assembly"

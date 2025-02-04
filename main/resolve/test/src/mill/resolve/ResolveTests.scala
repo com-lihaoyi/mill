@@ -17,7 +17,7 @@ object ResolveTests extends TestSuite {
         def single = Task { 9 }
       }
     }
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   def isShortError(x: Either[String, _], s: String) =

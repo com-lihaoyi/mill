@@ -19,7 +19,7 @@ object ScalaMacrosTests extends TestSuite {
         ivy"org.scalamacros:::paradise:2.1.0"
       )
     }
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object HelloWorldMacros213 extends TestBaseModule {
@@ -28,7 +28,7 @@ object ScalaMacrosTests extends TestSuite {
       override def ivyDeps = Agg(ivy"com.github.julien-truffaut::monocle-macro::2.1.0")
       override def scalacOptions = super.scalacOptions() ++ Seq("-Ymacro-annotations")
     }
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   def tests: Tests = Tests {

@@ -10,16 +10,16 @@ import mill.main.TokenReaders._
 object ErrorProneTests extends TestSuite {
 
   object noErrorProne extends TestBaseModule with JavaModule {
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
   object errorProne extends TestBaseModule with JavaModule with ErrorProneModule {
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
   object errorProneCustom extends TestBaseModule with JavaModule with ErrorProneModule {
     override def errorProneOptions: T[Seq[String]] = T(Seq(
       "-XepAllErrorsAsWarnings"
     ))
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   val testModuleSourcesPath: Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "errorprone"

@@ -55,7 +55,7 @@ object ResolveDepsTests extends TestSuite {
       def artifactTypes = super.artifactTypes() + coursier.core.Type("aar")
     }
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   val tests = Tests {

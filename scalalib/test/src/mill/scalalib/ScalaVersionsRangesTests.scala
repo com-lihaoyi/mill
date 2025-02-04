@@ -17,7 +17,7 @@ object ScalaVersionsRangesTests extends TestSuite {
       }
     }
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
   val resourcePath =
     os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "scala-versions-ranges"

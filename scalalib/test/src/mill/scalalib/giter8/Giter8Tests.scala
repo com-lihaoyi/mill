@@ -19,7 +19,7 @@ object Giter8Tests extends TestSuite {
           } else template
 
         object g8Module extends TestBaseModule with Giter8Module {
-          def millDiscover = Discover[this.type]
+          lazy val millDiscover = Discover[this.type]
         }
 
         val evaluator = UnitTester(g8Module, null)

@@ -19,7 +19,7 @@ object BuildInfoTests extends TestSuite {
     def buildInfoPackageName = "foo"
     def buildInfoMembers = Seq.empty[BuildInfo.Value]
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object BuildInfoPlain extends TestBaseModule with BuildInfo with ScalaModule {
@@ -29,7 +29,7 @@ object BuildInfoTests extends TestSuite {
       BuildInfo.Value("scalaVersion", scalaVersion())
     )
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object BuildInfoScalaJS extends TestBaseModule with BuildInfo with ScalaJSModule {
@@ -40,7 +40,7 @@ object BuildInfoTests extends TestSuite {
       BuildInfo.Value("scalaVersion", scalaVersion())
     )
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object BuildInfoComment extends TestBaseModule with BuildInfo with ScalaModule {
@@ -59,7 +59,7 @@ object BuildInfoTests extends TestSuite {
       )
     )
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object BuildInfoStatic extends TestBaseModule with BuildInfo with ScalaModule {
@@ -70,7 +70,7 @@ object BuildInfoTests extends TestSuite {
       BuildInfo.Value("scalaVersion", scalaVersion())
     )
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object BuildInfoSettings extends TestBaseModule with BuildInfo with ScalaModule {
@@ -81,7 +81,7 @@ object BuildInfoTests extends TestSuite {
       BuildInfo.Value("scalaVersion", scalaVersion())
     )
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object BuildInfoJava extends TestBaseModule with BuildInfo {
@@ -90,7 +90,7 @@ object BuildInfoTests extends TestSuite {
       BuildInfo.Value("scalaVersion", "not-provided-for-java-modules")
     )
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object BuildInfoJavaStatic extends TestBaseModule with BuildInfo {
@@ -100,7 +100,7 @@ object BuildInfoTests extends TestSuite {
       BuildInfo.Value("scalaVersion", "not-provided-for-java-modules")
     )
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   val testModuleSourcesPath: Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "buildinfo"

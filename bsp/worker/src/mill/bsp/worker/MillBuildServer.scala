@@ -38,7 +38,7 @@ private class MillBuildServer(
 
   import MillBuildServer._
 
-  def millDiscover = Discover[this.type]
+  lazy val millDiscover = Discover[this.type]
 
   private[worker] var cancellator: Boolean => Unit = shutdownBefore => ()
   private[worker] var onSessionEnd: Option[BspServerResult => Unit] = None

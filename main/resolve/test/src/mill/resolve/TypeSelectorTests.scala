@@ -27,7 +27,7 @@ object TypeSelectorTests extends TestSuite {
       object typeA extends TypeA
     }
     object typeAB extends TypeAB
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object TypedCrossModules extends TestBaseModule {
@@ -53,7 +53,7 @@ object TypeSelectorTests extends TestSuite {
       object typeAB extends Cross[TypeAB]("a", "b")
     }
     object nestedAB extends Cross[NestedAB]("a", "b")
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object TypedInnerModules extends TestBaseModule {
@@ -70,7 +70,7 @@ object TypeSelectorTests extends TestSuite {
       }
       object typeA extends TypeA
     }
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   def isShortError(x: Either[String, _], s: String) =

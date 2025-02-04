@@ -50,7 +50,7 @@ trait HelloWorldTests extends utest.TestSuite {
       }
     }
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object HelloWorldSbt extends TestBaseModule {
@@ -63,7 +63,7 @@ trait HelloWorldTests extends utest.TestSuite {
       }
     }
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   def tests: utest.Tests = utest.Tests {

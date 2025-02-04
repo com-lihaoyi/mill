@@ -18,7 +18,7 @@ trait ScalaAssemblyTestUtils {
       override def assemblyRules = Seq(Assembly.Rule.Append("reference.conf"))
     }
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object HelloWorldAkkaHttpExclude extends TestBaseModule {
@@ -27,7 +27,7 @@ trait ScalaAssemblyTestUtils {
       override def assemblyRules = Seq(Assembly.Rule.Exclude("reference.conf"))
     }
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
 
   }
 
@@ -37,7 +37,7 @@ trait ScalaAssemblyTestUtils {
       override def assemblyRules = Seq(Assembly.Rule.AppendPattern(".*.conf"))
     }
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
 
   }
 
@@ -47,7 +47,7 @@ trait ScalaAssemblyTestUtils {
       override def assemblyRules = Seq(Assembly.Rule.ExcludePattern(".*.conf"))
     }
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object HelloWorldAkkaHttpRelocate extends TestBaseModule {
@@ -56,7 +56,7 @@ trait ScalaAssemblyTestUtils {
       override def assemblyRules = Seq(Assembly.Rule.Relocate("akka.**", "shaded.akka.@1"))
     }
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object HelloWorldAkkaHttpNoRules extends TestBaseModule {
@@ -65,7 +65,7 @@ trait ScalaAssemblyTestUtils {
       override def assemblyRules = Seq.empty
     }
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object HelloWorldMultiAppend extends TestBaseModule {
@@ -75,7 +75,7 @@ trait ScalaAssemblyTestUtils {
     }
     object model extends HelloWorldModule
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object HelloWorldMultiExclude extends TestBaseModule {
@@ -85,7 +85,7 @@ trait ScalaAssemblyTestUtils {
     }
     object model extends HelloWorldModule
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object HelloWorldMultiAppendPattern extends TestBaseModule {
@@ -95,7 +95,7 @@ trait ScalaAssemblyTestUtils {
     }
     object model extends HelloWorldModule
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object HelloWorldMultiAppendByPatternWithSeparator extends TestBaseModule {
@@ -105,7 +105,7 @@ trait ScalaAssemblyTestUtils {
     }
     object model extends HelloWorldModule
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object HelloWorldMultiExcludePattern extends TestBaseModule {
@@ -115,7 +115,7 @@ trait ScalaAssemblyTestUtils {
     }
     object model extends HelloWorldModule
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object HelloWorldMultiNoRules extends TestBaseModule {
@@ -125,7 +125,7 @@ trait ScalaAssemblyTestUtils {
     }
     object model extends HelloWorldModule
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   val helloWorldMultiResourcePath =

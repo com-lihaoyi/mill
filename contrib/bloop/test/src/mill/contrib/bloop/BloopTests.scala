@@ -80,7 +80,7 @@ object BloopTests extends TestSuite {
       override def skipBloop: Boolean = true
     }
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   def readBloopConf(jsonFile: String) =

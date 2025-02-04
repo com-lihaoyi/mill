@@ -25,7 +25,7 @@ object BspModuleTests extends TestSuite {
       override def moduleDeps = Seq(HelloBsp)
       override def ivyDeps = Agg(ivy"ch.qos.logback:logback-classic:1.1.10")
     }
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object InterDeps extends TestBaseModule {
@@ -40,7 +40,7 @@ object BspModuleTests extends TestSuite {
           .filter(c => c < crossValue)
           .map(i => Mod(i))
     }
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   override def tests: Tests = Tests {

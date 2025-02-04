@@ -7,7 +7,7 @@ import mill.define.{Discover, ExternalModule}
 @mill.api.experimental
 object InitGradleModule extends ExternalModule with BuildGenModule {
 
-  def millDiscover = Discover[this.type]
+  lazy val millDiscover = Discover[this.type]
 
   def buildGenClasspath: T[Loose.Agg[PathRef]] = BuildGenModule.millModule("mill-main-init-gradle")
 

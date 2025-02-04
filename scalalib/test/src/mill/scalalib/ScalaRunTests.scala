@@ -11,7 +11,7 @@ object ScalaRunTests extends TestSuite {
   object HelloWorldDefaultMain extends TestBaseModule {
     object core extends HelloWorldTests.HelloWorldModule
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object HelloWorldWithoutMain extends TestBaseModule {
@@ -19,13 +19,13 @@ object ScalaRunTests extends TestSuite {
       override def mainClass = None
     }
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object HelloWorldWithMain extends TestBaseModule {
     object core extends HelloWorldTests.HelloWorldModuleWithMain
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   def tests: Tests = Tests {

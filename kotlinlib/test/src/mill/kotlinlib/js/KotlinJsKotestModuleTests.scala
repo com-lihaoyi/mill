@@ -31,7 +31,7 @@ object KotlinJsKotestModuleTests extends TestSuite {
       }
     }
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   private def testEval() = UnitTester(module, resourcePath)

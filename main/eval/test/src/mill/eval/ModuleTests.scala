@@ -14,12 +14,12 @@ object TestExternalModule extends mill.define.ExternalModule with mill.define.Ta
   object inner extends mill.Module {
     def y = Task { 17 }
   }
-  def millDiscover = Discover[this.type]
+  lazy val millDiscover = Discover[this.type]
 }
 object ModuleTests extends TestSuite {
   object Build extends TestBaseModule {
     def z = Task { TestExternalModule.x() + TestExternalModule.inner.y() }
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
   val tests = Tests {
     test("externalModuleCalls") {
@@ -49,7 +49,7 @@ object ModuleTests extends TestSuite {
       object Build extends mill.define.ExternalModule {
 
         def z = Task { TestExternalModule.x() + TestExternalModule.inner.y() }
-        def millDiscover = Discover[this.type]
+        lazy val millDiscover = Discover[this.type]
       }
 
       intercept[java.lang.AssertionError] { Build }

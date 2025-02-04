@@ -11,7 +11,7 @@ object UnitTests extends TestSuite {
       object build extends TestBaseModule with LineCountJavaModule {
         def lineCountResourceFileName = "line-count.txt"
 
-        def millDiscover = Discover[this.type]
+        lazy val millDiscover = Discover[this.type]
       }
 
       val resourceFolder = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))

@@ -9,21 +9,21 @@ import utest.framework.TestPath
 
 object CacherTests extends TestSuite {
   object Base extends Base {
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
   trait Base extends TestBaseModule {
     def value = Task { 1 }
     def result = Task { Success(1) }
   }
   object Middle extends Middle {
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
   trait Middle extends Base {
     override def value = Task { super.value() + 2 }
     def overridden = Task { super.value() }
   }
   object Terminal extends Terminal {
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
   trait Terminal extends Middle {
     override def value = Task { super.value() + 4 }

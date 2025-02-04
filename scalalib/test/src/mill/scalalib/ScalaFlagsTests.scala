@@ -17,7 +17,7 @@ object ScalaFlagsTests extends TestSuite {
       )
     }
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   def tests: Tests = Tests {

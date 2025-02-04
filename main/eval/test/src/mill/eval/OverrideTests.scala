@@ -19,7 +19,7 @@ object OverrideTests extends TestSuite {
   object canOverrideSuper extends TestBaseModule with BaseModule {
     override def foo = Task { super.foo() ++ Seq("object") }
     override def cmd(i: Int) = Task.Command { super.cmd(i)() ++ Seq("object" + i) }
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object StackableOverrides extends TestBaseModule {
@@ -34,7 +34,7 @@ object OverrideTests extends TestSuite {
       override def f = Task { super.f() + 3 }
     }
     object m extends A with B {}
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object StackableOverrides2 extends TestBaseModule {
@@ -52,7 +52,7 @@ object OverrideTests extends TestSuite {
     object m extends B.X {
       override def f = Task { super.f() + 3 }
     }
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object StackableOverrides3 extends TestBaseModule {
@@ -68,7 +68,7 @@ object OverrideTests extends TestSuite {
     object m extends X {
       override def f = Task { super.f() + 3 }
     }
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object OptionalOverride extends TestBaseModule {
@@ -79,7 +79,7 @@ object OverrideTests extends TestSuite {
       override def f = Task { super.f() + 10 }
       def g = Task { super.f() + 100 }
     }
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object PrivateTasksInMixedTraits extends TestBaseModule {
@@ -92,7 +92,7 @@ object OverrideTests extends TestSuite {
       def baz = Task { foo() }
     }
     object mod extends M1 with M2
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
   val tests = Tests {
     object graphs extends TestGraphs()

@@ -129,7 +129,7 @@ trait KoverModule extends KotlinModule { outer =>
  */
 object Kover extends ExternalModule with KoverReportBaseModule {
 
-  def millDiscover = Discover[this.type]
+  lazy val millDiscover = Discover[this.type]
 
   def htmlReportAll(evaluator: Evaluator): Command[PathRef] = Task.Command {
     koverReportTask(

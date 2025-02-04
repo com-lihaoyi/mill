@@ -31,7 +31,7 @@ object EvaluationTests {
     def nullCommand3() = Task.Command { nullTask1() }
     def nullCommand4() = Task.Command { nullTask2() }
 
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
 }
@@ -247,7 +247,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
           def right = Task { rightCount += 1; 10000 }
           def down = Task { left() + middle() + right() }
 
-          def millDiscover = Discover[this.type]
+          lazy val millDiscover = Discover[this.type]
         }
 
         import build._

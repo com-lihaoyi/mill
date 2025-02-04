@@ -15,7 +15,7 @@ object ScalaScalacheckTests extends TestSuite {
         override def testFramework = "org.scalacheck.ScalaCheckFramework"
       }
     }
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   def tests: Tests = Tests {

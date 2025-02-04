@@ -17,5 +17,5 @@ trait MillBuild extends Module {
 }
 
 object MillBuild extends ExternalModule with MillBuild {
-  override def millDiscover = Discover[this.type]
+  override lazy val millDiscover = Discover[this.type]
 }

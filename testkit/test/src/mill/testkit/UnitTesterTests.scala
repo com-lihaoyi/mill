@@ -12,7 +12,7 @@ object UnitTesterTests extends TestSuite {
       object build extends TestBaseModule {
         def testTask = Task { "test" }
 
-        def millDiscover = Discover[this.type]
+        lazy val millDiscover = Discover[this.type]
       }
 
       UnitTester(build, resourcePath).scoped { eval =>
@@ -26,7 +26,7 @@ object UnitTesterTests extends TestSuite {
         def testSource = Task.Source(millSourcePath / "source-file.txt")
         def testTask = Task { os.read(testSource().path).toUpperCase() }
 
-        def millDiscover = Discover[this.type]
+        lazy val millDiscover = Discover[this.type]
       }
 
       UnitTester(build, resourcePath).scoped { eval =>
