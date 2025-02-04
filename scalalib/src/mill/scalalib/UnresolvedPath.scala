@@ -26,7 +26,7 @@ object UnresolvedPath {
 
   case class DestPath private (
       subPath: String,
-      segments: Seq[String],
+      segments: Seq[String]
   ) extends UnresolvedPath {
     override def resolve(pathResolver: EvaluatorPathsResolver): Path = {
       pathResolver.resolveDest(Segments(segments.map(Segment.Label(_)))).dest / os.SubPath(subPath)
@@ -35,7 +35,7 @@ object UnresolvedPath {
   object DestPath {
     def apply(
         subPath: os.SubPath,
-        segments: Segments,
+        segments: Segments
     ): DestPath = {
       DestPath(
         subPath.toString(),

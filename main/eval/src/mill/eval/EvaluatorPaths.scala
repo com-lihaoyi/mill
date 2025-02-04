@@ -29,7 +29,7 @@ object EvaluatorPaths {
   }
   def resolveDestPaths(
       workspacePath: os.Path,
-      segments: Segments,
+      segments: Segments
   ): EvaluatorPaths = {
     val segmentStrings = makeSegmentStrings(segments)
     val targetPath = workspacePath / segmentStrings.map(sanitizePathSegment)

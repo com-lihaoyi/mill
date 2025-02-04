@@ -2,7 +2,6 @@ package mill.scalalib.bsp
 
 import mill.api.internal
 import mill.define.Task
-import mill.scalalib.internal.ModuleUtils
 import mill._
 
 trait BspModule extends Module {
