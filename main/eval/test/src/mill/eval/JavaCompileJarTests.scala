@@ -47,11 +47,12 @@ object JavaCompileJarTests extends TestSuite {
           Jvm.createJar(Loose.Agg(classFiles().path, readme().path) ++ resourceRoot().map(_.path))
         }
         // Test createJar() with optional file filter.
-        def filterJar(fileFilter: (os.Path, os.RelPath) => Boolean) = Task.Anon{
+        def filterJar = Task{
+          def noFoos(s: String) = !s.contains("Foo")
           Jvm.createJar(
             Loose.Agg(classFiles().path, readme().path) ++ resourceRoot().map(_.path),
             JarManifest.MillDefault,
-            fileFilter
+            (p: os.Path, r: os.RelPath) => noFoos(r.last)
           )
         }
 
@@ -146,9 +147,7 @@ object JavaCompileJarTests extends TestSuite {
       assert(jarContents.linesIterator.toSeq == expectedJarContents.linesIterator.toSeq)
 
       // Create the Jar again, but this time, filter out the Foo files.
-      def noFoos(s: String) = !s.contains("Foo")
-      val filterFunc = (p: os.Path, r: os.RelPath) => noFoos(r.last)
-      eval(filterJar(filterFunc))
+      eval(filterJar)
       val filteredJarContents = os.proc(
         "jar",
         "-tf",
