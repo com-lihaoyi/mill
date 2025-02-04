@@ -10,15 +10,13 @@ import os.SubPath
 import utest.*
 import utest.framework.TestPath
 
-
 object OverrideTests extends TestSuite {
   trait BaseModule extends Module {
     def foo = Task { Seq("base") }
     def cmd(i: Int) = Task.Command { Seq("base" + i) }
   }
 
-
- object canOverrideSuper extends TestBaseModule with BaseModule {
+  object canOverrideSuper extends TestBaseModule with BaseModule {
     override def foo = Task { super.foo() ++ Seq("object") }
     override def cmd(i: Int) = Task.Command { super.cmd(i)() ++ Seq("object" + i) }
     def millDiscover = Discover[this.type]
@@ -383,7 +381,7 @@ object OverrideTests extends TestSuite {
             .contains(" 1,")
         )
       }
-      test{
+      test {
         checker(m.g, 101, Agg(), extraEvaled = -1)
         assert(
           os.read(checker.evaluator.outPath / "m/f.super/X.json")

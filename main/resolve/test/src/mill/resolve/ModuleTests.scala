@@ -216,7 +216,9 @@ object ModuleTests extends TestSuite {
         test("wildcard") {
           test("labelNeg1") - check(
             "_.suffix",
-            Left("Cannot resolve _.suffix. Try `mill resolve _._` or `mill resolve __.suffix` to see what's available.")
+            Left(
+              "Cannot resolve _.suffix. Try `mill resolve _._` or `mill resolve __.suffix` to see what's available."
+            )
           )
           test("labelNeg2") - check(
             "_.doesntExist",

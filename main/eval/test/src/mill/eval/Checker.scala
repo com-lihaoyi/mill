@@ -1,6 +1,5 @@
 package mill.eval
 
-
 import mill.util.TestUtil.Test
 import mill.define.{Discover, TargetImpl, Task}
 import mill.{T, Module}
@@ -11,24 +10,23 @@ import os.SubPath
 import utest.*
 import utest.framework.TestPath
 
-
 class Checker[T <: mill.testkit.TestBaseModule](module: T, threadCount: Option[Int] = Some(1)) {
   // Make sure data is persisted even if we re-create the evaluator each time
 
   val evaluator = UnitTester(module, null, threads = threadCount).evaluator
 
   def apply(
-             target: Task[_],
-             expValue: Any,
-             expEvaled: Agg[Task[_]],
-             // How many "other" tasks were evaluated other than those listed above.
-             // Pass in -1 to skip the check entirely
-             extraEvaled: Int = 0,
-             // Perform a second evaluation of the same tasks, and make sure the
-             // outputs are the same but nothing was evaluated. Disable this if you
-             // are directly evaluating tasks which need to re-evaluate every time
-             secondRunNoOp: Boolean = true
-           ) = {
+      target: Task[_],
+      expValue: Any,
+      expEvaled: Agg[Task[_]],
+      // How many "other" tasks were evaluated other than those listed above.
+      // Pass in -1 to skip the check entirely
+      extraEvaled: Int = 0,
+      // Perform a second evaluation of the same tasks, and make sure the
+      // outputs are the same but nothing was evaluated. Disable this if you
+      // are directly evaluating tasks which need to re-evaluate every time
+      secondRunNoOp: Boolean = true
+  ) = {
 
     val evaled = evaluator.evaluate(Agg(target))
 

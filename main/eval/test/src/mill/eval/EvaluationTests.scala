@@ -40,7 +40,8 @@ import EvaluationTests._
 
 class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
 
-  class Checker[T <: mill.testkit.TestBaseModule](module: T)  extends mill.eval.Checker(module, threadCount)
+  class Checker[T <: mill.testkit.TestBaseModule](module: T)
+      extends mill.eval.Checker(module, threadCount)
 
   val tests = Tests {
     object graphs extends TestGraphs()

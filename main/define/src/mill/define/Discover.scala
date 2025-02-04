@@ -31,7 +31,9 @@ object Discover {
   class ClassInfo(
       val entryPoints: Seq[mainargs.MainData[_, _]],
       val declaredTasks: Seq[TaskInfo]
-  )
+  ) {
+    lazy val declaredTaskNameSet = declaredTasks.map(_.name).toSet
+  }
   class TaskInfo(val name: String)
 
   inline def apply[T]: Discover = ${ Router.applyImpl[T] }

@@ -7,20 +7,19 @@ import mill.util.TestGraphs.*
 import mill.{Cross, Module, Task}
 import utest.*
 
-
 class Checker[T <: mill.define.BaseModule](module: T) {
 
   def apply(
-             selectorString: String,
-             expected0: Either[String, Set[T => NamedTask[_]]],
-             expectedMetadata: Set[String] = Set()
-           ) = checkSeq(Seq(selectorString), expected0, expectedMetadata)
+      selectorString: String,
+      expected0: Either[String, Set[T => NamedTask[_]]],
+      expectedMetadata: Set[String] = Set()
+  ) = checkSeq(Seq(selectorString), expected0, expectedMetadata)
 
   def checkSeq(
-                selectorStrings: Seq[String],
-                expected0: Either[String, Set[T => NamedTask[_]]],
-                expectedMetadata: Set[String] = Set()
-              ) = {
+      selectorStrings: Seq[String],
+      expected0: Either[String, Set[T => NamedTask[_]]],
+      expectedMetadata: Set[String] = Set()
+  ) = {
     val expected = expected0.map(_.map(_(module)))
 
     val resolvedTasks = resolveTasks(selectorStrings)
@@ -38,10 +37,10 @@ class Checker[T <: mill.define.BaseModule](module: T) {
   }
 
   def checkSeq0(
-                 selectorStrings: Seq[String],
-                 check: Either[String, List[NamedTask[_]]] => Boolean,
-                 checkMetadata: Either[String, List[String]] => Boolean = _ => true
-               ) = {
+      selectorStrings: Seq[String],
+      check: Either[String, List[NamedTask[_]]] => Boolean,
+      checkMetadata: Either[String, List[String]] => Boolean = _ => true
+  ) = {
 
     val resolvedTasks = resolveTasks(selectorStrings)
     assert(check(resolvedTasks))

@@ -73,8 +73,6 @@ object TypeSelectorTests extends TestSuite {
     def millDiscover = Discover[this.type]
   }
 
-
-
   def isShortError(x: Either[String, _], s: String) =
     x.left.exists(_.contains(s)) &&
       // Make sure the stack traces are truncated and short-ish, and do not

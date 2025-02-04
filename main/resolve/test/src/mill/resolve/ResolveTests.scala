@@ -29,7 +29,7 @@ object ResolveTests extends TestSuite {
   val tests = Tests {
     val graphs = new mill.util.TestGraphs()
     import graphs._
-  test("single") {
+    test("single") {
       val check = new Checker(singleton)
       test("pos") - check("single", Right(Set(_.single)), Set("single"))
       test("wildcard") - check("_", Right(Set(_.single)), Set("single"))
@@ -152,7 +152,9 @@ object ResolveTests extends TestSuite {
       )
       test("wildcardNeg") - check(
         "_._.single",
-        Left("Cannot resolve _._.single. Try `mill resolve _` or `mill resolve __.single` to see what's available.")
+        Left(
+          "Cannot resolve _._.single. Try `mill resolve _` or `mill resolve __.single` to see what's available."
+        )
       )
       test("wildcardNeg2") - check(
         "_._.__",

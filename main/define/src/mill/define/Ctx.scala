@@ -106,7 +106,7 @@ object Ctx extends LowPriCtx {
           case Some(value) =>
             val linearized = value.asInstanceOf[OverrideMapping.Wrapper].linearized
             val declaring = linearized.filter(cls =>
-              discover.classInfo.get(cls).exists(_.declaredTasks.exists(_.name == lastSegmentStr))
+              discover.classInfo.get(cls).exists(_.declaredTaskNameSet.contains(lastSegmentStr))
             )
 
             if (declaring.isEmpty || declaring.lastOption.contains(enclosingClass.value)) {

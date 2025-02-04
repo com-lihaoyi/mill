@@ -21,7 +21,6 @@ object ErrorTests extends TestSuite {
     def millDiscover = Discover[this.type]
   }
 
-
   // The module names repeat, but it's not actually cyclic and is meant to confuse the cycle detection.
   object NonCyclicModules extends TestBaseModule {
     def foo = Task { "foo" }
@@ -137,7 +136,7 @@ object ErrorTests extends TestSuite {
     val graphs = new mill.util.TestGraphs()
     import graphs.*
 
-     test("moduleInitError") {
+    test("moduleInitError") {
       test("simple") {
         val check = new Checker(moduleInitError)
         // We can resolve the root module tasks even when the
