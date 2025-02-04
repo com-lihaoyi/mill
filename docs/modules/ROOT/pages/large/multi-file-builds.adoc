@@ -13,4 +13,7 @@ include::partial$example/large/multi/11-helper-files.adoc[]
 
 include::partial$example/large/multi/12-helper-files-sc.adoc[]
 
+== Multi Language Project
+
+include::partial$example/large/multi/14-multi-language.adoc[]
 

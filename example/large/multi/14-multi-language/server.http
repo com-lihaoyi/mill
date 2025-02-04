@@ -1,4 +1,0 @@
-POST http://localhost:8086/api/analysis
-Content-Type: text/plain
-
-I am so happy right now!

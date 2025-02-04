@@ -5,7 +5,7 @@ const App = () => {
     const [inputText, setInputText] = useState('');
     const [result, setResult] = useState('');
     const [loading, setLoading] = useState(false);
-    const [sentiment, setSentiment] = useState('neutral');  // New state for sentiment style
+    const [sentiment, setSentiment] = useState('neutral');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -30,7 +30,14 @@ const App = () => {
                 const polarityMatch = responseData.match(/polarity: ([+-]?[0-9]*\.?[0-9]+)/);
                 if (polarityMatch) {
                     const polarity = parseFloat(polarityMatch[1]);
-                    setSentiment(polarity > 0 ? 'positive' : 'negative');
+
+                    if (polarity > 0) {
+                        setSentiment('positive');
+                    } else if (polarity < 0) {
+                        setSentiment('negative');
+                    } else {
+                        setSentiment('neutral');
+                    }
                 }
             } else {
                 setResult('Error occurred during analysis.');

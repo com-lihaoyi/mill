@@ -1,5 +1,5 @@
 package build
-import mill._, javascriptlib._, javalib._, pythonlib._
+import mill._, javascriptlib._, pythonlib._, javalib.{TestModule => JTestModule, _}
 
 object client extends ReactScriptsModule
 
@@ -22,9 +22,26 @@ object server extends JavaModule {
     os.copy(`sentiment-analysis`.bundle().path, Task.dest / "analysis" / "analysis.pex")
     super.resources() ++ Seq(PathRef(Task.dest))
   }
+
+  object test extends JavaTests with JTestModule.Junit5 {
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy"org.springframework.boot:spring-boot-starter-test:2.5.6"
+    )
+  }
 }
 
+// This example demonstrates a simple multi-langauge project,
+// running a `spring boot webserver` serving a `react client` and interacting with a `python binary`
+// through the web-server api.
+
 /** Usage
+
+> mill server.test
+...com.example.ServerTest#shouldReturnStaticPage() finished...
+...com.example.ServerTest#shouldReturnPositiveAnalysis() finished...
+...com.example.ServerTest#shouldReturnNegativeAnalysis() finished...
+
+>
 
 > mill server.runBackground
 */

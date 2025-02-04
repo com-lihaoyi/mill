@@ -78,13 +78,13 @@ button:disabled {
 
 /* Sentiment-based styles */
 .result-container.positive {
-  background-color: #28a745;  /* Green */
+  background-color: #28a745;  /* Green for positive */
 }
 
 .result-container.negative {
-  background-color: #dc3545;  /* Red */
+  background-color: #dc3545;  /* Red for negative */
 }
 
 .result-container.neutral {
-  background-color: #e7f3ff;  /* Default blue */
+  background-color: #007bff;  /* Blue for neutral */
 }
