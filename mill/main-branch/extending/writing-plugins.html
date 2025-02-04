@@ -838,6 +838,8 @@ the results in-memory:</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package myplugin
 
 import mill.testkit.{TestBaseModule, UnitTester}
+import mill.define.Discover
+import mill.main.TokenReaders._
 import utest._
 
 object UnitTests extends TestSuite {
@@ -845,6 +847,8 @@ object UnitTests extends TestSuite {
     test(&quot;unit&quot;) {
       object build extends TestBaseModule with LineCountJavaModule {
         def lineCountResourceFileName = &quot;line-count.txt&quot;
+
+        lazy val millDiscover = Discover[this.type]
       }
 
       val resourceFolder = os.Path(sys.env(&quot;MILL_TEST_RESOURCE_DIR&quot;))
