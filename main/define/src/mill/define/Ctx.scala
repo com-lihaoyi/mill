@@ -94,7 +94,8 @@ object Ctx extends LowPriCtx {
     // Manually break apart `sourcecode.Enclosing` instead of using
     // `sourcecode.Name` to work around bug with anonymous classes
     // returning `$anon` names
-    val lastSegmentStr = millModuleEnclosing0.value.split("\\.|#| ").filter(!_.startsWith("$anon")).last
+    val lastSegmentStr =
+      millModuleEnclosing0.value.split("\\.|#| ").filter(!_.startsWith("$anon")).last
     Impl(
       millModuleEnclosing0.value,
       millModuleLine0.value,
@@ -104,12 +105,13 @@ object Ctx extends LowPriCtx {
         Option(enclosing.value) match {
           case Some(value) =>
             val linearized = value.asInstanceOf[OverrideMapping.Wrapper].linearized
-            val declaring = linearized.filter(cls => discover.classInfo.get(cls).exists(_.declaredTasks.exists(_.name == lastSegmentStr)))
+            val declaring = linearized.filter(cls =>
+              discover.classInfo.get(cls).exists(_.declaredTasks.exists(_.name == lastSegmentStr))
+            )
 
             if (declaring.isEmpty || declaring.lastOption.contains(enclosingClass.value)) {
               Segments()
-            }
-            else OverrideMapping.assignOverridenTaskSegments(
+            } else OverrideMapping.assignOverridenTaskSegments(
               declaring.map(_.getName),
               lastSegmentStr,
               enclosingClass.value.getName

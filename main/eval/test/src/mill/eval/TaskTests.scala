@@ -264,7 +264,7 @@ trait TaskTests extends TestSuite {
 
 object SeqTaskTests extends TaskTests {
   def withEnv(f: (Build, UnitTester) => Unit)(implicit tp: TestPath) = {
-    object build extends Build{
+    object build extends Build {
       lazy val millDiscover: Discover = Discover[this.type]
     }
     val check = UnitTester(build, null, threads = Some(1))
@@ -273,7 +273,7 @@ object SeqTaskTests extends TaskTests {
 }
 object ParTaskTests extends TaskTests {
   def withEnv(f: (Build, UnitTester) => Unit)(implicit tp: TestPath) = {
-    object build extends Build{
+    object build extends Build {
       lazy val millDiscover: Discover = Discover[this.type]
     }
     val check = UnitTester(build, null, threads = Some(16))

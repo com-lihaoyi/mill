@@ -46,7 +46,7 @@ object HelloWorldTests extends TestSuite {
       override def scalaVersion = "2.12.1"
     }
     lazy val millDiscover: Discover = Discover[this.type]
-    
+
   }
   object CrossHelloWorld extends TestBaseModule {
     object core extends Cross[HelloWorldCross](

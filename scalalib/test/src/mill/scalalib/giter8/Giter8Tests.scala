@@ -18,7 +18,7 @@ object Giter8Tests extends TestSuite {
             template.replace("file:", "file://")
           } else template
 
-        object g8Module extends TestBaseModule with Giter8Module{
+        object g8Module extends TestBaseModule with Giter8Module {
           lazy val millDiscover: Discover = Discover[this.type]
         }
 

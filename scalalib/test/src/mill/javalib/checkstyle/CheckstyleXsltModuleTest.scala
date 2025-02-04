@@ -31,7 +31,7 @@ object CheckstyleXsltModuleTest extends TestSuite {
 
   def testJava(modulePath: os.Path): Boolean = {
 
-    object module extends TestBaseModule with JavaModule with CheckstyleXsltModule{
+    object module extends TestBaseModule with JavaModule with CheckstyleXsltModule {
       lazy val millDiscover: Discover = Discover[this.type]
     }
 

@@ -24,7 +24,7 @@ object ScalaScaladocTests extends TestSuite {
     }
 
     lazy val millDiscover: Discover = Discover[this.type]
-    
+
   }
 
   object HelloWorldDocTitle extends TestBaseModule {

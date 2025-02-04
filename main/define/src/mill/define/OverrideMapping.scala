@@ -19,10 +19,11 @@ object OverrideMapping {
     rec(cls)
   }
 
-
-  def assignOverridenTaskSegments(overriddenEnclosings: Seq[String],
-                                  taskMethodName: String,
-                                  taskClassName: String) = {
+  def assignOverridenTaskSegments(
+      overriddenEnclosings: Seq[String],
+      taskMethodName: String,
+      taskClassName: String
+  ) = {
     // StringTokenizer is faster than String#split due to not using regexes
     def splitEnclosing(s: String) = new StringTokenizer(s, ".# $")
       .asIterator()

@@ -1,11 +1,8 @@
 package mill.eval
 import mill.api.Loose.Agg
 import mill.api.Strict
-import mill.define.{NamedTask, Segment, Segments, Task}
+import mill.define.{NamedTask, Segments, Task}
 import mill.util.MultiBiMap
-
-import java.util.StringTokenizer
-import scala.jdk.CollectionConverters.IteratorHasAsScala
 
 private[mill] object Plan {
   def plan(goals: Agg[Task[_]]): (MultiBiMap[Terminal, Task[_]], Strict.Agg[Task[_]]) = {

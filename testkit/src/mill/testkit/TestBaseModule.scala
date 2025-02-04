@@ -1,6 +1,6 @@
 package mill.testkit
 
-import mill.define.{Caller, Discover}
+import mill.define.Caller
 
 /**
  * A wrapper of [[mill.define.BaseModule]] meant for easy instantiation in test suites.
@@ -19,5 +19,4 @@ abstract class TestBaseModule(implicit
       millModuleLine0,
       millModuleFile0,
       Caller(null)
-    ) {
-}
+    ) {}

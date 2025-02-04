@@ -168,7 +168,7 @@ object Discover {
           '{
             def func() = new ClassInfo(
               ${ Expr.ofList(entryPoints.toList) },
-              ${ Expr.ofList(names.map(s => '{ new TaskInfo(${Expr(s)}) })) }
+              ${ Expr.ofList(names.map(s => '{ new TaskInfo(${ Expr(s) }) })) }
             )
 
             (${ classOf(cls) }, func())

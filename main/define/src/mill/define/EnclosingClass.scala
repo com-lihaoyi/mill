@@ -43,7 +43,8 @@ object EnclosingClass {
       else enclosingClass(sym.owner)
 
     val cls = enclosingClass(owner).typeRef
-    val res = '{new EnclosingClass(${Ref(defn.Predef_classOf).appliedToType(cls).asExprOf[Class[?]]})}
+    val res =
+      '{ new EnclosingClass(${ Ref(defn.Predef_classOf).appliedToType(cls).asExprOf[Class[?]] }) }
     res
   }
 }

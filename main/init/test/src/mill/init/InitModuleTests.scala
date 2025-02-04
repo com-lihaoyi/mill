@@ -19,7 +19,7 @@ object InitModuleTests extends TestSuite {
     test("init") {
       val outStream = new ByteArrayOutputStream()
       val errStream = new ByteArrayOutputStream()
-      object initmodule extends TestBaseModule with InitModule{
+      object initmodule extends TestBaseModule with InitModule {
         lazy val millDiscover = mill.define.Discover[this.type]
       }
       val evaluator = UnitTester(

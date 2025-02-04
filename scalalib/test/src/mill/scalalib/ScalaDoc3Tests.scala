@@ -22,7 +22,7 @@ object ScalaDoc3Tests extends TestSuite {
       def scalaVersion = "3.0.0-RC1"
     }
     lazy val millDiscover: Discover = Discover[this.type]
-    
+
   }
 
   // a project with multiple static doc folders

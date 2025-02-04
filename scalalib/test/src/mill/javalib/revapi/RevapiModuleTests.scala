@@ -67,7 +67,7 @@ object RevapiModuleTests extends TestSuite {
         PomSettings("", "mill.revapi.local", "", Seq(), VersionControl(), Seq())
       override def publishVersion: T[String] = root1.last
     }
-    object module1 extends module{
+    object module1 extends module {
       lazy val millDiscover: Discover = Discover[this.type]
     }
     object module2 extends module with RevapiModule {

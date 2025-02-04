@@ -4,7 +4,14 @@ import mill.{Agg, T, Task}
 import mill.api.{PathRef, Result}
 import mill.define.Discover
 import mill.eval.Evaluator
-import mill.scalalib.publish.{Developer, License, PackagingType, PomSettings, VersionControl, VersionScheme}
+import mill.scalalib.publish.{
+  Developer,
+  License,
+  PackagingType,
+  PomSettings,
+  VersionControl,
+  VersionScheme
+}
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest.*

@@ -15,6 +15,7 @@ import scala.reflect.ClassTag
  */
 trait Module extends Module.BaseClass with OverrideMapping.Wrapper {
   implicit def implicitMillDiscover: Discover = millOuterCtx.discover
+
   /**
    * Miscellaneous machinery around traversing & querying the build hierarchy,
    * that should not be needed by normal users of Mill

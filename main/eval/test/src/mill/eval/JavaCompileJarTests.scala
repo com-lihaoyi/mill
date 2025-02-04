@@ -48,7 +48,7 @@ object JavaCompileJarTests extends TestSuite {
           Jvm.createJar(Loose.Agg(classFiles().path, readme().path) ++ resourceRoot().map(_.path))
         }
         // Test createJar() with optional file filter.
-        def filterJar = Task{
+        def filterJar = Task {
 
           Jvm.createJar(
             Loose.Agg(classFiles().path, readme().path) ++ resourceRoot().map(_.path),
