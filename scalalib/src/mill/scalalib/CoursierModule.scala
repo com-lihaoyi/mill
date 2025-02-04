@@ -84,11 +84,15 @@ trait CoursierModule extends mill.Module {
   def resolveDeps(
       deps: Task[Agg[BoundDep]],
       sources: Boolean = false,
-      artifactTypes: Option[Set[Type]] = None
-  ): Task[Agg[PathRef]] =
+      artifactTypes: Option[Set[Type]] = None,
+      enableMillInternalDependencies: Boolean = false
+  ): Task[Agg[PathRef]] = {
+    val repositoriesTask0 =
+      if (enableMillInternalDependencies) allRepositoriesTask
+      else repositoriesTask
     Task.Anon {
       Lib.resolveDependencies(
-        repositories = repositoriesTask(),
+        repositories = repositoriesTask0(),
         deps = deps(),
         sources = sources,
         artifactTypes = artifactTypes,
@@ -98,6 +102,7 @@ trait CoursierModule extends mill.Module {
         ctx = Some(implicitly[mill.api.Ctx.Log])
       )
     }
+  }
 
   @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
   def resolveDeps(

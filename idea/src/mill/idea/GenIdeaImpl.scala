@@ -160,7 +160,7 @@ case class GenIdeaImpl(
             val extRunIvyDeps = mod.resolvedRunIvyDeps
 
             val externalSources = Task.Anon {
-              mod.resolveDeps(allIvyDeps, sources = true)()
+              mod.resolveDeps(allIvyDeps, sources = true, enableMillInternalDependencies = true)()
             }
 
             val (scalacPluginsIvyDeps, allScalacOptions, scalaVersion) = mod match {
