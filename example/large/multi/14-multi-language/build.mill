@@ -46,5 +46,5 @@ object server extends JavaModule {
 > curl http://localhost:8086
 ...<title>Sentiment Analysis Tool</title>...
 
-> mill clean runBackground
+> mill clean server.runBackground
 */
