@@ -1,0 +1,60 @@
+package build
+
+import mill._, javascriptlib._
+
+object core extends TypeScriptModule with TsLintModule {
+  def npmDeps = Seq("whatwg-fetch@3.6.20")
+  def npmDevDeps = Seq(
+    "@swc/core@1.3.14",
+    "@types/whatwg-fetch@0.0.33",
+    "@typescript-eslint/eslint-plugin@5.42.1",
+    "@typescript-eslint/parser@5.42.1",
+    "eslint@8.29.0",
+    "vitest@2.1.6",
+    "prettier@3.2.4",
+    "typescript@5.3.2",
+    "unbuild@2.0.0"
+  )
+
+  def extraOptions =
+    super.extraOptions() + (
+      "ts-node" -> ujson.Obj(
+        "swc" -> ujson.True,
+        "esm" -> ujson.True
+      )
+    )
+
+  def compilerOptions =
+    super.compilerOptions() + (
+      "noImplicitAny" -> ujson.True,
+      "noImplicitThis" -> ujson.True,
+      "strictNullChecks" -> ujson.True,
+      "declarationMap" -> ujson.True,
+      "skipLibCheck" -> ujson.True,
+      "strict" -> ujson.True,
+      "forceConsistentCasingInFileNames" -> ujson.True,
+      "module" -> ujson.Str("ES2022"),
+      "target" -> ujson.Str("es6"),
+      "lib" -> ujson.Arr.from(Seq("es6", "es2018.asyncgenerator", "dom"))
+    )
+
+  object test extends TypeScriptTests with TestModule.Vitest
+}
+
+// The Ollama JavaScript library provides the easiest way to integrate
+// your JavaScript project with Ollama. https://github.com/ollama/ollama
+
+// Project home: https://github.com/ollama/ollama-js
+
+/** Usage
+
+> ./mill core.compile
+
+> ./mill core.test
+...
+...typescript/src/core/index.test.ts (15 tests) ...
+...
+...Test Files  1 passed (1)
+...     Tests  15 passed (15)
+...
+*/

@@ -220,20 +220,32 @@ trait TypeScriptModule extends Module { outer =>
     os.symlink(Task.dest / "package-lock.json", npmInstall().path / "package-lock.json")
   }
 
+  def extraOptions: T[Map[String, ujson.Value]] = Task {
+    Map(
+      "exclude" -> ujson.Arr.from(Seq("node_modules", "**/node_modules/*"))
+    )
+  }
+
   def compile: T[(PathRef, PathRef)] = Task {
     symLink()
+    val default: Map[String, ujson.Value] = Map(
+      "compilerOptions" -> ujson.Obj.from(
+        compilerOptionsBuilder().toSeq ++ Seq("typeRoots" -> typeRoots())
+      ),
+      "files" -> compiledSources().map(_.path.toString)
+    )
     os.write(
       Task.dest / "tsconfig.json",
-      ujson.Obj(
-        "compilerOptions" -> ujson.Obj.from(
-          compilerOptionsBuilder().toSeq ++ Seq("typeRoots" -> typeRoots())
-        ),
-        "files" -> compiledSources().map(_.path.toString)
-      )
+      ujson.Obj.from(default.toSeq ++ extraOptions().toSeq)
     )
 
     os.copy(millSourcePath, Task.dest / "typescript", mergeFolders = true)
-    os.call(npmInstall().path / "node_modules/typescript/bin/tsc", cwd = Task.dest)
+    os.call(
+      npmInstall().path / "node_modules/typescript/bin/tsc",
+      stdout = os.Inherit,
+      stderr = os.Inherit,
+      cwd = Task.dest
+    )
 
     (PathRef(Task.dest), PathRef(Task.dest / "typescript"))
   }
