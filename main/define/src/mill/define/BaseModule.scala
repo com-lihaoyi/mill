@@ -1,6 +1,6 @@
 package mill.define
 
-import mill.api.{PathRef, WorkspaceRoot}
+import mill.api.PathRef
 import mill.util.Watchable
 
 import scala.collection.mutable
@@ -72,24 +72,5 @@ abstract class BaseModule(
     def evalWatch0(w: Watchable): Unit = {
       evalWatchedValues.append(w)
     }
-  }
-}
-
-abstract class ExternalModule(implicit
-    millModuleEnclosing0: sourcecode.Enclosing,
-    millModuleLine0: sourcecode.Line
-) extends BaseModule(WorkspaceRoot.workspaceRoot, external0 = true)(
-      implicitly,
-      implicitly,
-      implicitly,
-      Caller(null)
-    ) {
-
-  assert(
-    !" #".exists(millModuleEnclosing0.value.contains(_)),
-    "External modules must be at a top-level static path, not " + millModuleEnclosing0.value
-  )
-  override implicit def millModuleSegments: Segments = {
-    Segments(millModuleEnclosing0.value.split('.').map(Segment.Label).toIndexedSeq)
   }
 }
