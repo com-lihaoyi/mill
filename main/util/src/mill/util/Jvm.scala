@@ -71,11 +71,13 @@ object Jvm extends CoursierSupport {
       }
 
     val commandArgs = (Vector(javaExe(javaHome)) ++
-        jvmArgs ++
-        Option.when(cp.nonEmpty)(Vector("-cp", cp.mkString(java.io.File.pathSeparator))).getOrElse(Vector.empty) ++
-        Vector(mainClass) ++
-        mainArgs
-        ).filterNot(_.isBlank)
+      jvmArgs ++
+      Option.when(cp.nonEmpty)(Vector(
+        "-cp",
+        cp.mkString(java.io.File.pathSeparator)
+      )).getOrElse(Vector.empty) ++
+      Vector(mainClass) ++
+      mainArgs).filterNot(_.isBlank)
 
     if (cwd != null) os.makeDir.all(cwd)
 
@@ -148,12 +150,14 @@ object Jvm extends CoursierSupport {
         classPath
       }
 
-    val commandArgs =    (Vector(javaExe(javaHome)) ++
+    val commandArgs = (Vector(javaExe(javaHome)) ++
       jvmArgs ++
-      Option.when(cp.nonEmpty)(Vector("-cp", cp.mkString(java.io.File.pathSeparator))).getOrElse(Vector.empty) ++
+      Option.when(cp.nonEmpty)(Vector(
+        "-cp",
+        cp.mkString(java.io.File.pathSeparator)
+      )).getOrElse(Vector.empty) ++
       Vector(mainClass) ++
-      mainArgs
-      ).filterNot(_.isBlank)
+      mainArgs).filterNot(_.isBlank)
 
     if (cwd != null) os.makeDir.all(cwd)
 
