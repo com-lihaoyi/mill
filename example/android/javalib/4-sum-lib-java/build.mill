@@ -1,0 +1,182 @@
+// This section sets up a basic Android project using Mill.
+// We utilize `AndroidAppKotlinModule` and `AndroidSdkModule` to streamline the process of
+// building an Android application with minimal configuration.
+//
+// By extending `AndroidAppKotlinModule`, we inherit all Android-related tasks such as
+// resource generation, APK building, DEX conversion, and APK signing.
+// Additionally, `AndroidSdkModule` is embedded, making SDK management seamless.
+
+//// SNIPPET:BUILD
+package build
+
+import mill._
+import kotlinlib._
+import mill.javalib.android.AndroidLibModule
+import mill.javalib.android.AndroidTestModule
+import coursier.maven.MavenRepository
+import mill.javalib.android.{AndroidAppModule, AndroidSdkModule}
+import mill.javalib.android.AndroidTestModule
+import publish._
+
+
+// Create and configure an Android SDK module to manage Android SDK paths and tools.
+object androidSdkModule0 extends AndroidSdkModule {
+  def buildToolsVersion = "35.0.0"
+}
+
+object lib extends AndroidLibModule with PublishModule{
+
+  def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+  def androidMinSdk = 19
+  def androidCompileSdk = 35
+
+  def publishVersion = "0.0.1"
+  def pomSettings = PomSettings(
+    description = "sumlib",
+    organization = "io.github.irodotos7",
+    url = "https://github.com/lihaoyi/example",
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github("lihaoyi", "example"),
+    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
+  )
+
+  // Configuration for ReleaseKey
+  def androidReleaseKeyName: T[Option[String]] = Task { Some("releaseKey.jks") }
+  def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
+  def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
+  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
+
+  object test extends AndroidLibTests with TestModule.Junit4 {
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy"junit:junit:4.13.2"
+    )
+  }
+
+}
+
+object app extends AndroidAppModule {
+
+  def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+  def androidMinSdk = 19
+  def androidCompileSdk = 35
+
+  override def repositoriesTask = Task.Anon {
+    super.repositoriesTask() ++ Seq(
+      MavenRepository("file://" + sys.props("user.home") + "/.m2/repository")
+    )
+  }
+
+  def ivyDeps = super.ivyDeps() ++ Agg(
+    ivy"io.github.irodotos7:lib:0.0.1"
+  )
+
+
+  object test extends AndroidAppTests with TestModule.Junit4 {
+    def testFramework = "com.novocode.junit.JUnitFramework"
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy"junit:junit:4.13.2"
+    )
+  }
+
+//  object it extends AndroidAppKotlinInstrumentedTests with AndroidTestModule.AndroidJUnit {
+//
+//    override def instrumentationPackage = "com.sumlib"
+//
+//    /* TODO currently the dependency resolution ignores the platform type and kotlinx-coroutines-core has
+//     * conflicting classes with kotlinx-coroutines-core-jvm . Remove the exclusions once the dependency
+//     * resolution resolves conflicts between androidJvm and jvm platform types
+//     */
+//    def ivyDeps = super.ivyDeps() ++ Agg(
+//      ivy"androidx.test.ext:junit:1.2.1".exclude((
+//        "org.jetbrains.kotlinx",
+//        "kotlinx-coroutines-core-jvm"
+//      )),
+//      ivy"androidx.test:runner:1.6.2",
+//      ivy"androidx.test.espresso:espresso-core:3.5.1".exclude((
+//        "org.jetbrains.kotlinx",
+//        "kotlinx-coroutines-core-jvm"
+//      )),
+//      ivy"junit:junit:4.13.2"
+//    )
+//  }
+}
+
+////SNIPPET:END
+
+
+// This command triggers the build process, which installs the Android Setup, compiles the kotlin
+// code, generates Android resources, converts kotlin bytecode to DEX format, packages everything
+// into an APK, optimizes the APK using `zipalign`, and finally signs it.
+//
+// This Mill build configuration is designed to build a simple "Hello World" Android application.
+// By extending `AndroidAppKotlinModule`, we leverage its predefined Android build tasks, ensuring that
+// all necessary steps (resource generation, APK creation, and signing) are executed automatically.
+//
+// #### Project Structure:
+// The project follows the standard Android app layout. Below is a typical project folder structure:
+//
+// ----
+// .
+//├── app
+//│   └── src
+//│       ├── androidTest/java/com/helloworld/app/ExampleInstrumentedTest.kt
+//│       ├── main
+//│       │   ├── AndroidManifest.xml
+//│       │   ├── java/com/helloworld/app/MainActivity.kt
+//│       │   └── res
+//│       │       └── values
+//│       │           ├── colors.xml
+//│       │           └── strings.xml
+//│       └── test/java/com/helloworld/app/ExampleUnitTest.kt
+//└── build.mill
+// ----
+//
+
+/** Usage
+
+ > ./mill show lib.publishM2Local
+
+ > cat out/lib/publishM2Local.log
+ "Publish lib-0.0.1 to /home/.../.m2/repository/io/github/.../lib/0.0.1"
+
+
+ */
+
+// This command runs unit tests on your local environment.
+
+/** Usage
+
+ > ./mill app.test
+ ...
+ [
+  "",
+  [
+    {
+      "fullyQualifiedName": "com.calculator.app.CalculatorUnitTest.textSize_isCorrect",
+      "selector": "com.calculator.app.CalculatorUnitTest.textSize_isCorrect",
+      "duration": 2,
+      "status": "Success"
+    }
+  ]
+ ]
+ [
+  "",
+  [
+    {
+      "fullyQualifiedName": "com.calculator.app.CalculatorUnitTest.textSize_isCorrect",
+      "selector": "com.calculator.app.CalculatorUnitTest.textSize_isCorrect",
+      "duration": 2,
+      "status": "Success"
+    }
+  ]
+ ]
+ ...
+ */
+
+// The android tests (existing typically in androidTest directory, aka instrumented tests)
+// typically run on an android device.
+// The createAndroidVirtualDevice command creates an AVD (Android Virtual Device)
+// and the startAndroidEmulator command starts the AVD. The it task runs the integration tests
+// against the available AVD. The stopAndroidEmulator command stops the AVD and the
+// destroyAndroidVirtualDevice command destroys the AVD.
+// The provided commands can be used in a CI/CD pipeline assuming the right setup is in place.

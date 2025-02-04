@@ -273,7 +273,7 @@ trait JavaModule
    * Default artifact types to fetch and put in the classpath. Add extra types
    * here if you'd like fancy artifact extensions to be fetched.
    */
-  def artifactTypes: T[Set[Type]] = Task { coursier.core.Resolution.defaultTypes }
+  def artifactTypes: T[Set[Type]] = Task { coursier.core.Resolution.defaultTypes ++ Set(Type.Exotic.aar)}
 
   /**
    * Options to pass to the java compiler
