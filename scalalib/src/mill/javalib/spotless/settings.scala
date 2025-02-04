@@ -215,13 +215,20 @@ case class ScalaConfig(
   }
 }
 
+case class KtfmtOptions(
+    maxWidth: Option[Int] = Some(80),
+    blockIndent: Option[Int] = Some(4),
+    continuationIndent: Option[Int] = Some(4),
+    removeUnusedImports: Option[Boolean] = Some(false),
+    manageTrailingCommas: Option[Boolean] = Some(false)
+)
 case class KotlinConfig(
     target: String = ".kt",
     licenseHeader: Option[String] = None,
     licenseHeaderFile: Option[String] = None,
     override val licenseHeaderDelimiter: String = "(package |@file|import )",
     ktfmtVersion: String = "0.53",
-    ktfmtOptions: Option[Map[String, Any]] = None,
+    ktfmtOptions: Option[KtfmtOptions] = None,
     klintVersion: String = "1.5.0"
 ) extends JVMLangConfig {
   require(
@@ -232,7 +239,7 @@ case class KotlinConfig(
   def withKtfmtVersion(version: String): KotlinConfig =
     copy(ktfmtVersion = version)
 
-  def withKtfmtOptions(options: Map[String, Any]): KotlinConfig =
+  def withKtfmtOptions(options: KtfmtOptions): KotlinConfig =
     copy(ktfmtOptions = Some(options))
 
   def withKtlintVersion(version: String): KotlinConfig =
@@ -243,15 +250,11 @@ case class KotlinConfig(
 
     if (ktfmtOptions.isDefined) {
       val options = new KtfmtFormattingOptions(
-        ktfmtOptions.get("maxWidth") match { case Some(v: Int) => v; case _ => null },
-        ktfmtOptions.get("blockIndent") match { case Some(v: Int) => v; case _ => null },
-        ktfmtOptions.get("continuationIndent") match { case Some(v: Int) => v; case _ => null },
-        ktfmtOptions.get("removeUnusedImports") match {
-          case Some(v: Boolean) => v; case _ => null
-        },
-        ktfmtOptions.get("manageTrailingCommas") match {
-          case Some(v: Boolean) => v; case _ => null
-        }
+        ktfmtOptions.flatMap(_.maxWidth).map(Integer.valueOf).orNull,
+        ktfmtOptions.flatMap(_.blockIndent).map(Integer.valueOf).orNull,
+        ktfmtOptions.flatMap(_.continuationIndent).map(Integer.valueOf).orNull,
+        ktfmtOptions.flatMap(_.removeUnusedImports).map(Boolean.box).orNull,
+        ktfmtOptions.flatMap(_.manageTrailingCommas).map(Boolean.box).orNull
       )
       val step = KtfmtStep.create(ktfmtVersion, provisioner, null, options)
       steps.add(step)

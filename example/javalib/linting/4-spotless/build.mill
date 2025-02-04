@@ -7,7 +7,7 @@ import mill._
 import mill.javalib.JavaModule
 import mill.javalib.spotless.{SpotlessModule}
 import mill.javalib.spotless.{JavaSpotlessModule, JavaConfig, GoogleJavaFormat, PalantirJavaFormat}
-import mill.javalib.spotless.{KotlinSpotlessModule, KotlinConfig}
+import mill.javalib.spotless.{KotlinSpotlessModule, KotlinConfig, KtfmtOptions}
 import mill.javalib.spotless.{ScalaSpotlessModule, ScalaConfig}
 
 // See https://github.com/diffplug/spotless/tree/main/plugin-gradle#java
@@ -50,12 +50,12 @@ object `package` extends RootModule with ScalaSpotlessModule {
 /*
 // See https://github.com/diffplug/spotless/tree/main/plugin-gradle#kotlin
 object `package` extends RootModule with KotlinSpotlessModule {
-  val ktfmtOptions: Map[String, Any] = Map(
-    "maxWidth" -> Some(80), // Expects an Option[Int]
-    "blockIndent" -> Some(4), // Expects an Option[Int]
-    "continuationIndent" -> Some(4), // Expects an Option[Int]
-    "removeUnusedImports" -> Some(false), // Expects an Option[Boolean]
-    "manageTrailingCommas" -> Some(false) // Expects an Option[Boolean]
+  val ktfmtOptions = new KtfmtOptions(
+    maxWidth = Some(80),
+    blockIndent = Some(4),
+    continuationIndent = Some(4),
+    removeUnusedImports = Some(false),
+    manageTrailingCommas = Some(false)
   )
 
   override def jvmLangConfig = KotlinConfig(
@@ -81,25 +81,20 @@ object `package` extends RootModule with KotlinSpotlessModule {
 /** Usage
 
 > ./mill spotless --check  # check should fail initially
- The following files had format violations:
+The following files had format violations:
 .../src/java/Main.java
 .../src/java/Person.java
-...Run 'mill spotless ...' to fix these violations.
+Run 'mill spotless ...' to fix these violations.
 
 
 > ./mill spotless  # format all Java source files
-...Formatted: .../src/java2/Person.java
-...Formatted: .../src/java2/Main.java
-...Formatting completed successfully!
+...Formatted: .../src/java/Person.java
+...Formatted: .../src/java/Main.java
+Formatting completed successfully!
 
 > ./mill spotless --check  # check should succeed now
-...Verification completed. No format violations found!
+Verification completed. No format violations found!
 */
 
 // You can also use Spotless globally on all `JavaModule`s in your build by running
 // `mill.javalib.spotless.JavaSpotlessModule/`.
-
-/** Usage
-> ./mill mill.javalib.spotless.JavaSpotlessModule/ # alternatively, use external module to check/format
-...formatting java sources ...
-*/

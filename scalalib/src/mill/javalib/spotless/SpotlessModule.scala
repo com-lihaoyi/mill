@@ -70,10 +70,10 @@ trait SpotlessModule extends CoursierModule {
       .steps(steps)
       .build()
 
-    val results = _sources.map { folder =>
+    val results = _sources.iterator.map { folder =>
       process(check.value, formatter, folder.path.toIO, settings.target)
     }
-    results.foreach(identity)
+    results.iterator.foreach(identity)
   }
 
   case class FormatViolation(path: Path, diff: String)
@@ -95,10 +95,12 @@ trait SpotlessModule extends CoursierModule {
 
         violations.foreach { violation =>
           println(s"    ${violation.path}")
-          val formattedDiff = violation.diff.linesIterator
-            .map(line => s"        $line")
-            .mkString("\n")
-          println(formattedDiff)
+          if (sys.env.get("VERBOSE").contains("1")) {
+            val formattedDiff = violation.diff.linesIterator
+              .map(line => s"        $line")
+              .mkString("\n")
+            println(formattedDiff)
+          }
         }
 
         println(s"Run 'mill spotless $sourceDir' to fix these violations.\n")
