@@ -8,6 +8,25 @@ object OverrideMapping {
     private[mill] def linearized: Seq[Class[_]]
   }
 
+  def computeSegments(
+      value: OverrideMapping.Wrapper,
+      discover: Discover,
+      lastSegmentStr: String,
+      enclosingClassValue: Class[_]
+  ) = {
+    val linearized = value.linearized
+    val declaring = linearized.filter(cls =>
+      discover.classInfo.get(cls).exists(_.declaredTaskNameSet.contains(lastSegmentStr))
+    )
+
+    if (declaring.isEmpty || declaring.lastOption.contains(enclosingClassValue)) Segments()
+    else OverrideMapping.assignOverridenTaskSegments(
+      declaring.map(_.getName),
+      lastSegmentStr,
+      enclosingClassValue.getName
+    )
+  }
+
   def computeLinearization(cls: Class[_]): Seq[Class[_]] = {
     val seen = collection.mutable.Set[Class[_]]()
 

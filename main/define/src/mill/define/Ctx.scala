@@ -103,21 +103,14 @@ object Ctx extends LowPriCtx {
       millModuleBasePath0.value,
       segments0 ++ {
         Option(enclosing.value) match {
-          case Some(value) =>
-            val linearized = value.asInstanceOf[OverrideMapping.Wrapper].linearized
-            val declaring = linearized.filter(cls =>
-              discover.classInfo.get(cls).exists(_.declaredTaskNameSet.contains(lastSegmentStr))
-            )
-
-            if (declaring.isEmpty || declaring.lastOption.contains(enclosingClass.value)) {
-              Segments()
-            } else OverrideMapping.assignOverridenTaskSegments(
-              declaring.map(_.getName),
-              lastSegmentStr,
-              enclosingClass.value.getName
-            )
-
           case None => Segments()
+          case Some(value) =>
+            OverrideMapping.computeSegments(
+              value.asInstanceOf[OverrideMapping.Wrapper],
+              discover,
+              lastSegmentStr,
+              enclosingClass.value
+            )
         }
       },
       external0.value,

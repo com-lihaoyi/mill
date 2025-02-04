@@ -110,6 +110,7 @@ object Discover {
       def sortedMethods(curCls: TypeRepr, sub: TypeRepr, methods: Seq[Symbol]): Seq[Symbol] =
         for {
           m <- methods.toList.sortBy(_.fullName)
+          if !m.flags.is(Flags.Deferred) // Abstract methods
           mType = curCls.memberType(m)
           returnType = methodReturn(mType)
           if returnType <:< sub

@@ -233,9 +233,11 @@ object CodeGen {
   }
 
   def millDiscover(segmentsNonEmpty: Boolean): String = {
-    if (segmentsNonEmpty) "override def millDiscover: _root_.mill.define.Discover  = build_.package_.implicitMillDiscover"
-    else """override def millDiscover: _root_.mill.define.Discover = _root_.mill.define.Discover[this.type]""".stripMargin
+    val rhs =
+      if (segmentsNonEmpty) "build_.package_.implicitMillDiscover"
+      else "_root_.mill.define.Discover[this.type]"
 
+    s"override def millDiscover: _root_.mill.define.Discover = $rhs"
   }
 
   def rootMiscInfo(
