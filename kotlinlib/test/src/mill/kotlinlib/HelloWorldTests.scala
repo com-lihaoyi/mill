@@ -4,7 +4,8 @@ package kotlinlib
 import mill.scalalib.TestModule
 import mill.testkit.{TestBaseModule, UnitTester}
 import mill.api.Result
-import utest._
+import mill.define.Discover
+import utest.*
 
 object HelloWorldTests extends TestSuite {
 
@@ -27,6 +28,8 @@ object HelloWorldTests extends TestSuite {
       }
     }
     object main extends Cross[MainCross](kotlinVersions)
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-kotlin"

@@ -27,7 +27,9 @@ abstract class BaseModule(
         Ctx.External(external0),
         Ctx.Foreign(foreign0),
         millFile0,
-        caller
+        caller,
+        EnclosingClass(null),
+        discover = null
       )
     ) with Module with BaseModule0 {
 
@@ -38,12 +40,14 @@ abstract class BaseModule(
   override def millSourcePath = millOuterCtx.millSourcePath
   override implicit def millModuleBasePath: Ctx.BasePath = Ctx.BasePath(millSourcePath)
   implicit def millImplicitBaseModule: BaseModule.Implicit = BaseModule.Implicit(this)
-  def millDiscover: Discover
+  protected def millDiscover: Discover
+  override implicit lazy val implicitMillDiscover: Discover = millDiscover
+  def millOuterCtx = super.millOuterCtx.withDiscover(millDiscover)
 
 }
 
 trait BaseModule0 extends Module {
-  implicit def millDiscover: Discover
+  protected def millDiscover: Discover
   protected[mill] val watchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty[Watchable]
   protected[mill] val evalWatchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty[Watchable]
 
@@ -86,7 +90,6 @@ abstract class ExternalModule(implicit
       Caller(null)
     ) {
 
-  implicit def millDiscoverImplicit: Discover = millDiscover
   assert(
     !" #".exists(millModuleEnclosing0.value.contains(_)),
     "External modules must be at a top-level static path, not " + millModuleEnclosing0.value

@@ -142,7 +142,7 @@ object Resolve {
       val invoked = invokeCommand0(
         p,
         r.segments.last.value,
-        rootModule.millDiscover.asInstanceOf[Discover],
+        rootModule.implicitMillDiscover,
         args,
         nullCommandDefaults,
         allowPositionalCommandArgs
@@ -159,11 +159,8 @@ object Resolve {
       rest: Seq[String],
       nullCommandDefaults: Boolean,
       allowPositionalCommandArgs: Boolean
-  ): Iterable[Either[String, Command[_]]] = for {
-    (cls, node) <- discover.classInfo
-    if cls.isAssignableFrom(target.getClass)
-    ep <- node.entryPoints
-    if ep.name == name
+  ): Option[Either[String, Command[_]]] = for {
+    ep <- discover.resolveEntrypoint(target.getClass, name)
   } yield {
     def withNullDefault(a: mainargs.ArgSig): mainargs.ArgSig = {
       if (a.default.nonEmpty) a
@@ -303,7 +300,14 @@ trait Resolve[T] {
       ) match {
         case ResolveCore.Success(value) => Right(value)
         case ResolveCore.NotFound(segments, found, next, possibleNexts) =>
-          val allPossibleNames = rootModule.millDiscover.allNames.toSet
+          val allPossibleNames = rootModule
+            .implicitMillDiscover
+            .classInfo
+            .values
+            .flatMap(_.declaredTasks)
+            .map(_.name)
+            .toSet
+
           Left(ResolveNotFoundHandler(
             selector = sel,
             segments = segments,

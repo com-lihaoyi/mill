@@ -2,6 +2,7 @@ package mill
 package kotlinlib
 package js
 
+import mill.define.Discover
 import mill.eval.EvaluatorPaths
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.{TestSuite, Tests, test}
@@ -42,6 +43,8 @@ object KotlinJsNodeRunTests extends TestSuite {
     }
 
     object foo extends Cross[KotlinJsModuleKindCross](matrix)
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   private def testEval() = UnitTester(module, resourcePath)

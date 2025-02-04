@@ -20,6 +20,7 @@ class TestGraphs() {
   // single
   object singleton extends TestBaseModule {
     val single = test()
+    lazy val millDiscover = Discover[this.type]
   }
 
   object bactickIdentifiers extends TestBaseModule {
@@ -29,18 +30,21 @@ class TestGraphs() {
     object `nested-module` extends Module {
       val `nested-target` = test()
     }
+    lazy val millDiscover = Discover[this.type]
   }
 
   // up---down
   object pair extends TestBaseModule {
     val up = test()
     val down = test(up)
+    lazy val millDiscover = Discover[this.type]
   }
 
   // up---o---down
   object anonTriple extends TestBaseModule {
     val up = test()
     val down = test(test.anon(up))
+    lazy val millDiscover = Discover[this.type]
   }
 
   //   left
@@ -53,6 +57,7 @@ class TestGraphs() {
     val left = test(up)
     val right = test(up)
     val down = test(left, right)
+    lazy val millDiscover = Discover[this.type]
   }
 
   //    o
@@ -63,6 +68,7 @@ class TestGraphs() {
   object anonDiamond extends TestBaseModule {
     val up = test()
     val down = test(test.anon(up), test.anon(up))
+    lazy val millDiscover = Discover[this.type]
   }
 
   object defCachedDiamond extends TestBaseModule {
@@ -70,6 +76,7 @@ class TestGraphs() {
     def left = Task { test(up) }
     def right = Task { test(up) }
     def down = Task { test(left, right) }
+    lazy val millDiscover = Discover[this.type]
   }
 
   object borkedCachedDiamond2 extends TestBaseModule {
@@ -77,6 +84,7 @@ class TestGraphs() {
     def left = test(up)
     def right = test(up)
     def down = test(left, right)
+    lazy val millDiscover = Discover[this.type]
   }
 
   object borkedCachedDiamond3 extends TestBaseModule {
@@ -84,6 +92,7 @@ class TestGraphs() {
     def left = test(up)
     def right = test(up)
     def down = test(left, right)
+    lazy val millDiscover = Discover[this.type]
   }
 
   //          o   g-----o
@@ -116,6 +125,7 @@ class TestGraphs() {
       test(test.anon(g), test.anon(test.anon(h)))
     }
     val j = test(test.anon(i), test.anon(i, f), test.anon(f))
+    lazy val millDiscover = Discover[this.type]
   }
   //        _ left _
   //       /        \
@@ -128,6 +138,7 @@ class TestGraphs() {
     val change = test()
     val task2 = Task.Anon { change() }
     def right = Task { task1() + task2() + left() + 1 }
+    lazy val millDiscover = Discover[this.type]
 
   }
 
@@ -156,7 +167,7 @@ class TestGraphs() {
       }
     }
 
-    override lazy val millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object moduleDependencyInitError extends TestBaseModule {
@@ -179,7 +190,7 @@ class TestGraphs() {
       }
     }
 
-    override lazy val millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object crossModuleSimpleInitError extends TestBaseModule {
@@ -190,7 +201,7 @@ class TestGraphs() {
       def foo = Task { crossValue }
     }
 
-    override lazy val millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
   object crossModulePartialInitError extends TestBaseModule {
     object myCross extends Cross[MyCross](1, 2, 3, 4)
@@ -199,7 +210,7 @@ class TestGraphs() {
       def foo = Task { crossValue }
     }
 
-    override lazy val millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
   object crossModuleSelfInitError extends TestBaseModule {
     object myCross extends Cross[MyCross](1, 2, 3, throw new Exception(s"MyCross Boom"))
@@ -207,7 +218,7 @@ class TestGraphs() {
       def foo = Task { crossValue }
     }
 
-    override lazy val millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object crossModuleParentInitError extends TestBaseModule {
@@ -219,7 +230,7 @@ class TestGraphs() {
       }
     }
 
-    override lazy val millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object overrideModule extends TestBaseModule {
@@ -238,7 +249,7 @@ class TestGraphs() {
       }
     }
 
-    override lazy val millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object dynamicModule extends TestBaseModule {
@@ -254,7 +265,7 @@ class TestGraphs() {
       }
     }
 
-    override lazy val millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 }
 
@@ -266,6 +277,7 @@ object TestGraphs {
     val task = Task.Anon { 1 }
     def left = Task { task() }
     def right = Task { task() + left() + 1 }
+    lazy val millDiscover = Discover[this.type]
   }
 
   //      _ left
@@ -275,6 +287,7 @@ object TestGraphs {
     val task = Task.Anon { 1 }
     def left = Task { task() }
     def right = Task { task() }
+    lazy val millDiscover = Discover[this.type]
   }
 
   //       _ left _____________
@@ -285,6 +298,7 @@ object TestGraphs {
     def left = Task { task1() }
     def right = Task { task1() + left() + 1 }
     val task2 = Task.Anon { left() + right() }
+    lazy val millDiscover = Discover[this.type]
   }
 
   trait CanNest extends Module {
@@ -293,6 +307,7 @@ object TestGraphs {
     def invisible2: mill.define.Task[Int] = Task { 3 }
     def invisible3: mill.define.Task[_] = Task { 4 }
   }
+
   object nestedModule extends TestBaseModule {
     def single = Task { 5 }
     def invisible: Any = Task { 6 }
@@ -303,27 +318,7 @@ object TestGraphs {
     }
     object classInstance extends CanNest
 
-  }
-  object doubleNestedModule extends TestBaseModule {
-    def single = Task { 5 }
-    object nested extends Module {
-      def single = Task { 7 }
-
-      object inner extends Module {
-        def single = Task { 9 }
-      }
-    }
-  }
-
-  trait BaseModule extends Module {
-    def foo = Task { Seq("base") }
-    def cmd(i: Int) = Task.Command { Seq("base" + i) }
-  }
-
-  object canOverrideSuper extends TestBaseModule with BaseModule {
-    override def foo = Task { super.foo() ++ Seq("object") }
-    override def cmd(i: Int) = Task.Command { super.cmd(i)() ++ Seq("object" + i) }
-    override lazy val millDiscover: Discover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   trait TraitWithModule extends Module { outer =>
@@ -335,49 +330,7 @@ object TestGraphs {
 
   // Make sure nested objects inherited from traits work
   object TraitWithModuleObject extends TestBaseModule with TraitWithModule {
-    override lazy val millDiscover: Discover = Discover[this.type]
-  }
-
-  object nullTasks extends TestBaseModule {
-    val nullString: String = null
-    def nullTask1 = Task.Anon { nullString }
-    def nullTask2 = Task.Anon { nullTask1() }
-
-    def nullTarget1 = Task { nullString }
-    def nullTarget2 = Task { nullTarget1() }
-    def nullTarget3 = Task { nullTask1() }
-    def nullTarget4 = Task { nullTask2() }
-
-    def nullCommand1() = Task.Command { nullString }
-    def nullCommand2() = Task.Command { nullTarget1() }
-    def nullCommand3() = Task.Command { nullTask1() }
-    def nullCommand4() = Task.Command { nullTask2() }
-
-    override lazy val millDiscover: Discover = Discover[this.type]
-  }
-
-  object duplicates extends TestBaseModule {
-    object wrapper extends Module {
-      object test1 extends Module {
-        def test1 = Task {}
-      }
-
-      object test2 extends TaskModule {
-        override def defaultCommandName() = "test2"
-        def test2() = Task.Command {}
-      }
-    }
-
-    object test3 extends Module {
-      def test3 = Task {}
-    }
-
-    object test4 extends TaskModule {
-      override def defaultCommandName() = "test4"
-
-      def test4() = Task.Command {}
-    }
-    override lazy val millDiscover: Discover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
 
   object singleCross extends TestBaseModule {
@@ -391,6 +344,7 @@ object TestGraphs {
       override def millSourcePath = super.millSourcePath / crossValue
       def suffix = Task { crossValue }
     }
+    lazy val millDiscover = Discover[this.type]
   }
 
   object nonStringCross extends TestBaseModule {
@@ -404,6 +358,8 @@ object TestGraphs {
       override def millSourcePath = super.millSourcePath / crossValue.toString
       def suffix = Task { crossValue }
     }
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   object crossResolved extends TestBaseModule {
@@ -422,6 +378,7 @@ object TestGraphs {
     trait BarModule extends MyModule {
       def longSuffix = Task { "_" + foo().suffix() }
     }
+    lazy val millDiscover = Discover[this.type]
   }
   object doubleCross extends TestBaseModule {
     val crossMatrix = for {
@@ -434,6 +391,7 @@ object TestGraphs {
       val (scalaVersion, platform) = (crossValue, crossValue2)
       def suffix = Task { scalaVersion + "_" + platform }
     }
+    lazy val millDiscover = Discover[this.type]
   }
 
   object crossExtension extends TestBaseModule {
@@ -453,6 +411,7 @@ object TestGraphs {
         with Cross.Module3[String, Int, Boolean] {
       def param3 = Task { "Param Value: " + crossValue3 }
     }
+    lazy val millDiscover = Discover[this.type]
   }
 
   object innerCrossModule extends TestBaseModule {
@@ -492,6 +451,7 @@ object TestGraphs {
         def lol = Task { "baz " + crossValue3 }
       }
     }
+    lazy val millDiscover = Discover[this.type]
   }
 
   object nestedCrosses extends TestBaseModule {
@@ -506,12 +466,13 @@ object TestGraphs {
         def suffix = Task { scalaVersion + "_" + platform }
       }
     }
+    lazy val millDiscover = Discover[this.type]
   }
 
   object nestedTaskCrosses extends TestBaseModule {
     // this is somehow necessary to let Discover see our inner (default) commands
     // I expected, that the identical inherited `millDiscover` is enough, but it isn't
-    override lazy val millDiscover: Discover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
     object cross1 extends mill.Cross[Cross1]("210", "211", "212")
     trait Cross1 extends mill.Cross.Module[String] {
       def scalaVersion = crossValue
@@ -526,239 +487,6 @@ object TestGraphs {
           }
       }
 
-    }
-  }
-
-  object StackableOverrides extends TestBaseModule {
-    trait X extends Module {
-      def f = Task { 1 }
-    }
-    trait A extends X {
-      override def f = Task { super.f() + 2 }
-    }
-
-    trait B extends X {
-      override def f = Task { super.f() + 3 }
-    }
-    object m extends A with B {}
-  }
-
-  object StackableOverrides2 extends TestBaseModule {
-    object A extends Module {
-      trait X extends Module {
-        def f = Task { 1 }
-      }
-    }
-    object B extends Module {
-      trait X extends A.X {
-        override def f = Task { super.f() + 2 }
-      }
-    }
-
-    object m extends B.X {
-      override def f = Task { super.f() + 3 }
-    }
-  }
-
-  object StackableOverrides3 extends TestBaseModule {
-    object A extends Module {
-      trait X extends Module {
-        def f = Task { 1 }
-      }
-    }
-    trait X extends A.X {
-      override def f = Task { super.f() + 2 }
-    }
-
-    object m extends X {
-      override def f = Task { super.f() + 3 }
-    }
-  }
-
-  object PrivateTasksInMixedTraits extends TestBaseModule {
-    trait M1 extends Module {
-      private def foo = Task { "foo-m1" }
-      def bar = Task { foo() }
-    }
-    trait M2 extends Module {
-      private def foo = Task { "foo-m2" }
-      def baz = Task { foo() }
-    }
-    object mod extends M1 with M2
-  }
-
-  object TypedModules extends TestBaseModule {
-    trait TypeA extends Module {
-      def foo = Task { "foo" }
-    }
-    trait TypeB extends Module {
-      def bar = Task { "bar" }
-    }
-    trait TypeC extends Module {
-      def baz = Task { "baz" }
-    }
-    trait TypeAB extends TypeA with TypeB
-
-    object typeA extends TypeA
-    object typeB extends TypeB
-    object typeC extends TypeC {
-      object typeA extends TypeA
-    }
-    object typeAB extends TypeAB
-  }
-
-  object TypedCrossModules extends TestBaseModule {
-    trait TypeA extends Cross.Module[String] {
-      def foo = Task { crossValue }
-    }
-
-    trait TypeB extends Module {
-      def bar = Task { "bar" }
-    }
-
-    trait TypeAB extends TypeA with TypeB
-
-    object typeA extends Cross[TypeA]("a", "b")
-    object typeAB extends Cross[TypeAB]("a", "b")
-
-    object inner extends Module {
-      object typeA extends Cross[TypeA]("a", "b")
-      object typeAB extends Cross[TypeAB]("a", "b")
-    }
-
-    trait NestedAB extends TypeAB {
-      object typeAB extends Cross[TypeAB]("a", "b")
-    }
-    object nestedAB extends Cross[NestedAB]("a", "b")
-  }
-
-  object TypedInnerModules extends TestBaseModule {
-    trait TypeA extends Module {
-      def foo = Task { "foo" }
-    }
-    object typeA extends TypeA
-    object typeB extends Module {
-      def foo = Task { "foo" }
-    }
-    object inner extends Module {
-      trait TypeA extends Module {
-        def foo = Task { "foo" }
-      }
-      object typeA extends TypeA
-    }
-  }
-
-  object AbstractModule extends TestBaseModule {
-    trait Abstract extends Module {
-      lazy val tests: Tests = new Tests {}
-      trait Tests extends Module {}
-    }
-
-    object concrete extends Abstract {
-      override lazy val tests: ConcreteTests = new ConcreteTests {}
-      trait ConcreteTests extends Tests {
-        object inner extends Module {
-          def foo = Task { "foo" }
-          object innerer extends Module {
-            def bar = Task { "bar" }
-          }
-        }
-      }
-    }
-  }
-
-  object CyclicModuleRefInitError extends TestBaseModule {
-    import mill.Agg
-    def foo = Task { "foo" }
-
-    // See issue: https://github.com/com-lihaoyi/mill/issues/3715
-    trait CommonModule extends TestBaseModule {
-      def foo = Task { "foo" }
-      def moduleDeps: Seq[CommonModule] = Seq.empty
-      def a = myA
-      def b = myB
-    }
-
-    object myA extends A
-    trait A extends CommonModule
-    object myB extends B
-    trait B extends CommonModule {
-      override def moduleDeps = super.moduleDeps ++ Agg(a)
-    }
-  }
-
-  object CyclicModuleRefInitError2 extends TestBaseModule {
-    // The cycle is in the child
-    def A = CyclicModuleRefInitError
-  }
-
-  object CyclicModuleRefInitError3 extends TestBaseModule {
-    // The cycle is in directly here
-    object A extends Module {
-      def b = B
-    }
-    object B extends Module {
-      def a = A
-    }
-  }
-
-  object CrossedCyclicModuleRefInitError extends TestBaseModule {
-    object cross extends mill.Cross[Cross]("210", "211", "212")
-    trait Cross extends Cross.Module[String] {
-      def suffix = Task { crossValue }
-      def c2 = cross2
-    }
-
-    object cross2 extends mill.Cross[Cross2]("210", "211", "212")
-    trait Cross2 extends Cross.Module[String] {
-      override def millSourcePath = super.millSourcePath / crossValue
-      def suffix = Task { crossValue }
-      def c1 = cross
-    }
-  }
-
-  // The module names repeat, but it's not actually cyclic and is meant to confuse the cycle detection.
-  object NonCyclicModules extends TestBaseModule {
-    def foo = Task { "foo" }
-
-    object A extends Module {
-      def b = B
-    }
-    object B extends Module {
-      object A extends Module {
-        def b = B
-      }
-      def a = A
-
-      object B extends Module {
-        object B extends Module {}
-        object A extends Module {
-          def b = B
-        }
-        def a = A
-      }
-    }
-  }
-
-  // This edge case shouldn't be an error
-  object ModuleRefWithNonModuleRefChild extends TestBaseModule {
-    def foo = Task { "foo" }
-
-    def aRef = A
-    def a = ModuleRef(A)
-
-    object A extends TestBaseModule {}
-  }
-
-  object ModuleRefCycle extends TestBaseModule {
-    def foo = Task { "foo" }
-
-    // The cycle is in directly here
-    object A extends Module {
-      def b = ModuleRef(B)
-    }
-    object B extends Module {
-      def a = ModuleRef(A)
     }
   }
 }
