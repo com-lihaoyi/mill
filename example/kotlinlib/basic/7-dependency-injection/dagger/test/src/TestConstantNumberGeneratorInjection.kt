@@ -1,4 +1,4 @@
-package io.vaslabs
+package com.example.dagger
 
 import kotlin.test.Test
 import kotlin.test.assertEquals

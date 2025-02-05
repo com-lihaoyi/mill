@@ -1,4 +1,4 @@
-package io.vaslabs
+package com.example.dagger
 
 import javax.inject.Inject
 import kotlin.random.Random

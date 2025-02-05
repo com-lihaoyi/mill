@@ -1,4 +1,4 @@
-package io.vaslabs
+package com.example.dagger
 
 import dagger.Component
 import javax.inject.Singleton
