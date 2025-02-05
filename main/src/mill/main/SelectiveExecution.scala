@@ -6,7 +6,7 @@ import mill.eval.{CodeSigUtils, Evaluator, EvaluatorCore, Plan, Terminal}
 import mill.main.client.OutFiles
 import mill.util.SpanningForest.breadthFirst
 import mill.resolve.{Resolve, SelectMode}
-import mill.util.{MultiBiMap, SpanningForest}
+import mill.util.SpanningForest
 
 private[mill] object SelectiveExecution {
   case class Metadata(inputHashes: Map[String, Int], methodCodeHashSignatures: Map[String, Int])

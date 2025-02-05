@@ -1,7 +1,7 @@
 package mill.main
 
 import mill.define._
-import mill.eval.{Evaluator, EvaluatorPaths, Plan}
+import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.util.Watchable
 import mill.api.{PathRef, Result, Val}
 import mill.api.Strict.Agg

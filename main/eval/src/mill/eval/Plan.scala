@@ -1,6 +1,5 @@
 package mill.eval
 import mill.api.Loose.Agg
-import mill.api.Strict
 import mill.define.{NamedTask, Task}
 import mill.util.MultiBiMap
 
@@ -23,14 +22,13 @@ private[mill] object Plan {
     new Plan(transitive, sortedGroups)
   }
 
-
   /**
    * The `values` [[Agg]] is guaranteed to be topological sorted and cycle free.
    * That's why the constructor is package private.
- *
+   *
    * @see [[Plan.topoSorted]]
    */
-  class TopoSorted (val values: Agg[Task[_]])
+  class TopoSorted(val values: Agg[Task[_]])
 
   def groupAroundImportantTargets[T](topoSortedTargets: TopoSorted)(important: PartialFunction[
     Task[_],
@@ -65,7 +63,7 @@ private[mill] object Plan {
     transitiveNodes(sourceTargets)(_.inputs)
   }
   def transitiveNamed(sourceTargets: Agg[Task[_]]): Agg[NamedTask[_]] = {
-    transitiveTargets(sourceTargets).collect{case t: NamedTask[?] => t}
+    transitiveTargets(sourceTargets).collect { case t: NamedTask[?] => t }
   }
 
   /**

@@ -1,8 +1,7 @@
 package mill.eval
 
 import mill.api.{BuildInfo, MillException, Strict}
-import mill.define.{NamedTask, Task}
-import mill.util.MultiBiMap
+import mill.define.NamedTask
 
 import scala.reflect.NameTransformer.encode
 import java.lang.reflect.Method
