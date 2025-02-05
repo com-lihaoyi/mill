@@ -95,210 +95,55 @@ object OverrideTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
   val tests = Tests {
-    object graphs extends TestGraphs()
-    import graphs._
     import TestGraphs._
     import utest._
-    test("evaluateSingle") {
 
-      test("singleton") {
-        import singleton._
-        val check = new Checker(singleton)
-        // First time the target is evaluated
-        check(single, expValue = 0, expEvaled = Agg(single))
+    test("overrideSuperTask") {
+      // Make sure you can override targets, call their supers, and have the
+      // overridden target be allocated a spot within the overridden/ folder of
+      // the main publicly-available target
+      import canOverrideSuper._
 
-        single.counter += 1
-        // After incrementing the counter, it forces re-evaluation
-        check(single, expValue = 1, expEvaled = Agg(single))
-      }
-      test("backtickIdentifiers") {
-        import graphs.bactickIdentifiers._
-        val check = new Checker(bactickIdentifiers)
+      val checker = new Checker(canOverrideSuper)
+      checker(foo, Seq("base", "object"), Agg(foo), extraEvaled = -1)
 
-        check(`a-down-target`, expValue = 0, expEvaled = Agg(`up-target`, `a-down-target`))
-
-        `a-down-target`.counter += 1
-        check(`a-down-target`, expValue = 1, expEvaled = Agg(`a-down-target`))
-
-        `up-target`.counter += 1
-        check(`a-down-target`, expValue = 2, expEvaled = Agg(`up-target`, `a-down-target`))
-      }
-      test("pair") {
-        import pair._
-        val check = new Checker(pair)
-        check(down, expValue = 0, expEvaled = Agg(up, down))
-
-        down.counter += 1
-        check(down, expValue = 1, expEvaled = Agg(down))
-
-        up.counter += 1
-        check(down, expValue = 2, expEvaled = Agg(up, down))
-      }
-      test("anonTriple") {
-        import anonTriple._
-        val check = new Checker(anonTriple)
-        val middle = down.inputs(0)
-        check(down, expValue = 0, expEvaled = Agg(up, middle, down))
-
-        down.counter += 1
-        check(down, expValue = 1, expEvaled = Agg(middle, down))
-
-        up.counter += 1
-        check(down, expValue = 2, expEvaled = Agg(up, middle, down))
-
-        middle.asInstanceOf[TestUtil.Test].counter += 1
-
-        check(down, expValue = 3, expEvaled = Agg(middle, down))
-      }
-      test("diamond") {
-        import diamond._
-        val check = new Checker(diamond)
-        check(down, expValue = 0, expEvaled = Agg(up, left, right, down))
-
-        down.counter += 1
-        check(down, expValue = 1, expEvaled = Agg(down))
-
-        up.counter += 1
-        // Increment by 2 because up is referenced twice: once by left once by right
-        check(down, expValue = 3, expEvaled = Agg(up, left, right, down))
-
-        left.counter += 1
-        check(down, expValue = 4, expEvaled = Agg(left, down))
-
-        right.counter += 1
-        check(down, expValue = 5, expEvaled = Agg(right, down))
-      }
-      test("anonDiamond") {
-        import anonDiamond._
-        val check = new Checker(anonDiamond)
-        val left = down.inputs(0).asInstanceOf[TestUtil.Test]
-        val right = down.inputs(1).asInstanceOf[TestUtil.Test]
-        check(down, expValue = 0, expEvaled = Agg(up, left, right, down))
-
-        down.counter += 1
-        check(down, expValue = 1, expEvaled = Agg(left, right, down))
-
-        up.counter += 1
-        // Increment by 2 because up is referenced twice: once by left once by right
-        check(down, expValue = 3, expEvaled = Agg(up, left, right, down))
-
-        left.counter += 1
-        check(down, expValue = 4, expEvaled = Agg(left, right, down))
-
-        right.counter += 1
-        check(down, expValue = 5, expEvaled = Agg(left, right, down))
-      }
-
-      test("bigSingleTerminal") {
-        import bigSingleTerminal._
-        val check = new Checker(bigSingleTerminal)
-
-        check(j, expValue = 0, expEvaled = Agg(a, b, e, f, i, j), extraEvaled = 22)
-
-        j.counter += 1
-        check(j, expValue = 1, expEvaled = Agg(j), extraEvaled = 3)
-
-        i.counter += 1
-        // increment value by 2 because `i` is used twice on the way to `j`
-        check(j, expValue = 3, expEvaled = Agg(j, i), extraEvaled = 8)
-
-        b.counter += 1
-        // increment value by 4 because `b` is used four times on the way to `j`
-        check(j, expValue = 7, expEvaled = Agg(b, e, f, i, j), extraEvaled = 20)
-      }
+      val public = os.read(checker.evaluator.outPath / "foo.json")
+      val overridden = os.read(
+        checker.evaluator.outPath / "foo.super/BaseModule.json"
+      )
+      assert(
+        public.contains("base"),
+        public.contains("object"),
+        overridden.contains("base"),
+        !overridden.contains("object")
+      )
     }
+    test("overrideSuperCommand") {
+      // Make sure you can override commands, call their supers, and have the
+      // overridden command be allocated a spot within the super/ folder of
+      // the main publicly-available command
+      import canOverrideSuper._
 
-    test("evaluateMixed") {
-      test("separateGroups") {
-        // Make sure that `left` and `right` are able to recompute separately,
-        // even though one depends on the other
+      val checker = new Checker(canOverrideSuper)
+      val runCmd = cmd(1)
+      checker(
+        runCmd,
+        Seq("base1", "object1"),
+        Agg(runCmd),
+        extraEvaled = -1,
+        secondRunNoOp = false
+      )
 
-        import separateGroups._
-        val checker = new Checker(separateGroups)
-        val evaled1 = checker.evaluator.evaluate(Agg(right, left))
-        val filtered1 = evaled1.evaluated.filter(_.isInstanceOf[TargetImpl[_]])
-        assert(filtered1.toSeq.sortBy(_.toString) == Seq(change, left, right).sortBy(_.toString))
-        val evaled2 = checker.evaluator.evaluate(Agg(right, left))
-        val filtered2 = evaled2.evaluated.filter(_.isInstanceOf[TargetImpl[_]])
-        assert(filtered2 == Agg())
-        change.counter += 1
-        val evaled3 = checker.evaluator.evaluate(Agg(right, left))
-        val filtered3 = evaled3.evaluated.filter(_.isInstanceOf[TargetImpl[_]])
-        assert(filtered3 == Agg(change, right))
-
-      }
-      test("triangleTask") {
-
-        import triangleTask._
-        val checker = new Checker(triangleTask)
-        checker(right, 3, Agg(left, right), extraEvaled = -1)
-        checker(left, 1, Agg(), extraEvaled = -1)
-
-      }
-      test("multiTerminalGroup") {
-        import multiTerminalGroup._
-
-        val checker = new Checker(multiTerminalGroup)
-        checker(right, 1, Agg(right), extraEvaled = -1)
-        checker(left, 1, Agg(left), extraEvaled = -1)
-      }
-
-      test("multiTerminalBoundary") {
-
-        import multiTerminalBoundary._
-
-        val checker = new Checker(multiTerminalBoundary)
-        checker(task2, 4, Agg(right, left), extraEvaled = -1, secondRunNoOp = false)
-        checker(task2, 4, Agg(), extraEvaled = -1, secondRunNoOp = false)
-      }
-
-      test("overrideSuperTask") {
-        // Make sure you can override targets, call their supers, and have the
-        // overridden target be allocated a spot within the overridden/ folder of
-        // the main publicly-available target
-        import canOverrideSuper._
-
-        val checker = new Checker(canOverrideSuper)
-        checker(foo, Seq("base", "object"), Agg(foo), extraEvaled = -1)
-
-        val public = os.read(checker.evaluator.outPath / "foo.json")
-        val overridden = os.read(
-          checker.evaluator.outPath / "foo.super/BaseModule.json"
-        )
-        assert(
-          public.contains("base"),
-          public.contains("object"),
-          overridden.contains("base"),
-          !overridden.contains("object")
-        )
-      }
-      test("overrideSuperCommand") {
-        // Make sure you can override commands, call their supers, and have the
-        // overridden command be allocated a spot within the super/ folder of
-        // the main publicly-available command
-        import canOverrideSuper._
-
-        val checker = new Checker(canOverrideSuper)
-        val runCmd = cmd(1)
-        checker(
-          runCmd,
-          Seq("base1", "object1"),
-          Agg(runCmd),
-          extraEvaled = -1,
-          secondRunNoOp = false
-        )
-
-        val public = os.read(checker.evaluator.outPath / "cmd.json")
-        val overridden = os.read(
-          checker.evaluator.outPath / "cmd.super/BaseModule.json"
-        )
-        assert(
-          public.contains("base1"),
-          public.contains("object1"),
-          overridden.contains("base1"),
-          !overridden.contains("object1")
-        )
-      }
+      val public = os.read(checker.evaluator.outPath / "cmd.json")
+      val overridden = os.read(
+        checker.evaluator.outPath / "cmd.super/BaseModule.json"
+      )
+      assert(
+        public.contains("base1"),
+        public.contains("object1"),
+        overridden.contains("base1"),
+        !overridden.contains("object1")
+      )
     }
     test("stackableOverrides") {
       // Make sure you can override commands, call their supers, and have the
