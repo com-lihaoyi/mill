@@ -115,7 +115,7 @@ object PlanTests extends TestSuite {
           diamond.down -> 1
         )
       )
-      
+
       test("anonDiamond") - check(anonDiamond)(
         _.down,
         Agg(_.down, _.up),
