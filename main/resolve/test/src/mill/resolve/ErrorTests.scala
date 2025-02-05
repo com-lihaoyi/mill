@@ -9,15 +9,94 @@ import utest.*
 
 object ErrorTests extends TestSuite {
 
-  object doubleNestedModule extends TestBaseModule {
-    def single = Task { 5 }
-    object nested extends Module {
-      def single = Task { 7 }
+  object moduleInitError extends TestBaseModule {
+    def rootTarget = Task { println("Running rootTarget"); "rootTarget Result" }
+    def rootCommand(@arg(positional = true) s: String) =
+      Task.Command { println(s"Running rootCommand $s") }
 
-      object inner extends Module {
-        def single = Task { 9 }
+    object foo extends Module {
+      def fooTarget = Task { println(s"Running fooTarget"); 123 }
+      def fooCommand(@arg(positional = true) s: String) =
+        Task.Command { println(s"Running fooCommand $s") }
+      throw new Exception("Foo Boom")
+    }
+
+    object bar extends Module {
+      def barTarget = Task { println(s"Running barTarget"); "barTarget Result" }
+      def barCommand(@arg(positional = true) s: String) =
+        Task.Command { println(s"Running barCommand $s") }
+
+      object qux extends Module {
+        def quxTarget = Task { println(s"Running quxTarget"); "quxTarget Result" }
+        def quxCommand(@arg(positional = true) s: String) =
+          Task.Command { println(s"Running quxCommand $s") }
+        throw new Exception("Qux Boom")
       }
     }
+
+    lazy val millDiscover = Discover[this.type]
+  }
+
+  object moduleDependencyInitError extends TestBaseModule {
+
+    object foo extends Module {
+      def fooTarget = Task { println(s"Running fooTarget"); 123 }
+      def fooCommand(@arg(positional = true) s: String) =
+        Task.Command { println(s"Running fooCommand $s") }
+      throw new Exception("Foo Boom")
+    }
+
+    object bar extends Module {
+      def barTarget = Task {
+        println(s"Running barTarget")
+        s"${foo.fooTarget()} barTarget Result"
+      }
+      def barCommand(@arg(positional = true) s: String) = Task.Command {
+        foo.fooCommand(s)()
+        println(s"Running barCommand $s")
+      }
+    }
+
+    lazy val millDiscover = Discover[this.type]
+  }
+
+  object crossModuleSimpleInitError extends TestBaseModule {
+    object myCross extends Cross[MyCross](1, 2, 3, 4) {
+      throw new Exception(s"MyCross Boom")
+    }
+    trait MyCross extends Cross.Module[Int] {
+      def foo = Task { crossValue }
+    }
+
+    lazy val millDiscover = Discover[this.type]
+  }
+  object crossModulePartialInitError extends TestBaseModule {
+    object myCross extends Cross[MyCross](1, 2, 3, 4)
+    trait MyCross extends Cross.Module[Int] {
+      if (crossValue > 2) throw new Exception(s"MyCross Boom $crossValue")
+      def foo = Task { crossValue }
+    }
+
+    lazy val millDiscover = Discover[this.type]
+  }
+  object crossModuleSelfInitError extends TestBaseModule {
+    object myCross extends Cross[MyCross](1, 2, 3, throw new Exception(s"MyCross Boom"))
+    trait MyCross extends Cross.Module[Int] {
+      def foo = Task { crossValue }
+    }
+
+    lazy val millDiscover = Discover[this.type]
+  }
+
+  object crossModuleParentInitError extends TestBaseModule {
+    object parent extends Module {
+      throw new Exception(s"Parent Boom")
+      object myCross extends Cross[MyCross](1, 2, 3, 4)
+      trait MyCross extends Cross.Module[Int] {
+        def foo = Task { crossValue }
+      }
+    }
+
     lazy val millDiscover = Discover[this.type]
   }
 
