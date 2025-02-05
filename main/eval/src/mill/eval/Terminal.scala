@@ -13,8 +13,8 @@ sealed trait Terminal {
 }
 
 object Terminal {
-  case class Labelled[T](task: NamedTask[T], segments: Segments) extends Terminal {
-    def render = segments.render
+  case class Labelled[T](task: NamedTask[T]) extends Terminal {
+    def render = task.ctx.segments.render
   }
 
   case class Task[T](task: mill.define.Task[_]) extends Terminal {

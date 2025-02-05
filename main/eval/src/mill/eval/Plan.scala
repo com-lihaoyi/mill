@@ -26,7 +26,7 @@ private[mill] object Plan {
     val sortedGroups: MultiBiMap[Terminal, Task[_]] =
       Graph.groupAroundImportantTargets(topoSorted) {
         // important: all named tasks and those explicitly requested
-        case t: NamedTask[Any] => Terminal.Labelled(t, t.ctx.segments)
+        case t: NamedTask[Any] => Terminal.Labelled(t)
         case t if goals.contains(t) => Terminal.Task(t)
       }
 

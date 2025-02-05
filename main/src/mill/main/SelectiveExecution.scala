@@ -20,8 +20,8 @@ private[mill] object SelectiveExecution {
     ): (Metadata, Map[Task[_], Evaluator.TaskResult[Val]]) = {
       val (sortedGroups, transitive) = Plan.plan(tasks)
       val inputTasksToLabels: Map[Task[_], String] = sortedGroups.keys()
-        .collect { case Terminal.Labelled(task: InputImpl[_], segments) =>
-          task -> segments.render
+        .collect { case Terminal.Labelled(task: InputImpl[_]) =>
+          task -> task.ctx.segments.render
         }
         .toMap
 
@@ -55,8 +55,8 @@ private[mill] object SelectiveExecution {
       .constructorHashSignatures(methodCodeHashSignatures)
 
     sortedGroups.keys()
-      .collect { case Terminal.Labelled(namedTask: NamedTask[_], segments) =>
-        segments.render -> CodeSigUtils
+      .collect { case Terminal.Labelled(namedTask: NamedTask[_]) =>
+        namedTask.ctx.segments.render -> CodeSigUtils
           .codeSigForTask(
             namedTask,
             classToTransitiveClasses,

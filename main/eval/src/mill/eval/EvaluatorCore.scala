@@ -205,7 +205,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     }
 
     val tasks0 = terminals0.filter {
-      case Terminal.Labelled(c: Command[_], _) => false
+      case Terminal.Labelled(c: Command[_]) => false
       case _ => true
     }
 
@@ -213,7 +213,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
     val tasksTransitive = tasksTransitive0.toSet
     val (tasks, leafExclusiveCommands) = terminals0.partition {
-      case Terminal.Labelled(t, _) => tasksTransitive.contains(t) || !t.isExclusiveCommand
+      case Terminal.Labelled(t) => tasksTransitive.contains(t) || !t.isExclusiveCommand
       case _ => !serialCommandExec
     }
 
