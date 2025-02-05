@@ -2,6 +2,7 @@ package mill.resolve
 
 import mill.define.{Discover, ModuleRef, NamedTask, TaskModule}
 import mill.testkit.TestBaseModule
+import mill.define.DynamicModule
 import mill.util.TestGraphs
 import mill.util.TestGraphs.*
 import mill.{Cross, Module, Task}

@@ -27,6 +27,8 @@ object ResolveTests extends TestSuite {
       x.left.exists(_.linesIterator.size < 25)
 
   val tests = Tests {
+    val graphs = new mill.util.TestGraphs()
+    import graphs.*
     test("single") {
       val check = new Checker(singleton)
       test("pos") - check("single", Right(Set(_.single)), Set("single"))

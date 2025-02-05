@@ -4,6 +4,7 @@ import mill.define.{Discover, ModuleRef, NamedTask, TaskModule}
 import mill.testkit.TestBaseModule
 import mill.util.TestGraphs
 import mill.util.TestGraphs.*
+import mainargs.arg
 import mill.{Cross, Module, Task}
 import utest.*
 
