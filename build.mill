@@ -181,7 +181,8 @@ object Deps {
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.4.2"
   val upickle = ivy"com.lihaoyi::upickle:3.3.1"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.6"
-  val zinc = ivy"org.scala-sbt::zinc:1.10.7"
+  val sbtVersion = "1.10.7"
+  val zinc = ivy"org.scala-sbt::zinc:$sbtVersion"
   // keep in sync with doc/antora/antory.yml
   val bsp4j = ivy"ch.epfl.scala:bsp4j:2.2.0-M2"
   val fansi = ivy"com.lihaoyi::fansi:0.5.0"
@@ -206,7 +207,7 @@ object Deps {
     ivy"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
   val coursierJvmIndexVersion = "0.0.4-84-f852c6"
   val gradleApi = ivy"dev.gradleplugins:gradle-api:8.11.1"
-  val sbt = ivy"org.scala-sbt:sbt:1.10.7"
+  val sbt = ivy"org.scala-sbt:sbt:$sbtVersion"
 
   object RuntimeDeps {
     val dokkaVersion = "2.0.0"
@@ -641,8 +642,8 @@ trait BridgeModule extends MillPublishJavaModule with CrossScalaModule {
   def pomSettings = commonPomSettings(artifactName())
   def crossFullScalaVersion = true
   def ivyDeps = Agg(
-    ivy"org.scala-sbt:compiler-interface:${Deps.zinc.version}",
-    ivy"org.scala-sbt:util-interface:${Deps.zinc.version}",
+    ivy"org.scala-sbt:compiler-interface:${Deps.sbtVersion}",
+    ivy"org.scala-sbt:util-interface:${Deps.sbtVersion}",
     ivy"org.scala-lang:scala-compiler:${crossScalaVersion}"
   )
 
@@ -652,7 +653,7 @@ trait BridgeModule extends MillPublishJavaModule with CrossScalaModule {
   }
 
   def compilerBridgeIvyDeps: T[Agg[Dep]] = Agg(
-    ivy"org.scala-sbt::compiler-bridge:${Deps.zinc.version}".exclude("*" -> "*")
+    ivy"org.scala-sbt::compiler-bridge:${Deps.sbtVersion}".exclude("*" -> "*")
   )
 
   def compilerBridgeSourceJars: T[Agg[PathRef]] = Task {

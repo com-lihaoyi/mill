@@ -13,6 +13,7 @@ object ProjectTreePlugin extends AutoPlugin {
 
   override lazy val globalSettings: Seq[Setting[_]] = Seq(
     millInitGenerateProjectTree := {
+      ProjectTree()
       // TODO
       val outputFile = target.value / "mill-init-project-tree.json"
       IO.write(outputFile, "test")

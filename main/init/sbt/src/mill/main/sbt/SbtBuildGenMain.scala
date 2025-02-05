@@ -63,6 +63,8 @@ object SbtBuildGenMain extends BuildGenBase[IrBuild, String] {
 
     sbtExecutable.!
 
+    ProjectTree()
+
     /*
     val connector = GradleConnector.newConnector()
 
