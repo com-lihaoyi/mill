@@ -259,7 +259,7 @@ trait AndroidSdkModule extends Module {
     (licenseName, licenseHash)
   }
 
-  private def remoteReposInfo(): Command[PathRef] = Task.Command {
+  def remoteReposInfo(): Command[PathRef] = Task.Command {
     // shouldn't be persistent, allow it to be re-downloaded again.
     // it will be called only if some packages are not installed.
     val path = Task.dest / "repository.xml"
