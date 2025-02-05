@@ -335,7 +335,6 @@ trait KotlinModule extends JavaModule { outer =>
    */
   protected def generateSourcesWithKSP: Task[Seq[PathRef]] = Task.Sources {
     if (kotlinSymbolProcessing()) {
-      val dest = Task.dest
 
       val sourceFiles = sources().map(_.path)
 
