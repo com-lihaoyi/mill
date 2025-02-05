@@ -71,7 +71,6 @@ class TestGraphs() {
     lazy val millDiscover = Discover[this.type]
   }
 
-
   //          o   g-----o
   //           \   \     \
   // o          o   h-----I---o
