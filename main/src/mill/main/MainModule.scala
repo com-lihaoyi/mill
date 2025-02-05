@@ -88,8 +88,8 @@ object MainModule {
     ) match {
       case Left(err) => Left(err)
       case Right(rs) =>
-        val (sortedGroups, _) = evaluator.plan(rs)
-        Right(sortedGroups.keys().collect { case r: Terminal.Labelled[_] => r }.toArray)
+        val plan = evaluator.plan(rs)
+        Right(plan.sortedGroups.keys().collect { case r: Terminal.Labelled[_] => r }.toArray)
     }
   }
 

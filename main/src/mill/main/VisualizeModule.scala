@@ -52,7 +52,7 @@ trait VisualizeModule extends mill.define.TaskModule {
           val sortedGroups = Graph.groupAroundImportantTargets(topoSorted) {
             case x: NamedTask[Any] if transitiveTasks.contains(x) => x
           }
-          val (plannedForRender, _) = mill.eval.Plan.plan(transitiveTasks)
+          val plan = mill.eval.Plan.plan(transitiveTasks)
 
           val goalSet = transitiveTasks.toSet
           import guru.nidi.graphviz.model.Factory._
@@ -81,7 +81,7 @@ trait VisualizeModule extends mill.define.TaskModule {
 
           org.jgrapht.alg.TransitiveReduction.INSTANCE.reduce(jgraph)
           val nodes = indexToTask.map(t =>
-            node(plannedForRender.lookupValue(t).render)
+            node(plan.sortedGroups.lookupValue(t).render)
               .`with` {
                 if (tasks.contains(t)) Style.SOLID
                 else Style.DASHED
