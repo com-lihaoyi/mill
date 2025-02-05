@@ -88,8 +88,8 @@ object MainModule {
     ) match {
       case Left(err) => Left(err)
       case Right(rs) =>
-        val (sortedGroups, _) = evaluator.plan(rs)
-        Right(sortedGroups.keys().collect { case r: Terminal.Labelled[_] => r }.toArray)
+        val plan = evaluator.plan(rs)
+        Right(plan.sortedGroups.keys().collect { case r: Terminal.Labelled[_] => r }.toArray)
     }
   }
 
@@ -141,7 +141,7 @@ trait MainModule extends BaseModule {
       MainModule.plan0(evaluator, targets) match {
         case Left(err) => Result.Failure(err)
         case Right(success) =>
-          val renderedTasks = success.map(_.segments.render)
+          val renderedTasks = success.map(_.task.ctx.segments.render)
           renderedTasks.foreach(println)
           Result.Success(renderedTasks)
       }

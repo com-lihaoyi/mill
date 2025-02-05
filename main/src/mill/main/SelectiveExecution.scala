@@ -18,10 +18,16 @@ private[mill] object SelectiveExecution {
         evaluator: Evaluator,
         tasks: Seq[NamedTask[_]]
     ): (Metadata, Map[Task[_], Evaluator.TaskResult[Val]]) = {
-      val (sortedGroups, transitive) = Plan.plan(tasks)
-      val inputTasksToLabels: Map[Task[_], String] = sortedGroups.keys()
-        .collect { case Terminal.Labelled(task: InputImpl[_], segments) =>
-          task -> segments.render
+      compute0(evaluator, Plan.transitiveNamed(tasks))
+    }
+
+    def compute0(
+        evaluator: Evaluator,
+        transitiveNamed: Strict.Agg[NamedTask[?]]
+    ): (Metadata, Map[Task[_], Evaluator.TaskResult[Val]]) = {
+      val inputTasksToLabels: Map[Task[_], String] = transitiveNamed
+        .collect { case task: InputImpl[_] =>
+          task -> task.ctx.segments.render
         }
         .toMap
 
@@ -42,21 +48,19 @@ private[mill] object SelectiveExecution {
   }
 
   def computeHashCodeSignatures(
-      res: Array[Terminal.Labelled[_]],
+      transitiveNamed: Strict.Agg[NamedTask[?]],
       methodCodeHashSignatures: Map[String, Int]
   ): Map[String, Int] = {
 
-    val (sortedGroups, transitive) = Plan.plan(res.map(_.task).toSeq)
-
     val (classToTransitiveClasses, allTransitiveClassMethods) =
-      CodeSigUtils.precomputeMethodNamesPerClass(sortedGroups)
+      CodeSigUtils.precomputeMethodNamesPerClass(transitiveNamed)
 
     lazy val constructorHashSignatures = CodeSigUtils
       .constructorHashSignatures(methodCodeHashSignatures)
 
-    sortedGroups.keys()
-      .collect { case Terminal.Labelled(namedTask: NamedTask[_], segments) =>
-        segments.render -> CodeSigUtils
+    transitiveNamed
+      .map { namedTask =>
+        namedTask.ctx.segments.render -> CodeSigUtils
           .codeSigForTask(
             namedTask,
             classToTransitiveClasses,
@@ -70,13 +74,11 @@ private[mill] object SelectiveExecution {
   }
 
   def computeDownstream(
-      tasks: Seq[NamedTask[_]],
+      transitiveNamed: Strict.Agg[NamedTask[?]],
       oldHashes: Metadata,
       newHashes: Metadata
   ): (Set[Task[_]], Seq[Task[Any]]) = {
-    val (sortedGroups, transitive) = Plan.plan(tasks)
-    val terminals = sortedGroups.keys().collect { case r: Terminal.Labelled[_] => r }.toArray
-    val namesToTasks = terminals.map(t => (t.render -> t.task)).toMap
+    val namesToTasks = transitiveNamed.map(t => (t.ctx.segments.render -> t)).toMap
 
     def diffMap[K, V](lhs: Map[K, V], rhs: Map[K, V]) = {
       (lhs.keys ++ rhs.keys)
@@ -88,14 +90,14 @@ private[mill] object SelectiveExecution {
 
     val changedInputNames = diffMap(oldHashes.inputHashes, newHashes.inputHashes)
     val changedCodeNames = diffMap(
-      computeHashCodeSignatures(terminals, oldHashes.methodCodeHashSignatures),
-      computeHashCodeSignatures(terminals, newHashes.methodCodeHashSignatures)
+      computeHashCodeSignatures(transitiveNamed, oldHashes.methodCodeHashSignatures),
+      computeHashCodeSignatures(transitiveNamed, newHashes.methodCodeHashSignatures)
     )
 
     val changedRootTasks = (changedInputNames ++ changedCodeNames)
       .flatMap(namesToTasks.get(_): Option[Task[_]])
 
-    val allNodes = breadthFirst(terminals.map(_.task: Task[_]))(_.inputs)
+    val allNodes = breadthFirst(transitiveNamed.map(t => t: Task[?]))(_.inputs)
     val downstreamEdgeMap = SpanningForest.reverseEdges(allNodes.map(t => (t, t.inputs)))
 
     (
@@ -136,11 +138,12 @@ private[mill] object SelectiveExecution {
     val oldMetadataTxt = os.read(evaluator.outPath / OutFiles.millSelectiveExecution)
     if (oldMetadataTxt == "") ChangedTasks(tasks, tasks.toSet, tasks, Map.empty)
     else {
+      val transitiveNamed = Plan.transitiveNamed(tasks)
       val oldMetadata = upickle.default.read[SelectiveExecution.Metadata](oldMetadataTxt)
-      val (newMetadata, results) = SelectiveExecution.Metadata.compute(evaluator, tasks)
+      val (newMetadata, results) = SelectiveExecution.Metadata.compute0(evaluator, transitiveNamed)
 
       val (changedRootTasks, downstreamTasks) =
-        SelectiveExecution.computeDownstream(tasks, oldMetadata, newMetadata)
+        SelectiveExecution.computeDownstream(transitiveNamed, oldMetadata, newMetadata)
 
       ChangedTasks(
         tasks,
@@ -171,11 +174,10 @@ private[mill] object SelectiveExecution {
   def resolveTree(evaluator: Evaluator, tasks: Seq[String]): Either[String, ujson.Value] = {
     for (changedTasks <- SelectiveExecution.computeChangedTasks(evaluator, tasks)) yield {
       val taskSet = changedTasks.downstreamTasks.toSet[Task[_]]
-      val (sortedGroups, transitive) =
-        Plan.plan(mill.api.Loose.Agg.from(changedTasks.downstreamTasks))
-      val indexToTerminal = sortedGroups.keys().toArray.filter(t => taskSet.contains(t.task))
+      val plan = Plan.plan(mill.api.Loose.Agg.from(changedTasks.downstreamTasks))
+      val indexToTerminal = plan.sortedGroups.keys().toArray.filter(t => taskSet.contains(t.task))
 
-      val interGroupDeps = EvaluatorCore.findInterGroupDeps(sortedGroups)
+      val interGroupDeps = EvaluatorCore.findInterGroupDeps(plan.sortedGroups)
 
       val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
 

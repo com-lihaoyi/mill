@@ -149,7 +149,8 @@ private[mill] sealed class AggWrapper(strictUniqueness: Boolean) {
       def iterator: Iterator[V] = items
       override def hashCode(): Int = items.map(_.hashCode()).sum
       override def equals(other: Any): Boolean = other match {
-        case s: Agg[?] => items.sameElements(s.items)
+        case s: Loose.Agg[?] => items.sameElements(s.items)
+        case s: Strict.Agg[?] => items.sameElements(s.items)
         case _ => super.equals(other)
       }
       override def toString: String = items.mkString("Agg(", ", ", ")")

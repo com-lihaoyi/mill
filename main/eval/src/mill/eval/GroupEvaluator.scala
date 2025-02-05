@@ -111,7 +111,7 @@ private[mill] trait GroupEvaluator {
 
         case labelled: Terminal.Labelled[_] =>
           val out = if (!labelled.task.ctx.external) outPath else externalOutPath
-          val paths = EvaluatorPaths.resolveDestPaths(out, labelled.segments)
+          val paths = EvaluatorPaths.resolveDestPaths(out, labelled.task.ctx.segments)
           val cached = loadCachedJson(logger, inputsHash, labelled, paths)
 
           // `cached.isEmpty` means worker metadata file removed by user so recompute the worker
@@ -343,7 +343,7 @@ private[mill] trait GroupEvaluator {
       .orElse {
         labelled.task.asWorker.map { w =>
           ujson.Obj(
-            "worker" -> ujson.Str(labelled.segments.render),
+            "worker" -> ujson.Str(labelled.task.ctx.segments.render),
             "toString" -> ujson.Str(v.value.toString),
             "inputsHash" -> ujson.Num(inputsHash)
           )
@@ -397,7 +397,7 @@ private[mill] trait GroupEvaluator {
           catch {
             case e: PathRef.PathRefValidationException =>
               logger.debug(
-                s"${labelled.segments.render}: re-evaluating; ${e.getMessage}"
+                s"${labelled.render}: re-evaluating; ${e.getMessage}"
               )
               None
             case NonFatal(_) => None
@@ -430,12 +430,12 @@ private[mill] trait GroupEvaluator {
         case (_, Val(obsolete: AutoCloseable)) =>
           // worker cached but obsolete, needs to be closed
           try {
-            logger.debug(s"Closing previous worker: ${labelled.segments.render}")
+            logger.debug(s"Closing previous worker: ${labelled.render}")
             obsolete.close()
           } catch {
             case NonFatal(e) =>
               logger.error(
-                s"${labelled.segments.render}: Errors while closing obsolete worker: ${e.getMessage()}"
+                s"${labelled.render}: Errors while closing obsolete worker: ${e.getMessage()}"
               )
           }
           // make sure, we can no longer re-use a closed worker

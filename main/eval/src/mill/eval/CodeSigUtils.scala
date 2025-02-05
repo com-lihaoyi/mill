@@ -1,14 +1,13 @@
 package mill.eval
 
-import mill.api.{BuildInfo, MillException}
-import mill.define.{NamedTask, Task}
-import mill.util.MultiBiMap
+import mill.api.{BuildInfo, MillException, Strict}
+import mill.define.NamedTask
 
 import scala.reflect.NameTransformer.encode
 import java.lang.reflect.Method
 
 private[mill] object CodeSigUtils {
-  def precomputeMethodNamesPerClass(sortedGroups: MultiBiMap[Terminal, Task[_]])
+  def precomputeMethodNamesPerClass(transitiveNamed: Strict.Agg[NamedTask[?]])
       : (Map[Class[_], IndexedSeq[Class[_]]], Map[Class[_], Map[String, Method]]) = {
     def resolveTransitiveParents(c: Class[_]): Iterator[Class[_]] = {
       Iterator(c) ++
@@ -16,10 +15,9 @@ private[mill] object CodeSigUtils {
         c.getInterfaces.iterator.flatMap(resolveTransitiveParents)
     }
 
-    val classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]] = sortedGroups
-      .values()
-      .flatten
-      .collect { case namedTask: NamedTask[?] => namedTask.ctx.enclosingCls }
+    val classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]] = transitiveNamed
+      .iterator
+      .map { case namedTask: NamedTask[?] => namedTask.ctx.enclosingCls }
       .map(cls => cls -> resolveTransitiveParents(cls).toVector)
       .toMap
 
