@@ -766,6 +766,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/javalib/android/AndroidSdkModule.html#lintToolPath-0","e":false,"i":"","n":"lintToolPath","t":"lintToolPath: Target[PathRef]","d":"mill.javalib.android.AndroidSdkModule","k":"def","x":""},
 {"l":"mill/javalib/android/AndroidSdkModule.html#manifestMergerVersion-0","e":false,"i":"","n":"manifestMergerVersion","t":"manifestMergerVersion: Target[String]","d":"mill.javalib.android.AndroidSdkModule","k":"def","x":""},
 {"l":"mill/javalib/android/AndroidSdkModule.html#platformsVersion-0","e":false,"i":"","n":"platformsVersion","t":"platformsVersion: Target[String]","d":"mill.javalib.android.AndroidSdkModule","k":"def","x":""},
+{"l":"mill/javalib/android/AndroidSdkModule.html#remoteReposInfo-fffffe0a","e":false,"i":"","n":"remoteReposInfo","t":"remoteReposInfo(): Command[PathRef]","d":"mill.javalib.android.AndroidSdkModule","k":"def","x":""},
 {"l":"mill/javalib/android/AndroidSdkModule.html#sdkManagerPath-0","e":false,"i":"","n":"sdkManagerPath","t":"sdkManagerPath: Target[PathRef]","d":"mill.javalib.android.AndroidSdkModule","k":"def","x":""},
 {"l":"mill/javalib/android/AndroidSdkModule.html#zipalignPath-0","e":false,"i":"","n":"zipalignPath","t":"zipalignPath: Target[PathRef]","d":"mill.javalib.android.AndroidSdkModule","k":"def","x":""},
 {"l":"mill/javalib/android/AndroidSdkModule$.html#","e":false,"i":"","n":"AndroidSdkModule","t":"AndroidSdkModule","d":"mill.javalib.android","k":"object","x":""},
