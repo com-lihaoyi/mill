@@ -4,7 +4,7 @@ import mill.define.{Task, Target, NamedTask, TargetImpl}
 import mill.util.{TestGraphs, TestUtil}
 import utest._
 import mill.api.Strict.Agg
-object GraphTests extends TestSuite {
+object PlanTests extends TestSuite {
 
   val tests = Tests {
 
@@ -14,7 +14,7 @@ object GraphTests extends TestSuite {
 
     test("topoSortedTransitiveTargets") {
       def check(targets: Agg[Task[_]], expected: Agg[Task[_]]) = {
-        val result = Graph.topoSorted(Graph.transitiveTargets(targets)).values
+        val result = Plan.topoSorted(Plan.transitiveTargets(targets)).values
         TestUtil.checkTopological(result)
         assert(result == expected)
       }
@@ -62,7 +62,7 @@ object GraphTests extends TestSuite {
         )
       )
       test("bigSingleTerminal") {
-        val result = Graph.topoSorted(Graph.transitiveTargets(Agg(bigSingleTerminal.j))).values
+        val result = Plan.topoSorted(Plan.transitiveTargets(Agg(bigSingleTerminal.j))).values
         TestUtil.checkTopological(result)
         assert(result.size == 28)
       }
@@ -75,10 +75,10 @@ object GraphTests extends TestSuite {
           expected: Agg[(R, Int)]
       ) = {
 
-        val topoSorted = Graph.topoSorted(Graph.transitiveTargets(Agg(target(base))))
+        val topoSorted = Plan.topoSorted(Plan.transitiveTargets(Agg(target(base))))
 
         val important = important0.map(_(base))
-        val grouped = Graph.groupAroundImportantTargets(topoSorted) {
+        val grouped = Plan.groupAroundImportantTargets(topoSorted) {
           case t: TargetImpl[_] if important.contains(t) => t: Target[_]
         }
         val flattened = Agg.from(grouped.values().flatMap(_.items))
@@ -164,10 +164,10 @@ object GraphTests extends TestSuite {
     test("multiTerminalGroupCounts") {
       def countGroups(goals: Task[_]*) = {
 
-        val topoSorted = Graph.topoSorted(
-          Graph.transitiveTargets(Agg.from(goals))
+        val topoSorted = Plan.topoSorted(
+          Plan.transitiveTargets(Agg.from(goals))
         )
-        val grouped = Graph.groupAroundImportantTargets(topoSorted) {
+        val grouped = Plan.groupAroundImportantTargets(topoSorted) {
           case t: NamedTask[Any] => t
           case t if goals.contains(t) => t
         }

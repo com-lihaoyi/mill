@@ -84,7 +84,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     // and the class hierarchy, so during evaluation it is cheap to look up what class
     // each target belongs to determine of the enclosing class code signature changed.
     val (classToTransitiveClasses, allTransitiveClassMethods) =
-      CodeSigUtils.precomputeMethodNamesPerClass(plan.sortedGroups)
+      CodeSigUtils.precomputeMethodNamesPerClass(Plan.transitiveNamed(goals))
 
     val uncached = new ConcurrentHashMap[Terminal, Unit]()
     val changedValueHash = new ConcurrentHashMap[Terminal, Unit]()
@@ -209,7 +209,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       case _ => true
     }
 
-    val tasksTransitive = Graph.transitiveTargets(Agg.from(tasks0.map(_.task))).toSet
+    val tasksTransitive = Plan.transitiveTargets(Agg.from(tasks0.map(_.task))).toSet
     val (tasks, leafExclusiveCommands) = terminals0.partition {
       case Terminal.Labelled(t) => tasksTransitive.contains(t) || !t.isExclusiveCommand
       case _ => !serialCommandExec
