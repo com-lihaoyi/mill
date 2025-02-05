@@ -1,14 +1,27 @@
 package mill.define
 
-import sourcecode.Compat.Context
-import language.experimental.macros
+import scala.quoted.*
+
 case class EnclosingClass(value: Class[_])
 object EnclosingClass {
   def apply()(implicit c: EnclosingClass) = c.value
-  implicit def generate: EnclosingClass = macro impl
-  def impl(c: Context): c.Tree = {
-    import c.universe._
-    //    q"new _root_.mill.define.EnclosingClass(classOf[$cls])"
-    q"new _root_.mill.define.EnclosingClass(this.getClass)"
+  inline given generate: EnclosingClass = ${ impl }
+
+  def impl(using quotes: Quotes): Expr[EnclosingClass] = Cacher.withMacroOwner { owner =>
+    import quotes.reflect.*
+
+    def enclosingClass(sym: Symbol): Symbol =
+      if sym.isPackageDef || sym == Symbol.noSymbol then
+        report.errorAndAbort(
+          "Cannot find the enclosing class of the macro expansion",
+          Position.ofMacroExpansion
+        )
+      else if sym.isClassDef then sym
+      else enclosingClass(sym.owner)
+
+    val cls = enclosingClass(owner).typeRef
+    val res =
+      '{ new EnclosingClass(${ Ref(defn.Predef_classOf).appliedToType(cls).asExprOf[Class[?]] }) }
+    res
   }
 }

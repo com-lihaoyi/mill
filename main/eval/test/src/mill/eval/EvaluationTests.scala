@@ -1,61 +1,47 @@
 package mill.eval
 
 import mill.util.TestUtil.Test
-import mill.define.{TargetImpl, Task}
-import mill.T
+import mill.define.{Discover, TargetImpl, Task}
+import mill.{T, Module}
 import mill.util.{TestGraphs, TestUtil}
-import mill.testkit.{UnitTester, TestBaseModule}
+import mill.testkit.{TestBaseModule, UnitTester}
 import mill.api.Strict.Agg
 import os.SubPath
-import utest._
+import utest.*
 import utest.framework.TestPath
 
 object EvaluationTestsThreads1 extends EvaluationTests(threadCount = Some(1))
 object EvaluationTestsThreads4 extends EvaluationTests(threadCount = Some(3))
 object EvaluationTestsThreadsNative extends EvaluationTests(threadCount = None)
 
+object EvaluationTests {
+
+  object nullTasks extends TestBaseModule {
+    val nullString: String = null
+    def nullTask1 = Task.Anon { nullString }
+    def nullTask2 = Task.Anon { nullTask1() }
+
+    def nullTarget1 = Task { nullString }
+    def nullTarget2 = Task { nullTarget1() }
+    def nullTarget3 = Task { nullTask1() }
+    def nullTarget4 = Task { nullTask2() }
+
+    def nullCommand1() = Task.Command { nullString }
+    def nullCommand2() = Task.Command { nullTarget1() }
+    def nullCommand3() = Task.Command { nullTask1() }
+    def nullCommand4() = Task.Command { nullTask2() }
+
+    lazy val millDiscover = Discover[this.type]
+  }
+
+}
+
+import EvaluationTests._
+
 class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
 
-  class Checker[T <: mill.testkit.TestBaseModule](module: T) {
-    // Make sure data is persisted even if we re-create the evaluator each time
-
-    val evaluator = UnitTester(module, null, threads = threadCount).evaluator
-
-    def apply(
-        target: Task[_],
-        expValue: Any,
-        expEvaled: Agg[Task[_]],
-        // How many "other" tasks were evaluated other than those listed above.
-        // Pass in -1 to skip the check entirely
-        extraEvaled: Int = 0,
-        // Perform a second evaluation of the same tasks, and make sure the
-        // outputs are the same but nothing was evaluated. Disable this if you
-        // are directly evaluating tasks which need to re-evaluate every time
-        secondRunNoOp: Boolean = true
-    ) = {
-
-      val evaled = evaluator.evaluate(Agg(target))
-
-      val (matchingReturnedEvaled, extra) =
-        evaled.evaluated.indexed.partition(expEvaled.contains)
-
-      assert(
-        evaled.values.map(_.value) == Seq(expValue),
-        matchingReturnedEvaled.toSet == expEvaled.toSet,
-        extraEvaled == -1 || extra.length == extraEvaled
-      )
-
-      // Second time the value is already cached, so no evaluation needed
-      if (secondRunNoOp) {
-        val evaled2 = evaluator.evaluate(Agg(target))
-        val expectedSecondRunEvaluated = Agg()
-        assert(
-          evaled2.values.map(_.value) == evaled.values.map(_.value),
-          evaled2.evaluated == expectedSecondRunEvaluated
-        )
-      }
-    }
-  }
+  class Checker[T <: mill.testkit.TestBaseModule](module: T)
+      extends mill.eval.Checker(module, threadCount)
 
   val tests = Tests {
     object graphs extends TestGraphs()
@@ -215,53 +201,6 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         checker(task2, 4, Agg(), extraEvaled = -1, secondRunNoOp = false)
       }
 
-      test("overrideSuperTask") {
-        // Make sure you can override targets, call their supers, and have the
-        // overridden target be allocated a spot within the overridden/ folder of
-        // the main publicly-available target
-        import canOverrideSuper._
-
-        val checker = new Checker(canOverrideSuper)
-        checker(foo, Seq("base", "object"), Agg(foo), extraEvaled = -1)
-
-        val public = os.read(checker.evaluator.outPath / "foo.json")
-        val overridden = os.read(
-          checker.evaluator.outPath / "foo.super/BaseModule.json"
-        )
-        assert(
-          public.contains("base"),
-          public.contains("object"),
-          overridden.contains("base"),
-          !overridden.contains("object")
-        )
-      }
-      test("overrideSuperCommand") {
-        // Make sure you can override commands, call their supers, and have the
-        // overridden command be allocated a spot within the super/ folder of
-        // the main publicly-available command
-        import canOverrideSuper._
-
-        val checker = new Checker(canOverrideSuper)
-        val runCmd = cmd(1)
-        checker(
-          runCmd,
-          Seq("base1", "object1"),
-          Agg(runCmd),
-          extraEvaled = -1,
-          secondRunNoOp = false
-        )
-
-        val public = os.read(checker.evaluator.outPath / "cmd.json")
-        val overridden = os.read(
-          checker.evaluator.outPath / "cmd.super/BaseModule.json"
-        )
-        assert(
-          public.contains("base1"),
-          public.contains("object1"),
-          overridden.contains("base1"),
-          !overridden.contains("object1")
-        )
-      }
       test("nullTasks") {
         import nullTasks._
         val checker = new Checker(nullTasks)
@@ -307,6 +246,8 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
           def middle = Task.Anon { middleCount += 1; 100 }
           def right = Task { rightCount += 1; 10000 }
           def down = Task { left() + middle() + right() }
+
+          lazy val millDiscover = Discover[this.type]
         }
 
         import build._
@@ -352,94 +293,6 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         check(middle, expValue = 100, expEvaled = Agg(), extraEvaled = 1, secondRunNoOp = false)
         assert(leftCount == 4, middleCount == 4, rightCount == 1)
       }
-    }
-    test("stackableOverrides") {
-      // Make sure you can override commands, call their supers, and have the
-      // overridden command be allocated a spot within the super/ folder of
-      // the main publicly-available command
-      import StackableOverrides._
-
-      val checker = new Checker(StackableOverrides)
-      checker(
-        m.f,
-        6,
-        Agg(m.f),
-        extraEvaled = -1
-      )
-
-      assert(
-        os.read(checker.evaluator.outPath / "m/f.super/X.json")
-          .contains(" 1,")
-      )
-      assert(
-        os.read(checker.evaluator.outPath / "m/f.super/A.json")
-          .contains(" 3,")
-      )
-      assert(os.read(checker.evaluator.outPath / "m/f.json").contains(" 6,"))
-    }
-    test("stackableOverrides2") {
-      // When the supers have the same name, qualify them until they are distinct
-      import StackableOverrides2._
-
-      val checker = new Checker(StackableOverrides2)
-      checker(
-        m.f,
-        6,
-        Agg(m.f),
-        extraEvaled = -1
-      )
-
-      assert(
-        os.read(checker.evaluator.outPath / "m/f.super/A/X.json")
-          .contains(" 1,")
-      )
-      assert(
-        os.read(checker.evaluator.outPath / "m/f.super/B/X.json")
-          .contains(" 3,")
-      )
-      assert(os.read(checker.evaluator.outPath / "m/f.json").contains(" 6,"))
-    }
-    test("stackableOverrides3") {
-      // When the supers have the same name, qualify them until they are distinct
-      import StackableOverrides3._
-
-      val checker = new Checker(StackableOverrides3)
-      checker(
-        m.f,
-        6,
-        Agg(m.f),
-        extraEvaled = -1
-      )
-
-      assert(
-        os.read(checker.evaluator.outPath / "m/f.super/A/X.json")
-          .contains(" 1,")
-      )
-      assert(
-        os.read(checker.evaluator.outPath / "m/f.super/X.json")
-          .contains(" 3,")
-      )
-      assert(os.read(checker.evaluator.outPath / "m/f.json").contains(" 6,"))
-    }
-    test("privateTasksInMixedTraits") {
-      // Make sure we can have private cached targets in different trait with the same name,
-      // and caching still works when these traits are mixed together
-      import PrivateTasksInMixedTraits._
-      val checker = new Checker(PrivateTasksInMixedTraits)
-      checker(
-        mod.bar,
-        "foo-m1",
-        Agg(mod.bar),
-        extraEvaled = -1
-      )
-      // If we evaluate to "foo-m1" instead of "foo-m2",
-      // we don't properly distinguish between the two private `foo` targets
-      checker(
-        mod.baz,
-        "foo-m2",
-        Agg(mod.baz),
-        extraEvaled = -1
-      )
     }
   }
 }

@@ -1,7 +1,7 @@
 package mill.main
 
 import mill.api.{PathRef, Result, Val}
-import mill.{Agg, T, Task}
+import mill.{Agg, T, Task, given}
 import mill.define.{Cross, Discover, Module, TaskModule}
 import mill.main.client.OutFiles
 import mill.testkit.UnitTester
@@ -54,7 +54,7 @@ object MainModuleTests extends TestSuite {
       object subSub extends Module
     }
 
-    override lazy val millDiscover: Discover = Discover[this.type]
+    override lazy val millDiscover = Discover[this.type]
   }
 
   object cleanModule extends TestBaseModule with MainModule {
@@ -85,6 +85,7 @@ object MainModuleTests extends TestSuite {
       bazz("2").target()
       bazz("3").target()
     }
+    lazy val millDiscover = Discover[this.type]
   }
 
   class TestWorker(val name: String, workers: mutable.HashSet[TestWorker]) extends AutoCloseable {
@@ -118,7 +119,7 @@ object MainModuleTests extends TestSuite {
       object sub extends Cleanable
     }
     object bar extends Cleanable {
-      def theWorker = Task.Worker {
+      override def theWorker = Task.Worker {
         new TestWorker("bar", workers)
       }
     }
@@ -134,6 +135,7 @@ object MainModuleTests extends TestSuite {
 
       ()
     }
+    lazy val millDiscover = Discover[this.type]
   }
 
   override def tests: Tests = Tests {

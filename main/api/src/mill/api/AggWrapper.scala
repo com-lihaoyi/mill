@@ -33,11 +33,11 @@ private[mill] sealed class AggWrapper(strictUniqueness: Boolean) {
     def map[T](f: V => T): Agg[T]
     def filter(f: V => Boolean): Agg[V]
 
-    def collect[T](f: PartialFunction[V, T]): Agg[T]
-    def zipWithIndex: Agg[(V, Int)]
+    override def collect[T](f: PartialFunction[V, T]): Agg[T] = super.collect(f)
+    override def zipWithIndex: Agg[(V, Int)] = super.zipWithIndex
     def reverse: Agg[V]
     def zip[T](other: Agg[T]): Agg[(V, T)]
-    def ++[T >: V](other: IterableOnce[T]): Agg[T]
+    // def ++[T >: V](other: IterableOnce[T]): Agg[T] // error overriding final method ++ in trait IterableOps
     def length: Int
     def isEmpty: Boolean
     def foreach[U](f: V => U): Unit
@@ -149,7 +149,8 @@ private[mill] sealed class AggWrapper(strictUniqueness: Boolean) {
       def iterator: Iterator[V] = items
       override def hashCode(): Int = items.map(_.hashCode()).sum
       override def equals(other: Any): Boolean = other match {
-        case s: Agg[?] => items.sameElements(s.items)
+        case s: Loose.Agg[?] => items.sameElements(s.items)
+        case s: Strict.Agg[?] => items.sameElements(s.items)
         case _ => super.equals(other)
       }
       override def toString: String = items.mkString("Agg(", ", ", ")")

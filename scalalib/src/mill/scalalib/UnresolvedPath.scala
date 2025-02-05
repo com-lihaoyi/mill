@@ -26,26 +26,20 @@ object UnresolvedPath {
 
   case class DestPath private (
       subPath: String,
-      segments: Seq[String],
-      foreignSegments: Option[Seq[String]] = None
+      segments: Seq[String]
   ) extends UnresolvedPath {
     override def resolve(pathResolver: EvaluatorPathsResolver): Path = {
-      pathResolver.resolveDest(
-        Segments(segments.map(Segment.Label(_))),
-        foreignSegments.map(o => Segments(o.map(Segment.Label(_))))
-      ).dest / os.SubPath(subPath)
+      pathResolver.resolveDest(Segments(segments.map(Segment.Label(_)))).dest / os.SubPath(subPath)
     }
   }
   object DestPath {
     def apply(
         subPath: os.SubPath,
-        segments: Segments,
-        foreignSegments: Option[Segments]
+        segments: Segments
     ): DestPath = {
       DestPath(
         subPath.toString(),
-        EvaluatorPaths.makeSegmentStrings(segments),
-        foreignSegments.map(EvaluatorPaths.makeSegmentStrings(_))
+        EvaluatorPaths.makeSegmentStrings(segments)
       )
     }
 

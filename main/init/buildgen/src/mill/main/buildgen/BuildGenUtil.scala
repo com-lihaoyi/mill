@@ -105,8 +105,10 @@ object BuildGenUtil {
        |
        |${renderPomPackaging(packaging)}
        |
-       |${if (pomParentArtifact == null) ""
-      else renderPomParentProject(renderArtifact(pomParentArtifact))}
+       |${
+        if (pomParentArtifact == null) ""
+        else renderPomParentProject(renderArtifact(pomParentArtifact))
+      }
        |
        |${renderPublishProperties(Nil)}
        |

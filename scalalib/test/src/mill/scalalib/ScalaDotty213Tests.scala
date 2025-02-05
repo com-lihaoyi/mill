@@ -1,8 +1,9 @@
 package mill.scalalib
 
-import mill._
+import mill.*
+import mill.define.Discover
 import mill.testkit.{TestBaseModule, UnitTester}
-import utest._
+import utest.*
 
 object ScalaDotty213Tests extends TestSuite {
   object Dotty213 extends TestBaseModule {
@@ -11,6 +12,8 @@ object ScalaDotty213Tests extends TestSuite {
       override def ivyDeps =
         Agg(ivy"org.scala-lang.modules::scala-xml:1.2.0".withDottyCompat(scalaVersion()))
     }
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   def tests: Tests = Tests {

@@ -14,6 +14,8 @@ object BasePathTests extends TestSuite {
         override def millSourcePath = super.millSourcePath / "overriddenBasePathDoubleNested"
       }
     }
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   val testGraphs = new TestGraphs

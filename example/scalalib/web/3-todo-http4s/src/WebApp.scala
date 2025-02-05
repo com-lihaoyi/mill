@@ -27,11 +27,11 @@ object WebApp extends IOApp.Simple {
           Ok(renderBody(state))
 
         case request @ POST -> Root / "add" / state =>
-          (for {
+          for {
             text <- request.as[String]
             _ <- todosRef.update(Seq(Todo(false, text)) ++ _)
             response <- Ok(renderBody(state))
-          } yield response).debug()
+          } yield response
 
         case POST -> Root / "delete" / state / IntVar(index) =>
           todosRef.update(_.patch(index, Nil, 1)) *> Ok(renderBody(state))

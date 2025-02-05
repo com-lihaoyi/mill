@@ -1,7 +1,7 @@
 package mill.define
 
 import mill.api.internal
-
+import scala.collection.JavaConverters.*
 import scala.reflect.ClassTag
 
 /**
@@ -13,7 +13,8 @@ import scala.reflect.ClassTag
  * instantiation site so they can capture the enclosing/line information of
  * the concrete instance.
  */
-trait Module extends Module.BaseClass {
+trait Module extends Module.BaseClass with OverrideMapping.Wrapper {
+  implicit lazy val implicitMillDiscover: Discover = millOuterCtx.discover
 
   /**
    * Miscellaneous machinery around traversing & querying the build hierarchy,
@@ -37,13 +38,13 @@ trait Module extends Module.BaseClass {
   })
 
   implicit def millModuleExternal: Ctx.External = Ctx.External(millOuterCtx.external)
-  implicit def millModuleShared: Ctx.Foreign = Ctx.Foreign(millOuterCtx.foreign)
   implicit def millModuleBasePath: Ctx.BasePath = Ctx.BasePath(millSourcePath)
-  implicit def millModuleSegments: Segments = {
-    millOuterCtx.segments ++ Seq(millOuterCtx.segment)
-  }
+  implicit def millModuleSegments: Segments = millOuterCtx.segments ++ Seq(millOuterCtx.segment)
+  final given millModuleCaller: Caller[OverrideMapping.Wrapper] = Caller(this)
 
   override def toString = millModuleSegments.render
+
+  private[mill] val linearized: Seq[Class[_]] = OverrideMapping.computeLinearization(this.getClass)
 }
 
 object Module {

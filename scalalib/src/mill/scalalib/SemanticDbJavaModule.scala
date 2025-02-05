@@ -145,8 +145,7 @@ trait SemanticDbJavaModule extends CoursierModule {
         )
         UnresolvedPath.DestPath(
           os.sub,
-          compiledClassesAndSemanticDbFiles.ctx.segments,
-          compiledClassesAndSemanticDbFiles.ctx.foreign
+          compiledClassesAndSemanticDbFiles.ctx.segments
         )
       }
     } else {

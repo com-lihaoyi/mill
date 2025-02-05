@@ -1,10 +1,11 @@
 package mill.scalalib
 
+import mill.define.Discover
 import mill.{Agg, T, Task}
-
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import utest._
+import mill.main.TokenReaders._
+import utest.*
 import utest.framework.TestPath
 
 object TestClassLoaderTests extends TestSuite {
@@ -18,6 +19,8 @@ object TestClassLoaderTests extends TestSuite {
         )
       }
     }
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "classloader-test"

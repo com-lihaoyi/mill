@@ -88,8 +88,8 @@ object MainModule {
     ) match {
       case Left(err) => Left(err)
       case Right(rs) =>
-        val (sortedGroups, _) = evaluator.plan(rs)
-        Right(sortedGroups.keys().collect { case r: Terminal.Labelled[_] => r }.toArray)
+        val plan = evaluator.plan(rs)
+        Right(plan.sortedGroups.keys().collect { case r: Terminal.Labelled[_] => r }.toArray)
     }
   }
 
@@ -99,7 +99,7 @@ object MainModule {
  * [[mill.define.Module]] containing all the default tasks that Mill provides: [[resolve]],
  * [[show]], [[inspect]], [[plan]], etc.
  */
-trait MainModule extends BaseModule0 {
+trait MainModule extends BaseModule {
 
   object interp extends Interp
 
@@ -141,7 +141,7 @@ trait MainModule extends BaseModule0 {
       MainModule.plan0(evaluator, targets) match {
         case Left(err) => Result.Failure(err)
         case Right(success) =>
-          val renderedTasks = success.map(_.segments.render)
+          val renderedTasks = success.map(_.task.ctx.segments.render)
           renderedTasks.foreach(println)
           Result.Success(renderedTasks)
       }
@@ -264,16 +264,13 @@ trait MainModule extends BaseModule0 {
             else {
               val mainDataOpt = evaluator
                 .rootModule
-                .millDiscover
-                .value
-                .get(t.ctx.enclosingCls)
-                .flatMap(_._2.find(_.name == t.ctx.segments.last.value))
-                .headOption
+                .implicitMillDiscover
+                .resolveEntrypoint(t.ctx.enclosingCls, t.ctx.segments.last.value)
 
               mainDataOpt match {
                 case Some(mainData) if mainData.renderedArgSigs.nonEmpty =>
                   val rendered = mainargs.Renderer.formatMainMethodSignature(
-                    mainDataOpt.get,
+                    mainData,
                     leftIndent = 2,
                     totalWidth = 100,
                     leftColWidth = mainargs.Renderer.getLeftColWidth(mainData.renderedArgSigs),
@@ -352,10 +349,11 @@ trait MainModule extends BaseModule0 {
           case _ => None
         }
 
-        val methodMap = evaluator.rootModule.millDiscover.value
-        val tasks = methodMap.get(cls).map {
-          case (_, _, tasks) => tasks.map(task => s"${t.module}.$task")
-        }.toSeq.flatten
+        val methodMap = evaluator.rootModule.implicitMillDiscover.classInfo
+        val tasks = methodMap
+          .get(cls)
+          .map { node => node.declaredTasks.map(task => s"${t.module}.${task.name}") }
+          .toSeq.flatten
         pprint.Tree.Lazy { ctx =>
           Iterator(
             // module name(module/file:line)

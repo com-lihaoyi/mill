@@ -1,9 +1,10 @@
 package mill.twirllib
 
+import mill.define.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest.framework.TestPath
-import utest.{TestSuite, Tests, assert, _}
+import utest.{TestSuite, Tests, assert, *}
 
 trait HelloWorldTests extends TestSuite {
   val testTwirlVersion: String
@@ -21,6 +22,7 @@ trait HelloWorldTests extends TestSuite {
       override def twirlConstructorAnnotations: Seq[String] = testConstructorAnnotations
     }
 
+    lazy val millDiscover = Discover[this.type]
   }
 
   object HelloWorldWithInclusiveDot extends TestBaseModule {
@@ -30,6 +32,7 @@ trait HelloWorldTests extends TestSuite {
       override def twirlFormats = super.twirlFormats() ++ Map("svg" -> "play.twirl.api.HtmlFormat")
     }
 
+    lazy val millDiscover = Discover[this.type]
   }
 
   def resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
@@ -168,9 +171,9 @@ object HelloWorldTests1_5 extends HelloWorldTests {
 }
 object HelloWorldTests1_6 extends HelloWorldTests {
   override val testTwirlVersion = "1.6.2"
-  override val wildcard = "_"
+  override val wildcard = "*"
 }
 object HelloWorldTests2_0 extends HelloWorldTests {
   override val testTwirlVersion = "2.0.1"
-  override val wildcard = "_"
+  override val wildcard = "*"
 }

@@ -1,10 +1,10 @@
 package mill.scalalib
 
-import mill._
+import mill.*
 import mill.testkit.{TestBaseModule, UnitTester}
-import utest._
-
-import HelloWorldTests._
+import utest.*
+import HelloWorldTests.*
+import mill.define.Discover
 object ScalaIvyDepsTests extends TestSuite {
 
   object HelloWorldIvyDeps extends TestBaseModule {
@@ -15,6 +15,8 @@ object ScalaIvyDepsTests extends TestSuite {
       override def moduleDeps = Seq(moduleA)
       override def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.1.4")
     }
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   object TransitiveRunIvyDeps extends TestBaseModule {
@@ -27,6 +29,8 @@ object ScalaIvyDepsTests extends TestSuite {
       // Make sure runIvyDeps are transitively picked up from normal `moduleDeps`
       def moduleDeps = Seq(upstream)
     }
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   object TransitiveRunIvyDeps2 extends TestBaseModule {
@@ -39,6 +43,8 @@ object ScalaIvyDepsTests extends TestSuite {
       // Make sure both ivyDeps and runIvyDeps are transitively picked up from `runModuleDeps`
       def runModuleDeps = Seq(upstream)
     }
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   def tests: Tests = Tests {

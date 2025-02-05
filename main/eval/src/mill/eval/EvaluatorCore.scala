@@ -71,12 +71,12 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     os.makeDir.all(outPath)
 
     val threadNumberer = new ThreadNumberer()
-    val (sortedGroups, transitive) = Plan.plan(goals)
-    val interGroupDeps = EvaluatorCore.findInterGroupDeps(sortedGroups)
-    val terminals0 = sortedGroups.keys().toVector
+    val plan = Plan.plan(goals)
+    val interGroupDeps = EvaluatorCore.findInterGroupDeps(plan.sortedGroups)
+    val terminals0 = plan.sortedGroups.keys().toVector
     val failed = new AtomicBoolean(false)
     val count = new AtomicInteger(1)
-    val indexToTerminal = sortedGroups.keys().toArray
+    val indexToTerminal = plan.sortedGroups.keys().toArray
 
     EvaluatorLogs.logDependencyTree(interGroupDeps, indexToTerminal, outPath)
 
@@ -84,7 +84,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     // and the class hierarchy, so during evaluation it is cheap to look up what class
     // each target belongs to determine of the enclosing class code signature changed.
     val (classToTransitiveClasses, allTransitiveClassMethods) =
-      CodeSigUtils.precomputeMethodNamesPerClass(sortedGroups)
+      CodeSigUtils.precomputeMethodNamesPerClass(Plan.transitiveNamed(goals))
 
     val uncached = new ConcurrentHashMap[Terminal, Unit]()
     val changedValueHash = new ConcurrentHashMap[Terminal, Unit]()
@@ -106,7 +106,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       for (terminal <- terminals) {
         val deps = interGroupDeps(terminal)
 
-        val group = sortedGroups.lookupKey(terminal)
+        val group = plan.sortedGroups.lookupKey(terminal)
         val exclusiveDeps = deps.filter(d => d.task.isExclusiveCommand)
 
         if (!terminal.task.isExclusiveCommand && exclusiveDeps.nonEmpty) {
@@ -162,7 +162,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
                 val res = evaluateGroupCached(
                   terminal = terminal,
-                  group = sortedGroups.lookupKey(terminal),
+                  group = plan.sortedGroups.lookupKey(terminal),
                   results = upstreamResults,
                   countMsg = countMsg,
                   verboseKeySuffix = verboseKeySuffix,
@@ -205,15 +205,13 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     }
 
     val tasks0 = terminals0.filter {
-      case Terminal.Labelled(c: Command[_], _) => false
+      case Terminal.Labelled(c: Command[_]) => false
       case _ => true
     }
 
-    val (_, tasksTransitive0) = Plan.plan(Agg.from(tasks0.map(_.task)))
-
-    val tasksTransitive = tasksTransitive0.toSet
+    val tasksTransitive = Plan.transitiveTargets(Agg.from(tasks0.map(_.task))).toSet
     val (tasks, leafExclusiveCommands) = terminals0.partition {
-      case Terminal.Labelled(t, _) => tasksTransitive.contains(t) || !t.isExclusiveCommand
+      case Terminal.Labelled(t) => tasksTransitive.contains(t) || !t.isExclusiveCommand
       case _ => !serialCommandExec
     }
 
@@ -237,7 +235,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
     val results0: Vector[(Task[_], TaskResult[(Val, Int)])] = terminals0
       .flatMap { t =>
-        sortedGroups.lookupKey(t).flatMap { t0 =>
+        plan.sortedGroups.lookupKey(t).flatMap { t0 =>
           finishedOptsMap(t) match {
             case None => Some((t0, TaskResult(Aborted, () => Aborted)))
             case Some(res) => res.newResults.get(t0).map(r => (t0, r))
@@ -255,8 +253,8 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       Strict.Agg.from(
         finishedOptsMap.values.flatMap(_.toSeq.flatMap(_.newEvaluated)).iterator.distinct
       ),
-      transitive,
-      getFailing(sortedGroups, results),
+      plan.transitive,
+      getFailing(plan.sortedGroups, results),
       results.map { case (k, v) => (k, v.map(_._1)) }
     )
   }

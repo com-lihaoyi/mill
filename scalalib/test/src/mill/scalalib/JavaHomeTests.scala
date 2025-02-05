@@ -1,10 +1,9 @@
 package mill.scalalib
 
-import mill.define.Task
-import mill.define.Args
+import mill.define.{Args, Discover, ModuleRef, Task}
 import mill.api.Result
-import mill.define.ModuleRef
 import mill.testkit.{TestBaseModule, UnitTester}
+import mill.main.TokenReaders.*
 import utest.*
 
 import java.io.{ByteArrayOutputStream, PrintStream}
@@ -21,6 +20,8 @@ object JavaHomeTests extends TestSuite {
       override def docJarUseArgsFile = false
       object test extends JavaTests with TestModule.Junit4
     }
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   object HelloJavaJavaHome17Override extends TestBaseModule {
@@ -33,6 +34,7 @@ object JavaHomeTests extends TestSuite {
       override def docJarUseArgsFile = false
       object test extends JavaTests with TestModule.Junit4
     }
+    lazy val millDiscover = Discover[this.type]
   }
 
   object JavaJdk11DoesntCompile extends TestBaseModule {
@@ -47,6 +49,7 @@ object JavaHomeTests extends TestSuite {
       override def zincWorker = ModuleRef(ZincWorkerJava)
       def scalaVersion = "2.13.14"
     }
+    lazy val millDiscover = Discover[this.type]
   }
 
   object JavaJdk17Compiles extends TestBaseModule {
@@ -62,6 +65,7 @@ object JavaHomeTests extends TestSuite {
 
       def scalaVersion = "2.13.14"
     }
+    lazy val millDiscover = Discover[this.type]
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-java"

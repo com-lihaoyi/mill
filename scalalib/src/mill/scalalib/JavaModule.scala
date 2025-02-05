@@ -51,8 +51,10 @@ trait JavaModule
     override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
       internalRepositories() ++ outer.repositoriesTask()
     }
+
     override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
       outer.resolutionCustomizer
+
     override def javacOptions: T[Seq[String]] = Task { outer.javacOptions() }
     override def zincWorker: ModuleRef[ZincWorkerModule] = outer.zincWorker
     override def skipIdea: Boolean = outer.skipIdea
@@ -63,12 +65,12 @@ trait JavaModule
       }
     }
 
-    override def bomIvyDeps = Task.Anon[Agg[Dep]] {
+    override def bomIvyDeps = Task[Agg[Dep]] {
       // FIXME Add that back when we can break bin-compat
       // super.bomIvyDeps() ++
       outer.bomIvyDeps()
     }
-    override def depManagement = Task.Anon[Agg[Dep]] {
+    override def depManagement = Task[Agg[Dep]] {
       // FIXME Add that back when we can break bin-compat
       // super.depManagement() ++
       outer.depManagement()
@@ -638,11 +640,10 @@ trait JavaModule
    * Coursier project of this module and those of all its transitive module dependencies
    */
   def transitiveCoursierProjects: Task[Seq[cs.Project]] = Task {
-    Seq(coursierProject()) ++
-      Task.traverse(compileModuleDepsChecked)(_.transitiveCoursierProjects)().flatten ++
-      Task.traverse(moduleDepsChecked)(_.transitiveCoursierProjects)().flatten ++
-      Task.traverse(runModuleDepsChecked)(_.transitiveCoursierProjects)().flatten ++
-      Task.traverse(bomModuleDepsChecked)(_.transitiveCoursierProjects)().flatten
+    (Seq(coursierProject()) ++
+      Task.traverse(
+        (compileModuleDepsChecked ++ moduleDepsChecked ++ runModuleDepsChecked ++ bomModuleDepsChecked).distinct
+      )(_.transitiveCoursierProjects)().flatten).distinctBy(_.module)
   }
 
   /**
@@ -911,7 +912,7 @@ trait JavaModule
         Task.log.debug(
           s"compile target was not overridden, assuming hard-coded classes directory for target ${compile}"
         )
-        UnresolvedPath.DestPath(os.sub / "classes", compile.ctx.segments, compile.ctx.foreign)
+        UnresolvedPath.DestPath(os.sub / "classes", compile.ctx.segments)
       }
     } else {
       Task {
@@ -1334,21 +1335,6 @@ trait JavaModule
     }
   }
 
-  override def runUseArgsFile: T[Boolean] = Task {
-    // overridden here for binary compatibility (0.11.x)
-    super.runUseArgsFile()
-  }
-
-  override def runLocal(args: Task[Args] = Task.Anon(Args())): Command[Unit] = {
-    // overridden here for binary compatibility (0.11.x)
-    super.runLocal(args)
-  }
-
-  override def run(args: Task[Args] = Task.Anon(Args())): Command[Unit] = {
-    // overridden here for binary compatibility (0.11.x)
-    super.run(args)
-  }
-
   @deprecated("Binary compat shim, use `.runner().run(..., background=true)`", "Mill 0.12.0")
   override protected def doRunBackground(
       taskDest: Path,
@@ -1579,14 +1565,14 @@ object JavaModule {
  * To be used by other modules via `JavaModule#bomModuleDeps`
  */
 trait BomModule extends JavaModule {
-  def compile: T[CompilationResult] = Task {
+  abstract override def compile: T[CompilationResult] = Task {
     val sources = allSourceFiles()
     if (sources.nonEmpty)
       throw new Exception("A BomModule cannot have sources")
     CompilationResult(Task.dest / "zinc", PathRef(Task.dest / "classes"))
   }
 
-  def resources: T[Seq[PathRef]] = Task {
+  abstract override def resources: T[Seq[PathRef]] = Task {
     val value = super.resources()
     if (value.nonEmpty)
       throw new Exception("A BomModule cannot have resources")
@@ -1596,13 +1582,13 @@ trait BomModule extends JavaModule {
   private def emptyJar: T[PathRef] = Task {
     Jvm.createJar(Agg.empty[os.Path])
   }
-  def jar: T[PathRef] = Task {
+  abstract override def jar: T[PathRef] = Task {
     emptyJar()
   }
-  def docJar: T[PathRef] = Task {
+  abstract override def docJar: T[PathRef] = Task {
     emptyJar()
   }
-  def sourceJar: T[PathRef] = Task {
+  abstract override def sourceJar: T[PathRef] = Task {
     emptyJar()
   }
 }

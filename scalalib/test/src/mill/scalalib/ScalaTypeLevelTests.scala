@@ -1,9 +1,10 @@
 package mill.scalalib
 
-import mill._
+import mill.*
 import mill.testkit.{TestBaseModule, UnitTester}
-import utest._
-import HelloWorldTests._
+import utest.*
+import HelloWorldTests.*
+import mill.define.Discover
 object ScalaTypeLevelTests extends TestSuite {
 
   object HelloWorldTypeLevel extends TestBaseModule {
@@ -22,6 +23,8 @@ object ScalaTypeLevelTests extends TestSuite {
         ivy"com.typesafe.genjavadoc:::genjavadoc-plugin:0.11"
       )
     }
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   def tests: Tests = Tests {

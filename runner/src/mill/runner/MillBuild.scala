@@ -1,6 +1,6 @@
 package mill.runner
 
-import mill.Task
+import mill.{Task, given}
 import mill.define.{Command, Discover, ExternalModule, Module}
 import mill.eval.Evaluator.AllBootstrapEvaluators
 
@@ -17,5 +17,5 @@ trait MillBuild extends Module {
 }
 
 object MillBuild extends ExternalModule with MillBuild {
-  override lazy val millDiscover: Discover = Discover[this.type]
+  override lazy val millDiscover = Discover[this.type]
 }

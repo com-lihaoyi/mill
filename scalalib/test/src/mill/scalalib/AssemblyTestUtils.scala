@@ -1,8 +1,9 @@
 package mill.scalalib
 
-import mill._
+import mill.*
+import mill.define.Discover
 import mill.util.Jvm
-import mill.testkit.{UnitTester, TestBaseModule}
+import mill.testkit.{TestBaseModule, UnitTester}
 
 trait AssemblyTestUtils {
 
@@ -45,6 +46,7 @@ trait AssemblyTestUtils {
       object large extends Setup with ExtraDeps
     }
 
+    lazy val millDiscover = Discover[this.type]
   }
 
   val sources = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "assembly"

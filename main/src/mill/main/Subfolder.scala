@@ -1,6 +1,6 @@
 package mill.main;
-import mill._
-import mill.define.{Caller, Ctx, Segments}
+import mill.*
+import mill.define.{Caller, Ctx, Discover, EnclosingClass, Segments}
 
 object SubfolderModule {
   class Info(val millSourcePath0: os.Path, val segments: Seq[String]) {
@@ -19,8 +19,12 @@ abstract class SubfolderModule()(implicit
         millModuleBasePath0 = Ctx.BasePath(subFolderInfo.millSourcePath0 / os.up),
         segments0 = Segments.labels(subFolderInfo.segments.init: _*),
         external0 = Ctx.External(false),
-        foreign0 = Ctx.Foreign(None),
         fileName = millFile0,
-        enclosing = Caller(null)
+        enclosingModule = Caller(null),
+        enclosingClass = EnclosingClass(null),
+        discover = null
       )
-    ) with Module {}
+    ) with Module {
+  def millDiscover: Discover = sys.error("RootModule#millDiscover must be overridden")
+  override implicit lazy val implicitMillDiscover: Discover = millDiscover
+}
