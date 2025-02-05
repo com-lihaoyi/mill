@@ -28,7 +28,7 @@ object ResolveTests extends TestSuite {
 
   val tests = Tests {
     val graphs = new mill.util.TestGraphs()
-    import graphs._
+    import graphs.*
     test("single") {
       val check = new Checker(singleton)
       test("pos") - check("single", Right(Set(_.single)), Set("single"))

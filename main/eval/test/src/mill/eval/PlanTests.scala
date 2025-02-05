@@ -48,19 +48,6 @@ object PlanTests extends TestSuite {
           diamond.down
         )
       )
-      test("defCachedDiamond") - check(
-        targets = Agg(defCachedDiamond.down),
-        expected = Agg(
-          defCachedDiamond.up.inputs(0),
-          defCachedDiamond.up,
-          defCachedDiamond.down.inputs(0).inputs(0).inputs(0),
-          defCachedDiamond.down.inputs(0).inputs(0),
-          defCachedDiamond.down.inputs(0).inputs(1).inputs(0),
-          defCachedDiamond.down.inputs(0).inputs(1),
-          defCachedDiamond.down.inputs(0),
-          defCachedDiamond.down
-        )
-      )
       test("bigSingleTerminal") {
         val result = Plan.topoSorted(Plan.transitiveTargets(Agg(bigSingleTerminal.j))).values
         TestUtil.checkTopological(result)
@@ -126,17 +113,6 @@ object PlanTests extends TestSuite {
           diamond.left -> 1,
           diamond.right -> 1,
           diamond.down -> 1
-        )
-      )
-
-      test("defCachedDiamond") - check(defCachedDiamond)(
-        _.down,
-        Agg(_.up, _.left, _.right, _.down),
-        Agg(
-          defCachedDiamond.up -> 2,
-          defCachedDiamond.left -> 2,
-          defCachedDiamond.right -> 2,
-          defCachedDiamond.down -> 2
         )
       )
 

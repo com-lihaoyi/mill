@@ -193,7 +193,7 @@ trait AndroidSdkModule extends Module {
     AndroidSdkLock.synchronized {
       val missingPackages = packages.filter(p => !isPackageInstalled(sdkPath0.path, p))
       val packagesWithoutLicense = missingPackages
-        .map(p => (p, isLicenseAccepted(sdkPath0.path, remoteReposInfo().path, p)))
+        .map(p => (p, isLicenseAccepted(sdkPath0.path, remoteReposInfo()().path, p)))
         .filter(!_._2)
       if (packagesWithoutLicense.nonEmpty) {
         throw new IllegalStateException(
@@ -259,7 +259,7 @@ trait AndroidSdkModule extends Module {
     (licenseName, licenseHash)
   }
 
-  private def remoteReposInfo: Command[PathRef] = Task.Command {
+  def remoteReposInfo(): Command[PathRef] = Task.Command {
     // shouldn't be persistent, allow it to be re-downloaded again.
     // it will be called only if some packages are not installed.
     val path = Task.dest / "repository.xml"
