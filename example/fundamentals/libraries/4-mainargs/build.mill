@@ -91,10 +91,10 @@ def customPlanCommand(evaluator: Evaluator, tasks: String*) = Task.Command {
   ) match {
     case Left(err) => Left(err)
     case Right(resolved) =>
-      val (sortedGroups, _) = evaluator.plan(resolved)
-      val plan = sortedGroups
+      val plan = evaluator.plan(resolved)
+        .sortedGroups
         .keys()
-        .collect { case r: Terminal.Labelled[_] => r.render }
+        .map(_.render)
         .toArray
 
       plan.foreach(println)
