@@ -26,7 +26,6 @@ object foo extends PythonModule {
 //
 //> mill clean server.runBackground
 
-
 // This is a basic Mill build for a single `PythonModule`, with one
 // dependency and a test suite using the `Unittest` Library.
 //
