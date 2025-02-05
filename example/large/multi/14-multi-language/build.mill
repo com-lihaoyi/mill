@@ -1,12 +1,14 @@
 package build
-import mill._, javascriptlib._, pythonlib._, javalib.{TestModule => JTestModule, _}
+import mill._, javascriptlib._, pythonlib._, javalib._
 
 object client extends ReactScriptsModule
 
 object `sentiment-analysis` extends PythonModule {
   def mainScript = Task.Source { millSourcePath / "src" / "foo.py" }
 
-  def pythonDeps = Seq("Jinja2==3.1.4", "textblob==0.19.0")
+  def pythonDeps = Seq("textblob==0.19.0")
+
+  object test extends PythonTests with pythonlib.TestModule.Unittest
 }
 
 object server extends JavaModule {
@@ -23,7 +25,7 @@ object server extends JavaModule {
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 
-  object test extends JavaTests with JTestModule.Junit5 {
+  object test extends JavaTests with javalib.TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy"org.springframework.boot:spring-boot-starter-test:2.5.6"
     )
@@ -36,6 +38,27 @@ object server extends JavaModule {
 
 /** Usage
 
+> mill client.test
+PASS src/test/App.test.tsx
+...Text Analysis Tool
+...renders the app with initial UI...
+...displays sentiment result...
+...
+Test Suites:...1 passed, 1 total
+Tests:...2 passed, 2 total
+...
+
+> mill sentiment-analysis.test
+...
+test_negative_sentiment... ok
+test_neutral_sentiment... ok
+test_positive_sentiment... ok
+...
+Ran 3 tests...
+...
+OK
+...
+
 > mill server.test
 ...com.example.ServerTest#shouldReturnStaticPage() finished...
 ...com.example.ServerTest#shouldReturnPositiveAnalysis() finished...
@@ -45,6 +68,9 @@ object server extends JavaModule {
 
 > curl http://localhost:8086
 ...<title>Sentiment Analysis Tool</title>...
+
+> curl -X POST http://localhost:8086/api/analysis -H "Content-Type: text/plain" --data "This is awesome!" # Make request to the analysis api
+Positive sentiment (polarity: 1.0)
 
 > mill clean server.runBackground
 */

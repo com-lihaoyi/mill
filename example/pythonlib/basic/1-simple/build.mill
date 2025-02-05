@@ -11,6 +11,22 @@ object foo extends PythonModule {
 
 }
 
+// > mill server.test
+//...com.example.ServerTest#shouldReturnStaticPage() finished...
+//...com.example.ServerTest#shouldReturnPositiveAnalysis() finished...
+//...com.example.ServerTest#shouldReturnNegativeAnalysis() finished...
+//
+//> mill server.runBackground
+//
+//> curl http://localhost:8086
+//...<title>Sentiment Analysis Tool</title>...
+//
+//> curl -X POST http://localhost:8086/api/analysis -H "Content-Type: text/plain" --data "This is awesome!" # Make request to the analysis api
+//Positive sentiment (polarity: 1.0)
+//
+//> mill clean server.runBackground
+
+
 // This is a basic Mill build for a single `PythonModule`, with one
 // dependency and a test suite using the `Unittest` Library.
 //
