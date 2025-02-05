@@ -16,7 +16,7 @@ import mill.define.Cross
 object `package` extends RootModule with build.MillStableScalaModule {
   def moduleDeps = Seq(build.main, build.scalalib.api, build.testrunner)
   def ivyDeps = {
-    Agg(build.Deps.scalafmtDynamic, build.Deps.scalaXml) ++ {
+    Agg(build.Deps.scalafmtDynamic, build.Deps.scalaXml, build.Deps.spotless) ++ {
       // despite compiling with Scala 3, we need to include scala-reflect
       // for the scala.reflect.internal.util.ScalaClassLoader
       // used in ScalaModule.scalacHelp,
