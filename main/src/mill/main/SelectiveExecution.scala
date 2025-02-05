@@ -6,7 +6,7 @@ import mill.eval.{CodeSigUtils, Evaluator, EvaluatorCore, Plan, Terminal}
 import mill.main.client.OutFiles
 import mill.util.SpanningForest.breadthFirst
 import mill.resolve.{Resolve, SelectMode}
-import mill.util.SpanningForest
+import mill.util.{MultiBiMap, SpanningForest}
 
 private[mill] object SelectiveExecution {
   case class Metadata(inputHashes: Map[String, Int], methodCodeHashSignatures: Map[String, Int])
@@ -42,11 +42,9 @@ private[mill] object SelectiveExecution {
   }
 
   def computeHashCodeSignatures(
-      res: Array[Terminal.Labelled[_]],
+      sortedGroups: MultiBiMap[Terminal, Task[?]],
       methodCodeHashSignatures: Map[String, Int]
   ): Map[String, Int] = {
-
-    val (sortedGroups, transitive) = Plan.plan(res.map(_.task).toSeq)
 
     val (classToTransitiveClasses, allTransitiveClassMethods) =
       CodeSigUtils.precomputeMethodNamesPerClass(sortedGroups)
@@ -88,8 +86,8 @@ private[mill] object SelectiveExecution {
 
     val changedInputNames = diffMap(oldHashes.inputHashes, newHashes.inputHashes)
     val changedCodeNames = diffMap(
-      computeHashCodeSignatures(terminals, oldHashes.methodCodeHashSignatures),
-      computeHashCodeSignatures(terminals, newHashes.methodCodeHashSignatures)
+      computeHashCodeSignatures(sortedGroups, oldHashes.methodCodeHashSignatures),
+      computeHashCodeSignatures(sortedGroups, newHashes.methodCodeHashSignatures)
     )
 
     val changedRootTasks = (changedInputNames ++ changedCodeNames)
