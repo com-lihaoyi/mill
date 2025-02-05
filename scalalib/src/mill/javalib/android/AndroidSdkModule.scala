@@ -193,7 +193,7 @@ trait AndroidSdkModule extends Module {
     AndroidSdkLock.synchronized {
       val missingPackages = packages.filter(p => !isPackageInstalled(sdkPath0.path, p))
       val packagesWithoutLicense = missingPackages
-        .map(p => (p, isLicenseAccepted(sdkPath0.path, remoteReposInfo().path, p)))
+        .map(p => (p, isLicenseAccepted(sdkPath0.path, remoteReposInfo()().path, p)))
         .filter(!_._2)
       if (packagesWithoutLicense.nonEmpty) {
         throw new IllegalStateException(
