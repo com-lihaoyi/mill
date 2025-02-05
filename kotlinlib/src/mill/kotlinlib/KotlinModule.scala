@@ -84,16 +84,40 @@ trait KotlinModule extends JavaModule { outer =>
   /** Flag to use KSP */
   def kotlinSymbolProcessing: T[Boolean] = Task { false }
 
+  def kspProjectBaseDir: T[PathRef] = Task { PathRef(millSourcePath) }
+
+  /** KSP output dir */
+  def kspOutputDir: T[PathRef] = Task {
+    PathRef(T.dest / "generated" / "ksp" / "main")
+  }
+
+  /** KSP caches dir */
+  def kspCachesDir: T[PathRef] = Task {
+    PathRef(T.dest / "main")
+  }
+
+  /** ksp generated sources */
+  private def kspGeneratedSources: T[Seq[PathRef]] = Task {
+    if (kotlinSymbolProcessing())
+      Seq(kspOutputDir())
+    else
+      Seq.empty
+  }
+
+  override def generatedSources: T[Seq[PathRef]] = Task {
+    super.generatedSources() ++ kspGeneratedSources()
+  }
+
   /**
    * Mandatory plugins that are needed for KSP to work.
    * For more info go to [[https://kotlinlang.org/docs/ksp-command-line.html]]
    * @return
    */
-  final def kspPlugins: T[Agg[Dep]] = Task {
+  def kspPlugins: T[Agg[Dep]] = Task {
     if (kotlinSymbolProcessing()) {
       Agg(
         ivy"com.google.devtools.ksp:symbol-processing-api:${kotlinVersion()}-${symbolProcessingVersion()}",
-        ivy"com.google.devtools.ksp:symbol-processing-cmdline:${kotlinVersion()}-${symbolProcessingVersion()}"
+        ivy"com.google.devtools.ksp:symbol-processing:${kotlinVersion()}-${symbolProcessingVersion()}"
       )
     } else Agg.empty[Dep]
   }
@@ -149,11 +173,26 @@ trait KotlinModule extends JavaModule { outer =>
   def kotlinSymbolProcessorId: T[String] = Task { "com.google.devtools.ksp.symbol-processing" }
 
   /**
+   * If ksp plugins are used, switch to embeddable to avoid
+   * any classpath conflicts.
+   *
+   * TODO consider switching to embeddable permanently
+   *
+   * @return kotlin-compiler or kotlin-compiler-embeddable dependency
+   */
+  def kotlinCompilerDep: T[Dep] = Task {
+    if (kotlinSymbolProcessing())
+      ivy"org.jetbrains.kotlin:kotlin-compiler-embeddable:${kotlinCompilerVersion()}"
+    else
+      ivy"org.jetbrains.kotlin:kotlin-compiler:${kotlinCompilerVersion()}"
+  }
+
+  /**
    * The Ivy/Coursier dependencies resembling the Kotlin compiler.
    * Default is derived from [[kotlinCompilerVersion]].
    */
   def kotlinCompilerIvyDeps: T[Seq[Dep]] = Task {
-    Seq(ivy"org.jetbrains.kotlin:kotlin-compiler:${kotlinCompilerVersion()}") ++
+    Seq(kotlinCompilerDep()) ++
       (
         if (
           !Seq("1.0.", "1.1.", "1.2.0", "1.2.1", "1.2.2", "1.2.3", "1.2.4").exists(prefix =>
@@ -309,17 +348,17 @@ trait KotlinModule extends JavaModule { outer =>
 
         val apClasspath = kotlinSymbolProcessorsResolved().map(_.path).mkString(File.pathSeparator)
 
-        val out = dest / "out"
-        os.makeDir.all(out)
+        val out = kspOutputDir().path
+
         val pluginConfigs = Seq(
           s"$pluginOpt:apclasspath=$apClasspath",
-          s"$pluginOpt:projectBaseDir=${millSourcePath}",
-          s"$pluginOpt:classOutputDir=${out}",
-          s"$pluginOpt:javaOutputDir=${out}",
-          s"$pluginOpt:kotlinOutputDir=${out}",
-          s"$pluginOpt:resourceOutputDir=${out}",
+          s"$pluginOpt:projectBaseDir=${kspProjectBaseDir().path}",
+          s"$pluginOpt:classOutputDir=${out / "classes"}",
+          s"$pluginOpt:javaOutputDir=${out / "java"}",
+          s"$pluginOpt:kotlinOutputDir=${out / "kotlin"}",
+          s"$pluginOpt:resourceOutputDir=${out / "resources"}",
           s"$pluginOpt:kspOutputDir=${out}",
-          s"$pluginOpt:cachesDir=${out}",
+          s"$pluginOpt:cachesDir=${kspCachesDir}",
           s"$pluginOpt:incremental=true",
           s"$pluginOpt:allWarningsAsErrors=false",
           s"$pluginOpt:returnOkOnError=true",
@@ -357,7 +396,6 @@ trait KotlinModule extends JavaModule { outer =>
           // apply multi-platform support (expect/actual)
           // TODO if there is penalty for activating it in the compiler, put it behind configuration flag
 //          Seq("-Xmulti-platform"),
-          Seq("-Xallow-no-source-files"),
           // classpath
           when(compileCp.iterator.nonEmpty)(
             "-classpath",
@@ -448,12 +486,25 @@ trait KotlinModule extends JavaModule { outer =>
    * A test sub-module linked to its parent module best suited for unit-tests.
    */
   trait KotlinTests extends JavaTests with KotlinModule {
+
+    override def kotlinLanguageVersion: T[String] = outer.kotlinLanguageVersion()
+    override def kotlinApiVersion: T[String] = outer.kotlinApiVersion()
     override def kotlinExplicitApi: T[Boolean] = false
     override def kotlinVersion: T[String] = Task { outer.kotlinVersion() }
     override def kotlinCompilerVersion: T[String] = Task { outer.kotlinCompilerVersion() }
     override def kotlincOptions: T[Seq[String]] = Task {
       outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
         Seq(s"-Xfriend-paths=${outer.compile().classes.path.toString()}")
+    }
+
+    override def kspProjectBaseDir: T[PathRef] = outer.kspProjectBaseDir
+
+    override def kspOutputDir: T[PathRef] = Task {
+      PathRef(T.dest / "generated" / "ksp" / "test")
+    }
+
+    override def kspCachesDir: T[PathRef] = Task {
+      PathRef(T.dest / "test")
     }
   }
 

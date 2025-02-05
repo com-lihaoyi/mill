@@ -3,127 +3,57 @@
 package build
 import mill._, kotlinlib._
 
-object foo extends KotlinModule {
+object dagger extends KotlinModule {
   def kotlinVersion = "2.1.0"
 
   def kotlinLanguageVersion = "1.9"
 
-  def mainClass = Some("io.vaslabs.Main.kt")
-
-  def ivyDeps = Agg(
-    ivy"org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion()}"
-  )
+  def mainClass = Some("com.example.dagger.Main.kt")
 
   def kotlincOptions = super.kotlincOptions() ++ Seq("-no-reflect", "-verbose")
 
   def kotlinSymbolProcessing = true
+
+  def ivyDeps = Agg(
+    ivy"com.google.dagger:dagger-compiler:2.55"
+  )
 
   def kotlinSymbolProcessors = Agg(
     ivy"com.google.dagger:dagger-compiler:2.55"
   )
 
   object test extends KotlinTests with TestModule.Junit5 {
+    def kotlinSymbolProcessing = true
+
+    def kotlincOptions = super.kotlincOptions() ++ Seq("-no-reflect", "-verbose")
+
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"org.jetbrains.kotlin:kotlin-test:${kotlinVersion()}"
+      ivy"com.google.dagger:dagger-compiler:2.55",
+      ivy"org.jetbrains.kotlin:kotlin-test:${super.kotlinVersion()}"
     )
+
+    def kotlinSymbolProcessors = Agg(
+      ivy"com.google.dagger:dagger-compiler:2.55"
+    )
+
   }
 }
 
-// This is a basic Mill build for a single `KotlinModule`, with two
-// third-party dependencies and a test suite using the JUnit framework.
-//// SNIPPET:TREE
-// ----
-// build.mill
-// foo/
-//     src/
-//         foo/Foo.kt
-//     resources/
-//         ...
-//     test/
-//         src/
-//             foo/FooTest.kt
-// out/foo/
-//     compile.json
-//     compile.dest/
-//     ...
-//     test/
-//         compile.json
-//         compile.dest/
-//         ...
-// ----
-//
-// NOTE: The default Mill source folder layout `foo/src/` differs from that of Maven/Gradle's
-// `foo/src/main/kotlin`. If you wish to use the Maven source folder layout, e.g. for migrating
-// an existing codebase, you should use
-// xref:#_maven_compatible_modules[Maven-Compatible Modules]
-//
-//// SNIPPET:DEPENDENCIES
-//
-// This example project uses two third-party dependencies - Clikt for CLI
-// argument parsing, Apache Commons Text for HTML escaping - and uses them to wrap a
-// given input string in HTML templates with proper escaping.
-//
-// Typical usage of a `KotlinModule` is shown below
+// This is a basic Mill build for a single `KotlinModule`, with
+// the purpose to demonstrate the Kotlin Symbol Processing API
+// using Dagger, a dependency injection framework as an example.
 
 /** Usage
 
-> ./mill resolve foo._ # List what tasks are available to run
-foo.assembly
+> ./mill dagger.compile
 ...
-foo.compile
-...
-foo.run
-...
+{
+ "analysisFile": "/...out/dagger/compile.dest/kotlin.analysis.dummy",
+ "classes": ".../out/dagger/compile.dest/classes"
+}
 
-> ./mill inspect foo.compile # Show documentation and inputs of a task
-foo.compile(KotlinModule...)
-    Compiles all the sources to JVM class files.
-    Compiles the current module to generate compiled classfiles/bytecode.
-    When you override this, you probably also want/need to override [[bspCompileClassesPath]],
-    as that needs to point to the same compilation output path.
-    Keep in sync with [[bspCompileClassesPath]]
-Inputs:
-    foo.allJavaSourceFiles
-    foo.allKotlinSourceFiles
-    foo.compileClasspath
-    foo.upstreamCompileOutput
-    foo.javacOptions
-    foo.zincReportCachedProblems
-    foo.kotlincOptions
-    foo.kotlinCompilerClasspath
-...
+> cat out/dagger/compile.dest/out/symbolLookups/symbols
 
-> ./mill foo.compile # compile sources into classfiles
-...
-Compiling 1 Kotlin sources to...
+{"src/main/kotlin/RandomNumberGenerator.kt":["RandomNumberGenerator:com.example.dagger","generate:com.example.dagger.RandomNumberGenerator"],"src/main/kotlin/NumberService.kt":["NumberService:com.example.dagger","generateNNumbers:com.example.dagger.NumberService","generateNumber:com.example.dagger.NumberService"],"src/main/kotlin/NumberGenerator.kt":["NumberGenerator:com.example.dagger","generate:com.example.dagger.NumberGenerator"],"src/main/kotlin/Main.kt":["main:com.example.dagger"],"src/main/kotlin/NumberGeneratorModule.kt":["NumberGeneratorModule:com.example.dagger","bindNumberGenerator:com.example.dagger.NumberGeneratorModule"],"src/main/kotlin/NumberApp.kt":["numberService:com.example.dagger.NumberApp","NumberApp:com.example.dagger"]}
 
-> ./mill foo.run # run the main method, if any
-error: Error: missing option --text
-...
-
-> ./mill foo.run --text hello
-<h1>hello</h1>
-
-> ./mill foo.test
-...
-Test foo.FooTest testSimple finished, ...
-Test foo.FooTest testEscaping finished, ...
-Test foo.FooTest finished, ...
-Test run finished: 0 failed, 0 ignored, 2 total, ...
-
-> ./mill foo.assembly # bundle classfiles and libraries into a jar for deployment
-
-> ./mill show foo.assembly # show the output of the assembly task
-".../out/foo/assembly.dest/out.jar"
-
-> java -jar ./out/foo/assembly.dest/out.jar --text hello
-<h1>hello</h1>
-
-> ./out/foo/assembly.dest/out.jar --text hello # mac/linux
-<h1>hello</h1>
-
-> cp ./out/foo/assembly.dest/out.jar out.bat # windows
-
-> ./out.bat --text hello # windows
-<h1>hello</h1>
 */
