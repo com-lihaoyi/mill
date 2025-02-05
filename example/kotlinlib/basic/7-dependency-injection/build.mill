@@ -29,7 +29,7 @@ object dagger extends KotlinModule {
 
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy"com.google.dagger:dagger-compiler:2.55",
-      ivy"org.jetbrains.kotlin:kotlin-test:${super.kotlinVersion()}"
+      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
     )
 
     def kotlinSymbolProcessors = Agg(
@@ -45,15 +45,37 @@ object dagger extends KotlinModule {
 
 /** Usage
 
-> ./mill dagger.compile
+> ./mill show dagger.compile
+
+> ls out/dagger/kspOutputDir.dest/generated/ksp/main/java/com/example/dagger/
+DaggerNumberApp.java
+NumberService_Factory.java
+RandomNumberGenerator_Factory.java
+
+> ./mill show dagger.test
 ...
-{
- "analysisFile": "/...out/dagger/compile.dest/kotlin.analysis.dummy",
- "classes": ".../out/dagger/compile.dest/classes"
-}
+[
+  "",
+  [
+    {
+      "fullyQualifiedName": "com.example.dagger.TestConstantNumberGeneratorInjection",
+      "selector": "SuiteSelector",
+      "duration": ...,
+      "status": "Success"
+    },
+    {
+      "fullyQualifiedName": "com.example.dagger.TestConstantNumberGeneratorInjection",
+      "selector": "SuiteSelector",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+]
+...
 
-> cat out/dagger/compile.dest/out/symbolLookups/symbols
-
-{"src/main/kotlin/RandomNumberGenerator.kt":["RandomNumberGenerator:com.example.dagger","generate:com.example.dagger.RandomNumberGenerator"],"src/main/kotlin/NumberService.kt":["NumberService:com.example.dagger","generateNNumbers:com.example.dagger.NumberService","generateNumber:com.example.dagger.NumberService"],"src/main/kotlin/NumberGenerator.kt":["NumberGenerator:com.example.dagger","generate:com.example.dagger.NumberGenerator"],"src/main/kotlin/Main.kt":["main:com.example.dagger"],"src/main/kotlin/NumberGeneratorModule.kt":["NumberGeneratorModule:com.example.dagger","bindNumberGenerator:com.example.dagger.NumberGeneratorModule"],"src/main/kotlin/NumberApp.kt":["numberService:com.example.dagger.NumberApp","NumberApp:com.example.dagger"]}
+> ls out/dagger/test/kspOutputDir.dest/generated/ksp/main/java/com/example/dagger/
+ConstantNumberGenerator_Factory.java
+DaggerDemoComponent.java
+DaggerTestApp.java
 
 */

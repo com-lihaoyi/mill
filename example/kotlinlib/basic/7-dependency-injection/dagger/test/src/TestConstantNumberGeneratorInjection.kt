@@ -1,19 +1,16 @@
 package com.example.dagger
 
-import kotlin.test.Test
-import kotlin.test.assertEquals
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 
-class TestConstantNumberGeneratorInjection {
-
-    @Test
-    fun testGeneratedNumberFromInjection() {
-        val testApp = DaggerTestApp.create()
-        assertEquals(testApp.numberService().generateNumber(), 42)
-    }
-
-    @Test
-    fun testGeneratedNumbers() {
-        val testApp = DaggerTestApp.create()
-        assertEquals(testApp.numberService().generateNNumbers(5), (1..5).map { 42 })
-    }
-}
+class TestConstantNumberGeneratorInjection :
+    FunSpec({
+        test("testGeneratedNumberFromInjection") {
+            val testApp = DaggerTestApp.create()
+            testApp.numberService().generateNumber() shouldBe 42
+        }
+        test("testGeneratedNumbers") {
+            val testApp = DaggerTestApp.create()
+            testApp.numberService().generateNNumbers(5) shouldBe (1..5).map { 42 }
+        }
+    })
