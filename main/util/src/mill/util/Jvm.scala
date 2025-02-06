@@ -94,12 +94,6 @@ object Jvm extends CoursierSupport {
         destroyOnExit = destroyOnExit,
         check = check
       )
-    /*if (check) {
-      if (processResult.exitCode != 0) throw Result.Failure(
-        "Interactive Subprocess Failed (exit code " + processResult.exitCode + ")",
-        Some(processResult.exitCode)
-      )
-    }*/
     processResult
   }
 
