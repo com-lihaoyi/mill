@@ -3,7 +3,7 @@ import mill._
 
 println("Setting up build.mill")
 
-def foo = Task.Sources(millSourcePath / "foo1.txt", millSourcePath / "foo2.txt")
+def foo = Task.Sources("foo1.txt", "foo2.txt")
 def bar = Task.Source("bar.txt")
 
 def qux = Task {
