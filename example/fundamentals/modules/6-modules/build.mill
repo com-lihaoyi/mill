@@ -238,7 +238,7 @@ object outer2 extends MyModule {
 //
 
 trait Foo extends Module {
-  def sourceRoots = Task.Sources(millSourcePath / "src")
+  def sourceRoots = Task.Sources("src")
   def sourceContents = Task {
     sourceRoots()
       .flatMap(pref => os.walk(pref.path))
@@ -249,7 +249,7 @@ trait Foo extends Module {
 }
 
 trait Bar extends Foo {
-  def additionalSources = Task.Sources(millSourcePath / "src2")
+  def additionalSources = Task.Sources("src2")
   def sourceRoots = Task { super.sourceRoots() ++ additionalSources() }
 }
 

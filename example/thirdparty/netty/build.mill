@@ -456,7 +456,7 @@ object `testsuite-native` extends NettyTestSuiteModule {
     `transport-native-epoll`
   )
   def testModuleDeps = Seq(`resolver-dns-classes-macos`)
-  override def sources = Task.Sources(millSourcePath / "src/test/java")
+  override def sources = Task.Sources("src/test/java")
 }
 
 object `testsuite-native-image` extends NettyTestSuiteModule {
@@ -493,7 +493,7 @@ object `testsuite-osgi` extends NettyTestSuiteModule {
     `transport-udt`
   )
 
-  override def sources = Task.Sources(millSourcePath / "src/test/java")
+  override def sources = Task.Sources("src/test/java")
 
   def ivyDeps = super.ivyDeps() ++ Agg(
     ivy"org.apache.felix:org.apache.felix.configadmin:1.9.14",
@@ -506,7 +506,7 @@ object `testsuite-osgi` extends NettyTestSuiteModule {
 
 object `testsuite-shading` extends NettyTestSuiteModule {
   def moduleDeps = Seq(common)
-  override def sources = Task.Sources(millSourcePath / "src/test/java")
+  override def sources = Task.Sources("src/test/java")
 }
 
 object transport extends NettyModule {
