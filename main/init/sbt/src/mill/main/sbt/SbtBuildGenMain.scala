@@ -2,6 +2,7 @@ package mill.main.sbt
 
 import mainargs.{ParserForClass, main}
 import mill.main.buildgen.*
+import mill.main.buildgen.BuildGenUtil.escape
 
 /**
  * Converts an SBT build to Mill by generating Mill build file(s).
@@ -45,7 +46,6 @@ object SbtBuildGenMain extends BuildGenBase[IrBuild, String] {
 
     println("converting SBT build")
 
-
     import scala.sys.process.*
 
     // resolve the sbt executable
@@ -61,9 +61,11 @@ object SbtBuildGenMain extends BuildGenBase[IrBuild, String] {
         "No sbt executable (`./sbt`, `./sbtx`, or system-wide `sbt`) found"
       )
 
-    sbtExecutable.!
+    s"$sbtExecutable -addPluginSbtFile=${writeSbtFile().toString()} millInitGenerateProjectTree".!
 
-    ProjectTree()
+    import upickle.default.*
+    val projectTree = read[ProjectTree](os.read(workspace / "target" / "mill-init-project-tree.json"))
+    println("Project tree retrieved: " + projectTree)
 
     /*
     val connector = GradleConnector.newConnector()
@@ -98,27 +100,19 @@ object SbtBuildGenMain extends BuildGenBase[IrBuild, String] {
      */
   }
 
-  /*
-  private def writeGradleInitScript: os.Path = {
-    val file = os.temp.dir() / "init.gradle"
-    val classpath =
-      os.Path(classOf[ProjectTreePlugin].getProtectionDomain.getCodeSource.getLocation.toURI)
-    val plugin = classOf[ProjectTreePlugin].getName
+  private def writeSbtFile(): os.Path = {
+    val file = os.temp.dir() / "mill-init.sbt"
+    // TODO copy to a temp file if it doesn't work when packaged in a jar
+    val sbtPluginJarUrl =
+      getClass.getResource("/sbt-mill-init-generate-project-tree.jar").toExternalForm
     val contents =
-      s"""initscript {
-         |    dependencies {
-         |        classpath files(${escape(classpath.toString()) /* escape for Windows */})
-         |    }
-         |}
-         |
-         |allprojects {
-         |    apply plugin: $plugin
-         |}
+      s"""addSbtPlugin("com.lihaoyi" % "mill-main-init-sbt-sbt-mill-init-generate-project-tree" % "" from ${escape(
+          sbtPluginJarUrl
+        )})
          |""".stripMargin
     os.write(file, contents)
     file
   }
-   */
 
   override def getSuperTypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[IrBuild]): Seq[String] =
     ???

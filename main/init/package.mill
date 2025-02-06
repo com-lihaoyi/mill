@@ -1,7 +1,7 @@
 package build.main.init
 
 import mill._
-import mill.scalalib.CrossScalaModule
+import mill.scalalib.{CrossScalaModule, ScalaModule}
 
 object `package` extends RootModule with build.MillPublishScalaModule {
 
@@ -90,6 +90,14 @@ object `package` extends RootModule with build.MillPublishScalaModule {
   object sbt extends build.MillPublishScalaModule {
     def moduleDeps = Seq(buildgen, models(build.Deps.scalaVersion))
 
+    // generateSbtPlugin
+    def sbtPluginResources = Task {
+      val assemblyPathRef = `sbt-mill-init-generate-project-tree`.assembly()
+      os.copy(assemblyPathRef.path, Task.dest / "sbt-mill-init-generate-project-tree.jar")
+      PathRef(Task.dest)
+    }
+    def resources: T[Seq[PathRef]] =
+      Task.Sources(super.resources() ++ Seq(sbtPluginResources()))
     def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib, buildgen.test)
 
     // An SBT plugin is built with Scala 2.12. See https://www.scala-sbt.org/1.x/docs/Plugins.html#Creating+an+auto+plugin.
@@ -100,7 +108,8 @@ object `package` extends RootModule with build.MillPublishScalaModule {
     }
 
     // no need to publish this
-    object `sbt-mill-init-generate-project-tree` extends build.MillScalaModule {
+    // `test` fails with `build.MillScalaModule`, and since it's an SBT plugin project it's most likely not needed.
+    object `sbt-mill-init-generate-project-tree` extends ScalaModule {
       private val scalaVersionString = build.Deps.sbtScalaVersion212
       def scalaVersion = scalaVersionString
       def moduleDeps = Seq(models(scalaVersionString))
