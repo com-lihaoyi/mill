@@ -1,5 +1,6 @@
 package build.scalalib
 import scala.util.chaining._
+
 import coursier.maven.MavenRepository
 import mill._
 import mill.api.JarManifest
@@ -81,7 +82,15 @@ object `package` extends RootModule with build.MillStableScalaModule {
         "Dependency to jupiter-interface"
       ),
       BuildInfo.Value("errorProneVersion", build.Deps.RuntimeDeps.errorProneCore.version),
-      BuildInfo.Value("coursierJvmIndexVersion", build.Deps.coursierJvmIndexVersion)
+      BuildInfo.Value("coursierJvmIndexVersion", build.Deps.coursierJvmIndexVersion),
+      BuildInfo.Value("springBuildToolsVersion", build.Deps.springBootTools.version),
+      BuildInfo.Value(
+        "millSpringBootWorkerDep", {
+          val dep = `spring-boot-worker`.publishSelfDependency()
+          s"${dep.group}:${dep.id}:${dep.version}"
+        },
+        "The dependency containing the worker implementation to be loaded at runtime."
+      )
     )
   }
 
@@ -92,6 +101,13 @@ object `package` extends RootModule with build.MillStableScalaModule {
     def buildInfoObjectName = "Versions"
     def buildInfoMembers = Seq(
       BuildInfo.Value("zinc", build.Deps.zinc.dep.version, "Version of Zinc.")
+    )
+  }
+
+  object `spring-boot-worker` extends build.MillPublishScalaModule {
+    def moduleDeps = Seq(api)
+    def ivyDeps = Agg(
+      build.Deps.springBootTools
     )
   }
 }
