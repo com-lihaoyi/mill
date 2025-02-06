@@ -2,7 +2,7 @@ package mill.main
 
 import mill.api._
 import mill.define._
-import mill.eval.{Evaluator, EvaluatorPaths, Terminal}
+import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.moduledefs.Scaladoc
 import mill.resolve.SelectMode.Separated
 import mill.resolve.{Resolve, SelectMode}
@@ -80,7 +80,7 @@ object MainModule {
   def plan0(
       evaluator: Evaluator,
       tasks: Seq[String]
-  ): Either[String, Array[Terminal.Labelled[_]]] = {
+  ): Either[String, Array[NamedTask[_]]] = {
     Resolve.Tasks.resolve(
       evaluator.rootModule,
       tasks,
@@ -89,7 +89,7 @@ object MainModule {
       case Left(err) => Left(err)
       case Right(rs) =>
         val plan = evaluator.plan(rs)
-        Right(plan.sortedGroups.keys().collect { case r: Terminal.Labelled[_] => r }.toArray)
+        Right(plan.sortedGroups.keys().collect { case r: NamedTask[_] => r }.toArray)
     }
   }
 
@@ -141,7 +141,7 @@ trait MainModule extends BaseModule {
       MainModule.plan0(evaluator, targets) match {
         case Left(err) => Result.Failure(err)
         case Right(success) =>
-          val renderedTasks = success.map(_.task.ctx.segments.render)
+          val renderedTasks = success.map(_.toString)
           renderedTasks.foreach(println)
           Result.Success(renderedTasks)
       }
@@ -538,7 +538,7 @@ trait MainModule extends BaseModule {
             targets,
             Target.ctx(),
             mill.main.VisualizeModule.worker(),
-            Some(planResults.toList.map(_.task))
+            Some(planResults.toList)
           )
       }
     }

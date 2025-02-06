@@ -77,7 +77,7 @@ object Evaluator {
     def rawValues: Seq[Result[Val]]
     def evaluated: Agg[Task[_]]
     def transitive: Agg[Task[_]]
-    def failing: MultiBiMap[Terminal, Result.Failing[Val]]
+    def failing: MultiBiMap[Task[_], Result.Failing[Val]]
     def results: collection.Map[Task[_], TaskResult[Val]]
     def values: Seq[Val] = rawValues.collect { case Result.Success(v) => v }
   }
@@ -111,7 +111,7 @@ object Evaluator {
           case Result.Exception(Result.Failure(t, _), _) => t
           case ex: Result.Exception => ex.toString
         }
-        s"${k.render} ${fss.iterator.mkString(", ")}"
+        s"${k} ${fss.iterator.mkString(", ")}"
       }).mkString("\n")
   }
 

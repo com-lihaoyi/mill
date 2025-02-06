@@ -81,7 +81,7 @@ trait VisualizeModule extends mill.define.TaskModule {
 
           org.jgrapht.alg.TransitiveReduction.INSTANCE.reduce(jgraph)
           val nodes = indexToTask.map(t =>
-            node(plan.sortedGroups.lookupValue(t).render)
+            node(plan.sortedGroups.lookupValue(t).toString)
               .`with` {
                 if (tasks.contains(t)) Style.SOLID
                 else Style.DASHED

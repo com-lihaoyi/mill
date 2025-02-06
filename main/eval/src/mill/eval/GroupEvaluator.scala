@@ -42,7 +42,7 @@ private[mill] trait GroupEvaluator {
 
   // those result which are inputs but not contained in this terminal group
   def evaluateGroupCached(
-      terminal: Terminal,
+      terminal: Task[_],
       group: Agg[Task[_]],
       results: Map[Task[_], TaskResult[(Val, Int)]],
       countMsg: String,
@@ -85,7 +85,86 @@ private[mill] trait GroupEvaluator {
         externalInputsHash + sideHashes + classLoaderSigHash + scriptsHash + javaHomeHash
 
       terminal match {
-        case Terminal.Task(task) =>
+
+        case labelled: NamedTask[_] =>
+          val out = if (!labelled.ctx.external) outPath else externalOutPath
+          val paths = EvaluatorPaths.resolveDestPaths(out, labelled.ctx.segments)
+          val cached = loadCachedJson(logger, inputsHash, labelled, paths)
+
+          // `cached.isEmpty` means worker metadata file removed by user so recompute the worker
+          val upToDateWorker = loadUpToDateWorker(logger, inputsHash, labelled, cached.isEmpty)
+
+          val cachedValueAndHash =
+            upToDateWorker.map((_, inputsHash))
+              .orElse(cached.flatMap { case (inputHash, valOpt, valueHash) =>
+                valOpt.map((_, valueHash))
+              })
+
+          cachedValueAndHash match {
+            case Some((v, hashCode)) =>
+              val res = Result.Success((v, hashCode))
+              val newResults: Map[Task[_], TaskResult[(Val, Int)]] =
+                Map(labelled -> TaskResult(res, () => res))
+
+              GroupEvaluator.Results(
+                newResults,
+                Nil,
+                cached = true,
+                inputsHash,
+                -1,
+                valueHashChanged = false
+              )
+
+            case _ =>
+              // uncached
+              if (labelled.flushDest) os.remove.all(paths.dest)
+
+              val (newResults, newEvaluated) =
+                evaluateGroup(
+                  group,
+                  results,
+                  inputsHash,
+                  paths = Some(paths),
+                  maybeTargetLabel = Some(terminal.toString),
+                  counterMsg = countMsg,
+                  verboseKeySuffix = verboseKeySuffix,
+                  zincProblemReporter,
+                  testReporter,
+                  logger,
+                  executionContext,
+                  exclusive
+                )
+
+              val valueHash = newResults(labelled) match {
+                case TaskResult(Result.Failure(_, Some((v, _))), _) =>
+                  val valueHash = getValueHash(v, terminal, inputsHash)
+                  handleTaskResult(v, valueHash, paths.meta, inputsHash, labelled)
+                  valueHash
+
+                case TaskResult(Result.Success((v, _)), _) =>
+                  val valueHash = getValueHash(v, terminal, inputsHash)
+                  handleTaskResult(v, valueHash, paths.meta, inputsHash, labelled)
+                  valueHash
+
+                case _ =>
+                  // Wipe out any cached meta.json file that exists, so
+                  // a following run won't look at the cached metadata file and
+                  // assume it's associated with the possibly-borked state of the
+                  // destPath after an evaluation failure.
+                  os.remove.all(paths.meta)
+                  0
+              }
+
+              GroupEvaluator.Results(
+                newResults,
+                newEvaluated.toSeq,
+                cached = if (labelled.isInstanceOf[InputImpl[_]]) null else false,
+                inputsHash,
+                cached.map(_._1).getOrElse(-1),
+                !cached.map(_._3).contains(valueHash)
+              )
+          }
+        case task =>
           val (newResults, newEvaluated) = evaluateGroup(
             group,
             results,
@@ -109,84 +188,6 @@ private[mill] trait GroupEvaluator {
             valueHashChanged = false
           )
 
-        case labelled: Terminal.Labelled[_] =>
-          val out = if (!labelled.task.ctx.external) outPath else externalOutPath
-          val paths = EvaluatorPaths.resolveDestPaths(out, labelled.task.ctx.segments)
-          val cached = loadCachedJson(logger, inputsHash, labelled, paths)
-
-          // `cached.isEmpty` means worker metadata file removed by user so recompute the worker
-          val upToDateWorker = loadUpToDateWorker(logger, inputsHash, labelled, cached.isEmpty)
-
-          val cachedValueAndHash =
-            upToDateWorker.map((_, inputsHash))
-              .orElse(cached.flatMap { case (inputHash, valOpt, valueHash) =>
-                valOpt.map((_, valueHash))
-              })
-
-          cachedValueAndHash match {
-            case Some((v, hashCode)) =>
-              val res = Result.Success((v, hashCode))
-              val newResults: Map[Task[_], TaskResult[(Val, Int)]] =
-                Map(labelled.task -> TaskResult(res, () => res))
-
-              GroupEvaluator.Results(
-                newResults,
-                Nil,
-                cached = true,
-                inputsHash,
-                -1,
-                valueHashChanged = false
-              )
-
-            case _ =>
-              // uncached
-              if (labelled.task.flushDest) os.remove.all(paths.dest)
-
-              val (newResults, newEvaluated) =
-                evaluateGroup(
-                  group,
-                  results,
-                  inputsHash,
-                  paths = Some(paths),
-                  maybeTargetLabel = Some(terminal.render),
-                  counterMsg = countMsg,
-                  verboseKeySuffix = verboseKeySuffix,
-                  zincProblemReporter,
-                  testReporter,
-                  logger,
-                  executionContext,
-                  exclusive
-                )
-
-              val valueHash = newResults(labelled.task) match {
-                case TaskResult(Result.Failure(_, Some((v, _))), _) =>
-                  val valueHash = getValueHash(v, terminal.task, inputsHash)
-                  handleTaskResult(v, valueHash, paths.meta, inputsHash, labelled)
-                  valueHash
-
-                case TaskResult(Result.Success((v, _)), _) =>
-                  val valueHash = getValueHash(v, terminal.task, inputsHash)
-                  handleTaskResult(v, valueHash, paths.meta, inputsHash, labelled)
-                  valueHash
-
-                case _ =>
-                  // Wipe out any cached meta.json file that exists, so
-                  // a following run won't look at the cached metadata file and
-                  // assume it's associated with the possibly-borked state of the
-                  // destPath after an evaluation failure.
-                  os.remove.all(paths.meta)
-                  0
-              }
-
-              GroupEvaluator.Results(
-                newResults,
-                newEvaluated.toSeq,
-                cached = if (labelled.task.isInstanceOf[InputImpl[_]]) null else false,
-                inputsHash,
-                cached.map(_._1).getOrElse(-1),
-                !cached.map(_._3).contains(valueHash)
-              )
-          }
       }
     }
   }
@@ -327,23 +328,22 @@ private[mill] trait GroupEvaluator {
       hashCode: Int,
       metaPath: os.Path,
       inputsHash: Int,
-      labelled: Terminal.Labelled[_]
+      labelled: NamedTask[_]
   ): Unit = {
-    for (w <- labelled.task.asWorker)
+    for (w <- labelled.asWorker)
       workerCache.synchronized {
         workerCache.update(w.ctx.segments, (workerCacheHash(inputsHash), v))
       }
 
     val terminalResult = labelled
-      .task
       .writerOpt
       .map { w =>
         upickle.default.writeJs(v.value)(using w.asInstanceOf[upickle.default.Writer[Any]])
       }
       .orElse {
-        labelled.task.asWorker.map { w =>
+        labelled.asWorker.map { w =>
           ujson.Obj(
-            "worker" -> ujson.Str(labelled.task.ctx.segments.render),
+            "worker" -> ujson.Str(labelled.toString),
             "toString" -> ujson.Str(v.value.toString),
             "inputsHash" -> ujson.Num(inputsHash)
           )
@@ -378,7 +378,7 @@ private[mill] trait GroupEvaluator {
   private def loadCachedJson(
       logger: ColorLogger,
       inputsHash: Int,
-      labelled: Terminal.Labelled[_],
+      labelled: NamedTask[_],
       paths: EvaluatorPaths
   ): Option[(Int, Option[Val], Int)] = {
     for {
@@ -391,13 +391,13 @@ private[mill] trait GroupEvaluator {
       cached.inputsHash,
       for {
         _ <- Option.when(cached.inputsHash == inputsHash)(())
-        reader <- labelled.task.readWriterOpt
+        reader <- labelled.readWriterOpt
         parsed <-
           try Some(upickle.default.read(cached.value)(using reader))
           catch {
             case e: PathRef.PathRefValidationException =>
               logger.debug(
-                s"${labelled.render}: re-evaluating; ${e.getMessage}"
+                s"$labelled: re-evaluating; ${e.getMessage}"
               )
               None
             case NonFatal(_) => None
@@ -413,10 +413,10 @@ private[mill] trait GroupEvaluator {
   private def loadUpToDateWorker(
       logger: ColorLogger,
       inputsHash: Int,
-      labelled: Terminal.Labelled[_],
+      labelled: NamedTask[_],
       forceDiscard: Boolean
   ): Option[Val] = {
-    labelled.task.asWorker
+    labelled.asWorker
       .flatMap { w =>
         workerCache.synchronized {
           workerCache.get(w.ctx.segments)
@@ -430,16 +430,16 @@ private[mill] trait GroupEvaluator {
         case (_, Val(obsolete: AutoCloseable)) =>
           // worker cached but obsolete, needs to be closed
           try {
-            logger.debug(s"Closing previous worker: ${labelled.render}")
+            logger.debug(s"Closing previous worker: $labelled")
             obsolete.close()
           } catch {
             case NonFatal(e) =>
               logger.error(
-                s"${labelled.render}: Errors while closing obsolete worker: ${e.getMessage()}"
+                s"$labelled: Errors while closing obsolete worker: ${e.getMessage()}"
               )
           }
           // make sure, we can no longer re-use a closed worker
-          labelled.task.asWorker.foreach { w =>
+          labelled.asWorker.foreach { w =>
             workerCache.synchronized {
               workerCache.remove(w.ctx.segments)
             }
