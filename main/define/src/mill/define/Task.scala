@@ -78,7 +78,6 @@ object Task extends TaskBase {
   def Source(value: Result[PathRef])(implicit ctx: mill.define.Ctx): Target[PathRef] =
     macro Target.Internal.sourceImpl2
 
-
   def Source(value: os.SubPath)(implicit ctx: mill.define.Ctx): Target[PathRef] =
     macro Target.Internal.sourceImpl3
 
@@ -484,7 +483,7 @@ object Target extends TaskBase {
     }
 
     def sourcesImpl3(c: Context)(values: c.Expr[os.SubPath]*)(ctx: c.Expr[mill.define.Ctx])
-    : c.Expr[Target[Seq[PathRef]]] = {
+        : c.Expr[Target[Seq[PathRef]]] = {
       import c.universe._
       val wrapped =
         for (value <- values.toList)
@@ -504,7 +503,6 @@ object Target extends TaskBase {
         )
       )
     }
-
 
     def sourceImpl1(c: Context)(value: c.Expr[Result[os.Path]])(ctx: c.Expr[mill.define.Ctx])
         : c.Expr[Target[PathRef]] = {
@@ -546,7 +544,7 @@ object Target extends TaskBase {
     }
 
     def sourceImpl3(c: Context)(value: c.Expr[os.SubPath])(ctx: c.Expr[mill.define.Ctx])
-    : c.Expr[Target[PathRef]] = {
+        : c.Expr[Target[PathRef]] = {
       import c.universe._
 
       val wrapped =
