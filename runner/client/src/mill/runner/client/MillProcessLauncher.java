@@ -249,7 +249,7 @@ public class MillProcessLauncher {
 
   private static AtomicReference<String> memoizedTerminalDims = new AtomicReference();
 
-  private final static boolean canUseNativeTerminal;
+  private static final boolean canUseNativeTerminal;
 
   static {
     boolean canUse;
@@ -260,8 +260,7 @@ public class MillProcessLauncher {
       } catch (Throwable ex) {
         canUse = false;
       }
-    else
-      canUse = false;
+    else canUse = false;
 
     canUseNativeTerminal = canUse;
   }
