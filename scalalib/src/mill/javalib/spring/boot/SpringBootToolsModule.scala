@@ -3,7 +3,7 @@ package mill.javalib.spring.boot
 import java.net.{URL, URLClassLoader}
 
 import mill.*
-import mill.define.ExternalModule
+import mill.define.{Discover, ExternalModule}
 import mill.javalib.spring.boot.worker.SpringBootTools
 import mill.javalib.{CoursierModule, Dep, DepSyntax}
 import mill.scalalib.api.Versions
@@ -18,7 +18,7 @@ trait SpringBootToolsModule extends CoursierModule {
     Versions.springBuildToolsVersion
   }
 
-  override def springBootToolsIvyDeps: T[Agg[Dep]] = Agg(
+  def springBootToolsIvyDeps: T[Agg[Dep]] = Agg(
     ivy"org.springframework.boot:spring-boot-loader-tools:${springBootToolsVersion()}"
   )
 
@@ -59,4 +59,6 @@ trait SpringBootToolsModule extends CoursierModule {
 
 }
 
-object SpringBootToolsModule extends ExternalModule with SpringBootToolsModule {}
+object SpringBootToolsModule extends ExternalModule with SpringBootToolsModule {
+  lazy val millDiscover = Discover[this.type]
+}

@@ -106,7 +106,8 @@ object `package` extends RootModule with build.MillStableScalaModule {
 
   object `spring-boot-worker` extends build.MillPublishScalaModule {
     def moduleDeps = Seq(api)
-    def ivyDeps = Agg(
+    def compileIvyDeps = Agg(
+      // we just bind against the API, will be loaded at Mill runtime by the module
       build.Deps.springBootTools
     )
   }
