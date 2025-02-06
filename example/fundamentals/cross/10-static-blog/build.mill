@@ -26,7 +26,7 @@ val posts = interp.watchValue {
 
 object post extends Cross[PostModule](posts)
 trait PostModule extends Cross.Module[String] {
-  def source = Task.Source(crossValue)
+  def source = Task.Source(millSourcePath / crossValue)
   def render = Task {
     val doc = Parser.builder().build().parse(os.read(source().path))
     val title = mdNameToTitle(crossValue)
