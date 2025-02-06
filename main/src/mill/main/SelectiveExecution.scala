@@ -2,7 +2,7 @@ package mill.main
 
 import mill.api.{Strict, Val}
 import mill.define.{InputImpl, NamedTask, Task}
-import mill.eval.{CodeSigUtils, Evaluator, EvaluatorCore, Plan, Terminal}
+import mill.eval.{CodeSigUtils, Evaluator, EvaluatorCore, Plan}
 import mill.main.client.OutFiles
 import mill.util.SpanningForest.breadthFirst
 import mill.resolve.{Resolve, SelectMode}
@@ -175,7 +175,7 @@ private[mill] object SelectiveExecution {
     for (changedTasks <- SelectiveExecution.computeChangedTasks(evaluator, tasks)) yield {
       val taskSet = changedTasks.downstreamTasks.toSet[Task[_]]
       val plan = Plan.plan(mill.api.Loose.Agg.from(changedTasks.downstreamTasks))
-      val indexToTerminal = plan.sortedGroups.keys().toArray.filter(t => taskSet.contains(t.task))
+      val indexToTerminal = plan.sortedGroups.keys().toArray.filter(t => taskSet.contains(t))
 
       val interGroupDeps = EvaluatorCore.findInterGroupDeps(plan.sortedGroups)
 
@@ -187,7 +187,7 @@ private[mill] object SelectiveExecution {
       val json = SpanningForest.writeJson(
         indexEdges = edgeIndices,
         interestingIndices = indexToTerminal.indices.toSet,
-        render = indexToTerminal(_).render
+        render = indexToTerminal(_).toString
       )
 
       // Simplify the tree structure to only show the direct paths to the tasks

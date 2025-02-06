@@ -5,18 +5,18 @@ import mill.util.MultiBiMap
 
 private[mill] class Plan(
     val transitive: Agg[Task[?]],
-    val sortedGroups: MultiBiMap[Terminal, Task[_]]
+    val sortedGroups: MultiBiMap[Task[_], Task[_]]
 )
 private[mill] object Plan {
   def plan(goals: Agg[Task[_]]): Plan = {
     val transitive = Plan.transitiveTargets(goals)
     val topoSorted = Plan.topoSorted(transitive)
 
-    val sortedGroups: MultiBiMap[Terminal, Task[_]] =
+    val sortedGroups: MultiBiMap[Task[_], Task[_]] =
       Plan.groupAroundImportantTargets(topoSorted) {
         // important: all named tasks and those explicitly requested
-        case t: NamedTask[Any] => Terminal.Labelled(t)
-        case t if goals.contains(t) => Terminal.Task(t)
+        case t: NamedTask[Any] => t
+        case t if goals.contains(t) => t
       }
 
     new Plan(transitive, sortedGroups)

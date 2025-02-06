@@ -46,10 +46,10 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
   }
 
   private def getFailing(
-      sortedGroups: MultiBiMap[Terminal, Task[_]],
+      sortedGroups: MultiBiMap[Task[_], Task[_]],
       results: Map[Task[_], Evaluator.TaskResult[(Val, Int)]]
-  ): MultiBiMap.Mutable[Terminal, Failing[Val]] = {
-    val failing = new MultiBiMap.Mutable[Terminal, Result.Failing[Val]]
+  ): MultiBiMap.Mutable[Task[_], Failing[Val]] = {
+    val failing = new MultiBiMap.Mutable[Task[_], Result.Failing[Val]]
     for ((k, vs) <- sortedGroups.items()) {
       val failures = vs.items.flatMap(results.get).collect {
         case Evaluator.TaskResult(f: Result.Failing[(Val, Int)], _) => f.map(_._1)
@@ -86,13 +86,13 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     val (classToTransitiveClasses, allTransitiveClassMethods) =
       CodeSigUtils.precomputeMethodNamesPerClass(Plan.transitiveNamed(goals))
 
-    val uncached = new ConcurrentHashMap[Terminal, Unit]()
-    val changedValueHash = new ConcurrentHashMap[Terminal, Unit]()
+    val uncached = new ConcurrentHashMap[Task[_], Unit]()
+    val changedValueHash = new ConcurrentHashMap[Task[_], Unit]()
 
-    val futures = mutable.Map.empty[Terminal, Future[Option[GroupEvaluator.Results]]]
+    val futures = mutable.Map.empty[Task[_], Future[Option[GroupEvaluator.Results]]]
 
     def evaluateTerminals(
-        terminals: Seq[Terminal],
+        terminals: Seq[Task[_]],
         forkExecutionContext: mill.api.Ctx.Fork.Impl,
         exclusive: Boolean
     ) = {
@@ -107,12 +107,12 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
         val deps = interGroupDeps(terminal)
 
         val group = plan.sortedGroups.lookupKey(terminal)
-        val exclusiveDeps = deps.filter(d => d.task.isExclusiveCommand)
+        val exclusiveDeps = deps.filter(d => d.isExclusiveCommand)
 
-        if (!terminal.task.isExclusiveCommand && exclusiveDeps.nonEmpty) {
+        if (!terminal.isExclusiveCommand && exclusiveDeps.nonEmpty) {
           val failure = Result.Failure(
-            s"Non-exclusive task ${terminal.render} cannot depend on exclusive task " +
-              exclusiveDeps.map(_.render).mkString(", ")
+            s"Non-exclusive task ${terminal} cannot depend on exclusive task " +
+              exclusiveDeps.mkString(", ")
           )
           val taskResults = group
             .map(t => (t, TaskResult[(Val, Int)](failure, () => failure)))
@@ -148,9 +148,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
                 } yield upstreamResults(item).map(_._1)
                 val logRun = inputResults.forall(_.result.isInstanceOf[Result.Success[_]])
 
-                val tickerPrefix = terminal.render.collect {
-                  case targetLabel if logRun && logger.enableTicker => targetLabel
-                }
+                val tickerPrefix = if (logRun && logger.enableTicker) terminal.toString else ""
 
                 val contextLogger = new PrefixLogger(
                   logger0 = logger,
@@ -205,13 +203,13 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     }
 
     val tasks0 = terminals0.filter {
-      case Terminal.Labelled(c: Command[_]) => false
+      case c: Command[_] => false
       case _ => true
     }
 
-    val tasksTransitive = Plan.transitiveTargets(Agg.from(tasks0.map(_.task))).toSet
+    val tasksTransitive = Plan.transitiveTargets(Agg.from(tasks0)).toSet
     val (tasks, leafExclusiveCommands) = terminals0.partition {
-      case Terminal.Labelled(t) => tasksTransitive.contains(t) || !t.isExclusiveCommand
+      case t: NamedTask[_] => tasksTransitive.contains(t) || !t.isExclusiveCommand
       case _ => !serialCommandExec
     }
 
@@ -261,8 +259,8 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 }
 
 private[mill] object EvaluatorCore {
-  def findInterGroupDeps(sortedGroups: MultiBiMap[Terminal, Task[_]])
-      : Map[Terminal, Seq[Terminal]] = {
+  def findInterGroupDeps(sortedGroups: MultiBiMap[Task[_], Task[_]])
+      : Map[Task[_], Seq[Task[_]]] = {
     sortedGroups
       .items()
       .map { case (terminal, group) =>
@@ -279,7 +277,7 @@ private[mill] object EvaluatorCore {
       rawValues: Seq[Result[Val]],
       evaluated: Agg[Task[_]],
       transitive: Agg[Task[_]],
-      failing: MultiBiMap[Terminal, Result.Failing[Val]],
+      failing: MultiBiMap[Task[_], Result.Failing[Val]],
       results: Map[Task[_], TaskResult[Val]]
   ) extends Evaluator.Results
 }
