@@ -63,18 +63,17 @@ private[scalalib] object TestModuleUtil {
 
       os.makeDir.all(sandbox)
 
-      val processResult = Jvm.call(
+      Jvm.callProcess(
         mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
         classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
         jvmArgs = jvmArgs,
         env = forkEnv ++ resourceEnv,
         mainArgs = Seq(testRunnerClasspathArg, argsFile.toString),
         cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
-        useCpPassingJar = useArgsFile,
+        cpPassingJarPath = Some(os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)),
         javaHome = javaHome
       )
-      mill.util.ProcessUtil.toResult(processResult).getOrThrow
-
+      
       if (!os.exists(outputPath)) Left(s"Test reporting Failed: ${outputPath} does not exist")
       else Right(upickle.default.read[(String, Seq[TestResult])](ujson.read(outputPath.toIO)))
     }
@@ -100,7 +99,7 @@ private[scalalib] object TestModuleUtil {
         // tests to run and shut down
 
         val discoveredTests = if (javaHome.isDefined) {
-          val processResult = Jvm.call(
+          Jvm.callProcess(
             mainClass = "mill.testrunner.GetTestTasksMain",
             classPath = scalalibClasspath.map(_.path).toVector,
             mainArgs =
@@ -114,9 +113,7 @@ private[scalalib] object TestModuleUtil {
             javaHome = javaHome,
             stdout = os.Pipe,
             cwd = Task.dest
-          )
-          mill.util.ProcessUtil.toResult(processResult).getOrThrow
-          processResult.out.lines().toSet
+          ).out.lines().toSet
         } else {
           mill.testrunner.GetTestTasksMain.main0(
             (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),

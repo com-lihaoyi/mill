@@ -52,7 +52,7 @@ object SonatypeHelpers {
     val fileName = file.toString
     val command = "gpg" +: args :+ fileName
 
-    val processResult = os.call(
+    os.call(
       command,
       env,
       workspace,
@@ -61,8 +61,7 @@ object SonatypeHelpers {
       stderr = os.Inherit,
       check = false
     )
-    mill.util.ProcessUtil.toResult(processResult).getOrThrow
-    os.Path(fileName + ".asc")
+        os.Path(fileName + ".asc")
   }
 
   private def md5hex(bytes: Array[Byte]): Array[Byte] =

@@ -1165,7 +1165,7 @@ trait JavaModule
 
       Task.log.info("options: " + cmdArgs)
 
-      val processResult = os.call(
+      os.call(
         cmd = Seq(Jvm.jdkTool("javadoc")) ++ cmdArgs,
         env = Map(),
         cwd = Task.dest,
@@ -1174,8 +1174,7 @@ trait JavaModule
         stderr = os.Inherit,
         check = false
       )
-      mill.util.ProcessUtil.toResult(processResult).getOrThrow
-    }
+          }
 
     Jvm.createJar(Agg(javadocDir))(outDir)
   }

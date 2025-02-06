@@ -281,7 +281,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   // Runs the native binary
   override def run(args: Task[Args] = Task.Anon(Args())) = Task.Command {
-    val processResult = os.call(
+    os.call(
       cmd = Vector(nativeLink().toString) ++ args().value,
       env = forkEnv(),
       cwd = forkWorkingDir(),
@@ -290,8 +290,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       stderr = os.Inherit,
       check = false
     )
-    mill.util.ProcessUtil.toResult(processResult).getOrThrow
-  }
+      }
 
   @internal
   override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = Task.Anon {

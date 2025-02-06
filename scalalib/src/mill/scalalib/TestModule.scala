@@ -42,7 +42,7 @@ trait TestModule
 
   def discoveredTestClasses: T[Seq[String]] = Task {
     val classes = if (zincWorker().javaHome().isDefined) {
-      val processResult = Jvm.call(
+      Jvm.callProcess(
         mainClass = "mill.testrunner.DiscoverTestsMain",
         classPath = zincWorker().scalalibClasspath().map(_.path).toVector,
         mainArgs =
@@ -52,9 +52,7 @@ trait TestModule
         javaHome = zincWorker().javaHome().map(_.path),
         stdout = os.Pipe,
         cwd = Task.dest
-      )
-      mill.util.ProcessUtil.toResult(processResult).getOrThrow
-      processResult.out.lines()
+      ).out.lines()
     } else {
       mill.testrunner.DiscoverTestsMain.main0(
         runClasspath().map(_.path),
@@ -285,7 +283,7 @@ object TestModule {
      * override this method.
      */
     override def discoveredTestClasses: T[Seq[String]] = Task {
-      Jvm.callClassLoader(
+      Jvm.withClassLoader(
         classPath = runClasspath().map(_.path).toVector,
         sharedPrefixes = Seq("sbt.testing.")
       ) { classLoader =>

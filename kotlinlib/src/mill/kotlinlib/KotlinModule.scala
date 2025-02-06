@@ -179,14 +179,13 @@ trait KotlinModule extends JavaModule { outer =>
 
       Task.log.info("dokka options: " + options)
 
-      val processResult = Jvm.call(
+      Jvm.callProcess(
         mainClass = "",
         classPath = Seq.empty,
         jvmArgs = Seq("-jar", dokkaCliClasspath().head.path.toString()),
         mainArgs = options
       )
-      mill.util.ProcessUtil.toResult(processResult).getOrThrow
-    }
+          }
 
     Jvm.createJar(Agg(dokkaDir))(outDir)
   }

@@ -27,13 +27,12 @@ trait DetektModule extends KotlinModule {
     Task.log.info("running detekt ...")
     Task.log.debug(s"with $args")
 
-    val processResult = Jvm.call(
+    Jvm.callProcess(
       mainClass = "io.gitlab.arturbosch.detekt.cli.Main",
       classPath = detektClasspath().map(_.path).toVector,
       mainArgs = args,
       cwd = millSourcePath // allow passing relative paths for sources like src/a/b
-    )
-    processResult.exitCode
+    ).exitCode
   }
 
   private def detektHandleErrors(check: Boolean, exitCode: Int)(implicit ctx: mill.api.Ctx) = {

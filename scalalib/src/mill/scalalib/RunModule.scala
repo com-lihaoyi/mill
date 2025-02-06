@@ -48,16 +48,14 @@ trait RunModule extends WithZincWorker {
   def allLocalMainClasses: T[Seq[String]] = Task {
     val classpath = localRunClasspath().map(_.path)
     if (zincWorker().javaHome().isDefined) {
-      val processResult = Jvm.call(
+      Jvm.callProcess(
         mainClass = "mill.scalalib.worker.DiscoverMainClassesMain",
         classPath = zincWorker().classpath().map(_.path).toVector,
         mainArgs = Seq(classpath.mkString(",")),
         javaHome = zincWorker().javaHome().map(_.path),
         stdout = os.Pipe,
         cwd = Task.dest
-      )
-      mill.util.ProcessUtil.toResult(processResult).getOrThrow
-      processResult.out.lines()
+      ).out.lines()
     } else {
       zincWorker().worker().discoverMainClasses(classpath)
     }
@@ -158,7 +156,7 @@ trait RunModule extends WithZincWorker {
 
   def runLocalTask(mainClass: Task[String], args: Task[Args] = Task.Anon(Args())): Task[Unit] =
     Task.Anon {
-      Jvm.callClassLoader(
+      Jvm.withClassLoader(
         classPath = runClasspath().map(_.path).toVector
       ) { classloader =>
         RunModule.getMainMethod(mainClass(), classloader).invoke(null, args().value.toArray)
@@ -334,7 +332,7 @@ object RunModule {
         } else {
           (dest / "stdout.log": os.ProcessOutput, dest / "stderr.log": os.ProcessOutput)
         }
-        Jvm.spawn(
+        Jvm.spawnProcess(
           mainClass = mainClass1,
           classPath = classPath,
           jvmArgs = jvmArgs,
@@ -344,12 +342,12 @@ object RunModule {
           stdin = "",
           stdout = stdout,
           stderr = stderr,
-          useCpPassingJar = useClasspathPassingJar,
+          cpPassingJarPath = Some(os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)),
           javaHome = javaHome,
           destroyOnExit = false
         )
       } else {
-        val processResult = Jvm.call(
+        Jvm.callProcess(
           mainClass = mainClass1,
           classPath = classPath,
           jvmArgs = jvmArgs,
@@ -359,11 +357,10 @@ object RunModule {
           stdin = os.Inherit,
           stdout = os.Inherit,
           stderr = os.Inherit,
-          useCpPassingJar = useClasspathPassingJar,
+          cpPassingJarPath = Some(os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)),
           javaHome = javaHome
         )
-        mill.util.ProcessUtil.toResult(processResult).getOrThrow
-      }
+              }
     }
   }
 }

@@ -111,14 +111,13 @@ trait Proguard extends ScalaModule {
 //    val result = os.proc(cmd).call(stdout = Task.dest / "stdout.txt", stderr = Task.dest / "stderr.txt")
 //    Task.log.debug(s"result: ${result}")
 
-    val processResult = Jvm.call(
+    Jvm.callProcess(
       mainClass = "proguard.ProGuard",
       classPath = proguardClasspath().map(_.path).toVector,
       mainArgs = args,
       cwd = Task.dest
     )
-    mill.util.ProcessUtil.toResult(processResult).getOrThrow
-
+    
     // the call above already throws an exception on a non-zero exit code,
     // so if we reached this point we've succeeded!
     PathRef(outJar)

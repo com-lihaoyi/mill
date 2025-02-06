@@ -177,7 +177,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
     val (procUuidPath, procLockfile, procUuid) = mill.scalalib.RunModule.backgroundSetup(Task.dest)
     val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
 
-    Jvm.spawn(
+    Jvm.spawnProcess(
       mainClass = "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
       classPath = mill.scalalib.ZincWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
       jvmArgs = Nil,
@@ -267,7 +267,7 @@ object PythonModule {
         env: Map[String, String] = null,
         workingDir: os.Path = null
     )(implicit ctx: Ctx): Unit = {
-      val processResult = os.call(
+      os.call(
         cmd = Seq(Option(command).getOrElse(command0)) ++ options ++ args.value,
         env = Option(env).getOrElse(env0),
         cwd = Option(workingDir).getOrElse(workingDir0),
@@ -276,7 +276,6 @@ object PythonModule {
         stderr = os.Inherit,
         check = false
       )
-      mill.util.ProcessUtil.toResult(processResult).getOrThrow
-    }
+          }
   }
 }

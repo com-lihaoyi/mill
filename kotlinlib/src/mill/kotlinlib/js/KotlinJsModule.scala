@@ -170,7 +170,11 @@ trait KotlinJsModule extends KotlinModule { outer =>
           stderr = os.Inherit,
           check = false
         )
-        mill.util.ProcessUtil.toResult(processResult)
+        if (processResult.exitCode == 0) Result.Success(processResult.exitCode)
+        else Result.Failure(
+          "Interactive Subprocess Failed (exit code " + processResult.exitCode + ")",
+          Some(processResult.exitCode)
+        )
       case Some(x) =>
         Result.Failure(s"Run target $x is not supported")
       case None =>
@@ -477,7 +481,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
     // TODO may be optimized if there is a single folder for all modules
     // but may be problematic if modules use different NPM packages versions
     private def nodeModulesDir = Task(persistent = true) {
-      val processResult = os.call(
+      os.call(
         cmd = Seq("npm", "install", "mocha@10.2.0", "source-map-support@0.5.21"),
         env = Task.env,
         cwd = Task.dest,
@@ -486,8 +490,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
         stderr = os.Inherit,
         check = false
       )
-      mill.util.ProcessUtil.toResult(processResult).getOrThrow
-      PathRef(Task.dest)
+            PathRef(Task.dest)
     }
 
     // NB: for the packages below it is important to use specific version

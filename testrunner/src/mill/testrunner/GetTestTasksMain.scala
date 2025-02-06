@@ -26,7 +26,7 @@ import os.Path
       args: Seq[String]
   ): Seq[String] = {
     val globFilter = TestRunnerUtils.globFilter(selectors)
-    mill.util.Jvm.callClassLoader(
+    mill.util.Jvm.withClassLoader(
       classPath = runCp,
       sharedPrefixes = Seq("sbt.testing.")
     ) { classLoader =>

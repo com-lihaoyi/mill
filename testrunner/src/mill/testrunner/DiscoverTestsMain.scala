@@ -12,7 +12,7 @@ import os.Path
     main0(runCp, testCp, framework).foreach(println)
   }
   def main0(runCp: Seq[os.Path], testCp: Seq[os.Path], framework: String): Seq[String] = {
-    mill.util.Jvm.callClassLoader(
+    mill.util.Jvm.withClassLoader(
       classPath = runCp,
       sharedPrefixes = Seq("sbt.testing.")
     ) { classLoader =>
