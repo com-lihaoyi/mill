@@ -23,6 +23,7 @@ import mill.main.buildgen.BuildGenUtil.escape
  *    - JUnit 4
  *    - JUnit 5
  *    - TestNG
+ *    - µTest
  *    - ScalaTest
  *    - Specs2
  *    - ScalaCheck
