@@ -1,5 +1,7 @@
 package mill.eval
 
+import mill.define.Task
+
 import java.io.PrintStream
 import java.nio.file.{Files, StandardOpenOption}
 
@@ -38,18 +40,18 @@ private class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path, inden
 private[eval] class ProfileLogger(outPath: os.Path)
     extends JsonArrayLogger[ProfileLogger.Timing](outPath, indent = 2) {
   def log(
-      terminal: Terminal,
+      terminal: Task[_],
       duration: Long,
       res: GroupEvaluator.Results,
-      deps: Seq[Terminal]
+      deps: Seq[Task[_]]
   ): Unit = {
     log(
       ProfileLogger.Timing(
-        terminal.render,
+        terminal.toString,
         (duration / 1000).toInt,
         res.cached,
         res.valueHashChanged,
-        deps.map(_.render),
+        deps.map(_.toString),
         res.inputsHash,
         res.previousInputsHash
       )
@@ -77,7 +79,7 @@ private[eval] class ChromeProfileLogger(outPath: os.Path)
     extends JsonArrayLogger[ChromeProfileLogger.TraceEvent](outPath, indent = -1) {
 
   def log(
-      terminal: Terminal,
+      terminal: Task[_],
       cat: String,
       startTime: Long,
       duration: Long,
@@ -86,7 +88,7 @@ private[eval] class ChromeProfileLogger(outPath: os.Path)
   ): Unit = {
 
     val event = ChromeProfileLogger.TraceEvent(
-      name = Terminal.printTerm(terminal),
+      name = terminal.toString,
       cat = cat,
       ph = "X",
       ts = startTime,

@@ -2,128 +2,208 @@ package mill.resolve
 
 import mill.define.{Discover, ModuleRef, NamedTask, TaskModule}
 import mill.testkit.TestBaseModule
-import mill.util.TestGraphs
-import mill.util.TestGraphs.*
+import mainargs.arg
 import mill.{Cross, Module, Task}
 import utest.*
 
 object ErrorTests extends TestSuite {
+  // Wrapper class so that module initialization errors are not fatal
+  class ErrorGraphs {
+    object moduleInitError extends TestBaseModule {
+      def rootTarget = Task { println("Running rootTarget"); "rootTarget Result" }
+      def rootCommand(@arg(positional = true) s: String) =
+        Task.Command { println(s"Running rootCommand $s") }
 
-  object doubleNestedModule extends TestBaseModule {
-    def single = Task { 5 }
-    object nested extends Module {
-      def single = Task { 7 }
-
-      object inner extends Module {
-        def single = Task { 9 }
+      object foo extends Module {
+        def fooTarget = Task { println(s"Running fooTarget"); 123 }
+        def fooCommand(@arg(positional = true) s: String) =
+          Task.Command { println(s"Running fooCommand $s") }
+        throw new Exception("Foo Boom")
       }
-    }
-    lazy val millDiscover = Discover[this.type]
-  }
 
-  // The module names repeat, but it's not actually cyclic and is meant to confuse the cycle detection.
-  object NonCyclicModules extends TestBaseModule {
-    def foo = Task { "foo" }
+      object bar extends Module {
+        def barTarget = Task { println(s"Running barTarget"); "barTarget Result" }
+        def barCommand(@arg(positional = true) s: String) =
+          Task.Command { println(s"Running barCommand $s") }
 
-    object A extends Module {
-      def b = B
+        object qux extends Module {
+          def quxTarget = Task { println(s"Running quxTarget"); "quxTarget Result" }
+          def quxCommand(@arg(positional = true) s: String) =
+            Task.Command { println(s"Running quxCommand $s") }
+          throw new Exception("Qux Boom")
+        }
+      }
+
+      lazy val millDiscover = Discover[this.type]
     }
-    object B extends Module {
+
+    object moduleDependencyInitError extends TestBaseModule {
+
+      object foo extends Module {
+        def fooTarget = Task { println(s"Running fooTarget"); 123 }
+        def fooCommand(@arg(positional = true) s: String) =
+          Task.Command { println(s"Running fooCommand $s") }
+        throw new Exception("Foo Boom")
+      }
+
+      object bar extends Module {
+        def barTarget = Task {
+          println(s"Running barTarget")
+          s"${foo.fooTarget()} barTarget Result"
+        }
+        def barCommand(@arg(positional = true) s: String) = Task.Command {
+          foo.fooCommand(s)()
+          println(s"Running barCommand $s")
+        }
+      }
+
+      lazy val millDiscover = Discover[this.type]
+    }
+
+    object crossModuleSimpleInitError extends TestBaseModule {
+      object myCross extends Cross[MyCross](1, 2, 3, 4) {
+        throw new Exception(s"MyCross Boom")
+      }
+      trait MyCross extends Cross.Module[Int] {
+        def foo = Task { crossValue }
+      }
+
+      lazy val millDiscover = Discover[this.type]
+    }
+    object crossModulePartialInitError extends TestBaseModule {
+      object myCross extends Cross[MyCross](1, 2, 3, 4)
+      trait MyCross extends Cross.Module[Int] {
+        if (crossValue > 2) throw new Exception(s"MyCross Boom $crossValue")
+        def foo = Task { crossValue }
+      }
+
+      lazy val millDiscover = Discover[this.type]
+    }
+    object crossModuleSelfInitError extends TestBaseModule {
+      object myCross extends Cross[MyCross](1, 2, 3, throw new Exception(s"MyCross Boom"))
+      trait MyCross extends Cross.Module[Int] {
+        def foo = Task { crossValue }
+      }
+
+      lazy val millDiscover = Discover[this.type]
+    }
+
+    object crossModuleParentInitError extends TestBaseModule {
+      object parent extends Module {
+        throw new Exception(s"Parent Boom")
+        object myCross extends Cross[MyCross](1, 2, 3, 4)
+        trait MyCross extends Cross.Module[Int] {
+          def foo = Task { crossValue }
+        }
+      }
+
+      lazy val millDiscover = Discover[this.type]
+    }
+
+    // The module names repeat, but it's not actually cyclic and is meant to confuse the cycle detection.
+    object NonCyclicModules extends TestBaseModule {
+      def foo = Task { "foo" }
+
       object A extends Module {
         def b = B
       }
-      def a = A
-
       object B extends Module {
-        object B extends Module {}
         object A extends Module {
           def b = B
         }
         def a = A
+
+        object B extends Module {
+          object B extends Module {}
+          object A extends Module {
+            def b = B
+          }
+          def a = A
+        }
       }
+
+      lazy val millDiscover = Discover[this.type]
     }
 
-    lazy val millDiscover = Discover[this.type]
-  }
-
-  object CyclicModuleRefInitError extends TestBaseModule {
-    import mill.Agg
-    def foo = Task { "foo" }
-
-    // See issue: https://github.com/com-lihaoyi/mill/issues/3715
-    trait CommonModule extends Module {
+    object CyclicModuleRefInitError extends TestBaseModule {
+      import mill.Agg
       def foo = Task { "foo" }
-      def moduleDeps: Seq[CommonModule] = Seq.empty
-      def a = myA
-      def b = myB
+
+      // See issue: https://github.com/com-lihaoyi/mill/issues/3715
+      trait CommonModule extends Module {
+        def foo = Task { "foo" }
+        def moduleDeps: Seq[CommonModule] = Seq.empty
+        def a = myA
+        def b = myB
+      }
+
+      object myA extends A
+      trait A extends CommonModule
+      object myB extends B
+      trait B extends CommonModule {
+        override def moduleDeps = super.moduleDeps ++ Agg(a)
+      }
+      lazy val millDiscover = Discover[this.type]
     }
 
-    object myA extends A
-    trait A extends CommonModule
-    object myB extends B
-    trait B extends CommonModule {
-      override def moduleDeps = super.moduleDeps ++ Agg(a)
-    }
-    lazy val millDiscover = Discover[this.type]
-  }
-
-  object CyclicModuleRefInitError2 extends TestBaseModule {
-    // The cycle is in the child
-    def A = CyclicModuleRefInitError
-    lazy val millDiscover = Discover[this.type]
-  }
-
-  object CyclicModuleRefInitError3 extends TestBaseModule {
-    // The cycle is in directly here
-    object A extends Module {
-      def b = B
-    }
-    object B extends Module {
-      def a = A
-    }
-    lazy val millDiscover = Discover[this.type]
-  }
-
-  object CrossedCyclicModuleRefInitError extends TestBaseModule {
-    object cross extends mill.Cross[Cross]("210", "211", "212")
-    trait Cross extends Cross.Module[String] {
-      def suffix = Task { crossValue }
-      def c2 = cross2
+    object CyclicModuleRefInitError2 extends TestBaseModule {
+      // The cycle is in the child
+      def A = CyclicModuleRefInitError
+      lazy val millDiscover = Discover[this.type]
     }
 
-    object cross2 extends mill.Cross[Cross2]("210", "211", "212")
-    trait Cross2 extends Cross.Module[String] {
-      override def millSourcePath = super.millSourcePath / crossValue
-      def suffix = Task { crossValue }
-      def c1 = cross
+    object CyclicModuleRefInitError3 extends TestBaseModule {
+      // The cycle is in directly here
+      object A extends Module {
+        def b = B
+      }
+      object B extends Module {
+        def a = A
+      }
+      lazy val millDiscover = Discover[this.type]
     }
-    lazy val millDiscover = Discover[this.type]
-  }
 
-  // This edge case shouldn't be an error
-  object ModuleRefWithNonModuleRefChild extends TestBaseModule {
-    def foo = Task { "foo" }
+    object CrossedCyclicModuleRefInitError extends TestBaseModule {
+      object cross extends mill.Cross[Cross]("210", "211", "212")
+      trait Cross extends Cross.Module[String] {
+        def suffix = Task { crossValue }
+        def c2 = cross2
+      }
 
-    def aRef = A
-    def a = ModuleRef(A)
-
-    object A extends Module {}
-
-    lazy val millDiscover = Discover[this.type]
-  }
-
-  object ModuleRefCycle extends TestBaseModule {
-    def foo = Task { "foo" }
-
-    // The cycle is in directly here
-    object A extends Module {
-      def b = ModuleRef(B)
+      object cross2 extends mill.Cross[Cross2]("210", "211", "212")
+      trait Cross2 extends Cross.Module[String] {
+        override def millSourcePath = super.millSourcePath / crossValue
+        def suffix = Task { crossValue }
+        def c1 = cross
+      }
+      lazy val millDiscover = Discover[this.type]
     }
-    object B extends Module {
+
+    // This edge case shouldn't be an error
+    object ModuleRefWithNonModuleRefChild extends TestBaseModule {
+      def foo = Task { "foo" }
+
+      def aRef = A
       def a = ModuleRef(A)
+
+      object A extends Module {}
+
+      lazy val millDiscover = Discover[this.type]
     }
 
-    lazy val millDiscover = Discover[this.type]
+    object ModuleRefCycle extends TestBaseModule {
+      def foo = Task { "foo" }
+
+      // The cycle is in directly here
+      object A extends Module {
+        def b = ModuleRef(B)
+      }
+      object B extends Module {
+        def a = ModuleRef(A)
+      }
+
+      lazy val millDiscover = Discover[this.type]
+    }
   }
 
   def isShortError(x: Either[String, _], s: String) =
@@ -133,8 +213,8 @@ object ErrorTests extends TestSuite {
       x.left.exists(_.linesIterator.size < 25)
 
   val tests = Tests {
-    val graphs = new mill.util.TestGraphs()
-    import graphs.*
+    val errorGraphs = new ErrorGraphs()
+    import errorGraphs.*
 
     test("moduleInitError") {
       test("simple") {

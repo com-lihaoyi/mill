@@ -22,7 +22,7 @@ trait TypeScriptModule extends Module {
     PathRef(Task.dest)
   }
 
-  def sources = Task.Source(millSourcePath / "src")
+  def sources = Task.Source("src")
   def allSources = Task { os.walk(sources().path).filter(_.ext == "ts").map(PathRef(_)) }
 
   def compile: T[(PathRef, PathRef)] = Task {

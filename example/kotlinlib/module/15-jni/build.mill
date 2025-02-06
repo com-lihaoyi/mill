@@ -8,7 +8,7 @@ object `package` extends RootModule with KotlinModule {
   def kotlinVersion = "1.9.24"
 
   // Additional source folder to put C sources
-  def nativeSources = Task.Sources(millSourcePath / "native-src")
+  def nativeSources = Task.Sources("native-src")
 
   // Compile C
   def nativeCompiled = Task {

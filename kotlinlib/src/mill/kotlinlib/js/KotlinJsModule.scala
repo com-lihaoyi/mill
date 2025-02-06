@@ -494,11 +494,11 @@ trait KotlinJsModule extends KotlinModule { outer =>
     // otherwise with random versions there is a possibility to have conflict
     // between the versions of the shared transitive deps
     private def mochaModule = Task {
-      PathRef(nodeModulesDir().path / "node_modules" / "mocha" / "bin" / "mocha.js")
+      PathRef(nodeModulesDir().path / "node_modules/mocha/bin/mocha.js")
     }
 
     private def sourceMapSupportModule = Task {
-      PathRef(nodeModulesDir().path / "node_modules" / "source-map-support" / "register.js")
+      PathRef(nodeModulesDir().path / "node_modules/source-map-support/register.js")
     }
 
     // endregion

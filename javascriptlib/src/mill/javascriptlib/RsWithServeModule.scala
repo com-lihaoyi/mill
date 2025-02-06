@@ -15,7 +15,7 @@ trait RsWithServeModule extends ReactScriptsModule {
     val env = forkEnv()
     os.call(
       (
-        (compiled / "node_modules" / "serve" / "bin" / "serve.js").toString,
+        (compiled / "node_modules/serve/bin/serve.js").toString,
         "-s",
         build,
         "-l",

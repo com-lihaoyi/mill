@@ -2,6 +2,7 @@ package mill.resolve
 
 import mill.define.{Discover, ModuleRef, NamedTask, TaskModule}
 import mill.testkit.TestBaseModule
+import mill.define.DynamicModule
 import mill.util.TestGraphs
 import mill.util.TestGraphs.*
 import mill.{Cross, Module, Task}
@@ -116,6 +117,41 @@ object ModuleTests extends TestSuite {
         }
       }
     }
+    lazy val millDiscover = Discover[this.type]
+  }
+
+  object overrideModule extends TestBaseModule {
+    trait Base extends Module {
+      lazy val inner: BaseInnerModule = new BaseInnerModule {}
+      lazy val ignored: ModuleRef[BaseInnerModule] = ModuleRef(new BaseInnerModule {})
+      trait BaseInnerModule extends mill.define.Module {
+        def baseTarget = Task { 1 }
+      }
+    }
+    object sub extends Base {
+      override lazy val inner: SubInnerModule = new SubInnerModule {}
+      override lazy val ignored: ModuleRef[SubInnerModule] = ModuleRef(new SubInnerModule {})
+      trait SubInnerModule extends BaseInnerModule {
+        def subTarget = Task { 2 }
+      }
+    }
+
+    lazy val millDiscover = Discover[this.type]
+  }
+
+  object dynamicModule extends TestBaseModule {
+    object normal extends DynamicModule {
+      object inner extends Module {
+        def target = Task { 1 }
+      }
+    }
+    object niled extends DynamicModule {
+      override def millModuleDirectChildren: Seq[Module] = Nil
+      object inner extends Module {
+        def target = Task { 1 }
+      }
+    }
+
     lazy val millDiscover = Discover[this.type]
   }
 

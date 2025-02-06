@@ -176,8 +176,8 @@ them into classfiles, and then the `jar` executable to package them together int
 ```scala
 def mainClass: T[Option[String]] = Some("foo.Foo")
 
-def sources = Task.Source(millSourcePath / "src")
-def resources = Task.Source(millSourcePath / "resources")
+def sources = Task.Source("src")
+def resources = Task.Source("resources")
 
 def compile = Task {
   val allSources = os.walk(sources().path)

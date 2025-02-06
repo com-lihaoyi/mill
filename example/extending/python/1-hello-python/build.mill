@@ -9,7 +9,7 @@ import mill._
 def pythonExe: T[PathRef] = Task {
 
   os.call(("python3", "-m", "venv", Task.dest / "venv"))
-  val python = Task.dest / "venv" / "bin" / "python3"
+  val python = Task.dest / "venv/bin/python3"
   os.call((python, "-m", "pip", "install", "mypy==1.13.0"))
 
   PathRef(python)
@@ -19,7 +19,7 @@ def pythonExe: T[PathRef] = Task {
 
 // The `sources` task specifies the directory for Python source files (`src` folder).
 
-def sources: T[PathRef] = Task.Source(millSourcePath / "src")
+def sources: T[PathRef] = Task.Source("src")
 
 // === Type Checking
 

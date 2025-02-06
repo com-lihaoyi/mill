@@ -6,7 +6,7 @@ import mill.javascriptlib._
 object foo extends TypeScriptModule {
 
   def customSource = Task {
-    Seq(PathRef(millSourcePath / "custom-src" / "foo2.ts"))
+    Seq(PathRef(millSourcePath / "custom-src/foo2.ts"))
   }
 
   def allSources = super.allSources() ++ customSource()

@@ -99,7 +99,7 @@ trait AndroidAppModule extends JavaModule {
   /**
    * Provides os.Path to an XML file containing configuration and metadata about your android application.
    */
-  def androidManifest: Task[PathRef] = Task.Source(millSourcePath / "src/main/AndroidManifest.xml")
+  def androidManifest: Task[PathRef] = Task.Source("src/main/AndroidManifest.xml")
 
   /**
    * Name of the release keystore file. Default is not set.

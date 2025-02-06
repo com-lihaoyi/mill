@@ -11,7 +11,7 @@ import mill.define.Worker
 import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}
 import guru.nidi.graphviz.attribute.Rank.RankDir
 import guru.nidi.graphviz.attribute.{Rank, Shape, Style}
-import mill.eval.Graph
+import mill.eval.Plan
 
 object VisualizeModule extends ExternalModule with VisualizeModule {
   def repositories: Seq[Repository] = Seq(
@@ -47,12 +47,12 @@ trait VisualizeModule extends mill.define.TaskModule {
       while (true) {
         val res = Result.Success {
           val (tasks, transitiveTasks, dest) = in.take()
-          val transitive = Graph.transitiveTargets(tasks)
-          val topoSorted = Graph.topoSorted(transitive)
-          val sortedGroups = Graph.groupAroundImportantTargets(topoSorted) {
+          val transitive = Plan.transitiveTargets(tasks)
+          val topoSorted = Plan.topoSorted(transitive)
+          val sortedGroups = Plan.groupAroundImportantTargets(topoSorted) {
             case x: NamedTask[Any] if transitiveTasks.contains(x) => x
           }
-          val (plannedForRender, _) = mill.eval.Plan.plan(transitiveTasks)
+          val plan = mill.eval.Plan.plan(transitiveTasks)
 
           val goalSet = transitiveTasks.toSet
           import guru.nidi.graphviz.model.Factory._
@@ -81,7 +81,7 @@ trait VisualizeModule extends mill.define.TaskModule {
 
           org.jgrapht.alg.TransitiveReduction.INSTANCE.reduce(jgraph)
           val nodes = indexToTask.map(t =>
-            node(plannedForRender.lookupValue(t).render)
+            node(plan.sortedGroups.lookupValue(t).toString)
               .`with` {
                 if (tasks.contains(t)) Style.SOLID
                 else Style.DASHED

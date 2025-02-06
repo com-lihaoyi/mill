@@ -827,20 +827,20 @@ trait JavaModule
   /**
    * The folders where the source files for this module live
    */
-  def sources: T[Seq[PathRef]] = Task.Sources { millSourcePath / "src" }
+  def sources: T[Seq[PathRef]] = Task.Sources { "src" }
 
   /**
    * The folders where the resource files for this module live.
    * If you need resources to be seen by the compiler, use [[compileResources]].
    */
-  def resources: T[Seq[PathRef]] = Task.Sources { millSourcePath / "resources" }
+  def resources: T[Seq[PathRef]] = Task.Sources { "resources" }
 
   /**
    * The folders where the compile time resource files for this module live.
    * If your resources files do not necessarily need to be seen by the compiler,
    * you should use [[resources]] instead.
    */
-  def compileResources: T[Seq[PathRef]] = Task.Sources { millSourcePath / "compile-resources" }
+  def compileResources: T[Seq[PathRef]] = Task.Sources { "compile-resources" }
 
   /**
    * Folders containing source files that are generated rather than

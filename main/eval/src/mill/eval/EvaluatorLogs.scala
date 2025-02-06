@@ -1,15 +1,16 @@
 package mill.eval
 
-import mill.define.InputImpl
+import mill.define.{InputImpl, Task}
 import mill.main.client.OutFiles
 import mill.util.SpanningForest
+
 import java.util.concurrent.ConcurrentHashMap
 import scala.jdk.CollectionConverters.EnumerationHasAsScala
 
 private[mill] object EvaluatorLogs {
   def logDependencyTree(
-      interGroupDeps: Map[Terminal, Seq[Terminal]],
-      indexToTerminal: Array[Terminal],
+      interGroupDeps: Map[Task[_], Seq[Task[_]]],
+      indexToTerminal: Array[Task[_]],
       outPath: os.Path
   ): Unit = {
     val (vertexToIndex, edgeIndices) =
@@ -19,15 +20,15 @@ private[mill] object EvaluatorLogs {
       outPath / OutFiles.millDependencyTree,
       edgeIndices,
       indexToTerminal.indices.toSet,
-      indexToTerminal(_).render
+      indexToTerminal(_).toString
     )
   }
   def logInvalidationTree(
-      interGroupDeps: Map[Terminal, Seq[Terminal]],
-      indexToTerminal: Array[Terminal],
+      interGroupDeps: Map[Task[_], Seq[Task[_]]],
+      indexToTerminal: Array[Task[_]],
       outPath: os.Path,
-      uncached: ConcurrentHashMap[Terminal, Unit],
-      changedValueHash: ConcurrentHashMap[Terminal, Unit]
+      uncached: ConcurrentHashMap[Task[_], Unit],
+      changedValueHash: ConcurrentHashMap[Task[_], Unit]
   ): Unit = {
     val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
 
@@ -54,13 +55,13 @@ private[mill] object EvaluatorLogs {
             // from the invalidation tree, because most of them are un-interesting and the
             // user really only cares about (a) inputs that cause downstream tasks to invalidate
             // or (b) non-input tasks that were invalidated alone (e.g. due to a codesig change)
-            !uncachedTask.task.isInstanceOf[InputImpl[_]] || edgeSourceIndices(uncachedIndex)
+            !uncachedTask.isInstanceOf[InputImpl[_]] || edgeSourceIndices(uncachedIndex)
           ) {
             uncachedIndex
           }
         }
         .toSet,
-      indexToTerminal(_).render
+      indexToTerminal(_).toString
     )
   }
 }

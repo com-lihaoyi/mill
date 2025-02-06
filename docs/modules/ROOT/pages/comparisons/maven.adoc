@@ -391,7 +391,7 @@ import $ivy.`ant:ant-optional:1.5.3-1`
 
 object common extends NettyModule{
   ...
-  def script = Task.Source(millSourcePath / "src" / "main" / "script")
+  def script = Task.Source("src" / "main" / "script")
   def generatedSources0 = Task {
     val shell = new groovy.lang.GroovyShell()
     val context = new java.util.HashMap[String, Object]
@@ -520,8 +520,8 @@ with the `make` command essentially being a bash script wrapped in layers of XML
 In contrast, the Mill configuration for this logic is as follows:
 
 ```scala
-def makefile = Task.Source(millSourcePath / "Makefile")
-def cSources = Task.Source(millSourcePath / "src" / "main" / "c")
+def makefile = Task.Source("Makefile")
+def cSources = Task.Source("src" / "main" / "c")
 def cHeaders = Task {
   for(p <- os.walk(cSources().path) if p.ext == "h"){
     os.copy(p, Task.dest / p.relativeTo(cSources().path), createFolders = true)
