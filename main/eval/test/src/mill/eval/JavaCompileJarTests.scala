@@ -22,12 +22,11 @@ object JavaCompileJarTests extends TestSuite {
   val javacSrcPath = resourceFolder / "examples/javac"
 
   val tests = Tests {
-
     test("javac") {
       object Build extends TestBaseModule {
-        def sourceRootPath = millSourcePath / "src"
-        def readmePath = millSourcePath / "readme.md"
-        def resourceRootPath = millSourcePath / "resources"
+        def sourceRootPath: os.SubPath = "src"
+        def readmePath: os.SubPath = "readme.md"
+        def resourceRootPath: os.SubPath = "resources"
 
         // sourceRoot -> allSources -> classFiles
         //                                |
@@ -68,7 +67,7 @@ object JavaCompileJarTests extends TestSuite {
       def eval[T](t: Task[T]) = evaluator.apply(t)
       def check(targets: Agg[Task[_]], expected: Agg[Task[_]]) = evaluator.check(targets, expected)
 
-      def append(path: os.Path, txt: String) = os.write.append(path, txt)
+      def append(path: os.SubPath, txt: String) = os.write.append(millSourcePath / path, txt)
 
       check(
         targets = Agg(jar),

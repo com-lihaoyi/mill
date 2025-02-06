@@ -22,7 +22,7 @@ object foo extends JavaModule {
     defaultResolver().resolveDeps(Agg(ivy"org.codehaus.groovy:groovy:3.0.9"))
   }
 
-  def groovyScript = Task.Source(millSourcePath / "generate.groovy")
+  def groovyScript = Task.Source("generate.groovy")
 
   def groovyGeneratedResources = Task {
     Jvm.runSubprocess(

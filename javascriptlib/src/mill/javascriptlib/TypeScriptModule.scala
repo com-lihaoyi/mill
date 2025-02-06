@@ -50,7 +50,7 @@ trait TypeScriptModule extends Module { outer =>
     PathRef(Task.dest)
   }
 
-  def sources: T[PathRef] = Task.Source(millSourcePath / "src")
+  def sources: T[PathRef] = Task.Source("src")
 
   def resources: T[Seq[PathRef]] = Task { Seq(PathRef(millSourcePath / "resources")) }
 

@@ -20,7 +20,7 @@ object UnitTesterTests extends TestSuite {
 
     test("sources") {
       object build extends TestBaseModule {
-        def testSource = Task.Source(millSourcePath / "source-file.txt")
+        def testSource = Task.Source("source-file.txt")
         def testTask = Task { os.read(testSource().path).toUpperCase() }
       }
 

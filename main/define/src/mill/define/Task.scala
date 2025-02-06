@@ -65,6 +65,9 @@ object Task extends TaskBase {
   def Sources(values: Result[Seq[PathRef]])(implicit ctx: mill.define.Ctx): Target[Seq[PathRef]] =
     macro Target.Internal.sourcesImpl2
 
+  def Sources(values: os.SubPath*)(implicit ctx: mill.define.Ctx): Target[Seq[PathRef]] =
+    macro Target.Internal.sourcesImpl3
+
   /**
    * Similar to [[Source]], but only for a single source file or folder. Defined
    * using `Task.Source`.
@@ -74,6 +77,9 @@ object Task extends TaskBase {
 
   def Source(value: Result[PathRef])(implicit ctx: mill.define.Ctx): Target[PathRef] =
     macro Target.Internal.sourceImpl2
+
+  def Source(value: os.SubPath)(implicit ctx: mill.define.Ctx): Target[PathRef] =
+    macro Target.Internal.sourceImpl3
 
   /**
    * [[InputImpl]]s, normally defined using `Task.Input`, are [[NamedTask]]s that
@@ -476,6 +482,28 @@ object Target extends TaskBase {
       )
     }
 
+    def sourcesImpl3(c: Context)(values: c.Expr[os.SubPath]*)(ctx: c.Expr[mill.define.Ctx])
+        : c.Expr[Target[Seq[PathRef]]] = {
+      import c.universe._
+      val wrapped =
+        for (value <- values.toList)
+          yield Applicative.impl0[Task, PathRef, mill.api.Ctx](c)(
+            reify(Result.Success(PathRef(ctx.splice.millSourcePath / value.splice))).tree
+          ).tree
+
+      val taskIsPrivate = isPrivateTargetOption(c)
+
+      mill.define.Cacher.impl0[SourcesImpl](c)(
+        reify(
+          new SourcesImpl(
+            Target.sequence(c.Expr[List[Task[PathRef]]](q"_root_.scala.List(..$wrapped)").splice),
+            ctx.splice,
+            taskIsPrivate.splice
+          )
+        )
+      )
+    }
+
     def sourceImpl1(c: Context)(value: c.Expr[Result[os.Path]])(ctx: c.Expr[mill.define.Ctx])
         : c.Expr[Target[PathRef]] = {
       import c.universe._
@@ -508,6 +536,28 @@ object Target extends TaskBase {
         reify(
           new SourceImpl(
             Applicative.impl0[Task, PathRef, mill.api.Ctx](c)(value.tree).splice,
+            ctx.splice,
+            taskIsPrivate.splice
+          )
+        )
+      )
+    }
+
+    def sourceImpl3(c: Context)(value: c.Expr[os.SubPath])(ctx: c.Expr[mill.define.Ctx])
+        : c.Expr[Target[PathRef]] = {
+      import c.universe._
+
+      val wrapped =
+        Applicative.impl0[Task, PathRef, mill.api.Ctx](c)(
+          reify(Result.Success(PathRef(ctx.splice.millSourcePath / value.splice))).tree
+        )
+
+      val taskIsPrivate = isPrivateTargetOption(c)
+
+      mill.define.Cacher.impl0[Target[PathRef]](c)(
+        reify(
+          new SourceImpl(
+            wrapped.splice,
             ctx.splice,
             taskIsPrivate.splice
           )

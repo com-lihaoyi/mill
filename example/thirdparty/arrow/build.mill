@@ -138,7 +138,7 @@ object `package` extends RootModule {
           .map(platform => PathRef(sourcesRootPath / s"${platform}Main" / "kotlin"))
           .filter(p => os.exists(p.path))
         if (platformCrossSuffix != "jvm") {
-          val nonJvmSourcesPath = sourcesRootPath / "nonJvmMain" / "kotlin"
+          val nonJvmSourcesPath = sourcesRootPath / "nonJvmMain/kotlin"
           if (os.exists(nonJvmSourcesPath)) {
             sources ++= Seq(PathRef(nonJvmSourcesPath))
           }

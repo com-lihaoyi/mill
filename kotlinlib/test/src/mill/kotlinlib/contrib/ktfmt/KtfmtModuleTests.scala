@@ -17,7 +17,7 @@ object KtfmtModuleTests extends TestSuite {
   def tests: Tests = Tests {
 
     val (before, after) = {
-      val root = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "contrib" / "ktfmt"
+      val root = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "contrib/ktfmt"
       (root / "before", root / "after")
     }
 
@@ -25,7 +25,7 @@ object KtfmtModuleTests extends TestSuite {
       assert(
         checkState(
           afterFormat(before, style = "kotlin"),
-          after / "style" / "kotlin"
+          after / "style/kotlin"
         )
       )
     }
@@ -34,7 +34,7 @@ object KtfmtModuleTests extends TestSuite {
       assert(
         checkState(
           afterFormat(before, style = "google"),
-          after / "style" / "google"
+          after / "style/google"
         )
       )
     }
@@ -43,7 +43,7 @@ object KtfmtModuleTests extends TestSuite {
       assert(
         checkState(
           afterFormat(before, style = "meta"),
-          after / "style" / "meta"
+          after / "style/meta"
         )
       )
     }
@@ -65,7 +65,7 @@ object KtfmtModuleTests extends TestSuite {
     test("ktfmt - explicit files") {
       checkState(
         afterFormat(before, sources = Seq(module.sources)),
-        after / "style" / "kotlin"
+        after / "style/kotlin"
       )
     }
 
@@ -74,7 +74,7 @@ object KtfmtModuleTests extends TestSuite {
       assert(
         checkState(
           afterFormatAll(before),
-          after / "style" / "kotlin"
+          after / "style/kotlin"
         )
       )
     }
