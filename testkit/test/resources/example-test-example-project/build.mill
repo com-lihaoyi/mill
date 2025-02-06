@@ -1,7 +1,7 @@
 package build
 import mill._
 
-def testSource = Task.Source(millSourcePath / "source-file.txt")
+def testSource = Task.Source("source-file.txt")
 def testTask = Task { os.read(testSource().path).toUpperCase() }
 
 /** Usage

@@ -12,7 +12,7 @@ object PalantirFormatModuleTest extends TestSuite {
   def tests: Tests = Tests {
 
     val (before, after) = {
-      val root = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "javalib" / "palantirformat"
+      val root = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "javalib/palantirformat"
       (root / "before", root / "after")
     }
 

@@ -133,7 +133,7 @@ object foo2 extends FooModule {
 // module expects its input files to be on disk.
 
 trait MyModule extends Module {
-  def sources = Task.Source(millSourcePath / "sources")
+  def sources = Task.Source("sources")
   def task = Task { "hello " + os.list(sources().path).map(os.read(_)).mkString(" ") }
 }
 

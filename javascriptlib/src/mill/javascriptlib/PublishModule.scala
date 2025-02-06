@@ -131,7 +131,7 @@ trait PublishModule extends TypeScriptModule {
   private def pubGenSources: T[Unit] = Task {
     val allGeneratedSources = pubBaseModeGenSources() ++ pubModDepsGenSources()
     allGeneratedSources.foreach { target =>
-      val destination = publishDir().path / "typescript" / "generatedSources" / target.path.last
+      val destination = publishDir().path / "typescript/generatedSources" / target.path.last
       os.makeDir.all(destination / os.up)
       os.copy.over(
         target.path,

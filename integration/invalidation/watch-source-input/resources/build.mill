@@ -4,7 +4,7 @@ import mill._
 println("Setting up build.mill")
 
 def foo = Task.Sources(millSourcePath / "foo1.txt", millSourcePath / "foo2.txt")
-def bar = Task.Source(millSourcePath / "bar.txt")
+def bar = Task.Source("bar.txt")
 
 def qux = Task {
   val fooMsg = "Running qux foo contents " + foo().map(p => os.read(p.path)).mkString(" ")

@@ -85,7 +85,7 @@ trait NettyModule extends NettyBaseModule {
 
 trait NettyJniModule extends NettyModule {
   def jniLibraryName: T[String]
-  def cSources = Task.Source(millSourcePath / "src/main/c")
+  def cSources = Task.Source("src/main/c")
   def resources = Task {
     os.copy(clang().path, Task.dest / "META-INF/native" / jniLibraryName(), createFolders = true)
     Seq(PathRef(Task.dest))
@@ -245,7 +245,7 @@ object common extends NettyModule {
     ivy"org.jctools:jctools-core:4.0.5"
   )
 
-  def script = Task.Source(millSourcePath / "src/main/script")
+  def script = Task.Source("src/main/script")
   def generatedSources0 = Task {
     val shell = new groovy.lang.GroovyShell()
 
@@ -556,8 +556,8 @@ object `transport-native-unix-common` extends NettyModule {
   def moduleDeps = Seq(common, buffer, transport)
   def ivyDeps = Agg(ivy"org.junit.jupiter:junit-jupiter-api:5.9.0")
 
-  def makefile = Task.Source(millSourcePath / "Makefile")
-  def cSources = Task.Source(millSourcePath / "src/main/c")
+  def makefile = Task.Source("Makefile")
+  def cSources = Task.Source("src/main/c")
   def cHeaders = Task {
     for (p <- os.walk(cSources().path) if p.ext == "h") {
       os.copy(p, Task.dest / p.relativeTo(cSources().path), createFolders = true)

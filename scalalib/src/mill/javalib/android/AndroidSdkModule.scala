@@ -86,7 +86,7 @@ trait AndroidSdkModule extends Module {
    */
   def lintToolPath: T[PathRef] = Task {
     installAndroidSdkComponents()
-    PathRef(sdkPath().path / "cmdline-tools" / "latest" / "bin" / "lint")
+    PathRef(sdkPath().path / "cmdline-tools/latest/bin/lint")
   }
 
   /**
@@ -290,7 +290,7 @@ trait AndroidSdkModule extends Module {
             case _ => false
           })
           .maxBy(_._2.head.toInt)._1
-        sdkManagerPath = latestCmdlineToolsPath / "bin" / "sdkmanager"
+        sdkManagerPath = latestCmdlineToolsPath / "bin/sdkmanager"
       }
     }
     Some(sdkManagerPath).filter(os.exists)

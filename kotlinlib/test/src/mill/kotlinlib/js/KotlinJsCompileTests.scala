@@ -37,8 +37,8 @@ object KotlinJsCompileTests extends TestSuite {
       val irDir = result.value.classes.path
       assert(
         os.isDir(irDir),
-        os.exists(irDir / "default" / "manifest"),
-        os.exists(irDir / "default" / "linkdata" / "package_foo"),
+        os.exists(irDir / "default/manifest"),
+        os.exists(irDir / "default/linkdata/package_foo"),
         !os.walk(irDir).exists(_.ext == "klib")
       )
     }
@@ -46,7 +46,7 @@ object KotlinJsCompileTests extends TestSuite {
     test("failures") {
       val eval = testEval()
 
-      val compilationUnit = module.foo.millSourcePath / "src" / "foo" / "Hello.kt"
+      val compilationUnit = module.foo.millSourcePath / "src/foo/Hello.kt"
 
       val Right(_) = eval.apply(module.foo.compile)
 

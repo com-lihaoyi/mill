@@ -43,7 +43,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
    */
   def pythonExe: T[PathRef] = Task {
     os.call((hostPythonCommand(), "-m", "venv", Task.dest / "venv"))
-    val python = Task.dest / "venv" / "bin" / "python3"
+    val python = Task.dest / "venv/bin/python3"
     os.call((python, "-m", "pip", "install", pipInstallArgs().args), stdout = os.Inherit)
     PathRef(python)
   }
@@ -53,17 +53,17 @@ trait PythonModule extends PipModule with TaskModule { outer =>
    *
    * Python modules will be defined relative to these directories.
    */
-  def sources: T[Seq[PathRef]] = Task.Sources { millSourcePath / "src" }
+  def sources: T[Seq[PathRef]] = Task.Sources { "src" }
 
   /**
    * The folders where the resource files for this module live.
    */
-  def resources: T[Seq[PathRef]] = Task.Sources { millSourcePath / "resources" }
+  def resources: T[Seq[PathRef]] = Task.Sources { "resources" }
 
   /**
    * The python script to run. This file may not exist if this module is only a library.
    */
-  def mainScript: T[PathRef] = Task.Source { millSourcePath / "src" / "main.py" }
+  def mainScript: T[PathRef] = Task.Source { "src/main.py" }
 
   override def pythonToolDeps: T[Seq[String]] = Task {
     super.pythonToolDeps() ++ Seq("mypy==1.13.0", "pex==2.24.1")
