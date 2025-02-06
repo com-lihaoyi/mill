@@ -141,7 +141,9 @@ object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule
           classPath = classPath.map(_.path).toVector,
           jvmArgs = jvmArgs,
           mainArgs = mainArgs,
-          cwd = ctx.dest
+          cwd = ctx.dest,
+          stdin = os.Inherit,
+          stdout = os.Inherit
         ).exitCode
 
         if (check && exitCode != 0) {

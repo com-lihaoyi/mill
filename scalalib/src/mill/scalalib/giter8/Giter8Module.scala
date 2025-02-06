@@ -37,7 +37,9 @@ trait Giter8Module extends CoursierModule {
       mainClass = "giter8.Giter8",
       classPath = giter8Dependencies.map(_.path).toVector,
       mainArgs = args,
-      cwd = Task.workspace
+      cwd = Task.workspace,
+      stdin = os.Inherit,
+      stdout = os.Inherit
     )
       }
 }

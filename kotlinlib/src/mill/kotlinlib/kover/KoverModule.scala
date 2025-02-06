@@ -217,7 +217,9 @@ object Kover extends ExternalModule with KoverReportBaseModule {
       classPath = classpath.toVector,
       jvmArgs = Seq.empty[String],
       mainArgs = args.result(),
-      cwd = workingDir
+      cwd = workingDir,
+      stdin = os.Inherit,
+      stdout = os.Inherit
     )
         PathRef(os.Path(output))
   }

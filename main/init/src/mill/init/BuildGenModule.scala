@@ -31,7 +31,9 @@ trait BuildGenModule extends TaskModule {
       mainClass = mainClass,
       classPath = classPath.toVector,
       mainArgs = args,
-      cwd = root
+      cwd = root,
+      stdin = os.Inherit,
+      stdout = os.Inherit
     ).exitCode
 
     if (exitCode == 0) {

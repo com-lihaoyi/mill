@@ -71,7 +71,9 @@ private[scalalib] object TestModuleUtil {
         mainArgs = Seq(testRunnerClasspathArg, argsFile.toString),
         cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
         cpPassingJarPath = Some(os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)),
-        javaHome = javaHome
+        javaHome = javaHome,
+        stdin = os.Inherit,
+        stdout = os.Inherit
       )
       
       if (!os.exists(outputPath)) Left(s"Test reporting Failed: ${outputPath} does not exist")
@@ -111,6 +113,7 @@ private[scalalib] object TestModuleUtil {
                 selectors.flatMap(s => Seq("--selectors", s)) ++
                 args.flatMap(s => Seq("--args", s)),
             javaHome = javaHome,
+            stdin = os.Inherit,
             stdout = os.Pipe,
             cwd = Task.dest
           ).out.lines().toSet

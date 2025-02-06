@@ -115,7 +115,9 @@ trait Proguard extends ScalaModule {
       mainClass = "proguard.ProGuard",
       classPath = proguardClasspath().map(_.path).toVector,
       mainArgs = args,
-      cwd = Task.dest
+      cwd = Task.dest,
+      stdin = os.Inherit,
+      stdout = os.Inherit
     )
     
     // the call above already throws an exception on a non-zero exit code,

@@ -446,7 +446,9 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         jvmArgs = forkArgs(),
         env = forkEnv(),
         mainArgs = Seq(useJavaCp) ++ consoleScalacOptions().filterNot(Set(useJavaCp)),
-        cwd = forkWorkingDir()
+        cwd = forkWorkingDir(),
+        stdin = os.Inherit,
+        stdout = os.Inherit
       )
             Result.Success(())
     }
@@ -515,7 +517,9 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         jvmArgs = forkArgs(),
         env = forkEnv(),
         mainArgs = replOptions,
-        cwd = forkWorkingDir()
+        cwd = forkWorkingDir(),
+        stdin = os.Inherit,
+        stdout = os.Inherit
       )
             Result.Success(())
     }

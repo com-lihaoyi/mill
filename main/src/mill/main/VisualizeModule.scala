@@ -105,7 +105,9 @@ trait VisualizeModule extends mill.define.TaskModule {
           mill.util.Jvm.callProcess(
             mainClass = "mill.main.graphviz.GraphvizTools",
             classPath = classpath().map(_.path).toVector,
-            mainArgs = Seq(s"${os.temp(g.toString)};$dest;txt,dot,json,png,svg")
+            mainArgs = Seq(s"${os.temp(g.toString)};$dest;txt,dot,json,png,svg"),
+            stdin = os.Inherit,
+            stdout = os.Inherit
           )
           
           os.list(dest).sorted.map(PathRef(_))

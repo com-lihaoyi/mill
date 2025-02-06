@@ -43,23 +43,6 @@ object Jvm extends CoursierSupport {
    * @param destroyOnExit Destroy on JVM exit
    * @param check if `true`, an exception will be thrown if process exits with a non-zero exit code
    */
-  /*
-    cmd: Shellable,
-      env: Map[String, String] = null,
-      // Make sure `cwd` only comes after `env`, so `os.call("foo", path)` is a compile error
-      // since the correct syntax is `os.call(("foo", path))`
-      cwd: Path = null,
-      stdin: ProcessInput = Pipe,
-      stdout: ProcessOutput = Pipe,
-      stderr: ProcessOutput = os.Inherit,
-      mergeErrIntoOut: Boolean = false,
-      timeout: Long = -1,
-      check: Boolean = true,
-      propagateEnv: Boolean = true,
-      shutdownGracePeriod: Long = 100,
-      destroyOnExit: Boolean = true
- */
-  // TODO match with os-lib defaults
   def callProcess(
       mainClass: String,
       mainArgs: Iterable[String] = Seq.empty,
@@ -70,8 +53,8 @@ object Jvm extends CoursierSupport {
       env: Map[String, String] = Map.empty,
       propagateEnv: Boolean = true,
       cwd: os.Path = null,
-      stdin: os.ProcessInput = os.Inherit,
-      stdout: ProcessOutput = os.Inherit,
+      stdin: os.ProcessInput = os.Pipe,
+      stdout: ProcessOutput = os.Pipe,
       stderr: ProcessOutput = os.Inherit,
       mergeErrIntoOut: Boolean = false,
       timeout: Long = -1,
@@ -157,8 +140,8 @@ object Jvm extends CoursierSupport {
       env: Map[String, String] = Map.empty,
       propagateEnv: Boolean = true,
       cwd: os.Path = null,
-      stdin: os.ProcessInput = os.Inherit,
-      stdout: ProcessOutput = os.Inherit,
+      stdin: os.ProcessInput = os.Pipe,
+      stdout: ProcessOutput = os.Pipe,
       stderr: ProcessOutput = os.Inherit,
       mergeErrIntoOut: Boolean = false,
       shutdownGracePeriod: Long = 100,

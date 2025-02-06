@@ -252,7 +252,9 @@ trait AndroidAppKotlinModule extends AndroidAppModule with KotlinModule { outer 
           "-Djava.security.manager=allow"
         ),
         mainArgs = Seq(composePreviewArgs().path.toString()),
-        cwd = Task.dest
+        cwd = Task.dest,
+        stdin = os.Inherit,
+        stdout = os.Inherit
       ).out.lines()
 
       Task.log.info(previewGenOut.mkString("\n"))

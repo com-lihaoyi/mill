@@ -183,7 +183,9 @@ trait KotlinModule extends JavaModule { outer =>
         mainClass = "",
         classPath = Seq.empty,
         jvmArgs = Seq("-jar", dokkaCliClasspath().head.path.toString()),
-        mainArgs = options
+        mainArgs = options,
+        stdin = os.Inherit,
+        stdout = os.Inherit
       )
           }
 

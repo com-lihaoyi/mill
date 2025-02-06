@@ -52,7 +52,9 @@ trait RevapiModule extends PublishModule {
       classPath = revapiClasspath().map(_.path).toVector,
       jvmArgs = revapiJvmArgs(),
       mainArgs = mainArgs,
-      cwd = workingDir
+      cwd = workingDir,
+      stdin = os.Inherit,
+      stdout = os.Inherit
     )
         PathRef(workingDir)
   }
