@@ -41,6 +41,22 @@ object ScalaIvyDepsTests extends TestSuite {
     }
   }
 
+  object IvyDepsRepositoriesTaskDep extends TestBaseModule {
+    object module extends JavaModule {
+      def repositoriesTask = Task.Anon {
+        super.repositoriesTask() ++ Seq(
+          coursier.Repositories.google
+        )
+      }
+      def ivyDeps = Task {
+        if (repositoriesTask().contains(coursier.Repositories.google))
+          Agg(ivy"com.google.protobuf:protobuf-java:2.6.1")
+        else
+          Agg.empty
+      }
+    }
+  }
+
   def tests: Tests = Tests {
 
     test("ivyDeps") - UnitTester(HelloWorldIvyDeps, resourcePath).scoped { eval =>
@@ -73,6 +89,14 @@ object ScalaIvyDepsTests extends TestSuite {
           result2.value.exists(_.path.last == "logback-classic-1.5.10.jar"),
           result2.value.exists(_.path.last == "slf4j-api-2.0.16.jar")
         )
+    }
+
+    test("ivyDepsNeedsRepositoriesTask") - UnitTester(IvyDepsRepositoriesTaskDep, null).scoped {
+      eval =>
+        val ivyDeps = eval.apply(IvyDepsRepositoriesTaskDep.module.ivyDeps).toTry.get
+        val repositories = eval.apply(IvyDepsRepositoriesTaskDep.module.repositoriesTask).toTry.get
+        assert(ivyDeps.value.contains(ivy"com.google.protobuf:protobuf-java:2.6.1"))
+        assert(repositories.value.contains(coursier.Repositories.google))
     }
 
   }
