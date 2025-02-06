@@ -58,8 +58,7 @@ object SonatypeHelpers {
       workspace,
       stdin = os.Inherit,
       stdout = os.Inherit,
-      stderr = os.Inherit,
-      check = false
+      stderr = os.Inherit
     )
     os.Path(fileName + ".asc")
   }

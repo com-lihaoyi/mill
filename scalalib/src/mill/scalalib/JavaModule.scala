@@ -1171,8 +1171,7 @@ trait JavaModule
         cwd = Task.dest,
         stdin = os.Inherit,
         stdout = os.Inherit,
-        stderr = os.Inherit,
-        check = false
+        stderr = os.Inherit
       )
     }
 

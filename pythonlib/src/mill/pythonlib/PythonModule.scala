@@ -274,7 +274,7 @@ object PythonModule {
         stdin = os.Inherit,
         stdout = os.Inherit,
         stderr = os.Inherit,
-        check = false
+        check = true
       )
     }
   }

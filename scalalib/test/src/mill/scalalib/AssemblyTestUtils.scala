@@ -58,8 +58,7 @@ trait AssemblyTestUtils {
       cwd = wd,
       stdin = os.Inherit,
       stdout = os.Inherit,
-      stderr = os.Inherit,
-      check = false
+      stderr = os.Inherit
     )
 
     if (checkExe) {
@@ -69,8 +68,7 @@ trait AssemblyTestUtils {
         cwd = wd,
         stdin = os.Inherit,
         stdout = os.Inherit,
-        stderr = os.Inherit,
-        check = false
+        stderr = os.Inherit
       )
     }
   }
