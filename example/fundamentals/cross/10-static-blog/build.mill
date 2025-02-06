@@ -33,7 +33,7 @@ trait PostModule extends Cross.Module[String] {
     val rendered = doctype("html")(
       html(
         body(
-          h1(a("Blog", href := "../index.html"), /, title),
+          h1(a("Blog", href := "../index.html"), " / ", title),
           raw(HtmlRenderer.builder().build().render(doc))
         )
       )
