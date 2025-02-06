@@ -1001,7 +1001,7 @@ trait JavaModule
    * Resolved dependencies
    */
   def resolvedIvyDeps: T[Agg[PathRef]] = Task {
-    internalResolver().resolveDeps(
+    internalCoursierResolver().resolveDeps(
       Seq(
         BoundDep(
           coursierDependency.withConfiguration(cs.Configuration.provided),
@@ -1024,7 +1024,7 @@ trait JavaModule
   }
 
   def resolvedRunIvyDeps: T[Agg[PathRef]] = Task {
-    internalResolver().resolveDeps(
+    internalCoursierResolver().resolveDeps(
       Seq(
         BoundDep(
           coursierDependency.withConfiguration(cs.Configuration.runtime),
@@ -1465,7 +1465,7 @@ trait JavaModule
     val tasks =
       if (all.value) Seq(
         Task.Anon {
-          internalResolver().resolveDeps(
+          internalCoursierResolver().resolveDeps(
             Seq(
               coursierDependency.withConfiguration(cs.Configuration.provided),
               coursierDependency
@@ -1478,7 +1478,7 @@ trait JavaModule
           )
         },
         Task.Anon {
-          internalResolver().resolveDeps(
+          internalCoursierResolver().resolveDeps(
             Seq(coursierDependency.withConfiguration(cs.Configuration.runtime)),
             sources = true
           )
