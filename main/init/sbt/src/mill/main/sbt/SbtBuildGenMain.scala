@@ -54,17 +54,32 @@ object SbtBuildGenMain extends BuildGenBase[IrBuild, String] {
       "./sbt"
     else if (os.exists(workspace / "sbtx"))
       "./sbtx"
-    else if ("sbt --help".! == 0)
+    else if (
+      // The return code is somehow 1 instead of 0.
+      Seq("sbt", "--help").!(ProcessLogger(_ => ())) == 1
+    )
       "sbt"
     else
       throw new RuntimeException(
         "No sbt executable (`./sbt`, `./sbtx`, or system-wide `sbt`) found"
       )
 
-    s"$sbtExecutable -addPluginSbtFile=${writeSbtFile().toString()} millInitGenerateProjectTree".!
+    println("Running sbt task to generate the project tree")
+
+    val exitCode = Process(
+      Seq(
+        sbtExecutable,
+        s"-addPluginSbtFile=${writeSbtFile().toString}",
+        "millInitGenerateProjectTree"
+      ),
+      workspace.toIO
+    ).!
+
+    println("Exit code from running the `millInitGenerateProjectTree` sbt task: " + exitCode)
 
     import upickle.default.*
-    val projectTree = read[ProjectTree](os.read(workspace / "target" / "mill-init-project-tree.json"))
+    val projectTree =
+      read[ProjectTree](os.read(workspace / "target" / "mill-init-project-tree.json"))
     println("Project tree retrieved: " + projectTree)
 
     /*
@@ -106,7 +121,7 @@ object SbtBuildGenMain extends BuildGenBase[IrBuild, String] {
     val sbtPluginJarUrl =
       getClass.getResource("/sbt-mill-init-generate-project-tree.jar").toExternalForm
     val contents =
-      s"""addSbtPlugin("com.lihaoyi" % "mill-main-init-sbt-sbt-mill-init-generate-project-tree" % "" from ${escape(
+      s"""addSbtPlugin("com.lihaoyi" % "mill-main-init-sbt-sbt-mill-init-generate-project-tree" % "0.1.0-SNAPSHOT" from ${escape(
           sbtPluginJarUrl
         )})
          |""".stripMargin

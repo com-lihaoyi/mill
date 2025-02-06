@@ -6,13 +6,14 @@ import sbt.{AutoPlugin, IO, Setting, taskKey}
 import upickle.default._
 
 object ProjectTreePlugin extends AutoPlugin {
-  // override def requires = ???
+  // override def requires = ??? // defaults to `JvmPlugin`
+  override def trigger = allRequirements
   object autoImport {
     val millInitGenerateProjectTree = taskKey[File]("generate the project tree for `mill init`")
   }
   import autoImport._
 
-  override lazy val globalSettings: Seq[Setting[_]] = Seq(
+  override lazy val buildSettings: Seq[Setting[_]] = Seq(
     millInitGenerateProjectTree := {
       // TODO
       val projectTree = ProjectTree()

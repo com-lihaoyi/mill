@@ -8,15 +8,15 @@ object BuildGenTests extends TestSuite {
   def tests: Tests = Tests {
     val checker = BuildGenChecker()
 
-    /*
-    test("library") {
-      val sourceRoot = os.sub / "library"
-      val expectedRoot = os.sub / "expected/library"
+    test("scala-seed-project") {
+      val sourceRoot = os.sub / "scala-seed-project"
+      val expectedRoot = os.sub / "expected/scala-seed-project"
       assert(
-        checker.check(GradleBuildGenMain.main(Array.empty), sourceRoot, expectedRoot)
+        checker.check(SbtBuildGenMain.main(Array.empty), sourceRoot, expectedRoot)
       )
     }
 
+    /*
     test("application-library") {
       val sourceRoot = os.sub / "application-library"
       val expectedRoot = os.sub / "expected/application-library"
