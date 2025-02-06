@@ -94,7 +94,7 @@ def customPlanCommand(evaluator: Evaluator, tasks: String*) = Task.Command {
       val plan = evaluator.plan(resolved)
         .sortedGroups
         .keys()
-        .map(_.render)
+        .map(_.toString)
         .toArray
 
       plan.foreach(println)
