@@ -61,7 +61,7 @@ object SonatypeHelpers {
       stderr = os.Inherit,
       check = false
     )
-        os.Path(fileName + ".asc")
+    os.Path(fileName + ".asc")
   }
 
   private def md5hex(bytes: Array[Byte]): Array[Byte] =

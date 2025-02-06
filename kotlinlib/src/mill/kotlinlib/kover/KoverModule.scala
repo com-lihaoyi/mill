@@ -221,7 +221,7 @@ object Kover extends ExternalModule with KoverReportBaseModule {
       stdin = os.Inherit,
       stdout = os.Inherit
     )
-        PathRef(os.Path(output))
+    PathRef(os.Path(output))
   }
 
   private def resolveTasks[T](tasks: String, evaluator: Evaluator): Seq[Task[T]] =

@@ -450,7 +450,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         stdin = os.Inherit,
         stdout = os.Inherit
       )
-            Result.Success(())
+      Result.Success(())
     }
   }
 
@@ -521,7 +521,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         stdin = os.Inherit,
         stdout = os.Inherit
       )
-            Result.Success(())
+      Result.Success(())
     }
 
   }

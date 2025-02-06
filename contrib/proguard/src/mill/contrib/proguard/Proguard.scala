@@ -119,7 +119,7 @@ trait Proguard extends ScalaModule {
       stdin = os.Inherit,
       stdout = os.Inherit
     )
-    
+
     // the call above already throws an exception on a non-zero exit code,
     // so if we reached this point we've succeeded!
     PathRef(outJar)

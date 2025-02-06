@@ -17,7 +17,7 @@ object ClassLoader {
     } finally thread.setContextClassLoader(oldCl)
   }
   def java9OrAbove: Boolean = !System.getProperty("java.specification.version").startsWith("1.")
-  
+
   @deprecated("Use callClassLoader", "Mill 0.12.7")
   def create(
       urls: Seq[URL],

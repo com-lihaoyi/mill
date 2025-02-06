@@ -290,7 +290,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       stderr = os.Inherit,
       check = false
     )
-      }
+  }
 
   @internal
   override def bspBuildTargetData: Task[Option[(String, AnyRef)]] = Task.Anon {

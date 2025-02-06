@@ -37,8 +37,8 @@ object Jvm extends CoursierSupport {
    * @param stderr Standard error
    * @param mergeErrIntoOut If `true` then the error output is merged into standard output
    * @param timeout how long to wait in milliseconds for the subprocess to complete (-1 for no timeout)
-   * @param shutdownGracePeriod if the timeout is enabled, how long in milliseconds for the subprocess 
-   *                            to gracefully terminate before attempting to forcibly kill it 
+   * @param shutdownGracePeriod if the timeout is enabled, how long in milliseconds for the subprocess
+   *                            to gracefully terminate before attempting to forcibly kill it
    *                            (-1 for no kill, 0 for always kill immediately)
    * @param destroyOnExit Destroy on JVM exit
    * @param check if `true`, an exception will be thrown if process exits with a non-zero exit code
@@ -117,7 +117,7 @@ object Jvm extends CoursierSupport {
    *                        When `Some`, a temporary empty JAR is created
    *                        which contains a `Class-Path` manifest entry containing the actual classpath.
    *                        This might help with long classpaths on OS'es (like Windows)
-   *                        which only supports limited command-line length 
+   *                        which only supports limited command-line length
    * @param env Environment variables used when starting the forked JVM
    * @param propagateEnv If `true` then the current process' environment variables are propagated to subprocess
    * @param cwd The working directory to be used by the forked JVM
@@ -125,8 +125,8 @@ object Jvm extends CoursierSupport {
    * @param stdout Standard output override
    * @param stderr Standard error override
    * @param mergeErrIntoOut If `true` then the error output is merged into standard output
-   * @param shutdownGracePeriod if the timeout is enabled, how long in milliseconds for the subprocess 
-   *                            to gracefully terminate before attempting to forcibly kill it 
+   * @param shutdownGracePeriod if the timeout is enabled, how long in milliseconds for the subprocess
+   *                            to gracefully terminate before attempting to forcibly kill it
    *                            (-1 for no kill, 0 for always kill immediately)
    * @param destroyOnExit Destroy on JVM exit
    */
@@ -153,17 +153,17 @@ object Jvm extends CoursierSupport {
         Seq(passingJarPath)
       case _ => classPath
     }
- 
+
     val commandArgs = (Vector(javaExe(javaHome)) ++
       jvmArgs ++
       Option.when(cp.nonEmpty)(
-        Vector(        "-cp",        cp.mkString(java.io.File.pathSeparator)      )
+        Vector("-cp", cp.mkString(java.io.File.pathSeparator))
       ).getOrElse(Vector.empty) ++
       Vector(mainClass) ++
       mainArgs).filterNot(_.isBlank)
 
     if (cwd != null) os.makeDir.all(cwd)
-    
+
     val process = os.proc(commandArgs).spawn(
       cwd = cwd,
       env = env,
@@ -634,13 +634,16 @@ object Jvm extends CoursierSupport {
   }
 
   def createClassLoader(
-                         classPath: Iterable[os.Path],
-              sharedPrefixes: Iterable[String] = Seq(),
-              parent: java.lang.ClassLoader = null,
-              sharedLoader: java.lang.ClassLoader = getClass.getClassLoader,
-              logger: Option[mill.api.Logger] = None
-            ): java.net.URLClassLoader =
-    new java.net.URLClassLoader(classPath.iterator.map(_.toNIO.toUri.toURL).toArray, refinePlatformParent(parent)) {
+      classPath: Iterable[os.Path],
+      sharedPrefixes: Iterable[String] = Seq(),
+      parent: java.lang.ClassLoader = null,
+      sharedLoader: java.lang.ClassLoader = getClass.getClassLoader,
+      logger: Option[mill.api.Logger] = None
+  ): java.net.URLClassLoader =
+    new java.net.URLClassLoader(
+      classPath.iterator.map(_.toNIO.toUri.toURL).toArray,
+      refinePlatformParent(parent)
+    ) {
       override def findClass(name: String): Class[?] = {
         if (sharedPrefixes.exists(name.startsWith)) {
           logger.foreach(
@@ -893,6 +896,7 @@ object Jvm extends CoursierSupport {
     }
   }
 
-  private val java9OrAbove: Boolean = !System.getProperty("java.specification.version").startsWith("1.")
-  
+  private val java9OrAbove: Boolean =
+    !System.getProperty("java.specification.version").startsWith("1.")
+
 }

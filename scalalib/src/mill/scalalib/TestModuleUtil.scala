@@ -75,7 +75,7 @@ private[scalalib] object TestModuleUtil {
         stdin = os.Inherit,
         stdout = os.Inherit
       )
-      
+
       if (!os.exists(outputPath)) Left(s"Test reporting Failed: ${outputPath} does not exist")
       else Right(upickle.default.read[(String, Seq[TestResult])](ujson.read(outputPath.toIO)))
     }

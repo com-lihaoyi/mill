@@ -276,6 +276,6 @@ object PythonModule {
         stderr = os.Inherit,
         check = false
       )
-          }
+    }
   }
 }

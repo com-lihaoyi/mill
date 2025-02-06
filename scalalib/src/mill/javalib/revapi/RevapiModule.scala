@@ -56,7 +56,7 @@ trait RevapiModule extends PublishModule {
       stdin = os.Inherit,
       stdout = os.Inherit
     )
-        PathRef(workingDir)
+    PathRef(workingDir)
   }
 
   /**

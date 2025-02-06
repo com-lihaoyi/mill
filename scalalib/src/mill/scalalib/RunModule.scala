@@ -315,7 +315,7 @@ object RunModule {
       val mainArgs = args.value
       val classPath = runClasspath ++ extraRunClasspath
       val jvmArgs = Option(forkArgs).getOrElse(forkArgs0)
-      val useClasspathPassingJar = Option(useCpPassingJar) match {
+      Option(useCpPassingJar) match {
         case Some(b) => b: Boolean
         case None => useCpPassingJar0
       }
@@ -361,7 +361,7 @@ object RunModule {
           cpPassingJarPath = Some(os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)),
           javaHome = javaHome
         )
-              }
+      }
     }
   }
 }

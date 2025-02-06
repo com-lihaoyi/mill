@@ -124,8 +124,8 @@ object KtfmtModule extends ExternalModule with KtfmtBaseModule with TaskModule {
       mainClass = "com.facebook.ktfmt.cli.Main",
       classPath = classPath.map(_.path).toVector,
       mainArgs = args.result(),
-      cwd = millSourcePath ,// allow passing relative paths for sources like src/a/b
-        stdin = os.Inherit,
+      cwd = millSourcePath, // allow passing relative paths for sources like src/a/b
+      stdin = os.Inherit,
       stdout = os.Inherit
     ).exitCode
 

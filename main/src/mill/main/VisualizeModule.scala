@@ -109,7 +109,7 @@ trait VisualizeModule extends mill.define.TaskModule {
             stdin = os.Inherit,
             stdout = os.Inherit
           )
-          
+
           os.list(dest).sorted.map(PathRef(_))
         }
         out.put(res)

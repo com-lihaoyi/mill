@@ -566,7 +566,7 @@ trait AndroidAppModule extends JavaModule {
       stdin = os.Inherit,
       stdout = os.Inherit
     )
-        PathRef(mergedManifestPath)
+    PathRef(mergedManifestPath)
   }
 
   /**

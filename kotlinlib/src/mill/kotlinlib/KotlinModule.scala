@@ -187,7 +187,7 @@ trait KotlinModule extends JavaModule { outer =>
         stdin = os.Inherit,
         stdout = os.Inherit
       )
-          }
+    }
 
     Jvm.createJar(Agg(dokkaDir))(outDir)
   }

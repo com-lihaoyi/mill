@@ -490,7 +490,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
         stderr = os.Inherit,
         check = false
       )
-            PathRef(Task.dest)
+      PathRef(Task.dest)
     }
 
     // NB: for the packages below it is important to use specific version

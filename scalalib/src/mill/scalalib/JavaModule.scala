@@ -1174,7 +1174,7 @@ trait JavaModule
         stderr = os.Inherit,
         check = false
       )
-          }
+    }
 
     Jvm.createJar(Agg(javadocDir))(outDir)
   }

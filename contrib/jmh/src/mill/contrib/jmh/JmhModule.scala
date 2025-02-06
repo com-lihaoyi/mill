@@ -99,7 +99,7 @@ trait JmhModule extends JavaModule {
         stdin = os.Inherit,
         stdout = os.Inherit
       )
-      
+
       (sourcesDir, resourcesDir)
     }
 

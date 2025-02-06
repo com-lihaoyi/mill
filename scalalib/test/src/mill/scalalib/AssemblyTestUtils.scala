@@ -61,7 +61,7 @@ trait AssemblyTestUtils {
       stderr = os.Inherit,
       check = false
     )
-    
+
     if (checkExe) {
       os.call(
         cmd = Seq(file.toString(), "--text", "tutu"),
@@ -72,6 +72,6 @@ trait AssemblyTestUtils {
         stderr = os.Inherit,
         check = false
       )
-          }
+    }
   }
 }
