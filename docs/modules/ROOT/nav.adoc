@@ -102,14 +102,14 @@
 ** xref:extending/meta-build.adoc[]
 ** xref:extending/example-typescript-support.adoc[]
 ** xref:extending/example-python-support.adoc[]
+* xref:large/large.adoc[]
+** xref:large/selective-execution.adoc[]
+** xref:large/multi-file-builds.adoc[]
+** xref:large/multi-language-builds.adoc[]
 // This section focuses on diving into deeper, more advanced topics for Mill.
 // These are things that most Mill developers would not encounter day to day,
 // but people developing Mill plugins or working on particularly large or
 // sophisticated Mill builds will need to understand.
-* xref:large/large.adoc[]
-** xref:large/selective-execution.adoc[]
-** xref:large/multi-file-builds.adoc[]
-
 * Mill In Depth
 ** xref:depth/sandboxing.adoc[]
 ** xref:depth/execution-model.adoc[]
