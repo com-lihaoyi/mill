@@ -843,7 +843,7 @@ object `package` extends RootModule with PythonModule with PublishModule {
   def publishVersion = &quot;0.0.3&quot;
 
   // you could also reference an existing setup.py file directly, e.g.
-  // `def setup = Task.Source { millSourcePath / &quot;setup.py&quot; }`
+  // `def setup = Task.Source {&quot;setup.py&quot; }`
   def setup = Task {
     val str =
       s&quot;&quot;&quot;#from setuptools import setup

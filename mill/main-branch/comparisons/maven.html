@@ -1142,7 +1142,7 @@ import $ivy.`ant:ant-optional:1.5.3-1`
 
 object common extends NettyModule{
   ...
-  def script = Task.Source(millSourcePath / &quot;src&quot; / &quot;main&quot; / &quot;script&quot;)
+  def script = Task.Source(&quot;src&quot; / &quot;main&quot; / &quot;script&quot;)
   def generatedSources0 = Task {
     val shell = new groovy.lang.GroovyShell()
     val context = new java.util.HashMap[String, Object]
@@ -1283,8 +1283,8 @@ with the <code>make</code> command essentially being a bash script wrapped in la
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def makefile = Task.Source(millSourcePath / &quot;Makefile&quot;)
-def cSources = Task.Source(millSourcePath / &quot;src&quot; / &quot;main&quot; / &quot;c&quot;)
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def makefile = Task.Source(&quot;Makefile&quot;)
+def cSources = Task.Source(&quot;src&quot; / &quot;main&quot; / &quot;c&quot;)
 def cHeaders = Task {
   for(p &lt;- os.walk(cSources().path) if p.ext == &quot;h&quot;){
     os.copy(p, Task.dest / p.relativeTo(cSources().path), createFolders = true)

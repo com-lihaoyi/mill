@@ -719,7 +719,7 @@ object foo extends JavaModule {
     defaultResolver().resolveDeps(Agg(ivy&quot;org.codehaus.groovy:groovy:3.0.9&quot;))
   }
 
-  def groovyScript = Task.Source(millSourcePath / &quot;generate.groovy&quot;)
+  def groovyScript = Task.Source(&quot;generate.groovy&quot;)
 
   def groovyGeneratedResources = Task {
     Jvm.runSubprocess(
@@ -796,7 +796,7 @@ object foo extends JavaModule {
     defaultResolver().resolveDeps(Agg(ivy&quot;org.codehaus.groovy:groovy:3.0.9&quot;))
   }
 
-  def groovyScript = Task.Source(millSourcePath / &quot;generate.groovy&quot;)
+  def groovyScript = Task.Source(&quot;generate.groovy&quot;)
 
   def groovyGeneratedResources = Task {
     Jvm.runClassloader(classPath = groovyClasspath().map(_.path)) { classLoader =&gt;
@@ -875,7 +875,7 @@ def groovyWorker: Worker[java.net.URLClassLoader] = Task.Worker {
 }
 
 trait GroovyGenerateJavaModule extends JavaModule {
-  def groovyScript = Task.Source(millSourcePath / &quot;generate.groovy&quot;)
+  def groovyScript = Task.Source(&quot;generate.groovy&quot;)
 
   def groovyGeneratedResources = Task {
     mill.api.ClassLoader.withContextClassLoader(groovyWorker()) {

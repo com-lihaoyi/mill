@@ -705,7 +705,7 @@ import mill._, pythonlib._
 
 object foo extends PythonModule {
 
-  def mainScript = Task.Source { millSourcePath / &quot;src&quot; / &quot;foo.py&quot; }
+  def mainScript = Task.Source { &quot;src/foo.py&quot; }
 
   def pythonDeps = Seq(&quot;Jinja2==3.1.4&quot;)
 
@@ -882,7 +882,7 @@ import mill._, pythonlib._
 
 object foo extends PythonModule {
 
-  def mainScript = Task.Source { millSourcePath / &quot;src&quot; / &quot;foo.py&quot; }
+  def mainScript = Task.Source { &quot;src/foo.py&quot; }
 
   /** All Python source files in this module, recursively from the source directories.*/
   def allSourceFiles: T[Seq[PathRef]] = Task {
@@ -1057,11 +1057,11 @@ trait MyModule extends PythonModule {
 
 object foo extends MyModule {
   def moduleDeps = Seq(bar)
-  def mainScript = Task.Source { millSourcePath / &quot;src&quot; / &quot;foo.py&quot; }
+  def mainScript = Task.Source { &quot;src/foo.py&quot; }
 }
 
 object bar extends MyModule {
-  def mainScript = Task.Source { millSourcePath / &quot;src&quot; / &quot;bar.py&quot; }
+  def mainScript = Task.Source { &quot;src/bar.py&quot; }
   def pythonDeps = Seq(&quot;Jinja2==3.1.4&quot;)
 }</code></pre>
 </div>

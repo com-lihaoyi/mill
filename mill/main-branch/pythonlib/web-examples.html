@@ -672,7 +672,7 @@ import mill._, pythonlib._
 
 object foo extends PythonModule {
 
-  def mainScript = Task.Source { millSourcePath / &quot;src/foo.py&quot; }
+  def mainScript = Task.Source { &quot;src/foo.py&quot; }
 
   def pythonDeps = Seq(&quot;flask==3.1.0&quot;)
 
@@ -725,7 +725,7 @@ import mill._, pythonlib._
 
 object todo extends PythonModule {
 
-  def mainScript = Task.Source { millSourcePath / &quot;src/app.py&quot; }
+  def mainScript = Task.Source { &quot;src/app.py&quot; }
 
   def pythonDeps = Seq(&quot;flask==3.1.0&quot;, &quot;Flask-SQLAlchemy==3.1.1&quot;, &quot;Flask-WTF==1.2.2&quot;)
 
@@ -815,7 +815,7 @@ import mill._, pythonlib._
 
 object foo extends PythonModule {
 
-  def mainScript = Task.Source { millSourcePath / &quot;src/manage.py&quot; }
+  def mainScript = Task.Source { &quot;src/manage.py&quot; }
 
   def pythonDeps = Seq(&quot;django==5.1.4&quot;)
 
@@ -864,7 +864,7 @@ import mill._, pythonlib._
 
 object todo extends PythonModule {
 
-  def mainScript = Task.Source { millSourcePath / &quot;src/manage.py&quot; }
+  def mainScript = Task.Source { &quot;src/manage.py&quot; }
 
   def pythonDeps = Seq(&quot;django==5.1.4&quot;)
 

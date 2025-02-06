@@ -660,7 +660,7 @@ import mill.javascriptlib._
 object foo extends TypeScriptModule {
 
   def customSource = Task {
-    Seq(PathRef(millSourcePath / &quot;custom-src&quot; / &quot;foo2.ts&quot;))
+    Seq(PathRef(millSourcePath / &quot;custom-src/foo2.ts&quot;))
   }
 
   def allSources = super.allSources() ++ customSource()
@@ -1024,7 +1024,7 @@ import ujson._
 
 object foo extends TypeScriptModule {
   object test extends TypeScriptTests with TestModule.Jest {
-    def otherFiles = Task.Source(millSourcePath / &quot;other-files&quot;)
+    def otherFiles = Task.Source(&quot;other-files&quot;)
 
     def forkEnv = super.forkEnv() + (&quot;OTHER_FILES_DIR&quot; -&gt; otherFiles().path.toString)
   }

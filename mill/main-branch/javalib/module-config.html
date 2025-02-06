@@ -865,7 +865,7 @@ import mill._, javalib._
 
 object foo extends JavaModule {
   object test extends JavaTests with TestModule.Junit4 {
-    def otherFiles = Task.Source(millSourcePath / &quot;other-files&quot;)
+    def otherFiles = Task.Source(&quot;other-files&quot;)
 
     def forkEnv = super.forkEnv() ++ Map(
       &quot;OTHER_FILES_DIR&quot; -&gt; otherFiles().path.toString
@@ -1527,7 +1527,7 @@ import mill._, javalib._, util.Jvm
 
 object `package` extends RootModule with JavaModule {
   // Additional source folder to put C sources
-  def nativeSources = Task.Sources(millSourcePath / &quot;native-src&quot;)
+  def nativeSources = Task.Sources(&quot;native-src&quot;)
 
   // Auto-generate JNI `.h` files from Java classes using Javac
   def nativeHeaders = Task {

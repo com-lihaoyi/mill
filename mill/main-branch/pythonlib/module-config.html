@@ -675,7 +675,7 @@ object foo extends PythonModule {
   def pythonDeps = Seq(&quot;MarkupSafe==3.0.2&quot;, &quot;Jinja2==3.1.4&quot;)
 
   // choose a main Script to run if there are multiple present
-  def mainScript = Task.Source { millSourcePath / &quot;custom-src&quot; / &quot;foo2.py&quot; }
+  def mainScript = Task.Source { &quot;custom-src/foo2.py&quot; }
 
   // Add (or replace) source folders for the module to use
   def sources = Task.Sources {
@@ -801,7 +801,7 @@ object foo extends PythonModule {
 
   def pythonDeps = Seq(&quot;argparse==1.4.0&quot;, &quot;jinja2==3.1.4&quot;)
 
-  def mainScript = Task.Source { millSourcePath / &quot;src&quot; / &quot;foo.py&quot; }
+  def mainScript = Task.Source { &quot;src/foo.py&quot; }
 
   def generatedSources: T[Seq[PathRef]] = Task {
     val destPath = Task.dest / &quot;generatedSources&quot;
@@ -1128,7 +1128,7 @@ Hello World</code></pre>
 import mill._, pythonlib._
 
 object `package` extends RootModule with PythonModule {
-  def mainScript = Task.Source { millSourcePath / &quot;src&quot; / &quot;foo.py&quot; }
+  def mainScript = Task.Source { &quot;src/foo.py&quot; }
   def pythonOptions = Seq(&quot;-Wall&quot;, &quot;-Xdev&quot;)
   def forkEnv = Map(&quot;MY_ENV_VAR&quot; -&gt; &quot;HELLO MILL!&quot;)
 }</code></pre>
@@ -1160,13 +1160,13 @@ environment-variables via <code>forkEnv</code>.</p>
 import mill._, pythonlib._
 
 object foo extends PythonModule {
-  def mainScript = Task.Source { millSourcePath / &quot;src&quot; / &quot;foo.py&quot; }
+  def mainScript = Task.Source { &quot;src/foo.py&quot; }
 
   def resources = Task.Sources { super.resources() ++ Seq(PathRef(millSourcePath / &quot;custom&quot;)) }
 
   object test extends PythonTests with TestModule.Unittest {
 
-    def otherFiles = Task.Source(millSourcePath / &quot;other-files&quot;)
+    def otherFiles = Task.Source(&quot;other-files&quot;)
 
     def forkEnv: T[Map[String, String]] =
       super.forkEnv() ++ Map(&quot;OTHER_FILES_DIR&quot; -&gt; otherFiles().path.toString)

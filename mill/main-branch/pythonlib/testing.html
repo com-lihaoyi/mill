@@ -663,9 +663,9 @@
 import mill._, pythonlib._
 
 object foo extends PythonModule {
-  def mainScript = Task.Source { millSourcePath / &quot;src/foo.py&quot; }
+  def mainScript = Task.Source { &quot;src/foo.py&quot; }
   object test extends PythonTests with TestModule.Unittest {
-    def mainScript = Task.Source { millSourcePath / &quot;src/test_foo.py&quot; }
+    def mainScript = Task.Source { &quot;src/test_foo.py&quot; }
   }
 }</code></pre>
 </div>
@@ -762,7 +762,7 @@ details on how to use each one from the command line.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends PythonModule {
-  def mainScript = Task.Source { millSourcePath / &quot;src/bar.py&quot; }
+  def mainScript = Task.Source { &quot;src/bar.py&quot; }
   object test extends PythonTests with TestModule.Pytest
 }</code></pre>
 </div>
@@ -888,7 +888,7 @@ import mill._, pythonlib._
 
 object foo extends PythonModule {
 
-  def mainScript = Task.Source { millSourcePath / &quot;src/foo.py&quot; }
+  def mainScript = Task.Source { &quot;src/foo.py&quot; }
 
   def moduleDeps = Seq(bar)
 
@@ -905,7 +905,7 @@ object foo extends PythonModule {
 
 object bar extends PythonModule {
 
-  def mainScript = Task.Source { millSourcePath / &quot;src/bar.py&quot; }
+  def mainScript = Task.Source { &quot;src/bar.py&quot; }
 
   object test extends PythonTests with TestModule.Unittest
 
@@ -1021,7 +1021,7 @@ import mill._, pythonlib._
 
 object foo extends PythonModule {
 
-  def mainScript = Task.Source { millSourcePath / &quot;src/foo.py&quot; }
+  def mainScript = Task.Source { &quot;src/foo.py&quot; }
 
   object test extends PythonTests with TestModule.Unittest
 

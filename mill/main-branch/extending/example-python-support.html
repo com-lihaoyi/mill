@@ -686,7 +686,7 @@ import mill._
 def pythonExe: T[PathRef] = Task {
 
   os.call((&quot;python3&quot;, &quot;-m&quot;, &quot;venv&quot;, Task.dest / &quot;venv&quot;))
-  val python = Task.dest / &quot;venv&quot; / &quot;bin&quot; / &quot;python3&quot;
+  val python = Task.dest / &quot;venv/bin/python3&quot;
   os.call((python, &quot;-m&quot;, &quot;pip&quot;, &quot;install&quot;, &quot;mypy==1.13.0&quot;))
 
   PathRef(python)
@@ -700,7 +700,7 @@ def pythonExe: T[PathRef] = Task {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def sources: T[PathRef] = Task.Source(millSourcePath / &quot;src&quot;)</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def sources: T[PathRef] = Task.Source(&quot;src&quot;)</code></pre>
 </div>
 </div>
 </div>
@@ -920,13 +920,13 @@ import mill._
 
 trait PythonModule extends Module {
 
-  def sources: T[PathRef] = Task.Source(millSourcePath / &quot;src&quot;)
+  def sources: T[PathRef] = Task.Source(&quot;src&quot;)
   def mainFileName: T[String] = Task { &quot;main.py&quot; }
 
   def pythonExe: T[PathRef] = Task {
 
     os.call((&quot;python3&quot;, &quot;-m&quot;, &quot;venv&quot;, Task.dest / &quot;venv&quot;))
-    val python = Task.dest / &quot;venv&quot; / &quot;bin&quot; / &quot;python3&quot;
+    val python = Task.dest / &quot;venv/bin/python3&quot;
     os.call((python, &quot;-m&quot;, &quot;pip&quot;, &quot;install&quot;, &quot;mypy==1.13.0&quot;))
 
     PathRef(python)
@@ -1223,13 +1223,13 @@ trait PythonModule extends Module {
   // List of module dependencies required by this module.
   def moduleDeps: Seq[PythonModule] = Nil
 
-  def sources: T[PathRef] = Task.Source(millSourcePath / &quot;src&quot;)
+  def sources: T[PathRef] = Task.Source(&quot;src&quot;)
   def mainFileName: T[String] = Task { &quot;main.py&quot; }
 
   def pythonExe: T[PathRef] = Task {
 
     os.call((&quot;python3&quot;, &quot;-m&quot;, &quot;venv&quot;, Task.dest / &quot;venv&quot;))
-    val python = Task.dest / &quot;venv&quot; / &quot;bin&quot; / &quot;python3&quot;
+    val python = Task.dest / &quot;venv/bin/python3&quot;
     os.call((python, &quot;-m&quot;, &quot;pip&quot;, &quot;install&quot;, &quot;mypy==1.13.0&quot;))
 
     PathRef(python)
@@ -1590,7 +1590,7 @@ import mill._
 trait PythonModule extends Module {
   def moduleDeps: Seq[PythonModule] = Nil
   def mainFileName: T[String] = Task { &quot;main.py&quot; }
-  def sources: T[PathRef] = Task.Source(millSourcePath / &quot;src&quot;)
+  def sources: T[PathRef] = Task.Source(&quot;src&quot;)
 
   def pythonDeps: T[Seq[String]] = Task { Seq.empty[String] }
 
@@ -1601,7 +1601,7 @@ trait PythonModule extends Module {
 
   def pythonExe: T[PathRef] = Task {
     os.call((&quot;python3&quot;, &quot;-m&quot;, &quot;venv&quot;, Task.dest / &quot;venv&quot;))
-    val python = Task.dest / &quot;venv&quot; / &quot;bin&quot; / &quot;python3&quot;
+    val python = Task.dest / &quot;venv/bin/python3&quot;
     os.call((python, &quot;-m&quot;, &quot;pip&quot;, &quot;install&quot;, &quot;mypy==1.13.0&quot;, &quot;pex==2.24.1&quot;, transitivePythonDeps()))
 
     PathRef(python)

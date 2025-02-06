@@ -867,8 +867,8 @@ them into classfiles, and then the <code>jar</code> executable to package them t
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def mainClass: T[Option[String]] = Some(&quot;foo.Foo&quot;)
 
-def sources = Task.Source(millSourcePath / &quot;src&quot;)
-def resources = Task.Source(millSourcePath / &quot;resources&quot;)
+def sources = Task.Source(&quot;src&quot;)
+def resources = Task.Source(&quot;resources&quot;)
 
 def compile = Task {
   val allSources = os.walk(sources().path)

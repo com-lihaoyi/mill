@@ -879,7 +879,7 @@ object foo extends KotlinModule {
   def kotlinVersion = &quot;1.9.24&quot;
 
   object test extends KotlinTests with TestModule.Junit5 {
-    def otherFiles = Task.Source(millSourcePath / &quot;other-files&quot;)
+    def otherFiles = Task.Source(&quot;other-files&quot;)
 
     def forkEnv = super.forkEnv() ++ Map(
       &quot;OTHER_FILES_DIR&quot; -&gt; otherFiles().path.toString
@@ -1539,7 +1539,7 @@ object `package` extends RootModule with KotlinModule {
   def kotlinVersion = &quot;1.9.24&quot;
 
   // Additional source folder to put C sources
-  def nativeSources = Task.Sources(millSourcePath / &quot;native-src&quot;)
+  def nativeSources = Task.Sources(&quot;native-src&quot;)
 
   // Compile C
   def nativeCompiled = Task {
