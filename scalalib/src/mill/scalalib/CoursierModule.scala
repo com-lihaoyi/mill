@@ -41,7 +41,7 @@ trait CoursierModule extends mill.Module {
    *
    * @return `CoursierModule.Resolver` instance
    */
-  def internalResolver: Task[CoursierModule.Resolver] = Task.Anon {
+  def internalCoursierResolver: Task[CoursierModule.Resolver] = Task.Anon {
     new CoursierModule.Resolver(
       repositories = allRepositoriesTask(),
       bind = bindDependency(),
