@@ -102,6 +102,7 @@
 ** xref:extending/meta-build.adoc[]
 ** xref:extending/example-typescript-support.adoc[]
 ** xref:extending/example-python-support.adoc[]
+** xref:large/multi-language-builds.adoc[]
 // This section focuses on diving into deeper, more advanced topics for Mill.
 // These are things that most Mill developers would not encounter day to day,
 // but people developing Mill plugins or working on particularly large or
