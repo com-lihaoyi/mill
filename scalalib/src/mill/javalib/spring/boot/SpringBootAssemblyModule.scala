@@ -4,7 +4,7 @@ import mill.api.{PathRef, Result}
 import mill.{Agg, T, Task}
 import mill.define.ModuleRef
 import mill.javalib.JavaModule
-import mill.scalalib.{AssemblyModule, RunModule}
+import mill.scalalib.RunModule
 import mill.util.Jvm
 
 trait SpringBootAssemblyModule extends JavaModule {
