@@ -5,8 +5,8 @@ import mill.main.buildgen.*
 import mill.main.buildgen.BuildGenUtil.escape
 
 /**
- * Converts an SBT build to Mill by generating Mill build file(s).
- * The implementation uses the SBT
+ * Converts an sbt build to Mill by generating Mill build file(s).
+ * The implementation uses the sbt
  * [[https://www.scala-sbt.org/1.x/docs/Combined+Pages.html#addPluginSbtFile+command addPluginSbtFile command]]
  * to add a plugin and a task to extract the settings for a project using a custom model.
  *
@@ -44,7 +44,7 @@ object SbtBuildGenMain extends BuildGenBase[IrBuild, String] {
   private def run(cfg: Config): Unit = {
     val workspace = os.pwd
 
-    println("converting SBT build")
+    println("converting sbt build")
 
     import scala.sys.process.*
 
