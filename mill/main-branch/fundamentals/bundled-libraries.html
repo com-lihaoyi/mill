@@ -1130,7 +1130,7 @@ and plan out what would be necessary to run them</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.eval.{Evaluator, Terminal}
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.eval.Evaluator
 import mill.resolve.{Resolve, SelectMode}
 
 def customPlanCommand(evaluator: Evaluator, tasks: String*) = Task.Command {
@@ -1144,7 +1144,7 @@ def customPlanCommand(evaluator: Evaluator, tasks: String*) = Task.Command {
       val plan = evaluator.plan(resolved)
         .sortedGroups
         .keys()
-        .map(_.render)
+        .map(_.toString)
         .toArray
 
       plan.foreach(println)
