@@ -143,7 +143,8 @@ object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule
           mainArgs = mainArgs,
           cwd = ctx.dest,
           stdin = os.Inherit,
-          stdout = os.Inherit
+          stdout = os.Inherit,
+          check = false
         ).exitCode
 
         if (check && exitCode != 0) {

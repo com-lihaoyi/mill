@@ -128,7 +128,8 @@ object KtlintModule extends ExternalModule with KtlintModule with TaskModule {
       mainArgs = args.result(),
       cwd = millSourcePath,
       stdin = os.Inherit,
-      stdout = os.Inherit
+      stdout = os.Inherit,
+      check = false
     ).exitCode
 
     if (exitCode == 0) {} // do nothing

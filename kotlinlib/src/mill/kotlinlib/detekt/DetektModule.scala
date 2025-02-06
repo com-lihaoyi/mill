@@ -33,7 +33,8 @@ trait DetektModule extends KotlinModule {
       mainArgs = args,
       cwd = millSourcePath, // allow passing relative paths for sources like src/a/b
       stdin = os.Inherit,
-      stdout = os.Inherit
+      stdout = os.Inherit,
+      check = false
     ).exitCode
   }
 

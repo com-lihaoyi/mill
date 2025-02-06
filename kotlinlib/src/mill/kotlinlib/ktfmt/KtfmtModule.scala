@@ -126,7 +126,8 @@ object KtfmtModule extends ExternalModule with KtfmtBaseModule with TaskModule {
       mainArgs = args.result(),
       cwd = millSourcePath, // allow passing relative paths for sources like src/a/b
       stdin = os.Inherit,
-      stdout = os.Inherit
+      stdout = os.Inherit,
+      check = false
     ).exitCode
 
     if (exitCode == 0) {} // do nothing
