@@ -4,7 +4,7 @@ package javalib.palantirformat
 import mill.api.{Loose, PathRef}
 import mill.define.{Discover, ExternalModule}
 import mill.main.Tasks
-import mill.scalalib.{CoursierModule, DepSyntax, JavaModule}
+import mill.scalalib.JavaModule
 import mill.util.Jvm
 
 /**
