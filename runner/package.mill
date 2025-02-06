@@ -10,7 +10,7 @@ object `package` extends RootModule with build.MillPublishScalaModule {
     def buildInfoPackageName = "mill.runner.client"
     def moduleDeps = Seq(build.main.client)
     def ivyDeps = Agg(
-      build.Deps.windowsAnsi,
+      build.Deps.nativeTerminal,
       build.Deps.coursier,
       build.Deps.coursierJvm,
       build.Deps.logback
