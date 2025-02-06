@@ -122,16 +122,25 @@ object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule
       jvmArgs: Seq[String]
   )(implicit ctx: api.Ctx): Unit = {
 
+    val javaFiles = sources
+      .iterator
+      .map(_.path)
+      .filter(os.exists(_))
+      .flatMap(os.walk(_, includeTarget = true))
+      .filter(os.isFile)
+      .filter(_.ext == "java")
+      .toSeq
+
     if (check) {
-      ctx.log.info("checking format in java sources ...")
+      ctx.log.info(s"checking format in ${javaFiles.size} java sources ...")
     } else {
-      ctx.log.info("formatting java sources ...")
+      ctx.log.info(s"formatting ${javaFiles.size} java sources ...")
     }
 
-    palantirArgs(sources, check, options) match {
+    palantirArgs(javaFiles, check, options) match {
       case None =>
 
-        ctx.log.debug("source folder not found, skipping")
+        ctx.log.debug("No sources found, skipping")
       case Some(mainArgs) =>
 
         ctx.log.debug(s"running palantirformat with $mainArgs")
@@ -156,22 +165,12 @@ object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule
   }
 
   private def palantirArgs(
-      sources: IterableOnce[PathRef],
+      sourceFiles: Seq[os.Path],
       check: Boolean,
       options: PathRef
   ): Option[Seq[String]] = {
 
-    val sourceArgs = sources
-      .iterator
-      .map(_.path)
-      .filter(os.exists(_))
-      .flatMap(os.walk(_, includeTarget = true))
-      .filter(os.isFile)
-      .filter(_.ext == "java")
-      .map(_.toString())
-      .toSeq
-
-    Option.when(sourceArgs.nonEmpty) {
+    Option.when(sourceFiles.nonEmpty) {
       val args = Seq.newBuilder[String]
 
       // https://github.com/palantir/palantir-java-format/blob/dae9be4b84e2bd4d7ea346c6374fda47eee7118f/palantir-java-format/src/main/java/com/palantir/javaformat/java/CommandLineOptionsParser.java#L199
@@ -187,7 +186,7 @@ object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule
       }
 
       // https://github.com/palantir/palantir-java-format/blob/dae9be4b84e2bd4d7ea346c6374fda47eee7118f/palantir-java-format/src/main/java/com/palantir/javaformat/java/CommandLineOptionsParser.java#L49
-      args ++= sourceArgs
+      args ++= sourceFiles.map(_.toString)
 
       args.result()
     }
