@@ -15,7 +15,7 @@ object KoverModuleTests extends TestSuite {
 
   val kotlinVersion = "1.9.24"
 
-  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "contrib" / "kover"
+  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "contrib/kover"
 
   object module extends TestBaseModule {
 

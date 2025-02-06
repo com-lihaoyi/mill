@@ -24,7 +24,7 @@ def groovyWorker: Worker[java.net.URLClassLoader] = Task.Worker {
 }
 
 trait GroovyGenerateJavaModule extends JavaModule {
-  def groovyScript = Task.Source(millSourcePath / "generate.groovy")
+  def groovyScript = Task.Source("generate.groovy")
 
   def groovyGeneratedResources = Task {
     mill.api.ClassLoader.withContextClassLoader(groovyWorker()) {

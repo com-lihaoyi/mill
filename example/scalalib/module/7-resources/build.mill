@@ -12,7 +12,7 @@ object foo extends ScalaModule {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.5")
     def testFramework = "utest.runner.Framework"
 
-    def otherFiles = Task.Source(millSourcePath / "other-files")
+    def otherFiles = Task.Source("other-files")
 
     def forkEnv = super.forkEnv() ++ Map(
       "OTHER_FILES_DIR" -> otherFiles().path.toString

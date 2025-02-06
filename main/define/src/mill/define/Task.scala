@@ -70,6 +70,11 @@ object Task extends TaskBase {
   ): Target[Seq[PathRef]] =
     ${ Target.Internal.sourcesImpl2('values)('ctx, 'this) }
 
+  inline def Sources(inline values: os.SubPath*)(implicit
+      inline ctx: mill.define.Ctx,
+      inline basePath: Ctx.BasePath
+  ): Target[Seq[PathRef]] = ${ Target.Internal.sourcesImpl3('values)('ctx, 'this) }
+
   /**
    * Similar to [[Source]], but only for a single source file or folder. Defined
    * using `Task.Source`.
@@ -84,6 +89,11 @@ object Task extends TaskBase {
       inline ctx: mill.define.Ctx
   ): Target[PathRef] =
     ${ Target.Internal.sourceImpl2('value)('ctx, 'this) }
+
+  inline def Source(inline value: os.SubPath)(implicit
+      inline ctx: mill.define.Ctx
+  ): Target[PathRef] =
+    ${ Target.Internal.sourceImpl3('value)('ctx, 'this) }
 
   /**
    * [[InputImpl]]s, normally defined using `Task.Input`, are [[NamedTask]]s that
@@ -561,6 +571,35 @@ object Target extends TaskBase {
       )
     }
 
+    def sourcesImpl3(using
+        Quotes
+    )(values: Expr[Seq[os.SubPath]])(
+        ctx: Expr[mill.define.Ctx],
+        caller: Expr[TraverseCtxHolder]
+    ): Expr[Target[Seq[PathRef]]] = {
+
+      val unwrapped = Varargs.unapply(values).get
+
+      val wrapped =
+        for (value <- unwrapped.toList)
+          yield Applicative.impl[Task, Task, Result, PathRef, mill.api.Ctx](
+            traverseCtxExpr(caller),
+            '{ PathRef($ctx.millSourcePath / os.PathChunk.SubPathChunk($value)) }
+          )
+
+      val taskIsPrivate = isPrivateTargetOption()
+
+      mill.define.Cacher.impl0[SourcesImpl](
+        '{
+          new SourcesImpl(
+            Target.sequence(List(${ Varargs(wrapped) }*)),
+            $ctx,
+            $taskIsPrivate
+          )
+        }
+      )
+    }
+
     def sourceImpl1(using
         Quotes
     )(value: Expr[Result[os.Path]])(
@@ -600,6 +639,31 @@ object Target extends TaskBase {
         '{
           new SourceImpl(
             $lhs,
+            $ctx,
+            $taskIsPrivate
+          )
+        }
+      )
+    }
+
+    def sourceImpl3(using
+        Quotes
+    )(value: Expr[os.SubPath])(
+        ctx: Expr[mill.define.Ctx],
+        caller: Expr[TraverseCtxHolder]
+    ): Expr[Target[PathRef]] = {
+      val wrapped =
+        Applicative.impl[Task, Task, Result, PathRef, mill.api.Ctx](
+          traverseCtxExpr(caller),
+          '{ PathRef($ctx.millSourcePath / os.PathChunk.SubPathChunk($value)) }
+        )
+
+      val taskIsPrivate = isPrivateTargetOption()
+
+      mill.define.Cacher.impl0[Target[PathRef]](
+        '{
+          new SourceImpl(
+            $wrapped,
             $ctx,
             $taskIsPrivate
           )

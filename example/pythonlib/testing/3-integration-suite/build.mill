@@ -7,7 +7,7 @@ import mill._, pythonlib._
 
 object foo extends PythonModule {
 
-  def mainScript = Task.Source { millSourcePath / "src/foo.py" }
+  def mainScript = Task.Source { "src/foo.py" }
 
   object test extends PythonTests with TestModule.Unittest
 

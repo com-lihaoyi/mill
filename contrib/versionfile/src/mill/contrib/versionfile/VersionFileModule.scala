@@ -5,7 +5,7 @@ import mill._
 trait VersionFileModule extends Module {
 
   /** The file containing the current version. */
-  def versionFile: T[PathRef] = Task.Source(millSourcePath / "version")
+  def versionFile: T[PathRef] = Task.Source("version")
 
   /** The current version. */
   def currentVersion: T[Version] = Task { Version.of(os.read(versionFile().path).trim) }
