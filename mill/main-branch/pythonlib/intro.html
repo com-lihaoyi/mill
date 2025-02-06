@@ -523,6 +523,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../extending/example-python-support.html">Example: Python Support</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
+  </li>
 </ul>
   </li>
 
@@ -709,6 +713,46 @@ object foo extends PythonModule {
 
 }</code></pre>
 </div>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>mill server.test
+…​com.example.ServerTest#shouldReturnStaticPage() finished…​
+…​com.example.ServerTest#shouldReturnPositiveAnalysis() finished…​
+…​com.example.ServerTest#shouldReturnNegativeAnalysis() finished…​</p>
+</div>
+</blockquote>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>mill server.runBackground</p>
+</div>
+</blockquote>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>curl <a href="http://localhost:8086" class="bare">http://localhost:8086</a>
+…​&lt;title&gt;Sentiment Analysis Tool&lt;/title&gt;…​</p>
+</div>
+</blockquote>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>curl -X POST <a href="http://localhost:8086/api/analysis" class="bare">http://localhost:8086/api/analysis</a> -H &quot;Content-Type: text/plain&quot; --data &quot;This is awesome!&quot; # Make request to the analysis api
+Positive sentiment (polarity: 1.0)</p>
+</div>
+</blockquote>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>mill clean server.runBackground</p>
+</div>
+</blockquote>
 </div>
 <div class="paragraph">
 <p>This is a basic Mill build for a single <code>PythonModule</code>, with one
