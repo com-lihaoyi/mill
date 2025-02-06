@@ -107,7 +107,7 @@ object TestRunnerTestUtils {
       moduleName: String,
       action: String = "test"
   ): JUnitReportMatch = {
-    val reportPath: Path = outPath / moduleName / s"$action.dest/test-report.xml"
+    val reportPath: Path = outPath / moduleName / s"$action.dest" / "test-report.xml"
     val reportXML = XML.loadFile(reportPath.toIO)
     new JUnitReportMatch {
       override def shouldHave(statuses: (Int, Status)*): Unit = {
