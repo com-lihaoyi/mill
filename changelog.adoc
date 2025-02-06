@@ -450,7 +450,7 @@ or `;exclude=org:*` or `;exclude=*:name` {link-pr}/3492[#3492]
 
 * Update to https://github.com/com-lihaoyi/os-lib?tab=readme-ov-file#0-10-7[OS-Lib 0.10.7] to
 allow concise multi-segment sub-paths; you can now write `os.pwd / "foo/bar/qux"` rather than
-`os.pwd / "foo" / "bar" / "qux"`
+`os.pwd / "foo/bar/qux"`
 
 * Add `JavaModule.mandatoryJavacOptions`. Those are not propagated to the inner test
 traits intentionally, since those options are typically configured by other means,

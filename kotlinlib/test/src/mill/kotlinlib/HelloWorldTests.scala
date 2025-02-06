@@ -89,7 +89,7 @@ object HelloWorldTests extends TestSuite {
     test("failures") {
       val eval = testEval()
 
-      val mainJava = HelloWorldKotlin.millSourcePath / "main" / "src" / "Hello.kt"
+      val mainJava = HelloWorldKotlin.millSourcePath / "main/src/Hello.kt"
 
       HelloWorldKotlin.main.crossModules.foreach(m => {
 

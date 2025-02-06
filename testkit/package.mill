@@ -8,7 +8,7 @@ object `package` extends RootModule with build.MillPublishScalaModule {
 
   def sources =
     super.sources() ++
-      Seq(PathRef(build.millSourcePath / "mill-build" / "src"))
+      Seq(PathRef(build.millSourcePath / "mill-build/src"))
 
   def forkEnv =
     super.forkEnv() ++ Map("MILL_EXECUTABLE_PATH" -> build.dist.launcher().path.toString())

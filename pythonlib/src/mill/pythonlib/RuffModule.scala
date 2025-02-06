@@ -17,7 +17,7 @@ trait RuffModule extends PythonModule {
    * Configuration file to use when running ruff. If this file does not exist,
    * ruff will use the default settings.
    */
-  def ruffConfigFile: T[PathRef] = Task.Source(millSourcePath / "ruff.toml")
+  def ruffConfigFile: T[PathRef] = Task.Source("ruff.toml")
 
   /**
    * Global command line options to pass to ruff. These are passed in before any

@@ -8,7 +8,7 @@ object RunBackgroundTests extends TestSuite {
 
   object HelloWorldPython extends TestBaseModule {
     object foo extends PythonModule {
-      override def mainScript = Task.Source(millSourcePath / "src" / "foo.py")
+      override def mainScript = Task.Source("src/foo.py")
     }
   }
 
@@ -32,7 +32,7 @@ object RunBackgroundTests extends TestSuite {
 
       while (lock.probe()) sleepIfTimeAvailable("File never locked by python subprocess")
 
-      os.remove.all(eval.outPath / "foo" / "runBackground.dest")
+      os.remove.all(eval.outPath / "foo/runBackground.dest")
 
       while (!lock.probe()) {
         sleepIfTimeAvailable("File never unlocked after runBackground.dest removed")

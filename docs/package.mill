@@ -61,7 +61,7 @@ object `package` extends RootModule {
       envArgs = Map("CI" -> "true"),
       workingDir = workDir
     )
-    PathRef(workDir / "build" / "site")
+    PathRef(workDir / "build/site")
   }
 
   def source0 = Task.Source(millSourcePath)
@@ -69,8 +69,8 @@ object `package` extends RootModule {
   def source = Task {
     os.copy(source0().path, Task.dest, mergeFolders = true)
 
-    val pagesWd = Task.dest / "modules" / "ROOT" / "pages"
-    val partialsWd = Task.dest / "modules" / "ROOT" / "partials"
+    val pagesWd = Task.dest / "modules/ROOT/pages"
+    val partialsWd = Task.dest / "modules/ROOT/partials"
 
     os.copy(projectChangelog().path, partialsWd / "project-changelog.adoc", createFolders = true)
 
@@ -284,7 +284,7 @@ object `package` extends RootModule {
       val checkout = Task.dest / displayVersion
       os.proc("git", "clone", Task.workspace / ".git", checkout).call(stdout = os.Inherit)
       os.proc("git", "checkout", millLastTag).call(cwd = checkout, stdout = os.Inherit)
-      val outputFolder = checkout / "out" / "docs" / "source.dest"
+      val outputFolder = checkout / "out/docs/source.dest"
       os.proc("./mill", "-i", "docs.source").call(cwd = checkout, stdout = os.Inherit)
       expandDiagramsInDirectoryAdocFile(
         outputFolder,
@@ -360,7 +360,7 @@ object `package` extends RootModule {
     // only copy the "api" sub-dir; api docs contains a top-level index.html with we don't want
     val unidocSrc = if (authorMode) site.unidocLocal().path else site.unidocSite().path
     Task.log.errorStream.println(s"Copying API docs from ${unidocSrc} ...")
-    os.copy(unidocSrc, siteDir / "api" / "latest", createFolders = true)
+    os.copy(unidocSrc, siteDir / "api/latest", createFolders = true)
 
     PathRef(siteDir)
   }
