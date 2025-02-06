@@ -619,7 +619,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
               val lines = content.split("\n")
               val exceptionMessage = lines.head
               val exceptionType = lines(1).splitAt(lines(1).indexOf(":"))._1
-              val trace = parseTrace(lines.drop(2))
+              val trace = parseTrace(lines.toIndexedSeq.drop(2))
               (Status.Failure, Some(exceptionType), Some(exceptionMessage), Some(trace))
             } else if (node.child.exists(_.label == "skipped")) {
               (Status.Skipped, None, None, None)
