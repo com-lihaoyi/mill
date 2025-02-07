@@ -1,6 +1,6 @@
-package mill.util
+package mill.internal
 
-import utest._
+import utest.*
 
 import java.io.ByteArrayOutputStream
 

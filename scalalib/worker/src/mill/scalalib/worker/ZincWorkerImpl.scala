@@ -1,38 +1,17 @@
 package mill.scalalib.worker
 
 import mill.api.Loose.Agg
-import mill.api.{CachedFactory, CompileProblemReporter, Ctx, PathRef, Result, internal}
+import mill.util.CachedFactory
+import mill.api.{CompileProblemReporter, Ctx, PathRef, Result, internal}
 import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerApi, ZincWorkerUtil}
 import os.Path
-import sbt.internal.inc.{
-  Analysis,
-  CompileFailed,
-  FreshCompilerCache,
-  ManagedLoggedReporter,
-  MappedFileConverter,
-  ScalaInstance,
-  Stamps,
-  ZincUtil,
-  javac
-}
+import sbt.internal.inc.{Analysis, CompileFailed, FreshCompilerCache, ManagedLoggedReporter, MappedFileConverter, ScalaInstance, Stamps, ZincUtil, javac}
 import sbt.internal.inc.classpath.ClasspathUtil
 import sbt.internal.inc.consistent.ConsistentFileAnalysisStore
 import sbt.internal.util.{ConsoleAppender, ConsoleOut}
 import sbt.mill.SbtLoggerUtils
 import xsbti.compile.analysis.ReadWriteMappers
-import xsbti.compile.{
-  AnalysisContents,
-  AnalysisStore,
-  AuxiliaryClassFileExtension,
-  ClasspathOptions,
-  CompileAnalysis,
-  CompileOrder,
-  Compilers,
-  IncOptions,
-  JavaTools,
-  MiniSetup,
-  PreviousResult
-}
+import xsbti.compile.{AnalysisContents, AnalysisStore, AuxiliaryClassFileExtension, ClasspathOptions, CompileAnalysis, CompileOrder, Compilers, IncOptions, JavaTools, MiniSetup, PreviousResult}
 import xsbti.{PathBasedFile, VirtualFile}
 import xsbti.compile.CompileProgress
 

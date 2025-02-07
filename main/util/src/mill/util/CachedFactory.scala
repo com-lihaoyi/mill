@@ -1,4 +1,4 @@
-package mill.api
+package mill.util
 
 /**
  * Manage the setup, teardown, and caching of objects of type [[V]] safely

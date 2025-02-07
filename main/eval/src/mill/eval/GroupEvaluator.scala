@@ -2,10 +2,11 @@ package mill.eval
 
 import mill.api.Result.{OuterStack, Success}
 import mill.api.Strict.Agg
-import mill.api._
-import mill.define._
+import mill.api.*
+import mill.define.*
 import mill.eval.Evaluator.TaskResult
-import mill.util._
+import mill.internal.FileLogger
+import mill.util.*
 
 import java.lang.reflect.Method
 import scala.collection.mutable

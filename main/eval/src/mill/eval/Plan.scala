@@ -1,7 +1,7 @@
 package mill.eval
 import mill.api.Loose.Agg
 import mill.define.{NamedTask, Task}
-import mill.util.MultiBiMap
+import mill.internal.MultiBiMap
 
 private[mill] class Plan(
     val transitive: Agg[Task[?]],
@@ -97,7 +97,7 @@ private[mill] object Plan {
       for (t <- transitiveTargets.items)
         yield t.inputs.collect(targetIndices).toArray
 
-    val sortedClusters = mill.util.Tarjans(numberedEdges.toArray)
+    val sortedClusters = mill.internal.Tarjans(numberedEdges.toArray)
     val nonTrivialClusters = sortedClusters.filter(_.length > 1)
     assert(nonTrivialClusters.isEmpty, nonTrivialClusters)
     new TopoSorted(Agg.from(sortedClusters.flatten.map(indexed)))

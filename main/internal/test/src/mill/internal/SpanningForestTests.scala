@@ -1,8 +1,9 @@
-package mill.util
+package mill.internal
 
-import utest.{TestSuite, Tests, test}
-import collection.mutable
 import SpanningForest.Node
+import utest.{TestSuite, Tests, test}
+
+import scala.collection.mutable
 object SpanningForestTests extends TestSuite {
 
   val tests = Tests {

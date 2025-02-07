@@ -1,5 +1,5 @@
 package mill.codesig
-import mill.util.{SpanningForest, Tarjans}
+import mill.internal.{SpanningForest, Tarjans}
 import upickle.default.{Writer, writer}
 import JvmModel.*
 

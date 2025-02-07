@@ -1,8 +1,8 @@
 package mill.codesig
 import JvmModel._
 import JType.{Cls => JCls}
-import mill.util.SpanningForest
-import mill.util.SpanningForest.breadthFirst
+import mill.internal.SpanningForest
+import mill.internal.SpanningForest.breadthFirst
 import upickle.default.{ReadWriter, macroRW}
 
 case class ResolvedCalls(
@@ -122,7 +122,7 @@ object ResolvedCalls {
           sig -> breadthFirst(Seq(cls))(cls => directDescendents.getOrElse(cls, Nil))
         }
 
-      val allSamImplementors = mill.util.SpanningForest.reverseEdges(allSamImplementors0)
+      val allSamImplementors = SpanningForest.reverseEdges(allSamImplementors0)
 
       allSamImplementors.mapValues(_.toSet).toMap
     }

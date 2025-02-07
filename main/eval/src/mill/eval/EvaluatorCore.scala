@@ -6,6 +6,7 @@ import mill.api._
 import mill.define._
 import mill.eval.Evaluator.TaskResult
 import mill.util._
+import mill.internal.{PrefixLogger, MultiBiMap}
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}

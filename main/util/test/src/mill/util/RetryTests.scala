@@ -1,6 +1,7 @@
-package mill.api
+package mill.util
 
-import utest._
+import mill.util.Retry
+import utest.*
 
 object RetryTests extends TestSuite {
   val tests: Tests = Tests {

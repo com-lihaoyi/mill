@@ -4,7 +4,8 @@ import mill.api.{CompileProblemReporter, DummyTestReporter, Result, TestReporter
 import mill.api.Strict.Agg
 import mill.define.{BaseModule, Segments, Task}
 import mill.eval.Evaluator.{Results, formatFailing}
-import mill.util.{ColorLogger, MultiBiMap}
+import mill.util.ColorLogger
+import mill.internal.MultiBiMap
 
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag

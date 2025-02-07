@@ -1,6 +1,6 @@
-package mill.util
+package mill.internal
 
-import utest._
+import utest.*
 
 /**
  * Minimal implementation of a terminal emulator that handles ANSI navigation

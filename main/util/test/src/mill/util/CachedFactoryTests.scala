@@ -1,6 +1,6 @@
-package mill.api
+package mill.util
 
-import utest._
+import utest.*
 
 object CachedFactoryTests extends TestSuite {
   val tests: Tests = Tests {

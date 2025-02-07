@@ -12,8 +12,8 @@ import mill.define.{
   Segments,
   TaskModule
 }
+import mill.internal.EitherOps
 import mill.resolve.ResolveCore.{Resolved, makeResultException}
-import mill.util.EitherOps
 
 object Resolve {
   object Segments extends Resolve[Segments] {

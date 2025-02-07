@@ -1,8 +1,9 @@
-package mill.util
+package mill.internal
 
 import mill.api.SystemStreams
 import mill.main.client.ProxyStream
-import utest._
+import mill.internal.{PrefixLogger, PromptLogger, TestTerminal}
+import utest.*
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, PrintStream}
 object PromptLoggerTests extends TestSuite {

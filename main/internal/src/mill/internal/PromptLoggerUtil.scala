@@ -1,4 +1,5 @@
-package mill.util
+package mill.internal
+
 
 private object PromptLoggerUtil {
 

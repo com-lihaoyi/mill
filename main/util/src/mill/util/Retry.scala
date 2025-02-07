@@ -1,4 +1,4 @@
-package mill.api
+package mill.util
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.Duration

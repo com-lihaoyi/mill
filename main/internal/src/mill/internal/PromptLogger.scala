@@ -1,11 +1,12 @@
-package mill.util
+package mill.internal
 
 import mill.api.SystemStreams
+import mill.internal.PromptLoggerUtil.*
 import mill.main.client.ProxyStream
+import mill.util.*
 import pprint.Util.literalize
 
-import java.io._
-import PromptLoggerUtil._
+import java.io.*
 
 /**
  * Gnarly multithreaded stateful code to handle the terminal prompt and log prefixer
@@ -29,7 +30,7 @@ private[mill] class PromptLogger(
     autoUpdate: Boolean = true
 ) extends ColorLogger with AutoCloseable {
   override def toString: String = s"PromptLogger(${literalize(titleText)})"
-  import PromptLogger._
+  import PromptLogger.*
 
   private var termDimensions: (Option[Int], Option[Int]) = (None, None)
 

@@ -1,7 +1,10 @@
-package mill.util
+package mill.internal
 
-import java.io._
 import mill.api.SystemStreams
+import mill.util.ColorLogger
+import mill.internal.{AnsiNav, PrintLogger}
+
+import java.io.*
 
 class PrintLogger(
     override val colored: Boolean,

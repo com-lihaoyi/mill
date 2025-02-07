@@ -1,9 +1,10 @@
 package mill.scalanativelib.worker
 
-import mill.api.{CachedFactory, Ctx}
+import mill.api.Ctx
 import mill.define.{Discover, Worker}
 import mill.{Agg, PathRef, Task}
 import mill.scalanativelib.worker.{api => workerApi}
+import mill.util.CachedFactory
 
 import java.net.URLClassLoader
 

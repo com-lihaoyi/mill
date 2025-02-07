@@ -1,4 +1,5 @@
-package mill.util
+package mill.internal
+
 
 case class Colors(info: fansi.Attrs, error: fansi.Attrs)
 object Colors {

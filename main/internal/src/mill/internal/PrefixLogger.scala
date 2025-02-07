@@ -1,6 +1,7 @@
-package mill.util
+package mill.internal
 
 import mill.api.{Logger, SystemStreams}
+import mill.util.ColorLogger
 
 import java.io.PrintStream
 

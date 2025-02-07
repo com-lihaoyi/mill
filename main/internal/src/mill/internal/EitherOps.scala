@@ -1,7 +1,6 @@
-package mill.util
+package mill.internal
 
-import scala.collection.BuildFrom
-import scala.collection.mutable
+import scala.collection.{BuildFrom, mutable}
 
 object EitherOps {
 

@@ -1,4 +1,4 @@
-package mill.util
+package mill.internal
 
 import java.io.{IOException, InputStream, OutputStream}
 
@@ -73,7 +73,7 @@ class PipeStreams(val bufferSize: Int = 1024) { pipe =>
       }
     }
 
-    private[util] def receivedLast(): Unit = synchronized {
+    private[internal] def receivedLast(): Unit = synchronized {
       closedByWriter = true
       notifyAll()
     }

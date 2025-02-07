@@ -1,4 +1,5 @@
-package mill.util
+package mill.internal
+
 
 import java.io.Writer
 

@@ -1,6 +1,6 @@
-package mill.util
+package mill.internal
 
-import utest._
+import utest.*
 
 object TarjanTests extends TestSuite {
   def check(input: Seq[Seq[Int]], expected: Seq[Seq[Int]]) = {

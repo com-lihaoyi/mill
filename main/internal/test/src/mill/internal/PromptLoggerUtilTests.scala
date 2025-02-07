@@ -1,9 +1,9 @@
-package mill.util
+package mill.internal
 
-import utest._
+import PromptLoggerUtil.*
+import utest.*
 
 import scala.collection.immutable.SortedMap
-import PromptLoggerUtil._
 object PromptLoggerUtilTests extends TestSuite {
 
   val tests = Tests {

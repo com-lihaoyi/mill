@@ -2,7 +2,7 @@ package mill.eval
 
 import mill.define.{InputImpl, Task}
 import mill.main.client.OutFiles
-import mill.util.SpanningForest
+import mill.internal.SpanningForest
 
 import java.util.concurrent.ConcurrentHashMap
 import scala.jdk.CollectionConverters.EnumerationHasAsScala

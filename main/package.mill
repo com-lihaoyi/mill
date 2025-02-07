@@ -105,9 +105,11 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
       build.Deps.jline
     )
   }
-
+  object internal extends build.MillPublishScalaModule {
+    def moduleDeps = Seq(util)
+  }
   object define extends build.MillStableScalaModule {
-    def moduleDeps = Seq(api, util)
+    def moduleDeps = Seq(api, util, internal)
     def compileIvyDeps = Task {
       if (ZincWorkerUtil.isScala3(scalaVersion())) Agg(build.Deps.scalaCompiler(scalaVersion()))
       else Agg(build.Deps.scalaReflect(scalaVersion()))

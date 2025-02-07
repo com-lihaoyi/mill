@@ -3,7 +3,7 @@ import mill._, scalalib._
 
 object `package` extends RootModule with build.MillPublishScalaModule {
   override def ivyDeps = Agg(build.Deps.asmTree, build.Deps.osLib, build.Deps.pprint)
-  def moduleDeps = Seq(build.main.util)
+  def moduleDeps = Seq(build.main.internal)
 
   override lazy val test: CodeSigTests = new CodeSigTests {}
   trait CodeSigTests extends MillScalaTests {
