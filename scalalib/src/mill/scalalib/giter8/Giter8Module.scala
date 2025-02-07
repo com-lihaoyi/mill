@@ -41,5 +41,6 @@ trait Giter8Module extends CoursierModule {
       stdin = os.Inherit,
       stdout = os.Inherit
     )
+    ()
   }
 }

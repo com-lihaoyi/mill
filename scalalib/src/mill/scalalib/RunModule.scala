@@ -162,6 +162,7 @@ trait RunModule extends WithZincWorker {
       ) { classloader =>
         RunModule.getMainMethod(mainClass(), classloader).invoke(null, args().value.toArray)
       }
+      ()
     }
 
   def runBackgroundTask(mainClass: Task[String], args: Task[Args] = Task.Anon(Args())): Task[Unit] =
