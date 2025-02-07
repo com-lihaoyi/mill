@@ -3,7 +3,6 @@ package mill.main.client
 import java.io.{InputStream, OutputStream, PrintStream}
 import java.net.Socket
 import java.nio.file.{Files, Path}
-import scala.util.{Failure, Success, Try, Using}
 import mill.main.client.lock.{Locks, TryLocked}
 import scala.collection.JavaConverters.mapAsScalaMapConverter
 import java.util.function.Supplier

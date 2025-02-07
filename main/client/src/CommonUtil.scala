@@ -3,7 +3,6 @@ package mill.main.client
 import java.io._
 import java.math.BigInteger
 import java.nio.charset.Charset
-import scala.util.matching.Regex
 import java.lang.reflect.InvocationTargetException
 import scala.util.Try
 import scala.io.Source

@@ -236,8 +236,10 @@ object ClientServerTests extends TestSuite {
         tester.apply(args = Array(" World"), forceFailureForTestingMillisDelay = 100)
       }
 
+      println(res1)
+
       val s"Force failure for testing: $pathStr" = res1.getMessage
-      Thread.sleep(100) // give a moment for logs to all turn up on disk
+      Thread.sleep(200) // give a moment for logs to all turn up on disk
       val logLines = os.read.lines(os.Path(pathStr, os.pwd) / "server.log")
 
       println(logLines)
