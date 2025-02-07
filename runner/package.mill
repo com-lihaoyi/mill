@@ -12,7 +12,7 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
     def moduleDeps = Seq(`worker-api`)
     def ivyDeps = Agg(build.Deps.scalaCompiler(scalaVersion()))
 
-    private[runner] def bootstrapDeps = Task{
+    private[runner] def bootstrapDeps = Task {
       val moduleDep = {
         val m = artifactMetadata()
         s"${m.group}:${m.id}:${m.version}"
