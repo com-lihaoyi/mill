@@ -59,10 +59,6 @@ trait TwirlModule extends mill.Module { twirlModule =>
    * @since Mill after 0.10.5
    */
   trait TwirlResolver extends CoursierModule {
-    override def resolveCoursierDependency: Task[Dep => Dependency] = Task.Anon { (d: Dep) =>
-      Lib.depToDependency(d, twirlScalaVersion())
-    }
-
     override def repositoriesTask: Task[Seq[Repository]] = twirlModule match {
       case m: CoursierModule => m.repositoriesTask
       case _ => super.repositoriesTask

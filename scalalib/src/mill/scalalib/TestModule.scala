@@ -375,13 +375,7 @@ object TestModule {
   trait ZioTest extends TestModule {
     override def testFramework: T[String] = "zio.test.sbt.ZTestFramework"
   }
-
-  @deprecated("Use other overload instead", "Mill after 0.10.2")
-  def handleResults(
-      doneMsg: String,
-      results: Seq[TestResult]
-  ): Result[(String, Seq[TestResult])] = handleResults(doneMsg, results, None)
-
+  
   def handleResults(
       doneMsg: String,
       results: Seq[TestResult],

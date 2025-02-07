@@ -195,13 +195,7 @@ private[scalalib] object TestModuleUtil {
       forkArgs -> Map()
     }
   }
-
-  @deprecated("Use other overload instead", "Mill after 0.10.2")
-  private[scalalib] def handleResults(
-      doneMsg: String,
-      results: Seq[TestResult]
-  ): Result[(String, Seq[TestResult])] = handleResults(doneMsg, results, None)
-
+  
   private[scalalib] def handleResults(
       doneMsg: String,
       results: Seq[TestResult],

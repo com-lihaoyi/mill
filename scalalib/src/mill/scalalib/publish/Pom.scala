@@ -25,47 +25,6 @@ object Pom {
     }
   }
 
-  @deprecated("Use overload with packagingType parameter instead", "Mill 0.11.8")
-  def apply(
-      artifact: Artifact,
-      dependencies: Agg[Dependency],
-      name: String,
-      pomSettings: PomSettings,
-      properties: Map[String, String]
-  ): String = apply(
-    artifact = artifact,
-    dependencies = dependencies,
-    name = name,
-    pomSettings = pomSettings,
-    properties = properties,
-    packagingType = pomSettings.packaging,
-    parentProject = None,
-    bomDependencies = Agg.empty[Dependency],
-    dependencyManagement = Agg.empty[Dependency]
-  )
-
-  @deprecated(
-    "Use overload with parentProject, bomDependencies, and dependencyManagement parameters instead",
-    "Mill 0.12.1"
-  )
-  def apply(
-      artifact: Artifact,
-      dependencies: Agg[Dependency],
-      name: String,
-      pomSettings: PomSettings,
-      properties: Map[String, String],
-      packagingType: String
-  ): String = apply(
-    artifact = artifact,
-    dependencies = dependencies,
-    name = name,
-    pomSettings = pomSettings,
-    properties = properties,
-    packagingType = packagingType,
-    parentProject = None,
-    bomDependencies = Agg.empty[Dependency],
-    dependencyManagement = Agg.empty[Dependency]
-  )
 
   def apply(
       artifact: Artifact,

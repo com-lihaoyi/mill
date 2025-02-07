@@ -32,18 +32,7 @@ trait Evaluator extends AutoCloseable {
       case _ => sys.error("Evaluator#workerCache must be a mutable map")
     }
   def disableCallgraphInvalidation: Boolean = false
-
-  @deprecated(
-    "Binary compatibility shim. Use overload with parameter serialCommandExec=false instead",
-    "Mill 0.12.0-RC1"
-  )
-  def evaluate(
-      goals: Agg[Task[_]],
-      reporter: Int => Option[CompileProblemReporter],
-      testReporter: TestReporter,
-      logger: ColorLogger
-  ): Evaluator.Results = evaluate(goals, reporter, testReporter, logger, serialCommandExec = false)
-
+  
   def evaluate(
       goals: Agg[Task[_]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
