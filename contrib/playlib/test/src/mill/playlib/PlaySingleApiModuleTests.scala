@@ -7,7 +7,7 @@ import mill.define.Discover
 import mill.main.TokenReaders._
 object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
 
-  object playsingleapi extends TestBaseModule with PlayApiModule with SingleModule {
+  object playsingleapi extends TestBaseModule with PlayApiModule {
     override val millSourcePath = os.temp() // workaround problem in `SingleModule`
     override def playVersion = Task { testPlay28 }
     override def scalaVersion = Task { "2.13.12" }

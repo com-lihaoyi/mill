@@ -32,9 +32,5 @@ object Dependency extends ExternalModule {
     DependencyUpdatesImpl.showAllUpdates(updates(ev, allowPreRelease)(), format)
   }
 
-  @deprecated("Use other overload instead", "Mill after 0.11.6")
-  def showUpdates(ev: Evaluator, allowPreRelease: Boolean): Command[Unit] =
-    Dependency.showUpdates(ev, allowPreRelease, Format.PerModule)
-
   lazy val millDiscover = Discover[this.type]
 }

@@ -14,9 +14,7 @@ trait CompileProblemReporter {
   def fileVisited(file: os.Path): Unit
   def printSummary(): Unit
   def finish(): Unit
-  // TODO: cleanup once we break bin-compat in Mill 0.13
-  // Remove default implementation: `= ()`
-  def notifyProgress(percentage: Long, total: Long): Unit = ()
+  def notifyProgress(percentage: Long, total: Long): Unit
 }
 
 /**
@@ -31,8 +29,7 @@ trait Problem {
 
   def position: ProblemPosition
 
-  // TODO Remove default implementation in 0.11.x series
-  def diagnosticCode: Option[DiagnosticCode] = None
+  def diagnosticCode: Option[DiagnosticCode]
 }
 
 /**

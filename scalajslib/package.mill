@@ -14,11 +14,11 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
   def buildInfoObjectName = "ScalaJSBuildInfo"
 
   def buildInfoMembers = Task {
-    val resolve = resolveCoursierDependency()
+    val resolve = bindDependency()
 
     def formatDep(dep: Dep) = {
       val d = resolve(dep)
-      s"${d.module.organization.value}:${d.module.name.value}:${d.version}"
+      s"${d.dep.module.organization.value}:${d.dep.module.name.value}:${d.dep.version}"
     }
 
     Seq(

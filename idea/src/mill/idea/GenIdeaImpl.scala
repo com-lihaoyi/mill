@@ -16,7 +16,7 @@ import mill.scalalib.GenIdeaModule.{IdeaConfigFile, JavaFacet}
 import mill.scalalib.internal.JavaModuleUtils
 import mill.util.Classpath
 import mill.scalalib
-import mill.scalalib.{GenIdeaImpl => _, _}
+import mill.scalalib._
 import mill.scalanativelib.ScalaNativeModule
 
 case class GenIdeaImpl(

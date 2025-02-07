@@ -56,7 +56,7 @@ There is no special test scope in Mill.
 [source,scala]
 ----
 object main extends JavaModule {
-  object test extends JavaModuleTests {
+  object test extends JavaTests {
     def ivyDeps = Agg(
       ivy"org.qos.logback:logback-classic:1.2.3"
     )

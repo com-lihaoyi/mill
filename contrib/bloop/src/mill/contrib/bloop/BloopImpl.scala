@@ -85,7 +85,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
     override def millOuterCtx = jm.millOuterCtx
 
     object bloop extends MillModule {
-      def config = Task { outer.bloopConfig(jm) }
+      def config = Task { outer.bloopConfig(jm)() }
 
       def writeConfigFile(): Command[(String, PathRef)] = Task.Command {
         os.makeDir.all(bloopDir)
@@ -95,25 +95,12 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
         name(jm) -> PathRef(path)
       }
 
-      @deprecated("Use writeConfigFile instead.", "Mill after 0.10.9")
-      def writeConfig: T[(String, PathRef)] = Task {
-        writeConfigFile()()
-      }
     }
 
     def asBloop: Option[Module] = jm match {
       case m: Module => Some(m)
       case _ => None
     }
-  }
-
-  // Compute all transitive modules from build children and via moduleDeps
-  @deprecated("Use mill.internal.JavaModuleUtils.transitiveModules instead", since = "mill 0.10.3")
-  def transitiveModules(
-      mod: define.Module,
-      found: Seq[define.Module] = Seq.empty
-  ): Seq[define.Module] = {
-    JavaModuleUtils.transitiveModules(mod, accept)
   }
 
   protected def computeModules: Seq[JavaModule] = {
