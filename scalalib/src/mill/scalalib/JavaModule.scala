@@ -1323,7 +1323,6 @@ trait JavaModule
     }
   }
 
-
   override def runBackgroundLogToConsole: Boolean = {
     // overridden here for binary compatibility (0.11.x)
     super.runBackgroundLogToConsole
@@ -1452,7 +1451,6 @@ trait JavaModule
     canCompile = true,
     canRun = true
   )
-
 
   @internal
   def bspJvmBuildTargetTask: Task[JvmBuildTarget] = Task.Anon {

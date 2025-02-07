@@ -3,6 +3,7 @@ package mill.scalalib.publish
 import mill.api.{Ctx, PathRef}
 
 class LocalIvyPublisher(localIvyRepo: os.Path) {
+
   /**
    * Publishes a module locally
    *

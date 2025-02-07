@@ -33,7 +33,6 @@ object DependencyUpdatesImpl {
     allUpdates
   }
 
-
   def showAllUpdates(
       updates: Seq[ModuleDependenciesUpdates],
       format: Format = Format.PerModule

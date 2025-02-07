@@ -53,7 +53,6 @@ object Lib {
     )
   }
 
-
   /**
    * Resolve dependencies using Coursier.
    *

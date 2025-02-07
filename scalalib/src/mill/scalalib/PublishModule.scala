@@ -213,7 +213,6 @@ trait PublishModule extends JavaModule { outer =>
     PathRef(pomPath)
   }
 
-
   /**
    * Path to the ivy.xml file for this module
    */

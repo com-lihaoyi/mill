@@ -82,7 +82,6 @@ object Ivy {
     head + pp.format(xml).replaceAll("&gt;", ">")
   }
 
-
   private def renderDependency(dep: Dependency): Elem = {
     if (dep.exclusions.isEmpty)
       <dependency org={dep.artifact.group} name={dep.artifact.id} rev={dep.artifact.version} conf={

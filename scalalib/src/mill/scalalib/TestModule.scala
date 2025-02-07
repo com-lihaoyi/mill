@@ -376,7 +376,6 @@ object TestModule {
     override def testFramework: T[String] = "zio.test.sbt.ZTestFramework"
   }
 
-
   def handleResults(
       doneMsg: String,
       results: Seq[TestResult],

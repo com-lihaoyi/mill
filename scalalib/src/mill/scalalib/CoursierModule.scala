@@ -175,7 +175,7 @@ object CoursierModule {
       ] = None,
       resolutionParams: ResolutionParams = ResolutionParams()
   ) {
-    
+
     def resolveDeps[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean = false,

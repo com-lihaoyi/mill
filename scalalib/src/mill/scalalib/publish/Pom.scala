@@ -25,7 +25,6 @@ object Pom {
     }
   }
 
-
   def apply(
       artifact: Artifact,
       dependencies: Agg[Dependency],
