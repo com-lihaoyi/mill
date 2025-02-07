@@ -1,9 +1,7 @@
 package mill.main.client
 
 import java.security.MessageDigest
-import java.io._
-import java.math.BigInteger
-import java.nio.charset.{Charset, StandardCharsets}
+import java.nio.charset.StandardCharsets
 import java.util.Base64
 
 object Util extends UtilCommon {

@@ -1,7 +1,7 @@
 package mill.main.client
 
 import mill.main.client.OutFiles._
-import mill.main.client.lock.{Locks, TryLocked}
+import mill.main.client.lock.Locks
 import java.io.{InputStream, OutputStream, PrintStream}
 import java.net.Socket
 import java.nio.file.{Files, Path, Paths}

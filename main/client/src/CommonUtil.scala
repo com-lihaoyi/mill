@@ -2,14 +2,11 @@ package mill.main.client
 
 import java.io._
 import java.math.BigInteger
-import java.nio.charset.{Charset, StandardCharsets}
-import java.security.{MessageDigest, NoSuchAlgorithmException}
-import java.util.{Base64, HashMap, LinkedList, Map, Scanner}
+import java.nio.charset.Charset
 import scala.util.matching.Regex
 import java.lang.reflect.InvocationTargetException
 import scala.util.Try
 import scala.io.Source
-import scala.compat.Platform
 import scala.jdk.CollectionConverters._
 
 trait UtilCommon {
@@ -151,5 +148,5 @@ trait UtilCommon {
 
   }
 
-  private val envInterpolatorPattern: Regex = "\\$\\{(\\$|[A-Z_][A-Z0-9_]*)\\}".r
+  "\\$\\{(\\$|[A-Z_][A-Z0-9_]*)\\}".r
 }

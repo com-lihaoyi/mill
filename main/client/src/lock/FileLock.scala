@@ -2,7 +2,6 @@ package mill.main.client.lock
 
 import java.io.RandomAccessFile
 import java.nio.channels.FileChannel
-import scala.util.Try
 
 class FileLock(path: String) extends Lock with AutoCloseable {
   private final val raf: RandomAccessFile = new RandomAccessFile(path, "rw")
