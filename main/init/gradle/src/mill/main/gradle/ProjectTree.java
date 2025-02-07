@@ -25,10 +25,12 @@ public interface ProjectTree extends Serializable {
       this.children = children;
     }
 
+    @Override
     public ProjectModel project() {
       return project;
     }
 
+    @Override
     public List<ProjectTree> children() {
       return children;
     }
@@ -36,10 +38,12 @@ public interface ProjectTree extends Serializable {
 
   class Builder implements ToolingModelBuilder {
 
+    @Override
     public boolean canBuild(String modelName) {
       return ProjectTree.class.getName().equals(modelName);
     }
 
+    @Override
     public Object buildAll(String modelName, Project project) {
       ProjectModel model = ProjectModel.from(project);
       List<ProjectTree> children = new LinkedList<>();
