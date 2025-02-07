@@ -12,13 +12,23 @@ object `package` extends RootModule with build.MillPublishScalaModule {
     def ivyDeps = Agg(
       build.Deps.nativeTerminal,
       build.Deps.coursier,
+      build.Deps.coursierInterface,
       build.Deps.coursierJvm,
       build.Deps.logback
     )
     def buildInfoObjectName = "Versions"
-    def buildInfoMembers = Seq(
-      BuildInfo.Value("coursierJvmIndexVersion", build.Deps.coursierJvmIndexVersion)
-    )
+    def buildInfoMembers = Task {
+      val jansiVersion = compileClasspath().map(_.path.last)
+        .find(name => name.startsWith("jansi-") && name.endsWith(".jar"))
+        .map(_.stripPrefix("jansi-").stripSuffix(".jar"))
+        .getOrElse {
+          sys.error("Cannot get jansi version from compile class path")
+        }
+      Seq(
+        BuildInfo.Value("coursierJvmIndexVersion", build.Deps.coursierJvmIndexVersion),
+        BuildInfo.Value("jansiVersion", jansiVersion)
+      )
+    }
   }
 
   def moduleDeps = Seq(

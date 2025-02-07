@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import mill.main.client.EnvVars;
 import mill.main.client.ServerFiles;
 import mill.main.client.Util;
+import org.fusesource.jansi.internal.OSInfo;
 
 public class MillProcessLauncher {
 
@@ -252,15 +253,56 @@ public class MillProcessLauncher {
   private static final boolean canUseNativeTerminal;
 
   static {
+    // Load jansi native library
+    // We pre-compute the library location in the coursier archive cache, so that
+    // we don't need to load the whole of coursier upfront if the native library file
+    // is already in cache.
+    // Loading the native library on our own allows to speed things compared to what jansi would
+    // have done on its own (reading the library in its resources and writing it in a temporary
+    // location upon every new Mill run)
+    String jansiVersion = mill.runner.client.Versions.jansiVersion;
+    File archiveCacheLocation;
+    try {
+      archiveCacheLocation = coursier.paths.CachePath.defaultArchiveCacheDirectory();
+    } catch (IOException ex) {
+      throw new RuntimeException(ex);
+    }
+    String jansiLibPathInArchive = "org/fusesource/jansi/internal/native/" + OSInfo.getNativeLibFolderPathForCurrentOS() + "/" + System.mapLibraryName("jansi").replace(".dylib", ".jnilib");
+    File jansiLib = new File(
+      archiveCacheLocation,
+      "https/repo1.maven.org/maven2/org/fusesource/jansi/jansi/" + jansiVersion + "/jansi-" + jansiVersion + ".jar/" + jansiLibPathInArchive
+    );
+    if (!jansiLib.exists()) {
+      coursierapi.ArchiveCache archiveCache = coursierapi.ArchiveCache.create();
+      File jansiDir = archiveCache.get(coursierapi.Artifact.of("https://repo1.maven.org/maven2/org/fusesource/jansi/jansi/" + jansiVersion + "/jansi-" + jansiVersion + ".jar"));
+      jansiLib = new File(jansiDir, jansiLibPathInArchive); // just in case, should be the same value as before
+    }
+    System.load(jansiLib.getAbsolutePath());
+
+    // Tell jansi not to attempt to load a native library on its own
+    Class cls = org.fusesource.jansi.internal.JansiLoader.class;
+    java.lang.reflect.Field fld;
+    try {
+      fld = cls.getDeclaredField("loaded");
+    } catch (NoSuchFieldException ex) {
+      throw new RuntimeException(ex);
+    }
+    fld.setAccessible(true);
+    try {
+      fld.set(null, Boolean.TRUE);
+    } catch (IllegalAccessException ex) {
+      throw new RuntimeException(ex);
+    }
+
     boolean canUse;
-    if (mill.main.client.Util.hasConsole())
+    if (mill.main.client.Util.hasConsole()) {
       try {
         NativeTerminal.getSize();
         canUse = true;
       } catch (Throwable ex) {
         canUse = false;
       }
-    else canUse = false;
+    } else canUse = false;
 
     canUseNativeTerminal = canUse;
   }
