@@ -2,11 +2,9 @@ package mill.util
 
 import mill.api.Loose.Agg
 import mill.api.*
-import mill.main.client.ServerFiles
-import os.{ProcessOutput, SubProcess}
+import os.ProcessOutput
 
 import java.io.*
-import java.lang.reflect.Modifier
 import java.net.URLClassLoader
 import java.nio.file.attribute.PosixFilePermission
 import java.nio.file.Files
