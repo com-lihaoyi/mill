@@ -289,6 +289,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       stdout = os.Inherit,
       stderr = os.Inherit
     )
+    ()
   }
 
   @internal
