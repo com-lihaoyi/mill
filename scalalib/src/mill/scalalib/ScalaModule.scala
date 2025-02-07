@@ -434,7 +434,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     } else {
       val useJavaCp = "-usejavacp"
 
-      Jvm.runSubprocess(
+      Jvm.callProcess(
         mainClass =
           if (ZincWorkerUtil.isDottyOrScala3(scalaVersion()))
             "dotty.tools.repl.Main"
@@ -444,9 +444,11 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
           _.path
         ),
         jvmArgs = forkArgs(),
-        envArgs = forkEnv(),
+        env = forkEnv(),
         mainArgs = Seq(useJavaCp) ++ consoleScalacOptions().filterNot(Set(useJavaCp)),
-        workingDir = forkWorkingDir()
+        cwd = forkWorkingDir(),
+        stdin = os.Inherit,
+        stdout = os.Inherit
       )
       Result.Success(())
     }
@@ -509,13 +511,15 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     } else {
       val mainClass = ammoniteMainClass()
       Task.log.debug(s"Using ammonite main class: ${mainClass}")
-      Jvm.runSubprocess(
+      Jvm.callProcess(
         mainClass = mainClass,
-        classPath = ammoniteReplClasspath().map(_.path),
+        classPath = ammoniteReplClasspath().map(_.path).toVector,
         jvmArgs = forkArgs(),
-        envArgs = forkEnv(),
+        env = forkEnv(),
         mainArgs = replOptions,
-        workingDir = forkWorkingDir()
+        cwd = forkWorkingDir(),
+        stdin = os.Inherit,
+        stdout = os.Inherit
       )
       Result.Success(())
     }
