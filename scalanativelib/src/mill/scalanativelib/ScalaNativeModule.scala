@@ -304,10 +304,6 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     ))
   }
 
-  // override added for binary compatibility
-  override def transitiveIvyDeps: T[Agg[mill.scalalib.BoundDep]] =
-    super.transitiveIvyDeps
-
   def coursierProject: Task[coursier.core.Project] = Task.Anon {
 
     // Exclude cross published version dependencies leading to conflicts in Scala 3 vs 2.13

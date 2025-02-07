@@ -85,7 +85,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
     override def millOuterCtx = jm.millOuterCtx
 
     object bloop extends MillModule {
-      def config = Task { outer.bloopConfig(jm) }
+      def config = Task { outer.bloopConfig(jm)() }
 
       def writeConfigFile(): Command[(String, PathRef)] = Task.Command {
         os.makeDir.all(bloopDir)
