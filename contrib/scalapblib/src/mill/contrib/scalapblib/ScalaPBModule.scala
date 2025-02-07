@@ -2,7 +2,7 @@ package mill
 package contrib.scalapblib
 
 import coursier.core.Version
-import mill.api.{IO, Loose, PathRef}
+import mill.api.{Loose, PathRef}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib._
 
@@ -113,7 +113,7 @@ trait ScalaPBModule extends ScalaModule {
                 if (os.exists(protoDest))
                   Task.log.error(s"Warning: Overwriting ${dest} / ${os.SubPath(entry.getName)} ...")
                 Using.resource(os.write.over.outputStream(protoDest, createFolders = true)) { os =>
-                  IO.stream(zip, os)
+                  _root_.os.Internals.transfer(zip, os)
                 }
               }
               zip.closeEntry()

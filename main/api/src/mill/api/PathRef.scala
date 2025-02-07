@@ -147,11 +147,7 @@ object PathRef {
                       // See https://github.com/com-lihaoyi/mill/issues/1875
                       None
                   }
-                is.foreach {
-                  Using.resource(_) { is =>
-                    StreamSupport.stream(is, digestOut)
-                  }
-                }
+                is.foreach(os.Internals.transfer(_, digestOut))
               }
             } catch {
               case e: java.nio.file.NoSuchFileException =>
