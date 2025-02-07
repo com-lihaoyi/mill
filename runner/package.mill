@@ -17,7 +17,7 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
         val m = artifactMetadata()
         s"${m.group}:${m.id}:${m.version}"
       }
-      val boundIvys = transitiveIvyDeps()
+      val boundIvys = allIvyDeps()
       val nameFilter = "scala(.*)-compiler(.*)".r
       Agg(moduleDep) ++ boundIvys.collect {
         case dep if nameFilter.matches(dep.name) =>
