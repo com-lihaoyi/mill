@@ -240,6 +240,8 @@ object ClientServerTests extends TestSuite {
       Thread.sleep(100) // give a moment for logs to all turn up on disk
       val logLines = os.read.lines(os.Path(pathStr, os.pwd) / "server.log")
 
+      println(logLines)
+
       assert(
         logLines.takeRight(5) ==
           Seq(

@@ -62,9 +62,9 @@ public class MillClientMain {
         final String versionAndJvmHomeEncoding =
             Util.sha1Hash(mill.main.client.BuildInfo$.MODULE$.millVersion() + MillProcessLauncher.javaHome());
         Path serverDir0 = Paths.get(OutFiles$.MODULE$.out(), OutFiles$.MODULE$.millServer(), versionAndJvmHomeEncoding);
-        int exitCode = launcher.acquireLocksAndRun(serverDir0.toString()).exitCode_();
+        int exitCode = launcher.acquireLocksAndRun(serverDir0).exitCode_();
         if (exitCode == Util.ExitServerCodeWhenVersionMismatch()) {
-          exitCode = launcher.acquireLocksAndRun(serverDir0.toString()).exitCode_();
+          exitCode = launcher.acquireLocksAndRun(serverDir0).exitCode_();
         }
         System.exit(exitCode);
       }

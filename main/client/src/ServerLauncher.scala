@@ -47,8 +47,10 @@ abstract class ServerLauncher(
   final val serverProcessesLimit = 5
   final val serverInitWaitMillis = 10000
 
+  @throws[java.lang.Exception]
   def initServer(serverDir: Path, b: Boolean, locks: Locks): Unit
 
+  @throws[java.lang.Exception]
   def preRun(serverDir: Path): Unit
 
   def acquireLocksAndRun(serverDir0: Path): Result = {
