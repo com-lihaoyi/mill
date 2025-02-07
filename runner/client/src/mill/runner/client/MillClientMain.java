@@ -37,7 +37,7 @@ public class MillClientMain {
     } else
       try {
         // start in client-server mode
-        java.util.List<String> optsArgs = Util.readOptsFileLines(millOptsFile());
+        java.util.List<String> optsArgs = Util$.MODULE$.readOptsFileLinesJ(millOptsFile());
         Collections.addAll(optsArgs, args);
 
         ServerLauncher launcher =
@@ -60,25 +60,27 @@ public class MillClientMain {
             };
 
         final String versionAndJvmHomeEncoding =
-            Util.sha1Hash(BuildInfo.millVersion + MillProcessLauncher.javaHome());
-        Path serverDir0 = Paths.get(OutFiles.out, OutFiles.millServer, versionAndJvmHomeEncoding);
-        int exitCode = launcher.acquireLocksAndRun(serverDir0).exitCode;
+            Util.sha1Hash(mill.main.client.BuildInfo$.MODULE$.millVersion() + MillProcessLauncher.javaHome());
+        Path serverDir0 = Paths.get(OutFiles$.MODULE$.out(), OutFiles$.MODULE$.millServer(), versionAndJvmHomeEncoding);
+        int exitCode = launcher.acquireLocksAndRun(serverDir0.toString()).exitCode_();
         if (exitCode == Util.ExitServerCodeWhenVersionMismatch()) {
-          exitCode = launcher.acquireLocksAndRun(serverDir0).exitCode;
+          exitCode = launcher.acquireLocksAndRun(serverDir0.toString()).exitCode_();
         }
         System.exit(exitCode);
-      } catch (ServerCouldNotBeStarted e) {
-        // TODO: try to run in-process
-        System.err.println("Could not start a Mill server process.\n"
-            + "This could be caused by too many already running Mill instances "
-            + "or by an unsupported platform.\n"
-            + e.getMessage() + "\n");
+      }
+      // catch (ServerCouldNotBeStarted e) {
+      //   // TODO: try to run in-process
+      //   System.err.println("Could not start a Mill server process.\n"
+      //       + "This could be caused by too many already running Mill instances "
+      //       + "or by an unsupported platform.\n"
+      //       + e.getMessage() + "\n");
 
-        System.err.println(
-            "Loading Mill in-process isn't possible.\n" + "Please check your Mill installation!");
-        throw e;
+      //   System.err.println(
+      //       "Loading Mill in-process isn't possible.\n" + "Please check your Mill installation!");
+      //   throw e;
 
-      } catch (Exception e) {
+      // }
+      catch (Exception e) {
         System.err.println("Mill client failed with unknown exception");
         e.printStackTrace();
         System.exit(1);

@@ -459,7 +459,7 @@ object MillMain {
 
       Using.resource {
         val tryLocked = outLock.tryLock()
-        if (tryLocked.isLocked()) tryLocked
+        if (tryLocked.isLocked) tryLocked
         else if (noWaitForBuildLock) {
           throw new Exception(s"$activeTaskPrefix failing")
         } else {

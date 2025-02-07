@@ -58,7 +58,7 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
     build.bsp,
     build.main.codesig,
     build.main.server,
-    client,
+    build.main.client.jvm,
     `worker-api`
   )
 

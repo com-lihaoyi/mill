@@ -10,6 +10,7 @@ import java.lang.reflect.InvocationTargetException
 import scala.util.Try
 import scala.io.Source
 import scala.compat.Platform
+import scala.jdk.CollectionConverters._
 
 trait UtilCommon {
 
@@ -137,6 +138,8 @@ trait UtilCommon {
     }
     vmOptions.toList
   }
+
+  def readOptsFileLinesJ(filePath: java.nio.file.Path): java.util.List[String] = readOptsFileLines(filePath.toFile).asJava
 
   def interpolateEnvVars(
       line: String,

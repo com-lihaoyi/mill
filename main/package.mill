@@ -140,7 +140,9 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
   }
 
 
-  object client extends build.MillPublishScalaModule {
+  object client extends Module {
+
+    // def scalaVersion = build.Deps.scalaVersion
     trait SharedTests extends SharedClient {
       def ivyDeps = Agg(
         ivy"com.lihaoyi::utest:0.8.5",
@@ -155,56 +157,57 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
 
     trait SharedClient extends ScalaModule {
       def scalaVersion = build.Deps.scalaVersion
-      def buildInfoPackageName = "mill.main.client"
-      def buildInfoMembers = T {
-        Seq(BuildInfo.Value("millVersion", build.millVersion(), "Mill version."))
-      }
+      // def buildInfoPackageName = "mill.main.client"
+      // def buildInfoMembers = T {
+      //   Seq(BuildInfo.Value("millVersion", build.millVersion(), "Mill version."))
+      // }
       override def sources = T.sources {
         Seq(millSourcePath / os.up / "src" ).map(PathRef(_)) ++
          super.sources()
       }
     }
-    object jvm extends build.MillPublishScalaModule with SharedClient  {
+    object jvm extends build.MillPublishScalaModule with SharedClient with BuildInfo {
       def scalaVersion = build.Deps.scalaVersion
 
-      override lazy val test = new ScalaModule with SharedTests with MillScalaTests {
-        def testFramework = "utest.runner.Framework"
-        override def sources = T.sources {
-          Seq(millSourcePath / os.up / os.up / "test" ).map(PathRef(_)) ++
-          super.sources()
-        }
-        override def resources = T.sources {
-          Seq(millSourcePath / os.up / os.up / "test" / "resources" ).map(PathRef(_)) ++
-          super.resources()
-        }
+      def buildInfoPackageName = "mill.main.client"
+      def buildInfoMembers = T {
+        Seq(BuildInfo.Value("millVersion", build.millVersion(), "Mill version."))
       }
 
-    }
-
-    // object jvmtest extends SharedTests {
-    //   def scalaVersion = build.Deps.scalaVersion
-    //   def moduleDeps = Seq(jvm)
-
-    // }
-
-    object native extends build.MillPublishScalaModule with SharedClient with ScalaNativeModule  {
-      def scalaVersion = build.Deps.scalaVersion
-      def scalaNativeVersion = "0.5.6"
-        override def ivyDeps: T[Agg[Dep]] = super.ivyDeps() ++ Agg(
-          ivy"pt.kcry::sha::2.0.2"
-        )
-      // Will fail until SN 0.5.7
-      // object test extends ScalaNativeTests {
-
+      // override lazy val test = new ScalaModule with SharedTests with MillScalaTests {
       //   def testFramework = "utest.runner.Framework"
-
-      //   def ivyDeps = Agg(
-      //     ivy"com.lihaoyi::utest::0.8.5"
-      //   )
-
-      //   def nativeEmbedResources = true
+      //   override def sources = T.sources {
+      //     Seq(millSourcePath / os.up / os.up / "test" ).map(PathRef(_)) ++
+      //     super.sources()
+      //   }
+      //   override def resources = T.sources {
+      //     Seq(millSourcePath / os.up / os.up / "test" / "resources" ).map(PathRef(_)) ++
+      //     super.resources()
+      //   }
       // }
+
     }
+    /**
+     *
+     */
+    // object native extends build.MillPublishScalaModule with SharedClient with ScalaNativeModule  {
+    //   def scalaVersion = build.Deps.scalaVersion
+    //   def scalaNativeVersion = "0.5.6"
+    //     override def ivyDeps: T[Agg[Dep]] = super.ivyDeps() ++ Agg(
+    //       ivy"pt.kcry::sha::2.0.2"
+    //     )
+    //   // Will fail until SN 0.5.7
+    //   // object test extends ScalaNativeTests {
+
+    //   //   def testFramework = "utest.runner.Framework"
+
+    //   //   def ivyDeps = Agg(
+    //   //     ivy"com.lihaoyi::utest::0.8.5"
+    //   //   )
+
+    //   //   def nativeEmbedResources = true
+    //   // }
+    // }
 
   }
 

@@ -1,6 +1,6 @@
 package mill.runner.client;
 
-import static mill.main.client.OutFiles.*;
+import mill.main.client.OutFiles$;
 
 import io.github.alexarchambault.windowsansi.WindowsAnsi;
 import java.io.File;
@@ -11,22 +11,22 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
-import mill.main.client.EnvVars;
-import mill.main.client.ServerFiles;
-import mill.main.client.Util;
+import mill.main.client.EnvVars$;
+import mill.main.client.ServerFiles$;
+import mill.main.client.Util$;
 
 public class MillProcessLauncher {
 
   static int launchMillNoServer(String[] args) throws Exception {
     final boolean setJnaNoSys = System.getProperty("jna.nosys") == null;
     final String sig = String.format("%08x", UUID.randomUUID().hashCode());
-    final Path processDir = Paths.get(".").resolve(out).resolve(millNoServer).resolve(sig);
+    final Path processDir = Paths.get(".").resolve(OutFiles$.MODULE$.out()).resolve(OutFiles$.MODULE$.millNoServer()).resolve(sig);
 
     final List<String> l = new ArrayList<>();
     l.addAll(millLaunchJvmCommand(setJnaNoSys));
     l.add("mill.runner.MillMain");
     l.add(processDir.toAbsolutePath().toString());
-    l.addAll(Util.readOptsFileLines(millOptsFile()));
+    l.addAll(Util$.MODULE$.readOptsFileLinesJ(millOptsFile()));
     l.addAll(Arrays.asList(args));
 
     final ProcessBuilder builder = new ProcessBuilder().command(l).inheritIO();
@@ -60,24 +60,24 @@ public class MillProcessLauncher {
 
     ProcessBuilder builder = new ProcessBuilder()
         .command(l)
-        .redirectOutput(serverDir.resolve(ServerFiles.stdout).toFile())
-        .redirectError(serverDir.resolve(ServerFiles.stderr).toFile());
+        .redirectOutput(serverDir.resolve(ServerFiles$.MODULE$.stdout()).toFile())
+        .redirectError(serverDir.resolve(ServerFiles$.MODULE$.stderr()).toFile());
 
     configureRunMillProcess(builder, serverDir);
   }
 
   static Process configureRunMillProcess(ProcessBuilder builder, Path serverDir) throws Exception {
 
-    Path sandbox = serverDir.resolve(ServerFiles.sandbox);
+    Path sandbox = serverDir.resolve(ServerFiles$.MODULE$.sandbox());
     Files.createDirectories(sandbox);
-    builder.environment().put(EnvVars.MILL_WORKSPACE_ROOT, new File("").getCanonicalPath());
+    builder.environment().put(EnvVars$.MODULE$.MILL_WORKSPACE_ROOT(), new File("").getCanonicalPath());
 
     builder.directory(sandbox.toFile());
     return builder.start();
   }
 
   static Path millJvmVersionFile() {
-    String millJvmOptsPath = System.getenv(EnvVars.MILL_JVM_VERSION_PATH);
+    String millJvmOptsPath = System.getenv(EnvVars$.MODULE$.MILL_JVM_VERSION_PATH());
     if (millJvmOptsPath == null || millJvmOptsPath.trim().equals("")) {
       millJvmOptsPath = ".mill-jvm-version";
     }
@@ -85,7 +85,7 @@ public class MillProcessLauncher {
   }
 
   static Path millJvmOptsFile() {
-    String millJvmOptsPath = System.getenv(EnvVars.MILL_JVM_OPTS_PATH);
+    String millJvmOptsPath = System.getenv(EnvVars$.MODULE$.MILL_JVM_OPTS_PATH());
     if (millJvmOptsPath == null || millJvmOptsPath.trim().equals("")) {
       millJvmOptsPath = ".mill-jvm-opts";
     }
@@ -93,7 +93,7 @@ public class MillProcessLauncher {
   }
 
   static Path millOptsFile() {
-    String millJvmOptsPath = System.getenv(EnvVars.MILL_OPTS_PATH);
+    String millJvmOptsPath = System.getenv(EnvVars$.MODULE$.MILL_OPTS_PATH());
     if (millJvmOptsPath == null || millJvmOptsPath.trim().equals("")) {
       millJvmOptsPath = ".mill-opts";
     }
@@ -106,7 +106,7 @@ public class MillProcessLauncher {
   }
 
   static String millServerTimeout() {
-    return System.getenv(EnvVars.MILL_SERVER_TIMEOUT_MILLIS);
+    return System.getenv(EnvVars$.MODULE$.MILL_SERVER_TIMEOUT_MILLIS());
   }
 
   static boolean isWin() {
@@ -121,7 +121,7 @@ public class MillProcessLauncher {
     if (Files.exists(millJvmVersionFile)) {
       jvmId = Files.readString(millJvmVersionFile).trim();
       ;
-      javaHome = CoursierClient.resolveJavaHome(jvmId).getAbsolutePath();
+      javaHome = CoursierClient$.MODULE$.resolveJavaHome(jvmId).getAbsolutePath();
     }
 
     if (javaHome == null || javaHome.isEmpty()) javaHome = System.getProperty("java.home");
@@ -214,7 +214,7 @@ public class MillProcessLauncher {
     // extra opts
     Path millJvmOptsFile = millJvmOptsFile();
     if (Files.exists(millJvmOptsFile)) {
-      vmOptions.addAll(Util.readOptsFileLines(millJvmOptsFile));
+      vmOptions.addAll(Util$.MODULE$.readOptsFileLinesJ(millJvmOptsFile));
     }
 
     vmOptions.add("-XX:+HeapDumpOnOutOfMemoryError");
@@ -225,7 +225,7 @@ public class MillProcessLauncher {
   }
 
   static List<String> readMillJvmOpts() throws Exception {
-    return Util.readOptsFileLines(millJvmOptsFile());
+    return Util$.MODULE$.readOptsFileLinesJ(millJvmOptsFile());
   }
 
   static int getTerminalDim(String s, boolean inheritError) throws Exception {
@@ -281,7 +281,7 @@ public class MillProcessLauncher {
     //
     String oldValue = memoizedTerminalDims.getAndSet(str);
     if ((oldValue == null) || !oldValue.equals(str)) {
-      Files.write(serverDir.resolve(ServerFiles.terminfo), str.getBytes());
+      Files.write(serverDir.resolve(ServerFiles$.MODULE$.terminfo()), str.getBytes());
     }
   }
 
@@ -298,11 +298,11 @@ public class MillProcessLauncher {
   public static void prepareMillRunFolder(Path serverDir) throws Exception {
     // Clear out run-related files from the server folder to make sure we
     // never hit issues where we are reading the files from a previous run
-    Files.deleteIfExists(serverDir.resolve(ServerFiles.exitCode));
-    Files.deleteIfExists(serverDir.resolve(ServerFiles.terminfo));
-    Files.deleteIfExists(serverDir.resolve(ServerFiles.runArgs));
+    Files.deleteIfExists(serverDir.resolve(ServerFiles$.MODULE$.exitCode()));
+    Files.deleteIfExists(serverDir.resolve(ServerFiles$.MODULE$.terminfo()));
+    Files.deleteIfExists(serverDir.resolve(ServerFiles$.MODULE$.runArgs()));
 
-    Path sandbox = serverDir.resolve(ServerFiles.sandbox);
+    Path sandbox = serverDir.resolve(ServerFiles$.MODULE$.sandbox());
     Files.createDirectories(sandbox);
     boolean tputExists = checkTputExists();
 

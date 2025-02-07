@@ -5,7 +5,7 @@ import mill.main.client.lock.{Locks, TryLocked}
 import java.io.{InputStream, OutputStream, PrintStream}
 import java.net.Socket
 import java.nio.file.{Files, Path, Paths}
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.util.Using
 import mill.main.client
 
@@ -13,7 +13,7 @@ abstract class ServerLauncher(
     stdin: InputStream,
     stdout: PrintStream,
     stderr: PrintStream,
-    env: Map[String, String],
+    env: java.util.Map[String, String],
     args: Array[String],
     memoryLocks: Option[Array[Locks]],
     forceFailureForTestingMillisDelay: Int
@@ -21,8 +21,10 @@ abstract class ServerLauncher(
   final val serverProcessesLimit = 2
   final val serverInitWaitMillis = 10000
 
+  @throws[java.lang.Exception]
   def initServer(serverDir: Path, setJnaNoSys: Boolean, locks: Locks): Unit
 
+  @throws[java.lang.Exception]
   def preRun(serverDir: Path): Unit
 
   def acquireLocksAndRun(outDir: String): Result = {
@@ -80,7 +82,7 @@ abstract class ServerLauncher(
       )
       Util.writeString(f, "0.11.3") // buildinfo
       Util.writeArgs(args, f)
-      Util.writeMap(env, f)
+      Util.writeMap(env.asScala.toMap, f)
     }
 
     if (locks.processLock.probe()) {
@@ -146,5 +148,7 @@ abstract class ServerLauncher(
     }
   }
 
-  case class Result(exitCode: Int, serverDir: Path)
+  case class Result(exitCode: Int, serverDir: Path){
+    def exitCode_ = exitCode
+  }
 }

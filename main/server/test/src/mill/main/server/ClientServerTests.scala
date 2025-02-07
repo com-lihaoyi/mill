@@ -93,7 +93,7 @@ object ClientServerTests extends TestSuite {
         new PrintStream(err),
         env.asJava,
         args,
-        memoryLocks,
+        Some(memoryLocks),
         forceFailureForTestingMillisDelay
       ) {
         def preRun(serverDir: Path) = { /*do nothing*/ }
@@ -107,7 +107,7 @@ object ClientServerTests extends TestSuite {
             testLogEvenWhenServerIdWrong
           )).start()
         }
-      }.acquireLocksAndRun((outDir / "server-0").relativeTo(os.pwd).toNIO)
+      }.acquireLocksAndRun(((outDir / "server-0")).relativeTo(os.pwd).toNIO.toString() )
 
       ClientResult(
         result.exitCode,
