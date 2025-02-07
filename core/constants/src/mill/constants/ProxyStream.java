@@ -44,8 +44,8 @@ public class ProxyStream {
   }
 
   public static class Output extends java.io.OutputStream {
-    private java.io.OutputStream destination;
-    private int key;
+    private final java.io.OutputStream destination;
+    private final int key;
 
     public Output(java.io.OutputStream out, int key) {
       this.destination = out;
@@ -101,10 +101,10 @@ public class ProxyStream {
   }
 
   public static class Pumper implements Runnable {
-    private InputStream src;
-    private OutputStream destOut;
-    private OutputStream destErr;
-    private Object synchronizer;
+    private final InputStream src;
+    private final OutputStream destOut;
+    private final OutputStream destErr;
+    private final Object synchronizer;
 
     public Pumper(
         InputStream src, OutputStream destOut, OutputStream destErr, Object synchronizer) {
@@ -124,6 +124,7 @@ public class ProxyStream {
       dest.write(buffer, 0, length);
     }
 
+    @Override
     public void run() {
 
       byte[] buffer = new byte[1024];
