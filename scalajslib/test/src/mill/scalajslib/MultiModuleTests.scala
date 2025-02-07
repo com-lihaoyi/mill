@@ -39,10 +39,10 @@ object MultiModuleTests extends TestSuite {
 
   def tests: Tests = Tests {
     def checkOpt(optimize: Boolean) = {
-      val task = if (optimize) MultiModule.client.fullOpt else MultiModule.client.fastOpt
+      val task = if (optimize) MultiModule.client.fullLinkJS else MultiModule.client.fastLinkJS
       val Right(result) = evaluator(task)
 
-      val runOutput = ScalaJsUtils.runJS(result.value.path)
+      val runOutput = ScalaJsUtils.runJS(result.value.dest.path)
       assert(
         result.evalCount > 0,
         runOutput == "Hello from Scala.js, result is: 3\n"

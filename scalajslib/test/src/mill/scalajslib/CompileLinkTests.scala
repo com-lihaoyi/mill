@@ -85,9 +85,9 @@ object CompileLinkTests extends TestSuite {
     val module = HelloJSWorld.build(scalaVersion, scalaJSVersion)
     val jsFile =
       if (legacy) {
-        val task = if (optimize) module.fullOpt else module.fastOpt
+        val task = if (optimize) module.fullLinkJS else module.fastLinkJS
         val Right(result) = eval(task)
-        result.value.path
+        result.value.dest.path
       } else {
         val task = if (optimize) module.fullLinkJS else module.fastLinkJS
         val Right(result) = eval(task)

@@ -29,7 +29,7 @@ object FullOptESModuleTests extends TestSuite {
       FullOptESModuleModule,
       millSourcePath
     ).scoped { eval =>
-      val result = eval(FullOptESModuleModule.fullOptESModuleModule.fullOpt)
+      val result = eval(FullOptESModuleModule.fullOptESModuleModule.fullLinkJS)
       assert(result.isRight)
     }
   }
