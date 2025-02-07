@@ -287,7 +287,7 @@ private[mill] object PromptLogger {
         }
       }
 
-      override def write(dest: OutputStream, buf: Array[Byte], end: Int): Unit = {
+      def write(dest: OutputStream, buf: Array[Byte], end: Int): Unit = {
         lastCharWritten = buf(end - 1).toChar
         if (interactive() && !paused() && promptShown) {
           promptShown = false

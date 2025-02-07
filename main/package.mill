@@ -6,10 +6,11 @@ import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.define.Cross
 import mill.scalalib.api.ZincWorkerUtil
+import mill.scalanativelib._
 
 object `package` extends RootModule with build.MillStableScalaModule with BuildInfo {
 
-  def moduleDeps = Seq(eval, resolve, client)
+  def moduleDeps = Seq(eval, resolve, client.jvm)
   def ivyDeps = Agg(
     build.Deps.windowsAnsi,
     build.Deps.coursierInterface,
@@ -79,7 +80,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
   )
 
   object api extends build.MillStableScalaModule with BuildInfo {
-    def moduleDeps = Seq(client)
+    def moduleDeps = Seq(client.jvm)
     def buildInfoPackageName = "mill.api"
     def buildInfoMembers = Seq(
       BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
@@ -102,7 +103,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
   }
 
   object util extends build.MillStableScalaModule {
-    def moduleDeps = Seq(api, client)
+    def moduleDeps = Seq(api, client.jvm)
     def ivyDeps = Agg(
       build.Deps.coursier,
       build.Deps.coursierJvm,
@@ -138,17 +139,78 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
     def moduleDeps = Seq(define)
   }
 
-  object client extends build.MillPublishJavaModule with BuildInfo {
-    def buildInfoPackageName = "mill.main.client"
-    def buildInfoMembers = Seq(BuildInfo.Value("millVersion", build.millVersion(), "Mill version."))
 
-    object test extends JavaModuleTests with TestModule.Junit4 {
-      def ivyDeps = Agg(build.Deps.junitInterface, build.Deps.commonsIo)
+  object client extends build.MillPublishScalaModule {
+    trait SharedTests extends SharedClient {
+      def ivyDeps = Agg(
+        ivy"com.lihaoyi::utest:0.8.5",
+        ivy"com.lihaoyi::os-lib::0.11.3"
+      )
+
+      override def sources = T.sources {
+        Seq(millSourcePath / os.up / "test" ).map(PathRef(_)) ++
+         super.sources()
+      }
     }
+
+    trait SharedClient extends ScalaModule {
+      def scalaVersion = build.Deps.scalaVersion
+      def buildInfoPackageName = "mill.main.client"
+      def buildInfoMembers = T {
+        Seq(BuildInfo.Value("millVersion", build.millVersion(), "Mill version."))
+      }
+      override def sources = T.sources {
+        Seq(millSourcePath / os.up / "src" ).map(PathRef(_)) ++
+         super.sources()
+      }
+    }
+    object jvm extends build.MillPublishScalaModule with SharedClient  {
+      def scalaVersion = build.Deps.scalaVersion
+
+      override lazy val test = new ScalaModule with SharedTests with MillScalaTests {
+        def testFramework = "utest.runner.Framework"
+        override def sources = T.sources {
+          Seq(millSourcePath / os.up / os.up / "test" ).map(PathRef(_)) ++
+          super.sources()
+        }
+        override def resources = T.sources {
+          Seq(millSourcePath / os.up / os.up / "test" / "resources" ).map(PathRef(_)) ++
+          super.resources()
+        }
+      }
+
+    }
+
+    // object jvmtest extends SharedTests {
+    //   def scalaVersion = build.Deps.scalaVersion
+    //   def moduleDeps = Seq(jvm)
+
+    // }
+
+    object native extends build.MillPublishScalaModule with SharedClient with ScalaNativeModule  {
+      def scalaVersion = build.Deps.scalaVersion
+      def scalaNativeVersion = "0.5.6"
+        override def ivyDeps: T[Agg[Dep]] = super.ivyDeps() ++ Agg(
+          ivy"pt.kcry::sha::2.0.2"
+        )
+      // Will fail until SN 0.5.7
+      // object test extends ScalaNativeTests {
+
+      //   def testFramework = "utest.runner.Framework"
+
+      //   def ivyDeps = Agg(
+      //     ivy"com.lihaoyi::utest::0.8.5"
+      //   )
+
+      //   def nativeEmbedResources = true
+      // }
+    }
+
   }
 
+
   object server extends build.MillPublishScalaModule {
-    def moduleDeps = Seq(client, api)
+    def moduleDeps = Seq(client.jvm, api)
   }
   object graphviz extends build.MillPublishScalaModule {
     def moduleDeps = Seq(build.main, build.scalalib)
