@@ -1,7 +1,6 @@
 package mill.testrunner
 
 import mill.api.internal
-import os.Path
 
 @internal object DiscoverTestsMain {
   private implicit def PathTokensReader2: mainargs.TokensReader.Simple[os.Path] =
