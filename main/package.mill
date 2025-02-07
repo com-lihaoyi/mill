@@ -50,18 +50,14 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
           _.publishSelfDependency
         )()
           .map(artifact => s"${artifact.group}:${artifact.id}:${artifact.version}") ++
-          // change to this when bumping Mill:
-          //   Lib.resolveDependenciesMetadataSafe(
-          Lib.resolveDependenciesMetadata(
+          Lib.resolveDependenciesMetadataSafe(
             repositories = build.dist.repositoriesTask(),
-            // When re-bootstraping Mill, replace the next line with
-            //   Seq(BoundDep(build.dist.coursierDependency(), force = false)),
-            build.dist.transitiveIvyDeps(),
+            Seq(BoundDep(build.dist.coursierDependency, force = false)),
             Some(build.dist.mapDependencies()),
             build.dist.resolutionCustomizer(),
             Some(Task.ctx()),
             build.dist.coursierCacheCustomizer()
-          )._2.minDependencies.toSeq
+          ).getOrThrow.minDependencies.toSeq
             // change to this when bumping Mill
             //   ).getOrThrow.minDependencies.toSeq
             .map(d => s"${d.module.organization.value}:${d.module.name.value}:${d.version}")
