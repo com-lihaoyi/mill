@@ -3,6 +3,25 @@ package mill.scalalib.publish
 import mill.api.{Ctx, PathRef}
 
 class LocalIvyPublisher(localIvyRepo: os.Path) {
+
+  @deprecated("Use publishLocal instead", "Mill 0.11.7")
+  def publish(
+      jar: os.Path,
+      sourcesJar: os.Path,
+      docJar: os.Path,
+      pom: os.Path,
+      ivy: os.Path,
+      artifact: Artifact,
+      extras: Seq[PublishInfo]
+  )(implicit ctx: Ctx.Log): Unit = {
+    val mainArtifacts = Seq(
+      PublishInfo.jar(PathRef(jar)),
+      PublishInfo.sourcesJar(PathRef(sourcesJar)),
+      PublishInfo.docJar(PathRef(docJar))
+    )
+    publishLocal(pom, Right(ivy), artifact, mainArtifacts ++ extras)
+  }
+
   /**
    * Publishes a module locally
    *

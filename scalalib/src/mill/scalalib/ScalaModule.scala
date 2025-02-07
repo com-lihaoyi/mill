@@ -21,6 +21,9 @@ import scala.util.Using
  * Core configuration required to compile a single Scala compilation target
  */
 trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
+  @deprecated("use ScalaTests", "0.11.0")
+  type ScalaModuleTests = ScalaTests
+
   trait ScalaTests extends JavaTests with ScalaModule {
     override def scalaOrganization: T[String] = outer.scalaOrganization()
     override def scalaVersion: T[String] = outer.scalaVersion()
@@ -75,6 +78,10 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     }
   }
 
+  override def resolveCoursierDependency: Task[Dep => coursier.Dependency] =
+    Task.Anon {
+      Lib.depToDependency(_: Dep, scalaVersion(), platformSuffix())
+    }
 
   override def resolvePublishDependency: Task[Dep => publish.Dependency] =
     Task.Anon {

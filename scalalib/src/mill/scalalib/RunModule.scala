@@ -195,6 +195,43 @@ trait RunModule extends WithZincWorker {
   def runBackgroundLogToConsole: Boolean = true
   def runBackgroundRestartDelayMillis: T[Int] = 500
 
+  @deprecated("Binary compat shim, use `.runner().run(..., background=true)`", "Mill 0.12.0")
+  protected def doRunBackground(
+      taskDest: Path,
+      runClasspath: Seq[PathRef],
+      zwBackgroundWrapperClasspath: Agg[PathRef],
+      forkArgs: Seq[String],
+      forkEnv: Map[String, String],
+      finalMainClass: String,
+      forkWorkingDir: Path,
+      runUseArgsFile: Boolean,
+      backgroundOutputs: Option[Tuple2[ProcessOutput, ProcessOutput]]
+  )(args: String*): Ctx => Result[Unit] = ctx => {
+    val (procUuidPath, procLockfile, procUuid) = RunModule.backgroundSetup(taskDest)
+    try Result.Success(
+        Jvm.runSubprocessWithBackgroundOutputs(
+          "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
+          (runClasspath ++ zwBackgroundWrapperClasspath).map(_.path),
+          forkArgs,
+          forkEnv,
+          Seq(
+            procUuidPath.toString,
+            procLockfile.toString,
+            procUuid,
+            500.toString,
+            finalMainClass
+          ) ++ args,
+          workingDir = forkWorkingDir,
+          backgroundOutputs,
+          useCpPassingJar = runUseArgsFile
+        )(ctx)
+      )
+    catch {
+      case e: Exception =>
+        Result.Failure("subprocess failed")
+    }
+  }
+
   private[mill] def launcher0 = Task.Anon {
     val launchClasspath =
       if (!runUseArgsFile()) runClasspath().map(_.path)
