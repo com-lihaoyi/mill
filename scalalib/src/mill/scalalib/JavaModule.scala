@@ -20,7 +20,6 @@ import mill.util.Jvm
 
 import os.Path
 
-
 /**
  * Core configuration required to compile a single Java compilation target
  */
@@ -62,14 +61,12 @@ trait JavaModule
     }
 
     override def bomIvyDeps = Task[Agg[Dep]] {
-      // FIXME Add that back when we can break bin-compat
-      // super.bomIvyDeps() ++
-      outer.bomIvyDeps()
+      super.bomIvyDeps() ++
+        outer.bomIvyDeps()
     }
     override def depManagement = Task[Agg[Dep]] {
-      // FIXME Add that back when we can break bin-compat
-      // super.depManagement() ++
-      outer.depManagement()
+      super.depManagement() ++
+        outer.depManagement()
     }
 
     /**
