@@ -103,7 +103,7 @@ trait AssemblyModule extends mill.Module {
     val problematicEntryCount = 65535
     if (
       prependScript.isDefined &&
-        (upstream.addedEntries + created.addedEntries) > problematicEntryCount
+      (upstream.addedEntries + created.addedEntries) > problematicEntryCount
     ) {
       Result.Failure(
         s"""The created assembly jar contains more than ${problematicEntryCount} ZIP entries.
