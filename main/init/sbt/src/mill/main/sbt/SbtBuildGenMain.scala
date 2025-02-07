@@ -120,7 +120,7 @@ object SbtBuildGenMain extends BuildGenBase[IrBuild, String] {
     val file = os.temp.dir() / "mill-init.sbt"
     // TODO copy to a temp file if it doesn't work when packaged in a jar
     val sbtPluginJarUrl =
-      getClass.getResource("/sbt-mill-init-generate-project-tree.jar").toExternalForm
+      getClass.getResource("/sbt-mill-init-generate-project-tree-assembly.jar").toExternalForm
     val contents =
       s"""addSbtPlugin("com.lihaoyi" % "mill-main-init-sbt-sbt-mill-init-generate-project-tree" % "0.1.0-SNAPSHOT" from ${escape(
           sbtPluginJarUrl
