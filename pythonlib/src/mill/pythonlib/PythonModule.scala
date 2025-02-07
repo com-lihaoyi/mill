@@ -5,6 +5,7 @@ import mill.api.Result
 import mill.util.Util
 import mill.util.Jvm
 import mill.api.Ctx
+import mill.main.client.ServerFiles
 
 trait PythonModule extends PipModule with TaskModule { outer =>
 
@@ -174,12 +175,13 @@ trait PythonModule extends PipModule with TaskModule { outer =>
    */
   def runBackground(args: mill.define.Args) = Task.Command {
     val (procUuidPath, procLockfile, procUuid) = mill.scalalib.RunModule.backgroundSetup(Task.dest)
+    val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
 
-    Jvm.runSubprocess(
+    Jvm.spawnProcess(
       mainClass = "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
       classPath = mill.scalalib.ZincWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
       jvmArgs = Nil,
-      envArgs = runnerEnvTask(),
+      env = runnerEnvTask(),
       mainArgs = Seq(
         procUuidPath.toString,
         procLockfile.toString,
@@ -189,10 +191,13 @@ trait PythonModule extends PipModule with TaskModule { outer =>
         pythonExe().path.toString,
         mainScript().path.toString
       ) ++ args.value,
-      workingDir = Task.workspace,
-      background = true,
-      useCpPassingJar = false,
-      runBackgroundLogToConsole = true,
+      cwd = Task.workspace,
+      stdin = "",
+      // Hack to forward the background subprocess output to the Mill server process
+      // stdout/stderr files, so the output will get properly slurped up by the Mill server
+      // and shown to any connected Mill client even if the current command has completed
+      stdout = os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stdout),
+      stderr = os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stderr),
       javaHome = mill.scalalib.ZincWorkerModule.javaHome().map(_.path)
     )
     ()
@@ -261,11 +266,15 @@ object PythonModule {
         command: String = null,
         env: Map[String, String] = null,
         workingDir: os.Path = null
-    )(implicit ctx: Ctx): Unit =
-      Jvm.runSubprocess(
-        commandArgs = Seq(Option(command).getOrElse(command0)) ++ options ++ args.value,
-        envArgs = Option(env).getOrElse(env0),
-        workingDir = Option(workingDir).getOrElse(workingDir0)
+    )(implicit ctx: Ctx): Unit = {
+      os.call(
+        cmd = Seq(Option(command).getOrElse(command0)) ++ options ++ args.value,
+        env = Option(env).getOrElse(env0),
+        cwd = Option(workingDir).getOrElse(workingDir0),
+        stdin = os.Inherit,
+        stdout = os.Inherit,
+        check = true
       )
+    }
   }
 }
