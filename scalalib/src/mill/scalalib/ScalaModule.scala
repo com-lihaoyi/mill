@@ -324,7 +324,9 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     )
 
     def packageWithZinc(options: Seq[String], files: Seq[os.Path], javadocDir: os.Path) = {
-      if (files.isEmpty) Result.Success(createJar(Agg(javadocDir))(Task.dest))
+      if (files.isEmpty) {
+        Result.Success(PathRef(createJar(Task.dest / "out.jar", Agg(javadocDir))))
+      }
       else {
         zincWorker()
           .worker()
@@ -336,7 +338,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
             options ++ compileCp ++ scalaDocOptions() ++
               files.map(_.toString())
           ) match {
-          case true => Result.Success(createJar(Agg(javadocDir))(Task.dest))
+          case true => Result.Success(PathRef(createJar(Task.dest / "out.jar", Agg(javadocDir))))
           case false => Result.Failure("docJar generation failed")
         }
       }

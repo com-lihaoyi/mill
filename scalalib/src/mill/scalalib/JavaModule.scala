@@ -972,7 +972,9 @@ trait JavaModule
    * without those from upstream modules and dependencies
    */
   def jar: T[PathRef] = Task {
-    Jvm.createJar(localClasspath().map(_.path).filter(os.exists), manifest())
+    val jar = Task.dest / "out.jar"
+    Jvm.createJar(jar, localClasspath().map(_.path).filter(os.exists), manifest())
+    PathRef(jar)
   }
 
   /**
@@ -1061,16 +1063,19 @@ trait JavaModule
       )
     }
 
-    Jvm.createJar(Agg(javadocDir))(outDir)
+    PathRef(Jvm.createJar(Task.dest / "out.jar", Agg(javadocDir)))
   }
 
   /**
    * The source jar, containing only source code for publishing to Maven Central
    */
   def sourceJar: T[PathRef] = Task {
-    Jvm.createJar(
-      (allSources() ++ resources() ++ compileResources()).map(_.path).filter(os.exists),
-      manifest()
+    PathRef(
+      Jvm.createJar(
+        Task.dest / "out.jar",
+        (allSources() ++ resources() ++ compileResources()).map(_.path).filter(os.exists),
+        manifest()
+      )
     )
   }
 
@@ -1435,7 +1440,7 @@ trait BomModule extends JavaModule {
   }
 
   private def emptyJar: T[PathRef] = Task {
-    Jvm.createJar(Agg.empty[os.Path])
+    PathRef(Jvm.createJar(Task.dest / "out.jar", Agg.empty[os.Path]))
   }
   abstract override def jar: T[PathRef] = Task {
     emptyJar()

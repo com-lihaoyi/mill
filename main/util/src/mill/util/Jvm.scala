@@ -1,16 +1,19 @@
 package mill.util
 
 import mill.api.Loose.Agg
-import mill.api._
+import mill.api.*
 import mill.main.client.ServerFiles
 import os.{ProcessOutput, SubProcess}
 
-import java.io._
+import java.io.*
 import java.lang.reflect.Modifier
 import java.nio.file.attribute.PosixFilePermission
 import java.nio.file.Files
 import scala.util.Properties.isWin
 import os.CommandResult
+
+import java.util.jar.{JarEntry, JarOutputStream}
+import scala.collection.mutable
 
 object Jvm extends CoursierSupport {
 
@@ -423,40 +426,80 @@ object Jvm extends CoursierSupport {
     )
   }
 
+
+
   /**
-   * Create a jar file containing all files from the specified input Paths,
-   * called out.jar in the implicit ctx.dest folder. An optional main class may
-   * be provided for the jar. An optional filter function may also be provided to
-   * selectively include/exclude specific files.
-   * @param inputPaths - `Agg` of `os.Path`s containing files to be included in the jar
-   * @param fileFilter - optional file filter to select files to be included.
-   *                   Given an `os.Path` (from inputPaths) and an `os.RelPath` for the individual file,
-   *                   return true if the file is to be included in the jar.
-   * @param ctx - implicit `Ctx.Dest` used to determine the output directory for the jar.
-   * @return - a `PathRef` for the created jar.
+   * Create a JAR file with default inflation level.
+   *
+   * @param jar The final JAR file
+   * @param inputPaths The input paths resembling the content of the JAR file.
+   *     Files will be directly included in the root of the archive,
+   *     whereas for directories their content is added to the root of the archive.
+   * @param manifest The JAR Manifest
+   * @param fileFilter A filter to support exclusions of selected files
+   * @param includeDirs If `true` the JAR archive will contain directory entries.
+   *                    According to the ZIP specification, directory entries are not required.
+   *                    In the Java ecosystem, most JARs have directory entries, so including them may reduce compatibility issues.
+   *                    Directory entry names will result with a trailing `/`.
+   * @param timestamp If specified, this timestamp is used as modification timestamp (mtime) for all entries in the JAR file.
+   *                  Having a stable timestamp may result in reproducible files, if all other content, including the JAR Manifest, keep stable.
    */
   def createJar(
-      inputPaths: Agg[os.Path],
-      manifest: mill.api.JarManifest = mill.api.JarManifest.MillDefault,
-      fileFilter: (os.Path, os.RelPath) => Boolean = (_, _) => true
-  )(implicit ctx: Ctx.Dest): PathRef = {
-    val outputPath = ctx.dest / "out.jar"
-    createJar(
-      jar = outputPath,
-      inputPaths = inputPaths,
-      manifest = manifest,
-      fileFilter = fileFilter
-    )
-    PathRef(outputPath)
-  }
+           jar: os.Path,
+           inputPaths: Agg[os.Path],
+           manifest: JarManifest = JarManifest.Empty,
+           fileFilter: (os.Path, os.RelPath) => Boolean = (_, _) => true,
+           includeDirs: Boolean = false,
+           timestamp: Option[Long] = None
+         ): os.Path = {
 
-  def createJar(
-      jar: os.Path,
-      inputPaths: Agg[os.Path],
-      manifest: mill.api.JarManifest,
-      fileFilter: (os.Path, os.RelPath) => Boolean
-  ): Unit =
-    JarOps.jar(jar, inputPaths, manifest, fileFilter, includeDirs = true, timestamp = None)
+    val curTime = timestamp.getOrElse(System.currentTimeMillis())
+
+    def mTime(file: os.Path) = timestamp.getOrElse(os.mtime(file))
+
+    os.makeDir.all(jar / os.up)
+    os.remove.all(jar)
+
+    val seen = mutable.Set.empty[os.RelPath]
+    val _ = seen.add(os.sub / "META-INF/MANIFEST.MF")
+
+    val jarStream = new JarOutputStream(
+      new BufferedOutputStream(Files.newOutputStream(jar.toNIO)),
+      manifest.build
+    )
+
+    try {
+      assert(inputPaths.iterator.forall(os.exists(_)))
+
+      if (includeDirs) {
+        val _ = seen.add(os.sub / "META-INF")
+        val entry = new JarEntry("META-INF/")
+        entry.setTime(curTime)
+        jarStream.putNextEntry(entry)
+        jarStream.closeEntry()
+      }
+
+      // Note: we only sort each input path, but not the whole archive
+      for {
+        p <- inputPaths
+        (file, mapping) <-
+          if (os.isFile(p)) Seq((p, os.sub / p.last))
+          else os.walk(p).map(sub => (sub, sub.subRelativeTo(p))).sorted
+        if (includeDirs || os.isFile(file)) && !seen(mapping) && fileFilter(p, mapping)
+      } {
+        val _ = seen.add(mapping)
+        val name = mapping.toString() + (if (os.isDir(file)) "/" else "")
+        val entry = new JarEntry(name)
+        entry.setTime(mTime(file))
+        jarStream.putNextEntry(entry)
+        if (os.isFile(file)) jarStream.write(os.read.bytes(file))
+        jarStream.closeEntry()
+      }
+      jar
+    } finally {
+      jarStream.close()
+    }
+  }
 
   def createClasspathPassingJar(jar: os.Path, classpath: Agg[os.Path]): Unit = {
     createJar(

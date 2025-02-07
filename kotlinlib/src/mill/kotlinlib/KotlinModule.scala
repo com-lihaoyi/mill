@@ -187,7 +187,7 @@ trait KotlinModule extends JavaModule { outer =>
       )
     }
 
-    Jvm.createJar(Agg(dokkaDir))(outDir)
+    PathRef(Jvm.createJar(outDir / "out.jar", Agg(dokkaDir)))
   }
 
   /**
