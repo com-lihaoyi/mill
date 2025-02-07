@@ -1170,8 +1170,7 @@ trait JavaModule
         env = Map(),
         cwd = Task.dest,
         stdin = os.Inherit,
-        stdout = os.Inherit,
-        stderr = os.Inherit
+        stdout = os.Inherit
       )
     }
 

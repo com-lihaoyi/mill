@@ -273,7 +273,6 @@ object PythonModule {
         cwd = Option(workingDir).getOrElse(workingDir0),
         stdin = os.Inherit,
         stdout = os.Inherit,
-        stderr = os.Inherit,
         check = true
       )
     }

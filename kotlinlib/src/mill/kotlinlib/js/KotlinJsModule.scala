@@ -167,7 +167,6 @@ trait KotlinJsModule extends KotlinModule { outer =>
           cwd = workingDir,
           stdin = os.Inherit,
           stdout = os.Inherit,
-          stderr = os.Inherit,
           check = false
         )
         if (processResult.exitCode == 0) Result.Success(processResult.exitCode)
@@ -486,8 +485,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
         env = Task.env,
         cwd = Task.dest,
         stdin = os.Inherit,
-        stdout = os.Inherit,
-        stderr = os.Inherit
+        stdout = os.Inherit
       )
       PathRef(Task.dest)
     }

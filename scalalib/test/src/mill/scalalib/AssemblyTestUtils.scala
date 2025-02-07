@@ -57,8 +57,7 @@ trait AssemblyTestUtils {
       env = Map.empty[String, String],
       cwd = wd,
       stdin = os.Inherit,
-      stdout = os.Inherit,
-      stderr = os.Inherit
+      stdout = os.Inherit
     )
 
     if (checkExe) {
@@ -67,8 +66,7 @@ trait AssemblyTestUtils {
         env = Map.empty[String, String],
         cwd = wd,
         stdin = os.Inherit,
-        stdout = os.Inherit,
-        stderr = os.Inherit
+        stdout = os.Inherit
       )
     }
   }

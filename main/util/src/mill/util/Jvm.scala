@@ -7,6 +7,7 @@ import os.{ProcessOutput, SubProcess}
 
 import java.io._
 import java.lang.reflect.Modifier
+import java.net.URLClassLoader
 import java.nio.file.attribute.PosixFilePermission
 import java.nio.file.Files
 import scala.util.Properties.isWin
@@ -627,34 +628,45 @@ object Jvm extends CoursierSupport {
     )(new Ctx.Home { override def home = os.home })
   }
 
+  /**
+   * Creates a `java.net.URLClassLoader` with specified parameters
+   * @param classPath URLs from which to load classes and resources
+   * @param parent parent class loader for delegation
+   * @param sharedLoader loader used for shared classes
+   * @param sharedPrefixes package prefix for classes that will be loaded by the `sharedLoader`
+   * @return new classloader
+   */
   def createClassLoader(
       classPath: Iterable[os.Path],
-      sharedPrefixes: Iterable[String] = Seq(),
-      parent: java.lang.ClassLoader = null,
-      sharedLoader: java.lang.ClassLoader = getClass.getClassLoader,
-      logger: Option[mill.api.Logger] = None
-  ): java.net.URLClassLoader =
-    new java.net.URLClassLoader(
+      parent: ClassLoader = null,
+      sharedLoader: ClassLoader = getClass.getClassLoader,
+      sharedPrefixes: Iterable[String] = Seq()
+  ): URLClassLoader =
+    new URLClassLoader(
       classPath.iterator.map(_.toNIO.toUri.toURL).toArray,
       refinePlatformParent(parent)
     ) {
-      override def findClass(name: String): Class[?] = {
-        if (sharedPrefixes.exists(name.startsWith)) {
-          logger.foreach(
-            _.debug(s"About to load class [${name}] from shared classloader [${sharedLoader}]")
-          )
-          sharedLoader.loadClass(name)
-        } else super.findClass(name)
-      }
+      override def findClass(name: String): Class[?] =
+        if (sharedPrefixes.exists(name.startsWith)) sharedLoader.loadClass(name)
+        else super.findClass(name)
     }
 
+  /**
+   * 
+   * @param classPath URLs from which to load classes and resources
+   * @param parent parent class loader for delegation
+   * @param sharedPrefixes package prefix for classes that will be loaded by the shared loader
+   * @param f function that will be called with newly created classloader
+   * @tparam T the return type of this function
+   * @return return value of the function `f`
+   */
   def withClassLoader[T](
       classPath: Iterable[os.Path],
-      sharedPrefixes: Seq[String] = Seq.empty,
-      parent: ClassLoader = null
-  )(f: ClassLoader => T)(implicit ctx: mill.api.Ctx.Home): T = {
+      parent: ClassLoader = null,
+      sharedPrefixes: Seq[String] = Seq.empty
+  )(f: ClassLoader => T): T = {
     val oldClassloader = Thread.currentThread().getContextClassLoader
-    val newClassloader = createClassLoader(classPath, sharedPrefixes, parent)
+    val newClassloader = createClassLoader(classPath = classPath, parent = parent, sharedPrefixes = sharedPrefixes)
     Thread.currentThread().setContextClassLoader(newClassloader)
     try {
       f(newClassloader)
