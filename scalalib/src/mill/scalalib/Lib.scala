@@ -84,7 +84,6 @@ object Lib {
       customizer = customizer,
       ctx = ctx,
       coursierCacheCustomizer = coursierCacheCustomizer,
-      deprecatedResolveFilter = _ => true,
       resolutionParams = resolutionParams
     )
 
