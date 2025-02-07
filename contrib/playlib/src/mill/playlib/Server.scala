@@ -22,5 +22,5 @@ private[playlib] trait Server extends ScalaModule with Version {
     super.runIvyDeps() ++ Agg(playServerProvider())
   }
 
-  override def mainClass = Task { Some("play.core.server.ProdServerStart")() }
+  override def mainClass = Task { Some("play.core.server.ProdServerStart") }
 }

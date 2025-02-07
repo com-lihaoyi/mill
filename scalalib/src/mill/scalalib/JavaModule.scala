@@ -753,7 +753,7 @@ trait JavaModule
    * The upstream compilation output of all this module's upstream modules
    */
   def upstreamCompileOutput: T[Seq[CompilationResult]] = Task {
-    Task.traverse(transitiveModuleCompileModuleDeps)(_.compile)
+    Task.traverse(transitiveModuleCompileModuleDeps)(_.compile)()
   }
 
   /**
