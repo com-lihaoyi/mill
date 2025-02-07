@@ -3,7 +3,6 @@ package mill.scalalib.api
 import mill.api.{CompileProblemReporter, PathRef}
 import mill.api.Loose.Agg
 
-import scala.annotation.nowarn
 
 object ZincWorkerApi {
   type Ctx = mill.api.Ctx.Dest with mill.api.Ctx.Log with mill.api.Ctx.Home

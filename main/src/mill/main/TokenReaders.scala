@@ -2,7 +2,7 @@ package mill.main
 
 import mainargs.TokensReader
 import mill.eval.Evaluator
-import mill.define.{Args, Target, Task}
+import mill.define.{Args, Task}
 import mill.resolve.{Resolve, SelectMode}
 import mill.resolve.SimpleTaskTokenReader
 

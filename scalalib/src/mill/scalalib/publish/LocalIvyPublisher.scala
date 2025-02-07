@@ -1,6 +1,6 @@
 package mill.scalalib.publish
 
-import mill.api.{Ctx, PathRef}
+import mill.api.Ctx
 
 class LocalIvyPublisher(localIvyRepo: os.Path) {
 

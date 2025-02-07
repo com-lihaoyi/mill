@@ -10,7 +10,6 @@ import mill.define.{
   NamedTask,
   Reflect,
   Segments,
-  Target,
   TaskModule
 }
 import mill.resolve.ResolveCore.{Resolved, makeResultException}

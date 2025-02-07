@@ -3,7 +3,6 @@ package mill.scalalib
 import mill.api.PathRef
 import mill.{T, Task}
 
-import scala.annotation.nowarn
 
 trait CrossSbtModule extends SbtModule with CrossModuleBase { outer =>
 

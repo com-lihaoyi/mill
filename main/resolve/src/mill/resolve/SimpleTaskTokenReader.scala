@@ -1,7 +1,7 @@
 package mill.resolve
 
 import mainargs.TokensReader
-import mill.define.{Target, Task}
+import mill.define.Task
 
 /**
  * Transparently handle `Task[T]` like simple `T` but lift the result into a Task.Anon.
