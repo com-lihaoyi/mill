@@ -93,7 +93,7 @@ object ClientServerTests extends TestSuite {
         new PrintStream(err),
         env.asJava,
         args,
-        Some(memoryLocks),
+        memoryLocks,
         forceFailureForTestingMillisDelay
       ) {
         def preRun(serverDir: Path) = { /*do nothing*/ }
