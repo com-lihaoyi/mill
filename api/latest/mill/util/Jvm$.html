@@ -99,15 +99,15 @@ node4 -> node1;
          <button class="icon-button show-content expand"></button>
          <h4 class="groupHeader h200">Concrete methods</h4>
         </div>
-        <div class="documentableElement" id="callSubprocess-fffffc47">
+        <div class="documentableElement" id="callProcess-8db">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Runs a JVM subprocess with the given configuration and returns a\n * [[os.CommandResult]] with it\'s aggregated output and error streams\n */") </span>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Runs a JVM subprocess with the given configuration and returns a\n * [[os.CommandResult]] with it\'s aggregated output and error streams.\n *\n * @param mainClass The main class to run\n * @param mainArgs Args passed to the `mainClass` main method\n * @param javaHome Optional Java Home override\n * @param jvmArgs Arguments given to the forked JVM\n * @param classPath The classpath\n * @param cpPassingJarPath When `None`, the `-cp` parameter is used to pass the classpath\n * to the forked JVM.\n * When `Some`, a temporary empty JAR is created\n * which contains a `Class-Path` manifest entry containing the actual classpath.\n * This might help with long classpaths on OS\'es (like Windows)\n * which only supports limited command-line length\n * @param env Environment variables used when starting the forked JVM\n * @param propagateEnv If `true` then the current process\' environment variables are propagated to subprocess\n * @param cwd The working directory to be used by the forked JVM\n * @param stdin Standard input\n * @param stdout Standard output\n * @param stderr Standard error\n * @param mergeErrIntoOut If `true` then the error output is merged into standard output\n * @param timeout how long to wait in milliseconds for the subprocess to complete (-1 for no timeout)\n * @param shutdownGracePeriod if the timeout is enabled, how long in milliseconds for the subprocess\n * to gracefully terminate before attempting to forcibly kill it\n * (-1 for no kill, 0 for always kill immediately)\n * @param destroyOnExit Destroy on JVM exit\n * @param check if `true`, an exception will be thrown if process exits with a non-zero exit code\n */") </span>
           </div>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Jvm$.html#callSubprocess-fffffc47" t="n" class="documentableName ">callSubprocess</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">mainClass</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">classPath</span>: <a href="../api/AggWrapper$Agg.html" t="t">Agg</a>[<span data-unresolved-link="" t="t">Path</span>], <span t="k"></span><span data-unresolved-link="" t="n">jvmArgs</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">envArgs</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">mainArgs</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">workingDir</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">streamOut</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">check</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">javaHome</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Path</span>])(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="../api/Ctx.html" t="t">Ctx</a>): <span data-unresolved-link="" t="t">CommandResult</span>
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Jvm$.html#callProcess-8db" t="n" class="documentableName ">callProcess</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">mainClass</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">mainArgs</span>: <span data-unresolved-link="" t="t">Iterable</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">javaHome</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Path</span>], <span t="k"></span><span data-unresolved-link="" t="n">jvmArgs</span>: <span data-unresolved-link="" t="t">Iterable</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">classPath</span>: <span data-unresolved-link="" t="t">Iterable</span>[<span data-unresolved-link="" t="t">Path</span>], <span t="k"></span><span data-unresolved-link="" t="n">cpPassingJarPath</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Path</span>], <span t="k"></span><span data-unresolved-link="" t="n">env</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">propagateEnv</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">cwd</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">stdin</span>: <span data-unresolved-link="" t="t">ProcessInput</span>, <span t="k"></span><span data-unresolved-link="" t="n">stdout</span>: <span data-unresolved-link="" t="t">ProcessOutput</span>, <span t="k"></span><span data-unresolved-link="" t="n">stderr</span>: <span data-unresolved-link="" t="t">ProcessOutput</span>, <span t="k"></span><span data-unresolved-link="" t="n">mergeErrIntoOut</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">timeout</span>: <span data-unresolved-link="" t="t">Long</span>, <span t="k"></span><span data-unresolved-link="" t="n">shutdownGracePeriod</span>: <span data-unresolved-link="" t="t">Long</span>, <span t="k"></span><span data-unresolved-link="" t="n">destroyOnExit</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">check</span>: <span data-unresolved-link="" t="t">Boolean</span>): <span data-unresolved-link="" t="t">CommandResult</span>
            </div>
           </div>
          </div>
@@ -117,12 +117,117 @@ node4 -> node1;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Runs a JVM subprocess with the given configuration and returns a <span data-unresolved-link="">os.CommandResult</span> with it's aggregated output and error streams</p>
+             <p>Runs a JVM subprocess with the given configuration and returns a <span data-unresolved-link="">os.CommandResult</span> with it's aggregated output and error streams.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Runs a JVM subprocess with the given configuration and returns a <span data-unresolved-link="">os.CommandResult</span> with it's aggregated output and error streams</p>
+              <p>Runs a JVM subprocess with the given configuration and returns a <span data-unresolved-link="">os.CommandResult</span> with it's aggregated output and error streams.</p>
              </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               check
+              </dt>
+              <dd class="body-medium">
+               <p>if <code>true</code>, an exception will be thrown if process exits with a non-zero exit code</p>
+              </dd>
+              <dt class="body-small">
+               classPath
+              </dt>
+              <dd class="body-medium">
+               <p>The classpath</p>
+              </dd>
+              <dt class="body-small">
+               cpPassingJarPath
+              </dt>
+              <dd class="body-medium">
+               <p>When <code>None</code>, the <code>-cp</code> parameter is used to pass the classpath to the forked JVM. When <code>Some</code>, a temporary empty JAR is created which contains a <code>Class-Path</code> manifest entry containing the actual classpath. This might help with long classpaths on OS'es (like Windows) which only supports limited command-line length</p>
+              </dd>
+              <dt class="body-small">
+               cwd
+              </dt>
+              <dd class="body-medium">
+               <p>The working directory to be used by the forked JVM</p>
+              </dd>
+              <dt class="body-small">
+               destroyOnExit
+              </dt>
+              <dd class="body-medium">
+               <p>Destroy on JVM exit</p>
+              </dd>
+              <dt class="body-small">
+               env
+              </dt>
+              <dd class="body-medium">
+               <p>Environment variables used when starting the forked JVM</p>
+              </dd>
+              <dt class="body-small">
+               javaHome
+              </dt>
+              <dd class="body-medium">
+               <p>Optional Java Home override</p>
+              </dd>
+              <dt class="body-small">
+               jvmArgs
+              </dt>
+              <dd class="body-medium">
+               <p>Arguments given to the forked JVM</p>
+              </dd>
+              <dt class="body-small">
+               mainArgs
+              </dt>
+              <dd class="body-medium">
+               <p>Args passed to the <code>mainClass</code> main method</p>
+              </dd>
+              <dt class="body-small">
+               mainClass
+              </dt>
+              <dd class="body-medium">
+               <p>The main class to run</p>
+              </dd>
+              <dt class="body-small">
+               mergeErrIntoOut
+              </dt>
+              <dd class="body-medium">
+               <p>If <code>true</code> then the error output is merged into standard output</p>
+              </dd>
+              <dt class="body-small">
+               propagateEnv
+              </dt>
+              <dd class="body-medium">
+               <p>If <code>true</code> then the current process' environment variables are propagated to subprocess</p>
+              </dd>
+              <dt class="body-small">
+               shutdownGracePeriod
+              </dt>
+              <dd class="body-medium">
+               <p>if the timeout is enabled, how long in milliseconds for the subprocess to gracefully terminate before attempting to forcibly kill it (-1 for no kill, 0 for always kill immediately)</p>
+              </dd>
+              <dt class="body-small">
+               stderr
+              </dt>
+              <dd class="body-medium">
+               <p>Standard error</p>
+              </dd>
+              <dt class="body-small">
+               stdin
+              </dt>
+              <dd class="body-medium">
+               <p>Standard input</p>
+              </dd>
+              <dt class="body-small">
+               stdout
+              </dt>
+              <dd class="body-medium">
+               <p>Standard output</p>
+              </dd>
+              <dt class="body-small">
+               timeout
+              </dt>
+              <dd class="body-medium">
+               <p>how long to wait in milliseconds for the subprocess to complete (-1 for no timeout)</p>
+              </dd>
+             </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
@@ -137,15 +242,15 @@ node4 -> node1;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="callSubprocess-c0a">
+        <div class="documentableElement" id="createClassLoader-fffff939">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Runs a JVM subprocess with the given configuration and returns a\n * [[os.CommandResult]] with it\'s aggregated output and error streams\n */") </span>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Creates a `java.net.URLClassLoader` with specified parameters\n * @param classPath URLs from which to load classes and resources\n * @param parent parent class loader for delegation\n * @param sharedLoader loader used for shared classes\n * @param sharedPrefixes package prefix for classes that will be loaded by the `sharedLoader`\n * @return new classloader\n */") </span>
           </div>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Jvm$.html#callSubprocess-c0a" t="n" class="documentableName ">callSubprocess</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">mainClass</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">classPath</span>: <a href="../api/AggWrapper$Agg.html" t="t">Agg</a>[<span data-unresolved-link="" t="t">Path</span>], <span t="k"></span><span data-unresolved-link="" t="n">jvmArgs</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">envArgs</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">mainArgs</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">workingDir</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">streamOut</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">check</span>: <span data-unresolved-link="" t="t">Boolean</span>)(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="../api/Ctx.html" t="t">Ctx</a>): <span data-unresolved-link="" t="t">CommandResult</span>
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Jvm$.html#createClassLoader-fffff939" t="n" class="documentableName ">createClassLoader</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">classPath</span>: <span data-unresolved-link="" t="t">Iterable</span>[<span data-unresolved-link="" t="t">Path</span>], <span t="k"></span><span data-unresolved-link="" t="n">parent</span>: <span data-unresolved-link="" t="t">ClassLoader</span>, <span t="k"></span><span data-unresolved-link="" t="n">sharedLoader</span>: <span data-unresolved-link="" t="t">ClassLoader</span>, <span t="k"></span><span data-unresolved-link="" t="n">sharedPrefixes</span>: <span data-unresolved-link="" t="t">Iterable</span>[<span data-unresolved-link="" t="t">String</span>]): <span data-unresolved-link="" t="t">URLClassLoader</span>
            </div>
           </div>
          </div>
@@ -155,52 +260,47 @@ node4 -> node1;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Runs a JVM subprocess with the given configuration and returns a <span data-unresolved-link="">os.CommandResult</span> with it's aggregated output and error streams</p>
+             <p>Creates a <code>java.net.URLClassLoader</code> with specified parameters</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Runs a JVM subprocess with the given configuration and returns a <span data-unresolved-link="">os.CommandResult</span> with it's aggregated output and error streams</p>
+              <p>Creates a <code>java.net.URLClassLoader</code> with specified parameters</p>
              </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               classPath
+              </dt>
+              <dd class="body-medium">
+               <p>URLs from which to load classes and resources</p>
+              </dd>
+              <dt class="body-small">
+               parent
+              </dt>
+              <dd class="body-medium">
+               <p>parent class loader for delegation</p>
+              </dd>
+              <dt class="body-small">
+               sharedLoader
+              </dt>
+              <dd class="body-medium">
+               <p>loader used for shared classes</p>
+              </dd>
+              <dt class="body-small">
+               sharedPrefixes
+              </dt>
+              <dd class="body-medium">
+               <p>package prefix for classes that will be loaded by the <code>sharedLoader</code></p>
+              </dd>
+             </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
-               Source
+               Returns
               </dt>
               <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/main/util/src/mill/util/Jvm.scala" target="_blank">Jvm.scala</a>
+               <p>new classloader</p>
               </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="callSubprocess-f74">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Runs a JVM subprocess with the given configuration and returns a\n * [[os.CommandResult]] with it\'s aggregated output and error streams\n */") </span>
-          </div>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Jvm$.html#callSubprocess-f74" t="n" class="documentableName ">callSubprocess</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">mainClass</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">classPath</span>: <a href="../api/AggWrapper$Agg.html" t="t">Agg</a>[<span data-unresolved-link="" t="t">Path</span>], <span t="k"></span><span data-unresolved-link="" t="n">jvmArgs</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">envArgs</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">mainArgs</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">workingDir</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">streamOut</span>: <span data-unresolved-link="" t="t">Boolean</span>)(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="../api/Ctx.html" t="t">Ctx</a>): <span data-unresolved-link="" t="t">CommandResult</span>
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Runs a JVM subprocess with the given configuration and returns a <span data-unresolved-link="">os.CommandResult</span> with it's aggregated output and error streams</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Runs a JVM subprocess with the given configuration and returns a <span data-unresolved-link="">os.CommandResult</span> with it's aggregated output and error streams</p>
-             </div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
               <dt class="body-small">
                Source
               </dt>
@@ -436,36 +536,6 @@ node4 -> node1;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="inprocess-828">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Jvm$.html#inprocess-828" t="n" class="documentableName ">inprocess</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">classPath</span>: <a href="../api/AggWrapper$Agg.html" t="t">Agg</a>[<span data-unresolved-link="" t="t">Path</span>], <span t="k"></span><span data-unresolved-link="" t="n">classLoaderOverrideSbtTesting</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">isolated</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">closeContextClassLoaderWhenDone</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">body</span>: <span data-unresolved-link="" t="t">ClassLoader</span><span t="k"> =&gt; </span><span t="t">T</span>)(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="../api/Ctx$$Home.html" t="t">Home</a>): <span data-unresolved-link="" t="t">T</span>
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="cover">
-             <div class="doc"></div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/main/util/src/mill/util/Jvm.scala" target="_blank">Jvm.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
         <div class="documentableElement" id="javaExe-2a2">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -624,12 +694,143 @@ node4 -> node1;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="runClassloader-9d4">
+        <div class="documentableElement" id="spawnProcess-fffff352">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Runs a JVM subprocess with the given configuration and streams\n * it\'s stdout and stderr to the console.\n *\n * @param mainClass The main class to run\n * @param mainArgs Args passed to the `mainClass` main method\n * @param javaHome Optional Java Home override\n * @param jvmArgs Arguments given to the forked JVM\n * @param classPath The classpath\n * @param cpPassingJarPath When `None`, the `-cp` parameter is used to pass the classpath\n * to the forked JVM.\n * When `Some`, a temporary empty JAR is created\n * which contains a `Class-Path` manifest entry containing the actual classpath.\n * This might help with long classpaths on OS\'es (like Windows)\n * which only supports limited command-line length\n * @param env Environment variables used when starting the forked JVM\n * @param propagateEnv If `true` then the current process\' environment variables are propagated to subprocess\n * @param cwd The working directory to be used by the forked JVM\n * @param stdin Standard input override\n * @param stdout Standard output override\n * @param stderr Standard error override\n * @param mergeErrIntoOut If `true` then the error output is merged into standard output\n * @param shutdownGracePeriod if the timeout is enabled, how long in milliseconds for the subprocess\n * to gracefully terminate before attempting to forcibly kill it\n * (-1 for no kill, 0 for always kill immediately)\n * @param destroyOnExit Destroy on JVM exit\n */") </span>
+          </div>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Jvm$.html#spawnProcess-fffff352" t="n" class="documentableName ">spawnProcess</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">mainClass</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">mainArgs</span>: <span data-unresolved-link="" t="t">Iterable</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">javaHome</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Path</span>], <span t="k"></span><span data-unresolved-link="" t="n">jvmArgs</span>: <span data-unresolved-link="" t="t">Iterable</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">classPath</span>: <span data-unresolved-link="" t="t">Iterable</span>[<span data-unresolved-link="" t="t">Path</span>], <span t="k"></span><span data-unresolved-link="" t="n">cpPassingJarPath</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Path</span>], <span t="k"></span><span data-unresolved-link="" t="n">env</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">propagateEnv</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">cwd</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">stdin</span>: <span data-unresolved-link="" t="t">ProcessInput</span>, <span t="k"></span><span data-unresolved-link="" t="n">stdout</span>: <span data-unresolved-link="" t="t">ProcessOutput</span>, <span t="k"></span><span data-unresolved-link="" t="n">stderr</span>: <span data-unresolved-link="" t="t">ProcessOutput</span>, <span t="k"></span><span data-unresolved-link="" t="n">mergeErrIntoOut</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">shutdownGracePeriod</span>: <span data-unresolved-link="" t="t">Long</span>, <span t="k"></span><span data-unresolved-link="" t="n">destroyOnExit</span>: <span data-unresolved-link="" t="t">Boolean</span>): <span data-unresolved-link="" t="t">SubProcess</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Runs a JVM subprocess with the given configuration and streams it's stdout and stderr to the console.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Runs a JVM subprocess with the given configuration and streams it's stdout and stderr to the console.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               classPath
+              </dt>
+              <dd class="body-medium">
+               <p>The classpath</p>
+              </dd>
+              <dt class="body-small">
+               cpPassingJarPath
+              </dt>
+              <dd class="body-medium">
+               <p>When <code>None</code>, the <code>-cp</code> parameter is used to pass the classpath to the forked JVM. When <code>Some</code>, a temporary empty JAR is created which contains a <code>Class-Path</code> manifest entry containing the actual classpath. This might help with long classpaths on OS'es (like Windows) which only supports limited command-line length</p>
+              </dd>
+              <dt class="body-small">
+               cwd
+              </dt>
+              <dd class="body-medium">
+               <p>The working directory to be used by the forked JVM</p>
+              </dd>
+              <dt class="body-small">
+               destroyOnExit
+              </dt>
+              <dd class="body-medium">
+               <p>Destroy on JVM exit</p>
+              </dd>
+              <dt class="body-small">
+               env
+              </dt>
+              <dd class="body-medium">
+               <p>Environment variables used when starting the forked JVM</p>
+              </dd>
+              <dt class="body-small">
+               javaHome
+              </dt>
+              <dd class="body-medium">
+               <p>Optional Java Home override</p>
+              </dd>
+              <dt class="body-small">
+               jvmArgs
+              </dt>
+              <dd class="body-medium">
+               <p>Arguments given to the forked JVM</p>
+              </dd>
+              <dt class="body-small">
+               mainArgs
+              </dt>
+              <dd class="body-medium">
+               <p>Args passed to the <code>mainClass</code> main method</p>
+              </dd>
+              <dt class="body-small">
+               mainClass
+              </dt>
+              <dd class="body-medium">
+               <p>The main class to run</p>
+              </dd>
+              <dt class="body-small">
+               mergeErrIntoOut
+              </dt>
+              <dd class="body-medium">
+               <p>If <code>true</code> then the error output is merged into standard output</p>
+              </dd>
+              <dt class="body-small">
+               propagateEnv
+              </dt>
+              <dd class="body-medium">
+               <p>If <code>true</code> then the current process' environment variables are propagated to subprocess</p>
+              </dd>
+              <dt class="body-small">
+               shutdownGracePeriod
+              </dt>
+              <dd class="body-medium">
+               <p>if the timeout is enabled, how long in milliseconds for the subprocess to gracefully terminate before attempting to forcibly kill it (-1 for no kill, 0 for always kill immediately)</p>
+              </dd>
+              <dt class="body-small">
+               stderr
+              </dt>
+              <dd class="body-medium">
+               <p>Standard error override</p>
+              </dd>
+              <dt class="body-small">
+               stdin
+              </dt>
+              <dd class="body-medium">
+               <p>Standard input override</p>
+              </dd>
+              <dt class="body-small">
+               stdout
+              </dt>
+              <dd class="body-medium">
+               <p>Standard output override</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/main/util/src/mill/util/Jvm.scala" target="_blank">Jvm.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="universalScript-fffff73b">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Jvm$.html#runClassloader-9d4" t="n" class="documentableName ">runClassloader</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">classPath</span>: <a href="../api/AggWrapper$Agg.html" t="t">Agg</a>[<span data-unresolved-link="" t="t">Path</span>])(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">body</span>: <span data-unresolved-link="" t="t">ClassLoader</span><span t="k"> =&gt; </span><span t="t">T</span>)(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="../api/Ctx$$Home.html" t="t">Home</a>): <span data-unresolved-link="" t="t">T</span>
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Jvm$.html#universalScript-fffff73b" t="n" class="documentableName ">universalScript</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">shellCommands</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">cmdCommands</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">shebang</span>: <span data-unresolved-link="" t="t">Boolean</span>): <span data-unresolved-link="" t="t">String</span>
            </div>
           </div>
          </div>
@@ -654,12 +855,227 @@ node4 -> node1;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="runLocal-81e">
+        <div class="documentableElement" id="withClassLoader-fffff80b">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * @param classPath URLs from which to load classes and resources\n * @param parent parent class loader for delegation\n * @param sharedPrefixes package prefix for classes that will be loaded by the shared loader\n * @param f function that will be called with newly created classloader\n * @tparam T the return type of this function\n * @return return value of the function `f`\n */") </span>
+          </div>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Jvm$.html#withClassLoader-fffff80b" t="n" class="documentableName ">withClassLoader</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">classPath</span>: <span data-unresolved-link="" t="t">Iterable</span>[<span data-unresolved-link="" t="t">Path</span>], <span t="k"></span><span data-unresolved-link="" t="n">parent</span>: <span data-unresolved-link="" t="t">ClassLoader</span>, <span t="k"></span><span data-unresolved-link="" t="n">sharedPrefixes</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>])(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">f</span>: <span data-unresolved-link="" t="t">ClassLoader</span><span t="k"> =&gt; </span><span t="t">T</span>): <span data-unresolved-link="" t="t">T</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               T
+              </dt>
+              <dd class="body-medium">
+               <p>the return type of this function</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               classPath
+              </dt>
+              <dd class="body-medium">
+               <p>URLs from which to load classes and resources</p>
+              </dd>
+              <dt class="body-small">
+               f
+              </dt>
+              <dd class="body-medium">
+               <p>function that will be called with newly created classloader</p>
+              </dd>
+              <dt class="body-small">
+               parent
+              </dt>
+              <dd class="body-medium">
+               <p>parent class loader for delegation</p>
+              </dd>
+              <dt class="body-small">
+               sharedPrefixes
+              </dt>
+              <dd class="body-medium">
+               <p>package prefix for classes that will be loaded by the shared loader</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>return value of the function <code>f</code></p>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/main/util/src/mill/util/Jvm.scala" target="_blank">Jvm.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+       </div>
+      </section>
+      <section id="Deprecated-methods">
+       <div class="documentableList expand">
+        <div class="documentableList-expander">
+         <button class="icon-button show-content expand"></button>
+         <h4 class="groupHeader h200">Deprecated methods</h4>
+        </div>
+        <div class="documentableElement" id="callSubprocess-fffffc47">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Runs a JVM subprocess with the given configuration and returns a\n * [[os.CommandResult]] with it\'s aggregated output and error streams\n */") </span>
+          </div>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Jvm$.html#callSubprocess-fffffc47" t="n" class="documentableName deprecated">callSubprocess</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">mainClass</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">classPath</span>: <a href="../api/AggWrapper$Agg.html" t="t">Agg</a>[<span data-unresolved-link="" t="t">Path</span>], <span t="k"></span><span data-unresolved-link="" t="n">jvmArgs</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">envArgs</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">mainArgs</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">workingDir</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">streamOut</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">check</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">javaHome</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Path</span>])(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="../api/Ctx.html" t="t">Ctx</a>): <span data-unresolved-link="" t="t">CommandResult</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Runs a JVM subprocess with the given configuration and returns a <span data-unresolved-link="">os.CommandResult</span> with it's aggregated output and error streams</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Runs a JVM subprocess with the given configuration and returns a <span data-unresolved-link="">os.CommandResult</span> with it's aggregated output and error streams</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Deprecated
+              </dt>
+              <dd class="body-medium">
+               true
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/main/util/src/mill/util/Jvm.scala" target="_blank">Jvm.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="callSubprocess-c0a">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Runs a JVM subprocess with the given configuration and returns a\n * [[os.CommandResult]] with it\'s aggregated output and error streams\n */") </span>
+          </div>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Jvm$.html#callSubprocess-c0a" t="n" class="documentableName deprecated">callSubprocess</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">mainClass</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">classPath</span>: <a href="../api/AggWrapper$Agg.html" t="t">Agg</a>[<span data-unresolved-link="" t="t">Path</span>], <span t="k"></span><span data-unresolved-link="" t="n">jvmArgs</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">envArgs</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">mainArgs</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">workingDir</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">streamOut</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">check</span>: <span data-unresolved-link="" t="t">Boolean</span>)(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="../api/Ctx.html" t="t">Ctx</a>): <span data-unresolved-link="" t="t">CommandResult</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Runs a JVM subprocess with the given configuration and returns a <span data-unresolved-link="">os.CommandResult</span> with it's aggregated output and error streams</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Runs a JVM subprocess with the given configuration and returns a <span data-unresolved-link="">os.CommandResult</span> with it's aggregated output and error streams</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Deprecated
+              </dt>
+              <dd class="body-medium">
+               true
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/main/util/src/mill/util/Jvm.scala" target="_blank">Jvm.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="callSubprocess-f74">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Runs a JVM subprocess with the given configuration and returns a\n * [[os.CommandResult]] with it\'s aggregated output and error streams\n */") </span>
+          </div>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Jvm$.html#callSubprocess-f74" t="n" class="documentableName deprecated">callSubprocess</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">mainClass</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">classPath</span>: <a href="../api/AggWrapper$Agg.html" t="t">Agg</a>[<span data-unresolved-link="" t="t">Path</span>], <span t="k"></span><span data-unresolved-link="" t="n">jvmArgs</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">envArgs</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">mainArgs</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">workingDir</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">streamOut</span>: <span data-unresolved-link="" t="t">Boolean</span>)(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="../api/Ctx.html" t="t">Ctx</a>): <span data-unresolved-link="" t="t">CommandResult</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Runs a JVM subprocess with the given configuration and returns a <span data-unresolved-link="">os.CommandResult</span> with it's aggregated output and error streams</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Runs a JVM subprocess with the given configuration and returns a <span data-unresolved-link="">os.CommandResult</span> with it's aggregated output and error streams</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Deprecated
+              </dt>
+              <dd class="body-medium">
+               true
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/main/util/src/mill/util/Jvm.scala" target="_blank">Jvm.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="inprocess-828">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Jvm$.html#runLocal-81e" t="n" class="documentableName ">runLocal</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">mainClass</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">classPath</span>: <a href="../api/AggWrapper$Agg.html" t="t">Agg</a>[<span data-unresolved-link="" t="t">Path</span>], <span t="k"></span><span data-unresolved-link="" t="n">mainArgs</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>])(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="../api/Ctx.html" t="t">Ctx</a>): <span data-unresolved-link="" t="t">Unit</span>
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Jvm$.html#inprocess-828" t="n" class="documentableName deprecated">inprocess</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">classPath</span>: <a href="../api/AggWrapper$Agg.html" t="t">Agg</a>[<span data-unresolved-link="" t="t">Path</span>], <span t="k"></span><span data-unresolved-link="" t="n">classLoaderOverrideSbtTesting</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">isolated</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">closeContextClassLoaderWhenDone</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">body</span>: <span data-unresolved-link="" t="t">ClassLoader</span><span t="k"> =&gt; </span><span t="t">T</span>)(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="../api/Ctx$$Home.html" t="t">Home</a>): <span data-unresolved-link="" t="t">T</span>
            </div>
           </div>
          </div>
@@ -672,6 +1088,84 @@ node4 -> node1;
              <div class="doc"></div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Deprecated
+              </dt>
+              <dd class="body-medium">
+               true
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/main/util/src/mill/util/Jvm.scala" target="_blank">Jvm.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="runClassloader-9d4">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Jvm$.html#runClassloader-9d4" t="n" class="documentableName deprecated">runClassloader</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">classPath</span>: <a href="../api/AggWrapper$Agg.html" t="t">Agg</a>[<span data-unresolved-link="" t="t">Path</span>])(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">body</span>: <span data-unresolved-link="" t="t">ClassLoader</span><span t="k"> =&gt; </span><span t="t">T</span>)(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="../api/Ctx$$Home.html" t="t">Home</a>): <span data-unresolved-link="" t="t">T</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Deprecated
+              </dt>
+              <dd class="body-medium">
+               true
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/main/util/src/mill/util/Jvm.scala" target="_blank">Jvm.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="runLocal-81e">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Jvm$.html#runLocal-81e" t="n" class="documentableName deprecated">runLocal</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">mainClass</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">classPath</span>: <a href="../api/AggWrapper$Agg.html" t="t">Agg</a>[<span data-unresolved-link="" t="t">Path</span>], <span t="k"></span><span data-unresolved-link="" t="n">mainArgs</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>])(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="../api/Ctx.html" t="t">Ctx</a>): <span data-unresolved-link="" t="t">Unit</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Deprecated
+              </dt>
+              <dd class="body-medium">
+               true
+              </dd>
               <dt class="body-small">
                Source
               </dt>
@@ -692,7 +1186,7 @@ node4 -> node1;
           </div>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Jvm$.html#runSubprocess-f5f" t="n" class="documentableName ">runSubprocess</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">mainClass</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">classPath</span>: <a href="../api/AggWrapper$Agg.html" t="t">Agg</a>[<span data-unresolved-link="" t="t">Path</span>], <span t="k"></span><span data-unresolved-link="" t="n">jvmArgs</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">envArgs</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">mainArgs</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">workingDir</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">background</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">useCpPassingJar</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">runBackgroundLogToConsole</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">javaHome</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Path</span>])(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="../api/Ctx.html" t="t">Ctx</a>): <span data-unresolved-link="" t="t">Unit</span>
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Jvm$.html#runSubprocess-f5f" t="n" class="documentableName deprecated">runSubprocess</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">mainClass</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">classPath</span>: <a href="../api/AggWrapper$Agg.html" t="t">Agg</a>[<span data-unresolved-link="" t="t">Path</span>], <span t="k"></span><span data-unresolved-link="" t="n">jvmArgs</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">envArgs</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">mainArgs</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">workingDir</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">background</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">useCpPassingJar</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">runBackgroundLogToConsole</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">javaHome</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Path</span>])(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="../api/Ctx.html" t="t">Ctx</a>): <span data-unresolved-link="" t="t">Unit</span>
            </div>
           </div>
          </div>
@@ -756,6 +1250,12 @@ node4 -> node1;
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
+               Deprecated
+              </dt>
+              <dd class="body-medium">
+               true
+              </dd>
+              <dt class="body-small">
                Source
               </dt>
               <dd class="body-medium">
@@ -775,7 +1275,7 @@ node4 -> node1;
           </div>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Jvm$.html#runSubprocess-fffffce8" t="n" class="documentableName ">runSubprocess</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">commandArgs</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">envArgs</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">workingDir</span>: <span data-unresolved-link="" t="t">Path</span>): <span data-unresolved-link="" t="t">Unit</span>
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Jvm$.html#runSubprocess-fffffce8" t="n" class="documentableName deprecated">runSubprocess</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">commandArgs</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">envArgs</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">workingDir</span>: <span data-unresolved-link="" t="t">Path</span>): <span data-unresolved-link="" t="t">Unit</span>
            </div>
           </div>
          </div>
@@ -793,6 +1293,12 @@ node4 -> node1;
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Deprecated
+              </dt>
+              <dd class="body-medium">
+               true
+              </dd>
               <dt class="body-small">
                Source
               </dt>
@@ -813,7 +1319,7 @@ node4 -> node1;
           </div>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Jvm$.html#runSubprocessWithBackgroundOutputs-42" t="n" class="documentableName ">runSubprocessWithBackgroundOutputs</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">mainClass</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">classPath</span>: <a href="../api/AggWrapper$Agg.html" t="t">Agg</a>[<span data-unresolved-link="" t="t">Path</span>], <span t="k"></span><span data-unresolved-link="" t="n">jvmArgs</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">envArgs</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">mainArgs</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">workingDir</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">backgroundOutputs</span>: <span data-unresolved-link="" t="t">Option</span>[(<span data-unresolved-link="" t="t">ProcessOutput</span>, <span data-unresolved-link="" t="t">ProcessOutput</span>)], <span t="k"></span><span data-unresolved-link="" t="n">useCpPassingJar</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">javaHome</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Path</span>])(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="../api/Ctx.html" t="t">Ctx</a>): <span data-unresolved-link="" t="t">Unit</span>
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Jvm$.html#runSubprocessWithBackgroundOutputs-42" t="n" class="documentableName deprecated">runSubprocessWithBackgroundOutputs</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">mainClass</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">classPath</span>: <a href="../api/AggWrapper$Agg.html" t="t">Agg</a>[<span data-unresolved-link="" t="t">Path</span>], <span t="k"></span><span data-unresolved-link="" t="n">jvmArgs</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">envArgs</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">mainArgs</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">workingDir</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">backgroundOutputs</span>: <span data-unresolved-link="" t="t">Option</span>[(<span data-unresolved-link="" t="t">ProcessOutput</span>, <span data-unresolved-link="" t="t">ProcessOutput</span>)], <span t="k"></span><span data-unresolved-link="" t="n">useCpPassingJar</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">javaHome</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Path</span>])(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="../api/Ctx.html" t="t">Ctx</a>): <span data-unresolved-link="" t="t">Unit</span>
            </div>
           </div>
          </div>
@@ -877,6 +1383,12 @@ node4 -> node1;
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
+               Deprecated
+              </dt>
+              <dd class="body-medium">
+               true
+              </dd>
+              <dt class="body-small">
                Source
               </dt>
               <dd class="body-medium">
@@ -896,7 +1408,7 @@ node4 -> node1;
           </div>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Jvm$.html#runSubprocessWithResult-d87" t="n" class="documentableName ">runSubprocessWithResult</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">commandArgs</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">envArgs</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">workingDir</span>: <span data-unresolved-link="" t="t">Path</span>): <a href="../api/Result.html" t="t">Result</a>[<span data-unresolved-link="" t="t">Int</span>]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Jvm$.html#runSubprocessWithResult-d87" t="n" class="documentableName deprecated">runSubprocessWithResult</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">commandArgs</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">envArgs</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">workingDir</span>: <span data-unresolved-link="" t="t">Path</span>): <a href="../api/Result.html" t="t">Result</a>[<span data-unresolved-link="" t="t">Int</span>]
            </div>
           </div>
          </div>
@@ -921,6 +1433,12 @@ node4 -> node1;
                <p>Result with exit code.</p>
               </dd>
               <dt class="body-small">
+               Deprecated
+              </dt>
+              <dd class="body-medium">
+               true
+              </dd>
+              <dt class="body-small">
                Source
               </dt>
               <dd class="body-medium">
@@ -937,7 +1455,7 @@ node4 -> node1;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Jvm$.html#spawnClassloader-947" t="n" class="documentableName ">spawnClassloader</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">classPath</span>: <span data-unresolved-link="" t="t">Iterable</span>[<span data-unresolved-link="" t="t">Path</span>], <span t="k"></span><span data-unresolved-link="" t="n">sharedPrefixes</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">parent</span>: <span data-unresolved-link="" t="t">ClassLoader</span>): <span data-unresolved-link="" t="t">URLClassLoader</span>
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Jvm$.html#spawnClassloader-947" t="n" class="documentableName deprecated">spawnClassloader</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">classPath</span>: <span data-unresolved-link="" t="t">Iterable</span>[<span data-unresolved-link="" t="t">Path</span>], <span t="k"></span><span data-unresolved-link="" t="n">sharedPrefixes</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">parent</span>: <span data-unresolved-link="" t="t">ClassLoader</span>): <span data-unresolved-link="" t="t">URLClassLoader</span>
            </div>
           </div>
          </div>
@@ -950,6 +1468,12 @@ node4 -> node1;
              <div class="doc"></div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Deprecated
+              </dt>
+              <dd class="body-medium">
+               true
+              </dd>
               <dt class="body-small">
                Source
               </dt>
@@ -970,7 +1494,7 @@ node4 -> node1;
           </div>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Jvm$.html#spawnSubprocess-6b5" t="n" class="documentableName ">spawnSubprocess</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">commandArgs</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">envArgs</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">workingDir</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">background</span>: <span data-unresolved-link="" t="t">Boolean</span>): <span data-unresolved-link="" t="t">SubProcess</span>
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Jvm$.html#spawnSubprocess-6b5" t="n" class="documentableName deprecated">spawnSubprocess</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">commandArgs</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">envArgs</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">workingDir</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">background</span>: <span data-unresolved-link="" t="t">Boolean</span>): <span data-unresolved-link="" t="t">SubProcess</span>
            </div>
           </div>
          </div>
@@ -988,6 +1512,12 @@ node4 -> node1;
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Deprecated
+              </dt>
+              <dd class="body-medium">
+               true
+              </dd>
               <dt class="body-small">
                Source
               </dt>
@@ -1008,7 +1538,7 @@ node4 -> node1;
           </div>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Jvm$.html#spawnSubprocessWithBackgroundOutputs-fffffc40" t="n" class="documentableName ">spawnSubprocessWithBackgroundOutputs</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">commandArgs</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">envArgs</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">workingDir</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">backgroundOutputs</span>: <span data-unresolved-link="" t="t">Option</span>[(<span data-unresolved-link="" t="t">ProcessOutput</span>, <span data-unresolved-link="" t="t">ProcessOutput</span>)]): <span data-unresolved-link="" t="t">SubProcess</span>
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Jvm$.html#spawnSubprocessWithBackgroundOutputs-fffffc40" t="n" class="documentableName deprecated">spawnSubprocessWithBackgroundOutputs</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">commandArgs</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">envArgs</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">workingDir</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">backgroundOutputs</span>: <span data-unresolved-link="" t="t">Option</span>[(<span data-unresolved-link="" t="t">ProcessOutput</span>, <span data-unresolved-link="" t="t">ProcessOutput</span>)]): <span data-unresolved-link="" t="t">SubProcess</span>
            </div>
           </div>
          </div>
@@ -1028,35 +1558,11 @@ node4 -> node1;
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
-               Source
+               Deprecated
               </dt>
               <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/main/util/src/mill/util/Jvm.scala" target="_blank">Jvm.scala</a>
+               true
               </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="universalScript-fffff73b">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Jvm$.html#universalScript-fffff73b" t="n" class="documentableName ">universalScript</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">shellCommands</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">cmdCommands</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">shebang</span>: <span data-unresolved-link="" t="t">Boolean</span>): <span data-unresolved-link="" t="t">String</span>
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="cover">
-             <div class="doc"></div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
               <dt class="body-small">
                Source
               </dt>
@@ -1282,4 +1788,4 @@ node4 -> node1;
    </div>
   </div>
  </div>
-</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#attributes">Attributes</a></li><li><a href="#members-list">Members list</a><ul><li><a href="#Value-members">Value members</a><ul><li><a href="#Concrete-methods">Concrete methods</a></li><li><a href="#Inherited-methods">Inherited methods</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
+</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#attributes">Attributes</a></li><li><a href="#members-list">Members list</a><ul><li><a href="#Value-members">Value members</a><ul><li><a href="#Concrete-methods">Concrete methods</a></li><li><a href="#Deprecated-methods">Deprecated methods</a></li><li><a href="#Inherited-methods">Inherited methods</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
