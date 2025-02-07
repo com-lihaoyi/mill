@@ -17,7 +17,7 @@ object OutFiles {
   /**
    * Path of the Mill `out/` folder
    */
-  final val out: String = Option(envOutOrNull).getOrElse(defaultOut)
+  val out: String = Option(envOutOrNull).getOrElse(defaultOut)
 
   /**
    * Path of the Mill "meta-build", used to compile the `build.sc` file so we can
