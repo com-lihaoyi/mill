@@ -213,19 +213,6 @@ trait PublishModule extends JavaModule { outer =>
     PathRef(pomPath)
   }
 
-  /**
-   * Dependencies with version placeholder filled from BOMs, alongside with BOM data
-   */
-  @deprecated("Unused by Mill", "Mill after 0.12.5")
-  def bomDetails: T[(Map[coursier.core.Module, String], coursier.core.DependencyManagement.Map)] =
-    Task {
-      val (processedDeps, depMgmt) = defaultResolver().processDeps(
-        processedIvyDeps(),
-        resolutionParams = resolutionParams(),
-        boms = allBomDeps().toSeq.map(_.withConfig(Configuration.compile))
-      )
-      (processedDeps.map(_.moduleVersion).toMap, depMgmt)
-    }
 
   /**
    * Path to the ivy.xml file for this module

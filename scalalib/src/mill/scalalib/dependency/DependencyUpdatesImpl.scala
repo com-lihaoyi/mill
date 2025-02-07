@@ -33,9 +33,6 @@ object DependencyUpdatesImpl {
     allUpdates
   }
 
-  @deprecated("Use other overload instead", "Mill after 0.11.6")
-  def showAllUpdates(updates: Seq[ModuleDependenciesUpdates]): Unit =
-    showAllUpdates(updates, format = Format.PerModule)
 
   def showAllUpdates(
       updates: Seq[ModuleDependenciesUpdates],

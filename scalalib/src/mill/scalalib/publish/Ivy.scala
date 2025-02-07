@@ -82,33 +82,6 @@ object Ivy {
     head + pp.format(xml).replaceAll("&gt;", ">")
   }
 
-  // bin-compat shim
-  def apply(
-      artifact: Artifact,
-      dependencies: Agg[Dependency],
-      extras: Seq[PublishInfo],
-      overrides: Seq[Override]
-  ): String =
-    apply(
-      artifact,
-      dependencies,
-      extras,
-      overrides,
-      hasJar = true
-    )
-
-  // bin-compat shim
-  def apply(
-      artifact: Artifact,
-      dependencies: Agg[Dependency],
-      extras: Seq[PublishInfo]
-  ): String =
-    apply(
-      artifact,
-      dependencies,
-      extras,
-      Nil
-    )
 
   private def renderDependency(dep: Dependency): Elem = {
     if (dep.exclusions.isEmpty)

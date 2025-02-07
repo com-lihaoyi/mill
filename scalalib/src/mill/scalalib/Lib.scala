@@ -27,32 +27,6 @@ object Lib {
   def depToBoundDep(dep: Dep, scalaVersion: String, platformSuffix: String = ""): BoundDep =
     BoundDep(depToDependency(dep, scalaVersion, platformSuffix), dep.force)
 
-  @deprecated(
-    "Prefer resolveDependenciesMetadataSafe instead, which returns a Result instead of throwing exceptions",
-    "0.12.0"
-  )
-  def resolveDependenciesMetadata(
-      repositories: Seq[Repository],
-      deps: IterableOnce[BoundDep],
-      mapDependencies: Option[Dependency => Dependency] = None,
-      customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
-      ctx: Option[Ctx.Log] = None,
-      coursierCacheCustomizer: Option[
-        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
-      ] = None
-  ): (Seq[Dependency], Resolution) = {
-    val deps0 = deps.iterator.toSeq
-    val res = resolveDependenciesMetadataSafe(
-      repositories,
-      deps0,
-      mapDependencies,
-      customizer,
-      ctx,
-      coursierCacheCustomizer
-    )
-    (deps0.map(_.dep), res.getOrThrow)
-  }
-
   def resolveDependenciesMetadataSafe(
       repositories: Seq[Repository],
       deps: IterableOnce[BoundDep],
@@ -79,50 +53,6 @@ object Lib {
     )
   }
 
-  // bin-compat shim
-  def resolveDependenciesMetadataSafe(
-      repositories: Seq[Repository],
-      deps: IterableOnce[BoundDep],
-      mapDependencies: Option[Dependency => Dependency],
-      customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
-      ctx: Option[Ctx.Log],
-      coursierCacheCustomizer: Option[
-        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
-      ],
-      resolutionParams: ResolutionParams
-  ): Result[Resolution] =
-    resolveDependenciesMetadataSafe(
-      repositories,
-      deps,
-      mapDependencies,
-      customizer,
-      ctx,
-      coursierCacheCustomizer,
-      resolutionParams,
-      Nil
-    )
-
-  // bin-compat shim
-  def resolveDependenciesMetadataSafe(
-      repositories: Seq[Repository],
-      deps: IterableOnce[BoundDep],
-      mapDependencies: Option[Dependency => Dependency],
-      customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
-      ctx: Option[Ctx.Log],
-      coursierCacheCustomizer: Option[
-        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
-      ]
-  ): Result[Resolution] =
-    resolveDependenciesMetadataSafe(
-      repositories,
-      deps,
-      mapDependencies,
-      customizer,
-      ctx,
-      coursierCacheCustomizer,
-      ResolutionParams(),
-      Nil
-    )
 
   /**
    * Resolve dependencies using Coursier.
@@ -161,55 +91,6 @@ object Lib {
 
     res.map(_.map(_.withRevalidateOnce))
   }
-
-  // bin-compat shim
-  def resolveDependencies(
-      repositories: Seq[Repository],
-      deps: IterableOnce[BoundDep],
-      sources: Boolean,
-      mapDependencies: Option[Dependency => Dependency],
-      customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
-      ctx: Option[Ctx.Log],
-      coursierCacheCustomizer: Option[
-        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
-      ],
-      artifactTypes: Option[Set[Type]]
-  ): Result[Agg[PathRef]] =
-    resolveDependencies(
-      repositories,
-      deps,
-      sources,
-      mapDependencies,
-      customizer,
-      ctx,
-      coursierCacheCustomizer,
-      artifactTypes,
-      ResolutionParams()
-    )
-
-  @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
-  def resolveDependencies(
-      repositories: Seq[Repository],
-      deps: IterableOnce[BoundDep],
-      sources: Boolean,
-      mapDependencies: Option[Dependency => Dependency],
-      customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
-      ctx: Option[Ctx.Log],
-      coursierCacheCustomizer: Option[
-        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
-      ]
-  ): Result[Agg[PathRef]] =
-    resolveDependencies(
-      repositories,
-      deps,
-      sources,
-      mapDependencies,
-      customizer,
-      ctx,
-      coursierCacheCustomizer,
-      None,
-      ResolutionParams()
-    )
 
   def scalaCompilerIvyDeps(scalaOrganization: String, scalaVersion: String): Loose.Agg[Dep] =
     if (ZincWorkerUtil.isDotty(scalaVersion))

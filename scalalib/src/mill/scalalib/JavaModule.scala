@@ -39,10 +39,7 @@ trait JavaModule
     with AssemblyModule { outer =>
 
   override def zincWorker: ModuleRef[ZincWorkerModule] = super.zincWorker
-  @nowarn
-  type JavaTests = JavaModuleTests
-  @deprecated("Use JavaTests instead", since = "Mill 0.11.10")
-  trait JavaModuleTests extends JavaModule with TestModule {
+  trait JavaTests extends JavaModule with TestModule {
     // Run some consistence checks
     hierarchyChecks()
 
@@ -1050,9 +1047,6 @@ trait JavaModule
       localClasspath()
   }
 
-  // bincompat stub
-  def manifest: T[JarManifest] = Task { manifest0() }
-
   /**
    * Build the assembly for upstream dependencies separate from the current
    * classpath
@@ -1071,12 +1065,6 @@ trait JavaModule
     )
     upstreamAssembly2().pathRef
   }
-
-  // Bincompat stub
-  def upstreamAssembly2: T[Assembly] = Task { upstreamAssembly2_0() }
-
-  // Bincompat stub
-  override def assembly: T[PathRef] = Task[PathRef] { assembly0() }
 
   /**
    * A jar containing only this module's resources and compiled classfiles,
@@ -1335,31 +1323,6 @@ trait JavaModule
     }
   }
 
-  @deprecated("Binary compat shim, use `.runner().run(..., background=true)`", "Mill 0.12.0")
-  override protected def doRunBackground(
-      taskDest: Path,
-      runClasspath: Seq[PathRef],
-      zwBackgroundWrapperClasspath: Agg[PathRef],
-      forkArgs: Seq[String],
-      forkEnv: Map[String, String],
-      finalMainClass: String,
-      forkWorkingDir: Path,
-      runUseArgsFile: Boolean,
-      backgroundOutputs: Option[Tuple2[ProcessOutput, ProcessOutput]]
-  )(args: String*): Ctx => Result[Unit] = {
-    // overridden here for binary compatibility (0.11.x)
-    super.doRunBackground(
-      taskDest,
-      runClasspath,
-      zwBackgroundWrapperClasspath,
-      forkArgs,
-      forkEnv,
-      finalMainClass,
-      forkWorkingDir,
-      runUseArgsFile,
-      backgroundOutputs
-    )(args: _*)
-  }
 
   override def runBackgroundLogToConsole: Boolean = {
     // overridden here for binary compatibility (0.11.x)
@@ -1490,13 +1453,6 @@ trait JavaModule
     canRun = true
   )
 
-  @internal
-  @deprecated("Use bspJvmBuildTargetTask instead", "0.12.3")
-  def bspJvmBuildTarget: JvmBuildTarget =
-    JvmBuildTarget(
-      javaHome = Option(System.getProperty("java.home")).map(p => BspUri(os.Path(p))),
-      javaVersion = Option(System.getProperty("java.version"))
-    )
 
   @internal
   def bspJvmBuildTargetTask: Task[JvmBuildTarget] = Task.Anon {

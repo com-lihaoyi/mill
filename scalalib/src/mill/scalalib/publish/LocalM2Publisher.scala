@@ -34,20 +34,4 @@ class LocalM2Publisher(m2Repo: os.Path) {
     }
   }
 
-  // bin-compat shim
-  def publish(
-      jar: os.Path,
-      sourcesJar: os.Path,
-      docJar: os.Path,
-      pom: os.Path,
-      artifact: Artifact,
-      extras: Seq[PublishInfo]
-  )(implicit ctx: Ctx.Log): Seq[os.Path] = {
-    val mainArtifacts = Seq(
-      PublishInfo.jar(PathRef(jar)),
-      PublishInfo.sourcesJar(PathRef(sourcesJar)),
-      PublishInfo.docJar(PathRef(docJar))
-    )
-    publish(pom, artifact, mainArtifacts ++ extras)
-  }
 }

@@ -40,18 +40,8 @@ object Assembly {
       def apply(pattern: String, separator: String): AppendPattern =
         new AppendPattern(Pattern.compile(pattern), separator)
 
-      @deprecated(
-        message = "Binary compatibility shim. Don't use it. To be removed",
-        since = "mill 0.10.1"
-      )
-      def unapply(value: AppendPattern): Option[Pattern] = Some(value.pattern)
     }
     class AppendPattern private (val pattern: Pattern, val separator: String) extends Rule {
-      @deprecated(
-        message = "Binary compatibility shim. Don't use it. To be removed",
-        since = "mill 0.10.1"
-      )
-      def this(pattern: Pattern) = this(pattern, defaultSeparator)
 
       override def productPrefix: String = "AppendPattern"
       override def productArity: Int = 2
@@ -68,11 +58,6 @@ object Assembly {
       }
       override def toString: String = scala.runtime.ScalaRunTime._toString(this)
 
-      @deprecated(
-        message = "Binary compatibility shim. Don't use it. To be removed",
-        since = "mill 0.10.1"
-      )
-      def copy(pattern: Pattern = pattern): AppendPattern = new AppendPattern(pattern, separator)
     }
 
     case class Exclude(path: String) extends Rule
