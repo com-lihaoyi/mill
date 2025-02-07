@@ -326,8 +326,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     def packageWithZinc(options: Seq[String], files: Seq[os.Path], javadocDir: os.Path) = {
       if (files.isEmpty) {
         Result.Success(PathRef(createJar(Task.dest / "out.jar", Agg(javadocDir))))
-      }
-      else {
+      } else {
         zincWorker()
           .worker()
           .docJar(
