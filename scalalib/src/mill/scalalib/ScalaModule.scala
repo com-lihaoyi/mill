@@ -8,6 +8,7 @@ import mill.util.Jvm.createJar
 import mill.api.Loose.Agg
 import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerUtil}
 import mainargs.Flag
+import mill.define.Task
 import mill.scalalib.bsp.{BspBuildTarget, BspModule, ScalaBuildTarget, ScalaPlatform}
 import mill.scalalib.dependency.versions.{ValidVersion, Version}
 
@@ -76,10 +77,9 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     }
   }
 
-  override def resolveCoursierDependency: Task[Dep => coursier.Dependency] =
-    Task.Anon {
-      Lib.depToDependency(_: Dep, scalaVersion(), platformSuffix())
-    }
+  def bindDependency: Task[Dep => BoundDep] = Task.Anon { (dep: Dep) =>
+    BoundDep(Lib.depToDependency(dep, scalaVersion(), platformSuffix()), dep.force)
+  }
 
   override def resolvePublishDependency: Task[Dep => publish.Dependency] =
     Task.Anon {
