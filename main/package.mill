@@ -142,7 +142,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
     def buildInfoPackageName = "mill.main.client"
     def buildInfoMembers = Seq(BuildInfo.Value("millVersion", build.millVersion(), "Mill version."))
 
-    object test extends JavaModuleTests with TestModule.Junit4 {
+    object test extends JavaTests with TestModule.Junit4 {
       def ivyDeps = Agg(build.Deps.junitInterface, build.Deps.commonsIo)
     }
   }
