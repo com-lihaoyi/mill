@@ -14,20 +14,18 @@ import mill.util.Jvm
       testReporter: TestReporter,
       classFilter: Class[_] => Boolean = _ => true
   )(implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[mill.testrunner.TestResult]) = {
-    // Leave the context class loader set and open so that shutdown hooks can access it
-    Jvm.inprocess(
-      entireClasspath,
-      classLoaderOverrideSbtTesting = true,
-      isolated = true,
-      closeContextClassLoaderWhenDone = false,
+    Jvm.withClassLoader(
+      classPath = entireClasspath.toVector,
+      sharedPrefixes = Seq("sbt.testing.")
+    ) { classLoader =>
       TestRunnerUtils.runTestFramework0(
         frameworkInstances,
         testClassfilePath,
         args,
         classFilter,
-        _,
+        classLoader,
         testReporter
       )
-    )
+    }
   }
 }
