@@ -1048,25 +1048,6 @@ trait JavaModule
   }
 
   /**
-   * Build the assembly for upstream dependencies separate from the current
-   * classpath
-   *
-   * This should allow much faster assembly creation in the common case where
-   * upstream dependencies do not change
-   *
-   * This implementation is deprecated because of it's return value.
-   * Please use [[upstreamAssembly2]] instead.
-   */
-  @deprecated("Use upstreamAssembly2 instead, which has a richer return value", "Mill 0.11.8")
-  def upstreamAssembly: T[PathRef] = Task {
-    Task.log.error(
-      s"upstreamAssembly target is deprecated and should no longer used." +
-        s" Please make sure to use upstreamAssembly2 instead."
-    )
-    upstreamAssembly2().pathRef
-  }
-
-  /**
    * A jar containing only this module's resources and compiled classfiles,
    * without those from upstream modules and dependencies
    */
