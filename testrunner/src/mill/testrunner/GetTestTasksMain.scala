@@ -38,7 +38,7 @@ import os.Path
           cls => globFilter(cls.getName),
           classLoader
         )
-    }(new Ctx.Home { def home: Path = os.home })
+    }
   }
 
   def main(args: Array[String]): Unit = mainargs.ParserForMethods(this).runOrExit(args)

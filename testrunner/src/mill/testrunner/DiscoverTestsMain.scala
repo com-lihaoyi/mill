@@ -24,7 +24,7 @@ import os.Path
           case s if s.endsWith("$") => s.dropRight(1)
           case s => s
         }
-    }(new Ctx.Home { def home: Path = os.home })
+    }
   }
 
   def main(args: Array[String]): Unit = mainargs.ParserForMethods(this).runOrExit(args)

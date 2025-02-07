@@ -130,7 +130,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
               Agg.from(testClasspath.map(_.path))
             )
             (framework.name(), discoveredTests)
-          }(new mill.api.Ctx.Home { def home = os.home })
+          }
         val classes = Seq.from(classFingerprint.map(classF => classF._1.getName.stripSuffix("$")))
         new ScalaTestClassesItem(id, classes.asJava).tap { it =>
           it.setFramework(frameworkName)
