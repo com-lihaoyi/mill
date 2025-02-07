@@ -1,7 +1,7 @@
 package mill.testrunner
 
 import mill.api.Loose.Agg
-import mill.api.{Ctx, internal}
+import mill.api.internal
 import os.Path
 
 @internal object GetTestTasksMain {

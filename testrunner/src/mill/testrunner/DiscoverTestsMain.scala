@@ -1,6 +1,6 @@
 package mill.testrunner
 
-import mill.api.{Ctx, internal}
+import mill.api.internal
 import os.Path
 
 @internal object DiscoverTestsMain {

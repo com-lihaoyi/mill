@@ -579,7 +579,6 @@ object Jvm extends CoursierSupport {
     }
 
   /**
-   * 
    * @param classPath URLs from which to load classes and resources
    * @param parent parent class loader for delegation
    * @param sharedPrefixes package prefix for classes that will be loaded by the shared loader
@@ -593,7 +592,8 @@ object Jvm extends CoursierSupport {
       sharedPrefixes: Seq[String] = Seq.empty
   )(f: ClassLoader => T): T = {
     val oldClassloader = Thread.currentThread().getContextClassLoader
-    val newClassloader = createClassLoader(classPath = classPath, parent = parent, sharedPrefixes = sharedPrefixes)
+    val newClassloader =
+      createClassLoader(classPath = classPath, parent = parent, sharedPrefixes = sharedPrefixes)
     Thread.currentThread().setContextClassLoader(newClassloader)
     try {
       f(newClassloader)
