@@ -175,11 +175,11 @@ object Assembly {
     def append(entry: UnopenedInputStream): GroupedEntry = this
   }
 
-  def create(
+  private[mill] def create0(
       destJar: os.Path,
       inputPaths: Seq[os.Path],
       manifest: JarManifest = JarManifest.MillDefault,
-      prependShellScript: Option[String] = None,
+      prepend: Option[os.Source] = None,
       base: Option[Assembly] = None,
       assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules
   ): Assembly = {
@@ -236,12 +236,10 @@ object Assembly {
     }
 
     // Prepend shell script and make it executable
-    prependShellScript match {
+    prepend match {
       case None =>
         os.move(rawJar, destJar)
-      case Some(prependShellScript) =>
-        val lineSep = if (!prependShellScript.endsWith("\n")) "\n\r\n" else ""
-        val prepend = prependShellScript + lineSep
+      case Some(prepend) =>
         // Write the prepend-part into the final jar file
         // https://en.wikipedia.org/wiki/Zip_(file_format)#Combination_with_other_file_formats
         os.write(destJar, prepend)
@@ -263,6 +261,29 @@ object Assembly {
     }
 
     Assembly(PathRef(destJar), addedEntryCount)
+  }
+
+  def create(
+      destJar: os.Path,
+      inputPaths: Seq[os.Path],
+      manifest: JarManifest = JarManifest.MillDefault,
+      prependShellScript: Option[String] = None,
+      base: Option[Assembly] = None,
+      assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules
+  ): Assembly = {
+    val prepend: Option[os.Source] = prependShellScript.map { prependShellScript =>
+      val lineSep = if (!prependShellScript.endsWith("\n")) "\n\r\n" else ""
+      prependShellScript + lineSep
+    }
+
+    create0(
+      destJar = destJar,
+      inputPaths = inputPaths,
+      manifest = manifest,
+      prepend = prepend,
+      base = base,
+      assemblyRules = assemblyRules
+    )
   }
 
   private def writeEntry(p: os.Path, inputStream: InputStream, append: Boolean): Unit = {
