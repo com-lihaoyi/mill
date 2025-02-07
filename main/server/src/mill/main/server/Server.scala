@@ -165,7 +165,7 @@ abstract class Server[T](
       val argStream = os.read.inputStream(serverDir / ServerFiles.runArgs)
       val interactive = argStream.read() != 0
       val clientMillVersion = Util.readString(argStream)
-      val serverMillVersion = mill.main.client.BuildInfo.millVersion
+      val serverMillVersion = BuildInfo.millVersion
       if (clientMillVersion != serverMillVersion) {
         stderr.println(
           s"Mill version changed ($serverMillVersion -> $clientMillVersion), re-starting server"
@@ -193,7 +193,7 @@ abstract class Server[T](
               stateCache,
               interactive,
               new SystemStreams(stdout, stderr, proxiedSocketInput),
-              env.toMap,
+              env,
               idle = _,
               userSpecifiedProperties,
               initialSystemProperties,
