@@ -738,11 +738,6 @@ trait JavaModule
    */
   def platformSuffix: T[String] = Task { "" }
 
-  // bincompat stub
-  def prependShellScript: T[String] = Task {
-    prependShellScript0()
-  }
-
   /**
    * Configuration for the [[assembly]] task: how files and file-conflicts are
    * managed when combining multiple jar files into one big assembly jar.
