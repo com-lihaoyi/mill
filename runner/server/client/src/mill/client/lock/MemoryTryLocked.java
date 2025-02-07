@@ -5,10 +5,12 @@ class MemoryTryLocked extends MemoryLocked implements TryLocked {
     super(lock);
   }
 
+  @Override
   public boolean isLocked() {
     return lock != null;
   }
 
+  @Override
   public void release() throws Exception {
     if (isLocked()) super.release();
   }
