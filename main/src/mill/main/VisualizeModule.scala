@@ -39,7 +39,7 @@ trait VisualizeModule extends mill.define.TaskModule {
   def worker: Worker[(
       LinkedBlockingQueue[(Seq[NamedTask[Any]], Seq[NamedTask[Any]], os.Path)],
       LinkedBlockingQueue[Result[Seq[PathRef]]]
-  )] = Target.worker {
+  )] = mill.define.Task.Worker {
     val in = new LinkedBlockingQueue[(Seq[NamedTask[Any]], Seq[NamedTask[Any]], os.Path)]()
     val out = new LinkedBlockingQueue[Result[Seq[PathRef]]]()
 

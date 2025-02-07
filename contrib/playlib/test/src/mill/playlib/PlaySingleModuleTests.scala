@@ -7,7 +7,7 @@ import utest.{TestSuite, Tests, assert, _}
 import mill.main.TokenReaders._
 object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
 
-  object playsingle extends TestBaseModule with PlayModule with SingleModule {
+  object playsingle extends TestBaseModule with PlayModule {
     override val millSourcePath = os.temp() // workaround problem in `SingleModule`
     override def playVersion = Task { testPlay28 }
     override def scalaVersion = Task { sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???) }

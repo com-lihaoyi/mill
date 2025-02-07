@@ -104,17 +104,6 @@ class ScalaPBWorker extends AutoCloseable {
 }
 
 trait ScalaPBWorkerApi {
-
-  @deprecated("Use other overload instead", "Mill after 0.10.9")
-  def compileScalaPB(
-      root: File,
-      source: Seq[File],
-      scalaPBOptions: String,
-      generatedDirectory: File,
-      otherArgs: Seq[String]
-  ): Unit =
-    compileScalaPB(Seq(root), source, scalaPBOptions, generatedDirectory, otherArgs)
-
   def compileScalaPB(
       roots: Seq[File],
       source: Seq[File],

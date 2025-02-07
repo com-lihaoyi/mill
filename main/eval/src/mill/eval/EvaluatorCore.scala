@@ -32,7 +32,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       testReporter: TestReporter = DummyTestReporter,
       logger: ColorLogger = baseLogger,
       serialCommandExec: Boolean = false
-  ): Evaluator.Results = {
+  ): Evaluator.Results = logger.withPromptUnpaused {
     os.makeDir.all(outPath)
 
     PathRef.validatedPaths.withValue(new PathRef.ValidatedPaths()) {

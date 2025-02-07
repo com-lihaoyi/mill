@@ -1,6 +1,6 @@
 package mill.eval
 
-import mill.api.{CompileProblemReporter, Strict, SystemStreams, TestReporter, Val}
+import mill.api.{Strict, SystemStreams, Val}
 import mill.api.Strict.Agg
 import mill.define._
 import mill.util._
@@ -49,20 +49,6 @@ private[mill] case class EvaluatorImpl(
 
   override def plan(goals: Agg[Task[_]]): Plan = {
     Plan.plan(goals)
-  }
-
-  override def evaluate(
-      goals: Strict.Agg[Task[_]],
-      reporter: Int => Option[CompileProblemReporter],
-      testReporter: TestReporter,
-      logger: ColorLogger,
-      serialCommandExec: Boolean
-  ): Evaluator.Results = {
-    // TODO: cleanup once we break bin-compat in Mill 0.13
-    // disambiguate override hierarchy
-    logger.withPromptUnpaused {
-      super.evaluate(goals, reporter, testReporter, logger, serialCommandExec)
-    }
   }
 
   override def evalOrThrow(exceptionFactory: Evaluator.Results => Throwable)

@@ -332,55 +332,6 @@ object Jvm extends CoursierSupport {
     )
   }
 
-  // bincompat shim
-  @deprecated("Use callProcess", "Mill 0.12.8")
-  def runSubprocess(
-      mainClass: String,
-      classPath: Agg[os.Path],
-      jvmArgs: Seq[String],
-      envArgs: Map[String, String],
-      mainArgs: Seq[String],
-      workingDir: os.Path,
-      background: Boolean,
-      useCpPassingJar: Boolean,
-      runBackgroundLogToConsole: Boolean
-  )(implicit ctx: Ctx): Unit =
-    runSubprocess(
-      mainClass,
-      classPath,
-      jvmArgs,
-      envArgs,
-      mainArgs,
-      workingDir,
-      background,
-      useCpPassingJar,
-      runBackgroundLogToConsole,
-      None
-    )
-  // bincompat shim
-  @deprecated("Use callProcess", "Mill 0.12.8")
-  def runSubprocess(
-      mainClass: String,
-      classPath: Agg[os.Path],
-      jvmArgs: Seq[String],
-      envArgs: Map[String, String],
-      mainArgs: Seq[String],
-      workingDir: os.Path,
-      background: Boolean,
-      useCpPassingJar: Boolean
-  )(implicit ctx: Ctx): Unit =
-    runSubprocess(
-      mainClass,
-      classPath,
-      jvmArgs,
-      envArgs,
-      mainArgs,
-      workingDir,
-      background,
-      useCpPassingJar,
-      false
-    )
-
   /**
    * Runs a JVM subprocess with the given configuration and streams
    * it's stdout and stderr to the console.
@@ -444,30 +395,6 @@ object Jvm extends CoursierSupport {
     else
       runSubprocess(args, envArgs, workingDir)
   }
-
-  // bincompat shim
-  @deprecated("Use spawnProcess or callProcess", "Mill 0.12.8")
-  def runSubprocessWithBackgroundOutputs(
-      mainClass: String,
-      classPath: Agg[os.Path],
-      jvmArgs: Seq[String],
-      envArgs: Map[String, String],
-      mainArgs: Seq[String],
-      workingDir: os.Path,
-      backgroundOutputs: Option[Tuple2[ProcessOutput, ProcessOutput]],
-      useCpPassingJar: Boolean
-  )(implicit ctx: Ctx): Unit =
-    runSubprocessWithBackgroundOutputs(
-      mainClass,
-      classPath,
-      jvmArgs,
-      envArgs,
-      mainArgs,
-      workingDir,
-      backgroundOutputs,
-      useCpPassingJar,
-      None
-    )(ctx)
 
   /**
    * Runs a generic subprocess and waits for it to terminate. If process exited with non-zero code, exception
@@ -788,17 +715,6 @@ object Jvm extends CoursierSupport {
     ).filterNot(_.isEmpty).mkString("\n")
   }
 
-  @deprecated("Use the other override instead", "0.12.6")
-  def launcherUniversalScript(
-      mainClass: String,
-      shellClassPath: Agg[String],
-      cmdClassPath: Agg[String],
-      jvmArgs: Seq[String],
-      shebang: Boolean
-  ): String = {
-    launcherUniversalScript(mainClass, shellClassPath, cmdClassPath, jvmArgs, shebang, Nil, Nil)
-  }
-
   def launcherUniversalScript(
       mainClass: String,
       shellClassPath: Agg[String],
@@ -859,11 +775,6 @@ object Jvm extends CoursierSupport {
     }
     PathRef(outputPath)
   }
-
-  @deprecated("Use mill.api.JarManifest instead", "Mill after 0.11.0-M4")
-  type JarManifest = mill.api.JarManifest
-  @deprecated("Use mill.api.JarManifest instead", "Mill after 0.11.0-M4")
-  val JarManifest = mill.api.JarManifest
 
   /**
    * Return `ClassLoader.getPlatformClassLoader` for java 9 and above, if parent class loader is null,

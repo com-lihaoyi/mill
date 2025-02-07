@@ -241,7 +241,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
           var leftCount = 0
           var rightCount = 0
           var middleCount = 0
-          def up = Task { TestUtil.test.anon() }
+          def up = Task { TestUtil.test.anon()() }
           def left = Task.Anon { leftCount += 1; up() + 1 }
           def middle = Task.Anon { middleCount += 1; 100 }
           def right = Task { rightCount += 1; 10000 }
@@ -265,7 +265,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         // cached target
         val check = new Checker(build)
         assert(leftCount == 0, rightCount == 0)
-        check(down, expValue = 10101, expEvaled = Agg(up, right, down), extraEvaled = 5)
+        check(down, expValue = 10101, expEvaled = Agg(up, right, down), extraEvaled = 6)
         assert(leftCount == 1, middleCount == 1, rightCount == 1)
 
         // If the upstream `up` doesn't change, the entire block of tasks
@@ -277,8 +277,8 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         // recompute together, including `middle` which doesn't depend on `up`,
         // because tasks have no cached value that can be used. `right`, which
         // is a cached Target, does not recompute
-        up.inputs(0).asInstanceOf[Test].counter += 1
-        check(down, expValue = 10102, expEvaled = Agg(up, down), extraEvaled = 4)
+        up.inputs(0).inputs(0).asInstanceOf[Test].counter += 1
+        check(down, expValue = 10102, expEvaled = Agg(up, down), extraEvaled = 5)
         assert(leftCount == 2, middleCount == 2, rightCount == 1)
 
         // Running the tasks themselves results in them being recomputed every
