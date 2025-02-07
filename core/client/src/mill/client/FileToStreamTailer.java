@@ -6,6 +6,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Optional;
 
 public class FileToStreamTailer extends Thread implements AutoCloseable {
@@ -41,8 +43,8 @@ public class FileToStreamTailer extends Thread implements AutoCloseable {
           // Init reader, if not already done
           if (!reader.isPresent()) {
             try {
-              reader = Optional.of(new BufferedReader(new FileReader(file)));
-            } catch (FileNotFoundException e) {
+                reader = Optional.of(Files.newBufferedReader(file.toPath()));
+            } catch (IOException e) {
               // nothing to ignore if file is initially missing
               ignoreHead = false;
             }
