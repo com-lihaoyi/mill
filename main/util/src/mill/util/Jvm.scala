@@ -447,7 +447,7 @@ object Jvm extends CoursierSupport {
       inputPaths: Agg[os.Path],
       manifest: JarManifest = JarManifest.Empty,
       fileFilter: (os.Path, os.RelPath) => Boolean = (_, _) => true,
-      includeDirs: Boolean = false,
+      includeDirs: Boolean = true,
       timestamp: Option[Long] = None
   ): os.Path = {
 
