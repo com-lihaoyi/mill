@@ -1,6 +1,5 @@
 package mill.contrib.proguard
 
-import mill.java9rtexport.Export
 import mill.{T, Task}
 import mill.Agg
 import mill.api.{Loose, PathRef}

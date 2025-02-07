@@ -1,4 +1,4 @@
-package mill.java9rtexport
+package mill.contrib.proguard
 
 private[mill] object Export {
   def rtJarName = Export0.rtJarName
