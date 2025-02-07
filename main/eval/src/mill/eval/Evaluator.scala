@@ -32,7 +32,7 @@ trait Evaluator extends AutoCloseable {
       case _ => sys.error("Evaluator#workerCache must be a mutable map")
     }
   def disableCallgraphInvalidation: Boolean = false
-  
+
   def evaluate(
       goals: Agg[Task[_]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],

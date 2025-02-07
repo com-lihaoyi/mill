@@ -168,7 +168,7 @@ object Jvm extends CoursierSupport {
       javaHome
     )
   }
-  
+
   /**
    * Runs a JVM subprocess with the given configuration and streams
    * it's stdout and stderr to the console.
@@ -494,7 +494,7 @@ object Jvm extends CoursierSupport {
       ).mkString("\r\n")
     ).filterNot(_.isEmpty).mkString("\n")
   }
-  
+
   def launcherUniversalScript(
       mainClass: String,
       shellClassPath: Agg[String],

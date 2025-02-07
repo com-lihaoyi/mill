@@ -102,7 +102,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
       case _ => None
     }
   }
-  
+
   protected def computeModules: Seq[JavaModule] = {
     val evals = evs()
     evals.flatMap { eval =>

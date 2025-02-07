@@ -166,7 +166,8 @@ object Resolve {
       if (a.default.nonEmpty) a
       else if (nullCommandDefaults) {
         a.copy(default =
-          if (a.reader.isInstanceOf[SimpleTaskTokenReader[_]]) Some(_ => mill.define.Task.Anon(null))
+          if (a.reader.isInstanceOf[SimpleTaskTokenReader[_]])
+            Some(_ => mill.define.Task.Anon(null))
           else Some(_ => null)
         )
       } else a
