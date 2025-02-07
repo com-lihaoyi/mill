@@ -1,12 +1,14 @@
 package mill.scalalib
 
+import java.lang.reflect.Modifier
 import mainargs.arg
 import mill.api.JsonFormatters.pathReadWrite
 import mill.api.{Ctx, PathRef, Result}
 import mill.define.{Command, Task}
 import mill.util.Jvm
 import mill.{Agg, Args, T}
-import os.Path
+import mill.main.client.ServerFiles
+import os.{Path, ProcessOutput}
 
 import scala.util.control.NonFatal
 
@@ -46,17 +48,15 @@ trait RunModule extends WithZincWorker {
   def allLocalMainClasses: T[Seq[String]] = Task {
     val classpath = localRunClasspath().map(_.path)
     if (zincWorker().javaHome().isDefined) {
-      Jvm
-        .callSubprocess(
-          mainClass = "mill.scalalib.worker.DiscoverMainClassesMain",
-          classPath = zincWorker().classpath().map(_.path),
-          mainArgs = Seq(classpath.mkString(",")),
-          javaHome = zincWorker().javaHome().map(_.path),
-          streamOut = false
-        )
-        .out
-        .lines()
-
+      Jvm.callProcess(
+        mainClass = "mill.scalalib.worker.DiscoverMainClassesMain",
+        classPath = zincWorker().classpath().map(_.path).toVector,
+        mainArgs = Seq(classpath.mkString(",")),
+        javaHome = zincWorker().javaHome().map(_.path),
+        stdin = os.Inherit,
+        stdout = os.Pipe,
+        cwd = Task.dest
+      ).out.lines()
     } else {
       zincWorker().worker().discoverMainClasses(classpath)
     }
@@ -157,11 +157,11 @@ trait RunModule extends WithZincWorker {
 
   def runLocalTask(mainClass: Task[String], args: Task[Args] = Task.Anon(Args())): Task[Unit] =
     Task.Anon {
-      Jvm.runLocal(
-        mainClass(),
-        runClasspath().map(_.path),
-        args().value
-      )
+      Jvm.withClassLoader(
+        classPath = runClasspath().map(_.path).toVector
+      ) { classloader =>
+        RunModule.getMainMethod(mainClass(), classloader).invoke(null, args().value.toArray)
+      }
     }
 
   def runBackgroundTask(mainClass: Task[String], args: Task[Args] = Task.Anon(Args())): Task[Unit] =
@@ -212,7 +212,8 @@ trait RunModule extends WithZincWorker {
    * code, without the Mill process. Useful for deployment & other places where
    * you do not want a build tool running
    */
-  def launcher = Task { launcher0() }
+  def launcher: T[PathRef] = Task { launcher0() }
+
 }
 
 object RunModule {
@@ -223,6 +224,21 @@ object RunModule {
     val procLockfile = dest / ".mill-background-process-lock"
     (procUuidPath, procLockfile, procUuid)
   }
+
+  private[mill] def getMainMethod(mainClassName: String, cl: ClassLoader) = {
+    val mainClass = cl.loadClass(mainClassName)
+    val method = mainClass.getMethod("main", classOf[Array[String]])
+    // jvm allows the actual main class to be non-public and to run a method in the non-public class,
+    //  we need to make it accessible
+    method.setAccessible(true)
+    val modifiers = method.getModifiers
+    if (!Modifier.isPublic(modifiers))
+      throw new NoSuchMethodException(mainClassName + ".main is not public")
+    if (!Modifier.isStatic(modifiers))
+      throw new NoSuchMethodException(mainClassName + ".main is not static")
+    method
+  }
+
   trait Runner {
     def run(
         args: os.Shellable,
@@ -256,21 +272,59 @@ object RunModule {
         background: Boolean = false,
         runBackgroundLogToConsole: Boolean = false
     )(implicit ctx: Ctx): Unit = {
-      Jvm.runSubprocess(
-        Option(mainClass).getOrElse(mainClass0.fold(sys.error, identity)),
-        runClasspath ++ extraRunClasspath,
-        Option(forkArgs).getOrElse(forkArgs0),
-        Option(forkEnv).getOrElse(forkEnv0),
-        args.value,
-        Option(workingDir).getOrElse(ctx.dest),
-        background = background,
-        Option(useCpPassingJar) match {
-          case Some(b) => b
-          case None => useCpPassingJar0
-        },
-        runBackgroundLogToConsole = runBackgroundLogToConsole,
-        javaHome = javaHome
-      )
+      val dest = ctx.dest
+      val cwd = Option(workingDir).getOrElse(dest)
+      val mainClass1 = Option(mainClass).getOrElse(mainClass0.fold(sys.error, identity))
+      val mainArgs = args.value
+      val classPath = runClasspath ++ extraRunClasspath
+      val jvmArgs = Option(forkArgs).getOrElse(forkArgs0)
+      Option(useCpPassingJar) match {
+        case Some(b) => b: Boolean
+        case None => useCpPassingJar0
+      }
+      val env = Option(forkEnv).getOrElse(forkEnv0)
+      if (background) {
+        val (stdout, stderr) = if (runBackgroundLogToConsole) {
+          // Hack to forward the background subprocess output to the Mill server process
+          // stdout/stderr files, so the output will get properly slurped up by the Mill server
+          // and shown to any connected Mill client even if the current command has completed
+          val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
+          (
+            os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stdout),
+            os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stderr)
+          )
+        } else {
+          (dest / "stdout.log": os.ProcessOutput, dest / "stderr.log": os.ProcessOutput)
+        }
+        Jvm.spawnProcess(
+          mainClass = mainClass1,
+          classPath = classPath,
+          jvmArgs = jvmArgs,
+          env = env,
+          mainArgs = mainArgs,
+          cwd = cwd,
+          stdin = "",
+          stdout = stdout,
+          stderr = stderr,
+          cpPassingJarPath = Some(os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)),
+          javaHome = javaHome,
+          destroyOnExit = false
+        )
+      } else {
+        Jvm.callProcess(
+          mainClass = mainClass1,
+          classPath = classPath,
+          jvmArgs = jvmArgs,
+          env = env,
+          mainArgs = mainArgs,
+          cwd = cwd,
+          stdin = os.Inherit,
+          stdout = os.Inherit,
+          stderr = os.Inherit,
+          cpPassingJarPath = Some(os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)),
+          javaHome = javaHome
+        )
+      }
     }
   }
 }

@@ -86,8 +86,9 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule with TaskModule
         )
     }
 
-  def checkFormatAll(@arg(positional = true) sources: Tasks[Seq[PathRef]] =
-    Tasks.resolveMainDefault("__.sources")): Command[Unit] =
+  def checkFormatAll(
+      @arg(positional = true) sources: Tasks[Seq[PathRef]] = Tasks.resolveMainDefault("__.sources")
+  ): Command[Unit] =
     Task.Command {
       val files = Task.sequence(sources.value)().flatMap(filesToFormat)
       ScalafmtWorkerModule
