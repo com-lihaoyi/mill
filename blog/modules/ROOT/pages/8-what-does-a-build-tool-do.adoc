@@ -1,0 +1,35 @@
+// tag::header[]
+
+# What does a Build Tool do?
+
+
+:author: Li Haoyi
+:revdate: ??? February 2025
+_{author}, {revdate}_
+
+One common question I get asked when I say Mill is a build tool, is what does a build
+tool even do? Even some developers may not be familiar with the idea: they may run
+`pip install` and `python foo.py`, they may run `go build` or some other language-specific
+CLI directly, they may have a folder full of custom Bash scripts they use during development.
+This blog post explores what build tools are all about, and why they are important to
+most software projects as they scale.
+
+// end::header[]
+
+To understand the use case for build tools, the best way is to look at what happens
+to a software project as it grows.
+
+## Single Python Scripts
+## Python Scripts with Third-Party Dependencies
+## Python Scripts with Typechecking, Linting, and
+
+
+The basic idea behind build tools is to speed up and automate your development workflows.
+This means things such as:
+
+- Downloading third-party dependencies
+- Compiling code
+- Running linters
+- Running unit tests
+- Packaging your code for deployment.
+
