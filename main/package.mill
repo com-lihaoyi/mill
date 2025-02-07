@@ -174,17 +174,19 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
         Seq(BuildInfo.Value("millVersion", build.millVersion(), "Mill version."))
       }
 
-      // override lazy val test = new ScalaModule with SharedTests with MillScalaTests {
-      //   def testFramework = "utest.runner.Framework"
-      //   override def sources = T.sources {
-      //     Seq(millSourcePath / os.up / os.up / "test" ).map(PathRef(_)) ++
-      //     super.sources()
-      //   }
-      //   override def resources = T.sources {
-      //     Seq(millSourcePath / os.up / os.up / "test" / "resources" ).map(PathRef(_)) ++
-      //     super.resources()
-      //   }
-      // }
+      // override lazy val test = new MillScalaTests with SharedTests { // This works
+      object test2 extends MillScalaTests with SharedTests { // This works
+        def scalaVersion = build.Deps.scalaVersion
+        def testFramework = "utest.runner.Framework"
+        override def sources = T.sources {
+          Seq(millSourcePath / os.up / os.up / "test" ).map(PathRef(_)) ++
+          super.sources()
+        }
+        override def resources = T.sources {
+          Seq(millSourcePath / os.up / os.up / "test" / "resources" ).map(PathRef(_)) ++
+          super.resources()
+        }
+      }
 
     }
     /**

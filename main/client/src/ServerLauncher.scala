@@ -1,14 +1,37 @@
 package mill.main.client
 
-import mill.main.client.OutFiles._
-import mill.main.client.lock.Locks
 import java.io.{InputStream, OutputStream, PrintStream}
 import java.net.Socket
-import java.nio.file.{Files, Path, Paths}
-import scala.jdk.CollectionConverters._
-import scala.util.Using
-import mill.main.client
+import java.nio.file.{Files, Path}
+import scala.util.{Failure, Success, Try, Using}
+import mill.main.client.lock.{Locks, TryLocked}
+import scala.collection.JavaConverters.mapAsScalaMapConverter
 
+/**
+ * Client side code that interacts with Server.scala in order to launch a generic
+ * long-lived background server.
+ *
+ * The protocol is as follows:
+ *
+ * - Client:
+ *   - Take clientLock
+ *   - If processLock is not yet taken, it means server is not running, so spawn a server
+ *   - Wait for server socket to be available for connection
+ * - Server:
+ *   - Take processLock.
+ *     - If already taken, it means another server was running
+ *       (e.g. spawned by a different client) so exit immediately
+ * - Server: loop:
+ *   - Listen for incoming client requests on serverSocket
+ *   - Execute client request
+ *   - If clientLock is released during execution, terminate server (otherwise
+ *     we have no safe way of terminating the in-process request, so the server
+ *     may continue running for arbitrarily long with no client attached)
+ *   - Send ProxyStream.END packet and call clientSocket.close()
+ * - Client:
+ *   - Wait for ProxyStream.END packet or clientSocket.close(),
+ *     indicating server has finished execution and all data has been received
+ */
 abstract class ServerLauncher(
     stdin: InputStream,
     stdout: PrintStream,
@@ -18,137 +41,107 @@ abstract class ServerLauncher(
     memoryLocks: Option[Array[Locks]],
     forceFailureForTestingMillisDelay: Int
 ) {
-  final val serverProcessesLimit = 2
+
+  final val serverProcessesLimit = 5
   final val serverInitWaitMillis = 10000
 
-  @throws[java.lang.Exception]
-  def initServer(serverDir: Path, setJnaNoSys: Boolean, locks: Locks): Unit
+  def initServer(serverDir: Path, b: Boolean, locks: Locks): Unit
 
-  @throws[java.lang.Exception]
   def preRun(serverDir: Path): Unit
 
-  def acquireLocksAndRun(outDir: String): Result = {
+
+
+  def acquireLocksAndRun(serverDir0: Path): Result = {
     val setJnaNoSys = Option(System.getProperty("jna.nosys")).isEmpty
     if (setJnaNoSys) System.setProperty("jna.nosys", "true")
 
-    val versionAndJvmHomeEncoding =
-      Util.sha1Hash("0.12.3" + System.getProperty("java.home")) // From buildInfo
+    (1 to serverProcessesLimit).foreach { serverIndex =>
+      val serverDir = serverDir0.getParent.resolve(s"${serverDir0.getFileName}-$serverIndex")
+      Files.createDirectories(serverDir)
 
-    println(versionAndJvmHomeEncoding)
-    println(outDir)
-
-    (1 to serverProcessesLimit).iterator
-      .map { serverIndex =>
-        val serverDir = Paths.get(outDir, millServer, s"$versionAndJvmHomeEncoding-$serverIndex")
-        Files.createDirectories(serverDir)
-
-        val locks = memoryLocks match {
-          case Some(locksArray) => locksArray(serverIndex - 1)
-          case None             => Locks.files(serverDir.toString)
-        }
-
-        (serverDir, locks)
-
+      val result: Option[Result] = for {
+        locks <- memoryLocks.map(_.lift(serverIndex - 1)).getOrElse(Some(Locks.files(serverDir.toString)))
+        clientLocked <- Try(locks.clientLock.tryLock()).toOption
+        if clientLocked.isLocked
+      } yield {
+        preRun(serverDir)
+        Result(run(serverDir, setJnaNoSys, locks), serverDir)
       }
-      .collectFirst { case (serverDir, locks) =>
-        Using(locks.clientLock.tryLock()) { clientLocked =>
-          if (clientLocked.isLocked) {
-            preRun(serverDir)
-            val exitCode = run(serverDir, setJnaNoSys, locks)
-            Result(exitCode, serverDir)
-          } else {
-            val exitCode = run(serverDir, setJnaNoSys, locks)
-            Result(exitCode, serverDir)
-          }
-        }.get
+
+      result match {
+        case Some(res) => res
+        case _            => // continue to next index
       }
-      .getOrElse {
-        throw new ServerCouldNotBeStarted(
-          s"Reached max server processes limit: $serverProcessesLimit"
-        )
-      }
+    }
+    throw new ServerCouldNotBeStarted(s"Reached max server processes limit: $serverProcessesLimit")
   }
 
-  private def run(serverDir: Path, setJnaNoSys: Boolean, locks: Locks): Int = {
-    val serverPath = serverDir.resolve(ServerFiles.runArgs)
+  def run(serverDir: Path, setJnaNoSys: Boolean, locks: Locks): Int = {
+    val runArgsFile = serverDir.resolve(ServerFiles.runArgs)
 
-    Using.resource(Files.newOutputStream(serverPath)) { f =>
-      println("I don't think system.console is a thing on native - help???")
-      f.write(
-        // if (System.console() != null)
-        // 1
-        //   else
-        0
-      )
-      Util.writeString(f, "0.11.3") // buildinfo
-      Util.writeArgs(args, f)
-      Util.writeMap(env.asScala.toMap, f)
+    Using(Files.newOutputStream(runArgsFile)) { f =>
+        f.write(if (Util.hasConsole()) 1 else 0)
+        Util.writeString(f, BuildInfo.millVersion)
+        Util.writeArgs(args, f)
+        Util.writeMap(env.asScala.toMap, f)
+    }.recover {
+        case e: Exception =>
+            // Handle the exception appropriately
+            e.printStackTrace()
     }
 
-    if (locks.processLock.probe()) {
-      initServer(serverDir, setJnaNoSys, locks)
-    }
-
-    println(
-      "HELP! The code below here is commented out, because it appears to break the client."
-    )
-    println("I do not understand the implications of commenting this out.")
-    // while (locks.processLock.probe()) {
-    //   // println("wait 3 millis")
-    //   Thread.sleep(5)
-    // }
+    if (locks.processLock.probe()) initServer(serverDir, setJnaNoSys, locks)
+    while (locks.processLock.probe()) Thread.sleep(1)
 
     val retryStart = System.currentTimeMillis()
-    var ioSocket: Socket = null
-    var socketThrowable: Throwable = null
+    var ioSocket: Option[Socket] = None
+    var socketThrowable: Option[Throwable] = None
 
-    while (ioSocket == null && System.currentTimeMillis() - retryStart < serverInitWaitMillis) {
-      try {
+    while (ioSocket.isEmpty && System.currentTimeMillis() - retryStart < serverInitWaitMillis) {
+      Try {
         val port = Files.readString(serverDir.resolve(ServerFiles.socketPort)).toInt
-        ioSocket = new Socket("127.0.0.1", port)
-      } catch {
-        case e: Throwable =>
-          // println(e)
-          socketThrowable = e
-          Thread.sleep(10)
+        new Socket("127.0.0.1", port)
+      } match {
+        case Success(socket) => ioSocket = Some(socket)
+        case Failure(e)      => socketThrowable = Some(e)
       }
+      Thread.sleep(1)
     }
 
-    if (ioSocket == null) throw new Exception("Failed to connect to server", socketThrowable)
+    ioSocket match {
+      case Some(socket) =>
+        val outPumper = new ProxyStream.Pumper(socket.getInputStream, stdout, stderr)
+        val inPump = new InputPumper(() => stdin, () => socket.getOutputStream, true)
+        val outPumperThread = new Thread(outPumper, "outPump")
+        val inThread = new Thread(inPump, "inPump")
+        outPumperThread.setDaemon(true)
+        inThread.setDaemon(true)
+        outPumperThread.start()
+        inThread.start()
 
-    val outErr = ioSocket.getInputStream
-    val in = ioSocket.getOutputStream
-    val outPumper = new ProxyStream.Pumper(outErr, stdout, stderr)
-    val inPumper = new InputPumper(() => stdin, () => in, true)
+        if (forceFailureForTestingMillisDelay > 0) {
+          Thread.sleep(forceFailureForTestingMillisDelay)
+          throw new Exception(s"Force failure for testing: $serverDir")
+        }
 
-    val outPumperThread = new Thread(outPumper, "outPump")
-    outPumperThread.setDaemon(true)
+        outPumperThread.join()
 
-    val inThread = new Thread(inPumper, "inPump")
-    inThread.setDaemon(true)
+        val exitCodeFile = serverDir.resolve(ServerFiles.exitCode)
+        val exitCode =
+          if (Files.exists(exitCodeFile)) Files.readAllLines(exitCodeFile).get(0).toInt
+          else {
+            System.err.println("mill-server/ exitCode file not found")
+            1
+          }
 
-    outPumperThread.start()
-    inThread.start()
+        socket.close()
+        exitCode
 
-    if (forceFailureForTestingMillisDelay > 0) {
-      Thread.sleep(forceFailureForTestingMillisDelay)
-      throw new Exception(s"Force failure for testing: $serverDir")
-    }
-
-    outPumperThread.join()
-
-    try {
-      val exitCodeFile = serverDir.resolve(ServerFiles.exitCode)
-      Files.readAllLines(exitCodeFile).get(0).toInt
-    } catch {
-      case _: Throwable =>
-        Util.ExitClientCodeCannotReadFromExitCodeFile()
-    } finally {
-      ioSocket.close()
+      case None => throw new Exception("Failed to connect to server", socketThrowable.orNull)
     }
   }
+}
 
-  case class Result(exitCode: Int, serverDir: Path){
-    def exitCode_ = exitCode
-  }
+case class Result(exitCode: Int, serverDir: Path){
+  def exitCode_() = exitCode
 }
