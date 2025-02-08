@@ -174,7 +174,7 @@ object Resolve {
       allowRepeats = false,
       allowLeftover = ep.argSigs0.exists(_.reader.isLeftover),
       nameMapper = mainargs.Util.kebabCaseNameMapper
-    ).flatMap { (grouped: TokenGrouping[Any]) =>
+    ).flatMap { (grouped: TokenGrouping[?]) =>
       val mainData = ep.asInstanceOf[MainData[Any, Any]]
       val mainDataWithDefaults = mainData
         .copy(argSigs0 = mainData.argSigs0.map(withNullDefault))
