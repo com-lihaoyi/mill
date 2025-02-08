@@ -79,7 +79,6 @@ object TypeSelectorTests extends TestSuite {
       x.left.exists(_.linesIterator.size < 25)
 
   val tests = Tests {
-    val graphs = new mill.util.TestGraphs()
     test("typeSelector") {
       val check = new Checker(TypedModules)
       test - check(

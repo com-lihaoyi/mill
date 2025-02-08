@@ -162,8 +162,6 @@ object ModuleTests extends TestSuite {
       x.left.exists(_.linesIterator.size < 25)
 
   val tests = Tests {
-    val graphs = new mill.util.TestGraphs()
-
     test("cross") {
       test("single") {
         val check = new Checker(singleCross)
