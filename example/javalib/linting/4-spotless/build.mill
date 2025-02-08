@@ -13,25 +13,25 @@ import mill.javalib.spotless.{ScalaSpotlessModule, ScalaConfig}
 // See https://github.com/diffplug/spotless/tree/main/plugin-gradle#java
 object `package` extends RootModule with JavaModule with JavaSpotlessModule {
   val googleFormatter = GoogleJavaFormat()
-    .withVersion("1.25.2")
-    .withAosp()
-    .withReflowLongStrings()
-    .withFormatJavadoc(false)
-    .withReorderImports(false)
-    .withGroupArtifact("com.google.googlejavaformat:google-java-format")
+    .version("1.25.2")
+    .aosp()
+    .reflowLongStrings()
+    .formatJavadoc(false)
+    .reorderImports(false)
+    .groupArtifact("com.google.googlejavaformat:google-java-format")
 
   val palantirFormatter = PalantirJavaFormat()
-    .withVersion("2.50.0")
-    .withStyle("GOOGLE")
-    .withFormatJavadoc(true)
+    .version("2.50.0")
+    .style("GOOGLE")
+    .formatJavadoc(true)
 
   def jvmLangConfig = new JavaConfig()
-    .withDefaultImportOrder()
-    .withJavaFormat(googleFormatter)
-    .withJavaFormat(
+    .defaultImportOrder()
+    .javaFormat(googleFormatter)
+    .javaFormat(
       palantirFormatter
     ) // this replaces `googleFormatter` as only 1 JavaFormatter can be active
-    .withLicenseHeader("/* (C) 2025. Licensed under Apache-2.0. */\n")
+    .licenseHeader("/* (C) 2025. Licensed under Apache-2.0. */\n")
 }
 
 /*
@@ -40,12 +40,13 @@ object `package` extends RootModule with ScalaSpotlessModule {
 
 
   // In Mill, ScalaConfig defaults to these values: scalafmt('3.8.1').configFile('scalafmt.conf').scalaMajorVersion('2.13')
-  override def jvmLangConfig = ScalaConfig(
+  def jvmLangConfig = ScalaConfig(
     licenseHeader = Some("/* © 2025. */\n"),
+    scalafmtLibVersion = "3.8.1",
     scalafmtConfigFile = Some("scalafmt.conf")
   )
 }
- */
+*/
 
 /*
 // See https://github.com/diffplug/spotless/tree/main/plugin-gradle#kotlin
@@ -58,11 +59,12 @@ object `package` extends RootModule with KotlinSpotlessModule {
     manageTrailingCommas = Some(false)
   )
 
-  override def jvmLangConfig = KotlinConfig(
-    ktfmtVersion = "0.53",
-    klintVersion = "1.5.0").withKtfmtOptions(ktfmtOptions)
+  def jvmLangConfig = KotlinConfig()
+    .ktfmt("0.53")
+    .ktfmtOptions(ktfmtOptions)
+    .ktlint("1.5.0")
 }
- */
+*/
 
 // To use this plugin in a Java/Kotlin/Scala module,
 //
