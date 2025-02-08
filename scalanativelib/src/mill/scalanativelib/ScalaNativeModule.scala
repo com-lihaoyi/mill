@@ -5,7 +5,6 @@ import mainargs.Flag
 import mill.api.Loose.Agg
 import mill.api.{Result, internal}
 import mill.define.{Command, Task}
-import mill.util.Jvm
 import mill.util.Util.millProjectModule
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.bsp.{ScalaBuildTarget, ScalaPlatform}
@@ -282,11 +281,15 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   // Runs the native binary
   override def run(args: Task[Args] = Task.Anon(Args())) = Task.Command {
-    Jvm.runSubprocess(
-      commandArgs = Vector(nativeLink().toString) ++ args().value,
-      envArgs = forkEnv(),
-      workingDir = forkWorkingDir()
+    os.call(
+      cmd = Vector(nativeLink().toString) ++ args().value,
+      env = forkEnv(),
+      cwd = forkWorkingDir(),
+      stdin = os.Inherit,
+      stdout = os.Inherit,
+      stderr = os.Inherit
     )
+    ()
   }
 
   @internal
