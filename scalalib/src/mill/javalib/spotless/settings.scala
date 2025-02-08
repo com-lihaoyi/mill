@@ -23,15 +23,22 @@ trait JVMLangConfig {
   val licenseHeaderDelimiter: String = "(package|import|public|class|module) "
   val licenseHeader: Option[String]
   val licenseHeaderFile: Option[String]
-  def getSteps(path: os.Path, provisioner: Provisioner): List[FormatterStep]
+  def getSteps(millSourcePath: os.Path, provisioner: Provisioner): List[FormatterStep]
 
-  def addLicenseHeaderStep(steps: List[FormatterStep]): Unit = {
+  def addLicenseHeaderStep(millSourcePath: os.Path, steps: List[FormatterStep]): Unit = {
     licenseHeader.map(header => LicenseHeaderStep.headerDelimiter(header, licenseHeaderDelimiter))
       .orElse(licenseHeaderFile.map(file => {
-        val header: String = os.read(Path(file))
+        val header: String = os.read(os.Path(getConfFile(millSourcePath, file)))
         LicenseHeaderStep.headerDelimiter(header, licenseHeaderDelimiter)
       }))
       .foreach(step => steps.add(step.build()))
+  }
+
+  protected def getConfFile(millSourcePath: os.Path, file: String): File = {
+    val configFile: File = Option(new File(file))
+      .filter(_.exists())
+      .getOrElse(new File(millSourcePath.toIO, file))
+    configFile
   }
 }
 
@@ -130,7 +137,7 @@ case class JavaConfig(
   def javaFormat(formatter: JavaFormatter): JavaConfig =
     copy(formatter = Some(formatter))
 
-  def getSteps(path: os.Path, provisioner: Provisioner): List[FormatterStep] = {
+  def getSteps(millSourcePath: os.Path, provisioner: Provisioner): List[FormatterStep] = {
     val steps: List[FormatterStep] = new ArrayList[FormatterStep]()
 
     importOrder match {
@@ -140,7 +147,7 @@ case class JavaConfig(
         steps.add(ImportOrderStep.forJava().createFrom(Array.empty[String]: _*))
       case None =>
         importOrderFile.foreach { file =>
-          steps.add(ImportOrderStep.forJava().createFrom(os.Path(file).toIO))
+          steps.add(ImportOrderStep.forJava().createFrom(getConfFile(millSourcePath, file)))
         }
     }
 
@@ -177,7 +184,7 @@ case class JavaConfig(
       steps.add(FormatAnnotationsStep.create())
     }
 
-    super.addLicenseHeaderStep(steps)
+    super.addLicenseHeaderStep(millSourcePath, steps)
 
     steps
   }
@@ -196,20 +203,21 @@ case class ScalaConfig(
     "Please specify only licenseHeader or licenseHeaderFile but not both"
   )
 
-  def getSteps(path: os.Path, provisioner: Provisioner): List[FormatterStep] = {
+  def getSteps(millSourcePath: os.Path, provisioner: Provisioner): List[FormatterStep] = {
     val steps = new ArrayList[FormatterStep]()
 
     scalafmtConfigFile.map(file => {
+      val configFile = getConfFile(millSourcePath, file)
       val scalafmtStep = ScalaFmtStep.create(
         scalafmtLibVersion,
         scalafmtScalaMajorVersion,
         provisioner,
-        new File(path.toIO, file)
+        configFile
       )
       steps.add(scalafmtStep)
     })
 
-    super.addLicenseHeaderStep(steps)
+    super.addLicenseHeaderStep(millSourcePath, steps)
 
     steps
   }
@@ -253,7 +261,7 @@ case class KotlinConfig(
   def ktlint(version: String): KotlinConfig =
     copy(ktlintFlag = true, ktlintVersion = version)
 
-  def getSteps(path: os.Path, provisioner: Provisioner): List[FormatterStep] = {
+  def getSteps(millSourcePath: os.Path, provisioner: Provisioner): List[FormatterStep] = {
     val steps = new ArrayList[FormatterStep]()
 
     if (ktfmtFlag) {
@@ -276,7 +284,7 @@ case class KotlinConfig(
       steps.add(step)
     }
 
-    super.addLicenseHeaderStep(steps)
+    super.addLicenseHeaderStep(millSourcePath, steps)
 
     steps
   }
