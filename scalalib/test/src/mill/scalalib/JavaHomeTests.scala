@@ -107,7 +107,8 @@ object JavaHomeTests extends TestSuite {
         val eval = UnitTester(HelloJavaJavaHome11Override, resourcePath)
 
         val path = eval.evaluator.workspace / "java.version"
-        val Right(_) = eval.apply(HelloJavaJavaHome11Override.core.run(Task.Anon(Args(path)))): @unchecked
+        val Right(_) =
+          eval.apply(HelloJavaJavaHome11Override.core.run(Task.Anon(Args(path)))): @unchecked
 
         assert(
           os.read(path).startsWith("11.")
@@ -117,7 +118,8 @@ object JavaHomeTests extends TestSuite {
         val eval = UnitTester(HelloJavaJavaHome17Override, resourcePath)
 
         val path = eval.evaluator.workspace / "java.version"
-        val Right(_) = eval.apply(HelloJavaJavaHome17Override.core.run(Task.Anon(Args(path)))): @unchecked
+        val Right(_) =
+          eval.apply(HelloJavaJavaHome17Override.core.run(Task.Anon(Args(path)))): @unchecked
 
         assert(
           os.read(path).startsWith("17.")

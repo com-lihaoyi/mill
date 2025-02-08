@@ -22,9 +22,11 @@ object ScalaAmmoniteTests extends TestSuite {
   def tests: Tests = Tests {
 
     test("replAmmoniteMainClass") - UnitTester(AmmoniteReplMainClass, null).scoped { eval =>
-      val Right(result) = eval.apply(AmmoniteReplMainClass.oldAmmonite.ammoniteMainClass): @unchecked
+      val Right(result) =
+        eval.apply(AmmoniteReplMainClass.oldAmmonite.ammoniteMainClass): @unchecked
       assert(result.value == "ammonite.Main")
-      val Right(result2) = eval.apply(AmmoniteReplMainClass.newAmmonite.ammoniteMainClass): @unchecked
+      val Right(result2) =
+        eval.apply(AmmoniteReplMainClass.newAmmonite.ammoniteMainClass): @unchecked
       assert(result2.value == "ammonite.AmmoniteMain")
     }
 

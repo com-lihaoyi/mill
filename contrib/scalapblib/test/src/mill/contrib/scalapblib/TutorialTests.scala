@@ -127,7 +127,8 @@ object TutorialTests extends TestSuite {
         resourcePath
       ).scoped { eval =>
         if (!mill.main.client.Util.isWindows) {
-          val Right(result) = eval.apply(TutorialWithSpecificSources.core.compileScalaPB): @unchecked
+          val Right(result) =
+            eval.apply(TutorialWithSpecificSources.core.compileScalaPB): @unchecked
 
           val outPath = protobufOutPath(eval)
 

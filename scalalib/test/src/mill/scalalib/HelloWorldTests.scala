@@ -230,7 +230,8 @@ object HelloWorldTests extends TestSuite {
       test("failOnError") - UnitTester(HelloWorld, sourceRoot = resourcePath).scoped { eval =>
         os.write.append(HelloWorld.millSourcePath / "core/src/Main.scala", "val x: ")
 
-        val Left(Result.Failure("Compilation failed", _)) = eval.apply(HelloWorld.core.compile): @unchecked
+        val Left(Result.Failure("Compilation failed", _)) =
+          eval.apply(HelloWorld.core.compile): @unchecked
 
         val paths = EvaluatorPaths.resolveDestPaths(eval.outPath, HelloWorld.core.compile)
 

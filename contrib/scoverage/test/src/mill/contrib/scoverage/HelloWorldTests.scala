@@ -279,7 +279,8 @@ trait FailedWorldTests extends HelloWorldTests {
       val mod = HelloWorld
       test("shouldFail") {
         test("scoverageToolsCp") - UnitTester(mod, resourcePath).scoped { eval =>
-          val Left(Result.Failure(msg, _)) = eval.apply(mod.core.scoverageToolsClasspath): @unchecked
+          val Left(Result.Failure(msg, _)) =
+            eval.apply(mod.core.scoverageToolsClasspath): @unchecked
           assert(msg == errorMsg)
         }
         test("other") - UnitTester(mod, resourcePath).scoped { eval =>

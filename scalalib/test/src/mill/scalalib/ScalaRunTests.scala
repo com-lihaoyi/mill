@@ -35,7 +35,10 @@ object ScalaRunTests extends TestSuite {
         val runResult = eval.outPath / "core/runMain.dest/hello-mill"
 
         val Right(result) =
-          eval.apply(HelloWorldTests.HelloWorld.core.runMain("Main", runResult.toString)): @unchecked
+          eval.apply(HelloWorldTests.HelloWorld.core.runMain(
+            "Main",
+            runResult.toString
+          )): @unchecked
         assert(result.evalCount > 0)
 
         assert(
@@ -164,7 +167,8 @@ object ScalaRunTests extends TestSuite {
         HelloWorldWithoutMain,
         sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-no-main"
       ).scoped { eval =>
-        val Left(Result.Failure(_, None)) = eval.apply(HelloWorldWithoutMain.core.runLocal()): @unchecked
+        val Left(Result.Failure(_, None)) =
+          eval.apply(HelloWorldWithoutMain.core.runLocal()): @unchecked
       }
     }
   }

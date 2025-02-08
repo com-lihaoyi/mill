@@ -29,7 +29,8 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
           UnitTester(playmulti, resourcePath).scoped { eval =>
             val Right(conf) = eval.apply(playmulti.core(scalaVersion, playVersion).conf): @unchecked
             val Right(app) = eval.apply(playmulti.core(scalaVersion, playVersion).app): @unchecked
-            val Right(sources) = eval.apply(playmulti.core(scalaVersion, playVersion).sources): @unchecked
+            val Right(sources) =
+              eval.apply(playmulti.core(scalaVersion, playVersion).sources): @unchecked
             val Right(resources) =
               eval.apply(playmulti.core(scalaVersion, playVersion).resources): @unchecked
             val Right(testSources) =
@@ -84,7 +85,8 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
       test("resolvedRunIvyDeps") {
         matrix.foreach { case (scalaVersion, playVersion) =>
           UnitTester(playmulti, resourcePath).scoped { eval =>
-            val Right(_) = eval.apply(playmulti.core(scalaVersion, playVersion).resolvedRunIvyDeps): @unchecked
+            val Right(_) =
+              eval.apply(playmulti.core(scalaVersion, playVersion).resolvedRunIvyDeps): @unchecked
           }
         }
       }

@@ -96,7 +96,8 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
     ) = {
       val Right(runClasspathRes) = eval.apply(mod.runClasspath): @unchecked
       val Right(compileClasspathRes) = eval.apply(mod.compileClasspath): @unchecked
-      val Right(upstreamAssemblyClasspathRes) = eval.apply(mod.upstreamAssemblyClasspath): @unchecked
+      val Right(upstreamAssemblyClasspathRes) =
+        eval.apply(mod.upstreamAssemblyClasspath): @unchecked
       val Right(localClasspathRes) = eval.apply(mod.localClasspath): @unchecked
 
       val start = eval.evaluator.rootModule.millSourcePath
