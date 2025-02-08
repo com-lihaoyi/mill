@@ -112,7 +112,7 @@ index 67d3f94c143..98733778894 100644
    }
  
 diff --git a/docs/package.mill b/docs/package.mill
-index d558389312e..f19af6447c9 100644
+index d558389312e..11f8e5c3ce9 100644
 --- a/docs/package.mill
 +++ b/docs/package.mill
 @@ -40,8 +40,8 @@ object `package` extends RootModule {
@@ -160,7 +160,7 @@ index d558389312e..f19af6447c9 100644
 +    mill.util.Jvm.callProcess(
        "mill.main.graphviz.GraphvizTools",
 -      visualizeClassPath,
-+      classPath = visualizeClassPath,
++      classPath = visualizeClassPath.toSeq,
        mainArgs = orderedDiagrams.map { case (p, i, src, dest) => s"$src;$dest;svg" }
      )
  
