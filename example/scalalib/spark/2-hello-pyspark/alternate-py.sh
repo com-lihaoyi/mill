@@ -2,22 +2,69 @@
 
 DESIRED_VERSION="3.8.20"
 PREV_FILE="./previous-py.txt"
+PYENV_ROOT="$HOME/.pyenv"
+PYENV_BIN="$PYENV_ROOT/bin/pyenv"
 
-# Function to install pyenv if not already installed
+# Function to check if pyenv is functional using the full path
+is_pyenv_functional() {
+  if [ -x "$PYENV_BIN" ]; then
+    # Test if pyenv can list versions (basic functionality check)
+    if "$PYENV_BIN" versions --bare >/dev/null 2>&1; then
+      return 0 # pyenv is functional
+    fi
+  fi
+  return 1 # pyenv is not functional
+}
+
+# Function to add pyenv to the shell configuration
+add_pyenv_to_shell() {
+  echo "Adding pyenv to the shell configuration..."
+  export PYENV_ROOT="$HOME/.pyenv"
+  export PATH="$PYENV_ROOT/bin:$PATH"
+  eval "$(pyenv init --path)"
+  eval "$(pyenv init -)"
+  echo "pyenv added to the shell configuration."
+}
+
+# Function to install pyenv if not already installed or functional
 install_pyenv() {
-  if ! command -v pyenv >/dev/null 2>&1; then
-    echo "pyenv is not installed. Installing pyenv..."
+  if ! is_pyenv_functional; then
+    echo "pyenv is not functional. Attempting to fix..."
+
+    # If pyenv exists but is not in PATH, try adding it to the shell configuration
+    if [ -x "$PYENV_BIN" ]; then
+      echo "pyenv found at $PYENV_BIN. Adding to shell configuration..."
+      add_pyenv_to_shell
+
+      # Re-check if pyenv is now functional
+      if is_pyenv_functional; then
+        echo "pyenv is now functional."
+        return 0
+      else
+        echo "pyenv is still not functional after adding to shell configuration."
+      fi
+    fi
+
+    # If pyenv is still not functional, remove the directory and reinstall
+    echo "pyenv is not functional and cannot be fixed. Reinstalling pyenv..."
+    echo "Removing existing $PYENV_ROOT directory..."
+    rm -rf "$PYENV_ROOT" || { echo "Failed to remove $PYENV_ROOT directory."; exit 1; }
+
+    echo "Installing pyenv..."
     curl https://pyenv.run | bash || { echo "Failed to install pyenv."; exit 1; }
 
     # Add pyenv to the shell configuration
-    export PYENV_ROOT="$HOME/.pyenv"
-    export PATH="$PYENV_ROOT/bin:$PATH"
-    eval "$(pyenv init --path)"
-    eval "$(pyenv init -)"
+    add_pyenv_to_shell
 
-    echo "pyenv installed successfully."
+    # Verify pyenv is functional
+    if is_pyenv_functional; then
+      echo "pyenv installed successfully and is now functional."
+    else
+      echo "pyenv installation failed or is not functional."
+      exit 1
+    fi
   else
-    echo "pyenv is already installed."
+    echo "pyenv is already installed and functional."
   fi
 }
 
@@ -32,7 +79,7 @@ if [ "$#" -ne 1 ]; then
   usage
 fi
 
-# Ensure pyenv is installed
+# Ensure pyenv is installed and functional
 install_pyenv
 
 case "$1" in
