@@ -68,7 +68,7 @@ index 4f66e7cfeb7..1c608ae4d86 100644
  
  object bridge extends Cross[BridgeModule](compilerBridgeScalaVersions)
 diff --git a/dist/package.mill b/dist/package.mill
-index 67d3f94c143..d2e1b9d4d5d 100644
+index 67d3f94c143..98733778894 100644
 --- a/dist/package.mill
 +++ b/dist/package.mill
 @@ -3,7 +3,7 @@ import mill._, scalalib._, publish._
@@ -80,15 +80,20 @@ index 67d3f94c143..d2e1b9d4d5d 100644
  
  import scala.util.Using
  
-@@ -185,7 +185,7 @@ object `package` extends RootModule with InstallModule {
+@@ -185,10 +185,10 @@ object `package` extends RootModule with InstallModule {
          val wd = os.Path(wd0, Task.workspace)
          os.makeDir.all(wd)
          try {
 -          Jvm.runSubprocess(
-+          Jvm.callProcess(
++          os.call(
              Seq(launcher().path.toString) ++ rest,
-             forkEnv(),
-             workingDir = wd
+-            forkEnv(),
+-            workingDir = wd
++            env = forkEnv(),
++            cwd = wd
+           )
+           mill.api.Result.Success(())
+         } catch {
 @@ -263,6 +263,7 @@ object `package` extends RootModule with InstallModule {
    }
  
@@ -107,7 +112,7 @@ index 67d3f94c143..d2e1b9d4d5d 100644
    }
  
 diff --git a/docs/package.mill b/docs/package.mill
-index d558389312e..11204492f2b 100644
+index d558389312e..f19af6447c9 100644
 --- a/docs/package.mill
 +++ b/docs/package.mill
 @@ -40,8 +40,8 @@ object `package` extends RootModule {
@@ -147,15 +152,18 @@ index d558389312e..11204492f2b 100644
      )
      PathRef(workDir / "build/site")
    }
-@@ -161,7 +161,7 @@ object `package` extends RootModule {
+@@ -161,9 +161,9 @@ object `package` extends RootModule {
        (p, i, os.temp(s), os.temp.dir())
      }
  
 -    mill.util.Jvm.runSubprocess(
 +    mill.util.Jvm.callProcess(
        "mill.main.graphviz.GraphvizTools",
-       visualizeClassPath,
+-      visualizeClassPath,
++      classPath = visualizeClassPath,
        mainArgs = orderedDiagrams.map { case (p, i, src, dest) => s"$src;$dest;svg" }
+     )
+ 
 diff --git a/mill-build/build.mill b/mill-build/build.mill
 index 957d929826d..112f1aaccb8 100644
 --- a/mill-build/build.mill
