@@ -1,3 +1,5 @@
+package hello;
+
 interface Parent {
   default int used() {
     return 2;

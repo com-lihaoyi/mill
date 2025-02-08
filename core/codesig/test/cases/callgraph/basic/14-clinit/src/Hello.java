@@ -1,3 +1,5 @@
+package hello;
+
 class Foo {
   static {
     initFoo();

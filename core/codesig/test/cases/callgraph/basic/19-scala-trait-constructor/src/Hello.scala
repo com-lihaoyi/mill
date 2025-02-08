@@ -1,3 +1,8 @@
+/**
+ * Make sure we handle the case.
+ */
+
+package hello
 
 trait MyTrait {
   Hello.used()

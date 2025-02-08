@@ -1,3 +1,5 @@
+package hello
+
 object Hello {
 
   trait MyFunction0[T] {

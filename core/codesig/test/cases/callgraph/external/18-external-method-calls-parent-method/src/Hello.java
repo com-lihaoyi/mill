@@ -1,3 +1,5 @@
+package hello;
+
 class Foo extends Parent {
   void called() {
     System.out.println("called");

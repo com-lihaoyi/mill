@@ -1,3 +1,4 @@
+package hello
 
 trait MyModule {
   def x = "123"

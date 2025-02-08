@@ -1,3 +1,5 @@
+package hello
+
 object Hello {
   class TestElements() extends TestIterator
 

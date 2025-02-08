@@ -1,3 +1,5 @@
+package hello;
+
 abstract class GrandParent {
   public int foo() {
     return 1;

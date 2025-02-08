@@ -1,3 +1,5 @@
+package hello;
+
 // Make sure that when we call external methods, we only generate conservative
 // call graph edges to local methods that are defined on the external class
 // that we called the external method on.

@@ -1,3 +1,5 @@
+package hello;
+
 public class Hello {
   public static int main() {
     return used() + new Hello[10].clone().length + new Hello[10].hashCode();

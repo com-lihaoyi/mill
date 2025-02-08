@@ -1,3 +1,5 @@
+package hello;
+
 // Test the case where we extend an external interface and implement a method,
 // but call a *separate* method on the interface that might call the method we
 // implemented. Because we do not analyze the call graph of external classes,

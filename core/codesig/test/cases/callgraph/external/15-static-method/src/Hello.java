@@ -1,3 +1,5 @@
+package hello;
+
 // Make sure that we create external call graph edges when calling external
 // static methods too.
 class Foo {

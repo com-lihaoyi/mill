@@ -1,3 +1,4 @@
+package hello
 
 trait TestIter[+A] {
   def hasNext: Boolean

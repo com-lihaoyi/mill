@@ -1,3 +1,5 @@
+package hello;
+
 class Parent {
   public int used() {
     return 2;

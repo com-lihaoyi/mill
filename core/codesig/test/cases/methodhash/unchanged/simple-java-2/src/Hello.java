@@ -1,3 +1,5 @@
+package hello;
+
 /**
  * Very verbose Javadoc comment on top of class
  */

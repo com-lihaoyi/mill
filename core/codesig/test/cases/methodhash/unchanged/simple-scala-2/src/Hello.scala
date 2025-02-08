@@ -1,3 +1,5 @@
+package hello
+
 /**
  * Very verbose Scaladoc comment on top of class
  */

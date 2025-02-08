@@ -1,3 +1,5 @@
+package hello;
+
 // We implement a method for an external interface we do not call anywhere.
 //
 // This should not appear in the call graph

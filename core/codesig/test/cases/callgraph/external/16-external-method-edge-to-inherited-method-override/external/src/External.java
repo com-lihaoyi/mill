@@ -1,3 +1,5 @@
+package hello;
+
 interface Grandparent {
   default void doGrandThingConcrete() {
     System.out.println("Running doGrandThingConcrete");

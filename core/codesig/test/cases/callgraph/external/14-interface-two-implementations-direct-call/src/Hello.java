@@ -1,3 +1,5 @@
+package hello;
+
 // When an external interface is implemented multiple times, but when we call
 // its method we call it on a specific subclass, we can be sure we are only
 // calling that specific implementation and not any of the other

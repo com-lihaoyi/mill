@@ -1,3 +1,5 @@
+package hello;
+
 abstract class Grandparent {
   public void doGrandThingConcrete() {
     doGrandThingAbstract();

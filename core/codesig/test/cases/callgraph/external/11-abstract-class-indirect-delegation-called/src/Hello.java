@@ -1,3 +1,5 @@
+package hello;
+
 // We implement an external interface, and never even call that method but
 // instead pass it to some other third-party code (the `InputStreamReader`
 // constructor) that calls that method.

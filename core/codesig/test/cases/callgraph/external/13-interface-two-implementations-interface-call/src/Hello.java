@@ -1,3 +1,5 @@
+package hello;
+
 // When an external interface is implemented multiple times, only instantiated
 // once, but we only make the virtual call through the interface. We cannot be
 // sure we are only calling that specific implementation and not any of the

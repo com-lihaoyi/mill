@@ -1,3 +1,5 @@
+package hello
+
 import scala.collection.AbstractIterator
 
 object Hello {

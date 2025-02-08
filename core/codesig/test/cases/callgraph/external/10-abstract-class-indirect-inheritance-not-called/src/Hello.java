@@ -1,3 +1,5 @@
+package hello;
+
 // We implement an external interface, but end up calling a method on another
 // external interface that is the parent of the first, and does not include the
 // method we implemented.

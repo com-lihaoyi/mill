@@ -1,3 +1,5 @@
+package hello;
+
 import java.util.function.DoubleSupplier;
 
 // We implement a method for an external interface we do not call anywhere.

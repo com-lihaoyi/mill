@@ -1,3 +1,5 @@
+package hello;
+
 // Test the case where we extend an external interface and implement a method,
 // but call a *separate* method on the interface that might call the method we
 // implemented, but because this is a SAM method we instead consider it called

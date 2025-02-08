@@ -1,11 +1,11 @@
+package hello
+
 // Taken from https://github.com/handsonscala/handsonscala/blob/ebc0367144513fc181281a024f8071a6153be424/examples/13.7%20-%20ParallelMergeSort/MergeSort.sc
 import mainargs.main
 
 object Main {
 
-  import java.util.concurrent.Executors
-  import scala.concurrent.*
-  import duration.Duration.Inf
+  import scala.concurrent._, duration.Duration.Inf, java.util.concurrent.Executors
 
   implicit val ec: ExecutionContextExecutorService =
     ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(8))

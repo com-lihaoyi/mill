@@ -1,3 +1,5 @@
+package hello;
+
 // We instantiate this and call its method, so we record that in
 // the call graph.
 class Foo implements java.util.Enumeration<Integer> {
