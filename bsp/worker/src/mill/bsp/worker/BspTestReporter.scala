@@ -40,7 +40,7 @@ import java.io.{PrintWriter, StringWriter}
 private class BspTestReporter(
     client: BuildClient,
     targetId: BuildTargetIdentifier,
-    taskId: TaskId,
+    taskId: TaskId
 ) extends TestReporter {
 
   var passed = 0

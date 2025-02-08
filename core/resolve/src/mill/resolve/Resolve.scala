@@ -1,7 +1,17 @@
 package mill.resolve
 
 import mainargs.{MainData, TokenGrouping}
-import mill.define.{BaseModule, Command, Discover, Module, ModuleTask, NamedTask, Reflect, Segments, TaskModule}
+import mill.define.{
+  BaseModule,
+  Command,
+  Discover,
+  Module,
+  ModuleTask,
+  NamedTask,
+  Reflect,
+  Segments,
+  TaskModule
+}
 import mill.internal.EitherOps
 import mill.resolve.ResolveCore.{Resolved, makeResultException}
 

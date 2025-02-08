@@ -491,7 +491,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
         "-Wconf:msg=import scala.language.implicitConversions:silent",
         "-Wconf:msg=IterableOnceExtensionMethods:silent",
         "-Wconf:msg=is deprecated:silent",
-        "-Wconf:msg=cannot be checked at runtime:silent",
+        "-Wconf:msg=cannot be checked at runtime:silent"
         // "-no-indent",
         // "-Wvalue-discard",
         // "-Wshadow:all",

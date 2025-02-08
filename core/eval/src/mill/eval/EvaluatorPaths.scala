@@ -5,9 +5,7 @@ import mill.define.{NamedTask, Segment, Segments}
 
 import java.util.regex.Matcher
 
-case class EvaluatorPaths private (dest: os.Path, meta: os.Path, log: os.Path) {
-
-}
+case class EvaluatorPaths private (dest: os.Path, meta: os.Path, log: os.Path) {}
 
 object EvaluatorPaths {
 

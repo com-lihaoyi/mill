@@ -2,7 +2,12 @@ package mill.main.buildgen
 
 import mainargs.{Flag, arg}
 import mill.main.buildgen.BuildObject.Companions
-import mill.main.client.CodeGenConstants.{buildFileExtensions, nestedBuildFileNames, rootBuildFileNames, rootModuleAlias}
+import mill.main.client.CodeGenConstants.{
+  buildFileExtensions,
+  nestedBuildFileNames,
+  rootBuildFileNames,
+  rootModuleAlias
+}
 import mill.main.client.OutFiles
 import mill.runner.FileImportGraph.backtickWrap
 

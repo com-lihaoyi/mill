@@ -47,7 +47,7 @@ private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServe
           classpath.iterator.toSeq.asJava,
           sanitizeUri(classesPath.resolve(pathResolver))
         )
-        
+
       case _ => ???
     } {
       new JavacOptionsResult(_)
