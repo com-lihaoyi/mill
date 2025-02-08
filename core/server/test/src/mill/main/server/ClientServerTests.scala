@@ -230,8 +230,6 @@ object ClientServerTests extends TestSuite {
       // to interrupt such an execution. The two options are to leave the server running
       // for an unbounded duration, or kill the server process and take a performance hit
       // on the next cold startup. Mill chooses the second option.
-      import concurrent._
-      import concurrent.ExecutionContext.Implicits.global
       val res1 = intercept[Exception] {
         tester.apply(args = Array(" World"), forceFailureForTestingMillisDelay = 100)
       }

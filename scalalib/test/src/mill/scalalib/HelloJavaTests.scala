@@ -5,7 +5,7 @@ import mill.api.Result
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest.*
-import mill.define.{Discover, ModuleRef}
+import mill.define.Discover
 
 object HelloJavaTests extends TestSuite {
 

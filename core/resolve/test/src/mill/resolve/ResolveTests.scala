@@ -1,10 +1,10 @@
 package mill.resolve
 
-import mill.define.{Discover, NamedTask, TaskModule, ModuleRef}
+import mill.define.Discover
 import mill.util.TestGraphs
 import mill.util.TestGraphs._
 import mill.testkit.TestBaseModule
-import mill.{Task, Module, Cross}
+import mill.{Task, Module}
 import utest._
 object ResolveTests extends TestSuite {
 

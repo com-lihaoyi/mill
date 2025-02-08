@@ -6,7 +6,6 @@ import mill.define.Discover
 import mill.eval.EvaluatorPaths
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.{DepSyntax, PublishModule, ScalaModule, TestModule}
-import mill.testrunner.TestResult
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.scalanativelib.api._
 import mill.testkit.UnitTester

@@ -1,11 +1,10 @@
 package mill.scalalib
 
 import mill._
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.UnitTester
 import utest._
 
 import java.util.jar.JarFile
-import scala.util.Using
 import HelloWorldTests._
 object ScalaAssemblyTests extends TestSuite with ScalaAssemblyTestUtils {
 

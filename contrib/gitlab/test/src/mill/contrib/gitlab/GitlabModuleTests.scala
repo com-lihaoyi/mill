@@ -1,12 +1,11 @@
 package mill.contrib.gitlab
 
-import mill.{T, Task}
+import mill.T
 import mill.api.Result.Failure
 import mill.define.Discover
 import mill.scalalib.publish.PomSettings
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import utest.framework.TestPath
 import utest.{TestSuite, Tests, assertMatch, test}
 import mill.main.TokenReaders._
 object GitlabModuleTests extends TestSuite {

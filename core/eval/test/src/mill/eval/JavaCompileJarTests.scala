@@ -1,8 +1,7 @@
 package mill.eval
 
-import mill.util.{Jvm, TestUtil}
+import mill.util.Jvm
 import mill.api.Ctx.Dest
-import mill.{T, Task}
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import mill.api.Strict.Agg
@@ -10,7 +9,6 @@ import mill.api.{JarManifest, Loose}
 import utest.*
 import mill.*
 import mill.define.{Discover, Task}
-import mill.main.TokenReaders.*
 
 object JavaCompileJarTests extends TestSuite {
   def compileAll(sources: mill.api.Loose.Agg[mill.api.PathRef])(implicit ctx: Dest) = {

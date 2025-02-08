@@ -3,9 +3,7 @@ package mill.scalalib
 import mill.define.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import mill.eval.Evaluator
 import utest.*
-import utest.framework.TestPath
 import mill.main.TokenReaders._
 
 object CoursierMirrorTests extends TestSuite {

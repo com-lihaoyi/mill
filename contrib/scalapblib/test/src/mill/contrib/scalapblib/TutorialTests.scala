@@ -5,7 +5,6 @@ import mill.api.PathRef
 import mill.define.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import utest.framework.TestPath
 import utest.{TestSuite, Tests, assert, *}
 
 object TutorialTests extends TestSuite {

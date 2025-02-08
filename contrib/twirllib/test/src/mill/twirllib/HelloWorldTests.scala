@@ -3,7 +3,6 @@ package mill.twirllib
 import mill.define.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import utest.framework.TestPath
 import utest.{TestSuite, Tests, assert, *}
 
 trait HelloWorldTests extends TestSuite {

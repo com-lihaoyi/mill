@@ -2,7 +2,7 @@ package mill.scalalib
 
 import scala.util.Properties
 import mill.api.Result
-import mill.testkit.{UnitTester, TestBaseModule}
+import mill.testkit.UnitTester
 import utest._
 
 // Ensure the assembly is runnable, even if we have assembled lots of dependencies into it

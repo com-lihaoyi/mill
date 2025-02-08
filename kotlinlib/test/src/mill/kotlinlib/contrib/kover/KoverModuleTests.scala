@@ -4,7 +4,6 @@ import mill.define.Discover
 import mill.main.TokenReaders._
 import mill.kotlinlib.{DepSyntax, KotlinModule}
 import mill.kotlinlib.TestModule
-import mill.kotlinlib.kover.{Kover, KoverModule}
 import mill.testkit.{TestBaseModule, UnitTester}
 import mill.{Agg, T, Task, api}
 import utest.{TestSuite, Tests, assert, test}

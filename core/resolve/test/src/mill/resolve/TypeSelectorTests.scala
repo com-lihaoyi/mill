@@ -1,9 +1,8 @@
 package mill.resolve
 
-import mill.define.{Discover, ModuleRef, NamedTask, TaskModule}
+import mill.define.Discover
 import mill.testkit.TestBaseModule
 import mill.util.TestGraphs
-import mill.util.TestGraphs.*
 import mill.{Cross, Module, Task}
 import utest.*
 
@@ -81,7 +80,6 @@ object TypeSelectorTests extends TestSuite {
 
   val tests = Tests {
     val graphs = new mill.util.TestGraphs()
-    import graphs.*
     test("typeSelector") {
       val check = new Checker(TypedModules)
       test - check(

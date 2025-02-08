@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import mill._
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.UnitTester
 import utest._
 
 import java.util.jar.JarFile

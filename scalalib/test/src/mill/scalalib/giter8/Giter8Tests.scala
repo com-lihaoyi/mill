@@ -5,7 +5,6 @@ import mill.testkit.TestBaseModule
 import utest.*
 import mill.api.Loose.Agg
 import mill.define.Discover
-import os.Path
 
 object Giter8Tests extends TestSuite {
 

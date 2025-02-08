@@ -3,7 +3,6 @@ package mill.scalalib
 import mill.*
 import mill.define.Discover
 import utest.*
-import utest.framework.TestPath
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 

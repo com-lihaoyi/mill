@@ -2,8 +2,8 @@ package mill.util
 import TestUtil.test
 import mainargs.arg
 import mill.testkit.TestBaseModule
-import mill.define.{Command, Cross, Discover, DynamicModule, ModuleRef, TaskModule}
-import mill.{Module, T, Task}
+import mill.define.{Command, Cross, Discover, TaskModule}
+import mill.{Module, Task}
 
 /**
  * Example dependency graphs for us to use in our test suite.

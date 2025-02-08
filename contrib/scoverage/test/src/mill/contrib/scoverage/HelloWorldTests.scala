@@ -8,7 +8,6 @@ import mill.scalalib.{DepSyntax, SbtModule, ScalaModule, TestModule}
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest.*
-import utest.framework.TestPath
 
 trait HelloWorldTests extends utest.TestSuite {
   def threadCount: Option[Int] = Some(1)

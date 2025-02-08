@@ -1,7 +1,7 @@
 package mill.eval
 
 import utest.*
-import mill.{T, Task}
+import mill.Task
 import mill.define.{Discover, Module, Worker}
 import mill.testkit.UnitTester
 import mill.testkit.UnitTester.Result

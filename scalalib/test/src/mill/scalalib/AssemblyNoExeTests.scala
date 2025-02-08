@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import mill.testkit.{UnitTester, TestBaseModule}
+import mill.testkit.UnitTester
 import utest._
 
 object AssemblyNoExeTests extends TestSuite with AssemblyTestUtils {

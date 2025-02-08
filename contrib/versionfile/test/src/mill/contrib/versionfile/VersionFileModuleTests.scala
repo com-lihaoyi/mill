@@ -1,9 +1,8 @@
 package mill.contrib.versionfile
 
-import mill.{T, Task}
+import mill.Task
 import mill.testkit.{UnitTester, TestBaseModule}
-import utest.{TestSuite, Tests, assert, assertMatch, test}
-import utest.framework.TestPath
+import utest.{TestSuite, Tests, assert, test}
 import mill.main.TokenReaders._
 import mill.define.Discover
 object VersionFileModuleTests extends TestSuite {

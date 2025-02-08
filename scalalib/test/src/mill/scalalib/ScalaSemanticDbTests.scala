@@ -1,6 +1,5 @@
 package mill.scalalib
 
-import mill.scalalib.HelloWorldTests.SemanticModule
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.*
 import HelloWorldTests.*

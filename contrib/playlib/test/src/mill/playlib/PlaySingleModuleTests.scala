@@ -1,7 +1,7 @@
 package mill.playlib
 
 import mill.define.Discover
-import mill.{T, Task}
+import mill.Task
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.{TestSuite, Tests, assert, _}
 import mill.main.TokenReaders._

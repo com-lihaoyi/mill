@@ -1,14 +1,11 @@
 package mill.eval
 
-import mill.util.TestUtil.Test
 import mill.define.{Discover, TargetImpl, Task}
-import mill.{T, Module}
-import mill.util.{TestGraphs, TestUtil}
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.Module
+import mill.util.TestGraphs
+import mill.testkit.TestBaseModule
 import mill.api.Strict.Agg
-import os.SubPath
 import utest.*
-import utest.framework.TestPath
 
 object OverrideTests extends TestSuite {
   trait BaseModule extends Module {
@@ -95,7 +92,6 @@ object OverrideTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
   val tests = Tests {
-    import TestGraphs._
     import utest._
 
     test("overrideSuperTask") {

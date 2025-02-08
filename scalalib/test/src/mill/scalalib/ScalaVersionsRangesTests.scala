@@ -5,7 +5,6 @@ import mill.define.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest.*
-import utest.framework.TestPath
 
 object ScalaVersionsRangesTests extends TestSuite {
   object ScalaVersionsRanges extends TestBaseModule {

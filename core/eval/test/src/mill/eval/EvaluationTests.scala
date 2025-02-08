@@ -2,13 +2,10 @@ package mill.eval
 
 import mill.util.TestUtil.Test
 import mill.define.{Discover, TargetImpl, Task}
-import mill.{T, Module}
 import mill.util.{TestGraphs, TestUtil}
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.TestBaseModule
 import mill.api.Strict.Agg
-import os.SubPath
 import utest.*
-import utest.framework.TestPath
 
 object EvaluationTestsThreads1 extends EvaluationTests(threadCount = Some(1))
 object EvaluationTestsThreads4 extends EvaluationTests(threadCount = Some(3))

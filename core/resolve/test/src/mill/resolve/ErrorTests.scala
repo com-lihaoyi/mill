@@ -1,6 +1,6 @@
 package mill.resolve
 
-import mill.define.{Discover, ModuleRef, NamedTask, TaskModule}
+import mill.define.{Discover, ModuleRef}
 import mill.testkit.TestBaseModule
 import mainargs.arg
 import mill.{Cross, Module, Task}

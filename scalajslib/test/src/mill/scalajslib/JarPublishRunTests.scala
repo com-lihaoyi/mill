@@ -1,12 +1,8 @@
 package mill.scalajslib
 
 import mill._
-import mill.define.Discover
 import mill.eval.EvaluatorPaths
-import mill.scalalib.api.ZincWorkerUtil
-import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
-import mill.scalalib.{DepSyntax, PublishModule, ScalaModule, TestModule}
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.UnitTester
 import utest._
 
 import java.util.jar.JarFile

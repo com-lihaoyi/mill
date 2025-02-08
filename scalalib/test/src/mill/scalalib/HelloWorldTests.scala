@@ -1,18 +1,16 @@
 package mill.scalalib
 
-import java.io.{ByteArrayOutputStream, PrintStream}
+import java.io.ByteArrayOutputStream
 import java.util.jar.JarFile
 import scala.jdk.CollectionConverters.*
-import scala.util.{Properties, Using}
+import scala.util.Using
 import mill.*
 import mill.api.Result
-import mill.define.{Discover, NamedTask}
-import mill.eval.{Evaluator, EvaluatorPaths}
+import mill.define.Discover
+import mill.eval.EvaluatorPaths
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import mill.util.TestUtil
 import utest.*
-import utest.framework.TestPath
 
 object HelloWorldTests extends TestSuite {
 

@@ -1,6 +1,5 @@
 package mill.scalalib
 
-import coursier.util.StringInterpolators.SafeModule
 import mill.Agg
 import mill.define.{Discover, Task}
 import mill.testkit.UnitTester

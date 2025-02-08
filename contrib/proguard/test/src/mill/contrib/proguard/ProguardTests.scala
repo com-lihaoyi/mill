@@ -8,7 +8,6 @@ import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import os.Path
 import utest.*
-import utest.framework.TestPath
 
 object ProguardTests extends TestSuite {
 

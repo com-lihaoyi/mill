@@ -185,7 +185,7 @@ object BuildInfoTests extends TestSuite {
 
     test("scalajs") - UnitTester(BuildInfoScalaJS, testModuleSourcesPath / "scala-simple").scoped {
       eval =>
-        val runResult = eval.outPath / "hello-mill"
+        eval.outPath / "hello-mill"
         assert(eval.apply(BuildInfoScalaJS.fastLinkJS).isRight)
     }
 

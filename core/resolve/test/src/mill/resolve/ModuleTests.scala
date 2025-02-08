@@ -163,7 +163,6 @@ object ModuleTests extends TestSuite {
 
   val tests = Tests {
     val graphs = new mill.util.TestGraphs()
-    import graphs.*
 
     test("cross") {
       test("single") {

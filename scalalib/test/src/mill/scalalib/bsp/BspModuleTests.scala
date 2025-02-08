@@ -2,12 +2,11 @@ package mill.scalalib.bsp
 
 import mill.define.{Cross, Discover}
 import mill.eval.EvaluatorPaths
-import mill.{Agg, T, Task}
+import mill.{Agg, T}
 import mill.scalalib.{DepSyntax, JavaModule, ScalaModule}
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import os.FilePath
-import utest.framework.TestPath
 import utest.{TestSuite, Tests, test, *}
 import mill.main.TokenReaders._
 

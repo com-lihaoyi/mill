@@ -5,7 +5,6 @@ import mill.testkit.UnitTester
 import sbt.testing.Status
 import utest._
 
-import java.io.{ByteArrayOutputStream, PrintStream}
 
 object TestRunnerUtestTests extends TestSuite {
   import TestRunnerTestUtils._

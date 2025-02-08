@@ -5,12 +5,11 @@ import mill.define.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import mill.main.TokenReaders._
-import mill.{Agg, T, Task}
+import mill.{Agg, Task}
 import os.Path
 import sbt.testing.Status
 import utest.*
 
-import java.io.{ByteArrayOutputStream, PrintStream}
 import scala.xml.{Elem, NodeSeq, XML}
 
 object TestRunnerTestUtils {

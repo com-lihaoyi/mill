@@ -1,14 +1,9 @@
 package mill.eval
 
-import mill.util.TestUtil.Test
-import mill.define.{Discover, TargetImpl, Task}
-import mill.{T, Module}
-import mill.util.{TestGraphs, TestUtil}
+import mill.define.Task
 import mill.testkit.{TestBaseModule, UnitTester}
 import mill.api.Strict.Agg
-import os.SubPath
 import utest.*
-import utest.framework.TestPath
 
 class Checker[T <: mill.testkit.TestBaseModule](module: T, threadCount: Option[Int] = Some(1)) {
   // Make sure data is persisted even if we re-create the evaluator each time
