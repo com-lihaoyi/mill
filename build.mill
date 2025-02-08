@@ -766,7 +766,7 @@ def validate(): Command[Unit] = {
   Task.Command {
     Task.sequence(tasks)()
     mill.scalalib.scalafmt.ScalafmtModule.checkFormatAll(Tasks(sources))()
-    build.docs.localPages()
+    build.site.localPages()
     ()
   }
 }
