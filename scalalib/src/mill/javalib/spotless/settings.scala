@@ -257,8 +257,8 @@ case class KotlinConfig(
     val steps = new ArrayList[FormatterStep]()
 
     if (ktfmtFlag) {
-      var options:KtfmtFormattingOptions = null
-        if (ktfmtOptions.isDefined) {
+      var options: KtfmtFormattingOptions = null
+      if (ktfmtOptions.isDefined) {
         options = new KtfmtFormattingOptions(
           ktfmtOptions.flatMap(_.maxWidth).map(Integer.valueOf).orNull,
           ktfmtOptions.flatMap(_.blockIndent).map(Integer.valueOf).orNull,

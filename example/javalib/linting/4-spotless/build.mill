@@ -46,7 +46,7 @@ object `package` extends RootModule with ScalaSpotlessModule {
     scalafmtConfigFile = Some("scalafmt.conf")
   )
 }
-*/
+ */
 
 /*
 // See https://github.com/diffplug/spotless/tree/main/plugin-gradle#kotlin
@@ -64,7 +64,7 @@ object `package` extends RootModule with KotlinSpotlessModule {
     .ktfmtOptions(ktfmtOptions)
     .ktlint("1.5.0")
 }
-*/
+ */
 
 // To use this plugin in a Java/Kotlin/Scala module,
 //
