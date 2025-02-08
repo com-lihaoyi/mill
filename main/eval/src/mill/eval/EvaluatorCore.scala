@@ -5,7 +5,6 @@ import mill.api.Strict.Agg
 import mill.api._
 import mill.define._
 import mill.eval.Evaluator.TaskResult
-import mill.util._
 import mill.internal.{PrefixLogger, MultiBiMap}
 
 import java.util.concurrent.ConcurrentHashMap
@@ -125,7 +124,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
         } else {
           futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
             try {
-              val countMsg = mill.util.Util.leftPad(
+              val countMsg = mill.internal.Util.leftPad(
                 count.getAndIncrement().toString,
                 terminals.length.toString.length,
                 '0'

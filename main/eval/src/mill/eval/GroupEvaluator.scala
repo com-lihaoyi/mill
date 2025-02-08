@@ -4,9 +4,9 @@ import mill.api.Result.{OuterStack, Success}
 import mill.api.Strict.Agg
 import mill.api.*
 import mill.define.*
+import mill.internal.MultiLogger
 import mill.eval.Evaluator.TaskResult
 import mill.internal.FileLogger
-import mill.util.*
 
 import java.lang.reflect.Method
 import scala.collection.mutable

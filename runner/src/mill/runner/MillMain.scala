@@ -6,7 +6,7 @@ import java.nio.file.StandardOpenOption
 import java.util.Locale
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
-import mill.api.{MillException, SystemStreams, WorkspaceRoot, internal}
+import mill.api.{ColorLogger, MillException, SystemStreams, WorkspaceRoot, internal}
 import mill.bsp.{BspContext, BspServerResult}
 import mill.main.BuildInfo
 import mill.main.client.{OutFiles, ServerFiles, Util}
@@ -358,7 +358,7 @@ object MillMain {
       serverDir: os.Path,
       colored: Boolean,
       colors: Colors
-  ): mill.util.ColorLogger = {
+  ): ColorLogger = {
 
     val logger = if (config.disablePrompt.value) {
       new mill.internal.PrintLogger(

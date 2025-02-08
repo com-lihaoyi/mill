@@ -57,7 +57,7 @@ object MainModule {
     // printed JSON is the only thing printed to stdout.
     val redirectLogger = log
       .withOutStream(evaluator.baseLogger.errorStream)
-      .asInstanceOf[mill.util.ColorLogger]
+      .asInstanceOf[ColorLogger]
 
     RunScript.evaluateTasksNamed(
       evaluator.withBaseLogger(redirectLogger),

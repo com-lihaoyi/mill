@@ -1,7 +1,6 @@
 package mill.internal
 
-import mill.api.SystemStreams
-import mill.util.ColorLogger
+import mill.api.{ColorLogger, SystemStreams}
 import mill.internal.{AnsiNav, PrintLogger}
 
 import java.io.*

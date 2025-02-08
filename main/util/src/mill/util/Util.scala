@@ -41,20 +41,6 @@ object Util {
       .reverse
   }
 
-  def download(url: String, dest: os.RelPath = os.rel / "download")(implicit
-      ctx: Ctx.Dest
-  ): PathRef = {
-    val out = ctx.dest / dest
-    val website = new java.net.URI(url).toURL
-    val websiteInputStream = website.openStream
-    try {
-      Files.copy(websiteInputStream, out.toNIO)
-      PathRef(out)
-    } finally {
-      websiteInputStream.close()
-    }
-  }
-
   /**
    * Deprecated helper method, intended to allow runtime resolution and in-development-tree testings of mill plugins possible.
    * This design has issues and will probably be replaced.

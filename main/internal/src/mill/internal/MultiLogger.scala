@@ -1,7 +1,7 @@
-package mill.util
+package mill.internal
 
 import fansi.Attrs
-import mill.api.{Logger, SystemStreams}
+import mill.api.{ColorLogger, Logger, SystemStreams}
 
 import java.io.{InputStream, OutputStream, PrintStream}
 
