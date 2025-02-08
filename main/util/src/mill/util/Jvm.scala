@@ -426,8 +426,6 @@ object Jvm extends CoursierSupport {
     )
   }
 
-
-
   /**
    * Create a JAR file with default inflation level.
    *
@@ -445,13 +443,13 @@ object Jvm extends CoursierSupport {
    *                  Having a stable timestamp may result in reproducible files, if all other content, including the JAR Manifest, keep stable.
    */
   def createJar(
-           jar: os.Path,
-           inputPaths: Agg[os.Path],
-           manifest: JarManifest = JarManifest.Empty,
-           fileFilter: (os.Path, os.RelPath) => Boolean = (_, _) => true,
-           includeDirs: Boolean = false,
-           timestamp: Option[Long] = None
-         ): os.Path = {
+      jar: os.Path,
+      inputPaths: Agg[os.Path],
+      manifest: JarManifest = JarManifest.Empty,
+      fileFilter: (os.Path, os.RelPath) => Boolean = (_, _) => true,
+      includeDirs: Boolean = false,
+      timestamp: Option[Long] = None
+  ): os.Path = {
 
     val curTime = timestamp.getOrElse(System.currentTimeMillis())
 

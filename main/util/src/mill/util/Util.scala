@@ -14,7 +14,6 @@ object Util {
 
   val windowsPlatform: Boolean = System.getProperty("os.name").startsWith("Windows")
 
-
   private val LongMillProps = new java.util.Properties()
 
   {

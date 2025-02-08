@@ -166,7 +166,8 @@ object MillMain {
           case Right(config) =>
             val noColorViaEnv = env.get("NO_COLOR").exists(_.nonEmpty)
             val colored = config.color.getOrElse(mainInteractive && !noColorViaEnv)
-            val colors = if (colored) mill.internal.Colors.Default else mill.internal.Colors.BlackWhite
+            val colors =
+              if (colored) mill.internal.Colors.Default else mill.internal.Colors.BlackWhite
 
             if (!config.silent.value) {
               checkMillVersionFromFile(WorkspaceRoot.workspaceRoot, streams.err)

@@ -15,4 +15,3 @@ object DummyOutputStream extends OutputStream {
   override def write(b: Array[Byte]): Unit = ()
   override def write(b: Array[Byte], off: Int, len: Int): Unit = ()
 }
-
