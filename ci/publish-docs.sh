@@ -3,7 +3,7 @@
 set -eu
 
 # Build the pages
-./mill -i site.githubPages
+./mill -i website.githubPages
 
 # Prepare ssh-key for git actions
 echo $REPO_DEPLOY_KEY | base64 --decode > deploy_key
@@ -24,7 +24,7 @@ git worktree add -b gh-pages gh-pages origin/gh-pages
 
 # we want to keep history, so we prepare a new commit
 rm -r ${PAGES_REPO}/*
-cp -r out/site/githubPages.dest/site/* ${PAGES_REPO}/
+cp -r out/website/githubPages.dest/site/* ${PAGES_REPO}/
 touch ${PAGES_REPO}/.nojekyll
 
 cd $PAGES_REPO
