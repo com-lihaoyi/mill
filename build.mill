@@ -484,7 +484,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
     ) ++ (
       if (ZincWorkerUtil.isScala3(scalaVersion())) Seq(
         // "-Werror",
-        "-Wunused:all",
+        "-Wunused:all"
         // "-no-indent",
         // "-Wvalue-discard",
         // "-Wshadow:all",
@@ -524,7 +524,8 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
 
   /** Default tests module. */
   lazy val test: MillScalaTests = new MillScalaTests {}
-  trait MillScalaTests extends ScalaTests with MillJavaModule with MillBaseTestsModule with ScalafixModule{
+  trait MillScalaTests extends ScalaTests with MillJavaModule with MillBaseTestsModule
+      with ScalafixModule {
     def scalafixConfig = T { Some(T.workspace / ".scalafix.conf") }
     def forkArgs = super.forkArgs() ++ outer.testArgs()
     def moduleDeps = outer.testModuleDeps
