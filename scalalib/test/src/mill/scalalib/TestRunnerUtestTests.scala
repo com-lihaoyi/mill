@@ -5,7 +5,6 @@ import mill.testkit.UnitTester
 import sbt.testing.Status
 import utest._
 
-
 object TestRunnerUtestTests extends TestSuite {
   import TestRunnerTestUtils._
   override def tests: Tests = Tests {

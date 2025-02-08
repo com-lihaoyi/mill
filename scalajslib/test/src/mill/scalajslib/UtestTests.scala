@@ -6,7 +6,6 @@ import mill.testkit.UnitTester
 import mill.testrunner.TestResult
 import utest._
 
-
 object UtestTests extends TestSuite {
   import CompileLinkTests._
   def runTests(testTask: define.NamedTask[(String, Seq[TestResult])])
