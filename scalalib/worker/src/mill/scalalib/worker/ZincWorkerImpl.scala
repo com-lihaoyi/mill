@@ -134,12 +134,12 @@ class ZincWorkerImpl(
           cl
         case _ =>
           // the Scala compiler must load the `xsbti.*` classes from the same loader as `ZincWorkerImpl`
-          val cl = mill.api.ClassLoader.create(
-            combinedCompilerJars.map(_.toURI.toURL).toSeq,
+          val cl = mill.util.Jvm.createClassLoader(
+            combinedCompilerJars.map(os.Path(_)).toSeq,
             parent = null,
             sharedLoader = getClass.getClassLoader,
             sharedPrefixes = Seq("xsbti")
-          )(new Ctx.Home { override def home: Path = os.home })
+          )
           classloaderCache.update(compilersSig, (cl, 1))
           cl
       }
@@ -285,10 +285,10 @@ class ZincWorkerImpl(
     os.makeDir.all(compileDest)
 
     val sourceFolder = os.unzip(compilerBridgeSourcesJar, workingDir / "unpacked")
-    val classloader = mill.api.ClassLoader.create(
-      compilerClasspath.iterator.map(_.path.toIO.toURI.toURL).toSeq,
+    val classloader = mill.util.Jvm.createClassLoader(
+      compilerClasspath.map(_.path).toSeq,
       null
-    )(ctx0)
+    )
 
     val (sources, resources) =
       os.walk(sourceFolder).filter(os.isFile)

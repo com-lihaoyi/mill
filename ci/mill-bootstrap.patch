@@ -1,5 +1,5 @@
 diff --git a/build.mill b/build.mill
-index 79b28e24a28..c1469d8794f 100644
+index 4f66e7cfeb7..1c608ae4d86 100644
 --- a/build.mill
 +++ b/build.mill
 @@ -1,9 +1,9 @@
@@ -17,7 +17,7 @@ index 79b28e24a28..c1469d8794f 100644
  import mill.main.Tasks
 @@ -284,19 +284,19 @@ object Deps {
  }
-
+ 
  def millVersion: T[String] = Task.Input {
 -  if (Task.env.contains("MILL_STABLE_VERSION")) {
 +  /*if (Task.env.contains("MILL_STABLE_VERSION")) {
@@ -27,7 +27,7 @@ index 79b28e24a28..c1469d8794f 100644
 -  } else "SNAPSHOT"
 +  } else */"SNAPSHOT"
  }
-
+ 
  def millLastTag: T[String] = Task.Input {
 -  if (Task.env.contains("MILL_STABLE_VERSION")) {
 +  /*if (Task.env.contains("MILL_STABLE_VERSION")) {
@@ -37,7 +37,7 @@ index 79b28e24a28..c1469d8794f 100644
 -  } else "SNAPSHOT"
 +  } else */"SNAPSHOT"
  }
-
+ 
  def millDownloadPrefix = Task {
 @@ -463,7 +463,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
  /**
@@ -50,7 +50,7 @@ index 79b28e24a28..c1469d8794f 100644
    def scalafixScalaBinaryVersion = T {
 @@ -561,7 +561,8 @@ trait MillBaseTestsModule extends TestModule {
  trait MillPublishScalaModule extends MillScalaModule with MillPublishJavaModule
-
+ 
  /** Publishable module which contains strictly handled API. */
 -trait MillStableScalaModule extends MillPublishScalaModule with Mima {
 +trait MillStableScalaModule extends MillPublishScalaModule /*with Mima*/ {
@@ -65,10 +65,10 @@ index 79b28e24a28..c1469d8794f 100644
 -  }
 +  }*/
  }
-
+ 
  object bridge extends Cross[BridgeModule](compilerBridgeScalaVersions)
 diff --git a/dist/package.mill b/dist/package.mill
-index 94fb223edc1..ee0b43f96d6 100644
+index 67d3f94c143..98733778894 100644
 --- a/dist/package.mill
 +++ b/dist/package.mill
 @@ -3,7 +3,7 @@ import mill._, scalalib._, publish._
@@ -77,12 +77,26 @@ index 94fb223edc1..ee0b43f96d6 100644
  import mill.api.JarManifest
 -import de.tobiasroeser.mill.vcs.version.VcsVersion
 +//import de.tobiasroeser.mill.vcs.version.VcsVersion
-
+ 
  import scala.util.Using
-
+ 
+@@ -185,10 +185,10 @@ object `package` extends RootModule with InstallModule {
+         val wd = os.Path(wd0, Task.workspace)
+         os.makeDir.all(wd)
+         try {
+-          Jvm.runSubprocess(
++          os.call(
+             Seq(launcher().path.toString) ++ rest,
+-            forkEnv(),
+-            workingDir = wd
++            env = forkEnv(),
++            cwd = wd
+           )
+           mill.api.Result.Success(())
+         } catch {
 @@ -263,6 +263,7 @@ object `package` extends RootModule with InstallModule {
    }
-
+ 
    def uploadToGithub(authKey: String) = Task.Command {
 +    /*
      val vcsState = VcsVersion.vcsState()
@@ -96,13 +110,66 @@ index 94fb223edc1..ee0b43f96d6 100644
 +    */
      ()
    }
-
+ 
+diff --git a/docs/package.mill b/docs/package.mill
+index d558389312e..11f8e5c3ce9 100644
+--- a/docs/package.mill
++++ b/docs/package.mill
+@@ -40,8 +40,8 @@ object `package` extends RootModule {
+   private val antoraExe = if (scala.util.Properties.isWin) "antora.cmd" else "antora"
+   def npmBase: T[os.Path] = Task(persistent = true) { Task.dest }
+   def prepareAntora(npmDir: os.Path) = {
+-    Jvm.runSubprocess(
+-      commandArgs = Seq(
++    os.call(
++      cmd = Seq(
+         npmExe,
+         "--no-audit",
+         "install",
+@@ -50,8 +50,8 @@ object `package` extends RootModule {
+         "gitlab:antora/xref-validator",
+         "@antora/lunr-extension@v1.0.0-alpha.6"
+       ),
+-      envArgs = Map(),
+-      workingDir = npmDir
++      env = Map(),
++      cwd = npmDir
+     )
+   }
+ 
+@@ -63,10 +63,10 @@ object `package` extends RootModule {
+     val cmdArgs =
+       Seq(s"${npmDir}/node_modules/.bin/${antoraExe}") ++ args
+     ctx.log.debug(s"command: ${cmdArgs.mkString("'", "' '", "'")}")
+-    Jvm.runSubprocess(
+-      commandArgs = cmdArgs,
+-      envArgs = Map("CI" -> "true"),
+-      workingDir = workDir
++    os.call(
++      cmd = cmdArgs,
++      env = Map("CI" -> "true"),
++      cwd = workDir
+     )
+     PathRef(workDir / "build/site")
+   }
+@@ -161,9 +161,9 @@ object `package` extends RootModule {
+       (p, i, os.temp(s), os.temp.dir())
+     }
+ 
+-    mill.util.Jvm.runSubprocess(
++    mill.util.Jvm.callProcess(
+       "mill.main.graphviz.GraphvizTools",
+-      visualizeClassPath,
++      classPath = visualizeClassPath.toSeq,
+       mainArgs = orderedDiagrams.map { case (p, i, src, dest) => s"$src;$dest;svg" }
+     )
+ 
 diff --git a/mill-build/build.mill b/mill-build/build.mill
 index 957d929826d..112f1aaccb8 100644
 --- a/mill-build/build.mill
 +++ b/mill-build/build.mill
 @@ -4,12 +4,12 @@ import mill.scalalib._
-
+ 
  object `package` extends MillBuildRootModule {
    override def ivyDeps = Agg(
 -    ivy"de.tototec::de.tobiasroeser.mill.vcs.version::0.4.1",

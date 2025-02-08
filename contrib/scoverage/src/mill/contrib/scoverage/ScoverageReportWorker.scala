@@ -19,9 +19,9 @@ class ScoverageReportWorker extends AutoCloseable {
     val cl = scoverageClCache match {
       case Some((sig, cl)) if sig == classloaderSig => cl
       case _ =>
-        val toolsClassPath = classpath.map(_.path.toIO.toURI.toURL).toVector
+        val toolsClassPath = classpath.map(_.path).toVector
         ctx.log.debug("Loading worker classes from\n" + toolsClassPath.mkString("\n"))
-        val cl = ClassLoader.create(
+        val cl = mill.util.Jvm.createClassLoader(
           toolsClassPath,
           getClass.getClassLoader
         )

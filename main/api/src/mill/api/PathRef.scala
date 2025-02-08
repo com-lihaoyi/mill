@@ -5,7 +5,7 @@ import scala.language.implicitConversions
 import java.nio.{file => jnio}
 import java.security.{DigestOutputStream, MessageDigest}
 import java.util.concurrent.ConcurrentHashMap
-import scala.util.{DynamicVariable, Using}
+import scala.util.DynamicVariable
 import upickle.default.{ReadWriter => RW}
 import scala.annotation.nowarn
 

@@ -43,7 +43,7 @@ def barWorker: Worker[BarWorker] = Task.Worker {
 class BarWorker(runClasspath: Seq[os.Path]) extends CachedFactory[Unit, URLClassLoader] {
   def setup(key: Unit) = {
     println("Setting up Classloader")
-    Jvm.spawnClassloader(runClasspath)
+    Jvm.createClassLoader(runClasspath)
   }
   def teardown(key: Unit, value: URLClassLoader) = {
     println("Tearing down Classloader")

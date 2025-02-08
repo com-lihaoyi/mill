@@ -1,6 +1,6 @@
 package mill.api
 
-import java.io.{ByteArrayInputStream, InputStream, OutputStream}
+import java.io.{ByteArrayInputStream, OutputStream}
 
 /**
  * A dummy input stream containing an empty byte array.

@@ -179,11 +179,13 @@ trait KotlinModule extends JavaModule { outer =>
 
       Task.log.info("dokka options: " + options)
 
-      Jvm.runSubprocess(
+      Jvm.callProcess(
         mainClass = "",
-        classPath = Agg.empty,
+        classPath = Seq.empty,
         jvmArgs = Seq("-jar", dokkaCliClasspath().head.path.toString()),
-        mainArgs = options
+        mainArgs = options,
+        stdin = os.Inherit,
+        stdout = os.Inherit
       )
     }
 

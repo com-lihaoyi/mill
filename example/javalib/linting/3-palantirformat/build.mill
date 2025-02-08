@@ -17,22 +17,22 @@ object `package` extends RootModule with PalantirFormatModule
 /** Usage
 
 > ./mill palantirformat --check    # check should fail initially
-...checking format in java sources ...
+...checking format in 1 java sources ...
 ...src/A.java
 error: ...palantirformat aborted due to format error(s) (or invalid plugin settings/palantirformat options)
 
 > ./mill palantirformat    # format all Java source files
-...formatting java sources ...
+...formatting 1 java sources ...
 
 > ./mill palantirformat --check    # check should succeed now
-...checking format in java sources ...
+...checking format in 1 java sources ...
 */
 // You can also use Palantir Java Format globally on all ``JavaModule``s in your build by running
 // `mill.javalib.palantirformat.PalantirFormatModule/`.
 
 /** Usage
 > ./mill mill.javalib.palantirformat.PalantirFormatModule/ # alternatively, use external module to check/format
-...formatting java sources ...
+...formatting 1 java sources ...
 */
 
 // If entering the long fully-qualified module name

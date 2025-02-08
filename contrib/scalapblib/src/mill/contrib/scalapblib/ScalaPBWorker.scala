@@ -15,8 +15,8 @@ class ScalaPBWorker extends AutoCloseable {
     scalaPBInstanceCache match {
       case Some((sig, instance)) if sig == classloaderSig => instance
       case _ =>
-        val pbcClasspath = scalaPBClasspath.map(_.path.toIO.toURI.toURL).toVector
-        val cl = mill.api.ClassLoader.create(pbcClasspath, null)
+        val pbcClasspath = scalaPBClasspath.map(_.path).toVector
+        val cl = mill.util.Jvm.createClassLoader(pbcClasspath, null)
         val scalaPBCompilerClass = cl.loadClass("scalapb.ScalaPBC")
         val mainMethod = scalaPBCompilerClass.getMethod("main", classOf[Array[java.lang.String]])
 

@@ -113,7 +113,7 @@ trait ScalaPBModule extends ScalaModule {
                 if (os.exists(protoDest))
                   Task.log.error(s"Warning: Overwriting ${dest} / ${os.SubPath(entry.getName)} ...")
                 Using.resource(os.write.over.outputStream(protoDest, createFolders = true)) { os =>
-                  _root_.os.Internals.transfer(zip, os)
+                  _root_.os.Internals.transfer(zip, os, close = false)
                 }
               }
               zip.closeEntry()

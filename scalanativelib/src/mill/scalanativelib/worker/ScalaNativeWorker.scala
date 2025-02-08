@@ -11,10 +11,10 @@ import java.net.URLClassLoader
 private[scalanativelib] class ScalaNativeWorker(jobs: Int)
     extends CachedFactory[Agg[mill.PathRef], (URLClassLoader, workerApi.ScalaNativeWorkerApi)] {
   override def setup(key: Agg[PathRef]) = {
-    val cl = mill.api.ClassLoader.create(
-      key.map(_.path.toIO.toURI.toURL).toVector,
+    val cl = mill.util.Jvm.createClassLoader(
+      key.map(_.path).toVector,
       getClass.getClassLoader
-    )(new Ctx.Home { override def home = os.home })
+    )
     val bridge = cl
       .loadClass("mill.scalanativelib.worker.ScalaNativeWorkerImpl")
       .getDeclaredConstructor()
