@@ -2265,7 +2265,7 @@ re-use the <code>ByteArrayOutputStream</code> btween calls to <code>compressWork
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
 import java.lang.AutoCloseable
-import mill.api.CachedFactory
+import mill.util.CachedFactory
 import java.io.ByteArrayOutputStream
 
 def cachedCompressWorker = Task.Worker { new CachedCompressWorker(Task.dest) }
