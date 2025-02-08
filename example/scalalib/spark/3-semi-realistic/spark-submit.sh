@@ -23,7 +23,7 @@ install_spark_brew() {
 # Function to download and extract Apache Spark manually
 install_spark_manual() {
   SPARK_VERSION="3.3.0"
-  HADOOP_VERSION="3.2"
+  HADOOP_VERSION="3"
   SPARK_PACKAGE="spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}"
   DOWNLOAD_URL="https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/${SPARK_PACKAGE}.tgz"
   INSTALL_DIR="$HOME/spark"

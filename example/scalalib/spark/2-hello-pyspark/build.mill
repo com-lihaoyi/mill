@@ -13,6 +13,16 @@ object foo extends PythonModule {
 
 /** Usage
 
+> chmod +x alternate-py.sh
+
+> ./alternate-py.sh -i # bypass env python version
+
+> python3 --version # should pass
+Python 3.8.20
+
+> python --version # should pass
+Python 3.8.20
+
 > ./mill foo.run
 ...
 +-------------+
@@ -30,4 +40,6 @@ Ran 1 test...
 ...
 OK
 ...
+
+> ./alternate-py.sh -u # set back to previous python version
 */
