@@ -71,8 +71,8 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
       case j: Ctx.Jobs => j.jobs
       case _ => 1
     }
-    val cl = mill.api.ClassLoader.create(
-      classpath().map(_.path.toNIO.toUri.toURL).iterator.to(Vector),
+    val cl = mill.util.Jvm.createClassLoader(
+      classpath().map(_.path).toSeq,
       getClass.getClassLoader
     )
 

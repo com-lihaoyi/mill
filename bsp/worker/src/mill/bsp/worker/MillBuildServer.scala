@@ -4,7 +4,14 @@ import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j._
 import com.google.gson.JsonObject
 import mill.api.Loose.Agg
-import mill.api.{CompileProblemReporter, DummyTestReporter, Result, Strict, TestReporter}
+import mill.api.{
+  ColorLogger,
+  CompileProblemReporter,
+  DummyTestReporter,
+  Result,
+  Strict,
+  TestReporter
+}
 import mill.bsp.{BspServerResult, Constants}
 import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
 import mill.define.Segment.Label
@@ -15,7 +22,6 @@ import mill.main.MainModule
 import mill.runner.MillBuildRootModule
 import mill.scalalib.bsp.{BspModule, JvmBuildTarget, ScalaBuildTarget}
 import mill.scalalib.{JavaModule, SemanticDbJavaModule, TestModule}
-import mill.util.ColorLogger
 import mill.given
 
 import java.io.PrintStream

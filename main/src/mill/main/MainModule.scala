@@ -6,7 +6,8 @@ import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.moduledefs.Scaladoc
 import mill.resolve.SelectMode.Separated
 import mill.resolve.{Resolve, SelectMode}
-import mill.util.{Util, Watchable}
+import mill.util.Util
+import mill.internal.Watchable
 import pprint.{Renderer, Tree, Truncated}
 
 import java.util.concurrent.LinkedBlockingQueue
@@ -56,7 +57,7 @@ object MainModule {
     // printed JSON is the only thing printed to stdout.
     val redirectLogger = log
       .withOutStream(evaluator.baseLogger.errorStream)
-      .asInstanceOf[mill.util.ColorLogger]
+      .asInstanceOf[ColorLogger]
 
     RunScript.evaluateTasksNamed(
       evaluator.withBaseLogger(redirectLogger),

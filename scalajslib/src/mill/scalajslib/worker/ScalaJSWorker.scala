@@ -3,8 +3,9 @@ package mill.scalajslib.worker
 import java.io.File
 import mill.scalajslib.api
 import mill.scalajslib.worker.{api => workerApi}
-import mill.api.{CachedFactory, Ctx, Result, internal}
+import mill.api.{Ctx, Result, internal}
 import mill.define.{Discover, Worker}
+import mill.util.CachedFactory
 import mill.{Agg, PathRef, Task}
 
 import java.net.URLClassLoader
@@ -13,10 +14,10 @@ import java.net.URLClassLoader
 private[scalajslib] class ScalaJSWorker(jobs: Int)
     extends CachedFactory[Agg[mill.PathRef], (URLClassLoader, workerApi.ScalaJSWorkerApi)] {
   override def setup(key: Agg[PathRef]) = {
-    val cl = mill.api.ClassLoader.create(
-      key.map(_.path.toIO.toURI.toURL).toVector,
+    val cl = mill.util.Jvm.createClassLoader(
+      key.map(_.path).toVector,
       getClass.getClassLoader
-    )(new Ctx.Home { override def home = os.home })
+    )
     val bridge = cl
       .loadClass("mill.scalajslib.worker.ScalaJSWorkerImpl")
       .getDeclaredConstructor()

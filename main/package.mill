@@ -9,7 +9,7 @@ import mill.scalalib.api.ZincWorkerUtil
 
 object `package` extends RootModule with build.MillStableScalaModule with BuildInfo {
 
-  def moduleDeps = Seq(eval, resolve, client)
+  def moduleDeps = Seq(eval, resolve, client, util)
   def ivyDeps = Agg(
     build.Deps.windowsAnsi,
     build.Deps.coursierInterface,
@@ -105,9 +105,11 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
       build.Deps.jline
     )
   }
-
+  object internal extends build.MillPublishScalaModule {
+    def moduleDeps = Seq(api)
+  }
   object define extends build.MillStableScalaModule {
-    def moduleDeps = Seq(api, util)
+    def moduleDeps = Seq(api, internal)
     def compileIvyDeps = Task {
       if (ZincWorkerUtil.isScala3(scalaVersion())) Agg(build.Deps.scalaCompiler(scalaVersion()))
       else Agg(build.Deps.scalaReflect(scalaVersion()))

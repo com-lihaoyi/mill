@@ -1,10 +1,10 @@
 package mill.eval
 
-import mill.api.{CompileProblemReporter, DummyTestReporter, Result, TestReporter, Val}
+import mill.api.{ColorLogger, CompileProblemReporter, DummyTestReporter, Result, TestReporter, Val}
 import mill.api.Strict.Agg
 import mill.define.{BaseModule, Segments, Task}
 import mill.eval.Evaluator.{Results, formatFailing}
-import mill.util.{ColorLogger, MultiBiMap}
+import mill.internal.MultiBiMap
 
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag

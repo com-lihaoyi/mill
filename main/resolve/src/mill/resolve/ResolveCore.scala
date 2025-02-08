@@ -1,7 +1,7 @@
 package mill.resolve
 
 import mill.define._
-import mill.util.EitherOps
+import mill.internal.EitherOps
 
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method

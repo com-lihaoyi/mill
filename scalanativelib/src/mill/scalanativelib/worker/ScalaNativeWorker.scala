@@ -1,19 +1,20 @@
 package mill.scalanativelib.worker
 
-import mill.api.{CachedFactory, Ctx}
+import mill.api.Ctx
 import mill.define.{Discover, Worker}
 import mill.{Agg, PathRef, Task}
 import mill.scalanativelib.worker.{api => workerApi}
+import mill.util.CachedFactory
 
 import java.net.URLClassLoader
 
 private[scalanativelib] class ScalaNativeWorker(jobs: Int)
     extends CachedFactory[Agg[mill.PathRef], (URLClassLoader, workerApi.ScalaNativeWorkerApi)] {
   override def setup(key: Agg[PathRef]) = {
-    val cl = mill.api.ClassLoader.create(
-      key.map(_.path.toIO.toURI.toURL).toVector,
+    val cl = mill.util.Jvm.createClassLoader(
+      key.map(_.path).toVector,
       getClass.getClassLoader
-    )(new Ctx.Home { override def home = os.home })
+    )
     val bridge = cl
       .loadClass("mill.scalanativelib.worker.ScalaNativeWorkerImpl")
       .getDeclaredConstructor()

@@ -1,10 +1,9 @@
 package mill.eval
 
-import mill.api.{Strict, SystemStreams, Val}
+import mill.api.{ColorLogger, Strict, SystemStreams, Val}
 import mill.api.Strict.Agg
-import mill.define._
-import mill.util._
-import mill.main.client.OutFiles._
+import mill.define.*
+import mill.main.client.OutFiles.*
 
 import scala.collection.mutable
 import scala.reflect.ClassTag

@@ -15,7 +15,7 @@
 package build
 import mill._, scalalib._
 import mill.util.Jvm
-import mill.api.CachedFactory
+import mill.util.CachedFactory
 import java.net.{URL, URLClassLoader}
 
 trait FooModule extends JavaModule {

@@ -83,7 +83,7 @@ object `package` extends RootModule with build.MillStableScalaModule {
   }
 
   object worker extends build.MillPublishScalaModule with BuildInfo {
-    def moduleDeps = Seq(api)
+    def moduleDeps = Seq(api, build.main.util)
     def ivyDeps = Agg(build.Deps.zinc, build.Deps.log4j2Core, build.Deps.scalap(scalapVersion()))
     def buildInfoPackageName = "mill.scalalib.worker"
     def buildInfoObjectName = "Versions"

@@ -4,7 +4,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import coursier.Repository
 import mill.api.Loose.Agg
-import mill.api.{BuildInfo, Ctx, PathRef, Result}
+import mill.api.{BuildInfo, PathRef, Result}
 
 object Util {
 
@@ -39,20 +39,6 @@ object Util {
       .reverse
       .dropWhile(_.isEmpty)
       .reverse
-  }
-
-  def download(url: String, dest: os.RelPath = os.rel / "download")(implicit
-      ctx: Ctx.Dest
-  ): PathRef = {
-    val out = ctx.dest / dest
-    val website = new java.net.URI(url).toURL
-    val websiteInputStream = website.openStream
-    try {
-      Files.copy(websiteInputStream, out.toNIO)
-      PathRef(out)
-    } finally {
-      websiteInputStream.close()
-    }
   }
 
   /**
