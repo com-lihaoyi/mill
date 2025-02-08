@@ -1,7 +1,5 @@
 package mill.api
 
-import java.net.{URL, URLClassLoader}
-
 /**
  * Utilities for creating classloaders for running compiled Java/Scala code in
  * isolated classpaths.

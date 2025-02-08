@@ -1,7 +1,5 @@
 package mill.api
 
-import mill.api.Logger
-
 import java.io.PrintStream
 
 trait ColorLogger extends Logger {

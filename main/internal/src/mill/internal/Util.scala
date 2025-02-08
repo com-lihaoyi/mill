@@ -1,6 +1,5 @@
 package mill.internal
 
-
 import java.nio.file.{Files, Paths}
 
 object Util {

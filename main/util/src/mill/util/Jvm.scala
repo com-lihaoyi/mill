@@ -2,11 +2,7 @@ package mill.util
 
 import mill.api.Loose.Agg
 import mill.api.*
-import mill.main.client.ServerFiles
-import os.{ProcessOutput, SubProcess}
 
-import java.io.*
-import java.lang.reflect.Modifier
 import os.ProcessOutput
 
 import java.io.*

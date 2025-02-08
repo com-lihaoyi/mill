@@ -23,7 +23,7 @@ private[playlib] class RouteCompilerWorker extends AutoCloseable {
           toolsClassPath,
           null,
           sharedLoader = getClass().getClassLoader(),
-          sharedPrefixes = Seq("mill.playlib.api."),
+          sharedPrefixes = Seq("mill.playlib.api.")
         )
         val bridge = cl
           .loadClass("mill.playlib.worker.RouteCompilerWorker")

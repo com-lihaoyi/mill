@@ -4,7 +4,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import coursier.Repository
 import mill.api.Loose.Agg
-import mill.api.{BuildInfo, Ctx, PathRef, Result}
+import mill.api.{BuildInfo, PathRef, Result}
 
 object Util {
 

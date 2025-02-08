@@ -173,7 +173,7 @@ def myWorker = Task.Worker { new MyWorker() }
 //
 import mill._
 import java.lang.AutoCloseable
-import mill.api.CachedFactory
+import mill.util.CachedFactory
 import java.io.ByteArrayOutputStream
 
 def cachedCompressWorker = Task.Worker { new CachedCompressWorker(Task.dest) }

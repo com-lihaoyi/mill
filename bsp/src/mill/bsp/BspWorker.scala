@@ -1,7 +1,6 @@
 package mill.bsp
 
-import mill.api.{Ctx, Logger, SystemStreams}
-import os.Path
+import mill.api.{Logger, SystemStreams}
 
 import java.io.PrintStream
 import java.net.URL
