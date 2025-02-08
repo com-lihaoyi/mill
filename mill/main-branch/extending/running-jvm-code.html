@@ -722,15 +722,15 @@ object foo extends JavaModule {
   def groovyScript = Task.Source(&quot;generate.groovy&quot;)
 
   def groovyGeneratedResources = Task {
-    Jvm.runSubprocess(
+    Jvm.callProcess(
       mainClass = &quot;groovy.ui.GroovyMain&quot;,
-      classPath = groovyClasspath().map(_.path),
+      classPath = groovyClasspath().map(_.path).toSeq,
       mainArgs = Seq(
         groovyScript().path.toString,
         &quot;Groovy!&quot;,
         (Task.dest / &quot;groovy-generated.html&quot;).toString
       ),
-      workingDir = Task.dest
+      cwd = Task.dest
     )
     PathRef(Task.dest)
   }
@@ -799,7 +799,7 @@ object foo extends JavaModule {
   def groovyScript = Task.Source(&quot;generate.groovy&quot;)
 
   def groovyGeneratedResources = Task {
-    Jvm.runClassloader(classPath = groovyClasspath().map(_.path)) { classLoader =&gt;
+    Jvm.withClassLoader(classPath = groovyClasspath().map(_.path).toSeq) { classLoader =&gt;
       classLoader
         .loadClass(&quot;groovy.ui.GroovyMain&quot;)
         .getMethod(&quot;main&quot;, classOf[Array[String]])
@@ -871,7 +871,7 @@ def groovyClasspath: Task[Agg[PathRef]] = Task {
 }
 
 def groovyWorker: Worker[java.net.URLClassLoader] = Task.Worker {
-  Jvm.spawnClassloader(groovyClasspath().map(_.path).toSeq)
+  Jvm.createClassLoader(groovyClasspath().map(_.path).toSeq)
 }
 
 trait GroovyGenerateJavaModule extends JavaModule {
@@ -1044,7 +1044,7 @@ object foo extends JavaModule {
   def moduleDeps = Seq(bar)
 
   def sources = Task {
-    Jvm.runClassloader(classPath = bar.runClasspath().map(_.path)) { classLoader =&gt;
+    Jvm.withClassLoader(classPath = bar.runClasspath().map(_.path)) { classLoader =&gt;
       classLoader
         .loadClass(&quot;bar.Bar&quot;)
         .getMethod(&quot;main&quot;, classOf[Array[String]])
@@ -1127,7 +1127,7 @@ def barWorker: Worker[BarWorker] = Task.Worker {
 class BarWorker(runClasspath: Seq[os.Path]) extends CachedFactory[Unit, URLClassLoader] {
   def setup(key: Unit) = {
     println(&quot;Setting up Classloader&quot;)
-    Jvm.spawnClassloader(runClasspath)
+    Jvm.createClassLoader(runClasspath)
   }
   def teardown(key: Unit, value: URLClassLoader) = {
     println(&quot;Tearing down Classloader&quot;)
