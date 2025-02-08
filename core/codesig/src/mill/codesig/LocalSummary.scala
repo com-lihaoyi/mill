@@ -1,10 +1,11 @@
 package mill.codesig
 
-import org.objectweb.asm.{ClassReader, ClassVisitor, Handle, Label, MethodVisitor, Opcodes}
-import JvmModel._
-import JType.{Cls => JCls}
+import mill.codesig.JvmModel.*
+import mill.codesig.JvmModel.JType.Cls as JCls
 import mill.codesig.LocalSummary.ClassInfo
+import org.objectweb.asm.*
 import upickle.default.{ReadWriter, macroRW}
+
 import scala.collection.mutable
 
 case class LocalSummary(items: Map[JCls, ClassInfo]) {

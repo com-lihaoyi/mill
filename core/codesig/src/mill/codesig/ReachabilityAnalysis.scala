@@ -1,10 +1,11 @@
 package mill.codesig
+
+import mill.codesig.JvmModel.*
 import mill.internal.{SpanningForest, Tarjans}
+import ujson.Obj
 import upickle.default.{Writer, writer}
-import JvmModel.*
 
 import scala.collection.immutable.SortedMap
-import ujson.Obj
 
 class CallGraphAnalysis(
     localSummary: LocalSummary,

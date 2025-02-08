@@ -33,7 +33,7 @@ object `package` extends RootModule with build.MillStableScalaModule {
   }
 
   object api extends build.MillStableScalaModule with BuildInfo {
-    def moduleDeps = Seq(build.main.api)
+    def moduleDeps = Seq(build.core.api)
     def buildInfoPackageName = "mill.scalalib.api"
     def buildInfoObjectName = "Versions"
 

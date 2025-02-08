@@ -1,7 +1,7 @@
 package mill.api
 
 import os.Path
-import upickle.default.{ReadWriter => RW}
+import upickle.default.ReadWriter as RW
 
 import scala.reflect.ClassTag
 import scala.util.matching.Regex

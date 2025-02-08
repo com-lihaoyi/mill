@@ -1,9 +1,9 @@
 package mill.api
 
+import utest.*
+
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermissions
-import utest._
-
 import scala.util.Properties
 
 object PathRefTests extends TestSuite {

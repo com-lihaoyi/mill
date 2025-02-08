@@ -1,7 +1,7 @@
 package mill.define.macros
 
-import scala.quoted.*
 import scala.annotation.experimental
+import scala.quoted.*
 
 trait ShimService[Q <: Quotes] {
   val innerQuotes: Q
@@ -41,15 +41,12 @@ object ShimService {
 
   private class DottyInternal(val quotes: QuotesImpl) {
     import dotty.tools.dotc
-    import dotty.tools.dotc.ast.tpd.Tree
     import dotty.tools.dotc.ast.tpd
+    import dotty.tools.dotc.ast.tpd.Tree
     import dotty.tools.dotc.core.Contexts.Context
-    import dotty.tools.dotc.core.Types
-    import quotes.reflect.TypeRepr
-    import quotes.reflect.Statement
-    import quotes.reflect.ClassDef
-    import quotes.reflect.Symbol
     import dotty.tools.dotc.core.Decorators.*
+    import dotty.tools.dotc.core.Types
+    import quotes.reflect.{ClassDef, Statement, Symbol, TypeRepr}
 
     given Context = quotes.ctx
 

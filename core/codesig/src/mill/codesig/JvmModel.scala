@@ -1,9 +1,10 @@
 package mill.codesig
-import scala.collection.mutable.LinkedHashMap
+
 import upickle.default.{ReadWriter, readwriter, stringKeyRW}
 
 import scala.annotation.switch
 import scala.collection.immutable.ArraySeq
+import scala.collection.mutable.LinkedHashMap
 
 // This file contains typed data structures representing the types and values
 // found in the JVM bytecode: various kinds of types, method signatures, method

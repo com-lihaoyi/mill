@@ -1,13 +1,13 @@
 package mill.api
 
-import scala.language.implicitConversions
+import upickle.default.ReadWriter as RW
 
-import java.nio.{file => jnio}
+import java.nio.file as jnio
 import java.security.{DigestOutputStream, MessageDigest}
 import java.util.concurrent.ConcurrentHashMap
-import scala.util.DynamicVariable
-import upickle.default.{ReadWriter => RW}
 import scala.annotation.nowarn
+import scala.language.implicitConversions
+import scala.util.DynamicVariable
 
 /**
  * A wrapper around `os.Path` that calculates it's hashcode based

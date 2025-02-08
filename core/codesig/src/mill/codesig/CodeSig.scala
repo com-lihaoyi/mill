@@ -1,5 +1,6 @@
 package mill.codesig
-import JvmModel._
+
+import mill.codesig.JvmModel.*
 
 object CodeSig {
   def compute(

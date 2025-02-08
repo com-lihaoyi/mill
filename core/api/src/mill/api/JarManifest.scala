@@ -1,10 +1,9 @@
 package mill.api
 
+import mill.api.Mirrors.autoMirror
 import upickle.default.ReadWriter
 
 import java.util.jar.{Attributes, Manifest}
-
-import Mirrors.autoMirror
 
 /**
  * Represents a JAR manifest.

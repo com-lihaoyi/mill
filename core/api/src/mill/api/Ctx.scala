@@ -121,8 +121,7 @@ object Ctx {
 
   @experimental
   object Fork {
-    import scala.concurrent.Future
-    import scala.concurrent.ExecutionContext
+    import scala.concurrent.{ExecutionContext, Future}
     trait Api {
 
       /**

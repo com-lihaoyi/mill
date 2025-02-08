@@ -1,8 +1,8 @@
 package mill.codesig
 
+import mill.codesig.JvmModel.JType.Cls as JCls
+import mill.codesig.JvmModel.*
 import org.objectweb.asm.{ClassReader, ClassVisitor, MethodVisitor, Opcodes}
-import JvmModel._
-import JType.{Cls => JCls}
 
 import java.net.URLClassLoader
 
