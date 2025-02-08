@@ -1,4 +1,4 @@
-package build.docs
+package build.website
 import org.jsoup._
 import mill.util.Jvm
 import mill._, scalalib._
@@ -71,7 +71,7 @@ object `package` extends RootModule {
     PathRef(workDir / "build/site")
   }
 
-  def source0 = Task.Source(millSourcePath)
+  def source0 = Task.Source(millSourcePath / "docs")
   def projectChangelog = Task.Source(Task.workspace / "changelog.adoc")
   def source = Task {
     os.copy(source0().path, Task.dest, mergeFolders = true)
@@ -173,7 +173,7 @@ object `package` extends RootModule {
 
   }
 
-  def supplementalFiles = Task.Source(millSourcePath / "supplemental-ui")
+  def supplementalFiles = Task.Source(millSourcePath / "docs" / "supplemental-ui")
 
   /**
    * The doc root ready to be built by antora for the current branch.
@@ -216,7 +216,7 @@ object `package` extends RootModule {
     os.write.over(dest / "antora.yml", (lines ++ newLines).mkString("\n"))
   }
 
-  def blogFolder0 = Task.Source(build.millSourcePath / "blog")
+  def blogFolder0 = Task.Source(millSourcePath / "blog")
   def blogFolder = Task {
     os.copy(blogFolder0().path, Task.dest, mergeFolders = true)
     expandDiagramsInDirectoryAdocFile(Task.dest, mill.main.VisualizeModule.classpath().map(_.path))
@@ -244,7 +244,7 @@ object `package` extends RootModule {
         "'" + _ + "'"
       ).mkString("[", ",", "]")}
        |      edit_url: false
-       |      start_path: docs/antora
+       |      start_path: website/antora
        |
        |${taggedSources.mkString("\n\n")}
        |
