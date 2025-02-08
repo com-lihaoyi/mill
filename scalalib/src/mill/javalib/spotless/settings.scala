@@ -16,7 +16,6 @@ import com.diffplug.spotless.java.{
 }
 import com.diffplug.spotless.generic.LicenseHeaderStep
 import com.diffplug.spotless.Provisioner
-import os.Path
 
 trait JVMLangConfig {
   val target: String
@@ -51,7 +50,7 @@ case class GoogleJavaFormat(
     formatJavadoc: Boolean = true,
     reorderImports: Boolean = true,
     groupArtifact: String = "com.google.googlejavaformat:google-java-format"
-) extends JavaFormatter { }
+) extends JavaFormatter {}
 object GoogleJavaFormat {
   def apply(): GoogleJavaFormat = new GoogleJavaFormat()
 }
@@ -60,7 +59,7 @@ case class PalantirJavaFormat(
     version: String = "2.50.0",
     style: String = "PALANTIR",
     formatJavadoc: Boolean = false
-) extends JavaFormatter { }
+) extends JavaFormatter {}
 object PalantirJavaFormat {
   def apply(): PalantirJavaFormat = new PalantirJavaFormat()
 }

@@ -28,7 +28,9 @@ object `package` extends RootModule with JavaModule with JavaSpotlessModule {
   def jvmLangConfig = new JavaConfig()
     .copy(importOrder = Some(Seq()))
     .copy(formatter = Some(googleFormatter))
-    .copy(formatter = Some(palantirFormatter)) // this replaces `googleFormatter` as only 1 `JavaFormatter` can be active
+    .copy(formatter =
+      Some(palantirFormatter)
+    ) // this replaces `googleFormatter` as only 1 `JavaFormatter` can be active
     .copy(licenseHeader = Some("/* (C) 2025. Licensed under Apache-2.0. */\n"))
 }
 
