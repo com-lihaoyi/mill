@@ -9,7 +9,7 @@ import mill.scalalib._
 //  because currently there is no previous artifact version
 object `package` extends RootModule with build.MillPublishScalaModule with BuildInfo {
 
-  def moduleDeps = Seq(build.main, build.scalalib, build.testrunner, worker)
+  def moduleDeps = Seq(build.scalalib, build.testrunner, worker)
   def testTransitiveDeps = super.testTransitiveDeps() ++ Seq(worker.impl.testDep())
 
   def buildInfoPackageName = "mill.kotlinlib"
@@ -50,7 +50,7 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
   }
 
   object worker extends MillKotlinModule {
-    def moduleDeps = Seq(build.main, build.testrunner)
+    def moduleDeps = Seq(build.testrunner)
 
     override def compileIvyDeps: T[Agg[Dep]] = Agg(
       build.Deps.osLib
