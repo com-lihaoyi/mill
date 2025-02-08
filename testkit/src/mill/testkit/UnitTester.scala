@@ -101,7 +101,7 @@ class UnitTester(
     methodCodeHashSignatures = Map(),
     disableCallgraph = false,
     allowPositionalCommandArgs = false,
-    systemExit = i => ???,
+    systemExit = _ => ???,
     exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),
     selectiveExecution = false
   )
@@ -120,6 +120,7 @@ class UnitTester(
       case Left(f) => Left(f.asInstanceOf[Result.Failing[T]])
       case Right(UnitTester.Result(Seq(v), i)) =>
         Right(UnitTester.Result(v.asInstanceOf[T], i))
+      case _ => ???
     }
   }
 

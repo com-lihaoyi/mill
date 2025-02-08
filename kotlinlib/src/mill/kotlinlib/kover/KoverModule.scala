@@ -234,6 +234,6 @@ object Kover extends ExternalModule with KoverReportBaseModule {
 
 sealed trait ReportType
 object ReportType {
-  final case object Html extends ReportType
-  final case object Xml extends ReportType
+  case object Html extends ReportType
+  case object Xml extends ReportType
 }

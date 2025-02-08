@@ -60,13 +60,6 @@ object SystemStreams {
 
   def originalErr: PrintStream = original.err
 
-  private class PumpedProcessInput extends os.ProcessInput {
-    def redirectFrom = ProcessBuilder.Redirect.PIPE
-    def processInput(processIn: => os.SubProcess.InputStream): Some[InputPumper] = Some(
-      new InputPumper(() => System.in, () => processIn.wrapped, true, () => true)
-    )
-  }
-
   private class PumpedProcessOutput(dest: OutputStream) extends os.ProcessOutput {
     def redirectTo = ProcessBuilder.Redirect.PIPE
     def processOutput(processOut: => os.SubProcess.OutputStream): Some[InputPumper] =

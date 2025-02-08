@@ -84,7 +84,7 @@ case class GenIdeaImpl(
             val rootSegs = rootMod.millSourcePath.relativeTo(workDir).segments
             val modSegs = m.millModuleSegments.parts
             val segments: Seq[String] = rootSegs ++ modSegs
-            (Segments(segments.map(Segment.Label)), m, ev)
+            (Segments(segments.map(Segment.Label(_))), m, ev)
         }
       }
 

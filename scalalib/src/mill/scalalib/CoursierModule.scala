@@ -178,7 +178,7 @@ object CoursierModule {
     ): Agg[PathRef] = {
       Lib.resolveDependencies(
         repositories = repositories,
-        deps = deps.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind)),
+        deps = deps.iterator.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind)),
         sources = sources,
         artifactTypes = artifactTypes,
         mapDependencies = mapDependencies,
@@ -208,9 +208,10 @@ object CoursierModule {
         boms: IterableOnce[BomDependency] = Nil
     ): (Seq[coursier.core.Dependency], DependencyManagement.Map) = {
       val deps0 = deps
+        .iterator
         .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
-        .iterator.toSeq
-      val boms0 = boms.toSeq
+        .toSeq
+      val boms0 = boms.iterator.toSeq
       val res = Lib.resolveDependenciesMetadataSafe(
         repositories = repositories,
         deps = deps0,
@@ -250,8 +251,9 @@ object CoursierModule {
         deps: IterableOnce[T]
     ): Seq[coursier.core.Dependency] = {
       val deps0 = deps
+        .iterator
         .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
-        .iterator.toSeq
+        .toSeq
       val res = Lib.resolveDependenciesMetadataSafe(
         repositories = repositories,
         deps = deps0,

@@ -81,6 +81,7 @@ object RunScript {
     selectedTargetsOrErr match {
       case (selectedTargets, selectiveResults) =>
         val evaluated: Results = evaluator.evaluate(selectedTargets, serialCommandExec = true)
+        @scala.annotation.nowarn("msg=cannot be checked at runtime")
         val watched = (evaluated.results.iterator ++ selectiveResults)
           .collect {
             case (t: SourcesImpl, TaskResult(Result.Success(Val(ps: Seq[PathRef])), _)) =>
@@ -118,8 +119,6 @@ object RunScript {
                   val jsonFile = EvaluatorPaths.resolveDestPaths(evaluator.outPath, t).meta
                   val metadata = upickle.default.read[Evaluator.Cached](ujson.read(jsonFile.toIO))
                   Some((t.toString, metadata.value))
-
-                case _ => None
               }
             }
 

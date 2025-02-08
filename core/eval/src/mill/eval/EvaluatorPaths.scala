@@ -5,22 +5,12 @@ import mill.define.{NamedTask, Segment, Segments}
 
 import java.util.regex.Matcher
 
-case class EvaluatorPaths private (dest: os.Path, meta: os.Path, log: os.Path) {
-  // scalafix:off; we want to hide the generic copy method
-  private def copy(dest: os.Path = dest, meta: os.Path = meta, log: os.Path = log): EvaluatorPaths =
-    new EvaluatorPaths(dest, meta, log)
-  // scalafix:on
-}
+case class EvaluatorPaths private (dest: os.Path, meta: os.Path, log: os.Path) {}
 
 object EvaluatorPaths {
 
   def apply(dest: os.Path, meta: os.Path, log: os.Path): EvaluatorPaths =
     new EvaluatorPaths(dest, meta, log)
-
-  // scalafix:off; we want to hide the generic unapply method
-  private def unapply(evaluatorPaths: EvaluatorPaths): Option[(os.Path, os.Path, os.Path)] =
-    Option((evaluatorPaths.dest, evaluatorPaths.meta, evaluatorPaths.log))
-  // scalafix:on
 
   @internal
   private[mill] def makeSegmentStrings(segments: Segments): Seq[String] = segments.value.flatMap {

@@ -104,11 +104,11 @@ object ParseArgs {
 
     def typePattern(simple: Boolean) = P(wildcard ~~ (":" ~~ typeQualifier(simple)).rep(1)).!
 
-    def segment0(simple: Boolean) = P(typePattern(simple) | label).map(Segment.Label)
+    def segment0(simple: Boolean) = P(typePattern(simple) | label).map(Segment.Label(_))
     def segment = P("(" ~ segment0(false) ~ ")" | segment0(true))
 
     def identCross = P(CharsWhileIn("a-zA-Z0-9_\\-.")).!
-    def crossSegment = P("[" ~ identCross.rep(1, sep = ",") ~ "]").map(Segment.Cross)
+    def crossSegment = P("[" ~ identCross.rep(1, sep = ",") ~ "]").map(Segment.Cross(_))
     def defaultCrossSegment = P("[]").map(_ => Segment.Cross(Seq()))
 
     def simpleQuery = P(segment ~ ("." ~ segment | crossSegment | defaultCrossSegment).rep).map {

@@ -160,6 +160,7 @@ object Pom {
           case Scope.Provided => <scope>provided</scope>
           case Scope.Test => <scope>test</scope>
           case Scope.Runtime => <scope>runtime</scope>
+          case Scope.Import => ???
         }
 
     val `type` = if (isImport) <type>pom</type> else NodeSeq.Empty

@@ -58,6 +58,7 @@ trait PublishModule extends TypeScriptModule {
           ("@" + first + "@" + second, tail.mkString)
         case first :: tail =>
           (first, tail.mkString)
+        case _ => ???
       }
     }
 
