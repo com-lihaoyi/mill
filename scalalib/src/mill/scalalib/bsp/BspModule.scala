@@ -2,13 +2,12 @@ package mill.scalalib.bsp
 
 import mill.api.internal
 import mill.define.Task
-import mill.scalalib.internal.ModuleUtils
 import mill._
 
 trait BspModule extends Module {
   import BspModule._
 
-  def bspDisplayName0: String = ModuleUtils.moduleDisplayName(this)
+  def bspDisplayName0: String = this.millModuleSegments.render
 
   def bspDisplayName: String = bspDisplayName0 match {
     case "" => "root-module"

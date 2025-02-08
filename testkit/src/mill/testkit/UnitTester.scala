@@ -6,7 +6,7 @@ import mill.api.{DummyInputStream, Result, SystemStreams, Val}
 import mill.define.{InputImpl, TargetImpl}
 import mill.eval.{Evaluator, EvaluatorImpl}
 import mill.resolve.{Resolve, SelectMode}
-import mill.util.PrintLogger
+import mill.internal.PrintLogger
 import mill.api.Strict.Agg
 
 import java.io.{InputStream, PrintStream}
@@ -66,11 +66,11 @@ class UnitTester(
     }
   }
 
-  object logger extends mill.util.PrintLogger(
+  object logger extends mill.internal.PrintLogger(
         colored = true,
         enableTicker = false,
-        mill.util.Colors.Default.info,
-        mill.util.Colors.Default.error,
+        mill.internal.Colors.Default.info,
+        mill.internal.Colors.Default.error,
         new SystemStreams(out = outStream, err = errStream, in = inStream),
         debugEnabled = debugEnabled,
         context = "",

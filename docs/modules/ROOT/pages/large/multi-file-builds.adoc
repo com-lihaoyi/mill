@@ -9,8 +9,5 @@ include::partial$example/large/multi/10-multi-file-builds.adoc[]
 
 include::partial$example/large/multi/11-helper-files.adoc[]
 
-== Legacy `.sc` extension
-
-include::partial$example/large/multi/12-helper-files-sc.adoc[]
 
 

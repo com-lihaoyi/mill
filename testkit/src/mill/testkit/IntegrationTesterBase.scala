@@ -1,7 +1,7 @@
 package mill.testkit
-import mill.api.Retry
 import mill.main.client.OutFiles.{millServer, out}
 import mill.main.client.ServerFiles.serverId
+import mill.util.Retry
 
 trait IntegrationTesterBase {
   def workspaceSourcePath: os.Path

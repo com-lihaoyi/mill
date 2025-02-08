@@ -2,7 +2,7 @@ package mill.testrunner
 
 import mill.api.Loose.Agg
 import mill.api.{Ctx, DummyTestReporter, SystemStreams, internal}
-import mill.util.PrintLogger
+import mill.internal.PrintLogger
 
 @internal object TestRunnerMain0 {
   def main0(args: Array[String], classLoader: ClassLoader): Unit = {

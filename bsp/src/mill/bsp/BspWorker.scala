@@ -1,7 +1,6 @@
 package mill.bsp
 
-import mill.api.{Ctx, Logger, SystemStreams}
-import os.Path
+import mill.api.{Logger, SystemStreams}
 
 import java.io.PrintStream
 import java.net.URL
@@ -31,7 +30,7 @@ private object BspWorker {
       case None =>
         val urls = workerLibs.map { urls =>
           log.debug("Using direct submitted worker libs")
-          urls
+          urls.map(url => os.Path(url.getPath))
         }.getOrElse {
           // load extra classpath entries from file
           val resources = s"${Constants.serverName}-${mill.main.BuildInfo.millVersion}.resources"
@@ -44,13 +43,11 @@ private object BspWorker {
 
           // read the classpath from resource file
           log.debug(s"Reading worker classpath from file: ${cpFile}")
-          os.read(cpFile).linesIterator.map(u => new URL(u)).toSeq
+          os.read(cpFile).linesIterator.map(u => os.Path(new URL(u).getPath)).toSeq
         }
 
         // create classloader with bsp.worker and deps
-        val cl = mill.api.ClassLoader.create(urls, getClass().getClassLoader())(
-          new Ctx.Home { override def home: Path = home0 }
-        )
+        val cl = mill.util.Jvm.createClassLoader(urls, getClass().getClassLoader())
 
         val workerCls = cl.loadClass(Constants.bspWorkerImplClass)
         val ctr = workerCls.getConstructor()

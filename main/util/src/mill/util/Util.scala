@@ -4,7 +4,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import coursier.Repository
 import mill.api.Loose.Agg
-import mill.api.{BuildInfo, Ctx, IO, PathRef, Result}
+import mill.api.{BuildInfo, PathRef, Result}
 
 object Util {
 
@@ -13,8 +13,6 @@ object Util {
   val newLine: String = System.lineSeparator()
 
   val windowsPlatform: Boolean = System.getProperty("os.name").startsWith("Windows")
-
-  val java9OrAbove: Boolean = !System.getProperty("java.specification.version").startsWith("1.")
 
   private val LongMillProps = new java.util.Properties()
 
@@ -43,29 +41,6 @@ object Util {
       .reverse
   }
 
-  def download(url: String, dest: os.RelPath = os.rel / "download")(implicit
-      ctx: Ctx.Dest
-  ): PathRef = {
-    val out = ctx.dest / dest
-    val website = new java.net.URI(url).toURL
-    val websiteInputStream = website.openStream
-    try {
-      Files.copy(websiteInputStream, out.toNIO)
-      PathRef(out)
-    } finally {
-      websiteInputStream.close()
-    }
-  }
-
-  def downloadUnpackZip(url: String, dest: os.RelPath = os.rel / "unpacked")(implicit
-      ctx: Ctx.Dest
-  ): PathRef = {
-
-    val tmpName = if (dest == os.rel / "tmp.zip") "tmp2.zip" else "tmp.zip"
-    val downloaded = download(url, os.rel / tmpName)
-    IO.unpackZip(downloaded.path, dest)
-  }
-
   /**
    * Deprecated helper method, intended to allow runtime resolution and in-development-tree testings of mill plugins possible.
    * This design has issues and will probably be replaced.
@@ -73,11 +48,6 @@ object Util {
   def millProjectModule(
       artifact: String,
       repositories: Seq[Repository],
-      @deprecated(
-        "This parameter is now ignored, use exclusions instead or mark some dependencies as provided when you publish modules",
-        "Mill after 0.12.5"
-      )
-      deprecatedResolveFilter: os.Path => Boolean = _ => true,
       // this should correspond to the mill runtime Scala version
       artifactSuffix: String = "_3"
   ): Result[Agg[PathRef]] = {
@@ -93,8 +63,7 @@ object Util {
           BuildInfo.millVersion
         )
       ),
-      force = Nil,
-      deprecatedResolveFilter = deprecatedResolveFilter
+      force = Nil
     ).map(_.map(_.withRevalidateOnce))
   }
 

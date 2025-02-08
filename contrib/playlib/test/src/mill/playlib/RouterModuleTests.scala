@@ -1,11 +1,11 @@
 package mill.playlib
 
 import mill.api.Result.Failure
-import mill.define.Cross
+import mill.define.{Cross, Discover}
 import mill.scalalib.ScalaModule
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.{TestSuite, Tests, assert, _}
-
+import mill.main.TokenReaders._
 object RouterModuleTests extends TestSuite with PlayTestSuite {
 
   trait HelloBase extends TestBaseModule
@@ -20,6 +20,7 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
       def playVersion = crossValue2
     }
 
+    lazy val millDiscover = Discover[this.type]
   }
 
   val resourceFolder = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))

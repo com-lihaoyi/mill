@@ -2,9 +2,10 @@ package mill
 package kotlinlib
 
 import mill.api.Result
+import mill.define.Discover
 import mill.scalalib.TestModule
 import mill.testkit.{TestBaseModule, UnitTester}
-import utest._
+import utest.*
 
 object MixedHelloWorldTests extends TestSuite {
 
@@ -26,6 +27,8 @@ object MixedHelloWorldTests extends TestSuite {
       }
     }
     object main extends Cross[MainCross](kotlinVersions)
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   val resourcePath =
@@ -76,7 +79,7 @@ object MixedHelloWorldTests extends TestSuite {
       MixedHelloWorldKotlin.main.crossModules.foreach(m => {
 
         val mainJava =
-          MixedHelloWorldKotlin.millSourcePath / "main" / "src" / "hello" / "KotlinHello.kt"
+          MixedHelloWorldKotlin.millSourcePath / "main/src/hello/KotlinHello.kt"
 
         val Right(_) = eval.apply(m.compile)
 

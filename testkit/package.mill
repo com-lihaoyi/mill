@@ -3,12 +3,12 @@ package build.testkit
 import mill._
 
 object `package` extends RootModule with build.MillPublishScalaModule {
-  def moduleDeps = Seq(build.main.eval, build.main.util, build.main)
+  def moduleDeps = Seq(build.core.eval, build.main.util, build.main)
   def ivyDeps = Agg(build.Deps.TestDeps.utest)
 
   def sources =
     super.sources() ++
-      Seq(PathRef(build.millSourcePath / "mill-build" / "src"))
+      Seq(PathRef(build.millSourcePath / "mill-build/src"))
 
   def forkEnv =
     super.forkEnv() ++ Map("MILL_EXECUTABLE_PATH" -> build.dist.launcher().path.toString())

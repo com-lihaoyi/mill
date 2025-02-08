@@ -127,10 +127,6 @@ trait CoursierSupport {
    * We do not bother breaking this out into the separate ZincWorkerApi classpath,
    * because Coursier is already bundled with mill/Ammonite to support the
    * `import $ivy` syntax.
-   *
-   * Avoid using `deprecatedResolveFilter` if you can. As a substitute, use exclusions
-   * (or upfront, mark some dependencies as provided aka compile-time when you publish them),
-   * or as a last resort, manually filter the file sequence returned by this function.
    */
   def resolveDependencies(
       repositories: Seq[Repository],
@@ -141,11 +137,6 @@ trait CoursierSupport {
       customizer: Option[Resolution => Resolution] = None,
       ctx: Option[mill.api.Ctx.Log] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
-      @deprecated(
-        "This parameter is now ignored, use exclusions instead or mark some dependencies as provided when you publish modules",
-        "Mill after 0.12.5"
-      )
-      deprecatedResolveFilter: os.Path => Boolean = _ => true,
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams()
   ): Result[Agg[PathRef]] = {
@@ -188,7 +179,6 @@ trait CoursierSupport {
             Agg.from(
               res.files
                 .map(os.Path(_))
-                .filter(deprecatedResolveFilter)
                 .map(PathRef(_, quick = true))
             )
           )
@@ -196,91 +186,6 @@ trait CoursierSupport {
     }
   }
 
-  // bin-compat shim
-  def resolveDependencies(
-      repositories: Seq[Repository],
-      deps: IterableOnce[Dependency],
-      force: IterableOnce[Dependency],
-      sources: Boolean,
-      mapDependencies: Option[Dependency => Dependency],
-      customizer: Option[Resolution => Resolution],
-      ctx: Option[mill.api.Ctx.Log],
-      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]],
-      @deprecated(
-        "This parameter is now ignored, use exclusions instead or mark some dependencies as provided when you publish modules",
-        "Mill after 0.12.5"
-      )
-      deprecatedResolveFilter: os.Path => Boolean,
-      artifactTypes: Option[Set[Type]]
-  ): Result[Agg[PathRef]] =
-    resolveDependencies(
-      repositories,
-      deps,
-      force,
-      sources,
-      mapDependencies,
-      customizer,
-      ctx,
-      coursierCacheCustomizer,
-      deprecatedResolveFilter,
-      artifactTypes,
-      ResolutionParams()
-    )
-
-  @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
-  def resolveDependencies(
-      repositories: Seq[Repository],
-      deps: IterableOnce[Dependency],
-      force: IterableOnce[Dependency],
-      sources: Boolean,
-      mapDependencies: Option[Dependency => Dependency],
-      customizer: Option[Resolution => Resolution],
-      ctx: Option[mill.api.Ctx.Log],
-      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]],
-      @deprecated(
-        "This parameter is now ignored, use exclusions instead or mark some dependencies as provided when you publish modules",
-        "Mill after 0.12.5"
-      )
-      deprecatedResolveFilter: os.Path => Boolean
-  ): Result[Agg[PathRef]] =
-    resolveDependencies(
-      repositories,
-      deps,
-      force,
-      sources,
-      mapDependencies,
-      customizer,
-      ctx,
-      coursierCacheCustomizer,
-      deprecatedResolveFilter
-    )
-
-  @deprecated(
-    "Prefer resolveDependenciesMetadataSafe instead, which returns a Result instead of throwing exceptions",
-    "0.12.0"
-  )
-  def resolveDependenciesMetadata(
-      repositories: Seq[Repository],
-      deps: IterableOnce[Dependency],
-      force: IterableOnce[Dependency],
-      mapDependencies: Option[Dependency => Dependency] = None,
-      customizer: Option[Resolution => Resolution] = None,
-      ctx: Option[mill.api.Ctx.Log] = None,
-      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None
-  ): (Seq[Dependency], Resolution) = {
-    val deps0 = deps.iterator.toSeq
-    val res = resolveDependenciesMetadataSafe(
-      repositories,
-      deps0,
-      force,
-      mapDependencies,
-      customizer,
-      ctx,
-      coursierCacheCustomizer,
-      ResolutionParams()
-    )
-    (deps0, res.getOrThrow)
-  }
   def jvmIndex(
       ctx: Option[mill.api.Ctx.Log] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None
@@ -404,52 +309,6 @@ trait CoursierSupport {
         Result.Success(resolution)
     }
   }
-
-  // bin-compat shim
-  def resolveDependenciesMetadataSafe(
-      repositories: Seq[Repository],
-      deps: IterableOnce[Dependency],
-      force: IterableOnce[Dependency],
-      mapDependencies: Option[Dependency => Dependency],
-      customizer: Option[Resolution => Resolution],
-      ctx: Option[mill.api.Ctx.Log],
-      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]],
-      resolutionParams: ResolutionParams
-  ): Result[Resolution] =
-    resolveDependenciesMetadataSafe(
-      repositories,
-      deps,
-      force,
-      mapDependencies,
-      customizer,
-      ctx,
-      coursierCacheCustomizer,
-      resolutionParams,
-      Nil
-    )
-
-  // bin-compat shim
-  def resolveDependenciesMetadataSafe(
-      repositories: Seq[Repository],
-      deps: IterableOnce[Dependency],
-      force: IterableOnce[Dependency],
-      mapDependencies: Option[Dependency => Dependency],
-      customizer: Option[Resolution => Resolution],
-      ctx: Option[mill.api.Ctx.Log],
-      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]]
-  ): Result[Resolution] =
-    resolveDependenciesMetadataSafe(
-      repositories,
-      deps,
-      force,
-      mapDependencies,
-      customizer,
-      ctx,
-      coursierCacheCustomizer,
-      ResolutionParams(),
-      Nil
-    )
-
 }
 
 object CoursierSupport {

@@ -1,8 +1,11 @@
 package mill.scalalib
 
 import mill.testkit.{TestBaseModule, UnitTester}
-import utest._
-import HelloWorldTests._
+import utest.*
+import HelloWorldTests.*
+import mill.define.Discover
+import mill.main.TokenReaders._
+
 object ScalaFlagsTests extends TestSuite {
 
   object HelloWorldFlags extends TestBaseModule {
@@ -13,6 +16,8 @@ object ScalaFlagsTests extends TestSuite {
         "-Ypartial-unification"
       )
     }
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   def tests: Tests = Tests {

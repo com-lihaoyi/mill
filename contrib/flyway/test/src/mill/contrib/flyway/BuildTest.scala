@@ -1,12 +1,14 @@
 package mill.contrib.flyway
 
-import mill._
-import mill.scalalib._
+import mill.*
+import mill.define.Discover
+import mill.scalalib.*
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import utest.{TestSuite, Tests, assert, _}
+import utest.{TestSuite, Tests, assert, *}
 
 object BuildTest extends TestSuite {
+
   object Build extends TestBaseModule {
     object build extends FlywayModule {
 
@@ -18,6 +20,8 @@ object BuildTest extends TestSuite {
       def flywayUrl = "jdbc:h2:mem:test_db;DB_CLOSE_DELAY=-1"
       def flywayDriverDeps = Agg(h2)
     }
+
+    val millDiscover: Discover = Discover[this.type]
   }
 
   def tests = Tests {

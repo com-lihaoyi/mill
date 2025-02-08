@@ -1,8 +1,9 @@
 package mill.scalalib
 
-import mill._
+import mill.*
+import mill.define.Discover
 import mill.util.Jvm
-import mill.testkit.{UnitTester, TestBaseModule}
+import mill.testkit.{TestBaseModule, UnitTester}
 
 trait AssemblyTestUtils {
 
@@ -45,21 +46,27 @@ trait AssemblyTestUtils {
       object large extends Setup with ExtraDeps
     }
 
+    lazy val millDiscover = Discover[this.type]
   }
 
   val sources = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "assembly"
   def runAssembly(file: os.Path, wd: os.Path, checkExe: Boolean = false): Unit = {
     println(s"File size: ${os.stat(file).size}")
-    Jvm.runSubprocess(
-      commandArgs = Seq(Jvm.javaExe, "-jar", file.toString(), "--text", "tutu"),
-      envArgs = Map.empty[String, String],
-      workingDir = wd
+    os.call(
+      cmd = Seq(Jvm.javaExe, "-jar", file.toString(), "--text", "tutu"),
+      env = Map.empty[String, String],
+      cwd = wd,
+      stdin = os.Inherit,
+      stdout = os.Inherit
     )
+
     if (checkExe) {
-      Jvm.runSubprocess(
-        commandArgs = Seq(file.toString(), "--text", "tutu"),
-        envArgs = Map.empty[String, String],
-        workingDir = wd
+      os.call(
+        cmd = Seq(file.toString(), "--text", "tutu"),
+        env = Map.empty[String, String],
+        cwd = wd,
+        stdin = os.Inherit,
+        stdout = os.Inherit
       )
     }
   }

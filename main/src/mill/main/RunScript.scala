@@ -1,8 +1,8 @@
 package mill.main
 
 import mill.define._
-import mill.eval.{Evaluator, EvaluatorPaths, Plan}
-import mill.util.Watchable
+import mill.eval.{Evaluator, EvaluatorPaths}
+import mill.internal.Watchable
 import mill.api.{PathRef, Result, Val}
 import mill.api.Strict.Agg
 import Evaluator._
@@ -64,8 +64,6 @@ object RunScript {
       selectiveExecution: Boolean = false
   ): (Seq[Watchable], Either[String, Seq[(Any, Option[(TaskName, ujson.Value)])]]) = {
 
-    val (sortedGroups, transitive) = Plan.plan(targets)
-    val terminals = sortedGroups.keys().map(t => (t.task, t)).toMap
     val selectiveExecutionEnabled = selectiveExecution && !targets.exists(_.isExclusiveCommand)
 
     val selectedTargetsOrErr =
@@ -75,7 +73,7 @@ object RunScript {
         val changedTasks = SelectiveExecution.computeChangedTasks0(evaluator, targets.toSeq)
         val selectedSet = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
         (
-          targets.filter(t => t.isExclusiveCommand || selectedSet(terminals(t).render)),
+          targets.filter(t => t.isExclusiveCommand || selectedSet(t.ctx.segments.render)),
           changedTasks.results
         )
       } else (targets -> Map.empty)
@@ -100,7 +98,7 @@ object RunScript {
           .iterator
           .collect {
             case (t: InputImpl[_], TaskResult(Result.Success(Val(value)), _)) =>
-              (terminals(t).render, value.##)
+              (t.ctx.segments.render, value.##)
           }
           .toMap
 

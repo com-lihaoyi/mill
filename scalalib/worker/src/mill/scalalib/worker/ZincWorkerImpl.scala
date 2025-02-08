@@ -1,7 +1,8 @@
 package mill.scalalib.worker
 
 import mill.api.Loose.Agg
-import mill.api.{CachedFactory, CompileProblemReporter, Ctx, PathRef, Result, internal}
+import mill.util.CachedFactory
+import mill.api.{CompileProblemReporter, PathRef, Result, internal}
 import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerApi, ZincWorkerUtil}
 import os.Path
 import sbt.internal.inc.{
@@ -133,12 +134,12 @@ class ZincWorkerImpl(
           cl
         case _ =>
           // the Scala compiler must load the `xsbti.*` classes from the same loader as `ZincWorkerImpl`
-          val cl = mill.api.ClassLoader.create(
-            combinedCompilerJars.map(_.toURI.toURL).toSeq,
+          val cl = mill.util.Jvm.createClassLoader(
+            combinedCompilerJars.map(os.Path(_)).toSeq,
             parent = null,
             sharedLoader = getClass.getClassLoader,
             sharedPrefixes = Seq("xsbti")
-          )(new Ctx.Home { override def home: Path = os.home })
+          )
           classloaderCache.update(compilersSig, (cl, 1))
           cl
       }
@@ -284,10 +285,10 @@ class ZincWorkerImpl(
     os.makeDir.all(compileDest)
 
     val sourceFolder = os.unzip(compilerBridgeSourcesJar, workingDir / "unpacked")
-    val classloader = mill.api.ClassLoader.create(
-      compilerClasspath.iterator.map(_.path.toIO.toURI.toURL).toSeq,
+    val classloader = mill.util.Jvm.createClassLoader(
+      compilerClasspath.map(_.path).toSeq,
       null
-    )(ctx0)
+    )
 
     val (sources, resources) =
       os.walk(sourceFolder).filter(os.isFile)
@@ -686,19 +687,6 @@ class ZincWorkerImpl(
 }
 
 object ZincWorkerImpl {
-
-  /**
-   * TODO: copied from mill.scalalib.Assembly
-   */
-  private object Streamable {
-    def bytes(is: java.io.InputStream): Array[Byte] = {
-      val out = new java.io.ByteArrayOutputStream
-      mill.api.IO.stream(is, out)
-      out.close()
-      out.toByteArray
-    }
-  }
-
   private def intValue(oi: java.util.Optional[Integer], default: Int): Int = {
     if oi.isPresent then oi.get().intValue()
     else default
@@ -733,7 +721,7 @@ object ZincWorkerImpl {
 
         sources.collect({
           case vf if isBuild(vf) =>
-            val str = new String(Streamable.bytes(vf.input()), StandardCharsets.UTF_8)
+            val str = new String(vf.input().readAllBytes(), StandardCharsets.UTF_8)
 
             val lines = str.linesWithSeparators.toVector
             val adjustedFile = lines

@@ -121,7 +121,7 @@ object `package` extends RootModule {
     object worker2 extends build.MillPublishScalaModule {
       def testDepPaths = Task { Seq(compile().classes) }
       def compileModuleDeps = Seq(
-        build.main.api,
+        build.core.api,
         scoverage.api
       )
       def compileIvyDeps = Task {

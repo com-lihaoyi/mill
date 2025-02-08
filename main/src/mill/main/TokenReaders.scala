@@ -2,7 +2,7 @@ package mill.main
 
 import mainargs.TokensReader
 import mill.eval.Evaluator
-import mill.define.{Args, Target, Task}
+import mill.define.{Args, Task}
 import mill.resolve.{Resolve, SelectMode}
 import mill.resolve.SimpleTaskTokenReader
 
@@ -40,7 +40,7 @@ private[mill] class AllEvaluatorsTokenReader[T]()
 private class LeftoverTaskTokenReader[T](tokensReaderOfT: TokensReader.Leftover[T, _])
     extends mainargs.TokensReader.Leftover[Task[T], T] {
   def read(strs: Seq[String]): Either[String, Task[T]] =
-    tokensReaderOfT.read(strs).map(t => Target.task(t))
+    tokensReaderOfT.read(strs).map(t => mill.define.Task.Anon(t))
   def shortName = tokensReaderOfT.shortName
 }
 

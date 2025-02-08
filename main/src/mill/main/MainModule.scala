@@ -2,11 +2,12 @@ package mill.main
 
 import mill.api._
 import mill.define._
-import mill.eval.{Evaluator, EvaluatorPaths, Terminal}
+import mill.eval.{Evaluator, EvaluatorPaths}
 import mill.moduledefs.Scaladoc
 import mill.resolve.SelectMode.Separated
 import mill.resolve.{Resolve, SelectMode}
-import mill.util.{Util, Watchable}
+import mill.util.Util
+import mill.internal.Watchable
 import pprint.{Renderer, Tree, Truncated}
 
 import java.util.concurrent.LinkedBlockingQueue
@@ -56,7 +57,7 @@ object MainModule {
     // printed JSON is the only thing printed to stdout.
     val redirectLogger = log
       .withOutStream(evaluator.baseLogger.errorStream)
-      .asInstanceOf[mill.util.ColorLogger]
+      .asInstanceOf[ColorLogger]
 
     RunScript.evaluateTasksNamed(
       evaluator.withBaseLogger(redirectLogger),
@@ -80,7 +81,7 @@ object MainModule {
   def plan0(
       evaluator: Evaluator,
       tasks: Seq[String]
-  ): Either[String, Array[Terminal.Labelled[_]]] = {
+  ): Either[String, Array[NamedTask[_]]] = {
     Resolve.Tasks.resolve(
       evaluator.rootModule,
       tasks,
@@ -88,8 +89,8 @@ object MainModule {
     ) match {
       case Left(err) => Left(err)
       case Right(rs) =>
-        val (sortedGroups, _) = evaluator.plan(rs)
-        Right(sortedGroups.keys().collect { case r: Terminal.Labelled[_] => r }.toArray)
+        val plan = evaluator.plan(rs)
+        Right(plan.sortedGroups.keys().collect { case r: NamedTask[_] => r }.toArray)
     }
   }
 
@@ -99,7 +100,7 @@ object MainModule {
  * [[mill.define.Module]] containing all the default tasks that Mill provides: [[resolve]],
  * [[show]], [[inspect]], [[plan]], etc.
  */
-trait MainModule extends BaseModule0 {
+trait MainModule extends BaseModule {
 
   object interp extends Interp
 
@@ -141,7 +142,7 @@ trait MainModule extends BaseModule0 {
       MainModule.plan0(evaluator, targets) match {
         case Left(err) => Result.Failure(err)
         case Right(success) =>
-          val renderedTasks = success.map(_.segments.render)
+          val renderedTasks = success.map(_.toString)
           renderedTasks.foreach(println)
           Result.Success(renderedTasks)
       }
@@ -264,16 +265,13 @@ trait MainModule extends BaseModule0 {
             else {
               val mainDataOpt = evaluator
                 .rootModule
-                .millDiscover
-                .classInfo
-                .get(t.ctx.enclosingCls)
-                .flatMap(_.entryPoints.find(_.name == t.ctx.segments.last.value))
-                .headOption
+                .implicitMillDiscover
+                .resolveEntrypoint(t.ctx.enclosingCls, t.ctx.segments.last.value)
 
               mainDataOpt match {
                 case Some(mainData) if mainData.renderedArgSigs.nonEmpty =>
                   val rendered = mainargs.Renderer.formatMainMethodSignature(
-                    mainDataOpt.get,
+                    mainData,
                     leftIndent = 2,
                     totalWidth = 100,
                     leftColWidth = mainargs.Renderer.getLeftColWidth(mainData.renderedArgSigs),
@@ -352,10 +350,10 @@ trait MainModule extends BaseModule0 {
           case _ => None
         }
 
-        val methodMap = evaluator.rootModule.millDiscover.classInfo
+        val methodMap = evaluator.rootModule.implicitMillDiscover.classInfo
         val tasks = methodMap
           .get(cls)
-          .map { node => node.declaredNames.map(task => s"${t.module}.$task") }
+          .map { node => node.declaredTasks.map(task => s"${t.module}.${task.name}") }
           .toSeq.flatten
         pprint.Tree.Lazy { ctx =>
           Iterator(
@@ -541,7 +539,7 @@ trait MainModule extends BaseModule0 {
             targets,
             Target.ctx(),
             mill.main.VisualizeModule.worker(),
-            Some(planResults.toList.map(_.task))
+            Some(planResults.toList)
           )
       }
     }

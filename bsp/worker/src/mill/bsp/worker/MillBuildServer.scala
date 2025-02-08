@@ -4,7 +4,14 @@ import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j._
 import com.google.gson.JsonObject
 import mill.api.Loose.Agg
-import mill.api.{CompileProblemReporter, DummyTestReporter, Result, Strict, TestReporter}
+import mill.api.{
+  ColorLogger,
+  CompileProblemReporter,
+  DummyTestReporter,
+  Result,
+  Strict,
+  TestReporter
+}
 import mill.bsp.{BspServerResult, Constants}
 import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
 import mill.define.Segment.Label
@@ -15,7 +22,6 @@ import mill.main.MainModule
 import mill.runner.MillBuildRootModule
 import mill.scalalib.bsp.{BspModule, JvmBuildTarget, ScalaBuildTarget}
 import mill.scalalib.{JavaModule, SemanticDbJavaModule, TestModule}
-import mill.util.ColorLogger
 import mill.given
 
 import java.io.PrintStream
@@ -38,7 +44,7 @@ private class MillBuildServer(
 
   import MillBuildServer._
 
-  lazy val millDiscover: Discover = Discover[this.type]
+  lazy val millDiscover = Discover[this.type]
 
   private[worker] var cancellator: Boolean => Unit = shutdownBefore => ()
   private[worker] var onSessionEnd: Option[BspServerResult => Unit] = None
@@ -590,7 +596,7 @@ private class MillBuildServer(
         )) {
           case ((msg, cleaned), targetId) =>
             val (module, ev) = state.bspModulesById(targetId)
-            val mainModule = new MainModule {
+            val mainModule = new mill.define.BaseModule(millSourcePath) with MainModule {
               override implicit def millDiscover: Discover = Discover[this.type]
             }
             val compileTargetName = (module.millModuleSegments ++ Label("compile")).render

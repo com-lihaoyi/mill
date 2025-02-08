@@ -103,9 +103,7 @@ trait PublishModule extends TypeScriptModule {
   }
 
   private def pubModDepsSources: T[Seq[PathRef]] = Task {
-    for {
-      modSource <- Task.traverse(moduleDeps)(_.sources)
-    } yield modSource
+    Task.traverse(moduleDeps)(_.sources)()
   }
 
   private def pubBaseModeGenSources: T[Seq[PathRef]] = Task {
@@ -131,7 +129,7 @@ trait PublishModule extends TypeScriptModule {
   private def pubGenSources: T[Unit] = Task {
     val allGeneratedSources = pubBaseModeGenSources() ++ pubModDepsGenSources()
     allGeneratedSources.foreach { target =>
-      val destination = publishDir().path / "typescript" / "generatedSources" / target.path.last
+      val destination = publishDir().path / "typescript/generatedSources" / target.path.last
       os.makeDir.all(destination / os.up)
       os.copy.over(
         target.path,

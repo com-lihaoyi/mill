@@ -17,14 +17,13 @@ private[playlib] class RouteCompilerWorker extends AutoCloseable {
     routeCompilerInstanceCache match {
       case Some((sig, bridge)) if sig == classloaderSig => bridge
       case _ =>
-        val toolsClassPath = toolsClasspath.map(_.path.toIO.toURI.toURL).toVector
+        val toolsClassPath = toolsClasspath.map(_.path).toVector
         ctx.log.debug("Loading classes from\n" + toolsClassPath.mkString("\n"))
-        val cl = mill.api.ClassLoader.create(
+        val cl = mill.util.Jvm.createClassLoader(
           toolsClassPath,
           null,
           sharedLoader = getClass().getClassLoader(),
-          sharedPrefixes = Seq("mill.playlib.api."),
-          logger = Some(ctx.log)
+          sharedPrefixes = Seq("mill.playlib.api.")
         )
         val bridge = cl
           .loadClass("mill.playlib.worker.RouteCompilerWorker")

@@ -1,17 +1,19 @@
 package mill.javalib.revapi
 
 import mill.api.PathRef
+import mill.define.Discover
 import mill.javalib.*
 import mill.scalalib.publish.{PomSettings, VersionControl}
 import mill.testkit.{TestBaseModule, UnitTester}
 import mill.{Agg, T, Task}
 import utest.*
+import mill.main.TokenReaders._
 
 object RevapiModuleTests extends TestSuite {
 
   def tests: Tests = Tests {
 
-    val root = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "javalib" / "revapi"
+    val root = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "javalib/revapi"
     val conf = root / "conf"
     val textReport = "report.txt"
 
@@ -65,13 +67,17 @@ object RevapiModuleTests extends TestSuite {
         PomSettings("", "mill.revapi.local", "", Seq(), VersionControl(), Seq())
       override def publishVersion: T[String] = root1.last
     }
-    object module1 extends module
+    object module1 extends module {
+      lazy val millDiscover = Discover[this.type]
+    }
     object module2 extends module with RevapiModule {
       override def revapiConfigFiles: T[Seq[PathRef]] =
         Task.Sources(os.list(conf).iterator.filter(_.ext == "json").map(PathRef(_)).toSeq)
       override def revapiClasspath: T[Agg[PathRef]] = Task {
         super.revapiClasspath() ++ Seq(PathRef(conf))
       }
+
+      lazy val millDiscover = Discover[this.type]
     }
 
     var eval = UnitTester(module1, root1)
@@ -107,6 +113,8 @@ object RevapiModuleTests extends TestSuite {
       override def revapiClasspath: T[Agg[PathRef]] = Task {
         super.revapiClasspath() ++ Seq(PathRef(conf))
       }
+
+      lazy val millDiscover = Discover[this.type]
     }
 
     val eval = UnitTester(module, os.temp.dir())

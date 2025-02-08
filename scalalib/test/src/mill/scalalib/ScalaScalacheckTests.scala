@@ -1,10 +1,10 @@
 package mill.scalalib
 
-import mill._
+import mill.*
 import mill.testkit.{TestBaseModule, UnitTester}
-import utest._
-
-import HelloWorldTests._
+import utest.*
+import HelloWorldTests.*
+import mill.define.Discover
 object ScalaScalacheckTests extends TestSuite {
 
   object HelloScalacheck extends TestBaseModule {
@@ -15,6 +15,7 @@ object ScalaScalacheckTests extends TestSuite {
         override def testFramework = "org.scalacheck.ScalaCheckFramework"
       }
     }
+    lazy val millDiscover = Discover[this.type]
   }
 
   def tests: Tests = Tests {

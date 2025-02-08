@@ -99,7 +99,7 @@ trait AndroidAppModule extends JavaModule {
   /**
    * Provides os.Path to an XML file containing configuration and metadata about your android application.
    */
-  def androidManifest: Task[PathRef] = Task.Source(millSourcePath / "src/main/AndroidManifest.xml")
+  def androidManifest: Task[PathRef] = Task.Source("src/main/AndroidManifest.xml")
 
   /**
    * Name of the release keystore file. Default is not set.
@@ -545,7 +545,7 @@ trait AndroidAppModule extends JavaModule {
     val libManifests = androidUnpackArchives().flatMap(_.manifest)
     val mergedManifestPath = Task.dest / "AndroidManifest.xml"
     // TODO put it to the dedicated worker if cost of classloading is too high
-    Jvm.runSubprocess(
+    Jvm.callProcess(
       mainClass = "com.android.manifmerger.Merger",
       mainArgs = Seq(
         "--main",
@@ -562,7 +562,9 @@ trait AndroidAppModule extends JavaModule {
         "--out",
         mergedManifestPath.toString()
       ) ++ libManifests.flatMap(m => Seq("--libs", m.path.toString())),
-      classPath = manifestMergerClasspath().map(_.path)
+      classPath = manifestMergerClasspath().map(_.path).toVector,
+      stdin = os.Inherit,
+      stdout = os.Inherit
     )
     PathRef(mergedManifestPath)
   }

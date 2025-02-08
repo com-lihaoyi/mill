@@ -63,7 +63,8 @@ object InspectTests extends UtestIntegrationTestSuite {
         doc
       )
 
-      assert(eval(("inspect", "core.run")).isSuccess)
+      val res2 = eval(("inspect", "core.run"))
+      assert(res2.isSuccess)
       val run = out("inspect").json.str
 
       assertGlobMatches(

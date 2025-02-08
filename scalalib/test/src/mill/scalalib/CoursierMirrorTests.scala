@@ -1,10 +1,12 @@
 package mill.scalalib
 
+import mill.define.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import mill.eval.{Evaluator}
-import utest._
+import mill.eval.Evaluator
+import utest.*
 import utest.framework.TestPath
+import mill.main.TokenReaders._
 
 object CoursierMirrorTests extends TestSuite {
 
@@ -14,6 +16,8 @@ object CoursierMirrorTests extends TestSuite {
     object core extends ScalaModule {
       def scalaVersion = "2.13.12"
     }
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   def tests: Tests = Tests {

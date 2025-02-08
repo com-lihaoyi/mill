@@ -8,6 +8,7 @@ import mill.util.Jvm.createJar
 import mill.api.Loose.Agg
 import mill.scalalib.api.{CompilationResult, Versions, ZincWorkerUtil}
 import mainargs.Flag
+import mill.define.Task
 import mill.scalalib.bsp.{BspBuildTarget, BspModule, ScalaBuildTarget, ScalaPlatform}
 import mill.scalalib.dependency.versions.{ValidVersion, Version}
 
@@ -21,8 +22,6 @@ import scala.util.Using
  * Core configuration required to compile a single Scala compilation target
  */
 trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
-  @deprecated("use ScalaTests", "0.11.0")
-  type ScalaModuleTests = ScalaTests
 
   trait ScalaTests extends JavaTests with ScalaModule {
     override def scalaOrganization: T[String] = outer.scalaOrganization()
@@ -78,10 +77,9 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     }
   }
 
-  override def resolveCoursierDependency: Task[Dep => coursier.Dependency] =
-    Task.Anon {
-      Lib.depToDependency(_: Dep, scalaVersion(), platformSuffix())
-    }
+  def bindDependency: Task[Dep => BoundDep] = Task.Anon { (dep: Dep) =>
+    BoundDep(Lib.depToDependency(dep, scalaVersion(), platformSuffix()), dep.force)
+  }
 
   override def resolvePublishDependency: Task[Dep => publish.Dependency] =
     Task.Anon {
@@ -297,7 +295,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
         Task.log.debug(
           s"compile target was not overridden, assuming hard-coded classes directory for target ${compile}"
         )
-        UnresolvedPath.DestPath(os.sub / "classes", compile.ctx.segments, compile.ctx.foreign)
+        UnresolvedPath.DestPath(os.sub / "classes", compile.ctx.segments)
       }
     } else {
       Task {
@@ -326,8 +324,9 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     )
 
     def packageWithZinc(options: Seq[String], files: Seq[os.Path], javadocDir: os.Path) = {
-      if (files.isEmpty) Result.Success(createJar(Agg(javadocDir))(Task.dest))
-      else {
+      if (files.isEmpty) {
+        Result.Success(PathRef(createJar(Task.dest / "out.jar", Agg(javadocDir))))
+      } else {
         zincWorker()
           .worker()
           .docJar(
@@ -338,7 +337,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
             options ++ compileCp ++ scalaDocOptions() ++
               files.map(_.toString())
           ) match {
-          case true => Result.Success(createJar(Agg(javadocDir))(Task.dest))
+          case true => Result.Success(PathRef(createJar(Task.dest / "out.jar", Agg(javadocDir))))
           case false => Result.Failure("docJar generation failed")
         }
       }
@@ -434,7 +433,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     } else {
       val useJavaCp = "-usejavacp"
 
-      Jvm.runSubprocess(
+      Jvm.callProcess(
         mainClass =
           if (ZincWorkerUtil.isDottyOrScala3(scalaVersion()))
             "dotty.tools.repl.Main"
@@ -444,9 +443,11 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
           _.path
         ),
         jvmArgs = forkArgs(),
-        envArgs = forkEnv(),
+        env = forkEnv(),
         mainArgs = Seq(useJavaCp) ++ consoleScalacOptions().filterNot(Set(useJavaCp)),
-        workingDir = forkWorkingDir()
+        cwd = forkWorkingDir(),
+        stdin = os.Inherit,
+        stdout = os.Inherit
       )
       Result.Success(())
     }
@@ -509,13 +510,15 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     } else {
       val mainClass = ammoniteMainClass()
       Task.log.debug(s"Using ammonite main class: ${mainClass}")
-      Jvm.runSubprocess(
+      Jvm.callProcess(
         mainClass = mainClass,
-        classPath = ammoniteReplClasspath().map(_.path),
+        classPath = ammoniteReplClasspath().map(_.path).toVector,
         jvmArgs = forkArgs(),
-        envArgs = forkEnv(),
+        env = forkEnv(),
         mainArgs = replOptions,
-        workingDir = forkWorkingDir()
+        cwd = forkWorkingDir(),
+        stdin = os.Inherit,
+        stdout = os.Inherit
       )
       Result.Success(())
     }

@@ -1,5 +1,7 @@
 package mill.kotlinlib.kover
 
+import mill.define.Discover
+import mill.main.TokenReaders._
 import mill.kotlinlib.{DepSyntax, KotlinModule}
 import mill.kotlinlib.TestModule
 import mill.kotlinlib.kover.{Kover, KoverModule}
@@ -13,7 +15,7 @@ object KoverModuleTests extends TestSuite {
 
   val kotlinVersion = "1.9.24"
 
-  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "contrib" / "kover"
+  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "contrib/kover"
 
   object module extends TestBaseModule {
 
@@ -42,6 +44,8 @@ object KoverModuleTests extends TestSuite {
       def kotlinVersion = KoverModuleTests.kotlinVersion
       object test extends KotlinTests with module.KotestTestModule
     }
+
+    lazy val millDiscover = Discover[this.type]
   }
 
   def tests: Tests = Tests {

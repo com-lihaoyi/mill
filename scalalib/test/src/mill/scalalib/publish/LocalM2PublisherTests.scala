@@ -1,7 +1,7 @@
 package mill.scalalib.publish
 
 import mill.api.{Ctx, Logger, PathRef}
-import mill.util.DummyLogger
+import mill.internal.DummyLogger
 import utest.{TestSuite, Tests, assert, test}
 
 object LocalM2PublisherTests extends TestSuite {
