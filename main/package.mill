@@ -74,7 +74,6 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
     )
   )
 
-
   object util extends build.MillStableScalaModule {
     def moduleDeps = Seq(build.core.api, build.core.client)
     def ivyDeps = Agg(
