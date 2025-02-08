@@ -22,9 +22,13 @@ object Foo {
       .master("local[*]")
       .getOrCreate()
 
-    val resourceUrl = Option(getClass.getResource("/transactions.csv"))
-      .getOrElse(throw new RuntimeException("transactions.csv not found in resources"))
-    val resourcePath = resourceUrl.getPath
+    // Check for a file path provided as a command-line argument first;
+    // otherwise, use the resource from inside the JAR.
+    val resourcePath: String = args.headOption
+      .orElse(Option(getClass.getResource("/transactions.csv")).map(_.getPath))
+      .getOrElse(throw new RuntimeException(
+        "transactions.csv not provided as argument and not found in resources"
+      ))
 
     import spark.implicits._
 
@@ -34,10 +38,10 @@ object Foo {
       .csv(resourcePath)
 
     val transactionsDS: Dataset[Transaction] = df.as[Transaction]
-    val summaryDF = computeSummary(transactionsDS)    // Compute summary statistics using the exported function
+    val summaryDF = computeSummary(transactionsDS)
 
     println("Summary Statistics by Category:")
     summaryDF.show()
-    spark.stop() // End Session
+    spark.stop()
   }
 }
