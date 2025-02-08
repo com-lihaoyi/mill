@@ -2,7 +2,6 @@ package mill.resolve
 
 import mill.define.Discover
 import mill.testkit.TestBaseModule
-import mill.util.TestGraphs
 import mill.{Cross, Module, Task}
 import utest.*
 
