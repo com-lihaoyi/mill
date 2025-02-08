@@ -16,9 +16,9 @@ class LinePrefixOutputStream(
     reportPrefix: () => Unit
 ) extends FilterOutputStream(out) {
   def this(linePrefix: String, out: OutputStream) = this(linePrefix, out, () => ())
-  private[this] val linePrefixBytes = linePrefix.getBytes("UTF-8")
-  private[this] val linePrefixNonEmpty = linePrefixBytes.length != 0
-  private[this] var isNewLine = true
+  private val linePrefixBytes = linePrefix.getBytes("UTF-8")
+  private val linePrefixNonEmpty = linePrefixBytes.length != 0
+  private var isNewLine = true
   val buffer = new ByteArrayOutputStream()
 
   // Make sure we preserve the end-of-line ANSI colors every time we write out the buffer, and
@@ -26,7 +26,7 @@ class LinePrefixOutputStream(
   // not muck up the rendering of color sequences that affect multiple lines in the terminal
   private var endOfLastLineColor: Long = 0
   override def write(b: Array[Byte]): Unit = write(b, 0, b.length)
-  private[this] def writeLinePrefixIfNecessary(): Unit = {
+  private def writeLinePrefixIfNecessary(): Unit = {
     if (isNewLine && linePrefixNonEmpty) {
       isNewLine = false
       buffer.write(linePrefixBytes)

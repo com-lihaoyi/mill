@@ -65,7 +65,7 @@ private class BspTestReporter(
 
   // Compute the display name of the test / test suite
   // to which the given event relates
-  private[this] def getDisplayName(e: Event): String = {
+  private def getDisplayName(e: Event): String = {
     e.selector() match {
       case s: NestedSuiteSelector => s.suiteId()
       case s: NestedTestSelector => s.suiteId() + "." + s.testName()

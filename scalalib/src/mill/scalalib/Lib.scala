@@ -173,7 +173,7 @@ object Lib {
           customizer = None,
           coursierCacheCustomizer = None,
           ctx = ctx
-        )
+        ): @unchecked
         res.items.toList.map(_.path)
     }
   }

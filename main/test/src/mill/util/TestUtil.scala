@@ -54,8 +54,8 @@ object TestUtil {
     override def sideHash = testTask.sideHash
   }
 
-  def checkTopological(targets: Agg[Task[_]]) = {
-    val seen = mutable.Set.empty[Task[_]]
+  def checkTopological(targets: Agg[Task[?]]) = {
+    val seen = mutable.Set.empty[Task[?]]
     for (t <- targets.indexed.reverseIterator) {
       seen.add(t)
       for (upstream <- t.inputs) {

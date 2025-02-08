@@ -642,7 +642,7 @@ object BomTests extends TestSuite {
   }
 
   def isInClassPath(
-      module: JavaModule with PublishModule,
+      module: JavaModule & PublishModule,
       jarName: String,
       dependencyModules: Seq[PublishModule] = Nil,
       jarCheck: Option[String => Boolean] = None,

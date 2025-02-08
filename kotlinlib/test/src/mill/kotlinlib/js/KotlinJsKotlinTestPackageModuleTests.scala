@@ -44,7 +44,7 @@ object KotlinJsKotlinTestPackageModuleTests extends TestSuite {
 
       val command = module.foo.test.test()
       val Left(Result.Failure(failureMessage, Some((doneMessage, testResults)))) =
-        eval.apply(command)
+        eval.apply(command): @unchecked
 
       val xmlReport =
         EvaluatorPaths.resolveDestPaths(eval.outPath, command).dest / "test-report.xml"

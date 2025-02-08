@@ -106,9 +106,9 @@ private object Utils {
     else Nil
   }
 
-  private[this] def getStatusCodePerTask(
+  private def getStatusCodePerTask(
       results: Evaluator.Results,
-      task: mill.define.Task[_]
+      task: mill.define.Task[?]
   ): StatusCode = {
     results.results(task).result match {
       case Success(_) => StatusCode.OK

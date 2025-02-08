@@ -147,7 +147,7 @@ object CheckstyleModuleTest extends TestSuite {
       module,
       modulePath,
       violations,
-      CheckstyleArgs(check, stdout, Leftover(sources: _*))
+      CheckstyleArgs(check, stdout, Leftover(sources*))
     )
   }
 
@@ -174,12 +174,12 @@ object CheckstyleModuleTest extends TestSuite {
       module,
       modulePath,
       violations,
-      CheckstyleArgs(check, stdout, Leftover(sources: _*))
+      CheckstyleArgs(check, stdout, Leftover(sources*))
     )
   }
 
   def testModule(
-      module: TestBaseModule with CheckstyleModule,
+      module: TestBaseModule & CheckstyleModule,
       modulePath: os.Path,
       violations: Seq[String],
       args: CheckstyleArgs
@@ -194,7 +194,7 @@ object CheckstyleModuleTest extends TestSuite {
 
         numViolations.value == violations.length && {
 
-          val Right(report) = eval(module.checkstyleOutput)
+          val Right(report) = eval(module.checkstyleOutput): @unchecked
 
           if (os.exists(report.value.path)) {
             violations.isEmpty || {

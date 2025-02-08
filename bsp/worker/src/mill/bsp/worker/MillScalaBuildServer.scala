@@ -118,7 +118,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
       }
     ) {
       case (ev, state, id, m: TestModule, Some((classpath, testFramework, testClasspath))) =>
-        val (frameworkName, classFingerprint): (String, Agg[(Class[_], Fingerprint)]) =
+        val (frameworkName, classFingerprint): (String, Agg[(Class[?], Fingerprint)]) =
           Jvm.withClassLoader(
             classPath = classpath.map(_.path).toVector,
             sharedPrefixes = Seq("sbt.testing.")
@@ -130,7 +130,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
               Agg.from(testClasspath.map(_.path))
             )
             (framework.name(), discoveredTests)
-          }
+          }: @unchecked
         val classes = Seq.from(classFingerprint.map(classF => classF._1.getName.stripSuffix("$")))
         new ScalaTestClassesItem(id, classes.asJava).tap { it =>
           it.setFramework(frameworkName)

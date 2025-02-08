@@ -227,7 +227,7 @@ private[scalalib] object TestModuleUtil {
   private[scalalib] def handleResults(
       doneMsg: String,
       results: Seq[TestResult],
-      ctx: Ctx.Env with Ctx.Dest,
+      ctx: Ctx.Env & Ctx.Dest,
       testReportXml: Option[String],
       props: Option[Map[String, String]] = None
   ): Result[(String, Seq[TestResult])] = {

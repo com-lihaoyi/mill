@@ -3,7 +3,7 @@ package mill.eval
 import mill.testkit.UnitTester
 import mill.testkit.UnitTester.Result
 import mill.testkit.TestBaseModule
-import mill.{T, Task}
+import mill.Task
 import mill.define.Discover
 
 import utest._

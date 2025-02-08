@@ -33,7 +33,7 @@ trait Evaluator extends AutoCloseable {
   def disableCallgraphInvalidation: Boolean = false
 
   def evaluate(
-      goals: Agg[Task[_]],
+      goals: Agg[Task[?]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
       logger: ColorLogger = baseLogger,
@@ -43,7 +43,7 @@ trait Evaluator extends AutoCloseable {
   def withBaseLogger(newBaseLogger: ColorLogger): Evaluator
   def withFailFast(newFailFast: Boolean): Evaluator
   def allowPositionalCommandArgs: Boolean = false
-  def plan(goals: Agg[Task[_]]): Plan
+  def plan(goals: Agg[Task[?]]): Plan
 
   /**
    * Evaluate given task(s) and return the successful result(s), or throw an exception.
@@ -58,10 +58,10 @@ trait Evaluator extends AutoCloseable {
 object Evaluator {
   trait Results {
     def rawValues: Seq[Result[Val]]
-    def evaluated: Agg[Task[_]]
-    def transitive: Agg[Task[_]]
-    def failing: MultiBiMap[Task[_], Result.Failing[Val]]
-    def results: collection.Map[Task[_], TaskResult[Val]]
+    def evaluated: Agg[Task[?]]
+    def transitive: Agg[Task[?]]
+    def failing: MultiBiMap[Task[?], Result.Failing[Val]]
+    def results: collection.Map[Task[?], TaskResult[Val]]
     def values: Seq[Val] = rawValues.collect { case Result.Success(v) => v }
   }
 

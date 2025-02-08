@@ -64,7 +64,7 @@ object NodeJSConfigTests extends TestSuite {
   val mainObject = helloWorldEvaluator.outPath / "src/Main.scala"
 
   def tests: Tests = Tests {
-    def checkLog(command: define.Command[_], nodeArgs: List[String], notNodeArgs: List[String]) = {
+    def checkLog(command: define.Command[?], nodeArgs: List[String], notNodeArgs: List[String]) = {
       helloWorldEvaluator(command)
       val paths = EvaluatorPaths.resolveDestPaths(helloWorldEvaluator.outPath, command)
       val log = os.read(paths.log)

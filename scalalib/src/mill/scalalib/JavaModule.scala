@@ -1260,7 +1260,7 @@ trait JavaModule
       args: String*
   ): Command[Unit] = {
     // overridden here for binary compatibility (0.11.x)
-    super.runMainBackground(mainClass, args: _*)
+    super.runMainBackground(mainClass, args*)
   }
 
   /**
@@ -1271,7 +1271,7 @@ trait JavaModule
       args: String*
   ): Command[Unit] = {
     // overridden here for binary compatibility (0.11.x)
-    super.runMainLocal(mainClass, args: _*)
+    super.runMainLocal(mainClass, args*)
   }
 
   /**
@@ -1279,7 +1279,7 @@ trait JavaModule
    */
   override def runMain(@arg(positional = true) mainClass: String, args: String*): Command[Unit] = {
     // overridden here for binary compatibility (0.11.x)
-    super.runMain(mainClass, args: _*)
+    super.runMain(mainClass, args*)
   }
 
   /**

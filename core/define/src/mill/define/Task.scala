@@ -21,7 +21,7 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] {
   /**
    * What other tasks does this task depend on?
    */
-  val inputs: Seq[Task[_]]
+  val inputs: Seq[Task[?]]
 
   /**
    * Evaluate this task
@@ -219,7 +219,7 @@ object Task extends TaskBase {
   }
 
   private[define] class Sequence[+T](inputs0: Seq[Task[T]]) extends Task[Seq[T]] {
-    val inputs: Seq[Task[_]] = inputs0
+    val inputs: Seq[Task[?]] = inputs0
     def evaluate(ctx: mill.api.Ctx): Result[Seq[T]] = {
       for (i <- 0 until ctx.args.length)
         yield ctx.args(i).asInstanceOf[T]
@@ -229,7 +229,7 @@ object Task extends TaskBase {
       inputs0: Seq[Task[T]],
       f: (IndexedSeq[T], mill.api.Ctx) => Result[V]
   ) extends Task[V] {
-    val inputs: Seq[Task[_]] = inputs0
+    val inputs: Seq[Task[?]] = inputs0
     def evaluate(ctx: mill.api.Ctx): Result[V] = {
       f(
         for (i <- 0 until ctx.args.length)
@@ -241,12 +241,12 @@ object Task extends TaskBase {
 
   private[define] class Mapped[+T, +V](source: Task[T], f: T => V) extends Task[V] {
     def evaluate(ctx: mill.api.Ctx): Result[V] = f(ctx.arg(0))
-    val inputs: Seq[Task[_]] = List(source)
+    val inputs: Seq[Task[?]] = List(source)
   }
 
   private[define] class Zipped[+T, +V](source1: Task[T], source2: Task[V]) extends Task[(T, V)] {
     def evaluate(ctx: mill.api.Ctx): Result[(T, V)] = (ctx.arg(0), ctx.arg(1))
-    val inputs: Seq[Task[_]] = List(source1, source2)
+    val inputs: Seq[Task[?]] = List(source1, source2)
   }
 }
 
@@ -276,11 +276,11 @@ trait NamedTask[+T] extends Task[T] {
   val ctx: Ctx =
     if (ctx0.segments.value.exists(_.pathSegments.exists(_.endsWith(".super")))) ctx0
     else ctx0.withSegments(segments = ctx0.segments ++ Seq(ctx0.segment))
-  val inputs: Seq[Task[_]] = Seq(t)
+  val inputs: Seq[Task[?]] = Seq(t)
 
-  def readWriterOpt: Option[upickle.default.ReadWriter[_]] = None
+  def readWriterOpt: Option[upickle.default.ReadWriter[?]] = None
 
-  def writerOpt: Option[upickle.default.Writer[_]] = readWriterOpt.orElse(None)
+  def writerOpt: Option[upickle.default.Writer[?]] = readWriterOpt.orElse(None)
 }
 
 /**
@@ -776,7 +776,7 @@ class TaskBase extends Applicative.Applyer[Task, Task, Result, mill.api.Ctx]
   /**
    * Returns the implicit [[mill.api.Ctx.Args.args]] in scope.
    */
-  def args(implicit ctx: mill.api.Ctx.Args): IndexedSeq[_] = ctx.args
+  def args(implicit ctx: mill.api.Ctx.Args): IndexedSeq[?] = ctx.args
 
   /**
    * Report test results to BSP for IDE integration
@@ -834,18 +834,18 @@ object TaskBase {
 class TargetImpl[+T](
     val t: Task[T],
     val ctx0: mill.define.Ctx,
-    val readWriter: RW[_],
+    val readWriter: RW[?],
     val isPrivate: Option[Boolean]
 ) extends Target[T] {
   override def asTarget: Option[Target[T]] = Some(this)
   // FIXME: deprecated return type: Change to Option
-  override def readWriterOpt: Some[RW[_]] = Some(readWriter)
+  override def readWriterOpt: Some[RW[?]] = Some(readWriter)
 }
 
 class PersistentImpl[+T](
     t: Task[T],
     ctx0: mill.define.Ctx,
-    readWriter: RW[_],
+    readWriter: RW[?],
     isPrivate: Option[Boolean]
 ) extends TargetImpl[T](t, ctx0, readWriter, isPrivate) {
   override def flushDest = false
@@ -854,19 +854,19 @@ class PersistentImpl[+T](
 class Command[+T](
     val t: Task[T],
     val ctx0: mill.define.Ctx,
-    val writer: W[_],
+    val writer: W[?],
     val isPrivate: Option[Boolean],
     val exclusive: Boolean
 ) extends NamedTask[T] {
   def this(
       t: Task[T],
       ctx0: mill.define.Ctx,
-      writer: W[_],
+      writer: W[?],
       isPrivate: Option[Boolean]
   ) = this(t, ctx0, writer, isPrivate, false)
   override def asCommand: Some[Command[T]] = Some(this)
   // FIXME: deprecated return type: Change to Option
-  override def writerOpt: Some[W[_]] = Some(writer)
+  override def writerOpt: Some[W[?]] = Some(writer)
 }
 
 class Worker[+T](val t: Task[T], val ctx0: mill.define.Ctx, val isPrivate: Option[Boolean])
@@ -878,12 +878,12 @@ class Worker[+T](val t: Task[T], val ctx0: mill.define.Ctx, val isPrivate: Optio
 class InputImpl[T](
     val t: Task[T],
     val ctx0: mill.define.Ctx,
-    val writer: upickle.default.Writer[_],
+    val writer: upickle.default.Writer[?],
     val isPrivate: Option[Boolean]
 ) extends Target[T] {
   override def sideHash: Int = util.Random.nextInt()
   // FIXME: deprecated return type: Change to Option
-  override def writerOpt: Some[W[_]] = Some(writer)
+  override def writerOpt: Some[W[?]] = Some(writer)
 }
 
 class SourcesImpl(t: Task[Seq[PathRef]], ctx0: mill.define.Ctx, isPrivate: Option[Boolean])

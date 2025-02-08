@@ -40,7 +40,7 @@ object MixedHelloWorldTests extends TestSuite {
       val eval = testEval()
 
       MixedHelloWorldKotlin.main.crossModules.foreach(m => {
-        val Right(result) = eval.apply(m.compile)
+        val Right(result) = eval.apply(m.compile): @unchecked
 
         assert(
           os.walk(result.value.classes.path).exists(_.last == "KotlinHelloKt.class"),
@@ -52,7 +52,7 @@ object MixedHelloWorldTests extends TestSuite {
       val eval = testEval()
 
       MixedHelloWorldKotlin.main.crossModules.foreach(m => {
-        val Right(result1) = eval.apply(m.test.compile)
+        val Right(result1) = eval.apply(m.test.compile): @unchecked
 
         assert(
           os.walk(result1.value.classes.path).exists(_.last == "HelloTest.class")
@@ -63,7 +63,7 @@ object MixedHelloWorldTests extends TestSuite {
       val eval = testEval()
       MixedHelloWorldKotlin.main.crossModules.foreach(m => {
 
-        val Left(Result.Failure(_, Some(v1))) = eval.apply(m.test.test())
+        val Left(Result.Failure(_, Some(v1))) = eval.apply(m.test.test()): @unchecked
 
         assert(
           v1._2(0).fullyQualifiedName == "hello.tests.HelloTest.testFailure",
@@ -81,15 +81,15 @@ object MixedHelloWorldTests extends TestSuite {
         val mainJava =
           MixedHelloWorldKotlin.millSourcePath / "main/src/hello/KotlinHello.kt"
 
-        val Right(_) = eval.apply(m.compile)
+        val Right(_) = eval.apply(m.compile): @unchecked
 
         os.write.over(mainJava, os.read(mainJava) + "}")
 
-        val Left(_) = eval.apply(m.compile)
+        val Left(_) = eval.apply(m.compile): @unchecked
 
         os.write.over(mainJava, os.read(mainJava).dropRight(1))
 
-        val Right(_) = eval.apply(m.compile)
+        val Right(_) = eval.apply(m.compile): @unchecked
       })
     }
   }

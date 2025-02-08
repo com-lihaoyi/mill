@@ -8,8 +8,8 @@ import java.lang.reflect.Method
 
 private[mill] object CodeSigUtils {
   def precomputeMethodNamesPerClass(transitiveNamed: Strict.Agg[NamedTask[?]])
-      : (Map[Class[_], IndexedSeq[Class[_]]], Map[Class[_], Map[String, Method]]) = {
-    def resolveTransitiveParents(c: Class[_]): Iterator[Class[_]] = {
+      : (Map[Class[?], IndexedSeq[Class[?]]], Map[Class[?], Map[String, Method]]) = {
+    def resolveTransitiveParents(c: Class[?]): Iterator[Class[?]] = {
       Iterator(c) ++
         Option(c.getSuperclass).iterator.flatMap(resolveTransitiveParents) ++
         c.getInterfaces.iterator.flatMap(resolveTransitiveParents)
@@ -55,7 +55,7 @@ private[mill] object CodeSigUtils {
       .groupMap(_._1)(t => (t._2, t._3))
 
   def codeSigForTask(
-      namedTask: => NamedTask[_],
+      namedTask: => NamedTask[?],
       classToTransitiveClasses: => Map[Class[?], IndexedSeq[Class[?]]],
       allTransitiveClassMethods: => Map[Class[?], Map[String, java.lang.reflect.Method]],
       methodCodeHashSignatures: => Map[String, Int],

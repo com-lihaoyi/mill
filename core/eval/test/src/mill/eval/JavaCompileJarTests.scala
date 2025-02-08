@@ -1,8 +1,7 @@
 package mill.eval
 
-import mill.util.{Jvm, TestUtil}
+import mill.util.Jvm
 import mill.api.Ctx.Dest
-import mill.{T, Task}
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import mill.api.Strict.Agg
@@ -10,7 +9,6 @@ import mill.api.{JarManifest, Loose}
 import utest.*
 import mill.*
 import mill.define.{Discover, Task}
-import mill.main.TokenReaders.*
 
 object JavaCompileJarTests extends TestSuite {
   def compileAll(sources: mill.api.Loose.Agg[mill.api.PathRef])(implicit ctx: Dest) = {
@@ -77,7 +75,7 @@ object JavaCompileJarTests extends TestSuite {
         sourceRoot = javacSrcPath
       )
       def eval[T](t: Task[T]) = evaluator.apply(t)
-      def check(targets: Agg[Task[_]], expected: Agg[Task[_]]) = evaluator.check(targets, expected)
+      def check(targets: Agg[Task[?]], expected: Agg[Task[?]]) = evaluator.check(targets, expected)
 
       def append(path: os.SubPath, txt: String) = os.write.append(millSourcePath / path, txt)
 
@@ -174,14 +172,14 @@ object JavaCompileJarTests extends TestSuite {
       for (i <- 0 until 3) {
         // Build.run is not cached, so every time we eval it, it has to
         // re-evaluate
-        val Right(result) = eval(Build.run("test.Foo"))
+        val Right(result) = eval(Build.run("test.Foo")): @unchecked
         assert(
           result.value.out.text() == s"${31337 + 271828}${System.lineSeparator}",
           result.evalCount == 1
         )
       }
 
-      val Left(mill.api.Result.Exception(ex, _)) = eval(Build.run("test.BarFour"))
+      val Left(mill.api.Result.Exception(ex, _)) = eval(Build.run("test.BarFour")): @unchecked
 
       assert(ex.getMessage.contains("Could not find or load main class"))
 
@@ -195,12 +193,12 @@ object JavaCompileJarTests extends TestSuite {
         }
         """
       )
-      val Right(result2) = eval(Build.run("test.BarFour"))
+      val Right(result2) = eval(Build.run("test.BarFour")): @unchecked
       assert(
         result2.value.out.text() == "New Cls!" + System.lineSeparator,
         result2.evalCount == 3
       )
-      val Right(result3) = eval(Build.run("test.BarFour"))
+      val Right(result3) = eval(Build.run("test.BarFour")): @unchecked
       assert(
         result3.value.out.text() == "New Cls!" + System.lineSeparator,
         result3.evalCount == 1

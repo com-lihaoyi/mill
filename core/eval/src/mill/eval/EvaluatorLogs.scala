@@ -9,8 +9,8 @@ import scala.jdk.CollectionConverters.EnumerationHasAsScala
 
 private[mill] object EvaluatorLogs {
   def logDependencyTree(
-      interGroupDeps: Map[Task[_], Seq[Task[_]]],
-      indexToTerminal: Array[Task[_]],
+      interGroupDeps: Map[Task[?], Seq[Task[?]]],
+      indexToTerminal: Array[Task[?]],
       outPath: os.Path
   ): Unit = {
     val (vertexToIndex, edgeIndices) =
@@ -24,11 +24,11 @@ private[mill] object EvaluatorLogs {
     )
   }
   def logInvalidationTree(
-      interGroupDeps: Map[Task[_], Seq[Task[_]]],
-      indexToTerminal: Array[Task[_]],
+      interGroupDeps: Map[Task[?], Seq[Task[?]]],
+      indexToTerminal: Array[Task[?]],
       outPath: os.Path,
-      uncached: ConcurrentHashMap[Task[_], Unit],
-      changedValueHash: ConcurrentHashMap[Task[_], Unit]
+      uncached: ConcurrentHashMap[Task[?], Unit],
+      changedValueHash: ConcurrentHashMap[Task[?], Unit]
   ): Unit = {
     val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
 
@@ -55,7 +55,7 @@ private[mill] object EvaluatorLogs {
             // from the invalidation tree, because most of them are un-interesting and the
             // user really only cares about (a) inputs that cause downstream tasks to invalidate
             // or (b) non-input tasks that were invalidated alone (e.g. due to a codesig change)
-            !uncachedTask.isInstanceOf[InputImpl[_]] || edgeSourceIndices(uncachedIndex)
+            !uncachedTask.isInstanceOf[InputImpl[?]] || edgeSourceIndices(uncachedIndex)
           ) {
             uncachedIndex
           }

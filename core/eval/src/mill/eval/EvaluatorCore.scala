@@ -27,7 +27,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
    * @param testReporter Listener for test events like start, finish with success/error
    */
   def evaluate(
-      goals: Agg[Task[_]],
+      goals: Agg[Task[?]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
       logger: ColorLogger = baseLogger,
@@ -46,10 +46,10 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
   }
 
   private def getFailing(
-      sortedGroups: MultiBiMap[Task[_], Task[_]],
-      results: Map[Task[_], Evaluator.TaskResult[(Val, Int)]]
-  ): MultiBiMap.Mutable[Task[_], Failing[Val]] = {
-    val failing = new MultiBiMap.Mutable[Task[_], Result.Failing[Val]]
+      sortedGroups: MultiBiMap[Task[?], Task[?]],
+      results: Map[Task[?], Evaluator.TaskResult[(Val, Int)]]
+  ): MultiBiMap.Mutable[Task[?], Failing[Val]] = {
+    val failing = new MultiBiMap.Mutable[Task[?], Result.Failing[Val]]
     for ((k, vs) <- sortedGroups.items()) {
       val failures = vs.items.flatMap(results.get).collect {
         case Evaluator.TaskResult(f: Result.Failing[(Val, Int)], _) => f.map(_._1)
@@ -61,7 +61,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
   }
 
   private def evaluate0(
-      goals: Agg[Task[_]],
+      goals: Agg[Task[?]],
       logger: ColorLogger,
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
@@ -86,13 +86,13 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     val (classToTransitiveClasses, allTransitiveClassMethods) =
       CodeSigUtils.precomputeMethodNamesPerClass(Plan.transitiveNamed(goals))
 
-    val uncached = new ConcurrentHashMap[Task[_], Unit]()
-    val changedValueHash = new ConcurrentHashMap[Task[_], Unit]()
+    val uncached = new ConcurrentHashMap[Task[?], Unit]()
+    val changedValueHash = new ConcurrentHashMap[Task[?], Unit]()
 
-    val futures = mutable.Map.empty[Task[_], Future[Option[GroupEvaluator.Results]]]
+    val futures = mutable.Map.empty[Task[?], Future[Option[GroupEvaluator.Results]]]
 
     def evaluateTerminals(
-        terminals: Seq[Task[_]],
+        terminals: Seq[Task[?]],
         forkExecutionContext: mill.api.Ctx.Fork.Impl,
         exclusive: Boolean
     ) = {
@@ -146,7 +146,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
                   target <- group.indexed.filterNot(upstreamResults.contains)
                   item <- target.inputs.filterNot(group.contains)
                 } yield upstreamResults(item).map(_._1)
-                val logRun = inputResults.forall(_.result.isInstanceOf[Result.Success[_]])
+                val logRun = inputResults.forall(_.result.isInstanceOf[Result.Success[?]])
 
                 val tickerPrefix = if (logRun && logger.enableTicker) terminal.toString else ""
 
@@ -231,7 +231,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       changedValueHash
     )
 
-    val results0: Vector[(Task[_], TaskResult[(Val, Int)])] = terminals0
+    val results0: Vector[(Task[?], TaskResult[(Val, Int)])] = terminals0
       .flatMap { t =>
         plan.sortedGroups.lookupKey(t).flatMap { t0 =>
           finishedOptsMap(t) match {
@@ -241,7 +241,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
         }
       }
 
-    val results: Map[Task[_], TaskResult[(Val, Int)]] = results0.toMap
+    val results: Map[Task[?], TaskResult[(Val, Int)]] = results0.toMap
 
     EvaluatorCore.Results(
       goals.indexed.map(results(_).map(_._1).result),
@@ -259,8 +259,8 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 }
 
 private[mill] object EvaluatorCore {
-  def findInterGroupDeps(sortedGroups: MultiBiMap[Task[_], Task[_]])
-      : Map[Task[_], Seq[Task[_]]] = {
+  def findInterGroupDeps(sortedGroups: MultiBiMap[Task[?], Task[?]])
+      : Map[Task[?], Seq[Task[?]]] = {
     sortedGroups
       .items()
       .map { case (terminal, group) =>
@@ -275,9 +275,9 @@ private[mill] object EvaluatorCore {
   }
   case class Results(
       rawValues: Seq[Result[Val]],
-      evaluated: Agg[Task[_]],
-      transitive: Agg[Task[_]],
-      failing: MultiBiMap[Task[_], Result.Failing[Val]],
-      results: Map[Task[_], TaskResult[Val]]
+      evaluated: Agg[Task[?]],
+      transitive: Agg[Task[?]],
+      failing: MultiBiMap[Task[?], Result.Failing[Val]],
+      results: Map[Task[?], TaskResult[Val]]
   ) extends Evaluator.Results
 }

@@ -5,7 +5,7 @@ import mill.api.Result
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest.*
-import mill.define.{Discover, ModuleRef}
+import mill.define.Discover
 
 object HelloJavaTests extends TestSuite {
 
@@ -34,9 +34,9 @@ object HelloJavaTests extends TestSuite {
     test("compile") {
       val eval = testEval()
 
-      val Right(result1) = eval.apply(HelloJava.core.compile)
-      val Right(result2) = eval.apply(HelloJava.core.compile)
-      val Right(result3) = eval.apply(HelloJava.app.compile)
+      val Right(result1) = eval.apply(HelloJava.core.compile): @unchecked
+      val Right(result2) = eval.apply(HelloJava.core.compile): @unchecked
+      val Right(result3) = eval.apply(HelloJava.app.compile): @unchecked
 
       assert(
         result1.value == result2.value,
@@ -56,7 +56,7 @@ object HelloJavaTests extends TestSuite {
 
       test("fromScratch") {
         val eval = testEval()
-        val Right(result) = eval.apply(HelloJava.core.semanticDbData)
+        val Right(result) = eval.apply(HelloJava.core.semanticDbData): @unchecked
 
         val outputFiles =
           os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
@@ -70,7 +70,7 @@ object HelloJavaTests extends TestSuite {
         )
 
         // don't recompile if nothing changed
-        val Right(result2) = eval.apply(HelloJava.core.semanticDbData)
+        val Right(result2) = eval.apply(HelloJava.core.semanticDbData): @unchecked
         assert(result2.evalCount == 0)
       }
       test("incremental") {
@@ -103,7 +103,7 @@ object HelloJavaTests extends TestSuite {
             |""".stripMargin,
           createFolders = true
         )
-        val Right(result) = eval.apply(HelloJava.core.semanticDbData)
+        val Right(result) = eval.apply(HelloJava.core.semanticDbData): @unchecked
 
         val dataPath = eval.outPath / "core/semanticDbData.dest/data"
         val outputFiles =
@@ -124,7 +124,7 @@ object HelloJavaTests extends TestSuite {
         os.remove(secondFile)
         os.write.append(thirdFile, "  ")
 
-        val Right(result2) = eval.apply(HelloJava.core.semanticDbData)
+        val Right(result2) = eval.apply(HelloJava.core.semanticDbData): @unchecked
         val files2 =
           os.walk(result2.value.path).filter(os.isFile).map(_.relativeTo(result2.value.path))
         assert(
@@ -136,14 +136,14 @@ object HelloJavaTests extends TestSuite {
     test("docJar") {
       test("withoutArgsFile") {
         val eval = testEval()
-        val Right(result) = eval.apply(HelloJava.core.docJar)
+        val Right(result) = eval.apply(HelloJava.core.docJar): @unchecked
         assert(
           os.proc("jar", "tf", result.value.path).call().out.lines().contains("hello/Core.html")
         )
       }
       test("withArgsFile") {
         val eval = testEval()
-        val Right(result) = eval.apply(HelloJava.app.docJar)
+        val Right(result) = eval.apply(HelloJava.app.docJar): @unchecked
         assert(
           os.proc("jar", "tf", result.value.path).call().out.lines().contains("hello/Main.html")
         )
@@ -152,7 +152,7 @@ object HelloJavaTests extends TestSuite {
     test("test") - {
       val eval = testEval()
 
-      val Left(Result.Failure(ref1, Some(v1))) = eval.apply(HelloJava.core.test.test())
+      val Left(Result.Failure(ref1, Some(v1))) = eval.apply(HelloJava.core.test.test()): @unchecked
 
       assert(
         v1._2(0).fullyQualifiedName == "hello.MyCoreTests.java11Test",
@@ -163,7 +163,7 @@ object HelloJavaTests extends TestSuite {
         v1._2(3).status == "Failure"
       )
 
-      val Right(result2) = eval.apply(HelloJava.app.test.test())
+      val Right(result2) = eval.apply(HelloJava.app.test.test()): @unchecked
 
       assert(
         result2.value._2(0).fullyQualifiedName == "hello.MyAppTests.appTest",
@@ -172,7 +172,7 @@ object HelloJavaTests extends TestSuite {
         result2.value._2(1).status == "Success"
       )
 
-      val Right(result3) = eval.apply(HelloJava.app.testJunit5.test())
+      val Right(result3) = eval.apply(HelloJava.app.testJunit5.test()): @unchecked
 
       val testResults =
         result3.value._2.map(t => (t.fullyQualifiedName, t.selector, t.status)).sorted
@@ -192,24 +192,24 @@ object HelloJavaTests extends TestSuite {
       val mainJava = HelloJava.millSourcePath / "app/src/Main.java"
       val coreJava = HelloJava.millSourcePath / "core/src/Core.java"
 
-      val Right(_) = eval.apply(HelloJava.core.compile)
-      val Right(_) = eval.apply(HelloJava.app.compile)
+      val Right(_) = eval.apply(HelloJava.core.compile): @unchecked
+      val Right(_) = eval.apply(HelloJava.app.compile): @unchecked
 
       os.write.over(mainJava, os.read(mainJava) + "}")
 
-      val Right(_) = eval.apply(HelloJava.core.compile)
-      val Left(_) = eval.apply(HelloJava.app.compile)
+      val Right(_) = eval.apply(HelloJava.core.compile): @unchecked
+      val Left(_) = eval.apply(HelloJava.app.compile): @unchecked
 
       os.write.over(coreJava, os.read(coreJava) + "}")
 
-      val Left(_) = eval.apply(HelloJava.core.compile)
-      val Left(_) = eval.apply(HelloJava.app.compile)
+      val Left(_) = eval.apply(HelloJava.core.compile): @unchecked
+      val Left(_) = eval.apply(HelloJava.app.compile): @unchecked
 
       os.write.over(mainJava, os.read(mainJava).dropRight(1))
       os.write.over(coreJava, os.read(coreJava).dropRight(1))
 
-      val Right(_) = eval.apply(HelloJava.core.compile)
-      val Right(_) = eval.apply(HelloJava.app.compile)
+      val Right(_) = eval.apply(HelloJava.core.compile): @unchecked
+      val Right(_) = eval.apply(HelloJava.app.compile): @unchecked
     }
   }
 }

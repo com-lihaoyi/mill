@@ -12,7 +12,7 @@ class FileLogger(
     append: Boolean = false
 ) extends Logger {
   override def toString: String = s"FileLogger($file)"
-  private[this] var outputStreamUsed: Boolean = false
+  private var outputStreamUsed: Boolean = false
 
   lazy val fileStream: PrintStream = {
 
@@ -29,7 +29,7 @@ class FileLogger(
     lazy val inner = {
       if (!os.exists(file / os.up)) os.makeDir.all(file / os.up)
       folderCreated = true
-      Files.newOutputStream(file.toNIO, options: _*)
+      Files.newOutputStream(file.toNIO, options*)
     }
     new PrintStream(new OutputStream {
       override def write(b: Int): Unit = inner.write(b)

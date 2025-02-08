@@ -472,9 +472,8 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
     else ZincWorkerUtil.scalaBinaryVersion(sv)
   }
 
-  def scalafixConfig = T {
-    if (ZincWorkerUtil.isScala3(scalaVersion())) Some(T.workspace / ".scalafix-3.conf") else None
-  }
+  def scalafixConfig = T { Some(T.workspace / ".scalafix.conf") }
+
   def semanticDbVersion = Deps.semanticDBscala.version
 
   def scaladocOptions = Seq("-Xsource:3")
@@ -492,6 +491,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
         // "-Wsafe-init",
         // "-Wnonunit-statement",
         // "-Wimplausible-patterns",
+        // "-rewrite", "-source", "3.6-migration"
       )
       else Seq(
         "-P:acyclic:force",
@@ -524,7 +524,9 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
 
   /** Default tests module. */
   lazy val test: MillScalaTests = new MillScalaTests {}
-  trait MillScalaTests extends ScalaTests with MillJavaModule with MillBaseTestsModule {
+  trait MillScalaTests extends ScalaTests with MillJavaModule with MillBaseTestsModule
+      with ScalafixModule {
+    def scalafixConfig = T { Some(T.workspace / ".scalafix.conf") }
     def forkArgs = super.forkArgs() ++ outer.testArgs()
     def moduleDeps = outer.testModuleDeps
     def ivyDeps = super.ivyDeps() ++ outer.testIvyDeps()

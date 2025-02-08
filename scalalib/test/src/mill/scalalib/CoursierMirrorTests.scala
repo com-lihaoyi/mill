@@ -3,9 +3,7 @@ package mill.scalalib
 import mill.define.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import mill.eval.Evaluator
 import utest.*
-import utest.framework.TestPath
 import mill.main.TokenReaders._
 
 object CoursierMirrorTests extends TestSuite {
@@ -23,7 +21,7 @@ object CoursierMirrorTests extends TestSuite {
   def tests: Tests = Tests {
     sys.props("coursier.mirrors") = (resourcePath / "mirror.properties").toString
     test("readMirror") - UnitTester(CoursierTest, resourcePath).scoped { eval =>
-      val Right(result) = eval.apply(CoursierTest.core.repositoriesTask)
+      val Right(result) = eval.apply(CoursierTest.core.repositoriesTask): @unchecked
       val centralReplaced = result.value.exists { repo =>
         repo.repr.contains("https://repo.maven.apache.org/maven2")
       }

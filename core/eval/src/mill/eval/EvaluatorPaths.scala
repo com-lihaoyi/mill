@@ -41,7 +41,7 @@ object EvaluatorPaths {
   }
   def resolveDestPaths(
       workspacePath: os.Path,
-      task: NamedTask[_]
+      task: NamedTask[?]
   ): EvaluatorPaths = resolveDestPaths(workspacePath, task.ctx.segments)
 
   // case-insensitive match on reserved names
