@@ -44,50 +44,23 @@ trait JVMLangConfig {
 
 sealed trait JavaFormatter
 
-case class GoogleJavaFormat private (
+case class GoogleJavaFormat(
     version: String = "1.25.2",
-    aospFlag: Boolean = false,
-    reflowLongStringsFlag: Boolean = false,
-    formatJavadocFlag: Boolean = true,
-    reorderImportsFlag: Boolean = true,
+    aosp: Boolean = false,
+    reflowLongStrings: Boolean = false,
+    formatJavadoc: Boolean = true,
+    reorderImports: Boolean = true,
     groupArtifact: String = "com.google.googlejavaformat:google-java-format"
-) extends JavaFormatter {
-  def version(version: String): GoogleJavaFormat =
-    copy(version = version)
-
-  def aosp(): GoogleJavaFormat =
-    copy(aospFlag = true)
-
-  def reflowLongStrings(): GoogleJavaFormat =
-    copy(reflowLongStringsFlag = true)
-
-  def formatJavadoc(enabled: Boolean): GoogleJavaFormat =
-    copy(formatJavadocFlag = enabled)
-
-  def reorderImports(enabled: Boolean): GoogleJavaFormat =
-    copy(reorderImportsFlag = enabled)
-
-  def groupArtifact(groupArtifact: String): GoogleJavaFormat =
-    copy(groupArtifact = groupArtifact)
-}
+) extends JavaFormatter { }
 object GoogleJavaFormat {
   def apply(): GoogleJavaFormat = new GoogleJavaFormat()
 }
 
-case class PalantirJavaFormat private (
+case class PalantirJavaFormat(
     version: String = "2.50.0",
     style: String = "PALANTIR",
-    formatJavadocFlag: Boolean = false
-) extends JavaFormatter {
-  def version(version: String): PalantirJavaFormat =
-    copy(version = version)
-
-  def style(style: String): PalantirJavaFormat =
-    copy(style = style)
-
-  def formatJavadoc(enabled: Boolean): PalantirJavaFormat =
-    copy(formatJavadocFlag = enabled)
-}
+    formatJavadoc: Boolean = false
+) extends JavaFormatter { }
 object PalantirJavaFormat {
   def apply(): PalantirJavaFormat = new PalantirJavaFormat()
 }
@@ -98,10 +71,10 @@ case class JavaConfig(
     licenseHeaderFile: Option[String] = None,
     importOrder: Option[Seq[String]] = None,
     importOrderFile: Option[String] = None,
-    removeUnusedImportsFlag: Boolean = false,
-    cleanthatFlag: Boolean = false,
+    removeUnusedImports: Boolean = false,
+    cleanthat: Boolean = false,
     formatter: Option[JavaFormatter] = None,
-    formatAnnotationsFlag: Boolean = false
+    formatAnnotations: Boolean = false
 ) extends JVMLangConfig {
   require(
     !(importOrder.isDefined && importOrderFile.isDefined),
@@ -113,52 +86,28 @@ case class JavaConfig(
     "Please specify only licenseHeader or licenseHeaderFile but not both"
   )
 
-  def defaultImportOrder(): JavaConfig =
-    copy(importOrder = Some(Seq()))
-
-  def importOrder(groups: String*): JavaConfig =
-    copy(importOrder = Some(groups.toSeq))
-
-  def importOrderFile(file: String): JavaConfig =
-    copy(importOrderFile = Some(file))
-
-  def removeUnusedImports(): JavaConfig =
-    copy(removeUnusedImportsFlag = true)
-
-  def cleanthat(): JavaConfig =
-    copy(cleanthatFlag = true)
-
-  def licenseHeader(header: String): JavaConfig =
-    copy(licenseHeader = Some(header))
-
-  def licenseHeaderFile(file: String): JavaConfig =
-    copy(licenseHeaderFile = Some(file))
-
-  def javaFormat(formatter: JavaFormatter): JavaConfig =
-    copy(formatter = Some(formatter))
-
   def getSteps(millSourcePath: os.Path, provisioner: Provisioner): List[FormatterStep] = {
     val steps: List[FormatterStep] = new ArrayList[FormatterStep]()
 
     importOrder match {
       case Some(groups) if groups.nonEmpty =>
-        steps.add(ImportOrderStep.forJava().createFrom(groups.toArray: _*))
+        steps.add(ImportOrderStep.forJava().createFrom(groups.toArray*))
       case Some(_) =>
-        steps.add(ImportOrderStep.forJava().createFrom(Array.empty[String]: _*))
+        steps.add(ImportOrderStep.forJava().createFrom(Array.empty[String]*))
       case None =>
         importOrderFile.foreach { file =>
           steps.add(ImportOrderStep.forJava().createFrom(getConfFile(millSourcePath, file)))
         }
     }
 
-    if (removeUnusedImportsFlag) {
+    if (removeUnusedImports) {
       steps.add(RemoveUnusedImportsStep.create(
         RemoveUnusedImportsStep.defaultFormatter(),
         provisioner
       ))
     }
 
-    if (cleanthatFlag) {
+    if (cleanthat) {
       steps.add(CleanthatJavaStep.create(provisioner))
     }
 
@@ -167,11 +116,11 @@ case class JavaConfig(
         val step = GoogleJavaFormatStep.create(
           gf.groupArtifact,
           gf.version,
-          if (gf.aospFlag) "AOSP" else "GOOGLE",
+          if (gf.aosp) "AOSP" else "GOOGLE",
           provisioner,
-          gf.reflowLongStringsFlag,
-          gf.reorderImportsFlag,
-          gf.formatJavadocFlag
+          gf.reflowLongStrings,
+          gf.reorderImports,
+          gf.formatJavadoc
         )
         steps.add(step)
 
@@ -180,7 +129,7 @@ case class JavaConfig(
         steps.add(step)
     }
 
-    if (formatAnnotationsFlag) {
+    if (formatAnnotations) {
       steps.add(FormatAnnotationsStep.create())
     }
 
@@ -245,21 +194,6 @@ case class KotlinConfig(
     !(licenseHeader.isDefined && licenseHeaderFile.isDefined),
     "Please specify only licenseHeader or licenseHeaderFile but not both"
   )
-
-  def ktfmt(): KotlinConfig =
-    copy(ktfmtFlag = true)
-
-  def ktfmt(version: String): KotlinConfig =
-    copy(ktfmtFlag = true, ktfmtVersion = version)
-
-  def ktfmtOptions(options: KtfmtOptions): KotlinConfig =
-    copy(ktfmtFlag = true, ktfmtOptions = Some(options))
-
-  def ktlint(): KotlinConfig =
-    copy(ktlintFlag = true)
-
-  def ktlint(version: String): KotlinConfig =
-    copy(ktlintFlag = true, ktlintVersion = version)
 
   def getSteps(millSourcePath: os.Path, provisioner: Provisioner): List[FormatterStep] = {
     val steps = new ArrayList[FormatterStep]()
