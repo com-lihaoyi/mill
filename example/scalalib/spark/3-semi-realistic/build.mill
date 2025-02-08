@@ -1,0 +1,43 @@
+package build
+import mill._, scalalib._
+
+object `package` extends RootModule with ScalaModule {
+  def scalaVersion = "2.12.15"
+  def ivyDeps = Agg(
+    ivy"org.apache.spark::spark-core:3.3.0",
+    ivy"org.apache.spark::spark-sql:3.3.0"
+  )
+
+  def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
+
+  object test extends ScalaTests {
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.5")
+    def testFramework = "utest.runner.Framework"
+
+    def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
+  }
+
+}
+
+// This examples demonstrates a semi realistic example calculating summary statics
+// from a transactions.csv file located in resources.
+
+/** Usage
+
+> ./mill run
+...
+Summary Statistics by Category:
++-----------+------------+--------------+-----------------+
+|   category|total_amount|average_amount|transaction_count|
++-----------+------------+--------------+-----------------+
+|       Food|        70.5|          23.5|                3|
+|Electronics|       375.0|         187.5|                2|
+|   Clothing|       120.5|         60.25|                2|
++-----------+------------+--------------+-----------------+
+...
+
+> ./mill test
+...
++ foo.FooTests.computeSummary should compute correct summary statistics...
+...
+*/
