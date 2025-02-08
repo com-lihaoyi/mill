@@ -13,7 +13,7 @@ object PlanTests extends TestSuite {
     import TestGraphs._
 
     test("topoSortedTransitiveTargets") {
-      def check(targets: Agg[Task[_]], expected: Agg[Task[_]]) = {
+      def check(targets: Agg[Task[?]], expected: Agg[Task[?]]) = {
         val result = Plan.topoSorted(Plan.transitiveTargets(targets)).values
         TestUtil.checkTopological(result)
         assert(result == expected)
@@ -58,7 +58,7 @@ object PlanTests extends TestSuite {
     test("groupAroundNamedTargets") {
       def check[T, R <: Target[Int]](base: T)(
           target: T => R,
-          important0: Agg[T => Target[_]],
+          important0: Agg[T => Target[?]],
           expected: Agg[(R, Int)]
       ) = {
 
@@ -66,7 +66,7 @@ object PlanTests extends TestSuite {
 
         val important = important0.map(_(base))
         val grouped = Plan.groupAroundImportantTargets(topoSorted) {
-          case t: TargetImpl[_] if important.contains(t) => t: Target[_]
+          case t: TargetImpl[_] if important.contains(t) => t: Target[?]
         }
         val flattened = Agg.from(grouped.values().flatMap(_.items))
 
@@ -75,7 +75,7 @@ object PlanTests extends TestSuite {
           val grouping = grouped.lookupKey(terminal)
           assert(
             grouping.size == expectedSize,
-            grouping.flatMap(_.asTarget: Option[Target[_]]).filter(important.contains) == Agg(
+            grouping.flatMap(_.asTarget: Option[Target[?]]).filter(important.contains) == Agg(
               terminal
             )
           )
@@ -138,7 +138,7 @@ object PlanTests extends TestSuite {
       )
     }
     test("multiTerminalGroupCounts") {
-      def countGroups(goals: Task[_]*) = {
+      def countGroups(goals: Task[?]*) = {
 
         val topoSorted = Plan.topoSorted(
           Plan.transitiveTargets(Agg.from(goals))

@@ -1,5 +1,5 @@
 diff --git a/build.mill b/build.mill
-index 4f66e7cfeb7..1c608ae4d86 100644
+index 70cfce14468..8ea29a961ab 100644
 --- a/build.mill
 +++ b/build.mill
 @@ -1,9 +1,9 @@
@@ -48,7 +48,16 @@ index 4f66e7cfeb7..1c608ae4d86 100644
    def scalaVersion = Deps.scalaVersion
    def scalapVersion: T[String] = Deps.scala2Version
    def scalafixScalaBinaryVersion = T {
-@@ -561,7 +561,8 @@ trait MillBaseTestsModule extends TestModule {
+@@ -525,7 +525,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
+   /** Default tests module. */
+   lazy val test: MillScalaTests = new MillScalaTests {}
+   trait MillScalaTests extends ScalaTests with MillJavaModule with MillBaseTestsModule
+-      with ScalafixModule {
++      /*with ScalafixModule*/ {
+     def scalafixConfig = T { Some(T.workspace / ".scalafix.conf") }
+     def forkArgs = super.forkArgs() ++ outer.testArgs()
+     def moduleDeps = outer.testModuleDeps
+@@ -565,7 +565,8 @@ trait MillBaseTestsModule extends TestModule {
  trait MillPublishScalaModule extends MillScalaModule with MillPublishJavaModule
  
  /** Publishable module which contains strictly handled API. */
@@ -58,7 +67,7 @@ index 4f66e7cfeb7..1c608ae4d86 100644
    import com.github.lolgab.mill.mima._
    override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq(
      // (5x) MIMA doesn't properly ignore things which are nested inside other private things
-@@ -691,7 +692,7 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
+@@ -695,7 +696,7 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
    def skipPreviousVersions: T[Seq[String]] = T {
      T.log.info("Skipping mima for previous versions (!!1000s of errors due to Scala 3)")
      mimaPreviousVersions() // T(Seq.empty[String])
@@ -68,7 +77,7 @@ index 4f66e7cfeb7..1c608ae4d86 100644
  
  object bridge extends Cross[BridgeModule](compilerBridgeScalaVersions)
 diff --git a/dist/package.mill b/dist/package.mill
-index 67d3f94c143..98733778894 100644
+index 5b8d77f5180..72f4963ce5f 100644
 --- a/dist/package.mill
 +++ b/dist/package.mill
 @@ -3,7 +3,7 @@ import mill._, scalalib._, publish._
@@ -111,10 +120,30 @@ index 67d3f94c143..98733778894 100644
      ()
    }
  
-diff --git a/docs/package.mill b/docs/package.mill
-index d558389312e..11f8e5c3ce9 100644
---- a/docs/package.mill
-+++ b/docs/package.mill
+diff --git a/mill-build/build.mill b/mill-build/build.mill
+index 957d929826d..112f1aaccb8 100644
+--- a/mill-build/build.mill
++++ b/mill-build/build.mill
+@@ -4,12 +4,12 @@ import mill.scalalib._
+ 
+ object `package` extends MillBuildRootModule {
+   override def ivyDeps = Agg(
+-    ivy"de.tototec::de.tobiasroeser.mill.vcs.version::0.4.1",
+-    ivy"com.github.lolgab::mill-mima::0.1.1",
++//    ivy"de.tototec::de.tobiasroeser.mill.vcs.version::0.4.1",
++//    ivy"com.github.lolgab::mill-mima::0.1.1",
+     ivy"net.sourceforge.htmlcleaner:htmlcleaner:2.29",
+     // TODO: implement empty version for ivy deps as we do in import parser
+     ivy"com.lihaoyi::mill-contrib-buildinfo:${mill.api.BuildInfo.millVersion}",
+-    ivy"com.goyeau::mill-scalafix::0.5.0",
++//    ivy"com.goyeau::mill-scalafix::0.5.0",
+     ivy"com.lihaoyi::mill-main-graphviz:${mill.api.BuildInfo.millVersion}",
+     // TODO: document, why we have this dependency
+     ivy"org.jsoup:jsoup:1.18.1"
+diff --git a/website/package.mill b/website/package.mill
+index eb4f1515dee..a49e72e84fe 100644
+--- a/website/package.mill
++++ b/website/package.mill
 @@ -40,8 +40,8 @@ object `package` extends RootModule {
    private val antoraExe = if (scala.util.Properties.isWin) "antora.cmd" else "antora"
    def npmBase: T[os.Path] = Task(persistent = true) { Task.dest }
@@ -164,23 +193,3 @@ index d558389312e..11f8e5c3ce9 100644
        mainArgs = orderedDiagrams.map { case (p, i, src, dest) => s"$src;$dest;svg" }
      )
  
-diff --git a/mill-build/build.mill b/mill-build/build.mill
-index 957d929826d..112f1aaccb8 100644
---- a/mill-build/build.mill
-+++ b/mill-build/build.mill
-@@ -4,12 +4,12 @@ import mill.scalalib._
- 
- object `package` extends MillBuildRootModule {
-   override def ivyDeps = Agg(
--    ivy"de.tototec::de.tobiasroeser.mill.vcs.version::0.4.1",
--    ivy"com.github.lolgab::mill-mima::0.1.1",
-+//    ivy"de.tototec::de.tobiasroeser.mill.vcs.version::0.4.1",
-+//    ivy"com.github.lolgab::mill-mima::0.1.1",
-     ivy"net.sourceforge.htmlcleaner:htmlcleaner:2.29",
-     // TODO: implement empty version for ivy deps as we do in import parser
-     ivy"com.lihaoyi::mill-contrib-buildinfo:${mill.api.BuildInfo.millVersion}",
--    ivy"com.goyeau::mill-scalafix::0.5.0",
-+//    ivy"com.goyeau::mill-scalafix::0.5.0",
-     ivy"com.lihaoyi::mill-main-graphviz:${mill.api.BuildInfo.millVersion}",
-     // TODO: document, why we have this dependency
-     ivy"org.jsoup:jsoup:1.18.1"

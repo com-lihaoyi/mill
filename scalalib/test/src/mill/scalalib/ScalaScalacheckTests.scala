@@ -24,7 +24,7 @@ object ScalaScalacheckTests extends TestSuite {
       HelloScalacheck,
       sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-scalacheck"
     ).scoped { eval =>
-      val Right(result) = eval.apply(HelloScalacheck.foo.test.test())
+      val Right(result) = eval.apply(HelloScalacheck.foo.test.test()): @unchecked
       assert(
         result.evalCount > 0,
         result.value._2.map(_.selector) == Seq(

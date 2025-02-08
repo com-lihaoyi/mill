@@ -14,7 +14,7 @@ object DependencyUpdatesImpl {
 
   def apply(
       evaluator: Evaluator,
-      ctx: Log with Home,
+      ctx: Log & Home,
       rootModule: BaseModule,
       discover: Discover,
       allowPreRelease: Boolean

@@ -37,7 +37,7 @@ private[mill] class AllEvaluatorsTokenReader[T]()
     Right(Evaluator.allBootstrapEvaluators.value)
 }
 
-private class LeftoverTaskTokenReader[T](tokensReaderOfT: TokensReader.Leftover[T, _])
+private class LeftoverTaskTokenReader[T](tokensReaderOfT: TokensReader.Leftover[T, ?])
     extends mainargs.TokensReader.Leftover[Task[T], T] {
   def read(strs: Seq[String]): Either[String, Task[T]] =
     tokensReaderOfT.read(strs).map(t => mill.define.Task.Anon(t))

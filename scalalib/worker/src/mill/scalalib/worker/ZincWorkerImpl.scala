@@ -120,7 +120,7 @@ class ZincWorkerImpl(
     }
   }
 
-  private[this] val classloaderCache =
+  private val classloaderCache =
     collection.mutable.LinkedHashMap.empty[Long, (URLClassLoader, Int)]
 
   def getCachedClassLoader(
@@ -190,7 +190,7 @@ class ZincWorkerImpl(
   }
 
   private def zincLogLevel = if (zincLogDebug) sbt.util.Level.Debug else sbt.util.Level.Info
-  private[this] val ic = new sbt.internal.inc.IncrementalCompilerImpl()
+  private val ic = new sbt.internal.inc.IncrementalCompilerImpl()
 
   private def filterJavacRuntimeOptions(opt: String): Boolean = opt.startsWith("-J")
 

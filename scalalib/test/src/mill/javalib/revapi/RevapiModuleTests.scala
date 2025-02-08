@@ -84,7 +84,7 @@ object RevapiModuleTests extends TestSuite {
     eval(module1.publishLocal())
 
     eval = UnitTester(module2, root2)
-    val Right(dir) = eval(module2.revapi())
+    val Right(dir) = eval(module2.revapi()): @unchecked
     dir.value.path
   }
 
@@ -118,7 +118,7 @@ object RevapiModuleTests extends TestSuite {
     }
 
     val eval = UnitTester(module, os.temp.dir())
-    val Right(dir) = eval(module.revapi())
+    val Right(dir) = eval(module.revapi()): @unchecked
     dir.value.path
   }
 }

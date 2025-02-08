@@ -1,6 +1,5 @@
 package mill.util
 
-import mill.util.Retry
 import utest.*
 
 object RetryTests extends TestSuite {

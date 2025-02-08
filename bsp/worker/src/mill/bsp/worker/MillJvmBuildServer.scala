@@ -72,7 +72,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
             ev,
             state,
             id,
-            _: TestModule with JavaModule,
+            _: (TestModule & JavaModule),
             (
               _,
               forkArgs,

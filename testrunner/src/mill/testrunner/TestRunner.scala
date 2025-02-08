@@ -12,8 +12,8 @@ import mill.util.Jvm
       testClassfilePath: Agg[os.Path],
       args: Seq[String],
       testReporter: TestReporter,
-      classFilter: Class[_] => Boolean = _ => true
-  )(implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[mill.testrunner.TestResult]) = {
+      classFilter: Class[?] => Boolean = _ => true
+  )(implicit ctx: Ctx.Log & Ctx.Home): (String, Seq[mill.testrunner.TestResult]) = {
     Jvm.withClassLoader(
       classPath = entireClasspath.toVector,
       sharedPrefixes = Seq("sbt.testing.")

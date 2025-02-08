@@ -288,7 +288,7 @@ object TestModule {
         classPath = runClasspath().map(_.path).toVector,
         sharedPrefixes = Seq("sbt.testing.")
       ) { classLoader =>
-        val builderClass: Class[_] =
+        val builderClass: Class[?] =
           classLoader.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Builder")
         val builder = builderClass.getConstructor().newInstance()
 
@@ -312,7 +312,7 @@ object TestModule {
 
         val items = resultClass.getMethod(
           "getDiscoveredTests"
-        ).invoke(result).asInstanceOf[java.util.List[_]]
+        ).invoke(result).asInstanceOf[java.util.List[?]]
         val itemClass =
           classLoader.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Item")
 
@@ -385,7 +385,7 @@ object TestModule {
   def handleResults(
       doneMsg: String,
       results: Seq[TestResult],
-      ctx: Ctx.Env with Ctx.Dest,
+      ctx: Ctx.Env & Ctx.Dest,
       testReportXml: Option[String],
       props: Option[Map[String, String]] = None
   ): Result[(String, Seq[TestResult])] =

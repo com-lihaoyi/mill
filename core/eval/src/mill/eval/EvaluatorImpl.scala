@@ -46,7 +46,7 @@ private[mill] case class EvaluatorImpl(
   override def withFailFast(newFailFast: Boolean): Evaluator =
     this.copy(failFast = newFailFast)
 
-  override def plan(goals: Agg[Task[_]]): Plan = {
+  override def plan(goals: Agg[Task[?]]): Plan = {
     Plan.plan(goals)
   }
 
@@ -113,7 +113,7 @@ private[mill] object EvaluatorImpl {
           throw exceptionFactory(r)
         case r =>
           // Input is a single-item Agg, so we also expect a single-item result
-          val Seq(Val(e: T)) = r.values
+          val Seq(Val(e: T)) = r.values: @unchecked
           e
       }
 

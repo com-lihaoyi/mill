@@ -106,7 +106,7 @@ class UnitTester(
     selectiveExecution = false
   )
 
-  def apply(args: String*): Either[Result.Failing[_], UnitTester.Result[Seq[_]]] = {
+  def apply(args: String*): Either[Result.Failing[?], UnitTester.Result[Seq[?]]] = {
     mill.eval.Evaluator.currentEvaluator.withValue(evaluator) {
       Resolve.Tasks.resolve(evaluator.rootModule, args, SelectMode.Separated)
     } match {
@@ -124,9 +124,9 @@ class UnitTester(
   }
 
   def apply(
-      tasks: Seq[Task[_]],
+      tasks: Seq[Task[?]],
       dummy: DummyImplicit = null
-  ): Either[Result.Failing[_], UnitTester.Result[Seq[_]]] = {
+  ): Either[Result.Failing[?], UnitTester.Result[Seq[?]]] = {
     val evaluated = evaluator.evaluate(tasks)
 
     if (evaluated.failing.keyCount == 0) {
@@ -155,7 +155,7 @@ class UnitTester(
     }
   }
 
-  def fail(target: Target[_], expectedFailCount: Int, expectedRawValues: Seq[Result[_]]): Unit = {
+  def fail(target: Target[?], expectedFailCount: Int, expectedRawValues: Seq[Result[?]]): Unit = {
 
     val res = evaluator.evaluate(Agg(target))
 
@@ -171,13 +171,13 @@ class UnitTester(
 
   }
 
-  def check(targets: Agg[Task[_]], expected: Agg[Task[_]]): Unit = {
+  def check(targets: Agg[Task[?]], expected: Agg[Task[?]]): Unit = {
 
     val evaluated = evaluator.evaluate(targets)
       .evaluated
       .flatMap(_.asTarget)
       .filter(module.millInternal.targets.contains)
-      .filter(!_.isInstanceOf[InputImpl[_]])
+      .filter(!_.isInstanceOf[InputImpl[?]])
     assert(
       evaluated.toSet == expected.toSet,
       s"evaluated is not equal expected. evaluated=${evaluated}, expected=${expected}"

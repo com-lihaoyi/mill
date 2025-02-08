@@ -117,7 +117,7 @@ object KtfmtModuleTests extends TestSuite {
         case failure => throw failure
       },
       { _ =>
-        val Right(sources) = eval(module.sources)
+        val Right(sources) = eval(module.sources): @unchecked
 
         sources.value.flatMap(ref => walkFiles(ref.path))
       }
@@ -145,7 +145,7 @@ object KtfmtModuleTests extends TestSuite {
         case failure => throw failure
       },
       { _ =>
-        val Right(sources) = eval(module.sources)
+        val Right(sources) = eval(module.sources): @unchecked
         sources.value.flatMap(ref => walkFiles(ref.path))
       }
     )

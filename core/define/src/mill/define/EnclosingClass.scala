@@ -2,7 +2,7 @@ package mill.define
 
 import scala.quoted.*
 
-case class EnclosingClass(value: Class[_])
+case class EnclosingClass(value: Class[?])
 object EnclosingClass {
   def apply()(implicit c: EnclosingClass) = c.value
   inline given generate: EnclosingClass = ${ impl }

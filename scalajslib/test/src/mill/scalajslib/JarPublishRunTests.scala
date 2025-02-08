@@ -1,12 +1,8 @@
 package mill.scalajslib
 
 import mill._
-import mill.define.Discover
 import mill.eval.EvaluatorPaths
-import mill.scalalib.api.ZincWorkerUtil
-import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
-import mill.scalalib.{DepSyntax, PublishModule, ScalaModule, TestModule}
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.UnitTester
 import utest._
 
 import java.util.jar.JarFile
@@ -20,7 +16,7 @@ object JarPublishRunTests extends TestSuite {
       test("containsSJSIRs") - UnitTester(HelloJSWorld, millSourcePath).scoped { eval =>
         val (scala, scalaJS) = HelloJSWorld.matrix.head
         val Right(result) =
-          eval(HelloJSWorld.build(scala, scalaJS).jar)
+          eval(HelloJSWorld.build(scala, scalaJS).jar): @unchecked
         val jar = result.value.path
         val jarFile = new JarFile(jar.toIO)
         try {
@@ -35,7 +31,7 @@ object JarPublishRunTests extends TestSuite {
           val Right(result) = eval(HelloJSWorld.build(
             scalaVersion,
             scalaJSVersion
-          ).artifactMetadata)
+          ).artifactMetadata): @unchecked
           assert(result.value.id == artifactId)
         }
       test("artifactId_10") {
@@ -57,7 +53,7 @@ object JarPublishRunTests extends TestSuite {
       UnitTester(HelloJSWorld, millSourcePath).scoped { eval =>
         val task = HelloJSWorld.build(scalaVersion, scalaJSVersion).run()
 
-        val Right(result) = eval(task)
+        val Right(result) = eval(task): @unchecked
 
         val paths = EvaluatorPaths.resolveDestPaths(eval.outPath, task)
         val log = os.read(paths.log)

@@ -56,7 +56,7 @@ private class BspWorkerImpl() extends BspWorker {
       }
 
       val bspServerHandle = new BspServerHandle {
-        private[this] var lastResult0: Option[BspServerResult] = None
+        private var lastResult0: Option[BspServerResult] = None
 
         override def runSession(evaluators: Seq[Evaluator]): BspServerResult = {
           lastResult0 = None

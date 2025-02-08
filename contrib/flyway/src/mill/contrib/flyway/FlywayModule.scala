@@ -48,7 +48,7 @@ trait FlywayModule extends JavaModule {
 
     Flyway
       .configure(jdbcClassloader)
-      .locations(flywayFileLocations().map("filesystem:" + _.path): _*)
+      .locations(flywayFileLocations().map("filesystem:" + _.path)*)
       .configuration(configProps.asJava)
       .load
   }

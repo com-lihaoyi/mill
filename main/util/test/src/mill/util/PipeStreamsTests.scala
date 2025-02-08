@@ -39,7 +39,7 @@ object PipeStreamsTests extends TestSuite {
       val chunkSize = 20
       val chunkCount = 100
       assert(pipe.bufferSize < chunkSize * chunkCount) // ensure it gets filled
-      val writer = Future {
+      Future {
         for (i <- Range(0, chunkCount)) {
           pipe.output.write(Array.fill(chunkSize)(i.toByte))
         }

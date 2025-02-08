@@ -15,7 +15,7 @@ private class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path, inden
       Seq(StandardOpenOption.TRUNCATE_EXISTING)
     ).flatten
     os.makeDir.all(outPath / os.up)
-    new PrintStream(Files.newOutputStream(outPath.toNIO, options: _*))
+    new PrintStream(Files.newOutputStream(outPath.toNIO, options*))
   }
 
   def log(t: T): Unit = synchronized {
@@ -40,10 +40,10 @@ private class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path, inden
 private[eval] class ProfileLogger(outPath: os.Path)
     extends JsonArrayLogger[ProfileLogger.Timing](outPath, indent = 2) {
   def log(
-      terminal: Task[_],
+      terminal: Task[?],
       duration: Long,
       res: GroupEvaluator.Results,
-      deps: Seq[Task[_]]
+      deps: Seq[Task[?]]
   ): Unit = {
     log(
       ProfileLogger.Timing(
@@ -79,7 +79,7 @@ private[eval] class ChromeProfileLogger(outPath: os.Path)
     extends JsonArrayLogger[ChromeProfileLogger.TraceEvent](outPath, indent = -1) {
 
   def log(
-      terminal: Task[_],
+      terminal: Task[?],
       cat: String,
       startTime: Long,
       duration: Long,

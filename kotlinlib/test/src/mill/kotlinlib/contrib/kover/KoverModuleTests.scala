@@ -4,7 +4,6 @@ import mill.define.Discover
 import mill.main.TokenReaders._
 import mill.kotlinlib.{DepSyntax, KotlinModule}
 import mill.kotlinlib.TestModule
-import mill.kotlinlib.kover.{Kover, KoverModule}
 import mill.testkit.{TestBaseModule, UnitTester}
 import mill.{Agg, T, Task, api}
 import utest.{TestSuite, Tests, assert, test}
@@ -66,7 +65,7 @@ object KoverModuleTests extends TestSuite {
             )
         )
 
-      val Right(result) = eval(Kover.xmlReportAll(eval.evaluator))
+      val Right(result) = eval(Kover.xmlReportAll(eval.evaluator)): @unchecked
 
       val xmlReportPath = result.value.path
       assert(os.exists(xmlReportPath))
@@ -89,9 +88,9 @@ object KoverModuleTests extends TestSuite {
 
       val eval = UnitTester(module, resourcePath)
 
-      val Right(_) = eval(module.foo.test.test())
+      val Right(_) = eval(module.foo.test.test()): @unchecked
 
-      val Right(result) = eval(module.foo.kover.xmlReport())
+      val Right(result) = eval(module.foo.kover.xmlReport()): @unchecked
 
       val xmlReportPath = result.value.path
       assert(os.exists(xmlReportPath))
@@ -119,9 +118,9 @@ object KoverModuleTests extends TestSuite {
 
       val eval = UnitTester(module, resourcePath)
 
-      val Right(_) = eval(module.foo.test.test())
+      val Right(_) = eval(module.foo.test.test()): @unchecked
 
-      val Right(result) = eval(module.foo.kover.htmlReport())
+      val Right(result) = eval(module.foo.kover.htmlReport()): @unchecked
 
       val htmlReportPath = result.value.path
       assert(os.exists(htmlReportPath))

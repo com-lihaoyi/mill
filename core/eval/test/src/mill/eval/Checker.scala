@@ -1,14 +1,9 @@
 package mill.eval
 
-import mill.util.TestUtil.Test
-import mill.define.{Discover, TargetImpl, Task}
-import mill.{T, Module}
-import mill.util.{TestGraphs, TestUtil}
+import mill.define.Task
 import mill.testkit.{TestBaseModule, UnitTester}
 import mill.api.Strict.Agg
-import os.SubPath
 import utest.*
-import utest.framework.TestPath
 
 class Checker[T <: mill.testkit.TestBaseModule](module: T, threadCount: Option[Int] = Some(1)) {
   // Make sure data is persisted even if we re-create the evaluator each time
@@ -16,9 +11,9 @@ class Checker[T <: mill.testkit.TestBaseModule](module: T, threadCount: Option[I
   val evaluator = UnitTester(module, null, threads = threadCount).evaluator
 
   def apply(
-      target: Task[_],
+      target: Task[?],
       expValue: Any,
-      expEvaled: Agg[Task[_]],
+      expEvaled: Agg[Task[?]],
       // How many "other" tasks were evaluated other than those listed above.
       // Pass in -1 to skip the check entirely
       extraEvaled: Int = 0,
