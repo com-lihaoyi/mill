@@ -30,9 +30,11 @@ install_spark_manual() {
 
   mkdir -p "$INSTALL_DIR"
   echo "Downloading Apache Spark from $DOWNLOAD_URL..."
-  curl -L "$DOWNLOAD_URL" -o "$INSTALL_DIR/${SPARK_PACKAGE}.tgz"
+  # Use -fL to fail on HTTP errors and follow redirects.
+  curl -fL "$DOWNLOAD_URL" -o "$INSTALL_DIR/${SPARK_PACKAGE}.tgz" || { echo "Download failed."; exit 1; }
+
   echo "Extracting Apache Spark..."
-  tar -xvf "$INSTALL_DIR/${SPARK_PACKAGE}.tgz" -C "$INSTALL_DIR"
+  tar -xzf "$INSTALL_DIR/${SPARK_PACKAGE}.tgz" -C "$INSTALL_DIR" || { echo "Extraction failed."; exit 1; }
 
   # Set SPARK_HOME and update PATH
   export SPARK_HOME="$INSTALL_DIR/${SPARK_PACKAGE}"
