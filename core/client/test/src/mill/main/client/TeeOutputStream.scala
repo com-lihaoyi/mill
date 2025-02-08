@@ -19,21 +19,24 @@
 
 import java.io.{IOException, OutputStream}
 
-/** Classic splitter of {@@@@@@@@linkOutputStream} . Named after the Unix 'tee' command. It allows a stream to be branched off so there are now two streams.
-  */
+/**
+ * Classic splitter of {@@@@@@@@linkOutputStream} . Named after the Unix 'tee' command. It allows a stream to be branched off so there are now two streams.
+ */
 class TeeOutputStream(out: OutputStream, branch: OutputStream) extends ProxyOutputStream(out) {
 
-  /** The second OutputStream to write to.
-    */
+  /**
+   * The second OutputStream to write to.
+   */
   protected var branchy: OutputStream = branch
 
-  /** Closes both output streams. <p> If closing the main output stream throws an exception, attempt to close the branch output stream. </p>
-    *
-    * <p> If closing the main and branch output streams both throw exceptions, which exceptions is thrown by this method is currently unspecified and subject to change. </p>
-    *
-    * @throws IOException
-    *   if an I/O error occurs.
-    */
+  /**
+   * Closes both output streams. <p> If closing the main output stream throws an exception, attempt to close the branch output stream. </p>
+   *
+   * <p> If closing the main and branch output streams both throw exceptions, which exceptions is thrown by this method is currently unspecified and subject to change. </p>
+   *
+   * @throws IOException
+   *   if an I/O error occurs.
+   */
   @throws[IOException]
   override def close(): Unit = {
     try {
@@ -43,54 +46,58 @@ class TeeOutputStream(out: OutputStream, branch: OutputStream) extends ProxyOutp
     }
   }
 
-  /** Flushes both streams.
-    *
-    * @throws IOException
-    *   if an I/O error occurs.
-    */
+  /**
+   * Flushes both streams.
+   *
+   * @throws IOException
+   *   if an I/O error occurs.
+   */
   @throws[IOException]
   override def flush(): Unit = {
     super.flush()
     this.branch.flush()
   }
 
-  /** Writes the bytes to both streams.
-    *
-    * @param b
-    *   the bytes to write
-    * @throws IOException
-    *   if an I/O error occurs.
-    */
+  /**
+   * Writes the bytes to both streams.
+   *
+   * @param b
+   *   the bytes to write
+   * @throws IOException
+   *   if an I/O error occurs.
+   */
   @throws[IOException]
   override def write(b: Array[Byte]): Unit = {
     super.write(b)
     this.branch.write(b)
   }
 
-  /** Writes the specified bytes to both streams.
-    *
-    * @param b
-    *   the bytes to write
-    * @param off
-    *   The start offset
-    * @param len
-    *   The number of bytes to write
-    * @throws IOException
-    *   if an I/O error occurs.
-    */
+  /**
+   * Writes the specified bytes to both streams.
+   *
+   * @param b
+   *   the bytes to write
+   * @param off
+   *   The start offset
+   * @param len
+   *   The number of bytes to write
+   * @throws IOException
+   *   if an I/O error occurs.
+   */
   @throws[IOException]
   override def write(b: Array[Byte], off: Int, len: Int): Unit = {
     super.write(b, off, len)
     this.branchy.write(b, off, len)
   }
 
-  /** Writes a byte to both streams.
-    *
-    * @param b
-    *   the byte to write
-    * @throws IOException
-    *   if an I/O error occurs.
-    */
+  /**
+   * Writes a byte to both streams.
+   *
+   * @param b
+   *   the byte to write
+   * @throws IOException
+   *   if an I/O error occurs.
+   */
   @throws[IOException]
   override def write(b: Int): Unit = {
     super.write(b)

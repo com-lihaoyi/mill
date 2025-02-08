@@ -67,7 +67,8 @@ object `package` extends RootModule {
     def buildInfoPackageName = "mill.main.client"
     def buildInfoMembers = Seq(BuildInfo.Value("millVersion", build.millVersion(), "Mill version."))
 
-    object test extends MillScalaTests {}  }
+    object test extends MillScalaTests {}
+  }
 
   object server extends build.MillPublishScalaModule {
     def moduleDeps = Seq(client, api)

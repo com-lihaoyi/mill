@@ -39,10 +39,12 @@ object ProxyStreamTests extends TestSuite {
   val tests = Tests {
     test("fuzzTests") {
       val interestingLengths = Array(
-        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 100, 126, 127, 128, 129, 130, 253, 254, 255, 256, 257, 1000, 2000, 4000, 8000
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 100, 126, 127, 128, 129, 130, 253, 254, 255,
+        256, 257, 1000, 2000, 4000, 8000
       )
       val interestingBytes = Array[Byte](
-        -1, -127, -126, -120, -100, -80, -60, -40, -20, -10, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 10, 20, 40, 60, 80, 100, 120, 125, 126, 127
+        -1, -127, -126, -120, -100, -80, -60, -40, -20, -10, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5,
+        10, 20, 40, 60, 80, 100, 120, 125, 126, 127
       )
 
       for (n <- interestingLengths) {
@@ -63,7 +65,12 @@ object ProxyStreamTests extends TestSuite {
     }
   }
 
-  def test0(outData: Array[Byte], errData: Array[Byte], repeats: Int, gracefulEnd: Boolean): Unit = {
+  def test0(
+      outData: Array[Byte],
+      errData: Array[Byte],
+      repeats: Int,
+      gracefulEnd: Boolean
+  ): Unit = {
     val pipedOutputStream = new PipedOutputStream()
     val pipedInputStream = new PipedInputStream()
     pipedInputStream.connect(pipedOutputStream)
