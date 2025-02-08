@@ -476,6 +476,8 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
     if (ZincWorkerUtil.isScala3(scalaVersion())) Some(T.workspace / ".scalafix-3.conf") else None
   }
   def semanticDbVersion = Deps.semanticDBscala.version
+
+  def scaladocOptions = Seq("-Xsource:3")
   def scalacOptions =
     super.scalacOptions() ++ Seq(
       "-deprecation",
