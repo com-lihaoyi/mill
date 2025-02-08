@@ -143,7 +143,7 @@ object MainModuleTests extends TestSuite {
     test("inspect") {
       test("single") - UnitTester(mainModule, null).scoped { eval =>
         val res = eval.evaluator.evaluate(Agg(mainModule.inspect(eval.evaluator, "hello")))
-        val Result.Success(Val(value: String)) = res.rawValues.head
+        val Result.Success(Val(value: String)) = res.rawValues.head: @unchecked
         assert(
           res.failing.keyCount == 0,
           value.startsWith("hello("),
@@ -153,7 +153,7 @@ object MainModuleTests extends TestSuite {
       test("multi") - UnitTester(mainModule, null).scoped { eval =>
         val res =
           eval.evaluator.evaluate(Agg(mainModule.inspect(eval.evaluator, "hello", "hello2")))
-        val Result.Success(Val(value: String)) = res.rawValues.head
+        val Result.Success(Val(value: String)) = res.rawValues.head: @unchecked
         assert(
           res.failing.keyCount == 0,
           value.startsWith("hello("),
@@ -162,9 +162,9 @@ object MainModuleTests extends TestSuite {
         )
       }
       test("command") - UnitTester(mainModule, null).scoped { eval =>
-        val Right(result) = eval.apply("inspect", "helloCommand")
+        val Right(result) = eval.apply("inspect", "helloCommand"): @unchecked
 
-        val Seq(res: String) = result.value
+        val Seq(res: String) = result.value: @unchecked
         assert(
           res.startsWith("helloCommand("),
           res.contains("MainModuleTests.scala:"),
@@ -172,9 +172,9 @@ object MainModuleTests extends TestSuite {
         )
       }
       test("worker") - UnitTester(mainModule, null).scoped { eval =>
-        val Right(result) = eval.apply("inspect", "helloWorker")
+        val Right(result) = eval.apply("inspect", "helloWorker"): @unchecked
 
-        val Seq(res: String) = result.value
+        val Seq(res: String) = result.value: @unchecked
         assert(
           res.startsWith("helloWorker("),
           res.contains("MainModuleTests.scala:"),
@@ -183,9 +183,9 @@ object MainModuleTests extends TestSuite {
         )
       }
       test("module") - UnitTester(mainModule, null).scoped { eval =>
-        val Right(result) = eval.apply("inspect", "sub")
+        val Right(result) = eval.apply("inspect", "sub"): @unchecked
 
-        val Seq(res: String) = result.value
+        val Seq(res: String) = result.value: @unchecked
         assert(
           res.startsWith("sub("),
           res.contains("MainModuleTests.scala:"),
@@ -215,7 +215,7 @@ object MainModuleTests extends TestSuite {
 
         assert(results.failing.keyCount == 0)
 
-        val Result.Success(Val(value)) = results.rawValues.head
+        val Result.Success(Val(value)) = results.rawValues.head: @unchecked
 
         val shown = ujson.read(outStream.toByteArray)
         val expected = ujson.Arr.from(Seq("hello", "world"))
@@ -243,7 +243,7 @@ object MainModuleTests extends TestSuite {
 
         assert(results.failing.keyCount == 0)
 
-        val Result.Success(Val(value)) = results.rawValues.head
+        val Result.Success(Val(value)) = results.rawValues.head: @unchecked
 
         val shown = ujson.read(outStream.toByteArray)
 
@@ -266,22 +266,22 @@ object MainModuleTests extends TestSuite {
       }
 
       test("command") {
-        val Left(Result.Failure(failureMsg, _)) = evaluator.apply("show", "helloCommand")
+        val Left(Result.Failure(failureMsg, _)) = evaluator.apply("show", "helloCommand"): @unchecked
         assert(
           failureMsg.contains("Expected Signature: helloCommand"),
           failureMsg.contains("-x <int>"),
           failureMsg.contains("-y <str>")
         )
         val Right(result) =
-          evaluator.apply("show", "helloCommand", "-x", "1337", "-y", "lol")
+          evaluator.apply("show", "helloCommand", "-x", "1337", "-y", "lol"): @unchecked
 
         val Seq(res) = result.value
         assert(res == ujson.Arr(1337, "lol", ujson.Arr("hello", "world")))
       }
 
       test("worker") {
-        val Right(result) = evaluator.apply("show", "helloWorker")
-        val Seq(res: ujson.Obj) = result.value
+        val Right(result) = evaluator.apply("show", "helloWorker"): @unchecked
+        val Seq(res: ujson.Obj) = result.value: @unchecked
         assert(res("toString").str == "theHelloWorker")
         assert(res("worker").str == "helloWorker")
         assert(res("inputsHash").numOpt.isDefined)
@@ -296,7 +296,7 @@ object MainModuleTests extends TestSuite {
 
         assert(results.failing.keyCount == 0)
 
-        val Result.Success(Val(value)) = results.rawValues.head
+        val Result.Success(Val(value)) = results.rawValues.head: @unchecked
 
         assert(value == ujson.Obj.from(Map(
           "hello" -> ujson.Arr.from(Seq("hello", "world"))
@@ -313,7 +313,7 @@ object MainModuleTests extends TestSuite {
 
         assert(results.failing.keyCount == 0)
 
-        val Result.Success(Val(value)) = results.rawValues.head
+        val Result.Success(Val(value)) = results.rawValues.head: @unchecked
 
         assert(value == ujson.Obj.from(Map(
           "hello" -> ujson.Arr.from(Seq("hello", "world")),
@@ -324,9 +324,9 @@ object MainModuleTests extends TestSuite {
 
     test("resolve") {
       UnitTester(mainModule, null).scoped { eval =>
-        val Right(result) = eval.apply("resolve", "_")
+        val Right(result) = eval.apply("resolve", "_"): @unchecked
 
-        val Seq(res: Seq[String]) = result.value
+        val Seq(res: Seq[String]) = result.value: @unchecked
         assert(res.contains("hello"))
         assert(res.contains("hello2"))
         assert(res.contains("helloCommand"))

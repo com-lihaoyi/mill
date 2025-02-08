@@ -29,7 +29,7 @@ object Giter8Tests extends TestSuite {
           "--name=hello", // skip user interaction
           "--description=hello_desc" // need to pass all args
         )
-        val res = evaluator.evaluator.evaluate(Agg(g8Module.init(giter8Args: _*)))
+        val res = evaluator.evaluator.evaluate(Agg(g8Module.init(giter8Args*)))
 
         val files = Seq(
           os.sub / "build.mill",

@@ -155,7 +155,7 @@ object ModuleTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  def isShortError(x: Either[String, _], s: String) =
+  def isShortError(x: Either[String, ?], s: String) =
     x.left.exists(_.contains(s)) &&
       // Make sure the stack traces are truncated and short-ish, and do not
       // contain the entire Mill internal call stack at point of failure
@@ -503,8 +503,8 @@ object ModuleTests extends TestSuite {
       val check = new Checker(duplicates)
 
       def segments(
-          found: Either[String, List[NamedTask[_]]],
-          expected: Either[String, List[NamedTask[_]]]
+          found: Either[String, List[NamedTask[?]]],
+          expected: Either[String, List[NamedTask[?]]]
       ) = {
         found.map(_.map(_.ctx.segments)) == expected.map(_.map(_.ctx.segments))
       }

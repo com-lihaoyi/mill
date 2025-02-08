@@ -12,7 +12,7 @@ object ScalaAssemblyAppendTests extends TestSuite with ScalaAssemblyTestUtils {
   def tests: Tests = Tests {
     def checkAppend[M <: mill.testkit.TestBaseModule](module: M, target: Target[PathRef]) =
       UnitTester(module, resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(target)
+        val Right(result) = eval.apply(target): @unchecked
 
         Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
           assert(jarEntries(jarFile).contains("reference.conf"))
@@ -41,7 +41,7 @@ object ScalaAssemblyAppendTests extends TestSuite with ScalaAssemblyTestUtils {
       module,
       sourceRoot = helloWorldMultiResourcePath
     ).scoped { eval =>
-      val Right(result) = eval.apply(target)
+      val Right(result) = eval.apply(target): @unchecked
 
       Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
         assert(jarEntries(jarFile).contains("reference.conf"))
@@ -67,7 +67,7 @@ object ScalaAssemblyAppendTests extends TestSuite with ScalaAssemblyTestUtils {
       module,
       sourceRoot = helloWorldMultiResourcePath
     ).scoped { eval =>
-      val Right(result) = eval.apply(target)
+      val Right(result) = eval.apply(target): @unchecked
 
       Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
         assert(jarEntries(jarFile).contains("without-new-line.conf"))

@@ -26,8 +26,8 @@ trait MultiBiMap[K, V] {
 object MultiBiMap {
 
   class Mutable[K, V]() extends MultiBiMap[K, V] {
-    private[this] val valueToKey = mutable.LinkedHashMap.empty[V, K]
-    private[this] val keyToValues = mutable.LinkedHashMap.empty[K, Agg.Mutable[V]]
+    private val valueToKey = mutable.LinkedHashMap.empty[V, K]
+    private val keyToValues = mutable.LinkedHashMap.empty[K, Agg.Mutable[V]]
     def containsValue(v: V): Boolean = valueToKey.contains(v)
     def lookupKey(k: K): Agg.Mutable[V] = keyToValues(k)
     def lookupKeyOpt(k: K): Option[Agg.Mutable[V]] = keyToValues.get(k)

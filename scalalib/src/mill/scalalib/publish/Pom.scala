@@ -67,7 +67,7 @@ object Pom {
       if (properties.isEmpty) NodeSeq.Empty
       else
         <properties>
-          {properties.map(renderProperty _).iterator}
+          {properties.map(renderProperty).iterator}
         </properties>
     val depMgmtSection =
       if (dependencyManagement.isEmpty) NodeSeq.Empty

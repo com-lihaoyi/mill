@@ -11,13 +11,13 @@ class Checker[T <: mill.define.BaseModule](module: T) {
 
   def apply(
       selectorString: String,
-      expected0: Either[String, Set[T => NamedTask[_]]],
+      expected0: Either[String, Set[T => NamedTask[?]]],
       expectedMetadata: Set[String] = Set()
   ) = checkSeq(Seq(selectorString), expected0, expectedMetadata)
 
   def checkSeq(
       selectorStrings: Seq[String],
-      expected0: Either[String, Set[T => NamedTask[_]]],
+      expected0: Either[String, Set[T => NamedTask[?]]],
       expectedMetadata: Set[String] = Set()
   ) = {
     val expected = expected0.map(_.map(_(module)))
@@ -38,7 +38,7 @@ class Checker[T <: mill.define.BaseModule](module: T) {
 
   def checkSeq0(
       selectorStrings: Seq[String],
-      check: Either[String, List[NamedTask[_]]] => Boolean,
+      check: Either[String, List[NamedTask[?]]] => Boolean,
       checkMetadata: Either[String, List[String]] => Boolean = _ => true
   ) = {
 

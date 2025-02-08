@@ -16,9 +16,9 @@ class Checker[T <: mill.testkit.TestBaseModule](module: T, threadCount: Option[I
   val evaluator = UnitTester(module, null, threads = threadCount).evaluator
 
   def apply(
-      target: Task[_],
+      target: Task[?],
       expValue: Any,
-      expEvaled: Agg[Task[_]],
+      expEvaled: Agg[Task[?]],
       // How many "other" tasks were evaluated other than those listed above.
       // Pass in -1 to skip the check entirely
       extraEvaled: Int = 0,

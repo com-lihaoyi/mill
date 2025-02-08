@@ -48,7 +48,7 @@ object BspModuleTests extends TestSuite {
       test("single module") - UnitTester(MultiBase, null).scoped { eval =>
         val Right(result) = eval.apply(
           MultiBase.HelloBsp.bspCompileClasspath
-        )
+        ): @unchecked
 
         val relResult =
           result.value.iterator.map(_.resolve(eval.evaluator.pathsResolver).last).toSeq.sorted
@@ -66,7 +66,7 @@ object BspModuleTests extends TestSuite {
       test("dependent module") - UnitTester(MultiBase, null).scoped { eval =>
         val Right(result) = eval.apply(
           MultiBase.HelloBsp2.bspCompileClasspath
-        )
+        ): @unchecked
 
         val relResults: Seq[FilePath] = result.value.iterator.map { p =>
           val path = p.resolve(eval.evaluator.pathsResolver)
@@ -97,7 +97,7 @@ object BspModuleTests extends TestSuite {
             val start = System.currentTimeMillis()
             val Right(_) = eval.apply(
               InterDeps.Mod(entry).compileClasspath
-            )
+            ): @unchecked
             val timeSpent = System.currentTimeMillis() - start
             assert(timeSpent < maxTime)
             s"${timeSpent} msec"
@@ -111,7 +111,7 @@ object BspModuleTests extends TestSuite {
             val start = System.currentTimeMillis()
             val Right(_) = eval.apply(
               InterDeps.Mod(entry).bspCompileClasspath
-            )
+            ): @unchecked
             val timeSpent = System.currentTimeMillis() - start
             assert(timeSpent < maxTime)
             s"${timeSpent} msec"

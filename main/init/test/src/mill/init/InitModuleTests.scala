@@ -33,7 +33,7 @@ object InitModuleTests extends TestSuite {
 
         assert(results.failing.keyCount == 0)
 
-        val Result.Success(Val(value)) = results.rawValues.head
+        val Result.Success(Val(value)) = results.rawValues.head: @unchecked
         val consoleShown = outStream.toString
 
         val examplesList: Seq[String] = value.asInstanceOf[Seq[String]]

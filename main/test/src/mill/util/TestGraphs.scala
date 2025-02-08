@@ -155,7 +155,7 @@ object TestGraphs {
     def single = Task { 1 }
     def invisible: Any = Task { 2 }
     def invisible2: mill.define.Task[Int] = Task { 3 }
-    def invisible3: mill.define.Task[_] = Task { 4 }
+    def invisible3: mill.define.Task[?] = Task { 4 }
   }
 
   object nestedModule extends TestBaseModule {

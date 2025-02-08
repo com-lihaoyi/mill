@@ -262,7 +262,7 @@ trait CoursierSupport {
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
 
     val resolutionParams0 = resolutionParams
-      .addForceVersion(forceVersions.toSeq: _*)
+      .addForceVersion(forceVersions.toSeq*)
 
     val testOverridesRepo =
       new TestOverridesRepo(os.resource(getClass.getClassLoader) / "mill/local-test-overrides")

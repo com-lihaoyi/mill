@@ -92,7 +92,7 @@ object CompileRunTests extends TestSuite {
             scalaVersion,
             scalaNativeVersion,
             mode
-          ).compile)
+          ).compile): @unchecked
 
         val outPath = result.value.classes.path
         val outputFiles = os.walk(outPath).filter(os.isFile).map(_.last).toSet
@@ -108,7 +108,7 @@ object CompileRunTests extends TestSuite {
             scalaVersion,
             scalaNativeVersion,
             mode
-          ).compile)
+          ).compile): @unchecked
         assert(result2.evalCount == 0)
       }
 
@@ -124,7 +124,7 @@ object CompileRunTests extends TestSuite {
             scala213,
             scalaNative05,
             ReleaseMode.Debug
-          ).jar)
+          ).jar): @unchecked
         val jar = result.value.path
         val entries = new JarFile(jar.toIO).entries().asScala.map(_.getName)
         assert(entries.contains("hello/Main$.nir"))
@@ -135,7 +135,7 @@ object CompileRunTests extends TestSuite {
       UnitTester(HelloNativeWorld, millSourcePath).scoped { eval =>
         val task =
           HelloNativeWorld.build(scalaVersion, scalaNativeVersion, mode).nativeLink
-        val Right(result) = eval(task)
+        val Right(result) = eval(task): @unchecked
 
         val paths = EvaluatorPaths.resolveDestPaths(eval.outPath, task)
         val stdout = os.proc(paths.dest / "out").call().out.lines()

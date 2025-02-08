@@ -5,14 +5,14 @@ import mill.internal.MultiBiMap
 
 private[mill] class Plan(
     val transitive: Agg[Task[?]],
-    val sortedGroups: MultiBiMap[Task[_], Task[_]]
+    val sortedGroups: MultiBiMap[Task[?], Task[?]]
 )
 private[mill] object Plan {
-  def plan(goals: Agg[Task[_]]): Plan = {
+  def plan(goals: Agg[Task[?]]): Plan = {
     val transitive = Plan.transitiveTargets(goals)
     val topoSorted = Plan.topoSorted(transitive)
 
-    val sortedGroups: MultiBiMap[Task[_], Task[_]] =
+    val sortedGroups: MultiBiMap[Task[?], Task[?]] =
       Plan.groupAroundImportantTargets(topoSorted) {
         // important: all named tasks and those explicitly requested
         case t: NamedTask[Any] => t
@@ -28,20 +28,20 @@ private[mill] object Plan {
    *
    * @see [[Plan.topoSorted]]
    */
-  class TopoSorted(val values: Agg[Task[_]])
+  class TopoSorted(val values: Agg[Task[?]])
 
   def groupAroundImportantTargets[T](topoSortedTargets: TopoSorted)(important: PartialFunction[
-    Task[_],
+    Task[?],
     T
-  ]): MultiBiMap[T, Task[_]] = {
+  ]): MultiBiMap[T, Task[?]] = {
 
-    val output = new MultiBiMap.Mutable[T, Task[_]]()
+    val output = new MultiBiMap.Mutable[T, Task[?]]()
     for (
       (target, t) <- topoSortedTargets.values.flatMap(t => important.lift(t).map((t, _))).iterator
     ) {
 
-      val transitiveTargets = new Agg.Mutable[Task[_]]
-      def rec(t: Task[_]): Unit = {
+      val transitiveTargets = new Agg.Mutable[Task[?]]
+      def rec(t: Task[?]): Unit = {
         if (transitiveTargets.contains(t)) () // do nothing
         else if (important.isDefinedAt(t) && t != target) () // do nothing
         else {
@@ -59,10 +59,10 @@ private[mill] object Plan {
    * Collects all transitive dependencies (targets) of the given targets,
    * including the given targets.
    */
-  def transitiveTargets(sourceTargets: Agg[Task[_]]): Agg[Task[_]] = {
+  def transitiveTargets(sourceTargets: Agg[Task[?]]): Agg[Task[?]] = {
     transitiveNodes(sourceTargets)(_.inputs)
   }
-  def transitiveNamed(sourceTargets: Agg[Task[_]]): Agg[NamedTask[_]] = {
+  def transitiveNamed(sourceTargets: Agg[Task[?]]): Agg[NamedTask[?]] = {
     transitiveTargets(sourceTargets).collect { case t: NamedTask[?] => t }
   }
 
@@ -88,7 +88,7 @@ private[mill] object Plan {
    * Takes the given targets, finds all the targets they transitively depend
    * on, and sort them topologically. Fails if there are dependency cycles
    */
-  def topoSorted(transitiveTargets: Agg[Task[_]]): TopoSorted = {
+  def topoSorted(transitiveTargets: Agg[Task[?]]): TopoSorted = {
 
     val indexed = transitiveTargets.indexed
     val targetIndices = indexed.zipWithIndex.toMap

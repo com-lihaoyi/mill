@@ -21,12 +21,12 @@ object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
   def tests: Tests = Tests {
     test("layout") {
       test("fromBuild") - UnitTester(playsingle, resourcePath).scoped { eval =>
-        val Right(conf) = eval.apply(playsingle.conf)
-        val Right(app) = eval.apply(playsingle.app)
-        val Right(sources) = eval.apply(playsingle.sources)
-        val Right(resources) = eval.apply(playsingle.resources)
-        val Right(testSources) = eval.apply(playsingle.test.sources)
-        val Right(testResources) = eval.apply(playsingle.test.resources)
+        val Right(conf) = eval.apply(playsingle.conf): @unchecked
+        val Right(app) = eval.apply(playsingle.app): @unchecked
+        val Right(sources) = eval.apply(playsingle.sources): @unchecked
+        val Right(resources) = eval.apply(playsingle.resources): @unchecked
+        val Right(testSources) = eval.apply(playsingle.test.sources): @unchecked
+        val Right(testResources) = eval.apply(playsingle.test.resources): @unchecked
         assert(
           conf.value.map(_.path.relativeTo(playsingle.millSourcePath).toString()) == Seq("conf"),
           app.value.map(_.path.relativeTo(playsingle.millSourcePath).toString()) == Seq("app"),
@@ -45,7 +45,7 @@ object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
     }
     test("compile") - UnitTester(playsingle, resourcePath).scoped { eval =>
       val eitherResult = eval.apply(playsingle.compile)
-      val Right(result) = eitherResult
+      val Right(result) = eitherResult: @unchecked
       val outputFiles = os.walk(result.value.classes.path).filter(os.isFile)
       val expectedClassfiles = Seq[os.RelPath](
         os.RelPath("controllers/HomeController.class"),
@@ -75,7 +75,7 @@ object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
       )
 
       // don't recompile if nothing changed
-      val Right(result2) = eval.apply(playsingle.compile)
+      val Right(result2) = eval.apply(playsingle.compile): @unchecked
       // assert(unchangedEvalCount == 0)
     }
   }

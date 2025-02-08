@@ -206,7 +206,7 @@ object ErrorTests extends TestSuite {
     }
   }
 
-  def isShortError(x: Either[String, _], s: String) =
+  def isShortError(x: Either[String, ?], s: String) =
     x.left.exists(_.contains(s)) &&
       // Make sure the stack traces are truncated and short-ish, and do not
       // contain the entire Mill internal call stack at point of failure

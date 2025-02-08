@@ -144,7 +144,7 @@ object PromptLoggerUtilTests extends TestSuite {
           startTimeMillis = now - 1337000,
           headerPrefix = "123/456",
           titleText = titleText,
-          statuses = SortedMap(statuses.map { case (k, v) => (k.toString, v) }: _*),
+          statuses = SortedMap(statuses.map { case (k, v) => (k.toString, v) }*),
           interactive = interactive,
           infoColor = fansi.Attrs.Empty
         )

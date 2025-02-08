@@ -43,16 +43,16 @@ private[mill] trait GroupEvaluator {
 
   // those result which are inputs but not contained in this terminal group
   def evaluateGroupCached(
-      terminal: Task[_],
-      group: Agg[Task[_]],
-      results: Map[Task[_], TaskResult[(Val, Int)]],
+      terminal: Task[?],
+      group: Agg[Task[?]],
+      results: Map[Task[?], TaskResult[(Val, Int)]],
       countMsg: String,
       verboseKeySuffix: String,
       zincProblemReporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
       logger: ColorLogger,
-      classToTransitiveClasses: Map[Class[_], IndexedSeq[Class[_]]],
-      allTransitiveClassMethods: Map[Class[_], Map[String, Method]],
+      classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
+      allTransitiveClassMethods: Map[Class[?], Map[String, Method]],
       executionContext: mill.api.Ctx.Fork.Api,
       exclusive: Boolean
   ): GroupEvaluator.Results = {
@@ -104,7 +104,7 @@ private[mill] trait GroupEvaluator {
           cachedValueAndHash match {
             case Some((v, hashCode)) =>
               val res = Result.Success((v, hashCode))
-              val newResults: Map[Task[_], TaskResult[(Val, Int)]] =
+              val newResults: Map[Task[?], TaskResult[(Val, Int)]] =
                 Map(labelled -> TaskResult(res, () => res))
 
               GroupEvaluator.Results(
@@ -159,7 +159,7 @@ private[mill] trait GroupEvaluator {
               GroupEvaluator.Results(
                 newResults,
                 newEvaluated.toSeq,
-                cached = if (labelled.isInstanceOf[InputImpl[_]]) null else false,
+                cached = if (labelled.isInstanceOf[InputImpl[?]]) null else false,
                 inputsHash,
                 cached.map(_._1).getOrElse(-1),
                 !cached.map(_._3).contains(valueHash)
@@ -194,8 +194,8 @@ private[mill] trait GroupEvaluator {
   }
 
   private def evaluateGroup(
-      group: Agg[Task[_]],
-      results: Map[Task[_], TaskResult[(Val, Int)]],
+      group: Agg[Task[?]],
+      results: Map[Task[?], TaskResult[(Val, Int)]],
       inputsHash: Int,
       paths: Option[EvaluatorPaths],
       maybeTargetLabel: Option[String],
@@ -206,11 +206,11 @@ private[mill] trait GroupEvaluator {
       logger: mill.api.Logger,
       executionContext: mill.api.Ctx.Fork.Api,
       exclusive: Boolean
-  ): (Map[Task[_], TaskResult[(Val, Int)]], mutable.Buffer[Task[_]]) = {
+  ): (Map[Task[?], TaskResult[(Val, Int)]], mutable.Buffer[Task[?]]) = {
 
     def computeAll() = {
-      val newEvaluated = mutable.Buffer.empty[Task[_]]
-      val newResults = mutable.Map.empty[Task[_], Result[(Val, Int)]]
+      val newEvaluated = mutable.Buffer.empty[Task[?]]
+      val newResults = mutable.Map.empty[Task[?], Result[(Val, Int)]]
 
       val nonEvaluatedTargets = group.indexed.filterNot(results.contains)
       val multiLogger = resolveLogger(paths.map(_.log), logger)
@@ -291,7 +291,7 @@ private[mill] trait GroupEvaluator {
     val (newResults, newEvaluated) = computeAll()
 
     if (!failFast) maybeTargetLabel.foreach { targetLabel =>
-      val taskFailed = newResults.exists(task => !task._2.isInstanceOf[Success[_]])
+      val taskFailed = newResults.exists(task => !task._2.isInstanceOf[Success[?]])
       if (taskFailed) {
         logger.error(s"[$counterMsg] $targetLabel failed")
       }
@@ -329,7 +329,7 @@ private[mill] trait GroupEvaluator {
       hashCode: Int,
       metaPath: os.Path,
       inputsHash: Int,
-      labelled: NamedTask[_]
+      labelled: NamedTask[?]
   ): Unit = {
     for (w <- labelled.asWorker)
       workerCache.synchronized {
@@ -379,7 +379,7 @@ private[mill] trait GroupEvaluator {
   private def loadCachedJson(
       logger: ColorLogger,
       inputsHash: Int,
-      labelled: NamedTask[_],
+      labelled: NamedTask[?],
       paths: EvaluatorPaths
   ): Option[(Int, Option[Val], Int)] = {
     for {
@@ -408,13 +408,13 @@ private[mill] trait GroupEvaluator {
     )
   }
 
-  def getValueHash(v: Val, task: Task[_], inputsHash: Int): Int = {
-    if (task.isInstanceOf[Worker[_]]) inputsHash else v.##
+  def getValueHash(v: Val, task: Task[?], inputsHash: Int): Int = {
+    if (task.isInstanceOf[Worker[?]]) inputsHash else v.##
   }
   private def loadUpToDateWorker(
       logger: ColorLogger,
       inputsHash: Int,
-      labelled: NamedTask[_],
+      labelled: NamedTask[?],
       forceDiscard: Boolean
   ): Option[Val] = {
     labelled.asWorker
@@ -455,8 +455,8 @@ private[mill] trait GroupEvaluator {
 private[mill] object GroupEvaluator {
 
   case class Results(
-      newResults: Map[Task[_], TaskResult[(Val, Int)]],
-      newEvaluated: Seq[Task[_]],
+      newResults: Map[Task[?], TaskResult[(Val, Int)]],
+      newEvaluated: Seq[Task[?]],
       cached: java.lang.Boolean,
       inputsHash: Int,
       previousInputsHash: Int,

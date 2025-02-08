@@ -34,7 +34,7 @@ object CoursierParametersTests extends TestSuite {
 
   def tests: Tests = Tests {
     test("coursierParams") - UnitTester(CoursierTest, null).scoped { eval =>
-      val Right(result) = eval.apply(CoursierTest.core.compileClasspath)
+      val Right(result) = eval.apply(CoursierTest.core.compileClasspath): @unchecked
       val classPath = result.value.toSeq.map(_.path)
       val pprintVersion = classPath
         .map(_.last)

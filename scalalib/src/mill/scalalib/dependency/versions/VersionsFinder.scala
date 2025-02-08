@@ -13,7 +13,7 @@ private[dependency] object VersionsFinder {
 
   def findVersions(
       evaluator: Evaluator,
-      ctx: Log with Home,
+      ctx: Log & Home,
       rootModule: BaseModule
   ): Seq[ModuleDependenciesVersions] = {
 

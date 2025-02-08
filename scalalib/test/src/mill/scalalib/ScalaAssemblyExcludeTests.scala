@@ -14,7 +14,7 @@ object ScalaAssemblyExcludeTests extends TestSuite with ScalaAssemblyTestUtils {
         target: Target[PathRef],
         resourcePath: os.Path = resourcePath
     ) = UnitTester(module, resourcePath).scoped { eval =>
-      val Right(result) = eval.apply(target)
+      val Right(result) = eval.apply(target): @unchecked
 
       Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
         assert(!jarEntries(jarFile).contains("reference.conf"))
@@ -45,7 +45,7 @@ object ScalaAssemblyExcludeTests extends TestSuite with ScalaAssemblyTestUtils {
         target: Target[PathRef],
         resourcePath: os.Path = resourcePath
     ) = UnitTester(module, resourcePath).scoped { eval =>
-      val Right(result) = eval.apply(target)
+      val Right(result) = eval.apply(target): @unchecked
       Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
         assert(!jarEntries(jarFile).contains("akka/http/scaladsl/model/HttpEntity.class"))
         assert(
@@ -64,14 +64,14 @@ object ScalaAssemblyExcludeTests extends TestSuite with ScalaAssemblyTestUtils {
         HelloWorldAkkaHttpRelocate,
         sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-deps"
       ).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorldAkkaHttpRelocate.core.runMain("Main"))
+        val Right(result) = eval.apply(HelloWorldAkkaHttpRelocate.core.runMain("Main")): @unchecked
         assert(result.evalCount > 0)
       }
     }
 
     test("writeDownstreamWhenNoRule") {
       test("withDeps") - UnitTester(HelloWorldAkkaHttpNoRules, null).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorldAkkaHttpNoRules.core.assembly)
+        val Right(result) = eval.apply(HelloWorldAkkaHttpNoRules.core.assembly): @unchecked
 
         Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
           assert(jarEntries(jarFile).contains("reference.conf"))
@@ -96,7 +96,7 @@ object ScalaAssemblyExcludeTests extends TestSuite with ScalaAssemblyTestUtils {
         HelloWorldMultiNoRules,
         sourceRoot = helloWorldMultiResourcePath
       ).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorldMultiNoRules.core.assembly)
+        val Right(result) = eval.apply(HelloWorldMultiNoRules.core.assembly): @unchecked
 
         Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
           assert(jarEntries(jarFile).contains("reference.conf"))

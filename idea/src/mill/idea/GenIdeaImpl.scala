@@ -657,7 +657,7 @@ case class GenIdeaImpl(
       attributes1 = attribute1,
       example.scope,
       minimizeEmpty = true,
-      child = element.childs.map(ideaConfigElementTemplate): _*
+      child = element.childs.map(ideaConfigElementTemplate)*
     )
   }
 

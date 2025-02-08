@@ -19,7 +19,7 @@ object UtestTests extends TestSuite {
   def runTests(testTask: define.NamedTask[(String, Seq[TestResult])])
       : Map[String, Map[String, TestResult]] =
     UnitTester(HelloJSWorld, millSourcePath).scoped { eval =>
-      val Left(Result.Failure(_, Some(res))) = eval(testTask)
+      val Left(Result.Failure(_, Some(res))) = eval(testTask): @unchecked
 
       val (doneMsg, testResults) = res
       testResults
@@ -78,8 +78,8 @@ object UtestTests extends TestSuite {
 
     def checkInheritedTargets[A](target: ScalaJSModule => T[A], expected: A) =
       UnitTester(HelloJSWorld, millSourcePath).scoped { eval =>
-        val Right(mainResult) = eval(target(HelloJSWorld.inherited))
-        val Right(testResult) = eval(target(HelloJSWorld.inherited.test))
+        val Right(mainResult) = eval(target(HelloJSWorld.inherited)): @unchecked
+        val Right(testResult) = eval(target(HelloJSWorld.inherited.test)): @unchecked
         assert(mainResult.value == expected)
         assert(testResult.value == expected)
       }

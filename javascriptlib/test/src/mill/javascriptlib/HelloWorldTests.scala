@@ -31,7 +31,7 @@ object HelloWorldTests extends TestSuite {
       val baos = new ByteArrayOutputStream()
       val eval = UnitTester(HelloWorldJavascript, resourcePath, outStream = new PrintStream(baos))
 
-      val Right(result) = eval.apply(HelloWorldJavascript.qux.run(Args("James")))
+      val Right(result) = eval.apply(HelloWorldJavascript.qux.run(Args("James"))): @unchecked
 
       assert(baos.toString() == "Hello James Qux\n")
     }

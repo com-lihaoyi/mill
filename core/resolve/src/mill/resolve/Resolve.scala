@@ -113,11 +113,11 @@ object Resolve {
       r: Resolved.NamedTask,
       p: Module,
       cache: ResolveCore.Cache
-  ): Either[String, NamedTask[_]] = {
+  ): Either[String, NamedTask[?]] = {
     val definition = Reflect
       .reflect(
         p.getClass,
-        classOf[NamedTask[_]],
+        classOf[NamedTask[?]],
         _ == r.segments.last.value,
         true,
         getMethods = cache.getMethods
@@ -125,7 +125,7 @@ object Resolve {
       .head
 
     ResolveCore.catchWrapException(
-      definition.invoke(p).asInstanceOf[NamedTask[_]]
+      definition.invoke(p).asInstanceOf[NamedTask[?]]
     )
   }
 
@@ -158,14 +158,14 @@ object Resolve {
       rest: Seq[String],
       nullCommandDefaults: Boolean,
       allowPositionalCommandArgs: Boolean
-  ): Option[Either[String, Command[_]]] = for {
+  ): Option[Either[String, Command[?]]] = for {
     ep <- discover.resolveEntrypoint(target.getClass, name)
   } yield {
     def withNullDefault(a: mainargs.ArgSig): mainargs.ArgSig = {
       if (a.default.nonEmpty) a
       else if (nullCommandDefaults) {
         a.copy(default =
-          if (a.reader.isInstanceOf[SimpleTaskTokenReader[_]])
+          if (a.reader.isInstanceOf[SimpleTaskTokenReader[?]])
             Some(_ => mill.define.Task.Anon(null))
           else Some(_ => null)
         )
@@ -183,7 +183,7 @@ object Resolve {
       allowRepeats = false,
       allowLeftover = ep.argSigs0.exists(_.reader.isLeftover),
       nameMapper = mainargs.Util.kebabCaseNameMapper
-    ).flatMap { (grouped: TokenGrouping[_]) =>
+    ).flatMap { (grouped: TokenGrouping[?]) =>
       val mainData = ep.asInstanceOf[MainData[Any, Any]]
       val mainDataWithDefaults = mainData
         .copy(argSigs0 = mainData.argSigs0.map(withNullDefault))

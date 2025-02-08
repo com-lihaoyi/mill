@@ -87,7 +87,7 @@ object TutorialTests extends TestSuite {
     test("scalapbVersion") {
 
       test("fromBuild") - UnitTester(Tutorial, resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(Tutorial.core.scalaPBVersion)
+        val Right(result) = eval.apply(Tutorial.core.scalaPBVersion): @unchecked
 
         assert(
           result.value == testScalaPbVersion,
@@ -99,7 +99,7 @@ object TutorialTests extends TestSuite {
     test("compileScalaPB") {
       test("calledDirectly") - UnitTester(Tutorial, resourcePath).scoped { eval =>
         if (!mill.main.client.Util.isWindows) {
-          val Right(result) = eval.apply(Tutorial.core.compileScalaPB)
+          val Right(result) = eval.apply(Tutorial.core.compileScalaPB): @unchecked
 
           val outPath = protobufOutPath(eval)
 
@@ -116,7 +116,7 @@ object TutorialTests extends TestSuite {
           )
 
           // don't recompile if nothing changed
-          val Right(result2) = eval.apply(Tutorial.core.compileScalaPB)
+          val Right(result2) = eval.apply(Tutorial.core.compileScalaPB): @unchecked
 
           assert(result2.evalCount == 0)
         }
@@ -127,7 +127,7 @@ object TutorialTests extends TestSuite {
         resourcePath
       ).scoped { eval =>
         if (!mill.main.client.Util.isWindows) {
-          val Right(result) = eval.apply(TutorialWithSpecificSources.core.compileScalaPB)
+          val Right(result) = eval.apply(TutorialWithSpecificSources.core.compileScalaPB): @unchecked
 
           val outPath = protobufOutPath(eval)
 
@@ -149,7 +149,7 @@ object TutorialTests extends TestSuite {
           )
 
           // don't recompile if nothing changed
-          val Right(result2) = eval.apply(Tutorial.core.compileScalaPB)
+          val Right(result2) = eval.apply(Tutorial.core.compileScalaPB): @unchecked
 
           assert(result2.evalCount == 0)
         }

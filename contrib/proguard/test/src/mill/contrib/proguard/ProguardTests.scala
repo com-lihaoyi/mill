@@ -31,7 +31,7 @@ object ProguardTests extends TestSuite {
     test("Proguard module") {
       test("should download proguard jars") - UnitTester(proguard, testModuleSourcesPath).scoped {
         eval =>
-          val Right(result) = eval.apply(proguard.proguardClasspath)
+          val Right(result) = eval.apply(proguard.proguardClasspath): @unchecked
           assert(
             result.value.iterator.toSeq.nonEmpty,
             result.value.iterator.toSeq.head.path.toString().contains("proguard-base")

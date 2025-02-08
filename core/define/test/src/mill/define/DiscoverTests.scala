@@ -6,7 +6,7 @@ import utest._
 object DiscoverTests extends TestSuite {
   val testGraphs = new TestGraphs
   val tests = Tests {
-    def check[T <: Module](m: T)(targets: (T => Target[_])*) = {
+    def check[T <: Module](m: T)(targets: (T => Target[?])*) = {
       val discovered = m.millInternal.targets
       val expected = targets.map(_(m)).toSet
       assert(discovered == expected)

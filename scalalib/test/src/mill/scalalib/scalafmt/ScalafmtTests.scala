@@ -45,7 +45,7 @@ object ScalafmtTests extends TestSuite {
           val before = getProjectFiles(ScalafmtTestModule.core, eval)
 
           // first reformat
-          val Right(_) = eval.apply(reformatCommand)
+          val Right(_) = eval.apply(reformatCommand): @unchecked
 
           val firstReformat = getProjectFiles(ScalafmtTestModule.core, eval)
 
@@ -73,7 +73,7 @@ object ScalafmtTests extends TestSuite {
           }
 
           // cached reformat
-          val Right(_) = eval.apply(reformatCommand)
+          val Right(_) = eval.apply(reformatCommand): @unchecked
 
           val cached = getProjectFiles(ScalafmtTestModule.core, eval)
 
@@ -89,7 +89,7 @@ object ScalafmtTests extends TestSuite {
           // reformat after change
           os.write.over(cached("Main.scala").path, cached("Main.scala").content + "\n object Foo")
 
-          val Right(_) = eval.apply(reformatCommand)
+          val Right(_) = eval.apply(reformatCommand): @unchecked
 
           val afterChange = getProjectFiles(ScalafmtTestModule.core, eval)
 
@@ -114,10 +114,10 @@ object ScalafmtTests extends TestSuite {
 
   case class FileInfo(content: String, modifyTime: Long, path: os.Path)
 
-  def getProjectFiles(m: ScalaModule with BuildSrcModule, eval: UnitTester) = {
-    val Right(sourcesRes) = eval.apply(m.sources)
-    val Right(resourcesRes) = eval.apply(m.resources)
-    val Right(buildSourcesRes) = eval.apply(m.buildSources)
+  def getProjectFiles(m: ScalaModule & BuildSrcModule, eval: UnitTester) = {
+    val Right(sourcesRes) = eval.apply(m.sources): @unchecked
+    val Right(resourcesRes) = eval.apply(m.resources): @unchecked
+    val Right(buildSourcesRes) = eval.apply(m.buildSources): @unchecked
 
     val sourcesFiles = sourcesRes.value.flatMap(p => os.walk(p.path))
     val resourcesFiles = resourcesRes.value.flatMap(p => os.walk(p.path))

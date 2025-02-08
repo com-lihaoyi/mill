@@ -3,7 +3,7 @@ package mill.eval
 import mill.define.{NamedTask, Segments}
 
 trait EvaluatorPathsResolver {
-  def resolveDest(task: NamedTask[_]): EvaluatorPaths = resolveDest(task.ctx.segments)
+  def resolveDest(task: NamedTask[?]): EvaluatorPaths = resolveDest(task.ctx.segments)
   def resolveDest(segments: Segments): EvaluatorPaths
 }
 

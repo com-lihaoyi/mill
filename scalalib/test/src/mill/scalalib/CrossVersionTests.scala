@@ -152,7 +152,7 @@ object CrossVersionTests extends TestSuite {
       }
     }
 
-    val Right(libs) = eval.apply(mod.compileClasspath)
+    val Right(libs) = eval.apply(mod.compileClasspath): @unchecked
 
     val libNames = libs.value.map(l => l.path.last).filter(_.endsWith(".jar")).toSeq.sorted
     assert(libNames == expectedLibs.sorted)

@@ -27,7 +27,7 @@ private object ResolveCore {
   }
 
   object Resolved {
-    case class Module(segments: Segments, cls: Class[_]) extends Resolved
+    case class Module(segments: Segments, cls: Class[?]) extends Resolved
     case class NamedTask(segments: Segments) extends Resolved
     case class Command(segments: Segments) extends Resolved
   }
@@ -62,14 +62,14 @@ private object ResolveCore {
       val instantiatedModules: collection.mutable.Map[Segments, Either[String, Module]] =
         collection.mutable.Map(),
       decodedNames: collection.mutable.Map[String, String] = collection.mutable.Map(),
-      methods: collection.mutable.Map[Class[_], Array[(java.lang.reflect.Method, String)]] =
+      methods: collection.mutable.Map[Class[?], Array[(java.lang.reflect.Method, String)]] =
         collection.mutable.Map()
   ) {
     def decode(s: String): String = {
       decodedNames.getOrElseUpdate(s, scala.reflect.NameTransformer.decode(s))
     }
 
-    def getMethods(cls: Class[_]): Array[(Method, String)] = {
+    def getMethods(cls: Class[?]): Array[(Method, String)] = {
       methods.getOrElseUpdate(cls, Reflect.getMethods(cls, decode))
     }
   }
@@ -95,10 +95,10 @@ private object ResolveCore {
       remainingQuery: List[Segment],
       current: Resolved,
       querySoFar: Segments,
-      seenModules: Set[Class[_]],
+      seenModules: Set[Class[?]],
       cache: Cache
   ): Result = {
-    def moduleClasses(resolved: Iterable[Resolved]): Set[Class[_]] = {
+    def moduleClasses(resolved: Iterable[Resolved]): Set[Class[?]] = {
       resolved.collect { case Resolved.Module(_, cls) => cls }.toSet
     }
 
@@ -208,7 +208,7 @@ private object ResolveCore {
             }
 
           case (Segment.Cross(cross), m: Resolved.Module) =>
-            if (classOf[Cross[_]].isAssignableFrom(m.cls)) {
+            if (classOf[Cross[?]].isAssignableFrom(m.cls)) {
               instantiateModule(rootModule, current.segments, cache).flatMap {
                 case c: Cross[_] =>
                   catchWrapException(
@@ -273,7 +273,7 @@ private object ResolveCore {
 
           catchWrapException(
             current
-              .asInstanceOf[Cross[_]]
+              .asInstanceOf[Cross[?]]
               .segmentsToModules(vs.toList)
               .asInstanceOf[Module]
           )
@@ -286,11 +286,11 @@ private object ResolveCore {
 
   def resolveTransitiveChildren(
       rootModule: BaseModule,
-      cls: Class[_],
+      cls: Class[?],
       nameOpt: Option[String],
       segments: Segments,
       typePattern: Seq[String],
-      seenModules: Set[Class[_]],
+      seenModules: Set[Class[?]],
       cache: Cache
   ): Either[String, Seq[Resolved]] = {
     if (seenModules.contains(cls)) Left(cyclicModuleErrorMsg(segments))
@@ -331,7 +331,7 @@ private object ResolveCore {
     }
   }
 
-  private def resolveParents(c: Class[_]): Seq[Class[_]] =
+  private def resolveParents(c: Class[?]): Seq[Class[?]] =
     Seq(c) ++
       Option(c.getSuperclass).toSeq.flatMap(resolveParents) ++
       c.getInterfaces.flatMap(resolveParents)
@@ -342,7 +342,7 @@ private object ResolveCore {
    * @param typePattern
    * @return
    */
-  private def classMatchesTypePred(typePattern: Seq[String])(cls: Class[_]): Boolean =
+  private def classMatchesTypePred(typePattern: Seq[String])(cls: Class[?]): Boolean =
     typePattern
       .forall { pat =>
         val negate = pat.startsWith("^") || pat.startsWith("!")
@@ -365,13 +365,13 @@ private object ResolveCore {
 
   def resolveDirectChildren(
       rootModule: BaseModule,
-      cls: Class[_],
+      cls: Class[?],
       nameOpt: Option[String],
       segments: Segments,
       typePattern: Seq[String] = Nil,
       cache: Cache
   ): Either[String, Seq[Resolved]] = {
-    val crossesOrErr = if (classOf[Cross[_]].isAssignableFrom(cls) && nameOpt.isEmpty) {
+    val crossesOrErr = if (classOf[Cross[?]].isAssignableFrom(cls) && nameOpt.isEmpty) {
       instantiateModule(rootModule, segments, cache).map {
         case cross: Cross[_] =>
           for (item <- cross.items) yield {
@@ -403,7 +403,7 @@ private object ResolveCore {
   def resolveDirectChildren0(
       rootModule: BaseModule,
       segments: Segments,
-      cls: Class[_],
+      cls: Class[?],
       nameOpt: Option[String],
       typePattern: Seq[String] = Nil,
       cache: Cache
@@ -442,14 +442,14 @@ private object ResolveCore {
     }
 
     val namedTasks = Reflect
-      .reflect(cls, classOf[NamedTask[_]], namePred, noParams = true, cache.getMethods)
+      .reflect(cls, classOf[NamedTask[?]], namePred, noParams = true, cache.getMethods)
       .map { m =>
         Resolved.NamedTask(Segments.labels(cache.decode(m.getName))) ->
           None
       }
 
     val commands = Reflect
-      .reflect(cls, classOf[Command[_]], namePred, noParams = false, cache.getMethods)
+      .reflect(cls, classOf[Command[?]], namePred, noParams = false, cache.getMethods)
       .map(m => cache.decode(m.getName))
       .map { name => Resolved.Command(Segments.labels(name)) -> None }
 

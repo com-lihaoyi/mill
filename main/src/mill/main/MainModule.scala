@@ -81,7 +81,7 @@ object MainModule {
   def plan0(
       evaluator: Evaluator,
       tasks: Seq[String]
-  ): Either[String, Array[NamedTask[_]]] = {
+  ): Either[String, Array[NamedTask[?]]] = {
     Resolve.Tasks.resolve(
       evaluator.rootModule,
       tasks,
@@ -170,9 +170,9 @@ trait MainModule extends BaseModule {
       resolved match {
         case Left(err) => Result.Failure(err)
         case Right(Seq(src1, dest1)) =>
-          val queue = collection.mutable.Queue[List[Task[_]]](List(src1))
-          var found = Option.empty[List[Task[_]]]
-          val seen = collection.mutable.Set.empty[Task[_]]
+          val queue = collection.mutable.Queue[List[Task[?]]](List(src1))
+          var found = Option.empty[List[Task[?]]]
+          val seen = collection.mutable.Set.empty[Task[?]]
           while (queue.nonEmpty && found.isEmpty) {
             val current = queue.dequeue()
             if (current.head == dest1) found = Some(current)
@@ -209,7 +209,7 @@ trait MainModule extends BaseModule {
 
       /** Find a parent classes of the given class queue. */
       @tailrec
-      def resolveParents(queue: List[Class[_]], seen: Seq[Class[_]] = Seq()): Seq[Class[_]] = {
+      def resolveParents(queue: List[Class[?]], seen: Seq[Class[?]] = Seq()): Seq[Class[?]] = {
         queue match {
           case Nil => seen
           case cand :: rest if seen.contains(cand) => resolveParents(rest, seen)
@@ -219,7 +219,7 @@ trait MainModule extends BaseModule {
         }
       }
 
-      def renderFileName(t: NamedTask[_]) = {
+      def renderFileName(t: NamedTask[?]) = {
         // handle both Windows or Unix separators
         val fullFileName = t.ctx.fileName.replaceAll(raw"\\", "/")
         val basePath = WorkspaceRoot.workspaceRoot.toString().replaceAll(raw"\\", "/") + "/"
@@ -232,10 +232,10 @@ trait MainModule extends BaseModule {
         s"${name}:${t.ctx.lineNum}"
       }
 
-      def pprintTask(t: NamedTask[_], evaluator: Evaluator): Tree.Lazy = {
-        val seen = mutable.Set.empty[Task[_]]
+      def pprintTask(t: NamedTask[?], evaluator: Evaluator): Tree.Lazy = {
+        val seen = mutable.Set.empty[Task[?]]
 
-        def rec(t: Task[_]): Seq[Segments] = {
+        def rec(t: Task[?]): Seq[Segments] = {
           if (seen(t)) Nil // do nothing
           else t match {
             case t: mill.define.Target[_]
@@ -312,14 +312,14 @@ trait MainModule extends BaseModule {
         }
       }
 
-      def pprintModule(t: ModuleTask[_], evaluator: Evaluator): Tree.Lazy = {
+      def pprintModule(t: ModuleTask[?], evaluator: Evaluator): Tree.Lazy = {
         val cls = t.module.getClass
         val annotation = cls.getAnnotation(classOf[Scaladoc])
         val scaladocOpt = Option(annotation).map(annotation =>
           Util.cleanupScaladoc(annotation.value).map("\n" + inspectItemIndent + _).mkString
         )
 
-        def parentFilter(parent: Class[_]) =
+        def parentFilter(parent: Class[?]) =
           classOf[Module].isAssignableFrom(parent) && classOf[Module] != parent
 
         val parents = (Option(cls.getSuperclass).toSeq ++ cls.getInterfaces).distinct
@@ -613,7 +613,7 @@ trait MainModule extends BaseModule {
       targets: Seq[String],
       ctx: mill.api.Ctx,
       vizWorker: VizWorker,
-      planTasks: Option[List[NamedTask[_]]] = None
+      planTasks: Option[List[NamedTask[?]]] = None
   ): Result[Seq[PathRef]] = {
     def callVisualizeModule(
         tasks: List[NamedTask[Any]],

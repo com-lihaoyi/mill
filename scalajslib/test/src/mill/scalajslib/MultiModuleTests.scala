@@ -40,7 +40,7 @@ object MultiModuleTests extends TestSuite {
   def tests: Tests = Tests {
     def checkOpt(optimize: Boolean) = {
       val task = if (optimize) MultiModule.client.fullLinkJS else MultiModule.client.fastLinkJS
-      val Right(result) = evaluator(task)
+      val Right(result) = evaluator(task): @unchecked
 
       val runOutput = ScalaJsUtils.runJS(result.value.dest.path / "main.js")
       assert(
@@ -53,7 +53,7 @@ object MultiModuleTests extends TestSuite {
     test("fullOpt") - checkOpt(optimize = true)
 
     test("test") {
-      val Right(result) = evaluator(MultiModule.client.test.test())
+      val Right(result) = evaluator(MultiModule.client.test.test()): @unchecked
 
       assert(
         result.evalCount > 0,
@@ -65,7 +65,7 @@ object MultiModuleTests extends TestSuite {
     test("run") {
       val command = MultiModule.client.run()
 
-      val Right(result) = evaluator(command)
+      val Right(result) = evaluator(command): @unchecked
 
       val paths = EvaluatorPaths.resolveDestPaths(evaluator.outPath, command)
       val log = os.read(paths.log)

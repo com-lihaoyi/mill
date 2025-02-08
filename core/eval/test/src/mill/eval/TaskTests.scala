@@ -48,7 +48,7 @@ trait TaskTests extends TestSuite {
         def apply(v1: Int) = input() + v1
       }
     }
-    def noisyClosableWorker: Worker[(Int => Int) with AutoCloseable] = Task.Worker {
+    def noisyClosableWorker: Worker[(Int => Int) & AutoCloseable] = Task.Worker {
       new Function1[Int, Int] with AutoCloseable {
         override def apply(v1: Int) = input() + v1
         override def close(): Unit = workerCloseCount += 1

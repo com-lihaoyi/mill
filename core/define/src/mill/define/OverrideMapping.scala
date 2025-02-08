@@ -16,14 +16,14 @@ import scala.collection.JavaConverters.*
  */
 object OverrideMapping {
   trait Wrapper {
-    private[mill] def linearized: Seq[Class[_]]
+    private[mill] def linearized: Seq[Class[?]]
   }
 
   def computeSegments(
       enclosingValue: OverrideMapping.Wrapper,
       discover: Discover,
       lastSegmentStr: String,
-      enclosingClassValue: Class[_]
+      enclosingClassValue: Class[?]
   ) = {
     Option(enclosingValue) match {
       case Some(value) =>
@@ -42,13 +42,13 @@ object OverrideMapping {
     }
   }
 
-  def computeLinearization(cls: Class[_]): Seq[Class[_]] = {
+  def computeLinearization(cls: Class[?]): Seq[Class[?]] = {
     // Manually reproduce the linearization order described in
     //
     // https://stackoverflow.com/questions/34242536/linearization-order-in-scala
-    val seen = collection.mutable.Set[Class[_]]()
+    val seen = collection.mutable.Set[Class[?]]()
 
-    def rec(cls: Class[_]): Seq[Class[_]] = {
+    def rec(cls: Class[?]): Seq[Class[?]] = {
       val parents = Option(cls.getSuperclass) ++ cls.getInterfaces
       parents.iterator.flatMap(rec(_)).toSeq ++ Option.when(seen.add(cls))(cls)
     }

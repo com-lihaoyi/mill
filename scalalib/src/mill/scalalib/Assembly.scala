@@ -181,7 +181,7 @@ object Assembly {
       prependShellScript: String = "",
       base: Option[os.Path] = None,
       assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules
-  )(implicit ctx: Ctx.Dest with Ctx.Log): PathRef = {
+  )(implicit ctx: Ctx.Dest & Ctx.Log): PathRef = {
     create(
       destJar = ctx.dest / "out.jar",
       inputPaths = inputPaths,

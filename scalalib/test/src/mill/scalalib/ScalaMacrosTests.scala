@@ -44,7 +44,7 @@ object ScalaMacrosTests extends TestSuite {
         ).scoped { eval =>
           if (Properties.isJavaAtLeast(17)) "skipped on Java 17+"
           else {
-            val Right(result) = eval.apply(mod.core.runMain("Main"))
+            val Right(result) = eval.apply(mod.core.runMain("Main")): @unchecked
             assert(result.evalCount > 0)
           }
         }
@@ -55,7 +55,7 @@ object ScalaMacrosTests extends TestSuite {
         ).scoped { eval =>
           if (Properties.isJavaAtLeast(17)) "skipped on Java 17+"
           else {
-            val Right(result) = eval.apply(mod.core.docJar)
+            val Right(result) = eval.apply(mod.core.docJar): @unchecked
             assert(result.evalCount > 0)
           }
         }
@@ -67,7 +67,7 @@ object ScalaMacrosTests extends TestSuite {
           mod,
           sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-macros"
         ).scoped { eval =>
-          val Right(result) = eval.apply(mod.core.runMain("Main"))
+          val Right(result) = eval.apply(mod.core.runMain("Main")): @unchecked
           assert(result.evalCount > 0)
         }
         // make sure macros are applied when compiling during scaladoc generation
@@ -75,7 +75,7 @@ object ScalaMacrosTests extends TestSuite {
           mod,
           sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-macros"
         ).scoped { eval =>
-          val Right(result) = eval.apply(mod.core.docJar)
+          val Right(result) = eval.apply(mod.core.docJar): @unchecked
           assert(result.evalCount > 0)
         }
       }

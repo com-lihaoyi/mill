@@ -17,7 +17,7 @@ private trait BspWorker {
 
 private object BspWorker {
 
-  private[this] var worker: Option[BspWorker] = None
+  private var worker: Option[BspWorker] = None
 
   def apply(
       workspace: os.Path,
