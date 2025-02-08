@@ -1,4 +1,4 @@
-package build.site
+package build.website
 import org.jsoup._
 import mill.util.Jvm
 import mill._, scalalib._
