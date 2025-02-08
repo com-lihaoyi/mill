@@ -9,8 +9,8 @@ import mill.api.Strict.Agg
 import mill.api.{JarManifest, Loose}
 import utest.*
 import mill.*
-import mill.define.Discover
-import mill.main.TokenReaders._
+import mill.define.{Discover, Task}
+import mill.main.TokenReaders.*
 
 object JavaCompileJarTests extends TestSuite {
   def compileAll(sources: mill.api.Loose.Agg[mill.api.PathRef])(implicit ctx: Dest) = {
@@ -45,16 +45,21 @@ object JavaCompileJarTests extends TestSuite {
           Task { sourceRoot().flatMap(p => os.walk(p.path)).map(mill.api.PathRef(_)) }
         def classFiles = Task { compileAll(allSources()) }
         def jar = Task {
-          Jvm.createJar(Loose.Agg(classFiles().path, readme().path) ++ resourceRoot().map(_.path))
+          val jar = Jvm.createJar(
+            Task.dest / "out.jar",
+            Loose.Agg(classFiles().path, readme().path) ++ resourceRoot().map(_.path)
+          )
+          PathRef(jar)
         }
         // Test createJar() with optional file filter.
         def filterJar = Task {
-
-          Jvm.createJar(
+          val jar = Jvm.createJar(
+            Task.dest / "out.jar",
             Loose.Agg(classFiles().path, readme().path) ++ resourceRoot().map(_.path),
             JarManifest.MillDefault,
             (p: os.Path, r: os.RelPath) => noFoos(r.last)
           )
+          PathRef(jar)
         }
 
         def run(mainClsName: String) = Task.Command {

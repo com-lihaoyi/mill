@@ -4,7 +4,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import coursier.Repository
 import mill.api.Loose.Agg
-import mill.api.{BuildInfo, Ctx, IO, PathRef, Result}
+import mill.api.{BuildInfo, Ctx, PathRef, Result}
 
 object Util {
 
@@ -13,8 +13,6 @@ object Util {
   val newLine: String = System.lineSeparator()
 
   val windowsPlatform: Boolean = System.getProperty("os.name").startsWith("Windows")
-
-  val java9OrAbove: Boolean = !System.getProperty("java.specification.version").startsWith("1.")
 
   private val LongMillProps = new java.util.Properties()
 
@@ -55,15 +53,6 @@ object Util {
     } finally {
       websiteInputStream.close()
     }
-  }
-
-  def downloadUnpackZip(url: String, dest: os.RelPath = os.rel / "unpacked")(implicit
-      ctx: Ctx.Dest
-  ): PathRef = {
-
-    val tmpName = if (dest == os.rel / "tmp.zip") "tmp2.zip" else "tmp.zip"
-    val downloaded = download(url, os.rel / tmpName)
-    IO.unpackZip(downloaded.path, dest)
   }
 
   /**

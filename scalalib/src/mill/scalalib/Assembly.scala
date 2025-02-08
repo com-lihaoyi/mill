@@ -2,7 +2,7 @@ package mill.scalalib
 
 import com.eed3si9n.jarjarabrams.{ShadePattern, Shader}
 import mill.Agg
-import mill.api.{Ctx, IO, PathRef}
+import mill.api.{Ctx, PathRef}
 import os.Generator
 
 import java.io.{ByteArrayInputStream, InputStream, SequenceInputStream}
@@ -289,7 +289,7 @@ object Assembly {
       else Seq(StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)
 
     Using.resource(os.write.outputStream(p, openOptions = options)) { outputStream =>
-      IO.stream(inputStream, outputStream)
+      os.Internals.transfer(inputStream, outputStream)
     }
   }
 }

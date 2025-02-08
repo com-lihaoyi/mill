@@ -5,7 +5,7 @@ import scala.language.implicitConversions
 import java.nio.{file => jnio}
 import java.security.{DigestOutputStream, MessageDigest}
 import java.util.concurrent.ConcurrentHashMap
-import scala.util.{DynamicVariable, Using}
+import scala.util.DynamicVariable
 import upickle.default.{ReadWriter => RW}
 import scala.annotation.nowarn
 
@@ -147,11 +147,7 @@ object PathRef {
                       // See https://github.com/com-lihaoyi/mill/issues/1875
                       None
                   }
-                is.foreach {
-                  Using.resource(_) { is =>
-                    StreamSupport.stream(is, digestOut)
-                  }
-                }
+                is.foreach(os.Internals.transfer(_, digestOut))
               }
             } catch {
               case e: java.nio.file.NoSuchFileException =>

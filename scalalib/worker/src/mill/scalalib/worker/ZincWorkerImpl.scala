@@ -686,19 +686,6 @@ class ZincWorkerImpl(
 }
 
 object ZincWorkerImpl {
-
-  /**
-   * TODO: copied from mill.scalalib.Assembly
-   */
-  private object Streamable {
-    def bytes(is: java.io.InputStream): Array[Byte] = {
-      val out = new java.io.ByteArrayOutputStream
-      mill.api.IO.stream(is, out)
-      out.close()
-      out.toByteArray
-    }
-  }
-
   private def intValue(oi: java.util.Optional[Integer], default: Int): Int = {
     if oi.isPresent then oi.get().intValue()
     else default
@@ -733,7 +720,7 @@ object ZincWorkerImpl {
 
         sources.collect({
           case vf if isBuild(vf) =>
-            val str = new String(Streamable.bytes(vf.input()), StandardCharsets.UTF_8)
+            val str = new String(vf.input().readAllBytes(), StandardCharsets.UTF_8)
 
             val lines = str.linesWithSeparators.toVector
             val adjustedFile = lines
