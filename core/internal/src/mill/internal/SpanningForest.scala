@@ -99,7 +99,7 @@ private[mill] object SpanningForest {
       val current = queued.dequeue()
       seenList.append(current)
 
-      for (next <- edges(current)) {
+      for (next <- edges(current).iterator) {
         if (!seen.contains(next)) {
           seen.add(next)
           queued.enqueue(next)
@@ -111,6 +111,6 @@ private[mill] object SpanningForest {
 
   def reverseEdges[T, V](edges: Iterable[(T, Iterable[V])]): Map[V, Vector[T]] = {
     val flatEdges = edges.iterator.flatMap { case (k, vs) => vs.map(_ -> k) }.toVector
-    flatEdges.groupMap(_._1)(_._2).mapValues(_.toSeq).toMap
+    flatEdges.groupMap(_._1)(_._2).map{case (k, v) => (k, v.toSeq)}.toMap
   }
 }

@@ -115,7 +115,7 @@ class ZincWorkerImpl(
           cl.close()
           None
         case Some((cl, n)) if n > 1 => Some((cl, n - 1))
-        // No other cases; n should never be zero or negative
+        case _ => ??? // No other cases; n should never be zero or negative
       }
     }
   }

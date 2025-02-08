@@ -106,6 +106,7 @@ object Ivy {
       case Scope.Provided => s"provided->${target("compile")}"
       case Scope.Test => s"test->${target("runtime")}"
       case Scope.Runtime => s"runtime->${target("runtime")}"
+      case Scope.Import => ???
     }
   }
 

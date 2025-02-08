@@ -125,7 +125,7 @@ object ResolvedCalls {
 
       val allSamImplementors = SpanningForest.reverseEdges(allSamImplementors0)
 
-      allSamImplementors.mapValues(_.toSet).toMap
+      allSamImplementors.view.mapValues(_.toSet).toMap
     }
 
     val localCalls = {

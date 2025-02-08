@@ -128,7 +128,6 @@ private[mill] trait GroupEvaluator {
                   paths = Some(paths),
                   maybeTargetLabel = Some(terminal.toString),
                   counterMsg = countMsg,
-                  verboseKeySuffix = verboseKeySuffix,
                   zincProblemReporter,
                   testReporter,
                   logger,
@@ -173,7 +172,6 @@ private[mill] trait GroupEvaluator {
             paths = None,
             maybeTargetLabel = None,
             counterMsg = countMsg,
-            verboseKeySuffix = verboseKeySuffix,
             zincProblemReporter,
             testReporter,
             logger,
@@ -200,7 +198,6 @@ private[mill] trait GroupEvaluator {
       paths: Option[EvaluatorPaths],
       maybeTargetLabel: Option[String],
       counterMsg: String,
-      verboseKeySuffix: String,
       reporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
       logger: mill.api.Logger,
@@ -270,12 +267,13 @@ private[mill] trait GroupEvaluator {
             wrap {
               try task.evaluate(args).map(Val(_))
               catch {
-                case f: Result.Failing[Val] => f
+                case f: Result.Failing[Val] @unchecked => f
                 case NonFatal(e) =>
                   Result.Exception(
                     e,
                     new OuterStack(new Exception().getStackTrace.toIndexedSeq)
                   )
+                case e: Throwable => throw e
               }
             }
           }

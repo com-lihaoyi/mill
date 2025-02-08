@@ -1,7 +1,7 @@
 package mill.define
 
 import mill.api.internal
-import scala.collection.JavaConverters.*
+import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 
 /**
@@ -83,6 +83,7 @@ object Module {
         Reflect.getMethods(_, scala.reflect.NameTransformer.decode)
       )
         .map(_.invoke(outer).asInstanceOf[T])
+        .toSeq
     }
 
     def reflectAll[T: ClassTag]: Seq[T] = reflect[T](Function.const(true))
@@ -95,6 +96,7 @@ object Module {
         Reflect.getMethods(_, scala.reflect.NameTransformer.decode)
       )
         .map { case (name, cls, getter) => getter(outer) }
+        .toSeq
     }
   }
 }

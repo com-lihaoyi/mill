@@ -1,9 +1,9 @@
 package mill.main.server
 
-import java.io._
+import java.io.*
 import java.net.{InetAddress, Socket}
-import scala.jdk.CollectionConverters._
-import mill.main.client._
+import scala.jdk.CollectionConverters.*
+import mill.main.client.*
 import mill.api.SystemStreams
 import mill.main.client.ProxyStream.Output
 import mill.main.client.lock.{Lock, Locks}

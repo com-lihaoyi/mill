@@ -167,7 +167,7 @@ trait MainModule extends BaseModule {
         SelectMode.Multi
       )
 
-      resolved match {
+      (resolved: @unchecked) match {
         case Left(err) => Result.Failure(err)
         case Right(Seq(src1, dest1)) =>
           val queue = collection.mutable.Queue[List[Task[?]]](List(src1))
@@ -499,7 +499,7 @@ trait MainModule extends BaseModule {
             (allPaths, ts)
           }
 
-      pathsToRemove match {
+      (pathsToRemove: @unchecked) match {
         case Left(err) =>
           Result.Failure(err)
         case Right((paths, allSegments)) =>
@@ -596,7 +596,7 @@ trait MainModule extends BaseModule {
             Seq("mill.init.InitModule/init") ++ args,
             SelectMode.Separated
           )
-      evaluated match {
+      (evaluated: @unchecked) match {
         case Left(failStr) => throw new Exception(failStr)
         case Right((_, Right(Seq((_, Some((_, jsonableResult))))))) => jsonableResult
         case Right((_, Left(failStr))) => throw new Exception(failStr)

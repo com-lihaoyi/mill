@@ -88,7 +88,7 @@ trait SelectiveExecutionModule extends mill.define.Module {
       } else {
         SelectiveExecution.resolve0(evaluator, tasks).flatMap { resolved =>
           if (resolved.isEmpty) Right((Nil, Right(Nil)))
-          else RunScript.evaluateTasksNamed(evaluator, resolved, SelectMode.Multi)
+          else RunScript.evaluateTasksNamed(evaluator, resolved.toSeq, SelectMode.Multi)
         } match {
           case Left(err) => Result.Failure(err)
           case Right((watched, Left(err))) => Result.Failure(err)

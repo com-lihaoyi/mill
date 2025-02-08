@@ -43,7 +43,7 @@ object CrossMacros {
       case '[elems1] =>
         (
           Type.show[elems1],
-          (n: Int) => ""
+          (_: Int) => ""
         )
     }
     val elemTypes: (Expr[Seq[Seq[Any]]], Seq[(Type[?], (Expr[?], Type[?]) => Expr[?])]) = {

@@ -1,7 +1,7 @@
 package mill.define
 
 import java.util.StringTokenizer
-import scala.collection.JavaConverters.*
+import scala.jdk.CollectionConverters.*
 
 /**
  * Logic around mapping overridden tasks to `Segments` suffixes.
@@ -88,7 +88,7 @@ object OverrideMapping {
       if (superSuffix0.nonEmpty) superSuffix0.toSeq
       else Seq(splitted.last)
     Segments(
-      Seq(Segment.Label(taskMethodName + ".super")) ++ superSuffix.map(Segment.Label)
+      Seq(Segment.Label(taskMethodName + ".super")) ++ superSuffix.map(Segment.Label(_))
     )
   }
 

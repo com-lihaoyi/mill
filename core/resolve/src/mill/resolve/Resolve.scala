@@ -1,17 +1,7 @@
 package mill.resolve
 
 import mainargs.{MainData, TokenGrouping}
-import mill.define.{
-  BaseModule,
-  Command,
-  Discover,
-  Module,
-  ModuleTask,
-  NamedTask,
-  Reflect,
-  Segments,
-  TaskModule
-}
+import mill.define.{BaseModule, Command, Discover, Module, ModuleTask, NamedTask, Reflect, Segments, TaskModule}
 import mill.internal.EitherOps
 import mill.resolve.ResolveCore.{Resolved, makeResultException}
 
@@ -91,6 +81,7 @@ object Resolve {
                       nullCommandDefaults,
                       allowPositionalCommandArgs
                     ).map(Some(_))
+                  case _ => ???
                 }
               )
             case _ => Right(None)
@@ -183,7 +174,7 @@ object Resolve {
       allowRepeats = false,
       allowLeftover = ep.argSigs0.exists(_.reader.isLeftover),
       nameMapper = mainargs.Util.kebabCaseNameMapper
-    ).flatMap { (grouped: TokenGrouping[?]) =>
+    ).flatMap { (grouped: TokenGrouping[Any]) =>
       val mainData = ep.asInstanceOf[MainData[Any, Any]]
       val mainDataWithDefaults = mainData
         .copy(argSigs0 = mainData.argSigs0.map(withNullDefault))
@@ -191,7 +182,7 @@ object Resolve {
       mainargs.Invoker.invoke(
         target,
         mainDataWithDefaults,
-        grouped.asInstanceOf[TokenGrouping[Any]]
+        grouped
       )
     } match {
       case mainargs.Result.Success(v: Command[_]) => Right(v)
@@ -210,6 +201,7 @@ object Resolve {
             nameMapper = mainargs.Util.nullNameMapper
           )
         )
+      case _ => ???
     }
   }
 }

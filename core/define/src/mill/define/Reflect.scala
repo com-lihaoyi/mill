@@ -71,7 +71,7 @@ private[mill] object Reflect {
       } else if (m1.getReturnType != m2.getReturnType) {
         !m1.getReturnType.isAssignableFrom(m2.getReturnType)
       } else {
-        classSeqOrdering.lt(m1.getParameterTypes, m2.getParameterTypes)
+        classSeqOrdering.lt(m1.getParameterTypes.toSeq, m2.getParameterTypes.toSeq)
       }
     )
 

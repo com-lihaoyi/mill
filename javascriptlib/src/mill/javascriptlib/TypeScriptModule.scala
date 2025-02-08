@@ -257,7 +257,6 @@ trait TypeScriptModule extends Module { outer =>
     val execFlags: Seq[String] = executionFlags().map {
       case (key, "") => s"--$key"
       case (key, value) => s"--$key=$value"
-      case _ => ""
     }.toSeq
 
     os.call(

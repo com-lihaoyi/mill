@@ -1,6 +1,6 @@
 package mill.define.macros
 
-import scala.annotation.experimental
+import scala.annotation.{experimental, nowarn}
 import scala.quoted.*
 
 trait ShimService[Q <: Quotes] {
@@ -88,6 +88,7 @@ object ShimService {
 
   }
 
+  @nowarn("msg=unused") // loaded via reflection
   @experimental
   private class ShimServiceImpl[Q <: Quotes](override val innerQuotes: Q) extends ShimService[Q] {
     import innerQuotes.reflect.*

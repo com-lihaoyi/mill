@@ -38,7 +38,7 @@ private object ExpandBraces {
   }
 
   private def plainChars[_p: P]: P[Fragment.Keep] =
-    P(CharsWhile(c => c != ',' && c != '{' && c != '}')).!.map(Fragment.Keep)
+    P(CharsWhile(c => c != ',' && c != '{' && c != '}')).!.map(Fragment.Keep(_))
 
   private def emptyExpansionBranch[_p: P] = P("").map(_ => List(Fragment.Keep("")))
 

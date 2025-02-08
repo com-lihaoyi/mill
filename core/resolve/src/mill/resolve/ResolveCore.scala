@@ -174,7 +174,7 @@ private object ResolveCore {
                   m.cls,
                   None,
                   current.segments,
-                  typePattern,
+                  typePattern.toSeq,
                   seenModules,
                   cache
                 )
@@ -188,7 +188,7 @@ private object ResolveCore {
                   m.cls,
                   None,
                   current.segments,
-                  typePattern,
+                  typePattern.toSeq,
                   cache
                 )
 
@@ -436,6 +436,7 @@ private object ResolveCore {
               val getter2 = Some((mod: Module) => catchWrapException(getter(mod)))
               (resolved, getter2)
           }
+          .toSeq
 
         reflectMemberObjects
       }

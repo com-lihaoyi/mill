@@ -2,16 +2,12 @@ package mill.main.buildgen
 
 import mainargs.{Flag, arg}
 import mill.main.buildgen.BuildObject.Companions
-import mill.main.client.CodeGenConstants.{
-  buildFileExtensions,
-  nestedBuildFileNames,
-  rootBuildFileNames,
-  rootModuleAlias
-}
+import mill.main.client.CodeGenConstants.{buildFileExtensions, nestedBuildFileNames, rootBuildFileNames, rootModuleAlias}
 import mill.main.client.OutFiles
 import mill.runner.FileImportGraph.backtickWrap
 
 import scala.collection.immutable.SortedSet
+import scala.util.boundary
 
 @mill.api.internal
 object BuildGenUtil {
@@ -180,7 +176,7 @@ object BuildGenUtil {
        |""".stripMargin
   }
 
-  def compactBuildTree(tree: Tree[Node[BuildObject]]): Tree[Node[BuildObject]] = {
+  def compactBuildTree(tree: Tree[Node[BuildObject]]): Tree[Node[BuildObject]] = boundary {
     println("compacting Mill build tree")
 
     def merge(parentCompanions: Companions, childCompanions: Companions): Companions = {
@@ -191,7 +187,7 @@ object BuildGenUtil {
         if (null == parentConstants) mergedParentCompanions += entry
         else {
           if (childConstants.exists { case (k, v) => v != parentConstants.getOrElse(k, v) })
-            return null
+            boundary.break(null)
           else mergedParentCompanions += ((objectName, parentConstants ++ childConstants))
         }
       }

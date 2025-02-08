@@ -105,7 +105,7 @@ private object ResolveNotFoundHandler {
       case None => hintListLabel(prefixSegments, fullSegments.value.last, allPossibleNames)
       case Some(similar) =>
         " Did you mean " +
-          (prefixSegments ++ Segment.Cross(similar.split(','))).render +
+          (prefixSegments ++ Segment.Cross(similar.split(',').toSeq)).render +
           "?"
     }
 

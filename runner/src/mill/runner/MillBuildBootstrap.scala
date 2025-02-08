@@ -293,6 +293,7 @@ class MillBuildBootstrap(
         )
 
         nestedState.add(frame = evalState)
+      case _ => ???
     }
   }
 

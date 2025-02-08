@@ -195,10 +195,12 @@ private[mill] object SelectiveExecution {
       // the ones that the user probably cares about
       val resolvedTaskLabels = changedTasks.resolved.map(_.ctx.segments.render).toSet
       def simplifyJson(j: ujson.Obj): Option[ujson.Obj] = {
-        val map = j.value.flatMap { case (k, v: ujson.Obj) =>
-          simplifyJson(v)
-            .map((k, _))
-            .orElse(Option.when(resolvedTaskLabels.contains(k)) { k -> v })
+        val map = j.value.flatMap {
+          case (k, v: ujson.Obj) =>
+            simplifyJson(v)
+              .map((k, _))
+              .orElse(Option.when(resolvedTaskLabels.contains(k)) { k -> v })
+          case _ => ???
         }
         Option.when(map.nonEmpty)(ujson.Obj.from(map))
       }

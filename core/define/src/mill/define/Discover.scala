@@ -20,7 +20,7 @@ class Discover(val classInfo: Map[Class[?], Discover.ClassInfo]) {
       (cls2, node) <- classInfo
       if cls2.isAssignableFrom(cls)
       ep <- node.entryPoints
-      if ep.name == name
+      if ep.mainName.getOrElse(ep.defaultName) == name
     } yield ep
 
     res.headOption

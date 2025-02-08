@@ -46,7 +46,7 @@ private class MillBuildServer(
 
   lazy val millDiscover = Discover[this.type]
 
-  private[worker] var cancellator: Boolean => Unit = shutdownBefore => ()
+  private[worker] var cancellator: Boolean => Unit = _ => ()
   private[worker] var onSessionEnd: Option[BspServerResult => Unit] = None
   protected var client: BuildClient = scala.compiletime.uninitialized
   private var initialized = false
@@ -537,8 +537,7 @@ private class MillBuildServer(
                 new BspTestReporter(
                   client,
                   targetId,
-                  new TaskId(testTask.hashCode().toString),
-                  Seq.empty[String]
+                  new TaskId(testTask.hashCode().toString)
                 )
 
               val results = evaluate(

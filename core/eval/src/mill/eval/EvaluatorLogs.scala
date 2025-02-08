@@ -36,7 +36,7 @@ private[mill] object EvaluatorLogs {
 
     val (vertexToIndex, downstreamIndexEdges) = SpanningForest.graphMapToIndices(
       indexToTerminal,
-      reverseInterGroupDeps.filterKeys(changedTerminalIndices).toMap
+      reverseInterGroupDeps.view.filterKeys(changedTerminalIndices).toMap
     )
 
     val edgeSourceIndices = downstreamIndexEdges
