@@ -184,13 +184,12 @@ class Cross[M <: Cross.Module[?]](factories: Cross.Factory[M]*)(implicit
             Option(ctx.fileName).filter(_.nonEmpty)
           )
       }
-      val relPath = ctx.segment.pathSegments
+      val relPath = ctx.segments.last.pathSegments
       val module0 = new Lazy(() =>
         make(
           ctx
-            .withSegments(ctx.segments ++ Seq(ctx.segment))
+            .withSegments(ctx.segments ++ Segment.Cross(crossSegments0))
             .withMillSourcePath(ctx.millSourcePath / relPath)
-            .withSegment(Segment.Cross(crossSegments0))
             .withCrossValues(factories.flatMap(_.crossValuesRaw))
             .withEnclosingModule(this)
         )

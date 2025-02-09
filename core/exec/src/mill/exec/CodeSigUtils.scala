@@ -62,7 +62,7 @@ private[mill] object CodeSigUtils {
       constructorHashSignatures: => Map[String, Seq[(String, Int)]]
   ): Iterable[Int] = {
 
-    val encodedTaskName = encode(namedTask.ctx.segment.pathSegments.head)
+    val encodedTaskName = encode(namedTask.ctx.segments.last.pathSegments.head)
 
     val methodOpt = for {
       parentCls <- classToTransitiveClasses(namedTask.ctx.enclosingCls).iterator
@@ -77,7 +77,7 @@ private[mill] object CodeSigUtils {
       ))
       .getDeclaringClass.getName
 
-    val name = namedTask.ctx.segment.pathSegments.last
+    val name = namedTask.ctx.segments.last.pathSegments.last
     val expectedName = methodClass + "#" + name + "()mill.define.Target"
     val expectedName2 = methodClass + "#" + name + "()mill.define.Command"
 

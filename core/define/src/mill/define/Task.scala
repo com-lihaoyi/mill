@@ -263,7 +263,7 @@ trait NamedTask[+T] extends Task[T] {
   def t: Task[T]
   def ctx0: mill.define.Ctx
   def isPrivate: Option[Boolean]
-  def label: String = ctx.segment match {
+  def label: String = ctx.segments.value.last match {
     case Segment.Label(v) => v
     case Segment.Cross(_) => throw new IllegalArgumentException(
         "NamedTask only support a ctx with a Label segment, but found a Cross."
@@ -273,9 +273,7 @@ trait NamedTask[+T] extends Task[T] {
 
   def evaluate(ctx: mill.api.Ctx): Result[T] = ctx.arg[T](0)
 
-  val ctx: Ctx =
-    if (ctx0.segments.value.exists(_.pathSegments.exists(_.endsWith(".super")))) ctx0
-    else ctx0.withSegments(segments = ctx0.segments ++ Seq(ctx0.segment))
+  val ctx: Ctx = ctx0
   val inputs: Seq[Task[?]] = Seq(t)
 
   def readWriterOpt: Option[upickle.default.ReadWriter[?]] = None

@@ -18,11 +18,6 @@ trait Ctx extends Ctx.Nested {
   def lineNum: Int
 
   /**
-   * The name of this task or module
-   */
-  def segment: Segment
-
-  /**
    * the file name that this module is defined in. Useful for
    * error reporting purposes
    */
@@ -38,7 +33,6 @@ trait Ctx extends Ctx.Nested {
 
   private[mill] def withCrossValues(crossValues: Seq[Any]): Ctx
   private[mill] def withMillSourcePath(millSourcePath: os.Path): Ctx
-  private[mill] def withSegment(segment: Segment): Ctx
   private[mill] def withSegments(segments: Segments): Ctx
   private[mill] def withEnclosingModule(enclosingModule: Ctx.Wrapper): Ctx
   private[mill] def withDiscover(discover: Discover): Ctx
@@ -52,7 +46,6 @@ object Ctx extends LowPriCtx {
   private case class Impl(
       enclosing: String,
       lineNum: Int,
-      segment: Segment,
       millSourcePath: os.Path,
       segments: Segments,
       external: Boolean,
@@ -64,7 +57,6 @@ object Ctx extends LowPriCtx {
     def enclosingCls = enclosingModule.getClass
     def withCrossValues(crossValues: Seq[Any]): Ctx = copy(crossValues = crossValues)
     def withMillSourcePath(millSourcePath: os.Path): Ctx = copy(millSourcePath = millSourcePath)
-    def withSegment(segment: Segment): Ctx = copy(segment = segment)
     def withSegments(segments: Segments): Ctx = copy(segments = segments)
     def withEnclosingModule(enclosingModule: Ctx.Wrapper): Ctx =
       copy(enclosingModule = enclosingModule)
@@ -108,11 +100,20 @@ object Ctx extends LowPriCtx {
       enclosingClass: EnclosingClass,
       ctx: Ctx.Nested
   ): Ctx = {
+    val lastSegmentStr =
+      millModuleEnclosing0.value.split("\\.|#| ").filter(!_.startsWith("$anon")).last
+
     make(
       millModuleEnclosing0,
       millModuleLine0,
-      ctx.millSourcePath,
-      ctx.segments,
+      ctx.millSourcePath / lastSegmentStr,
+      ctx.segments ++
+        OverrideMapping.computeSegments(
+          ctx.enclosingModule,
+          ctx.discover,
+          lastSegmentStr,
+          enclosingClass.value
+        ) ++ Seq(Segment.Label(lastSegmentStr)),
       ctx.external,
       fileName,
       ctx.enclosingModule,
@@ -134,20 +135,12 @@ object Ctx extends LowPriCtx {
     // Manually break apart `sourcecode.Enclosing` instead of using
     // `sourcecode.Name` to work around bug with anonymous classes
     // returning `$anon` names
-    val lastSegmentStr =
-      millModuleEnclosing0.value.split("\\.|#| ").filter(!_.startsWith("$anon")).last
+
     Impl(
       millModuleEnclosing0.value,
       millModuleLine0.value,
-      Segment.Label(lastSegmentStr),
       millSourcePath,
-      segments0 ++
-        OverrideMapping.computeSegments(
-          enclosingModule,
-          discover,
-          lastSegmentStr,
-          enclosingClass.value
-        ),
+      segments0,
       external0,
       fileName.value,
       enclosingModule,

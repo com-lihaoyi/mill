@@ -35,12 +35,9 @@ trait Module extends Module.BaseClass with Ctx.Wrapper {
   private lazy val millModuleDirectChildrenImpl: Seq[Module] =
     millInternal.reflectNestedObjects[Module]().toSeq
 
-  def millSourcePath: os.Path = millOuterCtx.millSourcePath / (millOuterCtx.segment match {
-    case Segment.Label(s) => Seq(s)
-    case Segment.Cross(_) => Seq.empty[String] // drop cross segments
-  })
+  def millSourcePath: os.Path = millOuterCtx.millSourcePath
 
-  def millModuleSegments: Segments = millOuterCtx.segments ++ Seq(millOuterCtx.segment)
+  def millModuleSegments: Segments = millOuterCtx.segments
 
   override def toString = millModuleSegments.render
 

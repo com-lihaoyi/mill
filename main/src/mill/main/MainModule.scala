@@ -238,7 +238,7 @@ trait MainModule extends BaseModule {
         val annots = for {
           c <- resolveParents(List(t.ctx.enclosingCls))
           m <- c.getMethods
-          if m.getName == t.ctx.segment.pathSegments.head
+          if m.getName == t.ctx.segments.last.pathSegments.head
           a = m.getAnnotation(classOf[mill.moduledefs.Scaladoc])
           if a != null
         } yield a
