@@ -16,8 +16,8 @@ abstract class SubfolderModule()(implicit
       Ctx.makeRoot(
         millModuleEnclosing0 = subFolderInfo.segments.mkString("."),
         millModuleLine0 = millModuleLine0,
-        millSourcePath = subFolderInfo.millSourcePath0 / os.up,
-        segments0 = Segments.labels(subFolderInfo.segments.init*),
+        millSourcePath = subFolderInfo.millSourcePath0,
+        segments0 = Segments.labels(subFolderInfo.segments*),
         external0 = false,
         fileName = millFile0
       )
