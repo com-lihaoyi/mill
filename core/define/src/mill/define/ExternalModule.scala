@@ -18,4 +18,6 @@ abstract class ExternalModule(implicit
   override def moduleSegments: Segments = {
     Segments(millModuleEnclosing0.value.split('.').map(Segment.Label(_)).toIndexedSeq)
   }
+
+  override def moduleCtx = super.moduleCtx.withDiscover(millDiscover)
 }

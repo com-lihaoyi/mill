@@ -96,9 +96,14 @@ private[mill] object Reflect {
     )
       .map(m => (m.getName, m))
 
-    val second =
-      outerCls
-        .getClasses
+    val companionClassOpt = outerCls.getName match{
+      case s"$prefix$$" =>
+        try Some(Class.forName(prefix))
+        catch{case e: Throwable => None}
+      case _ => None
+    }
+    val second = (Array(outerCls) ++ companionClassOpt)
+        .flatMap(_.getClasses)
         .filter(implicitly[ClassTag[T]].runtimeClass.isAssignableFrom(_))
         .flatMap { c =>
           c.getName.stripPrefix(outerCls.getName) match {
