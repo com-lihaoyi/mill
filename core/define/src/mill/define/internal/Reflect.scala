@@ -1,7 +1,7 @@
-package mill.define
+package mill.define.internal
 
-import scala.reflect.ClassTag
 import java.lang.reflect.Method
+import scala.reflect.ClassTag
 
 private[mill] object Reflect {
   import java.lang.reflect.Modifier

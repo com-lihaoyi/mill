@@ -1,6 +1,7 @@
 package mill.resolve
 
-import mill.define._
+import mill.define.*
+import mill.define.internal.Reflect
 import mill.internal.EitherOps
 
 import java.lang.reflect.InvocationTargetException
@@ -98,7 +99,7 @@ private object ResolveCore {
       seenModules: Set[Class[?]],
       cache: Cache
   ): Result = {
-    
+
     def moduleClasses(resolved: Iterable[Resolved]): Set[Class[?]] = {
       resolved.collect { case Resolved.Module(_, cls) => cls }.toSet
     }

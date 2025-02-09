@@ -1,7 +1,9 @@
 package mill.define
 
 import mill.api.internal
-import scala.jdk.CollectionConverters._
+import mill.define.internal.{OverrideMapping, Reflect}
+
+import scala.jdk.CollectionConverters.*
 import scala.reflect.ClassTag
 
 /**
@@ -13,7 +15,7 @@ import scala.reflect.ClassTag
  * instantiation site so they can capture the enclosing/line information of
  * the concrete instance.
  */
-trait Module extends Module.BaseClass with OverrideMapping.Wrapper with Ctx.Wrapper {
+trait Module extends Module.BaseClass with Ctx.Wrapper {
   implicit def implicitCtx: Ctx.Nested = millOuterCtx.withMillSourcePath(millSourcePath).withSegments(millModuleSegments)
 
   /**
@@ -37,7 +39,7 @@ trait Module extends Module.BaseClass with OverrideMapping.Wrapper with Ctx.Wrap
 
   def millModuleSegments: Segments = millOuterCtx.segments ++ Seq(millOuterCtx.segment)
 
-  final given millModuleCaller: Caller[OverrideMapping.Wrapper & Ctx.Wrapper] = Caller(this)
+  final given millModuleCaller: Caller[Ctx.Wrapper] = Caller(this)
 
   override def toString = millModuleSegments.render
 

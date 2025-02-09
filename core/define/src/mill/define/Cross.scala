@@ -137,7 +137,7 @@ object Cross {
      * provides some degree of type-safety.
      */
     implicit inline def make[M <: Module[?]](inline t: Any): Factory[M] = ${
-      macros.CrossMacros.makeImpl[M]('t)
+      internal.CrossMacros.makeImpl[M]('t)
     }
   }
 

@@ -1,10 +1,10 @@
 package mill.define
 
 import mill.api.{CompileProblemReporter, Logger, PathRef, Result, TestReporter}
-import mill.define.Applicative.Applyable
-import upickle.default.{ReadWriter => RW, Writer => W}
-
+import mill.define.internal.Applicative.Applyable
+import upickle.default.{ReadWriter as RW, Writer as W}
 import TaskBase.TraverseCtxHolder
+import mill.define.internal.{Applicative, NamedParameterOnlyDummy}
 
 import scala.language.implicitConversions
 import scala.quoted.*

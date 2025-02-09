@@ -1,5 +1,7 @@
 package mill.define
 
+import mill.define.internal.Applicative
+
 import scala.quoted.*
 
 trait ApplicativeTestsBase {

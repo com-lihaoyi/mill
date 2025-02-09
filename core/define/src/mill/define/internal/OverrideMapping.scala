@@ -1,4 +1,6 @@
-package mill.define
+package mill.define.internal
+
+import mill.define.{Discover, Segment, Segments}
 
 import java.util.StringTokenizer
 import scala.jdk.CollectionConverters.*
@@ -14,13 +16,9 @@ import scala.jdk.CollectionConverters.*
  * This allows us to properly identify which `def` is the "final" one, which is difficult
  * to do by other means (e.g. JVM bytecode has synthetic forwarders that confuse things)
  */
-object OverrideMapping {
-  trait Wrapper {
-    private[mill] def linearized: Seq[Class[?]]
-  }
-
+private[mill] object OverrideMapping {
   def computeSegments(
-      enclosingValue: OverrideMapping.Wrapper,
+      enclosingValue: mill.define.Ctx.Wrapper,
       discover: Discover,
       lastSegmentStr: String,
       enclosingClassValue: Class[?]

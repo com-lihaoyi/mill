@@ -1,4 +1,4 @@
-package mill.define.macros
+package mill.define.internal
 
 import scala.annotation.{experimental, nowarn}
 import scala.quoted.*

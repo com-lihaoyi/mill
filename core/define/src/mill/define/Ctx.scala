@@ -1,5 +1,7 @@
 package mill.define
 
+import mill.define.internal.OverrideMapping
+
 import scala.annotation.{compileTimeOnly, implicitNotFound}
 
 /**
@@ -48,6 +50,7 @@ trait Ctx extends Ctx.Nested {
 object Ctx extends LowPriCtx {
   trait Wrapper {
     def millOuterCtx: Ctx
+    private[mill] def linearized: Seq[Class[?]]
   }
   private case class Impl(
       enclosing: String,
@@ -102,7 +105,7 @@ object Ctx extends LowPriCtx {
       millModuleEnclosing0: sourcecode.Enclosing,
       millModuleLine0: sourcecode.Line,
       fileName: sourcecode.File,
-      enclosingModule: Caller[OverrideMapping.Wrapper & Ctx.Wrapper],
+      enclosingModule: Caller[Ctx.Wrapper],
       enclosingClass: EnclosingClass,
       ctx: Ctx.Nested
   ): Ctx = {
@@ -125,7 +128,7 @@ object Ctx extends LowPriCtx {
       segments0: Segments,
       external0: Boolean,
       fileName: sourcecode.File,
-      enclosingModule: Caller[OverrideMapping.Wrapper & Ctx.Wrapper],
+      enclosingModule: Caller[Ctx.Wrapper],
       enclosingClass: EnclosingClass,
       discover: Discover
   ): Ctx = {

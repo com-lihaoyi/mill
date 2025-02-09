@@ -1,6 +1,7 @@
 package mill.resolve
 
 import mainargs.{MainData, TokenGrouping}
+import mill.define.internal.Reflect
 import mill.define.{
   BaseModule,
   Command,
@@ -8,7 +9,6 @@ import mill.define.{
   Module,
   ModuleTask,
   NamedTask,
-  Reflect,
   Segments,
   TaskModule
 }
