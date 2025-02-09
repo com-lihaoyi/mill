@@ -20,6 +20,10 @@ object ModuleTests extends TestSuite {
       singleton.single.toString ==> "single"
     }
     test("cross"){
+      pprint.log(nestedCrosses.cross("210").millModuleSegments)
+      pprint.log(nestedCrosses.cross("210").millOuterCtx.segments)
+      pprint.log(nestedCrosses.cross("210").cross2.millModuleSegments)
+      pprint.log(nestedCrosses.cross("210").cross2.millOuterCtx.segments)
       nestedCrosses.toString ==> ""
       nestedCrosses.cross.toString ==> "cross"
       nestedCrosses.cross("210").toString ==> "cross[210]"
