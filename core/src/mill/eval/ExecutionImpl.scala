@@ -3,7 +3,7 @@ package mill.eval
 import mill.api.{ColorLogger, PathRef, Result, Strict, SystemStreams, Val}
 import mill.api.Strict.Agg
 import mill.define.*
-import mill.exec.{Cached, ChromeProfileLogger, EvalResults, EvaluatorCore, EvaluatorPaths, EvaluatorPathsResolver, Plan, ProfileLogger, TaskResult}
+import mill.exec.{Cached, ChromeProfileLogger, EvalResults, ExecutionCore, ExecutionPaths, EvaluatorPathsResolver, Plan, ProfileLogger, TaskResult}
 import mill.internal.Watchable
 import mill.main.client.OutFiles
 import mill.main.client.OutFiles.*
@@ -15,9 +15,9 @@ import scala.reflect.ClassTag
 /**
  * Implementation of [[Evaluator]], which serves both as internal logic as well
  * as an odd bag of user-facing helper methods. Internal-only logic is
- * extracted into [[EvaluatorCore]]
+ * extracted into [[ExecutionCore]]
  */
-private[mill] case class EvaluatorImpl(
+private[mill] case class ExecutionImpl(
     home: os.Path,
     workspace: os.Path,
     outPath: os.Path,
@@ -39,8 +39,8 @@ private[mill] case class EvaluatorImpl(
     protected[mill] val chromeProfileLogger: ChromeProfileLogger,
     protected[mill] val profileLogger: ProfileLogger,
     override val selectiveExecution: Boolean = false
-) extends Evaluator with EvaluatorCore {
-  import EvaluatorImpl._
+) extends Evaluator with ExecutionCore {
+  import ExecutionImpl._
 
   val pathsResolver: EvaluatorPathsResolver = EvaluatorPathsResolver.default(outPath)
 
@@ -145,7 +145,7 @@ private[mill] case class EvaluatorImpl(
             val nameAndJson = for (t <- selectedTargets.toSeq) yield {
               t match {
                 case t: mill.define.NamedTask[_] =>
-                  val jsonFile = EvaluatorPaths.resolveDestPaths(outPath, t).meta
+                  val jsonFile = ExecutionPaths.resolveDestPaths(outPath, t).meta
                   val metadata = upickle.default.read[Cached](ujson.read(jsonFile.toIO))
                   Some((t.toString, metadata.value))
               }
@@ -158,7 +158,7 @@ private[mill] case class EvaluatorImpl(
   }
 }
 
-private[mill] object EvaluatorImpl {
+private[mill] object ExecutionImpl {
   def make(
       home: os.Path,
       workspace: os.Path,
@@ -179,7 +179,7 @@ private[mill] object EvaluatorImpl {
       systemExit: Int => Nothing,
       exclusiveSystemStreams: SystemStreams,
       selectiveExecution: Boolean
-  ) = new EvaluatorImpl(
+  ) = new ExecutionImpl(
     home,
     workspace,
     outPath,

@@ -3,7 +3,7 @@ package mill.scalanativelib
 import java.util.jar.JarFile
 import mill._
 import mill.define.Discover
-import mill.exec.EvaluatorPaths
+import mill.exec.ExecutionPaths
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.{DepSyntax, PublishModule, ScalaModule, TestModule}
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
@@ -136,7 +136,7 @@ object CompileRunTests extends TestSuite {
           HelloNativeWorld.build(scalaVersion, scalaNativeVersion, mode).nativeLink
         val Right(result) = eval(task): @unchecked
 
-        val paths = EvaluatorPaths.resolveDestPaths(eval.outPath, task)
+        val paths = ExecutionPaths.resolveDestPaths(eval.outPath, task)
         val stdout = os.proc(paths.dest / "out").call().out.lines()
         assert(
           stdout.contains("Hello Scala Native"),

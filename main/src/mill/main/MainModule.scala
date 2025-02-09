@@ -3,7 +3,7 @@ package mill.main
 import mill.api._
 import mill.define._
 import mill.eval.Evaluator
-import mill.exec.EvaluatorPaths
+import mill.exec.ExecutionPaths
 import mill.moduledefs.Scaladoc
 import mill.resolve.SelectMode.Separated
 import mill.resolve.{Resolve, SelectMode}
@@ -485,9 +485,9 @@ trait MainModule extends BaseModule {
             SelectMode.Multi
           ).map { ts =>
             val allPaths = ts.flatMap { segments =>
-              val evPaths = EvaluatorPaths.resolveDestPaths(rootDir, segments)
+              val evPaths = ExecutionPaths.resolveDestPaths(rootDir, segments)
               val paths = Seq(evPaths.dest, evPaths.meta, evPaths.log)
-              val potentialModulePath = rootDir / EvaluatorPaths.makeSegmentStrings(segments)
+              val potentialModulePath = rootDir / ExecutionPaths.makeSegmentStrings(segments)
               if (os.exists(potentialModulePath)) {
                 // this is either because of some pre-Mill-0.10 files lying around
                 // or most likely because the segments denote a module but not a task

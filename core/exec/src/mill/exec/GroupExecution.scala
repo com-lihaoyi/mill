@@ -16,7 +16,7 @@ import scala.util.hashing.MurmurHash3
  * Logic around evaluating a single group, which is a collection of [[Task]]s
  * with a single [[Terminal]].
  */
-private[mill] trait GroupEvaluator {
+private[mill] trait GroupExecution {
   def home: os.Path
   def workspace: os.Path
   def outPath: os.Path
@@ -54,7 +54,7 @@ private[mill] trait GroupEvaluator {
       allTransitiveClassMethods: Map[Class[?], Map[String, Method]],
       executionContext: mill.api.Ctx.Fork.Api,
       exclusive: Boolean
-  ): GroupEvaluator.Results = {
+  ): GroupExecution.Results = {
     logger.withPrompt {
       val externalInputsHash = MurmurHash3.orderedHash(
         group.items.flatMap(_.inputs).filter(!group.contains(_))
@@ -88,7 +88,7 @@ private[mill] trait GroupEvaluator {
 
         case labelled: NamedTask[_] =>
           val out = if (!labelled.ctx.external) outPath else externalOutPath
-          val paths = EvaluatorPaths.resolveDestPaths(out, labelled.ctx.segments)
+          val paths = ExecutionPaths.resolveDestPaths(out, labelled.ctx.segments)
           val cached = loadCachedJson(logger, inputsHash, labelled, paths)
 
           // `cached.isEmpty` means worker metadata file removed by user so recompute the worker
@@ -106,7 +106,7 @@ private[mill] trait GroupEvaluator {
               val newResults: Map[Task[?], TaskResult[(Val, Int)]] =
                 Map(labelled -> TaskResult(res, () => res))
 
-              GroupEvaluator.Results(
+              GroupExecution.Results(
                 newResults,
                 Nil,
                 cached = true,
@@ -154,7 +154,7 @@ private[mill] trait GroupEvaluator {
                   0
               }
 
-              GroupEvaluator.Results(
+              GroupExecution.Results(
                 newResults,
                 newEvaluated.toSeq,
                 cached = if (labelled.isInstanceOf[InputImpl[?]]) null else false,
@@ -177,7 +177,7 @@ private[mill] trait GroupEvaluator {
             executionContext,
             exclusive
           )
-          GroupEvaluator.Results(
+          GroupExecution.Results(
             newResults,
             newEvaluated.toSeq,
             null,
@@ -191,17 +191,17 @@ private[mill] trait GroupEvaluator {
   }
 
   private def evaluateGroup(
-      group: Agg[Task[?]],
-      results: Map[Task[?], TaskResult[(Val, Int)]],
-      inputsHash: Int,
-      paths: Option[EvaluatorPaths],
-      maybeTargetLabel: Option[String],
-      counterMsg: String,
-      reporter: Int => Option[CompileProblemReporter],
-      testReporter: TestReporter,
-      logger: mill.api.Logger,
-      executionContext: mill.api.Ctx.Fork.Api,
-      exclusive: Boolean
+                             group: Agg[Task[?]],
+                             results: Map[Task[?], TaskResult[(Val, Int)]],
+                             inputsHash: Int,
+                             paths: Option[ExecutionPaths],
+                             maybeTargetLabel: Option[String],
+                             counterMsg: String,
+                             reporter: Int => Option[CompileProblemReporter],
+                             testReporter: TestReporter,
+                             logger: mill.api.Logger,
+                             executionContext: mill.api.Ctx.Fork.Api,
+                             exclusive: Boolean
   ): (Map[Task[?], TaskResult[(Val, Int)]], mutable.Buffer[Task[?]]) = {
 
     def computeAll() = {
@@ -377,7 +377,7 @@ private[mill] trait GroupEvaluator {
       logger: ColorLogger,
       inputsHash: Int,
       labelled: NamedTask[?],
-      paths: EvaluatorPaths
+      paths: ExecutionPaths
   ): Option[(Int, Option[Val], Int)] = {
     for {
       cached <-
@@ -449,7 +449,7 @@ private[mill] trait GroupEvaluator {
   }
 }
 
-private[mill] object GroupEvaluator {
+private[mill] object GroupExecution {
 
   case class Results(
       newResults: Map[Task[?], TaskResult[(Val, Int)]],

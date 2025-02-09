@@ -3,7 +3,7 @@ package mill.eval
 import mill.api.{Strict, Val}
 import mill.define.{InputImpl, NamedTask, Task}
 import mill.eval.Evaluator
-import mill.exec.{CodeSigUtils, EvaluatorCore, Plan, TaskResult}
+import mill.exec.{CodeSigUtils, ExecutionCore, Plan, TaskResult}
 import mill.internal.SpanningForest
 import mill.internal.SpanningForest.breadthFirst
 import mill.main.client.OutFiles
@@ -178,7 +178,7 @@ private[mill] object SelectiveExecution {
       val plan = Plan.plan(mill.api.Loose.Agg.from(changedTasks.downstreamTasks))
       val indexToTerminal = plan.sortedGroups.keys().toArray.filter(t => taskSet.contains(t))
 
-      val interGroupDeps = EvaluatorCore.findInterGroupDeps(plan.sortedGroups)
+      val interGroupDeps = ExecutionCore.findInterGroupDeps(plan.sortedGroups)
 
       val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
 

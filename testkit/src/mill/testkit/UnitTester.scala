@@ -4,7 +4,7 @@ import mill.{Target, Task}
 import mill.api.Result.OuterStack
 import mill.api.{DummyInputStream, Result, SystemStreams, Val}
 import mill.define.{InputImpl, TargetImpl}
-import mill.eval.{Evaluator, EvaluatorImpl}
+import mill.eval.{Evaluator, ExecutionImpl}
 import mill.resolve.{Resolve, SelectMode}
 import mill.internal.PrintLogger
 import mill.api.Strict.Agg
@@ -86,7 +86,7 @@ class UnitTester(
     override def debug(s: String): Unit = super.debug(s"${prefix}: ${s}")
     override def ticker(s: String): Unit = super.ticker(s"${prefix}: ${s}")
   }
-  val evaluator: EvaluatorImpl = mill.eval.EvaluatorImpl.make(
+  val evaluator: ExecutionImpl = mill.eval.ExecutionImpl.make(
     mill.api.Ctx.defaultHome,
     module.millSourcePath,
     outPath,

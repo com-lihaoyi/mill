@@ -1,7 +1,7 @@
 package mill.scalalib.bsp
 
 import mill.define.{Cross, Discover}
-import mill.exec.EvaluatorPaths
+import mill.exec.ExecutionPaths
 import mill.{Agg, T}
 import mill.scalalib.{DepSyntax, JavaModule, ScalaModule}
 import mill.testkit.UnitTester
@@ -77,7 +77,7 @@ object BspModuleTests extends TestSuite {
         val expected: Seq[FilePath] = Seq(
           MultiBase.HelloBsp.millSourcePath / "compile-resources",
           MultiBase.HelloBsp2.millSourcePath / "compile-resources",
-          EvaluatorPaths.resolveDestPaths(eval.outPath, MultiBase.HelloBsp.compile)
+          ExecutionPaths.resolveDestPaths(eval.outPath, MultiBase.HelloBsp.compile)
             .dest / "classes",
           os.rel / "slf4j-api-1.7.34.jar",
           os.rel / "logback-core-1.1.10.jar",

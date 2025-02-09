@@ -3,7 +3,7 @@ package kotlinlib
 package js
 
 import mill.define.Discover
-import mill.exec.EvaluatorPaths
+import mill.exec.ExecutionPaths
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.{TestSuite, Tests, test}
 
@@ -159,7 +159,7 @@ object KotlinJsNodeRunTests extends TestSuite {
   }
 
   private def assertLogContains(eval: UnitTester, command: Command[Unit], text: String): Unit = {
-    val log = EvaluatorPaths.resolveDestPaths(eval.outPath, command).log
+    val log = ExecutionPaths.resolveDestPaths(eval.outPath, command).log
     assert(os.read(log).contains(text))
   }
 

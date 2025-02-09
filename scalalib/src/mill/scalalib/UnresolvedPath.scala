@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import mill.define.{Segment, Segments}
-import mill.exec.{EvaluatorPaths, EvaluatorPathsResolver}
+import mill.exec.{ExecutionPaths, EvaluatorPathsResolver}
 import os.Path
 import upickle.default.{ReadWriter, macroRW}
 
@@ -39,7 +39,7 @@ object UnresolvedPath {
     ): DestPath = {
       DestPath(
         subPath.toString(),
-        EvaluatorPaths.makeSegmentStrings(segments)
+        ExecutionPaths.makeSegmentStrings(segments)
       )
     }
 

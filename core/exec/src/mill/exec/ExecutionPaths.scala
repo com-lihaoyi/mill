@@ -5,12 +5,12 @@ import mill.define.{NamedTask, Segment, Segments}
 
 import java.util.regex.Matcher
 
-case class EvaluatorPaths private (dest: os.Path, meta: os.Path, log: os.Path) {}
+case class ExecutionPaths private(dest: os.Path, meta: os.Path, log: os.Path) {}
 
-object EvaluatorPaths {
+object ExecutionPaths {
 
-  def apply(dest: os.Path, meta: os.Path, log: os.Path): EvaluatorPaths =
-    new EvaluatorPaths(dest, meta, log)
+  def apply(dest: os.Path, meta: os.Path, log: os.Path): ExecutionPaths =
+    new ExecutionPaths(dest, meta, log)
 
   @internal
   private[mill] def makeSegmentStrings(segments: Segments): Seq[String] = segments.value.flatMap {
@@ -20,10 +20,10 @@ object EvaluatorPaths {
   def resolveDestPaths(
       workspacePath: os.Path,
       segments: Segments
-  ): EvaluatorPaths = {
+  ): ExecutionPaths = {
     val segmentStrings = makeSegmentStrings(segments)
     val targetPath = workspacePath / segmentStrings.map(sanitizePathSegment)
-    EvaluatorPaths(
+    ExecutionPaths(
       targetPath / os.up / s"${targetPath.last}.dest",
       targetPath / os.up / s"${targetPath.last}.json",
       targetPath / os.up / s"${targetPath.last}.log"
@@ -32,7 +32,7 @@ object EvaluatorPaths {
   def resolveDestPaths(
       workspacePath: os.Path,
       task: NamedTask[?]
-  ): EvaluatorPaths = resolveDestPaths(workspacePath, task.ctx.segments)
+  ): ExecutionPaths = resolveDestPaths(workspacePath, task.ctx.segments)
 
   // case-insensitive match on reserved names
   private val ReservedWinNames =

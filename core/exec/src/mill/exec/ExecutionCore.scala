@@ -14,7 +14,7 @@ import scala.concurrent._
 /**
  * Core logic of evaluating tasks, without any user-facing helper methods
  */
-private[mill] trait EvaluatorCore extends GroupEvaluator {
+private[mill] trait ExecutionCore extends GroupExecution {
 
   def baseLogger: ColorLogger
   protected[exec] def chromeProfileLogger: ChromeProfileLogger
@@ -71,13 +71,13 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
     val threadNumberer = new ThreadNumberer()
     val plan = Plan.plan(goals)
-    val interGroupDeps = EvaluatorCore.findInterGroupDeps(plan.sortedGroups)
+    val interGroupDeps = ExecutionCore.findInterGroupDeps(plan.sortedGroups)
     val terminals0 = plan.sortedGroups.keys().toVector
     val failed = new AtomicBoolean(false)
     val count = new AtomicInteger(1)
     val indexToTerminal = plan.sortedGroups.keys().toArray
 
-    EvaluatorLogs.logDependencyTree(interGroupDeps, indexToTerminal, outPath)
+    ExecutionLogs.logDependencyTree(interGroupDeps, indexToTerminal, outPath)
 
     // Prepare a lookup tables up front of all the method names that each class owns,
     // and the class hierarchy, so during evaluation it is cheap to look up what class
@@ -88,7 +88,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
     val uncached = new ConcurrentHashMap[Task[?], Unit]()
     val changedValueHash = new ConcurrentHashMap[Task[?], Unit]()
 
-    val futures = mutable.Map.empty[Task[?], Future[Option[GroupEvaluator.Results]]]
+    val futures = mutable.Map.empty[Task[?], Future[Option[GroupExecution.Results]]]
 
     def evaluateTerminals(
         terminals: Seq[Task[?]],
@@ -118,7 +118,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
             .toMap
 
           futures(terminal) = Future.successful(
-            Some(GroupEvaluator.Results(taskResults, group.toSeq, false, -1, -1, false))
+            Some(GroupExecution.Results(taskResults, group.toSeq, false, -1, -1, false))
           )
         } else {
           futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
@@ -222,7 +222,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
     val finishedOptsMap = (nonExclusiveResults ++ exclusiveResults).toMap
 
-    EvaluatorLogs.logInvalidationTree(
+    ExecutionLogs.logInvalidationTree(
       interGroupDeps,
       indexToTerminal,
       outPath,
@@ -242,7 +242,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
     val results: Map[Task[?], TaskResult[(Val, Int)]] = results0.toMap
 
-    EvaluatorCore.Results(
+    ExecutionCore.Results(
       goals.indexed.map(results(_).map(_._1).result),
       // result of flatMap may contain non-distinct entries,
       // so we manually clean it up before converting to a `Strict.Agg`
@@ -257,7 +257,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
   }
 }
 
-private[mill] object EvaluatorCore {
+private[mill] object ExecutionCore {
   def findInterGroupDeps(sortedGroups: MultiBiMap[Task[?], Task[?]])
       : Map[Task[?], Seq[Task[?]]] = {
     sortedGroups
