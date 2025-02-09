@@ -8,7 +8,7 @@ abstract class ExternalModule(implicit
 ) extends BaseModule(WorkspaceRoot.workspaceRoot, external0 = true)(
       implicitly,
       implicitly,
-      implicitly,
+      implicitly
     ) {
 
   assert(

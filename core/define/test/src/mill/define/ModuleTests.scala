@@ -19,11 +19,11 @@ object ModuleTests extends TestSuite {
     import graphs._
     import TestGraphs._
 
-    test("singleton"){
+    test("singleton") {
       singleton.toString ==> ""
       singleton.single.toString ==> "single"
     }
-    test("nested"){
+    test("nested") {
       nestedModule.toString ==> ""
       nestedModule.millModuleSegments ==> Segments()
       nestedModule.nested.toString ==> "nested"
@@ -32,26 +32,39 @@ object ModuleTests extends TestSuite {
       nestedModule.nested.millModuleSegments ==> Segments.labels("nested")
       nestedModule.nested.single.toString ==> "nested.single"
     }
-    test("cross"){
+    test("cross") {
+      val base = nestedCrosses.millSourcePath
       nestedCrosses.toString ==> ""
       nestedCrosses.cross.toString ==> "cross"
       nestedCrosses.cross.millModuleSegments ==> Segments.labels("cross")
-      nestedCrosses.cross.millSourcePath.relativeTo(nestedCrosses.millSourcePath) ==>
+      nestedCrosses.cross.millSourcePath.relativeTo(base) ==>
         os.sub / "cross"
 
       nestedCrosses.cross("210").toString ==> "cross[210]"
       nestedCrosses.cross("210").millModuleSegments ==>
         Segments(List(Segment.Label("cross"), Segment.Cross(Seq("210"))))
-      nestedCrosses.cross("210").millSourcePath.relativeTo(nestedCrosses.millSourcePath) ==>
+      nestedCrosses.cross("210").millSourcePath.relativeTo(base) ==>
         os.sub / "cross"
 
       nestedCrosses.cross("210").cross2.toString ==> "cross[210].cross2"
       nestedCrosses.cross("210").cross2.millModuleSegments ==>
         Segments(List(Segment.Label("cross"), Segment.Cross(Seq("210")), Segment.Label("cross2")))
+      nestedCrosses.cross("210").cross2.millSourcePath.relativeTo(base) ==>
+        os.sub / "cross/cross2"
+      nestedCrosses.cross("210").cross2.millSourcePath.relativeTo(base) ==>
+        os.sub / "cross" / "cross2"
 
-
-      nestedCrosses.cross("210").cross2.millSourcePath.relativeTo(nestedCrosses.millSourcePath) ==> os.sub / "cross" / "cross2"
       nestedCrosses.cross("210").cross2("js").toString ==> "cross[210].cross2[js]"
+      nestedCrosses.cross("210").cross2("js").millModuleSegments ==>
+        Segments(List(
+          Segment.Label("cross"),
+          Segment.Cross(Seq("210")),
+          Segment.Label("cross2"),
+          Segment.Cross(Seq("210"))
+        ))
+      nestedCrosses.cross("210").cross2("js").millSourcePath.relativeTo(base) ==>
+        os.sub / "cross" / "cross2"
+
     }
   }
 }

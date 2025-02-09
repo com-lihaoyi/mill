@@ -9,6 +9,7 @@ import mill.scalalib.{Lib, ScalaModule}
 import mill.{PathRef, Task}
 
 trait Static extends ScalaModule {
+
   /**
    * project resources including configuration, webjars and static assets
    */

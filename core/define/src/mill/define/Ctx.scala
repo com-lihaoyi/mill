@@ -28,9 +28,6 @@ trait Ctx extends Ctx.Nested {
    */
   def enclosingCls: Class[?]
 
-
-  def crossValues: Seq[Any]
-
   private[mill] def withCrossValues(crossValues: Seq[Any]): Ctx
   private[mill] def withMillSourcePath(millSourcePath: os.Path): Ctx
   private[mill] def withSegments(segments: Segments): Ctx
@@ -68,10 +65,12 @@ object Ctx extends LowPriCtx {
    * necessary fields down the module hierarchy
    */
   trait Nested {
+
     /**
      * The runtime [[Module]] object that contains this definition
      */
     def enclosingModule: Ctx.Wrapper
+
     /**
      * The enclosing module's default source root
      */
@@ -91,6 +90,8 @@ object Ctx extends LowPriCtx {
      * The [[Discover]] instance associate with this [[BaseModule]] hierarchy
      */
     private[mill] def discover: Discover
+
+    def crossValues: Seq[Any]
   }
   implicit def implicitMake(
       implicit
@@ -117,7 +118,6 @@ object Ctx extends LowPriCtx {
       ctx.external,
       fileName,
       ctx.enclosingModule,
-      enclosingClass,
       ctx.discover
     )
   }
@@ -129,7 +129,6 @@ object Ctx extends LowPriCtx {
       external0: Boolean,
       fileName: sourcecode.File,
       enclosingModule: Ctx.Wrapper,
-      enclosingClass: EnclosingClass,
       discover: Discover
   ): Ctx = {
     // Manually break apart `sourcecode.Enclosing` instead of using
