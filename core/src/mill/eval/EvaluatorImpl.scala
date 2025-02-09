@@ -50,7 +50,7 @@ private[mill] case class EvaluatorImpl(
     Plan.plan(goals)
   }
 
-  override def evalOrThrow(exceptionFactory: Evaluator.Results => Throwable)
+  override def evalOrThrow(exceptionFactory: EvalResults => Throwable)
       : Evaluator.EvalOrThrow =
     new EvalOrThrow(this, exceptionFactory)
 
@@ -105,7 +105,7 @@ private[mill] object EvaluatorImpl {
     selectiveExecution = selectiveExecution
   )
 
-  class EvalOrThrow(evaluator: Evaluator, exceptionFactory: Evaluator.Results => Throwable)
+  class EvalOrThrow(evaluator: Evaluator, exceptionFactory: EvalResults => Throwable)
       extends Evaluator.EvalOrThrow {
     def apply[T: ClassTag](task: Task[T]): T =
       evaluator.evaluate(Agg(task)) match {

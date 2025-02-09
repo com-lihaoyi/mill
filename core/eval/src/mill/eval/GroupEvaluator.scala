@@ -5,7 +5,6 @@ import mill.api.Strict.Agg
 import mill.api.*
 import mill.define.*
 import mill.internal.MultiLogger
-import mill.eval.Evaluator.TaskResult
 import mill.internal.FileLogger
 
 import java.lang.reflect.Method
@@ -353,7 +352,7 @@ private[mill] trait GroupEvaluator {
       os.write.over(
         metaPath,
         upickle.default.stream(
-          Evaluator.Cached(json, hashCode, inputsHash),
+          Cached(json, hashCode, inputsHash),
           indent = 4
         ),
         createFolders = true
@@ -382,7 +381,7 @@ private[mill] trait GroupEvaluator {
   ): Option[(Int, Option[Val], Int)] = {
     for {
       cached <-
-        try Some(upickle.default.read[Evaluator.Cached](paths.meta.toIO))
+        try Some(upickle.default.read[Cached](paths.meta.toIO))
         catch {
           case NonFatal(_) => None
         }

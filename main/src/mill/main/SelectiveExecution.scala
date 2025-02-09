@@ -2,7 +2,7 @@ package mill.main
 
 import mill.api.{Strict, Val}
 import mill.define.{InputImpl, NamedTask, Task}
-import mill.eval.{CodeSigUtils, Evaluator, EvaluatorCore, Plan}
+import mill.eval.{TaskResult, CodeSigUtils, Evaluator, EvaluatorCore, Plan}
 import mill.main.client.OutFiles
 import mill.internal.SpanningForest.breadthFirst
 import mill.resolve.{Resolve, SelectMode}
@@ -17,14 +17,14 @@ private[mill] object SelectiveExecution {
     def compute(
         evaluator: Evaluator,
         tasks: Seq[NamedTask[?]]
-    ): (Metadata, Map[Task[?], Evaluator.TaskResult[Val]]) = {
+    ): (Metadata, Map[Task[?], TaskResult[Val]]) = {
       compute0(evaluator, Plan.transitiveNamed(tasks))
     }
 
     def compute0(
         evaluator: Evaluator,
         transitiveNamed: Strict.Agg[NamedTask[?]]
-    ): (Metadata, Map[Task[?], Evaluator.TaskResult[Val]]) = {
+    ): (Metadata, Map[Task[?], TaskResult[Val]]) = {
       val inputTasksToLabels: Map[Task[?], String] = transitiveNamed
         .collect { case task: InputImpl[_] =>
           task -> task.ctx.segments.render
@@ -119,7 +119,7 @@ private[mill] object SelectiveExecution {
       resolved: Seq[NamedTask[?]],
       changedRootTasks: Set[NamedTask[?]],
       downstreamTasks: Seq[NamedTask[?]],
-      results: Map[Task[?], Evaluator.TaskResult[Val]]
+      results: Map[Task[?], TaskResult[Val]]
   )
 
   def computeChangedTasks(

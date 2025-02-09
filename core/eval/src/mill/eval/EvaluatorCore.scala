@@ -4,7 +4,6 @@ import mill.api.Result.{Aborted, Failing}
 import mill.api.Strict.Agg
 import mill.api._
 import mill.define._
-import mill.eval.Evaluator.TaskResult
 import mill.internal.{PrefixLogger, MultiBiMap}
 
 import java.util.concurrent.ConcurrentHashMap
@@ -32,7 +31,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       testReporter: TestReporter = DummyTestReporter,
       logger: ColorLogger = baseLogger,
       serialCommandExec: Boolean = false
-  ): Evaluator.Results = logger.withPromptUnpaused {
+  ): EvalResults = logger.withPromptUnpaused {
     os.makeDir.all(outPath)
 
     PathRef.validatedPaths.withValue(new PathRef.ValidatedPaths()) {
@@ -47,12 +46,12 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
 
   private def getFailing(
       sortedGroups: MultiBiMap[Task[?], Task[?]],
-      results: Map[Task[?], Evaluator.TaskResult[(Val, Int)]]
+      results: Map[Task[?], TaskResult[(Val, Int)]]
   ): MultiBiMap.Mutable[Task[?], Failing[Val]] = {
     val failing = new MultiBiMap.Mutable[Task[?], Result.Failing[Val]]
     for ((k, vs) <- sortedGroups.items()) {
       val failures = vs.items.flatMap(results.get).collect {
-        case Evaluator.TaskResult(f: Result.Failing[(Val, Int)], _) => f.map(_._1)
+        case TaskResult(f: Result.Failing[(Val, Int)], _) => f.map(_._1)
       }
 
       failing.addAll(k, Loose.Agg.from(failures))
@@ -67,7 +66,7 @@ private[mill] trait EvaluatorCore extends GroupEvaluator {
       testReporter: TestReporter = DummyTestReporter,
       ec: mill.api.Ctx.Fork.Impl,
       serialCommandExec: Boolean
-  ): Evaluator.Results = {
+  ): EvalResults = {
     os.makeDir.all(outPath)
 
     val threadNumberer = new ThreadNumberer()
@@ -279,5 +278,5 @@ private[mill] object EvaluatorCore {
       transitive: Agg[Task[?]],
       failing: MultiBiMap[Task[?], Result.Failing[Val]],
       results: Map[Task[?], TaskResult[Val]]
-  ) extends Evaluator.Results
+  ) extends EvalResults
 }

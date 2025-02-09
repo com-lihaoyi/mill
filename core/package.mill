@@ -7,7 +7,8 @@ import mill.T
 import mill.define.Cross
 import mill.scalalib.api.ZincWorkerUtil
 
-object `package` extends RootModule {
+object `package` extends RootModule with build.MillStableScalaModule {
+  def moduleDeps = Seq(define, eval, resolve)
   object api extends build.MillStableScalaModule with BuildInfo {
     def moduleDeps = Seq(client)
     def buildInfoPackageName = "mill.api"

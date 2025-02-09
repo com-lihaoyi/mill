@@ -1,7 +1,7 @@
 package mill.main
 
 import mill.define._
-import mill.eval.{Evaluator, EvaluatorPaths}
+import mill.eval.{Evaluator, EvaluatorPaths, EvalResults, Cached, TaskResult}
 import mill.internal.Watchable
 import mill.api.{PathRef, Result, Val}
 import mill.api.Strict.Agg
@@ -80,7 +80,7 @@ object RunScript {
 
     selectedTargetsOrErr match {
       case (selectedTargets, selectiveResults) =>
-        val evaluated: Results = evaluator.evaluate(selectedTargets, serialCommandExec = true)
+        val evaluated: EvalResults = evaluator.evaluate(selectedTargets, serialCommandExec = true)
         @scala.annotation.nowarn("msg=cannot be checked at runtime")
         val watched = (evaluated.results.iterator ++ selectiveResults)
           .collect {
@@ -117,7 +117,7 @@ object RunScript {
               t match {
                 case t: mill.define.NamedTask[_] =>
                   val jsonFile = EvaluatorPaths.resolveDestPaths(evaluator.outPath, t).meta
-                  val metadata = upickle.default.read[Evaluator.Cached](ujson.read(jsonFile.toIO))
+                  val metadata = upickle.default.read[Cached](ujson.read(jsonFile.toIO))
                   Some((t.toString, metadata.value))
               }
             }

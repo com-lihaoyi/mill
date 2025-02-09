@@ -3,7 +3,7 @@ package mill.eval
 import mill.api.{ColorLogger, CompileProblemReporter, DummyTestReporter, Result, TestReporter, Val}
 import mill.api.Strict.Agg
 import mill.define.{BaseModule, Segments, Task}
-import mill.eval.Evaluator.{Results, formatFailing}
+import mill.eval.Evaluator.formatFailing
 import mill.internal.MultiBiMap
 
 import scala.jdk.CollectionConverters._
@@ -38,7 +38,7 @@ trait Evaluator extends AutoCloseable {
       testReporter: TestReporter = DummyTestReporter,
       logger: ColorLogger = baseLogger,
       serialCommandExec: Boolean = false
-  ): Evaluator.Results
+  ): EvalResults
 
   def withBaseLogger(newBaseLogger: ColorLogger): Evaluator
   def withFailFast(newFailFast: Boolean): Evaluator
@@ -48,7 +48,7 @@ trait Evaluator extends AutoCloseable {
   /**
    * Evaluate given task(s) and return the successful result(s), or throw an exception.
    */
-  def evalOrThrow(exceptionFactory: Results => Throwable =
+  def evalOrThrow(exceptionFactory: EvalResults => Throwable =
     r =>
       new Exception(s"Failure during task evaluation: ${formatFailing(r)}")): Evaluator.EvalOrThrow
 
@@ -56,21 +56,7 @@ trait Evaluator extends AutoCloseable {
 }
 
 object Evaluator {
-  trait Results {
-    def rawValues: Seq[Result[Val]]
-    def evaluated: Agg[Task[?]]
-    def transitive: Agg[Task[?]]
-    def failing: MultiBiMap[Task[?], Result.Failing[Val]]
-    def results: collection.Map[Task[?], TaskResult[Val]]
-    def values: Seq[Val] = rawValues.collect { case Result.Success(v) => v }
-  }
 
-  case class TaskResult[T](result: Result[T], recalc: () => Result[T]) {
-    def map[V](f: T => V): TaskResult[V] = TaskResult[V](
-      result.map(f),
-      () => recalc().map(f)
-    )
-  }
 
   // This needs to be a ThreadLocal because we need to pass it into the body of
   // the TargetScopt#read call, which does not accept additional parameters.
@@ -86,7 +72,7 @@ object Evaluator {
 
   val defaultEnv: Map[String, String] = System.getenv().asScala.toMap
 
-  def formatFailing(evaluated: Evaluator.Results): String = {
+  def formatFailing(evaluated: EvalResults): String = {
     (for ((k, fs) <- evaluated.failing.items())
       yield {
         val fss = fs.map {
@@ -98,11 +84,7 @@ object Evaluator {
       }).mkString("\n")
   }
 
-  case class Cached(value: ujson.Value, valueHash: Int, inputsHash: Int)
 
-  object Cached {
-    implicit val rw: upickle.default.ReadWriter[Cached] = upickle.default.macroRW
-  }
 
   trait EvalOrThrow {
     def apply[T: ClassTag](task: Task[T]): T
