@@ -15,8 +15,7 @@ trait SelectiveExecutionModule extends mill.define.Module {
    */
   def prepare(evaluator: Evaluator, tasks: String*): Command[Unit] =
     Task.Command(exclusive = true) {
-      val res: Either[String, Unit] = Resolve.Tasks.resolve(
-        evaluator.rootModule,
+      val res: Either[String, Unit] = evaluator.resolveTasks(
         if (tasks.isEmpty) Seq("__") else tasks,
         SelectMode.Multi
       ).map { resolvedTasks =>

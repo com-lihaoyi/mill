@@ -24,8 +24,7 @@ object MainModule {
       selectMode: SelectMode,
       resolveToModuleTasks: Boolean = false
   )(f: List[NamedTask[Any]] => T): Result[T] = {
-    Resolve.Tasks.resolve(
-      evaluator.rootModule,
+    evaluator.resolveTasks(
       targets,
       selectMode,
       resolveToModuleTasks = resolveToModuleTasks
@@ -40,7 +39,7 @@ object MainModule {
       targets: Seq[String],
       selectMode: SelectMode
   )(f: List[NamedTask[Any]] => T): Result[T] = {
-    Resolve.Tasks.resolve(evaluator.rootModule, targets, selectMode) match {
+    evaluator.resolveTasks(targets, selectMode) match {
       case Left(err) => Result.Failure(err)
       case Right(tasks) => Result.Success(f(tasks))
     }
@@ -83,11 +82,7 @@ object MainModule {
       evaluator: Evaluator,
       tasks: Seq[String]
   ): Either[String, Array[NamedTask[?]]] = {
-    Resolve.Tasks.resolve(
-      evaluator.rootModule,
-      tasks,
-      SelectMode.Multi
-    ) match {
+    evaluator.resolveTasks(tasks, SelectMode.Multi) match {
       case Left(err) => Left(err)
       case Right(rs) =>
         val plan = evaluator.plan(rs)
@@ -119,11 +114,7 @@ trait MainModule extends BaseModule {
    */
   def resolve(evaluator: Evaluator, targets: String*): Command[List[String]] =
     Task.Command(exclusive = true) {
-      val resolved = Resolve.Segments.resolve(
-        evaluator.rootModule,
-        targets,
-        SelectMode.Multi
-      )
+      val resolved = evaluator.resolveSegments(targets, SelectMode.Multi)
 
       resolved match {
         case Left(err) => Result.Failure(err)
@@ -162,11 +153,7 @@ trait MainModule extends BaseModule {
       @mainargs.arg(positional = true) dest: String
   ): Command[List[String]] =
     Task.Command(exclusive = true) {
-      val resolved = Resolve.Tasks.resolve(
-        evaluator.rootModule,
-        List(src, dest),
-        SelectMode.Multi
-      )
+      val resolved = evaluator.resolveTasks(List(src, dest), SelectMode.Multi)
 
       (resolved: @unchecked) match {
         case Left(err) => Result.Failure(err)
@@ -479,11 +466,7 @@ trait MainModule extends BaseModule {
         if (targets.isEmpty)
           Right((os.list(rootDir).filterNot(keepPath), List(mill.define.Segments())))
         else
-          mill.resolve.Resolve.Segments.resolve(
-            evaluator.rootModule,
-            targets,
-            SelectMode.Multi
-          ).map { ts =>
+          evaluator.resolveSegments(targets, SelectMode.Multi).map { ts =>
             val allPaths = ts.flatMap { segments =>
               val evPaths = ExecutionPaths.resolveDestPaths(rootDir, segments)
               val paths = Seq(evPaths.dest, evPaths.meta, evPaths.log)
@@ -625,11 +608,7 @@ trait MainModule extends BaseModule {
       }
     }
 
-    Resolve.Tasks.resolve(
-      evaluator.rootModule,
-      targets,
-      SelectMode.Multi
-    ) match {
+    evaluator.resolveTasks(targets, SelectMode.Multi) match {
       case Left(err) => Result.Failure(err)
       case Right(rs) => planTasks match {
           case Some(allRs) => callVisualizeModule(rs, allRs)

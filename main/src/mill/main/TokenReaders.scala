@@ -17,8 +17,7 @@ object Tasks {
   private[mill] class TokenReader[T]() extends mainargs.TokensReader.Simple[Tasks[T]] {
     def shortName = "tasks"
     def read(s: Seq[String]): Either[String, Tasks[T]] = {
-      Resolve.Tasks.resolve(
-        Evaluator.currentEvaluator.value.rootModule,
+      Evaluator.currentEvaluator.value.resolveTasks(
         s,
         SelectMode.Separated
       ).map(x => Tasks(x.asInstanceOf[Seq[mill.define.NamedTask[T]]]))

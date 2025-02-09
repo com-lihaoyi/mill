@@ -127,8 +127,7 @@ private[mill] object SelectiveExecution {
       evaluator: Evaluator,
       tasks: Seq[String]
   ): Either[String, ChangedTasks] = {
-    Resolve.Tasks.resolve(
-      evaluator.rootModule,
+    evaluator.resolveTasks(
       tasks,
       SelectMode.Separated,
       evaluator.allowPositionalCommandArgs
@@ -157,7 +156,7 @@ private[mill] object SelectiveExecution {
 
   def resolve0(evaluator: Evaluator, tasks: Seq[String]): Either[String, Array[String]] = {
     for {
-      resolved <- Resolve.Tasks.resolve(evaluator.rootModule, tasks, SelectMode.Separated)
+      resolved <- evaluator.resolveTasks(tasks, SelectMode.Separated)
       changedTasks <- SelectiveExecution.computeChangedTasks(evaluator, tasks)
     } yield {
       val resolvedSet = resolved.map(_.ctx.segments.render).toSet

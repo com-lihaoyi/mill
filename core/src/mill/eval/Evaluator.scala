@@ -73,6 +73,36 @@ final case class Evaluator private[mill] (
       : Evaluator.EvalOrThrow =
     new EvalOrThrow(this, exceptionFactory)
 
+  def resolveSegments(
+               scriptArgs: Seq[String],
+               selectMode: SelectMode,
+               allowPositionalCommandArgs: Boolean = false,
+               resolveToModuleTasks: Boolean = false
+             ): Either[String, List[Segments]] = {
+    Resolve.Segments.resolve(
+      rootModule,
+      scriptArgs,
+      selectMode,
+      allowPositionalCommandArgs,
+      resolveToModuleTasks
+    )
+  }
+
+  def resolveTasks(
+               scriptArgs: Seq[String],
+               selectMode: SelectMode,
+               allowPositionalCommandArgs: Boolean = false,
+               resolveToModuleTasks: Boolean = false
+             ): Either[String, List[NamedTask[?]]] = {
+    Resolve.Tasks.resolve(
+      rootModule,
+      scriptArgs,
+      selectMode,
+      allowPositionalCommandArgs,
+      resolveToModuleTasks
+    )
+  }
+
   def close(): Unit = {
     chromeProfileLogger.close()
     profileLogger.close()
