@@ -1,7 +1,5 @@
 package mill.define.internal
 
-import mill.define.Cacher
-
 import scala.collection.mutable
 import scala.quoted.*
 
@@ -15,7 +13,7 @@ trait Cacher extends mill.moduledefs.Cacher {
 
 object Cacher {
   private[mill] def withMacroOwner[T](using Quotes)(op: quotes.reflect.Symbol => T): T = {
-
+    import quotes.reflect.*
     // In Scala 3, the top level splice of a macro is owned by a symbol called "macro" with the macro flag set,
     // but not the method flag.
     def isMacroOwner(sym: Symbol)(using Quotes): Boolean =
@@ -36,7 +34,7 @@ object Cacher {
   }
 
   def impl0[T: Type](using Quotes)(t: Expr[T]): Expr[T] = withMacroOwner { owner =>
-
+    import quotes.reflect.*
 
     val CacherSym = TypeRepr.of[Cacher].typeSymbol
 

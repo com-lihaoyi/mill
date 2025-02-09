@@ -7,7 +7,7 @@ object EnclosingClass {
   def apply()(implicit c: EnclosingClass) = c.value
   inline given generate: EnclosingClass = ${ impl }
 
-  def impl(using quotes: Quotes): Expr[EnclosingClass] = Cacher.withMacroOwner { owner =>
+  def impl(using quotes: Quotes): Expr[EnclosingClass] = mill.define.internal.Cacher.withMacroOwner { owner =>
     import quotes.reflect.*
 
     def enclosingClass(sym: Symbol): Symbol =

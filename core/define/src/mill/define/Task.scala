@@ -312,7 +312,7 @@ object Target extends TaskBase {
   object Internal {
 
     private def isPrivateTargetOption()(using Quotes): Expr[Option[Boolean]] =
-      Cacher.withMacroOwner {
+      mill.define.internal.Cacher.withMacroOwner {
         owner =>
           import quotes.reflect.*
           if owner.flags.is(Flags.Private) then Expr(Some(true))
@@ -344,7 +344,7 @@ object Target extends TaskBase {
           '{ Result.create($t) }
         )
 
-      mill.define.Cacher.impl0[Target[T]](
+      mill.define.internal.Cacher.impl0[Target[T]](
         '{
           new TargetImpl[T](
             $lhs,
@@ -367,7 +367,7 @@ object Target extends TaskBase {
 
       val lhs = Applicative.impl[Task, Task, Result, T, mill.api.Ctx](traverseCtxExpr(caller), t)
 
-      mill.define.Cacher.impl0[Target[T]](
+      mill.define.internal.Cacher.impl0[Target[T]](
         '{
           new TargetImpl[T](
             $lhs,
@@ -389,7 +389,7 @@ object Target extends TaskBase {
       val taskIsPrivate = isPrivateTargetOption()
       val lhs = Applicative.impl[Task, Task, Result, T, mill.api.Ctx](traverseCtxExpr(caller), t)
 
-      mill.define.Cacher.impl0[Target[T]](
+      mill.define.internal.Cacher.impl0[Target[T]](
         '{
           if $caller.persistent then
             new PersistentImpl[T](
@@ -417,7 +417,7 @@ object Target extends TaskBase {
     ): Expr[Target[T]] = {
       val taskIsPrivate = isPrivateTargetOption()
 
-      mill.define.Cacher.impl0[Target[T]](
+      mill.define.internal.Cacher.impl0[Target[T]](
         '{
           new TargetImpl[T](
             $t,
@@ -447,7 +447,7 @@ object Target extends TaskBase {
 
       val taskIsPrivate = isPrivateTargetOption()
 
-      mill.define.Cacher.impl0[SourcesImpl](
+      mill.define.internal.Cacher.impl0[SourcesImpl](
         '{
           new SourcesImpl(
             Target.sequence(List(${ Varargs(wrapped) }*)),
@@ -473,7 +473,7 @@ object Target extends TaskBase {
         values
       )
 
-      mill.define.Cacher.impl0[SourcesImpl](
+      mill.define.internal.Cacher.impl0[SourcesImpl](
         '{
           new SourcesImpl(
             $lhs,
@@ -502,7 +502,7 @@ object Target extends TaskBase {
 
       val taskIsPrivate = isPrivateTargetOption()
 
-      mill.define.Cacher.impl0[SourcesImpl](
+      mill.define.internal.Cacher.impl0[SourcesImpl](
         '{
           new SourcesImpl(
             Target.sequence(List(${ Varargs(wrapped) }*)),
@@ -527,7 +527,7 @@ object Target extends TaskBase {
 
       val taskIsPrivate = isPrivateTargetOption()
 
-      mill.define.Cacher.impl0[Target[PathRef]](
+      mill.define.internal.Cacher.impl0[Target[PathRef]](
         '{
           new SourceImpl(
             $wrapped,
@@ -548,7 +548,7 @@ object Target extends TaskBase {
 
       val lhs =
         Applicative.impl[Task, Task, Result, PathRef, mill.api.Ctx](traverseCtxExpr(caller), value)
-      mill.define.Cacher.impl0[Target[PathRef]](
+      mill.define.internal.Cacher.impl0[Target[PathRef]](
         '{
           new SourceImpl(
             $lhs,
@@ -573,7 +573,7 @@ object Target extends TaskBase {
 
       val taskIsPrivate = isPrivateTargetOption()
 
-      mill.define.Cacher.impl0[Target[PathRef]](
+      mill.define.internal.Cacher.impl0[Target[PathRef]](
         '{
           new SourceImpl(
             $wrapped,
@@ -595,7 +595,7 @@ object Target extends TaskBase {
       val lhs =
         Applicative.impl[Task, Task, Result, T, mill.api.Ctx](traverseCtxExpr(caller), value)
 
-      mill.define.Cacher.impl0[InputImpl[T]](
+      mill.define.internal.Cacher.impl0[InputImpl[T]](
         '{
           new InputImpl[T](
             $lhs,
@@ -672,7 +672,7 @@ object Target extends TaskBase {
     )(t: Expr[Task[T]])(ctx: Expr[mill.define.Ctx]): Expr[Worker[T]] = {
       val taskIsPrivate = isPrivateTargetOption()
 
-      mill.define.Cacher.impl0[Worker[T]](
+      mill.define.internal.Cacher.impl0[Worker[T]](
         '{
           new Worker[T]($t, $ctx, $taskIsPrivate)
         }
@@ -689,7 +689,7 @@ object Target extends TaskBase {
 
       val lhs = Applicative.impl[Task, Task, Result, T, mill.api.Ctx](traverseCtxExpr(caller), t)
 
-      mill.define.Cacher.impl0[Worker[T]](
+      mill.define.internal.Cacher.impl0[Worker[T]](
         '{
           new Worker[T](
             $lhs,
@@ -711,7 +711,7 @@ object Target extends TaskBase {
 
       val lhs = Applicative.impl[Task, Task, Result, T, mill.api.Ctx](traverseCtxExpr(caller), t)
 
-      mill.define.Cacher.impl0[PersistentImpl[T]](
+      mill.define.internal.Cacher.impl0[PersistentImpl[T]](
         '{
           new PersistentImpl[T](
             $lhs,

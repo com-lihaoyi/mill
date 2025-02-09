@@ -34,7 +34,7 @@ object ShimService {
   import scala.quoted.runtime.impl.QuotesImpl
 
   def reflect(using Quotes): ShimService[quotes.type] =
-    val cls = Class.forName("mill.define.macros.ShimService$ShimServiceImpl")
+    val cls = Class.forName("mill.define.internal.ShimService$ShimServiceImpl")
     cls.getDeclaredConstructor(classOf[Quotes]).newInstance(summon[Quotes]).asInstanceOf[
       ShimService[quotes.type]
     ]
