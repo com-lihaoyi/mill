@@ -13,4 +13,3 @@ trait EvalResults {
   def results: collection.Map[Task[?], TaskResult[Val]]
   def values: Seq[Val] = rawValues.collect { case Result.Success(v) => v }
 }
-

@@ -86,7 +86,8 @@ class UnitTester(
     override def debug(s: String): Unit = super.debug(s"${prefix}: ${s}")
     override def ticker(s: String): Unit = super.ticker(s"${prefix}: ${s}")
   }
-  val evaluator: Evaluator = mill.eval.Evaluator.make(
+
+  val evaluator: Evaluator = new mill.eval.Evaluator(
     mill.api.Ctx.defaultHome,
     module.millSourcePath,
     outPath,
@@ -99,7 +100,6 @@ class UnitTester(
     threadCount = threads,
     env = env,
     methodCodeHashSignatures = Map(),
-    disableCallgraph = false,
     allowPositionalCommandArgs = false,
     systemExit = _ => ???,
     exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),

@@ -40,10 +40,10 @@ private class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path, inden
 private[mill] class ProfileLogger(outPath: os.Path)
     extends JsonArrayLogger[ProfileLogger.Timing](outPath, indent = 2) {
   def log(
-           terminal: Task[?],
-           duration: Long,
-           res: GroupExecution.Results,
-           deps: Seq[Task[?]]
+      terminal: Task[?],
+      duration: Long,
+      res: GroupExecution.Results,
+      deps: Seq[Task[?]]
   ): Unit = {
     log(
       ProfileLogger.Timing(

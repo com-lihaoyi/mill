@@ -28,9 +28,7 @@ private[mill] trait GroupExecution {
   def env: Map[String, String]
   def failFast: Boolean
   def threadCount: Option[Int]
-  def scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])]
   def methodCodeHashSignatures: Map[String, Int]
-  def disableCallgraph: Boolean
   def systemExit: Int => Nothing
   def exclusiveSystemStreams: SystemStreams
 
@@ -63,22 +61,20 @@ private[mill] trait GroupExecution {
 
       val sideHashes = MurmurHash3.orderedHash(group.iterator.map(_.sideHash))
 
-      val scriptsHash =
-        if (disableCallgraph) 0
-        else MurmurHash3.orderedHash(
-          group
-            .iterator
-            .collect { case namedTask: NamedTask[_] =>
-              CodeSigUtils.codeSigForTask(
-                namedTask,
-                classToTransitiveClasses,
-                allTransitiveClassMethods,
-                methodCodeHashSignatures,
-                constructorHashSignatures
-              )
-            }
-            .flatten
-        )
+      val scriptsHash = MurmurHash3.orderedHash(
+        group
+          .iterator
+          .collect { case namedTask: NamedTask[_] =>
+            CodeSigUtils.codeSigForTask(
+              namedTask,
+              classToTransitiveClasses,
+              allTransitiveClassMethods,
+              methodCodeHashSignatures,
+              constructorHashSignatures
+            )
+          }
+          .flatten
+      )
 
       val javaHomeHash = sys.props("java.home").hashCode
       val inputsHash =
@@ -191,17 +187,17 @@ private[mill] trait GroupExecution {
   }
 
   private def evaluateGroup(
-                             group: Agg[Task[?]],
-                             results: Map[Task[?], TaskResult[(Val, Int)]],
-                             inputsHash: Int,
-                             paths: Option[ExecutionPaths],
-                             maybeTargetLabel: Option[String],
-                             counterMsg: String,
-                             reporter: Int => Option[CompileProblemReporter],
-                             testReporter: TestReporter,
-                             logger: mill.api.Logger,
-                             executionContext: mill.api.Ctx.Fork.Api,
-                             exclusive: Boolean
+      group: Agg[Task[?]],
+      results: Map[Task[?], TaskResult[(Val, Int)]],
+      inputsHash: Int,
+      paths: Option[ExecutionPaths],
+      maybeTargetLabel: Option[String],
+      counterMsg: String,
+      reporter: Int => Option[CompileProblemReporter],
+      testReporter: TestReporter,
+      logger: mill.api.Logger,
+      executionContext: mill.api.Ctx.Fork.Api,
+      exclusive: Boolean
   ): (Map[Task[?], TaskResult[(Val, Int)]], mutable.Buffer[Task[?]]) = {
 
     def computeAll() = {

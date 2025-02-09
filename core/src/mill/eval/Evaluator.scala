@@ -3,7 +3,17 @@ package mill.eval
 import mill.api.{ColorLogger, PathRef, Result, Strict, SystemStreams, Val}
 import mill.api.Strict.Agg
 import mill.define.*
-import mill.exec.{Cached, ChromeProfileLogger, EvalResults, ExecutionCore, ExecutionPaths, EvaluatorPathsResolver, Plan, ProfileLogger, TaskResult}
+import mill.exec.{
+  Cached,
+  ChromeProfileLogger,
+  EvalResults,
+  ExecutionCore,
+  ExecutionPaths,
+  EvaluatorPathsResolver,
+  Plan,
+  ProfileLogger,
+  TaskResult
+}
 import mill.internal.Watchable
 import mill.main.client.OutFiles
 import mill.main.client.OutFiles.*
@@ -18,7 +28,7 @@ import scala.util.DynamicVariable
  * as an odd bag of user-facing helper methods. Internal-only logic is
  * extracted into [[ExecutionCore]]
  */
-final case class Evaluator private[mill](
+final case class Evaluator private[mill] (
     home: os.Path,
     workspace: os.Path,
     outPath: os.Path,
@@ -27,20 +37,16 @@ final case class Evaluator private[mill](
     baseLogger: ColorLogger,
     classLoaderSigHash: Int,
     classLoaderIdentityHash: Int,
-    workerCache: mutable.Map[Segments, (Int, Val)],
+    workerCache: mutable.Map[Segments, (Int, Val)] = mutable.Map.empty,
     env: Map[String, String],
     failFast: Boolean,
     threadCount: Option[Int],
-    scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])],
     val methodCodeHashSignatures: Map[String, Int],
-    val disableCallgraph: Boolean,
     val allowPositionalCommandArgs: Boolean,
     val systemExit: Int => Nothing,
     val exclusiveSystemStreams: SystemStreams,
-    protected[mill] val chromeProfileLogger: ChromeProfileLogger,
-    protected[mill] val profileLogger: ProfileLogger,
     val selectiveExecution: Boolean = false
-) extends ExecutionCore with  AutoCloseable {
+) extends ExecutionCore with AutoCloseable {
   import Evaluator._
 
   private[mill] final def mutableWorkerCache: collection.mutable.Map[Segments, (Int, Val)] =
@@ -49,6 +55,8 @@ final case class Evaluator private[mill](
     }
   val pathsResolver: EvaluatorPathsResolver = EvaluatorPathsResolver.default(outPath)
 
+  val chromeProfileLogger = new ChromeProfileLogger(outPath / millChromeProfile)
+  val profileLogger = new ProfileLogger(outPath / millProfile)
   def withBaseLogger(newBaseLogger: ColorLogger): Evaluator =
     this.copy(baseLogger = newBaseLogger)
 
@@ -60,8 +68,9 @@ final case class Evaluator private[mill](
   }
 
   def evalOrThrow(exceptionFactory: EvalResults => Throwable =
-  r =>
-    new Exception(s"Failure during task evaluation: ${formatFailing(r)}")): Evaluator.EvalOrThrow =
+    r =>
+      new Exception(s"Failure during task evaluation: ${formatFailing(r)}"))
+      : Evaluator.EvalOrThrow =
     new EvalOrThrow(this, exceptionFactory)
 
   def close(): Unit = {
@@ -70,10 +79,10 @@ final case class Evaluator private[mill](
   }
 
   def evaluateTasksNamed(
-                          scriptArgs: Seq[String],
-                          selectMode: SelectMode,
-                          selectiveExecution: Boolean = false
-                        ): Either[
+      scriptArgs: Seq[String],
+      selectMode: SelectMode,
+      selectiveExecution: Boolean = false
+  ): Either[
     String,
     (Seq[Watchable], Either[String, Seq[(Any, Option[(Evaluator.TaskName, ujson.Value)])]])
   ] = {
@@ -95,16 +104,14 @@ final case class Evaluator private[mill](
    * @return (watched-paths, Either[err-msg, Seq[(task-result, Option[(task-name, task-return-as-json)])]])
    */
   def evaluateNamed(
-                     targets: Agg[NamedTask[Any]],
-                     selectiveExecution: Boolean = false
-                   ): (Seq[Watchable], Either[String, Seq[(Any, Option[(Evaluator.TaskName, ujson.Value)])]]) = {
+      targets: Agg[NamedTask[Any]],
+      selectiveExecution: Boolean = false
+  ): (Seq[Watchable], Either[String, Seq[(Any, Option[(Evaluator.TaskName, ujson.Value)])]]) = {
 
     val selectiveExecutionEnabled = selectiveExecution && !targets.exists(_.isExclusiveCommand)
 
     val selectedTargetsOrErr =
-      if (
-        selectiveExecutionEnabled && os.exists(outPath / OutFiles.millSelectiveExecution)
-      ) {
+      if (selectiveExecutionEnabled && os.exists(outPath / OutFiles.millSelectiveExecution)) {
         val changedTasks = SelectiveExecution.computeChangedTasks0(this, targets.toSeq)
         val selectedSet = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
         (
@@ -165,49 +172,6 @@ final case class Evaluator private[mill](
 }
 
 private[mill] object Evaluator {
-  def make(
-      home: os.Path,
-      workspace: os.Path,
-      outPath: os.Path,
-      externalOutPath: os.Path,
-      rootModule: mill.define.BaseModule,
-      baseLogger: ColorLogger,
-      classLoaderSigHash: Int,
-      classLoaderIdentityHash: Int,
-      workerCache: mutable.Map[Segments, (Int, Val)] = mutable.Map.empty,
-      env: Map[String, String] = Evaluator.defaultEnv,
-      failFast: Boolean = true,
-      threadCount: Option[Int] = Some(1),
-      scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])] = Map.empty,
-      methodCodeHashSignatures: Map[String, Int],
-      disableCallgraph: Boolean,
-      allowPositionalCommandArgs: Boolean,
-      systemExit: Int => Nothing,
-      exclusiveSystemStreams: SystemStreams,
-      selectiveExecution: Boolean
-  ) = new Evaluator(
-    home,
-    workspace,
-    outPath,
-    externalOutPath,
-    rootModule,
-    baseLogger,
-    classLoaderSigHash,
-    classLoaderIdentityHash,
-    workerCache,
-    env,
-    failFast,
-    threadCount,
-    scriptImportGraph,
-    methodCodeHashSignatures,
-    disableCallgraph,
-    allowPositionalCommandArgs,
-    systemExit,
-    exclusiveSystemStreams,
-    chromeProfileLogger = new ChromeProfileLogger(outPath / millChromeProfile),
-    profileLogger = new ProfileLogger(outPath / millProfile),
-    selectiveExecution = selectiveExecution
-  )
 
   class EvalOrThrow(evaluator: Evaluator, exceptionFactory: EvalResults => Throwable) {
     def apply[T: ClassTag](task: Task[T]): T =
@@ -254,7 +218,5 @@ private[mill] object Evaluator {
         s"${k} ${fss.iterator.mkString(", ")}"
       }).mkString("\n")
   }
-
-
 
 }

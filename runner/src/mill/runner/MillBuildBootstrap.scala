@@ -42,7 +42,6 @@ class MillBuildBootstrap(
     targetsAndParams: Seq[String],
     prevRunnerState: RunnerState,
     logger: ColorLogger,
-    disableCallgraph: Boolean,
     needBuildFile: Boolean,
     requestedMetaLevel: Option[Int],
     allowPositionalCommandArgs: Boolean,
@@ -348,7 +347,7 @@ class MillBuildBootstrap(
           .mkString("/")
       )
 
-    mill.eval.Evaluator.make(
+    new mill.eval.Evaluator(
       home,
       projectRoot,
       recOut(output, depth),
@@ -362,7 +361,6 @@ class MillBuildBootstrap(
       failFast = !keepGoing,
       threadCount = threadCount,
       methodCodeHashSignatures = methodCodeHashSignatures,
-      disableCallgraph = disableCallgraph,
       allowPositionalCommandArgs = allowPositionalCommandArgs,
       systemExit = systemExit,
       exclusiveSystemStreams = streams0,
