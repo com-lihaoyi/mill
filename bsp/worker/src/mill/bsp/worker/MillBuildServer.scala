@@ -608,7 +608,7 @@ private class MillBuildServer(
               Strict.Agg(cleanTask),
               logger = new MillBspLogger(client, cleanTask.hashCode, ev.baseLogger)
             )
-            if (cleanResult.failing.keyCount > 0) (
+            if (cleanResult.failing.size > 0) (
               msg + s" Target ${compileTargetName} could not be cleaned. See message from mill: \n" +
                 (cleanResult.results(cleanTask) match {
                   case TaskResult(Result.Failure(msg, _), _) => msg

@@ -1,7 +1,7 @@
 package mill.runner
 
 import mill.internal.PrefixLogger
-import mill.internal.Watchable
+import mill.define.Watchable
 import mill.main.{BuildInfo, RootModule}
 import mill.main.client.CodeGenConstants.*
 import mill.api.{ColorLogger, PathRef, SystemStreams, Val, internal}

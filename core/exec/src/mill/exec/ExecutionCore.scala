@@ -250,8 +250,7 @@ private[mill] trait ExecutionCore extends GroupExecution {
       Strict.Agg.from(
         finishedOptsMap.values.flatMap(_.toSeq.flatMap(_.newEvaluated)).iterator.distinct
       ),
-      plan.transitive,
-      getFailing(plan.sortedGroups, results),
+      getFailing(plan.sortedGroups, results).items().map { case (k, v) => (k, v.toSeq) }.toMap,
       results.map { case (k, v) => (k, v.map(_._1)) }
     )
   }
@@ -275,8 +274,7 @@ private[mill] object ExecutionCore {
   case class Results(
       rawValues: Seq[Result[Val]],
       evaluated: Agg[Task[?]],
-      transitive: Agg[Task[?]],
-      failing: MultiBiMap[Task[?], Result.Failing[Val]],
+      failing: Map[Task[?], Seq[Result.Failing[Val]]],
       results: Map[Task[?], TaskResult[Val]]
   ) extends ExecResults
 }

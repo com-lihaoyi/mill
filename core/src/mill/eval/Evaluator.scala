@@ -14,7 +14,7 @@ import mill.exec.{
   ProfileLogger,
   TaskResult
 }
-import mill.internal.Watchable
+import mill.define.Watchable
 import mill.main.client.OutFiles
 import mill.main.client.OutFiles.*
 import mill.resolve.{Resolve, SelectMode}
@@ -183,7 +183,7 @@ final case class Evaluator private[mill] (
         }
 
         val errorStr = Evaluator.formatFailing(evaluated)
-        evaluated.failing.keyCount match {
+        evaluated.failing.size match {
           case 0 =>
             val nameAndJson = for (t <- selectedTargets.toSeq) yield {
               t match {
@@ -206,7 +206,7 @@ private[mill] object Evaluator {
   class EvalOrThrow(evaluator: Evaluator, exceptionFactory: ExecResults => Throwable) {
     def apply[T: ClassTag](task: Task[T]): T =
       evaluator.evaluate(Agg(task)) match {
-        case r if r.failing.items().nonEmpty =>
+        case r if r.failing.nonEmpty =>
           throw exceptionFactory(r)
         case r =>
           // Input is a single-item Agg, so we also expect a single-item result
@@ -216,7 +216,7 @@ private[mill] object Evaluator {
 
     def apply[T: ClassTag](tasks: Seq[Task[T]]): Seq[T] =
       evaluator.evaluate(tasks) match {
-        case r if r.failing.items().nonEmpty =>
+        case r if r.failing.nonEmpty =>
           throw exceptionFactory(r)
         case r => r.values.map(_.value).asInstanceOf[Seq[T]]
       }
@@ -238,7 +238,7 @@ private[mill] object Evaluator {
   val defaultEnv: Map[String, String] = System.getenv().asScala.toMap
 
   def formatFailing(evaluated: ExecResults): String = {
-    (for ((k, fs) <- evaluated.failing.items())
+    (for ((k, fs) <- evaluated.failing)
       yield {
         val fss = fs.map {
           case Result.Failure(t, _) => t

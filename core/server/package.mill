@@ -1,0 +1,7 @@
+package build.core.server
+
+import mill._
+
+object `package` extends RootModule with build.MillPublishScalaModule {
+  def moduleDeps = Seq(build.core.client, build.core.api)
+}

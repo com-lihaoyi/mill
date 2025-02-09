@@ -2,7 +2,7 @@ package mill.runner
 
 import mill.api.{PathRef, Val, internal}
 import mill.define.Segments
-import mill.internal.Watchable
+import mill.define.Watchable
 import upickle.default.{ReadWriter, macroRW}
 import mill.eval.Evaluator
 import mill.main.RootModule

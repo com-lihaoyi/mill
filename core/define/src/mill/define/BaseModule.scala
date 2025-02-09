@@ -1,7 +1,6 @@
 package mill.define
 
 import mill.api.PathRef
-import mill.internal.Watchable
 
 import scala.collection.mutable
 
