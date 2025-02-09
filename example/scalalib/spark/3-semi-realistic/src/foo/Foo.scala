@@ -23,7 +23,7 @@ object Foo {
       .getOrCreate()
 
     // Check for a file path provided as a command-line argument first;
-    // otherwise, use the resource from inside the JAR.
+    // otherwise, use resources.
     val resourcePath: String = args.headOption
       .orElse(Option(getClass.getResource("/transactions.csv")).map(_.getPath))
       .getOrElse(throw new RuntimeException(
