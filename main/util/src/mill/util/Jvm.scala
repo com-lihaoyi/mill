@@ -245,8 +245,8 @@ object Jvm extends CoursierSupport {
     }
   }
 
-  def createManifest(mainClass: Option[String]): mill.api.JarManifest = {
-    mainClass.foldLeft(mill.api.JarManifest.MillDefault)((m, c) =>
+  def createManifest(mainClass: Option[String]): JarManifest = {
+    mainClass.foldLeft(JarManifest.MillDefault)((m, c) =>
       m.add((java.util.jar.Attributes.Name.MAIN_CLASS.toString, c))
     )
   }

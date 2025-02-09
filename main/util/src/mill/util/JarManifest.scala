@@ -1,4 +1,4 @@
-package mill.api
+package mill.util
 
 import mill.api.Mirrors.autoMirror
 import mill.api.{BuildInfo, Mirrors}
