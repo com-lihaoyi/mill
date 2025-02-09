@@ -234,7 +234,7 @@ private object ResolveCore {
                 case Right(searchModules) =>
                   recurse(
                     searchModules
-                      .map(m => Resolved.Module(m.millModuleSegments, m.getClass))
+                      .map(m => Resolved.Module(m.moduleSegments, m.getClass))
                   )
               }
 
@@ -256,7 +256,7 @@ private object ResolveCore {
           assert(s != "_", s)
           resolveDirectChildren0(
             rootModule,
-            current.millModuleSegments,
+            current.moduleSegments,
             current.getClass,
             Some(s),
             cache = cache
@@ -416,13 +416,13 @@ private object ResolveCore {
       if (classOf[DynamicModule].isAssignableFrom(cls)) {
         instantiateModule(rootModule, segments, cache).map {
           case m: DynamicModule =>
-            m.millModuleDirectChildren
-              .filter(c => namePred(c.millModuleSegments.last.value))
+            m.moduleDirectChildren
+              .filter(c => namePred(c.moduleSegments.last.value))
               .filter(c => classMatchesTypePred(typePattern)(c.getClass))
               .map(c =>
                 (
                   Resolved.Module(
-                    Segments.labels(c.millModuleSegments.last.value),
+                    Segments.labels(c.moduleSegments.last.value),
                     c.getClass
                   ),
                   Some((x: Module) => Right(c))

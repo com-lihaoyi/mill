@@ -27,9 +27,9 @@ abstract class BaseModule(
   // A BaseModule should provide an empty Segments list to its children, since
   // it is the root of the module tree, and thus must not include its own
   // sourcecode.Name as part of the list,
-  override def millModuleSegments: Segments = Segments()
+  override def moduleSegments: Segments = Segments()
 
-  override def millSourcePath = millOuterCtx.millSourcePath
+  override def modulePath = moduleCtx.millSourcePath
 
   // `Discover` needs to be defined by every concrete `BaseModule` object, to gather
   // compile-time metadata about the tasks and commands at for use at runtime
@@ -37,7 +37,7 @@ abstract class BaseModule(
 
   // We need to propagate the `Discover` object implicitly throughout the module tree
   // so it can be used for override detection
-  def millOuterCtx = super.millOuterCtx.withDiscover(millDiscover).withSegments(Segments())
+  def moduleCtx = super.moduleCtx.withDiscover(millDiscover).withSegments(Segments())
 
   protected[mill] val watchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty[Watchable]
   protected[mill] val evalWatchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty[Watchable]

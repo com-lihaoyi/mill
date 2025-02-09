@@ -38,7 +38,7 @@ trait PalantirFormatBaseModule extends CoursierModule {
    * Path to options file for Palantir Java Format CLI. Defaults to `millSourcePath` `/` `palantirformat.options`.
    */
   def palantirformatOptions: T[PathRef] = Task.Source(
-    millSourcePath / "palantirformat.options"
+    modulePath / "palantirformat.options"
   )
 
   /**

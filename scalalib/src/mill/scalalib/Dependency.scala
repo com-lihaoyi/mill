@@ -18,7 +18,7 @@ object Dependency extends ExternalModule {
         ev,
         implicitly,
         ev.rootModule,
-        ev.rootModule.millOuterCtx.discover,
+        ev.rootModule.moduleCtx.discover,
         allowPreRelease
       )
     }

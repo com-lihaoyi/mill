@@ -25,7 +25,7 @@ private[mill] object OverrideMapping {
   ) = {
     Option(enclosingValue) match {
       case Some(value) =>
-        val linearized = value.linearized
+        val linearized = value.moduleLinearized
         val declaring = linearized.filter(cls =>
           discover.classInfo.get(cls).exists(_.declaredTaskNameSet.contains(lastSegmentStr))
         )

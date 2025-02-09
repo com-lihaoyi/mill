@@ -25,5 +25,5 @@ abstract class SubfolderModule()(implicit
       )
     ) with Module {
   def millDiscover: Discover = sys.error("RootModule#millDiscover must be overridden")
-  override def millOuterCtx = super.millOuterCtx.withDiscover(millDiscover)
+  override def moduleCtx = super.moduleCtx.withDiscover(millDiscover)
 }

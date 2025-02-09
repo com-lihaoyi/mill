@@ -146,7 +146,7 @@ object ModuleTests extends TestSuite {
       }
     }
     object niled extends DynamicModule {
-      override def millModuleDirectChildren: Seq[Module] = Nil
+      override def moduleDirectChildren: Seq[Module] = Nil
       object inner extends Module {
         def target = Task { 1 }
       }

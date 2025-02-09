@@ -62,7 +62,7 @@ private[mill] object CodeSigUtils {
       constructorHashSignatures: => Map[String, Seq[(String, Int)]]
   ): Iterable[Int] = {
 
-    val superTaskName = namedTask.ctx.segments.value.collectFirst{
+    val superTaskName = namedTask.ctx.segments.value.collectFirst {
       case Segment.Label(s"$v.super") => v
     }
 
@@ -98,7 +98,7 @@ private[mill] object CodeSigUtils {
       case ctx =>
         ctx.enclosingModule match {
           case null => None
-          case m: mill.define.Module => Some((m, m.millOuterCtx))
+          case m: mill.define.Module => Some((m, m.moduleCtx))
           case unknown =>
             throw new MillException(s"Unknown ctx of target ${namedTask}: $unknown")
         }

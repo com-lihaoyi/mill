@@ -454,7 +454,7 @@ private class MillBuildServer(
         (module, ev) <- state.bspModulesById.get(target)
       } yield {
         val items =
-          if (module.millOuterCtx.external)
+          if (module.moduleCtx.external)
             outputPaths(
               module.bspBuildTarget.baseDirectory.get,
               topLevelProjectRoot
@@ -597,10 +597,10 @@ private class MillBuildServer(
         )) {
           case ((msg, cleaned), targetId) =>
             val (module, ev) = state.bspModulesById(targetId)
-            val mainModule = new mill.define.BaseModule(millSourcePath) with MainModule {
+            val mainModule = new mill.define.BaseModule(modulePath) with MainModule {
               override implicit def millDiscover: Discover = Discover[this.type]
             }
-            val compileTargetName = (module.millModuleSegments ++ Label("compile")).render
+            val compileTargetName = (module.moduleSegments ++ Label("compile")).render
             debug(s"about to clean: ${compileTargetName}")
             val cleanTask = mainModule.clean(ev, Seq(compileTargetName)*)
             val cleanResult = evaluate(
@@ -621,7 +621,7 @@ private class MillBuildServer(
             )
             else {
               val outPaths = ev.pathsResolver.resolveDest(
-                module.millModuleSegments ++ Label("compile")
+                module.moduleSegments ++ Label("compile")
               )
               val outPathSeq = Seq(outPaths.dest, outPaths.meta, outPaths.log)
 

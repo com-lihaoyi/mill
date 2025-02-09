@@ -227,7 +227,7 @@ trait MainModule extends BaseModule {
           if (seen(t)) Nil // do nothing
           else t match {
             case t: mill.define.Target[_]
-                if evaluator.rootModule.millInternal.targets.contains(t) =>
+                if evaluator.rootModule.moduleInternal.targets.contains(t) =>
               Seq(t.ctx.segments)
             case _ =>
               seen.add(t)
@@ -253,7 +253,7 @@ trait MainModule extends BaseModule {
             else {
               val mainDataOpt = evaluator
                 .rootModule
-                .millOuterCtx
+                .moduleCtx
                 .discover
                 .resolveEntrypoint(t.ctx.enclosingCls, t.ctx.segments.last.value)
 
@@ -339,7 +339,7 @@ trait MainModule extends BaseModule {
           case _ => None
         }
 
-        val methodMap = evaluator.rootModule.millOuterCtx.discover.classInfo
+        val methodMap = evaluator.rootModule.moduleCtx.discover.classInfo
         val tasks = methodMap
           .get(cls)
           .map { node => node.declaredTasks.map(task => s"${t.module}.${task.name}") }

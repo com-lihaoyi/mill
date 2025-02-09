@@ -20,7 +20,7 @@ trait PublishModule extends TypeScriptModule {
 
   private def pubDeclarationOut: T[String] = Task { "declarations" }
 
-  override def mainFileName: T[String] = Task { s"${millSourcePath.last}.js" }
+  override def mainFileName: T[String] = Task { s"${modulePath.last}.js" }
 
   // main file; defined with mainFileName
   def pubMain: T[String] =
@@ -83,7 +83,7 @@ trait PublishModule extends TypeScriptModule {
 
   // Compilation Options
   override def modulePaths: Task[Seq[(String, String)]] = Task.Anon {
-    val module = millSourcePath.last
+    val module = modulePath.last
 
     Seq((s"$module/*", "typescript/src" + ":" + s"${pubDeclarationOut()}")) ++
       resources().map { rp =>
@@ -100,7 +100,7 @@ trait PublishModule extends TypeScriptModule {
   }
 
   private def pubModDeps: T[Seq[String]] = Task {
-    moduleDeps.map { _.millSourcePath.subRelativeTo(Task.workspace).segments.head }.distinct
+    moduleDeps.map { _.modulePath.subRelativeTo(Task.workspace).segments.head }.distinct
   }
 
   private def pubModDepsSources: T[Seq[PathRef]] = Task {
@@ -154,8 +154,8 @@ trait PublishModule extends TypeScriptModule {
   }
 
   override def resources: T[Seq[PathRef]] = Task {
-    val modDepsResources = moduleDeps.map { x => PathRef(x.millSourcePath / "resources") }
-    Seq(PathRef(millSourcePath / "resources")) ++ modDepsResources
+    val modDepsResources = moduleDeps.map { x => PathRef(x.modulePath / "resources") }
+    Seq(PathRef(modulePath / "resources")) ++ modDepsResources
   }
 
   /**
@@ -170,7 +170,7 @@ trait PublishModule extends TypeScriptModule {
           os.walk(pr.path)
         ).filter(fileExt)
     } yield source.toString
-      .replaceFirst(millSourcePath.toString, "typescript")
+      .replaceFirst(modulePath.toString, "typescript")
       .replaceFirst(
         project,
         "typescript"
@@ -189,14 +189,14 @@ trait PublishModule extends TypeScriptModule {
     val upstreams = (for {
       (res, mod) <- Task.traverse(moduleDeps)(_.resources)().zip(moduleDeps)
     } yield {
-      val relative = mod.millSourcePath.subRelativeTo(Task.workspace)
+      val relative = mod.modulePath.subRelativeTo(Task.workspace)
       Seq((
-        mod.millSourcePath.subRelativeTo(Task.workspace).toString + "/*",
+        mod.modulePath.subRelativeTo(Task.workspace).toString + "/*",
         s"typescript/$relative/src:${pubDeclarationOut()}"
       )) ++
         res.map { rp =>
           val resourceRoot = rp.path.last
-          val modName = mod.millSourcePath.subRelativeTo(Task.workspace).toString
+          val modName = mod.modulePath.subRelativeTo(Task.workspace).toString
           // nb: resources are be moved in bundled stage
           (
             s"@$modName/$resourceRoot/*",
@@ -276,7 +276,7 @@ trait PublishModule extends TypeScriptModule {
         "files" -> pubAllSources()
       )
     )
-    os.copy(millSourcePath, publishDir().path / "typescript", mergeFolders = true)
+    os.copy(modulePath, publishDir().path / "typescript", mergeFolders = true)
     pubCopyModDeps()
     pubGenSources()
     // Run type check, build declarations

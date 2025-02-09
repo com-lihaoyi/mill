@@ -58,7 +58,7 @@ object CompileRunTests extends TestSuite {
       )
 
       object test extends ScalaNativeTests with TestModule.Utest {
-        override def sources = Task.Sources { this.millSourcePath / "src/utest" }
+        override def sources = Task.Sources { this.modulePath / "src/utest" }
         override def ivyDeps = super.ivyDeps() ++ Agg(
           ivy"com.lihaoyi::utest::$utestVersion"
         )

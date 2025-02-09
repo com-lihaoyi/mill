@@ -73,7 +73,7 @@ trait TsLintModule extends Module {
         val replacements = Seq(
           s"$cwd/" -> "",
           "potentially fixable with the `--fix` option" ->
-            s"potentially fixable with running ${millSourcePath.last}.reformatAll"
+            s"potentially fixable with running ${modulePath.last}.reformatAll"
         )
 
         os.remove(cwd / "node_modules")
@@ -154,7 +154,7 @@ trait TsLintModule extends Module {
             val lines = os.read.lines(logPath)
             val logMssg = lines.map(_.replace(
               "[warn] Code style issues found in the above file. Run Prettier with --write to fix.",
-              s"[warn] Code style issues found. Run ${millSourcePath.last}.reformatAll to fix."
+              s"[warn] Code style issues found. Run ${modulePath.last}.reformatAll to fix."
             ))
             println(logMssg.mkString("\n"))
           case Failure(e: os.SubprocessException) if e.result.exitCode == 2 =>

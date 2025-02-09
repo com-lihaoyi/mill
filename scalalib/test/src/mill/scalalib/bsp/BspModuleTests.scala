@@ -75,8 +75,8 @@ object BspModuleTests extends TestSuite {
         }.toSeq.sortBy(_.toString)
 
         val expected: Seq[FilePath] = Seq(
-          MultiBase.HelloBsp.millSourcePath / "compile-resources",
-          MultiBase.HelloBsp2.millSourcePath / "compile-resources",
+          MultiBase.HelloBsp.modulePath / "compile-resources",
+          MultiBase.HelloBsp2.modulePath / "compile-resources",
           ExecutionPaths.resolveDestPaths(eval.outPath, MultiBase.HelloBsp.compile)
             .dest / "classes",
           os.rel / "slf4j-api-1.7.34.jar",

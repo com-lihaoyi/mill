@@ -23,7 +23,7 @@ object Cross {
      */
     trait CrossValue extends Module[T1] {
       def crossValue: T1 = Module.this.crossValue
-      override def crossWrapperSegments: List[String] = Module.this.millModuleSegments.parts
+      override def crossWrapperSegments: List[String] = Module.this.moduleSegments.parts
     }
   }
 
@@ -206,8 +206,8 @@ class Cross[M <: Cross.Module[?]](factories: Cross.Factory[M]*)(implicit
     }
   }
 
-  override lazy val millModuleDirectChildren: Seq[Module] =
-    super.millModuleDirectChildren ++ crossModules
+  override lazy val moduleDirectChildren: Seq[Module] =
+    super.moduleDirectChildren ++ crossModules
 
   /**
    * A list of the cross modules, in

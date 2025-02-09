@@ -8,7 +8,7 @@ import mill.{PathRef, T, Task}
  * `src-js/` and can be used inside a [[CrossScalaModule.Base]], to get one
  * source folder per platform per version e.g. `src-2.12-jvm/`.
  *
- * Adjusts the [[millSourcePath]] and [[artifactNameParts]] to ignore the last
+ * Adjusts the [[modulePath]] and [[artifactNameParts]] to ignore the last
  * path segment, which is assumed to be the name of the platform the module is
  * built against and not something that should affect the filesystem path or
  * artifact name
@@ -16,13 +16,13 @@ import mill.{PathRef, T, Task}
 trait PlatformScalaModule extends /* PlatformModuleBase with*/ ScalaModule {
   // Cannot move stuff to PlatformModuleBase due to bincompat concerns
 
-  override def millSourcePath: os.Path = super.millSourcePath / os.up
+  override def modulePath: os.Path = super.modulePath / os.up
 
   /**
    * The platform suffix of this [[PlatformScalaModule]]. Useful if you want to
    * further customize the source paths or artifact names.
    */
-  def platformScalaSuffix: String = millModuleSegments
+  def platformScalaSuffix: String = moduleSegments
     .value
     .collect { case l: mill.define.Segment.Label => l.value }
     .last

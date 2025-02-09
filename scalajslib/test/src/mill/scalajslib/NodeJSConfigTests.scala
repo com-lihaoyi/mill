@@ -43,7 +43,7 @@ object NodeJSConfigTests extends TestSuite {
       override def jsEnvConfig = Task { JsEnvConfig.NodeJs(args = nodeArgs) }
 
       object `test-utest` extends ScalaJSTests with TestModule.Utest {
-        override def sources = Task.Sources { this.millSourcePath / "src/utest" }
+        override def sources = Task.Sources { this.modulePath / "src/utest" }
         override def ivyDeps = Agg(
           ivy"com.lihaoyi::utest::$utestVersion"
         )

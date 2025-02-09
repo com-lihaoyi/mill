@@ -37,8 +37,8 @@ trait Ctx extends Ctx.Nested {
 
 object Ctx extends LowPriCtx {
   trait Wrapper {
-    def millOuterCtx: Ctx
-    private[mill] def linearized: Seq[Class[?]]
+    def moduleCtx: Ctx
+    private[mill] def moduleLinearized: Seq[Class[?]]
   }
   private case class Impl(
       enclosing: String,

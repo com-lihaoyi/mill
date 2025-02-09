@@ -7,7 +7,7 @@ import mill.scalanativelib._
 
 object app extends Module {
   trait Common extends ScalaModule {
-    def millSourcePath = super.millSourcePath / os.up
+    def millSourcePath = super.modulePath / os.up
     def scalaVersion = "3.4.0"
   }
 

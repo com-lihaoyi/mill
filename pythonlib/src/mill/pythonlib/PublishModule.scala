@@ -106,14 +106,14 @@ trait PublishModule extends PythonModule {
    * The readme file to include in the published distribution.
    */
   def publishReadme: T[PathRef] = Task.Input {
-    val readme = if (os.exists(millSourcePath)) {
-      os.list(millSourcePath).find(_.last.toLowerCase().startsWith("readme"))
+    val readme = if (os.exists(modulePath)) {
+      os.list(modulePath).find(_.last.toLowerCase().startsWith("readme"))
     } else None
     readme match {
       case None =>
         Result.Failure(
-          s"No readme file found in `${millSourcePath}`. A readme file is required for publishing distributions. " +
-            s"Please create a file named `${millSourcePath}/readme*` (any capitalization), or override the `publishReadme` task."
+          s"No readme file found in `${modulePath}`. A readme file is required for publishing distributions. " +
+            s"Please create a file named `${modulePath}/readme*` (any capitalization), or override the `publishReadme` task."
         )
       case Some(path) =>
         Result.Success(PathRef(path))
