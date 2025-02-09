@@ -348,7 +348,7 @@ class MillBuildBootstrap(
           .mkString("/")
       )
 
-    mill.eval.ExecutionImpl.make(
+    mill.eval.Evaluator.make(
       home,
       projectRoot,
       recOut(output, depth),

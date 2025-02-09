@@ -324,6 +324,7 @@ private class MillBuildServer(
 
         val cp = (resolveDepsSources ++ unmanagedClasspath).map(sanitizeUri).toSeq ++ buildSources
         new DependencySourcesItem(id, cp.asJava)
+      case _ => ???
     } {
       new DependencySourcesResult(_)
     }
@@ -374,6 +375,7 @@ private class MillBuildServer(
           new DependencyModule(s"unmanaged-${dep.path.last}", "")
         }
         new DependencyModulesItem(id, (deps ++ unmanaged).iterator.toSeq.asJava)
+      case _ => ???
     } {
       new DependencyModulesResult(_)
     }

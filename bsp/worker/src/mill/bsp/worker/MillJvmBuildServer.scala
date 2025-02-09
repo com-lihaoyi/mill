@@ -145,6 +145,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
             .map(_.resolve(pathResolver))
             .map(sanitizeUri).toSeq.asJava
         )
+      case _ => ???
     } {
       new JvmCompileClasspathResult(_)
     }
