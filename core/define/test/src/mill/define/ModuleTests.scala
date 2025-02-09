@@ -60,7 +60,7 @@ object ModuleTests extends TestSuite {
           Segment.Label("cross"),
           Segment.Cross(Seq("210")),
           Segment.Label("cross2"),
-          Segment.Cross(Seq("210"))
+          Segment.Cross(Seq("js"))
         ))
       nestedCrosses.cross("210").cross2("js").millSourcePath.relativeTo(base) ==>
         os.sub / "cross" / "cross2"
