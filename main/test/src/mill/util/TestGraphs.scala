@@ -166,6 +166,7 @@ object TestGraphs {
       def invisible: Any = Task { 8 }
 
     }
+
     object classInstance extends CanNest
 
     lazy val millDiscover = Discover[this.type]

@@ -6,7 +6,7 @@ import scala.annotation.{compileTimeOnly, implicitNotFound}
  * The contextual information provided to a [[mill.define.Module]] or [[mill.define.Task]]
  */
 @implicitNotFound("Modules and Tasks can only be defined within a mill Module")
-trait Ctx {
+trait Ctx extends Ctx.Nested{
   def enclosing: String
 
   /**
@@ -19,21 +19,6 @@ trait Ctx {
    * The name of this task or module
    */
   def segment: Segment
-
-  /**
-   * The enclosing module's default source root
-   */
-  def millSourcePath: os.Path
-
-  /**
-   * The full path of this task or module, from the [[BaseModule]]
-   */
-  def segments: Segments
-
-  /**
-   * whether this is in an [[ExternalModule]]
-   */
-  def external: Boolean
 
   /**
    * the file name that this module is defined in. Useful for
@@ -49,23 +34,22 @@ trait Ctx {
   /**
    * The runtime [[Module]] object that contains this definition
    */
-  def enclosingModule: Any
+  def enclosingModule: Ctx.Wrapper
   def crossValues: Seq[Any]
 
-  /**
-   * The [[Discover]] instance associate with this [[BaseModule]] hierarchy
-   */
-  def discover: Discover
 
   private[mill] def withCrossValues(crossValues: Seq[Any]): Ctx
   private[mill] def withMillSourcePath(millSourcePath: os.Path): Ctx
   private[mill] def withSegment(segment: Segment): Ctx
   private[mill] def withSegments(segments: Segments): Ctx
-  private[mill] def withEnclosingModule(enclosingModule: Any): Ctx
+  private[mill] def withEnclosingModule(enclosingModule: Ctx.Wrapper): Ctx
   private[mill] def withDiscover(discover: Discover): Ctx
 }
 
 object Ctx extends LowPriCtx {
+  trait Wrapper {
+    def millOuterCtx: Ctx
+  }
   private case class Impl(
       enclosing: String,
       lineNum: Int,
@@ -74,7 +58,7 @@ object Ctx extends LowPriCtx {
       segments: Segments,
       external: Boolean,
       fileName: String,
-      enclosingModule: Any,
+      enclosingModule: Ctx.Wrapper,
       crossValues: Seq[Any],
       discover: Discover
   ) extends Ctx {
@@ -83,29 +67,64 @@ object Ctx extends LowPriCtx {
     def withMillSourcePath(millSourcePath: os.Path): Ctx = copy(millSourcePath = millSourcePath)
     def withSegment(segment: Segment): Ctx = copy(segment = segment)
     def withSegments(segments: Segments): Ctx = copy(segments = segments)
-    def withEnclosingModule(enclosingModule: Any): Ctx = copy(enclosingModule = enclosingModule)
+    def withEnclosingModule(enclosingModule: Ctx.Wrapper): Ctx = copy(enclosingModule = enclosingModule)
     def withDiscover(discover: Discover): Ctx = copy(discover = discover)
   }
 
   /**
-   * Marker for a base path to be used implicitly by [[Ctx]].
+   * A subset of the [[Ctx]] interface, used to implicitly propagate the
+   * necessary fields down the module hierarchy
    */
-  final case class BasePath(value: os.Path)
+  trait Nested {
+    /**
+     * The enclosing module's default source root
+     */
+    def millSourcePath: os.Path
 
-  /**
-   * Marker for the external flog to be used implicitly by [[Ctx]].
-   * @param value
-   */
-  final case class External(value: Boolean)
+    /**
+     * The full path of this task or module, from the [[BaseModule]]
+     */
+    def segments: Segments
 
-  implicit def make(implicit
+    /**
+     * whether this is in an [[ExternalModule]]
+     */
+    def external: Boolean
+
+    /**
+     * The [[Discover]] instance associate with this [[BaseModule]] hierarchy
+     */
+    private[mill] def discover: Discover
+  }
+  implicit def implicitMake(
+                             implicit
+                             millModuleEnclosing0: sourcecode.Enclosing,
+                             millModuleLine0: sourcecode.Line,
+                             fileName: sourcecode.File,
+                             enclosingModule: Caller[OverrideMapping.Wrapper & Ctx.Wrapper],
+                             enclosingClass: EnclosingClass,
+                             ctx: Ctx.Nested
+                           ): Ctx = {
+    make(
+      millModuleEnclosing0,
+      millModuleLine0,
+      ctx.millSourcePath,
+      ctx.segments,
+      ctx.external,
+      fileName,
+      enclosingModule,
+      enclosingClass,
+      ctx.discover,
+    )
+  }
+  def make(
       millModuleEnclosing0: sourcecode.Enclosing,
       millModuleLine0: sourcecode.Line,
-      millModuleBasePath0: BasePath,
+      millSourcePath: os.Path,
       segments0: Segments,
-      external0: External,
+      external0: Boolean,
       fileName: sourcecode.File,
-      enclosingModule: Caller[OverrideMapping.Wrapper],
+      enclosingModule: Caller[OverrideMapping.Wrapper & Ctx.Wrapper],
       enclosingClass: EnclosingClass,
       discover: Discover
   ): Ctx = {
@@ -118,7 +137,7 @@ object Ctx extends LowPriCtx {
       millModuleEnclosing0.value,
       millModuleLine0.value,
       Segment.Label(lastSegmentStr),
-      millModuleBasePath0.value,
+      millSourcePath,
       segments0 ++
         OverrideMapping.computeSegments(
           enclosingModule.value,
@@ -126,7 +145,7 @@ object Ctx extends LowPriCtx {
           lastSegmentStr,
           enclosingClass.value
         ),
-      external0.value,
+      external0,
       fileName.value,
       enclosingModule.value,
       Seq(),

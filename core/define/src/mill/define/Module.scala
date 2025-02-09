@@ -13,9 +13,8 @@ import scala.reflect.ClassTag
  * instantiation site so they can capture the enclosing/line information of
  * the concrete instance.
  */
-trait Module extends Module.BaseClass with OverrideMapping.Wrapper {
-  implicit lazy val implicitMillDiscover: Discover = millOuterCtx.discover
-
+trait Module extends Module.BaseClass with OverrideMapping.Wrapper with Ctx.Wrapper {
+  implicit def implicitCtx: Ctx.Nested = millOuterCtx.withMillSourcePath(millSourcePath)
   /**
    * Miscellaneous machinery around traversing & querying the build hierarchy,
    * that should not be needed by normal users of Mill
@@ -30,17 +29,13 @@ trait Module extends Module.BaseClass with OverrideMapping.Wrapper {
   private lazy val millModuleDirectChildrenImpl: Seq[Module] =
     millInternal.reflectNestedObjects[Module]().toSeq
 
-  def millOuterCtx: Ctx
-
   def millSourcePath: os.Path = millOuterCtx.millSourcePath / (millOuterCtx.segment match {
     case Segment.Label(s) => Seq(s)
     case Segment.Cross(_) => Seq.empty[String] // drop cross segments
   })
 
-  implicit def millModuleExternal: Ctx.External = Ctx.External(millOuterCtx.external)
-  implicit def millModuleBasePath: Ctx.BasePath = Ctx.BasePath(millSourcePath)
-  implicit def millModuleSegments: Segments = millOuterCtx.segments ++ Seq(millOuterCtx.segment)
-  final given millModuleCaller: Caller[OverrideMapping.Wrapper] = Caller(this)
+  def millModuleSegments: Segments = millOuterCtx.segments ++ Seq(millOuterCtx.segment)
+  final given millModuleCaller: Caller[OverrideMapping.Wrapper & Ctx.Wrapper] = Caller(this)
 
   override def toString = millModuleSegments.render
 

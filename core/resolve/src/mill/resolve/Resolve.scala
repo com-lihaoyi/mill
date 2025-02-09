@@ -142,7 +142,7 @@ object Resolve {
       val invoked = invokeCommand0(
         p,
         r.segments.last.value,
-        rootModule.implicitMillDiscover,
+        rootModule.millOuterCtx.discover,
         args,
         nullCommandDefaults,
         allowPositionalCommandArgs
@@ -295,7 +295,8 @@ trait Resolve[T] {
         case ResolveCore.Success(value) => Right(value)
         case ResolveCore.NotFound(segments, found, next, possibleNexts) =>
           val allPossibleNames = rootModule
-            .implicitMillDiscover
+            .millOuterCtx
+            .discover
             .classInfo
             .values
             .flatMap(_.declaredTasks)

@@ -16,9 +16,9 @@ abstract class SubfolderModule()(implicit
       Ctx.make(
         millModuleEnclosing0 = subFolderInfo.segments.mkString("."),
         millModuleLine0 = millModuleLine0,
-        millModuleBasePath0 = Ctx.BasePath(subFolderInfo.millSourcePath0 / os.up),
+        millSourcePath = subFolderInfo.millSourcePath0 / os.up,
         segments0 = Segments.labels(subFolderInfo.segments.init*),
-        external0 = Ctx.External(false),
+        external0 = false,
         fileName = millFile0,
         enclosingModule = Caller(null),
         enclosingClass = EnclosingClass(null),
@@ -26,5 +26,5 @@ abstract class SubfolderModule()(implicit
       )
     ) with Module {
   def millDiscover: Discover = sys.error("RootModule#millDiscover must be overridden")
-  override implicit lazy val implicitMillDiscover: Discover = millDiscover
+  override def millOuterCtx = super.millOuterCtx.withDiscover(millDiscover)
 }
