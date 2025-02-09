@@ -93,7 +93,7 @@ object Ctx extends LowPriCtx {
 
     def crossValues: Seq[Any]
   }
-  implicit def implicitMake(
+  implicit def makeNested(
       implicit
       millModuleEnclosing0: sourcecode.Enclosing,
       millModuleLine0: sourcecode.Line,
