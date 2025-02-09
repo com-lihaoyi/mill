@@ -131,7 +131,7 @@ object Ctx extends LowPriCtx {
       millSourcePath: os.Path,
       segments0: Segments,
       external0: Boolean,
-      fileName: sourcecode.File,
+      fileName: sourcecode.File
   ): Ctx = {
 
     Impl(

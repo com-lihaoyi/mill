@@ -19,7 +19,7 @@ abstract class SubfolderModule()(implicit
         millSourcePath = subFolderInfo.millSourcePath0 / os.up,
         segments0 = Segments.labels(subFolderInfo.segments.init*),
         external0 = false,
-        fileName = millFile0,
+        fileName = millFile0
       )
     ) with Module {
   def millDiscover: Discover = sys.error("RootModule#millDiscover must be overridden")

@@ -11,12 +11,12 @@ import utest._
 object TestExternalModule extends mill.define.ExternalModule with mill.define.TaskModule {
   def defaultCommandName() = "x"
   def x = Task { 13 }
-  trait Trait extends mill.Module{
-    def overridden = Task{ 19 }
+  trait Trait extends mill.Module {
+    def overridden = Task { 19 }
   }
   object inner extends Trait {
     def y = Task { 17 }
-    override def overridden = Task{ super.overridden() + 1 }
+    override def overridden = Task { super.overridden() + 1 }
   }
   def myCommand(i: Int) = Task.Command { i + 1 }
   lazy val millDiscover = Discover[this.type]

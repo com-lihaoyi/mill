@@ -18,7 +18,7 @@ abstract class BaseModule(
         millSourcePath0,
         Segments(),
         external0,
-        millFile0,
+        millFile0
       )
     ) with Module {
 
