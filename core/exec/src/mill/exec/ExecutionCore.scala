@@ -31,7 +31,7 @@ private[mill] trait ExecutionCore extends GroupExecution {
       testReporter: TestReporter = DummyTestReporter,
       logger: ColorLogger = baseLogger,
       serialCommandExec: Boolean = false
-  ): EvalResults = logger.withPromptUnpaused {
+  ): ExecResults = logger.withPromptUnpaused {
     os.makeDir.all(outPath)
 
     PathRef.validatedPaths.withValue(new PathRef.ValidatedPaths()) {
@@ -66,7 +66,7 @@ private[mill] trait ExecutionCore extends GroupExecution {
       testReporter: TestReporter = DummyTestReporter,
       ec: mill.api.Ctx.Fork.Impl,
       serialCommandExec: Boolean
-  ): EvalResults = {
+  ): ExecResults = {
     os.makeDir.all(outPath)
 
     val threadNumberer = new ThreadNumberer()
@@ -278,5 +278,5 @@ private[mill] object ExecutionCore {
       transitive: Agg[Task[?]],
       failing: MultiBiMap[Task[?], Result.Failing[Val]],
       results: Map[Task[?], TaskResult[Val]]
-  ) extends EvalResults
+  ) extends ExecResults
 }

@@ -5,7 +5,7 @@ import mill.api.Strict.Agg
 import mill.define.*
 import mill.internal.MultiBiMap
 
-trait EvalResults {
+trait ExecResults {
   def rawValues: Seq[Result[Val]]
   def evaluated: Agg[Task[?]]
   def transitive: Agg[Task[?]]

@@ -6,7 +6,7 @@ import mill.define.*
 import mill.exec.{
   Cached,
   ChromeProfileLogger,
-  EvalResults,
+  ExecResults,
   ExecutionCore,
   ExecutionPaths,
   EvaluatorPathsResolver,
@@ -67,7 +67,7 @@ final case class Evaluator private[mill] (
     Plan.plan(goals)
   }
 
-  def evalOrThrow(exceptionFactory: EvalResults => Throwable =
+  def evalOrThrow(exceptionFactory: ExecResults => Throwable =
     r =>
       new Exception(s"Failure during task evaluation: ${formatFailing(r)}"))
       : Evaluator.EvalOrThrow =
@@ -152,7 +152,7 @@ final case class Evaluator private[mill] (
 
     selectedTargetsOrErr match {
       case (selectedTargets, selectiveResults) =>
-        val evaluated: EvalResults = evaluate(selectedTargets, serialCommandExec = true)
+        val evaluated: ExecResults = evaluate(selectedTargets, serialCommandExec = true)
         @scala.annotation.nowarn("msg=cannot be checked at runtime")
         val watched = (evaluated.results.iterator ++ selectiveResults)
           .collect {
@@ -203,7 +203,7 @@ final case class Evaluator private[mill] (
 
 private[mill] object Evaluator {
 
-  class EvalOrThrow(evaluator: Evaluator, exceptionFactory: EvalResults => Throwable) {
+  class EvalOrThrow(evaluator: Evaluator, exceptionFactory: ExecResults => Throwable) {
     def apply[T: ClassTag](task: Task[T]): T =
       evaluator.evaluate(Agg(task)) match {
         case r if r.failing.items().nonEmpty =>
@@ -237,7 +237,7 @@ private[mill] object Evaluator {
 
   val defaultEnv: Map[String, String] = System.getenv().asScala.toMap
 
-  def formatFailing(evaluated: EvalResults): String = {
+  def formatFailing(evaluated: ExecResults): String = {
     (for ((k, fs) <- evaluated.failing.items())
       yield {
         val fss = fs.map {
