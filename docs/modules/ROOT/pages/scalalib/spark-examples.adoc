@@ -1,0 +1,26 @@
+= Scala Spark Examples
+:page-aliases: Web_Build_Examples.adoc, Scala_Web_Examples.adoc
+
+
+
+
+This page contains examples of using Mill as a build tool with Spark application.
+It includes step-by-step guides for setting up a simple Scala Spark project,
+building an assembly JAR, and working with a more complex Spark application.
+Additionally, it demonstrates PySpark usage for Python-based workflows.
+
+== Simple Scala Spark Example
+
+include::partial$example/scalalib/spark/1-hello-spark.adoc[]
+
+== Scala Assembly Example
+
+include::partial$example/scalalib/spark/2-assembly-jar.adoc[]
+
+== Scala Realistic Spark Example
+
+include::partial$example/scalalib/spark/3-realistic-spark.adoc[]
+
+== Python PySpark Example
+
+include::partial$example/scalalib/spark/4-hello-pyspark.adoc[]
