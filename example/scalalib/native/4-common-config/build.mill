@@ -18,7 +18,7 @@ object `package` extends RootModule with ScalaNativeModule {
   def nativeIncrementalCompilation: T[Boolean] = true
 
   // Set nativeLinkingOptions path to a directory named `target`.
-  def nativeLinkingOptions = Seq("-L" + millSourcePath.toString + "/target")
+  def nativeLinkingOptions = Seq("-L" + moduleDir.toString + "/target")
 
   // Set nativeWorkdir directory to `newDir`
   def nativeWorkdir = Task.dest / "newDir"

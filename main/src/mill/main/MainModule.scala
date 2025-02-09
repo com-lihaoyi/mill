@@ -1,7 +1,7 @@
 package mill.main
 
-import mill.api._
-import mill.define._
+import mill.api.*
+import mill.define.*
 import mill.eval.Evaluator
 import mill.exec.ExecutionPaths
 import mill.moduledefs.Scaladoc
@@ -9,6 +9,7 @@ import mill.resolve.SelectMode.Separated
 import mill.resolve.SelectMode
 import mill.util.Util
 import mill.define.Watchable
+import mill.main.client.DebugLog
 import pprint.{Renderer, Tree, Truncated}
 
 import java.util.concurrent.LinkedBlockingQueue
@@ -223,6 +224,8 @@ trait MainModule extends BaseModule {
       def pprintTask(t: NamedTask[?], evaluator: Evaluator): Tree.Lazy = {
         val seen = mutable.Set.empty[Task[?]]
 
+        DebugLog.println(t.toString)
+        DebugLog.println(t.ctx.segments.toString)
         def rec(t: Task[?]): Seq[Segments] = {
           if (seen(t)) Nil // do nothing
           else t match {

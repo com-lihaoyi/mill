@@ -75,7 +75,7 @@ trait NettyModule extends NettyBaseModule {
   object test extends NettyBaseTestSuiteModule with MavenTests {
     def moduleDeps = super.moduleDeps ++ testModuleDeps
     def ivyDeps = super.ivyDeps() ++ testIvyDeps()
-    def forkWorkingDir = NettyModule.this.millSourcePath
+    def forkWorkingDir = NettyModule.this.moduleDir
     def forkArgs = super.forkArgs() ++ Seq(
       "-Dnativeimage.handlerMetadataArtifactId=netty-" + NettyModule.this.millModuleSegments.last.value
     )

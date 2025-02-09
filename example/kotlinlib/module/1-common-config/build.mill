@@ -15,12 +15,12 @@ object `package` extends RootModule with KotlinModule {
 
   // Add (or replace) source folders for the module to use
   def sources = Task.Sources {
-    super.sources() ++ Seq(PathRef(millSourcePath / "custom-src"))
+    super.sources() ++ Seq(PathRef(moduleDir / "custom-src"))
   }
 
   // Add (or replace) resource folders for the module to use
   def resources = Task.Sources {
-    super.resources() ++ Seq(PathRef(millSourcePath / "custom-resources"))
+    super.resources() ++ Seq(PathRef(moduleDir / "custom-resources"))
   }
 
   // Generate sources at build time

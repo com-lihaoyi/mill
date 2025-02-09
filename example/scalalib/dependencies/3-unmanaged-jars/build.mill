@@ -13,8 +13,8 @@ import mill._, scalalib._
 object `package` extends RootModule with ScalaModule {
   def scalaVersion = "2.13.8"
   def unmanagedClasspath = Task {
-    if (!os.exists(millSourcePath / "lib")) Agg()
-    else Agg.from(os.list(millSourcePath / "lib").map(PathRef(_)))
+    if (!os.exists(moduleDir / "lib")) Agg()
+    else Agg.from(os.list(moduleDir / "lib").map(PathRef(_)))
   }
 }
 

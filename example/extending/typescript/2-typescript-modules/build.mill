@@ -25,7 +25,7 @@ trait TypeScriptModule extends Module {
     PathRef(Task.dest)
   }
 
-  def mainFileName = Task { s"${millSourcePath.last}.js" }
+  def mainFileName = Task { s"${moduleDir.last}.js" }
   def run(args: mill.define.Args) = Task.Command {
     val mainFile = compile().path / mainFileName()
     os.call(("node", mainFile, args.value), stdout = os.Inherit)

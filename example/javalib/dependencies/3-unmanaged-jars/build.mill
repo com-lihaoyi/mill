@@ -4,7 +4,7 @@ import mill._, javalib._
 
 object `package` extends RootModule with JavaModule {
   def unmanagedClasspath = Task {
-    if (!os.exists(millSourcePath / "lib")) Agg()
-    else Agg.from(os.list(millSourcePath / "lib").map(PathRef(_)))
+    if (!os.exists(moduleDir / "lib")) Agg()
+    else Agg.from(os.list(moduleDir / "lib").map(PathRef(_)))
   }
 }
