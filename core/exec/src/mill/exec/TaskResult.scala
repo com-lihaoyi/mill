@@ -1,4 +1,5 @@
-package mill.eval
+package mill.exec
+
 import mill.api.Result
 
 case class TaskResult[T](result: Result[T], recalc: () => Result[T]) {

@@ -1,6 +1,7 @@
 package mill.eval
 
-import utest._
+import mill.exec.EvaluatorPaths
+import utest.*
 
 object EvaluatorPathsTests extends TestSuite {
 

@@ -3,7 +3,7 @@ package mill.scalanativelib
 import java.util.jar.JarFile
 import mill._
 import mill.define.Discover
-import mill.eval.EvaluatorPaths
+import mill.exec.EvaluatorPaths
 import mill.scalalib.api.ZincWorkerUtil
 import mill.scalalib.{DepSyntax, PublishModule, ScalaModule, TestModule}
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}

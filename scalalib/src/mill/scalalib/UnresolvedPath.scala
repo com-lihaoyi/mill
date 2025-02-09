@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import mill.define.{Segment, Segments}
-import mill.eval.{EvaluatorPaths, EvaluatorPathsResolver}
+import mill.exec.{EvaluatorPaths, EvaluatorPathsResolver}
 import os.Path
 import upickle.default.{ReadWriter, macroRW}
 
@@ -9,7 +9,7 @@ import upickle.default.{ReadWriter, macroRW}
  * An unresolved path is relative to some unspecified destination
  * which depends on the actual configuration at evaluation time.
  * Hence, you need to call [[#resolve]] with an instance of
- * [[mill.eval.EvaluatorPathsResolver]] to get the final [[os.Path]].
+ * [[EvaluatorPathsResolver]] to get the final [[os.Path]].
  */
 sealed trait UnresolvedPath {
   def resolve(pathResolver: EvaluatorPathsResolver): Path

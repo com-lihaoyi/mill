@@ -2,7 +2,8 @@ package mill.eval
 
 import mill.api.{Strict, Val}
 import mill.define.{InputImpl, NamedTask, Task}
-import mill.eval.{CodeSigUtils, Evaluator, EvaluatorCore, Plan, TaskResult}
+import mill.eval.Evaluator
+import mill.exec.{CodeSigUtils, EvaluatorCore, Plan, TaskResult}
 import mill.internal.SpanningForest
 import mill.internal.SpanningForest.breadthFirst
 import mill.main.client.OutFiles

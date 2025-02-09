@@ -1,4 +1,5 @@
-package mill.eval
+package mill.exec
+
 import mill.api.*
 import mill.api.Strict.Agg
 import mill.define.*

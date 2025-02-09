@@ -1,4 +1,4 @@
-package mill.eval
+package mill.exec
 
 import mill.api.internal
 import mill.define.{NamedTask, Segment, Segments}

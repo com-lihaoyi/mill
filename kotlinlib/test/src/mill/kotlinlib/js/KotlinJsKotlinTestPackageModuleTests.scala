@@ -4,7 +4,7 @@ package js
 
 import mill.api.Result
 import mill.define.Discover
-import mill.eval.EvaluatorPaths
+import mill.exec.EvaluatorPaths
 import mill.testkit.{TestBaseModule, UnitTester}
 import sbt.testing.Status
 import utest.{TestSuite, Tests, assert, test}

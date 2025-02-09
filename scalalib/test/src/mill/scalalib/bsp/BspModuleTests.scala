@@ -1,13 +1,13 @@
 package mill.scalalib.bsp
 
 import mill.define.{Cross, Discover}
-import mill.eval.EvaluatorPaths
+import mill.exec.EvaluatorPaths
 import mill.{Agg, T}
 import mill.scalalib.{DepSyntax, JavaModule, ScalaModule}
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import os.FilePath
-import utest.{TestSuite, Tests, test, *}
+import utest.*
 import mill.main.TokenReaders._
 
 object BspModuleTests extends TestSuite {

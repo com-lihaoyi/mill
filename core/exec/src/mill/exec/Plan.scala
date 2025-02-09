@@ -1,4 +1,5 @@
-package mill.eval
+package mill.exec
+
 import mill.api.Loose.Agg
 import mill.define.{NamedTask, Task}
 import mill.internal.MultiBiMap

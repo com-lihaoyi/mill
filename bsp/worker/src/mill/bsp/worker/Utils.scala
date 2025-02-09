@@ -12,7 +12,8 @@ import ch.epfl.scala.bsp4j.{
 }
 import mill.api.{CompileProblemReporter, PathRef}
 import mill.api.Result.{Skipped, Success}
-import mill.eval.{Evaluator, EvalResults}
+import mill.eval.Evaluator
+import mill.exec.EvalResults
 import mill.scalalib.JavaModule
 import mill.scalalib.bsp.{BspBuildTarget, BspModule}
 

@@ -1,4 +1,4 @@
-package mill.eval
+package mill.exec
 
 import mill.api.Result.{OuterStack, Success}
 import mill.api.Strict.Agg

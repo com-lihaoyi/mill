@@ -2,7 +2,8 @@ package mill.main
 
 import mill.api._
 import mill.define._
-import mill.eval.{Evaluator, EvaluatorPaths}
+import mill.eval.Evaluator
+import mill.exec.EvaluatorPaths
 import mill.moduledefs.Scaladoc
 import mill.resolve.SelectMode.Separated
 import mill.resolve.{Resolve, SelectMode}

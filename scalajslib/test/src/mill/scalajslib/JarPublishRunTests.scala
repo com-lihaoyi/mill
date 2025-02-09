@@ -1,7 +1,7 @@
 package mill.scalajslib
 
 import mill._
-import mill.eval.EvaluatorPaths
+import mill.exec.EvaluatorPaths
 import mill.testkit.UnitTester
 import utest._
 

@@ -4,6 +4,7 @@ import mill.api.{ColorLogger, CompileProblemReporter, DummyTestReporter, Result,
 import mill.api.Strict.Agg
 import mill.define.{BaseModule, NamedTask, Segments, Task}
 import mill.eval.Evaluator.formatFailing
+import mill.exec.{EvalResults, EvaluatorPathsResolver, Plan}
 import mill.internal.{MultiBiMap, Watchable}
 import mill.resolve.SelectMode
 
@@ -55,7 +56,7 @@ trait Evaluator extends AutoCloseable {
 
   def close() = ()
 
-  
+
   def evaluateTasksNamed(
                           scriptArgs: Seq[String],
                           selectMode: SelectMode,

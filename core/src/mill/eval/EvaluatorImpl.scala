@@ -3,6 +3,7 @@ package mill.eval
 import mill.api.{ColorLogger, PathRef, Result, Strict, SystemStreams, Val}
 import mill.api.Strict.Agg
 import mill.define.*
+import mill.exec.{Cached, ChromeProfileLogger, EvalResults, EvaluatorCore, EvaluatorPaths, EvaluatorPathsResolver, Plan, ProfileLogger, TaskResult}
 import mill.internal.Watchable
 import mill.main.client.OutFiles
 import mill.main.client.OutFiles.*
@@ -35,8 +36,8 @@ private[mill] case class EvaluatorImpl(
     override val allowPositionalCommandArgs: Boolean,
     val systemExit: Int => Nothing,
     val exclusiveSystemStreams: SystemStreams,
-    protected[eval] val chromeProfileLogger: ChromeProfileLogger,
-    protected[eval] val profileLogger: ProfileLogger,
+    protected[mill] val chromeProfileLogger: ChromeProfileLogger,
+    protected[mill] val profileLogger: ProfileLogger,
     override val selectiveExecution: Boolean = false
 ) extends Evaluator with EvaluatorCore {
   import EvaluatorImpl._

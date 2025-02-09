@@ -8,7 +8,7 @@ import mill.define.Cross
 import mill.scalalib.api.ZincWorkerUtil
 
 object `package` extends RootModule with build.MillStableScalaModule {
-  def moduleDeps = Seq(define, eval, resolve)
+  def moduleDeps = Seq(define, exec, resolve)
   object api extends build.MillStableScalaModule with BuildInfo {
     def moduleDeps = Seq(client)
     def buildInfoPackageName = "mill.api"
@@ -55,7 +55,7 @@ object `package` extends RootModule with build.MillStableScalaModule {
     )
   }
 
-  object eval extends build.MillStableScalaModule {
+  object exec extends build.MillStableScalaModule {
     def moduleDeps = Seq(define)
   }
 

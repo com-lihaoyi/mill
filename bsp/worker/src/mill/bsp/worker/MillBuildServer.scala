@@ -16,7 +16,8 @@ import mill.bsp.{BspServerResult, Constants}
 import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
 import mill.define.Segment.Label
 import mill.define.{Args, Discover, ExternalModule, NamedTask, Task}
-import mill.eval.{Evaluator, TaskResult, EvalResults}
+import mill.eval.Evaluator
+import mill.exec.{EvalResults, TaskResult}
 import mill.main.MainModule
 import mill.runner.MillBuildRootModule
 import mill.scalalib.bsp.{BspModule, JvmBuildTarget, ScalaBuildTarget}

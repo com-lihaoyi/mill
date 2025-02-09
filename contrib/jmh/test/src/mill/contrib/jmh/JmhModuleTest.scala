@@ -2,7 +2,7 @@ package mill
 package contrib.jmh
 
 import mill.define.Discover
-import mill.eval.EvaluatorPaths
+import mill.exec.EvaluatorPaths
 import mill.scalalib.ScalaModule
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule

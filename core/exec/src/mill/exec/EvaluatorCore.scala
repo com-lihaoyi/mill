@@ -1,4 +1,4 @@
-package mill.eval
+package mill.exec
 
 import mill.api.Result.{Aborted, Failing}
 import mill.api.Strict.Agg
@@ -17,8 +17,8 @@ import scala.concurrent._
 private[mill] trait EvaluatorCore extends GroupEvaluator {
 
   def baseLogger: ColorLogger
-  protected[eval] def chromeProfileLogger: ChromeProfileLogger
-  protected[eval] def profileLogger: ProfileLogger
+  protected[exec] def chromeProfileLogger: ChromeProfileLogger
+  protected[exec] def profileLogger: ProfileLogger
 
   /**
    * @param goals The tasks that need to be evaluated
