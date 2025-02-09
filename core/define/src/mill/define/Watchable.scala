@@ -1,6 +1,7 @@
-package mill.internal
+package mill.define
 
 import mill.api.internal
+import mill.define.Watchable
 
 /**
  * Represents something that can be watched by the Mill build tool. Most often

@@ -1,7 +1,7 @@
 package mill.define
 
 import mill.api.BuildScriptException
-import mill.internal.Lazy
+import mill.define.Lazy
 
 import scala.collection.mutable
 import scala.reflect.ClassTag

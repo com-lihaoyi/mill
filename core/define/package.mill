@@ -4,7 +4,7 @@ import mill._
 import mill.scalalib._
 
 object `package` extends RootModule with build.MillStableScalaModule {
-  def moduleDeps = Seq(build.core.api, build.core.internal)
+  def moduleDeps = Seq(build.core.api)
 
   def compileIvyDeps = Task {
     if (scalaVersion().startsWith("3.")) Agg(build.Deps.scalaCompiler(scalaVersion()))

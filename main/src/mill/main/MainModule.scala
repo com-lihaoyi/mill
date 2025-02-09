@@ -8,7 +8,7 @@ import mill.moduledefs.Scaladoc
 import mill.resolve.SelectMode.Separated
 import mill.resolve.SelectMode
 import mill.util.Util
-import mill.internal.Watchable
+import mill.define.Watchable
 import pprint.{Renderer, Tree, Truncated}
 
 import java.util.concurrent.LinkedBlockingQueue

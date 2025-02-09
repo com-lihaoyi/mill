@@ -14,7 +14,7 @@ import mill.exec.{
   ProfileLogger,
   TaskResult
 }
-import mill.internal.Watchable
+import mill.define.Watchable
 import mill.main.client.OutFiles
 import mill.main.client.OutFiles.*
 import mill.resolve.{Resolve, SelectMode}
