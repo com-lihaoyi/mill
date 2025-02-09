@@ -14,4 +14,4 @@ include::partial$example/scalalib/spark/1-hello-spark.adoc[]
 
 == Semi realistic spark project with spark submit
 
-include::partial$example/scalalib/spark/1-hello-spark.adoc[]
+include::partial$example/scalalib/spark/3-semi-realistic.adoc[]
