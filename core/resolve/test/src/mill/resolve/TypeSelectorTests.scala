@@ -1,9 +1,7 @@
 package mill.resolve
 
-import mill.define.{Discover, ModuleRef, NamedTask, TaskModule}
+import mill.define.Discover
 import mill.testkit.TestBaseModule
-import mill.util.TestGraphs
-import mill.util.TestGraphs.*
 import mill.{Cross, Module, Task}
 import utest.*
 
@@ -73,15 +71,13 @@ object TypeSelectorTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  def isShortError(x: Either[String, _], s: String) =
+  def isShortError(x: Either[String, ?], s: String) =
     x.left.exists(_.contains(s)) &&
       // Make sure the stack traces are truncated and short-ish, and do not
       // contain the entire Mill internal call stack at point of failure
       x.left.exists(_.linesIterator.size < 25)
 
   val tests = Tests {
-    val graphs = new mill.util.TestGraphs()
-    import graphs.*
     test("typeSelector") {
       val check = new Checker(TypedModules)
       test - check(

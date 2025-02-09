@@ -132,7 +132,7 @@ trait ZincWorkerUtil {
    */
   def versionRanges(version: String, allVersions: Seq[String]): Seq[String] = {
     import scala.math.Ordering.Implicits._
-    val versionParts = version.split('.').map(_.toIntOption).takeWhile(_.isDefined).map(_.get)
+    val versionParts = version.split('.').map(_.toIntOption).takeWhile(_.isDefined).map(_.get).toSeq
     val all = allVersions.flatMap(
       _.split('.').inits
         .flatMap { l =>

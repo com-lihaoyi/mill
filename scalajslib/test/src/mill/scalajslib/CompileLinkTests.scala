@@ -86,11 +86,11 @@ object CompileLinkTests extends TestSuite {
     val jsFile =
       if (legacy) {
         val task = if (optimize) module.fullLinkJS else module.fastLinkJS
-        val Right(result) = eval(task)
+        val Right(result) = eval(task): @unchecked
         result.value.dest.path
       } else {
         val task = if (optimize) module.fullLinkJS else module.fastLinkJS
-        val Right(result) = eval(task)
+        val Right(result) = eval(task): @unchecked
         result.value.dest.path / result.value.publicModules.head.jsFileName
       }
     val output = ScalaJsUtils.runJS(jsFile)
@@ -109,7 +109,7 @@ object CompileLinkTests extends TestSuite {
     test("compile") - UnitTester(HelloJSWorld, millSourcePath).scoped { eval =>
       def testCompileFromScratch(scalaVersion: String, scalaJSVersion: String): Unit = {
         val Right(result) =
-          eval(HelloJSWorld.build(scalaVersion, scalaJSVersion).compile)
+          eval(HelloJSWorld.build(scalaVersion, scalaJSVersion).compile): @unchecked
 
         val outPath = result.value.classes.path
         val outputFiles = os.walk(outPath)
@@ -121,7 +121,7 @@ object CompileLinkTests extends TestSuite {
 
         // don't recompile if nothing changed
         val Right(result2) =
-          eval(HelloJSWorld.build(scalaVersion, scalaJSVersion).compile)
+          eval(HelloJSWorld.build(scalaVersion, scalaJSVersion).compile): @unchecked
         assert(result2.evalCount == 0)
       }
 

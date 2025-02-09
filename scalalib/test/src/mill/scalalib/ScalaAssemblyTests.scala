@@ -1,11 +1,10 @@
 package mill.scalalib
 
 import mill._
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.UnitTester
 import utest._
 
 import java.util.jar.JarFile
-import scala.util.Using
 import HelloWorldTests._
 object ScalaAssemblyTests extends TestSuite with ScalaAssemblyTestUtils {
 
@@ -14,7 +13,8 @@ object ScalaAssemblyTests extends TestSuite with ScalaAssemblyTestUtils {
     test("assembly") {
       test("assembly") - UnitTester(HelloWorldTests.HelloWorldWithMain, resourcePath).scoped {
         eval =>
-          val Right(result) = eval.apply(HelloWorldTests.HelloWorldWithMain.core.assembly)
+          val Right(result) =
+            eval.apply(HelloWorldTests.HelloWorldWithMain.core.assembly): @unchecked
           assert(
             os.exists(result.value.path),
             result.evalCount > 0
@@ -33,7 +33,7 @@ object ScalaAssemblyTests extends TestSuite with ScalaAssemblyTestUtils {
       }
 
       test("run") - UnitTester(HelloWorldTests.HelloWorldWithMain, resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorldTests.HelloWorldWithMain.core.assembly)
+        val Right(result) = eval.apply(HelloWorldTests.HelloWorldWithMain.core.assembly): @unchecked
 
         assert(
           os.exists(result.value.path),

@@ -3,30 +3,7 @@ package mill.main
 import mainargs.TokensReader
 import mill.eval.Evaluator
 import mill.define.{Args, Task}
-import mill.resolve.{Resolve, SelectMode}
 import mill.resolve.SimpleTaskTokenReader
-
-case class Tasks[T](value: Seq[mill.define.NamedTask[T]])
-
-object Tasks {
-  def resolveMainDefault[T](tokens: String*): Tasks[T] = {
-    new Tasks.TokenReader[T]()
-      .read(tokens)
-      .getOrElse(sys.error("Unable to resolve: " + tokens.mkString(" ")))
-  }
-  private[mill] class TokenReader[T]() extends mainargs.TokensReader.Simple[Tasks[T]] {
-    def shortName = "tasks"
-    def read(s: Seq[String]): Either[String, Tasks[T]] = {
-      Resolve.Tasks.resolve(
-        Evaluator.currentEvaluator.value.rootModule,
-        s,
-        SelectMode.Separated
-      ).map(x => Tasks(x.asInstanceOf[Seq[mill.define.NamedTask[T]]]))
-    }
-    override def alwaysRepeatable = false
-    override def allowEmpty = false
-  }
-}
 
 private[mill] class EvaluatorTokenReader[T]() extends mainargs.TokensReader.Constant[Evaluator] {
   def read(): Either[String, Evaluator] = Right(Evaluator.currentEvaluator.value)
@@ -37,7 +14,7 @@ private[mill] class AllEvaluatorsTokenReader[T]()
     Right(Evaluator.allBootstrapEvaluators.value)
 }
 
-private class LeftoverTaskTokenReader[T](tokensReaderOfT: TokensReader.Leftover[T, _])
+private class LeftoverTaskTokenReader[T](tokensReaderOfT: TokensReader.Leftover[T, ?])
     extends mainargs.TokensReader.Leftover[Task[T], T] {
   def read(strs: Seq[String]): Either[String, Task[T]] =
     tokensReaderOfT.read(strs).map(t => mill.define.Task.Anon(t))

@@ -4,6 +4,7 @@ import mill.api.{Logger, SystemStreams}
 
 import java.io.PrintStream
 import java.net.URL
+import scala.util.boundary
 
 private trait BspWorker {
   def startBspServer(
@@ -17,14 +18,14 @@ private trait BspWorker {
 
 private object BspWorker {
 
-  private[this] var worker: Option[BspWorker] = None
+  private var worker: Option[BspWorker] = None
 
   def apply(
       workspace: os.Path,
       home0: os.Path,
       log: Logger,
       workerLibs: Option[Seq[URL]] = None
-  ): Either[String, BspWorker] = {
+  ): Either[String, BspWorker] = boundary {
     worker match {
       case Some(x) => Right(x)
       case None =>
@@ -35,9 +36,9 @@ private object BspWorker {
           // load extra classpath entries from file
           val resources = s"${Constants.serverName}-${mill.main.BuildInfo.millVersion}.resources"
           val cpFile = workspace / Constants.bspDir / resources
-          if (!os.exists(cpFile)) return Left(
+          if (!os.exists(cpFile)) boundary.break(Left(
             "You need to run `mill mill.bsp.BSP/install` before you can use the BSP server"
-          )
+          ))
 
           // TODO: if outdated, we could regenerate the resource file and re-load the worker
 

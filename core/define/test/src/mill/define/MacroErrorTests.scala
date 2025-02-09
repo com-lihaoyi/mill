@@ -1,8 +1,6 @@
 package mill.define
 
 import utest._
-import mill.{T, Module}
-import mill.util.TestUtil
 import mill.testkit.TestBaseModule
 object MacroErrorTests extends TestSuite {
 

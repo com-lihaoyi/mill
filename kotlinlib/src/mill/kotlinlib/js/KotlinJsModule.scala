@@ -174,8 +174,6 @@ trait KotlinJsModule extends KotlinModule { outer =>
           "Interactive Subprocess Failed (exit code " + processResult.exitCode + ")",
           Some(processResult.exitCode)
         )
-      case Some(x) =>
-        Result.Failure(s"Run target $x is not supported")
       case None =>
         Result.Failure("Executable binary should have a run target selected.")
     }
@@ -315,6 +313,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
           case ModuleKind.PlainModule => "plain"
           case ModuleKind.ESModule => "es"
           case ModuleKind.CommonJSModule => "commonjs"
+          case ModuleKind.NoModule => ???
         }
       )
     }
@@ -524,7 +523,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     override def testLocal(args: String*): Command[(String, Seq[TestResult])] =
       Task.Command {
-        this.test(args: _*)()
+        this.test(args*)()
       }
 
     override protected[js] def friendModule: Option[KotlinJsModule] = Some(outer)

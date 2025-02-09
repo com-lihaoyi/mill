@@ -95,7 +95,7 @@ object ParseArgsTests extends TestSuite {
           multiSelect: Boolean
       ) = {
         val Right((selectors0, args) :: _) =
-          ParseArgs(input, if (multiSelect) SelectMode.Multi else SelectMode.Separated)
+          ParseArgs(input, if (multiSelect) SelectMode.Multi else SelectMode.Separated): @unchecked
 
         val selectors = selectors0.map {
           case (Some(v1), Some(v2)) => (Some(v1.value), v2.value)
@@ -233,7 +233,7 @@ object ParseArgsTests extends TestSuite {
           input: Seq[String],
           expectedSelectorArgPairs: Seq[(Seq[(Option[Seq[Segment]], Seq[Segment])], Seq[String])]
       ) = {
-        val Right(parsed) = ParseArgs(input, selectMode)
+        val Right(parsed) = ParseArgs(input, selectMode): @unchecked
         val actual = parsed.map {
           case (selectors0, args) =>
             val selectors = selectors0.map {

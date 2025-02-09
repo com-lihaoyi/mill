@@ -172,8 +172,6 @@ trait CoursierSupport {
           Result.Failure(
             s"Failed to load ${if (sources) "source " else ""}dependencies" + errorDetails
           )
-        case Left(error) =>
-          Result.Exception(error, new Result.OuterStack((new Exception).getStackTrace))
         case Right(res) =>
           Result.Success(
             Agg.from(
@@ -262,7 +260,7 @@ trait CoursierSupport {
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
 
     val resolutionParams0 = resolutionParams
-      .addForceVersion(forceVersions.toSeq: _*)
+      .addForceVersion(forceVersions.toSeq*)
 
     val testOverridesRepo =
       new TestOverridesRepo(os.resource(getClass.getClassLoader) / "mill/local-test-overrides")
@@ -273,7 +271,7 @@ trait CoursierSupport {
       .withRepositories(testOverridesRepo +: repositories)
       .withResolutionParams(resolutionParams0)
       .withMapDependenciesOpt(mapDependencies)
-      .withBoms(boms.toSeq)
+      .withBoms(boms.iterator.toSeq)
 
     resolve.either() match {
       case Left(error) =>

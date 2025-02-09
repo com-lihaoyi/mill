@@ -7,7 +7,7 @@ object ExpandBracesTests extends TestSuite {
   val tests = Tests {
     test("expandBraces") {
       def check(input: String, expectedExpansion: List[String]) = {
-        val Right(expanded) = ExpandBraces.expandBraces(input)
+        val Right(expanded) = ExpandBraces.expandBraces(input): @unchecked
 
         assert(expanded == expectedExpansion)
       }
@@ -50,7 +50,7 @@ object ExpandBracesTests extends TestSuite {
         val malformed = Seq("core.{compile", "core.{compile,test]")
 
         malformed.foreach { m =>
-          val Left(error) = ExpandBraces.expandBraces(m)
+          val Left(error) = ExpandBraces.expandBraces(m): @unchecked
           assert(error.contains("Parsing exception"))
         }
       }

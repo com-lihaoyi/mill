@@ -1,18 +1,16 @@
 package mill.scalalib
 
-import java.io.{ByteArrayOutputStream, PrintStream}
+import java.io.ByteArrayOutputStream
 import java.util.jar.JarFile
 import scala.jdk.CollectionConverters.*
-import scala.util.{Properties, Using}
+import scala.util.Using
 import mill.*
 import mill.api.Result
-import mill.define.{Discover, NamedTask}
-import mill.eval.{Evaluator, EvaluatorPaths}
+import mill.define.Discover
+import mill.exec.ExecutionPaths
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
-import mill.util.TestUtil
 import utest.*
-import utest.framework.TestPath
 
 object HelloWorldTests extends TestSuite {
 
@@ -123,7 +121,7 @@ object HelloWorldTests extends TestSuite {
     test("scalaVersion") {
 
       test("fromBuild") - UnitTester(HelloWorld, resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorld.core.scalaVersion)
+        val Right(result) = eval.apply(HelloWorld.core.scalaVersion): @unchecked
 
         assert(
           result.value == scala212Version,
@@ -131,7 +129,7 @@ object HelloWorldTests extends TestSuite {
         )
       }
       test("override") - UnitTester(HelloWorldScalaOverride, resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorldScalaOverride.core.scalaVersion)
+        val Right(result) = eval.apply(HelloWorldScalaOverride.core.scalaVersion): @unchecked
 
         assert(
           result.value == scala213Version,
@@ -142,7 +140,7 @@ object HelloWorldTests extends TestSuite {
 
     test("scalacOptions") {
       test("emptyByDefault") - UnitTester(HelloWorld, resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorld.core.scalacOptions)
+        val Right(result) = eval.apply(HelloWorld.core.scalacOptions): @unchecked
 
         assert(
           result.value.isEmpty,
@@ -150,7 +148,7 @@ object HelloWorldTests extends TestSuite {
         )
       }
       test("override") - UnitTester(HelloWorldFatalWarnings, resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorldFatalWarnings.core.scalacOptions)
+        val Right(result) = eval.apply(HelloWorldFatalWarnings.core.scalacOptions): @unchecked
 
         assert(
           result.value == Seq("-Ywarn-unused", "-Xfatal-warnings"),
@@ -161,7 +159,7 @@ object HelloWorldTests extends TestSuite {
 
     test("compile") {
       test("fromScratch") - UnitTester(HelloWorld, sourceRoot = resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorld.core.compile)
+        val Right(result) = eval.apply(HelloWorld.core.compile): @unchecked
 
         val classesPath = eval.outPath / "core/compile.dest/classes"
         val analysisFile = result.value.analysisFile
@@ -176,7 +174,7 @@ object HelloWorldTests extends TestSuite {
         )
 
         // don't recompile if nothing changed
-        val Right(result2) = eval.apply(HelloWorld.core.compile)
+        val Right(result2) = eval.apply(HelloWorld.core.compile): @unchecked
 
         assert(result2.evalCount == 0)
 
@@ -191,7 +189,7 @@ object HelloWorldTests extends TestSuite {
         HelloWorldNonPrecompiledBridge,
         sourceRoot = resourcePath
       ).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorldNonPrecompiledBridge.core.compile)
+        val Right(result) = eval.apply(HelloWorldNonPrecompiledBridge.core.compile): @unchecked
 
         val classesPath = eval.outPath / "core/compile.dest/classes"
 
@@ -207,7 +205,7 @@ object HelloWorldTests extends TestSuite {
         )
 
         // don't recompile if nothing changed
-        val Right(result2) = eval.apply(HelloWorldNonPrecompiledBridge.core.compile)
+        val Right(result2) = eval.apply(HelloWorldNonPrecompiledBridge.core.compile): @unchecked
 
         assert(result2.evalCount == 0)
 
@@ -219,20 +217,21 @@ object HelloWorldTests extends TestSuite {
       }
 
       test("recompileOnChange") - UnitTester(HelloWorld, sourceRoot = resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorld.core.compile)
+        val Right(result) = eval.apply(HelloWorld.core.compile): @unchecked
         assert(result.evalCount > 0)
 
         os.write.append(HelloWorld.millSourcePath / "core/src/Main.scala", "\n")
 
-        val Right(result2) = eval.apply(HelloWorld.core.compile)
+        val Right(result2) = eval.apply(HelloWorld.core.compile): @unchecked
         assert(result2.evalCount > 0, result2.evalCount < result.evalCount)
       }
       test("failOnError") - UnitTester(HelloWorld, sourceRoot = resourcePath).scoped { eval =>
         os.write.append(HelloWorld.millSourcePath / "core/src/Main.scala", "val x: ")
 
-        val Left(Result.Failure("Compilation failed", _)) = eval.apply(HelloWorld.core.compile)
+        val Left(Result.Failure("Compilation failed", _)) =
+          eval.apply(HelloWorld.core.compile): @unchecked
 
-        val paths = EvaluatorPaths.resolveDestPaths(eval.outPath, HelloWorld.core.compile)
+        val paths = ExecutionPaths.resolveDestPaths(eval.outPath, HelloWorld.core.compile)
 
         assert(
           os.walk(paths.dest / "classes").isEmpty,
@@ -246,7 +245,7 @@ object HelloWorldTests extends TestSuite {
           )
         )
 
-        val Right(_) = eval.apply(HelloWorld.core.compile)
+        val Right(_) = eval.apply(HelloWorld.core.compile): @unchecked
       }
       test("passScalacOptions") - UnitTester(
         HelloWorldFatalWarnings,
@@ -254,20 +253,20 @@ object HelloWorldTests extends TestSuite {
       ).scoped { eval =>
         // compilation fails because of "-Xfatal-warnings" flag
         val Left(Result.Failure("Compilation failed", _)) =
-          eval.apply(HelloWorldFatalWarnings.core.compile)
+          eval.apply(HelloWorldFatalWarnings.core.compile): @unchecked
       }
     }
 
     test("artifactNameCross") - UnitTester(CrossHelloWorld, sourceRoot = resourcePath).scoped {
       eval =>
         val Right(result) =
-          eval.apply(CrossHelloWorld.core(scala213Version).artifactName)
+          eval.apply(CrossHelloWorld.core(scala213Version).artifactName): @unchecked
         assert(result.value == "core")
     }
 
     test("jar") {
       test("nonEmpty") - UnitTester(HelloWorldWithMain, resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorldWithMain.core.jar)
+        val Right(result) = eval.apply(HelloWorldWithMain.core.jar): @unchecked
 
         assert(
           os.exists(result.value.path),

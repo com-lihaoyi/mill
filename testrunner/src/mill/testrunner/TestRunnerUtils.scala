@@ -36,7 +36,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       cl: ClassLoader,
       framework: Framework,
       classpath: Loose.Agg[os.Path]
-  ): Loose.Agg[(Class[_], Fingerprint)] = {
+  ): Loose.Agg[(Class[?], Fingerprint)] = {
 
     val fingerprints = framework.fingerprints()
 
@@ -45,7 +45,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       // the tests to run Instead just don't run anything
       .filter(os.exists(_))
       .flatMap { base =>
-        Loose.Agg.from[(Class[_], Fingerprint)](
+        Loose.Agg.from[(Class[?], Fingerprint)](
           listClassFiles(base).map { path =>
             val cls = cl.loadClass(path.stripSuffix(".class").replace('/', '.'))
             val publicConstructorCount =
@@ -82,10 +82,10 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
 
   def matchFingerprints(
       cl: ClassLoader,
-      cls: Class[_],
+      cls: Class[?],
       fingerprints: Array[Fingerprint],
       isModule: Boolean
-  ): Option[(Class[_], Fingerprint)] = {
+  ): Option[(Class[?], Fingerprint)] = {
     fingerprints.find {
       case f: SubclassFingerprint =>
         f.isModule == isModule &&
@@ -108,7 +108,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
   def getTestTasks(
       framework: Framework,
       args: Seq[String],
-      classFilter: Class[_] => Boolean,
+      classFilter: Class[?] => Boolean,
       cl: ClassLoader,
       testClassfilePath: Loose.Agg[Path]
   ): (Runner, Array[Task]) = {
@@ -130,7 +130,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
   }
 
   def runTasks(tasks: Seq[Task], testReporter: TestReporter, runner: Runner)(implicit
-      ctx: Ctx.Log with Ctx.Home
+      ctx: Ctx.Log & Ctx.Home
   ): (String, Iterator[TestResult]) = {
     val events = new ConcurrentLinkedQueue[Event]()
     val doneMessage = {
@@ -194,16 +194,16 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       frameworkInstances: ClassLoader => Framework,
       testClassfilePath: Loose.Agg[Path],
       args: Seq[String],
-      classFilter: Class[_] => Boolean,
+      classFilter: Class[?] => Boolean,
       cl: ClassLoader,
       testReporter: TestReporter
-  )(implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[TestResult]) = {
+  )(implicit ctx: Ctx.Log & Ctx.Home): (String, Seq[TestResult]) = {
 
     val framework = frameworkInstances(cl)
 
     val (runner, tasks) = getTestTasks(framework, args, classFilter, cl, testClassfilePath)
 
-    val (doneMessage, results) = runTasks(tasks, testReporter, runner)
+    val (doneMessage, results) = runTasks(tasks.toSeq, testReporter, runner)
 
     (doneMessage, results.toSeq)
   }
@@ -212,7 +212,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
       frameworkInstances: ClassLoader => Framework,
       testClassfilePath: Loose.Agg[Path],
       args: Seq[String],
-      classFilter: Class[_] => Boolean,
+      classFilter: Class[?] => Boolean,
       cl: ClassLoader
   ): Array[String] = {
     val framework = frameworkInstances(cl)

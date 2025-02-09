@@ -1,14 +1,13 @@
 package mill.scalalib.bsp
 
 import mill.define.{Cross, Discover}
-import mill.eval.EvaluatorPaths
-import mill.{Agg, T, Task}
+import mill.exec.ExecutionPaths
+import mill.{Agg, T}
 import mill.scalalib.{DepSyntax, JavaModule, ScalaModule}
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import os.FilePath
-import utest.framework.TestPath
-import utest.{TestSuite, Tests, test, *}
+import utest.*
 import mill.main.TokenReaders._
 
 object BspModuleTests extends TestSuite {
@@ -48,7 +47,7 @@ object BspModuleTests extends TestSuite {
       test("single module") - UnitTester(MultiBase, null).scoped { eval =>
         val Right(result) = eval.apply(
           MultiBase.HelloBsp.bspCompileClasspath
-        )
+        ): @unchecked
 
         val relResult =
           result.value.iterator.map(_.resolve(eval.evaluator.pathsResolver).last).toSeq.sorted
@@ -66,7 +65,7 @@ object BspModuleTests extends TestSuite {
       test("dependent module") - UnitTester(MultiBase, null).scoped { eval =>
         val Right(result) = eval.apply(
           MultiBase.HelloBsp2.bspCompileClasspath
-        )
+        ): @unchecked
 
         val relResults: Seq[FilePath] = result.value.iterator.map { p =>
           val path = p.resolve(eval.evaluator.pathsResolver)
@@ -78,7 +77,7 @@ object BspModuleTests extends TestSuite {
         val expected: Seq[FilePath] = Seq(
           MultiBase.HelloBsp.millSourcePath / "compile-resources",
           MultiBase.HelloBsp2.millSourcePath / "compile-resources",
-          EvaluatorPaths.resolveDestPaths(eval.outPath, MultiBase.HelloBsp.compile)
+          ExecutionPaths.resolveDestPaths(eval.outPath, MultiBase.HelloBsp.compile)
             .dest / "classes",
           os.rel / "slf4j-api-1.7.34.jar",
           os.rel / "logback-core-1.1.10.jar",
@@ -97,7 +96,7 @@ object BspModuleTests extends TestSuite {
             val start = System.currentTimeMillis()
             val Right(_) = eval.apply(
               InterDeps.Mod(entry).compileClasspath
-            )
+            ): @unchecked
             val timeSpent = System.currentTimeMillis() - start
             assert(timeSpent < maxTime)
             s"${timeSpent} msec"
@@ -111,7 +110,7 @@ object BspModuleTests extends TestSuite {
             val start = System.currentTimeMillis()
             val Right(_) = eval.apply(
               InterDeps.Mod(entry).bspCompileClasspath
-            )
+            ): @unchecked
             val timeSpent = System.currentTimeMillis() - start
             assert(timeSpent < maxTime)
             s"${timeSpent} msec"

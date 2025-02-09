@@ -1,78 +1,8 @@
 package build.core
 // imports
 import mill._
-import mill.scalalib._
-import mill.contrib.buildinfo.BuildInfo
-import mill.T
-import mill.define.Cross
-import mill.scalalib.api.ZincWorkerUtil
 
-object `package` extends RootModule {
-  object api extends build.MillStableScalaModule with BuildInfo {
-    def moduleDeps = Seq(client)
-    def buildInfoPackageName = "mill.api"
-    def buildInfoMembers = Seq(
-      BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
-      BuildInfo.Value("millDocUrl", build.Settings.docUrl, "Mill documentation url."),
-      BuildInfo.Value(
-        "millReportNewIssueUrl",
-        build.Settings.newIssueUrl,
-        "URL to create a new issue in Mills issue tracker."
-      )
-    )
-
-    def ivyDeps = Agg(
-      build.Deps.osLib,
-      build.Deps.mainargs,
-      build.Deps.upickle,
-      build.Deps.pprint,
-      build.Deps.fansi,
-      build.Deps.sbtTestInterface
-    )
-  }
-
-  object internal extends build.MillPublishScalaModule {
-    def moduleDeps = Seq(api)
-  }
-  object define extends build.MillStableScalaModule {
-    def moduleDeps = Seq(api, internal)
-    def compileIvyDeps = Task {
-      if (ZincWorkerUtil.isScala3(scalaVersion())) Agg(build.Deps.scalaCompiler(scalaVersion()))
-      else Agg(build.Deps.scalaReflect(scalaVersion()))
-    }
-    def ivyDeps = Agg(
-      build.Deps.millModuledefs,
-      // TODO: somewhere sourcecode is included transitively,
-      // but we need the latest version to bring the macro improvements.
-      build.Deps.sourcecode,
-      // Necessary so we can share the JNA classes throughout the build process
-      build.Deps.jna,
-      build.Deps.jnaPlatform,
-      build.Deps.jarjarabrams,
-      build.Deps.mainargs,
-      build.Deps.scalaparse
-    )
-  }
-
-  object eval extends build.MillStableScalaModule {
-    def moduleDeps = Seq(define)
-  }
-
-  object resolve extends build.MillStableScalaModule {
-    def moduleDeps = Seq(define)
-  }
-
-  object client extends build.MillPublishJavaModule with BuildInfo {
-    def buildInfoPackageName = "mill.main.client"
-    def buildInfoMembers = Seq(BuildInfo.Value("millVersion", build.millVersion(), "Mill version."))
-
-    object test extends JavaTests with TestModule.Junit4 {
-      def ivyDeps = Agg(build.Deps.junitInterface, build.Deps.commonsIo)
-    }
-  }
-
-  object server extends build.MillPublishScalaModule {
-    def moduleDeps = Seq(client, api)
-  }
+object `package` extends RootModule with build.MillStableScalaModule {
+  def moduleDeps = Seq(build.core.define, build.core.exec, build.core.resolve)
 
 }

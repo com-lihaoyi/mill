@@ -94,7 +94,7 @@ object PrintLogger {
   class StateStream(wrapped: OutputStream, setprintLoggerState0: State.Value => Unit)
       extends OutputStream {
 
-    private[this] def setprintLoggerState(c: Char) = setprintLoggerState0(
+    private def setprintLoggerState(c: Char) = setprintLoggerState0(
       c match {
         case '\n' => State.Newline
         case '\r' => State.Newline

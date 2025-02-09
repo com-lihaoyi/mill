@@ -49,7 +49,7 @@ object WasmTests extends TestSuite {
     test("should emit wasm") {
       val evaluator = UnitTester(Wasm, millSourcePath)
       val Right(result) =
-        evaluator(Wasm.fastLinkJS)
+        evaluator(Wasm.fastLinkJS): @unchecked
       val publicModules = result.value.publicModules.toSeq
       val path = result.value.dest.path
       val main = publicModules.head
@@ -64,7 +64,7 @@ object WasmTests extends TestSuite {
 
     test("wasm is runnable") {
       val evaluator = UnitTester(Wasm, millSourcePath)
-      val Right(result) = evaluator(Wasm.fastLinkJS)
+      val Right(result) = evaluator(Wasm.fastLinkJS): @unchecked
       val path = result.value.dest.path
       os.proc("node", "--experimental-wasm-exnref", "main.js").call(
         cwd = path,
@@ -78,7 +78,7 @@ object WasmTests extends TestSuite {
 
     test("should throw for older scalaJS versions") {
       val evaluator = UnitTester(OldWasmModule, millSourcePath)
-      val Left(Result.Exception(ex, _)) = evaluator(OldWasmModule.fastLinkJS)
+      val Left(Result.Exception(ex, _)) = evaluator(OldWasmModule.fastLinkJS): @unchecked
       val error = ex.getMessage
       assert(error == "Emitting wasm is not supported with Scala.js < 1.17")
     }

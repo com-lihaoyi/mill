@@ -1,7 +1,7 @@
 package mill.define
 
 import mill.api.internal
-import scala.collection.JavaConverters.*
+import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 
 /**
@@ -44,7 +44,7 @@ trait Module extends Module.BaseClass with OverrideMapping.Wrapper {
 
   override def toString = millModuleSegments.render
 
-  private[mill] val linearized: Seq[Class[_]] = OverrideMapping.computeLinearization(this.getClass)
+  private[mill] val linearized: Seq[Class[?]] = OverrideMapping.computeLinearization(this.getClass)
 }
 
 object Module {
@@ -71,8 +71,8 @@ object Module {
     lazy val segmentsToModules: Map[Segments, Module] =
       modules.map(m => (m.millModuleSegments, m)).toMap
 
-    lazy val targets: Set[Target[_]] =
-      traverse { _.millInternal.reflectAll[Target[_]].toIndexedSeq }.toSet
+    lazy val targets: Set[Target[?]] =
+      traverse { _.millInternal.reflectAll[Target[?]].toIndexedSeq }.toSet
 
     def reflect[T: ClassTag](filter: String => Boolean): Seq[T] = {
       Reflect.reflect(
@@ -83,6 +83,7 @@ object Module {
         Reflect.getMethods(_, scala.reflect.NameTransformer.decode)
       )
         .map(_.invoke(outer).asInstanceOf[T])
+        .toSeq
     }
 
     def reflectAll[T: ClassTag]: Seq[T] = reflect[T](Function.const(true))
@@ -95,6 +96,7 @@ object Module {
         Reflect.getMethods(_, scala.reflect.NameTransformer.decode)
       )
         .map { case (name, cls, getter) => getter(outer) }
+        .toSeq
     }
   }
 }

@@ -24,7 +24,7 @@ object LauncherTests extends TestSuite {
     def check(executableTask: mill.define.Target[mill.api.PathRef], copyBat: Boolean = false) = {
       val eval = UnitTester(HelloJava, resourcePath)
 
-      val Right(result1) = eval.apply(executableTask)
+      val Right(result1) = eval.apply(executableTask): @unchecked
 
       val executable =
         if (mill.util.Util.windowsPlatform && copyBat) {
@@ -44,7 +44,7 @@ object LauncherTests extends TestSuite {
         .out.text()
       assert(text2.contains("test.property 123"))
       assert(!text2.contains(customJavaVersion))
-      val Right(javaHome) = eval.apply(HelloJava.ZincWorkerJava.javaHome)
+      val Right(javaHome) = eval.apply(HelloJava.ZincWorkerJava.javaHome): @unchecked
 
       val text3 = os
         .call(executable, env = Map("JAVA_HOME" -> javaHome.value.get.path.toString))

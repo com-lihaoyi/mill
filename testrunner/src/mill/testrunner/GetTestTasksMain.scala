@@ -38,8 +38,9 @@ import os.Path
           cls => globFilter(cls.getName),
           classLoader
         )
+        .toSeq
     }
   }
 
-  def main(args: Array[String]): Unit = mainargs.ParserForMethods(this).runOrExit(args)
+  def main(args: Array[String]): Unit = mainargs.ParserForMethods(this).runOrExit(args.toSeq)
 }

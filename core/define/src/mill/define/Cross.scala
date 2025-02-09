@@ -1,7 +1,6 @@
 package mill.define
 
 import mill.api.BuildScriptException
-import mill.internal.Lazy
 
 import scala.collection.mutable
 import scala.reflect.ClassTag
@@ -123,7 +122,7 @@ object Cross {
   }
 
   class Factory[T: ClassTag](
-      val makeList: Seq[(Class[_], mill.define.Ctx => T)],
+      val makeList: Seq[(Class[?], mill.define.Ctx => T)],
       val crossValuesListLists: Seq[Seq[Any]],
       val crossSegmentsList: Seq[Seq[String]],
       val crossValuesRaw: Seq[Any]
@@ -137,12 +136,12 @@ object Cross {
      * expression of type `Any`, but type-checking on the macro-expanded code
      * provides some degree of type-safety.
      */
-    implicit inline def make[M <: Module[_]](inline t: Any): Factory[M] = ${
+    implicit inline def make[M <: Module[?]](inline t: Any): Factory[M] = ${
       macros.CrossMacros.makeImpl[M]('t)
     }
   }
 
-  trait Resolver[-T <: Cross.Module[_]] {
+  trait Resolver[-T <: Cross.Module[?]] {
     def resolve[V <: T](c: Cross[V]): V
   }
 }
@@ -159,7 +158,7 @@ object Cross {
  * }
  * }}}
  */
-class Cross[M <: Cross.Module[_]](factories: Cross.Factory[M]*)(implicit
+class Cross[M <: Cross.Module[?]](factories: Cross.Factory[M]*)(implicit
     ctx: mill.define.Ctx
 ) extends mill.define.Module {
 
@@ -167,7 +166,7 @@ class Cross[M <: Cross.Module[_]](factories: Cross.Factory[M]*)(implicit
     def crossValues: List[Any]
     def crossSegments: List[String]
     def module: Lazy[M]
-    def cls: Class[_]
+    def cls: Class[?]
   }
 
   val items: List[Item] = {
@@ -258,7 +257,7 @@ class Cross[M <: Cross.Module[_]](factories: Cross.Factory[M]*)(implicit
    * scope. This is often the first cross module whose cross-version is
    * compatible with the current module.
    */
-  def apply[V >: M <: Cross.Module[_]]()(implicit resolver: Cross.Resolver[V]): M = {
+  def apply[V >: M <: Cross.Module[?]]()(implicit resolver: Cross.Resolver[V]): M = {
     resolver.resolve(this.asInstanceOf[Cross[V]]).asInstanceOf[M]
   }
 }

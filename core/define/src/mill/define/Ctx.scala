@@ -44,7 +44,7 @@ trait Ctx {
   /**
    * The `class` or `trait` that lexically surrounds this definition
    */
-  def enclosingCls: Class[_]
+  def enclosingCls: Class[?]
 
   /**
    * The runtime [[Module]] object that contains this definition

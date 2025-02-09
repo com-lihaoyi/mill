@@ -22,7 +22,7 @@ private[mill] object Reflect {
     true
   }
 
-  def getMethods(cls: Class[_], decode: String => String): Array[(Method, String)] =
+  def getMethods(cls: Class[?], decode: String => String): Array[(Method, String)] =
     for {
       m <- cls.getMethods
       n = decode(m.getName)
@@ -30,16 +30,16 @@ private[mill] object Reflect {
     } yield (m, n)
 
   private val classSeqOrdering =
-    Ordering.Implicits.seqOrdering[Seq, Class[_]]((c1, c2) =>
+    Ordering.Implicits.seqOrdering[Seq, Class[?]]((c1, c2) =>
       if (c1 == c2) 0 else if (c1.isAssignableFrom(c2)) 1 else -1
     )
 
   def reflect(
-      outer: Class[_],
-      inner: Class[_],
+      outer: Class[?],
+      inner: Class[?],
       filter: String => Boolean,
       noParams: Boolean,
-      getMethods: Class[_] => Array[(java.lang.reflect.Method, String)]
+      getMethods: Class[?] => Array[(java.lang.reflect.Method, String)]
   ): Array[java.lang.reflect.Method] = {
     val arr: Array[java.lang.reflect.Method] = getMethods(outer)
       .collect {
@@ -71,7 +71,7 @@ private[mill] object Reflect {
       } else if (m1.getReturnType != m2.getReturnType) {
         !m1.getReturnType.isAssignableFrom(m2.getReturnType)
       } else {
-        classSeqOrdering.lt(m1.getParameterTypes, m2.getParameterTypes)
+        classSeqOrdering.lt(m1.getParameterTypes.toSeq, m2.getParameterTypes.toSeq)
       }
     )
 
@@ -82,9 +82,9 @@ private[mill] object Reflect {
   // another top-level concrete `object`. This is fine for now, since Mill's Ammonite
   // script/REPL runner always wraps user code in a wrapper object/trait
   def reflectNestedObjects0[T: ClassTag](
-      outerCls: Class[_],
+      outerCls: Class[?],
       filter: String => Boolean = Function.const(true),
-      getMethods: Class[_] => Array[(java.lang.reflect.Method, String)]
+      getMethods: Class[?] => Array[(java.lang.reflect.Method, String)]
   ): Array[(String, java.lang.reflect.Member)] = {
 
     val first = reflect(
@@ -117,10 +117,10 @@ private[mill] object Reflect {
   }
 
   def reflectNestedObjects02[T: ClassTag](
-      outerCls: Class[_],
+      outerCls: Class[?],
       filter: String => Boolean = Function.const(true),
-      getMethods: Class[_] => Array[(java.lang.reflect.Method, String)]
-  ): Array[(String, Class[_], Any => T)] = {
+      getMethods: Class[?] => Array[(java.lang.reflect.Method, String)]
+  ): Array[(String, Class[?], Any => T)] = {
     reflectNestedObjects0[T](outerCls, filter, getMethods).map {
       case (name, m: java.lang.reflect.Method) =>
         (name, m.getReturnType, (outer: Any) => m.invoke(outer).asInstanceOf[T])

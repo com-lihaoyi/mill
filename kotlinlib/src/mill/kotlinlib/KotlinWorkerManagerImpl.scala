@@ -13,7 +13,7 @@ import java.net.{URL, URLClassLoader}
 
 class KotlinWorkerManagerImpl(ctx: Ctx) extends KotlinWorkerManager with AutoCloseable {
 
-  private[this] var workerCache: Map[Seq[PathRef], (KotlinWorker, Int)] = Map.empty
+  private var workerCache: Map[Seq[PathRef], (KotlinWorker, Int)] = Map.empty
 
   override def get(toolsClasspath: Seq[PathRef])(implicit ctx: Ctx): KotlinWorker = {
     val toolsCp = toolsClasspath.distinct
