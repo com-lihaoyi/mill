@@ -2,7 +2,7 @@ package mill.main
 
 import mill.api.Result
 import mill.define.{Command, Task}
-import mill.eval.Evaluator
+import mill.eval.{Evaluator, SelectiveExecution}
 import mill.main.client.OutFiles
 import mill.resolve.{Resolve, SelectMode}
 
@@ -88,7 +88,7 @@ trait SelectiveExecutionModule extends mill.define.Module {
       } else {
         SelectiveExecution.resolve0(evaluator, tasks).flatMap { resolved =>
           if (resolved.isEmpty) Right((Nil, Right(Nil)))
-          else RunScript.evaluateTasksNamed(evaluator, resolved.toSeq, SelectMode.Multi)
+          else evaluator.evaluateTasksNamed(resolved.toSeq, SelectMode.Multi)
         } match {
           case Left(err) => Result.Failure(err)
           case Right((watched, Left(err))) => Result.Failure(err)

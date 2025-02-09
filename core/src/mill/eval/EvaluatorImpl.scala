@@ -1,9 +1,12 @@
 package mill.eval
 
-import mill.api.{ColorLogger, Strict, SystemStreams, Val}
+import mill.api.{ColorLogger, PathRef, Result, Strict, SystemStreams, Val}
 import mill.api.Strict.Agg
 import mill.define.*
+import mill.internal.Watchable
+import mill.main.client.OutFiles
 import mill.main.client.OutFiles.*
+import mill.resolve.{Resolve, SelectMode}
 
 import scala.collection.mutable
 import scala.reflect.ClassTag
@@ -57,6 +60,100 @@ private[mill] case class EvaluatorImpl(
   override def close(): Unit = {
     chromeProfileLogger.close()
     profileLogger.close()
+  }
+
+  def evaluateTasksNamed(
+                          scriptArgs: Seq[String],
+                          selectMode: SelectMode,
+                          selectiveExecution: Boolean = false
+                        ): Either[
+    String,
+    (Seq[Watchable], Either[String, Seq[(Any, Option[(Evaluator.TaskName, ujson.Value)])]])
+  ] = {
+    val resolved = mill.eval.Evaluator.currentEvaluator.withValue(this) {
+      Resolve.Tasks.resolve(
+        rootModule,
+        scriptArgs,
+        selectMode,
+        allowPositionalCommandArgs
+      )
+    }
+    for (targets <- resolved)
+      yield evaluateNamed(Agg.from(targets), selectiveExecution)
+  }
+
+  /**
+   * @param evaluator
+   * @param targets
+   * @return (watched-paths, Either[err-msg, Seq[(task-result, Option[(task-name, task-return-as-json)])]])
+   */
+  def evaluateNamed(
+                     targets: Agg[NamedTask[Any]],
+                     selectiveExecution: Boolean = false
+                   ): (Seq[Watchable], Either[String, Seq[(Any, Option[(Evaluator.TaskName, ujson.Value)])]]) = {
+
+    val selectiveExecutionEnabled = selectiveExecution && !targets.exists(_.isExclusiveCommand)
+
+    val selectedTargetsOrErr =
+      if (
+        selectiveExecutionEnabled && os.exists(outPath / OutFiles.millSelectiveExecution)
+      ) {
+        val changedTasks = SelectiveExecution.computeChangedTasks0(this, targets.toSeq)
+        val selectedSet = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
+        (
+          targets.filter(t => t.isExclusiveCommand || selectedSet(t.ctx.segments.render)),
+          changedTasks.results
+        )
+      } else (targets -> Map.empty)
+
+    selectedTargetsOrErr match {
+      case (selectedTargets, selectiveResults) =>
+        val evaluated: EvalResults = evaluate(selectedTargets, serialCommandExec = true)
+        @scala.annotation.nowarn("msg=cannot be checked at runtime")
+        val watched = (evaluated.results.iterator ++ selectiveResults)
+          .collect {
+            case (t: SourcesImpl, TaskResult(Result.Success(Val(ps: Seq[PathRef])), _)) =>
+              ps.map(Watchable.Path(_))
+            case (t: SourceImpl, TaskResult(Result.Success(Val(p: PathRef)), _)) =>
+              Seq(Watchable.Path(p))
+            case (t: InputImpl[_], TaskResult(result, recalc)) =>
+              val pretty = t.ctx0.fileName + ":" + t.ctx0.lineNum
+              Seq(Watchable.Value(() => recalc().hashCode(), result.hashCode(), pretty))
+          }
+          .flatten
+          .toSeq
+
+        val allInputHashes = evaluated.results
+          .iterator
+          .collect {
+            case (t: InputImpl[_], TaskResult(Result.Success(Val(value)), _)) =>
+              (t.ctx.segments.render, value.##)
+          }
+          .toMap
+
+        if (selectiveExecutionEnabled) {
+          SelectiveExecution.saveMetadata(
+            this,
+            SelectiveExecution.Metadata(allInputHashes, methodCodeHashSignatures)
+          )
+        }
+
+        val errorStr = Evaluator.formatFailing(evaluated)
+        evaluated.failing.keyCount match {
+          case 0 =>
+            val nameAndJson = for (t <- selectedTargets.toSeq) yield {
+              t match {
+                case t: mill.define.NamedTask[_] =>
+                  val jsonFile = EvaluatorPaths.resolveDestPaths(outPath, t).meta
+                  val metadata = upickle.default.read[Cached](ujson.read(jsonFile.toIO))
+                  Some((t.toString, metadata.value))
+              }
+            }
+
+            watched -> Right(evaluated.values.zip(nameAndJson))
+          case n => watched -> Left(s"$n tasks failed\n$errorStr")
+        }
+    }
   }
 }
 

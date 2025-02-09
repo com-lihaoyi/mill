@@ -2,7 +2,7 @@ package mill.runner
 
 import mill.internal.PrefixLogger
 import mill.internal.Watchable
-import mill.main.{BuildInfo, RootModule, RunScript}
+import mill.main.{BuildInfo, RootModule}
 import mill.main.client.CodeGenConstants.*
 import mill.api.{ColorLogger, PathRef, SystemStreams, Val, internal}
 import mill.eval.Evaluator
@@ -413,8 +413,7 @@ object MillBuildBootstrap {
     rootModule.evalWatchedValues.clear()
     val evalTaskResult =
       mill.api.ClassLoader.withContextClassLoader(rootModule.getClass.getClassLoader) {
-        RunScript.evaluateTasksNamed(
-          evaluator,
+        evaluator.evaluateTasksNamed(
           targetsAndParams,
           SelectMode.Separated,
           selectiveExecution = selectiveExecution

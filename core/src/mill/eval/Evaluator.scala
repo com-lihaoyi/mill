@@ -2,11 +2,12 @@ package mill.eval
 
 import mill.api.{ColorLogger, CompileProblemReporter, DummyTestReporter, Result, TestReporter, Val}
 import mill.api.Strict.Agg
-import mill.define.{BaseModule, Segments, Task}
+import mill.define.{BaseModule, NamedTask, Segments, Task}
 import mill.eval.Evaluator.formatFailing
-import mill.internal.MultiBiMap
+import mill.internal.{MultiBiMap, Watchable}
+import mill.resolve.SelectMode
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.reflect.ClassTag
 import scala.util.DynamicVariable
 
@@ -53,11 +54,31 @@ trait Evaluator extends AutoCloseable {
       new Exception(s"Failure during task evaluation: ${formatFailing(r)}")): Evaluator.EvalOrThrow
 
   def close() = ()
+
+  
+  def evaluateTasksNamed(
+                          scriptArgs: Seq[String],
+                          selectMode: SelectMode,
+                          selectiveExecution: Boolean = false
+                        ): Either[
+    String,
+    (Seq[Watchable], Either[String, Seq[(Any, Option[(Evaluator.TaskName, ujson.Value)])]])
+  ]
+
+  /**
+   * @param evaluator
+   * @param targets
+   * @return (watched-paths, Either[err-msg, Seq[(task-result, Option[(task-name, task-return-as-json)])]])
+   */
+  def evaluateNamed(
+                     targets: Agg[NamedTask[Any]],
+                     selectiveExecution: Boolean = false
+                   ): (Seq[Watchable], Either[String, Seq[(Any, Option[(Evaluator.TaskName, ujson.Value)])]])
 }
 
 object Evaluator {
 
-
+  type TaskName = String
   // This needs to be a ThreadLocal because we need to pass it into the body of
   // the TargetScopt#read call, which does not accept additional parameters.
   // Until we migrate our CLI parsing off of Scopt (so we can pass the BaseModule

@@ -1,12 +1,12 @@
-package mill.main
+package mill.eval
 
 import mill.api.{Strict, Val}
 import mill.define.{InputImpl, NamedTask, Task}
-import mill.eval.{TaskResult, CodeSigUtils, Evaluator, EvaluatorCore, Plan}
-import mill.main.client.OutFiles
-import mill.internal.SpanningForest.breadthFirst
-import mill.resolve.{Resolve, SelectMode}
+import mill.eval.{CodeSigUtils, Evaluator, EvaluatorCore, Plan, TaskResult}
 import mill.internal.SpanningForest
+import mill.internal.SpanningForest.breadthFirst
+import mill.main.client.OutFiles
+import mill.resolve.{Resolve, SelectMode}
 
 private[mill] object SelectiveExecution {
   case class Metadata(inputHashes: Map[String, Int], methodCodeHashSignatures: Map[String, Int])
