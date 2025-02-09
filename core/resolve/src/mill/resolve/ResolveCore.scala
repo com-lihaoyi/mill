@@ -98,6 +98,11 @@ private object ResolveCore {
       seenModules: Set[Class[?]],
       cache: Cache
   ): Result = {
+    assert(
+      querySoFar == current.segments,
+      "" + pprint.apply(querySoFar) + " != " + pprint.apply(current.segments)
+    )
+
     def moduleClasses(resolved: Iterable[Resolved]): Set[Class[?]] = {
       resolved.collect { case Resolved.Module(_, cls) => cls }.toSet
     }
@@ -106,6 +111,8 @@ private object ResolveCore {
       case Nil => Success(Seq(current))
       case head :: tail =>
         def recurse(searchModules: Seq[Resolved]): Result = {
+          pprint.log(current)
+          pprint.log(searchModules)
           val (failures, successesLists) = searchModules
             .map { r =>
               val rClasses = moduleClasses(Set(r))
