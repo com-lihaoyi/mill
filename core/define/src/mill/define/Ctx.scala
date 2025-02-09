@@ -114,7 +114,7 @@ object Ctx extends LowPriCtx {
           ctx.discover,
           lastSegmentStr,
           enclosingClass.value
-        ) ++ Seq(Segment.Label(lastSegmentStr)),
+        ).getOrElse(Segments(List(Segment.Label(lastSegmentStr)))),
       ctx.external,
       fileName,
       ctx.enclosingModule,

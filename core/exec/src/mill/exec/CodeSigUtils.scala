@@ -1,7 +1,7 @@
 package mill.exec
 
 import mill.api.{BuildInfo, MillException, Strict}
-import mill.define.NamedTask
+import mill.define.{NamedTask, Segment}
 
 import scala.reflect.NameTransformer.encode
 import java.lang.reflect.Method
@@ -62,7 +62,14 @@ private[mill] object CodeSigUtils {
       constructorHashSignatures: => Map[String, Seq[(String, Int)]]
   ): Iterable[Int] = {
 
-    val encodedTaskName = encode(namedTask.ctx.segments.last.pathSegments.head)
+    val superTaskName = namedTask.ctx.segments.value.collectFirst{
+      case Segment.Label(s"$v.super") => v
+    }
+
+    val encodedTaskName = superTaskName match {
+      case Some(v) => v
+      case None => encode(namedTask.ctx.segments.last.pathSegments.head)
+    }
 
     val methodOpt = for {
       parentCls <- classToTransitiveClasses(namedTask.ctx.enclosingCls).iterator

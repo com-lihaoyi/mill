@@ -30,13 +30,13 @@ private[mill] object OverrideMapping {
           discover.classInfo.get(cls).exists(_.declaredTaskNameSet.contains(lastSegmentStr))
         )
 
-        if (declaring.isEmpty || declaring.lastOption.contains(enclosingClassValue)) Segments()
-        else assignOverridenTaskSegments(
+        if (declaring.isEmpty || declaring.lastOption.contains(enclosingClassValue)) None
+        else Some(assignOverridenTaskSegments(
           declaring.map(_.getName),
           lastSegmentStr,
           enclosingClassValue.getName
-        )
-      case _ => Segments()
+        ))
+      case _ => None
     }
   }
 
