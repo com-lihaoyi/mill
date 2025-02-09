@@ -4,11 +4,12 @@ import mill.{Target, Task}
 import mill.api.Result.OuterStack
 import mill.api.{DummyInputStream, Result, SystemStreams, Val}
 import mill.define.{InputImpl, TargetImpl}
-import mill.eval.{Evaluator, EvaluatorImpl}
+import mill.eval.Evaluator
 import mill.resolve.{Resolve, SelectMode}
 import mill.internal.PrintLogger
 import mill.api.Strict.Agg
-
+import mill.exec.{ChromeProfileLogger, ProfileLogger}
+import mill.main.client.OutFiles.{millChromeProfile, millProfile}
 import java.io.{InputStream, PrintStream}
 
 object UnitTester {
@@ -86,7 +87,8 @@ class UnitTester(
     override def debug(s: String): Unit = super.debug(s"${prefix}: ${s}")
     override def ticker(s: String): Unit = super.ticker(s"${prefix}: ${s}")
   }
-  val evaluator: EvaluatorImpl = mill.eval.EvaluatorImpl.make(
+
+  val evaluator: Evaluator = new mill.eval.Evaluator(
     mill.api.Ctx.defaultHome,
     module.millSourcePath,
     outPath,
@@ -99,11 +101,12 @@ class UnitTester(
     threadCount = threads,
     env = env,
     methodCodeHashSignatures = Map(),
-    disableCallgraph = false,
     allowPositionalCommandArgs = false,
     systemExit = _ => ???,
     exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),
-    selectiveExecution = false
+    selectiveExecution = false,
+    chromeProfileLogger = new ChromeProfileLogger(outPath / millChromeProfile),
+    profileLogger = new ProfileLogger(outPath / millProfile)
   )
 
   def apply(args: String*): Either[Result.Failing[?], UnitTester.Result[Seq[?]]] = {

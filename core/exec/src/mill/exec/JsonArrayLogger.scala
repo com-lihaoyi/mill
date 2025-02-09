@@ -1,4 +1,4 @@
-package mill.eval
+package mill.exec
 
 import mill.define.Task
 
@@ -37,12 +37,12 @@ private class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path, inden
   }
 }
 
-private[eval] class ProfileLogger(outPath: os.Path)
+private[mill] class ProfileLogger(outPath: os.Path)
     extends JsonArrayLogger[ProfileLogger.Timing](outPath, indent = 2) {
   def log(
       terminal: Task[?],
       duration: Long,
-      res: GroupEvaluator.Results,
+      res: GroupExecution.Results,
       deps: Seq[Task[?]]
   ): Unit = {
     log(
@@ -75,7 +75,7 @@ private object ProfileLogger {
   }
 }
 
-private[eval] class ChromeProfileLogger(outPath: os.Path)
+private[mill] class ChromeProfileLogger(outPath: os.Path)
     extends JsonArrayLogger[ChromeProfileLogger.TraceEvent](outPath, indent = -1) {
 
   def log(

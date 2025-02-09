@@ -1,4 +1,4 @@
-package mill.eval
+package mill.exec
 
 import mill.api.{BuildInfo, MillException, Strict}
 import mill.define.NamedTask

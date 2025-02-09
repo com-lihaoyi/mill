@@ -238,14 +238,6 @@ trait Resolve[T] {
     resolve0(rootModule, scriptArgs, selectMode, allowPositionalCommandArgs, resolveToModuleTasks)
   }
 
-  def resolve(
-      rootModule: BaseModule,
-      scriptArgs: Seq[String],
-      selectMode: SelectMode
-  ): Either[String, List[T]] = {
-    resolve0(rootModule, scriptArgs, selectMode, false, false)
-  }
-
   private[mill] def resolve0(
       rootModule: BaseModule,
       scriptArgs: Seq[String],

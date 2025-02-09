@@ -1,4 +1,4 @@
-package mill.eval
+package mill.exec
 
 import mill.define.{InputImpl, Task}
 import mill.main.client.OutFiles
@@ -7,7 +7,7 @@ import mill.internal.SpanningForest
 import java.util.concurrent.ConcurrentHashMap
 import scala.jdk.CollectionConverters.EnumerationHasAsScala
 
-private[mill] object EvaluatorLogs {
+private[mill] object ExecutionLogs {
   def logDependencyTree(
       interGroupDeps: Map[Task[?], Seq[Task[?]]],
       indexToTerminal: Array[Task[?]],

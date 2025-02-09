@@ -1,9 +1,10 @@
 package mill.eval
 
-import mill.define.{Task, Target, NamedTask, TargetImpl}
+import mill.define.{NamedTask, Target, TargetImpl, Task}
 import mill.util.{TestGraphs, TestUtil}
-import utest._
+import utest.*
 import mill.api.Strict.Agg
+import mill.exec.Plan
 object PlanTests extends TestSuite {
 
   val tests = Tests {

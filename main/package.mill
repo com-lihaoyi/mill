@@ -9,7 +9,7 @@ import mill.scalalib.api.ZincWorkerUtil
 
 object `package` extends RootModule with build.MillStableScalaModule with BuildInfo {
 
-  def moduleDeps = Seq(build.core.eval, build.core.resolve, build.core.client, util)
+  def moduleDeps = Seq(build.core, build.core.client, util)
   def ivyDeps = Agg(
     build.Deps.windowsAnsi,
     build.Deps.coursierInterface,

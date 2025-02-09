@@ -1,12 +1,12 @@
-package mill.main
+package mill.eval
 
 import mill.api.{Strict, Val}
 import mill.define.{InputImpl, NamedTask, Task}
-import mill.eval.{CodeSigUtils, Evaluator, EvaluatorCore, Plan}
-import mill.main.client.OutFiles
-import mill.internal.SpanningForest.breadthFirst
-import mill.resolve.{Resolve, SelectMode}
+import mill.exec.{CodeSigUtils, ExecutionCore, Plan, TaskResult}
 import mill.internal.SpanningForest
+import mill.internal.SpanningForest.breadthFirst
+import mill.main.client.OutFiles
+import mill.resolve.SelectMode
 
 private[mill] object SelectiveExecution {
   case class Metadata(inputHashes: Map[String, Int], methodCodeHashSignatures: Map[String, Int])
@@ -17,14 +17,14 @@ private[mill] object SelectiveExecution {
     def compute(
         evaluator: Evaluator,
         tasks: Seq[NamedTask[?]]
-    ): (Metadata, Map[Task[?], Evaluator.TaskResult[Val]]) = {
+    ): (Metadata, Map[Task[?], TaskResult[Val]]) = {
       compute0(evaluator, Plan.transitiveNamed(tasks))
     }
 
     def compute0(
         evaluator: Evaluator,
         transitiveNamed: Strict.Agg[NamedTask[?]]
-    ): (Metadata, Map[Task[?], Evaluator.TaskResult[Val]]) = {
+    ): (Metadata, Map[Task[?], TaskResult[Val]]) = {
       val inputTasksToLabels: Map[Task[?], String] = transitiveNamed
         .collect { case task: InputImpl[_] =>
           task -> task.ctx.segments.render
@@ -119,15 +119,14 @@ private[mill] object SelectiveExecution {
       resolved: Seq[NamedTask[?]],
       changedRootTasks: Set[NamedTask[?]],
       downstreamTasks: Seq[NamedTask[?]],
-      results: Map[Task[?], Evaluator.TaskResult[Val]]
+      results: Map[Task[?], TaskResult[Val]]
   )
 
   def computeChangedTasks(
       evaluator: Evaluator,
       tasks: Seq[String]
   ): Either[String, ChangedTasks] = {
-    Resolve.Tasks.resolve(
-      evaluator.rootModule,
+    evaluator.resolveTasks(
       tasks,
       SelectMode.Separated,
       evaluator.allowPositionalCommandArgs
@@ -156,7 +155,7 @@ private[mill] object SelectiveExecution {
 
   def resolve0(evaluator: Evaluator, tasks: Seq[String]): Either[String, Array[String]] = {
     for {
-      resolved <- Resolve.Tasks.resolve(evaluator.rootModule, tasks, SelectMode.Separated)
+      resolved <- evaluator.resolveTasks(tasks, SelectMode.Separated)
       changedTasks <- SelectiveExecution.computeChangedTasks(evaluator, tasks)
     } yield {
       val resolvedSet = resolved.map(_.ctx.segments.render).toSet
@@ -177,7 +176,7 @@ private[mill] object SelectiveExecution {
       val plan = Plan.plan(mill.api.Loose.Agg.from(changedTasks.downstreamTasks))
       val indexToTerminal = plan.sortedGroups.keys().toArray.filter(t => taskSet.contains(t))
 
-      val interGroupDeps = EvaluatorCore.findInterGroupDeps(plan.sortedGroups)
+      val interGroupDeps = ExecutionCore.findInterGroupDeps(plan.sortedGroups)
 
       val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
 

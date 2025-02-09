@@ -1,6 +1,7 @@
 package mill.eval
 
-import utest._
+import mill.exec.ExecutionPaths
+import utest.*
 
 object EvaluatorPathsTests extends TestSuite {
 
@@ -26,7 +27,7 @@ object EvaluatorPathsTests extends TestSuite {
         for {
           (segment, result) <- replace ++ noReplace.map(s => (s, s))
         } yield {
-          EvaluatorPaths.sanitizePathSegment(segment).toString ==> result
+          ExecutionPaths.sanitizePathSegment(segment).toString ==> result
           (segment, result)
         }
       }

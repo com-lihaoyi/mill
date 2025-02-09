@@ -2,13 +2,14 @@ package mill.runner
 
 import mill.internal.PrefixLogger
 import mill.internal.Watchable
-import mill.main.{BuildInfo, RootModule, RunScript}
+import mill.main.{BuildInfo, RootModule}
 import mill.main.client.CodeGenConstants.*
 import mill.api.{ColorLogger, PathRef, SystemStreams, Val, internal}
 import mill.eval.Evaluator
 import mill.resolve.SelectMode
 import mill.define.{BaseModule, Segments}
-import mill.main.client.OutFiles.{millBuild, millRunnerState}
+import mill.exec.{ChromeProfileLogger, ProfileLogger}
+import mill.main.client.OutFiles.{millBuild, millRunnerState, millProfile, millChromeProfile}
 import mill.runner.worker.api.MillScalaParser
 import mill.runner.worker.ScalaCompilerWorker
 
@@ -42,7 +43,6 @@ class MillBuildBootstrap(
     targetsAndParams: Seq[String],
     prevRunnerState: RunnerState,
     logger: ColorLogger,
-    disableCallgraph: Boolean,
     needBuildFile: Boolean,
     requestedMetaLevel: Option[Int],
     allowPositionalCommandArgs: Boolean,
@@ -348,11 +348,12 @@ class MillBuildBootstrap(
           .mkString("/")
       )
 
-    mill.eval.EvaluatorImpl.make(
+    val outPath = recOut(output, depth)
+    new mill.eval.Evaluator(
       home,
       projectRoot,
-      recOut(output, depth),
-      recOut(output, depth),
+      outPath,
+      outPath,
       rootModule,
       new PrefixLogger(logger, bootLogPrefix),
       classLoaderSigHash = millClassloaderSigHash,
@@ -362,11 +363,12 @@ class MillBuildBootstrap(
       failFast = !keepGoing,
       threadCount = threadCount,
       methodCodeHashSignatures = methodCodeHashSignatures,
-      disableCallgraph = disableCallgraph,
       allowPositionalCommandArgs = allowPositionalCommandArgs,
       systemExit = systemExit,
       exclusiveSystemStreams = streams0,
-      selectiveExecution = selectiveExecution
+      selectiveExecution = selectiveExecution,
+      chromeProfileLogger = new ChromeProfileLogger(outPath / millChromeProfile),
+      profileLogger = new ProfileLogger(outPath / millProfile)
     )
   }
 
@@ -413,8 +415,7 @@ object MillBuildBootstrap {
     rootModule.evalWatchedValues.clear()
     val evalTaskResult =
       mill.api.ClassLoader.withContextClassLoader(rootModule.getClass.getClassLoader) {
-        RunScript.evaluateTasksNamed(
-          evaluator,
+        evaluator.evaluateTasksNamed(
           targetsAndParams,
           SelectMode.Separated,
           selectiveExecution = selectiveExecution

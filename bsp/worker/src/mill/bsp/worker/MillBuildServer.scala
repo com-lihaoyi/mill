@@ -17,7 +17,7 @@ import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
 import mill.define.Segment.Label
 import mill.define.{Args, Discover, ExternalModule, NamedTask, Task}
 import mill.eval.Evaluator
-import mill.eval.Evaluator.TaskResult
+import mill.exec.{ExecResults, TaskResult}
 import mill.main.MainModule
 import mill.runner.MillBuildRootModule
 import mill.scalalib.bsp.{BspModule, JvmBuildTarget, ScalaBuildTarget}
@@ -324,6 +324,7 @@ private class MillBuildServer(
 
         val cp = (resolveDepsSources ++ unmanagedClasspath).map(sanitizeUri).toSeq ++ buildSources
         new DependencySourcesItem(id, cp.asJava)
+      case _ => ???
     } {
       new DependencySourcesResult(_)
     }
@@ -374,6 +375,7 @@ private class MillBuildServer(
           new DependencyModule(s"unmanaged-${dep.path.last}", "")
         }
         new DependencyModulesItem(id, (deps ++ unmanaged).iterator.toSeq.asJava)
+      case _ => ???
     } {
       new DependencyModulesResult(_)
     }
@@ -809,7 +811,7 @@ private class MillBuildServer(
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = DummyTestReporter,
       logger: ColorLogger = null
-  ): Evaluator.Results = {
+  ): ExecResults = {
     val logger0 = Option(logger).getOrElse(evaluator.baseLogger)
     mill.runner.MillMain.withOutLock(
       noBuildLock = false,

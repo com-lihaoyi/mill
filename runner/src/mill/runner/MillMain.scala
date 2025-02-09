@@ -272,7 +272,6 @@ object MillMain {
                                     targetsAndParams = targetsAndParams,
                                     prevRunnerState = prevState.getOrElse(stateCache),
                                     logger = logger,
-                                    disableCallgraph = config.disableCallgraph.value,
                                     needBuildFile = needBuildFile(config),
                                     requestedMetaLevel = config.metaLevel,
                                     config.allowPositional.value,

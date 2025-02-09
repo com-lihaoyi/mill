@@ -1,11 +1,10 @@
-package mill.eval
+package mill.exec
 
 import mill.api.Result.{OuterStack, Success}
 import mill.api.Strict.Agg
 import mill.api.*
 import mill.define.*
 import mill.internal.MultiLogger
-import mill.eval.Evaluator.TaskResult
 import mill.internal.FileLogger
 
 import java.lang.reflect.Method
@@ -17,7 +16,7 @@ import scala.util.hashing.MurmurHash3
  * Logic around evaluating a single group, which is a collection of [[Task]]s
  * with a single [[Terminal]].
  */
-private[mill] trait GroupEvaluator {
+private[mill] trait GroupExecution {
   def home: os.Path
   def workspace: os.Path
   def outPath: os.Path
@@ -29,9 +28,7 @@ private[mill] trait GroupEvaluator {
   def env: Map[String, String]
   def failFast: Boolean
   def threadCount: Option[Int]
-  def scriptImportGraph: Map[os.Path, (Int, Seq[os.Path])]
   def methodCodeHashSignatures: Map[String, Int]
-  def disableCallgraph: Boolean
   def systemExit: Int => Nothing
   def exclusiveSystemStreams: SystemStreams
 
@@ -55,7 +52,7 @@ private[mill] trait GroupEvaluator {
       allTransitiveClassMethods: Map[Class[?], Map[String, Method]],
       executionContext: mill.api.Ctx.Fork.Api,
       exclusive: Boolean
-  ): GroupEvaluator.Results = {
+  ): GroupExecution.Results = {
     logger.withPrompt {
       val externalInputsHash = MurmurHash3.orderedHash(
         group.items.flatMap(_.inputs).filter(!group.contains(_))
@@ -64,22 +61,20 @@ private[mill] trait GroupEvaluator {
 
       val sideHashes = MurmurHash3.orderedHash(group.iterator.map(_.sideHash))
 
-      val scriptsHash =
-        if (disableCallgraph) 0
-        else MurmurHash3.orderedHash(
-          group
-            .iterator
-            .collect { case namedTask: NamedTask[_] =>
-              CodeSigUtils.codeSigForTask(
-                namedTask,
-                classToTransitiveClasses,
-                allTransitiveClassMethods,
-                methodCodeHashSignatures,
-                constructorHashSignatures
-              )
-            }
-            .flatten
-        )
+      val scriptsHash = MurmurHash3.orderedHash(
+        group
+          .iterator
+          .collect { case namedTask: NamedTask[_] =>
+            CodeSigUtils.codeSigForTask(
+              namedTask,
+              classToTransitiveClasses,
+              allTransitiveClassMethods,
+              methodCodeHashSignatures,
+              constructorHashSignatures
+            )
+          }
+          .flatten
+      )
 
       val javaHomeHash = sys.props("java.home").hashCode
       val inputsHash =
@@ -89,7 +84,7 @@ private[mill] trait GroupEvaluator {
 
         case labelled: NamedTask[_] =>
           val out = if (!labelled.ctx.external) outPath else externalOutPath
-          val paths = EvaluatorPaths.resolveDestPaths(out, labelled.ctx.segments)
+          val paths = ExecutionPaths.resolveDestPaths(out, labelled.ctx.segments)
           val cached = loadCachedJson(logger, inputsHash, labelled, paths)
 
           // `cached.isEmpty` means worker metadata file removed by user so recompute the worker
@@ -107,7 +102,7 @@ private[mill] trait GroupEvaluator {
               val newResults: Map[Task[?], TaskResult[(Val, Int)]] =
                 Map(labelled -> TaskResult(res, () => res))
 
-              GroupEvaluator.Results(
+              GroupExecution.Results(
                 newResults,
                 Nil,
                 cached = true,
@@ -155,7 +150,7 @@ private[mill] trait GroupEvaluator {
                   0
               }
 
-              GroupEvaluator.Results(
+              GroupExecution.Results(
                 newResults,
                 newEvaluated.toSeq,
                 cached = if (labelled.isInstanceOf[InputImpl[?]]) null else false,
@@ -178,7 +173,7 @@ private[mill] trait GroupEvaluator {
             executionContext,
             exclusive
           )
-          GroupEvaluator.Results(
+          GroupExecution.Results(
             newResults,
             newEvaluated.toSeq,
             null,
@@ -195,7 +190,7 @@ private[mill] trait GroupEvaluator {
       group: Agg[Task[?]],
       results: Map[Task[?], TaskResult[(Val, Int)]],
       inputsHash: Int,
-      paths: Option[EvaluatorPaths],
+      paths: Option[ExecutionPaths],
       maybeTargetLabel: Option[String],
       counterMsg: String,
       reporter: Int => Option[CompileProblemReporter],
@@ -353,7 +348,7 @@ private[mill] trait GroupEvaluator {
       os.write.over(
         metaPath,
         upickle.default.stream(
-          Evaluator.Cached(json, hashCode, inputsHash),
+          Cached(json, hashCode, inputsHash),
           indent = 4
         ),
         createFolders = true
@@ -378,11 +373,11 @@ private[mill] trait GroupEvaluator {
       logger: ColorLogger,
       inputsHash: Int,
       labelled: NamedTask[?],
-      paths: EvaluatorPaths
+      paths: ExecutionPaths
   ): Option[(Int, Option[Val], Int)] = {
     for {
       cached <-
-        try Some(upickle.default.read[Evaluator.Cached](paths.meta.toIO))
+        try Some(upickle.default.read[Cached](paths.meta.toIO))
         catch {
           case NonFatal(_) => None
         }
@@ -450,7 +445,7 @@ private[mill] trait GroupEvaluator {
   }
 }
 
-private[mill] object GroupEvaluator {
+private[mill] object GroupExecution {
 
   case class Results(
       newResults: Map[Task[?], TaskResult[(Val, Int)]],

@@ -2,10 +2,11 @@ package mill.main
 
 import mill.api._
 import mill.define._
-import mill.eval.{Evaluator, EvaluatorPaths}
+import mill.eval.Evaluator
+import mill.exec.ExecutionPaths
 import mill.moduledefs.Scaladoc
 import mill.resolve.SelectMode.Separated
-import mill.resolve.{Resolve, SelectMode}
+import mill.resolve.SelectMode
 import mill.util.Util
 import mill.internal.Watchable
 import pprint.{Renderer, Tree, Truncated}
@@ -23,8 +24,7 @@ object MainModule {
       selectMode: SelectMode,
       resolveToModuleTasks: Boolean = false
   )(f: List[NamedTask[Any]] => T): Result[T] = {
-    Resolve.Tasks.resolve(
-      evaluator.rootModule,
+    evaluator.resolveTasks(
       targets,
       selectMode,
       resolveToModuleTasks = resolveToModuleTasks
@@ -39,7 +39,7 @@ object MainModule {
       targets: Seq[String],
       selectMode: SelectMode
   )(f: List[NamedTask[Any]] => T): Result[T] = {
-    Resolve.Tasks.resolve(evaluator.rootModule, targets, selectMode) match {
+    evaluator.resolveTasks(targets, selectMode) match {
       case Left(err) => Result.Failure(err)
       case Right(tasks) => Result.Success(f(tasks))
     }
@@ -50,7 +50,7 @@ object MainModule {
       targets: Seq[String],
       log: Logger,
       watch0: Watchable => Unit
-  )(f: Seq[(Any, Option[(RunScript.TaskName, ujson.Value)])] => ujson.Value)
+  )(f: Seq[(Any, Option[(Evaluator.TaskName, ujson.Value)])] => ujson.Value)
       : Result[ujson.Value] = {
 
     // When using `show`, redirect all stdout of the evaluated tasks so the
@@ -59,12 +59,12 @@ object MainModule {
       .withOutStream(evaluator.baseLogger.errorStream)
       .asInstanceOf[ColorLogger]
 
-    RunScript.evaluateTasksNamed(
-      evaluator.withBaseLogger(redirectLogger),
-      targets,
-      Separated,
-      selectiveExecution = evaluator.selectiveExecution
-    ) match {
+    evaluator.withBaseLogger(redirectLogger)
+      .evaluateTasksNamed(
+        targets,
+        Separated,
+        selectiveExecution = evaluator.selectiveExecution
+      ) match {
       case Left(err) => Result.Failure(err)
       case Right((watched, Left(err))) =>
         watched.foreach(watch0)
@@ -82,11 +82,7 @@ object MainModule {
       evaluator: Evaluator,
       tasks: Seq[String]
   ): Either[String, Array[NamedTask[?]]] = {
-    Resolve.Tasks.resolve(
-      evaluator.rootModule,
-      tasks,
-      SelectMode.Multi
-    ) match {
+    evaluator.resolveTasks(tasks, SelectMode.Multi) match {
       case Left(err) => Left(err)
       case Right(rs) =>
         val plan = evaluator.plan(rs)
@@ -118,11 +114,7 @@ trait MainModule extends BaseModule {
    */
   def resolve(evaluator: Evaluator, targets: String*): Command[List[String]] =
     Task.Command(exclusive = true) {
-      val resolved = Resolve.Segments.resolve(
-        evaluator.rootModule,
-        targets,
-        SelectMode.Multi
-      )
+      val resolved = evaluator.resolveSegments(targets, SelectMode.Multi)
 
       resolved match {
         case Left(err) => Result.Failure(err)
@@ -161,11 +153,7 @@ trait MainModule extends BaseModule {
       @mainargs.arg(positional = true) dest: String
   ): Command[List[String]] =
     Task.Command(exclusive = true) {
-      val resolved = Resolve.Tasks.resolve(
-        evaluator.rootModule,
-        List(src, dest),
-        SelectMode.Multi
-      )
+      val resolved = evaluator.resolveTasks(List(src, dest), SelectMode.Multi)
 
       (resolved: @unchecked) match {
         case Left(err) => Result.Failure(err)
@@ -478,15 +466,11 @@ trait MainModule extends BaseModule {
         if (targets.isEmpty)
           Right((os.list(rootDir).filterNot(keepPath), List(mill.define.Segments())))
         else
-          mill.resolve.Resolve.Segments.resolve(
-            evaluator.rootModule,
-            targets,
-            SelectMode.Multi
-          ).map { ts =>
+          evaluator.resolveSegments(targets, SelectMode.Multi).map { ts =>
             val allPaths = ts.flatMap { segments =>
-              val evPaths = EvaluatorPaths.resolveDestPaths(rootDir, segments)
+              val evPaths = ExecutionPaths.resolveDestPaths(rootDir, segments)
               val paths = Seq(evPaths.dest, evPaths.meta, evPaths.log)
-              val potentialModulePath = rootDir / EvaluatorPaths.makeSegmentStrings(segments)
+              val potentialModulePath = rootDir / ExecutionPaths.makeSegmentStrings(segments)
               if (os.exists(potentialModulePath)) {
                 // this is either because of some pre-Mill-0.10 files lying around
                 // or most likely because the segments denote a module but not a task
@@ -568,8 +552,7 @@ trait MainModule extends BaseModule {
     Task.Command(exclusive = true) {
       val evaluated =
         if (os.exists(os.pwd / "pom.xml"))
-          RunScript.evaluateTasksNamed(
-            evaluator,
+          evaluator.evaluateTasksNamed(
             Seq("mill.init.InitMavenModule/init") ++ args,
             SelectMode.Separated
           )
@@ -579,20 +562,17 @@ trait MainModule extends BaseModule {
           os.exists(os.pwd / "settings.gradle") ||
           os.exists(os.pwd / "settings.gradle.kts")
         )
-          RunScript.evaluateTasksNamed(
-            evaluator,
+          evaluator.evaluateTasksNamed(
             Seq("mill.init.InitGradleModule/init") ++ args,
             SelectMode.Separated
           )
         else if (args.headOption.exists(_.toLowerCase.endsWith(".g8")))
-          RunScript.evaluateTasksNamed(
-            evaluator,
+          evaluator.evaluateTasksNamed(
             Seq("mill.scalalib.giter8.Giter8Module/init") ++ args,
             SelectMode.Separated
           )
         else
-          RunScript.evaluateTasksNamed(
-            evaluator,
+          evaluator.evaluateTasksNamed(
             Seq("mill.init.InitModule/init") ++ args,
             SelectMode.Separated
           )
@@ -628,11 +608,7 @@ trait MainModule extends BaseModule {
       }
     }
 
-    Resolve.Tasks.resolve(
-      evaluator.rootModule,
-      targets,
-      SelectMode.Multi
-    ) match {
+    evaluator.resolveTasks(targets, SelectMode.Multi) match {
       case Left(err) => Result.Failure(err)
       case Right(rs) => planTasks match {
           case Some(allRs) => callVisualizeModule(rs, allRs)

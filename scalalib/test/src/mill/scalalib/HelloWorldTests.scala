@@ -7,7 +7,7 @@ import scala.util.Using
 import mill.*
 import mill.api.Result
 import mill.define.Discover
-import mill.eval.EvaluatorPaths
+import mill.exec.ExecutionPaths
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest.*
@@ -231,7 +231,7 @@ object HelloWorldTests extends TestSuite {
         val Left(Result.Failure("Compilation failed", _)) =
           eval.apply(HelloWorld.core.compile): @unchecked
 
-        val paths = EvaluatorPaths.resolveDestPaths(eval.outPath, HelloWorld.core.compile)
+        val paths = ExecutionPaths.resolveDestPaths(eval.outPath, HelloWorld.core.compile)
 
         assert(
           os.walk(paths.dest / "classes").isEmpty,
