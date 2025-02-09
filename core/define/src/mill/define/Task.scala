@@ -495,7 +495,7 @@ object Target extends TaskBase {
         for (value <- unwrapped.toList)
           yield Applicative.impl[Task, Task, Result, PathRef, mill.api.Ctx](
             traverseCtxExpr(caller),
-            '{ PathRef($ctx.millSourcePath / os.PathChunk.SubPathChunk($value)) }
+            '{ PathRef($ctx.millSourcePath / os.up / os.PathChunk.SubPathChunk($value)) }
           )
 
       val taskIsPrivate = isPrivateTargetOption()
@@ -566,7 +566,7 @@ object Target extends TaskBase {
       val wrapped =
         Applicative.impl[Task, Task, Result, PathRef, mill.api.Ctx](
           traverseCtxExpr(caller),
-          '{ PathRef($ctx.millSourcePath / os.PathChunk.SubPathChunk($value)) }
+          '{ PathRef($ctx.millSourcePath / os.up / os.PathChunk.SubPathChunk($value)) }
         )
 
       val taskIsPrivate = isPrivateTargetOption()
