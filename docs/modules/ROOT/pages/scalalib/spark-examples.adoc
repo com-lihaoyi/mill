@@ -1,5 +1,5 @@
 = Scala Spark Examples
-:page-aliases: Web_Build_Examples.adoc, Scala_Web_Examples.adoc
+:page-aliases: Spark_Examples.adoc
 
 
 
