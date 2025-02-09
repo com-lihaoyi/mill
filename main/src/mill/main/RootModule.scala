@@ -18,11 +18,8 @@ abstract class RootModule()(implicit
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,
     millFile0: sourcecode.File
-) extends mill.define.BaseModule(baseModuleInfo.projectRoot)(
-      millModuleEnclosing0,
-      millModuleLine0,
-      millFile0
-    ) with mill.main.MainModule {
+) extends mill.define.BaseModule(baseModuleInfo.projectRoot)
+  with mill.main.MainModule {
 
   // Dummy `millDiscover` defined but never actually used and overridden by codegen.
   // Provided for IDEs to think that one is available and not show errors in
