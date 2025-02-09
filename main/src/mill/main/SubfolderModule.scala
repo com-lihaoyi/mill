@@ -13,15 +13,13 @@ abstract class SubfolderModule()(implicit
     millFile0: sourcecode.File,
     subFolderInfo: SubfolderModule.Info
 ) extends mill.define.Module.BaseClass()(
-      Ctx.make(
+      Ctx.makeRoot(
         millModuleEnclosing0 = subFolderInfo.segments.mkString("."),
         millModuleLine0 = millModuleLine0,
         millSourcePath = subFolderInfo.millSourcePath0 / os.up,
         segments0 = Segments.labels(subFolderInfo.segments.init*),
         external0 = false,
         fileName = millFile0,
-        enclosingModule = null,
-        discover = null
       )
     ) with Module {
   def millDiscover: Discover = sys.error("RootModule#millDiscover must be overridden")

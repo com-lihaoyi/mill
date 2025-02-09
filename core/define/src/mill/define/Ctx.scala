@@ -26,7 +26,7 @@ trait Ctx extends Ctx.Nested {
   /**
    * The `class` or `trait` that lexically surrounds this definition
    */
-  def enclosingCls: Class[?]
+  private[mill] def enclosingCls: Class[?]
 
   private[mill] def withCrossValues(crossValues: Seq[Any]): Ctx
   private[mill] def withMillSourcePath(millSourcePath: os.Path): Ctx
@@ -61,15 +61,15 @@ object Ctx extends LowPriCtx {
   }
 
   /**
-   * A subset of the [[Ctx]] interface, used to implicitly propagate the
-   * necessary fields down the module hierarchy
+   * A subset of the [[Ctx]] interface that are implicitly propagated
+   * from the enclosing Module.
    */
   trait Nested {
 
     /**
      * The runtime [[Module]] object that contains this definition
      */
-    def enclosingModule: Ctx.Wrapper
+    private[mill] def enclosingModule: Ctx.Wrapper
 
     /**
      * The enclosing module's default source root
@@ -101,12 +101,15 @@ object Ctx extends LowPriCtx {
       enclosingClass: EnclosingClass,
       ctx: Ctx.Nested
   ): Ctx = {
+    // Manually break apart `sourcecode.Enclosing` instead of using
+    // `sourcecode.Name` to work around bug with anonymous classes
+    // returning `$anon` names
     val lastSegmentStr =
       millModuleEnclosing0.value.split("\\.|#| ").filter(!_.startsWith("$anon")).last
 
-    make(
-      millModuleEnclosing0,
-      millModuleLine0,
+    Impl(
+      millModuleEnclosing0.value,
+      millModuleLine0.value,
       ctx.millSourcePath / lastSegmentStr,
       ctx.segments ++
         OverrideMapping.computeSegments(
@@ -116,24 +119,20 @@ object Ctx extends LowPriCtx {
           enclosingClass.value
         ).getOrElse(Segments(List(Segment.Label(lastSegmentStr)))),
       ctx.external,
-      fileName,
+      fileName.value,
       ctx.enclosingModule,
+      Nil,
       ctx.discover
     )
   }
-  def make(
+  def makeRoot(
       millModuleEnclosing0: sourcecode.Enclosing,
       millModuleLine0: sourcecode.Line,
       millSourcePath: os.Path,
       segments0: Segments,
       external0: Boolean,
       fileName: sourcecode.File,
-      enclosingModule: Ctx.Wrapper,
-      discover: Discover
   ): Ctx = {
-    // Manually break apart `sourcecode.Enclosing` instead of using
-    // `sourcecode.Name` to work around bug with anonymous classes
-    // returning `$anon` names
 
     Impl(
       millModuleEnclosing0.value,
@@ -142,9 +141,9 @@ object Ctx extends LowPriCtx {
       segments0,
       external0,
       fileName.value,
-      enclosingModule,
+      null,
       Seq(),
-      discover
+      null
     )
   }
 }

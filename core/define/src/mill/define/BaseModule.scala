@@ -12,15 +12,13 @@ abstract class BaseModule(
     millModuleLine0: sourcecode.Line,
     millFile0: sourcecode.File
 ) extends Module.BaseClass()(
-      mill.define.Ctx.make(
+      mill.define.Ctx.makeRoot(
         implicitly,
         implicitly,
         millSourcePath0,
         Segments(),
         external0,
         millFile0,
-        null,
-        discover = null
       )
     ) with Module {
 
