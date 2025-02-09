@@ -16,7 +16,7 @@ abstract class ExternalModule(implicit
     !" #".exists(millModuleEnclosing0.value.contains(_)),
     "External modules must be at a top-level static path, not " + millModuleEnclosing0.value
   )
-  override implicit def millModuleSegments: Segments = {
+  override def millModuleSegments: Segments = {
     Segments(millModuleEnclosing0.value.split('.').map(Segment.Label(_)).toIndexedSeq)
   }
 }

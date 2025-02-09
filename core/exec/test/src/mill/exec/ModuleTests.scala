@@ -16,6 +16,7 @@ object TestExternalModule extends mill.define.ExternalModule with mill.define.Ta
   }
   lazy val millDiscover = Discover[this.type]
 }
+
 object ModuleTests extends TestSuite {
   object Build extends TestBaseModule {
     def z = Task { TestExternalModule.x() + TestExternalModule.inner.y() }
@@ -24,9 +25,9 @@ object ModuleTests extends TestSuite {
   val tests = Tests {
     test("externalModuleCalls") {
       val check = UnitTester(Build, null)
-      val result = check.apply("mill.eval.TestExternalModule/x")
+      val result = check.apply("mill.exec.TestExternalModule/x")
       assert(result == Right(Result(Vector(13), 0)))
-      val result2 = check.apply("mill.eval.TestExternalModule/")
+      val result2 = check.apply("mill.exec.TestExternalModule/")
       assert(result2 == Right(Result(Vector(13), 0)))
     }
     test("externalModuleTargetsAreNamespacedByModulePackagePath") {
@@ -37,10 +38,10 @@ object ModuleTests extends TestSuite {
         zresult == Right(Result(30, 1)),
         os.read(check.evaluator.outPath / "z.json").contains("30"),
         os.read(
-          check.outPath / "mill/eval/TestExternalModule/x.json"
+          check.outPath / "mill/exec/TestExternalModule/x.json"
         ).contains("13"),
         os.read(
-          check.outPath / "mill/eval/TestExternalModule/inner/y.json"
+          check.outPath / "mill/exec/TestExternalModule/inner/y.json"
         ).contains("17")
       )
     }
