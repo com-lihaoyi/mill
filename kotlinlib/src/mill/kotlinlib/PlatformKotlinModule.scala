@@ -7,7 +7,7 @@ import mill.scalalib.PlatformModuleBase
  * It supports additional source directories per platform, e.g. `src-jvm/` or
  * `src-js/`.
  *
- * Adjusts the [[modulePath]] and [[artifactNameParts]] to ignore the last
+ * Adjusts the [[moduleBase]] and [[artifactNameParts]] to ignore the last
  * path segment, which is assumed to be the name of the platform the module is
  * built against and not something that should affect the filesystem path or
  * artifact name

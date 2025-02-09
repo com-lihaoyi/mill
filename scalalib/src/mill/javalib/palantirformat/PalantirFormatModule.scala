@@ -18,7 +18,7 @@ trait PalantirFormatModule extends JavaModule with PalantirFormatBaseModule {
    * @param check if an exception should be raised when formatting errors are found
    *              - when set, files are not formatted
    * @param sources list of file or folder path(s) to be processed
-   *                - path must be relative to [[modulePath]]
+   *                - path must be relative to [[moduleBase]]
    *                - when empty, all [[sources]] are processed
    */
   def palantirformat(
@@ -28,7 +28,7 @@ trait PalantirFormatModule extends JavaModule with PalantirFormatBaseModule {
 
     val _sources =
       if (sources.value.isEmpty) this.sources()
-      else sources.value.iterator.map(rel => PathRef(modulePath / os.RelPath(rel)))
+      else sources.value.iterator.map(rel => PathRef(moduleBase / os.RelPath(rel)))
 
     PalantirFormatModule.palantirAction(
       _sources,

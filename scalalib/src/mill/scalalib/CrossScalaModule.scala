@@ -15,6 +15,6 @@ import mill.{T, Task}
 trait CrossScalaModule extends ScalaModule with CrossModuleBase {
   override def sources: T[Seq[PathRef]] = Task.Sources {
     super.sources() ++
-      scalaVersionDirectoryNames.map(s => PathRef(modulePath / s"src-$s"))
+      scalaVersionDirectoryNames.map(s => PathRef(moduleBase / s"src-$s"))
   }
 }

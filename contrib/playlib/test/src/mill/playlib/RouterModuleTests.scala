@@ -78,7 +78,7 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
                 "end of input expected"
               }
             val expectedMessage = "Unable to compile play routes, compilation error in " +
-              project.modulePath.toIO.getAbsolutePath.replace(
+              project.moduleBase.toIO.getAbsolutePath.replace(
                 """\""",
                 "/"
               ) + "/routes/routes at line 4, " +
@@ -105,7 +105,7 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
                 "end of input expected"
               }
             val expectedMessage = "Unable to compile play routes, compilation error in " +
-              HelloWorld.core.modulePath.toIO.getAbsolutePath.replace(
+              HelloWorld.core.moduleBase.toIO.getAbsolutePath.replace(
                 """\""",
                 "/"
               ) + "/routes/sub.routes at line 3, column" +

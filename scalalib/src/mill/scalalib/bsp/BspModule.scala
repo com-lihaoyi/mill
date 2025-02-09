@@ -18,7 +18,7 @@ trait BspModule extends Module {
   @internal
   def bspBuildTarget: BspBuildTarget = BspBuildTarget(
     displayName = Some(bspDisplayName),
-    baseDirectory = Some(modulePath),
+    baseDirectory = Some(moduleBase),
     tags = Seq(Tag.Library, Tag.Application),
     languageIds = Seq(),
     canCompile = false,

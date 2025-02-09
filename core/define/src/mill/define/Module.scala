@@ -17,7 +17,7 @@ import scala.reflect.ClassTag
  */
 trait Module extends Module.BaseClass with Ctx.Wrapper {
   implicit def moduleNestedCtx: Ctx.Nested = moduleCtx
-    .withMillSourcePath(modulePath)
+    .withMillSourcePath(moduleBase)
     .withSegments(moduleSegments)
     .withEnclosingModule(this)
 
@@ -35,7 +35,7 @@ trait Module extends Module.BaseClass with Ctx.Wrapper {
   private lazy val millModuleDirectChildrenImpl: Seq[Module] =
     moduleInternal.reflectNestedObjects[Module]().toSeq
 
-  def modulePath: os.Path = moduleCtx.millSourcePath
+  def moduleBase: os.Path = moduleCtx.millSourcePath
 
   def moduleSegments: Segments = moduleCtx.segments
 

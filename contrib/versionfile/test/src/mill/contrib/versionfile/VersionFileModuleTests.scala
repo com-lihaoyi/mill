@@ -18,7 +18,7 @@ object VersionFileModuleTests extends TestSuite {
       versionText: String
   ): UnitTester = UnitTester(m, null).scoped { eval =>
     os.write.over(
-      vf(m).modulePath / "version",
+      vf(m).moduleBase / "version",
       versionText,
       createFolders = true
     )

@@ -189,8 +189,8 @@ object HelloJavaTests extends TestSuite {
     test("failures") {
       val eval = testEval()
 
-      val mainJava = HelloJava.modulePath / "app/src/Main.java"
-      val coreJava = HelloJava.modulePath / "core/src/Core.java"
+      val mainJava = HelloJava.moduleBase / "app/src/Main.java"
+      val coreJava = HelloJava.moduleBase / "core/src/Core.java"
 
       val Right(_) = eval.apply(HelloJava.core.compile): @unchecked
       val Right(_) = eval.apply(HelloJava.app.compile): @unchecked

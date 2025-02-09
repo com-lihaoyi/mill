@@ -192,7 +192,7 @@ object TestGraphs {
 
     object cross2 extends mill.Cross[Cross2]("210", "211", "212")
     trait Cross2 extends Cross.Module[String] {
-      override def modulePath = super.modulePath / crossValue
+      override def moduleBase = super.moduleBase / crossValue
       def suffix = Task { crossValue }
     }
     lazy val millDiscover = Discover[this.type]
@@ -206,7 +206,7 @@ object TestGraphs {
 
     object cross2 extends mill.Cross[Cross2](210L, 211L, 212L)
     trait Cross2 extends Cross.Module[Long] {
-      override def modulePath = super.modulePath / crossValue.toString
+      override def moduleBase = super.moduleBase / crossValue.toString
       def suffix = Task { crossValue }
     }
 

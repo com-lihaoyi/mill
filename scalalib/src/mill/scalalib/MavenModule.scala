@@ -10,21 +10,21 @@ import mill.Task
 trait MavenModule extends JavaModule { outer =>
 
   override def sources = Task.Sources(
-    modulePath / "src/main/java"
+    moduleBase / "src/main/java"
   )
   override def resources = Task.Sources {
-    modulePath / "src/main/resources"
+    moduleBase / "src/main/resources"
   }
 
   trait MavenTests extends JavaTests {
-    override def modulePath = outer.modulePath
-    override def intellijModulePath: os.Path = outer.modulePath / "src/test"
+    override def moduleBase = outer.moduleBase
+    override def intellijModulePath: os.Path = outer.moduleBase / "src/test"
 
     override def sources = Task.Sources(
-      modulePath / "src/test/java"
+      moduleBase / "src/test/java"
     )
     override def resources = Task.Sources {
-      modulePath / "src/test/resources"
+      moduleBase / "src/test/resources"
     }
   }
 }

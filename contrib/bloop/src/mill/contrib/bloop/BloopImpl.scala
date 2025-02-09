@@ -403,7 +403,7 @@ class BloopImpl(evs: () => Seq[Evaluator], wd: os.Path) extends ExternalModule {
 
       BloopConfig.Project(
         name = name(module),
-        directory = module.modulePath.toNIO,
+        directory = module.moduleBase.toNIO,
         workspaceDir = Some(wd.toNIO),
         sources = mSources,
         sourcesGlobs = None,

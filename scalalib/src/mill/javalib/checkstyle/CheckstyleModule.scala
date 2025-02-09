@@ -39,7 +39,7 @@ trait CheckstyleModule extends JavaModule {
       mainClass = "com.puppycrawl.tools.checkstyle.Main",
       classPath = checkstyleClasspath().map(_.path).toVector,
       mainArgs = args,
-      cwd = modulePath, // allow passing relative paths for sources like src/a/b
+      cwd = moduleBase, // allow passing relative paths for sources like src/a/b
       stdin = os.Inherit,
       stdout = os.Inherit,
       check = false

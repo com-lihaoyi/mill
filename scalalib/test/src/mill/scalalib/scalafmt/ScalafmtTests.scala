@@ -21,7 +21,7 @@ object ScalafmtTests extends TestSuite {
       def scalaVersion: T[String] = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
 
       def buildSources: T[Seq[PathRef]] = Task.Sources {
-        modulePath / "util.sc"
+        moduleBase / "util.sc"
       }
 
     }
@@ -36,7 +36,7 @@ object ScalafmtTests extends TestSuite {
       def checkReformat(reformatCommand: mill.define.Command[Unit], buildSrcIncluded: Boolean) =
         UnitTester(ScalafmtTestModule, resourcePath).scoped { eval =>
           os.write(
-            ScalafmtTestModule.modulePath / ".scalafmt.conf",
+            ScalafmtTestModule.moduleBase / ".scalafmt.conf",
             s"""version = $scalafmtTestVersion
                |runner.dialect = scala213
                |""".stripMargin

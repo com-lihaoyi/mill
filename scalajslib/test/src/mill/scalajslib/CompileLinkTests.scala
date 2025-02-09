@@ -44,7 +44,7 @@ object CompileLinkTests extends TestSuite {
       )
 
       object `test-utest` extends ScalaJSTests with TestModule.Utest {
-        override def sources = Task.Sources { this.modulePath / "src/utest" }
+        override def sources = Task.Sources { this.moduleBase / "src/utest" }
         val utestVersion = if (ZincWorkerUtil.isScala3(crossScalaVersion)) "0.7.7" else "0.7.5"
         override def ivyDeps = Agg(
           ivy"com.lihaoyi::utest::$utestVersion"
@@ -52,7 +52,7 @@ object CompileLinkTests extends TestSuite {
       }
 
       object `test-scalatest` extends ScalaJSTests with TestModule.ScalaTest {
-        override def sources = Task.Sources { this.modulePath / "src/scalatest" }
+        override def sources = Task.Sources { this.moduleBase / "src/scalatest" }
         override def ivyDeps = Agg(
           ivy"org.scalatest::scalatest::3.1.2"
         )

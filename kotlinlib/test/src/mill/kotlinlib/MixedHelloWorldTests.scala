@@ -79,7 +79,7 @@ object MixedHelloWorldTests extends TestSuite {
       MixedHelloWorldKotlin.main.crossModules.foreach(m => {
 
         val mainJava =
-          MixedHelloWorldKotlin.modulePath / "main/src/hello/KotlinHello.kt"
+          MixedHelloWorldKotlin.moduleBase / "main/src/hello/KotlinHello.kt"
 
         val Right(_) = eval.apply(m.compile): @unchecked
 

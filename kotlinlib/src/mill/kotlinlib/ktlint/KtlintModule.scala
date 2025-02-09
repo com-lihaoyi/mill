@@ -126,7 +126,7 @@ object KtlintModule extends ExternalModule with KtlintModule with TaskModule {
       mainClass = "com.pinterest.ktlint.Main",
       classPath = classPath.map(_.path).toVector,
       mainArgs = args.result(),
-      cwd = modulePath,
+      cwd = moduleBase,
       stdin = os.Inherit,
       stdout = os.Inherit,
       check = false

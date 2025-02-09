@@ -23,31 +23,31 @@ object ModuleTests extends TestSuite {
       nestedModule.toString ==> ""
       nestedModule.moduleSegments ==> Segments()
       nestedModule.nested.toString ==> "nested"
-      nestedModule.nested.modulePath.relativeTo(nestedModule.modulePath) ==>
+      nestedModule.nested.moduleBase.relativeTo(nestedModule.moduleBase) ==>
         os.sub / "nested"
       nestedModule.nested.moduleSegments ==> Segments.labels("nested")
       nestedModule.nested.single.toString ==> "nested.single"
     }
     test("cross") {
-      val base = nestedCrosses.modulePath
+      val base = nestedCrosses.moduleBase
       nestedCrosses.toString ==> ""
       nestedCrosses.cross.toString ==> "cross"
       nestedCrosses.cross.moduleSegments ==> Segments.labels("cross")
-      nestedCrosses.cross.modulePath.relativeTo(base) ==>
+      nestedCrosses.cross.moduleBase.relativeTo(base) ==>
         os.sub / "cross"
 
       nestedCrosses.cross("210").toString ==> "cross[210]"
       nestedCrosses.cross("210").moduleSegments ==>
         Segments(List(Segment.Label("cross"), Segment.Cross(Seq("210"))))
-      nestedCrosses.cross("210").modulePath.relativeTo(base) ==>
+      nestedCrosses.cross("210").moduleBase.relativeTo(base) ==>
         os.sub / "cross"
 
       nestedCrosses.cross("210").cross2.toString ==> "cross[210].cross2"
       nestedCrosses.cross("210").cross2.moduleSegments ==>
         Segments(List(Segment.Label("cross"), Segment.Cross(Seq("210")), Segment.Label("cross2")))
-      nestedCrosses.cross("210").cross2.modulePath.relativeTo(base) ==>
+      nestedCrosses.cross("210").cross2.moduleBase.relativeTo(base) ==>
         os.sub / "cross/cross2"
-      nestedCrosses.cross("210").cross2.modulePath.relativeTo(base) ==>
+      nestedCrosses.cross("210").cross2.moduleBase.relativeTo(base) ==>
         os.sub / "cross" / "cross2"
 
       nestedCrosses.cross("210").cross2("js").toString ==> "cross[210].cross2[js]"
@@ -58,7 +58,7 @@ object ModuleTests extends TestSuite {
           Segment.Label("cross2"),
           Segment.Cross(Seq("js"))
         ))
-      nestedCrosses.cross("210").cross2("js").modulePath.relativeTo(base) ==>
+      nestedCrosses.cross("210").cross2("js").moduleBase.relativeTo(base) ==>
         os.sub / "cross" / "cross2"
 
     }

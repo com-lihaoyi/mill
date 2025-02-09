@@ -52,7 +52,7 @@ trait TypeScriptModule extends Module { outer =>
 
   def sources: T[PathRef] = Task.Source("src")
 
-  def resources: T[Seq[PathRef]] = Task { Seq(PathRef(modulePath / "resources")) }
+  def resources: T[Seq[PathRef]] = Task { Seq(PathRef(moduleBase / "resources")) }
 
   def generatedSources: T[Seq[PathRef]] = Task { Seq[PathRef]() }
 
@@ -86,10 +86,10 @@ trait TypeScriptModule extends Module { outer =>
     val core = for {
       file <- allSources()
     } yield file.path match {
-      case coreS if coreS.startsWith(modulePath) =>
+      case coreS if coreS.startsWith(moduleBase) =>
         // core - regular sources
         // expected to exist within boundaries of `millSourcePath`
-        typescriptOut / coreS.relativeTo(modulePath)
+        typescriptOut / coreS.relativeTo(moduleBase)
       case otherS =>
         // sources defined by a modified source task
         // mv to compile source
@@ -137,13 +137,13 @@ trait TypeScriptModule extends Module { outer =>
       ((comp, ts, res), mod) <- Task.traverse(moduleDeps)(_.upstreams)().zip(moduleDeps)
     } yield {
       Seq((
-        mod.modulePath.subRelativeTo(Task.workspace).toString + "/*",
+        mod.moduleBase.subRelativeTo(Task.workspace).toString + "/*",
         (ts.path / "src").toString + ":" + (comp.path / "declarations").toString
       )) ++
         res.map { rp =>
           val resourceRoot = rp.path.last
           (
-            "@" + mod.modulePath.subRelativeTo(Task.workspace).toString + s"/$resourceRoot/*",
+            "@" + mod.moduleBase.subRelativeTo(Task.workspace).toString + s"/$resourceRoot/*",
             resourceRoot match {
               case s if s.contains(".dest") =>
                 rp.path.toString
@@ -159,7 +159,7 @@ trait TypeScriptModule extends Module { outer =>
   }
 
   def modulePaths: Task[Seq[(String, String)]] = Task.Anon {
-    val module = modulePath.last
+    val module = moduleBase.last
     val typescriptOut = Task.dest / "typescript"
     val declarationsOut = Task.dest / "declarations"
 
@@ -232,13 +232,13 @@ trait TypeScriptModule extends Module { outer =>
       )
     )
 
-    os.copy(modulePath, Task.dest / "typescript", mergeFolders = true)
+    os.copy(moduleBase, Task.dest / "typescript", mergeFolders = true)
     os.call(npmInstall().path / "node_modules/typescript/bin/tsc", cwd = Task.dest)
 
     (PathRef(Task.dest), PathRef(Task.dest / "typescript"))
   }
 
-  def mainFileName: T[String] = Task { s"${modulePath.last}.ts" }
+  def mainFileName: T[String] = Task { s"${moduleBase.last}.ts" }
 
   def mainFilePath: T[Path] = Task { compile()._2.path / "src" / mainFileName() }
 

@@ -89,7 +89,7 @@ trait AndroidAppModule extends JavaModule {
     super.repositoriesTask() :+ AndroidSdkModule.mavenGoogle
   }
 
-  override def sources: T[Seq[PathRef]] = Task.Sources(modulePath / "src/main/java")
+  override def sources: T[Seq[PathRef]] = Task.Sources(moduleBase / "src/main/java")
 
   /**
    * Provides access to the Android SDK configuration.
@@ -130,7 +130,7 @@ trait AndroidAppModule extends JavaModule {
    * Users can customize the keystore file name to change this path.
    */
   def androidReleaseKeyPath: T[Option[PathRef]] = Task {
-    androidReleaseKeyName().map(name => PathRef(modulePath / name))
+    androidReleaseKeyName().map(name => PathRef(moduleBase / name))
   }
 
   /**
@@ -269,7 +269,7 @@ trait AndroidAppModule extends JavaModule {
    */
   override def resources: T[Seq[PathRef]] = Task {
     val libResFolders = androidUnpackArchives().flatMap(_.resources)
-    libResFolders :+ PathRef(modulePath / "src/main/res")
+    libResFolders :+ PathRef(moduleBase / "src/main/res")
   }
 
   @internal
@@ -279,7 +279,7 @@ trait AndroidAppModule extends JavaModule {
 
   @internal
   override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
-    baseDirectory = Some(modulePath / "src/main"),
+    baseDirectory = Some(moduleBase / "src/main"),
     tags = Seq("application")
   )
 
@@ -762,7 +762,7 @@ trait AndroidAppModule extends JavaModule {
     os.call(
       Seq(
         androidSdkModule().lintToolPath().path.toString,
-        (modulePath / "src/main").toString,
+        (moduleBase / "src/main").toString,
         "--classpath",
         cp,
         "--sources",
@@ -1047,7 +1047,7 @@ trait AndroidAppModule extends JavaModule {
   }
 
   trait AndroidAppTests extends JavaTests {
-    private def testPath = parent.modulePath / "src/test"
+    private def testPath = parent.moduleBase / "src/test"
 
     override def sources: T[Seq[PathRef]] = Seq(PathRef(testPath / "java"))
 
@@ -1061,7 +1061,7 @@ trait AndroidAppModule extends JavaModule {
   }
 
   trait AndroidAppInstrumentedTests extends AndroidAppModule with AndroidTestModule {
-    private def androidMainSourcePath = parent.modulePath
+    private def androidMainSourcePath = parent.moduleBase
     private def androidTestPath = androidMainSourcePath / "src/androidTest"
 
     override def moduleDeps: Seq[JavaModule] = Seq(parent)

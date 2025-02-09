@@ -78,7 +78,7 @@ object JavaCompileJarTests extends TestSuite {
       def eval[T](t: Task[T]) = evaluator.apply(t)
       def check(targets: Agg[Task[?]], expected: Agg[Task[?]]) = evaluator.check(targets, expected)
 
-      def append(path: os.SubPath, txt: String) = os.write.append(modulePath / path, txt)
+      def append(path: os.SubPath, txt: String) = os.write.append(moduleBase / path, txt)
 
       check(
         targets = Agg(jar),

@@ -56,14 +56,14 @@ class UnitTester(
     env: Map[String, String],
     resetSourcePath: Boolean
 )(implicit fullName: sourcecode.FullName) extends AutoCloseable {
-  val outPath: os.Path = module.modulePath / "out"
+  val outPath: os.Path = module.moduleBase / "out"
 
   if (resetSourcePath) {
-    os.remove.all(module.modulePath)
-    os.makeDir.all(module.modulePath)
+    os.remove.all(module.moduleBase)
+    os.makeDir.all(module.moduleBase)
 
     for (sourceFileRoot <- Option(sourceRoot)) {
-      os.copy.over(sourceFileRoot, module.modulePath, createFolders = true)
+      os.copy.over(sourceFileRoot, module.moduleBase, createFolders = true)
     }
   }
 
@@ -90,7 +90,7 @@ class UnitTester(
 
   val evaluator: Evaluator = new mill.eval.Evaluator(
     mill.api.Ctx.defaultHome,
-    module.modulePath,
+    module.moduleBase,
     outPath,
     outPath,
     module,

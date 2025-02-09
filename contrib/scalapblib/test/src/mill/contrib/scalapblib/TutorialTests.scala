@@ -51,12 +51,12 @@ object TutorialTests extends TestSuite {
   object TutorialWithSpecificSources extends TutorialBase {
     object core extends TutorialModule {
       override def scalaPBSources: T[Seq[PathRef]] = Task.Sources {
-        modulePath / "protobuf/tutorial/Tutorial.proto"
+        moduleBase / "protobuf/tutorial/Tutorial.proto"
       }
 
       override def scalaPBSearchDeps = true
       override def scalaPBIncludePath = Seq(
-        PathRef(modulePath / "protobuf/tutorial")
+        PathRef(moduleBase / "protobuf/tutorial")
       )
     }
     lazy val millDiscover = Discover[this.type]
