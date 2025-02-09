@@ -1,0 +1,75 @@
+package build
+
+import mill._, javascriptlib._
+
+object abort extends TypeScriptModule {
+  def npmDeps = Seq("ollama@0.5.12")
+  def mainFileName = s"abort-all-requests.ts"
+}
+// broken top level await (add esm config)
+object `fill-in-middle` extends TypeScriptModule {
+  def npmDeps = Seq("ollama@0.5.12")
+  def mainFileName = s"fill.ts"
+  def compilerOptions =
+    super.compilerOptions() + (
+      "skipLibCheck" -> ujson.True,
+      "module" -> ujson.Str("nodenext"),
+      "moduleResolution" -> ujson.Str("nodenext")
+    )
+}
+
+// broken top level await (add esm config) // use resources for image
+object multimodal extends TypeScriptModule {
+  def npmDeps = Seq("ollama@0.5.12")
+  def compilerOptions =
+    super.compilerOptions() + (
+      "skipLibCheck" -> ujson.True,
+      "module" -> ujson.Str("nodenext"),
+      "moduleResolution" -> ujson.Str("nodenext")
+    )
+}
+
+// broken top level await (add esm config)
+object `pull-progress` extends TypeScriptModule {
+  def npmDeps = Seq("ollama@0.5.12")
+  def mainFileName = s"pull.ts"
+  def compilerOptions =
+    super.compilerOptions() + (
+      "skipLibCheck" -> ujson.True,
+      "module" -> ujson.Str("nodenext"),
+      "moduleResolution" -> ujson.Str("nodenext"),
+      "target" -> ujson.Str("es6"),
+      "moduleDetection" -> ujson.Str("force")
+    )
+
+  def extraOptions =
+    super.extraOptions() + (
+      "ts-node" -> ujson.Obj(
+        "swc" -> ujson.True,
+        "esm" -> ujson.True
+      )
+    )
+}
+
+object `structured-outputs` extends TypeScriptModule {
+  def npmDeps = Seq("ollama@0.5.12", "zod@3.24.1", "zod-to-json-schema@3.24.1")
+  def compilerOptions =
+    super.compilerOptions() + (
+      "skipLibCheck" -> ujson.True,
+      "module" -> ujson.Str("nodenext"),
+      "moduleResolution" -> ujson.Str("nodenext"),
+      "target" -> ujson.Str("es6")
+    )
+}
+
+object tools extends TypeScriptModule {
+  def npmDeps = Seq("ollama@0.5.12")
+  def mainFileName = s"calculator.ts"
+  def compilerOptions =
+    super.compilerOptions() + (
+      "skipLibCheck" -> ujson.True,
+      "module" -> ujson.Str("nodenext"),
+      "moduleResolution" -> ujson.Str("nodenext"),
+      "target" -> ujson.Str("es6")
+    )
+}
